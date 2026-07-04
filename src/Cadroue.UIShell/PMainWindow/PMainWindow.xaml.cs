@@ -19,6 +19,7 @@ public partial class PMainWindow : Window
     private const int PMainWindowResizeRight = 2;
     private const int PMainWindowResizeTop = 4;
     private const int PMainWindowResizeBottom = 8;
+    private const int PMainWindowMessageEraseBackground = 0x0014;
     private const int PMainWindowDwmWindowCornerPreference = 33;
     private const int PMainWindowDwmWindowCornerRound = 2;
     private const int PMainWindowDwmCaptionColorAttribute = 35;
@@ -250,6 +251,9 @@ public partial class PMainWindow : Window
         pMainWindowResizeDirection = pDirection;
         pMainWindowResizeStartPointer = PMainWindowPointerScreenDipRead(e);
         pMainWindowResizeStartBounds = new Rect(Left, Top, ActualWidth, ActualHeight);
+        // Drop to software rendering for the drag so WPF and the Flyleaf DirectX surface no longer
+        // fight over the window each frame (airspace flicker); hardware rendering restores on release.
+        RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
         Mouse.Capture(this);
         e.Handled = true;
     }
@@ -269,12 +273,14 @@ public partial class PMainWindow : Window
         if (!pMainWindowResizeActive)
             return;
         pMainWindowResizeActive = false;
+        RenderOptions.ProcessRenderMode = RenderMode.Default;
         Mouse.Capture(null);
         e.Handled = true;
     }
     private void PMainWindowResizeLostCaptureHandle(object sender, MouseEventArgs e)
     {
         pMainWindowResizeActive = false;
+        RenderOptions.ProcessRenderMode = RenderMode.Default;
     }
     private int PMainWindowResizeDirectionRead(Point pPoint)
     {
@@ -436,7 +442,21 @@ public partial class PMainWindow : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
+        HwndSource? pMainWindowSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+        pMainWindowSource?.AddHook(PMainWindowMessageHook);
         PMainWindowDwmCornerApply();
+    }
+    private IntPtr PMainWindowMessageHook(IntPtr windowHandle, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        // Swallow WM_ERASEBKGND so Windows does not repaint the background brush over the client
+        // area on every resize step; WPF still renders the full tree, so nothing is lost. This
+        // removes the whole-window flicker while the borderless window is resized.
+        if (message == PMainWindowMessageEraseBackground)
+        {
+            handled = true;
+            return new IntPtr(1);
+        }
+        return IntPtr.Zero;
     }
     private void PMainWindowDwmCornerApply()
     {
