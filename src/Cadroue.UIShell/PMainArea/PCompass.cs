@@ -1,0 +1,256 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Markup;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using Cadroue.UIShell;
+using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
+
+namespace Cadroue.UIShell.PMainArea;
+
+public sealed class PCompass : UserControl
+{
+    private readonly Slider pCompassVolumeSlider;
+    private readonly TextBlock pCompassVolumeText;
+    private Border pCompassVolumeTrackFill = null!;
+    private Grid pCompassVolumeSliderHost = null!;
+    private bool pCompassVolumeProgramSet;
+
+    public PCompass(PFlowControl pFlow)
+    {
+        var pPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        (string Icon, string Label, string Tooltip, Action Click, bool SeparatorAfter)[] pButtons =
+        {
+            ("PCompassZoomIncrease.png", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutRequest("zoomIn"), false),
+            ("PCompassZoomDecrease.png", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutRequest("zoomOut"), true),
+            ("PCompassPlay.png", "Play", "Play the current media from the cursor.", pFlow.PFlowPlayRequestCall, false),
+            ("PCompassPause.png", "Pause", "Pause playback at the current position.", pFlow.PFlowPauseRequestCall, true),
+            ("PCompassSectionAdd.png", "Add", "Add a new section at the current cursor position.", () => pFlow.PFlowShortcutRequest("addSection"), false),
+            ("PCompassRemove.png", "Delete", "Delete the selected section.", () => pFlow.PFlowShortcutRequest("deleteSection"), true),
+            ("PCompassStart.png", "Start", "Set the selected section’s start point to the cursor.", () => pFlow.PFlowShortcutRequest("setStart"), false),
+            ("PCompassSplit.png", "Split", "Split the selected section at the cursor.", () => pFlow.PFlowShortcutRequest("splitSection"), false),
+            ("PCompassEnd.png", "End", "Set the selected section’s end point to the cursor.", () => pFlow.PFlowShortcutRequest("setEnd"), true),
+            ("PCompassKeyframePrevious.png", "Previous", "Move to the previous visible keyframe.", () => pFlow.PFlowShortcutRequest("previousKey"), false),
+            ("PCompassKeyframeNear.png", "Nearest", "Move to the nearest visible keyframe.", () => pFlow.PFlowShortcutRequest("nearestKey"), false),
+            ("PCompassKeyframeNext.png", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutRequest("nextKey"), true)
+        };
+
+        foreach ((string pIcon, string pLabel, string pTooltip, Action pClick, bool pSeparatorAfter) in pButtons)
+        {
+            Button pButton = PCompassButtonBuild(pIcon, pLabel, pTooltip);
+            pButton.Click += (_, _) => pClick();
+            pPanel.Children.Add(pButton);
+            if (pSeparatorAfter)
+            {
+                pPanel.Children.Add(PCompassSeparatorBuild());
+            }
+        }
+
+        pCompassVolumeText = new TextBlock { Width = 32, FontSize = 11, VerticalAlignment = VerticalAlignment.Center, TextAlignment = TextAlignment.Right };
+        pCompassVolumeSlider = new Slider
+        {
+            Width = 132,
+            Minimum = 0,
+            Maximum = 100,
+            VerticalAlignment = VerticalAlignment.Center,
+            Focusable = false,
+            ToolTip = "Volume",
+            Style = PCompassVolumeSliderStyleBuild()
+        };
+        pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeChangeHandle(pFlow);
+        pFlow.PFlowVolumeValueNotice += PCompassVolumeValueHandle;
+        pPanel.Children.Add(PCompassVolumeBuild());
+        PCompassVolumeValueHandle(App.LPreferenceStateCurrent.LPreferenceVolume);
+
+        Content = new Border
+        {
+            MinHeight = 72,
+            Child = pPanel,
+            SnapsToDevicePixels = true
+        };
+    }
+
+    private Border PCompassVolumeBuild()
+    {
+        var pGrid = new Grid { Width = 268, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        FrameworkElement pIcon = PCompassVolumeIconBuild();
+        var pLabel = new TextBlock
+        {
+            Text = "Volume",
+            FontSize = 11,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x2D, 0x37, 0x48)),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(8, 0, 10, 0)
+        };
+
+        pCompassVolumeSliderHost = new Grid { Width = 132, Height = 22, VerticalAlignment = VerticalAlignment.Center };
+        var pTrackBase = new Border
+        {
+            Height = 4,
+            CornerRadius = new CornerRadius(2),
+            Background = new SolidColorBrush(Color.FromRgb(0xD9, 0xE0, 0xEA)),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pCompassVolumeTrackFill = new Border
+        {
+            Height = 4,
+            CornerRadius = new CornerRadius(2),
+            Background = new SolidColorBrush(Color.FromRgb(0x2F, 0x80, 0xED)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pCompassVolumeSliderHost.Children.Add(pTrackBase);
+        pCompassVolumeSliderHost.Children.Add(pCompassVolumeTrackFill);
+        pCompassVolumeSliderHost.Children.Add(pCompassVolumeSlider);
+        pCompassVolumeSliderHost.SizeChanged += (_, _) => PCompassVolumeTrackUpdate();
+
+        Grid.SetColumn(pIcon, 0);
+        Grid.SetColumn(pLabel, 1);
+        Grid.SetColumn(pCompassVolumeSliderHost, 2);
+        Grid.SetColumn(pCompassVolumeText, 3);
+        pGrid.Children.Add(pIcon);
+        pGrid.Children.Add(pLabel);
+        pGrid.Children.Add(pCompassVolumeSliderHost);
+        pGrid.Children.Add(pCompassVolumeText);
+        return new Border { Height = 58, Padding = new Thickness(8, 0, 0, 0), Child = pGrid };
+    }
+
+    private void PCompassVolumeValueHandle(double pVolume)
+    {
+        pCompassVolumeProgramSet = true;
+        double pVolumeClamp = LPreferenceState.LPreferenceVolumeClamp(pVolume);
+        pCompassVolumeSlider.Value = pVolumeClamp;
+        pCompassVolumeText.Text = Math.Round(pVolumeClamp).ToString("0");
+        PCompassVolumeTrackUpdate();
+        pCompassVolumeProgramSet = false;
+    }
+
+    private void PCompassVolumeChangeHandle(PFlowControl pFlow)
+    {
+        if (pCompassVolumeProgramSet) return;
+        double pVolume = LPreferenceState.LPreferenceVolumeClamp(pCompassVolumeSlider.Value);
+        pCompassVolumeText.Text = Math.Round(pVolume).ToString("0");
+        PCompassVolumeTrackUpdate();
+        pFlow.PFlowVolumeChangeRequestCall(pVolume);
+    }
+
+
+    private void PCompassVolumeTrackUpdate()
+    {
+        if (pCompassVolumeSliderHost is null || pCompassVolumeTrackFill is null) return;
+        if (pCompassVolumeSliderHost.ActualWidth <= 0) return;
+        double pRange = pCompassVolumeSlider.Maximum - pCompassVolumeSlider.Minimum;
+        if (pRange <= 0) return;
+        double pRate = (pCompassVolumeSlider.Value - pCompassVolumeSlider.Minimum) / pRange;
+        pCompassVolumeTrackFill.Width = Math.Max(0, pCompassVolumeSliderHost.ActualWidth * pRate);
+    }
+
+    private static FrameworkElement PCompassVolumeIconBuild()
+    {
+        var pCanvas = new Canvas { Width = 24, Height = 24 };
+        Brush pBrush = new SolidColorBrush(Color.FromRgb(0x3E, 0x4A, 0x5E));
+        var pSpeaker = new Path { Fill = pBrush, Data = Geometry.Parse("M3,9 L7,9 L12,4 L12,20 L7,15 L3,15 Z") };
+        var pWaveSmall = new Path
+        {
+            Stroke = pBrush,
+            StrokeThickness = 1.8,
+            StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap = PenLineCap.Round,
+            Data = Geometry.Parse("M15,8 C17,10 17,14 15,16")
+        };
+        var pWaveLarge = new Path
+        {
+            Stroke = pBrush,
+            StrokeThickness = 1.8,
+            StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap = PenLineCap.Round,
+            Data = Geometry.Parse("M17,5 C21,9 21,15 17,19")
+        };
+        pCanvas.Children.Add(pSpeaker);
+        pCanvas.Children.Add(pWaveSmall);
+        pCanvas.Children.Add(pWaveLarge);
+        return new Viewbox { Width = 22, Height = 22, VerticalAlignment = VerticalAlignment.Center, Child = pCanvas };
+    }
+
+    private static Style PCompassVolumeSliderStyleBuild()
+    {
+        const string pXaml = @"<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
+               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
+               TargetType='{x:Type Slider}'>
+  <Setter Property='Template'>
+    <Setter.Value>
+      <ControlTemplate TargetType='{x:Type Slider}'>
+        <Grid Height='22' Background='Transparent'>
+          <Track x:Name='PART_Track' Focusable='False' VerticalAlignment='Center'>
+            <Track.DecreaseRepeatButton>
+              <RepeatButton Command='{x:Static Slider.DecreaseLarge}' Focusable='False'>
+                <RepeatButton.Template>
+                  <ControlTemplate TargetType='{x:Type RepeatButton}'>
+                    <Border Background='Transparent'/>
+                  </ControlTemplate>
+                </RepeatButton.Template>
+              </RepeatButton>
+            </Track.DecreaseRepeatButton>
+            <Track.IncreaseRepeatButton>
+              <RepeatButton Command='{x:Static Slider.IncreaseLarge}' Focusable='False'>
+                <RepeatButton.Template>
+                  <ControlTemplate TargetType='{x:Type RepeatButton}'>
+                    <Border Background='Transparent'/>
+                  </ControlTemplate>
+                </RepeatButton.Template>
+              </RepeatButton>
+            </Track.IncreaseRepeatButton>
+            <Track.Thumb>
+              <Thumb Width='18' Height='18' Focusable='False'>
+                <Thumb.Template>
+                  <ControlTemplate TargetType='{x:Type Thumb}'>
+                    <Ellipse Fill='White' Stroke='#C9D3E0' StrokeThickness='1'/>
+                  </ControlTemplate>
+                </Thumb.Template>
+              </Thumb>
+            </Track.Thumb>
+          </Track>
+        </Grid>
+      </ControlTemplate>
+    </Setter.Value>
+  </Setter>
+</Style>";
+        return (Style)XamlReader.Parse(pXaml);
+    }
+
+    private static Button PCompassButtonBuild(string pIconAssetName, string pLabelText, string pTooltipText)
+    {
+        var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        pStack.Children.Add(new Image
+        {
+            Source = new BitmapImage(new Uri($"pack://application:,,,/PAssets/PCompass/{pIconAssetName}", UriKind.Absolute)),
+            Width = 24,
+            Height = 24,
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Center
+        });
+        pStack.Children.Add(new Border { Height = 1 });
+        pStack.Children.Add(new TextBlock { Text = pLabelText, FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center });
+        return new Button
+        {
+            Width = 58,
+            Height = 58,
+            Content = pStack,
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            FocusVisualStyle = null,
+            Padding = new Thickness(0),
+            Cursor = Cursors.Hand,
+            ToolTip = pTooltipText
+        };
+    }
+
+    private static Border PCompassSeparatorBuild() => new() { Width = 1, Margin = new Thickness(1, 14, 1, 12), Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC)) };
+}

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
+    <ProjectReference Include="..\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj" />
+    <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="PAssets\PTabs\*.png" />
+    <Resource Include="PAssets\PCompass\*.png" />
+    <Resource Include="PAssets\PMenus\*.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.1.0" />
+    <PackageReference Include="FlyleafLib" Version="3.10.4" />
+    <PackageReference Include="FlyleafLib.Controls.WPF" Version="1.6.4" />
+  </ItemGroup>
+</Project>

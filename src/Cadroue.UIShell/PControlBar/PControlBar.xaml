@@ -1,0 +1,310 @@
+<UserControl x:Class="Cadroue.UIShell.PControlBar.PControlBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pControlBar="clr-namespace:Cadroue.UIShell.PControlBar"
+             Height="56"
+             ClipToBounds="False"
+             SnapsToDevicePixels="True"
+             UseLayoutRounding="True">
+    <UserControl.Resources>
+        <Style x:Key="pTabFrameStyle" TargetType="Border">
+            <Setter Property="Height" Value="42" />
+            <Setter Property="MinWidth" Value="142" />
+            <Setter Property="Padding" Value="11,0,8,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="9,9,0,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#EEF4FC" />
+                    <Setter Property="BorderBrush" Value="#D5E0ED" />
+                </Trigger>
+                <DataTrigger Binding="{Binding PTabSelectState}" Value="True">
+                    <Setter Property="Background" Value="#FFFFFF" />
+                    <Setter Property="BorderBrush" Value="#C9D6E5" />
+                    <Setter Property="BorderThickness" Value="1,1,1,0" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="pTabTopAccentStyle" TargetType="Border">
+            <Setter Property="Height" Value="3" />
+            <Setter Property="Margin" Value="7,0,7,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Background" Value="#2E7AEF" />
+            <Setter Property="CornerRadius" Value="2,2,0,0" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PTabSelectState}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="pTabTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#2B3443" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PTabSelectState}" Value="True">
+                    <Setter Property="Foreground" Value="#111827" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="pTabCloseStyle" TargetType="Border">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style x:Key="pTabAddButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Margin" Value="5,12,8,0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#26364A" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="pTabAddButtonFrame"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="9,9,0,0">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="pTabAddButtonFrame" Property="Background" Value="#EEF4FC" />
+                                <Setter TargetName="pTabAddButtonFrame" Property="BorderBrush" Value="#D5E0ED" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="pTabAddButtonFrame" Property="Background" Value="#FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="pWindowButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="48" />
+            <Setter Property="Height" Value="56" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Foreground" Value="#26364A" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#D3E1F2" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#EAF2FC" ClipToBounds="False">
+        <Border VerticalAlignment="Bottom"
+                Height="1"
+                Background="#C9D6E5"
+                Panel.ZIndex="0" />
+
+        <Grid ClipToBounds="False" Panel.ZIndex="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="56" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0"
+                  Background="#EAF2FC"
+                  Cursor="Hand"
+                  MouseLeftButtonDown="PLogoButtonClickHandle">
+                <Border Width="34"
+                        Height="34"
+                        Background="#2F7CE8"
+                        CornerRadius="8"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Margin="0,13,0,0">
+                    <TextBlock Text="C"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#FFFFFF"
+                               IsHitTestVisible="False" />
+                </Border>
+            </Grid>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" ClipToBounds="False">
+                <ItemsControl x:Name="pTabItemsControl"
+                              ItemsSource="{Binding PTabRecords}"
+                              VerticalAlignment="Stretch"
+                              ClipToBounds="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" ClipToBounds="False" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type pControlBar:PTabRecord}">
+                            <Grid Margin="0,12,0,0" ClipToBounds="False">
+                                <Border Style="{StaticResource pTabFrameStyle}"
+                                        MouseLeftButtonDown="PTabButtonMouseLeftButtonDownHandle"
+                                        MouseMove="PTabButtonMouseMoveHandle"
+                                        MouseLeftButtonUp="PTabButtonMouseLeftButtonUpHandle">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="9" />
+                                            <RowDefinition Height="22" />
+                                            <RowDefinition Height="11" />
+                                        </Grid.RowDefinitions>
+                                        <Grid Grid.Row="1" VerticalAlignment="Center">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Image Grid.Column="0"
+                                                   Width="17"
+                                                   Height="17"
+                                                   Source="{Binding PTabIconPath}"
+                                                   Stretch="Uniform"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,10,0" />
+                                            <TextBlock Grid.Column="1"
+                                                       Style="{StaticResource pTabTextStyle}"
+                                                       Text="{Binding PTabTitle}"
+                                                       VerticalAlignment="Top"
+                                                       Margin="0,1,0,0" />
+                                            <Border Grid.Column="2"
+                                                    Style="{StaticResource pTabCloseStyle}"
+                                                    MouseLeftButtonDown="PTabCloseButtonClickHandle">
+                                                <Canvas Width="20" Height="20">
+                                                    <Line X1="6.5"
+                                                          Y1="6.5"
+                                                          X2="13.5"
+                                                          Y2="13.5"
+                                                          Stroke="#4F5C6F"
+                                                          StrokeThickness="1.15"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeEndLineCap="Round" />
+                                                    <Line X1="13.5"
+                                                          Y1="6.5"
+                                                          X2="6.5"
+                                                          Y2="13.5"
+                                                          Stroke="#4F5C6F"
+                                                          StrokeThickness="1.15"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeEndLineCap="Round" />
+                                                </Canvas>
+                                            </Border>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource pTabTopAccentStyle}" />
+                                <Canvas Width="1"
+                                        Height="16"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,1,0"
+                                        IsHitTestVisible="False">
+                                    <Canvas.Style>
+                                        <Style TargetType="Canvas">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PTabSeparatorState}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Canvas.Style>
+                                    <Line X1="0.5"
+                                          Y1="0"
+                                          X2="0.5"
+                                          Y2="16"
+                                          Stroke="#C9D6E5"
+                                          StrokeThickness="1" />
+                                </Canvas>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Style="{StaticResource pTabAddButtonStyle}"
+                        Content="+"
+                        Click="PTabAddButtonClickHandle" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Background="#EAF2FC" VerticalAlignment="Top" Margin="0,0,0,0">
+                <Button Style="{StaticResource pWindowButtonStyle}" Click="PWindowMinimizeButtonClickHandle">
+                    <Canvas Width="18" Height="16">
+                        <Line X1="2"
+                              Y1="12"
+                              X2="14"
+                              Y2="12"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.25"
+                              StrokeStartLineCap="Square"
+                              StrokeEndLineCap="Square" />
+                    </Canvas>
+                </Button>
+                <Button Style="{StaticResource pWindowButtonStyle}" Click="PWindowMaximizeButtonClickHandle">
+                    <Canvas Width="18" Height="16">
+                        <Rectangle Width="12"
+                                   Height="12"
+                                   Canvas.Left="2"
+                                   Canvas.Top="2"
+                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                   StrokeThickness="1.2"
+                                   Fill="Transparent" />
+                    </Canvas>
+                </Button>
+                <Button Style="{StaticResource pWindowButtonStyle}" Click="PWindowCloseButtonClickHandle">
+                    <Canvas Width="18" Height="16">
+                        <Line X1="2.5"
+                              Y1="2.5"
+                              X2="13.5"
+                              Y2="13.5"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.25"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" />
+                        <Line X1="13.5"
+                              Y1="2.5"
+                              X2="2.5"
+                              Y2="13.5"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.25"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" />
+                    </Canvas>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

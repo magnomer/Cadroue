@@ -1,0 +1,67 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+build/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.rsuser
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Test / coverage
+[Tt]est[Rr]esult*/
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+
+# Misc temp / precompiled
+*.tmp
+*.tmp_proj
+*.cache
+*.dll
+*.exe
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.ipdb
+*.pch
+*.log
+
+# OS
+[Dd]esktop.ini
+Thumbs.db
+$RECYCLE.BIN/
+
+# Project-internal docs (excluded from tracking)
+docs/internal/

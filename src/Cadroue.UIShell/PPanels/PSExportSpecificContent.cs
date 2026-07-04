@@ -1,0 +1,490 @@
+using Cadroue.UIShell.PMainWindow;
+using Microsoft.Win32;
+using System.Diagnostics;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+
+namespace Cadroue.UIShell.PPanels;
+
+internal sealed partial class PSExportSpecific
+{
+
+    private static readonly (string PSVideoEncoderText, string[] PSVideoEncoderValues)[] PSVideoEncoderCandidates =
+    [
+        ("H.264, x264 / libx264", ["libx264"]), ("H.264, Media Foundation / h264_mf", ["h264_mf"]),
+        ("H.264, OpenH264 / libopenh264", ["libopenh264"]), ("H.264, Intel QSV / h264_qsv", ["h264_qsv"]),
+        ("H.264, AMD AMF / h264_amf", ["h264_amf"]), ("H.264, NVIDIA NVENC / h264_nvenc", ["h264_nvenc"]),
+        ("H.265, x265 / libx265", ["libx265"]), ("H.265, Intel QSV / hevc_qsv", ["hevc_qsv"]),
+        ("H.265, AMD AMF / hevc_amf", ["hevc_amf"]), ("H.265, Media Foundation / hevc_mf", ["hevc_mf"]),
+        ("H.265, NVIDIA NVENC / hevc_nvenc", ["hevc_nvenc"]), ("H.266/VVC, vvenc / libvvenc", ["libvvenc"]),
+        ("AV1, AOM / libaom-av1", ["libaom-av1"]), ("AV1, SVT-AV1 / libsvtav1", ["libsvtav1"]),
+        ("AV1, rav1e / librav1e", ["librav1e"]), ("AV1, Intel QSV / av1_qsv", ["av1_qsv"]),
+        ("AV1, AMD AMF / av1_amf", ["av1_amf"]), ("AV1, NVIDIA NVENC / av1_nvenc", ["av1_nvenc"]),
+        ("VP8, libvpx / libvpx / libvpx-vp8", ["libvpx", "libvpx-vp8"]), ("VP9, libvpx / libvpx-vp9", ["libvpx-vp9"]),
+        ("VP9, Intel QSV / vp9_qsv", ["vp9_qsv"]), ("MPEG-4 Part 2, Xvid / libxvid", ["libxvid"]),
+        ("MPEG-4 Part 2, native / mpeg4", ["mpeg4"]), ("Theora, libtheora / libtheora", ["libtheora"]),
+        ("ProRes, native / prores", ["prores"]), ("ProRes, Anatoliy / prores_aw", ["prores_aw"]),
+        ("ProRes, Kostya / prores_ks", ["prores_ks"]), ("FFV1, native / ffv1", ["ffv1"]),
+        ("MJPEG, native / mjpeg", ["mjpeg"]), ("JPEG 2000, native / jpeg2000", ["jpeg2000"]),
+        ("JPEG 2000, OpenJPEG / libopenjpeg", ["libopenjpeg"]), ("WebP, libwebp / libwebp", ["libwebp"]),
+        ("WebP, animated libwebp / libwebp_anim", ["libwebp_anim"]), ("EVC, XEVE / libxeve", ["libxeve"]),
+        ("AVS2, xavs2 / libxavs2", ["libxavs2"]), ("APV, OpenAPV / liboapv", ["liboapv"])
+    ];
+
+    private UIElement PSExportSpecificRootBuild(UIElement pTabContent)
+    {
+        var pRoot = new DockPanel { Background = Brushes.White };
+        var pFooter = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(12) };
+        var pApply = PSFooterButtonBuild("Apply");
+        var pOk = PSFooterButtonBuild("OK");
+        var pCancel = PSFooterButtonBuild("Cancel");
+        pApply.Click += (_, _) => PSExportSpecificApply();
+        pOk.Click += (_, _) => { PSExportSpecificApply(); DialogResult = true; };
+        pCancel.Click += (_, _) => Close();
+        pFooter.Children.Add(pApply);
+        pFooter.Children.Add(pOk);
+        pFooter.Children.Add(pCancel);
+        DockPanel.SetDock(pFooter, Dock.Bottom);
+        pRoot.Children.Add(pFooter);
+        pRoot.Children.Add(PSExportSpecificContentBuild(pTabContent));
+        return pRoot;
+    }
+
+    private UIElement PSExportSpecificContentBuild(UIElement pTabContent)
+    {
+        var pPanel = new DockPanel { Margin = new Thickness(18) };
+        pPanel.Children.Add(pTabContent);
+        return pPanel;
+    }
+
+    private UIElement PSOutputTabContentBuild()
+    {
+        var pPanel = new StackPanel();
+        pPanel.Children.Add(PSOutputSectionBuild());
+        pPanel.Children.Add(PSExportModeSectionBuild());
+        return pPanel;
+    }
+
+    private UIElement PSVideoTabContentBuild()
+    {
+        var pPanel = new StackPanel();
+        pPanel.Children.Add(PSVideoSectionBuild());
+        return pPanel;
+    }
+
+    private UIElement PSAudioTabContentBuild()
+    {
+        var pPanel = new StackPanel();
+        pPanel.Children.Add(PSAudioSectionBuild());
+        return pPanel;
+    }
+
+    private UIElement PSOutputSectionBuild()
+    {
+        var pPanel = new StackPanel();
+        var psLocationStatus = new TextBlock
+        {
+            Text = "Same as source",
+            Foreground = PMutedBrush,
+            FontSize = 12,
+            Margin = new Thickness(12, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            TextTrimming = TextTrimming.CharacterEllipsis
+        };
+        PSNameBoxPrepare();
+        pPanel.Children.Add(PSFieldBuild("Name", psNameBox));
+        pPanel.Children.Add(PSNameTokenRowBuild());
+        pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
+        pPanel.Children.Add(PSFieldBuild("Container", psContainerCombo));
+        return PSCardBuild("Output", pPanel);
+    }
+
+    private void PSNameBoxPrepare()
+    {
+        psNameBox.MinWidth = 320;
+        psNameBox.Height = 40;
+        psNameBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+    }
+
+    private UIElement PSNameTokenRowBuild()
+    {
+        var pGrid = new Grid { Margin = new Thickness(0, 8, 0, 9) };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.Children.Add(new TextBlock { Text = "Elements", Foreground = PMutedBrush, VerticalAlignment = VerticalAlignment.Center });
+
+        var pPanel = new WrapPanel();
+        pPanel.Children.Add(PSNameTokenBuild("Original Name", "{OriginalName}"));
+        pPanel.Children.Add(PSNameTokenBuild("Section Number", "{SectionNumber}"));
+        pPanel.Children.Add(PSNameTokenBuild("Date", "{Date}"));
+        pPanel.Children.Add(PSNameTokenBuild("Time", "{Time}"));
+        Grid.SetColumn(pPanel, 1);
+        pGrid.Children.Add(pPanel);
+        return pGrid;
+    }
+
+    private UIElement PSNameTokenBuild(string pLabel, string pToken)
+    {
+        var pText = new TextBlock
+        {
+            Text = pLabel,
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = PTextBrush,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        var pBorder = new Border
+        {
+            MinHeight = 30,
+            BorderBrush = PLineBrush,
+            BorderThickness = new Thickness(1),
+            Background = Brushes.White,
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(10, 0, 10, 0),
+            Margin = new Thickness(0, 0, 6, 6),
+            Cursor = Cursors.Hand,
+            Child = pText
+        };
+
+        Point? pDragStart = null;
+        bool pDragStarted = false;
+        pBorder.PreviewMouseLeftButtonDown += (_, e) =>
+        {
+            pDragStart = e.GetPosition(null);
+            pDragStarted = false;
+            pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
+        };
+        pBorder.MouseEnter += (_, _) =>
+        {
+            if (!pDragStarted)
+            {
+                pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
+            }
+        };
+        pBorder.MouseLeave += (_, _) => pBorder.Background = Brushes.White;
+        pBorder.MouseLeftButtonUp += (_, _) =>
+        {
+            pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
+            if (pDragStarted)
+            {
+                pDragStarted = false;
+                return;
+            }
+
+            PSNameTokenInsert(pToken);
+        };
+        pBorder.PreviewMouseMove += (_, e) =>
+        {
+            if (e.LeftButton != MouseButtonState.Pressed || pDragStart is null || pDragStarted)
+            {
+                return;
+            }
+
+            Point pCurrent = e.GetPosition(null);
+            if (Math.Abs(pCurrent.X - pDragStart.Value.X) < 4 && Math.Abs(pCurrent.Y - pDragStart.Value.Y) < 4)
+            {
+                return;
+            }
+
+            pDragStarted = true;
+            var pData = new DataObject();
+            pData.SetData(PMainTokenTextBox.PMainTokenTextBoxDataFormat, pToken);
+            pData.SetData(DataFormats.Text, pToken);
+            _ = DragDrop.DoDragDrop(pBorder, pData, DragDropEffects.Copy);
+            pBorder.Background = Brushes.White;
+        };
+        return pBorder;
+    }
+
+    private void PSNameTokenInsert(string pToken)
+    {
+        psNameBox.PMainTokenTextBoxTokenInsert(pToken);
+    }
+
+    private UIElement PSLocationFieldBuild(TextBlock psLocationStatus)
+    {
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.Children.Add(new TextBlock { Text = "Location", Foreground = PMutedBrush, VerticalAlignment = VerticalAlignment.Center });
+
+        var pValueGrid = new Grid();
+        pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+        var psLocationCombo = PSLocationComboBuild(psLocationStatus);
+        Grid.SetColumn(psLocationCombo, 0);
+        Grid.SetColumn(psLocationStatus, 1);
+        pValueGrid.Children.Add(psLocationCombo);
+        pValueGrid.Children.Add(psLocationStatus);
+
+        Grid.SetColumn(pValueGrid, 1);
+        pGrid.Children.Add(pValueGrid);
+        return pGrid;
+    }
+
+    private ComboBox PSLocationComboBuild(TextBlock psLocationStatus)
+    {
+        var psLocationCombo = PSComboBuild("Same as source", "Same as source", "Custom folder");
+        psLocationCombo.SelectionChanged += (_, _) => PSLocationChangeHandle(psLocationCombo, psLocationStatus);
+        return psLocationCombo;
+    }
+
+    private void PSLocationChangeHandle(ComboBox psLocationCombo, TextBlock psLocationStatus)
+    {
+        if (psLocationCombo.SelectedItem as string != "Custom folder")
+        {
+            psExportSpecificCustomFolderPath = null;
+            psLocationStatus.Text = "Same as source";
+            return;
+        }
+
+        var psFolderDialog = new OpenFolderDialog { Title = "Choose export folder", Multiselect = false };
+        if (!string.IsNullOrWhiteSpace(psExportSpecificCustomFolderPath))
+        {
+            psFolderDialog.InitialDirectory = psExportSpecificCustomFolderPath;
+        }
+
+        bool? psFolderResult = psFolderDialog.ShowDialog(this);
+        if (psFolderResult == true && !string.IsNullOrWhiteSpace(psFolderDialog.FolderName))
+        {
+            psExportSpecificCustomFolderPath = psFolderDialog.FolderName;
+            psLocationStatus.Text = psExportSpecificCustomFolderPath;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(psExportSpecificCustomFolderPath))
+        {
+            psLocationCombo.SelectedIndex = 0;
+            psLocationStatus.Text = "Same as source";
+            return;
+        }
+
+        psLocationStatus.Text = psExportSpecificCustomFolderPath;
+    }
+
+    private UIElement PSExportModeSectionBuild()
+    {
+        var pPanel = new StackPanel();
+        pPanel.Children.Add(PSFieldBuild("Mode", psModeCombo));
+        pPanel.Children.Add(PSNoticeBuild("Audio-only output is created in the Video tab by setting Stream to Exclude."));
+        return PSCardBuild("Export Mode", pPanel);
+    }
+
+    private UIElement PSVideoSectionBuild()
+    {
+        var pPanel = new StackPanel();
+        var pVideoEncoderItems = PSVideoEncoderCandidateItemsRead();
+        var pVideoEncoderCombo = PSComboBuild(pVideoEncoderItems[0], pVideoEncoderItems);
+        var pVideoEncoderVerify = PSInlineButtonBuild("Verify", 84, new Thickness(8, 0, 0, 0));
+        var pVideoEncoderLog = PSInlineButtonBuild("Log", 64, new Thickness(6, 0, 0, 0));
+        pVideoEncoderVerify.Click += async (_, _) => await PSVideoEncoderVerifyClickHandle(pVideoEncoderCombo, pVideoEncoderVerify);
+        pVideoEncoderLog.Click += (_, _) => MessageBox.Show(this, psVideoEncoderVerificationLog, "Encoder verification log", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        pPanel.Children.Add(PSFieldBuild("Stream", psVideoStreamCombo));
+        pPanel.Children.Add(PSFieldBuild("Mode", psVideoModeCombo));
+        pPanel.Children.Add(PSFieldWithButtonBuild("Encoder", pVideoEncoderCombo, pVideoEncoderVerify, pVideoEncoderLog));
+        pPanel.Children.Add(PSFieldBuild("Quality mode", PSComboBuild("CRF / constant quality", "CRF / constant quality", "Target bitrate", "Two-pass bitrate", "Lossless", "Encoder default")));
+        pPanel.Children.Add(PSFieldBuild("CRF", PSTextBoxBuild("18", 120)));
+        pPanel.Children.Add(PSFieldBuild("Preset", PSComboBuild("ultrafast", "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow")));
+        pPanel.Children.Add(PSFieldBuild("Size", PSComboBuild("Same as source", "Same as source", "3840 × 2160", "2560 × 1440", "1920 × 1080", "1280 × 720", "854 × 480", "Custom")));
+        pPanel.Children.Add(PSFieldBuild("FPS", PSComboBuild("Same as source", "Same as source", "60", "50", "30", "25", "24", "Custom")));
+        pPanel.Children.Add(PSFieldBuild("Pixel format", PSComboBuild("Auto", "Auto", "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le")));
+        return PSCardBuild("Video", pPanel);
+    }
+
+    private static string[] PSVideoEncoderCandidateItemsRead() =>
+        PSVideoEncoderCandidates.Select(pCandidate => pCandidate.PSVideoEncoderText).ToArray();
+
+    private async Task PSVideoEncoderVerifyClickHandle(ComboBox pCombo, Button pButton)
+    {
+        string pSelected = pCombo.SelectedItem as string ?? string.Empty;
+        pButton.IsEnabled = false;
+        pButton.Content = "Checking";
+        var pAvailable = new List<string>();
+        var pLog = new StringBuilder();
+        pLog.AppendLine($"Verification: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        pLog.AppendLine("Command pattern: ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v <encoder> -f null -");
+        foreach (var pCandidate in PSVideoEncoderCandidates)
+        {
+            bool pCandidateAvailable = false;
+            pLog.AppendLine();
+            pLog.AppendLine(pCandidate.PSVideoEncoderText);
+            foreach (string pEncoder in pCandidate.PSVideoEncoderValues)
+            {
+                var pResult = await PSVideoEncoderCompatibleRead(pEncoder);
+                pCandidateAvailable |= pResult.PSVideoEncoderSuccess;
+                pLog.AppendLine($"  {pEncoder}: {(pResult.PSVideoEncoderSuccess ? "OK" : "FAIL")} - {pResult.PSVideoEncoderMessage}");
+            }
+            if (pCandidateAvailable) pAvailable.Add(pCandidate.PSVideoEncoderText);
+        }
+
+        pCombo.ItemsSource = pAvailable;
+        pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
+        psVideoEncoderVerificationLog = pLog.ToString();
+        pButton.Content = "Verify";
+        pButton.IsEnabled = true;
+    }
+
+    private static async Task<(bool PSVideoEncoderSuccess, string PSVideoEncoderMessage)> PSVideoEncoderCompatibleRead(string pEncoder)
+    {
+        using var pProcess = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "ffmpeg",
+                Arguments = $"-hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v {pEncoder} -f null -",
+                UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true
+            }
+        };
+
+        try
+        {
+            pProcess.Start();
+            Task<string> pErrorTask = pProcess.StandardError.ReadToEndAsync();
+            Task<string> pOutputTask = pProcess.StandardOutput.ReadToEndAsync();
+            Task pExitTask = pProcess.WaitForExitAsync();
+            if (await Task.WhenAny(pExitTask, Task.Delay(TimeSpan.FromSeconds(6))) != pExitTask)
+            {
+                pProcess.Kill(true);
+                return (false, "timeout after 6 seconds");
+            }
+
+            string pMessage = PSVideoEncoderLogMessageCompact(await pErrorTask, await pOutputTask);
+            return (pProcess.ExitCode == 0, $"exit {pProcess.ExitCode}{pMessage}");
+        }
+        catch (Exception pException)
+        {
+            return (false, pException.Message);
+        }
+    }
+
+    private static string PSVideoEncoderLogMessageCompact(string pError, string pOutput)
+    {
+        string pMessage = string.IsNullOrWhiteSpace(pError) ? pOutput : pError;
+        pMessage = pMessage.Replace("\r", " ").Replace("\n", " ").Trim();
+        return string.IsNullOrWhiteSpace(pMessage) ? string.Empty : $": {pMessage[..Math.Min(500, pMessage.Length)]}";
+    }
+
+    private UIElement PSAudioSectionBuild()
+    {
+        var pPanel = new StackPanel();
+        pPanel.Children.Add(PSFieldBuild("Stream", psAudioStreamCombo));
+        pPanel.Children.Add(PSFieldBuild("Mode", psAudioModeCombo));
+        pPanel.Children.Add(PSFieldBuild("Encoder", PSComboBuild("AAC", "AAC", "MP3 / libmp3lame", "Opus / libopus", "FLAC", "PCM 16-bit / pcm_s16le", "PCM 24-bit / pcm_s24le")));
+        pPanel.Children.Add(PSFieldBuild("Bitrate", PSComboBuild("96k", "96k", "128k", "160k", "192k", "256k", "320k", "Custom")));
+        pPanel.Children.Add(PSFieldBuild("Sample rate", PSComboBuild("Same as source", "Same as source", "44100", "48000", "88200", "96000", "Custom")));
+        pPanel.Children.Add(PSFieldBuild("Channels", PSComboBuild("Same as source", "Same as source", "Mono", "Stereo", "5.1", "Custom")));
+        return PSCardBuild("Audio", pPanel);
+    }
+
+    private static Border PSCardBuild(string pTitle, UIElement pContent)
+    {
+        var pPanel = new StackPanel();
+        pPanel.Children.Add(new TextBlock { Text = pTitle, FontSize = 16, FontWeight = FontWeights.SemiBold, Foreground = PTextBrush, Margin = new Thickness(0, 0, 0, 10) });
+        pPanel.Children.Add(pContent);
+        return new Border
+        {
+            BorderBrush = PLineBrush,
+            BorderThickness = new Thickness(1),
+            Background = PSoftBrush,
+            CornerRadius = new CornerRadius(10),
+            Padding = new Thickness(14),
+            Margin = new Thickness(0, 0, 0, 12),
+            Child = pPanel
+        };
+    }
+
+    private static UIElement PSFieldBuild(string pLabel, Control pControl)
+    {
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.Children.Add(new TextBlock { Text = pLabel, Foreground = PMutedBrush, VerticalAlignment = VerticalAlignment.Center });
+        pControl.MinHeight = 28;
+        Grid.SetColumn(pControl, 1);
+        pGrid.Children.Add(pControl);
+        return pGrid;
+    }
+
+    private static UIElement PSFieldWithButtonBuild(string pLabel, Control pControl, params Button[] pButtons)
+    {
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.Children.Add(new TextBlock { Text = pLabel, Foreground = PMutedBrush, VerticalAlignment = VerticalAlignment.Center });
+
+        var pPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left };
+        pControl.MinHeight = 28;
+        pPanel.Children.Add(pControl);
+        foreach (Button pButton in pButtons) pPanel.Children.Add(pButton);
+
+        Grid.SetColumn(pPanel, 1);
+        pGrid.Children.Add(pPanel);
+        return pGrid;
+    }
+
+    private static Button PSInlineButtonBuild(string pText, double pWidth, Thickness pMargin) => new()
+    {
+        Content = pText,
+        Width = pWidth,
+        Height = 40,
+        Margin = pMargin,
+        Style = PMainButton.PButtonNormalWhiteCreate()
+    };
+
+    private static ComboBox PSComboBuild(string pSelected, params string[] pItems)
+    {
+        var pCombo = new ComboBox
+        {
+            ItemsSource = pItems,
+            MinWidth = 260,
+            Height = 40,
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        PMainDropdown.PMainDropdownApply(pCombo);
+        pCombo.SelectedItem = pItems.Contains(pSelected) ? pSelected : pItems.FirstOrDefault();
+        return pCombo;
+    }
+
+    private static TextBox PSTextBoxBuild(string pText, double pWidth)
+    {
+        var pTextBox = new TextBox
+        {
+            Text = pText,
+            Width = pWidth,
+            Height = 40,
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        PMainTextBox.PMainTextBoxApply(pTextBox);
+        return pTextBox;
+    }
+
+    private static Button PSFooterButtonBuild(string pText)
+    {
+        return new Button
+        {
+            Content = pText,
+            Width = 84,
+            Margin = new Thickness(4),
+            Style = PMainButton.PButtonNormalWhiteCreate()
+        };
+    }
+
+    private static string PSComboTextRead(ComboBox pCombo) => pCombo.SelectedItem as string ?? string.Empty;
+
+    private static UIElement PSNoticeBuild(string pText) => new Border
+    {
+        BorderBrush = new SolidColorBrush(Color.FromRgb(0xBF, 0xD4, 0xF4)),
+        BorderThickness = new Thickness(1),
+        Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF6, 0xFF)),
+        CornerRadius = new CornerRadius(8),
+        Padding = new Thickness(10),
+        Margin = new Thickness(130, 2, 0, 2),
+        Child = new TextBlock { Text = pText, Foreground = new SolidColorBrush(Color.FromRgb(0x25, 0x55, 0x88)), TextWrapping = TextWrapping.Wrap }
+    };
+}
