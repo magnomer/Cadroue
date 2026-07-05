@@ -11,11 +11,11 @@ public sealed class PWorklistTab : PTabSurface
         {
             Children =
             {
-                new PListPanel()
+                new PList()
             }
         };
     }
 
     public override PFlowControl? PTabFlow => null;
-    public override PViewerPanel? PTabViewer => null;
+    public override PViewer? PTabViewer => null;
 }

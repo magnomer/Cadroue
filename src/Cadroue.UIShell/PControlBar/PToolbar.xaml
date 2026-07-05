@@ -1,4 +1,4 @@
-<UserControl x:Class="Cadroue.UIShell.PControlBar.PControlBar"
+<UserControl x:Class="Cadroue.UIShell.PControlBar.PToolbar"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:pControlBar="clr-namespace:Cadroue.UIShell.PControlBar"
@@ -144,7 +144,7 @@
             <Grid Grid.Column="0"
                   Background="#EAF2FC"
                   Cursor="Hand"
-                  MouseLeftButtonDown="PLogoButtonClickHandle">
+                  MouseLeftButtonDown="PLogoClickHandle">
                 <Border Width="34"
                         Height="34"
                         Background="#2F7CE8"
@@ -164,7 +164,7 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" ClipToBounds="False">
                 <ItemsControl x:Name="pTabItemsControl"
-                              ItemsSource="{Binding PTabRecords}"
+                              ItemsSource="{Binding PTabsetRecords}"
                               VerticalAlignment="Stretch"
                               ClipToBounds="False">
                     <ItemsControl.ItemsPanel>
@@ -176,9 +176,9 @@
                         <DataTemplate DataType="{x:Type pControlBar:PTabRecord}">
                             <Grid Margin="0,12,0,0" ClipToBounds="False">
                                 <Border Style="{StaticResource pTabFrameStyle}"
-                                        MouseLeftButtonDown="PTabButtonMouseLeftButtonDownHandle"
-                                        MouseMove="PTabButtonMouseMoveHandle"
-                                        MouseLeftButtonUp="PTabButtonMouseLeftButtonUpHandle">
+                                        MouseLeftButtonDown="PTabPressHandle"
+                                        MouseMove="PTabMoveHandle"
+                                        MouseLeftButtonUp="PTabReleaseHandle">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="9" />
@@ -205,7 +205,7 @@
                                                        Margin="0,1,0,0" />
                                             <Border Grid.Column="2"
                                                     Style="{StaticResource pTabCloseStyle}"
-                                                    MouseLeftButtonDown="PTabCloseButtonClickHandle">
+                                                    MouseLeftButtonDown="PTabCloseHandle">
                                                 <Canvas Width="20" Height="20">
                                                     <Line X1="6.5"
                                                           Y1="6.5"
@@ -257,11 +257,11 @@
                 </ItemsControl>
                 <Button Style="{StaticResource pTabAddButtonStyle}"
                         Content="+"
-                        Click="PTabAddButtonClickHandle" />
+                        Click="PTabMenuHandle" />
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" Background="#EAF2FC" VerticalAlignment="Top" Margin="0,0,0,0">
-                <Button Style="{StaticResource pWindowButtonStyle}" Click="PWindowMinimizeButtonClickHandle">
+                <Button Style="{StaticResource pWindowButtonStyle}" Click="PChromeMinimizeHandle">
                     <Canvas Width="18" Height="16">
                         <Line X1="2"
                               Y1="12"
@@ -273,7 +273,7 @@
                               StrokeEndLineCap="Square" />
                     </Canvas>
                 </Button>
-                <Button Style="{StaticResource pWindowButtonStyle}" Click="PWindowMaximizeButtonClickHandle">
+                <Button Style="{StaticResource pWindowButtonStyle}" Click="PChromeMaximizeHandle">
                     <Canvas Width="18" Height="16">
                         <Rectangle Width="12"
                                    Height="12"
@@ -284,7 +284,7 @@
                                    Fill="Transparent" />
                     </Canvas>
                 </Button>
-                <Button Style="{StaticResource pWindowButtonStyle}" Click="PWindowCloseButtonClickHandle">
+                <Button Style="{StaticResource pWindowButtonStyle}" Click="PChromeCloseHandle">
                     <Canvas Width="18" Height="16">
                         <Line X1="2.5"
                               Y1="2.5"

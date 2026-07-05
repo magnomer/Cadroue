@@ -6,51 +6,51 @@ using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 namespace Cadroue.UIShell.PControlBar;
 
-public sealed class PTabWorkspace
+public sealed class PWorkspace
 {
-    public PTabWorkspace(string pTabLayoutKey)
+    public PWorkspace(string pTabLayoutKey)
     {
-        PTabWorkspaceExportSpecificState = new LExportSpecificState();
-        PTabWorkspaceTabSurface = PTabWorkspaceTabSurfaceCreate(pTabLayoutKey, PTabWorkspaceExportSpecificState);
+        PWorkspaceExportState = new LExportSpecificState();
+        PWorkspaceSurface = PWorkspaceSurfaceCreate(pTabLayoutKey, PWorkspaceExportState);
         bool pHasSourceInfo = pTabLayoutKey is not ("Merge" or "Worklist");
         bool pAudioOnlyAllowed = pTabLayoutKey == "Audio";
-        PTabWorkspaceSourcePanel = pHasSourceInfo ? new PSourcePanel(pAudioOnlyAllowed) : null;
-        PTabWorkspaceInfoPanel = pHasSourceInfo ? new PInfoPanel() : null;
-        PTabWorkspaceFlow = PTabWorkspaceTabSurface.PTabFlow;
-        PTabWorkspaceViewer = PTabWorkspaceTabSurface.PTabViewer;
-        PTabWorkspaceViewer?.PViewerPanelAudioOnlyAllowSet(pAudioOnlyAllowed);
-        PTabWorkspaceSourcePanel?.PSourcePanelAttach(PTabWorkspaceViewer);
-        PTabWorkspaceInfoPanel?.PInfoPanelAttach(PTabWorkspaceViewer);
-        PTabWorkspaceMainAreaRoot = PTabWorkspaceMainAreaRootCreate();
+        PWorkspaceSource = pHasSourceInfo ? new PSource(pAudioOnlyAllowed) : null;
+        PWorkspaceInfo = pHasSourceInfo ? new PInfo() : null;
+        PWorkspaceFlow = PWorkspaceSurface.PTabFlow;
+        PWorkspaceViewer = PWorkspaceSurface.PTabViewer;
+        PWorkspaceViewer?.PViewerAudioSet(pAudioOnlyAllowed);
+        PWorkspaceSource?.PSourceAttach(PWorkspaceViewer);
+        PWorkspaceInfo?.PInfoAttach(PWorkspaceViewer);
+        PWorkspaceRoot = PWorkspaceRootCreate();
     }
 
-    public FrameworkElement PTabWorkspaceMainAreaRoot { get; }
+    public FrameworkElement PWorkspaceRoot { get; }
 
-    public PTabSurface PTabWorkspaceTabSurface { get; }
+    public PTabSurface PWorkspaceSurface { get; }
 
-    internal LExportSpecificState PTabWorkspaceExportSpecificState { get; }
+    internal LExportSpecificState PWorkspaceExportState { get; }
 
-    public PFlowControl? PTabWorkspaceFlow { get; }
+    public PFlowControl? PWorkspaceFlow { get; }
 
-    public PViewerPanel? PTabWorkspaceViewer { get; }
+    public PViewer? PWorkspaceViewer { get; }
 
-    public PSectionPanel? PTabWorkspaceSectionPanel { get; }
+    public PSection? PWorkspaceSection { get; }
 
-    public PSourcePanel? PTabWorkspaceSourcePanel { get; }
+    public PSource? PWorkspaceSource { get; }
 
-    public PInfoPanel? PTabWorkspaceInfoPanel { get; }
+    public PInfo? PWorkspaceInfo { get; }
 
-    public void PTabWorkspaceCloseRequest()
+    public void PWorkspaceClose()
     {
-        PTabWorkspaceFlow?.PFlowCloseRequest();
-        PTabWorkspaceViewer?.PViewerPanelCloseRequest();
+        PWorkspaceFlow?.PFlowClose();
+        PWorkspaceViewer?.PViewerClose();
     }
 
-    private FrameworkElement PTabWorkspaceMainAreaRootCreate()
+    private FrameworkElement PWorkspaceRootCreate()
     {
-        if (PTabWorkspaceSourcePanel is null || PTabWorkspaceInfoPanel is null)
+        if (PWorkspaceSource is null || PWorkspaceInfo is null)
         {
-            return PTabWorkspaceTabSurface;
+            return PWorkspaceSurface;
         }
 
         var pRoot = new Grid();
@@ -58,16 +58,16 @@ public sealed class PTabWorkspace
         pRoot.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         pRoot.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-        Grid.SetRow(PTabWorkspaceSourcePanel, 0);
-        Grid.SetRow(PTabWorkspaceInfoPanel, 1);
-        Grid.SetRow(PTabWorkspaceTabSurface, 2);
-        pRoot.Children.Add(PTabWorkspaceSourcePanel);
-        pRoot.Children.Add(PTabWorkspaceInfoPanel);
-        pRoot.Children.Add(PTabWorkspaceTabSurface);
+        Grid.SetRow(PWorkspaceSource, 0);
+        Grid.SetRow(PWorkspaceInfo, 1);
+        Grid.SetRow(PWorkspaceSurface, 2);
+        pRoot.Children.Add(PWorkspaceSource);
+        pRoot.Children.Add(PWorkspaceInfo);
+        pRoot.Children.Add(PWorkspaceSurface);
         return pRoot;
     }
 
-    private static PTabSurface PTabWorkspaceTabSurfaceCreate(string pTabLayoutKey, LExportSpecificState lExportSpecificState)
+    private static PTabSurface PWorkspaceSurfaceCreate(string pTabLayoutKey, LExportSpecificState lExportSpecificState)
     {
         return pTabLayoutKey switch
         {

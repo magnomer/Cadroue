@@ -11,27 +11,27 @@ public static class LRendererSettingsStore
 
     public static LRendererSettings LRendererSettingsLoad()
     {
-        string lRendererSettingsPath = LRendererSettingsPathCreate();
+        string lRendererSettingsPath = LRendererPathCreate();
         if (!File.Exists(lRendererSettingsPath))
         {
-            return LRendererSettings.LRendererSettingsDefaultCreate();
+            return LRendererSettings.LRendererDefaultCreate();
         }
 
         try
         {
             string lRendererSettingsJson = File.ReadAllText(lRendererSettingsPath);
             return JsonSerializer.Deserialize<LRendererSettings>(lRendererSettingsJson)
-                ?? LRendererSettings.LRendererSettingsDefaultCreate();
+                ?? LRendererSettings.LRendererDefaultCreate();
         }
         catch
         {
-            return LRendererSettings.LRendererSettingsDefaultCreate();
+            return LRendererSettings.LRendererDefaultCreate();
         }
     }
 
     public static void LRendererSettingsSave(LRendererSettings lRendererSettings)
     {
-        string lRendererSettingsPath = LRendererSettingsPathCreate();
+        string lRendererSettingsPath = LRendererPathCreate();
         string? lRendererSettingsFolder = Path.GetDirectoryName(lRendererSettingsPath);
         if (!string.IsNullOrWhiteSpace(lRendererSettingsFolder))
         {
@@ -44,7 +44,7 @@ public static class LRendererSettingsStore
         File.WriteAllText(lRendererSettingsPath, lRendererSettingsJson);
     }
 
-    private static string LRendererSettingsPathCreate()
+    private static string LRendererPathCreate()
     {
         string lRendererApplicationDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(lRendererApplicationDataFolder, LRendererSettingsFolderName, LRendererSettingsFileName);

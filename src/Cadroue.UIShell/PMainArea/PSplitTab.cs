@@ -9,23 +9,23 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed class PSplitTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
-    private readonly PViewerPanel pViewerPanel = new();
-    private readonly PSectionPanel pSectionPanel = new();
+    private readonly PViewer pViewer = new();
+    private readonly PSection pSection = new();
 
     public PSplitTab(LExportSpecificState lExportSpecificState)
     {
         var pAction = new PAction();
-        pAction.PActionRequest += lPriority => LSplitDescribe.LSplitDescribeCall(
+        pAction.PActionRun += lPriority => LSplit.LSplitDescribe(
             lPriority,
-            pViewerPanel.PViewerPanelSourcePathCurrent,
-            pSectionPanel.PSectionPanelSplitSectionsRead());
-        pFlow.PFlowSectionUiActiveSet(true);
-        pSectionPanel.PSectionPanelAttach(pFlow);
-        Content = PTabGridBuild(new UIElement[] { pSectionPanel, pViewerPanel, new PExportPanel(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);
+            pViewer.PViewerSourcePath,
+            pSection.PSectionSplitRead());
+        pFlow.PFlowSectionShow(true);
+        pSection.PSectionAttach(pFlow);
+        Content = PTabGridBuild(new UIElement[] { pSection, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);
     }
 
     public override PFlowControl PTabFlow => pFlow;
-    public override PViewerPanel? PTabViewer => pViewerPanel;
+    public override PViewer? PTabViewer => pViewer;
 
     private static Grid PTabGridBuild(IReadOnlyList<UIElement> pPanels, UIElement pCompass, UIElement pAction, UIElement pFlow)
     {

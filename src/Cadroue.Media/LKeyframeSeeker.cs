@@ -5,10 +5,10 @@ namespace Cadroue.Media;
 
 public static class LKeyframeSeeker
 {
-    private const double LKeyframeSeekerScanEndToleranceSeconds = 1d;
-    private const double LKeyframeSeekerRangeToleranceSeconds = 0.001d;
+    private const double LKeyframeScanEndTolerance = 1d;
+    private const double LKeyframeRangeTolerance = 0.001d;
 
-    public static IReadOnlyList<LKeyframeEntry> LKeyframeSeekerScanRange(
+    public static IReadOnlyList<LKeyframeEntry> LKeyframeRangeScan(
         string sourcePath,
         TimeSpan scanStartTime,
         TimeSpan scanEndTime,
@@ -24,7 +24,7 @@ public static class LKeyframeSeeker
         cancellationToken.ThrowIfCancellationRequested();
 
         double startSeconds = normalizedStart.TotalSeconds;
-        double scanDuration = (scanEndTime - normalizedStart).TotalSeconds + LKeyframeSeekerScanEndToleranceSeconds;
+        double scanDuration = (scanEndTime - normalizedStart).TotalSeconds + LKeyframeScanEndTolerance;
         string readIntervals = FormattableString.Invariant($"{startSeconds:F3}%+{scanDuration:F3}");
 
         var psi = new ProcessStartInfo("ffprobe")
@@ -96,8 +96,8 @@ public static class LKeyframeSeeker
         if (!hasPts && !hasDts) return;
         double timeSeconds = hasPts ? ptsSeconds : dtsSeconds;
 
-        if (timeSeconds + LKeyframeSeekerRangeToleranceSeconds < scanStartSeconds) return;
-        if (timeSeconds - LKeyframeSeekerRangeToleranceSeconds > scanEndSeconds) return;
+        if (timeSeconds + LKeyframeRangeTolerance < scanStartSeconds) return;
+        if (timeSeconds - LKeyframeRangeTolerance > scanEndSeconds) return;
 
         long ms = (long)Math.Round(timeSeconds * 1000d);
         if (ms >= 0) result.Add(ms);

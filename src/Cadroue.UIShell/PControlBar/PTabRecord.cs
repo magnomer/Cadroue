@@ -14,7 +14,7 @@ public sealed class PTabRecord : INotifyPropertyChanged
         PTabTitle = pTabTitle;
         PTabLayoutKey = pTabLayoutKey;
         PTabIconPath = pTabIconPath;
-        PTabWorkspace = new PTabWorkspace(pTabLayoutKey);
+        PTabWorkspace = new PWorkspace(pTabLayoutKey);
     }
 
     public Guid PTabId { get; }
@@ -25,7 +25,7 @@ public sealed class PTabRecord : INotifyPropertyChanged
 
     public string PTabIconPath { get; }
 
-    public PTabWorkspace PTabWorkspace { get; }
+    public PWorkspace PTabWorkspace { get; }
 
     public bool PTabSelectState
     {

@@ -9,17 +9,17 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed class PConvertTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
-    private readonly PViewerPanel pViewerPanel = new();
+    private readonly PViewer pViewer = new();
 
     public PConvertTab(LExportSpecificState lExportSpecificState)
     {
         var pAction = new PAction();
-        pAction.PActionRequest += LConvertDescribe.LConvertDescribeCall;
-        Content = PTabGridBuild(new UIElement[] { new PListPanel(), pViewerPanel, new PExportPanel(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);
+        pAction.PActionRun += LConvert.LConvertDescribe;
+        Content = PTabGridBuild(new UIElement[] { new PList(), pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);
     }
 
     public override PFlowControl PTabFlow => pFlow;
-    public override PViewerPanel? PTabViewer => pViewerPanel;
+    public override PViewer? PTabViewer => pViewer;
 
     private static Grid PTabGridBuild(IReadOnlyList<UIElement> pPanels, UIElement pCompass, UIElement pAction, UIElement pFlow)
     {

@@ -4,116 +4,116 @@ using Cadroue.UIShell.PControlBar;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public partial class PMainArea : UserControl
+public partial class PDeck : UserControl
 {
-    private LTabSelect? lTabSelect;
-    private PTabRecord? pMainAreaTabRecord;
+    private LTabset? lTabset;
+    private PTabRecord? pDeckTabRecord;
 
-    public PMainArea()
+    public PDeck()
     {
         InitializeComponent();
-        Unloaded += PMainAreaUnloadedHandle;
+        Unloaded += PDeckUnloadHandle;
     }
 
-    public void PMainAreaTabSelectSet(LTabSelect lTabSelectValue)
+    public void PDeckTabsetSet(LTabset lTabsetValue)
     {
-        if (lTabSelect is not null)
+        if (lTabset is not null)
         {
-            lTabSelect.LTabSelectChange -= PMainAreaTabSelectChangeHandle;
-            lTabSelect.PTabRecords.CollectionChanged -= PMainAreaTabRecordsChangeHandle;
+            lTabset.LTabsetSelectChange -= PDeckSelectHandle;
+            lTabset.PTabsetRecords.CollectionChanged -= PDeckRecordsHandle;
         }
 
-        lTabSelect = lTabSelectValue;
-        lTabSelect.LTabSelectChange += PMainAreaTabSelectChangeHandle;
-        lTabSelect.PTabRecords.CollectionChanged += PMainAreaTabRecordsChangeHandle;
-        PMainAreaLayoutApply(lTabSelect.PTabSelectRecord);
+        lTabset = lTabsetValue;
+        lTabset.LTabsetSelectChange += PDeckSelectHandle;
+        lTabset.PTabsetRecords.CollectionChanged += PDeckRecordsHandle;
+        PDeckLayoutApply(lTabset.PTabsetSelectRecord);
     }
 
-    private void PMainAreaTabSelectChangeHandle(PTabRecord? pTabRecord)
+    private void PDeckSelectHandle(PTabRecord? pTabRecord)
     {
-        PMainAreaLayoutApply(pTabRecord);
+        PDeckLayoutApply(pTabRecord);
     }
 
-    private void PMainAreaTabRecordsChangeHandle(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void PDeckRecordsHandle(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-        PMainAreaClosedTabsRemove();
+        PDeckClosedRemove();
     }
 
-    private void PMainAreaUnloadedHandle(object sender, RoutedEventArgs e)
+    private void PDeckUnloadHandle(object sender, RoutedEventArgs e)
     {
-        if (lTabSelect is not null)
+        if (lTabset is not null)
         {
-            lTabSelect.LTabSelectChange -= PMainAreaTabSelectChangeHandle;
-            lTabSelect.PTabRecords.CollectionChanged -= PMainAreaTabRecordsChangeHandle;
-            lTabSelect = null;
+            lTabset.LTabsetSelectChange -= PDeckSelectHandle;
+            lTabset.PTabsetRecords.CollectionChanged -= PDeckRecordsHandle;
+            lTabset = null;
         }
 
-        pMainAreaTabRecord = null;
+        pDeckTabRecord = null;
     }
 
-    private void PMainAreaLayoutApply(PTabRecord? pTabRecord)
+    private void PDeckLayoutApply(PTabRecord? pTabRecord)
     {
-        pMainAreaTabRecord = pTabRecord;
+        pDeckTabRecord = pTabRecord;
 
-        foreach (UIElement pChild in pMainAreaGrid.Children)
+        foreach (UIElement pChild in pDeckGrid.Children)
         {
             pChild.Visibility = Visibility.Collapsed;
         }
 
         if (pTabRecord is null)
         {
-            PMainAreaEmptyNoticeShow();
+            PDeckNoticeShow();
             return;
         }
 
-        FrameworkElement pTabMainAreaRoot = pTabRecord.PTabWorkspace.PTabWorkspaceMainAreaRoot;
-        if (!pMainAreaGrid.Children.Contains(pTabMainAreaRoot))
+        FrameworkElement pTabDeckRoot = pTabRecord.PTabWorkspace.PWorkspaceRoot;
+        if (!pDeckGrid.Children.Contains(pTabDeckRoot))
         {
-            pMainAreaGrid.Children.Add(pTabMainAreaRoot);
+            pDeckGrid.Children.Add(pTabDeckRoot);
         }
 
-        pTabMainAreaRoot.Visibility = Visibility.Visible;
+        pTabDeckRoot.Visibility = Visibility.Visible;
     }
 
-    private void PMainAreaEmptyNoticeShow()
+    private void PDeckNoticeShow()
     {
-        const string pEmptyNoticeName = "pMainAreaEmptyNotice";
-        TextBlock? pEmptyNotice = pMainAreaGrid.Children
+        const string pDeckNoticeName = "pDeckEmptyNotice";
+        TextBlock? pEmptyNotice = pDeckGrid.Children
             .OfType<TextBlock>()
-            .FirstOrDefault(pChild => pChild.Name == pEmptyNoticeName);
+            .FirstOrDefault(pChild => pChild.Name == pDeckNoticeName);
 
         if (pEmptyNotice is null)
         {
             pEmptyNotice = new TextBlock
             {
-                Name = pEmptyNoticeName,
+                Name = pDeckNoticeName,
                 Text = "No tab is open.",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = 20
             };
-            pMainAreaGrid.Children.Add(pEmptyNotice);
+            pDeckGrid.Children.Add(pEmptyNotice);
         }
 
         pEmptyNotice.Visibility = Visibility.Visible;
     }
 
-    private void PMainAreaClosedTabsRemove()
+    private void PDeckClosedRemove()
     {
-        if (lTabSelect is null)
+        if (lTabset is null)
         {
             return;
         }
 
-        var pOpenRoots = lTabSelect.PTabRecords
-            .Select(pTabRecord => pTabRecord.PTabWorkspace.PTabWorkspaceMainAreaRoot)
+        var pOpenRoots = lTabset.PTabsetRecords
+            .Select(pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceRoot)
             .ToHashSet();
 
-        for (int index = pMainAreaGrid.Children.Count - 1; index >= 0; index--)
+        for (int index = pDeckGrid.Children.Count - 1; index >= 0; index--)
         {
-            if (pMainAreaGrid.Children[index] is FrameworkElement pGrid && !pOpenRoots.Contains(pGrid))
+            if (pDeckGrid.Children[index] is FrameworkElement pGrid && !pOpenRoots.Contains(pGrid))
             {
-                pMainAreaGrid.Children.RemoveAt(index);
+                pDeckGrid.Children.RemoveAt(index);
             }
         }
     }

@@ -2,10 +2,10 @@ using Cadroue.UIShell.LWork;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public static class LEditDescribe
+public static partial class LEdit
 {
-    public static void LEditDescribeCall(LWorkListAddPriority lWorkListAddPriority)
+    public static void LEditDescribe(LWorkPriority lWorkPriority)
     {
-        LEditInterpret.LEditInterpreterCall(lWorkListAddPriority);
+        LEdit.LEditInterpret(lWorkPriority);
     }
 }

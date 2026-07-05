@@ -8,7 +8,7 @@ using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PSectionPanel : UserControl
+public sealed class PSection : UserControl
 {
     private static readonly Color[] pSectionPaletteColors =
     {
@@ -20,21 +20,21 @@ public sealed class PSectionPanel : UserControl
         Color.FromRgb(0x16, 0xA0, 0x85),
     };
 
-    private static readonly FontFamily pSectionPanelFontFamily = new("Segoe UI");
+    private static readonly FontFamily pSectionFontFamily = new("Segoe UI");
 
     private PFlowControl? pFlowAttached;
-    private IReadOnlyList<LSectionEntry> pSectionListCurrent = Array.Empty<LSectionEntry>();
+    private IReadOnlyList<LSegment> pSectionListCurrent = Array.Empty<LSegment>();
     private int? pSectionIndexSelectCurrent;
     private readonly TextBlock pSectionCountLabel;
     private readonly StackPanel pSectionRowPanel;
 
-    public PSectionPanel()
+    public PSection()
     {
         pSectionCountLabel = new TextBlock
         {
             Text = "Sections",
             FontSize = 12,
-            FontFamily = pSectionPanelFontFamily,
+            FontFamily = pSectionFontFamily,
             FontWeight = FontWeights.SemiBold,
             Foreground = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A)),
             VerticalAlignment = VerticalAlignment.Center
@@ -64,42 +64,42 @@ public sealed class PSectionPanel : UserControl
         pRoot.Children.Add(pScroll);
 
         FocusVisualStyle = null;
-        Content = PPanelFrame.PPanelFrameBorderBuild(pRoot);
+        Content = PPanel.PPanelBorderBuild(pRoot);
     }
 
-    public void PSectionPanelAttach(PFlowControl pFlow)
+    public void PSectionAttach(PFlowControl pFlow)
     {
-        PSectionPanelDetach();
+        PSectionDetach();
         pFlowAttached = pFlow;
-        pFlowAttached.PFlowSectionChangeNotice += PSectionPanelUpdateHandle;
-        PSectionPanelRebuild();
+        pFlowAttached.PFlowSectionChange += PSectionUpdateHandle;
+        PSectionRebuild();
     }
 
-    public IReadOnlyList<LSplitSectionDescription> PSectionPanelSplitSectionsRead()
+    public IReadOnlyList<LSplitSectionDescription> PSectionSplitRead()
     {
         return pSectionListCurrent
             .Select((pSection, pIndex) => new LSplitSectionDescription(
-                pSection.LSectionStart,
-                pSection.LSectionEnd,
-                PSectionPanelNameDisplay(pSection, pIndex)))
+                pSection.LSegmentStart,
+                pSection.LSegmentEnd,
+                PSectionNameFormat(pSection, pIndex)))
             .ToArray();
     }
 
-    private void PSectionPanelDetach()
+    private void PSectionDetach()
     {
         if (pFlowAttached is null) return;
-        pFlowAttached.PFlowSectionChangeNotice -= PSectionPanelUpdateHandle;
+        pFlowAttached.PFlowSectionChange -= PSectionUpdateHandle;
         pFlowAttached = null;
     }
 
-    private void PSectionPanelUpdateHandle(IReadOnlyList<LSectionEntry> pSectionList, int? pSectionIndexSelect)
+    private void PSectionUpdateHandle(IReadOnlyList<LSegment> pSectionList, int? pSectionIndexSelect)
     {
         pSectionListCurrent = pSectionList;
         pSectionIndexSelectCurrent = pSectionIndexSelect;
-        PSectionPanelRebuild();
+        PSectionRebuild();
     }
 
-    private void PSectionPanelRebuild()
+    private void PSectionRebuild()
     {
         pSectionRowPanel.Children.Clear();
         int pCount = pSectionListCurrent.Count;
@@ -110,11 +110,11 @@ public sealed class PSectionPanel : UserControl
         }
     }
 
-    private Border PSectionRowBuild(int pSectionIndex, LSectionEntry pSectionEntry, bool pSectionSelected)
+    private Border PSectionRowBuild(int pSectionIndex, LSegment pSectionEntry, bool pSectionSelected)
     {
         int capturedIndex = pSectionIndex;
 
-        Color pColor = pSectionPaletteColors[Math.Abs(pSectionEntry.LSectionColorIndex) % pSectionPaletteColors.Length];
+        Color pColor = pSectionPaletteColors[Math.Abs(pSectionEntry.LSegmentColorIndex) % pSectionPaletteColors.Length];
 
         var pColorDot = new Border
         {
@@ -128,9 +128,9 @@ public sealed class PSectionPanel : UserControl
 
         var pNameBox = new TextBox
         {
-            Text = PSectionPanelNameDisplay(pSectionEntry, pSectionIndex),
+            Text = PSectionNameFormat(pSectionEntry, pSectionIndex),
             FontSize = 12,
-            FontFamily = pSectionPanelFontFamily,
+            FontFamily = pSectionFontFamily,
             Foreground = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27)),
             Background = Brushes.Transparent,
             BorderThickness = new Thickness(0, 0, 0, 1),
@@ -144,14 +144,14 @@ public sealed class PSectionPanel : UserControl
         pNameBox.LostFocus += (_, _) =>
         {
             pNameBox.BorderBrush = Brushes.Transparent;
-            pFlowAttached?.PFlowSectionNameChangeRequest(capturedIndex, pNameBox.Text);
+            pFlowAttached?.PFlowNameSet(capturedIndex, pNameBox.Text);
         };
 
         var pTimeLabel = new TextBlock
         {
-            Text = $"{PSectionPanelTimeFormat(pSectionEntry.LSectionStart)} → {PSectionPanelTimeFormat(pSectionEntry.LSectionEnd)}",
+            Text = $"{PSectionTimeFormat(pSectionEntry.LSegmentStart)} → {PSectionTimeFormat(pSectionEntry.LSegmentEnd)}",
             FontSize = 11,
-            FontFamily = pSectionPanelFontFamily,
+            FontFamily = pSectionFontFamily,
             Foreground = new SolidColorBrush(Color.FromRgb(0x56, 0x62, 0x73)),
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(8, 0, 0, 0)
@@ -181,19 +181,19 @@ public sealed class PSectionPanel : UserControl
         };
         pRowBorder.MouseLeftButtonDown += (_, e) =>
         {
-            pFlowAttached?.PFlowSectionSelectRequest(capturedIndex);
+            pFlowAttached?.PFlowSectionSelect(capturedIndex);
             e.Handled = true;
         };
 
         return pRowBorder;
     }
 
-    private static string PSectionPanelNameDisplay(LSectionEntry pSectionEntry, int pSectionIndex) =>
-        string.IsNullOrWhiteSpace(pSectionEntry.LSectionName)
+    private static string PSectionNameFormat(LSegment pSectionEntry, int pSectionIndex) =>
+        string.IsNullOrWhiteSpace(pSectionEntry.LSegmentName)
             ? $"Section {pSectionIndex + 1}"
-            : pSectionEntry.LSectionName;
+            : pSectionEntry.LSegmentName;
 
-    private static string PSectionPanelTimeFormat(TimeSpan pTime) =>
+    private static string PSectionTimeFormat(TimeSpan pTime) =>
         pTime.TotalHours >= 1
             ? $"{(int)pTime.TotalHours}:{pTime.Minutes:D2}:{pTime.Seconds:D2}"
             : $"{pTime.Minutes}:{pTime.Seconds:D2}";

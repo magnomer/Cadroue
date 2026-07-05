@@ -63,8 +63,8 @@ public sealed class PMap : FrameworkElement
     private double pMapDragPreviousX;
     private TimeSpan lMapDragStartTime;
 
-    public event Action<TimeSpan>? PMapCursorChangeRequest;
-    public event Action? PMapSpoolChangeRequest;
+    public event Action<TimeSpan>? PMapCursorChange;
+    public event Action? PMapSpoolChange;
 
     public void PMapAttach(LSpool spool, TimeSpan cursor)
     {
@@ -122,10 +122,10 @@ public sealed class PMap : FrameworkElement
         }
 
         drawingContext.DrawRoundedRectangle(pMapBrushRail, null, new Rect(0, railTop, actualWidth, railHeight), 3, 3);
-        PMapKeyframeCoverageDraw(drawingContext, actualWidth, coverageTop, coverageHeight);
+        PMapCoverageDraw(drawingContext, actualWidth, coverageTop, coverageHeight);
 
-        double startRatio = Math.Clamp(lSpool.LSpoolDurationRatioConvert(lSpool.LSpoolWorkingRangeStart), 0, 1);
-        double endRatio = Math.Clamp(lSpool.LSpoolDurationRatioConvert(lSpool.LSpoolWorkingRangeEnd), 0, 1);
+        double startRatio = Math.Clamp(lSpool.LSpoolRatioConvert(lSpool.LSpoolWorkingRangeStart), 0, 1);
+        double endRatio = Math.Clamp(lSpool.LSpoolRatioConvert(lSpool.LSpoolWorkingRangeEnd), 0, 1);
         double spoolStartX = Math.Min(startRatio, endRatio) * actualWidth;
         double spoolEndX = Math.Max(startRatio, endRatio) * actualWidth;
         double spoolBodyWidth = Math.Max(0, spoolEndX - spoolStartX);
@@ -137,12 +137,12 @@ public sealed class PMap : FrameworkElement
         Rect bodyRect = new(spoolStartX, railTop, spoolBodyWidth, railHeight);
         PMapNavigationDraw(drawingContext, bodyRect, actualWidth);
 
-        double cursorRatio = Math.Clamp(lSpool.LSpoolDurationRatioConvert(lCursor), 0, 1);
+        double cursorRatio = Math.Clamp(lSpool.LSpoolRatioConvert(lCursor), 0, 1);
         double cursorX = cursorRatio * actualWidth;
         drawingContext.DrawLine(pMapPenCursor, new Point(cursorX, 0), new Point(cursorX, actualHeight));
     }
 
-    private void PMapKeyframeCoverageDraw(
+    private void PMapCoverageDraw(
         DrawingContext drawingContext,
         double actualWidth,
         double coverageTop,
@@ -219,15 +219,15 @@ public sealed class PMap : FrameworkElement
         drawingContext.DrawRoundedRectangle(pMapBrushNavigationSide, null, leftHandleRect, radius, radius);
         drawingContext.DrawRoundedRectangle(pMapBrushNavigationSide, null, rightHandleRect, radius, radius);
 
-        PMapSideGripDraw(drawingContext, leftHandleRect);
-        PMapSideGripDraw(drawingContext, rightHandleRect);
+        PGripSideDraw(drawingContext, leftHandleRect);
+        PGripSideDraw(drawingContext, rightHandleRect);
 
-        Rect moveRect = PMapMoveRectResolve(bodyRect, sideWidth, actualWidth);
+        Rect moveRect = PMapMoveResolve(bodyRect, sideWidth, actualWidth);
         if (moveRect.Width > 0 && moveRect.Height > 0)
         {
             double moveRadius = Math.Min(8, moveRect.Height / 2);
             drawingContext.DrawRoundedRectangle(pMapBrushNavigationMove, pMapPenNavigationMoveBorder, moveRect, moveRadius, moveRadius);
-            PMapMoveGripDraw(drawingContext, moveRect);
+            PGripMoveDraw(drawingContext, moveRect);
         }
 
         drawingContext.DrawLine(
@@ -237,7 +237,7 @@ public sealed class PMap : FrameworkElement
         drawingContext.DrawRoundedRectangle(null, pMapPenNavigationBorder, bodyRect, radius, radius);
     }
 
-    private static Rect PMapMoveRectResolve(Rect bodyRect, double sideWidth, double actualWidth)
+    private static Rect PMapMoveResolve(Rect bodyRect, double sideWidth, double actualWidth)
     {
         double moveHeight = Math.Clamp(bodyRect.Height, 1, 16);
         double moveSpaceWidth = Math.Max(0, bodyRect.Width - sideWidth * 2);
@@ -261,7 +261,7 @@ public sealed class PMap : FrameworkElement
         return new Rect(moveLeft, bodyRect.Top, moveWidth, moveHeight);
     }
 
-    private static void PMapSideGripDraw(DrawingContext drawingContext, Rect handleRect)
+    private static void PGripSideDraw(DrawingContext drawingContext, Rect handleRect)
     {
         Rect innerRect = handleRect;
         innerRect.Inflate(-4.5, -4.5);
@@ -280,7 +280,7 @@ public sealed class PMap : FrameworkElement
         }
     }
 
-    private static void PMapMoveGripDraw(DrawingContext drawingContext, Rect moveRect)
+    private static void PGripMoveDraw(DrawingContext drawingContext, Rect moveRect)
     {
         int columnCount = Math.Clamp((int)(moveRect.Width / 9), 2, 10);
         double columnCenterOffset = (columnCount - 1) / 2.0;
@@ -298,7 +298,7 @@ public sealed class PMap : FrameworkElement
         }
     }
 
-    private Rect PMapNavigationBodyRectResolve(double spoolStartX, double spoolEndX)
+    private Rect PMapBodyResolve(double spoolStartX, double spoolEndX)
     {
         double actualHeight = ActualHeight;
         double coverageTop = Math.Max(0, Math.Max(0, actualHeight - 1) - 3);
@@ -307,10 +307,10 @@ public sealed class PMap : FrameworkElement
         return new Rect(spoolStartX, railTop, Math.Max(0, spoolEndX - spoolStartX), Math.Max(0, railBottom - railTop));
     }
 
-    private static Rect PMapNavigationLeftHandleRectResolve(Rect bodyRect)
+    private static Rect PMapLeftResolve(Rect bodyRect)
         => new(bodyRect.Left, bodyRect.Top, Math.Min(PMapHandleWidth, bodyRect.Width), bodyRect.Height);
 
-    private static Rect PMapNavigationRightHandleRectResolve(Rect bodyRect)
+    private static Rect PMapRightResolve(Rect bodyRect)
     {
         double handleWidth = Math.Min(PMapHandleWidth, bodyRect.Width);
         return new Rect(bodyRect.Right - handleWidth, bodyRect.Top, handleWidth, bodyRect.Height);
@@ -324,17 +324,17 @@ public sealed class PMap : FrameworkElement
         }
 
         double actualWidth = ActualWidth;
-        double spoolStartX = Math.Clamp(lSpool.LSpoolDurationRatioConvert(lSpool.LSpoolWorkingRangeStart), 0, 1) * actualWidth;
-        double spoolEndX = Math.Clamp(lSpool.LSpoolDurationRatioConvert(lSpool.LSpoolWorkingRangeEnd), 0, 1) * actualWidth;
+        double spoolStartX = Math.Clamp(lSpool.LSpoolRatioConvert(lSpool.LSpoolWorkingRangeStart), 0, 1) * actualWidth;
+        double spoolEndX = Math.Clamp(lSpool.LSpoolRatioConvert(lSpool.LSpoolWorkingRangeEnd), 0, 1) * actualWidth;
         if (spoolStartX > spoolEndX)
         {
             (spoolStartX, spoolEndX) = (spoolEndX, spoolStartX);
         }
 
-        Rect bodyRect = PMapNavigationBodyRectResolve(spoolStartX, spoolEndX);
-        Rect leftHandleRect = PMapNavigationLeftHandleRectResolve(bodyRect);
-        Rect rightHandleRect = PMapNavigationRightHandleRectResolve(bodyRect);
-        Rect moveHandleRect = PMapMoveRectResolve(bodyRect, Math.Min(PMapHandleWidth, bodyRect.Width), actualWidth);
+        Rect bodyRect = PMapBodyResolve(spoolStartX, spoolEndX);
+        Rect leftHandleRect = PMapLeftResolve(bodyRect);
+        Rect rightHandleRect = PMapRightResolve(bodyRect);
+        Rect moveHandleRect = PMapMoveResolve(bodyRect, Math.Min(PMapHandleWidth, bodyRect.Width), actualWidth);
 
         if (leftHandleRect.Contains(mousePoint) || rightHandleRect.Contains(mousePoint))
         {
@@ -354,17 +354,17 @@ public sealed class PMap : FrameworkElement
 
         double mouseX = e.GetPosition(this).X;
         double actualWidth = ActualWidth;
-        double spoolStartX = Math.Clamp(lSpool.LSpoolDurationRatioConvert(lSpool.LSpoolWorkingRangeStart), 0, 1) * actualWidth;
-        double spoolEndX = Math.Clamp(lSpool.LSpoolDurationRatioConvert(lSpool.LSpoolWorkingRangeEnd), 0, 1) * actualWidth;
+        double spoolStartX = Math.Clamp(lSpool.LSpoolRatioConvert(lSpool.LSpoolWorkingRangeStart), 0, 1) * actualWidth;
+        double spoolEndX = Math.Clamp(lSpool.LSpoolRatioConvert(lSpool.LSpoolWorkingRangeEnd), 0, 1) * actualWidth;
         if (spoolStartX > spoolEndX)
         {
             (spoolStartX, spoolEndX) = (spoolEndX, spoolStartX);
         }
 
-        Rect bodyRect = PMapNavigationBodyRectResolve(spoolStartX, spoolEndX);
-        Rect leftHandleRect = PMapNavigationLeftHandleRectResolve(bodyRect);
-        Rect rightHandleRect = PMapNavigationRightHandleRectResolve(bodyRect);
-        Rect moveHandleRect = PMapMoveRectResolve(bodyRect, Math.Min(PMapHandleWidth, bodyRect.Width), actualWidth);
+        Rect bodyRect = PMapBodyResolve(spoolStartX, spoolEndX);
+        Rect leftHandleRect = PMapLeftResolve(bodyRect);
+        Rect rightHandleRect = PMapRightResolve(bodyRect);
+        Rect moveHandleRect = PMapMoveResolve(bodyRect, Math.Min(PMapHandleWidth, bodyRect.Width), actualWidth);
         Point mousePoint = e.GetPosition(this);
 
         pMapDragStartX = mouseX;
@@ -386,7 +386,7 @@ public sealed class PMap : FrameworkElement
         else
         {
             pMapDragMode = PMapDragMode.PMapDragCursor;
-            PMapCursorChangeRequest?.Invoke(PMapRatioTimeConvert(Math.Clamp(mouseX / actualWidth, 0, 1)));
+            PMapCursorChange?.Invoke(PMapRatioConvert(Math.Clamp(mouseX / actualWidth, 0, 1)));
         }
 
         CaptureMouse();
@@ -406,29 +406,29 @@ public sealed class PMap : FrameworkElement
         double mouseX = mousePoint.X;
         double actualWidth = ActualWidth;
         double dragDeltaRatio = (mouseX - pMapDragStartX) / actualWidth;
-        TimeSpan dragDeltaTime = lSpool.LSpoolRatioDurationConvert(dragDeltaRatio);
+        TimeSpan dragDeltaTime = lSpool.LSpoolTimeConvert(dragDeltaRatio);
 
         switch (pMapDragMode)
         {
             case PMapDragMode.PMapDragResizeStart:
                 lSpool.LSpoolStartResize(lMapDragStartTime + dragDeltaTime);
-                PMapSpoolChangeRequest?.Invoke();
+                PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;
             case PMapDragMode.PMapDragResizeEnd:
                 lSpool.LSpoolEndResize(lMapDragStartTime + dragDeltaTime);
-                PMapSpoolChangeRequest?.Invoke();
+                PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;
             case PMapDragMode.PMapDragMove:
                 double moveDeltaRatio = (mouseX - pMapDragPreviousX) / actualWidth;
-                lSpool.LSpoolMove(lSpool.LSpoolRatioDurationConvert(moveDeltaRatio));
+                lSpool.LSpoolMove(lSpool.LSpoolTimeConvert(moveDeltaRatio));
                 pMapDragPreviousX = mouseX;
-                PMapSpoolChangeRequest?.Invoke();
+                PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;
             case PMapDragMode.PMapDragCursor:
-                PMapCursorChangeRequest?.Invoke(PMapRatioTimeConvert(Math.Clamp(mouseX / actualWidth, 0, 1)));
+                PMapCursorChange?.Invoke(PMapRatioConvert(Math.Clamp(mouseX / actualWidth, 0, 1)));
                 break;
         }
 
@@ -466,6 +466,6 @@ public sealed class PMap : FrameworkElement
         }
     }
 
-    private TimeSpan PMapRatioTimeConvert(double ratio)
-        => lSpool?.LSpoolRatioDurationConvert(ratio) ?? TimeSpan.Zero;
+    private TimeSpan PMapRatioConvert(double ratio)
+        => lSpool?.LSpoolTimeConvert(ratio) ?? TimeSpan.Zero;
 }

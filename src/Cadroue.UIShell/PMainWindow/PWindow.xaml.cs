@@ -12,54 +12,54 @@ using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 namespace Cadroue.UIShell.PMainWindow;
-public partial class PMainWindow : Window
+public partial class PWindow : Window
 {
-    private const int PMainWindowResizeBorderPixels = 8;
-    private const int PMainWindowResizeLeft = 1;
-    private const int PMainWindowResizeRight = 2;
-    private const int PMainWindowResizeTop = 4;
-    private const int PMainWindowResizeBottom = 8;
-    private const int PMainWindowMessageEraseBackground = 0x0014;
-    private const int PMainWindowDwmWindowCornerPreference = 33;
-    private const int PMainWindowDwmWindowCornerRound = 2;
-    private const int PMainWindowDwmCaptionColorAttribute = 35;
-    private const int PMainWindowColorRefBackground = 0x00F7E8DC;
-    private readonly LTabSelect lTabSelect;
-    private bool pMainWindowResizeActive;
-    private int pMainWindowResizeDirection;
-    private Point pMainWindowResizeStartPointer;
-    private Rect pMainWindowResizeStartBounds;
+    private const int PResizeBorderPixels = 8;
+    private const int PResizeLeft = 1;
+    private const int PResizeRight = 2;
+    private const int PResizeTop = 4;
+    private const int PResizeBottom = 8;
+    private const int PWindowMessageErase = 0x0014;
+    private const int PWindowDwmCornerPreference = 33;
+    private const int PWindowDwmCornerRound = 2;
+    private const int PWindowDwmCaptionColor = 35;
+    private const int PWindowColorBackground = 0x00F7E8DC;
+    private readonly LTabset lTabset;
+    private bool pResizeActive;
+    private int pResizeDirection;
+    private Point pResizeStartPointer;
+    private Rect pResizeStartBounds;
     private PFlowControl? pFlowActive;
-    private PViewerPanel? pViewerPanelActive;
-    private bool pMainWindowAudioOnlyAllowed;
-    public PMainWindow()
+    private PViewer? pViewerActive;
+    private bool pWindowAudioAllowed;
+    public PWindow()
     {
         InitializeComponent();
-        lTabSelect = new LTabSelect();
-        PMainWindowTabsRestore(lTabSelect, App.LPreferenceStateCurrent);
-        pControlBar.PControlBarTabSelectSet(lTabSelect);
-        pControlBar.PPreferenceApplyRequest += PMainWindowPreferenceApplyHandle;
-        PMainWindowPreferenceApplyHandle(App.LPreferenceStateCurrent);
-        PMainWindowPositionRestore(App.LPreferenceStateCurrent);
-        pMainArea.PMainAreaTabSelectSet(lTabSelect);
-        lTabSelect.LTabSelectChange += PMainWindowTabSelectChangeHandle;
-        PMainWindowTabSelectChangeHandle(lTabSelect.PTabSelectRecord);
-        PMainWindowDropHandlersAdd();
-        PMainWindowResizeHandlersAdd();
-        PreviewKeyDown += PMainWindowShortcutKeyDownHandle;
-        Closed += PMainWindowClosedHandle;
+        lTabset = new LTabset();
+        PWindowTabsRestore(lTabset, App.LPreferenceStateCurrent);
+        pControlBar.PToolbarTabsetSet(lTabset);
+        pControlBar.PToolbarPreferenceApply += PWindowPreferenceHandle;
+        PWindowPreferenceHandle(App.LPreferenceStateCurrent);
+        PWindowPositionRestore(App.LPreferenceStateCurrent);
+        pDeck.PDeckTabsetSet(lTabset);
+        lTabset.LTabsetSelectChange += PWindowTabHandle;
+        PWindowTabHandle(lTabset.PTabsetSelectRecord);
+        PDropHandlersAdd();
+        PResizeHandlersAdd();
+        PreviewKeyDown += PShortcutKeyHandle;
+        Closed += PWindowCloseHandle;
     }
-    private static void PMainWindowTabsRestore(LTabSelect pTabSelect, LPreferenceState lPreferenceState)
+    private static void PWindowTabsRestore(LTabset pTabset, LPreferenceState lPreferenceState)
     {
         IReadOnlyList<string> pTabKeys = lPreferenceState.LPreferenceTabLayoutKeys.Count > 0
             ? lPreferenceState.LPreferenceTabLayoutKeys
             : new[] { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" };
         foreach (string pTabKey in pTabKeys)
-            pTabSelect.LTabAddRequest(pTabKey);
-        int pSelectIndex = Math.Clamp(lPreferenceState.LPreferenceTabSelectIndex, 0, pTabSelect.PTabRecords.Count - 1);
-        pTabSelect.LTabSelectRequest(pTabSelect.PTabRecords[pSelectIndex]);
+            pTabset.LTabsetAdd(pTabKey);
+        int pSelectIndex = Math.Clamp(lPreferenceState.LPreferenceTabSelectIndex, 0, pTabset.PTabsetRecords.Count - 1);
+        pTabset.LTabsetSelect(pTabset.PTabsetRecords[pSelectIndex]);
     }
-    private void PMainWindowPositionRestore(LPreferenceState lPrefs)
+    private void PWindowPositionRestore(LPreferenceState lPrefs)
     {
         if (lPrefs.LPreferenceProgramLeft is not double pLeft || lPrefs.LPreferenceProgramTop is not double pTop)
             return;
@@ -73,54 +73,54 @@ public partial class PMainWindow : Window
             Top = pTop;
         }
     }
-    private void PMainWindowTabSelectChangeHandle(PTabRecord? pTabRecord)
+    private void PWindowTabHandle(PTabRecord? pTabRecord)
     {
-        PMainWindowWorkspaceDetach();
+        PWindowWorkspaceDetach();
         if (pTabRecord is null)
         {
             return;
         }
-        pFlowActive = pTabRecord.PTabWorkspace.PTabWorkspaceFlow;
-        pViewerPanelActive = pTabRecord.PTabWorkspace.PTabWorkspaceViewer;
-        pMainWindowAudioOnlyAllowed = pTabRecord.PTabLayoutKey == "Audio";
-        PMainWindowWorkspaceAttach(pTabRecord);
+        pFlowActive = pTabRecord.PTabWorkspace.PWorkspaceFlow;
+        pViewerActive = pTabRecord.PTabWorkspace.PWorkspaceViewer;
+        pWindowAudioAllowed = pTabRecord.PTabLayoutKey == "Audio";
+        PWindowWorkspaceAttach(pTabRecord);
     }
-    private void PMainWindowWorkspaceAttach(PTabRecord pTabRecord)
+    private void PWindowWorkspaceAttach(PTabRecord pTabRecord)
     {
-        if (pFlowActive is null || pViewerPanelActive is null)
+        if (pFlowActive is null || pViewerActive is null)
         {
             return;
         }
-        pFlowActive.PFlowCommandActiveSet(true);
-        pFlowActive.PFlowSectionUiActiveSet(pTabRecord.PTabLayoutKey == "Split");
+        pFlowActive.PFlowCommandSet(true);
+        pFlowActive.PFlowSectionShow(pTabRecord.PTabLayoutKey == "Split");
         pFlowActive.Height = App.LPreferenceStateCurrent.LPreferenceFlowHeight;
-        pViewerPanelActive.PViewerPanelCommandActiveSet(true);
-        pViewerPanelActive.PViewerPanelMediaStatusChange += PMainWindowViewerMediaStatusChangeHandle;
-        pViewerPanelActive.PViewerPanelClockTick += PMainWindowViewerClockTickHandle;
-        pFlowActive.PFlowCursorChangeRequest += pViewerPanelActive.PViewerPanelSeekRequest;
-        pFlowActive.PFlowPlayRequest += pViewerPanelActive.PViewerPanelPlayRequest;
-        pFlowActive.PFlowPauseRequest += pViewerPanelActive.PViewerPanelPauseRequest;
-        pFlowActive.PFlowVolumeChangeRequest += pViewerPanelActive.PViewerPanelVolumeRequest;
-        PMainWindowVolumeSyncForActive(App.LPreferenceStateCurrent);
+        pViewerActive.PViewerCommandSet(true);
+        pViewerActive.PViewerMediaChange += PWindowMediaHandle;
+        pViewerActive.PViewerClockTick += PWindowClockHandle;
+        pFlowActive.PFlowCursorChange += pViewerActive.PViewerSeek;
+        pFlowActive.PFlowPlay += pViewerActive.PViewerPlay;
+        pFlowActive.PFlowPause += pViewerActive.PViewerPause;
+        pFlowActive.PFlowVolumeChange += pViewerActive.PViewerVolumeSet;
+        PWindowVolumeSync(App.LPreferenceStateCurrent);
     }
-    private void PMainWindowWorkspaceDetach()
+    private void PWindowWorkspaceDetach()
     {
-        if (pFlowActive is not null && pViewerPanelActive is not null)
+        if (pFlowActive is not null && pViewerActive is not null)
         {
-            pViewerPanelActive.PViewerPanelMediaStatusChange -= PMainWindowViewerMediaStatusChangeHandle;
-            pViewerPanelActive.PViewerPanelClockTick -= PMainWindowViewerClockTickHandle;
-            pFlowActive.PFlowCursorChangeRequest -= pViewerPanelActive.PViewerPanelSeekRequest;
-            pFlowActive.PFlowPlayRequest -= pViewerPanelActive.PViewerPanelPlayRequest;
-            pFlowActive.PFlowPauseRequest -= pViewerPanelActive.PViewerPanelPauseRequest;
-            pFlowActive.PFlowVolumeChangeRequest -= pViewerPanelActive.PViewerPanelVolumeRequest;
-            pFlowActive.PFlowSectionUiActiveSet(false);
-            pFlowActive.PFlowCommandActiveSet(false);
-            pViewerPanelActive.PViewerPanelCommandActiveSet(false);
+            pViewerActive.PViewerMediaChange -= PWindowMediaHandle;
+            pViewerActive.PViewerClockTick -= PWindowClockHandle;
+            pFlowActive.PFlowCursorChange -= pViewerActive.PViewerSeek;
+            pFlowActive.PFlowPlay -= pViewerActive.PViewerPlay;
+            pFlowActive.PFlowPause -= pViewerActive.PViewerPause;
+            pFlowActive.PFlowVolumeChange -= pViewerActive.PViewerVolumeSet;
+            pFlowActive.PFlowSectionShow(false);
+            pFlowActive.PFlowCommandSet(false);
+            pViewerActive.PViewerCommandSet(false);
         }
         pFlowActive = null;
-        pViewerPanelActive = null;
+        pViewerActive = null;
     }
-    private void PMainWindowViewerMediaStatusChangeHandle(LMediaOpenStatus mediaStatus)
+    private void PWindowMediaHandle(LMediaOpenStatus mediaStatus)
     {
         if (mediaStatus.LMediaOpenMediaInfo is LMediaInfo mediaInfo)
         {
@@ -129,27 +129,27 @@ public partial class PMainWindow : Window
         }
         pFlowActive?.PFlowClear();
     }
-    private void PMainWindowViewerClockTickHandle(TimeSpan playbackPosition)
+    private void PWindowClockHandle(TimeSpan playbackPosition)
     {
         pFlowActive?.PFlowCursorUpdate(playbackPosition);
     }
-    private void PMainWindowShortcutKeyDownHandle(object sender, KeyEventArgs e)
+    private void PShortcutKeyHandle(object sender, KeyEventArgs e)
     {
-        if (PMainWindowTextInputFind(e.OriginalSource as DependencyObject))
+        if (PWindowInputFind(e.OriginalSource as DependencyObject))
         {
             return;
         }
-        bool pHandled = PMainWindowShortcutHandle(e.Key == Key.System ? e.SystemKey : e.Key, Keyboard.Modifiers);
+        bool pHandled = PShortcutDispatch(e.Key == Key.System ? e.SystemKey : e.Key, Keyboard.Modifiers);
         if (pHandled)
         {
             e.Handled = true;
         }
     }
-    private bool PMainWindowShortcutHandle(Key pKey, ModifierKeys pModifiers)
+    private bool PShortcutDispatch(Key pKey, ModifierKeys pModifiers)
     {
         if (pModifiers == ModifierKeys.Control && (pKey == Key.OemQuestion || pKey == Key.Divide))
         {
-            pControlBar.PControlBarShortcutDialogShow();
+            pControlBar.PToolbarShortcutShow();
             return true;
         }
         if (pModifiers != ModifierKeys.None)
@@ -158,37 +158,37 @@ public partial class PMainWindow : Window
         }
         return pKey switch
         {
-            Key.Space => PMainWindowShortcutPlayPause(),
-            Key.C => pFlowActive?.PFlowShortcutRequest("zoomIn") == true,
-            Key.V => pFlowActive?.PFlowShortcutRequest("zoomOut") == true,
-            Key.Q => pFlowActive?.PFlowShortcutRequest("addSection") == true,
-            Key.D => pFlowActive?.PFlowShortcutRequest("setStart") == true,
-            Key.S => pFlowActive?.PFlowShortcutRequest("splitSection") == true,
-            Key.F => pFlowActive?.PFlowShortcutRequest("setEnd") == true,
-            Key.Delete => pFlowActive?.PFlowShortcutRequest("deleteSection") == true,
-            Key.E => pFlowActive?.PFlowShortcutRequest("previousKey") == true,
-            Key.W => pFlowActive?.PFlowShortcutRequest("nearestKey") == true,
-            Key.R => pFlowActive?.PFlowShortcutRequest("nextKey") == true,
+            Key.Space => PShortcutPlayToggle(),
+            Key.C => pFlowActive?.PFlowShortcutDispatch("zoomIn") == true,
+            Key.V => pFlowActive?.PFlowShortcutDispatch("zoomOut") == true,
+            Key.Q => pFlowActive?.PFlowShortcutDispatch("addSection") == true,
+            Key.D => pFlowActive?.PFlowShortcutDispatch("setStart") == true,
+            Key.S => pFlowActive?.PFlowShortcutDispatch("splitSection") == true,
+            Key.F => pFlowActive?.PFlowShortcutDispatch("setEnd") == true,
+            Key.Delete => pFlowActive?.PFlowShortcutDispatch("deleteSection") == true,
+            Key.E => pFlowActive?.PFlowShortcutDispatch("previousKey") == true,
+            Key.W => pFlowActive?.PFlowShortcutDispatch("nearestKey") == true,
+            Key.R => pFlowActive?.PFlowShortcutDispatch("nextKey") == true,
             _ => false
         };
     }
-    private bool PMainWindowShortcutPlayPause()
+    private bool PShortcutPlayToggle()
     {
-        if (pViewerPanelActive is null)
+        if (pViewerActive is null)
         {
             return false;
         }
-        if (pViewerPanelActive.LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+        if (pViewerActive.LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
         {
-            pViewerPanelActive.PViewerPanelPauseRequest();
+            pViewerActive.PViewerPause();
         }
         else
         {
-            pViewerPanelActive.PViewerPanelPlayRequest();
+            pViewerActive.PViewerPlay();
         }
         return true;
     }
-    private static bool PMainWindowTextInputFind(DependencyObject? pSource)
+    private static bool PWindowInputFind(DependencyObject? pSource)
     {
         while (pSource is not null)
         {
@@ -200,173 +200,173 @@ public partial class PMainWindow : Window
         }
         return false;
     }
-    private void PMainWindowPreferenceApplyHandle(LPreferenceState lPreferenceState)
+    private void PWindowPreferenceHandle(LPreferenceState lPreferenceState)
     {
         Width = lPreferenceState.LPreferenceProgramWidth;
         Height = lPreferenceState.LPreferenceProgramHeight;
         FontSize = lPreferenceState.LPreferenceFontSize;
         if (pFlowActive is not null)
             pFlowActive.Height = lPreferenceState.LPreferenceFlowHeight;
-        PMainWindowVolumeSyncForActive(lPreferenceState);
+        PWindowVolumeSync(lPreferenceState);
     }
-    private void PMainWindowVolumeSyncForActive(LPreferenceState lPreferenceState)
+    private void PWindowVolumeSync(LPreferenceState lPreferenceState)
     {
-        if (pFlowActive is null || pViewerPanelActive is null) return;
-        double pVolume = lPreferenceState.LPreferenceVolumeSingleGlobal ? lPreferenceState.LPreferenceVolume : pViewerPanelActive.PViewerPanelVolumeCurrent;
-        if (lPreferenceState.LPreferenceVolumeSingleGlobal) pViewerPanelActive.PViewerPanelVolumeRequest(pVolume);
-        pFlowActive.PFlowVolumeValueSet(pVolume);
+        if (pFlowActive is null || pViewerActive is null) return;
+        double pVolume = lPreferenceState.LPreferenceVolumeSingleGlobal ? lPreferenceState.LPreferenceVolume : pViewerActive.PViewerVolumeCurrent;
+        if (lPreferenceState.LPreferenceVolumeSingleGlobal) pViewerActive.PViewerVolumeSet(pVolume);
+        pFlowActive.PFlowVolumeSet(pVolume);
     }
-    private void PMainWindowDropHandlersAdd()
+    private void PDropHandlersAdd()
     {
-        AddHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PMainWindowDragAccept), true);
-        AddHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PMainWindowDragAccept), true);
-        AddHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PMainWindowDrop), true);
+        AddHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropAccept), true);
+        AddHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropAccept), true);
+        AddHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PDropHandle), true);
     }
-    private void PMainWindowDropHandlersRemove()
+    private void PDropHandlersRemove()
     {
-        RemoveHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PMainWindowDragAccept));
-        RemoveHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PMainWindowDragAccept));
-        RemoveHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PMainWindowDrop));
+        RemoveHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropAccept));
+        RemoveHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropAccept));
+        RemoveHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PDropHandle));
     }
-    private void PMainWindowResizeHandlersAdd()
+    private void PResizeHandlersAdd()
     {
-        PreviewMouseMove += PMainWindowResizeMouseMove;
-        PreviewMouseLeftButtonDown += PMainWindowResizeMouseDown;
-        PreviewMouseLeftButtonUp += PMainWindowResizeMouseUp;
-        LostMouseCapture += PMainWindowResizeLostCaptureHandle;
+        PreviewMouseMove += PResizeMoveHandle;
+        PreviewMouseLeftButtonDown += PResizePressHandle;
+        PreviewMouseLeftButtonUp += PResizeReleaseHandle;
+        LostMouseCapture += PResizeCaptureHandle;
     }
-    private void PMainWindowResizeHandlersRemove()
+    private void PResizeHandlersRemove()
     {
-        PreviewMouseMove -= PMainWindowResizeMouseMove;
-        PreviewMouseLeftButtonDown -= PMainWindowResizeMouseDown;
-        PreviewMouseLeftButtonUp -= PMainWindowResizeMouseUp;
-        LostMouseCapture -= PMainWindowResizeLostCaptureHandle;
+        PreviewMouseMove -= PResizeMoveHandle;
+        PreviewMouseLeftButtonDown -= PResizePressHandle;
+        PreviewMouseLeftButtonUp -= PResizeReleaseHandle;
+        LostMouseCapture -= PResizeCaptureHandle;
     }
-    private void PMainWindowResizeMouseDown(object sender, MouseButtonEventArgs e)
+    private void PResizePressHandle(object sender, MouseButtonEventArgs e)
     {
-        int pDirection = PMainWindowResizeDirectionRead(e.GetPosition(this));
+        int pDirection = PResizeDirectionRead(e.GetPosition(this));
         if (WindowState != WindowState.Normal || pDirection == 0)
             return;
-        pMainWindowResizeActive = true;
-        pMainWindowResizeDirection = pDirection;
-        pMainWindowResizeStartPointer = PMainWindowPointerScreenDipRead(e);
-        pMainWindowResizeStartBounds = new Rect(Left, Top, ActualWidth, ActualHeight);
+        pResizeActive = true;
+        pResizeDirection = pDirection;
+        pResizeStartPointer = PResizePointerRead(e);
+        pResizeStartBounds = new Rect(Left, Top, ActualWidth, ActualHeight);
         // Drop to software rendering for the drag so WPF and the Flyleaf DirectX surface no longer
         // fight over the window each frame (airspace flicker); hardware rendering restores on release.
         RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
         Mouse.Capture(this);
         e.Handled = true;
     }
-    private void PMainWindowResizeMouseMove(object sender, MouseEventArgs e)
+    private void PResizeMoveHandle(object sender, MouseEventArgs e)
     {
-        if (pMainWindowResizeActive)
+        if (pResizeActive)
         {
-            PMainWindowResizeApply(PMainWindowPointerScreenDipRead(e));
+            PResizeApply(PResizePointerRead(e));
             e.Handled = true;
             return;
         }
-        int pDirection = WindowState == WindowState.Normal ? PMainWindowResizeDirectionRead(e.GetPosition(this)) : 0;
-        Cursor = pDirection == 0 ? null : PMainWindowResizeCursorRead(pDirection);
+        int pDirection = WindowState == WindowState.Normal ? PResizeDirectionRead(e.GetPosition(this)) : 0;
+        Cursor = pDirection == 0 ? null : PResizeCursorRead(pDirection);
     }
-    private void PMainWindowResizeMouseUp(object sender, MouseButtonEventArgs e)
+    private void PResizeReleaseHandle(object sender, MouseButtonEventArgs e)
     {
-        if (!pMainWindowResizeActive)
+        if (!pResizeActive)
             return;
-        pMainWindowResizeActive = false;
+        pResizeActive = false;
         RenderOptions.ProcessRenderMode = RenderMode.Default;
         Mouse.Capture(null);
         e.Handled = true;
     }
-    private void PMainWindowResizeLostCaptureHandle(object sender, MouseEventArgs e)
+    private void PResizeCaptureHandle(object sender, MouseEventArgs e)
     {
-        pMainWindowResizeActive = false;
+        pResizeActive = false;
         RenderOptions.ProcessRenderMode = RenderMode.Default;
     }
-    private int PMainWindowResizeDirectionRead(Point pPoint)
+    private int PResizeDirectionRead(Point pPoint)
     {
-        bool pLeft = pPoint.X >= 0 && pPoint.X < PMainWindowResizeBorderPixels;
-        bool pRight = pPoint.X <= ActualWidth && pPoint.X > ActualWidth - PMainWindowResizeBorderPixels;
-        bool pTop = pPoint.Y >= 0 && pPoint.Y < PMainWindowResizeBorderPixels;
-        bool pBottom = pPoint.Y <= ActualHeight && pPoint.Y > ActualHeight - PMainWindowResizeBorderPixels;
+        bool pLeft = pPoint.X >= 0 && pPoint.X < PResizeBorderPixels;
+        bool pRight = pPoint.X <= ActualWidth && pPoint.X > ActualWidth - PResizeBorderPixels;
+        bool pTop = pPoint.Y >= 0 && pPoint.Y < PResizeBorderPixels;
+        bool pBottom = pPoint.Y <= ActualHeight && pPoint.Y > ActualHeight - PResizeBorderPixels;
         int pDirection = 0;
-        if (pLeft) pDirection |= PMainWindowResizeLeft;
-        if (pRight) pDirection |= PMainWindowResizeRight;
-        if (pTop) pDirection |= PMainWindowResizeTop;
-        if (pBottom) pDirection |= PMainWindowResizeBottom;
+        if (pLeft) pDirection |= PResizeLeft;
+        if (pRight) pDirection |= PResizeRight;
+        if (pTop) pDirection |= PResizeTop;
+        if (pBottom) pDirection |= PResizeBottom;
         return pDirection;
     }
-    private static Cursor PMainWindowResizeCursorRead(int pDirection)
+    private static Cursor PResizeCursorRead(int pDirection)
     {
-        bool pHorizontal = (pDirection & (PMainWindowResizeLeft | PMainWindowResizeRight)) != 0;
-        bool pVertical = (pDirection & (PMainWindowResizeTop | PMainWindowResizeBottom)) != 0;
+        bool pHorizontal = (pDirection & (PResizeLeft | PResizeRight)) != 0;
+        bool pVertical = (pDirection & (PResizeTop | PResizeBottom)) != 0;
         if (!pHorizontal || !pVertical)
             return pHorizontal ? Cursors.SizeWE : Cursors.SizeNS;
-        bool pLeft = (pDirection & PMainWindowResizeLeft) != 0;
-        bool pTop = (pDirection & PMainWindowResizeTop) != 0;
+        bool pLeft = (pDirection & PResizeLeft) != 0;
+        bool pTop = (pDirection & PResizeTop) != 0;
         return pLeft == pTop ? Cursors.SizeNWSE : Cursors.SizeNESW;
     }
-    private Point PMainWindowPointerScreenDipRead(MouseEventArgs e)
+    private Point PResizePointerRead(MouseEventArgs e)
     {
         Point pScreenPoint = PointToScreen(e.GetPosition(this));
         return PresentationSource.FromVisual(this)?.CompositionTarget?.TransformFromDevice.Transform(pScreenPoint) ?? pScreenPoint;
     }
-    private void PMainWindowResizeApply(Point pPointer)
+    private void PResizeApply(Point pPointer)
     {
-        double pDx = pPointer.X - pMainWindowResizeStartPointer.X;
-        double pDy = pPointer.Y - pMainWindowResizeStartPointer.Y;
-        double pLeft = pMainWindowResizeStartBounds.Left;
-        double pTop = pMainWindowResizeStartBounds.Top;
-        double pWidth = pMainWindowResizeStartBounds.Width;
-        double pHeight = pMainWindowResizeStartBounds.Height;
-        if ((pMainWindowResizeDirection & PMainWindowResizeLeft) != 0)
+        double pDx = pPointer.X - pResizeStartPointer.X;
+        double pDy = pPointer.Y - pResizeStartPointer.Y;
+        double pLeft = pResizeStartBounds.Left;
+        double pTop = pResizeStartBounds.Top;
+        double pWidth = pResizeStartBounds.Width;
+        double pHeight = pResizeStartBounds.Height;
+        if ((pResizeDirection & PResizeLeft) != 0)
         {
-            pWidth = Math.Max(MinWidth, pMainWindowResizeStartBounds.Width - pDx);
-            pLeft = pMainWindowResizeStartBounds.Right - pWidth;
+            pWidth = Math.Max(MinWidth, pResizeStartBounds.Width - pDx);
+            pLeft = pResizeStartBounds.Right - pWidth;
         }
-        if ((pMainWindowResizeDirection & PMainWindowResizeRight) != 0)
-            pWidth = Math.Max(MinWidth, pMainWindowResizeStartBounds.Width + pDx);
-        if ((pMainWindowResizeDirection & PMainWindowResizeTop) != 0)
+        if ((pResizeDirection & PResizeRight) != 0)
+            pWidth = Math.Max(MinWidth, pResizeStartBounds.Width + pDx);
+        if ((pResizeDirection & PResizeTop) != 0)
         {
-            pHeight = Math.Max(MinHeight, pMainWindowResizeStartBounds.Height - pDy);
-            pTop = pMainWindowResizeStartBounds.Bottom - pHeight;
+            pHeight = Math.Max(MinHeight, pResizeStartBounds.Height - pDy);
+            pTop = pResizeStartBounds.Bottom - pHeight;
         }
-        if ((pMainWindowResizeDirection & PMainWindowResizeBottom) != 0)
-            pHeight = Math.Max(MinHeight, pMainWindowResizeStartBounds.Height + pDy);
+        if ((pResizeDirection & PResizeBottom) != 0)
+            pHeight = Math.Max(MinHeight, pResizeStartBounds.Height + pDy);
         Left = pLeft;
         Top = pTop;
         Width = pWidth;
         Height = pHeight;
     }
-    private void PMainWindowDragAccept(object sender, DragEventArgs dragEvent)
+    private void PDropAccept(object sender, DragEventArgs dragEvent)
     {
-        dragEvent.Effects = PMainWindowDropEffectRead(dragEvent);
+        dragEvent.Effects = PDropEffectRead(dragEvent);
         dragEvent.Handled = true;
     }
-    private void PMainWindowDrop(object sender, DragEventArgs dragEvent)
+    private void PDropHandle(object sender, DragEventArgs dragEvent)
     {
-        DragDropEffects dropEffect = PMainWindowDropEffectRead(dragEvent);
+        DragDropEffects dropEffect = PDropEffectRead(dragEvent);
         dragEvent.Effects = dropEffect;
         dragEvent.Handled = true;
-        if (dropEffect == DragDropEffects.None || pViewerPanelActive is null)
+        if (dropEffect == DragDropEffects.None || pViewerActive is null)
         {
             return;
         }
-        string? sourcePath = PMainWindowDropSourcePathRead(dragEvent);
+        string? sourcePath = PDropPathRead(dragEvent);
         if (sourcePath is null)
         {
             dragEvent.Effects = DragDropEffects.None;
             return;
         }
-        pViewerPanelActive.PViewerPanelSourceOpenRequest(sourcePath);
+        pViewerActive.PViewerSourceOpen(sourcePath);
     }
-    private DragDropEffects PMainWindowDropEffectRead(DragEventArgs dragEvent)
+    private DragDropEffects PDropEffectRead(DragEventArgs dragEvent)
     {
-        if (pViewerPanelActive is null)
+        if (pViewerActive is null)
         {
             return DragDropEffects.None;
         }
-        string? pSourcePath = PMainWindowDropSourcePathRead(dragEvent);
-        if (pSourcePath is null || PMainWindowAudioExtensionCheck(pSourcePath) && !pMainWindowAudioOnlyAllowed)
+        string? pSourcePath = PDropPathRead(dragEvent);
+        if (pSourcePath is null || PDropAudioCheck(pSourcePath) && !pWindowAudioAllowed)
         {
             return DragDropEffects.None;
         }
@@ -384,7 +384,7 @@ public partial class PMainWindow : Window
         }
         return DragDropEffects.None;
     }
-    private static bool PMainWindowAudioExtensionCheck(string pSourcePath)
+    private static bool PDropAudioCheck(string pSourcePath)
     {
         string pExtension = Path.GetExtension(pSourcePath);
         return pExtension.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
@@ -393,7 +393,7 @@ public partial class PMainWindow : Window
             || pExtension.Equals(".wav", StringComparison.OrdinalIgnoreCase)
             || pExtension.Equals(".ogg", StringComparison.OrdinalIgnoreCase);
     }
-    private static string? PMainWindowDropSourcePathRead(DragEventArgs dragEvent)
+    private static string? PDropPathRead(DragEventArgs dragEvent)
     {
         if (!dragEvent.Data.GetDataPresent(DataFormats.FileDrop))
         {
@@ -412,7 +412,7 @@ public partial class PMainWindow : Window
         }
         return null;
     }
-    private void PMainWindowClosedHandle(object? sender, EventArgs eventArgs)
+    private void PWindowCloseHandle(object? sender, EventArgs eventArgs)
     {
         LPreferenceState lPrefs = App.LPreferenceStateCurrent.LPreferenceClone();
         Rect lBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
@@ -423,59 +423,59 @@ public partial class PMainWindow : Window
             lPrefs.LPreferenceProgramWidth = lBounds.Width;
             lPrefs.LPreferenceProgramHeight = lBounds.Height;
         }
-        lPrefs.LPreferenceTabLayoutKeys = lTabSelect.PTabRecords.Select(r => r.PTabLayoutKey).ToList();
-        lPrefs.LPreferenceTabSelectIndex = lTabSelect.PTabSelectRecord is null ? 0
-            : Math.Max(0, lTabSelect.PTabRecords.IndexOf(lTabSelect.PTabSelectRecord));
+        lPrefs.LPreferenceTabLayoutKeys = lTabset.PTabsetRecords.Select(r => r.PTabLayoutKey).ToList();
+        lPrefs.LPreferenceTabSelectIndex = lTabset.PTabsetSelectRecord is null ? 0
+            : Math.Max(0, lTabset.PTabsetRecords.IndexOf(lTabset.PTabsetSelectRecord));
         App.LPreferenceStateSet(lPrefs);
-        lTabSelect.LTabSelectChange -= PMainWindowTabSelectChangeHandle;
-        pControlBar.PPreferenceApplyRequest -= PMainWindowPreferenceApplyHandle;
-        PreviewKeyDown -= PMainWindowShortcutKeyDownHandle;
-        PMainWindowDropHandlersRemove();
-        PMainWindowResizeHandlersRemove();
-        PMainWindowWorkspaceDetach();
-        foreach (PTabRecord pTabRecord in lTabSelect.PTabRecords)
+        lTabset.LTabsetSelectChange -= PWindowTabHandle;
+        pControlBar.PToolbarPreferenceApply -= PWindowPreferenceHandle;
+        PreviewKeyDown -= PShortcutKeyHandle;
+        PDropHandlersRemove();
+        PResizeHandlersRemove();
+        PWindowWorkspaceDetach();
+        foreach (PTabRecord pTabRecord in lTabset.PTabsetRecords)
         {
-            pTabRecord.PTabWorkspace.PTabWorkspaceCloseRequest();
+            pTabRecord.PTabWorkspace.PWorkspaceClose();
         }
-        Closed -= PMainWindowClosedHandle;
+        Closed -= PWindowCloseHandle;
     }
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
-        HwndSource? pMainWindowSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
-        pMainWindowSource?.AddHook(PMainWindowMessageHook);
-        PMainWindowDwmCornerApply();
+        HwndSource? pWindowSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+        pWindowSource?.AddHook(PWindowMessageHook);
+        PWindowDwmApply();
     }
-    private IntPtr PMainWindowMessageHook(IntPtr windowHandle, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    private IntPtr PWindowMessageHook(IntPtr windowHandle, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         // Swallow WM_ERASEBKGND so Windows does not repaint the background brush over the client
         // area on every resize step; WPF still renders the full tree, so nothing is lost. This
         // removes the whole-window flicker while the borderless window is resized.
-        if (message == PMainWindowMessageEraseBackground)
+        if (message == PWindowMessageErase)
         {
             handled = true;
             return new IntPtr(1);
         }
         return IntPtr.Zero;
     }
-    private void PMainWindowDwmCornerApply()
+    private void PWindowDwmApply()
     {
-        IntPtr pMainWindowHandle = new WindowInteropHelper(this).Handle;
-        if (pMainWindowHandle == IntPtr.Zero)
+        IntPtr pWindowHandle = new WindowInteropHelper(this).Handle;
+        if (pWindowHandle == IntPtr.Zero)
         {
             return;
         }
-        int pMainWindowCornerPreference = PMainWindowDwmWindowCornerRound;
+        int pWindowCornerPreference = PWindowDwmCornerRound;
         _ = DwmSetWindowAttribute(
-            pMainWindowHandle,
-            PMainWindowDwmWindowCornerPreference,
-            ref pMainWindowCornerPreference,
+            pWindowHandle,
+            PWindowDwmCornerPreference,
+            ref pWindowCornerPreference,
             Marshal.SizeOf<int>());
-        int pMainWindowCaptionColor = PMainWindowColorRefBackground;
+        int pWindowCaptionColor = PWindowColorBackground;
         _ = DwmSetWindowAttribute(
-            pMainWindowHandle,
-            PMainWindowDwmCaptionColorAttribute,
-            ref pMainWindowCaptionColor,
+            pWindowHandle,
+            PWindowDwmCaptionColor,
+            ref pWindowCaptionColor,
             Marshal.SizeOf<int>());
     }
     [DllImport("dwmapi.dll")]

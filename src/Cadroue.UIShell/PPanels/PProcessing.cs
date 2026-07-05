@@ -1,8 +1,8 @@
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PProcessingPanel : PPanelFrame
+public sealed class PProcessing : PPanel
 {
-    public PProcessingPanel() : base("PProcessingPanel")
+    public PProcessing() : base("PProcessing")
     {
     }
 }

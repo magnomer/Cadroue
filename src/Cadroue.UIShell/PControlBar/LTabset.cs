@@ -2,149 +2,149 @@ using System.Collections.ObjectModel;
 
 namespace Cadroue.UIShell.PControlBar;
 
-public sealed class LTabSelect
+public sealed class LTabset
 {
-    private const string lTabSplitIconPath = "/PAssets/PTabs/PSplitButton.png";
-    private const string lTabEditIconPath = "/PAssets/PTabs/PEditButton.png";
-    private const string lTabAudioIconPath = "/PAssets/PTabs/PAudioButton.png";
-    private const string lTabConvertIconPath = "/PAssets/PTabs/PConvertButton.png";
-    private const string lTabMergeIconPath = "/PAssets/PTabs/PMergeButton.png";
-    private const string lTabWorklistIconPath = "/PAssets/PCompass/PActionAddList.png";
+    private const string lTabsetSplitIconPath = "/PAssets/PTabs/PSplitButton.png";
+    private const string lTabsetEditIconPath = "/PAssets/PTabs/PEditButton.png";
+    private const string lTabsetAudioIconPath = "/PAssets/PTabs/PAudioButton.png";
+    private const string lTabsetConvertIconPath = "/PAssets/PTabs/PConvertButton.png";
+    private const string lTabsetMergeIconPath = "/PAssets/PTabs/PMergeButton.png";
+    private const string lTabsetWorklistIconPath = "/PAssets/PCompass/PActionAddList.png";
 
-    private int lTabCreateIndex;
-    private PTabRecord? pTabSelectRecord;
+    private int lTabsetCreateIndex;
+    private PTabRecord? pTabsetSelectRecord;
 
-    public LTabSelect()
+    public LTabset()
     {
-        PTabRecords = new ObservableCollection<PTabRecord>();
+        PTabsetRecords = new ObservableCollection<PTabRecord>();
     }
 
-    public ObservableCollection<PTabRecord> PTabRecords { get; }
+    public ObservableCollection<PTabRecord> PTabsetRecords { get; }
 
-    public PTabRecord? PTabSelectRecord
+    public PTabRecord? PTabsetSelectRecord
     {
-        get => pTabSelectRecord;
+        get => pTabsetSelectRecord;
         private set
         {
-            if (ReferenceEquals(pTabSelectRecord, value))
+            if (ReferenceEquals(pTabsetSelectRecord, value))
             {
                 return;
             }
 
-            pTabSelectRecord = value;
-            LTabSelectChange?.Invoke(pTabSelectRecord);
+            pTabsetSelectRecord = value;
+            LTabsetSelectChange?.Invoke(pTabsetSelectRecord);
         }
     }
 
-    public event Action<PTabRecord?>? LTabSelectChange;
+    public event Action<PTabRecord?>? LTabsetSelectChange;
 
-    private void LTabUpdateSeparators()
+    private void LTabsetSeparatorUpdate()
     {
-        var selectedIndex = PTabSelectRecord is null ? -1 : PTabRecords.IndexOf(PTabSelectRecord);
-        for (var i = 0; i < PTabRecords.Count; i++)
+        var selectedIndex = PTabsetSelectRecord is null ? -1 : PTabsetRecords.IndexOf(PTabsetSelectRecord);
+        for (var i = 0; i < PTabsetRecords.Count; i++)
         {
-            PTabRecords[i].PTabSeparatorState =
-                i < PTabRecords.Count - 1
+            PTabsetRecords[i].PTabSeparatorState =
+                i < PTabsetRecords.Count - 1
                 && i != selectedIndex
                 && i != selectedIndex - 1;
         }
     }
 
-    public PTabRecord LTabAddRequest()
+    public PTabRecord LTabsetAdd()
     {
-        return LTabAddRequest("Split");
+        return LTabsetAdd("Split");
     }
 
-    public PTabRecord LTabAddRequest(string pTabLayoutKey)
+    public PTabRecord LTabsetAdd(string pTabLayoutKey)
     {
         return pTabLayoutKey switch
         {
-            "Edit" => LTabAddTypedRequest("Edit", lTabEditIconPath),
-            "Audio" => LTabAddTypedRequest("Audio", lTabAudioIconPath),
-            "Convert" => LTabAddTypedRequest("Convert", lTabConvertIconPath),
-            "Merge" => LTabAddTypedRequest("Merge", lTabMergeIconPath),
-            "Worklist" => LTabAddTypedRequest("Worklist", lTabWorklistIconPath),
-            _ => LTabAddTypedRequest("Split", lTabSplitIconPath)
+            "Edit" => LTabsetTypedAdd("Edit", lTabsetEditIconPath),
+            "Audio" => LTabsetTypedAdd("Audio", lTabsetAudioIconPath),
+            "Convert" => LTabsetTypedAdd("Convert", lTabsetConvertIconPath),
+            "Merge" => LTabsetTypedAdd("Merge", lTabsetMergeIconPath),
+            "Worklist" => LTabsetTypedAdd("Worklist", lTabsetWorklistIconPath),
+            _ => LTabsetTypedAdd("Split", lTabsetSplitIconPath)
         };
     }
 
-    public PTabRecord LTabAddRequest(string pTabTitle, string pTabLayoutKey, string pTabIconPath)
+    public PTabRecord LTabsetAdd(string pTabTitle, string pTabLayoutKey, string pTabIconPath)
     {
         var pTabRecord = new PTabRecord(pTabTitle, pTabLayoutKey, pTabIconPath);
-        PTabRecords.Add(pTabRecord);
+        PTabsetRecords.Add(pTabRecord);
 
-        if (PTabSelectRecord is null)
+        if (PTabsetSelectRecord is null)
         {
-            LTabSelectRequest(pTabRecord);
+            LTabsetSelect(pTabRecord);
         }
         else
         {
-            LTabUpdateSeparators();
+            LTabsetSeparatorUpdate();
         }
 
         return pTabRecord;
     }
 
-    private PTabRecord LTabAddTypedRequest(string pTabLayoutKey, string pTabIconPath)
+    private PTabRecord LTabsetTypedAdd(string pTabLayoutKey, string pTabIconPath)
     {
-        lTabCreateIndex++;
-        return LTabAddRequest($"{pTabLayoutKey} {lTabCreateIndex}", pTabLayoutKey, pTabIconPath);
+        lTabsetCreateIndex++;
+        return LTabsetAdd($"{pTabLayoutKey} {lTabsetCreateIndex}", pTabLayoutKey, pTabIconPath);
     }
 
-    public void LTabSelectRequest(PTabRecord? pTabRecord)
+    public void LTabsetSelect(PTabRecord? pTabRecord)
     {
-        foreach (var pTabItem in PTabRecords)
+        foreach (var pTabItem in PTabsetRecords)
         {
             pTabItem.PTabSelectState = ReferenceEquals(pTabItem, pTabRecord);
         }
 
-        PTabSelectRecord = pTabRecord;
-        LTabUpdateSeparators();
+        PTabsetSelectRecord = pTabRecord;
+        LTabsetSeparatorUpdate();
     }
 
-    public void LTabMoveRequest(PTabRecord pTabRecord, int pTabTargetIndex)
+    public void LTabsetMove(PTabRecord pTabRecord, int pTabTargetIndex)
     {
-        int pTabSourceIndex = PTabRecords.IndexOf(pTabRecord);
+        int pTabSourceIndex = PTabsetRecords.IndexOf(pTabRecord);
         if (pTabSourceIndex < 0)
         {
             return;
         }
 
-        int pTabClampedTargetIndex = Math.Clamp(pTabTargetIndex, 0, PTabRecords.Count - 1);
+        int pTabClampedTargetIndex = Math.Clamp(pTabTargetIndex, 0, PTabsetRecords.Count - 1);
         if (pTabSourceIndex == pTabClampedTargetIndex)
         {
             return;
         }
 
-        PTabRecords.Move(pTabSourceIndex, pTabClampedTargetIndex);
-        LTabUpdateSeparators();
+        PTabsetRecords.Move(pTabSourceIndex, pTabClampedTargetIndex);
+        LTabsetSeparatorUpdate();
     }
 
-    public void LTabCloseRequest(PTabRecord pTabRecord)
+    public void LTabsetClose(PTabRecord pTabRecord)
     {
-        var pTabIndex = PTabRecords.IndexOf(pTabRecord);
+        var pTabIndex = PTabsetRecords.IndexOf(pTabRecord);
         if (pTabIndex < 0)
         {
             return;
         }
 
-        var pTabWasSelected = ReferenceEquals(PTabSelectRecord, pTabRecord);
-        pTabRecord.PTabWorkspace.PTabWorkspaceCloseRequest();
-        PTabRecords.RemoveAt(pTabIndex);
+        var pTabWasSelected = ReferenceEquals(PTabsetSelectRecord, pTabRecord);
+        pTabRecord.PTabWorkspace.PWorkspaceClose();
+        PTabsetRecords.RemoveAt(pTabIndex);
 
         if (!pTabWasSelected)
         {
-            LTabUpdateSeparators();
+            LTabsetSeparatorUpdate();
             return;
         }
 
-        if (PTabRecords.Count == 0)
+        if (PTabsetRecords.Count == 0)
         {
-            PTabSelectRecord = null;
+            PTabsetSelectRecord = null;
             return;
         }
 
-        var pTabNextIndex = Math.Min(pTabIndex, PTabRecords.Count - 1);
-        LTabSelectRequest(PTabRecords[pTabNextIndex]);
+        var pTabNextIndex = Math.Min(pTabIndex, PTabsetRecords.Count - 1);
+        LTabsetSelect(PTabsetRecords[pTabNextIndex]);
     }
 }

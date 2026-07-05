@@ -1,4 +1,4 @@
-<Window x:Class="Cadroue.UIShell.PMainWindow.PMainWindow"
+<Window x:Class="Cadroue.UIShell.PMainWindow.PWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:pControlBar="clr-namespace:Cadroue.UIShell.PControlBar"
@@ -22,8 +22,8 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <pControlBar:PControlBar x:Name="pControlBar" Grid.Row="0" />
-        <pMainArea:PMainArea x:Name="pMainArea" Grid.Row="1" Margin="0,-1,0,0" />
+        <pControlBar:PToolbar x:Name="pControlBar" Grid.Row="0" />
+        <pMainArea:PDeck x:Name="pDeck" Grid.Row="1" Margin="0,-1,0,0" />
 
     </Grid>
 </Window>

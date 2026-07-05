@@ -1,7 +1,7 @@
 namespace Cadroue.UIShell.LWork;
 
-public enum LWorkListAddPriority
+public enum LWorkPriority
 {
-    LWorkListAddNormal,
-    LWorkListAddPriority
+    LWorkPriorityNormal,
+    LWorkPriorityHigh
 }

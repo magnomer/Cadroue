@@ -1,8 +1,8 @@
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PInspectorPanel : PPanelFrame
+public sealed class PInspector : PPanel
 {
-    public PInspectorPanel() : base("PInspectorPanel")
+    public PInspector() : base("PInspector")
     {
     }
 }

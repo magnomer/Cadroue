@@ -7,5 +7,5 @@ namespace Cadroue.UIShell.PMainArea;
 public abstract class PTabSurface : UserControl
 {
     public abstract PFlowControl? PTabFlow { get; }
-    public abstract PViewerPanel? PTabViewer { get; }
+    public abstract PViewer? PTabViewer { get; }
 }

@@ -21,7 +21,7 @@ public sealed class LSpool
         LSpoolWorkingRangeEnd = LSpoolDuration;
     }
 
-    public void LSpoolCorrect()
+    public void LSpoolNormalize()
     {
         if (LSpoolDuration <= TimeSpan.Zero)
         {
@@ -40,7 +40,7 @@ public sealed class LSpool
             LSpoolWorkingRangeEnd = center;
         }
 
-        var rangeMinimum = LSpoolRangeMinimumGet();
+        var rangeMinimum = LSpoolMinimumRead();
         if (LSpoolWorkingRangeEnd - LSpoolWorkingRangeStart < rangeMinimum)
         {
             var center = LSpoolWorkingRangeStart + (LSpoolWorkingRangeEnd - LSpoolWorkingRangeStart) / 2;
@@ -84,19 +84,19 @@ public sealed class LSpool
             LSpoolWorkingRangeStart = LSpoolDuration - span;
         }
 
-        LSpoolCorrect();
+        LSpoolNormalize();
     }
 
     public void LSpoolStartResize(TimeSpan newStart)
     {
         LSpoolWorkingRangeStart = newStart;
-        LSpoolCorrect();
+        LSpoolNormalize();
     }
 
     public void LSpoolEndResize(TimeSpan newEnd)
     {
         LSpoolWorkingRangeEnd = newEnd;
-        LSpoolCorrect();
+        LSpoolNormalize();
     }
 
     public void LSpoolCenterSet(TimeSpan center)
@@ -104,40 +104,40 @@ public sealed class LSpool
         var halfSpan = (LSpoolWorkingRangeEnd - LSpoolWorkingRangeStart) / 2;
         LSpoolWorkingRangeStart = center - halfSpan;
         LSpoolWorkingRangeEnd = center + halfSpan;
-        LSpoolCorrect();
+        LSpoolNormalize();
     }
 
-    public TimeSpan LSpoolRatioDurationConvert(double ratio)
+    public TimeSpan LSpoolTimeConvert(double ratio)
         => TimeSpan.FromSeconds(ratio * LSpoolDuration.TotalSeconds);
 
-    public double LSpoolDurationRatioConvert(TimeSpan t)
+    public double LSpoolRatioConvert(TimeSpan t)
         => LSpoolDuration.TotalSeconds > 0 ? t.TotalSeconds / LSpoolDuration.TotalSeconds : 0;
 
-    public void LSpoolZoomIn(TimeSpan cursor)
+    public void LSpoolInZoom(TimeSpan cursor)
     {
         var span = LSpoolWorkingRangeEnd - LSpoolWorkingRangeStart;
         if (span <= TimeSpan.Zero)
         {
-            LSpoolCorrect();
+            LSpoolNormalize();
             span = LSpoolWorkingRangeEnd - LSpoolWorkingRangeStart;
         }
 
         var newSpan = span / 2;
-        var rangeMinimum = LSpoolRangeMinimumGet();
+        var rangeMinimum = LSpoolMinimumRead();
         if (newSpan < rangeMinimum) newSpan = rangeMinimum;
         double ratio = span.TotalSeconds > 0 ? (cursor - LSpoolWorkingRangeStart).TotalSeconds / span.TotalSeconds : 0.5;
         ratio = Math.Clamp(ratio, 0, 1);
         LSpoolWorkingRangeStart = cursor - newSpan * ratio;
         LSpoolWorkingRangeEnd = cursor + newSpan * (1 - ratio);
-        LSpoolCorrect();
+        LSpoolNormalize();
     }
 
-    public void LSpoolZoomOut(TimeSpan cursor)
+    public void LSpoolOutZoom(TimeSpan cursor)
     {
         var span = LSpoolWorkingRangeEnd - LSpoolWorkingRangeStart;
         if (span <= TimeSpan.Zero)
         {
-            LSpoolCorrect();
+            LSpoolNormalize();
             span = LSpoolWorkingRangeEnd - LSpoolWorkingRangeStart;
         }
 
@@ -147,10 +147,10 @@ public sealed class LSpool
         ratio = Math.Clamp(ratio, 0, 1);
         LSpoolWorkingRangeStart = cursor - newSpan * ratio;
         LSpoolWorkingRangeEnd = cursor + newSpan * (1 - ratio);
-        LSpoolCorrect();
+        LSpoolNormalize();
     }
 
-    private TimeSpan LSpoolRangeMinimumGet()
+    private TimeSpan LSpoolMinimumRead()
         => LSpoolDuration < lSpoolRangeMinimum ? LSpoolDuration : lSpoolRangeMinimum;
 
     private TimeSpan LSpoolTimeClamp(TimeSpan time)

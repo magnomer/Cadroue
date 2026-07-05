@@ -2,10 +2,10 @@ using Cadroue.UIShell.LWork;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public static class LConvertDescribe
+public static partial class LConvert
 {
-    public static void LConvertDescribeCall(LWorkListAddPriority lWorkListAddPriority)
+    public static void LConvertDescribe(LWorkPriority lWorkPriority)
     {
-        LConvertInterpret.LConvertInterpreterCall(lWorkListAddPriority);
+        LConvert.LConvertInterpret(lWorkPriority);
     }
 }

@@ -62,12 +62,12 @@ public sealed class PViewfinder : FrameworkElement
     private TimeSpan lCursor;
     private IReadOnlyList<LKeyframeEntry> lKeyframes = Array.Empty<LKeyframeEntry>();
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-    private IReadOnlyList<LSectionEntry> lSectionList = Array.Empty<LSectionEntry>();
+    private IReadOnlyList<LSegment> lSectionList = Array.Empty<LSegment>();
     private int? lSectionIndexSelect;
     private PViewfinderDragMode pViewfinderDragMode;
 
-    public event Action<TimeSpan>? PViewfinderCursorChangeRequest;
-    public event Action<int>? PViewfinderSectionSelectRequest;
+    public event Action<TimeSpan>? PViewfinderCursorChange;
+    public event Action<int>? PViewfinderSectionSelect;
 
     public void PViewfinderAttach(LSpool spool, TimeSpan cursor)
     {
@@ -88,7 +88,7 @@ public sealed class PViewfinder : FrameworkElement
         lCursor = TimeSpan.Zero;
         lKeyframes = Array.Empty<LKeyframeEntry>();
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-        lSectionList = Array.Empty<LSectionEntry>();
+        lSectionList = Array.Empty<LSegment>();
         lSectionIndexSelect = null;
         InvalidateVisual();
     }
@@ -104,9 +104,9 @@ public sealed class PViewfinder : FrameworkElement
         InvalidateVisual();
     }
 
-    public void PViewfinderSectionsUpdate(IReadOnlyList<LSectionEntry>? sections, int? selectedIndex)
+    public void PViewfinderSectionsUpdate(IReadOnlyList<LSegment>? sections, int? selectedIndex)
     {
-        lSectionList = sections?.ToArray() ?? Array.Empty<LSectionEntry>();
+        lSectionList = sections?.ToArray() ?? Array.Empty<LSegment>();
         lSectionIndexSelect = selectedIndex;
         InvalidateVisual();
     }
@@ -154,7 +154,7 @@ public sealed class PViewfinder : FrameworkElement
 
         PViewfinderTicksDraw(drawingContext, actualWidth, rangeStart, rangeSeconds);
         PViewfinderSectionsDraw(drawingContext, actualWidth, railTop, railBottom, rangeStart, rangeEnd, rangeSeconds);
-        PViewfinderKeyframeCoverageDraw(drawingContext, actualWidth, coverageTop, PViewfinderCoverageHeight, rangeStart, rangeEnd, rangeSeconds);
+        PViewfinderCoverageDraw(drawingContext, actualWidth, coverageTop, PViewfinderCoverageHeight, rangeStart, rangeEnd, rangeSeconds);
         PViewfinderKeyframesDraw(drawingContext, actualWidth, railTop, railBottom, rangeStart, rangeEnd, rangeSeconds);
         PViewfinderCursorDraw(drawingContext, actualWidth, actualHeight, rangeStart, rangeEnd, rangeSeconds);
     }
@@ -178,9 +178,9 @@ public sealed class PViewfinder : FrameworkElement
         double sectionHeight = Math.Max(4, (railBottom - railTop) * 0.28);
         for (int index = 0; index < lSectionList.Count; index++)
         {
-            LSectionEntry section = lSectionList[index];
-            TimeSpan sectionStart = section.LSectionStart < rangeStart ? rangeStart : section.LSectionStart;
-            TimeSpan sectionEnd = section.LSectionEnd > rangeEnd ? rangeEnd : section.LSectionEnd;
+            LSegment section = lSectionList[index];
+            TimeSpan sectionStart = section.LSegmentStart < rangeStart ? rangeStart : section.LSegmentStart;
+            TimeSpan sectionEnd = section.LSegmentEnd > rangeEnd ? rangeEnd : section.LSegmentEnd;
             if (sectionEnd <= sectionStart)
             {
                 continue;
@@ -189,7 +189,7 @@ public sealed class PViewfinder : FrameworkElement
             double sectionStartX = Math.Clamp((sectionStart - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
             double sectionEndX = Math.Clamp((sectionEnd - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
-            Brush sectionBrush = pViewfinderSectionBrushes[Math.Abs(section.LSectionColorIndex) % pViewfinderSectionBrushes.Length];
+            Brush sectionBrush = pViewfinderSectionBrushes[Math.Abs(section.LSegmentColorIndex) % pViewfinderSectionBrushes.Length];
             Pen? sectionPen = index == lSectionIndexSelect ? new Pen(Brushes.Black, 1.5) : null;
             drawingContext.DrawRoundedRectangle(sectionBrush, sectionPen, new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight), 3, 3);
         }
@@ -236,7 +236,7 @@ public sealed class PViewfinder : FrameworkElement
         drawingContext.DrawText(formattedText, new Point(labelX + PViewfinderLabelPaddingHorizontal, PViewfinderLabelPaddingVertical));
     }
 
-    private void PViewfinderKeyframeCoverageDraw(
+    private void PViewfinderCoverageDraw(
         DrawingContext drawingContext,
         double actualWidth,
         double coverageTop,
@@ -287,8 +287,8 @@ public sealed class PViewfinder : FrameworkElement
         TimeSpan rangeEnd,
         double rangeSeconds)
     {
-        TimeSpan visibleSearchStart = PViewfinderMaximumTime(rangeStart, lCursor - LKeyframeOrchestrator.LKeyframeRangeBefore);
-        TimeSpan visibleSearchEnd = PViewfinderMinimumTime(rangeEnd, lCursor + LKeyframeOrchestrator.LKeyframeRangeAfter);
+        TimeSpan visibleSearchStart = PViewfinderMaxResolve(rangeStart, lCursor - LKeyframeOrchestrator.LKeyframeRangeBefore);
+        TimeSpan visibleSearchEnd = PViewfinderMinResolve(rangeEnd, lCursor + LKeyframeOrchestrator.LKeyframeRangeAfter);
         if (visibleSearchEnd <= visibleSearchStart)
         {
             return;
@@ -298,7 +298,7 @@ public sealed class PViewfinder : FrameworkElement
             .Where(entry => entry.LKeyframePresentationTime >= visibleSearchStart && entry.LKeyframePresentationTime <= visibleSearchEnd)
             .Select(entry => entry.LKeyframePresentationTime)
             .ToArray();
-        if (!PViewfinderKeyframeVisibilityAllowed(actualWidth, rangeSeconds, visibleSearchKeyframes.Length))
+        if (!PViewfinderVisibilityCheck(actualWidth, rangeSeconds, visibleSearchKeyframes.Length))
         {
             return;
         }
@@ -310,7 +310,7 @@ public sealed class PViewfinder : FrameworkElement
         }
     }
 
-    private static bool PViewfinderKeyframeVisibilityAllowed(
+    private static bool PViewfinderVisibilityCheck(
         double actualWidth,
         double rangeSeconds,
         int visibleSearchKeyframeCount)
@@ -331,10 +331,10 @@ public sealed class PViewfinder : FrameworkElement
         return pixelsPerKeyframe > App.LPreferenceStateCurrent.LPreferenceKeyframeMinimumPixels;
     }
 
-    private static TimeSpan PViewfinderMinimumTime(TimeSpan first, TimeSpan second)
+    private static TimeSpan PViewfinderMinResolve(TimeSpan first, TimeSpan second)
         => first <= second ? first : second;
 
-    private static TimeSpan PViewfinderMaximumTime(TimeSpan first, TimeSpan second)
+    private static TimeSpan PViewfinderMaxResolve(TimeSpan first, TimeSpan second)
         => first >= second ? first : second;
 
     private void PViewfinderTicksDraw(
@@ -387,10 +387,10 @@ public sealed class PViewfinder : FrameworkElement
             return;
         }
 
-        TimeSpan requestTime = PViewfinderPositionTimeConvert(e.GetPosition(this).X);
-        PViewfinderSectionSelectPropagate(requestTime);
+        TimeSpan requestTime = PViewfinderPositionConvert(e.GetPosition(this).X);
+        PViewfinderSelectPropagate(requestTime);
         pViewfinderDragMode = PViewfinderDragMode.PViewfinderDragCursor;
-        PViewfinderCursorChangeRequest?.Invoke(requestTime);
+        PViewfinderCursorChange?.Invoke(requestTime);
         CaptureMouse();
         e.Handled = true;
     }
@@ -403,7 +403,7 @@ public sealed class PViewfinder : FrameworkElement
             return;
         }
 
-        PViewfinderCursorChangeRequest?.Invoke(PViewfinderPositionTimeConvert(e.GetPosition(this).X));
+        PViewfinderCursorChange?.Invoke(PViewfinderPositionConvert(e.GetPosition(this).X));
         e.Handled = true;
     }
 
@@ -425,20 +425,20 @@ public sealed class PViewfinder : FrameworkElement
         pViewfinderDragMode = PViewfinderDragMode.PViewfinderDragNone;
     }
 
-    private void PViewfinderSectionSelectPropagate(TimeSpan requestTime)
+    private void PViewfinderSelectPropagate(TimeSpan requestTime)
     {
         for (int index = 0; index < lSectionList.Count; index++)
         {
-            LSectionEntry section = lSectionList[index];
-            if (requestTime >= section.LSectionStart && requestTime <= section.LSectionEnd)
+            LSegment section = lSectionList[index];
+            if (requestTime >= section.LSegmentStart && requestTime <= section.LSegmentEnd)
             {
-                PViewfinderSectionSelectRequest?.Invoke(index);
+                PViewfinderSectionSelect?.Invoke(index);
                 return;
             }
         }
     }
 
-    private TimeSpan PViewfinderPositionTimeConvert(double mouseX)
+    private TimeSpan PViewfinderPositionConvert(double mouseX)
     {
         if (lSpool is null || ActualWidth <= 0)
         {

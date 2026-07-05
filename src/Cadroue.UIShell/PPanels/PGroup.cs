@@ -1,8 +1,8 @@
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PGroupPanel : PPanelFrame
+public sealed class PGroup : PPanel
 {
-    public PGroupPanel() : base("PGroupPanel")
+    public PGroup() : base("PGroup")
     {
     }
 }

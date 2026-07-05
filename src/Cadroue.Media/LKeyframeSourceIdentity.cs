@@ -19,7 +19,7 @@ public sealed record LKeyframeSourceIdentity
         LKeyframeSourceLastWriteUtcTicks = sourceLastWriteUtcTicks;
         LKeyframeSourceDurationMilliseconds = sourceDurationMilliseconds;
         LKeyframeSourcePartialHash = sourcePartialHash;
-        LKeyframeSourceCacheKey = LKeyframeSourceCacheKeyCreate();
+        LKeyframeSourceCacheKey = LKeyframeKeyCreate();
     }
 
     public string LKeyframeSourcePath { get; }
@@ -34,7 +34,7 @@ public sealed record LKeyframeSourceIdentity
 
     public string LKeyframeSourceCacheKey { get; }
 
-    public static LKeyframeSourceIdentity LKeyframeSourceIdentityCreate(string sourcePath, TimeSpan duration)
+    public static LKeyframeSourceIdentity LKeyframeIdentityCreate(string sourcePath, TimeSpan duration)
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
@@ -53,10 +53,10 @@ public sealed record LKeyframeSourceIdentity
             fileInfo.Length,
             fileInfo.LastWriteTimeUtc.Ticks,
             (long)Math.Round(duration.TotalMilliseconds),
-            LKeyframeSourcePartialHashCreate(fileInfo));
+            LKeyframeHashCreate(fileInfo));
     }
 
-    private static string LKeyframeSourcePartialHashCreate(FileInfo fileInfo)
+    private static string LKeyframeHashCreate(FileInfo fileInfo)
     {
         using var sha256 = SHA256.Create();
         using var stream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -82,7 +82,7 @@ public sealed record LKeyframeSourceIdentity
         return Convert.ToHexString(sha256.Hash ?? Array.Empty<byte>());
     }
 
-    private string LKeyframeSourceCacheKeyCreate()
+    private string LKeyframeKeyCreate()
     {
         string rawKey = string.Join(
             "|",

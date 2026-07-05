@@ -2,14 +2,14 @@ using Cadroue.UIShell.LWork;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public static class LSplitDescribe
+public static partial class LSplit
 {
-    public static void LSplitDescribeCall(
-        LWorkListAddPriority lWorkListAddPriority,
+    public static void LSplitDescribe(
+        LWorkPriority lWorkPriority,
         string? lSplitSourcePath,
         IReadOnlyList<LSplitSectionDescription> lSplitSections)
     {
         LSplitWorkDescription lSplitWorkDescription = new(lSplitSourcePath, lSplitSections);
-        LSplitInterpret.LSplitInterpreterCall(lWorkListAddPriority, lSplitWorkDescription);
+        LSplit.LSplitInterpret(lWorkPriority, lSplitWorkDescription);
     }
 }

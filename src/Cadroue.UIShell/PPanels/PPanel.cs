@@ -4,17 +4,17 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PPanels;
 
-public class PPanelFrame : UserControl
+public class PPanel : UserControl
 {
     protected static readonly Brush PPanelLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     protected static readonly Brush PPanelTextBrush = new SolidColorBrush(Color.FromRgb(0x56, 0x62, 0x73));
     protected static readonly CornerRadius PPanelCornerRadius = new(10);
     protected static readonly Thickness PPanelOuterMargin = new(8);
 
-    public PPanelFrame(string pPanelTitle)
+    public PPanel(string pPanelTitle)
     {
         FocusVisualStyle = null;
-        Content = PPanelFrameBorderBuild(new TextBlock
+        Content = PPanelBorderBuild(new TextBlock
         {
             Text = pPanelTitle,
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -24,7 +24,7 @@ public class PPanelFrame : UserControl
         });
     }
 
-    public static Border PPanelFrameBorderBuild(UIElement pPanelContent)
+    public static Border PPanelBorderBuild(UIElement pPanelContent)
     {
         var pContentBorder = new Border
         {
@@ -33,7 +33,7 @@ public class PPanelFrame : UserControl
             Child = pPanelContent,
             SnapsToDevicePixels = true
         };
-        PPanelFrameClipApply(pContentBorder, 9);
+        PPanelClipApply(pContentBorder, 9);
 
         return new Border
         {
@@ -47,7 +47,7 @@ public class PPanelFrame : UserControl
         };
     }
 
-    protected static void PPanelFrameClipApply(Border pBorder, double pRadius)
+    protected static void PPanelClipApply(Border pBorder, double pRadius)
     {
         pBorder.SizeChanged += (_, _) =>
         {

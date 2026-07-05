@@ -32,7 +32,7 @@ public sealed class LKeyframeOrchestrator : IDisposable
     public static TimeSpan LKeyframeSearchDuration => lKeyframeRangeBefore + lKeyframeRangeAfter;
 
 
-    public void LKeyframeRequest(string sourcePath, TimeSpan duration, TimeSpan cursor)
+    public void LKeyframeStart(string sourcePath, TimeSpan duration, TimeSpan cursor)
     {
         if (lDisposed || string.IsNullOrWhiteSpace(sourcePath) || duration <= TimeSpan.Zero)
         {
@@ -44,11 +44,11 @@ public sealed class LKeyframeOrchestrator : IDisposable
         LKeyframeSourceIdentity identity;
         lock (lKeyframeLock)
         {
-            if (LKeyframeSourceChangeCheck(sourcePath, duration))
+            if (LKeyframeSourceCheck(sourcePath, duration))
             {
                 try
                 {
-                    identity = LKeyframeSourceIdentity.LKeyframeSourceIdentityCreate(sourcePath, duration);
+                    identity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration);
                 }
                 catch
                 {
@@ -79,16 +79,16 @@ public sealed class LKeyframeOrchestrator : IDisposable
         LKeyframePlanStart(identity.LKeyframeSourcePath, duration, cursor, serial, cancel.Token);
     }
 
-    public TimeSpan? LKeyframeMovePrevious(TimeSpan cursor)
+    public TimeSpan? LKeyframePreviousMove(TimeSpan cursor)
         => LKeyframeMoveFind(cursor, -1);
 
-    public TimeSpan? LKeyframeMoveNext(TimeSpan cursor)
+    public TimeSpan? LKeyframeNextMove(TimeSpan cursor)
         => LKeyframeMoveFind(cursor, 1);
 
-    public TimeSpan? LKeyframeMoveNearest(TimeSpan cursor)
+    public TimeSpan? LKeyframeNearestMove(TimeSpan cursor)
     {
-        var previous = LKeyframeMovePrevious(cursor);
-        var next = LKeyframeMoveNext(cursor);
+        var previous = LKeyframePreviousMove(cursor);
+        var next = LKeyframeNextMove(cursor);
         if (previous is null) return next;
         if (next is null) return previous;
         return cursor - previous.Value <= next.Value - cursor ? previous : next;
@@ -144,7 +144,7 @@ public sealed class LKeyframeOrchestrator : IDisposable
     {
         try
         {
-            (int first, int center, int last) = LKeyframePlanBoundsMake(duration, cursor);
+            (int first, int center, int last) = LKeyframeBoundsCreate(duration, cursor);
             var tasks = new List<Task>();
             if (center >= first && center <= last)
             {
@@ -195,7 +195,7 @@ public sealed class LKeyframeOrchestrator : IDisposable
         {
             if (serial != lKeyframeRequestSerial
                 || lKeyframeScannedSpans.Contains(spanIndex)
-                || LKeyframeSpanRetryLimitReached(spanIndex))
+                || LKeyframeRetryCheck(spanIndex))
             {
                 return;
             }
@@ -207,7 +207,7 @@ public sealed class LKeyframeOrchestrator : IDisposable
 
         try
         {
-            var entries = LKeyframeSeeker.LKeyframeSeekerScanRange(sourcePath, start, end, cancellationToken);
+            var entries = LKeyframeSeeker.LKeyframeRangeScan(sourcePath, start, end, cancellationToken);
             lock (lKeyframeLock)
             {
                 if (serial != lKeyframeRequestSerial || cancellationToken.IsCancellationRequested) return;
@@ -237,7 +237,7 @@ public sealed class LKeyframeOrchestrator : IDisposable
         LKeyframeNoticePublish(serial);
     }
 
-    private static (int First, int Center, int Last) LKeyframePlanBoundsMake(TimeSpan duration, TimeSpan cursor)
+    private static (int First, int Center, int Last) LKeyframeBoundsCreate(TimeSpan duration, TimeSpan cursor)
     {
         long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
         long startMs = Math.Max(0, (long)(cursor - lKeyframeRangeBefore).TotalMilliseconds);
@@ -270,11 +270,11 @@ public sealed class LKeyframeOrchestrator : IDisposable
         LKeyframeNoticeDispatch(notice);
     }
 
-    private bool LKeyframeSpanRetryLimitReached(int spanIndex)
+    private bool LKeyframeRetryCheck(int spanIndex)
         => lKeyframeFailedSpanCounts.TryGetValue(spanIndex, out int lFailedSpanCount)
             && lFailedSpanCount >= LKeyframeFailedSpanRetryLimit;
 
-    private bool LKeyframeSourceChangeCheck(string sourcePath, TimeSpan duration)
+    private bool LKeyframeSourceCheck(string sourcePath, TimeSpan duration)
     {
         if (lKeyframeSourceIdentity is null)
         {

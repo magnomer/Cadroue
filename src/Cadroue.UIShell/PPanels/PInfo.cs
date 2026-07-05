@@ -6,20 +6,20 @@ using System.Windows.Shapes;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PInfoPanel : UserControl
+public sealed class PInfo : UserControl
 {
-    private static readonly SolidColorBrush PInfoPanelTextBrush = new(Color.FromRgb(0x4B, 0x55, 0x63));
-    private static readonly SolidColorBrush PInfoPanelMutedBrush = new(Color.FromRgb(0x9C, 0xA3, 0xAF));
-    private static readonly SolidColorBrush PInfoPanelBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly SolidColorBrush PInfoPanelSeparatorBrush = new(Color.FromRgb(0xE5, 0xE7, 0xEB));
-    private static readonly SolidColorBrush PInfoPanelFfmpegGoodBrush = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
-    private static readonly SolidColorBrush PInfoPanelFfmpegBadBrush = new(Color.FromRgb(0xE0, 0x53, 0x53));
-    private static readonly SolidColorBrush PInfoPanelPreviewGoodBrush = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
-    private static readonly SolidColorBrush PInfoPanelPreviewBadBrush = new(Color.FromRgb(0xE0, 0x53, 0x53));
-    private PViewerPanel? pInfoPanelViewer;
+    private static readonly SolidColorBrush PInfoTextBrush = new(Color.FromRgb(0x4B, 0x55, 0x63));
+    private static readonly SolidColorBrush PInfoMutedBrush = new(Color.FromRgb(0x9C, 0xA3, 0xAF));
+    private static readonly SolidColorBrush PInfoBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
+    private static readonly SolidColorBrush PInfoSeparatorBrush = new(Color.FromRgb(0xE5, 0xE7, 0xEB));
+    private static readonly SolidColorBrush PInfoFfmpegGoodBrush = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
+    private static readonly SolidColorBrush PInfoFfmpegBadBrush = new(Color.FromRgb(0xE0, 0x53, 0x53));
+    private static readonly SolidColorBrush PInfoPreviewGoodBrush = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
+    private static readonly SolidColorBrush PInfoPreviewBadBrush = new(Color.FromRgb(0xE0, 0x53, 0x53));
+    private PViewer? pInfoViewer;
     private readonly StackPanel pInfoItemPanel;
 
-    public PInfoPanel()
+    public PInfo()
     {
         MinHeight = 50;
 
@@ -34,14 +34,14 @@ public sealed class PInfoPanel : UserControl
             Orientation = Orientation.Horizontal,
             VerticalAlignment = VerticalAlignment.Center
         };
-        pContentRow.Children.Add(PInfoPanelFilmIconCreate());
+        pContentRow.Children.Add(PInfoIconCreate());
         pContentRow.Children.Add(pInfoItemPanel);
 
         var pRoot = new Border
         {
             Margin = new Thickness(16, 0, 16, 8),
             Padding = new Thickness(14, 8, 14, 8),
-            BorderBrush = PInfoPanelBorderBrush,
+            BorderBrush = PInfoBorderBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
             CornerRadius = new CornerRadius(8),
@@ -49,39 +49,39 @@ public sealed class PInfoPanel : UserControl
         };
         Content = pRoot;
 
-        PInfoPanelClear();
+        PInfoClear();
     }
 
-    public void PInfoPanelAttach(PViewerPanel? pViewer)
+    public void PInfoAttach(PViewer? pViewer)
     {
-        if (pInfoPanelViewer is not null)
-            pInfoPanelViewer.PViewerPanelMediaStatusChange -= PInfoPanelMediaStatusChangeHandle;
-        pInfoPanelViewer = pViewer;
-        if (pInfoPanelViewer is not null)
-            pInfoPanelViewer.PViewerPanelMediaStatusChange += PInfoPanelMediaStatusChangeHandle;
+        if (pInfoViewer is not null)
+            pInfoViewer.PViewerMediaChange -= PInfoMediaHandle;
+        pInfoViewer = pViewer;
+        if (pInfoViewer is not null)
+            pInfoViewer.PViewerMediaChange += PInfoMediaHandle;
     }
 
-    private void PInfoPanelMediaStatusChangeHandle(LMediaOpenStatus pMediaStatus)
+    private void PInfoMediaHandle(LMediaOpenStatus pMediaStatus)
     {
         pInfoItemPanel.Children.Clear();
         PInfoStatusAdd(pMediaStatus.LMediaOpenFfmpegProcessable ? "FFmpeg processable" : "FFmpeg unprocessable",
-            pMediaStatus.LMediaOpenFfmpegProcessable ? PInfoPanelFfmpegGoodBrush : PInfoPanelFfmpegBadBrush);
+            pMediaStatus.LMediaOpenFfmpegProcessable ? PInfoFfmpegGoodBrush : PInfoFfmpegBadBrush);
         PInfoStatusAdd(pMediaStatus.LMediaOpenPreviewAvailable ? "Preview available" : "Preview unavailable",
-            pMediaStatus.LMediaOpenPreviewAvailable ? PInfoPanelPreviewGoodBrush : PInfoPanelPreviewBadBrush);
+            pMediaStatus.LMediaOpenPreviewAvailable ? PInfoPreviewGoodBrush : PInfoPreviewBadBrush);
 
         if (pMediaStatus.LMediaOpenMediaInfo is not LMediaInfo pMediaInfo)
         {
-            PInfoPanelErrorAdd(pMediaStatus);
+            PInfoErrorAdd(pMediaStatus);
             return;
         }
 
-        PInfoTextAdd(PInfoPanelDurationFormat(pMediaInfo.LMediaInfoDuration));
+        PInfoTextAdd(PInfoDurationFormat(pMediaInfo.LMediaInfoDuration));
         if (pMediaInfo.LMediaInfoVideoPresent)
         {
             PInfoTextAdd($"{pMediaInfo.LMediaInfoVideoWidth}×{pMediaInfo.LMediaInfoVideoHeight}");
             if (pMediaInfo.LMediaInfoVideoFrameRate > 0)
                 PInfoTextAdd($"{pMediaInfo.LMediaInfoVideoFrameRate:0.##} fps");
-            PInfoTextAdd(PInfoPanelCodecTextFormat(pMediaInfo.LMediaInfoVideoCodecName));
+            PInfoTextAdd(PInfoCodecFormat(pMediaInfo.LMediaInfoVideoCodecName));
         }
         else
         {
@@ -91,9 +91,9 @@ public sealed class PInfoPanel : UserControl
         if (pMediaInfo.LMediaInfoAudioPresent)
         {
             string pKHz = (pMediaInfo.LMediaInfoAudioSampleRate / 1000.0).ToString("0.#");
-            PInfoTextAdd(PInfoPanelCodecTextFormat(pMediaInfo.LMediaInfoAudioCodecName));
+            PInfoTextAdd(PInfoCodecFormat(pMediaInfo.LMediaInfoAudioCodecName));
             PInfoTextAdd($"{pKHz} kHz");
-            PInfoTextAdd(PInfoPanelChannelTextFormat(pMediaInfo.LMediaInfoAudioChannels));
+            PInfoTextAdd(PInfoChannelFormat(pMediaInfo.LMediaInfoAudioChannels));
         }
         else
         {
@@ -101,41 +101,41 @@ public sealed class PInfoPanel : UserControl
         }
     }
 
-    private void PInfoPanelErrorAdd(LMediaOpenStatus pMediaStatus)
+    private void PInfoErrorAdd(LMediaOpenStatus pMediaStatus)
     {
         if (!string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenFfmpegError))
-            PInfoTextAdd(PInfoPanelTextShorten($"FFmpeg: {pMediaStatus.LMediaOpenFfmpegError}"), true);
+            PInfoTextAdd(PInfoTextShorten($"FFmpeg: {pMediaStatus.LMediaOpenFfmpegError}"), true);
         if (!string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenPreviewError))
-            PInfoTextAdd(PInfoPanelTextShorten($"Preview: {pMediaStatus.LMediaOpenPreviewError}"), true);
+            PInfoTextAdd(PInfoTextShorten($"Preview: {pMediaStatus.LMediaOpenPreviewError}"), true);
     }
 
-    private void PInfoPanelClear()
+    private void PInfoClear()
     {
         pInfoItemPanel.Children.Clear();
         pInfoItemPanel.Children.Add(new TextBlock
         {
             Text = "No media loaded",
             FontSize = 11,
-            Foreground = PInfoPanelMutedBrush,
+            Foreground = PInfoMutedBrush,
             VerticalAlignment = VerticalAlignment.Center
         });
     }
 
     private void PInfoTextAdd(string pText, bool pMuted = false)
     {
-        PInfoSeparatorAddIfNeeded();
+        PInfoSeparatorAdd();
         pInfoItemPanel.Children.Add(new TextBlock
         {
             Text = pText,
             FontSize = 11,
-            Foreground = pMuted ? PInfoPanelMutedBrush : PInfoPanelTextBrush,
+            Foreground = pMuted ? PInfoMutedBrush : PInfoTextBrush,
             VerticalAlignment = VerticalAlignment.Center
         });
     }
 
     private void PInfoStatusAdd(string pText, Brush pDotBrush)
     {
-        PInfoSeparatorAddIfNeeded();
+        PInfoSeparatorAdd();
         var pRow = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -153,26 +153,26 @@ public sealed class PInfoPanel : UserControl
         {
             Text = pText,
             FontSize = 11,
-            Foreground = PInfoPanelTextBrush,
+            Foreground = PInfoTextBrush,
             VerticalAlignment = VerticalAlignment.Center
         });
         pInfoItemPanel.Children.Add(pRow);
     }
 
-    private void PInfoSeparatorAddIfNeeded()
+    private void PInfoSeparatorAdd()
     {
         if (pInfoItemPanel.Children.Count <= 0) return;
         pInfoItemPanel.Children.Add(new Border
         {
             Width = 1,
             Height = 12,
-            Background = PInfoPanelSeparatorBrush,
+            Background = PInfoSeparatorBrush,
             Margin = new Thickness(14, 0, 14, 0),
             VerticalAlignment = VerticalAlignment.Center
         });
     }
 
-    private static Viewbox PInfoPanelFilmIconCreate()
+    private static Viewbox PInfoIconCreate()
     {
         var pCanvas = new Canvas { Width = 28, Height = 28 };
 
@@ -182,7 +182,7 @@ public sealed class PInfoPanel : UserControl
             Height = 15.5,
             RadiusX = 2.3,
             RadiusY = 2.3,
-            Stroke = PInfoPanelTextBrush,
+            Stroke = PInfoTextBrush,
             StrokeThickness = 2.0,
             Fill = Brushes.Transparent
         };
@@ -194,7 +194,7 @@ public sealed class PInfoPanel : UserControl
         {
             Width = 3.4,
             Height = 3.4,
-            Fill = PInfoPanelTextBrush
+            Fill = PInfoTextBrush
         };
         Canvas.SetLeft(pDot, 8.0);
         Canvas.SetTop(pDot, 10.2);
@@ -206,7 +206,7 @@ public sealed class PInfoPanel : UserControl
             Y1 = 11.9,
             X2 = 20.2,
             Y2 = 11.9,
-            Stroke = PInfoPanelTextBrush,
+            Stroke = PInfoTextBrush,
             StrokeThickness = 1.8,
             StrokeStartLineCap = PenLineCap.Round,
             StrokeEndLineCap = PenLineCap.Round
@@ -219,7 +219,7 @@ public sealed class PInfoPanel : UserControl
             Y1 = 16.1,
             X2 = 20.2,
             Y2 = 16.1,
-            Stroke = PInfoPanelTextBrush,
+            Stroke = PInfoTextBrush,
             StrokeThickness = 1.8,
             StrokeStartLineCap = PenLineCap.Round,
             StrokeEndLineCap = PenLineCap.Round
@@ -236,15 +236,15 @@ public sealed class PInfoPanel : UserControl
         };
     }
 
-    private static string PInfoPanelTextShorten(string pText) =>
+    private static string PInfoTextShorten(string pText) =>
         pText.Length <= 80 ? pText : pText[..80] + "…";
 
-    private static string PInfoPanelDurationFormat(TimeSpan pDuration) =>
+    private static string PInfoDurationFormat(TimeSpan pDuration) =>
         pDuration.TotalHours >= 1
             ? $"{(int)pDuration.TotalHours:D2}:{pDuration.Minutes:D2}:{pDuration.Seconds:D2}"
             : $"{pDuration.Minutes:D2}:{pDuration.Seconds:D2}";
 
-    private static string PInfoPanelCodecTextFormat(string pCodecName)
+    private static string PInfoCodecFormat(string pCodecName)
     {
         if (string.IsNullOrWhiteSpace(pCodecName)) return string.Empty;
         return pCodecName.Trim().ToLowerInvariant() switch
@@ -259,7 +259,7 @@ public sealed class PInfoPanel : UserControl
         };
     }
 
-    private static string PInfoPanelChannelTextFormat(int pChannelCount) => pChannelCount switch
+    private static string PInfoChannelFormat(int pChannelCount) => pChannelCount switch
     {
         1 => "Mono",
         2 => "Stereo",

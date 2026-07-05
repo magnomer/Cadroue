@@ -2,41 +2,41 @@ using System.Windows;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed partial class PViewerPanel
+public sealed partial class PViewer
 {
-    public void PViewerPanelCloseRequest()
+    public void PViewerClose()
     {
-        if (pViewerPanelUnloaded)
+        if (pViewerUnloaded)
         {
             return;
         }
 
         try
         {
-            pViewerPanelUnloaded = true;
-            pViewerPanelLoadSerial++;
-            pViewerPanelClockTimer.Tick -= PViewerPanelClockTickHandle;
-            pViewerPanelOverlay.MouseLeftButtonDown -= PViewerPanelCropMouseDown;
-            pViewerPanelOverlay.MouseMove -= PViewerPanelCropMouseMove;
-            pViewerPanelOverlay.MouseLeftButtonUp -= PViewerPanelCropMouseUp;
-            pViewerPanelOverlay.SizeChanged -= PViewerPanelOverlaySizeChanged;
-            PViewerPanelDropHandlersRemove();
-            PViewerPanelPlayerStopDispose();
-            PViewerPanelFlyleafHostDispose();
+            pViewerUnloaded = true;
+            pViewerLoadSerial++;
+            pViewerClockTimer.Tick -= PViewerClockHandle;
+            pViewerOverlay.MouseLeftButtonDown -= PCropPressHandle;
+            pViewerOverlay.MouseMove -= PCropMoveHandle;
+            pViewerOverlay.MouseLeftButtonUp -= PCropReleaseHandle;
+            pViewerOverlay.SizeChanged -= PCropSizeHandle;
+            PDropHandlersRemove();
+            PPlayerStopDispose();
+            PViewerFlyleafDispose();
         }
         catch
         {
         }
     }
 
-    private void PViewerPanelFlyleafHostDispose()
+    private void PViewerFlyleafDispose()
     {
         try
         {
-            pViewerPanelFlyleafHost.Player = null;
-            pViewerPanelFlyleafHost.Content = null;
-            pViewerPanelSurface.Child = null;
-            ((IDisposable)pViewerPanelFlyleafHost).Dispose();
+            pViewerFlyleafHost.Player = null;
+            pViewerFlyleafHost.Content = null;
+            pViewerSurface.Child = null;
+            ((IDisposable)pViewerFlyleafHost).Dispose();
         }
         catch
         {

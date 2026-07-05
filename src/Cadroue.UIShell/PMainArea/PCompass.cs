@@ -23,18 +23,18 @@ public sealed class PCompass : UserControl
         var pPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         (string Icon, string Label, string Tooltip, Action Click, bool SeparatorAfter)[] pButtons =
         {
-            ("PCompassZoomIncrease.png", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutRequest("zoomIn"), false),
-            ("PCompassZoomDecrease.png", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutRequest("zoomOut"), true),
-            ("PCompassPlay.png", "Play", "Play the current media from the cursor.", pFlow.PFlowPlayRequestCall, false),
-            ("PCompassPause.png", "Pause", "Pause playback at the current position.", pFlow.PFlowPauseRequestCall, true),
-            ("PCompassSectionAdd.png", "Add", "Add a new section at the current cursor position.", () => pFlow.PFlowShortcutRequest("addSection"), false),
-            ("PCompassRemove.png", "Delete", "Delete the selected section.", () => pFlow.PFlowShortcutRequest("deleteSection"), true),
-            ("PCompassStart.png", "Start", "Set the selected section’s start point to the cursor.", () => pFlow.PFlowShortcutRequest("setStart"), false),
-            ("PCompassSplit.png", "Split", "Split the selected section at the cursor.", () => pFlow.PFlowShortcutRequest("splitSection"), false),
-            ("PCompassEnd.png", "End", "Set the selected section’s end point to the cursor.", () => pFlow.PFlowShortcutRequest("setEnd"), true),
-            ("PCompassKeyframePrevious.png", "Previous", "Move to the previous visible keyframe.", () => pFlow.PFlowShortcutRequest("previousKey"), false),
-            ("PCompassKeyframeNear.png", "Nearest", "Move to the nearest visible keyframe.", () => pFlow.PFlowShortcutRequest("nearestKey"), false),
-            ("PCompassKeyframeNext.png", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutRequest("nextKey"), true)
+            ("PCompassZoomIncrease.png", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomIn"), false),
+            ("PCompassZoomDecrease.png", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomOut"), true),
+            ("PCompassPlay.png", "Play", "Play the current media from the cursor.", pFlow.PFlowPlayRaise, false),
+            ("PCompassPause.png", "Pause", "Pause playback at the current position.", pFlow.PFlowPauseRaise, true),
+            ("PCompassSectionAdd.png", "Add", "Add a new section at the current cursor position.", () => pFlow.PFlowShortcutDispatch("addSection"), false),
+            ("PCompassRemove.png", "Delete", "Delete the selected section.", () => pFlow.PFlowShortcutDispatch("deleteSection"), true),
+            ("PCompassStart.png", "Start", "Set the selected section’s start point to the cursor.", () => pFlow.PFlowShortcutDispatch("setStart"), false),
+            ("PCompassSplit.png", "Split", "Split the selected section at the cursor.", () => pFlow.PFlowShortcutDispatch("splitSection"), false),
+            ("PCompassEnd.png", "End", "Set the selected section’s end point to the cursor.", () => pFlow.PFlowShortcutDispatch("setEnd"), true),
+            ("PCompassKeyframePrevious.png", "Previous", "Move to the previous visible keyframe.", () => pFlow.PFlowShortcutDispatch("previousKey"), false),
+            ("PCompassKeyframeNear.png", "Nearest", "Move to the nearest visible keyframe.", () => pFlow.PFlowShortcutDispatch("nearestKey"), false),
+            ("PCompassKeyframeNext.png", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutDispatch("nextKey"), true)
         };
 
         foreach ((string pIcon, string pLabel, string pTooltip, Action pClick, bool pSeparatorAfter) in pButtons)
@@ -57,12 +57,12 @@ public sealed class PCompass : UserControl
             VerticalAlignment = VerticalAlignment.Center,
             Focusable = false,
             ToolTip = "Volume",
-            Style = PCompassVolumeSliderStyleBuild()
+            Style = PCompassSliderBuild()
         };
-        pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeChangeHandle(pFlow);
-        pFlow.PFlowVolumeValueNotice += PCompassVolumeValueHandle;
+        pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle(pFlow);
+        pFlow.PFlowVolumeValue += PCompassValueHandle;
         pPanel.Children.Add(PCompassVolumeBuild());
-        PCompassVolumeValueHandle(App.LPreferenceStateCurrent.LPreferenceVolume);
+        PCompassValueHandle(App.LPreferenceStateCurrent.LPreferenceVolume);
 
         Content = new Border
         {
@@ -80,7 +80,7 @@ public sealed class PCompass : UserControl
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        FrameworkElement pIcon = PCompassVolumeIconBuild();
+        FrameworkElement pIcon = PCompassIconBuild();
         var pLabel = new TextBlock
         {
             Text = "Volume",
@@ -109,7 +109,7 @@ public sealed class PCompass : UserControl
         pCompassVolumeSliderHost.Children.Add(pTrackBase);
         pCompassVolumeSliderHost.Children.Add(pCompassVolumeTrackFill);
         pCompassVolumeSliderHost.Children.Add(pCompassVolumeSlider);
-        pCompassVolumeSliderHost.SizeChanged += (_, _) => PCompassVolumeTrackUpdate();
+        pCompassVolumeSliderHost.SizeChanged += (_, _) => PCompassTrackUpdate();
 
         Grid.SetColumn(pIcon, 0);
         Grid.SetColumn(pLabel, 1);
@@ -122,27 +122,27 @@ public sealed class PCompass : UserControl
         return new Border { Height = 58, Padding = new Thickness(8, 0, 0, 0), Child = pGrid };
     }
 
-    private void PCompassVolumeValueHandle(double pVolume)
+    private void PCompassValueHandle(double pVolume)
     {
         pCompassVolumeProgramSet = true;
         double pVolumeClamp = LPreferenceState.LPreferenceVolumeClamp(pVolume);
         pCompassVolumeSlider.Value = pVolumeClamp;
         pCompassVolumeText.Text = Math.Round(pVolumeClamp).ToString("0");
-        PCompassVolumeTrackUpdate();
+        PCompassTrackUpdate();
         pCompassVolumeProgramSet = false;
     }
 
-    private void PCompassVolumeChangeHandle(PFlowControl pFlow)
+    private void PCompassVolumeHandle(PFlowControl pFlow)
     {
         if (pCompassVolumeProgramSet) return;
         double pVolume = LPreferenceState.LPreferenceVolumeClamp(pCompassVolumeSlider.Value);
         pCompassVolumeText.Text = Math.Round(pVolume).ToString("0");
-        PCompassVolumeTrackUpdate();
-        pFlow.PFlowVolumeChangeRequestCall(pVolume);
+        PCompassTrackUpdate();
+        pFlow.PFlowVolumeRaise(pVolume);
     }
 
 
-    private void PCompassVolumeTrackUpdate()
+    private void PCompassTrackUpdate()
     {
         if (pCompassVolumeSliderHost is null || pCompassVolumeTrackFill is null) return;
         if (pCompassVolumeSliderHost.ActualWidth <= 0) return;
@@ -152,7 +152,7 @@ public sealed class PCompass : UserControl
         pCompassVolumeTrackFill.Width = Math.Max(0, pCompassVolumeSliderHost.ActualWidth * pRate);
     }
 
-    private static FrameworkElement PCompassVolumeIconBuild()
+    private static FrameworkElement PCompassIconBuild()
     {
         var pCanvas = new Canvas { Width = 24, Height = 24 };
         Brush pBrush = new SolidColorBrush(Color.FromRgb(0x3E, 0x4A, 0x5E));
@@ -179,7 +179,7 @@ public sealed class PCompass : UserControl
         return new Viewbox { Width = 22, Height = 22, VerticalAlignment = VerticalAlignment.Center, Child = pCanvas };
     }
 
-    private static Style PCompassVolumeSliderStyleBuild()
+    private static Style PCompassSliderBuild()
     {
         const string pXaml = @"<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
                xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'

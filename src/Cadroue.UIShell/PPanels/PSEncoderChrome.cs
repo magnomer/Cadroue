@@ -6,30 +6,30 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PPanels;
 
-internal sealed partial class PSExportSpecific
+internal sealed partial class PSEncoder
 {
-    private UIElement PSExportSpecificChromeOverlayBuild()
+    private UIElement PSCasementOverlayBuild()
     {
         var pGrid = new Grid { Height = 56, VerticalAlignment = VerticalAlignment.Top };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(56) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pGrid.Children.Add(PSLogoBuild());
+        pGrid.Children.Add(PSCrestBuild());
         var pDragArea = new Border { Background = Brushes.Transparent, HorizontalAlignment = HorizontalAlignment.Right, Width = 150 };
-        pDragArea.MouseLeftButtonDown += PSExportSpecificChromeDragHandle;
+        pDragArea.MouseLeftButtonDown += PSCasementDragHandle;
         Grid.SetColumn(pDragArea, 1);
         pGrid.Children.Add(pDragArea);
 
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal, Background = new SolidColorBrush(Color.FromRgb(0xEA, 0xF2, 0xFC)) };
-        pButtons.Children.Add(PSChromeButtonBuild(PSChromeMinimizeIconBuild(), (_, _) => WindowState = WindowState.Minimized));
-        pButtons.Children.Add(PSChromeButtonBuild(PSChromeMaximizeIconBuild(), (_, _) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized));
-        pButtons.Children.Add(PSChromeButtonBuild(PSChromeCloseIconBuild(), (_, _) => Close()));
+        pButtons.Children.Add(PSCasementButtonBuild(PSCasementMinimizeBuild(), (_, _) => WindowState = WindowState.Minimized));
+        pButtons.Children.Add(PSCasementButtonBuild(PSCasementMaximizeBuild(), (_, _) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized));
+        pButtons.Children.Add(PSCasementButtonBuild(PSCasementCloseBuild(), (_, _) => Close()));
         Grid.SetColumn(pButtons, 2);
         pGrid.Children.Add(pButtons);
         return pGrid;
     }
 
-    private UIElement PSLogoBuild()
+    private UIElement PSCrestBuild()
     {
         var pLogo = new Border
         {
@@ -50,11 +50,11 @@ internal sealed partial class PSExportSpecific
                 IsHitTestVisible = false
             }
         };
-        pLogo.MouseLeftButtonDown += PSExportSpecificChromeDragHandle;
+        pLogo.MouseLeftButtonDown += PSCasementDragHandle;
         return pLogo;
     }
 
-    private void PSExportSpecificChromeDragHandle(object sender, MouseButtonEventArgs e)
+    private void PSCasementDragHandle(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton != MouseButton.Left || e.ClickCount > 1)
         {
@@ -63,32 +63,32 @@ internal sealed partial class PSExportSpecific
         DragMove();
     }
 
-    private UIElement PSTabControlBuild()
+    private UIElement PSSheetControlBuild()
     {
         var pTabs = new TabControl
         {
             Background = Brushes.White,
             BorderBrush = Brushes.Transparent,
             BorderThickness = new Thickness(0),
-            Template = PSTabControlTemplateBuild(),
-            ItemContainerStyle = PSTabItemStyleBuild()
+            Template = PSSheetTemplateBuild(),
+            ItemContainerStyle = PSSheetStyleBuild()
         };
-        pTabs.Items.Add(PSTabBuild("Output", PSExportSpecificRootBuild(PSScrollableTabContentBuild(PSOutputTabContentBuild()))));
-        pTabs.Items.Add(PSTabBuild("Video", PSExportSpecificRootBuild(PSScrollableTabContentBuild(PSVideoTabContentBuild()))));
-        pTabs.Items.Add(PSTabBuild("Audio", PSExportSpecificRootBuild(PSScrollableTabContentBuild(PSAudioTabContentBuild()))));
+        pTabs.Items.Add(PSSheetBuild("Output", PSEncoderRootBuild(PSSheetScrollBuild(PSOutputBuild()))));
+        pTabs.Items.Add(PSSheetBuild("Video", PSEncoderRootBuild(PSSheetScrollBuild(PSVideoBuild()))));
+        pTabs.Items.Add(PSSheetBuild("Audio", PSEncoderRootBuild(PSSheetScrollBuild(PSAudioBuild()))));
         return pTabs;
     }
 
-    private static TabItem PSTabBuild(string pTitle, UIElement pContent) => new() { Header = pTitle, Content = pContent };
+    private static TabItem PSSheetBuild(string pTitle, UIElement pContent) => new() { Header = pTitle, Content = pContent };
 
-    private static ScrollViewer PSScrollableTabContentBuild(UIElement pContent) => new()
+    private static ScrollViewer PSSheetScrollBuild(UIElement pContent) => new()
     {
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
         HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
         Content = pContent
     };
 
-    private static ControlTemplate PSTabControlTemplateBuild()
+    private static ControlTemplate PSSheetTemplateBuild()
     {
         const string pXaml = @"
 <ControlTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
@@ -116,7 +116,7 @@ internal sealed partial class PSExportSpecific
         return (ControlTemplate)XamlReader.Parse(pXaml);
     }
 
-    private static Style PSTabItemStyleBuild()
+    private static Style PSSheetStyleBuild()
     {
         const string pXaml = @"
 <Style xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
@@ -182,7 +182,7 @@ internal sealed partial class PSExportSpecific
         return (Style)XamlReader.Parse(pXaml);
     }
 
-    private static Button PSChromeButtonBuild(UIElement pIcon, RoutedEventHandler pClick)
+    private static Button PSCasementButtonBuild(UIElement pIcon, RoutedEventHandler pClick)
     {
         var pButton = new Button
         {
@@ -198,14 +198,14 @@ internal sealed partial class PSExportSpecific
         return pButton;
     }
 
-    private static Canvas PSChromeMinimizeIconBuild()
+    private static Canvas PSCasementMinimizeBuild()
     {
         var pCanvas = new Canvas { Width = 18, Height = 16 };
-        pCanvas.Children.Add(PSLineBuild(2, 12, 14, 12));
+        pCanvas.Children.Add(PSRuleBuild(2, 12, 14, 12));
         return pCanvas;
     }
 
-    private static Canvas PSChromeMaximizeIconBuild()
+    private static Canvas PSCasementMaximizeBuild()
     {
         var pCanvas = new Canvas { Width = 18, Height = 16 };
         pCanvas.Children.Add(new System.Windows.Shapes.Rectangle
@@ -220,15 +220,15 @@ internal sealed partial class PSExportSpecific
         return pCanvas;
     }
 
-    private static Canvas PSChromeCloseIconBuild()
+    private static Canvas PSCasementCloseBuild()
     {
         var pCanvas = new Canvas { Width = 18, Height = 16 };
-        pCanvas.Children.Add(PSLineBuild(2.5, 2.5, 13.5, 13.5));
-        pCanvas.Children.Add(PSLineBuild(13.5, 2.5, 2.5, 13.5));
+        pCanvas.Children.Add(PSRuleBuild(2.5, 2.5, 13.5, 13.5));
+        pCanvas.Children.Add(PSRuleBuild(13.5, 2.5, 2.5, 13.5));
         return pCanvas;
     }
 
-    private static System.Windows.Shapes.Line PSLineBuild(double pX1, double pY1, double pX2, double pY2) => new()
+    private static System.Windows.Shapes.Line PSRuleBuild(double pX1, double pY1, double pX2, double pY2) => new()
     {
         X1 = pX1,
         Y1 = pY1,

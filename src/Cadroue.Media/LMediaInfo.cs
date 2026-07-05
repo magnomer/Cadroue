@@ -91,7 +91,7 @@ public sealed record LMediaInfo
 
     public int LMediaInfoAudioChannels { get; }
 
-    public static LMediaInfo LMediaInfoFfprobeRequest(string sourcePath)
+    public static LMediaInfo LMediaFfprobeRead(string sourcePath)
     {
         var psi = new ProcessStartInfo("ffprobe")
         {
@@ -125,43 +125,43 @@ public sealed record LMediaInfo
 
         if (exitCode != 0)
         {
-            throw new InvalidOperationException(LMediaInfoFfprobeFailureMessageBuild(exitCode, errorText));
+            throw new InvalidOperationException(LMediaFailureFormat(exitCode, errorText));
         }
 
         if (string.IsNullOrWhiteSpace(json))
         {
-            throw new InvalidOperationException(LMediaInfoFfprobeEmptyOutputMessageBuild(errorText));
+            throw new InvalidOperationException(LMediaEmptyFormat(errorText));
         }
 
         try
         {
-            return LMediaInfoFfprobeParse(json);
+            return LMediaFfprobeParse(json);
         }
         catch (JsonException ex)
         {
-            throw new InvalidOperationException(LMediaInfoFfprobeInvalidJsonMessageBuild(errorText), ex);
+            throw new InvalidOperationException(LMediaInvalidFormat(errorText), ex);
         }
     }
 
-    private static string LMediaInfoFfprobeFailureMessageBuild(int exitCode, string errorText)
+    private static string LMediaFailureFormat(int exitCode, string errorText)
     {
-        string diagnostic = LMediaInfoFfprobeDiagnosticNormalize(errorText);
+        string diagnostic = LMediaDiagnosticNormalize(errorText);
         return $"ffprobe failed with exit code {exitCode}. {diagnostic}";
     }
 
-    private static string LMediaInfoFfprobeEmptyOutputMessageBuild(string errorText)
+    private static string LMediaEmptyFormat(string errorText)
     {
-        string diagnostic = LMediaInfoFfprobeDiagnosticNormalize(errorText);
+        string diagnostic = LMediaDiagnosticNormalize(errorText);
         return $"ffprobe did not return media information. {diagnostic}";
     }
 
-    private static string LMediaInfoFfprobeInvalidJsonMessageBuild(string errorText)
+    private static string LMediaInvalidFormat(string errorText)
     {
-        string diagnostic = LMediaInfoFfprobeDiagnosticNormalize(errorText);
+        string diagnostic = LMediaDiagnosticNormalize(errorText);
         return $"ffprobe returned invalid media information JSON. {diagnostic}";
     }
 
-    private static string LMediaInfoFfprobeDiagnosticNormalize(string errorText)
+    private static string LMediaDiagnosticNormalize(string errorText)
     {
         string diagnostic = string.IsNullOrWhiteSpace(errorText)
             ? "No ffprobe diagnostic message was returned."
@@ -170,7 +170,7 @@ public sealed record LMediaInfo
         return diagnostic.Length <= 2000 ? diagnostic : diagnostic[..2000];
     }
 
-    private static LMediaInfo LMediaInfoFfprobeParse(string json)
+    private static LMediaInfo LMediaFfprobeParse(string json)
     {
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
@@ -200,7 +200,7 @@ public sealed record LMediaInfo
                     videoWidth = stream.TryGetProperty("width", out JsonElement w) ? w.GetInt32() : 0;
                     videoHeight = stream.TryGetProperty("height", out JsonElement h) ? h.GetInt32() : 0;
                     videoCodec = stream.TryGetProperty("codec_name", out JsonElement cn) ? cn.GetString() ?? "unknown" : "unknown";
-                    fps = LMediaInfoFpsResolve(stream);
+                    fps = LMediaFpsResolve(stream);
                 }
                 else if (codecType == "audio" && !audioPresent)
                 {
@@ -216,7 +216,7 @@ public sealed record LMediaInfo
         return new LMediaInfo(duration, videoWidth, videoHeight, fps, videoCodec, audioPresent, audioCodec, sampleRate, channels);
     }
 
-    private static double LMediaInfoFpsResolve(JsonElement videoStream)
+    private static double LMediaFpsResolve(JsonElement videoStream)
     {
         string? fpsString = null;
         if (videoStream.TryGetProperty("r_frame_rate", out JsonElement rfr)) fpsString = rfr.GetString();

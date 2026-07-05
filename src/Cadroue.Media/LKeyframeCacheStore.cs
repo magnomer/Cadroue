@@ -14,7 +14,7 @@ public static class LKeyframeCacheStore
     {
         keyframeMilliseconds = Array.Empty<long>();
         scannedSpanIndexes = Array.Empty<int>();
-        string cachePath = LKeyframeCachePathCreate(identity);
+        string cachePath = LKeyframePathCreate(identity);
         if (!File.Exists(cachePath))
         {
             return false;
@@ -24,7 +24,7 @@ public static class LKeyframeCacheStore
         {
             string json = File.ReadAllText(cachePath);
             LKeyframeCacheRecord? record = JsonSerializer.Deserialize<LKeyframeCacheRecord>(json);
-            if (record is null || !LKeyframeCacheIdentityMatch(identity, record))
+            if (record is null || !LKeyframeCacheMatch(identity, record))
             {
                 return false;
             }
@@ -52,7 +52,7 @@ public static class LKeyframeCacheStore
         IReadOnlyCollection<long> keyframeMilliseconds,
         IReadOnlyCollection<int> scannedSpanIndexes)
     {
-        string cachePath = LKeyframeCachePathCreate(identity);
+        string cachePath = LKeyframePathCreate(identity);
         string? cacheFolder = Path.GetDirectoryName(cachePath);
         if (!string.IsNullOrWhiteSpace(cacheFolder))
         {
@@ -74,7 +74,7 @@ public static class LKeyframeCacheStore
         File.WriteAllText(cachePath, json);
     }
 
-    private static bool LKeyframeCacheIdentityMatch(LKeyframeSourceIdentity identity, LKeyframeCacheRecord record)
+    private static bool LKeyframeCacheMatch(LKeyframeSourceIdentity identity, LKeyframeCacheRecord record)
     {
         return string.Equals(record.LSourcePath, identity.LKeyframeSourcePath, StringComparison.OrdinalIgnoreCase)
             && record.LSourceLength == identity.LKeyframeSourceLength
@@ -83,7 +83,7 @@ public static class LKeyframeCacheStore
             && string.Equals(record.LSourcePartialHash, identity.LKeyframeSourcePartialHash, StringComparison.Ordinal);
     }
 
-    private static string LKeyframeCachePathCreate(LKeyframeSourceIdentity identity)
+    private static string LKeyframePathCreate(LKeyframeSourceIdentity identity)
     {
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(

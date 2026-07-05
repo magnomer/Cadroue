@@ -65,3 +65,8 @@ $RECYCLE.BIN/
 
 # Project-internal docs (excluded from tracking)
 docs/internal/
+
+# Build-lifecycle helper scripts (local, project-internal)
+clean.ps1
+build.ps1
+run.ps1

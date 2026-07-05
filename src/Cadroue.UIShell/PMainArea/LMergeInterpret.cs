@@ -2,9 +2,9 @@ using Cadroue.UIShell.LWork;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public static class LMergeInterpret
+public static partial class LMerge
 {
-    public static void LMergeInterpreterCall(LWorkListAddPriority lWorkListAddPriority)
+    public static void LMergeInterpret(LWorkPriority lWorkPriority)
     {
     }
 }

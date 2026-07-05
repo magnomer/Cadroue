@@ -9,10 +9,10 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PPanels;
 
-internal sealed partial class PSExportSpecific
+internal sealed partial class PSEncoder
 {
 
-    private static readonly (string PSVideoEncoderText, string[] PSVideoEncoderValues)[] PSVideoEncoderCandidates =
+    private static readonly (string PSCodecText, string[] PSCodecValues)[] PSCodecCandidates =
     [
         ("H.264, x264 / libx264", ["libx264"]), ("H.264, Media Foundation / h264_mf", ["h264_mf"]),
         ("H.264, OpenH264 / libopenh264", ["libopenh264"]), ("H.264, Intel QSV / h264_qsv", ["h264_qsv"]),
@@ -34,55 +34,55 @@ internal sealed partial class PSExportSpecific
         ("AVS2, xavs2 / libxavs2", ["libxavs2"]), ("APV, OpenAPV / liboapv", ["liboapv"])
     ];
 
-    private UIElement PSExportSpecificRootBuild(UIElement pTabContent)
+    private UIElement PSEncoderRootBuild(UIElement pTabContent)
     {
         var pRoot = new DockPanel { Background = Brushes.White };
         var pFooter = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(12) };
         var pApply = PSFooterButtonBuild("Apply");
         var pOk = PSFooterButtonBuild("OK");
         var pCancel = PSFooterButtonBuild("Cancel");
-        pApply.Click += (_, _) => PSExportSpecificApply();
-        pOk.Click += (_, _) => { PSExportSpecificApply(); DialogResult = true; };
+        pApply.Click += (_, _) => PSEncoderApply();
+        pOk.Click += (_, _) => { PSEncoderApply(); DialogResult = true; };
         pCancel.Click += (_, _) => Close();
         pFooter.Children.Add(pApply);
         pFooter.Children.Add(pOk);
         pFooter.Children.Add(pCancel);
         DockPanel.SetDock(pFooter, Dock.Bottom);
         pRoot.Children.Add(pFooter);
-        pRoot.Children.Add(PSExportSpecificContentBuild(pTabContent));
+        pRoot.Children.Add(PSEncoderContentBuild(pTabContent));
         return pRoot;
     }
 
-    private UIElement PSExportSpecificContentBuild(UIElement pTabContent)
+    private UIElement PSEncoderContentBuild(UIElement pTabContent)
     {
         var pPanel = new DockPanel { Margin = new Thickness(18) };
         pPanel.Children.Add(pTabContent);
         return pPanel;
     }
 
-    private UIElement PSOutputTabContentBuild()
+    private UIElement PSOutputBuild()
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSOutputSectionBuild());
-        pPanel.Children.Add(PSExportModeSectionBuild());
+        pPanel.Children.Add(PSOutputPlateBuild());
+        pPanel.Children.Add(PSModePlateBuild());
         return pPanel;
     }
 
-    private UIElement PSVideoTabContentBuild()
+    private UIElement PSVideoBuild()
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSVideoSectionBuild());
+        pPanel.Children.Add(PSVideoPlateBuild());
         return pPanel;
     }
 
-    private UIElement PSAudioTabContentBuild()
+    private UIElement PSAudioBuild()
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSAudioSectionBuild());
+        pPanel.Children.Add(PSAudioPlateBuild());
         return pPanel;
     }
 
-    private UIElement PSOutputSectionBuild()
+    private UIElement PSOutputPlateBuild()
     {
         var pPanel = new StackPanel();
         var psLocationStatus = new TextBlock
@@ -96,10 +96,10 @@ internal sealed partial class PSExportSpecific
         };
         PSNameBoxPrepare();
         pPanel.Children.Add(PSFieldBuild("Name", psNameBox));
-        pPanel.Children.Add(PSNameTokenRowBuild());
+        pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
         pPanel.Children.Add(PSFieldBuild("Container", psContainerCombo));
-        return PSCardBuild("Output", pPanel);
+        return PSPlateBuild("Output", pPanel);
     }
 
     private void PSNameBoxPrepare()
@@ -109,7 +109,7 @@ internal sealed partial class PSExportSpecific
         psNameBox.HorizontalAlignment = HorizontalAlignment.Stretch;
     }
 
-    private UIElement PSNameTokenRowBuild()
+    private UIElement PSNameRowBuild()
     {
         var pGrid = new Grid { Margin = new Thickness(0, 8, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
@@ -192,7 +192,7 @@ internal sealed partial class PSExportSpecific
 
             pDragStarted = true;
             var pData = new DataObject();
-            pData.SetData(PMainTokenTextBox.PMainTokenTextBoxDataFormat, pToken);
+            pData.SetData(PToken.PTokenDataFormat, pToken);
             pData.SetData(DataFormats.Text, pToken);
             _ = DragDrop.DoDragDrop(pBorder, pData, DragDropEffects.Copy);
             pBorder.Background = Brushes.White;
@@ -202,7 +202,7 @@ internal sealed partial class PSExportSpecific
 
     private void PSNameTokenInsert(string pToken)
     {
-        psNameBox.PMainTokenTextBoxTokenInsert(pToken);
+        psNameBox.PTokenInsert(pToken);
     }
 
     private UIElement PSLocationFieldBuild(TextBlock psLocationStatus)
@@ -238,69 +238,69 @@ internal sealed partial class PSExportSpecific
     {
         if (psLocationCombo.SelectedItem as string != "Custom folder")
         {
-            psExportSpecificCustomFolderPath = null;
+            psEncoderFolderPath = null;
             psLocationStatus.Text = "Same as source";
             return;
         }
 
         var psFolderDialog = new OpenFolderDialog { Title = "Choose export folder", Multiselect = false };
-        if (!string.IsNullOrWhiteSpace(psExportSpecificCustomFolderPath))
+        if (!string.IsNullOrWhiteSpace(psEncoderFolderPath))
         {
-            psFolderDialog.InitialDirectory = psExportSpecificCustomFolderPath;
+            psFolderDialog.InitialDirectory = psEncoderFolderPath;
         }
 
         bool? psFolderResult = psFolderDialog.ShowDialog(this);
         if (psFolderResult == true && !string.IsNullOrWhiteSpace(psFolderDialog.FolderName))
         {
-            psExportSpecificCustomFolderPath = psFolderDialog.FolderName;
-            psLocationStatus.Text = psExportSpecificCustomFolderPath;
+            psEncoderFolderPath = psFolderDialog.FolderName;
+            psLocationStatus.Text = psEncoderFolderPath;
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(psExportSpecificCustomFolderPath))
+        if (string.IsNullOrWhiteSpace(psEncoderFolderPath))
         {
             psLocationCombo.SelectedIndex = 0;
             psLocationStatus.Text = "Same as source";
             return;
         }
 
-        psLocationStatus.Text = psExportSpecificCustomFolderPath;
+        psLocationStatus.Text = psEncoderFolderPath;
     }
 
-    private UIElement PSExportModeSectionBuild()
+    private UIElement PSModePlateBuild()
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSFieldBuild("Mode", psModeCombo));
         pPanel.Children.Add(PSNoticeBuild("Audio-only output is created in the Video tab by setting Stream to Exclude."));
-        return PSCardBuild("Export Mode", pPanel);
+        return PSPlateBuild("Export Mode", pPanel);
     }
 
-    private UIElement PSVideoSectionBuild()
+    private UIElement PSVideoPlateBuild()
     {
         var pPanel = new StackPanel();
-        var pVideoEncoderItems = PSVideoEncoderCandidateItemsRead();
+        var pVideoEncoderItems = PSCodecItemsRead();
         var pVideoEncoderCombo = PSComboBuild(pVideoEncoderItems[0], pVideoEncoderItems);
         var pVideoEncoderVerify = PSInlineButtonBuild("Verify", 84, new Thickness(8, 0, 0, 0));
         var pVideoEncoderLog = PSInlineButtonBuild("Log", 64, new Thickness(6, 0, 0, 0));
-        pVideoEncoderVerify.Click += async (_, _) => await PSVideoEncoderVerifyClickHandle(pVideoEncoderCombo, pVideoEncoderVerify);
-        pVideoEncoderLog.Click += (_, _) => MessageBox.Show(this, psVideoEncoderVerificationLog, "Encoder verification log", MessageBoxButton.OK, MessageBoxImage.Information);
+        pVideoEncoderVerify.Click += async (_, _) => await PSCodecVerifyHandle(pVideoEncoderCombo, pVideoEncoderVerify);
+        pVideoEncoderLog.Click += (_, _) => MessageBox.Show(this, psCodecLog, "Encoder verification log", MessageBoxButton.OK, MessageBoxImage.Information);
 
         pPanel.Children.Add(PSFieldBuild("Stream", psVideoStreamCombo));
         pPanel.Children.Add(PSFieldBuild("Mode", psVideoModeCombo));
-        pPanel.Children.Add(PSFieldWithButtonBuild("Encoder", pVideoEncoderCombo, pVideoEncoderVerify, pVideoEncoderLog));
+        pPanel.Children.Add(PSFieldButtonBuild("Encoder", pVideoEncoderCombo, pVideoEncoderVerify, pVideoEncoderLog));
         pPanel.Children.Add(PSFieldBuild("Quality mode", PSComboBuild("CRF / constant quality", "CRF / constant quality", "Target bitrate", "Two-pass bitrate", "Lossless", "Encoder default")));
-        pPanel.Children.Add(PSFieldBuild("CRF", PSTextBoxBuild("18", 120)));
+        pPanel.Children.Add(PSFieldBuild("CRF", PSEntryBuild("18", 120)));
         pPanel.Children.Add(PSFieldBuild("Preset", PSComboBuild("ultrafast", "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow")));
         pPanel.Children.Add(PSFieldBuild("Size", PSComboBuild("Same as source", "Same as source", "3840 × 2160", "2560 × 1440", "1920 × 1080", "1280 × 720", "854 × 480", "Custom")));
         pPanel.Children.Add(PSFieldBuild("FPS", PSComboBuild("Same as source", "Same as source", "60", "50", "30", "25", "24", "Custom")));
         pPanel.Children.Add(PSFieldBuild("Pixel format", PSComboBuild("Auto", "Auto", "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le")));
-        return PSCardBuild("Video", pPanel);
+        return PSPlateBuild("Video", pPanel);
     }
 
-    private static string[] PSVideoEncoderCandidateItemsRead() =>
-        PSVideoEncoderCandidates.Select(pCandidate => pCandidate.PSVideoEncoderText).ToArray();
+    private static string[] PSCodecItemsRead() =>
+        PSCodecCandidates.Select(pCandidate => pCandidate.PSCodecText).ToArray();
 
-    private async Task PSVideoEncoderVerifyClickHandle(ComboBox pCombo, Button pButton)
+    private async Task PSCodecVerifyHandle(ComboBox pCombo, Button pButton)
     {
         string pSelected = pCombo.SelectedItem as string ?? string.Empty;
         pButton.IsEnabled = false;
@@ -309,28 +309,28 @@ internal sealed partial class PSExportSpecific
         var pLog = new StringBuilder();
         pLog.AppendLine($"Verification: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         pLog.AppendLine("Command pattern: ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v <encoder> -f null -");
-        foreach (var pCandidate in PSVideoEncoderCandidates)
+        foreach (var pCandidate in PSCodecCandidates)
         {
             bool pCandidateAvailable = false;
             pLog.AppendLine();
-            pLog.AppendLine(pCandidate.PSVideoEncoderText);
-            foreach (string pEncoder in pCandidate.PSVideoEncoderValues)
+            pLog.AppendLine(pCandidate.PSCodecText);
+            foreach (string pEncoder in pCandidate.PSCodecValues)
             {
-                var pResult = await PSVideoEncoderCompatibleRead(pEncoder);
-                pCandidateAvailable |= pResult.PSVideoEncoderSuccess;
-                pLog.AppendLine($"  {pEncoder}: {(pResult.PSVideoEncoderSuccess ? "OK" : "FAIL")} - {pResult.PSVideoEncoderMessage}");
+                var pResult = await PSCodecCompatibleRead(pEncoder);
+                pCandidateAvailable |= pResult.PSCodecSuccess;
+                pLog.AppendLine($"  {pEncoder}: {(pResult.PSCodecSuccess ? "OK" : "FAIL")} - {pResult.PSCodecMessage}");
             }
-            if (pCandidateAvailable) pAvailable.Add(pCandidate.PSVideoEncoderText);
+            if (pCandidateAvailable) pAvailable.Add(pCandidate.PSCodecText);
         }
 
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
-        psVideoEncoderVerificationLog = pLog.ToString();
+        psCodecLog = pLog.ToString();
         pButton.Content = "Verify";
         pButton.IsEnabled = true;
     }
 
-    private static async Task<(bool PSVideoEncoderSuccess, string PSVideoEncoderMessage)> PSVideoEncoderCompatibleRead(string pEncoder)
+    private static async Task<(bool PSCodecSuccess, string PSCodecMessage)> PSCodecCompatibleRead(string pEncoder)
     {
         using var pProcess = new Process
         {
@@ -354,7 +354,7 @@ internal sealed partial class PSExportSpecific
                 return (false, "timeout after 6 seconds");
             }
 
-            string pMessage = PSVideoEncoderLogMessageCompact(await pErrorTask, await pOutputTask);
+            string pMessage = PSCodecLogCompact(await pErrorTask, await pOutputTask);
             return (pProcess.ExitCode == 0, $"exit {pProcess.ExitCode}{pMessage}");
         }
         catch (Exception pException)
@@ -363,14 +363,14 @@ internal sealed partial class PSExportSpecific
         }
     }
 
-    private static string PSVideoEncoderLogMessageCompact(string pError, string pOutput)
+    private static string PSCodecLogCompact(string pError, string pOutput)
     {
         string pMessage = string.IsNullOrWhiteSpace(pError) ? pOutput : pError;
         pMessage = pMessage.Replace("\r", " ").Replace("\n", " ").Trim();
         return string.IsNullOrWhiteSpace(pMessage) ? string.Empty : $": {pMessage[..Math.Min(500, pMessage.Length)]}";
     }
 
-    private UIElement PSAudioSectionBuild()
+    private UIElement PSAudioPlateBuild()
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSFieldBuild("Stream", psAudioStreamCombo));
@@ -379,10 +379,10 @@ internal sealed partial class PSExportSpecific
         pPanel.Children.Add(PSFieldBuild("Bitrate", PSComboBuild("96k", "96k", "128k", "160k", "192k", "256k", "320k", "Custom")));
         pPanel.Children.Add(PSFieldBuild("Sample rate", PSComboBuild("Same as source", "Same as source", "44100", "48000", "88200", "96000", "Custom")));
         pPanel.Children.Add(PSFieldBuild("Channels", PSComboBuild("Same as source", "Same as source", "Mono", "Stereo", "5.1", "Custom")));
-        return PSCardBuild("Audio", pPanel);
+        return PSPlateBuild("Audio", pPanel);
     }
 
-    private static Border PSCardBuild(string pTitle, UIElement pContent)
+    private static Border PSPlateBuild(string pTitle, UIElement pContent)
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(new TextBlock { Text = pTitle, FontSize = 16, FontWeight = FontWeights.SemiBold, Foreground = PTextBrush, Margin = new Thickness(0, 0, 0, 10) });
@@ -411,7 +411,7 @@ internal sealed partial class PSExportSpecific
         return pGrid;
     }
 
-    private static UIElement PSFieldWithButtonBuild(string pLabel, Control pControl, params Button[] pButtons)
+    private static UIElement PSFieldButtonBuild(string pLabel, Control pControl, params Button[] pButtons)
     {
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
@@ -434,7 +434,7 @@ internal sealed partial class PSExportSpecific
         Width = pWidth,
         Height = 40,
         Margin = pMargin,
-        Style = PMainButton.PButtonNormalWhiteCreate()
+        Style = PButton.PButtonWhiteCreate()
     };
 
     private static ComboBox PSComboBuild(string pSelected, params string[] pItems)
@@ -446,12 +446,12 @@ internal sealed partial class PSExportSpecific
             Height = 40,
             HorizontalAlignment = HorizontalAlignment.Left
         };
-        PMainDropdown.PMainDropdownApply(pCombo);
+        PDropdown.PDropdownApply(pCombo);
         pCombo.SelectedItem = pItems.Contains(pSelected) ? pSelected : pItems.FirstOrDefault();
         return pCombo;
     }
 
-    private static TextBox PSTextBoxBuild(string pText, double pWidth)
+    private static TextBox PSEntryBuild(string pText, double pWidth)
     {
         var pTextBox = new TextBox
         {
@@ -460,7 +460,7 @@ internal sealed partial class PSExportSpecific
             Height = 40,
             HorizontalAlignment = HorizontalAlignment.Left
         };
-        PMainTextBox.PMainTextBoxApply(pTextBox);
+        PTextbox.PTextboxApply(pTextBox);
         return pTextBox;
     }
 
@@ -471,7 +471,7 @@ internal sealed partial class PSExportSpecific
             Content = pText,
             Width = 84,
             Margin = new Thickness(4),
-            Style = PMainButton.PButtonNormalWhiteCreate()
+            Style = PButton.PButtonWhiteCreate()
         };
     }
 

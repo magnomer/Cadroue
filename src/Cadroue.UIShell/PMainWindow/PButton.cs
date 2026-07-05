@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PMainWindow;
 
-public static class PMainButton
+public static class PButton
 {
     private static readonly SolidColorBrush PButtonTextBrush = new(Color.FromRgb(0x11, 0x18, 0x27));
     private static readonly SolidColorBrush PButtonBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
@@ -16,9 +16,9 @@ public static class PMainButton
     private static readonly SolidColorBrush PButtonNormalWhiteHoverBrush = new(Color.FromRgb(0xF8, 0xFA, 0xFC));
     private static readonly SolidColorBrush PButtonNormalWhitePressedBrush = new(Color.FromRgb(0xF0, 0xF4, 0xFA));
 
-    public static Style PButtonNormalGreyCreate()
+    public static Style PButtonGreyCreate()
     {
-        var pStyle = PButtonBaseStyleCreate();
+        var pStyle = PButtonBaseCreate();
         pStyle.Setters.Add(new Setter(Control.MinHeightProperty, 38.0));
         pStyle.Setters.Add(new Setter(Control.FontSizeProperty, 12.0));
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonNormalGreyBackgroundBrush));
@@ -30,22 +30,22 @@ public static class PMainButton
         return pStyle;
     }
 
-    public static Style PButtonNormalWhiteCreate()
+    public static Style PButtonWhiteCreate()
     {
-        var pStyle = PButtonNormalWhiteBaseStyleCreate();
+        var pStyle = PButtonWhitePrepare();
         pStyle.Setters.Add(new Setter(Control.HeightProperty, 42.0));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(12, 4, 12, 4)));
         return pStyle;
     }
 
-    public static Style PButtonNormalIconWhiteCreate()
+    public static Style PButtonLabelCreate()
     {
-        return PButtonNormalWhiteCreate();
+        return PButtonWhiteCreate();
     }
 
-    public static Style PButtonIconWhiteCreate()
+    public static Style PButtonIconCreate()
     {
-        var pStyle = PButtonNormalWhiteBaseStyleCreate();
+        var pStyle = PButtonWhitePrepare();
         pStyle.Setters.Add(new Setter(Control.WidthProperty, 44.0));
         pStyle.Setters.Add(new Setter(Control.MinWidthProperty, 44.0));
         pStyle.Setters.Add(new Setter(Control.HeightProperty, 40.0));
@@ -53,9 +53,9 @@ public static class PMainButton
         return pStyle;
     }
 
-    private static Style PButtonNormalWhiteBaseStyleCreate()
+    private static Style PButtonWhitePrepare()
     {
-        var pStyle = PButtonBaseStyleCreate();
+        var pStyle = PButtonBaseCreate();
         pStyle.Setters.Add(new Setter(Control.FontSizeProperty, 12.0));
         pStyle.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.SemiBold));
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonNormalWhiteBackgroundBrush));
@@ -68,7 +68,7 @@ public static class PMainButton
         return pStyle;
     }
 
-    private static Style PButtonBaseStyleCreate()
+    private static Style PButtonBaseCreate()
     {
         var pStyle = new Style(typeof(Button));
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));

@@ -5,7 +5,7 @@ using FlyleafLib.MediaPlayer;
 
 namespace Cadroue.UIShell.PPanels;
 
-public static class LPreviewFlyleafApply
+public static class LPreview
 {
     public static void LPreviewApply(Player? lPreviewPlayer, LPreviewState lPreviewState)
     {
@@ -14,55 +14,55 @@ public static class LPreviewFlyleafApply
             return;
         }
 
-        LPreviewFlyleafColorApply(lPreviewPlayer, lPreviewState.LColorAdjust);
-        LPreviewFlyleafRotateFlipApply(lPreviewPlayer, lPreviewState.LRotateFlip);
+        LPreviewColorApply(lPreviewPlayer, lPreviewState.LColor);
+        LPreviewRotateApply(lPreviewPlayer, lPreviewState.LRotateFlip);
     }
 
-    private static void LPreviewFlyleafColorApply(Player lPreviewPlayer, LColorAdjust lColorAdjust)
+    private static void LPreviewColorApply(Player lPreviewPlayer, LColor lColor)
     {
-        LPreviewFlyleafFilterValueApply(
+        LPreviewFilterApply(
             lPreviewPlayer,
             FLFilters.Brightness,
-            LPreviewFlyleafValueClamp(lColorAdjust.LColorAdjustBrightness * 100, -100, 100));
+            LPreviewValueClamp(lColor.LColorBrightness * 100, -100, 100));
 
-        LPreviewFlyleafFilterValueApply(
+        LPreviewFilterApply(
             lPreviewPlayer,
             FLFilters.Contrast,
-            LPreviewFlyleafValueClamp((lColorAdjust.LColorAdjustContrast - 1) * 100, -100, 100));
+            LPreviewValueClamp((lColor.LColorContrast - 1) * 100, -100, 100));
 
-        LPreviewFlyleafFilterValueApply(
+        LPreviewFilterApply(
             lPreviewPlayer,
             FLFilters.Saturation,
-            LPreviewFlyleafValueClamp((lColorAdjust.LColorAdjustSaturation - 1) * 100, -100, 100));
+            LPreviewValueClamp((lColor.LColorSaturation - 1) * 100, -100, 100));
 
-        LPreviewFlyleafFilterValueApply(
+        LPreviewFilterApply(
             lPreviewPlayer,
             FLFilters.Hue,
-            LPreviewFlyleafValueClamp(lColorAdjust.LColorAdjustHue, -180, 180));
+            LPreviewValueClamp(lColor.LColorHue, -180, 180));
     }
 
-    private static void LPreviewFlyleafRotateFlipApply(Player lPreviewPlayer, LRotateFlip lRotateFlip)
+    private static void LPreviewRotateApply(Player lPreviewPlayer, LRotateFlip lRotateFlip)
     {
-        lPreviewPlayer.Config.Video.Rotation = LPreviewFlyleafRotationRead(lRotateFlip.LRotateKind);
+        lPreviewPlayer.Config.Video.Rotation = LPreviewRotationRead(lRotateFlip.LRotateKind);
         lPreviewPlayer.Config.Video.HFlip = lRotateFlip.LRotateFlipHorizontal;
         lPreviewPlayer.Config.Video.VFlip = lRotateFlip.LRotateFlipVertical;
     }
 
-    private static void LPreviewFlyleafFilterValueApply(Player lPreviewPlayer, FLFilters lPreviewFilter, int lPreviewValue)
+    private static void LPreviewFilterApply(Player lPreviewPlayer, FLFilters lPreviewFilter, int lPreviewValue)
     {
         if (!lPreviewPlayer.Config.Video.FLFilters.TryGetValue(lPreviewFilter, out FLFilter? lPreviewFlyleafFilter))
         {
-            lPreviewFlyleafFilter = LPreviewFlyleafFilterCreate(lPreviewFilter);
+            lPreviewFlyleafFilter = LPreviewFilterCreate(lPreviewFilter);
             lPreviewPlayer.Config.Video.FLFilters[lPreviewFilter] = lPreviewFlyleafFilter;
         }
 
-        lPreviewFlyleafFilter.Value = LPreviewFlyleafValueClamp(
+        lPreviewFlyleafFilter.Value = LPreviewValueClamp(
             lPreviewValue,
             lPreviewFlyleafFilter.Minimum,
             lPreviewFlyleafFilter.Maximum);
     }
 
-    private static FLFilter LPreviewFlyleafFilterCreate(FLFilters lPreviewFilter)
+    private static FLFilter LPreviewFilterCreate(FLFilters lPreviewFilter)
     {
         return lPreviewFilter switch
         {
@@ -114,7 +114,7 @@ public static class LPreviewFlyleafApply
         };
     }
 
-    private static uint LPreviewFlyleafRotationRead(LRotateKind lRotateKind)
+    private static uint LPreviewRotationRead(LRotateKind lRotateKind)
     {
         return lRotateKind switch
         {
@@ -125,7 +125,7 @@ public static class LPreviewFlyleafApply
         };
     }
 
-    private static int LPreviewFlyleafValueClamp(double lPreviewValue, int lPreviewMinimum, int lPreviewMaximum)
+    private static int LPreviewValueClamp(double lPreviewValue, int lPreviewMinimum, int lPreviewMaximum)
     {
         return Math.Clamp((int)Math.Round(lPreviewValue), lPreviewMinimum, lPreviewMaximum);
     }

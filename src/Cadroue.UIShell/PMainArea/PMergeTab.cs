@@ -9,17 +9,17 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed class PMergeTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
-    private readonly PViewerPanel pViewerPanel = new();
+    private readonly PViewer pViewer = new();
 
     public PMergeTab(LExportSpecificState lExportSpecificState)
     {
         var pAction = new PAction();
-        pAction.PActionRequest += LMergeDescribe.LMergeDescribeCall;
-        Content = PTabGridBuild(new UIElement[] { new PListPanel(), new PGroupPanel(), pViewerPanel, new PExportPanel(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);
+        pAction.PActionRun += LMerge.LMergeDescribe;
+        Content = PTabGridBuild(new UIElement[] { new PList(), new PGroup(), pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);
     }
 
     public override PFlowControl PTabFlow => pFlow;
-    public override PViewerPanel? PTabViewer => pViewerPanel;
+    public override PViewer? PTabViewer => pViewer;
 
     private static Grid PTabGridBuild(IReadOnlyList<UIElement> pPanels, UIElement pCompass, UIElement pAction, UIElement pFlow)
     {

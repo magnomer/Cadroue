@@ -7,7 +7,7 @@ using System.Windows.Shapes;
 
 namespace Cadroue.UIShell.PMainWindow;
 
-internal static class PMainDropdown
+internal static class PDropdown
 {
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
@@ -15,39 +15,39 @@ internal static class PMainDropdown
     private static readonly Brush PAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
     private static readonly Brush PHighlightBrush = new SolidColorBrush(Color.FromRgb(0xEC, 0xF3, 0xFF));
 
-    internal static void PMainDropdownApply(ComboBox pCombo)
+    internal static void PDropdownApply(ComboBox pCombo)
     {
         pCombo.IsEditable = false;
-        pCombo.Template = PMainDropdownTemplateBuild(false);
-        pCombo.ItemContainerStyle = PMainDropdownItemStyleBuild();
+        pCombo.Template = PDropdownTemplateBuild(false);
+        pCombo.ItemContainerStyle = PDropdownStyleBuild();
     }
 
-    internal static void PMainDropdownEditableApply(ComboBox pCombo)
+    internal static void PDropdownEditableApply(ComboBox pCombo)
     {
         pCombo.IsEditable = true;
-        pCombo.Template = PMainDropdownTemplateBuild(true);
-        pCombo.ItemContainerStyle = PMainDropdownItemStyleBuild();
+        pCombo.Template = PDropdownTemplateBuild(true);
+        pCombo.ItemContainerStyle = PDropdownStyleBuild();
     }
 
-    private static ControlTemplate PMainDropdownTemplateBuild(bool pEditable)
+    private static ControlTemplate PDropdownTemplateBuild(bool pEditable)
     {
         var pTemplate = new ControlTemplate(typeof(ComboBox));
         var pRoot = new FrameworkElementFactory(typeof(Grid));
-        var pBorder = PMainDropdownOuterBorderBuild();
+        var pBorder = PDropdownBorderBuild();
         pRoot.AppendChild(pBorder);
 
         var pDock = new FrameworkElementFactory(typeof(DockPanel));
         pBorder.AppendChild(pDock);
-        pDock.AppendChild(PMainDropdownToggleBuild());
-        pDock.AppendChild(pEditable ? PMainDropdownEditableBoxBuild() : PMainDropdownSelectionBoxBuild());
-        pRoot.AppendChild(PMainDropdownPopupBuild());
+        pDock.AppendChild(PDropdownToggleBuild());
+        pDock.AppendChild(pEditable ? PDropdownEditBuild() : PDropdownSelectBuild());
+        pRoot.AppendChild(PDropdownPopupBuild());
 
         pTemplate.VisualTree = pRoot;
-        PMainDropdownTemplateTriggersAdd(pTemplate);
+        PDropdownTriggerAdd(pTemplate);
         return pTemplate;
     }
 
-    private static FrameworkElementFactory PMainDropdownOuterBorderBuild()
+    private static FrameworkElementFactory PDropdownBorderBuild()
     {
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.Name = "OuterBorder";
@@ -58,7 +58,7 @@ internal static class PMainDropdown
         return pBorder;
     }
 
-    private static FrameworkElementFactory PMainDropdownToggleBuild()
+    private static FrameworkElementFactory PDropdownToggleBuild()
     {
         var pToggle = new FrameworkElementFactory(typeof(ToggleButton));
         pToggle.SetValue(DockPanel.DockProperty, Dock.Right);
@@ -67,7 +67,7 @@ internal static class PMainDropdown
         pToggle.SetValue(ToggleButton.BackgroundProperty, Brushes.Transparent);
         pToggle.SetValue(ToggleButton.BorderThicknessProperty, new Thickness(0));
         pToggle.SetValue(ToggleButton.ClickModeProperty, ClickMode.Press);
-        pToggle.SetValue(ToggleButton.TemplateProperty, PMainDropdownToggleTemplateBuild());
+        pToggle.SetValue(ToggleButton.TemplateProperty, PDropdownArrowBuild());
         pToggle.SetBinding(ToggleButton.IsCheckedProperty, new Binding("IsDropDownOpen")
         {
             RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent),
@@ -76,7 +76,7 @@ internal static class PMainDropdown
         return pToggle;
     }
 
-    private static FrameworkElementFactory PMainDropdownEditableBoxBuild()
+    private static FrameworkElementFactory PDropdownEditBuild()
     {
         var pEditableBox = new FrameworkElementFactory(typeof(TextBox));
         pEditableBox.Name = "PART_EditableTextBox";
@@ -92,7 +92,7 @@ internal static class PMainDropdown
         return pEditableBox;
     }
 
-    private static FrameworkElementFactory PMainDropdownSelectionBoxBuild()
+    private static FrameworkElementFactory PDropdownSelectBuild()
     {
         var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
         pContent.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
@@ -114,7 +114,7 @@ internal static class PMainDropdown
         return pContent;
     }
 
-    private static FrameworkElementFactory PMainDropdownPopupBuild()
+    private static FrameworkElementFactory PDropdownPopupBuild()
     {
         var pPopup = new FrameworkElementFactory(typeof(Popup));
         pPopup.Name = "PART_Popup";
@@ -150,7 +150,7 @@ internal static class PMainDropdown
         return pPopup;
     }
 
-    private static void PMainDropdownTemplateTriggersAdd(ControlTemplate pTemplate)
+    private static void PDropdownTriggerAdd(ControlTemplate pTemplate)
     {
         var pFocusTrigger = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true };
         pFocusTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "OuterBorder"));
@@ -161,7 +161,7 @@ internal static class PMainDropdown
         pTemplate.Triggers.Add(pOpenTrigger);
     }
 
-    private static ControlTemplate PMainDropdownToggleTemplateBuild()
+    private static ControlTemplate PDropdownArrowBuild()
     {
         var pTemplate = new ControlTemplate(typeof(ToggleButton));
         var pBorder = new FrameworkElementFactory(typeof(Border));
@@ -188,7 +188,7 @@ internal static class PMainDropdown
         return pTemplate;
     }
 
-    private static Style PMainDropdownItemStyleBuild()
+    private static Style PDropdownStyleBuild()
     {
         var pStyle = new Style(typeof(ComboBoxItem));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
@@ -196,11 +196,11 @@ internal static class PMainDropdown
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
         pStyle.Setters.Add(new Setter(Control.FontSizeProperty, 14.0));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PMainDropdownItemTemplateBuild()));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PDropdownRowBuild()));
         return pStyle;
     }
 
-    private static ControlTemplate PMainDropdownItemTemplateBuild()
+    private static ControlTemplate PDropdownRowBuild()
     {
         var pTemplate = new ControlTemplate(typeof(ComboBoxItem));
         var pBorder = new FrameworkElementFactory(typeof(Border));
@@ -212,7 +212,7 @@ internal static class PMainDropdown
 
         var pDock = new FrameworkElementFactory(typeof(DockPanel));
         pBorder.AppendChild(pDock);
-        pDock.AppendChild(PMainDropdownItemCheckBuild());
+        pDock.AppendChild(PDropdownCheckBuild());
 
         var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
         pContent.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
@@ -220,11 +220,11 @@ internal static class PMainDropdown
         pDock.AppendChild(pContent);
 
         pTemplate.VisualTree = pBorder;
-        PMainDropdownItemTriggersAdd(pTemplate);
+        PDropdownRowAdd(pTemplate);
         return pTemplate;
     }
 
-    private static FrameworkElementFactory PMainDropdownItemCheckBuild()
+    private static FrameworkElementFactory PDropdownCheckBuild()
     {
         var pCheck = new FrameworkElementFactory(typeof(Path));
         pCheck.Name = "CheckPath";
@@ -242,7 +242,7 @@ internal static class PMainDropdown
         return pCheck;
     }
 
-    private static void PMainDropdownItemTriggersAdd(ControlTemplate pTemplate)
+    private static void PDropdownRowAdd(ControlTemplate pTemplate)
     {
         var pHighlightTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
         pHighlightTrigger.Setters.Add(new Setter(Border.BackgroundProperty, PHighlightBrush, "ItemBorder"));

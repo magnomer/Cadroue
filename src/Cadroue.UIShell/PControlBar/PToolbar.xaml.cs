@@ -6,27 +6,27 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PControlBar;
 
-public partial class PControlBar : UserControl
+public partial class PToolbar : UserControl
 {
-    private LTabSelect? lTabSelect;
+    private LTabset? lTabset;
     private PTabRecord? pTabDragRecord;
     private Point pTabDragStartPoint;
     private bool pTabDragActive;
 
-    public event Action<LPreferenceState>? PPreferenceApplyRequest;
+    public event Action<LPreferenceState>? PToolbarPreferenceApply;
 
-    public PControlBar()
+    public PToolbar()
     {
         InitializeComponent();
     }
 
-    public void PControlBarTabSelectSet(LTabSelect lTabSelectValue)
+    public void PToolbarTabsetSet(LTabset lTabsetValue)
     {
-        lTabSelect = lTabSelectValue;
-        DataContext = lTabSelect;
+        lTabset = lTabsetValue;
+        DataContext = lTabset;
     }
 
-    private void PTabButtonMouseLeftButtonDownHandle(object sender, MouseButtonEventArgs e)
+    private void PTabPressHandle(object sender, MouseButtonEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: PTabRecord pTabRecord })
         {
@@ -36,12 +36,12 @@ public partial class PControlBar : UserControl
         pTabDragRecord = pTabRecord;
         pTabDragStartPoint = e.GetPosition(this);
         pTabDragActive = false;
-        lTabSelect?.LTabSelectRequest(pTabRecord);
+        lTabset?.LTabsetSelect(pTabRecord);
         Mouse.Capture(sender as IInputElement);
         e.Handled = true;
     }
 
-    private void PTabButtonMouseMoveHandle(object sender, MouseEventArgs e)
+    private void PTabMoveHandle(object sender, MouseEventArgs e)
     {
         if (pTabDragRecord is null || e.LeftButton != MouseButtonState.Pressed)
         {
@@ -62,12 +62,12 @@ public partial class PControlBar : UserControl
             pTabDragActive = true;
         }
 
-        int pTabTargetIndex = PTabTargetIndexResolve(e.GetPosition(pTabItemsControl));
-        lTabSelect?.LTabMoveRequest(pTabDragRecord, pTabTargetIndex);
+        int pTabTargetIndex = PTabIndexResolve(e.GetPosition(pTabItemsControl));
+        lTabset?.LTabsetMove(pTabDragRecord, pTabTargetIndex);
         e.Handled = true;
     }
 
-    private void PTabButtonMouseLeftButtonUpHandle(object sender, MouseButtonEventArgs e)
+    private void PTabReleaseHandle(object sender, MouseButtonEventArgs e)
     {
         PTabDragClear();
         e.Handled = true;
@@ -83,17 +83,17 @@ public partial class PControlBar : UserControl
         }
     }
 
-    private int PTabTargetIndexResolve(Point pTabMousePoint)
+    private int PTabIndexResolve(Point pTabMousePoint)
     {
-        if (lTabSelect is null || lTabSelect.PTabRecords.Count == 0)
+        if (lTabset is null || lTabset.PTabsetRecords.Count == 0)
         {
             return 0;
         }
 
         int pTargetIndex = 0;
-        for (int index = 0; index < lTabSelect.PTabRecords.Count; index++)
+        for (int index = 0; index < lTabset.PTabsetRecords.Count; index++)
         {
-            PTabRecord pTabRecord = lTabSelect.PTabRecords[index];
+            PTabRecord pTabRecord = lTabset.PTabsetRecords[index];
             if (pTabItemsControl.ItemContainerGenerator.ContainerFromItem(pTabRecord) is not FrameworkElement pItemElement)
             {
                 continue;
@@ -107,10 +107,10 @@ public partial class PControlBar : UserControl
             }
         }
 
-        return Math.Clamp(pTargetIndex, 0, lTabSelect.PTabRecords.Count - 1);
+        return Math.Clamp(pTargetIndex, 0, lTabset.PTabsetRecords.Count - 1);
     }
 
-    private void PLogoButtonClickHandle(object sender, MouseButtonEventArgs e)
+    private void PLogoClickHandle(object sender, MouseButtonEventArgs e)
     {
         if (sender is not FrameworkElement pLogoButton)
         {
@@ -123,15 +123,15 @@ public partial class PControlBar : UserControl
             Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
         };
 
-        PLogoMenuItemAppend(pLogoMenu, "Preferences", "/PAssets/PMenus/PMenuPreferences.png");
-        PLogoMenuItemAppend(pLogoMenu, "Shortcuts", "/PAssets/PMenus/PMenuShortcuts.png");
-        PLogoMenuItemAppend(pLogoMenu, "About", "/PAssets/PMenus/PMenuAbout.png");
+        PLogoItemAppend(pLogoMenu, "Preferences", "/PAssets/PMenus/PMenuPreferences.png");
+        PLogoItemAppend(pLogoMenu, "Shortcuts", "/PAssets/PMenus/PMenuShortcuts.png");
+        PLogoItemAppend(pLogoMenu, "About", "/PAssets/PMenus/PMenuAbout.png");
 
         pLogoMenu.IsOpen = true;
         e.Handled = true;
     }
 
-    private void PLogoMenuItemAppend(ContextMenu pLogoMenu, string pLogoMenuText, string pLogoMenuIconPath)
+    private void PLogoItemAppend(ContextMenu pLogoMenu, string pLogoMenuText, string pLogoMenuIconPath)
     {
         var pLogoMenuItem = new MenuItem
         {
@@ -147,22 +147,22 @@ public partial class PControlBar : UserControl
         };
         if (pLogoMenuText == "Preferences")
         {
-            pLogoMenuItem.Click += (_, _) => PControlBarPreferenceDialogShow();
+            pLogoMenuItem.Click += (_, _) => PToolbarPreferenceShow();
         }
         else if (pLogoMenuText == "Shortcuts")
         {
-            pLogoMenuItem.Click += (_, _) => PControlBarShortcutDialogShow();
+            pLogoMenuItem.Click += (_, _) => PToolbarShortcutShow();
         }
 
         pLogoMenu.Items.Add(pLogoMenuItem);
     }
 
-    private void PControlBarPreferenceDialogShow()
+    private void PToolbarPreferenceShow()
     {
-        PSPreference.PSPreferenceShow(Window.GetWindow(this)!, PPreferenceApplyRequest);
+        PSOptions.PSOptionsShow(Window.GetWindow(this)!, PToolbarPreferenceApply);
     }
 
-    public void PControlBarShortcutDialogShow()
+    public void PToolbarShortcutShow()
     {
         var pShortcutWindow = new Window
         {
@@ -173,16 +173,16 @@ public partial class PControlBar : UserControl
             MinHeight = 360,
             Owner = Window.GetWindow(this),
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = PControlBarShortcutDialogContentBuild()
+            Content = PShortcutContentBuild()
         };
         pShortcutWindow.ShowDialog();
     }
 
-    private static ScrollViewer PControlBarShortcutDialogContentBuild()
+    private static ScrollViewer PShortcutContentBuild()
     {
         var pPanel = new StackPanel { Margin = new Thickness(18) };
         pPanel.Children.Add(new TextBlock { Text = "Shortcuts", FontSize = 22, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 14) });
-        foreach ((string pAction, string pShortcut, string pScope) in PControlBarShortcutRows())
+        foreach ((string pAction, string pShortcut, string pScope) in PShortcutRowBuild())
         {
             pPanel.Children.Add(new TextBlock
             {
@@ -197,7 +197,7 @@ public partial class PControlBar : UserControl
         return new ScrollViewer { Content = pPanel };
     }
 
-    private static IEnumerable<(string Action, string Shortcut, string Scope)> PControlBarShortcutRows()
+    private static IEnumerable<(string Action, string Shortcut, string Scope)> PShortcutRowBuild()
     {
         yield return ("Show shortcuts", "Ctrl+/", "Global");
         yield return ("Play / Pause", "Space", "Global");
@@ -213,7 +213,7 @@ public partial class PControlBar : UserControl
         yield return ("Move to next keyframe", "R", "Active flow");
     }
 
-    private void PTabAddButtonClickHandle(object sender, RoutedEventArgs e)
+    private void PTabMenuHandle(object sender, RoutedEventArgs e)
     {
         if (sender is not Button pTabAddButton)
         {
@@ -226,18 +226,18 @@ public partial class PControlBar : UserControl
             Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
         };
 
-        PTabAddMenuItemAppend(pTabAddMenu, "Split", "/PAssets/PTabs/PSplitButton.png");
-        PTabAddMenuItemAppend(pTabAddMenu, "Edit", "/PAssets/PTabs/PEditButton.png");
-        PTabAddMenuItemAppend(pTabAddMenu, "Audio", "/PAssets/PTabs/PAudioButton.png");
-        PTabAddMenuItemAppend(pTabAddMenu, "Convert", "/PAssets/PTabs/PConvertButton.png");
-        PTabAddMenuItemAppend(pTabAddMenu, "Merge", "/PAssets/PTabs/PMergeButton.png");
-        PTabAddMenuItemAppend(pTabAddMenu, "Worklist", "/PAssets/PCompass/PActionAddList.png");
+        PTabMenuAppend(pTabAddMenu, "Split", "/PAssets/PTabs/PSplitButton.png");
+        PTabMenuAppend(pTabAddMenu, "Edit", "/PAssets/PTabs/PEditButton.png");
+        PTabMenuAppend(pTabAddMenu, "Audio", "/PAssets/PTabs/PAudioButton.png");
+        PTabMenuAppend(pTabAddMenu, "Convert", "/PAssets/PTabs/PConvertButton.png");
+        PTabMenuAppend(pTabAddMenu, "Merge", "/PAssets/PTabs/PMergeButton.png");
+        PTabMenuAppend(pTabAddMenu, "Worklist", "/PAssets/PCompass/PActionAddList.png");
 
         pTabAddMenu.IsOpen = true;
         e.Handled = true;
     }
 
-    private void PTabAddMenuItemAppend(ContextMenu pTabAddMenu, string pTabLayoutKey, string pTabIconPath)
+    private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey, string pTabIconPath)
     {
         var pTabAddMenuItem = new MenuItem
         {
@@ -252,41 +252,41 @@ public partial class PControlBar : UserControl
             Foreground = System.Windows.Media.Brushes.Black
         };
 
-        pTabAddMenuItem.Click += (_, _) => PTabAddRequestHandle(pTabLayoutKey);
+        pTabAddMenuItem.Click += (_, _) => PTabLayoutAdd(pTabLayoutKey);
         pTabAddMenu.Items.Add(pTabAddMenuItem);
     }
 
-    private void PTabAddRequestHandle(string pTabLayoutKey)
+    private void PTabLayoutAdd(string pTabLayoutKey)
     {
-        var pTabRecord = lTabSelect?.LTabAddRequest(pTabLayoutKey);
+        var pTabRecord = lTabset?.LTabsetAdd(pTabLayoutKey);
         if (pTabRecord is not null)
         {
-            lTabSelect?.LTabSelectRequest(pTabRecord);
+            lTabset?.LTabsetSelect(pTabRecord);
         }
     }
 
-    private void PTabCloseButtonClickHandle(object sender, MouseButtonEventArgs e)
+    private void PTabCloseHandle(object sender, MouseButtonEventArgs e)
     {
         PTabDragClear();
         e.Handled = true;
         if (sender is FrameworkElement { DataContext: PTabRecord pTabRecord })
         {
-            lTabSelect?.LTabCloseRequest(pTabRecord);
+            lTabset?.LTabsetClose(pTabRecord);
         }
     }
 
-    private void PWindowMinimizeButtonClickHandle(object sender, RoutedEventArgs e)
+    private void PChromeMinimizeHandle(object sender, RoutedEventArgs e)
     {
         Window.GetWindow(this)!.WindowState = WindowState.Minimized;
     }
 
-    private void PWindowMaximizeButtonClickHandle(object sender, RoutedEventArgs e)
+    private void PChromeMaximizeHandle(object sender, RoutedEventArgs e)
     {
         var pWindow = Window.GetWindow(this)!;
         pWindow.WindowState = pWindow.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
 
-    private void PWindowCloseButtonClickHandle(object sender, RoutedEventArgs e)
+    private void PChromeCloseHandle(object sender, RoutedEventArgs e)
     {
         Window.GetWindow(this)!.Close();
     }
@@ -295,8 +295,8 @@ public partial class PControlBar : UserControl
     {
         base.OnMouseLeftButtonDown(e);
 
-        if (PControlBarButtonFind(e.OriginalSource as DependencyObject)
-            || PControlBarTabFind(e.OriginalSource as DependencyObject))
+        if (PToolbarButtonFind(e.OriginalSource as DependencyObject)
+            || PToolbarTabFind(e.OriginalSource as DependencyObject))
         {
             return;
         }
@@ -313,31 +313,31 @@ public partial class PControlBar : UserControl
         PTabDragClear();
     }
 
-    private static bool PControlBarButtonFind(DependencyObject? pControlBarSource)
+    private static bool PToolbarButtonFind(DependencyObject? pToolbarSource)
     {
-        while (pControlBarSource is not null)
+        while (pToolbarSource is not null)
         {
-            if (pControlBarSource is Button)
+            if (pToolbarSource is Button)
             {
                 return true;
             }
 
-            pControlBarSource = VisualTreeHelper.GetParent(pControlBarSource);
+            pToolbarSource = VisualTreeHelper.GetParent(pToolbarSource);
         }
 
         return false;
     }
 
-    private static bool PControlBarTabFind(DependencyObject? pControlBarSource)
+    private static bool PToolbarTabFind(DependencyObject? pToolbarSource)
     {
-        while (pControlBarSource is not null)
+        while (pToolbarSource is not null)
         {
-            if (pControlBarSource is FrameworkElement { DataContext: PTabRecord })
+            if (pToolbarSource is FrameworkElement { DataContext: PTabRecord })
             {
                 return true;
             }
 
-            pControlBarSource = VisualTreeHelper.GetParent(pControlBarSource);
+            pToolbarSource = VisualTreeHelper.GetParent(pToolbarSource);
         }
 
         return false;

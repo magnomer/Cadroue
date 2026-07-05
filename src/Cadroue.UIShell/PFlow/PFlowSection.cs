@@ -6,43 +6,43 @@ public sealed partial class PFlow
     {
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
         if (lCursor >= lSpool.LSpoolDuration) return;
-        lSectionList.Add(new LSectionEntry(lCursor, lSpool.LSpoolDuration, PFlowSectionColorIndexNext(), string.Empty));
+        lSectionList.Add(new LSegment(lCursor, lSpool.LSpoolDuration, PFlowColorRead(), string.Empty));
         lSectionIndexSelect = lSectionList.Count - 1;
-        PFlowSectionPropagateUpdate();
+        PFlowSectionUpdate();
     }
 
-    private void PFlowSectionStartSet()
+    private void PFlowStartSet()
     {
         if (lSpool is null) return;
         if (lSectionIndexSelect is null) { PFlowSectionAdd(); return; }
-        LSectionEntry section = lSectionList[lSectionIndexSelect.Value];
-        if (section.LSectionEnd < lCursor) { PFlowSectionAdd(); return; }
-        if (lCursor >= section.LSectionEnd) return;
-        lSectionList[lSectionIndexSelect.Value] = section with { LSectionStart = lCursor };
-        PFlowSectionPropagateUpdate();
+        LSegment section = lSectionList[lSectionIndexSelect.Value];
+        if (section.LSegmentEnd < lCursor) { PFlowSectionAdd(); return; }
+        if (lCursor >= section.LSegmentEnd) return;
+        lSectionList[lSectionIndexSelect.Value] = section with { LSegmentStart = lCursor };
+        PFlowSectionUpdate();
     }
 
     private void PFlowSectionSplit()
     {
         if (lSectionIndexSelect is null) return;
-        LSectionEntry section = lSectionList[lSectionIndexSelect.Value];
-        if (lCursor <= section.LSectionStart || lCursor >= section.LSectionEnd) return;
+        LSegment section = lSectionList[lSectionIndexSelect.Value];
+        if (lCursor <= section.LSegmentStart || lCursor >= section.LSegmentEnd) return;
         int index = lSectionIndexSelect.Value;
-        int secondColorIndex = PFlowSectionColorIndexNext();
+        int secondColorIndex = PFlowColorRead();
         lSectionList.RemoveAt(index);
-        lSectionList.Insert(index, new LSectionEntry(lCursor, section.LSectionEnd, secondColorIndex, string.Empty));
-        lSectionList.Insert(index, section with { LSectionEnd = lCursor });
+        lSectionList.Insert(index, new LSegment(lCursor, section.LSegmentEnd, secondColorIndex, string.Empty));
+        lSectionList.Insert(index, section with { LSegmentEnd = lCursor });
         lSectionIndexSelect = index;
-        PFlowSectionPropagateUpdate();
+        PFlowSectionUpdate();
     }
 
-    private void PFlowSectionEndSet()
+    private void PFlowEndSet()
     {
         if (lSectionIndexSelect is null) return;
-        LSectionEntry section = lSectionList[lSectionIndexSelect.Value];
-        if (lCursor <= section.LSectionStart) return;
-        lSectionList[lSectionIndexSelect.Value] = section with { LSectionEnd = lCursor };
-        PFlowSectionPropagateUpdate();
+        LSegment section = lSectionList[lSectionIndexSelect.Value];
+        if (lCursor <= section.LSegmentStart) return;
+        lSectionList[lSectionIndexSelect.Value] = section with { LSegmentEnd = lCursor };
+        PFlowSectionUpdate();
     }
 
     private void PFlowSectionDelete()
@@ -51,32 +51,32 @@ public sealed partial class PFlow
         int index = lSectionIndexSelect.Value;
         lSectionList.RemoveAt(index);
         lSectionIndexSelect = lSectionList.Count == 0 ? null : Math.Min(index, lSectionList.Count - 1);
-        PFlowSectionPropagateUpdate();
+        PFlowSectionUpdate();
     }
 
-    private void PFlowSectionPropagateUpdate()
+    private void PFlowSectionUpdate()
     {
         pViewfinder.PViewfinderSectionsUpdate(lSectionList, lSectionIndexSelect);
-        PFlowSectionChangeNotice?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
+        PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
     }
 
-    public void PFlowSectionSelectRequest(int pSectionIndex)
+    public void PFlowSectionSelect(int pSectionIndex)
     {
-        PFlowViewfinderSectionSelectHandle(pSectionIndex);
+        PFlowViewfinderSelect(pSectionIndex);
     }
 
-    public void PFlowSectionNameChangeRequest(int pSectionIndex, string pSectionName)
+    public void PFlowNameSet(int pSectionIndex, string pSectionName)
     {
         if (pSectionIndex < 0 || pSectionIndex >= lSectionList.Count) return;
-        lSectionList[pSectionIndex] = lSectionList[pSectionIndex] with { LSectionName = pSectionName };
+        lSectionList[pSectionIndex] = lSectionList[pSectionIndex] with { LSegmentName = pSectionName };
     }
 
-    private int PFlowSectionColorIndexNext() => lSectionList.Count % LSectionPaletteCount;
+    private int PFlowColorRead() => lSectionList.Count % LSectionPaletteCount;
 
-    private void PFlowViewfinderSectionSelectHandle(int sectionIndex)
+    private void PFlowViewfinderSelect(int sectionIndex)
     {
         if (sectionIndex < 0 || sectionIndex >= lSectionList.Count) return;
         lSectionIndexSelect = sectionIndex;
-        PFlowSectionPropagateUpdate();
+        PFlowSectionUpdate();
     }
 }

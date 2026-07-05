@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed partial class PExportPanel : UserControl
+public sealed partial class PExport : UserControl
 {
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
@@ -19,11 +19,11 @@ public sealed partial class PExportPanel : UserControl
     private readonly TextBlock pSummaryOutput;
     private readonly ComboBox pPresetCombo;
 
-    public PExportPanel(LExportSpecificState lExportSpecificState)
+    public PExport(LExportSpecificState lExportSpecificState)
     {
         this.lExportSpecificState = lExportSpecificState;
         FocusVisualStyle = null;
-        pPresetCombo = PPresetComboBuild();
+        pPresetCombo = PExportComboBuild();
 
         var pPanel = new StackPanel { Margin = new Thickness(12) };
         pPanel.Children.Add(PHeaderBuild());
@@ -34,12 +34,12 @@ public sealed partial class PExportPanel : UserControl
             PSummaryRowBuild("Audio", out pSummaryAudio),
             PSummaryRowBuild("Output", out pSummaryOutput)));
         pPanel.Children.Add(PCardBuild("Preset",
-            PPresetTopRowBuild(),
+            PExportTopBuild(),
             PSeparatorBuild(),
-            PPresetActionRowBuild()));
+            PExportActionBuild()));
 
-        PExportSummaryRefresh();
-        Content = PExportPanelFrameBuild(new ScrollViewer
+        PExportSummaryUpdate();
+        Content = PExportFrameBuild(new ScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
@@ -48,7 +48,7 @@ public sealed partial class PExportPanel : UserControl
         });
     }
 
-    private static Border PExportPanelFrameBuild(UIElement pContent) => new()
+    private static Border PExportFrameBuild(UIElement pContent) => new()
     {
         Margin = new Thickness(8),
         BorderBrush = PLineBrush,
@@ -65,7 +65,7 @@ public sealed partial class PExportPanel : UserControl
         SnapsToDevicePixels = true
     };
 
-    private void PExportSummaryRefresh()
+    private void PExportSummaryUpdate()
     {
         pPresetCombo.Text = lExportSpecificState.PresetName;
         pSummaryContainer.Text = lExportSpecificState.Container;

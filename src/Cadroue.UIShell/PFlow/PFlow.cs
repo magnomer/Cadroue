@@ -18,50 +18,50 @@ public sealed partial class PFlow : UserControl
     private readonly DispatcherTimer lKeyframeRequestTimer;
     private readonly PViewfinder pViewfinder = new();
     private readonly PMap pMap = new();
-    private readonly TextBlock pViewfinderLabelLeft = PFlowReelLabelBuild();
-    private readonly TextBlock pViewfinderLabelRight = PFlowReelLabelBuild();
-    private readonly TextBlock pMapLabelLeft = PFlowReelLabelBuild();
-    private readonly TextBlock pMapLabelRight = PFlowReelLabelBuild();
-    private readonly List<LSectionEntry> lSectionList = new();
+    private readonly TextBlock pViewfinderLabelLeft = PReelLabelBuild();
+    private readonly TextBlock pViewfinderLabelRight = PReelLabelBuild();
+    private readonly TextBlock pMapLabelLeft = PReelLabelBuild();
+    private readonly TextBlock pMapLabelRight = PReelLabelBuild();
+    private readonly List<LSegment> lSectionList = new();
     private readonly StackPanel pFlowSectionButtonGroup = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-    private Border? pFlowResizeHandle;
+    private Border? pDividerHandle;
     private LSpool? lSpool;
     private TimeSpan lCursor;
     private string? lSourcePath;
     private int? lSectionIndexSelect;
-    private double pFlowResizeStartY;
-    private double pFlowResizeStartHeight;
-    private bool pFlowResizeState;
+    private double pDividerStartY;
+    private double pDividerStartHeight;
+    private bool pDividerState;
     private bool pFlowSectionUiActive;
     private bool pFlowCommandActive;
     private bool pFlowUnloaded;
 
-    public event Action<TimeSpan>? PFlowCursorChangeRequest;
-    public event Action? PFlowPlayRequest;
-    public event Action? PFlowPauseRequest;
-    public event Action<double>? PFlowVolumeChangeRequest;
-    public event Action<double>? PFlowVolumeValueNotice;
-    public event Action<IReadOnlyList<LSectionEntry>, int?>? PFlowSectionChangeNotice;
+    public event Action<TimeSpan>? PFlowCursorChange;
+    public event Action? PFlowPlay;
+    public event Action? PFlowPause;
+    public event Action<double>? PFlowVolumeChange;
+    public event Action<double>? PFlowVolumeValue;
+    public event Action<IReadOnlyList<LSegment>, int?>? PFlowSectionChange;
 
     public PFlow()
     {
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
         MinHeight = PFlowHeightMinimum;
-        pViewfinder.PViewfinderCursorChangeRequest += PFlowViewfinderCursorChangeHandle;
-        pViewfinder.PViewfinderSectionSelectRequest += PFlowViewfinderSectionSelectHandle;
-        pMap.PMapCursorChangeRequest += PFlowMapCursorChangeHandle;
-        pMap.PMapSpoolChangeRequest += PFlowSpoolPropagateUpdate;
-        lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowKeyframeNoticeHandle;
+        pViewfinder.PViewfinderCursorChange += PFlowViewfinderSeek;
+        pViewfinder.PViewfinderSectionSelect += PFlowViewfinderSelect;
+        pMap.PMapCursorChange += PFlowMapSeek;
+        pMap.PMapSpoolChange += PFlowSpoolUpdate;
+        lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-        lKeyframeRequestTimer.Tick += PFlowKeyframeRequestTimerHandle;
-        pFlowResizeHandle = PFlowResizeHandleBuild();
-        pFlowResizeHandle.MouseLeftButtonDown += PFlowResizeDownHandle;
-        pFlowResizeHandle.MouseMove += PFlowResizeMoveHandle;
-        pFlowResizeHandle.MouseLeftButtonUp += PFlowResizeUpHandle;
-        pFlowResizeHandle.LostMouseCapture += PFlowResizeCaptureLostHandle;
+        lKeyframeRequestTimer.Tick += PFlowTimerHandle;
+        pDividerHandle = PDividerBuild();
+        pDividerHandle.MouseLeftButtonDown += PDividerPressHandle;
+        pDividerHandle.MouseMove += PDividerMoveHandle;
+        pDividerHandle.MouseLeftButtonUp += PDividerReleaseHandle;
+        pDividerHandle.LostMouseCapture += PDividerCaptureHandle;
 
-        Grid viewfinderReel = PFlowReelGridBuild(pViewfinder, pViewfinderLabelLeft, pViewfinderLabelRight);
-        Grid mapReel = PFlowReelGridBuild(pMap, pMapLabelLeft, pMapLabelRight);
+        Grid viewfinderReel = PReelGridBuild(pViewfinder, pViewfinderLabelLeft, pViewfinderLabelRight);
+        Grid mapReel = PReelGridBuild(pMap, pMapLabelLeft, pMapLabelRight);
         Grid reelGrid = new() { Margin = new Thickness(8, 0, 8, 8) };
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(5, GridUnitType.Star) });
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(37, GridUnitType.Star) });
@@ -74,8 +74,8 @@ public sealed partial class PFlow : UserControl
         reelGrid.Children.Add(viewfinderReel);
 
         DockPanel root = new() { LastChildFill = true };
-        DockPanel.SetDock(pFlowResizeHandle, Dock.Top);
-        root.Children.Add(pFlowResizeHandle);
+        DockPanel.SetDock(pDividerHandle, Dock.Top);
+        root.Children.Add(pDividerHandle);
         root.Children.Add(reelGrid);
         Content = root;
         Height = App.LPreferenceStateCurrent.LPreferenceFlowHeight;
@@ -99,15 +99,15 @@ public sealed partial class PFlow : UserControl
         pMapLabelRight.Text = PFlowTimeFormat(lSpool.LSpoolDuration);
         pViewfinder.PViewfinderKeyframesUpdate(Array.Empty<LKeyframeEntry>(), Array.Empty<LKeyframeScanRange>());
         pMap.PMapKeyframesUpdate(Array.Empty<LKeyframeScanRange>());
-        PFlowSectionChangeNotice?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
-        PFlowKeyframeRequestNow();
+        PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
+        PFlowKeyframeRun();
     }
 
     public void PFlowCursorUpdate(TimeSpan cursorTime)
     {
         if (!pFlowCommandActive) return;
         PFlowCursorPropagate(cursorTime, false, false);
-        PFlowKeyframeRequestSchedule();
+        PFlowKeyframeSchedule();
     }
 
     public void PFlowClear()
@@ -125,21 +125,21 @@ public sealed partial class PFlow : UserControl
         pViewfinderLabelRight.Text = PFlowTimeFormat(TimeSpan.Zero);
         pMapLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
         pMapLabelRight.Text = PFlowTimeFormat(TimeSpan.Zero);
-        PFlowSectionChangeNotice?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
+        PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
     }
 
-    public void PFlowVolumeValueSet(double volume)
+    public void PFlowVolumeSet(double volume)
     {
         if (!pFlowCommandActive) return;
-        PFlowVolumeValueNotice?.Invoke(LPreferenceState.LPreferenceVolumeClamp(volume));
+        PFlowVolumeValue?.Invoke(LPreferenceState.LPreferenceVolumeClamp(volume));
     }
 
-    public void PFlowCommandActiveSet(bool pCommandActive)
+    public void PFlowCommandSet(bool pCommandActive)
     {
         pFlowCommandActive = pCommandActive;
         if (pFlowCommandActive)
         {
-            PFlowKeyframeRequestSchedule();
+            PFlowKeyframeSchedule();
         }
         else
         {
@@ -147,68 +147,68 @@ public sealed partial class PFlow : UserControl
         }
     }
 
-    public void PFlowSectionUiActiveSet(bool sectionUiActive)
+    public void PFlowSectionShow(bool sectionUiActive)
     {
         pFlowSectionUiActive = sectionUiActive;
         pFlowSectionButtonGroup.Visibility = sectionUiActive ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    public void PFlowCloseRequest()
+    public void PFlowClose()
     {
         if (pFlowUnloaded) return;
         pFlowUnloaded = true;
         lKeyframeRequestTimer.Stop();
-        lKeyframeRequestTimer.Tick -= PFlowKeyframeRequestTimerHandle;
-        lKeyframeOrchestrator.LKeyframeNoticeReady -= PFlowKeyframeNoticeHandle;
+        lKeyframeRequestTimer.Tick -= PFlowTimerHandle;
+        lKeyframeOrchestrator.LKeyframeNoticeReady -= PFlowNoticeHandle;
         lKeyframeOrchestrator.Dispose();
-        if (pFlowResizeHandle is null) return;
-        pFlowResizeHandle.MouseLeftButtonDown -= PFlowResizeDownHandle;
-        pFlowResizeHandle.MouseMove -= PFlowResizeMoveHandle;
-        pFlowResizeHandle.MouseLeftButtonUp -= PFlowResizeUpHandle;
-        pFlowResizeHandle.LostMouseCapture -= PFlowResizeCaptureLostHandle;
+        if (pDividerHandle is null) return;
+        pDividerHandle.MouseLeftButtonDown -= PDividerPressHandle;
+        pDividerHandle.MouseMove -= PDividerMoveHandle;
+        pDividerHandle.MouseLeftButtonUp -= PDividerReleaseHandle;
+        pDividerHandle.LostMouseCapture -= PDividerCaptureHandle;
     }
 
-    public bool PFlowShortcutRequest(string pFlowShortcutCode)
+    public bool PFlowShortcutDispatch(string pFlowShortcutCode)
     {
         if (!pFlowCommandActive || lSpool is null) return false;
         switch (pFlowShortcutCode)
         {
-            case "zoomIn": lSpool.LSpoolZoomIn(lCursor); PFlowSpoolPropagateUpdate(); return true;
-            case "zoomOut": lSpool.LSpoolZoomOut(lCursor); PFlowSpoolPropagateUpdate(); return true;
+            case "zoomIn": lSpool.LSpoolInZoom(lCursor); PFlowSpoolUpdate(); return true;
+            case "zoomOut": lSpool.LSpoolOutZoom(lCursor); PFlowSpoolUpdate(); return true;
             case "addSection" when pFlowSectionUiActive: PFlowSectionAdd(); return true;
-            case "setStart" when pFlowSectionUiActive: PFlowSectionStartSet(); return true;
+            case "setStart" when pFlowSectionUiActive: PFlowStartSet(); return true;
             case "splitSection" when pFlowSectionUiActive: PFlowSectionSplit(); return true;
-            case "setEnd" when pFlowSectionUiActive: PFlowSectionEndSet(); return true;
+            case "setEnd" when pFlowSectionUiActive: PFlowEndSet(); return true;
             case "deleteSection" when pFlowSectionUiActive: PFlowSectionDelete(); return true;
-            case "previousKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeMovePrevious(lCursor)); return true;
-            case "nearestKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeMoveNearest(lCursor)); return true;
-            case "nextKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeMoveNext(lCursor)); return true;
+            case "previousKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframePreviousMove(lCursor)); return true;
+            case "nearestKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeNearestMove(lCursor)); return true;
+            case "nextKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeNextMove(lCursor)); return true;
             default: return false;
         }
     }
 
-    public void PFlowPlayRequestCall()
+    public void PFlowPlayRaise()
     {
-        if (pFlowCommandActive) PFlowPlayRequest?.Invoke();
+        if (pFlowCommandActive) PFlowPlay?.Invoke();
     }
 
-    public void PFlowPauseRequestCall()
+    public void PFlowPauseRaise()
     {
-        if (pFlowCommandActive) PFlowPauseRequest?.Invoke();
+        if (pFlowCommandActive) PFlowPause?.Invoke();
     }
 
-    public void PFlowVolumeChangeRequestCall(double pFlowVolume)
+    public void PFlowVolumeRaise(double pFlowVolume)
     {
         if (!pFlowCommandActive) return;
         double pFlowVolumeClamp = LPreferenceState.LPreferenceVolumeClamp(pFlowVolume);
-        PFlowVolumeValueSet(pFlowVolumeClamp);
-        PFlowVolumeChangeRequest?.Invoke(pFlowVolumeClamp);
+        PFlowVolumeSet(pFlowVolumeClamp);
+        PFlowVolumeChange?.Invoke(pFlowVolumeClamp);
     }
 
-    private void PFlowViewfinderCursorChangeHandle(TimeSpan cursorTime) => PFlowUserCursorRequest(cursorTime);
-    private void PFlowMapCursorChangeHandle(TimeSpan cursorTime) => PFlowUserCursorRequest(cursorTime);
+    private void PFlowViewfinderSeek(TimeSpan cursorTime) => PFlowCursorSeek(cursorTime);
+    private void PFlowMapSeek(TimeSpan cursorTime) => PFlowCursorSeek(cursorTime);
 
-    private void PFlowUserCursorRequest(TimeSpan cursorTime)
+    private void PFlowCursorSeek(TimeSpan cursorTime)
     {
         if (!pFlowCommandActive) return;
         PFlowCursorPropagate(cursorTime, true, true);
@@ -222,42 +222,42 @@ public sealed partial class PFlow : UserControl
 
         if (lKeyframeRestartRequest)
         {
-            PFlowKeyframeRequestNow();
+            PFlowKeyframeRun();
         }
 
         if (pFlowViewerSeekRequest)
         {
-            PFlowCursorChangeRequest?.Invoke(lCursor);
+            PFlowCursorChange?.Invoke(lCursor);
         }
     }
 
-    private void PFlowSpoolPropagateUpdate()
+    private void PFlowSpoolUpdate()
     {
         pViewfinder.PViewfinderSpoolUpdate();
         pMap.PMapSpoolUpdate();
         if (lSpool is null) return;
         pViewfinderLabelLeft.Text = PFlowTimeFormat(lSpool.LSpoolWorkingRangeStart);
         pViewfinderLabelRight.Text = PFlowTimeFormat(lSpool.LSpoolWorkingRangeEnd);
-        PFlowKeyframeRequestSchedule();
+        PFlowKeyframeSchedule();
     }
 
-    private void PFlowKeyframeRequestSchedule()
+    private void PFlowKeyframeSchedule()
     {
         if (!pFlowCommandActive || pFlowUnloaded || lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) { lKeyframeRequestTimer.Stop(); return; }
         lKeyframeRequestTimer.Stop();
         lKeyframeRequestTimer.Start();
     }
 
-    private void PFlowKeyframeRequestNow()
+    private void PFlowKeyframeRun()
     {
         lKeyframeRequestTimer.Stop();
         if (pFlowCommandActive && !pFlowUnloaded && lSpool is not null && !string.IsNullOrWhiteSpace(lSourcePath))
-            lKeyframeOrchestrator.LKeyframeRequest(lSourcePath, lSpool.LSpoolDuration, lCursor);
+            lKeyframeOrchestrator.LKeyframeStart(lSourcePath, lSpool.LSpoolDuration, lCursor);
     }
 
-    private void PFlowKeyframeRequestTimerHandle(object? sender, EventArgs e) => PFlowKeyframeRequestNow();
+    private void PFlowTimerHandle(object? sender, EventArgs e) => PFlowKeyframeRun();
 
-    private void PFlowKeyframeNoticeHandle(LKeyframeNotice notice)
+    private void PFlowNoticeHandle(LKeyframeNotice notice)
     {
         if (!pFlowCommandActive || pFlowUnloaded || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished) return;
         Dispatcher.InvokeAsync(() =>
@@ -274,39 +274,39 @@ public sealed partial class PFlow : UserControl
     {
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath) || keyframeTargetTime is null)
         {
-            PFlowKeyframeRequestSchedule();
+            PFlowKeyframeSchedule();
             return;
         }
         PFlowCursorPropagate(keyframeTargetTime.Value, true, true);
     }
 
-    private void PFlowResizeDownHandle(object sender, MouseButtonEventArgs e)
+    private void PDividerPressHandle(object sender, MouseButtonEventArgs e)
     {
         Window? ownerWindow = Window.GetWindow(this);
-        if (pFlowResizeHandle is null || ownerWindow is null) return;
-        pFlowResizeState = true;
-        pFlowResizeStartY = e.GetPosition(ownerWindow).Y;
-        pFlowResizeStartHeight = ActualHeight;
-        pFlowResizeHandle.CaptureMouse();
+        if (pDividerHandle is null || ownerWindow is null) return;
+        pDividerState = true;
+        pDividerStartY = e.GetPosition(ownerWindow).Y;
+        pDividerStartHeight = ActualHeight;
+        pDividerHandle.CaptureMouse();
         e.Handled = true;
     }
 
-    private void PFlowResizeMoveHandle(object sender, MouseEventArgs e)
+    private void PDividerMoveHandle(object sender, MouseEventArgs e)
     {
-        if (!pFlowResizeState) return;
+        if (!pDividerState) return;
         Window? ownerWindow = Window.GetWindow(this);
-        if (ownerWindow is null) { PFlowResizeStateClear(); return; }
-        Height = Math.Clamp(pFlowResizeStartHeight + pFlowResizeStartY - e.GetPosition(ownerWindow).Y, PFlowHeightMinimum, PFlowHeightMaximum);
+        if (ownerWindow is null) { PDividerClear(); return; }
+        Height = Math.Clamp(pDividerStartHeight + pDividerStartY - e.GetPosition(ownerWindow).Y, PFlowHeightMinimum, PFlowHeightMaximum);
         e.Handled = true;
     }
 
-    private void PFlowResizeUpHandle(object sender, MouseButtonEventArgs e) { PFlowResizeStateClear(); e.Handled = true; }
-    private void PFlowResizeCaptureLostHandle(object sender, MouseEventArgs e) => PFlowResizeStateClear();
+    private void PDividerReleaseHandle(object sender, MouseButtonEventArgs e) { PDividerClear(); e.Handled = true; }
+    private void PDividerCaptureHandle(object sender, MouseEventArgs e) => PDividerClear();
 
-    private void PFlowResizeStateClear()
+    private void PDividerClear()
     {
-        pFlowResizeState = false;
-        if (pFlowResizeHandle?.IsMouseCaptured == true) pFlowResizeHandle.ReleaseMouseCapture();
+        pDividerState = false;
+        if (pDividerHandle?.IsMouseCaptured == true) pDividerHandle.ReleaseMouseCapture();
     }
 
     private TimeSpan PFlowCursorClamp(TimeSpan cursorTime)

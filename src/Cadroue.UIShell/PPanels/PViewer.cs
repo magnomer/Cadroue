@@ -10,38 +10,38 @@ using FlyleafLib.MediaPlayer;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed partial class PViewerPanel : PPanelFrame
+public sealed partial class PViewer : PPanel
 {
-    private readonly Border pViewerPanelSurface;
-    private readonly FlyleafHost pViewerPanelFlyleafHost;
-    private readonly Canvas pViewerPanelOverlay;
-    private readonly Rectangle pViewerPanelCropBox;
-    private readonly DispatcherTimer pViewerPanelClockTimer;
-    private Player? pViewerPanelPlayer;
-    private LMediaInfo? pViewerPanelMediaInfo;
-    private Point? pViewerPanelCropStartPoint;
-    private int pViewerPanelLoadSerial;
-    private double pViewerPanelVolume = App.LPreferenceStateCurrent.LPreferenceVolume;
-    private bool pViewerPanelAudioOnlyAllowed;
-    private bool pViewerPanelCommandActive;
-    private bool pViewerPanelResumeAfterInactive;
-    private bool pViewerPanelUnloaded;
+    private readonly Border pViewerSurface;
+    private readonly FlyleafHost pViewerFlyleafHost;
+    private readonly Canvas pViewerOverlay;
+    private readonly Rectangle pViewerCropBox;
+    private readonly DispatcherTimer pViewerClockTimer;
+    private Player? pViewerPlayer;
+    private LMediaInfo? pViewerMediaInfo;
+    private Point? pViewerCropStartPoint;
+    private int pViewerLoadSerial;
+    private double pViewerVolume = App.LPreferenceStateCurrent.LPreferenceVolume;
+    private bool pViewerAudioOnlyAllowed;
+    private bool pViewerCommandActive;
+    private bool pViewerResumeAfterInactive;
+    private bool pViewerUnloaded;
 
-    public event Action<LMediaOpenStatus>? PViewerPanelMediaStatusChange;
-    public event Action<TimeSpan>? PViewerPanelClockTick;
+    public event Action<LMediaOpenStatus>? PViewerMediaChange;
+    public event Action<TimeSpan>? PViewerClockTick;
 
-    public string? PViewerPanelSourcePathCurrent { get; private set; }
-    public Rect? PViewerPanelCropBoxVideo { get; private set; }
-    public double PViewerPanelVolumeCurrent => pViewerPanelVolume;
-    public LPreviewState LPreviewStateCurrent { get; private set; } = LPreviewState.LPreviewStateDefaultCreate();
+    public string? PViewerSourcePath { get; private set; }
+    public Rect? PCropVideo { get; private set; }
+    public double PViewerVolumeCurrent => pViewerVolume;
+    public LPreviewState LPreviewStateCurrent { get; private set; } = LPreviewState.LPreviewDefaultCreate();
 
-    public PViewerPanel() : base("")
+    public PViewer() : base("")
     {
         AllowDrop = true;
         Focusable = true;
         FocusVisualStyle = null;
 
-        pViewerPanelCropBox = new Rectangle
+        pViewerCropBox = new Rectangle
         {
             Stroke = Brushes.White,
             StrokeThickness = 2,
@@ -51,49 +51,49 @@ public sealed partial class PViewerPanel : PPanelFrame
             IsHitTestVisible = false
         };
 
-        pViewerPanelOverlay = new Canvas
+        pViewerOverlay = new Canvas
         {
             Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0)),
             Focusable = true,
             AllowDrop = true
         };
-        pViewerPanelOverlay.Children.Add(pViewerPanelCropBox);
-        pViewerPanelOverlay.MouseLeftButtonDown += PViewerPanelCropMouseDown;
-        pViewerPanelOverlay.MouseMove += PViewerPanelCropMouseMove;
-        pViewerPanelOverlay.MouseLeftButtonUp += PViewerPanelCropMouseUp;
-        pViewerPanelOverlay.SizeChanged += PViewerPanelOverlaySizeChanged;
+        pViewerOverlay.Children.Add(pViewerCropBox);
+        pViewerOverlay.MouseLeftButtonDown += PCropPressHandle;
+        pViewerOverlay.MouseMove += PCropMoveHandle;
+        pViewerOverlay.MouseLeftButtonUp += PCropReleaseHandle;
+        pViewerOverlay.SizeChanged += PCropSizeHandle;
 
-        pViewerPanelFlyleafHost = new FlyleafHost
+        pViewerFlyleafHost = new FlyleafHost
         {
-            Content = pViewerPanelOverlay,
+            Content = pViewerOverlay,
             VideoBackground = Brushes.White,
             ToggleFullScreenOnDoubleClick = AvailableWindows.None,
             AttachedDragMove = AttachedDragMoveOptions.None
         };
 
-        pViewerPanelSurface = new Border
+        pViewerSurface = new Border
         {
             Margin = PPanelOuterMargin,
             BorderBrush = PPanelLineBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
             CornerRadius = new CornerRadius(0),
-            Child = pViewerPanelFlyleafHost,
+            Child = pViewerFlyleafHost,
             AllowDrop = true,
             ClipToBounds = true,
             SnapsToDevicePixels = true
         };
-        Content = pViewerPanelSurface;
+        Content = pViewerSurface;
 
-        PViewerPanelDropHandlersAdd();
+        PDropHandlersAdd();
 
-        pViewerPanelClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
-        pViewerPanelClockTimer.Tick += PViewerPanelClockTickHandle;
+        pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+        pViewerClockTimer.Tick += PViewerClockHandle;
     }
 
-    public void PViewerPanelPlayRequest()
+    public void PViewerPlay()
     {
-        if (!pViewerPanelCommandActive || pViewerPanelPlayer is null)
+        if (!pViewerCommandActive || pViewerPlayer is null)
         {
             return;
         }
@@ -103,89 +103,89 @@ public sealed partial class PViewerPanel : PPanelFrame
             return;
         }
 
-        pViewerPanelResumeAfterInactive = false;
-        pViewerPanelPlayer.Play();
-        PViewerPanelPlaybackStateUpdate(true, PViewerPanelPlayerTimeRead(pViewerPanelPlayer));
-        pViewerPanelClockTimer.Start();
+        pViewerResumeAfterInactive = false;
+        pViewerPlayer.Play();
+        PViewerPlaybackUpdate(true, PPlayerTimeRead(pViewerPlayer));
+        pViewerClockTimer.Start();
     }
 
-    public void PViewerPanelPauseRequest()
+    public void PViewerPause()
     {
-        if (!pViewerPanelCommandActive || pViewerPanelPlayer is null)
+        if (!pViewerCommandActive || pViewerPlayer is null)
         {
             return;
         }
 
-        pViewerPanelResumeAfterInactive = false;
-        pViewerPanelPlayer.Pause();
-        PViewerPanelPlaybackStateUpdate(false, PViewerPanelPlayerTimeRead(pViewerPanelPlayer));
-        pViewerPanelClockTimer.Stop();
+        pViewerResumeAfterInactive = false;
+        pViewerPlayer.Pause();
+        PViewerPlaybackUpdate(false, PPlayerTimeRead(pViewerPlayer));
+        pViewerClockTimer.Stop();
     }
 
-    public void PViewerPanelSeekRequest(TimeSpan playbackPosition)
+    public void PViewerSeek(TimeSpan playbackPosition)
     {
-        if (!pViewerPanelCommandActive || pViewerPanelPlayer is null)
+        if (!pViewerCommandActive || pViewerPlayer is null)
         {
             return;
         }
 
-        pViewerPanelPlayer.Seek((int)playbackPosition.TotalMilliseconds);
-        PViewerPanelPlaybackStateUpdate(null, playbackPosition);
+        pViewerPlayer.Seek((int)playbackPosition.TotalMilliseconds);
+        PViewerPlaybackUpdate(null, playbackPosition);
     }
 
-    public void PViewerPanelVolumeRequest(double volume)
+    public void PViewerVolumeSet(double volume)
     {
-        if (!pViewerPanelCommandActive) return;
-        pViewerPanelVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
+        if (!pViewerCommandActive) return;
+        pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
         if (App.LPreferenceStateCurrent.LPreferenceVolumeSingleGlobal)
-            App.LPreferenceVolumeSet(pViewerPanelVolume);
-        if (pViewerPanelPlayer is null)
+            App.LPreferenceVolumeSet(pViewerVolume);
+        if (pViewerPlayer is null)
         {
             return;
         }
 
-        pViewerPanelPlayer.Audio.Volume = (int)Math.Round(pViewerPanelVolume);
+        pViewerPlayer.Audio.Volume = (int)Math.Round(pViewerVolume);
     }
 
-    public void PViewerPanelAudioOnlyAllowSet(bool pAudioOnlyAllowed)
+    public void PViewerAudioSet(bool pAudioOnlyAllowed)
     {
-        pViewerPanelAudioOnlyAllowed = pAudioOnlyAllowed;
+        pViewerAudioOnlyAllowed = pAudioOnlyAllowed;
     }
 
-    public void PViewerPanelCommandActiveSet(bool pCommandActive)
+    public void PViewerCommandSet(bool pCommandActive)
     {
-        if (pViewerPanelCommandActive == pCommandActive)
+        if (pViewerCommandActive == pCommandActive)
         {
             return;
         }
 
         if (!pCommandActive)
         {
-            PViewerPanelPlaybackSuspendForInactive();
-            pViewerPanelCommandActive = false;
-            pViewerPanelLoadSerial++;
-            pViewerPanelClockTimer.Stop();
+            PPlayerSuspend();
+            pViewerCommandActive = false;
+            pViewerLoadSerial++;
+            pViewerClockTimer.Stop();
             return;
         }
 
-        pViewerPanelCommandActive = true;
-        PViewerPanelPlaybackResumeForActive();
+        pViewerCommandActive = true;
+        PPlayerResume();
     }
 
-    public void PViewerPanelSourceOpenRequest(string sourcePath)
+    public void PViewerSourceOpen(string sourcePath)
     {
-        if (!pViewerPanelCommandActive || string.IsNullOrWhiteSpace(sourcePath))
+        if (!pViewerCommandActive || string.IsNullOrWhiteSpace(sourcePath))
         {
             return;
         }
 
-        _ = PViewerPanelVideoLoadAsynchronous(sourcePath);
+        _ = PPlayerVideoLoad(sourcePath);
     }
 
 
-    private void PViewerPanelPreviewStateApply()
+    private void PViewerPreviewApply()
     {
-        LPreviewFlyleafApply.LPreviewApply(pViewerPanelPlayer, LPreviewStateCurrent);
+        LPreview.LPreviewApply(pViewerPlayer, LPreviewStateCurrent);
     }
 }
 

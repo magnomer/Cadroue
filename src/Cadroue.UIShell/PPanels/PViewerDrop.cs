@@ -3,31 +3,31 @@ using System.Windows;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed partial class PViewerPanel
+public sealed partial class PViewer
 {
-    private void PViewerPanelDropHandlersAdd()
+    private void PDropHandlersAdd()
     {
-        pViewerPanelOverlay.DragEnter += PViewerPanelDragAccept;
-        pViewerPanelOverlay.DragOver += PViewerPanelDragAccept;
-        pViewerPanelOverlay.Drop += PViewerPanelDrop;
+        pViewerOverlay.DragEnter += PViewerDragAccept;
+        pViewerOverlay.DragOver += PViewerDragAccept;
+        pViewerOverlay.Drop += PDropHandle;
     }
 
-    private void PViewerPanelDropHandlersRemove()
+    private void PDropHandlersRemove()
     {
-        pViewerPanelOverlay.DragEnter -= PViewerPanelDragAccept;
-        pViewerPanelOverlay.DragOver -= PViewerPanelDragAccept;
-        pViewerPanelOverlay.Drop -= PViewerPanelDrop;
+        pViewerOverlay.DragEnter -= PViewerDragAccept;
+        pViewerOverlay.DragOver -= PViewerDragAccept;
+        pViewerOverlay.Drop -= PDropHandle;
     }
 
-    private void PViewerPanelDragAccept(object sender, DragEventArgs dragEvent)
+    private void PViewerDragAccept(object sender, DragEventArgs dragEvent)
     {
-        dragEvent.Effects = PViewerPanelDropEffectRead(dragEvent);
+        dragEvent.Effects = PDropEffectRead(dragEvent);
         dragEvent.Handled = true;
     }
 
-    private void PViewerPanelDrop(object sender, DragEventArgs dragEvent)
+    private void PDropHandle(object sender, DragEventArgs dragEvent)
     {
-        DragDropEffects dropEffect = PViewerPanelDropEffectRead(dragEvent);
+        DragDropEffects dropEffect = PDropEffectRead(dragEvent);
         dragEvent.Effects = dropEffect;
         dragEvent.Handled = true;
         if (dropEffect == DragDropEffects.None)
@@ -35,20 +35,20 @@ public sealed partial class PViewerPanel
             return;
         }
 
-        string? sourcePath = PViewerPanelDropSourcePathRead(dragEvent);
+        string? sourcePath = PDropPathRead(dragEvent);
         if (sourcePath is null)
         {
             dragEvent.Effects = DragDropEffects.None;
             return;
         }
 
-        PViewerPanelSourceOpenRequest(sourcePath);
+        PViewerSourceOpen(sourcePath);
     }
 
-    private DragDropEffects PViewerPanelDropEffectRead(DragEventArgs dragEvent)
+    private DragDropEffects PDropEffectRead(DragEventArgs dragEvent)
     {
-        string? pSourcePath = PViewerPanelDropSourcePathRead(dragEvent);
-        if (pSourcePath is null || PViewerPanelSourcePathAudioExtensionCheck(pSourcePath) && !pViewerPanelAudioOnlyAllowed)
+        string? pSourcePath = PDropPathRead(dragEvent);
+        if (pSourcePath is null || PDropAudioCheck(pSourcePath) && !pViewerAudioOnlyAllowed)
         {
             return DragDropEffects.None;
         }
@@ -67,7 +67,7 @@ public sealed partial class PViewerPanel
         return DragDropEffects.None;
     }
 
-    private static bool PViewerPanelSourcePathAudioExtensionCheck(string sourcePath)
+    private static bool PDropAudioCheck(string sourcePath)
     {
         string extension = Path.GetExtension(sourcePath);
         return extension.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
@@ -77,7 +77,7 @@ public sealed partial class PViewerPanel
             || extension.Equals(".ogg", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string? PViewerPanelDropSourcePathRead(DragEventArgs dragEvent)
+    private static string? PDropPathRead(DragEventArgs dragEvent)
     {
         if (!dragEvent.Data.GetDataPresent(DataFormats.FileDrop))
         {

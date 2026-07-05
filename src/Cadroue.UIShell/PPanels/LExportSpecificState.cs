@@ -12,7 +12,7 @@ public sealed class LExportSpecificState
         if (lStoredPresets is null)
         {
             var lDefault = new LExportSpecificState { PresetName = "MP4_H264_AAC_Default" };
-            LPresetMap[lDefault.PresetName] = lDefault.LClone();
+            LPresetMap[lDefault.PresetName] = lDefault.LPresetClone();
             LPresetNames.Add(lDefault.PresetName);
             return;
         }
@@ -26,7 +26,7 @@ public sealed class LExportSpecificState
 
             string lName = lPreset.PresetName.Trim();
             lPreset.PresetName = lName;
-            LPresetMap[lName] = lPreset.LClone();
+            LPresetMap[lName] = lPreset.LPresetClone();
             LPresetNames.Add(lName);
         }
     }
@@ -46,7 +46,7 @@ public sealed class LExportSpecificState
     public string AudioSummary => $"{AudioMode} ({LAudioStreamSummary})";
     public string OutputSummary => string.IsNullOrWhiteSpace(LContainerExtension) ? Name : $"{Name}.{LContainerExtension}";
 
-    public LExportSpecificState LClone() => new()
+    public LExportSpecificState LPresetClone() => new()
     {
         PresetName = PresetName,
         Name = Name,
@@ -58,7 +58,7 @@ public sealed class LExportSpecificState
         AudioMode = AudioMode
     };
 
-    public void LCopyFrom(LExportSpecificState lSource)
+    public void LPresetCopy(LExportSpecificState lSource)
     {
         PresetName = lSource.PresetName;
         Name = lSource.Name;
@@ -77,7 +77,7 @@ public sealed class LExportSpecificState
             return false;
         }
 
-        lTarget.LCopyFrom(lPreset);
+        lTarget.LPresetCopy(lPreset);
         lTarget.PresetName = lPresetName;
         return true;
     }
@@ -90,7 +90,7 @@ public sealed class LExportSpecificState
         }
 
         string lName = lPresetName.Trim();
-        var lPreset = lSource.LClone();
+        var lPreset = lSource.LPresetClone();
         lPreset.PresetName = lName;
         LPresetMap[lName] = lPreset;
         if (!LPresetNames.Any(lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
@@ -133,7 +133,7 @@ public sealed class LExportSpecificState
         {
             if (LPresetMap.TryGetValue(lName, out LExportSpecificState? lPreset))
             {
-                lPresets.Add(lPreset.LClone());
+                lPresets.Add(lPreset.LPresetClone());
             }
         }
         LExportSpecificPresetStore.LPresetSave(lPresets);

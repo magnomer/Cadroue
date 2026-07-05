@@ -2,10 +2,10 @@ using Cadroue.UIShell.LWork;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public static class LAudioDescribe
+public static partial class LAudio
 {
-    public static void LAudioDescribeCall(LWorkListAddPriority lWorkListAddPriority)
+    public static void LAudioDescribe(LWorkPriority lWorkPriority)
     {
-        LAudioInterpret.LAudioInterpreterCall(lWorkListAddPriority);
+        LAudio.LAudioInterpret(lWorkPriority);
     }
 }

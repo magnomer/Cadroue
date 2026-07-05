@@ -14,20 +14,20 @@ public static class LPreferenceStateStore
         string lPreferencePath = LPreferencePathCreate();
         if (!File.Exists(lPreferencePath))
         {
-            return LPreferenceState.LPreferenceStateDefaultCreate();
+            return LPreferenceState.LPreferenceDefaultCreate();
         }
 
         try
         {
             string lPreferenceJson = File.ReadAllText(lPreferencePath);
             LPreferenceState lPreferenceState = JsonSerializer.Deserialize<LPreferenceState>(lPreferenceJson)
-                ?? LPreferenceState.LPreferenceStateDefaultCreate();
+                ?? LPreferenceState.LPreferenceDefaultCreate();
             lPreferenceState.LPreferenceNormalize();
             return lPreferenceState;
         }
         catch
         {
-            return LPreferenceState.LPreferenceStateDefaultCreate();
+            return LPreferenceState.LPreferenceDefaultCreate();
         }
     }
 

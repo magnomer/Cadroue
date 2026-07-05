@@ -6,15 +6,15 @@ namespace Cadroue.UIShell;
 
 public partial class App : Application
 {
-    public static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererSettingsDefaultCreate();
-    public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceStateDefaultCreate();
+    public static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererDefaultCreate();
+    public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
-        LRendererFlyleafStartAttempt();
+        LRendererFlyleafStart();
     }
 
     public static void LPreferenceStateSet(LPreferenceState lPreferenceState)
@@ -29,7 +29,7 @@ public partial class App : Application
         LPreferenceStateSet(LPreferenceStateCurrent.LPreferenceVolumeChange(lPreferenceVolume));
     }
 
-    private static void LRendererFlyleafStartAttempt()
+    private static void LRendererFlyleafStart()
     {
         try
         {
@@ -45,7 +45,7 @@ public partial class App : Application
             }
             else
             {
-                string? lRendererLocalPath = LRendererSettings.LRendererFfmpegLibraryFolderLocalFind();
+                string? lRendererLocalPath = LRendererSettings.LRendererFolderFind();
                 if (lRendererLocalPath is not null)
                 {
                     lRendererEngineConfig.FFmpegPath = lRendererLocalPath;

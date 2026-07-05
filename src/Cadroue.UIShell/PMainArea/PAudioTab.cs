@@ -9,17 +9,17 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed class PAudioTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
-    private readonly PViewerPanel pViewerPanel = new();
+    private readonly PViewer pViewer = new();
 
     public PAudioTab(LExportSpecificState lExportSpecificState)
     {
         var pAction = new PAction();
-        pAction.PActionRequest += LAudioDescribe.LAudioDescribeCall;
-        Content = PTabGridBuild(new UIElement[] { new PProcessingPanel(), new PInspectorPanel(), pViewerPanel, new PExportPanel(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);
+        pAction.PActionRun += LAudio.LAudioDescribe;
+        Content = PTabGridBuild(new UIElement[] { new PProcessing(), new PInspector(), pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);
     }
 
     public override PFlowControl PTabFlow => pFlow;
-    public override PViewerPanel? PTabViewer => pViewerPanel;
+    public override PViewer? PTabViewer => pViewer;
 
     private static Grid PTabGridBuild(IReadOnlyList<UIElement> pPanels, UIElement pCompass, UIElement pAction, UIElement pFlow)
     {

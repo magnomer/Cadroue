@@ -1,8 +1,8 @@
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PListPanel : PPanelFrame
+public sealed class PList : PPanel
 {
-    public PListPanel() : base("PListPanel")
+    public PList() : base("PList")
     {
     }
 }

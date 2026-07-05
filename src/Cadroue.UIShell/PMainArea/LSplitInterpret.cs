@@ -2,10 +2,10 @@ using Cadroue.UIShell.LWork;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public static class LSplitInterpret
+public static partial class LSplit
 {
-    public static void LSplitInterpreterCall(
-        LWorkListAddPriority lWorkListAddPriority,
+    public static void LSplitInterpret(
+        LWorkPriority lWorkPriority,
         LSplitWorkDescription lSplitWorkDescription)
     {
     }

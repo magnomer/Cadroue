@@ -10,33 +10,33 @@ using System.Windows.Shapes;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PSourcePanel : UserControl
+public sealed class PSource : UserControl
 {
-    private static readonly SolidColorBrush PSourcePanelTextBrush = new(Color.FromRgb(0x11, 0x18, 0x27));
-    private static readonly SolidColorBrush PSourcePanelBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly SolidColorBrush PSourcePanelIconBrush = new(Color.FromRgb(0x5B, 0x63, 0x71));
-    private PViewerPanel? pSourcePanelViewer;
-    private readonly bool pSourcePanelAudioOnlyAllowed;
+    private static readonly SolidColorBrush PSourceTextBrush = new(Color.FromRgb(0x11, 0x18, 0x27));
+    private static readonly SolidColorBrush PSourceBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
+    private static readonly SolidColorBrush PSourceIconBrush = new(Color.FromRgb(0x5B, 0x63, 0x71));
+    private PViewer? pSourceViewer;
+    private readonly bool pSourceAudioOnlyAllowed;
     private readonly TextBox pSourcePathBox;
 
-    public PSourcePanel(bool pAudioOnlyAllowed)
+    public PSource(bool pAudioOnlyAllowed)
     {
-        pSourcePanelAudioOnlyAllowed = pAudioOnlyAllowed;
+        pSourceAudioOnlyAllowed = pAudioOnlyAllowed;
         MinHeight = 50;
 
         pSourcePathBox = new TextBox
         {
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Center,
-            Foreground = PSourcePanelTextBrush,
+            Foreground = PSourceTextBrush,
             Background = Brushes.Transparent,
             BorderThickness = new Thickness(0),
             Padding = new Thickness(0),
             FocusVisualStyle = null
         };
-        pSourcePathBox.KeyDown += PSourcePathBoxKeyDownHandle;
+        pSourcePathBox.KeyDown += PSourceKeyHandle;
 
-        var pPathIcon = PSourcePanelFolderIconCreate();
+        var pPathIcon = PSourceIconCreate();
         var pPathContent = new Grid();
         pPathContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pPathContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -50,7 +50,7 @@ public sealed class PSourcePanel : UserControl
             MinHeight = 38,
             Padding = new Thickness(14, 0, 14, 0),
             VerticalAlignment = VerticalAlignment.Stretch,
-            BorderBrush = PSourcePanelBorderBrush,
+            BorderBrush = PSourceBorderBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
             CornerRadius = new CornerRadius(8),
@@ -63,9 +63,9 @@ public sealed class PSourcePanel : UserControl
             Width = 108,
             Margin = new Thickness(12, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
-            Style = PMainButton.PButtonNormalGreyCreate()
+            Style = PButton.PButtonGreyCreate()
         };
-        pBrowseButton.Click += PSourceOpenButtonClickHandle;
+        pBrowseButton.Click += PSourceOpenHandle;
 
         var pRow = new Grid { Margin = new Thickness(16, 8, 16, 8) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -78,48 +78,48 @@ public sealed class PSourcePanel : UserControl
         Content = pRow;
     }
 
-    public void PSourcePanelAttach(PViewerPanel? pViewer)
+    public void PSourceAttach(PViewer? pViewer)
     {
-        if (pSourcePanelViewer is not null)
-            pSourcePanelViewer.PViewerPanelMediaStatusChange -= PSourcePanelMediaStatusChangeHandle;
-        pSourcePanelViewer = pViewer;
-        if (pSourcePanelViewer is not null)
-            pSourcePanelViewer.PViewerPanelMediaStatusChange += PSourcePanelMediaStatusChangeHandle;
+        if (pSourceViewer is not null)
+            pSourceViewer.PViewerMediaChange -= PSourceMediaHandle;
+        pSourceViewer = pViewer;
+        if (pSourceViewer is not null)
+            pSourceViewer.PViewerMediaChange += PSourceMediaHandle;
     }
 
-    private void PSourcePanelMediaStatusChangeHandle(LMediaOpenStatus pMediaStatus)
+    private void PSourceMediaHandle(LMediaOpenStatus pMediaStatus)
     {
         pSourcePathBox.Text = pMediaStatus.LMediaOpenSourcePath;
     }
 
-    private void PSourceOpenButtonClickHandle(object sender, RoutedEventArgs e)
+    private void PSourceOpenHandle(object sender, RoutedEventArgs e)
     {
         var pDialog = new OpenFileDialog
         {
             Title = "Open media file",
-            Filter = PSourcePanelOpenFilterRead()
+            Filter = PSourceFilterRead()
         };
         if (pDialog.ShowDialog() != true) return;
-        if (PSourcePanelAudioExtensionCheck(pDialog.FileName) && !pSourcePanelAudioOnlyAllowed)
+        if (PSourceAudioCheck(pDialog.FileName) && !pSourceAudioOnlyAllowed)
         {
             MessageBox.Show("Audio-only files can be opened only in the Audio tab.", "Cannot open file",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
-        pSourcePanelViewer?.PViewerPanelSourceOpenRequest(pDialog.FileName);
+        pSourceViewer?.PViewerSourceOpen(pDialog.FileName);
     }
 
-    private string PSourcePanelOpenFilterRead()
+    private string PSourceFilterRead()
     {
         const string pVideoPattern = "*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.ts;*.mts;*.m2ts";
         const string pAudioPattern = "*.mp3;*.aac;*.flac;*.wav;*.ogg";
-        return pSourcePanelAudioOnlyAllowed
+        return pSourceAudioOnlyAllowed
             ? $"Media files|{pVideoPattern};{pAudioPattern}|All files|*.*"
             : $"Video files|{pVideoPattern}|All files|*.*";
     }
 
-    private static bool PSourcePanelAudioExtensionCheck(string pSourcePath)
+    private static bool PSourceAudioCheck(string pSourcePath)
     {
         string pExtension = System.IO.Path.GetExtension(pSourcePath);
         return pExtension.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
@@ -129,23 +129,23 @@ public sealed class PSourcePanel : UserControl
             || pExtension.Equals(".ogg", StringComparison.OrdinalIgnoreCase);
     }
 
-    private void PSourcePathBoxKeyDownHandle(object sender, KeyEventArgs e)
+    private void PSourceKeyHandle(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Return) return;
         string pPath = pSourcePathBox.Text.Trim();
         if (!File.Exists(pPath)) return;
-        if (PSourcePanelAudioExtensionCheck(pPath) && !pSourcePanelAudioOnlyAllowed)
+        if (PSourceAudioCheck(pPath) && !pSourceAudioOnlyAllowed)
         {
             MessageBox.Show("Audio-only files can be opened only in the Audio tab.", "Cannot open file",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
-        pSourcePanelViewer?.PViewerPanelSourceOpenRequest(pPath);
+        pSourceViewer?.PViewerSourceOpen(pPath);
         e.Handled = true;
     }
 
-    private static Viewbox PSourcePanelFolderIconCreate()
+    private static Viewbox PSourceIconCreate()
     {
         var pCanvas = new Canvas { Width = 28, Height = 28 };
 
@@ -155,7 +155,7 @@ public sealed class PSourcePanel : UserControl
             Height = 15.5,
             RadiusX = 2.3,
             RadiusY = 2.3,
-            Stroke = PSourcePanelIconBrush,
+            Stroke = PSourceIconBrush,
             StrokeThickness = 2.0,
             Fill = Brushes.Transparent
         };
@@ -165,7 +165,7 @@ public sealed class PSourcePanel : UserControl
 
         var pPlay = new Polygon
         {
-            Fill = PSourcePanelIconBrush,
+            Fill = PSourceIconBrush,
             Points = new PointCollection(new[]
             {
                 new Point(11.0, 10.4),

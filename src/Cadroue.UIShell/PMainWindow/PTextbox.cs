@@ -4,13 +4,13 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PMainWindow;
 
-internal static class PMainTextBox
+internal static class PTextbox
 {
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
     private static readonly Brush PAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
 
-    internal static void PMainTextBoxApply(TextBox pTextBox)
+    internal static void PTextboxApply(TextBox pTextBox)
     {
         pTextBox.Background = Brushes.White;
         pTextBox.Foreground = PTextBrush;
@@ -25,10 +25,10 @@ internal static class PMainTextBox
         pTextBox.FocusVisualStyle = null;
         ScrollViewer.SetHorizontalScrollBarVisibility(pTextBox, ScrollBarVisibility.Hidden);
         ScrollViewer.SetVerticalScrollBarVisibility(pTextBox, ScrollBarVisibility.Hidden);
-        pTextBox.Template = PMainTextBoxTemplateBuild();
+        pTextBox.Template = PTextboxTemplateBuild();
     }
 
-    private static ControlTemplate PMainTextBoxTemplateBuild()
+    private static ControlTemplate PTextboxTemplateBuild()
     {
         var pTemplate = new ControlTemplate(typeof(TextBox));
         var pBorder = new FrameworkElementFactory(typeof(Border));

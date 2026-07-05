@@ -8,9 +8,9 @@ public sealed class LRendererSettings
     public string? LRendererFfmpegLibraryFolder { get; set; }
 
     public bool LRendererFfmpegLibraryFolderCustomReady =>
-        LRendererFfmpegLibraryFolderValidate(LRendererFfmpegLibraryFolder);
+        LRendererFolderValidate(LRendererFfmpegLibraryFolder);
 
-    public static LRendererSettings LRendererSettingsDefaultCreate()
+    public static LRendererSettings LRendererDefaultCreate()
     {
         return new LRendererSettings
         {
@@ -18,7 +18,7 @@ public sealed class LRendererSettings
         };
     }
 
-    public LRendererSettings LRendererFfmpegLibraryFolderChange(string? lRendererFfmpegLibraryFolder)
+    public LRendererSettings LRendererFolderChange(string? lRendererFfmpegLibraryFolder)
     {
         return new LRendererSettings
         {
@@ -28,21 +28,21 @@ public sealed class LRendererSettings
         };
     }
 
-    public static bool LRendererFfmpegLibraryFolderValidate(string? lRendererFfmpegLibraryFolder)
+    public static bool LRendererFolderValidate(string? lRendererFfmpegLibraryFolder)
     {
         if (string.IsNullOrWhiteSpace(lRendererFfmpegLibraryFolder) || !Directory.Exists(lRendererFfmpegLibraryFolder))
         {
             return false;
         }
 
-        return LRendererFfmpegLibraryFileExists(lRendererFfmpegLibraryFolder, "avcodec*.dll")
-            && LRendererFfmpegLibraryFileExists(lRendererFfmpegLibraryFolder, "avformat*.dll")
-            && LRendererFfmpegLibraryFileExists(lRendererFfmpegLibraryFolder, "avutil*.dll")
-            && LRendererFfmpegLibraryFileExists(lRendererFfmpegLibraryFolder, "swscale*.dll")
-            && LRendererFfmpegLibraryFileExists(lRendererFfmpegLibraryFolder, "swresample*.dll");
+        return LRendererFileExist(lRendererFfmpegLibraryFolder, "avcodec*.dll")
+            && LRendererFileExist(lRendererFfmpegLibraryFolder, "avformat*.dll")
+            && LRendererFileExist(lRendererFfmpegLibraryFolder, "avutil*.dll")
+            && LRendererFileExist(lRendererFfmpegLibraryFolder, "swscale*.dll")
+            && LRendererFileExist(lRendererFfmpegLibraryFolder, "swresample*.dll");
     }
 
-    public static string? LRendererFfmpegLibraryFolderLocalFind()
+    public static string? LRendererFolderFind()
     {
         string? lRendererPathEnv = Environment.GetEnvironmentVariable("PATH");
         if (string.IsNullOrEmpty(lRendererPathEnv))
@@ -52,7 +52,7 @@ public sealed class LRendererSettings
 
         foreach (string lRendererDir in lRendererPathEnv.Split(Path.PathSeparator))
         {
-            if (LRendererFfmpegLibraryFolderValidate(lRendererDir))
+            if (LRendererFolderValidate(lRendererDir))
             {
                 return lRendererDir;
             }
@@ -61,7 +61,7 @@ public sealed class LRendererSettings
         return null;
     }
 
-    private static bool LRendererFfmpegLibraryFileExists(string lRendererFfmpegLibraryFolder, string lRendererPattern)
+    private static bool LRendererFileExist(string lRendererFfmpegLibraryFolder, string lRendererPattern)
     {
         return Directory.EnumerateFiles(lRendererFfmpegLibraryFolder, lRendererPattern, SearchOption.TopDirectoryOnly).Any();
     }

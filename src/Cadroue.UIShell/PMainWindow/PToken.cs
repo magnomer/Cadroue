@@ -6,9 +6,9 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PMainWindow;
 
-internal sealed class PMainTokenTextBox : RichTextBox
+internal sealed class PToken : RichTextBox
 {
-    internal const string PMainTokenTextBoxDataFormat = "Cadroue.ExportNameToken";
+    internal const string PTokenDataFormat = "Cadroue.ExportNameToken";
 
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
@@ -17,9 +17,9 @@ internal sealed class PMainTokenTextBox : RichTextBox
     private static readonly Brush PTokenPressedBrush = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
 
     private readonly Paragraph pParagraph = new();
-    private bool pTokenTextBoxRenderActive;
+    private bool pTokenRenderActive;
 
-    internal PMainTokenTextBox()
+    internal PToken()
     {
         Background = Brushes.White;
         Foreground = PTextBrush;
@@ -45,54 +45,54 @@ internal sealed class PMainTokenTextBox : RichTextBox
         pParagraph.LineHeight = 30;
         pParagraph.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
         Document.Blocks.Add(pParagraph);
-        Template = PMainTokenTextBoxTemplateBuild();
-        PreviewDragOver += PMainTokenTextBoxDragOverHandle;
-        PreviewDrop += PMainTokenTextBoxDropHandle;
-        TextChanged += PMainTokenTextBoxTextChangedHandle;
+        Template = PTokenTemplateBuild();
+        PreviewDragOver += PTokenDragHandle;
+        PreviewDrop += PTokenDropHandle;
+        TextChanged += PTokenTextHandle;
     }
 
     internal string Text
     {
-        get => PMainTokenTextBoxTextRead();
-        set => PMainTokenTextBoxTextSet(value);
+        get => PTokenTextRead();
+        set => PTokenTextSet(value);
     }
 
-    internal void PMainTokenTextBoxTokenInsert(string pToken)
+    internal void PTokenInsert(string pToken)
     {
         if (!Selection.IsEmpty)
         {
             Selection.Text = string.Empty;
         }
 
-        var pContainer = PMainTokenInlineBuild(PMainTokenTextBoxLabelRead(pToken), pToken, CaretPosition);
+        var pContainer = PTokenInlineBuild(PTokenLabelRead(pToken), pToken, CaretPosition);
         CaretPosition = pContainer.ElementEnd.GetInsertionPosition(LogicalDirection.Forward) ?? pContainer.ElementEnd;
         Focus();
     }
 
-    private void PMainTokenTextBoxTextSet(string pText)
+    private void PTokenTextSet(string pText)
     {
-        pTokenTextBoxRenderActive = true;
+        pTokenRenderActive = true;
         pParagraph.Inlines.Clear();
 
-        foreach (object pPart in PMainTokenTextBoxParse(pText))
+        foreach (object pPart in PTokenParse(pText))
         {
             if (pPart is string pRunText)
             {
-                pParagraph.Inlines.Add(PMainTokenRunBuild(pRunText));
+                pParagraph.Inlines.Add(PTokenRunBuild(pRunText));
                 continue;
             }
 
             if (pPart is Tuple<string, string> pToken)
             {
-                pParagraph.Inlines.Add(PMainTokenInlineBuild(pToken.Item1, pToken.Item2));
+                pParagraph.Inlines.Add(PTokenInlineBuild(pToken.Item1, pToken.Item2));
             }
         }
 
         CaretPosition = pParagraph.ContentEnd;
-        pTokenTextBoxRenderActive = false;
+        pTokenRenderActive = false;
     }
 
-    private string PMainTokenTextBoxTextRead()
+    private string PTokenTextRead()
     {
         var pText = new System.Text.StringBuilder();
         foreach (Inline pInline in pParagraph.Inlines)
@@ -110,7 +110,7 @@ internal sealed class PMainTokenTextBox : RichTextBox
         return pText.ToString().TrimEnd('\r', '\n');
     }
 
-    private static IEnumerable<object> PMainTokenTextBoxParse(string pText)
+    private static IEnumerable<object> PTokenParse(string pText)
     {
         int pIndex = 0;
         while (pIndex < pText.Length)
@@ -135,12 +135,12 @@ internal sealed class PMainTokenTextBox : RichTextBox
             }
 
             string pToken = pText[pStart..(pEnd + 1)];
-            yield return Tuple.Create(PMainTokenTextBoxLabelRead(pToken), pToken);
+            yield return Tuple.Create(PTokenLabelRead(pToken), pToken);
             pIndex = pEnd + 1;
         }
     }
 
-    private static string PMainTokenTextBoxLabelRead(string pToken) => pToken switch
+    private static string PTokenLabelRead(string pToken) => pToken switch
     {
         "{OriginalName}" => "Original Name",
         "{SectionNumber}" => "Section Number",
@@ -149,7 +149,7 @@ internal sealed class PMainTokenTextBox : RichTextBox
         _ => pToken.Trim('{', '}')
     };
 
-    private static Run PMainTokenRunBuild(string pText)
+    private static Run PTokenRunBuild(string pText)
     {
         return new Run(pText)
         {
@@ -159,16 +159,16 @@ internal sealed class PMainTokenTextBox : RichTextBox
         };
     }
 
-    private static InlineUIContainer PMainTokenInlineBuild(string pLabel, string pToken, TextPointer? pPosition = null)
+    private static InlineUIContainer PTokenInlineBuild(string pLabel, string pToken, TextPointer? pPosition = null)
     {
         var pInline = pPosition is null
-            ? new InlineUIContainer(PMainTokenChipBuild(pLabel, pToken))
-            : new InlineUIContainer(PMainTokenChipBuild(pLabel, pToken), pPosition);
+            ? new InlineUIContainer(PTokenChipBuild(pLabel, pToken))
+            : new InlineUIContainer(PTokenChipBuild(pLabel, pToken), pPosition);
         pInline.BaselineAlignment = BaselineAlignment.Center;
         return pInline;
     }
 
-    private static Border PMainTokenChipBuild(string pLabel, string pToken)
+    private static Border PTokenChipBuild(string pLabel, string pToken)
     {
         var pText = new TextBlock
         {
@@ -204,33 +204,33 @@ internal sealed class PMainTokenTextBox : RichTextBox
         return pChip;
     }
 
-    private void PMainTokenTextBoxDragOverHandle(object sender, DragEventArgs e)
+    private void PTokenDragHandle(object sender, DragEventArgs e)
     {
-        e.Effects = e.Data.GetDataPresent(PMainTokenTextBoxDataFormat) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Effects = e.Data.GetDataPresent(PTokenDataFormat) ? DragDropEffects.Copy : DragDropEffects.None;
         e.Handled = true;
     }
 
-    private void PMainTokenTextBoxDropHandle(object sender, DragEventArgs e)
+    private void PTokenDropHandle(object sender, DragEventArgs e)
     {
-        if (e.Data.GetData(PMainTokenTextBoxDataFormat) is not string pToken)
+        if (e.Data.GetData(PTokenDataFormat) is not string pToken)
         {
             return;
         }
 
         CaretPosition = GetPositionFromPoint(e.GetPosition(this), true) ?? CaretPosition;
-        PMainTokenTextBoxTokenInsert(pToken);
+        PTokenInsert(pToken);
         e.Handled = true;
     }
 
-    private void PMainTokenTextBoxTextChangedHandle(object sender, TextChangedEventArgs e)
+    private void PTokenTextHandle(object sender, TextChangedEventArgs e)
     {
-        if (pTokenTextBoxRenderActive)
+        if (pTokenRenderActive)
         {
             return;
         }
     }
 
-    private static ControlTemplate PMainTokenTextBoxTemplateBuild()
+    private static ControlTemplate PTokenTemplateBuild()
     {
         var pTemplate = new ControlTemplate(typeof(RichTextBox));
         var pBorder = new FrameworkElementFactory(typeof(Border));

@@ -9,7 +9,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PAction : UserControl
 {
-    public event Action<LWorkListAddPriority>? PActionRequest;
+    public event Action<LWorkPriority>? PActionRun;
 
     public PAction()
     {
@@ -21,8 +21,8 @@ public sealed class PAction : UserControl
         };
         Button pAddListButton = PActionButtonBuild("PActionAddList.png", "Add List");
         Button pExecuteButton = PActionButtonBuild("PActionExecute.png", "Execute");
-        pAddListButton.Click += (_, _) => PActionRequest?.Invoke(LWorkListAddPriority.LWorkListAddNormal);
-        pExecuteButton.Click += (_, _) => PActionRequest?.Invoke(LWorkListAddPriority.LWorkListAddPriority);
+        pAddListButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityNormal);
+        pExecuteButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
         pPanel.Children.Add(pAddListButton);
         pPanel.Children.Add(new Border { Width = 10 });
         pPanel.Children.Add(pExecuteButton);
@@ -63,11 +63,11 @@ public sealed class PAction : UserControl
             Padding = new Thickness(0),
             Cursor = Cursors.Hand,
             ToolTip = pLabelText,
-            Template = PActionButtonTemplateBuild()
+            Template = PActionTemplateBuild()
         };
     }
 
-    private static ControlTemplate PActionButtonTemplateBuild()
+    private static ControlTemplate PActionTemplateBuild()
     {
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.Name = "pButtonBorder";

@@ -25,7 +25,7 @@ public sealed class LPreferenceState
     public List<string> LPreferenceTabLayoutKeys { get; set; } = new();
     public int LPreferenceTabSelectIndex { get; set; }
 
-    public static LPreferenceState LPreferenceStateDefaultCreate()
+    public static LPreferenceState LPreferenceDefaultCreate()
     {
         return new LPreferenceState
         {

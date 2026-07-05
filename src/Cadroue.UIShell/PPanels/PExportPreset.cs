@@ -7,9 +7,9 @@ using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed partial class PExportPanel
+public sealed partial class PExport
 {
-    private ComboBox PPresetComboBuild()
+    private ComboBox PExportComboBuild()
     {
         var pCombo = new ComboBox
         {
@@ -25,12 +25,12 @@ public sealed partial class PExportPanel
             FontSize = 14,
             Padding = new Thickness(0)
         };
-        PMainDropdown.PMainDropdownEditableApply(pCombo);
-        pCombo.SelectionChanged += (_, _) => PPresetSelectApply();
+        PDropdown.PDropdownEditableApply(pCombo);
+        pCombo.SelectionChanged += (_, _) => PExportPresetApply();
         return pCombo;
     }
 
-    private UIElement PPresetTopRowBuild()
+    private UIElement PExportTopBuild()
     {
         var pGrid = new Grid { Margin = new Thickness(0) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -38,31 +38,31 @@ public sealed partial class PExportPanel
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pGrid.Children.Add(pPresetCombo);
 
-        var pSaveButton = PIconButtonBuild(PSaveIconBuild(), PPresetSave);
-        PTopIconButtonColumnSet(pSaveButton, 1);
+        var pSaveButton = PExportButtonBuild(PIconSaveBuild(), PExportPresetSave);
+        PExportColumnSet(pSaveButton, 1);
         pGrid.Children.Add(pSaveButton);
 
-        var pDeleteButton = PIconButtonBuild(PDeleteIconBuild(), PPresetDelete);
-        PTopIconButtonColumnSet(pDeleteButton, 2);
+        var pDeleteButton = PExportButtonBuild(PIconDeleteBuild(), PExportPresetDelete);
+        PExportColumnSet(pDeleteButton, 2);
         pGrid.Children.Add(pDeleteButton);
         return pGrid;
     }
 
-    private static void PTopIconButtonColumnSet(Button pButton, int pColumn)
+    private static void PExportColumnSet(Button pButton, int pColumn)
     {
         Grid.SetColumn(pButton, pColumn);
     }
 
-    private UIElement PPresetActionRowBuild()
+    private UIElement PExportActionBuild()
     {
         var pPanel = new UniformGrid { Columns = 3 };
-        pPanel.Children.Add(PNormalIconButtonBuild("Settings", PSettingsIconBuild(), PSpecificOpen));
-        pPanel.Children.Add(PNormalIconButtonBuild("Import", PImportIconBuild(), null));
-        pPanel.Children.Add(PNormalIconButtonBuild("Export", PExportIconBuild(), null));
+        pPanel.Children.Add(PExportLabelBuild("Settings", PIconSettingsBuild(), PExportDialogShow));
+        pPanel.Children.Add(PExportLabelBuild("Import", PIconImportBuild(), null));
+        pPanel.Children.Add(PExportLabelBuild("Export", PIconExportBuild(), null));
         return pPanel;
     }
 
-    private static StackPanel PActionButtonContentBuild(string pText, UIElement pIcon)
+    private static StackPanel PExportContentBuild(string pText, UIElement pIcon)
     {
         var pStack = new StackPanel
         {
@@ -87,14 +87,14 @@ public sealed partial class PExportPanel
         return pStack;
     }
 
-    private Button PNormalIconButtonBuild(string pText, UIElement pIcon, RoutedEventHandler? pClick)
+    private Button PExportLabelBuild(string pText, UIElement pIcon, RoutedEventHandler? pClick)
     {
         var pButton = new Button
         {
-            Content = PActionButtonContentBuild(pText, pIcon),
+            Content = PExportContentBuild(pText, pIcon),
             Margin = new Thickness(2),
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            Style = PMainButton.PButtonNormalIconWhiteCreate()
+            Style = PButton.PButtonLabelCreate()
         };
 
         if (pClick is not null)
@@ -105,19 +105,19 @@ public sealed partial class PExportPanel
         return pButton;
     }
 
-    private Button PIconButtonBuild(UIElement pIcon, RoutedEventHandler pClick)
+    private Button PExportButtonBuild(UIElement pIcon, RoutedEventHandler pClick)
     {
         var pButton = new Button
         {
             Content = pIcon,
             Margin = new Thickness(10, 0, 0, 0),
-            Style = PMainButton.PButtonIconWhiteCreate()
+            Style = PButton.PButtonIconCreate()
         };
         pButton.Click += pClick;
         return pButton;
     }
 
-    private void PPresetSelectApply()
+    private void PExportPresetApply()
     {
         if (pPresetCombo.SelectedItem is not string lPresetName)
         {
@@ -126,11 +126,11 @@ public sealed partial class PExportPanel
 
         if (LExportSpecificState.LPresetTryLoad(lPresetName, lExportSpecificState))
         {
-            PExportSummaryRefresh();
+            PExportSummaryUpdate();
         }
     }
 
-    private void PPresetSave(object sender, RoutedEventArgs e)
+    private void PExportPresetSave(object sender, RoutedEventArgs e)
     {
         string lPresetName = pPresetCombo.Text.Trim();
         if (string.IsNullOrWhiteSpace(lPresetName))
@@ -141,10 +141,10 @@ public sealed partial class PExportPanel
         lExportSpecificState.PresetName = lPresetName;
         LExportSpecificState.LPresetSave(lPresetName, lExportSpecificState);
         pPresetCombo.SelectedItem = lPresetName;
-        PExportSummaryRefresh();
+        PExportSummaryUpdate();
     }
 
-    private void PPresetDelete(object sender, RoutedEventArgs e)
+    private void PExportPresetDelete(object sender, RoutedEventArgs e)
     {
         string lPresetName = pPresetCombo.Text.Trim();
         if (!LExportSpecificState.LPresetDelete(lPresetName))
@@ -163,24 +163,24 @@ public sealed partial class PExportPanel
             pPresetCombo.Text = string.Empty;
         }
 
-        PExportSummaryRefresh();
+        PExportSummaryUpdate();
     }
 
-    private void PSpecificOpen(object sender, RoutedEventArgs e)
+    private void PExportDialogShow(object sender, RoutedEventArgs e)
     {
         var pButton = (Button)sender;
-        var psExportSpecific = new PSExportSpecific(lExportSpecificState, PExportSummaryRefresh)
+        var psEncoder = new PSEncoder(lExportSpecificState, PExportSummaryUpdate)
         {
             Owner = Window.GetWindow(pButton)
         };
 
-        if (psExportSpecific.ShowDialog() == true)
+        if (psEncoder.ShowDialog() == true)
         {
-            PExportSummaryRefresh();
+            PExportSummaryUpdate();
         }
     }
 
-    private static UIElement PSaveIconBuild()
+    private static UIElement PIconSaveBuild()
     {
         var pCanvas = new Canvas { Width = 20, Height = 20, VerticalAlignment = VerticalAlignment.Center };
         pCanvas.Children.Add(PRectBuild(4, 3, 12, 14));
@@ -190,7 +190,7 @@ public sealed partial class PExportPanel
         return pCanvas;
     }
 
-    private static UIElement PDeleteIconBuild()
+    private static UIElement PIconDeleteBuild()
     {
         var pCanvas = new Canvas { Width = 20, Height = 20, VerticalAlignment = VerticalAlignment.Center };
         Brush pBrush = new SolidColorBrush(Color.FromRgb(0xC9, 0x2A, 0x2A));
@@ -201,7 +201,7 @@ public sealed partial class PExportPanel
         return pCanvas;
     }
 
-    private static UIElement PSettingsIconBuild()
+    private static UIElement PIconSettingsBuild()
     {
         var pCanvas = PIconCanvasBuild();
         pCanvas.Children.Add(PLineBuild(3, 5, 17, 5));
@@ -213,7 +213,7 @@ public sealed partial class PExportPanel
         return pCanvas;
     }
 
-    private static UIElement PImportIconBuild()
+    private static UIElement PIconImportBuild()
     {
         var pCanvas = PIconCanvasBuild();
         foreach ((double x1, double y1, double x2, double y2) in new[] { (10d, 3d, 10d, 12d), (6.5d, 8.5d, 10d, 12d), (13.5d, 8.5d, 10d, 12d), (5d, 16d, 15d, 16d), (5d, 16d, 5d, 13d), (15d, 16d, 15d, 13d) })
@@ -223,7 +223,7 @@ public sealed partial class PExportPanel
         return pCanvas;
     }
 
-    private static UIElement PExportIconBuild()
+    private static UIElement PIconExportBuild()
     {
         var pCanvas = PIconCanvasBuild();
         foreach ((double x1, double y1, double x2, double y2) in new[] { (10d, 14d, 10d, 5d), (6.5d, 8.5d, 10d, 5d), (13.5d, 8.5d, 10d, 5d), (5d, 16d, 15d, 16d), (5d, 16d, 5d, 13d), (15d, 16d, 15d, 13d) })

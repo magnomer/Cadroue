@@ -3,39 +3,39 @@ using System.Windows;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed record LCropBox(double LCropBoxX, double LCropBoxY, double LCropBoxWidth, double LCropBoxHeight)
+public sealed record LCropbox(double LCropboxX, double LCropboxY, double LCropboxWidth, double LCropboxHeight)
 {
-    public static LCropBox? LCropBoxFromRect(Rect? lCropBoxRect)
+    public static LCropbox? LCropboxFromRect(Rect? lCropboxRect)
     {
-        if (lCropBoxRect is null)
+        if (lCropboxRect is null)
         {
             return null;
         }
 
-        Rect lCropBoxRectValue = lCropBoxRect.Value;
-        if (lCropBoxRectValue.Width <= 0 || lCropBoxRectValue.Height <= 0)
+        Rect lCropboxRectValue = lCropboxRect.Value;
+        if (lCropboxRectValue.Width <= 0 || lCropboxRectValue.Height <= 0)
         {
             return null;
         }
 
-        return new LCropBox(lCropBoxRectValue.X, lCropBoxRectValue.Y, lCropBoxRectValue.Width, lCropBoxRectValue.Height);
+        return new LCropbox(lCropboxRectValue.X, lCropboxRectValue.Y, lCropboxRectValue.Width, lCropboxRectValue.Height);
     }
 
-    public Rect LCropBoxRectCreate()
+    public Rect LCropboxRectCreate()
     {
-        return new Rect(LCropBoxX, LCropBoxY, LCropBoxWidth, LCropBoxHeight);
+        return new Rect(LCropboxX, LCropboxY, LCropboxWidth, LCropboxHeight);
     }
 }
 
-public sealed record LColorAdjust(
-    double LColorAdjustBrightness,
-    double LColorAdjustContrast,
-    double LColorAdjustSaturation,
-    double LColorAdjustHue)
+public sealed record LColor(
+    double LColorBrightness,
+    double LColorContrast,
+    double LColorSaturation,
+    double LColorHue)
 {
-    public static LColorAdjust LColorAdjustDefaultCreate()
+    public static LColor LColorDefaultCreate()
     {
-        return new LColorAdjust(0, 1, 1, 0);
+        return new LColor(0, 1, 1, 0);
     }
 }
 
@@ -49,7 +49,7 @@ public enum LRotateKind
 
 public sealed record LRotateFlip(LRotateKind LRotateKind, bool LRotateFlipHorizontal, bool LRotateFlipVertical)
 {
-    public static LRotateFlip LRotateFlipDefaultCreate()
+    public static LRotateFlip LRotateDefaultCreate()
     {
         return new LRotateFlip(LRotateKind.LRotateNone, false, false);
     }
@@ -57,35 +57,35 @@ public sealed record LRotateFlip(LRotateKind LRotateKind, bool LRotateFlipHorizo
 
 public sealed record LPlaybackState(bool LPlaybackStatePlaying, TimeSpan LPlaybackPosition)
 {
-    public static LPlaybackState LPlaybackStateStoppedCreate()
+    public static LPlaybackState LPlaybackStoppedCreate()
     {
         return new LPlaybackState(false, TimeSpan.Zero);
     }
 }
 
 public sealed record LPreviewState(
-    LCropBox? LCropBox,
-    LColorAdjust LColorAdjust,
+    LCropbox? LCropbox,
+    LColor LColor,
     LRotateFlip LRotateFlip,
     LPlaybackState LPlaybackState)
 {
-    public static LPreviewState LPreviewStateDefaultCreate()
+    public static LPreviewState LPreviewDefaultCreate()
     {
         return new LPreviewState(
             null,
-            LColorAdjust.LColorAdjustDefaultCreate(),
-            LRotateFlip.LRotateFlipDefaultCreate(),
-            LPlaybackState.LPlaybackStateStoppedCreate());
+            LColor.LColorDefaultCreate(),
+            LRotateFlip.LRotateDefaultCreate(),
+            LPlaybackState.LPlaybackStoppedCreate());
     }
 
-    public LPreviewState LCropBoxChange(LCropBox? lCropBox)
+    public LPreviewState LCropboxChange(LCropbox? lCropbox)
     {
-        return this with { LCropBox = lCropBox };
+        return this with { LCropbox = lCropbox };
     }
 
-    public LPreviewState LColorAdjustChange(LColorAdjust lColorAdjust)
+    public LPreviewState LColorChange(LColor lColor)
     {
-        return this with { LColorAdjust = lColorAdjust };
+        return this with { LColor = lColor };
     }
 
     public LPreviewState LRotateFlipChange(LRotateFlip lRotateFlip)
