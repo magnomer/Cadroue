@@ -14,6 +14,14 @@ public partial class App : Application
 
     private static string? lDepotRootApplied;
 
+    public static string LRendererFolderCurrent =>
+        string.IsNullOrWhiteSpace(LPreferenceStateCurrent.LPreferenceFfmpegFolder)
+            ? LRendererSettingsCurrent.LRendererFfmpegLibraryFolder ?? string.Empty
+            : LPreferenceStateCurrent.LPreferenceFfmpegFolder;
+
+    public static string LRendererProgramCurrent =>
+        LRendererSettings.LRendererProgramRead(LRendererFolderCurrent);
+
     private static DispatcherTimer? lPreferenceSaveTimer;
 
     public static LRelay? LRelayStartupPayload { get; private set; }
@@ -201,7 +209,11 @@ public partial class App : Application
                 UIRefreshInterval = 250
             };
 
-            if (LRendererSettingsCurrent.LRendererFfmpegLibraryFolderCustomReady)
+            if (LRendererSettings.LRendererFolderValidate(LPreferenceStateCurrent.LPreferenceFfmpegFolder))
+            {
+                lRendererEngineConfig.FFmpegPath = LPreferenceStateCurrent.LPreferenceFfmpegFolder;
+            }
+            else if (LRendererSettingsCurrent.LRendererFfmpegLibraryFolderCustomReady)
             {
                 lRendererEngineConfig.FFmpegPath = LRendererSettingsCurrent.LRendererFfmpegLibraryFolder;
             }

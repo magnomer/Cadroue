@@ -20,6 +20,10 @@ public sealed class LWorkRecord
 
     public int OwnerProcessId { get; set; }
 
+    public Guid OwnerRunnerId { get; set; }
+
+    public DateTimeOffset LeaseTime { get; set; }
+
     public LWorkOutputRecord Output { get; set; } = new();
 
     public static LWorkRecord LWorkRecordCreate(LWorkItem lWorkItem) => new()
@@ -37,6 +41,8 @@ public sealed class LWorkRecord
         Message = lWorkItem.LWorkMessage,
         Progress = lWorkItem.LWorkProgress,
         CreateTime = lWorkItem.LWorkCreateTime,
+        OwnerProcessId = lWorkItem.LWorkOwnerProcess,
+        OwnerRunnerId = lWorkItem.LWorkOwnerRunner,
         Output = LWorkOutputRecord.LWorkOutputRecordCreate(lWorkItem.LWorkOutput)
     };
 
@@ -58,6 +64,8 @@ public sealed class LWorkRecord
         lWorkItem.LWorkStateCurrent = LWorkEnumRead(State, LWorkState.LWorkStatePending);
         lWorkItem.LWorkMessage = Message;
         lWorkItem.LWorkProgress = Progress;
+        lWorkItem.LWorkOwnerProcess = OwnerProcessId;
+        lWorkItem.LWorkOwnerRunner = OwnerRunnerId;
         return lWorkItem;
     }
 

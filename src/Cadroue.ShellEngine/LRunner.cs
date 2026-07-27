@@ -19,6 +19,7 @@ public sealed partial class LRunner
     {
         lRunnerSchedule = lSchedule;
         lRunnerPost = lRunnerPostAction;
+        LSchedule.LScheduleRunnerAdd(lRunnerId);
     }
 
     public string LRunnerProgramPath { get; set; } = "ffmpeg";
@@ -30,38 +31,40 @@ public sealed partial class LRunner
 
     public bool LRunnerSuspended => lRunnerSuspended;
 
+    public bool LRunnerRunning { get; private set; }
+
     public void LRunnerStart()
     {
-        lRunnerSchedule.LScheduleStart();
+        LRunnerRunning = true;
 
         if (lRunnerSuspended)
         {
             LRunnerProcessResume();
+            lRunnerSchedule.LScheduleChangeRaise();
             return;
         }
 
         LRunnerLoopStart();
+        lRunnerSchedule.LScheduleChangeRaise();
     }
 
     public void LRunnerPause()
     {
-        lRunnerSchedule.LSchedulePause();
+        LRunnerRunning = false;
 
         Process? pProcess = lRunnerProcess;
-        if (pProcess is null || pProcess.HasExited || lRunnerSuspended)
-        {
-            return;
-        }
-
-        if (LRunnerProcessSuspend(pProcess))
+        if (pProcess is not null && !pProcess.HasExited && !lRunnerSuspended && LRunnerProcessSuspend(pProcess))
         {
             lRunnerSuspended = true;
             LRunnerMessageSet(lRunnerItem, "Suspended");
         }
+
+        lRunnerSchedule.LScheduleChangeRaise();
     }
 
     public void LRunnerCancel()
     {
+        LRunnerRunning = false;
         lRunnerCancel?.Cancel();
 
         Process? pProcess = lRunnerProcess;
@@ -83,8 +86,9 @@ public sealed partial class LRunner
         }
 
         lRunnerSuspended = false;
+        LRunnerLeaseStop();
         LRunnerPartialRemove(pItem);
-        lRunnerSchedule.LScheduleCancel();
+        lRunnerSchedule.LScheduleRelease(lRunnerId);
     }
 
     private void LRunnerLoopStart()
@@ -103,10 +107,10 @@ public sealed partial class LRunner
     {
         try
         {
-            while (!lRunnerToken.IsCancellationRequested && lRunnerSchedule.LScheduleRunning)
+            while (!lRunnerToken.IsCancellationRequested && LRunnerRunning)
             {
                 LWorkItem? pNext = null;
-                LRunnerInvoke(() => pNext = lRunnerSchedule.LScheduleClaim());
+                LRunnerInvoke(() => pNext = lRunnerSchedule.LScheduleClaim(lRunnerId));
                 if (pNext is null)
                 {
                     break;
@@ -120,12 +124,15 @@ public sealed partial class LRunner
             lRunnerLooping = false;
             lRunnerItem = null;
             lRunnerProcess = null;
+            LRunnerLeaseStop();
             LRunnerInvoke(() =>
             {
                 if (!lRunnerSchedule.LSchedulePendingExist())
                 {
-                    lRunnerSchedule.LSchedulePause();
+                    LRunnerRunning = false;
                 }
+
+                lRunnerSchedule.LScheduleChangeRaise();
             });
         }
     }
@@ -133,6 +140,7 @@ public sealed partial class LRunner
     private async Task LRunnerItemRun(LWorkItem pWorkItem, CancellationToken lRunnerToken)
     {
         lRunnerItem = pWorkItem;
+        LRunnerLeaseStart(pWorkItem);
         LRunnerInvoke(() =>
         {
             pWorkItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
@@ -217,6 +225,7 @@ public sealed partial class LRunner
         finally
         {
             lRunnerProcess = null;
+            LRunnerLeaseStop();
         }
     }
 

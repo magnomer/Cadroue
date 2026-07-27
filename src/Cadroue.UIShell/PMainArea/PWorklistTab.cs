@@ -10,13 +10,7 @@ public sealed class PWorklistTab : PTabSurface
     public PWorklistTab(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         pRoster = new PRoster(lPreferenceTabLayout);
-        Content = new System.Windows.Controls.Grid
-        {
-            Children =
-            {
-                pRoster
-            }
-        };
+        Content = pRoster;
     }
 
     public override PFlowControl? PTabFlow => null;

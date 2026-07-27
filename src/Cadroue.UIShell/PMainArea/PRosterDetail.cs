@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
+using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -8,38 +9,44 @@ public sealed partial class PRoster
 {
     private UIElement PRosterDetailBuild()
     {
-        var pPanel = new StackPanel { Margin = new Thickness(12, 0, 0, 0) };
-        pPanel.Children.Add(new TextBlock
+        var pHeader = new Border
         {
-            Text = "Job detail",
-            FontSize = 14,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = PRosterTextBrush,
-            Margin = new Thickness(0, 0, 0, 10)
-        });
-        pPanel.Children.Add(pRosterDetailPanel);
-        PRosterDetailUpdate();
+            Padding = PRosterTheme.PRosterHeaderPadding,
+            Background = PRosterTheme.PRosterHeaderBrush,
+            BorderBrush = PRosterTheme.PRosterLineBrush,
+            BorderThickness = new Thickness(0, 0, 0, 1),
+            Child = pRosterDetailTitle
+        };
 
-        return new ScrollViewer
+        var pScroll = new ScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             FocusVisualStyle = null,
-            Content = pPanel
+            Padding = new Thickness(12, 10, 12, 12),
+            Content = pRosterDetailPanel
         };
+
+        var pRoot = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(pHeader, Dock.Top);
+        pRoot.Children.Add(pHeader);
+        pRoot.Children.Add(pScroll);
+
+        PRosterDetailUpdate();
+        return PPanel.PPanelBorderBuild(pRoot);
     }
 
     private void PRosterDetailUpdate()
     {
         pRosterDetailPanel.Children.Clear();
 
-        if (pRosterTable.SelectedItem is not LWorkItem pWorkItem)
+        if (PRosterSelectRead() is not { } pWorkItem)
         {
             pRosterDetailPanel.Children.Add(new TextBlock
             {
                 Text = "Select a job to see its settings.",
-                Foreground = PRosterMutedBrush,
-                FontSize = 12,
+                Foreground = PRosterTheme.PRosterMutedBrush,
+                FontSize = PRosterTheme.PRosterRowSize,
                 TextWrapping = TextWrapping.Wrap
             });
             return;
@@ -47,8 +54,9 @@ public sealed partial class PRoster
 
         LWorkOutput pOutput = pWorkItem.LWorkOutput;
         PRosterRowAdd("State", PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent));
-        PRosterRowAdd("Kind", pWorkItem.LWorkKind.ToString().Replace("LWorkKind", string.Empty));
-        PRosterRowAdd("Priority", pWorkItem.LWorkPriority == LWorkPriority.LWorkPriorityHigh ? "High" : "Normal");
+        PRosterRowAdd("Owner", PRosterOwnerFormat(pWorkItem));
+        PRosterRowAdd("Kind", PRosterKindFormat(pWorkItem.LWorkKind));
+        PRosterRowAdd("Priority", PRosterPriorityFormat(pWorkItem.LWorkPriority));
         PRosterRowAdd("Source", pWorkItem.LWorkSourcePath);
         PRosterRowAdd("Range", $"{pWorkItem.LWorkStart:hh\\:mm\\:ss} - {pWorkItem.LWorkEnd:hh\\:mm\\:ss}  ({pWorkItem.LWorkDuration:hh\\:mm\\:ss})");
         PRosterRowAdd("Output", pWorkItem.LWorkOutputPath);
@@ -80,26 +88,36 @@ public sealed partial class PRoster
 
     private void PRosterRowAdd(string pLabel, string pValue)
     {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 6) };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(94) });
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 5) };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PRosterTheme.PRosterLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(new TextBlock
         {
             Text = pLabel,
-            Foreground = PRosterMutedBrush,
-            FontSize = 12,
+            Foreground = PRosterTheme.PRosterMutedBrush,
+            FontSize = PRosterTheme.PRosterRowSize,
             VerticalAlignment = VerticalAlignment.Top
         });
 
         var pValueBlock = new TextBlock
         {
             Text = pValue,
-            Foreground = PRosterTextBrush,
-            FontSize = 12,
+            Foreground = PRosterTheme.PRosterTextBrush,
+            FontSize = PRosterTheme.PRosterRowSize,
             TextWrapping = TextWrapping.Wrap
         };
         Grid.SetColumn(pValueBlock, 1);
         pGrid.Children.Add(pValueBlock);
         pRosterDetailPanel.Children.Add(pGrid);
     }
+
+    private static string PRosterKindFormat(LWorkKind pWorkKind) => pWorkKind switch
+    {
+        LWorkKind.LWorkKindSplit => "Split",
+        LWorkKind.LWorkKindEdit => "Edit",
+        LWorkKind.LWorkKindAudio => "Audio",
+        LWorkKind.LWorkKindConvert => "Convert",
+        LWorkKind.LWorkKindMerge => "Merge",
+        _ => pWorkKind.ToString()
+    };
 }

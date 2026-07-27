@@ -5,6 +5,9 @@ namespace Cadroue.UIShell;
 
 public sealed class LRendererSettings
 {
+    public const string LRendererProgramFile = "ffmpeg.exe";
+    public const string LRendererProgramPath = "ffmpeg";
+
     public string? LRendererFfmpegLibraryFolder { get; set; }
 
     public bool LRendererFfmpegLibraryFolderCustomReady =>
@@ -40,6 +43,19 @@ public sealed class LRendererSettings
             && LRendererFileExist(lRendererFfmpegLibraryFolder, "avutil*.dll")
             && LRendererFileExist(lRendererFfmpegLibraryFolder, "swscale*.dll")
             && LRendererFileExist(lRendererFfmpegLibraryFolder, "swresample*.dll");
+    }
+
+    public static bool LRendererProgramExist(string? lRendererFolder)
+    {
+        return !string.IsNullOrWhiteSpace(lRendererFolder)
+            && File.Exists(Path.Combine(lRendererFolder, LRendererProgramFile));
+    }
+
+    public static string LRendererProgramRead(string? lRendererFolder)
+    {
+        return LRendererProgramExist(lRendererFolder)
+            ? Path.Combine(lRendererFolder!, LRendererProgramFile)
+            : LRendererProgramPath;
     }
 
     public static string? LRendererFolderFind()

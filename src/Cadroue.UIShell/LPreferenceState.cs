@@ -31,6 +31,7 @@ public sealed class LPreferenceState
     public string LPreferenceHistoryMode { get; set; } = "LastUsed";
 
     public string LPreferenceWorkspaceFolder { get; set; } = string.Empty;
+    public string LPreferenceFfmpegFolder { get; set; } = string.Empty;
     public List<string> LPreferenceTabLayoutKeys { get; set; } = new();
     public int LPreferenceTabSelectIndex { get; set; }
 
@@ -62,6 +63,7 @@ public sealed class LPreferenceState
             LPreferenceTimelineOrder = "OverviewFirst",
             LPreferenceHistoryMode = "LastUsed",
             LPreferenceWorkspaceFolder = string.Empty,
+            LPreferenceFfmpegFolder = string.Empty,
             LPreferenceTabLayoutKeys = new List<string> { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" },
             LPreferenceTabSelectIndex = 0
         };
@@ -99,6 +101,7 @@ public sealed class LPreferenceState
             LPreferenceTimelineOrder = LPreferenceTimelineOrder,
             LPreferenceHistoryMode = LPreferenceHistoryMode,
             LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
+            LPreferenceFfmpegFolder = LPreferenceFfmpegFolder,
             LPreferenceTabLayoutKeys = new List<string>(LPreferenceTabLayoutKeys),
             LPreferenceTabSelectIndex = LPreferenceTabSelectIndex,
             LPreferenceTabExports = new List<LExportSpecificPresetRecord>(LPreferenceTabExports),
@@ -123,7 +126,8 @@ public sealed class LPreferenceState
             ("Duplicate sections in groups", lPreferenceOther.LPreferenceGroupDuplicateAllowed, LPreferenceGroupDuplicateAllowed),
             ("Timeline order", lPreferenceOther.LPreferenceTimelineOrder, LPreferenceTimelineOrder),
             ("History mode", lPreferenceOther.LPreferenceHistoryMode, LPreferenceHistoryMode),
-            ("Workspace folder", lPreferenceOther.LPreferenceWorkspaceFolder, LPreferenceWorkspaceFolder)
+            ("Workspace folder", lPreferenceOther.LPreferenceWorkspaceFolder, LPreferenceWorkspaceFolder),
+            ("FFmpeg folder", lPreferenceOther.LPreferenceFfmpegFolder, LPreferenceFfmpegFolder)
         };
 
         foreach ((string lName, object lWas, object lNow) in lPreferenceFields)
@@ -156,6 +160,7 @@ public sealed class LPreferenceState
         if (LPreferenceTimelineOrder is not "OverviewFirst" and not "WorkingFirst") LPreferenceTimelineOrder = "OverviewFirst";
         if (LPreferenceHistoryMode is not "Hover" and not "LastUsed") LPreferenceHistoryMode = "LastUsed";
         LPreferenceWorkspaceFolder = (LPreferenceWorkspaceFolder ?? string.Empty).Trim();
+        LPreferenceFfmpegFolder = (LPreferenceFfmpegFolder ?? string.Empty).Trim();
         LPreferenceTabSelectIndex = Math.Max(0, LPreferenceTabSelectIndex);
         if (LPreferenceTabLayoutKeys is null || LPreferenceTabLayoutKeys.Count == 0)
             LPreferenceTabLayoutKeys = new List<string> { "Split" };

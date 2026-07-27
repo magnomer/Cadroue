@@ -87,7 +87,7 @@ internal sealed partial class PSEncoder
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "ffmpeg",
+                FileName = App.LRendererProgramCurrent,
                 Arguments = $"-hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v {pEncoder} -f null -",
                 UseShellExecute = false,
                 CreateNoWindow = true,

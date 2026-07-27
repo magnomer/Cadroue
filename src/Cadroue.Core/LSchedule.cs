@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace Cadroue.Core;
 
-public sealed class LSchedule
+public sealed partial class LSchedule
 {
     private readonly ObservableCollection<LWorkItem> lScheduleItems = new();
 
@@ -17,36 +17,15 @@ public sealed class LSchedule
 
     public event Action<LSchedule>? LScheduleChange;
 
-    public bool LScheduleRunning { get; private set; }
-
     public int LScheduleDoneCount =>
         lScheduleItems.Count(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone);
 
-    public void LScheduleStart()
-    {
-        if (LScheduleRunning)
-        {
-            return;
-        }
-
-        LScheduleRunning = true;
-        LScheduleChange?.Invoke(this);
-    }
-
-    public void LSchedulePause()
-    {
-        if (!LScheduleRunning)
-        {
-            return;
-        }
-
-        LScheduleRunning = false;
-        LScheduleChange?.Invoke(this);
-    }
+    public void LScheduleChangeRaise() => LScheduleChange?.Invoke(this);
 
     public void LScheduleReload()
     {
         LDepotIndex.LDepotIndexEnsure();
+        LScheduleStaleClaim();
 
         var lScheduleLoaded = new List<LWorkItem>();
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
@@ -95,39 +74,6 @@ public sealed class LSchedule
         return lScheduleAddedCount;
     }
 
-    public LWorkItem? LScheduleClaim()
-    {
-        LDepotIndex.LDepotIndexEnsure();
-
-        var lScheduleCandidates = new List<LWorkRecord>();
-        foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled))
-        {
-            if (LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord)
-            {
-                lScheduleCandidates.Add(lWorkRecord);
-            }
-        }
-
-        IEnumerable<LWorkRecord> lScheduleOrdered = lScheduleCandidates
-            .OrderByDescending(lWorkRecord => lWorkRecord.Priority == nameof(LWorkPriority.LWorkPriorityHigh))
-            .ThenBy(lWorkRecord => lWorkRecord.CreateTime);
-
-        foreach (LWorkRecord lWorkRecord in lScheduleOrdered)
-        {
-            if (!LScheduleMove(lWorkRecord.WorkId, LDepotFolder.LDepotFolderScheduled, LDepotFolder.LDepotFolderRunning))
-            {
-                continue;
-            }
-
-            lWorkRecord.State = nameof(LWorkState.LWorkStateRunning);
-            lWorkRecord.OwnerProcessId = Environment.ProcessId;
-            LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderRunning);
-            return lWorkRecord.LWorkItemCreate();
-        }
-
-        return null;
-    }
-
     public void LScheduleComplete(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage)
     {
         LDepotFolder lScheduleTarget = lScheduleSucceeded
@@ -144,36 +90,6 @@ public sealed class LSchedule
         lWorkRecord.Progress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
         lWorkRecord.OwnerProcessId = 0;
         LScheduleRecordWrite(lWorkRecord, lScheduleTarget);
-    }
-
-    public int LScheduleCancel()
-    {
-        LScheduleRunning = false;
-        LDepotIndex.LDepotIndexEnsure();
-
-        int lScheduleReleasedCount = 0;
-        foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderRunning).ToArray())
-        {
-            if (LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord
-                || lWorkRecord.OwnerProcessId != Environment.ProcessId)
-            {
-                continue;
-            }
-
-            if (!LScheduleMove(lWorkRecord.WorkId, LDepotFolder.LDepotFolderRunning, LDepotFolder.LDepotFolderScheduled))
-            {
-                continue;
-            }
-
-            lWorkRecord.State = nameof(LWorkState.LWorkStatePending);
-            lWorkRecord.OwnerProcessId = 0;
-            lWorkRecord.Progress = 0;
-            LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
-            lScheduleReleasedCount++;
-        }
-
-        LScheduleReload();
-        return lScheduleReleasedCount;
     }
 
     public bool LScheduleRemove(Guid lWorkId)

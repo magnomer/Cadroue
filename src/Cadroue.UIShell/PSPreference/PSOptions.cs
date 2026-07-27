@@ -48,6 +48,7 @@ public static class PSOptions
             PSOptionsSliderBuild("Maximum section/group history", lPreferenceDraft.LPreferenceHistoryMaximum, 0, 1000000, v => lPreferenceDraft.LPreferenceHistoryMaximum = v)));
         pTabs.Items.Add(PSOptionsPageBuild("Misc",
             PSOptionsFolderBuild("Workspace folder", lPreferenceDraft.LPreferenceWorkspaceFolder, v => lPreferenceDraft.LPreferenceWorkspaceFolder = v),
+            PSOptionsFfmpegBuild(lPreferenceDraft.LPreferenceFfmpegFolder, v => lPreferenceDraft.LPreferenceFfmpegFolder = v),
             PSOptionsCheckBuild("Autoplay on load", lPreferenceDraft.LPreferenceAutoplayOnLoad, v => lPreferenceDraft.LPreferenceAutoplayOnLoad = v),
             PSOptionsComboBuild("Volume mode", lPreferenceDraft.LPreferenceVolumeMode, new[] { "Single global volume", "Per-tab volume" }, v => lPreferenceDraft.LPreferenceVolumeMode = v),
             PSOptionsSliderBuild("Player volume", lPreferenceDraft.LPreferenceVolume, 0, 100, v => lPreferenceDraft.LPreferenceVolume = v)));
@@ -142,6 +143,93 @@ public static class PSOptions
         pStack.Children.Add(pRow);
         pStack.Children.Add(pDefaultText);
         return pStack;
+    }
+
+    private static FrameworkElement PSOptionsFfmpegBuild(string pValue, Action<string> pChange)
+    {
+        var pText = new TextBlock { Width = 230, VerticalAlignment = VerticalAlignment.Center, Text = "FFmpeg folder" };
+        var pPathBox = new TextBox
+        {
+            Width = 300,
+            VerticalAlignment = VerticalAlignment.Center,
+            Text = pValue,
+            ToolTip = "Folder holding ffmpeg.exe and the FFmpeg libraries. Leave blank to use FFmpeg from PATH."
+        };
+
+        var pBrowse = new Button { Content = "Browse", Width = 76, Margin = new Thickness(6, 0, 0, 0) };
+        var pDownload = new Button
+        {
+            Content = "Download",
+            Width = 84,
+            Margin = new Thickness(4, 0, 0, 0),
+            IsEnabled = false,
+            ToolTip = "Not available yet."
+        };
+
+        var pStateText = new TextBlock
+        {
+            Margin = new Thickness(238, 2, 0, 0),
+            FontSize = 11,
+            Foreground = System.Windows.Media.Brushes.Gray
+        };
+
+        void pStateSync()
+        {
+            pStateText.Text = PSOptionsFfmpegStateFormat(pPathBox.Text);
+        }
+
+        pPathBox.TextChanged += (_, _) => { pChange(pPathBox.Text); pStateSync(); };
+        pBrowse.Click += (_, _) =>
+        {
+            var pDialog = new Microsoft.Win32.OpenFolderDialog
+            {
+                Title = "Choose FFmpeg folder",
+                InitialDirectory = pPathBox.Text
+            };
+            if (pDialog.ShowDialog() == true)
+            {
+                pPathBox.Text = pDialog.FolderName;
+            }
+        };
+        pStateSync();
+
+        var pRow = new StackPanel { Orientation = Orientation.Horizontal };
+        pRow.Children.Add(pText);
+        pRow.Children.Add(pPathBox);
+        pRow.Children.Add(pBrowse);
+        pRow.Children.Add(pDownload);
+
+        var pStack = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
+        pStack.Children.Add(pRow);
+        pStack.Children.Add(pStateText);
+        return pStack;
+    }
+
+    private static string PSOptionsFfmpegStateFormat(string pFolder)
+    {
+        if (string.IsNullOrWhiteSpace(pFolder))
+        {
+            return "Blank: FFmpeg is used from PATH.";
+        }
+
+        bool pProgramReady = LRendererSettings.LRendererProgramExist(pFolder);
+        bool pLibraryReady = LRendererSettings.LRendererFolderValidate(pFolder);
+        if (pProgramReady && pLibraryReady)
+        {
+            return "ffmpeg.exe and the playback libraries were found. Restart to apply playback.";
+        }
+
+        if (pProgramReady)
+        {
+            return "ffmpeg.exe was found. The playback libraries were not, so playback stays on PATH.";
+        }
+
+        if (pLibraryReady)
+        {
+            return "The playback libraries were found, but ffmpeg.exe was not, so exporting stays on PATH.";
+        }
+
+        return "Neither ffmpeg.exe nor the playback libraries were found here. PATH is used instead.";
     }
 
     private static FrameworkElement PSOptionsComboBuild(string pLabel, string pValue, string[] pValues, Action<string> pChange)
