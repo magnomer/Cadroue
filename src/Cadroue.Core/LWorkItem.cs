@@ -20,8 +20,10 @@ public sealed class LWorkItem : INotifyPropertyChanged
         string lWorkOutputPath,
         LWorkOutput lWorkOutput,
         Guid? lWorkId = null,
-        DateTimeOffset? lWorkCreateTime = null)
+        DateTimeOffset? lWorkCreateTime = null,
+        LWorkCrop? lWorkCrop = null)
     {
+        LWorkCrop = lWorkCrop ?? LWorkCrop.LWorkCropNoneCreate();
         LWorkId = lWorkId ?? Guid.NewGuid();
         LWorkBatchId = lWorkBatchId;
         LWorkKind = lWorkKind;
@@ -56,6 +58,8 @@ public sealed class LWorkItem : INotifyPropertyChanged
     public string LWorkOutputPath { get; }
 
     public LWorkOutput LWorkOutput { get; }
+
+    public LWorkCrop LWorkCrop { get; }
 
     public DateTimeOffset LWorkCreateTime { get; }
 

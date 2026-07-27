@@ -30,6 +30,8 @@ public sealed class LWorkRecord
 
     public LWorkOutputRecord Output { get; set; } = new();
 
+    public LWorkCrop Crop { get; set; } = LWorkCrop.LWorkCropNoneCreate();
+
     public static LWorkRecord LWorkRecordCreate(LWorkItem lWorkItem) => new()
     {
         WorkId = lWorkItem.LWorkId,
@@ -49,7 +51,8 @@ public sealed class LWorkRecord
         OwnerRunnerId = lWorkItem.LWorkOwnerRunner,
         Phase = lWorkItem.LWorkPhaseCurrent.ToString(),
         AttemptCount = lWorkItem.LWorkAttemptCount,
-        Output = LWorkOutputRecord.LWorkOutputRecordCreate(lWorkItem.LWorkOutput)
+        Output = LWorkOutputRecord.LWorkOutputRecordCreate(lWorkItem.LWorkOutput),
+        Crop = lWorkItem.LWorkCrop
     };
 
     public LWorkItem LWorkItemCreate()
@@ -65,7 +68,8 @@ public sealed class LWorkRecord
             OutputPath,
             Output.LWorkOutputCreate(),
             WorkId,
-            CreateTime);
+            CreateTime,
+            Crop);
 
         lWorkItem.LWorkStateCurrent = LWorkEnumRead(State, LWorkState.LWorkStatePending);
         lWorkItem.LWorkMessage = Message;

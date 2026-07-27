@@ -43,6 +43,7 @@ public static class LPreview
 
     private static void LPreviewRotateApply(Player lPreviewPlayer, LRotateFlip lRotateFlip)
     {
+        lPreviewPlayer.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
         lPreviewPlayer.Config.Video.Rotation = LPreviewRotationRead(lRotateFlip.LRotateKind);
         lPreviewPlayer.Config.Video.HFlip = lRotateFlip.LRotateFlipHorizontal;
         lPreviewPlayer.Config.Video.VFlip = lRotateFlip.LRotateFlipVertical;

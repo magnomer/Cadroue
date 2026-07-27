@@ -24,14 +24,14 @@ public static class LEncode
         lArguments.Append(CultureInfo.InvariantCulture, $" -to {LEncodeTimeFormat(lWorkItem.LWorkEnd)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lWorkItem.LWorkSourcePath)}");
 
-        LEncodeVideoAppend(lArguments, lOutput);
+        LEncodeVideoAppend(lArguments, lWorkItem, lOutput);
         LEncodeAudioAppend(lArguments, lOutput);
 
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeQuote(lWorkItem.LWorkOutputPath)}");
         return lArguments.ToString();
     }
 
-    private static void LEncodeVideoAppend(StringBuilder lArguments, LWorkOutput lOutput)
+    private static void LEncodeVideoAppend(StringBuilder lArguments, LWorkItem lWorkItem, LWorkOutput lOutput)
     {
         if (string.Equals(lOutput.LWorkOutputVideoStream, "Exclude", StringComparison.OrdinalIgnoreCase)
             || string.Equals(lOutput.LWorkOutputVideoMode, "Exclude", StringComparison.OrdinalIgnoreCase))
@@ -73,7 +73,7 @@ public static class LEncode
             lArguments.Append(CultureInfo.InvariantCulture, $" {lExtra.Key} {lExtra.Value}");
         }
 
-        LEncodeFilterAppend(lArguments, lOutput);
+        LEncodeFilterAppend(lArguments, lWorkItem, lOutput);
     }
 
     private static void LEncodeQualityAppend(
@@ -132,12 +132,50 @@ public static class LEncode
         }
     }
 
-    private static void LEncodeFilterAppend(StringBuilder lArguments, LWorkOutput lOutput)
+    private static void LEncodeFilterAppend(StringBuilder lArguments, LWorkItem lWorkItem, LWorkOutput lOutput)
     {
+        var lFilters = new List<string>();
+        LWorkCrop lCrop = lWorkItem.LWorkCrop;
+
+        string? lRotate = lCrop.LWorkCropRotation switch
+        {
+            90 => "transpose=1",
+            180 => "transpose=1,transpose=1",
+            270 => "transpose=2",
+            _ => null
+        };
+
+        if (lRotate is not null)
+        {
+            lFilters.Add(lRotate);
+        }
+
+        if (lCrop.LWorkCropFlipHorizontal)
+        {
+            lFilters.Add("hflip");
+        }
+
+        if (lCrop.LWorkCropFlipVertical)
+        {
+            lFilters.Add("vflip");
+        }
+
+        if (lCrop.LWorkCropEdgeActive)
+        {
+            lFilters.Add(string.Create(
+                CultureInfo.InvariantCulture,
+                $"crop=in_w-{lCrop.LWorkCropLeft}-{lCrop.LWorkCropRight}:in_h-{lCrop.LWorkCropTop}-{lCrop.LWorkCropBottom}:{lCrop.LWorkCropLeft}:{lCrop.LWorkCropTop}"));
+        }
+
         string? lSize = LEncodeSizeRead(lOutput.LWorkOutputVideoSize);
         if (lSize is not null)
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -s {lSize}");
+            lFilters.Add($"scale={lSize.Replace('x', ':')}");
+        }
+
+        if (lFilters.Count > 0)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -vf {LEncodeQuote(string.Join(',', lFilters))}");
         }
 
         if (!LEncodeSameAsSource(lOutput.LWorkOutputVideoFps)

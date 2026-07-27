@@ -20,6 +20,15 @@ public sealed partial class PViewer : PPanel
     private Player? pViewerPlayer;
     private LMediaInfo? pViewerMediaInfo;
     private Point? pViewerCropStartPoint;
+    private bool pViewerCropArmed;
+    private Size? pViewerCropRatio;
+    private readonly Path pViewerCropShade;
+    private readonly Rectangle[] pViewerCropHandles = new Rectangle[8];
+    private Rect pViewerCropOrigin;
+    private Point pViewerCropGrab;
+    private bool pViewerCropDrag;
+    private int pViewerEdgeX;
+    private int pViewerEdgeY;
     private int pViewerLoadSerial;
     private double pViewerVolume = App.LPreferenceStateCurrent.LPreferenceVolume;
     private bool pViewerAudioOnlyAllowed;
@@ -29,6 +38,7 @@ public sealed partial class PViewer : PPanel
 
     public event Action<LMediaOpenStatus>? PViewerMediaChange;
     public event Action<TimeSpan>? PViewerClockTick;
+    public event Action<Rect?>? PCropVideoChange;
 
     public string? PViewerSourcePath { get; private set; }
     public Rect? PCropVideo { get; private set; }
@@ -57,7 +67,17 @@ public sealed partial class PViewer : PPanel
             Focusable = true,
             AllowDrop = true
         };
+        pViewerCropShade = new Path
+        {
+            Fill = new SolidColorBrush(Color.FromArgb(0x66, 0x00, 0x00, 0x00)),
+            IsHitTestVisible = false,
+            Visibility = Visibility.Collapsed
+        };
+
+        pViewerOverlay.Children.Add(pViewerCropShade);
         pViewerOverlay.Children.Add(pViewerCropBox);
+        PCropHandlesBuild();
+        pViewerCropBox.MouseLeftButtonDown += PCropMovePressHandle;
         pViewerOverlay.MouseLeftButtonDown += PCropPressHandle;
         pViewerOverlay.MouseMove += PCropMoveHandle;
         pViewerOverlay.MouseLeftButtonUp += PCropReleaseHandle;
@@ -256,6 +276,23 @@ public sealed partial class PViewer : PPanel
     private void PViewerPreviewApply()
     {
         LPreview.LPreviewApply(pViewerPlayer, LPreviewStateCurrent);
+    }
+
+    public TimeSpan PViewerDurationRead() => pViewerMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero;
+
+    public void PViewerRotateSet(LRotateFlip pRotateFlip)
+    {
+        bool pRotateChanged = LPreviewStateCurrent.LRotateFlip.LRotateKind != pRotateFlip.LRotateKind;
+        LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(pRotateFlip);
+        PViewerPreviewApply();
+
+        if (pRotateChanged)
+        {
+            PCropHide();
+            return;
+        }
+
+        PCropOverlayUpdate();
     }
 }
 

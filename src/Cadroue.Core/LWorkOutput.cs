@@ -23,3 +23,24 @@ public sealed record LWorkOutput(
     string LWorkOutputAudioBitrate,
     string LWorkOutputAudioSampleRate,
     string LWorkOutputAudioChannels);
+
+public sealed record LWorkCrop(
+    int LWorkCropLeft,
+    int LWorkCropTop,
+    int LWorkCropRight,
+    int LWorkCropBottom,
+    int LWorkCropRotation,
+    bool LWorkCropFlipHorizontal,
+    bool LWorkCropFlipVertical)
+{
+    public static LWorkCrop LWorkCropNoneCreate() => new(0, 0, 0, 0, 0, false, false);
+
+    public bool LWorkCropEdgeActive =>
+        LWorkCropLeft > 0 || LWorkCropTop > 0 || LWorkCropRight > 0 || LWorkCropBottom > 0;
+
+    public bool LWorkCropActive =>
+        LWorkCropEdgeActive
+        || LWorkCropRotation != 0
+        || LWorkCropFlipHorizontal
+        || LWorkCropFlipVertical;
+}
