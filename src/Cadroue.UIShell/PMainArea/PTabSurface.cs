@@ -27,13 +27,22 @@ public abstract class PTabSurface : UserControl
         UIElement pFlow,
         LPreferenceTabLayoutRecord? lPreferenceTabLayout)
     {
-        var pGrid = new Grid { Margin = new Thickness(8, 0, 8, 0) };
+        var pGrid = new Grid
+        {
+            Margin = new Thickness(8, 0, 8, 0),
+            ClipToBounds = true,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        var pPanelGrid = new Grid();
+        var pPanelGrid = new Grid
+        {
+            ClipToBounds = true,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
         var pPanelColumns = new List<ColumnDefinition>(pPanels.Count);
         var pSplitterElements = new List<UIElement>(Math.Max(0, pPanels.Count - 1));
         var pSplitterColumnDefinitions = new List<ColumnDefinition>(Math.Max(0, pPanels.Count - 1));

@@ -165,6 +165,57 @@ public sealed class LExportSpecificState
         return true;
     }
 
+    public static bool LPresetMatch(string lPresetName, LExportSpecificState lSource)
+    {
+        if (!LPresetMap.TryGetValue(lPresetName, out var lPreset))
+        {
+            return false;
+        }
+
+        return string.Equals(lPreset.Name, lSource.Name, StringComparison.Ordinal)
+            && string.Equals(lPreset.Container, lSource.Container, StringComparison.Ordinal)
+            && string.Equals(lPreset.ExportMode, lSource.ExportMode, StringComparison.Ordinal)
+            && string.Equals(lPreset.VideoStream, lSource.VideoStream, StringComparison.Ordinal)
+            && string.Equals(lPreset.AudioStream, lSource.AudioStream, StringComparison.Ordinal)
+            && string.Equals(lPreset.VideoMode, lSource.VideoMode, StringComparison.Ordinal)
+            && string.Equals(lPreset.AudioMode, lSource.AudioMode, StringComparison.Ordinal)
+            && string.Equals(lPreset.VideoEncoder, lSource.VideoEncoder, StringComparison.Ordinal)
+            && string.Equals(lPreset.VideoRateControl, lSource.VideoRateControl, StringComparison.Ordinal)
+            && string.Equals(lPreset.VideoQuality, lSource.VideoQuality, StringComparison.Ordinal)
+            && string.Equals(lPreset.VideoSpeedPreset, lSource.VideoSpeedPreset, StringComparison.Ordinal)
+            && string.Equals(lPreset.Location, lSource.Location, StringComparison.Ordinal)
+            && string.Equals(lPreset.LocationFolder, lSource.LocationFolder, StringComparison.Ordinal)
+            && string.Equals(lPreset.VideoSize, lSource.VideoSize, StringComparison.Ordinal)
+            && string.Equals(lPreset.VideoFps, lSource.VideoFps, StringComparison.Ordinal)
+            && string.Equals(lPreset.PixelFormat, lSource.PixelFormat, StringComparison.Ordinal)
+            && LPresetExtraMatch(lPreset.VideoExtras, lSource.VideoExtras)
+            && string.Equals(lPreset.AudioEncoder, lSource.AudioEncoder, StringComparison.Ordinal)
+            && string.Equals(lPreset.AudioBitrate, lSource.AudioBitrate, StringComparison.Ordinal)
+            && string.Equals(lPreset.AudioSampleRate, lSource.AudioSampleRate, StringComparison.Ordinal)
+            && string.Equals(lPreset.AudioChannels, lSource.AudioChannels, StringComparison.Ordinal);
+    }
+
+    private static bool LPresetExtraMatch(
+        IReadOnlyDictionary<string, string> lFirstExtras,
+        IReadOnlyDictionary<string, string> lSecondExtras)
+    {
+        if (lFirstExtras.Count != lSecondExtras.Count)
+        {
+            return false;
+        }
+
+        foreach ((string lKey, string lValue) in lFirstExtras)
+        {
+            if (!lSecondExtras.TryGetValue(lKey, out string? lSecondValue)
+                || !string.Equals(lValue, lSecondValue, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public static void LPresetSave(string lPresetName, LExportSpecificState lSource)
     {
         if (string.IsNullOrWhiteSpace(lPresetName))
@@ -207,7 +258,51 @@ public sealed class LExportSpecificState
         return true;
     }
 
+    public static bool LPresetMoveToIndex(string lPresetName, int lTargetIndex)
+    {
+        if (string.IsNullOrWhiteSpace(lPresetName))
+        {
+            return false;
+        }
+
+        int lSourceIndex = LPresetIndexRead(lPresetName);
+        if (lSourceIndex < 0)
+        {
+            return false;
+        }
+
+        lTargetIndex = Math.Clamp(lTargetIndex, 0, LPresetNames.Count);
+        if (lSourceIndex < lTargetIndex)
+        {
+            lTargetIndex--;
+        }
+
+        if (lSourceIndex == lTargetIndex)
+        {
+            return false;
+        }
+
+        string lName = LPresetNames[lSourceIndex];
+        LPresetNames.RemoveAt(lSourceIndex);
+        LPresetNames.Insert(lTargetIndex, lName);
+        LPresetPersist();
+        return true;
+    }
+
     public static string? LPresetFirstName => LPresetNames.Count > 0 ? LPresetNames[0] : null;
+
+    private static int LPresetIndexRead(string lPresetName)
+    {
+        for (int lIndex = 0; lIndex < LPresetNames.Count; lIndex++)
+        {
+            if (string.Equals(LPresetNames[lIndex], lPresetName, StringComparison.OrdinalIgnoreCase))
+            {
+                return lIndex;
+            }
+        }
+
+        return -1;
+    }
 
     private static void LPresetPersist()
     {

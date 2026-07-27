@@ -15,6 +15,18 @@ internal sealed partial class PSEncoder
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pGrid.Children.Add(PSCrestBuild());
+        var pPresetTitle = new TextBlock
+        {
+            Text = lsExportSpecificEdit.PresetName,
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = PTextBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 160, 0)
+        };
+        Grid.SetColumn(pPresetTitle, 1);
+        pGrid.Children.Add(pPresetTitle);
+
         var pDragArea = new Border { Background = Brushes.Transparent, HorizontalAlignment = HorizontalAlignment.Right, Width = 150 };
         pDragArea.MouseLeftButtonDown += PSCasementDragHandle;
         Grid.SetColumn(pDragArea, 1);

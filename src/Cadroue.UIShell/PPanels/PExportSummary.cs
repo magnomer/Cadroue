@@ -22,6 +22,9 @@ public sealed partial class PExport : UserControl
     private readonly StackPanel pPresetRowPanel;
     private string? pPresetNameSelected;
     private string? pPresetNameEditing;
+    private string? pPresetNameDragging;
+    private Point? pPresetDragStart;
+    private bool pPresetDragActive;
 
     /// <summary>
     /// Set while this panel writes to the preset selection itself. The preset

@@ -3,6 +3,7 @@
 [Oo]bj/
 [Oo]ut/
 [Dd]ebug/
+[Pp]ublish/
 [Rr]elease/
 x64/
 x86/
@@ -67,7 +68,7 @@ $RECYCLE.BIN/
 docs-internal/
 .agents/
 .claude/
-.codegraph
+.codegraph/
 .codex/
 
 # Build-lifecycle helper scripts (local, project-internal)

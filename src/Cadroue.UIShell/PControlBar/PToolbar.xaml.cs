@@ -126,6 +126,7 @@ public partial class PToolbar : UserControl
 
         PLogoItemAppend(pLogoMenu, "Preferences", "/PAssets/PMenus/PMenuPreferences.png");
         PLogoItemAppend(pLogoMenu, "Shortcuts", "/PAssets/PMenus/PMenuShortcuts.png");
+        PLogoItemAppend(pLogoMenu, "Log", "/PAssets/PMenus/PMenuShortcuts.png");
         PLogoItemAppend(pLogoMenu, "About", "/PAssets/PMenus/PMenuAbout.png");
 
         pLogoMenu.IsOpen = true;
@@ -153,6 +154,10 @@ public partial class PToolbar : UserControl
         else if (pLogoMenuText == "Shortcuts")
         {
             pLogoMenuItem.Click += (_, _) => PToolbarShortcutShow();
+        }
+        else if (pLogoMenuText == "Log")
+        {
+            pLogoMenuItem.Click += (_, _) => PLogWindow.PLogWindowShow(Window.GetWindow(this));
         }
 
         pLogoMenu.Items.Add(pLogoMenuItem);

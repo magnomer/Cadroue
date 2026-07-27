@@ -121,7 +121,7 @@ internal sealed class PResizableColumnLayout
 
         pWidths[pLeftPanelIndex] += pClampedDelta;
         pWidths[pLeftPanelIndex + 1] -= pClampedDelta;
-        PWidthsCommit(pWidths, pAvailableWidth);
+        PWidthsCommit(pWidths, pMinimumWidths, pAvailableWidth);
     }
 
     private void PWidthsApply()
@@ -157,16 +157,17 @@ internal sealed class PResizableColumnLayout
         }
 
         PWidthsFitToAvailable(pWidths, pMinimumWidths, pAvailableWidth);
-        PWidthsCommit(pWidths, pAvailableWidth);
+        PWidthsCommit(pWidths, pMinimumWidths, pAvailableWidth);
     }
 
-    private void PWidthsCommit(double[] pWidths, double pAvailableWidth)
+    private void PWidthsCommit(double[] pWidths, double[] pMinimumWidths, double pAvailableWidth)
     {
         pApplyBusy = true;
         try
         {
             for (int index = 0; index < pWidths.Length; index++)
             {
+                pPanelColumns[index].MinWidth = pMinimumWidths[index];
                 pPanelColumns[index].Width = new GridLength(pWidths[index], GridUnitType.Pixel);
                 pPanelWeights[index] = pAvailableWidth > 0 ? pWidths[index] / pAvailableWidth : 0;
             }

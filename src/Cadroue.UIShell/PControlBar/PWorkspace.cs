@@ -65,7 +65,11 @@ public sealed class PWorkspace
             return PWorkspaceSurface;
         }
 
-        var pRoot = new Grid();
+        var pRoot = new Grid
+        {
+            ClipToBounds = true,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
         pRoot.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         pRoot.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         pRoot.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using FlyleafLib;
 
@@ -12,6 +13,20 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        DispatcherUnhandledException += (_, pEvent) =>
+        {
+            LAppLog.LError("Unhandled UI exception", pEvent.Exception);
+            pEvent.Handled = true;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, pEvent) =>
+            LAppLog.LError("Unhandled application exception", pEvent.ExceptionObject as Exception);
+        TaskScheduler.UnobservedTaskException += (_, pEvent) =>
+        {
+            LAppLog.LError("Unobserved task exception", pEvent.Exception);
+            pEvent.SetObserved();
+        };
+
+        LAppLog.LInfo("Application started");
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
         LRendererFlyleafStart();
@@ -54,8 +69,9 @@ public partial class App : Application
 
             Engine.Start(lRendererEngineConfig);
         }
-        catch
+        catch (Exception lException)
         {
+            LAppLog.LError("Renderer startup failed", lException);
         }
     }
 }

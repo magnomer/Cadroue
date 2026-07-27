@@ -7,7 +7,8 @@
     <Border Background="#FFFFFF"
             BorderBrush="#D9DEE7"
             BorderThickness="0"
-            Padding="0,10,0,0">
-        <Grid x:Name="pDeckGrid" />
+            Padding="0,10,0,0"
+            ClipToBounds="True">
+        <Grid x:Name="pDeckGrid" ClipToBounds="True" />
     </Border>
 </UserControl>

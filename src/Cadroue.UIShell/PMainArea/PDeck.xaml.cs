@@ -12,6 +12,7 @@ public partial class PDeck : UserControl
     public PDeck()
     {
         InitializeComponent();
+        pDeckGrid.SizeChanged += PDeckSizeHandle;
         Unloaded += PDeckUnloadHandle;
     }
 
@@ -73,6 +74,27 @@ public partial class PDeck : UserControl
         }
 
         pTabDeckRoot.Visibility = Visibility.Visible;
+        PDeckRootFit(pTabDeckRoot);
+    }
+
+    private void PDeckSizeHandle(object sender, SizeChangedEventArgs e)
+    {
+        foreach (UIElement pChild in pDeckGrid.Children)
+        {
+            if (pChild is FrameworkElement pElement && pElement.Visibility == Visibility.Visible)
+            {
+                PDeckRootFit(pElement);
+            }
+        }
+    }
+
+    private void PDeckRootFit(FrameworkElement pRoot)
+    {
+        pRoot.Width = Math.Max(0, pDeckGrid.ActualWidth);
+        pRoot.HorizontalAlignment = HorizontalAlignment.Stretch;
+        pRoot.ClipToBounds = true;
+        pRoot.InvalidateMeasure();
+        pRoot.InvalidateArrange();
     }
 
     private void PDeckNoticeShow()
