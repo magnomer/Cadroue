@@ -4,6 +4,7 @@
         xmlns:pControlBar="clr-namespace:Cadroue.UIShell.PControlBar"
         xmlns:pMainArea="clr-namespace:Cadroue.UIShell.PMainArea"
         Title="Cadroue"
+        Icon="/PAssets/PProgram/PProgramIcon.ico"
         Width="1280"
         Height="720"
         MinWidth="900"

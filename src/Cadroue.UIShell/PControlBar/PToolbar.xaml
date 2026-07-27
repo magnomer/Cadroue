@@ -108,21 +108,15 @@
                   Background="#EAF2FC"
                   Cursor="Hand"
                   MouseLeftButtonDown="PLogoClickHandle">
-                <Border Width="34"
-                        Height="34"
-                        Background="#2F7CE8"
-                        CornerRadius="8"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Margin="0,13,0,0">
-                    <TextBlock Text="C"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               Foreground="#FFFFFF"
-                               IsHitTestVisible="False" />
-                </Border>
+                <Image Source="/PAssets/PProgram/PProgramIcon.png"
+                       Width="34"
+                       Height="34"
+                       Stretch="Uniform"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Top"
+                       Margin="0,13,0,0"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       IsHitTestVisible="False" />
             </Grid>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" ClipToBounds="False">
