@@ -15,13 +15,14 @@ public sealed class PTabRecord : INotifyPropertyChanged
         string pTabTitle,
         string pTabLayoutKey,
         ImageSource pTabIconSource,
-        LExportSpecificState? lExportSpecificState = null)
+        LExportSpecificState? lExportSpecificState = null,
+        LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         PTabId = Guid.NewGuid();
         PTabTitle = pTabTitle;
         PTabLayoutKey = pTabLayoutKey;
         PTabIconSource = pTabIconSource;
-        PTabWorkspace = new PWorkspace(pTabLayoutKey, lExportSpecificState);
+        PTabWorkspace = new PWorkspace(pTabLayoutKey, lExportSpecificState, lPreferenceTabLayout);
     }
 
     public Guid PTabId { get; }

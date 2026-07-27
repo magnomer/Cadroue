@@ -10,6 +10,8 @@ public sealed partial class PExport : UserControl
     private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
     private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
     private static readonly Brush PMutedBrush = new SolidColorBrush(Color.FromRgb(0x62, 0x6F, 0x83));
+    private static readonly Brush PHeaderFillBrush = new SolidColorBrush(Color.FromRgb(0xF3, 0xF5, 0xF8));
+    private static readonly Brush PHeaderTextBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
 
     private readonly LExportSpecificState lExportSpecificState;
     private readonly TextBlock pSummaryContainer;
@@ -17,10 +19,12 @@ public sealed partial class PExport : UserControl
     private readonly TextBlock pSummaryVideo;
     private readonly TextBlock pSummaryAudio;
     private readonly TextBlock pSummaryOutput;
-    private readonly ComboBox pPresetCombo;
+    private readonly StackPanel pPresetRowPanel;
+    private string? pPresetNameSelected;
+    private string? pPresetNameEditing;
 
     /// <summary>
-    /// Set while this panel writes to <see cref="pPresetCombo"/> itself. The preset
+    /// Set while this panel writes to the preset selection itself. The preset
     /// library is shared by every tab, so an unguarded programmatic write raises
     /// SelectionChanged, reloads the preset over this tab's own settings, and makes
     /// tabs appear to share one export configuration.
@@ -31,52 +35,95 @@ public sealed partial class PExport : UserControl
     {
         this.lExportSpecificState = lExportSpecificState;
         FocusVisualStyle = null;
-        pPresetCombo = PExportComboBuild();
+        pPresetRowPanel = new StackPanel();
+        pPresetNameSelected = lExportSpecificState.PresetName;
 
-        var pPanel = new StackPanel { Margin = new Thickness(12) };
-        pPanel.Children.Add(PHeaderBuild());
-        pPanel.Children.Add(PCardBuild("Summary",
+        var pPanel = new Grid();
+        pPanel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        pPanel.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+        UIElement pHeader = PHeaderBuild();
+        Grid.SetRow(pHeader, 0);
+        pPanel.Children.Add(pHeader);
+
+        var pBody = new Grid();
+        pBody.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        pBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        pBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        pBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        UIElement pPreset = PExportPresetBuild();
+        Grid.SetRow(pPreset, 0);
+        pBody.Children.Add(pPreset);
+
+        UIElement pAction = PExportActionBuild();
+        Grid.SetRow(pAction, 1);
+        pBody.Children.Add(pAction);
+
+        UIElement pSeparator = PSeparatorBuild();
+        Grid.SetRow(pSeparator, 2);
+        pBody.Children.Add(pSeparator);
+
+        UIElement pSummary = PSummaryBuild(
             PSummaryRowBuild("Container", out pSummaryContainer),
             PSummaryRowBuild("Mode", out pSummaryMode),
             PSummaryRowBuild("Video", out pSummaryVideo),
             PSummaryRowBuild("Audio", out pSummaryAudio),
-            PSummaryRowBuild("Output", out pSummaryOutput)));
-        pPanel.Children.Add(PCardBuild("Preset",
-            PExportTopBuild(),
-            PSeparatorBuild(),
-            PExportActionBuild()));
+            PSummaryRowBuild("Output", out pSummaryOutput));
+        Grid.SetRow(pSummary, 3);
+        pBody.Children.Add(pSummary);
+
+        Grid.SetRow(pBody, 1);
+        pPanel.Children.Add(pBody);
 
         PExportSummaryUpdate();
-        Content = PExportFrameBuild(new ScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            FocusVisualStyle = null,
-            Content = pPanel
-        });
+        Content = PExportFrameBuild(pPanel);
     }
 
-    private static Border PExportFrameBuild(UIElement pContent) => new()
+    private static Border PExportFrameBuild(UIElement pContent)
     {
-        Margin = new Thickness(8),
-        BorderBrush = PLineBrush,
-        BorderThickness = new Thickness(1),
-        Background = PSoftBrush,
-        CornerRadius = new CornerRadius(10),
-        Child = new Border
+        var pInnerBorder = new Border
         {
             Background = PSoftBrush,
             CornerRadius = new CornerRadius(9),
             Child = pContent,
             SnapsToDevicePixels = true
-        },
-        SnapsToDevicePixels = true
-    };
+        };
+        PExportClipApply(pInnerBorder, 9);
+
+        return new Border
+        {
+            Margin = new Thickness(8),
+            BorderBrush = PLineBrush,
+            BorderThickness = new Thickness(1),
+            Background = PSoftBrush,
+            CornerRadius = new CornerRadius(10),
+            Child = pInnerBorder,
+            SnapsToDevicePixels = true
+        };
+    }
+
+    private static void PExportClipApply(Border pBorder, double pRadius)
+    {
+        pBorder.SizeChanged += (_, _) =>
+        {
+            pBorder.Clip = new RectangleGeometry(
+                new Rect(0, 0, pBorder.ActualWidth, pBorder.ActualHeight),
+                pRadius,
+                pRadius);
+        };
+    }
 
     private void PExportSummaryUpdate()
     {
         pExportPresetBusy = true;
-        pPresetCombo.Text = lExportSpecificState.PresetName;
+        pPresetNameSelected = lExportSpecificState.PresetName;
+        if (!string.Equals(pPresetNameEditing, pPresetNameSelected, StringComparison.OrdinalIgnoreCase))
+        {
+            pPresetNameEditing = null;
+        }
+
+        PExportPresetRebuild();
         pExportPresetBusy = false;
 
         pSummaryContainer.Text = lExportSpecificState.Container;
@@ -86,25 +133,33 @@ public sealed partial class PExport : UserControl
         pSummaryOutput.Text = lExportSpecificState.OutputSummary;
     }
 
-    private static UIElement PHeaderBuild() => new TextBlock
+    private static UIElement PHeaderBuild() => new Border
     {
-        Text = "Export",
-        FontSize = 19,
-        FontWeight = FontWeights.SemiBold,
-        Foreground = PTextBrush,
-        Margin = new Thickness(0, 0, 0, 10)
+        Padding = new Thickness(12, 10, 12, 10),
+        BorderBrush = PLineBrush,
+        BorderThickness = new Thickness(0, 0, 0, 1),
+        Background = PHeaderFillBrush,
+        CornerRadius = new CornerRadius(9, 9, 0, 0),
+        Child = new TextBlock
+        {
+            Text = "Export",
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = PHeaderTextBrush,
+            VerticalAlignment = VerticalAlignment.Center
+        }
     };
 
-    private static Border PCardBuild(string pTitle, params UIElement[] pChildren)
+    private static Border PSummaryBuild(params UIElement[] pChildren)
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(new TextBlock
         {
-            Text = pTitle,
-            FontSize = 14,
+            Text = "Summary",
+            FontSize = 12,
             FontWeight = FontWeights.SemiBold,
             Foreground = PTextBrush,
-            Margin = new Thickness(0, 0, 0, 10)
+            Margin = new Thickness(0, 0, 0, 6)
         });
 
         foreach (UIElement pChild in pChildren)
@@ -117,9 +172,7 @@ public sealed partial class PExport : UserControl
             BorderBrush = Brushes.Transparent,
             BorderThickness = new Thickness(0),
             Background = Brushes.Transparent,
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(12),
-            Margin = new Thickness(0, 0, 0, 10),
+            Padding = new Thickness(10, 4, 10, 10),
             Child = pPanel
         };
     }
@@ -128,17 +181,17 @@ public sealed partial class PExport : UserControl
     {
         Height = 1,
         Background = PLineBrush,
-        Margin = new Thickness(0, 12, 0, 12)
+        Margin = new Thickness(0, 8, 0, 8)
     };
 
     private static UIElement PSummaryRowBuild(string pName, out TextBlock pValueBlock)
     {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 6) };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(86) });
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 3) };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(74) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(new TextBlock { Text = pName, Foreground = PMutedBrush, FontSize = 12, VerticalAlignment = VerticalAlignment.Top });
+        pGrid.Children.Add(new TextBlock { Text = pName, Foreground = PMutedBrush, FontSize = 11, VerticalAlignment = VerticalAlignment.Top });
 
-        pValueBlock = new TextBlock { Foreground = PTextBrush, FontSize = 12, TextWrapping = TextWrapping.Wrap };
+        pValueBlock = new TextBlock { Foreground = PTextBrush, FontSize = 11, TextWrapping = TextWrapping.Wrap };
         Grid.SetColumn(pValueBlock, 1);
         pGrid.Children.Add(pValueBlock);
         return pGrid;

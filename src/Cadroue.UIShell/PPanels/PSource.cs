@@ -13,15 +13,19 @@ namespace Cadroue.UIShell.PPanels;
 public sealed class PSource : UserControl
 {
     private static readonly SolidColorBrush PSourceTextBrush = new(Color.FromRgb(0x11, 0x18, 0x27));
+    private static readonly SolidColorBrush PSourceMutedBrush = new(Color.FromRgb(0x9C, 0xA3, 0xAF));
     private static readonly SolidColorBrush PSourceBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
+    private const double PSourceRowHeight = 50;
+    private const double PSourceBrowseIconSize = 18;
     private PViewer? pSourceViewer;
     private readonly bool pSourceAudioOnlyAllowed;
     private readonly TextBox pSourcePathBox;
+    private readonly TextBlock pSourcePlaceholderText;
 
     public PSource(bool pAudioOnlyAllowed)
     {
         pSourceAudioOnlyAllowed = pAudioOnlyAllowed;
-        MinHeight = 50;
+        MinHeight = PSourceRowHeight;
 
         pSourcePathBox = new TextBox
         {
@@ -34,6 +38,16 @@ public sealed class PSource : UserControl
             FocusVisualStyle = null
         };
         pSourcePathBox.KeyDown += PSourceKeyHandle;
+        pSourcePathBox.TextChanged += PSourceTextChangedHandle;
+
+        pSourcePlaceholderText = new TextBlock
+        {
+            Text = "No media loaded",
+            FontSize = 11,
+            Foreground = PSourceMutedBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            IsHitTestVisible = false
+        };
 
         var pPathIcon = PSourceIconCreate();
         var pPathContent = new Grid();
@@ -41,12 +55,14 @@ public sealed class PSource : UserControl
         pPathContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         Grid.SetColumn(pPathIcon, 0);
         Grid.SetColumn(pSourcePathBox, 1);
+        Grid.SetColumn(pSourcePlaceholderText, 1);
         pPathContent.Children.Add(pPathIcon);
         pPathContent.Children.Add(pSourcePathBox);
+        pPathContent.Children.Add(pSourcePlaceholderText);
 
         var pPathBorder = new Border
         {
-            MinHeight = 38,
+            MinHeight = PSourceRowHeight,
             Padding = new Thickness(14, 0, 14, 0),
             VerticalAlignment = VerticalAlignment.Stretch,
             BorderBrush = PSourceBorderBrush,
@@ -58,23 +74,23 @@ public sealed class PSource : UserControl
 
         var pBrowseButton = new Button
         {
-            Content = "Browse",
-            Width = 108,
-            Margin = new Thickness(12, 0, 0, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PButton.PButtonGreyCreate()
+            Content = PSourceBrowseIconCreate(),
+            Style = PButton.PButtonSourceCreate()
         };
         pBrowseButton.Click += PSourceOpenHandle;
 
         var pRow = new Grid { Margin = new Thickness(16, 8, 16, 8) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         Grid.SetColumn(pPathBorder, 0);
-        Grid.SetColumn(pBrowseButton, 1);
+        Grid.SetColumn(pBrowseButton, 2);
         pRow.Children.Add(pPathBorder);
         pRow.Children.Add(pBrowseButton);
 
         Content = pRow;
+
+        PSourcePlaceholderSync();
     }
 
     public void PSourceAttach(PViewer? pViewer)
@@ -89,6 +105,11 @@ public sealed class PSource : UserControl
     private void PSourceMediaHandle(LMediaOpenStatus pMediaStatus)
     {
         pSourcePathBox.Text = pMediaStatus.LMediaOpenSourcePath;
+    }
+
+    private void PSourceTextChangedHandle(object sender, TextChangedEventArgs e)
+    {
+        PSourcePlaceholderSync();
     }
 
     private void PSourceOpenHandle(object sender, RoutedEventArgs e)
@@ -144,6 +165,13 @@ public sealed class PSource : UserControl
         e.Handled = true;
     }
 
+    private void PSourcePlaceholderSync()
+    {
+        pSourcePlaceholderText.Visibility = string.IsNullOrWhiteSpace(pSourcePathBox.Text)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
     private static Image PSourceIconCreate()
     {
         return new Image
@@ -153,6 +181,17 @@ public sealed class PSource : UserControl
             Margin = new Thickness(0, 0, 12, 0),
             Stretch = Stretch.Uniform,
             Source = PIcon.PIconRead("/PAssets/PPanels/PVideo.svg")
+        };
+    }
+
+    private static Image PSourceBrowseIconCreate()
+    {
+        return new Image
+        {
+            Width = PSourceBrowseIconSize,
+            Height = PSourceBrowseIconSize,
+            Stretch = Stretch.Uniform,
+            Source = PIcon.PIconRead("/PAssets/PPanels/PBrowse.svg")
         };
     }
 

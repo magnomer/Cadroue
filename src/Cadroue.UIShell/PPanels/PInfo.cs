@@ -40,7 +40,6 @@ public sealed class PInfo : UserControl
 
         var pRoot = new Border
         {
-            Margin = new Thickness(16, 0, 16, 8),
             Padding = new Thickness(14, 8, 14, 8),
             BorderBrush = PInfoBorderBrush,
             BorderThickness = new Thickness(1),

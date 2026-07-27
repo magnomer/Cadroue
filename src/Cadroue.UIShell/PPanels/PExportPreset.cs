@@ -1,102 +1,170 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
-using Cadroue.UIShell.PMainWindow;
+using Cadroue.UIShell.PAssets;
 
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PExport
 {
-    private ComboBox PExportComboBuild()
+    private const string PExportPlusIconPath = "/PAssets/PPanels/PExportPlus.svg";
+    private const string PExportMinusIconPath = "/PAssets/PPanels/PExportMinus.svg";
+    private const string PExportSettingIconPath = "/PAssets/PPanels/PExportSetting.svg";
+    private const string PExportImportIconPath = "/PAssets/PPanels/PExportImport.svg";
+    private const string PExportExportIconPath = "/PAssets/PPanels/PExportExport.svg";
+    private static Style? pExportButtonStyle;
+
+    private UIElement PExportPresetBuild()
     {
-        var pCombo = new ComboBox
+        var pScroll = new ScrollViewer
         {
-            IsEditable = true,
-            StaysOpenOnEdit = true,
-            ItemsSource = LExportSpecificState.LPresetNames,
-            Text = lExportSpecificState.PresetName,
-            Height = 40,
+            Content = pPresetRowPanel,
             Background = Brushes.White,
-            BorderBrush = PLineBrush,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            FontSize = 14,
-            Padding = new Thickness(0)
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            FocusVisualStyle = null
         };
-        PDropdown.PDropdownEditableApply(pCombo);
-        pCombo.SelectionChanged += (_, _) => PExportPresetApply();
-        return pCombo;
+
+        PExportPresetRebuild();
+        return pScroll;
     }
 
-    private UIElement PExportTopBuild()
+    private void PExportPresetRebuild()
     {
-        var pGrid = new Grid { Margin = new Thickness(0) };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pGrid.Children.Add(pPresetCombo);
-
-        var pSaveButton = PExportButtonBuild(PIconSaveBuild(), PExportPresetSave);
-        PExportColumnSet(pSaveButton, 1);
-        pGrid.Children.Add(pSaveButton);
-
-        var pDeleteButton = PExportButtonBuild(PIconDeleteBuild(), PExportPresetDelete);
-        PExportColumnSet(pDeleteButton, 2);
-        pGrid.Children.Add(pDeleteButton);
-        return pGrid;
+        pPresetRowPanel.Children.Clear();
+        foreach (string lPresetName in LExportSpecificState.LPresetNames)
+        {
+            pPresetRowPanel.Children.Add(PExportPresetRowBuild(lPresetName));
+        }
     }
 
-    private static void PExportColumnSet(Button pButton, int pColumn)
+    private Border PExportPresetRowBuild(string lPresetName)
     {
-        Grid.SetColumn(pButton, pColumn);
+        bool pPresetSelected = string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase);
+        bool pPresetEditing = string.Equals(lPresetName, pPresetNameEditing, StringComparison.OrdinalIgnoreCase);
+        UIElement pNameElement = pPresetEditing
+            ? PExportPresetNameBoxBuild(lPresetName)
+            : PExportPresetNameTextBuild(lPresetName);
+
+        var pRowBorder = new Border
+        {
+            Padding = new Thickness(12, 7, 12, 7),
+            Background = pPresetSelected ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB)) : Brushes.White,
+            BorderBrush = PLineBrush,
+            BorderThickness = new Thickness(0, 0, 0, 1),
+            Cursor = Cursors.Hand,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Child = pNameElement
+        };
+        pRowBorder.MouseLeftButtonDown += (_, pEvent) =>
+        {
+            pPresetNameSelected = lPresetName;
+            PExportPresetApply();
+            if (pEvent.ClickCount >= 2)
+            {
+                pPresetNameEditing = lPresetName;
+                PExportPresetRebuild();
+            }
+
+            pEvent.Handled = true;
+        };
+
+        return pRowBorder;
+    }
+
+    private TextBlock PExportPresetNameTextBuild(string lPresetName) => new()
+    {
+        Text = lPresetName,
+        FontSize = 12,
+        Foreground = PTextBrush,
+        Padding = new Thickness(2, 0, 2, 1),
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private TextBox PExportPresetNameBoxBuild(string lPresetName)
+    {
+        var pNameBox = new TextBox
+        {
+            Text = lPresetName,
+            FontSize = 12,
+            Foreground = PTextBrush,
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0, 0, 0, 1),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0x4A, 0x90, 0xD9)),
+            Padding = new Thickness(2, 0, 2, 1),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Center,
+            FocusVisualStyle = null
+        };
+        pNameBox.Loaded += (_, _) =>
+        {
+            pNameBox.Focus();
+            pNameBox.SelectAll();
+        };
+        pNameBox.LostFocus += (_, _) => PExportPresetNameCommit(lPresetName, pNameBox.Text);
+        pNameBox.KeyDown += (_, pEvent) =>
+        {
+            if (pEvent.Key == Key.Return)
+            {
+                PExportPresetNameCommit(lPresetName, pNameBox.Text);
+                pEvent.Handled = true;
+            }
+            else if (pEvent.Key == Key.Escape)
+            {
+                pPresetNameEditing = null;
+                PExportPresetRebuild();
+                pEvent.Handled = true;
+            }
+        };
+        return pNameBox;
     }
 
     private UIElement PExportActionBuild()
     {
-        var pPanel = new UniformGrid { Columns = 3 };
-        pPanel.Children.Add(PExportLabelBuild("Settings", PIconSettingsBuild(), PExportDialogShow));
-        pPanel.Children.Add(PExportLabelBuild("Import", PIconImportBuild(), null));
-        pPanel.Children.Add(PExportLabelBuild("Export", PIconExportBuild(), null));
-        return pPanel;
-    }
+        var pGrid = new Grid { Margin = new Thickness(10, 4, 10, 0) };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-    private static StackPanel PExportContentBuild(string pText, UIElement pIcon)
-    {
-        var pStack = new StackPanel
+        var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        pLeftPanel.Children.Add(PExportButtonBuild(PExportPlusIconPath, "Add a new preset", PExportPresetAdd));
+        pLeftPanel.Children.Add(PExportButtonBuild(PExportMinusIconPath, "Delete the selected preset", PExportPresetDelete));
+        Grid.SetColumn(pLeftPanel, 0);
+        pGrid.Children.Add(pLeftPanel);
+
+        var pRightPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Right
         };
-        pStack.Children.Add(pIcon);
-
-        if (!string.IsNullOrWhiteSpace(pText))
-        {
-            pStack.Children.Add(new TextBlock
-            {
-                Text = pText,
-                FontSize = 12,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = PTextBrush,
-                VerticalAlignment = VerticalAlignment.Center
-            });
-        }
-
-        return pStack;
+        pRightPanel.Children.Add(PExportButtonBuild(PExportSettingIconPath, "Settings", PExportDialogShow));
+        pRightPanel.Children.Add(PExportButtonBuild(PExportExportIconPath, "Export", null));
+        pRightPanel.Children.Add(PExportButtonBuild(PExportImportIconPath, "Import", null));
+        Grid.SetColumn(pRightPanel, 2);
+        pGrid.Children.Add(pRightPanel);
+        return pGrid;
     }
 
-    private Button PExportLabelBuild(string pText, UIElement pIcon, RoutedEventHandler? pClick)
+    private Button PExportButtonBuild(string pIconPath, string pTooltip, RoutedEventHandler? pClick)
     {
+        bool pEnabled = pClick is not null;
         var pButton = new Button
         {
-            Content = PExportContentBuild(pText, pIcon),
-            Margin = new Thickness(2),
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            Style = PButton.PButtonLabelCreate()
+            Content = new Image
+            {
+                Width = 14,
+                Height = 14,
+                Source = PIcon.PIconRead(pIconPath, pEnabled ? PTextBrush : PMutedBrush),
+                Stretch = Stretch.Uniform
+            },
+            ToolTip = pTooltip,
+            Width = 28,
+            Height = 26,
+            Margin = new Thickness(0, 0, 2, 0),
+            Style = PExportButtonStyleRead(),
+            IsEnabled = pEnabled
         };
-
         if (pClick is not null)
         {
             pButton.Click += pClick;
@@ -105,23 +173,56 @@ public sealed partial class PExport
         return pButton;
     }
 
-    private Button PExportButtonBuild(UIElement pIcon, RoutedEventHandler pClick)
+    private static Style PExportButtonStyleRead()
     {
-        var pButton = new Button
-        {
-            Content = pIcon,
-            Margin = new Thickness(10, 0, 0, 0),
-            Style = PButton.PButtonIconCreate()
-        };
-        pButton.Click += pClick;
-        return pButton;
+        pExportButtonStyle ??= PExportButtonStyleCreate();
+        return pExportButtonStyle;
+    }
+
+    private static Style PExportButtonStyleCreate()
+    {
+        var pStyle = new Style(typeof(Button));
+        pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
+        pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));
+        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
+        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PTextBrush));
+        pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Transparent));
+        pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+        pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
+        pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
+        pStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PExportButtonTemplateBuild()));
+        return pStyle;
+    }
+
+    private static ControlTemplate PExportButtonTemplateBuild()
+    {
+        var pTemplate = new ControlTemplate(typeof(Button));
+        var pBorder = new FrameworkElementFactory(typeof(Border));
+        pBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+        pBorder.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+
+        var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
+        pContent.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        pContent.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        pBorder.AppendChild(pContent);
+        pTemplate.VisualTree = pBorder;
+
+        var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+        pHover.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromRgb(0xF1, 0xF5, 0xF9))));
+        pTemplate.Triggers.Add(pHover);
+
+        var pDisabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
+        pDisabled.Setters.Add(new Setter(Control.ForegroundProperty, PMutedBrush));
+        pTemplate.Triggers.Add(pDisabled);
+        return pTemplate;
     }
 
     private void PExportPresetApply()
     {
         // Only a real user pick may pull settings out of the shared preset library.
         // Programmatic writes must not, or one tab's save silently overwrites another's.
-        if (pExportPresetBusy || pPresetCombo.SelectedItem is not string lPresetName)
+        if (pExportPresetBusy || pPresetNameSelected is not string lPresetName)
         {
             return;
         }
@@ -132,25 +233,24 @@ public sealed partial class PExport
         }
     }
 
-    private void PExportPresetSave(object sender, RoutedEventArgs e)
+    private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
-        string lPresetName = pPresetCombo.Text.Trim();
-        if (string.IsNullOrWhiteSpace(lPresetName))
-        {
-            return;
-        }
-
+        string lPresetName = PExportPresetNameCreate();
         lExportSpecificState.PresetName = lPresetName;
         LExportSpecificState.LPresetSave(lPresetName, lExportSpecificState);
         pExportPresetBusy = true;
-        pPresetCombo.SelectedItem = lPresetName;
+        pPresetNameSelected = lPresetName;
         pExportPresetBusy = false;
         PExportSummaryUpdate();
     }
 
     private void PExportPresetDelete(object sender, RoutedEventArgs e)
     {
-        string lPresetName = pPresetCombo.Text.Trim();
+        if (pPresetNameSelected is not string lPresetName)
+        {
+            return;
+        }
+
         if (!LExportSpecificState.LPresetDelete(lPresetName))
         {
             return;
@@ -160,17 +260,64 @@ public sealed partial class PExport
         pExportPresetBusy = true;
         if (lNextPresetName is not null && LExportSpecificState.LPresetTryLoad(lNextPresetName, lExportSpecificState))
         {
-            pPresetCombo.SelectedItem = lNextPresetName;
+            pPresetNameSelected = lNextPresetName;
         }
         else
         {
             lExportSpecificState.PresetName = string.Empty;
-            pPresetCombo.Text = string.Empty;
+            pPresetNameSelected = null;
         }
 
         pExportPresetBusy = false;
-
         PExportSummaryUpdate();
+    }
+
+    private void PExportPresetNameCommit(string lOldPresetName, string lNewPresetName)
+    {
+        if (!string.Equals(pPresetNameEditing, lOldPresetName, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        pPresetNameEditing = null;
+        string lName = lNewPresetName.Trim();
+        if (string.IsNullOrWhiteSpace(lName) || string.Equals(lOldPresetName, lName, StringComparison.OrdinalIgnoreCase))
+        {
+            PExportPresetRebuild();
+            return;
+        }
+
+        if (LExportSpecificState.LPresetNames.Any(lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
+        {
+            PExportPresetRebuild();
+            return;
+        }
+
+        bool lCurrentPresetRename = string.Equals(pPresetNameSelected, lOldPresetName, StringComparison.OrdinalIgnoreCase);
+        var lPresetState = new LExportSpecificState();
+        if (lCurrentPresetRename)
+        {
+            lPresetState.LPresetCopy(lExportSpecificState);
+        }
+        else if (!LExportSpecificState.LPresetTryLoad(lOldPresetName, lPresetState))
+        {
+            PExportPresetRebuild();
+            return;
+        }
+
+        lPresetState.PresetName = lName;
+        LExportSpecificState.LPresetSave(lName, lPresetState);
+        LExportSpecificState.LPresetDelete(lOldPresetName);
+        if (lCurrentPresetRename)
+        {
+            lExportSpecificState.PresetName = lName;
+            pPresetNameSelected = lName;
+            PExportSummaryUpdate();
+        }
+        else
+        {
+            PExportPresetRebuild();
+        }
     }
 
     private void PExportDialogShow(object sender, RoutedEventArgs e)
@@ -187,113 +334,21 @@ public sealed partial class PExport
         }
     }
 
-    private static UIElement PIconSaveBuild()
+    private static string PExportPresetNameCreate()
     {
-        var pCanvas = new Canvas { Width = 20, Height = 20, VerticalAlignment = VerticalAlignment.Center };
-        pCanvas.Children.Add(PRectBuild(4, 3, 12, 14));
-        pCanvas.Children.Add(PLineBuild(6, 6, 14, 6));
-        pCanvas.Children.Add(PLineBuild(8, 11, 12, 11));
-        pCanvas.Children.Add(PLineBuild(8, 13, 12, 13));
-        return pCanvas;
-    }
-
-    private static UIElement PIconDeleteBuild()
-    {
-        var pCanvas = new Canvas { Width = 20, Height = 20, VerticalAlignment = VerticalAlignment.Center };
-        Brush pBrush = new SolidColorBrush(Color.FromRgb(0xC9, 0x2A, 0x2A));
-        foreach ((double x1, double y1, double x2, double y2) in new[] { (6d, 6d, 14d, 6d), (8d, 4d, 12d, 4d), (7d, 8d, 7d, 16d), (13d, 8d, 13d, 16d), (8.5d, 10d, 8.5d, 14d), (11.5d, 10d, 11.5d, 14d), (7d, 16d, 13d, 16d) })
+        const string pBaseName = "New Preset";
+        if (!LExportSpecificState.LPresetNames.Any(lName => string.Equals(lName, pBaseName, StringComparison.OrdinalIgnoreCase)))
         {
-            pCanvas.Children.Add(PLineBuild(x1, y1, x2, y2, pBrush));
+            return pBaseName;
         }
-        return pCanvas;
-    }
 
-    private static UIElement PIconSettingsBuild()
-    {
-        var pCanvas = PIconCanvasBuild();
-        pCanvas.Children.Add(PLineBuild(3, 5, 17, 5));
-        pCanvas.Children.Add(PLineBuild(3, 10, 17, 10));
-        pCanvas.Children.Add(PLineBuild(3, 15, 17, 15));
-        pCanvas.Children.Add(PCircleBuild(7, 5));
-        pCanvas.Children.Add(PCircleBuild(13, 10));
-        pCanvas.Children.Add(PCircleBuild(9, 15));
-        return pCanvas;
-    }
-
-    private static UIElement PIconImportBuild()
-    {
-        var pCanvas = PIconCanvasBuild();
-        foreach ((double x1, double y1, double x2, double y2) in new[] { (10d, 3d, 10d, 12d), (6.5d, 8.5d, 10d, 12d), (13.5d, 8.5d, 10d, 12d), (5d, 16d, 15d, 16d), (5d, 16d, 5d, 13d), (15d, 16d, 15d, 13d) })
+        for (int lIndex = 2; ; lIndex++)
         {
-            pCanvas.Children.Add(PLineBuild(x1, y1, x2, y2));
+            string lCandidate = $"{pBaseName} {lIndex}";
+            if (!LExportSpecificState.LPresetNames.Any(lName => string.Equals(lName, lCandidate, StringComparison.OrdinalIgnoreCase)))
+            {
+                return lCandidate;
+            }
         }
-        return pCanvas;
-    }
-
-    private static UIElement PIconExportBuild()
-    {
-        var pCanvas = PIconCanvasBuild();
-        foreach ((double x1, double y1, double x2, double y2) in new[] { (10d, 14d, 10d, 5d), (6.5d, 8.5d, 10d, 5d), (13.5d, 8.5d, 10d, 5d), (5d, 16d, 15d, 16d), (5d, 16d, 5d, 13d), (15d, 16d, 15d, 13d) })
-        {
-            pCanvas.Children.Add(PLineBuild(x1, y1, x2, y2));
-        }
-        return pCanvas;
-    }
-
-    private static Canvas PIconCanvasBuild() => new()
-    {
-        Width = 20,
-        Height = 20,
-        Margin = new Thickness(0, 0, 8, 0),
-        VerticalAlignment = VerticalAlignment.Center
-    };
-
-    private static Rectangle PRectBuild(double pLeft, double pTop, double pWidth, double pHeight)
-    {
-        var pRect = new Rectangle
-        {
-            Width = pWidth,
-            Height = pHeight,
-            Stroke = PTextBrush,
-            Fill = Brushes.Transparent,
-            StrokeThickness = 1.7,
-            RadiusX = 1,
-            RadiusY = 1
-        };
-        Canvas.SetLeft(pRect, pLeft);
-        Canvas.SetTop(pRect, pTop);
-        return pRect;
-    }
-
-    private static Line PLineBuild(double pX1, double pY1, double pX2, double pY2)
-    {
-        return PLineBuild(pX1, pY1, pX2, pY2, PTextBrush);
-    }
-
-    private static Line PLineBuild(double pX1, double pY1, double pX2, double pY2, Brush pBrush) => new()
-    {
-        X1 = pX1,
-        Y1 = pY1,
-        X2 = pX2,
-        Y2 = pY2,
-        Stroke = pBrush,
-        StrokeThickness = 1.8,
-        StrokeStartLineCap = PenLineCap.Round,
-        StrokeEndLineCap = PenLineCap.Round
-    };
-
-    private static Ellipse PCircleBuild(double pCenterX, double pCenterY)
-    {
-        var pCircle = new Ellipse
-        {
-            Width = 5,
-            Height = 5,
-            Stroke = PTextBrush,
-            Fill = Brushes.White,
-            StrokeThickness = 1.8
-        };
-        Canvas.SetLeft(pCircle, pCenterX - 2.5);
-        Canvas.SetTop(pCircle, pCenterY - 2.5);
-        return pCircle;
     }
 }

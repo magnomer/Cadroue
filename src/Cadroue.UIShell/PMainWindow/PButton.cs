@@ -30,6 +30,24 @@ public static class PButton
         return pStyle;
     }
 
+    public static Style PButtonSourceCreate()
+    {
+        var pStyle = PButtonBaseCreate();
+        pStyle.Setters.Add(new Setter(Control.WidthProperty, 50.0));
+        pStyle.Setters.Add(new Setter(Control.HeightProperty, 50.0));
+        pStyle.Setters.Add(new Setter(Control.MinWidthProperty, 50.0));
+        pStyle.Setters.Add(new Setter(Control.MinHeightProperty, 50.0));
+        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonNormalGreyBackgroundBrush));
+        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonTextBrush));
+        pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, PButtonBorderBrush));
+        pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
+        pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
+        pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
+        pStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonNormalGreyHoverBrush, PButtonNormalGreyPressedBrush)));
+        return pStyle;
+    }
+
     public static Style PButtonWhiteCreate()
     {
         var pStyle = PButtonWhitePrepare();

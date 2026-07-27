@@ -1,0 +1,88 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
+
+namespace Cadroue.UIShell.PMainWindow;
+
+public partial class PWindow
+{
+    private void PShortcutKeyHandle(object sender, KeyEventArgs e)
+    {
+        if (PWindowInputFind(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        bool pHandled = PShortcutDispatch(e.Key == Key.System ? e.SystemKey : e.Key, Keyboard.Modifiers);
+        if (pHandled)
+        {
+            e.Handled = true;
+        }
+    }
+
+    private bool PShortcutDispatch(Key pKey, ModifierKeys pModifiers)
+    {
+        if (pModifiers == ModifierKeys.Control && (pKey == Key.OemQuestion || pKey == Key.Divide))
+        {
+            pControlBar.PToolbarShortcutShow();
+            return true;
+        }
+
+        if (pModifiers != ModifierKeys.None)
+        {
+            return false;
+        }
+
+        return pKey switch
+        {
+            Key.Space => PShortcutPlayToggle(),
+            Key.C => pFlowActive?.PFlowShortcutDispatch("zoomIn") == true,
+            Key.V => pFlowActive?.PFlowShortcutDispatch("zoomOut") == true,
+            Key.Q => pFlowActive?.PFlowShortcutDispatch("addSection") == true,
+            Key.D => pFlowActive?.PFlowShortcutDispatch("setStart") == true,
+            Key.S => pFlowActive?.PFlowShortcutDispatch("splitSection") == true,
+            Key.F => pFlowActive?.PFlowShortcutDispatch("setEnd") == true,
+            Key.Delete => pFlowActive?.PFlowShortcutDispatch("deleteSection") == true,
+            Key.E => pFlowActive?.PFlowShortcutDispatch("previousKey") == true,
+            Key.W => pFlowActive?.PFlowShortcutDispatch("nearestKey") == true,
+            Key.R => pFlowActive?.PFlowShortcutDispatch("nextKey") == true,
+            _ => false
+        };
+    }
+
+    private bool PShortcutPlayToggle()
+    {
+        if (pViewerActive is null)
+        {
+            return false;
+        }
+
+        if (pViewerActive.LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+        {
+            pViewerActive.PViewerPause();
+        }
+        else
+        {
+            pViewerActive.PViewerPlay();
+        }
+
+        return true;
+    }
+
+    private static bool PWindowInputFind(DependencyObject? pSource)
+    {
+        while (pSource is not null)
+        {
+            if (pSource is TextBoxBase || pSource is PasswordBox)
+            {
+                return true;
+            }
+
+            pSource = VisualTreeHelper.GetParent(pSource);
+        }
+
+        return false;
+    }
+}

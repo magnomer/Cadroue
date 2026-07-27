@@ -12,6 +12,8 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PCompass : UserControl
 {
+    private static readonly Brush pCompassPositiveBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
+    private static readonly Brush pCompassNegativeBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45));
     private readonly Slider pCompassVolumeSlider;
     private readonly TextBlock pCompassVolumeText;
     private Border pCompassVolumeTrackFill = null!;
@@ -229,7 +231,7 @@ public sealed class PCompass : UserControl
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}"),
+            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PCompassAccentBrushRead(pLabelText)),
             Width = 24,
             Height = 24,
             Stretch = Stretch.Uniform,
@@ -252,4 +254,11 @@ public sealed class PCompass : UserControl
     }
 
     private static Border PCompassSeparatorBuild() => new() { Width = 1, Margin = new Thickness(1, 14, 1, 12), Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC)) };
+
+    private static Brush? PCompassAccentBrushRead(string pLabelText) => pLabelText switch
+    {
+        "Play" => pCompassPositiveBrush,
+        "Delete" => pCompassNegativeBrush,
+        _ => null
+    };
 }

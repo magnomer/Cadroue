@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Cadroue.UIShell.PPanels;
 
@@ -32,6 +33,7 @@ public sealed class LPreferenceState
     /// of them had. A short list (older preferences file) leaves the extra tabs on defaults.
     /// </summary>
     public List<LExportSpecificPresetRecord> LPreferenceTabExports { get; set; } = new();
+    public List<LPreferenceTabLayoutRecord> LPreferenceTabLayouts { get; set; } = new();
 
     public static LPreferenceState LPreferenceDefaultCreate()
     {
@@ -87,7 +89,10 @@ public sealed class LPreferenceState
             LPreferenceHistoryMode = LPreferenceHistoryMode,
             LPreferenceTabLayoutKeys = new List<string>(LPreferenceTabLayoutKeys),
             LPreferenceTabSelectIndex = LPreferenceTabSelectIndex,
-            LPreferenceTabExports = new List<LExportSpecificPresetRecord>(LPreferenceTabExports)
+            LPreferenceTabExports = new List<LExportSpecificPresetRecord>(LPreferenceTabExports),
+            LPreferenceTabLayouts = LPreferenceTabLayouts
+                .Select(lPreferenceTabLayout => lPreferenceTabLayout.LPreferenceTabLayoutClone())
+                .ToList()
         };
     }
 
@@ -108,6 +113,7 @@ public sealed class LPreferenceState
         LPreferenceTabSelectIndex = Math.Max(0, LPreferenceTabSelectIndex);
         if (LPreferenceTabLayoutKeys is null || LPreferenceTabLayoutKeys.Count == 0)
             LPreferenceTabLayoutKeys = new List<string> { "Split" };
+        LPreferenceTabLayouts ??= new List<LPreferenceTabLayoutRecord>();
     }
 
     [JsonIgnore]
@@ -124,5 +130,18 @@ public sealed class LPreferenceState
         }
 
         return Math.Clamp(lPreferenceValue, lPreferenceMinimum, lPreferenceMaximum);
+    }
+}
+
+public sealed class LPreferenceTabLayoutRecord
+{
+    public List<double> PanelWidths { get; set; } = new();
+
+    public LPreferenceTabLayoutRecord LPreferenceTabLayoutClone()
+    {
+        return new LPreferenceTabLayoutRecord
+        {
+            PanelWidths = new List<double>(PanelWidths)
+        };
     }
 }

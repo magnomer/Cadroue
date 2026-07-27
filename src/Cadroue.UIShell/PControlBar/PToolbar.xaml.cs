@@ -139,7 +139,7 @@ public partial class PToolbar : UserControl
             Header = pLogoMenuText,
             Icon = new Image
             {
-                Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(pLogoMenuIconPath, UriKind.Relative)),
+                Source = PIcon.PIconRead(pLogoMenuIconPath),
                 Width = 20,
                 Height = 20,
                 Stretch = Stretch.Uniform

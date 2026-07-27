@@ -5,17 +5,21 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PWorklistTab : PTabSurface
 {
-    public PWorklistTab()
+    private readonly PRoster pRoster;
+
+    public PWorklistTab(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
+        pRoster = new PRoster(lPreferenceTabLayout);
         Content = new System.Windows.Controls.Grid
         {
             Children =
             {
-                new PRoster()
+                pRoster
             }
         };
     }
 
     public override PFlowControl? PTabFlow => null;
     public override PViewer? PTabViewer => null;
+    public override LPreferenceTabLayoutRecord PTabLayoutRead() => pRoster.PRosterLayoutRead();
 }

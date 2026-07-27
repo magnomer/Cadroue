@@ -1,6 +1,5 @@
 using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;
+using System.IO;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
@@ -15,7 +14,7 @@ namespace Cadroue.ShellEngine;
 /// State is written back through <see cref="LRunnerPost"/> so the single-threaded
 /// <see cref="LSchedule"/> is only ever touched on the owning (UI) thread.
 /// </summary>
-public sealed class LRunner
+public sealed partial class LRunner
 {
     private readonly LSchedule lRunnerSchedule;
     private readonly Action<Action> lRunnerPost;
@@ -100,22 +99,6 @@ public sealed class LRunner
         lRunnerSuspended = false;
         LRunnerPartialRemove(pItem);
         lRunnerSchedule.LScheduleCancel();
-    }
-
-    private void LRunnerProcessResume()
-    {
-        Process? pProcess = lRunnerProcess;
-        if (pProcess is null || pProcess.HasExited)
-        {
-            lRunnerSuspended = false;
-            return;
-        }
-
-        if (LRunnerProcessResume(pProcess))
-        {
-            lRunnerSuspended = false;
-            LRunnerMessageSet(lRunnerItem, string.Empty);
-        }
     }
 
     private void LRunnerLoopStart()
@@ -230,128 +213,4 @@ public sealed class LRunner
         }
     }
 
-    /// <summary>
-    /// Follow "-progress pipe:1". FFmpeg writes one block of key=value lines per
-    /// -stats_period (forced to <see cref="LEncode.LEncodeStatsPeriod"/> seconds) and
-    /// closes each block with a "progress=" line. The position is collected while the
-    /// block streams in and published once the block closes, so the UI gets exactly one
-    /// coherent update per report instead of a partial one per line.
-    /// </summary>
-    private async Task LRunnerProgressRead(Process pProcess, LWorkItem pWorkItem, CancellationToken lRunnerToken)
-    {
-        double pTotalSeconds = pWorkItem.LWorkDuration.TotalSeconds;
-        long pBlockMicroseconds = -1;
-
-        while (await pProcess.StandardOutput.ReadLineAsync(lRunnerToken).ConfigureAwait(false) is string pLine)
-        {
-            int pSeparator = pLine.IndexOf('=');
-            if (pSeparator <= 0)
-            {
-                continue;
-            }
-
-            string pKey = pLine[..pSeparator];
-            string pValue = pLine[(pSeparator + 1)..].Trim();
-
-            switch (pKey)
-            {
-                // Both keys carry microseconds; older builds only emit out_time_ms and
-                // still write a microsecond value into it. "N/A" appears before the
-                // first frame lands and simply fails to parse.
-                case "out_time_us":
-                case "out_time_ms":
-                    if (long.TryParse(pValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out long pParsed))
-                    {
-                        pBlockMicroseconds = pParsed;
-                    }
-
-                    break;
-
-                case "progress":
-                    if (pBlockMicroseconds >= 0 && pTotalSeconds > 0)
-                    {
-                        double pFraction = pBlockMicroseconds / 1_000_000d / pTotalSeconds;
-                        LRunnerInvoke(() => pWorkItem.LWorkProgress = pFraction);
-                    }
-
-                    if (string.Equals(pValue, "end", StringComparison.Ordinal))
-                    {
-                        LRunnerInvoke(() => pWorkItem.LWorkProgress = 1);
-                    }
-
-                    pBlockMicroseconds = -1;
-                    break;
-            }
-        }
-    }
-
-    private static void LRunnerPartialRemove(LWorkItem? pWorkItem)
-    {
-        if (pWorkItem is null || string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath))
-        {
-            return;
-        }
-
-        try
-        {
-            if (File.Exists(pWorkItem.LWorkOutputPath))
-            {
-                File.Delete(pWorkItem.LWorkOutputPath);
-            }
-        }
-        catch (IOException)
-        {
-            // The file is still locked by the dying process; leaving it is better than throwing.
-        }
-        catch (UnauthorizedAccessException)
-        {
-        }
-    }
-
-    private void LRunnerMessageSet(LWorkItem? pWorkItem, string pMessage)
-    {
-        if (pWorkItem is null)
-        {
-            return;
-        }
-
-        LRunnerInvoke(() => pWorkItem.LWorkMessage = pMessage);
-    }
-
-    private void LRunnerInvoke(Action pAction) => lRunnerPost(pAction);
-
-    // ---- Win32 process suspend/resume -------------------------------------
-    // NtSuspendProcess/NtResumeProcess freeze every thread in the child. This is how a
-    // real pause is achieved: SIGSTOP has no Windows equivalent, and killing the encoder
-    // would throw away the partial output.
-
-    [DllImport("ntdll.dll", SetLastError = true)]
-    private static extern int NtSuspendProcess(IntPtr lRunnerProcessHandle);
-
-    [DllImport("ntdll.dll", SetLastError = true)]
-    private static extern int NtResumeProcess(IntPtr lRunnerProcessHandle);
-
-    private static bool LRunnerProcessSuspend(Process pProcess)
-    {
-        try
-        {
-            return NtSuspendProcess(pProcess.Handle) == 0;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    private static bool LRunnerProcessResume(Process pProcess)
-    {
-        try
-        {
-            return NtResumeProcess(pProcess.Handle) == 0;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
 }

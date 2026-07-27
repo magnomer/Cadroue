@@ -59,29 +59,34 @@ public sealed class LTabset
     /// <param name="lExportSpecificState">
     /// Export settings to restore into the new tab, or null to start from defaults.
     /// </param>
-    public PTabRecord LTabsetAdd(string pTabLayoutKey, LExportSpecificState? lExportSpecificState = null)
+    public PTabRecord LTabsetAdd(
+        string pTabLayoutKey,
+        LExportSpecificState? lExportSpecificState = null,
+        LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         return pTabLayoutKey switch
         {
-            "Edit" => LTabsetTypedAdd("Edit", lTabsetEditIconPath, lExportSpecificState),
-            "Audio" => LTabsetTypedAdd("Audio", lTabsetAudioIconPath, lExportSpecificState),
-            "Convert" => LTabsetTypedAdd("Convert", lTabsetConvertIconPath, lExportSpecificState),
-            "Merge" => LTabsetTypedAdd("Merge", lTabsetMergeIconPath, lExportSpecificState),
-            "Worklist" => LTabsetTypedAdd("Worklist", lTabsetWorklistIconPath, lExportSpecificState),
-            _ => LTabsetTypedAdd("Split", lTabsetSplitIconPath, lExportSpecificState)
+            "Edit" => LTabsetTypedAdd("Edit", lTabsetEditIconPath, lExportSpecificState, lPreferenceTabLayout),
+            "Audio" => LTabsetTypedAdd("Audio", lTabsetAudioIconPath, lExportSpecificState, lPreferenceTabLayout),
+            "Convert" => LTabsetTypedAdd("Convert", lTabsetConvertIconPath, lExportSpecificState, lPreferenceTabLayout),
+            "Merge" => LTabsetTypedAdd("Merge", lTabsetMergeIconPath, lExportSpecificState, lPreferenceTabLayout),
+            "Worklist" => LTabsetTypedAdd("Worklist", lTabsetWorklistIconPath, lExportSpecificState, lPreferenceTabLayout),
+            _ => LTabsetTypedAdd("Split", lTabsetSplitIconPath, lExportSpecificState, lPreferenceTabLayout)
         };
     }
 
     private PTabRecord LTabsetTypedAdd(
         string pTabLayoutKey,
         string pTabIconPath,
-        LExportSpecificState? lExportSpecificState)
+        LExportSpecificState? lExportSpecificState,
+        LPreferenceTabLayoutRecord? lPreferenceTabLayout)
     {
         var pTabRecord = new PTabRecord(
             pTabLayoutKey,
             pTabLayoutKey,
             PIcon.PIconRead(pTabIconPath),
-            lExportSpecificState)
+            lExportSpecificState,
+            lPreferenceTabLayout)
         {
             PTabOrdinal = LTabsetOrdinalRead(pTabLayoutKey)
         };

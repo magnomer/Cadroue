@@ -2,13 +2,15 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Cadroue.Core;
+using Cadroue.UIShell.PAssets;
 
 namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PAction : UserControl
 {
+    private static readonly Brush pActionPositiveBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
+    private static readonly Brush pActionNegativeBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45));
     public event Action<LWorkPriority>? PActionRun;
 
     public PAction()
@@ -19,12 +21,12 @@ public sealed class PAction : UserControl
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center
         };
-        Button pAddListButton = PActionButtonBuild("PActionAddList.png", "Add List");
-        Button pExecuteButton = PActionButtonBuild("PActionExecute.png", "Execute");
+        Button pAddListButton = PActionButtonBuild("PActionAddList.svg", "Add List");
+        Button pExecuteButton = PActionButtonBuild("PActionExecute.svg", "Execute");
         pAddListButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityNormal);
         pExecuteButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
         pPanel.Children.Add(pAddListButton);
-        pPanel.Children.Add(new Border { Width = 10 });
+        pPanel.Children.Add(new Border { Width = 2 });
         pPanel.Children.Add(pExecuteButton);
         Content = new Border { Child = pPanel };
     }
@@ -34,31 +36,30 @@ public sealed class PAction : UserControl
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = new BitmapImage(new Uri($"pack://application:,,,/PAssets/PCompass/{pIconAssetName}", UriKind.Absolute)),
+            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PActionAccentBrushRead(pLabelText)),
             Width = 24,
             Height = 24,
             Stretch = Stretch.Uniform,
             HorizontalAlignment = HorizontalAlignment.Center
         });
-        pStack.Children.Add(new Border { Height = 2 });
+        pStack.Children.Add(new Border { Height = 1 });
         pStack.Children.Add(new TextBlock
         {
             Text = pLabelText,
             FontSize = 11,
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center,
-            FontWeight = FontWeights.Medium,
             Foreground = new SolidColorBrush(Color.FromRgb(0x0D, 0x1B, 0x2F))
         });
 
         return new Button
         {
-            Width = 82,
+            Width = 58,
             Height = 58,
             Content = pStack,
-            Background = new SolidColorBrush(Color.FromRgb(0xFB, 0xFC, 0xFE)),
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0xD7, 0xDF, 0xEA)),
-            BorderThickness = new Thickness(1),
+            Background = Brushes.Transparent,
+            BorderBrush = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
             FocusVisualStyle = null,
             Padding = new Thickness(0),
             Cursor = Cursors.Hand,
@@ -85,11 +86,18 @@ public sealed class PAction : UserControl
 
         var pTemplate = new ControlTemplate(typeof(Button)) { VisualTree = pBorder };
         var pHoverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHoverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush(Color.FromRgb(0xF4, 0xF7, 0xFB)), "pButtonBorder"));
+        pHoverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, Brushes.Transparent, "pButtonBorder"));
         var pPressTrigger = new Trigger { Property = Button.IsPressedProperty, Value = true };
-        pPressTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush(Color.FromRgb(0xEA, 0xF1, 0xFF)), "pButtonBorder"));
+        pPressTrigger.Setters.Add(new Setter(Border.BackgroundProperty, Brushes.Transparent, "pButtonBorder"));
         pTemplate.Triggers.Add(pHoverTrigger);
         pTemplate.Triggers.Add(pPressTrigger);
         return pTemplate;
     }
+
+    private static Brush? PActionAccentBrushRead(string pLabelText) => pLabelText switch
+    {
+        "Add List" => pActionPositiveBrush,
+        "Execute" => pActionNegativeBrush,
+        _ => null
+    };
 }
