@@ -22,7 +22,7 @@ public sealed class PInfo : UserControl
 
     public PInfo()
     {
-        MinHeight = 50;
+        MinHeight = 38;
 
         pInfoItemPanel = new StackPanel
         {
@@ -40,7 +40,7 @@ public sealed class PInfo : UserControl
 
         var pRoot = new Border
         {
-            Padding = new Thickness(14, 8, 14, 8),
+            Padding = new Thickness(14, 4, 14, 4),
             BorderBrush = PInfoBorderBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
@@ -176,9 +176,9 @@ public sealed class PInfo : UserControl
     {
         return new Image
         {
-            Width = 28,
-            Height = 28,
-            Margin = new Thickness(0, 0, 12, 0),
+            Width = 20,
+            Height = 20,
+            Margin = new Thickness(0, 0, 10, 0),
             Stretch = Stretch.Uniform,
             Source = PIcon.PIconRead("/PAssets/PPanels/PInfo.svg")
         };

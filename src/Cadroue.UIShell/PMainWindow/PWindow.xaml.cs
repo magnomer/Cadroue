@@ -29,7 +29,12 @@ public partial class PWindow : Window
     {
         InitializeComponent();
         lTabset = new LTabset();
-        PWindowTabsRestore(lTabset, App.LPreferenceStateCurrent);
+        LRelay? lRelayStartup = App.LRelayStartupTake();
+        if (lRelayStartup is null)
+        {
+            PWindowTabsRestore(lTabset, App.LPreferenceStateCurrent);
+        }
+
         pControlBar.PToolbarTabsetSet(lTabset);
         pControlBar.PToolbarPreferenceApply += PWindowPreferenceHandle;
         PWindowPreferenceHandle(App.LPreferenceStateCurrent);
@@ -37,6 +42,13 @@ public partial class PWindow : Window
         pDeck.PDeckTabsetSet(lTabset);
         lTabset.LTabsetSelectChange += PWindowTabHandle;
         PWindowTabHandle(lTabset.PTabsetSelectRecord);
+        if (lRelayStartup is { } lRelayPayload)
+        {
+            PWindowRelayPlace(lRelayPayload);
+            PWindowRelayAdopt(lRelayPayload);
+        }
+
+        LRelayChannel.LRelayTabReceive += PWindowRelayHandle;
         PDropHandlersAdd();
         PResizeHandlersAdd();
         PreviewKeyDown += PShortcutKeyHandle;
@@ -51,8 +63,6 @@ public partial class PWindow : Window
         IReadOnlyList<LPreferenceTabLayoutRecord> pTabLayouts = lPreferenceState.LPreferenceTabLayouts;
         for (int pTabIndex = 0; pTabIndex < pTabKeys.Count; pTabIndex++)
         {
-            // Index-aligned with the layout keys. A shorter list (preferences written by
-            // an older build) leaves the remaining tabs on default export settings.
             LExportSpecificState? pTabExportState = pTabIndex < pTabExports.Count
                 ? pTabExports[pTabIndex].LPresetStateCreate()
                 : null;
@@ -62,6 +72,39 @@ public partial class PWindow : Window
         int pSelectIndex = Math.Clamp(lPreferenceState.LPreferenceTabSelectIndex, 0, pTabset.PTabsetRecords.Count - 1);
         pTabset.LTabsetSelect(pTabset.PTabsetRecords[pSelectIndex]);
     }
+    private void PWindowRelayPlace(LRelay lRelay)
+    {
+        double pRelayLeft = lRelay.DropLeft - 120;
+        double pRelayTop = lRelay.DropTop - 16;
+        double pRelayRightLimit = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 200;
+        double pRelayBottomLimit = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 120;
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = Math.Clamp(pRelayLeft, SystemParameters.VirtualScreenLeft, pRelayRightLimit);
+        Top = Math.Clamp(pRelayTop, SystemParameters.VirtualScreenTop, pRelayBottomLimit);
+    }
+
+    private void PWindowRelayAdopt(LRelay lRelay)
+    {
+        PTabRecord pRelayTabRecord = lTabset.LTabsetAdd(
+            lRelay.LayoutKey,
+            lRelay.LRelayExportCreate(),
+            lRelay.Layout);
+        lTabset.LTabsetSelect(pRelayTabRecord);
+        pRelayTabRecord.PTabWorkspace.PWorkspaceRelayApply(lRelay);
+    }
+
+    private void PWindowRelayHandle(LRelay lRelay)
+    {
+        PWindowRelayAdopt(lRelay);
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        Activate();
+    }
+
     private void PWindowPositionRestore(LPreferenceState lPrefs)
     {
         if (lPrefs.LPreferenceProgramLeft is not double pLeft || lPrefs.LPreferenceProgramTop is not double pTop)
@@ -171,6 +214,7 @@ public partial class PWindow : Window
         lPrefs.LPreferenceTabSelectIndex = lTabset.PTabsetSelectRecord is null ? 0
             : Math.Max(0, lTabset.PTabsetRecords.IndexOf(lTabset.PTabsetSelectRecord));
         App.LPreferenceStateSet(lPrefs);
+        LRelayChannel.LRelayTabReceive -= PWindowRelayHandle;
         lTabset.LTabsetSelectChange -= PWindowTabHandle;
         pControlBar.PToolbarPreferenceApply -= PWindowPreferenceHandle;
         PreviewKeyDown -= PShortcutKeyHandle;

@@ -1,11 +1,5 @@
 namespace Cadroue.Core;
 
-/// <summary>
-/// Per-encoder rate-control shapes, verified against FFmpeg 8.1.2 encoder help.
-/// There is no shared "CRF / preset" pair: only 7 of these encoders have a real
-/// -crf, ranges disagree, three invert the quality direction, and libwebp's
-/// -preset selects content type rather than speed.
-/// </summary>
 public static partial class LCapabilityTable
 {
     private const string LCapabilityBitrateLabel = "Target bitrate";
@@ -27,8 +21,6 @@ public static partial class LCapabilityTable
 
     private static readonly string[] LCapabilityNvencPresets =
         ["p1", "p2", "p3", "p4", "p5", "p6", "p7"];
-
-    // ---- family factories -------------------------------------------------
 
     private static LCapabilityCodec LCapabilityX26xCreate(string lEncoder, string lCrfDefault) => new(
         lEncoder,
@@ -111,8 +103,6 @@ public static partial class LCapabilityTable
         null,
         null,
         lNotice);
-
-    // ---- registry ---------------------------------------------------------
 
     public static LCapabilityCodec LCapabilityFallback { get; } = new(
         "unknown",

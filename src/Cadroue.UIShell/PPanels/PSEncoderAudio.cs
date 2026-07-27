@@ -23,7 +23,7 @@ internal sealed partial class PSEncoder
         psAudioModeCombo.SelectionChanged += (_, _) => PSAudioScopeUpdate();
 
         PSAudioScopeUpdate();
-        return PSPlateBuild("Audio", pPanel);
+        return PSPlateBuild(pPanel);
     }
 
     private void PSAudioScopeUpdate()
@@ -45,9 +45,8 @@ internal sealed partial class PSEncoder
     private static TextBlock PSScopeNoticeBuild() => new()
     {
         Foreground = PMutedBrush,
-        FontSize = 12,
         TextWrapping = TextWrapping.Wrap,
-        Margin = new Thickness(130, 2, 0, 4),
+        Margin = PSSheetNoticeMargin,
         Visibility = Visibility.Collapsed
     };
 }

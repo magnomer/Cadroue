@@ -57,9 +57,16 @@ public sealed partial class PRoster
 
     private void PRosterCancelHandle(object pSender, RoutedEventArgs pArguments) => lRosterRunner.LRunnerCancel();
 
+    private void PRosterDepotHandle()
+    {
+        Dispatcher.BeginInvoke(new Action(() => lRosterSchedule.LScheduleReload()));
+    }
+
     private void PRosterUnloadHandle(object pSender, RoutedEventArgs pArguments)
     {
         lRosterSchedule.LScheduleChange -= PRosterScheduleHandle;
+        lRosterDepotWatch.LDepotChange -= PRosterDepotHandle;
+        lRosterDepotWatch.Dispose();
         Unloaded -= PRosterUnloadHandle;
         PRosterWatchStop();
     }

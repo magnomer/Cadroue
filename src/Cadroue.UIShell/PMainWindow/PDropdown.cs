@@ -62,7 +62,7 @@ internal static class PDropdown
     {
         var pToggle = new FrameworkElementFactory(typeof(ToggleButton));
         pToggle.SetValue(DockPanel.DockProperty, Dock.Right);
-        pToggle.SetValue(FrameworkElement.WidthProperty, 40.0);
+        pToggle.SetValue(FrameworkElement.WidthProperty, 26.0);
         pToggle.SetValue(ToggleButton.FocusableProperty, false);
         pToggle.SetValue(ToggleButton.BackgroundProperty, Brushes.Transparent);
         pToggle.SetValue(ToggleButton.BorderThicknessProperty, new Thickness(0));
@@ -83,7 +83,6 @@ internal static class PDropdown
         pEditableBox.SetValue(TextBox.BackgroundProperty, Brushes.Transparent);
         pEditableBox.SetValue(TextBox.BorderThicknessProperty, new Thickness(0));
         pEditableBox.SetValue(TextBox.ForegroundProperty, PTextBrush);
-        pEditableBox.SetValue(TextBox.FontSizeProperty, 14.0);
         pEditableBox.SetValue(TextBox.VerticalContentAlignmentProperty, VerticalAlignment.Center);
         pEditableBox.SetValue(TextBox.PaddingProperty, new Thickness(14, 0, 10, 0));
         pEditableBox.SetValue(TextBox.SelectionBrushProperty, PAccentBrush);
@@ -172,13 +171,13 @@ internal static class PDropdown
 
         var pArrow = new FrameworkElementFactory(typeof(Path));
         pArrow.SetValue(Path.StrokeProperty, PTextBrush);
-        pArrow.SetValue(Path.StrokeThicknessProperty, 1.6);
+        pArrow.SetValue(Path.StrokeThicknessProperty, 1.3);
         pArrow.SetValue(Path.StrokeStartLineCapProperty, PenLineCap.Round);
         pArrow.SetValue(Path.StrokeEndLineCapProperty, PenLineCap.Round);
         pArrow.SetValue(Path.StrokeLineJoinProperty, PenLineJoin.Round);
         pArrow.SetValue(Path.DataProperty, Geometry.Parse("M 3 4 L 6 7 L 9 4"));
-        pArrow.SetValue(Path.WidthProperty, 12.0);
-        pArrow.SetValue(Path.HeightProperty, 8.0);
+        pArrow.SetValue(Path.WidthProperty, 9.0);
+        pArrow.SetValue(Path.HeightProperty, 6.0);
         pArrow.SetValue(Path.StretchProperty, Stretch.Uniform);
         pArrow.SetValue(Path.HorizontalAlignmentProperty, HorizontalAlignment.Center);
         pArrow.SetValue(Path.VerticalAlignmentProperty, VerticalAlignment.Center);
@@ -195,7 +194,6 @@ internal static class PDropdown
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
-        pStyle.Setters.Add(new Setter(Control.FontSizeProperty, 14.0));
         pStyle.Setters.Add(new Setter(Control.TemplateProperty, PDropdownRowBuild()));
         return pStyle;
     }
@@ -208,7 +206,7 @@ internal static class PDropdown
         pBorder.SetValue(Border.BackgroundProperty, Brushes.Transparent);
         pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
         pBorder.SetValue(FrameworkElement.MarginProperty, new Thickness(4));
-        pBorder.SetValue(Border.PaddingProperty, new Thickness(12, 10, 12, 10));
+        pBorder.SetValue(Border.PaddingProperty, new Thickness(12, 6, 12, 6));
 
         var pDock = new FrameworkElementFactory(typeof(DockPanel));
         pBorder.AppendChild(pDock);

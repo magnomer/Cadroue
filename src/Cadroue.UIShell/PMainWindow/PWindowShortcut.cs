@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIShell.PControlBar;
 
 namespace Cadroue.UIShell.PMainWindow;
 
@@ -30,6 +31,17 @@ public partial class PWindow
             return true;
         }
 
+        if (pModifiers == ModifierKeys.Control && pKey == Key.Z)
+        {
+            return PShortcutHistoryRun(false);
+        }
+
+        if ((pModifiers == ModifierKeys.Control && pKey == Key.Y)
+            || (pModifiers == (ModifierKeys.Control | ModifierKeys.Shift) && pKey == Key.Z))
+        {
+            return PShortcutHistoryRun(true);
+        }
+
         if (pModifiers != ModifierKeys.None)
         {
             return false;
@@ -45,11 +57,23 @@ public partial class PWindow
             Key.S => pFlowActive?.PFlowShortcutDispatch("splitSection") == true,
             Key.F => pFlowActive?.PFlowShortcutDispatch("setEnd") == true,
             Key.Delete => pFlowActive?.PFlowShortcutDispatch("deleteSection") == true,
+            Key.A => pFlowActive?.PFlowShortcutDispatch("nameSection") == true,
             Key.E => pFlowActive?.PFlowShortcutDispatch("previousKey") == true,
             Key.W => pFlowActive?.PFlowShortcutDispatch("nearestKey") == true,
             Key.R => pFlowActive?.PFlowShortcutDispatch("nextKey") == true,
             _ => false
         };
+    }
+
+    private bool PShortcutHistoryRun(bool pShortcutRedo)
+    {
+        PWorkspace? pWorkspace = lTabset.PTabsetSelectRecord?.PTabWorkspace;
+        if (pWorkspace is null)
+        {
+            return false;
+        }
+
+        return pShortcutRedo ? pWorkspace.PWorkspaceRedo() : pWorkspace.PWorkspaceUndo();
     }
 
     private bool PShortcutPlayToggle()

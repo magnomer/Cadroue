@@ -2,17 +2,6 @@ using System.Collections.ObjectModel;
 
 namespace Cadroue.Core;
 
-/// <summary>
-/// Ground truth for scheduled work, owned by the backend.
-///
-/// The shell never keeps its own copy of the queue: it reads <see cref="LScheduleRecords"/>
-/// and follows <see cref="LScheduleChange"/>. Enqueue order is preserved for display;
-/// precedence is applied when a runner asks for the next item, so a high-priority
-/// Execute does not visibly reshuffle rows the user is looking at.
-///
-/// Not thread-safe. Every call must come from one thread (today, the UI thread). A
-/// background runner must marshal its state writes rather than mutate from a worker.
-/// </summary>
 public sealed class LSchedule
 {
     private readonly ObservableCollection<LWorkItem> lScheduleItems = new();
@@ -22,18 +11,12 @@ public sealed class LSchedule
         LScheduleRecords = new ReadOnlyObservableCollection<LWorkItem>(lScheduleItems);
     }
 
-    /// <summary>Process-wide schedule. The one place queued work exists.</summary>
     public static LSchedule LScheduleCurrent { get; } = new();
 
     public ReadOnlyObservableCollection<LWorkItem> LScheduleRecords { get; }
 
-    /// <summary>Raised after any add, remove, clear, or run-state change.</summary>
     public event Action<LSchedule>? LScheduleChange;
 
-    /// <summary>
-    /// Whether the queue is meant to be running. Ground truth for the transport, so a
-    /// runner added later observes this rather than the UI owning the flag.
-    /// </summary>
     public bool LScheduleRunning { get; private set; }
 
     public int LScheduleDoneCount =>
@@ -61,30 +44,35 @@ public sealed class LSchedule
         LScheduleChange?.Invoke(this);
     }
 
-    /// <summary>
-    /// Stop the queue and cancel everything still pending. Finished items keep their
-    /// result. Returns how many items were cancelled.
-    /// </summary>
-    public int LScheduleCancel()
+    public void LScheduleReload()
     {
-        LScheduleRunning = false;
-        int lScheduleCancelledCount = 0;
-        foreach (LWorkItem lWorkItem in lScheduleItems)
-        {
-            if (lWorkItem.LWorkStateCurrent is not (LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning))
-            {
-                continue;
-            }
+        LDepotIndex.LDepotIndexEnsure();
 
-            lWorkItem.LWorkStateCurrent = LWorkState.LWorkStateCancelled;
-            lScheduleCancelledCount++;
+        var lScheduleLoaded = new List<LWorkItem>();
+        foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
+        {
+            foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
+            {
+                if (LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+                {
+                    continue;
+                }
+
+                LWorkItem lWorkItem = lWorkRecord.LWorkItemCreate();
+                lWorkItem.LWorkStateCurrent = LScheduleStateRead(lDepotFolder, lWorkItem.LWorkStateCurrent);
+                lScheduleLoaded.Add(lWorkItem);
+            }
+        }
+
+        lScheduleItems.Clear();
+        foreach (LWorkItem lWorkItem in lScheduleLoaded.OrderBy(lItem => lItem.LWorkCreateTime))
+        {
+            lScheduleItems.Add(lWorkItem);
         }
 
         LScheduleChange?.Invoke(this);
-        return lScheduleCancelledCount;
     }
 
-    /// <summary>Append work items. Returns how many were added.</summary>
     public int LScheduleAdd(IReadOnlyList<LWorkItem> lWorkItems)
     {
         if (lWorkItems.Count == 0)
@@ -92,41 +80,150 @@ public sealed class LSchedule
             return 0;
         }
 
+        LDepotIndex.LDepotIndexEnsure();
+        int lScheduleAddedCount = 0;
         foreach (LWorkItem lWorkItem in lWorkItems)
         {
-            lScheduleItems.Add(lWorkItem);
+            var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+            if (LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
+            {
+                lScheduleAddedCount++;
+            }
         }
 
-        LScheduleChange?.Invoke(this);
-        return lWorkItems.Count;
+        LScheduleReload();
+        return lScheduleAddedCount;
     }
 
-    public bool LScheduleRemove(Guid lWorkId)
+    public LWorkItem? LScheduleClaim()
     {
-        for (int lScheduleIndex = 0; lScheduleIndex < lScheduleItems.Count; lScheduleIndex++)
+        LDepotIndex.LDepotIndexEnsure();
+
+        var lScheduleCandidates = new List<LWorkRecord>();
+        foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled))
         {
-            if (lScheduleItems[lScheduleIndex].LWorkId != lWorkId)
+            if (LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord)
+            {
+                lScheduleCandidates.Add(lWorkRecord);
+            }
+        }
+
+        IEnumerable<LWorkRecord> lScheduleOrdered = lScheduleCandidates
+            .OrderByDescending(lWorkRecord => lWorkRecord.Priority == nameof(LWorkPriority.LWorkPriorityHigh))
+            .ThenBy(lWorkRecord => lWorkRecord.CreateTime);
+
+        foreach (LWorkRecord lWorkRecord in lScheduleOrdered)
+        {
+            if (!LScheduleMove(lWorkRecord.WorkId, LDepotFolder.LDepotFolderScheduled, LDepotFolder.LDepotFolderRunning))
             {
                 continue;
             }
 
-            lScheduleItems.RemoveAt(lScheduleIndex);
-            LScheduleChange?.Invoke(this);
-            return true;
+            lWorkRecord.State = nameof(LWorkState.LWorkStateRunning);
+            lWorkRecord.OwnerProcessId = Environment.ProcessId;
+            LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderRunning);
+            return lWorkRecord.LWorkItemCreate();
         }
 
-        return false;
+        return null;
+    }
+
+    public void LScheduleComplete(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage)
+    {
+        LDepotFolder lScheduleTarget = lScheduleSucceeded
+            ? LDepotFolder.LDepotFolderDone
+            : LDepotFolder.LDepotFolderFailed;
+
+        LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, lScheduleTarget);
+
+        var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+        lWorkRecord.State = lScheduleSucceeded
+            ? nameof(LWorkState.LWorkStateDone)
+            : nameof(LWorkState.LWorkStateFailed);
+        lWorkRecord.Message = lScheduleMessage;
+        lWorkRecord.Progress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
+        lWorkRecord.OwnerProcessId = 0;
+        LScheduleRecordWrite(lWorkRecord, lScheduleTarget);
+    }
+
+    public int LScheduleCancel()
+    {
+        LScheduleRunning = false;
+        LDepotIndex.LDepotIndexEnsure();
+
+        int lScheduleReleasedCount = 0;
+        foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderRunning).ToArray())
+        {
+            if (LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord
+                || lWorkRecord.OwnerProcessId != Environment.ProcessId)
+            {
+                continue;
+            }
+
+            if (!LScheduleMove(lWorkRecord.WorkId, LDepotFolder.LDepotFolderRunning, LDepotFolder.LDepotFolderScheduled))
+            {
+                continue;
+            }
+
+            lWorkRecord.State = nameof(LWorkState.LWorkStatePending);
+            lWorkRecord.OwnerProcessId = 0;
+            lWorkRecord.Progress = 0;
+            LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
+            lScheduleReleasedCount++;
+        }
+
+        LScheduleReload();
+        return lScheduleReleasedCount;
+    }
+
+    public bool LScheduleRemove(Guid lWorkId)
+    {
+        bool lScheduleRemoved = false;
+        foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
+        {
+            string lDepotFilePath = LDepot.LDepotFilePathRead(lDepotFolder, lWorkId);
+            if (!File.Exists(lDepotFilePath))
+            {
+                continue;
+            }
+
+            try
+            {
+                File.Delete(lDepotFilePath);
+                lScheduleRemoved = true;
+            }
+            catch (IOException)
+            {
+            }
+        }
+
+        if (lScheduleRemoved)
+        {
+            LDepotIndex.LDepotIndexRemove(lWorkId);
+            LScheduleReload();
+        }
+
+        return lScheduleRemoved;
     }
 
     public void LScheduleClear()
     {
-        if (lScheduleItems.Count == 0)
+        foreach (LDepotFolder lDepotFolder in new[] { LDepotFolder.LDepotFolderDone, LDepotFolder.LDepotFolderFailed })
         {
-            return;
+            foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder).ToArray())
+            {
+                try
+                {
+                    File.Delete(lDepotFilePath);
+                }
+                catch (IOException)
+                {
+                }
+            }
         }
 
-        lScheduleItems.Clear();
-        LScheduleChange?.Invoke(this);
+        LDepotIndex.LDepotIndexRebuild();
+        LScheduleReload();
     }
 
     public IReadOnlyList<LWorkItem> LSchedulePendingRead() =>
@@ -134,14 +231,59 @@ public sealed class LSchedule
             .Where(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStatePending)
             .ToArray();
 
-    /// <summary>
-    /// The item a runner should pick up next: highest priority first, oldest first
-    /// within a priority.
-    /// </summary>
-    public LWorkItem? LScheduleNextRead() =>
-        lScheduleItems
-            .Where(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStatePending)
-            .OrderByDescending(lWorkItem => lWorkItem.LWorkPriority)
-            .ThenBy(lWorkItem => lWorkItem.LWorkCreateTime)
-            .FirstOrDefault();
+    public bool LSchedulePendingExist() =>
+        LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled).Any();
+
+    private static LWorkState LScheduleStateRead(LDepotFolder lDepotFolder, LWorkState lScheduleFileState) =>
+        lDepotFolder switch
+        {
+            LDepotFolder.LDepotFolderRunning => LWorkState.LWorkStateRunning,
+            LDepotFolder.LDepotFolderDone => LWorkState.LWorkStateDone,
+            LDepotFolder.LDepotFolderFailed => LWorkState.LWorkStateFailed,
+            _ => lScheduleFileState == LWorkState.LWorkStateRunning ? LWorkState.LWorkStatePending : lScheduleFileState
+        };
+
+    private static LWorkRecord? LScheduleRecordRead(string lDepotFilePath)
+    {
+        try
+        {
+            return LWorkRecord.LWorkRecordParse(File.ReadAllText(lDepotFilePath));
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+    }
+
+    private static bool LScheduleRecordWrite(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
+    {
+        try
+        {
+            File.WriteAllText(
+                LDepot.LDepotFilePathRead(lDepotFolder, lWorkRecord.WorkId),
+                lWorkRecord.LWorkRecordJsonCreate());
+            LDepotIndex.LDepotIndexSet(lWorkRecord, lDepotFolder);
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+    }
+
+    private static bool LScheduleMove(Guid lWorkId, LDepotFolder lDepotFrom, LDepotFolder lDepotTo)
+    {
+        string lDepotFromPath = LDepot.LDepotFilePathRead(lDepotFrom, lWorkId);
+        string lDepotToPath = LDepot.LDepotFilePathRead(lDepotTo, lWorkId);
+
+        try
+        {
+            File.Move(lDepotFromPath, lDepotToPath, overwrite: false);
+            return true;
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
 }

@@ -20,33 +20,34 @@ public sealed partial class PViewfinder : FrameworkElement
     private const double PViewfinderLabelPaddingHorizontal = 4;
     private const double PViewfinderLabelPaddingVertical = 2;
     private const double PViewfinderTickTargetPixels = 100;
+    private const double PViewfinderSectionInset = 1;
+    private const double PViewfinderSectionLabelPadding = 5;
+    private const double PViewfinderSectionLabelLeast = 18;
+    private const double PViewfinderSectionLabelHeightLeast = 16;
+    private const double PViewfinderBadgePaddingHorizontal = 6;
+    private const double PViewfinderBadgePaddingVertical = 1;
+    private const double PViewfinderBadgeGap = 6;
+
+    private static readonly Brush pViewfinderBrushSectionText = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
+    private static readonly Brush pViewfinderBrushBadgeText = new SolidColorBrush(Colors.White);
+    private static readonly Typeface pViewfinderBadgeTypeface =
+        new(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
 
     private static readonly Brush pViewfinderBrushBackground = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
     private static readonly Brush pViewfinderBrushRail = new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1));
-    private static readonly Pen pViewfinderPenCursor = new(new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A)), 1.0);
     private static readonly Pen pViewfinderPenKeyframe = new(new SolidColorBrush(Color.FromRgb(0x6B, 0x74, 0x80)), 1.1);
     private static readonly Pen pViewfinderPenTick = new(new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xB0)), 1.0);
     private static readonly Brush pViewfinderBrushTickText = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
     private static readonly Brush pViewfinderBrushLabelBackground = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush pViewfinderBrushCoverageScanned = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
-    private static readonly Brush[] pViewfinderSectionBrushes =
-    {
-        new SolidColorBrush(Color.FromArgb(0x99, 0x4A, 0x90, 0xD9)),
-        new SolidColorBrush(Color.FromArgb(0x99, 0x27, 0xAE, 0x60)),
-        new SolidColorBrush(Color.FromArgb(0x99, 0xE6, 0x7E, 0x22)),
-        new SolidColorBrush(Color.FromArgb(0x99, 0x8E, 0x44, 0xAD)),
-        new SolidColorBrush(Color.FromArgb(0x99, 0xE7, 0x4C, 0x3C)),
-        new SolidColorBrush(Color.FromArgb(0x99, 0x16, 0xA0, 0x85)),
-    };
+    private static readonly Brush pViewfinderBrushCoverageScanned = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
     private static readonly Pen pViewfinderPenLabelBorder = new(new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1)), 1.0);
     private static readonly Brush pViewfinderBrushCursorText = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A));
-    private static readonly Typeface pViewfinderTickTypeface = new("Consolas");
+    private static readonly Typeface pViewfinderTickTypeface = new("Segoe UI");
 
     static PViewfinder()
     {
         pViewfinderBrushBackground.Freeze();
         pViewfinderBrushRail.Freeze();
-        pViewfinderPenCursor.Freeze();
         pViewfinderPenKeyframe.Freeze();
         pViewfinderPenTick.Freeze();
         pViewfinderBrushTickText.Freeze();
@@ -54,6 +55,8 @@ public sealed partial class PViewfinder : FrameworkElement
         pViewfinderPenLabelBorder.Freeze();
         pViewfinderBrushCursorText.Freeze();
         pViewfinderBrushCoverageScanned.Freeze();
+        pViewfinderBrushSectionText.Freeze();
+        pViewfinderBrushBadgeText.Freeze();
     }
 
     private LSpool? lSpool;
@@ -102,6 +105,48 @@ public sealed partial class PViewfinder : FrameworkElement
         InvalidateVisual();
     }
 
+    private static (double Top, double Bottom) PViewfinderRailRead(double actualHeight)
+    {
+        double pRailTop = PViewfinderLabelLaneHeight + PViewfinderRailGap;
+        double pCoverageTop = Math.Max(0, Math.Max(0, actualHeight - 1) - PViewfinderCoverageHeight);
+        return (pRailTop, Math.Max(pRailTop, pCoverageTop - PViewfinderRailGap));
+    }
+
+    internal Rect PViewfinderSectionRead(int pSectionIndex)
+    {
+        if (lSpool is null || pSectionIndex < 0 || pSectionIndex >= lSectionList.Count)
+        {
+            return Rect.Empty;
+        }
+
+        double pWidth = ActualWidth;
+        if (pWidth <= 0 || ActualHeight <= 0)
+        {
+            return Rect.Empty;
+        }
+
+        (double pRailTop, double pRailBottom) = PViewfinderRailRead(ActualHeight);
+        TimeSpan pRangeStart = lSpool.LSpoolWorkingRangeStart;
+        TimeSpan pRangeEnd = lSpool.LSpoolWorkingRangeEnd;
+        double pRangeSeconds = (pRangeEnd - pRangeStart).TotalSeconds;
+        if (pRailBottom <= pRailTop || pRangeSeconds <= 0)
+        {
+            return Rect.Empty;
+        }
+
+        LSegment pSection = lSectionList[pSectionIndex];
+        TimeSpan pStart = pSection.LSegmentStart < pRangeStart ? pRangeStart : pSection.LSegmentStart;
+        TimeSpan pEnd = pSection.LSegmentEnd > pRangeEnd ? pRangeEnd : pSection.LSegmentEnd;
+        if (pEnd <= pStart)
+        {
+            return Rect.Empty;
+        }
+
+        double pLeft = Math.Clamp((pStart - pRangeStart).TotalSeconds / pRangeSeconds * pWidth, 0, pWidth);
+        double pRight = Math.Clamp((pEnd - pRangeStart).TotalSeconds / pRangeSeconds * pWidth, 0, pWidth);
+        return new Rect(pLeft, pRailTop, Math.Max(1, pRight - pLeft), pRailBottom - pRailTop);
+    }
+
     public void PViewfinderSectionsUpdate(IReadOnlyList<LSegment>? sections, int? selectedIndex)
     {
         lSectionList = sections?.ToArray() ?? Array.Empty<LSegment>();
@@ -122,8 +167,7 @@ public sealed partial class PViewfinder : FrameworkElement
 
         double coverageBottom = Math.Max(0, actualHeight - 1);
         double coverageTop = Math.Max(0, coverageBottom - PViewfinderCoverageHeight);
-        double railTop = PViewfinderLabelLaneHeight + PViewfinderRailGap;
-        double railBottom = Math.Max(railTop, coverageTop - PViewfinderRailGap);
+        (double railTop, double railBottom) = PViewfinderRailRead(actualHeight);
         double railHeight = railBottom - railTop;
 
         if (railHeight <= 0)
@@ -156,6 +200,5 @@ public sealed partial class PViewfinder : FrameworkElement
         PViewfinderKeyframesDraw(drawingContext, actualWidth, railTop, railBottom, rangeStart, rangeEnd, rangeSeconds);
         PViewfinderCursorDraw(drawingContext, actualWidth, actualHeight, rangeStart, rangeEnd, rangeSeconds);
     }
-
 
 }

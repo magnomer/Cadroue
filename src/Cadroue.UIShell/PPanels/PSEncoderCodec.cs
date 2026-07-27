@@ -29,13 +29,7 @@ internal sealed partial class PSEncoder
         ("AVS2, xavs2 / libxavs2", ["libxavs2"]), ("APV, OpenAPV / liboapv", ["liboapv"])
     ];
 
-    private UIElement PSModePlateBuild()
-    {
-        var pPanel = new StackPanel();
-        pPanel.Children.Add(PSFieldBuild("Mode", psModeCombo));
-        pPanel.Children.Add(PSNoticeBuild("Audio-only output is created in the Video tab by setting Stream to Exclude."));
-        return PSPlateBuild("Export Mode", pPanel);
-    }
+    private UIElement PSModePlateBuild() => PSPlateBuild(PSFieldBuild("Mode", psModeCombo));
 
     private static string[] PSCodecItemsRead() =>
         PSCodecCandidates.Select(pCandidate => pCandidate.PSCodecText).ToArray();

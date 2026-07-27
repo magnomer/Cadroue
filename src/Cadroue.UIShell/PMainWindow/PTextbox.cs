@@ -16,7 +16,6 @@ internal static class PTextbox
         pTextBox.Foreground = PTextBrush;
         pTextBox.BorderBrush = PLineBrush;
         pTextBox.BorderThickness = new Thickness(1);
-        pTextBox.FontSize = 14;
         pTextBox.Padding = new Thickness(10, 0, 10, 0);
         pTextBox.HorizontalContentAlignment = HorizontalAlignment.Left;
         pTextBox.VerticalContentAlignment = VerticalAlignment.Center;

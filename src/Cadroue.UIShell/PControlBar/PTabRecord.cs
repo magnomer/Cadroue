@@ -27,10 +27,6 @@ public sealed class PTabRecord : INotifyPropertyChanged
 
     public Guid PTabId { get; }
 
-    /// <summary>
-    /// Display title. Owned by <see cref="LTabset"/>, which renumbers every tab
-    /// whenever the set changes, so this must notify.
-    /// </summary>
     public string PTabTitle
     {
         get => pTabTitle;
@@ -48,11 +44,6 @@ public sealed class PTabRecord : INotifyPropertyChanged
 
     public string PTabLayoutKey { get; }
 
-    /// <summary>
-    /// Number shown after the layout key when more than one tab of this kind exists.
-    /// Assigned once at creation and owned by <see cref="LTabset"/>; it follows the tab
-    /// rather than its position, so reordering does not renumber anything.
-    /// </summary>
     public int PTabOrdinal { get; set; } = 1;
 
     public ImageSource PTabIconSource { get; }

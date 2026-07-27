@@ -7,30 +7,33 @@ namespace Cadroue.UIShell.PPanels;
 
 internal sealed partial class PSEncoder
 {
-    private static Border PSPlateBuild(string pTitle, UIElement pContent)
+    internal const double PSSheetBodyFontSize = 12;
+
+    internal const double PSSheetControlHeight = 32;
+
+    private const double PSSheetChipHeight = 26;
+
+    private static TextBlock PSSheetLabelBuild(string pText) => new()
     {
-        var pPanel = new StackPanel();
-        pPanel.Children.Add(new TextBlock { Text = pTitle, FontSize = 16, FontWeight = FontWeights.SemiBold, Foreground = PTextBrush, Margin = new Thickness(0, 0, 0, 10) });
-        pPanel.Children.Add(pContent);
-        return new Border
+        Text = pText,
+        Foreground = PMutedBrush,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static UIElement PSPlateBuild(UIElement pContent) =>
+        new StackPanel
         {
-            BorderBrush = PLineBrush,
-            BorderThickness = new Thickness(1),
-            Background = PSoftBrush,
-            CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(14),
-            Margin = new Thickness(0, 0, 0, 12),
-            Child = pPanel
+            Margin = new Thickness(0, 0, 0, 18),
+            Children = { pContent }
         };
-    }
 
     private static UIElement PSFieldBuild(string pLabel, Control pControl)
     {
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(new TextBlock { Text = pLabel, Foreground = PMutedBrush, VerticalAlignment = VerticalAlignment.Center });
-        pControl.MinHeight = 28;
+        pGrid.Children.Add(PSSheetLabelBuild(pLabel));
+        pControl.MinHeight = PSSheetControlHeight;
         Grid.SetColumn(pControl, 1);
         pGrid.Children.Add(pControl);
         return pGrid;
@@ -41,10 +44,10 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(new TextBlock { Text = pLabel, Foreground = PMutedBrush, VerticalAlignment = VerticalAlignment.Center });
+        pGrid.Children.Add(PSSheetLabelBuild(pLabel));
 
         var pPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left };
-        pControl.MinHeight = 28;
+        pControl.MinHeight = PSSheetControlHeight;
         pPanel.Children.Add(pControl);
         foreach (Button pButton in pButtons)
         {
@@ -60,7 +63,7 @@ internal sealed partial class PSEncoder
     {
         Content = pText,
         Width = pWidth,
-        Height = 40,
+        Height = PSSheetControlHeight,
         Margin = pMargin,
         Style = PButton.PButtonWhiteCreate()
     };
@@ -71,7 +74,7 @@ internal sealed partial class PSEncoder
         {
             ItemsSource = pItems,
             MinWidth = 260,
-            Height = 40,
+            Height = PSSheetControlHeight,
             HorizontalAlignment = HorizontalAlignment.Left
         };
         PDropdown.PDropdownApply(pCombo);
@@ -85,7 +88,7 @@ internal sealed partial class PSEncoder
         {
             Text = pText,
             Width = pWidth,
-            Height = 40,
+            Height = PSSheetControlHeight,
             HorizontalAlignment = HorizontalAlignment.Left
         };
         PTextbox.PTextboxApply(pTextBox);
@@ -98,6 +101,7 @@ internal sealed partial class PSEncoder
         {
             Content = pText,
             Width = 84,
+            Height = PSSheetControlHeight,
             Margin = new Thickness(4),
             Style = PButton.PButtonWhiteCreate()
         };
@@ -105,14 +109,13 @@ internal sealed partial class PSEncoder
 
     private static string PSComboTextRead(ComboBox pCombo) => pCombo.SelectedItem as string ?? string.Empty;
 
-    private static UIElement PSNoticeBuild(string pText) => new Border
+    private static Thickness PSSheetNoticeMargin => new(130, -7, 0, 9);
+
+    private static UIElement PSNoticeBuild(string pText) => new TextBlock
     {
-        BorderBrush = new SolidColorBrush(Color.FromRgb(0xBF, 0xD4, 0xF4)),
-        BorderThickness = new Thickness(1),
-        Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF6, 0xFF)),
-        CornerRadius = new CornerRadius(8),
-        Padding = new Thickness(10),
-        Margin = new Thickness(130, 2, 0, 2),
-        Child = new TextBlock { Text = pText, Foreground = new SolidColorBrush(Color.FromRgb(0x25, 0x55, 0x88)), TextWrapping = TextWrapping.Wrap }
+        Text = pText,
+        Foreground = PMutedBrush,
+        TextWrapping = TextWrapping.Wrap,
+        Margin = PSSheetNoticeMargin
     };
 }

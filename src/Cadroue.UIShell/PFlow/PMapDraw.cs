@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 using Cadroue.Media;
+using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PFlow;
 
@@ -56,49 +57,136 @@ public sealed partial class PMap
         }
     }
 
+    private void PMapSectionsDraw(DrawingContext drawingContext, double actualWidth, double railTop, double railHeight)
+    {
+        if (lSpool is null || lSectionList.Count == 0)
+        {
+            return;
+        }
+
+        double durationSeconds = lSpool.LSpoolDuration.TotalSeconds;
+        if (durationSeconds <= 0)
+        {
+            return;
+        }
+
+        double sectionTop = railTop + PMapSectionInset;
+        double sectionHeight = Math.Max(4, railHeight - PMapSectionInset * 2);
+        for (int index = 0; index < lSectionList.Count; index++)
+        {
+            LSegment section = lSectionList[index];
+            if (section.LSegmentEnd <= section.LSegmentStart)
+            {
+                continue;
+            }
+
+            double sectionStartX = Math.Clamp(section.LSegmentStart.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double sectionEndX = Math.Clamp(section.LSegmentEnd.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
+            Pen? sectionPen = index == lSectionIndexSelect ? pMapPenSectionSelect : null;
+            var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
+            drawingContext.DrawRoundedRectangle(
+                PSectionPalette.PSectionPaletteRead(section.LSegmentColorIndex),
+                sectionPen,
+                sectionRect,
+                3,
+                3);
+            PMapSectionLabelDraw(drawingContext, sectionRect, index, section.LSegmentColorIndex);
+        }
+    }
+
+    private void PMapSectionLabelDraw(DrawingContext drawingContext, Rect sectionRect, int sectionIndex, int sectionColorIndex)
+    {
+        var badgeFormatted = new FormattedText(
+            $"{sectionIndex + 1}",
+            System.Globalization.CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            pMapBadgeTypeface,
+            PSection.PSectionNameSize,
+            pMapBrushBadgeText,
+            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+
+        double badgeHeight = badgeFormatted.Height + PMapBadgePaddingVertical * 2;
+        double badgeWidth = Math.Max(badgeHeight, badgeFormatted.Width + PMapBadgePaddingHorizontal * 2);
+        if (badgeWidth > sectionRect.Width - PMapBadgeMargin * 2 || badgeHeight > sectionRect.Height - PMapBadgeMargin * 2)
+        {
+            return;
+        }
+
+        var badgeRect = new Rect(
+            sectionRect.Left + (sectionRect.Width - badgeWidth) / 2,
+            sectionRect.Top + (sectionRect.Height - badgeHeight) / 2,
+            badgeWidth,
+            badgeHeight);
+        drawingContext.DrawRoundedRectangle(
+            PSectionPalette.PSectionBadgeRead(sectionColorIndex),
+            null,
+            badgeRect,
+            badgeHeight / 2,
+            badgeHeight / 2);
+        drawingContext.DrawText(
+            badgeFormatted,
+            new Point(
+                badgeRect.Left + (badgeWidth - badgeFormatted.Width) / 2,
+                badgeRect.Top + PMapBadgePaddingVertical));
+    }
+
     private static void PMapNavigationDraw(DrawingContext drawingContext, Rect bodyRect, double actualWidth)
     {
-        double radius = Math.Clamp(bodyRect.Height / 2, 4, 9);
-        double sideWidth = Math.Min(PMapHandleWidth, bodyRect.Width);
-        Rect shadowRect = new(bodyRect.Left, bodyRect.Top + 1.5, bodyRect.Width, bodyRect.Height);
-        drawingContext.DrawRoundedRectangle(pMapBrushNavigationShadow, null, shadowRect, radius, radius);
-        drawingContext.DrawRoundedRectangle(pMapBrushNavigationFrame, null, bodyRect, radius, radius);
-
-        Rect fillRect = bodyRect;
-        fillRect.Inflate(-3.5, -3.5);
-        if (fillRect.Width > 0 && fillRect.Height > 0)
+        Rect paintRect = bodyRect;
+        paintRect.Height = Math.Max(0, bodyRect.Height - PMapShadowDrop);
+        if (paintRect.Height <= 0)
         {
-            drawingContext.DrawRoundedRectangle(pMapBrushNavigationFill, null, fillRect, Math.Max(0, radius - 3), Math.Max(0, radius - 3));
+            return;
         }
 
-        Rect innerRect = bodyRect;
-        innerRect.Inflate(-2.2, -2.2);
-        if (innerRect.Width > 0 && innerRect.Height > 0)
+        double radius = Math.Clamp(paintRect.Height / 2, 4, 9);
+
+        double sideWidth = Math.Min(PGripWidth, paintRect.Width);
+        double sideGrabWidth = Math.Min(PMapHandleWidth, bodyRect.Width);
+        drawingContext.DrawRoundedRectangle(pMapBrushNavigationFill, null, paintRect, radius, radius);
+
+        Rect rimRect = paintRect;
+        rimRect.Inflate(-PMapNavigationRim / 2, -PMapNavigationRim / 2);
+        if (rimRect.Width > 0 && rimRect.Height > 0)
         {
-            drawingContext.DrawRoundedRectangle(pMapBrushNavigationInner, null, innerRect, Math.Max(0, radius - 2), Math.Max(0, radius - 2));
+            double rimRadius = Math.Max(0, radius - PMapNavigationRim / 2);
+            var shadowRect = new Rect(rimRect.Left, rimRect.Top + PMapShadowDrop, rimRect.Width, rimRect.Height);
+            drawingContext.DrawRoundedRectangle(null, pMapPenNavigationRimShadow, shadowRect, rimRadius, rimRadius);
+            drawingContext.DrawRoundedRectangle(null, pMapPenNavigationRim, rimRect, rimRadius, rimRadius);
         }
 
-        Rect leftHandleRect = new(bodyRect.Left, bodyRect.Top, sideWidth, bodyRect.Height);
-        Rect rightHandleRect = new(bodyRect.Right - sideWidth, bodyRect.Top, sideWidth, bodyRect.Height);
+        Rect leftHandleRect = new(paintRect.Left, paintRect.Top, sideWidth, paintRect.Height);
+        Rect rightHandleRect = new(paintRect.Right - sideWidth, paintRect.Top, sideWidth, paintRect.Height);
         drawingContext.DrawRoundedRectangle(pMapBrushNavigationSide, null, leftHandleRect, radius, radius);
         drawingContext.DrawRoundedRectangle(pMapBrushNavigationSide, null, rightHandleRect, radius, radius);
 
         PGripSideDraw(drawingContext, leftHandleRect);
         PGripSideDraw(drawingContext, rightHandleRect);
 
-        Rect moveRect = PMapMoveResolve(bodyRect, sideWidth, actualWidth);
+        Rect moveRect = PMapMoveResolve(bodyRect, sideGrabWidth, actualWidth);
         if (moveRect.Width > 0 && moveRect.Height > 0)
         {
-            double moveRadius = Math.Min(8, moveRect.Height / 2);
-            drawingContext.DrawRoundedRectangle(pMapBrushNavigationMove, pMapPenNavigationMoveBorder, moveRect, moveRadius, moveRadius);
-            PGripMoveDraw(drawingContext, moveRect);
+            Rect movePaintRect = PGripMoveResolve(moveRect, paintRect);
+            if (movePaintRect.Width > 0 && movePaintRect.Height > 0)
+            {
+                double moveRadius = Math.Min(8, movePaintRect.Height / 2);
+                drawingContext.DrawRoundedRectangle(pMapBrushNavigationMove, pMapPenNavigationMoveBorder, movePaintRect, moveRadius, moveRadius);
+                PGripMoveDraw(drawingContext, movePaintRect);
+            }
         }
 
         drawingContext.DrawLine(
             pMapPenNavigationShine,
-            new Point(bodyRect.Left + 6, bodyRect.Top + 1.5),
-            new Point(bodyRect.Right - 6, bodyRect.Top + 1.5));
-        drawingContext.DrawRoundedRectangle(null, pMapPenNavigationBorder, bodyRect, radius, radius);
+            new Point(paintRect.Left + 6, paintRect.Top + 1.5),
+            new Point(paintRect.Right - 6, paintRect.Top + 1.5));
+
+        Rect borderRect = paintRect;
+        borderRect.Inflate(-pMapPenNavigationBorder.Thickness / 2, -pMapPenNavigationBorder.Thickness / 2);
+        if (borderRect.Width > 0 && borderRect.Height > 0)
+        {
+            drawingContext.DrawRoundedRectangle(null, pMapPenNavigationBorder, borderRect, radius, radius);
+        }
     }
 
     private static Rect PMapMoveResolve(Rect bodyRect, double sideWidth, double actualWidth)
@@ -127,37 +215,40 @@ public sealed partial class PMap
 
     private static void PGripSideDraw(DrawingContext drawingContext, Rect handleRect)
     {
-        Rect innerRect = handleRect;
-        innerRect.Inflate(-4.5, -4.5);
-        if (innerRect.Width > 0 && innerRect.Height > 0)
+        double gripX = handleRect.Left + handleRect.Width / 2;
+        drawingContext.DrawLine(
+            pMapPenNavigationGrip,
+            new Point(gripX, handleRect.Top + Math.Max(3, handleRect.Height * 0.25)),
+            new Point(gripX, handleRect.Bottom - Math.Max(3, handleRect.Height * 0.25)));
+    }
+
+    private static Rect PGripMoveResolve(Rect moveRect, Rect paintRect)
+    {
+        double gripWidth = Math.Min(moveRect.Width, moveRect.Width * PGripMoveRate);
+        double gripHeight = Math.Min(moveRect.Height, paintRect.Height) - PGripMoveInset * 2;
+        if (gripWidth <= 0 || gripHeight <= 0)
         {
-            drawingContext.DrawRectangle(pMapBrushNavigationSideInner, null, innerRect);
+            return Rect.Empty;
         }
 
-        for (int i = 0; i < 2; i++)
-        {
-            double gripX = handleRect.Left + handleRect.Width / 2 + (i - 0.5) * 4;
-            drawingContext.DrawLine(
-                pMapPenNavigationGrip,
-                new Point(gripX, handleRect.Top + Math.Max(3, handleRect.Height * 0.25)),
-                new Point(gripX, handleRect.Bottom - Math.Max(3, handleRect.Height * 0.25)));
-        }
+        return new Rect(
+            moveRect.Left + (moveRect.Width - gripWidth) / 2,
+            paintRect.Top + PGripMoveInset,
+            gripWidth,
+            gripHeight);
     }
 
     private static void PGripMoveDraw(DrawingContext drawingContext, Rect moveRect)
     {
         int columnCount = Math.Clamp((int)(moveRect.Width / 9), 2, 10);
         double columnCenterOffset = (columnCount - 1) / 2.0;
-        for (int row = 0; row < 2; row++)
+        double gripY = moveRect.Top + moveRect.Height / 2;
+        for (int column = 0; column < columnCount; column++)
         {
-            for (int column = 0; column < columnCount; column++)
+            double gripX = moveRect.Left + moveRect.Width / 2 + (column - columnCenterOffset) * 7;
+            if (gripX > moveRect.Left + 4 && gripX < moveRect.Right - 4)
             {
-                double gripX = moveRect.Left + moveRect.Width / 2 + (column - columnCenterOffset) * 7;
-                double gripY = moveRect.Top + moveRect.Height / 2 + (row - 0.5) * 5;
-                if (gripX > moveRect.Left + 4 && gripX < moveRect.Right - 4)
-                {
-                    drawingContext.DrawEllipse(pMapBrushNavigationGrip, null, new Point(gripX, gripY), 1.3, 1.3);
-                }
+                drawingContext.DrawEllipse(pMapBrushNavigationGrip, null, new Point(gripX, gripY), 1.3, 1.3);
             }
         }
     }

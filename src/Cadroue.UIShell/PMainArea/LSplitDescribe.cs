@@ -5,10 +5,6 @@ namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LSplit
 {
-    /// <summary>
-    /// Gather the current split settings — source, sections and export settings — and
-    /// hand them to the interpreter. Returns how many work items reached the schedule.
-    /// </summary>
     public static int LSplitDescribe(
         LWorkPriority lWorkPriority,
         string? lSplitSourcePath,

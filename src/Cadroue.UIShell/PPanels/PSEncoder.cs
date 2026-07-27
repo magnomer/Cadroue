@@ -22,6 +22,11 @@ internal sealed partial class PSEncoder : Window
     private const int PSEncoderDwmCaption = 35;
     private const int PSEncoderColor = 0x00F7E8DC;
 
+    internal const double PSEncoderWidthDefault = 820;
+    internal const double PSEncoderHeightDefault = 700;
+    internal const double PSEncoderWidthMinimum = 680;
+    internal const double PSEncoderHeightMinimum = 520;
+
     private readonly LExportSpecificState lsExportSpecificSource;
     private readonly LExportSpecificState lsExportSpecificEdit;
     private readonly System.Action pSummaryRefresh;
@@ -59,7 +64,6 @@ internal sealed partial class PSEncoder : Window
     private Rect psGrabberStartBounds;
 
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
     private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
     private static readonly Brush PMutedBrush = new SolidColorBrush(Color.FromRgb(0x62, 0x6F, 0x83));
 
@@ -99,17 +103,19 @@ internal sealed partial class PSEncoder : Window
         psAudioChannelCombo = PSComboBuild(lsExportSpecificEdit.AudioChannels, "Same as source", "Mono", "Stereo", "5.1", "Custom");
 
         Title = "Specific Export Settings";
-        Width = 820;
-        Height = 700;
-        MinWidth = 680;
-        MinHeight = 520;
+        Width = App.LPreferenceStateCurrent.LPreferenceEncoderWidth;
+        Height = App.LPreferenceStateCurrent.LPreferenceEncoderHeight;
+        MinWidth = PSEncoderWidthMinimum;
+        MinHeight = PSEncoderHeightMinimum;
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
         Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
+        FontSize = PSSheetBodyFontSize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         UseLayoutRounding = true;
         SnapsToDevicePixels = true;
         Content = PSEncoderBuild();
+        PSEncoderPositionRestore(App.LPreferenceStateCurrent);
         PSGrabberHandlersAdd();
     }
 
@@ -213,9 +219,45 @@ internal sealed partial class PSEncoder : Window
         psGrabberActive = false;
     }
 
+    private void PSEncoderPositionRestore(LPreferenceState lPreferenceState)
+    {
+        if (lPreferenceState.LPreferenceEncoderLeft is not double psLeft
+            || lPreferenceState.LPreferenceEncoderTop is not double psTop)
+        {
+            return;
+        }
+
+        double psScreenRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
+        double psScreenBottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
+        if (psLeft >= SystemParameters.VirtualScreenLeft && psTop >= SystemParameters.VirtualScreenTop
+            && psLeft + 100 <= psScreenRight && psTop + 40 <= psScreenBottom)
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = psLeft;
+            Top = psTop;
+        }
+    }
+
     private void PSEncoderCloseHandle(object? sender, System.EventArgs e)
     {
+        PSEncoderPositionSave();
         PSGrabberHandlersRemove();
+    }
+
+    private void PSEncoderPositionSave()
+    {
+        Rect psBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
+        if (double.IsNaN(psBounds.Left) || double.IsNaN(psBounds.Top) || psBounds.Width <= 0 || psBounds.Height <= 0)
+        {
+            return;
+        }
+
+        LPreferenceState lPreferenceState = App.LPreferenceStateCurrent.LPreferenceClone();
+        lPreferenceState.LPreferenceEncoderLeft = psBounds.Left;
+        lPreferenceState.LPreferenceEncoderTop = psBounds.Top;
+        lPreferenceState.LPreferenceEncoderWidth = psBounds.Width;
+        lPreferenceState.LPreferenceEncoderHeight = psBounds.Height;
+        App.LPreferenceStateSet(lPreferenceState);
     }
 
     private int PSGrabberDirectionRead(Point pPoint)
@@ -288,7 +330,6 @@ internal sealed partial class PSEncoder : Window
         Width = pWidth;
         Height = pHeight;
     }
-
 
     protected override void OnSourceInitialized(EventArgs e)
     {

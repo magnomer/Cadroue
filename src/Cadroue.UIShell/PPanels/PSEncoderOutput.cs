@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
@@ -16,7 +17,6 @@ internal sealed partial class PSEncoder
         {
             Text = string.IsNullOrWhiteSpace(psEncoderFolderPath) ? "Same as source" : psEncoderFolderPath,
             Foreground = PMutedBrush,
-            FontSize = 12,
             Margin = new Thickness(12, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
@@ -26,13 +26,13 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
         pPanel.Children.Add(PSFieldBuild("Container", psContainerCombo));
-        return PSPlateBuild("Output", pPanel);
+        return PSPlateBuild(pPanel);
     }
 
     private void PSNameBoxPrepare()
     {
         psNameBox.MinWidth = 320;
-        psNameBox.Height = 40;
+        psNameBox.Height = PSSheetControlHeight;
         psNameBox.HorizontalAlignment = HorizontalAlignment.Stretch;
     }
 
@@ -41,11 +41,12 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 8, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(new TextBlock { Text = "Elements", Foreground = PMutedBrush, VerticalAlignment = VerticalAlignment.Center });
+        pGrid.Children.Add(PSSheetLabelBuild("Elements"));
 
         var pPanel = new WrapPanel();
         pPanel.Children.Add(PSNameTokenBuild("Original Name", "{OriginalName}"));
         pPanel.Children.Add(PSNameTokenBuild("Section Number", "{SectionNumber}"));
+        pPanel.Children.Add(PSNameTokenBuild("Section Name", "{SectionName}"));
         pPanel.Children.Add(PSNameTokenBuild("Date", "{Date}"));
         pPanel.Children.Add(PSNameTokenBuild("Time", "{Time}"));
         Grid.SetColumn(pPanel, 1);
@@ -58,15 +59,13 @@ internal sealed partial class PSEncoder
         var pText = new TextBlock
         {
             Text = pLabel,
-            FontSize = 12,
-            FontWeight = FontWeights.SemiBold,
             Foreground = PTextBrush,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
         var pBorder = new Border
         {
-            MinHeight = 30,
+            MinHeight = PSSheetChipHeight,
             BorderBrush = PLineBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
@@ -78,10 +77,12 @@ internal sealed partial class PSEncoder
         };
 
         Point? pDragStart = null;
+        Point pDragGrabOffset = default;
         bool pDragStarted = false;
         pBorder.PreviewMouseLeftButtonDown += (_, e) =>
         {
             pDragStart = e.GetPosition(null);
+            pDragGrabOffset = e.GetPosition(pBorder);
             pDragStarted = false;
             pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
         };
@@ -118,14 +119,115 @@ internal sealed partial class PSEncoder
             }
 
             pDragStarted = true;
-            var pData = new DataObject();
-            pData.SetData(PToken.PTokenDataFormat, pToken);
-            pData.SetData(DataFormats.Text, pToken);
-            _ = DragDrop.DoDragDrop(pBorder, pData, DragDropEffects.Copy);
+            PSNameDragRun(pBorder, pToken, pDragGrabOffset);
             pBorder.Background = Brushes.White;
         };
         return pBorder;
     }
+
+    private void PSNameDragRun(FrameworkElement pChip, string pToken, Point pGrabOffset)
+    {
+        var pRoot = Content as UIElement;
+        AdornerLayer? pLayer = pRoot is null ? null : AdornerLayer.GetAdornerLayer(pRoot);
+        PSNameDragAdorner? pDragAdorner = null;
+        if (pRoot is not null && pLayer is not null)
+        {
+            pDragAdorner = new PSNameDragAdorner(pRoot, pChip, pGrabOffset);
+            pLayer.Add(pDragAdorner);
+        }
+
+        void PSNameDragFeedbackHandle(object pSender, GiveFeedbackEventArgs pEvent)
+        {
+            if (pDragAdorner is null || pRoot is null || !PSNameCursorRead(out PSNamePoint pCursor))
+            {
+                return;
+            }
+
+            pDragAdorner.PSNameDragMove(pRoot.PointFromScreen(new Point(pCursor.X, pCursor.Y)));
+            pEvent.UseDefaultCursors = true;
+            pEvent.Handled = true;
+        }
+
+        pChip.GiveFeedback += PSNameDragFeedbackHandle;
+        try
+        {
+            var pData = new DataObject();
+            pData.SetData(PToken.PTokenDataFormat, pToken);
+            pData.SetData(DataFormats.Text, pToken);
+            _ = DragDrop.DoDragDrop(pChip, pData, DragDropEffects.Copy);
+        }
+        finally
+        {
+            pChip.GiveFeedback -= PSNameDragFeedbackHandle;
+            if (pDragAdorner is not null)
+            {
+                pLayer?.Remove(pDragAdorner);
+            }
+        }
+    }
+
+    private sealed class PSNameDragAdorner : Adorner
+    {
+        private readonly VisualCollection pDragVisuals;
+        private readonly System.Windows.Shapes.Rectangle pDragImage;
+        private readonly Point pDragGrabOffset;
+        private Point pDragPoint;
+
+        internal PSNameDragAdorner(UIElement pAdornedElement, FrameworkElement pChip, Point pGrabOffset)
+            : base(pAdornedElement)
+        {
+            pDragGrabOffset = pGrabOffset;
+            pDragImage = new System.Windows.Shapes.Rectangle
+            {
+                Width = pChip.ActualWidth,
+                Height = pChip.ActualHeight,
+                Fill = new VisualBrush(pChip),
+                Opacity = 0.85,
+                IsHitTestVisible = false
+            };
+            pDragVisuals = new VisualCollection(this) { pDragImage };
+
+            IsHitTestVisible = false;
+        }
+
+        internal void PSNameDragMove(Point pPoint)
+        {
+            pDragPoint = pPoint;
+            InvalidateArrange();
+            (Parent as AdornerLayer)?.Update(AdornedElement);
+        }
+
+        protected override int VisualChildrenCount => pDragVisuals.Count;
+
+        protected override Visual GetVisualChild(int pIndex) => pDragVisuals[pIndex];
+
+        protected override Size MeasureOverride(Size pConstraint)
+        {
+            pDragImage.Measure(pConstraint);
+            return pDragImage.DesiredSize;
+        }
+
+        protected override Size ArrangeOverride(Size pFinalSize)
+        {
+            pDragImage.Arrange(new Rect(
+                pDragPoint.X - pDragGrabOffset.X,
+                pDragPoint.Y - pDragGrabOffset.Y,
+                pDragImage.Width,
+                pDragImage.Height));
+            return pFinalSize;
+        }
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct PSNamePoint
+    {
+        public int X;
+        public int Y;
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "GetCursorPos")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static extern bool PSNameCursorRead(out PSNamePoint pointScreen);
 
     private void PSNameTokenInsert(string pToken)
     {
@@ -137,7 +239,7 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(new TextBlock { Text = "Location", Foreground = PMutedBrush, VerticalAlignment = VerticalAlignment.Center });
+        pGrid.Children.Add(PSSheetLabelBuild("Location"));
 
         var pValueGrid = new Grid();
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

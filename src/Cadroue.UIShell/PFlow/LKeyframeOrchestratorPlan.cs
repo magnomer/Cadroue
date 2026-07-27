@@ -56,6 +56,13 @@ public sealed partial class LKeyframeOrchestrator
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
         }
+        finally
+        {
+            if (serial == lKeyframeRequestSerial)
+            {
+                LKeyframeSidecarSave();
+            }
+        }
     }
 
     private void LKeyframeDirectionRun(
@@ -103,6 +110,7 @@ public sealed partial class LKeyframeOrchestrator
         try
         {
             var entries = LKeyframeSeeker.LKeyframeRangeScan(sourcePath, start, end, cancellationToken);
+            int lKeyframeNewCount = 0;
             lock (lKeyframeLock)
             {
                 if (serial != lKeyframeRequestSerial || cancellationToken.IsCancellationRequested)
@@ -112,13 +120,20 @@ public sealed partial class LKeyframeOrchestrator
 
                 foreach (var entry in entries)
                 {
-                    lKeyframeStorage.Add((long)Math.Round(entry.LKeyframePresentationTime.TotalMilliseconds));
+                    if (lKeyframeStorage.Add((long)Math.Round(entry.LKeyframePresentationTime.TotalMilliseconds)))
+                    {
+                        lKeyframeNewCount++;
+                    }
                 }
 
                 lKeyframeScannedSpans.Add(spanIndex);
                 lKeyframeFailedSpanCounts.Remove(spanIndex);
             }
-            LKeyframeCacheSave();
+
+            if (LKeyframeSaveDueCheck(lKeyframeNewCount))
+            {
+                LKeyframeCacheSave();
+            }
         }
         catch (OperationCanceledException)
         {

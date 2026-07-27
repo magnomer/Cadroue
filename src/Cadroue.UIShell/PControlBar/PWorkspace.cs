@@ -4,17 +4,15 @@ using Cadroue.UIShell.PMainArea;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PPanels;
+using Cadroue.UIShell.PFlow;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 namespace Cadroue.UIShell.PControlBar;
 
 public sealed class PWorkspace
 {
-    /// <param name="lExportSpecificState">
-    /// Restored export settings for this tab, or null for a fresh tab. Tabs keep their
-    /// own settings, so this is supplied at construction rather than patched afterwards
-    /// — the export panel captures the instance while it builds.
-    /// </param>
+    private readonly LHistory lWorkspaceHistory = new();
+
     public PWorkspace(
         string pTabLayoutKey,
         LExportSpecificState? lExportSpecificState = null,
@@ -32,6 +30,14 @@ public sealed class PWorkspace
         PWorkspaceSource?.PSourceAttach(PWorkspaceViewer);
         PWorkspaceInfo?.PInfoAttach(PWorkspaceViewer);
         PWorkspaceRoot = PWorkspaceRootCreate();
+
+        lWorkspaceHistory.LHistoryReset(PWorkspaceStateRead());
+        if (PWorkspaceFlow is not null)
+        {
+            PWorkspaceFlow.PFlowSectionChange += PWorkspaceSectionHandle;
+        }
+
+        PWorkspaceExportState.LPresetChange += PWorkspaceExportHandle;
     }
 
     public FrameworkElement PWorkspaceRoot { get; }
@@ -52,11 +58,84 @@ public sealed class PWorkspace
 
     public void PWorkspaceClose()
     {
+        if (PWorkspaceFlow is not null)
+        {
+            PWorkspaceFlow.PFlowSectionChange -= PWorkspaceSectionHandle;
+        }
+
+        PWorkspaceExportState.LPresetChange -= PWorkspaceExportHandle;
         PWorkspaceFlow?.PFlowClose();
         PWorkspaceViewer?.PViewerClose();
     }
 
+    private LHistoryEntry PWorkspaceStateRead() => new(
+        PWorkspaceFlow?.PFlowSectionsRead() ?? Array.Empty<LSegment>(),
+        PWorkspaceFlow?.PFlowSectionSelectRead(),
+        LExportSpecificPresetRecord.LPresetRecordCreate(PWorkspaceExportState));
+
+    private void PWorkspaceSectionHandle(IReadOnlyList<LSegment> pSections, int? pSectionSelect)
+        => PWorkspaceHistoryMark();
+
+    private void PWorkspaceExportHandle() => PWorkspaceHistoryMark();
+
+    private void PWorkspaceHistoryMark()
+        => lWorkspaceHistory.LHistoryPush(PWorkspaceStateRead(), (int)App.LPreferenceStateCurrent.LPreferenceHistoryMaximum);
+
+    public bool PWorkspaceUndo() => PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryUndo());
+
+    public bool PWorkspaceRedo() => PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryRedo());
+
+    private bool PWorkspaceHistoryApply(LHistoryEntry? lHistoryEntry)
+    {
+        if (lHistoryEntry is null)
+        {
+            return false;
+        }
+
+        lWorkspaceHistory.LHistoryApplying = true;
+        try
+        {
+            PWorkspaceFlow?.PFlowSectionsSet(lHistoryEntry.LHistorySections, lHistoryEntry.LHistorySectionSelect);
+            PWorkspaceExportState.LPresetCopy(lHistoryEntry.LHistoryExport.LPresetStateCreate());
+        }
+        finally
+        {
+            lWorkspaceHistory.LHistoryApplying = false;
+        }
+
+        return true;
+    }
+
     public LPreferenceTabLayoutRecord PWorkspaceLayoutRead() => PWorkspaceSurface.PTabLayoutRead();
+
+    public void PWorkspaceRelayApply(LRelay lRelay)
+    {
+        if (PWorkspaceViewer is null || string.IsNullOrWhiteSpace(lRelay.SourcePath))
+        {
+            return;
+        }
+
+        IReadOnlyList<PFlow.LSegment> lRelaySections = lRelay.LRelaySectionsCreate();
+        int? lRelaySectionSelect = lRelay.SectionSelectIndex;
+        PViewer pRelayViewer = PWorkspaceViewer;
+
+        void PWorkspaceRelayMediaHandle(LMediaOpenStatus lMediaStatus)
+        {
+            pRelayViewer.PViewerMediaChange -= PWorkspaceRelayMediaHandle;
+            if (lMediaStatus.LMediaOpenMediaInfo is null || PWorkspaceFlow is null || lRelaySections.Count == 0)
+            {
+                return;
+            }
+
+            PFlowControl pRelayFlow = PWorkspaceFlow;
+            Application.Current?.Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Background,
+                new Action(() => pRelayFlow.PFlowSectionsSet(lRelaySections, lRelaySectionSelect)));
+        }
+
+        pRelayViewer.PViewerMediaChange += PWorkspaceRelayMediaHandle;
+        pRelayViewer.PViewerSourceOpen(lRelay.SourcePath);
+    }
 
     private FrameworkElement PWorkspaceRootCreate()
     {
@@ -94,7 +173,7 @@ public sealed class PWorkspace
         };
         pToggleButton.Click += (_, _) => PWorkspaceSurface.PTabExportToggle();
 
-        var pRow = new Grid { Margin = new Thickness(16, 0, 16, 8) };
+        var pRow = new Grid { Margin = new Thickness(16, 0, 16, 6) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

@@ -89,29 +89,6 @@
             </Setter>
         </Style>
 
-        <Style x:Key="pWindowButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="48" />
-            <Setter Property="Height" Value="56" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Foreground" Value="#26364A" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#D3E1F2" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
     </UserControl.Resources>
 
     <Grid Background="#EAF2FC" ClipToBounds="False">
@@ -246,7 +223,7 @@
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" Background="#EAF2FC" VerticalAlignment="Top" Margin="0,0,0,0">
-                <Button Style="{StaticResource pWindowButtonStyle}" Click="PChromeMinimizeHandle">
+                <Button x:Name="pChromeMinimizeButton" Click="PChromeMinimizeHandle">
                     <Canvas Width="18" Height="16">
                         <Line X1="2"
                               Y1="12"
@@ -258,7 +235,7 @@
                               StrokeEndLineCap="Square" />
                     </Canvas>
                 </Button>
-                <Button Style="{StaticResource pWindowButtonStyle}" Click="PChromeMaximizeHandle">
+                <Button x:Name="pChromeMaximizeButton" Click="PChromeMaximizeHandle">
                     <Canvas Width="18" Height="16">
                         <Rectangle Width="12"
                                    Height="12"
@@ -269,7 +246,7 @@
                                    Fill="Transparent" />
                     </Canvas>
                 </Button>
-                <Button Style="{StaticResource pWindowButtonStyle}" Click="PChromeCloseHandle">
+                <Button x:Name="pChromeCloseButton" Click="PChromeCloseHandle">
                     <Canvas Width="18" Height="16">
                         <Line X1="2.5"
                               Y1="2.5"

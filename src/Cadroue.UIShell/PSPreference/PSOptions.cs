@@ -47,6 +47,7 @@ public static class PSOptions
             PSOptionsComboBuild("Shortcut history mode", lPreferenceDraft.LPreferenceHistoryMode, new[] { "Hover", "LastUsed" }, v => lPreferenceDraft.LPreferenceHistoryMode = v),
             PSOptionsSliderBuild("Maximum section/group history", lPreferenceDraft.LPreferenceHistoryMaximum, 0, 1000000, v => lPreferenceDraft.LPreferenceHistoryMaximum = v)));
         pTabs.Items.Add(PSOptionsPageBuild("Misc",
+            PSOptionsFolderBuild("Workspace folder", lPreferenceDraft.LPreferenceWorkspaceFolder, v => lPreferenceDraft.LPreferenceWorkspaceFolder = v),
             PSOptionsCheckBuild("Autoplay on load", lPreferenceDraft.LPreferenceAutoplayOnLoad, v => lPreferenceDraft.LPreferenceAutoplayOnLoad = v),
             PSOptionsComboBuild("Volume mode", lPreferenceDraft.LPreferenceVolumeMode, new[] { "Single global volume", "Per-tab volume" }, v => lPreferenceDraft.LPreferenceVolumeMode = v),
             PSOptionsSliderBuild("Player volume", lPreferenceDraft.LPreferenceVolume, 0, 100, v => lPreferenceDraft.LPreferenceVolume = v)));
@@ -91,6 +92,56 @@ public static class PSOptions
         pCheck.Checked += (_, _) => pChange(true);
         pCheck.Unchecked += (_, _) => pChange(false);
         return pCheck;
+    }
+
+    private static FrameworkElement PSOptionsFolderBuild(string pLabel, string pValue, Action<string> pChange)
+    {
+        var pText = new TextBlock { Width = 230, VerticalAlignment = VerticalAlignment.Center, Text = pLabel };
+        var pPathBox = new TextBox
+        {
+            Width = 300,
+            VerticalAlignment = VerticalAlignment.Center,
+            Text = pValue,
+            ToolTip = "Scheduled work is stored here as files. Leave blank for the default."
+        };
+        var pDefaultText = new TextBlock
+        {
+            Margin = new Thickness(238, 2, 0, 0),
+            FontSize = 11,
+            Foreground = System.Windows.Media.Brushes.Gray,
+            Text = $"Default: {Cadroue.Core.LDepot.LDepotDefaultRootRead()}"
+        };
+
+        var pBrowse = new Button { Content = "Browse", Width = 76, Margin = new Thickness(6, 0, 0, 0) };
+        var pReset = new Button { Content = "Reset", Width = 60, Margin = new Thickness(4, 0, 0, 0) };
+
+        pPathBox.TextChanged += (_, _) => pChange(pPathBox.Text);
+        pBrowse.Click += (_, _) =>
+        {
+            var pDialog = new Microsoft.Win32.OpenFolderDialog
+            {
+                Title = "Choose workspace folder",
+                InitialDirectory = string.IsNullOrWhiteSpace(pPathBox.Text)
+                    ? Cadroue.Core.LDepot.LDepotDefaultRootRead()
+                    : pPathBox.Text
+            };
+            if (pDialog.ShowDialog() == true)
+            {
+                pPathBox.Text = pDialog.FolderName;
+            }
+        };
+        pReset.Click += (_, _) => pPathBox.Text = string.Empty;
+
+        var pRow = new StackPanel { Orientation = Orientation.Horizontal };
+        pRow.Children.Add(pText);
+        pRow.Children.Add(pPathBox);
+        pRow.Children.Add(pBrowse);
+        pRow.Children.Add(pReset);
+
+        var pStack = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
+        pStack.Children.Add(pRow);
+        pStack.Children.Add(pDefaultText);
+        return pStack;
     }
 
     private static FrameworkElement PSOptionsComboBuild(string pLabel, string pValue, string[] pValues, Action<string> pChange)

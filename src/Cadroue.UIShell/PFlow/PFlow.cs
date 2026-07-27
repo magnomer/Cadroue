@@ -8,7 +8,6 @@ using Cadroue.UIShell;
 
 namespace Cadroue.UIShell.PFlow;
 
-
 public sealed partial class PFlow : UserControl
 {
     private const int LSectionPaletteCount = 6;
@@ -18,6 +17,11 @@ public sealed partial class PFlow : UserControl
     private readonly DispatcherTimer lKeyframeRequestTimer;
     private readonly PViewfinder pViewfinder = new();
     private readonly PMap pMap = new();
+    private System.Windows.Controls.Primitives.Popup? pFlowNamePopup;
+
+    private string? pFlowKeyframeStamp;
+
+    private const double PFlowNameHeight = 32;
     private readonly TextBlock pViewfinderLabelLeft = PReelLabelBuild();
     private readonly TextBlock pViewfinderLabelRight = PReelLabelBuild();
     private readonly TextBlock pMapLabelLeft = PReelLabelBuild();
@@ -28,6 +32,8 @@ public sealed partial class PFlow : UserControl
     private LSpool? lSpool;
     private TimeSpan lCursor;
     private string? lSourcePath;
+
+    private bool pFlowSidecarRestoring;
     private int? lSectionIndexSelect;
     private double pDividerStartY;
     private double pDividerStartHeight;
@@ -52,6 +58,7 @@ public sealed partial class PFlow : UserControl
         pMap.PMapCursorChange += PFlowMapSeek;
         pMap.PMapSpoolChange += PFlowSpoolUpdate;
         lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
+        lKeyframeOrchestrator.LKeyframeSectionsSource = PFlowSidecarSectionsRead;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         lKeyframeRequestTimer.Tick += PFlowTimerHandle;
         pDividerHandle = PDividerBuild();
@@ -93,14 +100,37 @@ public sealed partial class PFlow : UserControl
         pViewfinder.PViewfinderAttach(lSpool, lCursor);
         pMap.PMapAttach(lSpool, lCursor);
         pViewfinder.PViewfinderSectionsUpdate(lSectionList, lSectionIndexSelect);
+        pMap.PMapSectionsUpdate(lSectionList, lSectionIndexSelect);
         pViewfinderLabelLeft.Text = PFlowTimeFormat(lSpool.LSpoolWorkingRangeStart);
         pViewfinderLabelRight.Text = PFlowTimeFormat(lSpool.LSpoolWorkingRangeEnd);
         pMapLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
         pMapLabelRight.Text = PFlowTimeFormat(lSpool.LSpoolDuration);
         pViewfinder.PViewfinderKeyframesUpdate(Array.Empty<LKeyframeEntry>(), Array.Empty<LKeyframeScanRange>());
         pMap.PMapKeyframesUpdate(Array.Empty<LKeyframeScanRange>());
+        PFlowSidecarRestore();
         PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
         PFlowKeyframeRun();
+    }
+
+    private void PFlowSidecarRestore()
+    {
+        if (lSourcePath is not { } pFlowSourcePath)
+        {
+            return;
+        }
+
+        try
+        {
+            string pFlowSidecarPath = Cadroue.Media.LSidecarStore.LSidecarPathRead(pFlowSourcePath);
+            if (Cadroue.Media.LSidecarStore.LSidecarRead(pFlowSidecarPath) is { } pFlowSidecar)
+            {
+                PFlowSidecarSectionsApply(pFlowSidecar.Sections);
+            }
+        }
+        catch (Exception pFlowException)
+        {
+            LAppLog.LError("Sidecar sections could not be restored", pFlowException);
+        }
     }
 
     public void PFlowCursorUpdate(TimeSpan cursorTime)
@@ -157,6 +187,7 @@ public sealed partial class PFlow : UserControl
     {
         if (pFlowUnloaded) return;
         pFlowUnloaded = true;
+        PFlowNameClose();
         lKeyframeRequestTimer.Stop();
         lKeyframeRequestTimer.Tick -= PFlowTimerHandle;
         lKeyframeOrchestrator.LKeyframeNoticeReady -= PFlowNoticeHandle;
@@ -180,6 +211,7 @@ public sealed partial class PFlow : UserControl
             case "splitSection" when pFlowSectionUiActive: PFlowSectionSplit(); return true;
             case "setEnd" when pFlowSectionUiActive: PFlowEndSet(); return true;
             case "deleteSection" when pFlowSectionUiActive: PFlowSectionDelete(); return true;
+            case "nameSection" when pFlowSectionUiActive: return PFlowNameShow();
             case "previousKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframePreviousMove(lCursor)); return true;
             case "nearestKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeNearestMove(lCursor)); return true;
             case "nextKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeNextMove(lCursor)); return true;
@@ -264,10 +296,30 @@ public sealed partial class PFlow : UserControl
         {
             if (!pFlowUnloaded && notice.LRequestSerial == lKeyframeOrchestrator.LKeyframeCurrentSerial)
             {
+                PFlowKeyframeRecord(notice);
                 pViewfinder.PViewfinderKeyframesUpdate(notice.LKeyframes, notice.LScannedRanges);
                 pMap.PMapKeyframesUpdate(notice.LScannedRanges);
             }
         }, DispatcherPriority.Background);
+    }
+
+    private void PFlowKeyframeRecord(LKeyframeNotice notice)
+    {
+        double pFlowScanned = notice.LScannedRanges.Sum(
+            pRange => (pRange.LKeyframeScanRangeEndTime - pRange.LKeyframeScanRangeStartTime).TotalSeconds);
+        string pFlowStamp = $"{notice.LKeyframes.Count}/{notice.LScannedRanges.Count}/{pFlowScanned:0.###}";
+        if (string.Equals(pFlowStamp, pFlowKeyframeStamp, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        pFlowKeyframeStamp = pFlowStamp;
+        string pFlowSource = string.IsNullOrWhiteSpace(lSourcePath)
+            ? "(no media)"
+            : System.IO.Path.GetFileName(lSourcePath);
+        LAppLog.LInfo(
+            $"Keyframe scan '{pFlowSource}': {notice.LKeyframes.Count} keyframe(s) known, " +
+            $"{TimeSpan.FromSeconds(pFlowScanned):hh\\:mm\\:ss} scanned across {notice.LScannedRanges.Count} range(s)");
     }
 
     private void PFlowKeyframeMove(TimeSpan? keyframeTargetTime)

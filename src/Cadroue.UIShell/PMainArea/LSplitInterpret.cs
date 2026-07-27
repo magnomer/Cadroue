@@ -1,21 +1,25 @@
 using System.IO;
 using Cadroue.Core;
+using Cadroue.UIShell;
 
 namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LSplit
 {
-    /// <summary>
-    /// Turn a split description into work items and put them on the backend schedule.
-    /// One item per usable section, all sharing a batch id. Returns how many were added.
-    /// </summary>
     public static int LSplitInterpret(
         LWorkPriority lWorkPriority,
         LSplitWorkDescription lSplitWorkDescription)
     {
         string? lSplitSourcePath = lSplitWorkDescription.LSplitSourcePath;
-        if (string.IsNullOrWhiteSpace(lSplitSourcePath) || lSplitWorkDescription.LSplitSections.Count == 0)
+        if (string.IsNullOrWhiteSpace(lSplitSourcePath))
         {
+            LAppLog.LError("Split not queued: no source file is open");
+            return 0;
+        }
+
+        if (lSplitWorkDescription.LSplitSections.Count == 0)
+        {
+            LAppLog.LError($"Split not queued for '{Path.GetFileName(lSplitSourcePath)}': no sections have been cut");
             return 0;
         }
 
@@ -32,7 +36,6 @@ public static partial class LSplit
         {
             LSplitSectionDescription lSplitSection = lSplitWorkDescription.LSplitSections[lSplitIndex];
 
-            // A zero-length or inverted section would produce an empty file.
             if (lSplitSection.LSplitSectionEnd <= lSplitSection.LSplitSectionStart)
             {
                 continue;
@@ -58,14 +61,27 @@ public static partial class LSplit
                 lSplitOutput));
         }
 
-        return LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems);
+        int lSplitSkipped = lSplitWorkDescription.LSplitSections.Count - lSplitWorkItems.Count;
+        if (lSplitSkipped > 0)
+        {
+            LAppLog.LError($"Split skipped {lSplitSkipped} section(s) of '{Path.GetFileName(lSplitSourcePath)}': empty or reversed range");
+        }
+
+        int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems);
+        LAppLog.LInfo(
+            $"Split queued {lSplitAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +
+            $"into '{lSplitFolder}' [batch {lSplitBatchId:N}]");
+        foreach (LWorkItem lSplitItem in lSplitWorkItems)
+        {
+            LAppLog.LInfo(
+                $"Split job '{lSplitItem.LWorkOutputName}': " +
+                $"{lSplitItem.LWorkStart:hh\\:mm\\:ss\\.fff} to {lSplitItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
+                $"({lSplitItem.LWorkDuration:hh\\:mm\\:ss\\.fff})");
+        }
+
+        return lSplitAdded;
     }
 
-    /// <summary>
-    /// Destination folder for the batch. "Custom folder" uses the chosen folder;
-    /// anything else (or a custom folder that was never picked) falls back to the
-    /// source file's own folder.
-    /// </summary>
     private static string LSplitFolderRead(LWorkOutput lSplitOutput, string lSplitSourcePath)
     {
         if (string.Equals(lSplitOutput.LWorkOutputLocation, "Custom folder", StringComparison.Ordinal)
@@ -77,12 +93,6 @@ public static partial class LSplit
         return Path.GetDirectoryName(lSplitSourcePath) ?? string.Empty;
     }
 
-    /// <summary>
-    /// Resolve one section's output file name from the export name pattern, expanding
-    /// the tokens the Name row offers. Sections share a pattern, so a pattern without
-    /// {SectionNumber} gets the section name appended to keep outputs apart, and a
-    /// numeric tail is added if two still collide.
-    /// </summary>
     private static string LSplitNameCreate(
         LWorkOutput lSplitOutput,
         string lSplitSourceStem,
@@ -96,20 +106,22 @@ public static partial class LSplit
             : lSplitOutput.LWorkOutputNamePattern;
 
         bool lSplitHasNumber = lSplitPattern.Contains("{SectionNumber}", StringComparison.OrdinalIgnoreCase);
+        bool lSplitHasSectionName = lSplitPattern.Contains("{SectionName}", StringComparison.OrdinalIgnoreCase);
+
+        string lSplitResolvedSectionName = string.IsNullOrWhiteSpace(lSplitSectionName)
+            ? $"Section {lSplitIndex + 1}"
+            : lSplitSectionName;
 
         string lSplitStem = lSplitPattern
             .Replace("{OriginalName}", lSplitSourceStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", (lSplitIndex + 1).ToString("D2"), StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionName}", lSplitResolvedSectionName, StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lSplitStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lSplitStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        // Without {SectionNumber} every section would resolve to the same name.
-        if (!lSplitHasNumber)
+        if (!lSplitHasNumber && !lSplitHasSectionName)
         {
-            string lSplitSuffix = string.IsNullOrWhiteSpace(lSplitSectionName)
-                ? $"Section {lSplitIndex + 1}"
-                : lSplitSectionName;
-            lSplitStem = $"{lSplitStem}_{lSplitSuffix}";
+            lSplitStem = $"{lSplitStem}_{lSplitResolvedSectionName}";
         }
 
         string lSplitBaseName = LSplitNameSanitize(lSplitStem);

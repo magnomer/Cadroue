@@ -42,6 +42,20 @@ internal static class LExportSpecificPresetStore
         File.WriteAllText(lPresetPath, lPresetJson);
     }
 
+    internal static void LPresetFileSave(LExportSpecificState lPreset, string lPresetFilePath)
+    {
+        var lRecord = LExportSpecificPresetRecord.LPresetRecordCreate(lPreset);
+        string lPresetJson = JsonSerializer.Serialize(lRecord, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(lPresetFilePath, lPresetJson);
+    }
+
+    internal static LExportSpecificState? LPresetFileLoad(string lPresetFilePath)
+    {
+        string lPresetJson = File.ReadAllText(lPresetFilePath);
+        var lRecord = JsonSerializer.Deserialize<LExportSpecificPresetRecord>(lPresetJson);
+        return lRecord?.LPresetStateCreate();
+    }
+
     private static string LPresetPathCreate()
     {
         string lAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -60,8 +74,6 @@ public sealed class LExportSpecificPresetRecord
     public string VideoMode { get; set; } = "Auto";
     public string AudioMode { get; set; } = "Auto";
 
-    // Added after the first release: presets written by an older build lack these
-    // keys and deserialize to the defaults below.
     public string VideoEncoder { get; set; } = "H.264, x264 / libx264";
     public string VideoRateControl { get; set; } = "CRF (constant quality)";
     public string VideoQuality { get; set; } = "23";

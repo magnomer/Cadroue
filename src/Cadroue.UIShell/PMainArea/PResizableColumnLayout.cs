@@ -16,7 +16,7 @@ internal sealed class PResizableColumnLayout
     private readonly double[] pPanelWeights;
     private readonly double[] pPanelStoredWeights;
     private readonly bool[] pPanelHiddenFlags;
-    private bool pApplyBusy;
+    private double pAppliedAvailableWidth = -1;
 
     private PResizableColumnLayout(
         Grid pGrid,
@@ -30,8 +30,8 @@ internal sealed class PResizableColumnLayout
         pPanelStoredWeights = pPanelWeights.ToArray();
         pPanelHiddenFlags = new bool[pPanelColumns.Count];
 
-        pGrid.Loaded += (_, _) => PWidthsApply();
-        pGrid.SizeChanged += (_, _) => PWidthsApply();
+        pGrid.LayoutUpdated += (_, _) => PMinimumWidthsApply();
+        PWeightsApply();
     }
 
     public static PResizableColumnLayout PAttach(
@@ -58,7 +58,7 @@ internal sealed class PResizableColumnLayout
     public IReadOnlyList<double> PWidthsRead()
     {
         return pPanelColumns
-            .Select(PWidthRead)
+            .Select(pColumn => pColumn.ActualWidth)
             .Where(pWidth => pWidth > 0)
             .ToArray();
     }
@@ -70,12 +70,14 @@ internal sealed class PResizableColumnLayout
             return;
         }
 
-        pPanelStoredWeights[pPanelIndex] = pPanelWeights[pPanelIndex] > 0 ? pPanelWeights[pPanelIndex] : pPanelStoredWeights[pPanelIndex];
+        pPanelStoredWeights[pPanelIndex] = pPanelWeights[pPanelIndex] > 0
+            ? pPanelWeights[pPanelIndex]
+            : pPanelStoredWeights[pPanelIndex];
         pPanelHiddenFlags[pPanelIndex] = true;
         pPanelWeights[pPanelIndex] = 0;
         pPanelColumns[pPanelIndex].MinWidth = 0;
-        pPanelColumns[pPanelIndex].Width = new GridLength(0);
-        PWidthsApply();
+        pAppliedAvailableWidth = -1;
+        PWeightsApply();
     }
 
     public void PPanelShow(int pPanelIndex)
@@ -87,14 +89,13 @@ internal sealed class PResizableColumnLayout
 
         pPanelHiddenFlags[pPanelIndex] = false;
         pPanelWeights[pPanelIndex] = pPanelStoredWeights[pPanelIndex] > 0 ? pPanelStoredWeights[pPanelIndex] : 1;
-        pPanelColumns[pPanelIndex].MinWidth = pPanelMinimumWidths[pPanelIndex];
-        PWidthsApply();
+        pAppliedAvailableWidth = -1;
+        PWeightsApply();
     }
 
     private void PDragApply(int pLeftPanelIndex, double pDelta)
     {
-        if (pApplyBusy
-            || pLeftPanelIndex < 0
+        if (pLeftPanelIndex < 0
             || pLeftPanelIndex >= pPanelColumns.Count - 1
             || Math.Abs(pDelta) <= 0)
         {
@@ -121,66 +122,63 @@ internal sealed class PResizableColumnLayout
 
         pWidths[pLeftPanelIndex] += pClampedDelta;
         pWidths[pLeftPanelIndex + 1] -= pClampedDelta;
-        PWidthsCommit(pWidths, pMinimumWidths, pAvailableWidth);
+        PWeightsCommit(pWidths);
     }
 
-    private void PWidthsApply()
+    private void PWeightsCommit(double[] pWidths)
     {
-        if (pApplyBusy)
+        double pWidthTotal = pWidths.Sum();
+        if (pWidthTotal <= 0)
         {
             return;
-        }
-
-        double pAvailableWidth = PAvailableWidthRead();
-        if (pAvailableWidth <= 0)
-        {
-            return;
-        }
-
-        double[] pMinimumWidths = PMinimumWidthsRead(pAvailableWidth);
-        double[] pWidths = new double[pPanelColumns.Count];
-        double pWeightTotal = pPanelWeights.Sum(pWeight => Math.Max(0, pWeight));
-        if (pWeightTotal <= 0)
-        {
-            pWeightTotal = pPanelColumns.Count;
-            for (int index = 0; index < pPanelWeights.Length; index++)
-            {
-                pPanelWeights[index] = 1;
-            }
         }
 
         for (int index = 0; index < pWidths.Length; index++)
         {
-            pWidths[index] = pPanelHiddenFlags[index]
-                ? 0
-                : Math.Max(pMinimumWidths[index], pAvailableWidth * pPanelWeights[index] / pWeightTotal);
+            pPanelWeights[index] = pPanelHiddenFlags[index] ? 0 : pWidths[index] / pWidthTotal;
         }
 
-        PWidthsFitToAvailable(pWidths, pMinimumWidths, pAvailableWidth);
-        PWidthsCommit(pWidths, pMinimumWidths, pAvailableWidth);
+        PWeightsApply();
     }
 
-    private void PWidthsCommit(double[] pWidths, double[] pMinimumWidths, double pAvailableWidth)
+    private void PWeightsApply()
     {
-        pApplyBusy = true;
-        try
+        double pWeightTotal = pPanelWeights.Sum(pWeight => Math.Max(0, pWeight));
+        if (pWeightTotal <= 0)
         {
-            for (int index = 0; index < pWidths.Length; index++)
+            for (int index = 0; index < pPanelWeights.Length; index++)
             {
-                pPanelColumns[index].MinWidth = pMinimumWidths[index];
-                pPanelColumns[index].Width = new GridLength(pWidths[index], GridUnitType.Pixel);
-                pPanelWeights[index] = pAvailableWidth > 0 ? pWidths[index] / pAvailableWidth : 0;
+                pPanelWeights[index] = pPanelHiddenFlags[index] ? 0 : 1;
             }
         }
-        finally
+
+        for (int index = 0; index < pPanelColumns.Count; index++)
         {
-            pApplyBusy = false;
+            pPanelColumns[index].Width = pPanelHiddenFlags[index]
+                ? new GridLength(0, GridUnitType.Pixel)
+                : new GridLength(Math.Max(0.0001, pPanelWeights[index]), GridUnitType.Star);
+        }
+    }
+
+    private void PMinimumWidthsApply()
+    {
+        double pAvailableWidth = PAvailableWidthRead();
+        if (pAvailableWidth <= 0 || Math.Abs(pAvailableWidth - pAppliedAvailableWidth) < 0.5)
+        {
+            return;
+        }
+
+        pAppliedAvailableWidth = pAvailableWidth;
+        double[] pMinimumWidths = PMinimumWidthsRead(pAvailableWidth);
+        for (int index = 0; index < pPanelColumns.Count; index++)
+        {
+            pPanelColumns[index].MinWidth = pMinimumWidths[index];
         }
     }
 
     private double[] PCurrentWidthsRead(double pAvailableWidth)
     {
-        double[] pWidths = pPanelColumns.Select(PWidthRead).ToArray();
+        double[] pWidths = pPanelColumns.Select(pColumn => pColumn.ActualWidth).ToArray();
         double pWidthTotal = pWidths.Sum();
         if (pWidthTotal <= 0)
         {
@@ -223,68 +221,12 @@ internal sealed class PResizableColumnLayout
     private double PAvailableWidthRead()
     {
         int pVisiblePanelCount = pPanelHiddenFlags.Count(pHidden => !pHidden);
-        return Math.Max(0, pGrid.ActualWidth - pSplitterWidth * Math.Max(0, pVisiblePanelCount - 1));
-    }
+        double pSlotWidth = LayoutInformation.GetLayoutSlot(pGrid).Width;
+        double pGridWidth = double.IsNaN(pSlotWidth) || double.IsInfinity(pSlotWidth) || pSlotWidth <= 0
+            ? pGrid.ActualWidth
+            : pSlotWidth;
 
-    private static void PWidthsFitToAvailable(double[] pWidths, double[] pMinimumWidths, double pAvailableWidth)
-    {
-        double pWidthTotal = pWidths.Sum();
-        if (pWidthTotal > pAvailableWidth)
-        {
-            double pOverflow = pWidthTotal - pAvailableWidth;
-            while (pOverflow > 0.5)
-            {
-                double pReducibleTotal = 0;
-                for (int index = 0; index < pWidths.Length; index++)
-                {
-                    pReducibleTotal += Math.Max(0, pWidths[index] - pMinimumWidths[index]);
-                }
-
-                if (pReducibleTotal <= 0)
-                {
-                    double pScale = pAvailableWidth / pWidthTotal;
-                    for (int index = 0; index < pWidths.Length; index++)
-                    {
-                        pWidths[index] *= pScale;
-                    }
-                    return;
-                }
-
-                double pReduce = Math.Min(pOverflow, pReducibleTotal);
-                for (int index = 0; index < pWidths.Length; index++)
-                {
-                    double pReducible = Math.Max(0, pWidths[index] - pMinimumWidths[index]);
-                    if (pReducible <= 0)
-                    {
-                        continue;
-                    }
-
-                    pWidths[index] -= pReduce * pReducible / pReducibleTotal;
-                }
-
-                pOverflow = pWidths.Sum() - pAvailableWidth;
-            }
-        }
-        else if (pWidthTotal < pAvailableWidth)
-        {
-            double pWeightTotal = pWidths.Sum();
-            double pSpare = pAvailableWidth - pWidthTotal;
-            if (pWeightTotal <= 0)
-            {
-                double pEqualAdd = pSpare / pWidths.Length;
-                for (int index = 0; index < pWidths.Length; index++)
-                {
-                    pWidths[index] += pEqualAdd;
-                }
-            }
-            else
-            {
-                for (int index = 0; index < pWidths.Length; index++)
-                {
-                    pWidths[index] += pSpare * pWidths[index] / pWeightTotal;
-                }
-            }
-        }
+        return Math.Max(0, pGridWidth - pSplitterWidth * Math.Max(0, pVisiblePanelCount - 1));
     }
 
     private static double[] PWeightCreate(IReadOnlyList<double>? pStoredWidths, int pCount)
@@ -303,16 +245,6 @@ internal sealed class PResizableColumnLayout
         return pStoredWidths
             .Select(pWidth => Math.Max(0, pWidth) / pWidthTotal)
             .ToArray();
-    }
-
-    private static double PWidthRead(ColumnDefinition pColumn)
-    {
-        if (pColumn.ActualWidth > 0)
-        {
-            return pColumn.ActualWidth;
-        }
-
-        return pColumn.Width.IsAbsolute ? pColumn.Width.Value : 0;
     }
 
     private static ControlTemplate PThumbTemplateCreate()

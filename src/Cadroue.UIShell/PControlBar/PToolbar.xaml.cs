@@ -16,9 +16,28 @@ public partial class PToolbar : UserControl
 
     public event Action<LPreferenceState>? PToolbarPreferenceApply;
 
+    private const double PChromeButtonHeight = 56;
+
+    private const double PChromeButtonWidth = 48;
+
     public PToolbar()
     {
         InitializeComponent();
+        PChromeButtonsApply();
+    }
+
+    private void PChromeButtonsApply()
+    {
+        PChromeButtonApply(pChromeMinimizeButton, false);
+        PChromeButtonApply(pChromeMaximizeButton, false);
+        PChromeButtonApply(pChromeCloseButton, true);
+    }
+
+    private static void PChromeButtonApply(Button pChromeButton, bool pChromeClose)
+    {
+        pChromeButton.Width = PChromeButtonWidth;
+        pChromeButton.Height = PChromeButtonHeight;
+        pChromeButton.Style = PMainWindow.PButton.PButtonChromeCreate(pChromeClose);
     }
 
     public void PToolbarTabsetSet(LTabset lTabsetValue)
@@ -70,8 +89,15 @@ public partial class PToolbar : UserControl
 
     private void PTabReleaseHandle(object sender, MouseButtonEventArgs e)
     {
+        PTabRecord? pReleasedRecord = pTabDragActive ? pTabDragRecord : null;
+        Point pReleasedScreenPoint = PointToScreen(e.GetPosition(this));
         PTabDragClear();
         e.Handled = true;
+
+        if (pReleasedRecord is not null)
+        {
+            PTabRelayCheck(pReleasedRecord, pReleasedScreenPoint);
+        }
     }
 
     private void PTabDragClear()
@@ -118,16 +144,12 @@ public partial class PToolbar : UserControl
             return;
         }
 
-        var pLogoMenu = new ContextMenu
-        {
-            PlacementTarget = pLogoButton,
-            Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
-        };
+        ContextMenu pLogoMenu = PMenu.PMenuCreate(pLogoButton);
 
-        PLogoItemAppend(pLogoMenu, "Preferences", "/PAssets/PMenus/PMenuPreferences.png");
-        PLogoItemAppend(pLogoMenu, "Shortcuts", "/PAssets/PMenus/PMenuShortcuts.png");
-        PLogoItemAppend(pLogoMenu, "Log", "/PAssets/PMenus/PMenuShortcuts.png");
-        PLogoItemAppend(pLogoMenu, "About", "/PAssets/PMenus/PMenuAbout.png");
+        PLogoItemAppend(pLogoMenu, "Preferences", "/PAssets/PMenus/PMenuPreferences.svg");
+        PLogoItemAppend(pLogoMenu, "Shortcuts", "/PAssets/PMenus/PMenuShortcuts.svg");
+        PLogoItemAppend(pLogoMenu, "Log", "/PAssets/PMenus/PMenuLog.svg");
+        PLogoItemAppend(pLogoMenu, "About", "/PAssets/PMenus/PMenuAbout.svg");
 
         pLogoMenu.IsOpen = true;
         e.Handled = true;
@@ -135,18 +157,7 @@ public partial class PToolbar : UserControl
 
     private void PLogoItemAppend(ContextMenu pLogoMenu, string pLogoMenuText, string pLogoMenuIconPath)
     {
-        var pLogoMenuItem = new MenuItem
-        {
-            Header = pLogoMenuText,
-            Icon = new Image
-            {
-                Source = PIcon.PIconRead(pLogoMenuIconPath),
-                Width = 20,
-                Height = 20,
-                Stretch = Stretch.Uniform
-            },
-            Foreground = System.Windows.Media.Brushes.Black
-        };
+        MenuItem pLogoMenuItem = PMenu.PMenuItemCreate(pLogoMenuText, PMenu.PMenuIconRead(pLogoMenuIconPath));
         if (pLogoMenuText == "Preferences")
         {
             pLogoMenuItem.Click += (_, _) => PToolbarPreferenceShow();
@@ -206,6 +217,8 @@ public partial class PToolbar : UserControl
     private static IEnumerable<(string Action, string Shortcut, string Scope)> PShortcutRowBuild()
     {
         yield return ("Show shortcuts", "Ctrl+/", "Global");
+        yield return ("Undo", "Ctrl+Z", "Active tab");
+        yield return ("Redo", "Ctrl+Y", "Active tab");
         yield return ("Play / Pause", "Space", "Global");
         yield return ("Zoom in", "C", "Active flow");
         yield return ("Zoom out", "V", "Active flow");
@@ -214,6 +227,7 @@ public partial class PToolbar : UserControl
         yield return ("Split section at cursor", "S", "Split tab");
         yield return ("Set section end to cursor", "F", "Split tab");
         yield return ("Delete selected section", "Delete", "Split tab");
+        yield return ("Rename selected section", "A", "Split tab");
         yield return ("Move to previous keyframe", "E", "Active flow");
         yield return ("Move to nearest keyframe", "W", "Active flow");
         yield return ("Move to next keyframe", "R", "Active flow");
@@ -226,18 +240,14 @@ public partial class PToolbar : UserControl
             return;
         }
 
-        var pTabAddMenu = new ContextMenu
-        {
-            PlacementTarget = pTabAddButton,
-            Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
-        };
+        ContextMenu pTabAddMenu = PMenu.PMenuCreate(pTabAddButton);
 
         PTabMenuAppend(pTabAddMenu, "Split", PIcon.PIconRead("/PAssets/PTabs/PSplitButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Edit", PIcon.PIconRead("/PAssets/PTabs/PEditButton.png"));
         PTabMenuAppend(pTabAddMenu, "Audio", PIcon.PIconRead("/PAssets/PTabs/PAudioButton.png"));
         PTabMenuAppend(pTabAddMenu, "Convert", PIcon.PIconRead("/PAssets/PTabs/PConvertButton.png"));
         PTabMenuAppend(pTabAddMenu, "Merge", PIcon.PIconRead("/PAssets/PTabs/PMergeButton.png"));
-        PTabMenuAppend(pTabAddMenu, "Worklist", PIcon.PIconRead("/PAssets/PCompass/PActionAddList.png"));
+        PTabMenuAppend(pTabAddMenu, "Worklist", PIcon.PIconRead("/PAssets/PTabs/PWorklistButton.svg"));
 
         pTabAddMenu.IsOpen = true;
         e.Handled = true;
@@ -245,19 +255,7 @@ public partial class PToolbar : UserControl
 
     private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey, ImageSource pTabIconSource)
     {
-        var pTabAddMenuItem = new MenuItem
-        {
-            Header = pTabLayoutKey,
-            Icon = new Image
-            {
-                Source = pTabIconSource,
-                Width = 20,
-                Height = 20,
-                Stretch = Stretch.Uniform
-            },
-            Foreground = System.Windows.Media.Brushes.Black
-        };
-
+        MenuItem pTabAddMenuItem = PMenu.PMenuItemCreate(pTabLayoutKey, pTabIconSource);
         pTabAddMenuItem.Click += (_, _) => PTabLayoutAdd(pTabLayoutKey);
         pTabAddMenu.Items.Add(pTabAddMenuItem);
     }
@@ -288,7 +286,17 @@ public partial class PToolbar : UserControl
 
     private void PChromeMaximizeHandle(object sender, RoutedEventArgs e)
     {
-        var pWindow = Window.GetWindow(this)!;
+        PChromeMaximizeToggle();
+    }
+
+    private void PChromeMaximizeToggle()
+    {
+        var pWindow = Window.GetWindow(this);
+        if (pWindow is null)
+        {
+            return;
+        }
+
         pWindow.WindowState = pWindow.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
 
@@ -304,6 +312,13 @@ public partial class PToolbar : UserControl
         if (PToolbarButtonFind(e.OriginalSource as DependencyObject)
             || PToolbarTabFind(e.OriginalSource as DependencyObject))
         {
+            return;
+        }
+
+        if (e.ClickCount == 2)
+        {
+            PChromeMaximizeToggle();
+            e.Handled = true;
             return;
         }
 

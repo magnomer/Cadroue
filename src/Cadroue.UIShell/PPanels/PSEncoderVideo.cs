@@ -4,11 +4,6 @@ using Cadroue.Core;
 
 namespace Cadroue.UIShell.PPanels;
 
-/// <summary>
-/// Video plate for the export dialog. The rate-control, quality and speed rows are
-/// rebuilt from <see cref="LCapability"/> whenever the encoder or the rate-control
-/// mode changes, because those controls differ per encoder.
-/// </summary>
 internal sealed partial class PSEncoder
 {
     private UIElement PSVideoPlateBuild()
@@ -21,7 +16,6 @@ internal sealed partial class PSEncoder
         psVideoEncoderCombo.SelectionChanged += (_, _) => PSVideoEncoderChangeHandle();
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoRowsRebuild();
 
-        // Everything below Mode only applies when the video is actually re-encoded.
         psVideoEncodePanel.Children.Add(PSFieldButtonBuild("Encoder", psVideoEncoderCombo, pVerify, pLog));
         psVideoEncodePanel.Children.Add(PSFieldBuild("Rate control", psVideoRateCombo));
         psVideoEncodePanel.Children.Add(psVideoRowsPanel);
@@ -39,14 +33,9 @@ internal sealed partial class PSEncoder
 
         PSVideoRowsRebuild();
         PSVideoScopeUpdate();
-        return PSPlateBuild("Video", pPanel);
+        return PSPlateBuild(pPanel);
     }
 
-    /// <summary>
-    /// Show the encoder rows only when the video is genuinely re-encoded. This mirrors
-    /// the branches in LEncode: an excluded stream becomes -vn and a copied one becomes
-    /// -c:v copy, and in both cases every encoder setting is discarded.
-    /// </summary>
     private void PSVideoScopeUpdate()
     {
         string pStream = PSComboTextRead(psVideoStreamCombo);
@@ -71,12 +60,8 @@ internal sealed partial class PSEncoder
         LCapabilityCodec pCodec = PSVideoCapabilityRead();
         string[] pModeLabels = pCodec.CapabilityModeLabels;
 
-        // Read the current mode before swapping ItemsSource: WPF clears SelectedItem
-        // during the swap, so reading afterwards would always lose the match.
         string pPreviousMode = PSComboTextRead(psVideoRateCombo);
 
-        // Swapping ItemsSource raises SelectionChanged twice; suppress the rebuild
-        // until the new mode list has settled.
         psVideoRowsBusy = true;
         psVideoRateCombo.ItemsSource = pModeLabels;
         psVideoRateCombo.SelectedItem = pModeLabels.Contains(pPreviousMode) ? pPreviousMode : pModeLabels[0];
@@ -152,8 +137,6 @@ internal sealed partial class PSEncoder
     {
         foreach (LCapabilityExtra pExtra in pCodec.CapabilityExtraList)
         {
-            // Restore the stored choice when this encoder still offers the same option;
-            // otherwise fall back to the encoder's own default.
             string pSelected = lsExportSpecificEdit.VideoExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
                                && pExtra.CapabilityExtraValues.Contains(pStored)
                 ? pStored

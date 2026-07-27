@@ -51,6 +51,21 @@ public sealed partial class LKeyframeOrchestrator
 
     private void LKeyframeCacheLoad(LKeyframeSourceIdentity identity)
     {
+        if (LSidecarStore.LSidecarLoad(identity) is { } lSidecar)
+        {
+            foreach (long keyframe in lSidecar.LSidecarKeyframesRead())
+            {
+                lKeyframeStorage.Add(keyframe);
+            }
+
+            foreach (int scannedSpan in lSidecar.LSidecarScannedSpansRead(LKeyframeGridMilliseconds))
+            {
+                lKeyframeScannedSpans.Add(scannedSpan);
+            }
+
+            return;
+        }
+
         if (!LKeyframeCacheStore.LKeyframeCacheLoad(identity, out var keyframes, out var scannedSpans))
         {
             return;
@@ -65,6 +80,16 @@ public sealed partial class LKeyframeOrchestrator
         {
             lKeyframeScannedSpans.Add(scannedSpan);
         }
+    }
+
+    public void LKeyframeSidecarSave()
+    {
+        lock (lKeyframeLock)
+        {
+            lKeyframeUnsavedCount = 0;
+        }
+
+        LKeyframeCacheSave();
     }
 
     private void LKeyframeCacheSave()
@@ -84,7 +109,45 @@ public sealed partial class LKeyframeOrchestrator
             scannedSpans = lKeyframeScannedSpans.ToArray();
         }
 
-        LKeyframeCacheStore.LKeyframeCacheSave(identity, keyframes, scannedSpans);
+        if (!LSidecarStore.LSidecarSave(
+                identity,
+                keyframes,
+                scannedSpans,
+                LKeyframeGridMilliseconds,
+                LKeyframeSectionsRead()))
+        {
+            LKeyframeCacheStore.LKeyframeCacheSave(identity, keyframes, scannedSpans);
+        }
+    }
+
+    private bool LKeyframeSaveDueCheck(int lKeyframeNewCount)
+    {
+        lock (lKeyframeLock)
+        {
+            lKeyframeUnsavedCount += lKeyframeNewCount + 1;
+            if (lKeyframeUnsavedCount < LKeyframeSaveEveryCount)
+            {
+                return false;
+            }
+
+            lKeyframeUnsavedCount = 0;
+            return true;
+        }
+    }
+
+    public Func<IReadOnlyList<LSidecarSectionRecord>>? LKeyframeSectionsSource { get; set; }
+
+    private IReadOnlyList<LSidecarSectionRecord> LKeyframeSectionsRead()
+    {
+        try
+        {
+            return LKeyframeSectionsSource?.Invoke() ?? Array.Empty<LSidecarSectionRecord>();
+        }
+        catch (Exception lException)
+        {
+            LAppLog.LError("Sidecar sections could not be read", lException);
+            return Array.Empty<LSidecarSectionRecord>();
+        }
     }
 
     private void LKeyframeNoticeDispatch(LKeyframeNotice notice)

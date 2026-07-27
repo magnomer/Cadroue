@@ -87,10 +87,9 @@ public abstract class PTabSurface : UserControl
         pGrid.Tag = PTabGridState.PTabGridStateCreate(pPanelLayout, pPanels, pPanelColumns, pSplitterColumnDefinitions, pSplitterElements);
 
         var pActionRowContent = new Grid { MinHeight = 72 };
-        pActionRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pActionRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pActionRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(pAction, 2);
+        Grid.SetColumn(pAction, 1);
         pActionRowContent.Children.Add(pCompass);
         pActionRowContent.Children.Add(pAction);
 
@@ -117,17 +116,12 @@ public abstract class PTabSurface : UserControl
     protected static LPreferenceTabLayoutRecord PTabLayoutRead(Grid pGrid)
     {
         var lPreferenceTabLayout = new LPreferenceTabLayoutRecord();
-        if (pGrid.Tag is not PResizableColumnLayout pPanelLayout)
+        if (pGrid.Tag is not PTabGridState pState)
         {
-            if (pGrid.Tag is not PTabGridState pState)
-            {
-                return lPreferenceTabLayout;
-            }
-
-            pPanelLayout = pState.PTabLayout;
+            return lPreferenceTabLayout;
         }
 
-        foreach (double pWidth in pPanelLayout.PWidthsRead())
+        foreach (double pWidth in pState.PTabLayout.PWidthsRead())
         {
             if (pWidth > 0)
             {

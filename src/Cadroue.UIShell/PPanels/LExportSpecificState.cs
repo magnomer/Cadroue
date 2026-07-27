@@ -43,15 +43,11 @@ public sealed class LExportSpecificState
     public string VideoMode { get; set; } = "Auto";
     public string AudioMode { get; set; } = "Auto";
 
-    // Encoder rate control. Kept as display text so it round-trips through the
-    // dialog combos; the FFmpeg option behind each value lives in LCapabilityTable.
     public string VideoEncoder { get; set; } = "H.264, x264 / libx264";
     public string VideoRateControl { get; set; } = "CRF (constant quality)";
     public string VideoQuality { get; set; } = "23";
     public string VideoSpeedPreset { get; set; } = "medium";
 
-    // Destination. "Same as source" leaves LocationFolder empty and resolves against
-    // the source file's own folder at schedule time; "Custom folder" requires one.
     public string Location { get; set; } = "Same as source";
     public string LocationFolder { get; set; } = string.Empty;
 
@@ -59,9 +55,6 @@ public sealed class LExportSpecificState
     public string VideoFps { get; set; } = "Same as source";
     public string PixelFormat { get; set; } = "Auto";
 
-    // Per-encoder extra options (tune, usage, profile, deadline, scenario, WebP content
-    // preset...), keyed by FFmpeg option. The key set changes with the encoder, so this
-    // cannot be a fixed list of properties.
     public Dictionary<string, string> VideoExtras { get; set; } = new(StringComparer.Ordinal);
 
     public string AudioEncoder { get; set; } = "AAC";
@@ -73,10 +66,6 @@ public sealed class LExportSpecificState
     public string AudioSummary => $"{AudioMode} ({LAudioStreamSummary})";
     public string OutputSummary => string.IsNullOrWhiteSpace(LContainerExtension) ? Name : $"{Name}.{LContainerExtension}";
 
-    /// <summary>
-    /// Take a UI-free snapshot for the backend schedule. Called when work is queued so
-    /// the queued item keeps these settings even if the panel changes afterwards.
-    /// </summary>
     public LWorkOutput LPresetOutputCreate() => new(
         Name,
         Container,
@@ -127,6 +116,8 @@ public sealed class LExportSpecificState
         AudioChannels = AudioChannels
     };
 
+    public event Action? LPresetChange;
+
     public void LPresetCopy(LExportSpecificState lSource)
     {
         PresetName = lSource.PresetName;
@@ -151,6 +142,7 @@ public sealed class LExportSpecificState
         AudioBitrate = lSource.AudioBitrate;
         AudioSampleRate = lSource.AudioSampleRate;
         AudioChannels = lSource.AudioChannels;
+        LPresetChange?.Invoke();
     }
 
     public static bool LPresetTryLoad(string lPresetName, LExportSpecificState lTarget)
@@ -163,6 +155,16 @@ public sealed class LExportSpecificState
         lTarget.LPresetCopy(lPreset);
         lTarget.PresetName = lPresetName;
         return true;
+    }
+
+    public static LExportSpecificState? LPresetRead(string lPresetName)
+    {
+        if (string.IsNullOrWhiteSpace(lPresetName))
+        {
+            return null;
+        }
+
+        return LPresetMap.TryGetValue(lPresetName.Trim(), out var lPreset) ? lPreset.LPresetClone() : null;
     }
 
     public static bool LPresetMatch(string lPresetName, LExportSpecificState lSource)

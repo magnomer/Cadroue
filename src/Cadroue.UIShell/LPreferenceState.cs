@@ -15,6 +15,11 @@ public sealed class LPreferenceState
     public double? LPreferenceProgramLeft { get; set; }
     public double? LPreferenceProgramTop { get; set; }
     public double LPreferenceFlowHeight { get; set; }
+
+    public double LPreferenceEncoderWidth { get; set; }
+    public double LPreferenceEncoderHeight { get; set; }
+    public double? LPreferenceEncoderLeft { get; set; }
+    public double? LPreferenceEncoderTop { get; set; }
     public double LPreferenceFontSize { get; set; }
     public double LPreferenceKeyframeMinimumPixels { get; set; }
     public double LPreferenceImmediateKeyframeWindowMilliseconds { get; set; }
@@ -24,14 +29,11 @@ public sealed class LPreferenceState
     public bool LPreferenceGroupDuplicateAllowed { get; set; }
     public string LPreferenceTimelineOrder { get; set; } = "OverviewFirst";
     public string LPreferenceHistoryMode { get; set; } = "LastUsed";
+
+    public string LPreferenceWorkspaceFolder { get; set; } = string.Empty;
     public List<string> LPreferenceTabLayoutKeys { get; set; } = new();
     public int LPreferenceTabSelectIndex { get; set; }
 
-    /// <summary>
-    /// Each tab's own export settings, index-aligned with <see cref="LPreferenceTabLayoutKeys"/>.
-    /// Tabs keep independent settings, so two Split tabs restore with the settings each
-    /// of them had. A short list (older preferences file) leaves the extra tabs on defaults.
-    /// </summary>
     public List<LExportSpecificPresetRecord> LPreferenceTabExports { get; set; } = new();
     public List<LPreferenceTabLayoutRecord> LPreferenceTabLayouts { get; set; } = new();
 
@@ -46,6 +48,10 @@ public sealed class LPreferenceState
             LPreferenceProgramLeft = null,
             LPreferenceProgramTop = null,
             LPreferenceFlowHeight = 280,
+            LPreferenceEncoderWidth = PSEncoder.PSEncoderWidthDefault,
+            LPreferenceEncoderHeight = PSEncoder.PSEncoderHeightDefault,
+            LPreferenceEncoderLeft = null,
+            LPreferenceEncoderTop = null,
             LPreferenceFontSize = 13,
             LPreferenceKeyframeMinimumPixels = 5,
             LPreferenceImmediateKeyframeWindowMilliseconds = 20000,
@@ -55,6 +61,7 @@ public sealed class LPreferenceState
             LPreferenceGroupDuplicateAllowed = false,
             LPreferenceTimelineOrder = "OverviewFirst",
             LPreferenceHistoryMode = "LastUsed",
+            LPreferenceWorkspaceFolder = string.Empty,
             LPreferenceTabLayoutKeys = new List<string> { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" },
             LPreferenceTabSelectIndex = 0
         };
@@ -78,6 +85,10 @@ public sealed class LPreferenceState
             LPreferenceProgramLeft = LPreferenceProgramLeft,
             LPreferenceProgramTop = LPreferenceProgramTop,
             LPreferenceFlowHeight = LPreferenceFlowHeight,
+            LPreferenceEncoderWidth = LPreferenceEncoderWidth,
+            LPreferenceEncoderHeight = LPreferenceEncoderHeight,
+            LPreferenceEncoderLeft = LPreferenceEncoderLeft,
+            LPreferenceEncoderTop = LPreferenceEncoderTop,
             LPreferenceFontSize = LPreferenceFontSize,
             LPreferenceKeyframeMinimumPixels = LPreferenceKeyframeMinimumPixels,
             LPreferenceImmediateKeyframeWindowMilliseconds = LPreferenceImmediateKeyframeWindowMilliseconds,
@@ -87,6 +98,7 @@ public sealed class LPreferenceState
             LPreferenceGroupDuplicateAllowed = LPreferenceGroupDuplicateAllowed,
             LPreferenceTimelineOrder = LPreferenceTimelineOrder,
             LPreferenceHistoryMode = LPreferenceHistoryMode,
+            LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
             LPreferenceTabLayoutKeys = new List<string>(LPreferenceTabLayoutKeys),
             LPreferenceTabSelectIndex = LPreferenceTabSelectIndex,
             LPreferenceTabExports = new List<LExportSpecificPresetRecord>(LPreferenceTabExports),
@@ -96,12 +108,45 @@ public sealed class LPreferenceState
         };
     }
 
+    public IEnumerable<string> LPreferenceDifferenceRead(LPreferenceState lPreferenceOther)
+    {
+        (string Name, object Was, object Now)[] lPreferenceFields =
+        {
+            ("Volume mode", lPreferenceOther.LPreferenceVolumeMode, LPreferenceVolumeMode),
+            ("Timeline height", lPreferenceOther.LPreferenceFlowHeight, LPreferenceFlowHeight),
+            ("Font size", lPreferenceOther.LPreferenceFontSize, LPreferenceFontSize),
+            ("Keyframe minimum spacing", lPreferenceOther.LPreferenceKeyframeMinimumPixels, LPreferenceKeyframeMinimumPixels),
+            ("Immediate keyframe window (ms)", lPreferenceOther.LPreferenceImmediateKeyframeWindowMilliseconds, LPreferenceImmediateKeyframeWindowMilliseconds),
+            ("Section overlap opacity", lPreferenceOther.LPreferenceSectionOpacity, LPreferenceSectionOpacity),
+            ("Maximum history", lPreferenceOther.LPreferenceHistoryMaximum, LPreferenceHistoryMaximum),
+            ("Autoplay on load", lPreferenceOther.LPreferenceAutoplayOnLoad, LPreferenceAutoplayOnLoad),
+            ("Duplicate sections in groups", lPreferenceOther.LPreferenceGroupDuplicateAllowed, LPreferenceGroupDuplicateAllowed),
+            ("Timeline order", lPreferenceOther.LPreferenceTimelineOrder, LPreferenceTimelineOrder),
+            ("History mode", lPreferenceOther.LPreferenceHistoryMode, LPreferenceHistoryMode),
+            ("Workspace folder", lPreferenceOther.LPreferenceWorkspaceFolder, LPreferenceWorkspaceFolder)
+        };
+
+        foreach ((string lName, object lWas, object lNow) in lPreferenceFields)
+        {
+            if (!Equals(lWas, lNow))
+            {
+                yield return $"{lName}: {lWas} -> {lNow}";
+            }
+        }
+    }
+
     public void LPreferenceNormalize()
     {
         LPreferenceVolume = LPreferenceVolumeClamp(LPreferenceVolume);
         LPreferenceProgramWidth = LPreferenceNumberClamp(LPreferenceProgramWidth, 800, 4000, 1280);
         LPreferenceProgramHeight = LPreferenceNumberClamp(LPreferenceProgramHeight, 400, 3000, 760);
         LPreferenceFlowHeight = LPreferenceNumberClamp(LPreferenceFlowHeight, 200, 520, 280);
+        LPreferenceEncoderWidth = LPreferenceEncoderWidth <= 0
+            ? PSEncoder.PSEncoderWidthDefault
+            : LPreferenceNumberClamp(LPreferenceEncoderWidth, PSEncoder.PSEncoderWidthMinimum, 4000, PSEncoder.PSEncoderWidthDefault);
+        LPreferenceEncoderHeight = LPreferenceEncoderHeight <= 0
+            ? PSEncoder.PSEncoderHeightDefault
+            : LPreferenceNumberClamp(LPreferenceEncoderHeight, PSEncoder.PSEncoderHeightMinimum, 3000, PSEncoder.PSEncoderHeightDefault);
         LPreferenceFontSize = LPreferenceNumberClamp(LPreferenceFontSize, 9, 18, 13);
         LPreferenceKeyframeMinimumPixels = LPreferenceNumberClamp(LPreferenceKeyframeMinimumPixels, 1, 50, 5);
         LPreferenceImmediateKeyframeWindowMilliseconds = LPreferenceNumberClamp(LPreferenceImmediateKeyframeWindowMilliseconds, 1000, 600000, 20000);
@@ -110,6 +155,7 @@ public sealed class LPreferenceState
         if (LPreferenceVolumeMode is not "Single global volume" and not "Per-tab volume") LPreferenceVolumeMode = "Single global volume";
         if (LPreferenceTimelineOrder is not "OverviewFirst" and not "WorkingFirst") LPreferenceTimelineOrder = "OverviewFirst";
         if (LPreferenceHistoryMode is not "Hover" and not "LastUsed") LPreferenceHistoryMode = "LastUsed";
+        LPreferenceWorkspaceFolder = (LPreferenceWorkspaceFolder ?? string.Empty).Trim();
         LPreferenceTabSelectIndex = Math.Max(0, LPreferenceTabSelectIndex);
         if (LPreferenceTabLayoutKeys is null || LPreferenceTabLayoutKeys.Count == 0)
             LPreferenceTabLayoutKeys = new List<string> { "Split" };

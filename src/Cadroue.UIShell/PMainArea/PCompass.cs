@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -16,14 +15,17 @@ public sealed class PCompass : UserControl
     private static readonly Brush pCompassNegativeBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45));
     private readonly Slider pCompassVolumeSlider;
     private readonly TextBlock pCompassVolumeText;
+
+    private readonly WrapPanel pCompassLinePanel;
     private Border pCompassVolumeTrackFill = null!;
     private Grid pCompassVolumeSliderHost = null!;
     private bool pCompassVolumeProgramSet;
 
     public PCompass(PFlowControl pFlow)
     {
-        var pPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        (string Icon, string Label, string Tooltip, Action Click, bool SeparatorAfter)[] pButtons =
+        pCompassLinePanel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
+
+        (string Icon, string Label, string Tooltip, Action Click, bool GroupEnd)[] pButtons =
         {
             ("PCompassZoomIncrease.svg", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomIn"), false),
             ("PCompassZoomDecrease.svg", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomOut"), true),
@@ -39,14 +41,16 @@ public sealed class PCompass : UserControl
             ("PCompassKeyframeNext.svg", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutDispatch("nextKey"), true)
         };
 
-        foreach ((string pIcon, string pLabel, string pTooltip, Action pClick, bool pSeparatorAfter) in pButtons)
+        StackPanel pGroup = PCompassGroupBuild();
+        foreach ((string pIcon, string pLabel, string pTooltip, Action pClick, bool pGroupEnd) in pButtons)
         {
             Button pButton = PCompassButtonBuild(pIcon, pLabel, pTooltip);
             pButton.Click += (_, _) => pClick();
-            pPanel.Children.Add(pButton);
-            if (pSeparatorAfter)
+            pGroup.Children.Add(pButton);
+            if (pGroupEnd)
             {
-                pPanel.Children.Add(PCompassSeparatorBuild());
+                pCompassLinePanel.Children.Add(pGroup);
+                pGroup = PCompassGroupBuild();
             }
         }
 
@@ -63,15 +67,51 @@ public sealed class PCompass : UserControl
         };
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle(pFlow);
         pFlow.PFlowVolumeValue += PCompassValueHandle;
-        pPanel.Children.Add(PCompassVolumeBuild());
+
+        StackPanel pVolumeGroup = PCompassGroupBuild();
+        pVolumeGroup.Children.Add(PCompassVolumeBuild());
+        pCompassLinePanel.Children.Add(pVolumeGroup);
         PCompassValueHandle(App.LPreferenceStateCurrent.LPreferenceVolume);
 
         Content = new Border
         {
             MinHeight = 72,
-            Child = pPanel,
+            Child = pCompassLinePanel,
             SnapsToDevicePixels = true
         };
+        pCompassLinePanel.SizeChanged += PCompassSizeHandle;
+    }
+
+    private static StackPanel PCompassGroupBuild()
+    {
+        var pGroup = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pGroup.Children.Add(PCompassSeparatorBuild());
+        return pGroup;
+    }
+
+    private void PCompassSizeHandle(object sender, SizeChangedEventArgs e)
+    {
+        PCompassSeparatorUpdate();
+    }
+
+    private void PCompassSeparatorUpdate()
+    {
+        double pLineTop = double.NaN;
+        foreach (UIElement pChild in pCompassLinePanel.Children)
+        {
+            if (pChild is not Panel pGroup || pGroup.Children.Count == 0) continue;
+            double pGroupTop = pGroup.TranslatePoint(new Point(0, 0), pCompassLinePanel).Y;
+            bool pLineStart = double.IsNaN(pLineTop) || pGroupTop > pLineTop;
+            if (pLineStart)
+            {
+                pLineTop = pGroupTop;
+            }
+
+            if (pGroup.Children[0] is Border pSeparator)
+            {
+                pSeparator.Opacity = pLineStart ? 0 : 1;
+            }
+        }
     }
 
     private Border PCompassVolumeBuild()
@@ -244,11 +284,7 @@ public sealed class PCompass : UserControl
             Width = 58,
             Height = 58,
             Content = pStack,
-            Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            FocusVisualStyle = null,
-            Padding = new Thickness(0),
-            Cursor = Cursors.Hand,
+            Style = PMainWindow.PButton.PButtonCommandCreate(),
             ToolTip = pTooltipText
         };
     }

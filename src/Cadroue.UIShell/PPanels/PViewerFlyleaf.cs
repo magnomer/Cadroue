@@ -84,6 +84,7 @@ public sealed partial class PViewer
 
     private void PViewerMediaCommit(LMediaOpenStatus mediaStatus, Player? player)
     {
+        PViewerMediaReport(mediaStatus, player);
         pViewerPlayer = player;
         pViewerFlyleafHost.Player = player;
         pViewerMediaInfo = mediaStatus.LMediaOpenMediaInfo;
@@ -107,6 +108,34 @@ public sealed partial class PViewer
         {
             PPlayerStartPause(player);
             PViewerPlaybackUpdate(false, TimeSpan.Zero);
+        }
+    }
+
+    private static void PViewerMediaReport(LMediaOpenStatus mediaStatus, Player? player)
+    {
+        string pSourcePath = mediaStatus.LMediaOpenSourcePath ?? "(no path)";
+        string pFileName = System.IO.Path.GetFileName(pSourcePath);
+
+        if (mediaStatus.LMediaOpenMediaInfo is not LMediaInfo pMediaInfo)
+        {
+            LAppLog.LError($"Media rejected '{pFileName}': {mediaStatus.LMediaOpenFfmpegError ?? "unreadable"} [{pSourcePath}]");
+            return;
+        }
+
+        string pStreams = pMediaInfo.LMediaInfoVideoPresent
+            ? $"video {pMediaInfo.LMediaInfoVideoWidth}x{pMediaInfo.LMediaInfoVideoHeight} {pMediaInfo.LMediaInfoVideoCodecName} {pMediaInfo.LMediaInfoVideoFrameRate:0.###}fps"
+            : "no video";
+        if (pMediaInfo.LMediaInfoAudioPresent)
+        {
+            pStreams += $", audio {pMediaInfo.LMediaInfoAudioCodecName} {pMediaInfo.LMediaInfoAudioSampleRate}Hz {pMediaInfo.LMediaInfoAudioChannels}ch";
+        }
+
+        LAppLog.LInfo(
+            $"Media opened '{pFileName}': {pMediaInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff}, {pStreams} [{pSourcePath}]");
+
+        if (player is null)
+        {
+            LAppLog.LError($"Preview unavailable for '{pFileName}': {mediaStatus.LMediaOpenPreviewError ?? "the player did not start"}");
         }
     }
 

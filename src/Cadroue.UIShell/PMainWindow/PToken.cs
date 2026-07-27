@@ -25,7 +25,6 @@ internal sealed class PToken : RichTextBox
         Foreground = PTextBrush;
         BorderBrush = PLineBrush;
         BorderThickness = new Thickness(1);
-        FontSize = 14;
         Padding = new Thickness(4, 0, 10, 0);
         VerticalContentAlignment = VerticalAlignment.Center;
         SelectionBrush = PAccentBrush;
@@ -35,14 +34,11 @@ internal sealed class PToken : RichTextBox
         VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
         Document = new FlowDocument
         {
-            PagePadding = new Thickness(0),
-            FontFamily = FontFamily,
-            FontSize = FontSize,
-            Foreground = Foreground
+            PagePadding = new Thickness(0)
         };
         pParagraph.Margin = new Thickness(0);
         pParagraph.Padding = new Thickness(0);
-        pParagraph.LineHeight = 30;
+        pParagraph.LineHeight = 22;
         pParagraph.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
         Document.Blocks.Add(pParagraph);
         Template = PTokenTemplateBuild();
@@ -144,6 +140,7 @@ internal sealed class PToken : RichTextBox
     {
         "{OriginalName}" => "Original Name",
         "{SectionNumber}" => "Section Number",
+        "{SectionName}" => "Section Name",
         "{Date}" => "Date",
         "{Time}" => "Time",
         _ => pToken.Trim('{', '}')
@@ -153,7 +150,6 @@ internal sealed class PToken : RichTextBox
     {
         return new Run(pText)
         {
-            FontSize = 14,
             Foreground = PTextBrush,
             BaselineAlignment = BaselineAlignment.Center
         };
@@ -173,8 +169,6 @@ internal sealed class PToken : RichTextBox
         var pText = new TextBlock
         {
             Text = pLabel,
-            FontSize = 12,
-            FontWeight = FontWeights.SemiBold,
             Foreground = PTextBrush,
             LineHeight = 14,
             LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
@@ -187,7 +181,7 @@ internal sealed class PToken : RichTextBox
         var pChip = new Border
         {
             Tag = pToken,
-            Height = 30,
+            Height = 24,
             BorderBrush = PLineBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,

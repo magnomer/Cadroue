@@ -29,6 +29,6 @@ public sealed partial class PFlow
         return reelGrid;
     }
 
-    private static TextBlock PReelLabelBuild() => new() { FontSize = 12, FontFamily = new FontFamily("Consolas"), Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x4A, 0x4A)) };
-    private static Border PDividerBuild() => new() { Height = 8, Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3)), Cursor = Cursors.SizeNS, Child = new Border { Height = 1, VerticalAlignment = VerticalAlignment.Center, Background = new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1)) } };
+    private static TextBlock PReelLabelBuild() => new() { FontSize = 12, Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x4A, 0x4A)) };
+    private static Border PDividerBuild() => new() { Height = 8, Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3)), Cursor = Cursors.SizeNS };
 }

@@ -8,11 +8,6 @@ using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
 
-/// <summary>
-/// Worklist surface: transport, overall progress, the queued jobs and a detail pane
-/// for the selected one. It renders <see cref="LSchedule"/> and never keeps its own
-/// copy of the queue — the backend stays the ground truth.
-/// </summary>
 public sealed partial class PRoster : UserControl
 {
     private static readonly Brush PRosterLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
@@ -29,11 +24,11 @@ public sealed partial class PRoster : UserControl
     private readonly Button pRosterPauseButton;
     private readonly StackPanel pRosterDetailPanel;
     private readonly List<LWorkItem> pRosterWatchedItems = new();
+    private readonly LDepotWatch lRosterDepotWatch = new();
 
     public PRoster(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         FocusVisualStyle = null;
-        // The schedule is single-threaded; the runner marshals every state write here.
         lRosterRunner = new LRunner(lRosterSchedule, pAction => Dispatcher.Invoke(pAction));
         pRosterProgress = new ProgressBar { Height = 8, Minimum = 0, Maximum = 1, Value = 0 };
         pRosterStatus = new TextBlock { Foreground = PRosterMutedBrush, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
@@ -47,7 +42,10 @@ public sealed partial class PRoster : UserControl
 
         lRosterSchedule.LScheduleChange += PRosterScheduleHandle;
         Unloaded += PRosterUnloadHandle;
-        PRosterScheduleHandle(lRosterSchedule);
+
+        lRosterDepotWatch.LDepotChange += PRosterDepotHandle;
+        lRosterDepotWatch.LDepotWatchStart();
+        lRosterSchedule.LScheduleReload();
     }
 
 }

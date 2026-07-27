@@ -179,16 +179,85 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
+        if (LSidecarStore.LSidecarFileCheck(sourcePath))
+        {
+            if (PViewerSidecarResolve(sourcePath) is not { } pResolvedPath)
+            {
+                return;
+            }
+
+            sourcePath = pResolvedPath;
+        }
+
         _ = PPlayerVideoLoad(sourcePath);
     }
 
+    private string? PViewerSidecarResolve(string pSidecarPath)
+    {
+        LSidecar? pSidecar = LSidecarStore.LSidecarRead(pSidecarPath);
+        if (pSidecar is null)
+        {
+            MessageBox.Show(
+                "That .cad file could not be read.",
+                "Open",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return null;
+        }
+
+        LSidecarSourceResult pResult = LSidecarSource.LSidecarSourceResolve(pSidecarPath, pSidecar);
+        if (pResult.LSidecarResultVerified)
+        {
+            return pResult.LSidecarResultPath;
+        }
+
+        if (pResult.LSidecarResultKind != LSidecarSourceKind.LSidecarSourceMissing
+            && MessageBox.Show(
+                $"The media for this .cad was found at:\n\n{pResult.LSidecarResultPath}\n\n"
+                + "but it does not match what the .cad recorded. Open it anyway?",
+                "Open",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question) == MessageBoxResult.Yes)
+        {
+            return pResult.LSidecarResultPath;
+        }
+
+        return PViewerSidecarLocate(pSidecar);
+    }
+
+    private string? PViewerSidecarLocate(LSidecar pSidecar)
+    {
+        var pDialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = $"Locate media for this .cad ({pSidecar.Source.FileName})",
+            FileName = pSidecar.Source.FileName,
+            Filter = "Media files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.ts;*.mts;*.m2ts|All files|*.*"
+        };
+
+        if (pDialog.ShowDialog() != true)
+        {
+            return null;
+        }
+
+        if (LSidecarSource.LSidecarVerifyCheck(pDialog.FileName, pSidecar.Source))
+        {
+            return pDialog.FileName;
+        }
+
+        return MessageBox.Show(
+            "That file does not match what the .cad recorded. Open it anyway?",
+            "Open",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question) == MessageBoxResult.Yes
+            ? pDialog.FileName
+            : null;
+    }
 
     private void PViewerPreviewApply()
     {
         LPreview.LPreviewApply(pViewerPlayer, LPreviewStateCurrent);
     }
 }
-
 
 public enum LMediaOpenStatusKind
 {

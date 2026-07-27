@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using Cadroue.Media;
 using Cadroue.UIShell;
+using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PFlow;
 
@@ -22,8 +23,8 @@ public sealed partial class PViewfinder
             return;
         }
 
-        double sectionTop = railTop + 3;
-        double sectionHeight = Math.Max(4, (railBottom - railTop) * 0.28);
+        double sectionTop = railTop + PViewfinderSectionInset;
+        double sectionHeight = Math.Max(4, railBottom - railTop - PViewfinderSectionInset * 2);
         for (int index = 0; index < lSectionList.Count; index++)
         {
             LSegment section = lSectionList[index];
@@ -37,10 +38,95 @@ public sealed partial class PViewfinder
             double sectionStartX = Math.Clamp((sectionStart - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
             double sectionEndX = Math.Clamp((sectionEnd - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
-            Brush sectionBrush = pViewfinderSectionBrushes[Math.Abs(section.LSegmentColorIndex) % pViewfinderSectionBrushes.Length];
+            Brush sectionBrush = PSectionPalette.PSectionPaletteRead(section.LSegmentColorIndex);
             Pen? sectionPen = index == lSectionIndexSelect ? new Pen(Brushes.Black, 1.5) : null;
-            drawingContext.DrawRoundedRectangle(sectionBrush, sectionPen, new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight), 3, 3);
+            var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
+            drawingContext.DrawRoundedRectangle(sectionBrush, sectionPen, sectionRect, 3, 3);
+            PViewfinderSectionLabelDraw(drawingContext, sectionRect, index, section.LSegmentColorIndex, section.LSegmentName);
         }
+    }
+
+    private void PViewfinderSectionLabelDraw(
+        DrawingContext drawingContext,
+        Rect sectionRect,
+        int sectionIndex,
+        int sectionColorIndex,
+        string sectionName)
+    {
+        double labelRoom = sectionRect.Width - PViewfinderSectionLabelPadding * 2;
+        if (labelRoom <= 0 || sectionRect.Height < PViewfinderSectionLabelHeightLeast)
+        {
+            return;
+        }
+
+        double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+        var badgeFormatted = new FormattedText(
+            $"{sectionIndex + 1}",
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            pViewfinderBadgeTypeface,
+            PSection.PSectionNameSize,
+            pViewfinderBrushBadgeText,
+            pixelsPerDip);
+
+        double badgeHeight = badgeFormatted.Height + PViewfinderBadgePaddingVertical * 2;
+        double badgeWidth = Math.Max(badgeHeight, badgeFormatted.Width + PViewfinderBadgePaddingHorizontal * 2);
+        if (badgeWidth > labelRoom || badgeHeight > sectionRect.Height - 2)
+        {
+            return;
+        }
+
+        double nameRoom = labelRoom - badgeWidth - PViewfinderBadgeGap;
+        FormattedText? nameFormatted = null;
+        if (!string.IsNullOrEmpty(sectionName) && nameRoom >= PViewfinderSectionLabelLeast)
+        {
+            nameFormatted = new FormattedText(
+                sectionName,
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                pViewfinderTickTypeface,
+                PSection.PSectionNameSize,
+                pViewfinderBrushSectionText,
+                pixelsPerDip)
+            {
+                MaxTextWidth = nameRoom,
+                MaxLineCount = 1,
+                Trimming = TextTrimming.CharacterEllipsis
+            };
+        }
+
+        double labelWidth = nameFormatted is null
+            ? badgeWidth
+            : badgeWidth + PViewfinderBadgeGap + nameFormatted.Width;
+        double labelLeft = sectionRect.Left + (sectionRect.Width - labelWidth) / 2;
+
+        var badgeRect = new Rect(
+            labelLeft,
+            sectionRect.Top + (sectionRect.Height - badgeHeight) / 2,
+            badgeWidth,
+            badgeHeight);
+        drawingContext.DrawRoundedRectangle(
+            PSectionPalette.PSectionBadgeRead(sectionColorIndex),
+            null,
+            badgeRect,
+            badgeHeight / 2,
+            badgeHeight / 2);
+        drawingContext.DrawText(
+            badgeFormatted,
+            new Point(
+                badgeRect.Left + (badgeWidth - badgeFormatted.Width) / 2,
+                badgeRect.Top + PViewfinderBadgePaddingVertical));
+
+        if (nameFormatted is null)
+        {
+            return;
+        }
+
+        drawingContext.DrawText(
+            nameFormatted,
+            new Point(
+                badgeRect.Right + PViewfinderBadgeGap,
+                sectionRect.Top + (sectionRect.Height - nameFormatted.Height) / 2));
     }
 
     private void PViewfinderCursorDraw(
@@ -58,10 +144,6 @@ public sealed partial class PViewfinder
 
         double cursorRatio = Math.Clamp((lCursor - rangeStart).TotalSeconds / rangeSeconds, 0, 1);
         double cursorX = cursorRatio * actualWidth;
-        drawingContext.DrawLine(
-            pViewfinderPenCursor,
-            new Point(cursorX, PViewfinderLabelLaneHeight),
-            new Point(cursorX, actualHeight));
 
         string timeText = PViewfinderTimeFormat(lCursor);
         double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
@@ -75,13 +157,20 @@ public sealed partial class PViewfinder
             pixelsPerDip);
         double labelWidth = formattedText.Width + PViewfinderLabelPaddingHorizontal * 2;
         double labelHeight = formattedText.Height + PViewfinderLabelPaddingVertical * 2;
-        double labelX = actualWidth <= labelWidth
-            ? 0
-            : Math.Clamp(cursorX - labelWidth / 2, 0, actualWidth - labelWidth);
         double safeLabelWidth = Math.Min(labelWidth, actualWidth);
-        var labelRect = new Rect(labelX, 0, safeLabelWidth, labelHeight);
+        Rect labelRect = PCursor.PCursorChipResolve(
+            cursorX,
+            safeLabelWidth,
+            labelHeight,
+            PViewfinderLabelLaneHeight,
+            actualHeight,
+            actualWidth);
+
+        PCursor.PCursorDraw(drawingContext, cursorX, PViewfinderLabelLaneHeight, actualHeight, labelRect);
         drawingContext.DrawRoundedRectangle(pViewfinderBrushLabelBackground, pViewfinderPenLabelBorder, labelRect, 3, 3);
-        drawingContext.DrawText(formattedText, new Point(labelX + PViewfinderLabelPaddingHorizontal, PViewfinderLabelPaddingVertical));
+        drawingContext.DrawText(
+            formattedText,
+            new Point(labelRect.Left + PViewfinderLabelPaddingHorizontal, labelRect.Top + PViewfinderLabelPaddingVertical));
     }
 
     private void PViewfinderCoverageDraw(

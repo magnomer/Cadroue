@@ -4,24 +4,10 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-/// <summary>
-/// Builds the FFmpeg command line for one work item.
-///
-/// The per-encoder option names come from <see cref="LCapabilityTable"/> rather than
-/// being hardcoded here: the quality scalar is "-crf" for x264 but "-cq" for NVENC,
-/// "-global_quality" for QSV, "-qp" for VVenC and "-q:v" for MJPEG, and the speed
-/// control is "-preset" for some encoders and "-cpu-used" or "-speed" for others.
-/// </summary>
 public static class LEncode
 {
-    /// <summary>Rate-control modes whose quality field already is the bitrate.</summary>
     private const string LEncodeBitrateOption = "-b:v";
 
-    /// <summary>
-    /// How often FFmpeg is forced to emit a progress report, in seconds. Passed as
-    /// -stats_period so the cadence is explicit rather than relying on the default,
-    /// and so the runner publishes one progress update per report.
-    /// </summary>
     public const double LEncodeStatsPeriod = 0.5;
 
     public static string LEncodeArgumentBuild(LWorkItem lWorkItem)
@@ -34,7 +20,6 @@ public static class LEncode
         lArguments.Append(CultureInfo.InvariantCulture,
             $" -stats_period {LEncodeStatsPeriod.ToString("0.###", CultureInfo.InvariantCulture)}");
 
-        // Trim before the input so FFmpeg seeks rather than decoding from zero.
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkStart)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -to {LEncodeTimeFormat(lWorkItem.LWorkEnd)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lWorkItem.LWorkSourcePath)}");
@@ -99,7 +84,6 @@ public static class LEncode
     {
         if (lMode.CapabilityModeQuality is not LCapabilityQuality lQuality)
         {
-            // Lossless has no scalar; the flag differs per encoder.
             LEncodeLosslessAppend(lArguments, lEncoderName);
             return;
         }
@@ -111,8 +95,6 @@ public static class LEncode
 
         lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality.CapabilityQualityOption} {lQualityValue}");
 
-        // libaom and libvpx only honour -crf as constant quality when the bitrate is
-        // pinned to zero; without this they fall into constrained quality instead.
         bool lNeedsZeroBitrate = lEncoderName is "libaom-av1" or "libvpx" or "libvpx-vp9";
         if (lNeedsZeroBitrate && !string.Equals(lQuality.CapabilityQualityOption, LEncodeBitrateOption, StringComparison.Ordinal))
         {
@@ -146,7 +128,6 @@ public static class LEncode
                 lArguments.Append(" -aom-params lossless=1");
                 break;
             case "ffv1":
-                // Always lossless; nothing to add.
                 break;
         }
     }
@@ -232,7 +213,6 @@ public static class LEncode
         _ => null
     };
 
-    /// <summary>Turn a "1920 × 1080" list entry into the "1920x1080" FFmpeg expects.</summary>
     private static string? LEncodeSizeRead(string lSize)
     {
         if (LEncodeSameAsSource(lSize) || string.Equals(lSize, "Custom", StringComparison.OrdinalIgnoreCase))

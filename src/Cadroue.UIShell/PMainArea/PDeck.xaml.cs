@@ -7,12 +7,10 @@ namespace Cadroue.UIShell.PMainArea;
 public partial class PDeck : UserControl
 {
     private LTabset? lTabset;
-    private PTabRecord? pDeckTabRecord;
 
     public PDeck()
     {
         InitializeComponent();
-        pDeckGrid.SizeChanged += PDeckSizeHandle;
         Unloaded += PDeckUnloadHandle;
     }
 
@@ -48,14 +46,10 @@ public partial class PDeck : UserControl
             lTabset.PTabsetRecords.CollectionChanged -= PDeckRecordsHandle;
             lTabset = null;
         }
-
-        pDeckTabRecord = null;
     }
 
     private void PDeckLayoutApply(PTabRecord? pTabRecord)
     {
-        pDeckTabRecord = pTabRecord;
-
         foreach (UIElement pChild in pDeckGrid.Children)
         {
             pChild.Visibility = Visibility.Collapsed;
@@ -74,27 +68,6 @@ public partial class PDeck : UserControl
         }
 
         pTabDeckRoot.Visibility = Visibility.Visible;
-        PDeckRootFit(pTabDeckRoot);
-    }
-
-    private void PDeckSizeHandle(object sender, SizeChangedEventArgs e)
-    {
-        foreach (UIElement pChild in pDeckGrid.Children)
-        {
-            if (pChild is FrameworkElement pElement && pElement.Visibility == Visibility.Visible)
-            {
-                PDeckRootFit(pElement);
-            }
-        }
-    }
-
-    private void PDeckRootFit(FrameworkElement pRoot)
-    {
-        pRoot.Width = Math.Max(0, pDeckGrid.ActualWidth);
-        pRoot.HorizontalAlignment = HorizontalAlignment.Stretch;
-        pRoot.ClipToBounds = true;
-        pRoot.InvalidateMeasure();
-        pRoot.InvalidateArrange();
     }
 
     private void PDeckNoticeShow()

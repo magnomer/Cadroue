@@ -3,14 +3,6 @@ using System.Runtime.CompilerServices;
 
 namespace Cadroue.Core;
 
-/// <summary>
-/// One unit of scheduled work: a single source range producing a single output file.
-/// A split of N sections produces N items sharing one batch id.
-///
-/// Everything describing *what* to produce is immutable — the item keeps the settings
-/// it was scheduled with. Only the run state and its message change afterwards, and
-/// those notify so a view can follow them.
-/// </summary>
 public sealed class LWorkItem : INotifyPropertyChanged
 {
     private LWorkState lWorkStateCurrent = LWorkState.LWorkStatePending;
@@ -26,9 +18,11 @@ public sealed class LWorkItem : INotifyPropertyChanged
         TimeSpan lWorkEnd,
         string lWorkOutputName,
         string lWorkOutputPath,
-        LWorkOutput lWorkOutput)
+        LWorkOutput lWorkOutput,
+        Guid? lWorkId = null,
+        DateTimeOffset? lWorkCreateTime = null)
     {
-        LWorkId = Guid.NewGuid();
+        LWorkId = lWorkId ?? Guid.NewGuid();
         LWorkBatchId = lWorkBatchId;
         LWorkKind = lWorkKind;
         LWorkPriority = lWorkPriority;
@@ -38,12 +32,11 @@ public sealed class LWorkItem : INotifyPropertyChanged
         LWorkOutputName = lWorkOutputName;
         LWorkOutputPath = lWorkOutputPath;
         LWorkOutput = lWorkOutput;
-        LWorkCreateTime = DateTimeOffset.Now;
+        LWorkCreateTime = lWorkCreateTime ?? DateTimeOffset.Now;
     }
 
     public Guid LWorkId { get; }
 
-    /// <summary>Groups the items that one Add List press produced.</summary>
     public Guid LWorkBatchId { get; }
 
     public LWorkKind LWorkKind { get; }
@@ -58,10 +51,8 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public TimeSpan LWorkDuration => LWorkEnd - LWorkStart;
 
-    /// <summary>Resolved output file name including extension.</summary>
     public string LWorkOutputName { get; }
 
-    /// <summary>Full destination path: the resolved location folder plus the name.</summary>
     public string LWorkOutputPath { get; }
 
     public LWorkOutput LWorkOutput { get; }
@@ -98,7 +89,6 @@ public sealed class LWorkItem : INotifyPropertyChanged
         }
     }
 
-    /// <summary>Fraction of this job encoded, 0 to 1. Only meaningful while running.</summary>
     public double LWorkProgress
     {
         get => lWorkProgress;

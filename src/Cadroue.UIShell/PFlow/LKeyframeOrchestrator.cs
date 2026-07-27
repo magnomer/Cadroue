@@ -12,6 +12,10 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private readonly SortedSet<long> lKeyframeStorage = new();
     private readonly HashSet<int> lKeyframeScannedSpans = new();
     private const int LKeyframeFailedSpanRetryLimit = 3;
+
+    private const int LKeyframeSaveEveryCount = 10;
+
+    private int lKeyframeUnsavedCount;
     private readonly Dictionary<int, int> lKeyframeFailedSpanCounts = new();
     private CancellationTokenSource? lKeyframeCancel;
     private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
@@ -29,7 +33,6 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     public static TimeSpan LKeyframeRangeAfter => lKeyframeRangeAfter;
 
     public static TimeSpan LKeyframeSearchDuration => lKeyframeRangeBefore + lKeyframeRangeAfter;
-
 
     public void LKeyframeStart(string sourcePath, TimeSpan duration, TimeSpan cursor)
     {

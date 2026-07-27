@@ -26,12 +26,10 @@ public sealed partial class PExport : UserControl
     private Point? pPresetDragStart;
     private bool pPresetDragActive;
 
-    /// <summary>
-    /// Set while this panel writes to the preset selection itself. The preset
-    /// library is shared by every tab, so an unguarded programmatic write raises
-    /// SelectionChanged, reloads the preset over this tab's own settings, and makes
-    /// tabs appear to share one export configuration.
-    /// </summary>
+    private bool pPresetRebuilding;
+
+    private TextBox? pPresetNameBoxCurrent;
+
     private bool pExportPresetBusy;
 
     public PExport(LExportSpecificState lExportSpecificState)
@@ -124,6 +122,7 @@ public sealed partial class PExport : UserControl
         if (!string.Equals(pPresetNameEditing, pPresetNameSelected, StringComparison.OrdinalIgnoreCase))
         {
             pPresetNameEditing = null;
+            pPresetNameBoxCurrent = null;
         }
 
         PExportPresetRebuild();

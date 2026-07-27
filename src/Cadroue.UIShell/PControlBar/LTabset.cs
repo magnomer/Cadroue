@@ -11,7 +11,7 @@ public sealed class LTabset
     private const string lTabsetAudioIconPath = "/PAssets/PTabs/PAudioButton.png";
     private const string lTabsetConvertIconPath = "/PAssets/PTabs/PConvertButton.png";
     private const string lTabsetMergeIconPath = "/PAssets/PTabs/PMergeButton.png";
-    private const string lTabsetWorklistIconPath = "/PAssets/PCompass/PActionAddList.png";
+    private const string lTabsetWorklistIconPath = "/PAssets/PTabs/PWorklistButton.svg";
 
     private PTabRecord? pTabsetSelectRecord;
 
@@ -56,9 +56,6 @@ public sealed class LTabset
         return LTabsetAdd("Split");
     }
 
-    /// <param name="lExportSpecificState">
-    /// Export settings to restore into the new tab, or null to start from defaults.
-    /// </param>
     public PTabRecord LTabsetAdd(
         string pTabLayoutKey,
         LExportSpecificState? lExportSpecificState = null,
@@ -92,6 +89,7 @@ public sealed class LTabset
         };
         PTabsetRecords.Add(pTabRecord);
         LTabsetTitleUpdate();
+        LAppLog.LInfo($"Tab opened '{pTabRecord.PTabTitle}' ({pTabLayoutKey}): {PTabsetRecords.Count} tab(s) open");
 
         if (PTabsetSelectRecord is null)
         {
@@ -105,10 +103,6 @@ public sealed class LTabset
         return pTabRecord;
     }
 
-    /// <summary>
-    /// Lowest ordinal not currently taken by a tab of the same kind, so a number freed
-    /// by a close is reused instead of counting upward forever.
-    /// </summary>
     private int LTabsetOrdinalRead(string pTabLayoutKey)
     {
         var lTabsetTakenOrdinals = PTabsetRecords
@@ -125,11 +119,6 @@ public sealed class LTabset
         return pTabOrdinal;
     }
 
-    /// <summary>
-    /// Rewrite every tab title from its own ordinal. A layout key present once is shown
-    /// bare ("Split") and its ordinal resets to 1; repeats keep the number they were
-    /// given at creation, so reordering swaps positions without swapping numbers.
-    /// </summary>
     private void LTabsetTitleUpdate()
     {
         foreach (var lTabsetKindGroup in PTabsetRecords.GroupBy(
@@ -175,7 +164,6 @@ public sealed class LTabset
             return;
         }
 
-        // No title update here: ordinals belong to the tab, not to the slot.
         PTabsetRecords.Move(pTabSourceIndex, pTabClampedTargetIndex);
         LTabsetSeparatorUpdate();
     }
@@ -189,9 +177,11 @@ public sealed class LTabset
         }
 
         var pTabWasSelected = ReferenceEquals(PTabsetSelectRecord, pTabRecord);
+        string pTabClosedTitle = pTabRecord.PTabTitle;
         pTabRecord.PTabWorkspace.PWorkspaceClose();
         PTabsetRecords.RemoveAt(pTabIndex);
         LTabsetTitleUpdate();
+        LAppLog.LInfo($"Tab closed '{pTabClosedTitle}': {PTabsetRecords.Count} tab(s) open");
 
         if (!pTabWasSelected)
         {

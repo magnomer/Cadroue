@@ -4,7 +4,6 @@ using Cadroue.Core;
 
 namespace Cadroue.UIShell.PMainArea;
 
-/// <summary>Renders an <see cref="LWorkState"/> as the label shown in the job list.</summary>
 public sealed class PRosterStateLabel : IValueConverter
 {
     internal static string PRosterStateFormat(LWorkState pWorkState) => pWorkState switch

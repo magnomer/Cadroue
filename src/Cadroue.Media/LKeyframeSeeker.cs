@@ -86,7 +86,6 @@ public static class LKeyframeSeeker
         double scanEndSeconds,
         SortedSet<long> result)
     {
-        // CSV: packet,pts_time,dts_time,flags  e.g. "packet,1234.567000,1234.567000,K_"
         string[] parts = line.Split(',');
         if (parts.Length < 4) return;
         if (!parts[3].Contains('K')) return;

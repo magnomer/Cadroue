@@ -15,7 +15,7 @@ public sealed class PSource : UserControl
     private static readonly SolidColorBrush PSourceTextBrush = new(Color.FromRgb(0x11, 0x18, 0x27));
     private static readonly SolidColorBrush PSourceMutedBrush = new(Color.FromRgb(0x9C, 0xA3, 0xAF));
     private static readonly SolidColorBrush PSourceBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private const double PSourceRowHeight = 50;
+    private const double PSourceRowHeight = 38;
     private const double PSourceBrowseIconSize = 18;
     private PViewer? pSourceViewer;
     private readonly bool pSourceAudioOnlyAllowed;
@@ -79,7 +79,7 @@ public sealed class PSource : UserControl
         };
         pBrowseButton.Click += PSourceOpenHandle;
 
-        var pRow = new Grid { Margin = new Thickness(16, 8, 16, 8) };
+        var pRow = new Grid { Margin = new Thickness(16, 6, 16, 4) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -134,9 +134,10 @@ public sealed class PSource : UserControl
     {
         const string pVideoPattern = "*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.ts;*.mts;*.m2ts";
         const string pAudioPattern = "*.mp3;*.aac;*.flac;*.wav;*.ogg";
+        const string pSidecarPattern = "*.cad";
         return pSourceAudioOnlyAllowed
-            ? $"Media files|{pVideoPattern};{pAudioPattern}|All files|*.*"
-            : $"Video files|{pVideoPattern}|All files|*.*";
+            ? $"Media and project files|{pVideoPattern};{pAudioPattern};{pSidecarPattern}|Cadroue project|{pSidecarPattern}|All files|*.*"
+            : $"Video and project files|{pVideoPattern};{pSidecarPattern}|Cadroue project|{pSidecarPattern}|All files|*.*";
     }
 
     private static bool PSourceAudioCheck(string pSourcePath)
@@ -176,9 +177,9 @@ public sealed class PSource : UserControl
     {
         return new Image
         {
-            Width = 28,
-            Height = 28,
-            Margin = new Thickness(0, 0, 12, 0),
+            Width = 20,
+            Height = 20,
+            Margin = new Thickness(0, 0, 10, 0),
             Stretch = Stretch.Uniform,
             Source = PIcon.PIconRead("/PAssets/PPanels/PVideo.svg")
         };
