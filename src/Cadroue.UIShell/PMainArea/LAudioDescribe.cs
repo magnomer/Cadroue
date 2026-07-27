@@ -1,4 +1,4 @@
-using Cadroue.UIShell.LWork;
+using Cadroue.Core;
 
 namespace Cadroue.UIShell.PMainArea;
 

@@ -54,8 +54,16 @@ public partial class PWindow : Window
         IReadOnlyList<string> pTabKeys = lPreferenceState.LPreferenceTabLayoutKeys.Count > 0
             ? lPreferenceState.LPreferenceTabLayoutKeys
             : new[] { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" };
-        foreach (string pTabKey in pTabKeys)
-            pTabset.LTabsetAdd(pTabKey);
+        IReadOnlyList<LExportSpecificPresetRecord> pTabExports = lPreferenceState.LPreferenceTabExports;
+        for (int pTabIndex = 0; pTabIndex < pTabKeys.Count; pTabIndex++)
+        {
+            // Index-aligned with the layout keys. A shorter list (preferences written by
+            // an older build) leaves the remaining tabs on default export settings.
+            LExportSpecificState? pTabExportState = pTabIndex < pTabExports.Count
+                ? pTabExports[pTabIndex].LPresetStateCreate()
+                : null;
+            pTabset.LTabsetAdd(pTabKeys[pTabIndex], pTabExportState);
+        }
         int pSelectIndex = Math.Clamp(lPreferenceState.LPreferenceTabSelectIndex, 0, pTabset.PTabsetRecords.Count - 1);
         pTabset.LTabsetSelect(pTabset.PTabsetRecords[pSelectIndex]);
     }
@@ -424,6 +432,9 @@ public partial class PWindow : Window
             lPrefs.LPreferenceProgramHeight = lBounds.Height;
         }
         lPrefs.LPreferenceTabLayoutKeys = lTabset.PTabsetRecords.Select(r => r.PTabLayoutKey).ToList();
+        lPrefs.LPreferenceTabExports = lTabset.PTabsetRecords
+            .Select(r => LExportSpecificPresetRecord.LPresetRecordCreate(r.PTabWorkspace.PWorkspaceExportState))
+            .ToList();
         lPrefs.LPreferenceTabSelectIndex = lTabset.PTabsetSelectRecord is null ? 0
             : Math.Max(0, lTabset.PTabsetRecords.IndexOf(lTabset.PTabsetSelectRecord));
         App.LPreferenceStateSet(lPrefs);

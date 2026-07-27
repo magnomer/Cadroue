@@ -19,6 +19,14 @@ public sealed partial class PExport : UserControl
     private readonly TextBlock pSummaryOutput;
     private readonly ComboBox pPresetCombo;
 
+    /// <summary>
+    /// Set while this panel writes to <see cref="pPresetCombo"/> itself. The preset
+    /// library is shared by every tab, so an unguarded programmatic write raises
+    /// SelectionChanged, reloads the preset over this tab's own settings, and makes
+    /// tabs appear to share one export configuration.
+    /// </summary>
+    private bool pExportPresetBusy;
+
     public PExport(LExportSpecificState lExportSpecificState)
     {
         this.lExportSpecificState = lExportSpecificState;
@@ -67,7 +75,10 @@ public sealed partial class PExport : UserControl
 
     private void PExportSummaryUpdate()
     {
+        pExportPresetBusy = true;
         pPresetCombo.Text = lExportSpecificState.PresetName;
+        pExportPresetBusy = false;
+
         pSummaryContainer.Text = lExportSpecificState.Container;
         pSummaryMode.Text = lExportSpecificState.ExportMode;
         pSummaryVideo.Text = lExportSpecificState.VideoSummary;

@@ -1,17 +1,18 @@
 using System.Collections.ObjectModel;
+using Cadroue.UIShell.PAssets;
+using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PControlBar;
 
 public sealed class LTabset
 {
-    private const string lTabsetSplitIconPath = "/PAssets/PTabs/PSplitButton.png";
+    private const string lTabsetSplitIconPath = "/PAssets/PTabs/PSplitButton.svg";
     private const string lTabsetEditIconPath = "/PAssets/PTabs/PEditButton.png";
     private const string lTabsetAudioIconPath = "/PAssets/PTabs/PAudioButton.png";
     private const string lTabsetConvertIconPath = "/PAssets/PTabs/PConvertButton.png";
     private const string lTabsetMergeIconPath = "/PAssets/PTabs/PMergeButton.png";
     private const string lTabsetWorklistIconPath = "/PAssets/PCompass/PActionAddList.png";
 
-    private int lTabsetCreateIndex;
     private PTabRecord? pTabsetSelectRecord;
 
     public LTabset()
@@ -55,23 +56,37 @@ public sealed class LTabset
         return LTabsetAdd("Split");
     }
 
-    public PTabRecord LTabsetAdd(string pTabLayoutKey)
+    /// <param name="lExportSpecificState">
+    /// Export settings to restore into the new tab, or null to start from defaults.
+    /// </param>
+    public PTabRecord LTabsetAdd(string pTabLayoutKey, LExportSpecificState? lExportSpecificState = null)
     {
         return pTabLayoutKey switch
         {
-            "Edit" => LTabsetTypedAdd("Edit", lTabsetEditIconPath),
-            "Audio" => LTabsetTypedAdd("Audio", lTabsetAudioIconPath),
-            "Convert" => LTabsetTypedAdd("Convert", lTabsetConvertIconPath),
-            "Merge" => LTabsetTypedAdd("Merge", lTabsetMergeIconPath),
-            "Worklist" => LTabsetTypedAdd("Worklist", lTabsetWorklistIconPath),
-            _ => LTabsetTypedAdd("Split", lTabsetSplitIconPath)
+            "Edit" => LTabsetTypedAdd("Edit", lTabsetEditIconPath, lExportSpecificState),
+            "Audio" => LTabsetTypedAdd("Audio", lTabsetAudioIconPath, lExportSpecificState),
+            "Convert" => LTabsetTypedAdd("Convert", lTabsetConvertIconPath, lExportSpecificState),
+            "Merge" => LTabsetTypedAdd("Merge", lTabsetMergeIconPath, lExportSpecificState),
+            "Worklist" => LTabsetTypedAdd("Worklist", lTabsetWorklistIconPath, lExportSpecificState),
+            _ => LTabsetTypedAdd("Split", lTabsetSplitIconPath, lExportSpecificState)
         };
     }
 
-    public PTabRecord LTabsetAdd(string pTabTitle, string pTabLayoutKey, string pTabIconPath)
+    private PTabRecord LTabsetTypedAdd(
+        string pTabLayoutKey,
+        string pTabIconPath,
+        LExportSpecificState? lExportSpecificState)
     {
-        var pTabRecord = new PTabRecord(pTabTitle, pTabLayoutKey, pTabIconPath);
+        var pTabRecord = new PTabRecord(
+            pTabLayoutKey,
+            pTabLayoutKey,
+            PIcon.PIconRead(pTabIconPath),
+            lExportSpecificState)
+        {
+            PTabOrdinal = LTabsetOrdinalRead(pTabLayoutKey)
+        };
         PTabsetRecords.Add(pTabRecord);
+        LTabsetTitleUpdate();
 
         if (PTabsetSelectRecord is null)
         {
@@ -85,10 +100,49 @@ public sealed class LTabset
         return pTabRecord;
     }
 
-    private PTabRecord LTabsetTypedAdd(string pTabLayoutKey, string pTabIconPath)
+    /// <summary>
+    /// Lowest ordinal not currently taken by a tab of the same kind, so a number freed
+    /// by a close is reused instead of counting upward forever.
+    /// </summary>
+    private int LTabsetOrdinalRead(string pTabLayoutKey)
     {
-        lTabsetCreateIndex++;
-        return LTabsetAdd($"{pTabLayoutKey} {lTabsetCreateIndex}", pTabLayoutKey, pTabIconPath);
+        var lTabsetTakenOrdinals = PTabsetRecords
+            .Where(pTabItem => string.Equals(pTabItem.PTabLayoutKey, pTabLayoutKey, StringComparison.Ordinal))
+            .Select(pTabItem => pTabItem.PTabOrdinal)
+            .ToHashSet();
+
+        int pTabOrdinal = 1;
+        while (lTabsetTakenOrdinals.Contains(pTabOrdinal))
+        {
+            pTabOrdinal++;
+        }
+
+        return pTabOrdinal;
+    }
+
+    /// <summary>
+    /// Rewrite every tab title from its own ordinal. A layout key present once is shown
+    /// bare ("Split") and its ordinal resets to 1; repeats keep the number they were
+    /// given at creation, so reordering swaps positions without swapping numbers.
+    /// </summary>
+    private void LTabsetTitleUpdate()
+    {
+        foreach (var lTabsetKindGroup in PTabsetRecords.GroupBy(
+                     pTabItem => pTabItem.PTabLayoutKey, StringComparer.Ordinal))
+        {
+            var lTabsetKindTabs = lTabsetKindGroup.ToList();
+            if (lTabsetKindTabs.Count == 1)
+            {
+                lTabsetKindTabs[0].PTabOrdinal = 1;
+                lTabsetKindTabs[0].PTabTitle = lTabsetKindGroup.Key;
+                continue;
+            }
+
+            foreach (PTabRecord pTabItem in lTabsetKindTabs)
+            {
+                pTabItem.PTabTitle = $"{lTabsetKindGroup.Key} ({pTabItem.PTabOrdinal})";
+            }
+        }
     }
 
     public void LTabsetSelect(PTabRecord? pTabRecord)
@@ -116,6 +170,7 @@ public sealed class LTabset
             return;
         }
 
+        // No title update here: ordinals belong to the tab, not to the slot.
         PTabsetRecords.Move(pTabSourceIndex, pTabClampedTargetIndex);
         LTabsetSeparatorUpdate();
     }
@@ -131,6 +186,7 @@ public sealed class LTabset
         var pTabWasSelected = ReferenceEquals(PTabsetSelectRecord, pTabRecord);
         pTabRecord.PTabWorkspace.PWorkspaceClose();
         PTabsetRecords.RemoveAt(pTabIndex);
+        LTabsetTitleUpdate();
 
         if (!pTabWasSelected)
         {

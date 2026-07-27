@@ -3,6 +3,7 @@ using Cadroue.UIShell;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIShell.PAssets;
 
 namespace Cadroue.UIShell.PControlBar;
 
@@ -226,25 +227,25 @@ public partial class PToolbar : UserControl
             Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom
         };
 
-        PTabMenuAppend(pTabAddMenu, "Split", "/PAssets/PTabs/PSplitButton.png");
-        PTabMenuAppend(pTabAddMenu, "Edit", "/PAssets/PTabs/PEditButton.png");
-        PTabMenuAppend(pTabAddMenu, "Audio", "/PAssets/PTabs/PAudioButton.png");
-        PTabMenuAppend(pTabAddMenu, "Convert", "/PAssets/PTabs/PConvertButton.png");
-        PTabMenuAppend(pTabAddMenu, "Merge", "/PAssets/PTabs/PMergeButton.png");
-        PTabMenuAppend(pTabAddMenu, "Worklist", "/PAssets/PCompass/PActionAddList.png");
+        PTabMenuAppend(pTabAddMenu, "Split", PIcon.PIconRead("/PAssets/PTabs/PSplitButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Edit", PIcon.PIconRead("/PAssets/PTabs/PEditButton.png"));
+        PTabMenuAppend(pTabAddMenu, "Audio", PIcon.PIconRead("/PAssets/PTabs/PAudioButton.png"));
+        PTabMenuAppend(pTabAddMenu, "Convert", PIcon.PIconRead("/PAssets/PTabs/PConvertButton.png"));
+        PTabMenuAppend(pTabAddMenu, "Merge", PIcon.PIconRead("/PAssets/PTabs/PMergeButton.png"));
+        PTabMenuAppend(pTabAddMenu, "Worklist", PIcon.PIconRead("/PAssets/PCompass/PActionAddList.png"));
 
         pTabAddMenu.IsOpen = true;
         e.Handled = true;
     }
 
-    private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey, string pTabIconPath)
+    private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey, ImageSource pTabIconSource)
     {
         var pTabAddMenuItem = new MenuItem
         {
             Header = pTabLayoutKey,
             Icon = new Image
             {
-                Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(pTabIconPath, UriKind.Relative)),
+                Source = pTabIconSource,
                 Width = 20,
                 Height = 20,
                 Stretch = Stretch.Uniform

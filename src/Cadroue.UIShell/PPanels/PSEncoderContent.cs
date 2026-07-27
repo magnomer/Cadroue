@@ -87,7 +87,7 @@ internal sealed partial class PSEncoder
         var pPanel = new StackPanel();
         var psLocationStatus = new TextBlock
         {
-            Text = "Same as source",
+            Text = string.IsNullOrWhiteSpace(psEncoderFolderPath) ? "Same as source" : psEncoderFolderPath,
             Foreground = PMutedBrush,
             FontSize = 12,
             Margin = new Thickness(12, 0, 0, 0),
@@ -216,7 +216,7 @@ internal sealed partial class PSEncoder
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        var psLocationCombo = PSLocationComboBuild(psLocationStatus);
+        psLocationCombo.SelectionChanged += (_, _) => PSLocationChangeHandle(psLocationCombo, psLocationStatus);
         Grid.SetColumn(psLocationCombo, 0);
         Grid.SetColumn(psLocationStatus, 1);
         pValueGrid.Children.Add(psLocationCombo);
@@ -225,13 +225,6 @@ internal sealed partial class PSEncoder
         Grid.SetColumn(pValueGrid, 1);
         pGrid.Children.Add(pValueGrid);
         return pGrid;
-    }
-
-    private ComboBox PSLocationComboBuild(TextBlock psLocationStatus)
-    {
-        var psLocationCombo = PSComboBuild("Same as source", "Same as source", "Custom folder");
-        psLocationCombo.SelectionChanged += (_, _) => PSLocationChangeHandle(psLocationCombo, psLocationStatus);
-        return psLocationCombo;
     }
 
     private void PSLocationChangeHandle(ComboBox psLocationCombo, TextBlock psLocationStatus)
@@ -275,30 +268,22 @@ internal sealed partial class PSEncoder
         return PSPlateBuild("Export Mode", pPanel);
     }
 
-    private UIElement PSVideoPlateBuild()
-    {
-        var pPanel = new StackPanel();
-        var pVideoEncoderItems = PSCodecItemsRead();
-        var pVideoEncoderCombo = PSComboBuild(pVideoEncoderItems[0], pVideoEncoderItems);
-        var pVideoEncoderVerify = PSInlineButtonBuild("Verify", 84, new Thickness(8, 0, 0, 0));
-        var pVideoEncoderLog = PSInlineButtonBuild("Log", 64, new Thickness(6, 0, 0, 0));
-        pVideoEncoderVerify.Click += async (_, _) => await PSCodecVerifyHandle(pVideoEncoderCombo, pVideoEncoderVerify);
-        pVideoEncoderLog.Click += (_, _) => MessageBox.Show(this, psCodecLog, "Encoder verification log", MessageBoxButton.OK, MessageBoxImage.Information);
-
-        pPanel.Children.Add(PSFieldBuild("Stream", psVideoStreamCombo));
-        pPanel.Children.Add(PSFieldBuild("Mode", psVideoModeCombo));
-        pPanel.Children.Add(PSFieldButtonBuild("Encoder", pVideoEncoderCombo, pVideoEncoderVerify, pVideoEncoderLog));
-        pPanel.Children.Add(PSFieldBuild("Quality mode", PSComboBuild("CRF / constant quality", "CRF / constant quality", "Target bitrate", "Two-pass bitrate", "Lossless", "Encoder default")));
-        pPanel.Children.Add(PSFieldBuild("CRF", PSEntryBuild("18", 120)));
-        pPanel.Children.Add(PSFieldBuild("Preset", PSComboBuild("ultrafast", "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow")));
-        pPanel.Children.Add(PSFieldBuild("Size", PSComboBuild("Same as source", "Same as source", "3840 × 2160", "2560 × 1440", "1920 × 1080", "1280 × 720", "854 × 480", "Custom")));
-        pPanel.Children.Add(PSFieldBuild("FPS", PSComboBuild("Same as source", "Same as source", "60", "50", "30", "25", "24", "Custom")));
-        pPanel.Children.Add(PSFieldBuild("Pixel format", PSComboBuild("Auto", "Auto", "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le")));
-        return PSPlateBuild("Video", pPanel);
-    }
-
     private static string[] PSCodecItemsRead() =>
         PSCodecCandidates.Select(pCandidate => pCandidate.PSCodecText).ToArray();
+
+    /// <summary>Map an encoder list entry back to the FFmpeg encoder name it selects.</summary>
+    private static string PSCodecValueRead(string pText)
+    {
+        foreach (var pCandidate in PSCodecCandidates)
+        {
+            if (string.Equals(pCandidate.PSCodecText, pText, StringComparison.Ordinal))
+            {
+                return pCandidate.PSCodecValues.FirstOrDefault() ?? string.Empty;
+            }
+        }
+
+        return string.Empty;
+    }
 
     private async Task PSCodecVerifyHandle(ComboBox pCombo, Button pButton)
     {
@@ -373,14 +358,53 @@ internal sealed partial class PSEncoder
     private UIElement PSAudioPlateBuild()
     {
         var pPanel = new StackPanel();
+
+        // Only meaningful when the audio is actually re-encoded.
+        psAudioEncodePanel.Children.Add(PSFieldBuild("Encoder", psAudioEncoderCombo));
+        psAudioEncodePanel.Children.Add(PSFieldBuild("Bitrate", psAudioBitrateCombo));
+        psAudioEncodePanel.Children.Add(PSFieldBuild("Sample rate", psAudioSampleCombo));
+        psAudioEncodePanel.Children.Add(PSFieldBuild("Channels", psAudioChannelCombo));
+
         pPanel.Children.Add(PSFieldBuild("Stream", psAudioStreamCombo));
         pPanel.Children.Add(PSFieldBuild("Mode", psAudioModeCombo));
-        pPanel.Children.Add(PSFieldBuild("Encoder", PSComboBuild("AAC", "AAC", "MP3 / libmp3lame", "Opus / libopus", "FLAC", "PCM 16-bit / pcm_s16le", "PCM 24-bit / pcm_s24le")));
-        pPanel.Children.Add(PSFieldBuild("Bitrate", PSComboBuild("96k", "96k", "128k", "160k", "192k", "256k", "320k", "Custom")));
-        pPanel.Children.Add(PSFieldBuild("Sample rate", PSComboBuild("Same as source", "Same as source", "44100", "48000", "88200", "96000", "Custom")));
-        pPanel.Children.Add(PSFieldBuild("Channels", PSComboBuild("Same as source", "Same as source", "Mono", "Stereo", "5.1", "Custom")));
+        pPanel.Children.Add(psAudioEncodePanel);
+        pPanel.Children.Add(psAudioNotice);
+
+        psAudioStreamCombo.SelectionChanged += (_, _) => PSAudioScopeUpdate();
+        psAudioModeCombo.SelectionChanged += (_, _) => PSAudioScopeUpdate();
+
+        PSAudioScopeUpdate();
         return PSPlateBuild("Audio", pPanel);
     }
+
+    /// <summary>
+    /// Mirror of <c>PSVideoScopeUpdate</c> for audio: an excluded stream becomes -an and
+    /// a copied one becomes -c:a copy, so the codec rows apply to neither.
+    /// </summary>
+    private void PSAudioScopeUpdate()
+    {
+        string pStream = PSComboTextRead(psAudioStreamCombo);
+        string pMode = PSComboTextRead(psAudioModeCombo);
+
+        bool pExcluded = pStream == "Exclude" || pMode == "Exclude";
+        bool pCopied = pMode == "Copy";
+        bool pEncoded = !pExcluded && !pCopied;
+
+        psAudioEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
+        psAudioNotice.Visibility = pEncoded ? Visibility.Collapsed : Visibility.Visible;
+        psAudioNotice.Text = pExcluded
+            ? "No audio stream is written, so no audio settings apply."
+            : "The audio stream is copied as-is, so codec settings do not apply.";
+    }
+
+    private static TextBlock PSScopeNoticeBuild() => new()
+    {
+        Foreground = PMutedBrush,
+        FontSize = 12,
+        TextWrapping = TextWrapping.Wrap,
+        Margin = new Thickness(130, 2, 0, 4),
+        Visibility = Visibility.Collapsed
+    };
 
     private static Border PSPlateBuild(string pTitle, UIElement pContent)
     {

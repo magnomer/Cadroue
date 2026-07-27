@@ -194,7 +194,7 @@
                                             <Image Grid.Column="0"
                                                    Width="17"
                                                    Height="17"
-                                                   Source="{Binding PTabIconPath}"
+                                                   Source="{Binding PTabIconSource}"
                                                    Stretch="Uniform"
                                                    VerticalAlignment="Center"
                                                    Margin="0,0,10,0" />

@@ -1,4 +1,5 @@
 using Cadroue.Media;
+using Cadroue.UIShell.PAssets;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -172,67 +173,15 @@ public sealed class PInfo : UserControl
         });
     }
 
-    private static Viewbox PInfoIconCreate()
+    private static Image PInfoIconCreate()
     {
-        var pCanvas = new Canvas { Width = 28, Height = 28 };
-
-        var pCard = new Rectangle
-        {
-            Width = 21,
-            Height = 15.5,
-            RadiusX = 2.3,
-            RadiusY = 2.3,
-            Stroke = PInfoTextBrush,
-            StrokeThickness = 2.0,
-            Fill = Brushes.Transparent
-        };
-        Canvas.SetLeft(pCard, 3.5);
-        Canvas.SetTop(pCard, 6.0);
-        pCanvas.Children.Add(pCard);
-
-        var pDot = new Ellipse
-        {
-            Width = 3.4,
-            Height = 3.4,
-            Fill = PInfoTextBrush
-        };
-        Canvas.SetLeft(pDot, 8.0);
-        Canvas.SetTop(pDot, 10.2);
-        pCanvas.Children.Add(pDot);
-
-        var pTopLine = new Line
-        {
-            X1 = 13.8,
-            Y1 = 11.9,
-            X2 = 20.2,
-            Y2 = 11.9,
-            Stroke = PInfoTextBrush,
-            StrokeThickness = 1.8,
-            StrokeStartLineCap = PenLineCap.Round,
-            StrokeEndLineCap = PenLineCap.Round
-        };
-        pCanvas.Children.Add(pTopLine);
-
-        var pBottomLine = new Line
-        {
-            X1 = 8.0,
-            Y1 = 16.1,
-            X2 = 20.2,
-            Y2 = 16.1,
-            Stroke = PInfoTextBrush,
-            StrokeThickness = 1.8,
-            StrokeStartLineCap = PenLineCap.Round,
-            StrokeEndLineCap = PenLineCap.Round
-        };
-        pCanvas.Children.Add(pBottomLine);
-
-        return new Viewbox
+        return new Image
         {
             Width = 28,
             Height = 28,
             Margin = new Thickness(0, 0, 12, 0),
             Stretch = Stretch.Uniform,
-            Child = pCanvas
+            Source = PIcon.PIconRead("/PAssets/PPanels/PInfo.svg")
         };
     }
 

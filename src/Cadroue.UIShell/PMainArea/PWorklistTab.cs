@@ -11,7 +11,7 @@ public sealed class PWorklistTab : PTabSurface
         {
             Children =
             {
-                new PList()
+                new PRoster()
             }
         };
     }

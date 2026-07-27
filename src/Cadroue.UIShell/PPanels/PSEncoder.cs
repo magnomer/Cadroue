@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PMainWindow;
 using System;
 using System.Runtime.InteropServices;
@@ -31,6 +32,25 @@ internal sealed partial class PSEncoder : Window
     private readonly ComboBox psAudioStreamCombo;
     private readonly ComboBox psVideoModeCombo;
     private readonly ComboBox psAudioModeCombo;
+    private readonly ComboBox psVideoEncoderCombo;
+    private readonly ComboBox psVideoRateCombo;
+    private readonly ComboBox psLocationCombo;
+    private readonly ComboBox psVideoSizeCombo;
+    private readonly ComboBox psVideoFpsCombo;
+    private readonly ComboBox psPixelCombo;
+    private readonly ComboBox psAudioEncoderCombo;
+    private readonly ComboBox psAudioBitrateCombo;
+    private readonly ComboBox psAudioSampleCombo;
+    private readonly ComboBox psAudioChannelCombo;
+    private readonly StackPanel psVideoRowsPanel;
+    private readonly StackPanel psVideoEncodePanel;
+    private readonly StackPanel psAudioEncodePanel;
+    private readonly TextBlock psVideoNotice;
+    private readonly TextBlock psAudioNotice;
+    private readonly Dictionary<string, ComboBox> psVideoExtraCombos;
+    private TextBox? psVideoQualityBox;
+    private ComboBox? psVideoSpeedCombo;
+    private bool psVideoRowsBusy;
     private string psCodecLog = "Verification has not run yet.";
     private string? psEncoderFolderPath;
     private bool psGrabberActive;
@@ -55,6 +75,28 @@ internal sealed partial class PSEncoder : Window
         psAudioStreamCombo = PSComboBuild(lsExportSpecificEdit.AudioStream, "Include first audio track", "Include all audio tracks", "Exclude");
         psVideoModeCombo = PSComboBuild(lsExportSpecificEdit.VideoMode, "Auto", "Copy", "Encode", "Exclude");
         psAudioModeCombo = PSComboBuild(lsExportSpecificEdit.AudioMode, "Auto", "Copy", "Encode", "Exclude");
+
+        psVideoEncoderCombo = PSComboBuild(lsExportSpecificEdit.VideoEncoder, PSCodecItemsRead());
+        LCapabilityCodec pVideoCodec = LCapability.LCapabilityRead(PSCodecValueRead(PSComboTextRead(psVideoEncoderCombo)));
+        psVideoRateCombo = PSComboBuild(lsExportSpecificEdit.VideoRateControl, pVideoCodec.CapabilityModeLabels);
+        psVideoRowsPanel = new StackPanel();
+        psVideoEncodePanel = new StackPanel();
+        psAudioEncodePanel = new StackPanel();
+        psVideoNotice = PSScopeNoticeBuild();
+        psAudioNotice = PSScopeNoticeBuild();
+        psVideoExtraCombos = new Dictionary<string, ComboBox>(StringComparer.Ordinal);
+
+        psLocationCombo = PSComboBuild(lsExportSpecificEdit.Location, "Same as source", "Custom folder");
+        psEncoderFolderPath = string.IsNullOrWhiteSpace(lsExportSpecificEdit.LocationFolder)
+            ? null
+            : lsExportSpecificEdit.LocationFolder;
+        psVideoSizeCombo = PSComboBuild(lsExportSpecificEdit.VideoSize, "Same as source", "3840 × 2160", "2560 × 1440", "1920 × 1080", "1280 × 720", "854 × 480", "Custom");
+        psVideoFpsCombo = PSComboBuild(lsExportSpecificEdit.VideoFps, "Same as source", "60", "50", "30", "25", "24", "Custom");
+        psPixelCombo = PSComboBuild(lsExportSpecificEdit.PixelFormat, "Auto", "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le");
+        psAudioEncoderCombo = PSComboBuild(lsExportSpecificEdit.AudioEncoder, "AAC", "MP3 / libmp3lame", "Opus / libopus", "FLAC", "PCM 16-bit / pcm_s16le", "PCM 24-bit / pcm_s24le");
+        psAudioBitrateCombo = PSComboBuild(lsExportSpecificEdit.AudioBitrate, "96k", "128k", "160k", "192k", "256k", "320k", "Custom");
+        psAudioSampleCombo = PSComboBuild(lsExportSpecificEdit.AudioSampleRate, "Same as source", "44100", "48000", "88200", "96000", "Custom");
+        psAudioChannelCombo = PSComboBuild(lsExportSpecificEdit.AudioChannels, "Same as source", "Mono", "Stereo", "5.1", "Custom");
 
         Title = "Specific Export Settings";
         Width = 820;
@@ -88,6 +130,21 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.AudioStream = PSComboTextRead(psAudioStreamCombo);
         lsExportSpecificEdit.VideoMode = PSComboTextRead(psVideoModeCombo);
         lsExportSpecificEdit.AudioMode = PSComboTextRead(psAudioModeCombo);
+        lsExportSpecificEdit.VideoEncoder = PSComboTextRead(psVideoEncoderCombo);
+        lsExportSpecificEdit.VideoRateControl = PSComboTextRead(psVideoRateCombo);
+        lsExportSpecificEdit.VideoQuality = psVideoQualityBox?.Text.Trim() ?? string.Empty;
+        lsExportSpecificEdit.VideoSpeedPreset = psVideoSpeedCombo is null ? string.Empty : PSComboTextRead(psVideoSpeedCombo);
+        lsExportSpecificEdit.Location = PSComboTextRead(psLocationCombo);
+        lsExportSpecificEdit.LocationFolder = psEncoderFolderPath ?? string.Empty;
+        lsExportSpecificEdit.VideoSize = PSComboTextRead(psVideoSizeCombo);
+        lsExportSpecificEdit.VideoFps = PSComboTextRead(psVideoFpsCombo);
+        lsExportSpecificEdit.PixelFormat = PSComboTextRead(psPixelCombo);
+        lsExportSpecificEdit.VideoExtras = psVideoExtraCombos.ToDictionary(
+            pExtra => pExtra.Key, pExtra => PSComboTextRead(pExtra.Value), StringComparer.Ordinal);
+        lsExportSpecificEdit.AudioEncoder = PSComboTextRead(psAudioEncoderCombo);
+        lsExportSpecificEdit.AudioBitrate = PSComboTextRead(psAudioBitrateCombo);
+        lsExportSpecificEdit.AudioSampleRate = PSComboTextRead(psAudioSampleCombo);
+        lsExportSpecificEdit.AudioChannels = PSComboTextRead(psAudioChannelCombo);
         lsExportSpecificSource.LPresetCopy(lsExportSpecificEdit);
         pSummaryRefresh();
     }

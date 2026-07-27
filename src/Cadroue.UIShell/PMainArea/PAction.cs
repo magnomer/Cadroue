@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Cadroue.UIShell.LWork;
+using Cadroue.Core;
 
 namespace Cadroue.UIShell.PMainArea;
 

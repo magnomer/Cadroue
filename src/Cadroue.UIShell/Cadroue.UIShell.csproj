@@ -15,7 +15,10 @@
 
   <ItemGroup>
     <Resource Include="PAssets\PTabs\*.png" />
-    <Resource Include="PAssets\PCompass\*.png" />
+    <Resource Include="PAssets\PTabs\*.svg" />
+    <Resource Include="PAssets\PCompass\PAction*.png" />
+    <Resource Include="PAssets\PCompass\*.svg" />
+    <Resource Include="PAssets\PPanels\*.svg" />
     <Resource Include="PAssets\PMenus\*.png" />
   </ItemGroup>
 
@@ -23,5 +26,6 @@
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.1.0" />
     <PackageReference Include="FlyleafLib" Version="3.10.4" />
     <PackageReference Include="FlyleafLib.Controls.WPF" Version="1.6.4" />
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
   </ItemGroup>
 </Project>

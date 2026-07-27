@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell;
 
@@ -24,6 +25,13 @@ public sealed class LPreferenceState
     public string LPreferenceHistoryMode { get; set; } = "LastUsed";
     public List<string> LPreferenceTabLayoutKeys { get; set; } = new();
     public int LPreferenceTabSelectIndex { get; set; }
+
+    /// <summary>
+    /// Each tab's own export settings, index-aligned with <see cref="LPreferenceTabLayoutKeys"/>.
+    /// Tabs keep independent settings, so two Split tabs restore with the settings each
+    /// of them had. A short list (older preferences file) leaves the extra tabs on defaults.
+    /// </summary>
+    public List<LExportSpecificPresetRecord> LPreferenceTabExports { get; set; } = new();
 
     public static LPreferenceState LPreferenceDefaultCreate()
     {
@@ -78,7 +86,8 @@ public sealed class LPreferenceState
             LPreferenceTimelineOrder = LPreferenceTimelineOrder,
             LPreferenceHistoryMode = LPreferenceHistoryMode,
             LPreferenceTabLayoutKeys = new List<string>(LPreferenceTabLayoutKeys),
-            LPreferenceTabSelectIndex = LPreferenceTabSelectIndex
+            LPreferenceTabSelectIndex = LPreferenceTabSelectIndex,
+            LPreferenceTabExports = new List<LExportSpecificPresetRecord>(LPreferenceTabExports)
         };
     }
 

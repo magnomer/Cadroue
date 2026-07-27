@@ -1,15 +1,25 @@
-using Cadroue.UIShell.LWork;
+using Cadroue.Core;
+using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LSplit
 {
-    public static void LSplitDescribe(
+    /// <summary>
+    /// Gather the current split settings — source, sections and export settings — and
+    /// hand them to the interpreter. Returns how many work items reached the schedule.
+    /// </summary>
+    public static int LSplitDescribe(
         LWorkPriority lWorkPriority,
         string? lSplitSourcePath,
-        IReadOnlyList<LSplitSectionDescription> lSplitSections)
+        IReadOnlyList<LSplitSectionDescription> lSplitSections,
+        LExportSpecificState lExportSpecificState)
     {
-        LSplitWorkDescription lSplitWorkDescription = new(lSplitSourcePath, lSplitSections);
-        LSplit.LSplitInterpret(lWorkPriority, lSplitWorkDescription);
+        LSplitWorkDescription lSplitWorkDescription = new(
+            lSplitSourcePath,
+            lSplitSections,
+            lExportSpecificState.LPresetOutputCreate());
+
+        return LSplit.LSplitInterpret(lWorkPriority, lSplitWorkDescription);
     }
 }

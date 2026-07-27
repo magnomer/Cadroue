@@ -49,7 +49,7 @@ internal static class LExportSpecificPresetStore
     }
 }
 
-internal sealed class LExportSpecificPresetRecord
+public sealed class LExportSpecificPresetRecord
 {
     public string PresetName { get; set; } = "MP4_H264_AAC_Default";
     public string Name { get; set; } = "OriginalName_export";
@@ -60,7 +60,24 @@ internal sealed class LExportSpecificPresetRecord
     public string VideoMode { get; set; } = "Auto";
     public string AudioMode { get; set; } = "Auto";
 
-    internal static LExportSpecificPresetRecord LPresetRecordCreate(LExportSpecificState lState) => new()
+    // Added after the first release: presets written by an older build lack these
+    // keys and deserialize to the defaults below.
+    public string VideoEncoder { get; set; } = "H.264, x264 / libx264";
+    public string VideoRateControl { get; set; } = "CRF (constant quality)";
+    public string VideoQuality { get; set; } = "23";
+    public string VideoSpeedPreset { get; set; } = "medium";
+    public string Location { get; set; } = "Same as source";
+    public string LocationFolder { get; set; } = string.Empty;
+    public string VideoSize { get; set; } = "Same as source";
+    public string VideoFps { get; set; } = "Same as source";
+    public string PixelFormat { get; set; } = "Auto";
+    public Dictionary<string, string> VideoExtras { get; set; } = new();
+    public string AudioEncoder { get; set; } = "AAC";
+    public string AudioBitrate { get; set; } = "96k";
+    public string AudioSampleRate { get; set; } = "Same as source";
+    public string AudioChannels { get; set; } = "Same as source";
+
+    public static LExportSpecificPresetRecord LPresetRecordCreate(LExportSpecificState lState) => new()
     {
         PresetName = lState.PresetName,
         Name = lState.Name,
@@ -69,10 +86,24 @@ internal sealed class LExportSpecificPresetRecord
         VideoStream = lState.VideoStream,
         AudioStream = lState.AudioStream,
         VideoMode = lState.VideoMode,
-        AudioMode = lState.AudioMode
+        AudioMode = lState.AudioMode,
+        VideoEncoder = lState.VideoEncoder,
+        VideoRateControl = lState.VideoRateControl,
+        VideoQuality = lState.VideoQuality,
+        VideoSpeedPreset = lState.VideoSpeedPreset,
+        Location = lState.Location,
+        LocationFolder = lState.LocationFolder,
+        VideoSize = lState.VideoSize,
+        VideoFps = lState.VideoFps,
+        PixelFormat = lState.PixelFormat,
+        VideoExtras = new Dictionary<string, string>(lState.VideoExtras),
+        AudioEncoder = lState.AudioEncoder,
+        AudioBitrate = lState.AudioBitrate,
+        AudioSampleRate = lState.AudioSampleRate,
+        AudioChannels = lState.AudioChannels
     };
 
-    internal LExportSpecificState LPresetStateCreate() => new()
+    public LExportSpecificState LPresetStateCreate() => new()
     {
         PresetName = PresetName,
         Name = Name,
@@ -81,6 +112,20 @@ internal sealed class LExportSpecificPresetRecord
         VideoStream = VideoStream,
         AudioStream = AudioStream,
         VideoMode = VideoMode,
-        AudioMode = AudioMode
+        AudioMode = AudioMode,
+        VideoEncoder = VideoEncoder,
+        VideoRateControl = VideoRateControl,
+        VideoQuality = VideoQuality,
+        VideoSpeedPreset = VideoSpeedPreset,
+        Location = Location,
+        LocationFolder = LocationFolder,
+        VideoSize = VideoSize,
+        VideoFps = VideoFps,
+        PixelFormat = PixelFormat,
+        VideoExtras = new Dictionary<string, string>(VideoExtras, StringComparer.Ordinal),
+        AudioEncoder = AudioEncoder,
+        AudioBitrate = AudioBitrate,
+        AudioSampleRate = AudioSampleRate,
+        AudioChannels = AudioChannels
     };
 }

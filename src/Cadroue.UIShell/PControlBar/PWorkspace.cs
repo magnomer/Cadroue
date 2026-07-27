@@ -8,9 +8,14 @@ namespace Cadroue.UIShell.PControlBar;
 
 public sealed class PWorkspace
 {
-    public PWorkspace(string pTabLayoutKey)
+    /// <param name="lExportSpecificState">
+    /// Restored export settings for this tab, or null for a fresh tab. Tabs keep their
+    /// own settings, so this is supplied at construction rather than patched afterwards
+    /// — the export panel captures the instance while it builds.
+    /// </param>
+    public PWorkspace(string pTabLayoutKey, LExportSpecificState? lExportSpecificState = null)
     {
-        PWorkspaceExportState = new LExportSpecificState();
+        PWorkspaceExportState = lExportSpecificState ?? new LExportSpecificState();
         PWorkspaceSurface = PWorkspaceSurfaceCreate(pTabLayoutKey, PWorkspaceExportState);
         bool pHasSourceInfo = pTabLayoutKey is not ("Merge" or "Worklist");
         bool pAudioOnlyAllowed = pTabLayoutKey == "Audio";

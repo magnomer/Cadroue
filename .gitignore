@@ -65,6 +65,10 @@ $RECYCLE.BIN/
 
 # Project-internal docs (excluded from tracking)
 docs-internal/
+.agents/
+.claude/
+.codegraph
+.codex/
 
 # Build-lifecycle helper scripts (local, project-internal)
 *.ps1

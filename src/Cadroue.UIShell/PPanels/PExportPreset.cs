@@ -119,7 +119,9 @@ public sealed partial class PExport
 
     private void PExportPresetApply()
     {
-        if (pPresetCombo.SelectedItem is not string lPresetName)
+        // Only a real user pick may pull settings out of the shared preset library.
+        // Programmatic writes must not, or one tab's save silently overwrites another's.
+        if (pExportPresetBusy || pPresetCombo.SelectedItem is not string lPresetName)
         {
             return;
         }
@@ -140,7 +142,9 @@ public sealed partial class PExport
 
         lExportSpecificState.PresetName = lPresetName;
         LExportSpecificState.LPresetSave(lPresetName, lExportSpecificState);
+        pExportPresetBusy = true;
         pPresetCombo.SelectedItem = lPresetName;
+        pExportPresetBusy = false;
         PExportSummaryUpdate();
     }
 
@@ -153,6 +157,7 @@ public sealed partial class PExport
         }
 
         string? lNextPresetName = LExportSpecificState.LPresetFirstName;
+        pExportPresetBusy = true;
         if (lNextPresetName is not null && LExportSpecificState.LPresetTryLoad(lNextPresetName, lExportSpecificState))
         {
             pPresetCombo.SelectedItem = lNextPresetName;
@@ -162,6 +167,8 @@ public sealed partial class PExport
             lExportSpecificState.PresetName = string.Empty;
             pPresetCombo.Text = string.Empty;
         }
+
+        pExportPresetBusy = false;
 
         PExportSummaryUpdate();
     }

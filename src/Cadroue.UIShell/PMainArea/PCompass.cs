@@ -3,9 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Cadroue.UIShell;
+using Cadroue.UIShell.PAssets;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 namespace Cadroue.UIShell.PMainArea;
@@ -23,18 +23,18 @@ public sealed class PCompass : UserControl
         var pPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         (string Icon, string Label, string Tooltip, Action Click, bool SeparatorAfter)[] pButtons =
         {
-            ("PCompassZoomIncrease.png", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomIn"), false),
-            ("PCompassZoomDecrease.png", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomOut"), true),
-            ("PCompassPlay.png", "Play", "Play the current media from the cursor.", pFlow.PFlowPlayRaise, false),
-            ("PCompassPause.png", "Pause", "Pause playback at the current position.", pFlow.PFlowPauseRaise, true),
-            ("PCompassSectionAdd.png", "Add", "Add a new section at the current cursor position.", () => pFlow.PFlowShortcutDispatch("addSection"), false),
-            ("PCompassRemove.png", "Delete", "Delete the selected section.", () => pFlow.PFlowShortcutDispatch("deleteSection"), true),
-            ("PCompassStart.png", "Start", "Set the selected section’s start point to the cursor.", () => pFlow.PFlowShortcutDispatch("setStart"), false),
-            ("PCompassSplit.png", "Split", "Split the selected section at the cursor.", () => pFlow.PFlowShortcutDispatch("splitSection"), false),
-            ("PCompassEnd.png", "End", "Set the selected section’s end point to the cursor.", () => pFlow.PFlowShortcutDispatch("setEnd"), true),
-            ("PCompassKeyframePrevious.png", "Previous", "Move to the previous visible keyframe.", () => pFlow.PFlowShortcutDispatch("previousKey"), false),
-            ("PCompassKeyframeNear.png", "Nearest", "Move to the nearest visible keyframe.", () => pFlow.PFlowShortcutDispatch("nearestKey"), false),
-            ("PCompassKeyframeNext.png", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutDispatch("nextKey"), true)
+            ("PCompassZoomIncrease.svg", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomIn"), false),
+            ("PCompassZoomDecrease.svg", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomOut"), true),
+            ("PCompassPlay.svg", "Play", "Play the current media from the cursor.", pFlow.PFlowPlayRaise, false),
+            ("PCompassPause.svg", "Pause", "Pause playback at the current position.", pFlow.PFlowPauseRaise, true),
+            ("PCompassSectionAdd.svg", "Add", "Add a new section at the current cursor position.", () => pFlow.PFlowShortcutDispatch("addSection"), false),
+            ("PCompassRemove.svg", "Delete", "Delete the selected section.", () => pFlow.PFlowShortcutDispatch("deleteSection"), true),
+            ("PCompassStart.svg", "Start", "Set the selected section's start point to the cursor.", () => pFlow.PFlowShortcutDispatch("setStart"), false),
+            ("PCompassSplit.svg", "Split", "Split the selected section at the cursor.", () => pFlow.PFlowShortcutDispatch("splitSection"), false),
+            ("PCompassEnd.svg", "End", "Set the selected section's end point to the cursor.", () => pFlow.PFlowShortcutDispatch("setEnd"), true),
+            ("PCompassKeyframePrevious.svg", "Previous", "Move to the previous visible keyframe.", () => pFlow.PFlowShortcutDispatch("previousKey"), false),
+            ("PCompassKeyframeNear.svg", "Nearest", "Move to the nearest visible keyframe.", () => pFlow.PFlowShortcutDispatch("nearestKey"), false),
+            ("PCompassKeyframeNext.svg", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutDispatch("nextKey"), true)
         };
 
         foreach ((string pIcon, string pLabel, string pTooltip, Action pClick, bool pSeparatorAfter) in pButtons)
@@ -141,7 +141,6 @@ public sealed class PCompass : UserControl
         pFlow.PFlowVolumeRaise(pVolume);
     }
 
-
     private void PCompassTrackUpdate()
     {
         if (pCompassVolumeSliderHost is null || pCompassVolumeTrackFill is null) return;
@@ -230,7 +229,7 @@ public sealed class PCompass : UserControl
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = new BitmapImage(new Uri($"pack://application:,,,/PAssets/PCompass/{pIconAssetName}", UriKind.Absolute)),
+            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}"),
             Width = 24,
             Height = 24,
             Stretch = Stretch.Uniform,

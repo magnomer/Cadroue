@@ -33,16 +33,22 @@ public static class LPreferenceStateStore
 
     public static void LPreferenceStateSave(LPreferenceState lPreferenceState)
     {
-        string lPreferencePath = LPreferencePathCreate();
-        string? lPreferenceFolder = Path.GetDirectoryName(lPreferencePath);
-        if (!string.IsNullOrWhiteSpace(lPreferenceFolder))
+        try
         {
-            Directory.CreateDirectory(lPreferenceFolder);
-        }
+            string lPreferencePath = LPreferencePathCreate();
+            string? lPreferenceFolder = Path.GetDirectoryName(lPreferencePath);
+            if (!string.IsNullOrWhiteSpace(lPreferenceFolder))
+            {
+                Directory.CreateDirectory(lPreferenceFolder);
+            }
 
-        lPreferenceState.LPreferenceNormalize();
-        string lPreferenceJson = JsonSerializer.Serialize(lPreferenceState, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(lPreferencePath, lPreferenceJson);
+            lPreferenceState.LPreferenceNormalize();
+            string lPreferenceJson = JsonSerializer.Serialize(lPreferenceState, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(lPreferencePath, lPreferenceJson);
+        }
+        catch
+        {
+        }
     }
 
     private static string LPreferencePathCreate()

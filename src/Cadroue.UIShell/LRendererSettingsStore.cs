@@ -31,17 +31,23 @@ public static class LRendererSettingsStore
 
     public static void LRendererSettingsSave(LRendererSettings lRendererSettings)
     {
-        string lRendererSettingsPath = LRendererPathCreate();
-        string? lRendererSettingsFolder = Path.GetDirectoryName(lRendererSettingsPath);
-        if (!string.IsNullOrWhiteSpace(lRendererSettingsFolder))
+        try
         {
-            Directory.CreateDirectory(lRendererSettingsFolder);
-        }
+            string lRendererSettingsPath = LRendererPathCreate();
+            string? lRendererSettingsFolder = Path.GetDirectoryName(lRendererSettingsPath);
+            if (!string.IsNullOrWhiteSpace(lRendererSettingsFolder))
+            {
+                Directory.CreateDirectory(lRendererSettingsFolder);
+            }
 
-        string lRendererSettingsJson = JsonSerializer.Serialize(
-            lRendererSettings,
-            new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(lRendererSettingsPath, lRendererSettingsJson);
+            string lRendererSettingsJson = JsonSerializer.Serialize(
+                lRendererSettings,
+                new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(lRendererSettingsPath, lRendererSettingsJson);
+        }
+        catch
+        {
+        }
     }
 
     private static string LRendererPathCreate()

@@ -18,7 +18,8 @@ public sealed class PSplitTab : PTabSurface
         pAction.PActionRun += lPriority => LSplit.LSplitDescribe(
             lPriority,
             pViewer.PViewerSourcePath,
-            pSection.PSectionSplitRead());
+            pSection.PSectionSplitRead(),
+            lExportSpecificState);
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
         Content = PTabGridBuild(new UIElement[] { pSection, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow);

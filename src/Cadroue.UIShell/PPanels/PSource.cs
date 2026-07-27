@@ -1,4 +1,5 @@
 using Cadroue.UIShell.PMainWindow;
+using Cadroue.UIShell.PAssets;
 using Cadroue.Media;
 using Microsoft.Win32;
 using System.IO;
@@ -6,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -14,7 +14,6 @@ public sealed class PSource : UserControl
 {
     private static readonly SolidColorBrush PSourceTextBrush = new(Color.FromRgb(0x11, 0x18, 0x27));
     private static readonly SolidColorBrush PSourceBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly SolidColorBrush PSourceIconBrush = new(Color.FromRgb(0x5B, 0x63, 0x71));
     private PViewer? pSourceViewer;
     private readonly bool pSourceAudioOnlyAllowed;
     private readonly TextBox pSourcePathBox;
@@ -145,43 +144,15 @@ public sealed class PSource : UserControl
         e.Handled = true;
     }
 
-    private static Viewbox PSourceIconCreate()
+    private static Image PSourceIconCreate()
     {
-        var pCanvas = new Canvas { Width = 28, Height = 28 };
-
-        var pCard = new Rectangle
-        {
-            Width = 21,
-            Height = 15.5,
-            RadiusX = 2.3,
-            RadiusY = 2.3,
-            Stroke = PSourceIconBrush,
-            StrokeThickness = 2.0,
-            Fill = Brushes.Transparent
-        };
-        Canvas.SetLeft(pCard, 3.5);
-        Canvas.SetTop(pCard, 6.0);
-        pCanvas.Children.Add(pCard);
-
-        var pPlay = new Polygon
-        {
-            Fill = PSourceIconBrush,
-            Points = new PointCollection(new[]
-            {
-                new Point(11.0, 10.4),
-                new Point(11.0, 17.0),
-                new Point(16.5, 13.7)
-            })
-        };
-        pCanvas.Children.Add(pPlay);
-
-        return new Viewbox
+        return new Image
         {
             Width = 28,
             Height = 28,
             Margin = new Thickness(0, 0, 12, 0),
             Stretch = Stretch.Uniform,
-            Child = pCanvas
+            Source = PIcon.PIconRead("/PAssets/PPanels/PVideo.svg")
         };
     }
 
