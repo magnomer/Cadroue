@@ -17,6 +17,7 @@ public sealed partial class PRoster
         pButtons.Children.Add(new Border { Width = 10 });
         pButtons.Children.Add(pRosterRemoveButton);
         pButtons.Children.Add(pRosterClearButton);
+        pButtons.Children.Add(pRosterEmptyButton);
 
         var pRow = new Grid();
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -60,6 +61,7 @@ public sealed partial class PRoster
     private static ControlTemplate PRosterProgressTemplateCreate()
     {
         var pTrack = new FrameworkElementFactory(typeof(Border));
+        pTrack.Name = "PART_Track";
         pTrack.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
         pTrack.SetValue(Border.CornerRadiusProperty, new CornerRadius(PRosterProgressHeight / 2));
 

@@ -124,6 +124,21 @@ public sealed partial class PFlow
         PFlowViewfinderSelect(pSectionIndex);
     }
 
+    public void PFlowSectionSeek(int pSectionIndex)
+    {
+        if (!pFlowCommandActive
+            || lSpool is null
+            || pSectionIndex < 0
+            || pSectionIndex >= lSectionList.Count)
+        {
+            return;
+        }
+
+        lSectionIndexSelect = pSectionIndex;
+        PFlowSectionUpdate();
+        PFlowCursorPropagate(lSectionList[pSectionIndex].LSegmentStart, true, true);
+    }
+
     public IReadOnlyList<LSegment> PFlowSectionsRead() => lSectionList.ToArray();
 
     internal IReadOnlyList<Cadroue.Media.LSidecarSectionRecord> PFlowSidecarSectionsRead() =>
@@ -133,7 +148,9 @@ public sealed partial class PFlow
                 StartMilliseconds = (long)lSection.LSegmentStart.TotalMilliseconds,
                 EndMilliseconds = (long)lSection.LSegmentEnd.TotalMilliseconds,
                 ColorIndex = lSection.LSegmentColorIndex,
-                Name = lSection.LSegmentName
+                Name = lSection.LSegmentName,
+                Prefix = lSection.LSegmentPrefix,
+                Suffix = lSection.LSegmentSuffix
             })
             .ToArray();
 
@@ -156,7 +173,11 @@ public sealed partial class PFlow
                         TimeSpan.FromMilliseconds(lSection.StartMilliseconds),
                         TimeSpan.FromMilliseconds(lSection.EndMilliseconds),
                         lSection.ColorIndex,
-                        lSection.Name))
+                        lSection.Name)
+                    {
+                        LSegmentPrefix = lSection.Prefix ?? string.Empty,
+                        LSegmentSuffix = lSection.Suffix ?? string.Empty
+                    })
                     .ToArray(),
                 null);
         }
@@ -199,15 +220,24 @@ public sealed partial class PFlow
 
         PFlowNameClose();
 
-        var pNameBox = new TextBox
-        {
-            Width = 220,
-            Height = PFlowNameHeight,
-            Text = lSectionList[pSectionIndex].LSegmentName,
-            FontSize = PSection.PSectionNameSize,
-            VerticalContentAlignment = VerticalAlignment.Center
-        };
-        PTextbox.PTextboxApply(pNameBox);
+        LSegment pNameSection = lSectionList[pSectionIndex];
+        TextBox pNameBox = PFlowNameFieldBuild(pNameSection.LSegmentName, PFlowNameWidth);
+        TextBox pPrefixBox = PFlowNameFieldBuild(pNameSection.LSegmentPrefix, PFlowAffixWidth);
+        TextBox pSuffixBox = PFlowNameFieldBuild(pNameSection.LSegmentSuffix, PFlowAffixWidth);
+
+        var pFieldPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        pFieldPanel.Children.Add(pNameBox);
+        pFieldPanel.Children.Add(PFlowAffixSeparatorBuild(pPrefixBox));
+        pFieldPanel.Children.Add(pPrefixBox);
+        pFieldPanel.Children.Add(PFlowAffixSeparatorBuild(pSuffixBox));
+        pFieldPanel.Children.Add(pSuffixBox);
+
+        PFlowAffixShow(pPrefixBox, !string.IsNullOrEmpty(pNameSection.LSegmentPrefix));
+        PFlowAffixShow(pSuffixBox, !string.IsNullOrEmpty(pNameSection.LSegmentSuffix));
+
+        PFlowAffixStepWire(pNameBox, pPrefixBox);
+        PFlowAffixStepWire(pPrefixBox, pSuffixBox);
+        PFlowAffixStepWire(pSuffixBox, null);
 
         Rect pSectionRect = pViewfinder.PViewfinderSectionRead(pSectionIndex);
         var pNamePopup = new Popup
@@ -225,16 +255,16 @@ public sealed partial class PFlow
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(8),
                 Padding = new Thickness(10),
-                Child = pNameBox
+                Child = pFieldPanel
             }
         };
 
-        pNameBox.KeyDown += (_, pNameKeyEvent) =>
+        void PFlowNameKeyHandle(object pSender, KeyEventArgs pNameKeyEvent)
         {
             switch (pNameKeyEvent.Key)
             {
                 case Key.Enter:
-                    PFlowNameApply(pSectionIndex, pNameBox.Text);
+                    PFlowNameApply(pSectionIndex, pNameBox.Text, pPrefixBox.Text, pSuffixBox.Text);
                     PFlowNameClose();
                     pNameKeyEvent.Handled = true;
                     break;
@@ -243,7 +273,11 @@ public sealed partial class PFlow
                     pNameKeyEvent.Handled = true;
                     break;
             }
-        };
+        }
+
+        pNameBox.KeyDown += PFlowNameKeyHandle;
+        pPrefixBox.KeyDown += PFlowNameKeyHandle;
+        pSuffixBox.KeyDown += PFlowNameKeyHandle;
 
         pFlowNamePopup = pNamePopup;
         pNamePopup.IsOpen = true;
@@ -251,6 +285,65 @@ public sealed partial class PFlow
         Keyboard.Focus(pNameBox);
         pNameBox.SelectAll();
         return true;
+    }
+
+    private static TextBox PFlowNameFieldBuild(string pFieldText, double pFieldWidth)
+    {
+        var pFieldBox = new TextBox
+        {
+            Width = pFieldWidth,
+            Height = PFlowNameHeight,
+            Text = pFieldText,
+            FontSize = PSection.PSectionNameSize,
+            VerticalContentAlignment = VerticalAlignment.Center
+        };
+        PTextbox.PTextboxApply(pFieldBox);
+        return pFieldBox;
+    }
+
+    private static UIElement PFlowAffixSeparatorBuild(TextBox pAffixBox)
+    {
+        var pSeparator = new TextBlock
+        {
+            Text = "/",
+            Margin = new Thickness(6, 0, 6, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E)),
+            Visibility = Visibility.Collapsed
+        };
+        pAffixBox.Tag = pSeparator;
+        return pSeparator;
+    }
+
+    private static void PFlowAffixShow(TextBox pAffixBox, bool pAffixVisible)
+    {
+        pAffixBox.Visibility = pAffixVisible ? Visibility.Visible : Visibility.Collapsed;
+        if (pAffixBox.Tag is UIElement pSeparator)
+        {
+            pSeparator.Visibility = pAffixBox.Visibility;
+        }
+    }
+
+    private static void PFlowAffixStepWire(TextBox pFieldBox, TextBox? pNextBox)
+    {
+        pFieldBox.PreviewTextInput += (_, pFieldEvent) =>
+        {
+            if (pFieldEvent.Text != ",")
+            {
+                return;
+            }
+
+            pFieldEvent.Handled = true;
+            if (pNextBox is null)
+            {
+                return;
+            }
+
+            PFlowAffixShow(pNextBox, true);
+            pNextBox.Focus();
+            Keyboard.Focus(pNextBox);
+            pNextBox.SelectAll();
+        };
     }
 
     private void PFlowNameClose()
@@ -264,10 +357,9 @@ public sealed partial class PFlow
         pFlowNamePopup = null;
     }
 
-    private void PFlowNameApply(int pSectionIndex, string pSectionName)
+    private void PFlowNameApply(int pSectionIndex, string pSectionName, string pSectionPrefix, string pSectionSuffix)
     {
-        PFlowNameSet(pSectionIndex, pSectionName.Trim());
-        PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
+        PFlowNameSet(pSectionIndex, pSectionName.Trim(), pSectionPrefix.Trim(), pSectionSuffix.Trim());
     }
 
     public bool PFlowSectionMove(int pSectionSource, int pSectionTarget)
@@ -299,16 +391,68 @@ public sealed partial class PFlow
         return true;
     }
 
+    public bool PFlowSectionSort()
+    {
+        if (lSectionList.Count < 2)
+        {
+            return false;
+        }
+
+        LSegment? pSectionSelected = lSectionIndexSelect is int pSelectIndex
+            ? lSectionList[pSelectIndex]
+            : null;
+
+        List<LSegment> pSectionSorted = lSectionList
+            .OrderBy(pSection => pSection.LSegmentName, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        if (pSectionSorted.SequenceEqual(lSectionList))
+        {
+            return false;
+        }
+
+        lSectionList.Clear();
+        lSectionList.AddRange(pSectionSorted);
+
+        if (pSectionSelected is { } pSectionKept)
+        {
+            int pSectionIndexNew = lSectionList.IndexOf(pSectionKept);
+            lSectionIndexSelect = pSectionIndexNew < 0 ? null : pSectionIndexNew;
+        }
+
+        LAppLog.LInfo($"Sections sorted by name: {lSectionList.Count} section(s)");
+        PFlowSectionUpdate();
+        return true;
+    }
+
     public void PFlowNameSet(int pSectionIndex, string pSectionName)
+        => PFlowNameSet(pSectionIndex, pSectionName, null, null);
+
+    public void PFlowNameSet(int pSectionIndex, string pSectionName, string? pSectionPrefix, string? pSectionSuffix)
     {
         if (pSectionIndex < 0 || pSectionIndex >= lSectionList.Count) return;
-        if (string.Equals(lSectionList[pSectionIndex].LSegmentName, pSectionName, StringComparison.Ordinal)) return;
-        string pSectionWas = lSectionList[pSectionIndex].LSegmentName;
-        lSectionList[pSectionIndex] = lSectionList[pSectionIndex] with { LSegmentName = pSectionName };
+
+        LSegment pSectionEntry = lSectionList[pSectionIndex];
+        string pSectionPrefixNew = pSectionPrefix ?? pSectionEntry.LSegmentPrefix;
+        string pSectionSuffixNew = pSectionSuffix ?? pSectionEntry.LSegmentSuffix;
+        if (string.Equals(pSectionEntry.LSegmentName, pSectionName, StringComparison.Ordinal)
+            && string.Equals(pSectionEntry.LSegmentPrefix, pSectionPrefixNew, StringComparison.Ordinal)
+            && string.Equals(pSectionEntry.LSegmentSuffix, pSectionSuffixNew, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        string pSectionWas = pSectionEntry.LSegmentName;
+        lSectionList[pSectionIndex] = pSectionEntry with
+        {
+            LSegmentName = pSectionName,
+            LSegmentPrefix = pSectionPrefixNew,
+            LSegmentSuffix = pSectionSuffixNew
+        };
         PFlowSectionRecord(
             string.IsNullOrEmpty(pSectionWas) ? "named" : $"renamed from '{pSectionWas}' to",
             pSectionIndex);
-        PFlowSidecarSave();
+        PFlowSectionUpdate();
     }
 
     private int PFlowColorRead() => lSectionList.Count % LSectionPaletteCount;

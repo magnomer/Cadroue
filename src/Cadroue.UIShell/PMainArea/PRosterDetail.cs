@@ -55,6 +55,13 @@ public sealed partial class PRoster
         LWorkOutput pOutput = pWorkItem.LWorkOutput;
         PRosterRowAdd("State", PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent));
         PRosterRowAdd("Owner", PRosterOwnerFormat(pWorkItem));
+        PRosterRowAdd("Attempts", pWorkItem.LWorkAttemptCount.ToString());
+
+        if (pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning)
+        {
+            PRosterRowAdd("Phase", PRosterPhaseFormat(pWorkItem.LWorkPhaseCurrent));
+        }
+
         PRosterRowAdd("Kind", PRosterKindFormat(pWorkItem.LWorkKind));
         PRosterRowAdd("Priority", PRosterPriorityFormat(pWorkItem.LWorkPriority));
         PRosterRowAdd("Source", pWorkItem.LWorkSourcePath);
@@ -110,6 +117,13 @@ public sealed partial class PRoster
         pGrid.Children.Add(pValueBlock);
         pRosterDetailPanel.Children.Add(pGrid);
     }
+
+    private static string PRosterPhaseFormat(LWorkPhase pWorkPhase) => pWorkPhase switch
+    {
+        LWorkPhase.LWorkPhaseEncoding => "Being processed",
+        LWorkPhase.LWorkPhaseStarted => "Started",
+        _ => "Not started"
+    };
 
     private static string PRosterKindFormat(LWorkKind pWorkKind) => pWorkKind switch
     {

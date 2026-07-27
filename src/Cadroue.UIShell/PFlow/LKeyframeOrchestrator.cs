@@ -99,19 +99,27 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private TimeSpan? LKeyframeMoveFind(TimeSpan cursor, int direction)
     {
         long cursorMs = (long)Math.Round(cursor.TotalMilliseconds);
-        long limit = (long)Math.Round(App.LPreferenceStateCurrent.LPreferenceImmediateKeyframeWindowMilliseconds);
+        long? target = null;
         lock (lKeyframeLock)
         {
-            IEnumerable<long> query = direction < 0
-                ? lKeyframeStorage.Where(ms => ms < cursorMs).Reverse()
-                : lKeyframeStorage.Where(ms => ms > cursorMs);
-            foreach (long ms in query)
+            foreach (long ms in lKeyframeStorage)
             {
-                if (Math.Abs(ms - cursorMs) > limit) return null;
-                return TimeSpan.FromMilliseconds(ms);
+                if (direction < 0)
+                {
+                    if (ms >= cursorMs) break;
+                    target = ms;
+                    continue;
+                }
+
+                if (ms > cursorMs)
+                {
+                    target = ms;
+                    break;
+                }
             }
         }
-        return null;
+
+        return target is null ? null : TimeSpan.FromMilliseconds(target.Value);
     }
 
 }

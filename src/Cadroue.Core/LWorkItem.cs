@@ -63,6 +63,10 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public Guid LWorkOwnerRunner { get; set; }
 
+    public LWorkPhase LWorkPhaseCurrent { get; set; }
+
+    public int LWorkAttemptCount { get; set; }
+
     public LWorkState LWorkStateCurrent
     {
         get => lWorkStateCurrent;

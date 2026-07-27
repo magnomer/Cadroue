@@ -22,6 +22,8 @@ public sealed partial class PFlow : UserControl
     private string? pFlowKeyframeStamp;
 
     private const double PFlowNameHeight = 32;
+    private const double PFlowNameWidth = 220;
+    private const double PFlowAffixWidth = 96;
     private readonly TextBlock pViewfinderLabelLeft = PReelLabelBuild();
     private readonly TextBlock pViewfinderLabelRight = PReelLabelBuild();
     private readonly TextBlock pMapLabelLeft = PReelLabelBuild();

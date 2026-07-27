@@ -12,19 +12,13 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed class PSection : UserControl
 {
-    private static readonly Color[] pSectionPaletteColors =
-    {
-        Color.FromRgb(0x4A, 0x90, 0xD9),
-        Color.FromRgb(0x27, 0xAE, 0x60),
-        Color.FromRgb(0xE6, 0x7E, 0x22),
-        Color.FromRgb(0x8E, 0x44, 0xAD),
-        Color.FromRgb(0xE7, 0x4C, 0x3C),
-        Color.FromRgb(0x16, 0xA0, 0x85),
-    };
-
     private static readonly FontFamily pSectionFontFamily = new("Segoe UI");
 
     internal const double PSectionNameSize = 12;
+
+    private const double PSectionBadgeSize = 18;
+    private const double PSectionBadgePadding = 6;
+    private const double PSectionAffixWidth = 62;
 
     private PFlowControl? pFlowAttached;
     private IReadOnlyList<LSegment> pSectionListCurrent = Array.Empty<LSegment>();
@@ -33,10 +27,13 @@ public sealed class PSection : UserControl
     private readonly StackPanel pSectionRowPanel;
     private int? pSectionIndexEditing;
     private TextBox? pSectionNameBoxCurrent;
+    private TextBox? pSectionPrefixBoxCurrent;
+    private TextBox? pSectionSuffixBoxCurrent;
     private bool pSectionRebuilding;
     private int? pSectionIndexDragging;
     private Point? pSectionDragStart;
     private bool pSectionDragActive;
+    private Border? pSectionRowDragging;
 
     public PSection()
     {
@@ -60,6 +57,9 @@ public sealed class PSection : UserControl
         };
 
         pSectionRowPanel = new StackPanel();
+        pSectionRowPanel.PreviewMouseMove += PSectionDragMoveHandle;
+        pSectionRowPanel.MouseLeftButtonUp += PSectionDragUpHandle;
+        pSectionRowPanel.LostMouseCapture += PSectionDragLostHandle;
 
         var pScroll = new ScrollViewer
         {
@@ -82,15 +82,30 @@ public sealed class PSection : UserControl
 
     private UIElement PSectionActionBuild()
     {
-        var pActionPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(10, 4, 10, 4)
-        };
-        pActionPanel.Children.Add(PSectionButtonBuild(
+        var pActionLeft = new StackPanel { Orientation = Orientation.Horizontal };
+        pActionLeft.Children.Add(PSectionButtonBuild(
             "/PAssets/PPanels/PExportMinus.svg",
             "Delete the selected section",
             PSectionDeleteHandle));
+
+        var pActionRight = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        Button pSectionSortButton = PSectionButtonBuild(
+            "/PAssets/PPanels/PSort.svg",
+            "Sort the sections by name",
+            PSectionSortHandle);
+        pSectionSortButton.Margin = new Thickness(0);
+        pActionRight.Children.Add(pSectionSortButton);
+
+        var pActionPanel = new Grid { Margin = new Thickness(10, 4, 10, 4) };
+        pActionPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pActionPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(pActionRight, 1);
+        pActionPanel.Children.Add(pActionLeft);
+        pActionPanel.Children.Add(pActionRight);
 
         return new Border
         {
@@ -128,6 +143,12 @@ public sealed class PSection : UserControl
         pFlowAttached?.PFlowSectionDelete();
     }
 
+    private void PSectionSortHandle(object pSender, RoutedEventArgs pEvent)
+    {
+        PSectionEditCommit();
+        pFlowAttached?.PFlowSectionSort();
+    }
+
     public void PSectionAttach(PFlowControl pFlow)
     {
         PSectionDetach();
@@ -142,7 +163,9 @@ public sealed class PSection : UserControl
             .Select(pSection => new LSplitSectionDescription(
                 pSection.LSegmentStart,
                 pSection.LSegmentEnd,
-                pSection.LSegmentName))
+                pSection.LSegmentName,
+                pSection.LSegmentPrefix,
+                pSection.LSegmentSuffix))
             .ToArray();
     }
 
@@ -155,7 +178,10 @@ public sealed class PSection : UserControl
 
     private void PSectionUpdateHandle(IReadOnlyList<LSegment> pSectionList, int? pSectionIndexSelect)
     {
-        pSectionListCurrent = pSectionList;
+        LSegment[] pSectionListNext = pSectionList.ToArray();
+        bool pSectionListSame = pSectionListCurrent.SequenceEqual(pSectionListNext)
+            && pSectionRowPanel.Children.Count == pSectionListNext.Length;
+        pSectionListCurrent = pSectionListNext;
         pSectionIndexSelectCurrent = pSectionIndexSelect;
 
         if (pSectionDragActive)
@@ -163,7 +189,26 @@ public sealed class PSection : UserControl
             return;
         }
 
+        if (pSectionListSame)
+        {
+            PSectionSelectApply();
+            return;
+        }
+
         PSectionRebuild();
+    }
+
+    private void PSectionSelectApply()
+    {
+        for (int pIndex = 0; pIndex < pSectionRowPanel.Children.Count; pIndex++)
+        {
+            if (pSectionRowPanel.Children[pIndex] is Border pRow)
+            {
+                pRow.Background = pIndex == pSectionIndexSelectCurrent
+                    ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB))
+                    : Brushes.White;
+            }
+        }
     }
 
     private void PSectionRebuild()
@@ -185,11 +230,89 @@ public sealed class PSection : UserControl
         }
     }
 
+    private void PSectionNumberUpdate()
+    {
+        for (int pIndex = 0; pIndex < pSectionRowPanel.Children.Count; pIndex++)
+        {
+            if (pSectionRowPanel.Children[pIndex] is Border { Tag: TextBlock pBadgeText })
+            {
+                pBadgeText.Text = (pIndex + 1).ToString();
+            }
+        }
+    }
+
     private void PSectionDragClear()
     {
         pSectionIndexDragging = null;
         pSectionDragStart = null;
         pSectionDragActive = false;
+        pSectionRowDragging = null;
+    }
+
+    private void PSectionDragMoveHandle(object pSender, MouseEventArgs pEvent)
+    {
+        if (pSectionRowDragging is not { } pDragRow
+            || pSectionIndexDragging is not int pDragIndex
+            || pSectionIndexEditing is not null
+            || pSectionDragStart is not Point pStart
+            || pEvent.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        Point pCurrent = pEvent.GetPosition(pSectionRowPanel);
+        if (!pSectionDragActive
+            && Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
+            && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        pSectionDragActive = true;
+        pDragRow.Opacity = 0.72;
+        PSectionMoveLive(pDragIndex, PSectionIndexResolve(pCurrent), pDragRow);
+        pEvent.Handled = true;
+    }
+
+    private void PSectionDragUpHandle(object pSender, MouseButtonEventArgs pEvent)
+    {
+        if (pSectionRowDragging is not { } pDragRow)
+        {
+            return;
+        }
+
+        bool pDragMoved = pSectionDragActive;
+        pDragRow.Opacity = 1;
+        pSectionRowPanel.ReleaseMouseCapture();
+
+        if (pDragMoved)
+        {
+            PSectionDragClear();
+            PSectionRebuild();
+            pEvent.Handled = true;
+            return;
+        }
+
+        int pRowIndex = pSectionRowPanel.Children.IndexOf(pDragRow);
+        PSectionDragClear();
+
+        if (pRowIndex >= 0 && pSectionIndexEditing != pRowIndex)
+        {
+            PSectionEditCommit();
+            pFlowAttached?.PFlowSectionSelect(pRowIndex);
+        }
+
+        pEvent.Handled = true;
+    }
+
+    private void PSectionDragLostHandle(object pSender, MouseEventArgs pEvent)
+    {
+        if (pSectionRowDragging is { } pDragRow)
+        {
+            pDragRow.Opacity = 1;
+        }
+
+        PSectionDragClear();
     }
 
     private int PSectionIndexResolve(Point pMousePoint)
@@ -230,6 +353,7 @@ public sealed class PSection : UserControl
         pSectionRowPanel.Children.RemoveAt(pSourceIndex);
         pSectionRowPanel.Children.Insert(pInsertIndex, pSectionRow);
         pSectionIndexDragging = pInsertIndex;
+        PSectionNumberUpdate();
         return true;
     }
 
@@ -240,9 +364,15 @@ public sealed class PSection : UserControl
             return;
         }
 
+        string pEditingName = pEditingBox.Text.Trim();
+        string pEditingPrefix = pSectionPrefixBoxCurrent?.Text.Trim() ?? string.Empty;
+        string pEditingSuffix = pSectionSuffixBoxCurrent?.Text.Trim() ?? string.Empty;
+
         pSectionIndexEditing = null;
         pSectionNameBoxCurrent = null;
-        pFlowAttached?.PFlowNameSet(pEditingIndex, pEditingBox.Text.Trim());
+        pSectionPrefixBoxCurrent = null;
+        pSectionSuffixBoxCurrent = null;
+        pFlowAttached?.PFlowNameSet(pEditingIndex, pEditingName, pEditingPrefix, pEditingSuffix);
         PSectionRebuild();
     }
 
@@ -250,25 +380,59 @@ public sealed class PSection : UserControl
     {
         int capturedIndex = pSectionIndex;
 
-        Color pColor = pSectionPaletteColors[Math.Abs(pSectionEntry.LSegmentColorIndex) % pSectionPaletteColors.Length];
+        Border? pRowBorderHost = null;
+
+        var pBadgeText = new TextBlock
+        {
+            Text = (pSectionIndex + 1).ToString(),
+            FontSize = PSectionNameSize,
+            FontFamily = pSectionFontFamily,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = Brushes.White,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextAlignment = TextAlignment.Center
+        };
 
         var pColorDot = new Border
         {
-            Width = 10,
-            Height = 10,
-            CornerRadius = new CornerRadius(5),
-            Background = new SolidColorBrush(pColor),
+            MinWidth = PSectionBadgeSize,
+            Height = PSectionBadgeSize,
+            CornerRadius = new CornerRadius(PSectionBadgeSize / 2),
+            Background = PSectionPalette.PSectionBadgeRead(pSectionEntry.LSegmentColorIndex),
+            Padding = new Thickness(PSectionBadgePadding, 0, PSectionBadgePadding, 0),
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0)
+            Margin = new Thickness(0, 0, 8, 0),
+            Cursor = Cursors.Hand,
+            ToolTip = "Double click to move the playhead to this section",
+            Child = pBadgeText
+        };
+        pColorDot.MouseLeftButtonDown += (_, pEvent) =>
+        {
+            if (pEvent.ClickCount < 2)
+            {
+                return;
+            }
+
+            pSectionRowPanel.ReleaseMouseCapture();
+            PSectionDragClear();
+            PSectionEditCommit();
+            if (pRowBorderHost is { } pSeekRow)
+            {
+                pFlowAttached?.PFlowSectionSeek(pSectionRowPanel.Children.IndexOf(pSeekRow));
+            }
+
+            pEvent.Handled = true;
         };
 
         UIElement pNameHost = pSectionIndex == pSectionIndexEditing
-            ? PSectionNameBoxBuild(capturedIndex, pSectionEntry.LSegmentName)
-            : PSectionNameTextBuild(pSectionIndex, pSectionEntry.LSegmentName);
+            ? PSectionEditorBuild(pSectionEntry)
+            : PSectionNameTextBuild(pSectionIndex, pSectionEntry);
 
         var pTimeLabel = new TextBlock
         {
-            Text = $"{PSectionTimeFormat(pSectionEntry.LSegmentStart)} → {PSectionTimeFormat(pSectionEntry.LSegmentEnd)}",
+            Text = $"{PSectionTimeFormat(pSectionEntry.LSegmentStart)} → {PSectionTimeFormat(pSectionEntry.LSegmentEnd)}"
+                + $"  ({PSectionTimeFormat(PSectionSpanRead(pSectionEntry))})",
             FontSize = 11,
             FontFamily = pSectionFontFamily,
             Foreground = new SolidColorBrush(Color.FromRgb(0x56, 0x62, 0x73)),
@@ -296,14 +460,22 @@ public sealed class PSection : UserControl
             BorderBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Cursor = Cursors.Hand,
-            Child = pRowContent
+            Child = pRowContent,
+            Tag = pBadgeText
         };
+        pRowBorderHost = pRowBorder;
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>
         {
+            if (pEvent.ClickCount >= 2)
+            {
+                return;
+            }
+
+            pSectionRowDragging = pRowBorder;
             pSectionIndexDragging = pSectionRowPanel.Children.IndexOf(pRowBorder);
-            pSectionDragStart = pEvent.GetPosition(pRowBorder);
+            pSectionDragStart = pEvent.GetPosition(pSectionRowPanel);
             pSectionDragActive = false;
-            pRowBorder.CaptureMouse();
+            pSectionRowPanel.CaptureMouse();
         };
         pRowBorder.MouseLeftButtonDown += (_, pEvent) =>
         {
@@ -312,96 +484,96 @@ public sealed class PSection : UserControl
                 return;
             }
 
-            pRowBorder.ReleaseMouseCapture();
+            pSectionRowPanel.ReleaseMouseCapture();
             PSectionDragClear();
-            pFlowAttached?.PFlowSectionSelect(capturedIndex);
-            pSectionIndexEditing = pSectionRowPanel.Children.IndexOf(pRowBorder);
+            int pRenameIndex = pSectionRowPanel.Children.IndexOf(pRowBorder);
+            if (pRenameIndex < 0)
+            {
+                return;
+            }
+
+            pFlowAttached?.PFlowSectionSelect(pRenameIndex);
+            pSectionIndexEditing = pRenameIndex;
             PSectionRebuild();
             pEvent.Handled = true;
         };
-        pRowBorder.PreviewMouseMove += (_, pEvent) =>
-        {
-            if (pSectionIndexDragging is not int pDragIndex
-                || pSectionIndexEditing is not null
-                || pSectionDragStart is not Point pStart
-                || pEvent.LeftButton != MouseButtonState.Pressed)
-            {
-                return;
-            }
-
-            Point pCurrent = pEvent.GetPosition(pRowBorder);
-            if (Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
-                && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
-            {
-                return;
-            }
-
-            pSectionDragActive = true;
-            pRowBorder.Opacity = 0.72;
-            if (PSectionMoveLive(pDragIndex, PSectionIndexResolve(pEvent.GetPosition(pSectionRowPanel)), pRowBorder))
-            {
-                pSectionDragStart = pEvent.GetPosition(pRowBorder);
-            }
-
-            pEvent.Handled = true;
-        };
-        pRowBorder.MouseLeftButtonUp += (_, pEvent) =>
-        {
-            pRowBorder.ReleaseMouseCapture();
-            if (pSectionDragActive)
-            {
-                pRowBorder.Opacity = 1;
-                PSectionDragClear();
-                PSectionRebuild();
-                pEvent.Handled = true;
-                return;
-            }
-
-            PSectionDragClear();
-
-            if (pSectionIndexEditing != pSectionRowPanel.Children.IndexOf(pRowBorder))
-            {
-                PSectionEditCommit();
-                pFlowAttached?.PFlowSectionSelect(capturedIndex);
-            }
-
-            pEvent.Handled = true;
-        };
-        pRowBorder.LostMouseCapture += (_, _) =>
-        {
-            if (Mouse.LeftButton == MouseButtonState.Pressed)
-            {
-                return;
-            }
-
-            pRowBorder.Opacity = 1;
-            PSectionDragClear();
-        };
-
         return pRowBorder;
     }
 
-    private TextBlock PSectionNameTextBuild(int pSectionIndex, string pSectionName)
+    private TextBlock PSectionNameTextBuild(int pSectionIndex, LSegment pSectionEntry)
     {
-        bool pSectionUnnamed = string.IsNullOrEmpty(pSectionName);
-        return new TextBlock
+        bool pSectionUnnamed = string.IsNullOrEmpty(pSectionEntry.LSegmentName);
+        var pMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
+        var pNameText = new TextBlock
         {
-            Text = pSectionUnnamed ? PSectionPlaceholderFormat(pSectionIndex) : pSectionName,
             FontSize = PSectionNameSize,
             FontFamily = pSectionFontFamily,
-            Foreground = new SolidColorBrush(pSectionUnnamed
-                ? Color.FromRgb(0x8A, 0x93, 0x9E)
-                : Color.FromRgb(0x11, 0x18, 0x27)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27)),
             Padding = new Thickness(2, 0, 2, 1),
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment = VerticalAlignment.Center,
+            TextTrimming = TextTrimming.CharacterEllipsis
         };
+
+        pNameText.Inlines.Add(new System.Windows.Documents.Run(
+            pSectionUnnamed ? PSectionPlaceholderFormat(pSectionIndex) : pSectionEntry.LSegmentName)
+        {
+            Foreground = pSectionUnnamed ? pMutedBrush : pNameText.Foreground
+        });
+
+        PSectionAffixTextAdd(pNameText, pSectionEntry.LSegmentPrefix, pMutedBrush);
+        PSectionAffixTextAdd(pNameText, pSectionEntry.LSegmentSuffix, pMutedBrush);
+        return pNameText;
     }
 
-    private TextBox PSectionNameBoxBuild(int pSectionIndex, string pSectionName)
+    private static void PSectionAffixTextAdd(TextBlock pNameText, string pAffixValue, Brush pMutedBrush)
     {
-        var pNameBox = new TextBox
+        if (string.IsNullOrEmpty(pAffixValue))
         {
-            Text = pSectionName,
+            return;
+        }
+
+        pNameText.Inlines.Add(new System.Windows.Documents.Run($"  /  {pAffixValue}") { Foreground = pMutedBrush });
+    }
+
+    private UIElement PSectionEditorBuild(LSegment pSectionEntry)
+    {
+        TextBox pNameBox = PSectionFieldBuild(pSectionEntry.LSegmentName, 0);
+        TextBox pPrefixBox = PSectionFieldBuild(pSectionEntry.LSegmentPrefix, PSectionAffixWidth);
+        TextBox pSuffixBox = PSectionFieldBuild(pSectionEntry.LSegmentSuffix, PSectionAffixWidth);
+        pSectionNameBoxCurrent = pNameBox;
+        pSectionPrefixBoxCurrent = pPrefixBox;
+        pSectionSuffixBoxCurrent = pSuffixBox;
+
+        UIElement pPrefixMark = PSectionMarkBuild(pPrefixBox);
+        UIElement pSuffixMark = PSectionMarkBuild(pSuffixBox);
+        PSectionAffixShow(pPrefixBox, !string.IsNullOrEmpty(pSectionEntry.LSegmentPrefix));
+        PSectionAffixShow(pSuffixBox, !string.IsNullOrEmpty(pSectionEntry.LSegmentSuffix));
+
+        PSectionStepWire(pNameBox, pPrefixBox);
+        PSectionStepWire(pPrefixBox, pSuffixBox);
+        PSectionStepWire(pSuffixBox, null);
+
+        var pEditorPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        pEditorPanel.Children.Add(pNameBox);
+        pEditorPanel.Children.Add(pPrefixMark);
+        pEditorPanel.Children.Add(pPrefixBox);
+        pEditorPanel.Children.Add(pSuffixMark);
+        pEditorPanel.Children.Add(pSuffixBox);
+
+        pNameBox.Loaded += (_, _) =>
+        {
+            pNameBox.Focus();
+            pNameBox.SelectAll();
+        };
+        return pEditorPanel;
+    }
+
+    private TextBox PSectionFieldBuild(string pFieldText, double pFieldWidth)
+    {
+        var pFieldBox = new TextBox
+        {
+            Text = pFieldText,
+            MinWidth = 24,
             FontSize = PSectionNameSize,
             FontFamily = pSectionFontFamily,
             Foreground = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27)),
@@ -412,22 +584,14 @@ public sealed class PSection : UserControl
             VerticalAlignment = VerticalAlignment.Center,
             FocusVisualStyle = null
         };
-        pSectionNameBoxCurrent = pNameBox;
-        pNameBox.Loaded += (_, _) =>
-        {
-            pNameBox.Focus();
-            pNameBox.SelectAll();
-        };
-        pNameBox.LostFocus += (_, _) =>
-        {
-            if (pSectionRebuilding)
-            {
-                return;
-            }
 
-            PSectionEditCommit();
-        };
-        pNameBox.KeyDown += (_, pEvent) =>
+        if (pFieldWidth > 0)
+        {
+            pFieldBox.Width = pFieldWidth;
+        }
+
+        pFieldBox.LostFocus += (_, _) => PSectionEditLeave();
+        pFieldBox.KeyDown += (_, pEvent) =>
         {
             if (pEvent.Key == Key.Return)
             {
@@ -436,16 +600,101 @@ public sealed class PSection : UserControl
             }
             else if (pEvent.Key == Key.Escape)
             {
-                pSectionIndexEditing = null;
-                pSectionNameBoxCurrent = null;
-                PSectionRebuild();
+                PSectionEditCancel();
                 pEvent.Handled = true;
             }
         };
-        return pNameBox;
+        return pFieldBox;
+    }
+
+    private static UIElement PSectionMarkBuild(TextBox pAffixBox)
+    {
+        var pMark = new TextBlock
+        {
+            Text = "/",
+            Margin = new Thickness(5, 0, 5, 0),
+            FontSize = PSectionNameSize,
+            FontFamily = pSectionFontFamily,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E)),
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Collapsed
+        };
+        pAffixBox.Tag = pMark;
+        return pMark;
+    }
+
+    private static void PSectionAffixShow(TextBox pAffixBox, bool pAffixVisible)
+    {
+        pAffixBox.Visibility = pAffixVisible ? Visibility.Visible : Visibility.Collapsed;
+        if (pAffixBox.Tag is UIElement pMark)
+        {
+            pMark.Visibility = pAffixBox.Visibility;
+        }
+    }
+
+    private static void PSectionStepWire(TextBox pFieldBox, TextBox? pNextBox)
+    {
+        pFieldBox.PreviewTextInput += (_, pFieldEvent) =>
+        {
+            if (pFieldEvent.Text != ",")
+            {
+                return;
+            }
+
+            pFieldEvent.Handled = true;
+            if (pNextBox is null)
+            {
+                return;
+            }
+
+            PSectionAffixShow(pNextBox, true);
+            pNextBox.Focus();
+            Keyboard.Focus(pNextBox);
+            pNextBox.SelectAll();
+        };
+    }
+
+    private void PSectionEditLeave()
+    {
+        if (pSectionRebuilding)
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
+        {
+            if (pSectionRebuilding || PSectionEditFocusCheck())
+            {
+                return;
+            }
+
+            PSectionEditCommit();
+        }));
+    }
+
+    private bool PSectionEditFocusCheck()
+    {
+        return ReferenceEquals(Keyboard.FocusedElement, pSectionNameBoxCurrent)
+            || ReferenceEquals(Keyboard.FocusedElement, pSectionPrefixBoxCurrent)
+            || ReferenceEquals(Keyboard.FocusedElement, pSectionSuffixBoxCurrent);
+    }
+
+    private void PSectionEditCancel()
+    {
+        pSectionIndexEditing = null;
+        pSectionNameBoxCurrent = null;
+        pSectionPrefixBoxCurrent = null;
+        pSectionSuffixBoxCurrent = null;
+        PSectionRebuild();
     }
 
     private static string PSectionPlaceholderFormat(int pSectionIndex) => $"Section {pSectionIndex + 1}";
+
+    private static TimeSpan PSectionSpanRead(LSegment pSectionEntry)
+    {
+        TimeSpan pSectionSpan = pSectionEntry.LSegmentEnd - pSectionEntry.LSegmentStart;
+        return pSectionSpan < TimeSpan.Zero ? TimeSpan.Zero : pSectionSpan;
+    }
 
     private static string PSectionTimeFormat(TimeSpan pTime) =>
         pTime.TotalHours >= 1

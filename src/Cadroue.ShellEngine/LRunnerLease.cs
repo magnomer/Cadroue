@@ -28,6 +28,17 @@ public sealed partial class LRunner
         LSchedule.LScheduleRunnerRemove(lRunnerId);
     }
 
+    public void LRunnerPhaseSet(LWorkItem lWorkItem, LWorkPhase lRunnerPhase)
+    {
+        if (lWorkItem.LWorkPhaseCurrent == lRunnerPhase)
+        {
+            return;
+        }
+
+        lWorkItem.LWorkPhaseCurrent = lRunnerPhase;
+        lRunnerSchedule.LSchedulePhaseSet(lWorkItem.LWorkId, lRunnerId, lRunnerPhase);
+    }
+
     private void LRunnerLeaseStart(LWorkItem lWorkItem)
     {
         LRunnerLeaseStop();

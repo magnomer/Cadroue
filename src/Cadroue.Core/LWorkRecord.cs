@@ -24,6 +24,10 @@ public sealed class LWorkRecord
 
     public DateTimeOffset LeaseTime { get; set; }
 
+    public string Phase { get; set; } = nameof(LWorkPhase.LWorkPhaseNone);
+
+    public int AttemptCount { get; set; }
+
     public LWorkOutputRecord Output { get; set; } = new();
 
     public static LWorkRecord LWorkRecordCreate(LWorkItem lWorkItem) => new()
@@ -43,6 +47,8 @@ public sealed class LWorkRecord
         CreateTime = lWorkItem.LWorkCreateTime,
         OwnerProcessId = lWorkItem.LWorkOwnerProcess,
         OwnerRunnerId = lWorkItem.LWorkOwnerRunner,
+        Phase = lWorkItem.LWorkPhaseCurrent.ToString(),
+        AttemptCount = lWorkItem.LWorkAttemptCount,
         Output = LWorkOutputRecord.LWorkOutputRecordCreate(lWorkItem.LWorkOutput)
     };
 
@@ -66,6 +72,8 @@ public sealed class LWorkRecord
         lWorkItem.LWorkProgress = Progress;
         lWorkItem.LWorkOwnerProcess = OwnerProcessId;
         lWorkItem.LWorkOwnerRunner = OwnerRunnerId;
+        lWorkItem.LWorkPhaseCurrent = LWorkEnumRead(Phase, LWorkPhase.LWorkPhaseNone);
+        lWorkItem.LWorkAttemptCount = AttemptCount;
         return lWorkItem;
     }
 

@@ -13,9 +13,9 @@ public sealed partial class PRoster
             return lPreferenceTabLayout;
         }
 
-        foreach (double pWidth in pRosterLayout.PWidthsRead())
+        foreach (double pWeight in pRosterLayout.PWeightsRead())
         {
-            lPreferenceTabLayout.PanelWidths.Add(pWidth);
+            lPreferenceTabLayout.PanelWidths.Add(pWeight);
         }
 
         return lPreferenceTabLayout;

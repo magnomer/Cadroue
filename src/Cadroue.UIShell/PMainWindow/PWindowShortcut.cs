@@ -50,6 +50,7 @@ public partial class PWindow
         return pKey switch
         {
             Key.Space => PShortcutPlayToggle(),
+            Key.F4 => PShortcutMediaClose(),
             Key.C => pFlowActive?.PFlowShortcutDispatch("zoomIn") == true,
             Key.V => pFlowActive?.PFlowShortcutDispatch("zoomOut") == true,
             Key.Q => pFlowActive?.PFlowShortcutDispatch("addSection") == true,
@@ -74,6 +75,11 @@ public partial class PWindow
         }
 
         return pShortcutRedo ? pWorkspace.PWorkspaceRedo() : pWorkspace.PWorkspaceUndo();
+    }
+
+    private bool PShortcutMediaClose()
+    {
+        return pViewerActive?.PViewerMediaClose() == true;
     }
 
     private bool PShortcutPlayToggle()

@@ -71,11 +71,12 @@ public sealed partial class PRoster
         pRosterPauseButton.IsEnabled = pRosterRunner.LRunnerRunning;
         pRosterCancelButton.IsEnabled = pRunning is not null;
 
-        LWorkItem? pSelected = PRosterSelectRead();
-        pRosterRemoveButton.IsEnabled = pSelected is not null
-            && pSelected.LWorkStateCurrent != LWorkState.LWorkStateRunning;
+        pRosterRemoveButton.IsEnabled = PRosterSelectionRead()
+            .Any(pWorkItem => pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning);
         pRosterClearButton.IsEnabled = pRosterSchedule.LScheduleRecords.Any(pWorkItem =>
-            pWorkItem.LWorkStateCurrent is LWorkState.LWorkStateDone or LWorkState.LWorkStateFailed);
+            pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone);
+        pRosterEmptyButton.IsEnabled = pRosterSchedule.LScheduleRecords.Any(pWorkItem =>
+            pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning);
 
         string pRunState = pRosterRunner.LRunnerSuspended
             ? "Suspended"
@@ -125,18 +126,28 @@ public sealed partial class PRoster
 
     private void PRosterRemoveHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (PRosterSelectRead() is not { } pWorkItem
-            || pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning)
+        LWorkItem[] pRosterRemovable = PRosterSelectionRead()
+            .Where(pWorkItem => pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning)
+            .ToArray();
+        if (pRosterRemovable.Length == 0)
         {
             return;
         }
 
-        pRosterSchedule.LScheduleRemove(pWorkItem.LWorkId);
+        foreach (LWorkItem pWorkItem in pRosterRemovable)
+        {
+            pRosterSchedule.LScheduleRemove(pWorkItem.LWorkId);
+        }
     }
 
-    private void PRosterClearHandle(object pSender, RoutedEventArgs pArguments)
+    private void PRosterDoneHandle(object pSender, RoutedEventArgs pArguments)
     {
-        pRosterSchedule.LScheduleClear();
+        pRosterSchedule.LScheduleDoneClear();
+    }
+
+    private void PRosterAllHandle(object pSender, RoutedEventArgs pArguments)
+    {
+        pRosterSchedule.LScheduleAllClear();
     }
 
     private void PRosterDepotAttach()

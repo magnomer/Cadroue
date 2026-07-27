@@ -138,11 +138,13 @@ internal sealed class PToken : RichTextBox
 
     private static string PTokenLabelRead(string pToken) => pToken switch
     {
+        "{Prefix}" => "Prefix",
         "{OriginalName}" => "Original Name",
         "{SectionNumber}" => "Section Number",
         "{SectionName}" => "Section Name",
         "{Date}" => "Date",
         "{Time}" => "Time",
+        "{Suffix}" => "Suffix",
         _ => pToken.Trim('{', '}')
     };
 

@@ -6,12 +6,24 @@ public sealed class LDepotWatch : IDisposable
 
     private readonly List<FileSystemWatcher> lDepotWatchers = new();
     private readonly System.Timers.Timer lDepotSettleTimer;
+    private readonly object lDepotTimerLock = new();
     private bool lDepotDisposed;
 
     public LDepotWatch()
     {
         lDepotSettleTimer = new System.Timers.Timer(LDepotSettleMilliseconds) { AutoReset = false };
-        lDepotSettleTimer.Elapsed += (_, _) => LDepotChange?.Invoke();
+        lDepotSettleTimer.Elapsed += LDepotSettleHandle;
+    }
+
+    private void LDepotSettleHandle(object? lDepotSender, System.Timers.ElapsedEventArgs lDepotEvent)
+    {
+        try
+        {
+            LDepotChange?.Invoke();
+        }
+        catch
+        {
+        }
     }
 
     public event Action? LDepotChange;
@@ -50,24 +62,49 @@ public sealed class LDepotWatch : IDisposable
         }
 
         lDepotWatchers.Clear();
-        lDepotSettleTimer.Stop();
+        lock (lDepotTimerLock)
+        {
+            if (!lDepotDisposed)
+            {
+                lDepotSettleTimer.Stop();
+            }
+        }
     }
 
     public void Dispose()
     {
-        if (lDepotDisposed)
+        lock (lDepotTimerLock)
         {
-            return;
+            if (lDepotDisposed)
+            {
+                return;
+            }
+
+            lDepotDisposed = true;
         }
 
-        lDepotDisposed = true;
         LDepotWatchStop();
+        lDepotSettleTimer.Elapsed -= LDepotSettleHandle;
         lDepotSettleTimer.Dispose();
     }
 
     private void LDepotChangeHandle(object lDepotSender, FileSystemEventArgs lDepotEvent)
     {
-        lDepotSettleTimer.Stop();
-        lDepotSettleTimer.Start();
+        lock (lDepotTimerLock)
+        {
+            if (lDepotDisposed)
+            {
+                return;
+            }
+
+            try
+            {
+                lDepotSettleTimer.Stop();
+                lDepotSettleTimer.Start();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
     }
 }

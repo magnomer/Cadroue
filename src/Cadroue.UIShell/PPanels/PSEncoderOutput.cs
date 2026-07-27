@@ -44,11 +44,13 @@ internal sealed partial class PSEncoder
         pGrid.Children.Add(PSSheetLabelBuild("Elements"));
 
         var pPanel = new WrapPanel();
+        pPanel.Children.Add(PSNameTokenBuild("Prefix", "{Prefix}"));
         pPanel.Children.Add(PSNameTokenBuild("Original Name", "{OriginalName}"));
         pPanel.Children.Add(PSNameTokenBuild("Section Number", "{SectionNumber}"));
         pPanel.Children.Add(PSNameTokenBuild("Section Name", "{SectionName}"));
         pPanel.Children.Add(PSNameTokenBuild("Date", "{Date}"));
         pPanel.Children.Add(PSNameTokenBuild("Time", "{Time}"));
+        pPanel.Children.Add(PSNameTokenBuild("Suffix", "{Suffix}"));
         Grid.SetColumn(pPanel, 1);
         pGrid.Children.Add(pPanel);
         return pGrid;

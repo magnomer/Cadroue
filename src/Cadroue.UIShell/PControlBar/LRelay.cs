@@ -9,20 +9,28 @@ public sealed class LRelaySectionRecord
     public long EndTicks { get; set; }
     public int ColorIndex { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string Prefix { get; set; } = string.Empty;
+    public string Suffix { get; set; } = string.Empty;
 
     public static LRelaySectionRecord LRelaySectionCreate(LSegment lSegment) => new()
     {
         StartTicks = lSegment.LSegmentStart.Ticks,
         EndTicks = lSegment.LSegmentEnd.Ticks,
         ColorIndex = lSegment.LSegmentColorIndex,
-        Name = lSegment.LSegmentName
+        Name = lSegment.LSegmentName,
+        Prefix = lSegment.LSegmentPrefix,
+        Suffix = lSegment.LSegmentSuffix
     };
 
     public LSegment LRelaySegmentCreate() => new(
         TimeSpan.FromTicks(StartTicks),
         TimeSpan.FromTicks(EndTicks),
         ColorIndex,
-        Name);
+        Name)
+    {
+        LSegmentPrefix = Prefix ?? string.Empty,
+        LSegmentSuffix = Suffix ?? string.Empty
+    };
 }
 
 public sealed class LRelay

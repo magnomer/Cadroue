@@ -55,12 +55,18 @@ internal sealed class PResizableColumnLayout
         return pThumb;
     }
 
-    public IReadOnlyList<double> PWidthsRead()
+    public IReadOnlyList<double> PWeightsRead()
     {
-        return pPanelColumns
-            .Select(pColumn => pColumn.ActualWidth)
-            .Where(pWidth => pWidth > 0)
-            .ToArray();
+        var pWeights = new double[pPanelColumns.Count];
+        for (int index = 0; index < pWeights.Length; index++)
+        {
+            double pWeight = pPanelHiddenFlags[index]
+                ? pPanelStoredWeights[index]
+                : pPanelWeights[index];
+            pWeights[index] = pWeight > 0 ? pWeight : 1;
+        }
+
+        return pWeights;
     }
 
     public void PPanelHide(int pPanelIndex)

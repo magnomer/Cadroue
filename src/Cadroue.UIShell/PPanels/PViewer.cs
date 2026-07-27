@@ -129,7 +129,7 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
-        pViewerPlayer.Seek((int)playbackPosition.TotalMilliseconds);
+        pViewerPlayer.SeekAccurate((int)playbackPosition.TotalMilliseconds);
         PViewerPlaybackUpdate(null, playbackPosition);
     }
 

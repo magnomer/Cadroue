@@ -44,7 +44,7 @@ public static partial class LSplit
             string lSplitOutputName = LSplitNameCreate(
                 lSplitOutput,
                 lSplitSourceStem,
-                lSplitSection.LSplitSectionName,
+                lSplitSection,
                 lSplitIndex,
                 lSplitStamp,
                 lSplitTakenNames);
@@ -96,11 +96,12 @@ public static partial class LSplit
     private static string LSplitNameCreate(
         LWorkOutput lSplitOutput,
         string lSplitSourceStem,
-        string lSplitSectionName,
+        LSplitSectionDescription lSplitSection,
         int lSplitIndex,
         DateTimeOffset lSplitStamp,
         HashSet<string> lSplitTakenNames)
     {
+        string lSplitSectionName = lSplitSection.LSplitSectionName;
         string lSplitPattern = string.IsNullOrWhiteSpace(lSplitOutput.LWorkOutputNamePattern)
             ? "{OriginalName}"
             : lSplitOutput.LWorkOutputNamePattern;
@@ -113,6 +114,8 @@ public static partial class LSplit
             : lSplitSectionName;
 
         string lSplitStem = lSplitPattern
+            .Replace("{Prefix}", lSplitSection.LSplitSectionPrefix, StringComparison.OrdinalIgnoreCase)
+            .Replace("{Suffix}", lSplitSection.LSplitSectionSuffix, StringComparison.OrdinalIgnoreCase)
             .Replace("{OriginalName}", lSplitSourceStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", (lSplitIndex + 1).ToString("D2"), StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", lSplitResolvedSectionName, StringComparison.OrdinalIgnoreCase)

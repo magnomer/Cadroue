@@ -93,6 +93,7 @@ public sealed partial class PRoster
             Background = Brushes.White,
             FocusVisualStyle = null,
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            SelectionMode = SelectionMode.Extended,
             ItemContainerStyle = PRosterRowStyleCreate()
         };
         ScrollViewer.SetHorizontalScrollBarVisibility(pList, ScrollBarVisibility.Disabled);
@@ -247,4 +248,11 @@ public sealed partial class PRoster
 
     private LWorkItem? PRosterSelectRead() =>
         pRosterQueueList.SelectedItem is ListBoxItem { Tag: LWorkItem pWorkItem } ? pWorkItem : null;
+
+    private IReadOnlyList<LWorkItem> PRosterSelectionRead() =>
+        pRosterQueueList.SelectedItems
+            .OfType<ListBoxItem>()
+            .Select(pRow => pRow.Tag)
+            .OfType<LWorkItem>()
+            .ToArray();
 }

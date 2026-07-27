@@ -33,6 +33,7 @@ public sealed partial class LRunner
                     break;
 
                 case "progress":
+                    LRunnerInvoke(() => LRunnerPhaseSet(pWorkItem, LWorkPhase.LWorkPhaseEncoding));
                     if (pBlockMicroseconds >= 0 && pTotalSeconds > 0)
                     {
                         double pFraction = pBlockMicroseconds / 1_000_000d / pTotalSeconds;

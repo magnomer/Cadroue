@@ -29,6 +29,38 @@ public sealed partial class PViewer
         }
     }
 
+    public bool PViewerMediaClose()
+    {
+        if (pViewerUnloaded || !pViewerCommandActive)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(PViewerSourcePath) && pViewerMediaInfo is null)
+        {
+            return false;
+        }
+
+        string pViewerClosedPath = PViewerSourcePath ?? string.Empty;
+        pViewerLoadSerial++;
+        PPlayerStopDispose();
+        PViewerSourcePath = null;
+        pViewerMediaInfo = null;
+        PCropVideo = null;
+        LPreviewStateCurrent = LPreviewStateCurrent
+            .LCropboxChange(null)
+            .LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+        PCropHide();
+        PViewerPreviewApply();
+
+        LAppLog.LInfo(string.IsNullOrWhiteSpace(pViewerClosedPath)
+            ? "Media closed"
+            : $"Media closed '{System.IO.Path.GetFileName(pViewerClosedPath)}' [{pViewerClosedPath}]");
+
+        PViewerMediaRaise(new LMediaOpenStatus(string.Empty, null, false, false, null, null));
+        return true;
+    }
+
     private void PViewerFlyleafDispose()
     {
         try

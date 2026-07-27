@@ -8,6 +8,8 @@ public sealed class LSidecarSectionRecord
     public long EndMilliseconds { get; set; }
     public int ColorIndex { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string Prefix { get; set; } = string.Empty;
+    public string Suffix { get; set; } = string.Empty;
 }
 
 public sealed class LSidecarSourceRecord

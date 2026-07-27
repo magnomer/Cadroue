@@ -5,6 +5,7 @@ namespace Cadroue.Core;
 public sealed partial class LSchedule
 {
     private readonly ObservableCollection<LWorkItem> lScheduleItems = new();
+    private readonly Dictionary<Guid, LWorkItem> lScheduleLiveItems = new();
 
     public LSchedule()
     {
@@ -28,6 +29,7 @@ public sealed partial class LSchedule
         LScheduleStaleClaim();
 
         var lScheduleLoaded = new List<LWorkItem>();
+        var lScheduleRunningIds = new HashSet<Guid>();
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
         {
             foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
@@ -37,9 +39,25 @@ public sealed partial class LSchedule
                     continue;
                 }
 
+                if (lDepotFolder == LDepotFolder.LDepotFolderRunning
+                    && lScheduleLiveItems.TryGetValue(lWorkRecord.WorkId, out LWorkItem? lWorkLive))
+                {
+                    lScheduleRunningIds.Add(lWorkRecord.WorkId);
+                    lScheduleLoaded.Add(lWorkLive);
+                    continue;
+                }
+
                 LWorkItem lWorkItem = lWorkRecord.LWorkItemCreate();
                 lWorkItem.LWorkStateCurrent = LScheduleStateRead(lDepotFolder, lWorkItem.LWorkStateCurrent);
                 lScheduleLoaded.Add(lWorkItem);
+            }
+        }
+
+        foreach (Guid lScheduleLiveId in lScheduleLiveItems.Keys.ToArray())
+        {
+            if (!lScheduleRunningIds.Contains(lScheduleLiveId))
+            {
+                lScheduleLiveItems.Remove(lScheduleLiveId);
             }
         }
 
@@ -76,6 +94,7 @@ public sealed partial class LSchedule
 
     public void LScheduleComplete(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage)
     {
+        lScheduleLiveItems.Remove(lWorkItem.LWorkId);
         LDepotFolder lScheduleTarget = lScheduleSucceeded
             ? LDepotFolder.LDepotFolderDone
             : LDepotFolder.LDepotFolderFailed;
@@ -122,17 +141,30 @@ public sealed partial class LSchedule
         return lScheduleRemoved;
     }
 
-    public void LScheduleClear()
+    public int LScheduleDoneClear() =>
+        LScheduleFolderClear(new[] { LDepotFolder.LDepotFolderDone });
+
+    public int LScheduleAllClear() =>
+        LScheduleFolderClear(new[]
+        {
+            LDepotFolder.LDepotFolderScheduled,
+            LDepotFolder.LDepotFolderDone,
+            LDepotFolder.LDepotFolderFailed
+        });
+
+    private int LScheduleFolderClear(IReadOnlyList<LDepotFolder> lDepotFolders)
     {
-        foreach (LDepotFolder lDepotFolder in new[] { LDepotFolder.LDepotFolderDone, LDepotFolder.LDepotFolderFailed })
+        int lScheduleClearedCount = 0;
+        foreach (LDepotFolder lDepotFolder in lDepotFolders)
         {
             foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder).ToArray())
             {
                 try
                 {
                     File.Delete(lDepotFilePath);
+                    lScheduleClearedCount++;
                 }
-                catch (IOException)
+                catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
                 {
                 }
             }
@@ -140,6 +172,7 @@ public sealed partial class LSchedule
 
         LDepotIndex.LDepotIndexRebuild();
         LScheduleReload();
+        return lScheduleClearedCount;
     }
 
     public IReadOnlyList<LWorkItem> LSchedulePendingRead() =>

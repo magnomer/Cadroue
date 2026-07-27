@@ -22,7 +22,6 @@ public sealed class LPreferenceState
     public double? LPreferenceEncoderTop { get; set; }
     public double LPreferenceFontSize { get; set; }
     public double LPreferenceKeyframeMinimumPixels { get; set; }
-    public double LPreferenceImmediateKeyframeWindowMilliseconds { get; set; }
     public double LPreferenceSectionOpacity { get; set; }
     public double LPreferenceHistoryMaximum { get; set; }
     public bool LPreferenceAutoplayOnLoad { get; set; }
@@ -55,7 +54,6 @@ public sealed class LPreferenceState
             LPreferenceEncoderTop = null,
             LPreferenceFontSize = 13,
             LPreferenceKeyframeMinimumPixels = 5,
-            LPreferenceImmediateKeyframeWindowMilliseconds = 20000,
             LPreferenceSectionOpacity = 0.65,
             LPreferenceHistoryMaximum = 100,
             LPreferenceAutoplayOnLoad = false,
@@ -93,7 +91,6 @@ public sealed class LPreferenceState
             LPreferenceEncoderTop = LPreferenceEncoderTop,
             LPreferenceFontSize = LPreferenceFontSize,
             LPreferenceKeyframeMinimumPixels = LPreferenceKeyframeMinimumPixels,
-            LPreferenceImmediateKeyframeWindowMilliseconds = LPreferenceImmediateKeyframeWindowMilliseconds,
             LPreferenceSectionOpacity = LPreferenceSectionOpacity,
             LPreferenceHistoryMaximum = LPreferenceHistoryMaximum,
             LPreferenceAutoplayOnLoad = LPreferenceAutoplayOnLoad,
@@ -119,7 +116,6 @@ public sealed class LPreferenceState
             ("Timeline height", lPreferenceOther.LPreferenceFlowHeight, LPreferenceFlowHeight),
             ("Font size", lPreferenceOther.LPreferenceFontSize, LPreferenceFontSize),
             ("Keyframe minimum spacing", lPreferenceOther.LPreferenceKeyframeMinimumPixels, LPreferenceKeyframeMinimumPixels),
-            ("Immediate keyframe window (ms)", lPreferenceOther.LPreferenceImmediateKeyframeWindowMilliseconds, LPreferenceImmediateKeyframeWindowMilliseconds),
             ("Section overlap opacity", lPreferenceOther.LPreferenceSectionOpacity, LPreferenceSectionOpacity),
             ("Maximum history", lPreferenceOther.LPreferenceHistoryMaximum, LPreferenceHistoryMaximum),
             ("Autoplay on load", lPreferenceOther.LPreferenceAutoplayOnLoad, LPreferenceAutoplayOnLoad),
@@ -153,7 +149,6 @@ public sealed class LPreferenceState
             : LPreferenceNumberClamp(LPreferenceEncoderHeight, PSEncoder.PSEncoderHeightMinimum, 3000, PSEncoder.PSEncoderHeightDefault);
         LPreferenceFontSize = LPreferenceNumberClamp(LPreferenceFontSize, 9, 18, 13);
         LPreferenceKeyframeMinimumPixels = LPreferenceNumberClamp(LPreferenceKeyframeMinimumPixels, 1, 50, 5);
-        LPreferenceImmediateKeyframeWindowMilliseconds = LPreferenceNumberClamp(LPreferenceImmediateKeyframeWindowMilliseconds, 1000, 600000, 20000);
         LPreferenceSectionOpacity = LPreferenceNumberClamp(LPreferenceSectionOpacity, 0.10, 0.95, 0.65);
         LPreferenceHistoryMaximum = LPreferenceNumberClamp(LPreferenceHistoryMaximum, 0, 1000000, 100);
         if (LPreferenceVolumeMode is not "Single global volume" and not "Per-tab volume") LPreferenceVolumeMode = "Single global volume";
@@ -188,11 +183,14 @@ public sealed class LPreferenceTabLayoutRecord
 {
     public List<double> PanelWidths { get; set; } = new();
 
+    public bool ExportHidden { get; set; }
+
     public LPreferenceTabLayoutRecord LPreferenceTabLayoutClone()
     {
         return new LPreferenceTabLayoutRecord
         {
-            PanelWidths = new List<double>(PanelWidths)
+            PanelWidths = new List<double>(PanelWidths),
+            ExportHidden = ExportHidden
         };
     }
 }

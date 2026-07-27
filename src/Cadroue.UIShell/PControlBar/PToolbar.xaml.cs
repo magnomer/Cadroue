@@ -220,6 +220,7 @@ public partial class PToolbar : UserControl
         yield return ("Undo", "Ctrl+Z", "Active tab");
         yield return ("Redo", "Ctrl+Y", "Active tab");
         yield return ("Play / Pause", "Space", "Global");
+        yield return ("Close the media file", "F4", "Active tab");
         yield return ("Zoom in", "C", "Active flow");
         yield return ("Zoom out", "V", "Active flow");
         yield return ("Add section at cursor", "Q", "Split tab");

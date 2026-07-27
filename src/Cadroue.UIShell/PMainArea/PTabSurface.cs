@@ -84,7 +84,13 @@ public abstract class PTabSurface : UserControl
 
         Grid.SetRow(pPanelGrid, 0);
         pGrid.Children.Add(pPanelGrid);
-        pGrid.Tag = PTabGridState.PTabGridStateCreate(pPanelLayout, pPanels, pPanelColumns, pSplitterColumnDefinitions, pSplitterElements);
+        PTabGridState pTabState = PTabGridState.PTabGridStateCreate(
+            pPanelLayout, pPanels, pPanelColumns, pSplitterColumnDefinitions, pSplitterElements);
+        pGrid.Tag = pTabState;
+        if (lPreferenceTabLayout?.ExportHidden == true)
+        {
+            pTabState.PExportSet(true);
+        }
 
         var pActionRowContent = new Grid { MinHeight = 72 };
         pActionRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -121,12 +127,10 @@ public abstract class PTabSurface : UserControl
             return lPreferenceTabLayout;
         }
 
-        foreach (double pWidth in pState.PTabLayout.PWidthsRead())
+        lPreferenceTabLayout.ExportHidden = pState.PExportHidden;
+        foreach (double pWeight in pState.PTabLayout.PWeightsRead())
         {
-            if (pWidth > 0)
-            {
-                lPreferenceTabLayout.PanelWidths.Add(pWidth);
-            }
+            lPreferenceTabLayout.PanelWidths.Add(pWeight);
         }
 
         return lPreferenceTabLayout;
@@ -189,14 +193,23 @@ public abstract class PTabSurface : UserControl
             return new PTabGridState(pTabLayout, null, null, null, null, null);
         }
 
-        public void PExportToggle()
+        public bool PExportHidden => pExportPanelIndex is not null && !pExportVisible;
+
+        public void PExportToggle() => PExportSet(pExportVisible);
+
+        public void PExportSet(bool pExportHide)
         {
             if (pExportColumn is null || pExportPanel is null || pExportPanelIndex is null)
             {
                 return;
             }
 
-            if (pExportVisible)
+            if (pExportHide == !pExportVisible)
+            {
+                return;
+            }
+
+            if (pExportHide)
             {
                 PTabLayout.PPanelHide(pExportPanelIndex.Value);
                 pExportPanel.Visibility = Visibility.Collapsed;
@@ -225,7 +238,7 @@ public abstract class PTabSurface : UserControl
                 }
             }
 
-            pExportVisible = !pExportVisible;
+            pExportVisible = !pExportHide;
         }
     }
 

@@ -38,8 +38,7 @@ public static class PSOptions
             PSOptionsSliderBuild("Font size", lPreferenceDraft.LPreferenceFontSize, 9, 18, v => lPreferenceDraft.LPreferenceFontSize = v)));
         pTabs.Items.Add(PSOptionsPageBuild("Timeline",
             PSOptionsComboBuild("Timeline order", lPreferenceDraft.LPreferenceTimelineOrder, new[] { "OverviewFirst", "WorkingFirst" }, v => lPreferenceDraft.LPreferenceTimelineOrder = v),
-            PSOptionsSliderBuild("Keyframe minimum spacing", lPreferenceDraft.LPreferenceKeyframeMinimumPixels, 1, 50, v => lPreferenceDraft.LPreferenceKeyframeMinimumPixels = v),
-            PSOptionsSliderBuild("Immediate keyframe window (ms)", lPreferenceDraft.LPreferenceImmediateKeyframeWindowMilliseconds, 1000, 600000, v => lPreferenceDraft.LPreferenceImmediateKeyframeWindowMilliseconds = v)));
+            PSOptionsSliderBuild("Keyframe minimum spacing", lPreferenceDraft.LPreferenceKeyframeMinimumPixels, 1, 50, v => lPreferenceDraft.LPreferenceKeyframeMinimumPixels = v)));
         pTabs.Items.Add(PSOptionsPageBuild("Section & Group",
             PSOptionsSliderBuild("Section overlap opacity", lPreferenceDraft.LPreferenceSectionOpacity, 0.10, 0.95, v => lPreferenceDraft.LPreferenceSectionOpacity = v),
             PSOptionsCheckBuild("Allow duplicate sections in groups", lPreferenceDraft.LPreferenceGroupDuplicateAllowed, v => lPreferenceDraft.LPreferenceGroupDuplicateAllowed = v)));

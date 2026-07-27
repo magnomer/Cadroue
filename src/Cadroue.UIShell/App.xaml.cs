@@ -56,8 +56,10 @@ public partial class App : Application
         Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
 
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
+        Cadroue.Core.LSchedule.LScheduleRecoverReport = LAppLog.LInfo;
         LAppLog.LInfo($"Application started: version {LAppVersionRead()}, process {Environment.ProcessId}");
         LDepotRootApply();
+        LScheduleRecoverRun();
         LRendererFlyleafStart();
         LRelayStore.LRelayStaleClear();
         LRelayChannel.LRelayChannelStart();
@@ -131,6 +133,22 @@ public partial class App : Application
         {
             lDepotRootApplied = null;
             LAppLog.LError("Workspace folder could not be prepared", lException);
+        }
+    }
+
+    private static void LScheduleRecoverRun()
+    {
+        try
+        {
+            int lScheduleRecovered = Cadroue.Core.LSchedule.LScheduleCurrent.LScheduleStaleClaim();
+            if (lScheduleRecovered > 0)
+            {
+                LAppLog.LInfo($"Worklist recovery: {lScheduleRecovered} interrupted job(s) resolved at startup");
+            }
+        }
+        catch (Exception lException)
+        {
+            LAppLog.LError("Worklist recovery failed at startup", lException);
         }
     }
 
