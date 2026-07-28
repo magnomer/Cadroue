@@ -5,7 +5,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.UIShell.PAssets;
-using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -16,6 +15,9 @@ public sealed partial class PInspector
 
     private static readonly Brush pInspectorWarnBrush = new SolidColorBrush(Color.FromRgb(0xC2, 0x5A, 0x1E));
     private static readonly Brush pInspectorIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush pInspectorAccentBrush = new SolidColorBrush(Color.FromRgb(0x2C, 0x6C, 0xCE));
+    private static readonly Brush pInspectorActiveBrush = new SolidColorBrush(Color.FromRgb(0xD3, 0xE3, 0xFA));
+    private static readonly Brush pInspectorArmedBrush = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC));
 
     private TextBox pInspectorInsetLeft = null!;
     private TextBox pInspectorInsetRight = null!;
@@ -30,6 +32,10 @@ public sealed partial class PInspector
     private ComboBox pInspectorRotateCombo = null!;
     private ToggleButton pInspectorCropTool = null!;
     private StackPanel pInspectorCropBody = null!;
+    private StackPanel pInspectorCropStack = null!;
+    private CheckBox pInspectorApplyBox = null!;
+    private CheckBox pInspectorPersistentBox = null!;
+    private Image pInspectorToolIcon = null!;
 
     private double pInspectorSourceWidth = 1920;
     private double pInspectorSourceHeight = 1080;
@@ -41,6 +47,7 @@ public sealed partial class PInspector
     public event Action<Size?>? PInspectorRatioChange;
     public event Action<Rect?>? PInspectorCropChange;
     public event Action<LRotateFlip>? PInspectorRotateChange;
+    public event Action<bool>? PInspectorPersistentChange;
 
     public void PInspectorSourceSet(double pSourceWidth, double pSourceHeight)
     {
@@ -49,20 +56,98 @@ public sealed partial class PInspector
         PInspectorRatioUpdate();
     }
 
-    public LWorkCrop PInspectorCropRead() => new(
-        PInspectorEvenClamp(pInspectorInsetLeft),
-        PInspectorEvenClamp(pInspectorInsetTop),
-        PInspectorEvenClamp(pInspectorInsetRight),
-        PInspectorEvenClamp(pInspectorInsetBottom),
-        PInspectorRotateKindRead() switch
+    public LWorkCrop PInspectorCropRead()
+    {
+        if (pInspectorApplyBox.IsChecked != true)
         {
-            LRotateKind.LRotate90 => 90,
-            LRotateKind.LRotate180 => 180,
-            LRotateKind.LRotate270 => 270,
-            _ => 0
-        },
-        pInspectorFlipHorizontal.IsChecked == true,
-        pInspectorFlipVertical.IsChecked == true);
+            return LWorkCrop.LWorkCropNoneCreate();
+        }
+
+        return new LWorkCrop(
+            PInspectorEvenClamp(pInspectorInsetLeft),
+            PInspectorEvenClamp(pInspectorInsetTop),
+            PInspectorEvenClamp(pInspectorInsetRight),
+            PInspectorEvenClamp(pInspectorInsetBottom),
+            PInspectorRotateKindRead() switch
+            {
+                LRotateKind.LRotate90 => 90,
+                LRotateKind.LRotate180 => 180,
+                LRotateKind.LRotate270 => 270,
+                _ => 0
+            },
+            pInspectorFlipHorizontal.IsChecked == true,
+            pInspectorFlipVertical.IsChecked == true);
+    }
+
+    public void PInspectorMediaReset()
+    {
+        if (pInspectorPersistentBox.IsChecked == true)
+        {
+            return;
+        }
+
+        PInspectorCropReset();
+    }
+
+    private void PInspectorCropReset()
+    {
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        pInspectorCropSuppress = true;
+        try
+        {
+            pInspectorApplyBox.IsChecked = false;
+            pInspectorCropTool.IsChecked = false;
+            pInspectorFlipHorizontal.IsChecked = false;
+            pInspectorFlipVertical.IsChecked = false;
+            pInspectorRotateCombo.SelectedIndex = 0;
+            pInspectorRatioFixed.IsChecked = false;
+            pInspectorInsetLeft.Text = "0";
+            pInspectorInsetTop.Text = "0";
+            pInspectorInsetRight.Text = "0";
+            pInspectorInsetBottom.Text = "0";
+            pInspectorRatioWidth.Text = "0";
+            pInspectorRatioHeight.Text = "0";
+            pInspectorCropPresent = false;
+        }
+        finally
+        {
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+
+        PInspectorToolChange?.Invoke(false);
+        PInspectorRatioChange?.Invoke(null);
+        PInspectorRotateRaise();
+        PInspectorCropChange?.Invoke(null);
+        PInspectorRatioUpdate();
+        PInspectorToolUpdate();
+        PInspectorApplyUpdate();
+    }
+
+    private void PInspectorPersistentRaise()
+    {
+        PInspectorPersistentChange?.Invoke(pInspectorPersistentBox.IsChecked == true);
+    }
+
+    private void PInspectorApplyUpdate()
+    {
+        bool pApplyActive = pInspectorApplyBox.IsChecked == true;
+        pInspectorCropStack.IsEnabled = pApplyActive;
+        pInspectorCropStack.Opacity = pApplyActive ? 1 : 0.4;
+    }
+
+    private void PInspectorToolUpdate()
+    {
+        bool pToolArmed = pInspectorCropTool.IsChecked == true;
+        bool pToolActive = pToolArmed && pInspectorCropPresent;
+
+        pInspectorCropTool.Background = pToolActive
+            ? pInspectorActiveBrush
+            : pToolArmed ? pInspectorArmedBrush : Brushes.Transparent;
+
+        pInspectorToolIcon.Source = PIcon.PIconRead(
+            PInspectorCropIconPath,
+            pToolActive ? pInspectorAccentBrush : pInspectorIconBrush);
+    }
 
     private static int PInspectorEvenClamp(TextBox pNumberBox)
     {
@@ -77,8 +162,10 @@ public sealed partial class PInspector
             : pCropVideo;
         bool pCropAdjusted = pCropSnapped != pCropVideo;
 
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         pInspectorCropPresent = pCropSnapped is { Width: > 0, Height: > 0 };
+        PInspectorToolUpdate();
         try
         {
             if (pCropSnapped is not { Width: > 0, Height: > 0 } pCropRect)
@@ -100,7 +187,7 @@ public sealed partial class PInspector
         }
         finally
         {
-            pInspectorCropSuppress = false;
+            pInspectorCropSuppress = pCropSuppressPrevious;
         }
 
         if (pCropAdjusted)
@@ -156,111 +243,6 @@ public sealed partial class PInspector
         return pWhole <= 0 ? 0 : pWhole - (pWhole % 2);
     }
 
-    private StackPanel PInspectorCropBodyBuild()
-    {
-        pInspectorInsetLeft = PInspectorInsetBuild();
-        pInspectorInsetRight = PInspectorInsetBuild();
-        pInspectorInsetTop = PInspectorInsetBuild();
-        pInspectorInsetBottom = PInspectorInsetBuild();
-        pInspectorRatioWidth = PInspectorRatioFieldBuild();
-        pInspectorRatioHeight = PInspectorRatioFieldBuild();
-
-        pInspectorRatioFixed = new CheckBox
-        {
-            Content = "Fixed ratio",
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
-        };
-        pInspectorRatioFixed.Checked += (_, _) => PInspectorRatioCommit();
-        pInspectorRatioFixed.Unchecked += (_, _) => PInspectorRatioCommit();
-
-        pInspectorRatioNotice = new TextBlock
-        {
-            FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            Foreground = pInspectorWarnBrush,
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(PInspectorLabelWidth, 6, 0, 0),
-            Visibility = Visibility.Collapsed
-        };
-
-        pInspectorFlipHorizontal = PInspectorFlipBuild("Horizontal");
-        pInspectorFlipVertical = PInspectorFlipBuild("Vertical");
-        pInspectorFlipHorizontal.Checked += (_, _) => PInspectorRotateRaise();
-        pInspectorFlipHorizontal.Unchecked += (_, _) => PInspectorRotateRaise();
-        pInspectorFlipVertical.Checked += (_, _) => PInspectorRotateRaise();
-        pInspectorFlipVertical.Unchecked += (_, _) => PInspectorRotateRaise();
-        pInspectorRotateCombo = PInspectorRotateBuild();
-        pInspectorCropTool = PInspectorToolBuild();
-
-        pInspectorCropBody = new StackPanel
-        {
-            Margin = new Thickness(12, 12, 12, 12),
-            Visibility = Visibility.Collapsed
-        };
-        pInspectorCropBody.Children.Add(PInspectorFieldBuild("Tool", pInspectorCropTool));
-        pInspectorCropBody.Children.Add(PInspectorFieldBuild("Flip", PInspectorFlipRowBuild()));
-        pInspectorCropBody.Children.Add(PInspectorFieldBuild("Rotate", pInspectorRotateCombo));
-        pInspectorCropBody.Children.Add(PInspectorEdgeBuild());
-        pInspectorCropBody.Children.Add(PInspectorRatioBuild());
-        pInspectorCropBody.Children.Add(pInspectorRatioFixed);
-        pInspectorCropBody.Children.Add(pInspectorRatioNotice);
-        return pInspectorCropBody;
-    }
-
-    private ToggleButton PInspectorToolBuild()
-    {
-        var pToolButton = new ToggleButton
-        {
-            Content = new Image
-            {
-                Width = 14,
-                Height = 14,
-                Source = PIcon.PIconRead(PInspectorCropIconPath, pInspectorIconBrush),
-                Stretch = Stretch.Uniform
-            },
-            ToolTip = "Draw the crop box on the preview",
-            Width = 28,
-            Height = 26,
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PButton.PButtonToggleCreate()
-        };
-        pToolButton.Checked += (_, _) => PInspectorToolChange?.Invoke(true);
-        pToolButton.Unchecked += (_, _) =>
-        {
-            PInspectorToolChange?.Invoke(false);
-            PInspectorCropClear();
-        };
-        return pToolButton;
-    }
-
-    private ComboBox PInspectorRotateBuild()
-    {
-        var pRotateCombo = new ComboBox
-        {
-            Height = PInspectorFieldHeight,
-            Width = 140,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily
-        };
-        PDropdown.PDropdownApply(pRotateCombo);
-        pRotateCombo.Items.Add("None");
-        pRotateCombo.Items.Add("90° clockwise");
-        pRotateCombo.Items.Add("180°");
-        pRotateCombo.Items.Add("270° clockwise");
-        pRotateCombo.SelectedIndex = 0;
-        pRotateCombo.SelectionChanged += (_, _) =>
-        {
-            PInspectorRatioUpdate();
-            PInspectorRotateRaise();
-        };
-        return pRotateCombo;
-    }
-
     private void PInspectorRotateRaise()
     {
         PInspectorRotateChange?.Invoke(new LRotateFlip(
@@ -276,101 +258,6 @@ public sealed partial class PInspector
         3 => LRotateKind.LRotate270,
         _ => LRotateKind.LRotateNone
     };
-
-    private UIElement PInspectorEdgeBuild()
-    {
-        var pCropGrid = new Grid { Margin = new Thickness(0, 14, 0, 4) };
-        for (int pColumn = 0; pColumn < 3; pColumn++)
-        {
-            pCropGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        }
-
-        for (int pRow = 0; pRow < 3; pRow++)
-        {
-            pCropGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        }
-
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild("Top", pInspectorInsetTop), 0, 1);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild("Left", pInspectorInsetLeft), 1, 0);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild("Right", pInspectorInsetRight), 1, 2);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild("Bottom", pInspectorInsetBottom), 2, 1);
-        return pCropGrid;
-    }
-
-    private static void PInspectorCellAdd(Grid pCropGrid, UIElement pCell, int pRow, int pColumn)
-    {
-        Grid.SetRow(pCell, pRow);
-        Grid.SetColumn(pCell, pColumn);
-        pCropGrid.Children.Add(pCell);
-    }
-
-    private static UIElement PInspectorCellBuild(string pCellLabel, TextBox pCellBox)
-    {
-        var pCellPanel = new StackPanel
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(0, 3, 0, 3)
-        };
-        pCellPanel.Children.Add(new TextBlock
-        {
-            Text = pCellLabel,
-            FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            Foreground = pInspectorMutedBrush,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(0, 0, 0, 3)
-        });
-        pCellPanel.Children.Add(pCellBox);
-        return pCellPanel;
-    }
-
-    private UIElement PInspectorRatioBuild()
-    {
-        var pRatioPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(0, 14, 0, 0)
-        };
-        pRatioPanel.Children.Add(PInspectorLabelBuild("Ratio"));
-        pRatioPanel.Children.Add(pInspectorRatioWidth);
-        pRatioPanel.Children.Add(new TextBlock
-        {
-            Text = "×",
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily,
-            Foreground = pInspectorMutedBrush,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(7, 0, 7, 0)
-        });
-        pRatioPanel.Children.Add(pInspectorRatioHeight);
-        return pRatioPanel;
-    }
-
-    private UIElement PInspectorFlipRowBuild()
-    {
-        var pFlipPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        pFlipPanel.Children.Add(pInspectorFlipHorizontal);
-        pFlipPanel.Children.Add(pInspectorFlipVertical);
-        return pFlipPanel;
-    }
-
-    private static CheckBox PInspectorFlipBuild(string pFlipLabel) => new()
-    {
-        Content = pFlipLabel,
-        FontSize = 12,
-        FontFamily = pInspectorFontFamily,
-        Foreground = PPanelTextBrush,
-        VerticalAlignment = VerticalAlignment.Center,
-        VerticalContentAlignment = VerticalAlignment.Center,
-        Margin = new Thickness(0, 0, 14, 0)
-    };
-
-    private TextBox PInspectorRatioFieldBuild()
-    {
-        TextBox pRatioBox = PInspectorNumberBoxBuild();
-        pRatioBox.TextChanged += (_, _) => PInspectorRatioEditHandle();
-        return pRatioBox;
-    }
 
     private void PInspectorRatioEditHandle()
     {
@@ -415,35 +302,6 @@ public sealed partial class PInspector
         PInspectorCropChange?.Invoke(null);
     }
 
-    private TextBox PInspectorInsetBuild()
-    {
-        TextBox pInsetBox = PInspectorNumberBoxBuild();
-        pInsetBox.TextChanged += (_, _) =>
-        {
-            PInspectorRatioUpdate();
-            PInspectorCropRaise();
-        };
-        return pInsetBox;
-    }
-
-    private static TextBox PInspectorNumberBoxBuild()
-    {
-        var pNumberBox = new TextBox
-        {
-            Text = "0",
-            Width = PInspectorInsetWidth,
-            Height = PInspectorFieldHeight,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily
-        };
-        PTextbox.PTextboxApply(pNumberBox);
-        pNumberBox.TextAlignment = TextAlignment.Center;
-        pNumberBox.Padding = new Thickness(4, 0, 4, 0);
-        pNumberBox.PreviewTextInput += (_, pNumberEvent) =>
-            pNumberEvent.Handled = !pNumberEvent.Text.All(char.IsDigit);
-        return pNumberBox;
-    }
-
     private void PInspectorRatioCommit()
     {
         PInspectorRatioUpdate();
@@ -482,6 +340,7 @@ public sealed partial class PInspector
         double pCropWidth = pInspectorSourceWidth - pCropLeft - PInspectorNumberRead(pInspectorInsetRight);
         double pCropHeight = pInspectorSourceHeight - pCropTop - PInspectorNumberRead(pInspectorInsetBottom);
         pInspectorCropPresent = pCropWidth > 0 && pCropHeight > 0;
+        PInspectorToolUpdate();
         PInspectorCropChange?.Invoke(pInspectorCropPresent
             ? new Rect(pCropLeft, pCropTop, pCropWidth, pCropHeight)
             : null);

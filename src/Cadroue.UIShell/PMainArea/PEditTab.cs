@@ -30,7 +30,9 @@ public sealed class PEditTab : PTabSurface
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
         pInspector.PInspectorCropChange += pViewer.PCropVideoSet;
         pInspector.PInspectorRotateChange += pViewer.PViewerRotateSet;
+        pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
         pViewer.PCropVideoChange += PEditCropShow;
+        pViewer.PViewerMediaChange += _ => PEditCropRestore();
 
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
@@ -44,6 +46,16 @@ public sealed class PEditTab : PTabSurface
         }
 
         pInspector.PInspectorCropSet(pCropVideo);
+    }
+
+    private void PEditCropRestore()
+    {
+        if (pViewer.PCropSourceRead() is System.Windows.Size pCropSource)
+        {
+            pInspector.PInspectorSourceSet(pCropSource.Width, pCropSource.Height);
+        }
+
+        pInspector.PInspectorMediaReset();
     }
 
     public override PFlowControl PTabFlow => pFlow;

@@ -229,6 +229,8 @@ public sealed partial class PViewer
         }
     }
 
+    public bool PCropPersistent { get; set; }
+
     public void PCropToolSet(bool pCropArmed)
     {
         pViewerCropArmed = pCropArmed;

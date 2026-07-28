@@ -15,6 +15,7 @@ public sealed partial class PInspector : PPanel
 
     private readonly TextBlock pInspectorTitleLabel;
     private readonly TextBlock pInspectorEmptyNotice;
+    private readonly UIElement pInspectorPersistentRow;
 
     public PInspector() : base("")
     {
@@ -60,9 +61,13 @@ public sealed partial class PInspector : PPanel
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
 
+        pInspectorPersistentRow = PInspectorPersistentBuild();
+
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
+        DockPanel.SetDock(pInspectorPersistentRow, Dock.Bottom);
+        pRoot.Children.Add(pInspectorPersistentRow);
         pRoot.Children.Add(pScroll);
 
         FocusVisualStyle = null;
@@ -75,6 +80,7 @@ public sealed partial class PInspector : PPanel
         bool pCropSelected = pStepName == "Crop";
         pInspectorTitleLabel.Text = pCropSelected ? "Crop" : "Inspector";
         pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorPersistentRow.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorEmptyNotice.Visibility = pCropSelected ? Visibility.Collapsed : Visibility.Visible;
 
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)

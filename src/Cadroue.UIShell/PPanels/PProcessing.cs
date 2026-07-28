@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PAssets;
-using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -15,29 +14,26 @@ public sealed class PProcessing : PPanel
 
     public event Action<string?>? PProcessingStepChange;
 
-    private readonly TextBlock pProcessingCountLabel;
     private readonly StackPanel pProcessingRowPanel;
     private string? pProcessingStepCurrent;
 
     public PProcessing() : base("")
     {
-        pProcessingCountLabel = new TextBlock
-        {
-            Text = "Processing",
-            FontSize = 12,
-            FontFamily = pProcessingFontFamily,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A)),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-
         var pHeader = new Border
         {
             Padding = new Thickness(12, 10, 12, 10),
             BorderBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Background = Brushes.White,
-            Child = pProcessingCountLabel
+            Child = new TextBlock
+            {
+                Text = "Processing",
+                FontSize = 12,
+                FontFamily = pProcessingFontFamily,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A)),
+                VerticalAlignment = VerticalAlignment.Center
+            }
         };
 
         pProcessingRowPanel = new StackPanel();
@@ -51,10 +47,7 @@ public sealed class PProcessing : PPanel
 
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
-        UIElement pActionBar = PProcessingActionBuild();
-        DockPanel.SetDock(pActionBar, Dock.Bottom);
         pRoot.Children.Add(pHeader);
-        pRoot.Children.Add(pActionBar);
         pRoot.Children.Add(pScroll);
 
         FocusVisualStyle = null;
@@ -64,8 +57,6 @@ public sealed class PProcessing : PPanel
     public void PProcessingStepAdd(string pStepName, string pStepIconPath)
     {
         pProcessingRowPanel.Children.Add(PProcessingRowBuild(pStepName, pStepIconPath));
-        int pStepCount = pProcessingRowPanel.Children.Count;
-        pProcessingCountLabel.Text = $"Processing  ({pStepCount})";
     }
 
     private Border PProcessingRowBuild(string pStepName, string pStepIconPath)
@@ -122,57 +113,4 @@ public sealed class PProcessing : PPanel
         }
     }
 
-    private UIElement PProcessingActionBuild()
-    {
-        var pActionLeft = new StackPanel { Orientation = Orientation.Horizontal };
-        pActionLeft.Children.Add(PProcessingButtonBuild(
-            "/PAssets/PPanels/PExportPlus.svg",
-            "Add a processing step"));
-        pActionLeft.Children.Add(PProcessingButtonBuild(
-            "/PAssets/PPanels/PExportMinus.svg",
-            "Delete the selected processing step"));
-
-        var pActionRight = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-        Button pProcessingSortButton = PProcessingButtonBuild(
-            "/PAssets/PPanels/PSort.svg",
-            "Sort the processing steps");
-        pProcessingSortButton.Margin = new Thickness(0);
-        pActionRight.Children.Add(pProcessingSortButton);
-
-        var pActionPanel = new Grid { Margin = new Thickness(10, 4, 10, 4) };
-        pActionPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pActionPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(pActionRight, 1);
-        pActionPanel.Children.Add(pActionLeft);
-        pActionPanel.Children.Add(pActionRight);
-
-        return new Border
-        {
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)),
-            BorderThickness = new Thickness(0, 1, 0, 0),
-            Background = Brushes.White,
-            Child = pActionPanel
-        };
-    }
-
-    private static Button PProcessingButtonBuild(string pIconPath, string pTooltip) => new()
-    {
-        Content = new Image
-        {
-            Width = 14,
-            Height = 14,
-            Source = PIcon.PIconRead(pIconPath, new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
-            Stretch = Stretch.Uniform
-        },
-        ToolTip = pTooltip,
-        Width = 28,
-        Height = 26,
-        Margin = new Thickness(0, 0, 2, 0),
-        Style = PButton.PButtonPanelCreate(),
-        IsEnabled = false
-    };
 }

@@ -15,9 +15,13 @@ public sealed partial class PViewer
         PPlayerStopDispose();
         PViewerSourcePath = null;
         pViewerMediaInfo = null;
-        PCropVideo = null;
-        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(null).LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
-        PCropHide();
+        LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+        if (!PCropPersistent)
+        {
+            PCropVideo = null;
+            LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(null);
+            PCropHide();
+        }
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
             return;
