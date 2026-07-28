@@ -152,7 +152,7 @@ public sealed class PList : PPanel
 
         return new Border
         {
-            Padding = new Thickness(12, 6, 8, 6),
+            Padding = new Thickness(12, 10, 12, 10),
             BorderBrush = pListLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Background = Brushes.White,
@@ -162,17 +162,26 @@ public sealed class PList : PPanel
 
     private UIElement PListActionBuild()
     {
-        var pButtonPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportPlus.svg", "Add media files", PListFilesOpen));
-        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportMinus.svg", "Remove the selected file", PListRemove));
-        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PBrowse.svg", "Add every media file in a folder", PListFolderOpen));
-        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportCancel.svg", "Remove every file", PListClear));
+        var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        pLeftPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportPlus.svg", "Add media files", PListFilesOpen));
+        pLeftPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportMinus.svg", "Remove the selected file", PListRemove));
+
+        var pRightPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PBrowse.svg", "Add every media file in a folder", PListFolderOpen));
+        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PListRemoveAll.svg", "Remove every file", PListClear));
 
         var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6) };
         pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        Grid.SetColumn(pButtonPanel, 0);
-        pActionGrid.Children.Add(pButtonPanel);
+        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(pLeftPanel, 0);
+        Grid.SetColumn(pRightPanel, 2);
+        pActionGrid.Children.Add(pLeftPanel);
+        pActionGrid.Children.Add(pRightPanel);
         return pActionGrid;
     }
 

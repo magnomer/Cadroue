@@ -79,6 +79,39 @@ public sealed partial class PInspector
             pInspectorFlipVertical.IsChecked == true);
     }
 
+    public void PInspectorPlanApply(LWorkCrop pInspectorPlan)
+    {
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        pInspectorCropSuppress = true;
+        try
+        {
+            pInspectorApplyBox.IsChecked = true;
+            pInspectorInsetLeft.Text = pInspectorPlan.LWorkCropLeft.ToString();
+            pInspectorInsetTop.Text = pInspectorPlan.LWorkCropTop.ToString();
+            pInspectorInsetRight.Text = pInspectorPlan.LWorkCropRight.ToString();
+            pInspectorInsetBottom.Text = pInspectorPlan.LWorkCropBottom.ToString();
+            pInspectorFlipHorizontal.IsChecked = pInspectorPlan.LWorkCropFlipHorizontal;
+            pInspectorFlipVertical.IsChecked = pInspectorPlan.LWorkCropFlipVertical;
+            pInspectorRotateCombo.SelectedIndex = pInspectorPlan.LWorkCropRotation switch
+            {
+                90 => 1,
+                180 => 2,
+                270 => 3,
+                _ => 0
+            };
+            pInspectorCropPresent = pInspectorPlan.LWorkCropEdgeActive;
+        }
+        finally
+        {
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+
+        PInspectorRotateRaise();
+        PInspectorRatioUpdate();
+        PInspectorToolUpdate();
+        PInspectorApplyUpdate();
+    }
+
     public void PInspectorMediaReset()
     {
         if (pInspectorPersistentBox.IsChecked == true)

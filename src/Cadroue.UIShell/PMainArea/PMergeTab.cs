@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
@@ -14,6 +15,7 @@ public sealed class PMergeTab : PTabSurface
     {
         var pAction = new PAction();
         pAction.PActionRun += LMerge.LMergeDescribe;
+        pAction.PActionAllAdd += () => LMerge.LMergeDescribe(LWorkPriority.LWorkPriorityNormal);
         pList.PListPathChange += PMergePathShow;
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, new PGroup(), pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);

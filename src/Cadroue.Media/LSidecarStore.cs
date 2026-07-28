@@ -25,16 +25,70 @@ public static class LSidecarStore
                 lSidecarScannedSpans,
                 lSidecarSpanGridMilliseconds,
                 lSidecarSections);
+            lSidecar.Edit = LSidecarRead(lSidecarPath)?.Edit;
 
-            string lSidecarTempPath = lSidecarPath + ".tmp";
-            File.WriteAllText(lSidecarTempPath, lSidecar.LSidecarJsonCreate());
-            File.Move(lSidecarTempPath, lSidecarPath, overwrite: true);
-            return true;
+            return LSidecarWrite(lSidecarPath, lSidecar);
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
         {
             return false;
         }
+    }
+
+    public static LSidecarEditRecord? LSidecarEditRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            return LSidecarRead(LSidecarPathRead(lSidecarSourcePath))?.Edit;
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    public static bool LSidecarEditSave(string lSidecarSourcePath, LSidecarEditRecord? lSidecarEdit)
+    {
+        try
+        {
+            string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
+            LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
+            lSidecar.Edit = lSidecarEdit is { LSidecarEditActive: true } ? lSidecarEdit : null;
+            return LSidecarWrite(lSidecarPath, lSidecar);
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    private static LSidecar LSidecarStubCreate(string lSidecarPath, string lSidecarSourcePath)
+    {
+        string lSidecarFullPath = Path.GetFullPath(lSidecarSourcePath);
+        var lSidecarFile = new FileInfo(lSidecarFullPath);
+        string lSidecarFolder = Path.GetDirectoryName(Path.GetFullPath(lSidecarPath)) ?? string.Empty;
+
+        return new LSidecar
+        {
+            Source = new LSidecarSourceRecord
+            {
+                FileName = Path.GetFileName(lSidecarFullPath),
+                RelativePath = string.IsNullOrWhiteSpace(lSidecarFolder)
+                    ? string.Empty
+                    : Path.GetRelativePath(lSidecarFolder, lSidecarFullPath),
+                AbsolutePath = lSidecarFullPath,
+                Length = lSidecarFile.Exists ? lSidecarFile.Length : 0,
+                LastWriteUtcTicks = lSidecarFile.Exists ? lSidecarFile.LastWriteTimeUtc.Ticks : 0
+            }
+        };
+    }
+
+    private static bool LSidecarWrite(string lSidecarPath, LSidecar lSidecar)
+    {
+        string lSidecarTempPath = lSidecarPath + ".tmp";
+        File.WriteAllText(lSidecarTempPath, lSidecar.LSidecarJsonCreate());
+        File.Move(lSidecarTempPath, lSidecarPath, overwrite: true);
+        return true;
     }
 
     public static LSidecar? LSidecarLoad(LKeyframeSourceIdentity lSidecarIdentity)

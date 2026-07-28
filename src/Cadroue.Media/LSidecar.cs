@@ -12,6 +12,21 @@ public sealed class LSidecarSectionRecord
     public string Suffix { get; set; } = string.Empty;
 }
 
+public sealed class LSidecarEditRecord
+{
+    public int CropLeft { get; set; }
+    public int CropTop { get; set; }
+    public int CropRight { get; set; }
+    public int CropBottom { get; set; }
+    public int Rotation { get; set; }
+    public bool FlipHorizontal { get; set; }
+    public bool FlipVertical { get; set; }
+
+    public bool LSidecarEditActive =>
+        CropLeft > 0 || CropTop > 0 || CropRight > 0 || CropBottom > 0
+        || Rotation != 0 || FlipHorizontal || FlipVertical;
+}
+
 public sealed class LSidecarSourceRecord
 {
     public string FileName { get; set; } = string.Empty;
@@ -38,6 +53,8 @@ public sealed class LSidecar
     public int SpanGridMilliseconds { get; set; }
 
     public List<LSidecarSectionRecord> Sections { get; set; } = new();
+
+    public LSidecarEditRecord? Edit { get; set; }
 
     public IReadOnlyList<int> LSidecarScannedSpansRead(int lSidecarSpanGridMilliseconds) =>
         SpanGridMilliseconds == lSidecarSpanGridMilliseconds ? ScannedSpans : Array.Empty<int>();

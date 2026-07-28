@@ -32,6 +32,8 @@ public sealed partial class PRoster : UserControl
         PRosterScheduleHandle(pRosterSchedule);
     }
 
+    public bool PRosterBusyCheck() => pRosterStation.LStationBusyCheck();
+
     private void PRosterVisibleHandle(object pSender, DependencyPropertyChangedEventArgs pArguments)
     {
         if (IsVisible)

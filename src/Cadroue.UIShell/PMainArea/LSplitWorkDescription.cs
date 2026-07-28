@@ -9,6 +9,10 @@ public sealed record LSplitSectionDescription(
     string LSplitSectionPrefix = "",
     string LSplitSectionSuffix = "");
 
+public sealed record LSplitPlanRecord(
+    string LSplitPlanSourcePath,
+    IReadOnlyList<LSplitSectionDescription> LSplitPlanSections);
+
 public sealed record LSplitWorkDescription(
     string? LSplitSourcePath,
     IReadOnlyList<LSplitSectionDescription> LSplitSections,

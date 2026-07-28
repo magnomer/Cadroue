@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
@@ -12,6 +13,7 @@ public sealed class PEditTab : PTabSurface
     private readonly PInspector pInspector = new();
     private readonly PList pList = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
+    private bool pEditPlanLoading;
 
     public PEditTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
@@ -23,6 +25,12 @@ public sealed class PEditTab : PTabSurface
             pInspector.PInspectorCropRead(),
             lExportSpecificState);
 
+        pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
+            LWorkPriority.LWorkPriorityNormal,
+            pList.PListPathsRead(),
+            lExportSpecificState);
+        pAction.PActionAllSet(true, "Add every loaded file that has a processing plan saved beside it");
+
         var pProcessing = new PProcessing();
         pProcessing.PProcessingStepAdd("Crop", PEditCropIconPath);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
@@ -31,6 +39,8 @@ public sealed class PEditTab : PTabSurface
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
         pInspector.PInspectorCropChange += pViewer.PCropVideoSet;
         pInspector.PInspectorRotateChange += pViewer.PViewerRotateSet;
+        pInspector.PInspectorCropChange += _ => PEditPlanSave();
+        pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
@@ -61,12 +71,35 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditCropRestore()
     {
-        if (pViewer.PCropSourceRead() is System.Windows.Size pCropSource)
+        pEditPlanLoading = true;
+        try
         {
-            pInspector.PInspectorSourceSet(pCropSource.Width, pCropSource.Height);
+            if (pViewer.PCropSourceRead() is System.Windows.Size pCropSource)
+            {
+                pInspector.PInspectorSourceSet(pCropSource.Width, pCropSource.Height);
+            }
+
+            pInspector.PInspectorMediaReset();
+            if (pViewer.PViewerSourcePath is { } pEditSourcePath
+                && LEdit.LEditPlanRead(pEditSourcePath) is { LWorkCropActive: true } pEditPlan)
+            {
+                pInspector.PInspectorPlanApply(pEditPlan);
+            }
+        }
+        finally
+        {
+            pEditPlanLoading = false;
+        }
+    }
+
+    private void PEditPlanSave()
+    {
+        if (pEditPlanLoading || pViewer.PViewerSourcePath is not { } pEditSourcePath)
+        {
+            return;
         }
 
-        pInspector.PInspectorMediaReset();
+        LEdit.LEditPlanSave(pEditSourcePath, pInspector.PInspectorCropRead());
     }
 
     public override PFlowControl PTabFlow => pFlow;

@@ -10,7 +10,10 @@ public sealed class PAction : UserControl
 {
     private static readonly Brush pActionPositiveBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
     private static readonly Brush pActionNegativeBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45));
+    private readonly Button pActionAllButton;
+
     public event Action<LWorkPriority>? PActionRun;
+    public event Action? PActionAllAdd;
 
     public PAction()
     {
@@ -21,13 +24,25 @@ public sealed class PAction : UserControl
             VerticalAlignment = VerticalAlignment.Center
         };
         Button pAddListButton = PActionButtonBuild("PActionAddList.svg", "Add List");
+        pActionAllButton = PActionButtonBuild("PActionAddAll.svg", "Add All");
         Button pExecuteButton = PActionButtonBuild("PActionExecute.svg", "Execute");
         pAddListButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityNormal);
+        pActionAllButton.Click += (_, _) => PActionAllAdd?.Invoke();
         pExecuteButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
+        pActionAllButton.ToolTip = "Add every loaded file to the worklist";
         pPanel.Children.Add(pAddListButton);
+        pPanel.Children.Add(new Border { Width = 2 });
+        pPanel.Children.Add(pActionAllButton);
         pPanel.Children.Add(new Border { Width = 2 });
         pPanel.Children.Add(pExecuteButton);
         Content = new Border { Child = pPanel };
+    }
+
+    public void PActionAllSet(bool pActionAllAllowed, string pActionAllTooltip)
+    {
+        pActionAllButton.IsEnabled = pActionAllAllowed;
+        pActionAllButton.Opacity = pActionAllAllowed ? 1 : 0.35;
+        pActionAllButton.ToolTip = pActionAllTooltip;
     }
 
     private static Button PActionButtonBuild(string pIconAssetName, string pLabelText)
@@ -64,6 +79,7 @@ public sealed class PAction : UserControl
     private static Brush? PActionAccentBrushRead(string pLabelText) => pLabelText switch
     {
         "Add List" => pActionPositiveBrush,
+        "Add All" => pActionPositiveBrush,
         "Execute" => pActionNegativeBrush,
         _ => null
     };

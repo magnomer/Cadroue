@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
@@ -15,6 +16,10 @@ public sealed class PConvertTab : PTabSurface
         var pAction = new PAction();
         pAction.PActionRun += lPriority => LConvert.LConvertDescribe(
             lPriority,
+            pList.PListPathCurrentRead() is { } pConvertSelected ? new[] { pConvertSelected } : Array.Empty<string>(),
+            lExportSpecificState);
+        pAction.PActionAllAdd += () => LConvert.LConvertDescribe(
+            LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
             lExportSpecificState);
         pList.PListPathChange += PConvertPathShow;

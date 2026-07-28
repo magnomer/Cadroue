@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
@@ -14,6 +15,7 @@ public sealed class PAudioTab : PTabSurface
     {
         var pAction = new PAction();
         pAction.PActionRun += LAudio.LAudioDescribe;
+        pAction.PActionAllAdd += () => LAudio.LAudioDescribe(LWorkPriority.LWorkPriorityNormal);
         pList.PListPathChange += PAudioPathShow;
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, new PProcessing(), new PInspector(), pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);

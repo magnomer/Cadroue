@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
@@ -19,6 +20,11 @@ public sealed class PSplitTab : PTabSurface
             pViewer.PViewerSourcePath,
             pSection.PSectionSplitRead(),
             lExportSpecificState);
+        pAction.PActionAllAdd += () => _ = LSplit.LSplitAllDescribe(
+            LWorkPriority.LWorkPriorityNormal,
+            pList.PListPathsRead(),
+            lExportSpecificState);
+        pAction.PActionAllSet(true, "Add every loaded file that has a split plan saved beside it");
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
         pList.PListPathChange += PSplitPathShow;

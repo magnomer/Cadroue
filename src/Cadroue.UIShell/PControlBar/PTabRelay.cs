@@ -19,6 +19,12 @@ public partial class PToolbar
             return false;
         }
 
+        if (pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabBusyCheck())
+        {
+            PTabBusyShow(pTabRecord);
+            return false;
+        }
+
         LRelay lRelay = LRelay.LRelayTabCreate(pTabRecord, pDipPoint.X, pDipPoint.Y);
         string lRelayFilePath;
         try
@@ -54,6 +60,18 @@ public partial class PToolbar
         LAppLog.LInfo($"Tab '{pTabRecord.PTabTitle}' relayed to a new instance");
         lTabset?.LTabsetClose(pTabRecord);
         return true;
+    }
+
+    private static void PTabBusyShow(PTabRecord pTabRecord)
+    {
+        LAppLog.LInfo($"Tab '{pTabRecord.PTabTitle}' kept: the worklist is still working");
+        MessageBox.Show(
+            "This worklist is still working on a job.\n\n"
+            + "Moving the tab out opens it in a separate program instance, which cannot take over a run "
+            + "that is already under way. Let the job finish or cancel it, then drag the tab out again.",
+            "Worklist is busy",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     private static Point PTabRelayDipRead(Window pRelayWindow, Point pDevicePoint)
