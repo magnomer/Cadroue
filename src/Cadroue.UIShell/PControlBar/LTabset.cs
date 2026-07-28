@@ -7,10 +7,10 @@ namespace Cadroue.UIShell.PControlBar;
 public sealed class LTabset
 {
     private const string lTabsetSplitIconPath = "/PAssets/PTabs/PSplitButton.svg";
-    private const string lTabsetEditIconPath = "/PAssets/PTabs/PEditButton.png";
-    private const string lTabsetAudioIconPath = "/PAssets/PTabs/PAudioButton.png";
-    private const string lTabsetConvertIconPath = "/PAssets/PTabs/PConvertButton.png";
-    private const string lTabsetMergeIconPath = "/PAssets/PTabs/PMergeButton.png";
+    private const string lTabsetEditIconPath = "/PAssets/PTabs/PEditButton.svg";
+    private const string lTabsetAudioIconPath = "/PAssets/PTabs/PAudioButton.svg";
+    private const string lTabsetConvertIconPath = "/PAssets/PTabs/PConvertButton.svg";
+    private const string lTabsetMergeIconPath = "/PAssets/PTabs/PMergeButton.svg";
     private const string lTabsetWorklistIconPath = "/PAssets/PTabs/PWorklistButton.svg";
 
     private PTabRecord? pTabsetSelectRecord;

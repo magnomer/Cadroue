@@ -244,10 +244,10 @@ public partial class PToolbar : UserControl
         ContextMenu pTabAddMenu = PMenu.PMenuCreate(pTabAddButton);
 
         PTabMenuAppend(pTabAddMenu, "Split", PIcon.PIconRead("/PAssets/PTabs/PSplitButton.svg"));
-        PTabMenuAppend(pTabAddMenu, "Edit", PIcon.PIconRead("/PAssets/PTabs/PEditButton.png"));
-        PTabMenuAppend(pTabAddMenu, "Audio", PIcon.PIconRead("/PAssets/PTabs/PAudioButton.png"));
-        PTabMenuAppend(pTabAddMenu, "Convert", PIcon.PIconRead("/PAssets/PTabs/PConvertButton.png"));
-        PTabMenuAppend(pTabAddMenu, "Merge", PIcon.PIconRead("/PAssets/PTabs/PMergeButton.png"));
+        PTabMenuAppend(pTabAddMenu, "Edit", PIcon.PIconRead("/PAssets/PTabs/PEditButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Audio", PIcon.PIconRead("/PAssets/PTabs/PAudioButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Convert", PIcon.PIconRead("/PAssets/PTabs/PConvertButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Merge", PIcon.PIconRead("/PAssets/PTabs/PMergeButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Worklist", PIcon.PIconRead("/PAssets/PTabs/PWorklistButton.svg"));
 
         pTabAddMenu.IsOpen = true;
