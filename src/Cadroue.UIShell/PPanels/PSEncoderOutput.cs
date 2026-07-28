@@ -15,17 +15,20 @@ internal sealed partial class PSEncoder
         var pPanel = new StackPanel();
         var psLocationStatus = new TextBlock
         {
-            Text = string.IsNullOrWhiteSpace(psEncoderFolderPath) ? "Same as source" : psEncoderFolderPath,
+            Text = PSLocationStatusRead(),
             Foreground = PMutedBrush,
             Margin = new Thickness(12, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
         };
         PSNameBoxPrepare();
+        psLocationFolderRow = PSFieldBuild("Subfolder", psLocationFolderBox);
         pPanel.Children.Add(PSFieldBuild("Name", psNameBox));
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
+        pPanel.Children.Add(psLocationFolderRow);
         pPanel.Children.Add(PSFieldBuild("Container", psContainerCombo));
+        PSLocationFolderUpdate();
         return PSPlateBuild(pPanel);
     }
 
@@ -258,9 +261,40 @@ internal sealed partial class PSEncoder
         return pGrid;
     }
 
+    private string PSLocationStatusRead()
+    {
+        if (string.Equals(PSComboTextRead(psLocationCombo), "Subfolder", StringComparison.Ordinal))
+        {
+            return "A subfolder beside each source file";
+        }
+
+        return string.IsNullOrWhiteSpace(psEncoderFolderPath) ? "Same as source" : psEncoderFolderPath;
+    }
+
+    private void PSLocationFolderUpdate()
+    {
+        if (psLocationFolderRow is null)
+        {
+            return;
+        }
+
+        psLocationFolderRow.Visibility = string.Equals(PSComboTextRead(psLocationCombo), "Subfolder", StringComparison.Ordinal)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
     private void PSLocationChangeHandle(ComboBox psLocationCombo, TextBlock psLocationStatus)
     {
-        if (psLocationCombo.SelectedItem as string != "Custom folder")
+        PSLocationFolderUpdate();
+
+        if (psLocationCombo.SelectedItem as string == "Subfolder")
+        {
+            psEncoderFolderPath = null;
+            psLocationStatus.Text = "A subfolder beside each source file";
+            return;
+        }
+
+        if (psLocationCombo.SelectedItem as string != "Custom location")
         {
             psEncoderFolderPath = null;
             psLocationStatus.Text = "Same as source";

@@ -92,6 +92,7 @@ internal sealed partial class PSEncoder
             HorizontalAlignment = HorizontalAlignment.Left
         };
         PTextbox.PTextboxApply(pTextBox);
+        pTextBox.Padding = new Thickness(6, 0, 10, 0);
         return pTextBox;
     }
 

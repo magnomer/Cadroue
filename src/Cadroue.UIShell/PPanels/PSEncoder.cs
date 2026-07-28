@@ -40,6 +40,8 @@ internal sealed partial class PSEncoder : Window
     private readonly ComboBox psVideoEncoderCombo;
     private readonly ComboBox psVideoRateCombo;
     private readonly ComboBox psLocationCombo;
+    private readonly TextBox psLocationFolderBox;
+    private UIElement? psLocationFolderRow;
     private readonly ComboBox psVideoSizeCombo;
     private readonly CheckBox psVideoReactiveBox;
     private readonly TextBox psVideoCustomWidth;
@@ -94,10 +96,12 @@ internal sealed partial class PSEncoder : Window
         psAudioNotice = PSScopeNoticeBuild();
         psVideoExtraCombos = new Dictionary<string, ComboBox>(StringComparer.Ordinal);
 
-        psLocationCombo = PSComboBuild(lsExportSpecificEdit.Location, "Same as source", "Custom folder");
-        psEncoderFolderPath = string.IsNullOrWhiteSpace(lsExportSpecificEdit.LocationFolder)
+        psLocationCombo = PSComboBuild(lsExportSpecificEdit.Location, "Same as source", "Custom location", "Subfolder");
+        bool psLocationSubfolder = string.Equals(lsExportSpecificEdit.Location, "Subfolder", StringComparison.Ordinal);
+        psEncoderFolderPath = psLocationSubfolder || string.IsNullOrWhiteSpace(lsExportSpecificEdit.LocationFolder)
             ? null
             : lsExportSpecificEdit.LocationFolder;
+        psLocationFolderBox = PSEntryBuild(psLocationSubfolder ? lsExportSpecificEdit.LocationFolder : string.Empty, 220);
         psVideoSizeCombo = PSComboBuild(
             PSVideoLabelRead(lsExportSpecificEdit.VideoSize, lsExportSpecificEdit.VideoSizeReactive),
             lsExportSpecificEdit.VideoSizeReactive ? psVideoReactiveItems : psVideoSizeItems);
@@ -152,7 +156,9 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.VideoQuality = psVideoQualityBox?.Text.Trim() ?? string.Empty;
         lsExportSpecificEdit.VideoSpeedPreset = psVideoSpeedCombo is null ? string.Empty : PSComboTextRead(psVideoSpeedCombo);
         lsExportSpecificEdit.Location = PSComboTextRead(psLocationCombo);
-        lsExportSpecificEdit.LocationFolder = psEncoderFolderPath ?? string.Empty;
+        lsExportSpecificEdit.LocationFolder = string.Equals(lsExportSpecificEdit.Location, "Subfolder", StringComparison.Ordinal)
+            ? psLocationFolderBox.Text.Trim()
+            : psEncoderFolderPath ?? string.Empty;
         lsExportSpecificEdit.VideoSize = PSVideoSizeRead(PSComboTextRead(psVideoSizeCombo));
         lsExportSpecificEdit.VideoSizeReactive = psVideoReactiveBox.IsChecked == true;
         lsExportSpecificEdit.VideoFps = PSComboTextRead(psVideoFpsCombo);

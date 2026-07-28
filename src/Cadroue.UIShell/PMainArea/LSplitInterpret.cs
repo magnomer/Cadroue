@@ -25,7 +25,7 @@ public static partial class LSplit
 
         LWorkOutput lSplitOutput = lSplitWorkDescription.LSplitOutput;
         string lSplitSourceStem = Path.GetFileNameWithoutExtension(lSplitSourcePath);
-        string lSplitFolder = LSplitFolderRead(lSplitOutput, lSplitSourcePath);
+        string lSplitFolder = lSplitOutput.LWorkFolderRead(lSplitSourcePath);
         DateTimeOffset lSplitStamp = DateTimeOffset.Now;
         Guid lSplitBatchId = Guid.NewGuid();
 
@@ -82,16 +82,6 @@ public static partial class LSplit
         return lSplitAdded;
     }
 
-    private static string LSplitFolderRead(LWorkOutput lSplitOutput, string lSplitSourcePath)
-    {
-        if (string.Equals(lSplitOutput.LWorkOutputLocation, "Custom folder", StringComparison.Ordinal)
-            && !string.IsNullOrWhiteSpace(lSplitOutput.LWorkOutputLocationFolder))
-        {
-            return lSplitOutput.LWorkOutputLocationFolder;
-        }
-
-        return Path.GetDirectoryName(lSplitSourcePath) ?? string.Empty;
-    }
 
     private static string LSplitNameCreate(
         LWorkOutput lSplitOutput,

@@ -131,7 +131,7 @@ public sealed class LExportSpecificPresetRecord
         VideoRateControl = VideoRateControl,
         VideoQuality = VideoQuality,
         VideoSpeedPreset = VideoSpeedPreset,
-        Location = Location,
+        Location = string.Equals(Location, "Custom folder", StringComparison.Ordinal) ? "Custom location" : Location,
         LocationFolder = LocationFolder,
         VideoSize = VideoSize,
         VideoSizeReactive = VideoSizeReactive,

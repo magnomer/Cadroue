@@ -25,7 +25,7 @@ public static partial class LEdit
 
         LWorkOutput lEditOutput = lEditWorkDescription.LEditOutput;
         LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
-        string lEditFolder = LEditFolderRead(lEditOutput, lEditSourcePath);
+        string lEditFolder = lEditOutput.LWorkFolderRead(lEditSourcePath);
         string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath);
 
         var lEditWorkItem = new LWorkItem(
@@ -58,16 +58,6 @@ public static partial class LEdit
         return lEditAdded;
     }
 
-    private static string LEditFolderRead(LWorkOutput lEditOutput, string lEditSourcePath)
-    {
-        if (string.Equals(lEditOutput.LWorkOutputLocation, "Custom folder", StringComparison.Ordinal)
-            && !string.IsNullOrWhiteSpace(lEditOutput.LWorkOutputLocationFolder))
-        {
-            return lEditOutput.LWorkOutputLocationFolder;
-        }
-
-        return Path.GetDirectoryName(lEditSourcePath) ?? string.Empty;
-    }
 
     private static string LEditNameCreate(LWorkOutput lEditOutput, string lEditSourcePath)
     {
