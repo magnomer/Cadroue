@@ -26,7 +26,7 @@ public static partial class LEdit
         LWorkOutput lEditOutput = lEditWorkDescription.LEditOutput;
         LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
         string lEditFolder = lEditOutput.LWorkFolderRead(lEditSourcePath);
-        string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath);
+        string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath, lEditFolder);
 
         var lEditWorkItem = new LWorkItem(
             Guid.NewGuid(),
@@ -59,7 +59,7 @@ public static partial class LEdit
     }
 
 
-    private static string LEditNameCreate(LWorkOutput lEditOutput, string lEditSourcePath)
+    private static string LEditNameCreate(LWorkOutput lEditOutput, string lEditSourcePath, string lEditFolder)
     {
         string lEditSourceStem = Path.GetFileNameWithoutExtension(lEditSourcePath);
         string lEditPattern = string.IsNullOrWhiteSpace(lEditOutput.LWorkOutputNamePattern)
@@ -77,14 +77,30 @@ public static partial class LEdit
             .Replace("{Time}", lEditStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
         string lEditBaseName = LEditNameSanitize(lEditStem);
-        if (string.Equals(lEditBaseName, lEditSourceStem, StringComparison.OrdinalIgnoreCase))
-        {
-            lEditBaseName = $"{lEditBaseName}_edit";
-        }
+        string lEditFileName = LEditNameFormat(lEditOutput, lEditBaseName);
+        return LEditSourceMatch(Path.Combine(lEditFolder, lEditFileName), lEditSourcePath)
+            ? LEditNameFormat(lEditOutput, $"{lEditBaseName}_edit")
+            : lEditFileName;
+    }
 
-        return string.IsNullOrWhiteSpace(lEditOutput.LWorkOutputExtension)
+    private static string LEditNameFormat(LWorkOutput lEditOutput, string lEditBaseName) =>
+        string.IsNullOrWhiteSpace(lEditOutput.LWorkOutputExtension)
             ? lEditBaseName
             : $"{lEditBaseName}.{lEditOutput.LWorkOutputExtension}";
+
+    private static bool LEditSourceMatch(string lEditOutputPath, string lEditSourcePath)
+    {
+        try
+        {
+            return string.Equals(
+                Path.GetFullPath(lEditOutputPath),
+                Path.GetFullPath(lEditSourcePath),
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception lEditError) when (lEditError is ArgumentException or IOException or NotSupportedException)
+        {
+            return string.Equals(lEditOutputPath, lEditSourcePath, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     private static string LEditNameSanitize(string lEditName)

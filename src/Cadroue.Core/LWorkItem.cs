@@ -63,6 +63,10 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public DateTimeOffset LWorkCreateTime { get; }
 
+    public DateTimeOffset? LWorkStartTime { get; set; }
+
+    public DateTimeOffset? LWorkFinishTime { get; set; }
+
     public int LWorkOwnerProcess { get; set; }
 
     public Guid LWorkOwnerRunner { get; set; }

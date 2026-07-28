@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainWindow;
 
@@ -30,7 +31,18 @@ public partial class PWindow
         DragDropEffects dropEffect = PDropEffectRead(dragEvent);
         dragEvent.Effects = dropEffect;
         dragEvent.Handled = true;
-        if (dropEffect == DragDropEffects.None || pViewerActive is null)
+        if (dropEffect == DragDropEffects.None)
+        {
+            return;
+        }
+
+        if (pListActive is not null)
+        {
+            pListActive.PListPathsAdd(PDropPathsRead(dragEvent));
+            return;
+        }
+
+        if (pViewerActive is null)
         {
             return;
         }
@@ -47,6 +59,14 @@ public partial class PWindow
 
     private DragDropEffects PDropEffectRead(DragEventArgs dragEvent)
     {
+        if (pListActive is not null)
+        {
+            return PDropPathsRead(dragEvent)
+                .Any(pDropPath => Directory.Exists(pDropPath) || PList.PListMediaCheck(pDropPath))
+                ? PDropAllowedRead(dragEvent)
+                : DragDropEffects.None;
+        }
+
         if (pViewerActive is null)
         {
             return DragDropEffects.None;
@@ -58,6 +78,11 @@ public partial class PWindow
             return DragDropEffects.None;
         }
 
+        return PDropAllowedRead(dragEvent);
+    }
+
+    private static DragDropEffects PDropAllowedRead(DragEventArgs dragEvent)
+    {
         if ((dragEvent.AllowedEffects & DragDropEffects.Copy) == DragDropEffects.Copy)
         {
             return DragDropEffects.Copy;
@@ -84,6 +109,17 @@ public partial class PWindow
             || pExtension.Equals(".flac", StringComparison.OrdinalIgnoreCase)
             || pExtension.Equals(".wav", StringComparison.OrdinalIgnoreCase)
             || pExtension.Equals(".ogg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static IReadOnlyList<string> PDropPathsRead(DragEventArgs dragEvent)
+    {
+        if (!dragEvent.Data.GetDataPresent(DataFormats.FileDrop)
+            || dragEvent.Data.GetData(DataFormats.FileDrop) is not string[] dropPaths)
+        {
+            return [];
+        }
+
+        return dropPaths;
     }
 
     private static string? PDropPathRead(DragEventArgs dragEvent)

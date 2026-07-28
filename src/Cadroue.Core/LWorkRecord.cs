@@ -18,6 +18,10 @@ public sealed class LWorkRecord
     public double Progress { get; set; }
     public DateTimeOffset CreateTime { get; set; } = DateTimeOffset.Now;
 
+    public DateTimeOffset? StartTime { get; set; }
+
+    public DateTimeOffset? FinishTime { get; set; }
+
     public int OwnerProcessId { get; set; }
 
     public Guid OwnerRunnerId { get; set; }
@@ -47,6 +51,8 @@ public sealed class LWorkRecord
         Message = lWorkItem.LWorkMessage,
         Progress = lWorkItem.LWorkProgress,
         CreateTime = lWorkItem.LWorkCreateTime,
+        StartTime = lWorkItem.LWorkStartTime,
+        FinishTime = lWorkItem.LWorkFinishTime,
         OwnerProcessId = lWorkItem.LWorkOwnerProcess,
         OwnerRunnerId = lWorkItem.LWorkOwnerRunner,
         Phase = lWorkItem.LWorkPhaseCurrent.ToString(),
@@ -78,6 +84,8 @@ public sealed class LWorkRecord
         lWorkItem.LWorkOwnerRunner = OwnerRunnerId;
         lWorkItem.LWorkPhaseCurrent = LWorkEnumRead(Phase, LWorkPhase.LWorkPhaseNone);
         lWorkItem.LWorkAttemptCount = AttemptCount;
+        lWorkItem.LWorkStartTime = StartTime;
+        lWorkItem.LWorkFinishTime = FinishTime;
         return lWorkItem;
     }
 

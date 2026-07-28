@@ -23,7 +23,7 @@ public partial class PWindow : Window
     private int pResizeDirection;
     private Point pResizeStartPointer;
     private Rect pResizeStartBounds;
-    private PFlowControl? pFlowActive; private PViewer? pViewerActive;
+    private PFlowControl? pFlowActive; private PViewer? pViewerActive; private PList? pListActive;
     private bool pWindowAudioAllowed;
     public PWindow()
     {
@@ -128,6 +128,7 @@ public partial class PWindow : Window
         }
         pFlowActive = pTabRecord.PTabWorkspace.PWorkspaceFlow;
         pViewerActive = pTabRecord.PTabWorkspace.PWorkspaceViewer;
+        pListActive = pTabRecord.PTabWorkspace.PWorkspaceList;
         pWindowAudioAllowed = pTabRecord.PTabLayoutKey == "Audio";
         PWindowWorkspaceAttach(pTabRecord);
     }

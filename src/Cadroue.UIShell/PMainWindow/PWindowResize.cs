@@ -13,6 +13,7 @@ public partial class PWindow
         PreviewMouseLeftButtonDown += PResizePressHandle;
         PreviewMouseLeftButtonUp += PResizeReleaseHandle;
         LostMouseCapture += PResizeCaptureHandle;
+        MouseLeave += PResizeLeaveHandle;
     }
 
     private void PResizeHandlersRemove()
@@ -21,6 +22,8 @@ public partial class PWindow
         PreviewMouseLeftButtonDown -= PResizePressHandle;
         PreviewMouseLeftButtonUp -= PResizeReleaseHandle;
         LostMouseCapture -= PResizeCaptureHandle;
+        MouseLeave -= PResizeLeaveHandle;
+        Mouse.OverrideCursor = null;
     }
 
     private void PResizePressHandle(object sender, MouseButtonEventArgs e)
@@ -50,7 +53,15 @@ public partial class PWindow
         }
 
         int pDirection = WindowState == WindowState.Normal ? PResizeDirectionRead(e.GetPosition(this)) : 0;
-        Cursor = pDirection == 0 ? null : PResizeCursorRead(pDirection);
+        Mouse.OverrideCursor = pDirection == 0 ? null : PResizeCursorRead(pDirection);
+    }
+
+    private void PResizeLeaveHandle(object sender, MouseEventArgs e)
+    {
+        if (!pResizeActive)
+        {
+            Mouse.OverrideCursor = null;
+        }
     }
 
     private void PResizeReleaseHandle(object sender, MouseButtonEventArgs e)
@@ -70,6 +81,7 @@ public partial class PWindow
     {
         pResizeActive = false;
         RenderOptions.ProcessRenderMode = RenderMode.Default;
+        Mouse.OverrideCursor = null;
     }
 
     private int PResizeDirectionRead(Point pPoint)

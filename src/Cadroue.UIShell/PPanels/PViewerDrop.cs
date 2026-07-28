@@ -5,6 +5,8 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer
 {
+    public event Action<IReadOnlyList<string>>? PDropPathsChange;
+
     private void PDropHandlersAdd()
     {
         pViewerOverlay.DragEnter += PViewerDragAccept;
@@ -35,6 +37,12 @@ public sealed partial class PViewer
             return;
         }
 
+        if (PDropPathsChange is not null)
+        {
+            PDropPathsChange.Invoke(PDropPathsRead(dragEvent));
+            return;
+        }
+
         string? sourcePath = PDropPathRead(dragEvent);
         if (sourcePath is null)
         {
@@ -45,13 +53,41 @@ public sealed partial class PViewer
         PViewerSourceOpen(sourcePath);
     }
 
+    private static IReadOnlyList<string> PDropPathsRead(DragEventArgs dragEvent)
+    {
+        if (!dragEvent.Data.GetDataPresent(DataFormats.FileDrop)
+            || dragEvent.Data.GetData(DataFormats.FileDrop) is not string[] dropPaths)
+        {
+            return [];
+        }
+
+        return dropPaths;
+    }
+
     private DragDropEffects PDropEffectRead(DragEventArgs dragEvent)
     {
+        if (PDropPathsChange is not null)
+        {
+            if (!PDropPathsRead(dragEvent)
+                .Any(pDropPath => Directory.Exists(pDropPath) || PList.PListMediaCheck(pDropPath)))
+            {
+                return DragDropEffects.None;
+            }
+
+            return PDropAllowedRead(dragEvent);
+        }
+
         string? pSourcePath = PDropPathRead(dragEvent);
         if (pSourcePath is null || PDropAudioCheck(pSourcePath) && !pViewerAudioOnlyAllowed)
         {
             return DragDropEffects.None;
         }
+
+        return PDropAllowedRead(dragEvent);
+    }
+
+    private static DragDropEffects PDropAllowedRead(DragEventArgs dragEvent)
+    {
         if ((dragEvent.AllowedEffects & DragDropEffects.Copy) == DragDropEffects.Copy)
         {
             return DragDropEffects.Copy;

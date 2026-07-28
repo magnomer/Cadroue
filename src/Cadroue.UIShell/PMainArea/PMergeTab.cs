@@ -7,17 +7,29 @@ public sealed class PMergeTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
+    private readonly PList pList = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PMergeTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         pAction.PActionRun += LMerge.LMergeDescribe;
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { new PList(), new PGroup(), pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        pList.PListPathChange += PMergePathShow;
+        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, new PGroup(), pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
+    }
+
+    private void PMergePathShow(string? pSourcePath)
+    {
+        if (!string.IsNullOrWhiteSpace(pSourcePath))
+        {
+            pViewer.PViewerSourceOpen(pSourcePath);
+        }
     }
 
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
+    public override PList? PTabList => pList;
     public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
 }

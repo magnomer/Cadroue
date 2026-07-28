@@ -165,6 +165,8 @@ public sealed partial class LRunner
         };
 
         var pRunnerClock = System.Diagnostics.Stopwatch.StartNew();
+        pWorkItem.LWorkStartTime = DateTimeOffset.Now;
+        pWorkItem.LWorkFinishTime = null;
         LRunnerNote(
             $"Encode started '{pWorkItem.LWorkOutputName}': {pWorkItem.LWorkKind} at {pWorkItem.LWorkPriority}, " +
             $"{pWorkItem.LWorkStart:hh\\:mm\\:ss\\.fff}-{pWorkItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
@@ -199,6 +201,7 @@ public sealed partial class LRunner
             LRunnerInvoke(() =>
             {
                 bool pSucceeded = pExitCode == 0;
+                pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
                 pWorkItem.LWorkProgress = pSucceeded ? 1 : pWorkItem.LWorkProgress;
                 pWorkItem.LWorkStateCurrent = pSucceeded ? LWorkState.LWorkStateDone : LWorkState.LWorkStateFailed;
                 pWorkItem.LWorkMessage = pSucceeded ? string.Empty : $"FFmpeg exited with code {pExitCode}.";
@@ -216,6 +219,7 @@ public sealed partial class LRunner
             LRunnerNote($"Encode failed '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
             LRunnerInvoke(() =>
             {
+                pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
                 pWorkItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
                 pWorkItem.LWorkMessage = pException.Message;
                 lRunnerSchedule.LScheduleComplete(pWorkItem, false, pException.Message);

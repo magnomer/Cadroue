@@ -10,6 +10,7 @@ public abstract class PTabSurface : UserControl
 {
     public abstract PFlowControl? PTabFlow { get; }
     public abstract PViewer? PTabViewer { get; }
+    public virtual PList? PTabList => null;
     public abstract LPreferenceTabLayoutRecord PTabLayoutRead();
 
     public void PTabExportToggle()

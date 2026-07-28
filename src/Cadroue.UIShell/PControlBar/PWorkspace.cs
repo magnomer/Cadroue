@@ -26,6 +26,7 @@ public sealed class PWorkspace
         PWorkspaceInfo = pHasSourceInfo ? new PInfo() : null;
         PWorkspaceFlow = PWorkspaceSurface.PTabFlow;
         PWorkspaceViewer = PWorkspaceSurface.PTabViewer;
+        PWorkspaceList = PWorkspaceSurface.PTabList;
         PWorkspaceViewer?.PViewerAudioSet(pAudioOnlyAllowed);
         PWorkspaceSource?.PSourceAttach(PWorkspaceViewer);
         PWorkspaceInfo?.PInfoAttach(PWorkspaceViewer);
@@ -49,6 +50,8 @@ public sealed class PWorkspace
     public PFlowControl? PWorkspaceFlow { get; }
 
     public PViewer? PWorkspaceViewer { get; }
+
+    public PList? PWorkspaceList { get; }
 
     public PSection? PWorkspaceSection { get; }
 
