@@ -25,12 +25,18 @@ public sealed class PList : PPanel
         ".mp3", ".aac", ".flac", ".wav", ".ogg"
     ];
 
+    public const double PListStripWidth = 48;
+
     private readonly StackPanel pListRowPanel;
     private readonly TextBlock pListEmptyNotice;
     private readonly List<string> pListPaths = [];
+    private readonly UIElement pListFullBody;
+    private readonly UIElement pListStripBody;
     private string? pListPathCurrent;
+    private bool pListMinimized;
 
     public event Action<string?>? PListPathChange;
+    public event Action<bool>? PListMinimizeChange;
 
     public PList() : base("")
     {
@@ -68,9 +74,44 @@ public sealed class PList : PPanel
         pRoot.Children.Add(pActionBar);
         pRoot.Children.Add(pScroll);
 
+        pListFullBody = pRoot;
+        pListStripBody = PListStripBuild();
+        pListStripBody.Visibility = Visibility.Collapsed;
+
+        var pBodyHost = new Grid();
+        pBodyHost.Children.Add(pListFullBody);
+        pBodyHost.Children.Add(pListStripBody);
+
         FocusVisualStyle = null;
-        Content = PPanelBorderBuild(pRoot);
+        Content = PPanelBorderBuild(pBodyHost);
         PListEmptyUpdate();
+    }
+
+    public bool PListMinimizedCheck() => pListMinimized;
+
+    private void PListMinimizeSet(bool pListMinimizeRequest)
+    {
+        if (pListMinimized == pListMinimizeRequest)
+        {
+            return;
+        }
+
+        pListMinimized = pListMinimizeRequest;
+        pListFullBody.Visibility = pListMinimized ? Visibility.Collapsed : Visibility.Visible;
+        pListStripBody.Visibility = pListMinimized ? Visibility.Visible : Visibility.Collapsed;
+        PListMinimizeChange?.Invoke(pListMinimized);
+    }
+
+    private UIElement PListStripBuild()
+    {
+        Button pMaximizeButton = PListButtonBuild(
+            "/PAssets/PPanels/PListMaximize.svg", "Show the Files panel", () => PListMinimizeSet(false));
+        pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
+        pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
+
+        var pStrip = new StackPanel { Background = Brushes.White };
+        pStrip.Children.Add(pMaximizeButton);
+        return pStrip;
     }
 
     public IReadOnlyList<string> PListPathsRead() => pListPaths.ToArray();
@@ -150,13 +191,25 @@ public sealed class PList : PPanel
             VerticalAlignment = VerticalAlignment.Center
         };
 
+        Button pMinimizeButton = PListButtonBuild(
+            "/PAssets/PPanels/PListMinimize.svg", "Hide the Files panel", () => PListMinimizeSet(true));
+        pMinimizeButton.Margin = new Thickness(0);
+        pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
+
+        var pHeaderGrid = new Grid();
+        pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(pMinimizeButton, 1);
+        pHeaderGrid.Children.Add(pTitleLabel);
+        pHeaderGrid.Children.Add(pMinimizeButton);
+
         return new Border
         {
-            Padding = new Thickness(12, 10, 12, 10),
+            Padding = new Thickness(12, 5, 6, 5),
             BorderBrush = pListLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Background = Brushes.White,
-            Child = pTitleLabel
+            Child = pHeaderGrid
         };
     }
 

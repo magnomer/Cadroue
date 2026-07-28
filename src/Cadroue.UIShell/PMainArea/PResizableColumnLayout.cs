@@ -17,14 +17,19 @@ internal sealed class PResizableColumnLayout
     private readonly double[] pPanelStoredWeights;
     private readonly bool[] pPanelHiddenFlags;
     private readonly bool[] pPanelCompactFlags;
+    private readonly double[] pPanelFixedWidths;
+    private readonly double[] pPanelPixelWidths;
+    private readonly int pPanelFlexIndex;
     private double pAppliedAvailableWidth = -1;
     private bool pPanelDefaultsPending;
+    private bool pPanelPixelsReady;
 
     private PResizableColumnLayout(
         Grid pGrid,
         IReadOnlyList<ColumnDefinition> pPanelColumns,
         IReadOnlyList<double>? pStoredWidths,
-        IReadOnlyList<bool>? pCompactPanels)
+        IReadOnlyList<bool>? pCompactPanels,
+        int pFlexPanelIndex)
     {
         this.pGrid = pGrid;
         this.pPanelColumns = pPanelColumns;
@@ -33,6 +38,9 @@ internal sealed class PResizableColumnLayout
         pPanelStoredWeights = pPanelWeights.ToArray();
         pPanelHiddenFlags = new bool[pPanelColumns.Count];
         pPanelCompactFlags = PCompactCreate(pCompactPanels, pPanelColumns.Count);
+        pPanelFixedWidths = new double[pPanelColumns.Count];
+        pPanelPixelWidths = new double[pPanelColumns.Count];
+        pPanelFlexIndex = pFlexPanelIndex >= 0 && pFlexPanelIndex < pPanelColumns.Count ? pFlexPanelIndex : -1;
         pPanelDefaultsPending = !PStoredCheck(pStoredWidths, pPanelColumns.Count)
             && pPanelCompactFlags.Any(pCompact => pCompact);
 
@@ -44,10 +52,14 @@ internal sealed class PResizableColumnLayout
         Grid pGrid,
         IReadOnlyList<ColumnDefinition> pPanelColumns,
         IReadOnlyList<double>? pStoredWidths,
-        IReadOnlyList<bool>? pCompactPanels = null)
+        IReadOnlyList<bool>? pCompactPanels = null,
+        int pFlexPanelIndex = -1)
     {
-        return new PResizableColumnLayout(pGrid, pPanelColumns, pStoredWidths, pCompactPanels);
+        return new PResizableColumnLayout(pGrid, pPanelColumns, pStoredWidths, pCompactPanels, pFlexPanelIndex);
     }
+
+    private bool PFlexActiveCheck() =>
+        pPanelFlexIndex >= 0 && !pPanelHiddenFlags[pPanelFlexIndex] && pPanelFixedWidths[pPanelFlexIndex] <= 0;
 
     public Thumb PSplitterBuild(int pLeftPanelIndex)
     {
@@ -64,16 +76,91 @@ internal sealed class PResizableColumnLayout
 
     public IReadOnlyList<double> PWeightsRead()
     {
+        if (PFlexActiveCheck() && pPanelPixelsReady)
+        {
+            double[] pActualWidths = pPanelColumns.Select(pColumn => pColumn.ActualWidth).ToArray();
+            double pActualTotal = pActualWidths.Sum();
+            if (pActualTotal > 0)
+            {
+                var pFlexWeights = new double[pPanelColumns.Count];
+                for (int index = 0; index < pFlexWeights.Length; index++)
+                {
+                    double pFlexWeight = pPanelHiddenFlags[index] || pPanelFixedWidths[index] > 0
+                        ? pPanelStoredWeights[index]
+                        : pActualWidths[index] / pActualTotal;
+                    pFlexWeights[index] = pFlexWeight > 0 ? pFlexWeight : 1;
+                }
+
+                return pFlexWeights;
+            }
+        }
+
         var pWeights = new double[pPanelColumns.Count];
         for (int index = 0; index < pWeights.Length; index++)
         {
-            double pWeight = pPanelHiddenFlags[index]
+            double pWeight = pPanelHiddenFlags[index] || pPanelFixedWidths[index] > 0
                 ? pPanelStoredWeights[index]
                 : pPanelWeights[index];
             pWeights[index] = pWeight > 0 ? pWeight : 1;
         }
 
         return pWeights;
+    }
+
+    public double PMinimumTotalRead()
+    {
+        double pMinimumTotal = 0;
+        int pVisibleCount = 0;
+        for (int index = 0; index < pPanelColumns.Count; index++)
+        {
+            if (pPanelHiddenFlags[index])
+            {
+                continue;
+            }
+
+            pVisibleCount++;
+            pMinimumTotal += pPanelFixedWidths[index] > 0
+                ? pPanelFixedWidths[index]
+                : pPanelMinimumWidths[index];
+        }
+
+        return pMinimumTotal + pSplitterWidth * Math.Max(0, pVisibleCount - 1);
+    }
+
+    public void PPanelWidthSet(int pPanelIndex, double pPanelFixedWidth)
+    {
+        if (pPanelIndex < 0 || pPanelIndex >= pPanelColumns.Count)
+        {
+            return;
+        }
+
+        if (pPanelFixedWidth > 0)
+        {
+            if (pPanelFixedWidths[pPanelIndex] <= 0)
+            {
+                pPanelStoredWeights[pPanelIndex] = pPanelWeights[pPanelIndex] > 0
+                    ? pPanelWeights[pPanelIndex]
+                    : pPanelStoredWeights[pPanelIndex];
+            }
+
+            pPanelFixedWidths[pPanelIndex] = pPanelFixedWidth;
+            pPanelWeights[pPanelIndex] = 0;
+        }
+        else
+        {
+            if (pPanelFixedWidths[pPanelIndex] <= 0)
+            {
+                return;
+            }
+
+            pPanelFixedWidths[pPanelIndex] = 0;
+            pPanelWeights[pPanelIndex] = pPanelStoredWeights[pPanelIndex] > 0
+                ? pPanelStoredWeights[pPanelIndex]
+                : 1;
+        }
+
+        pAppliedAvailableWidth = -1;
+        PWeightsApply();
     }
 
     public void PPanelHide(int pPanelIndex)
@@ -149,6 +236,12 @@ internal sealed class PResizableColumnLayout
         for (int index = 0; index < pWidths.Length; index++)
         {
             pPanelWeights[index] = pPanelHiddenFlags[index] ? 0 : pWidths[index] / pWidthTotal;
+            pPanelPixelWidths[index] = pPanelHiddenFlags[index] ? 0 : Math.Max(0, pWidths[index]);
+        }
+
+        if (PFlexActiveCheck())
+        {
+            pPanelPixelsReady = true;
         }
 
         PWeightsApply();
@@ -165,12 +258,48 @@ internal sealed class PResizableColumnLayout
             }
         }
 
+        bool pFlexActive = PFlexActiveCheck() && pPanelPixelsReady;
         for (int index = 0; index < pPanelColumns.Count; index++)
         {
-            pPanelColumns[index].Width = pPanelHiddenFlags[index]
-                ? new GridLength(0, GridUnitType.Pixel)
-                : new GridLength(Math.Max(0.0001, pPanelWeights[index]), GridUnitType.Star);
+            if (pPanelHiddenFlags[index])
+            {
+                pPanelColumns[index].Width = new GridLength(0, GridUnitType.Pixel);
+                continue;
+            }
+
+            if (pPanelFixedWidths[index] > 0)
+            {
+                pPanelColumns[index].Width = new GridLength(pPanelFixedWidths[index], GridUnitType.Pixel);
+                continue;
+            }
+
+            if (pFlexActive)
+            {
+                pPanelColumns[index].Width = index == pPanelFlexIndex
+                    ? new GridLength(1, GridUnitType.Star)
+                    : new GridLength(Math.Max(0, pPanelPixelWidths[index]), GridUnitType.Pixel);
+                continue;
+            }
+
+            pPanelColumns[index].Width = new GridLength(Math.Max(0.0001, pPanelWeights[index]), GridUnitType.Star);
         }
+    }
+
+    private void PPixelWidthsCreate(double pAvailableWidth)
+    {
+        double pWeightTotal = pPanelWeights.Sum(pWeight => Math.Max(0, pWeight));
+        if (pWeightTotal <= 0 || pAvailableWidth <= 0)
+        {
+            return;
+        }
+
+        for (int index = 0; index < pPanelColumns.Count; index++)
+        {
+            pPanelPixelWidths[index] = Math.Max(0, pPanelWeights[index]) / pWeightTotal * pAvailableWidth;
+        }
+
+        pPanelPixelsReady = true;
+        PWeightsApply();
     }
 
     private void PMinimumWidthsApply()
@@ -188,13 +317,16 @@ internal sealed class PResizableColumnLayout
             pPanelColumns[index].MinWidth = pMinimumWidths[index];
         }
 
-        if (!pPanelDefaultsPending)
+        if (pPanelDefaultsPending)
         {
-            return;
+            pPanelDefaultsPending = false;
+            PDefaultWidthsApply(pAvailableWidth, pMinimumWidths);
         }
 
-        pPanelDefaultsPending = false;
-        PDefaultWidthsApply(pAvailableWidth, pMinimumWidths);
+        if (PFlexActiveCheck() && !pPanelPixelsReady)
+        {
+            PPixelWidthsCreate(pAvailableWidth);
+        }
     }
 
     private void PDefaultWidthsApply(double pAvailableWidth, IReadOnlyList<double> pMinimumWidths)
@@ -263,6 +395,12 @@ internal sealed class PResizableColumnLayout
             if (pPanelHiddenFlags[index])
             {
                 pMinimumWidths[index] = 0;
+                continue;
+            }
+
+            if (pPanelFixedWidths[index] > 0)
+            {
+                pMinimumWidths[index] = pPanelFixedWidths[index];
             }
         }
 

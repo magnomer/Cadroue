@@ -18,12 +18,14 @@ public partial class PWindow : Window
     private const int PWindowDwmCornerRound = 2;
     private const int PWindowDwmCaptionColor = 35;
     private const int PWindowColorBackground = 0x00F7E8DC;
+    private const double PWindowWidthFloor = 900;
     private readonly LTabset lTabset;
     private bool pResizeActive;
     private int pResizeDirection;
     private Point pResizeStartPointer;
     private Rect pResizeStartBounds;
     private PFlowControl? pFlowActive; private PViewer? pViewerActive; private PList? pListActive;
+    private PMainArea.PTabSurface? pWindowSurfaceActive;
     private bool pWindowAudioAllowed;
     public PWindow()
     {
@@ -121,6 +123,7 @@ public partial class PWindow : Window
     }
     private void PWindowTabHandle(PTabRecord? pTabRecord)
     {
+        PWindowWidthDetach();
         PWindowWorkspaceDetach();
         if (pTabRecord is null)
         {
@@ -131,6 +134,53 @@ public partial class PWindow : Window
         pListActive = pTabRecord.PTabWorkspace.PWorkspaceList;
         pWindowAudioAllowed = pTabRecord.PTabLayoutKey == "Audio";
         PWindowWorkspaceAttach(pTabRecord);
+        PWindowWidthAttach(pTabRecord.PTabWorkspace.PWorkspaceSurface);
+    }
+
+    private void PWindowWidthAttach(PMainArea.PTabSurface pWindowSurface)
+    {
+        pWindowSurfaceActive = pWindowSurface;
+        pWindowSurfaceActive.PTabWidthChange += PWindowWidthHandle;
+        if (pListActive is not null)
+        {
+            pListActive.PListMinimizeChange += PWindowListWidthHandle;
+        }
+
+        PWindowWidthApply();
+    }
+
+    private void PWindowWidthDetach()
+    {
+        if (pWindowSurfaceActive is not null)
+        {
+            pWindowSurfaceActive.PTabWidthChange -= PWindowWidthHandle;
+            pWindowSurfaceActive = null;
+        }
+
+        if (pListActive is not null)
+        {
+            pListActive.PListMinimizeChange -= PWindowListWidthHandle;
+        }
+    }
+
+    private void PWindowListWidthHandle(bool pWindowListMinimized) => PWindowWidthApply();
+
+    private void PWindowWidthHandle() => PWindowWidthApply();
+
+    private void PWindowWidthApply()
+    {
+        double pWindowRequired = pWindowSurfaceActive?.PTabWidthRead() ?? 0;
+        if (pWindowRequired <= 0)
+        {
+            MinWidth = PWindowWidthFloor;
+            return;
+        }
+
+        MinWidth = Math.Max(PWindowWidthFloor, pWindowRequired);
+        if (Width < MinWidth)
+        {
+            Width = MinWidth;
+        }
     }
     private void PWindowWorkspaceAttach(PTabRecord pTabRecord)
     {
@@ -221,6 +271,7 @@ public partial class PWindow : Window
         PreviewKeyDown -= PShortcutKeyHandle;
         PDropHandlersRemove();
         PResizeHandlersRemove();
+        PWindowWidthDetach();
         PWindowWorkspaceDetach();
         foreach (PTabRecord pTabRecord in lTabset.PTabsetRecords)
         {

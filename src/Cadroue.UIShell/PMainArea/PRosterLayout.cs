@@ -21,6 +21,9 @@ public sealed partial class PRoster
         return lPreferenceTabLayout;
     }
 
+    public double PRosterWidthRead() =>
+        pRosterBody.Tag is PResizableColumnLayout pRosterLayout ? pRosterLayout.PMinimumTotalRead() + 16 : 0;
+
     private UIElement PRosterBuild(LPreferenceTabLayoutRecord? lPreferenceTabLayout)
     {
         var pRoot = new Grid { Margin = new Thickness(8, 8, 8, 8) };

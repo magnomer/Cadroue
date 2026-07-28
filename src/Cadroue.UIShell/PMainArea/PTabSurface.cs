@@ -14,13 +14,23 @@ public abstract class PTabSurface : UserControl
     public virtual bool PTabBusyCheck() => false;
     public abstract LPreferenceTabLayoutRecord PTabLayoutRead();
 
+    protected const double PTabWidthPadding = 16;
+
+    public event Action? PTabWidthChange;
+
     public void PTabExportToggle()
     {
         if (PTabLayoutStateRead() is { } pState)
         {
             pState.PExportToggle();
+            PTabWidthRaise();
         }
     }
+
+    public virtual double PTabWidthRead() =>
+        PTabLayoutStateRead() is { } pState ? pState.PTabLayout.PMinimumTotalRead() + PTabWidthPadding : 0;
+
+    protected void PTabWidthRaise() => PTabWidthChange?.Invoke();
 
     protected static Grid PTabGridBuild(
         IReadOnlyList<UIElement> pPanels,
@@ -74,11 +84,22 @@ public abstract class PTabSurface : UserControl
             pSplitterColumns.Add(pPanelColumn + 1);
         }
 
+        int pTabViewerIndex = -1;
+        for (int index = 0; index < pPanels.Count; index++)
+        {
+            if (pPanels[index] is PViewer)
+            {
+                pTabViewerIndex = index;
+                break;
+            }
+        }
+
         var pPanelLayout = PResizableColumnLayout.PAttach(
             pPanelGrid,
             pPanelColumns,
             lPreferenceTabLayout?.PanelWidths,
-            pPanelCompactFlags);
+            pPanelCompactFlags,
+            pTabViewerIndex);
         for (int index = 0; index < pSplitterColumns.Count; index++)
         {
             var pSplitter = pPanelLayout.PSplitterBuild(index);
@@ -95,6 +116,18 @@ public abstract class PTabSurface : UserControl
         if (lPreferenceTabLayout?.ExportHidden == true)
         {
             pTabState.PExportSet(true);
+        }
+
+        for (int index = 0; index < pPanels.Count; index++)
+        {
+            if (pPanels[index] is not PList pTabListPanel)
+            {
+                continue;
+            }
+
+            int pTabListIndex = index;
+            pTabListPanel.PListMinimizeChange += pTabListMinimized =>
+                pPanelLayout.PPanelWidthSet(pTabListIndex, pTabListMinimized ? PList.PListStripWidth : 0);
         }
 
         var pActionRowContent = new Grid { MinHeight = 72 };
@@ -252,11 +285,11 @@ public abstract class PTabSurface : UserControl
         FrameworkElement { MinWidth: > 0 } pElement => pElement.MinWidth,
         PExport => 300,
         PViewer => 320,
-        PSection => 280,
+        PSection => 300,
         PGroup => 260,
         PList => 300,
-        PProcessing => 220,
-        PInspector => 220,
+        PProcessing => 300,
+        PInspector => 300,
         _ => 180
     };
 }

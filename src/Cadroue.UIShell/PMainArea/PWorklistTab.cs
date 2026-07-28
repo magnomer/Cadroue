@@ -16,5 +16,6 @@ public sealed class PWorklistTab : PTabSurface
     public override PFlowControl? PTabFlow => null;
     public override PViewer? PTabViewer => null;
     public override bool PTabBusyCheck() => pRoster.PRosterBusyCheck();
+    public override double PTabWidthRead() => pRoster.PRosterWidthRead();
     public override LPreferenceTabLayoutRecord PTabLayoutRead() => pRoster.PRosterLayoutRead();
 }
