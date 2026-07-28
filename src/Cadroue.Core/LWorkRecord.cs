@@ -115,6 +115,7 @@ public sealed class LWorkOutputRecord
     public string Quality { get; set; } = string.Empty;
     public string SpeedPreset { get; set; } = string.Empty;
     public string VideoSize { get; set; } = "Same as source";
+    public bool VideoSizeReactive { get; set; }
     public string VideoFps { get; set; } = "Same as source";
     public string PixelFormat { get; set; } = "Auto";
     public Dictionary<string, string> VideoExtras { get; set; } = new();
@@ -140,6 +141,7 @@ public sealed class LWorkOutputRecord
         Quality = lWorkOutput.LWorkOutputQuality,
         SpeedPreset = lWorkOutput.LWorkOutputSpeedPreset,
         VideoSize = lWorkOutput.LWorkOutputVideoSize,
+        VideoSizeReactive = lWorkOutput.LWorkSizeReactive,
         VideoFps = lWorkOutput.LWorkOutputVideoFps,
         PixelFormat = lWorkOutput.LWorkOutputPixelFormat,
         VideoExtras = new Dictionary<string, string>(lWorkOutput.LWorkOutputVideoExtras, StringComparer.Ordinal),
@@ -165,6 +167,7 @@ public sealed class LWorkOutputRecord
         Quality,
         SpeedPreset,
         VideoSize,
+        VideoSizeReactive,
         VideoFps,
         PixelFormat,
         new Dictionary<string, string>(VideoExtras, StringComparer.Ordinal),

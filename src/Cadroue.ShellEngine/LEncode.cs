@@ -170,7 +170,8 @@ public static class LEncode
         string? lSize = LEncodeSizeRead(lOutput.LWorkOutputVideoSize);
         if (lSize is not null)
         {
-            lFilters.Add($"scale={lSize.Replace('x', ':')}");
+            lFilters.Add(LEncodeScaleResolve(lSize, lOutput.LWorkSizeReactive));
+            lFilters.Add("setsar=1");
         }
 
         if (lFilters.Count > 0)
@@ -250,6 +251,25 @@ public static class LEncode
         "5.1" => 6,
         _ => null
     };
+
+    private static string LEncodeScaleResolve(string lSize, bool lReactive)
+    {
+        string[] lParts = lSize.Split('x');
+        int lWidth = int.Parse(lParts[0], CultureInfo.InvariantCulture);
+        int lHeight = int.Parse(lParts[1], CultureInfo.InvariantCulture);
+
+        int lShortEdge = Math.Min(lWidth, lHeight);
+        int lLongEdge = Math.Max(lWidth, lHeight);
+        if (!lReactive || lShortEdge == lLongEdge)
+        {
+            return string.Create(CultureInfo.InvariantCulture, $"scale={lWidth}:{lHeight}");
+        }
+
+        int lEdgeSpan = lLongEdge - lShortEdge;
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"scale=w={lShortEdge}+{lEdgeSpan}*gte(iw\\,ih):h={lLongEdge}-{lEdgeSpan}*gte(iw\\,ih)");
+    }
 
     private static string? LEncodeSizeRead(string lSize)
     {

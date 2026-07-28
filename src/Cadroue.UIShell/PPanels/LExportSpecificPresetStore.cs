@@ -81,6 +81,7 @@ public sealed class LExportSpecificPresetRecord
     public string Location { get; set; } = "Same as source";
     public string LocationFolder { get; set; } = string.Empty;
     public string VideoSize { get; set; } = "Same as source";
+    public bool VideoSizeReactive { get; set; }
     public string VideoFps { get; set; } = "Same as source";
     public string PixelFormat { get; set; } = "Auto";
     public Dictionary<string, string> VideoExtras { get; set; } = new();
@@ -106,6 +107,7 @@ public sealed class LExportSpecificPresetRecord
         Location = lState.Location,
         LocationFolder = lState.LocationFolder,
         VideoSize = lState.VideoSize,
+        VideoSizeReactive = lState.VideoSizeReactive,
         VideoFps = lState.VideoFps,
         PixelFormat = lState.PixelFormat,
         VideoExtras = new Dictionary<string, string>(lState.VideoExtras),
@@ -132,6 +134,7 @@ public sealed class LExportSpecificPresetRecord
         Location = Location,
         LocationFolder = LocationFolder,
         VideoSize = VideoSize,
+        VideoSizeReactive = VideoSizeReactive,
         VideoFps = VideoFps,
         PixelFormat = PixelFormat,
         VideoExtras = new Dictionary<string, string>(VideoExtras, StringComparer.Ordinal),

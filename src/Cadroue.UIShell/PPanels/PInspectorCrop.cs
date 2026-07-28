@@ -34,6 +34,7 @@ public sealed partial class PInspector
     private double pInspectorSourceWidth = 1920;
     private double pInspectorSourceHeight = 1080;
     private bool pInspectorCropSuppress;
+    private bool pInspectorRatioSuppress;
     private bool pInspectorCropPresent;
 
     public event Action<bool>? PInspectorToolChange;
@@ -373,14 +374,22 @@ public sealed partial class PInspector
 
     private void PInspectorRatioEditHandle()
     {
-        if (pInspectorCropSuppress)
+        if (pInspectorCropSuppress || pInspectorRatioSuppress)
         {
             return;
         }
 
-        PInspectorCropClear();
-        PInspectorRatioRaise();
-        PInspectorRatioUpdate();
+        pInspectorRatioSuppress = true;
+        try
+        {
+            PInspectorCropClear();
+            PInspectorRatioRaise();
+            PInspectorRatioUpdate();
+        }
+        finally
+        {
+            pInspectorRatioSuppress = false;
+        }
     }
 
     private void PInspectorToolDisarm()
@@ -495,7 +504,7 @@ public sealed partial class PInspector
 
         if (pInspectorRatioFixed.IsChecked != true)
         {
-            if (pInspectorCropPresent)
+            if (pInspectorCropPresent && !pInspectorRatioSuppress)
             {
                 PInspectorRatioText(pCropWidth, pCropHeight);
             }

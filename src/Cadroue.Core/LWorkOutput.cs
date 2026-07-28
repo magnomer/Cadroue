@@ -14,6 +14,7 @@ public sealed record LWorkOutput(
     string LWorkOutputQuality,
     string LWorkOutputSpeedPreset,
     string LWorkOutputVideoSize,
+    bool LWorkSizeReactive,
     string LWorkOutputVideoFps,
     string LWorkOutputPixelFormat,
     IReadOnlyDictionary<string, string> LWorkOutputVideoExtras,

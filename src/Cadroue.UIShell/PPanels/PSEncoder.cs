@@ -41,6 +41,10 @@ internal sealed partial class PSEncoder : Window
     private readonly ComboBox psVideoRateCombo;
     private readonly ComboBox psLocationCombo;
     private readonly ComboBox psVideoSizeCombo;
+    private readonly CheckBox psVideoReactiveBox;
+    private readonly TextBox psVideoCustomWidth;
+    private readonly TextBox psVideoCustomHeight;
+    private UIElement? psVideoCustomRow;
     private readonly ComboBox psVideoFpsCombo;
     private readonly ComboBox psPixelCombo;
     private readonly ComboBox psAudioEncoderCombo;
@@ -94,7 +98,14 @@ internal sealed partial class PSEncoder : Window
         psEncoderFolderPath = string.IsNullOrWhiteSpace(lsExportSpecificEdit.LocationFolder)
             ? null
             : lsExportSpecificEdit.LocationFolder;
-        psVideoSizeCombo = PSComboBuild(lsExportSpecificEdit.VideoSize, "Same as source", "3840 × 2160", "2560 × 1440", "1920 × 1080", "1280 × 720", "854 × 480", "Custom");
+        psVideoSizeCombo = PSComboBuild(
+            PSVideoLabelRead(lsExportSpecificEdit.VideoSize, lsExportSpecificEdit.VideoSizeReactive),
+            lsExportSpecificEdit.VideoSizeReactive ? psVideoReactiveItems : psVideoSizeItems);
+        psVideoReactiveBox = PSVideoReactiveBuild(lsExportSpecificEdit.VideoSizeReactive);
+        string[] psCustomParts = lsExportSpecificEdit.VideoSize.Split(
+            ['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        psVideoCustomWidth = PSEntryBuild(psCustomParts.Length == 2 ? psCustomParts[0] : string.Empty, 110);
+        psVideoCustomHeight = PSEntryBuild(psCustomParts.Length == 2 ? psCustomParts[1] : string.Empty, 110);
         psVideoFpsCombo = PSComboBuild(lsExportSpecificEdit.VideoFps, "Same as source", "60", "50", "30", "25", "24", "Custom");
         psPixelCombo = PSComboBuild(lsExportSpecificEdit.PixelFormat, "Auto", "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le");
         psAudioEncoderCombo = PSComboBuild(lsExportSpecificEdit.AudioEncoder, "AAC", "MP3 / libmp3lame", "Opus / libopus", "FLAC", "PCM 16-bit / pcm_s16le", "PCM 24-bit / pcm_s24le");
@@ -142,7 +153,8 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.VideoSpeedPreset = psVideoSpeedCombo is null ? string.Empty : PSComboTextRead(psVideoSpeedCombo);
         lsExportSpecificEdit.Location = PSComboTextRead(psLocationCombo);
         lsExportSpecificEdit.LocationFolder = psEncoderFolderPath ?? string.Empty;
-        lsExportSpecificEdit.VideoSize = PSComboTextRead(psVideoSizeCombo);
+        lsExportSpecificEdit.VideoSize = PSVideoSizeRead(PSComboTextRead(psVideoSizeCombo));
+        lsExportSpecificEdit.VideoSizeReactive = psVideoReactiveBox.IsChecked == true;
         lsExportSpecificEdit.VideoFps = PSComboTextRead(psVideoFpsCombo);
         lsExportSpecificEdit.PixelFormat = PSComboTextRead(psPixelCombo);
         lsExportSpecificEdit.VideoExtras = psVideoExtraCombos.ToDictionary(

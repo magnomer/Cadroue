@@ -52,6 +52,7 @@ public sealed class LExportSpecificState
     public string LocationFolder { get; set; } = string.Empty;
 
     public string VideoSize { get; set; } = "Same as source";
+    public bool VideoSizeReactive { get; set; }
     public string VideoFps { get; set; } = "Same as source";
     public string PixelFormat { get; set; } = "Auto";
 
@@ -80,6 +81,7 @@ public sealed class LExportSpecificState
         VideoQuality,
         VideoSpeedPreset,
         VideoSize,
+        VideoSizeReactive,
         VideoFps,
         PixelFormat,
         new Dictionary<string, string>(VideoExtras, StringComparer.Ordinal),
@@ -107,6 +109,7 @@ public sealed class LExportSpecificState
         Location = Location,
         LocationFolder = LocationFolder,
         VideoSize = VideoSize,
+        VideoSizeReactive = VideoSizeReactive,
         VideoFps = VideoFps,
         PixelFormat = PixelFormat,
         VideoExtras = new Dictionary<string, string>(VideoExtras, StringComparer.Ordinal),
@@ -135,6 +138,7 @@ public sealed class LExportSpecificState
         Location = lSource.Location;
         LocationFolder = lSource.LocationFolder;
         VideoSize = lSource.VideoSize;
+        VideoSizeReactive = lSource.VideoSizeReactive;
         VideoFps = lSource.VideoFps;
         PixelFormat = lSource.PixelFormat;
         VideoExtras = new Dictionary<string, string>(lSource.VideoExtras, StringComparer.Ordinal);
@@ -188,6 +192,7 @@ public sealed class LExportSpecificState
             && string.Equals(lPreset.Location, lSource.Location, StringComparison.Ordinal)
             && string.Equals(lPreset.LocationFolder, lSource.LocationFolder, StringComparison.Ordinal)
             && string.Equals(lPreset.VideoSize, lSource.VideoSize, StringComparison.Ordinal)
+            && lPreset.VideoSizeReactive == lSource.VideoSizeReactive
             && string.Equals(lPreset.VideoFps, lSource.VideoFps, StringComparison.Ordinal)
             && string.Equals(lPreset.PixelFormat, lSource.PixelFormat, StringComparison.Ordinal)
             && LPresetExtraMatch(lPreset.VideoExtras, lSource.VideoExtras)
