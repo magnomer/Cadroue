@@ -20,28 +20,17 @@ public sealed partial class PRoster
 
     private UIElement PRosterQueuePanelBuild()
     {
-        var pHeader = new Border
+        var pColumnHeader = new Border
         {
             Padding = PRosterTheme.PRosterHeaderPadding,
             Background = PRosterTheme.PRosterHeaderBrush,
-            BorderBrush = PRosterTheme.PRosterLineBrush,
-            BorderThickness = new Thickness(0, 0, 0, 1),
-            Child = pRosterQueueTitle
-        };
-
-        var pColumnHeader = new Border
-        {
-            Padding = new Thickness(12, 6, 12, 6),
-            Background = Brushes.White,
             BorderBrush = PRosterTheme.PRosterLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Child = PRosterColumnHeaderBuild()
         };
 
         var pRoot = new DockPanel { LastChildFill = true };
-        DockPanel.SetDock(pHeader, Dock.Top);
         DockPanel.SetDock(pColumnHeader, Dock.Top);
-        pRoot.Children.Add(pHeader);
         pRoot.Children.Add(pColumnHeader);
         pRoot.Children.Add(pRosterQueueList);
 
@@ -158,10 +147,6 @@ public sealed partial class PRoster
                 pSelectedRow = pRow;
             }
         }
-
-        pRosterQueueTitle.Text = pRosterSchedule.LScheduleRecords.Count == 0
-            ? "Queue"
-            : $"Queue  ({pRosterSchedule.LScheduleRecords.Count})";
 
         if (pSelectedRow is not null)
         {

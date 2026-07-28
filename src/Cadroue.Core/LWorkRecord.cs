@@ -22,6 +22,8 @@ public sealed class LWorkRecord
 
     public DateTimeOffset? FinishTime { get; set; }
 
+    public long? OutputBytes { get; set; }
+
     public int OwnerProcessId { get; set; }
 
     public Guid OwnerRunnerId { get; set; }
@@ -53,6 +55,7 @@ public sealed class LWorkRecord
         CreateTime = lWorkItem.LWorkCreateTime,
         StartTime = lWorkItem.LWorkStartTime,
         FinishTime = lWorkItem.LWorkFinishTime,
+        OutputBytes = lWorkItem.LWorkOutputBytes,
         OwnerProcessId = lWorkItem.LWorkOwnerProcess,
         OwnerRunnerId = lWorkItem.LWorkOwnerRunner,
         Phase = lWorkItem.LWorkPhaseCurrent.ToString(),
@@ -86,6 +89,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkAttemptCount = AttemptCount;
         lWorkItem.LWorkStartTime = StartTime;
         lWorkItem.LWorkFinishTime = FinishTime;
+        lWorkItem.LWorkOutputBytes = OutputBytes;
         return lWorkItem;
     }
 

@@ -8,6 +8,7 @@ public sealed class PSplitTab : PTabSurface
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
     private readonly PSection pSection = new();
+    private readonly PList pList = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PSplitTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
@@ -20,11 +21,22 @@ public sealed class PSplitTab : PTabSurface
             lExportSpecificState);
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pSection, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow, true), pAction, pFlow, lPreferenceTabLayout);
+        pList.PListPathChange += PSplitPathShow;
+        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pSection, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow, true), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
+    }
+
+    private void PSplitPathShow(string? pSourcePath)
+    {
+        if (!string.IsNullOrWhiteSpace(pSourcePath))
+        {
+            pViewer.PViewerSourceOpen(pSourcePath);
+        }
     }
 
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
+    public override PList? PTabList => pList;
     public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
 }

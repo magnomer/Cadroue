@@ -62,7 +62,10 @@ public sealed class PList : PPanel
         var pRoot = new DockPanel { LastChildFill = true };
         UIElement pHeader = PListHeaderBuild();
         DockPanel.SetDock(pHeader, Dock.Top);
+        UIElement pActionBar = PListActionBuild();
+        DockPanel.SetDock(pActionBar, Dock.Bottom);
         pRoot.Children.Add(pHeader);
+        pRoot.Children.Add(pActionBar);
         pRoot.Children.Add(pScroll);
 
         FocusVisualStyle = null;
@@ -147,31 +150,30 @@ public sealed class PList : PPanel
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        var pButtonPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportPlus.svg", "Add media files", PListFilesOpen));
-        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PBrowse.svg", "Add every media file in a folder", PListFolderOpen));
-        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportMinus.svg", "Remove the selected file", PListRemove));
-        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportCancel.svg", "Remove every file", PListClear));
-
-        var pHeaderGrid = new Grid();
-        pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(pButtonPanel, 1);
-        pHeaderGrid.Children.Add(pTitleLabel);
-        pHeaderGrid.Children.Add(pButtonPanel);
-
         return new Border
         {
             Padding = new Thickness(12, 6, 8, 6),
             BorderBrush = pListLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Background = Brushes.White,
-            Child = pHeaderGrid
+            Child = pTitleLabel
         };
+    }
+
+    private UIElement PListActionBuild()
+    {
+        var pButtonPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportPlus.svg", "Add media files", PListFilesOpen));
+        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportMinus.svg", "Remove the selected file", PListRemove));
+        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PBrowse.svg", "Add every media file in a folder", PListFolderOpen));
+        pButtonPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportCancel.svg", "Remove every file", PListClear));
+
+        var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6) };
+        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        Grid.SetColumn(pButtonPanel, 0);
+        pActionGrid.Children.Add(pButtonPanel);
+        return pActionGrid;
     }
 
     private static Button PListButtonBuild(string pIconPath, string pTooltip, Action pClick)
@@ -188,7 +190,7 @@ public sealed class PList : PPanel
             ToolTip = pTooltip,
             Width = 28,
             Height = 26,
-            Margin = new Thickness(2, 0, 0, 0),
+            Margin = new Thickness(0, 0, 2, 0),
             Style = PButton.PButtonPanelCreate()
         };
         pButton.Click += (_, _) => pClick();

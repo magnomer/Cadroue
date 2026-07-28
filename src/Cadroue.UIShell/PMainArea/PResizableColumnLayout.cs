@@ -16,12 +16,15 @@ internal sealed class PResizableColumnLayout
     private readonly double[] pPanelWeights;
     private readonly double[] pPanelStoredWeights;
     private readonly bool[] pPanelHiddenFlags;
+    private readonly bool[] pPanelCompactFlags;
     private double pAppliedAvailableWidth = -1;
+    private bool pPanelDefaultsPending;
 
     private PResizableColumnLayout(
         Grid pGrid,
         IReadOnlyList<ColumnDefinition> pPanelColumns,
-        IReadOnlyList<double>? pStoredWidths)
+        IReadOnlyList<double>? pStoredWidths,
+        IReadOnlyList<bool>? pCompactPanels)
     {
         this.pGrid = pGrid;
         this.pPanelColumns = pPanelColumns;
@@ -29,6 +32,9 @@ internal sealed class PResizableColumnLayout
         pPanelWeights = PWeightCreate(pStoredWidths, pPanelColumns.Count);
         pPanelStoredWeights = pPanelWeights.ToArray();
         pPanelHiddenFlags = new bool[pPanelColumns.Count];
+        pPanelCompactFlags = PCompactCreate(pCompactPanels, pPanelColumns.Count);
+        pPanelDefaultsPending = !PStoredCheck(pStoredWidths, pPanelColumns.Count)
+            && pPanelCompactFlags.Any(pCompact => pCompact);
 
         pGrid.LayoutUpdated += (_, _) => PMinimumWidthsApply();
         PWeightsApply();
@@ -37,9 +43,10 @@ internal sealed class PResizableColumnLayout
     public static PResizableColumnLayout PAttach(
         Grid pGrid,
         IReadOnlyList<ColumnDefinition> pPanelColumns,
-        IReadOnlyList<double>? pStoredWidths)
+        IReadOnlyList<double>? pStoredWidths,
+        IReadOnlyList<bool>? pCompactPanels = null)
     {
-        return new PResizableColumnLayout(pGrid, pPanelColumns, pStoredWidths);
+        return new PResizableColumnLayout(pGrid, pPanelColumns, pStoredWidths, pCompactPanels);
     }
 
     public Thumb PSplitterBuild(int pLeftPanelIndex)
@@ -180,6 +187,56 @@ internal sealed class PResizableColumnLayout
         {
             pPanelColumns[index].MinWidth = pMinimumWidths[index];
         }
+
+        if (!pPanelDefaultsPending)
+        {
+            return;
+        }
+
+        pPanelDefaultsPending = false;
+        PDefaultWidthsApply(pAvailableWidth, pMinimumWidths);
+    }
+
+    private void PDefaultWidthsApply(double pAvailableWidth, IReadOnlyList<double> pMinimumWidths)
+    {
+        double pCompactTotal = 0;
+        int pFlexibleCount = 0;
+        for (int index = 0; index < pPanelColumns.Count; index++)
+        {
+            if (pPanelHiddenFlags[index])
+            {
+                continue;
+            }
+
+            if (pPanelCompactFlags[index])
+            {
+                pCompactTotal += pMinimumWidths[index];
+                continue;
+            }
+
+            pFlexibleCount++;
+        }
+
+        if (pFlexibleCount == 0)
+        {
+            return;
+        }
+
+        double pFlexibleWidth = Math.Max(0, pAvailableWidth - pCompactTotal) / pFlexibleCount;
+        var pWidths = new double[pPanelColumns.Count];
+        for (int index = 0; index < pPanelColumns.Count; index++)
+        {
+            if (pPanelHiddenFlags[index])
+            {
+                continue;
+            }
+
+            pWidths[index] = pPanelCompactFlags[index]
+                ? pMinimumWidths[index]
+                : Math.Max(pMinimumWidths[index], pFlexibleWidth);
+        }
+
+        PWeightsCommit(pWidths);
     }
 
     private double[] PCurrentWidthsRead(double pAvailableWidth)
@@ -233,6 +290,25 @@ internal sealed class PResizableColumnLayout
             : pSlotWidth;
 
         return Math.Max(0, pGridWidth - pSplitterWidth * Math.Max(0, pVisiblePanelCount - 1));
+    }
+
+    private static bool PStoredCheck(IReadOnlyList<double>? pStoredWidths, int pCount) =>
+        pStoredWidths is not null && pStoredWidths.Count == pCount && pStoredWidths.Sum(pWidth => Math.Max(0, pWidth)) > 0;
+
+    private static bool[] PCompactCreate(IReadOnlyList<bool>? pCompactPanels, int pCount)
+    {
+        var pCompactFlags = new bool[pCount];
+        if (pCompactPanels is null)
+        {
+            return pCompactFlags;
+        }
+
+        for (int index = 0; index < pCount && index < pCompactPanels.Count; index++)
+        {
+            pCompactFlags[index] = pCompactPanels[index];
+        }
+
+        return pCompactFlags;
     }
 
     private static double[] PWeightCreate(IReadOnlyList<double>? pStoredWidths, int pCount)

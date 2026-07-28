@@ -13,7 +13,6 @@ public sealed partial class PRoster : UserControl
     private readonly LRunner pRosterRunner;
     private readonly Grid pRosterBody;
     private readonly ListBox pRosterQueueList;
-    private readonly TextBlock pRosterQueueTitle;
     private readonly ProgressBar pRosterProgress;
     private readonly TextBlock pRosterStatus;
     private readonly Button pRosterStartButton;
@@ -36,7 +35,6 @@ public sealed partial class PRoster : UserControl
 
         pRosterProgress = PRosterProgressBuild();
         pRosterStatus = PRosterLabelBuild(PRosterTheme.PRosterMutedBrush);
-        pRosterQueueTitle = PRosterTitleBuild("Queue");
         pRosterDetailTitle = PRosterTitleBuild("Job detail");
         pRosterStartButton = PRosterButtonBuild(
             "Start", "PRosterStart.svg", "Start processing the queue",

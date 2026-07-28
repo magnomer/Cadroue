@@ -198,10 +198,12 @@ public sealed partial class LRunner
                     $"after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}. {LRunnerTailRead(pRunnerError)}");
             }
 
+            long? pOutputBytes = LRunnerBytesRead(pWorkItem.LWorkOutputPath);
             LRunnerInvoke(() =>
             {
                 bool pSucceeded = pExitCode == 0;
                 pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
+                pWorkItem.LWorkOutputBytes = pOutputBytes;
                 pWorkItem.LWorkProgress = pSucceeded ? 1 : pWorkItem.LWorkProgress;
                 pWorkItem.LWorkStateCurrent = pSucceeded ? LWorkState.LWorkStateDone : LWorkState.LWorkStateFailed;
                 pWorkItem.LWorkMessage = pSucceeded ? string.Empty : $"FFmpeg exited with code {pExitCode}.";
@@ -230,6 +232,24 @@ public sealed partial class LRunner
         {
             lRunnerProcess = null;
             LRunnerLeaseStop();
+        }
+    }
+
+    private static long? LRunnerBytesRead(string lRunnerOutputPath)
+    {
+        if (string.IsNullOrWhiteSpace(lRunnerOutputPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var lRunnerOutputFile = new FileInfo(lRunnerOutputPath);
+            return lRunnerOutputFile.Exists ? lRunnerOutputFile.Length : null;
+        }
+        catch (Exception lRunnerException) when (lRunnerException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
         }
     }
 

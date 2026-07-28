@@ -10,6 +10,7 @@ public sealed class PEditTab : PTabSurface
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
     private readonly PInspector pInspector = new();
+    private readonly PList pList = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PEditTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
@@ -33,9 +34,19 @@ public sealed class PEditTab : PTabSurface
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
+        pList.PListPathChange += PEditPathShow;
+        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
+    }
+
+    private void PEditPathShow(string? pSourcePath)
+    {
+        if (!string.IsNullOrWhiteSpace(pSourcePath))
+        {
+            pViewer.PViewerSourceOpen(pSourcePath);
+        }
     }
 
     private void PEditCropShow(System.Windows.Rect? pCropVideo)
@@ -60,5 +71,6 @@ public sealed class PEditTab : PTabSurface
 
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
+    public override PList? PTabList => pList;
     public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
 }

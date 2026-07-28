@@ -243,13 +243,37 @@ public sealed partial class PRoster
     {
         if (PRosterSpentRead(pWorkItem) is not { } pSpent
             || pSpent.TotalSeconds <= 0
-            || !File.Exists(pWorkItem.LWorkOutputPath))
+            || PRosterBytesRead(pWorkItem) is not { } pBytes
+            || pBytes <= 0)
         {
             return "Not yet";
         }
 
-        double pMebibytes = new FileInfo(pWorkItem.LWorkOutputPath).Length / 1048576d;
+        double pMebibytes = pBytes / 1048576d;
         return $"{pMebibytes / pSpent.TotalSeconds:0.##} MiB/s";
+    }
+
+    private static long? PRosterBytesRead(LWorkItem pWorkItem)
+    {
+        if (pWorkItem.LWorkOutputBytes is { } pRecordedBytes)
+        {
+            return pRecordedBytes;
+        }
+
+        if (string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var pOutputFile = new FileInfo(pWorkItem.LWorkOutputPath);
+            return pOutputFile.Exists ? pOutputFile.Length : null;
+        }
+        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
     }
 
     private static TimeSpan? PRosterSpentRead(LWorkItem pWorkItem)

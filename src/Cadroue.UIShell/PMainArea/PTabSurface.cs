@@ -45,6 +45,7 @@ public abstract class PTabSurface : UserControl
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
         var pPanelColumns = new List<ColumnDefinition>(pPanels.Count);
+        var pPanelCompactFlags = new List<bool>(pPanels.Count);
         var pSplitterElements = new List<UIElement>(Math.Max(0, pPanels.Count - 1));
         var pSplitterColumnDefinitions = new List<ColumnDefinition>(Math.Max(0, pPanels.Count - 1));
         var pSplitterColumns = new List<int>(Math.Max(0, pPanels.Count - 1));
@@ -58,6 +59,7 @@ public abstract class PTabSurface : UserControl
             };
             pPanelGrid.ColumnDefinitions.Add(pPanelDefinition);
             pPanelColumns.Add(pPanelDefinition);
+            pPanelCompactFlags.Add(pPanels[index] is PList or PExport);
             Grid.SetColumn(pPanels[index], pPanelColumn);
             pPanelGrid.Children.Add(pPanels[index]);
             if (index >= pPanels.Count - 1)
@@ -74,7 +76,8 @@ public abstract class PTabSurface : UserControl
         var pPanelLayout = PResizableColumnLayout.PAttach(
             pPanelGrid,
             pPanelColumns,
-            lPreferenceTabLayout?.PanelWidths);
+            lPreferenceTabLayout?.PanelWidths,
+            pPanelCompactFlags);
         for (int index = 0; index < pSplitterColumns.Count; index++)
         {
             var pSplitter = pPanelLayout.PSplitterBuild(index);
@@ -250,7 +253,7 @@ public abstract class PTabSurface : UserControl
         PViewer => 320,
         PSection => 280,
         PGroup => 260,
-        PList => 240,
+        PList => 300,
         PProcessing => 220,
         PInspector => 220,
         _ => 180
