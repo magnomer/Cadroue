@@ -24,12 +24,7 @@ public sealed partial class PRoster
     private UIElement PRosterBuild(LPreferenceTabLayoutRecord? lPreferenceTabLayout)
     {
         var pRoot = new Grid { Margin = new Thickness(8, 8, 8, 8) };
-        pRoot.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         pRoot.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-
-        UIElement pTransport = PRosterTransportBuild();
-        Grid.SetRow(pTransport, 0);
-        pRoot.Children.Add(pTransport);
 
         var pLeftColumn = new ColumnDefinition
         {
@@ -62,7 +57,7 @@ public sealed partial class PRoster
         Grid.SetColumn(pDetail, 2);
         pRosterBody.Children.Add(pDetail);
 
-        Grid.SetRow(pRosterBody, 1);
+        Grid.SetRow(pRosterBody, 0);
         pRoot.Children.Add(pRosterBody);
         return pRoot;
     }

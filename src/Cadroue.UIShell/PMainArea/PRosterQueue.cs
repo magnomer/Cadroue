@@ -213,7 +213,7 @@ public sealed partial class PRoster
             return "-";
         }
 
-        if (pRosterRunner.LRunnerOwnerCheck(pWorkItem))
+        if (pRosterStation.LStationRunner.LRunnerOwnerCheck(pWorkItem))
         {
             return "This tab";
         }

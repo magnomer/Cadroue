@@ -20,11 +20,13 @@
     <Grid Background="#DCE8F7" Margin="0" AllowDrop="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="56" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <pControlBar:PToolbar x:Name="pControlBar" Grid.Row="0" />
-        <pMainArea:PDeck x:Name="pDeck" Grid.Row="1" Margin="0,-1,0,0" />
+        <pMainArea:PConsole x:Name="pConsole" Grid.Row="1" Margin="0,-1,0,0" />
+        <pMainArea:PDeck x:Name="pDeck" Grid.Row="2" />
 
     </Grid>
 </Window>
