@@ -199,11 +199,15 @@ public sealed partial class LRunner
             }
 
             long? pOutputBytes = LRunnerBytesRead(pWorkItem.LWorkOutputPath);
+            LWorkMedia? pSourceMedia = pWorkItem.LWorkSourceMedia ?? LRunnerMediaRead(pWorkItem.LWorkSourcePath);
+            LWorkMedia? pOutputMedia = LRunnerMediaRead(pWorkItem.LWorkOutputPath);
             LRunnerInvoke(() =>
             {
                 bool pSucceeded = pExitCode == 0;
                 pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
                 pWorkItem.LWorkOutputBytes = pOutputBytes;
+                pWorkItem.LWorkSourceMedia = pSourceMedia;
+                pWorkItem.LWorkOutputMedia = pOutputMedia;
                 pWorkItem.LWorkProgress = pSucceeded ? 1 : pWorkItem.LWorkProgress;
                 pWorkItem.LWorkStateCurrent = pSucceeded ? LWorkState.LWorkStateDone : LWorkState.LWorkStateFailed;
                 pWorkItem.LWorkMessage = pSucceeded ? string.Empty : $"FFmpeg exited with code {pExitCode}.";
@@ -232,6 +236,30 @@ public sealed partial class LRunner
         {
             lRunnerProcess = null;
             LRunnerLeaseStop();
+        }
+    }
+
+    private static LWorkMedia? LRunnerMediaRead(string lRunnerMediaPath)
+    {
+        if (string.IsNullOrWhiteSpace(lRunnerMediaPath) || !File.Exists(lRunnerMediaPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            Cadroue.Media.LMediaInfo lRunnerMedia = Cadroue.Media.LMediaInfo.LMediaFfprobeRead(lRunnerMediaPath);
+            return new LWorkMedia(
+                lRunnerMedia.LMediaInfoVideoWidth,
+                lRunnerMedia.LMediaInfoVideoHeight,
+                lRunnerMedia.LMediaInfoVideoFrameRate,
+                (long)Math.Round(lRunnerMedia.LMediaInfoDuration.TotalMilliseconds),
+                lRunnerMedia.LMediaInfoVideoPresent);
+        }
+        catch (Exception lRunnerException)
+        {
+            LRunnerNote($"Media could not be read '{Path.GetFileName(lRunnerMediaPath)}'", lRunnerException);
+            return null;
         }
     }
 

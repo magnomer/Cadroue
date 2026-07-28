@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,7 +15,8 @@ public sealed partial class PRoster
 {
     private const string PRosterOpenIconPath = "/PAssets/PPanels/PRosterOpen.svg";
 
-    private static readonly Dictionary<string, LMediaInfo?> pRosterMediaCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, LWorkMedia?> pRosterMediaCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> pRosterMediaPending = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly StackPanel pRosterEncodingPanel = new();
     private Border pRosterEncodingRow = null!;
@@ -80,7 +81,8 @@ public sealed partial class PRoster
         }
 
         pRosterEncodingRow.Visibility = Visibility.Visible;
-        LMediaInfo? pSourceInfo = PRosterMediaRead(pWorkItem.LWorkSourcePath);
+        LWorkMedia? pSourceInfo = pWorkItem.LWorkSourceMedia
+            ?? PRosterMediaRead(pWorkItem.LWorkSourcePath);
         PRosterSourceAdd(pWorkItem, pSourceInfo);
         PRosterOutputAdd(pWorkItem);
         PRosterJobAdd(pWorkItem, pSourceInfo);
@@ -92,36 +94,37 @@ public sealed partial class PRoster
         pRosterRowTarget = pRosterDetailPanel;
     }
 
-    private void PRosterSourceAdd(LWorkItem pWorkItem, LMediaInfo? pSourceInfo)
+    private void PRosterSourceAdd(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
         PRosterSectionAdd("Source", false);
         PRosterPathAdd("Location", pWorkItem.LWorkSourcePath);
-        PRosterRowAdd("Resolution / FPS", PRosterMediaFormat(pSourceInfo));
+        PRosterRowAdd("Resolution / FPS", PRosterMediaFormat(pSourceInfo, pWorkItem.LWorkSourcePath));
         PRosterRowAdd("Size", PRosterSizeFormat(PRosterSizeRead(pWorkItem.LWorkSourcePath)));
         PRosterRowAdd("Container", PRosterContainerFormat(pWorkItem.LWorkSourcePath));
         PRosterRowAdd("Duration", pSourceInfo is null
-            ? "Unknown"
-            : $"{pSourceInfo.LMediaInfoDuration:hh\\:mm\\:ss}");
+            ? PRosterPendingFormat(pWorkItem.LWorkSourcePath)
+            : $"{pSourceInfo.LWorkMediaDuration:hh\\:mm\\:ss}");
     }
 
     private void PRosterOutputAdd(LWorkItem pWorkItem)
     {
         LWorkOutput pOutput = pWorkItem.LWorkOutput;
-        LMediaInfo? pOutputInfo = PRosterMediaRead(pWorkItem.LWorkOutputPath);
+        LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia
+            ?? PRosterMediaRead(pWorkItem.LWorkOutputPath);
 
         PRosterSectionAdd("Output", true);
         PRosterPathAdd("Location", pWorkItem.LWorkOutputPath);
         PRosterRowAdd("Resolution / FPS", pOutputInfo is not null
-            ? PRosterMediaFormat(pOutputInfo)
+            ? PRosterMediaFormat(pOutputInfo, pWorkItem.LWorkOutputPath)
             : $"{pOutput.LWorkOutputVideoSize} / {pOutput.LWorkOutputVideoFps}");
         PRosterRowAdd("Size", PRosterOutputSizeRead(pWorkItem));
         PRosterRowAdd("Container", pOutput.LWorkOutputContainer);
         PRosterRowAdd("Duration", pOutputInfo is not null
-            ? $"{pOutputInfo.LMediaInfoDuration:hh\\:mm\\:ss}"
+            ? $"{pOutputInfo.LWorkMediaDuration:hh\\:mm\\:ss}"
             : $"{pWorkItem.LWorkDuration:hh\\:mm\\:ss}");
     }
 
-    private void PRosterJobAdd(LWorkItem pWorkItem, LMediaInfo? pSourceInfo)
+    private void PRosterJobAdd(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
         PRosterSectionAdd("Job", true);
         PRosterRowAdd(
@@ -323,34 +326,62 @@ public sealed partial class PRoster
         pRosterRowTarget.Children.Add(pGrid);
     }
 
-    private static LMediaInfo? PRosterMediaRead(string pMediaPath)
+    private LWorkMedia? PRosterMediaRead(string pMediaPath)
     {
         if (string.IsNullOrWhiteSpace(pMediaPath) || !File.Exists(pMediaPath))
         {
             return null;
         }
 
-        if (pRosterMediaCache.TryGetValue(pMediaPath, out LMediaInfo? pCached))
+        if (pRosterMediaCache.TryGetValue(pMediaPath, out LWorkMedia? pCached))
         {
             return pCached;
         }
 
-        LMediaInfo? pProbed = null;
-        try
+        PRosterMediaSchedule(pMediaPath);
+        return null;
+    }
+
+    private void PRosterMediaSchedule(string pMediaPath)
+    {
+        if (!pRosterMediaPending.Add(pMediaPath))
         {
-            pProbed = LMediaInfo.LMediaFfprobeRead(pMediaPath);
-        }
-        catch (Exception pProbeError)
-        {
-            LAppLog.LError($"Job detail could not read '{Path.GetFileName(pMediaPath)}': {pProbeError.Message}");
+            return;
         }
 
-        if (pProbed is not null)
+        Guid pRosterProbeId = PRosterSelectRead()?.LWorkId ?? Guid.Empty;
+        _ = Task.Run(() =>
         {
-            pRosterMediaCache[pMediaPath] = pProbed;
-        }
+            LWorkMedia? pProbed = null;
+            try
+            {
+                LMediaInfo pProbedInfo = LMediaInfo.LMediaFfprobeRead(pMediaPath);
+                pProbed = new LWorkMedia(
+                    pProbedInfo.LMediaInfoVideoWidth,
+                    pProbedInfo.LMediaInfoVideoHeight,
+                    pProbedInfo.LMediaInfoVideoFrameRate,
+                    (long)Math.Round(pProbedInfo.LMediaInfoDuration.TotalMilliseconds),
+                    pProbedInfo.LMediaInfoVideoPresent);
+            }
+            catch (Exception pProbeError)
+            {
+                LAppLog.LError($"Job detail could not read '{Path.GetFileName(pMediaPath)}': {pProbeError.Message}");
+            }
 
-        return pProbed;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                pRosterMediaPending.Remove(pMediaPath);
+                if (pProbed is not null)
+                {
+                    pRosterMediaCache[pMediaPath] = pProbed;
+                }
+
+                if (PRosterSelectRead()?.LWorkId == pRosterProbeId)
+                {
+                    PRosterDetailUpdate();
+                }
+            }));
+        });
     }
 
     private static void PRosterPathOpen(string pPath)
@@ -375,15 +406,18 @@ public sealed partial class PRoster
         }
     }
 
-    private static string PRosterMediaFormat(LMediaInfo? pMediaInfo)
+    private static string PRosterPendingFormat(string pMediaPath) =>
+        pRosterMediaPending.Contains(pMediaPath) ? "Reading..." : "Unknown";
+
+    private static string PRosterMediaFormat(LWorkMedia? pMediaInfo, string pMediaPath)
     {
-        if (pMediaInfo is null || !pMediaInfo.LMediaInfoVideoPresent)
+        if (pMediaInfo is null || !pMediaInfo.LWorkMediaVideoPresent)
         {
-            return pMediaInfo is null ? "Unknown" : "Audio only";
+            return pMediaInfo is null ? PRosterPendingFormat(pMediaPath) : "Audio only";
         }
 
-        return $"{pMediaInfo.LMediaInfoVideoWidth} x {pMediaInfo.LMediaInfoVideoHeight}  /  " +
-            $"{pMediaInfo.LMediaInfoVideoFrameRate:0.###} fps";
+        return $"{pMediaInfo.LWorkMediaWidth} x {pMediaInfo.LWorkMediaHeight}  /  " +
+            $"{pMediaInfo.LWorkMediaFrameRate:0.###} fps";
     }
 
     private static string PRosterContainerFormat(string pMediaPath)
@@ -402,7 +436,7 @@ public sealed partial class PRoster
         return pCrop.LWorkCropFlipHorizontal ? "Horizontal" : "Vertical";
     }
 
-    private static string PRosterRatioFormat(LWorkItem pWorkItem, LMediaInfo? pSourceInfo)
+    private static string PRosterRatioFormat(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
         if (PRosterCropSizeRead(pWorkItem, pSourceInfo) is not { } pCropSize)
         {
@@ -413,7 +447,7 @@ public sealed partial class PRoster
         return $"{pCropSize.PRosterWidth / pDivisor} : {pCropSize.PRosterHeight / pDivisor}";
     }
 
-    private static string PRosterResolutionFormat(LWorkItem pWorkItem, LMediaInfo? pSourceInfo)
+    private static string PRosterResolutionFormat(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
         if (PRosterCropSizeRead(pWorkItem, pSourceInfo) is not { } pCropSize)
         {
@@ -439,16 +473,16 @@ public sealed partial class PRoster
         return $"{pWidth} x {pHeight}";
     }
 
-    private static (int PRosterWidth, int PRosterHeight)? PRosterCropSizeRead(LWorkItem pWorkItem, LMediaInfo? pSourceInfo)
+    private static (int PRosterWidth, int PRosterHeight)? PRosterCropSizeRead(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
-        if (pSourceInfo is null || !pSourceInfo.LMediaInfoVideoPresent)
+        if (pSourceInfo is null || !pSourceInfo.LWorkMediaVideoPresent)
         {
             return null;
         }
 
         LWorkCrop pCrop = pWorkItem.LWorkCrop;
-        int pWidth = pSourceInfo.LMediaInfoVideoWidth;
-        int pHeight = pSourceInfo.LMediaInfoVideoHeight;
+        int pWidth = pSourceInfo.LWorkMediaWidth;
+        int pHeight = pSourceInfo.LWorkMediaHeight;
         if (pCrop.LWorkCropRotation is 90 or 270)
         {
             (pWidth, pHeight) = (pHeight, pWidth);

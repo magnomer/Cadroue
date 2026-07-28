@@ -67,6 +67,16 @@ public sealed record LWorkOutput(
     }
 }
 
+public sealed record LWorkMedia(
+    int LWorkMediaWidth,
+    int LWorkMediaHeight,
+    double LWorkMediaFrameRate,
+    long LWorkMediaDurationMilliseconds,
+    bool LWorkMediaVideoPresent)
+{
+    public TimeSpan LWorkMediaDuration => TimeSpan.FromMilliseconds(LWorkMediaDurationMilliseconds);
+}
+
 public sealed record LWorkCrop(
     int LWorkCropLeft,
     int LWorkCropTop,

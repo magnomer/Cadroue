@@ -23,7 +23,14 @@ public static partial class LConvert
 
         foreach (string lConvertSourcePath in lConvertSourcePaths)
         {
-            TimeSpan lConvertDuration = LConvertDurationRead(lConvertSourcePath);
+            LWorkMedia? lConvertMedia = null;
+            if (lConvertWorkDescription.LConvertMedia is { } lConvertMap)
+            {
+                lConvertMap.TryGetValue(lConvertSourcePath, out lConvertMedia);
+            }
+
+            TimeSpan lConvertDuration = lConvertMedia?.LWorkMediaDuration
+                ?? LConvertDurationRead(lConvertSourcePath);
             if (lConvertDuration <= TimeSpan.Zero)
             {
                 LAppLog.LError($"Convert skipped '{Path.GetFileName(lConvertSourcePath)}': media duration is unknown");
@@ -43,7 +50,10 @@ public static partial class LConvert
                 lConvertDuration,
                 lConvertOutputName,
                 Path.Combine(lConvertFolder, lConvertOutputName),
-                lConvertOutput));
+                lConvertOutput)
+            {
+                LWorkSourceMedia = lConvertMedia
+            });
         }
 
         if (lConvertWorkItems.Count == 0)
