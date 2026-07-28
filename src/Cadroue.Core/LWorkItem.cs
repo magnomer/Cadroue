@@ -117,7 +117,7 @@ public sealed class LWorkItem : INotifyPropertyChanged
         set
         {
             double lWorkClamped = value < 0 ? 0 : value > 1 ? 1 : value;
-            if (Math.Abs(lWorkProgress - lWorkClamped) < 0.0005)
+            if (lWorkProgress.Equals(lWorkClamped))
             {
                 return;
             }

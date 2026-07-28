@@ -10,6 +10,8 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed partial class PRoster
 {
     private readonly Dictionary<Guid, PRosterRowCell> pRosterRowCells = new();
+    private readonly Dictionary<Guid, ListBoxItem> pRosterRows = new();
+    private bool pRosterQueueSyncing;
 
     private sealed class PRosterRowCell
     {
@@ -130,27 +132,66 @@ public sealed partial class PRoster
 
     private void PRosterQueueRebuild()
     {
-        Guid pSelectedId = pRosterQueueList.SelectedItem is ListBoxItem { Tag: LWorkItem pPrevious }
-            ? pPrevious.LWorkId
-            : Guid.Empty;
+        var pSelectedIds = pRosterQueueList.SelectedItems
+            .OfType<ListBoxItem>()
+            .Select(pRow => pRow.Tag)
+            .OfType<LWorkItem>()
+            .Select(pWorkItem => pWorkItem.LWorkId)
+            .ToHashSet();
 
-        pRosterRowCells.Clear();
-        pRosterQueueList.Items.Clear();
+        LWorkItem[] pDesired = pRosterSchedule.LScheduleRecords.ToArray();
+        var pDesiredIds = pDesired.Select(pWorkItem => pWorkItem.LWorkId).ToHashSet();
 
-        ListBoxItem? pSelectedRow = null;
-        foreach (LWorkItem pWorkItem in pRosterSchedule.LScheduleRecords)
+        pRosterQueueSyncing = true;
+        try
         {
-            ListBoxItem pRow = PRosterRowBuild(pWorkItem);
-            pRosterQueueList.Items.Add(pRow);
-            if (pWorkItem.LWorkId == pSelectedId)
+            for (int pIndex = pRosterQueueList.Items.Count - 1; pIndex >= 0; pIndex--)
             {
-                pSelectedRow = pRow;
+                if (pRosterQueueList.Items[pIndex] is not ListBoxItem { Tag: LWorkItem pExisting }
+                    || pDesiredIds.Contains(pExisting.LWorkId))
+                {
+                    continue;
+                }
+
+                pRosterRowCells.Remove(pExisting.LWorkId);
+                pRosterRows.Remove(pExisting.LWorkId);
+                pRosterQueueList.Items.RemoveAt(pIndex);
+            }
+
+            for (int pIndex = 0; pIndex < pDesired.Length; pIndex++)
+            {
+                LWorkItem pWorkItem = pDesired[pIndex];
+                if (!pRosterRows.TryGetValue(pWorkItem.LWorkId, out ListBoxItem? pRow))
+                {
+                    pRow = PRosterRowBuild(pWorkItem);
+                    pRosterRows[pWorkItem.LWorkId] = pRow;
+                    pRosterQueueList.Items.Insert(Math.Min(pIndex, pRosterQueueList.Items.Count), pRow);
+                    continue;
+                }
+
+                pRow.Tag = pWorkItem;
+                PRosterRowUpdate(pWorkItem);
+
+                int pCurrentIndex = pRosterQueueList.Items.IndexOf(pRow);
+                if (pCurrentIndex != pIndex)
+                {
+                    pRosterQueueList.Items.RemoveAt(pCurrentIndex);
+                    pRosterQueueList.Items.Insert(pIndex, pRow);
+                }
+            }
+
+            foreach (ListBoxItem pRow in pRosterQueueList.Items.OfType<ListBoxItem>())
+            {
+                bool pSelected = pRow.Tag is LWorkItem pWorkItem && pSelectedIds.Contains(pWorkItem.LWorkId);
+                if (pRow.IsSelected != pSelected)
+                {
+                    pRow.IsSelected = pSelected;
+                }
             }
         }
-
-        if (pSelectedRow is not null)
+        finally
         {
-            pRosterQueueList.SelectedItem = pSelectedRow;
+            pRosterQueueSyncing = false;
         }
     }
 

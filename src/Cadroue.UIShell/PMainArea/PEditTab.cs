@@ -28,7 +28,8 @@ public sealed class PEditTab : PTabSurface
         pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
-            lExportSpecificState);
+            lExportSpecificState,
+            PEditCarriedRead());
         pAction.PActionAllSet(true, "Add every loaded file that has a processing plan saved beside it");
 
         var pProcessing = new PProcessing();
@@ -172,6 +173,17 @@ public sealed class PEditTab : PTabSurface
             ? $"flip {(pCrop.LWorkCropFlipHorizontal ? "H" : "")}{(pCrop.LWorkCropFlipVertical ? "V" : "")}"
             : "no flip";
         return $"{pEdges}, rotate {pCrop.LWorkCropRotation}, {pFlip}";
+    }
+
+    private LWorkCrop? PEditCarriedRead()
+    {
+        if (!pInspector.PInspectorPersistentCheck())
+        {
+            return null;
+        }
+
+        LWorkCrop pEditCarried = pInspector.PInspectorCropRead();
+        return pEditCarried.LWorkCropActive ? pEditCarried : null;
     }
 
     private void PEditPlanSave()

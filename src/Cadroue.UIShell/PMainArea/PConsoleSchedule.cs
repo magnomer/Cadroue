@@ -1,7 +1,10 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media.Animation;
 using Cadroue.Core;
 using Cadroue.ShellEngine;
+using LEncode = Cadroue.ShellEngine.LEncode;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -9,8 +12,12 @@ public sealed partial class PConsole
 {
     private static LDepotWatch? pConsoleDepotWatchShared;
 
+    private static readonly Duration PConsoleProgressGlide =
+        new(TimeSpan.FromSeconds(LEncode.LEncodeStatsPeriod));
+
     private bool pConsoleProgressPending;
     private bool pConsoleAutoApplying;
+    private double pConsoleProgressShown;
     private LStation? pConsoleStation;
 
     private void PConsoleAutoHandle(object pSender, RoutedEventArgs pArguments)
@@ -47,6 +54,34 @@ public sealed partial class PConsole
     }
 
     private void PConsoleStationHandle() => PConsoleProgressUpdate();
+
+    private void PConsoleProgressSet(double pConsoleTarget)
+    {
+        double pConsoleClamped = Math.Clamp(pConsoleTarget, 0, 1);
+        if (pConsoleClamped.Equals(pConsoleProgressShown))
+        {
+            return;
+        }
+
+        bool pConsoleBackward = pConsoleClamped < pConsoleProgressShown;
+        pConsoleProgressShown = pConsoleClamped;
+
+        if (pConsoleClamped <= 0 || pConsoleBackward)
+        {
+            pConsoleProgress.BeginAnimation(RangeBase.ValueProperty, null);
+            pConsoleProgress.Value = pConsoleClamped;
+            return;
+        }
+
+        pConsoleProgress.BeginAnimation(
+            RangeBase.ValueProperty,
+            new DoubleAnimation
+            {
+                To = pConsoleClamped,
+                Duration = PConsoleProgressGlide,
+                FillBehavior = FillBehavior.HoldEnd
+            });
+    }
 
     private void PConsoleStationStep(int pStep)
     {
@@ -110,7 +145,7 @@ public sealed partial class PConsole
         LRunner pRunner = pStation.LStationRunner;
         LWorkItem? pRunning = PConsoleOwnedRunning;
 
-        pConsoleProgress.Value = pRunning?.LWorkProgress ?? 0;
+        PConsoleProgressSet(pRunning?.LWorkProgress ?? 0);
         pConsoleStartButton.IsEnabled = !pRunner.LRunnerRunning && pTotal > 0;
         pConsolePauseButton.IsEnabled = pRunner.LRunnerRunning;
         pConsoleCancelButton.IsEnabled = pRunning is not null;
@@ -132,16 +167,17 @@ public sealed partial class PConsole
         string pRunState = pRunner.LRunnerSuspended
             ? "Suspended"
             : pRunner.LRunnerRunning ? "Running" : "Paused";
-        string pStationText = pBoard.Length > 1
-            ? $"{pStation.LStationLabel} {Array.IndexOf(pBoard, pStation) + 1} of {pBoard.Length}"
-            : pStation.LStationLabel;
-        string pQueueText = $"{pDone} of {pTotal} done, {pConsoleSchedule.LSchedulePendingRead().Count} pending";
+        string pDoneText = $"{pDone} of {pTotal} done";
 
         pConsoleStatus.Text = pTotal == 0
-            ? $"{pStationText}  •  No work queued."
+            ? "No work queued."
             : pRunning is null
-                ? $"{pStationText}  •  {pRunState}  •  {pQueueText}"
-                : $"{pStationText}  •  {pRunState}  •  {pRunning.LWorkOutputName}  {pRunning.LWorkProgress:P0}  •  {pQueueText}";
+                ? $"{pRunState}  •  {pDoneText}, {pConsoleSchedule.LSchedulePendingRead().Count} pending"
+                : $"{pRunning.LWorkOutputName}  •  {pRunning.LWorkProgress:P0}  •  {pDoneText}";
+
+        pConsoleStationLabel.Text = pBoard.Length > 1
+            ? $"{pStation.LStationLabel} {Array.IndexOf(pBoard, pStation) + 1} of {pBoard.Length}"
+            : pStation.LStationLabel;
     }
 
     private void PConsoleStartHandle(object pSender, RoutedEventArgs pArguments)

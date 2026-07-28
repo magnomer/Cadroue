@@ -10,7 +10,9 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PConsole : UserControl
 {
-    private const double PConsoleProgressHeight = 3;
+    private const double PConsoleProgressHeight = 14;
+    private const double PConsoleStatusSize = 13;
+    private const double PConsoleStationSize = 12;
     private const double PConsoleSwitchWidth = 34;
     private const double PConsoleSwitchIconSize = 18;
 
@@ -18,6 +20,7 @@ public sealed partial class PConsole : UserControl
     private readonly Button pConsolePreviousButton;
     private readonly Button pConsoleNextButton;
     private readonly CheckBox pConsoleAutoBox;
+    private readonly TextBlock pConsoleStationLabel;
     private readonly ProgressBar pConsoleProgress;
     private readonly TextBlock pConsoleStatus;
     private readonly Button pConsoleStartButton;
@@ -32,7 +35,8 @@ public sealed partial class PConsole : UserControl
     {
         FocusVisualStyle = null;
         pConsoleProgress = PConsoleProgressBuild();
-        pConsoleStatus = PConsoleLabelBuild(PRosterTheme.PRosterMutedBrush);
+        pConsoleStatus = PConsoleLabelBuild(PRosterTheme.PRosterTextBrush, PConsoleStatusSize);
+        pConsoleStationLabel = PConsoleLabelBuild(PRosterTheme.PRosterMutedBrush, PConsoleStationSize);
         pConsoleStartButton = PConsoleButtonBuild(
             "Start", "PRosterStart.svg", "Start processing the queue",
             PRosterTheme.PRosterDoneBrush, PConsoleStartHandle);
@@ -88,12 +92,16 @@ public sealed partial class PConsole : UserControl
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         Grid.SetColumn(pButtons, 0);
         Grid.SetColumn(pConsoleStatus, 1);
-        Grid.SetColumn(pConsoleAutoBox, 2);
-        pConsoleStatus.Margin = new Thickness(14, 0, 0, 0);
+        Grid.SetColumn(pConsoleStationLabel, 2);
+        Grid.SetColumn(pConsoleAutoBox, 3);
+        pConsoleStatus.Margin = new Thickness(16, 0, 12, 0);
+        pConsoleStationLabel.Margin = new Thickness(0, 0, 4, 0);
         pRow.Children.Add(pButtons);
         pRow.Children.Add(pConsoleStatus);
+        pRow.Children.Add(pConsoleStationLabel);
         pRow.Children.Add(pConsoleAutoBox);
 
         var pStack = new StackPanel();
@@ -128,7 +136,7 @@ public sealed partial class PConsole : UserControl
         var pAutoBox = new CheckBox
         {
             Content = "Auto resume",
-            FontSize = PRosterTheme.PRosterRowSize,
+            FontSize = PConsoleStationSize,
             Foreground = PRosterTheme.PRosterTextBrush,
             VerticalAlignment = VerticalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
@@ -212,13 +220,44 @@ public sealed partial class PConsole : UserControl
         return pStyle;
     }
 
-    private static TextBlock PConsoleLabelBuild(Brush pBrush) => new()
+    private static TextBlock PConsoleLabelBuild(Brush pBrush, double pFontSize) => new()
     {
-        FontSize = PRosterTheme.PRosterRowSize,
+        FontSize = pFontSize,
         Foreground = pBrush,
         VerticalAlignment = VerticalAlignment.Center,
         TextTrimming = TextTrimming.CharacterEllipsis
     };
+
+    private static readonly Brush pConsoleProgressBrush = PConsoleProgressBrushCreate();
+    private static readonly Brush pConsoleProgressGloss = PConsoleGlossBrushCreate();
+
+    private static Brush PConsoleProgressBrushCreate()
+    {
+        var pBrush = new LinearGradientBrush
+        {
+            StartPoint = new System.Windows.Point(0, 1),
+            EndPoint = new System.Windows.Point(1, 0)
+        };
+        pBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x1E, 0x59, 0xBE), 0));
+        pBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x3E, 0x92, 0xE4), 0.55));
+        pBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x74, 0xCB, 0xF7), 1));
+        pBrush.Freeze();
+        return pBrush;
+    }
+
+    private static Brush PConsoleGlossBrushCreate()
+    {
+        var pGloss = new LinearGradientBrush
+        {
+            StartPoint = new System.Windows.Point(0, 0),
+            EndPoint = new System.Windows.Point(0, 1)
+        };
+        pGloss.GradientStops.Add(new GradientStop(Color.FromArgb(0x59, 0xFF, 0xFF, 0xFF), 0));
+        pGloss.GradientStops.Add(new GradientStop(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF), 0.45));
+        pGloss.GradientStops.Add(new GradientStop(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), 0.46));
+        pGloss.Freeze();
+        return pGloss;
+    }
 
     private static ProgressBar PConsoleProgressBuild() => new()
     {
@@ -227,7 +266,7 @@ public sealed partial class PConsole : UserControl
         Maximum = 1,
         Value = 0,
         Background = PRosterTheme.PRosterTrackBrush,
-        Foreground = PRosterTheme.PRosterRunBrush,
+        Foreground = pConsoleProgressBrush,
         BorderThickness = new Thickness(0),
         Template = PConsoleProgressTemplateCreate()
     };
@@ -239,11 +278,33 @@ public sealed partial class PConsole : UserControl
         pTrack.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
         pTrack.SetValue(Border.CornerRadiusProperty, new CornerRadius(PConsoleProgressHeight / 2));
 
+        pTrack.SetValue(Border.BorderBrushProperty, PRosterTheme.PRosterLineBrush);
+        pTrack.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+
         var pIndicator = new FrameworkElementFactory(typeof(Border));
         pIndicator.Name = "PART_Indicator";
         pIndicator.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Left);
-        pIndicator.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.ForegroundProperty));
+        pIndicator.SetValue(Border.BackgroundProperty, Brushes.Transparent);
         pIndicator.SetValue(Border.CornerRadiusProperty, new CornerRadius(PConsoleProgressHeight / 2));
+        pIndicator.SetValue(UIElement.SnapsToDevicePixelsProperty, true);
+        pIndicator.SetValue(UIElement.ClipToBoundsProperty, true);
+
+        var pFill = new FrameworkElementFactory(typeof(Border));
+        pFill.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.ForegroundProperty));
+        pFill.SetValue(Border.CornerRadiusProperty, new CornerRadius(PConsoleProgressHeight / 2));
+        pFill.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Left);
+        pFill.SetValue(UIElement.IsHitTestVisibleProperty, false);
+        pFill.SetBinding(FrameworkElement.WidthProperty, new System.Windows.Data.Binding("ActualWidth")
+        {
+            RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent)
+        });
+
+        var pGloss = new FrameworkElementFactory(typeof(Border));
+        pGloss.SetValue(Border.BackgroundProperty, pConsoleProgressGloss);
+        pGloss.SetValue(Border.CornerRadiusProperty, new CornerRadius(PConsoleProgressHeight / 2));
+        pGloss.SetValue(UIElement.IsHitTestVisibleProperty, false);
+        pFill.AppendChild(pGloss);
+        pIndicator.AppendChild(pFill);
 
         var pRoot = new FrameworkElementFactory(typeof(Grid));
         pRoot.AppendChild(pTrack);

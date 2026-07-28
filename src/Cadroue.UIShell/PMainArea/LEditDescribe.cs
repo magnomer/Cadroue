@@ -35,10 +35,11 @@ public static partial class LEdit
     public static async Task<int> LEditAllDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lEditSourcePaths,
-        LExportSpecificState lExportSpecificState)
+        LExportSpecificState lExportSpecificState,
+        LWorkCrop? lEditCarried = null)
     {
         IReadOnlyList<LEditPlanRecord> lEditPlans =
-            await Task.Run(() => LEditPlanCollect(lEditSourcePaths)).ConfigureAwait(true);
+            await Task.Run(() => LEditPlanCollect(lEditSourcePaths, lEditCarried)).ConfigureAwait(true);
 
         int lEditAdded = 0;
         foreach (LEditPlanRecord lEditPlan in lEditPlans)
@@ -51,23 +52,36 @@ public static partial class LEdit
                 lExportSpecificState);
         }
 
+        LAppLog.LInfo(
+            $"Edit Add All: {lEditSourcePaths.Count} listed, {lEditPlans.Count} planned, {lEditAdded} queued, "
+            + $"plan source {(lEditCarried is null ? "sidecar per file" : "persistent for every file")}");
         return lEditAdded;
     }
 
-    private static IReadOnlyList<LEditPlanRecord> LEditPlanCollect(IReadOnlyList<string> lEditSourcePaths)
+    private static IReadOnlyList<LEditPlanRecord> LEditPlanCollect(
+        IReadOnlyList<string> lEditSourcePaths,
+        LWorkCrop? lEditCarried)
     {
         var lEditPlans = new List<LEditPlanRecord>();
         foreach (string lEditSourcePath in lEditSourcePaths)
         {
-            if (LEditSidecarRead(lEditSourcePath) is not { Edit: { } lEditRecord } lEditSidecar
-                || LEditCropCreate(lEditRecord) is not { LWorkCropActive: true } lEditCrop)
+            Cadroue.Media.LSidecar? lEditSidecar = LEditSidecarRead(lEditSourcePath);
+            LWorkCrop? lEditPlanned = lEditCarried
+                ?? (lEditSidecar?.Edit is { } lEditRecord ? LEditCropCreate(lEditRecord) : null);
+
+            if (lEditPlanned is not { LWorkCropActive: true } lEditCrop)
             {
                 continue;
             }
 
-            TimeSpan lEditDuration = lEditSidecar.Source.DurationMilliseconds > 0
+            TimeSpan lEditDuration = lEditSidecar is { Source.DurationMilliseconds: > 0 }
                 ? TimeSpan.FromMilliseconds(lEditSidecar.Source.DurationMilliseconds)
                 : LEditProbeDuration(lEditSourcePath);
+
+            if (lEditCarried is not null)
+            {
+                LEditPlanSave(lEditSourcePath, lEditCrop);
+            }
 
             lEditPlans.Add(new LEditPlanRecord(lEditSourcePath, lEditDuration, lEditCrop));
         }
