@@ -20,7 +20,7 @@ public sealed class PSplitTab : PTabSurface
             lExportSpecificState);
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pSection, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pSection, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow, true), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
     }
 

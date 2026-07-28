@@ -21,29 +21,34 @@ public sealed class PCompass : UserControl
     private Grid pCompassVolumeSliderHost = null!;
     private bool pCompassVolumeProgramSet;
 
-    public PCompass(PFlowControl pFlow)
+    public PCompass(PFlowControl pFlow, bool pCompassSectionShow = false)
     {
         pCompassLinePanel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
 
-        (string Icon, string Label, string Tooltip, Action Click, bool GroupEnd)[] pButtons =
+        (string Icon, string Label, string Tooltip, Action Click, bool GroupEnd, bool Section)[] pButtons =
         {
-            ("PCompassZoomIncrease.svg", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomIn"), false),
-            ("PCompassZoomDecrease.svg", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomOut"), true),
-            ("PCompassPlay.svg", "Play", "Play the current media from the cursor.", pFlow.PFlowPlayRaise, false),
-            ("PCompassPause.svg", "Pause", "Pause playback at the current position.", pFlow.PFlowPauseRaise, true),
-            ("PCompassSectionAdd.svg", "Add", "Add a new section at the current cursor position.", () => pFlow.PFlowShortcutDispatch("addSection"), false),
-            ("PCompassRemove.svg", "Delete", "Delete the selected section.", () => pFlow.PFlowShortcutDispatch("deleteSection"), true),
-            ("PCompassStart.svg", "Start", "Set the selected section's start point to the cursor.", () => pFlow.PFlowShortcutDispatch("setStart"), false),
-            ("PCompassSplit.svg", "Split", "Split the selected section at the cursor.", () => pFlow.PFlowShortcutDispatch("splitSection"), false),
-            ("PCompassEnd.svg", "End", "Set the selected section's end point to the cursor.", () => pFlow.PFlowShortcutDispatch("setEnd"), true),
-            ("PCompassKeyframePrevious.svg", "Previous", "Move to the previous visible keyframe.", () => pFlow.PFlowShortcutDispatch("previousKey"), false),
-            ("PCompassKeyframeNear.svg", "Nearest", "Move to the nearest visible keyframe.", () => pFlow.PFlowShortcutDispatch("nearestKey"), false),
-            ("PCompassKeyframeNext.svg", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutDispatch("nextKey"), true)
+            ("PCompassZoomIncrease.svg", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomIn"), false, false),
+            ("PCompassZoomDecrease.svg", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomOut"), true, false),
+            ("PCompassPlay.svg", "Play", "Play the current media from the cursor.", pFlow.PFlowPlayRaise, false, false),
+            ("PCompassPause.svg", "Pause", "Pause playback at the current position.", pFlow.PFlowPauseRaise, true, false),
+            ("PCompassSectionAdd.svg", "Add", "Add a new section at the current cursor position.", () => pFlow.PFlowShortcutDispatch("addSection"), false, true),
+            ("PCompassRemove.svg", "Delete", "Delete the selected section.", () => pFlow.PFlowShortcutDispatch("deleteSection"), true, true),
+            ("PCompassStart.svg", "Start", "Set the selected section's start point to the cursor.", () => pFlow.PFlowShortcutDispatch("setStart"), false, true),
+            ("PCompassSplit.svg", "Split", "Split the selected section at the cursor.", () => pFlow.PFlowShortcutDispatch("splitSection"), false, true),
+            ("PCompassEnd.svg", "End", "Set the selected section's end point to the cursor.", () => pFlow.PFlowShortcutDispatch("setEnd"), true, true),
+            ("PCompassKeyframePrevious.svg", "Previous", "Move to the previous visible keyframe.", () => pFlow.PFlowShortcutDispatch("previousKey"), false, false),
+            ("PCompassKeyframeNear.svg", "Nearest", "Move to the nearest visible keyframe.", () => pFlow.PFlowShortcutDispatch("nearestKey"), false, false),
+            ("PCompassKeyframeNext.svg", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutDispatch("nextKey"), true, false)
         };
 
         StackPanel pGroup = PCompassGroupBuild();
-        foreach ((string pIcon, string pLabel, string pTooltip, Action pClick, bool pGroupEnd) in pButtons)
+        foreach ((string pIcon, string pLabel, string pTooltip, Action pClick, bool pGroupEnd, bool pSection) in pButtons)
         {
+            if (pSection && !pCompassSectionShow)
+            {
+                continue;
+            }
+
             Button pButton = PCompassButtonBuild(pIcon, pLabel, pTooltip);
             pButton.Click += (_, _) => pClick();
             pGroup.Children.Add(pButton);
