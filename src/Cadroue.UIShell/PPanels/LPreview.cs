@@ -18,6 +18,20 @@ public static class LPreview
         LPreviewRotateApply(lPreviewPlayer, lPreviewState.LRotateFlip);
     }
 
+    public static void LPreviewRestore(Player? lPreviewPlayer, LPreviewState lPreviewState)
+    {
+        if (lPreviewPlayer is null)
+        {
+            return;
+        }
+
+        lPreviewPlayer.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
+        lPreviewPlayer.Config.Video.Rotation = 0u;
+        lPreviewPlayer.Config.Video.HFlip = false;
+        lPreviewPlayer.Config.Video.VFlip = false;
+        LPreviewApply(lPreviewPlayer, lPreviewState);
+    }
+
     private static void LPreviewColorApply(Player lPreviewPlayer, LColor lColor)
     {
         LPreviewFilterApply(

@@ -8,6 +8,8 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer
 {
+    private static readonly System.Windows.Media.Color PViewerBackColor = System.Windows.Media.Colors.White;
+
     private void PPlayerAccurateSeek(Player player, TimeSpan playbackPosition)
     {
         int pPlayerSeekMilliseconds = (int)playbackPosition.TotalMilliseconds;
@@ -48,16 +50,8 @@ public sealed partial class PViewer
         if (!pViewerCommandActive) return;
         int loadSerial = ++pViewerLoadSerial;
         pViewerClockTimer.Stop();
-        PPlayerStopDispose();
-        PViewerSourcePath = null;
-        pViewerMediaInfo = null;
-        LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
-        if (!PCropPersistent)
-        {
-            PCropVideo = null;
-            LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(null);
-            PCropHide();
-        }
+        pViewerResumeAfterInactive = false;
+        PPlayerQuiet(pViewerPlayer);
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
             return;
@@ -81,24 +75,41 @@ public sealed partial class PViewer
             ffmpegError = exception.Message;
         }
 
-        Player? player = null;
+        Player? player = pViewerPlayer;
+        bool pPlayerCreated = false;
         string? previewError = null;
         try
         {
-            player = new Player(new Config());
+            if (player is null)
+            {
+                player = new Player(new Config());
+                player.Config.Video.BackColor = PViewerBackColor;
+                player.Config.Video.ClearScreen = false;
+                pPlayerCreated = true;
+            }
+
             player.Audio.Volume = (int)Math.Round(pViewerVolume);
             PPlayerOpen(player, sourcePath);
+            PPlayerStartPause(player);
         }
         catch (Exception exception)
         {
             previewError = exception.Message;
-            PPlayerDispose(player);
+            if (pPlayerCreated)
+            {
+                PPlayerDispose(player);
+            }
+
             player = null;
         }
 
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
-            PPlayerDispose(player);
+            if (pPlayerCreated && !ReferenceEquals(player, pViewerPlayer))
+            {
+                PPlayerDispose(player);
+            }
+
             return;
         }
 
@@ -125,16 +136,48 @@ public sealed partial class PViewer
     private void PViewerMediaCommit(LMediaOpenStatus mediaStatus, Player? player)
     {
         PViewerMediaReport(mediaStatus, player);
-        pViewerPlayer = player;
-        if (player is not null)
+
+        Player? pPlayerPrevious = pViewerPlayer;
+        bool pPlayerReused = ReferenceEquals(pPlayerPrevious, player) && player is not null;
+        pPlayerAccurateActive = false;
+
+        if (pPlayerReused)
         {
-            player.SeekCompleted += PPlayerSeekCompleteHandle;
+            LAppLog.LInfo("Viewer player reused: same player kept on the host, no swap chain rebuild");
+        }
+        else
+        {
+            if (pPlayerPrevious is not null)
+            {
+                pPlayerPrevious.SeekCompleted -= PPlayerSeekCompleteHandle;
+            }
+
+            pViewerPlayer = player;
+            if (player is not null)
+            {
+                player.SeekCompleted += PPlayerSeekCompleteHandle;
+            }
+
+            LAppLog.LInfo(
+                $"Viewer player swapped: previous {(pPlayerPrevious is null ? "none" : "released")}, "
+                + $"next {(player is null ? "none" : "ready")}, "
+                + $"renderer {(player?.Renderer is null ? "none" : "ready")}");
+
+            pViewerFlyleafHost.Player = player;
+            PPlayerDispose(pPlayerPrevious);
         }
 
-        pViewerFlyleafHost.Player = player;
+        PViewerHostShow(player is not null);
         pViewerMediaInfo = mediaStatus.LMediaOpenMediaInfo;
         PViewerSourcePath = mediaStatus.LMediaOpenSourcePath;
-        PViewerPreviewApply();
+        LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+        if (!PCropPersistent)
+        {
+            PCropVideo = null;
+            LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(null);
+            PCropHide();
+        }
+
         PViewerMediaRaise(mediaStatus);
         if (player is null)
         {
@@ -146,12 +189,13 @@ public sealed partial class PViewer
         {
             pViewerResumeAfterInactive = false;
             player.Play();
+            PViewerPreviewRestore();
             PViewerPlaybackUpdate(true, PPlayerTimeRead(player));
             pViewerClockTimer.Start();
         }
         else
         {
-            PPlayerStartPause(player);
+            PViewerPreviewRestore();
             PViewerPlaybackUpdate(false, TimeSpan.Zero);
         }
     }
@@ -188,6 +232,22 @@ public sealed partial class PViewer
     {
         player.Pause();
         player.Seek(0);
+    }
+
+    private static void PPlayerQuiet(Player? player)
+    {
+        if (player is null)
+        {
+            return;
+        }
+
+        try
+        {
+            player.Pause();
+        }
+        catch
+        {
+        }
     }
 
     private void PPlayerSuspend()
@@ -273,8 +333,10 @@ public sealed partial class PViewer
             pPlayerClosing.SeekCompleted -= PPlayerSeekCompleteHandle;
         }
 
-        PPlayerDispose(pViewerPlayer);
+        Player? pPlayerPrevious = pViewerPlayer;
         pViewerFlyleafHost.Player = null;
+        LAppLog.LInfo($"Viewer host detached: player {(pPlayerPrevious is null ? "none" : "released")}");
+        PPlayerDispose(pPlayerPrevious);
         pViewerPlayer = null;
     }
 

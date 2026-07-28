@@ -89,7 +89,8 @@ public sealed partial class PViewer : PPanel
             Content = pViewerOverlay,
             VideoBackground = Brushes.White,
             ToggleFullScreenOnDoubleClick = AvailableWindows.None,
-            AttachedDragMove = AttachedDragMoveOptions.None
+            AttachedDragMove = AttachedDragMoveOptions.None,
+            Visibility = Visibility.Collapsed
         };
 
         pViewerSurface = new Border
@@ -110,6 +111,7 @@ public sealed partial class PViewer : PPanel
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
+        PViewerHostWatch();
     }
 
     public void PViewerPlay()
@@ -180,6 +182,7 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
+        PViewerHostRecord($"command set {(pCommandActive ? "on" : "off")}");
         if (!pCommandActive)
         {
             PPlayerSuspend();
@@ -279,12 +282,26 @@ public sealed partial class PViewer : PPanel
         LPreview.LPreviewApply(pViewerPlayer, LPreviewStateCurrent);
     }
 
+    private void PViewerPreviewRestore()
+    {
+        LRotateFlip pViewerRotate = LPreviewStateCurrent.LRotateFlip;
+        LAppLog.LInfo(
+            $"Viewer preview restored: rotate {pViewerRotate.LRotateKind}, "
+            + $"H {pViewerRotate.LRotateFlipHorizontal}, V {pViewerRotate.LRotateFlipVertical}");
+        LPreview.LPreviewRestore(pViewerPlayer, LPreviewStateCurrent);
+    }
+
     public TimeSpan PViewerDurationRead() => pViewerMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero;
 
     public void PViewerRotateSet(LRotateFlip pRotateFlip)
     {
         bool pRotateChanged = LPreviewStateCurrent.LRotateFlip.LRotateKind != pRotateFlip.LRotateKind;
         LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(pRotateFlip);
+        LAppLog.LInfo(
+            $"Viewer rotate/flip set: rotate {pRotateFlip.LRotateKind}, "
+            + $"H {pRotateFlip.LRotateFlipHorizontal}, V {pRotateFlip.LRotateFlipVertical}, "
+            + $"player {(pViewerPlayer is null ? "none" : "ready")}, "
+            + $"{(pRotateChanged ? "rotation changed: crop hidden" : "rotation same: overlay kept")}");
         PViewerPreviewApply();
 
         if (pRotateChanged)

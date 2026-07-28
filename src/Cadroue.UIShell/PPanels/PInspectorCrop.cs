@@ -107,10 +107,22 @@ public sealed partial class PInspector
         }
 
         PInspectorRotateRaise();
+        if (pInspectorPlan.LWorkCropEdgeActive)
+        {
+            PInspectorCropRaise();
+        }
+        else
+        {
+            pInspectorCropPresent = false;
+            PInspectorCropChange?.Invoke(null);
+        }
+
         PInspectorRatioUpdate();
         PInspectorToolUpdate();
         PInspectorApplyUpdate();
     }
+
+    public bool PInspectorPersistentCheck() => pInspectorPersistentBox.IsChecked == true;
 
     public void PInspectorMediaReset()
     {
@@ -276,8 +288,39 @@ public sealed partial class PInspector
         return pWhole <= 0 ? 0 : pWhole - (pWhole % 2);
     }
 
+    public LRotateFlip PInspectorRotateRead() => new(
+        PInspectorRotateKindRead(),
+        pInspectorFlipHorizontal.IsChecked == true,
+        pInspectorFlipVertical.IsChecked == true);
+
+    public Rect? PInspectorRectRead()
+    {
+        if (pInspectorApplyBox.IsChecked != true)
+        {
+            return null;
+        }
+
+        double pCropLeft = PInspectorNumberRead(pInspectorInsetLeft);
+        double pCropTop = PInspectorNumberRead(pInspectorInsetTop);
+        double pCropWidth = pInspectorSourceWidth - pCropLeft - PInspectorNumberRead(pInspectorInsetRight);
+        double pCropHeight = pInspectorSourceHeight - pCropTop - PInspectorNumberRead(pInspectorInsetBottom);
+        bool pCropEdged = pCropLeft > 0
+            || pCropTop > 0
+            || PInspectorNumberRead(pInspectorInsetRight) > 0
+            || PInspectorNumberRead(pInspectorInsetBottom) > 0;
+
+        return pCropEdged && pCropWidth > 0 && pCropHeight > 0
+            ? new Rect(pCropLeft, pCropTop, pCropWidth, pCropHeight)
+            : null;
+    }
+
     private void PInspectorRotateRaise()
     {
+        if (pInspectorCropSuppress)
+        {
+            return;
+        }
+
         PInspectorRotateChange?.Invoke(new LRotateFlip(
             PInspectorRotateKindRead(),
             pInspectorFlipHorizontal.IsChecked == true,

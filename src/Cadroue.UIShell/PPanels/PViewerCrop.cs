@@ -275,9 +275,19 @@ public sealed partial class PViewer
     {
         if (pCropVideo is not { Width: > 0, Height: > 0 })
         {
+            LAppLog.LInfo("Viewer crop cleared: overlay hidden");
             PCropHide();
             return;
         }
+
+        Size pCropDisplay = PCropDisplayRead();
+        LAppLog.LInfo(
+            $"Viewer crop set: {pCropVideo.Value.X:0},{pCropVideo.Value.Y:0} "
+            + $"{pCropVideo.Value.Width:0}x{pCropVideo.Value.Height:0} "
+            + $"over display {pCropDisplay.Width:0}x{pCropDisplay.Height:0}"
+            + (pCropVideo.Value.Width >= pCropDisplay.Width && pCropVideo.Value.Height >= pCropDisplay.Height
+                ? " (full frame)"
+                : string.Empty));
 
         PCropVideo = pCropVideo;
         LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxFromRect(PCropVideo));
