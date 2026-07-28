@@ -81,6 +81,19 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         LKeyframePlanStart(identity.LKeyframeSourcePath, duration, cursor, serial, cancel.Token);
     }
 
+    public void LKeyframeSuspend()
+    {
+        CancellationTokenSource? lKeyframeCancelPrevious;
+        lock (lKeyframeLock)
+        {
+            lKeyframeCancelPrevious = lKeyframeCancel;
+            lKeyframeCancel = null;
+        }
+
+        lKeyframeCancelPrevious?.Cancel();
+        lKeyframeCancelPrevious?.Dispose();
+    }
+
     public TimeSpan? LKeyframePreviousMove(TimeSpan cursor)
         => LKeyframeMoveFind(cursor, -1);
 

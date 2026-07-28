@@ -27,6 +27,7 @@ public sealed partial class PViewfinder : FrameworkElement
     private const double PViewfinderBadgePaddingHorizontal = 6;
     private const double PViewfinderBadgePaddingVertical = 1;
     private const double PViewfinderBadgeGap = 6;
+    private const double PViewfinderKeyframeWidth = 1;
 
     private static readonly Brush pViewfinderBrushSectionText = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
     private static readonly Brush pViewfinderBrushBadgeText = new SolidColorBrush(Colors.White);
@@ -35,7 +36,7 @@ public sealed partial class PViewfinder : FrameworkElement
 
     private static readonly Brush pViewfinderBrushBackground = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
     private static readonly Brush pViewfinderBrushRail = new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1));
-    private static readonly Pen pViewfinderPenKeyframe = new(new SolidColorBrush(Color.FromRgb(0x6B, 0x74, 0x80)), 1.1);
+    private static readonly Brush pViewfinderBrushKeyframe = new SolidColorBrush(Color.FromRgb(0x6B, 0x74, 0x80));
     private static readonly Pen pViewfinderPenTick = new(new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xB0)), 1.0);
     private static readonly Brush pViewfinderBrushTickText = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
     private static readonly Brush pViewfinderBrushLabelBackground = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
@@ -48,7 +49,7 @@ public sealed partial class PViewfinder : FrameworkElement
     {
         pViewfinderBrushBackground.Freeze();
         pViewfinderBrushRail.Freeze();
-        pViewfinderPenKeyframe.Freeze();
+        pViewfinderBrushKeyframe.Freeze();
         pViewfinderPenTick.Freeze();
         pViewfinderBrushTickText.Freeze();
         pViewfinderBrushLabelBackground.Freeze();

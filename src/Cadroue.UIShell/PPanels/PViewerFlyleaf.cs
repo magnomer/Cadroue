@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Threading;
 using Cadroue.Media;
 using FlyleafLib;
 using FlyleafLib.MediaPlayer;
@@ -7,6 +8,41 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer
 {
+    private void PPlayerAccurateSeek(Player player, TimeSpan playbackPosition)
+    {
+        int pPlayerSeekMilliseconds = (int)playbackPosition.TotalMilliseconds;
+        if (!pPlayerAccurateActive)
+        {
+            pPlayerAccurateActive = true;
+            player.SeekAccurate(pPlayerSeekMilliseconds);
+            return;
+        }
+
+        PPlayerDecodeInterrupt(player, true);
+        Dispatcher.InvokeAsync(
+            () =>
+            {
+                PPlayerDecodeInterrupt(player, false);
+                if (pViewerUnloaded || !pViewerCommandActive || !ReferenceEquals(player, pViewerPlayer)) return;
+                pPlayerAccurateActive = true;
+                player.SeekAccurate(pPlayerSeekMilliseconds);
+            },
+            DispatcherPriority.Render);
+    }
+
+    private void PPlayerSeekCompleteHandle(object? sender, int seekMilliseconds) => pPlayerAccurateActive = false;
+
+    private static void PPlayerDecodeInterrupt(Player player, bool pPlayerInterruptRaised)
+    {
+        try
+        {
+            player.decoder.Interrupt = pPlayerInterruptRaised;
+        }
+        catch
+        {
+        }
+    }
+
     private async Task PPlayerVideoLoad(string sourcePath)
     {
         if (!pViewerCommandActive) return;
@@ -90,6 +126,11 @@ public sealed partial class PViewer
     {
         PViewerMediaReport(mediaStatus, player);
         pViewerPlayer = player;
+        if (player is not null)
+        {
+            player.SeekCompleted += PPlayerSeekCompleteHandle;
+        }
+
         pViewerFlyleafHost.Player = player;
         pViewerMediaInfo = mediaStatus.LMediaOpenMediaInfo;
         PViewerSourcePath = mediaStatus.LMediaOpenSourcePath;
@@ -224,8 +265,14 @@ public sealed partial class PViewer
     private void PPlayerStopDispose()
     {
         pViewerClockTimer.Stop();
+        pPlayerAccurateActive = false;
         pViewerResumeAfterInactive = false;
         PViewerPlaybackUpdate(false, null);
+        if (pViewerPlayer is { } pPlayerClosing)
+        {
+            pPlayerClosing.SeekCompleted -= PPlayerSeekCompleteHandle;
+        }
+
         PPlayerDispose(pViewerPlayer);
         pViewerFlyleafHost.Player = null;
         pViewerPlayer = null;

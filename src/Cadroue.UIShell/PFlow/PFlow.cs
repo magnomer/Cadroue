@@ -13,8 +13,10 @@ public sealed partial class PFlow : UserControl
     private const int LSectionPaletteCount = 6;
     private const double PFlowHeightMinimum = 200;
     private const double PFlowHeightMaximum = 520;
+    private static readonly TimeSpan PFlowKeyframeResumeDelay = TimeSpan.FromSeconds(2);
     private readonly LKeyframeOrchestrator lKeyframeOrchestrator = new();
     private readonly DispatcherTimer lKeyframeRequestTimer;
+    private readonly DispatcherTimer lKeyframeResumeTimer;
     private readonly PViewfinder pViewfinder = new();
     private readonly PMap pMap = new();
     private System.Windows.Controls.Primitives.Popup? pFlowNamePopup;
@@ -58,11 +60,13 @@ public sealed partial class PFlow : UserControl
         pViewfinder.PViewfinderCursorChange += PFlowViewfinderSeek;
         pViewfinder.PViewfinderSectionSelect += PFlowViewfinderSelect;
         pMap.PMapCursorChange += PFlowMapSeek;
-        pMap.PMapSpoolChange += PFlowSpoolUpdate;
+        pMap.PMapSpoolChange += PFlowSpoolHandle;
         lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
         lKeyframeOrchestrator.LKeyframeSectionsSource = PFlowSidecarSectionsRead;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         lKeyframeRequestTimer.Tick += PFlowTimerHandle;
+        lKeyframeResumeTimer = new DispatcherTimer { Interval = PFlowKeyframeResumeDelay };
+        lKeyframeResumeTimer.Tick += PFlowResumeHandle;
         pDividerHandle = PDividerBuild();
         pDividerHandle.MouseLeftButtonDown += PDividerPressHandle;
         pDividerHandle.MouseMove += PDividerMoveHandle;
@@ -94,6 +98,7 @@ public sealed partial class PFlow : UserControl
     {
         if (!pFlowCommandActive) return;
         lKeyframeRequestTimer.Stop();
+        lKeyframeResumeTimer.Stop();
         lSourcePath = string.IsNullOrWhiteSpace(sourcePath) ? null : sourcePath;
         lSpool = new LSpool(mediaInfo.LMediaInfoDuration);
         lCursor = PFlowCursorClamp(cursorTime);
@@ -146,6 +151,8 @@ public sealed partial class PFlow : UserControl
     {
         if (!pFlowCommandActive) return;
         lKeyframeRequestTimer.Stop();
+        lKeyframeResumeTimer.Stop();
+        lKeyframeOrchestrator.LKeyframeSuspend();
         lSourcePath = null;
         lSpool = null;
         lCursor = TimeSpan.Zero;
@@ -176,6 +183,8 @@ public sealed partial class PFlow : UserControl
         else
         {
             lKeyframeRequestTimer.Stop();
+            lKeyframeResumeTimer.Stop();
+            lKeyframeOrchestrator.LKeyframeSuspend();
         }
     }
 
@@ -192,6 +201,8 @@ public sealed partial class PFlow : UserControl
         PFlowNameClose();
         lKeyframeRequestTimer.Stop();
         lKeyframeRequestTimer.Tick -= PFlowTimerHandle;
+        lKeyframeResumeTimer.Stop();
+        lKeyframeResumeTimer.Tick -= PFlowResumeHandle;
         lKeyframeOrchestrator.LKeyframeNoticeReady -= PFlowNoticeHandle;
         lKeyframeOrchestrator.Dispose();
         if (pDividerHandle is null) return;
@@ -245,7 +256,14 @@ public sealed partial class PFlow : UserControl
     private void PFlowCursorSeek(TimeSpan cursorTime)
     {
         if (!pFlowCommandActive) return;
-        PFlowCursorPropagate(cursorTime, true, true);
+        PFlowKeyframeSuspend();
+        PFlowCursorPropagate(cursorTime, true, false);
+    }
+
+    private void PFlowSpoolHandle()
+    {
+        PFlowKeyframeSuspend();
+        PFlowSpoolUpdate();
     }
 
     private void PFlowCursorPropagate(TimeSpan cursorTime, bool pFlowViewerSeekRequest, bool lKeyframeRestartRequest)
@@ -278,18 +296,30 @@ public sealed partial class PFlow : UserControl
     private void PFlowKeyframeSchedule()
     {
         if (!pFlowCommandActive || pFlowUnloaded || lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) { lKeyframeRequestTimer.Stop(); return; }
+        if (lKeyframeResumeTimer.IsEnabled) return;
         lKeyframeRequestTimer.Stop();
         lKeyframeRequestTimer.Start();
+    }
+
+    private void PFlowKeyframeSuspend()
+    {
+        lKeyframeRequestTimer.Stop();
+        lKeyframeResumeTimer.Stop();
+        lKeyframeOrchestrator.LKeyframeSuspend();
+        if (pFlowCommandActive && !pFlowUnloaded) lKeyframeResumeTimer.Start();
     }
 
     private void PFlowKeyframeRun()
     {
         lKeyframeRequestTimer.Stop();
+        lKeyframeResumeTimer.Stop();
         if (pFlowCommandActive && !pFlowUnloaded && lSpool is not null && !string.IsNullOrWhiteSpace(lSourcePath))
             lKeyframeOrchestrator.LKeyframeStart(lSourcePath, lSpool.LSpoolDuration, lCursor);
     }
 
     private void PFlowTimerHandle(object? sender, EventArgs e) => PFlowKeyframeRun();
+
+    private void PFlowResumeHandle(object? sender, EventArgs e) => PFlowKeyframeRun();
 
     private void PFlowNoticeHandle(LKeyframeNotice notice)
     {

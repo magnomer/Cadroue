@@ -17,6 +17,7 @@ public sealed partial class PViewer : PPanel
     private readonly Canvas pViewerOverlay;
     private readonly Rectangle pViewerCropBox;
     private readonly DispatcherTimer pViewerClockTimer;
+    private volatile bool pPlayerAccurateActive;
     private Player? pViewerPlayer;
     private LMediaInfo? pViewerMediaInfo;
     private Point? pViewerCropStartPoint;
@@ -149,7 +150,7 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
-        pViewerPlayer.SeekAccurate((int)playbackPosition.TotalMilliseconds);
+        PPlayerAccurateSeek(pViewerPlayer, playbackPosition);
         PViewerPlaybackUpdate(null, playbackPosition);
     }
 

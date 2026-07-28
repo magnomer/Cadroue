@@ -231,41 +231,60 @@ public sealed partial class PViewfinder
             return;
         }
 
-        TimeSpan[] visibleSearchKeyframes = lKeyframes
+        double[] visibleSearchOffsets = lKeyframes
             .Where(entry => entry.LKeyframePresentationTime >= visibleSearchStart && entry.LKeyframePresentationTime <= visibleSearchEnd)
-            .Select(entry => entry.LKeyframePresentationTime)
+            .Select(entry => (entry.LKeyframePresentationTime - rangeStart).TotalSeconds / rangeSeconds * actualWidth)
             .ToArray();
-        if (!PViewfinderVisibilityCheck(actualWidth, rangeSeconds, visibleSearchKeyframes.Length))
+        if (!PViewfinderVisibilityCheck(actualWidth, rangeSeconds, visibleSearchOffsets))
         {
             return;
         }
 
-        foreach (TimeSpan keyframeTime in visibleSearchKeyframes)
+        double keyframeRight = Math.Max(0, actualWidth - PViewfinderKeyframeWidth);
+        var keyframeGuidelines = new GuidelineSet();
+        foreach (double keyframeOffset in visibleSearchOffsets)
         {
-            double keyframeX = Math.Clamp((keyframeTime - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
-            drawingContext.DrawLine(pViewfinderPenKeyframe, new Point(keyframeX, railTop), new Point(keyframeX, railBottom));
+            double keyframeX = Math.Clamp(keyframeOffset, 0, keyframeRight);
+            keyframeGuidelines.GuidelinesX.Add(keyframeX);
+            keyframeGuidelines.GuidelinesX.Add(keyframeX + PViewfinderKeyframeWidth);
         }
+
+        keyframeGuidelines.Freeze();
+        drawingContext.PushGuidelineSet(keyframeGuidelines);
+        foreach (double keyframeOffset in visibleSearchOffsets)
+        {
+            double keyframeX = Math.Clamp(keyframeOffset, 0, keyframeRight);
+            drawingContext.DrawRectangle(
+                pViewfinderBrushKeyframe,
+                null,
+                new Rect(keyframeX, railTop, PViewfinderKeyframeWidth, railBottom - railTop));
+        }
+
+        drawingContext.Pop();
     }
 
     private static bool PViewfinderVisibilityCheck(
         double actualWidth,
         double rangeSeconds,
-        int visibleSearchKeyframeCount)
+        double[] visibleSearchOffsets)
     {
-        if (visibleSearchKeyframeCount <= 0 || actualWidth <= 0 || rangeSeconds <= 0)
+        if (visibleSearchOffsets.Length == 0 || actualWidth <= 0 || rangeSeconds <= 0)
         {
             return false;
         }
 
-        double searchDurationSeconds = LKeyframeOrchestrator.LKeyframeSearchDuration.TotalSeconds;
-        if (searchDurationSeconds <= 0)
+        double keyframeMinimumGap = Math.Max(
+            PViewfinderKeyframeWidth,
+            App.LPreferenceStateCurrent.LPreferenceKeyframeMinimumPixels);
+        for (int keyframeIndex = 1; keyframeIndex < visibleSearchOffsets.Length; keyframeIndex++)
         {
-            return false;
+            if (visibleSearchOffsets[keyframeIndex] - visibleSearchOffsets[keyframeIndex - 1] < keyframeMinimumGap)
+            {
+                return false;
+            }
         }
 
-        double searchAreaWidth = actualWidth * (searchDurationSeconds / rangeSeconds);
-        double pixelsPerKeyframe = searchAreaWidth / visibleSearchKeyframeCount;
-        return pixelsPerKeyframe > App.LPreferenceStateCurrent.LPreferenceKeyframeMinimumPixels;
+        return true;
     }
 
     private static TimeSpan PViewfinderMinResolve(TimeSpan first, TimeSpan second)
