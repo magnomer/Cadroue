@@ -55,6 +55,7 @@ public partial class App : Application
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
         Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
         PFlow.PSectionPalette.PSectionPaletteReload();
+        LPlacementCarry();
 
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.Core.LSchedule.LScheduleRecoverReport = LAppLog.LInfo;
@@ -135,6 +136,45 @@ public partial class App : Application
             lDepotRootApplied = null;
             LAppLog.LError("Workspace folder could not be prepared", lException);
         }
+    }
+
+    private static void LPlacementCarry()
+    {
+        try
+        {
+            string lPreferencePath = LPreferenceStateStore.LPreferencePathRead();
+            if (!System.IO.File.Exists(lPreferencePath))
+            {
+                return;
+            }
+
+            using var lPreferenceDocument = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(lPreferencePath));
+            System.Text.Json.JsonElement lPreferenceRoot = lPreferenceDocument.RootElement;
+            LPlacementCarryOne(lPreferenceRoot, "Encoder", PPanels.PSEncoder.PSEncoderPlacementKey);
+            LPlacementCarryOne(lPreferenceRoot, "Options", PSOptions.PSOptionsPlacementKey);
+        }
+        catch (Exception lException)
+        {
+            LAppLog.LError("Subwindow placement could not be carried from preferences", lException);
+        }
+    }
+
+    private static void LPlacementCarryOne(System.Text.Json.JsonElement lPreferenceRoot, string lPrefix, string lPlacementKey)
+    {
+        if (Cadroue.Core.LPlacement.LPlacementExist(lPlacementKey)
+            || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Left", out System.Text.Json.JsonElement lLeft)
+            || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Top", out System.Text.Json.JsonElement lTop)
+            || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Width", out System.Text.Json.JsonElement lWidth)
+            || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Height", out System.Text.Json.JsonElement lHeight)
+            || lLeft.ValueKind != System.Text.Json.JsonValueKind.Number
+            || lTop.ValueKind != System.Text.Json.JsonValueKind.Number)
+        {
+            return;
+        }
+
+        Cadroue.Core.LPlacement.LPlacementSave(
+            lPlacementKey, lLeft.GetDouble(), lTop.GetDouble(), lWidth.GetDouble(), lHeight.GetDouble());
+        LAppLog.LInfo($"Subwindow placement carried from preferences: {lPlacementKey}");
     }
 
     private static void LScheduleRecoverRun()

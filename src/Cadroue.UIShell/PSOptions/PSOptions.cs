@@ -17,6 +17,8 @@ internal sealed partial class PSOptions : Window
     private const int PSOptionsDwmCaption = 35;
     private const int PSOptionsColor = 0x00F7E8DC;
 
+    internal const string PSOptionsPlacementKey = "Options";
+
     internal const double PSOptionsWidthDefault = 900;
     internal const double PSOptionsHeightDefault = 660;
     internal const double PSOptionsWidthMinimum = 780;
@@ -111,8 +113,8 @@ internal sealed partial class PSOptions : Window
 
         Title = "Options";
         Owner = pOwner;
-        Width = App.LPreferenceStateCurrent.LPreferenceOptionsWidth;
-        Height = App.LPreferenceStateCurrent.LPreferenceOptionsHeight;
+        Width = PSOptionsWidthDefault;
+        Height = PSOptionsHeightDefault;
         MinWidth = PSOptionsWidthMinimum;
         MinHeight = PSOptionsHeightMinimum;
         WindowStyle = WindowStyle.None;
@@ -124,7 +126,7 @@ internal sealed partial class PSOptions : Window
         SnapsToDevicePixels = true;
         PScrollbar.PScrollbarApply(this);
         Content = PSOptionsBuild();
-        PSOptionsPositionRestore(App.LPreferenceStateCurrent);
+        PSGrabber.PSGrabberPlacementRestore(this, PSOptionsPlacementKey);
         psOptionsGrabber = new PSGrabber(this);
         psOptionsGrabber.PSGrabberAttach();
         Closed += PSOptionsCloseHandle;
@@ -343,46 +345,11 @@ internal sealed partial class PSOptions : Window
 
     private static string PSOptionsNumberFormat(double pValue) => $"{Math.Round(pValue):0}";
 
-    private void PSOptionsPositionRestore(LPreferenceState lPreferenceState)
-    {
-        if (lPreferenceState.LPreferenceOptionsLeft is not double psLeft
-            || lPreferenceState.LPreferenceOptionsTop is not double psTop)
-        {
-            return;
-        }
-
-        double psScreenRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
-        double psScreenBottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
-        if (psLeft >= SystemParameters.VirtualScreenLeft && psTop >= SystemParameters.VirtualScreenTop
-            && psLeft + 100 <= psScreenRight && psTop + 40 <= psScreenBottom)
-        {
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = psLeft;
-            Top = psTop;
-        }
-    }
-
     private void PSOptionsCloseHandle(object? sender, EventArgs e)
     {
-        PSOptionsPositionSave();
+        PSGrabber.PSGrabberPlacementSave(this, PSOptionsPlacementKey);
         psOptionsGrabber.PSGrabberDetach();
         Closed -= PSOptionsCloseHandle;
-    }
-
-    private void PSOptionsPositionSave()
-    {
-        Rect psBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
-        if (double.IsNaN(psBounds.Left) || double.IsNaN(psBounds.Top) || psBounds.Width <= 0 || psBounds.Height <= 0)
-        {
-            return;
-        }
-
-        LPreferenceState lPreferenceState = App.LPreferenceStateCurrent.LPreferenceClone();
-        lPreferenceState.LPreferenceOptionsLeft = psBounds.Left;
-        lPreferenceState.LPreferenceOptionsTop = psBounds.Top;
-        lPreferenceState.LPreferenceOptionsWidth = psBounds.Width;
-        lPreferenceState.LPreferenceOptionsHeight = psBounds.Height;
-        App.LPreferenceStateSet(lPreferenceState);
     }
 
     protected override void OnSourceInitialized(EventArgs e)

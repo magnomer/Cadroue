@@ -40,14 +40,6 @@ public sealed class LPreferenceState
     public double? LPreferenceProgramLeft { get; set; }
     public double? LPreferenceProgramTop { get; set; }
     public double LPreferenceFlowHeight { get; set; }
-    public double LPreferenceEncoderWidth { get; set; }
-    public double LPreferenceEncoderHeight { get; set; }
-    public double? LPreferenceEncoderLeft { get; set; }
-    public double? LPreferenceEncoderTop { get; set; }
-    public double LPreferenceOptionsWidth { get; set; }
-    public double LPreferenceOptionsHeight { get; set; }
-    public double? LPreferenceOptionsLeft { get; set; }
-    public double? LPreferenceOptionsTop { get; set; }
 
     public List<string> LPreferenceTabLayoutKeys { get; set; } = new();
     public int LPreferenceTabSelectIndex { get; set; }
@@ -85,14 +77,6 @@ public sealed class LPreferenceState
             LPreferenceProgramLeft = null,
             LPreferenceProgramTop = null,
             LPreferenceFlowHeight = 280,
-            LPreferenceEncoderWidth = PSEncoder.PSEncoderWidthDefault,
-            LPreferenceEncoderHeight = PSEncoder.PSEncoderHeightDefault,
-            LPreferenceEncoderLeft = null,
-            LPreferenceEncoderTop = null,
-            LPreferenceOptionsWidth = PSOptions.PSOptionsWidthDefault,
-            LPreferenceOptionsHeight = PSOptions.PSOptionsHeightDefault,
-            LPreferenceOptionsLeft = null,
-            LPreferenceOptionsTop = null,
             LPreferenceTabLayoutKeys = new List<string> { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" },
             LPreferenceTabSelectIndex = 0
         };
@@ -135,14 +119,6 @@ public sealed class LPreferenceState
             LPreferenceProgramLeft = LPreferenceProgramLeft,
             LPreferenceProgramTop = LPreferenceProgramTop,
             LPreferenceFlowHeight = LPreferenceFlowHeight,
-            LPreferenceEncoderWidth = LPreferenceEncoderWidth,
-            LPreferenceEncoderHeight = LPreferenceEncoderHeight,
-            LPreferenceEncoderLeft = LPreferenceEncoderLeft,
-            LPreferenceEncoderTop = LPreferenceEncoderTop,
-            LPreferenceOptionsWidth = LPreferenceOptionsWidth,
-            LPreferenceOptionsHeight = LPreferenceOptionsHeight,
-            LPreferenceOptionsLeft = LPreferenceOptionsLeft,
-            LPreferenceOptionsTop = LPreferenceOptionsTop,
             LPreferenceTabLayoutKeys = new List<string>(LPreferenceTabLayoutKeys),
             LPreferenceTabSelectIndex = LPreferenceTabSelectIndex,
             LPreferenceTabExports = new List<LExportSpecificPresetRecord>(LPreferenceTabExports),
@@ -207,20 +183,6 @@ public sealed class LPreferenceState
         LPreferenceProgramWidth = LPreferenceNumberClamp(LPreferenceProgramWidth, 800, 4000, 1280);
         LPreferenceProgramHeight = LPreferenceNumberClamp(LPreferenceProgramHeight, 400, 3000, 760);
         LPreferenceFlowHeight = LPreferenceNumberClamp(LPreferenceFlowHeight, 200, 520, 280);
-        LPreferenceEncoderWidth = LPreferenceEncoderWidth <= 0
-            ? PSEncoder.PSEncoderWidthDefault
-            : LPreferenceNumberClamp(LPreferenceEncoderWidth, PSEncoder.PSEncoderWidthMinimum, 4000, PSEncoder.PSEncoderWidthDefault);
-        LPreferenceEncoderHeight = LPreferenceEncoderHeight <= 0
-            ? PSEncoder.PSEncoderHeightDefault
-            : LPreferenceNumberClamp(LPreferenceEncoderHeight, PSEncoder.PSEncoderHeightMinimum, 3000, PSEncoder.PSEncoderHeightDefault);
-
-        LPreferenceOptionsWidth = LPreferenceOptionsWidth <= 0
-            ? PSOptions.PSOptionsWidthDefault
-            : LPreferenceNumberClamp(LPreferenceOptionsWidth, PSOptions.PSOptionsWidthMinimum, 4000, PSOptions.PSOptionsWidthDefault);
-        LPreferenceOptionsHeight = LPreferenceOptionsHeight <= 0
-            ? PSOptions.PSOptionsHeightDefault
-            : LPreferenceNumberClamp(LPreferenceOptionsHeight, PSOptions.PSOptionsHeightMinimum, 3000, PSOptions.PSOptionsHeightDefault);
-
         LPreferenceWorkspaceFolder = (LPreferenceWorkspaceFolder ?? string.Empty).Trim();
         LPreferenceFfmpegFolder = (LPreferenceFfmpegFolder ?? string.Empty).Trim();
         LPreferenceMediaPath = (LPreferenceMediaPath ?? string.Empty).Trim();
@@ -253,12 +215,15 @@ public sealed class LPreferenceTabLayoutRecord
 
     public bool ExportHidden { get; set; }
 
+    public List<int> PanelsCollapsed { get; set; } = new();
+
     public LPreferenceTabLayoutRecord LPreferenceTabLayoutClone()
     {
         return new LPreferenceTabLayoutRecord
         {
             PanelWidths = new List<double>(PanelWidths),
-            ExportHidden = ExportHidden
+            ExportHidden = ExportHidden,
+            PanelsCollapsed = new List<int>(PanelsCollapsed)
         };
     }
 }

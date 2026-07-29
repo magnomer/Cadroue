@@ -89,7 +89,7 @@ public sealed class PList : PPanel
 
     public bool PListMinimizedCheck() => pListMinimized;
 
-    private void PListMinimizeSet(bool pListMinimizeRequest)
+    public void PListMinimizeSet(bool pListMinimizeRequest)
     {
         if (pListMinimized == pListMinimizeRequest)
         {

@@ -35,6 +35,7 @@ public sealed class PEditTab : PTabSurface
         var pProcessing = new PProcessing();
         pProcessing.PProcessingStepAdd("Crop", PEditCropIconPath);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
 
         pInspector.PInspectorToolChange += pViewer.PCropToolSet;
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
@@ -49,6 +50,11 @@ public sealed class PEditTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        if (lPreferenceTabLayout is null)
+        {
+            pInspector.PInspectorMinimizeSet(true);
+        }
+
         Content = pTabGrid;
     }
 

@@ -32,7 +32,7 @@ public abstract class PTabSurface : UserControl
 
     protected void PTabWidthRaise() => PTabWidthChange?.Invoke();
 
-    protected static Grid PTabGridBuild(
+    protected Grid PTabGridBuild(
         IReadOnlyList<UIElement> pPanels,
         UIElement pCompass,
         UIElement pAction,
@@ -70,7 +70,7 @@ public abstract class PTabSurface : UserControl
             };
             pPanelGrid.ColumnDefinitions.Add(pPanelDefinition);
             pPanelColumns.Add(pPanelDefinition);
-            pPanelCompactFlags.Add(pPanels[index] is PList or PExport);
+            pPanelCompactFlags.Add(pPanels[index] is PList or PExport or PProcessing or PInspector or PSection);
             Grid.SetColumn(pPanels[index], pPanelColumn);
             pPanelGrid.Children.Add(pPanels[index]);
             if (index >= pPanels.Count - 1)
@@ -120,14 +120,18 @@ public abstract class PTabSurface : UserControl
 
         for (int index = 0; index < pPanels.Count; index++)
         {
-            if (pPanels[index] is not PList pTabListPanel)
-            {
-                continue;
-            }
+            PTabCollapseAttach(pPanels[index], index, pPanelLayout, PTabWidthRaise);
+        }
 
-            int pTabListIndex = index;
-            pTabListPanel.PListMinimizeChange += pTabListMinimized =>
-                pPanelLayout.PPanelWidthSet(pTabListIndex, pTabListMinimized ? PList.PListStripWidth : 0);
+        if (lPreferenceTabLayout?.PanelsCollapsed is { } pCollapsedIndexes)
+        {
+            foreach (int pCollapsedIndex in pCollapsedIndexes)
+            {
+                if (pCollapsedIndex >= 0 && pCollapsedIndex < pPanels.Count)
+                {
+                    PTabCollapseSet(pPanels[pCollapsedIndex], true);
+                }
+            }
         }
 
         var pActionRowContent = new Grid { MinHeight = 72 };
@@ -166,6 +170,14 @@ public abstract class PTabSurface : UserControl
         }
 
         lPreferenceTabLayout.ExportHidden = pState.PExportHidden;
+        for (int index = 0; index < pState.PTabPanels.Count; index++)
+        {
+            if (PTabCollapseCheck(pState.PTabPanels[index]))
+            {
+                lPreferenceTabLayout.PanelsCollapsed.Add(index);
+            }
+        }
+
         foreach (double pWeight in pState.PTabLayout.PWeightsRead())
         {
             lPreferenceTabLayout.PanelWidths.Add(pWeight);
@@ -190,6 +202,7 @@ public abstract class PTabSurface : UserControl
 
         private PTabGridState(
             PResizableColumnLayout pTabLayout,
+            IReadOnlyList<UIElement> pTabPanels,
             int? pExportPanelIndex,
             ColumnDefinition? pExportColumn,
             UIElement? pExportPanel,
@@ -197,6 +210,7 @@ public abstract class PTabSurface : UserControl
             UIElement? pExportSplitter)
         {
             PTabLayout = pTabLayout;
+            PTabPanels = pTabPanels;
             this.pExportPanelIndex = pExportPanelIndex;
             this.pExportColumn = pExportColumn;
             this.pExportPanel = pExportPanel;
@@ -205,6 +219,8 @@ public abstract class PTabSurface : UserControl
         }
 
         public PResizableColumnLayout PTabLayout { get; }
+
+        public IReadOnlyList<UIElement> PTabPanels { get; }
 
         public static PTabGridState PTabGridStateCreate(
             PResizableColumnLayout pTabLayout,
@@ -220,6 +236,7 @@ public abstract class PTabSurface : UserControl
                     int pSplitterIndex = index - 1;
                     return new PTabGridState(
                         pTabLayout,
+                        pPanels,
                         index,
                         pPanelColumns[index],
                         pPanels[index],
@@ -228,7 +245,7 @@ public abstract class PTabSurface : UserControl
                 }
             }
 
-            return new PTabGridState(pTabLayout, null, null, null, null, null);
+            return new PTabGridState(pTabLayout, pPanels, null, null, null, null, null);
         }
 
         public bool PExportHidden => pExportPanelIndex is not null && !pExportVisible;
@@ -277,6 +294,62 @@ public abstract class PTabSurface : UserControl
             }
 
             pExportVisible = !pExportHide;
+        }
+    }
+
+    internal static bool PTabCollapseCheck(UIElement pPanel) => pPanel switch
+    {
+        PList pListPanel => pListPanel.PListMinimizedCheck(),
+        PProcessing pProcessingPanel => pProcessingPanel.PProcessingMinimizedCheck(),
+        PInspector pInspectorPanel => pInspectorPanel.PInspectorMinimizedCheck(),
+        PSection pSectionPanel => pSectionPanel.PSectionMinimizedCheck(),
+        _ => false
+    };
+
+    internal static void PTabCollapseSet(UIElement pPanel, bool pCollapsed)
+    {
+        switch (pPanel)
+        {
+            case PList pListPanel: pListPanel.PListMinimizeSet(pCollapsed); break;
+            case PProcessing pProcessingPanel: pProcessingPanel.PProcessingMinimizeSet(pCollapsed); break;
+            case PInspector pInspectorPanel: pInspectorPanel.PInspectorMinimizeSet(pCollapsed); break;
+            case PSection pSectionPanel: pSectionPanel.PSectionMinimizeSet(pCollapsed); break;
+        }
+    }
+
+    private static double PTabCollapseWidthRead(UIElement pPanel) => pPanel switch
+    {
+        PList => PList.PListStripWidth,
+        PProcessing => PProcessing.PProcessingStripWidth,
+        PInspector => PInspector.PInspectorStripWidth,
+        PSection => PSection.PSectionStripWidth,
+        _ => 0
+    };
+
+    private static void PTabCollapseAttach(
+        UIElement pPanel,
+        int pPanelIndex,
+        PResizableColumnLayout pPanelLayout,
+        Action pCollapseNotify)
+    {
+        double pStripWidth = PTabCollapseWidthRead(pPanel);
+        if (pStripWidth <= 0)
+        {
+            return;
+        }
+
+        void pCollapseApply(bool pCollapsed)
+        {
+            pPanelLayout.PPanelWidthSet(pPanelIndex, pCollapsed ? pStripWidth : 0);
+            pCollapseNotify();
+        }
+
+        switch (pPanel)
+        {
+            case PList pListPanel: pListPanel.PListMinimizeChange += pCollapseApply; break;
+            case PProcessing pProcessingPanel: pProcessingPanel.PProcessingMinimizeChange += pCollapseApply; break;
+            case PInspector pInspectorPanel: pInspectorPanel.PInspectorMinimizeChange += pCollapseApply; break;
+            case PSection pSectionPanel: pSectionPanel.PSectionMinimizeChange += pCollapseApply; break;
         }
     }
 

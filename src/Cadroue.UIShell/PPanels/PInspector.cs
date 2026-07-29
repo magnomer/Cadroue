@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.UIShell.PAssets;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -13,9 +15,16 @@ public sealed partial class PInspector : PPanel
     private const double PInspectorLabelWidth = 58;
     private const double PInspectorFieldHeight = 26;
 
+    public const double PInspectorStripWidth = 48;
+
+    public event Action<bool>? PInspectorMinimizeChange;
+
     private readonly TextBlock pInspectorTitleLabel;
     private readonly TextBlock pInspectorEmptyNotice;
     private readonly UIElement pInspectorPersistentRow;
+    private readonly UIElement pInspectorFullBody;
+    private readonly UIElement pInspectorStripBody;
+    private bool pInspectorMinimized;
 
     public PInspector() : base("")
     {
@@ -29,13 +38,24 @@ public sealed partial class PInspector : PPanel
             VerticalAlignment = VerticalAlignment.Center
         };
 
+        Button pMinimizeButton = PInspectorButtonBuild(
+            "/PAssets/PPanels/PListMinimize.svg", "Hide the Inspector panel", () => PInspectorMinimizeSet(true));
+        pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
+
+        var pHeaderGrid = new Grid();
+        pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(pMinimizeButton, 1);
+        pHeaderGrid.Children.Add(pInspectorTitleLabel);
+        pHeaderGrid.Children.Add(pMinimizeButton);
+
         var pHeader = new Border
         {
-            Padding = new Thickness(12, 10, 12, 10),
+            Padding = new Thickness(12, 5, 6, 5),
             BorderBrush = PPanelLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Background = Brushes.White,
-            Child = pInspectorTitleLabel
+            Child = pHeaderGrid
         };
 
         pInspectorEmptyNotice = new TextBlock
@@ -70,9 +90,64 @@ public sealed partial class PInspector : PPanel
         pRoot.Children.Add(pInspectorPersistentRow);
         pRoot.Children.Add(pScroll);
 
+        pInspectorFullBody = pRoot;
+        pInspectorStripBody = PInspectorStripBuild();
+        pInspectorStripBody.Visibility = Visibility.Collapsed;
+
+        var pBodyHost = new Grid();
+        pBodyHost.Children.Add(pInspectorFullBody);
+        pBodyHost.Children.Add(pInspectorStripBody);
+
         FocusVisualStyle = null;
-        Content = PPanelBorderBuild(pRoot);
+        Content = PPanelBorderBuild(pBodyHost);
         PInspectorRatioUpdate();
+    }
+
+    public bool PInspectorMinimizedCheck() => pInspectorMinimized;
+
+    public void PInspectorMinimizeSet(bool pInspectorMinimizeRequest)
+    {
+        if (pInspectorMinimized == pInspectorMinimizeRequest)
+        {
+            return;
+        }
+
+        pInspectorMinimized = pInspectorMinimizeRequest;
+        pInspectorFullBody.Visibility = pInspectorMinimized ? Visibility.Collapsed : Visibility.Visible;
+        pInspectorStripBody.Visibility = pInspectorMinimized ? Visibility.Visible : Visibility.Collapsed;
+        PInspectorMinimizeChange?.Invoke(pInspectorMinimized);
+    }
+
+    private UIElement PInspectorStripBuild()
+    {
+        Button pMaximizeButton = PInspectorButtonBuild(
+            "/PAssets/PPanels/PListMaximize.svg", "Show the Inspector panel", () => PInspectorMinimizeSet(false));
+        pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
+        pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
+
+        var pStrip = new StackPanel { Background = Brushes.White };
+        pStrip.Children.Add(pMaximizeButton);
+        return pStrip;
+    }
+
+    private static Button PInspectorButtonBuild(string pIconPath, string pTooltip, Action pClick)
+    {
+        var pButton = new Button
+        {
+            Content = new Image
+            {
+                Width = 14,
+                Height = 14,
+                Source = PIcon.PIconRead(pIconPath, pInspectorIconBrush),
+                Stretch = Stretch.Uniform
+            },
+            ToolTip = pTooltip,
+            Width = 28,
+            Height = 26,
+            Style = PButton.PButtonPanelCreate()
+        };
+        pButton.Click += (_, _) => pClick();
+        return pButton;
     }
 
     public void PInspectorStepShow(string? pStepName)

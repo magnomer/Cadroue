@@ -51,6 +51,8 @@ public static class LPreferenceStateStore
         }
     }
 
+    public static string LPreferencePathRead() => LPreferencePathCreate();
+
     private static string LPreferencePathCreate()
     {
         string lPreferenceApplicationDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);

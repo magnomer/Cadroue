@@ -5,7 +5,7 @@ namespace Cadroue.UIShell.PSShared;
 
 internal sealed class PSGrabber
 {
-    private const int PSGrabberBorderPixels = 8;
+    private const int PSGrabberBorderPixels = 14;
     private const int PSGrabberLeft = 1;
     private const int PSGrabberRight = 2;
     private const int PSGrabberTop = 4;
@@ -20,6 +20,41 @@ internal sealed class PSGrabber
     internal PSGrabber(Window pWindow)
     {
         psGrabberWindow = pWindow;
+    }
+
+    internal static void PSGrabberPlacementRestore(Window pWindow, string pPlacementKey)
+    {
+        if (Cadroue.Core.LPlacement.LPlacementRead(pPlacementKey) is not { } pPlacement)
+        {
+            return;
+        }
+
+        double pWidth = Math.Max(pPlacement.Width, pWindow.MinWidth);
+        double pHeight = Math.Max(pPlacement.Height, pWindow.MinHeight);
+        double pScreenRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
+        double pScreenBottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
+
+        pWindow.Width = pWidth;
+        pWindow.Height = pHeight;
+        if (pPlacement.Left < SystemParameters.VirtualScreenLeft
+            || pPlacement.Top < SystemParameters.VirtualScreenTop
+            || pPlacement.Left + 100 > pScreenRight
+            || pPlacement.Top + 40 > pScreenBottom)
+        {
+            return;
+        }
+
+        pWindow.WindowStartupLocation = WindowStartupLocation.Manual;
+        pWindow.Left = pPlacement.Left;
+        pWindow.Top = pPlacement.Top;
+    }
+
+    internal static void PSGrabberPlacementSave(Window pWindow, string pPlacementKey)
+    {
+        Rect pBounds = pWindow.WindowState == WindowState.Normal
+            ? new Rect(pWindow.Left, pWindow.Top, pWindow.Width, pWindow.Height)
+            : pWindow.RestoreBounds;
+        Cadroue.Core.LPlacement.LPlacementSave(pPlacementKey, pBounds.Left, pBounds.Top, pBounds.Width, pBounds.Height);
     }
 
     internal void PSGrabberAttach()

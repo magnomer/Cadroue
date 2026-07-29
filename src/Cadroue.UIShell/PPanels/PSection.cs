@@ -10,7 +10,7 @@ using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PSection : UserControl
+public sealed partial class PSection : UserControl
 {
     private static readonly FontFamily pSectionFontFamily = new("Segoe UI");
 
@@ -47,14 +47,7 @@ public sealed class PSection : UserControl
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        var pHeader = new Border
-        {
-            Padding = new Thickness(12, 10, 12, 10),
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)),
-            BorderThickness = new Thickness(0, 0, 0, 1),
-            Background = Brushes.White,
-            Child = pSectionCountLabel
-        };
+        UIElement pHeader = PSectionHeaderBuild();
 
         pSectionRowPanel = new StackPanel();
         pSectionRowPanel.PreviewMouseMove += PSectionDragMoveHandle;
@@ -76,8 +69,16 @@ public sealed class PSection : UserControl
         pRoot.Children.Add(pActionBar);
         pRoot.Children.Add(pScroll);
 
+        pSectionFullBody = pRoot;
+        pSectionStripBody = PSectionStripBuild();
+        pSectionStripBody.Visibility = Visibility.Collapsed;
+
+        var pBodyHost = new Grid();
+        pBodyHost.Children.Add(pSectionFullBody);
+        pBodyHost.Children.Add(pSectionStripBody);
+
         FocusVisualStyle = null;
-        Content = PPanel.PPanelBorderBuild(pRoot);
+        Content = PPanel.PPanelBorderBuild(pBodyHost);
     }
 
     private UIElement PSectionActionBuild()

@@ -6,6 +6,8 @@ namespace Cadroue.UIShell.PControlBar;
 
 public sealed class PLogWindow : Window
 {
+    private const string PLogWindowPlacementKey = "Log";
+
     private static PLogWindow? pLogWindowCurrent;
     private readonly TextBox pLogText;
 
@@ -33,9 +35,11 @@ public sealed class PLogWindow : Window
         };
 
         Content = PLogContentBuild();
+        PSShared.PSGrabber.PSGrabberPlacementRestore(this, PLogWindowPlacementKey);
         LAppLog.LLogAppend += PLogAppendHandle;
         Closed += (_, _) =>
         {
+            PSShared.PSGrabber.PSGrabberPlacementSave(this, PLogWindowPlacementKey);
             LAppLog.LLogAppend -= PLogAppendHandle;
             pLogWindowCurrent = null;
         };

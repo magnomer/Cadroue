@@ -20,6 +20,8 @@ internal sealed partial class PSEncoder : Window
     private const int PSEncoderDwmCaption = 35;
     private const int PSEncoderColor = 0x00F7E8DC;
 
+    internal const string PSEncoderPlacementKey = "Encoder";
+
     internal const double PSEncoderWidthDefault = 820;
     internal const double PSEncoderHeightDefault = 700;
     internal const double PSEncoderWidthMinimum = 680;
@@ -113,8 +115,8 @@ internal sealed partial class PSEncoder : Window
         psAudioChannelCombo = PSComboBuild(lsExportSpecificEdit.AudioChannels, "Same as source", "Mono", "Stereo", "5.1", "Custom");
 
         Title = "Specific Export Settings";
-        Width = App.LPreferenceStateCurrent.LPreferenceEncoderWidth;
-        Height = App.LPreferenceStateCurrent.LPreferenceEncoderHeight;
+        Width = PSEncoderWidthDefault;
+        Height = PSEncoderHeightDefault;
         MinWidth = PSEncoderWidthMinimum;
         MinHeight = PSEncoderHeightMinimum;
         WindowStyle = WindowStyle.None;
@@ -126,7 +128,7 @@ internal sealed partial class PSEncoder : Window
         SnapsToDevicePixels = true;
         PScrollbar.PScrollbarApply(this);
         Content = PSEncoderBuild();
-        PSEncoderPositionRestore(App.LPreferenceStateCurrent);
+        PSGrabber.PSGrabberPlacementRestore(this, PSEncoderPlacementKey);
         psEncoderGrabber = new PSGrabber(this);
         psEncoderGrabber.PSGrabberAttach();
         Closed += PSEncoderCloseHandle;
@@ -171,46 +173,11 @@ internal sealed partial class PSEncoder : Window
         pSummaryRefresh();
     }
 
-    private void PSEncoderPositionRestore(LPreferenceState lPreferenceState)
-    {
-        if (lPreferenceState.LPreferenceEncoderLeft is not double psLeft
-            || lPreferenceState.LPreferenceEncoderTop is not double psTop)
-        {
-            return;
-        }
-
-        double psScreenRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
-        double psScreenBottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
-        if (psLeft >= SystemParameters.VirtualScreenLeft && psTop >= SystemParameters.VirtualScreenTop
-            && psLeft + 100 <= psScreenRight && psTop + 40 <= psScreenBottom)
-        {
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = psLeft;
-            Top = psTop;
-        }
-    }
-
     private void PSEncoderCloseHandle(object? sender, System.EventArgs e)
     {
-        PSEncoderPositionSave();
+        PSGrabber.PSGrabberPlacementSave(this, PSEncoderPlacementKey);
         psEncoderGrabber.PSGrabberDetach();
         Closed -= PSEncoderCloseHandle;
-    }
-
-    private void PSEncoderPositionSave()
-    {
-        Rect psBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
-        if (double.IsNaN(psBounds.Left) || double.IsNaN(psBounds.Top) || psBounds.Width <= 0 || psBounds.Height <= 0)
-        {
-            return;
-        }
-
-        LPreferenceState lPreferenceState = App.LPreferenceStateCurrent.LPreferenceClone();
-        lPreferenceState.LPreferenceEncoderLeft = psBounds.Left;
-        lPreferenceState.LPreferenceEncoderTop = psBounds.Top;
-        lPreferenceState.LPreferenceEncoderWidth = psBounds.Width;
-        lPreferenceState.LPreferenceEncoderHeight = psBounds.Height;
-        App.LPreferenceStateSet(lPreferenceState);
     }
 
     protected override void OnSourceInitialized(EventArgs e)

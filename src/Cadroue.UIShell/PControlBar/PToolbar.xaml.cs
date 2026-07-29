@@ -179,6 +179,8 @@ public partial class PToolbar : UserControl
         PSOptions.PSOptionsShow(Window.GetWindow(this)!, PToolbarOptionsApply);
     }
 
+    private const string PToolbarShortcutPlacementKey = "Shortcut";
+
     public void PToolbarShortcutShow()
     {
         var pShortcutWindow = new Window
@@ -192,6 +194,9 @@ public partial class PToolbar : UserControl
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Content = PShortcutContentBuild()
         };
+        PSShared.PSGrabber.PSGrabberPlacementRestore(pShortcutWindow, PToolbarShortcutPlacementKey);
+        pShortcutWindow.Closed += (_, _) =>
+            PSShared.PSGrabber.PSGrabberPlacementSave(pShortcutWindow, PToolbarShortcutPlacementKey);
         pShortcutWindow.ShowDialog();
     }
 
