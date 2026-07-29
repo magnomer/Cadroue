@@ -12,7 +12,7 @@ public sealed class PEditTab : PTabSurface
     private const double PEditBrightnessPreviewFactor = 2.5;
 
     private readonly PFlowControl pFlow = new();
-    private readonly PViewer pViewer = new();
+    private readonly PViewer pViewer = new() { PViewerColorPreview = true };
     private readonly PInspector pInspector = new();
     private readonly PList pList = new();
     private readonly PProcessing pProcessing = new();
@@ -152,7 +152,7 @@ public sealed class PEditTab : PTabSurface
                 LAppLog.LInfo(
                     $"Edit applying {(pEditCarryWins ? "persistent" : "sidecar")} plan to '{pEditName}': "
                     + $"{PEditPlanFormat(pEditApply)}");
-                pInspector.PInspectorPlanApply(pEditApply.LEditCrop);
+                pInspector.PInspectorPlanApply(pEditApply.LEditCrop, pEditApply.LEditCropApply);
                 pInspector.PInspectorVideoPlanApply(pEditApply.LEditVideo);
             }
             else
@@ -245,13 +245,16 @@ public sealed class PEditTab : PTabSurface
 
     private LEditPlan? PEditCarriedRead()
     {
+        bool pCropApply = pInspector.PInspectorPersistentCheck() && pInspector.PInspectorCropActiveCheck();
         LWorkCrop pCrop = pInspector.PInspectorPersistentCheck()
             ? pInspector.PInspectorCropRead()
             : LWorkCrop.LWorkCropNoneCreate();
         LWorkVideo pVideo = pInspector.PInspectorVideoPersistentAnyCheck()
             ? pInspector.PInspectorVideoPersistentRead()
             : LWorkVideo.LWorkVideoNoneCreate();
-        return pCrop.LWorkCropActive || pVideo.LWorkVideoActive ? new LEditPlan(pCrop, pVideo) : null;
+        return pCropApply || pCrop.LWorkCropActive || pVideo.LWorkVideoActive
+            ? new LEditPlan(pCrop, pVideo, pCropApply)
+            : null;
     }
 
     private LWorkVideo PEditVideoRead()
@@ -282,7 +285,10 @@ public sealed class PEditTab : PTabSurface
             return;
         }
 
-        var pEditPlan = new LEditPlan(pInspector.PInspectorCropRead(), PEditVideoRead());
+        var pEditPlan = new LEditPlan(
+            pInspector.PInspectorCropRead(),
+            PEditVideoRead(),
+            pInspector.PInspectorCropActiveCheck());
         if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath) is null)
         {
             return;

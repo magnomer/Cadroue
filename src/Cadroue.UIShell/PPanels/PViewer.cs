@@ -284,6 +284,7 @@ public sealed partial class PViewer : PPanel
     private void PViewerPreviewApply()
     {
         LPreview.LPreviewApply(pViewerPlayer, LPreviewStateCurrent);
+        PPlayerColorDiagnosticRecord(pViewerPlayer);
     }
 
     private void PViewerPreviewRestore()

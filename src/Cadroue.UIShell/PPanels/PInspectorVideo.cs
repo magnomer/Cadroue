@@ -111,6 +111,18 @@ public sealed partial class PInspector
             200,
             "0.#");
         pInspectorContrastStack.Children.Add(PInspectorPassSliderRowBuild("Amount", pInspectorContrastSlider, "%", pInspectorContrastValue));
+        if (!LFlyleafLocal.LFlyleafLocalActive)
+        {
+            pInspectorContrastStack.Children.Add(new TextBlock
+            {
+                Text = "Preview requires local Flyleaf. Export still applies contrast.",
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x64, 0x70, 0x82)),
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 2, 0, 0)
+            });
+        }
+
         pInspectorContrastBody = PInspectorVideoBodyBuild(pInspectorContrastApply, pInspectorContrastStack);
         PInspectorVideoApplyUpdate(pInspectorContrastApply, pInspectorContrastStack);
         return pInspectorContrastBody;

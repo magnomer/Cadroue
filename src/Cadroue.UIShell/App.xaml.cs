@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Cadroue.UIShell.PControlBar;
+using Cadroue.UIShell.PMainWindow;
 using FlyleafLib;
 
 namespace Cadroue.UIShell;
@@ -35,7 +36,6 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        base.OnStartup(e);
         DispatcherUnhandledException += (_, pEvent) =>
         {
             LAppLog.LError("Unhandled UI exception", pEvent.Exception);
@@ -55,6 +55,8 @@ public partial class App : Application
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
         LTrace.LTraceVerbose = LPreferenceStateCurrent.LPreferenceLogVerbose;
         Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
+        LFlyleafLocal.LFlyleafLocalResolverRegister();
+        base.OnStartup(e);
         PFlow.PSectionPalette.PSectionPaletteReload();
         LPlacementCarry();
 
@@ -63,11 +65,17 @@ public partial class App : Application
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;
         Cadroue.Core.LSchedule.LScheduleRecoverReport = LAppLog.LInfo;
         LAppLog.LInfo($"Application started: version {LAppVersionRead()}, process {Environment.ProcessId}");
+        LAppLog.LInfo(LFlyleafLocal.LFlyleafLocalActive
+            ? "Local Flyleaf preview engine active"
+            : "NuGet Flyleaf preview engine active");
         LDepotRootApply();
         LScheduleRecoverRun();
         LRendererFlyleafStart();
         LRelayStore.LRelayStaleClear();
         LRelayChannel.LRelayChannelStart();
+
+        MainWindow = new PWindow();
+        MainWindow.Show();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -299,7 +307,9 @@ public partial class App : Application
             var lRendererEngineConfig = new EngineConfig
             {
                 UIRefresh = false,
-                UIRefreshInterval = 250
+                UIRefreshInterval = 250,
+                LogLevel = LogLevel.Debug,
+                LogOutput = System.IO.Path.Combine(Cadroue.Core.LDepot.LDepotRootRead(), "log", "flyleaf-debug.log")
             };
 
             if (LRendererSettings.LRendererFolderValidate(LPreferenceStateCurrent.LPreferenceFfmpegFolder))
@@ -319,6 +329,7 @@ public partial class App : Application
                 }
             }
 
+            LAppLog.LInfo(LFlyleafLocal.LFlyleafLocalLoadedReportRead(typeof(Engine).Assembly));
             Engine.Start(lRendererEngineConfig);
         }
         catch (Exception lException)

@@ -14,6 +14,7 @@ public static class LPreview
             return;
         }
 
+        LPreviewProcessorApply(lPreviewPlayer, "preview color/geometry");
         LPreviewColorApply(lPreviewPlayer, lPreviewState.LColor);
         LPreviewRotateApply(lPreviewPlayer, lPreviewState.LRotateFlip);
     }
@@ -42,7 +43,9 @@ public static class LPreview
         LPreviewFilterApply(
             lPreviewPlayer,
             FLFilters.Contrast,
-            LPreviewValueClamp((1 - lColor.LColorContrast) * 100, -100, 100));
+            LFlyleafLocal.LFlyleafLocalActive
+                ? LPreviewValueClamp((lColor.LColorContrast - 1) * 100, -100, 100)
+                : 0);
 
         LPreviewFilterApply(
             lPreviewPlayer,

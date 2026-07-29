@@ -10,12 +10,13 @@ public sealed record LEditWorkDescription(
     LWorkVideo LEditVideo,
     LWorkOutput LEditOutput);
 
-public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo)
+public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropApply)
 {
     public static LEditPlan LEditPlanNoneCreate() =>
-        new(LWorkCrop.LWorkCropNoneCreate(), LWorkVideo.LWorkVideoNoneCreate());
+        new(LWorkCrop.LWorkCropNoneCreate(), LWorkVideo.LWorkVideoNoneCreate(), false);
 
-    public bool LEditPlanActive => LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive;
+    public bool LEditPlanActive =>
+        LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive;
 }
 
 public static partial class LEdit
@@ -102,9 +103,10 @@ public static partial class LEdit
             return lEditSaved ?? LEditPlan.LEditPlanNoneCreate();
         }
 
-        LWorkCrop lCrop = lPersistent.LEditCrop.LWorkCropActive
+        LWorkCrop lCrop = lPersistent.LEditCropApply
             ? lPersistent.LEditCrop
             : lEditSaved?.LEditCrop ?? LWorkCrop.LWorkCropNoneCreate();
+        bool lCropApply = lPersistent.LEditCropApply || (lEditSaved?.LEditCropApply ?? false);
         var lSteps = new List<LWorkVideoStep>();
         foreach (LWorkVideoKind lKind in Enum.GetValues<LWorkVideoKind>())
         {
@@ -122,7 +124,7 @@ public static partial class LEdit
             }
         }
 
-        return new LEditPlan(lCrop, new LWorkVideo(lSteps));
+        return new LEditPlan(lCrop, new LWorkVideo(lSteps), lCropApply);
     }
 
     private static LEditPlan? LEditPlanResolve(string lEditSourcePath, LEditPlan? lEditCarried)
@@ -163,7 +165,11 @@ public static partial class LEdit
             lEditRecord.Rotation,
             lEditRecord.FlipHorizontal,
             lEditRecord.FlipVertical),
-        new LWorkVideo(lEditRecord.Steps.Select(LEditVideoStepCreate).ToList()));
+        new LWorkVideo(lEditRecord.Steps.Select(LEditVideoStepCreate).ToList()),
+        lEditRecord.CropActive
+            || lEditRecord.CropLeft > 0 || lEditRecord.CropTop > 0
+            || lEditRecord.CropRight > 0 || lEditRecord.CropBottom > 0
+            || lEditRecord.Rotation != 0 || lEditRecord.FlipHorizontal || lEditRecord.FlipVertical);
 
     private static LWorkVideoStep LEditVideoStepCreate(Cadroue.Media.LSidecarVideoStepRecord lEditRecord) =>
         string.Equals(lEditRecord.Kind, "Contrast", StringComparison.Ordinal)
@@ -183,6 +189,7 @@ public static partial class LEdit
                 Rotation = lEditPlan.LEditCrop.LWorkCropRotation,
                 FlipHorizontal = lEditPlan.LEditCrop.LWorkCropFlipHorizontal,
                 FlipVertical = lEditPlan.LEditCrop.LWorkCropFlipVertical,
+                CropActive = lEditPlan.LEditCropApply,
                 Steps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditVideoStepRecordCreate).ToList()
             });
     }

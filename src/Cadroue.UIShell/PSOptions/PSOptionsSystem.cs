@@ -61,8 +61,47 @@ internal sealed partial class PSOptions
         pPanel.Children.Add(PSPlateBuild("FFmpeg",
             PSFieldButtonBuild("Location", psFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
             pFfmpegState));
+        pPanel.Children.Add(PSFlyleafPlateBuild());
         pPanel.Children.Add(PSRecordPlateBuild());
         return pPanel;
+    }
+
+    private UIElement PSFlyleafPlateBuild()
+    {
+        var pState = new TextBlock
+        {
+            Foreground = PSFieldMuted,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = PSNoticeMargin,
+            Text = LFlyleafLocal.LFlyleafLocalStatusRead()
+        };
+
+        Button pInstall = PSInlineButtonBuild("Install local Flyleaf", 160, new Thickness(0, 0, 8, 0));
+        Button pOpen = PSInlineButtonBuild("Open", 64, new Thickness(0));
+        pInstall.Click += async (_, _) =>
+        {
+            pInstall.IsEnabled = false;
+            pState.Text = "Installing local Flyleaf. This downloads source and builds it locally...";
+            LFlyleafLocalInstallResult pResult = await LFlyleafLocal.LFlyleafLocalInstallAsync();
+            pState.Text = LFlyleafLocal.LFlyleafLocalStatusRead();
+            pInstall.IsEnabled = true;
+            MessageBox.Show(
+                this,
+                pResult.LFlyleafLocalInstallMessage,
+                "Local Flyleaf",
+                MessageBoxButton.OK,
+                pResult.LFlyleafLocalInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
+        };
+        pOpen.Click += (_, _) => PSFolderOpen(LFlyleafLocal.LFlyleafLocalRootRead(), string.Empty);
+
+        var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pButtons.Children.Add(pInstall);
+        pButtons.Children.Add(pOpen);
+
+        return PSPlateBuild("Local Flyleaf",
+            PSFieldBuild("Preview engine", pButtons),
+            pState,
+            PSNoticeBuild("NuGet Flyleaf is used by default. Contrast preview is enabled after installing local Flyleaf and restarting Cadroue."));
     }
 
     private UIElement PSRecordPlateBuild()

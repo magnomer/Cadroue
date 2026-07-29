@@ -46,6 +46,7 @@ coverage*.xml
 *.tmp
 *.tmp_proj
 *_wpftmp.csproj
+local-flyleaf/
 *.cache
 *.dll
 *.exe

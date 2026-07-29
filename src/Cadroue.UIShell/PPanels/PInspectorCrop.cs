@@ -80,13 +80,13 @@ public sealed partial class PInspector
             pInspectorFlipVertical.IsChecked == true);
     }
 
-    public void PInspectorPlanApply(LWorkCrop pInspectorPlan)
+    public void PInspectorPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply)
     {
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         try
         {
-            pInspectorApplyBox.IsChecked = true;
+            pInspectorApplyBox.IsChecked = pInspectorApply;
             pInspectorInsetLeft.Text = pInspectorPlan.LWorkCropLeft.ToString();
             pInspectorInsetTop.Text = pInspectorPlan.LWorkCropTop.ToString();
             pInspectorInsetRight.Text = pInspectorPlan.LWorkCropRight.ToString();

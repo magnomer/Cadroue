@@ -1,5 +1,9 @@
+using System;
+using System.Linq;
+using System.Reflection;
 using Cadroue.Media;
 using FlyleafLib;
+using FlyleafLib.MediaFramework.MediaRenderer;
 using FlyleafLib.MediaPlayer;
 
 namespace Cadroue.UIShell.PPanels;
@@ -7,6 +11,8 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PViewer
 {
     private static readonly System.Windows.Media.Color PViewerBackColor = System.Windows.Media.Colors.White;
+
+    public bool PViewerColorPreview { get; set; }
 
     private void PPlayerAccurateSeek(Player player, TimeSpan playbackPosition)
     {
@@ -32,6 +38,78 @@ public sealed partial class PViewer
         }
     }
 
+    private static string PPlayerShaderContrastRead(object? pRenderer)
+    {
+        if (pRenderer is null)
+        {
+            return "none";
+        }
+
+        try
+        {
+            FieldInfo? pBufferField = pRenderer.GetType().GetField("psData", BindingFlags.NonPublic | BindingFlags.Instance);
+            object? pBuffer = pBufferField?.GetValue(pRenderer);
+            FieldInfo? pContrastField = pBuffer?.GetType().GetField("Contrast");
+            return pContrastField?.GetValue(pBuffer)?.ToString() ?? "unknown";
+        }
+        catch (Exception pException)
+        {
+            return $"error {pException.Message}";
+        }
+    }
+
+    private static void PPlayerColorDiagnosticRecord(Player? player)
+    {
+        if (player is null || !LTrace.LTraceCheck(LTraceKind.LTraceView))
+        {
+            return;
+        }
+
+        try
+        {
+            var pPlayerRenderer = player.Renderer;
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceView,
+                "Preview color applied",
+                $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}, "
+                + $"filter contrast value {(player.Config.Video.FLFilters.TryGetValue(FLFilters.Contrast, out FLFilter? pContrastFilter) ? pContrastFilter.Value.ToString() : "none")}, "
+                + $"shader contrast uniform {PPlayerShaderContrastRead(pPlayerRenderer)}");
+        }
+        catch (Exception pException)
+        {
+            LTrace.LTraceRecord(LTraceKind.LTraceView, "Preview color diagnostic failed", pException.Message);
+        }
+    }
+
+    private void PPlayerHostDiagnosticRecord(Player? player)
+    {
+        try
+        {
+            var pHostType = pViewerFlyleafHost.GetType();
+            var pHostAssembly = pHostType.Assembly.GetName();
+            Player? pHostPlayer = pViewerFlyleafHost.Player;
+            var pFields = pHostType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .Where(pField => pField.FieldType.Name.Contains("Renderer") || pField.FieldType.Name.Contains("Player")
+                    || pField.Name.ToLowerInvariant().Contains("render") || pField.Name.ToLowerInvariant().Contains("child"))
+                .Select(pField => $"{pField.Name}:{pField.FieldType.Name}");
+
+            LAppLog.LInfo(
+                "Host render diagnostic",
+                $"host type {pHostType.FullName}\n"
+                + $"host assembly {pHostAssembly.Name} {pHostAssembly.Version}\n"
+                + $"host.Player is our player: {ReferenceEquals(pHostPlayer, player)}\n"
+                + $"host.Player null: {pHostPlayer is null}\n"
+                + $"host.Player.Renderer null: {pHostPlayer?.Renderer is null}\n"
+                + $"our.Renderer == host.Player.Renderer: {ReferenceEquals(player?.Renderer, pHostPlayer?.Renderer)}\n"
+                + $"player assembly ver: {player?.GetType().Assembly.GetName().Version}\n"
+                + $"host player/renderer fields: [{string.Join(", ", pFields)}]");
+        }
+        catch (Exception pException)
+        {
+            LAppLog.LError("Host render diagnostic failed", pException);
+        }
+    }
+
     private static void PPlayerRendererRecord(Player player)
     {
         if (!LTrace.LTraceCheck(LTraceKind.LTraceView))
@@ -49,7 +127,12 @@ public sealed partial class PViewer
                 $"processor requested {player.Config.Video.VideoProcessor}, "
                 + $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}\n"
                 + $"decode path {(pPlayerDecoder is null ? "unknown" : pPlayerDecoder.VideoAccelerated ? "HARDWARE (D3D11VA)" : "SOFTWARE")}\n"
-                + $"pixel format {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.PixelFormatStr)}");
+                + $"pixel format {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.PixelFormatStr)}\n"
+                + $"color range {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.ColorRange.ToString())}, "
+                + $"color space {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.ColorSpace.ToString())}\n"
+                + $"sync vp filters {player.Config.Video.SyncVPFilters}, "
+                + $"filter contrast value {(player.Config.Video.FLFilters.TryGetValue(FLFilters.Contrast, out FLFilter? pContrastFilter) ? pContrastFilter.Value.ToString() : "none")}\n"
+                + $"shader contrast uniform {PPlayerShaderContrastRead(pPlayerRenderer)}");
         }
         catch (Exception pPlayerException)
         {
@@ -99,6 +182,12 @@ public sealed partial class PViewer
             if (player is null)
             {
                 player = new Player(new Config());
+                if (PViewerColorPreview && LFlyleafLocal.LFlyleafLocalActive)
+                {
+                    player.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
+                    player.Config.Video.SyncVPFilters = false;
+                }
+
                 player.Config.Video.BackColor = PViewerBackColor;
                 player.Config.Video.ClearScreen = false;
                 player.SeekCompleted += PPlayerSeekCompleteHandle;
@@ -229,6 +318,7 @@ public sealed partial class PViewer
                 + $"renderer {(player?.Renderer is null ? "none" : "ready")}");
 
             pViewerFlyleafHost.Player = player;
+            PPlayerHostDiagnosticRecord(player);
             PPlayerDispose(pPlayerPrevious);
         }
 
