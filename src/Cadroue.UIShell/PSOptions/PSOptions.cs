@@ -46,6 +46,8 @@ internal sealed partial class PSOptions : Window
 
     private readonly RadioButton psStartupSession;
     private readonly RadioButton psStartupDefault;
+    private readonly RadioButton psRecordBeside;
+    private readonly RadioButton psRecordWorkspace;
     private readonly PPicker psStartupTabPicker;
     private readonly CheckBox psMediaBox;
     private readonly CheckBox psConfirmBox;
@@ -79,6 +81,8 @@ internal sealed partial class PSOptions : Window
 
         psStartupSession = PSOptionsRadioBuild("Last session", lsOptionsDraft.LPreferenceStartupMode == "LastSession");
         psStartupDefault = PSOptionsRadioBuild("Default tab", lsOptionsDraft.LPreferenceStartupMode == "DefaultTab");
+        psRecordBeside = PSOptionsRadioBuild("File Location", !lsOptionsDraft.LPreferenceRecordWorkspace, "PSOptionsRecord");
+        psRecordWorkspace = PSOptionsRadioBuild("Workspace", lsOptionsDraft.LPreferenceRecordWorkspace, "PSOptionsRecord");
         psStartupTabPicker = new PPicker(PSOptionsTabKeys, lsOptionsDraft.LPreferenceStartupTabs, "No tab chosen")
         {
             MinWidth = 260,
@@ -243,6 +247,7 @@ internal sealed partial class PSOptions : Window
     private void PSOptionsApply()
     {
         lsOptionsDraft.LPreferenceStartupMode = psStartupDefault.IsChecked == true ? "DefaultTab" : "LastSession";
+        lsOptionsDraft.LPreferenceRecordWorkspace = psRecordWorkspace.IsChecked == true;
         lsOptionsDraft.LPreferenceStartupTabs = psStartupTabPicker.PPickerSelectionRead().ToList();
         lsOptionsDraft.LPreferenceMediaAutomatic = psMediaBox.IsChecked == true;
         lsOptionsDraft.LPreferenceConfirmDestructive = psConfirmBox.IsChecked == true;
@@ -274,11 +279,11 @@ internal sealed partial class PSOptions : Window
         psOptionsCallback?.Invoke(App.LPreferenceStateCurrent);
     }
 
-    private static RadioButton PSOptionsRadioBuild(string pLabel, bool pChecked)
+    private static RadioButton PSOptionsRadioBuild(string pLabel, bool pChecked, string pGroupName = "PSOptionsStartup")
     {
         var pRadio = new RadioButton
         {
-            GroupName = "PSOptionsStartup",
+            GroupName = pGroupName,
             Content = pLabel,
             IsChecked = pChecked,
             Margin = new Thickness(0, 0, 24, 0),

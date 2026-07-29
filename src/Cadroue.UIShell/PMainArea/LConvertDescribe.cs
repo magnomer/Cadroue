@@ -16,53 +16,35 @@ public static partial class LConvert
         LExportSpecificState lExportSpecificState)
     {
         LWorkOutput lConvertOutput = lExportSpecificState.LPresetOutputCreate();
-        IReadOnlyDictionary<string, LWorkMedia> lConvertMedia =
-            await Task.Run(() => LConvertMediaCollect(lConvertSourcePaths)).ConfigureAwait(true);
+        LConvertWorkDescription lConvertWorkDescription = new(lConvertSourcePaths, lConvertOutput);
 
-        LConvertWorkDescription lConvertWorkDescription = new(
-            lConvertSourcePaths,
-            lConvertOutput,
-            lConvertMedia);
+        IReadOnlyList<LWorkItem> lConvertWorkItems =
+            LConvert.LConvertInterpret(lWorkPriority, lConvertWorkDescription);
+        int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems);
+        LAppLog.LInfo(
+            $"Convert queued {lConvertAdded} job(s) at {lWorkPriority} from {lConvertSourcePaths.Count} listed file(s)");
 
-        return LConvert.LConvertInterpret(lWorkPriority, lConvertWorkDescription);
+        await LConvertDurationFill(lConvertWorkItems).ConfigureAwait(true);
+        return lConvertAdded;
     }
 
-    private static IReadOnlyDictionary<string, LWorkMedia> LConvertMediaCollect(
-        IReadOnlyList<string> lConvertSourcePaths)
+    private static Task LConvertDurationFill(IReadOnlyList<LWorkItem> lConvertWorkItems)
     {
-        var lConvertMedia = new Dictionary<string, LWorkMedia>(StringComparer.OrdinalIgnoreCase);
-        foreach (string lConvertSourcePath in lConvertSourcePaths)
+        LWorkItem[] lConvertUnknown = lConvertWorkItems
+            .Where(lWorkItem => lWorkItem.LWorkEnd <= TimeSpan.Zero)
+            .ToArray();
+        if (lConvertUnknown.Length == 0)
         {
-            if (lConvertMedia.ContainsKey(lConvertSourcePath))
-            {
-                continue;
-            }
-
-            if (LConvertMediaRead(lConvertSourcePath) is { } lConvertProbed)
-            {
-                lConvertMedia[lConvertSourcePath] = lConvertProbed;
-            }
+            return Task.CompletedTask;
         }
 
-        return lConvertMedia;
+        return Task.Run(() => Parallel.ForEach(
+            lConvertUnknown,
+            new ParallelOptions { MaxDegreeOfParallelism = LConvertParallelRead() },
+            lWorkItem => LSchedule.LScheduleCurrent.LScheduleDurationSet(
+                lWorkItem.LWorkId,
+                Cadroue.Media.LSidecarStore.LSidecarDurationResolve(lWorkItem.LWorkSourcePath))));
     }
 
-    private static LWorkMedia? LConvertMediaRead(string lConvertSourcePath)
-    {
-        try
-        {
-            Cadroue.Media.LMediaInfo lConvertInfo = Cadroue.Media.LMediaInfo.LMediaFfprobeRead(lConvertSourcePath);
-            return new LWorkMedia(
-                lConvertInfo.LMediaInfoVideoWidth,
-                lConvertInfo.LMediaInfoVideoHeight,
-                lConvertInfo.LMediaInfoVideoFrameRate,
-                (long)Math.Round(lConvertInfo.LMediaInfoDuration.TotalMilliseconds),
-                lConvertInfo.LMediaInfoVideoPresent);
-        }
-        catch (Exception lConvertError)
-        {
-            LAppLog.LError($"Convert could not read '{System.IO.Path.GetFileName(lConvertSourcePath)}': {lConvertError.Message}");
-            return null;
-        }
-    }
+    internal static int LConvertParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
 }

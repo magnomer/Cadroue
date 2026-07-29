@@ -6,44 +6,53 @@ namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LEdit
 {
-    public static int LEditInterpret(
+    internal static LWorkItem LEditWorkCreate(
         LWorkPriority lWorkPriority,
-        LEditWorkDescription lEditWorkDescription)
+        string lEditSourcePath,
+        TimeSpan lEditDuration,
+        LWorkCrop lEditCrop,
+        LWorkOutput lEditOutput)
     {
-        string? lEditSourcePath = lEditWorkDescription.LEditSourcePath;
-        if (string.IsNullOrWhiteSpace(lEditSourcePath))
-        {
-            LAppLog.LError("Edit not queued: no source file is open");
-            return 0;
-        }
-
-        if (lEditWorkDescription.LEditDuration <= TimeSpan.Zero)
-        {
-            LAppLog.LError($"Edit not queued for '{Path.GetFileName(lEditSourcePath)}': media duration is unknown");
-            return 0;
-        }
-
-        LWorkOutput lEditOutput = lEditWorkDescription.LEditOutput;
-        LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
         string lEditFolder = lEditOutput.LWorkFolderRead(lEditSourcePath);
         string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath, lEditFolder);
 
-        var lEditWorkItem = new LWorkItem(
+        return new LWorkItem(
             Guid.NewGuid(),
             LWorkKind.LWorkKindEdit,
             lWorkPriority,
             lEditSourcePath,
             TimeSpan.Zero,
-            lEditWorkDescription.LEditDuration,
+            lEditDuration,
             lEditOutputName,
             Path.Combine(lEditFolder, lEditOutputName),
             lEditOutput,
             lWorkCrop: lEditCrop);
+    }
 
+    public static int LEditInterpret(
+        LWorkPriority lWorkPriority,
+        LEditWorkDescription lEditWorkDescription)
+    {
+        LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
+        if (string.IsNullOrWhiteSpace(lEditWorkDescription.LEditSourcePath))
+        {
+            LAppLog.LError("Edit not queued: no source file is open");
+            return 0;
+        }
+
+        LWorkItem lEditWorkItem = LEditWorkCreate(
+            lWorkPriority,
+            lEditWorkDescription.LEditSourcePath,
+            lEditWorkDescription.LEditDuration,
+            lEditCrop,
+            lEditWorkDescription.LEditOutput);
+
+        string lEditSourcePath = lEditWorkItem.LWorkSourcePath;
+        string lEditOutputName = lEditWorkItem.LWorkOutputName;
         int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd([lEditWorkItem]);
         LAppLog.LInfo(
             $"Edit queued {lEditAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lEditSourcePath)}' " +
-            $"into '{lEditFolder}'");
+            $"into '{Path.GetDirectoryName(lEditWorkItem.LWorkOutputPath)}'");
 
         if (lEditCrop.LWorkCropActive)
         {

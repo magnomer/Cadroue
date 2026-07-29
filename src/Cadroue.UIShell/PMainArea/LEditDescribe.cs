@@ -3,11 +3,6 @@ using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public sealed record LEditPlanRecord(
-    string LEditPlanSourcePath,
-    TimeSpan LEditPlanDuration,
-    LWorkCrop LEditPlanCrop);
-
 public sealed record LEditWorkDescription(
     string? LEditSourcePath,
     TimeSpan LEditDuration,
@@ -38,69 +33,69 @@ public static partial class LEdit
         LExportSpecificState lExportSpecificState,
         LWorkCrop? lEditCarried = null)
     {
-        IReadOnlyList<LEditPlanRecord> lEditPlans =
-            await Task.Run(() => LEditPlanCollect(lEditSourcePaths, lEditCarried)).ConfigureAwait(true);
+        LWorkOutput lEditOutput = lExportSpecificState.LPresetOutputCreate();
+        var lEditWorkItems = new List<LWorkItem>();
 
-        int lEditAdded = 0;
-        foreach (LEditPlanRecord lEditPlan in lEditPlans)
-        {
-            lEditAdded += LEditDescribe(
-                lWorkPriority,
-                lEditPlan.LEditPlanSourcePath,
-                lEditPlan.LEditPlanDuration,
-                lEditPlan.LEditPlanCrop,
-                lExportSpecificState);
-        }
-
-        LAppLog.LInfo(
-            $"Edit Add All: {lEditSourcePaths.Count} listed, {lEditPlans.Count} planned, {lEditAdded} queued, "
-            + $"plan source {(lEditCarried is null ? "sidecar per file" : "persistent for every file")}");
-        return lEditAdded;
-    }
-
-    private static IReadOnlyList<LEditPlanRecord> LEditPlanCollect(
-        IReadOnlyList<string> lEditSourcePaths,
-        LWorkCrop? lEditCarried)
-    {
-        var lEditPlans = new List<LEditPlanRecord>();
         foreach (string lEditSourcePath in lEditSourcePaths)
         {
-            Cadroue.Media.LSidecar? lEditSidecar = LEditSidecarRead(lEditSourcePath);
-            LWorkCrop? lEditPlanned = lEditCarried
-                ?? (lEditSidecar?.Edit is { } lEditRecord ? LEditCropCreate(lEditRecord) : null);
-
-            if (lEditPlanned is not { LWorkCropActive: true } lEditCrop)
+            if (LEditPlanResolve(lEditSourcePath, lEditCarried) is not { } lEditCrop)
             {
                 continue;
             }
-
-            TimeSpan lEditDuration = lEditSidecar is { Source.DurationMilliseconds: > 0 }
-                ? TimeSpan.FromMilliseconds(lEditSidecar.Source.DurationMilliseconds)
-                : LEditProbeDuration(lEditSourcePath);
 
             if (lEditCarried is not null)
             {
                 LEditPlanSave(lEditSourcePath, lEditCrop);
             }
 
-            lEditPlans.Add(new LEditPlanRecord(lEditSourcePath, lEditDuration, lEditCrop));
+            lEditWorkItems.Add(LEditWorkCreate(
+                lWorkPriority,
+                lEditSourcePath,
+                Cadroue.Media.LSidecarStore.LSidecarDurationRead(lEditSourcePath),
+                lEditCrop,
+                lEditOutput));
         }
 
-        return lEditPlans;
+        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lEditWorkItems);
+        LAppLog.LInfo(
+            $"Edit Add All: {lEditSourcePaths.Count} listed, {lEditAdded} queued, "
+            + $"plan source {(lEditCarried is null ? "sidecar per file" : "persistent for every file")}");
+
+        await LEditDurationFill(lEditWorkItems).ConfigureAwait(true);
+        return lEditAdded;
     }
 
-    private static TimeSpan LEditProbeDuration(string lEditSourcePath)
+    private static Task LEditDurationFill(IReadOnlyList<LWorkItem> lEditWorkItems)
     {
-        try
+        LWorkItem[] lEditUnknown = lEditWorkItems
+            .Where(lWorkItem => lWorkItem.LWorkEnd <= TimeSpan.Zero)
+            .ToArray();
+        if (lEditUnknown.Length == 0)
         {
-            return Cadroue.Media.LMediaInfo.LMediaFfprobeRead(lEditSourcePath).LMediaInfoDuration;
+            return Task.CompletedTask;
         }
-        catch (Exception lEditException)
-        {
-            LAppLog.LError($"Duration could not be read for '{lEditSourcePath}'", lEditException);
-            return TimeSpan.Zero;
-        }
+
+        return Task.Run(() => Parallel.ForEach(
+            lEditUnknown,
+            new ParallelOptions { MaxDegreeOfParallelism = LEditParallelRead() },
+            lWorkItem => LSchedule.LScheduleCurrent.LScheduleDurationSet(
+                lWorkItem.LWorkId,
+                Cadroue.Media.LSidecarStore.LSidecarDurationResolve(lWorkItem.LWorkSourcePath))));
     }
+
+    private static LWorkCrop? LEditPlanResolve(string lEditSourcePath, LWorkCrop? lEditCarried)
+    {
+        if (lEditCarried is { } lEditPersistent)
+        {
+            return lEditPersistent;
+        }
+
+        return Cadroue.Media.LSidecarStore.LSidecarEditRead(lEditSourcePath) is { } lEditRecord
+            ? LEditCropCreate(lEditRecord)
+            : null;
+    }
+
+    private static int LEditParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
 
     public static LWorkCrop? LEditPlanRead(string lEditSourcePath) =>
         LEditSidecarRead(lEditSourcePath)?.Edit is { } lEditRecord ? LEditCropCreate(lEditRecord) : null;

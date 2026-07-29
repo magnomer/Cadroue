@@ -30,7 +30,10 @@ public sealed class PEditTab : PTabSurface
             pList.PListPathsRead(),
             lExportSpecificState,
             PEditCarriedRead());
-        pAction.PActionAllSet(true, "Add every loaded file that has a processing plan saved beside it");
+        pAction.PActionAllSet(
+            true,
+            "Persistent off: add every loaded file that has a processing plan saved beside it.\n"
+            + "Persistent on: add every loaded file and give them all the plan shown here, even when nothing is applied.");
 
         var pProcessing = new PProcessing();
         pProcessing.PProcessingStepAdd("Crop", PEditCropIconPath);
@@ -116,7 +119,7 @@ public sealed class PEditTab : PTabSurface
 
             pInspector.PInspectorMediaReset();
 
-            bool pEditCarryWins = pEditPersistent && pEditCarried.LWorkCropActive;
+            bool pEditCarryWins = pEditPersistent;
             LWorkCrop? pEditPlan = pEditCarryWins ? pEditCarried : pEditSaved;
 
             if (pEditPlan is { LWorkCropActive: true } pEditApply)
@@ -181,16 +184,8 @@ public sealed class PEditTab : PTabSurface
         return $"{pEdges}, rotate {pCrop.LWorkCropRotation}, {pFlip}";
     }
 
-    private LWorkCrop? PEditCarriedRead()
-    {
-        if (!pInspector.PInspectorPersistentCheck())
-        {
-            return null;
-        }
-
-        LWorkCrop pEditCarried = pInspector.PInspectorCropRead();
-        return pEditCarried.LWorkCropActive ? pEditCarried : null;
-    }
+    private LWorkCrop? PEditCarriedRead() =>
+        pInspector.PInspectorPersistentCheck() ? pInspector.PInspectorCropRead() : null;
 
     private void PEditPlanSave()
     {

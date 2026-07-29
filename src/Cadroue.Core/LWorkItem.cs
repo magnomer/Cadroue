@@ -8,6 +8,7 @@ public sealed class LWorkItem : INotifyPropertyChanged
     private LWorkState lWorkStateCurrent = LWorkState.LWorkStatePending;
     private string lWorkMessage = string.Empty;
     private double lWorkProgress;
+    private TimeSpan lWorkEnd;
 
     public LWorkItem(
         Guid lWorkBatchId,
@@ -30,7 +31,7 @@ public sealed class LWorkItem : INotifyPropertyChanged
         LWorkPriority = lWorkPriority;
         LWorkSourcePath = lWorkSourcePath;
         LWorkStart = lWorkStart;
-        LWorkEnd = lWorkEnd;
+        this.lWorkEnd = lWorkEnd;
         LWorkOutputName = lWorkOutputName;
         LWorkOutputPath = lWorkOutputPath;
         LWorkOutput = lWorkOutput;
@@ -49,7 +50,21 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public TimeSpan LWorkStart { get; }
 
-    public TimeSpan LWorkEnd { get; }
+    public TimeSpan LWorkEnd
+    {
+        get => lWorkEnd;
+        set
+        {
+            if (lWorkEnd == value)
+            {
+                return;
+            }
+
+            lWorkEnd = value;
+            LWorkPropertyChange();
+            LWorkPropertyChange(nameof(LWorkDuration));
+        }
+    }
 
     public TimeSpan LWorkDuration => LWorkEnd - LWorkStart;
 

@@ -61,7 +61,55 @@ internal sealed partial class PSOptions
         pPanel.Children.Add(PSPlateBuild("FFmpeg",
             PSFieldButtonBuild("Location", psFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
             pFfmpegState));
+        pPanel.Children.Add(PSRecordPlateBuild());
         return pPanel;
+    }
+
+    private UIElement PSRecordPlateBuild()
+    {
+        Button pRecordClear = PSInlineButtonBuild("Clear workspace record", 190, new Thickness(0));
+        pRecordClear.Click += (_, _) => PSRecordClear();
+
+        var pRecordRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pRecordRow.Children.Add(psRecordBeside);
+        pRecordRow.Children.Add(psRecordWorkspace);
+
+        var pRecordButtonRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pRecordButtonRow.Children.Add(pRecordClear);
+
+        return PSPlateBuild("File record",
+            PSFieldBuild("Location", pRecordRow),
+            PSNoticeBuild(
+                $"File Location keeps each .cad beside its media file. "
+                + $"Workspace keeps them in {System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Media.LSidecarStore.LSidecarRecordFolderName)}. "
+                + "Only the chosen location is read, so records written under the other one stay untouched until you switch back."),
+            PSFieldBuild("Maintenance", pRecordButtonRow));
+    }
+
+    private void PSRecordClear()
+    {
+        string pRecordFolder = Cadroue.Media.LSidecarStore.LSidecarFolderRead();
+        if (string.IsNullOrWhiteSpace(pRecordFolder) || !Directory.Exists(pRecordFolder))
+        {
+            MessageBox.Show(this, "There is no workspace file record folder yet.", "Clear workspace record", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        MessageBoxResult pAnswer = MessageBox.Show(
+            this,
+            $"Delete every .cad file record stored in the workspace?\n\n{pRecordFolder}\n\n"
+            + "Keyframes, sections and edit plans kept there are lost. Records stored beside media files are not touched. This cannot be undone.",
+            "Clear workspace record",
+            MessageBoxButton.OKCancel,
+            MessageBoxImage.Warning);
+        if (pAnswer != MessageBoxResult.OK)
+        {
+            return;
+        }
+
+        int pRemoved = Cadroue.Media.LSidecarStore.LSidecarFolderClear();
+        PSWorkspaceSizeUpdate();
+        MessageBox.Show(this, $"{pRemoved} file record(s) were removed.", "Clear workspace record", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void PSWorkspaceSizeUpdate()

@@ -6,7 +6,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LConvert
 {
-    public static int LConvertInterpret(
+    public static IReadOnlyList<LWorkItem> LConvertInterpret(
         LWorkPriority lWorkPriority,
         LConvertWorkDescription lConvertWorkDescription)
     {
@@ -14,12 +14,11 @@ public static partial class LConvert
         if (lConvertSourcePaths.Count == 0)
         {
             LAppLog.LError("Convert not queued: the file list is empty");
-            return 0;
+            return Array.Empty<LWorkItem>();
         }
 
         LWorkOutput lConvertOutput = lConvertWorkDescription.LConvertOutput;
         var lConvertWorkItems = new List<LWorkItem>();
-        int lConvertSkipped = 0;
 
         foreach (string lConvertSourcePath in lConvertSourcePaths)
         {
@@ -30,13 +29,7 @@ public static partial class LConvert
             }
 
             TimeSpan lConvertDuration = lConvertMedia?.LWorkMediaDuration
-                ?? LConvertDurationRead(lConvertSourcePath);
-            if (lConvertDuration <= TimeSpan.Zero)
-            {
-                LAppLog.LError($"Convert skipped '{Path.GetFileName(lConvertSourcePath)}': media duration is unknown");
-                lConvertSkipped++;
-                continue;
-            }
+                ?? LSidecarStore.LSidecarDurationRead(lConvertSourcePath);
 
             string lConvertFolder = lConvertOutput.LWorkFolderRead(lConvertSourcePath);
             string lConvertOutputName = LConvertNameCreate(lConvertOutput, lConvertSourcePath, lConvertFolder);
@@ -56,34 +49,7 @@ public static partial class LConvert
             });
         }
 
-        if (lConvertWorkItems.Count == 0)
-        {
-            LAppLog.LError("Convert not queued: no listed file could be read");
-            return 0;
-        }
-
-        int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems);
-        LAppLog.LInfo($"Convert queued {lConvertAdded} job(s) at {lWorkPriority} from {lConvertSourcePaths.Count} listed file(s)");
-
-        if (lConvertSkipped > 0)
-        {
-            LAppLog.LError($"Convert skipped {lConvertSkipped} listed file(s): media duration is unknown");
-        }
-
-        return lConvertAdded;
-    }
-
-    private static TimeSpan LConvertDurationRead(string lConvertSourcePath)
-    {
-        try
-        {
-            return LMediaInfo.LMediaFfprobeRead(lConvertSourcePath).LMediaInfoDuration;
-        }
-        catch (Exception lConvertError)
-        {
-            LAppLog.LError($"Convert could not read '{Path.GetFileName(lConvertSourcePath)}': {lConvertError.Message}");
-            return TimeSpan.Zero;
-        }
+        return lConvertWorkItems;
     }
 
     private static string LConvertNameCreate(LWorkOutput lConvertOutput, string lConvertSourcePath, string lConvertFolder)

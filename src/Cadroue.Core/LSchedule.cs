@@ -70,6 +70,34 @@ public sealed partial class LSchedule
         LScheduleChange?.Invoke(this);
     }
 
+    public void LScheduleDurationSet(Guid lWorkId, TimeSpan lWorkDuration)
+    {
+        if (lWorkDuration <= TimeSpan.Zero)
+        {
+            return;
+        }
+
+        foreach (LWorkItem lWorkItem in lScheduleItems)
+        {
+            if (lWorkItem.LWorkId != lWorkId || lWorkItem.LWorkEnd > TimeSpan.Zero)
+            {
+                continue;
+            }
+
+            lWorkItem.LWorkEnd = lWorkDuration;
+            break;
+        }
+
+        string lDepotFilePath = LDepot.LDepotFilePathRead(LDepotFolder.LDepotFolderScheduled, lWorkId);
+        if (!File.Exists(lDepotFilePath) || LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+        {
+            return;
+        }
+
+        lWorkRecord.EndTicks = lWorkDuration.Ticks;
+        LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
+    }
+
     public int LScheduleAdd(IReadOnlyList<LWorkItem> lWorkItems)
     {
         if (lWorkItems.Count == 0)
@@ -82,13 +110,20 @@ public sealed partial class LSchedule
         foreach (LWorkItem lWorkItem in lWorkItems)
         {
             var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
-            if (LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
+            if (!LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
             {
-                lScheduleAddedCount++;
+                continue;
             }
+
+            lScheduleAddedCount++;
+            lScheduleItems.Add(lWorkItem);
         }
 
-        LScheduleReload();
+        if (lScheduleAddedCount > 0)
+        {
+            LScheduleChange?.Invoke(this);
+        }
+
         return lScheduleAddedCount;
     }
 

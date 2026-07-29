@@ -112,6 +112,16 @@ public partial class App : Application
         LPreferenceStateCurrent = lPreferenceState;
         LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
         LDepotRootApply();
+        LSidecarFolderApply();
+    }
+
+    public static void LSidecarFolderApply()
+    {
+        Cadroue.Media.LSidecarStore.LSidecarFolderSet(
+            System.IO.Path.Combine(
+                Cadroue.Core.LDepot.LDepotRootRead(),
+                Cadroue.Media.LSidecarStore.LSidecarRecordFolderName),
+            LPreferenceStateCurrent.LPreferenceRecordWorkspace);
     }
 
     private static void LDepotRootApply()
@@ -133,6 +143,7 @@ public partial class App : Application
 
             Cadroue.Core.LDepotIndex.LDepotIndexEnsure();
             lDepotRootApplied = lDepotRoot;
+            LSidecarFolderApply();
             LAppLog.LInfo($"Workspace at {lDepotRoot}");
         }
         catch (Exception lException)

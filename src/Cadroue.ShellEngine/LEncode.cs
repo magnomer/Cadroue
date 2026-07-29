@@ -21,7 +21,10 @@ public static class LEncode
             $" -stats_period {LEncodeStatsPeriod.ToString("0.###", CultureInfo.InvariantCulture)}");
 
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkStart)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -to {LEncodeTimeFormat(lWorkItem.LWorkEnd)}");
+        if (lWorkItem.LWorkEnd > lWorkItem.LWorkStart)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -to {LEncodeTimeFormat(lWorkItem.LWorkEnd)}");
+        }
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lWorkItem.LWorkSourcePath)}");
 
         LEncodeVideoAppend(lArguments, lWorkItem, lOutput);
