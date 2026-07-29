@@ -89,6 +89,7 @@ public sealed partial class PMap : FrameworkElement
 
     public event Action<TimeSpan>? PMapCursorChange;
     public event Action? PMapSpoolChange;
+    public event Action<bool>? PMapDragChange;
 
     public void PMapAttach(LSpool spool, TimeSpan cursor)
     {

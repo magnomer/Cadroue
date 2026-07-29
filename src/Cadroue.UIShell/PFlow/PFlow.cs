@@ -10,7 +10,9 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow : UserControl
 {
-    private const int LSectionPaletteCount = 6;
+    private const double PFlowWheelVolumeStep = 5;
+    private const double PFlowWheelSeekFloor = 0.04;
+    private const double PFlowWheelSeekDivisor = 40;
     private const double PFlowHeightMinimum = 200;
     private const double PFlowHeightMaximum = 520;
     private static readonly TimeSpan PFlowKeyframeResumeDelay = TimeSpan.FromSeconds(2);
@@ -33,6 +35,10 @@ public sealed partial class PFlow : UserControl
     private readonly List<LSegment> lSectionList = new();
     private readonly StackPanel pFlowSectionButtonGroup = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
     private Border? pDividerHandle;
+    private readonly Grid pFlowViewfinderReel;
+    private readonly Grid pFlowMapReel;
+    private bool pFlowDragPaused;
+    private double pFlowVolumeCurrent = 100;
     private LSpool? lSpool;
     private TimeSpan lCursor;
     private string? lSourcePath;
@@ -59,8 +65,10 @@ public sealed partial class PFlow : UserControl
         MinHeight = PFlowHeightMinimum;
         pViewfinder.PViewfinderCursorChange += PFlowViewfinderSeek;
         pViewfinder.PViewfinderSectionSelect += PFlowViewfinderSelect;
+        pViewfinder.PViewfinderDragChange += PFlowDragSet;
         pMap.PMapCursorChange += PFlowMapSeek;
         pMap.PMapSpoolChange += PFlowSpoolHandle;
+        pMap.PMapDragChange += PFlowDragSet;
         lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
         lKeyframeOrchestrator.LKeyframeSectionsSource = PFlowSidecarSectionsRead;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
@@ -73,18 +81,17 @@ public sealed partial class PFlow : UserControl
         pDividerHandle.MouseLeftButtonUp += PDividerReleaseHandle;
         pDividerHandle.LostMouseCapture += PDividerCaptureHandle;
 
-        Grid viewfinderReel = PReelGridBuild(pViewfinder, pViewfinderLabelLeft, pViewfinderLabelRight);
-        Grid mapReel = PReelGridBuild(pMap, pMapLabelLeft, pMapLabelRight);
+        pFlowViewfinderReel = PReelGridBuild(pViewfinder, pViewfinderLabelLeft, pViewfinderLabelRight);
+        pFlowMapReel = PReelGridBuild(pMap, pMapLabelLeft, pMapLabelRight);
         Grid reelGrid = new() { Margin = new Thickness(8, 0, 8, 8) };
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(5, GridUnitType.Star) });
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(37, GridUnitType.Star) });
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(4) });
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(49, GridUnitType.Star) });
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(8, GridUnitType.Star) });
-        Grid.SetRow(mapReel, 1);
-        Grid.SetRow(viewfinderReel, 3);
-        reelGrid.Children.Add(mapReel);
-        reelGrid.Children.Add(viewfinderReel);
+        reelGrid.Children.Add(pFlowMapReel);
+        reelGrid.Children.Add(pFlowViewfinderReel);
+        PFlowOrderApply();
 
         DockPanel root = new() { LastChildFill = true };
         DockPanel.SetDock(pDividerHandle, Dock.Top);
@@ -170,7 +177,8 @@ public sealed partial class PFlow : UserControl
     public void PFlowVolumeSet(double volume)
     {
         if (!pFlowCommandActive) return;
-        PFlowVolumeValue?.Invoke(LPreferenceState.LPreferenceVolumeClamp(volume));
+        pFlowVolumeCurrent = LPreferenceState.LPreferenceVolumeClamp(volume);
+        PFlowVolumeValue?.Invoke(pFlowVolumeCurrent);
     }
 
     public void PFlowCommandSet(bool pCommandActive)
@@ -230,6 +238,74 @@ public sealed partial class PFlow : UserControl
             case "nextKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeNextMove(lCursor)); return true;
             default: return false;
         }
+    }
+
+    public Func<bool>? PFlowPlayingSource { get; set; }
+
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        if (!pFlowCommandActive || e.Delta == 0) return;
+        int pWheelSteps = e.Delta / 120;
+        if (pWheelSteps == 0) pWheelSteps = e.Delta > 0 ? 1 : -1;
+
+        switch (App.LPreferenceStateCurrent.LPreferenceWheelAction)
+        {
+            case "Zoom":
+                PFlowWheelZoom(pWheelSteps);
+                break;
+            case "Volume":
+                PFlowVolumeRaise(pFlowVolumeCurrent + pWheelSteps * PFlowWheelVolumeStep);
+                break;
+            default:
+                PFlowWheelSeek(pWheelSteps);
+                break;
+        }
+
+        e.Handled = true;
+    }
+
+    private void PFlowWheelSeek(int pWheelSteps)
+    {
+        if (lSpool is null) return;
+        TimeSpan pWheelRange = lSpool.LSpoolWorkingRangeEnd - lSpool.LSpoolWorkingRangeStart;
+        double pWheelSeconds = Math.Max(PFlowWheelSeekFloor, pWheelRange.TotalSeconds / PFlowWheelSeekDivisor);
+        PFlowCursorSeek(PFlowCursorClamp(lCursor + TimeSpan.FromSeconds(pWheelSeconds * pWheelSteps)));
+    }
+
+    private void PFlowWheelZoom(int pWheelSteps)
+    {
+        if (lSpool is null) return;
+        for (int pWheelIndex = 0; pWheelIndex < Math.Abs(pWheelSteps); pWheelIndex++)
+        {
+            if (pWheelSteps > 0)
+            {
+                lSpool.LSpoolInZoom(lCursor);
+            }
+            else
+            {
+                lSpool.LSpoolOutZoom(lCursor);
+            }
+        }
+
+        PFlowSpoolHandle();
+    }
+
+    internal void PFlowDragSet(bool pFlowDragging)
+    {
+        if (!pFlowCommandActive || !App.LPreferenceStateCurrent.LPreferenceDragPaused) return;
+
+        if (pFlowDragging)
+        {
+            if (pFlowDragPaused || PFlowPlayingSource?.Invoke() != true) return;
+            pFlowDragPaused = true;
+            PFlowPauseRaise();
+            return;
+        }
+
+        if (!pFlowDragPaused) return;
+        pFlowDragPaused = false;
+        PFlowPlayRaise();
     }
 
     public void PFlowPlayRaise()

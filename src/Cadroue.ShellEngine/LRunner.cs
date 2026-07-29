@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using Cadroue.Core;
@@ -8,12 +9,13 @@ public sealed partial class LRunner
 {
     private readonly LSchedule lRunnerSchedule;
     private readonly Action<Action> lRunnerPost;
+    private readonly ConcurrentDictionary<Guid, LWorkItem> lRunnerItems = new();
+    private readonly ConcurrentDictionary<Guid, Process> lRunnerProcesses = new();
+    private readonly ConcurrentDictionary<Guid, int> lRunnerAttempts = new();
 
-    private Process? lRunnerProcess;
-    private LWorkItem? lRunnerItem;
     private CancellationTokenSource? lRunnerCancel;
     private bool lRunnerSuspended;
-    private bool lRunnerLooping;
+    private int lRunnerLoopCount;
 
     public LRunner(LSchedule lSchedule, Action<Action> lRunnerPostAction)
     {
@@ -23,6 +25,14 @@ public sealed partial class LRunner
     }
 
     public string LRunnerProgramPath { get; set; } = "ffmpeg";
+
+    public int LRunnerParallelMaximum { get; set; } = 1;
+
+    public bool LRunnerFailurePaused { get; set; }
+
+    public bool LRunnerRetryAllowed { get; set; }
+
+    public int LRunnerRetryMaximum { get; set; } = 3;
 
     public static Action<string, Exception?>? LRunnerReport { get; set; }
 
@@ -52,11 +62,26 @@ public sealed partial class LRunner
     {
         LRunnerRunning = false;
 
-        Process? pProcess = lRunnerProcess;
-        if (pProcess is not null && !pProcess.HasExited && !lRunnerSuspended && LRunnerProcessSuspend(pProcess))
+        if (!lRunnerSuspended)
         {
-            lRunnerSuspended = true;
-            LRunnerMessageSet(lRunnerItem, "Suspended");
+            bool lRunnerAnySuspended = false;
+            foreach (KeyValuePair<Guid, Process> lRunnerEntry in lRunnerProcesses)
+            {
+                Process lRunnerProcess = lRunnerEntry.Value;
+                if (lRunnerProcess.HasExited || !LRunnerProcessSuspend(lRunnerProcess))
+                {
+                    continue;
+                }
+
+                lRunnerAnySuspended = true;
+                lRunnerItems.TryGetValue(lRunnerEntry.Key, out LWorkItem? lRunnerItem);
+                LRunnerMessageSet(lRunnerItem, "Suspended");
+            }
+
+            if (lRunnerAnySuspended)
+            {
+                lRunnerSuspended = true;
+            }
         }
 
         lRunnerSchedule.LScheduleChangeRaise();
@@ -67,18 +92,21 @@ public sealed partial class LRunner
         LRunnerRunning = false;
         lRunnerCancel?.Cancel();
 
-        Process? pProcess = lRunnerProcess;
-        LWorkItem? pItem = lRunnerItem;
-        if (pProcess is not null && !pProcess.HasExited)
+        if (lRunnerSuspended)
         {
-            if (lRunnerSuspended)
+            LRunnerProcessResume();
+        }
+
+        foreach (Process lRunnerProcess in lRunnerProcesses.Values)
+        {
+            if (lRunnerProcess.HasExited)
             {
-                LRunnerProcessResume();
+                continue;
             }
 
             try
             {
-                pProcess.Kill(true);
+                lRunnerProcess.Kill(true);
             }
             catch (InvalidOperationException)
             {
@@ -86,21 +114,26 @@ public sealed partial class LRunner
         }
 
         lRunnerSuspended = false;
-        LRunnerLeaseStop();
-        LRunnerPartialRemove(pItem);
+        LRunnerLeaseClear();
+        foreach (LWorkItem lRunnerItem in lRunnerItems.Values)
+        {
+            LRunnerPartialRemove(lRunnerItem);
+        }
+
         lRunnerSchedule.LScheduleRelease(lRunnerId);
     }
 
     private void LRunnerLoopStart()
     {
-        if (lRunnerLooping)
-        {
-            return;
-        }
+        int lRunnerWanted = Math.Max(1, LRunnerParallelMaximum);
+        lRunnerCancel ??= new CancellationTokenSource();
+        CancellationToken lRunnerToken = lRunnerCancel.Token;
 
-        lRunnerLooping = true;
-        lRunnerCancel = new CancellationTokenSource();
-        _ = Task.Run(() => LRunnerLoopRun(lRunnerCancel.Token));
+        while (Volatile.Read(ref lRunnerLoopCount) < lRunnerWanted)
+        {
+            Interlocked.Increment(ref lRunnerLoopCount);
+            _ = Task.Run(() => LRunnerLoopRun(lRunnerToken));
+        }
     }
 
     private async Task LRunnerLoopRun(CancellationToken lRunnerToken)
@@ -121,25 +154,26 @@ public sealed partial class LRunner
         }
         finally
         {
-            lRunnerLooping = false;
-            lRunnerItem = null;
-            lRunnerProcess = null;
-            LRunnerLeaseStop();
-            LRunnerInvoke(() =>
+            if (Interlocked.Decrement(ref lRunnerLoopCount) == 0)
             {
-                if (!lRunnerSchedule.LSchedulePendingExist())
+                lRunnerCancel = null;
+                LRunnerLeaseClear();
+                LRunnerInvoke(() =>
                 {
-                    LRunnerRunning = false;
-                }
+                    if (!lRunnerSchedule.LSchedulePendingExist())
+                    {
+                        LRunnerRunning = false;
+                    }
 
-                lRunnerSchedule.LScheduleChangeRaise();
-            });
+                    lRunnerSchedule.LScheduleChangeRaise();
+                });
+            }
         }
     }
 
     private async Task LRunnerItemRun(LWorkItem pWorkItem, CancellationToken lRunnerToken)
     {
-        lRunnerItem = pWorkItem;
+        lRunnerItems[pWorkItem.LWorkId] = pWorkItem;
         LRunnerLeaseStart(pWorkItem);
         LRunnerInvoke(() =>
         {
@@ -177,7 +211,7 @@ public sealed partial class LRunner
         {
             using var pProcess = new Process { StartInfo = pStartInfo };
             pProcess.Start();
-            lRunnerProcess = pProcess;
+            lRunnerProcesses[pWorkItem.LWorkId] = pProcess;
 
             Task<string> pErrorTask = pProcess.StandardError.ReadToEndAsync(lRunnerToken);
             await LRunnerProgressRead(pProcess, pWorkItem, lRunnerToken).ConfigureAwait(false);
@@ -196,6 +230,11 @@ public sealed partial class LRunner
                 LRunnerNote(
                     $"Encode failed '{pWorkItem.LWorkOutputName}': FFmpeg exit code {pExitCode} " +
                     $"after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}. {LRunnerTailRead(pRunnerError)}");
+
+                if (LRunnerRetryStart(pWorkItem, $"FFmpeg exited with code {pExitCode}."))
+                {
+                    return;
+                }
             }
 
             long? pOutputBytes = LRunnerBytesRead(pWorkItem.LWorkOutputPath);
@@ -215,6 +254,12 @@ public sealed partial class LRunner
                 lRunnerSchedule.LScheduleComplete(pWorkItem, pSucceeded, pWorkItem.LWorkMessage);
                 lRunnerSchedule.LScheduleReload();
             });
+
+            lRunnerAttempts.TryRemove(pWorkItem.LWorkId, out _);
+            if (pExitCode != 0)
+            {
+                LRunnerFailureApply();
+            }
         }
         catch (OperationCanceledException)
         {
@@ -223,6 +268,11 @@ public sealed partial class LRunner
         catch (Exception pException)
         {
             LRunnerNote($"Encode failed '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
+            if (LRunnerRetryStart(pWorkItem, pException.Message))
+            {
+                return;
+            }
+
             LRunnerInvoke(() =>
             {
                 pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
@@ -231,12 +281,52 @@ public sealed partial class LRunner
                 lRunnerSchedule.LScheduleComplete(pWorkItem, false, pException.Message);
                 lRunnerSchedule.LScheduleReload();
             });
+
+            lRunnerAttempts.TryRemove(pWorkItem.LWorkId, out _);
+            LRunnerFailureApply();
         }
         finally
         {
-            lRunnerProcess = null;
-            LRunnerLeaseStop();
+            lRunnerProcesses.TryRemove(pWorkItem.LWorkId, out _);
+            lRunnerItems.TryRemove(pWorkItem.LWorkId, out _);
+            LRunnerLeaseStop(pWorkItem.LWorkId);
         }
+    }
+
+    private bool LRunnerRetryStart(LWorkItem pWorkItem, string pRunnerReason)
+    {
+        if (!LRunnerRetryAllowed || LRunnerRetryMaximum <= 0)
+        {
+            return false;
+        }
+
+        int pAttempt = lRunnerAttempts.AddOrUpdate(pWorkItem.LWorkId, 1, (_, pPrevious) => pPrevious + 1);
+        if (pAttempt > LRunnerRetryMaximum)
+        {
+            return false;
+        }
+
+        string pRunnerMessage = $"{pRunnerReason} Retry {pAttempt} of {LRunnerRetryMaximum}.";
+        bool pReleased = false;
+        LRunnerInvoke(() => pReleased = lRunnerSchedule.LScheduleItemRelease(pWorkItem.LWorkId, lRunnerId, pRunnerMessage));
+        if (!pReleased)
+        {
+            return false;
+        }
+
+        LRunnerNote($"Encode requeued '{pWorkItem.LWorkOutputName}': {pRunnerMessage}");
+        return true;
+    }
+
+    private void LRunnerFailureApply()
+    {
+        if (!LRunnerFailurePaused)
+        {
+            return;
+        }
+
+        LRunnerRunning = false;
+        LRunnerNote("Queue paused: a job failed and 'Pause queue on failure' is on");
     }
 
     private static LWorkMedia? LRunnerMediaRead(string lRunnerMediaPath)

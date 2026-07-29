@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
@@ -5,7 +6,7 @@ namespace Cadroue.ShellEngine;
 public sealed partial class LRunner
 {
     private readonly Guid lRunnerId = Guid.NewGuid();
-    private System.Timers.Timer? lRunnerLeaseTimer;
+    private readonly ConcurrentDictionary<Guid, System.Timers.Timer> lRunnerLeaseTimers = new();
 
     public Guid LRunnerIdentity => lRunnerId;
 
@@ -17,14 +18,14 @@ public sealed partial class LRunner
 
     public void LRunnerDispose()
     {
-        if (LRunnerRunning || lRunnerItem is not null)
+        if (LRunnerRunning || !lRunnerItems.IsEmpty)
         {
             LRunnerNote($"Worklist tab closed: releasing work held by runner {lRunnerId:N}");
             LRunnerCancel();
         }
 
         LRunnerRunning = false;
-        LRunnerLeaseStop();
+        LRunnerLeaseClear();
         LSchedule.LScheduleRunnerRemove(lRunnerId);
     }
 
@@ -41,23 +42,29 @@ public sealed partial class LRunner
 
     private void LRunnerLeaseStart(LWorkItem lWorkItem)
     {
-        LRunnerLeaseStop();
+        LRunnerLeaseStop(lWorkItem.LWorkId);
         var lRunnerTimer = new System.Timers.Timer(LSchedule.LScheduleLeaseSeconds * 1000) { AutoReset = true };
         lRunnerTimer.Elapsed += (_, _) => lRunnerSchedule.LScheduleLeaseUpdate(lWorkItem.LWorkId, lRunnerId);
         lRunnerTimer.Start();
-        lRunnerLeaseTimer = lRunnerTimer;
+        lRunnerLeaseTimers[lWorkItem.LWorkId] = lRunnerTimer;
     }
 
-    private void LRunnerLeaseStop()
+    private void LRunnerLeaseStop(Guid lWorkId)
     {
-        System.Timers.Timer? lRunnerTimer = lRunnerLeaseTimer;
-        lRunnerLeaseTimer = null;
-        if (lRunnerTimer is null)
+        if (!lRunnerLeaseTimers.TryRemove(lWorkId, out System.Timers.Timer? lRunnerTimer))
         {
             return;
         }
 
         lRunnerTimer.Stop();
         lRunnerTimer.Dispose();
+    }
+
+    private void LRunnerLeaseClear()
+    {
+        foreach (Guid lWorkId in lRunnerLeaseTimers.Keys.ToArray())
+        {
+            LRunnerLeaseStop(lWorkId);
+        }
     }
 }

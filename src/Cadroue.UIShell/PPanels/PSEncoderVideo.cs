@@ -2,6 +2,9 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
+using Cadroue.UIShell.PMainWindow;
+
+using static Cadroue.UIShell.PSShared.PSField;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -51,13 +54,17 @@ internal sealed partial class PSEncoder
     private static readonly string[] psVideoReactiveItems =
         ["Same as source", "2160p", "1440p", "1080p", "720p", "480p", "Custom"];
 
-    private static CheckBox PSVideoReactiveBuild(bool pReactive) => new()
+    private static CheckBox PSVideoReactiveBuild(bool pReactive)
     {
-        Content = "Match the output orientation to the clip",
-        IsChecked = pReactive,
-        VerticalAlignment = VerticalAlignment.Center,
-        VerticalContentAlignment = VerticalAlignment.Center
-    };
+        var pReactiveBox = new CheckBox
+        {
+            Content = "Match the output orientation to the clip",
+            IsChecked = pReactive,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PCheckbox.PCheckboxApply(pReactiveBox);
+        return pReactiveBox;
+    }
 
     private string PSVideoSizeRead(string pLabel)
     {
@@ -94,13 +101,13 @@ internal sealed partial class PSEncoder
 
     private UIElement PSVideoCustomBuild()
     {
-        psVideoCustomWidth.MinHeight = PSSheetControlHeight;
-        psVideoCustomHeight.MinHeight = PSSheetControlHeight;
+        psVideoCustomWidth.MinHeight = PSFieldControlHeight;
+        psVideoCustomHeight.MinHeight = PSFieldControlHeight;
 
         var pPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left };
         pPanel.Children.Add(psVideoCustomWidth);
 
-        TextBlock pSeparator = PSSheetLabelBuild("×");
+        TextBlock pSeparator = PSFieldLabelBuild("×");
         pSeparator.Margin = new Thickness(8, 0, 8, 0);
         pPanel.Children.Add(pSeparator);
         pPanel.Children.Add(psVideoCustomHeight);
@@ -108,7 +115,7 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSSheetLabelBuild("Custom size"));
+        pGrid.Children.Add(PSFieldLabelBuild("Custom size"));
         Grid.SetColumn(pPanel, 1);
         pGrid.Children.Add(pPanel);
         return pGrid;

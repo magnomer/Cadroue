@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
+using static Cadroue.UIShell.PSShared.PSField;
+
 namespace Cadroue.UIShell.PPanels;
 
 internal sealed partial class PSEncoder

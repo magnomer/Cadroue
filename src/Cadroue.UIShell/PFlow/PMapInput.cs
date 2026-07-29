@@ -78,6 +78,7 @@ public sealed partial class PMap
             PMapCursorChange?.Invoke(PMapRatioConvert(Math.Clamp(mouseX / actualWidth, 0, 1)));
         }
 
+        PMapDragChange?.Invoke(true);
         CaptureMouse();
         e.Handled = true;
     }
@@ -136,22 +137,28 @@ public sealed partial class PMap
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonUp(e);
-        PMapDragEnd();
+        PMapDragClear();
         e.Handled = true;
     }
 
     protected override void OnLostMouseCapture(MouseEventArgs e)
     {
         base.OnLostMouseCapture(e);
-        PMapDragEnd();
+        PMapDragClear();
     }
 
-    private void PMapDragEnd()
+    private void PMapDragClear()
     {
+        bool pMapDragging = pMapDragMode != PMapDragMode.PMapDragNone;
         pMapDragMode = PMapDragMode.PMapDragNone;
         if (IsMouseCaptured)
         {
             ReleaseMouseCapture();
+        }
+
+        if (pMapDragging)
+        {
+            PMapDragChange?.Invoke(false);
         }
     }
 

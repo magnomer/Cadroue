@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 
+using static Cadroue.UIShell.PSShared.PSField;
+
 namespace Cadroue.UIShell.PPanels;
 
 internal sealed partial class PSEncoder
@@ -46,7 +48,7 @@ internal sealed partial class PSEncoder
     {
         Foreground = PMutedBrush,
         TextWrapping = TextWrapping.Wrap,
-        Margin = PSSheetNoticeMargin,
+        Margin = PSNoticeMargin,
         Visibility = Visibility.Collapsed
     };
 }

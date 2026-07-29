@@ -54,6 +54,7 @@ public partial class App : Application
 
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
         Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
+        PFlow.PSectionPalette.PSectionPaletteReload();
 
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.Core.LSchedule.LScheduleRecoverReport = LAppLog.LInfo;
@@ -196,6 +197,20 @@ public partial class App : Application
         }
 
         LPreferenceStateCurrent = LPreferenceStateCurrent.LPreferenceVolumeChange(lVolume);
+        LPreferenceSchedule();
+    }
+
+    public static void LPreferenceMediaSet(string? lPreferenceMediaPath)
+    {
+        string lMediaPath = (lPreferenceMediaPath ?? string.Empty).Trim();
+        if (string.Equals(lMediaPath, LPreferenceStateCurrent.LPreferenceMediaPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
+        lPreferenceNext.LPreferenceMediaPath = lMediaPath;
+        LPreferenceStateCurrent = lPreferenceNext;
         LPreferenceSchedule();
     }
 

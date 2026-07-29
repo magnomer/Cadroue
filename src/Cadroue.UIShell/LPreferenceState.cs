@@ -2,35 +2,53 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Cadroue.UIShell.PFlow;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell;
 
 public sealed class LPreferenceState
 {
+    public string LPreferenceStartupMode { get; set; } = "LastSession";
+    public List<string> LPreferenceStartupTabs { get; set; } = new() { "Split" };
+    public bool LPreferenceMediaAutomatic { get; set; }
+    public bool LPreferenceConfirmDestructive { get; set; }
+    public string LPreferenceLanguage { get; set; } = "English";
+
     public double LPreferenceVolume { get; set; }
-    public string LPreferenceVolumeMode { get; set; } = "Single global volume";
+    public string LPreferenceVolumeMode { get; set; } = "Unified";
+    public bool LPreferenceAutoplayOnLoad { get; set; }
+    public string LPreferenceWheelAction { get; set; } = "Seek";
+    public bool LPreferenceDragPaused { get; set; } = true;
+
+    public string LPreferenceTimelineOrder { get; set; } = "MapFirst";
+    public double LPreferenceKeyframeMinimumPixels { get; set; }
+    public string LPreferenceSectionPalette { get; set; } = PSectionPalette.PSectionPaletteDefaultName;
+    public bool LPreferenceOverlapAllowed { get; set; } = true;
+
+    public double LPreferenceParallelMaximum { get; set; }
+    public bool LPreferenceFailurePaused { get; set; }
+    public bool LPreferenceRetryAllowed { get; set; }
+    public double LPreferenceRetryMaximum { get; set; }
+
+    public string LPreferenceWorkspaceFolder { get; set; } = string.Empty;
+    public string LPreferenceFfmpegFolder { get; set; } = string.Empty;
+    public string LPreferenceMediaPath { get; set; } = string.Empty;
+
     public double LPreferenceProgramWidth { get; set; }
     public double LPreferenceProgramHeight { get; set; }
     public double? LPreferenceProgramLeft { get; set; }
     public double? LPreferenceProgramTop { get; set; }
     public double LPreferenceFlowHeight { get; set; }
-
     public double LPreferenceEncoderWidth { get; set; }
     public double LPreferenceEncoderHeight { get; set; }
     public double? LPreferenceEncoderLeft { get; set; }
     public double? LPreferenceEncoderTop { get; set; }
-    public double LPreferenceFontSize { get; set; }
-    public double LPreferenceKeyframeMinimumPixels { get; set; }
-    public double LPreferenceSectionOpacity { get; set; }
-    public double LPreferenceHistoryMaximum { get; set; }
-    public bool LPreferenceAutoplayOnLoad { get; set; }
-    public bool LPreferenceGroupDuplicateAllowed { get; set; }
-    public string LPreferenceTimelineOrder { get; set; } = "OverviewFirst";
-    public string LPreferenceHistoryMode { get; set; } = "LastUsed";
+    public double LPreferenceOptionsWidth { get; set; }
+    public double LPreferenceOptionsHeight { get; set; }
+    public double? LPreferenceOptionsLeft { get; set; }
+    public double? LPreferenceOptionsTop { get; set; }
 
-    public string LPreferenceWorkspaceFolder { get; set; } = string.Empty;
-    public string LPreferenceFfmpegFolder { get; set; } = string.Empty;
     public List<string> LPreferenceTabLayoutKeys { get; set; } = new();
     public int LPreferenceTabSelectIndex { get; set; }
 
@@ -41,8 +59,27 @@ public sealed class LPreferenceState
     {
         return new LPreferenceState
         {
+            LPreferenceStartupMode = "LastSession",
+            LPreferenceStartupTabs = new List<string> { "Split" },
+            LPreferenceMediaAutomatic = false,
+            LPreferenceConfirmDestructive = false,
+            LPreferenceLanguage = "English",
             LPreferenceVolume = 100,
-            LPreferenceVolumeMode = "Single global volume",
+            LPreferenceVolumeMode = "Unified",
+            LPreferenceAutoplayOnLoad = false,
+            LPreferenceWheelAction = "Seek",
+            LPreferenceDragPaused = true,
+            LPreferenceTimelineOrder = "MapFirst",
+            LPreferenceKeyframeMinimumPixels = 5,
+            LPreferenceSectionPalette = PSectionPalette.PSectionPaletteDefaultName,
+            LPreferenceOverlapAllowed = true,
+            LPreferenceParallelMaximum = 1,
+            LPreferenceFailurePaused = false,
+            LPreferenceRetryAllowed = false,
+            LPreferenceRetryMaximum = 3,
+            LPreferenceWorkspaceFolder = string.Empty,
+            LPreferenceFfmpegFolder = string.Empty,
+            LPreferenceMediaPath = string.Empty,
             LPreferenceProgramWidth = 1280,
             LPreferenceProgramHeight = 760,
             LPreferenceProgramLeft = null,
@@ -52,16 +89,10 @@ public sealed class LPreferenceState
             LPreferenceEncoderHeight = PSEncoder.PSEncoderHeightDefault,
             LPreferenceEncoderLeft = null,
             LPreferenceEncoderTop = null,
-            LPreferenceFontSize = 13,
-            LPreferenceKeyframeMinimumPixels = 5,
-            LPreferenceSectionOpacity = 0.65,
-            LPreferenceHistoryMaximum = 100,
-            LPreferenceAutoplayOnLoad = false,
-            LPreferenceGroupDuplicateAllowed = false,
-            LPreferenceTimelineOrder = "OverviewFirst",
-            LPreferenceHistoryMode = "LastUsed",
-            LPreferenceWorkspaceFolder = string.Empty,
-            LPreferenceFfmpegFolder = string.Empty,
+            LPreferenceOptionsWidth = PSOptions.PSOptionsWidthDefault,
+            LPreferenceOptionsHeight = PSOptions.PSOptionsHeightDefault,
+            LPreferenceOptionsLeft = null,
+            LPreferenceOptionsTop = null,
             LPreferenceTabLayoutKeys = new List<string> { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" },
             LPreferenceTabSelectIndex = 0
         };
@@ -78,8 +109,27 @@ public sealed class LPreferenceState
     {
         return new LPreferenceState
         {
+            LPreferenceStartupMode = LPreferenceStartupMode,
+            LPreferenceStartupTabs = new List<string>(LPreferenceStartupTabs),
+            LPreferenceMediaAutomatic = LPreferenceMediaAutomatic,
+            LPreferenceConfirmDestructive = LPreferenceConfirmDestructive,
+            LPreferenceLanguage = LPreferenceLanguage,
             LPreferenceVolume = LPreferenceVolume,
             LPreferenceVolumeMode = LPreferenceVolumeMode,
+            LPreferenceAutoplayOnLoad = LPreferenceAutoplayOnLoad,
+            LPreferenceWheelAction = LPreferenceWheelAction,
+            LPreferenceDragPaused = LPreferenceDragPaused,
+            LPreferenceTimelineOrder = LPreferenceTimelineOrder,
+            LPreferenceKeyframeMinimumPixels = LPreferenceKeyframeMinimumPixels,
+            LPreferenceSectionPalette = LPreferenceSectionPalette,
+            LPreferenceOverlapAllowed = LPreferenceOverlapAllowed,
+            LPreferenceParallelMaximum = LPreferenceParallelMaximum,
+            LPreferenceFailurePaused = LPreferenceFailurePaused,
+            LPreferenceRetryAllowed = LPreferenceRetryAllowed,
+            LPreferenceRetryMaximum = LPreferenceRetryMaximum,
+            LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
+            LPreferenceFfmpegFolder = LPreferenceFfmpegFolder,
+            LPreferenceMediaPath = LPreferenceMediaPath,
             LPreferenceProgramWidth = LPreferenceProgramWidth,
             LPreferenceProgramHeight = LPreferenceProgramHeight,
             LPreferenceProgramLeft = LPreferenceProgramLeft,
@@ -89,16 +139,10 @@ public sealed class LPreferenceState
             LPreferenceEncoderHeight = LPreferenceEncoderHeight,
             LPreferenceEncoderLeft = LPreferenceEncoderLeft,
             LPreferenceEncoderTop = LPreferenceEncoderTop,
-            LPreferenceFontSize = LPreferenceFontSize,
-            LPreferenceKeyframeMinimumPixels = LPreferenceKeyframeMinimumPixels,
-            LPreferenceSectionOpacity = LPreferenceSectionOpacity,
-            LPreferenceHistoryMaximum = LPreferenceHistoryMaximum,
-            LPreferenceAutoplayOnLoad = LPreferenceAutoplayOnLoad,
-            LPreferenceGroupDuplicateAllowed = LPreferenceGroupDuplicateAllowed,
-            LPreferenceTimelineOrder = LPreferenceTimelineOrder,
-            LPreferenceHistoryMode = LPreferenceHistoryMode,
-            LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
-            LPreferenceFfmpegFolder = LPreferenceFfmpegFolder,
+            LPreferenceOptionsWidth = LPreferenceOptionsWidth,
+            LPreferenceOptionsHeight = LPreferenceOptionsHeight,
+            LPreferenceOptionsLeft = LPreferenceOptionsLeft,
+            LPreferenceOptionsTop = LPreferenceOptionsTop,
             LPreferenceTabLayoutKeys = new List<string>(LPreferenceTabLayoutKeys),
             LPreferenceTabSelectIndex = LPreferenceTabSelectIndex,
             LPreferenceTabExports = new List<LExportSpecificPresetRecord>(LPreferenceTabExports),
@@ -112,16 +156,24 @@ public sealed class LPreferenceState
     {
         (string Name, object Was, object Now)[] lPreferenceFields =
         {
+            ("Startup", lPreferenceOther.LPreferenceStartupMode, LPreferenceStartupMode),
+            ("Default tabs", string.Join(", ", lPreferenceOther.LPreferenceStartupTabs), string.Join(", ", LPreferenceStartupTabs)),
+            ("Auto-open last media", lPreferenceOther.LPreferenceMediaAutomatic, LPreferenceMediaAutomatic),
+            ("Confirm destructive actions", lPreferenceOther.LPreferenceConfirmDestructive, LPreferenceConfirmDestructive),
+            ("Language", lPreferenceOther.LPreferenceLanguage, LPreferenceLanguage),
             ("Volume mode", lPreferenceOther.LPreferenceVolumeMode, LPreferenceVolumeMode),
-            ("Timeline height", lPreferenceOther.LPreferenceFlowHeight, LPreferenceFlowHeight),
-            ("Font size", lPreferenceOther.LPreferenceFontSize, LPreferenceFontSize),
-            ("Keyframe minimum spacing", lPreferenceOther.LPreferenceKeyframeMinimumPixels, LPreferenceKeyframeMinimumPixels),
-            ("Section overlap opacity", lPreferenceOther.LPreferenceSectionOpacity, LPreferenceSectionOpacity),
-            ("Maximum history", lPreferenceOther.LPreferenceHistoryMaximum, LPreferenceHistoryMaximum),
+            ("Default volume", lPreferenceOther.LPreferenceVolume, LPreferenceVolume),
             ("Autoplay on load", lPreferenceOther.LPreferenceAutoplayOnLoad, LPreferenceAutoplayOnLoad),
-            ("Duplicate sections in groups", lPreferenceOther.LPreferenceGroupDuplicateAllowed, LPreferenceGroupDuplicateAllowed),
+            ("Mousewheel", lPreferenceOther.LPreferenceWheelAction, LPreferenceWheelAction),
+            ("Pause while dragging", lPreferenceOther.LPreferenceDragPaused, LPreferenceDragPaused),
             ("Timeline order", lPreferenceOther.LPreferenceTimelineOrder, LPreferenceTimelineOrder),
-            ("History mode", lPreferenceOther.LPreferenceHistoryMode, LPreferenceHistoryMode),
+            ("Keyframe minimum spacing", lPreferenceOther.LPreferenceKeyframeMinimumPixels, LPreferenceKeyframeMinimumPixels),
+            ("Section colour palette", lPreferenceOther.LPreferenceSectionPalette, LPreferenceSectionPalette),
+            ("Allow overlapping sections", lPreferenceOther.LPreferenceOverlapAllowed, LPreferenceOverlapAllowed),
+            ("Maximum parallel jobs", lPreferenceOther.LPreferenceParallelMaximum, LPreferenceParallelMaximum),
+            ("Pause queue on failure", lPreferenceOther.LPreferenceFailurePaused, LPreferenceFailurePaused),
+            ("Retry", lPreferenceOther.LPreferenceRetryAllowed, LPreferenceRetryAllowed),
+            ("Retry limit", lPreferenceOther.LPreferenceRetryMaximum, LPreferenceRetryMaximum),
             ("Workspace folder", lPreferenceOther.LPreferenceWorkspaceFolder, LPreferenceWorkspaceFolder),
             ("FFmpeg folder", lPreferenceOther.LPreferenceFfmpegFolder, LPreferenceFfmpegFolder)
         };
@@ -137,7 +189,21 @@ public sealed class LPreferenceState
 
     public void LPreferenceNormalize()
     {
+        if (LPreferenceStartupMode is not "LastSession" and not "DefaultTab") LPreferenceStartupMode = "LastSession";
+        if (LPreferenceStartupTabs is null || LPreferenceStartupTabs.Count == 0)
+            LPreferenceStartupTabs = new List<string> { "Split" };
+        if (string.IsNullOrWhiteSpace(LPreferenceLanguage)) LPreferenceLanguage = "English";
+        if (LPreferenceVolumeMode is not "Unified" and not "PerTab") LPreferenceVolumeMode = "Unified";
+        if (LPreferenceWheelAction is not "Seek" and not "Zoom" and not "Volume") LPreferenceWheelAction = "Seek";
+        if (LPreferenceTimelineOrder is not "MapFirst" and not "ViewfinderFirst") LPreferenceTimelineOrder = "MapFirst";
+        if (string.IsNullOrWhiteSpace(LPreferenceSectionPalette))
+            LPreferenceSectionPalette = PSectionPalette.PSectionPaletteDefaultName;
+
         LPreferenceVolume = LPreferenceVolumeClamp(LPreferenceVolume);
+        LPreferenceKeyframeMinimumPixels = LPreferenceNumberClamp(LPreferenceKeyframeMinimumPixels, 1, 50, 5);
+        LPreferenceParallelMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceParallelMaximum, 1, 8, 1));
+        LPreferenceRetryMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceRetryMaximum, 0, 10, 3));
+
         LPreferenceProgramWidth = LPreferenceNumberClamp(LPreferenceProgramWidth, 800, 4000, 1280);
         LPreferenceProgramHeight = LPreferenceNumberClamp(LPreferenceProgramHeight, 400, 3000, 760);
         LPreferenceFlowHeight = LPreferenceNumberClamp(LPreferenceFlowHeight, 200, 520, 280);
@@ -147,15 +213,17 @@ public sealed class LPreferenceState
         LPreferenceEncoderHeight = LPreferenceEncoderHeight <= 0
             ? PSEncoder.PSEncoderHeightDefault
             : LPreferenceNumberClamp(LPreferenceEncoderHeight, PSEncoder.PSEncoderHeightMinimum, 3000, PSEncoder.PSEncoderHeightDefault);
-        LPreferenceFontSize = LPreferenceNumberClamp(LPreferenceFontSize, 9, 18, 13);
-        LPreferenceKeyframeMinimumPixels = LPreferenceNumberClamp(LPreferenceKeyframeMinimumPixels, 1, 50, 5);
-        LPreferenceSectionOpacity = LPreferenceNumberClamp(LPreferenceSectionOpacity, 0.10, 0.95, 0.65);
-        LPreferenceHistoryMaximum = LPreferenceNumberClamp(LPreferenceHistoryMaximum, 0, 1000000, 100);
-        if (LPreferenceVolumeMode is not "Single global volume" and not "Per-tab volume") LPreferenceVolumeMode = "Single global volume";
-        if (LPreferenceTimelineOrder is not "OverviewFirst" and not "WorkingFirst") LPreferenceTimelineOrder = "OverviewFirst";
-        if (LPreferenceHistoryMode is not "Hover" and not "LastUsed") LPreferenceHistoryMode = "LastUsed";
+
+        LPreferenceOptionsWidth = LPreferenceOptionsWidth <= 0
+            ? PSOptions.PSOptionsWidthDefault
+            : LPreferenceNumberClamp(LPreferenceOptionsWidth, PSOptions.PSOptionsWidthMinimum, 4000, PSOptions.PSOptionsWidthDefault);
+        LPreferenceOptionsHeight = LPreferenceOptionsHeight <= 0
+            ? PSOptions.PSOptionsHeightDefault
+            : LPreferenceNumberClamp(LPreferenceOptionsHeight, PSOptions.PSOptionsHeightMinimum, 3000, PSOptions.PSOptionsHeightDefault);
+
         LPreferenceWorkspaceFolder = (LPreferenceWorkspaceFolder ?? string.Empty).Trim();
         LPreferenceFfmpegFolder = (LPreferenceFfmpegFolder ?? string.Empty).Trim();
+        LPreferenceMediaPath = (LPreferenceMediaPath ?? string.Empty).Trim();
         LPreferenceTabSelectIndex = Math.Max(0, LPreferenceTabSelectIndex);
         if (LPreferenceTabLayoutKeys is null || LPreferenceTabLayoutKeys.Count == 0)
             LPreferenceTabLayoutKeys = new List<string> { "Split" };
@@ -163,7 +231,7 @@ public sealed class LPreferenceState
     }
 
     [JsonIgnore]
-    public bool LPreferenceVolumeSingleGlobal => LPreferenceVolumeMode == "Single global volume";
+    public bool LPreferenceVolumeUnified => LPreferenceVolumeMode == "Unified";
 
     public static double LPreferenceVolumeClamp(double lPreferenceVolume)
         => LPreferenceNumberClamp(lPreferenceVolume, 0, 100, 100);

@@ -11,6 +11,8 @@ namespace Cadroue.UIShell.PControlBar;
 
 public sealed class PWorkspace
 {
+    private const int PWorkspaceHistoryMaximum = 100;
+
     private readonly LHistory lWorkspaceHistory = new();
 
     public PWorkspace(
@@ -82,7 +84,7 @@ public sealed class PWorkspace
     private void PWorkspaceExportHandle() => PWorkspaceHistoryMark();
 
     private void PWorkspaceHistoryMark()
-        => lWorkspaceHistory.LHistoryPush(PWorkspaceStateRead(), (int)App.LPreferenceStateCurrent.LPreferenceHistoryMaximum);
+        => lWorkspaceHistory.LHistoryPush(PWorkspaceStateRead(), PWorkspaceHistoryMaximum);
 
     public bool PWorkspaceUndo() => PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryUndo());
 

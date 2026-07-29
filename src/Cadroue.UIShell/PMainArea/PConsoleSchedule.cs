@@ -100,9 +100,10 @@ public sealed partial class PConsole
 
     private void PConsoleNextHandle(object pSender, RoutedEventArgs pArguments) => PConsoleStationStep(1);
 
-    private LWorkItem? PConsoleOwnedRunning => pConsoleSchedule.LScheduleRecords
-        .FirstOrDefault(pWorkItem => pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning
-            && PConsoleStationRead().LStationRunner.LRunnerOwnerCheck(pWorkItem));
+    private LWorkItem[] PConsoleRunningRead() => pConsoleSchedule.LScheduleRecords
+        .Where(pWorkItem => pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning
+            && PConsoleStationRead().LStationRunner.LRunnerOwnerCheck(pWorkItem))
+        .ToArray();
 
     private void PConsoleScheduleHandle(LSchedule lSchedule)
     {
@@ -143,9 +144,10 @@ public sealed partial class PConsole
         LStation[] pBoard = LStation.LStationBoardRead();
         LStation pStation = PConsoleStationRead();
         LRunner pRunner = pStation.LStationRunner;
-        LWorkItem? pRunning = PConsoleOwnedRunning;
+        LWorkItem[] pRunningItems = PConsoleRunningRead();
+        LWorkItem? pRunning = pRunningItems.FirstOrDefault();
 
-        PConsoleProgressSet(pRunning?.LWorkProgress ?? 0);
+        PConsoleProgressSet(pRunningItems.Length == 0 ? 0 : pRunningItems.Average(pWorkItem => pWorkItem.LWorkProgress));
         pConsoleStartButton.IsEnabled = !pRunner.LRunnerRunning && pTotal > 0;
         pConsolePauseButton.IsEnabled = pRunner.LRunnerRunning;
         pConsoleCancelButton.IsEnabled = pRunning is not null;
@@ -173,7 +175,9 @@ public sealed partial class PConsole
             ? "No work queued."
             : pRunning is null
                 ? $"{pRunState}  •  {pDoneText}, {pConsoleSchedule.LSchedulePendingRead().Count} pending"
-                : $"{pRunning.LWorkOutputName}  •  {pRunning.LWorkProgress:P0}  •  {pDoneText}";
+                : pRunningItems.Length > 1
+                    ? $"{pRunningItems.Length} jobs running  •  {pRunningItems.Average(pWorkItem => pWorkItem.LWorkProgress):P0}  •  {pDoneText}"
+                    : $"{pRunning.LWorkOutputName}  •  {pRunning.LWorkProgress:P0}  •  {pDoneText}";
 
         pConsoleStationLabel.Text = pBoard.Length > 1
             ? $"{pStation.LStationLabel} {Array.IndexOf(pBoard, pStation) + 1} of {pBoard.Length}"
@@ -183,7 +187,7 @@ public sealed partial class PConsole
     private void PConsoleStartHandle(object pSender, RoutedEventArgs pArguments)
     {
         LRunner pRunner = PConsoleStationRead().LStationRunner;
-        pRunner.LRunnerProgramPath = App.LRendererProgramCurrent;
+        PConsoleRunnerApply(pRunner);
         pRunner.LRunnerStart();
     }
 
@@ -192,13 +196,17 @@ public sealed partial class PConsole
 
     private void PConsoleCancelHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (PConsoleOwnedRunning is not { } pRunning)
+        LWorkItem[] pRunningItems = PConsoleRunningRead();
+        if (pRunningItems.Length == 0)
         {
             return;
         }
 
+        string pCancelSubject = pRunningItems.Length > 1
+            ? $"all {pRunningItems.Length} running jobs"
+            : $"'{pRunningItems[0].LWorkOutputName}'";
         MessageBoxResult pAnswer = MessageBox.Show(
-            $"Cancel '{pRunning.LWorkOutputName}'?\n\nThe partly written output file is deleted and the job returns to Pending.",
+            $"Cancel {pCancelSubject}?\n\nThe partly written output file is deleted and the job returns to Pending.",
             "Cancel running job",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
@@ -228,12 +236,39 @@ public sealed partial class PConsole
 
     private void PConsoleDoneHandle(object pSender, RoutedEventArgs pArguments)
     {
+        if (!PConsoleDestructiveConfirm("Remove every finished job from the queue?")) return;
         pConsoleSchedule.LScheduleDoneClear();
     }
 
     private void PConsoleAllHandle(object pSender, RoutedEventArgs pArguments)
     {
+        if (!PConsoleDestructiveConfirm("Remove every queued job except the running one?")) return;
         pConsoleSchedule.LScheduleAllClear();
+    }
+
+    private bool PConsoleDestructiveConfirm(string pConsoleQuestion)
+    {
+        if (!App.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
+        {
+            return true;
+        }
+
+        return MessageBox.Show(
+            pConsoleQuestion,
+            "Confirm",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No) == MessageBoxResult.Yes;
+    }
+
+    private static void PConsoleRunnerApply(LRunner pRunner)
+    {
+        LPreferenceState lPreferenceState = App.LPreferenceStateCurrent;
+        pRunner.LRunnerProgramPath = App.LRendererProgramCurrent;
+        pRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
+        pRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
+        pRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;
+        pRunner.LRunnerRetryMaximum = (int)lPreferenceState.LPreferenceRetryMaximum;
     }
 
     private void PConsoleDepotAttach()

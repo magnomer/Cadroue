@@ -13,6 +13,8 @@ public static class LDepot
     private const string LDepotFolderName = "Cadroue";
     private const string LDepotWorkFolderName = "workspace";
 
+    private const string LDepotPaletteFolderName = "palettes";
+
     public const string LDepotIndexFileName = "work.db";
 
     private static string? lDepotRootOverride;
@@ -41,6 +43,13 @@ public static class LDepot
 
     public static string LDepotIndexPathRead() => Path.Combine(LDepotRootRead(), LDepotIndexFileName);
 
+    public static string LDepotPaletteRead()
+    {
+        string lDepotPalettes = Path.Combine(LDepotRootRead(), LDepotPaletteFolderName);
+        Directory.CreateDirectory(lDepotPalettes);
+        return lDepotPalettes;
+    }
+
     public static string LDepotFolderRead(LDepotFolder lDepotFolder) =>
         Path.Combine(LDepotRootRead(), LDepotFolderNameRead(lDepotFolder));
 
@@ -62,6 +71,56 @@ public static class LDepot
         return Directory.Exists(lDepotFolderPath)
             ? Directory.EnumerateFiles(lDepotFolderPath, "*.json")
             : Array.Empty<string>();
+    }
+
+    public static long LDepotSizeRead()
+    {
+        string lDepotRoot = LDepotRootRead();
+        if (!Directory.Exists(lDepotRoot))
+        {
+            return 0;
+        }
+
+        long lDepotTotal = 0;
+        foreach (string lDepotFilePath in Directory.EnumerateFiles(lDepotRoot, "*", SearchOption.AllDirectories))
+        {
+            try
+            {
+                lDepotTotal += new FileInfo(lDepotFilePath).Length;
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+
+        return lDepotTotal;
+    }
+
+    public static int LDepotFolderClear(params LDepotFolder[] lDepotFolders)
+    {
+        int lDepotRemoved = 0;
+        foreach (LDepotFolder lDepotFolder in lDepotFolders)
+        {
+            foreach (string lDepotFilePath in LDepotFilesRead(lDepotFolder).ToArray())
+            {
+                try
+                {
+                    File.Delete(lDepotFilePath);
+                    lDepotRemoved++;
+                }
+                catch (IOException)
+                {
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+            }
+        }
+
+        return lDepotRemoved;
     }
 
     public static bool LDepotRunningCheck(string lDepotRoot)

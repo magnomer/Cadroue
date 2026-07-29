@@ -14,7 +14,7 @@ public partial class PToolbar : UserControl
     private Point pTabDragStartPoint;
     private bool pTabDragActive;
 
-    public event Action<LPreferenceState>? PToolbarPreferenceApply;
+    public event Action<LPreferenceState>? PToolbarOptionsApply;
 
     private const double PChromeButtonHeight = 56;
 
@@ -146,7 +146,7 @@ public partial class PToolbar : UserControl
 
         ContextMenu pLogoMenu = PMenu.PMenuCreate(pLogoButton);
 
-        PLogoItemAppend(pLogoMenu, "Preferences", "/PAssets/PMenus/PMenuPreferences.svg");
+        PLogoItemAppend(pLogoMenu, "Options", "/PAssets/PMenus/PMenuPreferences.svg");
         PLogoItemAppend(pLogoMenu, "Shortcuts", "/PAssets/PMenus/PMenuShortcuts.svg");
         PLogoItemAppend(pLogoMenu, "Log", "/PAssets/PMenus/PMenuLog.svg");
         PLogoItemAppend(pLogoMenu, "About", "/PAssets/PMenus/PMenuAbout.svg");
@@ -158,9 +158,9 @@ public partial class PToolbar : UserControl
     private void PLogoItemAppend(ContextMenu pLogoMenu, string pLogoMenuText, string pLogoMenuIconPath)
     {
         MenuItem pLogoMenuItem = PMenu.PMenuItemCreate(pLogoMenuText, PMenu.PMenuIconRead(pLogoMenuIconPath));
-        if (pLogoMenuText == "Preferences")
+        if (pLogoMenuText == "Options")
         {
-            pLogoMenuItem.Click += (_, _) => PToolbarPreferenceShow();
+            pLogoMenuItem.Click += (_, _) => PToolbarOptionsShow();
         }
         else if (pLogoMenuText == "Shortcuts")
         {
@@ -174,9 +174,9 @@ public partial class PToolbar : UserControl
         pLogoMenu.Items.Add(pLogoMenuItem);
     }
 
-    private void PToolbarPreferenceShow()
+    private void PToolbarOptionsShow()
     {
-        PSOptions.PSOptionsShow(Window.GetWindow(this)!, PToolbarPreferenceApply);
+        PSOptions.PSOptionsShow(Window.GetWindow(this)!, PToolbarOptionsApply);
     }
 
     public void PToolbarShortcutShow()

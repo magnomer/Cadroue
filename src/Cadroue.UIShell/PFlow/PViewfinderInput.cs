@@ -17,6 +17,7 @@ public sealed partial class PViewfinder
         TimeSpan requestTime = PViewfinderPositionConvert(e.GetPosition(this).X);
         PViewfinderSelectPropagate(requestTime);
         pViewfinderDragMode = PViewfinderDragMode.PViewfinderDragCursor;
+        PViewfinderDragChange?.Invoke(true);
         PViewfinderCursorChange?.Invoke(requestTime);
         CaptureMouse();
         e.Handled = true;
@@ -37,7 +38,7 @@ public sealed partial class PViewfinder
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonUp(e);
-        pViewfinderDragMode = PViewfinderDragMode.PViewfinderDragNone;
+        PViewfinderDragClear();
         if (IsMouseCaptured)
         {
             ReleaseMouseCapture();
@@ -49,7 +50,17 @@ public sealed partial class PViewfinder
     protected override void OnLostMouseCapture(MouseEventArgs e)
     {
         base.OnLostMouseCapture(e);
+        PViewfinderDragClear();
+    }
+
+    private void PViewfinderDragClear()
+    {
+        bool pViewfinderDragging = pViewfinderDragMode != PViewfinderDragMode.PViewfinderDragNone;
         pViewfinderDragMode = PViewfinderDragMode.PViewfinderDragNone;
+        if (pViewfinderDragging)
+        {
+            PViewfinderDragChange?.Invoke(false);
+        }
     }
 
     private void PViewfinderSelectPropagate(TimeSpan requestTime)

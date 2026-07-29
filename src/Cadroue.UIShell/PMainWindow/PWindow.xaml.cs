@@ -14,6 +14,7 @@ public partial class PWindow : Window
     private const int PResizeTop = 4;
     private const int PResizeBottom = 8;
     private const int PWindowMessageErase = 0x0014;
+    private const double PWindowFontSize = 13;
     private const int PWindowDwmCornerPreference = 33;
     private const int PWindowDwmCornerRound = 2;
     private const int PWindowDwmCaptionColor = 35;
@@ -38,8 +39,8 @@ public partial class PWindow : Window
         }
 
         pControlBar.PToolbarTabsetSet(lTabset);
-        pControlBar.PToolbarPreferenceApply += PWindowPreferenceHandle;
-        PWindowPreferenceHandle(App.LPreferenceStateCurrent);
+        pControlBar.PToolbarOptionsApply += PWindowOptionsHandle;
+        PWindowOptionsHandle(App.LPreferenceStateCurrent);
         PWindowPositionRestore(App.LPreferenceStateCurrent);
         pDeck.PDeckTabsetSet(lTabset);
         lTabset.LTabsetSelectChange += PWindowTabHandle;
@@ -48,6 +49,10 @@ public partial class PWindow : Window
         {
             PWindowRelayPlace(lRelayPayload);
             PWindowRelayAdopt(lRelayPayload);
+        }
+        else
+        {
+            PWindowMediaRestore(App.LPreferenceStateCurrent);
         }
 
         LRelayChannel.LRelayTabReceive += PWindowRelayHandle;
@@ -58,6 +63,17 @@ public partial class PWindow : Window
     }
     private static void PWindowTabsRestore(LTabset pTabset, LPreferenceState lPreferenceState)
     {
+        if (lPreferenceState.LPreferenceStartupMode == "DefaultTab")
+        {
+            foreach (string pStartupKey in lPreferenceState.LPreferenceStartupTabs)
+            {
+                pTabset.LTabsetAdd(pStartupKey);
+            }
+
+            pTabset.LTabsetSelect(pTabset.PTabsetRecords[0]);
+            return;
+        }
+
         IReadOnlyList<string> pTabKeys = lPreferenceState.LPreferenceTabLayoutKeys.Count > 0
             ? lPreferenceState.LPreferenceTabLayoutKeys
             : new[] { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" };
@@ -74,6 +90,21 @@ public partial class PWindow : Window
         int pSelectIndex = Math.Clamp(lPreferenceState.LPreferenceTabSelectIndex, 0, pTabset.PTabsetRecords.Count - 1);
         pTabset.LTabsetSelect(pTabset.PTabsetRecords[pSelectIndex]);
     }
+    private void PWindowMediaRestore(LPreferenceState lPreferenceState)
+    {
+        if (!lPreferenceState.LPreferenceMediaAutomatic
+            || string.IsNullOrWhiteSpace(lPreferenceState.LPreferenceMediaPath)
+            || !System.IO.File.Exists(lPreferenceState.LPreferenceMediaPath))
+        {
+            return;
+        }
+
+        string pMediaPath = lPreferenceState.LPreferenceMediaPath;
+        Dispatcher.BeginInvoke(
+            System.Windows.Threading.DispatcherPriority.Loaded,
+            new Action(() => pViewerActive?.PViewerSourceOpen(pMediaPath)));
+    }
+
     private void PWindowRelayPlace(LRelay lRelay)
     {
         double pRelayLeft = lRelay.DropLeft - 120;
@@ -191,6 +222,8 @@ public partial class PWindow : Window
         pFlowActive.PFlowCommandSet(true);
         pFlowActive.PFlowSectionShow(pTabRecord.PTabLayoutKey == "Split");
         pFlowActive.Height = App.LPreferenceStateCurrent.LPreferenceFlowHeight;
+        pFlowActive.PFlowOrderApply();
+        pFlowActive.PFlowPlayingSource = pViewerActive.PViewerPlayingRead;
         pViewerActive.PViewerCommandSet(true);
         pViewerActive.PViewerMediaChange += PWindowMediaHandle;
         pViewerActive.PViewerClockTick += PWindowClockHandle;
@@ -210,6 +243,7 @@ public partial class PWindow : Window
             pFlowActive.PFlowPlay -= pViewerActive.PViewerPlay;
             pFlowActive.PFlowPause -= pViewerActive.PViewerPause;
             pFlowActive.PFlowVolumeChange -= pViewerActive.PViewerVolumeSet;
+            pFlowActive.PFlowPlayingSource = null;
             pFlowActive.PFlowSectionShow(false);
             pFlowActive.PFlowCommandSet(false);
             pViewerActive.PViewerCommandSet(false);
@@ -230,20 +264,24 @@ public partial class PWindow : Window
     {
         pFlowActive?.PFlowCursorUpdate(playbackPosition);
     }
-    private void PWindowPreferenceHandle(LPreferenceState lPreferenceState)
+    private void PWindowOptionsHandle(LPreferenceState lPreferenceState)
     {
         Width = lPreferenceState.LPreferenceProgramWidth;
         Height = lPreferenceState.LPreferenceProgramHeight;
-        FontSize = lPreferenceState.LPreferenceFontSize;
+        FontSize = PWindowFontSize;
         if (pFlowActive is not null)
+        {
             pFlowActive.Height = lPreferenceState.LPreferenceFlowHeight;
+            pFlowActive.PFlowOrderApply();
+            pFlowActive.PFlowPaletteApply();
+        }
         PWindowVolumeSync(lPreferenceState);
     }
     private void PWindowVolumeSync(LPreferenceState lPreferenceState)
     {
         if (pFlowActive is null || pViewerActive is null) return;
-        double pVolume = lPreferenceState.LPreferenceVolumeSingleGlobal ? lPreferenceState.LPreferenceVolume : pViewerActive.PViewerVolumeCurrent;
-        if (lPreferenceState.LPreferenceVolumeSingleGlobal) pViewerActive.PViewerVolumeSet(pVolume);
+        double pVolume = lPreferenceState.LPreferenceVolumeUnified ? lPreferenceState.LPreferenceVolume : pViewerActive.PViewerVolumeCurrent;
+        if (lPreferenceState.LPreferenceVolumeUnified) pViewerActive.PViewerVolumeSet(pVolume);
         pFlowActive.PFlowVolumeSet(pVolume);
     }
     private void PWindowCloseHandle(object? sender, EventArgs eventArgs)
@@ -267,7 +305,7 @@ public partial class PWindow : Window
         App.LPreferenceStateSet(lPrefs);
         LRelayChannel.LRelayTabReceive -= PWindowRelayHandle;
         lTabset.LTabsetSelectChange -= PWindowTabHandle;
-        pControlBar.PToolbarPreferenceApply -= PWindowPreferenceHandle;
+        pControlBar.PToolbarOptionsApply -= PWindowOptionsHandle;
         PreviewKeyDown -= PShortcutKeyHandle;
         PDropHandlersRemove();
         PResizeHandlersRemove();

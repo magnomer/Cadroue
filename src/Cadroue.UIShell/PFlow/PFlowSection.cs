@@ -14,7 +14,10 @@ public sealed partial class PFlow
     {
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
         if (lCursor >= lSpool.LSpoolDuration) return;
-        lSectionList.Add(new LSegment(lCursor, lSpool.LSpoolDuration, PFlowColorRead(), string.Empty));
+        if (PFlowInsideCheck(lCursor, -1)) return;
+        TimeSpan pSectionEnd = PFlowLimitRead(lCursor, lSpool.LSpoolDuration, -1);
+        if (pSectionEnd <= lCursor) return;
+        lSectionList.Add(new LSegment(lCursor, pSectionEnd, PFlowColorRead(), string.Empty));
         lSectionIndexSelect = lSectionList.Count - 1;
         PFlowSectionRecord("added", lSectionIndexSelect.Value);
         PFlowSectionUpdate();
@@ -27,6 +30,7 @@ public sealed partial class PFlow
         LSegment section = lSectionList[lSectionIndexSelect.Value];
         if (section.LSegmentEnd < lCursor) { PFlowSectionAdd(); return; }
         if (lCursor >= section.LSegmentEnd) return;
+        if (lCursor < PFlowFloorRead(section.LSegmentStart, lSectionIndexSelect.Value)) return;
         lSectionList[lSectionIndexSelect.Value] = section with { LSegmentStart = lCursor };
         PFlowSectionRecord("start set", lSectionIndexSelect.Value);
         PFlowSectionUpdate();
@@ -53,6 +57,7 @@ public sealed partial class PFlow
         if (lSectionIndexSelect is null) return;
         LSegment section = lSectionList[lSectionIndexSelect.Value];
         if (lCursor <= section.LSegmentStart) return;
+        if (lCursor > PFlowLimitRead(section.LSegmentEnd, lCursor, lSectionIndexSelect.Value)) return;
         lSectionList[lSectionIndexSelect.Value] = section with { LSegmentEnd = lCursor };
         PFlowSectionRecord("end set", lSectionIndexSelect.Value);
         PFlowSectionUpdate();
@@ -61,6 +66,7 @@ public sealed partial class PFlow
     public void PFlowSectionDelete()
     {
         if (lSectionIndexSelect is null) return;
+        if (!PFlowDestructiveConfirm("Delete the selected section?")) return;
         int index = lSectionIndexSelect.Value;
         PFlowSectionRecord("deleted", index);
         lSectionList.RemoveAt(index);
@@ -455,7 +461,7 @@ public sealed partial class PFlow
         PFlowSectionUpdate();
     }
 
-    private int PFlowColorRead() => lSectionList.Count % LSectionPaletteCount;
+    private int PFlowColorRead() => lSectionList.Count % PSectionPalette.PSectionActiveCount;
 
     private void PFlowViewfinderSelect(int sectionIndex)
     {

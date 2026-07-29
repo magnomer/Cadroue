@@ -91,7 +91,12 @@ public sealed class LStation
             return;
         }
 
+        LPreferenceState lPreferenceState = App.LPreferenceStateCurrent;
         LStationRunner.LRunnerProgramPath = App.LRendererProgramCurrent;
+        LStationRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
+        LStationRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
+        LStationRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;
+        LStationRunner.LRunnerRetryMaximum = (int)lPreferenceState.LPreferenceRetryMaximum;
         LStationRunner.LRunnerStart();
     }
 

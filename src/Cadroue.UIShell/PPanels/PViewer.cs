@@ -114,6 +114,8 @@ public sealed partial class PViewer : PPanel
         PViewerHostWatch();
     }
 
+    public bool PViewerPlayingRead() => LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
+
     public void PViewerPlay()
     {
         if (!pViewerCommandActive || pViewerPlayer is null)
@@ -160,7 +162,7 @@ public sealed partial class PViewer : PPanel
     {
         if (!pViewerCommandActive) return;
         pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
-        if (App.LPreferenceStateCurrent.LPreferenceVolumeSingleGlobal)
+        if (App.LPreferenceStateCurrent.LPreferenceVolumeUnified)
             App.LPreferenceVolumeSet(pViewerVolume);
         if (pViewerPlayer is null)
         {
@@ -213,6 +215,7 @@ public sealed partial class PViewer : PPanel
             sourcePath = pResolvedPath;
         }
 
+        App.LPreferenceMediaSet(sourcePath);
         _ = PPlayerVideoLoad(sourcePath);
     }
 

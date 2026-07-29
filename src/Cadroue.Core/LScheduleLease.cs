@@ -130,6 +130,27 @@ public sealed partial class LSchedule
         return lScheduleReleasedCount;
     }
 
+    public bool LScheduleItemRelease(Guid lWorkId, Guid lRunnerId, string lScheduleMessage)
+    {
+        string lDepotFilePath = LDepot.LDepotFilePathRead(LDepotFolder.LDepotFolderRunning, lWorkId);
+        if (!File.Exists(lDepotFilePath)
+            || LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord
+            || lWorkRecord.OwnerRunnerId != lRunnerId)
+        {
+            return false;
+        }
+
+        LSchedulePartialRemove(lWorkRecord);
+        if (!LScheduleReturn(lWorkRecord, lScheduleMessage))
+        {
+            return false;
+        }
+
+        lScheduleLiveItems.Remove(lWorkId);
+        LScheduleReload();
+        return true;
+    }
+
     public int LScheduleStaleClaim()
     {
         LDepotIndex.LDepotIndexEnsure();

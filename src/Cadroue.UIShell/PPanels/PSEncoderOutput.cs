@@ -6,6 +6,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
 
+using static Cadroue.UIShell.PSShared.PSField;
+
 namespace Cadroue.UIShell.PPanels;
 
 internal sealed partial class PSEncoder
@@ -35,7 +37,7 @@ internal sealed partial class PSEncoder
     private void PSNameBoxPrepare()
     {
         psNameBox.MinWidth = 320;
-        psNameBox.Height = PSSheetControlHeight;
+        psNameBox.Height = PSFieldControlHeight;
         psNameBox.HorizontalAlignment = HorizontalAlignment.Stretch;
     }
 
@@ -44,7 +46,7 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 8, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSSheetLabelBuild("Elements"));
+        pGrid.Children.Add(PSFieldLabelBuild("Elements"));
 
         var pPanel = new WrapPanel();
         pPanel.Children.Add(PSNameTokenBuild("Prefix", "{Prefix}"));
@@ -70,7 +72,7 @@ internal sealed partial class PSEncoder
         };
         var pBorder = new Border
         {
-            MinHeight = PSSheetChipHeight,
+            MinHeight = PSFieldChipHeight,
             BorderBrush = PLineBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
@@ -244,7 +246,7 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSSheetLabelBuild("Location"));
+        pGrid.Children.Add(PSFieldLabelBuild("Location"));
 
         var pValueGrid = new Grid();
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

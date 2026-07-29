@@ -70,6 +70,7 @@ public sealed partial class PViewfinder : FrameworkElement
 
     public event Action<TimeSpan>? PViewfinderCursorChange;
     public event Action<int>? PViewfinderSectionSelect;
+    public event Action<bool>? PViewfinderDragChange;
 
     public void PViewfinderAttach(LSpool spool, TimeSpan cursor)
     {

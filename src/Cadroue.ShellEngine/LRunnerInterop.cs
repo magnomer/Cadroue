@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
@@ -8,18 +9,19 @@ public sealed partial class LRunner
 {
     private void LRunnerProcessResume()
     {
-        Process? pProcess = lRunnerProcess;
-        if (pProcess is null || pProcess.HasExited)
+        foreach (KeyValuePair<Guid, Process> lRunnerEntry in lRunnerProcesses)
         {
-            lRunnerSuspended = false;
-            return;
+            Process pProcess = lRunnerEntry.Value;
+            if (pProcess.HasExited || !LRunnerProcessResume(pProcess))
+            {
+                continue;
+            }
+
+            lRunnerItems.TryGetValue(lRunnerEntry.Key, out LWorkItem? pWorkItem);
+            LRunnerMessageSet(pWorkItem, string.Empty);
         }
 
-        if (LRunnerProcessResume(pProcess))
-        {
-            lRunnerSuspended = false;
-            LRunnerMessageSet(lRunnerItem, string.Empty);
-        }
+        lRunnerSuspended = false;
     }
 
     [DllImport("ntdll.dll", SetLastError = true)]
