@@ -69,6 +69,8 @@ public sealed partial class PViewfinder : FrameworkElement
     private PViewfinderDragMode pViewfinderDragMode;
     private string pViewfinderDrawTrigger = "attach";
     private int pViewfinderGlyphCount;
+    private readonly Dictionary<(int Kind, string Text, double Room), FormattedText> pViewfinderLabelCache = new();
+    private double pViewfinderLabelDpi = -1;
 
     public event Action<TimeSpan>? PViewfinderCursorChange;
     public event Action<int>? PViewfinderSectionSelect;

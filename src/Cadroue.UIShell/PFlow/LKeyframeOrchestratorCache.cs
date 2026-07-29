@@ -92,6 +92,19 @@ public sealed partial class LKeyframeOrchestrator
         LKeyframeCacheSave();
     }
 
+    private void LKeyframeSidecarPersist()
+    {
+        lock (lKeyframeLock)
+        {
+            if (lKeyframeSavedSignature == (lKeyframeStorage.Count, lKeyframeScannedSpans.Count))
+            {
+                return;
+            }
+        }
+
+        LKeyframeSidecarSave();
+    }
+
     private void LKeyframeCacheSave()
     {
         LKeyframeSourceIdentity? identity;
@@ -107,6 +120,7 @@ public sealed partial class LKeyframeOrchestrator
 
             keyframes = lKeyframeStorage.ToArray();
             scannedSpans = lKeyframeScannedSpans.ToArray();
+            lKeyframeSavedSignature = (keyframes.Length, scannedSpans.Length);
         }
 
         var lKeyframeClock = System.Diagnostics.Stopwatch.StartNew();

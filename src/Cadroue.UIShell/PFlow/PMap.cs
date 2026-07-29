@@ -88,6 +88,8 @@ public sealed partial class PMap : FrameworkElement
     private TimeSpan lMapDragStartTime;
     private string pMapDrawTrigger = "attach";
     private int pMapGlyphCount;
+    private readonly Dictionary<string, FormattedText> pMapBadgeCache = new(StringComparer.Ordinal);
+    private double pMapBadgeDpi = -1;
 
     public event Action<TimeSpan>? PMapCursorChange;
     public event Action? PMapSpoolChange;

@@ -16,6 +16,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private const int LKeyframeSaveEveryCount = 10;
 
     private int lKeyframeUnsavedCount;
+    private (int Keyframes, int Spans) lKeyframeSavedSignature = (-1, -1);
     private readonly Dictionary<int, int> lKeyframeFailedSpanCounts = new();
     private CancellationTokenSource? lKeyframeCancel;
     private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
@@ -60,6 +61,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
                 lKeyframeStorage.Clear();
                 lKeyframeScannedSpans.Clear();
                 lKeyframeFailedSpanCounts.Clear();
+                lKeyframeSavedSignature = (-1, -1);
                 lKeyframeSourceIdentity = identity;
                 lKeyframeSourcePath = identity.LKeyframeSourcePath;
                 lKeyframeDuration = duration;

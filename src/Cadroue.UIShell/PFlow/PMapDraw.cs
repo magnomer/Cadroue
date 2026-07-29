@@ -95,17 +95,36 @@ public sealed partial class PMap
         }
     }
 
-    private void PMapSectionLabelDraw(DrawingContext drawingContext, Rect sectionRect, int sectionIndex, int sectionColorIndex)
+    private FormattedText PMapBadgeRead(string pMapText, double pixelsPerDip)
     {
+        if (pixelsPerDip != pMapBadgeDpi)
+        {
+            pMapBadgeCache.Clear();
+            pMapBadgeDpi = pixelsPerDip;
+        }
+
+        if (pMapBadgeCache.TryGetValue(pMapText, out FormattedText? pMapCached))
+        {
+            return pMapCached;
+        }
+
         pMapGlyphCount++;
-        var badgeFormatted = new FormattedText(
-            $"{sectionIndex + 1}",
+        var pMapBuilt = new FormattedText(
+            pMapText,
             System.Globalization.CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             pMapBadgeTypeface,
             PSection.PSectionNameSize,
             pMapBrushBadgeText,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+            pixelsPerDip);
+        pMapBadgeCache[pMapText] = pMapBuilt;
+        return pMapBuilt;
+    }
+
+    private void PMapSectionLabelDraw(DrawingContext drawingContext, Rect sectionRect, int sectionIndex, int sectionColorIndex)
+    {
+        FormattedText badgeFormatted = PMapBadgeRead(
+            $"{sectionIndex + 1}", VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
         double badgeHeight = badgeFormatted.Height + PMapBadgePaddingVertical * 2;
         double badgeWidth = Math.Max(badgeHeight, badgeFormatted.Width + PMapBadgePaddingHorizontal * 2);

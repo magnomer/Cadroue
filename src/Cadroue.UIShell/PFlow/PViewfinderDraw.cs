@@ -9,6 +9,63 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PViewfinder
 {
+    private const int PViewfinderLabelCacheLimit = 512;
+    private const int PViewfinderKindTick = 0;
+    private const int PViewfinderKindBadge = 1;
+    private const int PViewfinderKindName = 2;
+
+    private FormattedText PViewfinderLabelRead(int pViewfinderKind, string pViewfinderText, double pViewfinderRoom, double pixelsPerDip)
+    {
+        if (pixelsPerDip != pViewfinderLabelDpi || pViewfinderLabelCache.Count > PViewfinderLabelCacheLimit)
+        {
+            pViewfinderLabelCache.Clear();
+            pViewfinderLabelDpi = pixelsPerDip;
+        }
+
+        var pViewfinderKey = (pViewfinderKind, pViewfinderText, pViewfinderRoom);
+        if (pViewfinderLabelCache.TryGetValue(pViewfinderKey, out FormattedText? pViewfinderCached))
+        {
+            return pViewfinderCached;
+        }
+
+        pViewfinderGlyphCount++;
+        FormattedText pViewfinderBuilt = pViewfinderKind switch
+        {
+            PViewfinderKindTick => new FormattedText(
+                pViewfinderText,
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                pViewfinderTickTypeface,
+                9,
+                pViewfinderBrushTickText,
+                pixelsPerDip),
+            PViewfinderKindBadge => new FormattedText(
+                pViewfinderText,
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                pViewfinderBadgeTypeface,
+                PSection.PSectionNameSize,
+                pViewfinderBrushBadgeText,
+                pixelsPerDip),
+            _ => new FormattedText(
+                pViewfinderText,
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                pViewfinderTickTypeface,
+                PSection.PSectionNameSize,
+                pViewfinderBrushSectionText,
+                pixelsPerDip)
+            {
+                MaxTextWidth = pViewfinderRoom,
+                MaxLineCount = 1,
+                Trimming = TextTrimming.CharacterEllipsis
+            }
+        };
+
+        pViewfinderLabelCache[pViewfinderKey] = pViewfinderBuilt;
+        return pViewfinderBuilt;
+    }
+
     private void PViewfinderSectionsDraw(
         DrawingContext drawingContext,
         double actualWidth,
@@ -60,15 +117,8 @@ public sealed partial class PViewfinder
         }
 
         double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
-        pViewfinderGlyphCount++;
-        var badgeFormatted = new FormattedText(
-            $"{sectionIndex + 1}",
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            pViewfinderBadgeTypeface,
-            PSection.PSectionNameSize,
-            pViewfinderBrushBadgeText,
-            pixelsPerDip);
+        FormattedText badgeFormatted = PViewfinderLabelRead(
+            PViewfinderKindBadge, $"{sectionIndex + 1}", 0, pixelsPerDip);
 
         double badgeHeight = badgeFormatted.Height + PViewfinderBadgePaddingVertical * 2;
         double badgeWidth = Math.Max(badgeHeight, badgeFormatted.Width + PViewfinderBadgePaddingHorizontal * 2);
@@ -81,20 +131,8 @@ public sealed partial class PViewfinder
         FormattedText? nameFormatted = null;
         if (!string.IsNullOrEmpty(sectionName) && nameRoom >= PViewfinderSectionLabelLeast)
         {
-            pViewfinderGlyphCount++;
-            nameFormatted = new FormattedText(
-                sectionName,
-                CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight,
-                pViewfinderTickTypeface,
-                PSection.PSectionNameSize,
-                pViewfinderBrushSectionText,
-                pixelsPerDip)
-            {
-                MaxTextWidth = nameRoom,
-                MaxLineCount = 1,
-                Trimming = TextTrimming.CharacterEllipsis
-            };
+            nameFormatted = PViewfinderLabelRead(
+                PViewfinderKindName, sectionName, Math.Round(nameRoom), pixelsPerDip);
         }
 
         double labelWidth = nameFormatted is null
@@ -324,15 +362,8 @@ public sealed partial class PViewfinder
                 new Point(tickX, PViewfinderLabelLaneHeight * 0.5),
                 new Point(tickX, PViewfinderLabelLaneHeight));
             string tickLabel = PViewfinderTimeFormat(TimeSpan.FromSeconds(tickSeconds));
-            pViewfinderGlyphCount++;
-            var formattedText = new FormattedText(
-                tickLabel,
-                CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight,
-                pViewfinderTickTypeface,
-                9,
-                pViewfinderBrushTickText,
-                pixelsPerDip);
+            FormattedText formattedText = PViewfinderLabelRead(
+                PViewfinderKindTick, tickLabel, 0, pixelsPerDip);
             drawingContext.DrawText(
                 formattedText,
                 new Point(tickX + 2, PViewfinderLabelLaneHeight * 0.5 - formattedText.Height / 2));
