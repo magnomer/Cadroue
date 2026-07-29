@@ -166,10 +166,7 @@ public static partial class LEdit
             lEditRecord.FlipHorizontal,
             lEditRecord.FlipVertical),
         new LWorkVideo(lEditRecord.Steps.Select(LEditVideoStepCreate).ToList()),
-        lEditRecord.CropActive
-            || lEditRecord.CropLeft > 0 || lEditRecord.CropTop > 0
-            || lEditRecord.CropRight > 0 || lEditRecord.CropBottom > 0
-            || lEditRecord.Rotation != 0 || lEditRecord.FlipHorizontal || lEditRecord.FlipVertical);
+        lEditRecord.CropActive);
 
     private static LWorkVideoStep LEditVideoStepCreate(Cadroue.Media.LSidecarVideoStepRecord lEditRecord) =>
         string.Equals(lEditRecord.Kind, "Contrast", StringComparison.Ordinal)

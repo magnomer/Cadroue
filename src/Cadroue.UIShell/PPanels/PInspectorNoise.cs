@@ -149,6 +149,7 @@ public sealed partial class PInspector
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 8, 0, 0)
         };
+        PMainWindow.PCheckbox.PCheckboxApply(pInspectorNoiseTrack);
 
         pInspectorNoiseStack = new StackPanel();
         pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Preset", pInspectorNoisePreset));

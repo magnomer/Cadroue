@@ -12,6 +12,7 @@ public sealed partial class LRunner
     private readonly ConcurrentDictionary<Guid, LWorkItem> lRunnerItems = new();
     private readonly ConcurrentDictionary<Guid, Process> lRunnerProcesses = new();
     private readonly ConcurrentDictionary<Guid, int> lRunnerAttempts = new();
+    private readonly ConcurrentDictionary<Guid, byte> lRunnerCancelled = new();
 
     private CancellationTokenSource? lRunnerCancel;
     private bool lRunnerSuspended;
@@ -132,6 +133,21 @@ public sealed partial class LRunner
         lRunnerSchedule.LScheduleRelease(lRunnerId);
     }
 
+    public void LRunnerJobCancel(Guid lWorkId)
+    {
+        lRunnerCancelled[lWorkId] = 0;
+        if (lRunnerProcesses.TryGetValue(lWorkId, out Process? lRunnerProcess) && !lRunnerProcess.HasExited)
+        {
+            try
+            {
+                lRunnerProcess.Kill(true);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+        }
+    }
+
     private void LRunnerLoopStart()
     {
         int lRunnerWanted = Math.Max(1, LRunnerParallelMaximum);
@@ -241,6 +257,18 @@ public sealed partial class LRunner
                 {
                     break;
                 }
+            }
+
+            if (lRunnerCancelled.TryRemove(pWorkItem.LWorkId, out _))
+            {
+                LRunnerNote($"Encode cancelled '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}; job removed, continuing with the queue");
+                LRunnerInvoke(() =>
+                {
+                    pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
+                    lRunnerSchedule.LScheduleItemCancel(pWorkItem);
+                });
+                lRunnerAttempts.TryRemove(pWorkItem.LWorkId, out _);
+                return;
             }
 
             if (pExitCode == 0)

@@ -28,6 +28,7 @@ public sealed class PSplitTab : PTabSurface
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
         pList.PListPathChange += PSplitPathShow;
+        PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pSection, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow, true), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;

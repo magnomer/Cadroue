@@ -27,6 +27,7 @@ public sealed partial class PInspector
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
         };
+        PCheckbox.PCheckboxApply(pInspectorRatioFixed);
         pInspectorRatioFixed.Checked += (_, _) => PInspectorRatioCommit();
         pInspectorRatioFixed.Unchecked += (_, _) => PInspectorRatioCommit();
 
@@ -110,15 +111,20 @@ public sealed partial class PInspector
         return pPersistentBox;
     }
 
-    private static CheckBox PInspectorSwitchBuild(string pSwitchLabel, string pSwitchTip) => new()
+    private static CheckBox PInspectorSwitchBuild(string pSwitchLabel, string pSwitchTip)
     {
-        Content = pSwitchLabel,
-        ToolTip = pSwitchTip,
-        FontSize = 12,
-        FontFamily = pInspectorFontFamily,
-        Foreground = PPanelTextBrush,
-        VerticalContentAlignment = VerticalAlignment.Center
-    };
+        var pSwitch = new CheckBox
+        {
+            Content = pSwitchLabel,
+            ToolTip = pSwitchTip,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily,
+            Foreground = PPanelTextBrush,
+            VerticalContentAlignment = VerticalAlignment.Center
+        };
+        PCheckbox.PCheckboxApply(pSwitch);
+        return pSwitch;
+    }
 
     private static UIElement PInspectorSeparatorBuild() => new Border
     {
@@ -284,16 +290,21 @@ public sealed partial class PInspector
         return pFlipPanel;
     }
 
-    private static CheckBox PInspectorFlipBuild(string pFlipLabel) => new()
+    private static CheckBox PInspectorFlipBuild(string pFlipLabel)
     {
-        Content = pFlipLabel,
-        FontSize = 12,
-        FontFamily = pInspectorFontFamily,
-        Foreground = PPanelTextBrush,
-        VerticalAlignment = VerticalAlignment.Center,
-        VerticalContentAlignment = VerticalAlignment.Center,
-        Margin = new Thickness(0, 0, 14, 0)
-    };
+        var pFlip = new CheckBox
+        {
+            Content = pFlipLabel,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily,
+            Foreground = PPanelTextBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 14, 0)
+        };
+        PCheckbox.PCheckboxApply(pFlip);
+        return pFlip;
+    }
 
     private TextBox PInspectorRatioFieldBuild()
     {

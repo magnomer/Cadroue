@@ -18,7 +18,10 @@ public sealed class LTabset
     public LTabset()
     {
         PTabsetRecords = new ObservableCollection<PTabRecord>();
+        LTabsetCurrent = this;
     }
+
+    public static LTabset? LTabsetCurrent { get; private set; }
 
     public ObservableCollection<PTabRecord> PTabsetRecords { get; }
 

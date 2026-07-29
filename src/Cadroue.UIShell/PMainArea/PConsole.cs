@@ -26,6 +26,7 @@ public sealed partial class PConsole : UserControl
     private readonly Button pConsoleStartButton;
     private readonly Button pConsolePauseButton;
     private readonly Button pConsoleCancelButton;
+    private readonly Button pConsoleStopButton;
     private readonly Button pConsoleRemoveButton;
     private readonly Button pConsoleClearButton;
     private readonly Button pConsoleEmptyButton;
@@ -44,8 +45,11 @@ public sealed partial class PConsole : UserControl
             "Pause", "PRosterPause.svg", "Pause the queue and suspend the running job",
             null, PConsolePauseHandle);
         pConsoleCancelButton = PConsoleButtonBuild(
-            "Cancel", "PRosterCancel.svg", "Cancel the running job and return it to the queue",
-            PRosterTheme.PRosterFailBrush, PConsoleCancelHandle);
+            "Cancel", "PRosterCancel.svg", "Cancel the running job and continue with the next",
+            null, PConsoleCancelHandle);
+        pConsoleStopButton = PConsoleButtonBuild(
+            "Stop", "PRosterStop.svg", "Stop processing immediately and turn off Auto resume",
+            PRosterTheme.PRosterFailBrush, PConsoleStopHandle);
         pConsoleRemoveButton = PConsoleButtonBuild(
             "Remove", "PRosterRemove.svg", "Remove the selected job(s) in the Worklist",
             null, PConsoleRemoveHandle);
@@ -83,6 +87,7 @@ public sealed partial class PConsole : UserControl
         pButtons.Children.Add(pConsoleStartButton);
         pButtons.Children.Add(pConsolePauseButton);
         pButtons.Children.Add(pConsoleCancelButton);
+        pButtons.Children.Add(pConsoleStopButton);
         pButtons.Children.Add(new Border { Width = 10 });
         pButtons.Children.Add(pConsoleRemoveButton);
         pButtons.Children.Add(pConsoleClearButton);
@@ -144,6 +149,7 @@ public sealed partial class PConsole : UserControl
             FocusVisualStyle = null,
             ToolTip = "Keep this worklist watching the queue and start the next job as soon as one is waiting"
         };
+        PCheckbox.PCheckboxApply(pAutoBox);
         pAutoBox.Checked += PConsoleAutoHandle;
         pAutoBox.Unchecked += PConsoleAutoHandle;
         return pAutoBox;

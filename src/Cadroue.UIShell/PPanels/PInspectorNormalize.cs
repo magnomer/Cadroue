@@ -86,6 +86,7 @@ public sealed partial class PInspector
             IsChecked = true,
             Margin = new Thickness(0, 8, 0, 0)
         };
+        PMainWindow.PCheckbox.PCheckboxApply(pInspectorNormalizeTwoPass);
 
         pInspectorNormalizeLoudnessStack = new StackPanel();
         pInspectorNormalizeLoudnessStack.Children.Add(PInspectorFieldBuild("Target", PInspectorNormalizeUnitRowBuild(pInspectorNormalizeTarget, "LUFS")));

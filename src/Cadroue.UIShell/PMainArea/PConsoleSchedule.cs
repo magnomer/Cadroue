@@ -27,7 +27,9 @@ public sealed partial class PConsole
             return;
         }
 
-        PConsoleStationRead().LStationAutoActive = pConsoleAutoBox.IsChecked == true;
+        bool pConsoleAutoResume = pConsoleAutoBox.IsChecked == true;
+        PConsoleStationRead().LStationAutoActive = pConsoleAutoResume;
+        App.LPreferenceAutoResumeSet(pConsoleAutoResume);
         PConsoleProgressUpdate();
     }
 
@@ -151,6 +153,7 @@ public sealed partial class PConsole
         pConsoleStartButton.IsEnabled = !pRunner.LRunnerRunning && pTotal > 0;
         pConsolePauseButton.IsEnabled = pRunner.LRunnerRunning;
         pConsoleCancelButton.IsEnabled = pRunning is not null;
+        pConsoleStopButton.IsEnabled = pRunner.LRunnerRunning || pRunner.LRunnerSuspended;
 
         pConsoleRemoveButton.IsEnabled = pStation.LStationSelectionRead()
             .Any(pWorkItem => pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning);
@@ -206,7 +209,7 @@ public sealed partial class PConsole
             ? $"all {pRunningItems.Length} running jobs"
             : $"'{pRunningItems[0].LWorkOutputName}'";
         MessageBoxResult pAnswer = MessageBox.Show(
-            $"Cancel {pCancelSubject}?\n\nThe partly written output file is deleted and the job returns to Pending.",
+            $"Cancel {pCancelSubject}?\n\nThe partly written output file is deleted and processing moves on to the next job.",
             "Cancel running job",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
@@ -214,8 +217,19 @@ public sealed partial class PConsole
 
         if (pAnswer == MessageBoxResult.Yes)
         {
-            PConsoleStationRead().LStationRunner.LRunnerCancel();
+            LRunner pCancelRunner = PConsoleStationRead().LStationRunner;
+            foreach (LWorkItem pCancelItem in pRunningItems)
+            {
+                pCancelRunner.LRunnerJobCancel(pCancelItem.LWorkId);
+            }
         }
+    }
+
+    private void PConsoleStopHandle(object pSender, RoutedEventArgs pArguments)
+    {
+        LStation pStopStation = PConsoleStationRead();
+        pStopStation.LStationAutoActive = false;
+        pStopStation.LStationRunner.LRunnerCancel();
     }
 
     private void PConsoleRemoveHandle(object pSender, RoutedEventArgs pArguments)

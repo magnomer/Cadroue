@@ -34,6 +34,14 @@ internal static class PMenu
         Template = PMenuTemplateCreate()
     };
 
+    internal static ContextMenu PMenuContextCreate() => new()
+    {
+        HasDropShadow = true,
+        Background = Brushes.Transparent,
+        BorderThickness = new Thickness(0),
+        Template = PMenuTemplateCreate()
+    };
+
     internal static ImageSource PMenuIconRead(string pMenuIconPath)
         => PAssets.PIcon.PIconRead(pMenuIconPath, pMenuTextBrush);
 

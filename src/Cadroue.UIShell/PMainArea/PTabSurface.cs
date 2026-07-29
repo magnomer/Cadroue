@@ -32,6 +32,18 @@ public abstract class PTabSurface : UserControl
 
     protected void PTabWidthRaise() => PTabWidthChange?.Invoke();
 
+    protected static void PTabViewerAttach(PList pList, PViewer pViewer)
+    {
+        pList.PListClearChange += pRemovedPaths =>
+        {
+            if (pViewer.PViewerSourcePath is { } pLoadedPath
+                && pRemovedPaths.Any(pRemoved => string.Equals(pRemoved, pLoadedPath, StringComparison.OrdinalIgnoreCase)))
+            {
+                pViewer.PViewerMediaClose();
+            }
+        };
+    }
+
     protected Grid PTabGridBuild(
         IReadOnlyList<UIElement> pPanels,
         UIElement pCompass,

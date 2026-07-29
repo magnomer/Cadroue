@@ -282,6 +282,19 @@ public partial class App : Application
         LPreferenceSchedule();
     }
 
+    public static void LPreferenceAutoResumeSet(bool lPreferenceAutoResume)
+    {
+        if (lPreferenceAutoResume == LPreferenceStateCurrent.LPreferenceAutoResume)
+        {
+            return;
+        }
+
+        LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
+        lPreferenceNext.LPreferenceAutoResume = lPreferenceAutoResume;
+        LPreferenceStateCurrent = lPreferenceNext;
+        LPreferenceSchedule();
+    }
+
     private static void LPreferenceSchedule()
     {
         lPreferenceSaveTimer ??= LPreferenceTimerCreate();

@@ -28,6 +28,7 @@ public sealed partial class PViewer
         }
 
         pViewerFlyleafHost.Visibility = pViewerHostTarget;
+        pViewerCloseButton.Visibility = pViewerHostTarget;
         PViewerHostRecord($"host {(pViewerHostVisible ? "shown" : "hidden")}");
     }
 

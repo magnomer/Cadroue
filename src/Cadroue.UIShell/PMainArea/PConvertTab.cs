@@ -23,6 +23,7 @@ public sealed class PConvertTab : PTabSurface
             pList.PListPathsRead(),
             lExportSpecificState);
         pList.PListPathChange += PConvertPathShow;
+        PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;

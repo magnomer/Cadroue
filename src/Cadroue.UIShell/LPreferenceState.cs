@@ -32,6 +32,7 @@ public sealed class LPreferenceState
     public bool LPreferenceFailurePaused { get; set; }
     public bool LPreferenceRetryAllowed { get; set; }
     public double LPreferenceRetryMaximum { get; set; }
+    public bool LPreferenceAutoResume { get; set; }
 
     public string LPreferenceWorkspaceFolder { get; set; } = string.Empty;
     public string LPreferenceFfmpegFolder { get; set; } = string.Empty;
@@ -73,6 +74,7 @@ public sealed class LPreferenceState
             LPreferenceFailurePaused = false,
             LPreferenceRetryAllowed = false,
             LPreferenceRetryMaximum = 3,
+            LPreferenceAutoResume = false,
             LPreferenceWorkspaceFolder = string.Empty,
             LPreferenceFfmpegFolder = string.Empty,
             LPreferenceMediaPath = string.Empty,
@@ -117,6 +119,7 @@ public sealed class LPreferenceState
             LPreferenceFailurePaused = LPreferenceFailurePaused,
             LPreferenceRetryAllowed = LPreferenceRetryAllowed,
             LPreferenceRetryMaximum = LPreferenceRetryMaximum,
+            LPreferenceAutoResume = LPreferenceAutoResume,
             LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
             LPreferenceFfmpegFolder = LPreferenceFfmpegFolder,
             LPreferenceMediaPath = LPreferenceMediaPath,

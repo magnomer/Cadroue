@@ -37,6 +37,7 @@ public sealed class PList : PPanel
 
     public event Action<string?>? PListPathChange;
     public event Action<bool>? PListMinimizeChange;
+    public event Action<IReadOnlyList<string>>? PListClearChange;
 
     public PList() : base("")
     {
@@ -120,9 +121,14 @@ public sealed class PList : PPanel
 
     public int PListPathsAdd(IEnumerable<string> pAddPaths)
     {
+        IReadOnlyList<string> pScannedPaths = PListMediaScan(pAddPaths);
+        if (pScannedPaths.Count == 0)
+        {
+            return 0;
+        }
+
         int pAddedCount = 0;
-        string? pAddedFirst = null;
-        foreach (string pMediaPath in PListMediaScan(pAddPaths))
+        foreach (string pMediaPath in pScannedPaths)
         {
             if (pListPaths.Any(pExisting => string.Equals(pExisting, pMediaPath, StringComparison.OrdinalIgnoreCase)))
             {
@@ -130,17 +136,11 @@ public sealed class PList : PPanel
             }
 
             pListPaths.Add(pMediaPath);
-            pAddedFirst ??= pMediaPath;
             pAddedCount++;
         }
 
-        if (pAddedCount == 0)
-        {
-            return 0;
-        }
-
         PListRowsRebuild();
-        PListSelectApply(pAddedFirst);
+        PListSelectApply(pScannedPaths[0]);
         return pAddedCount;
     }
 
@@ -307,9 +307,14 @@ public sealed class PList : PPanel
 
     public void PListClear()
     {
+        string[] pListRemovedPaths = pListPaths.ToArray();
         pListPaths.Clear();
         PListRowsRebuild();
         PListSelectApply(null);
+        if (pListRemovedPaths.Length > 0)
+        {
+            PListClearChange?.Invoke(pListRemovedPaths);
+        }
     }
 
     private void PListRowsRebuild()

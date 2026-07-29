@@ -5,6 +5,8 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using Cadroue.Media;
 using Cadroue.UIShell;
+using Cadroue.UIShell.PAssets;
+using Cadroue.UIShell.PMainWindow;
 using FlyleafLib.Controls.WPF;
 using FlyleafLib.MediaPlayer;
 
@@ -13,6 +15,7 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PViewer : PPanel
 {
     private readonly Border pViewerSurface;
+    private readonly Button pViewerCloseButton;
     private readonly FlyleafHost pViewerFlyleafHost;
     private readonly Canvas pViewerOverlay;
     private readonly Rectangle pViewerCropBox;
@@ -106,13 +109,43 @@ public sealed partial class PViewer : PPanel
             ClipToBounds = true,
             SnapsToDevicePixels = true
         };
-        Content = pViewerSurface;
+
+        pViewerCloseButton = PViewerCloseButtonBuild();
+
+        var pViewerRoot = new Grid();
+        pViewerRoot.Children.Add(pViewerSurface);
+        pViewerRoot.Children.Add(pViewerCloseButton);
+        Content = pViewerRoot;
 
         PDropHandlersAdd();
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
         PViewerHostWatch();
+    }
+
+    private Button PViewerCloseButtonBuild()
+    {
+        var pButton = new Button
+        {
+            Content = new Image
+            {
+                Width = 12,
+                Height = 12,
+                Source = PIcon.PIconRead("/PAssets/PPanels/PViewerClose.svg", new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
+                Stretch = Stretch.Uniform
+            },
+            Width = 24,
+            Height = 24,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(0, 16, 16, 0),
+            ToolTip = "Unload the media",
+            Visibility = Visibility.Collapsed,
+            Style = PButton.PButtonPanelCreate()
+        };
+        pButton.Click += (_, _) => PViewerMediaClose();
+        return pButton;
     }
 
     public bool PViewerPlayingRead() => LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;

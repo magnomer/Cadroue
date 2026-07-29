@@ -1,8 +1,10 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
@@ -220,7 +222,100 @@ public sealed partial class PRoster
             PRosterCellOwner = pOwnerCell
         };
 
-        return new ListBoxItem { Content = pGrid, Tag = pWorkItem };
+        var pRow = new ListBoxItem { Content = pGrid, Tag = pWorkItem, ContextMenu = PMenu.PMenuContextCreate() };
+        pRow.ContextMenuOpening += (_, pArgs) => PRosterMenuOpen(pRow, pArgs);
+        return pRow;
+    }
+
+    private void PRosterMenuOpen(ListBoxItem pRow, ContextMenuEventArgs pArgs)
+    {
+        if (pRow.Tag is not LWorkItem pWorkItem)
+        {
+            pArgs.Handled = true;
+            return;
+        }
+
+        IReadOnlyList<string> pRelayPaths = PRosterRelayPathsRead(pWorkItem);
+        if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
+            || pRow.ContextMenu is not { } pMenu
+            || pRelayPaths.Count == 0
+            || LTabset.LTabsetCurrent is not { } pTabset)
+        {
+            pArgs.Handled = true;
+            return;
+        }
+
+        pMenu.Items.Clear();
+        MenuItem pHeader = PMenu.PMenuItemCreate(
+            pRelayPaths.Count > 1 ? $"Send {pRelayPaths.Count} files to" : "Send to", null);
+        pHeader.IsEnabled = false;
+        pMenu.Items.Add(pHeader);
+
+        bool pAnyTarget = false;
+        foreach (PTabRecord pTabRecord in pTabset.PTabsetRecords)
+        {
+            if (pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null)
+            {
+                continue;
+            }
+
+            pAnyTarget = true;
+            PTabRecord pTargetRecord = pTabRecord;
+            MenuItem pItem = PMenu.PMenuItemCreate(pTabRecord.PTabTitle, pTabRecord.PTabIconSource);
+            pItem.Click += (_, _) => PRosterRelay(pTargetRecord, pRelayPaths);
+            pMenu.Items.Add(pItem);
+        }
+
+        if (!pAnyTarget)
+        {
+            pArgs.Handled = true;
+        }
+    }
+
+    private IReadOnlyList<string> PRosterRelayPathsRead(LWorkItem pClickedItem)
+    {
+        IReadOnlyList<LWorkItem> pSelectedItems = PRosterSelectionRead();
+        IEnumerable<LWorkItem> pRelayItems =
+            pSelectedItems.Count > 1 && pSelectedItems.Any(pItem => ReferenceEquals(pItem, pClickedItem))
+                ? pSelectedItems
+                : new[] { pClickedItem };
+
+        var pRelayPaths = new List<string>();
+        foreach (LWorkItem pRelayItem in pRelayItems)
+        {
+            if (pRelayItem.LWorkStateCurrent == LWorkState.LWorkStateDone
+                && PRosterRelayFileRead(pRelayItem) is { } pRelayPath
+                && !pRelayPaths.Contains(pRelayPath, StringComparer.OrdinalIgnoreCase))
+            {
+                pRelayPaths.Add(pRelayPath);
+            }
+        }
+
+        return pRelayPaths;
+    }
+
+    private static string? PRosterRelayFileRead(LWorkItem pWorkItem)
+    {
+        if (!string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath) && File.Exists(pWorkItem.LWorkOutputPath))
+        {
+            return pWorkItem.LWorkOutputPath;
+        }
+
+        return !string.IsNullOrWhiteSpace(pWorkItem.LWorkSourcePath) && File.Exists(pWorkItem.LWorkSourcePath)
+            ? pWorkItem.LWorkSourcePath
+            : null;
+    }
+
+    private static void PRosterRelay(PTabRecord pTargetRecord, IReadOnlyList<string> pRelayPaths)
+    {
+        if (pTargetRecord.PTabWorkspace.PWorkspaceSurface.PTabList is not { } pTargetList)
+        {
+            return;
+        }
+
+        LTabset.LTabsetCurrent?.LTabsetSelect(pTargetRecord);
+        pTargetList.PListClear();
+        pTargetList.PListPathsAdd(pRelayPaths);
     }
 
     private static TextBlock PRosterRowCellAdd(Grid pGrid, int pColumn, string pText, Brush pBrush)

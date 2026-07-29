@@ -55,10 +55,12 @@ public sealed class PEditTab : PTabSurface
         pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
         pInspector.PInspectorCropActiveChange += PEditActiveRefresh;
+        pInspector.PInspectorCropActiveChange += PEditPlanSave;
         pInspector.PInspectorVideoChange += PEditVideoChangeHandle;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
         pList.PListPathChange += PEditPathShow;
+        PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState, true) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);

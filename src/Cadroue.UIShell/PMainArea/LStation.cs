@@ -18,6 +18,7 @@ public sealed class LStation
         {
             LRunnerProgramPath = App.LRendererProgramCurrent
         };
+        lStationAutoActive = App.LPreferenceStateCurrent.LPreferenceAutoResume;
         LSchedule.LScheduleCurrent.LScheduleChange += LStationScheduleHandle;
     }
 

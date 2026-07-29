@@ -17,6 +17,7 @@ public sealed class PMergeTab : PTabSurface
         pAction.PActionRun += LMerge.LMergeDescribe;
         pAction.PActionAllAdd += () => LMerge.LMergeDescribe(LWorkPriority.LWorkPriorityNormal);
         pList.PListPathChange += PMergePathShow;
+        PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, new PGroup(), pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;

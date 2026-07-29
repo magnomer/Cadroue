@@ -60,6 +60,7 @@ public sealed class PAudioTab : PTabSurface
             "Persistent off: add every loaded file that has an audio plan saved beside it.\n"
             + "Persistent on: apply each persistent process shown here to every loaded file.");
         pList.PListPathChange += PAudioPathShow;
+        PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;

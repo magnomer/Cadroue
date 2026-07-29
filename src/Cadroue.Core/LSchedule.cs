@@ -146,6 +146,27 @@ public sealed partial class LSchedule
         LScheduleRecordWrite(lWorkRecord, lScheduleTarget);
     }
 
+    public bool LScheduleItemCancel(LWorkItem lWorkItem)
+    {
+        lScheduleLiveItems.Remove(lWorkItem.LWorkId);
+
+        if (!string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath))
+        {
+            try
+            {
+                if (File.Exists(lWorkItem.LWorkOutputPath))
+                {
+                    File.Delete(lWorkItem.LWorkOutputPath);
+                }
+            }
+            catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
+            {
+            }
+        }
+
+        return LScheduleRemove(lWorkItem.LWorkId);
+    }
+
     public bool LScheduleRemove(Guid lWorkId)
     {
         bool lScheduleRemoved = false;
