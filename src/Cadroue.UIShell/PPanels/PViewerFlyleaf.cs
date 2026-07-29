@@ -1,5 +1,3 @@
-using System.Windows;
-using System.Windows.Threading;
 using Cadroue.Media;
 using FlyleafLib;
 using FlyleafLib.MediaPlayer;
@@ -13,44 +11,52 @@ public sealed partial class PViewer
     private void PPlayerAccurateSeek(Player player, TimeSpan playbackPosition)
     {
         int pPlayerSeekMilliseconds = (int)playbackPosition.TotalMilliseconds;
-        if (!pPlayerAccurateActive)
+        bool pPlayerWasRunning = pPlayerAccurateActive;
+        pPlayerAccurateActive = true;
+        LTrace.LTraceRecord(
+            LTraceKind.LTraceView,
+            $"Seek accurate to {playbackPosition:hh\\:mm\\:ss\\.fff}",
+            pPlayerWasRunning
+                ? "a seek was still running; queued for Flyleaf to conflate"
+                : "no seek was in flight");
+        player.SeekAccurate(pPlayerSeekMilliseconds);
+    }
+
+    private void PPlayerSeekCompleteHandle(object? sender, int seekMilliseconds)
+    {
+        pPlayerAccurateActive = false;
+        if (pPlayerRendererPending && seekMilliseconds >= 0 && sender is Player pPlayerSeeked)
         {
-            pPlayerAccurateActive = true;
-            LTrace.LTraceRecord(
-                LTraceKind.LTraceView,
-                $"Seek accurate to {playbackPosition:hh\\:mm\\:ss\\.fff}",
-                "no seek was in flight, issued directly");
-            player.SeekAccurate(pPlayerSeekMilliseconds);
+            pPlayerRendererPending = false;
+            PPlayerRendererRecord(pPlayerSeeked);
+        }
+    }
+
+    private static void PPlayerRendererRecord(Player player)
+    {
+        if (!LTrace.LTraceCheck(LTraceKind.LTraceView))
+        {
             return;
         }
 
-        LTrace.LTraceRecord(
-            LTraceKind.LTraceView,
-            $"Seek accurate to {playbackPosition:hh\\:mm\\:ss\\.fff} while a seek was still running",
-            "decoder interrupted, replacement seek queued at Render priority\n"
-            + "this path repeats once per mouse-move event during a scrub");
-        PPlayerDecodeInterrupt(player, true);
-        Dispatcher.InvokeAsync(
-            () =>
-            {
-                PPlayerDecodeInterrupt(player, false);
-                if (pViewerUnloaded || !pViewerCommandActive || !ReferenceEquals(player, pViewerPlayer)) return;
-                pPlayerAccurateActive = true;
-                player.SeekAccurate(pPlayerSeekMilliseconds);
-            },
-            DispatcherPriority.Render);
-    }
-
-    private void PPlayerSeekCompleteHandle(object? sender, int seekMilliseconds) => pPlayerAccurateActive = false;
-
-    private static void PPlayerDecodeInterrupt(Player player, bool pPlayerInterruptRaised)
-    {
         try
         {
-            player.decoder.Interrupt = pPlayerInterruptRaised;
+            var pPlayerRenderer = player.Renderer;
+            var pPlayerDecoder = player.decoder?.VideoDecoder;
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceView,
+                "Renderer resolved after the first completed seek",
+                $"processor requested {player.Config.Video.VideoProcessor}, "
+                + $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}\n"
+                + $"decode path {(pPlayerDecoder is null ? "unknown" : pPlayerDecoder.VideoAccelerated ? "HARDWARE (D3D11VA)" : "SOFTWARE")}\n"
+                + $"pixel format {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.PixelFormatStr)}");
         }
-        catch
+        catch (Exception pPlayerException)
         {
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceView,
+                "Renderer state could not be read",
+                pPlayerException.Message);
         }
     }
 
@@ -95,6 +101,7 @@ public sealed partial class PViewer
                 player = new Player(new Config());
                 player.Config.Video.BackColor = PViewerBackColor;
                 player.Config.Video.ClearScreen = false;
+                player.SeekCompleted += PPlayerSeekCompleteHandle;
                 pPlayerCreated = true;
                 LTrace.LTraceRecord(
                     LTraceKind.LTraceView,
@@ -106,6 +113,7 @@ public sealed partial class PViewer
             player.Audio.Volume = (int)Math.Round(pViewerVolume);
             double pPlayerBeforeOpen = pPlayerClock.Elapsed.TotalMilliseconds;
             PPlayerOpen(player, sourcePath);
+            pPlayerRendererPending = true;
             LTrace.LTraceRecord(
                 LTraceKind.LTraceView,
                 $"Player opened '{System.IO.Path.GetFileName(sourcePath)}'",
@@ -185,10 +193,9 @@ public sealed partial class PViewer
 
             return $"decode path: {pPlayerAccel}\n"
                 + $"acceleration requested {player.Config.Video.VideoAcceleration}, "
-                + $"processor requested {player.Config.Video.VideoProcessor}, "
-                + $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}\n"
+                + $"processor requested {player.Config.Video.VideoProcessor}\n"
                 + $"adapter {(pPlayerRenderer?.GPUAdapter is null ? "none" : pPlayerRenderer.GPUAdapter.Description)}\n"
-                + $"pixel format {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.PixelFormatStr)}";
+                + "processor in use and pixel format follow once the first seek completes";
         }
         catch (Exception pPlayerException)
         {
@@ -216,11 +223,6 @@ public sealed partial class PViewer
             }
 
             pViewerPlayer = player;
-            if (player is not null)
-            {
-                player.SeekCompleted += PPlayerSeekCompleteHandle;
-            }
-
             LAppLog.LInfo(
                 $"Viewer player swapped: previous {(pPlayerPrevious is null ? "none" : "released")}, "
                 + $"next {(player is null ? "none" : "ready")}, "

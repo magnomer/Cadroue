@@ -18,6 +18,7 @@ public sealed partial class PViewer : PPanel
     private readonly Rectangle pViewerCropBox;
     private readonly DispatcherTimer pViewerClockTimer;
     private volatile bool pPlayerAccurateActive;
+    private volatile bool pPlayerRendererPending;
     private Player? pViewerPlayer;
     private LMediaInfo? pViewerMediaInfo;
     private Point? pViewerCropStartPoint;

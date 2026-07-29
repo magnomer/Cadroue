@@ -25,7 +25,7 @@ public static class LPreview
             return;
         }
 
-        lPreviewPlayer.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
+        LPreviewProcessorApply(lPreviewPlayer, "preview restored");
         lPreviewPlayer.Config.Video.Rotation = 0u;
         lPreviewPlayer.Config.Video.HFlip = false;
         lPreviewPlayer.Config.Video.VFlip = false;
@@ -57,20 +57,28 @@ public static class LPreview
 
     private static void LPreviewRotateApply(Player lPreviewPlayer, LRotateFlip lRotateFlip)
     {
-        VideoProcessors lPreviewWas = lPreviewPlayer.Config.Video.VideoProcessor;
-        lPreviewPlayer.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
+        LPreviewProcessorApply(
+            lPreviewPlayer,
+            $"rotate {lRotateFlip.LRotateKind}, H {lRotateFlip.LRotateFlipHorizontal}, V {lRotateFlip.LRotateFlipVertical}");
         lPreviewPlayer.Config.Video.Rotation = LPreviewRotationRead(lRotateFlip.LRotateKind);
         lPreviewPlayer.Config.Video.HFlip = lRotateFlip.LRotateFlipHorizontal;
         lPreviewPlayer.Config.Video.VFlip = lRotateFlip.LRotateFlipVertical;
+    }
 
-        if (lPreviewWas != VideoProcessors.Flyleaf)
+    private static void LPreviewProcessorApply(Player lPreviewPlayer, string lPreviewReason)
+    {
+        VideoProcessors lPreviewWas = lPreviewPlayer.Config.Video.VideoProcessor;
+        lPreviewPlayer.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
+        if (lPreviewWas == VideoProcessors.Flyleaf)
         {
-            LTrace.LTraceRecord(
-                LTraceKind.LTraceView,
-                $"Video processor forced from {lPreviewWas} to Flyleaf",
-                "FLVP runs custom pixel shaders per frame; D3D11VP would use the driver's video processor\n"
-                + $"rotate {lRotateFlip.LRotateKind}, H {lRotateFlip.LRotateFlipHorizontal}, V {lRotateFlip.LRotateFlipVertical}");
+            return;
         }
+
+        LTrace.LTraceRecord(
+            LTraceKind.LTraceView,
+            $"Video processor forced from {lPreviewWas} to Flyleaf",
+            "FLVP runs custom pixel shaders per frame; D3D11VP would use the driver's video processor\n"
+            + $"caused by: {lPreviewReason}");
     }
 
     private static void LPreviewFilterApply(Player lPreviewPlayer, FLFilters lPreviewFilter, int lPreviewValue)
