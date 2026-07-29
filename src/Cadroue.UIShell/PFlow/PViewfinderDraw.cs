@@ -10,6 +10,7 @@ namespace Cadroue.UIShell.PFlow;
 public sealed partial class PViewfinder
 {
     private const int PViewfinderLabelCacheLimit = 512;
+    private const double PViewfinderHiddenOpacity = 0.4;
     private const int PViewfinderKindTick = 0;
     private const int PViewfinderKindBadge = 1;
     private const int PViewfinderKindName = 2;
@@ -98,8 +99,19 @@ public sealed partial class PViewfinder
             Brush sectionBrush = PSectionPalette.PSectionPaletteRead(section.LSegmentColorIndex);
             Pen? sectionPen = index == lSectionIndexSelect ? new Pen(Brushes.Black, 1.5) : null;
             var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
+
+            if (section.LSegmentHidden)
+            {
+                drawingContext.PushOpacity(PViewfinderHiddenOpacity);
+            }
+
             drawingContext.DrawRoundedRectangle(sectionBrush, sectionPen, sectionRect, 3, 3);
             PViewfinderSectionLabelDraw(drawingContext, sectionRect, index, section.LSegmentColorIndex, section.LSegmentName);
+
+            if (section.LSegmentHidden)
+            {
+                drawingContext.Pop();
+            }
         }
     }
 

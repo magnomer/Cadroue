@@ -99,7 +99,7 @@ public sealed partial class PRoster
         PRosterSectionAdd("Source", false);
         PRosterPathAdd("Location", pWorkItem.LWorkSourcePath);
         PRosterRowAdd("Resolution / FPS", PRosterMediaFormat(pSourceInfo, pWorkItem.LWorkSourcePath));
-        PRosterRowAdd("Size", PRosterSizeFormat(PRosterSizeRead(pWorkItem.LWorkSourcePath)));
+        PRosterRowAdd("Size", PRosterSizeFormat(PRosterSourceBytesRead(pWorkItem)));
         PRosterRowAdd("Container", PRosterContainerFormat(pWorkItem.LWorkSourcePath));
         PRosterRowAdd("Duration", pSourceInfo is null
             ? PRosterPendingFormat(pWorkItem.LWorkSourcePath)

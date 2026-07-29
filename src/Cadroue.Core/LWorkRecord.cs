@@ -24,6 +24,8 @@ public sealed class LWorkRecord
 
     public long? OutputBytes { get; set; }
 
+    public long? SourceBytes { get; set; }
+
     public LWorkMedia? SourceMedia { get; set; }
 
     public LWorkMedia? OutputMedia { get; set; }
@@ -64,6 +66,7 @@ public sealed class LWorkRecord
         StartTime = lWorkItem.LWorkStartTime,
         FinishTime = lWorkItem.LWorkFinishTime,
         OutputBytes = lWorkItem.LWorkOutputBytes,
+        SourceBytes = lWorkItem.LWorkSourceBytes,
         SourceMedia = lWorkItem.LWorkSourceMedia,
         OutputMedia = lWorkItem.LWorkOutputMedia,
         OwnerProcessId = lWorkItem.LWorkOwnerProcess,
@@ -104,6 +107,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkStartTime = StartTime;
         lWorkItem.LWorkFinishTime = FinishTime;
         lWorkItem.LWorkOutputBytes = OutputBytes;
+        lWorkItem.LWorkSourceBytes = SourceBytes;
         lWorkItem.LWorkSourceMedia = SourceMedia;
         lWorkItem.LWorkOutputMedia = OutputMedia;
         return lWorkItem;

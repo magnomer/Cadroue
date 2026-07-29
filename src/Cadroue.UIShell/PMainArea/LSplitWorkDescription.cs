@@ -7,7 +7,8 @@ public sealed record LSplitSectionDescription(
     TimeSpan LSplitSectionEnd,
     string LSplitSectionName,
     string LSplitSectionPrefix = "",
-    string LSplitSectionSuffix = "");
+    string LSplitSectionSuffix = "",
+    bool LSplitSectionHidden = false);
 
 public sealed record LSplitPlanRecord(
     string LSplitPlanSourcePath,

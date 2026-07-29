@@ -19,6 +19,7 @@ public sealed partial class PSection : UserControl
     private const double PSectionBadgeSize = 18;
     private const double PSectionBadgePadding = 6;
     private const double PSectionAffixWidth = 62;
+    private const double PSectionDisabledOpacity = 0.4;
 
     private PFlowControl? pFlowAttached;
     private IReadOnlyList<LSegment> pSectionListCurrent = Array.Empty<LSegment>();
@@ -166,7 +167,8 @@ public sealed partial class PSection : UserControl
                 pSection.LSegmentEnd,
                 pSection.LSegmentName,
                 pSection.LSegmentPrefix,
-                pSection.LSegmentSuffix))
+                pSection.LSegmentSuffix,
+                pSection.LSegmentHidden))
             .ToArray();
     }
 
@@ -405,7 +407,7 @@ public sealed partial class PSection : UserControl
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
             Cursor = Cursors.Hand,
-            ToolTip = "Double click to move the playhead to this section",
+            ToolTip = "Double click to turn this section off or on",
             Child = pBadgeText
         };
         pColorDot.MouseLeftButtonDown += (_, pEvent) =>
@@ -418,9 +420,9 @@ public sealed partial class PSection : UserControl
             pSectionRowPanel.ReleaseMouseCapture();
             PSectionDragClear();
             PSectionEditCommit();
-            if (pRowBorderHost is { } pSeekRow)
+            if (pRowBorderHost is { } pToggleRow)
             {
-                pFlowAttached?.PFlowSectionSeek(pSectionRowPanel.Children.IndexOf(pSeekRow));
+                pFlowAttached?.PFlowSectionToggle(pSectionRowPanel.Children.IndexOf(pToggleRow));
             }
 
             pEvent.Handled = true;
@@ -441,7 +443,10 @@ public sealed partial class PSection : UserControl
             Margin = new Thickness(8, 0, 0, 0)
         };
 
-        var pRowContent = new Grid();
+        var pRowContent = new Grid
+        {
+            Opacity = pSectionEntry.LSegmentHidden ? PSectionDisabledOpacity : 1
+        };
         pRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

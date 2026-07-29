@@ -72,7 +72,8 @@ public static partial class LSplit
                     TimeSpan.FromMilliseconds(lSplitRecord.EndMilliseconds),
                     lSplitRecord.Name,
                     lSplitRecord.Prefix,
-                    lSplitRecord.Suffix))
+                    lSplitRecord.Suffix,
+                    lSplitRecord.Hidden))
                 .ToArray();
         }
         catch (Exception lSplitException)

@@ -10,6 +10,7 @@ public sealed class LSidecarSectionRecord
     public string Name { get; set; } = string.Empty;
     public string Prefix { get; set; } = string.Empty;
     public string Suffix { get; set; } = string.Empty;
+    public bool Hidden { get; set; }
 }
 
 public sealed class LSidecarEditRecord

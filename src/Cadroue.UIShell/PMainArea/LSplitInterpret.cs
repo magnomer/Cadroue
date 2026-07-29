@@ -31,10 +31,17 @@ public static partial class LSplit
 
         var lSplitTakenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lSplitWorkItems = new List<LWorkItem>();
+        int lSplitHidden = 0;
 
         for (int lSplitIndex = 0; lSplitIndex < lSplitWorkDescription.LSplitSections.Count; lSplitIndex++)
         {
             LSplitSectionDescription lSplitSection = lSplitWorkDescription.LSplitSections[lSplitIndex];
+
+            if (lSplitSection.LSplitSectionHidden)
+            {
+                lSplitHidden++;
+                continue;
+            }
 
             if (lSplitSection.LSplitSectionEnd <= lSplitSection.LSplitSectionStart)
             {
@@ -62,10 +69,15 @@ public static partial class LSplit
                 lSplitOutput));
         }
 
-        int lSplitSkipped = lSplitWorkDescription.LSplitSections.Count - lSplitWorkItems.Count;
+        int lSplitSkipped = lSplitWorkDescription.LSplitSections.Count - lSplitWorkItems.Count - lSplitHidden;
         if (lSplitSkipped > 0)
         {
             LAppLog.LError($"Split skipped {lSplitSkipped} section(s) of '{Path.GetFileName(lSplitSourcePath)}': empty or reversed range");
+        }
+
+        if (lSplitHidden > 0)
+        {
+            LAppLog.LInfo($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
         }
 
         int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems);

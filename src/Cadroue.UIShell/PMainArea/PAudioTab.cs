@@ -30,6 +30,7 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIconPath);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
+        pProcessing.PProcessingOrderChange += PAudioPlanSave;
         pInspector.PInspectorAudioActiveChange += PAudioChangeHandle;
 
         var pAction = new PAction();

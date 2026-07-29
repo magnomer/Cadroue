@@ -15,15 +15,20 @@ public sealed class PProcessing : PPanel
     private static readonly Brush pProcessingTextBrush = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
     private static readonly Brush pProcessingActiveBrush = new SolidColorBrush(Color.FromRgb(0x2C, 0x6C, 0xCE));
 
+    private const string PProcessingUpIconPath = "/PAssets/PPanels/PProcessingUp.svg";
+    private const string PProcessingDownIconPath = "/PAssets/PPanels/PProcessingDown.svg";
+
     public const double PProcessingStripWidth = 48;
 
     public event Action<string?>? PProcessingStepChange;
     public event Action<string>? PProcessingStepOpen;
     public event Action<bool>? PProcessingMinimizeChange;
+    public event Action? PProcessingOrderChange;
 
     private readonly StackPanel pProcessingRowPanel;
     private readonly UIElement pProcessingFullBody;
     private readonly UIElement pProcessingStripBody;
+    private readonly UIElement pProcessingActionBar;
     private string? pProcessingStepCurrent;
     private bool pProcessingMinimized;
     private int? pProcessingIndexDragging;
@@ -33,7 +38,11 @@ public sealed class PProcessing : PPanel
     private bool pProcessingOrdered;
     private readonly HashSet<string> pProcessingActiveSteps = new(StringComparer.Ordinal);
 
-    public void PProcessingOrderedSet(bool pOrderedRequest) => pProcessingOrdered = pOrderedRequest;
+    public void PProcessingOrderedSet(bool pOrderedRequest)
+    {
+        pProcessingOrdered = pOrderedRequest;
+        pProcessingActionBar.Visibility = pOrderedRequest ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     public void PProcessingActiveSet(string pStepName, bool pActive)
     {
@@ -126,9 +135,14 @@ public sealed class PProcessing : PPanel
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
 
+        pProcessingActionBar = PProcessingActionBuild();
+        pProcessingActionBar.Visibility = pProcessingOrdered ? Visibility.Visible : Visibility.Collapsed;
+
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
+        DockPanel.SetDock(pProcessingActionBar, Dock.Bottom);
+        pRoot.Children.Add(pProcessingActionBar);
         pRoot.Children.Add(pScroll);
 
         pProcessingFullBody = pRoot;
@@ -201,6 +215,65 @@ public sealed class PProcessing : PPanel
         var pStrip = new StackPanel { Background = Brushes.White };
         pStrip.Children.Add(pMaximizeButton);
         return pStrip;
+    }
+
+    private UIElement PProcessingActionBuild()
+    {
+        Button pUpButton = PProcessingButtonBuild(
+            PProcessingUpIconPath, "Move the selected step up", () => PProcessingStepMove(-1));
+        pUpButton.Margin = new Thickness(0, 0, 2, 0);
+        Button pDownButton = PProcessingButtonBuild(
+            PProcessingDownIconPath, "Move the selected step down", () => PProcessingStepMove(1));
+
+        var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        pLeftPanel.Children.Add(pUpButton);
+        pLeftPanel.Children.Add(pDownButton);
+
+        var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6) };
+        pActionGrid.Children.Add(pLeftPanel);
+
+        return new Border
+        {
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)),
+            BorderThickness = new Thickness(0, 1, 0, 0),
+            Background = Brushes.White,
+            Child = pActionGrid
+        };
+    }
+
+    private void PProcessingStepMove(int pStepDelta)
+    {
+        if (pProcessingStepCurrent is null)
+        {
+            return;
+        }
+
+        int pStepIndex = -1;
+        for (int pIndex = 0; pIndex < pProcessingRowPanel.Children.Count; pIndex++)
+        {
+            if (pProcessingRowPanel.Children[pIndex] is Border { Tag: string pRowName } && pRowName == pProcessingStepCurrent)
+            {
+                pStepIndex = pIndex;
+                break;
+            }
+        }
+
+        if (pStepIndex < 0)
+        {
+            return;
+        }
+
+        int pTargetIndex = pStepIndex + pStepDelta;
+        if (pTargetIndex < 0 || pTargetIndex >= pProcessingRowPanel.Children.Count)
+        {
+            return;
+        }
+
+        UIElement pStepRow = pProcessingRowPanel.Children[pStepIndex];
+        pProcessingRowPanel.Children.RemoveAt(pStepIndex);
+        pProcessingRowPanel.Children.Insert(pTargetIndex, pStepRow);
+        PProcessingNumbersUpdate();
+        PProcessingOrderChange?.Invoke();
     }
 
     private static Button PProcessingButtonBuild(string pIconPath, string pTooltip, Action pClick)
@@ -347,12 +420,17 @@ public sealed class PProcessing : PPanel
 
     private void PProcessingDragUpHandle(object pSender, MouseButtonEventArgs pEvent)
     {
+        bool pReordered = pProcessingDragActive;
         if (pProcessingRowDragging is { } pDragRow)
         {
             pDragRow.Opacity = 1;
         }
 
         PProcessingDragClear();
+        if (pReordered)
+        {
+            PProcessingOrderChange?.Invoke();
+        }
     }
 
     private void PProcessingDragLostHandle(object pSender, MouseEventArgs pEvent)

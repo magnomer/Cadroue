@@ -64,6 +64,13 @@ public sealed class PInfo : UserControl
     private void PInfoMediaHandle(LMediaOpenStatus pMediaStatus)
     {
         pInfoItemPanel.Children.Clear();
+
+        if (string.IsNullOrEmpty(pMediaStatus.LMediaOpenSourcePath))
+        {
+            PInfoStatusAdd(LMediaInfo.LMediaFfprobeExist() ? "FFmpeg ready" : "FFmpeg missing", PInfoMutedBrush);
+            return;
+        }
+
         PInfoStatusAdd(pMediaStatus.LMediaOpenFfmpegProcessable ? "FFmpeg processable" : "FFmpeg unprocessable",
             pMediaStatus.LMediaOpenFfmpegProcessable ? PInfoFfmpegGoodBrush : PInfoFfmpegBadBrush);
         PInfoStatusAdd(pMediaStatus.LMediaOpenPreviewAvailable ? "Preview available" : "Preview unavailable",

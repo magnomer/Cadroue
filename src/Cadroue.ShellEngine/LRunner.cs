@@ -262,6 +262,7 @@ public sealed partial class LRunner
             }
 
             long? pOutputBytes = LRunnerBytesRead(pWorkItem.LWorkOutputPath);
+            long? pSourceBytes = pWorkItem.LWorkSourceBytes ?? LRunnerBytesRead(pWorkItem.LWorkSourcePath);
             LWorkMedia? pSourceMedia = pWorkItem.LWorkSourceMedia ?? LRunnerMediaRead(pWorkItem.LWorkSourcePath);
             LWorkMedia? pOutputMedia = LRunnerMediaRead(pWorkItem.LWorkOutputPath);
             LRunnerInvoke(() =>
@@ -269,6 +270,7 @@ public sealed partial class LRunner
                 bool pSucceeded = pExitCode == 0;
                 pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
                 pWorkItem.LWorkOutputBytes = pOutputBytes;
+                pWorkItem.LWorkSourceBytes = pSourceBytes;
                 pWorkItem.LWorkSourceMedia = pSourceMedia;
                 pWorkItem.LWorkOutputMedia = pOutputMedia;
                 pWorkItem.LWorkProgress = pSucceeded ? 1 : pWorkItem.LWorkProgress;

@@ -7,6 +7,8 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PMap
 {
+    private const double PMapHiddenOpacity = 0.4;
+
     private void PMapCoverageDraw(
         DrawingContext drawingContext,
         double actualWidth,
@@ -85,6 +87,12 @@ public sealed partial class PMap
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
             Pen? sectionPen = index == lSectionIndexSelect ? pMapPenSectionSelect : null;
             var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
+
+            if (section.LSegmentHidden)
+            {
+                drawingContext.PushOpacity(PMapHiddenOpacity);
+            }
+
             drawingContext.DrawRoundedRectangle(
                 PSectionPalette.PSectionPaletteRead(section.LSegmentColorIndex),
                 sectionPen,
@@ -92,6 +100,11 @@ public sealed partial class PMap
                 3,
                 3);
             PMapSectionLabelDraw(drawingContext, sectionRect, index, section.LSegmentColorIndex);
+
+            if (section.LSegmentHidden)
+            {
+                drawingContext.Pop();
+            }
         }
     }
 

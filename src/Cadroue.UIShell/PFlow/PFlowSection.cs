@@ -145,6 +145,19 @@ public sealed partial class PFlow
         PFlowCursorPropagate(lSectionList[pSectionIndex].LSegmentStart, true, true);
     }
 
+    public void PFlowSectionToggle(int pSectionIndex)
+    {
+        if (pSectionIndex < 0 || pSectionIndex >= lSectionList.Count)
+        {
+            return;
+        }
+
+        LSegment pSectionEntry = lSectionList[pSectionIndex];
+        lSectionList[pSectionIndex] = pSectionEntry with { LSegmentHidden = !pSectionEntry.LSegmentHidden };
+        PFlowSectionRecord(lSectionList[pSectionIndex].LSegmentHidden ? "turned off" : "turned on", pSectionIndex);
+        PFlowSectionUpdate();
+    }
+
     public IReadOnlyList<LSegment> PFlowSectionsRead() => lSectionList.ToArray();
 
     internal IReadOnlyList<Cadroue.Media.LSidecarSectionRecord> PFlowSidecarSectionsRead() =>
@@ -156,7 +169,8 @@ public sealed partial class PFlow
                 ColorIndex = lSection.LSegmentColorIndex,
                 Name = lSection.LSegmentName,
                 Prefix = lSection.LSegmentPrefix,
-                Suffix = lSection.LSegmentSuffix
+                Suffix = lSection.LSegmentSuffix,
+                Hidden = lSection.LSegmentHidden
             })
             .ToArray();
 
@@ -182,7 +196,8 @@ public sealed partial class PFlow
                         lSection.Name)
                     {
                         LSegmentPrefix = lSection.Prefix ?? string.Empty,
-                        LSegmentSuffix = lSection.Suffix ?? string.Empty
+                        LSegmentSuffix = lSection.Suffix ?? string.Empty,
+                        LSegmentHidden = lSection.Hidden
                     })
                     .ToArray(),
                 null);

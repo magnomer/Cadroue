@@ -43,7 +43,7 @@ public sealed partial class PRoster
     internal static double? PRosterRatioRead(LWorkItem pWorkItem)
     {
         if (PRosterBytesRead(pWorkItem) is not { } pOutputWhole
-            || PRosterSizeRead(pWorkItem.LWorkSourcePath) is not { } pSourceWhole
+            || PRosterSourceBytesRead(pWorkItem) is not { } pSourceWhole
             || pSourceWhole <= 0)
         {
             return null;
@@ -72,6 +72,9 @@ public sealed partial class PRoster
                 ? $"{pWholeBytes / pRosterMebi:0.##} MiB"
                 : $"{pWholeBytes / pRosterKibi:0.##} KiB";
     }
+
+    private static long? PRosterSourceBytesRead(LWorkItem pWorkItem) =>
+        pWorkItem.LWorkSourceBytes ?? PRosterSizeRead(pWorkItem.LWorkSourcePath);
 
     private static long? PRosterSizeRead(string? pFilePath)
     {

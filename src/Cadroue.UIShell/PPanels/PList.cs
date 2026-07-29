@@ -305,7 +305,7 @@ public sealed class PList : PPanel
             : pListPaths[Math.Clamp(pRemovedIndex, 0, pListPaths.Count - 1)]);
     }
 
-    private void PListClear()
+    public void PListClear()
     {
         pListPaths.Clear();
         PListRowsRebuild();

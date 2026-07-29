@@ -5,6 +5,8 @@ public readonly record struct LSegment(TimeSpan LSegmentStart, TimeSpan LSegment
     private readonly string? lSegmentPrefix;
     private readonly string? lSegmentSuffix;
 
+    public bool LSegmentHidden { get; init; }
+
     public string LSegmentPrefix
     {
         get => lSegmentPrefix ?? string.Empty;

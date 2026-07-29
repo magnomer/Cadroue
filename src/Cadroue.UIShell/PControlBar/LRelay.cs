@@ -11,6 +11,7 @@ public sealed class LRelaySectionRecord
     public string Name { get; set; } = string.Empty;
     public string Prefix { get; set; } = string.Empty;
     public string Suffix { get; set; } = string.Empty;
+    public bool Hidden { get; set; }
 
     public static LRelaySectionRecord LRelaySectionCreate(LSegment lSegment) => new()
     {
@@ -19,7 +20,8 @@ public sealed class LRelaySectionRecord
         ColorIndex = lSegment.LSegmentColorIndex,
         Name = lSegment.LSegmentName,
         Prefix = lSegment.LSegmentPrefix,
-        Suffix = lSegment.LSegmentSuffix
+        Suffix = lSegment.LSegmentSuffix,
+        Hidden = lSegment.LSegmentHidden
     };
 
     public LSegment LRelaySegmentCreate() => new(
@@ -29,7 +31,8 @@ public sealed class LRelaySectionRecord
         Name)
     {
         LSegmentPrefix = Prefix ?? string.Empty,
-        LSegmentSuffix = Suffix ?? string.Empty
+        LSegmentSuffix = Suffix ?? string.Empty,
+        LSegmentHidden = Hidden
     };
 }
 

@@ -79,7 +79,14 @@ public partial class PWindow
 
     private bool PShortcutMediaClose()
     {
-        return pViewerActive?.PViewerMediaClose() == true;
+        if (pViewerActive is null && pListActive is null)
+        {
+            return false;
+        }
+
+        pViewerActive?.PViewerMediaClose();
+        pListActive?.PListClear();
+        return true;
     }
 
     private bool PShortcutPlayToggle()

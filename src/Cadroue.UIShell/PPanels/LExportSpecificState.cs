@@ -422,7 +422,7 @@ public sealed class LExportSpecificState
         },
         AudioEncoder = "AAC",
         AudioBitrate = "320k",
-        AudioSampleRate = "Same as source",
+        AudioSampleRate = "48000",
         AudioChannels = "Same as source"
     };
 

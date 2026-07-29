@@ -143,6 +143,38 @@ public sealed record LMediaInfo
         }
     }
 
+    private static readonly Lazy<bool> lMediaFfprobePresent = new(LMediaFfprobeCheck);
+
+    public static bool LMediaFfprobeExist() => lMediaFfprobePresent.Value;
+
+    private static bool LMediaFfprobeCheck()
+    {
+        try
+        {
+            var psi = new ProcessStartInfo("ffprobe")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            psi.ArgumentList.Add("-version");
+
+            using var process = Process.Start(psi);
+            if (process is null)
+            {
+                return false;
+            }
+
+            process.WaitForExit();
+            return process.ExitCode == 0;
+        }
+        catch (Exception lMediaException) when (lMediaException is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            return false;
+        }
+    }
+
     private static string LMediaFailureFormat(int exitCode, string errorText)
     {
         string diagnostic = LMediaDiagnosticNormalize(errorText);

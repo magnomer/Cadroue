@@ -92,6 +92,8 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public long? LWorkOutputBytes { get; set; }
 
+    public long? LWorkSourceBytes { get; set; }
+
     public LWorkMedia? LWorkSourceMedia { get; set; }
 
     public LWorkMedia? LWorkOutputMedia { get; set; }

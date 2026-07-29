@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Cadroue.UIShell.PMainArea;
 using Cadroue.UIShell.PAssets;
@@ -14,6 +14,7 @@ public sealed class PWorkspace
     private const int PWorkspaceHistoryMaximum = 100;
 
     private readonly LHistory lWorkspaceHistory = new();
+    private string pWorkspaceLosslessCutPath = string.Empty;
 
     public PWorkspace(
         string pTabLayoutKey,
@@ -31,6 +32,15 @@ public sealed class PWorkspace
         PWorkspaceList = PWorkspaceSurface.PTabList;
         PWorkspaceViewer?.PViewerAudioSet(pAudioOnlyAllowed);
         PWorkspaceSource?.PSourceAttach(PWorkspaceViewer);
+        PWorkspaceSource?.PSourceImportSet(PWorkspaceFlow is not null && !pAudioOnlyAllowed);
+        if (PWorkspaceSource is not null && PWorkspaceFlow is not null && !pAudioOnlyAllowed)
+        {
+            PWorkspaceSource.PSourceLosslessCutOpen += PWorkspaceLosslessCutHandle;
+        }
+        if (PWorkspaceViewer is not null && PWorkspaceFlow is not null && !pAudioOnlyAllowed)
+        {
+            PWorkspaceViewer.PViewerMediaChange += PWorkspaceMediaHandle;
+        }
         PWorkspaceInfo?.PInfoAttach(PWorkspaceViewer);
         PWorkspaceRoot = PWorkspaceRootCreate();
 
@@ -68,6 +78,15 @@ public sealed class PWorkspace
             PWorkspaceFlow.PFlowSectionChange -= PWorkspaceSectionHandle;
         }
 
+        if (PWorkspaceSource is not null)
+        {
+            PWorkspaceSource.PSourceLosslessCutOpen -= PWorkspaceLosslessCutHandle;
+        }
+        if (PWorkspaceViewer is not null)
+        {
+            PWorkspaceViewer.PViewerMediaChange -= PWorkspaceMediaHandle;
+        }
+
         PWorkspaceExportState.LPresetChange -= PWorkspaceExportHandle;
         PWorkspaceFlow?.PFlowClose();
         PWorkspaceViewer?.PViewerClose();
@@ -77,6 +96,35 @@ public sealed class PWorkspace
         PWorkspaceFlow?.PFlowSectionsRead() ?? Array.Empty<LSegment>(),
         PWorkspaceFlow?.PFlowSectionSelectRead(),
         LExportSpecificPresetRecord.LPresetRecordCreate(PWorkspaceExportState));
+
+
+    private void PWorkspaceLosslessCutHandle(string pLosslessCutPath)
+    {
+        PWorkspaceFlow?.PFlowLosslessCutImport(pLosslessCutPath);
+    }
+
+    private void PWorkspaceMediaHandle(LMediaOpenStatus pMediaStatus)
+    {
+        if (PWorkspaceFlow is null
+            || pMediaStatus.LMediaOpenMediaInfo is null
+            || string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenSourcePath))
+        {
+            pWorkspaceLosslessCutPath = string.Empty;
+            return;
+        }
+
+        string pMediaPath = System.IO.Path.GetFullPath(pMediaStatus.LMediaOpenSourcePath);
+        if (string.Equals(pWorkspaceLosslessCutPath, pMediaPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        pWorkspaceLosslessCutPath = pMediaPath;
+        PFlowControl pLosslessCutFlow = PWorkspaceFlow;
+        Application.Current?.Dispatcher.BeginInvoke(
+            System.Windows.Threading.DispatcherPriority.Background,
+            new Action(pLosslessCutFlow.PFlowLosslessCutDetect));
+    }
 
     private void PWorkspaceSectionHandle(IReadOnlyList<LSegment> pSections, int? pSectionSelect)
         => PWorkspaceHistoryMark();
