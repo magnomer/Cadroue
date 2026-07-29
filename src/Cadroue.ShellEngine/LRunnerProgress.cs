@@ -6,9 +6,8 @@ namespace Cadroue.ShellEngine;
 
 public sealed partial class LRunner
 {
-    private async Task LRunnerProgressRead(Process pProcess, LWorkItem pWorkItem, CancellationToken lRunnerToken)
+    private async Task LRunnerProgressRead(Process pProcess, LWorkItem pWorkItem, double pTotalSeconds, CancellationToken lRunnerToken)
     {
-        double pTotalSeconds = pWorkItem.LWorkDuration.TotalSeconds;
         long pBlockMicroseconds = -1;
         bool pRunnerVerbose = LRunnerVerboseCheck();
         var pRunnerBlock = pRunnerVerbose ? new System.Text.StringBuilder() : null;

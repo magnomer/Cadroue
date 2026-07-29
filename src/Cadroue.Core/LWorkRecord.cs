@@ -42,6 +42,8 @@ public sealed class LWorkRecord
 
     public LWorkCrop Crop { get; set; } = LWorkCrop.LWorkCropNoneCreate();
 
+    public LWorkAudio Audio { get; set; } = LWorkAudio.LWorkAudioNoneCreate();
+
     public static LWorkRecord LWorkRecordCreate(LWorkItem lWorkItem) => new()
     {
         WorkId = lWorkItem.LWorkId,
@@ -67,7 +69,8 @@ public sealed class LWorkRecord
         Phase = lWorkItem.LWorkPhaseCurrent.ToString(),
         AttemptCount = lWorkItem.LWorkAttemptCount,
         Output = LWorkOutputRecord.LWorkOutputRecordCreate(lWorkItem.LWorkOutput),
-        Crop = lWorkItem.LWorkCrop
+        Crop = lWorkItem.LWorkCrop,
+        Audio = lWorkItem.LWorkAudio
     };
 
     public LWorkItem LWorkItemCreate()
@@ -84,7 +87,8 @@ public sealed class LWorkRecord
             Output.LWorkOutputCreate(),
             WorkId,
             CreateTime,
-            Crop);
+            Crop,
+            Audio);
 
         lWorkItem.LWorkStateCurrent = LWorkEnumRead(State, LWorkState.LWorkStatePending);
         lWorkItem.LWorkMessage = Message;

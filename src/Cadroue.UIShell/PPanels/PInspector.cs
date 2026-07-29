@@ -73,6 +73,8 @@ public sealed partial class PInspector : PPanel
         var pBody = new Grid();
         pBody.Children.Add(pInspectorEmptyNotice);
         pBody.Children.Add(PInspectorCropBodyBuild());
+        pBody.Children.Add(PInspectorVolumeBodyBuild());
+        pBody.Children.Add(PInspectorNormalizeBodyBuild());
 
         var pScroll = new ScrollViewer
         {
@@ -153,10 +155,22 @@ public sealed partial class PInspector : PPanel
     public void PInspectorStepShow(string? pStepName)
     {
         bool pCropSelected = pStepName == "Crop";
-        pInspectorTitleLabel.Text = pCropSelected ? "Crop" : "Inspector";
+        bool pVolumeSelected = pStepName == "Volume";
+        bool pNormalizeSelected = pStepName == "Normalize";
+        bool pKnownSelected = pCropSelected || pVolumeSelected || pNormalizeSelected;
+
+        pInspectorTitleLabel.Text = pStepName switch
+        {
+            "Crop" => "Crop",
+            "Volume" => "Volume",
+            "Normalize" => "Normalize",
+            _ => "Inspector"
+        };
         pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorVolumeBody.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorNormalizeBody.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorPersistentRow.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorEmptyNotice.Visibility = pCropSelected ? Visibility.Collapsed : Visibility.Visible;
+        pInspectorEmptyNotice.Visibility = pKnownSelected ? Visibility.Collapsed : Visibility.Visible;
 
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)
         {

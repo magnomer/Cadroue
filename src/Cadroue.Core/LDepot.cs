@@ -15,6 +15,8 @@ public static class LDepot
 
     private const string LDepotPaletteFolderName = "palettes";
 
+    private const string LDepotAudioFolderName = "audiowork";
+
     public const string LDepotIndexFileName = "work.db";
 
     private static string? lDepotRootOverride;
@@ -48,6 +50,13 @@ public static class LDepot
         string lDepotPalettes = Path.Combine(LDepotRootRead(), LDepotPaletteFolderName);
         Directory.CreateDirectory(lDepotPalettes);
         return lDepotPalettes;
+    }
+
+    public static string LDepotAudioRead()
+    {
+        string lDepotAudio = Path.Combine(LDepotRootRead(), LDepotAudioFolderName);
+        Directory.CreateDirectory(lDepotAudio);
+        return lDepotAudio;
     }
 
     public static string LDepotFolderRead(LDepotFolder lDepotFolder) =>

@@ -197,15 +197,7 @@ public sealed partial class LRunner
             Directory.CreateDirectory(pDirectory);
         }
 
-        var pStartInfo = new ProcessStartInfo
-        {
-            FileName = LRunnerProgramPath,
-            Arguments = LEncode.LEncodeArgumentBuild(pWorkItem),
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
+        IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(pWorkItem);
 
         var pRunnerClock = System.Diagnostics.Stopwatch.StartNew();
         pWorkItem.LWorkStartTime = DateTimeOffset.Now;
@@ -213,30 +205,44 @@ public sealed partial class LRunner
         LRunnerNote(
             $"Encode started '{pWorkItem.LWorkOutputName}': {pWorkItem.LWorkKind} at {pWorkItem.LWorkPriority}, " +
             $"{pWorkItem.LWorkStart:hh\\:mm\\:ss\\.fff}-{pWorkItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
-            $"from '{Path.GetFileName(pWorkItem.LWorkSourcePath)}' to '{pWorkItem.LWorkOutputPath}'");
-        LRunnerNote($"Encode command '{pWorkItem.LWorkOutputName}': {pStartInfo.FileName} {pStartInfo.Arguments}");
-        LRunnerFfmpegNote(
-            $"Command for '{pWorkItem.LWorkOutputName}'",
-            $"{pStartInfo.FileName} {pStartInfo.Arguments}\n"
-            + $"working folder {(string.IsNullOrWhiteSpace(pDirectory) ? "(process default)" : pDirectory)}\n"
-            + $"source {pWorkItem.LWorkSourcePath}\n"
-            + $"output {pWorkItem.LWorkOutputPath}");
+            $"from '{Path.GetFileName(pWorkItem.LWorkSourcePath)}' to '{pWorkItem.LWorkOutputPath}' in {pStages.Count} stage(s)");
 
         try
         {
-            using var pProcess = new Process { StartInfo = pStartInfo };
-            pProcess.Start();
-            lRunnerProcesses[pWorkItem.LWorkId] = pProcess;
+            double pTotalSeconds = pWorkItem.LWorkKind == LWorkKind.LWorkKindAudio
+                ? (LRunnerMediaRead(pWorkItem.LWorkSourcePath)?.LWorkMediaDuration.TotalSeconds ?? 0)
+                : pWorkItem.LWorkDuration.TotalSeconds;
 
-            Task<string> pErrorTask = LRunnerErrorRead(pProcess, pWorkItem, lRunnerToken);
-            await LRunnerProgressRead(pProcess, pWorkItem, lRunnerToken).ConfigureAwait(false);
-            await pProcess.WaitForExitAsync(lRunnerToken).ConfigureAwait(false);
-            string pRunnerError = await pErrorTask.ConfigureAwait(false);
-            LRunnerFfmpegNote(
-                $"Exit code {pProcess.ExitCode} for '{pWorkItem.LWorkOutputName}'",
-                $"ran for {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}");
+            int pExitCode = 0;
+            string pRunnerError = string.Empty;
+            string? pMeasureStderr = null;
+            for (int pStageIndex = 0; pStageIndex < pStages.Count; pStageIndex++)
+            {
+                LEncodeStage pStage = pStages[pStageIndex];
+                string pStageArguments = pStage.LEncodeStageArguments;
+                if (pStageArguments.Contains(LEncode.LEncodeMeasureToken, StringComparison.Ordinal))
+                {
+                    string pMeasured = pMeasureStderr is null
+                        ? string.Empty
+                        : LEncode.LEncodeLoudnormMeasureRead(pMeasureStderr);
+                    pStageArguments = pStageArguments.Replace(LEncode.LEncodeMeasureToken, pMeasured, StringComparison.Ordinal);
+                }
 
-            int pExitCode = pProcess.ExitCode;
+                (pExitCode, pRunnerError) = await LRunnerStageRun(
+                    pWorkItem, pStage, pStageArguments, pStageIndex + 1, pStages.Count, pTotalSeconds,
+                    pRunnerClock, pDirectory, lRunnerToken).ConfigureAwait(false);
+
+                if (pStage.LEncodeStageMeasure)
+                {
+                    pMeasureStderr = pRunnerError;
+                }
+
+                if (pExitCode != 0)
+                {
+                    break;
+                }
+            }
+
             if (pExitCode == 0)
             {
                 LRunnerNote(
@@ -308,6 +314,85 @@ public sealed partial class LRunner
             lRunnerProcesses.TryRemove(pWorkItem.LWorkId, out _);
             lRunnerItems.TryRemove(pWorkItem.LWorkId, out _);
             LRunnerLeaseStop(pWorkItem.LWorkId);
+            LRunnerTempClear(pStages);
+        }
+    }
+
+    private async Task<(int, string)> LRunnerStageRun(
+        LWorkItem pWorkItem,
+        LEncodeStage pStage,
+        string pStageArguments,
+        int pStageNumber,
+        int pStageCount,
+        double pTotalSeconds,
+        System.Diagnostics.Stopwatch pRunnerClock,
+        string pDirectory,
+        CancellationToken lRunnerToken)
+    {
+        var pStartInfo = new ProcessStartInfo
+        {
+            FileName = LRunnerProgramPath,
+            Arguments = pStageArguments,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+
+        LRunnerInvoke(() =>
+        {
+            pWorkItem.LWorkProgress = 0;
+            pWorkItem.LWorkMessage = pStageCount > 1
+                ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
+                : string.Empty;
+        });
+        LRunnerNote($"{pStage.LEncodeStageLabel} '{pWorkItem.LWorkOutputName}': {pStartInfo.FileName} {pStartInfo.Arguments}");
+        LRunnerFfmpegNote(
+            $"{pStage.LEncodeStageLabel} command for '{pWorkItem.LWorkOutputName}'",
+            $"{pStartInfo.FileName} {pStartInfo.Arguments}\n"
+            + $"working folder {(string.IsNullOrWhiteSpace(pDirectory) ? "(process default)" : pDirectory)}\n"
+            + $"source {pWorkItem.LWorkSourcePath}\n"
+            + $"output {pStage.LEncodeStageOutputPath}");
+
+        using var pProcess = new Process { StartInfo = pStartInfo };
+        pProcess.Start();
+        lRunnerProcesses[pWorkItem.LWorkId] = pProcess;
+
+        Task<string> pErrorTask = LRunnerErrorRead(pProcess, pWorkItem, lRunnerToken);
+        await LRunnerProgressRead(pProcess, pWorkItem, pTotalSeconds, lRunnerToken).ConfigureAwait(false);
+        await pProcess.WaitForExitAsync(lRunnerToken).ConfigureAwait(false);
+        string pRunnerError = await pErrorTask.ConfigureAwait(false);
+        LRunnerFfmpegNote(
+            $"Exit code {pProcess.ExitCode} for '{pWorkItem.LWorkOutputName}' [{pStage.LEncodeStageLabel}]",
+            $"ran for {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}");
+
+        int pStageExit = pProcess.ExitCode;
+        lRunnerProcesses.TryRemove(pWorkItem.LWorkId, out _);
+        return (pStageExit, pRunnerError);
+    }
+
+    private static void LRunnerTempClear(IReadOnlyList<LEncodeStage> pStages)
+    {
+        foreach (LEncodeStage pStage in pStages)
+        {
+            if (!pStage.LEncodeStageTemporary || string.IsNullOrWhiteSpace(pStage.LEncodeStageOutputPath))
+            {
+                continue;
+            }
+
+            try
+            {
+                if (File.Exists(pStage.LEncodeStageOutputPath))
+                {
+                    File.Delete(pStage.LEncodeStageOutputPath);
+                }
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
         }
     }
 

@@ -235,7 +235,14 @@ public sealed class PList : PPanel
         Grid.SetColumn(pRightPanel, 2);
         pActionGrid.Children.Add(pLeftPanel);
         pActionGrid.Children.Add(pRightPanel);
-        return pActionGrid;
+
+        return new Border
+        {
+            BorderBrush = pListLineBrush,
+            BorderThickness = new Thickness(0, 1, 0, 0),
+            Background = Brushes.White,
+            Child = pActionGrid
+        };
     }
 
     private static Button PListButtonBuild(string pIconPath, string pTooltip, Action pClick)

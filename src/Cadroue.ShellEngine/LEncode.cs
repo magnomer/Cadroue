@@ -1,24 +1,52 @@
 using System.Globalization;
+using System.IO;
 using System.Text;
+using System.Text.Json;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
+
+public sealed record LEncodeStage(
+    string LEncodeStageArguments,
+    string LEncodeStageLabel,
+    string LEncodeStageOutputPath,
+    bool LEncodeStageTemporary,
+    bool LEncodeStageMeasure = false);
+
+internal enum LEncodeChainMode
+{
+    LEncodeChainPlain,
+    LEncodeChainAnalyze,
+    LEncodeChainApply
+}
 
 public static class LEncode
 {
     private const string LEncodeBitrateOption = "-b:v";
 
+    public const string LEncodeMeasureToken = "@@MEASURED@@";
+
     public const double LEncodeStatsPeriod = 0.5;
+
+    public static IReadOnlyList<LEncodeStage> LEncodeStagesBuild(LWorkItem lWorkItem)
+    {
+        if (lWorkItem.LWorkKind == LWorkKind.LWorkKindAudio)
+        {
+            return LEncodeAudioStagesBuild(lWorkItem);
+        }
+
+        return new[]
+        {
+            new LEncodeStage(LEncodeArgumentBuild(lWorkItem), "Encoding", lWorkItem.LWorkOutputPath, false)
+        };
+    }
 
     public static string LEncodeArgumentBuild(LWorkItem lWorkItem)
     {
         LWorkOutput lOutput = lWorkItem.LWorkOutput;
         var lArguments = new StringBuilder();
 
-        lArguments.Append("-hide_banner -nostdin -y");
-        lArguments.Append(" -progress pipe:1 -nostats");
-        lArguments.Append(CultureInfo.InvariantCulture,
-            $" -stats_period {LEncodeStatsPeriod.ToString("0.###", CultureInfo.InvariantCulture)}");
+        LEncodeHeaderAppend(lArguments);
 
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkStart)}");
         if (lWorkItem.LWorkEnd > lWorkItem.LWorkStart)
@@ -32,6 +60,198 @@ public static class LEncode
 
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeQuote(lWorkItem.LWorkOutputPath)}");
         return lArguments.ToString();
+    }
+
+    private static IReadOnlyList<LEncodeStage> LEncodeAudioStagesBuild(LWorkItem lWorkItem)
+    {
+        LWorkOutput lOutput = lWorkItem.LWorkOutput;
+        string lAudioFolder = LDepot.LDepotAudioRead();
+        string lRawWav = Path.Combine(lAudioFolder, $"{lWorkItem.LWorkId:N}.raw.wav");
+        string lProcessedWav = Path.Combine(lAudioFolder, $"{lWorkItem.LWorkId:N}.proc.wav");
+
+        var lStages = new List<LEncodeStage>();
+
+        var lExtract = new StringBuilder();
+        LEncodeHeaderAppend(lExtract);
+        lExtract.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lWorkItem.LWorkSourcePath)}");
+        lExtract.Append(" -vn -c:a pcm_s16le");
+        lExtract.Append(CultureInfo.InvariantCulture, $" {LEncodeQuote(lRawWav)}");
+        lStages.Add(new LEncodeStage(lExtract.ToString(), "Extracting audio", lRawWav, true));
+
+        string lAudioInputWav = lRawWav;
+        int lTwoPassIndex = LEncodeTwoPassIndexRead(lWorkItem.LWorkAudio);
+
+        if (lWorkItem.LWorkAudio.LWorkAudioActive)
+        {
+            if (lTwoPassIndex >= 0)
+            {
+                string? lAnalyzeChain = LEncodeAudioChainBuild(
+                    lWorkItem.LWorkAudio, LEncodeChainMode.LEncodeChainAnalyze, lTwoPassIndex);
+                var lAnalyze = new StringBuilder();
+                LEncodeHeaderAppend(lAnalyze);
+                lAnalyze.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lRawWav)}");
+                lAnalyze.Append(CultureInfo.InvariantCulture, $" -af {LEncodeQuote(lAnalyzeChain!)}");
+                lAnalyze.Append(" -f null -");
+                lStages.Add(new LEncodeStage(lAnalyze.ToString(), "Analyzing audio", string.Empty, false, true));
+            }
+
+            string? lChain = LEncodeAudioChainBuild(
+                lWorkItem.LWorkAudio,
+                lTwoPassIndex >= 0 ? LEncodeChainMode.LEncodeChainApply : LEncodeChainMode.LEncodeChainPlain,
+                lTwoPassIndex);
+            if (lChain is not null)
+            {
+                var lProcess = new StringBuilder();
+                LEncodeHeaderAppend(lProcess);
+                lProcess.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lRawWav)}");
+                lProcess.Append(CultureInfo.InvariantCulture, $" -af {LEncodeQuote(lChain)}");
+                lProcess.Append(" -c:a pcm_s16le");
+                lProcess.Append(CultureInfo.InvariantCulture, $" {LEncodeQuote(lProcessedWav)}");
+                lStages.Add(new LEncodeStage(lProcess.ToString(), "Processing audio", lProcessedWav, true));
+                lAudioInputWav = lProcessedWav;
+            }
+        }
+
+        var lMux = new StringBuilder();
+        LEncodeHeaderAppend(lMux);
+        lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lWorkItem.LWorkSourcePath)}");
+        lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lAudioInputWav)}");
+
+        bool lVideoExcluded = string.Equals(lOutput.LWorkOutputVideoStream, "Exclude", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lOutput.LWorkOutputVideoMode, "Exclude", StringComparison.OrdinalIgnoreCase);
+        if (!lVideoExcluded)
+        {
+            lMux.Append(" -map 0:v:0?");
+        }
+        lMux.Append(" -map 1:a:0");
+
+        if (!lVideoExcluded)
+        {
+            if (string.Equals(lOutput.LWorkOutputVideoMode, "Copy", StringComparison.OrdinalIgnoreCase))
+            {
+                lMux.Append(" -c:v copy");
+            }
+            else
+            {
+                LEncodeVideoEncoderAppend(lMux, lWorkItem, lOutput);
+            }
+        }
+
+        LEncodeMuxAudioAppend(lMux, lOutput);
+        lMux.Append(CultureInfo.InvariantCulture, $" {LEncodeQuote(lWorkItem.LWorkOutputPath)}");
+        lStages.Add(new LEncodeStage(lMux.ToString(), "Encoding output", lWorkItem.LWorkOutputPath, false));
+
+        return lStages;
+    }
+
+    private static int LEncodeTwoPassIndexRead(LWorkAudio lWorkAudio)
+    {
+        int lFound = -1;
+        for (int lIndex = 0; lIndex < lWorkAudio.LWorkAudioSteps.Count; lIndex++)
+        {
+            if (!lWorkAudio.LWorkAudioSteps[lIndex].LWorkAudioStepTwoPassLoudness)
+            {
+                continue;
+            }
+
+            if (lFound >= 0)
+            {
+                return -1;
+            }
+
+            lFound = lIndex;
+        }
+
+        return lFound;
+    }
+
+    private static string? LEncodeAudioChainBuild(LWorkAudio lWorkAudio, LEncodeChainMode lChainMode, int lTwoPassIndex)
+    {
+        var lFilters = new List<string>();
+        for (int lIndex = 0; lIndex < lWorkAudio.LWorkAudioSteps.Count; lIndex++)
+        {
+            LWorkAudioStep lStep = lWorkAudio.LWorkAudioSteps[lIndex];
+            if (!lStep.LWorkAudioStepActive)
+            {
+                continue;
+            }
+
+            switch (lStep.LWorkAudioStepKind)
+            {
+                case LWorkAudioKind.LWorkAudioKindVolume:
+                    lFilters.Add(string.Create(
+                        CultureInfo.InvariantCulture,
+                        $"volume={lStep.LWorkAudioStepGain.ToString("0.###", CultureInfo.InvariantCulture)}dB"));
+                    break;
+                case LWorkAudioKind.LWorkAudioKindNormalize:
+                    if (lStep.LWorkAudioStepMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic)
+                    {
+                        lFilters.Add("dynaudnorm=f=500:g=15:p=0.95");
+                        break;
+                    }
+
+                    string lLoudnorm = string.Create(
+                        CultureInfo.InvariantCulture,
+                        $"loudnorm=I={lStep.LWorkAudioStepTarget.ToString("0.###", CultureInfo.InvariantCulture)}:" +
+                        $"TP={lStep.LWorkAudioStepPeak.ToString("0.###", CultureInfo.InvariantCulture)}:" +
+                        $"LRA={lStep.LWorkAudioStepRange.ToString("0.###", CultureInfo.InvariantCulture)}");
+
+                    if (lIndex == lTwoPassIndex)
+                    {
+                        lLoudnorm += lChainMode switch
+                        {
+                            LEncodeChainMode.LEncodeChainAnalyze => ":print_format=json",
+                            LEncodeChainMode.LEncodeChainApply => LEncodeMeasureToken,
+                            _ => string.Empty
+                        };
+                    }
+
+                    lFilters.Add(lLoudnorm);
+                    break;
+            }
+        }
+
+        return lFilters.Count > 0 ? string.Join(',', lFilters) : null;
+    }
+
+    public static string LEncodeLoudnormMeasureRead(string lStderr)
+    {
+        int lStart = lStderr.LastIndexOf('{');
+        int lEnd = lStderr.LastIndexOf('}');
+        if (lStart < 0 || lEnd <= lStart)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            Dictionary<string, string>? lValues =
+                JsonSerializer.Deserialize<Dictionary<string, string>>(lStderr.Substring(lStart, lEnd - lStart + 1));
+            if (lValues is null
+                || !lValues.TryGetValue("input_i", out string? lInputI)
+                || !lValues.TryGetValue("input_tp", out string? lInputTp)
+                || !lValues.TryGetValue("input_lra", out string? lInputLra)
+                || !lValues.TryGetValue("input_thresh", out string? lInputThresh)
+                || !lValues.TryGetValue("target_offset", out string? lTargetOffset))
+            {
+                return string.Empty;
+            }
+
+            return $":measured_I={lInputI}:measured_TP={lInputTp}:measured_LRA={lInputLra}:" +
+                $"measured_thresh={lInputThresh}:offset={lTargetOffset}:linear=true";
+        }
+        catch (JsonException)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static void LEncodeHeaderAppend(StringBuilder lArguments)
+    {
+        lArguments.Append("-hide_banner -nostdin -y");
+        lArguments.Append(" -progress pipe:1 -nostats");
+        lArguments.Append(CultureInfo.InvariantCulture,
+            $" -stats_period {LEncodeStatsPeriod.ToString("0.###", CultureInfo.InvariantCulture)}");
     }
 
     private static void LEncodeVideoAppend(StringBuilder lArguments, LWorkItem lWorkItem, LWorkOutput lOutput)
@@ -49,6 +269,11 @@ public static class LEncode
             return;
         }
 
+        LEncodeVideoEncoderAppend(lArguments, lWorkItem, lOutput);
+    }
+
+    private static void LEncodeVideoEncoderAppend(StringBuilder lArguments, LWorkItem lWorkItem, LWorkOutput lOutput)
+    {
         string lEncoderName = LCapability.LCapabilityNameRead(lOutput.LWorkOutputVideoEncoder);
         if (string.IsNullOrWhiteSpace(lEncoderName))
         {
@@ -215,7 +440,22 @@ public static class LEncode
             return;
         }
 
+        LEncodeAudioSettingsAppend(lArguments, lOutput, LEncodeAudioNameRead(lOutput.LWorkOutputAudioEncoder));
+    }
+
+    private static void LEncodeMuxAudioAppend(StringBuilder lArguments, LWorkOutput lOutput)
+    {
         string lAudioName = LEncodeAudioNameRead(lOutput.LWorkOutputAudioEncoder);
+        if (string.IsNullOrWhiteSpace(lAudioName))
+        {
+            lAudioName = "aac";
+        }
+
+        LEncodeAudioSettingsAppend(lArguments, lOutput, lAudioName);
+    }
+
+    private static void LEncodeAudioSettingsAppend(StringBuilder lArguments, LWorkOutput lOutput, string lAudioName)
+    {
         if (!string.IsNullOrWhiteSpace(lAudioName))
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -c:a {lAudioName}");

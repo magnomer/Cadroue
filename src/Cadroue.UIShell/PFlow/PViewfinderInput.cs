@@ -65,7 +65,7 @@ public sealed partial class PViewfinder
 
     private void PViewfinderSelectPropagate(TimeSpan requestTime)
     {
-        for (int index = 0; index < lSectionList.Count; index++)
+        for (int index = lSectionList.Count - 1; index >= 0; index--)
         {
             LSegment section = lSectionList[index];
             if (requestTime >= section.LSegmentStart && requestTime <= section.LSegmentEnd)

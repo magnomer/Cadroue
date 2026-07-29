@@ -16,6 +16,7 @@ public sealed partial class PRoster
     private sealed class PRosterRowCell
     {
         public required TextBlock PRosterCellProgress { get; init; }
+        public required TextBlock PRosterCellPercent { get; init; }
         public required TextBlock PRosterCellState { get; init; }
         public required TextBlock PRosterCellOwner { get; init; }
     }
@@ -46,8 +47,9 @@ public sealed partial class PRoster
         PRosterHeadCellAdd(pGrid, 1, "Priority");
         PRosterHeadCellAdd(pGrid, 2, "Length");
         PRosterHeadCellAdd(pGrid, 3, "Progress");
-        PRosterHeadCellAdd(pGrid, 4, "State");
-        PRosterHeadCellAdd(pGrid, 5, "Owner");
+        PRosterHeadCellAdd(pGrid, 4, "Percentage");
+        PRosterHeadCellAdd(pGrid, 5, "State");
+        PRosterHeadCellAdd(pGrid, 6, "Owner");
         return pGrid;
     }
 
@@ -71,6 +73,7 @@ public sealed partial class PRoster
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 58 });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 60 });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 62 });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 80 });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 68 });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 84 });
         return pGrid;
@@ -204,13 +207,15 @@ public sealed partial class PRoster
         PRosterRowCellAdd(pGrid, 2, PRosterSpanFormat(pWorkItem.LWorkDuration), PRosterTheme.PRosterMutedBrush);
 
         TextBlock pProgressCell = PRosterRowCellAdd(pGrid, 3, PRosterProgressFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
-        TextBlock pStateCell = PRosterRowCellAdd(pGrid, 4, PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent),
+        TextBlock pPercentCell = PRosterRowCellAdd(pGrid, 4, PRosterRatioFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
+        TextBlock pStateCell = PRosterRowCellAdd(pGrid, 5, PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent),
             PRosterTheme.PRosterStateBrushRead(pWorkItem.LWorkStateCurrent));
-        TextBlock pOwnerCell = PRosterRowCellAdd(pGrid, 5, PRosterOwnerFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
+        TextBlock pOwnerCell = PRosterRowCellAdd(pGrid, 6, PRosterOwnerFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
 
         pRosterRowCells[pWorkItem.LWorkId] = new PRosterRowCell
         {
             PRosterCellProgress = pProgressCell,
+            PRosterCellPercent = pPercentCell,
             PRosterCellState = pStateCell,
             PRosterCellOwner = pOwnerCell
         };
@@ -242,6 +247,7 @@ public sealed partial class PRoster
         }
 
         pCell.PRosterCellProgress.Text = PRosterProgressFormat(pWorkItem);
+        pCell.PRosterCellPercent.Text = PRosterRatioFormat(pWorkItem);
         pCell.PRosterCellState.Text = PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent);
         pCell.PRosterCellState.Foreground = PRosterTheme.PRosterStateBrushRead(pWorkItem.LWorkStateCurrent);
         pCell.PRosterCellOwner.Text = PRosterOwnerFormat(pWorkItem);

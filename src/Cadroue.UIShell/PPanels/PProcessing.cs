@@ -24,12 +24,33 @@ public sealed class PProcessing : PPanel
     private readonly UIElement pProcessingStripBody;
     private string? pProcessingStepCurrent;
     private bool pProcessingMinimized;
+    private int? pProcessingIndexDragging;
+    private Point? pProcessingDragStart;
+    private bool pProcessingDragActive;
+    private Border? pProcessingRowDragging;
+
+    public IReadOnlyList<string> PProcessingStepsRead()
+    {
+        var pStepNames = new List<string>();
+        foreach (UIElement pRow in pProcessingRowPanel.Children)
+        {
+            if (pRow is Border { Tag: string pRowName })
+            {
+                pStepNames.Add(pRowName);
+            }
+        }
+
+        return pStepNames;
+    }
 
     public PProcessing() : base("")
     {
         UIElement pHeader = PProcessingHeaderBuild();
 
         pProcessingRowPanel = new StackPanel();
+        pProcessingRowPanel.PreviewMouseMove += PProcessingDragMoveHandle;
+        pProcessingRowPanel.MouseLeftButtonUp += PProcessingDragUpHandle;
+        pProcessingRowPanel.LostMouseCapture += PProcessingDragLostHandle;
 
         var pScroll = new ScrollViewer
         {
@@ -176,6 +197,12 @@ public sealed class PProcessing : PPanel
             pProcessingStepCurrent = pStepName;
             PProcessingSelectApply();
             PProcessingStepChange?.Invoke(pStepName);
+
+            pProcessingRowDragging = pRowBorder;
+            pProcessingIndexDragging = pProcessingRowPanel.Children.IndexOf(pRowBorder);
+            pProcessingDragStart = pRowEvent.GetPosition(pProcessingRowPanel);
+            pProcessingDragActive = false;
+
             if (pRowEvent.ClickCount >= 2)
             {
                 PProcessingStepOpen?.Invoke(pStepName);
@@ -184,6 +211,84 @@ public sealed class PProcessing : PPanel
             pRowEvent.Handled = true;
         };
         return pRowBorder;
+    }
+
+    private void PProcessingDragMoveHandle(object pSender, MouseEventArgs pEvent)
+    {
+        if (pProcessingRowDragging is not { } pDragRow
+            || pProcessingIndexDragging is not int pDragIndex
+            || pProcessingDragStart is not Point pStart
+            || pEvent.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        Point pCurrent = pEvent.GetPosition(pProcessingRowPanel);
+        if (!pProcessingDragActive
+            && Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
+            && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        pProcessingDragActive = true;
+        pDragRow.Opacity = 0.72;
+
+        int pTargetIndex = PProcessingIndexResolve(pCurrent);
+        if (pTargetIndex != pDragIndex)
+        {
+            pProcessingRowPanel.Children.Remove(pDragRow);
+            pTargetIndex = Math.Clamp(pTargetIndex, 0, pProcessingRowPanel.Children.Count);
+            pProcessingRowPanel.Children.Insert(pTargetIndex, pDragRow);
+            pProcessingIndexDragging = pTargetIndex;
+        }
+    }
+
+    private void PProcessingDragUpHandle(object pSender, MouseButtonEventArgs pEvent)
+    {
+        if (pProcessingRowDragging is { } pDragRow)
+        {
+            pDragRow.Opacity = 1;
+        }
+
+        PProcessingDragClear();
+    }
+
+    private void PProcessingDragLostHandle(object pSender, MouseEventArgs pEvent)
+    {
+        if (pProcessingRowDragging is { } pDragRow)
+        {
+            pDragRow.Opacity = 1;
+        }
+
+        PProcessingDragClear();
+    }
+
+    private void PProcessingDragClear()
+    {
+        pProcessingIndexDragging = null;
+        pProcessingDragStart = null;
+        pProcessingDragActive = false;
+        pProcessingRowDragging = null;
+    }
+
+    private int PProcessingIndexResolve(Point pPoint)
+    {
+        for (int pIndex = 0; pIndex < pProcessingRowPanel.Children.Count; pIndex++)
+        {
+            if (pProcessingRowPanel.Children[pIndex] is not Border pRow)
+            {
+                continue;
+            }
+
+            Point pTopLeft = pRow.TranslatePoint(new Point(0, 0), pProcessingRowPanel);
+            if (pPoint.Y < pTopLeft.Y + (pRow.ActualHeight / 2))
+            {
+                return pIndex;
+            }
+        }
+
+        return Math.Max(0, pProcessingRowPanel.Children.Count - 1);
     }
 
     private void PProcessingSelectApply()

@@ -34,17 +34,26 @@ public sealed partial class PRoster
 
     private static string PRosterOutputSizeRead(LWorkItem pWorkItem)
     {
-        long? pOutputBytes = PRosterBytesRead(pWorkItem);
-        string pOutputSize = PRosterSizeFormat(pOutputBytes);
-        if (pOutputBytes is not { } pOutputWhole
+        string pOutputSize = PRosterSizeFormat(PRosterBytesRead(pWorkItem));
+        return PRosterRatioRead(pWorkItem) is { } pRosterRatio
+            ? $"{pOutputSize}  ({pRosterRatio:P1})"
+            : pOutputSize;
+    }
+
+    internal static double? PRosterRatioRead(LWorkItem pWorkItem)
+    {
+        if (PRosterBytesRead(pWorkItem) is not { } pOutputWhole
             || PRosterSizeRead(pWorkItem.LWorkSourcePath) is not { } pSourceWhole
             || pSourceWhole <= 0)
         {
-            return pOutputSize;
+            return null;
         }
 
-        return $"{pOutputSize}  ({(double)pOutputWhole / pSourceWhole:P1})";
+        return (double)pOutputWhole / pSourceWhole;
     }
+
+    internal static string PRosterRatioFormat(LWorkItem pWorkItem) =>
+        PRosterRatioRead(pWorkItem) is { } pRosterRatio ? $"{pRosterRatio:P1}" : "-";
 
     private static string PRosterSizeFormat(long? pSizeBytes)
     {

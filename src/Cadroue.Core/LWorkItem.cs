@@ -22,9 +22,11 @@ public sealed class LWorkItem : INotifyPropertyChanged
         LWorkOutput lWorkOutput,
         Guid? lWorkId = null,
         DateTimeOffset? lWorkCreateTime = null,
-        LWorkCrop? lWorkCrop = null)
+        LWorkCrop? lWorkCrop = null,
+        LWorkAudio? lWorkAudio = null)
     {
         LWorkCrop = lWorkCrop ?? LWorkCrop.LWorkCropNoneCreate();
+        LWorkAudio = lWorkAudio ?? LWorkAudio.LWorkAudioNoneCreate();
         LWorkId = lWorkId ?? Guid.NewGuid();
         LWorkBatchId = lWorkBatchId;
         LWorkKind = lWorkKind;
@@ -75,6 +77,8 @@ public sealed class LWorkItem : INotifyPropertyChanged
     public LWorkOutput LWorkOutput { get; }
 
     public LWorkCrop LWorkCrop { get; }
+
+    public LWorkAudio LWorkAudio { get; }
 
     public DateTimeOffset LWorkCreateTime { get; }
 
