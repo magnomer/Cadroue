@@ -60,6 +60,7 @@ public sealed partial class PViewfinder
         }
 
         double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+        pViewfinderGlyphCount++;
         var badgeFormatted = new FormattedText(
             $"{sectionIndex + 1}",
             CultureInfo.CurrentCulture,
@@ -80,6 +81,7 @@ public sealed partial class PViewfinder
         FormattedText? nameFormatted = null;
         if (!string.IsNullOrEmpty(sectionName) && nameRoom >= PViewfinderSectionLabelLeast)
         {
+            pViewfinderGlyphCount++;
             nameFormatted = new FormattedText(
                 sectionName,
                 CultureInfo.CurrentCulture,
@@ -147,6 +149,7 @@ public sealed partial class PViewfinder
 
         string timeText = PViewfinderTimeFormat(lCursor);
         double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+        pViewfinderGlyphCount++;
         var formattedText = new FormattedText(
             timeText,
             CultureInfo.CurrentCulture,
@@ -321,6 +324,7 @@ public sealed partial class PViewfinder
                 new Point(tickX, PViewfinderLabelLaneHeight * 0.5),
                 new Point(tickX, PViewfinderLabelLaneHeight));
             string tickLabel = PViewfinderTimeFormat(TimeSpan.FromSeconds(tickSeconds));
+            pViewfinderGlyphCount++;
             var formattedText = new FormattedText(
                 tickLabel,
                 CultureInfo.CurrentCulture,

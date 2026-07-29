@@ -33,28 +33,35 @@ public sealed partial class PViewer
 
     private void PViewerHostRecord(string pViewerStage)
     {
+        if (!LTrace.LTraceCheck(LTraceKind.LTraceView))
+        {
+            pViewerHostStamp++;
+            return;
+        }
+
         Window? pViewerHostSurface = null;
         IntPtr pViewerHostHandle = IntPtr.Zero;
         bool pViewerHostDisposed = false;
+        Window? pViewerHostOverlay = null;
         try
         {
             pViewerHostDisposed = pViewerFlyleafHost.Disposed;
             pViewerHostSurface = pViewerFlyleafHost.Surface;
             pViewerHostHandle = pViewerFlyleafHost.SurfaceHandle;
+            pViewerHostOverlay = pViewerFlyleafHost.Overlay;
         }
         catch
         {
         }
 
-        LAppLog.LInfo(
-            $"Viewer host [{++pViewerHostStamp}] {pViewerStage}: "
-            + $"panel visible {IsVisible}, host visible {pViewerFlyleafHost.IsVisible}, "
+        LTrace.LTraceRecord(
+            LTraceKind.LTraceView,
+            $"Viewer host [{++pViewerHostStamp}] {pViewerStage}",
+            $"panel visible {IsVisible}, host visible {pViewerFlyleafHost.IsVisible}, command {(pViewerCommandActive ? "on" : "off")}\n"
             + $"surface {(pViewerHostSurface is null ? "none" : $"{pViewerHostSurface.Visibility} {pViewerHostSurface.Width:0}x{pViewerHostSurface.Height:0}")}, "
-            + $"handle {(pViewerHostHandle == IntPtr.Zero ? "none" : "set")}, "
-            + $"player {(pViewerPlayer is null ? "none" : "ready")}, "
-            + $"renderer {(pViewerPlayer?.Renderer is null ? "none" : "ready")}, "
-            + $"command {(pViewerCommandActive ? "on" : "off")}, "
-            + $"disposed {pViewerHostDisposed}");
+            + $"handle {(pViewerHostHandle == IntPtr.Zero ? "none" : "set")}, disposed {pViewerHostDisposed}\n"
+            + $"overlay {(pViewerHostOverlay is null ? "none" : $"present, AllowsTransparency {pViewerHostOverlay.AllowsTransparency} (software-composited layer over the video)")}\n"
+            + $"player {(pViewerPlayer is null ? "none" : "ready")}, renderer {(pViewerPlayer?.Renderer is null ? "none" : "ready")}");
     }
 
     public void PViewerClose()

@@ -67,22 +67,30 @@ public sealed partial class PViewfinder : FrameworkElement
     private IReadOnlyList<LSegment> lSectionList = Array.Empty<LSegment>();
     private int? lSectionIndexSelect;
     private PViewfinderDragMode pViewfinderDragMode;
+    private string pViewfinderDrawTrigger = "attach";
+    private int pViewfinderGlyphCount;
 
     public event Action<TimeSpan>? PViewfinderCursorChange;
     public event Action<int>? PViewfinderSectionSelect;
     public event Action<bool>? PViewfinderDragChange;
 
+    private void PViewfinderDrawRequest(string pViewfinderTrigger)
+    {
+        pViewfinderDrawTrigger = pViewfinderTrigger;
+        InvalidateVisual();
+    }
+
     public void PViewfinderAttach(LSpool spool, TimeSpan cursor)
     {
         lSpool = spool ?? throw new ArgumentNullException(nameof(spool));
         lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        InvalidateVisual();
+        PViewfinderDrawRequest("attach");
     }
 
     public void PViewfinderCursorUpdate(TimeSpan cursor)
     {
         lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        InvalidateVisual();
+        PViewfinderDrawRequest("cursor");
     }
 
     public void PViewfinderClear()
@@ -93,10 +101,10 @@ public sealed partial class PViewfinder : FrameworkElement
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LSegment>();
         lSectionIndexSelect = null;
-        InvalidateVisual();
+        PViewfinderDrawRequest("clear");
     }
 
-    public void PViewfinderSpoolUpdate() => InvalidateVisual();
+    public void PViewfinderSpoolUpdate() => PViewfinderDrawRequest("spool");
 
     public void PViewfinderKeyframesUpdate(
         IReadOnlyList<LKeyframeEntry>? keyframes,
@@ -104,7 +112,7 @@ public sealed partial class PViewfinder : FrameworkElement
     {
         lKeyframes = keyframes ?? Array.Empty<LKeyframeEntry>();
         lKeyframeScannedRanges = scannedRanges ?? Array.Empty<LKeyframeScanRange>();
-        InvalidateVisual();
+        PViewfinderDrawRequest("keyframes");
     }
 
     private static (double Top, double Bottom) PViewfinderRailRead(double actualHeight)
@@ -153,10 +161,27 @@ public sealed partial class PViewfinder : FrameworkElement
     {
         lSectionList = sections?.ToArray() ?? Array.Empty<LSegment>();
         lSectionIndexSelect = selectedIndex;
-        InvalidateVisual();
+        PViewfinderDrawRequest("sections");
     }
 
     protected override void OnRender(DrawingContext drawingContext)
+    {
+        if (!LTrace.LTraceVerbose)
+        {
+            PViewfinderContentDraw(drawingContext);
+            return;
+        }
+
+        pViewfinderGlyphCount = 0;
+        long pViewfinderStamp = System.Diagnostics.Stopwatch.GetTimestamp();
+        PViewfinderContentDraw(drawingContext);
+        double pViewfinderMilliseconds =
+            (System.Diagnostics.Stopwatch.GetTimestamp() - pViewfinderStamp) * 1000d
+            / System.Diagnostics.Stopwatch.Frequency;
+        LTrace.LTraceDrawAdd("PViewfinder", pViewfinderDrawTrigger, pViewfinderMilliseconds, pViewfinderGlyphCount);
+    }
+
+    private void PViewfinderContentDraw(DrawingContext drawingContext)
     {
         double actualWidth = ActualWidth;
         double actualHeight = ActualHeight;

@@ -53,11 +53,14 @@ public partial class App : Application
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
 
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
+        LTrace.LTraceVerbose = LPreferenceStateCurrent.LPreferenceLogVerbose;
         Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
         PFlow.PSectionPalette.PSectionPaletteReload();
         LPlacementCarry();
 
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
+        Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
+        Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;
         Cadroue.Core.LSchedule.LScheduleRecoverReport = LAppLog.LInfo;
         LAppLog.LInfo($"Application started: version {LAppVersionRead()}, process {Environment.ProcessId}");
         LDepotRootApply();
@@ -71,6 +74,7 @@ public partial class App : Application
     {
         LAppLog.LInfo($"Application exiting with code {e.ApplicationExitCode}");
         LRelayChannel.LRelayChannelStop();
+        LTraceWriter.LTraceWriterPersist();
         base.OnExit(e);
     }
 
@@ -202,6 +206,11 @@ public partial class App : Application
         }
 
         LAppLog.LError(lRunnerMessage, lRunnerException);
+    }
+
+    private static void LRunnerFfmpegHandle(string lRunnerSummary, string? lRunnerDetail)
+    {
+        LTrace.LTraceRecord(LTraceKind.LTraceFfmpeg, lRunnerSummary, lRunnerDetail);
     }
 
     private static string LAppVersionRead() =>

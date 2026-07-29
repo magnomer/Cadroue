@@ -36,8 +36,17 @@ public sealed partial class LRunner
 
     public static Action<string, Exception?>? LRunnerReport { get; set; }
 
+    public static Action<string, string?>? LRunnerFfmpegReport { get; set; }
+
+    public static Func<bool>? LRunnerVerboseSource { get; set; }
+
     private static void LRunnerNote(string lRunnerMessage, Exception? lRunnerException = null)
         => LRunnerReport?.Invoke(lRunnerMessage, lRunnerException);
+
+    private static bool LRunnerVerboseCheck() => LRunnerVerboseSource?.Invoke() ?? false;
+
+    private static void LRunnerFfmpegNote(string lRunnerSummary, string? lRunnerDetail = null)
+        => LRunnerFfmpegReport?.Invoke(lRunnerSummary, lRunnerDetail);
 
     public bool LRunnerSuspended => lRunnerSuspended;
 
@@ -206,6 +215,12 @@ public sealed partial class LRunner
             $"{pWorkItem.LWorkStart:hh\\:mm\\:ss\\.fff}-{pWorkItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
             $"from '{Path.GetFileName(pWorkItem.LWorkSourcePath)}' to '{pWorkItem.LWorkOutputPath}'");
         LRunnerNote($"Encode command '{pWorkItem.LWorkOutputName}': {pStartInfo.FileName} {pStartInfo.Arguments}");
+        LRunnerFfmpegNote(
+            $"Command for '{pWorkItem.LWorkOutputName}'",
+            $"{pStartInfo.FileName} {pStartInfo.Arguments}\n"
+            + $"working folder {(string.IsNullOrWhiteSpace(pDirectory) ? "(process default)" : pDirectory)}\n"
+            + $"source {pWorkItem.LWorkSourcePath}\n"
+            + $"output {pWorkItem.LWorkOutputPath}");
 
         try
         {
@@ -213,10 +228,13 @@ public sealed partial class LRunner
             pProcess.Start();
             lRunnerProcesses[pWorkItem.LWorkId] = pProcess;
 
-            Task<string> pErrorTask = pProcess.StandardError.ReadToEndAsync(lRunnerToken);
+            Task<string> pErrorTask = LRunnerErrorRead(pProcess, pWorkItem, lRunnerToken);
             await LRunnerProgressRead(pProcess, pWorkItem, lRunnerToken).ConfigureAwait(false);
             await pProcess.WaitForExitAsync(lRunnerToken).ConfigureAwait(false);
             string pRunnerError = await pErrorTask.ConfigureAwait(false);
+            LRunnerFfmpegNote(
+                $"Exit code {pProcess.ExitCode} for '{pWorkItem.LWorkOutputName}'",
+                $"ran for {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}");
 
             int pExitCode = pProcess.ExitCode;
             if (pExitCode == 0)
@@ -369,6 +387,29 @@ public sealed partial class LRunner
         {
             return null;
         }
+    }
+
+    private static async Task<string> LRunnerErrorRead(
+        Process pProcess,
+        LWorkItem pWorkItem,
+        CancellationToken lRunnerToken)
+    {
+        if (!LRunnerVerboseCheck())
+        {
+            return await pProcess.StandardError.ReadToEndAsync(lRunnerToken).ConfigureAwait(false);
+        }
+
+        var pRunnerBuilder = new System.Text.StringBuilder();
+        while (await pProcess.StandardError.ReadLineAsync(lRunnerToken).ConfigureAwait(false) is string pRunnerLine)
+        {
+            pRunnerBuilder.AppendLine(pRunnerLine);
+            if (pRunnerLine.Length > 0)
+            {
+                LRunnerFfmpegNote($"stderr '{pWorkItem.LWorkOutputName}'", pRunnerLine);
+            }
+        }
+
+        return pRunnerBuilder.ToString();
     }
 
     private static string LRunnerTailRead(string lRunnerError)

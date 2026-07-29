@@ -97,6 +97,7 @@ public sealed partial class PMap
 
     private void PMapSectionLabelDraw(DrawingContext drawingContext, Rect sectionRect, int sectionIndex, int sectionColorIndex)
     {
+        pMapGlyphCount++;
         var badgeFormatted = new FormattedText(
             $"{sectionIndex + 1}",
             System.Globalization.CultureInfo.CurrentCulture,

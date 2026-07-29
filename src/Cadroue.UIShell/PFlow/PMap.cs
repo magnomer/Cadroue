@@ -86,22 +86,30 @@ public sealed partial class PMap : FrameworkElement
     private double pMapDragStartX;
     private double pMapDragPreviousX;
     private TimeSpan lMapDragStartTime;
+    private string pMapDrawTrigger = "attach";
+    private int pMapGlyphCount;
 
     public event Action<TimeSpan>? PMapCursorChange;
     public event Action? PMapSpoolChange;
     public event Action<bool>? PMapDragChange;
 
+    private void PMapDrawRequest(string pMapTrigger)
+    {
+        pMapDrawTrigger = pMapTrigger;
+        InvalidateVisual();
+    }
+
     public void PMapAttach(LSpool spool, TimeSpan cursor)
     {
         lSpool = spool;
         lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        InvalidateVisual();
+        PMapDrawRequest("attach");
     }
 
     public void PMapCursorUpdate(TimeSpan cursor)
     {
         lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        InvalidateVisual();
+        PMapDrawRequest("cursor");
     }
 
     public void PMapClear()
@@ -111,25 +119,42 @@ public sealed partial class PMap : FrameworkElement
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LSegment>();
         lSectionIndexSelect = null;
-        InvalidateVisual();
+        PMapDrawRequest("clear");
     }
 
     public void PMapSectionsUpdate(IReadOnlyList<LSegment>? sections, int? selectedIndex)
     {
         lSectionList = sections?.ToArray() ?? Array.Empty<LSegment>();
         lSectionIndexSelect = selectedIndex;
-        InvalidateVisual();
+        PMapDrawRequest("sections");
     }
 
-    public void PMapSpoolUpdate() => InvalidateVisual();
+    public void PMapSpoolUpdate() => PMapDrawRequest("spool");
 
     public void PMapKeyframesUpdate(IReadOnlyList<LKeyframeScanRange>? scannedRanges)
     {
         lKeyframeScannedRanges = scannedRanges ?? Array.Empty<LKeyframeScanRange>();
-        InvalidateVisual();
+        PMapDrawRequest("keyframes");
     }
 
     protected override void OnRender(DrawingContext drawingContext)
+    {
+        if (!LTrace.LTraceVerbose)
+        {
+            PMapContentDraw(drawingContext);
+            return;
+        }
+
+        pMapGlyphCount = 0;
+        long pMapStamp = System.Diagnostics.Stopwatch.GetTimestamp();
+        PMapContentDraw(drawingContext);
+        double pMapMilliseconds =
+            (System.Diagnostics.Stopwatch.GetTimestamp() - pMapStamp) * 1000d
+            / System.Diagnostics.Stopwatch.Frequency;
+        LTrace.LTraceDrawAdd("PMap", pMapDrawTrigger, pMapMilliseconds, pMapGlyphCount);
+    }
+
+    private void PMapContentDraw(DrawingContext drawingContext)
     {
         double actualWidth = ActualWidth;
         double actualHeight = ActualHeight;

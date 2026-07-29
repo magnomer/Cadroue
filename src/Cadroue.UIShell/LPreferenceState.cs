@@ -14,6 +14,7 @@ public sealed class LPreferenceState
     public bool LPreferenceMediaAutomatic { get; set; }
     public bool LPreferenceConfirmDestructive { get; set; }
     public string LPreferenceLanguage { get; set; } = "English";
+    public bool LPreferenceLogVerbose { get; set; }
 
     public double LPreferenceVolume { get; set; }
     public string LPreferenceVolumeMode { get; set; } = "Unified";
@@ -56,6 +57,7 @@ public sealed class LPreferenceState
             LPreferenceMediaAutomatic = false,
             LPreferenceConfirmDestructive = false,
             LPreferenceLanguage = "English",
+            LPreferenceLogVerbose = false,
             LPreferenceVolume = 100,
             LPreferenceVolumeMode = "Unified",
             LPreferenceAutoplayOnLoad = false,
@@ -98,6 +100,7 @@ public sealed class LPreferenceState
             LPreferenceMediaAutomatic = LPreferenceMediaAutomatic,
             LPreferenceConfirmDestructive = LPreferenceConfirmDestructive,
             LPreferenceLanguage = LPreferenceLanguage,
+            LPreferenceLogVerbose = LPreferenceLogVerbose,
             LPreferenceVolume = LPreferenceVolume,
             LPreferenceVolumeMode = LPreferenceVolumeMode,
             LPreferenceAutoplayOnLoad = LPreferenceAutoplayOnLoad,
@@ -137,6 +140,7 @@ public sealed class LPreferenceState
             ("Auto-open last media", lPreferenceOther.LPreferenceMediaAutomatic, LPreferenceMediaAutomatic),
             ("Confirm destructive actions", lPreferenceOther.LPreferenceConfirmDestructive, LPreferenceConfirmDestructive),
             ("Language", lPreferenceOther.LPreferenceLanguage, LPreferenceLanguage),
+            ("Verbose logging", lPreferenceOther.LPreferenceLogVerbose, LPreferenceLogVerbose),
             ("Volume mode", lPreferenceOther.LPreferenceVolumeMode, LPreferenceVolumeMode),
             ("Default volume", lPreferenceOther.LPreferenceVolume, LPreferenceVolume),
             ("Autoplay on load", lPreferenceOther.LPreferenceAutoplayOnLoad, LPreferenceAutoplayOnLoad),

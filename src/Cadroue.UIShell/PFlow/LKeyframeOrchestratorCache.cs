@@ -109,15 +109,24 @@ public sealed partial class LKeyframeOrchestrator
             scannedSpans = lKeyframeScannedSpans.ToArray();
         }
 
-        if (!LSidecarStore.LSidecarSave(
-                identity,
-                keyframes,
-                scannedSpans,
-                LKeyframeGridMilliseconds,
-                LKeyframeSectionsRead()))
+        var lKeyframeClock = System.Diagnostics.Stopwatch.StartNew();
+        bool lKeyframeSidecarWritten = LSidecarStore.LSidecarSave(
+            identity,
+            keyframes,
+            scannedSpans,
+            LKeyframeGridMilliseconds,
+            LKeyframeSectionsRead());
+        if (!lKeyframeSidecarWritten)
         {
             LKeyframeCacheStore.LKeyframeCacheSave(identity, keyframes, scannedSpans);
         }
+
+        LTrace.LTraceRecord(
+            LTraceKind.LTraceWork,
+            lKeyframeSidecarWritten ? "Sidecar written" : "Keyframe cache written (sidecar refused)",
+            $"{keyframes.Length} keyframe(s), {scannedSpans.Length} scanned span(s)\n"
+            + $"for {identity.LKeyframeSourcePath}",
+            lKeyframeClock.Elapsed.TotalMilliseconds);
     }
 
     private bool LKeyframeSaveDueCheck(int lKeyframeNewCount)

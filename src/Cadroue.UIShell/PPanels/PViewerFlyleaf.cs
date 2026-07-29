@@ -16,10 +16,19 @@ public sealed partial class PViewer
         if (!pPlayerAccurateActive)
         {
             pPlayerAccurateActive = true;
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceView,
+                $"Seek accurate to {playbackPosition:hh\\:mm\\:ss\\.fff}",
+                "no seek was in flight, issued directly");
             player.SeekAccurate(pPlayerSeekMilliseconds);
             return;
         }
 
+        LTrace.LTraceRecord(
+            LTraceKind.LTraceView,
+            $"Seek accurate to {playbackPosition:hh\\:mm\\:ss\\.fff} while a seek was still running",
+            "decoder interrupted, replacement seek queued at Render priority\n"
+            + "this path repeats once per mouse-move event during a scrub");
         PPlayerDecodeInterrupt(player, true);
         Dispatcher.InvokeAsync(
             () =>
@@ -78,6 +87,7 @@ public sealed partial class PViewer
         Player? player = pViewerPlayer;
         bool pPlayerCreated = false;
         string? previewError = null;
+        var pPlayerClock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             if (player is null)
@@ -86,10 +96,21 @@ public sealed partial class PViewer
                 player.Config.Video.BackColor = PViewerBackColor;
                 player.Config.Video.ClearScreen = false;
                 pPlayerCreated = true;
+                LTrace.LTraceRecord(
+                    LTraceKind.LTraceView,
+                    "Player created",
+                    PPlayerConfigRead(player),
+                    pPlayerClock.Elapsed.TotalMilliseconds);
             }
 
             player.Audio.Volume = (int)Math.Round(pViewerVolume);
+            double pPlayerBeforeOpen = pPlayerClock.Elapsed.TotalMilliseconds;
             PPlayerOpen(player, sourcePath);
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceView,
+                $"Player opened '{System.IO.Path.GetFileName(sourcePath)}'",
+                PPlayerAccelRead(player),
+                pPlayerClock.Elapsed.TotalMilliseconds - pPlayerBeforeOpen);
             PPlayerStartPause(player);
         }
         catch (Exception exception)
@@ -130,6 +151,48 @@ public sealed partial class PViewer
         if (!openResult.Success)
         {
             throw new InvalidOperationException(openResult.Error ?? "Flyleaf could not open the media file.");
+        }
+    }
+
+    private static string PPlayerConfigRead(Player player)
+    {
+        try
+        {
+            return $"video acceleration requested {player.Config.Video.VideoAcceleration}, "
+                + $"processor requested {player.Config.Video.VideoProcessor}\n"
+                + $"max output {player.Config.Video.MaxOutputFps}fps, "
+                + $"decoder threads {player.Config.Decoder.VideoThreads}, "
+                + $"max video frames {player.Config.Decoder.MaxVideoFrames}\n"
+                + $"clear screen {player.Config.Video.ClearScreen}, sws forced {player.Config.Video.SwsForce}";
+        }
+        catch (Exception pPlayerException)
+        {
+            return $"player configuration could not be read: {pPlayerException.Message}";
+        }
+    }
+
+    private static string PPlayerAccelRead(Player player)
+    {
+        try
+        {
+            var pPlayerDecoder = player.decoder?.VideoDecoder;
+            var pPlayerRenderer = player.Renderer;
+            string pPlayerAccel = pPlayerDecoder is null
+                ? "decoder not ready"
+                : pPlayerDecoder.VideoAccelerated
+                    ? "HARDWARE (D3D11VA)"
+                    : "SOFTWARE — hardware decode did not engage";
+
+            return $"decode path: {pPlayerAccel}\n"
+                + $"acceleration requested {player.Config.Video.VideoAcceleration}, "
+                + $"processor requested {player.Config.Video.VideoProcessor}, "
+                + $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}\n"
+                + $"adapter {(pPlayerRenderer?.GPUAdapter is null ? "none" : pPlayerRenderer.GPUAdapter.Description)}\n"
+                + $"pixel format {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.PixelFormatStr)}";
+        }
+        catch (Exception pPlayerException)
+        {
+            return $"acceleration state could not be read: {pPlayerException.Message}";
         }
     }
 

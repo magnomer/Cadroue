@@ -107,6 +107,7 @@ public sealed partial class LKeyframeOrchestrator
             end = duration;
         }
 
+        var lKeyframeClock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             var entries = LKeyframeSeeker.LKeyframeRangeScan(sourcePath, start, end, cancellationToken);
@@ -129,6 +130,12 @@ public sealed partial class LKeyframeOrchestrator
                 lKeyframeScannedSpans.Add(spanIndex);
                 lKeyframeFailedSpanCounts.Remove(spanIndex);
             }
+
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceWork,
+                $"Keyframe span {spanIndex} scanned ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss})",
+                $"{lKeyframeNewCount} new keyframe(s) of {entries.Count} found by ffprobe",
+                lKeyframeClock.Elapsed.TotalMilliseconds);
 
             if (LKeyframeSaveDueCheck(lKeyframeNewCount))
             {

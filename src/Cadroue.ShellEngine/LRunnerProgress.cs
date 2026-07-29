@@ -10,6 +10,8 @@ public sealed partial class LRunner
     {
         double pTotalSeconds = pWorkItem.LWorkDuration.TotalSeconds;
         long pBlockMicroseconds = -1;
+        bool pRunnerVerbose = LRunnerVerboseCheck();
+        var pRunnerBlock = pRunnerVerbose ? new System.Text.StringBuilder() : null;
 
         while (await pProcess.StandardOutput.ReadLineAsync(lRunnerToken).ConfigureAwait(false) is string pLine)
         {
@@ -21,6 +23,7 @@ public sealed partial class LRunner
 
             string pKey = pLine[..pSeparator];
             string pValue = pLine[(pSeparator + 1)..].Trim();
+            pRunnerBlock?.AppendLine(pLine);
 
             switch (pKey)
             {
@@ -43,6 +46,14 @@ public sealed partial class LRunner
                     if (string.Equals(pValue, "end", StringComparison.Ordinal))
                     {
                         LRunnerInvoke(() => pWorkItem.LWorkProgress = 1);
+                    }
+
+                    if (pRunnerBlock is not null)
+                    {
+                        LRunnerFfmpegNote(
+                            $"stdout progress '{pWorkItem.LWorkOutputName}'",
+                            pRunnerBlock.ToString());
+                        pRunnerBlock.Clear();
                     }
 
                     pBlockMicroseconds = -1;

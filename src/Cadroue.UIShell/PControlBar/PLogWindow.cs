@@ -36,11 +36,11 @@ public sealed class PLogWindow : Window
 
         Content = PLogContentBuild();
         PSShared.PSGrabber.PSGrabberPlacementRestore(this, PLogWindowPlacementKey);
-        LAppLog.LLogAppend += PLogAppendHandle;
+        LTrace.LTraceAppend += PLogAppendHandle;
         Closed += (_, _) =>
         {
             PSShared.PSGrabber.PSGrabberPlacementSave(this, PLogWindowPlacementKey);
-            LAppLog.LLogAppend -= PLogAppendHandle;
+            LTrace.LTraceAppend -= PLogAppendHandle;
             pLogWindowCurrent = null;
         };
     }
@@ -63,23 +63,61 @@ public sealed class PLogWindow : Window
     private UIElement PLogContentBuild()
     {
         var pRoot = new DockPanel();
-        var pToolbar = new StackPanel
+        var pToolbar = new DockPanel
+        {
+            Margin = new Thickness(10, 8, 10, 8)
+        };
+
+        var pVerbose = PLogVerboseBuild();
+        DockPanel.SetDock(pVerbose, Dock.Left);
+        pToolbar.Children.Add(pVerbose);
+
+        var pActions = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Margin = new Thickness(10, 8, 10, 8),
             HorizontalAlignment = HorizontalAlignment.Right
         };
 
-        pToolbar.Children.Add(PLogButtonBuild("Copy", (_, _) => Clipboard.SetText(pLogText.Text)));
-        pToolbar.Children.Add(PLogButtonBuild("Clear", (_, _) =>
+        pActions.Children.Add(PLogButtonBuild("Copy", (_, _) => Clipboard.SetText(pLogText.Text)));
+        pActions.Children.Add(PLogButtonBuild("Clear", (_, _) =>
         {
             LAppLog.LClear();
             pLogText.Clear();
         }));
+        pToolbar.Children.Add(pActions);
         DockPanel.SetDock(pToolbar, Dock.Top);
         pRoot.Children.Add(pToolbar);
         pRoot.Children.Add(pLogText);
         return pRoot;
+    }
+
+    private static CheckBox PLogVerboseBuild()
+    {
+        var pVerbose = new CheckBox
+        {
+            Content = "Verbose",
+            VerticalAlignment = VerticalAlignment.Center,
+            IsChecked = LTrace.LTraceVerbose,
+            ToolTip = "Record every drawing, viewer, backend and FFmpeg step. Slows the program down; use it to diagnose, not day to day."
+        };
+
+        PMainWindow.PCheckbox.PCheckboxApply(pVerbose);
+        pVerbose.Checked += (_, _) => PLogVerboseSet(true);
+        pVerbose.Unchecked += (_, _) => PLogVerboseSet(false);
+        return pVerbose;
+    }
+
+    private static void PLogVerboseSet(bool pVerboseOn)
+    {
+        if (LTrace.LTraceVerbose == pVerboseOn)
+        {
+            return;
+        }
+
+        LTrace.LTraceVerbose = pVerboseOn;
+        LPreferenceState pPreferenceNext = App.LPreferenceStateCurrent.LPreferenceClone();
+        pPreferenceNext.LPreferenceLogVerbose = pVerboseOn;
+        App.LPreferenceStateSet(pPreferenceNext);
     }
 
     private static Button PLogButtonBuild(string pText, RoutedEventHandler pClick)
@@ -97,16 +135,17 @@ public sealed class PLogWindow : Window
 
     private void PLogAppendHandle(string pEntry)
     {
-        Dispatcher.Invoke(() =>
+        if (string.IsNullOrEmpty(pEntry))
         {
-            if (string.IsNullOrEmpty(pEntry))
-            {
-                pLogText.Clear();
-                return;
-            }
+            return;
+        }
 
-            pLogText.AppendText(pEntry);
-            pLogText.ScrollToEnd();
-        });
+        Dispatcher.InvokeAsync(
+            () =>
+            {
+                pLogText.AppendText(pEntry);
+                pLogText.ScrollToEnd();
+            },
+            System.Windows.Threading.DispatcherPriority.Background);
     }
 }
