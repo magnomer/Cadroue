@@ -333,6 +333,7 @@ public sealed class LExportSpecificState
 
     private string LContainerExtension => Container switch
     {
+        "Same as source" => "",
         "MP4" => "mp4",
         "Matroska" => "mkv",
         "MOV" => "mov",

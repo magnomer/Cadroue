@@ -21,13 +21,15 @@ public sealed class PAudioTab : PTabSurface
 
     public PAudioTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
-        pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIconPath);
-        pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIconPath);
-        pProcessing.PProcessingStepAdd("Noise Reduction", PAudioNoiseIconPath);
+        pProcessing.PProcessingOrderedSet(true);
         pProcessing.PProcessingStepAdd("High Pass", PAudioHighPassIconPath);
         pProcessing.PProcessingStepAdd("Low Pass", PAudioLowPassIconPath);
+        pProcessing.PProcessingStepAdd("Noise Reduction", PAudioNoiseIconPath);
+        pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIconPath);
+        pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIconPath);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
+        pInspector.PInspectorAudioActiveChange += PAudioActiveRefresh;
 
         var pAction = new PAction();
         pAction.PActionRun += lPriority => LAudio.LAudioDescribe(
@@ -45,6 +47,18 @@ public sealed class PAudioTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
+        PAudioActiveRefresh();
+    }
+
+    private void PAudioActiveRefresh()
+    {
+        foreach (string pStepName in pProcessing.PProcessingStepsRead())
+        {
+            if (PAudioKindRead(pStepName) is LWorkAudioKind pStepKind)
+            {
+                pProcessing.PProcessingActiveSet(pStepName, pInspector.PInspectorStepRead(pStepKind).LWorkAudioStepActive);
+            }
+        }
     }
 
     private LWorkAudio PAudioProcessingRead()

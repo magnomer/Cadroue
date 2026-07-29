@@ -174,6 +174,7 @@ public sealed partial class PInspector
         bool pNormalizeActive = pInspectorNormalizeApply.IsChecked == true;
         pInspectorNormalizeStack.IsEnabled = pNormalizeActive;
         pInspectorNormalizeStack.Opacity = pNormalizeActive ? 1 : 0.4;
+        PInspectorAudioActiveRaise();
     }
 
     private void PInspectorNormalizeModeUpdate()

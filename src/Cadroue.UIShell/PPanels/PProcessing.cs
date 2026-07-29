@@ -12,6 +12,8 @@ public sealed class PProcessing : PPanel
     private static readonly FontFamily pProcessingFontFamily = new("Segoe UI");
     private static readonly Brush pProcessingSelectBrush = new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB));
     private static readonly Brush pProcessingIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush pProcessingTextBrush = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
+    private static readonly Brush pProcessingActiveBrush = new SolidColorBrush(Color.FromRgb(0x2C, 0x6C, 0xCE));
 
     public const double PProcessingStripWidth = 48;
 
@@ -28,6 +30,55 @@ public sealed class PProcessing : PPanel
     private Point? pProcessingDragStart;
     private bool pProcessingDragActive;
     private Border? pProcessingRowDragging;
+    private bool pProcessingOrdered;
+
+    public void PProcessingOrderedSet(bool pOrderedRequest) => pProcessingOrdered = pOrderedRequest;
+
+    public void PProcessingActiveSet(string pStepName, bool pActive)
+    {
+        foreach (UIElement pRow in pProcessingRowPanel.Children)
+        {
+            if (pRow is not Border { Tag: string pRowName, Child: StackPanel pRowContent } || pRowName != pStepName)
+            {
+                continue;
+            }
+
+            Brush pTextBrush = pActive ? pProcessingActiveBrush : pProcessingTextBrush;
+            Brush pIconBrush = pActive ? pProcessingActiveBrush : pProcessingIconBrush;
+            foreach (UIElement pPiece in pRowContent.Children)
+            {
+                switch (pPiece)
+                {
+                    case Image { Tag: string pIconPath } pIcon:
+                        pIcon.Source = PIcon.PIconRead(pIconPath, pIconBrush);
+                        break;
+                    case TextBlock pText:
+                        pText.Foreground = pTextBrush;
+                        break;
+                }
+            }
+
+            return;
+        }
+    }
+
+    private void PProcessingNumbersUpdate()
+    {
+        if (!pProcessingOrdered)
+        {
+            return;
+        }
+
+        for (int pIndex = 0; pIndex < pProcessingRowPanel.Children.Count; pIndex++)
+        {
+            if (pProcessingRowPanel.Children[pIndex] is Border { Child: StackPanel pRowContent }
+                && pRowContent.Children.Count > 0
+                && pRowContent.Children[0] is Border { Child: TextBlock pNumber })
+            {
+                pNumber.Text = (pIndex + 1).ToString();
+            }
+        }
+    }
 
     public IReadOnlyList<string> PProcessingStepsRead()
     {
@@ -159,11 +210,41 @@ public sealed class PProcessing : PPanel
     public void PProcessingStepAdd(string pStepName, string pStepIconPath)
     {
         pProcessingRowPanel.Children.Add(PProcessingRowBuild(pStepName, pStepIconPath));
+        PProcessingNumbersUpdate();
+    }
+
+    private static Border PProcessingNumberBadgeBuild()
+    {
+        var pNumber = new TextBlock
+        {
+            FontSize = 10,
+            FontFamily = pProcessingFontFamily,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A)),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        return new Border
+        {
+            Width = 18,
+            Height = 18,
+            CornerRadius = new CornerRadius(9),
+            Background = new SolidColorBrush(Color.FromRgb(0xE8, 0xEE, 0xF6)),
+            Margin = new Thickness(0, 0, 8, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Child = pNumber
+        };
     }
 
     private Border PProcessingRowBuild(string pStepName, string pStepIconPath)
     {
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
+        if (pProcessingOrdered)
+        {
+            pRowContent.Children.Add(PProcessingNumberBadgeBuild());
+        }
+
         pRowContent.Children.Add(new Image
         {
             Width = 14,
@@ -171,7 +252,8 @@ public sealed class PProcessing : PPanel
             Source = PIcon.PIconRead(pStepIconPath, pProcessingIconBrush),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0)
+            Margin = new Thickness(0, 0, 8, 0),
+            Tag = pStepIconPath
         });
         pRowContent.Children.Add(new TextBlock
         {
@@ -241,6 +323,7 @@ public sealed class PProcessing : PPanel
             pTargetIndex = Math.Clamp(pTargetIndex, 0, pProcessingRowPanel.Children.Count);
             pProcessingRowPanel.Children.Insert(pTargetIndex, pDragRow);
             pProcessingIndexDragging = pTargetIndex;
+            PProcessingNumbersUpdate();
         }
     }
 

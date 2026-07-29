@@ -52,6 +52,16 @@ public sealed record LWorkOutput(
         return lWorkSourceFolder;
     }
 
+    public string LWorkExtensionResolve(string lWorkSourcePath)
+    {
+        if (string.Equals(LWorkOutputContainer, "Same as source", StringComparison.OrdinalIgnoreCase))
+        {
+            return Path.GetExtension(lWorkSourcePath).TrimStart('.');
+        }
+
+        return LWorkOutputExtension.TrimStart('.');
+    }
+
     private static string LWorkFolderNormalize(string lWorkFolderName)
     {
         char[] lWorkInvalidChars = Path.GetInvalidFileNameChars()

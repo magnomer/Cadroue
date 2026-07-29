@@ -86,16 +86,19 @@ public static partial class LEdit
             .Replace("{Time}", lEditStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
         string lEditBaseName = LEditNameSanitize(lEditStem);
-        string lEditFileName = LEditNameFormat(lEditOutput, lEditBaseName);
+        string lEditFileName = LEditNameFormat(lEditOutput, lEditBaseName, lEditSourcePath);
         return LEditSourceMatch(Path.Combine(lEditFolder, lEditFileName), lEditSourcePath)
-            ? LEditNameFormat(lEditOutput, $"{lEditBaseName}_edit")
+            ? LEditNameFormat(lEditOutput, $"{lEditBaseName}_edit", lEditSourcePath)
             : lEditFileName;
     }
 
-    private static string LEditNameFormat(LWorkOutput lEditOutput, string lEditBaseName) =>
-        string.IsNullOrWhiteSpace(lEditOutput.LWorkOutputExtension)
+    private static string LEditNameFormat(LWorkOutput lEditOutput, string lEditBaseName, string lEditSourcePath)
+    {
+        string lEditExtension = lEditOutput.LWorkExtensionResolve(lEditSourcePath);
+        return string.IsNullOrWhiteSpace(lEditExtension)
             ? lEditBaseName
-            : $"{lEditBaseName}.{lEditOutput.LWorkOutputExtension}";
+            : $"{lEditBaseName}.{lEditExtension}";
+    }
 
     private static bool LEditSourceMatch(string lEditOutputPath, string lEditSourcePath)
     {

@@ -43,6 +43,7 @@ public static partial class LSplit
 
             string lSplitOutputName = LSplitNameCreate(
                 lSplitOutput,
+                lSplitSourcePath,
                 lSplitSourceStem,
                 lSplitSection,
                 lSplitIndex,
@@ -85,6 +86,7 @@ public static partial class LSplit
 
     private static string LSplitNameCreate(
         LWorkOutput lSplitOutput,
+        string lSplitSourcePath,
         string lSplitSourceStem,
         LSplitSectionDescription lSplitSection,
         int lSplitIndex,
@@ -126,9 +128,10 @@ public static partial class LSplit
             lSplitAttempt++;
         }
 
-        return string.IsNullOrWhiteSpace(lSplitOutput.LWorkOutputExtension)
+        string lSplitExtension = lSplitOutput.LWorkExtensionResolve(lSplitSourcePath);
+        return string.IsNullOrWhiteSpace(lSplitExtension)
             ? lSplitUniqueName
-            : $"{lSplitUniqueName}.{lSplitOutput.LWorkOutputExtension}";
+            : $"{lSplitUniqueName}.{lSplitExtension}";
     }
 
     private static string LSplitNameSanitize(string lSplitName)

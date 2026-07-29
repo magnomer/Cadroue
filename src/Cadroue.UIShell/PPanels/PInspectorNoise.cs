@@ -226,5 +226,6 @@ public sealed partial class PInspector
         bool pNoiseActive = pInspectorNoiseApply.IsChecked == true;
         pInspectorNoiseStack.IsEnabled = pNoiseActive;
         pInspectorNoiseStack.Opacity = pNoiseActive ? 1 : 0.4;
+        PInspectorAudioActiveRaise();
     }
 }

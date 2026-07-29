@@ -361,7 +361,7 @@ public abstract class PTabSurface : UserControl
         PSection => 300,
         PGroup => 260,
         PList => 300,
-        PProcessing => 160,
+        PProcessing => 184,
         PInspector => 300,
         _ => 180
     };

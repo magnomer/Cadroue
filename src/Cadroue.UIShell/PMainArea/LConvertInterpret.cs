@@ -70,16 +70,19 @@ public static partial class LConvert
             .Replace("{Time}", lConvertStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
         string lConvertBaseName = LConvertNameSanitize(lConvertStem);
-        string lConvertFileName = LConvertNameFormat(lConvertOutput, lConvertBaseName);
+        string lConvertFileName = LConvertNameFormat(lConvertOutput, lConvertBaseName, lConvertSourcePath);
         return LConvertSourceMatch(Path.Combine(lConvertFolder, lConvertFileName), lConvertSourcePath)
-            ? LConvertNameFormat(lConvertOutput, $"{lConvertBaseName}_convert")
+            ? LConvertNameFormat(lConvertOutput, $"{lConvertBaseName}_convert", lConvertSourcePath)
             : lConvertFileName;
     }
 
-    private static string LConvertNameFormat(LWorkOutput lConvertOutput, string lConvertBaseName) =>
-        string.IsNullOrWhiteSpace(lConvertOutput.LWorkOutputExtension)
+    private static string LConvertNameFormat(LWorkOutput lConvertOutput, string lConvertBaseName, string lConvertSourcePath)
+    {
+        string lConvertExtension = lConvertOutput.LWorkExtensionResolve(lConvertSourcePath);
+        return string.IsNullOrWhiteSpace(lConvertExtension)
             ? lConvertBaseName
-            : $"{lConvertBaseName}.{lConvertOutput.LWorkOutputExtension}";
+            : $"{lConvertBaseName}.{lConvertExtension}";
+    }
 
     private static bool LConvertSourceMatch(string lConvertOutputPath, string lConvertSourcePath)
     {

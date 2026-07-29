@@ -43,7 +43,7 @@ public static partial class LAudio
     private static string LAudioNameCreate(string lAudioSourcePath, string lAudioFolder, LWorkOutput lAudioOutput)
     {
         string lAudioStem = Path.GetFileNameWithoutExtension(lAudioSourcePath);
-        string lAudioExtension = lAudioOutput.LWorkOutputExtension.TrimStart('.');
+        string lAudioExtension = lAudioOutput.LWorkExtensionResolve(lAudioSourcePath);
         string lAudioBaseName = string.IsNullOrWhiteSpace(lAudioExtension)
             ? lAudioStem
             : $"{lAudioStem}.{lAudioExtension}";

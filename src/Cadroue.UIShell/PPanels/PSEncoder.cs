@@ -76,7 +76,7 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit = lsExportSpecificState.LPresetClone();
         pSummaryRefresh = pRefresh;
         psNameBox = new PToken { Text = lsExportSpecificEdit.Name, MinWidth = 320 };
-        psContainerCombo = PSComboBuild(lsExportSpecificEdit.Container, "MP4", "Matroska", "MOV", "WebM", "M4A", "MP3", "WAV", "FLAC", "OGG", "All FFmpeg formats...");
+        psContainerCombo = PSComboBuild(lsExportSpecificEdit.Container, "Same as source", "MP4", "Matroska", "MOV", "WebM", "M4A", "MP3", "WAV", "FLAC", "OGG", "All FFmpeg formats...");
         psModeCombo = PSComboBuild(lsExportSpecificEdit.ExportMode, "Smart export", "Remux only", "Re-encode");
         psVideoStreamCombo = PSComboBuild(lsExportSpecificEdit.VideoStream, "Include", "Exclude");
         psAudioStreamCombo = PSComboBuild(lsExportSpecificEdit.AudioStream, "Include first audio track", "Include all audio tracks", "Exclude");

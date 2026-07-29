@@ -286,10 +286,11 @@ public sealed partial class PInspector
         return pRow;
     }
 
-    private static void PInspectorPassApplyUpdate(PInspectorPass pPass)
+    private void PInspectorPassApplyUpdate(PInspectorPass pPass)
     {
         bool pActive = pPass.PInspectorPassApply.IsChecked == true;
         pPass.PInspectorPassStack.IsEnabled = pActive;
         pPass.PInspectorPassStack.Opacity = pActive ? 1 : 0.4;
+        PInspectorAudioActiveRaise();
     }
 }

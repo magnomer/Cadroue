@@ -20,6 +20,10 @@ public sealed partial class PInspector
     private StackPanel pInspectorVolumeBody = null!;
     private bool pInspectorVolumeSuppress;
 
+    public event Action? PInspectorAudioActiveChange;
+
+    private void PInspectorAudioActiveRaise() => PInspectorAudioActiveChange?.Invoke();
+
     public LWorkAudioStep PInspectorStepRead(LWorkAudioKind pStepKind) => pStepKind switch
     {
         LWorkAudioKind.LWorkAudioKindNormalize => LWorkAudioStep.LWorkAudioNormalizeCreate(
@@ -158,6 +162,7 @@ public sealed partial class PInspector
         bool pVolumeActive = pInspectorVolumeApply.IsChecked == true;
         pInspectorVolumeStack.IsEnabled = pVolumeActive;
         pInspectorVolumeStack.Opacity = pVolumeActive ? 1 : 0.4;
+        PInspectorAudioActiveRaise();
     }
 
     private void PInspectorVolumeWarnUpdate()
