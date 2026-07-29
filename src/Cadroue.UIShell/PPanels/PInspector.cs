@@ -74,6 +74,8 @@ public sealed partial class PInspector : PPanel
         var pBody = new Grid();
         pBody.Children.Add(pInspectorEmptyNotice);
         pBody.Children.Add(PInspectorCropBodyBuild());
+        pBody.Children.Add(PInspectorBrightnessBodyBuild());
+        pBody.Children.Add(PInspectorContrastBodyBuild());
         pBody.Children.Add(PInspectorVolumeBodyBuild());
         pBody.Children.Add(PInspectorNormalizeBodyBuild());
         pBody.Children.Add(PInspectorNoiseBodyBuild());
@@ -159,17 +161,21 @@ public sealed partial class PInspector : PPanel
     public void PInspectorStepShow(string? pStepName)
     {
         bool pCropSelected = pStepName == "Crop";
+        bool pBrightnessSelected = pStepName == "Brightness";
+        bool pContrastSelected = pStepName == "Contrast";
         bool pVolumeSelected = pStepName == "Volume";
         bool pNormalizeSelected = pStepName == "Normalize";
         bool pNoiseSelected = pStepName == "Noise Reduction";
         bool pHighPassSelected = pStepName == "High Pass";
         bool pLowPassSelected = pStepName == "Low Pass";
-        bool pKnownSelected = pCropSelected || pVolumeSelected || pNormalizeSelected
+        bool pKnownSelected = pCropSelected || pBrightnessSelected || pContrastSelected || pVolumeSelected || pNormalizeSelected
             || pNoiseSelected || pHighPassSelected || pLowPassSelected;
 
         pInspectorTitleLabel.Text = pStepName switch
         {
             "Crop" => "Crop",
+            "Brightness" => "Brightness",
+            "Contrast" => "Contrast",
             "Volume" => "Volume",
             "Normalize" => "Normalize",
             "Noise Reduction" => "Noise Reduction",
@@ -178,6 +184,8 @@ public sealed partial class PInspector : PPanel
             _ => "Inspector"
         };
         pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorBrightnessBody.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorContrastBody.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumeBody.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorNormalizeBody.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorNoiseBody.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -185,6 +193,8 @@ public sealed partial class PInspector : PPanel
         pInspectorLowPass.PInspectorPassBody.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorPersistentRow.Visibility = pKnownSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorPersistentBox.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorBrightnessPersistent.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorContrastPersistent.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumePersistent.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorNormalizePersistent.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorNoisePersistent.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;

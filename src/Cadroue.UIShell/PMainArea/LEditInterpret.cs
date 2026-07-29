@@ -11,6 +11,7 @@ public static partial class LEdit
         string lEditSourcePath,
         TimeSpan lEditDuration,
         LWorkCrop lEditCrop,
+        LWorkVideo lEditVideo,
         LWorkOutput lEditOutput)
     {
         string lEditFolder = lEditOutput.LWorkFolderRead(lEditSourcePath);
@@ -26,7 +27,8 @@ public static partial class LEdit
             lEditOutputName,
             Path.Combine(lEditFolder, lEditOutputName),
             lEditOutput,
-            lWorkCrop: lEditCrop);
+            lWorkCrop: lEditCrop,
+            lWorkVideo: lEditVideo);
     }
 
     public static int LEditInterpret(
@@ -45,6 +47,7 @@ public static partial class LEdit
             lEditWorkDescription.LEditSourcePath,
             lEditWorkDescription.LEditDuration,
             lEditCrop,
+            lEditWorkDescription.LEditVideo,
             lEditWorkDescription.LEditOutput);
 
         string lEditSourcePath = lEditWorkItem.LWorkSourcePath;
@@ -62,6 +65,14 @@ public static partial class LEdit
                 $"right {lEditCrop.LWorkCropRight}, bottom {lEditCrop.LWorkCropBottom}, " +
                 $"rotate {lEditCrop.LWorkCropRotation}, " +
                 $"hflip {lEditCrop.LWorkCropFlipHorizontal}, vflip {lEditCrop.LWorkCropFlipVertical}");
+        }
+
+        if (lEditWorkDescription.LEditVideo.LWorkVideoActive)
+        {
+            string lVideoSteps = string.Join(", ", lEditWorkDescription.LEditVideo.LWorkVideoSteps
+                .Where(lStep => lStep.LWorkVideoStepActive)
+                .Select(lStep => $"{lStep.LWorkVideoStepKind} {lStep.LWorkVideoStepValue:0.###}"));
+            LAppLog.LInfo($"Edit job '{lEditOutputName}' video: {lVideoSteps}");
         }
 
         return lEditAdded;

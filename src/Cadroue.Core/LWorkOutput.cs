@@ -107,3 +107,34 @@ public sealed record LWorkCrop(
         || LWorkCropFlipHorizontal
         || LWorkCropFlipVertical;
 }
+
+public enum LWorkVideoKind
+{
+    LWorkVideoKindBrightness,
+    LWorkVideoKindContrast
+}
+
+public sealed record LWorkVideoStep(
+    LWorkVideoKind LWorkVideoStepKind,
+    bool LWorkVideoStepActive,
+    double LWorkVideoStepValue)
+{
+    public static LWorkVideoStep LWorkVideoBrightnessCreate(bool lStepActive, double lStepValue) =>
+        new(LWorkVideoKind.LWorkVideoKindBrightness, lStepActive, lStepValue);
+
+    public static LWorkVideoStep LWorkVideoContrastCreate(bool lStepActive, double lStepValue) =>
+        new(LWorkVideoKind.LWorkVideoKindContrast, lStepActive, Math.Clamp(lStepValue, 0, 200));
+
+    public double LWorkVideoFfmpegValue => LWorkVideoStepKind switch
+    {
+        LWorkVideoKind.LWorkVideoKindBrightness => Math.Clamp(LWorkVideoStepValue * 0.0025d, -1, 1),
+        _ => LWorkVideoStepValue / 100d
+    };
+}
+
+public sealed record LWorkVideo(IReadOnlyList<LWorkVideoStep> LWorkVideoSteps)
+{
+    public static LWorkVideo LWorkVideoNoneCreate() => new(Array.Empty<LWorkVideoStep>());
+
+    public bool LWorkVideoActive => LWorkVideoSteps.Any(lStep => lStep.LWorkVideoStepActive);
+}

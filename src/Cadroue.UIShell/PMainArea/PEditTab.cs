@@ -7,6 +7,9 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed class PEditTab : PTabSurface
 {
     private const string PEditCropIconPath = "/PAssets/PPanels/PProcessingCrop.svg";
+    private const string PEditBrightnessIconPath = "/PAssets/PPanels/PProcessingBrightness.svg";
+    private const string PEditContrastIconPath = "/PAssets/PPanels/PProcessingContrast.svg";
+    private const double PEditBrightnessPreviewFactor = 2.5;
 
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
@@ -24,6 +27,7 @@ public sealed class PEditTab : PTabSurface
             pViewer.PViewerSourcePath,
             pViewer.PViewerDurationRead(),
             pInspector.PInspectorCropRead(),
+            PEditVideoRead(),
             lExportSpecificState);
 
         pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
@@ -36,7 +40,10 @@ public sealed class PEditTab : PTabSurface
             "Persistent off: add every loaded file that has a processing plan saved beside it.\n"
             + "Persistent on: add every loaded file and give them all the plan shown here, even when nothing is applied.");
 
+        pProcessing.PProcessingOrderedSet(true);
         pProcessing.PProcessingStepAdd("Crop", PEditCropIconPath);
+        pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIconPath);
+        pProcessing.PProcessingStepAdd("Contrast", PEditContrastIconPath);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
 
@@ -48,12 +55,13 @@ public sealed class PEditTab : PTabSurface
         pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
         pInspector.PInspectorCropActiveChange += PEditActiveRefresh;
+        pInspector.PInspectorVideoChange += PEditVideoChangeHandle;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
         pList.PListPathChange += PEditPathShow;
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState, true) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         if (lPreferenceTabLayout is null)
         {
             pInspector.PInspectorMinimizeSet(true);
@@ -63,8 +71,21 @@ public sealed class PEditTab : PTabSurface
         PEditActiveRefresh();
     }
 
-    private void PEditActiveRefresh() =>
+    private void PEditActiveRefresh()
+    {
         pProcessing.PProcessingActiveSet("Crop", pInspector.PInspectorCropActiveCheck());
+        pProcessing.PProcessingActiveSet("Brightness",
+            pInspector.PInspectorVideoStepRead(LWorkVideoKind.LWorkVideoKindBrightness).LWorkVideoStepActive);
+        pProcessing.PProcessingActiveSet("Contrast",
+            pInspector.PInspectorVideoStepRead(LWorkVideoKind.LWorkVideoKindContrast).LWorkVideoStepActive);
+    }
+
+    private void PEditVideoChangeHandle()
+    {
+        PEditActiveRefresh();
+        PEditViewerColorPush();
+        PEditPlanSave();
+    }
 
     private void PEditPathShow(string? pSourcePath)
     {
@@ -109,34 +130,35 @@ public sealed class PEditTab : PTabSurface
                 pInspector.PInspectorSourceSet(pCropSize.Width, pCropSize.Height);
             }
 
-            bool pEditPersistent = pInspector.PInspectorPersistentCheck();
-            LWorkCrop pEditCarried = pInspector.PInspectorCropRead();
-            LWorkCrop? pEditSaved = pViewer.PViewerSourcePath is { } pEditSourcePath
+            LEditPlan? pEditPersistent = PEditCarriedRead();
+            LEditPlan? pEditSaved = pViewer.PViewerSourcePath is { } pEditSourcePath
                 ? LEdit.LEditPlanRead(pEditSourcePath)
                 : null;
 
             LAppLog.LInfo(
                 $"Edit media ready '{pEditName}': "
                 + $"display {(pCropSource is { } pLogSize ? $"{pLogSize.Width:0}x{pLogSize.Height:0}" : "unknown")}, "
-                + $"persistent {(pEditPersistent ? "on" : "off")}, "
-                + $"carried {PEditCropFormat(pEditCarried)}, "
-                + $"sidecar {PEditCropFormat(pEditSaved)}");
+                + $"persistent {(pEditPersistent is null ? "off" : "on")}, "
+                + $"carried {PEditPlanFormat(pEditPersistent)}, "
+                + $"sidecar {PEditPlanFormat(pEditSaved)}");
 
             pInspector.PInspectorMediaReset();
 
-            bool pEditCarryWins = pEditPersistent;
-            LWorkCrop? pEditPlan = pEditCarryWins ? pEditCarried : pEditSaved;
+            bool pEditCarryWins = pEditPersistent is not null;
+            LEditPlan pEditPlan = LEdit.LEditPlanResolve(pEditSaved, pEditPersistent);
 
-            if (pEditPlan is { LWorkCropActive: true } pEditApply)
+            if (pEditPlan is { LEditPlanActive: true } pEditApply)
             {
                 LAppLog.LInfo(
                     $"Edit applying {(pEditCarryWins ? "persistent" : "sidecar")} plan to '{pEditName}': "
-                    + $"{PEditCropFormat(pEditApply)}");
-                pInspector.PInspectorPlanApply(pEditApply);
+                    + $"{PEditPlanFormat(pEditApply)}");
+                pInspector.PInspectorPlanApply(pEditApply.LEditCrop);
+                pInspector.PInspectorVideoPlanApply(pEditApply.LEditVideo);
             }
             else
             {
                 LAppLog.LInfo($"Edit applying no plan to '{pEditName}': inspector left cleared");
+                pInspector.PInspectorVideoPlanApply(LWorkVideo.LWorkVideoNoneCreate());
             }
         }
         finally
@@ -161,6 +183,21 @@ public sealed class PEditTab : PTabSurface
 
         pViewer.PViewerRotateSet(pEditRotate);
         pViewer.PCropVideoSet(pEditRect);
+        PEditViewerColorPush();
+    }
+
+    private void PEditViewerColorPush()
+    {
+        LWorkVideo pVideo = PEditVideoRead();
+        double pBrightness = pVideo.LWorkVideoSteps
+            .FirstOrDefault(pStep => pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindBrightness
+                && pStep.LWorkVideoStepActive)
+            ?.LWorkVideoFfmpegValue * PEditBrightnessPreviewFactor ?? 0;
+        double pContrast = pVideo.LWorkVideoSteps
+            .FirstOrDefault(pStep => pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast
+                && pStep.LWorkVideoStepActive)
+            ?.LWorkVideoFfmpegValue ?? 1;
+        pViewer.PViewerColorSet(new LColor(pBrightness, pContrast, 1, 0));
     }
 
     private static string PEditRectFormat(System.Windows.Rect? pEditRect) =>
@@ -189,8 +226,54 @@ public sealed class PEditTab : PTabSurface
         return $"{pEdges}, rotate {pCrop.LWorkCropRotation}, {pFlip}";
     }
 
-    private LWorkCrop? PEditCarriedRead() =>
-        pInspector.PInspectorPersistentCheck() ? pInspector.PInspectorCropRead() : null;
+    private static string PEditPlanFormat(LEditPlan? pEditPlan) =>
+        pEditPlan is null
+            ? "none"
+            : $"{PEditCropFormat(pEditPlan.LEditCrop)}, {PEditVideoFormat(pEditPlan.LEditVideo)}";
+
+    private static string PEditVideoFormat(LWorkVideo pEditVideo)
+    {
+        if (!pEditVideo.LWorkVideoActive)
+        {
+            return "video inactive";
+        }
+
+        return string.Join(", ", pEditVideo.LWorkVideoSteps
+            .Where(pStep => pStep.LWorkVideoStepActive)
+            .Select(pStep => $"{pStep.LWorkVideoStepKind} {pStep.LWorkVideoStepValue:0.###}"));
+    }
+
+    private LEditPlan? PEditCarriedRead()
+    {
+        LWorkCrop pCrop = pInspector.PInspectorPersistentCheck()
+            ? pInspector.PInspectorCropRead()
+            : LWorkCrop.LWorkCropNoneCreate();
+        LWorkVideo pVideo = pInspector.PInspectorVideoPersistentAnyCheck()
+            ? pInspector.PInspectorVideoPersistentRead()
+            : LWorkVideo.LWorkVideoNoneCreate();
+        return pCrop.LWorkCropActive || pVideo.LWorkVideoActive ? new LEditPlan(pCrop, pVideo) : null;
+    }
+
+    private LWorkVideo PEditVideoRead()
+    {
+        var pSteps = new List<LWorkVideoStep>();
+        foreach (string pStepName in pProcessing.PProcessingStepsRead())
+        {
+            if (PEditVideoKindRead(pStepName) is LWorkVideoKind pKind)
+            {
+                pSteps.Add(pInspector.PInspectorVideoStepRead(pKind));
+            }
+        }
+
+        return new LWorkVideo(pSteps);
+    }
+
+    private static LWorkVideoKind? PEditVideoKindRead(string pStepName) => pStepName switch
+    {
+        "Brightness" => LWorkVideoKind.LWorkVideoKindBrightness,
+        "Contrast" => LWorkVideoKind.LWorkVideoKindContrast,
+        _ => null
+    };
 
     private void PEditPlanSave()
     {
@@ -199,15 +282,15 @@ public sealed class PEditTab : PTabSurface
             return;
         }
 
-        LWorkCrop pEditCrop = pInspector.PInspectorCropRead();
-        if (!pEditCrop.LWorkCropActive && LEdit.LEditPlanRead(pEditSourcePath) is null)
+        var pEditPlan = new LEditPlan(pInspector.PInspectorCropRead(), PEditVideoRead());
+        if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath) is null)
         {
             return;
         }
 
         LAppLog.LInfo(
-            $"Edit plan saved for '{System.IO.Path.GetFileName(pEditSourcePath)}': {PEditCropFormat(pEditCrop)}");
-        LEdit.LEditPlanSave(pEditSourcePath, pEditCrop);
+            $"Edit plan saved for '{System.IO.Path.GetFileName(pEditSourcePath)}': {PEditPlanFormat(pEditPlan)}");
+        LEdit.LEditPlanSave(pEditSourcePath, pEditPlan);
     }
 
     public override PFlowControl PTabFlow => pFlow;

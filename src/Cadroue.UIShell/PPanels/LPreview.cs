@@ -42,7 +42,7 @@ public static class LPreview
         LPreviewFilterApply(
             lPreviewPlayer,
             FLFilters.Contrast,
-            LPreviewValueClamp((lColor.LColorContrast - 1) * 100, -100, 100));
+            LPreviewValueClamp((1 - lColor.LColorContrast) * 100, -100, 100));
 
         LPreviewFilterApply(
             lPreviewPlayer,

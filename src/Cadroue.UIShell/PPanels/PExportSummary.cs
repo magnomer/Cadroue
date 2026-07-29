@@ -20,6 +20,7 @@ public sealed partial class PExport : UserControl
     private readonly TextBlock pSummaryAudio;
     private readonly TextBlock pSummaryOutput;
     private readonly StackPanel pPresetRowPanel;
+    private readonly bool pVideoCopyPresetDisabled;
     private string? pPresetNameSelected;
     private string? pPresetNameEditing;
     private string? pPresetNameDragging;
@@ -32,9 +33,10 @@ public sealed partial class PExport : UserControl
 
     private bool pExportPresetBusy;
 
-    public PExport(LExportSpecificState lExportSpecificState)
+    public PExport(LExportSpecificState lExportSpecificState, bool pVideoCopyPresetDisabled = false)
     {
         this.lExportSpecificState = lExportSpecificState;
+        this.pVideoCopyPresetDisabled = pVideoCopyPresetDisabled;
         FocusVisualStyle = null;
         pPresetRowPanel = new StackPanel();
         pPresetNameSelected = lExportSpecificState.PresetName;

@@ -21,10 +21,19 @@ public sealed class LSidecarEditRecord
     public int Rotation { get; set; }
     public bool FlipHorizontal { get; set; }
     public bool FlipVertical { get; set; }
+    public List<LSidecarVideoStepRecord> Steps { get; set; } = new();
 
     public bool LSidecarEditActive =>
         CropLeft > 0 || CropTop > 0 || CropRight > 0 || CropBottom > 0
-        || Rotation != 0 || FlipHorizontal || FlipVertical;
+        || Rotation != 0 || FlipHorizontal || FlipVertical
+        || Steps.Any(lStep => lStep.Active);
+}
+
+public sealed class LSidecarVideoStepRecord
+{
+    public string Kind { get; set; } = string.Empty;
+    public bool Active { get; set; }
+    public double Value { get; set; }
 }
 
 public sealed class LSidecarAudioStepRecord

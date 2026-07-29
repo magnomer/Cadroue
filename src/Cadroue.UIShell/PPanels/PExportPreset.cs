@@ -67,6 +67,7 @@ public sealed partial class PExport
             && pPresetSelected
             && !LExportSpecificState.LPresetMatch(lPresetName, lExportSpecificState);
         bool pPresetEditing = string.Equals(lPresetName, pPresetNameEditing, StringComparison.OrdinalIgnoreCase);
+        bool pPresetDisabled = PExportPresetDisabledCheck(lPresetName);
         UIElement pNameElement = pPresetEditing
             ? PExportPresetNameBoxBuild(lPresetName)
             : PExportPresetDisplayBuild(lPresetName, pPresetModified);
@@ -74,11 +75,13 @@ public sealed partial class PExport
         var pRowBorder = new Border
         {
             Padding = new Thickness(12, 7, 12, 7),
-            Background = pPresetSelected ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB)) : Brushes.White,
+            Background = pPresetSelected && !pPresetDisabled ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB)) : Brushes.White,
             BorderBrush = Brushes.Transparent,
             BorderThickness = new Thickness(0),
             Cursor = Cursors.Hand,
             HorizontalAlignment = HorizontalAlignment.Stretch,
+            Opacity = pPresetDisabled ? 0.42 : 1,
+            ToolTip = pPresetDisabled ? "Video Copy presets must be changed before they can be used for Edit processing." : null,
             Child = pNameElement
         };
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>
@@ -167,6 +170,13 @@ public sealed partial class PExport
         };
         return pRowBorder;
     }
+
+    private bool PExportPresetDisabledCheck(string lPresetName) =>
+        pVideoCopyPresetDisabled
+        && LExportSpecificState.LPresetRead(lPresetName) is { } lPreset
+        && string.Equals(lPreset.VideoMode, "Copy", StringComparison.OrdinalIgnoreCase)
+        && (!string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lExportSpecificState.VideoMode, "Copy", StringComparison.OrdinalIgnoreCase));
 
     private static Border PExportPresetDividerBuild() => new()
     {

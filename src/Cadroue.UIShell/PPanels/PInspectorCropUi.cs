@@ -93,6 +93,8 @@ public sealed partial class PInspector
             Margin = new Thickness(12, 0, 12, 12)
         });
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorPersistentBox));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorBrightnessPersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorContrastPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorHighPass.PInspectorPassPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorLowPass.PInspectorPassPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNoisePersistent));

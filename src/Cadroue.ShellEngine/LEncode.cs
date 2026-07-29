@@ -127,7 +127,8 @@ public static class LEncode
 
         if (!lVideoExcluded)
         {
-            if (string.Equals(lOutput.LWorkOutputVideoMode, "Copy", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(lOutput.LWorkOutputVideoMode, "Copy", StringComparison.OrdinalIgnoreCase)
+                && !LEncodeVideoProcessingCheck(lWorkItem, lOutput))
             {
                 lMux.Append(" -c:v copy");
             }
@@ -306,7 +307,8 @@ public static class LEncode
             return;
         }
 
-        if (string.Equals(lOutput.LWorkOutputVideoMode, "Copy", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(lOutput.LWorkOutputVideoMode, "Copy", StringComparison.OrdinalIgnoreCase)
+            && !LEncodeVideoProcessingCheck(lWorkItem, lOutput))
         {
             lArguments.Append(" -c:v copy");
             return;
@@ -320,6 +322,7 @@ public static class LEncode
         string lEncoderName = LCapability.LCapabilityNameRead(lOutput.LWorkOutputVideoEncoder);
         if (string.IsNullOrWhiteSpace(lEncoderName))
         {
+            LEncodeFilterAppend(lArguments, lWorkItem, lOutput);
             return;
         }
 
@@ -438,6 +441,8 @@ public static class LEncode
                 $"crop=in_w-{lCrop.LWorkCropLeft}-{lCrop.LWorkCropRight}:in_h-{lCrop.LWorkCropTop}-{lCrop.LWorkCropBottom}:{lCrop.LWorkCropLeft}:{lCrop.LWorkCropTop}"));
         }
 
+        LEncodeVideoFiltersAppend(lFilters, lWorkItem.LWorkVideo);
+
         string? lSize = LEncodeSizeRead(lOutput.LWorkOutputVideoSize);
         if (lSize is not null)
         {
@@ -462,6 +467,40 @@ public static class LEncode
             lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lOutput.LWorkOutputPixelFormat}");
         }
     }
+
+    private static void LEncodeVideoFiltersAppend(List<string> lFilters, LWorkVideo lWorkVideo)
+    {
+        var lEqParts = new List<string>();
+        foreach (LWorkVideoStep lStep in lWorkVideo.LWorkVideoSteps)
+        {
+            if (!lStep.LWorkVideoStepActive)
+            {
+                continue;
+            }
+
+            switch (lStep.LWorkVideoStepKind)
+            {
+                case LWorkVideoKind.LWorkVideoKindBrightness:
+                    lEqParts.Add(
+                        $"brightness={lStep.LWorkVideoFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
+                    break;
+                case LWorkVideoKind.LWorkVideoKindContrast:
+                    lEqParts.Add(
+                        $"contrast={lStep.LWorkVideoFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
+                    break;
+            }
+        }
+
+        if (lEqParts.Count > 0)
+        {
+            lFilters.Add("eq=" + string.Join(':', lEqParts));
+        }
+    }
+
+    private static bool LEncodeVideoProcessingCheck(LWorkItem lWorkItem, LWorkOutput lOutput) =>
+        lWorkItem.LWorkCrop.LWorkCropActive
+        || lWorkItem.LWorkVideo.LWorkVideoActive
+        || LEncodeSizeRead(lOutput.LWorkOutputVideoSize) is not null;
 
     private static void LEncodeAudioAppend(StringBuilder lArguments, LWorkOutput lOutput)
     {

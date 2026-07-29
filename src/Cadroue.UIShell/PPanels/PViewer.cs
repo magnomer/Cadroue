@@ -316,6 +316,12 @@ public sealed partial class PViewer : PPanel
 
         PCropOverlayUpdate();
     }
+
+    public void PViewerColorSet(LColor pColor)
+    {
+        LPreviewStateCurrent = LPreviewStateCurrent.LColorChange(pColor);
+        PViewerPreviewApply();
+    }
 }
 
 public enum LMediaOpenStatusKind
