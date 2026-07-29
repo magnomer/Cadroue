@@ -38,6 +38,11 @@ public sealed partial class PExport
             return;
         }
 
+        if (LExportSpecificState.LPresetNativeCheck(lPresetName))
+        {
+            return;
+        }
+
         if (!LExportSpecificState.LPresetDelete(lPresetName))
         {
             return;
@@ -165,6 +170,11 @@ public sealed partial class PExport
             return;
         }
 
+        if (LExportSpecificState.LPresetNativeCheck(lPresetName))
+        {
+            return;
+        }
+
         lExportSpecificState.PresetName = lPresetName;
         LExportSpecificState.LPresetSave(lPresetName, lExportSpecificState);
         PExportSummaryUpdate();
@@ -193,6 +203,12 @@ public sealed partial class PExport
 
         pPresetNameEditing = null;
         pPresetNameBoxCurrent = null;
+        if (LExportSpecificState.LPresetNativeCheck(lOldPresetName))
+        {
+            PExportPresetRebuild();
+            return;
+        }
+
         string lName = lNewPresetName.Trim();
         if (string.IsNullOrWhiteSpace(lName) || string.Equals(lOldPresetName, lName, StringComparison.OrdinalIgnoreCase))
         {

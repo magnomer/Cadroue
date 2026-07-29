@@ -27,6 +27,36 @@ public sealed class LSidecarEditRecord
         || Rotation != 0 || FlipHorizontal || FlipVertical;
 }
 
+public sealed class LSidecarAudioStepRecord
+{
+    public string Kind { get; set; } = string.Empty;
+    public bool Active { get; set; }
+    public double Gain { get; set; }
+    public string Mode { get; set; } = "Loudness";
+    public double Target { get; set; } = -16;
+    public double Peak { get; set; } = -1.5;
+    public double Range { get; set; } = 11;
+    public bool TwoPass { get; set; }
+    public double Reduction { get; set; } = 12;
+    public double NoiseFloor { get; set; } = -50;
+    public bool TrackNoise { get; set; }
+    public double Frequency { get; set; }
+    public int Stages { get; set; } = 1;
+    public int Poles { get; set; } = 2;
+    public double Resonance { get; set; } = 0.707;
+    public string NoiseType { get; set; } = "White";
+    public double GainSmooth { get; set; }
+    public double Adaptivity { get; set; } = 0.5;
+    public double ResidualFloor { get; set; } = -38;
+}
+
+public sealed class LSidecarAudioRecord
+{
+    public List<LSidecarAudioStepRecord> Steps { get; set; } = new();
+
+    public bool LSidecarAudioActive => Steps.Any(lStep => lStep.Active);
+}
+
 public sealed class LSidecarSourceRecord
 {
     public string FileName { get; set; } = string.Empty;
@@ -55,6 +85,8 @@ public sealed class LSidecar
     public List<LSidecarSectionRecord> Sections { get; set; } = new();
 
     public LSidecarEditRecord? Edit { get; set; }
+
+    public LSidecarAudioRecord? Audio { get; set; }
 
     public IReadOnlyList<int> LSidecarScannedSpansRead(int lSidecarSpanGridMilliseconds) =>
         SpanGridMilliseconds == lSidecarSpanGridMilliseconds ? ScannedSpans : Array.Empty<int>();

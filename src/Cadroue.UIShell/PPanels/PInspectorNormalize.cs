@@ -10,6 +10,7 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PInspector
 {
     private CheckBox pInspectorNormalizeApply = null!;
+    private CheckBox pInspectorNormalizePersistent = null!;
     private ComboBox pInspectorNormalizePreset = null!;
     private ComboBox pInspectorNormalizeMode = null!;
     private TextBox pInspectorNormalizeTarget = null!;
@@ -30,6 +31,10 @@ public sealed partial class PInspector
         pInspectorNormalizeApply = PInspectorSwitchBuild("Apply", "Apply loudness normalization to queued jobs");
         pInspectorNormalizeApply.Checked += (_, _) => PInspectorNormalizeApplyUpdate();
         pInspectorNormalizeApply.Unchecked += (_, _) => PInspectorNormalizeApplyUpdate();
+
+        pInspectorNormalizePersistent = PInspectorSwitchBuild(
+            "Persistent",
+            "Apply the current normalize setup to every loaded file");
 
         pInspectorNormalizePreset = new ComboBox
         {
@@ -155,7 +160,12 @@ public sealed partial class PInspector
 
     private UIElement PInspectorNormalizeUnitRowBuild(TextBox pValueBox, string pUnitLabel)
     {
-        var pUnitRow = new StackPanel { Orientation = Orientation.Horizontal };
+        pValueBox.VerticalAlignment = VerticalAlignment.Center;
+        var pUnitRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         pUnitRow.Children.Add(pValueBox);
         pUnitRow.Children.Add(new TextBlock
         {

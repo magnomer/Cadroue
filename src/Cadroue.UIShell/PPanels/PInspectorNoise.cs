@@ -15,6 +15,7 @@ public sealed partial class PInspector
     private const double PInspectorNoiseMaxSmooth = 50;
 
     private CheckBox pInspectorNoiseApply = null!;
+    private CheckBox pInspectorNoisePersistent = null!;
     private ComboBox pInspectorNoisePreset = null!;
     private Slider pInspectorNoiseReduction = null!;
     private TextBox pInspectorNoiseReductionValue = null!;
@@ -42,6 +43,10 @@ public sealed partial class PInspector
         pInspectorNoiseApply = PInspectorSwitchBuild("Apply", "Apply noise reduction to queued jobs");
         pInspectorNoiseApply.Checked += (_, _) => PInspectorNoiseApplyUpdate();
         pInspectorNoiseApply.Unchecked += (_, _) => PInspectorNoiseApplyUpdate();
+
+        pInspectorNoisePersistent = PInspectorSwitchBuild(
+            "Persistent",
+            "Apply the current noise reduction setup to every loaded file");
 
         pInspectorNoisePreset = new ComboBox
         {
@@ -219,6 +224,29 @@ public sealed partial class PInspector
             pControl.IsEnabled = pEnabled;
             pControl.Opacity = pOpacity;
         }
+    }
+
+    private void PInspectorNoiseValueSet(LWorkAudioStep pStep)
+    {
+        pInspectorNoiseSuppress = true;
+        pInspectorNoiseSmoothSuppress = true;
+        pInspectorNoiseReduction.Value = Math.Clamp(
+            pStep.LWorkAudioStepReduction,
+            PInspectorNoiseMinReduction,
+            PInspectorNoiseMaxReduction);
+        pInspectorNoiseReductionValue.Text = pStep.LWorkAudioStepReduction.ToString("0.#", CultureInfo.InvariantCulture);
+        pInspectorNoiseSmooth.Value = Math.Clamp(
+            pStep.LWorkAudioStepGainSmooth,
+            PInspectorNoiseMinSmooth,
+            PInspectorNoiseMaxSmooth);
+        pInspectorNoiseSmoothValue.Text = pStep.LWorkAudioStepGainSmooth.ToString("0.#", CultureInfo.InvariantCulture);
+        pInspectorNoiseSuppress = false;
+        pInspectorNoiseSmoothSuppress = false;
+
+        pInspectorNoiseFloor.Text = pStep.LWorkAudioStepNoiseFloor.ToString("0.#", CultureInfo.InvariantCulture);
+        pInspectorNoiseResidual.Text = pStep.LWorkAudioStepResidualFloor.ToString("0.#", CultureInfo.InvariantCulture);
+        pInspectorNoiseAdaptivity.Text = pStep.LWorkAudioStepAdaptivity.ToString("0.###", CultureInfo.InvariantCulture);
+        PInspectorNoiseLock(false);
     }
 
     private void PInspectorNoiseApplyUpdate()

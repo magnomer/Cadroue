@@ -18,6 +18,7 @@ public sealed class PAudioTab : PTabSurface
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
+    private bool pAudioPlanLoading;
 
     public PAudioTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
@@ -29,20 +30,34 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIconPath);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
-        pInspector.PInspectorAudioActiveChange += PAudioActiveRefresh;
+        pInspector.PInspectorAudioActiveChange += PAudioChangeHandle;
 
         var pAction = new PAction();
-        pAction.PActionRun += lPriority => LAudio.LAudioDescribe(
-            lPriority,
-            pViewer.PViewerSourcePath,
-            PAudioProcessingRead(),
-            lExportSpecificState);
-        pAction.PActionAllAdd += () => LAudio.LAudioAllDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            pList.PListPathsRead(),
-            PAudioProcessingRead(),
-            lExportSpecificState);
-        pAction.PActionAllSet(true, "Add every loaded file to the worklist");
+        pAction.PActionRun += lPriority =>
+        {
+            PAudioPlanSave();
+            LAudio.LAudioDescribe(
+                lPriority,
+                pViewer.PViewerSourcePath,
+                PAudioProcessingRead(),
+                lExportSpecificState);
+        };
+        pAction.PActionAllAdd += () =>
+        {
+            PAudioPlanSave();
+            LAudio.LAudioAllDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                pList.PListPathsRead(),
+                PAudioProcessingRead(),
+                lExportSpecificState,
+                pInspector.PInspectorAudioPersistentAnyCheck()
+                    ? pInspector.PInspectorAudioPersistentRead()
+                    : null);
+        };
+        pAction.PActionAllSet(
+            true,
+            "Persistent off: add every loaded file that has an audio plan saved beside it.\n"
+            + "Persistent on: apply each persistent process shown here to every loaded file.");
         pList.PListPathChange += PAudioPathShow;
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
@@ -59,6 +74,12 @@ public sealed class PAudioTab : PTabSurface
                 pProcessing.PProcessingActiveSet(pStepName, pInspector.PInspectorStepRead(pStepKind).LWorkAudioStepActive);
             }
         }
+    }
+
+    private void PAudioChangeHandle()
+    {
+        PAudioActiveRefresh();
+        PAudioPlanSave();
     }
 
     private LWorkAudio PAudioProcessingRead()
@@ -89,8 +110,47 @@ public sealed class PAudioTab : PTabSurface
     {
         if (!string.IsNullOrWhiteSpace(pSourcePath))
         {
+            PAudioPlanSave();
             pViewer.PViewerSourceOpen(pSourcePath);
+            PAudioPlanRestore();
         }
+    }
+
+    private void PAudioPlanRestore()
+    {
+        pAudioPlanLoading = true;
+        try
+        {
+            LWorkAudio? pSaved = pViewer.PViewerSourcePath is { } pSourcePath
+                ? LAudio.LAudioPlanRead(pSourcePath)
+                : null;
+            LWorkAudio? pPersistent = pInspector.PInspectorAudioPersistentAnyCheck()
+                ? pInspector.PInspectorAudioPersistentRead()
+                : null;
+            pInspector.PInspectorAudioPlanApply(LAudio.LAudioPlanResolve(pSaved, pPersistent));
+        }
+        finally
+        {
+            pAudioPlanLoading = false;
+        }
+
+        PAudioActiveRefresh();
+    }
+
+    private void PAudioPlanSave()
+    {
+        if (pAudioPlanLoading || pViewer.PViewerSourcePath is not { } pSourcePath)
+        {
+            return;
+        }
+
+        LWorkAudio pAudioPlan = PAudioProcessingRead();
+        if (!pAudioPlan.LWorkAudioActive && LAudio.LAudioPlanRead(pSourcePath) is null)
+        {
+            return;
+        }
+
+        LAudio.LAudioPlanSave(pSourcePath, pAudioPlan);
     }
 
     public override PFlowControl PTabFlow => pFlow;

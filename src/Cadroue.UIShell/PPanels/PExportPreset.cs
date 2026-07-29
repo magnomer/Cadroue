@@ -39,8 +39,17 @@ public sealed partial class PExport
         try
         {
             pPresetRowPanel.Children.Clear();
+            bool pUserDividerAdded = false;
             foreach (string lPresetName in LExportSpecificState.LPresetNames)
             {
+                if (!LExportSpecificState.LPresetNativeCheck(lPresetName)
+                    && pPresetRowPanel.Children.Count > 0
+                    && !pUserDividerAdded)
+                {
+                    pPresetRowPanel.Children.Add(PExportPresetDividerBuild());
+                    pUserDividerAdded = true;
+                }
+
                 pPresetRowPanel.Children.Add(PExportPresetRowBuild(lPresetName));
             }
         }
@@ -52,8 +61,11 @@ public sealed partial class PExport
 
     private Border PExportPresetRowBuild(string lPresetName)
     {
+        bool pPresetNative = LExportSpecificState.LPresetNativeCheck(lPresetName);
         bool pPresetSelected = string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase);
-        bool pPresetModified = pPresetSelected && !LExportSpecificState.LPresetMatch(lPresetName, lExportSpecificState);
+        bool pPresetModified = !pPresetNative
+            && pPresetSelected
+            && !LExportSpecificState.LPresetMatch(lPresetName, lExportSpecificState);
         bool pPresetEditing = string.Equals(lPresetName, pPresetNameEditing, StringComparison.OrdinalIgnoreCase);
         UIElement pNameElement = pPresetEditing
             ? PExportPresetNameBoxBuild(lPresetName)
@@ -71,7 +83,7 @@ public sealed partial class PExport
         };
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>
         {
-            if (PExportButtonSourceCheck(pEvent.OriginalSource))
+            if (pPresetNative || PExportButtonSourceCheck(pEvent.OriginalSource))
             {
                 pPresetNameDragging = null;
                 pPresetDragStart = null;
@@ -85,7 +97,7 @@ public sealed partial class PExport
         };
         pRowBorder.MouseLeftButtonDown += (_, pEvent) =>
         {
-            if (pEvent.ClickCount >= 2)
+            if (!pPresetNative && pEvent.ClickCount >= 2)
             {
                 pRowBorder.ReleaseMouseCapture();
                 PExportPresetDragClear();
@@ -156,6 +168,14 @@ public sealed partial class PExport
         return pRowBorder;
     }
 
+    private static Border PExportPresetDividerBuild() => new()
+    {
+        Tag = "Divider",
+        Height = 1,
+        Background = PLineBrush,
+        Margin = new Thickness(12, 6, 12, 6)
+    };
+
     private void PExportPresetEditCommit()
     {
         if (pPresetNameEditing is not string lEditingName || pPresetNameBoxCurrent is not { } pEditingBox)
@@ -174,7 +194,7 @@ public sealed partial class PExport
 
     private UIElement PExportPresetDisplayBuild(string lPresetName, bool pPresetModified)
     {
-        TextBlock pNameText = PExportPresetNameTextBuild(lPresetName, pPresetModified);
+        UIElement pNameText = PExportPresetNameBuild(lPresetName, pPresetModified);
         if (!pPresetModified)
         {
             return pNameText;
@@ -198,14 +218,54 @@ public sealed partial class PExport
         return pGrid;
     }
 
-    private TextBlock PExportPresetNameTextBuild(string lPresetName, bool pPresetModified) => new()
+    private UIElement PExportPresetNameBuild(string lPresetName, bool pPresetModified)
     {
-        Text = pPresetModified ? $"{lPresetName} (Modified)" : lPresetName,
+        TextBlock pNameText = PExportPresetNameTextBuild(lPresetName, pPresetModified);
+        if (!LExportSpecificState.LPresetNativeCheck(lPresetName))
+        {
+            return pNameText;
+        }
+
+        var pPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pPanel.Children.Add(pNameText);
+        pPanel.Children.Add(PExportPresetDefaultBadgeBuild());
+        return pPanel;
+    }
+
+    private static TextBlock PExportPresetNameTextBuild(string lPresetName, bool pPresetModified) => new()
+    {
+        Text = pPresetModified
+            ? $"{LExportSpecificState.LPresetDisplayNameRead(lPresetName)} (Modified)"
+            : LExportSpecificState.LPresetDisplayNameRead(lPresetName),
         FontSize = 12,
         FontStyle = pPresetModified ? FontStyles.Italic : FontStyles.Normal,
         Foreground = PTextBrush,
         Padding = new Thickness(2, 0, 2, 1),
         VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static Border PExportPresetDefaultBadgeBuild() => new()
+    {
+        Background = new SolidColorBrush(Color.FromRgb(0xE8, 0xEE, 0xF6)),
+        BorderBrush = new SolidColorBrush(Color.FromRgb(0xC8, 0xD4, 0xE2)),
+        BorderThickness = new Thickness(1),
+        CornerRadius = new CornerRadius(3),
+        Padding = new Thickness(5, 1, 5, 2),
+        Margin = new Thickness(7, 0, 0, 0),
+        VerticalAlignment = VerticalAlignment.Center,
+        Child = new TextBlock
+        {
+            Text = "Native",
+            FontSize = 10,
+            FontFamily = new FontFamily("Segoe UI"),
+            FontWeight = FontWeights.SemiBold,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x5E, 0x75)),
+            VerticalAlignment = VerticalAlignment.Center
+        }
     };
 
     private Button PExportPresetInlineButtonBuild(string pIconPath, Brush pIconBrush, string pTooltip, RoutedEventHandler pClick)

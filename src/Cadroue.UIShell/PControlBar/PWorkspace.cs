@@ -20,7 +20,7 @@ public sealed class PWorkspace
         LExportSpecificState? lExportSpecificState = null,
         LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
-        PWorkspaceExportState = lExportSpecificState ?? new LExportSpecificState();
+        PWorkspaceExportState = lExportSpecificState ?? LExportSpecificState.LPresetInitialCreate(pTabLayoutKey);
         PWorkspaceSurface = PWorkspaceSurfaceCreate(pTabLayoutKey, PWorkspaceExportState, lPreferenceTabLayout);
         bool pHasSourceInfo = pTabLayoutKey is not ("Merge" or "Worklist");
         bool pAudioOnlyAllowed = pTabLayoutKey == "Audio";

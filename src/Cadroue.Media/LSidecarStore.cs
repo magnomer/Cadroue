@@ -76,7 +76,9 @@ public static class LSidecarStore
                 lSidecarScannedSpans,
                 lSidecarSpanGridMilliseconds,
                 lSidecarSections);
-            lSidecar.Edit = LSidecarRead(lSidecarPath)?.Edit;
+            LSidecar? lSidecarPrevious = LSidecarRead(lSidecarPath);
+            lSidecar.Edit = lSidecarPrevious?.Edit;
+            lSidecar.Audio = lSidecarPrevious?.Audio;
 
             return LSidecarWrite(lSidecarPath, lSidecar);
         }
@@ -105,6 +107,33 @@ public static class LSidecarStore
             string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
             LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
             lSidecar.Edit = lSidecarEdit;
+            return LSidecarWrite(lSidecarPath, lSidecar);
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    public static LSidecarAudioRecord? LSidecarAudioRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            return LSidecarRead(LSidecarPathRead(lSidecarSourcePath))?.Audio;
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    public static bool LSidecarAudioSave(string lSidecarSourcePath, LSidecarAudioRecord? lSidecarAudio)
+    {
+        try
+        {
+            string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
+            LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
+            lSidecar.Audio = lSidecarAudio;
             return LSidecarWrite(lSidecarPath, lSidecar);
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)

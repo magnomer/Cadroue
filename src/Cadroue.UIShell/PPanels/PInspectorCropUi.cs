@@ -81,8 +81,7 @@ public sealed partial class PInspector
     {
         pInspectorPersistentBox = PInspectorSwitchBuild(
             "Persistent",
-            "Keep every crop setting untouched when a new media file is loaded");
-        pInspectorPersistentBox.Margin = new Thickness(12, 0, 12, 12);
+            "Keep the current processing settings when a new media file is loaded");
         pInspectorPersistentBox.Checked += (_, _) => PInspectorPersistentRaise();
         pInspectorPersistentBox.Unchecked += (_, _) => PInspectorPersistentRaise();
 
@@ -93,8 +92,20 @@ public sealed partial class PInspector
             Background = PPanelLineBrush,
             Margin = new Thickness(12, 0, 12, 12)
         });
-        pPersistentPanel.Children.Add(pInspectorPersistentBox);
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorPersistentBox));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorHighPass.PInspectorPassPersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorLowPass.PInspectorPassPersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNoisePersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorVolumePersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNormalizePersistent));
         return pPersistentPanel;
+    }
+
+    private static CheckBox PInspectorPersistentPrepare(CheckBox pPersistentBox)
+    {
+        pPersistentBox.Margin = new Thickness(12, 0, 12, 12);
+        pPersistentBox.Visibility = Visibility.Collapsed;
+        return pPersistentBox;
     }
 
     private static CheckBox PInspectorSwitchBuild(string pSwitchLabel, string pSwitchTip) => new()

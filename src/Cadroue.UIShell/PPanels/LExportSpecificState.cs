@@ -5,31 +5,51 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed class LExportSpecificState
 {
+    public const string LPresetAudioDefaultName = "Audio Processing (default)";
+    public const string LPresetSplitDefaultName = "Split (default)";
+
     private static readonly Dictionary<string, LExportSpecificState> LPresetMap = new(StringComparer.OrdinalIgnoreCase);
 
     static LExportSpecificState()
     {
+        LPresetNativeAdd(LPresetAudioDefaultCreate());
+        LPresetNativeAdd(LPresetSplitDefaultCreate());
         IReadOnlyList<LExportSpecificState>? lStoredPresets = LExportSpecificPresetStore.LPresetLoad();
         if (lStoredPresets is null)
         {
             var lDefault = new LExportSpecificState { PresetName = "MP4_H264_AAC_Default" };
-            LPresetMap[lDefault.PresetName] = lDefault.LPresetClone();
-            LPresetNames.Add(lDefault.PresetName);
+            LPresetStoredAdd(lDefault);
             return;
         }
 
         foreach (LExportSpecificState lPreset in lStoredPresets)
         {
-            if (string.IsNullOrWhiteSpace(lPreset.PresetName))
-            {
-                continue;
-            }
-
-            string lName = lPreset.PresetName.Trim();
-            lPreset.PresetName = lName;
-            LPresetMap[lName] = lPreset.LPresetClone();
-            LPresetNames.Add(lName);
+            LPresetStoredAdd(lPreset);
         }
+    }
+
+    private static void LPresetNativeAdd(LExportSpecificState lPreset)
+    {
+        LPresetMap[lPreset.PresetName] = lPreset.LPresetClone();
+        LPresetNames.Add(lPreset.PresetName);
+    }
+
+    private static void LPresetStoredAdd(LExportSpecificState lPreset)
+    {
+        if (string.IsNullOrWhiteSpace(lPreset.PresetName))
+        {
+            return;
+        }
+
+        string lName = lPreset.PresetName.Trim();
+        if (LPresetNativeCheck(lName))
+        {
+            return;
+        }
+
+        lPreset.PresetName = lName;
+        LPresetMap[lName] = lPreset.LPresetClone();
+        LPresetNames.Add(lName);
     }
 
     public static ObservableCollection<string> LPresetNames { get; } = new();
@@ -118,6 +138,24 @@ public sealed class LExportSpecificState
         AudioSampleRate = AudioSampleRate,
         AudioChannels = AudioChannels
     };
+
+    public static LExportSpecificState LPresetInitialCreate(string lPresetTabKey)
+    {
+        var lPresetState = new LExportSpecificState();
+        string? lPresetName = lPresetTabKey switch
+        {
+            "Audio" => LPresetAudioDefaultName,
+            "Split" => LPresetSplitDefaultName,
+            _ => null
+        };
+
+        if (lPresetName is not null && LPresetTryLoad(lPresetName, lPresetState))
+        {
+            return lPresetState;
+        }
+
+        return lPresetState;
+    }
 
     public event Action? LPresetChange;
 
@@ -231,6 +269,11 @@ public sealed class LExportSpecificState
         }
 
         string lName = lPresetName.Trim();
+        if (LPresetNativeCheck(lName))
+        {
+            return;
+        }
+
         var lPreset = lSource.LPresetClone();
         lPreset.PresetName = lName;
         LPresetMap[lName] = lPreset;
@@ -249,6 +292,11 @@ public sealed class LExportSpecificState
         }
 
         string lName = lPresetName.Trim();
+        if (LPresetNativeCheck(lName))
+        {
+            return false;
+        }
+
         if (!LPresetMap.Remove(lName))
         {
             return false;
@@ -278,7 +326,12 @@ public sealed class LExportSpecificState
             return false;
         }
 
-        lTargetIndex = Math.Clamp(lTargetIndex, 0, LPresetNames.Count);
+        if (LPresetNativeCheck(lPresetName))
+        {
+            return false;
+        }
+
+        lTargetIndex = Math.Clamp(lTargetIndex, LPresetNativeCountRead(), LPresetNames.Count);
         if (lSourceIndex < lTargetIndex)
         {
             lTargetIndex--;
@@ -316,6 +369,11 @@ public sealed class LExportSpecificState
         var lPresets = new List<LExportSpecificState>();
         foreach (string lName in LPresetNames)
         {
+            if (LPresetNativeCheck(lName))
+            {
+                continue;
+            }
+
             if (LPresetMap.TryGetValue(lName, out LExportSpecificState? lPreset))
             {
                 lPresets.Add(lPreset.LPresetClone());
@@ -323,6 +381,80 @@ public sealed class LExportSpecificState
         }
         LExportSpecificPresetStore.LPresetSave(lPresets);
     }
+
+    public static bool LPresetNativeCheck(string lPresetName) =>
+        string.Equals(lPresetName, LPresetAudioDefaultName, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(lPresetName, LPresetSplitDefaultName, StringComparison.OrdinalIgnoreCase);
+
+    public static string LPresetDisplayNameRead(string lPresetName) => lPresetName switch
+    {
+        LPresetAudioDefaultName => "Audio Processing",
+        LPresetSplitDefaultName => "Split",
+        _ => lPresetName
+    };
+
+    private static int LPresetNativeCountRead() =>
+        LPresetNames.Count(LPresetNativeCheck);
+
+    private static LExportSpecificState LPresetAudioDefaultCreate() => new()
+    {
+        PresetName = LPresetAudioDefaultName,
+        Name = "{OriginalName}",
+        Container = "Same as source",
+        ExportMode = "Smart export",
+        VideoStream = "Include",
+        AudioStream = "Include first audio track",
+        VideoMode = "Copy",
+        AudioMode = "Auto",
+        VideoEncoder = "H.264, x264 / libx264",
+        VideoRateControl = "CRF (constant quality)",
+        VideoQuality = "28",
+        VideoSpeedPreset = "medium",
+        Location = "Subfolder",
+        LocationFolder = "Audio",
+        VideoSize = "Same as source",
+        VideoSizeReactive = false,
+        VideoFps = "Same as source",
+        PixelFormat = "Auto",
+        VideoExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["-tune"] = "none"
+        },
+        AudioEncoder = "AAC",
+        AudioBitrate = "320k",
+        AudioSampleRate = "Same as source",
+        AudioChannels = "Same as source"
+    };
+
+    private static LExportSpecificState LPresetSplitDefaultCreate() => new()
+    {
+        PresetName = LPresetSplitDefaultName,
+        Name = "{OriginalName} ({SectionNumber}) {Prefix}{SectionName}{Suffix}",
+        Container = "Same as source",
+        ExportMode = "Smart export",
+        VideoStream = "Include",
+        AudioStream = "Include first audio track",
+        VideoMode = "Copy",
+        AudioMode = "Copy",
+        VideoEncoder = "H.264, x264 / libx264",
+        VideoRateControl = "CRF (constant quality)",
+        VideoQuality = "28",
+        VideoSpeedPreset = "medium",
+        Location = "Same as source",
+        LocationFolder = string.Empty,
+        VideoSize = "Same as source",
+        VideoSizeReactive = false,
+        VideoFps = "Same as source",
+        PixelFormat = "Auto",
+        VideoExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["-tune"] = "none"
+        },
+        AudioEncoder = "AAC",
+        AudioBitrate = "96k",
+        AudioSampleRate = "Same as source",
+        AudioChannels = "Same as source"
+    };
 
     private string LAudioStreamSummary => AudioStream switch
     {

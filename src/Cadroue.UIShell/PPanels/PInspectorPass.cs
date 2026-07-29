@@ -32,6 +32,7 @@ public sealed partial class PInspector
     private sealed class PInspectorPass
     {
         public required CheckBox PInspectorPassApply { get; init; }
+        public required CheckBox PInspectorPassPersistent { get; init; }
         public required ComboBox PInspectorPassPreset { get; init; }
         public required Slider PInspectorPassFrequency { get; init; }
         public required TextBox PInspectorPassValue { get; init; }
@@ -82,6 +83,9 @@ public sealed partial class PInspector
         double pDefault, double pMin, double pMax, string pApplyTip, IReadOnlyList<PInspectorPassPreset> pPresets)
     {
         CheckBox pApply = PInspectorSwitchBuild("Apply", pApplyTip);
+        CheckBox pPersistent = PInspectorSwitchBuild(
+            "Persistent",
+            "Apply the current filter setup to every loaded file");
 
         var pPreset = new ComboBox
         {
@@ -138,6 +142,7 @@ public sealed partial class PInspector
         var pPass = new PInspectorPass
         {
             PInspectorPassApply = pApply,
+            PInspectorPassPersistent = pPersistent,
             PInspectorPassPreset = pPreset,
             PInspectorPassFrequency = pFrequency,
             PInspectorPassValue = pValue,
@@ -256,15 +261,45 @@ public sealed partial class PInspector
         }
     }
 
+    private void PInspectorPassApply(PInspectorPass pPass, Cadroue.Core.LWorkAudioStep pStep)
+    {
+        pPass.PInspectorPassApply.IsChecked = pStep.LWorkAudioStepActive;
+        pPass.PInspectorPassPreset.SelectedItem = "Custom";
+        pPass.PInspectorPassSuppress = true;
+        pPass.PInspectorPassStageSuppress = true;
+        pPass.PInspectorPassFrequency.Value = Math.Clamp(
+            pStep.LWorkAudioStepFrequency,
+            pPass.PInspectorPassMin,
+            pPass.PInspectorPassMax);
+        pPass.PInspectorPassValue.Text = pStep.LWorkAudioStepFrequency.ToString("0", CultureInfo.InvariantCulture);
+        pPass.PInspectorPassStages.Value = Math.Clamp(
+            pStep.LWorkAudioStepStages,
+            PInspectorPassMinStages,
+            PInspectorPassMaxStages);
+        pPass.PInspectorPassStageValue.Text = pStep.LWorkAudioStepStages.ToString(CultureInfo.InvariantCulture);
+        pPass.PInspectorPassPoles.SelectedIndex = pStep.LWorkAudioStepPoles == 1 ? 0 : 1;
+        pPass.PInspectorPassResonance.Text = pStep.LWorkAudioStepResonance.ToString("0.###", CultureInfo.InvariantCulture);
+        pPass.PInspectorPassSuppress = false;
+        pPass.PInspectorPassStageSuppress = false;
+        PInspectorPassLock(pPass, false);
+        PInspectorPassApplyUpdate(pPass);
+    }
+
     private Grid PInspectorPassSliderRowBuild(string pLabel, Slider pSlider, string pUnit, TextBox pValue)
     {
-        var pRow = new Grid();
+        var pRow = new Grid
+        {
+            Height = PInspectorRowHeight,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         TextBlock pLabelBlock = PInspectorLabelBuild(pLabel);
+        pSlider.VerticalAlignment = VerticalAlignment.Center;
+        pValue.VerticalAlignment = VerticalAlignment.Center;
         var pUnitBlock = new TextBlock
         {
             Text = pUnit,

@@ -45,6 +45,7 @@ coverage*.xml
 # Misc temp / precompiled
 *.tmp
 *.tmp_proj
+*_wpftmp.csproj
 *.cache
 *.dll
 *.exe

@@ -12,6 +12,7 @@ public sealed class PEditTab : PTabSurface
     private readonly PViewer pViewer = new();
     private readonly PInspector pInspector = new();
     private readonly PList pList = new();
+    private readonly PProcessing pProcessing = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pEditPlanLoading;
 
@@ -35,7 +36,6 @@ public sealed class PEditTab : PTabSurface
             "Persistent off: add every loaded file that has a processing plan saved beside it.\n"
             + "Persistent on: add every loaded file and give them all the plan shown here, even when nothing is applied.");
 
-        var pProcessing = new PProcessing();
         pProcessing.PProcessingStepAdd("Crop", PEditCropIconPath);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
@@ -47,6 +47,7 @@ public sealed class PEditTab : PTabSurface
         pInspector.PInspectorCropChange += _ => PEditPlanSave();
         pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
+        pInspector.PInspectorCropActiveChange += PEditActiveRefresh;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
         pList.PListPathChange += PEditPathShow;
@@ -59,7 +60,11 @@ public sealed class PEditTab : PTabSurface
         }
 
         Content = pTabGrid;
+        PEditActiveRefresh();
     }
+
+    private void PEditActiveRefresh() =>
+        pProcessing.PProcessingActiveSet("Crop", pInspector.PInspectorCropActiveCheck());
 
     private void PEditPathShow(string? pSourcePath)
     {

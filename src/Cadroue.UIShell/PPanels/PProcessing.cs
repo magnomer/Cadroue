@@ -31,11 +31,21 @@ public sealed class PProcessing : PPanel
     private bool pProcessingDragActive;
     private Border? pProcessingRowDragging;
     private bool pProcessingOrdered;
+    private readonly HashSet<string> pProcessingActiveSteps = new(StringComparer.Ordinal);
 
     public void PProcessingOrderedSet(bool pOrderedRequest) => pProcessingOrdered = pOrderedRequest;
 
     public void PProcessingActiveSet(string pStepName, bool pActive)
     {
+        if (pActive)
+        {
+            pProcessingActiveSteps.Add(pStepName);
+        }
+        else
+        {
+            pProcessingActiveSteps.Remove(pStepName);
+        }
+
         foreach (UIElement pRow in pProcessingRowPanel.Children)
         {
             if (pRow is not Border { Tag: string pRowName, Child: StackPanel pRowContent } || pRowName != pStepName)
@@ -43,22 +53,28 @@ public sealed class PProcessing : PPanel
                 continue;
             }
 
-            Brush pTextBrush = pActive ? pProcessingActiveBrush : pProcessingTextBrush;
-            Brush pIconBrush = pActive ? pProcessingActiveBrush : pProcessingIconBrush;
-            foreach (UIElement pPiece in pRowContent.Children)
-            {
-                switch (pPiece)
-                {
-                    case Image { Tag: string pIconPath } pIcon:
-                        pIcon.Source = PIcon.PIconRead(pIconPath, pIconBrush);
-                        break;
-                    case TextBlock pText:
-                        pText.Foreground = pTextBrush;
-                        break;
-                }
-            }
+            PProcessingRowActiveApply(pRowContent, pActive);
 
             return;
+        }
+    }
+
+    private static void PProcessingRowActiveApply(StackPanel pRowContent, bool pActive)
+    {
+        Brush pTextBrush = pActive ? pProcessingActiveBrush : pProcessingTextBrush;
+        Brush pIconBrush = pActive ? pProcessingActiveBrush : pProcessingIconBrush;
+        foreach (UIElement pPiece in pRowContent.Children)
+        {
+            switch (pPiece)
+            {
+                case Image { Tag: string pIconPath } pIcon:
+                    pIcon.Source = PIcon.PIconRead(pIconPath, pIconBrush);
+                    break;
+                case TextBlock { Tag: "Label" } pText:
+                    pText.Foreground = pTextBrush;
+                    pText.FontWeight = pActive ? FontWeights.SemiBold : FontWeights.Normal;
+                    break;
+            }
         }
     }
 
@@ -260,8 +276,9 @@ public sealed class PProcessing : PPanel
             Text = pStepName,
             FontSize = 12,
             FontFamily = pProcessingFontFamily,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27)),
-            VerticalAlignment = VerticalAlignment.Center
+            Foreground = pProcessingTextBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            Tag = "Label"
         });
 
         var pRowBorder = new Border
@@ -274,6 +291,7 @@ public sealed class PProcessing : PPanel
             Child = pRowContent,
             Tag = pStepName
         };
+        PProcessingRowActiveApply(pRowContent, pProcessingActiveSteps.Contains(pStepName));
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
             pProcessingStepCurrent = pStepName;

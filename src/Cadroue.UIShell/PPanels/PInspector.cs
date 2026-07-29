@@ -14,6 +14,7 @@ public sealed partial class PInspector : PPanel
 
     private const double PInspectorLabelWidth = 58;
     private const double PInspectorFieldHeight = 26;
+    private const double PInspectorRowHeight = 34;
 
     public const double PInspectorStripWidth = 48;
 
@@ -182,7 +183,13 @@ public sealed partial class PInspector : PPanel
         pInspectorNoiseBody.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorHighPass.PInspectorPassBody.Visibility = pHighPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorLowPass.PInspectorPassBody.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorPersistentRow.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorPersistentRow.Visibility = pKnownSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorPersistentBox.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorVolumePersistent.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorNormalizePersistent.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorNoisePersistent.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorHighPass.PInspectorPassPersistent.Visibility = pHighPassSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorLowPass.PInspectorPassPersistent.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorEmptyNotice.Visibility = pKnownSelected ? Visibility.Collapsed : Visibility.Visible;
 
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)
@@ -196,6 +203,7 @@ public sealed partial class PInspector : PPanel
         var pFieldPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
+            Height = PInspectorRowHeight,
             Margin = new Thickness(0, 0, 0, 8)
         };
         pFieldPanel.Children.Add(PInspectorLabelBuild(pFieldLabel));

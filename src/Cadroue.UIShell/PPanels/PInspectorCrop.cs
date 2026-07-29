@@ -48,6 +48,7 @@ public sealed partial class PInspector
     public event Action<Rect?>? PInspectorCropChange;
     public event Action<LRotateFlip>? PInspectorRotateChange;
     public event Action<bool>? PInspectorPersistentChange;
+    public event Action? PInspectorCropActiveChange;
 
     public void PInspectorSourceSet(double pSourceWidth, double pSourceHeight)
     {
@@ -124,6 +125,8 @@ public sealed partial class PInspector
 
     public bool PInspectorPersistentCheck() => pInspectorPersistentBox.IsChecked == true;
 
+    public bool PInspectorCropActiveCheck() => pInspectorApplyBox.IsChecked == true;
+
     public void PInspectorMediaReset()
     {
         if (pInspectorPersistentBox.IsChecked == true)
@@ -178,6 +181,7 @@ public sealed partial class PInspector
         bool pApplyActive = pInspectorApplyBox.IsChecked == true;
         pInspectorCropStack.IsEnabled = pApplyActive;
         pInspectorCropStack.Opacity = pApplyActive ? 1 : 0.4;
+        PInspectorCropActiveChange?.Invoke();
     }
 
     private void PInspectorToolUpdate()
