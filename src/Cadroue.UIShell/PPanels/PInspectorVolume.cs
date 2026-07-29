@@ -29,6 +29,27 @@ public sealed partial class PInspector
             PInspectorDecimalRead(pInspectorNormalizePeak, -1.5),
             PInspectorDecimalRead(pInspectorNormalizeRange, 11),
             pInspectorNormalizeTwoPass.IsChecked == true),
+        LWorkAudioKind.LWorkAudioKindNoiseReduction => LWorkAudioStep.LWorkAudioNoiseCreate(
+            pInspectorNoiseApply.IsChecked == true,
+            Math.Clamp(PInspectorDecimalRead(pInspectorNoiseReductionValue, 12), PInspectorNoiseMinReduction, PInspectorNoiseMaxReduction),
+            PInspectorDecimalRead(pInspectorNoiseFloor, -50),
+            pInspectorNoiseTrack.IsChecked == true,
+            PInspectorNoiseTypeRead(),
+            Math.Clamp(PInspectorDecimalRead(pInspectorNoiseSmoothValue, 6), PInspectorNoiseMinSmooth, PInspectorNoiseMaxSmooth),
+            Math.Clamp(PInspectorDecimalRead(pInspectorNoiseAdaptivity, 0.5), 0, 1),
+            PInspectorDecimalRead(pInspectorNoiseResidual, -38)),
+        LWorkAudioKind.LWorkAudioKindHighPass => LWorkAudioStep.LWorkAudioHighPassCreate(
+            pInspectorHighPass.PInspectorPassApply.IsChecked == true,
+            PInspectorPassRead(pInspectorHighPass),
+            PInspectorPassStagesRead(pInspectorHighPass),
+            PInspectorPassPolesRead(pInspectorHighPass),
+            PInspectorPassResonanceRead(pInspectorHighPass)),
+        LWorkAudioKind.LWorkAudioKindLowPass => LWorkAudioStep.LWorkAudioLowPassCreate(
+            pInspectorLowPass.PInspectorPassApply.IsChecked == true,
+            PInspectorPassRead(pInspectorLowPass),
+            PInspectorPassStagesRead(pInspectorLowPass),
+            PInspectorPassPolesRead(pInspectorLowPass),
+            PInspectorPassResonanceRead(pInspectorLowPass)),
         _ => LWorkAudioStep.LWorkAudioVolumeCreate(
             pInspectorVolumeApply.IsChecked == true,
             Math.Clamp(PInspectorDecimalRead(pInspectorVolumeValue, 0), PInspectorVolumeMinDb, PInspectorVolumeMaxDb))
@@ -45,7 +66,6 @@ public sealed partial class PInspector
             Minimum = PInspectorVolumeMinDb,
             Maximum = PInspectorVolumeMaxDb,
             Value = 0,
-            Width = 132,
             VerticalAlignment = VerticalAlignment.Center
         };
         PSlider.PSliderApply(pInspectorVolumeSlider);
@@ -79,10 +99,14 @@ public sealed partial class PInspector
             PInspectorVolumeWarnUpdate();
         };
 
-        var pGainRow = new StackPanel { Orientation = Orientation.Horizontal };
-        pGainRow.Children.Add(PInspectorLabelBuild("Gain"));
-        pGainRow.Children.Add(pInspectorVolumeSlider);
-        pGainRow.Children.Add(new TextBlock
+        var pGainRow = new Grid();
+        pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        TextBlock pGainLabel = PInspectorLabelBuild("Gain");
+        var pGainUnit = new TextBlock
         {
             Text = "dB",
             FontSize = 11,
@@ -90,7 +114,15 @@ public sealed partial class PInspector
             Foreground = pInspectorMutedBrush,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(8, 0, 8, 0)
-        });
+        };
+
+        Grid.SetColumn(pGainLabel, 0);
+        Grid.SetColumn(pInspectorVolumeSlider, 1);
+        Grid.SetColumn(pGainUnit, 2);
+        Grid.SetColumn(pInspectorVolumeValue, 3);
+        pGainRow.Children.Add(pGainLabel);
+        pGainRow.Children.Add(pInspectorVolumeSlider);
+        pGainRow.Children.Add(pGainUnit);
         pGainRow.Children.Add(pInspectorVolumeValue);
 
         pInspectorVolumeWarn = new TextBlock

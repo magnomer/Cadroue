@@ -183,6 +183,34 @@ public static class LEncode
                         CultureInfo.InvariantCulture,
                         $"volume={lStep.LWorkAudioStepGain.ToString("0.###", CultureInfo.InvariantCulture)}dB"));
                     break;
+                case LWorkAudioKind.LWorkAudioKindNoiseReduction:
+                    string lNoiseType = lStep.LWorkAudioStepNoiseType switch
+                    {
+                        LWorkAudioNoiseType.LWorkAudioNoiseVinyl => "vinyl",
+                        LWorkAudioNoiseType.LWorkAudioNoiseShellac => "shellac",
+                        _ => "white"
+                    };
+                    string lDenoise = string.Create(
+                        CultureInfo.InvariantCulture,
+                        $"afftdn=nr={lStep.LWorkAudioStepReduction.ToString("0.###", CultureInfo.InvariantCulture)}:" +
+                        $"nf={lStep.LWorkAudioStepNoiseFloor.ToString("0.###", CultureInfo.InvariantCulture)}:" +
+                        $"rf={lStep.LWorkAudioStepResidualFloor.ToString("0.###", CultureInfo.InvariantCulture)}:" +
+                        $"ad={lStep.LWorkAudioStepAdaptivity.ToString("0.###", CultureInfo.InvariantCulture)}:" +
+                        $"gs={lStep.LWorkAudioStepGainSmooth.ToString("0.###", CultureInfo.InvariantCulture)}:" +
+                        $"nt={lNoiseType}");
+                    if (lStep.LWorkAudioStepTrackNoise)
+                    {
+                        lDenoise += ":tn=1";
+                    }
+
+                    lFilters.Add(lDenoise);
+                    break;
+                case LWorkAudioKind.LWorkAudioKindHighPass:
+                    LEncodePassAppend(lFilters, lStep, "highpass");
+                    break;
+                case LWorkAudioKind.LWorkAudioKindLowPass:
+                    LEncodePassAppend(lFilters, lStep, "lowpass");
+                    break;
                 case LWorkAudioKind.LWorkAudioKindNormalize:
                     if (lStep.LWorkAudioStepMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic)
                     {
@@ -212,6 +240,21 @@ public static class LEncode
         }
 
         return lFilters.Count > 0 ? string.Join(',', lFilters) : null;
+    }
+
+    private static void LEncodePassAppend(List<string> lFilters, LWorkAudioStep lStep, string lFilterName)
+    {
+        int lStages = Math.Max(1, lStep.LWorkAudioStepStages);
+        int lPoles = lStep.LWorkAudioStepPoles == 1 ? 1 : 2;
+        string lFragment = string.Create(
+            CultureInfo.InvariantCulture,
+            $"{lFilterName}=f={lStep.LWorkAudioStepFrequency.ToString("0.###", CultureInfo.InvariantCulture)}:" +
+            $"poles={lPoles}:width_type=q:width={lStep.LWorkAudioStepResonance.ToString("0.###", CultureInfo.InvariantCulture)}");
+
+        for (int lStage = 0; lStage < lStages; lStage++)
+        {
+            lFilters.Add(lFragment);
+        }
     }
 
     public static string LEncodeLoudnormMeasureRead(string lStderr)

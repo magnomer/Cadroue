@@ -1,0 +1,230 @@
+using System.Globalization;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Cadroue.Core;
+using Cadroue.UIShell.PMainWindow;
+
+namespace Cadroue.UIShell.PPanels;
+
+public sealed partial class PInspector
+{
+    private const double PInspectorNoiseMinReduction = 0;
+    private const double PInspectorNoiseMaxReduction = 30;
+    private const double PInspectorNoiseMinSmooth = 0;
+    private const double PInspectorNoiseMaxSmooth = 50;
+
+    private CheckBox pInspectorNoiseApply = null!;
+    private ComboBox pInspectorNoisePreset = null!;
+    private Slider pInspectorNoiseReduction = null!;
+    private TextBox pInspectorNoiseReductionValue = null!;
+    private TextBox pInspectorNoiseFloor = null!;
+    private Slider pInspectorNoiseSmooth = null!;
+    private TextBox pInspectorNoiseSmoothValue = null!;
+    private TextBox pInspectorNoiseAdaptivity = null!;
+    private TextBox pInspectorNoiseResidual = null!;
+    private ComboBox pInspectorNoiseType = null!;
+    private CheckBox pInspectorNoiseTrack = null!;
+    private StackPanel pInspectorNoiseStack = null!;
+    private StackPanel pInspectorNoiseBody = null!;
+    private bool pInspectorNoiseSuppress;
+    private bool pInspectorNoiseSmoothSuppress;
+
+    private LWorkAudioNoiseType PInspectorNoiseTypeRead() => pInspectorNoiseType.SelectedIndex switch
+    {
+        1 => LWorkAudioNoiseType.LWorkAudioNoiseVinyl,
+        2 => LWorkAudioNoiseType.LWorkAudioNoiseShellac,
+        _ => LWorkAudioNoiseType.LWorkAudioNoiseWhite
+    };
+
+    private StackPanel PInspectorNoiseBodyBuild()
+    {
+        pInspectorNoiseApply = PInspectorSwitchBuild("Apply", "Apply noise reduction to queued jobs");
+        pInspectorNoiseApply.Checked += (_, _) => PInspectorNoiseApplyUpdate();
+        pInspectorNoiseApply.Unchecked += (_, _) => PInspectorNoiseApplyUpdate();
+
+        pInspectorNoisePreset = new ComboBox
+        {
+            Height = PInspectorFieldHeight,
+            Width = 140,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily
+        };
+        PDropdown.PDropdownApply(pInspectorNoisePreset);
+        pInspectorNoisePreset.Items.Add("Light");
+        pInspectorNoisePreset.Items.Add("Medium");
+        pInspectorNoisePreset.Items.Add("Strong");
+        pInspectorNoisePreset.Items.Add("Vinyl");
+        pInspectorNoisePreset.Items.Add("Shellac");
+        pInspectorNoisePreset.Items.Add("Custom");
+        pInspectorNoisePreset.SelectedItem = "Medium";
+        pInspectorNoisePreset.SelectionChanged += (_, _) => PInspectorNoisePresetApply();
+
+        pInspectorNoiseReduction = new Slider
+        {
+            Minimum = PInspectorNoiseMinReduction,
+            Maximum = PInspectorNoiseMaxReduction,
+            Value = 12,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pInspectorNoiseReduction);
+        pInspectorNoiseReductionValue = PInspectorDecimalBoxBuild();
+        pInspectorNoiseReductionValue.Text = "12";
+        pInspectorNoiseReduction.ValueChanged += (_, _) =>
+        {
+            if (pInspectorNoiseSuppress) { return; }
+            pInspectorNoiseSuppress = true;
+            pInspectorNoiseReductionValue.Text = pInspectorNoiseReduction.Value.ToString("0.#", CultureInfo.InvariantCulture);
+            pInspectorNoiseSuppress = false;
+        };
+        pInspectorNoiseReductionValue.TextChanged += (_, _) =>
+        {
+            if (pInspectorNoiseSuppress) { return; }
+            pInspectorNoiseSuppress = true;
+            pInspectorNoiseReduction.Value = Math.Clamp(
+                PInspectorDecimalRead(pInspectorNoiseReductionValue, 12), PInspectorNoiseMinReduction, PInspectorNoiseMaxReduction);
+            pInspectorNoiseSuppress = false;
+        };
+
+        pInspectorNoiseSmooth = new Slider
+        {
+            Minimum = PInspectorNoiseMinSmooth,
+            Maximum = PInspectorNoiseMaxSmooth,
+            Value = 6,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pInspectorNoiseSmooth);
+        pInspectorNoiseSmoothValue = PInspectorDecimalBoxBuild();
+        pInspectorNoiseSmoothValue.Text = "6";
+        pInspectorNoiseSmooth.ValueChanged += (_, _) =>
+        {
+            if (pInspectorNoiseSmoothSuppress) { return; }
+            pInspectorNoiseSmoothSuppress = true;
+            pInspectorNoiseSmoothValue.Text = pInspectorNoiseSmooth.Value.ToString("0.#", CultureInfo.InvariantCulture);
+            pInspectorNoiseSmoothSuppress = false;
+        };
+        pInspectorNoiseSmoothValue.TextChanged += (_, _) =>
+        {
+            if (pInspectorNoiseSmoothSuppress) { return; }
+            pInspectorNoiseSmoothSuppress = true;
+            pInspectorNoiseSmooth.Value = Math.Clamp(
+                PInspectorDecimalRead(pInspectorNoiseSmoothValue, 6), PInspectorNoiseMinSmooth, PInspectorNoiseMaxSmooth);
+            pInspectorNoiseSmoothSuppress = false;
+        };
+
+        pInspectorNoiseFloor = PInspectorDecimalBoxBuild();
+        pInspectorNoiseFloor.Text = "-50";
+        pInspectorNoiseAdaptivity = PInspectorDecimalBoxBuild();
+        pInspectorNoiseAdaptivity.Text = "0.5";
+        pInspectorNoiseResidual = PInspectorDecimalBoxBuild();
+        pInspectorNoiseResidual.Text = "-38";
+
+        pInspectorNoiseType = new ComboBox
+        {
+            Height = PInspectorFieldHeight,
+            Width = 120,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily
+        };
+        PDropdown.PDropdownApply(pInspectorNoiseType);
+        pInspectorNoiseType.Items.Add("White");
+        pInspectorNoiseType.Items.Add("Vinyl");
+        pInspectorNoiseType.Items.Add("Shellac");
+        pInspectorNoiseType.SelectedIndex = 0;
+
+        pInspectorNoiseTrack = new CheckBox
+        {
+            Content = "Track noise",
+            ToolTip = "Follow noise that changes over time instead of a fixed floor",
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily,
+            Foreground = PPanelTextBrush,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 8, 0, 0)
+        };
+
+        pInspectorNoiseStack = new StackPanel();
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Preset", pInspectorNoisePreset));
+        pInspectorNoiseStack.Children.Add(PInspectorPassSliderRowBuild("Amount", pInspectorNoiseReduction, "dB", pInspectorNoiseReductionValue));
+        pInspectorNoiseStack.Children.Add(PInspectorPassSliderRowBuild("Smoothing", pInspectorNoiseSmooth, "gs", pInspectorNoiseSmoothValue));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Floor", PInspectorNormalizeUnitRowBuild(pInspectorNoiseFloor, "dB")));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Residual", PInspectorNormalizeUnitRowBuild(pInspectorNoiseResidual, "dB")));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Adaptivity", PInspectorNormalizeUnitRowBuild(pInspectorNoiseAdaptivity, "0-1")));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Noise", pInspectorNoiseType));
+        pInspectorNoiseStack.Children.Add(pInspectorNoiseTrack);
+
+        pInspectorNoiseBody = new StackPanel
+        {
+            Margin = new Thickness(12, 12, 12, 12),
+            Visibility = Visibility.Collapsed
+        };
+        pInspectorNoiseBody.Children.Add(pInspectorNoiseApply);
+        pInspectorNoiseBody.Children.Add(PInspectorSeparatorBuild());
+        pInspectorNoiseBody.Children.Add(pInspectorNoiseStack);
+
+        PInspectorNoiseApplyUpdate();
+        PInspectorNoisePresetApply();
+        return pInspectorNoiseBody;
+    }
+
+    private void PInspectorNoisePresetApply()
+    {
+        if (pInspectorNoisePreset.SelectedItem is not string pName || pName == "Custom")
+        {
+            PInspectorNoiseLock(false);
+            return;
+        }
+
+        (double pReduction, double pFloor, double pSmooth, double pAdaptivity, double pResidual, int pType) = pName switch
+        {
+            "Light" => (8d, -50d, 4d, 0.5d, -38d, 0),
+            "Strong" => (24d, -45d, 10d, 0.4d, -30d, 0),
+            "Vinyl" => (12d, -50d, 6d, 0.5d, -38d, 1),
+            "Shellac" => (12d, -50d, 8d, 0.5d, -35d, 2),
+            _ => (12d, -50d, 6d, 0.5d, -38d, 0)
+        };
+
+        pInspectorNoiseSuppress = true;
+        pInspectorNoiseSmoothSuppress = true;
+        pInspectorNoiseReduction.Value = Math.Clamp(pReduction, PInspectorNoiseMinReduction, PInspectorNoiseMaxReduction);
+        pInspectorNoiseReductionValue.Text = pReduction.ToString("0.#", CultureInfo.InvariantCulture);
+        pInspectorNoiseSmooth.Value = Math.Clamp(pSmooth, PInspectorNoiseMinSmooth, PInspectorNoiseMaxSmooth);
+        pInspectorNoiseSmoothValue.Text = pSmooth.ToString("0.#", CultureInfo.InvariantCulture);
+        pInspectorNoiseSuppress = false;
+        pInspectorNoiseSmoothSuppress = false;
+
+        pInspectorNoiseFloor.Text = pFloor.ToString("0.#", CultureInfo.InvariantCulture);
+        pInspectorNoiseResidual.Text = pResidual.ToString("0.#", CultureInfo.InvariantCulture);
+        pInspectorNoiseAdaptivity.Text = pAdaptivity.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNoiseType.SelectedIndex = pType;
+
+        PInspectorNoiseLock(true);
+    }
+
+    private void PInspectorNoiseLock(bool pLocked)
+    {
+        bool pEnabled = !pLocked;
+        double pOpacity = pLocked ? 0.6 : 1;
+        UIElement[] pControls =
+        {
+            pInspectorNoiseReduction, pInspectorNoiseReductionValue,
+            pInspectorNoiseSmooth, pInspectorNoiseSmoothValue,
+            pInspectorNoiseFloor, pInspectorNoiseResidual,
+            pInspectorNoiseAdaptivity, pInspectorNoiseType
+        };
+        foreach (UIElement pControl in pControls)
+        {
+            pControl.IsEnabled = pEnabled;
+            pControl.Opacity = pOpacity;
+        }
+    }
+
+    private void PInspectorNoiseApplyUpdate()
+    {
+        bool pNoiseActive = pInspectorNoiseApply.IsChecked == true;
+        pInspectorNoiseStack.IsEnabled = pNoiseActive;
+        pInspectorNoiseStack.Opacity = pNoiseActive ? 1 : 0.4;
+    }
+}

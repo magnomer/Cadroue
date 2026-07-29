@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,6 +10,7 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PInspector
 {
     private CheckBox pInspectorNormalizeApply = null!;
+    private ComboBox pInspectorNormalizePreset = null!;
     private ComboBox pInspectorNormalizeMode = null!;
     private TextBox pInspectorNormalizeTarget = null!;
     private TextBox pInspectorNormalizePeak = null!;
@@ -28,6 +30,24 @@ public sealed partial class PInspector
         pInspectorNormalizeApply = PInspectorSwitchBuild("Apply", "Apply loudness normalization to queued jobs");
         pInspectorNormalizeApply.Checked += (_, _) => PInspectorNormalizeApplyUpdate();
         pInspectorNormalizeApply.Unchecked += (_, _) => PInspectorNormalizeApplyUpdate();
+
+        pInspectorNormalizePreset = new ComboBox
+        {
+            Height = PInspectorFieldHeight,
+            Width = 140,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily
+        };
+        PDropdown.PDropdownApply(pInspectorNormalizePreset);
+        pInspectorNormalizePreset.Items.Add("Streaming");
+        pInspectorNormalizePreset.Items.Add("Podcast");
+        pInspectorNormalizePreset.Items.Add("Medium");
+        pInspectorNormalizePreset.Items.Add("Broadcast");
+        pInspectorNormalizePreset.Items.Add("TV");
+        pInspectorNormalizePreset.Items.Add("Custom");
+        pInspectorNormalizePreset.SelectedItem = "Medium";
+        pInspectorNormalizePreset.SelectionChanged += (_, _) => PInspectorNormalizePresetApply();
 
         pInspectorNormalizeMode = new ComboBox
         {
@@ -79,6 +99,7 @@ public sealed partial class PInspector
         };
 
         pInspectorNormalizeStack = new StackPanel();
+        pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild("Preset", pInspectorNormalizePreset));
         pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild("Mode", pInspectorNormalizeMode));
         pInspectorNormalizeStack.Children.Add(pInspectorNormalizeLoudnessStack);
         pInspectorNormalizeStack.Children.Add(pNotice);
@@ -94,7 +115,42 @@ public sealed partial class PInspector
 
         PInspectorNormalizeApplyUpdate();
         PInspectorNormalizeModeUpdate();
+        PInspectorNormalizePresetApply();
         return pInspectorNormalizeBody;
+    }
+
+    private void PInspectorNormalizePresetApply()
+    {
+        if (pInspectorNormalizePreset.SelectedItem is not string pPreset || pPreset == "Custom")
+        {
+            PInspectorNormalizeFieldsLock(false);
+            return;
+        }
+
+        (double pTarget, double pPeak, double pRange) = pPreset switch
+        {
+            "Streaming" => (-14d, -1d, 11d),
+            "Medium" => (-21d, -2d, 11d),
+            "Broadcast" => (-23d, -1d, 11d),
+            "TV" => (-24d, -2d, 11d),
+            _ => (-16d, -1.5d, 11d)
+        };
+
+        pInspectorNormalizeTarget.Text = pTarget.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizePeak.Text = pPeak.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizeRange.Text = pRange.ToString("0.###", CultureInfo.InvariantCulture);
+        PInspectorNormalizeFieldsLock(true);
+    }
+
+    private void PInspectorNormalizeFieldsLock(bool pLocked)
+    {
+        double pOpacity = pLocked ? 0.6 : 1;
+        pInspectorNormalizeTarget.IsReadOnly = pLocked;
+        pInspectorNormalizePeak.IsReadOnly = pLocked;
+        pInspectorNormalizeRange.IsReadOnly = pLocked;
+        pInspectorNormalizeTarget.Opacity = pOpacity;
+        pInspectorNormalizePeak.Opacity = pOpacity;
+        pInspectorNormalizeRange.Opacity = pOpacity;
     }
 
     private UIElement PInspectorNormalizeUnitRowBuild(TextBox pValueBox, string pUnitLabel)

@@ -75,6 +75,9 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PInspectorCropBodyBuild());
         pBody.Children.Add(PInspectorVolumeBodyBuild());
         pBody.Children.Add(PInspectorNormalizeBodyBuild());
+        pBody.Children.Add(PInspectorNoiseBodyBuild());
+        pBody.Children.Add(PInspectorHighPassBodyBuild());
+        pBody.Children.Add(PInspectorLowPassBodyBuild());
 
         var pScroll = new ScrollViewer
         {
@@ -157,18 +160,28 @@ public sealed partial class PInspector : PPanel
         bool pCropSelected = pStepName == "Crop";
         bool pVolumeSelected = pStepName == "Volume";
         bool pNormalizeSelected = pStepName == "Normalize";
-        bool pKnownSelected = pCropSelected || pVolumeSelected || pNormalizeSelected;
+        bool pNoiseSelected = pStepName == "Noise Reduction";
+        bool pHighPassSelected = pStepName == "High Pass";
+        bool pLowPassSelected = pStepName == "Low Pass";
+        bool pKnownSelected = pCropSelected || pVolumeSelected || pNormalizeSelected
+            || pNoiseSelected || pHighPassSelected || pLowPassSelected;
 
         pInspectorTitleLabel.Text = pStepName switch
         {
             "Crop" => "Crop",
             "Volume" => "Volume",
             "Normalize" => "Normalize",
+            "Noise Reduction" => "Noise Reduction",
+            "High Pass" => "High Pass",
+            "Low Pass" => "Low Pass",
             _ => "Inspector"
         };
         pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumeBody.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorNormalizeBody.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorNoiseBody.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorHighPass.PInspectorPassBody.Visibility = pHighPassSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorLowPass.PInspectorPassBody.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorPersistentRow.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorEmptyNotice.Visibility = pKnownSelected ? Visibility.Collapsed : Visibility.Visible;
 

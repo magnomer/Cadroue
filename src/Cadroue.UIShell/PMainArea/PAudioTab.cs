@@ -8,6 +8,9 @@ public sealed class PAudioTab : PTabSurface
 {
     private const string PAudioVolumeIconPath = "/PAssets/PPanels/PProcessingVolume.svg";
     private const string PAudioNormalizeIconPath = "/PAssets/PPanels/PProcessingNormalize.svg";
+    private const string PAudioNoiseIconPath = "/PAssets/PPanels/PProcessingNoiseReduction.svg";
+    private const string PAudioHighPassIconPath = "/PAssets/PPanels/PProcessingHighPass.svg";
+    private const string PAudioLowPassIconPath = "/PAssets/PPanels/PProcessingLowPass.svg";
 
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
@@ -20,6 +23,9 @@ public sealed class PAudioTab : PTabSurface
     {
         pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIconPath);
         pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIconPath);
+        pProcessing.PProcessingStepAdd("Noise Reduction", PAudioNoiseIconPath);
+        pProcessing.PProcessingStepAdd("High Pass", PAudioHighPassIconPath);
+        pProcessing.PProcessingStepAdd("Low Pass", PAudioLowPassIconPath);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
 
@@ -59,6 +65,9 @@ public sealed class PAudioTab : PTabSurface
     {
         "Volume" => LWorkAudioKind.LWorkAudioKindVolume,
         "Normalize" => LWorkAudioKind.LWorkAudioKindNormalize,
+        "Noise Reduction" => LWorkAudioKind.LWorkAudioKindNoiseReduction,
+        "High Pass" => LWorkAudioKind.LWorkAudioKindHighPass,
+        "Low Pass" => LWorkAudioKind.LWorkAudioKindLowPass,
         _ => null
     };
 
