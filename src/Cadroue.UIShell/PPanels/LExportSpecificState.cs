@@ -110,7 +110,8 @@ public sealed class LExportSpecificState
         AudioEncoder,
         AudioBitrate,
         AudioSampleRate,
-        AudioChannels);
+        AudioChannels,
+        PresetName);
 
     public LExportSpecificState LPresetClone() => new()
     {

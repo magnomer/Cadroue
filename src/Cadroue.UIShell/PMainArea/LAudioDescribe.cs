@@ -88,7 +88,7 @@ public static partial class LAudio
 
     private static LWorkAudioStep LAudioDefaultStepCreate(LWorkAudioKind lAudioKind) => lAudioKind switch
     {
-        LWorkAudioKind.LWorkAudioKindNormalize => LWorkAudioStep.LWorkAudioNormalizeCreate(false, LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -16, -1.5, 11, true),
+        LWorkAudioKind.LWorkAudioKindNormalize => LWorkAudioStep.LWorkAudioNormalizeCreate(false, LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -21, -2, 11, true),
         LWorkAudioKind.LWorkAudioKindNoiseReduction => LWorkAudioStep.LWorkAudioNoiseCreate(false, 12, -50, false, LWorkAudioNoiseType.LWorkAudioNoiseWhite, 6, 0.5, -38),
         LWorkAudioKind.LWorkAudioKindHighPass => LWorkAudioStep.LWorkAudioHighPassCreate(false, 100, 1, 2, 0.707),
         LWorkAudioKind.LWorkAudioKindLowPass => LWorkAudioStep.LWorkAudioLowPassCreate(false, 12000, 1, 2, 0.707),

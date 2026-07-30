@@ -25,6 +25,8 @@ internal static class PRosterTheme
     public static readonly Brush PRosterSelectBrush = PRosterBrushCreate(0xEE, 0xF4, 0xFB);
     public static readonly Brush PRosterTrackBrush = PRosterBrushCreate(0xE8, 0xEE, 0xF6);
 
+    public static readonly Brush PRosterAccentBrush = PRosterBrushCreate(0x4C, 0x86, 0xF7);
+
     public static readonly Brush PRosterRunBrush = PRosterBrushCreate(0x3A, 0x8B, 0xE0);
     public static readonly Brush PRosterDoneBrush = PRosterBrushCreate(0x2F, 0x9E, 0x64);
     public static readonly Brush PRosterFailBrush = PRosterBrushCreate(0xD6, 0x45, 0x45);

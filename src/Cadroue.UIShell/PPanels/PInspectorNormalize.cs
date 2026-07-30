@@ -125,6 +125,16 @@ public sealed partial class PInspector
         return pInspectorNormalizeBody;
     }
 
+    private static string PInspectorNormalizePresetResolve(double pTarget, double pPeak, double pRange)
+    {
+        bool pNear(double pLeft, double pRight) => Math.Abs(pLeft - pRight) < 0.01;
+        if (pNear(pTarget, -14) && pNear(pPeak, -1) && pNear(pRange, 11)) return "Streaming";
+        if (pNear(pTarget, -21) && pNear(pPeak, -2) && pNear(pRange, 11)) return "Medium";
+        if (pNear(pTarget, -23) && pNear(pPeak, -1) && pNear(pRange, 11)) return "Broadcast";
+        if (pNear(pTarget, -24) && pNear(pPeak, -2) && pNear(pRange, 11)) return "TV";
+        return "Custom";
+    }
+
     private void PInspectorNormalizePresetApply()
     {
         if (pInspectorNormalizePreset.SelectedItem is not string pPreset || pPreset == "Custom")

@@ -131,7 +131,8 @@ public sealed partial class PInspector
             case LWorkAudioKind.LWorkAudioKindNormalize:
                 pInspectorNormalizeApply.IsChecked = pStep.LWorkAudioStepActive;
                 pInspectorNormalizeMode.SelectedIndex = pStep.LWorkAudioStepMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic ? 1 : 0;
-                pInspectorNormalizePreset.SelectedItem = "Custom";
+                pInspectorNormalizePreset.SelectedItem = PInspectorNormalizePresetResolve(
+                    pStep.LWorkAudioStepTarget, pStep.LWorkAudioStepPeak, pStep.LWorkAudioStepRange);
                 pInspectorNormalizeTarget.Text = pStep.LWorkAudioStepTarget.ToString("0.###", CultureInfo.InvariantCulture);
                 pInspectorNormalizePeak.Text = pStep.LWorkAudioStepPeak.ToString("0.###", CultureInfo.InvariantCulture);
                 pInspectorNormalizeRange.Text = pStep.LWorkAudioStepRange.ToString("0.###", CultureInfo.InvariantCulture);

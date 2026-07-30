@@ -142,7 +142,6 @@ public sealed partial class LSchedule
             : nameof(LWorkState.LWorkStateFailed);
         lWorkRecord.Message = lScheduleMessage;
         lWorkRecord.Progress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
-        lWorkRecord.OwnerProcessId = 0;
         LScheduleRecordWrite(lWorkRecord, lScheduleTarget);
     }
 

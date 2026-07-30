@@ -25,7 +25,8 @@ public sealed record LWorkOutput(
     string LWorkOutputAudioEncoder,
     string LWorkOutputAudioBitrate,
     string LWorkOutputAudioSampleRate,
-    string LWorkOutputAudioChannels)
+    string LWorkOutputAudioChannels,
+    string LWorkOutputPresetName)
 {
     public string LWorkFolderRead(string lWorkSourcePath)
     {

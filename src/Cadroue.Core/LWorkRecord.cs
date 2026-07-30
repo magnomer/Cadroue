@@ -157,6 +157,7 @@ public sealed class LWorkOutputRecord
     public string AudioBitrate { get; set; } = string.Empty;
     public string AudioSampleRate { get; set; } = "Same as source";
     public string AudioChannels { get; set; } = "Same as source";
+    public string PresetName { get; set; } = string.Empty;
 
     public static LWorkOutputRecord LWorkOutputRecordCreate(LWorkOutput lWorkOutput) => new()
     {
@@ -182,7 +183,8 @@ public sealed class LWorkOutputRecord
         AudioEncoder = lWorkOutput.LWorkOutputAudioEncoder,
         AudioBitrate = lWorkOutput.LWorkOutputAudioBitrate,
         AudioSampleRate = lWorkOutput.LWorkOutputAudioSampleRate,
-        AudioChannels = lWorkOutput.LWorkOutputAudioChannels
+        AudioChannels = lWorkOutput.LWorkOutputAudioChannels,
+        PresetName = lWorkOutput.LWorkOutputPresetName
     };
 
     public LWorkOutput LWorkOutputCreate() => new(
@@ -208,5 +210,6 @@ public sealed class LWorkOutputRecord
         AudioEncoder,
         AudioBitrate,
         AudioSampleRate,
-        AudioChannels);
+        AudioChannels,
+        PresetName);
 }

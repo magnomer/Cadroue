@@ -22,7 +22,7 @@ public sealed class LStation
         LSchedule.LScheduleCurrent.LScheduleChange += LStationScheduleHandle;
     }
 
-    public string LStationLabel { get; }
+    public string LStationLabel { get; private set; }
 
     public bool LStationAutoActive
     {
@@ -49,11 +49,24 @@ public sealed class LStation
 
     public static LStation LStationCreate(string lStationLabel)
     {
-        var lStation = new LStation(lStationLabel);
+        LStation lStation = LStationSeedAdopt(lStationLabel);
         lStationRecords.Add(lStation);
         LStationInternalTrim();
         LStationChange?.Invoke();
         return lStation;
+    }
+
+    private static LStation LStationSeedAdopt(string lStationLabel)
+    {
+        if (lStationRecords.Count > 0 || lStationInternal is null)
+        {
+            return new LStation(lStationLabel);
+        }
+
+        LStation lStationSeed = lStationInternal;
+        lStationInternal = null;
+        lStationSeed.LStationLabel = lStationLabel;
+        return lStationSeed;
     }
 
     public static LStation LStationInternalRead()

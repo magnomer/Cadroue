@@ -127,6 +127,13 @@ public sealed partial class PRoster
     private void PRosterJobAdd(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
         PRosterSectionAdd("Job", true);
+
+        string pPresetName = pWorkItem.LWorkOutput.LWorkOutputPresetName;
+        if (!string.IsNullOrWhiteSpace(pPresetName))
+        {
+            PRosterRowAdd("Preset", pPresetName, 0, true, PRosterTheme.PRosterAccentBrush);
+        }
+
         PRosterRowAdd(
             PRosterKindFormat(pWorkItem.LWorkKind),
             $"{pWorkItem.LWorkStart:hh\\:mm\\:ss} - {pWorkItem.LWorkEnd:hh\\:mm\\:ss}  ({pWorkItem.LWorkDuration:hh\\:mm\\:ss})");
@@ -175,12 +182,7 @@ public sealed partial class PRoster
         PRosterRowAdd("State", PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent));
         PRosterRowAdd("Owner", PRosterOwnerFormat(pWorkItem));
         PRosterRowAdd("Attempts", pWorkItem.LWorkAttemptCount.ToString());
-
-        if (pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning)
-        {
-            PRosterRowAdd("Phase", PRosterPhaseFormat(pWorkItem.LWorkPhaseCurrent));
-        }
-
+        PRosterRowAdd("Phase", PRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
         PRosterRowAdd("Priority", PRosterPriorityFormat(pWorkItem.LWorkPriority));
         PRosterRowAdd("Export mode", pWorkItem.LWorkOutput.LWorkOutputExportMode);
         PRosterRowAdd("Queued", pWorkItem.LWorkCreateTime.ToString("yyyy-MM-dd HH:mm:ss"));
@@ -301,7 +303,7 @@ public sealed partial class PRoster
         pRosterRowTarget.Children.Add(pGrid);
     }
 
-    private void PRosterRowAdd(string pLabel, string pValue, double pIndent = 0)
+    private void PRosterRowAdd(string pLabel, string pValue, double pIndent = 0, bool pValueBold = false, Brush? pValueBrush = null)
     {
         var pGrid = new Grid { Margin = new Thickness(pIndent, 0, 0, 5) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PRosterTheme.PRosterLabelWidth - pIndent) });
@@ -317,8 +319,9 @@ public sealed partial class PRoster
         var pValueBlock = new TextBlock
         {
             Text = pValue,
-            Foreground = PRosterTheme.PRosterTextBrush,
+            Foreground = pValueBrush ?? PRosterTheme.PRosterTextBrush,
             FontSize = PRosterTheme.PRosterRowSize,
+            FontWeight = pValueBold ? FontWeights.SemiBold : FontWeights.Normal,
             TextWrapping = TextWrapping.Wrap
         };
         Grid.SetColumn(pValueBlock, 1);
@@ -503,11 +506,16 @@ public sealed partial class PRoster
         return pFirst == 0 ? 1 : pFirst;
     }
 
-    private static string PRosterPhaseFormat(LWorkPhase pWorkPhase) => pWorkPhase switch
+    private static string PRosterPhaseFormat(LWorkState pWorkState, LWorkPhase pWorkPhase) => pWorkState switch
     {
-        LWorkPhase.LWorkPhaseEncoding => "Being processed",
-        LWorkPhase.LWorkPhaseStarted => "Started",
-        _ => "Not started"
+        LWorkState.LWorkStateDone => "Done",
+        LWorkState.LWorkStateFailed => "Failed",
+        _ => pWorkPhase switch
+        {
+            LWorkPhase.LWorkPhaseEncoding => "Being processed",
+            LWorkPhase.LWorkPhaseStarted => "Started",
+            _ => "Not started"
+        }
     };
 
     private static string PRosterKindFormat(LWorkKind pWorkKind) => pWorkKind switch
