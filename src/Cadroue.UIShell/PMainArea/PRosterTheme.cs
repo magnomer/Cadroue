@@ -8,6 +8,7 @@ internal static class PRosterTheme
 {
     public const double PRosterTitleSize = 12;
     public const double PRosterRowSize = 11;
+    public const double PRosterRowHeight = 15;
     public const double PRosterLabelWidth = 92;
     public const double PRosterCorner = 9;
     public const double PRosterButtonSize = 58;

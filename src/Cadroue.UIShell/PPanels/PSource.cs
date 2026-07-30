@@ -193,7 +193,7 @@ public sealed class PSource : UserControl
             Width = PSourceBrowseIconSize,
             Height = PSourceBrowseIconSize,
             Stretch = Stretch.Uniform,
-            Source = PIcon.PIconRead("/PAssets/PPanels/PBrowse.svg")
+            Source = PIcon.PIconRead("/PAssets/PPanels/PFolder.svg")
         };
     }
 

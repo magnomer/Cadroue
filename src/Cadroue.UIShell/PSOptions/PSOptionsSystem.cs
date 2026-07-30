@@ -10,6 +10,9 @@ namespace Cadroue.UIShell;
 
 internal sealed partial class PSOptions
 {
+    private const string PSOptionsBrowseIconPath = "/PAssets/PPanels/PBrowse.svg";
+    private const string PSOptionsOpenIconPath = "/PAssets/PPanels/POpen.svg";
+
     private readonly TextBox psWorkspaceBox;
     private readonly TextBox psFfmpegBox;
 
@@ -33,13 +36,13 @@ internal sealed partial class PSOptions
         };
         psFfmpegBox.TextChanged += (_, _) => pFfmpegState.Text = PSFfmpegFormat(psFfmpegBox.Text);
 
-        Button pWorkspaceBrowse = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Browse"), 84, new Thickness(8, 0, 0, 0));
-        Button pWorkspaceOpen = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Open"), 64, new Thickness(6, 0, 0, 0));
+        Button pWorkspaceBrowse = PSInlineIconBuild(PSOptionsBrowseIconPath, LLocalization.LLocalizationTextRead("Options.System.Browse"), new Thickness(8, 0, 0, 0));
+        Button pWorkspaceOpen = PSInlineIconBuild(PSOptionsOpenIconPath, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(6, 0, 0, 0));
         pWorkspaceBrowse.Click += (_, _) => PSFolderBrowse(psWorkspaceBox, LLocalization.LLocalizationTextRead("Options.System.ChooseWorkspace"), LDepot.LDepotDefaultRootRead());
         pWorkspaceOpen.Click += (_, _) => PSFolderOpen(psWorkspaceBox.Text, LDepot.LDepotDefaultRootRead());
 
-        Button pFfmpegBrowse = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Browse"), 84, new Thickness(8, 0, 0, 0));
-        Button pFfmpegOpen = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Open"), 64, new Thickness(6, 0, 0, 0));
+        Button pFfmpegBrowse = PSInlineIconBuild(PSOptionsBrowseIconPath, LLocalization.LLocalizationTextRead("Options.System.Browse"), new Thickness(8, 0, 0, 0));
+        Button pFfmpegOpen = PSInlineIconBuild(PSOptionsOpenIconPath, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(6, 0, 0, 0));
         pFfmpegBrowse.Click += (_, _) => PSFolderBrowse(psFfmpegBox, LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"), psFfmpegBox.Text);
         pFfmpegOpen.Click += (_, _) => PSFolderOpen(psFfmpegBox.Text, string.Empty);
 
@@ -77,7 +80,7 @@ internal sealed partial class PSOptions
         };
 
         Button pInstall = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.InstallFlyleaf"), 160, new Thickness(0, 0, 8, 0));
-        Button pOpen = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Open"), 64, new Thickness(0));
+        Button pOpen = PSInlineIconBuild(PSOptionsOpenIconPath, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
         pInstall.Click += async (_, _) =>
         {
             pInstall.IsEnabled = false;

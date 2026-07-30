@@ -230,7 +230,7 @@ public sealed partial class PList : PPanel
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PBrowse.svg", LLocalization.LLocalizationTextRead("List.Button.AddFolder"), PListFolderOpen));
+        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PFolder.svg", LLocalization.LLocalizationTextRead("List.Button.AddFolder"), PListFolderOpen));
         pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PListRemoveAll.svg", LLocalization.LLocalizationTextRead("List.Button.RemoveAll"), PListClear));
 
         var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6) };

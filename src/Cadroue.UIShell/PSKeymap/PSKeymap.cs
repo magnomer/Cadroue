@@ -93,7 +93,7 @@ internal sealed class PSKeymap : Window
 
     private TabItem PSKeymapSheetBuild(string pScope, string pIconPath)
     {
-        string pScopeTitle = LLocalization.LLocalizationTextRead(LBinding.LBindingScopeKeyRead(pScope));
+        string pScopeTitle = LLocalization.LLocalizationTextRead(LBinding.LBindingLabelRead(pScope));
         return PSSheet.PSSheetBuild(
             pScopeTitle,
             pIconPath,

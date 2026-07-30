@@ -215,7 +215,7 @@ internal sealed partial class PSOptions : Window
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto, MinHeight = PSFieldControlHeight });
         pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         TextBlock pLabel = PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Options.General.OpenWith"));

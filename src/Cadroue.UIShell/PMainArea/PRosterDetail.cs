@@ -275,15 +275,15 @@ public sealed partial class PRoster
         {
             Content = new Image
             {
-                Width = 13,
-                Height = 13,
+                Width = 12,
+                Height = 12,
                 Source = PIcon.PIconRead(PRosterOpenIconPath, PRosterTheme.PRosterTextBrush),
                 Stretch = Stretch.Uniform
             },
-            Width = 22,
-            Height = 20,
+            Width = 20,
+            Height = PRosterTheme.PRosterRowHeight,
             Margin = new Thickness(6, 0, 0, 0),
-            VerticalAlignment = VerticalAlignment.Bottom,
+            VerticalAlignment = VerticalAlignment.Top,
             ToolTip = LLocalization.LLocalizationTextRead("Roster.Explorer.Tooltip"),
             Style = PButton.PButtonPanelCreate()
         };
@@ -296,7 +296,7 @@ public sealed partial class PRoster
             Foreground = PRosterTheme.PRosterTextBrush,
             FontSize = PRosterTheme.PRosterRowSize,
             TextWrapping = TextWrapping.Wrap,
-            VerticalAlignment = VerticalAlignment.Bottom
+            VerticalAlignment = VerticalAlignment.Top
         });
         pValuePanel.Children.Add(pOpenButton);
 

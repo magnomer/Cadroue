@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Cadroue.Core;
@@ -80,6 +82,54 @@ public static class LTraceWriter
                 return string.Empty;
             }
             catch (UnauthorizedAccessException)
+            {
+                return string.Empty;
+            }
+        }
+    }
+
+    public static List<string> LTraceWriterFilesRead()
+    {
+        try
+        {
+            string lTraceFolder = LTraceFolderRead();
+            if (!Directory.Exists(lTraceFolder))
+            {
+                return new List<string>();
+            }
+
+            return Directory.GetFiles(lTraceFolder, "Cadroue-*.log")
+                .OrderByDescending(lTraceFile => lTraceFile, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+        catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
+        {
+            return new List<string>();
+        }
+    }
+
+    public static string LTraceWriterFileRead(string lTracePath)
+    {
+        if (string.Equals(lTracePath, LTracePathRead(), StringComparison.OrdinalIgnoreCase))
+        {
+            return LTraceWriterRead();
+        }
+
+        lock (lTraceWriterFileLock)
+        {
+            try
+            {
+                if (!File.Exists(lTracePath))
+                {
+                    return string.Empty;
+                }
+
+                using var lTraceStream = new FileStream(
+                    lTracePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var lTraceReader = new StreamReader(lTraceStream, Encoding.UTF8);
+                return lTraceReader.ReadToEnd();
+            }
+            catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
             {
                 return string.Empty;
             }

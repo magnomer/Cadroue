@@ -58,7 +58,7 @@ internal static class PSField
 
     internal static UIElement PSFieldBuild(string pLabel, Control pControl)
     {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(PSFieldLabelBuild(pLabel));
@@ -70,7 +70,7 @@ internal static class PSField
 
     internal static UIElement PSFieldBuild(string pLabel, UIElement pContent)
     {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(PSFieldLabelBuild(pLabel));
@@ -81,7 +81,7 @@ internal static class PSField
 
     internal static UIElement PSFieldButtonBuild(string pLabel, Control pControl, params Button[] pButtons)
     {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(PSFieldLabelBuild(pLabel));
@@ -105,6 +105,23 @@ internal static class PSField
         Width = pWidth,
         Height = PSFieldControlHeight,
         Margin = pMargin,
+        Style = PButton.PButtonWhiteCreate()
+    };
+
+    internal static Button PSInlineIconBuild(string pIconPath, string pTooltip, Thickness pMargin) => new()
+    {
+        Content = new Image
+        {
+            Source = PAssets.PIcon.PIconRead(pIconPath, PSFieldText),
+            Width = 16,
+            Height = 16,
+            Stretch = Stretch.Uniform
+        },
+        Width = 40,
+        Height = PSFieldControlHeight,
+        Padding = new Thickness(0),
+        Margin = pMargin,
+        ToolTip = pTooltip,
         Style = PButton.PButtonWhiteCreate()
     };
 

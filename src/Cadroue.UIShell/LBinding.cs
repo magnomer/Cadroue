@@ -68,7 +68,7 @@ public static class LBinding
         lBindingCatalog.Where(lBindingCommand =>
             string.Equals(lBindingCommand.LBindingCommandScope, lBindingScope, StringComparison.Ordinal));
 
-    public static string LBindingScopeKeyRead(string lBindingScope) => lBindingScope switch
+    public static string LBindingLabelRead(string lBindingScope) => lBindingScope switch
     {
         LBindingScopeTab => "Chrome.Shortcuts.ScopeTab",
         LBindingScopeFlow => "Chrome.Shortcuts.ScopeFlow",

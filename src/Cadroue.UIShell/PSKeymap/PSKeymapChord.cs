@@ -27,7 +27,7 @@ internal sealed class PSKeymapChord : Button
         VerticalAlignment = VerticalAlignment.Center;
         Focusable = true;
         Style = PButton.PButtonWhiteCreate();
-        PSKeymapChordTextUpdate();
+        PSKeymapTextUpdate();
     }
 
     internal string PSKeymapChordGesture => psKeymapChordGesture;
@@ -37,7 +37,7 @@ internal sealed class PSKeymapChord : Button
         psKeymapChordGesture = psKeymapChordValue;
         psKeymapChordPending = string.Empty;
         psKeymapChordActive = false;
-        PSKeymapChordTextUpdate();
+        PSKeymapTextUpdate();
     }
 
     protected override void OnClick()
@@ -85,7 +85,7 @@ internal sealed class PSKeymapChord : Button
         }
 
         psKeymapChordPending = psKeymapChordCaught;
-        PSKeymapChordTextUpdate();
+        PSKeymapTextUpdate();
     }
 
     private void PSKeymapChordStart()
@@ -93,7 +93,7 @@ internal sealed class PSKeymapChord : Button
         psKeymapChordActive = true;
         psKeymapChordPending = string.Empty;
         Keyboard.Focus(this);
-        PSKeymapChordTextUpdate();
+        PSKeymapTextUpdate();
     }
 
     private void PSKeymapChordCommit()
@@ -103,22 +103,22 @@ internal sealed class PSKeymapChord : Button
         {
             psKeymapChordGesture = psKeymapChordPending;
             psKeymapChordPending = string.Empty;
-            PSKeymapChordTextUpdate();
+            PSKeymapTextUpdate();
             psKeymapChordCallback(this, psKeymapChordGesture);
             return;
         }
 
-        PSKeymapChordTextUpdate();
+        PSKeymapTextUpdate();
     }
 
     private void PSKeymapChordCancel()
     {
         psKeymapChordActive = false;
         psKeymapChordPending = string.Empty;
-        PSKeymapChordTextUpdate();
+        PSKeymapTextUpdate();
     }
 
-    private void PSKeymapChordTextUpdate()
+    private void PSKeymapTextUpdate()
     {
         if (psKeymapChordActive)
         {

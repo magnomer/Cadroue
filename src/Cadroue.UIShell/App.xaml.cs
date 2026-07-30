@@ -321,10 +321,9 @@ public partial class App : Application
             var lRendererEngineConfig = new EngineConfig
             {
                 UIRefresh = false,
-                UIRefreshInterval = 250,
-                LogLevel = LogLevel.Debug,
-                LogOutput = System.IO.Path.Combine(Cadroue.Core.LDepot.LDepotRootRead(), "log", "flyleaf-debug.log")
+                UIRefreshInterval = 250
             };
+            LRendererLogApply(lRendererEngineConfig, LTrace.LTraceVerbose);
 
             if (LRendererSettings.LRendererFolderValidate(LPreferenceStateCurrent.LPreferenceFfmpegFolder))
             {
@@ -345,10 +344,38 @@ public partial class App : Application
 
             LAppLog.LInfo(LFlyleafLocal.LFlyleafLocalLoadedReportRead(typeof(Engine).Assembly));
             Engine.Start(lRendererEngineConfig);
+            LTrace.LTraceVerboseCallback = LRendererVerboseApply;
         }
         catch (Exception lException)
         {
             LAppLog.LError("Renderer startup failed", lException);
+        }
+    }
+
+    private static void LRendererLogApply(EngineConfig lRendererConfig, bool lRendererVerbose)
+    {
+        if (!lRendererVerbose)
+        {
+            lRendererConfig.LogLevel = LogLevel.Quiet;
+            lRendererConfig.LogOutput = string.Empty;
+            return;
+        }
+
+        string lRendererLogFolder = LFlyleafLocal.LFlyleafLocalRootRead();
+        System.IO.Directory.CreateDirectory(lRendererLogFolder);
+        lRendererConfig.LogLevel = LogLevel.Debug;
+        lRendererConfig.LogOutput = System.IO.Path.Combine(lRendererLogFolder, "flyleaf-debug.log");
+    }
+
+    private static void LRendererVerboseApply(bool lRendererVerbose)
+    {
+        try
+        {
+            LRendererLogApply(Engine.Config, lRendererVerbose);
+        }
+        catch (Exception lException)
+        {
+            LAppLog.LError("Renderer log switch failed", lException);
         }
     }
 }

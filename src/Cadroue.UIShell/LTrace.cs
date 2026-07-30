@@ -17,9 +17,6 @@ public enum LTraceKind
 
 public static class LTrace
 {
-    private const int LTraceIndentWidth = 30;
-    private const int LTraceDeltaWidth = 7;
-    private const int LTraceKindWidth = 6;
     private const int LTraceDrawPeriodMilliseconds = 1000;
 
     private static readonly object lTraceStampLock = new();
@@ -30,7 +27,9 @@ public static class LTrace
     private static Timer? lTraceDrawTimer;
     private static bool lTraceVerbose;
 
-    public static event Action<string>? LTraceAppend;
+    public static event Action<LTraceEntry>? LTraceAppend;
+
+    public static Action<bool>? LTraceVerboseCallback;
 
     public static bool LTraceVerbose
     {
@@ -44,6 +43,7 @@ public static class LTrace
 
             Volatile.Write(ref lTraceVerbose, value);
             LTraceDrawTimerSet(value);
+            LTraceVerboseCallback?.Invoke(value);
             LTraceRecord(
                 LTraceKind.LTraceInfo,
                 value ? "Verbose logging on" : "Verbose logging off",
@@ -67,8 +67,16 @@ public static class LTrace
             return;
         }
 
-        string lTraceEntry = LTraceEntryCreate(lTraceKind, lTraceSummary, lTraceDetail, lTraceMilliseconds);
-        LTraceWriter.LTraceWriterRecord(lTraceEntry);
+        DateTimeOffset lTraceNow = DateTimeOffset.Now;
+        var lTraceEntry = new LTraceEntry(
+            lTraceNow.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture),
+            LTraceDeltaFormat(lTraceNow),
+            lTraceKind,
+            lTraceSummary,
+            lTraceDetail,
+            lTraceMilliseconds);
+
+        LTraceWriter.LTraceWriterRecord(LTraceEntry.LTraceEntryFormat(lTraceEntry));
         LTraceAppend?.Invoke(lTraceEntry);
     }
 
@@ -155,55 +163,6 @@ public static class LTrace
         lTracePrevious?.Dispose();
     }
 
-    private static string LTraceEntryCreate(
-        LTraceKind lTraceKind,
-        string lTraceSummary,
-        string? lTraceDetail,
-        double? lTraceMilliseconds)
-    {
-        DateTimeOffset lTraceNow = DateTimeOffset.Now;
-        string lTraceDelta = LTraceDeltaFormat(lTraceNow);
-
-        var lTraceBuilder = new StringBuilder();
-        lTraceBuilder.Append(lTraceNow.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture));
-        lTraceBuilder.Append("  ");
-        lTraceBuilder.Append(lTraceDelta.PadRight(LTraceDeltaWidth));
-        lTraceBuilder.Append(' ');
-        lTraceBuilder.Append(LTraceKindRead(lTraceKind).PadRight(LTraceKindWidth));
-        lTraceBuilder.Append("  ");
-        lTraceBuilder.Append(lTraceSummary);
-        if (lTraceMilliseconds is double lTraceSpan)
-        {
-            lTraceBuilder.Append(" — ");
-            lTraceBuilder.Append(LTraceSpanFormat(lTraceSpan));
-        }
-
-        lTraceBuilder.Append(Environment.NewLine);
-        LTraceDetailAppend(lTraceBuilder, lTraceDetail);
-        return lTraceBuilder.ToString();
-    }
-
-    private static void LTraceDetailAppend(StringBuilder lTraceBuilder, string? lTraceDetail)
-    {
-        if (string.IsNullOrWhiteSpace(lTraceDetail))
-        {
-            return;
-        }
-
-        foreach (string lTraceLine in lTraceDetail.Split('\n'))
-        {
-            string lTraceTrimmed = lTraceLine.TrimEnd('\r');
-            if (lTraceTrimmed.Length == 0)
-            {
-                continue;
-            }
-
-            lTraceBuilder.Append(' ', LTraceIndentWidth);
-            lTraceBuilder.Append(lTraceTrimmed);
-            lTraceBuilder.Append(Environment.NewLine);
-        }
-    }
-
     private static string LTraceDeltaFormat(DateTimeOffset lTraceNow)
     {
         long lTraceStamp = lTraceNow.UtcTicks;
@@ -224,21 +183,6 @@ public static class LTrace
             ? "Δ999.9+"
             : string.Create(CultureInfo.InvariantCulture, $"Δ{lTraceSeconds:0.000}");
     }
-
-    private static string LTraceSpanFormat(double lTraceMilliseconds) =>
-        lTraceMilliseconds >= 1000
-            ? string.Create(CultureInfo.InvariantCulture, $"{lTraceMilliseconds / 1000:0.00}s")
-            : string.Create(CultureInfo.InvariantCulture, $"{lTraceMilliseconds:0.0}ms");
-
-    private static string LTraceKindRead(LTraceKind lTraceKind) => lTraceKind switch
-    {
-        LTraceKind.LTraceError => "Error",
-        LTraceKind.LTraceDraw => "Draw",
-        LTraceKind.LTraceView => "View",
-        LTraceKind.LTraceWork => "Work",
-        LTraceKind.LTraceFfmpeg => "Ffmpeg",
-        _ => "Info"
-    };
 
     private sealed class LTraceDrawTally
     {

@@ -16,6 +16,51 @@ internal static class PSCasement
 
     private const double PSCasementButtonHeight = PSCasementBandHeight - PSCasementContentOverlap;
 
+    private const int PSCasementDwmPreference = 33;
+    private const int PSCasementDwmRound = 2;
+    private const int PSCasementDwmCaption = 35;
+    private const int PSCasementDwmColor = 0x00F7E8DC;
+
+    internal static void PSCasementDwmApply(Window pWindow)
+    {
+        IntPtr pCasementHandle = new System.Windows.Interop.WindowInteropHelper(pWindow).Handle;
+        if (pCasementHandle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        int pCasementCorner = PSCasementDwmRound;
+        _ = DwmSetWindowAttribute(
+            pCasementHandle, PSCasementDwmPreference, ref pCasementCorner, System.Runtime.InteropServices.Marshal.SizeOf<int>());
+
+        int pCasementCaption = PSCasementDwmColor;
+        _ = DwmSetWindowAttribute(
+            pCasementHandle, PSCasementDwmCaption, ref pCasementCaption, System.Runtime.InteropServices.Marshal.SizeOf<int>());
+    }
+
+    [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(
+        IntPtr windowHandle,
+        int windowAttribute,
+        ref int attributeValue,
+        int attributeByteSize);
+
+    internal static readonly Brush PSCasementBandFill = PSCasementFillCreate();
+
+    private static Brush PSCasementFillCreate()
+    {
+        var pCasementBrush = new SolidColorBrush(Color.FromRgb(0xEA, 0xF2, 0xFC));
+        pCasementBrush.Freeze();
+        return pCasementBrush;
+    }
+
+    internal static UIElement PSCasementBandBuild() => new Border
+    {
+        Height = PSCasementBandHeight,
+        VerticalAlignment = VerticalAlignment.Top,
+        Background = PSCasementBandFill
+    };
+
     internal static void PSCasementEscapeAttach(Window pWindow)
     {
         pWindow.KeyDown += (_, e) =>
@@ -30,7 +75,10 @@ internal static class PSCasement
         };
     }
 
-    internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth)
+    internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth) =>
+        PSCasementOverlayBuild(pWindow, pStripWidth, null);
+
+    internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth, string? pTitle)
     {
         PSCasementEscapeAttach(pWindow);
         var pGrid = new Grid { Height = PSCasementBandHeight, VerticalAlignment = VerticalAlignment.Top };
@@ -48,6 +96,20 @@ internal static class PSCasement
             Margin = new Thickness(pStripWidth, 0, 0, 0)
         };
         pDragArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e);
+        if (!string.IsNullOrWhiteSpace(pTitle))
+        {
+            pDragArea.Child = new TextBlock
+            {
+                Text = pTitle,
+                FontSize = 14,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Color.FromRgb(0x2B, 0x34, 0x43)),
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                IsHitTestVisible = false
+            };
+        }
+
         Grid.SetColumn(pDragArea, 1);
         pGrid.Children.Add(pDragArea);
 
@@ -55,14 +117,14 @@ internal static class PSCasement
         {
             Orientation = Orientation.Horizontal,
             VerticalAlignment = VerticalAlignment.Top,
-            Background = new SolidColorBrush(Color.FromRgb(0xEA, 0xF2, 0xFC))
+            Background = PSCasementBandFill
         };
         pButtons.Children.Add(PSCasementButtonBuild(
             PSCasementMinimizeBuild(),
             (_, _) => pWindow.WindowState = WindowState.Minimized));
         pButtons.Children.Add(PSCasementButtonBuild(
             PSCasementMaximizeBuild(),
-            (_, _) => pWindow.WindowState = pWindow.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized));
+            (_, _) => PSCasementMaximizeToggle(pWindow)));
         pButtons.Children.Add(PSCasementButtonBuild(
             PSCasementCloseBuild(),
             (_, _) => pWindow.Close(),
@@ -74,13 +136,24 @@ internal static class PSCasement
 
     private static void PSCasementDragHandle(Window pWindow, MouseButtonEventArgs e)
     {
-        if (e.ChangedButton != MouseButton.Left || e.ClickCount > 1)
+        if (e.ChangedButton != MouseButton.Left)
         {
+            return;
+        }
+
+        if (e.ClickCount > 1)
+        {
+            PSCasementMaximizeToggle(pWindow);
             return;
         }
 
         pWindow.DragMove();
     }
+
+    internal static void PSCasementMaximizeToggle(Window pWindow) =>
+        pWindow.WindowState = pWindow.WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
 
     private static Button PSCasementButtonBuild(UIElement pIcon, RoutedEventHandler pClick, bool pClose = false)
     {

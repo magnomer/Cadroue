@@ -117,7 +117,7 @@ public sealed class PAction : UserControl
         pFrame.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
         pFrame.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
         pFrame.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
-        pFrame.SetValue(Border.CornerRadiusProperty, new CornerRadius(9, 9, 0, 0));
+        pFrame.SetValue(Border.CornerRadiusProperty, new CornerRadius(9));
         pFrame.SetValue(UIElement.SnapsToDevicePixelsProperty, true);
 
         var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
