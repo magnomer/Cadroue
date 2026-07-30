@@ -79,6 +79,7 @@ public static class LSidecarStore
             LSidecar? lSidecarPrevious = LSidecarRead(lSidecarPath);
             lSidecar.Edit = lSidecarPrevious?.Edit;
             lSidecar.Audio = lSidecarPrevious?.Audio;
+            lSidecar.Waveform = lSidecarPrevious?.Waveform;
 
             return LSidecarWrite(lSidecarPath, lSidecar);
         }
@@ -134,6 +135,33 @@ public static class LSidecarStore
             string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
             LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
             lSidecar.Audio = lSidecarAudio;
+            return LSidecarWrite(lSidecarPath, lSidecar);
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    public static LSidecarWaveformRecord? LSidecarWaveformRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            return LSidecarRead(LSidecarPathRead(lSidecarSourcePath))?.Waveform;
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    public static bool LSidecarWaveformSave(string lSidecarSourcePath, LSidecarWaveformRecord? lSidecarWaveform)
+    {
+        try
+        {
+            string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
+            LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
+            lSidecar.Waveform = lSidecarWaveform;
             return LSidecarWrite(lSidecarPath, lSidecar);
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)

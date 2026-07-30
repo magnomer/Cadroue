@@ -25,11 +25,11 @@ internal sealed partial class LLocalizationCatalog
     internal string LLocalizationCatalogName =>
         LLocalizationCatalogRead("Localization.Language.Name") ?? LLocalizationCatalogCode;
 
-    internal static LLocalizationCatalog LLocalizationCatalogLoad(string lLocalizationFilePath)
+    internal static LLocalizationCatalog LLocalizationCatalogLoad(string lLocalizationCode, string lLocalizationJson)
     {
-        string lLocalizationCode = Path.GetFileNameWithoutExtension(lLocalizationFilePath);
+        string lLocalizationFilePath = $"{lLocalizationCode}.json";
         using JsonDocument lLocalizationDocument = JsonDocument.Parse(
-            File.ReadAllText(lLocalizationFilePath),
+            lLocalizationJson,
             new JsonDocumentOptions
             {
                 AllowTrailingCommas = false,

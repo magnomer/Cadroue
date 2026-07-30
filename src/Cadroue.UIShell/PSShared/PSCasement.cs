@@ -78,7 +78,14 @@ internal static class PSCasement
     internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth) =>
         PSCasementOverlayBuild(pWindow, pStripWidth, null);
 
-    internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth, string? pTitle)
+    internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth, string? pTitle) =>
+        PSCasementOverlayBuild(pWindow, pStripWidth, pTitle, pCloseOnly: false);
+
+    internal static UIElement PSCasementOverlayBuild(
+        Window pWindow,
+        double pStripWidth,
+        string? pTitle,
+        bool pCloseOnly)
     {
         PSCasementEscapeAttach(pWindow);
         var pGrid = new Grid { Height = PSCasementBandHeight, VerticalAlignment = VerticalAlignment.Top };
@@ -86,7 +93,7 @@ internal static class PSCasement
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var pLeadArea = new Border { Background = Brushes.Transparent };
-        pLeadArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e);
+        pLeadArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e, pCloseOnly);
         pGrid.Children.Add(pLeadArea);
 
         var pDragArea = new Border
@@ -95,7 +102,7 @@ internal static class PSCasement
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Margin = new Thickness(pStripWidth, 0, 0, 0)
         };
-        pDragArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e);
+        pDragArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e, pCloseOnly);
         if (!string.IsNullOrWhiteSpace(pTitle))
         {
             pDragArea.Child = new TextBlock
@@ -119,12 +126,16 @@ internal static class PSCasement
             VerticalAlignment = VerticalAlignment.Top,
             Background = PSCasementBandFill
         };
-        pButtons.Children.Add(PSCasementButtonBuild(
-            PSCasementMinimizeBuild(),
-            (_, _) => pWindow.WindowState = WindowState.Minimized));
-        pButtons.Children.Add(PSCasementButtonBuild(
-            PSCasementMaximizeBuild(),
-            (_, _) => PSCasementMaximizeToggle(pWindow)));
+        if (!pCloseOnly)
+        {
+            pButtons.Children.Add(PSCasementButtonBuild(
+                PSCasementMinimizeBuild(),
+                (_, _) => pWindow.WindowState = WindowState.Minimized));
+            pButtons.Children.Add(PSCasementButtonBuild(
+                PSCasementMaximizeBuild(),
+                (_, _) => PSCasementMaximizeToggle(pWindow)));
+        }
+
         pButtons.Children.Add(PSCasementButtonBuild(
             PSCasementCloseBuild(),
             (_, _) => pWindow.Close(),
@@ -134,7 +145,7 @@ internal static class PSCasement
         return pGrid;
     }
 
-    private static void PSCasementDragHandle(Window pWindow, MouseButtonEventArgs e)
+    private static void PSCasementDragHandle(Window pWindow, MouseButtonEventArgs e, bool pCloseOnly)
     {
         if (e.ChangedButton != MouseButton.Left)
         {
@@ -143,6 +154,11 @@ internal static class PSCasement
 
         if (e.ClickCount > 1)
         {
+            if (pCloseOnly)
+            {
+                return;
+            }
+
             PSCasementMaximizeToggle(pWindow);
             return;
         }

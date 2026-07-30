@@ -59,6 +59,25 @@ public sealed partial class PMap
         }
     }
 
+    private void PMapWaveformDraw(
+        DrawingContext drawingContext,
+        double actualWidth,
+        double railTop,
+        double railHeight)
+    {
+        if (lSpool is null || lSpool.LSpoolDuration <= TimeSpan.Zero)
+        {
+            return;
+        }
+
+        Geometry? waveformGeometry = LWaveformOrchestrator.LWaveformGeometryCreate(
+            lWaveformPeaks, actualWidth, railTop, railHeight, TimeSpan.Zero, lSpool.LSpoolDuration);
+        if (waveformGeometry is not null)
+        {
+            drawingContext.DrawGeometry(pMapBrushWaveform, null, waveformGeometry);
+        }
+    }
+
     private void PMapSectionsDraw(DrawingContext drawingContext, double actualWidth, double railTop, double railHeight)
     {
         if (lSpool is null || lSectionList.Count == 0)

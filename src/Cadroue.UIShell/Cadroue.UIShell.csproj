@@ -24,16 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="PAssets\**\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="..\..\localization\*.json" Link="localization\%(Filename)%(Extension)">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
+    <EmbeddedResource Include="..\..\localization\*.json"
+                      Link="localization\%(Filename)%(Extension)"
+                      LogicalName="localization.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

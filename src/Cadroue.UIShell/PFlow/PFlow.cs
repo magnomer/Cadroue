@@ -71,6 +71,7 @@ public sealed partial class PFlow : UserControl
         pMap.PMapDragChange += PFlowDragSet;
         lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
         lKeyframeOrchestrator.LKeyframeSectionsSource = PFlowSidecarSectionsRead;
+        lWaveformOrchestrator.LWaveformReady += PFlowWaveformHandle;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         lKeyframeRequestTimer.Tick += PFlowTimerHandle;
         lKeyframeResumeTimer = new DispatcherTimer { Interval = PFlowKeyframeResumeDelay };
@@ -124,6 +125,7 @@ public sealed partial class PFlow : UserControl
         PFlowSidecarRestore();
         PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexSelect);
         PFlowKeyframeRun();
+        PFlowWaveformStart();
     }
 
     private void PFlowSidecarRestore()
@@ -167,6 +169,7 @@ public sealed partial class PFlow : UserControl
         lSectionIndexSelect = null;
         pViewfinder.PViewfinderClear();
         pMap.PMapClear();
+        PFlowWaveformClear();
         pViewfinderLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
         pViewfinderLabelRight.Text = PFlowTimeFormat(TimeSpan.Zero);
         pMapLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
@@ -213,6 +216,7 @@ public sealed partial class PFlow : UserControl
         lKeyframeResumeTimer.Tick -= PFlowResumeHandle;
         lKeyframeOrchestrator.LKeyframeNoticeReady -= PFlowNoticeHandle;
         lKeyframeOrchestrator.Dispose();
+        PFlowWaveformClose();
         if (pDividerHandle is null) return;
         pDividerHandle.MouseLeftButtonDown -= PDividerPressHandle;
         pDividerHandle.MouseMove -= PDividerMoveHandle;

@@ -254,6 +254,7 @@ public partial class PToolbar : UserControl
         PLogoItemAppend(pLogoMenu, "Shortcuts", "Chrome.Menu.Shortcuts", "/PAssets/PMenus/PMenuShortcuts.svg");
         PLogoItemAppend(pLogoMenu, "Log", "Chrome.Menu.Log", "/PAssets/PMenus/PMenuLog.svg");
         PLogoItemAppend(pLogoMenu, "About", "Chrome.Menu.About", "/PAssets/PMenus/PMenuAbout.svg");
+        PLogoItemAppend(pLogoMenu, "Exit", "Chrome.Menu.Exit", "/PAssets/PMenus/PMenuExit.svg");
 
         pLogoMenu.IsOpen = true;
         e.Handled = true;
@@ -273,6 +274,14 @@ public partial class PToolbar : UserControl
         else if (pLogoMenuToken == "Log")
         {
             pLogoMenuItem.Click += (_, _) => PLogWindow.PLogWindowShow(Window.GetWindow(this));
+        }
+        else if (pLogoMenuToken == "About")
+        {
+            pLogoMenuItem.Click += (_, _) => PSAbout.PSAboutShow(Window.GetWindow(this)!);
+        }
+        else if (pLogoMenuToken == "Exit")
+        {
+            pLogoMenuItem.Click += (_, _) => Window.GetWindow(this)!.Close();
         }
 
         pLogoMenu.Items.Add(pLogoMenuItem);

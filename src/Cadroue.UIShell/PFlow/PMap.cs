@@ -18,6 +18,8 @@ public sealed partial class PMap : FrameworkElement
 
     private static readonly Brush pMapBrushBackground = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
     private static readonly Brush pMapBrushRail = new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1));
+    private static readonly Brush pMapBrushWaveformBase = new SolidColorBrush(Color.FromRgb(0xE6, 0xEA, 0xEF));
+    private static readonly Brush pMapBrushWaveform = new SolidColorBrush(Color.FromRgb(0x8C, 0x9B, 0xAD));
     private static readonly Brush pMapBrushCoverageScanned = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
     private static readonly Brush pMapBrushNavigationShadow = new SolidColorBrush(Color.FromArgb(0x34, 0x00, 0x00, 0x00));
     private const byte PMapNavigationAlpha = 0x33;
@@ -60,6 +62,8 @@ public sealed partial class PMap : FrameworkElement
     {
         pMapBrushBackground.Freeze();
         pMapBrushRail.Freeze();
+        pMapBrushWaveformBase.Freeze();
+        pMapBrushWaveform.Freeze();
         pMapBrushCoverageScanned.Freeze();
         pMapBrushNavigationShadow.Freeze();
         pMapBrushNavigationFrame.Freeze();
@@ -81,6 +85,7 @@ public sealed partial class PMap : FrameworkElement
     private TimeSpan lCursor;
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
     private IReadOnlyList<LSegment> lSectionList = Array.Empty<LSegment>();
+    private byte[] lWaveformPeaks = Array.Empty<byte>();
     private int? lSectionIndexSelect;
     private PMapDragMode pMapDragMode;
     private double pMapDragStartX;
@@ -120,8 +125,15 @@ public sealed partial class PMap : FrameworkElement
         lCursor = TimeSpan.Zero;
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LSegment>();
+        lWaveformPeaks = Array.Empty<byte>();
         lSectionIndexSelect = null;
         PMapDrawRequest("clear");
+    }
+
+    public void PMapWaveformUpdate(byte[] waveformPeaks)
+    {
+        lWaveformPeaks = waveformPeaks;
+        PMapDrawRequest("waveform");
     }
 
     public void PMapSectionsUpdate(IReadOnlyList<LSegment>? sections, int? selectedIndex)
@@ -182,7 +194,17 @@ public sealed partial class PMap : FrameworkElement
             return;
         }
 
-        drawingContext.DrawRoundedRectangle(pMapBrushRail, null, new Rect(0, railTop, actualWidth, railHeight), 3, 3);
+        bool waveformActive = lWaveformPeaks.Length > 0;
+        drawingContext.DrawRoundedRectangle(
+            waveformActive ? pMapBrushWaveformBase : pMapBrushRail,
+            null,
+            new Rect(0, railTop, actualWidth, railHeight),
+            3,
+            3);
+        if (waveformActive)
+        {
+            PMapWaveformDraw(drawingContext, actualWidth, railTop, railHeight);
+        }
 
         PMapSectionsDraw(drawingContext, actualWidth, railTop, railHeight);
         PMapCoverageDraw(drawingContext, actualWidth, coverageTop, coverageHeight);

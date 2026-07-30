@@ -1,11 +1,13 @@
 using System.IO;
 using System.Globalization;
+using System.Reflection;
 
 namespace Cadroue.UIShell;
 
 internal static class LLocalization
 {
-    private const string LLocalizationFolderName = "localization";
+    private const string LLocalizationResourcePrefix = "localization.";
+    private const string LLocalizationResourceSuffix = ".json";
     private const string LLocalizationFallbackCode = "en";
 
     private static readonly object lLocalizationGate = new();
@@ -17,29 +19,26 @@ internal static class LLocalization
     {
         lock (lLocalizationGate)
         {
-            string lLocalizationFolder = LLocalizationFolderRead();
-            lLocalizationFallbackCatalog = LLocalizationCatalogRead(
-                Path.Combine(lLocalizationFolder, $"{LLocalizationFallbackCode}.json"));
+            lLocalizationFallbackCatalog = LLocalizationCatalogRead(LLocalizationFallbackCode);
 
             if (lLocalizationFallbackCatalog is null)
             {
                 LAppLog.LError(
-                    $"English localization could not be loaded from '{lLocalizationFolder}'; keys will show untranslated.");
+                    "English localization could not be loaded from the program resources; keys will show untranslated.");
             }
 
             string lLocalizationCode = LLocalizationLanguageNormalize(lLocalizationLanguage);
-            string lLocalizationPath = Path.Combine(lLocalizationFolder, $"{lLocalizationCode}.json");
             if (string.Equals(lLocalizationCode, LLocalizationFallbackCode, StringComparison.OrdinalIgnoreCase))
             {
                 lLocalizationCurrentCatalog = lLocalizationFallbackCatalog;
             }
             else
             {
-                LLocalizationCatalog? lLocalizationSelected = LLocalizationCatalogRead(lLocalizationPath);
+                LLocalizationCatalog? lLocalizationSelected = LLocalizationCatalogRead(lLocalizationCode);
                 if (lLocalizationSelected is null)
                 {
                     LAppLog.LError(
-                        $"Localization '{lLocalizationCode}' is unavailable ('{lLocalizationPath}'); using {LLocalizationFallbackCode}.");
+                        $"Localization '{lLocalizationCode}' is unavailable; using {LLocalizationFallbackCode}.");
                 }
 
                 lLocalizationCurrentCatalog = lLocalizationSelected ?? lLocalizationFallbackCatalog;
@@ -98,18 +97,13 @@ internal static class LLocalization
             }
 
             var lLocalizationResult = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            string lLocalizationFolder = LLocalizationFolderRead();
-            if (Directory.Exists(lLocalizationFolder))
+            foreach (string lLocalizationCode in LLocalizationCodesRead())
             {
-                foreach (string lLocalizationPath in Directory.EnumerateFiles(lLocalizationFolder, "*.json")
-                             .OrderBy(lLocalizationPath => lLocalizationPath, StringComparer.OrdinalIgnoreCase))
+                LLocalizationCatalog? lLocalizationCatalog = LLocalizationCatalogRead(lLocalizationCode);
+                if (lLocalizationCatalog is not null)
                 {
-                    LLocalizationCatalog? lLocalizationCatalog = LLocalizationCatalogRead(lLocalizationPath);
-                    if (lLocalizationCatalog is not null)
-                    {
-                        lLocalizationResult[lLocalizationCatalog.LLocalizationCatalogCode] =
-                            lLocalizationCatalog.LLocalizationCatalogName;
-                    }
+                    lLocalizationResult[lLocalizationCatalog.LLocalizationCatalogCode] =
+                        lLocalizationCatalog.LLocalizationCatalogName;
                 }
             }
 
@@ -148,23 +142,34 @@ internal static class LLocalization
         return Path.GetFileNameWithoutExtension(lLocalizationValue);
     }
 
-    private static string LLocalizationFolderRead() =>
-        Path.Combine(AppContext.BaseDirectory, LLocalizationFolderName);
+    private static IEnumerable<string> LLocalizationCodesRead() =>
+        Assembly.GetExecutingAssembly()
+            .GetManifestResourceNames()
+            .Where(lLocalizationName =>
+                lLocalizationName.StartsWith(LLocalizationResourcePrefix, StringComparison.Ordinal)
+                && lLocalizationName.EndsWith(LLocalizationResourceSuffix, StringComparison.Ordinal))
+            .Select(lLocalizationName => lLocalizationName[
+                LLocalizationResourcePrefix.Length..^LLocalizationResourceSuffix.Length])
+            .OrderBy(lLocalizationCode => lLocalizationCode, StringComparer.OrdinalIgnoreCase);
 
-    private static LLocalizationCatalog? LLocalizationCatalogRead(string lLocalizationPath)
+    private static LLocalizationCatalog? LLocalizationCatalogRead(string lLocalizationCode)
     {
-        if (!File.Exists(lLocalizationPath))
-        {
-            return null;
-        }
-
         try
         {
-            return LLocalizationCatalog.LLocalizationCatalogLoad(lLocalizationPath);
+            using Stream? lLocalizationStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+                LLocalizationResourcePrefix + lLocalizationCode + LLocalizationResourceSuffix);
+            if (lLocalizationStream is null)
+            {
+                return null;
+            }
+
+            using var lLocalizationReader = new StreamReader(lLocalizationStream);
+            return LLocalizationCatalog.LLocalizationCatalogLoad(
+                lLocalizationCode, lLocalizationReader.ReadToEnd());
         }
         catch (Exception lLocalizationException)
         {
-            LAppLog.LError($"Localization file could not be loaded: {lLocalizationPath}", lLocalizationException);
+            LAppLog.LError($"Localization could not be loaded: {lLocalizationCode}", lLocalizationException);
             return null;
         }
     }

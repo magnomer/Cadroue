@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Resources;
 using System.IO;
 using SharpVectors.Converters;
 using SharpVectors.Renderers.Wpf;
@@ -25,24 +26,25 @@ public static class PIcon
 
     public static ImageSource PIconRead(string pIconPath, Brush? pTintBrush)
     {
-        string pFilePath = PIconFilePathRead(pIconPath);
+        Uri pIconUri = PIconUriCreate(pIconPath);
         if (pIconPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
         {
-            return PIconSvgRead(pFilePath, pTintBrush);
+            return PIconSvgRead(pIconUri, pTintBrush);
         }
 
-        var pIconBitmap = new BitmapImage(new Uri(pFilePath, UriKind.Absolute));
+        var pIconBitmap = new BitmapImage(pIconUri);
         pIconBitmap.Freeze();
         return pIconBitmap;
     }
 
-    private static ImageSource PIconSvgRead(string pFilePath, Brush? pTintBrush)
+    private static ImageSource PIconSvgRead(Uri pIconUri, Brush? pTintBrush)
     {
+        using Stream pIconStream = PIconStreamRead(pIconUri);
         using var pIconReader = new FileSvgReader(pIconSettings);
-        DrawingGroup? pIconDrawing = pIconReader.Read(pFilePath);
+        DrawingGroup? pIconDrawing = pIconReader.Read(pIconStream);
         if (pIconDrawing is null)
         {
-            throw new InvalidOperationException($"Icon asset could not be rendered: {pFilePath}");
+            throw new InvalidOperationException($"Icon asset could not be rendered: {pIconUri}");
         }
 
         if (pTintBrush is not null)
@@ -59,16 +61,18 @@ public static class PIcon
         return pIconImage;
     }
 
-    private static string PIconFilePathRead(string pIconPath)
+    private static Uri PIconUriCreate(string pIconPath) =>
+        new("pack://application:,,,/" + pIconPath.TrimStart('/'), UriKind.Absolute);
+
+    private static Stream PIconStreamRead(Uri pIconUri)
     {
-        string pRelativePath = pIconPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-        string pFilePath = Path.Combine(AppContext.BaseDirectory, pRelativePath);
-        if (!File.Exists(pFilePath))
+        StreamResourceInfo? pIconResource = Application.GetResourceStream(pIconUri);
+        if (pIconResource is null)
         {
-            throw new InvalidOperationException($"Icon asset was not found: {pIconPath}");
+            throw new InvalidOperationException($"Icon asset was not found: {pIconUri}");
         }
 
-        return pFilePath;
+        return pIconResource.Stream;
     }
 
     private static DrawingGroup PIconTintApply(DrawingGroup pIconDrawing, Brush pTintBrush)

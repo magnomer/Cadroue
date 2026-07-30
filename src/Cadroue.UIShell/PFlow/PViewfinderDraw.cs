@@ -181,6 +181,22 @@ public sealed partial class PViewfinder
                 sectionRect.Top + (sectionRect.Height - nameFormatted.Height) / 2));
     }
 
+    private void PViewfinderWaveformDraw(
+        DrawingContext drawingContext,
+        double actualWidth,
+        double railTop,
+        double railHeight,
+        TimeSpan rangeStart,
+        TimeSpan rangeEnd)
+    {
+        Geometry? waveformGeometry = LWaveformOrchestrator.LWaveformGeometryCreate(
+            lWaveformPeaks, actualWidth, railTop, railHeight, rangeStart, rangeEnd);
+        if (waveformGeometry is not null)
+        {
+            drawingContext.DrawGeometry(pViewfinderBrushWaveform, null, waveformGeometry);
+        }
+    }
+
     private void PViewfinderCursorDraw(
         DrawingContext drawingContext,
         double actualWidth,

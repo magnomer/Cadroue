@@ -28,6 +28,7 @@ public sealed class LPreferenceState
     public double LPreferenceKeyframeMinimumPixels { get; set; }
     public string LPreferenceSectionPalette { get; set; } = PSectionPalette.PSectionPaletteDefaultName;
     public bool LPreferenceOverlapAllowed { get; set; } = true;
+    public bool LPreferenceWaveformShow { get; set; } = true;
 
     public double LPreferenceParallelMaximum { get; set; }
     public bool LPreferenceFailurePaused { get; set; }
@@ -76,6 +77,7 @@ public sealed class LPreferenceState
             LPreferenceKeyframeMinimumPixels = 5,
             LPreferenceSectionPalette = PSectionPalette.PSectionPaletteDefaultName,
             LPreferenceOverlapAllowed = true,
+            LPreferenceWaveformShow = true,
             LPreferenceParallelMaximum = 1,
             LPreferenceFailurePaused = false,
             LPreferenceRetryAllowed = false,
@@ -123,6 +125,7 @@ public sealed class LPreferenceState
             LPreferenceKeyframeMinimumPixels = LPreferenceKeyframeMinimumPixels,
             LPreferenceSectionPalette = LPreferenceSectionPalette,
             LPreferenceOverlapAllowed = LPreferenceOverlapAllowed,
+            LPreferenceWaveformShow = LPreferenceWaveformShow,
             LPreferenceParallelMaximum = LPreferenceParallelMaximum,
             LPreferenceFailurePaused = LPreferenceFailurePaused,
             LPreferenceRetryAllowed = LPreferenceRetryAllowed,
@@ -171,6 +174,7 @@ public sealed class LPreferenceState
             ("Keyframe minimum spacing", lPreferenceOther.LPreferenceKeyframeMinimumPixels, LPreferenceKeyframeMinimumPixels),
             ("Section colour palette", lPreferenceOther.LPreferenceSectionPalette, LPreferenceSectionPalette),
             ("Allow overlapping sections", lPreferenceOther.LPreferenceOverlapAllowed, LPreferenceOverlapAllowed),
+            ("Show waveforms", lPreferenceOther.LPreferenceWaveformShow, LPreferenceWaveformShow),
             ("Maximum parallel jobs", lPreferenceOther.LPreferenceParallelMaximum, LPreferenceParallelMaximum),
             ("Pause queue on failure", lPreferenceOther.LPreferenceFailurePaused, LPreferenceFailurePaused),
             ("Retry", lPreferenceOther.LPreferenceRetryAllowed, LPreferenceRetryAllowed),

@@ -36,6 +36,8 @@ public sealed partial class PViewfinder : FrameworkElement
 
     private static readonly Brush pViewfinderBrushBackground = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
     private static readonly Brush pViewfinderBrushRail = new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1));
+    private static readonly Brush pViewfinderBrushWaveformBase = new SolidColorBrush(Color.FromRgb(0xE6, 0xEA, 0xEF));
+    private static readonly Brush pViewfinderBrushWaveform = new SolidColorBrush(Color.FromRgb(0x8C, 0x9B, 0xAD));
     private static readonly Brush pViewfinderBrushKeyframe = new SolidColorBrush(Color.FromRgb(0x6B, 0x74, 0x80));
     private static readonly Pen pViewfinderPenTick = new(new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xB0)), 1.0);
     private static readonly Brush pViewfinderBrushTickText = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
@@ -49,6 +51,8 @@ public sealed partial class PViewfinder : FrameworkElement
     {
         pViewfinderBrushBackground.Freeze();
         pViewfinderBrushRail.Freeze();
+        pViewfinderBrushWaveformBase.Freeze();
+        pViewfinderBrushWaveform.Freeze();
         pViewfinderBrushKeyframe.Freeze();
         pViewfinderPenTick.Freeze();
         pViewfinderBrushTickText.Freeze();
@@ -65,6 +69,7 @@ public sealed partial class PViewfinder : FrameworkElement
     private IReadOnlyList<LKeyframeEntry> lKeyframes = Array.Empty<LKeyframeEntry>();
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
     private IReadOnlyList<LSegment> lSectionList = Array.Empty<LSegment>();
+    private byte[] lWaveformPeaks = Array.Empty<byte>();
     private int? lSectionIndexSelect;
     private PViewfinderDragMode pViewfinderDragMode;
     private string pViewfinderDrawTrigger = "attach";
@@ -102,8 +107,15 @@ public sealed partial class PViewfinder : FrameworkElement
         lKeyframes = Array.Empty<LKeyframeEntry>();
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LSegment>();
+        lWaveformPeaks = Array.Empty<byte>();
         lSectionIndexSelect = null;
         PViewfinderDrawRequest("clear");
+    }
+
+    public void PViewfinderWaveformUpdate(byte[] waveformPeaks)
+    {
+        lWaveformPeaks = waveformPeaks;
+        PViewfinderDrawRequest("waveform");
     }
 
     public void PViewfinderSpoolUpdate() => PViewfinderDrawRequest("spool");
@@ -204,8 +216,9 @@ public sealed partial class PViewfinder : FrameworkElement
             return;
         }
 
+        bool waveformActive = lWaveformPeaks.Length > 0;
         drawingContext.DrawRoundedRectangle(
-            pViewfinderBrushRail,
+            waveformActive ? pViewfinderBrushWaveformBase : pViewfinderBrushRail,
             null,
             new Rect(0, railTop, actualWidth, railHeight),
             3,
@@ -221,6 +234,11 @@ public sealed partial class PViewfinder : FrameworkElement
         if (rangeSeconds <= 0)
         {
             return;
+        }
+
+        if (waveformActive)
+        {
+            PViewfinderWaveformDraw(drawingContext, actualWidth, railTop, railHeight, rangeStart, rangeEnd);
         }
 
         PViewfinderTicksDraw(drawingContext, actualWidth, rangeStart, rangeSeconds);

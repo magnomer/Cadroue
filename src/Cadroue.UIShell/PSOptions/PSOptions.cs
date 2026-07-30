@@ -86,6 +86,7 @@ internal sealed partial class PSOptions : Window
     private readonly ComboBox psOrderCombo;
     private readonly Slider psKeyframeSlider;
     private readonly CheckBox psOverlapBox;
+    private readonly CheckBox psWaveformBox;
 
     private readonly Slider psParallelSlider;
     private readonly CheckBox psFailureBox;
@@ -127,6 +128,7 @@ internal sealed partial class PSOptions : Window
         psOrderCombo = PSComboBuild(lsOptionsDraft.LPreferenceTimelineOrder, PSOptionsOrderItems);
         psKeyframeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframeMinimumPixels, 1, 50);
         psOverlapBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlapCheck"), lsOptionsDraft.LPreferenceOverlapAllowed);
+        psWaveformBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformCheck"), lsOptionsDraft.LPreferenceWaveformShow);
 
         psParallelSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceParallelMaximum, 1, 8);
         psFailureBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Work.FailurePause"), lsOptionsDraft.LPreferenceFailurePaused);
@@ -288,6 +290,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceKeyframeMinimumPixels = psKeyframeSlider.Value;
         lsOptionsDraft.LPreferenceSectionPalette = psPaletteName;
         lsOptionsDraft.LPreferenceOverlapAllowed = psOverlapBox.IsChecked == true;
+        lsOptionsDraft.LPreferenceWaveformShow = psWaveformBox.IsChecked == true;
 
         lsOptionsDraft.LPreferenceParallelMaximum = psParallelSlider.Value;
         lsOptionsDraft.LPreferenceFailurePaused = psFailureBox.IsChecked == true;

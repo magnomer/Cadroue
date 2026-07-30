@@ -13,6 +13,10 @@ public sealed class PCompass : UserControl
 {
     private static readonly Brush pCompassPositiveBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
     private static readonly Brush pCompassNegativeBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45));
+    private static readonly Brush pCompassAccentBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x80, 0xED));
+    private static readonly Brush pCompassRestBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x94, 0xA3));
+    private const string PCompassWaveformIconPath = "/PAssets/PCompass/PCompassWaveform.svg";
+    private Image pCompassWaveformIcon = null!;
     private readonly Slider pCompassVolumeSlider;
     private readonly TextBlock pCompassVolumeText;
 
@@ -75,8 +79,11 @@ public sealed class PCompass : UserControl
 
         StackPanel pVolumeGroup = PCompassGroupBuild();
         pVolumeGroup.Children.Add(PCompassVolumeBuild());
+        pVolumeGroup.Children.Add(PCompassWaveformBuild(pFlow));
         pCompassLinePanel.Children.Add(pVolumeGroup);
         PCompassValueHandle(App.LPreferenceStateCurrent.LPreferenceVolume);
+        pFlow.PFlowWaveformChange += PCompassWaveformApply;
+        PCompassWaveformApply(pFlow.PFlowWaveformCheck());
 
         Content = new Border
         {
@@ -167,6 +174,46 @@ public sealed class PCompass : UserControl
         pGrid.Children.Add(pCompassVolumeSliderHost);
         pGrid.Children.Add(pCompassVolumeText);
         return new Border { Height = 58, Padding = new Thickness(8, 0, 0, 0), Child = pGrid };
+    }
+
+    private Button PCompassWaveformBuild(PFlowControl pFlow)
+    {
+        pCompassWaveformIcon = new Image
+        {
+            Width = 24,
+            Height = 24,
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+
+        var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        pStack.Children.Add(pCompassWaveformIcon);
+        pStack.Children.Add(new Border { Height = 1 });
+        pStack.Children.Add(new TextBlock
+        {
+            Text = LLocalization.LLocalizationTextRead("Compass.Waveform.Label"),
+            FontSize = 11,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            TextAlignment = TextAlignment.Center
+        });
+
+        var pButton = new Button
+        {
+            Width = 58,
+            Height = 58,
+            Content = pStack,
+            Style = PMainWindow.PButton.PButtonCommandCreate(),
+            ToolTip = LLocalization.LLocalizationTextRead("Compass.Waveform.Tooltip")
+        };
+        pButton.Click += (_, _) => pFlow.PFlowWaveformSet(!pFlow.PFlowWaveformCheck());
+        return pButton;
+    }
+
+    private void PCompassWaveformApply(bool pCompassWaveformActive)
+    {
+        pCompassWaveformIcon.Source = PIcon.PIconRead(
+            PCompassWaveformIconPath,
+            pCompassWaveformActive ? pCompassAccentBrush : pCompassRestBrush);
     }
 
     private void PCompassValueHandle(double pVolume)

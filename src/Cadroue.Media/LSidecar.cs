@@ -69,6 +69,13 @@ public sealed class LSidecarAudioRecord
     public bool LSidecarAudioActive => Steps.Any(lStep => lStep.Active);
 }
 
+public sealed class LSidecarWaveformRecord
+{
+    public int BucketMilliseconds { get; set; }
+    public long DurationMilliseconds { get; set; }
+    public string Peaks { get; set; } = string.Empty;
+}
+
 public sealed class LSidecarSourceRecord
 {
     public string FileName { get; set; } = string.Empty;
@@ -99,6 +106,8 @@ public sealed class LSidecar
     public LSidecarEditRecord? Edit { get; set; }
 
     public LSidecarAudioRecord? Audio { get; set; }
+
+    public LSidecarWaveformRecord? Waveform { get; set; }
 
     public IReadOnlyList<int> LSidecarScannedSpansRead(int lSidecarSpanGridMilliseconds) =>
         SpanGridMilliseconds == lSidecarSpanGridMilliseconds ? ScannedSpans : Array.Empty<int>();
