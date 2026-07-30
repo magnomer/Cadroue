@@ -32,7 +32,7 @@
 
 ## English
 
-> **Development status — version 1.6.3810**  
+> **Development status**  
 > Cadroue is under active development. Common combinations of operations have been tested, but bugs may remain in unusual or extreme workflows.
 
 ### What Cadroue is
@@ -238,7 +238,7 @@ No project license has been added to this repository yet. Until a license is cho
 
 ## 한국어
 
-> **개발 상태 — 버전 1.6.3810**  
+> **개발 중**  
 > Cadroue는 현재 활발하게 개발 중입니다. 일반적으로 가능한 작업 조합은 점검했지만, 드물거나 극단적인 작업 흐름에서는 버그가 남아 있을 수 있습니다.
 
 ### Cadroue란?
