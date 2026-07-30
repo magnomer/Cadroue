@@ -88,6 +88,8 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public IReadOnlyList<string> LWorkMergeSources { get; }
 
+    public Guid LWorkRelayTarget { get; set; }
+
     public DateTimeOffset LWorkCreateTime { get; }
 
     public DateTimeOffset? LWorkStartTime { get; set; }

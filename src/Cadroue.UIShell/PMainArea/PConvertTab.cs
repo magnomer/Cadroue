@@ -14,14 +14,17 @@ public sealed class PConvertTab : PTabSurface
     public PConvertTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
+        PTabAction = pAction;
         pAction.PActionRun += lPriority => _ = LConvert.LConvertDescribe(
             lPriority,
             pList.PListPathCurrentRead() is { } pConvertSelected ? new[] { pConvertSelected } : Array.Empty<string>(),
-            lExportSpecificState);
+            lExportSpecificState,
+            pAction.PActionRelayTarget);
         pAction.PActionAllAdd += () => _ = LConvert.LConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
-            lExportSpecificState);
+            lExportSpecificState,
+            pAction.PActionRelayTarget);
         pList.PListPathChange += PConvertPathShow;
         PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);

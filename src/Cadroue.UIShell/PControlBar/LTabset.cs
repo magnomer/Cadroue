@@ -196,6 +196,7 @@ public sealed class LTabset
         var pTabWasSelected = ReferenceEquals(PTabsetSelectRecord, pTabRecord);
         string pTabClosedTitle = pTabRecord.PTabTitle;
         pTabRecord.PTabWorkspace.PWorkspaceClose();
+        PMainArea.LCourier.LCourierTabRemove(pTabRecord.PTabId);
         PTabsetRecords.RemoveAt(pTabIndex);
         LTabsetTitleUpdate();
         LAppLog.LInfo($"Tab closed '{pTabClosedTitle}': {PTabsetRecords.Count} tab(s) open");

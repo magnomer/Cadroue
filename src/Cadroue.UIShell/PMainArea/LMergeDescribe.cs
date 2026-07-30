@@ -8,8 +8,13 @@ public static partial class LMerge
     public static int LMergeDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<PGroup.PGroupSelection> lMergeGroups,
-        LExportSpecificState lExportSpecificState)
+        LExportSpecificState lExportSpecificState,
+        Guid lMergeRelayTarget = default)
     {
-        return LMerge.LMergeInterpret(lWorkPriority, lMergeGroups, lExportSpecificState.LPresetOutputCreate());
+        return LMerge.LMergeInterpret(
+            lWorkPriority,
+            lMergeGroups,
+            lExportSpecificState.LPresetOutputCreate(),
+            lMergeRelayTarget);
     }
 }

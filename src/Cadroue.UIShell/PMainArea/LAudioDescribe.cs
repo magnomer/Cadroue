@@ -9,13 +9,15 @@ public static partial class LAudio
         LWorkPriority lWorkPriority,
         string? lAudioSourcePath,
         LWorkAudio lAudioProcessing,
-        LExportSpecificState lExportSpecificState)
+        LExportSpecificState lExportSpecificState,
+        Guid lAudioRelayTarget = default)
     {
         return LAudio.LAudioInterpret(
             lWorkPriority,
             lAudioSourcePath,
             lAudioProcessing,
-            lExportSpecificState.LPresetOutputCreate());
+            lExportSpecificState.LPresetOutputCreate(),
+            lAudioRelayTarget);
     }
 
     public static int LAudioAllDescribe(
@@ -23,7 +25,8 @@ public static partial class LAudio
         IReadOnlyList<string> lAudioSourcePaths,
         LWorkAudio lAudioProcessing,
         LExportSpecificState lExportSpecificState,
-        LWorkAudio? lAudioPersistent = null)
+        LWorkAudio? lAudioPersistent = null,
+        Guid lAudioRelayTarget = default)
     {
         LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
         int lAudioAdded = 0;
@@ -41,7 +44,8 @@ public static partial class LAudio
                 LAudioPlanSave(lAudioSourcePath, lAudioPlan);
             }
 
-            lAudioAdded += LAudio.LAudioInterpret(lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput);
+            lAudioAdded += LAudio.LAudioInterpret(
+                lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput, lAudioRelayTarget);
         }
 
         return lAudioAdded;

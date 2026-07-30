@@ -15,10 +15,14 @@ public sealed class PMergeTab : PTabSurface
     public PMergeTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
+        PTabAction = pAction;
         pAction.PActionRun += pPriority => LMerge.LMergeDescribe(
-            pPriority, pGroup.PGroupGroupsRead(), lExportSpecificState);
+            pPriority, pGroup.PGroupGroupsRead(), lExportSpecificState, pAction.PActionRelayTarget);
         pAction.PActionAllAdd += () => LMerge.LMergeDescribe(
-            LWorkPriority.LWorkPriorityNormal, pGroup.PGroupGroupsRead(), lExportSpecificState);
+            LWorkPriority.LWorkPriorityNormal,
+            pGroup.PGroupGroupsRead(),
+            lExportSpecificState,
+            pAction.PActionRelayTarget);
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
         pGroup.PGroupSourceFiles = () => pList.PListPathsRead();

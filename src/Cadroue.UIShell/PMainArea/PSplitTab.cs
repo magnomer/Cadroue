@@ -15,15 +15,18 @@ public sealed class PSplitTab : PTabSurface
     public PSplitTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
+        PTabAction = pAction;
         pAction.PActionRun += lPriority => LSplit.LSplitDescribe(
             lPriority,
             pViewer.PViewerSourcePath,
             pSection.PSectionSplitRead(),
-            lExportSpecificState);
+            lExportSpecificState,
+            pAction.PActionRelayTarget);
         pAction.PActionAllAdd += () => _ = LSplit.LSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
-            lExportSpecificState);
+            lExportSpecificState,
+            pAction.PActionRelayTarget);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);

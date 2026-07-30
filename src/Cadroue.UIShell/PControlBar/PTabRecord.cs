@@ -23,6 +23,10 @@ public sealed class PTabRecord : INotifyPropertyChanged
         PTabLayoutKey = pTabLayoutKey;
         PTabIconSource = pTabIconSource;
         PTabWorkspace = new PWorkspace(pTabLayoutKey, lExportSpecificState, lPreferenceTabLayout);
+        if (PTabWorkspace.PWorkspaceSurface.PTabAction is { } pTabAction)
+        {
+            PMainArea.LCourier.LCourierAttach(PTabId, pTabAction);
+        }
     }
 
     public Guid PTabId { get; }

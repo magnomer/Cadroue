@@ -15,6 +15,7 @@ public sealed class LWorkRecord
     public string OutputName { get; set; } = string.Empty;
     public string OutputPath { get; set; } = string.Empty;
     public List<string> MergeSources { get; set; } = [];
+    public Guid RelayTarget { get; set; }
     public string Message { get; set; } = string.Empty;
     public double Progress { get; set; }
     public DateTimeOffset CreateTime { get; set; } = DateTimeOffset.Now;
@@ -62,6 +63,7 @@ public sealed class LWorkRecord
         OutputName = lWorkItem.LWorkOutputName,
         OutputPath = lWorkItem.LWorkOutputPath,
         MergeSources = lWorkItem.LWorkMergeSources.ToList(),
+        RelayTarget = lWorkItem.LWorkRelayTarget,
         Message = lWorkItem.LWorkMessage,
         Progress = lWorkItem.LWorkProgress,
         CreateTime = lWorkItem.LWorkCreateTime,
@@ -100,6 +102,7 @@ public sealed class LWorkRecord
             Audio,
             MergeSources);
 
+        lWorkItem.LWorkRelayTarget = RelayTarget;
         lWorkItem.LWorkStateCurrent = LWorkEnumRead(State, LWorkState.LWorkStatePending);
         lWorkItem.LWorkMessage = Message;
         lWorkItem.LWorkProgress = Progress;

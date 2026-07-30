@@ -12,6 +12,7 @@ public abstract class PTabSurface : UserControl
     public abstract PViewer? PTabViewer { get; }
     public virtual PList? PTabList => null;
     public virtual PGroup? PTabGroup => null;
+    public PAction? PTabAction { get; protected set; }
     public virtual bool PTabBusyCheck() => false;
     public abstract LPreferenceTabLayoutRecord PTabLayoutRead();
 

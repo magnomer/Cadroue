@@ -9,7 +9,8 @@ public static partial class LAudio
         LWorkPriority lWorkPriority,
         string? lAudioSourcePath,
         LWorkAudio lAudioProcessing,
-        LWorkOutput lAudioOutput)
+        LWorkOutput lAudioOutput,
+        Guid lAudioRelayTarget = default)
     {
         if (string.IsNullOrWhiteSpace(lAudioSourcePath))
         {
@@ -33,7 +34,7 @@ public static partial class LAudio
             lAudioOutput,
             lWorkAudio: lAudioProcessing);
 
-        int lAudioAdded = LSchedule.LScheduleCurrent.LScheduleAdd(new[] { lAudioItem });
+        int lAudioAdded = LSchedule.LScheduleCurrent.LScheduleAdd(new[] { lAudioItem }, lAudioRelayTarget);
         LAppLog.LInfo(
             $"Audio queued {lAudioAdded} job at {lWorkPriority} from '{Path.GetFileName(lAudioSourcePath)}' " +
             $"into '{lAudioFolder}' as '{lAudioOutputName}'");

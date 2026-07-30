@@ -98,7 +98,7 @@ public sealed partial class LSchedule
         LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
     }
 
-    public int LScheduleAdd(IReadOnlyList<LWorkItem> lWorkItems)
+    public int LScheduleAdd(IReadOnlyList<LWorkItem> lWorkItems, Guid lScheduleRelayTarget = default)
     {
         if (lWorkItems.Count == 0)
         {
@@ -109,6 +109,11 @@ public sealed partial class LSchedule
         int lScheduleAddedCount = 0;
         foreach (LWorkItem lWorkItem in lWorkItems)
         {
+            if (lScheduleRelayTarget != Guid.Empty)
+            {
+                lWorkItem.LWorkRelayTarget = lScheduleRelayTarget;
+            }
+
             var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
             if (!LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
             {

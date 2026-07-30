@@ -22,19 +22,22 @@ public sealed class PEditTab : PTabSurface
     public PEditTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
+        PTabAction = pAction;
         pAction.PActionRun += lPriority => LEdit.LEditDescribe(
             lPriority,
             pViewer.PViewerSourcePath,
             pViewer.PViewerDurationRead(),
             pInspector.PInspectorCropRead(),
             PEditVideoRead(),
-            lExportSpecificState);
+            lExportSpecificState,
+            pAction.PActionRelayTarget);
 
         pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
             lExportSpecificState,
-            PEditCarriedRead());
+            PEditCarriedRead(),
+            pAction.PActionRelayTarget);
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));

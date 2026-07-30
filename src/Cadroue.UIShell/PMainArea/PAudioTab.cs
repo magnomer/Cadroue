@@ -34,6 +34,7 @@ public sealed class PAudioTab : PTabSurface
         pInspector.PInspectorAudioActiveChange += PAudioChangeHandle;
 
         var pAction = new PAction();
+        PTabAction = pAction;
         pAction.PActionRun += lPriority =>
         {
             PAudioPlanSave();
@@ -41,7 +42,8 @@ public sealed class PAudioTab : PTabSurface
                 lPriority,
                 pViewer.PViewerSourcePath,
                 PAudioProcessingRead(),
-                lExportSpecificState);
+                lExportSpecificState,
+                pAction.PActionRelayTarget);
         };
         pAction.PActionAllAdd += () =>
         {
@@ -53,7 +55,8 @@ public sealed class PAudioTab : PTabSurface
                 lExportSpecificState,
                 pInspector.PInspectorAudioPersistentAnyCheck()
                     ? pInspector.PInspectorAudioPersistentRead()
-                    : null);
+                    : null,
+                pAction.PActionRelayTarget);
         };
         pAction.PActionAllSet(
             true,

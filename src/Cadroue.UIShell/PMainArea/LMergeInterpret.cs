@@ -9,7 +9,8 @@ public static partial class LMerge
     public static int LMergeInterpret(
         LWorkPriority lWorkPriority,
         IReadOnlyList<PGroup.PGroupSelection> lMergeGroups,
-        LWorkOutput lMergeOutput)
+        LWorkOutput lMergeOutput,
+        Guid lMergeRelayTarget = default)
     {
         DateTimeOffset lMergeStamp = DateTimeOffset.Now;
         Guid lMergeBatchId = Guid.NewGuid();
@@ -47,7 +48,7 @@ public static partial class LMerge
             return 0;
         }
 
-        int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lMergeItems);
+        int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lMergeItems, lMergeRelayTarget);
         LAppLog.LInfo($"Merge queued {lMergeAdded} group(s) at {lWorkPriority} [batch {lMergeBatchId:N}]");
         foreach (LWorkItem lMergeItem in lMergeItems)
         {

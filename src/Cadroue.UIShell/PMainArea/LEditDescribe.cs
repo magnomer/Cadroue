@@ -27,7 +27,8 @@ public static partial class LEdit
         TimeSpan lEditDuration,
         LWorkCrop lEditCrop,
         LWorkVideo lEditVideo,
-        LExportSpecificState lExportSpecificState)
+        LExportSpecificState lExportSpecificState,
+        Guid lEditRelayTarget = default)
     {
         LEditWorkDescription lEditWorkDescription = new(
             lEditSourcePath,
@@ -36,14 +37,15 @@ public static partial class LEdit
             lEditVideo,
             lExportSpecificState.LPresetOutputCreate());
 
-        return LEdit.LEditInterpret(lWorkPriority, lEditWorkDescription);
+        return LEdit.LEditInterpret(lWorkPriority, lEditWorkDescription, lEditRelayTarget);
     }
 
     public static async Task<int> LEditAllDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lEditSourcePaths,
         LExportSpecificState lExportSpecificState,
-        LEditPlan? lEditCarried = null)
+        LEditPlan? lEditCarried = null,
+        Guid lEditRelayTarget = default)
     {
         LWorkOutput lEditOutput = lExportSpecificState.LPresetOutputCreate();
         var lEditWorkItems = new List<LWorkItem>();
@@ -69,7 +71,7 @@ public static partial class LEdit
                 lEditOutput));
         }
 
-        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lEditWorkItems);
+        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lEditWorkItems, lEditRelayTarget);
         LAppLog.LInfo(
             $"Edit Add All: {lEditSourcePaths.Count} listed, {lEditAdded} queued, "
             + $"plan source {(lEditCarried is null ? "sidecar per file" : "persistent for every file")}");
