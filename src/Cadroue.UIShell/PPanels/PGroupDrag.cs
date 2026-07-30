@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -9,6 +10,7 @@ public sealed partial class PGroup
     private const string PGroupMoveFormat = "CadroueGroupMove";
 
     private Point? pGroupDragStart;
+    private Point pGroupDragOffset;
     private int? pGroupDragSourceIndex;
     private string? pGroupDragPath;
 
@@ -30,10 +32,20 @@ public sealed partial class PGroup
         }
 
         var pData = new DataObject(PGroupMoveFormat, new PGroupMovePayload(pSourceIndex, pDragPath));
+        Point pGrabOffset = pGroupDragOffset;
         PGroupDragClear();
         if (pRowSender is UIElement pRowElement)
         {
             pRowElement.ReleaseMouseCapture();
+        }
+
+        if (pRowSender is FrameworkElement pRowVisual)
+        {
+            PGhost.PGhostDragRun(
+                pRowVisual,
+                pGrabOffset,
+                () => DragDrop.DoDragDrop(pRowVisual, pData, DragDropEffects.Move));
+            return;
         }
 
         DragDrop.DoDragDrop((DependencyObject)pRowSender, pData, DragDropEffects.Move);

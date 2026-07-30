@@ -280,6 +280,12 @@ public sealed partial class PConsole
         pConsoleSchedule.LScheduleAllClear();
     }
 
+    private void PConsoleTabsHandle(object pSender, RoutedEventArgs pArguments)
+    {
+        if (!PConsoleDestructiveConfirm(LLocalization.LLocalizationTextRead("Console.ClearTabs.Confirm"))) return;
+        PControlBar.LTabset.LTabsetCurrent?.LTabsetContentClear();
+    }
+
     private bool PConsoleDestructiveConfirm(string pConsoleQuestion)
     {
         if (!App.LPreferenceStateCurrent.LPreferenceConfirmDestructive)

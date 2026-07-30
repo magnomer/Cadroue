@@ -9,7 +9,7 @@ using Microsoft.Win32;
 
 namespace Cadroue.UIShell.PPanels;
 
-public sealed class PList : PPanel
+public sealed partial class PList : PPanel
 {
     private static readonly FontFamily pListFontFamily = new("Segoe UI");
     private static readonly Brush pListSelectBrush = new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB));
@@ -36,6 +36,7 @@ public sealed class PList : PPanel
     private string? pListPathCurrent;
     private bool pListMinimized;
     private Point? pListDragStart;
+    private Point pListDragOffset;
     private string? pListDragPath;
 
     public event Action<string?>? PListPathChange;
@@ -87,6 +88,8 @@ public sealed class PList : PPanel
         pBodyHost.Children.Add(pListStripBody);
 
         FocusVisualStyle = null;
+        Focusable = true;
+        KeyDown += PListKeyHandle;
         Content = PPanelBorderBuild(pBodyHost);
         PListEmptyUpdate();
     }
@@ -295,13 +298,18 @@ public sealed class PList : PPanel
 
     private void PListRemove()
     {
-        if (pListPathCurrent is null)
+        IReadOnlyList<string> pRemovedPaths = PListSelectionRead();
+        if (pRemovedPaths.Count == 0)
         {
             return;
         }
 
-        int pRemovedIndex = pListPaths.IndexOf(pListPathCurrent);
-        pListPaths.Remove(pListPathCurrent);
+        int pRemovedIndex = pListPaths.IndexOf(pRemovedPaths[0]);
+        foreach (string pRemovedPath in pRemovedPaths)
+        {
+            pListPaths.Remove(pRemovedPath);
+        }
+
         PListRowsRebuild();
         PListSelectApply(pListPaths.Count == 0
             ? null
@@ -356,9 +364,7 @@ public sealed class PList : PPanel
         var pRowBorder = new Border
         {
             Padding = new Thickness(12, 7, 12, 7),
-            Background = string.Equals(pRowPath, pListPathCurrent, StringComparison.OrdinalIgnoreCase)
-                ? pListSelectBrush
-                : Brushes.White,
+            Background = PListSelectionCheck(pRowPath) ? pListSelectBrush : Brushes.White,
             BorderBrush = pListLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Cursor = Cursors.Hand,
@@ -368,8 +374,10 @@ public sealed class PList : PPanel
         };
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
-            PListSelectApply(pRowPath);
+            Focus();
+            PListPressHandle(pRowPath, pRowEvent);
             pListDragStart = pRowEvent.GetPosition(null);
+            pListDragOffset = pRowEvent.GetPosition(pRowBorder);
             pListDragPath = pRowPath;
             pRowBorder.CaptureMouse();
             pRowEvent.Handled = true;
@@ -380,6 +388,7 @@ public sealed class PList : PPanel
             pRowBorder.ReleaseMouseCapture();
             pListDragStart = null;
             pListDragPath = null;
+            PListReleaseHandle();
         };
         return pRowBorder;
     }
@@ -400,33 +409,27 @@ public sealed class PList : PPanel
             return;
         }
 
-        var pDragData = new DataObject(PListDragFormat, new[] { pDragPath });
+        string[] pDragPaths = PListSelectionCheck(pDragPath)
+            ? PListSelectionRead().ToArray()
+            : [pDragPath];
+        var pDragData = new DataObject(PListDragFormat, pDragPaths);
+        Point pGrabOffset = pListDragOffset;
         pListDragStart = null;
         pListDragPath = null;
+        pListPressPath = null;
         if (pRowSender is UIElement pRowElement)
         {
             pRowElement.ReleaseMouseCapture();
         }
 
         LAppLog.LInfo($"DRAGTRACE list drag start '{Path.GetFileName(pDragPath)}'");
-        DragDropEffects pDragResult = DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
+        DragDropEffects pDragResult = pRowSender is FrameworkElement pRowVisual
+            ? PGhost.PGhostDragRun(
+                pRowVisual,
+                pGrabOffset,
+                () => DragDrop.DoDragDrop(pRowVisual, pDragData, DragDropEffects.Copy))
+            : DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
         LAppLog.LInfo($"DRAGTRACE list drag end effect={pDragResult}");
-    }
-
-    private void PListSelectApply(string? pSelectPath)
-    {
-        pListPathCurrent = pSelectPath;
-        foreach (UIElement pRow in pListRowPanel.Children)
-        {
-            if (pRow is Border { Tag: string pRowPath } pRowBorder)
-            {
-                pRowBorder.Background = string.Equals(pRowPath, pListPathCurrent, StringComparison.OrdinalIgnoreCase)
-                    ? pListSelectBrush
-                    : Brushes.White;
-            }
-        }
-
-        PListPathChange?.Invoke(pListPathCurrent);
     }
 
     private void PListEmptyUpdate()

@@ -330,6 +330,7 @@ public partial class PToolbar : UserControl
         yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Redo"), "Ctrl+Y", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeTab"));
         yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.PlayPause"), "Space", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeGlobal"));
         yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Unload"), "F4", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeTab"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.UnloadAll"), "Shift+Del", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeGlobal"));
         yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ZoomIn"), "C", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
         yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ZoomOut"), "V", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
         yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionAdd"), "Q", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));

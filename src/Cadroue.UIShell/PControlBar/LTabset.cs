@@ -235,6 +235,30 @@ public sealed class LTabset
         LTabsetSeparatorUpdate();
     }
 
+    public bool LTabsetContentClear()
+    {
+        bool pTabsetCleared = false;
+        foreach (PTabRecord pTabRecord in PTabsetRecords)
+        {
+            PWorkspace pTabWorkspace = pTabRecord.PTabWorkspace;
+            pTabsetCleared |= pTabWorkspace.PWorkspaceViewer?.PViewerMediaClose() == true;
+
+            if (pTabWorkspace.PWorkspaceList is { } pTabList && pTabList.PListPathsRead().Count > 0)
+            {
+                pTabList.PListClear();
+                pTabsetCleared = true;
+            }
+
+            if (pTabWorkspace.PWorkspaceSurface.PTabGroup is { } pTabGroup)
+            {
+                pTabGroup.PGroupClear();
+            }
+        }
+
+        LAppLog.LInfo($"Tabs cleared across {PTabsetRecords.Count} tab(s)");
+        return pTabsetCleared;
+    }
+
     public void LTabsetClose(PTabRecord pTabRecord)
     {
         var pTabIndex = PTabsetRecords.IndexOf(pTabRecord);

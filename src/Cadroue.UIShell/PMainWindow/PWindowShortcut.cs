@@ -42,6 +42,11 @@ public partial class PWindow
             return PShortcutHistoryRun(true);
         }
 
+        if (pModifiers == ModifierKeys.Shift && pKey == Key.Delete)
+        {
+            return lTabset.LTabsetContentClear();
+        }
+
         if (pModifiers != ModifierKeys.None)
         {
             return false;

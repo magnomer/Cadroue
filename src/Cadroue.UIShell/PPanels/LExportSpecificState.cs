@@ -317,6 +317,40 @@ public sealed class LExportSpecificState
         return true;
     }
 
+    public static bool LPresetNameSet(string lOldPresetName, string lNewPresetName, LExportSpecificState lSource)
+    {
+        if (string.IsNullOrWhiteSpace(lOldPresetName) || string.IsNullOrWhiteSpace(lNewPresetName))
+        {
+            return false;
+        }
+
+        string lOldName = lOldPresetName.Trim();
+        string lName = lNewPresetName.Trim();
+        if (LPresetNativeCheck(lOldName) || LPresetNativeCheck(lName))
+        {
+            return false;
+        }
+
+        int lIndex = LPresetIndexRead(lOldName);
+        if (lIndex < 0)
+        {
+            return false;
+        }
+
+        if (!string.Equals(lOldName, lName, StringComparison.OrdinalIgnoreCase) && LPresetIndexRead(lName) >= 0)
+        {
+            return false;
+        }
+
+        var lPreset = lSource.LPresetClone();
+        lPreset.PresetName = lName;
+        LPresetMap.Remove(lOldName);
+        LPresetMap[lName] = lPreset;
+        LPresetNames[lIndex] = lName;
+        LPresetPersist();
+        return true;
+    }
+
     public static bool LPresetMoveToIndex(string lPresetName, int lTargetIndex)
     {
         if (string.IsNullOrWhiteSpace(lPresetName))

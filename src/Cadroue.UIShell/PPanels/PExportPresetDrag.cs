@@ -8,6 +8,8 @@ public sealed partial class PExport
 {
     private void PExportPresetDragClear()
     {
+        pPresetDragGhost?.PGhostClear();
+        pPresetDragGhost = null;
         pPresetNameDragging = null;
         pPresetDragStart = null;
         pPresetDragActive = false;

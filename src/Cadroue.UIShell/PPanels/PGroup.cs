@@ -295,18 +295,35 @@ public sealed partial class PGroup : PPanel
             TextTrimming = TextTrimming.CharacterEllipsis
         });
 
+        Button pItemRemoveButton = PGroupButtonBuild(
+            "/PAssets/PPanels/PExportMinus.svg",
+            LLocalization.LLocalizationTextRead("Group.Item.RemoveTooltip"),
+            (_, _) => PGroupItemRemove(pGroupIndex, pPath));
+        pItemRemoveButton.Width = 22;
+        pItemRemoveButton.Height = 20;
+        pItemRemoveButton.Margin = new Thickness(6, 0, 0, 0);
+        pItemRemoveButton.VerticalAlignment = VerticalAlignment.Center;
+
+        var pRowGrid = new Grid();
+        pRowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pRowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(pItemRemoveButton, 1);
+        pRowGrid.Children.Add(pRowContent);
+        pRowGrid.Children.Add(pItemRemoveButton);
+
         var pRowBorder = new Border
         {
-            Padding = new Thickness(20, 6, 12, 6),
+            Padding = new Thickness(20, 4, 8, 4),
             Background = Brushes.Transparent,
             Cursor = Cursors.Hand,
             ToolTip = pPath,
-            Child = pRowContent,
+            Child = pRowGrid,
             Tag = pPath
         };
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
             pGroupDragStart = pRowEvent.GetPosition(null);
+            pGroupDragOffset = pRowEvent.GetPosition(pRowBorder);
             pGroupDragSourceIndex = pGroupIndex;
             pGroupDragPath = pPath;
             pRowBorder.CaptureMouse();
@@ -319,6 +336,23 @@ public sealed partial class PGroup : PPanel
             PGroupDragClear();
         };
         return pRowBorder;
+    }
+
+    private void PGroupItemRemove(int pGroupIndex, string pPath)
+    {
+        if (pGroupIndex < 0 || pGroupIndex >= pGroupRecords.Count)
+        {
+            return;
+        }
+
+        List<string> pGroupPaths = pGroupRecords[pGroupIndex].PGroupRecordPaths;
+        if (pGroupPaths.RemoveAll(pExisting => string.Equals(pExisting, pPath, StringComparison.OrdinalIgnoreCase)) == 0)
+        {
+            return;
+        }
+
+        PGroupDragClear();
+        PGroupRebuild();
     }
 
     private void PGroupRemove(int pGroupIndex)

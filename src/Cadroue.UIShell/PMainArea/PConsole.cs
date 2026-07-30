@@ -30,6 +30,7 @@ public sealed partial class PConsole : UserControl
     private readonly Button pConsoleRemoveButton;
     private readonly Button pConsoleClearButton;
     private readonly Button pConsoleEmptyButton;
+    private readonly Button pConsoleTabsButton;
     private readonly List<LWorkItem> pConsoleWatchedItems = new();
 
     public PConsole()
@@ -59,6 +60,9 @@ public sealed partial class PConsole : UserControl
         pConsoleEmptyButton = PConsoleButtonBuild(
             LLocalization.LLocalizationTextRead("Console.Button.ClearAll"), "PRosterClearAll.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearAllTooltip"),
             null, PConsoleAllHandle);
+        pConsoleTabsButton = PConsoleButtonBuild(
+            LLocalization.LLocalizationTextRead("Console.Button.ClearTabs"), "PConsoleClearTabs.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearTabsTooltip"),
+            null, PConsoleTabsHandle);
         pConsoleAutoBox = PConsoleAutoBoxBuild();
         pConsolePreviousButton = PConsoleSwitchBuild(
             "PConsolePrevious.svg", LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"), PConsolePreviousHandle);
@@ -92,6 +96,8 @@ public sealed partial class PConsole : UserControl
         pButtons.Children.Add(pConsoleRemoveButton);
         pButtons.Children.Add(pConsoleClearButton);
         pButtons.Children.Add(pConsoleEmptyButton);
+        pButtons.Children.Add(new Border { Width = 10 });
+        pButtons.Children.Add(pConsoleTabsButton);
 
         var pRow = new Grid();
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

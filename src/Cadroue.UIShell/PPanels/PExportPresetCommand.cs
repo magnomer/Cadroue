@@ -239,8 +239,12 @@ public sealed partial class PExport
         }
 
         lPresetState.PresetName = lName;
-        LExportSpecificState.LPresetSave(lName, lPresetState);
-        LExportSpecificState.LPresetDelete(lOldPresetName);
+        if (!LExportSpecificState.LPresetNameSet(lOldPresetName, lName, lPresetState))
+        {
+            PExportPresetRebuild();
+            return;
+        }
+
         if (lCurrentPresetRename)
         {
             lExportSpecificState.PresetName = lName;

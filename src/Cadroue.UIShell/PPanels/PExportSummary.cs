@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -25,7 +26,9 @@ public sealed partial class PExport : UserControl
     private string? pPresetNameEditing;
     private string? pPresetNameDragging;
     private Point? pPresetDragStart;
+    private Point pPresetDragOffset;
     private bool pPresetDragActive;
+    private PGhost? pPresetDragGhost;
 
     private bool pPresetRebuilding;
 

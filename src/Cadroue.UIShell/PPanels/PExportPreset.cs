@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PAssets;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -95,6 +96,7 @@ public sealed partial class PExport
 
             pPresetNameDragging = lPresetName;
             pPresetDragStart = pEvent.GetPosition(pRowBorder);
+            pPresetDragOffset = pPresetDragStart.Value;
             pPresetDragActive = false;
             pRowBorder.CaptureMouse();
         };
@@ -127,8 +129,14 @@ public sealed partial class PExport
                 return;
             }
 
+            if (!pPresetDragActive)
+            {
+                pPresetDragGhost = PGhost.PGhostShow(pRowBorder, pPresetDragOffset);
+            }
+
             pPresetDragActive = true;
-            pRowBorder.Opacity = 0.72;
+            pRowBorder.Opacity = 0.42;
+            pPresetDragGhost?.PGhostCursorSync();
             int lPresetTargetIndex = PExportPresetIndexResolve(pEvent.GetPosition(pPresetRowPanel));
             if (PExportPresetMoveLive(pPresetNameDragging, lPresetTargetIndex, pRowBorder))
             {
