@@ -71,6 +71,7 @@ internal sealed class PSGrabber
         psGrabberWindow.PreviewMouseLeftButtonDown -= PSGrabberPressHandle;
         psGrabberWindow.PreviewMouseLeftButtonUp -= PSGrabberReleaseHandle;
         psGrabberWindow.LostMouseCapture -= PSGrabberCaptureHandle;
+        PSGrabberCursorApply(0);
     }
 
     private void PSGrabberPressHandle(object sender, MouseButtonEventArgs e)
@@ -89,6 +90,7 @@ internal sealed class PSGrabber
             psGrabberWindow.Top,
             psGrabberWindow.ActualWidth,
             psGrabberWindow.ActualHeight);
+        PSGrabberCursorApply(pDirection);
         Mouse.Capture(psGrabberWindow);
         e.Handled = true;
     }
@@ -105,7 +107,13 @@ internal sealed class PSGrabber
         int pDirection = psGrabberWindow.WindowState == WindowState.Normal
             ? PSGrabberDirectionRead(e.GetPosition(psGrabberWindow))
             : 0;
+        PSGrabberCursorApply(pDirection);
+    }
+
+    private void PSGrabberCursorApply(int pDirection)
+    {
         psGrabberWindow.Cursor = pDirection == 0 ? null : PSGrabberCursorRead(pDirection);
+        psGrabberWindow.ForceCursor = pDirection != 0;
     }
 
     private void PSGrabberReleaseHandle(object sender, MouseButtonEventArgs e)
@@ -123,6 +131,7 @@ internal sealed class PSGrabber
     private void PSGrabberCaptureHandle(object sender, MouseEventArgs e)
     {
         psGrabberActive = false;
+        PSGrabberCursorApply(0);
     }
 
     private int PSGrabberDirectionRead(Point pPoint)

@@ -35,6 +35,7 @@ public sealed class PLogWindow : Window
         };
 
         Content = PLogContentBuild();
+        PSShared.PSCasement.PSCasementEscapeAttach(this);
         PSShared.PSGrabber.PSGrabberPlacementRestore(this, PLogWindowPlacementKey);
         LTrace.LTraceAppend += PLogAppendHandle;
         Closed += (_, _) =>

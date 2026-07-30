@@ -53,6 +53,8 @@ public sealed class LPreferenceState
     public List<int> LPreferenceTabRelays { get; set; } = new();
     public List<string> LPreferenceTabNames { get; set; } = new();
 
+    public List<LBindingRecord> LPreferenceShortcuts { get; set; } = new();
+
     public static LPreferenceState LPreferenceDefaultCreate()
     {
         return new LPreferenceState
@@ -88,7 +90,8 @@ public sealed class LPreferenceState
             LPreferenceProgramTop = null,
             LPreferenceFlowHeight = 280,
             LPreferenceTabLayoutKeys = new List<string> { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" },
-            LPreferenceTabSelectIndex = 0
+            LPreferenceTabSelectIndex = 0,
+            LPreferenceShortcuts = LBinding.LBindingDefaultCreate()
         };
     }
 
@@ -140,7 +143,10 @@ public sealed class LPreferenceState
                 .Select(lPreferenceTabLayout => lPreferenceTabLayout.LPreferenceTabLayoutClone())
                 .ToList(),
             LPreferenceTabRelays = new List<int>(LPreferenceTabRelays),
-            LPreferenceTabNames = new List<string>(LPreferenceTabNames)
+            LPreferenceTabNames = new List<string>(LPreferenceTabNames),
+            LPreferenceShortcuts = LPreferenceShortcuts
+                .Select(lPreferenceShortcut => lPreferenceShortcut.LBindingRecordClone())
+                .ToList()
         };
     }
 
@@ -211,6 +217,7 @@ public sealed class LPreferenceState
         LPreferenceTabLayouts ??= new List<LPreferenceTabLayoutRecord>();
         LPreferenceTabRelays ??= new List<int>();
         LPreferenceTabNames ??= new List<string>();
+        LPreferenceShortcuts = LBinding.LBindingNormalize(LPreferenceShortcuts);
     }
 
     [JsonIgnore]

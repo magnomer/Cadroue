@@ -283,65 +283,9 @@ public partial class PToolbar : UserControl
         PSOptions.PSOptionsShow(Window.GetWindow(this)!, PToolbarOptionsApply);
     }
 
-    private const string PToolbarShortcutPlacementKey = "Shortcut";
-
     public void PToolbarShortcutShow()
     {
-        var pShortcutWindow = new Window
-        {
-            Title = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Title"),
-            Width = 640,
-            Height = 520,
-            MinWidth = 520,
-            MinHeight = 360,
-            Owner = Window.GetWindow(this),
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = PShortcutContentBuild()
-        };
-        PSShared.PSGrabber.PSGrabberPlacementRestore(pShortcutWindow, PToolbarShortcutPlacementKey);
-        pShortcutWindow.Closed += (_, _) =>
-            PSShared.PSGrabber.PSGrabberPlacementSave(pShortcutWindow, PToolbarShortcutPlacementKey);
-        pShortcutWindow.ShowDialog();
-    }
-
-    private static ScrollViewer PShortcutContentBuild()
-    {
-        var pPanel = new StackPanel { Margin = new Thickness(18) };
-        pPanel.Children.Add(new TextBlock { Text = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Title"), FontSize = 22, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 14) });
-        foreach ((string pAction, string pShortcut, string pScope) in PShortcutRowBuild())
-        {
-            pPanel.Children.Add(new TextBlock
-            {
-                Text = $"{pShortcut,-10}  {pAction}  —  {pScope}",
-                FontFamily = new FontFamily("Consolas"),
-                FontSize = 13,
-                Margin = new Thickness(0, 0, 0, 7),
-                Foreground = System.Windows.Media.Brushes.Black
-            });
-        }
-
-        return new ScrollViewer { Content = pPanel };
-    }
-
-    private static IEnumerable<(string Action, string Shortcut, string Scope)> PShortcutRowBuild()
-    {
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Show"), "Ctrl+/", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeGlobal"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Undo"), "Ctrl+Z", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeTab"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Redo"), "Ctrl+Y", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeTab"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.PlayPause"), "Space", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeGlobal"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Unload"), "F4", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeTab"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.UnloadAll"), "Shift+Del", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeGlobal"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ZoomIn"), "C", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ZoomOut"), "V", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionAdd"), "Q", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionStart"), "D", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionSplit"), "S", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionEnd"), "F", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionDelete"), "Delete", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionRename"), "A", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.KeyframePrevious"), "E", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.KeyframeNearest"), "W", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
-        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.KeyframeNext"), "R", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
+        PSKeymap.PSKeymapShow(Window.GetWindow(this)!, PToolbarOptionsApply);
     }
 
     private void PTabMenuHandle(object sender, RoutedEventArgs e)

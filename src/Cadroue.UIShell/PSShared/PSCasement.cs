@@ -16,8 +16,23 @@ internal static class PSCasement
 
     private const double PSCasementButtonHeight = PSCasementBandHeight - PSCasementContentOverlap;
 
+    internal static void PSCasementEscapeAttach(Window pWindow)
+    {
+        pWindow.KeyDown += (_, e) =>
+        {
+            if (e.Key != Key.Escape)
+            {
+                return;
+            }
+
+            e.Handled = true;
+            pWindow.Close();
+        };
+    }
+
     internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth)
     {
+        PSCasementEscapeAttach(pWindow);
         var pGrid = new Grid { Height = PSCasementBandHeight, VerticalAlignment = VerticalAlignment.Top };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSCasementLeadColumn) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });

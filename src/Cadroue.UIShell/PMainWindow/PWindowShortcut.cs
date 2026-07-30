@@ -25,51 +25,48 @@ public partial class PWindow
 
     private bool PShortcutDispatch(Key pKey, ModifierKeys pModifiers)
     {
-        if (pModifiers == ModifierKeys.Control && (pKey == Key.OemQuestion || pKey == Key.Divide))
-        {
-            pControlBar.PToolbarShortcutShow();
-            return true;
-        }
-
-        if (pModifiers == ModifierKeys.Control && pKey == Key.Z)
-        {
-            return PShortcutHistoryRun(false);
-        }
-
-        if ((pModifiers == ModifierKeys.Control && pKey == Key.Y)
-            || (pModifiers == (ModifierKeys.Control | ModifierKeys.Shift) && pKey == Key.Z))
-        {
-            return PShortcutHistoryRun(true);
-        }
-
-        if (pModifiers == ModifierKeys.Shift && pKey == Key.Delete)
-        {
-            return lTabset.LTabsetContentClear();
-        }
-
-        if (pModifiers != ModifierKeys.None)
-        {
-            return false;
-        }
-
-        return pKey switch
-        {
-            Key.Space => PShortcutPlayToggle(),
-            Key.F4 => PShortcutMediaClose(),
-            Key.C => pFlowActive?.PFlowShortcutDispatch("zoomIn") == true,
-            Key.V => pFlowActive?.PFlowShortcutDispatch("zoomOut") == true,
-            Key.Q => pFlowActive?.PFlowShortcutDispatch("addSection") == true,
-            Key.D => pFlowActive?.PFlowShortcutDispatch("setStart") == true,
-            Key.S => pFlowActive?.PFlowShortcutDispatch("splitSection") == true,
-            Key.F => pFlowActive?.PFlowShortcutDispatch("setEnd") == true,
-            Key.Delete => pFlowActive?.PFlowShortcutDispatch("deleteSection") == true,
-            Key.A => pFlowActive?.PFlowShortcutDispatch("nameSection") == true,
-            Key.E => pFlowActive?.PFlowShortcutDispatch("previousKey") == true,
-            Key.W => pFlowActive?.PFlowShortcutDispatch("nearestKey") == true,
-            Key.R => pFlowActive?.PFlowShortcutDispatch("nextKey") == true,
-            _ => false
-        };
+        string pShortcutGesture = LBinding.LBindingFormat(pKey, pModifiers);
+        string? pShortcutToken = LBinding.LBindingTokenFind(App.LPreferenceStateCurrent.LPreferenceShortcuts, pShortcutGesture);
+        return pShortcutToken is not null && PShortcutRun(pShortcutToken);
     }
+
+    private bool PShortcutRun(string pShortcutToken)
+    {
+        switch (pShortcutToken)
+        {
+            case "Show":
+                pControlBar.PToolbarShortcutShow();
+                return true;
+            case "Undo":
+                return PShortcutHistoryRun(false);
+            case "Redo":
+                return PShortcutHistoryRun(true);
+            case "UnloadAll":
+                return lTabset.LTabsetContentClear();
+            case "PlayPause":
+                return PShortcutPlayToggle();
+            case "Unload":
+                return PShortcutMediaClose();
+            default:
+                return pFlowActive?.PFlowShortcutDispatch(PShortcutCodeRead(pShortcutToken)) == true;
+        }
+    }
+
+    private static string PShortcutCodeRead(string pShortcutToken) => pShortcutToken switch
+    {
+        "ZoomIn" => "zoomIn",
+        "ZoomOut" => "zoomOut",
+        "SectionAdd" => "addSection",
+        "SectionStart" => "setStart",
+        "SectionSplit" => "splitSection",
+        "SectionEnd" => "setEnd",
+        "SectionDelete" => "deleteSection",
+        "SectionRename" => "nameSection",
+        "KeyframePrevious" => "previousKey",
+        "KeyframeNearest" => "nearestKey",
+        "KeyframeNext" => "nextKey",
+        _ => string.Empty
+    };
 
     private bool PShortcutHistoryRun(bool pShortcutRedo)
     {
