@@ -67,7 +67,7 @@ public sealed class PCompass : UserControl
             Maximum = 100,
             VerticalAlignment = VerticalAlignment.Center,
             Focusable = false,
-            ToolTip = "Volume",
+            ToolTip = LLocalization.LLocalizationTextRead("Compass.Volume.Label"),
             Style = PCompassSliderBuild()
         };
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle(pFlow);
@@ -130,7 +130,7 @@ public sealed class PCompass : UserControl
         FrameworkElement pIcon = PCompassIconBuild();
         var pLabel = new TextBlock
         {
-            Text = "Volume",
+            Text = LLocalization.LLocalizationTextRead("Compass.Volume.Label"),
             FontSize = 11,
             Foreground = new SolidColorBrush(Color.FromRgb(0x2D, 0x37, 0x48)),
             VerticalAlignment = VerticalAlignment.Center,

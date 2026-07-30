@@ -86,6 +86,8 @@ public sealed record LWorkMedia(
     bool LWorkMediaVideoPresent)
 {
     public TimeSpan LWorkMediaDuration => TimeSpan.FromMilliseconds(LWorkMediaDurationMilliseconds);
+
+    public double? LWorkMediaKeyframeIntervalMilliseconds { get; init; }
 }
 
 public sealed record LWorkCrop(

@@ -67,13 +67,13 @@ public sealed class PInfo : UserControl
 
         if (string.IsNullOrEmpty(pMediaStatus.LMediaOpenSourcePath))
         {
-            PInfoStatusAdd(LMediaInfo.LMediaFfprobeExist() ? "FFmpeg ready" : "FFmpeg missing", PInfoMutedBrush);
+            PInfoStatusAdd(LLocalization.LLocalizationTextRead(LMediaInfo.LMediaFfprobeExist() ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"), PInfoMutedBrush);
             return;
         }
 
-        PInfoStatusAdd(pMediaStatus.LMediaOpenFfmpegProcessable ? "FFmpeg processable" : "FFmpeg unprocessable",
+        PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LMediaOpenFfmpegProcessable ? "Info.FFmpeg.Processable" : "Info.FFmpeg.Unprocessable"),
             pMediaStatus.LMediaOpenFfmpegProcessable ? PInfoFfmpegGoodBrush : PInfoFfmpegBadBrush);
-        PInfoStatusAdd(pMediaStatus.LMediaOpenPreviewAvailable ? "Preview available" : "Preview unavailable",
+        PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LMediaOpenPreviewAvailable ? "Info.Preview.Available" : "Info.Preview.Unavailable"),
             pMediaStatus.LMediaOpenPreviewAvailable ? PInfoPreviewGoodBrush : PInfoPreviewBadBrush);
 
         if (pMediaStatus.LMediaOpenMediaInfo is not LMediaInfo pMediaInfo)
@@ -92,7 +92,7 @@ public sealed class PInfo : UserControl
         }
         else
         {
-            PInfoTextAdd("Audio only");
+            PInfoTextAdd(LLocalization.LLocalizationTextRead("Info.Audio.Only"));
         }
 
         if (pMediaInfo.LMediaInfoAudioPresent)
@@ -104,16 +104,16 @@ public sealed class PInfo : UserControl
         }
         else
         {
-            PInfoTextAdd("No audio");
+            PInfoTextAdd(LLocalization.LLocalizationTextRead("Info.Audio.None"));
         }
     }
 
     private void PInfoErrorAdd(LMediaOpenStatus pMediaStatus)
     {
         if (!string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenFfmpegError))
-            PInfoTextAdd(PInfoTextShorten($"FFmpeg: {pMediaStatus.LMediaOpenFfmpegError}"), true);
+            PInfoTextAdd(PInfoTextShorten(LLocalization.LLocalizationFormat("Info.Error.FFmpeg", pMediaStatus.LMediaOpenFfmpegError)), true);
         if (!string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenPreviewError))
-            PInfoTextAdd(PInfoTextShorten($"Preview: {pMediaStatus.LMediaOpenPreviewError}"), true);
+            PInfoTextAdd(PInfoTextShorten(LLocalization.LLocalizationFormat("Info.Error.Preview", pMediaStatus.LMediaOpenPreviewError)), true);
     }
 
     private void PInfoClear()
@@ -121,7 +121,7 @@ public sealed class PInfo : UserControl
         pInfoItemPanel.Children.Clear();
         pInfoItemPanel.Children.Add(new TextBlock
         {
-            Text = "No media loaded",
+            Text = LLocalization.LLocalizationTextRead("Source.Empty.Notice"),
             FontSize = 11,
             Foreground = PInfoMutedBrush,
             VerticalAlignment = VerticalAlignment.Center
@@ -216,8 +216,8 @@ public sealed class PInfo : UserControl
 
     private static string PInfoChannelFormat(int pChannelCount) => pChannelCount switch
     {
-        1 => "Mono",
-        2 => "Stereo",
+        1 => LLocalization.LLocalizationTextRead("Encoder.Value.Mono"),
+        2 => LLocalization.LLocalizationTextRead("Encoder.Value.Stereo"),
         _ => $"{pChannelCount}ch"
     };
 }

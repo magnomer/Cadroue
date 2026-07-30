@@ -66,7 +66,7 @@ public sealed partial class PFlow
     public void PFlowSectionDelete()
     {
         if (lSectionIndexSelect is null) return;
-        if (!PFlowDestructiveConfirm("Delete the selected section?")) return;
+        if (!PFlowDestructiveConfirm(LLocalization.LLocalizationTextRead("Flow.Section.DeleteConfirm"))) return;
         int index = lSectionIndexSelect.Value;
         PFlowSectionRecord("deleted", index);
         lSectionList.RemoveAt(index);

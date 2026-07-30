@@ -30,13 +30,13 @@ internal sealed partial class PSOptions
     private UIElement PSTimelineBuild()
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild("Timeline order",
-            PSFieldBuild("Strip order", psOrderCombo)));
-        pPanel.Children.Add(PSPlateBuild("Keyframe spacing",
-            PSOptionsSliderFieldBuild("Minimum", psKeyframeSlider, " px")));
-        pPanel.Children.Add(PSPlateBuild("Overlapping",
-            PSFieldBuild("Overlapping sections", psOverlapBox)));
-        pPanel.Children.Add(PSPlateBuild("Section colour palette",
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Order"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"), psOrderCombo)));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
+            PSOptionsSliderFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"), psKeyframeSlider, " px")));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Overlapping"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlappingSections"), psOverlapBox)));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.SectionPalette"),
             PSPaletteFieldBuild()));
         return pPanel;
     }
@@ -50,14 +50,14 @@ internal sealed partial class PSOptions
         var pSide = new StackPanel { VerticalAlignment = VerticalAlignment.Top, Width = PSFieldLabelWidth };
         pSide.Children.Add(new TextBlock
         {
-            Text = "Palette",
+            Text = LLocalization.LLocalizationTextRead("Options.Timeline.Palette"),
             Foreground = PSFieldMuted,
             Margin = new Thickness(0, 8, 0, 8)
         });
 
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal };
-        pButtons.Children.Add(PSPaletteButtonBuild(PSPaletteLoadIconPath, "Load a palette from a JSON file", PSPaletteLoad));
-        pButtons.Children.Add(PSPaletteButtonBuild(PSPaletteSaveIconPath, "Save the selected palette to a JSON file", PSPaletteSave));
+        pButtons.Children.Add(PSPaletteButtonBuild(PSPaletteLoadIconPath, LLocalization.LLocalizationTextRead("Options.Timeline.LoadTooltip"), PSPaletteLoad));
+        pButtons.Children.Add(PSPaletteButtonBuild(PSPaletteSaveIconPath, LLocalization.LLocalizationTextRead("Options.Timeline.SaveTooltip"), PSPaletteSave));
         pSide.Children.Add(pButtons);
 
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
@@ -111,8 +111,8 @@ internal sealed partial class PSOptions
     {
         var pDialog = new OpenFileDialog
         {
-            Title = "Load palette",
-            Filter = "Palette JSON (*.json)|*.json",
+            Title = LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"),
+            Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
             InitialDirectory = Cadroue.Core.LDepot.LDepotPaletteRead()
         };
         if (pDialog.ShowDialog() != true)
@@ -123,7 +123,7 @@ internal sealed partial class PSOptions
         string? pLoadedName = PSectionPalette.PSectionPaletteLoad(pDialog.FileName);
         if (pLoadedName is null)
         {
-            MessageBox.Show(this, "That file is not a palette. It needs a name and at least one colour.", "Load palette", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.Timeline.InvalidPalette"), LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -135,8 +135,8 @@ internal sealed partial class PSOptions
     {
         var pDialog = new SaveFileDialog
         {
-            Title = "Save palette",
-            Filter = "Palette JSON (*.json)|*.json",
+            Title = LLocalization.LLocalizationTextRead("Options.Timeline.SaveTitle"),
+            Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
             FileName = $"{psPaletteName}.json",
             InitialDirectory = Cadroue.Core.LDepot.LDepotPaletteRead()
         };
@@ -212,7 +212,7 @@ internal sealed partial class PSOptions
             Height = PSPaletteRemoveSize,
             Margin = new Thickness(8, 0, 0, 6),
             VerticalAlignment = VerticalAlignment.Center,
-            ToolTip = $"Remove '{pName}'",
+            ToolTip = LLocalization.LLocalizationFormat("Options.Timeline.RemoveTooltip", pName),
             Content = new Image
             {
                 Source = PIcon.PIconRead(PSPaletteRemoveIconPath, PSFieldText),
@@ -230,9 +230,9 @@ internal sealed partial class PSOptions
         MessageBoxResult pAnswer = MessageBox.Show(
             this,
             PSectionPalette.PSectionNativeCheck(pName)
-                ? $"Remove the built-in palette '{pName}' from the list?"
-                : $"Delete the palette '{pName}' from the workspace? Its JSON file is removed.",
-            "Remove palette",
+                ? LLocalization.LLocalizationFormat("Options.Timeline.RemoveBuiltInConfirm", pName)
+                : LLocalization.LLocalizationFormat("Options.Timeline.RemoveWorkspaceConfirm", pName),
+            LLocalization.LLocalizationTextRead("Options.Timeline.RemoveTitle"),
             MessageBoxButton.OKCancel,
             MessageBoxImage.Warning);
         if (pAnswer != MessageBoxResult.OK || !PSectionPalette.PSectionPaletteRemove(pName))

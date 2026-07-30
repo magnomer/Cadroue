@@ -31,7 +31,7 @@ internal sealed partial class PSEncoder
         ("AVS2, xavs2 / libxavs2", ["libxavs2"]), ("APV, OpenAPV / liboapv", ["liboapv"])
     ];
 
-    private UIElement PSModePlateBuild() => PSPlateBuild(PSFieldBuild("Mode", psModeCombo));
+    private UIElement PSModePlateBuild() => PSPlateBuild(PSFieldBuild(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), psModeCombo));
 
     private static string[] PSCodecItemsRead() =>
         PSCodecCandidates.Select(pCandidate => pCandidate.PSCodecText).ToArray();
@@ -53,7 +53,7 @@ internal sealed partial class PSEncoder
     {
         string pSelected = pCombo.SelectedItem as string ?? string.Empty;
         pButton.IsEnabled = false;
-        pButton.Content = "Checking";
+        pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Verification.Checking");
         var pAvailable = new List<string>();
         var pLog = new StringBuilder();
         pLog.AppendLine($"Verification: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
@@ -79,7 +79,7 @@ internal sealed partial class PSEncoder
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
         psCodecLog = pLog.ToString();
-        pButton.Content = "Verify";
+        pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Button.Verify");
         pButton.IsEnabled = true;
     }
 
@@ -107,7 +107,7 @@ internal sealed partial class PSEncoder
             if (await Task.WhenAny(pExitTask, Task.Delay(TimeSpan.FromSeconds(6))) != pExitTask)
             {
                 pProcess.Kill(true);
-                return (false, "timeout after 6 seconds");
+                return (false, LLocalization.LLocalizationTextRead("Encoder.Verification.Timeout"));
             }
 
             string pMessage = PSCodecLogCompact(await pErrorTask, await pOutputTask);

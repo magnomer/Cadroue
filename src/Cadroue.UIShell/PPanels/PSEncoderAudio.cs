@@ -11,13 +11,13 @@ internal sealed partial class PSEncoder
     {
         var pPanel = new StackPanel();
 
-        psAudioEncodePanel.Children.Add(PSFieldBuild("Encoder", psAudioEncoderCombo));
-        psAudioEncodePanel.Children.Add(PSFieldBuild("Bitrate", psAudioBitrateCombo));
-        psAudioEncodePanel.Children.Add(PSFieldBuild("Sample rate", psAudioSampleCombo));
-        psAudioEncodePanel.Children.Add(PSFieldBuild("Channels", psAudioChannelCombo));
+        psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Encoder"), psAudioEncoderCombo));
+        psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Bitrate"), psAudioBitrateCombo));
+        psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"), psAudioSampleCombo));
+        psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Channels"), psAudioChannelCombo));
 
-        pPanel.Children.Add(PSFieldBuild("Stream", psAudioStreamCombo));
-        pPanel.Children.Add(PSFieldBuild("Mode", psAudioModeCombo));
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Stream"), psAudioStreamCombo));
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Mode"), psAudioModeCombo));
         pPanel.Children.Add(psAudioEncodePanel);
         pPanel.Children.Add(psAudioNotice);
 
@@ -40,8 +40,8 @@ internal sealed partial class PSEncoder
         psAudioEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
         psAudioNotice.Visibility = pEncoded ? Visibility.Collapsed : Visibility.Visible;
         psAudioNotice.Text = pExcluded
-            ? "No audio stream is written, so no audio settings apply."
-            : "The audio stream is copied as-is, so codec settings do not apply.";
+            ? LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.Excluded")
+            : LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.Copied");
     }
 
     private static TextBlock PSScopeNoticeBuild() => new()

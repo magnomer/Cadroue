@@ -19,7 +19,7 @@ internal sealed partial class PSEncoder
 
     private UIElement PSSheetControlBuild() => PSSheet.PSSheetControlBuild(
         PSSheetTabWidth,
-        PSSheet.PSSheetBuild("Output", PSSheetOutputIconPath, PSEncoderRootBuild(PSSheet.PSSheetScrollBuild(PSOutputBuild()))),
-        PSSheet.PSSheetBuild("Video", PSSheetVideoIconPath, PSEncoderRootBuild(PSSheet.PSSheetScrollBuild(PSVideoBuild()))),
-        PSSheet.PSSheetBuild("Audio", PSSheetAudioIconPath, PSEncoderRootBuild(PSSheet.PSSheetScrollBuild(PSAudioBuild()))));
+        PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Encoder.Sheet.Output"), PSSheetOutputIconPath, PSEncoderRootBuild(PSSheet.PSSheetScrollBuild(PSOutputBuild()))),
+        PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Encoder.Sheet.Video"), PSSheetVideoIconPath, PSEncoderRootBuild(PSSheet.PSSheetScrollBuild(PSVideoBuild()))),
+        PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Encoder.Sheet.Audio"), PSSheetAudioIconPath, PSEncoderRootBuild(PSSheet.PSSheetScrollBuild(PSAudioBuild()))));
 }

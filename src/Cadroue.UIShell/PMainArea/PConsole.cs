@@ -39,31 +39,31 @@ public sealed partial class PConsole : UserControl
         pConsoleStatus = PConsoleLabelBuild(PRosterTheme.PRosterTextBrush, PConsoleStatusSize);
         pConsoleStationLabel = PConsoleLabelBuild(PRosterTheme.PRosterMutedBrush, PConsoleStationSize);
         pConsoleStartButton = PConsoleButtonBuild(
-            "Start", "PRosterStart.svg", "Start processing the queue",
+            LLocalization.LLocalizationTextRead("Console.Button.Start"), "PRosterStart.svg", LLocalization.LLocalizationTextRead("Console.Button.StartTooltip"),
             PRosterTheme.PRosterDoneBrush, PConsoleStartHandle);
         pConsolePauseButton = PConsoleButtonBuild(
-            "Pause", "PRosterPause.svg", "Pause the queue and suspend the running job",
+            LLocalization.LLocalizationTextRead("Console.Button.Pause"), "PRosterPause.svg", LLocalization.LLocalizationTextRead("Console.Button.PauseTooltip"),
             null, PConsolePauseHandle);
         pConsoleCancelButton = PConsoleButtonBuild(
-            "Cancel", "PRosterCancel.svg", "Cancel the running job and continue with the next",
+            LLocalization.LLocalizationTextRead("Console.Button.Cancel"), "PRosterCancel.svg", LLocalization.LLocalizationTextRead("Console.Button.CancelTooltip"),
             null, PConsoleCancelHandle);
         pConsoleStopButton = PConsoleButtonBuild(
-            "Stop", "PRosterStop.svg", "Stop processing immediately and turn off Auto resume",
+            LLocalization.LLocalizationTextRead("Console.Button.Stop"), "PRosterStop.svg", LLocalization.LLocalizationTextRead("Console.Button.StopTooltip"),
             PRosterTheme.PRosterFailBrush, PConsoleStopHandle);
         pConsoleRemoveButton = PConsoleButtonBuild(
-            "Remove", "PRosterRemove.svg", "Remove the selected job(s) in the Worklist",
+            LLocalization.LLocalizationTextRead("Console.Button.Remove"), "PRosterRemove.svg", LLocalization.LLocalizationTextRead("Console.Button.RemoveTooltip"),
             null, PConsoleRemoveHandle);
         pConsoleClearButton = PConsoleButtonBuild(
-            "Clear done", "PRosterClearDone.svg", "Remove the finished jobs",
+            LLocalization.LLocalizationTextRead("Console.Button.ClearDone"), "PRosterClearDone.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearDoneTooltip"),
             null, PConsoleDoneHandle);
         pConsoleEmptyButton = PConsoleButtonBuild(
-            "Clear all", "PRosterClearAll.svg", "Empty the list except the running job",
+            LLocalization.LLocalizationTextRead("Console.Button.ClearAll"), "PRosterClearAll.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearAllTooltip"),
             null, PConsoleAllHandle);
         pConsoleAutoBox = PConsoleAutoBoxBuild();
         pConsolePreviousButton = PConsoleSwitchBuild(
-            "PConsolePrevious.svg", "Control the previous worklist", PConsolePreviousHandle);
+            "PConsolePrevious.svg", LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"), PConsolePreviousHandle);
         pConsoleNextButton = PConsoleSwitchBuild(
-            "PConsoleNext.svg", "Control the next worklist", PConsoleNextHandle);
+            "PConsoleNext.svg", LLocalization.LLocalizationTextRead("Console.Next.Tooltip"), PConsoleNextHandle);
 
         Content = PConsoleBuild();
         PConsoleCurrent = this;
@@ -140,14 +140,14 @@ public sealed partial class PConsole : UserControl
     {
         var pAutoBox = new CheckBox
         {
-            Content = "Auto resume",
+            Content = LLocalization.LLocalizationTextRead("Console.AutoResume.Label"),
             FontSize = PConsoleStationSize,
             Foreground = PRosterTheme.PRosterTextBrush,
             VerticalAlignment = VerticalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(14, 0, 4, 0),
             FocusVisualStyle = null,
-            ToolTip = "Keep this worklist watching the queue and start the next job as soon as one is waiting"
+            ToolTip = LLocalization.LLocalizationTextRead("Console.AutoResume.Tooltip")
         };
         PCheckbox.PCheckboxApply(pAutoBox);
         pAutoBox.Checked += PConsoleAutoHandle;

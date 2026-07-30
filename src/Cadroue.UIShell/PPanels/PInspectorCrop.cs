@@ -437,7 +437,7 @@ public sealed partial class PInspector
 
         if (pCropWidth <= 0 || pCropHeight <= 0)
         {
-            PInspectorNoticeShow("The insets remove the whole frame. Reduce them so a crop remains.");
+            PInspectorNoticeShow(LLocalization.LLocalizationTextRead("Inspector.Crop.FrameError"));
             return;
         }
 
@@ -456,7 +456,7 @@ public sealed partial class PInspector
         double pRatioHeight = PInspectorNumberRead(pInspectorRatioHeight);
         if (pRatioWidth <= 0 || pRatioHeight <= 0)
         {
-            PInspectorNoticeShow("Enter a ratio to match, for example 16 × 9.");
+            PInspectorNoticeShow(LLocalization.LLocalizationTextRead("Inspector.Crop.RatioError"));
             return;
         }
 
@@ -474,8 +474,8 @@ public sealed partial class PInspector
         }
 
         PInspectorNoticeShow(pWide > pTall
-            ? $"Ratio mismatch — crop {pExcessPixels} px more from left or right."
-            : $"Ratio mismatch — crop {pExcessPixels} px more from top or bottom.");
+            ? LLocalization.LLocalizationFormat("Inspector.Crop.WidthMismatch", pExcessPixels)
+            : LLocalization.LLocalizationFormat("Inspector.Crop.HeightMismatch", pExcessPixels));
     }
 
     private void PInspectorRatioText(double pCropWidth, double pCropHeight)

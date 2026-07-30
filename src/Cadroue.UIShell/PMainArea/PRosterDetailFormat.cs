@@ -1,18 +1,42 @@
 using System.IO;
 using Cadroue.Core;
+using Cadroue.Media;
 
 namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
+    private static string PRosterKeyframeFormat(string? pSourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(pSourcePath))
+        {
+            return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
+        }
+
+        IReadOnlyList<long>? pKeyframes =
+            LSidecarStore.LSidecarRead(LSidecarStore.LSidecarPathRead(pSourcePath))?.LSidecarKeyframesRead();
+        if (pKeyframes is not { Count: > 1 })
+        {
+            return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
+        }
+
+        double pIntervalSeconds = (pKeyframes[^1] - pKeyframes[0]) / 1000d / (pKeyframes.Count - 1);
+        return LLocalization.LLocalizationFormat("Roster.Field.KeyframeInterval", pIntervalSeconds);
+    }
+
+    private static string PRosterOutputKeyframeFormat(LWorkMedia? pOutputInfo) =>
+        pOutputInfo?.LWorkMediaKeyframeIntervalMilliseconds is { } pIntervalMilliseconds && pIntervalMilliseconds > 0
+            ? LLocalization.LLocalizationFormat("Roster.Field.KeyframeInterval", pIntervalMilliseconds / 1000d)
+            : LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
+
     private static string PRosterStampFormat(DateTimeOffset? pStamp) =>
-        pStamp is { } pValue ? pValue.ToString("yyyy-MM-dd HH:mm:ss") : "Not yet";
+        pStamp is { } pValue ? pValue.ToString("yyyy-MM-dd HH:mm:ss") : LLocalization.LLocalizationTextRead("Roster.Value.NotYet");
 
     private static string PRosterSpentFormat(LWorkItem pWorkItem)
     {
         if (PRosterSpentRead(pWorkItem) is not { } pSpent)
         {
-            return "Not yet";
+            return LLocalization.LLocalizationTextRead("Roster.Value.NotYet");
         }
 
         return $"{pSpent:hh\\:mm\\:ss\\.fff}";
@@ -25,7 +49,7 @@ public sealed partial class PRoster
             || PRosterBytesRead(pWorkItem) is not { } pBytes
             || pBytes <= 0)
         {
-            return "Not yet";
+            return LLocalization.LLocalizationTextRead("Roster.Value.NotYet");
         }
 
         double pMebibytes = pBytes / 1048576d;
@@ -59,7 +83,7 @@ public sealed partial class PRoster
     {
         if (pSizeBytes is not { } pWholeBytes || pWholeBytes < 0)
         {
-            return "Unknown";
+            return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
         }
 
         const double pRosterKibi = 1024d;

@@ -176,7 +176,7 @@ public sealed class PProcessing : PPanel
     {
         var pTitleLabel = new TextBlock
         {
-            Text = "Processing",
+            Text = LLocalization.LLocalizationTextRead("Processing.Header.Title"),
             FontSize = 12,
             FontFamily = pProcessingFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -185,7 +185,7 @@ public sealed class PProcessing : PPanel
         };
 
         Button pMinimizeButton = PProcessingButtonBuild(
-            "/PAssets/PPanels/PListMinimize.svg", "Hide the Processing panel", () => PProcessingMinimizeSet(true));
+            "/PAssets/PPanels/PListMinimize.svg", LLocalization.LLocalizationTextRead("Processing.Hide.Tooltip"), () => PProcessingMinimizeSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         var pHeaderGrid = new Grid();
@@ -208,7 +208,7 @@ public sealed class PProcessing : PPanel
     private UIElement PProcessingStripBuild()
     {
         Button pMaximizeButton = PProcessingButtonBuild(
-            "/PAssets/PPanels/PListMaximize.svg", "Show the Processing panel", () => PProcessingMinimizeSet(false));
+            "/PAssets/PPanels/PListMaximize.svg", LLocalization.LLocalizationTextRead("Processing.Show.Tooltip"), () => PProcessingMinimizeSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
@@ -220,10 +220,10 @@ public sealed class PProcessing : PPanel
     private UIElement PProcessingActionBuild()
     {
         Button pUpButton = PProcessingButtonBuild(
-            PProcessingUpIconPath, "Move the selected step up", () => PProcessingStepMove(-1));
+            PProcessingUpIconPath, LLocalization.LLocalizationTextRead("Processing.MoveUp.Tooltip"), () => PProcessingStepMove(-1));
         pUpButton.Margin = new Thickness(0, 0, 2, 0);
         Button pDownButton = PProcessingButtonBuild(
-            PProcessingDownIconPath, "Move the selected step down", () => PProcessingStepMove(1));
+            PProcessingDownIconPath, LLocalization.LLocalizationTextRead("Processing.MoveDown.Tooltip"), () => PProcessingStepMove(1));
 
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pLeftPanel.Children.Add(pUpButton);
@@ -296,9 +296,9 @@ public sealed class PProcessing : PPanel
         return pButton;
     }
 
-    public void PProcessingStepAdd(string pStepName, string pStepIconPath)
+    public void PProcessingStepAdd(string pStepName, string pStepIconPath, string pStepLabelKey)
     {
-        pProcessingRowPanel.Children.Add(PProcessingRowBuild(pStepName, pStepIconPath));
+        pProcessingRowPanel.Children.Add(PProcessingRowBuild(pStepName, pStepIconPath, pStepLabelKey));
         PProcessingNumbersUpdate();
     }
 
@@ -326,7 +326,7 @@ public sealed class PProcessing : PPanel
         };
     }
 
-    private Border PProcessingRowBuild(string pStepName, string pStepIconPath)
+    private Border PProcessingRowBuild(string pStepName, string pStepIconPath, string pStepLabelKey)
     {
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         if (pProcessingOrdered)
@@ -346,7 +346,7 @@ public sealed class PProcessing : PPanel
         });
         pRowContent.Children.Add(new TextBlock
         {
-            Text = pStepName,
+            Text = LLocalization.LLocalizationTextRead(pStepLabelKey),
             FontSize = 12,
             FontFamily = pProcessingFontFamily,
             Foreground = pProcessingTextBrush,
@@ -388,6 +388,11 @@ public sealed class PProcessing : PPanel
 
     private void PProcessingDragMoveHandle(object pSender, MouseEventArgs pEvent)
     {
+        if (!pProcessingOrdered)
+        {
+            return;
+        }
+
         if (pProcessingRowDragging is not { } pDragRow
             || pProcessingIndexDragging is not int pDragIndex
             || pProcessingDragStart is not Point pStart

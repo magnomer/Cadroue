@@ -13,7 +13,7 @@ public sealed class PLogWindow : Window
 
     private PLogWindow()
     {
-        Title = "Log";
+        Title = LLocalization.LLocalizationTextRead("Log.Window.Title");
         Width = 760;
         Height = 520;
         MinWidth = 520;
@@ -78,8 +78,8 @@ public sealed class PLogWindow : Window
             HorizontalAlignment = HorizontalAlignment.Right
         };
 
-        pActions.Children.Add(PLogButtonBuild("Copy", (_, _) => Clipboard.SetText(pLogText.Text)));
-        pActions.Children.Add(PLogButtonBuild("Clear", (_, _) =>
+        pActions.Children.Add(PLogButtonBuild(LLocalization.LLocalizationTextRead("Log.Button.Copy"), (_, _) => Clipboard.SetText(pLogText.Text)));
+        pActions.Children.Add(PLogButtonBuild(LLocalization.LLocalizationTextRead("Log.Button.Clear"), (_, _) =>
         {
             LAppLog.LClear();
             pLogText.Clear();
@@ -95,10 +95,10 @@ public sealed class PLogWindow : Window
     {
         var pVerbose = new CheckBox
         {
-            Content = "Verbose",
+            Content = LLocalization.LLocalizationTextRead("Log.Verbose.Label"),
             VerticalAlignment = VerticalAlignment.Center,
             IsChecked = LTrace.LTraceVerbose,
-            ToolTip = "Record every drawing, viewer, backend and FFmpeg step. Slows the program down; use it to diagnose, not day to day."
+            ToolTip = LLocalization.LLocalizationTextRead("Log.Verbose.Tooltip")
         };
 
         PMainWindow.PCheckbox.PCheckboxApply(pVerbose);

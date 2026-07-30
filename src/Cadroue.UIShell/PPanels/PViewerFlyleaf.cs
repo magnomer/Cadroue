@@ -162,7 +162,7 @@ public sealed partial class PViewer
             mediaInfo = LMediaInfo.LMediaFfprobeRead(sourcePath);
             if (mediaInfo.LMediaInfoAudioOnly && !pViewerAudioOnlyAllowed)
             {
-                const string audioOnlyError = "Audio-only files can be opened only in the Audio tab.";
+                string audioOnlyError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");
                 PViewerMediaCommit(new LMediaOpenStatus(
                     sourcePath, null, false, false, audioOnlyError, audioOnlyError), null);
                 return;
@@ -247,7 +247,7 @@ public sealed partial class PViewer
         var openResult = player.Open(sourcePath);
         if (!openResult.Success)
         {
-            throw new InvalidOperationException(openResult.Error ?? "Flyleaf could not open the media file.");
+            throw new InvalidOperationException(openResult.Error ?? LLocalization.LLocalizationTextRead("Viewer.Error.FlyleafOpen"));
         }
     }
 

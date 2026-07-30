@@ -40,7 +40,7 @@ public sealed partial class PSection : UserControl
     {
         pSectionCountLabel = new TextBlock
         {
-            Text = "Sections",
+            Text = LLocalization.LLocalizationTextRead("Section.Header.Title"),
             FontSize = 12,
             FontFamily = pSectionFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -87,7 +87,7 @@ public sealed partial class PSection : UserControl
         var pActionLeft = new StackPanel { Orientation = Orientation.Horizontal };
         pActionLeft.Children.Add(PSectionButtonBuild(
             "/PAssets/PPanels/PExportMinus.svg",
-            "Delete the selected section",
+            LLocalization.LLocalizationTextRead("Section.Delete.Tooltip"),
             PSectionDeleteHandle));
 
         var pActionRight = new StackPanel
@@ -97,7 +97,7 @@ public sealed partial class PSection : UserControl
         };
         Button pSectionSortButton = PSectionButtonBuild(
             "/PAssets/PPanels/PSort.svg",
-            "Sort the sections by name",
+            LLocalization.LLocalizationTextRead("Section.Sort.Tooltip"),
             PSectionSortHandle);
         pSectionSortButton.Margin = new Thickness(0);
         pActionRight.Children.Add(pSectionSortButton);
@@ -221,7 +221,7 @@ public sealed partial class PSection : UserControl
         {
             pSectionRowPanel.Children.Clear();
             int pCount = pSectionListCurrent.Count;
-            pSectionCountLabel.Text = pCount == 0 ? "Sections" : $"Sections  ({pCount})";
+            pSectionCountLabel.Text = pCount == 0 ? LLocalization.LLocalizationTextRead("Section.Header.Title") : LLocalization.LLocalizationFormat("Section.Header.Count", pCount);
             for (int i = 0; i < pCount; i++)
             {
                 pSectionRowPanel.Children.Add(PSectionRowBuild(i, pSectionListCurrent[i], i == pSectionIndexSelectCurrent));
@@ -407,7 +407,7 @@ public sealed partial class PSection : UserControl
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
             Cursor = Cursors.Hand,
-            ToolTip = "Double click to turn this section off or on",
+            ToolTip = LLocalization.LLocalizationTextRead("Section.Toggle.Tooltip"),
             Child = pBadgeText
         };
         pColorDot.MouseLeftButtonDown += (_, pEvent) =>
@@ -694,7 +694,7 @@ public sealed partial class PSection : UserControl
         PSectionRebuild();
     }
 
-    private static string PSectionPlaceholderFormat(int pSectionIndex) => $"Section {pSectionIndex + 1}";
+    private static string PSectionPlaceholderFormat(int pSectionIndex) => LLocalization.LLocalizationFormat("Section.DefaultName", pSectionIndex + 1);
 
     private static TimeSpan PSectionSpanRead(LSegment pSectionEntry)
     {

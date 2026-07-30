@@ -146,27 +146,27 @@ public partial class PToolbar : UserControl
 
         ContextMenu pLogoMenu = PMenu.PMenuCreate(pLogoButton);
 
-        PLogoItemAppend(pLogoMenu, "Options", "/PAssets/PMenus/PMenuPreferences.svg");
-        PLogoItemAppend(pLogoMenu, "Shortcuts", "/PAssets/PMenus/PMenuShortcuts.svg");
-        PLogoItemAppend(pLogoMenu, "Log", "/PAssets/PMenus/PMenuLog.svg");
-        PLogoItemAppend(pLogoMenu, "About", "/PAssets/PMenus/PMenuAbout.svg");
+        PLogoItemAppend(pLogoMenu, "Options", "Chrome.Menu.Options", "/PAssets/PMenus/PMenuPreferences.svg");
+        PLogoItemAppend(pLogoMenu, "Shortcuts", "Chrome.Menu.Shortcuts", "/PAssets/PMenus/PMenuShortcuts.svg");
+        PLogoItemAppend(pLogoMenu, "Log", "Chrome.Menu.Log", "/PAssets/PMenus/PMenuLog.svg");
+        PLogoItemAppend(pLogoMenu, "About", "Chrome.Menu.About", "/PAssets/PMenus/PMenuAbout.svg");
 
         pLogoMenu.IsOpen = true;
         e.Handled = true;
     }
 
-    private void PLogoItemAppend(ContextMenu pLogoMenu, string pLogoMenuText, string pLogoMenuIconPath)
+    private void PLogoItemAppend(ContextMenu pLogoMenu, string pLogoMenuToken, string pLogoMenuKey, string pLogoMenuIconPath)
     {
-        MenuItem pLogoMenuItem = PMenu.PMenuItemCreate(pLogoMenuText, PMenu.PMenuIconRead(pLogoMenuIconPath));
-        if (pLogoMenuText == "Options")
+        MenuItem pLogoMenuItem = PMenu.PMenuItemCreate(LLocalization.LLocalizationTextRead(pLogoMenuKey), PMenu.PMenuIconRead(pLogoMenuIconPath));
+        if (pLogoMenuToken == "Options")
         {
             pLogoMenuItem.Click += (_, _) => PToolbarOptionsShow();
         }
-        else if (pLogoMenuText == "Shortcuts")
+        else if (pLogoMenuToken == "Shortcuts")
         {
             pLogoMenuItem.Click += (_, _) => PToolbarShortcutShow();
         }
-        else if (pLogoMenuText == "Log")
+        else if (pLogoMenuToken == "Log")
         {
             pLogoMenuItem.Click += (_, _) => PLogWindow.PLogWindowShow(Window.GetWindow(this));
         }
@@ -185,7 +185,7 @@ public partial class PToolbar : UserControl
     {
         var pShortcutWindow = new Window
         {
-            Title = "Shortcuts",
+            Title = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Title"),
             Width = 640,
             Height = 520,
             MinWidth = 520,
@@ -203,7 +203,7 @@ public partial class PToolbar : UserControl
     private static ScrollViewer PShortcutContentBuild()
     {
         var pPanel = new StackPanel { Margin = new Thickness(18) };
-        pPanel.Children.Add(new TextBlock { Text = "Shortcuts", FontSize = 22, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 14) });
+        pPanel.Children.Add(new TextBlock { Text = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Title"), FontSize = 22, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 14) });
         foreach ((string pAction, string pShortcut, string pScope) in PShortcutRowBuild())
         {
             pPanel.Children.Add(new TextBlock
@@ -221,22 +221,22 @@ public partial class PToolbar : UserControl
 
     private static IEnumerable<(string Action, string Shortcut, string Scope)> PShortcutRowBuild()
     {
-        yield return ("Show shortcuts", "Ctrl+/", "Global");
-        yield return ("Undo", "Ctrl+Z", "Active tab");
-        yield return ("Redo", "Ctrl+Y", "Active tab");
-        yield return ("Play / Pause", "Space", "Global");
-        yield return ("Unload the media and clear Files", "F4", "Active tab");
-        yield return ("Zoom in", "C", "Active flow");
-        yield return ("Zoom out", "V", "Active flow");
-        yield return ("Add section at cursor", "Q", "Split tab");
-        yield return ("Set section start to cursor", "D", "Split tab");
-        yield return ("Split section at cursor", "S", "Split tab");
-        yield return ("Set section end to cursor", "F", "Split tab");
-        yield return ("Delete selected section", "Delete", "Split tab");
-        yield return ("Rename selected section", "A", "Split tab");
-        yield return ("Move to previous keyframe", "E", "Active flow");
-        yield return ("Move to nearest keyframe", "W", "Active flow");
-        yield return ("Move to next keyframe", "R", "Active flow");
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Show"), "Ctrl+/", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeGlobal"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Undo"), "Ctrl+Z", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeTab"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Redo"), "Ctrl+Y", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeTab"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.PlayPause"), "Space", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeGlobal"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Unload"), "F4", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeTab"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ZoomIn"), "C", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ZoomOut"), "V", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionAdd"), "Q", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionStart"), "D", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionSplit"), "S", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionEnd"), "F", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionDelete"), "Delete", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.SectionRename"), "A", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeSplit"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.KeyframePrevious"), "E", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.KeyframeNearest"), "W", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
+        yield return (LLocalization.LLocalizationTextRead("Chrome.Shortcuts.KeyframeNext"), "R", LLocalization.LLocalizationTextRead("Chrome.Shortcuts.ScopeFlow"));
     }
 
     private void PTabMenuHandle(object sender, RoutedEventArgs e)
@@ -248,20 +248,20 @@ public partial class PToolbar : UserControl
 
         ContextMenu pTabAddMenu = PMenu.PMenuCreate(pTabAddButton);
 
-        PTabMenuAppend(pTabAddMenu, "Split", PIcon.PIconRead("/PAssets/PTabs/PSplitButton.svg"));
-        PTabMenuAppend(pTabAddMenu, "Edit", PIcon.PIconRead("/PAssets/PTabs/PEditButton.svg"));
-        PTabMenuAppend(pTabAddMenu, "Audio", PIcon.PIconRead("/PAssets/PTabs/PAudioButton.svg"));
-        PTabMenuAppend(pTabAddMenu, "Convert", PIcon.PIconRead("/PAssets/PTabs/PConvertButton.svg"));
-        PTabMenuAppend(pTabAddMenu, "Merge", PIcon.PIconRead("/PAssets/PTabs/PMergeButton.svg"));
-        PTabMenuAppend(pTabAddMenu, "Worklist", PIcon.PIconRead("/PAssets/PTabs/PWorklistButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Split", "Tab.Split", PIcon.PIconRead("/PAssets/PTabs/PSplitButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Edit", "Tab.Edit", PIcon.PIconRead("/PAssets/PTabs/PEditButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Audio", "Tab.Audio", PIcon.PIconRead("/PAssets/PTabs/PAudioButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Convert", "Tab.Convert", PIcon.PIconRead("/PAssets/PTabs/PConvertButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Merge", "Tab.Merge", PIcon.PIconRead("/PAssets/PTabs/PMergeButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Worklist", "Tab.Worklist", PIcon.PIconRead("/PAssets/PTabs/PWorklistButton.svg"));
 
         pTabAddMenu.IsOpen = true;
         e.Handled = true;
     }
 
-    private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey, ImageSource pTabIconSource)
+    private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey, string pTabTitleKey, ImageSource pTabIconSource)
     {
-        MenuItem pTabAddMenuItem = PMenu.PMenuItemCreate(pTabLayoutKey, pTabIconSource);
+        MenuItem pTabAddMenuItem = PMenu.PMenuItemCreate(LLocalization.LLocalizationTextRead(pTabTitleKey), pTabIconSource);
         pTabAddMenuItem.Click += (_, _) => PTabLayoutAdd(pTabLayoutKey);
         pTabAddMenu.Items.Add(pTabAddMenuItem);
     }

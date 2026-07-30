@@ -40,13 +40,13 @@ public sealed partial class PInspector
 
     private StackPanel PInspectorNoiseBodyBuild()
     {
-        pInspectorNoiseApply = PInspectorSwitchBuild("Apply", "Apply noise reduction to queued jobs");
+        pInspectorNoiseApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Noise.ApplyTooltip"));
         pInspectorNoiseApply.Checked += (_, _) => PInspectorNoiseApplyUpdate();
         pInspectorNoiseApply.Unchecked += (_, _) => PInspectorNoiseApplyUpdate();
 
         pInspectorNoisePersistent = PInspectorSwitchBuild(
-            "Persistent",
-            "Apply the current noise reduction setup to every loaded file");
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Noise.PersistentTooltip"));
 
         pInspectorNoisePreset = new ComboBox
         {
@@ -57,13 +57,13 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pInspectorNoisePreset);
-        pInspectorNoisePreset.Items.Add("Light");
-        pInspectorNoisePreset.Items.Add("Medium");
-        pInspectorNoisePreset.Items.Add("Strong");
-        pInspectorNoisePreset.Items.Add("Vinyl");
-        pInspectorNoisePreset.Items.Add("Shellac");
-        pInspectorNoisePreset.Items.Add("Custom");
-        pInspectorNoisePreset.SelectedItem = "Medium";
+        pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Light", "Inspector.Noise.Light"));
+        pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Medium", "Inspector.Noise.Medium"));
+        pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Strong", "Inspector.Noise.Strong"));
+        pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Vinyl", "Inspector.Noise.Vinyl"));
+        pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Shellac", "Inspector.Noise.Shellac"));
+        pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
+        pInspectorNoisePreset.SelectedIndex = 1;
         pInspectorNoisePreset.SelectionChanged += (_, _) => PInspectorNoisePresetApply();
 
         pInspectorNoiseReduction = new Slider
@@ -134,15 +134,15 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pInspectorNoiseType);
-        pInspectorNoiseType.Items.Add("White");
-        pInspectorNoiseType.Items.Add("Vinyl");
-        pInspectorNoiseType.Items.Add("Shellac");
+        pInspectorNoiseType.Items.Add(new LLocalizationChoice("White", "Inspector.Noise.White"));
+        pInspectorNoiseType.Items.Add(new LLocalizationChoice("Vinyl", "Inspector.Noise.Vinyl"));
+        pInspectorNoiseType.Items.Add(new LLocalizationChoice("Shellac", "Inspector.Noise.Shellac"));
         pInspectorNoiseType.SelectedIndex = 0;
 
         pInspectorNoiseTrack = new CheckBox
         {
-            Content = "Track noise",
-            ToolTip = "Follow noise that changes over time instead of a fixed floor",
+            Content = LLocalization.LLocalizationTextRead("Inspector.Noise.Track"),
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Noise.TrackTooltip"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
@@ -152,13 +152,13 @@ public sealed partial class PInspector
         PMainWindow.PCheckbox.PCheckboxApply(pInspectorNoiseTrack);
 
         pInspectorNoiseStack = new StackPanel();
-        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Preset", pInspectorNoisePreset));
-        pInspectorNoiseStack.Children.Add(PInspectorPassSliderRowBuild("Amount", pInspectorNoiseReduction, "dB", pInspectorNoiseReductionValue));
-        pInspectorNoiseStack.Children.Add(PInspectorPassSliderRowBuild("Smoothing", pInspectorNoiseSmooth, "gs", pInspectorNoiseSmoothValue));
-        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Floor", PInspectorNormalizeUnitRowBuild(pInspectorNoiseFloor, "dB")));
-        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Residual", PInspectorNormalizeUnitRowBuild(pInspectorNoiseResidual, "dB")));
-        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Adaptivity", PInspectorNormalizeUnitRowBuild(pInspectorNoiseAdaptivity, "0-1")));
-        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild("Noise", pInspectorNoiseType));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pInspectorNoisePreset));
+        pInspectorNoiseStack.Children.Add(PInspectorPassSliderRowBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorNoiseReduction, "dB", pInspectorNoiseReductionValue));
+        pInspectorNoiseStack.Children.Add(PInspectorPassSliderRowBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Smoothing"), pInspectorNoiseSmooth, "gs", pInspectorNoiseSmoothValue));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Floor"), PInspectorNormalizeUnitRowBuild(pInspectorNoiseFloor, "dB")));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Residual"), PInspectorNormalizeUnitRowBuild(pInspectorNoiseResidual, "dB")));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Adaptivity"), PInspectorNormalizeUnitRowBuild(pInspectorNoiseAdaptivity, "0-1")));
+        pInspectorNoiseStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Noise"), pInspectorNoiseType));
         pInspectorNoiseStack.Children.Add(pInspectorNoiseTrack);
 
         pInspectorNoiseBody = new StackPanel
@@ -177,7 +177,8 @@ public sealed partial class PInspector
 
     private void PInspectorNoisePresetApply()
     {
-        if (pInspectorNoisePreset.SelectedItem is not string pName || pName == "Custom")
+        string pName = LLocalizationChoice.LLocalizationChoiceRead(pInspectorNoisePreset.SelectedItem);
+        if (string.IsNullOrEmpty(pName) || pName == "Custom")
         {
             PInspectorNoiseLock(false);
             return;

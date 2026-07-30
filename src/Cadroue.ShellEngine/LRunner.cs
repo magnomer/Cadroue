@@ -293,6 +293,11 @@ public sealed partial class LRunner
             long? pSourceBytes = pWorkItem.LWorkSourceBytes ?? LRunnerBytesRead(pWorkItem.LWorkSourcePath);
             LWorkMedia? pSourceMedia = pWorkItem.LWorkSourceMedia ?? LRunnerMediaRead(pWorkItem.LWorkSourcePath);
             LWorkMedia? pOutputMedia = LRunnerMediaRead(pWorkItem.LWorkOutputPath);
+            if (pOutputMedia is { LWorkMediaVideoPresent: true }
+                && LRunnerKeyframeIntervalRead(pWorkItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration) is { } pOutputKeyframeInterval)
+            {
+                pOutputMedia = pOutputMedia with { LWorkMediaKeyframeIntervalMilliseconds = pOutputKeyframeInterval };
+            }
             LRunnerInvoke(() =>
             {
                 bool pSucceeded = pExitCode == 0;
@@ -482,6 +487,33 @@ public sealed partial class LRunner
         catch (Exception lRunnerException)
         {
             LRunnerNote($"Media could not be read '{Path.GetFileName(lRunnerMediaPath)}'", lRunnerException);
+            return null;
+        }
+    }
+
+    private static double? LRunnerKeyframeIntervalRead(string lRunnerMediaPath, TimeSpan lRunnerMediaDuration)
+    {
+        if (string.IsNullOrWhiteSpace(lRunnerMediaPath) || !File.Exists(lRunnerMediaPath) || lRunnerMediaDuration <= TimeSpan.Zero)
+        {
+            return null;
+        }
+
+        try
+        {
+            IReadOnlyList<Cadroue.Media.LKeyframeEntry> lRunnerKeyframes = Cadroue.Media.LKeyframeSeeker.LKeyframeRangeScan(
+                lRunnerMediaPath, TimeSpan.Zero, lRunnerMediaDuration);
+            if (lRunnerKeyframes.Count < 2)
+            {
+                return null;
+            }
+
+            double lRunnerSpanMilliseconds =
+                (lRunnerKeyframes[^1].LKeyframePresentationTime - lRunnerKeyframes[0].LKeyframePresentationTime).TotalMilliseconds;
+            return lRunnerSpanMilliseconds / (lRunnerKeyframes.Count - 1);
+        }
+        catch (Exception lRunnerException)
+        {
+            LRunnerNote($"Keyframe interval could not be read '{Path.GetFileName(lRunnerMediaPath)}'", lRunnerException);
             return null;
         }
     }

@@ -23,11 +23,11 @@ public sealed class PAudioTab : PTabSurface
     public PAudioTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         pProcessing.PProcessingOrderedSet(true);
-        pProcessing.PProcessingStepAdd("High Pass", PAudioHighPassIconPath);
-        pProcessing.PProcessingStepAdd("Low Pass", PAudioLowPassIconPath);
-        pProcessing.PProcessingStepAdd("Noise Reduction", PAudioNoiseIconPath);
-        pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIconPath);
-        pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIconPath);
+        pProcessing.PProcessingStepAdd("High Pass", PAudioHighPassIconPath, "Processing.Step.HighPass");
+        pProcessing.PProcessingStepAdd("Low Pass", PAudioLowPassIconPath, "Processing.Step.LowPass");
+        pProcessing.PProcessingStepAdd("Noise Reduction", PAudioNoiseIconPath, "Processing.Step.NoiseReduction");
+        pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIconPath, "Processing.Step.Volume");
+        pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIconPath, "Processing.Step.Normalize");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pProcessing.PProcessingOrderChange += PAudioPlanSave;
@@ -57,8 +57,7 @@ public sealed class PAudioTab : PTabSurface
         };
         pAction.PActionAllSet(
             true,
-            "Persistent off: add every loaded file that has an audio plan saved beside it.\n"
-            + "Persistent on: apply each persistent process shown here to every loaded file.");
+            LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
         pList.PListPathChange += PAudioPathShow;
         PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);

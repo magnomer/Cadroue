@@ -40,19 +40,21 @@ public sealed partial class PFlow
 
             bool pLosslessCutHasNext = pLosslessCutIndex + 1 < pLosslessCutPaths.Count;
             string pLosslessCutChoiceMeaning = pLosslessCutHasNext
-                ? "No: Review the next matching project"
-                : "No: Do not import";
+                ? LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.NextChoice")
+                : LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.StopChoice");
+            string pLosslessCutUnspecified = LLocalization.LLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
             MessageBoxResult pLosslessCutChoice = MessageBox.Show(
-                $"A LosslessCut project for the open media was found"
-                + $" ({pLosslessCutIndex + 1} of {pLosslessCutPaths.Count}):\n\n"
-                + $"Project: {Path.GetFileName(pLosslessCutPath)}\n"
-                + $"Modified: {File.GetLastWriteTime(pLosslessCutPath):g}\n"
-                + $"Version: {pLosslessCutProject.LLosslessCutProjectVersion?.ToString() ?? "not specified"}\n"
-                + $"Segments: {pLosslessCutProject.LLosslessCutProjectSegments.Count}\n"
-                + $"Source: {pLosslessCutProject.LLosslessCutProjectMediaFileName.DefaultIfEmpty("not specified")}\n\n"
-                + "Yes: Review this project's segments for import\n"
-                + pLosslessCutChoiceMeaning,
-                "LosslessCut project found",
+                LLocalization.LLocalizationFormat(
+                    "Flow.LosslessCut.Detect.Message",
+                    pLosslessCutIndex + 1,
+                    pLosslessCutPaths.Count,
+                    Path.GetFileName(pLosslessCutPath),
+                    File.GetLastWriteTime(pLosslessCutPath),
+                    pLosslessCutProject.LLosslessCutProjectVersion?.ToString() ?? pLosslessCutUnspecified,
+                    pLosslessCutProject.LLosslessCutProjectSegments.Count,
+                    pLosslessCutProject.LLosslessCutProjectMediaFileName.DefaultIfEmpty(pLosslessCutUnspecified),
+                    pLosslessCutChoiceMeaning),
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.Title"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
             if (pLosslessCutChoice == MessageBoxResult.Yes)
@@ -68,8 +70,8 @@ public sealed partial class PFlow
         if (!pFlowCommandActive || lSourcePath is null || lSpool is null)
         {
             MessageBox.Show(
-                "Open a media file before importing a LosslessCut project.",
-                "Import LosslessCut project",
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.NoMedia"),
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.Title"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
             return;
@@ -88,8 +90,8 @@ public sealed partial class PFlow
         {
             LAppLog.LError("LosslessCut project could not be read", pLosslessCutException);
             MessageBox.Show(
-                $"That LosslessCut project could not be read.\n\n{pLosslessCutException.Message}",
-                "Import LosslessCut project",
+                LLocalization.LLocalizationFormat("Flow.LosslessCut.Import.ReadError", pLosslessCutException.Message),
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.Title"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -97,9 +99,10 @@ public sealed partial class PFlow
 
         if (!LLosslessCut.LLosslessCutVersionCheck(pLosslessCutProject.LLosslessCutProjectVersion)
             && MessageBox.Show(
-                $"This LosslessCut project uses version {pLosslessCutProject.LLosslessCutProjectVersion}, "
-                + "which Cadroue does not explicitly support. Continue with the recognized fields?",
-                "LosslessCut project version",
+                LLocalization.LLocalizationFormat(
+                    "Flow.LosslessCut.Import.VersionWarning",
+                    pLosslessCutProject.LLosslessCutProjectVersion),
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.VersionTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
@@ -113,11 +116,11 @@ public sealed partial class PFlow
 
         if (!pLosslessCutResult.LLosslessCutResultMediaMatch
             && MessageBox.Show(
-                $"The LosslessCut project names this media:\n\n"
-                + $"{pLosslessCutResult.LLosslessCutResultMediaFileName}\n\n"
-                + $"Cadroue currently has this media open:\n\n{Path.GetFileName(lSourcePath)}\n\n"
-                + "Import the segments anyway?",
-                "Media name does not match",
+                LLocalization.LLocalizationFormat(
+                    "Flow.LosslessCut.Import.MediaMismatch",
+                    pLosslessCutResult.LLosslessCutResultMediaFileName,
+                    Path.GetFileName(lSourcePath)),
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.MediaMismatchTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
@@ -128,7 +131,7 @@ public sealed partial class PFlow
         {
             MessageBox.Show(
                 PFlowLosslessCutSummaryCreate(pLosslessCutPath, pLosslessCutResult, false),
-                "No LosslessCut segments to import",
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.EmptyTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
             return;
@@ -137,10 +140,10 @@ public sealed partial class PFlow
         string pLosslessCutSummary = PFlowLosslessCutSummaryCreate(pLosslessCutPath, pLosslessCutResult, true);
         MessageBoxResult pLosslessCutMode = MessageBox.Show(
             pLosslessCutSummary
-            + "\n\nYes: Replace the current Cadroue segments"
-            + "\nNo: Append to the current Cadroue segments"
-            + "\nCancel: Do not import",
-            "Preview LosslessCut import",
+            + Environment.NewLine
+            + Environment.NewLine
+            + LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.ModeChoices"),
+            LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.PreviewTitle"),
             MessageBoxButton.YesNoCancel,
             MessageBoxImage.Question);
 
@@ -184,32 +187,43 @@ public sealed partial class PFlow
         LLosslessCutResult pLosslessCutResult,
         bool pLosslessCutShowRange)
     {
+        string pLosslessCutUnspecified = LLocalization.LLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
         var pLosslessCutLines = new List<string>
         {
-            $"Project: {Path.GetFileName(pLosslessCutPath)}",
-            $"Version: {pLosslessCutResult.LLosslessCutResultVersion?.ToString() ?? "not specified"}",
-            $"Media: {pLosslessCutResult.LLosslessCutResultMediaFileName.DefaultIfEmpty("not specified")}",
-            $"Valid segments: {pLosslessCutResult.LLosslessCutResultSections.Count}",
-            $"Skipped segments: {pLosslessCutResult.LLosslessCutResultIssues.Count}"
+            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Project", Path.GetFileName(pLosslessCutPath)),
+            LLocalization.LLocalizationFormat(
+                "Flow.LosslessCut.Summary.Version",
+                pLosslessCutResult.LLosslessCutResultVersion?.ToString() ?? pLosslessCutUnspecified),
+            LLocalization.LLocalizationFormat(
+                "Flow.LosslessCut.Summary.Media",
+                pLosslessCutResult.LLosslessCutResultMediaFileName.DefaultIfEmpty(pLosslessCutUnspecified)),
+            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Valid", pLosslessCutResult.LLosslessCutResultSections.Count),
+            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Skipped", pLosslessCutResult.LLosslessCutResultIssues.Count)
         };
 
         if (pLosslessCutShowRange && pLosslessCutResult.LLosslessCutResultSections.Count > 0)
         {
             LSidecarSectionRecord pLosslessCutFirst = pLosslessCutResult.LLosslessCutResultSections[0];
             LSidecarSectionRecord pLosslessCutLast = pLosslessCutResult.LLosslessCutResultSections[^1];
-            pLosslessCutLines.Add(
-                $"Imported range: {TimeSpan.FromMilliseconds(pLosslessCutFirst.StartMilliseconds):hh\\:mm\\:ss\\.fff}"
-                + $" – {TimeSpan.FromMilliseconds(pLosslessCutLast.EndMilliseconds):hh\\:mm\\:ss\\.fff}");
+            pLosslessCutLines.Add(LLocalization.LLocalizationFormat(
+                "Flow.LosslessCut.Summary.Range",
+                TimeSpan.FromMilliseconds(pLosslessCutFirst.StartMilliseconds).ToString(@"hh\:mm\:ss\.fff"),
+                TimeSpan.FromMilliseconds(pLosslessCutLast.EndMilliseconds).ToString(@"hh\:mm\:ss\.fff")));
         }
 
         foreach (LLosslessCutIssue pLosslessCutIssue in pLosslessCutResult.LLosslessCutResultIssues.Take(5))
         {
-            pLosslessCutLines.Add($"Segment {pLosslessCutIssue.LLosslessCutIssueIndex + 1}: {pLosslessCutIssue.LLosslessCutIssueReason}");
+            pLosslessCutLines.Add(LLocalization.LLocalizationFormat(
+                "Flow.LosslessCut.Summary.Issue",
+                pLosslessCutIssue.LLosslessCutIssueIndex + 1,
+                pLosslessCutIssue.LLosslessCutIssueReason));
         }
 
         if (pLosslessCutResult.LLosslessCutResultIssues.Count > 5)
         {
-            pLosslessCutLines.Add($"…and {pLosslessCutResult.LLosslessCutResultIssues.Count - 5} more issue(s)");
+            pLosslessCutLines.Add(LLocalization.LLocalizationFormat(
+                "Flow.LosslessCut.Summary.MoreIssues",
+                pLosslessCutResult.LLosslessCutResultIssues.Count - 5));
         }
 
         return string.Join(Environment.NewLine, pLosslessCutLines);

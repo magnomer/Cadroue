@@ -20,7 +20,7 @@ public sealed partial class PInspector
 
         pInspectorRatioFixed = new CheckBox
         {
-            Content = "Fixed ratio",
+            Content = LLocalization.LLocalizationTextRead("Inspector.Crop.FixedRatio"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
@@ -41,8 +41,8 @@ public sealed partial class PInspector
             Visibility = Visibility.Collapsed
         };
 
-        pInspectorFlipHorizontal = PInspectorFlipBuild("Horizontal");
-        pInspectorFlipVertical = PInspectorFlipBuild("Vertical");
+        pInspectorFlipHorizontal = PInspectorFlipBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal"));
+        pInspectorFlipVertical = PInspectorFlipBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical"));
         pInspectorFlipHorizontal.Checked += (_, _) => PInspectorRotateRaise();
         pInspectorFlipHorizontal.Unchecked += (_, _) => PInspectorRotateRaise();
         pInspectorFlipVertical.Checked += (_, _) => PInspectorRotateRaise();
@@ -51,15 +51,15 @@ public sealed partial class PInspector
         pInspectorCropTool = PInspectorToolBuild();
 
         pInspectorApplyBox = PInspectorSwitchBuild(
-            "Apply",
-            "Apply the crop, rotation and flip to queued jobs");
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Crop.ApplyTooltip"));
         pInspectorApplyBox.Checked += (_, _) => PInspectorApplyUpdate();
         pInspectorApplyBox.Unchecked += (_, _) => PInspectorApplyUpdate();
 
         pInspectorCropStack = new StackPanel();
-        pInspectorCropStack.Children.Add(PInspectorFieldBuild("Tool", pInspectorCropTool));
-        pInspectorCropStack.Children.Add(PInspectorFieldBuild("Flip", PInspectorFlipRowBuild()));
-        pInspectorCropStack.Children.Add(PInspectorFieldBuild("Rotate", pInspectorRotateCombo));
+        pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Tool"), pInspectorCropTool));
+        pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Flip"), PInspectorFlipRowBuild()));
+        pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Rotate"), pInspectorRotateCombo));
         pInspectorCropStack.Children.Add(PInspectorEdgeBuild());
         pInspectorCropStack.Children.Add(PInspectorRatioBuild());
         pInspectorCropStack.Children.Add(pInspectorRatioFixed);
@@ -81,8 +81,8 @@ public sealed partial class PInspector
     private UIElement PInspectorPersistentBuild()
     {
         pInspectorPersistentBox = PInspectorSwitchBuild(
-            "Persistent",
-            "Keep the current processing settings when a new media file is loaded");
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Crop.PersistentTooltip"));
         pInspectorPersistentBox.Checked += (_, _) => PInspectorPersistentRaise();
         pInspectorPersistentBox.Unchecked += (_, _) => PInspectorPersistentRaise();
 
@@ -146,7 +146,7 @@ public sealed partial class PInspector
         var pToolButton = new ToggleButton
         {
             Content = pInspectorToolIcon,
-            ToolTip = "Draw the crop box on the preview",
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Crop.DrawTooltip"),
             Width = 32,
             Height = 32,
             VerticalAlignment = VerticalAlignment.Center,
@@ -200,10 +200,10 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pRotateCombo);
-        pRotateCombo.Items.Add("None");
-        pRotateCombo.Items.Add("90° clockwise");
-        pRotateCombo.Items.Add("180°");
-        pRotateCombo.Items.Add("270° clockwise");
+        pRotateCombo.Items.Add(new LLocalizationChoice("None", "Inspector.Crop.None"));
+        pRotateCombo.Items.Add(new LLocalizationChoice("Clockwise90", "Inspector.Crop.Clockwise90"));
+        pRotateCombo.Items.Add(new LLocalizationChoice("Degrees180", "Inspector.Crop.Degrees180"));
+        pRotateCombo.Items.Add(new LLocalizationChoice("Clockwise270", "Inspector.Crop.Clockwise270"));
         pRotateCombo.SelectedIndex = 0;
         pRotateCombo.SelectionChanged += (_, _) =>
         {
@@ -226,10 +226,10 @@ public sealed partial class PInspector
             pCropGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         }
 
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild("Top", pInspectorInsetTop), 0, 1);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild("Left", pInspectorInsetLeft), 1, 0);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild("Right", pInspectorInsetRight), 1, 2);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild("Bottom", pInspectorInsetBottom), 2, 1);
+        PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Top"), pInspectorInsetTop), 0, 1);
+        PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Left"), pInspectorInsetLeft), 1, 0);
+        PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Right"), pInspectorInsetRight), 1, 2);
+        PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Bottom"), pInspectorInsetBottom), 2, 1);
         return pCropGrid;
     }
 
@@ -267,7 +267,7 @@ public sealed partial class PInspector
             Orientation = Orientation.Horizontal,
             Margin = new Thickness(0, 14, 0, 0)
         };
-        pRatioPanel.Children.Add(PInspectorLabelBuild("Ratio"));
+        pRatioPanel.Children.Add(PInspectorLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Ratio")));
         pRatioPanel.Children.Add(pInspectorRatioWidth);
         pRatioPanel.Children.Add(new TextBlock
         {

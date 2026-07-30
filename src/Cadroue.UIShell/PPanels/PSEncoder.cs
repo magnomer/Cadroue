@@ -62,7 +62,7 @@ internal sealed partial class PSEncoder : Window
     private TextBox? psVideoQualityBox;
     private ComboBox? psVideoSpeedCombo;
     private bool psVideoRowsBusy;
-    private string psCodecLog = "Verification has not run yet.";
+    private string psCodecLog = LLocalization.LLocalizationTextRead("Encoder.Verification.NotRun");
     private string? psEncoderFolderPath;
     private readonly PSGrabber psEncoderGrabber;
 
@@ -76,12 +76,39 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit = lsExportSpecificState.LPresetClone();
         pSummaryRefresh = pRefresh;
         psNameBox = new PToken { Text = lsExportSpecificEdit.Name, MinWidth = 320 };
-        psContainerCombo = PSComboBuild(lsExportSpecificEdit.Container, "Same as source", "MP4", "Matroska", "MOV", "WebM", "M4A", "MP3", "WAV", "FLAC", "OGG", "All FFmpeg formats...");
-        psModeCombo = PSComboBuild(lsExportSpecificEdit.ExportMode, "Smart export", "Remux only", "Re-encode");
-        psVideoStreamCombo = PSComboBuild(lsExportSpecificEdit.VideoStream, "Include", "Exclude");
-        psAudioStreamCombo = PSComboBuild(lsExportSpecificEdit.AudioStream, "Include first audio track", "Include all audio tracks", "Exclude");
-        psVideoModeCombo = PSComboBuild(lsExportSpecificEdit.VideoMode, "Auto", "Copy", "Encode", "Exclude");
-        psAudioModeCombo = PSComboBuild(lsExportSpecificEdit.AudioMode, "Auto", "Copy", "Encode", "Exclude");
+        psContainerCombo = PSComboBuild(lsExportSpecificEdit.Container,
+            new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
+            new LLocalizationChoice("MP4", "Encoder.Container.MP4"),
+            new LLocalizationChoice("Matroska", "Encoder.Container.Matroska"),
+            new LLocalizationChoice("MOV", "Encoder.Container.MOV"),
+            new LLocalizationChoice("WebM", "Encoder.Container.WebM"),
+            new LLocalizationChoice("M4A", "Encoder.Container.M4A"),
+            new LLocalizationChoice("MP3", "Encoder.Container.MP3"),
+            new LLocalizationChoice("WAV", "Encoder.Container.WAV"),
+            new LLocalizationChoice("FLAC", "Encoder.Container.FLAC"),
+            new LLocalizationChoice("OGG", "Encoder.Container.OGG"),
+            new LLocalizationChoice("All FFmpeg formats...", "Encoder.Format.All"));
+        psModeCombo = PSComboBuild(lsExportSpecificEdit.ExportMode,
+            new LLocalizationChoice("Smart export", "Encoder.Mode.Smart"),
+            new LLocalizationChoice("Remux only", "Encoder.Mode.Remux"),
+            new LLocalizationChoice("Re-encode", "Encoder.Mode.Encode"));
+        psVideoStreamCombo = PSComboBuild(lsExportSpecificEdit.VideoStream,
+            new LLocalizationChoice("Include", "Encoder.Stream.Include"),
+            new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
+        psAudioStreamCombo = PSComboBuild(lsExportSpecificEdit.AudioStream,
+            new LLocalizationChoice("Include first audio track", "Encoder.Stream.FirstAudio"),
+            new LLocalizationChoice("Include all audio tracks", "Encoder.Stream.AllAudio"),
+            new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
+        psVideoModeCombo = PSComboBuild(lsExportSpecificEdit.VideoMode,
+            new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
+            new LLocalizationChoice("Copy", "Encoder.Codec.Copy"),
+            new LLocalizationChoice("Encode", "Encoder.Codec.Encode"),
+            new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
+        psAudioModeCombo = PSComboBuild(lsExportSpecificEdit.AudioMode,
+            new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
+            new LLocalizationChoice("Copy", "Encoder.Codec.Copy"),
+            new LLocalizationChoice("Encode", "Encoder.Codec.Encode"),
+            new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
 
         psVideoEncoderCombo = PSComboBuild(lsExportSpecificEdit.VideoEncoder, PSCodecItemsRead());
         LCapabilityCodec pVideoCodec = LCapability.LCapabilityRead(PSCodecValueRead(PSComboTextRead(psVideoEncoderCombo)));
@@ -93,7 +120,10 @@ internal sealed partial class PSEncoder : Window
         psAudioNotice = PSScopeNoticeBuild();
         psVideoExtraCombos = new Dictionary<string, ComboBox>(StringComparer.Ordinal);
 
-        psLocationCombo = PSComboBuild(lsExportSpecificEdit.Location, "Same as source", "Custom location", "Subfolder");
+        psLocationCombo = PSComboBuild(lsExportSpecificEdit.Location,
+            new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
+            new LLocalizationChoice("Custom location", "Encoder.Location.Custom"),
+            new LLocalizationChoice("Subfolder", "Encoder.Location.Subfolder"));
         bool psLocationSubfolder = string.Equals(lsExportSpecificEdit.Location, "Subfolder", StringComparison.Ordinal);
         psEncoderFolderPath = psLocationSubfolder || string.IsNullOrWhiteSpace(lsExportSpecificEdit.LocationFolder)
             ? null
@@ -101,20 +131,58 @@ internal sealed partial class PSEncoder : Window
         psLocationFolderBox = PSEntryBuild(psLocationSubfolder ? lsExportSpecificEdit.LocationFolder : string.Empty, 220);
         psVideoSizeCombo = PSComboBuild(
             PSVideoLabelRead(lsExportSpecificEdit.VideoSize, lsExportSpecificEdit.VideoSizeReactive),
-            lsExportSpecificEdit.VideoSizeReactive ? psVideoReactiveItems : psVideoSizeItems);
+            PSVideoSizeChoicesRead(lsExportSpecificEdit.VideoSizeReactive));
         psVideoReactiveBox = PSVideoReactiveBuild(lsExportSpecificEdit.VideoSizeReactive);
         string[] psCustomParts = lsExportSpecificEdit.VideoSize.Split(
             ['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         psVideoCustomWidth = PSEntryBuild(psCustomParts.Length == 2 ? psCustomParts[0] : string.Empty, 110);
         psVideoCustomHeight = PSEntryBuild(psCustomParts.Length == 2 ? psCustomParts[1] : string.Empty, 110);
-        psVideoFpsCombo = PSComboBuild(lsExportSpecificEdit.VideoFps, "Same as source", "60", "50", "30", "25", "24", "Custom");
-        psPixelCombo = PSComboBuild(lsExportSpecificEdit.PixelFormat, "Auto", "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le");
-        psAudioEncoderCombo = PSComboBuild(lsExportSpecificEdit.AudioEncoder, "AAC", "MP3 / libmp3lame", "Opus / libopus", "FLAC", "PCM 16-bit / pcm_s16le", "PCM 24-bit / pcm_s24le");
-        psAudioBitrateCombo = PSComboBuild(lsExportSpecificEdit.AudioBitrate, "96k", "128k", "160k", "192k", "256k", "320k", "Custom");
-        psAudioSampleCombo = PSComboBuild(lsExportSpecificEdit.AudioSampleRate, "Same as source", "44100", "48000", "88200", "96000", "Custom");
-        psAudioChannelCombo = PSComboBuild(lsExportSpecificEdit.AudioChannels, "Same as source", "Mono", "Stereo", "5.1", "Custom");
+        psVideoFpsCombo = PSComboBuild(lsExportSpecificEdit.VideoFps,
+            new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
+            new LLocalizationChoice("60", "Encoder.FPS.Frames60"),
+            new LLocalizationChoice("50", "Encoder.FPS.Frames50"),
+            new LLocalizationChoice("30", "Encoder.FPS.Frames30"),
+            new LLocalizationChoice("25", "Encoder.FPS.Frames25"),
+            new LLocalizationChoice("24", "Encoder.FPS.Frames24"),
+            new LLocalizationChoice("Custom", "Encoder.Value.Custom"));
+        psPixelCombo = PSComboBuild(lsExportSpecificEdit.PixelFormat,
+            new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
+            new LLocalizationChoice("yuv420p", "Encoder.Pixel.Yuv420"),
+            new LLocalizationChoice("yuv422p", "Encoder.Pixel.Yuv422"),
+            new LLocalizationChoice("yuv444p", "Encoder.Pixel.Yuv444"),
+            new LLocalizationChoice("yuv420p10le", "Encoder.Pixel.Yuv420Ten"),
+            new LLocalizationChoice("yuv422p10le", "Encoder.Pixel.Yuv422Ten"),
+            new LLocalizationChoice("yuv444p10le", "Encoder.Pixel.Yuv444Ten"));
+        psAudioEncoderCombo = PSComboBuild(lsExportSpecificEdit.AudioEncoder,
+            new LLocalizationChoice("AAC", "Encoder.AudioCodec.AAC"),
+            new LLocalizationChoice("MP3 / libmp3lame", "Encoder.AudioCodec.MP3"),
+            new LLocalizationChoice("Opus / libopus", "Encoder.AudioCodec.Opus"),
+            new LLocalizationChoice("FLAC", "Encoder.AudioCodec.FLAC"),
+            new LLocalizationChoice("PCM 16-bit / pcm_s16le", "Encoder.AudioCodec.PCM16"),
+            new LLocalizationChoice("PCM 24-bit / pcm_s24le", "Encoder.AudioCodec.PCM24"));
+        psAudioBitrateCombo = PSComboBuild(lsExportSpecificEdit.AudioBitrate,
+            new LLocalizationChoice("96k", "Encoder.Bitrate.Kbps96"),
+            new LLocalizationChoice("128k", "Encoder.Bitrate.Kbps128"),
+            new LLocalizationChoice("160k", "Encoder.Bitrate.Kbps160"),
+            new LLocalizationChoice("192k", "Encoder.Bitrate.Kbps192"),
+            new LLocalizationChoice("256k", "Encoder.Bitrate.Kbps256"),
+            new LLocalizationChoice("320k", "Encoder.Bitrate.Kbps320"),
+            new LLocalizationChoice("Custom", "Encoder.Value.Custom"));
+        psAudioSampleCombo = PSComboBuild(lsExportSpecificEdit.AudioSampleRate,
+            new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
+            new LLocalizationChoice("44100", "Encoder.Sample.Hertz44100"),
+            new LLocalizationChoice("48000", "Encoder.Sample.Hertz48000"),
+            new LLocalizationChoice("88200", "Encoder.Sample.Hertz88200"),
+            new LLocalizationChoice("96000", "Encoder.Sample.Hertz96000"),
+            new LLocalizationChoice("Custom", "Encoder.Value.Custom"));
+        psAudioChannelCombo = PSComboBuild(lsExportSpecificEdit.AudioChannels,
+            new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
+            new LLocalizationChoice("Mono", "Encoder.Value.Mono"),
+            new LLocalizationChoice("Stereo", "Encoder.Value.Stereo"),
+            new LLocalizationChoice("5.1", "Encoder.Channel.Surround"),
+            new LLocalizationChoice("Custom", "Encoder.Value.Custom"));
 
-        Title = "Specific Export Settings";
+        Title = LLocalization.LLocalizationTextRead("Encoder.Window.Title");
         Width = PSEncoderWidthDefault;
         Height = PSEncoderHeightDefault;
         MinWidth = PSEncoderWidthMinimum;

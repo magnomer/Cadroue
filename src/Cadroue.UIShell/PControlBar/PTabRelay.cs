@@ -66,10 +66,8 @@ public partial class PToolbar
     {
         LAppLog.LInfo($"Tab '{pTabRecord.PTabTitle}' kept: the worklist is still working");
         MessageBox.Show(
-            "This worklist is still working on a job.\n\n"
-            + "Moving the tab out opens it in a separate program instance, which cannot take over a run "
-            + "that is already under way. Let the job finish or cancel it, then drag the tab out again.",
-            "Worklist is busy",
+            LLocalization.LLocalizationTextRead("Tab.Relay.BusyMessage"),
+            LLocalization.LLocalizationTextRead("Tab.Relay.BusyTitle"),
             MessageBoxButton.OK,
             MessageBoxImage.Information);
     }

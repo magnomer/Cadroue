@@ -18,8 +18,8 @@ public sealed partial class PExport
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        pLeftPanel.Children.Add(PExportButtonBuild(PExportPlusIconPath, "Add a new preset", PExportPresetAdd));
-        pLeftPanel.Children.Add(PExportButtonBuild(PExportMinusIconPath, "Delete the selected preset", PExportPresetDelete));
+        pLeftPanel.Children.Add(PExportButtonBuild(PExportPlusIconPath, LLocalization.LLocalizationTextRead("ExportPreset.AddTooltip"), PExportPresetAdd));
+        pLeftPanel.Children.Add(PExportButtonBuild(PExportMinusIconPath, LLocalization.LLocalizationTextRead("ExportPreset.DeleteTooltip"), PExportPresetDelete));
         Grid.SetColumn(pLeftPanel, 0);
         pGrid.Children.Add(pLeftPanel);
 
@@ -28,9 +28,9 @@ public sealed partial class PExport
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pRightPanel.Children.Add(PExportButtonBuild(PExportSettingIconPath, "Settings", PExportDialogShow));
-        pRightPanel.Children.Add(PExportButtonBuild(PExportExportIconPath, "Export the selected preset to a file", PExportPresetSave));
-        pRightPanel.Children.Add(PExportButtonBuild(PExportImportIconPath, "Import a preset from a file", PExportPresetLoad));
+        pRightPanel.Children.Add(PExportButtonBuild(PExportSettingIconPath, LLocalization.LLocalizationTextRead("ExportPreset.SettingsTooltip"), PExportDialogShow));
+        pRightPanel.Children.Add(PExportButtonBuild(PExportExportIconPath, LLocalization.LLocalizationTextRead("ExportPreset.ExportTooltip"), PExportPresetSave));
+        pRightPanel.Children.Add(PExportButtonBuild(PExportImportIconPath, LLocalization.LLocalizationTextRead("ExportPreset.ImportTooltip"), PExportPresetLoad));
         Grid.SetColumn(pRightPanel, 2);
         pGrid.Children.Add(pRightPanel);
         return pGrid;

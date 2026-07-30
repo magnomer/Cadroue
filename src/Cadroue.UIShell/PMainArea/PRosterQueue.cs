@@ -45,13 +45,13 @@ public sealed partial class PRoster
     private static Grid PRosterColumnHeaderBuild()
     {
         var pGrid = PRosterColumnsCreate();
-        PRosterHeadCellAdd(pGrid, 0, "Output");
-        PRosterHeadCellAdd(pGrid, 1, "Priority");
-        PRosterHeadCellAdd(pGrid, 2, "Length");
-        PRosterHeadCellAdd(pGrid, 3, "Progress");
-        PRosterHeadCellAdd(pGrid, 4, "Percentage");
-        PRosterHeadCellAdd(pGrid, 5, "State");
-        PRosterHeadCellAdd(pGrid, 6, "Owner");
+        PRosterHeadCellAdd(pGrid, 0, LLocalization.LLocalizationTextRead("Roster.Queue.Output"));
+        PRosterHeadCellAdd(pGrid, 1, LLocalization.LLocalizationTextRead("Roster.Queue.Priority"));
+        PRosterHeadCellAdd(pGrid, 2, LLocalization.LLocalizationTextRead("Roster.Queue.Length"));
+        PRosterHeadCellAdd(pGrid, 3, LLocalization.LLocalizationTextRead("Roster.Queue.Progress"));
+        PRosterHeadCellAdd(pGrid, 4, LLocalization.LLocalizationTextRead("Roster.Queue.Percentage"));
+        PRosterHeadCellAdd(pGrid, 5, LLocalization.LLocalizationTextRead("Roster.Queue.State"));
+        PRosterHeadCellAdd(pGrid, 6, LLocalization.LLocalizationTextRead("Roster.Queue.Owner"));
         return pGrid;
     }
 
@@ -247,7 +247,9 @@ public sealed partial class PRoster
 
         pMenu.Items.Clear();
         MenuItem pHeader = PMenu.PMenuItemCreate(
-            pRelayPaths.Count > 1 ? $"Send {pRelayPaths.Count} files to" : "Send to", null);
+            pRelayPaths.Count > 1
+                ? LLocalization.LLocalizationFormat("Roster.Relay.Many", pRelayPaths.Count)
+                : LLocalization.LLocalizationTextRead("Roster.Relay.One"), null);
         pHeader.IsEnabled = false;
         pMenu.Items.Add(pHeader);
 
@@ -357,10 +359,12 @@ public sealed partial class PRoster
 
         if (pRosterStation.LStationRunner.LRunnerOwnerCheck(pWorkItem))
         {
-            return "This tab";
+            return LLocalization.LLocalizationTextRead("Roster.Owner.ThisTab");
         }
 
-        return pWorkItem.LWorkOwnerProcess == Environment.ProcessId ? "Other tab" : "Other window";
+        return pWorkItem.LWorkOwnerProcess == Environment.ProcessId
+            ? LLocalization.LLocalizationTextRead("Roster.Owner.OtherTab")
+            : LLocalization.LLocalizationTextRead("Roster.Owner.OtherWindow");
     }
 
     private static string PRosterProgressFormat(LWorkItem pWorkItem) =>
@@ -369,7 +373,9 @@ public sealed partial class PRoster
             : "-";
 
     private static string PRosterPriorityFormat(LWorkPriority pPriority) =>
-        pPriority == LWorkPriority.LWorkPriorityHigh ? "High" : "Normal";
+        pPriority == LWorkPriority.LWorkPriorityHigh
+            ? LLocalization.LLocalizationTextRead("Roster.Priority.High")
+            : LLocalization.LLocalizationTextRead("Roster.Priority.Normal");
 
     private static string PRosterSpanFormat(TimeSpan pSpan) => $"{pSpan:hh\\:mm\\:ss}";
 

@@ -28,13 +28,13 @@ public sealed partial class PInspector
 
     private StackPanel PInspectorNormalizeBodyBuild()
     {
-        pInspectorNormalizeApply = PInspectorSwitchBuild("Apply", "Apply loudness normalization to queued jobs");
+        pInspectorNormalizeApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
         pInspectorNormalizeApply.Checked += (_, _) => PInspectorNormalizeApplyUpdate();
         pInspectorNormalizeApply.Unchecked += (_, _) => PInspectorNormalizeApplyUpdate();
 
         pInspectorNormalizePersistent = PInspectorSwitchBuild(
-            "Persistent",
-            "Apply the current normalize setup to every loaded file");
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Normalize.PersistentTooltip"));
 
         pInspectorNormalizePreset = new ComboBox
         {
@@ -45,13 +45,13 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pInspectorNormalizePreset);
-        pInspectorNormalizePreset.Items.Add("Streaming");
-        pInspectorNormalizePreset.Items.Add("Podcast");
-        pInspectorNormalizePreset.Items.Add("Medium");
-        pInspectorNormalizePreset.Items.Add("Broadcast");
-        pInspectorNormalizePreset.Items.Add("TV");
-        pInspectorNormalizePreset.Items.Add("Custom");
-        pInspectorNormalizePreset.SelectedItem = "Medium";
+        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Streaming", "Inspector.Normalize.Streaming"));
+        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Podcast", "Inspector.Normalize.Podcast"));
+        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Medium", "Inspector.Normalize.Medium"));
+        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Broadcast", "Inspector.Normalize.Broadcast"));
+        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("TV", "Inspector.Normalize.TV"));
+        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
+        pInspectorNormalizePreset.SelectedIndex = 2;
         pInspectorNormalizePreset.SelectionChanged += (_, _) => PInspectorNormalizePresetApply();
 
         pInspectorNormalizeMode = new ComboBox
@@ -63,8 +63,8 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pInspectorNormalizeMode);
-        pInspectorNormalizeMode.Items.Add("Loudness");
-        pInspectorNormalizeMode.Items.Add("Dynamic");
+        pInspectorNormalizeMode.Items.Add(new LLocalizationChoice("Loudness", "Inspector.Normalize.Loudness"));
+        pInspectorNormalizeMode.Items.Add(new LLocalizationChoice("Dynamic", "Inspector.Normalize.Dynamic"));
         pInspectorNormalizeMode.SelectedIndex = 0;
         pInspectorNormalizeMode.SelectionChanged += (_, _) => PInspectorNormalizeModeUpdate();
 
@@ -77,8 +77,8 @@ public sealed partial class PInspector
 
         pInspectorNormalizeTwoPass = new CheckBox
         {
-            Content = "Two-pass (accurate)",
-            ToolTip = "Measure loudness in a first pass, then apply it in a second pass",
+            Content = LLocalization.LLocalizationTextRead("Inspector.Normalize.TwoPass"),
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Normalize.TwoPassTooltip"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
@@ -89,14 +89,14 @@ public sealed partial class PInspector
         PMainWindow.PCheckbox.PCheckboxApply(pInspectorNormalizeTwoPass);
 
         pInspectorNormalizeLoudnessStack = new StackPanel();
-        pInspectorNormalizeLoudnessStack.Children.Add(PInspectorFieldBuild("Target", PInspectorNormalizeUnitRowBuild(pInspectorNormalizeTarget, "LUFS")));
-        pInspectorNormalizeLoudnessStack.Children.Add(PInspectorFieldBuild("Peak", PInspectorNormalizeUnitRowBuild(pInspectorNormalizePeak, "dBTP")));
-        pInspectorNormalizeLoudnessStack.Children.Add(PInspectorFieldBuild("Range", PInspectorNormalizeUnitRowBuild(pInspectorNormalizeRange, "LU")));
+        pInspectorNormalizeLoudnessStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Target"), PInspectorNormalizeUnitRowBuild(pInspectorNormalizeTarget, "LUFS")));
+        pInspectorNormalizeLoudnessStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Peak"), PInspectorNormalizeUnitRowBuild(pInspectorNormalizePeak, "dBTP")));
+        pInspectorNormalizeLoudnessStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Range"), PInspectorNormalizeUnitRowBuild(pInspectorNormalizeRange, "LU")));
         pInspectorNormalizeLoudnessStack.Children.Add(pInspectorNormalizeTwoPass);
 
         var pNotice = new TextBlock
         {
-            Text = "Normalize may depend on the analyzed range; preview and export can differ.",
+            Text = LLocalization.LLocalizationTextRead("Inspector.Normalize.Notice"),
             FontSize = 11,
             FontFamily = pInspectorFontFamily,
             Foreground = pInspectorMutedBrush,
@@ -105,8 +105,8 @@ public sealed partial class PInspector
         };
 
         pInspectorNormalizeStack = new StackPanel();
-        pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild("Preset", pInspectorNormalizePreset));
-        pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild("Mode", pInspectorNormalizeMode));
+        pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pInspectorNormalizePreset));
+        pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Mode"), pInspectorNormalizeMode));
         pInspectorNormalizeStack.Children.Add(pInspectorNormalizeLoudnessStack);
         pInspectorNormalizeStack.Children.Add(pNotice);
 
@@ -137,7 +137,8 @@ public sealed partial class PInspector
 
     private void PInspectorNormalizePresetApply()
     {
-        if (pInspectorNormalizePreset.SelectedItem is not string pPreset || pPreset == "Custom")
+        string pPreset = LLocalizationChoice.LLocalizationChoiceRead(pInspectorNormalizePreset.SelectedItem);
+        if (string.IsNullOrEmpty(pPreset) || pPreset == "Custom")
         {
             PInspectorNormalizeFieldsLock(false);
             return;

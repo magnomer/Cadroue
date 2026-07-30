@@ -46,7 +46,7 @@ public sealed class PSource : UserControl
 
         pSourcePlaceholderText = new TextBlock
         {
-            Text = "No media loaded",
+            Text = LLocalization.LLocalizationTextRead("Source.Empty.Notice"),
             FontSize = 11,
             Foreground = PSourceMutedBrush,
             VerticalAlignment = VerticalAlignment.Center,
@@ -80,7 +80,7 @@ public sealed class PSource : UserControl
         {
             Content = PSourceImportIconCreate(),
             Style = PButton.PButtonSourceCreate(),
-            ToolTip = "Import LosslessCut project",
+            ToolTip = LLocalization.LLocalizationTextRead("Source.Import.Tooltip"),
             IsEnabled = false
         };
         pSourceImportButton.Click += PSourceImportHandle;
@@ -142,8 +142,8 @@ public sealed class PSource : UserControl
     {
         var pDialog = new OpenFileDialog
         {
-            Title = "Import LosslessCut project",
-            Filter = "LosslessCut project|*.llc|All files|*.*"
+            Title = LLocalization.LLocalizationTextRead("Source.Dialog.Import"),
+            Filter = LLocalization.LLocalizationTextRead("Source.Dialog.LosslessCutFilter")
         };
         if (pDialog.ShowDialog() == true)
         {
@@ -155,13 +155,13 @@ public sealed class PSource : UserControl
     {
         var pDialog = new OpenFileDialog
         {
-            Title = "Open media file",
+            Title = LLocalization.LLocalizationTextRead("Source.Dialog.Open"),
             Filter = PSourceFilterRead()
         };
         if (pDialog.ShowDialog() != true) return;
         if (PSourceAudioCheck(pDialog.FileName) && !pSourceAudioOnlyAllowed)
         {
-            MessageBox.Show("Audio-only files can be opened only in the Audio tab.", "Cannot open file",
+            MessageBox.Show(LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -175,8 +175,8 @@ public sealed class PSource : UserControl
         const string pAudioPattern = "*.mp3;*.aac;*.flac;*.wav;*.ogg";
         const string pSidecarPattern = "*.cad";
         return pSourceAudioOnlyAllowed
-            ? $"Media and project files|{pVideoPattern};{pAudioPattern};{pSidecarPattern}|Cadroue project|{pSidecarPattern}|All files|*.*"
-            : $"Video and project files|{pVideoPattern};{pSidecarPattern}|Cadroue project|{pSidecarPattern}|All files|*.*";
+            ? LLocalization.LLocalizationFormat("Source.Dialog.MediaProjectFilter", pVideoPattern, pAudioPattern, pSidecarPattern)
+            : LLocalization.LLocalizationFormat("Source.Dialog.VideoProjectFilter", pVideoPattern, pSidecarPattern);
     }
 
     private static bool PSourceAudioCheck(string pSourcePath)
@@ -196,7 +196,7 @@ public sealed class PSource : UserControl
         if (!File.Exists(pPath)) return;
         if (PSourceAudioCheck(pPath) && !pSourceAudioOnlyAllowed)
         {
-            MessageBox.Show("Audio-only files can be opened only in the Audio tab.", "Cannot open file",
+            MessageBox.Show(LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }

@@ -20,14 +20,37 @@ internal sealed class PPicker : UserControl
     private static readonly Brush PMutedBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0xA5, 0xB4));
 
     private readonly string[] pPickerItems;
+    private readonly IReadOnlyDictionary<string, string> pPickerLabels;
     private readonly Dictionary<string, CheckBox> pPickerBoxes = new(StringComparer.Ordinal);
     private readonly TextBlock pPickerSummary;
     private readonly Border pPickerFrame;
     private readonly Popup pPickerPopup;
 
     internal PPicker(IReadOnlyList<string> pItems, IReadOnlyList<string> pSelected, string pEmptyText)
+        : this(pItems, pSelected, pEmptyText, new Dictionary<string, string>(StringComparer.Ordinal))
+    {
+    }
+
+    internal PPicker(IReadOnlyList<LLocalizationChoice> pItems, IReadOnlyList<string> pSelected, string pEmptyText)
+        : this(
+            pItems.Select(pItem => pItem.LLocalizationChoiceToken).ToArray(),
+            pSelected,
+            pEmptyText,
+            pItems.ToDictionary(
+                pItem => pItem.LLocalizationChoiceToken,
+                pItem => pItem.ToString(),
+                StringComparer.Ordinal))
+    {
+    }
+
+    private PPicker(
+        IReadOnlyList<string> pItems,
+        IReadOnlyList<string> pSelected,
+        string pEmptyText,
+        IReadOnlyDictionary<string, string> pLabels)
     {
         pPickerItems = pItems.ToArray();
+        pPickerLabels = pLabels;
         PPickerEmptyText = pEmptyText;
 
         pPickerSummary = new TextBlock
@@ -92,7 +115,7 @@ internal sealed class PPicker : UserControl
         {
             var pBox = new CheckBox
             {
-                Content = pItem,
+                Content = PPickerLabelRead(pItem),
                 IsChecked = pSelected.Contains(pItem, StringComparer.Ordinal),
                 Margin = new Thickness(8, 6, 8, 6)
             };
@@ -144,9 +167,14 @@ internal sealed class PPicker : UserControl
     private void PPickerSummaryUpdate()
     {
         IReadOnlyList<string> pSelection = PPickerSelectionRead();
-        pPickerSummary.Text = pSelection.Count == 0 ? PPickerEmptyText : string.Join(", ", pSelection);
+        pPickerSummary.Text = pSelection.Count == 0
+            ? PPickerEmptyText
+            : string.Join(", ", pSelection.Select(PPickerLabelRead));
         pPickerSummary.Foreground = pSelection.Count == 0 ? PMutedBrush : PTextBrush;
     }
+
+    private string PPickerLabelRead(string pItem) =>
+        pPickerLabels.TryGetValue(pItem, out string? pLabel) ? pLabel : pItem;
 
     private static ControlTemplate PPickerArrowTemplateBuild()
     {

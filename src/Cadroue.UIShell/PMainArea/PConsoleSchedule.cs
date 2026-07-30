@@ -169,22 +169,42 @@ public sealed partial class PConsole
         pConsoleAutoBox.IsChecked = pStation.LStationAutoActive;
         pConsoleAutoApplying = false;
 
-        string pRunState = pRunner.LRunnerSuspended
-            ? "Suspended"
-            : pRunner.LRunnerRunning ? "Running" : "Paused";
-        string pDoneText = $"{pDone} of {pTotal} done";
+        string pRunState = LLocalization.LLocalizationTextRead(
+            pRunner.LRunnerSuspended
+                ? "Console.State.Suspended"
+                : pRunner.LRunnerRunning ? "Console.State.Running" : "Console.State.Paused");
+        string pDoneText = LLocalization.LLocalizationFormat("Console.Done.Format", pDone, pTotal);
 
         pConsoleStatus.Text = pTotal == 0
-            ? "No work queued."
+            ? LLocalization.LLocalizationTextRead("Console.Status.Empty")
             : pRunning is null
-                ? $"{pRunState}  •  {pDoneText}, {pConsoleSchedule.LSchedulePendingRead().Count} pending"
+                ? LLocalization.LLocalizationFormat(
+                    "Console.Status.Pending",
+                    pRunState,
+                    pDoneText,
+                    pConsoleSchedule.LSchedulePendingRead().Count)
                 : pRunningItems.Length > 1
-                    ? $"{pRunningItems.Length} jobs running  •  {pRunningItems.Average(pWorkItem => pWorkItem.LWorkProgress):P0}  •  {pDoneText}"
-                    : $"{pRunning.LWorkOutputName}  •  {pRunning.LWorkProgress:P0}  •  {pDoneText}";
+                    ? LLocalization.LLocalizationFormat(
+                        "Console.Status.MultipleRunning",
+                        pRunningItems.Length,
+                        pRunningItems.Average(pWorkItem => pWorkItem.LWorkProgress),
+                        pDoneText)
+                    : LLocalization.LLocalizationFormat(
+                        "Console.Status.Running",
+                        pRunning.LWorkOutputName,
+                        pRunning.LWorkProgress,
+                        pDoneText);
 
-        pConsoleStationLabel.Text = pBoard.Length > 1
-            ? $"{pStation.LStationLabel} {Array.IndexOf(pBoard, pStation) + 1} of {pBoard.Length}"
+        string pStationLabel = string.Equals(pStation.LStationLabel, "Background worklist", StringComparison.Ordinal)
+            ? LLocalization.LLocalizationTextRead("Console.Station.Background")
             : pStation.LStationLabel;
+        pConsoleStationLabel.Text = pBoard.Length > 1
+            ? LLocalization.LLocalizationFormat(
+                "Console.Station.Numbered",
+                pStationLabel,
+                Array.IndexOf(pBoard, pStation) + 1,
+                pBoard.Length)
+            : pStationLabel;
     }
 
     private void PConsoleStartHandle(object pSender, RoutedEventArgs pArguments)
@@ -206,11 +226,11 @@ public sealed partial class PConsole
         }
 
         string pCancelSubject = pRunningItems.Length > 1
-            ? $"all {pRunningItems.Length} running jobs"
-            : $"'{pRunningItems[0].LWorkOutputName}'";
+            ? LLocalization.LLocalizationFormat("Console.Cancel.MultipleSubject", pRunningItems.Length)
+            : LLocalization.LLocalizationFormat("Console.Cancel.SingleSubject", pRunningItems[0].LWorkOutputName);
         MessageBoxResult pAnswer = MessageBox.Show(
-            $"Cancel {pCancelSubject}?\n\nThe partly written output file is deleted and processing moves on to the next job.",
-            "Cancel running job",
+            LLocalization.LLocalizationFormat("Console.Cancel.Confirm", pCancelSubject),
+            LLocalization.LLocalizationTextRead("Console.Cancel.Title"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
             MessageBoxResult.No);
@@ -250,13 +270,13 @@ public sealed partial class PConsole
 
     private void PConsoleDoneHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (!PConsoleDestructiveConfirm("Remove every finished job from the queue?")) return;
+        if (!PConsoleDestructiveConfirm(LLocalization.LLocalizationTextRead("Console.ClearDone.Confirm"))) return;
         pConsoleSchedule.LScheduleDoneClear();
     }
 
     private void PConsoleAllHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (!PConsoleDestructiveConfirm("Remove every queued job except the running one?")) return;
+        if (!PConsoleDestructiveConfirm(LLocalization.LLocalizationTextRead("Console.ClearAll.Confirm"))) return;
         pConsoleSchedule.LScheduleAllClear();
     }
 
@@ -269,7 +289,7 @@ public sealed partial class PConsole
 
         return MessageBox.Show(
             pConsoleQuestion,
-            "Confirm",
+            LLocalization.LLocalizationTextRead("Console.Confirm.Title"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
             MessageBoxResult.No) == MessageBoxResult.Yes;

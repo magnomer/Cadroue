@@ -72,7 +72,7 @@ public sealed partial class PRoster
             pRosterEncodingRow.Visibility = Visibility.Collapsed;
             pRosterDetailPanel.Children.Add(new TextBlock
             {
-                Text = "Select a job to see its settings.",
+                Text = LLocalization.LLocalizationTextRead("Roster.Empty.Notice"),
                 Foreground = PRosterTheme.PRosterMutedBrush,
                 FontSize = PRosterTheme.PRosterRowSize,
                 TextWrapping = TextWrapping.Wrap
@@ -96,12 +96,13 @@ public sealed partial class PRoster
 
     private void PRosterSourceAdd(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
-        PRosterSectionAdd("Source", false);
-        PRosterPathAdd("Location", pWorkItem.LWorkSourcePath);
-        PRosterRowAdd("Resolution / FPS", PRosterMediaFormat(pSourceInfo, pWorkItem.LWorkSourcePath));
-        PRosterRowAdd("Size", PRosterSizeFormat(PRosterSourceBytesRead(pWorkItem)));
-        PRosterRowAdd("Container", PRosterContainerFormat(pWorkItem.LWorkSourcePath));
-        PRosterRowAdd("Duration", pSourceInfo is null
+        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.Source"), false);
+        PRosterPathAdd(LLocalization.LLocalizationTextRead("Roster.Field.Location"), pWorkItem.LWorkSourcePath);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.ResolutionFps"), PRosterMediaFormat(pSourceInfo, pWorkItem.LWorkSourcePath));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Keyframe"), PRosterKeyframeFormat(pWorkItem.LWorkSourcePath));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Size"), PRosterSizeFormat(PRosterSourceBytesRead(pWorkItem)));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Container"), PRosterContainerFormat(pWorkItem.LWorkSourcePath));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Duration"), pSourceInfo is null
             ? PRosterPendingFormat(pWorkItem.LWorkSourcePath)
             : $"{pSourceInfo.LWorkMediaDuration:hh\\:mm\\:ss}");
     }
@@ -112,26 +113,27 @@ public sealed partial class PRoster
         LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia
             ?? PRosterMediaRead(pWorkItem.LWorkOutputPath);
 
-        PRosterSectionAdd("Output", true);
-        PRosterPathAdd("Location", pWorkItem.LWorkOutputPath);
-        PRosterRowAdd("Resolution / FPS", pOutputInfo is not null
+        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.Output"), true);
+        PRosterPathAdd(LLocalization.LLocalizationTextRead("Roster.Field.Location"), pWorkItem.LWorkOutputPath);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.ResolutionFps"), pOutputInfo is not null
             ? PRosterMediaFormat(pOutputInfo, pWorkItem.LWorkOutputPath)
             : $"{pOutput.LWorkOutputVideoSize} / {pOutput.LWorkOutputVideoFps}");
-        PRosterRowAdd("Size", PRosterOutputSizeRead(pWorkItem));
-        PRosterRowAdd("Container", pOutput.LWorkOutputContainer);
-        PRosterRowAdd("Duration", pOutputInfo is not null
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Keyframe"), PRosterOutputKeyframeFormat(pOutputInfo));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Size"), PRosterOutputSizeRead(pWorkItem));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Container"), pOutput.LWorkOutputContainer);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Duration"), pOutputInfo is not null
             ? $"{pOutputInfo.LWorkMediaDuration:hh\\:mm\\:ss}"
             : $"{pWorkItem.LWorkDuration:hh\\:mm\\:ss}");
     }
 
     private void PRosterJobAdd(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
-        PRosterSectionAdd("Job", true);
+        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.Job"), true);
 
         string pPresetName = pWorkItem.LWorkOutput.LWorkOutputPresetName;
         if (!string.IsNullOrWhiteSpace(pPresetName))
         {
-            PRosterRowAdd("Preset", pPresetName, 0, true, PRosterTheme.PRosterAccentBrush);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Preset"), pPresetName, 0, true, PRosterTheme.PRosterAccentBrush);
         }
 
         PRosterRowAdd(
@@ -144,52 +146,52 @@ public sealed partial class PRoster
             return;
         }
 
-        PRosterRowAdd("Crop", string.Empty);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Crop"), string.Empty);
         if (pCrop.LWorkCropEdgeActive)
         {
-            PRosterRowAdd("Top", $"{pCrop.LWorkCropTop} px", 14);
-            PRosterRowAdd("Bottom", $"{pCrop.LWorkCropBottom} px", 14);
-            PRosterRowAdd("Left", $"{pCrop.LWorkCropLeft} px", 14);
-            PRosterRowAdd("Right", $"{pCrop.LWorkCropRight} px", 14);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Top"), $"{pCrop.LWorkCropTop} px", 14);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Bottom"), $"{pCrop.LWorkCropBottom} px", 14);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Left"), $"{pCrop.LWorkCropLeft} px", 14);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Right"), $"{pCrop.LWorkCropRight} px", 14);
         }
 
         if (pCrop.LWorkCropRotation != 0)
         {
-            PRosterRowAdd("Rotate", $"{pCrop.LWorkCropRotation}°", 14);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Rotate"), $"{pCrop.LWorkCropRotation}°", 14);
         }
 
         if (pCrop.LWorkCropFlipHorizontal || pCrop.LWorkCropFlipVertical)
         {
-            PRosterRowAdd("Flip", PRosterFlipFormat(pCrop), 14);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Flip"), PRosterFlipFormat(pCrop), 14);
         }
 
-        PRosterRowAdd("Ratio", PRosterRatioFormat(pWorkItem, pSourceInfo), 14);
-        PRosterRowAdd("Result", PRosterResolutionFormat(pWorkItem, pSourceInfo), 14);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Ratio"), PRosterRatioFormat(pWorkItem, pSourceInfo), 14);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Result"), PRosterResolutionFormat(pWorkItem, pSourceInfo), 14);
     }
 
     private void PRosterRecordAdd(LWorkItem pWorkItem)
     {
-        PRosterSectionAdd("Record", true);
-        PRosterRowAdd("Started", PRosterStampFormat(pWorkItem.LWorkStartTime));
-        PRosterRowAdd("Finished", PRosterStampFormat(pWorkItem.LWorkFinishTime));
-        PRosterRowAdd("Time", PRosterSpentFormat(pWorkItem));
-        PRosterRowAdd("Speed", PRosterSpeedFormat(pWorkItem));
+        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.Record"), true);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Started"), PRosterStampFormat(pWorkItem.LWorkStartTime));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Finished"), PRosterStampFormat(pWorkItem.LWorkFinishTime));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Time"), PRosterSpentFormat(pWorkItem));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Speed"), PRosterSpeedFormat(pWorkItem));
     }
 
     private void PRosterInternalAdd(LWorkItem pWorkItem)
     {
-        PRosterSectionAdd("Internal", true);
-        PRosterRowAdd("State", PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent));
-        PRosterRowAdd("Owner", PRosterOwnerFormat(pWorkItem));
-        PRosterRowAdd("Attempts", pWorkItem.LWorkAttemptCount.ToString());
-        PRosterRowAdd("Phase", PRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
-        PRosterRowAdd("Priority", PRosterPriorityFormat(pWorkItem.LWorkPriority));
-        PRosterRowAdd("Export mode", pWorkItem.LWorkOutput.LWorkOutputExportMode);
-        PRosterRowAdd("Queued", pWorkItem.LWorkCreateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.Internal"), true);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.State"), PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Owner"), PRosterOwnerFormat(pWorkItem));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Attempts"), pWorkItem.LWorkAttemptCount.ToString());
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Phase"), PRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Priority"), PRosterPriorityFormat(pWorkItem.LWorkPriority));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.ExportMode"), pWorkItem.LWorkOutput.LWorkOutputExportMode);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Queued"), pWorkItem.LWorkCreateTime.ToString("yyyy-MM-dd HH:mm:ss"));
 
         if (!string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))
         {
-            PRosterRowAdd("Message", pWorkItem.LWorkMessage);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Message"), pWorkItem.LWorkMessage);
         }
     }
 
@@ -201,26 +203,26 @@ public sealed partial class PRoster
 
         StackPanel pPreviousTarget = pRosterRowTarget;
         pRosterRowTarget = pVideoPanel;
-        PRosterSectionAdd("Encoding (Video)", false);
-        PRosterRowAdd("Mode", $"{pOutput.LWorkOutputVideoMode} ({pOutput.LWorkOutputVideoStream})");
-        PRosterRowAdd("Encoder", pOutput.LWorkOutputVideoEncoder);
-        PRosterRowAdd("Rate control", pOutput.LWorkOutputRateControl);
-        PRosterRowAdd("Quality", pOutput.LWorkOutputQuality);
-        PRosterRowAdd("Speed preset", pOutput.LWorkOutputSpeedPreset);
-        PRosterRowAdd("Pixel format", pOutput.LWorkOutputPixelFormat);
+        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.EncodingVideo"), false);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), $"{pOutput.LWorkOutputVideoMode} ({pOutput.LWorkOutputVideoStream})");
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Encoder"), pOutput.LWorkOutputVideoEncoder);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.RateControl"), pOutput.LWorkOutputRateControl);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Quality"), pOutput.LWorkOutputQuality);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"), pOutput.LWorkOutputSpeedPreset);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.PixelFormat"), pOutput.LWorkOutputPixelFormat);
 
         if (pOutput.LWorkOutputVideoExtras.Count > 0)
         {
-            PRosterRowAdd("Extras", string.Join("  ", pOutput.LWorkOutputVideoExtras.Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Extras"), string.Join("  ", pOutput.LWorkOutputVideoExtras.Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
         }
 
         pRosterRowTarget = pAudioPanel;
-        PRosterSectionAdd("Encoding (Audio)", false);
-        PRosterRowAdd("Mode", $"{pOutput.LWorkOutputAudioMode} ({pOutput.LWorkOutputAudioStream})");
-        PRosterRowAdd("Encoder", pOutput.LWorkOutputAudioEncoder);
-        PRosterRowAdd("Bitrate", pOutput.LWorkOutputAudioBitrate);
-        PRosterRowAdd("Sample rate", pOutput.LWorkOutputAudioSampleRate);
-        PRosterRowAdd("Channels", pOutput.LWorkOutputAudioChannels);
+        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.EncodingAudio"), false);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), $"{pOutput.LWorkOutputAudioMode} ({pOutput.LWorkOutputAudioStream})");
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Encoder"), pOutput.LWorkOutputAudioEncoder);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Bitrate"), pOutput.LWorkOutputAudioBitrate);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.SampleRate"), pOutput.LWorkOutputAudioSampleRate);
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Channels"), pOutput.LWorkOutputAudioChannels);
 
         pRosterRowTarget = pPreviousTarget;
 
@@ -282,7 +284,7 @@ public sealed partial class PRoster
             Height = 20,
             Margin = new Thickness(6, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Bottom,
-            ToolTip = "Show this file in Explorer",
+            ToolTip = LLocalization.LLocalizationTextRead("Roster.Explorer.Tooltip"),
             Style = PButton.PButtonPanelCreate()
         };
         pOpenButton.Click += (_, _) => PRosterPathOpen(pPath);
@@ -410,13 +412,13 @@ public sealed partial class PRoster
     }
 
     private static string PRosterPendingFormat(string pMediaPath) =>
-        pRosterMediaPending.Contains(pMediaPath) ? "Reading..." : "Unknown";
+        pRosterMediaPending.Contains(pMediaPath) ? LLocalization.LLocalizationTextRead("Roster.Value.Reading") : LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
 
     private static string PRosterMediaFormat(LWorkMedia? pMediaInfo, string pMediaPath)
     {
         if (pMediaInfo is null || !pMediaInfo.LWorkMediaVideoPresent)
         {
-            return pMediaInfo is null ? PRosterPendingFormat(pMediaPath) : "Audio only";
+            return pMediaInfo is null ? PRosterPendingFormat(pMediaPath) : LLocalization.LLocalizationTextRead("Roster.AudioOnly");
         }
 
         return $"{pMediaInfo.LWorkMediaWidth} x {pMediaInfo.LWorkMediaHeight}  /  " +
@@ -426,24 +428,24 @@ public sealed partial class PRoster
     private static string PRosterContainerFormat(string pMediaPath)
     {
         string pExtension = Path.GetExtension(pMediaPath).TrimStart('.');
-        return pExtension.Length == 0 ? "Unknown" : pExtension.ToUpperInvariant();
+        return pExtension.Length == 0 ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown") : pExtension.ToUpperInvariant();
     }
 
     private static string PRosterFlipFormat(LWorkCrop pCrop)
     {
         if (pCrop.LWorkCropFlipHorizontal && pCrop.LWorkCropFlipVertical)
         {
-            return "Horizontal and vertical";
+            return LLocalization.LLocalizationTextRead("Roster.Value.HorizontalVertical");
         }
 
-        return pCrop.LWorkCropFlipHorizontal ? "Horizontal" : "Vertical";
+        return pCrop.LWorkCropFlipHorizontal ? LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal") : LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical");
     }
 
     private static string PRosterRatioFormat(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
         if (PRosterCropSizeRead(pWorkItem, pSourceInfo) is not { } pCropSize)
         {
-            return "Unknown";
+            return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
         }
 
         int pDivisor = PRosterDivisorRead(pCropSize.PRosterWidth, pCropSize.PRosterHeight);
@@ -454,7 +456,7 @@ public sealed partial class PRoster
     {
         if (PRosterCropSizeRead(pWorkItem, pSourceInfo) is not { } pCropSize)
         {
-            return "Unknown";
+            return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
         }
 
         int pWidth = pCropSize.PRosterWidth;
@@ -508,23 +510,23 @@ public sealed partial class PRoster
 
     private static string PRosterPhaseFormat(LWorkState pWorkState, LWorkPhase pWorkPhase) => pWorkState switch
     {
-        LWorkState.LWorkStateDone => "Done",
-        LWorkState.LWorkStateFailed => "Failed",
+        LWorkState.LWorkStateDone => LLocalization.LLocalizationTextRead("Roster.State.Done"),
+        LWorkState.LWorkStateFailed => LLocalization.LLocalizationTextRead("Roster.State.Failed"),
         _ => pWorkPhase switch
         {
-            LWorkPhase.LWorkPhaseEncoding => "Being processed",
-            LWorkPhase.LWorkPhaseStarted => "Started",
-            _ => "Not started"
+            LWorkPhase.LWorkPhaseEncoding => LLocalization.LLocalizationTextRead("Roster.Phase.Processing"),
+            LWorkPhase.LWorkPhaseStarted => LLocalization.LLocalizationTextRead("Roster.Phase.Started"),
+            _ => LLocalization.LLocalizationTextRead("Roster.Phase.NotStarted")
         }
     };
 
     private static string PRosterKindFormat(LWorkKind pWorkKind) => pWorkKind switch
     {
-        LWorkKind.LWorkKindSplit => "Split",
-        LWorkKind.LWorkKindEdit => "Edit",
-        LWorkKind.LWorkKindAudio => "Audio",
-        LWorkKind.LWorkKindConvert => "Convert",
-        LWorkKind.LWorkKindMerge => "Merge",
+        LWorkKind.LWorkKindSplit => LLocalization.LLocalizationTextRead("Roster.Kind.Split"),
+        LWorkKind.LWorkKindEdit => LLocalization.LLocalizationTextRead("Roster.Kind.Edit"),
+        LWorkKind.LWorkKindAudio => LLocalization.LLocalizationTextRead("Roster.Kind.Audio"),
+        LWorkKind.LWorkKindConvert => LLocalization.LLocalizationTextRead("Roster.Kind.Convert"),
+        LWorkKind.LWorkKindMerge => LLocalization.LLocalizationTextRead("Roster.Kind.Merge"),
         _ => pWorkKind.ToString()
     };
 }

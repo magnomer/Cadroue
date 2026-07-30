@@ -140,7 +140,7 @@ public sealed partial class PViewer : PPanel
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0, 16, 16, 0),
-            ToolTip = "Unload the media",
+            ToolTip = LLocalization.LLocalizationTextRead("Viewer.Unload.Tooltip"),
             Visibility = Visibility.Collapsed,
             Style = PButton.PButtonPanelCreate()
         };
@@ -259,8 +259,8 @@ public sealed partial class PViewer : PPanel
         if (pSidecar is null)
         {
             MessageBox.Show(
-                "That .cad file could not be read.",
-                "Open",
+                LLocalization.LLocalizationTextRead("Viewer.Sidecar.ReadError"),
+                LLocalization.LLocalizationTextRead("Viewer.Dialog.OpenTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return null;
@@ -274,9 +274,8 @@ public sealed partial class PViewer : PPanel
 
         if (pResult.LSidecarResultKind != LSidecarSourceKind.LSidecarSourceMissing
             && MessageBox.Show(
-                $"The media for this .cad was found at:\n\n{pResult.LSidecarResultPath}\n\n"
-                + "but it does not match what the .cad recorded. Open it anyway?",
-                "Open",
+                LLocalization.LLocalizationFormat("Viewer.Sidecar.MismatchFound", pResult.LSidecarResultPath),
+                LLocalization.LLocalizationTextRead("Viewer.Dialog.OpenTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question) == MessageBoxResult.Yes)
         {
@@ -290,9 +289,9 @@ public sealed partial class PViewer : PPanel
     {
         var pDialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = $"Locate media for this .cad ({pSidecar.Source.FileName})",
+            Title = LLocalization.LLocalizationFormat("Viewer.Locate.Title", pSidecar.Source.FileName),
             FileName = pSidecar.Source.FileName,
-            Filter = "Media files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.ts;*.mts;*.m2ts|All files|*.*"
+            Filter = LLocalization.LLocalizationTextRead("Viewer.Dialog.MediaFilter")
         };
 
         if (pDialog.ShowDialog() != true)
@@ -306,8 +305,8 @@ public sealed partial class PViewer : PPanel
         }
 
         return MessageBox.Show(
-            "That file does not match what the .cad recorded. Open it anyway?",
-            "Open",
+            LLocalization.LLocalizationTextRead("Viewer.Sidecar.MismatchSelected"),
+            LLocalization.LLocalizationTextRead("Viewer.Dialog.OpenTitle"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Question) == MessageBoxResult.Yes
             ? pDialog.FileName
@@ -385,9 +384,9 @@ public sealed record LMediaOpenStatus(
 
     public string LMediaOpenStatusText => LMediaOpenStatusKind switch
     {
-        LMediaOpenStatusKind.LMediaOpenStatusProcessablePreviewAvailable => "FFmpeg processable / preview available",
-        LMediaOpenStatusKind.LMediaOpenStatusProcessablePreviewUnavailable => "FFmpeg processable / preview unavailable",
-        LMediaOpenStatusKind.LMediaOpenStatusUnprocessablePreviewAvailable => "FFmpeg unprocessable / preview available",
-        _ => "FFmpeg unprocessable / preview unavailable"
+        LMediaOpenStatusKind.LMediaOpenStatusProcessablePreviewAvailable => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableAvailable"),
+        LMediaOpenStatusKind.LMediaOpenStatusProcessablePreviewUnavailable => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableUnavailable"),
+        LMediaOpenStatusKind.LMediaOpenStatusUnprocessablePreviewAvailable => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableAvailable"),
+        _ => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableUnavailable")
     };
 }

@@ -45,7 +45,7 @@ public sealed class PList : PPanel
 
         pListEmptyNotice = new TextBlock
         {
-            Text = "Drop media files or folders here, or use the buttons above.",
+            Text = LLocalization.LLocalizationTextRead("List.Empty.Notice"),
             FontSize = 12,
             FontFamily = pListFontFamily,
             Foreground = pListMutedBrush,
@@ -106,7 +106,7 @@ public sealed class PList : PPanel
     private UIElement PListStripBuild()
     {
         Button pMaximizeButton = PListButtonBuild(
-            "/PAssets/PPanels/PListMaximize.svg", "Show the Files panel", () => PListMinimizeSet(false));
+            "/PAssets/PPanels/PListMaximize.svg", LLocalization.LLocalizationTextRead("List.Show.Tooltip"), () => PListMinimizeSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
@@ -183,7 +183,7 @@ public sealed class PList : PPanel
     {
         var pTitleLabel = new TextBlock
         {
-            Text = "Files",
+            Text = LLocalization.LLocalizationTextRead("List.Header.Files"),
             FontSize = 12,
             FontFamily = pListFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -192,7 +192,7 @@ public sealed class PList : PPanel
         };
 
         Button pMinimizeButton = PListButtonBuild(
-            "/PAssets/PPanels/PListMinimize.svg", "Hide the Files panel", () => PListMinimizeSet(true));
+            "/PAssets/PPanels/PListMinimize.svg", LLocalization.LLocalizationTextRead("List.Hide.Tooltip"), () => PListMinimizeSet(true));
         pMinimizeButton.Margin = new Thickness(0);
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
@@ -216,16 +216,16 @@ public sealed class PList : PPanel
     private UIElement PListActionBuild()
     {
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        pLeftPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportPlus.svg", "Add media files", PListFilesOpen));
-        pLeftPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportMinus.svg", "Remove the selected file", PListRemove));
+        pLeftPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportPlus.svg", LLocalization.LLocalizationTextRead("List.Button.AddFiles"), PListFilesOpen));
+        pLeftPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportMinus.svg", LLocalization.LLocalizationTextRead("List.Button.RemoveFile"), PListRemove));
 
         var pRightPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PBrowse.svg", "Add every media file in a folder", PListFolderOpen));
-        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PListRemoveAll.svg", "Remove every file", PListClear));
+        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PBrowse.svg", LLocalization.LLocalizationTextRead("List.Button.AddFolder"), PListFolderOpen));
+        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PListRemoveAll.svg", LLocalization.LLocalizationTextRead("List.Button.RemoveAll"), PListClear));
 
         var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6) };
         pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -270,9 +270,9 @@ public sealed class PList : PPanel
     {
         var pDialog = new OpenFileDialog
         {
-            Title = "Add media files",
+            Title = LLocalization.LLocalizationTextRead("List.Dialog.AddFiles"),
             Multiselect = true,
-            Filter = "Media files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.ts;*.mts;*.m2ts;*.mp3;*.aac;*.flac;*.wav;*.ogg|All files|*.*"
+            Filter = LLocalization.LLocalizationTextRead("List.Dialog.MediaFilter")
         };
 
         if (pDialog.ShowDialog() == true)
@@ -283,7 +283,7 @@ public sealed class PList : PPanel
 
     private void PListFolderOpen()
     {
-        var pDialog = new OpenFolderDialog { Title = "Add every media file in a folder", Multiselect = true };
+        var pDialog = new OpenFolderDialog { Title = LLocalization.LLocalizationTextRead("List.Dialog.AddFolder"), Multiselect = true };
         if (pDialog.ShowDialog() == true)
         {
             PListPathsAdd(pDialog.FolderNames);

@@ -33,18 +33,18 @@ internal sealed partial class PSOptions
         };
         psFfmpegBox.TextChanged += (_, _) => pFfmpegState.Text = PSFfmpegFormat(psFfmpegBox.Text);
 
-        Button pWorkspaceBrowse = PSInlineButtonBuild("Browse", 84, new Thickness(8, 0, 0, 0));
-        Button pWorkspaceOpen = PSInlineButtonBuild("Open", 64, new Thickness(6, 0, 0, 0));
-        pWorkspaceBrowse.Click += (_, _) => PSFolderBrowse(psWorkspaceBox, "Choose workspace folder", LDepot.LDepotDefaultRootRead());
+        Button pWorkspaceBrowse = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Browse"), 84, new Thickness(8, 0, 0, 0));
+        Button pWorkspaceOpen = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Open"), 64, new Thickness(6, 0, 0, 0));
+        pWorkspaceBrowse.Click += (_, _) => PSFolderBrowse(psWorkspaceBox, LLocalization.LLocalizationTextRead("Options.System.ChooseWorkspace"), LDepot.LDepotDefaultRootRead());
         pWorkspaceOpen.Click += (_, _) => PSFolderOpen(psWorkspaceBox.Text, LDepot.LDepotDefaultRootRead());
 
-        Button pFfmpegBrowse = PSInlineButtonBuild("Browse", 84, new Thickness(8, 0, 0, 0));
-        Button pFfmpegOpen = PSInlineButtonBuild("Open", 64, new Thickness(6, 0, 0, 0));
-        pFfmpegBrowse.Click += (_, _) => PSFolderBrowse(psFfmpegBox, "Choose FFmpeg folder", psFfmpegBox.Text);
+        Button pFfmpegBrowse = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Browse"), 84, new Thickness(8, 0, 0, 0));
+        Button pFfmpegOpen = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Open"), 64, new Thickness(6, 0, 0, 0));
+        pFfmpegBrowse.Click += (_, _) => PSFolderBrowse(psFfmpegBox, LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"), psFfmpegBox.Text);
         pFfmpegOpen.Click += (_, _) => PSFolderOpen(psFfmpegBox.Text, string.Empty);
 
-        Button pDoneClear = PSInlineButtonBuild("Clear completed work records", 210, new Thickness(0, 0, 8, 0));
-        Button pWorkspaceClear = PSInlineButtonBuild("Clear workspace", 140, new Thickness(0));
+        Button pDoneClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearDone"), 210, new Thickness(0, 0, 8, 0));
+        Button pWorkspaceClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearWorkspace"), 140, new Thickness(0));
         pDoneClear.Click += (_, _) => PSDoneClear();
         pWorkspaceClear.Click += (_, _) => PSWorkspaceClear();
 
@@ -53,13 +53,13 @@ internal sealed partial class PSOptions
         pClearRow.Children.Add(pWorkspaceClear);
 
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild("Workspace",
-            PSFieldButtonBuild("Location", psWorkspaceBox, pWorkspaceBrowse, pWorkspaceOpen),
-            PSNoticeBuild($"Blank uses the default: {LDepot.LDepotDefaultRootRead()}"),
-            PSFieldBuild("Current size", psWorkspaceSize),
-            PSFieldBuild("Maintenance", pClearRow)));
-        pPanel.Children.Add(PSPlateBuild("FFmpeg",
-            PSFieldButtonBuild("Location", psFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.Workspace"),
+            PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psWorkspaceBox, pWorkspaceBrowse, pWorkspaceOpen),
+            PSNoticeBuild(LLocalization.LLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRootRead())),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CurrentSize"), psWorkspaceSize),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pClearRow)));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FFmpeg"),
+            PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
             pFfmpegState));
         pPanel.Children.Add(PSFlyleafPlateBuild());
         pPanel.Children.Add(PSRecordPlateBuild());
@@ -76,19 +76,19 @@ internal sealed partial class PSOptions
             Text = LFlyleafLocal.LFlyleafLocalStatusRead()
         };
 
-        Button pInstall = PSInlineButtonBuild("Install local Flyleaf", 160, new Thickness(0, 0, 8, 0));
-        Button pOpen = PSInlineButtonBuild("Open", 64, new Thickness(0));
+        Button pInstall = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.InstallFlyleaf"), 160, new Thickness(0, 0, 8, 0));
+        Button pOpen = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Open"), 64, new Thickness(0));
         pInstall.Click += async (_, _) =>
         {
             pInstall.IsEnabled = false;
-            pState.Text = "Installing local Flyleaf. This downloads source and builds it locally...";
+            pState.Text = LLocalization.LLocalizationTextRead("Options.System.FlyleafInstalling");
             LFlyleafLocalInstallResult pResult = await LFlyleafLocal.LFlyleafLocalInstallAsync();
             pState.Text = LFlyleafLocal.LFlyleafLocalStatusRead();
             pInstall.IsEnabled = true;
             MessageBox.Show(
                 this,
                 pResult.LFlyleafLocalInstallMessage,
-                "Local Flyleaf",
+                LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf"),
                 MessageBoxButton.OK,
                 pResult.LFlyleafLocalInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
         };
@@ -98,15 +98,15 @@ internal sealed partial class PSOptions
         pButtons.Children.Add(pInstall);
         pButtons.Children.Add(pOpen);
 
-        return PSPlateBuild("Local Flyleaf",
-            PSFieldBuild("Preview engine", pButtons),
+        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.PreviewEngine"), pButtons),
             pState,
-            PSNoticeBuild("NuGet Flyleaf is used by default. Contrast preview is enabled after installing local Flyleaf and restarting Cadroue."));
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FlyleafNotice")));
     }
 
     private UIElement PSRecordPlateBuild()
     {
-        Button pRecordClear = PSInlineButtonBuild("Clear workspace record", 190, new Thickness(0));
+        Button pRecordClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), 190, new Thickness(0));
         pRecordClear.Click += (_, _) => PSRecordClear();
 
         var pRecordRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
@@ -116,13 +116,12 @@ internal sealed partial class PSOptions
         var pRecordButtonRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pRecordButtonRow.Children.Add(pRecordClear);
 
-        return PSPlateBuild("File record",
-            PSFieldBuild("Location", pRecordRow),
-            PSNoticeBuild(
-                $"File Location keeps each .cad beside its media file. "
-                + $"Workspace keeps them in {System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Media.LSidecarStore.LSidecarRecordFolderName)}. "
-                + "Only the chosen location is read, so records written under the other one stay untouched until you switch back."),
-            PSFieldBuild("Maintenance", pRecordButtonRow));
+        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecord"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), pRecordRow),
+            PSNoticeBuild(LLocalization.LLocalizationFormat(
+                "Options.System.FileRecordNotice",
+                System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Media.LSidecarStore.LSidecarRecordFolderName))),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pRecordButtonRow));
     }
 
     private void PSRecordClear()
@@ -130,15 +129,14 @@ internal sealed partial class PSOptions
         string pRecordFolder = Cadroue.Media.LSidecarStore.LSidecarFolderRead();
         if (string.IsNullOrWhiteSpace(pRecordFolder) || !Directory.Exists(pRecordFolder))
         {
-            MessageBox.Show(this, "There is no workspace file record folder yet.", "Clear workspace record", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.System.NoFileRecord"), LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
         MessageBoxResult pAnswer = MessageBox.Show(
             this,
-            $"Delete every .cad file record stored in the workspace?\n\n{pRecordFolder}\n\n"
-            + "Keyframes, sections and edit plans kept there are lost. Records stored beside media files are not touched. This cannot be undone.",
-            "Clear workspace record",
+            LLocalization.LLocalizationFormat("Options.System.ClearFileRecordConfirm", pRecordFolder),
+            LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"),
             MessageBoxButton.OKCancel,
             MessageBoxImage.Warning);
         if (pAnswer != MessageBoxResult.OK)
@@ -148,7 +146,7 @@ internal sealed partial class PSOptions
 
         int pRemoved = Cadroue.Media.LSidecarStore.LSidecarFolderClear();
         PSWorkspaceSizeUpdate();
-        MessageBox.Show(this, $"{pRemoved} file record(s) were removed.", "Clear workspace record", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.FileRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void PSWorkspaceSizeUpdate()
@@ -193,8 +191,8 @@ internal sealed partial class PSOptions
     {
         MessageBoxResult pAnswer = MessageBox.Show(
             this,
-            "Delete every done and failed work record from the workspace? Queued and running work is kept.",
-            "Clear completed work records",
+            LLocalization.LLocalizationTextRead("Options.System.ClearDoneConfirm"),
+            LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"),
             MessageBoxButton.OKCancel,
             MessageBoxImage.Warning);
         if (pAnswer != MessageBoxResult.OK)
@@ -205,21 +203,21 @@ internal sealed partial class PSOptions
         int pRemoved = LDepot.LDepotFolderClear(LDepotFolder.LDepotFolderDone, LDepotFolder.LDepotFolderFailed);
         LDepotIndex.LDepotIndexRebuild();
         PSWorkspaceSizeUpdate();
-        MessageBox.Show(this, $"{pRemoved} work record(s) were removed.", "Clear completed work records", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void PSWorkspaceClear()
     {
         if (LDepot.LDepotRunningCheck(LDepot.LDepotRootRead()))
         {
-            MessageBox.Show(this, "The workspace still has running work. Stop it before clearing.", "Clear workspace", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.System.WorkspaceRunning"), LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
         MessageBoxResult pAnswer = MessageBox.Show(
             this,
-            "Delete every queued, done and failed work record from the workspace? This cannot be undone.",
-            "Clear workspace",
+            LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceConfirm"),
+            LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
             MessageBoxButton.OKCancel,
             MessageBoxImage.Warning);
         if (pAnswer != MessageBoxResult.OK)
@@ -233,7 +231,7 @@ internal sealed partial class PSOptions
             LDepotFolder.LDepotFolderFailed);
         LDepotIndex.LDepotIndexRebuild();
         PSWorkspaceSizeUpdate();
-        MessageBox.Show(this, $"{pRemoved} work record(s) were removed.", "Clear workspace", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private static string PSSizeFormat(long pBytes)
@@ -254,26 +252,26 @@ internal sealed partial class PSOptions
     {
         if (string.IsNullOrWhiteSpace(pFolder))
         {
-            return "Blank: FFmpeg is used from PATH.";
+            return LLocalization.LLocalizationTextRead("Options.System.FFmpegBlank");
         }
 
         bool pProgramReady = LRendererSettings.LRendererProgramExist(pFolder);
         bool pLibraryReady = LRendererSettings.LRendererFolderValidate(pFolder);
         if (pProgramReady && pLibraryReady)
         {
-            return "ffmpeg.exe and the playback libraries were found. Restart to apply playback.";
+            return LLocalization.LLocalizationTextRead("Options.System.FFmpegReady");
         }
 
         if (pProgramReady)
         {
-            return "ffmpeg.exe was found. The playback libraries were not, so playback stays on PATH.";
+            return LLocalization.LLocalizationTextRead("Options.System.FFmpegProgramOnly");
         }
 
         if (pLibraryReady)
         {
-            return "The playback libraries were found, but ffmpeg.exe was not, so exporting stays on PATH.";
+            return LLocalization.LLocalizationTextRead("Options.System.FFmpegLibraryOnly");
         }
 
-        return "Neither ffmpeg.exe nor the playback libraries were found here. PATH is used instead.";
+        return LLocalization.LLocalizationTextRead("Options.System.FFmpegMissing");
     }
 }

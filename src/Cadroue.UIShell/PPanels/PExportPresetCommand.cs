@@ -22,7 +22,7 @@ public sealed partial class PExport
 
     private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
-        string lPresetName = PExportPresetNameCreate("New Preset");
+        string lPresetName = PExportPresetNameCreate(LLocalization.LLocalizationTextRead("ExportPreset.DefaultName"));
         lExportSpecificState.PresetName = lPresetName;
         LExportSpecificState.LPresetSave(lPresetName, lExportSpecificState);
         pExportPresetBusy = true;
@@ -78,11 +78,13 @@ public sealed partial class PExport
 
         var pDialog = new SaveFileDialog
         {
-            Title = "Export preset",
-            Filter = "Cadroue preset (*.json)|*.json|All files|*.*",
+            Title = LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Export"),
+            Filter = LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Filter"),
             DefaultExt = "json",
             AddExtension = true,
-            FileName = string.IsNullOrWhiteSpace(pFileName) ? "Preset.json" : $"{pFileName}.json"
+            FileName = string.IsNullOrWhiteSpace(pFileName)
+                ? LLocalization.LLocalizationTextRead("ExportPreset.Dialog.DefaultFile")
+                : $"{pFileName}.json"
         };
 
         if (pDialog.ShowDialog() != true)
@@ -97,8 +99,8 @@ public sealed partial class PExport
         catch (Exception pError)
         {
             MessageBox.Show(
-                $"Could not write the preset file.\n\n{pError.Message}",
-                "Export preset",
+                LLocalization.LLocalizationFormat("ExportPreset.Error.Write", pError.Message),
+                LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Export"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
@@ -108,8 +110,8 @@ public sealed partial class PExport
     {
         var pDialog = new OpenFileDialog
         {
-            Title = "Import preset",
-            Filter = "Cadroue preset (*.json)|*.json|All files|*.*",
+            Title = LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Import"),
+            Filter = LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Filter"),
             DefaultExt = "json",
             CheckFileExists = true
         };
@@ -127,8 +129,8 @@ public sealed partial class PExport
         catch (Exception pError)
         {
             MessageBox.Show(
-                $"Could not read the preset file.\n\n{pError.Message}",
-                "Import preset",
+                LLocalization.LLocalizationFormat("ExportPreset.Error.Read", pError.Message),
+                LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Import"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -137,8 +139,8 @@ public sealed partial class PExport
         if (lImportedPreset is null)
         {
             MessageBox.Show(
-                "That file does not hold a Cadroue preset.",
-                "Import preset",
+                LLocalization.LLocalizationTextRead("ExportPreset.Error.Invalid"),
+                LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Import"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -151,7 +153,9 @@ public sealed partial class PExport
         }
 
         string lPresetName = PExportPresetNameCreate(
-            string.IsNullOrWhiteSpace(lImportedName) ? "Imported Preset" : lImportedName);
+            string.IsNullOrWhiteSpace(lImportedName)
+                ? LLocalization.LLocalizationTextRead("ExportPreset.ImportedName")
+                : lImportedName);
 
         lExportSpecificState.LPresetCopy(lImportedPreset);
         lExportSpecificState.PresetName = lPresetName;

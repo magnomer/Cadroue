@@ -31,7 +31,7 @@ public sealed partial class PInspector : PPanel
     {
         pInspectorTitleLabel = new TextBlock
         {
-            Text = "Inspector",
+            Text = LLocalization.LLocalizationTextRead("Inspector.Header.Title"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -40,7 +40,7 @@ public sealed partial class PInspector : PPanel
         };
 
         Button pMinimizeButton = PInspectorButtonBuild(
-            "/PAssets/PPanels/PListMinimize.svg", "Hide the Inspector panel", () => PInspectorMinimizeSet(true));
+            "/PAssets/PPanels/PListMinimize.svg", LLocalization.LLocalizationTextRead("Inspector.Panel.HideTooltip"), () => PInspectorMinimizeSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         var pHeaderGrid = new Grid();
@@ -61,7 +61,7 @@ public sealed partial class PInspector : PPanel
 
         pInspectorEmptyNotice = new TextBlock
         {
-            Text = "Select a processing step to edit its settings.",
+            Text = LLocalization.LLocalizationTextRead("Inspector.Empty.Notice"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = pInspectorMutedBrush,
@@ -129,7 +129,7 @@ public sealed partial class PInspector : PPanel
     private UIElement PInspectorStripBuild()
     {
         Button pMaximizeButton = PInspectorButtonBuild(
-            "/PAssets/PPanels/PListMaximize.svg", "Show the Inspector panel", () => PInspectorMinimizeSet(false));
+            "/PAssets/PPanels/PListMaximize.svg", LLocalization.LLocalizationTextRead("Inspector.Panel.ShowTooltip"), () => PInspectorMinimizeSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
@@ -173,15 +173,15 @@ public sealed partial class PInspector : PPanel
 
         pInspectorTitleLabel.Text = pStepName switch
         {
-            "Crop" => "Crop",
-            "Brightness" => "Brightness",
-            "Contrast" => "Contrast",
-            "Volume" => "Volume",
-            "Normalize" => "Normalize",
-            "Noise Reduction" => "Noise Reduction",
-            "High Pass" => "High Pass",
-            "Low Pass" => "Low Pass",
-            _ => "Inspector"
+            "Crop" => LLocalization.LLocalizationTextRead("Inspector.Step.Crop"),
+            "Brightness" => LLocalization.LLocalizationTextRead("Inspector.Step.Brightness"),
+            "Contrast" => LLocalization.LLocalizationTextRead("Inspector.Step.Contrast"),
+            "Volume" => LLocalization.LLocalizationTextRead("Inspector.Step.Volume"),
+            "Normalize" => LLocalization.LLocalizationTextRead("Inspector.Step.Normalize"),
+            "Noise Reduction" => LLocalization.LLocalizationTextRead("Inspector.Step.NoiseReduction"),
+            "High Pass" => LLocalization.LLocalizationTextRead("Inspector.Step.HighPass"),
+            "Low Pass" => LLocalization.LLocalizationTextRead("Inspector.Step.LowPass"),
+            _ => LLocalization.LLocalizationTextRead("Inspector.Header.Title")
         };
         pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorBrightnessBody.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;

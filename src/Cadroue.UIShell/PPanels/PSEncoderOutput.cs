@@ -24,12 +24,12 @@ internal sealed partial class PSEncoder
             TextTrimming = TextTrimming.CharacterEllipsis
         };
         PSNameBoxPrepare();
-        psLocationFolderRow = PSFieldBuild("Subfolder", psLocationFolderBox);
-        pPanel.Children.Add(PSFieldBuild("Name", psNameBox));
+        psLocationFolderRow = PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Subfolder"), psLocationFolderBox);
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
         pPanel.Children.Add(psLocationFolderRow);
-        pPanel.Children.Add(PSFieldBuild("Container", psContainerCombo));
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"), psContainerCombo));
         PSLocationFolderUpdate();
         return PSPlateBuild(pPanel);
     }
@@ -46,16 +46,16 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 8, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSFieldLabelBuild("Elements"));
+        pGrid.Children.Add(PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Elements")));
 
         var pPanel = new WrapPanel();
-        pPanel.Children.Add(PSNameTokenBuild("Prefix", "{Prefix}"));
-        pPanel.Children.Add(PSNameTokenBuild("Original Name", "{OriginalName}"));
-        pPanel.Children.Add(PSNameTokenBuild("Section Number", "{SectionNumber}"));
-        pPanel.Children.Add(PSNameTokenBuild("Section Name", "{SectionName}"));
-        pPanel.Children.Add(PSNameTokenBuild("Date", "{Date}"));
-        pPanel.Children.Add(PSNameTokenBuild("Time", "{Time}"));
-        pPanel.Children.Add(PSNameTokenBuild("Suffix", "{Suffix}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Prefix"), "{Prefix}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.OriginalName"), "{OriginalName}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionNumber"), "{SectionNumber}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionName"), "{SectionName}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Date"), "{Date}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Time"), "{Time}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"), "{Suffix}"));
         Grid.SetColumn(pPanel, 1);
         pGrid.Children.Add(pPanel);
         return pGrid;
@@ -246,7 +246,7 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSFieldLabelBuild("Location"));
+        pGrid.Children.Add(PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Location")));
 
         var pValueGrid = new Grid();
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -267,10 +267,12 @@ internal sealed partial class PSEncoder
     {
         if (string.Equals(PSComboTextRead(psLocationCombo), "Subfolder", StringComparison.Ordinal))
         {
-            return "A subfolder beside each source file";
+            return LLocalization.LLocalizationTextRead("Encoder.Location.SubfolderStatus");
         }
 
-        return string.IsNullOrWhiteSpace(psEncoderFolderPath) ? "Same as source" : psEncoderFolderPath;
+        return string.IsNullOrWhiteSpace(psEncoderFolderPath)
+            ? LLocalization.LLocalizationTextRead("Encoder.Location.Source")
+            : psEncoderFolderPath;
     }
 
     private void PSLocationFolderUpdate()
@@ -289,21 +291,25 @@ internal sealed partial class PSEncoder
     {
         PSLocationFolderUpdate();
 
-        if (psLocationCombo.SelectedItem as string == "Subfolder")
+        if (PSComboTextRead(psLocationCombo) == "Subfolder")
         {
             psEncoderFolderPath = null;
-            psLocationStatus.Text = "A subfolder beside each source file";
+            psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.SubfolderStatus");
             return;
         }
 
-        if (psLocationCombo.SelectedItem as string != "Custom location")
+        if (PSComboTextRead(psLocationCombo) != "Custom location")
         {
             psEncoderFolderPath = null;
-            psLocationStatus.Text = "Same as source";
+            psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.Source");
             return;
         }
 
-        var psFolderDialog = new OpenFolderDialog { Title = "Choose export folder", Multiselect = false };
+        var psFolderDialog = new OpenFolderDialog
+        {
+            Title = LLocalization.LLocalizationTextRead("Encoder.Location.ChooseFolder"),
+            Multiselect = false
+        };
         if (!string.IsNullOrWhiteSpace(psEncoderFolderPath))
         {
             psFolderDialog.InitialDirectory = psEncoderFolderPath;
@@ -320,7 +326,7 @@ internal sealed partial class PSEncoder
         if (string.IsNullOrWhiteSpace(psEncoderFolderPath))
         {
             psLocationCombo.SelectedIndex = 0;
-            psLocationStatus.Text = "Same as source";
+            psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.Source");
             return;
         }
 

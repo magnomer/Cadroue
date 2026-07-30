@@ -14,9 +14,9 @@ internal sealed partial class PSEncoder
     {
         var pRoot = new DockPanel { Background = Brushes.White };
         var pFooter = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(12) };
-        var pApply = PSFooterButtonBuild("Apply");
-        var pOk = PSFooterButtonBuild("OK");
-        var pCancel = PSFooterButtonBuild("Cancel");
+        var pApply = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Apply"));
+        var pOk = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.OK"));
+        var pCancel = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Cancel"));
         pApply.Click += (_, _) => PSEncoderApply();
         pOk.Click += (_, _) => { PSEncoderApply(); DialogResult = true; };
         pCancel.Click += (_, _) => Close();

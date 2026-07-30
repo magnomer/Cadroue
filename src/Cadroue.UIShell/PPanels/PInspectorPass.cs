@@ -11,22 +11,28 @@ public sealed partial class PInspector
     private const double PInspectorPassMinStages = 1;
     private const double PInspectorPassMaxStages = 8;
 
-    private sealed record PInspectorPassPreset(string Name, double Cutoff, int Stages, int Poles, double Resonance);
+    private sealed record PInspectorPassPreset(
+        string PInspectorPassPresetToken,
+        string PInspectorPassPresetKey,
+        double Cutoff,
+        int Stages,
+        int Poles,
+        double Resonance);
 
     private static readonly PInspectorPassPreset[] pInspectorHighPassPresets =
     {
-        new("Rumble", 30, 2, 2, 0.707),
-        new("Voice", 80, 2, 2, 0.707),
-        new("Speech (tight)", 100, 4, 2, 0.707),
-        new("De-mud", 200, 2, 2, 0.707)
+        new("Rumble", "Inspector.Pass.Preset.Rumble", 30, 2, 2, 0.707),
+        new("Voice", "Inspector.Pass.Preset.Voice", 80, 2, 2, 0.707),
+        new("Speech (tight)", "Inspector.Pass.Preset.SpeechTight", 100, 4, 2, 0.707),
+        new("De-mud", "Inspector.Pass.Preset.Demud", 200, 2, 2, 0.707)
     };
 
     private static readonly PInspectorPassPreset[] pInspectorLowPassPresets =
     {
-        new("De-hiss", 16000, 2, 2, 0.707),
-        new("Soften", 10000, 2, 2, 0.707),
-        new("Warm", 8000, 3, 2, 0.707),
-        new("Telephone", 3400, 4, 2, 0.707)
+        new("De-hiss", "Inspector.Pass.Preset.Dehiss", 16000, 2, 2, 0.707),
+        new("Soften", "Inspector.Pass.Preset.Soften", 10000, 2, 2, 0.707),
+        new("Warm", "Inspector.Pass.Preset.Warm", 8000, 3, 2, 0.707),
+        new("Telephone", "Inspector.Pass.Preset.Telephone", 3400, 4, 2, 0.707)
     };
 
     private sealed class PInspectorPass
@@ -55,13 +61,13 @@ public sealed partial class PInspector
 
     private StackPanel PInspectorHighPassBodyBuild()
     {
-        pInspectorHighPass = PInspectorPassBuild(100, 20, 300, "Apply the high-pass cut to queued jobs", pInspectorHighPassPresets);
+        pInspectorHighPass = PInspectorPassBuild(100, 20, 300, LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"), pInspectorHighPassPresets);
         return pInspectorHighPass.PInspectorPassBody;
     }
 
     private StackPanel PInspectorLowPassBodyBuild()
     {
-        pInspectorLowPass = PInspectorPassBuild(12000, 3000, 20000, "Apply the low-pass cut to queued jobs", pInspectorLowPassPresets);
+        pInspectorLowPass = PInspectorPassBuild(12000, 3000, 20000, LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"), pInspectorLowPassPresets);
         return pInspectorLowPass.PInspectorPassBody;
     }
 
@@ -82,10 +88,10 @@ public sealed partial class PInspector
     private PInspectorPass PInspectorPassBuild(
         double pDefault, double pMin, double pMax, string pApplyTip, IReadOnlyList<PInspectorPassPreset> pPresets)
     {
-        CheckBox pApply = PInspectorSwitchBuild("Apply", pApplyTip);
+        CheckBox pApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), pApplyTip);
         CheckBox pPersistent = PInspectorSwitchBuild(
-            "Persistent",
-            "Apply the current filter setup to every loaded file");
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Pass.PersistentTooltip"));
 
         var pPreset = new ComboBox
         {
@@ -98,10 +104,10 @@ public sealed partial class PInspector
         PDropdown.PDropdownApply(pPreset);
         foreach (PInspectorPassPreset pPresetEntry in pPresets)
         {
-            pPreset.Items.Add(pPresetEntry.Name);
+            pPreset.Items.Add(new LLocalizationChoice(pPresetEntry.PInspectorPassPresetToken, pPresetEntry.PInspectorPassPresetKey));
         }
-        pPreset.Items.Add("Custom");
-        pPreset.SelectedItem = "Custom";
+        pPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
+        pPreset.SelectedIndex = pPreset.Items.Count - 1;
 
         var pFrequency = new Slider { Minimum = pMin, Maximum = pMax, Value = pDefault, VerticalAlignment = VerticalAlignment.Center };
         PSlider.PSliderApply(pFrequency);
@@ -191,11 +197,11 @@ public sealed partial class PInspector
             pPass.PInspectorPassStageSuppress = false;
         };
 
-        pStack.Children.Add(PInspectorFieldBuild("Preset", pPreset));
-        pStack.Children.Add(PInspectorPassSliderRowBuild("Cutoff", pFrequency, "Hz", pValue));
-        pStack.Children.Add(PInspectorPassSliderRowBuild("Steepness", pStages, "×12dB", pStageValue));
-        pStack.Children.Add(PInspectorFieldBuild("Poles", pPoles));
-        pStack.Children.Add(PInspectorFieldBuild("Resonance", PInspectorNormalizeUnitRowBuild(pResonance, "Q")));
+        pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pPreset));
+        pStack.Children.Add(PInspectorPassSliderRowBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Cutoff"), pFrequency, "Hz", pValue));
+        pStack.Children.Add(PInspectorPassSliderRowBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Steepness"), pStages, "×12dB", pStageValue));
+        pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Poles"), pPoles));
+        pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Resonance"), PInspectorNormalizeUnitRowBuild(pResonance, "Q")));
 
         pBody.Children.Add(pApply);
         pBody.Children.Add(PInspectorSeparatorBuild());
@@ -208,7 +214,8 @@ public sealed partial class PInspector
 
     private void PInspectorPassPresetApply(PInspectorPass pPass)
     {
-        if (pPass.PInspectorPassPreset.SelectedItem is not string pName || pName == "Custom")
+        string pName = LLocalizationChoice.LLocalizationChoiceRead(pPass.PInspectorPassPreset.SelectedItem);
+        if (string.IsNullOrEmpty(pName) || pName == "Custom")
         {
             PInspectorPassLock(pPass, false);
             return;
@@ -217,7 +224,7 @@ public sealed partial class PInspector
         PInspectorPassPreset? pPreset = null;
         foreach (PInspectorPassPreset pEntry in pPass.PInspectorPassPresets)
         {
-            if (pEntry.Name == pName)
+            if (pEntry.PInspectorPassPresetToken == pName)
             {
                 pPreset = pEntry;
                 break;
@@ -264,7 +271,7 @@ public sealed partial class PInspector
     private void PInspectorPassApply(PInspectorPass pPass, Cadroue.Core.LWorkAudioStep pStep)
     {
         pPass.PInspectorPassApply.IsChecked = pStep.LWorkAudioStepActive;
-        pPass.PInspectorPassPreset.SelectedItem = "Custom";
+        pPass.PInspectorPassPreset.SelectedIndex = pPass.PInspectorPassPreset.Items.Count - 1;
         pPass.PInspectorPassSuppress = true;
         pPass.PInspectorPassStageSuppress = true;
         pPass.PInspectorPassFrequency.Value = Math.Clamp(

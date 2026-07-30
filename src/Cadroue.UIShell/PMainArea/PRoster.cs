@@ -7,7 +7,7 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed partial class PRoster : UserControl
 {
     private readonly LSchedule pRosterSchedule = LSchedule.LScheduleCurrent;
-    private readonly LStation pRosterStation = LStation.LStationCreate("Worklist");
+    private readonly LStation pRosterStation = LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist"));
     private readonly Grid pRosterBody;
     private readonly ListBox pRosterQueueList;
     private readonly StackPanel pRosterDetailPanel;
@@ -17,7 +17,7 @@ public sealed partial class PRoster : UserControl
     public PRoster(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         FocusVisualStyle = null;
-        pRosterDetailTitle = PRosterTitleBuild("Job detail");
+        pRosterDetailTitle = PRosterTitleBuild(LLocalization.LLocalizationTextRead("Roster.Title.JobDetail"));
         pRosterQueueList = PRosterQueueBuild();
         pRosterDetailPanel = new StackPanel();
 

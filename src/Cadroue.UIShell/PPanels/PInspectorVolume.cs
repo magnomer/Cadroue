@@ -131,8 +131,11 @@ public sealed partial class PInspector
             case LWorkAudioKind.LWorkAudioKindNormalize:
                 pInspectorNormalizeApply.IsChecked = pStep.LWorkAudioStepActive;
                 pInspectorNormalizeMode.SelectedIndex = pStep.LWorkAudioStepMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic ? 1 : 0;
-                pInspectorNormalizePreset.SelectedItem = PInspectorNormalizePresetResolve(
+                string pNormalizePreset = PInspectorNormalizePresetResolve(
                     pStep.LWorkAudioStepTarget, pStep.LWorkAudioStepPeak, pStep.LWorkAudioStepRange);
+                pInspectorNormalizePreset.SelectedItem = pInspectorNormalizePreset.Items
+                    .Cast<object>()
+                    .FirstOrDefault(pItem => LLocalizationChoice.LLocalizationChoiceRead(pItem) == pNormalizePreset);
                 pInspectorNormalizeTarget.Text = pStep.LWorkAudioStepTarget.ToString("0.###", CultureInfo.InvariantCulture);
                 pInspectorNormalizePeak.Text = pStep.LWorkAudioStepPeak.ToString("0.###", CultureInfo.InvariantCulture);
                 pInspectorNormalizeRange.Text = pStep.LWorkAudioStepRange.ToString("0.###", CultureInfo.InvariantCulture);
@@ -142,7 +145,7 @@ public sealed partial class PInspector
                 break;
             case LWorkAudioKind.LWorkAudioKindNoiseReduction:
                 pInspectorNoiseApply.IsChecked = pStep.LWorkAudioStepActive;
-                pInspectorNoisePreset.SelectedItem = "Custom";
+                pInspectorNoisePreset.SelectedIndex = pInspectorNoisePreset.Items.Count - 1;
                 PInspectorNoiseValueSet(pStep);
                 pInspectorNoiseTrack.IsChecked = pStep.LWorkAudioStepTrackNoise;
                 pInspectorNoiseType.SelectedIndex = pStep.LWorkAudioStepNoiseType switch
@@ -171,13 +174,13 @@ public sealed partial class PInspector
 
     private StackPanel PInspectorVolumeBodyBuild()
     {
-        pInspectorVolumeApply = PInspectorSwitchBuild("Apply", "Apply the volume change to queued jobs");
+        pInspectorVolumeApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Volume.ApplyTooltip"));
         pInspectorVolumeApply.Checked += (_, _) => PInspectorVolumeApplyUpdate();
         pInspectorVolumeApply.Unchecked += (_, _) => PInspectorVolumeApplyUpdate();
 
         pInspectorVolumePersistent = PInspectorSwitchBuild(
-            "Persistent",
-            "Apply the current volume setup to every loaded file");
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Volume.PersistentTooltip"));
 
         pInspectorVolumeSlider = new Slider
         {
@@ -223,7 +226,7 @@ public sealed partial class PInspector
         pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        TextBlock pGainLabel = PInspectorLabelBuild("Gain");
+        TextBlock pGainLabel = PInspectorLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Volume.Gain"));
         var pGainUnit = new TextBlock
         {
             Text = "dB",
@@ -245,7 +248,7 @@ public sealed partial class PInspector
 
         pInspectorVolumeWarn = new TextBlock
         {
-            Text = "Positive gain may clip the audio.",
+            Text = LLocalization.LLocalizationTextRead("Inspector.Volume.ClipNotice"),
             FontSize = 11,
             FontFamily = pInspectorFontFamily,
             Foreground = pInspectorWarnBrush,

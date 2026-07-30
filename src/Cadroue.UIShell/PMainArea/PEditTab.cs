@@ -37,13 +37,12 @@ public sealed class PEditTab : PTabSurface
             PEditCarriedRead());
         pAction.PActionAllSet(
             true,
-            "Persistent off: add every loaded file that has a processing plan saved beside it.\n"
-            + "Persistent on: add every loaded file and give them all the plan shown here, even when nothing is applied.");
+            LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
-        pProcessing.PProcessingOrderedSet(true);
-        pProcessing.PProcessingStepAdd("Crop", PEditCropIconPath);
-        pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIconPath);
-        pProcessing.PProcessingStepAdd("Contrast", PEditContrastIconPath);
+        pProcessing.PProcessingOrderedSet(false);
+        pProcessing.PProcessingStepAdd("Crop", PEditCropIconPath, "Processing.Step.Crop");
+        pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIconPath, "Processing.Step.Brightness");
+        pProcessing.PProcessingStepAdd("Contrast", PEditContrastIconPath, "Processing.Step.Contrast");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
 

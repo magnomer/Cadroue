@@ -83,7 +83,7 @@ public sealed class LTabset
     {
         var pTabRecord = new PTabRecord(
             pTabLayoutKey,
-            pTabLayoutKey,
+            LTabsetTitleRead(pTabLayoutKey),
             PIcon.PIconRead(pTabIconPath),
             lExportSpecificState,
             lPreferenceTabLayout)
@@ -131,16 +131,30 @@ public sealed class LTabset
             if (lTabsetKindTabs.Count == 1)
             {
                 lTabsetKindTabs[0].PTabOrdinal = 1;
-                lTabsetKindTabs[0].PTabTitle = lTabsetKindGroup.Key;
+                lTabsetKindTabs[0].PTabTitle = LTabsetTitleRead(lTabsetKindGroup.Key);
                 continue;
             }
 
             foreach (PTabRecord pTabItem in lTabsetKindTabs)
             {
-                pTabItem.PTabTitle = $"{lTabsetKindGroup.Key} ({pTabItem.PTabOrdinal})";
+                pTabItem.PTabTitle = LLocalization.LLocalizationFormat(
+                    "Tab.Numbered",
+                    LTabsetTitleRead(lTabsetKindGroup.Key),
+                    pTabItem.PTabOrdinal);
             }
         }
     }
+
+    private static string LTabsetTitleRead(string pTabLayoutKey) =>
+        LLocalization.LLocalizationTextRead(pTabLayoutKey switch
+        {
+            "Edit" => "Tab.Edit",
+            "Audio" => "Tab.Audio",
+            "Convert" => "Tab.Convert",
+            "Merge" => "Tab.Merge",
+            "Worklist" => "Tab.Worklist",
+            _ => "Tab.Split"
+        });
 
     public void LTabsetSelect(PTabRecord? pTabRecord)
     {

@@ -213,10 +213,13 @@ internal static class LFlyleafLocal
         string lRoot = LFlyleafLocalRootRead();
         if (LFlyleafLocalAssemblyFolderValidate(LFlyleafLocalAssemblyFolderRead()))
         {
-            return $"Installed in workspace {LDepot.LDepotRootRead()}. Restarted sessions use local Flyleaf from {LFlyleafLocalAssemblyFolderRead()}.";
+            return LLocalization.LLocalizationFormat(
+                "Flyleaf.Local.Status.Installed",
+                LDepot.LDepotRootRead(),
+                LFlyleafLocalAssemblyFolderRead());
         }
 
-        return $"Not installed. Cadroue uses NuGet Flyleaf. Local Flyleaf workspace folder: {lRoot}";
+        return LLocalization.LLocalizationFormat("Flyleaf.Local.Status.NotInstalled", lRoot);
     }
 
     public static async Task<LFlyleafLocalInstallResult> LFlyleafLocalInstallAsync()
@@ -258,7 +261,7 @@ internal static class LFlyleafLocal
             return new LFlyleafLocalInstallResult
             {
                 LFlyleafLocalInstallSuccess = true,
-                LFlyleafLocalInstallMessage = "Local Flyleaf was built. Restart Cadroue to enable contrast preview."
+                LFlyleafLocalInstallMessage = LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed")
             };
         }
         catch (Exception lException)
@@ -267,7 +270,9 @@ internal static class LFlyleafLocal
             return new LFlyleafLocalInstallResult
             {
                 LFlyleafLocalInstallSuccess = false,
-                LFlyleafLocalInstallMessage = lException.Message
+                LFlyleafLocalInstallMessage = LLocalization.LLocalizationFormat(
+                    "Flyleaf.Local.Install.Failed",
+                    lException.Message)
             };
         }
     }

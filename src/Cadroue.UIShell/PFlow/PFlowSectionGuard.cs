@@ -16,7 +16,7 @@ public sealed partial class PFlow
         return MessageBox.Show(
             Window.GetWindow(this)!,
             pFlowQuestion,
-            "Confirm",
+            LLocalization.LLocalizationTextRead("Flow.Confirm.Title"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
             MessageBoxResult.No) == MessageBoxResult.Yes;

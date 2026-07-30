@@ -23,13 +23,13 @@ public sealed class PAction : UserControl
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center
         };
-        Button pAddListButton = PActionButtonBuild("PActionAddList.svg", "Add List");
-        pActionAllButton = PActionButtonBuild("PActionAddAll.svg", "Add All");
-        Button pExecuteButton = PActionButtonBuild("PActionExecute.svg", "Execute");
+        Button pAddListButton = PActionButtonBuild("AddList", "PActionAddList.svg", "Action.AddList");
+        pActionAllButton = PActionButtonBuild("AddAll", "PActionAddAll.svg", "Action.AddAll");
+        Button pExecuteButton = PActionButtonBuild("Execute", "PActionExecute.svg", "Action.Execute");
         pAddListButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityNormal);
         pActionAllButton.Click += (_, _) => PActionAllAdd?.Invoke();
         pExecuteButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
-        pActionAllButton.ToolTip = "Add every loaded file to the worklist";
+        pActionAllButton.ToolTip = LLocalization.LLocalizationTextRead("Action.AddAll.Tooltip");
         pPanel.Children.Add(pAddListButton);
         pPanel.Children.Add(new Border { Width = 2 });
         pPanel.Children.Add(pActionAllButton);
@@ -45,12 +45,13 @@ public sealed class PAction : UserControl
         pActionAllButton.ToolTip = pActionAllTooltip;
     }
 
-    private static Button PActionButtonBuild(string pIconAssetName, string pLabelText)
+    private static Button PActionButtonBuild(string pActionToken, string pIconAssetName, string pLabelKey)
     {
+        string pLabelText = LLocalization.LLocalizationTextRead(pLabelKey);
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PActionAccentBrushRead(pLabelText)),
+            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PActionAccentBrushRead(pActionToken)),
             Width = 24,
             Height = 24,
             Stretch = Stretch.Uniform,
@@ -76,10 +77,10 @@ public sealed class PAction : UserControl
         };
     }
 
-    private static Brush? PActionAccentBrushRead(string pLabelText) => pLabelText switch
+    private static Brush? PActionAccentBrushRead(string pActionToken) => pActionToken switch
     {
-        "Add List" => pActionPositiveBrush,
-        "Add All" => pActionPositiveBrush,
+        "AddList" => pActionPositiveBrush,
+        "AddAll" => pActionPositiveBrush,
         "Execute" => pActionNegativeBrush,
         _ => null
     };

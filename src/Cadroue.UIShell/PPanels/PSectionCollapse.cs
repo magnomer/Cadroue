@@ -32,7 +32,7 @@ public sealed partial class PSection
     private UIElement PSectionHeaderBuild()
     {
         Button pMinimizeButton = PSectionButtonBuild(
-            "/PAssets/PPanels/PListMinimize.svg", "Hide the Sections panel", (_, _) => PSectionMinimizeSet(true));
+            "/PAssets/PPanels/PListMinimize.svg", LLocalization.LLocalizationTextRead("Section.Panel.HideTooltip"), (_, _) => PSectionMinimizeSet(true));
         pMinimizeButton.Margin = new Thickness(0);
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
@@ -56,7 +56,7 @@ public sealed partial class PSection
     private UIElement PSectionStripBuild()
     {
         Button pMaximizeButton = PSectionButtonBuild(
-            "/PAssets/PPanels/PListMaximize.svg", "Show the Sections panel", (_, _) => PSectionMinimizeSet(false));
+            "/PAssets/PPanels/PListMaximize.svg", LLocalization.LLocalizationTextRead("Section.Panel.ShowTooltip"), (_, _) => PSectionMinimizeSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 

@@ -71,8 +71,8 @@ public sealed partial class PInspector
 
     private StackPanel PInspectorBrightnessBodyBuild()
     {
-        pInspectorBrightnessApply = PInspectorSwitchBuild("Apply", "Apply the brightness adjustment to queued jobs");
-        pInspectorBrightnessPersistent = PInspectorSwitchBuild("Persistent", "Apply this brightness setup to every loaded file");
+        pInspectorBrightnessApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyBrightness"));
+        pInspectorBrightnessPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistBrightness"));
         pInspectorBrightnessSlider = PInspectorVideoSliderBuild(
             PInspectorBrightnessDefaultMinimum,
             PInspectorBrightnessDefaultMaximum,
@@ -88,7 +88,7 @@ public sealed partial class PInspector
             null,
             null,
             "0.#");
-        pInspectorBrightnessStack.Children.Add(PInspectorPassSliderRowBuild("Amount", pInspectorBrightnessSlider, string.Empty, pInspectorBrightnessValue));
+        pInspectorBrightnessStack.Children.Add(PInspectorPassSliderRowBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorBrightnessSlider, string.Empty, pInspectorBrightnessValue));
         pInspectorBrightnessBody = PInspectorVideoBodyBuild(pInspectorBrightnessApply, pInspectorBrightnessStack);
         PInspectorVideoApplyUpdate(pInspectorBrightnessApply, pInspectorBrightnessStack);
         return pInspectorBrightnessBody;
@@ -96,8 +96,8 @@ public sealed partial class PInspector
 
     private StackPanel PInspectorContrastBodyBuild()
     {
-        pInspectorContrastApply = PInspectorSwitchBuild("Apply", "Apply the contrast adjustment to queued jobs");
-        pInspectorContrastPersistent = PInspectorSwitchBuild("Persistent", "Apply this contrast setup to every loaded file");
+        pInspectorContrastApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyContrast"));
+        pInspectorContrastPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistContrast"));
         pInspectorContrastSlider = PInspectorVideoSliderBuild(0, 200, 100);
         pInspectorContrastValue = PInspectorDecimalBoxBuild();
         pInspectorContrastValue.Text = "100";
@@ -110,12 +110,12 @@ public sealed partial class PInspector
             0,
             200,
             "0.#");
-        pInspectorContrastStack.Children.Add(PInspectorPassSliderRowBuild("Amount", pInspectorContrastSlider, "%", pInspectorContrastValue));
+        pInspectorContrastStack.Children.Add(PInspectorPassSliderRowBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorContrastSlider, "%", pInspectorContrastValue));
         if (!LFlyleafLocal.LFlyleafLocalActive)
         {
             pInspectorContrastStack.Children.Add(new TextBlock
             {
-                Text = "Preview requires local Flyleaf. Export still applies contrast.",
+                Text = LLocalization.LLocalizationTextRead("Inspector.Video.ContrastPreview"),
                 Foreground = new System.Windows.Media.SolidColorBrush(
                     System.Windows.Media.Color.FromRgb(0x64, 0x70, 0x82)),
                 TextWrapping = TextWrapping.Wrap,

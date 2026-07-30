@@ -68,11 +68,11 @@ public sealed partial class PExport : UserControl
         pBody.Children.Add(pSeparator);
 
         UIElement pSummary = PSummaryBuild(
-            PSummaryRowBuild("Container", out pSummaryContainer),
-            PSummaryRowBuild("Mode", out pSummaryMode),
-            PSummaryRowBuild("Video", out pSummaryVideo),
-            PSummaryRowBuild("Audio", out pSummaryAudio),
-            PSummaryRowBuild("Output", out pSummaryOutput));
+            PSummaryRowBuild(LLocalization.LLocalizationTextRead("Roster.Field.Container"), out pSummaryContainer),
+            PSummaryRowBuild(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), out pSummaryMode),
+            PSummaryRowBuild(LLocalization.LLocalizationTextRead("ExportSummary.Video"), out pSummaryVideo),
+            PSummaryRowBuild(LLocalization.LLocalizationTextRead("ExportSummary.Audio"), out pSummaryAudio),
+            PSummaryRowBuild(LLocalization.LLocalizationTextRead("Roster.Section.Output"), out pSummaryOutput));
         Grid.SetRow(pSummary, 3);
         pBody.Children.Add(pSummary);
 
@@ -146,7 +146,7 @@ public sealed partial class PExport : UserControl
         CornerRadius = new CornerRadius(9, 9, 0, 0),
         Child = new TextBlock
         {
-            Text = "Export",
+            Text = LLocalization.LLocalizationTextRead("ExportSummary.Header.Export"),
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
             Foreground = PHeaderTextBrush,
@@ -159,7 +159,7 @@ public sealed partial class PExport : UserControl
         var pPanel = new StackPanel();
         pPanel.Children.Add(new TextBlock
         {
-            Text = "Summary",
+            Text = LLocalization.LLocalizationTextRead("ExportSummary.Header.Summary"),
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
             Foreground = PTextBrush,

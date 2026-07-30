@@ -82,7 +82,7 @@ public partial class PDeck : UserControl
             pEmptyNotice = new TextBlock
             {
                 Name = pDeckNoticeName,
-                Text = "No tab is open.",
+                Text = LLocalization.LLocalizationTextRead("Deck.Empty.Notice"),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = 20

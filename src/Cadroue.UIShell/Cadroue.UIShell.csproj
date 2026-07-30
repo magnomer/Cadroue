@@ -30,6 +30,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\..\localization\*.json" Link="localization\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.1.0" />
     <PackageReference Include="FlyleafLib" Version="3.10.4" />
     <PackageReference Include="FlyleafLib.Controls.WPF" Version="1.6.4" />

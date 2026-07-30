@@ -8,11 +8,11 @@ public sealed class PRosterStateLabel : IValueConverter
 {
     internal static string PRosterStateFormat(LWorkState pWorkState) => pWorkState switch
     {
-        LWorkState.LWorkStatePending => "Pending",
-        LWorkState.LWorkStateRunning => "Running",
-        LWorkState.LWorkStateDone => "Done",
-        LWorkState.LWorkStateFailed => "Failed",
-        LWorkState.LWorkStateCancelled => "Cancelled",
+        LWorkState.LWorkStatePending => LLocalization.LLocalizationTextRead("Roster.State.Pending"),
+        LWorkState.LWorkStateRunning => LLocalization.LLocalizationTextRead("Roster.State.Running"),
+        LWorkState.LWorkStateDone => LLocalization.LLocalizationTextRead("Roster.State.Done"),
+        LWorkState.LWorkStateFailed => LLocalization.LLocalizationTextRead("Roster.State.Failed"),
+        LWorkState.LWorkStateCancelled => LLocalization.LLocalizationTextRead("Roster.State.Cancelled"),
         _ => pWorkState.ToString()
     };
 

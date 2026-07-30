@@ -81,7 +81,7 @@ public sealed partial class PExport
             Cursor = Cursors.Hand,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Opacity = pPresetDisabled ? 0.42 : 1,
-            ToolTip = pPresetDisabled ? "Video Copy presets must be changed before they can be used for Edit processing." : null,
+            ToolTip = pPresetDisabled ? LLocalization.LLocalizationTextRead("ExportPreset.DisabledTooltip") : null,
             Child = pNameElement
         };
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>
@@ -221,8 +221,8 @@ public sealed partial class PExport
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pButtonPanel.Children.Add(PExportPresetInlineButtonBuild(PExportCheckIconPath, PExportApplyBrush, "Apply preset changes", PExportModificationApply));
-        pButtonPanel.Children.Add(PExportPresetInlineButtonBuild(PExportCancelIconPath, PExportCancelBrush, "Discard preset changes", PExportModificationRestore));
+        pButtonPanel.Children.Add(PExportPresetInlineButtonBuild(PExportCheckIconPath, PExportApplyBrush, LLocalization.LLocalizationTextRead("ExportPreset.ApplyTooltip"), PExportModificationApply));
+        pButtonPanel.Children.Add(PExportPresetInlineButtonBuild(PExportCancelIconPath, PExportCancelBrush, LLocalization.LLocalizationTextRead("ExportPreset.DiscardTooltip"), PExportModificationRestore));
         Grid.SetColumn(pButtonPanel, 1);
         pGrid.Children.Add(pButtonPanel);
         return pGrid;
@@ -269,7 +269,7 @@ public sealed partial class PExport
         VerticalAlignment = VerticalAlignment.Center,
         Child = new TextBlock
         {
-            Text = "Native",
+            Text = LLocalization.LLocalizationTextRead("ExportPreset.Native"),
             FontSize = 10,
             FontFamily = new FontFamily("Segoe UI"),
             FontWeight = FontWeights.SemiBold,

@@ -53,6 +53,7 @@ public partial class App : Application
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
 
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
+        LLocalization.LLocalizationLoad(LPreferenceStateCurrent.LPreferenceLanguage);
         LTrace.LTraceVerbose = LPreferenceStateCurrent.LPreferenceLogVerbose;
         Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
         LFlyleafLocal.LFlyleafLocalResolverRegister();

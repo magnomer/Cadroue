@@ -24,7 +24,7 @@ public sealed class PSplitTab : PTabSurface
             LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
             lExportSpecificState);
-        pAction.PActionAllSet(true, "Add every loaded file that has a split plan saved beside it");
+        pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
         pList.PListPathChange += PSplitPathShow;

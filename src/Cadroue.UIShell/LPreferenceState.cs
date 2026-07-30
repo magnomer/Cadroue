@@ -13,7 +13,7 @@ public sealed class LPreferenceState
     public List<string> LPreferenceStartupTabs { get; set; } = new() { "Split" };
     public bool LPreferenceMediaAutomatic { get; set; }
     public bool LPreferenceConfirmDestructive { get; set; }
-    public string LPreferenceLanguage { get; set; } = "English";
+    public string LPreferenceLanguage { get; set; } = "en";
     public bool LPreferenceLogVerbose { get; set; }
     public bool LPreferenceRecordWorkspace { get; set; }
 
@@ -58,7 +58,7 @@ public sealed class LPreferenceState
             LPreferenceStartupTabs = new List<string> { "Split" },
             LPreferenceMediaAutomatic = false,
             LPreferenceConfirmDestructive = false,
-            LPreferenceLanguage = "English",
+            LPreferenceLanguage = "en",
             LPreferenceLogVerbose = false,
             LPreferenceRecordWorkspace = false,
             LPreferenceVolume = 100,
@@ -179,7 +179,7 @@ public sealed class LPreferenceState
         if (LPreferenceStartupMode is not "LastSession" and not "DefaultTab") LPreferenceStartupMode = "LastSession";
         if (LPreferenceStartupTabs is null || LPreferenceStartupTabs.Count == 0)
             LPreferenceStartupTabs = new List<string> { "Split" };
-        if (string.IsNullOrWhiteSpace(LPreferenceLanguage)) LPreferenceLanguage = "English";
+        LPreferenceLanguage = LLocalization.LLocalizationLanguageNormalize(LPreferenceLanguage);
         if (LPreferenceVolumeMode is not "Unified" and not "PerTab") LPreferenceVolumeMode = "Unified";
         if (LPreferenceWheelAction is not "Seek" and not "Zoom" and not "Volume") LPreferenceWheelAction = "Seek";
         if (LPreferenceTimelineOrder is not "MapFirst" and not "ViewfinderFirst") LPreferenceTimelineOrder = "MapFirst";

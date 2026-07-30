@@ -31,6 +31,7 @@ public partial class PWindow : Window
     public PWindow()
     {
         InitializeComponent();
+        Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
         lTabset = new LTabset();
         LRelay? lRelayStartup = App.LRelayStartupTake();
         if (lRelayStartup is null)

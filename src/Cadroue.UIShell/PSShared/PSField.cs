@@ -122,6 +122,22 @@ internal static class PSField
         return pCombo;
     }
 
+    internal static ComboBox PSComboBuild(string pSelected, params LLocalizationChoice[] pItems)
+    {
+        var pCombo = new ComboBox
+        {
+            ItemsSource = pItems,
+            MinWidth = 260,
+            Height = PSFieldControlHeight,
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        PDropdown.PDropdownApply(pCombo);
+        pCombo.SelectedItem = pItems.FirstOrDefault(
+            pItem => string.Equals(pItem.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal))
+            ?? pItems.FirstOrDefault();
+        return pCombo;
+    }
+
     internal static TextBox PSEntryBuild(string pText, double pWidth)
     {
         var pTextBox = new TextBox
@@ -145,7 +161,8 @@ internal static class PSField
         Style = PButton.PButtonWhiteCreate()
     };
 
-    internal static string PSComboTextRead(ComboBox pCombo) => pCombo.SelectedItem as string ?? string.Empty;
+    internal static string PSComboTextRead(ComboBox pCombo) =>
+        LLocalizationChoice.LLocalizationChoiceRead(pCombo.SelectedItem);
 
     internal static Thickness PSNoticeMargin => new(PSFieldLabelWidth, -7, 0, 9);
 
