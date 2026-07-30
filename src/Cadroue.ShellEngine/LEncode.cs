@@ -48,18 +48,39 @@ public static class LEncode
 
         LEncodeHeaderAppend(lArguments);
 
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkStart)}");
-        if (lWorkItem.LWorkEnd > lWorkItem.LWorkStart)
+        if (lWorkItem.LWorkKind == LWorkKind.LWorkKindMerge)
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -to {LEncodeTimeFormat(lWorkItem.LWorkEnd)}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" -f concat -safe 0 -i {LEncodeQuote(LEncodeMergeListWrite(lWorkItem))}");
         }
-        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lWorkItem.LWorkSourcePath)}");
+        else
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkStart)}");
+            if (lWorkItem.LWorkEnd > lWorkItem.LWorkStart)
+            {
+                lArguments.Append(CultureInfo.InvariantCulture, $" -to {LEncodeTimeFormat(lWorkItem.LWorkEnd)}");
+            }
+            lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeQuote(lWorkItem.LWorkSourcePath)}");
+        }
 
         LEncodeVideoAppend(lArguments, lWorkItem, lOutput);
         LEncodeAudioAppend(lArguments, lOutput);
 
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeQuote(lWorkItem.LWorkOutputPath)}");
         return lArguments.ToString();
+    }
+
+    private static string LEncodeMergeListWrite(LWorkItem lWorkItem)
+    {
+        string lMergeListPath = Path.Combine(LDepot.LDepotMergeRead(), $"{lWorkItem.LWorkId:N}.txt");
+        var lMergeList = new StringBuilder();
+        foreach (string lMergeSource in lWorkItem.LWorkMergeSources)
+        {
+            string lMergeEscaped = lMergeSource.Replace("\\", "/", StringComparison.Ordinal).Replace("'", "'\\''", StringComparison.Ordinal);
+            lMergeList.Append(CultureInfo.InvariantCulture, $"file '{lMergeEscaped}'\n");
+        }
+
+        File.WriteAllText(lMergeListPath, lMergeList.ToString());
+        return lMergeListPath;
     }
 
     private static IReadOnlyList<LEncodeStage> LEncodeAudioStagesBuild(LWorkItem lWorkItem)

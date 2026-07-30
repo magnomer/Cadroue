@@ -1,11 +1,15 @@
 using Cadroue.Core;
+using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LMerge
 {
-    public static void LMergeDescribe(LWorkPriority lWorkPriority)
+    public static int LMergeDescribe(
+        LWorkPriority lWorkPriority,
+        IReadOnlyList<PGroup.PGroupSelection> lMergeGroups,
+        LExportSpecificState lExportSpecificState)
     {
-        LMerge.LMergeInterpret(lWorkPriority);
+        return LMerge.LMergeInterpret(lWorkPriority, lMergeGroups, lExportSpecificState.LPresetOutputCreate());
     }
 }

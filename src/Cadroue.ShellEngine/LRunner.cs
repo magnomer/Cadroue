@@ -225,9 +225,12 @@ public sealed partial class LRunner
 
         try
         {
-            double pTotalSeconds = pWorkItem.LWorkKind == LWorkKind.LWorkKindAudio
-                ? (LRunnerMediaRead(pWorkItem.LWorkSourcePath)?.LWorkMediaDuration.TotalSeconds ?? 0)
-                : pWorkItem.LWorkDuration.TotalSeconds;
+            double pTotalSeconds = pWorkItem.LWorkKind switch
+            {
+                LWorkKind.LWorkKindAudio => LRunnerMediaRead(pWorkItem.LWorkSourcePath)?.LWorkMediaDuration.TotalSeconds ?? 0,
+                LWorkKind.LWorkKindMerge => LRunnerMergeDurationRead(pWorkItem.LWorkMergeSources),
+                _ => pWorkItem.LWorkDuration.TotalSeconds
+            };
 
             int pExitCode = 0;
             string pRunnerError = string.Empty;
@@ -465,6 +468,17 @@ public sealed partial class LRunner
 
         LRunnerRunning = false;
         LRunnerNote("Queue paused: a job failed and 'Pause queue on failure' is on");
+    }
+
+    private static double LRunnerMergeDurationRead(IReadOnlyList<string> lRunnerMergeSources)
+    {
+        double lRunnerTotalSeconds = 0;
+        foreach (string lRunnerMergeSource in lRunnerMergeSources)
+        {
+            lRunnerTotalSeconds += LRunnerMediaRead(lRunnerMergeSource)?.LWorkMediaDuration.TotalSeconds ?? 0;
+        }
+
+        return lRunnerTotalSeconds;
     }
 
     private static LWorkMedia? LRunnerMediaRead(string lRunnerMediaPath)

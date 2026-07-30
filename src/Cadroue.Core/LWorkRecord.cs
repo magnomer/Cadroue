@@ -14,6 +14,7 @@ public sealed class LWorkRecord
     public long EndTicks { get; set; }
     public string OutputName { get; set; } = string.Empty;
     public string OutputPath { get; set; } = string.Empty;
+    public List<string> MergeSources { get; set; } = [];
     public string Message { get; set; } = string.Empty;
     public double Progress { get; set; }
     public DateTimeOffset CreateTime { get; set; } = DateTimeOffset.Now;
@@ -60,6 +61,7 @@ public sealed class LWorkRecord
         EndTicks = lWorkItem.LWorkEnd.Ticks,
         OutputName = lWorkItem.LWorkOutputName,
         OutputPath = lWorkItem.LWorkOutputPath,
+        MergeSources = lWorkItem.LWorkMergeSources.ToList(),
         Message = lWorkItem.LWorkMessage,
         Progress = lWorkItem.LWorkProgress,
         CreateTime = lWorkItem.LWorkCreateTime,
@@ -95,7 +97,8 @@ public sealed class LWorkRecord
             CreateTime,
             Crop,
             Video,
-            Audio);
+            Audio,
+            MergeSources);
 
         lWorkItem.LWorkStateCurrent = LWorkEnumRead(State, LWorkState.LWorkStatePending);
         lWorkItem.LWorkMessage = Message;

@@ -7,6 +7,7 @@ public sealed class LExportSpecificState
 {
     public const string LPresetAudioDefaultName = "Audio Processing (default)";
     public const string LPresetSplitDefaultName = "Split (default)";
+    public const string LPresetMergeDefaultName = "Merge (default)";
 
     private static readonly Dictionary<string, LExportSpecificState> LPresetMap = new(StringComparer.OrdinalIgnoreCase);
 
@@ -14,6 +15,7 @@ public sealed class LExportSpecificState
     {
         LPresetNativeAdd(LPresetAudioDefaultCreate());
         LPresetNativeAdd(LPresetSplitDefaultCreate());
+        LPresetNativeAdd(LPresetMergeDefaultCreate());
         IReadOnlyList<LExportSpecificState>? lStoredPresets = LExportSpecificPresetStore.LPresetLoad();
         if (lStoredPresets is null)
         {
@@ -147,6 +149,7 @@ public sealed class LExportSpecificState
         {
             "Audio" => LPresetAudioDefaultName,
             "Split" => LPresetSplitDefaultName,
+            "Merge" => LPresetMergeDefaultName,
             _ => null
         };
 
@@ -385,12 +388,14 @@ public sealed class LExportSpecificState
 
     public static bool LPresetNativeCheck(string lPresetName) =>
         string.Equals(lPresetName, LPresetAudioDefaultName, StringComparison.OrdinalIgnoreCase)
-        || string.Equals(lPresetName, LPresetSplitDefaultName, StringComparison.OrdinalIgnoreCase);
+        || string.Equals(lPresetName, LPresetSplitDefaultName, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(lPresetName, LPresetMergeDefaultName, StringComparison.OrdinalIgnoreCase);
 
     public static string LPresetDisplayNameRead(string lPresetName) => lPresetName switch
     {
         LPresetAudioDefaultName => "Audio Processing",
         LPresetSplitDefaultName => "Split",
+        LPresetMergeDefaultName => "Merge",
         _ => lPresetName
     };
 
@@ -431,6 +436,36 @@ public sealed class LExportSpecificState
     {
         PresetName = LPresetSplitDefaultName,
         Name = "{OriginalName} ({SectionNumber}) {Prefix}{SectionName}{Suffix}",
+        Container = "Same as source",
+        ExportMode = "Smart export",
+        VideoStream = "Include",
+        AudioStream = "Include first audio track",
+        VideoMode = "Copy",
+        AudioMode = "Copy",
+        VideoEncoder = "H.264, x264 / libx264",
+        VideoRateControl = "CRF (constant quality)",
+        VideoQuality = "28",
+        VideoSpeedPreset = "medium",
+        Location = "Same as source",
+        LocationFolder = string.Empty,
+        VideoSize = "Same as source",
+        VideoSizeReactive = false,
+        VideoFps = "Same as source",
+        PixelFormat = "Auto",
+        VideoExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["-tune"] = "none"
+        },
+        AudioEncoder = "AAC",
+        AudioBitrate = "96k",
+        AudioSampleRate = "Same as source",
+        AudioChannels = "Same as source"
+    };
+
+    private static LExportSpecificState LPresetMergeDefaultCreate() => new()
+    {
+        PresetName = LPresetMergeDefaultName,
+        Name = "{OriginalName}",
         Container = "Same as source",
         ExportMode = "Smart export",
         VideoStream = "Include",

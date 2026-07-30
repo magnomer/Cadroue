@@ -26,6 +26,7 @@ public sealed class PList : PPanel
     ];
 
     public const double PListStripWidth = 48;
+    public const string PListDragFormat = "CadrouePaths";
 
     private readonly StackPanel pListRowPanel;
     private readonly TextBlock pListEmptyNotice;
@@ -34,6 +35,8 @@ public sealed class PList : PPanel
     private readonly UIElement pListStripBody;
     private string? pListPathCurrent;
     private bool pListMinimized;
+    private Point? pListDragStart;
+    private string? pListDragPath;
 
     public event Action<string?>? PListPathChange;
     public event Action<bool>? PListMinimizeChange;
@@ -366,9 +369,39 @@ public sealed class PList : PPanel
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
             PListSelectApply(pRowPath);
+            pListDragStart = pRowEvent.GetPosition(null);
+            pListDragPath = pRowPath;
             pRowEvent.Handled = true;
         };
+        pRowBorder.MouseMove += (pRowSender, pRowEvent) => PListRowDragHandle(pRowSender, pRowEvent);
+        pRowBorder.MouseLeftButtonUp += (_, _) =>
+        {
+            pListDragStart = null;
+            pListDragPath = null;
+        };
         return pRowBorder;
+    }
+
+    private void PListRowDragHandle(object pRowSender, MouseEventArgs pRowEvent)
+    {
+        if (pListDragStart is not { } pStart
+            || pListDragPath is not { } pDragPath
+            || pRowEvent.LeftButton != MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        Point pCurrent = pRowEvent.GetPosition(null);
+        if (Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
+            && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        var pDragData = new DataObject(PListDragFormat, new[] { pDragPath });
+        pListDragStart = null;
+        pListDragPath = null;
+        DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
     }
 
     private void PListSelectApply(string? pSelectPath)

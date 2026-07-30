@@ -17,6 +17,8 @@ public static class LDepot
 
     private const string LDepotAudioFolderName = "audiowork";
 
+    private const string LDepotMergeFolderName = "mergework";
+
     public const string LDepotIndexFileName = "work.db";
 
     private static string? lDepotRootOverride;
@@ -57,6 +59,13 @@ public static class LDepot
         string lDepotAudio = Path.Combine(LDepotRootRead(), LDepotAudioFolderName);
         Directory.CreateDirectory(lDepotAudio);
         return lDepotAudio;
+    }
+
+    public static string LDepotMergeRead()
+    {
+        string lDepotMerge = Path.Combine(LDepotRootRead(), LDepotMergeFolderName);
+        Directory.CreateDirectory(lDepotMerge);
+        return lDepotMerge;
     }
 
     public static string LDepotFolderRead(LDepotFolder lDepotFolder) =>

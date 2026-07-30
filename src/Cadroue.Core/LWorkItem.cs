@@ -24,11 +24,13 @@ public sealed class LWorkItem : INotifyPropertyChanged
         DateTimeOffset? lWorkCreateTime = null,
         LWorkCrop? lWorkCrop = null,
         LWorkVideo? lWorkVideo = null,
-        LWorkAudio? lWorkAudio = null)
+        LWorkAudio? lWorkAudio = null,
+        IReadOnlyList<string>? lWorkMergeSources = null)
     {
         LWorkCrop = lWorkCrop ?? LWorkCrop.LWorkCropNoneCreate();
         LWorkVideo = lWorkVideo ?? LWorkVideo.LWorkVideoNoneCreate();
         LWorkAudio = lWorkAudio ?? LWorkAudio.LWorkAudioNoneCreate();
+        LWorkMergeSources = lWorkMergeSources ?? Array.Empty<string>();
         LWorkId = lWorkId ?? Guid.NewGuid();
         LWorkBatchId = lWorkBatchId;
         LWorkKind = lWorkKind;
@@ -83,6 +85,8 @@ public sealed class LWorkItem : INotifyPropertyChanged
     public LWorkVideo LWorkVideo { get; }
 
     public LWorkAudio LWorkAudio { get; }
+
+    public IReadOnlyList<string> LWorkMergeSources { get; }
 
     public DateTimeOffset LWorkCreateTime { get; }
 

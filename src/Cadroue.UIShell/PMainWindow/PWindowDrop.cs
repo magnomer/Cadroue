@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Media;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainWindow;
@@ -22,12 +23,22 @@ public partial class PWindow
 
     private void PDropAccept(object sender, DragEventArgs dragEvent)
     {
+        if (PDropGroupCheck(dragEvent))
+        {
+            return;
+        }
+
         dragEvent.Effects = PDropEffectRead(dragEvent);
         dragEvent.Handled = true;
     }
 
     private void PDropHandle(object sender, DragEventArgs dragEvent)
     {
+        if (PDropGroupCheck(dragEvent))
+        {
+            return;
+        }
+
         DragDropEffects dropEffect = PDropEffectRead(dragEvent);
         dragEvent.Effects = dropEffect;
         dragEvent.Handled = true;
@@ -55,6 +66,22 @@ public partial class PWindow
         }
 
         pViewerActive.PViewerSourceOpen(sourcePath);
+    }
+
+    private static bool PDropGroupCheck(DragEventArgs dragEvent)
+    {
+        DependencyObject? pNode = dragEvent.OriginalSource as DependencyObject;
+        while (pNode is not null)
+        {
+            if (pNode is PGroup)
+            {
+                return true;
+            }
+
+            pNode = pNode is Visual pVisual ? VisualTreeHelper.GetParent(pVisual) : LogicalTreeHelper.GetParent(pNode);
+        }
+
+        return false;
     }
 
     private DragDropEffects PDropEffectRead(DragEventArgs dragEvent)
