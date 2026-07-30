@@ -21,6 +21,7 @@ public sealed class PMergeTab : PTabSurface
             LWorkPriority.LWorkPriorityNormal, pGroup.PGroupGroupsRead(), lExportSpecificState);
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
+        pGroup.PGroupSourceFiles = () => pList.PListPathsRead();
         pGroup.PGroupFileLoad = pDropPaths =>
         {
             pList.PListPathsAdd(pDropPaths);
@@ -43,5 +44,6 @@ public sealed class PMergeTab : PTabSurface
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
+    public override PGroup? PTabGroup => pGroup;
     public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
 }

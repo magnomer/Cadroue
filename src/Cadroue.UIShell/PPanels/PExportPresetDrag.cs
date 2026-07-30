@@ -49,7 +49,8 @@ public sealed partial class PExport
             return false;
         }
 
-        if (!LExportSpecificState.LPresetMoveToIndex(lPresetName, lTargetIndex))
+        int lDataTargetIndex = lTargetIndex - PExportPresetDividerCountBefore(lTargetIndex);
+        if (!LExportSpecificState.LPresetMoveToIndex(lPresetName, lDataTargetIndex))
         {
             return false;
         }
@@ -57,6 +58,21 @@ public sealed partial class PExport
         pPresetRowPanel.Children.RemoveAt(lSourceIndex);
         pPresetRowPanel.Children.Insert(lInsertIndex, pPresetRow);
         return true;
+    }
+
+    private int PExportPresetDividerCountBefore(int lChildIndex)
+    {
+        int lDividerCount = 0;
+        int lLimit = Math.Min(lChildIndex, pPresetRowPanel.Children.Count);
+        for (int lIndex = 0; lIndex < lLimit; lIndex++)
+        {
+            if (pPresetRowPanel.Children[lIndex] is Border { Tag: "Divider" })
+            {
+                lDividerCount++;
+            }
+        }
+
+        return lDividerCount;
     }
 
     private static bool PExportButtonSourceCheck(object pSource)

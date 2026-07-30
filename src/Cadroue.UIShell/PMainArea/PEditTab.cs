@@ -246,16 +246,21 @@ public sealed class PEditTab : PTabSurface
 
     private LEditPlan? PEditCarriedRead()
     {
-        bool pCropApply = pInspector.PInspectorPersistentCheck() && pInspector.PInspectorCropActiveCheck();
-        LWorkCrop pCrop = pInspector.PInspectorPersistentCheck()
+        bool pCropPersistent = pInspector.PInspectorPersistentCheck();
+        bool pVideoPersistent = pInspector.PInspectorVideoPersistentAnyCheck();
+        if (!pCropPersistent && !pVideoPersistent)
+        {
+            return null;
+        }
+
+        bool pCropApply = pCropPersistent && pInspector.PInspectorCropActiveCheck();
+        LWorkCrop pCrop = pCropPersistent
             ? pInspector.PInspectorCropRead()
             : LWorkCrop.LWorkCropNoneCreate();
-        LWorkVideo pVideo = pInspector.PInspectorVideoPersistentAnyCheck()
+        LWorkVideo pVideo = pVideoPersistent
             ? pInspector.PInspectorVideoPersistentRead()
             : LWorkVideo.LWorkVideoNoneCreate();
-        return pCropApply || pCrop.LWorkCropActive || pVideo.LWorkVideoActive
-            ? new LEditPlan(pCrop, pVideo, pCropApply)
-            : null;
+        return new LEditPlan(pCrop, pVideo, pCropApply);
     }
 
     private LWorkVideo PEditVideoRead()

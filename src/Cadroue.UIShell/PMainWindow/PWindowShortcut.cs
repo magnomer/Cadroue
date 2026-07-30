@@ -86,6 +86,7 @@ public partial class PWindow
 
         pViewerActive?.PViewerMediaClose();
         pListActive?.PListClear();
+        pWindowSurfaceActive?.PTabGroup?.PGroupClear();
         return true;
     }
 

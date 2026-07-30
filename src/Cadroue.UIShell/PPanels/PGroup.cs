@@ -27,6 +27,8 @@ public sealed partial class PGroup : PPanel
 
     public Func<IReadOnlyList<string>, IReadOnlyList<string>>? PGroupFileLoad { get; set; }
 
+    public Func<IReadOnlyList<string>>? PGroupSourceFiles { get; set; }
+
     public event Action<string>? PGroupItemOpen;
 
     public PGroup() : base("")
@@ -64,8 +66,11 @@ public sealed partial class PGroup : PPanel
         pScroll.Drop += PGroupContainerDropHandle;
 
         var pRoot = new DockPanel { LastChildFill = true };
+        UIElement pActionBar = PGroupActionBuild();
         DockPanel.SetDock(pHeader, Dock.Top);
+        DockPanel.SetDock(pActionBar, Dock.Bottom);
         pRoot.Children.Add(pHeader);
+        pRoot.Children.Add(pActionBar);
         pRoot.Children.Add(pScroll);
 
         pGroupFullBody = pRoot;
@@ -77,6 +82,33 @@ public sealed partial class PGroup : PPanel
         pBodyHost.Children.Add(pGroupStripBody);
 
         Content = PPanelBorderBuild(pBodyHost);
+        PGroupRebuild();
+    }
+
+    private void PGroupSort()
+    {
+        if (pGroupRecords.Count == 0)
+        {
+            return;
+        }
+
+        foreach (PGroupRecord pRecord in pGroupRecords)
+        {
+            pRecord.PGroupRecordPaths.Sort((pLeft, pRight) =>
+                string.Compare(Path.GetFileName(pLeft), Path.GetFileName(pRight), StringComparison.OrdinalIgnoreCase));
+        }
+
+        PGroupRebuild();
+    }
+
+    public void PGroupClear()
+    {
+        if (pGroupRecords.Count == 0)
+        {
+            return;
+        }
+
+        pGroupRecords.Clear();
         PGroupRebuild();
     }
 
@@ -328,6 +360,48 @@ public sealed partial class PGroup : PPanel
             BorderThickness = new Thickness(0, 0, 0, 1),
             Background = Brushes.White,
             Child = pHeaderGrid
+        };
+    }
+
+    private UIElement PGroupActionBuild()
+    {
+        var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        pLeftPanel.Children.Add(PGroupButtonBuild(
+            "/PAssets/PPanels/PGroupStrict.svg",
+            LLocalization.LLocalizationTextRead("Group.Strict.Tooltip"),
+            (_, _) => PGroupStrictApply()));
+        pLeftPanel.Children.Add(PGroupButtonBuild(
+            "/PAssets/PPanels/PGroupLoose.svg",
+            LLocalization.LLocalizationTextRead("Group.Loose.Tooltip"),
+            (_, _) => PGroupLooseApply()));
+
+        var pRightPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        Button pSortButton = PGroupButtonBuild(
+            "/PAssets/PPanels/PSort.svg",
+            LLocalization.LLocalizationTextRead("Group.Sort.Tooltip"),
+            (_, _) => PGroupSort());
+        pSortButton.Margin = new Thickness(0);
+        pRightPanel.Children.Add(pSortButton);
+
+        var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6), MinHeight = 26 };
+        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(pLeftPanel, 0);
+        Grid.SetColumn(pRightPanel, 2);
+        pActionGrid.Children.Add(pLeftPanel);
+        pActionGrid.Children.Add(pRightPanel);
+
+        return new Border
+        {
+            BorderBrush = pGroupLineBrush,
+            BorderThickness = new Thickness(0, 1, 0, 0),
+            Background = Brushes.White,
+            Child = pActionGrid
         };
     }
 

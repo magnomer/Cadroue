@@ -376,11 +376,7 @@ public sealed class PProcessing : PPanel
             pProcessingDragStart = pRowEvent.GetPosition(pProcessingRowPanel);
             pProcessingDragActive = false;
 
-            if (pRowEvent.ClickCount >= 2)
-            {
-                PProcessingStepOpen?.Invoke(pStepName);
-            }
-
+            PProcessingStepOpen?.Invoke(pStepName);
             pRowEvent.Handled = true;
         };
         return pRowBorder;
