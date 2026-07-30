@@ -11,6 +11,7 @@ public static class LCourier
 {
     private static readonly Dictionary<Guid, Guid> lCourierTargets = new();
     private static readonly HashSet<Guid> lCourierDelivered = new();
+    private static readonly HashSet<Guid> lCourierClearedTargets = new();
     private static bool lCourierWatching;
 
     public static void LCourierStart()
@@ -61,9 +62,9 @@ public static class LCourier
             return;
         }
 
-        if (lCourierTarget == lCourierSourceTab || LCourierCycleCheck(lCourierSourceTab, lCourierTarget))
+        if (lCourierTarget == lCourierSourceTab)
         {
-            LAppLog.LError("Relay target refused: it would send files back into the chain it came from");
+            LAppLog.LError("Relay target refused: a tab cannot relay into itself");
             return;
         }
 
@@ -73,6 +74,7 @@ public static class LCourier
     public static void LCourierTabRemove(Guid lCourierTabId)
     {
         lCourierTargets.Remove(lCourierTabId);
+        lCourierClearedTargets.Remove(lCourierTabId);
         foreach (Guid lCourierSourceTab in lCourierTargets
             .Where(lCourierEntry => lCourierEntry.Value == lCourierTabId)
             .Select(lCourierEntry => lCourierEntry.Key)
@@ -93,8 +95,7 @@ public static class LCourier
         foreach (PTabRecord pTabRecord in lCourierTabset.PTabsetRecords)
         {
             if (pTabRecord.PTabId == lCourierSourceTab
-                || pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null
-                || LCourierCycleCheck(lCourierSourceTab, pTabRecord.PTabId))
+                || pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null)
             {
                 continue;
             }
@@ -157,23 +158,6 @@ public static class LCourier
         }
     }
 
-    private static bool LCourierCycleCheck(Guid lCourierSourceTab, Guid lCourierCandidate)
-    {
-        Guid lCourierWalk = lCourierCandidate;
-        var lCourierSeen = new HashSet<Guid>();
-        while (lCourierWalk != Guid.Empty && lCourierSeen.Add(lCourierWalk))
-        {
-            if (lCourierWalk == lCourierSourceTab)
-            {
-                return true;
-            }
-
-            lCourierWalk = LCourierTargetRead(lCourierWalk);
-        }
-
-        return false;
-    }
-
     private static void LCourierScheduleHandle(LSchedule lCourierSchedule) => LCourierDispatch(lCourierSchedule);
 
     private static void LCourierDispatch(LSchedule lCourierSchedule)
@@ -191,6 +175,23 @@ public static class LCourier
             lCourierDelivered.Add(lWorkItem.LWorkId);
             LCourierOutputAdd(lWorkItem);
         }
+
+        LCourierBatchUpdate(lCourierSchedule);
+    }
+
+    private static void LCourierBatchUpdate(LSchedule lCourierSchedule)
+    {
+        foreach (Guid lCourierTarget in lCourierClearedTargets.ToArray())
+        {
+            bool lCourierPending = lCourierSchedule.LScheduleRecords.Any(lWorkItem =>
+                lWorkItem.LWorkRelayTarget == lCourierTarget
+                && lWorkItem.LWorkOwnerProcess == Environment.ProcessId
+                && lWorkItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning);
+            if (!lCourierPending)
+            {
+                lCourierClearedTargets.Remove(lCourierTarget);
+            }
+        }
     }
 
     private static void LCourierOutputAdd(LWorkItem lWorkItem)
@@ -206,6 +207,13 @@ public static class LCourier
         {
             LAppLog.LInfo($"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab is gone");
             return;
+        }
+
+        if (App.LPreferenceStateCurrent.LPreferenceRelayTargetClear
+            && lCourierClearedTargets.Add(lWorkItem.LWorkRelayTarget))
+        {
+            pCourierList.PListClear();
+            LAppLog.LInfo($"Relay cleared the files in tab '{pCourierTarget.PTabTitle}' before delivery");
         }
 
         int lCourierAdded = pCourierList.PListPathsAdd(new[] { lWorkItem.LWorkOutputPath });

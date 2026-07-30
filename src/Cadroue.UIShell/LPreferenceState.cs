@@ -13,6 +13,7 @@ public sealed class LPreferenceState
     public List<string> LPreferenceStartupTabs { get; set; } = new() { "Split" };
     public bool LPreferenceMediaAutomatic { get; set; }
     public bool LPreferenceConfirmDestructive { get; set; }
+    public bool LPreferenceRelayTargetClear { get; set; } = true;
     public string LPreferenceLanguage { get; set; } = "en";
     public bool LPreferenceLogVerbose { get; set; }
     public bool LPreferenceRecordWorkspace { get; set; }
@@ -60,6 +61,7 @@ public sealed class LPreferenceState
             LPreferenceStartupTabs = new List<string> { "Split" },
             LPreferenceMediaAutomatic = false,
             LPreferenceConfirmDestructive = false,
+            LPreferenceRelayTargetClear = true,
             LPreferenceLanguage = "en",
             LPreferenceLogVerbose = false,
             LPreferenceRecordWorkspace = false,
@@ -105,6 +107,7 @@ public sealed class LPreferenceState
             LPreferenceStartupTabs = new List<string>(LPreferenceStartupTabs),
             LPreferenceMediaAutomatic = LPreferenceMediaAutomatic,
             LPreferenceConfirmDestructive = LPreferenceConfirmDestructive,
+            LPreferenceRelayTargetClear = LPreferenceRelayTargetClear,
             LPreferenceLanguage = LPreferenceLanguage,
             LPreferenceLogVerbose = LPreferenceLogVerbose,
             LPreferenceRecordWorkspace = LPreferenceRecordWorkspace,
@@ -149,6 +152,7 @@ public sealed class LPreferenceState
             ("Default tabs", string.Join(", ", lPreferenceOther.LPreferenceStartupTabs), string.Join(", ", LPreferenceStartupTabs)),
             ("Auto-open last media", lPreferenceOther.LPreferenceMediaAutomatic, LPreferenceMediaAutomatic),
             ("Confirm destructive actions", lPreferenceOther.LPreferenceConfirmDestructive, LPreferenceConfirmDestructive),
+            ("Clear relay target files", lPreferenceOther.LPreferenceRelayTargetClear, LPreferenceRelayTargetClear),
             ("Language", lPreferenceOther.LPreferenceLanguage, LPreferenceLanguage),
             ("Verbose logging", lPreferenceOther.LPreferenceLogVerbose, LPreferenceLogVerbose),
             ("File record location", lPreferenceOther.LPreferenceRecordWorkspace, LPreferenceRecordWorkspace),

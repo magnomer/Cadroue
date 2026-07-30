@@ -74,6 +74,7 @@ internal sealed partial class PSOptions : Window
     private readonly PPicker psStartupTabPicker;
     private readonly CheckBox psMediaBox;
     private readonly CheckBox psConfirmBox;
+    private readonly CheckBox psRelayClearBox;
     private readonly ComboBox psLanguageCombo;
 
     private readonly CheckBox psAutoplayBox;
@@ -114,6 +115,7 @@ internal sealed partial class PSOptions : Window
         };
         psMediaBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Startup.OpenLastMedia"), lsOptionsDraft.LPreferenceMediaAutomatic);
         psConfirmBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Confirm.Ask"), lsOptionsDraft.LPreferenceConfirmDestructive);
+        psRelayClearBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Relay.ClearCheck"), lsOptionsDraft.LPreferenceRelayTargetClear);
         psLanguageCombo = PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguageItemsRead());
 
         psAutoplayBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"), lsOptionsDraft.LPreferenceAutoplayOnLoad);
@@ -197,6 +199,9 @@ internal sealed partial class PSOptions : Window
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Confirm"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.DestructiveActions"), psConfirmBox),
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.DestructiveNotice"))));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Relay"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClear"), psRelayClearBox),
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClearNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Language"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Language"), psLanguageCombo)));
         return pPanel;
@@ -270,6 +275,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceStartupTabs = psStartupTabPicker.PPickerSelectionRead().ToList();
         lsOptionsDraft.LPreferenceMediaAutomatic = psMediaBox.IsChecked == true;
         lsOptionsDraft.LPreferenceConfirmDestructive = psConfirmBox.IsChecked == true;
+        lsOptionsDraft.LPreferenceRelayTargetClear = psRelayClearBox.IsChecked == true;
         lsOptionsDraft.LPreferenceLanguage = PSComboTextRead(psLanguageCombo);
 
         lsOptionsDraft.LPreferenceAutoplayOnLoad = psAutoplayBox.IsChecked == true;
