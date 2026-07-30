@@ -371,11 +371,13 @@ public sealed class PList : PPanel
             PListSelectApply(pRowPath);
             pListDragStart = pRowEvent.GetPosition(null);
             pListDragPath = pRowPath;
+            pRowBorder.CaptureMouse();
             pRowEvent.Handled = true;
         };
         pRowBorder.MouseMove += (pRowSender, pRowEvent) => PListRowDragHandle(pRowSender, pRowEvent);
         pRowBorder.MouseLeftButtonUp += (_, _) =>
         {
+            pRowBorder.ReleaseMouseCapture();
             pListDragStart = null;
             pListDragPath = null;
         };
@@ -401,7 +403,14 @@ public sealed class PList : PPanel
         var pDragData = new DataObject(PListDragFormat, new[] { pDragPath });
         pListDragStart = null;
         pListDragPath = null;
-        DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
+        if (pRowSender is UIElement pRowElement)
+        {
+            pRowElement.ReleaseMouseCapture();
+        }
+
+        LAppLog.LInfo($"DRAGTRACE list drag start '{Path.GetFileName(pDragPath)}'");
+        DragDropEffects pDragResult = DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
+        LAppLog.LInfo($"DRAGTRACE list drag end effect={pDragResult}");
     }
 
     private void PListSelectApply(string? pSelectPath)

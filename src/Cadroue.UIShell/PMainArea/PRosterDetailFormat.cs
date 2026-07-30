@@ -97,8 +97,30 @@ public sealed partial class PRoster
                 : $"{pWholeBytes / pRosterKibi:0.##} KiB";
     }
 
-    private static long? PRosterSourceBytesRead(LWorkItem pWorkItem) =>
-        pWorkItem.LWorkSourceBytes ?? PRosterSizeRead(pWorkItem.LWorkSourcePath);
+    internal static long? PRosterSourceBytesRead(LWorkItem pWorkItem)
+    {
+        if (pWorkItem.LWorkMergeSources.Count > 1)
+        {
+            long pMergeTotal = 0;
+            foreach (string pMergeSource in pWorkItem.LWorkMergeSources)
+            {
+                if (PRosterSizeRead(pMergeSource) is not { } pMergeBytes)
+                {
+                    pMergeTotal = 0;
+                    break;
+                }
+
+                pMergeTotal += pMergeBytes;
+            }
+
+            if (pMergeTotal > 0)
+            {
+                return pMergeTotal;
+            }
+        }
+
+        return pWorkItem.LWorkSourceBytes ?? PRosterSizeRead(pWorkItem.LWorkSourcePath);
+    }
 
     private static long? PRosterSizeRead(string? pFilePath)
     {

@@ -90,6 +90,8 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public Guid LWorkRelayTarget { get; set; }
 
+    public Guid LWorkLineage { get; set; }
+
     public DateTimeOffset LWorkCreateTime { get; }
 
     public DateTimeOffset? LWorkStartTime { get; set; }

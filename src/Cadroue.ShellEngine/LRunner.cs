@@ -293,7 +293,7 @@ public sealed partial class LRunner
             }
 
             long? pOutputBytes = LRunnerBytesRead(pWorkItem.LWorkOutputPath);
-            long? pSourceBytes = pWorkItem.LWorkSourceBytes ?? LRunnerBytesRead(pWorkItem.LWorkSourcePath);
+            long? pSourceBytes = LRunnerSourceBytesRead(pWorkItem);
             LWorkMedia? pSourceMedia = pWorkItem.LWorkSourceMedia ?? LRunnerMediaRead(pWorkItem.LWorkSourcePath);
             LWorkMedia? pOutputMedia = LRunnerMediaRead(pWorkItem.LWorkOutputPath);
             if (pOutputMedia is { LWorkMediaVideoPresent: true }
@@ -530,6 +530,31 @@ public sealed partial class LRunner
             LRunnerNote($"Keyframe interval could not be read '{Path.GetFileName(lRunnerMediaPath)}'", lRunnerException);
             return null;
         }
+    }
+
+    private static long? LRunnerSourceBytesRead(LWorkItem pWorkItem)
+    {
+        if (pWorkItem.LWorkMergeSources.Count > 1)
+        {
+            long lRunnerMergeTotal = 0;
+            foreach (string lRunnerMergeSource in pWorkItem.LWorkMergeSources)
+            {
+                if (LRunnerBytesRead(lRunnerMergeSource) is not { } lRunnerMergeBytes)
+                {
+                    lRunnerMergeTotal = 0;
+                    break;
+                }
+
+                lRunnerMergeTotal += lRunnerMergeBytes;
+            }
+
+            if (lRunnerMergeTotal > 0)
+            {
+                return lRunnerMergeTotal;
+            }
+        }
+
+        return pWorkItem.LWorkSourceBytes ?? LRunnerBytesRead(pWorkItem.LWorkSourcePath);
     }
 
     private static long? LRunnerBytesRead(string lRunnerOutputPath)

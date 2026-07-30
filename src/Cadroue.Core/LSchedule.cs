@@ -114,6 +114,11 @@ public sealed partial class LSchedule
                 lWorkItem.LWorkRelayTarget = lScheduleRelayTarget;
             }
 
+            if (lWorkItem.LWorkLineage == Guid.Empty)
+            {
+                lWorkItem.LWorkLineage = LScheduleLineageResolve(lWorkItem);
+            }
+
             var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
             if (!LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
             {
@@ -130,6 +135,92 @@ public sealed partial class LSchedule
         }
 
         return lScheduleAddedCount;
+    }
+
+    public Guid LScheduleLineageRead(LWorkItem lWorkItem) =>
+        lWorkItem.LWorkLineage == Guid.Empty
+            ? LScheduleFileLineageRead(lWorkItem.LWorkSourcePath)
+            : lWorkItem.LWorkLineage;
+
+    private Guid LScheduleLineageResolve(LWorkItem lWorkItem)
+    {
+        if (lWorkItem.LWorkKind == LWorkKind.LWorkKindMerge)
+        {
+            return Guid.NewGuid();
+        }
+
+        LWorkItem? lScheduleParent = LScheduleParentFind(lWorkItem.LWorkSourcePath);
+        return lScheduleParent is not null && lScheduleParent.LWorkKind != LWorkKind.LWorkKindSplit
+            ? LScheduleLineageRead(lScheduleParent)
+            : LScheduleFileLineageRead(lWorkItem.LWorkSourcePath);
+    }
+
+    private LWorkItem? LScheduleParentFind(string lWorkSourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(lWorkSourcePath))
+        {
+            return null;
+        }
+
+        LWorkItem? lScheduleParent = null;
+        foreach (LWorkItem lScheduleItem in lScheduleItems)
+        {
+            if (!LSchedulePathMatch(lScheduleItem.LWorkOutputPath, lWorkSourcePath))
+            {
+                continue;
+            }
+
+            if (lScheduleParent is null || lScheduleItem.LWorkCreateTime > lScheduleParent.LWorkCreateTime)
+            {
+                lScheduleParent = lScheduleItem;
+            }
+        }
+
+        return lScheduleParent;
+    }
+
+    private static bool LSchedulePathMatch(string lScheduleLeft, string lScheduleRight)
+    {
+        if (string.IsNullOrWhiteSpace(lScheduleLeft) || string.IsNullOrWhiteSpace(lScheduleRight))
+        {
+            return false;
+        }
+
+        try
+        {
+            return string.Equals(
+                Path.GetFullPath(lScheduleLeft),
+                Path.GetFullPath(lScheduleRight),
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception lScheduleError) when (
+            lScheduleError is ArgumentException or IOException or NotSupportedException)
+        {
+            return string.Equals(lScheduleLeft, lScheduleRight, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    public static Guid LScheduleFileLineageRead(string lWorkFilePath)
+    {
+        if (string.IsNullOrWhiteSpace(lWorkFilePath))
+        {
+            return Guid.NewGuid();
+        }
+
+        string lScheduleKey;
+        try
+        {
+            lScheduleKey = Path.GetFullPath(lWorkFilePath).ToLowerInvariant();
+        }
+        catch (Exception lScheduleError) when (
+            lScheduleError is ArgumentException or IOException or NotSupportedException)
+        {
+            lScheduleKey = lWorkFilePath.ToLowerInvariant();
+        }
+
+        byte[] lScheduleHash = System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(lScheduleKey));
+        return new Guid(lScheduleHash.AsSpan(0, 16));
     }
 
     public void LScheduleComplete(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage)

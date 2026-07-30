@@ -31,6 +31,11 @@ public sealed partial class PGroup
 
         var pData = new DataObject(PGroupMoveFormat, new PGroupMovePayload(pSourceIndex, pDragPath));
         PGroupDragClear();
+        if (pRowSender is UIElement pRowElement)
+        {
+            pRowElement.ReleaseMouseCapture();
+        }
+
         DragDrop.DoDragDrop((DependencyObject)pRowSender, pData, DragDropEffects.Move);
     }
 
@@ -71,6 +76,7 @@ public sealed partial class PGroup
 
     private void PGroupCardDropHandle(int pTargetIndex, StackPanel pFileRows, DragEventArgs pEvent)
     {
+        LAppLog.LInfo($"DRAGTRACE group card drop target={pTargetIndex}");
         int pInsertAt = PGroupInsertIndexResolve(pFileRows, pEvent);
         List<string> pTargetPaths = pGroupRecords[pTargetIndex].PGroupRecordPaths;
 
@@ -111,6 +117,7 @@ public sealed partial class PGroup
 
     private void PGroupContainerDropHandle(object pSender, DragEventArgs pEvent)
     {
+        LAppLog.LInfo("DRAGTRACE group container drop");
         if (pEvent.Handled)
         {
             return;

@@ -309,10 +309,15 @@ public sealed partial class PGroup : PPanel
             pGroupDragStart = pRowEvent.GetPosition(null);
             pGroupDragSourceIndex = pGroupIndex;
             pGroupDragPath = pPath;
+            pRowBorder.CaptureMouse();
             PGroupItemOpen?.Invoke(pPath);
         };
         pRowBorder.MouseMove += (pRowSender, pRowEvent) => PGroupRowDragHandle(pRowSender, pRowEvent);
-        pRowBorder.MouseLeftButtonUp += (_, _) => PGroupDragClear();
+        pRowBorder.MouseLeftButtonUp += (_, _) =>
+        {
+            pRowBorder.ReleaseMouseCapture();
+            PGroupDragClear();
+        };
         return pRowBorder;
     }
 
