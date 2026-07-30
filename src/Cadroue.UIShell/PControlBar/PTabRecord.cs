@@ -8,8 +8,10 @@ namespace Cadroue.UIShell.PControlBar;
 public sealed class PTabRecord : INotifyPropertyChanged
 {
     private string pTabTitle = string.Empty;
+    private string pTabNameCustom = string.Empty;
     private bool pTabSelectState;
     private bool pTabSeparatorState;
+    private bool pTabNameActive;
 
     public PTabRecord(
         string pTabTitle,
@@ -42,6 +44,37 @@ public sealed class PTabRecord : INotifyPropertyChanged
             }
 
             pTabTitle = value;
+            PTabPropertyChange();
+        }
+    }
+
+    public string PTabNameCustom
+    {
+        get => pTabNameCustom;
+        set
+        {
+            string pTabTrimmed = (value ?? string.Empty).Trim();
+            if (pTabNameCustom == pTabTrimmed)
+            {
+                return;
+            }
+
+            pTabNameCustom = pTabTrimmed;
+            PTabPropertyChange();
+        }
+    }
+
+    public bool PTabNameActive
+    {
+        get => pTabNameActive;
+        set
+        {
+            if (pTabNameActive == value)
+            {
+                return;
+            }
+
+            pTabNameActive = value;
             PTabPropertyChange();
         }
     }

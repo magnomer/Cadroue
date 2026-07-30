@@ -53,12 +53,51 @@ public partial class PToolbar : UserControl
             return;
         }
 
+        if (e.ClickCount >= 2 && PTabNameHitCheck(sender, e))
+        {
+            PTabDragClear();
+            pTabRecord.PTabNameActive = true;
+            e.Handled = true;
+            return;
+        }
+
         pTabDragRecord = pTabRecord;
         pTabDragStartPoint = e.GetPosition(this);
         pTabDragActive = false;
         lTabset?.LTabsetSelect(pTabRecord);
         Mouse.Capture(sender as IInputElement);
         e.Handled = true;
+    }
+
+    private static bool PTabNameHitCheck(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not DependencyObject pTabFrame
+            || PTabNameElementFind(pTabFrame) is not { IsVisible: true } pNameText)
+        {
+            return false;
+        }
+
+        return pNameText.InputHitTest(e.GetPosition(pNameText)) is not null;
+    }
+
+    private static FrameworkElement? PTabNameElementFind(DependencyObject pTabFrame)
+    {
+        int pChildCount = VisualTreeHelper.GetChildrenCount(pTabFrame);
+        for (int pChildIndex = 0; pChildIndex < pChildCount; pChildIndex++)
+        {
+            DependencyObject pChild = VisualTreeHelper.GetChild(pTabFrame, pChildIndex);
+            if (pChild is FrameworkElement { Tag: "pTabNameText" } pNameText)
+            {
+                return pNameText;
+            }
+
+            if (PTabNameElementFind(pChild) is { } pFound)
+            {
+                return pFound;
+            }
+        }
+
+        return null;
     }
 
     private void PTabMoveHandle(object sender, MouseEventArgs e)
@@ -98,6 +137,71 @@ public partial class PToolbar : UserControl
         {
             PTabRelayCheck(pReleasedRecord, pReleasedScreenPoint);
         }
+    }
+
+    private void PTabNameLoadHandle(object sender, RoutedEventArgs e)
+    {
+        if (sender is not TextBox pNameBox)
+        {
+            return;
+        }
+
+        System.Windows.Automation.AutomationProperties.SetName(
+            pNameBox, LLocalization.LLocalizationTextRead("Tab.Rename.Name"));
+        pNameBox.IsVisibleChanged += PTabNameVisibleHandle;
+    }
+
+    private static void PTabNameVisibleHandle(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (sender is not TextBox { DataContext: PTabRecord pTabRecord } pNameBox
+            || !pNameBox.IsVisible)
+        {
+            return;
+        }
+
+        pNameBox.Dispatcher.BeginInvoke(
+            System.Windows.Threading.DispatcherPriority.Input,
+            new Action(() =>
+            {
+                pNameBox.Text = pTabRecord.PTabTitle;
+                pNameBox.SelectAll();
+                pNameBox.Focus();
+            }));
+    }
+
+    private void PTabNameKeyHandle(object sender, KeyEventArgs e)
+    {
+        if (sender is not TextBox { DataContext: PTabRecord pTabRecord } pNameBox)
+        {
+            return;
+        }
+
+        if (e.Key == Key.Enter)
+        {
+            PTabNameCommit(pTabRecord, pNameBox.Text);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Escape)
+        {
+            pTabRecord.PTabNameActive = false;
+            e.Handled = true;
+        }
+    }
+
+    private void PTabNameLeaveHandle(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox { DataContext: PTabRecord pTabRecord } pNameBox && pTabRecord.PTabNameActive)
+        {
+            PTabNameCommit(pTabRecord, pNameBox.Text);
+        }
+    }
+
+    private void PTabNameCommit(PTabRecord pTabRecord, string pTabName)
+    {
+        pTabRecord.PTabNameActive = false;
+        lTabset?.LTabsetNameSet(pTabRecord, pTabName);
     }
 
     private void PTabDragClear()

@@ -82,8 +82,8 @@ public sealed class LTabset
         LPreferenceTabLayoutRecord? lPreferenceTabLayout)
     {
         var pTabRecord = new PTabRecord(
-            pTabLayoutKey,
             LTabsetTitleRead(pTabLayoutKey),
+            pTabLayoutKey,
             PIcon.PIconRead(pTabIconPath),
             lExportSpecificState,
             lPreferenceTabLayout)
@@ -124,8 +124,17 @@ public sealed class LTabset
 
     private void LTabsetTitleUpdate()
     {
-        foreach (var lTabsetKindGroup in PTabsetRecords.GroupBy(
-                     pTabItem => pTabItem.PTabLayoutKey, StringComparer.Ordinal))
+        foreach (PTabRecord pTabItem in PTabsetRecords)
+        {
+            if (pTabItem.PTabNameCustom.Length > 0)
+            {
+                pTabItem.PTabTitle = pTabItem.PTabNameCustom;
+            }
+        }
+
+        foreach (var lTabsetKindGroup in PTabsetRecords
+                     .Where(pTabItem => pTabItem.PTabNameCustom.Length == 0)
+                     .GroupBy(pTabItem => pTabItem.PTabLayoutKey, StringComparer.Ordinal))
         {
             var lTabsetKindTabs = lTabsetKindGroup.ToList();
             if (lTabsetKindTabs.Count == 1)
@@ -143,6 +152,47 @@ public sealed class LTabset
                     pTabItem.PTabOrdinal);
             }
         }
+
+        PMainArea.LCourier.LCourierFaceUpdate();
+    }
+
+    public void LTabsetNameSet(PTabRecord pTabRecord, string pTabName)
+    {
+        string pTabTrimmed = (pTabName ?? string.Empty).Trim();
+        if (pTabTrimmed.Length == 0
+            || string.Equals(pTabTrimmed, LTabsetTitleRead(pTabRecord.PTabLayoutKey), StringComparison.Ordinal))
+        {
+            if (pTabRecord.PTabNameCustom.Length > 0)
+            {
+                LAppLog.LInfo($"Tab name reset to the standard name for {pTabRecord.PTabLayoutKey}");
+            }
+
+            pTabRecord.PTabNameCustom = string.Empty;
+            LTabsetTitleUpdate();
+            return;
+        }
+
+        pTabRecord.PTabNameCustom = LTabsetNameDistinct(pTabRecord, pTabTrimmed);
+        LTabsetTitleUpdate();
+        LAppLog.LInfo($"Tab renamed to '{pTabRecord.PTabTitle}' ({pTabRecord.PTabLayoutKey})");
+    }
+
+    private string LTabsetNameDistinct(PTabRecord pTabRecord, string pTabName)
+    {
+        var lTabsetTakenNames = PTabsetRecords
+            .Where(pTabItem => !ReferenceEquals(pTabItem, pTabRecord))
+            .Select(pTabItem => pTabItem.PTabTitle)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        string pTabDistinct = pTabName;
+        int pTabAttempt = 2;
+        while (lTabsetTakenNames.Contains(pTabDistinct))
+        {
+            pTabDistinct = LLocalization.LLocalizationFormat("Tab.Numbered", pTabName, pTabAttempt);
+            pTabAttempt++;
+        }
+
+        return pTabDistinct;
     }
 
     private static string LTabsetTitleRead(string pTabLayoutKey) =>

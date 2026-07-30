@@ -50,6 +50,7 @@ public sealed class LPreferenceState
     public List<LExportSpecificPresetRecord> LPreferenceTabExports { get; set; } = new();
     public List<LPreferenceTabLayoutRecord> LPreferenceTabLayouts { get; set; } = new();
     public List<int> LPreferenceTabRelays { get; set; } = new();
+    public List<string> LPreferenceTabNames { get; set; } = new();
 
     public static LPreferenceState LPreferenceDefaultCreate()
     {
@@ -135,7 +136,8 @@ public sealed class LPreferenceState
             LPreferenceTabLayouts = LPreferenceTabLayouts
                 .Select(lPreferenceTabLayout => lPreferenceTabLayout.LPreferenceTabLayoutClone())
                 .ToList(),
-            LPreferenceTabRelays = new List<int>(LPreferenceTabRelays)
+            LPreferenceTabRelays = new List<int>(LPreferenceTabRelays),
+            LPreferenceTabNames = new List<string>(LPreferenceTabNames)
         };
     }
 
@@ -204,6 +206,7 @@ public sealed class LPreferenceState
             LPreferenceTabLayoutKeys = new List<string> { "Split" };
         LPreferenceTabLayouts ??= new List<LPreferenceTabLayoutRecord>();
         LPreferenceTabRelays ??= new List<int>();
+        LPreferenceTabNames ??= new List<string>();
     }
 
     [JsonIgnore]

@@ -36,6 +36,20 @@ public static class LCourier
         pCourierAction.PActionRelayApply(LCourierTargetRead(lCourierSourceTab));
     }
 
+    public static void LCourierFaceUpdate()
+    {
+        if (LTabset.LTabsetCurrent is not { } lCourierTabset)
+        {
+            return;
+        }
+
+        foreach (PTabRecord pTabRecord in lCourierTabset.PTabsetRecords)
+        {
+            pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionRelayApply(
+                LCourierTargetRead(pTabRecord.PTabId));
+        }
+    }
+
     public static Guid LCourierTargetRead(Guid lCourierSourceTab) =>
         lCourierTargets.TryGetValue(lCourierSourceTab, out Guid lCourierTarget) ? lCourierTarget : Guid.Empty;
 

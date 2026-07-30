@@ -86,7 +86,11 @@ public partial class PWindow : Window
                 ? pTabExports[pTabIndex].LPresetStateCreate()
                 : null;
             LPreferenceTabLayoutRecord? pTabLayout = pTabIndex < pTabLayouts.Count ? pTabLayouts[pTabIndex] : null;
-            pTabset.LTabsetAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
+            PTabRecord pTabRestored = pTabset.LTabsetAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
+            if (pTabIndex < lPreferenceState.LPreferenceTabNames.Count)
+            {
+                pTabset.LTabsetNameSet(pTabRestored, lPreferenceState.LPreferenceTabNames[pTabIndex]);
+            }
         }
         PMainArea.LCourier.LCourierSlotsApply(pTabset.PTabsetRecords, lPreferenceState.LPreferenceTabRelays);
         int pSelectIndex = Math.Clamp(lPreferenceState.LPreferenceTabSelectIndex, 0, pTabset.PTabsetRecords.Count - 1);
@@ -125,6 +129,11 @@ public partial class PWindow : Window
             lRelay.LayoutKey,
             lRelay.LRelayExportCreate(),
             lRelay.Layout);
+        if (!string.IsNullOrWhiteSpace(lRelay.CustomName))
+        {
+            lTabset.LTabsetNameSet(pRelayTabRecord, lRelay.CustomName);
+        }
+
         lTabset.LTabsetSelect(pRelayTabRecord);
         pRelayTabRecord.PTabWorkspace.PWorkspaceRelayApply(lRelay);
     }
@@ -303,6 +312,7 @@ public partial class PWindow : Window
             .ToList();
         lPrefs.LPreferenceTabLayouts = lTabset.PTabsetRecords.Select(r => r.PTabWorkspace.PWorkspaceLayoutRead()).ToList();
         lPrefs.LPreferenceTabRelays = PMainArea.LCourier.LCourierSlotsRead(lTabset.PTabsetRecords).ToList();
+        lPrefs.LPreferenceTabNames = lTabset.PTabsetRecords.Select(r => r.PTabNameCustom).ToList();
         lPrefs.LPreferenceTabSelectIndex = lTabset.PTabsetSelectRecord is null ? 0
             : Math.Max(0, lTabset.PTabsetRecords.IndexOf(lTabset.PTabsetSelectRecord));
         App.LPreferenceStateSet(lPrefs);

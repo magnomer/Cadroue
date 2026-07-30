@@ -39,6 +39,7 @@ public sealed class LRelaySectionRecord
 public sealed class LRelay
 {
     public string LayoutKey { get; set; } = "Split";
+    public string CustomName { get; set; } = string.Empty;
     public LExportSpecificPresetRecord Export { get; set; } = new();
     public LPreferenceTabLayoutRecord Layout { get; set; } = new();
     public string SourcePath { get; set; } = string.Empty;
@@ -58,6 +59,7 @@ public sealed class LRelay
         var lRelay = new LRelay
         {
             LayoutKey = pTabRecord.PTabLayoutKey,
+            CustomName = pTabRecord.PTabNameCustom,
             Export = LExportSpecificPresetRecord.LPresetRecordCreate(pWorkspace.PWorkspaceExportState),
             Layout = pWorkspace.PWorkspaceLayoutRead(),
             SourcePath = pWorkspace.PWorkspaceViewer?.PViewerSourcePath ?? string.Empty,

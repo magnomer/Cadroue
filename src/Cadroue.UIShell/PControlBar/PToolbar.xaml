@@ -42,6 +42,33 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="pTabNameTextStyle" TargetType="TextBlock" BasedOn="{StaticResource pTabTextStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PTabNameActive}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="pTabNameBoxStyle" TargetType="TextBox">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="3,0,3,0" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="#111827" />
+            <Setter Property="BorderBrush" Value="#4C86F7" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="SelectionBrush" Value="#4C86F7" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PTabNameActive}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="pTabCloseStyle" TargetType="Border">
             <Setter Property="Width" Value="20" />
             <Setter Property="Height" Value="20" />
@@ -156,10 +183,16 @@
                                                    VerticalAlignment="Center"
                                                    Margin="0,0,10,0" />
                                             <TextBlock Grid.Column="1"
-                                                       Style="{StaticResource pTabTextStyle}"
+                                                       Style="{StaticResource pTabNameTextStyle}"
                                                        Text="{Binding PTabTitle}"
                                                        VerticalAlignment="Top"
-                                                       Margin="0,1,0,0" />
+                                                       Margin="0,1,0,0"
+                                                       Tag="pTabNameText" />
+                                            <TextBox Grid.Column="1"
+                                                     Style="{StaticResource pTabNameBoxStyle}"
+                                                     Loaded="PTabNameLoadHandle"
+                                                     KeyDown="PTabNameKeyHandle"
+                                                     LostKeyboardFocus="PTabNameLeaveHandle" />
                                             <Border Grid.Column="2"
                                                     Style="{StaticResource pTabCloseStyle}"
                                                     MouseLeftButtonDown="PTabCloseHandle">

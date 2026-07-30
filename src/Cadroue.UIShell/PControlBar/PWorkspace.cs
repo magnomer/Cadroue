@@ -32,11 +32,6 @@ public sealed class PWorkspace
         PWorkspaceList = PWorkspaceSurface.PTabList;
         PWorkspaceViewer?.PViewerAudioSet(pAudioOnlyAllowed);
         PWorkspaceSource?.PSourceAttach(PWorkspaceViewer);
-        PWorkspaceSource?.PSourceImportSet(PWorkspaceFlow is not null && !pAudioOnlyAllowed);
-        if (PWorkspaceSource is not null && PWorkspaceFlow is not null && !pAudioOnlyAllowed)
-        {
-            PWorkspaceSource.PSourceLosslessCutOpen += PWorkspaceLosslessCutHandle;
-        }
         if (PWorkspaceViewer is not null && PWorkspaceFlow is not null && !pAudioOnlyAllowed)
         {
             PWorkspaceViewer.PViewerMediaChange += PWorkspaceMediaHandle;
@@ -78,10 +73,6 @@ public sealed class PWorkspace
             PWorkspaceFlow.PFlowSectionChange -= PWorkspaceSectionHandle;
         }
 
-        if (PWorkspaceSource is not null)
-        {
-            PWorkspaceSource.PSourceLosslessCutOpen -= PWorkspaceLosslessCutHandle;
-        }
         if (PWorkspaceViewer is not null)
         {
             PWorkspaceViewer.PViewerMediaChange -= PWorkspaceMediaHandle;
@@ -97,11 +88,6 @@ public sealed class PWorkspace
         PWorkspaceFlow?.PFlowSectionSelectRead(),
         LExportSpecificPresetRecord.LPresetRecordCreate(PWorkspaceExportState));
 
-
-    private void PWorkspaceLosslessCutHandle(string pLosslessCutPath)
-    {
-        PWorkspaceFlow?.PFlowLosslessCutImport(pLosslessCutPath);
-    }
 
     private void PWorkspaceMediaHandle(LMediaOpenStatus pMediaStatus)
     {

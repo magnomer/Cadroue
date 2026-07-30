@@ -21,10 +21,6 @@ public sealed class PSource : UserControl
     private readonly bool pSourceAudioOnlyAllowed;
     private readonly TextBox pSourcePathBox;
     private readonly TextBlock pSourcePlaceholderText;
-    private readonly Button pSourceImportButton;
-    private bool pSourceImportAllowed;
-
-    public event Action<string>? PSourceLosslessCutOpen;
 
     public PSource(bool pAudioOnlyAllowed)
     {
@@ -76,15 +72,6 @@ public sealed class PSource : UserControl
             Child = pPathContent
         };
 
-        pSourceImportButton = new Button
-        {
-            Content = PSourceImportIconCreate(),
-            Style = PButton.PButtonSourceCreate(),
-            ToolTip = LLocalization.LLocalizationTextRead("Source.Import.Tooltip"),
-            IsEnabled = false
-        };
-        pSourceImportButton.Click += PSourceImportHandle;
-
         var pBrowseButton = new Button
         {
             Content = PSourceBrowseIconCreate(),
@@ -96,25 +83,14 @@ public sealed class PSource : UserControl
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(8) });
-        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         Grid.SetColumn(pPathBorder, 0);
-        Grid.SetColumn(pSourceImportButton, 2);
-        Grid.SetColumn(pBrowseButton, 4);
+        Grid.SetColumn(pBrowseButton, 2);
         pRow.Children.Add(pPathBorder);
-        pRow.Children.Add(pSourceImportButton);
         pRow.Children.Add(pBrowseButton);
 
         Content = pRow;
 
         PSourcePlaceholderSync();
-    }
-
-    public void PSourceImportSet(bool pImportActive)
-    {
-        pSourceImportAllowed = pImportActive;
-        pSourceImportButton.Visibility = pImportActive ? Visibility.Visible : Visibility.Collapsed;
-        PSourceImportSync();
     }
 
     public void PSourceAttach(PViewer? pViewer)
@@ -129,7 +105,6 @@ public sealed class PSource : UserControl
     private void PSourceMediaHandle(LMediaOpenStatus pMediaStatus)
     {
         pSourcePathBox.Text = pMediaStatus.LMediaOpenSourcePath;
-        PSourceImportSync();
     }
 
     private void PSourceTextChangedHandle(object sender, TextChangedEventArgs e)
@@ -137,19 +112,6 @@ public sealed class PSource : UserControl
         PSourcePlaceholderSync();
     }
 
-
-    private void PSourceImportHandle(object sender, RoutedEventArgs e)
-    {
-        var pDialog = new OpenFileDialog
-        {
-            Title = LLocalization.LLocalizationTextRead("Source.Dialog.Import"),
-            Filter = LLocalization.LLocalizationTextRead("Source.Dialog.LosslessCutFilter")
-        };
-        if (pDialog.ShowDialog() == true)
-        {
-            PSourceLosslessCutOpen?.Invoke(pDialog.FileName);
-        }
-    }
 
     private void PSourceOpenHandle(object sender, RoutedEventArgs e)
     {
@@ -205,11 +167,6 @@ public sealed class PSource : UserControl
         e.Handled = true;
     }
 
-    private void PSourceImportSync()
-    {
-        pSourceImportButton.IsEnabled = pSourceImportAllowed && !string.IsNullOrWhiteSpace(pSourcePathBox.Text);
-    }
-
     private void PSourcePlaceholderSync()
     {
         pSourcePlaceholderText.Visibility = string.IsNullOrWhiteSpace(pSourcePathBox.Text)
@@ -226,17 +183,6 @@ public sealed class PSource : UserControl
             Margin = new Thickness(0, 0, 10, 0),
             Stretch = Stretch.Uniform,
             Source = PIcon.PIconRead("/PAssets/PPanels/PVideo.svg")
-        };
-    }
-
-    private static Image PSourceImportIconCreate()
-    {
-        return new Image
-        {
-            Width = PSourceBrowseIconSize,
-            Height = PSourceBrowseIconSize,
-            Stretch = Stretch.Uniform,
-            Source = PIcon.PIconRead("/PAssets/PPanels/PExportImport.svg")
         };
     }
 
