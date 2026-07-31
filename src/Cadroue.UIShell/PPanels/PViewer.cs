@@ -88,9 +88,15 @@ public sealed partial class PViewer : PPanel
         pViewerOverlay.MouseLeftButtonUp += PCropReleaseHandle;
         pViewerOverlay.SizeChanged += PCropSizeHandle;
 
+        pViewerCloseButton = PViewerCloseBuild();
+
+        var pViewerOverlayHost = new Grid();
+        pViewerOverlayHost.Children.Add(pViewerOverlay);
+        pViewerOverlayHost.Children.Add(pViewerCloseButton);
+
         pViewerFlyleafHost = new FlyleafHost
         {
-            Content = pViewerOverlay,
+            Content = pViewerOverlayHost,
             VideoBackground = Brushes.White,
             ToggleFullScreenOnDoubleClick = AvailableWindows.None,
             AttachedDragMove = AttachedDragMoveOptions.None,
@@ -110,12 +116,7 @@ public sealed partial class PViewer : PPanel
             SnapsToDevicePixels = true
         };
 
-        pViewerCloseButton = PViewerCloseBuild();
-
-        var pViewerRoot = new Grid();
-        pViewerRoot.Children.Add(pViewerSurface);
-        pViewerRoot.Children.Add(pViewerCloseButton);
-        Content = pViewerRoot;
+        Content = pViewerSurface;
 
         PDropHandlersAdd();
 

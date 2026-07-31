@@ -20,7 +20,7 @@ public static partial class LMerge
         foreach (PGroup.PGroupSelection lMergeGroup in lMergeGroups)
         {
             string[] lMergeSources = lMergeGroup.PGroupSelectionPaths.Where(File.Exists).ToArray();
-            if (lMergeSources.Length == 0)
+            if (lMergeSources.Length < 2)
             {
                 continue;
             }
@@ -44,7 +44,7 @@ public static partial class LMerge
 
         if (lMergeItems.Count == 0)
         {
-            LTraceLog.LTraceErrorRecord("Merge not queued: no group holds any existing file");
+            LTraceLog.LTraceErrorRecord("Merge not queued: no group holds two or more existing files");
             return 0;
         }
 
