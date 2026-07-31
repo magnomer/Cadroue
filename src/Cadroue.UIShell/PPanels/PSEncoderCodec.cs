@@ -31,10 +31,58 @@ internal sealed partial class PSEncoder
         ("AVS2, xavs2 / libxavs2", ["libxavs2"]), ("APV, OpenAPV / liboapv", ["liboapv"])
     ];
 
+    private static readonly string[] PSCodecContainerNames =
+        ["MP4", "Matroska", "MOV", "WebM", "AVI", "MPEG-TS", "FLV", "Ogg"];
+
+    private static readonly Dictionary<string, string[]> PSCodecContainerTable = new(StringComparer.Ordinal)
+    {
+        ["H.264"] = ["MP4", "Matroska", "MOV", "AVI", "MPEG-TS", "FLV"],
+        ["H.265"] = ["MP4", "Matroska", "MOV", "MPEG-TS"],
+        ["H.266/VVC"] = ["Matroska", "MPEG-TS"],
+        ["AV1"] = ["MP4", "Matroska", "MOV", "WebM"],
+        ["VP8"] = ["Matroska", "WebM"],
+        ["VP9"] = ["MP4", "Matroska", "WebM"],
+        ["MPEG-4 Part 2"] = ["MP4", "Matroska", "MOV", "AVI"],
+        ["Theora"] = ["Matroska", "Ogg"],
+        ["ProRes"] = ["Matroska", "MOV"],
+        ["FFV1"] = ["Matroska", "AVI"],
+        ["MJPEG"] = ["MP4", "Matroska", "MOV", "AVI"],
+        ["JPEG 2000"] = ["Matroska", "MOV", "AVI"],
+        ["EVC"] = ["MP4", "Matroska"],
+        ["AVS2"] = ["Matroska"],
+        ["APV"] = ["MP4", "Matroska"]
+    };
+
     private UIElement PSModePlateBuild() => PSPlateBuild(PSFieldBuild(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), psModeCombo));
 
     private static string[] PSCodecItemsRead() =>
         PSCodecCandidates.Select(pCandidate => pCandidate.PSCodecText).ToArray();
+
+    private static string[] PSCodecItemsRead(string pContainer)
+    {
+        if (!PSCodecContainerNames.Contains(pContainer))
+        {
+            return PSCodecItemsRead();
+        }
+
+        return PSCodecCandidates
+            .Where(pCandidate => PSCodecContainerCheck(pCandidate.PSCodecText, pContainer))
+            .Select(pCandidate => pCandidate.PSCodecText)
+            .ToArray();
+    }
+
+    private static bool PSCodecContainerCheck(string pText, string pContainer) =>
+        PSCodecContainerTable.TryGetValue(pText.Split(',')[0].Trim(), out string[]? pContainers)
+        && pContainers.Contains(pContainer);
+
+    private void PSCodecContainerHandle()
+    {
+        string pContainer = PSComboTextRead(psOutputContainerCombo);
+        string pCurrent = psVideoEncoderCombo.SelectedItem as string ?? string.Empty;
+        string[] pItems = PSCodecItemsRead(pContainer);
+        psVideoEncoderCombo.ItemsSource = pItems;
+        psVideoEncoderCombo.SelectedItem = pItems.Contains(pCurrent) ? pCurrent : pItems.FirstOrDefault();
+    }
 
     private static string PSCodecValueRead(string pText)
     {

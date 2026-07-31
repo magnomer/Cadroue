@@ -59,6 +59,7 @@ public sealed class LPreset
     public string LPresetName { get; set; } = "MP4_H264_AAC_Default";
     public string LPresetDisplay { get; set; } = "{OriginalName}_export";
     public string LPresetContainer { get; set; } = "MP4";
+    public string LPresetExtension { get; set; } = "mp4";
     public string LPresetExportMode { get; set; } = "Smart export";
     public string LPresetVideoStream { get; set; } = "Include";
     public string LPresetAudioStream { get; set; } = "Include first audio track";
@@ -120,6 +121,7 @@ public sealed class LPreset
         LPresetName = LPresetName,
         LPresetDisplay = LPresetDisplay,
         LPresetContainer = LPresetContainer,
+        LPresetExtension = LPresetExtension,
         LPresetExportMode = LPresetExportMode,
         LPresetVideoStream = LPresetVideoStream,
         LPresetAudioStream = LPresetAudioStream,
@@ -168,6 +170,7 @@ public sealed class LPreset
         LPresetName = lSource.LPresetName;
         LPresetDisplay = lSource.LPresetDisplay;
         LPresetContainer = lSource.LPresetContainer;
+        LPresetExtension = lSource.LPresetExtension;
         LPresetExportMode = lSource.LPresetExportMode;
         LPresetVideoStream = lSource.LPresetVideoStream;
         LPresetAudioStream = lSource.LPresetAudioStream;
@@ -222,6 +225,7 @@ public sealed class LPreset
 
         return string.Equals(lPreset.LPresetDisplay, lSource.LPresetDisplay, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetContainer, lSource.LPresetContainer, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetExtension, lSource.LPresetExtension, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetExportMode, lSource.LPresetExportMode, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetVideoStream, lSource.LPresetVideoStream, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetAudioStream, lSource.LPresetAudioStream, StringComparison.Ordinal)
@@ -441,6 +445,7 @@ public sealed class LPreset
         LPresetName = LPresetAudioDefault,
         LPresetDisplay = "{OriginalName}",
         LPresetContainer = "Same as source",
+        LPresetExtension = "",
         LPresetExportMode = "Smart export",
         LPresetVideoStream = "Include",
         LPresetAudioStream = "Include first audio track",
@@ -471,6 +476,7 @@ public sealed class LPreset
         LPresetName = LPresetSplitDefault,
         LPresetDisplay = "{OriginalName} ({SectionNumber}) {Prefix}{SectionName}{Suffix}",
         LPresetContainer = "Same as source",
+        LPresetExtension = "",
         LPresetExportMode = "Smart export",
         LPresetVideoStream = "Include",
         LPresetAudioStream = "Include first audio track",
@@ -501,6 +507,7 @@ public sealed class LPreset
         LPresetName = LPresetMergeDefault,
         LPresetDisplay = "{OriginalName}",
         LPresetContainer = "Same as source",
+        LPresetExtension = "",
         LPresetExportMode = "Smart export",
         LPresetVideoStream = "Include",
         LPresetAudioStream = "Include first audio track",
@@ -533,18 +540,18 @@ public sealed class LPreset
         _ => LPresetAudioStream
     };
 
-    private string LPresetExtension => LPresetContainer switch
+    private static readonly Dictionary<string, string[]> LPresetExtensionTable = new(StringComparer.Ordinal)
     {
-        "Same as source" => "",
-        "MP4" => "mp4",
-        "Matroska" => "mkv",
-        "MOV" => "mov",
-        "WebM" => "webm",
-        "M4A" => "m4a",
-        "MP3" => "mp3",
-        "WAV" => "wav",
-        "FLAC" => "flac",
-        "OGG" => "ogg",
-        _ => ""
+        ["MP4"] = ["mp4", "m4v"],
+        ["Matroska"] = ["mkv"],
+        ["MOV"] = ["mov"],
+        ["WebM"] = ["webm"],
+        ["AVI"] = ["avi"],
+        ["MPEG-TS"] = ["ts", "m2ts", "mts"],
+        ["FLV"] = ["flv", "f4v"],
+        ["Ogg"] = ["ogv"]
     };
+
+    public static IReadOnlyList<string> LPresetExtensionsRead(string lContainer) =>
+        LPresetExtensionTable.TryGetValue(lContainer, out string[]? lExtensions) ? lExtensions : [];
 }

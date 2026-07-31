@@ -32,6 +32,7 @@ internal sealed partial class PSEncoder : Window
     private readonly System.Action psEncoderSummary;
     private readonly PToken psNameBox;
     private readonly ComboBox psOutputContainerCombo;
+    private readonly ComboBox psOutputExtensionCombo;
     private readonly ComboBox psModeCombo;
     private readonly ComboBox psVideoStreamCombo;
     private readonly ComboBox psAudioStreamCombo;
@@ -82,12 +83,11 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Matroska", "Encoder.Container.Matroska"),
             new LLocalizationChoice("MOV", "Encoder.Container.MOV"),
             new LLocalizationChoice("WebM", "Encoder.Container.WebM"),
-            new LLocalizationChoice("M4A", "Encoder.Container.M4A"),
-            new LLocalizationChoice("MP3", "Encoder.Container.MP3"),
-            new LLocalizationChoice("WAV", "Encoder.Container.WAV"),
-            new LLocalizationChoice("FLAC", "Encoder.Container.FLAC"),
-            new LLocalizationChoice("OGG", "Encoder.Container.OGG"),
-            new LLocalizationChoice("All FFmpeg formats...", "Encoder.Format.All"));
+            new LLocalizationChoice("AVI", "Encoder.Container.AVI"),
+            new LLocalizationChoice("MPEG-TS", "Encoder.Container.TS"),
+            new LLocalizationChoice("FLV", "Encoder.Container.FLV"),
+            new LLocalizationChoice("Ogg", "Encoder.Container.Ogg"));
+        psOutputExtensionCombo = PSComboBuild(lsExportSpecificEdit.LPresetExtension, PSOutputExtensionRead(lsExportSpecificEdit.LPresetContainer));
         psModeCombo = PSComboBuild(lsExportSpecificEdit.LPresetExportMode,
             new LLocalizationChoice("Smart export", "Encoder.Mode.Smart"),
             new LLocalizationChoice("Remux only", "Encoder.Mode.Remux"),
@@ -110,7 +110,7 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Encode", "Encoder.Codec.Encode"),
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
 
-        psVideoEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideoEncoder, PSCodecItemsRead());
+        psVideoEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideoEncoder, PSCodecItemsRead(lsExportSpecificEdit.LPresetContainer));
         LCapabilityCodec pVideoCodec = LCapability.LCapabilityRead(PSCodecValueRead(PSComboTextRead(psVideoEncoderCombo)));
         psVideoRateCombo = PSComboBuild(lsExportSpecificEdit.LPresetRateControl, pVideoCodec.LCapabilityModeLabels);
         psVideoRowsPanel = new StackPanel();
@@ -215,6 +215,7 @@ internal sealed partial class PSEncoder : Window
     {
         lsExportSpecificEdit.LPresetDisplay = string.IsNullOrWhiteSpace(psNameBox.PTokenText) ? "{OriginalName}_export" : psNameBox.PTokenText.Trim();
         lsExportSpecificEdit.LPresetContainer = PSComboTextRead(psOutputContainerCombo);
+        lsExportSpecificEdit.LPresetExtension = PSComboTextRead(psOutputExtensionCombo);
         lsExportSpecificEdit.LPresetExportMode = PSComboTextRead(psModeCombo);
         lsExportSpecificEdit.LPresetVideoStream = PSComboTextRead(psVideoStreamCombo);
         lsExportSpecificEdit.LPresetAudioStream = PSComboTextRead(psAudioStreamCombo);

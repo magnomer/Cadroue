@@ -29,9 +29,35 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
         pPanel.Children.Add(psLocationFolderRow);
+        psOutputContainerCombo.SelectionChanged += (_, _) => PSOutputContainerHandle();
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"), psOutputContainerCombo));
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Extension"), psOutputExtensionCombo));
         PSLocationFolderUpdate();
         return PSPlateBuild(pPanel);
+    }
+
+    private static LLocalizationChoice[] PSOutputExtensionRead(string pContainer)
+    {
+        IReadOnlyList<string> pExtensions = LPreset.LPresetExtensionsRead(pContainer);
+        return pExtensions.Count == 0
+            ? [new LLocalizationChoice(string.Empty, "Encoder.Location.Source")]
+            : pExtensions.Select(pExtension => new LLocalizationChoice(pExtension)).ToArray();
+    }
+
+    private void PSOutputExtensionUpdate()
+    {
+        string pCurrent = PSComboTextRead(psOutputExtensionCombo);
+        LLocalizationChoice[] pChoices = PSOutputExtensionRead(PSComboTextRead(psOutputContainerCombo));
+        psOutputExtensionCombo.ItemsSource = pChoices;
+        psOutputExtensionCombo.SelectedItem = pChoices.FirstOrDefault(
+            pChoice => string.Equals(pChoice.LLocalizationChoiceToken, pCurrent, StringComparison.Ordinal))
+            ?? pChoices.FirstOrDefault();
+    }
+
+    private void PSOutputContainerHandle()
+    {
+        PSOutputExtensionUpdate();
+        PSCodecContainerHandle();
     }
 
     private void PSNameBoxPrepare()

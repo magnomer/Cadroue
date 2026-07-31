@@ -68,6 +68,7 @@ public sealed class LPresetRecord
     public string LPresetName { get; set; } = "MP4_H264_AAC_Default";
     public string LPresetDisplay { get; set; } = "OriginalName_export";
     public string LPresetContainer { get; set; } = "MP4";
+    public string LPresetExtension { get; set; } = string.Empty;
     public string LPresetExportMode { get; set; } = "Smart export";
     public string LPresetVideoStream { get; set; } = "Include";
     public string LPresetAudioStream { get; set; } = "Include first audio track";
@@ -95,6 +96,7 @@ public sealed class LPresetRecord
         LPresetName = lState.LPresetName,
         LPresetDisplay = lState.LPresetDisplay,
         LPresetContainer = lState.LPresetContainer,
+        LPresetExtension = lState.LPresetExtension,
         LPresetExportMode = lState.LPresetExportMode,
         LPresetVideoStream = lState.LPresetVideoStream,
         LPresetAudioStream = lState.LPresetAudioStream,
@@ -122,6 +124,9 @@ public sealed class LPresetRecord
         LPresetName = LPresetName,
         LPresetDisplay = LPresetDisplay,
         LPresetContainer = LPresetContainer,
+        LPresetExtension = string.IsNullOrEmpty(LPresetExtension)
+            ? LPreset.LPresetExtensionsRead(LPresetContainer).FirstOrDefault() ?? string.Empty
+            : LPresetExtension,
         LPresetExportMode = LPresetExportMode,
         LPresetVideoStream = LPresetVideoStream,
         LPresetAudioStream = LPresetAudioStream,
