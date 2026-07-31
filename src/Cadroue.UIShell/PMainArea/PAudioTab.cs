@@ -54,7 +54,7 @@ public sealed class PAudioTab : PTabSurface
             PAudioPlanSave();
             LAudio.LAudioAllDescribe(
                 LWorkPriority.LWorkPriorityNormal,
-                pList.PListPathsRead(),
+                pList.PListItemsRead(),
                 lExportSpecificState,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
@@ -63,6 +63,7 @@ public sealed class PAudioTab : PTabSurface
             true,
             LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
         pList.PListPathChange += PAudioPathShow;
+        pList.PListItemsAdd += PAudioItemsHandle;
         PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
@@ -107,6 +108,21 @@ public sealed class PAudioTab : PTabSurface
         LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
         foreach (string pAudioPath in pList.PListPathsRead())
         {
+            LAudio.LAudioPlanSave(pAudioPath, LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath), pAudioPersistent));
+        }
+    }
+
+    private void PAudioItemsHandle(IReadOnlyList<PListItem> pAudioAddedItems)
+    {
+        if (pAudioPlanLoading || !pInspector.PInspectorPersistentCheck())
+        {
+            return;
+        }
+
+        LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
+        foreach (PListItem pAudioAddedItem in pAudioAddedItems)
+        {
+            string pAudioPath = pAudioAddedItem.PListItemPath;
             LAudio.LAudioPlanSave(pAudioPath, LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath), pAudioPersistent));
         }
     }

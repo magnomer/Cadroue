@@ -24,10 +24,10 @@ public sealed class PFunnelTab : PTabSurface
 
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += _ => PFunnelDistribute(pList.PListCurrentRead() is { } pSelected
+        pAction.PActionRun += _ => PFunnelDistribute(pList.PListCurrentItemRead() is { } pSelected
             ? new[] { pSelected }
-            : Array.Empty<string>());
-        pAction.PActionAllAdd += () => PFunnelDistribute(pList.PListPathsRead());
+            : Array.Empty<PListItem>());
+        pAction.PActionAllAdd += () => PFunnelDistribute(pList.PListItemsRead());
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
 
@@ -46,17 +46,18 @@ public sealed class PFunnelTab : PTabSurface
     public void PFunnelTargetsResolve(IReadOnlyList<PTabRecord> pTabRecords) =>
         pFunnelRules.PFunnelTargetsResolve(pTabRecords);
 
-    private void PFunnelDistribute(IReadOnlyList<string> pPaths)
+    private void PFunnelDistribute(IReadOnlyList<PListItem> pItems)
     {
-        if (pPaths.Count == 0 || LTabset.LTabsetCurrent is not { } lTabset)
+        if (pItems.Count == 0 || LTabset.LTabsetCurrent is not { } lTabset)
         {
             return;
         }
 
         var pRelayedPaths = new List<string>();
-        foreach (string pPath in pPaths)
+        var pRelayedTargets = new HashSet<Guid>();
+        foreach (PListItem pItem in pItems)
         {
-            string pFileName = Path.GetFileName(pPath);
+            string pFileName = Path.GetFileName(pItem.PListItemPath);
             foreach (PFunnelRuleRow pRow in pFunnelRules.PFunnelRulesRead())
             {
                 if (!pRow.PFunnelRowMatch(pFileName) || pRow.PFunnelRowTargetId == Guid.Empty)
@@ -68,8 +69,9 @@ public sealed class PFunnelTab : PTabSurface
                     .FirstOrDefault(pRecord => pRecord.PTabId == pRow.PFunnelRowTargetId);
                 if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList is { } pTargetList)
                 {
-                    pTargetList.PListPathsAdd(new[] { pPath });
-                    pRelayedPaths.Add(pPath);
+                    pTargetList.PListPathsAdd(new[] { pItem.PListItemPath }, pItem.PListItemRelay);
+                    pRelayedPaths.Add(pItem.PListItemPath);
+                    pRelayedTargets.Add(pRow.PFunnelRowTargetId);
                 }
 
                 break;
@@ -81,8 +83,13 @@ public sealed class PFunnelTab : PTabSurface
             pList.PListPathsRemove(pRelayedPaths);
         }
 
+        foreach (Guid pRelayedTarget in pRelayedTargets)
+        {
+            LCourier.LCourierAutoRelay(pRelayedTarget);
+        }
+
         LTraceLog.LTraceInfoRecord(
-            $"Funnel relayed {pRelayedPaths.Count} of {pPaths.Count} file(s) by filename rule");
+            $"Funnel relayed {pRelayedPaths.Count} of {pItems.Count} file(s) by filename rule");
     }
 
     private IReadOnlyList<LCourierOption> PFunnelTargetsRead()

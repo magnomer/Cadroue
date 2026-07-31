@@ -11,10 +11,11 @@ public static partial class LMerge
         IReadOnlyList<PGroup.PGroupSelection> lMergeGroups,
         LWorkOutput lMergeOutput,
         Guid lMergeRelayTarget = default,
-        Guid lMergeRelaySource = default)
+        Guid lMergeRelaySource = default,
+        IReadOnlyDictionary<string, Guid>? lMergeRelays = null)
     {
         DateTimeOffset lMergeStamp = DateTimeOffset.Now;
-        Guid lMergeBatchId = Guid.NewGuid();
+        Guid lMergeLooseBatch = Guid.NewGuid();
         var lMergeTakenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lMergeItems = new List<LWorkItem>();
 
@@ -29,9 +30,10 @@ public static partial class LMerge
             string lMergeBasePath = lMergeSources[0];
             string lMergeFolder = lMergeOutput.LWorkFolderRead(lMergeBasePath);
             string lMergeName = LMergeNameCreate(lMergeOutput, lMergeBasePath, lMergeGroup.PGroupSelectionName, lMergeStamp, lMergeTakenNames);
+            Guid lMergeBatch = LMergeBatchResolve(lMergeSources, lMergeRelays, lMergeLooseBatch);
 
             lMergeItems.Add(new LWorkItem(
-                lMergeBatchId,
+                lMergeBatch,
                 LWorkKind.LWorkKindMerge,
                 lWorkPriority,
                 lMergeBasePath,
@@ -50,13 +52,33 @@ public static partial class LMerge
         }
 
         int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lMergeItems, lMergeRelayTarget, lMergeRelaySource);
-        LTraceLog.LTraceInfoRecord($"Merge queued {lMergeAdded} group(s) at {lWorkPriority} [batch {lMergeBatchId:N}]");
+        LTraceLog.LTraceInfoRecord($"Merge queued {lMergeAdded} group(s) at {lWorkPriority}");
         foreach (LWorkItem lMergeItem in lMergeItems)
         {
-            LTraceLog.LTraceInfoRecord($"Merge job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s)");
+            LTraceLog.LTraceInfoRecord(
+                $"Merge job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s) [batch {lMergeItem.LWorkBatchId:N}]");
         }
 
         return lMergeAdded;
+    }
+
+    private static Guid LMergeBatchResolve(
+        IReadOnlyList<string> lMergeSources,
+        IReadOnlyDictionary<string, Guid>? lMergeRelays,
+        Guid lMergeLooseBatch)
+    {
+        if (lMergeRelays is not null)
+        {
+            foreach (string lMergeSource in lMergeSources)
+            {
+                if (lMergeRelays.TryGetValue(lMergeSource, out Guid lMergeRelay) && lMergeRelay != Guid.Empty)
+                {
+                    return lMergeRelay;
+                }
+            }
+        }
+
+        return lMergeLooseBatch;
     }
 
     private static string LMergeNameCreate(

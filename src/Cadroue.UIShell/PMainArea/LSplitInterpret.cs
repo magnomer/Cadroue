@@ -10,7 +10,8 @@ public static partial class LSplit
         LWorkPriority lWorkPriority,
         LSplitWorkDescription lSplitWorkDescription,
         Guid lSplitRelayTarget = default,
-        Guid lSplitRelaySource = default)
+        Guid lSplitRelaySource = default,
+        Guid lSplitBatchId = default)
     {
         string? lSplitSourcePath = lSplitWorkDescription.LSplitSourcePath;
         if (string.IsNullOrWhiteSpace(lSplitSourcePath))
@@ -29,7 +30,7 @@ public static partial class LSplit
         string lSplitSourceStem = Path.GetFileNameWithoutExtension(lSplitSourcePath);
         string lSplitFolder = lSplitOutput.LWorkFolderRead(lSplitSourcePath);
         DateTimeOffset lSplitStamp = DateTimeOffset.Now;
-        Guid lSplitBatchId = Guid.NewGuid();
+        Guid lSplitBatch = lSplitBatchId != Guid.Empty ? lSplitBatchId : Guid.NewGuid();
 
         var lSplitTakenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lSplitWorkItems = new List<LWorkItem>();
@@ -60,7 +61,7 @@ public static partial class LSplit
                 lSplitTakenNames);
 
             lSplitWorkItems.Add(new LWorkItem(
-                lSplitBatchId,
+                lSplitBatch,
                 LWorkKind.LWorkKindSplit,
                 lWorkPriority,
                 lSplitSourcePath,
@@ -85,7 +86,7 @@ public static partial class LSplit
         int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems, lSplitRelayTarget, lSplitRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lSplitAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +
-            $"into '{lSplitFolder}' [batch {lSplitBatchId:N}]");
+            $"into '{lSplitFolder}' [batch {lSplitBatch:N}]");
         foreach (LWorkItem lSplitItem in lSplitWorkItems)
         {
             LTraceLog.LTraceInfoRecord(

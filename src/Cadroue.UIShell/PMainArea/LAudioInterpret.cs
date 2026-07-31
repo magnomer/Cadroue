@@ -11,7 +11,8 @@ public static partial class LAudio
         LWorkAudio lAudioProcessing,
         LWorkOutput lAudioOutput,
         Guid lAudioRelayTarget = default,
-        Guid lAudioRelaySource = default)
+        Guid lAudioRelaySource = default,
+        Guid lAudioBatchId = default)
     {
         if (string.IsNullOrWhiteSpace(lAudioSourcePath))
         {
@@ -21,10 +22,10 @@ public static partial class LAudio
 
         string lAudioFolder = lAudioOutput.LWorkFolderRead(lAudioSourcePath);
         string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
-        Guid lAudioBatchId = Guid.NewGuid();
+        Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : Guid.NewGuid();
 
         var lAudioItem = new LWorkItem(
-            lAudioBatchId,
+            lAudioBatch,
             LWorkKind.LWorkKindAudio,
             lWorkPriority,
             lAudioSourcePath,

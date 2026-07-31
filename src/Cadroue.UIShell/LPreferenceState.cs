@@ -257,6 +257,8 @@ public sealed class LPreferenceTabLayoutRecord
 
     public bool LPreferenceGroupStrict { get; set; } = true;
 
+    public bool LPreferenceAutoRelay { get; set; }
+
     public LPreferenceTabLayoutRecord LPreferenceLayoutClone()
     {
         return new LPreferenceTabLayoutRecord
@@ -267,7 +269,8 @@ public sealed class LPreferenceTabLayoutRecord
             LPreferenceFunnelRules = LPreferenceFunnelRules.Select(pRule => pRule.LPreferenceFunnelRuleClone()).ToList(),
             LPreferenceInspectorPersistent = LPreferenceInspectorPersistent?.LPreferenceInspectorClone(),
             LPreferenceGroupAuto = LPreferenceGroupAuto,
-            LPreferenceGroupStrict = LPreferenceGroupStrict
+            LPreferenceGroupStrict = LPreferenceGroupStrict,
+            LPreferenceAutoRelay = LPreferenceAutoRelay
         };
     }
 }

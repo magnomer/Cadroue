@@ -127,6 +127,12 @@ public abstract class PTabSurface : UserControl
         pGrid.Children.Add(pPanelGrid);
         PTabGridState pTabState = PTabGridState.PTabStateCreate(
             pPanelLayout, pPanels, pColumnItems, pSplitterColumnDefinitions, pSplitterElements);
+        if (pAction is PAction pTabAction)
+        {
+            pTabState.PTabAction = pTabAction;
+            pTabAction.PActionAutoApply(lPreferenceTabLayout?.LPreferenceAutoRelay ?? false);
+        }
+
         pGrid.Tag = pTabState;
         if (lPreferenceTabLayout?.LPreferenceExportHidden == true)
         {
@@ -185,6 +191,7 @@ public abstract class PTabSurface : UserControl
         }
 
         lPreferenceTabLayout.LPreferenceExportHidden = pState.PExportHidden;
+        lPreferenceTabLayout.LPreferenceAutoRelay = pState.PTabAction?.PActionAutoRelay ?? false;
         for (int index = 0; index < pState.PTabPanels.Count; index++)
         {
             if (PTabCollapseCheck(pState.PTabPanels[index]))
@@ -236,6 +243,8 @@ public abstract class PTabSurface : UserControl
         public PColumn PTabLayout { get; }
 
         public IReadOnlyList<UIElement> PTabPanels { get; }
+
+        public PAction? PTabAction { get; set; }
 
         public static PTabGridState PTabStateCreate(
             PColumn pTabLayout,

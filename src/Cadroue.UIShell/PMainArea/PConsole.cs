@@ -5,6 +5,7 @@ using Cadroue.Core;
 using Cadroue.ShellEngine;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
+using Cadroue.UIShell.PSShared;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -20,6 +21,9 @@ public sealed partial class PConsole : UserControl
     private readonly Button pConsolePreviousButton;
     private readonly Button pConsoleNextButton;
     private readonly CheckBox pConsoleAutoBox;
+    private readonly ComboBox pConsoleRelayCombo;
+    private readonly Button pConsoleOpenButton;
+    private readonly Button pConsoleSaveButton;
     private readonly TextBlock pConsoleStationLabel;
     private readonly ProgressBar pConsoleProgress;
     private readonly TextBlock pConsoleStatus;
@@ -64,6 +68,9 @@ public sealed partial class PConsole : UserControl
             LLocalization.LLocalizationTextRead("Console.Button.ClearTabs"), "PConsoleClearTabs.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearTabsTooltip"),
             null, PConsoleTabsHandle);
         pConsoleAutoBox = PConsoleAutoBuild();
+        pConsoleRelayCombo = PConsoleComboBuild();
+        pConsoleOpenButton = PConsoleInlineBuild(LLocalization.LLocalizationTextRead("Console.Relay.Open"));
+        pConsoleSaveButton = PConsoleInlineBuild(LLocalization.LLocalizationTextRead("Console.Relay.Save"));
         pConsolePreviousButton = PConsoleSwitchBuild(
             "PConsolePrevious.svg", LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"), PConsolePreviousHandle);
         pConsoleNextButton = PConsoleSwitchBuild(
@@ -104,16 +111,22 @@ public sealed partial class PConsole : UserControl
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        var pAutoRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pAutoRow.Children.Add(pConsoleAutoBox);
+        pAutoRow.Children.Add(pConsoleRelayCombo);
+        pAutoRow.Children.Add(pConsoleOpenButton);
+        pAutoRow.Children.Add(pConsoleSaveButton);
+
         Grid.SetColumn(pButtons, 0);
         Grid.SetColumn(pConsoleStatus, 1);
         Grid.SetColumn(pConsoleStationLabel, 2);
-        Grid.SetColumn(pConsoleAutoBox, 3);
+        Grid.SetColumn(pAutoRow, 3);
         pConsoleStatus.Margin = new Thickness(16, 0, 12, 0);
         pConsoleStationLabel.Margin = new Thickness(0, 0, 4, 0);
         pRow.Children.Add(pButtons);
         pRow.Children.Add(pConsoleStatus);
         pRow.Children.Add(pConsoleStationLabel);
-        pRow.Children.Add(pConsoleAutoBox);
+        pRow.Children.Add(pAutoRow);
 
         var pStack = new StackPanel();
         pStack.Children.Add(pRow);
@@ -159,6 +172,32 @@ public sealed partial class PConsole : UserControl
         pAutoBox.Checked += PConsoleAutoHandle;
         pAutoBox.Unchecked += PConsoleAutoHandle;
         return pAutoBox;
+    }
+
+    private static ComboBox PConsoleComboBuild()
+    {
+        var pRelayCombo = new ComboBox
+        {
+            Width = 180,
+            Height = PSField.PSFieldControlHeight,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        PDropdown.PDropdownEditableApply(pRelayCombo);
+        return pRelayCombo;
+    }
+
+    private static Button PConsoleInlineBuild(string pLabel)
+    {
+        return new Button
+        {
+            Content = pLabel,
+            MinWidth = 64,
+            Height = PSField.PSFieldControlHeight,
+            Margin = new Thickness(0, 0, 8, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Style = PButton.PButtonWhiteCreate()
+        };
     }
 
     private static Button PConsoleSwitchBuild(string pIconName, string pTooltip, RoutedEventHandler pClick)

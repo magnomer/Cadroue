@@ -16,6 +16,7 @@ public sealed class PAction : UserControl
     private static readonly Brush pActionHoverLine = new SolidColorBrush(Color.FromRgb(0xD5, 0xE0, 0xED));
     private readonly Button pActionAllButton;
     private readonly Button pActionRelayButton;
+    private readonly CheckBox pActionAutoBox;
     private readonly Image pActionRelayIcon;
     private readonly TextBlock pActionRelayLabel;
 
@@ -41,13 +42,16 @@ public sealed class PAction : UserControl
         pActionRelayIcon = PActionIconBuild();
         pActionRelayLabel = PActionLabelBuild();
         pActionRelayButton = PActionRelayBuild();
+        pActionAutoBox = PActionAutoBuild();
         pPanel.Children.Add(pAddListButton);
         pPanel.Children.Add(new Border { Width = 2 });
         pPanel.Children.Add(pActionAllButton);
-        pPanel.Children.Add(new Border { Width = 8 });
-        pPanel.Children.Add(pActionRelayButton);
-        pPanel.Children.Add(new Border { Width = 8 });
+        pPanel.Children.Add(new Border { Width = 2 });
         pPanel.Children.Add(pExecuteButton);
+        pPanel.Children.Add(new Border { Width = 12 });
+        pPanel.Children.Add(pActionRelayButton);
+        pPanel.Children.Add(new Border { Width = 6 });
+        pPanel.Children.Add(pActionAutoBox);
         Content = new Border { Child = pPanel };
     }
 
@@ -60,6 +64,32 @@ public sealed class PAction : UserControl
     public void PActionRelayHide()
     {
         pActionRelayButton.Visibility = Visibility.Collapsed;
+    }
+
+    public bool PActionAutoRelay => pActionAutoBox.IsChecked == true;
+
+    public void PActionAutoApply(bool pActionAutoRelay)
+    {
+        pActionAutoBox.IsChecked = pActionAutoRelay;
+    }
+
+    public void PActionAllRun() => PActionAllAdd?.Invoke();
+
+    private CheckBox PActionAutoBuild()
+    {
+        var pAutoBox = new CheckBox
+        {
+            Content = LLocalization.LLocalizationTextRead("Action.AutoRelay.Label"),
+            FontSize = 12,
+            Foreground = pActionRelayText,
+            VerticalAlignment = VerticalAlignment.Center,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 6, 0),
+            FocusVisualStyle = null,
+            ToolTip = LLocalization.LLocalizationTextRead("Action.AutoRelay.Tooltip")
+        };
+        PMainWindow.PCheckbox.PCheckboxApply(pAutoBox);
+        return pAutoBox;
     }
 
     public void PActionRelayApply(Guid pActionRelayTarget)

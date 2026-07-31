@@ -45,33 +45,39 @@ public static partial class LEdit
 
     public static async Task<int> LEditAllDescribe(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<string> lEditSourcePaths,
+        IReadOnlyList<PListItem> lEditSources,
         LPreset lExportSpecificState,
         Guid lEditRelayTarget = default,
         Guid lEditRelaySource = default)
     {
         LWorkOutput lEditOutput = lExportSpecificState.LPresetOutputCreate();
         var lEditWorkItems = new List<LWorkItem>();
+        Guid lEditLooseBatch = Guid.NewGuid();
 
-        foreach (string lEditSourcePath in lEditSourcePaths)
+        foreach (PListItem lEditSource in lEditSources)
         {
+            string lEditSourcePath = lEditSource.PListItemPath;
             if (LEditPlanRead(lEditSourcePath) is not { LEditPlanActive: true } lEditPlan)
             {
                 continue;
             }
 
+            Guid lEditBatch = lEditSource.PListItemRelay != Guid.Empty
+                ? lEditSource.PListItemRelay
+                : lEditLooseBatch;
             lEditWorkItems.Add(LEditWorkCreate(
                 lWorkPriority,
                 lEditSourcePath,
                 Cadroue.Media.LSidecarStore.LSidecarDurationRead(lEditSourcePath),
                 lEditPlan.LEditSkip ? LWorkCrop.LWorkCropCreate() : lEditPlan.LEditCrop,
                 lEditPlan.LEditSkip ? LWorkVideo.LWorkVideoCreate() : lEditPlan.LEditVideo,
-                lEditOutput));
+                lEditOutput,
+                lEditBatch));
         }
 
         int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lEditWorkItems, lEditRelayTarget, lEditRelaySource);
         LTraceLog.LTraceInfoRecord(
-            $"Edit Add All: {lEditSourcePaths.Count} listed, {lEditAdded} queued from saved plans");
+            $"Edit Add All: {lEditSources.Count} listed, {lEditAdded} queued from saved plans");
 
         await LEditDurationResolve(lEditWorkItems).ConfigureAwait(true);
         return lEditAdded;

@@ -35,7 +35,7 @@ public sealed class PEditTab : PTabSurface
 
         pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListPathsRead(),
+            pList.PListItemsRead(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
@@ -66,6 +66,7 @@ public sealed class PEditTab : PTabSurface
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
         pList.PListPathChange += PEditPathShow;
+        pList.PListItemsAdd += PEditItemsHandle;
         PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
@@ -123,6 +124,20 @@ public sealed class PEditTab : PTabSurface
 
         foreach (string pEditPath in pList.PListPathsRead())
         {
+            LEdit.LEditPlanSave(pEditPath, LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath), pEditCarried));
+        }
+    }
+
+    private void PEditItemsHandle(IReadOnlyList<PListItem> pEditAddedItems)
+    {
+        if (pEditPlanLoading || PEditCarriedRead() is not { } pEditCarried)
+        {
+            return;
+        }
+
+        foreach (PListItem pEditAddedItem in pEditAddedItems)
+        {
+            string pEditPath = pEditAddedItem.PListItemPath;
             LEdit.LEditPlanSave(pEditPath, LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath), pEditCarried));
         }
     }

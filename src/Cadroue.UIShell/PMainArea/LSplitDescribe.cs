@@ -11,36 +11,49 @@ public static partial class LSplit
         IReadOnlyList<LSplitSectionDescription> lSplitSections,
         LPreset lExportSpecificState,
         Guid lSplitRelayTarget = default,
-        Guid lSplitRelaySource = default)
+        Guid lSplitRelaySource = default,
+        Guid lSplitBatchId = default)
     {
         LSplitWorkDescription lSplitWorkDescription = new(
             lSplitSourcePath,
             lSplitSections,
             lExportSpecificState.LPresetOutputCreate());
 
-        return LSplit.LSplitInterpret(lWorkPriority, lSplitWorkDescription, lSplitRelayTarget, lSplitRelaySource);
+        return LSplit.LSplitInterpret(
+            lWorkPriority, lSplitWorkDescription, lSplitRelayTarget, lSplitRelaySource, lSplitBatchId);
     }
 
     public static async Task<int> LSplitAllDescribe(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<string> lSplitSourcePaths,
+        IReadOnlyList<PListItem> lSplitSources,
         LPreset lExportSpecificState,
         Guid lSplitRelayTarget = default,
         Guid lSplitRelaySource = default)
     {
+        string[] lSplitSourcePaths = lSplitSources
+            .Select(lSplitSource => lSplitSource.PListItemPath)
+            .ToArray();
+        var lSplitRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        foreach (PListItem lSplitSource in lSplitSources)
+        {
+            lSplitRelays[lSplitSource.PListItemPath] = lSplitSource.PListItemRelay;
+        }
+
         IReadOnlyList<LSplitPlanRecord> lSplitPlans =
             await Task.Run(() => LSplitPlanCreate(lSplitSourcePaths)).ConfigureAwait(true);
 
         int lSplitAdded = 0;
         foreach (LSplitPlanRecord lSplitPlan in lSplitPlans)
         {
+            lSplitRelays.TryGetValue(lSplitPlan.LSplitPlanSourcePath, out Guid lSplitBatch);
             lSplitAdded += LSplitDescribe(
                 lWorkPriority,
                 lSplitPlan.LSplitPlanSourcePath,
                 lSplitPlan.LSplitPlanSections,
                 lExportSpecificState,
                 lSplitRelayTarget,
-                lSplitRelaySource);
+                lSplitRelaySource,
+                lSplitBatch);
         }
 
         return lSplitAdded;

@@ -17,12 +17,13 @@ public sealed class PMergeTab : PTabSurface
     {
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMerge.LMergeDescribe(
-            pPriority, pGroup.PGroupGroupsRead(), lExportSpecificState, pAction.PActionRelayTarget, pAction.PActionSourceTab);
+            pPriority, pGroup.PGroupGroupsRead(), lExportSpecificState,
+            pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         pAction.PActionAllAdd += () => LMerge.LMergeDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pGroup.PGroupGroupsRead(),
             lExportSpecificState,
-            pAction.PActionRelayTarget, pAction.PActionSourceTab);
+            pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
         pGroup.PGroupSourceFiles = () => pList.PListPathsRead();
@@ -40,6 +41,17 @@ public sealed class PMergeTab : PTabSurface
         pGroup.PGroupModeSeed(
             lPreferenceTabLayout?.LPreferenceGroupAuto ?? false,
             lPreferenceTabLayout?.LPreferenceGroupStrict ?? true);
+    }
+
+    private IReadOnlyDictionary<string, Guid> PMergeRelaysRead()
+    {
+        var pMergeRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        foreach (PListItem pItem in pList.PListItemsRead())
+        {
+            pMergeRelays[pItem.PListItemPath] = pItem.PListItemRelay;
+        }
+
+        return pMergeRelays;
     }
 
     private void PMergeItemsHandle(IReadOnlyList<PListItem> pAddedItems)

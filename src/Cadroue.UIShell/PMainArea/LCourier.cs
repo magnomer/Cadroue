@@ -207,7 +207,19 @@ public static class LCourier
         if (!lCourierPending)
         {
             LCourierBatchFinish?.Invoke(lWorkItem.LWorkBatchId, lWorkItem.LWorkRelayTarget);
+            LCourierAutoRelay(lWorkItem.LWorkRelayTarget);
         }
+    }
+
+    public static void LCourierAutoRelay(Guid lCourierTarget)
+    {
+        if (LCourierTabFind(lCourierTarget) is not { } pCourierTarget
+            || pCourierTarget.PTabWorkspace.PWorkspaceSurface.PTabAction is not { PActionAutoRelay: true } pCourierAction)
+        {
+            return;
+        }
+
+        System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(pCourierAction.PActionAllRun));
     }
 
     private static void LCourierOutputAdd(LWorkItem lWorkItem)

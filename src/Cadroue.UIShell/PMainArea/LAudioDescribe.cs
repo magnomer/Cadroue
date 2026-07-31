@@ -24,22 +24,28 @@ public static partial class LAudio
 
     public static int LAudioAllDescribe(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<string> lAudioSourcePaths,
+        IReadOnlyList<PListItem> lAudioSources,
         LPreset lExportSpecificState,
         Guid lAudioRelayTarget = default,
         Guid lAudioRelaySource = default)
     {
         LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
+        Guid lAudioLooseBatch = Guid.NewGuid();
         int lAudioAdded = 0;
-        foreach (string lAudioSourcePath in lAudioSourcePaths)
+        foreach (PListItem lAudioSource in lAudioSources)
         {
+            string lAudioSourcePath = lAudioSource.PListItemPath;
             if (LAudioPlanRead(lAudioSourcePath) is not { LWorkAudioActive: true } lAudioPlan)
             {
                 continue;
             }
 
+            Guid lAudioBatch = lAudioSource.PListItemRelay != Guid.Empty
+                ? lAudioSource.PListItemRelay
+                : lAudioLooseBatch;
             lAudioAdded += LAudio.LAudioInterpret(
-                lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput, lAudioRelayTarget, lAudioRelaySource);
+                lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput,
+                lAudioRelayTarget, lAudioRelaySource, lAudioBatch);
         }
 
         return lAudioAdded;

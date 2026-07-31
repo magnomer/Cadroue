@@ -10,13 +10,15 @@ public static partial class LMerge
         IReadOnlyList<PGroup.PGroupSelection> lMergeGroups,
         LPreset lExportSpecificState,
         Guid lMergeRelayTarget = default,
-        Guid lMergeRelaySource = default)
+        Guid lMergeRelaySource = default,
+        IReadOnlyDictionary<string, Guid>? lMergeRelays = null)
     {
         return LMerge.LMergeInterpret(
             lWorkPriority,
             lMergeGroups,
             lExportSpecificState.LPresetOutputCreate(),
             lMergeRelayTarget,
-            lMergeRelaySource);
+            lMergeRelaySource,
+            lMergeRelays);
     }
 }

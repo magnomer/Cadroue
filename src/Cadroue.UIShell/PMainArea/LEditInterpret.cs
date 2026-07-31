@@ -12,13 +12,14 @@ public static partial class LEdit
         TimeSpan lEditDuration,
         LWorkCrop lEditCrop,
         LWorkVideo lEditVideo,
-        LWorkOutput lEditOutput)
+        LWorkOutput lEditOutput,
+        Guid lEditBatchId)
     {
         string lEditFolder = lEditOutput.LWorkFolderRead(lEditSourcePath);
         string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath, lEditFolder);
 
         return new LWorkItem(
-            Guid.NewGuid(),
+            lEditBatchId,
             LWorkKind.LWorkKindEdit,
             lWorkPriority,
             lEditSourcePath,
@@ -50,7 +51,8 @@ public static partial class LEdit
             lEditWorkDescription.LEditDuration,
             lEditCrop,
             lEditWorkDescription.LEditVideo,
-            lEditWorkDescription.LEditOutput);
+            lEditWorkDescription.LEditOutput,
+            Guid.NewGuid());
 
         string lEditSourcePath = lEditWorkItem.LWorkSourcePath;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;
