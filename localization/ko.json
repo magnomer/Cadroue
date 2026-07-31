@@ -145,6 +145,8 @@
   "Inspector.Funnel.RelayNone": "탭 선택",
   "Inspector.Funnel.Add": "파일 이름 규칙 추가",
   "Inspector.Funnel.Filename": "파일 이름",
+  "Inspector.Funnel.Regex": "파일 이름 정규식",
+  "Inspector.Funnel.Whole": "확장자 포함",
   "Inspector.Funnel.Minimize": "규칙 접기",
   "Inspector.Funnel.Maximize": "규칙 펼치기",
   "Inspector.Funnel.Remove": "규칙 제거",

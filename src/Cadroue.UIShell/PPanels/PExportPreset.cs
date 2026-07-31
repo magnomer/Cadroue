@@ -87,6 +87,11 @@ public sealed partial class PExport
         };
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>
         {
+            if (pPresetEditing)
+            {
+                return;
+            }
+
             if (pPresetNative || PExportSourceCheck(pEvent.OriginalSource))
             {
                 pPresetNameDragging = null;
@@ -147,6 +152,11 @@ public sealed partial class PExport
         };
         pRowBorder.MouseLeftButtonUp += (_, pEvent) =>
         {
+            if (pPresetEditing)
+            {
+                return;
+            }
+
             pRowBorder.ReleaseMouseCapture();
             if (pPresetDragActive && pPresetNameDragging is string lDraggedPresetName)
             {
@@ -323,12 +333,34 @@ public sealed partial class PExport
             FocusVisualStyle = null
         };
         pExportBoxCurrent = pNameBox;
+        Window? pEditWindow = null;
+        MouseButtonEventHandler pOutsideHandle = (_, pDownEvent) =>
+        {
+            if (pPresetRebuilding || PExportInsideCheck(pDownEvent.OriginalSource as DependencyObject, pNameBox))
+            {
+                return;
+            }
+
+            PExportNameCommit(lPresetName, pNameBox.Text);
+        };
         pNameBox.Loaded += (_, _) =>
         {
             pNameBox.Focus();
             pNameBox.SelectAll();
+            pEditWindow = Window.GetWindow(pNameBox);
+            if (pEditWindow is not null)
+            {
+                pEditWindow.PreviewMouseDown += pOutsideHandle;
+            }
         };
-        pNameBox.LostFocus += (_, _) =>
+        pNameBox.Unloaded += (_, _) =>
+        {
+            if (pEditWindow is not null)
+            {
+                pEditWindow.PreviewMouseDown -= pOutsideHandle;
+            }
+        };
+        pNameBox.LostKeyboardFocus += (_, _) =>
         {
             if (pPresetRebuilding)
             {

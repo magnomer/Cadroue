@@ -77,6 +77,23 @@ public sealed partial class PExport
         return lDividerCount;
     }
 
+    private static bool PExportInsideCheck(DependencyObject? pSource, DependencyObject pTarget)
+    {
+        while (pSource is not null)
+        {
+            if (ReferenceEquals(pSource, pTarget))
+            {
+                return true;
+            }
+
+            pSource = pSource is Visual or System.Windows.Media.Media3D.Visual3D
+                ? VisualTreeHelper.GetParent(pSource)
+                : LogicalTreeHelper.GetParent(pSource);
+        }
+
+        return false;
+    }
+
     private static bool PExportSourceCheck(object pSource)
     {
         DependencyObject? pObject = pSource as DependencyObject;

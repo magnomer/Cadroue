@@ -1,3 +1,5 @@
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -7,6 +9,8 @@ using Cadroue.UIShell.PMainArea;
 using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
+
+public enum PFunnelForm { Filename, Regex }
 
 public sealed class PFunnelRuleRow : Border
 {
@@ -24,10 +28,16 @@ public sealed class PFunnelRuleRow : Border
 
     private const double PFunnelFieldHeight = 30;
 
+    private readonly PFunnelForm pFunnelForm;
     private readonly List<PFunnelCondition> pFunnelConditions = new();
     private readonly ComboBox pFunnelRelayCombo;
     private readonly Func<IReadOnlyList<LCourierOption>> pFunnelOptionsRead;
     private readonly PFunnelRuleFrame pFunnelFrame;
+    private TextBox? pFunnelRegexField;
+    private CheckBox? pFunnelWholeCheck;
+    private Regex? pFunnelRegex;
+    private string pFunnelRegexText = string.Empty;
+    private bool pFunnelRegexReady;
 
     private bool pFunnelRelayBusy;
     private Guid pFunnelTargetId;
@@ -36,23 +46,34 @@ public sealed class PFunnelRuleRow : Border
     public event Action? PFunnelRowChange;
     public event Action<PFunnelRuleRow>? PFunnelRowRemove;
 
-    public PFunnelRuleRow(Func<IReadOnlyList<LCourierOption>> pOptionsRead)
+    public PFunnelRuleRow(Func<IReadOnlyList<LCourierOption>> pOptionsRead, PFunnelForm pForm = PFunnelForm.Filename)
     {
+        pFunnelForm = pForm;
         pFunnelOptionsRead = pOptionsRead;
         pFunnelRelayCombo = PFunnelRelayBuild();
 
         var pBody = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
-        foreach ((PFunnelKind pKind, string pLabelKey, bool pHasJoin) in pFunnelSpecs)
+        if (pForm == PFunnelForm.Regex)
         {
-            var pCondition = new PFunnelCondition(pKind, pLabelKey, pHasJoin);
-            pCondition.PFunnelConditionChange += () => PFunnelRowChange?.Invoke();
-            pFunnelConditions.Add(pCondition);
-            pBody.Children.Add(pCondition);
+            pBody.Children.Add(PFunnelRegexBuild());
+        }
+        else
+        {
+            foreach ((PFunnelKind pKind, string pLabelKey, bool pHasJoin) in pFunnelSpecs)
+            {
+                var pCondition = new PFunnelCondition(pKind, pLabelKey, pHasJoin);
+                pCondition.PFunnelConditionChange += () => PFunnelRowChange?.Invoke();
+                pFunnelConditions.Add(pCondition);
+                pBody.Children.Add(pCondition);
+            }
         }
 
         pBody.Children.Add(PFunnelTargetBuild());
 
-        pFunnelFrame = new PFunnelRuleFrame(pBody, () => PFunnelRowRemove?.Invoke(this));
+        string pTitleKey = pForm == PFunnelForm.Regex
+            ? "Inspector.Funnel.Regex"
+            : "Inspector.Funnel.Filename";
+        pFunnelFrame = new PFunnelRuleFrame(pBody, pTitleKey, () => PFunnelRowRemove?.Invoke(this));
 
         var pCard = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pFunnelFrame.PFunnelHeader, Dock.Top);
@@ -89,17 +110,46 @@ public sealed class PFunnelRuleRow : Border
 
     public void PFunnelRowRestore(LPreferenceFunnelRuleRecord pRecord)
     {
-        PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRestore(pRecord.LPreferenceFunnelContains);
-        PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRestore(pRecord.LPreferenceFunnelStart);
-        PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRestore(pRecord.LPreferenceFunnelEnd);
-        PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRestore(pRecord.LPreferenceFunnelExtension);
+        if (pFunnelForm == PFunnelForm.Regex)
+        {
+            if (pFunnelRegexField is not null)
+            {
+                pFunnelRegexField.Text = pRecord.LPreferenceFunnelRegex;
+            }
+
+            if (pFunnelWholeCheck is not null)
+            {
+                pFunnelWholeCheck.IsChecked = pRecord.LPreferenceFunnelWhole;
+            }
+
+            pFunnelRegexReady = false;
+        }
+        else
+        {
+            PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRestore(pRecord.LPreferenceFunnelContains);
+            PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRestore(pRecord.LPreferenceFunnelStart);
+            PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRestore(pRecord.LPreferenceFunnelEnd);
+            PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRestore(pRecord.LPreferenceFunnelExtension);
+        }
+
         pFunnelTargetPending = pRecord.LPreferenceFunnelTarget;
     }
 
     public LPreferenceFunnelRuleRecord PFunnelRecordCreate()
     {
+        if (pFunnelForm == PFunnelForm.Regex)
+        {
+            return new LPreferenceFunnelRuleRecord
+            {
+                LPreferenceFunnelType = (int)PFunnelForm.Regex,
+                LPreferenceFunnelRegex = pFunnelRegexField?.Text.Trim() ?? string.Empty,
+                LPreferenceFunnelWhole = pFunnelWholeCheck?.IsChecked == true
+            };
+        }
+
         return new LPreferenceFunnelRuleRecord
         {
+            LPreferenceFunnelType = (int)PFunnelForm.Filename,
             LPreferenceFunnelContains = PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRecordRead(),
             LPreferenceFunnelStart = PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRecordRead(),
             LPreferenceFunnelEnd = PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRecordRead(),
@@ -109,6 +159,11 @@ public sealed class PFunnelRuleRow : Border
 
     public bool PFunnelRowMatch(string pFileName)
     {
+        if (pFunnelForm == PFunnelForm.Regex)
+        {
+            return PFunnelRegexMatch(pFileName);
+        }
+
         bool pHasResult = false;
         bool pAccumulator = false;
 
@@ -139,6 +194,79 @@ public sealed class PFunnelRuleRow : Border
 
     private PFunnelCondition PFunnelConditionFind(PFunnelKind pKind)
         => pFunnelConditions.First(pItem => pItem.PFunnelConditionKind == pKind);
+
+    private UIElement PFunnelRegexBuild()
+    {
+        var pStack = new StackPanel();
+
+        pFunnelRegexField = new TextBox
+        {
+            Height = PFunnelFieldHeight,
+            FontSize = 12,
+            FontFamily = pFunnelFontFamily,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        PTextbox.PTextboxApply(pFunnelRegexField);
+        pFunnelRegexField.TextChanged += (_, _) =>
+        {
+            pFunnelRegexReady = false;
+            PFunnelRowChange?.Invoke();
+        };
+
+        pFunnelWholeCheck = new CheckBox
+        {
+            Content = LLocalization.LLocalizationTextRead("Inspector.Funnel.Whole"),
+            FontSize = 12,
+            FontFamily = pFunnelFontFamily,
+            Foreground = pFunnelTitleBrush,
+            Margin = new Thickness(2, 0, 0, 0)
+        };
+        PCheckbox.PCheckboxApply(pFunnelWholeCheck);
+        pFunnelWholeCheck.Checked += (_, _) => PFunnelRowChange?.Invoke();
+        pFunnelWholeCheck.Unchecked += (_, _) => PFunnelRowChange?.Invoke();
+
+        pStack.Children.Add(pFunnelRegexField);
+        pStack.Children.Add(pFunnelWholeCheck);
+        return pStack;
+    }
+
+    private bool PFunnelRegexMatch(string pFileName)
+    {
+        string pPattern = pFunnelRegexField?.Text.Trim() ?? string.Empty;
+        if (pPattern.Length == 0)
+        {
+            return false;
+        }
+
+        PFunnelRegexResolve(pPattern);
+        if (pFunnelRegex is null)
+        {
+            return false;
+        }
+
+        bool pWhole = pFunnelWholeCheck?.IsChecked == true;
+        string pSubject = pWhole ? pFileName : Path.GetFileNameWithoutExtension(pFileName);
+        return pFunnelRegex.IsMatch(pSubject);
+    }
+
+    private void PFunnelRegexResolve(string pPattern)
+    {
+        if (pFunnelRegexReady && pFunnelRegexText == pPattern)
+        {
+            return;
+        }
+
+        pFunnelRegexReady = true;
+        pFunnelRegexText = pPattern;
+        try
+        {
+            pFunnelRegex = new Regex(pPattern, RegexOptions.IgnoreCase);
+        }
+        catch (ArgumentException)
+        {
+            pFunnelRegex = null;
+        }
+    }
 
     private ComboBox PFunnelRelayBuild()
     {

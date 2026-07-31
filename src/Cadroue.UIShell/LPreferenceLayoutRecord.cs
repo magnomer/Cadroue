@@ -69,6 +69,12 @@ public sealed class LPreferenceFunnelRuleRecord
 
     public LPreferenceFunnelMatchRecord LPreferenceFunnelExtension { get; set; } = new();
 
+    public int LPreferenceFunnelType { get; set; }
+
+    public string LPreferenceFunnelRegex { get; set; } = string.Empty;
+
+    public bool LPreferenceFunnelWhole { get; set; }
+
     public int LPreferenceFunnelTarget { get; set; } = -1;
 
     public LPreferenceFunnelRuleRecord LPreferenceFunnelClone()
@@ -79,6 +85,9 @@ public sealed class LPreferenceFunnelRuleRecord
             LPreferenceFunnelStart = LPreferenceFunnelStart.LPreferenceFunnelClone(),
             LPreferenceFunnelEnd = LPreferenceFunnelEnd.LPreferenceFunnelClone(),
             LPreferenceFunnelExtension = LPreferenceFunnelExtension.LPreferenceFunnelClone(),
+            LPreferenceFunnelType = LPreferenceFunnelType,
+            LPreferenceFunnelRegex = LPreferenceFunnelRegex,
+            LPreferenceFunnelWhole = LPreferenceFunnelWhole,
             LPreferenceFunnelTarget = LPreferenceFunnelTarget
         };
     }

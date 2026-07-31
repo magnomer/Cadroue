@@ -20,12 +20,14 @@ internal sealed class PFunnelRuleFrame
     private readonly TextBlock pFunnelOrderBadge;
     private readonly Border pFunnelTitleBar;
     private readonly UIElement pFunnelBody;
+    private readonly string pFunnelTitleKey;
     private Button? pFunnelFoldButton;
     private bool pFunnelCollapsed;
 
-    public PFunnelRuleFrame(UIElement pBody, Action pRemove)
+    public PFunnelRuleFrame(UIElement pBody, string pTitleKey, Action pRemove)
     {
         pFunnelBody = pBody;
+        pFunnelTitleKey = pTitleKey;
         pFunnelOrderBadge = new TextBlock
         {
             FontSize = 12,
@@ -50,7 +52,7 @@ internal sealed class PFunnelRuleFrame
     {
         var pTitleLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Funnel.Filename"),
+            Text = LLocalization.LLocalizationTextRead(pFunnelTitleKey),
             FontSize = 12,
             FontFamily = pFunnelFontFamily,
             FontWeight = FontWeights.SemiBold,

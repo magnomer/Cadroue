@@ -93,6 +93,40 @@ internal static class PDropdown
 
     private static FrameworkElementFactory PDropdownSelectBuild()
     {
+        var pGrid = new FrameworkElementFactory(typeof(Grid));
+        pGrid.AppendChild(PDropdownSurfaceBuild());
+        pGrid.AppendChild(PDropdownContentBuild());
+        return pGrid;
+    }
+
+    private static FrameworkElementFactory PDropdownSurfaceBuild()
+    {
+        var pToggle = new FrameworkElementFactory(typeof(ToggleButton));
+        pToggle.SetValue(ToggleButton.FocusableProperty, false);
+        pToggle.SetValue(ToggleButton.BackgroundProperty, Brushes.Transparent);
+        pToggle.SetValue(ToggleButton.BorderThicknessProperty, new Thickness(0));
+        pToggle.SetValue(ToggleButton.PaddingProperty, new Thickness(0));
+        pToggle.SetValue(ToggleButton.ClickModeProperty, ClickMode.Press);
+        pToggle.SetValue(ToggleButton.TemplateProperty, PDropdownBlankBuild());
+        pToggle.SetBinding(ToggleButton.IsCheckedProperty, new Binding("IsDropDownOpen")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent),
+            Mode = BindingMode.TwoWay
+        });
+        return pToggle;
+    }
+
+    private static ControlTemplate PDropdownBlankBuild()
+    {
+        var pTemplate = new ControlTemplate(typeof(ToggleButton));
+        var pBorder = new FrameworkElementFactory(typeof(Border));
+        pBorder.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+        pTemplate.VisualTree = pBorder;
+        return pTemplate;
+    }
+
+    private static FrameworkElementFactory PDropdownContentBuild()
+    {
         var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
         pContent.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
         pContent.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);

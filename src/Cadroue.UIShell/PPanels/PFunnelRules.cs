@@ -82,7 +82,10 @@ public sealed class PFunnelRules : PPanel
     {
         foreach (LPreferenceFunnelRuleRecord pRecord in pRuleRecords)
         {
-            PFunnelRuleRow pRow = PFunnelRuleAdd();
+            PFunnelForm pForm = pRecord.LPreferenceFunnelType == (int)PFunnelForm.Regex
+                ? PFunnelForm.Regex
+                : PFunnelForm.Filename;
+            PFunnelRuleRow pRow = PFunnelRuleAdd(pForm);
             pRow.PFunnelRowRestore(pRecord);
         }
     }
@@ -103,9 +106,9 @@ public sealed class PFunnelRules : PPanel
         }
     }
 
-    public PFunnelRuleRow PFunnelRuleAdd()
+    public PFunnelRuleRow PFunnelRuleAdd(PFunnelForm pForm = PFunnelForm.Filename)
     {
-        var pRow = new PFunnelRuleRow(pFunnelOptionsRead);
+        var pRow = new PFunnelRuleRow(pFunnelOptionsRead, pForm);
         pRow.PFunnelRowRemove += PFunnelRuleRemove;
         pRow.PFunnelHeader.MouseLeftButtonDown += (_, pEvent) => PFunnelPressHandle(pRow, pEvent);
         pRow.PFunnelHeader.MouseMove += (_, pEvent) => PFunnelMoveHandle(pRow, pEvent);
@@ -337,13 +340,18 @@ public sealed class PFunnelRules : PPanel
     {
         MenuItem pFilenameItem = PMenu.PMenuItemCreate(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.Filename"), null);
-        pFilenameItem.Click += (_, _) => PFunnelRuleAdd();
+        pFilenameItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.Filename);
+
+        MenuItem pRegexItem = PMenu.PMenuItemCreate(
+            LLocalization.LLocalizationTextRead("Inspector.Funnel.Regex"), null);
+        pRegexItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.Regex);
 
         var pAddMenu = PMenu.PMenuContextCreate();
         pAddMenu.PlacementTarget = pTarget;
         pAddMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
         pAddMenu.VerticalOffset = -4;
         pAddMenu.Items.Add(pFilenameItem);
+        pAddMenu.Items.Add(pRegexItem);
         pAddMenu.IsOpen = true;
     }
 }

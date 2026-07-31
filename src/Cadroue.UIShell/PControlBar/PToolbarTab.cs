@@ -116,6 +116,54 @@ public partial class PToolbar
         System.Windows.Automation.AutomationProperties.SetName(
             pNameBox, LLocalization.LLocalizationTextRead("Tab.Rename.Name"));
         pNameBox.IsVisibleChanged += PTabVisibleHandle;
+
+        Window? pTabWindow = null;
+        MouseButtonEventHandler pOutsideHandle = (_, pDownEvent) =>
+        {
+            if (pNameBox.DataContext is not PTabRecord pTabRecord || !pTabRecord.PTabNameActive)
+            {
+                return;
+            }
+
+            if (PTabInsideCheck(pDownEvent.OriginalSource as DependencyObject, pNameBox))
+            {
+                return;
+            }
+
+            PTabNameCommit(pTabRecord, pNameBox.Text);
+        };
+        pNameBox.IsVisibleChanged += (_, _) =>
+        {
+            if (pNameBox.IsVisible)
+            {
+                pTabWindow = Window.GetWindow(pNameBox);
+                if (pTabWindow is not null)
+                {
+                    pTabWindow.PreviewMouseDown += pOutsideHandle;
+                }
+            }
+            else if (pTabWindow is not null)
+            {
+                pTabWindow.PreviewMouseDown -= pOutsideHandle;
+            }
+        };
+    }
+
+    private static bool PTabInsideCheck(DependencyObject? pSource, DependencyObject pTarget)
+    {
+        while (pSource is not null)
+        {
+            if (ReferenceEquals(pSource, pTarget))
+            {
+                return true;
+            }
+
+            pSource = pSource is Visual or System.Windows.Media.Media3D.Visual3D
+                ? VisualTreeHelper.GetParent(pSource)
+                : LogicalTreeHelper.GetParent(pSource);
+        }
+
+        return false;
     }
 
     private static void PTabVisibleHandle(object sender, DependencyPropertyChangedEventArgs e)

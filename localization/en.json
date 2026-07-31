@@ -145,6 +145,8 @@
   "Inspector.Funnel.RelayNone": "Choose tab",
   "Inspector.Funnel.Add": "Add filename rule",
   "Inspector.Funnel.Filename": "Filename",
+  "Inspector.Funnel.Regex": "Filename Regex",
+  "Inspector.Funnel.Whole": "Including extension",
   "Inspector.Funnel.Minimize": "Fold rule",
   "Inspector.Funnel.Maximize": "Unfold rule",
   "Inspector.Funnel.Remove": "Remove rule",
