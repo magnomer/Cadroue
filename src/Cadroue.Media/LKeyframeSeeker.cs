@@ -27,7 +27,7 @@ public static class LKeyframeSeeker
         double scanDuration = (scanEndTime - normalizedStart).TotalSeconds + LKeyframeScanTolerance;
         string readIntervals = FormattableString.Invariant($"{startSeconds:F3}%+{scanDuration:F3}");
 
-        var psi = new ProcessStartInfo("ffprobe")
+        var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
         {
             Arguments = $"-v quiet -select_streams v:0 -show_packets -read_intervals \"{readIntervals}\" -print_format csv -show_entries packet=pts_time,dts_time,flags -i \"{sourcePath}\"",
             RedirectStandardOutput = true,

@@ -61,6 +61,7 @@ public partial class PProgram : Application
         PFlow.PSectionPalette.PSectionPaletteLoad();
         LPlacementImport();
 
+        Cadroue.Media.LTool.LToolFolderSource = () => LRendererFolderCurrent;
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;

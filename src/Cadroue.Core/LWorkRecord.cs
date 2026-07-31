@@ -129,12 +129,31 @@ public sealed class LWorkRecord
     {
         try
         {
-            return JsonSerializer.Deserialize<LWorkRecord>(lWorkJson);
+            LWorkRecord? lWorkRecord = JsonSerializer.Deserialize<LWorkRecord>(lWorkJson);
+            lWorkRecord?.LWorkRecordNormalize();
+            return lWorkRecord;
         }
         catch (JsonException)
         {
             return null;
         }
+    }
+
+    private void LWorkRecordNormalize()
+    {
+        LWorkKindName ??= nameof(LWorkKind.LWorkKindSplit);
+        LWorkPriorityName ??= nameof(LWorkPriority.LWorkPriorityNormal);
+        LWorkStateName ??= nameof(LWorkState.LWorkStatePending);
+        LWorkSourcePath ??= string.Empty;
+        LWorkOutputName ??= string.Empty;
+        LWorkOutputPath ??= string.Empty;
+        LWorkMessage ??= string.Empty;
+        LWorkPhaseName ??= nameof(LWorkPhase.LWorkPhaseNone);
+        LWorkMergeSources ??= [];
+        LWorkCrop ??= LWorkCrop.LWorkCropCreate();
+        LWorkVideo ??= LWorkVideo.LWorkVideoCreate();
+        LWorkAudio ??= LWorkAudio.LWorkAudioCreate();
+        (LWorkOutputSnapshot ??= new()).LWorkOutputNormalize();
     }
 
     private static TEnum LWorkEnumRead<TEnum>(string lWorkValue, TEnum lWorkFallback) where TEnum : struct =>
@@ -195,6 +214,33 @@ public sealed class LWorkOutputRecord
         LWorkAudioChannels = lWorkOutput.LWorkOutputAudioChannels,
         LWorkPresetName = lWorkOutput.LWorkOutputPresetName
     };
+
+    public void LWorkOutputNormalize()
+    {
+        LWorkNamePattern ??= string.Empty;
+        LWorkContainer ??= "MP4";
+        LWorkExtension ??= ".mp4";
+        LWorkLocation ??= "Same as source";
+        LWorkLocationFolder ??= string.Empty;
+        LWorkExportMode ??= "Smart export";
+        LWorkVideoStream ??= "Include";
+        LWorkVideoMode ??= "Auto";
+        LWorkVideoEncoder ??= string.Empty;
+        LWorkRateControl ??= string.Empty;
+        LWorkQuality ??= string.Empty;
+        LWorkSpeedPreset ??= string.Empty;
+        LWorkVideoSize ??= "Same as source";
+        LWorkVideoFps ??= "Same as source";
+        LWorkPixelLayout ??= "Auto";
+        LWorkVideoExtras ??= new();
+        LWorkAudioStream ??= string.Empty;
+        LWorkAudioMode ??= "Auto";
+        LWorkAudioEncoder ??= string.Empty;
+        LWorkAudioBitrate ??= string.Empty;
+        LWorkSampleRate ??= "Same as source";
+        LWorkAudioChannels ??= "Same as source";
+        LWorkPresetName ??= string.Empty;
+    }
 
     public LWorkOutput LWorkOutputCreate() => new(
         LWorkNamePattern,

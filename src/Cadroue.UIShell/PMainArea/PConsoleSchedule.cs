@@ -237,7 +237,9 @@ public sealed partial class PConsole
 
         if (pAnswer == MessageBoxResult.Yes)
         {
-            LRunner pCancelRunner = PConsoleStationRead().LStationRunner;
+            LStation pCancelStation = PConsoleStationRead();
+            pCancelStation.LStationAutoActive = false;
+            LRunner pCancelRunner = pCancelStation.LStationRunner;
             foreach (LWorkItem pCancelItem in pRunningItems)
             {
                 pCancelRunner.LRunnerJobCancel(pCancelItem.LWorkId);

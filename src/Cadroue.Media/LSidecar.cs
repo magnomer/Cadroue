@@ -190,11 +190,40 @@ public sealed class LSidecar
     {
         try
         {
-            return JsonSerializer.Deserialize<LSidecar>(lSidecarJson);
+            LSidecar? lSidecar = JsonSerializer.Deserialize<LSidecar>(lSidecarJson);
+            lSidecar?.LSidecarNormalize();
+            return lSidecar;
         }
         catch (JsonException)
         {
             return null;
+        }
+    }
+
+    private void LSidecarNormalize()
+    {
+        LSidecarSource ??= new();
+        LSidecarSource.LSidecarFileName ??= string.Empty;
+        LSidecarSource.LSidecarRelativePath ??= string.Empty;
+        LSidecarSource.LSidecarAbsolutePath ??= string.Empty;
+        LSidecarSource.LSidecarPartialHash ??= string.Empty;
+        LSidecarKeyframeDeltas ??= new();
+        LSidecarScannedSpans ??= new();
+        LSidecarSections ??= new();
+
+        if (LSidecarEdit is { } lSidecarEdit)
+        {
+            lSidecarEdit.LSidecarSteps ??= new();
+        }
+
+        if (LSidecarAudio is { } lSidecarAudio)
+        {
+            lSidecarAudio.LSidecarSteps ??= new();
+        }
+
+        if (LSidecarWaveform is { } lSidecarWaveform)
+        {
+            lSidecarWaveform.LSidecarPeaks ??= string.Empty;
         }
     }
 

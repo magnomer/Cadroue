@@ -5,7 +5,8 @@ public enum LDepotFolder
     LDepotFolderScheduled,
     LDepotFolderRunning,
     LDepotFolderDone,
-    LDepotFolderFailed
+    LDepotFolderFailed,
+    LDepotFolderCancelled
 }
 
 public static class LDepot
@@ -206,6 +207,7 @@ public static class LDepot
         LDepotFolder.LDepotFolderRunning => "running",
         LDepotFolder.LDepotFolderDone => "done",
         LDepotFolder.LDepotFolderFailed => "failed",
+        LDepotFolder.LDepotFolderCancelled => "cancelled",
         _ => "scheduled"
     };
 }

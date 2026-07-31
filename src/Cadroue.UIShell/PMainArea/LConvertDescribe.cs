@@ -29,22 +29,30 @@ public static partial class LConvert
         return lConvertAdded;
     }
 
-    private static Task LConvertDurationResolve(IReadOnlyList<LWorkItem> lConvertWorkItems)
+    private static async Task LConvertDurationResolve(IReadOnlyList<LWorkItem> lConvertWorkItems)
     {
         LWorkItem[] lConvertUnknown = lConvertWorkItems
             .Where(lWorkItem => lWorkItem.LWorkEnd <= TimeSpan.Zero)
             .ToArray();
         if (lConvertUnknown.Length == 0)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        return Task.Run(() => Parallel.ForEach(
-            lConvertUnknown,
+        var lConvertResolved = new TimeSpan[lConvertUnknown.Length];
+        await Task.Run(() => Parallel.For(
+            0,
+            lConvertUnknown.Length,
             new ParallelOptions { MaxDegreeOfParallelism = LConvertParallelRead() },
-            lWorkItem => LSchedule.LScheduleCurrent.LScheduleDurationSet(
-                lWorkItem.LWorkId,
-                Cadroue.Media.LSidecarStore.LSidecarDurationResolve(lWorkItem.LWorkSourcePath))));
+            lConvertIndex => lConvertResolved[lConvertIndex] =
+                Cadroue.Media.LSidecarStore.LSidecarDurationResolve(lConvertUnknown[lConvertIndex].LWorkSourcePath)))
+            .ConfigureAwait(true);
+
+        for (int lConvertIndex = 0; lConvertIndex < lConvertUnknown.Length; lConvertIndex++)
+        {
+            LSchedule.LScheduleCurrent.LScheduleDurationSet(
+                lConvertUnknown[lConvertIndex].LWorkId, lConvertResolved[lConvertIndex]);
+        }
     }
 
     internal static int LConvertParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);

@@ -30,7 +30,7 @@ public static class LWaveformScanner
             return Array.Empty<byte>();
         }
 
-        var lWaveformStart = new ProcessStartInfo("ffmpeg")
+        var lWaveformStart = new ProcessStartInfo(LTool.LToolFfmpegRead())
         {
             Arguments =
                 "-v quiet -nostdin -i \"" + lWaveformSourcePath + "\""

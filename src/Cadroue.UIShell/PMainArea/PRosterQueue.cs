@@ -275,15 +275,20 @@ public sealed partial class PRoster
 
     private void PRosterMenuOpen(ListBoxItem pRow, ContextMenuEventArgs pArgs)
     {
-        if (pRow.Tag is not LWorkItem pWorkItem)
+        if (pRow.Tag is not LWorkItem pWorkItem || pRow.ContextMenu is not { } pMenu)
         {
             pArgs.Handled = true;
             return;
         }
 
+        if (pWorkItem.LWorkStateCurrent is LWorkState.LWorkStateCancelled or LWorkState.LWorkStateFailed)
+        {
+            PRosterRestartMenuBuild(pMenu, pWorkItem);
+            return;
+        }
+
         IReadOnlyList<string> pRelayPaths = PRosterPathsRead(pWorkItem);
         if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
-            || pRow.ContextMenu is not { } pMenu
             || pRelayPaths.Count == 0
             || LTabset.LTabsetCurrent is not { } pTabset)
         {
@@ -318,6 +323,33 @@ public sealed partial class PRoster
         {
             pArgs.Handled = true;
         }
+    }
+
+    private void PRosterRestartMenuBuild(ContextMenu pMenu, LWorkItem pClickedItem)
+    {
+        LWorkItem[] pRestartItems = PRosterSelectionRead()
+            .Where(pItem => pItem.LWorkStateCurrent is LWorkState.LWorkStateCancelled or LWorkState.LWorkStateFailed)
+            .ToArray();
+        if (pRestartItems.Length == 0 || !pRestartItems.Any(pItem => ReferenceEquals(pItem, pClickedItem)))
+        {
+            pRestartItems = new[] { pClickedItem };
+        }
+
+        pMenu.Items.Clear();
+        MenuItem pRestart = PMenu.PMenuItemCreate(
+            pRestartItems.Length > 1
+                ? LLocalization.LLocalizationFormat("Roster.Menu.RestartMany", pRestartItems.Length)
+                : LLocalization.LLocalizationTextRead("Roster.Menu.Restart"),
+            null);
+        LWorkItem[] pRestartTargets = pRestartItems;
+        pRestart.Click += (_, _) =>
+        {
+            foreach (LWorkItem pRestartItem in pRestartTargets)
+            {
+                LSchedule.LScheduleCurrent.LScheduleItemReset(pRestartItem.LWorkId);
+            }
+        };
+        pMenu.Items.Add(pRestart);
     }
 
     private IReadOnlyList<string> PRosterPathsRead(LWorkItem pClickedItem)

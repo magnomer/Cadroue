@@ -93,7 +93,7 @@ public sealed record LMediaInfo
 
     public static LMediaInfo LMediaFfprobeRead(string sourcePath)
     {
-        var psi = new ProcessStartInfo("ffprobe")
+        var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -113,7 +113,7 @@ public sealed record LMediaInfo
         string json;
         string errorText;
         int exitCode;
-        using (var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe not found on PATH."))
+        using (var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started."))
         {
             Task<string> jsonTask = process.StandardOutput.ReadToEndAsync();
             Task<string> errorTask = process.StandardError.ReadToEndAsync();
@@ -143,15 +143,13 @@ public sealed record LMediaInfo
         }
     }
 
-    private static readonly Lazy<bool> lMediaFfprobePresent = new(LMediaFfprobeCheck);
-
-    public static bool LMediaFfprobeExist() => lMediaFfprobePresent.Value;
+    public static bool LMediaFfprobeExist() => LMediaFfprobeCheck();
 
     private static bool LMediaFfprobeCheck()
     {
         try
         {
-            var psi = new ProcessStartInfo("ffprobe")
+            var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

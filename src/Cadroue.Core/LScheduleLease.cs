@@ -67,7 +67,11 @@ public sealed partial class LSchedule
             lWorkRecord.LWorkLeaseTime = DateTimeOffset.Now;
             lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseStarted);
             lWorkRecord.LWorkAttemptCount++;
-            LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning);
+            if (!LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning))
+            {
+                LScheduleRecoverReport?.Invoke(
+                    $"Work '{lWorkRecord.LWorkOutputName}' was claimed but its owner/lease could not be written; it may be reclaimed after the lease expires");
+            }
 
             LWorkItem lWorkClaimed = lWorkRecord.LWorkItemCreate();
             lWorkClaimed.LWorkStateCurrent = LWorkState.LWorkStateRunning;
@@ -233,7 +237,12 @@ public sealed partial class LSchedule
         lWorkRecord.LWorkLeaseTime = default;
         lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
         lWorkRecord.LWorkMessage = lScheduleMessage;
-        LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderFailed);
+        if (!LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderFailed))
+        {
+            LScheduleRecoverReport?.Invoke(
+                $"Work '{lWorkRecord.LWorkOutputName}' was filed as Failed but its details could not be written");
+        }
+
         return true;
     }
 
@@ -267,7 +276,12 @@ public sealed partial class LSchedule
         lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
         lWorkRecord.LWorkProgress = 0;
         lWorkRecord.LWorkMessage = lScheduleMessage ?? string.Empty;
-        LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
+        if (!LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
+        {
+            LScheduleRecoverReport?.Invoke(
+                $"Work '{lWorkRecord.LWorkOutputName}' was returned to the queue but its details could not be written");
+        }
+
         return true;
     }
 

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Cadroue.Core;
 
 namespace Cadroue.Media;
 
@@ -69,19 +70,22 @@ public static class LSidecarStore
         string lSidecarPath = LSidecarPathRead(lSidecarIdentity.LKeyframeSourcePath);
         try
         {
-            LSidecar lSidecar = LSidecar.LSidecarCreate(
-                lSidecarIdentity,
-                lSidecarPath,
-                lSidecarKeyframeMilliseconds,
-                lSidecarScannedSpans,
-                lSidecarSpanGridMilliseconds,
-                lSidecarSections);
-            LSidecar? lSidecarPrevious = LSidecarRead(lSidecarPath);
-            lSidecar.LSidecarEdit = lSidecarPrevious?.LSidecarEdit;
-            lSidecar.LSidecarAudio = lSidecarPrevious?.LSidecarAudio;
-            lSidecar.LSidecarWaveform = lSidecarPrevious?.LSidecarWaveform;
+            using (LLatch.LLatchClaim(lSidecarPath))
+            {
+                LSidecar lSidecar = LSidecar.LSidecarCreate(
+                    lSidecarIdentity,
+                    lSidecarPath,
+                    lSidecarKeyframeMilliseconds,
+                    lSidecarScannedSpans,
+                    lSidecarSpanGridMilliseconds,
+                    lSidecarSections);
+                LSidecar? lSidecarPrevious = LSidecarRead(lSidecarPath);
+                lSidecar.LSidecarEdit = lSidecarPrevious?.LSidecarEdit;
+                lSidecar.LSidecarAudio = lSidecarPrevious?.LSidecarAudio;
+                lSidecar.LSidecarWaveform = lSidecarPrevious?.LSidecarWaveform;
 
-            return LSidecarFileSave(lSidecarPath, lSidecar);
+                return LSidecarFileSave(lSidecarPath, lSidecar);
+            }
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
         {
@@ -101,14 +105,20 @@ public static class LSidecarStore
         }
     }
 
-    public static bool LSidecarEditSave(string lSidecarSourcePath, LSidecarEditRecord? lSidecarEdit)
+    public static bool LSidecarEditSave(string lSidecarSourcePath, LSidecarEditRecord? lSidecarEdit) =>
+        LSidecarRecordSave(lSidecarSourcePath, lSidecar => lSidecar.LSidecarEdit = lSidecarEdit);
+
+    private static bool LSidecarRecordSave(string lSidecarSourcePath, Action<LSidecar> lSidecarMutate)
     {
         try
         {
             string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
-            LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
-            lSidecar.LSidecarEdit = lSidecarEdit;
-            return LSidecarFileSave(lSidecarPath, lSidecar);
+            using (LLatch.LLatchClaim(lSidecarPath))
+            {
+                LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
+                lSidecarMutate(lSidecar);
+                return LSidecarFileSave(lSidecarPath, lSidecar);
+            }
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -128,20 +138,8 @@ public static class LSidecarStore
         }
     }
 
-    public static bool LSidecarAudioSave(string lSidecarSourcePath, LSidecarAudioRecord? lSidecarAudio)
-    {
-        try
-        {
-            string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
-            LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
-            lSidecar.LSidecarAudio = lSidecarAudio;
-            return LSidecarFileSave(lSidecarPath, lSidecar);
-        }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return false;
-        }
-    }
+    public static bool LSidecarAudioSave(string lSidecarSourcePath, LSidecarAudioRecord? lSidecarAudio) =>
+        LSidecarRecordSave(lSidecarSourcePath, lSidecar => lSidecar.LSidecarAudio = lSidecarAudio);
 
     public static LSidecarWaveformRecord? LSidecarWaveformRead(string lSidecarSourcePath)
     {
@@ -155,20 +153,8 @@ public static class LSidecarStore
         }
     }
 
-    public static bool LSidecarWaveformSave(string lSidecarSourcePath, LSidecarWaveformRecord? lSidecarWaveform)
-    {
-        try
-        {
-            string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
-            LSidecar lSidecar = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
-            lSidecar.LSidecarWaveform = lSidecarWaveform;
-            return LSidecarFileSave(lSidecarPath, lSidecar);
-        }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return false;
-        }
-    }
+    public static bool LSidecarWaveformSave(string lSidecarSourcePath, LSidecarWaveformRecord? lSidecarWaveform) =>
+        LSidecarRecordSave(lSidecarSourcePath, lSidecar => lSidecar.LSidecarWaveform = lSidecarWaveform);
 
     public static TimeSpan LSidecarDurationRead(string lSidecarSourcePath)
     {
@@ -189,7 +175,12 @@ public static class LSidecarStore
         try
         {
             string lSidecarPath = LSidecarPathRead(lSidecarSourcePath);
-            LSidecar? lSidecar = LSidecarRead(lSidecarPath);
+            LSidecar? lSidecar;
+            using (LLatch.LLatchClaim(lSidecarPath))
+            {
+                lSidecar = LSidecarRead(lSidecarPath);
+            }
+
             if (lSidecar is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarKnown)
             {
                 return TimeSpan.FromMilliseconds(lSidecarKnown.LSidecarSource.LSidecarDurationMilliseconds);
@@ -210,9 +201,13 @@ public static class LSidecarStore
                 return TimeSpan.Zero;
             }
 
-            LSidecar lSidecarTarget = lSidecar ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
-            lSidecarTarget.LSidecarSource.LSidecarDurationMilliseconds = (long)Math.Round(lSidecarProbed.TotalMilliseconds);
-            LSidecarFileSave(lSidecarPath, lSidecarTarget);
+            using (LLatch.LLatchClaim(lSidecarPath))
+            {
+                LSidecar lSidecarTarget = LSidecarRead(lSidecarPath) ?? LSidecarStubCreate(lSidecarPath, lSidecarSourcePath);
+                lSidecarTarget.LSidecarSource.LSidecarDurationMilliseconds = (long)Math.Round(lSidecarProbed.TotalMilliseconds);
+                LSidecarFileSave(lSidecarPath, lSidecarTarget);
+            }
+
             return lSidecarProbed;
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
@@ -249,9 +244,28 @@ public static class LSidecarStore
             Directory.CreateDirectory(lSidecarFolder);
         }
 
-        string lSidecarTempPath = lSidecarPath + ".tmp";
-        File.WriteAllText(lSidecarTempPath, lSidecar.LSidecarJsonCreate());
-        File.Move(lSidecarTempPath, lSidecarPath, overwrite: true);
+        string lSidecarTempPath = lSidecarPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            File.WriteAllText(lSidecarTempPath, lSidecar.LSidecarJsonCreate());
+            File.Move(lSidecarTempPath, lSidecarPath, overwrite: true);
+        }
+        catch
+        {
+            try
+            {
+                if (File.Exists(lSidecarTempPath))
+                {
+                    File.Delete(lSidecarTempPath);
+                }
+            }
+            catch (Exception lSidecarCleanup) when (lSidecarCleanup is IOException or UnauthorizedAccessException)
+            {
+            }
+
+            throw;
+        }
+
         return true;
     }
 
@@ -268,13 +282,21 @@ public static class LSidecarStore
             return null;
         }
 
-        try
+        for (int lSidecarAttempt = 0; ; lSidecarAttempt++)
         {
-            return LSidecar.LSidecarParse(File.ReadAllText(lSidecarPath));
-        }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
-        {
-            return null;
+            try
+            {
+                return LSidecar.LSidecarParse(File.ReadAllText(lSidecarPath));
+            }
+            catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
+            {
+                if (lSidecarAttempt >= 2)
+                {
+                    return null;
+                }
+
+                Thread.Sleep(15);
+            }
         }
     }
 }

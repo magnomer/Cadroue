@@ -47,18 +47,12 @@ public static class LKeyframeCacheStore
         }
     }
 
-    public static void LKeyframeCacheSave(
+    public static bool LKeyframeCacheSave(
         LKeyframeSourceIdentity identity,
         IReadOnlyCollection<long> keyframeMilliseconds,
         IReadOnlyCollection<int> scannedSpanIndexes)
     {
         string cachePath = LKeyframePathCreate(identity);
-        string? cacheFolder = Path.GetDirectoryName(cachePath);
-        if (!string.IsNullOrWhiteSpace(cacheFolder))
-        {
-            Directory.CreateDirectory(cacheFolder);
-        }
-
         var record = new LKeyframeCacheRecord
         {
             LSourcePath = identity.LKeyframeSourcePath,
@@ -71,7 +65,34 @@ public static class LKeyframeCacheStore
         };
 
         string json = JsonSerializer.Serialize(record, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(cachePath, json);
+        string tempPath = cachePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            string? cacheFolder = Path.GetDirectoryName(cachePath);
+            if (!string.IsNullOrWhiteSpace(cacheFolder))
+            {
+                Directory.CreateDirectory(cacheFolder);
+            }
+
+            File.WriteAllText(tempPath, json);
+            File.Move(tempPath, cachePath, overwrite: true);
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            try
+            {
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
+            catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException)
+            {
+            }
+
+            return false;
+        }
     }
 
     private static bool LKeyframeCacheMatch(LKeyframeSourceIdentity identity, LKeyframeCacheRecord record)

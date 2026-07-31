@@ -120,7 +120,6 @@ public sealed partial class LKeyframeOrchestrator
 
             keyframes = lKeyframeStorage.ToArray();
             scannedSpans = lKeyframeScannedSpans.ToArray();
-            lKeyframeSavedSignature = (keyframes.Length, scannedSpans.Length);
         }
 
         var lKeyframeClock = System.Diagnostics.Stopwatch.StartNew();
@@ -130,14 +129,24 @@ public sealed partial class LKeyframeOrchestrator
             scannedSpans,
             LKeyframeGridMilliseconds,
             LKeyframeSectionsRead());
-        if (!lKeyframeSidecarWritten)
+        bool lKeyframePersisted = lKeyframeSidecarWritten
+            || LKeyframeCacheStore.LKeyframeCacheSave(identity, keyframes, scannedSpans);
+
+        if (lKeyframePersisted)
         {
-            LKeyframeCacheStore.LKeyframeCacheSave(identity, keyframes, scannedSpans);
+            lock (lKeyframeLock)
+            {
+                lKeyframeSavedSignature = (keyframes.Length, scannedSpans.Length);
+            }
         }
 
         LTrace.LTraceRecord(
             LTraceKind.LTraceWork,
-            lKeyframeSidecarWritten ? "Sidecar written" : "Keyframe cache written (sidecar refused)",
+            lKeyframeSidecarWritten
+                ? "Sidecar written"
+                : lKeyframePersisted
+                    ? "Keyframe cache written (sidecar refused)"
+                    : "Keyframe save failed (sidecar and cache both refused); will retry",
             $"{keyframes.Length} keyframe(s), {scannedSpans.Length} scanned span(s)\n"
             + $"for {identity.LKeyframeSourcePath}",
             lKeyframeClock.Elapsed.TotalMilliseconds);

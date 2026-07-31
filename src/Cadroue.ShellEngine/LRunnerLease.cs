@@ -40,7 +40,7 @@ public sealed partial class LRunner
         lRunnerSchedule.LSchedulePhaseSet(lWorkItem.LWorkId, lRunnerId, lRunnerPhase);
     }
 
-    private void LRunnerLeaseStart(LWorkItem lWorkItem)
+    internal void LRunnerLeaseStart(LWorkItem lWorkItem)
     {
         LRunnerLeaseStop(lWorkItem.LWorkId);
         var lRunnerTimer = new System.Timers.Timer(LSchedule.LScheduleLeaseSeconds * 1000) { AutoReset = true };
@@ -49,7 +49,7 @@ public sealed partial class LRunner
         lRunnerLeaseTimers[lWorkItem.LWorkId] = lRunnerTimer;
     }
 
-    private void LRunnerLeaseStop(Guid lWorkId)
+    internal void LRunnerLeaseStop(Guid lWorkId)
     {
         if (!lRunnerLeaseTimers.TryRemove(lWorkId, out System.Timers.Timer? lRunnerTimer))
         {

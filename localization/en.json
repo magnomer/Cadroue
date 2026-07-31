@@ -631,6 +631,8 @@
   "Roster.Kind.Merge": "Merge",
   "Roster.Relay.Many": "Send {0} files to",
   "Roster.Relay.One": "Send to",
+  "Roster.Menu.Restart": "Restart",
+  "Roster.Menu.RestartMany": "Restart {0} jobs",
   "Roster.Owner.ThisTab": "This tab",
   "Roster.Owner.OtherTab": "Other tab",
   "Roster.Owner.OtherWindow": "Other window",

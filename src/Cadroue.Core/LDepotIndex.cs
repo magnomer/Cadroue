@@ -15,55 +15,140 @@ public static class LDepotIndex
 {
     private const int LDepotBusyTimeout = 5;
 
+    private static bool lDepotSchemaChecked;
+
+    public static bool LDepotIndexDirty { get; private set; } = true;
+
+    public static void LDepotIndexInvalidate() => LDepotIndexDirty = true;
+
     public static void LDepotIndexCreate()
     {
-        LDepot.LDepotCreate();
-        using SqliteConnection lDepotConnection = LDepotConnectionOpen();
-        using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
-        lDepotCommand.CommandText = """
-            CREATE TABLE IF NOT EXISTS work (
-                work_id     TEXT PRIMARY KEY,
-                folder      TEXT NOT NULL,
-                state       TEXT NOT NULL,
-                priority    TEXT NOT NULL,
-                create_time TEXT NOT NULL,
-                owner_pid   INTEGER NOT NULL DEFAULT 0,
-                output_name TEXT NOT NULL DEFAULT ''
-            );
-            CREATE INDEX IF NOT EXISTS work_folder ON work (folder);
-            """;
-        lDepotCommand.ExecuteNonQuery();
+        try
+        {
+            LDepot.LDepotCreate();
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            using (SqliteCommand lDepotCommand = lDepotConnection.CreateCommand())
+            {
+                lDepotCommand.CommandText = """
+                    CREATE TABLE IF NOT EXISTS work (
+                        work_id     TEXT PRIMARY KEY,
+                        folder      TEXT NOT NULL,
+                        state       TEXT NOT NULL,
+                        priority    TEXT NOT NULL,
+                        create_time TEXT NOT NULL,
+                        owner_pid   INTEGER NOT NULL DEFAULT 0,
+                        output_name TEXT NOT NULL DEFAULT '',
+                        record      TEXT NOT NULL DEFAULT ''
+                    );
+                    CREATE INDEX IF NOT EXISTS work_folder ON work (folder);
+                    """;
+                lDepotCommand.ExecuteNonQuery();
+            }
+
+            if (!lDepotSchemaChecked)
+            {
+                try
+                {
+                    using SqliteCommand lDepotAlter = lDepotConnection.CreateCommand();
+                    lDepotAlter.CommandText = "ALTER TABLE work ADD COLUMN record TEXT NOT NULL DEFAULT '';";
+                    lDepotAlter.ExecuteNonQuery();
+                }
+                catch (SqliteException)
+                {
+                    // the column already exists on a current-schema table
+                }
+
+                lDepotSchemaChecked = true;
+            }
+        }
+        catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
+        {
+            LDepotIndexInvalidate();
+            LDepotIndexReport("could not be opened", lDepotException);
+        }
     }
 
     public static void LDepotIndexSet(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
     {
-        using SqliteConnection lDepotConnection = LDepotConnectionOpen();
-        using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
-        lDepotCommand.CommandText = """
-            INSERT INTO work (work_id, folder, state, priority, create_time, owner_pid, output_name)
-            VALUES ($id, $folder, $state, $priority, $create, $owner, $name)
-            ON CONFLICT(work_id) DO UPDATE SET
-                folder = $folder, state = $state, priority = $priority,
-                owner_pid = $owner, output_name = $name;
-            """;
-        lDepotCommand.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
-        lDepotCommand.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
-        lDepotCommand.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
-        lDepotCommand.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
-        lDepotCommand.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
-        lDepotCommand.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
-        lDepotCommand.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
-        lDepotCommand.ExecuteNonQuery();
+        try
+        {
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
+            lDepotCommand.CommandText = """
+                INSERT INTO work (work_id, folder, state, priority, create_time, owner_pid, output_name, record)
+                VALUES ($id, $folder, $state, $priority, $create, $owner, $name, $record)
+                ON CONFLICT(work_id) DO UPDATE SET
+                    folder = $folder, state = $state, priority = $priority,
+                    owner_pid = $owner, output_name = $name, record = $record;
+                """;
+            lDepotCommand.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
+            lDepotCommand.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
+            lDepotCommand.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
+            lDepotCommand.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
+            lDepotCommand.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
+            lDepotCommand.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
+            lDepotCommand.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
+            lDepotCommand.Parameters.AddWithValue("$record", lWorkRecord.LWorkJsonCreate());
+            lDepotCommand.ExecuteNonQuery();
+        }
+        catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
+        {
+            LDepotIndexInvalidate();
+            LDepotIndexReport($"update failed for '{lWorkRecord.LWorkOutputName}'", lDepotException);
+        }
     }
 
     public static void LDepotIndexRemove(Guid lWorkId)
     {
-        using SqliteConnection lDepotConnection = LDepotConnectionOpen();
-        using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
-        lDepotCommand.CommandText = "DELETE FROM work WHERE work_id = $id;";
-        lDepotCommand.Parameters.AddWithValue("$id", lWorkId.ToString("N"));
-        lDepotCommand.ExecuteNonQuery();
+        try
+        {
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
+            lDepotCommand.CommandText = "DELETE FROM work WHERE work_id = $id;";
+            lDepotCommand.Parameters.AddWithValue("$id", lWorkId.ToString("N"));
+            lDepotCommand.ExecuteNonQuery();
+        }
+        catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
+        {
+            LDepotIndexInvalidate();
+            LDepotIndexReport("removal failed", lDepotException);
+        }
     }
+
+    public static IReadOnlyList<(LDepotFolder LDepotRowFolder, string LDepotRowRecord)> LDepotIndexRecordsRead()
+    {
+        var lDepotRecords = new List<(LDepotFolder, string)>();
+        try
+        {
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
+            lDepotCommand.CommandText = "SELECT folder, record FROM work ORDER BY create_time;";
+
+            using SqliteDataReader lDepotReader = lDepotCommand.ExecuteReader();
+            while (lDepotReader.Read())
+            {
+                string lDepotRecord = lDepotReader.GetString(1);
+                if (string.IsNullOrEmpty(lDepotRecord))
+                {
+                    LDepotIndexInvalidate();
+                    continue;
+                }
+
+                lDepotRecords.Add((LDepotEnumRead(lDepotReader.GetString(0), LDepotFolder.LDepotFolderScheduled), lDepotRecord));
+            }
+        }
+        catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
+        {
+            LDepotIndexInvalidate();
+            LDepotIndexReport("could not be read", lDepotException);
+        }
+
+        return lDepotRecords;
+    }
+
+    private static void LDepotIndexReport(string lDepotDetail, Exception lDepotException)
+        => LSchedule.LScheduleRecoverReport?.Invoke(
+            $"Queue index {lDepotDetail} (the index rebuilds from the work folders): {lDepotException.Message}");
 
     public static IReadOnlyList<LDepotIndexRow> LDepotIndexRead()
     {
@@ -96,45 +181,55 @@ public static class LDepotIndex
     public static void LDepotIndexRebuild()
     {
         LDepotIndexCreate();
-        using SqliteConnection lDepotConnection = LDepotConnectionOpen();
-        using SqliteTransaction lDepotTransaction = lDepotConnection.BeginTransaction();
-
-        using (SqliteCommand lDepotClear = lDepotConnection.CreateCommand())
+        try
         {
-            lDepotClear.Transaction = lDepotTransaction;
-            lDepotClear.CommandText = "DELETE FROM work;";
-            lDepotClear.ExecuteNonQuery();
-        }
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            using SqliteTransaction lDepotTransaction = lDepotConnection.BeginTransaction();
 
-        foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
-        {
-            foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
+            using (SqliteCommand lDepotClear = lDepotConnection.CreateCommand())
             {
-                LWorkRecord? lWorkRecord = LDepotRecordRead(lDepotFilePath);
-                if (lWorkRecord is null)
-                {
-                    continue;
-                }
-
-                using SqliteCommand lDepotInsert = lDepotConnection.CreateCommand();
-                lDepotInsert.Transaction = lDepotTransaction;
-                lDepotInsert.CommandText = """
-                    INSERT OR REPLACE INTO work
-                        (work_id, folder, state, priority, create_time, owner_pid, output_name)
-                    VALUES ($id, $folder, $state, $priority, $create, $owner, $name);
-                    """;
-                lDepotInsert.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
-                lDepotInsert.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
-                lDepotInsert.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
-                lDepotInsert.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
-                lDepotInsert.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
-                lDepotInsert.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
-                lDepotInsert.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
-                lDepotInsert.ExecuteNonQuery();
+                lDepotClear.Transaction = lDepotTransaction;
+                lDepotClear.CommandText = "DELETE FROM work;";
+                lDepotClear.ExecuteNonQuery();
             }
-        }
 
-        lDepotTransaction.Commit();
+            foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
+            {
+                foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
+                {
+                    LWorkRecord? lWorkRecord = LDepotRecordRead(lDepotFilePath);
+                    if (lWorkRecord is null)
+                    {
+                        continue;
+                    }
+
+                    using SqliteCommand lDepotInsert = lDepotConnection.CreateCommand();
+                    lDepotInsert.Transaction = lDepotTransaction;
+                    lDepotInsert.CommandText = """
+                        INSERT OR REPLACE INTO work
+                            (work_id, folder, state, priority, create_time, owner_pid, output_name, record)
+                        VALUES ($id, $folder, $state, $priority, $create, $owner, $name, $record);
+                        """;
+                    lDepotInsert.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
+                    lDepotInsert.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
+                    lDepotInsert.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
+                    lDepotInsert.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
+                    lDepotInsert.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
+                    lDepotInsert.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
+                    lDepotInsert.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
+                    lDepotInsert.Parameters.AddWithValue("$record", lWorkRecord.LWorkJsonCreate());
+                    lDepotInsert.ExecuteNonQuery();
+                }
+            }
+
+            lDepotTransaction.Commit();
+            LDepotIndexDirty = false;
+        }
+        catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
+        {
+            LDepotIndexInvalidate();
+            LDepotIndexReport("rebuild failed", lDepotException);
+        }
     }
 
     private static LWorkRecord? LDepotRecordRead(string lDepotFilePath)

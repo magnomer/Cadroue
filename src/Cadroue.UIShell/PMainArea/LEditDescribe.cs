@@ -75,22 +75,30 @@ public static partial class LEdit
         return lEditAdded;
     }
 
-    private static Task LEditDurationResolve(IReadOnlyList<LWorkItem> lEditWorkItems)
+    private static async Task LEditDurationResolve(IReadOnlyList<LWorkItem> lEditWorkItems)
     {
         LWorkItem[] lEditUnknown = lEditWorkItems
             .Where(lWorkItem => lWorkItem.LWorkEnd <= TimeSpan.Zero)
             .ToArray();
         if (lEditUnknown.Length == 0)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        return Task.Run(() => Parallel.ForEach(
-            lEditUnknown,
+        var lEditResolved = new TimeSpan[lEditUnknown.Length];
+        await Task.Run(() => Parallel.For(
+            0,
+            lEditUnknown.Length,
             new ParallelOptions { MaxDegreeOfParallelism = LEditParallelRead() },
-            lWorkItem => LSchedule.LScheduleCurrent.LScheduleDurationSet(
-                lWorkItem.LWorkId,
-                Cadroue.Media.LSidecarStore.LSidecarDurationResolve(lWorkItem.LWorkSourcePath))));
+            lEditIndex => lEditResolved[lEditIndex] =
+                Cadroue.Media.LSidecarStore.LSidecarDurationResolve(lEditUnknown[lEditIndex].LWorkSourcePath)))
+            .ConfigureAwait(true);
+
+        for (int lEditIndex = 0; lEditIndex < lEditUnknown.Length; lEditIndex++)
+        {
+            LSchedule.LScheduleCurrent.LScheduleDurationSet(
+                lEditUnknown[lEditIndex].LWorkId, lEditResolved[lEditIndex]);
+        }
     }
 
     public static LEditPlan LEditPlanResolve(LEditPlan? lEditSaved, LEditPlan? lEditPersistent)
