@@ -297,6 +297,19 @@ public partial class PProgram : Application
         LPreferenceDefer();
     }
 
+    public static void LPreferenceSceneSet(string lPreferenceSceneName)
+    {
+        if (string.Equals(lPreferenceSceneName, LPreferenceStateCurrent.LPreferenceSceneName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
+        lPreferenceNext.LPreferenceSceneName = lPreferenceSceneName;
+        LPreferenceStateCurrent = lPreferenceNext;
+        LPreferenceDefer();
+    }
+
     private static void LPreferenceDefer()
     {
         lPreferenceSaveTimer ??= LPreferenceTimerCreate();

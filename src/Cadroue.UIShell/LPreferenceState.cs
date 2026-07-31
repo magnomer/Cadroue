@@ -53,6 +53,7 @@ public sealed class LPreferenceState
     public List<LPreferenceTabLayoutRecord> LPreferenceTabLayouts { get; set; } = new();
     public List<int> LPreferenceTabRelays { get; set; } = new();
     public List<string> LPreferenceTabNames { get; set; } = new();
+    public string LPreferenceSceneName { get; set; } = string.Empty;
 
     public List<LBindingRecord> LPreferenceShortcuts { get; set; } = new();
 
@@ -147,6 +148,7 @@ public sealed class LPreferenceState
                 .ToList(),
             LPreferenceTabRelays = new List<int>(LPreferenceTabRelays),
             LPreferenceTabNames = new List<string>(LPreferenceTabNames),
+            LPreferenceSceneName = LPreferenceSceneName,
             LPreferenceShortcuts = LPreferenceShortcuts
                 .Select(lPreferenceShortcut => lPreferenceShortcut.LBindingRecordClone())
                 .ToList()

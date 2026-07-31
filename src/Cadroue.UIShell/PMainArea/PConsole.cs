@@ -22,8 +22,9 @@ public sealed partial class PConsole : UserControl
     private readonly Button pConsoleNextButton;
     private readonly CheckBox pConsoleAutoBox;
     private readonly ComboBox pConsoleRelayCombo;
-    private readonly Button pConsoleOpenButton;
     private readonly Button pConsoleSaveButton;
+    private readonly Button pConsoleExportButton;
+    private readonly Button pConsoleImportButton;
     private readonly TextBlock pConsoleStationLabel;
     private readonly ProgressBar pConsoleProgress;
     private readonly TextBlock pConsoleStatus;
@@ -69,8 +70,9 @@ public sealed partial class PConsole : UserControl
             null, PConsoleTabsHandle);
         pConsoleAutoBox = PConsoleAutoBuild();
         pConsoleRelayCombo = PConsoleComboBuild();
-        pConsoleOpenButton = PConsoleInlineBuild(LLocalization.LLocalizationTextRead("Console.Relay.Open"));
-        pConsoleSaveButton = PConsoleInlineBuild(LLocalization.LLocalizationTextRead("Console.Relay.Save"));
+        pConsoleSaveButton = PConsoleInlineBuild("PConsoleSave.svg");
+        pConsoleExportButton = PConsoleInlineBuild("PExportExport.svg");
+        pConsoleImportButton = PConsoleInlineBuild("PExportImport.svg");
         pConsolePreviousButton = PConsoleSwitchBuild(
             "PConsolePrevious.svg", LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"), PConsolePreviousHandle);
         pConsoleNextButton = PConsoleSwitchBuild(
@@ -78,6 +80,7 @@ public sealed partial class PConsole : UserControl
 
         Content = PConsoleBuild();
         PConsoleCurrent = this;
+        PConsoleSceneAttach();
 
         pConsoleSchedule.LScheduleChange += PConsoleScheduleHandle;
         LStation.LStationChange += PConsoleStationHandle;
@@ -113,9 +116,11 @@ public sealed partial class PConsole : UserControl
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var pAutoRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pAutoRow.Children.Add(pConsoleAutoBox);
+        pAutoRow.Children.Add(PConsoleSeparatorBuild());
         pAutoRow.Children.Add(pConsoleRelayCombo);
-        pAutoRow.Children.Add(pConsoleOpenButton);
         pAutoRow.Children.Add(pConsoleSaveButton);
+        pAutoRow.Children.Add(pConsoleExportButton);
+        pAutoRow.Children.Add(pConsoleImportButton);
 
         Grid.SetColumn(pButtons, 0);
         Grid.SetColumn(pConsoleStatus, 1);
@@ -187,12 +192,26 @@ public sealed partial class PConsole : UserControl
         return pRelayCombo;
     }
 
-    private static Button PConsoleInlineBuild(string pLabel)
+    private static Border PConsoleSeparatorBuild() => new()
+    {
+        Width = 1,
+        Margin = new Thickness(6, 2, 12, 2),
+        VerticalAlignment = VerticalAlignment.Stretch,
+        Background = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7))
+    };
+
+    private static Button PConsoleInlineBuild(string pIconName)
     {
         return new Button
         {
-            Content = pLabel,
-            MinWidth = 64,
+            Content = new Image
+            {
+                Source = PIcon.PIconRead($"/PAssets/PPanels/{pIconName}", PRosterTheme.PRosterTextBrush),
+                Width = PConsoleSwitchSize,
+                Height = PConsoleSwitchSize,
+                Stretch = Stretch.Uniform
+            },
+            Width = 34,
             Height = PSField.PSFieldControlHeight,
             Margin = new Thickness(0, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center,

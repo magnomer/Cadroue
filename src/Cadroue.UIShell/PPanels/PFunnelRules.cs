@@ -146,8 +146,9 @@ public sealed class PFunnelRules : PPanel
     {
         var pAddButton = new Button
         {
-            Height = 30,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Height = 24,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Padding = new Thickness(12, 0, 12, 0),
             Content = LLocalization.LLocalizationTextRead("Inspector.Funnel.Add"),
             FontSize = 12,
             FontFamily = pFunnelFontFamily,

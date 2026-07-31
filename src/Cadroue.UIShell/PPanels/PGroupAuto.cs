@@ -13,7 +13,7 @@ public sealed partial class PGroup
     private static readonly Regex pGroupNumberPattern =
         new(@"^(?<base>.*?)\s*\((?<number>\d+)\)\s*$", RegexOptions.CultureInvariant);
 
-    private static readonly Brush pGroupActiveBrush = new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB));
+    private static readonly Brush pGroupActiveBrush = new SolidColorBrush(Color.FromRgb(0xCE, 0xE1, 0xFB));
 
     private Border pGroupActionHost = null!;
     private bool pGroupAuto;

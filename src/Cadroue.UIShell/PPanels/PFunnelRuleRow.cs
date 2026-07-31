@@ -1,8 +1,10 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PMainArea;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -13,17 +15,18 @@ public sealed class PFunnelRuleRow : Border
     private static readonly Brush pFunnelTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
     private static readonly Brush pFunnelMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
     private static readonly Brush pFunnelAccentBrush = new SolidColorBrush(Color.FromRgb(0x2C, 0x6C, 0xCE));
+    private static readonly Brush pFunnelActiveBrush = new SolidColorBrush(Color.FromRgb(0xCE, 0xE1, 0xFB));
 
-    private const double PFunnelFieldHeight = 26;
+    private const double PFunnelFieldHeight = 30;
 
     private readonly TextBox pFunnelStartField;
     private readonly TextBox pFunnelEndField;
-    private readonly Button pFunnelJoinButton;
-    private readonly Button pFunnelTargetButton;
-    private readonly TextBlock pFunnelTargetLabel;
+    private readonly Border pFunnelJoinSwitch;
+    private readonly ComboBox pFunnelRelayCombo;
     private readonly Func<IReadOnlyList<LCourierOption>> pFunnelOptionsRead;
 
     private bool pFunnelAndMode = true;
+    private bool pFunnelRelayBusy;
     private Guid pFunnelTargetId;
     private int pFunnelTargetPending = -1;
 
@@ -36,24 +39,20 @@ public sealed class PFunnelRuleRow : Border
 
         pFunnelStartField = PFunnelFieldBuild();
         pFunnelEndField = PFunnelFieldBuild();
-        pFunnelJoinButton = PFunnelJoinBuild();
-        pFunnelTargetLabel = new TextBlock
-        {
-            FontSize = 12,
-            FontFamily = pFunnelFontFamily,
-            Foreground = pFunnelTitleBrush,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis
-        };
-        pFunnelTargetButton = PFunnelTargetBuild();
+        pFunnelJoinSwitch = PFunnelJoinBuild();
+        pFunnelRelayCombo = PFunnelRelayBuild();
 
-        var pBody = new StackPanel();
+        var pBody = new StackPanel { Margin = new Thickness(0, 2, 0, 0) };
         pBody.Children.Add(PFunnelLabelRowBuild(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.StartsWith"), pFunnelStartField));
-        pBody.Children.Add(pFunnelJoinButton);
+        pBody.Children.Add(pFunnelJoinSwitch);
         pBody.Children.Add(PFunnelLabelRowBuild(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.EndsWith"), pFunnelEndField));
         pBody.Children.Add(PFunnelRelayRowBuild());
+
+        var pOverlay = new Grid();
+        pOverlay.Children.Add(pBody);
+        pOverlay.Children.Add(PFunnelRemoveBuild());
 
         Margin = new Thickness(0, 0, 0, 10);
         Padding = new Thickness(10);
@@ -62,9 +61,10 @@ public sealed class PFunnelRuleRow : Border
         BorderThickness = new Thickness(1);
         CornerRadius = new CornerRadius(8);
         SnapsToDevicePixels = true;
-        Child = pBody;
+        Child = pOverlay;
 
-        PFunnelTargetLabelUpdate();
+        PFunnelJoinRefresh();
+        PFunnelRelayRebuild();
     }
 
     public string PFunnelRowStart => pFunnelStartField.Text.Trim();
@@ -83,14 +83,14 @@ public sealed class PFunnelRuleRow : Border
         pFunnelEndField.Text = pEnd;
         pFunnelAndMode = pAndMode;
         pFunnelTargetPending = pTargetIndex;
-        PFunnelJoinLabelUpdate();
+        PFunnelJoinRefresh();
     }
 
     public void PFunnelRowTargetSet(Guid pTargetId)
     {
         pFunnelTargetId = pTargetId;
         pFunnelTargetPending = -1;
-        PFunnelTargetLabelUpdate();
+        PFunnelRelayRebuild();
     }
 
     public bool PFunnelRowMatch(string pFileName)
@@ -121,109 +121,153 @@ public sealed class PFunnelRuleRow : Border
         {
             Height = PFunnelFieldHeight,
             FontSize = 12,
-            FontFamily = pFunnelFontFamily,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            Padding = new Thickness(6, 0, 6, 0)
+            FontFamily = pFunnelFontFamily
         };
+        PTextbox.PTextboxApply(pField);
         return pField;
     }
 
-    private Button PFunnelJoinBuild()
+    private Border PFunnelJoinBuild()
     {
-        var pButton = new Button
+        var pHost = new Border
         {
-            Height = 24,
-            MinWidth = 64,
             Margin = new Thickness(0, 6, 0, 6),
             HorizontalAlignment = HorizontalAlignment.Center,
-            FontSize = 11,
-            FontFamily = pFunnelFontFamily,
-            Foreground = pFunnelAccentBrush,
-            Background = Brushes.White,
             BorderBrush = pFunnelLineBrush,
             BorderThickness = new Thickness(1),
-            Cursor = System.Windows.Input.Cursors.Hand,
-            FocusVisualStyle = null,
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Funnel.And")
+            CornerRadius = new CornerRadius(6),
+            Background = Brushes.White,
+            SnapsToDevicePixels = true
         };
-        pButton.Click += (_, _) =>
+        return pHost;
+    }
+
+    private void PFunnelJoinRefresh()
+    {
+        var pRow = new StackPanel { Orientation = Orientation.Horizontal };
+        pRow.Children.Add(PFunnelSegmentBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Funnel.And"), pFunnelAndMode, () => PFunnelModeSet(true)));
+        pRow.Children.Add(new Border { Width = 1, Background = pFunnelLineBrush });
+        pRow.Children.Add(PFunnelSegmentBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Funnel.Or"), !pFunnelAndMode, () => PFunnelModeSet(false)));
+        pFunnelJoinSwitch.Child = pRow;
+    }
+
+    private static Border PFunnelSegmentBuild(string pText, bool pActive, Action pClick)
+    {
+        var pLabel = new TextBlock
         {
-            pFunnelAndMode = !pFunnelAndMode;
-            PFunnelJoinLabelUpdate();
-            PFunnelRowChange?.Invoke();
+            Text = pText,
+            FontSize = 12,
+            FontFamily = pFunnelFontFamily,
+            FontWeight = pActive ? FontWeights.SemiBold : FontWeights.Normal,
+            Foreground = pActive ? pFunnelTitleBrush : pFunnelMutedBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Center
         };
-        return pButton;
+
+        var pSegment = new Border
+        {
+            Background = pActive ? pFunnelActiveBrush : Brushes.Transparent,
+            Padding = new Thickness(14, 3, 14, 3),
+            Cursor = System.Windows.Input.Cursors.Hand,
+            Child = pLabel
+        };
+        pSegment.MouseLeftButtonUp += (_, _) => pClick();
+        return pSegment;
     }
 
-    private void PFunnelJoinLabelUpdate()
+    private void PFunnelModeSet(bool pAndMode)
     {
-        pFunnelJoinButton.Content = LLocalization.LLocalizationTextRead(
-            pFunnelAndMode ? "Inspector.Funnel.And" : "Inspector.Funnel.Or");
+        if (pFunnelAndMode == pAndMode)
+        {
+            return;
+        }
+
+        pFunnelAndMode = pAndMode;
+        PFunnelJoinRefresh();
+        PFunnelRowChange?.Invoke();
     }
 
-    private Button PFunnelTargetBuild()
+    private ComboBox PFunnelRelayBuild()
     {
-        var pButton = new Button
+        var pCombo = new ComboBox
         {
             Height = PFunnelFieldHeight,
             MinWidth = 120,
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            HorizontalContentAlignment = HorizontalAlignment.Left,
-            Padding = new Thickness(8, 0, 8, 0),
-            Background = Brushes.White,
-            BorderBrush = pFunnelLineBrush,
-            BorderThickness = new Thickness(1),
-            Cursor = System.Windows.Input.Cursors.Hand,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            FontSize = 12,
+            FontFamily = pFunnelFontFamily,
             FocusVisualStyle = null,
-            Content = pFunnelTargetLabel
+            SelectedValuePath = "LCourierTabId",
+            ItemTemplate = PFunnelRelayTemplateBuild()
         };
-        pButton.Click += PFunnelTargetOpen;
-        return pButton;
+        PDropdown.PDropdownApply(pCombo);
+        pCombo.DropDownOpened += (_, _) => PFunnelRelayRebuild();
+        pCombo.SelectionChanged += PFunnelRelayHandle;
+        return pCombo;
     }
 
-    private void PFunnelTargetOpen(object pSender, RoutedEventArgs pArgs)
+    private void PFunnelRelayRebuild()
     {
-        ContextMenu pMenu = PMenu.PMenuCreate(pFunnelTargetButton);
-        MenuItem pNoneItem = PMenu.PMenuItemCreate(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone"), null);
-        pNoneItem.Click += (_, _) =>
+        pFunnelRelayBusy = true;
+        var pOptions = new List<LCourierOption>
         {
-            PFunnelRowTargetSet(Guid.Empty);
-            PFunnelRowChange?.Invoke();
+            new(Guid.Empty, LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone"), null)
         };
-        pMenu.Items.Add(pNoneItem);
-
-        foreach (LCourierOption pOption in pFunnelOptionsRead())
-        {
-            MenuItem pItem = PMenu.PMenuItemCreate(pOption.LCourierTabTitle, pOption.LCourierTabIcon);
-            Guid pOptionId = pOption.LCourierTabId;
-            pItem.Click += (_, _) =>
-            {
-                PFunnelRowTargetSet(pOptionId);
-                PFunnelRowChange?.Invoke();
-            };
-            pMenu.Items.Add(pItem);
-        }
-
-        pMenu.IsOpen = true;
-        pArgs.Handled = true;
-    }
-
-    private void PFunnelTargetLabelUpdate()
-    {
-        LCourierOption? pOption = pFunnelTargetId == Guid.Empty
-            ? null
-            : pFunnelOptionsRead().FirstOrDefault(pRow => pRow.LCourierTabId == pFunnelTargetId);
-
-        if (pFunnelTargetId != Guid.Empty && pOption is null)
+        pOptions.AddRange(pFunnelOptionsRead());
+        if (pFunnelTargetId != Guid.Empty && pOptions.All(pOption => pOption.LCourierTabId != pFunnelTargetId))
         {
             pFunnelTargetId = Guid.Empty;
         }
 
-        bool pChosen = pOption is not null;
-        pFunnelTargetLabel.Text = pOption?.LCourierTabTitle
-            ?? LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone");
-        pFunnelTargetLabel.Foreground = pChosen ? pFunnelTitleBrush : pFunnelMutedBrush;
+        pFunnelRelayCombo.ItemsSource = pOptions;
+        pFunnelRelayCombo.SelectedValue = pFunnelTargetId;
+        pFunnelRelayBusy = false;
+    }
+
+    private void PFunnelRelayHandle(object pSender, SelectionChangedEventArgs pArgs)
+    {
+        if (pFunnelRelayBusy || pFunnelRelayCombo.SelectedValue is not Guid pTargetId)
+        {
+            return;
+        }
+
+        pFunnelTargetId = pTargetId;
+        pFunnelTargetPending = -1;
+        PFunnelRowChange?.Invoke();
+    }
+
+    private static DataTemplate PFunnelRelayTemplateBuild()
+    {
+        var pStack = new FrameworkElementFactory(typeof(StackPanel));
+        pStack.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
+
+        var pIconStyle = new Style(typeof(Image));
+        var pIconTrigger = new DataTrigger { Binding = new Binding("LCourierTabIcon"), Value = null };
+        pIconTrigger.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Collapsed));
+        pIconStyle.Triggers.Add(pIconTrigger);
+
+        var pIcon = new FrameworkElementFactory(typeof(Image));
+        pIcon.SetValue(FrameworkElement.WidthProperty, 14.0);
+        pIcon.SetValue(FrameworkElement.HeightProperty, 14.0);
+        pIcon.SetValue(Image.StretchProperty, Stretch.Uniform);
+        pIcon.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 6, 0));
+        pIcon.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        pIcon.SetValue(FrameworkElement.StyleProperty, pIconStyle);
+        pIcon.SetBinding(Image.SourceProperty, new Binding("LCourierTabIcon"));
+
+        var pText = new FrameworkElementFactory(typeof(TextBlock));
+        pText.SetValue(TextBlock.FontSizeProperty, 12.0);
+        pText.SetValue(TextBlock.FontFamilyProperty, pFunnelFontFamily);
+        pText.SetValue(TextBlock.ForegroundProperty, pFunnelTitleBrush);
+        pText.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        pText.SetBinding(TextBlock.TextProperty, new Binding("LCourierTabTitle"));
+
+        pStack.AppendChild(pIcon);
+        pStack.AppendChild(pText);
+        return new DataTemplate { VisualTree = pStack };
     }
 
     private Grid PFunnelLabelRowBuild(string pLabel, UIElement pField)
@@ -252,7 +296,6 @@ public sealed class PFunnelRuleRow : Border
         var pRow = new Grid { Margin = new Thickness(0, 8, 0, 0) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         var pRelayLabel = new TextBlock
         {
@@ -264,14 +307,10 @@ public sealed class PFunnelRuleRow : Border
             Margin = new Thickness(2, 0, 8, 0)
         };
 
-        Button pRemoveButton = PFunnelRemoveBuild();
-
         Grid.SetColumn(pRelayLabel, 0);
-        Grid.SetColumn(pFunnelTargetButton, 1);
-        Grid.SetColumn(pRemoveButton, 2);
+        Grid.SetColumn(pFunnelRelayCombo, 1);
         pRow.Children.Add(pRelayLabel);
-        pRow.Children.Add(pFunnelTargetButton);
-        pRow.Children.Add(pRemoveButton);
+        pRow.Children.Add(pFunnelRelayCombo);
         return pRow;
     }
 
@@ -279,17 +318,16 @@ public sealed class PFunnelRuleRow : Border
     {
         var pButton = new Button
         {
-            Width = 26,
-            Height = PFunnelFieldHeight,
-            Margin = new Thickness(8, 0, 0, 0),
+            Width = 20,
+            Height = 20,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
             Content = "×",
             FontSize = 15,
             Foreground = pFunnelMutedBrush,
-            Background = Brushes.White,
-            BorderBrush = pFunnelLineBrush,
-            BorderThickness = new Thickness(1),
+            Padding = new Thickness(0),
             Cursor = System.Windows.Input.Cursors.Hand,
-            FocusVisualStyle = null,
+            Style = PButton.PButtonChromeCreate(false),
             ToolTip = LLocalization.LLocalizationTextRead("Inspector.Funnel.Remove")
         };
         pButton.Click += (_, _) => PFunnelRowRemove?.Invoke(this);
