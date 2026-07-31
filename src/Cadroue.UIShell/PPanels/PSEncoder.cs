@@ -123,12 +123,13 @@ internal sealed partial class PSEncoder : Window
         psLocationCombo = PSComboBuild(lsExportSpecificEdit.LPresetLocation,
             new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
             new LLocalizationChoice("Custom location", "Encoder.Location.Custom"),
-            new LLocalizationChoice("Subfolder", "Encoder.Location.Subfolder"));
-        bool psLocationSubfolder = string.Equals(lsExportSpecificEdit.LPresetLocation, "Subfolder", StringComparison.Ordinal);
-        psEncoderFolderPath = psLocationSubfolder || string.IsNullOrWhiteSpace(lsExportSpecificEdit.LPresetLocationFolder)
+            new LLocalizationChoice("Subfolder", "Encoder.Location.Subfolder"),
+            new LLocalizationChoice("Sibling", "Encoder.Location.Sibling"));
+        bool psLocationNamed = PSLocationNamedCheck(lsExportSpecificEdit.LPresetLocation);
+        psEncoderFolderPath = psLocationNamed || string.IsNullOrWhiteSpace(lsExportSpecificEdit.LPresetLocationFolder)
             ? null
             : lsExportSpecificEdit.LPresetLocationFolder;
-        psLocationFolderBox = PSEntryBuild(psLocationSubfolder ? lsExportSpecificEdit.LPresetLocationFolder : string.Empty, 220);
+        psLocationFolderBox = PSEntryBuild(psLocationNamed ? lsExportSpecificEdit.LPresetLocationFolder : string.Empty, 220);
         psVideoSizeCombo = PSComboBuild(
             PSVideoLabelRead(lsExportSpecificEdit.LPresetVideoSize, lsExportSpecificEdit.LPresetSizeReactive),
             PSVideoChoicesRead(lsExportSpecificEdit.LPresetSizeReactive));
@@ -224,7 +225,7 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.LPresetVideoQuality = psVideoQualityBox?.Text.Trim() ?? string.Empty;
         lsExportSpecificEdit.LPresetSpeedPreset = psVideoSpeedCombo is null ? string.Empty : PSComboTextRead(psVideoSpeedCombo);
         lsExportSpecificEdit.LPresetLocation = PSComboTextRead(psLocationCombo);
-        lsExportSpecificEdit.LPresetLocationFolder = string.Equals(lsExportSpecificEdit.LPresetLocation, "Subfolder", StringComparison.Ordinal)
+        lsExportSpecificEdit.LPresetLocationFolder = PSLocationNamedCheck(lsExportSpecificEdit.LPresetLocation)
             ? psLocationFolderBox.Text.Trim()
             : psEncoderFolderPath ?? string.Empty;
         lsExportSpecificEdit.LPresetVideoSize = PSVideoSizeRead(PSComboTextRead(psVideoSizeCombo));

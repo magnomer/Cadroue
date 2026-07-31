@@ -23,25 +23,16 @@ public static partial class LAudio
     public static int LAudioAllDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lAudioSourcePaths,
-        LWorkAudio lAudioProcessing,
         LPreset lExportSpecificState,
-        LWorkAudio? lAudioPersistent = null,
         Guid lAudioRelayTarget = default)
     {
         LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
         int lAudioAdded = 0;
         foreach (string lAudioSourcePath in lAudioSourcePaths)
         {
-            LWorkAudio? lAudioSaved = LAudioPlanRead(lAudioSourcePath);
-            if (lAudioPersistent is null && lAudioSaved is not { LWorkAudioActive: true })
+            if (LAudioPlanRead(lAudioSourcePath) is not { LWorkAudioActive: true } lAudioPlan)
             {
                 continue;
-            }
-
-            LWorkAudio lAudioPlan = LAudioPlanResolve(lAudioSaved, lAudioPersistent);
-            if (lAudioPersistent is not null)
-            {
-                LAudioPlanSave(lAudioSourcePath, lAudioPlan);
             }
 
             lAudioAdded += LAudio.LAudioInterpret(
@@ -53,7 +44,7 @@ public static partial class LAudio
 
     public static LWorkAudio? LAudioPlanRead(string lAudioSourcePath) =>
         Cadroue.Media.LSidecarStore.LSidecarAudioRead(lAudioSourcePath) is { } lAudioRecord
-            ? new LWorkAudio(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray())
+            ? new LWorkAudio(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray()) { LWorkAudioSkip = lAudioRecord.LSidecarSkip }
             : null;
 
     public static void LAudioPlanSave(string lAudioSourcePath, LWorkAudio lAudioPlan)
@@ -62,12 +53,14 @@ public static partial class LAudio
             lAudioSourcePath,
             new Cadroue.Media.LSidecarAudioRecord
             {
+                LSidecarSkip = lAudioPlan.LWorkAudioSkip,
                 LSidecarSteps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
             });
     }
 
     public static LWorkAudio LAudioPlanResolve(LWorkAudio? lAudioSaved, LWorkAudio? lAudioPersistent)
     {
+        bool lAudioSkip = (lAudioPersistent?.LWorkAudioSkip ?? false) || (lAudioSaved?.LWorkAudioSkip ?? false);
         var lAudioSteps = new List<LWorkAudioStep>();
         foreach (LWorkAudioKind lAudioKind in LAudioKindsRead())
         {
@@ -78,7 +71,7 @@ public static partial class LAudio
             lAudioSteps.Add(lAudioPersistentStep ?? lAudioSavedStep ?? LAudioDefaultCreate(lAudioKind));
         }
 
-        return new LWorkAudio(lAudioSteps);
+        return new LWorkAudio(lAudioSteps) { LWorkAudioSkip = lAudioSkip };
     }
 
     private static IReadOnlyList<LWorkAudioKind> LAudioKindsRead() => new[]

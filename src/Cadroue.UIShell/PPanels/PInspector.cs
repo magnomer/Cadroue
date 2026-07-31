@@ -19,6 +19,7 @@ public sealed partial class PInspector : PPanel
     public const double PInspectorStripWidth = 48;
 
     public event Action<bool>? PInspectorMinimizeChange;
+    public event Action? PInspectorPlanChange;
 
     private readonly TextBlock pInspectorTitleLabel;
     private readonly TextBlock pInspectorEmptyNotice;
@@ -81,6 +82,7 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PNoiseBodyBuild());
         pBody.Children.Add(PFilterHighBuild());
         pBody.Children.Add(PFilterLowBuild());
+        pBody.Children.Add(PSkipBodyBuild());
 
         var pScroll = new ScrollViewer
         {
@@ -168,8 +170,9 @@ public sealed partial class PInspector : PPanel
         bool pNoiseSelected = pStepName == "Noise Reduction";
         bool pHighPassSelected = pStepName == "High Pass";
         bool pLowPassSelected = pStepName == "Low Pass";
+        bool pSkipSelected = pStepName == "No Processing";
         bool pKnownSelected = pCropSelected || pBrightnessSelected || pContrastSelected || pVolumeSelected || pNormalizeSelected
-            || pNoiseSelected || pHighPassSelected || pLowPassSelected;
+            || pNoiseSelected || pHighPassSelected || pLowPassSelected || pSkipSelected;
 
         pInspectorTitleLabel.Text = pStepName switch
         {
@@ -181,6 +184,7 @@ public sealed partial class PInspector : PPanel
             "Noise Reduction" => LLocalization.LLocalizationTextRead("Inspector.Step.NoiseReduction"),
             "High Pass" => LLocalization.LLocalizationTextRead("Inspector.Step.HighPass"),
             "Low Pass" => LLocalization.LLocalizationTextRead("Inspector.Step.LowPass"),
+            "No Processing" => LLocalization.LLocalizationTextRead("Inspector.Step.NoProcessing"),
             _ => LLocalization.LLocalizationTextRead("Inspector.Header.Title")
         };
         pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -191,6 +195,7 @@ public sealed partial class PInspector : PPanel
         pInspectorNoiseBody.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorHighPass.PInspectorPassBody.Visibility = pHighPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorLowPass.PInspectorPassBody.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorSkipBody.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorPersistentRow.Visibility = pKnownSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorPersistentBox.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorBrightnessPersistent.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -200,6 +205,7 @@ public sealed partial class PInspector : PPanel
         pInspectorNoisePersistent.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorHighPass.PInspectorPassPersistent.Visibility = pHighPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorLowPass.PInspectorPassPersistent.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorSkipPersistent.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorEmptyNotice.Visibility = pKnownSelected ? Visibility.Collapsed : Visibility.Visible;
 
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)

@@ -12,11 +12,13 @@ public sealed record LEditWorkDescription(
 
 public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropApply)
 {
+    public bool LEditSkip { get; init; }
+
     public static LEditPlan LEditEmptyCreate() =>
         new(LWorkCrop.LWorkCropCreate(), LWorkVideo.LWorkVideoCreate(), false);
 
     public bool LEditPlanActive =>
-        LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive;
+        LEditSkip || LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive;
 }
 
 public static partial class LEdit
@@ -44,7 +46,6 @@ public static partial class LEdit
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lEditSourcePaths,
         LPreset lExportSpecificState,
-        LEditPlan? lEditCarried = null,
         Guid lEditRelayTarget = default)
     {
         LWorkOutput lEditOutput = lExportSpecificState.LPresetOutputCreate();
@@ -52,29 +53,23 @@ public static partial class LEdit
 
         foreach (string lEditSourcePath in lEditSourcePaths)
         {
-            if (LEditPlanResolve(lEditSourcePath, lEditCarried) is not { } lEditPlan)
+            if (LEditPlanRead(lEditSourcePath) is not { LEditPlanActive: true } lEditPlan)
             {
                 continue;
-            }
-
-            if (lEditCarried is not null)
-            {
-                LEditPlanSave(lEditSourcePath, lEditPlan);
             }
 
             lEditWorkItems.Add(LEditWorkCreate(
                 lWorkPriority,
                 lEditSourcePath,
                 Cadroue.Media.LSidecarStore.LSidecarDurationRead(lEditSourcePath),
-                lEditPlan.LEditCrop,
-                lEditPlan.LEditVideo,
+                lEditPlan.LEditSkip ? LWorkCrop.LWorkCropCreate() : lEditPlan.LEditCrop,
+                lEditPlan.LEditSkip ? LWorkVideo.LWorkVideoCreate() : lEditPlan.LEditVideo,
                 lEditOutput));
         }
 
         int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lEditWorkItems, lEditRelayTarget);
         LTraceLog.LTraceInfoRecord(
-            $"Edit Add All: {lEditSourcePaths.Count} listed, {lEditAdded} queued, "
-            + $"plan source {(lEditCarried is null ? "sidecar per file" : "persistent for every file")}");
+            $"Edit Add All: {lEditSourcePaths.Count} listed, {lEditAdded} queued from saved plans");
 
         await LEditDurationResolve(lEditWorkItems).ConfigureAwait(true);
         return lEditAdded;
@@ -105,6 +100,8 @@ public static partial class LEdit
             return lEditSaved ?? LEditPlan.LEditEmptyCreate();
         }
 
+        bool lEditSkip = lPersistent.LEditSkip || (lEditSaved?.LEditSkip ?? false);
+
         LWorkCrop lCrop = lPersistent.LEditCropApply
             ? lPersistent.LEditCrop
             : lEditSaved?.LEditCrop ?? LWorkCrop.LWorkCropCreate();
@@ -126,17 +123,7 @@ public static partial class LEdit
             }
         }
 
-        return new LEditPlan(lCrop, new LWorkVideo(lSteps), lCropApply);
-    }
-
-    private static LEditPlan? LEditPlanResolve(string lEditSourcePath, LEditPlan? lEditCarried)
-    {
-        if (lEditCarried is { } lEditPersistent)
-        {
-            return lEditPersistent;
-        }
-
-        return LEditPlanRead(lEditSourcePath);
+        return new LEditPlan(lCrop, new LWorkVideo(lSteps), lCropApply) { LEditSkip = lEditSkip };
     }
 
     private static int LEditParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
@@ -168,7 +155,7 @@ public static partial class LEdit
             lEditRecord.LSidecarFlipHorizontal,
             lEditRecord.LSidecarFlipVertical),
         new LWorkVideo(lEditRecord.LSidecarSteps.Select(LEditStepCreate).ToList()),
-        lEditRecord.LSidecarCropActive);
+        lEditRecord.LSidecarCropActive) { LEditSkip = lEditRecord.LSidecarSkip };
 
     private static LWorkVideoStep LEditStepCreate(Cadroue.Media.LSidecarVideoStepRecord lEditRecord) =>
         string.Equals(lEditRecord.LSidecarKind, "Contrast", StringComparison.Ordinal)
@@ -189,6 +176,7 @@ public static partial class LEdit
                 LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkCropFlipHorizontal,
                 LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkCropFlipVertical,
                 LSidecarCropActive = lEditPlan.LEditCropApply,
+                LSidecarSkip = lEditPlan.LEditSkip,
                 LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
             });
     }

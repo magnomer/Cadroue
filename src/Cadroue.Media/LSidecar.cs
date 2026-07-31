@@ -23,10 +23,12 @@ public sealed class LSidecarEditRecord
     public bool LSidecarFlipHorizontal { get; set; }
     public bool LSidecarFlipVertical { get; set; }
     public bool LSidecarCropActive { get; set; }
+    public bool LSidecarSkip { get; set; }
     public List<LSidecarVideoStepRecord> LSidecarSteps { get; set; } = new();
 
     public bool LSidecarEditActive =>
         LSidecarCropActive
+        || LSidecarSkip
         || LSidecarCropLeft > 0 || LSidecarCropTop > 0 || LSidecarCropRight > 0 || LSidecarCropBottom > 0
         || LSidecarRotation != 0 || LSidecarFlipHorizontal || LSidecarFlipVertical
         || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
@@ -64,9 +66,10 @@ public sealed class LSidecarAudioStepRecord
 
 public sealed class LSidecarAudioRecord
 {
+    public bool LSidecarSkip { get; set; }
     public List<LSidecarAudioStepRecord> LSidecarSteps { get; set; } = new();
 
-    public bool LSidecarAudioActive => LSidecarSteps.Any(lStep => lStep.LSidecarActive);
+    public bool LSidecarAudioActive => LSidecarSkip || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }
 
 public sealed class LSidecarWaveformRecord

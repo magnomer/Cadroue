@@ -185,7 +185,6 @@ public static class LCourier
         {
             bool lCourierPending = lCourierSchedule.LScheduleRecords.Any(lWorkItem =>
                 lWorkItem.LWorkRelayTarget == lCourierTarget
-                && lWorkItem.LWorkOwnerProcess == Environment.ProcessId
                 && lWorkItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning);
             if (!lCourierPending)
             {

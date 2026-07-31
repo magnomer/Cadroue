@@ -101,13 +101,16 @@ public sealed partial class PInspector
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNoisePersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorVolumePersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNormalizePersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorSkipPersistent));
         return pPersistentPanel;
     }
 
-    private static CheckBox PInspectorPersistentPrepare(CheckBox pPersistentBox)
+    private CheckBox PInspectorPersistentPrepare(CheckBox pPersistentBox)
     {
         pPersistentBox.Margin = new Thickness(12, 0, 12, 12);
         pPersistentBox.Visibility = Visibility.Collapsed;
+        pPersistentBox.Checked += (_, _) => PInspectorPlanChange?.Invoke();
+        pPersistentBox.Unchecked += (_, _) => PInspectorPlanChange?.Invoke();
         return pPersistentBox;
     }
 

@@ -27,8 +27,8 @@ public sealed class PEditTab : PTabSurface
             lPriority,
             pViewer.PViewerSourcePath,
             pViewer.PViewerDurationRead(),
-            pInspector.PInspectorCropRead(),
-            PEditVideoRead(),
+            pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pInspector.PInspectorCropRead(),
+            pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
             lExportSpecificState,
             pAction.PActionRelayTarget);
 
@@ -36,7 +36,6 @@ public sealed class PEditTab : PTabSurface
             LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
             lExportSpecificState,
-            PEditCarriedRead(),
             pAction.PActionRelayTarget);
         pAction.PActionAllSet(
             true,
@@ -47,7 +46,10 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIcon, "Processing.Step.Brightness");
         pProcessing.PProcessingStepAdd("Contrast", PEditContrastIcon, "Processing.Step.Contrast");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepChange += PEditStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
+        pInspector.PSkipActiveChange += PEditSkipHandle;
+        pInspector.PInspectorPlanChange += PEditPersistentWrite;
 
         pInspector.PInspectorToolChange += pViewer.PCropToolSet;
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
@@ -73,6 +75,43 @@ public sealed class PEditTab : PTabSurface
 
         Content = pTabGrid;
         PEditActiveUpdate();
+    }
+
+    private void PEditSkipHandle()
+    {
+        pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
+        PEditPlanSave();
+    }
+
+    private void PEditPersistentWrite()
+    {
+        if (pEditPlanLoading || PEditCarriedRead() is not { } pEditCarried)
+        {
+            return;
+        }
+
+        foreach (string pEditPath in pList.PListPathsRead())
+        {
+            LEdit.LEditPlanSave(pEditPath, LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath), pEditCarried));
+        }
+    }
+
+    private void PEditStepHandle(string? pStepName)
+    {
+        if (string.IsNullOrEmpty(pStepName) || pStepName == "No Processing")
+        {
+            return;
+        }
+
+        if (pInspector.PSkipPersistentCheck())
+        {
+            pInspector.PSkipPersistentApply(false);
+        }
+
+        if (pInspector.PSkipActiveCheck())
+        {
+            pInspector.PSkipApply(false);
+        }
     }
 
     private void PEditActiveUpdate()
@@ -158,11 +197,13 @@ public sealed class PEditTab : PTabSurface
                     + $"{PEditPlanFormat(pEditApply)}");
                 pInspector.PCropPlanApply(pEditApply.LEditCrop, pEditApply.LEditCropApply);
                 pInspector.PTonePlanApply(pEditApply.LEditVideo);
+                pInspector.PSkipApply(pEditApply.LEditSkip);
             }
             else
             {
                 LTraceLog.LTraceInfoRecord($"Edit applying no plan to '{pEditName}': inspector left cleared");
                 pInspector.PTonePlanApply(LWorkVideo.LWorkVideoCreate());
+                pInspector.PSkipApply(false);
             }
         }
         finally
@@ -172,6 +213,7 @@ public sealed class PEditTab : PTabSurface
             pEditPlanLoading = false;
         }
 
+        pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
         PEditViewerApply();
         PEditPlanSave();
     }
@@ -251,7 +293,8 @@ public sealed class PEditTab : PTabSurface
     {
         bool pCropPersistent = pInspector.PCropPersistentCheck();
         bool pVideoPersistent = pInspector.PTonePersistentCheck();
-        if (!pCropPersistent && !pVideoPersistent)
+        bool pSkipPersistent = pInspector.PSkipPersistentCheck();
+        if (!pCropPersistent && !pVideoPersistent && !pSkipPersistent)
         {
             return null;
         }
@@ -263,7 +306,8 @@ public sealed class PEditTab : PTabSurface
         LWorkVideo pVideo = pVideoPersistent
             ? pInspector.PTonePersistentRead()
             : LWorkVideo.LWorkVideoCreate();
-        return new LEditPlan(pCrop, pVideo, pCropApply);
+        bool pSkip = pSkipPersistent && pInspector.PSkipActiveCheck();
+        return new LEditPlan(pCrop, pVideo, pCropApply) { LEditSkip = pSkip };
     }
 
     private LWorkVideo PEditVideoRead()
@@ -297,7 +341,7 @@ public sealed class PEditTab : PTabSurface
         var pEditPlan = new LEditPlan(
             pInspector.PInspectorCropRead(),
             PEditVideoRead(),
-            pInspector.PCropActiveCheck());
+            pInspector.PCropActiveCheck()) { LEditSkip = pInspector.PSkipActiveCheck() };
         if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath) is null)
         {
             return;
@@ -306,6 +350,7 @@ public sealed class PEditTab : PTabSurface
         LTraceLog.LTraceInfoRecord(
             $"Edit plan saved for '{System.IO.Path.GetFileName(pEditSourcePath)}': {PEditPlanFormat(pEditPlan)}");
         LEdit.LEditPlanSave(pEditSourcePath, pEditPlan);
+        PEditPersistentWrite();
     }
 
     public override PFlowControl PTabFlow => pFlow;

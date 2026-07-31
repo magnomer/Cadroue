@@ -136,8 +136,15 @@ internal sealed class PToken : RichTextBox
         }
     }
 
-    private static string PTokenLabelRead(string pToken) => pToken switch
+    private static string PTokenLabelRead(string pToken)
     {
+        if (PTokenOperatorRead(pToken, out string pOperatorLabel))
+        {
+            return pOperatorLabel;
+        }
+
+        return pToken switch
+        {
         "{Prefix}" => LLocalization.LLocalizationTextRead("Token.Prefix.Label"),
         "{OriginalName}" => LLocalization.LLocalizationTextRead("Token.OriginalName.Label"),
         "{SectionNumber}" => LLocalization.LLocalizationTextRead("Token.SectionNumber.Label"),
@@ -145,8 +152,31 @@ internal sealed class PToken : RichTextBox
         "{Date}" => LLocalization.LLocalizationTextRead("Token.Date.Label"),
         "{Time}" => LLocalization.LLocalizationTextRead("Token.Time.Label"),
         "{Suffix}" => LLocalization.LLocalizationTextRead("Token.Suffix.Label"),
-        _ => pToken.Trim('{', '}')
-    };
+            _ => pToken.Trim('{', '}')
+        };
+    }
+
+    private static bool PTokenOperatorRead(string pToken, out string pLabel)
+    {
+        pLabel = string.Empty;
+        string pInner = pToken.Trim('{', '}');
+        int pColon = pInner.IndexOf(':');
+        string pName = pColon < 0 ? pInner : pInner[..pColon];
+        string pCount = pColon < 0 ? "1" : pInner[(pColon + 1)..];
+        if (pName.Equals("Backspace", StringComparison.OrdinalIgnoreCase))
+        {
+            pLabel = LLocalization.LLocalizationTextRead("Token.Backspace.Label") + pCount;
+            return true;
+        }
+
+        if (pName.Equals("Delete", StringComparison.OrdinalIgnoreCase))
+        {
+            pLabel = LLocalization.LLocalizationTextRead("Token.Delete.Label") + pCount;
+            return true;
+        }
+
+        return false;
+    }
 
     private static Run PTokenRunBuild(string pText)
     {

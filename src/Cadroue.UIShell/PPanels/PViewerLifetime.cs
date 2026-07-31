@@ -90,9 +90,9 @@ public sealed partial class PViewer
         }
     }
 
-    public bool PViewerMediaClose()
+    public bool PViewerMediaClose(bool pViewerForce = false)
     {
-        if (pViewerUnloaded || !pViewerCommandActive)
+        if (pViewerUnloaded || (!pViewerForce && !pViewerCommandActive))
         {
             return false;
         }

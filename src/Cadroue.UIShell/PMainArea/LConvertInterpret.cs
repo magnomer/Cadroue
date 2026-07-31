@@ -69,6 +69,8 @@ public static partial class LConvert
             .Replace("{Date}", lConvertStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lConvertStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
+        lConvertStem = LWorkOutput.LWorkOutputShorten(lConvertStem);
+
         string lConvertBaseName = LConvertNameNormalize(lConvertStem);
         string lConvertFileName = LConvertNameFormat(lConvertOutput, lConvertBaseName, lConvertSourcePath);
         return LConvertSourceMatch(Path.Combine(lConvertFolder, lConvertFileName), lConvertSourcePath)

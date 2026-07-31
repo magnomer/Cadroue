@@ -29,8 +29,11 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIcon, "Processing.Step.Volume");
         pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIcon, "Processing.Step.Normalize");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepChange += PAudioStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pProcessing.PProcessingOrderChange += PAudioPlanSave;
+        pInspector.PSkipActiveChange += PAudioSkipHandle;
+        pInspector.PInspectorPlanChange += PAudioPersistentWrite;
         pInspector.PInspectorAudioActiveChange += PAudioChangeHandle;
 
         var pAction = new PAction();
@@ -51,11 +54,7 @@ public sealed class PAudioTab : PTabSurface
             LAudio.LAudioAllDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListPathsRead(),
-                PAudioProcessingRead(),
                 lExportSpecificState,
-                pInspector.PInspectorPersistentCheck()
-                    ? pInspector.PInspectorPersistentRead()
-                    : null,
                 pAction.PActionRelayTarget);
         };
         pAction.PActionAllSet(
@@ -67,6 +66,44 @@ public sealed class PAudioTab : PTabSurface
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
         PAudioActiveUpdate();
+    }
+
+    private void PAudioSkipHandle()
+    {
+        pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
+        PAudioPlanSave();
+    }
+
+    private void PAudioPersistentWrite()
+    {
+        if (pAudioPlanLoading || !pInspector.PInspectorPersistentCheck())
+        {
+            return;
+        }
+
+        LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
+        foreach (string pAudioPath in pList.PListPathsRead())
+        {
+            LAudio.LAudioPlanSave(pAudioPath, LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath), pAudioPersistent));
+        }
+    }
+
+    private void PAudioStepHandle(string? pStepName)
+    {
+        if (string.IsNullOrEmpty(pStepName) || pStepName == "No Processing")
+        {
+            return;
+        }
+
+        if (pInspector.PSkipPersistentCheck())
+        {
+            pInspector.PSkipPersistentApply(false);
+        }
+
+        if (pInspector.PSkipActiveCheck())
+        {
+            pInspector.PSkipApply(false);
+        }
     }
 
     private void PAudioActiveUpdate()
@@ -97,7 +134,7 @@ public sealed class PAudioTab : PTabSurface
             }
         }
 
-        return new LWorkAudio(pSteps);
+        return new LWorkAudio(pSteps) { LWorkAudioSkip = pInspector.PSkipActiveCheck() };
     }
 
     private static LWorkAudioKind? PAudioKindRead(string pStepName) => pStepName switch
@@ -131,13 +168,16 @@ public sealed class PAudioTab : PTabSurface
             LWorkAudio? pPersistent = pInspector.PInspectorPersistentCheck()
                 ? pInspector.PInspectorPersistentRead()
                 : null;
-            pInspector.PInspectorPlanApply(LAudio.LAudioPlanResolve(pSaved, pPersistent));
+            LWorkAudio pResolved = LAudio.LAudioPlanResolve(pSaved, pPersistent);
+            pInspector.PInspectorPlanApply(pResolved);
+            pInspector.PSkipApply(pResolved.LWorkAudioSkip);
         }
         finally
         {
             pAudioPlanLoading = false;
         }
 
+        pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
         PAudioActiveUpdate();
     }
 
@@ -155,6 +195,7 @@ public sealed class PAudioTab : PTabSurface
         }
 
         LAudio.LAudioPlanSave(pSourcePath, pAudioPlan);
+        PAudioPersistentWrite();
     }
 
     public override PFlowControl PTabFlow => pFlow;

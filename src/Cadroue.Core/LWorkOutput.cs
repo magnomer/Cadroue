@@ -50,6 +50,18 @@ public sealed record LWorkOutput(
                 : Path.Combine(lWorkSourceFolder, lWorkSubfolder);
         }
 
+        if (string.Equals(LWorkOutputLocation, "Sibling", StringComparison.Ordinal))
+        {
+            string lWorkSiblingFolder = LWorkFolderNormalize(LWorkOutputLocationFolder);
+            if (string.IsNullOrEmpty(lWorkSiblingFolder))
+            {
+                return lWorkSourceFolder;
+            }
+
+            string lWorkParentFolder = Path.GetDirectoryName(lWorkSourceFolder) ?? lWorkSourceFolder;
+            return Path.Combine(lWorkParentFolder, lWorkSiblingFolder);
+        }
+
         return lWorkSourceFolder;
     }
 
@@ -61,6 +73,105 @@ public sealed record LWorkOutput(
         }
 
         return LWorkOutputExtension.TrimStart('.');
+    }
+
+    public static string LWorkOutputShorten(string lWorkStem)
+    {
+        if (string.IsNullOrEmpty(lWorkStem) || lWorkStem.IndexOf('{') < 0)
+        {
+            return lWorkStem;
+        }
+
+        var lWorkText = new System.Text.StringBuilder();
+        var lWorkOperators = new List<(int lWorkOffset, bool lWorkForward, int lWorkCount)>();
+        int lWorkIndex = 0;
+        while (lWorkIndex < lWorkStem.Length)
+        {
+            int lWorkOpen = lWorkStem.IndexOf('{', lWorkIndex);
+            if (lWorkOpen < 0)
+            {
+                lWorkText.Append(lWorkStem, lWorkIndex, lWorkStem.Length - lWorkIndex);
+                break;
+            }
+
+            int lWorkClose = lWorkStem.IndexOf('}', lWorkOpen + 1);
+            if (lWorkClose < 0)
+            {
+                lWorkText.Append(lWorkStem, lWorkIndex, lWorkStem.Length - lWorkIndex);
+                break;
+            }
+
+            lWorkText.Append(lWorkStem, lWorkIndex, lWorkOpen - lWorkIndex);
+            string lWorkMarker = lWorkStem[(lWorkOpen + 1)..lWorkClose];
+            if (LWorkOperatorParse(lWorkMarker, out bool lWorkForward, out int lWorkCount))
+            {
+                lWorkOperators.Add((lWorkText.Length, lWorkForward, lWorkCount));
+            }
+            else
+            {
+                lWorkText.Append(lWorkStem, lWorkOpen, lWorkClose - lWorkOpen + 1);
+            }
+
+            lWorkIndex = lWorkClose + 1;
+        }
+
+        string lWorkResolved = lWorkText.ToString();
+        if (lWorkOperators.Count == 0)
+        {
+            return lWorkResolved;
+        }
+
+        var lWorkDeleted = new bool[lWorkResolved.Length];
+        foreach ((int lWorkOffset, bool lWorkForward, int lWorkCount) in lWorkOperators)
+        {
+            int lWorkRemaining = lWorkCount;
+            int lWorkPosition = lWorkForward ? lWorkOffset : lWorkOffset - 1;
+            int lWorkStep = lWorkForward ? 1 : -1;
+            while (lWorkRemaining > 0 && lWorkPosition >= 0 && lWorkPosition < lWorkDeleted.Length)
+            {
+                if (!lWorkDeleted[lWorkPosition])
+                {
+                    lWorkDeleted[lWorkPosition] = true;
+                    lWorkRemaining--;
+                }
+
+                lWorkPosition += lWorkStep;
+            }
+        }
+
+        var lWorkResult = new System.Text.StringBuilder(lWorkResolved.Length);
+        for (int lWorkChar = 0; lWorkChar < lWorkResolved.Length; lWorkChar++)
+        {
+            if (!lWorkDeleted[lWorkChar])
+            {
+                lWorkResult.Append(lWorkResolved[lWorkChar]);
+            }
+        }
+
+        return lWorkResult.Length == 0 ? lWorkResolved : lWorkResult.ToString();
+    }
+
+    private static bool LWorkOperatorParse(string lWorkMarker, out bool lWorkForward, out int lWorkCount)
+    {
+        lWorkForward = false;
+        lWorkCount = 1;
+        int lWorkColon = lWorkMarker.IndexOf(':');
+        string lWorkName = lWorkColon < 0 ? lWorkMarker : lWorkMarker[..lWorkColon];
+        if (lWorkName.Equals("Delete", StringComparison.OrdinalIgnoreCase))
+        {
+            lWorkForward = true;
+        }
+        else if (!lWorkName.Equals("Backspace", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (lWorkColon >= 0 && int.TryParse(lWorkMarker[(lWorkColon + 1)..], out int lWorkParsed) && lWorkParsed > 0)
+        {
+            lWorkCount = lWorkParsed;
+        }
+
+        return true;
     }
 
     private static string LWorkFolderNormalize(string lWorkFolderName)

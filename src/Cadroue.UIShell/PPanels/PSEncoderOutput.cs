@@ -56,6 +56,8 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Date"), "{Date}"));
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Time"), "{Time}"));
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"), "{Suffix}"));
+        pPanel.Children.Add(PSNameOperatorBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Backspace"), "Backspace"));
+        pPanel.Children.Add(PSNameOperatorBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Delete"), "Delete"));
         Grid.SetColumn(pPanel, 1);
         pGrid.Children.Add(pPanel);
         return pGrid;
@@ -130,6 +132,123 @@ internal sealed partial class PSEncoder
             pBorder.Background = Brushes.White;
         };
         return pBorder;
+    }
+
+    private UIElement PSNameOperatorBuild(string pWord, string pKind)
+    {
+        var pWordText = new TextBlock
+        {
+            Text = pWord,
+            Foreground = PSEncoderTextBrush,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        var psNumberBox = new TextBox
+        {
+            Text = "1",
+            Width = 26,
+            MaxLength = 3,
+            TextAlignment = TextAlignment.Center,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            BorderThickness = new Thickness(0),
+            Background = Brushes.Transparent,
+            Margin = new Thickness(4, 0, 0, 0)
+        };
+        psNumberBox.PreviewTextInput += (_, e) => e.Handled = !PSNameDigitsCheck(e.Text);
+        psNumberBox.LostFocus += (_, _) => psNumberBox.Text = PSNameCountRead(psNumberBox.Text).ToString();
+
+        var pContent = new StackPanel { Orientation = Orientation.Horizontal };
+        pContent.Children.Add(pWordText);
+        pContent.Children.Add(psNumberBox);
+
+        var pBorder = new Border
+        {
+            MinHeight = PSFieldChipHeight,
+            BorderBrush = PLineBrush,
+            BorderThickness = new Thickness(1),
+            Background = Brushes.White,
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(10, 0, 6, 0),
+            Margin = new Thickness(0, 0, 6, 6),
+            Cursor = Cursors.Hand,
+            Child = pContent
+        };
+
+        string PSNameOperatorToken() => $"{{{pKind}:{PSNameCountRead(psNumberBox.Text)}}}";
+
+        Point? pDragStart = null;
+        Point psOperatorGrabOffset = default;
+        bool pDragStarted = false;
+        pBorder.PreviewMouseLeftButtonDown += (_, e) =>
+        {
+            if (psNumberBox.IsMouseOver)
+            {
+                pDragStart = null;
+                return;
+            }
+
+            pDragStart = e.GetPosition(null);
+            psOperatorGrabOffset = e.GetPosition(pBorder);
+            pDragStarted = false;
+            pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
+        };
+        pBorder.MouseEnter += (_, _) =>
+        {
+            if (!pDragStarted)
+            {
+                pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
+            }
+        };
+        pBorder.MouseLeave += (_, _) => pBorder.Background = Brushes.White;
+        pBorder.MouseLeftButtonUp += (_, _) =>
+        {
+            pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
+            if (pDragStarted)
+            {
+                pDragStarted = false;
+                return;
+            }
+
+            if (!psNumberBox.IsMouseOver)
+            {
+                PSNameTokenInsert(PSNameOperatorToken());
+            }
+        };
+        pBorder.PreviewMouseMove += (_, e) =>
+        {
+            if (e.LeftButton != MouseButtonState.Pressed || pDragStart is null || pDragStarted)
+            {
+                return;
+            }
+
+            Point pCurrent = e.GetPosition(null);
+            if (Math.Abs(pCurrent.X - pDragStart.Value.X) < 4 && Math.Abs(pCurrent.Y - pDragStart.Value.Y) < 4)
+            {
+                return;
+            }
+
+            pDragStarted = true;
+            PSNameDragRun(pBorder, PSNameOperatorToken(), psOperatorGrabOffset);
+            pBorder.Background = Brushes.White;
+        };
+        return pBorder;
+    }
+
+    private static bool PSNameDigitsCheck(string pText)
+    {
+        foreach (char pChar in pText)
+        {
+            if (!char.IsDigit(pChar))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static int PSNameCountRead(string pText)
+    {
+        return int.TryParse(pText, out int pCount) && pCount > 0 ? pCount : 1;
     }
 
     private void PSNameDragRun(FrameworkElement pChip, string pToken, Point pGrabOffset)
@@ -263,11 +382,21 @@ internal sealed partial class PSEncoder
         return pGrid;
     }
 
+    private static bool PSLocationNamedCheck(string psLocation) =>
+        string.Equals(psLocation, "Subfolder", StringComparison.Ordinal)
+        || string.Equals(psLocation, "Sibling", StringComparison.Ordinal);
+
     private string PSLocationStatusRead()
     {
-        if (string.Equals(PSComboTextRead(psLocationCombo), "Subfolder", StringComparison.Ordinal))
+        string psLocation = PSComboTextRead(psLocationCombo);
+        if (string.Equals(psLocation, "Subfolder", StringComparison.Ordinal))
         {
             return LLocalization.LLocalizationTextRead("Encoder.Location.SubfolderStatus");
+        }
+
+        if (string.Equals(psLocation, "Sibling", StringComparison.Ordinal))
+        {
+            return LLocalization.LLocalizationTextRead("Encoder.Location.SiblingStatus");
         }
 
         return string.IsNullOrWhiteSpace(psEncoderFolderPath)
@@ -282,7 +411,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        psLocationFolderRow.Visibility = string.Equals(PSComboTextRead(psLocationCombo), "Subfolder", StringComparison.Ordinal)
+        psLocationFolderRow.Visibility = PSLocationNamedCheck(PSComboTextRead(psLocationCombo))
             ? Visibility.Visible
             : Visibility.Collapsed;
     }
@@ -295,6 +424,13 @@ internal sealed partial class PSEncoder
         {
             psEncoderFolderPath = null;
             psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.SubfolderStatus");
+            return;
+        }
+
+        if (PSComboTextRead(psLocationCombo) == "Sibling")
+        {
+            psEncoderFolderPath = null;
+            psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.SiblingStatus");
             return;
         }
 

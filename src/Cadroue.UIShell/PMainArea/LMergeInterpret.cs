@@ -78,6 +78,8 @@ public static partial class LMerge
             .Replace("{Date}", lMergeStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lMergeStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
+        lMergeStemName = LWorkOutput.LWorkOutputShorten(lMergeStemName);
+
         string lMergeBaseName = LMergeNameNormalize(lMergeStemName);
         string lMergeUniqueName = lMergeBaseName;
         int lMergeAttempt = 2;

@@ -95,7 +95,9 @@ public sealed record LWorkAudioStep(
 
 public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
 {
+    public bool LWorkAudioSkip { get; init; }
+
     public static LWorkAudio LWorkAudioCreate() => new(Array.Empty<LWorkAudioStep>());
 
-    public bool LWorkAudioActive => LWorkAudioSteps.Any(lStep => lStep.LWorkAudioStepActive);
+    public bool LWorkAudioActive => LWorkAudioSkip || LWorkAudioSteps.Any(lStep => lStep.LWorkAudioStepActive);
 }

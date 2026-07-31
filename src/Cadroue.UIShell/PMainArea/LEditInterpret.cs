@@ -97,6 +97,8 @@ public static partial class LEdit
             .Replace("{Date}", lEditStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lEditStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
+        lEditStem = LWorkOutput.LWorkOutputShorten(lEditStem);
+
         string lEditBaseName = LEditNameNormalize(lEditStem);
         string lEditFileName = LEditNameFormat(lEditOutput, lEditBaseName, lEditSourcePath);
         return LEditSourceMatch(Path.Combine(lEditFolder, lEditFileName), lEditSourcePath)

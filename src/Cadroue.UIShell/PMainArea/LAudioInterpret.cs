@@ -32,7 +32,7 @@ public static partial class LAudio
             lAudioOutputName,
             Path.Combine(lAudioFolder, lAudioOutputName),
             lAudioOutput,
-            lWorkAudio: lAudioProcessing);
+            lWorkAudio: lAudioProcessing.LWorkAudioSkip ? LWorkAudio.LWorkAudioCreate() : lAudioProcessing);
 
         int lAudioAdded = LSchedule.LScheduleCurrent.LScheduleAdd(new[] { lAudioItem }, lAudioRelayTarget);
         LTraceLog.LTraceInfoRecord(

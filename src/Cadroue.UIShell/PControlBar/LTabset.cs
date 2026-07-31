@@ -241,7 +241,7 @@ public sealed class LTabset
         foreach (PTabRecord pTabRecord in PTabsetRecords)
         {
             PWorkspace pTabWorkspace = pTabRecord.PTabWorkspace;
-            pTabsetCleared |= pTabWorkspace.PWorkspaceViewer?.PViewerMediaClose() == true;
+            pTabsetCleared |= pTabWorkspace.PWorkspaceViewer?.PViewerMediaClose(true) == true;
 
             if (pTabWorkspace.PWorkspaceList is { } pTabList && pTabList.PListPathsRead().Count > 0)
             {

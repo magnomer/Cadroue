@@ -17,6 +17,8 @@ public sealed class PProcessing : PPanel
 
     private const string PProcessingUpIcon = "/PAssets/PPanels/PProcessingUp.svg";
     private const string PProcessingDownIcon = "/PAssets/PPanels/PProcessingDown.svg";
+    private const string PProcessingSkipIcon = "/PAssets/PPanels/PProcessingSkip.svg";
+    private const string PProcessingSkipStep = "No Processing";
 
     public const double PProcessingStripWidth = 48;
 
@@ -29,6 +31,8 @@ public sealed class PProcessing : PPanel
     private readonly UIElement pProcessingFullBody;
     private readonly UIElement pProcessingStripBody;
     private readonly UIElement pProcessingActionBar;
+    private readonly Border pProcessingSkipRow;
+    private bool pProcessingSkipActive;
     private string? pProcessingStepCurrent;
     private bool pProcessingMinimized;
     private int? pProcessingIndexDragging;
@@ -137,12 +141,15 @@ public sealed class PProcessing : PPanel
 
         pProcessingActionBar = PProcessingActionBuild();
         pProcessingActionBar.Visibility = pProcessingOrdered ? Visibility.Visible : Visibility.Collapsed;
+        pProcessingSkipRow = PProcessingSkipBuild();
 
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
         DockPanel.SetDock(pProcessingActionBar, Dock.Bottom);
         pRoot.Children.Add(pProcessingActionBar);
+        DockPanel.SetDock(pProcessingSkipRow, Dock.Bottom);
+        pRoot.Children.Add(pProcessingSkipRow);
         pRoot.Children.Add(pScroll);
 
         pProcessingFullBody = pRoot;
@@ -155,6 +162,62 @@ public sealed class PProcessing : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
+    }
+
+    public void PProcessingSkipSet(bool pProcessingSkipApplied)
+    {
+        pProcessingSkipActive = pProcessingSkipApplied;
+        if (pProcessingSkipRow.Child is StackPanel pProcessingSkipContent)
+        {
+            PProcessingRowApply(pProcessingSkipContent, pProcessingSkipApplied);
+        }
+
+        pProcessingRowPanel.Opacity = pProcessingSkipApplied ? 0.4 : 1;
+        pProcessingActionBar.IsEnabled = !pProcessingSkipApplied;
+        pProcessingActionBar.Opacity = pProcessingSkipApplied ? 0.4 : 1;
+    }
+
+    private Border PProcessingSkipBuild()
+    {
+        var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
+        pRowContent.Children.Add(new Image
+        {
+            Width = 14,
+            Height = 14,
+            Source = PIcon.PIconRead(PProcessingSkipIcon, pProcessingIconBrush),
+            Stretch = Stretch.Uniform,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+            Tag = PProcessingSkipIcon
+        });
+        pRowContent.Children.Add(new TextBlock
+        {
+            Text = LLocalization.LLocalizationTextRead("Processing.Skip.Label"),
+            FontSize = 12,
+            FontFamily = pProcessingFontFamily,
+            Foreground = pProcessingTextBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            Tag = "Label"
+        });
+
+        var pRowBorder = new Border
+        {
+            Padding = new Thickness(12, 9, 12, 9),
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)),
+            BorderThickness = new Thickness(0, 1, 0, 0),
+            Cursor = Cursors.Hand,
+            ToolTip = LLocalization.LLocalizationTextRead("Processing.Skip.Tooltip"),
+            Child = pRowContent
+        };
+        pRowBorder.MouseLeftButtonUp += (_, _) =>
+        {
+            pProcessingStepCurrent = PProcessingSkipStep;
+            PProcessingSelectApply();
+            PProcessingStepChange?.Invoke(PProcessingSkipStep);
+            PProcessingStepOpen?.Invoke(PProcessingSkipStep);
+        };
+        return pRowBorder;
     }
 
     public bool PProcessingMinimizedCheck() => pProcessingMinimized;
@@ -482,6 +545,10 @@ public sealed class PProcessing : PPanel
                     : Brushes.White;
             }
         }
+
+        pProcessingSkipRow.Background = pProcessingStepCurrent == PProcessingSkipStep
+            ? pProcessingSelectBrush
+            : Brushes.White;
     }
 
 }

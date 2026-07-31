@@ -127,6 +127,8 @@ public static partial class LSplit
             .Replace("{Date}", lSplitStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lSplitStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
+        lSplitStem = LWorkOutput.LWorkOutputShorten(lSplitStem);
+
         if (!lSplitHasNumber && !lSplitHasSectionName)
         {
             lSplitStem = $"{lSplitStem}_{lSplitResolvedSectionName}";
