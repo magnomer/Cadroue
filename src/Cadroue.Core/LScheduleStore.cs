@@ -29,7 +29,7 @@ public sealed partial class LSchedule
     private static bool LScheduleRecordSave(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
     {
         string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkRecord.LWorkId);
-        if (!LScheduleFileWrite(lDepotFilePath, lWorkRecord.LWorkJsonCreate()))
+        if (!LScheduleFileSave(lDepotFilePath, lWorkRecord.LWorkJsonCreate()))
         {
             LDepotIndex.LDepotIndexInvalidate();
             return false;
@@ -39,7 +39,7 @@ public sealed partial class LSchedule
         return true;
     }
 
-    private static bool LScheduleFileWrite(string lDepotFilePath, string lDepotContent)
+    private static bool LScheduleFileSave(string lDepotFilePath, string lDepotContent)
     {
         string lDepotTempPath = lDepotFilePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try

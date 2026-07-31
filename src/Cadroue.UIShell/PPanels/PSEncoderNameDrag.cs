@@ -19,7 +19,7 @@ internal sealed partial class PSEncoder
             pLayer.Add(pDragAdorner);
         }
 
-        void PSNameDragFeedbackHandle(object pSender, GiveFeedbackEventArgs pEvent)
+        void PSNameFeedbackHandle(object pSender, GiveFeedbackEventArgs pEvent)
         {
             if (pDragAdorner is null || pRoot is null || !PSNameCursorRead(out PSNamePoint pCursor))
             {
@@ -31,7 +31,7 @@ internal sealed partial class PSEncoder
             pEvent.Handled = true;
         }
 
-        pChip.GiveFeedback += PSNameDragFeedbackHandle;
+        pChip.GiveFeedback += PSNameFeedbackHandle;
         try
         {
             var pData = new DataObject();
@@ -41,7 +41,7 @@ internal sealed partial class PSEncoder
         }
         finally
         {
-            pChip.GiveFeedback -= PSNameDragFeedbackHandle;
+            pChip.GiveFeedback -= PSNameFeedbackHandle;
             if (pDragAdorner is not null)
             {
                 pLayer?.Remove(pDragAdorner);

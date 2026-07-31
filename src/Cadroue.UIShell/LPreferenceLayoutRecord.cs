@@ -61,11 +61,13 @@ public sealed class LPreferenceInspectorPersistentRecord
 
 public sealed class LPreferenceFunnelRuleRecord
 {
-    public string LPreferenceFunnelStart { get; set; } = string.Empty;
+    public LPreferenceFunnelMatchRecord LPreferenceFunnelContains { get; set; } = new();
 
-    public string LPreferenceFunnelEnd { get; set; } = string.Empty;
+    public LPreferenceFunnelMatchRecord LPreferenceFunnelStart { get; set; } = new();
 
-    public bool LPreferenceFunnelJoin { get; set; }
+    public LPreferenceFunnelMatchRecord LPreferenceFunnelEnd { get; set; } = new();
+
+    public LPreferenceFunnelMatchRecord LPreferenceFunnelExtension { get; set; } = new();
 
     public int LPreferenceFunnelTarget { get; set; } = -1;
 
@@ -73,10 +75,30 @@ public sealed class LPreferenceFunnelRuleRecord
     {
         return new LPreferenceFunnelRuleRecord
         {
-            LPreferenceFunnelStart = LPreferenceFunnelStart,
-            LPreferenceFunnelEnd = LPreferenceFunnelEnd,
-            LPreferenceFunnelJoin = LPreferenceFunnelJoin,
+            LPreferenceFunnelContains = LPreferenceFunnelContains.LPreferenceFunnelClone(),
+            LPreferenceFunnelStart = LPreferenceFunnelStart.LPreferenceFunnelClone(),
+            LPreferenceFunnelEnd = LPreferenceFunnelEnd.LPreferenceFunnelClone(),
+            LPreferenceFunnelExtension = LPreferenceFunnelExtension.LPreferenceFunnelClone(),
             LPreferenceFunnelTarget = LPreferenceFunnelTarget
+        };
+    }
+}
+
+public sealed class LPreferenceFunnelMatchRecord
+{
+    public string LPreferenceFunnelText { get; set; } = string.Empty;
+
+    public bool LPreferenceFunnelCase { get; set; }
+
+    public bool LPreferenceFunnelJoin { get; set; } = true;
+
+    public LPreferenceFunnelMatchRecord LPreferenceFunnelClone()
+    {
+        return new LPreferenceFunnelMatchRecord
+        {
+            LPreferenceFunnelText = LPreferenceFunnelText,
+            LPreferenceFunnelCase = LPreferenceFunnelCase,
+            LPreferenceFunnelJoin = LPreferenceFunnelJoin
         };
     }
 }

@@ -83,11 +83,7 @@ public sealed class PFunnelRules : PPanel
         foreach (LPreferenceFunnelRuleRecord pRecord in pRuleRecords)
         {
             PFunnelRuleRow pRow = PFunnelRuleAdd();
-            pRow.PFunnelRowRestore(
-                pRecord.LPreferenceFunnelStart,
-                pRecord.LPreferenceFunnelEnd,
-                pRecord.LPreferenceFunnelJoin,
-                pRecord.LPreferenceFunnelTarget);
+            pRow.PFunnelRowRestore(pRecord);
         }
     }
 

@@ -130,12 +130,11 @@ public sealed class PFunnelTab : PTabSurface
     {
         LPreferenceTabLayoutRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
         lPreferenceTabLayout.LPreferenceFunnelRules = pFunnelRules.PFunnelRulesRead()
-            .Select(pRow => new LPreferenceFunnelRuleRecord
+            .Select(pRow =>
             {
-                LPreferenceFunnelStart = pRow.PFunnelRowStart,
-                LPreferenceFunnelEnd = pRow.PFunnelRowEnd,
-                LPreferenceFunnelJoin = pRow.PFunnelRowAnd,
-                LPreferenceFunnelTarget = PFunnelTargetRead(pRow.PFunnelTargetId)
+                LPreferenceFunnelRuleRecord pRecord = pRow.PFunnelRecordCreate();
+                pRecord.LPreferenceFunnelTarget = PFunnelTargetRead(pRow.PFunnelTargetId);
+                return pRecord;
             })
             .ToList();
         return lPreferenceTabLayout;

@@ -93,7 +93,7 @@ public sealed partial class PConsole
     private void PConsoleOpenHandle(object? pSender, EventArgs pArguments)
     {
         pConsoleReloadName = null;
-        PConsoleCaretLock();
+        PConsoleCaretSet();
         PConsoleMarkUpdate();
     }
 

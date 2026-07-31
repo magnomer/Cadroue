@@ -20,7 +20,7 @@ public sealed partial class PConsole
         pEditableBox.LostKeyboardFocus += PConsoleReadonlySet;
     }
 
-    private void PConsoleCaretLock()
+    private void PConsoleCaretSet()
     {
         if (pConsoleRelayCombo.Template?.FindName("PART_EditableTextBox", pConsoleRelayCombo) is TextBox pEditableBox)
         {
