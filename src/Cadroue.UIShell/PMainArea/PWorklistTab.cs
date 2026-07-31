@@ -13,6 +13,8 @@ public sealed class PWorklistTab : PTabSurface
         Content = pRoster;
     }
 
+    public override void PTabClose() => pRoster.PRosterClose();
+
     public override PFlowControl? PTabFlow => null;
     public override PViewer? PTabViewer => null;
     public override bool PTabBusyCheck() => pRoster.PRosterBusyCheck();

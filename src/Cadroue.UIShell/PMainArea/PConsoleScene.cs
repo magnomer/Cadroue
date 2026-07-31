@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -14,6 +15,8 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed partial class PConsole
 {
     private bool pConsoleSceneApplying;
+    private bool pConsoleCaretReady;
+    private string? pConsoleReloadName;
     private string pConsoleSceneName = string.Empty;
     private PWindow? pConsoleSceneWindow;
     private DispatcherTimer? pConsoleSceneTimer;
@@ -28,8 +31,10 @@ public sealed partial class PConsole
         pConsoleExportButton.Click += PConsoleExportHandle;
         pConsoleImportButton.Click += PConsoleImportHandle;
         pConsoleRelayCombo.SelectionChanged += PConsoleSelectHandle;
-        pConsoleRelayCombo.DropDownOpened += PConsoleDropHandle;
+        pConsoleRelayCombo.DropDownOpened += PConsoleOpenHandle;
+        pConsoleRelayCombo.DropDownClosed += PConsoleCloseHandle;
         pConsoleRelayCombo.MouseEnter += PConsoleDropHandle;
+        pConsoleRelayCombo.ItemContainerGenerator.StatusChanged += PConsoleRowsHandle;
         Loaded += PConsoleLoadHandle;
         Unloaded += PConsoleSceneClose;
         PConsoleSceneRebuild();
@@ -37,6 +42,12 @@ public sealed partial class PConsole
 
     private void PConsoleLoadHandle(object pSender, RoutedEventArgs pArguments)
     {
+        if (!pConsoleCaretReady)
+        {
+            pConsoleCaretReady = true;
+            PConsoleCaretAttach();
+        }
+
         pConsoleSceneName = PProgram.LPreferenceStateCurrent.LPreferenceSceneName;
         PConsoleSceneUpdate();
 
@@ -78,6 +89,107 @@ public sealed partial class PConsole
     }
 
     private void PConsoleDropHandle(object? pSender, EventArgs pArguments) => PConsoleMarkUpdate();
+
+    private void PConsoleOpenHandle(object? pSender, EventArgs pArguments)
+    {
+        pConsoleReloadName = null;
+        PConsoleCaretLock();
+        PConsoleMarkUpdate();
+    }
+
+    private void PConsoleRowsHandle(object? pSender, EventArgs pArguments)
+    {
+        if (pConsoleRelayCombo.ItemContainerGenerator.Status != GeneratorStatus.ContainersGenerated)
+        {
+            return;
+        }
+
+        foreach (object pItem in pConsoleRelayCombo.Items)
+        {
+            if (pConsoleRelayCombo.ItemContainerGenerator.ContainerFromItem(pItem) is ComboBoxItem pRow)
+            {
+                pRow.PreviewMouseLeftButtonUp -= PConsoleRowHandle;
+                pRow.PreviewMouseLeftButtonUp += PConsoleRowHandle;
+            }
+        }
+    }
+
+    private void PConsoleRowHandle(object pSender, MouseButtonEventArgs pArguments)
+    {
+        if (pSender is ComboBoxItem { Content: string lSceneName })
+        {
+            pConsoleReloadName = lSceneName;
+        }
+    }
+
+    private void PConsoleCaretAttach()
+    {
+        pConsoleRelayCombo.ApplyTemplate();
+        if (pConsoleRelayCombo.Template?.FindName("PART_EditableTextBox", pConsoleRelayCombo) is not TextBox pEditableBox)
+        {
+            return;
+        }
+
+        pEditableBox.IsReadOnly = true;
+        pEditableBox.PreviewMouseLeftButtonDown += PConsoleFieldPressHandle;
+        pEditableBox.LostKeyboardFocus += PConsoleFieldBlurHandle;
+    }
+
+    private void PConsoleCaretLock()
+    {
+        if (pConsoleRelayCombo.Template?.FindName("PART_EditableTextBox", pConsoleRelayCombo) is TextBox pEditableBox)
+        {
+            pEditableBox.IsReadOnly = true;
+        }
+    }
+
+    private void PConsoleFieldPressHandle(object pSender, MouseButtonEventArgs pArguments)
+    {
+        if (pSender is TextBox pEditableBox)
+        {
+            pEditableBox.IsReadOnly = false;
+        }
+    }
+
+    private void PConsoleFieldBlurHandle(object pSender, KeyboardFocusChangedEventArgs pArguments)
+    {
+        if (pSender is TextBox pEditableBox)
+        {
+            pEditableBox.IsReadOnly = true;
+        }
+    }
+
+    private void PConsoleCloseHandle(object? pSender, EventArgs pArguments)
+    {
+        string? lSceneName = pConsoleReloadName;
+        pConsoleReloadName = null;
+        if (lSceneName is null)
+        {
+            PConsoleSceneUpdate();
+            return;
+        }
+
+        PConsoleSceneLoad(lSceneName);
+    }
+
+    private void PConsoleSceneLoad(string lSceneName)
+    {
+        if (LScene.LSceneRead(lSceneName) is not { } lScene)
+        {
+            PConsoleSceneUpdate();
+            return;
+        }
+
+        if (!PConsoleSceneConfirm(lSceneName) || PConsoleWindowRead() is not { } pWindow)
+        {
+            PConsoleSceneUpdate();
+            return;
+        }
+
+        pWindow.PWindowSceneApply(lScene);
+        PConsoleSceneSet(lSceneName);
+        LTraceLog.LTraceInfoRecord($"Scene loaded '{lSceneName}'");
+    }
 
     private void PConsolePressHandle(object pSender, MouseButtonEventArgs pArguments)
     {
@@ -146,8 +258,15 @@ public sealed partial class PConsole
         PConsoleSceneUpdate();
     }
 
-    private void PConsoleMarkUpdate() =>
-        pConsoleRelayCombo.FontStyle = PConsoleDirtyCheck() ? FontStyles.Italic : FontStyles.Normal;
+    private void PConsoleMarkUpdate()
+    {
+        FontStyle pStyle = PConsoleDirtyCheck() ? FontStyles.Italic : FontStyles.Normal;
+        pConsoleRelayCombo.ApplyTemplate();
+        if (pConsoleRelayCombo.Template?.FindName("PART_EditableTextBox", pConsoleRelayCombo) is TextBox pEditableBox)
+        {
+            pEditableBox.FontStyle = pStyle;
+        }
+    }
 
     private bool PConsoleDirtyCheck()
     {
@@ -187,30 +306,10 @@ public sealed partial class PConsole
 
     private void PConsoleSelectHandle(object pSender, SelectionChangedEventArgs pArguments)
     {
-        if (pConsoleSceneApplying || pConsoleRelayCombo.SelectedItem is not string lSceneName)
+        if (!pConsoleSceneApplying && pConsoleRelayCombo.SelectedItem is string lSceneName)
         {
-            return;
+            pConsoleReloadName = lSceneName;
         }
-
-        pConsoleSceneApplying = true;
-        pConsoleRelayCombo.SelectedItem = null;
-        pConsoleSceneApplying = false;
-
-        if (LScene.LSceneRead(lSceneName) is not { } lScene)
-        {
-            PConsoleSceneUpdate();
-            return;
-        }
-
-        if (!PConsoleSceneConfirm(lSceneName) || PConsoleWindowRead() is not { } pWindow)
-        {
-            PConsoleSceneUpdate();
-            return;
-        }
-
-        pWindow.PWindowSceneApply(lScene);
-        PConsoleSceneSet(lSceneName);
-        LTraceLog.LTraceInfoRecord($"Scene loaded '{lSceneName}'");
     }
 
     private void PConsoleExportHandle(object pSender, RoutedEventArgs pArguments)

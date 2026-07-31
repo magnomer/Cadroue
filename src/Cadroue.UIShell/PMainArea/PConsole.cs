@@ -213,6 +213,7 @@ public sealed partial class PConsole : UserControl
             },
             Width = 34,
             Height = PSField.PSFieldControlHeight,
+            Padding = new Thickness(0),
             Margin = new Thickness(0, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center,
             Style = PButton.PButtonWhiteCreate()

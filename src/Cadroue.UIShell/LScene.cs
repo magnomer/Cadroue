@@ -67,9 +67,25 @@ public static class LScene
     private static string LSceneCanonicalRead(LSceneRecord lScene)
     {
         string lSceneNameHeld = lScene.LSceneName;
+        int lSceneIndexHeld = lScene.LSceneTabIndex;
+        List<List<double>> lSceneWidthsHeld = lScene.LSceneTabLayouts
+            .Select(lSceneTabLayout => lSceneTabLayout.LPreferencePanelWidths)
+            .ToList();
         lScene.LSceneName = string.Empty;
+        lScene.LSceneTabIndex = 0;
+        foreach (LPreferenceTabLayoutRecord lSceneTabLayout in lScene.LSceneTabLayouts)
+        {
+            lSceneTabLayout.LPreferencePanelWidths = new List<double>();
+        }
+
         string lSceneJson = JsonSerializer.Serialize(lScene);
         lScene.LSceneName = lSceneNameHeld;
+        lScene.LSceneTabIndex = lSceneIndexHeld;
+        for (int lSceneIndex = 0; lSceneIndex < lScene.LSceneTabLayouts.Count; lSceneIndex++)
+        {
+            lScene.LSceneTabLayouts[lSceneIndex].LPreferencePanelWidths = lSceneWidthsHeld[lSceneIndex];
+        }
+
         return lSceneJson;
     }
 

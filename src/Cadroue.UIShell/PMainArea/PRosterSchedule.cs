@@ -46,8 +46,16 @@ public sealed partial class PRoster
         PConsole.PConsoleCurrent?.PConsoleUpdate();
     }
 
-    private void PRosterUnloadHandle(object pSender, RoutedEventArgs pArguments)
+    private void PRosterUnloadHandle(object pSender, RoutedEventArgs pArguments) => PRosterClose();
+
+    public void PRosterClose()
     {
+        if (pRosterClosed)
+        {
+            return;
+        }
+
+        pRosterClosed = true;
         pRosterSchedule.LScheduleChange -= PRosterScheduleHandle;
         IsVisibleChanged -= PRosterVisibleHandle;
         Unloaded -= PRosterUnloadHandle;

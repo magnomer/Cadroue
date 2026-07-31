@@ -13,6 +13,7 @@ public sealed partial class PRoster : UserControl
     private readonly StackPanel pRosterDetailPanel;
     private readonly TextBlock pRosterDetailTitle;
     private readonly List<LWorkItem> pRosterWatchedItems = new();
+    private bool pRosterClosed;
 
     public PRoster(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
