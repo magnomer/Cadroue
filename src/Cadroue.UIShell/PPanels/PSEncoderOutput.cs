@@ -18,7 +18,7 @@ internal sealed partial class PSEncoder
         var psLocationStatus = new TextBlock
         {
             Text = PSLocationStatusRead(),
-            Foreground = PMutedBrush,
+            Foreground = PSEncoderMutedBrush,
             Margin = new Thickness(12, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
@@ -29,7 +29,7 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
         pPanel.Children.Add(psLocationFolderRow);
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"), psContainerCombo));
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"), psOutputContainerCombo));
         PSLocationFolderUpdate();
         return PSPlateBuild(pPanel);
     }
@@ -66,7 +66,7 @@ internal sealed partial class PSEncoder
         var pText = new TextBlock
         {
             Text = pLabel,
-            Foreground = PTextBrush,
+            Foreground = PSEncoderTextBrush,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -84,12 +84,12 @@ internal sealed partial class PSEncoder
         };
 
         Point? pDragStart = null;
-        Point pDragGrabOffset = default;
+        Point psNameGrabOffset = default;
         bool pDragStarted = false;
         pBorder.PreviewMouseLeftButtonDown += (_, e) =>
         {
             pDragStart = e.GetPosition(null);
-            pDragGrabOffset = e.GetPosition(pBorder);
+            psNameGrabOffset = e.GetPosition(pBorder);
             pDragStarted = false;
             pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
         };
@@ -126,7 +126,7 @@ internal sealed partial class PSEncoder
             }
 
             pDragStarted = true;
-            PSNameDragRun(pBorder, pToken, pDragGrabOffset);
+            PSNameDragRun(pBorder, pToken, psNameGrabOffset);
             pBorder.Background = Brushes.White;
         };
         return pBorder;
@@ -150,7 +150,7 @@ internal sealed partial class PSEncoder
                 return;
             }
 
-            pDragAdorner.PSNameDragMove(pRoot.PointFromScreen(new Point(pCursor.X, pCursor.Y)));
+            pDragAdorner.PSNameDragMove(pRoot.PointFromScreen(new Point(pCursor.PSNameX, pCursor.PSNameY)));
             pEvent.UseDefaultCursors = true;
             pEvent.Handled = true;
         }
@@ -159,7 +159,7 @@ internal sealed partial class PSEncoder
         try
         {
             var pData = new DataObject();
-            pData.SetData(PToken.PTokenDataFormat, pToken);
+            pData.SetData(PToken.PTokenDataKind, pToken);
             pData.SetData(DataFormats.Text, pToken);
             _ = DragDrop.DoDragDrop(pChip, pData, DragDropEffects.Copy);
         }
@@ -175,16 +175,16 @@ internal sealed partial class PSEncoder
 
     private sealed class PSNameDragAdorner : Adorner
     {
-        private readonly VisualCollection pDragVisuals;
-        private readonly System.Windows.Shapes.Rectangle pDragImage;
-        private readonly Point pDragGrabOffset;
-        private Point pDragPoint;
+        private readonly VisualCollection psNameVisuals;
+        private readonly System.Windows.Shapes.Rectangle psNameImage;
+        private readonly Point psNameGrabOffset;
+        private Point psNameDragPoint;
 
         internal PSNameDragAdorner(UIElement pAdornedElement, FrameworkElement pChip, Point pGrabOffset)
             : base(pAdornedElement)
         {
-            pDragGrabOffset = pGrabOffset;
-            pDragImage = new System.Windows.Shapes.Rectangle
+            psNameGrabOffset = pGrabOffset;
+            psNameImage = new System.Windows.Shapes.Rectangle
             {
                 Width = pChip.ActualWidth,
                 Height = pChip.ActualHeight,
@@ -192,35 +192,35 @@ internal sealed partial class PSEncoder
                 Opacity = 0.85,
                 IsHitTestVisible = false
             };
-            pDragVisuals = new VisualCollection(this) { pDragImage };
+            psNameVisuals = new VisualCollection(this) { psNameImage };
 
             IsHitTestVisible = false;
         }
 
         internal void PSNameDragMove(Point pPoint)
         {
-            pDragPoint = pPoint;
+            psNameDragPoint = pPoint;
             InvalidateArrange();
             (Parent as AdornerLayer)?.Update(AdornedElement);
         }
 
-        protected override int VisualChildrenCount => pDragVisuals.Count;
+        protected override int VisualChildrenCount => psNameVisuals.Count;
 
-        protected override Visual GetVisualChild(int pIndex) => pDragVisuals[pIndex];
+        protected override Visual GetVisualChild(int pIndex) => psNameVisuals[pIndex];
 
         protected override Size MeasureOverride(Size pConstraint)
         {
-            pDragImage.Measure(pConstraint);
-            return pDragImage.DesiredSize;
+            psNameImage.Measure(pConstraint);
+            return psNameImage.DesiredSize;
         }
 
         protected override Size ArrangeOverride(Size pFinalSize)
         {
-            pDragImage.Arrange(new Rect(
-                pDragPoint.X - pDragGrabOffset.X,
-                pDragPoint.Y - pDragGrabOffset.Y,
-                pDragImage.Width,
-                pDragImage.Height));
+            psNameImage.Arrange(new Rect(
+                psNameDragPoint.X - psNameGrabOffset.X,
+                psNameDragPoint.Y - psNameGrabOffset.Y,
+                psNameImage.Width,
+                psNameImage.Height));
             return pFinalSize;
         }
     }
@@ -228,8 +228,8 @@ internal sealed partial class PSEncoder
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     private struct PSNamePoint
     {
-        public int X;
-        public int Y;
+        public int PSNameX;
+        public int PSNameY;
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "GetCursorPos")]

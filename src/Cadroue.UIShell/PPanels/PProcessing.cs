@@ -15,8 +15,8 @@ public sealed class PProcessing : PPanel
     private static readonly Brush pProcessingTextBrush = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
     private static readonly Brush pProcessingActiveBrush = new SolidColorBrush(Color.FromRgb(0x2C, 0x6C, 0xCE));
 
-    private const string PProcessingUpIconPath = "/PAssets/PPanels/PProcessingUp.svg";
-    private const string PProcessingDownIconPath = "/PAssets/PPanels/PProcessingDown.svg";
+    private const string PProcessingUpIcon = "/PAssets/PPanels/PProcessingUp.svg";
+    private const string PProcessingDownIcon = "/PAssets/PPanels/PProcessingDown.svg";
 
     public const double PProcessingStripWidth = 48;
 
@@ -32,7 +32,7 @@ public sealed class PProcessing : PPanel
     private string? pProcessingStepCurrent;
     private bool pProcessingMinimized;
     private int? pProcessingIndexDragging;
-    private Point? pProcessingDragStart;
+    private Point? pProcessingDragOrigin;
     private bool pProcessingDragActive;
     private Border? pProcessingRowDragging;
     private bool pProcessingOrdered;
@@ -62,13 +62,13 @@ public sealed class PProcessing : PPanel
                 continue;
             }
 
-            PProcessingRowActiveApply(pRowContent, pActive);
+            PProcessingRowApply(pRowContent, pActive);
 
             return;
         }
     }
 
-    private static void PProcessingRowActiveApply(StackPanel pRowContent, bool pActive)
+    private static void PProcessingRowApply(StackPanel pRowContent, bool pActive)
     {
         Brush pTextBrush = pActive ? pProcessingActiveBrush : pProcessingTextBrush;
         Brush pIconBrush = pActive ? pProcessingActiveBrush : pProcessingIconBrush;
@@ -124,9 +124,9 @@ public sealed class PProcessing : PPanel
         UIElement pHeader = PProcessingHeaderBuild();
 
         pProcessingRowPanel = new StackPanel();
-        pProcessingRowPanel.PreviewMouseMove += PProcessingDragMoveHandle;
-        pProcessingRowPanel.MouseLeftButtonUp += PProcessingDragUpHandle;
-        pProcessingRowPanel.LostMouseCapture += PProcessingDragLostHandle;
+        pProcessingRowPanel.PreviewMouseMove += PProcessingMoveHandle;
+        pProcessingRowPanel.MouseLeftButtonUp += PProcessingUpHandle;
+        pProcessingRowPanel.LostMouseCapture += PProcessingLostHandle;
 
         var pScroll = new ScrollViewer
         {
@@ -220,10 +220,10 @@ public sealed class PProcessing : PPanel
     private UIElement PProcessingActionBuild()
     {
         Button pUpButton = PProcessingButtonBuild(
-            PProcessingUpIconPath, LLocalization.LLocalizationTextRead("Processing.MoveUp.Tooltip"), () => PProcessingStepMove(-1));
+            PProcessingUpIcon, LLocalization.LLocalizationTextRead("Processing.MoveUp.Tooltip"), () => PProcessingStepMove(-1));
         pUpButton.Margin = new Thickness(0, 0, 2, 0);
         Button pDownButton = PProcessingButtonBuild(
-            PProcessingDownIconPath, LLocalization.LLocalizationTextRead("Processing.MoveDown.Tooltip"), () => PProcessingStepMove(1));
+            PProcessingDownIcon, LLocalization.LLocalizationTextRead("Processing.MoveDown.Tooltip"), () => PProcessingStepMove(1));
 
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pLeftPanel.Children.Add(pUpButton);
@@ -302,7 +302,7 @@ public sealed class PProcessing : PPanel
         PProcessingNumbersUpdate();
     }
 
-    private static Border PProcessingNumberBadgeBuild()
+    private static Border PProcessingBadgeBuild()
     {
         var pNumber = new TextBlock
         {
@@ -331,7 +331,7 @@ public sealed class PProcessing : PPanel
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         if (pProcessingOrdered)
         {
-            pRowContent.Children.Add(PProcessingNumberBadgeBuild());
+            pRowContent.Children.Add(PProcessingBadgeBuild());
         }
 
         pRowContent.Children.Add(new Image
@@ -364,7 +364,7 @@ public sealed class PProcessing : PPanel
             Child = pRowContent,
             Tag = pStepName
         };
-        PProcessingRowActiveApply(pRowContent, pProcessingActiveSteps.Contains(pStepName));
+        PProcessingRowApply(pRowContent, pProcessingActiveSteps.Contains(pStepName));
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
             pProcessingStepCurrent = pStepName;
@@ -373,7 +373,7 @@ public sealed class PProcessing : PPanel
 
             pProcessingRowDragging = pRowBorder;
             pProcessingIndexDragging = pProcessingRowPanel.Children.IndexOf(pRowBorder);
-            pProcessingDragStart = pRowEvent.GetPosition(pProcessingRowPanel);
+            pProcessingDragOrigin = pRowEvent.GetPosition(pProcessingRowPanel);
             pProcessingDragActive = false;
 
             PProcessingStepOpen?.Invoke(pStepName);
@@ -382,7 +382,7 @@ public sealed class PProcessing : PPanel
         return pRowBorder;
     }
 
-    private void PProcessingDragMoveHandle(object pSender, MouseEventArgs pEvent)
+    private void PProcessingMoveHandle(object pSender, MouseEventArgs pEvent)
     {
         if (!pProcessingOrdered)
         {
@@ -391,7 +391,7 @@ public sealed class PProcessing : PPanel
 
         if (pProcessingRowDragging is not { } pDragRow
             || pProcessingIndexDragging is not int pDragIndex
-            || pProcessingDragStart is not Point pStart
+            || pProcessingDragOrigin is not Point pStart
             || pEvent.LeftButton != MouseButtonState.Pressed)
         {
             return;
@@ -419,7 +419,7 @@ public sealed class PProcessing : PPanel
         }
     }
 
-    private void PProcessingDragUpHandle(object pSender, MouseButtonEventArgs pEvent)
+    private void PProcessingUpHandle(object pSender, MouseButtonEventArgs pEvent)
     {
         bool pReordered = pProcessingDragActive;
         if (pProcessingRowDragging is { } pDragRow)
@@ -434,7 +434,7 @@ public sealed class PProcessing : PPanel
         }
     }
 
-    private void PProcessingDragLostHandle(object pSender, MouseEventArgs pEvent)
+    private void PProcessingLostHandle(object pSender, MouseEventArgs pEvent)
     {
         if (pProcessingRowDragging is { } pDragRow)
         {
@@ -447,7 +447,7 @@ public sealed class PProcessing : PPanel
     private void PProcessingDragClear()
     {
         pProcessingIndexDragging = null;
-        pProcessingDragStart = null;
+        pProcessingDragOrigin = null;
         pProcessingDragActive = false;
         pProcessingRowDragging = null;
     }

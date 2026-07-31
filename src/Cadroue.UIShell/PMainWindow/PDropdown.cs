@@ -10,10 +10,10 @@ namespace Cadroue.UIShell.PMainWindow;
 internal static class PDropdown
 {
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
-    private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush PAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
-    private static readonly Brush PHighlightBrush = new SolidColorBrush(Color.FromRgb(0xEC, 0xF3, 0xFF));
+    private static readonly Brush PDropdownSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
+    private static readonly Brush PDropdownTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush PDropdownAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
+    private static readonly Brush PDropdownHighlightBrush = new SolidColorBrush(Color.FromRgb(0xEC, 0xF3, 0xFF));
 
     internal static void PDropdownApply(ComboBox pCombo)
     {
@@ -82,10 +82,10 @@ internal static class PDropdown
         pEditableBox.Name = "PART_EditableTextBox";
         pEditableBox.SetValue(TextBox.BackgroundProperty, Brushes.Transparent);
         pEditableBox.SetValue(TextBox.BorderThicknessProperty, new Thickness(0));
-        pEditableBox.SetValue(TextBox.ForegroundProperty, PTextBrush);
+        pEditableBox.SetValue(TextBox.ForegroundProperty, PDropdownTextBrush);
         pEditableBox.SetValue(TextBox.VerticalContentAlignmentProperty, VerticalAlignment.Center);
         pEditableBox.SetValue(TextBox.PaddingProperty, new Thickness(14, 0, 10, 0));
-        pEditableBox.SetValue(TextBox.SelectionBrushProperty, PAccentBrush);
+        pEditableBox.SetValue(TextBox.SelectionBrushProperty, PDropdownAccentBrush);
         pEditableBox.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Hidden);
         pEditableBox.SetValue(ScrollViewer.VerticalScrollBarVisibilityProperty, ScrollBarVisibility.Hidden);
         return pEditableBox;
@@ -152,11 +152,11 @@ internal static class PDropdown
     private static void PDropdownTriggerAdd(ControlTemplate pTemplate)
     {
         var pFocusTrigger = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true };
-        pFocusTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "OuterBorder"));
+        pFocusTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PDropdownAccentBrush, "OuterBorder"));
         pTemplate.Triggers.Add(pFocusTrigger);
 
         var pOpenTrigger = new Trigger { Property = ComboBox.IsDropDownOpenProperty, Value = true };
-        pOpenTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "OuterBorder"));
+        pOpenTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PDropdownAccentBrush, "OuterBorder"));
         pTemplate.Triggers.Add(pOpenTrigger);
     }
 
@@ -166,11 +166,11 @@ internal static class PDropdown
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.SetValue(Border.BorderBrushProperty, PLineBrush);
         pBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1, 0, 0, 0));
-        pBorder.SetValue(Border.BackgroundProperty, PSoftBrush);
+        pBorder.SetValue(Border.BackgroundProperty, PDropdownSoftBrush);
         pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(0, 10, 10, 0));
 
         var pArrow = new FrameworkElementFactory(typeof(Path));
-        pArrow.SetValue(Path.StrokeProperty, PTextBrush);
+        pArrow.SetValue(Path.StrokeProperty, PDropdownTextBrush);
         pArrow.SetValue(Path.StrokeThicknessProperty, 1.3);
         pArrow.SetValue(Path.StrokeStartLineCapProperty, PenLineCap.Round);
         pArrow.SetValue(Path.StrokeEndLineCapProperty, PenLineCap.Round);
@@ -227,7 +227,7 @@ internal static class PDropdown
         var pCheck = new FrameworkElementFactory(typeof(Path));
         pCheck.Name = "CheckPath";
         pCheck.SetValue(DockPanel.DockProperty, Dock.Right);
-        pCheck.SetValue(Path.StrokeProperty, PAccentBrush);
+        pCheck.SetValue(Path.StrokeProperty, PDropdownAccentBrush);
         pCheck.SetValue(Path.StrokeThicknessProperty, 1.8);
         pCheck.SetValue(Path.StrokeStartLineCapProperty, PenLineCap.Round);
         pCheck.SetValue(Path.StrokeEndLineCapProperty, PenLineCap.Round);
@@ -243,11 +243,11 @@ internal static class PDropdown
     private static void PDropdownRowAdd(ControlTemplate pTemplate)
     {
         var pHighlightTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHighlightTrigger.Setters.Add(new Setter(Border.BackgroundProperty, PHighlightBrush, "ItemBorder"));
+        pHighlightTrigger.Setters.Add(new Setter(Border.BackgroundProperty, PDropdownHighlightBrush, "ItemBorder"));
         pTemplate.Triggers.Add(pHighlightTrigger);
 
         var pSelectedTrigger = new Trigger { Property = ListBoxItem.IsSelectedProperty, Value = true };
-        pSelectedTrigger.Setters.Add(new Setter(Border.BackgroundProperty, PHighlightBrush, "ItemBorder"));
+        pSelectedTrigger.Setters.Add(new Setter(Border.BackgroundProperty, PDropdownHighlightBrush, "ItemBorder"));
         pSelectedTrigger.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Visible, "CheckPath"));
         pTemplate.Triggers.Add(pSelectedTrigger);
     }

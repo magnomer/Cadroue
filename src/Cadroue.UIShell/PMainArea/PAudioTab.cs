@@ -6,11 +6,11 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PAudioTab : PTabSurface
 {
-    private const string PAudioVolumeIconPath = "/PAssets/PPanels/PProcessingVolume.svg";
-    private const string PAudioNormalizeIconPath = "/PAssets/PPanels/PProcessingNormalize.svg";
-    private const string PAudioNoiseIconPath = "/PAssets/PPanels/PProcessingNoiseReduction.svg";
-    private const string PAudioHighPassIconPath = "/PAssets/PPanels/PProcessingHighPass.svg";
-    private const string PAudioLowPassIconPath = "/PAssets/PPanels/PProcessingLowPass.svg";
+    private const string PAudioVolumeIcon = "/PAssets/PPanels/PProcessingVolume.svg";
+    private const string PAudioNormalizeIcon = "/PAssets/PPanels/PProcessingNormalize.svg";
+    private const string PAudioNoiseIcon = "/PAssets/PPanels/PProcessingNoiseReduction.svg";
+    private const string PAudioHighIcon = "/PAssets/PPanels/PProcessingHighPass.svg";
+    private const string PAudioLowIcon = "/PAssets/PPanels/PProcessingLowPass.svg";
 
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
@@ -20,14 +20,14 @@ public sealed class PAudioTab : PTabSurface
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pAudioPlanLoading;
 
-    public PAudioTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PAudioTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         pProcessing.PProcessingOrderedSet(true);
-        pProcessing.PProcessingStepAdd("High Pass", PAudioHighPassIconPath, "Processing.Step.HighPass");
-        pProcessing.PProcessingStepAdd("Low Pass", PAudioLowPassIconPath, "Processing.Step.LowPass");
-        pProcessing.PProcessingStepAdd("Noise Reduction", PAudioNoiseIconPath, "Processing.Step.NoiseReduction");
-        pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIconPath, "Processing.Step.Volume");
-        pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIconPath, "Processing.Step.Normalize");
+        pProcessing.PProcessingStepAdd("High Pass", PAudioHighIcon, "Processing.Step.HighPass");
+        pProcessing.PProcessingStepAdd("Low Pass", PAudioLowIcon, "Processing.Step.LowPass");
+        pProcessing.PProcessingStepAdd("Noise Reduction", PAudioNoiseIcon, "Processing.Step.NoiseReduction");
+        pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIcon, "Processing.Step.Volume");
+        pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIcon, "Processing.Step.Normalize");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pProcessing.PProcessingOrderChange += PAudioPlanSave;
@@ -53,8 +53,8 @@ public sealed class PAudioTab : PTabSurface
                 pList.PListPathsRead(),
                 PAudioProcessingRead(),
                 lExportSpecificState,
-                pInspector.PInspectorAudioPersistentAnyCheck()
-                    ? pInspector.PInspectorAudioPersistentRead()
+                pInspector.PInspectorPersistentCheck()
+                    ? pInspector.PInspectorPersistentRead()
                     : null,
                 pAction.PActionRelayTarget);
         };
@@ -66,10 +66,10 @@ public sealed class PAudioTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
-        PAudioActiveRefresh();
+        PAudioActiveUpdate();
     }
 
-    private void PAudioActiveRefresh()
+    private void PAudioActiveUpdate()
     {
         foreach (string pStepName in pProcessing.PProcessingStepsRead())
         {
@@ -82,7 +82,7 @@ public sealed class PAudioTab : PTabSurface
 
     private void PAudioChangeHandle()
     {
-        PAudioActiveRefresh();
+        PAudioActiveUpdate();
         PAudioPlanSave();
     }
 
@@ -128,17 +128,17 @@ public sealed class PAudioTab : PTabSurface
             LWorkAudio? pSaved = pViewer.PViewerSourcePath is { } pSourcePath
                 ? LAudio.LAudioPlanRead(pSourcePath)
                 : null;
-            LWorkAudio? pPersistent = pInspector.PInspectorAudioPersistentAnyCheck()
-                ? pInspector.PInspectorAudioPersistentRead()
+            LWorkAudio? pPersistent = pInspector.PInspectorPersistentCheck()
+                ? pInspector.PInspectorPersistentRead()
                 : null;
-            pInspector.PInspectorAudioPlanApply(LAudio.LAudioPlanResolve(pSaved, pPersistent));
+            pInspector.PInspectorPlanApply(LAudio.LAudioPlanResolve(pSaved, pPersistent));
         }
         finally
         {
             pAudioPlanLoading = false;
         }
 
-        PAudioActiveRefresh();
+        PAudioActiveUpdate();
     }
 
     private void PAudioPlanSave()

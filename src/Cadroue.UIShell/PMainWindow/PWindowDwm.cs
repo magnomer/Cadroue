@@ -33,16 +33,16 @@ public partial class PWindow
             return;
         }
 
-        int pWindowCornerPreference = PWindowDwmCornerRound;
+        int pWindowCornerPreference = PWindowCornerRound;
         _ = DwmSetWindowAttribute(
             pWindowHandle,
-            PWindowDwmCornerPreference,
+            PWindowCornerPreference,
             ref pWindowCornerPreference,
             Marshal.SizeOf<int>());
         int pWindowCaptionColor = PWindowColorBackground;
         _ = DwmSetWindowAttribute(
             pWindowHandle,
-            PWindowDwmCaptionColor,
+            PWindowCaptionColor,
             ref pWindowCaptionColor,
             Marshal.SizeOf<int>());
     }

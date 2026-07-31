@@ -7,17 +7,17 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PGroup
 {
-    private const string PGroupMoveFormat = "CadroueGroupMove";
+    private const string PGroupMoveKind = "CadroueGroupMove";
 
-    private Point? pGroupDragStart;
+    private Point? pGroupDragOrigin;
     private Point pGroupDragOffset;
-    private int? pGroupDragSourceIndex;
+    private int? pGroupSourceIndex;
     private string? pGroupDragPath;
 
-    private void PGroupRowDragHandle(object pRowSender, MouseEventArgs pRowEvent)
+    private void PGroupDragHandle(object pRowSender, MouseEventArgs pRowEvent)
     {
-        if (pGroupDragStart is not { } pStart
-            || pGroupDragSourceIndex is not { } pSourceIndex
+        if (pGroupDragOrigin is not { } pStart
+            || pGroupSourceIndex is not { } pSourceIndex
             || pGroupDragPath is not { } pDragPath
             || pRowEvent.LeftButton != MouseButtonState.Pressed)
         {
@@ -31,7 +31,7 @@ public sealed partial class PGroup
             return;
         }
 
-        var pData = new DataObject(PGroupMoveFormat, new PGroupMovePayload(pSourceIndex, pDragPath));
+        var pData = new DataObject(PGroupMoveKind, new PGroupMovePayload(pSourceIndex, pDragPath));
         Point pGrabOffset = pGroupDragOffset;
         PGroupDragClear();
         if (pRowSender is UIElement pRowElement)
@@ -53,20 +53,20 @@ public sealed partial class PGroup
 
     private void PGroupDragClear()
     {
-        pGroupDragStart = null;
-        pGroupDragSourceIndex = null;
+        pGroupDragOrigin = null;
+        pGroupSourceIndex = null;
         pGroupDragPath = null;
     }
 
-    private static void PGroupDragOverHandle(object pSender, DragEventArgs pEvent)
+    private static void PGroupOverHandle(object pSender, DragEventArgs pEvent)
     {
-        pEvent.Effects = pEvent.Data.GetDataPresent(PGroupMoveFormat)
+        pEvent.Effects = pEvent.Data.GetDataPresent(PGroupMoveKind)
             ? DragDropEffects.Move
             : DragDropEffects.Copy;
         pEvent.Handled = true;
     }
 
-    private static int PGroupInsertIndexResolve(StackPanel pFileRows, DragEventArgs pEvent)
+    private static int PGroupInsertResolve(StackPanel pFileRows, DragEventArgs pEvent)
     {
         Point pPoint = pEvent.GetPosition(pFileRows);
         for (int pIndex = 0; pIndex < pFileRows.Children.Count; pIndex++)
@@ -86,13 +86,13 @@ public sealed partial class PGroup
         return pFileRows.Children.Count;
     }
 
-    private void PGroupCardDropHandle(int pTargetIndex, StackPanel pFileRows, DragEventArgs pEvent)
+    private void PGroupCardHandle(int pTargetIndex, StackPanel pFileRows, DragEventArgs pEvent)
     {
-        LAppLog.LInfo($"DRAGTRACE group card drop target={pTargetIndex}");
-        int pInsertAt = PGroupInsertIndexResolve(pFileRows, pEvent);
+        LTraceLog.LTraceInfoRecord($"DRAGTRACE group card drop target={pTargetIndex}");
+        int pInsertAt = PGroupInsertResolve(pFileRows, pEvent);
         List<string> pTargetPaths = pGroupRecords[pTargetIndex].PGroupRecordPaths;
 
-        if (pEvent.Data.GetData(PGroupMoveFormat) is PGroupMovePayload pMove
+        if (pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
             && pMove.PGroupMoveSourceIndex >= 0
             && pMove.PGroupMoveSourceIndex < pGroupRecords.Count)
         {
@@ -110,7 +110,7 @@ public sealed partial class PGroup
 
             PGroupPathInsert(pTargetPaths, pMove.PGroupMovePath, pInsertAt);
         }
-        else if (PGroupDropPathsRead(pEvent) is { Count: > 0 } pAddPaths)
+        else if (PGroupPathsRead(pEvent) is { Count: > 0 } pAddPaths)
         {
             foreach (string pAddPath in pAddPaths)
             {
@@ -127,16 +127,16 @@ public sealed partial class PGroup
         PGroupRebuild();
     }
 
-    private void PGroupContainerDropHandle(object pSender, DragEventArgs pEvent)
+    private void PGroupDropHandle(object pSender, DragEventArgs pEvent)
     {
-        LAppLog.LInfo("DRAGTRACE group container drop");
+        LTraceLog.LTraceInfoRecord("DRAGTRACE group container drop");
         if (pEvent.Handled)
         {
             return;
         }
 
         var pNewPaths = new List<string>();
-        if (pEvent.Data.GetData(PGroupMoveFormat) is PGroupMovePayload pMove
+        if (pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
             && pMove.PGroupMoveSourceIndex >= 0
             && pMove.PGroupMoveSourceIndex < pGroupRecords.Count)
         {
@@ -149,7 +149,7 @@ public sealed partial class PGroup
         }
         else
         {
-            pNewPaths.AddRange(PGroupDropPathsRead(pEvent));
+            pNewPaths.AddRange(PGroupPathsRead(pEvent));
         }
 
         if (pNewPaths.Count == 0)
@@ -171,16 +171,16 @@ public sealed partial class PGroup
         PGroupRebuild();
     }
 
-    private IReadOnlyList<string> PGroupDropPathsRead(DragEventArgs pEvent)
+    private IReadOnlyList<string> PGroupPathsRead(DragEventArgs pEvent)
     {
-        if (pEvent.Data.GetData(PList.PListDragFormat) is string[] pListPaths)
+        if (pEvent.Data.GetData(PList.PListDragKind) is string[] pListPaths)
         {
             return pListPaths;
         }
 
         if (pEvent.Data.GetData(DataFormats.FileDrop) is string[] pFilePaths)
         {
-            return PGroupFileLoad?.Invoke(pFilePaths) ?? PList.PListMediaScan(pFilePaths);
+            return PGroupFileRequest?.Invoke(pFilePaths) ?? PList.PListMediaScan(pFilePaths);
         }
 
         return Array.Empty<string>();

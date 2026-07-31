@@ -6,7 +6,7 @@ public sealed partial class PViewer
 {
     private int pViewerHostStamp;
 
-    private void PViewerHostWatch()
+    private void PViewerHostAttach()
     {
         Loaded += (_, _) => PViewerHostRecord("panel loaded");
         IsVisibleChanged += (_, pVisibleEvent) =>
@@ -115,7 +115,7 @@ public sealed partial class PViewer
         PCropHide();
         PViewerPreviewApply();
 
-        LAppLog.LInfo(string.IsNullOrWhiteSpace(pViewerClosedPath)
+        LTraceLog.LTraceInfoRecord(string.IsNullOrWhiteSpace(pViewerClosedPath)
             ? "Media closed"
             : $"Media closed '{System.IO.Path.GetFileName(pViewerClosedPath)}' [{pViewerClosedPath}]");
 

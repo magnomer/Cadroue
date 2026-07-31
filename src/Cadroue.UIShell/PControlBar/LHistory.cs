@@ -6,7 +6,7 @@ namespace Cadroue.UIShell.PControlBar;
 internal sealed record LHistoryEntry(
     IReadOnlyList<LSegment> LHistorySections,
     int? LHistorySectionSelect,
-    LExportSpecificPresetRecord LHistoryExport);
+    LPresetRecord LHistoryExport);
 
 internal sealed class LHistory
 {
@@ -27,7 +27,7 @@ internal sealed class LHistory
         lHistoryPresent = lHistoryEntry;
     }
 
-    internal void LHistoryPush(LHistoryEntry lHistoryEntry, int lHistoryMaximum)
+    internal void LHistoryAdd(LHistoryEntry lHistoryEntry, int lHistoryMaximum)
     {
         if (LHistoryApplying)
         {

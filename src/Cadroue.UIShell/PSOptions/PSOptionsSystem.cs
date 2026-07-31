@@ -10,11 +10,11 @@ namespace Cadroue.UIShell;
 
 internal sealed partial class PSOptions
 {
-    private const string PSOptionsBrowseIconPath = "/PAssets/PPanels/PBrowse.svg";
-    private const string PSOptionsOpenIconPath = "/PAssets/PPanels/POpen.svg";
+    private const string PSOptionsBrowseIcon = "/PAssets/PPanels/PBrowse.svg";
+    private const string PSOptionsOpenIcon = "/PAssets/PPanels/POpen.svg";
 
     private readonly TextBox psWorkspaceBox;
-    private readonly TextBox psFfmpegBox;
+    private readonly TextBox psSystemFfmpegBox;
 
     private TextBlock? psWorkspaceSize;
 
@@ -32,23 +32,23 @@ internal sealed partial class PSOptions
             Foreground = PSFieldMuted,
             TextWrapping = TextWrapping.Wrap,
             Margin = PSNoticeMargin,
-            Text = PSFfmpegFormat(psFfmpegBox.Text)
+            Text = PSSystemFfmpegFormat(psSystemFfmpegBox.Text)
         };
-        psFfmpegBox.TextChanged += (_, _) => pFfmpegState.Text = PSFfmpegFormat(psFfmpegBox.Text);
+        psSystemFfmpegBox.TextChanged += (_, _) => pFfmpegState.Text = PSSystemFfmpegFormat(psSystemFfmpegBox.Text);
 
-        Button pWorkspaceBrowse = PSInlineIconBuild(PSOptionsBrowseIconPath, LLocalization.LLocalizationTextRead("Options.System.Browse"), new Thickness(8, 0, 0, 0));
-        Button pWorkspaceOpen = PSInlineIconBuild(PSOptionsOpenIconPath, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(6, 0, 0, 0));
-        pWorkspaceBrowse.Click += (_, _) => PSFolderBrowse(psWorkspaceBox, LLocalization.LLocalizationTextRead("Options.System.ChooseWorkspace"), LDepot.LDepotDefaultRootRead());
-        pWorkspaceOpen.Click += (_, _) => PSFolderOpen(psWorkspaceBox.Text, LDepot.LDepotDefaultRootRead());
+        Button pWorkspaceBrowse = PSInlineIconBuild(PSOptionsBrowseIcon, LLocalization.LLocalizationTextRead("Options.System.Browse"), new Thickness(8, 0, 0, 0));
+        Button pWorkspaceOpen = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(6, 0, 0, 0));
+        pWorkspaceBrowse.Click += (_, _) => PSSystemFolderRead(psWorkspaceBox, LLocalization.LLocalizationTextRead("Options.System.ChooseWorkspace"), LDepot.LDepotDefaultRead());
+        pWorkspaceOpen.Click += (_, _) => PSSystemFolderOpen(psWorkspaceBox.Text, LDepot.LDepotDefaultRead());
 
-        Button pFfmpegBrowse = PSInlineIconBuild(PSOptionsBrowseIconPath, LLocalization.LLocalizationTextRead("Options.System.Browse"), new Thickness(8, 0, 0, 0));
-        Button pFfmpegOpen = PSInlineIconBuild(PSOptionsOpenIconPath, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(6, 0, 0, 0));
-        pFfmpegBrowse.Click += (_, _) => PSFolderBrowse(psFfmpegBox, LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"), psFfmpegBox.Text);
-        pFfmpegOpen.Click += (_, _) => PSFolderOpen(psFfmpegBox.Text, string.Empty);
+        Button pFfmpegBrowse = PSInlineIconBuild(PSOptionsBrowseIcon, LLocalization.LLocalizationTextRead("Options.System.Browse"), new Thickness(8, 0, 0, 0));
+        Button pFfmpegOpen = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(6, 0, 0, 0));
+        pFfmpegBrowse.Click += (_, _) => PSSystemFolderRead(psSystemFfmpegBox, LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"), psSystemFfmpegBox.Text);
+        pFfmpegOpen.Click += (_, _) => PSSystemFolderOpen(psSystemFfmpegBox.Text, string.Empty);
 
         Button pDoneClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearDone"), 210, new Thickness(0, 0, 8, 0));
         Button pWorkspaceClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearWorkspace"), 140, new Thickness(0));
-        pDoneClear.Click += (_, _) => PSDoneClear();
+        pDoneClear.Click += (_, _) => PSSystemDoneClear();
         pWorkspaceClear.Click += (_, _) => PSWorkspaceClear();
 
         var pClearRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
@@ -58,44 +58,44 @@ internal sealed partial class PSOptions
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.Workspace"),
             PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psWorkspaceBox, pWorkspaceBrowse, pWorkspaceOpen),
-            PSNoticeBuild(LLocalization.LLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRootRead())),
+            PSNoticeBuild(LLocalization.LLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRead())),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CurrentSize"), psWorkspaceSize),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pClearRow)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FFmpeg"),
-            PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
+            PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psSystemFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
             pFfmpegState));
-        pPanel.Children.Add(PSFlyleafPlateBuild());
-        pPanel.Children.Add(PSRecordPlateBuild());
+        pPanel.Children.Add(PSSystemFlyleafBuild());
+        pPanel.Children.Add(PSSystemRecordBuild());
         return pPanel;
     }
 
-    private UIElement PSFlyleafPlateBuild()
+    private UIElement PSSystemFlyleafBuild()
     {
         var pState = new TextBlock
         {
             Foreground = PSFieldMuted,
             TextWrapping = TextWrapping.Wrap,
             Margin = PSNoticeMargin,
-            Text = LFlyleafLocal.LFlyleafLocalStatusRead()
+            Text = LFlyleaf.LFlyleafStatusRead()
         };
 
         Button pInstall = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.InstallFlyleaf"), 160, new Thickness(0, 0, 8, 0));
-        Button pOpen = PSInlineIconBuild(PSOptionsOpenIconPath, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
+        Button pOpen = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
         pInstall.Click += async (_, _) =>
         {
             pInstall.IsEnabled = false;
             pState.Text = LLocalization.LLocalizationTextRead("Options.System.FlyleafInstalling");
-            LFlyleafLocalInstallResult pResult = await LFlyleafLocal.LFlyleafLocalInstallAsync();
-            pState.Text = LFlyleafLocal.LFlyleafLocalStatusRead();
+            LFlyleafInstallResult pResult = await LFlyleaf.LFlyleafInstallStart();
+            pState.Text = LFlyleaf.LFlyleafStatusRead();
             pInstall.IsEnabled = true;
             MessageBox.Show(
                 this,
-                pResult.LFlyleafLocalInstallMessage,
+                pResult.LFlyleafInstallMessage,
                 LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf"),
                 MessageBoxButton.OK,
-                pResult.LFlyleafLocalInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
+                pResult.LFlyleafInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
         };
-        pOpen.Click += (_, _) => PSFolderOpen(LFlyleafLocal.LFlyleafLocalRootRead(), string.Empty);
+        pOpen.Click += (_, _) => PSSystemFolderOpen(LFlyleaf.LFlyleafRootRead(), string.Empty);
 
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pButtons.Children.Add(pInstall);
@@ -107,14 +107,14 @@ internal sealed partial class PSOptions
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FlyleafNotice")));
     }
 
-    private UIElement PSRecordPlateBuild()
+    private UIElement PSSystemRecordBuild()
     {
         Button pRecordClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), 190, new Thickness(0));
-        pRecordClear.Click += (_, _) => PSRecordClear();
+        pRecordClear.Click += (_, _) => PSSystemRecordClear();
 
         var pRecordRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        pRecordRow.Children.Add(psRecordBeside);
-        pRecordRow.Children.Add(psRecordWorkspace);
+        pRecordRow.Children.Add(psOptionsRecordBeside);
+        pRecordRow.Children.Add(psOptionsRecordWorkspace);
 
         var pRecordButtonRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pRecordButtonRow.Children.Add(pRecordClear);
@@ -123,11 +123,11 @@ internal sealed partial class PSOptions
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), pRecordRow),
             PSNoticeBuild(LLocalization.LLocalizationFormat(
                 "Options.System.FileRecordNotice",
-                System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Media.LSidecarStore.LSidecarRecordFolderName))),
+                System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Media.LSidecarStore.LSidecarRecordFolder))),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pRecordButtonRow));
     }
 
-    private void PSRecordClear()
+    private void PSSystemRecordClear()
     {
         string pRecordFolder = Cadroue.Media.LSidecarStore.LSidecarFolderRead();
         if (string.IsNullOrWhiteSpace(pRecordFolder) || !Directory.Exists(pRecordFolder))
@@ -156,11 +156,11 @@ internal sealed partial class PSOptions
     {
         if (psWorkspaceSize is not null)
         {
-            psWorkspaceSize.Text = PSSizeFormat(LDepot.LDepotSizeRead());
+            psWorkspaceSize.Text = PSSystemSizeFormat(LDepot.LDepotSizeRead());
         }
     }
 
-    private static void PSFolderBrowse(TextBox pPathBox, string pDialogTitle, string pFallback)
+    private static void PSSystemFolderRead(TextBox pPathBox, string pDialogTitle, string pFallback)
     {
         var pDialog = new Microsoft.Win32.OpenFolderDialog
         {
@@ -173,7 +173,7 @@ internal sealed partial class PSOptions
         }
     }
 
-    private static void PSFolderOpen(string pFolder, string pFallback)
+    private static void PSSystemFolderOpen(string pFolder, string pFallback)
     {
         string pTarget = string.IsNullOrWhiteSpace(pFolder) ? pFallback : pFolder;
         if (string.IsNullOrWhiteSpace(pTarget) || !Directory.Exists(pTarget))
@@ -190,7 +190,7 @@ internal sealed partial class PSOptions
         }
     }
 
-    private void PSDoneClear()
+    private void PSSystemDoneClear()
     {
         MessageBoxResult pAnswer = MessageBox.Show(
             this,
@@ -237,7 +237,7 @@ internal sealed partial class PSOptions
         MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
-    private static string PSSizeFormat(long pBytes)
+    private static string PSSystemSizeFormat(long pBytes)
     {
         string[] pUnits = { "B", "KB", "MB", "GB", "TB" };
         double pValue = pBytes;
@@ -251,7 +251,7 @@ internal sealed partial class PSOptions
         return pUnitIndex == 0 ? $"{pBytes} {pUnits[0]}" : $"{pValue:0.##} {pUnits[pUnitIndex]}";
     }
 
-    private static string PSFfmpegFormat(string pFolder)
+    private static string PSSystemFfmpegFormat(string pFolder)
     {
         if (string.IsNullOrWhiteSpace(pFolder))
         {

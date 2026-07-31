@@ -10,10 +10,10 @@ public sealed class PAction : UserControl
 {
     private static readonly Brush pActionPositiveBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
     private static readonly Brush pActionNegativeBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45));
-    private static readonly Brush pActionRelayLineBrush = new SolidColorBrush(Color.FromRgb(0xC9, 0xD6, 0xE5));
-    private static readonly Brush pActionRelayTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush pActionRelayHoverBrush = new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFC));
-    private static readonly Brush pActionRelayHoverLineBrush = new SolidColorBrush(Color.FromRgb(0xD5, 0xE0, 0xED));
+    private static readonly Brush pActionRelayLine = new SolidColorBrush(Color.FromRgb(0xC9, 0xD6, 0xE5));
+    private static readonly Brush pActionRelayText = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush pActionRelayHover = new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFC));
+    private static readonly Brush pActionHoverLine = new SolidColorBrush(Color.FromRgb(0xD5, 0xE0, 0xED));
     private readonly Button pActionAllButton;
     private readonly Button pActionRelayButton;
     private readonly Image pActionRelayIcon;
@@ -38,8 +38,8 @@ public sealed class PAction : UserControl
         pActionAllButton.Click += (_, _) => PActionAllAdd?.Invoke();
         pExecuteButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
         pActionAllButton.ToolTip = LLocalization.LLocalizationTextRead("Action.AddAll.Tooltip");
-        pActionRelayIcon = PActionRelayIconBuild();
-        pActionRelayLabel = PActionRelayLabelBuild();
+        pActionRelayIcon = PActionIconBuild();
+        pActionRelayLabel = PActionLabelBuild();
         pActionRelayButton = PActionRelayBuild();
         pPanel.Children.Add(pAddListButton);
         pPanel.Children.Add(new Border { Width = 2 });
@@ -58,14 +58,14 @@ public sealed class PAction : UserControl
     public void PActionRelayApply(Guid pActionRelayTarget)
     {
         PActionRelayTarget = pActionRelayTarget;
-        PActionRelayFaceUpdate();
+        PActionFaceUpdate();
     }
 
     private Button PActionRelayBuild()
     {
         var pChevron = new System.Windows.Shapes.Path
         {
-            Stroke = pActionRelayTextBrush,
+            Stroke = pActionRelayText,
             StrokeThickness = 1.3,
             StrokeStartLineCap = PenLineCap.Round,
             StrokeEndLineCap = PenLineCap.Round,
@@ -93,22 +93,22 @@ public sealed class PAction : UserControl
             Padding = new Thickness(11, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center,
             Background = Brushes.White,
-            BorderBrush = pActionRelayLineBrush,
+            BorderBrush = pActionRelayLine,
             BorderThickness = new Thickness(1),
             Cursor = System.Windows.Input.Cursors.Hand,
             FocusVisualStyle = null,
             Content = pFace,
-            Template = PActionRelayTemplateBuild(),
+            Template = PActionTemplateBuild(),
             ToolTip = LLocalization.LLocalizationTextRead("Action.Relay.Tooltip")
         };
         System.Windows.Automation.AutomationProperties.SetName(
             pButton, LLocalization.LLocalizationTextRead("Action.Relay.Name"));
-        pButton.Click += PActionRelayOpenHandle;
-        PActionRelayFaceUpdate();
+        pButton.Click += PActionOpenHandle;
+        PActionFaceUpdate();
         return pButton;
     }
 
-    private static ControlTemplate PActionRelayTemplateBuild()
+    private static ControlTemplate PActionTemplateBuild()
     {
         var pTemplate = new ControlTemplate(typeof(Button));
         var pFrame = new FrameworkElementFactory(typeof(Border));
@@ -126,13 +126,13 @@ public sealed class PAction : UserControl
         pTemplate.VisualTree = pFrame;
 
         var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHover.Setters.Add(new Setter(Border.BackgroundProperty, pActionRelayHoverBrush, "pActionRelayFrame"));
-        pHover.Setters.Add(new Setter(Border.BorderBrushProperty, pActionRelayHoverLineBrush, "pActionRelayFrame"));
+        pHover.Setters.Add(new Setter(Border.BackgroundProperty, pActionRelayHover, "pActionRelayFrame"));
+        pHover.Setters.Add(new Setter(Border.BorderBrushProperty, pActionHoverLine, "pActionRelayFrame"));
         pTemplate.Triggers.Add(pHover);
         return pTemplate;
     }
 
-    private static Image PActionRelayIconBuild() => new()
+    private static Image PActionIconBuild() => new()
     {
         Width = 17,
         Height = 17,
@@ -142,19 +142,19 @@ public sealed class PAction : UserControl
         Visibility = Visibility.Collapsed
     };
 
-    private static TextBlock PActionRelayLabelBuild() => new()
+    private static TextBlock PActionLabelBuild() => new()
     {
         FontSize = 12,
-        Foreground = pActionRelayTextBrush,
+        Foreground = pActionRelayText,
         VerticalAlignment = VerticalAlignment.Center,
         TextTrimming = TextTrimming.CharacterEllipsis
     };
 
-    private void PActionRelayFaceUpdate()
+    private void PActionFaceUpdate()
     {
         LCourierOption? pOption = PActionRelayTarget == Guid.Empty
             ? null
-            : PActionRelayOptionsRead().FirstOrDefault(pRow => pRow.LCourierTabId == PActionRelayTarget);
+            : PActionOptionsRead().FirstOrDefault(pRow => pRow.LCourierTabId == PActionRelayTarget);
 
         if (PActionRelayTarget != Guid.Empty && pOption is null)
         {
@@ -169,23 +169,23 @@ public sealed class PAction : UserControl
             : Visibility.Visible;
     }
 
-    private IReadOnlyList<LCourierOption> PActionRelayOptionsRead() =>
+    private IReadOnlyList<LCourierOption> PActionOptionsRead() =>
         PActionRelaySource?.Invoke() ?? Array.Empty<LCourierOption>();
 
-    private void PActionRelayOpenHandle(object pSender, RoutedEventArgs pArgs)
+    private void PActionOpenHandle(object pSender, RoutedEventArgs pArgs)
     {
         ContextMenu pRelayMenu = PControlBar.PMenu.PMenuCreate(pActionRelayButton);
-        PActionRelayRowAppend(pRelayMenu, Guid.Empty, LLocalization.LLocalizationTextRead("Action.Relay.None"), null);
-        foreach (LCourierOption pOption in PActionRelayOptionsRead())
+        PActionRowAppend(pRelayMenu, Guid.Empty, LLocalization.LLocalizationTextRead("Action.Relay.None"), null);
+        foreach (LCourierOption pOption in PActionOptionsRead())
         {
-            PActionRelayRowAppend(pRelayMenu, pOption.LCourierTabId, pOption.LCourierTabTitle, pOption.LCourierTabIcon);
+            PActionRowAppend(pRelayMenu, pOption.LCourierTabId, pOption.LCourierTabTitle, pOption.LCourierTabIcon);
         }
 
         pRelayMenu.IsOpen = true;
         pArgs.Handled = true;
     }
 
-    private void PActionRelayRowAppend(
+    private void PActionRowAppend(
         ContextMenu pRelayMenu,
         Guid pRelayTarget,
         string pRelayTitle,
@@ -204,7 +204,7 @@ public sealed class PAction : UserControl
         }
 
         PActionRelayTarget = pRelayTarget;
-        PActionRelayFaceUpdate();
+        PActionFaceUpdate();
         PActionRelayChange?.Invoke(pRelayTarget);
     }
 
@@ -221,7 +221,7 @@ public sealed class PAction : UserControl
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PActionAccentBrushRead(pActionToken)),
+            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PActionAccentRead(pActionToken)),
             Width = 24,
             Height = 24,
             Stretch = Stretch.Uniform,
@@ -247,7 +247,7 @@ public sealed class PAction : UserControl
         };
     }
 
-    private static Brush? PActionAccentBrushRead(string pActionToken) => pActionToken switch
+    private static Brush? PActionAccentRead(string pActionToken) => pActionToken switch
     {
         "AddList" => pActionPositiveBrush,
         "AddAll" => pActionPositiveBrush,

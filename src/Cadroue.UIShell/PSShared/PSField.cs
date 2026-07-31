@@ -7,7 +7,7 @@ namespace Cadroue.UIShell.PSShared;
 
 internal static class PSField
 {
-    internal const double PSFieldBodyFontSize = 12;
+    internal const double PSFieldFontSize = 12;
     internal const double PSFieldControlHeight = 32;
     internal const double PSFieldLabelWidth = 130;
     internal const double PSFieldChipHeight = 26;

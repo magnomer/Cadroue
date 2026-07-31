@@ -25,7 +25,7 @@ public sealed partial class PGroup : PPanel
     private readonly UIElement pGroupStripBody;
     private bool pGroupMinimized;
 
-    public Func<IReadOnlyList<string>, IReadOnlyList<string>>? PGroupFileLoad { get; set; }
+    public Func<IReadOnlyList<string>, IReadOnlyList<string>>? PGroupFileRequest { get; set; }
 
     public Func<IReadOnlyList<string>>? PGroupSourceFiles { get; set; }
 
@@ -62,8 +62,8 @@ public sealed partial class PGroup : PPanel
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
-        pScroll.DragOver += PGroupDragOverHandle;
-        pScroll.Drop += PGroupContainerDropHandle;
+        pScroll.DragOver += PGroupOverHandle;
+        pScroll.Drop += PGroupDropHandle;
 
         var pRoot = new DockPanel { LastChildFill = true };
         UIElement pActionBar = PGroupActionBuild();
@@ -145,11 +145,11 @@ public sealed partial class PGroup : PPanel
         var pFileRows = new StackPanel();
         for (int pOrderIndex = 0; pOrderIndex < pRecord.PGroupRecordPaths.Count; pOrderIndex++)
         {
-            pFileRows.Children.Add(PGroupFileRowBuild(pGroupIndex, pOrderIndex, pRecord.PGroupRecordPaths[pOrderIndex]));
+            pFileRows.Children.Add(PGroupFileBuild(pGroupIndex, pOrderIndex, pRecord.PGroupRecordPaths[pOrderIndex]));
         }
 
         var pCardBody = new StackPanel();
-        pCardBody.Children.Add(PGroupCardHeaderBuild(pGroupIndex, pRecord));
+        pCardBody.Children.Add(PGroupCrestBuild(pGroupIndex, pRecord));
         pCardBody.Children.Add(pFileRows);
 
         var pCard = new Border
@@ -164,12 +164,12 @@ public sealed partial class PGroup : PPanel
             Child = pCardBody,
             Tag = pFileRows
         };
-        pCard.DragOver += PGroupDragOverHandle;
-        pCard.Drop += (pSender, pEvent) => PGroupCardDropHandle(pGroupIndex, pFileRows, pEvent);
+        pCard.DragOver += PGroupOverHandle;
+        pCard.Drop += (pSender, pEvent) => PGroupCardHandle(pGroupIndex, pFileRows, pEvent);
         return pCard;
     }
 
-    private UIElement PGroupCardHeaderBuild(int pGroupIndex, PGroupRecord pRecord)
+    private UIElement PGroupCrestBuild(int pGroupIndex, PGroupRecord pRecord)
     {
         var pHeaderGrid = new Grid { Margin = new Thickness(10, 4, 4, 4) };
         pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -190,7 +190,7 @@ public sealed partial class PGroup : PPanel
         {
             if (pNameEvent.ClickCount == 2)
             {
-                PGroupNameEditBegin(pGroupIndex, pHeaderGrid, pRecord);
+                PGroupEditStart(pGroupIndex, pHeaderGrid, pRecord);
                 pNameEvent.Handled = true;
             }
         };
@@ -207,7 +207,7 @@ public sealed partial class PGroup : PPanel
         return pHeaderGrid;
     }
 
-    private void PGroupNameEditBegin(int pGroupIndex, Grid pHeaderGrid, PGroupRecord pRecord)
+    private void PGroupEditStart(int pGroupIndex, Grid pHeaderGrid, PGroupRecord pRecord)
     {
         var pNameBox = new TextBox
         {
@@ -270,7 +270,7 @@ public sealed partial class PGroup : PPanel
         pNameBox.LostKeyboardFocus += (_, _) => PGroupNameCommit(true);
     }
 
-    private Border PGroupFileRowBuild(int pGroupIndex, int pOrderIndex, string pPath)
+    private Border PGroupFileBuild(int pGroupIndex, int pOrderIndex, string pPath)
     {
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         pRowContent.Children.Add(new TextBlock
@@ -322,14 +322,14 @@ public sealed partial class PGroup : PPanel
         };
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
-            pGroupDragStart = pRowEvent.GetPosition(null);
+            pGroupDragOrigin = pRowEvent.GetPosition(null);
             pGroupDragOffset = pRowEvent.GetPosition(pRowBorder);
-            pGroupDragSourceIndex = pGroupIndex;
+            pGroupSourceIndex = pGroupIndex;
             pGroupDragPath = pPath;
             pRowBorder.CaptureMouse();
             PGroupItemOpen?.Invoke(pPath);
         };
-        pRowBorder.MouseMove += (pRowSender, pRowEvent) => PGroupRowDragHandle(pRowSender, pRowEvent);
+        pRowBorder.MouseMove += (pRowSender, pRowEvent) => PGroupDragHandle(pRowSender, pRowEvent);
         pRowBorder.MouseLeftButtonUp += (_, _) =>
         {
             pRowBorder.ReleaseMouseCapture();

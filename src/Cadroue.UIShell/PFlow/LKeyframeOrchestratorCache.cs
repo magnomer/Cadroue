@@ -33,8 +33,8 @@ public sealed partial class LKeyframeOrchestrator
     }
 
     private bool LKeyframeRetryCheck(int spanIndex)
-        => lKeyframeFailedSpanCounts.TryGetValue(spanIndex, out int lFailedSpanCount)
-            && lFailedSpanCount >= LKeyframeFailedSpanRetryLimit;
+        => lKeyframeFailedCounts.TryGetValue(spanIndex, out int lFailedSpanCount)
+            && lFailedSpanCount >= LKeyframeRetryLimit;
 
     private bool LKeyframeSourceCheck(string sourcePath, TimeSpan duration)
     {
@@ -46,7 +46,7 @@ public sealed partial class LKeyframeOrchestrator
         string fullPath = Path.GetFullPath(sourcePath);
         long durationMs = (long)Math.Round(duration.TotalMilliseconds);
         return !string.Equals(lKeyframeSourceIdentity.LKeyframeSourcePath, fullPath, StringComparison.OrdinalIgnoreCase)
-            || lKeyframeSourceIdentity.LKeyframeSourceDurationMilliseconds != durationMs;
+            || lKeyframeSourceIdentity.LKeyframeSourceDuration != durationMs;
     }
 
     private void LKeyframeCacheLoad(LKeyframeSourceIdentity identity)
@@ -58,7 +58,7 @@ public sealed partial class LKeyframeOrchestrator
                 lKeyframeStorage.Add(keyframe);
             }
 
-            foreach (int scannedSpan in lSidecar.LSidecarScannedSpansRead(LKeyframeGridMilliseconds))
+            foreach (int scannedSpan in lSidecar.LSidecarSpansRead(LKeyframeGridMilliseconds))
             {
                 lKeyframeScannedSpans.Add(scannedSpan);
             }
@@ -143,12 +143,12 @@ public sealed partial class LKeyframeOrchestrator
             lKeyframeClock.Elapsed.TotalMilliseconds);
     }
 
-    private bool LKeyframeSaveDueCheck(int lKeyframeNewCount)
+    private bool LKeyframeSaveCheck(int lKeyframeNewCount)
     {
         lock (lKeyframeLock)
         {
             lKeyframeUnsavedCount += lKeyframeNewCount + 1;
-            if (lKeyframeUnsavedCount < LKeyframeSaveEveryCount)
+            if (lKeyframeUnsavedCount < LKeyframeSaveCount)
             {
                 return false;
             }
@@ -168,7 +168,7 @@ public sealed partial class LKeyframeOrchestrator
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Sidecar sections could not be read", lException);
+            LTraceLog.LTraceErrorRecord("Sidecar sections could not be read", lException);
             return Array.Empty<LSidecarSectionRecord>();
         }
     }
@@ -196,13 +196,13 @@ public sealed partial class LKeyframeOrchestrator
 
     public void Dispose()
     {
-        if (lDisposed)
+        if (lKeyframeDisposed)
         {
             return;
         }
 
-        lDisposed = true;
-        lKeyframeCancel?.Cancel();
-        lKeyframeCancel?.Dispose();
+        lKeyframeDisposed = true;
+        lKeyframeCancelSource?.Cancel();
+        lKeyframeCancelSource?.Dispose();
     }
 }

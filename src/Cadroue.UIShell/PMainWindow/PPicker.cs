@@ -14,10 +14,10 @@ internal sealed class PPicker : UserControl
     private const double PPickerPopupHeight = 260;
 
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
-    private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush PAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
-    private static readonly Brush PMutedBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0xA5, 0xB4));
+    private static readonly Brush PPickerSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
+    private static readonly Brush PPickerTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush PPickerAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
+    private static readonly Brush PPickerMutedBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0xA5, 0xB4));
 
     private readonly string[] pPickerItems;
     private readonly IReadOnlyDictionary<string, string> pPickerLabels;
@@ -55,7 +55,7 @@ internal sealed class PPicker : UserControl
 
         pPickerSummary = new TextBlock
         {
-            Foreground = PTextBrush,
+            Foreground = PPickerTextBrush,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(14, 0, 10, 0),
             TextTrimming = TextTrimming.CharacterEllipsis
@@ -101,7 +101,7 @@ internal sealed class PPicker : UserControl
             BorderThickness = new Thickness(0),
             ClickMode = ClickMode.Press,
             Cursor = Cursors.Hand,
-            Template = PPickerArrowTemplateBuild()
+            Template = PPickerTemplateBuild()
         };
         pArrow.Checked += (_, _) => PPickerOpenSet(true);
         pArrow.Unchecked += (_, _) => PPickerOpenSet(false);
@@ -161,7 +161,7 @@ internal sealed class PPicker : UserControl
     private void PPickerOpenSet(bool pOpen)
     {
         pPickerPopup.IsOpen = pOpen;
-        pPickerFrame.BorderBrush = pOpen ? PAccentBrush : PLineBrush;
+        pPickerFrame.BorderBrush = pOpen ? PPickerAccentBrush : PLineBrush;
     }
 
     private void PPickerSummaryUpdate()
@@ -170,23 +170,23 @@ internal sealed class PPicker : UserControl
         pPickerSummary.Text = pSelection.Count == 0
             ? PPickerEmptyText
             : string.Join(", ", pSelection.Select(PPickerLabelRead));
-        pPickerSummary.Foreground = pSelection.Count == 0 ? PMutedBrush : PTextBrush;
+        pPickerSummary.Foreground = pSelection.Count == 0 ? PPickerMutedBrush : PPickerTextBrush;
     }
 
     private string PPickerLabelRead(string pItem) =>
         pPickerLabels.TryGetValue(pItem, out string? pLabel) ? pLabel : pItem;
 
-    private static ControlTemplate PPickerArrowTemplateBuild()
+    private static ControlTemplate PPickerTemplateBuild()
     {
         var pTemplate = new ControlTemplate(typeof(ToggleButton));
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.SetValue(Border.BorderBrushProperty, PLineBrush);
         pBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1, 0, 0, 0));
-        pBorder.SetValue(Border.BackgroundProperty, PSoftBrush);
+        pBorder.SetValue(Border.BackgroundProperty, PPickerSoftBrush);
         pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(0, PPickerCorner, PPickerCorner, 0));
 
         var pArrow = new FrameworkElementFactory(typeof(Path));
-        pArrow.SetValue(Shape.StrokeProperty, PTextBrush);
+        pArrow.SetValue(Shape.StrokeProperty, PPickerTextBrush);
         pArrow.SetValue(Shape.StrokeThicknessProperty, 1.3);
         pArrow.SetValue(Shape.StrokeStartLineCapProperty, PenLineCap.Round);
         pArrow.SetValue(Shape.StrokeEndLineCapProperty, PenLineCap.Round);

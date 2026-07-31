@@ -8,7 +8,7 @@ public sealed record LCapabilityQuality(
     double? CapabilityQualityMaximum = null,
     bool CapabilityQualityHigherBetter = false)
 {
-    public string CapabilityQualityRange => CapabilityQualityMinimum is null || CapabilityQualityMaximum is null
+    public string LCapabilityQualityRange => CapabilityQualityMinimum is null || CapabilityQualityMaximum is null
         ? string.Empty
         : $"{CapabilityQualityMinimum:0.##}-{CapabilityQualityMaximum:0.##}, "
           + (CapabilityQualityHigherBetter ? "higher is better" : "lower is better");
@@ -37,13 +37,13 @@ public sealed record LCapabilityCodec(
     IReadOnlyList<LCapabilityExtra>? CapabilityExtras = null,
     string CapabilityNotice = "")
 {
-    public IReadOnlyList<LCapabilityExtra> CapabilityExtraList =>
+    public IReadOnlyList<LCapabilityExtra> LCapabilityExtraList =>
         CapabilityExtras ?? [];
 
-    public string[] CapabilityModeLabels =>
+    public string[] LCapabilityModeLabels =>
         CapabilityModes.Select(lMode => lMode.CapabilityModeLabel).ToArray();
 
-    public LCapabilityMode CapabilityModeFind(string? lModeLabel) =>
+    public LCapabilityMode LCapabilityModeFind(string? lModeLabel) =>
         CapabilityModes.FirstOrDefault(lMode =>
             string.Equals(lMode.CapabilityModeLabel, lModeLabel, StringComparison.Ordinal))
         ?? CapabilityModes[0];

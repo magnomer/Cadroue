@@ -12,7 +12,7 @@ public sealed class PMergeTab : PTabSurface
     private readonly PGroup pGroup = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PMergeTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PMergeTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -26,7 +26,7 @@ public sealed class PMergeTab : PTabSurface
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
         pGroup.PGroupSourceFiles = () => pList.PListPathsRead();
-        pGroup.PGroupFileLoad = pDropPaths =>
+        pGroup.PGroupFileRequest = pDropPaths =>
         {
             pList.PListPathsAdd(pDropPaths);
             return PList.PListMediaScan(pDropPaths);

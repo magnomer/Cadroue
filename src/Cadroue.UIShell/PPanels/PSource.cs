@@ -16,15 +16,15 @@ public sealed class PSource : UserControl
     private static readonly SolidColorBrush PSourceMutedBrush = new(Color.FromRgb(0x9C, 0xA3, 0xAF));
     private static readonly SolidColorBrush PSourceBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private const double PSourceRowHeight = 38;
-    private const double PSourceBrowseIconSize = 18;
+    private const double PSourceBrowseSize = 18;
     private PViewer? pSourceViewer;
-    private readonly bool pSourceAudioOnlyAllowed;
+    private readonly bool pSourceAudioAllowed;
     private readonly TextBox pSourcePathBox;
     private readonly TextBlock pSourcePlaceholderText;
 
     public PSource(bool pAudioOnlyAllowed)
     {
-        pSourceAudioOnlyAllowed = pAudioOnlyAllowed;
+        pSourceAudioAllowed = pAudioOnlyAllowed;
         MinHeight = PSourceRowHeight;
 
         pSourcePathBox = new TextBox
@@ -38,7 +38,7 @@ public sealed class PSource : UserControl
             FocusVisualStyle = null
         };
         pSourcePathBox.KeyDown += PSourceKeyHandle;
-        pSourcePathBox.TextChanged += PSourceTextChangedHandle;
+        pSourcePathBox.TextChanged += PSourceTextHandle;
 
         pSourcePlaceholderText = new TextBlock
         {
@@ -74,7 +74,7 @@ public sealed class PSource : UserControl
 
         var pBrowseButton = new Button
         {
-            Content = PSourceBrowseIconCreate(),
+            Content = PSourceBrowseCreate(),
             Style = PButton.PButtonSourceCreate()
         };
         pBrowseButton.Click += PSourceOpenHandle;
@@ -107,7 +107,7 @@ public sealed class PSource : UserControl
         pSourcePathBox.Text = pMediaStatus.LMediaOpenSourcePath;
     }
 
-    private void PSourceTextChangedHandle(object sender, TextChangedEventArgs e)
+    private void PSourceTextHandle(object sender, TextChangedEventArgs e)
     {
         PSourcePlaceholderSync();
     }
@@ -121,7 +121,7 @@ public sealed class PSource : UserControl
             Filter = PSourceFilterRead()
         };
         if (pDialog.ShowDialog() != true) return;
-        if (PSourceAudioCheck(pDialog.FileName) && !pSourceAudioOnlyAllowed)
+        if (PSourceAudioCheck(pDialog.FileName) && !pSourceAudioAllowed)
         {
             MessageBox.Show(LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
@@ -136,7 +136,7 @@ public sealed class PSource : UserControl
         const string pVideoPattern = "*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.ts;*.mts;*.m2ts";
         const string pAudioPattern = "*.mp3;*.aac;*.flac;*.wav;*.ogg";
         const string pSidecarPattern = "*.cad";
-        return pSourceAudioOnlyAllowed
+        return pSourceAudioAllowed
             ? LLocalization.LLocalizationFormat("Source.Dialog.MediaProjectFilter", pVideoPattern, pAudioPattern, pSidecarPattern)
             : LLocalization.LLocalizationFormat("Source.Dialog.VideoProjectFilter", pVideoPattern, pSidecarPattern);
     }
@@ -156,7 +156,7 @@ public sealed class PSource : UserControl
         if (e.Key != Key.Return) return;
         string pPath = pSourcePathBox.Text.Trim();
         if (!File.Exists(pPath)) return;
-        if (PSourceAudioCheck(pPath) && !pSourceAudioOnlyAllowed)
+        if (PSourceAudioCheck(pPath) && !pSourceAudioAllowed)
         {
             MessageBox.Show(LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
@@ -186,12 +186,12 @@ public sealed class PSource : UserControl
         };
     }
 
-    private static Image PSourceBrowseIconCreate()
+    private static Image PSourceBrowseCreate()
     {
         return new Image
         {
-            Width = PSourceBrowseIconSize,
-            Height = PSourceBrowseIconSize,
+            Width = PSourceBrowseSize,
+            Height = PSourceBrowseSize,
             Stretch = Stretch.Uniform,
             Source = PIcon.PIconRead("/PAssets/PPanels/PFolder.svg")
         };

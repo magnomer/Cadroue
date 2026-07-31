@@ -87,7 +87,7 @@ public sealed record LWorkMedia(
 {
     public TimeSpan LWorkMediaDuration => TimeSpan.FromMilliseconds(LWorkMediaDurationMilliseconds);
 
-    public double? LWorkMediaKeyframeIntervalMilliseconds { get; init; }
+    public double? LWorkKeyframeInterval { get; init; }
 }
 
 public sealed record LWorkCrop(
@@ -99,13 +99,13 @@ public sealed record LWorkCrop(
     bool LWorkCropFlipHorizontal,
     bool LWorkCropFlipVertical)
 {
-    public static LWorkCrop LWorkCropNoneCreate() => new(0, 0, 0, 0, 0, false, false);
+    public static LWorkCrop LWorkCropCreate() => new(0, 0, 0, 0, 0, false, false);
 
-    public bool LWorkCropEdgeActive =>
+    public bool LWorkEdgeActive =>
         LWorkCropLeft > 0 || LWorkCropTop > 0 || LWorkCropRight > 0 || LWorkCropBottom > 0;
 
     public bool LWorkCropActive =>
-        LWorkCropEdgeActive
+        LWorkEdgeActive
         || LWorkCropRotation != 0
         || LWorkCropFlipHorizontal
         || LWorkCropFlipVertical;
@@ -122,13 +122,13 @@ public sealed record LWorkVideoStep(
     bool LWorkVideoStepActive,
     double LWorkVideoStepValue)
 {
-    public static LWorkVideoStep LWorkVideoBrightnessCreate(bool lStepActive, double lStepValue) =>
+    public static LWorkVideoStep LWorkBrightnessCreate(bool lStepActive, double lStepValue) =>
         new(LWorkVideoKind.LWorkVideoKindBrightness, lStepActive, lStepValue);
 
-    public static LWorkVideoStep LWorkVideoContrastCreate(bool lStepActive, double lStepValue) =>
+    public static LWorkVideoStep LWorkContrastCreate(bool lStepActive, double lStepValue) =>
         new(LWorkVideoKind.LWorkVideoKindContrast, lStepActive, Math.Clamp(lStepValue, 0, 200));
 
-    public double LWorkVideoFfmpegValue => LWorkVideoStepKind switch
+    public double LWorkFfmpegValue => LWorkVideoStepKind switch
     {
         LWorkVideoKind.LWorkVideoKindBrightness => Math.Clamp(LWorkVideoStepValue * 0.0025d, -1, 1),
         _ => LWorkVideoStepValue / 100d
@@ -137,7 +137,7 @@ public sealed record LWorkVideoStep(
 
 public sealed record LWorkVideo(IReadOnlyList<LWorkVideoStep> LWorkVideoSteps)
 {
-    public static LWorkVideo LWorkVideoNoneCreate() => new(Array.Empty<LWorkVideoStep>());
+    public static LWorkVideo LWorkVideoCreate() => new(Array.Empty<LWorkVideoStep>());
 
     public bool LWorkVideoActive => LWorkVideoSteps.Any(lStep => lStep.LWorkVideoStepActive);
 }

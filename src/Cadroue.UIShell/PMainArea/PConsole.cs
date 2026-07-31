@@ -14,7 +14,7 @@ public sealed partial class PConsole : UserControl
     private const double PConsoleStatusSize = 13;
     private const double PConsoleStationSize = 12;
     private const double PConsoleSwitchWidth = 34;
-    private const double PConsoleSwitchIconSize = 18;
+    private const double PConsoleSwitchSize = 18;
 
     private readonly LSchedule pConsoleSchedule = LSchedule.LScheduleCurrent;
     private readonly Button pConsolePreviousButton;
@@ -63,7 +63,7 @@ public sealed partial class PConsole : UserControl
         pConsoleTabsButton = PConsoleButtonBuild(
             LLocalization.LLocalizationTextRead("Console.Button.ClearTabs"), "PConsoleClearTabs.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearTabsTooltip"),
             null, PConsoleTabsHandle);
-        pConsoleAutoBox = PConsoleAutoBoxBuild();
+        pConsoleAutoBox = PConsoleAutoBuild();
         pConsolePreviousButton = PConsoleSwitchBuild(
             "PConsolePrevious.svg", LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"), PConsolePreviousHandle);
         pConsoleNextButton = PConsoleSwitchBuild(
@@ -78,12 +78,12 @@ public sealed partial class PConsole : UserControl
         Unloaded += PConsoleUnloadHandle;
 
         PConsoleScheduleHandle(pConsoleSchedule);
-        Dispatcher.BeginInvoke(new Action(() => pConsoleSchedule.LScheduleReload()));
+        Dispatcher.BeginInvoke(new Action(() => pConsoleSchedule.LScheduleLoad()));
     }
 
     public static PConsole? PConsoleCurrent { get; private set; }
 
-    public void PConsoleProgressRefresh() => PConsoleProgressUpdate();
+    public void PConsoleUpdate() => PConsoleProgressUpdate();
 
     private UIElement PConsoleBuild()
     {
@@ -142,7 +142,7 @@ public sealed partial class PConsole : UserControl
         return pRoot;
     }
 
-    private CheckBox PConsoleAutoBoxBuild()
+    private CheckBox PConsoleAutoBuild()
     {
         var pAutoBox = new CheckBox
         {
@@ -168,14 +168,14 @@ public sealed partial class PConsole : UserControl
             Content = new Image
             {
                 Source = PIcon.PIconRead($"/PAssets/PPanels/{pIconName}", PRosterTheme.PRosterTextBrush),
-                Width = PConsoleSwitchIconSize,
-                Height = PConsoleSwitchIconSize,
+                Width = PConsoleSwitchSize,
+                Height = PConsoleSwitchSize,
                 Stretch = Stretch.Uniform
             },
             Width = PConsoleSwitchWidth,
             VerticalAlignment = VerticalAlignment.Stretch,
             Visibility = Visibility.Collapsed,
-            Style = PConsoleButtonStyleCreate(),
+            Style = PConsoleButtonCreate(),
             ToolTip = pTooltip
         };
         pButton.Click += pClick;
@@ -216,14 +216,14 @@ public sealed partial class PConsole : UserControl
             Height = PRosterTheme.PRosterButtonSize,
             Margin = new Thickness(0, 0, 4, 0),
             Content = pStack,
-            Style = PConsoleButtonStyleCreate(),
+            Style = PConsoleButtonCreate(),
             ToolTip = pTooltip
         };
         pButton.Click += pClick;
         return pButton;
     }
 
-    private static Style PConsoleButtonStyleCreate()
+    private static Style PConsoleButtonCreate()
     {
         Style pStyle = PButton.PButtonCommandCreate();
         var pDisabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
@@ -240,10 +240,10 @@ public sealed partial class PConsole : UserControl
         TextTrimming = TextTrimming.CharacterEllipsis
     };
 
-    private static readonly Brush pConsoleProgressBrush = PConsoleProgressBrushCreate();
-    private static readonly Brush pConsoleProgressGloss = PConsoleGlossBrushCreate();
+    private static readonly Brush pConsoleProgressBrush = PConsoleProgressCreate();
+    private static readonly Brush pConsoleProgressGloss = PConsoleGlossCreate();
 
-    private static Brush PConsoleProgressBrushCreate()
+    private static Brush PConsoleProgressCreate()
     {
         var pBrush = new LinearGradientBrush
         {
@@ -257,7 +257,7 @@ public sealed partial class PConsole : UserControl
         return pBrush;
     }
 
-    private static Brush PConsoleGlossBrushCreate()
+    private static Brush PConsoleGlossCreate()
     {
         var pGloss = new LinearGradientBrush
         {
@@ -280,10 +280,10 @@ public sealed partial class PConsole : UserControl
         Background = PRosterTheme.PRosterTrackBrush,
         Foreground = pConsoleProgressBrush,
         BorderThickness = new Thickness(0),
-        Template = PConsoleProgressTemplateCreate()
+        Template = PConsoleTrackBuild()
     };
 
-    private static ControlTemplate PConsoleProgressTemplateCreate()
+    private static ControlTemplate PConsoleTrackBuild()
     {
         var pTrack = new FrameworkElementFactory(typeof(Border));
         pTrack.Name = "PART_Track";

@@ -11,15 +11,15 @@ public enum LDepotFolder
 public static class LDepot
 {
     private const string LDepotFolderName = "Cadroue";
-    private const string LDepotWorkFolderName = "workspace";
+    private const string LDepotWorkFolder = "workspace";
 
-    private const string LDepotPaletteFolderName = "palettes";
+    private const string LDepotPaletteFolder = "palettes";
 
-    private const string LDepotAudioFolderName = "audiowork";
+    private const string LDepotAudioFolder = "audiowork";
 
-    private const string LDepotMergeFolderName = "mergework";
+    private const string LDepotMergeFolder = "mergework";
 
-    public const string LDepotIndexFileName = "work.db";
+    public const string LDepotIndexFile = "work.db";
 
     private static string? lDepotRootOverride;
 
@@ -36,45 +36,45 @@ public static class LDepot
         }
 
         string lDepotApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lDepotApplicationData, LDepotFolderName, LDepotWorkFolderName);
+        return Path.Combine(lDepotApplicationData, LDepotFolderName, LDepotWorkFolder);
     }
 
-    public static string LDepotDefaultRootRead()
+    public static string LDepotDefaultRead()
     {
         string lDepotApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lDepotApplicationData, LDepotFolderName, LDepotWorkFolderName);
+        return Path.Combine(lDepotApplicationData, LDepotFolderName, LDepotWorkFolder);
     }
 
-    public static string LDepotIndexPathRead() => Path.Combine(LDepotRootRead(), LDepotIndexFileName);
+    public static string LDepotIndexFind() => Path.Combine(LDepotRootRead(), LDepotIndexFile);
 
     public static string LDepotPaletteRead()
     {
-        string lDepotPalettes = Path.Combine(LDepotRootRead(), LDepotPaletteFolderName);
+        string lDepotPalettes = Path.Combine(LDepotRootRead(), LDepotPaletteFolder);
         Directory.CreateDirectory(lDepotPalettes);
         return lDepotPalettes;
     }
 
     public static string LDepotAudioRead()
     {
-        string lDepotAudio = Path.Combine(LDepotRootRead(), LDepotAudioFolderName);
+        string lDepotAudio = Path.Combine(LDepotRootRead(), LDepotAudioFolder);
         Directory.CreateDirectory(lDepotAudio);
         return lDepotAudio;
     }
 
     public static string LDepotMergeRead()
     {
-        string lDepotMerge = Path.Combine(LDepotRootRead(), LDepotMergeFolderName);
+        string lDepotMerge = Path.Combine(LDepotRootRead(), LDepotMergeFolder);
         Directory.CreateDirectory(lDepotMerge);
         return lDepotMerge;
     }
 
     public static string LDepotFolderRead(LDepotFolder lDepotFolder) =>
-        Path.Combine(LDepotRootRead(), LDepotFolderNameRead(lDepotFolder));
+        Path.Combine(LDepotRootRead(), LDepotNameRead(lDepotFolder));
 
-    public static string LDepotFilePathRead(LDepotFolder lDepotFolder, Guid lWorkId) =>
+    public static string LDepotFileRead(LDepotFolder lDepotFolder, Guid lWorkId) =>
         Path.Combine(LDepotFolderRead(lDepotFolder), $"{lWorkId:N}.json");
 
-    public static void LDepotEnsure()
+    public static void LDepotCreate()
     {
         Directory.CreateDirectory(LDepotRootRead());
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
@@ -143,7 +143,7 @@ public static class LDepot
 
     public static bool LDepotRunningCheck(string lDepotRoot)
     {
-        string lDepotRunning = Path.Combine(lDepotRoot, LDepotFolderNameRead(LDepotFolder.LDepotFolderRunning));
+        string lDepotRunning = Path.Combine(lDepotRoot, LDepotNameRead(LDepotFolder.LDepotFolderRunning));
         return Directory.Exists(lDepotRunning) && Directory.EnumerateFiles(lDepotRunning).Any();
     }
 
@@ -201,7 +201,7 @@ public static class LDepot
         }
     }
 
-    private static string LDepotFolderNameRead(LDepotFolder lDepotFolder) => lDepotFolder switch
+    private static string LDepotNameRead(LDepotFolder lDepotFolder) => lDepotFolder switch
     {
         LDepotFolder.LDepotFolderRunning => "running",
         LDepotFolder.LDepotFolderDone => "done",

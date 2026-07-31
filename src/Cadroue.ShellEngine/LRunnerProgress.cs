@@ -35,21 +35,21 @@ public sealed partial class LRunner
                     break;
 
                 case "progress":
-                    LRunnerInvoke(() => LRunnerPhaseSet(pWorkItem, LWorkPhase.LWorkPhaseEncoding));
+                    LRunnerDispatch(() => LRunnerPhaseSet(pWorkItem, LWorkPhase.LWorkPhaseEncoding));
                     if (pBlockMicroseconds >= 0 && pTotalSeconds > 0)
                     {
                         double pFraction = pBlockMicroseconds / 1_000_000d / pTotalSeconds;
-                        LRunnerInvoke(() => pWorkItem.LWorkProgress = pFraction);
+                        LRunnerDispatch(() => pWorkItem.LWorkProgress = pFraction);
                     }
 
                     if (string.Equals(pValue, "end", StringComparison.Ordinal))
                     {
-                        LRunnerInvoke(() => pWorkItem.LWorkProgress = 1);
+                        LRunnerDispatch(() => pWorkItem.LWorkProgress = 1);
                     }
 
                     if (pRunnerBlock is not null)
                     {
-                        LRunnerFfmpegNote(
+                        LRunnerFfmpegRecord(
                             $"stdout progress '{pWorkItem.LWorkOutputName}'",
                             pRunnerBlock.ToString());
                         pRunnerBlock.Clear();
@@ -90,8 +90,8 @@ public sealed partial class LRunner
             return;
         }
 
-        LRunnerInvoke(() => pWorkItem.LWorkMessage = pMessage);
+        LRunnerDispatch(() => pWorkItem.LWorkMessage = pMessage);
     }
 
-    private void LRunnerInvoke(Action pAction) => lRunnerPost(pAction);
+    private void LRunnerDispatch(Action pAction) => lRunnerPost(pAction);
 }

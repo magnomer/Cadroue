@@ -54,42 +54,42 @@ public sealed record LMediaInfo
         }
 
         LMediaInfoDuration = mediaInfoDuration;
-        LMediaInfoVideoWidth = mediaInfoVideoWidth;
-        LMediaInfoVideoHeight = mediaInfoVideoHeight;
-        LMediaInfoVideoFrameRate = mediaInfoVideoFrameRate;
-        LMediaInfoVideoPresent = mediaInfoVideoPresent;
-        LMediaInfoVideoCodecName = mediaInfoVideoPresent
+        LMediaVideoWidth = mediaInfoVideoWidth;
+        LMediaVideoHeight = mediaInfoVideoHeight;
+        LMediaVideoRate = mediaInfoVideoFrameRate;
+        LMediaVideoPresent = mediaInfoVideoPresent;
+        LMediaVideoCodec = mediaInfoVideoPresent
             ? string.IsNullOrWhiteSpace(mediaInfoVideoCodecName) ? "unknown" : mediaInfoVideoCodecName
             : "";
-        LMediaInfoAudioPresent = mediaInfoAudioPresent;
-        LMediaInfoAudioCodecName = mediaInfoAudioPresent
+        LMediaAudioPresent = mediaInfoAudioPresent;
+        LMediaAudioCodec = mediaInfoAudioPresent
             ? string.IsNullOrWhiteSpace(mediaInfoAudioCodecName) ? "unknown" : mediaInfoAudioCodecName
             : "";
-        LMediaInfoAudioSampleRate = mediaInfoAudioPresent ? mediaInfoAudioSampleRate : 0;
-        LMediaInfoAudioChannels = mediaInfoAudioPresent ? mediaInfoAudioChannels : 0;
+        LMediaSampleRate = mediaInfoAudioPresent ? mediaInfoAudioSampleRate : 0;
+        LMediaAudioChannels = mediaInfoAudioPresent ? mediaInfoAudioChannels : 0;
     }
 
     public TimeSpan LMediaInfoDuration { get; }
 
-    public bool LMediaInfoVideoPresent { get; }
+    public bool LMediaVideoPresent { get; }
 
-    public bool LMediaInfoAudioOnly => !LMediaInfoVideoPresent && LMediaInfoAudioPresent;
+    public bool LMediaAudioOnly => !LMediaVideoPresent && LMediaAudioPresent;
 
-    public int LMediaInfoVideoWidth { get; }
+    public int LMediaVideoWidth { get; }
 
-    public int LMediaInfoVideoHeight { get; }
+    public int LMediaVideoHeight { get; }
 
-    public double LMediaInfoVideoFrameRate { get; }
+    public double LMediaVideoRate { get; }
 
-    public string LMediaInfoVideoCodecName { get; }
+    public string LMediaVideoCodec { get; }
 
-    public bool LMediaInfoAudioPresent { get; }
+    public bool LMediaAudioPresent { get; }
 
-    public string LMediaInfoAudioCodecName { get; }
+    public string LMediaAudioCodec { get; }
 
-    public int LMediaInfoAudioSampleRate { get; }
+    public int LMediaSampleRate { get; }
 
-    public int LMediaInfoAudioChannels { get; }
+    public int LMediaAudioChannels { get; }
 
     public static LMediaInfo LMediaFfprobeRead(string sourcePath)
     {

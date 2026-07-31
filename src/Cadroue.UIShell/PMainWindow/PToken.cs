@@ -8,26 +8,26 @@ namespace Cadroue.UIShell.PMainWindow;
 
 internal sealed class PToken : RichTextBox
 {
-    internal const string PTokenDataFormat = "Cadroue.ExportNameToken";
+    internal const string PTokenDataKind = "Cadroue.ExportNameToken";
 
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush PAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
+    private static readonly Brush PTokenTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush PTokenAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
     private static readonly Brush PTokenHoverBrush = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
     private static readonly Brush PTokenPressedBrush = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
 
-    private readonly Paragraph pParagraph = new();
+    private readonly Paragraph pTokenParagraph = new();
     private bool pTokenRenderActive;
 
     internal PToken()
     {
         Background = Brushes.White;
-        Foreground = PTextBrush;
+        Foreground = PTokenTextBrush;
         BorderBrush = PLineBrush;
         BorderThickness = new Thickness(1);
         Padding = new Thickness(4, 0, 10, 0);
         VerticalContentAlignment = VerticalAlignment.Center;
-        SelectionBrush = PAccentBrush;
+        SelectionBrush = PTokenAccentBrush;
         FocusVisualStyle = null;
         AcceptsReturn = false;
         HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
@@ -36,18 +36,18 @@ internal sealed class PToken : RichTextBox
         {
             PagePadding = new Thickness(0)
         };
-        pParagraph.Margin = new Thickness(0);
-        pParagraph.Padding = new Thickness(0);
-        pParagraph.LineHeight = 22;
-        pParagraph.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
-        Document.Blocks.Add(pParagraph);
+        pTokenParagraph.Margin = new Thickness(0);
+        pTokenParagraph.Padding = new Thickness(0);
+        pTokenParagraph.LineHeight = 22;
+        pTokenParagraph.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
+        Document.Blocks.Add(pTokenParagraph);
         Template = PTokenTemplateBuild();
         PreviewDragOver += PTokenDragHandle;
         PreviewDrop += PTokenDropHandle;
         TextChanged += PTokenTextHandle;
     }
 
-    internal string Text
+    internal string PTokenText
     {
         get => PTokenTextRead();
         set => PTokenTextSet(value);
@@ -68,30 +68,30 @@ internal sealed class PToken : RichTextBox
     private void PTokenTextSet(string pText)
     {
         pTokenRenderActive = true;
-        pParagraph.Inlines.Clear();
+        pTokenParagraph.Inlines.Clear();
 
         foreach (object pPart in PTokenParse(pText))
         {
             if (pPart is string pRunText)
             {
-                pParagraph.Inlines.Add(PTokenRunBuild(pRunText));
+                pTokenParagraph.Inlines.Add(PTokenRunBuild(pRunText));
                 continue;
             }
 
             if (pPart is Tuple<string, string> pToken)
             {
-                pParagraph.Inlines.Add(PTokenInlineBuild(pToken.Item1, pToken.Item2));
+                pTokenParagraph.Inlines.Add(PTokenInlineBuild(pToken.Item1, pToken.Item2));
             }
         }
 
-        CaretPosition = pParagraph.ContentEnd;
+        CaretPosition = pTokenParagraph.ContentEnd;
         pTokenRenderActive = false;
     }
 
     private string PTokenTextRead()
     {
         var pText = new System.Text.StringBuilder();
-        foreach (Inline pInline in pParagraph.Inlines)
+        foreach (Inline pInline in pTokenParagraph.Inlines)
         {
             if (pInline is Run pRun)
             {
@@ -152,7 +152,7 @@ internal sealed class PToken : RichTextBox
     {
         return new Run(pText)
         {
-            Foreground = PTextBrush,
+            Foreground = PTokenTextBrush,
             BaselineAlignment = BaselineAlignment.Center
         };
     }
@@ -171,7 +171,7 @@ internal sealed class PToken : RichTextBox
         var pText = new TextBlock
         {
             Text = pLabel,
-            Foreground = PTextBrush,
+            Foreground = PTokenTextBrush,
             LineHeight = 14,
             LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -202,13 +202,13 @@ internal sealed class PToken : RichTextBox
 
     private void PTokenDragHandle(object sender, DragEventArgs e)
     {
-        e.Effects = e.Data.GetDataPresent(PTokenDataFormat) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Effects = e.Data.GetDataPresent(PTokenDataKind) ? DragDropEffects.Copy : DragDropEffects.None;
         e.Handled = true;
     }
 
     private void PTokenDropHandle(object sender, DragEventArgs e)
     {
-        if (e.Data.GetData(PTokenDataFormat) is not string pToken)
+        if (e.Data.GetData(PTokenDataKind) is not string pToken)
         {
             return;
         }
@@ -247,7 +247,7 @@ internal sealed class PToken : RichTextBox
         pTemplate.VisualTree = pBorder;
 
         var pFocusTrigger = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true };
-        pFocusTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "OuterBorder"));
+        pFocusTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PTokenAccentBrush, "OuterBorder"));
         pTemplate.Triggers.Add(pFocusTrigger);
         return pTemplate;
     }

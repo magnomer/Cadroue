@@ -5,7 +5,7 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed record LCropbox(double LCropboxX, double LCropboxY, double LCropboxWidth, double LCropboxHeight)
 {
-    public static LCropbox? LCropboxFromRect(Rect? lCropboxRect)
+    public static LCropbox? LCropboxRectRead(Rect? lCropboxRect)
     {
         if (lCropboxRect is null)
         {

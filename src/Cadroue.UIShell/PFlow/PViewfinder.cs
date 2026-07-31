@@ -13,75 +13,75 @@ public sealed partial class PViewfinder : FrameworkElement
         PViewfinderDragCursor
     }
 
-    private const double PViewfinderMinimumRenderHeight = 28;
-    private const double PViewfinderLabelLaneHeight = 20;
+    private const double PViewfinderRenderLeast = 28;
+    private const double PTimecodeLaneHeight = 20;
     private const double PViewfinderCoverageHeight = 4;
     private const double PViewfinderRailGap = 2;
-    private const double PViewfinderLabelPaddingHorizontal = 4;
-    private const double PViewfinderLabelPaddingVertical = 2;
-    private const double PViewfinderTickTargetPixels = 100;
+    private const double PTimecodePaddingHorizontal = 4;
+    private const double PTimecodePaddingVertical = 2;
+    private const double PViewfinderTickPixels = 100;
     private const double PViewfinderSectionInset = 1;
-    private const double PViewfinderSectionLabelPadding = 5;
-    private const double PViewfinderSectionLabelLeast = 18;
-    private const double PViewfinderSectionLabelHeightLeast = 16;
-    private const double PViewfinderBadgePaddingHorizontal = 6;
-    private const double PViewfinderBadgePaddingVertical = 1;
+    private const double PViewfinderSectionPadding = 5;
+    private const double PViewfinderSectionLeast = 18;
+    private const double PViewfinderHeightLeast = 16;
+    private const double PViewfinderBadgeHorizontal = 6;
+    private const double PViewfinderBadgeVertical = 1;
     private const double PViewfinderBadgeGap = 6;
     private const double PViewfinderKeyframeWidth = 1;
 
-    private static readonly Brush pViewfinderBrushSectionText = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
-    private static readonly Brush pViewfinderBrushBadgeText = new SolidColorBrush(Colors.White);
+    private static readonly Brush pViewfinderSectionBrush = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
+    private static readonly Brush pViewfinderBadgeBrush = new SolidColorBrush(Colors.White);
     private static readonly Typeface pViewfinderBadgeTypeface =
         new(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
 
     private static readonly Brush pViewfinderBrushBackground = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
     private static readonly Brush pViewfinderBrushRail = new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1));
-    private static readonly Brush pViewfinderBrushWaveformBase = new SolidColorBrush(Color.FromRgb(0xE6, 0xEA, 0xEF));
+    private static readonly Brush pViewfinderWaveformBrush = new SolidColorBrush(Color.FromRgb(0xE6, 0xEA, 0xEF));
     private static readonly Brush pViewfinderBrushWaveform = new SolidColorBrush(Color.FromRgb(0x8C, 0x9B, 0xAD));
     private static readonly Brush pViewfinderBrushKeyframe = new SolidColorBrush(Color.FromRgb(0x6B, 0x74, 0x80));
-    private static readonly Pen pViewfinderPenTick = new(new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xB0)), 1.0);
-    private static readonly Brush pViewfinderBrushTickText = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
-    private static readonly Brush pViewfinderBrushLabelBackground = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush pViewfinderBrushCoverageScanned = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
-    private static readonly Pen pViewfinderPenLabelBorder = new(new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1)), 1.0);
-    private static readonly Brush pViewfinderBrushCursorText = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A));
+    private static readonly Pen pViewfinderTickPen = new(new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xB0)), 1.0);
+    private static readonly Brush pViewfinderTickBrush = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+    private static readonly Brush pTimecodeBackgroundBrush = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush pViewfinderCoverageBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
+    private static readonly Pen pTimecodeBorderPen = new(new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1)), 1.0);
+    private static readonly Brush pViewfinderCursorBrush = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A));
     private static readonly Typeface pViewfinderTickTypeface = new("Segoe UI");
 
     static PViewfinder()
     {
         pViewfinderBrushBackground.Freeze();
         pViewfinderBrushRail.Freeze();
-        pViewfinderBrushWaveformBase.Freeze();
+        pViewfinderWaveformBrush.Freeze();
         pViewfinderBrushWaveform.Freeze();
         pViewfinderBrushKeyframe.Freeze();
-        pViewfinderPenTick.Freeze();
-        pViewfinderBrushTickText.Freeze();
-        pViewfinderBrushLabelBackground.Freeze();
-        pViewfinderPenLabelBorder.Freeze();
-        pViewfinderBrushCursorText.Freeze();
-        pViewfinderBrushCoverageScanned.Freeze();
-        pViewfinderBrushSectionText.Freeze();
-        pViewfinderBrushBadgeText.Freeze();
+        pViewfinderTickPen.Freeze();
+        pViewfinderTickBrush.Freeze();
+        pTimecodeBackgroundBrush.Freeze();
+        pTimecodeBorderPen.Freeze();
+        pViewfinderCursorBrush.Freeze();
+        pViewfinderCoverageBrush.Freeze();
+        pViewfinderSectionBrush.Freeze();
+        pViewfinderBadgeBrush.Freeze();
     }
 
     private LSpool? lSpool;
     private TimeSpan lCursor;
-    private IReadOnlyList<LKeyframeEntry> lKeyframes = Array.Empty<LKeyframeEntry>();
+    private IReadOnlyList<LKeyframeEntry> lKeyframeList = Array.Empty<LKeyframeEntry>();
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
     private IReadOnlyList<LSegment> lSectionList = Array.Empty<LSegment>();
     private byte[] lWaveformPeaks = Array.Empty<byte>();
-    private int? lSectionIndexSelect;
+    private int? lSectionIndexActive;
     private PViewfinderDragMode pViewfinderDragMode;
     private string pViewfinderDrawTrigger = "attach";
     private int pViewfinderGlyphCount;
-    private readonly Dictionary<(int Kind, string Text, double Room), FormattedText> pViewfinderLabelCache = new();
-    private double pViewfinderLabelDpi = -1;
+    private readonly Dictionary<(int Kind, string Text, double Room), FormattedText> pViewfinderTextCache = new();
+    private double pViewfinderTextDpi = -1;
 
     public event Action<TimeSpan>? PViewfinderCursorChange;
     public event Action<int>? PViewfinderSectionSelect;
     public event Action<bool>? PViewfinderDragChange;
 
-    private void PViewfinderDrawRequest(string pViewfinderTrigger)
+    private void PViewfinderDrawDefer(string pViewfinderTrigger)
     {
         pViewfinderDrawTrigger = pViewfinderTrigger;
         InvalidateVisual();
@@ -91,47 +91,47 @@ public sealed partial class PViewfinder : FrameworkElement
     {
         lSpool = spool ?? throw new ArgumentNullException(nameof(spool));
         lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        PViewfinderDrawRequest("attach");
+        PViewfinderDrawDefer("attach");
     }
 
     public void PViewfinderCursorUpdate(TimeSpan cursor)
     {
         lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        PViewfinderDrawRequest("cursor");
+        PViewfinderDrawDefer("cursor");
     }
 
     public void PViewfinderClear()
     {
         lSpool = null;
         lCursor = TimeSpan.Zero;
-        lKeyframes = Array.Empty<LKeyframeEntry>();
+        lKeyframeList = Array.Empty<LKeyframeEntry>();
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LSegment>();
         lWaveformPeaks = Array.Empty<byte>();
-        lSectionIndexSelect = null;
-        PViewfinderDrawRequest("clear");
+        lSectionIndexActive = null;
+        PViewfinderDrawDefer("clear");
     }
 
     public void PViewfinderWaveformUpdate(byte[] waveformPeaks)
     {
         lWaveformPeaks = waveformPeaks;
-        PViewfinderDrawRequest("waveform");
+        PViewfinderDrawDefer("waveform");
     }
 
-    public void PViewfinderSpoolUpdate() => PViewfinderDrawRequest("spool");
+    public void PViewfinderSpoolUpdate() => PViewfinderDrawDefer("spool");
 
     public void PViewfinderKeyframesUpdate(
         IReadOnlyList<LKeyframeEntry>? keyframes,
         IReadOnlyList<LKeyframeScanRange>? scannedRanges)
     {
-        lKeyframes = keyframes ?? Array.Empty<LKeyframeEntry>();
+        lKeyframeList = keyframes ?? Array.Empty<LKeyframeEntry>();
         lKeyframeScannedRanges = scannedRanges ?? Array.Empty<LKeyframeScanRange>();
-        PViewfinderDrawRequest("keyframes");
+        PViewfinderDrawDefer("keyframes");
     }
 
     private static (double Top, double Bottom) PViewfinderRailRead(double actualHeight)
     {
-        double pRailTop = PViewfinderLabelLaneHeight + PViewfinderRailGap;
+        double pRailTop = PTimecodeLaneHeight + PViewfinderRailGap;
         double pCoverageTop = Math.Max(0, Math.Max(0, actualHeight - 1) - PViewfinderCoverageHeight);
         return (pRailTop, Math.Max(pRailTop, pCoverageTop - PViewfinderRailGap));
     }
@@ -150,8 +150,8 @@ public sealed partial class PViewfinder : FrameworkElement
         }
 
         (double pRailTop, double pRailBottom) = PViewfinderRailRead(ActualHeight);
-        TimeSpan pRangeStart = lSpool.LSpoolWorkingRangeStart;
-        TimeSpan pRangeEnd = lSpool.LSpoolWorkingRangeEnd;
+        TimeSpan pRangeStart = lSpool.LSpoolRangeOrigin;
+        TimeSpan pRangeEnd = lSpool.LSpoolRangeLimit;
         double pRangeSeconds = (pRangeEnd - pRangeStart).TotalSeconds;
         if (pRailBottom <= pRailTop || pRangeSeconds <= 0)
         {
@@ -174,8 +174,8 @@ public sealed partial class PViewfinder : FrameworkElement
     public void PViewfinderSectionsUpdate(IReadOnlyList<LSegment>? sections, int? selectedIndex)
     {
         lSectionList = sections?.ToArray() ?? Array.Empty<LSegment>();
-        lSectionIndexSelect = selectedIndex;
-        PViewfinderDrawRequest("sections");
+        lSectionIndexActive = selectedIndex;
+        PViewfinderDrawDefer("sections");
     }
 
     protected override void OnRender(DrawingContext drawingContext)
@@ -201,7 +201,7 @@ public sealed partial class PViewfinder : FrameworkElement
         double actualHeight = ActualHeight;
         drawingContext.DrawRectangle(pViewfinderBrushBackground, null, new Rect(0, 0, actualWidth, actualHeight));
 
-        if (lSpool is null || actualWidth <= 0 || actualHeight < PViewfinderMinimumRenderHeight)
+        if (lSpool is null || actualWidth <= 0 || actualHeight < PViewfinderRenderLeast)
         {
             return;
         }
@@ -218,7 +218,7 @@ public sealed partial class PViewfinder : FrameworkElement
 
         bool waveformActive = lWaveformPeaks.Length > 0;
         drawingContext.DrawRoundedRectangle(
-            waveformActive ? pViewfinderBrushWaveformBase : pViewfinderBrushRail,
+            waveformActive ? pViewfinderWaveformBrush : pViewfinderBrushRail,
             null,
             new Rect(0, railTop, actualWidth, railHeight),
             3,
@@ -228,8 +228,8 @@ public sealed partial class PViewfinder : FrameworkElement
             null,
             new Rect(0, coverageTop, actualWidth, PViewfinderCoverageHeight));
 
-        TimeSpan rangeStart = lSpool.LSpoolWorkingRangeStart;
-        TimeSpan rangeEnd = lSpool.LSpoolWorkingRangeEnd;
+        TimeSpan rangeStart = lSpool.LSpoolRangeOrigin;
+        TimeSpan rangeEnd = lSpool.LSpoolRangeLimit;
         double rangeSeconds = (rangeEnd - rangeStart).TotalSeconds;
         if (rangeSeconds <= 0)
         {

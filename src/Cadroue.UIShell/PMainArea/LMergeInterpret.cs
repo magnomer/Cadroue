@@ -44,15 +44,15 @@ public static partial class LMerge
 
         if (lMergeItems.Count == 0)
         {
-            LAppLog.LError("Merge not queued: no group holds any existing file");
+            LTraceLog.LTraceErrorRecord("Merge not queued: no group holds any existing file");
             return 0;
         }
 
         int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lMergeItems, lMergeRelayTarget);
-        LAppLog.LInfo($"Merge queued {lMergeAdded} group(s) at {lWorkPriority} [batch {lMergeBatchId:N}]");
+        LTraceLog.LTraceInfoRecord($"Merge queued {lMergeAdded} group(s) at {lWorkPriority} [batch {lMergeBatchId:N}]");
         foreach (LWorkItem lMergeItem in lMergeItems)
         {
-            LAppLog.LInfo($"Merge job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s)");
+            LTraceLog.LTraceInfoRecord($"Merge job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s)");
         }
 
         return lMergeAdded;
@@ -78,7 +78,7 @@ public static partial class LMerge
             .Replace("{Date}", lMergeStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lMergeStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        string lMergeBaseName = LMergeNameSanitize(lMergeStemName);
+        string lMergeBaseName = LMergeNameNormalize(lMergeStemName);
         string lMergeUniqueName = lMergeBaseName;
         int lMergeAttempt = 2;
         while (!lMergeTakenNames.Add(lMergeUniqueName))
@@ -93,7 +93,7 @@ public static partial class LMerge
             : $"{lMergeUniqueName}.{lMergeExtension}";
     }
 
-    private static string LMergeNameSanitize(string lMergeName)
+    private static string LMergeNameNormalize(string lMergeName)
     {
         char[] lMergeInvalidChars = Path.GetInvalidFileNameChars();
         var lMergeBuilder = new System.Text.StringBuilder(lMergeName.Length);

@@ -10,7 +10,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PConsole
 {
-    private static LDepotWatch? pConsoleDepotWatchShared;
+    private static LDepotWatch? pConsoleDepotWatch;
 
     private static readonly Duration PConsoleProgressGlide =
         new(TimeSpan.FromSeconds(LEncode.LEncodeStatsPeriod));
@@ -29,7 +29,7 @@ public sealed partial class PConsole
 
         bool pConsoleAutoResume = pConsoleAutoBox.IsChecked == true;
         PConsoleStationRead().LStationAutoActive = pConsoleAutoResume;
-        App.LPreferenceAutoResumeSet(pConsoleAutoResume);
+        PProgram.LPreferenceAutoSet(pConsoleAutoResume);
         PConsoleProgressUpdate();
     }
 
@@ -85,7 +85,7 @@ public sealed partial class PConsole
             });
     }
 
-    private void PConsoleStationStep(int pStep)
+    private void PConsoleStationMove(int pStep)
     {
         LStation[] pBoard = LStation.LStationBoardRead();
         if (pBoard.Length <= 1)
@@ -98,9 +98,9 @@ public sealed partial class PConsole
         PConsoleProgressUpdate();
     }
 
-    private void PConsolePreviousHandle(object pSender, RoutedEventArgs pArguments) => PConsoleStationStep(-1);
+    private void PConsolePreviousHandle(object pSender, RoutedEventArgs pArguments) => PConsoleStationMove(-1);
 
-    private void PConsoleNextHandle(object pSender, RoutedEventArgs pArguments) => PConsoleStationStep(1);
+    private void PConsoleNextHandle(object pSender, RoutedEventArgs pArguments) => PConsoleStationMove(1);
 
     private LWorkItem[] PConsoleRunningRead() => pConsoleSchedule.LScheduleRecords
         .Where(pWorkItem => pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning
@@ -121,10 +121,10 @@ public sealed partial class PConsole
 
     private void PConsoleItemHandle(object? pSender, PropertyChangedEventArgs pArguments)
     {
-        PConsoleProgressSchedule();
+        PConsoleProgressDefer();
     }
 
-    private void PConsoleProgressSchedule()
+    private void PConsoleProgressDefer()
     {
         if (pConsoleProgressPending)
         {
@@ -288,7 +288,7 @@ public sealed partial class PConsole
 
     private bool PConsoleDestructiveConfirm(string pConsoleQuestion)
     {
-        if (!App.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
+        if (!PProgram.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
         {
             return true;
         }
@@ -303,8 +303,8 @@ public sealed partial class PConsole
 
     private static void PConsoleRunnerApply(LRunner pRunner)
     {
-        LPreferenceState lPreferenceState = App.LPreferenceStateCurrent;
-        pRunner.LRunnerProgramPath = App.LRendererProgramCurrent;
+        LPreferenceState lPreferenceState = PProgram.LPreferenceStateCurrent;
+        pRunner.LRunnerProgramPath = PProgram.LRendererProgramCurrent;
         pRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
         pRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
         pRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;
@@ -313,11 +313,11 @@ public sealed partial class PConsole
 
     private void PConsoleDepotAttach()
     {
-        pConsoleDepotWatchShared ??= PConsoleDepotWatchCreate();
-        pConsoleDepotWatchShared.LDepotChange += PConsoleDepotHandle;
+        pConsoleDepotWatch ??= PConsoleWatchCreate();
+        pConsoleDepotWatch.LDepotChange += PConsoleDepotHandle;
     }
 
-    private static LDepotWatch PConsoleDepotWatchCreate()
+    private static LDepotWatch PConsoleWatchCreate()
     {
         var pDepotWatch = new LDepotWatch();
         pDepotWatch.LDepotWatchStart();
@@ -326,16 +326,16 @@ public sealed partial class PConsole
 
     private void PConsoleDepotHandle()
     {
-        Dispatcher.BeginInvoke(new Action(() => pConsoleSchedule.LScheduleReload()));
+        Dispatcher.BeginInvoke(new Action(() => pConsoleSchedule.LScheduleLoad()));
     }
 
     private void PConsoleUnloadHandle(object pSender, RoutedEventArgs pArguments)
     {
         pConsoleSchedule.LScheduleChange -= PConsoleScheduleHandle;
         LStation.LStationChange -= PConsoleStationHandle;
-        if (pConsoleDepotWatchShared is not null)
+        if (pConsoleDepotWatch is not null)
         {
-            pConsoleDepotWatchShared.LDepotChange -= PConsoleDepotHandle;
+            pConsoleDepotWatch.LDepotChange -= PConsoleDepotHandle;
         }
 
         Unloaded -= PConsoleUnloadHandle;

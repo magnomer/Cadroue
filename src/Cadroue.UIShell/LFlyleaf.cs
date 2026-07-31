@@ -9,115 +9,115 @@ using Cadroue.Core;
 
 namespace Cadroue.UIShell;
 
-internal sealed class LFlyleafLocalInstallResult
+internal sealed class LFlyleafInstallResult
 {
-    public bool LFlyleafLocalInstallSuccess { get; init; }
+    public bool LFlyleafInstallSuccess { get; init; }
 
-    public string LFlyleafLocalInstallMessage { get; init; } = string.Empty;
+    public string LFlyleafInstallMessage { get; init; } = string.Empty;
 }
 
-internal sealed class LFlyleafLocalRecord
+internal sealed class LFlyleafRecord
 {
-    public string AssemblyFolder { get; set; } = string.Empty;
+    public string LFlyleafAssemblyFolder { get; set; } = string.Empty;
 
-    public string SourceFolder { get; set; } = string.Empty;
+    public string LFlyleafSourceFolder { get; set; } = string.Empty;
 }
 
-internal static class LFlyleafLocal
+internal static class LFlyleaf
 {
-    private const string LFlyleafLocalFolderName = "local-flyleaf";
-    private const string LFlyleafSourceFolderName = "source";
-    private const string LFlyleafRuntimeFolderName = "runtime";
-    private const string LFlyleafRecordFileName = "local-flyleaf.json";
+    private const string LFlyleafRootFolder = "local-flyleaf";
+    private const string LFlyleafSourceName = "source";
+    private const string LFlyleafRuntimeName = "runtime";
+    private const string LFlyleafRecordName = "local-flyleaf.json";
     private const string LFlyleafRepositoryUrl = "https://github.com/SuRGeoNix/Flyleaf.git";
 
-    private static string? lFlyleafLocalAssemblyFolder;
-    private static readonly ConcurrentDictionary<string, string> lFlyleafLocalLoadedPaths = new(StringComparer.OrdinalIgnoreCase);
-    private static bool lFlyleafLocalResolverRegistered;
+    private static string? lFlyleafAssemblyFolder;
+    private static readonly ConcurrentDictionary<string, string> lFlyleafLoadedPaths = new(StringComparer.OrdinalIgnoreCase);
+    private static bool lFlyleafResolverActive;
 
     [ModuleInitializer]
-    internal static void LFlyleafLocalModuleInit()
+    internal static void LFlyleafModuleStart()
     {
         try
         {
             LPreferenceState lPreferenceState = LPreferenceStateStore.LPreferenceStateLoad();
             LTrace.LTraceVerbose = lPreferenceState.LPreferenceLogVerbose;
             LDepot.LDepotRootSet(lPreferenceState.LPreferenceWorkspaceFolder);
-            LFlyleafLocalResolverRegister();
+            LFlyleafResolverAttach();
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Local Flyleaf module initialization failed", lException);
+            LTraceLog.LTraceErrorRecord("Local Flyleaf module initialization failed", lException);
         }
     }
 
-    public static bool LFlyleafLocalActive =>
-        LFlyleafLocalAssemblyLoadedCheck("FlyleafLib");
+    public static bool LFlyleafActive =>
+        LFlyleafLoadedCheck("FlyleafLib");
 
-    private static bool LFlyleafLocalAssemblyLoadedCheck(string lAssemblyName)
+    private static bool LFlyleafLoadedCheck(string lAssemblyName)
     {
-        if (lFlyleafLocalAssemblyFolder is null
-            || !lFlyleafLocalLoadedPaths.TryGetValue(lAssemblyName, out string? lAssemblyPath))
+        if (lFlyleafAssemblyFolder is null
+            || !lFlyleafLoadedPaths.TryGetValue(lAssemblyName, out string? lAssemblyPath))
         {
             return false;
         }
 
-        string lLocalFolder = Path.GetFullPath(lFlyleafLocalAssemblyFolder);
+        string lLocalFolder = Path.GetFullPath(lFlyleafAssemblyFolder);
         string lLoadedPath = Path.GetFullPath(lAssemblyPath);
         return lLoadedPath.StartsWith(lLocalFolder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool LFlyleafLocalAssemblyCheck(Assembly lAssembly)
+    public static bool LFlyleafAssemblyCheck(Assembly lAssembly)
     {
         if (lAssembly.GetName().Name is not { } lAssemblyName)
         {
             return false;
         }
 
-        return LFlyleafLocalAssemblyLoadedCheck(lAssemblyName);
+        return LFlyleafLoadedCheck(lAssemblyName);
     }
 
-    public static string LFlyleafLocalLoadedReportRead(Assembly lAssembly)
+    public static string LFlyleafReportRead(Assembly lAssembly)
     {
         string lAssemblyName = lAssembly.GetName().Name ?? "(unknown)";
-        string lLocation = lFlyleafLocalLoadedPaths.TryGetValue(lAssemblyName, out string? lLoadedPath)
+        string lLocation = lFlyleafLoadedPaths.TryGetValue(lAssemblyName, out string? lLoadedPath)
             ? lLoadedPath
             : "(unknown)";
-        string lLocal = lFlyleafLocalAssemblyFolder ?? "(none)";
-        return LFlyleafLocalAssemblyCheck(lAssembly)
+        string lLocal = lFlyleafAssemblyFolder ?? "(none)";
+        return LFlyleafAssemblyCheck(lAssembly)
             ? $"Local Flyleaf loaded: {lLocation}"
             : $"NuGet Flyleaf loaded: {lLocation}; local target: {lLocal}";
     }
 
-    public static string LFlyleafLocalRootRead() => Path.Combine(LDepot.LDepotRootRead(), LFlyleafLocalFolderName);
+    public static string LFlyleafRootRead() => Path.Combine(LDepot.LDepotRootRead(), LFlyleafRootFolder);
 
-    public static void LFlyleafLocalResolverRegister()
+    public static void LFlyleafResolverAttach()
     {
-        if (lFlyleafLocalResolverRegistered)
+        if (lFlyleafResolverActive)
         {
             return;
         }
 
-        lFlyleafLocalResolverRegistered = true;
-        lFlyleafLocalAssemblyFolder = LFlyleafLocalAssemblyFolderRead();
-        LFlyleafLocalNuGetShadowApply(lFlyleafLocalAssemblyFolder is not null);
-        LFlyleafLocalLoad("FlyleafLib");
-        LFlyleafLocalLoad("FlyleafLib.Controls.WPF");
+        lFlyleafResolverActive = true;
+        lFlyleafAssemblyFolder = LFlyleafFolderRead();
+        LFlyleafShadowApply(lFlyleafAssemblyFolder is not null);
+        LFlyleafLoad("FlyleafLib");
+        LFlyleafLoad("FlyleafLib.Controls.WPF");
         AssemblyLoadContext.Default.Resolving += (_, lName) =>
         {
-            if (lFlyleafLocalAssemblyFolder is null || string.IsNullOrWhiteSpace(lName.Name))
+            if (lFlyleafAssemblyFolder is null || string.IsNullOrWhiteSpace(lName.Name))
             {
                 return null;
             }
 
-            string lAssemblyPath = Path.Combine(lFlyleafLocalAssemblyFolder, $"{lName.Name}.dll");
-            return LFlyleafLocalLoadPath(lAssemblyPath);
+            string lAssemblyPath = Path.Combine(lFlyleafAssemblyFolder, $"{lName.Name}.dll");
+            return LFlyleafPathLoad(lAssemblyPath);
         };
     }
 
     private const string LFlyleafShadowSuffix = ".nugetdisabled";
 
-    private static void LFlyleafLocalNuGetShadowApply(bool lLocalActive)
+    private static void LFlyleafShadowApply(bool lLocalActive)
     {
         string lBaseFlyleaf = Path.Combine(AppContext.BaseDirectory, "FlyleafLib.dll");
         string lShadowed = lBaseFlyleaf + LFlyleafShadowSuffix;
@@ -133,33 +133,33 @@ internal static class LFlyleafLocal
                     }
 
                     File.Move(lBaseFlyleaf, lShadowed);
-                    LAppLog.LInfo($"NuGet FlyleafLib shadowed off the probe path: {lShadowed}");
+                    LTraceLog.LTraceInfoRecord($"NuGet FlyleafLib shadowed off the probe path: {lShadowed}");
                 }
             }
             else if (File.Exists(lShadowed) && !File.Exists(lBaseFlyleaf))
             {
                 File.Move(lShadowed, lBaseFlyleaf);
-                LAppLog.LInfo("NuGet FlyleafLib restored to the probe path (no local build active)");
+                LTraceLog.LTraceInfoRecord("NuGet FlyleafLib restored to the probe path (no local build active)");
             }
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Adjusting NuGet FlyleafLib on the probe path failed", lException);
+            LTraceLog.LTraceErrorRecord("Adjusting NuGet FlyleafLib on the probe path failed", lException);
         }
     }
 
-    private static void LFlyleafLocalLoad(string lAssemblyName)
+    private static void LFlyleafLoad(string lAssemblyName)
     {
-        if (lFlyleafLocalAssemblyFolder is null)
+        if (lFlyleafAssemblyFolder is null)
         {
             return;
         }
 
-        string lAssemblyPath = Path.Combine(lFlyleafLocalAssemblyFolder, $"{lAssemblyName}.dll");
-        _ = LFlyleafLocalLoadPath(lAssemblyPath);
+        string lAssemblyPath = Path.Combine(lFlyleafAssemblyFolder, $"{lAssemblyName}.dll");
+        _ = LFlyleafPathLoad(lAssemblyPath);
     }
 
-    private static Assembly? LFlyleafLocalLoadPath(string lAssemblyPath)
+    private static Assembly? LFlyleafPathLoad(string lAssemblyPath)
     {
         if (!File.Exists(lAssemblyPath))
         {
@@ -168,24 +168,24 @@ internal static class LFlyleafLocal
 
         try
         {
-            LFlyleafLocalLoadDiagnosticsRecord(lAssemblyPath);
+            LFlyleafProbeRecord(lAssemblyPath);
             Assembly lAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(lAssemblyPath);
             if (lAssembly.GetName().Name is { } lAssemblyName)
             {
-                lFlyleafLocalLoadedPaths[lAssemblyName] = lAssemblyPath;
+                lFlyleafLoadedPaths[lAssemblyName] = lAssemblyPath;
             }
 
-            LAppLog.LInfo($"Local Flyleaf assembly loaded: {lAssemblyPath}");
+            LTraceLog.LTraceInfoRecord($"Local Flyleaf assembly loaded: {lAssemblyPath}");
             return lAssembly;
         }
         catch (Exception lException)
         {
-            LAppLog.LError($"Local Flyleaf assembly load failed: {lAssemblyPath}", lException);
+            LTraceLog.LTraceErrorRecord($"Local Flyleaf assembly load failed: {lAssemblyPath}", lException);
             return null;
         }
     }
 
-    private static void LFlyleafLocalLoadDiagnosticsRecord(string lAssemblyPath)
+    private static void LFlyleafProbeRecord(string lAssemblyPath)
     {
         try
         {
@@ -198,34 +198,34 @@ internal static class LFlyleafLocal
                         lAssemblyName.Name,
                         StringComparison.OrdinalIgnoreCase))
                     .Select(lAssembly => $"{lAssembly.GetName().Name} {lAssembly.GetName().Version}"));
-            LAppLog.LInfo(
+            LTraceLog.LTraceInfoRecord(
                 $"Local Flyleaf load probe: {lAssemblyName.Name} {lAssemblyName.Version}; "
                 + $"already loaded [{(string.IsNullOrWhiteSpace(lLoaded) ? "none" : lLoaded)}]");
         }
         catch (Exception lException)
         {
-            LAppLog.LError($"Local Flyleaf load probe failed: {lAssemblyPath}", lException);
+            LTraceLog.LTraceErrorRecord($"Local Flyleaf load probe failed: {lAssemblyPath}", lException);
         }
     }
 
-    public static string LFlyleafLocalStatusRead()
+    public static string LFlyleafStatusRead()
     {
-        string lRoot = LFlyleafLocalRootRead();
-        if (LFlyleafLocalAssemblyFolderValidate(LFlyleafLocalAssemblyFolderRead()))
+        string lRoot = LFlyleafRootRead();
+        if (LFlyleafFolderValidate(LFlyleafFolderRead()))
         {
             return LLocalization.LLocalizationFormat(
                 "Flyleaf.Local.Status.Installed",
                 LDepot.LDepotRootRead(),
-                LFlyleafLocalAssemblyFolderRead());
+                LFlyleafFolderRead());
         }
 
         return LLocalization.LLocalizationFormat("Flyleaf.Local.Status.NotInstalled", lRoot);
     }
 
-    public static async Task<LFlyleafLocalInstallResult> LFlyleafLocalInstallAsync()
+    public static async Task<LFlyleafInstallResult> LFlyleafInstallStart()
     {
-        string lRoot = LFlyleafLocalRootRead();
-        string lSource = Path.Combine(lRoot, LFlyleafSourceFolderName);
+        string lRoot = LFlyleafRootRead();
+        string lSource = Path.Combine(lRoot, LFlyleafSourceName);
         Directory.CreateDirectory(lRoot);
 
         try
@@ -237,69 +237,69 @@ internal static class LFlyleafLocal
                     Directory.Delete(lSource, true);
                 }
 
-                await LFlyleafLocalRunAsync("git", $"clone --depth 1 {LFlyleafRepositoryUrl} \"{lSource}\"", lRoot);
+                await LFlyleafCommandRun("git", $"clone --depth 1 {LFlyleafRepositoryUrl} \"{lSource}\"", lRoot);
             }
             else
             {
-                await LFlyleafLocalRunAsync("git", "reset --hard", lSource);
-                await LFlyleafLocalRunAsync("git", "pull --ff-only", lSource);
+                await LFlyleafCommandRun("git", "reset --hard", lSource);
+                await LFlyleafCommandRun("git", "pull --ff-only", lSource);
             }
 
-            string lShaderFile = LFlyleafLocalShaderFileFind(lSource);
-            LAppLog.LInfo($"Local Flyleaf shader patch target: {lShaderFile}");
-            LFlyleafLocalShaderPatch(lShaderFile);
-            string lProjectFile = LFlyleafLocalProjectFileFind(lSource, "FlyleafLib.csproj");
-            await LFlyleafLocalRunAsync("dotnet", $"build \"{lProjectFile}\" -c Release", lSource);
+            string lShaderFile = LFlyleafShaderFind(lSource);
+            LTraceLog.LTraceInfoRecord($"Local Flyleaf shader patch target: {lShaderFile}");
+            LFlyleafShaderApply(lShaderFile);
+            string lProjectFile = LFlyleafProjectFind(lSource, "FlyleafLib.csproj");
+            await LFlyleafCommandRun("dotnet", $"build \"{lProjectFile}\" -c Release", lSource);
 
-            string lAssemblyFolder = LFlyleafLocalRuntimeFolderCreate(lSource);
-            LFlyleafLocalRecordWrite(new LFlyleafLocalRecord
+            string lAssemblyFolder = LFlyleafRuntimeCreate(lSource);
+            LFlyleafRecordSave(new LFlyleafRecord
             {
-                AssemblyFolder = lAssemblyFolder,
-                SourceFolder = lSource
+                LFlyleafAssemblyFolder = lAssemblyFolder,
+                LFlyleafSourceFolder = lSource
             });
 
-            return new LFlyleafLocalInstallResult
+            return new LFlyleafInstallResult
             {
-                LFlyleafLocalInstallSuccess = true,
-                LFlyleafLocalInstallMessage = LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed")
+                LFlyleafInstallSuccess = true,
+                LFlyleafInstallMessage = LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed")
             };
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Local Flyleaf install failed", lException);
-            return new LFlyleafLocalInstallResult
+            LTraceLog.LTraceErrorRecord("Local Flyleaf install failed", lException);
+            return new LFlyleafInstallResult
             {
-                LFlyleafLocalInstallSuccess = false,
-                LFlyleafLocalInstallMessage = LLocalization.LLocalizationFormat(
+                LFlyleafInstallSuccess = false,
+                LFlyleafInstallMessage = LLocalization.LLocalizationFormat(
                     "Flyleaf.Local.Install.Failed",
                     lException.Message)
             };
         }
     }
 
-    private static string? LFlyleafLocalAssemblyFolderRead()
+    private static string? LFlyleafFolderRead()
     {
         try
         {
-            string lRecordPath = LFlyleafLocalRecordPathRead();
+            string lRecordPath = LFlyleafRecordFind();
             if (!File.Exists(lRecordPath))
             {
                 return null;
             }
 
-            LFlyleafLocalRecord? lRecord = JsonSerializer.Deserialize<LFlyleafLocalRecord>(File.ReadAllText(lRecordPath));
-            if (LFlyleafLocalAssemblyFolderValidate(lRecord?.AssemblyFolder))
+            LFlyleafRecord? lRecord = JsonSerializer.Deserialize<LFlyleafRecord>(File.ReadAllText(lRecordPath));
+            if (LFlyleafFolderValidate(lRecord?.LFlyleafAssemblyFolder))
             {
-                return lRecord!.AssemblyFolder;
+                return lRecord!.LFlyleafAssemblyFolder;
             }
 
-            if (!string.IsNullOrWhiteSpace(lRecord?.SourceFolder)
-                && Directory.Exists(lRecord.SourceFolder)
-                && LFlyleafLocalAssemblyFolderTryFind(lRecord.SourceFolder) is not null)
+            if (!string.IsNullOrWhiteSpace(lRecord?.LFlyleafSourceFolder)
+                && Directory.Exists(lRecord.LFlyleafSourceFolder)
+                && LFlyleafSourceFind(lRecord.LFlyleafSourceFolder) is not null)
             {
-                lRecord.AssemblyFolder = LFlyleafLocalRuntimeFolderCreate(lRecord.SourceFolder);
-                LFlyleafLocalRecordWrite(lRecord);
-                return lRecord.AssemblyFolder;
+                lRecord.LFlyleafAssemblyFolder = LFlyleafRuntimeCreate(lRecord.LFlyleafSourceFolder);
+                LFlyleafRecordSave(lRecord);
+                return lRecord.LFlyleafAssemblyFolder;
             }
 
             return null;
@@ -310,7 +310,7 @@ internal static class LFlyleafLocal
         }
     }
 
-    private static bool LFlyleafLocalAssemblyFolderValidate(string? lAssemblyFolder)
+    private static bool LFlyleafFolderValidate(string? lAssemblyFolder)
     {
         if (string.IsNullOrWhiteSpace(lAssemblyFolder)
             || !File.Exists(Path.Combine(lAssemblyFolder, "FlyleafLib.dll"))
@@ -320,24 +320,24 @@ internal static class LFlyleafLocal
         }
 
         string lFolder = Path.GetFullPath(lAssemblyFolder);
-        string lRuntimeFolder = Path.GetFullPath(Path.Combine(LFlyleafLocalRootRead(), LFlyleafRuntimeFolderName));
+        string lRuntimeFolder = Path.GetFullPath(Path.Combine(LFlyleafRootRead(), LFlyleafRuntimeName));
         return string.Equals(lFolder, lRuntimeFolder, StringComparison.OrdinalIgnoreCase)
             && !lFolder.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
             && !lFolder.EndsWith($"{Path.DirectorySeparatorChar}ref", StringComparison.OrdinalIgnoreCase)
             && !lFolder.EndsWith($"{Path.DirectorySeparatorChar}refint", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string LFlyleafLocalRecordPathRead() =>
-        Path.Combine(LFlyleafLocalRootRead(), LFlyleafRecordFileName);
+    private static string LFlyleafRecordFind() =>
+        Path.Combine(LFlyleafRootRead(), LFlyleafRecordName);
 
-    private static void LFlyleafLocalRecordWrite(LFlyleafLocalRecord lRecord)
+    private static void LFlyleafRecordSave(LFlyleafRecord lRecord)
     {
         File.WriteAllText(
-            LFlyleafLocalRecordPathRead(),
+            LFlyleafRecordFind(),
             JsonSerializer.Serialize(lRecord, new JsonSerializerOptions { WriteIndented = true }));
     }
 
-    private static string LFlyleafLocalShaderFileFind(string lSource)
+    private static string LFlyleafShaderFind(string lSource)
     {
         string? lFile = Directory.EnumerateFiles(lSource, "*.cs", SearchOption.AllDirectories)
             .FirstOrDefault(lPath =>
@@ -351,25 +351,25 @@ internal static class LFlyleafLocal
         return lFile ?? throw new FileNotFoundException("Flyleaf contrast shader source was not found.");
     }
 
-    private static string LFlyleafLocalProjectFileFind(string lSource, string lProjectName)
+    private static string LFlyleafProjectFind(string lSource, string lProjectName)
     {
         string? lFile = Directory.EnumerateFiles(lSource, lProjectName, SearchOption.AllDirectories)
             .FirstOrDefault();
         return lFile ?? throw new FileNotFoundException($"{lProjectName} was not found.");
     }
 
-    private static string LFlyleafLocalAssemblyFolderFind(string lSource)
+    private static string LFlyleafBuiltFind(string lSource)
     {
-        string? lAssembly = LFlyleafLocalAssemblyFileFind(lSource);
+        string? lAssembly = LFlyleafAssemblyFind(lSource);
         return lAssembly is null
             ? throw new FileNotFoundException("Built FlyleafLib.dll was not found.")
             : Path.GetDirectoryName(lAssembly)!;
     }
 
-    private static string LFlyleafLocalRuntimeFolderCreate(string lSource)
+    private static string LFlyleafRuntimeCreate(string lSource)
     {
-        string lBuiltFolder = LFlyleafLocalAssemblyFolderFind(lSource);
-        string lRuntimeFolder = Path.Combine(LFlyleafLocalRootRead(), LFlyleafRuntimeFolderName);
+        string lBuiltFolder = LFlyleafBuiltFind(lSource);
+        string lRuntimeFolder = Path.Combine(LFlyleafRootRead(), LFlyleafRuntimeName);
         Directory.CreateDirectory(lRuntimeFolder);
 
         foreach (string lFile in Directory.EnumerateFiles(lBuiltFolder, "*", SearchOption.TopDirectoryOnly))
@@ -380,13 +380,13 @@ internal static class LFlyleafLocal
         return lRuntimeFolder;
     }
 
-    private static string? LFlyleafLocalAssemblyFolderTryFind(string lSource)
+    private static string? LFlyleafSourceFind(string lSource)
     {
-        string? lAssembly = LFlyleafLocalAssemblyFileFind(lSource);
+        string? lAssembly = LFlyleafAssemblyFind(lSource);
         return lAssembly is null ? null : Path.GetDirectoryName(lAssembly);
     }
 
-    private static string? LFlyleafLocalAssemblyFileFind(string lSource)
+    private static string? LFlyleafAssemblyFind(string lSource)
     {
         return Directory.EnumerateFiles(lSource, "FlyleafLib.dll", SearchOption.AllDirectories)
             .Where(lPath => lPath.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
@@ -396,7 +396,7 @@ internal static class LFlyleafLocal
             .FirstOrDefault();
     }
 
-    private static void LFlyleafLocalShaderPatch(string lShaderFile)
+    private static void LFlyleafShaderApply(string lShaderFile)
     {
         string lText = File.ReadAllText(lShaderFile);
         string lPatched = lText
@@ -412,7 +412,7 @@ internal static class LFlyleafLocal
             if (lText.Contains("(c.x - 0.5) * Config.contrast + 0.5", StringComparison.Ordinal)
                 || lText.Contains("(c - 0.5) * Config.contrast + 0.5", StringComparison.Ordinal))
             {
-                LAppLog.LInfo("Local Flyleaf contrast shader already patched");
+                LTraceLog.LTraceInfoRecord("Local Flyleaf contrast shader already patched");
                 return;
             }
 
@@ -420,12 +420,12 @@ internal static class LFlyleafLocal
         }
 
         File.WriteAllText(lShaderFile, lPatched);
-        LAppLog.LInfo("Local Flyleaf contrast shader patched");
+        LTraceLog.LTraceInfoRecord("Local Flyleaf contrast shader patched");
     }
 
-    private static async Task LFlyleafLocalRunAsync(string lFileName, string lArguments, string lWorkingDirectory)
+    private static async Task LFlyleafCommandRun(string lFileName, string lArguments, string lWorkingDirectory)
     {
-        LAppLog.LInfo($"Local Flyleaf command: {lFileName} {lArguments}");
+        LTraceLog.LTraceInfoRecord($"Local Flyleaf command: {lFileName} {lArguments}");
         using var lProcess = new Process
         {
             StartInfo = new ProcessStartInfo(lFileName, lArguments)

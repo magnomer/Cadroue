@@ -20,7 +20,7 @@ public sealed partial class LRunner
     {
         if (LRunnerRunning || !lRunnerItems.IsEmpty)
         {
-            LRunnerNote($"Worklist tab closed: releasing work held by runner {lRunnerId:N}");
+            LRunnerRecord($"Worklist tab closed: releasing work held by runner {lRunnerId:N}");
             LRunnerCancel();
         }
 

@@ -16,14 +16,14 @@ public sealed partial class PGroup
     private void PGroupAutoApply(bool pGroupStrict)
     {
         IReadOnlyList<string> pFiles = PGroupSourceFiles?.Invoke() ?? Array.Empty<string>();
-        List<PGroupRecord> pRecords = PGroupAutoCompute(pFiles, pGroupStrict);
+        List<PGroupRecord> pRecords = PGroupAutoResolve(pFiles, pGroupStrict);
 
         pGroupRecords.Clear();
         pGroupRecords.AddRange(pRecords);
         PGroupRebuild();
     }
 
-    private static List<PGroupRecord> PGroupAutoCompute(IReadOnlyList<string> pFiles, bool pGroupStrict)
+    private static List<PGroupRecord> PGroupAutoResolve(IReadOnlyList<string> pFiles, bool pGroupStrict)
     {
         var pBuckets = new List<(string? Base, List<PGroupItem> Items)>();
         var pBaseIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -63,7 +63,7 @@ public sealed partial class PGroup
                 continue;
             }
 
-            List<List<PGroupItem>> pRuns = PGroupRunsSplit(pSorted);
+            List<List<PGroupItem>> pRuns = PGroupRunsDivide(pSorted);
             bool pMultipleRuns = pRuns.Count > 1;
             foreach (List<PGroupItem> pRun in pRuns)
             {
@@ -75,7 +75,7 @@ public sealed partial class PGroup
         return pRecords;
     }
 
-    private static List<List<PGroupItem>> PGroupRunsSplit(List<PGroupItem> pSorted)
+    private static List<List<PGroupItem>> PGroupRunsDivide(List<PGroupItem> pSorted)
     {
         var pRuns = new List<List<PGroupItem>>();
         List<PGroupItem>? pCurrent = null;

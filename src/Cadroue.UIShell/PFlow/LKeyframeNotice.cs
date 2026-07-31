@@ -6,7 +6,7 @@ public sealed class LKeyframeNotice
 {
     public LKeyframeNotice(
         int lRequestSerial,
-        IReadOnlyList<LKeyframeEntry> lKeyframes,
+        IReadOnlyList<LKeyframeEntry> lKeyframeList,
         IReadOnlyList<LKeyframeScanRange> lScannedRanges)
     {
         if (lRequestSerial < 0)
@@ -14,12 +14,12 @@ public sealed class LKeyframeNotice
             throw new ArgumentOutOfRangeException(nameof(lRequestSerial));
         }
 
-        LRequestSerial = lRequestSerial;
-        LKeyframes = (lKeyframes ?? throw new ArgumentNullException(nameof(lKeyframes))).ToArray();
-        LScannedRanges = (lScannedRanges ?? throw new ArgumentNullException(nameof(lScannedRanges))).ToArray();
+        LKeyframeSerial = lRequestSerial;
+        LKeyframeList = (lKeyframeList ?? throw new ArgumentNullException(nameof(lKeyframeList))).ToArray();
+        LKeyframeRanges = (lScannedRanges ?? throw new ArgumentNullException(nameof(lScannedRanges))).ToArray();
     }
 
-    public int LRequestSerial { get; }
-    public IReadOnlyList<LKeyframeEntry> LKeyframes { get; }
-    public IReadOnlyList<LKeyframeScanRange> LScannedRanges { get; }
+    public int LKeyframeSerial { get; }
+    public IReadOnlyList<LKeyframeEntry> LKeyframeList { get; }
+    public IReadOnlyList<LKeyframeScanRange> LKeyframeRanges { get; }
 }

@@ -14,7 +14,7 @@ public sealed partial class PViewfinder
             return;
         }
 
-        TimeSpan requestTime = PViewfinderPositionConvert(e.GetPosition(this).X);
+        TimeSpan requestTime = PViewfinderPositionResolve(e.GetPosition(this).X);
         PViewfinderSelectPropagate(requestTime);
         pViewfinderDragMode = PViewfinderDragMode.PViewfinderDragCursor;
         PViewfinderDragChange?.Invoke(true);
@@ -31,7 +31,7 @@ public sealed partial class PViewfinder
             return;
         }
 
-        PViewfinderCursorChange?.Invoke(PViewfinderPositionConvert(e.GetPosition(this).X));
+        PViewfinderCursorChange?.Invoke(PViewfinderPositionResolve(e.GetPosition(this).X));
         e.Handled = true;
     }
 
@@ -76,7 +76,7 @@ public sealed partial class PViewfinder
         }
     }
 
-    private TimeSpan PViewfinderPositionConvert(double mouseX)
+    private TimeSpan PViewfinderPositionResolve(double mouseX)
     {
         if (lSpool is null || ActualWidth <= 0)
         {
@@ -85,12 +85,12 @@ public sealed partial class PViewfinder
 
         double clampedMouseX = Math.Clamp(mouseX, 0, ActualWidth);
         double ratio = Math.Clamp(clampedMouseX / ActualWidth, 0, 1);
-        TimeSpan rangeDuration = lSpool.LSpoolWorkingRangeEnd - lSpool.LSpoolWorkingRangeStart;
+        TimeSpan rangeDuration = lSpool.LSpoolRangeLimit - lSpool.LSpoolRangeOrigin;
         if (rangeDuration <= TimeSpan.Zero)
         {
-            return lSpool.LSpoolWorkingRangeStart;
+            return lSpool.LSpoolRangeOrigin;
         }
 
-        return lSpool.LSpoolWorkingRangeStart + TimeSpan.FromSeconds(ratio * rangeDuration.TotalSeconds);
+        return lSpool.LSpoolRangeOrigin + TimeSpan.FromSeconds(ratio * rangeDuration.TotalSeconds);
     }
 }

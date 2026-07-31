@@ -4,113 +4,113 @@ namespace Cadroue.Media;
 
 public sealed class LSidecarSectionRecord
 {
-    public long StartMilliseconds { get; set; }
-    public long EndMilliseconds { get; set; }
-    public int ColorIndex { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Prefix { get; set; } = string.Empty;
-    public string Suffix { get; set; } = string.Empty;
-    public bool Hidden { get; set; }
+    public long LSidecarStartMilliseconds { get; set; }
+    public long LSidecarEndMilliseconds { get; set; }
+    public int LSidecarColorIndex { get; set; }
+    public string LSidecarName { get; set; } = string.Empty;
+    public string LSidecarPrefix { get; set; } = string.Empty;
+    public string LSidecarSuffix { get; set; } = string.Empty;
+    public bool LSidecarHidden { get; set; }
 }
 
 public sealed class LSidecarEditRecord
 {
-    public int CropLeft { get; set; }
-    public int CropTop { get; set; }
-    public int CropRight { get; set; }
-    public int CropBottom { get; set; }
-    public int Rotation { get; set; }
-    public bool FlipHorizontal { get; set; }
-    public bool FlipVertical { get; set; }
-    public bool CropActive { get; set; }
-    public List<LSidecarVideoStepRecord> Steps { get; set; } = new();
+    public int LSidecarCropLeft { get; set; }
+    public int LSidecarCropTop { get; set; }
+    public int LSidecarCropRight { get; set; }
+    public int LSidecarCropBottom { get; set; }
+    public int LSidecarRotation { get; set; }
+    public bool LSidecarFlipHorizontal { get; set; }
+    public bool LSidecarFlipVertical { get; set; }
+    public bool LSidecarCropActive { get; set; }
+    public List<LSidecarVideoStepRecord> LSidecarSteps { get; set; } = new();
 
     public bool LSidecarEditActive =>
-        CropActive
-        || CropLeft > 0 || CropTop > 0 || CropRight > 0 || CropBottom > 0
-        || Rotation != 0 || FlipHorizontal || FlipVertical
-        || Steps.Any(lStep => lStep.Active);
+        LSidecarCropActive
+        || LSidecarCropLeft > 0 || LSidecarCropTop > 0 || LSidecarCropRight > 0 || LSidecarCropBottom > 0
+        || LSidecarRotation != 0 || LSidecarFlipHorizontal || LSidecarFlipVertical
+        || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }
 
 public sealed class LSidecarVideoStepRecord
 {
-    public string Kind { get; set; } = string.Empty;
-    public bool Active { get; set; }
-    public double Value { get; set; }
+    public string LSidecarKind { get; set; } = string.Empty;
+    public bool LSidecarActive { get; set; }
+    public double LSidecarValue { get; set; }
 }
 
 public sealed class LSidecarAudioStepRecord
 {
-    public string Kind { get; set; } = string.Empty;
-    public bool Active { get; set; }
-    public double Gain { get; set; }
-    public string Mode { get; set; } = "Loudness";
-    public double Target { get; set; } = -16;
-    public double Peak { get; set; } = -1.5;
-    public double Range { get; set; } = 11;
-    public bool TwoPass { get; set; }
-    public double Reduction { get; set; } = 12;
-    public double NoiseFloor { get; set; } = -50;
-    public bool TrackNoise { get; set; }
-    public double Frequency { get; set; }
-    public int Stages { get; set; } = 1;
-    public int Poles { get; set; } = 2;
-    public double Resonance { get; set; } = 0.707;
-    public string NoiseType { get; set; } = "White";
-    public double GainSmooth { get; set; }
-    public double Adaptivity { get; set; } = 0.5;
-    public double ResidualFloor { get; set; } = -38;
+    public string LSidecarKind { get; set; } = string.Empty;
+    public bool LSidecarActive { get; set; }
+    public double LSidecarGain { get; set; }
+    public string LSidecarMode { get; set; } = "Loudness";
+    public double LSidecarTarget { get; set; } = -16;
+    public double LSidecarPeak { get; set; } = -1.5;
+    public double LSidecarRange { get; set; } = 11;
+    public bool LSidecarTwoPass { get; set; }
+    public double LSidecarReduction { get; set; } = 12;
+    public double LSidecarNoiseFloor { get; set; } = -50;
+    public bool LSidecarTrackNoise { get; set; }
+    public double LSidecarFrequency { get; set; }
+    public int LSidecarStages { get; set; } = 1;
+    public int LSidecarPoles { get; set; } = 2;
+    public double LSidecarResonance { get; set; } = 0.707;
+    public string LSidecarNoiseType { get; set; } = "White";
+    public double LSidecarGainSmooth { get; set; }
+    public double LSidecarAdaptivity { get; set; } = 0.5;
+    public double LSidecarResidualFloor { get; set; } = -38;
 }
 
 public sealed class LSidecarAudioRecord
 {
-    public List<LSidecarAudioStepRecord> Steps { get; set; } = new();
+    public List<LSidecarAudioStepRecord> LSidecarSteps { get; set; } = new();
 
-    public bool LSidecarAudioActive => Steps.Any(lStep => lStep.Active);
+    public bool LSidecarAudioActive => LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }
 
 public sealed class LSidecarWaveformRecord
 {
-    public int BucketMilliseconds { get; set; }
-    public long DurationMilliseconds { get; set; }
-    public string Peaks { get; set; } = string.Empty;
+    public int LSidecarBucketMilliseconds { get; set; }
+    public long LSidecarDurationMilliseconds { get; set; }
+    public string LSidecarPeaks { get; set; } = string.Empty;
 }
 
 public sealed class LSidecarSourceRecord
 {
-    public string FileName { get; set; } = string.Empty;
-    public string RelativePath { get; set; } = string.Empty;
-    public string AbsolutePath { get; set; } = string.Empty;
-    public long Length { get; set; }
-    public long LastWriteUtcTicks { get; set; }
-    public long DurationMilliseconds { get; set; }
-    public string PartialHash { get; set; } = string.Empty;
+    public string LSidecarFileName { get; set; } = string.Empty;
+    public string LSidecarRelativePath { get; set; } = string.Empty;
+    public string LSidecarAbsolutePath { get; set; } = string.Empty;
+    public long LSidecarLength { get; set; }
+    public long LSidecarWriteTicks { get; set; }
+    public long LSidecarDurationMilliseconds { get; set; }
+    public string LSidecarPartialHash { get; set; } = string.Empty;
 }
 
 public sealed class LSidecar
 {
     public const string LSidecarExtension = ".cad";
 
-    public int Version { get; set; } = 1;
+    public int LSidecarVersion { get; set; } = 1;
 
-    public LSidecarSourceRecord Source { get; set; } = new();
+    public LSidecarSourceRecord LSidecarSource { get; set; } = new();
 
-    public List<long> KeyframeDeltas { get; set; } = new();
+    public List<long> LSidecarKeyframeDeltas { get; set; } = new();
 
-    public List<int> ScannedSpans { get; set; } = new();
+    public List<int> LSidecarScannedSpans { get; set; } = new();
 
-    public int SpanGridMilliseconds { get; set; }
+    public int LSidecarSpanGrid { get; set; }
 
-    public List<LSidecarSectionRecord> Sections { get; set; } = new();
+    public List<LSidecarSectionRecord> LSidecarSections { get; set; } = new();
 
-    public LSidecarEditRecord? Edit { get; set; }
+    public LSidecarEditRecord? LSidecarEdit { get; set; }
 
-    public LSidecarAudioRecord? Audio { get; set; }
+    public LSidecarAudioRecord? LSidecarAudio { get; set; }
 
-    public LSidecarWaveformRecord? Waveform { get; set; }
+    public LSidecarWaveformRecord? LSidecarWaveform { get; set; }
 
-    public IReadOnlyList<int> LSidecarScannedSpansRead(int lSidecarSpanGridMilliseconds) =>
-        SpanGridMilliseconds == lSidecarSpanGridMilliseconds ? ScannedSpans : Array.Empty<int>();
+    public IReadOnlyList<int> LSidecarSpansRead(int lSidecarSpanGridMilliseconds) =>
+        LSidecarSpanGrid == lSidecarSpanGridMilliseconds ? LSidecarScannedSpans : Array.Empty<int>();
 
     public static LSidecar LSidecarCreate(
         LKeyframeSourceIdentity lSidecarIdentity,
@@ -125,24 +125,24 @@ public sealed class LSidecar
 
         return new LSidecar
         {
-            Source = new LSidecarSourceRecord
+            LSidecarSource = new LSidecarSourceRecord
             {
-                FileName = Path.GetFileName(lSidecarSourcePath),
-                RelativePath = LSidecarRelativeCreate(lSidecarFolder, lSidecarSourcePath),
-                AbsolutePath = lSidecarSourcePath,
-                Length = lSidecarIdentity.LKeyframeSourceLength,
-                LastWriteUtcTicks = lSidecarIdentity.LKeyframeSourceLastWriteUtcTicks,
-                DurationMilliseconds = lSidecarIdentity.LKeyframeSourceDurationMilliseconds,
-                PartialHash = lSidecarIdentity.LKeyframeSourcePartialHash
+                LSidecarFileName = Path.GetFileName(lSidecarSourcePath),
+                LSidecarRelativePath = LSidecarRelativeCreate(lSidecarFolder, lSidecarSourcePath),
+                LSidecarAbsolutePath = lSidecarSourcePath,
+                LSidecarLength = lSidecarIdentity.LKeyframeSourceLength,
+                LSidecarWriteTicks = lSidecarIdentity.LKeyframeWriteTicks,
+                LSidecarDurationMilliseconds = lSidecarIdentity.LKeyframeSourceDuration,
+                LSidecarPartialHash = lSidecarIdentity.LKeyframePartialHash
             },
-            KeyframeDeltas = LSidecarKeyframeEncode(lSidecarKeyframeMilliseconds),
-            ScannedSpans = lSidecarScannedSpans.Where(lSpan => lSpan >= 0).Distinct().Order().ToList(),
-            SpanGridMilliseconds = lSidecarSpanGridMilliseconds,
-            Sections = lSidecarSections.ToList()
+            LSidecarKeyframeDeltas = LSidecarKeyframeFormat(lSidecarKeyframeMilliseconds),
+            LSidecarScannedSpans = lSidecarScannedSpans.Where(lSpan => lSpan >= 0).Distinct().Order().ToList(),
+            LSidecarSpanGrid = lSidecarSpanGridMilliseconds,
+            LSidecarSections = lSidecarSections.ToList()
         };
     }
 
-    public static List<long> LSidecarKeyframeEncode(IReadOnlyCollection<long> lSidecarKeyframeMilliseconds)
+    public static List<long> LSidecarKeyframeFormat(IReadOnlyCollection<long> lSidecarKeyframeMilliseconds)
     {
         var lSidecarDeltas = new List<long>(lSidecarKeyframeMilliseconds.Count);
         long lSidecarPrevious = 0;
@@ -158,7 +158,7 @@ public sealed class LSidecar
         return lSidecarDeltas;
     }
 
-    public static IReadOnlyList<long> LSidecarKeyframeDecode(IReadOnlyList<long> lSidecarDeltas)
+    public static IReadOnlyList<long> LSidecarKeyframeParse(IReadOnlyList<long> lSidecarDeltas)
     {
         var lSidecarKeyframes = new List<long>(lSidecarDeltas.Count);
         long lSidecarRunning = 0;
@@ -174,11 +174,11 @@ public sealed class LSidecar
         return lSidecarKeyframes;
     }
 
-    public IReadOnlyList<long> LSidecarKeyframesRead() => LSidecarKeyframeDecode(KeyframeDeltas);
+    public IReadOnlyList<long> LSidecarKeyframesRead() => LSidecarKeyframeParse(LSidecarKeyframeDeltas);
 
     public bool LSidecarSourceMatch(LKeyframeSourceIdentity lSidecarIdentity) =>
-        Source.Length == lSidecarIdentity.LKeyframeSourceLength
-        && string.Equals(Source.PartialHash, lSidecarIdentity.LKeyframeSourcePartialHash, StringComparison.Ordinal);
+        LSidecarSource.LSidecarLength == lSidecarIdentity.LKeyframeSourceLength
+        && string.Equals(LSidecarSource.LSidecarPartialHash, lSidecarIdentity.LKeyframePartialHash, StringComparison.Ordinal);
 
     public string LSidecarJsonCreate() =>
         JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = false });

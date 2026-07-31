@@ -18,7 +18,7 @@ public sealed partial class PRoster
         public required Guid PRosterLineageId { get; init; }
         public required string PRosterLineageSubject { get; init; }
         public required List<LWorkItem> PRosterLineageItems { get; init; }
-        public long? PRosterLineageOriginBytes { get; set; }
+        public long? PLineageOriginBytes { get; set; }
     }
 
     private IReadOnlyList<PRosterLineageEntry> PRosterLineageRead(IReadOnlyList<LWorkItem> pWorkItems)
@@ -26,7 +26,7 @@ public sealed partial class PRoster
         var pConsumedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkItem pWorkItem in pWorkItems)
         {
-            if (PRosterLineagePathRead(pWorkItem.LWorkSourcePath) is { } pSourceKey)
+            if (PLineagePathRead(pWorkItem.LWorkSourcePath) is { } pSourceKey)
             {
                 pConsumedPaths.Add(pSourceKey);
             }
@@ -37,13 +37,13 @@ public sealed partial class PRoster
 
         foreach (LWorkItem pWorkItem in pWorkItems)
         {
-            Guid pLineageId = PRosterLineageKeyRead(pWorkItem, pConsumedPaths);
+            Guid pLineageId = PLineageKeyRead(pWorkItem, pConsumedPaths);
             if (!pLineageIndex.TryGetValue(pLineageId, out PRosterLineageEntry? pLineageEntry))
             {
                 pLineageEntry = new PRosterLineageEntry
                 {
                     PRosterLineageId = pLineageId,
-                    PRosterLineageSubject = PRosterLineageSubjectRead(pWorkItem, pLineageId),
+                    PRosterLineageSubject = PLineageSubjectRead(pWorkItem, pLineageId),
                     PRosterLineageItems = new List<LWorkItem>()
                 };
                 pLineageIndex[pLineageId] = pLineageEntry;
@@ -55,28 +55,28 @@ public sealed partial class PRoster
 
         foreach (PRosterLineageEntry pLineageEntry in pLineageOrder)
         {
-            pLineageEntry.PRosterLineageOriginBytes = PRosterLineageOriginBytesRead(pLineageEntry, pWorkItems);
+            pLineageEntry.PLineageOriginBytes = PLineageOriginRead(pLineageEntry, pWorkItems);
         }
 
         return pLineageOrder;
     }
 
-    private Guid PRosterLineageKeyRead(LWorkItem pWorkItem, HashSet<string> pConsumedPaths)
+    private Guid PLineageKeyRead(LWorkItem pWorkItem, HashSet<string> pConsumedPaths)
     {
         if (pWorkItem.LWorkKind == LWorkKind.LWorkKindSplit
-            && PRosterLineagePathRead(pWorkItem.LWorkOutputPath) is { } pOutputKey
+            && PLineagePathRead(pWorkItem.LWorkOutputPath) is { } pOutputKey
             && pConsumedPaths.Contains(pOutputKey))
         {
-            return LSchedule.LScheduleFileLineageRead(pWorkItem.LWorkOutputPath);
+            return LSchedule.LScheduleFileRead(pWorkItem.LWorkOutputPath);
         }
 
         return pRosterSchedule.LScheduleLineageRead(pWorkItem);
     }
 
-    private static string PRosterLineageSubjectRead(LWorkItem pLineageFirst, Guid pLineageId)
+    private static string PLineageSubjectRead(LWorkItem pLineageFirst, Guid pLineageId)
     {
         if (pLineageFirst.LWorkKind == LWorkKind.LWorkKindMerge
-            || LSchedule.LScheduleFileLineageRead(pLineageFirst.LWorkOutputPath) == pLineageId)
+            || LSchedule.LScheduleFileRead(pLineageFirst.LWorkOutputPath) == pLineageId)
         {
             return pLineageFirst.LWorkOutputPath;
         }
@@ -84,7 +84,7 @@ public sealed partial class PRoster
         return pLineageFirst.LWorkSourcePath;
     }
 
-    private static long? PRosterLineageOriginBytesRead(
+    private static long? PLineageOriginRead(
         PRosterLineageEntry pLineageEntry,
         IReadOnlyList<LWorkItem> pWorkItems)
     {
@@ -116,11 +116,11 @@ public sealed partial class PRoster
         }
     }
 
-    private static string PRosterLineageStepRead(LWorkItem pWorkItem, string pSubject, bool pLineageFirstRow)
+    private static string PLineageStepRead(LWorkItem pWorkItem, string pSubject, bool pLineageFirstRow)
     {
         if (pLineageFirstRow && !PRosterLineageMatch(pWorkItem.LWorkSourcePath, pSubject))
         {
-            string pFromName = PRosterLineageFileRead(pWorkItem.LWorkSourcePath);
+            string pFromName = PLineageFileRead(pWorkItem.LWorkSourcePath);
             int pExtraCount = pWorkItem.LWorkMergeSources.Count > 1 ? pWorkItem.LWorkMergeSources.Count - 1 : 0;
             return pExtraCount > 0
                 ? LLocalization.LLocalizationFormat("Roster.Lineage.FromMore", pFromName, pExtraCount)
@@ -131,13 +131,13 @@ public sealed partial class PRoster
             && !PRosterLineageMatch(pWorkItem.LWorkOutputPath, pSubject))
         {
             return LLocalization.LLocalizationFormat(
-                "Roster.Lineage.Split", PRosterLineageFileRead(pWorkItem.LWorkOutputPath));
+                "Roster.Lineage.Split", PLineageFileRead(pWorkItem.LWorkOutputPath));
         }
 
-        return LLocalization.LLocalizationFormat("Roster.Lineage.Step", PRosterLineageKindRead(pWorkItem.LWorkKind));
+        return LLocalization.LLocalizationFormat("Roster.Lineage.Step", PLineageKindRead(pWorkItem.LWorkKind));
     }
 
-    private static string PRosterLineageKindRead(LWorkKind pWorkKind) =>
+    private static string PLineageKindRead(LWorkKind pWorkKind) =>
         LLocalization.LLocalizationTextRead(pWorkKind switch
         {
             LWorkKind.LWorkKindEdit => "Roster.Kind.Edit",
@@ -147,7 +147,7 @@ public sealed partial class PRoster
             _ => "Roster.Kind.Split"
         });
 
-    private static string PRosterLineageRatioFormat(LWorkItem pWorkItem, string pSubject, long? pOriginBytes)
+    private static string PLineageRatioFormat(LWorkItem pWorkItem, string pSubject, long? pOriginBytes)
     {
         if (PRosterLineageMatch(pWorkItem.LWorkOutputPath, pSubject))
         {
@@ -163,11 +163,11 @@ public sealed partial class PRoster
     }
 
     private static bool PRosterLineageMatch(string pLeftPath, string pRightPath) =>
-        PRosterLineagePathRead(pLeftPath) is { } pLeftKey
-        && PRosterLineagePathRead(pRightPath) is { } pRightKey
+        PLineagePathRead(pLeftPath) is { } pLeftKey
+        && PLineagePathRead(pRightPath) is { } pRightKey
         && string.Equals(pLeftKey, pRightKey, StringComparison.OrdinalIgnoreCase);
 
-    private static string? PRosterLineagePathRead(string pPath)
+    private static string? PLineagePathRead(string pPath)
     {
         if (string.IsNullOrWhiteSpace(pPath))
         {
@@ -185,23 +185,23 @@ public sealed partial class PRoster
         }
     }
 
-    private ListBoxItem PRosterLineageRowRead(PRosterLineageEntry pLineageEntry)
+    private ListBoxItem PLineageRowRead(PRosterLineageEntry pLineageEntry)
     {
         if (!pRosterLineageRows.TryGetValue(pLineageEntry.PRosterLineageId, out ListBoxItem? pLineageRow))
         {
-            pLineageRow = PRosterLineageRowBuild(pLineageEntry.PRosterLineageId);
+            pLineageRow = PLineageRowBuild(pLineageEntry.PRosterLineageId);
             pRosterLineageRows[pLineageEntry.PRosterLineageId] = pLineageRow;
         }
 
         if (pRosterLineageLabels.TryGetValue(pLineageEntry.PRosterLineageId, out TextBlock? pLineageLabel))
         {
-            pLineageLabel.Text = PRosterLineageTitleRead(pLineageEntry);
+            pLineageLabel.Text = PLineageTitleRead(pLineageEntry);
         }
 
         return pLineageRow;
     }
 
-    private ListBoxItem PRosterLineageRowBuild(Guid pLineageId)
+    private ListBoxItem PLineageRowBuild(Guid pLineageId)
     {
         var pLineageMark = new Border
         {
@@ -232,11 +232,11 @@ public sealed partial class PRoster
             Content = pLineageContent,
             Focusable = false,
             IsHitTestVisible = false,
-            Style = PRosterLineageStyleCreate()
+            Style = PLineageStyleCreate()
         };
     }
 
-    private static Style PRosterLineageStyleCreate()
+    private static Style PLineageStyleCreate()
     {
         var pStyle = new Style(typeof(ListBoxItem));
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
@@ -244,11 +244,11 @@ public sealed partial class PRoster
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PRosterLineageTemplateCreate()));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PLineageTemplateCreate()));
         return pStyle;
     }
 
-    private static ControlTemplate PRosterLineageTemplateCreate()
+    private static ControlTemplate PLineageTemplateCreate()
     {
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.SetValue(Border.BackgroundProperty, PRosterTheme.PRosterHeaderBrush);
@@ -259,16 +259,16 @@ public sealed partial class PRoster
         return new ControlTemplate(typeof(ListBoxItem)) { VisualTree = pBorder };
     }
 
-    private static string PRosterLineageTitleRead(PRosterLineageEntry pLineageEntry)
+    private static string PLineageTitleRead(PRosterLineageEntry pLineageEntry)
     {
-        string pLineageName = PRosterLineageFileRead(pLineageEntry.PRosterLineageSubject);
+        string pLineageName = PLineageFileRead(pLineageEntry.PRosterLineageSubject);
         return pLineageEntry.PRosterLineageItems.Count == 1
             ? LLocalization.LLocalizationFormat("Roster.Lineage.One", pLineageName)
             : LLocalization.LLocalizationFormat(
                 "Roster.Lineage.Many", pLineageName, pLineageEntry.PRosterLineageItems.Count);
     }
 
-    private static string PRosterLineageFileRead(string pFilePath)
+    private static string PLineageFileRead(string pFilePath)
     {
         if (string.IsNullOrWhiteSpace(pFilePath))
         {
@@ -285,7 +285,7 @@ public sealed partial class PRoster
         }
     }
 
-    private void PRosterLineageTrim(IReadOnlyCollection<Guid> pLineageKeep)
+    private void PRosterLineageRemove(IReadOnlyCollection<Guid> pLineageKeep)
     {
         foreach (Guid pLineageId in pRosterLineageRows.Keys.ToArray())
         {

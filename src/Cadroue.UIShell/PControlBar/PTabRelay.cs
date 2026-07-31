@@ -13,8 +13,8 @@ public partial class PToolbar
             return false;
         }
 
-        Point pDipPoint = PTabRelayDipRead(pRelayWindow, pDevicePoint);
-        if (PTabRelayInsideCheck(pRelayWindow, pDipPoint))
+        Point pDipPoint = PTabDipRead(pRelayWindow, pDevicePoint);
+        if (PTabInsideCheck(pRelayWindow, pDipPoint))
         {
             return false;
         }
@@ -33,7 +33,7 @@ public partial class PToolbar
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Relay payload could not be written; tab kept", lException);
+            LTraceLog.LTraceErrorRecord("Relay payload could not be written; tab kept", lException);
             return false;
         }
 
@@ -41,30 +41,30 @@ public partial class PToolbar
         {
             if (LRelayChannel.LRelayChannelSend(lTargetProcessId, lRelayFilePath))
             {
-                LAppLog.LInfo($"Tab '{pTabRecord.PTabTitle}' relayed to process {lTargetProcessId}");
+                LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed to process {lTargetProcessId}");
                 lTabset?.LTabsetClose(pTabRecord);
                 return true;
             }
 
             LRelayStore.LRelayFileClear(lRelayFilePath);
-            LAppLog.LError($"Relay target {lTargetProcessId} refused the tab; tab kept", null);
+            LTraceLog.LTraceErrorRecord($"Relay target {lTargetProcessId} refused the tab; tab kept", null);
             return false;
         }
 
-        if (!PTabRelayLaunch(lRelayFilePath))
+        if (!PTabRelayStart(lRelayFilePath))
         {
             LRelayStore.LRelayFileClear(lRelayFilePath);
             return false;
         }
 
-        LAppLog.LInfo($"Tab '{pTabRecord.PTabTitle}' relayed to a new instance");
+        LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed to a new instance");
         lTabset?.LTabsetClose(pTabRecord);
         return true;
     }
 
     private static void PTabBusyShow(PTabRecord pTabRecord)
     {
-        LAppLog.LInfo($"Tab '{pTabRecord.PTabTitle}' kept: the worklist is still working");
+        LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' kept: the worklist is still working");
         MessageBox.Show(
             LLocalization.LLocalizationTextRead("Tab.Relay.BusyMessage"),
             LLocalization.LLocalizationTextRead("Tab.Relay.BusyTitle"),
@@ -72,13 +72,13 @@ public partial class PToolbar
             MessageBoxImage.Information);
     }
 
-    private static Point PTabRelayDipRead(Window pRelayWindow, Point pDevicePoint)
+    private static Point PTabDipRead(Window pRelayWindow, Point pDevicePoint)
     {
         return PresentationSource.FromVisual(pRelayWindow)?.CompositionTarget?
             .TransformFromDevice.Transform(pDevicePoint) ?? pDevicePoint;
     }
 
-    private static bool PTabRelayInsideCheck(Window pRelayWindow, Point pDipPoint)
+    private static bool PTabInsideCheck(Window pRelayWindow, Point pDipPoint)
     {
         if (pRelayWindow.WindowState == WindowState.Minimized)
         {
@@ -94,12 +94,12 @@ public partial class PToolbar
         return pWindowBounds.Contains(pDipPoint);
     }
 
-    private static bool PTabRelayLaunch(string lRelayFilePath)
+    private static bool PTabRelayStart(string lRelayFilePath)
     {
         string? pRelayProgramPath = Environment.ProcessPath;
         if (string.IsNullOrWhiteSpace(pRelayProgramPath))
         {
-            LAppLog.LError("Relay launch skipped: program path unknown", null);
+            LTraceLog.LTraceErrorRecord("Relay launch skipped: program path unknown", null);
             return false;
         }
 
@@ -112,7 +112,7 @@ public partial class PToolbar
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Relay launch failed; tab kept", lException);
+            LTraceLog.LTraceErrorRecord("Relay launch failed; tab kept", lException);
             return false;
         }
     }

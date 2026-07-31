@@ -14,11 +14,11 @@ public sealed record LKeyframeScanRange
             throw new ArgumentOutOfRangeException(nameof(endTime), "Keyframe scan range end time must be greater than start time.");
         }
 
-        LKeyframeScanRangeStartTime = startTime;
-        LKeyframeScanRangeEndTime = endTime;
+        LKeyframeRangeOrigin = startTime;
+        LKeyframeRangeLimit = endTime;
     }
 
-    public TimeSpan LKeyframeScanRangeStartTime { get; }
+    public TimeSpan LKeyframeRangeOrigin { get; }
 
-    public TimeSpan LKeyframeScanRangeEndTime { get; }
+    public TimeSpan LKeyframeRangeLimit { get; }
 }

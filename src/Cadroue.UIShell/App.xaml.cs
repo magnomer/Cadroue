@@ -8,7 +8,7 @@ using FlyleafLib;
 
 namespace Cadroue.UIShell;
 
-public partial class App : Application
+public partial class PProgram : Application
 {
     public static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererDefaultCreate();
     public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();
@@ -17,7 +17,7 @@ public partial class App : Application
 
     public static string LRendererFolderCurrent =>
         string.IsNullOrWhiteSpace(LPreferenceStateCurrent.LPreferenceFfmpegFolder)
-            ? LRendererSettingsCurrent.LRendererFfmpegLibraryFolder ?? string.Empty
+            ? LRendererSettingsCurrent.LRendererLibraryFolder ?? string.Empty
             : LPreferenceStateCurrent.LPreferenceFfmpegFolder;
 
     public static string LRendererProgramCurrent =>
@@ -27,7 +27,7 @@ public partial class App : Application
 
     public static LRelay? LRelayStartupPayload { get; private set; }
 
-    public static LRelay? LRelayStartupTake()
+    public static LRelay? LRelayPayloadRead()
     {
         LRelay? lRelayPayload = LRelayStartupPayload;
         LRelayStartupPayload = null;
@@ -38,14 +38,14 @@ public partial class App : Application
     {
         DispatcherUnhandledException += (_, pEvent) =>
         {
-            LAppLog.LError("Unhandled UI exception", pEvent.Exception);
+            LTraceLog.LTraceErrorRecord("Unhandled UI exception", pEvent.Exception);
             pEvent.Handled = true;
         };
         AppDomain.CurrentDomain.UnhandledException += (_, pEvent) =>
-            LAppLog.LError("Unhandled application exception", pEvent.ExceptionObject as Exception);
+            LTraceLog.LTraceErrorRecord("Unhandled application exception", pEvent.ExceptionObject as Exception);
         TaskScheduler.UnobservedTaskException += (_, pEvent) =>
         {
-            LAppLog.LError("Unobserved task exception", pEvent.Exception);
+            LTraceLog.LTraceErrorRecord("Unobserved task exception", pEvent.Exception);
             pEvent.SetObserved();
         };
 
@@ -56,17 +56,17 @@ public partial class App : Application
         LLocalization.LLocalizationLoad(LPreferenceStateCurrent.LPreferenceLanguage);
         LTrace.LTraceVerbose = LPreferenceStateCurrent.LPreferenceLogVerbose;
         Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
-        LFlyleafLocal.LFlyleafLocalResolverRegister();
+        LFlyleaf.LFlyleafResolverAttach();
         base.OnStartup(e);
-        PFlow.PSectionPalette.PSectionPaletteReload();
-        LPlacementCarry();
+        PFlow.PSectionPalette.PSectionPaletteLoad();
+        LPlacementImport();
 
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;
-        Cadroue.Core.LSchedule.LScheduleRecoverReport = LAppLog.LInfo;
-        LAppLog.LInfo($"Application started: version {LAppVersionRead()}, process {Environment.ProcessId}");
-        LAppLog.LInfo(LFlyleafLocal.LFlyleafLocalActive
+        Cadroue.Core.LSchedule.LScheduleRecoverReport = LTraceLog.LTraceInfoRecord;
+        LTraceLog.LTraceInfoRecord($"Application started: version {PProgramVersionRead()}, process {Environment.ProcessId}");
+        LTraceLog.LTraceInfoRecord(LFlyleaf.LFlyleafActive
             ? "Local Flyleaf preview engine active"
             : "NuGet Flyleaf preview engine active");
         LDepotRootApply();
@@ -81,7 +81,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        LAppLog.LInfo($"Application exiting with code {e.ApplicationExitCode}");
+        LTraceLog.LTraceInfoRecord($"Application exiting with code {e.ApplicationExitCode}");
         LRelayChannel.LRelayChannelStop();
         LTraceWriter.LTraceWriterPersist();
         base.OnExit(e);
@@ -101,8 +101,8 @@ public partial class App : Application
             LRelayStore.LRelayFileClear(lRelayFilePath);
             if (LRelayStartupPayload is { } lRelayPayload)
             {
-                LAppLog.LInfo($"Started to receive a relayed '{lRelayPayload.LayoutKey}' tab");
-                LRelayChannel.LRelayAckSend(lRelayPayload.SenderProcessId, lRelayPayload.RelayId);
+                LTraceLog.LTraceInfoRecord($"Started to receive a relayed '{lRelayPayload.LRelayLayoutKey}' tab");
+                LRelayChannel.LRelayAckSend(lRelayPayload.LRelaySenderProcess, lRelayPayload.LRelayId);
             }
 
             return;
@@ -115,7 +115,7 @@ public partial class App : Application
         lPreferenceState.LPreferenceNormalize();
         foreach (string lPreferenceChange in lPreferenceState.LPreferenceDifferenceRead(LPreferenceStateCurrent))
         {
-            LAppLog.LInfo($"Preference changed — {lPreferenceChange}");
+            LTraceLog.LTraceInfoRecord($"Preference changed — {lPreferenceChange}");
         }
 
         LPreferenceStateCurrent = lPreferenceState;
@@ -129,7 +129,7 @@ public partial class App : Application
         Cadroue.Media.LSidecarStore.LSidecarFolderSet(
             System.IO.Path.Combine(
                 Cadroue.Core.LDepot.LDepotRootRead(),
-                Cadroue.Media.LSidecarStore.LSidecarRecordFolderName),
+                Cadroue.Media.LSidecarStore.LSidecarRecordFolder),
             LPreferenceStateCurrent.LPreferenceRecordWorkspace);
     }
 
@@ -144,25 +144,25 @@ public partial class App : Application
                 return;
             }
 
-            if (lDepotRootApplied is string lDepotPrevious && !LDepotCarry(lDepotPrevious, lDepotRoot))
+            if (lDepotRootApplied is string lDepotPrevious && !LDepotFolderMove(lDepotPrevious, lDepotRoot))
             {
                 Cadroue.Core.LDepot.LDepotRootSet(lDepotPrevious);
                 return;
             }
 
-            Cadroue.Core.LDepotIndex.LDepotIndexEnsure();
+            Cadroue.Core.LDepotIndex.LDepotIndexCreate();
             lDepotRootApplied = lDepotRoot;
             LSidecarFolderApply();
-            LAppLog.LInfo($"Workspace at {lDepotRoot}");
+            LTraceLog.LTraceInfoRecord($"Workspace at {lDepotRoot}");
         }
         catch (Exception lException)
         {
             lDepotRootApplied = null;
-            LAppLog.LError("Workspace folder could not be prepared", lException);
+            LTraceLog.LTraceErrorRecord("Workspace folder could not be prepared", lException);
         }
     }
 
-    private static void LPlacementCarry()
+    private static void LPlacementImport()
     {
         try
         {
@@ -174,16 +174,16 @@ public partial class App : Application
 
             using var lPreferenceDocument = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(lPreferencePath));
             System.Text.Json.JsonElement lPreferenceRoot = lPreferenceDocument.RootElement;
-            LPlacementCarryOne(lPreferenceRoot, "Encoder", PPanels.PSEncoder.PSEncoderPlacementKey);
-            LPlacementCarryOne(lPreferenceRoot, "Options", PSOptions.PSOptionsPlacementKey);
+            LPlacementEntryImport(lPreferenceRoot, "Encoder", PPanels.PSEncoder.PSEncoderPlacementKey);
+            LPlacementEntryImport(lPreferenceRoot, "Options", PSOptions.PSOptionsPlacementKey);
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Subwindow placement could not be carried from preferences", lException);
+            LTraceLog.LTraceErrorRecord("Subwindow placement could not be carried from preferences", lException);
         }
     }
 
-    private static void LPlacementCarryOne(System.Text.Json.JsonElement lPreferenceRoot, string lPrefix, string lPlacementKey)
+    private static void LPlacementEntryImport(System.Text.Json.JsonElement lPreferenceRoot, string lPrefix, string lPlacementKey)
     {
         if (Cadroue.Core.LPlacement.LPlacementExist(lPlacementKey)
             || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Left", out System.Text.Json.JsonElement lLeft)
@@ -198,7 +198,7 @@ public partial class App : Application
 
         Cadroue.Core.LPlacement.LPlacementSave(
             lPlacementKey, lLeft.GetDouble(), lTop.GetDouble(), lWidth.GetDouble(), lHeight.GetDouble());
-        LAppLog.LInfo($"Subwindow placement carried from preferences: {lPlacementKey}");
+        LTraceLog.LTraceInfoRecord($"Subwindow placement carried from preferences: {lPlacementKey}");
     }
 
     private static void LScheduleRecoverRun()
@@ -208,12 +208,12 @@ public partial class App : Application
             int lScheduleRecovered = Cadroue.Core.LSchedule.LScheduleCurrent.LScheduleStaleClaim();
             if (lScheduleRecovered > 0)
             {
-                LAppLog.LInfo($"Worklist recovery: {lScheduleRecovered} interrupted job(s) resolved at startup");
+                LTraceLog.LTraceInfoRecord($"Worklist recovery: {lScheduleRecovered} interrupted job(s) resolved at startup");
             }
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Worklist recovery failed at startup", lException);
+            LTraceLog.LTraceErrorRecord("Worklist recovery failed at startup", lException);
         }
     }
 
@@ -221,11 +221,11 @@ public partial class App : Application
     {
         if (lRunnerException is null)
         {
-            LAppLog.LInfo(lRunnerMessage);
+            LTraceLog.LTraceInfoRecord(lRunnerMessage);
             return;
         }
 
-        LAppLog.LError(lRunnerMessage, lRunnerException);
+        LTraceLog.LTraceErrorRecord(lRunnerMessage, lRunnerException);
     }
 
     private static void LRunnerFfmpegHandle(string lRunnerSummary, string? lRunnerDetail)
@@ -233,26 +233,26 @@ public partial class App : Application
         LTrace.LTraceRecord(LTraceKind.LTraceFfmpeg, lRunnerSummary, lRunnerDetail);
     }
 
-    private static string LAppVersionRead() =>
+    private static string PProgramVersionRead() =>
         System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
 
-    private static bool LDepotCarry(string lDepotPrevious, string lDepotNext)
+    private static bool LDepotFolderMove(string lDepotPrevious, string lDepotNext)
     {
         try
         {
             if (Cadroue.Core.LDepot.LDepotRunningCheck(lDepotPrevious))
             {
-                LAppLog.LError($"Workspace kept at {lDepotPrevious}: a job is running, so nothing was moved");
+                LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: a job is running, so nothing was moved");
                 return false;
             }
 
             Cadroue.Core.LDepot.LDepotMove(lDepotPrevious, lDepotNext);
-            LAppLog.LInfo($"Workspace moved from {lDepotPrevious}");
+            LTraceLog.LTraceInfoRecord($"Workspace moved from {lDepotPrevious}");
             return true;
         }
         catch (Exception lException)
         {
-            LAppLog.LError($"Workspace kept at {lDepotPrevious}: the move failed", lException);
+            LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: the move failed", lException);
             return false;
         }
     }
@@ -266,7 +266,7 @@ public partial class App : Application
         }
 
         LPreferenceStateCurrent = LPreferenceStateCurrent.LPreferenceVolumeChange(lVolume);
-        LPreferenceSchedule();
+        LPreferenceDefer();
     }
 
     public static void LPreferenceMediaSet(string? lPreferenceMediaPath)
@@ -280,23 +280,23 @@ public partial class App : Application
         LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
         lPreferenceNext.LPreferenceMediaPath = lMediaPath;
         LPreferenceStateCurrent = lPreferenceNext;
-        LPreferenceSchedule();
+        LPreferenceDefer();
     }
 
-    public static void LPreferenceAutoResumeSet(bool lPreferenceAutoResume)
+    public static void LPreferenceAutoSet(bool lPreferenceAutoResume)
     {
-        if (lPreferenceAutoResume == LPreferenceStateCurrent.LPreferenceAutoResume)
+        if (lPreferenceAutoResume == LPreferenceStateCurrent.LPreferenceAutoActive)
         {
             return;
         }
 
         LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
-        lPreferenceNext.LPreferenceAutoResume = lPreferenceAutoResume;
+        lPreferenceNext.LPreferenceAutoActive = lPreferenceAutoResume;
         LPreferenceStateCurrent = lPreferenceNext;
-        LPreferenceSchedule();
+        LPreferenceDefer();
     }
 
-    private static void LPreferenceSchedule()
+    private static void LPreferenceDefer()
     {
         lPreferenceSaveTimer ??= LPreferenceTimerCreate();
         lPreferenceSaveTimer.Stop();
@@ -329,9 +329,9 @@ public partial class App : Application
             {
                 lRendererEngineConfig.FFmpegPath = LPreferenceStateCurrent.LPreferenceFfmpegFolder;
             }
-            else if (LRendererSettingsCurrent.LRendererFfmpegLibraryFolderCustomReady)
+            else if (LRendererSettingsCurrent.LRendererLibraryReady)
             {
-                lRendererEngineConfig.FFmpegPath = LRendererSettingsCurrent.LRendererFfmpegLibraryFolder;
+                lRendererEngineConfig.FFmpegPath = LRendererSettingsCurrent.LRendererLibraryFolder;
             }
             else
             {
@@ -342,13 +342,13 @@ public partial class App : Application
                 }
             }
 
-            LAppLog.LInfo(LFlyleafLocal.LFlyleafLocalLoadedReportRead(typeof(Engine).Assembly));
+            LTraceLog.LTraceInfoRecord(LFlyleaf.LFlyleafReportRead(typeof(Engine).Assembly));
             Engine.Start(lRendererEngineConfig);
             LTrace.LTraceVerboseCallback = LRendererVerboseApply;
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Renderer startup failed", lException);
+            LTraceLog.LTraceErrorRecord("Renderer startup failed", lException);
         }
     }
 
@@ -361,7 +361,7 @@ public partial class App : Application
             return;
         }
 
-        string lRendererLogFolder = LFlyleafLocal.LFlyleafLocalRootRead();
+        string lRendererLogFolder = LFlyleaf.LFlyleafRootRead();
         System.IO.Directory.CreateDirectory(lRendererLogFolder);
         lRendererConfig.LogLevel = LogLevel.Debug;
         lRendererConfig.LogOutput = System.IO.Path.Combine(lRendererLogFolder, "flyleaf-debug.log");
@@ -375,7 +375,7 @@ public partial class App : Application
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Renderer log switch failed", lException);
+            LTraceLog.LTraceErrorRecord("Renderer log switch failed", lException);
         }
     }
 }

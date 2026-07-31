@@ -24,7 +24,7 @@ public sealed partial class PViewer : PPanel
     private volatile bool pPlayerRendererPending;
     private Player? pViewerPlayer;
     private LMediaInfo? pViewerMediaInfo;
-    private Point? pViewerCropStartPoint;
+    private Point? pViewerCropPoint;
     private bool pViewerCropArmed;
     private Size? pViewerCropRatio;
     private readonly Path pViewerCropShade;
@@ -35,10 +35,10 @@ public sealed partial class PViewer : PPanel
     private int pViewerEdgeX;
     private int pViewerEdgeY;
     private int pViewerLoadSerial;
-    private double pViewerVolume = App.LPreferenceStateCurrent.LPreferenceVolume;
-    private bool pViewerAudioOnlyAllowed;
+    private double pViewerVolume = PProgram.LPreferenceStateCurrent.LPreferenceVolume;
+    private bool pViewerAudioAllowed;
     private bool pViewerCommandActive;
-    private bool pViewerResumeAfterInactive;
+    private bool pViewerResumeInactive;
     private bool pViewerUnloaded;
 
     public event Action<LMediaOpenStatus>? PViewerMediaChange;
@@ -82,7 +82,7 @@ public sealed partial class PViewer : PPanel
         pViewerOverlay.Children.Add(pViewerCropShade);
         pViewerOverlay.Children.Add(pViewerCropBox);
         PCropHandlesBuild();
-        pViewerCropBox.MouseLeftButtonDown += PCropMovePressHandle;
+        pViewerCropBox.MouseLeftButtonDown += PCropBodyHandle;
         pViewerOverlay.MouseLeftButtonDown += PCropPressHandle;
         pViewerOverlay.MouseMove += PCropMoveHandle;
         pViewerOverlay.MouseLeftButtonUp += PCropReleaseHandle;
@@ -110,7 +110,7 @@ public sealed partial class PViewer : PPanel
             SnapsToDevicePixels = true
         };
 
-        pViewerCloseButton = PViewerCloseButtonBuild();
+        pViewerCloseButton = PViewerCloseBuild();
 
         var pViewerRoot = new Grid();
         pViewerRoot.Children.Add(pViewerSurface);
@@ -121,10 +121,10 @@ public sealed partial class PViewer : PPanel
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
-        PViewerHostWatch();
+        PViewerHostAttach();
     }
 
-    private Button PViewerCloseButtonBuild()
+    private Button PViewerCloseBuild()
     {
         var pButton = new Button
         {
@@ -162,7 +162,7 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
-        pViewerResumeAfterInactive = false;
+        pViewerResumeInactive = false;
         pViewerPlayer.Play();
         PViewerPlaybackUpdate(true, PPlayerTimeRead(pViewerPlayer));
         pViewerClockTimer.Start();
@@ -175,7 +175,7 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
-        pViewerResumeAfterInactive = false;
+        pViewerResumeInactive = false;
         pViewerPlayer.Pause();
         PViewerPlaybackUpdate(false, PPlayerTimeRead(pViewerPlayer));
         pViewerClockTimer.Stop();
@@ -196,8 +196,8 @@ public sealed partial class PViewer : PPanel
     {
         if (!pViewerCommandActive) return;
         pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
-        if (App.LPreferenceStateCurrent.LPreferenceVolumeUnified)
-            App.LPreferenceVolumeSet(pViewerVolume);
+        if (PProgram.LPreferenceStateCurrent.LPreferenceVolumeUnified)
+            PProgram.LPreferenceVolumeSet(pViewerVolume);
         if (pViewerPlayer is null)
         {
             return;
@@ -208,7 +208,7 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerAudioSet(bool pAudioOnlyAllowed)
     {
-        pViewerAudioOnlyAllowed = pAudioOnlyAllowed;
+        pViewerAudioAllowed = pAudioOnlyAllowed;
     }
 
     public void PViewerCommandSet(bool pCommandActive)
@@ -249,7 +249,7 @@ public sealed partial class PViewer : PPanel
             sourcePath = pResolvedPath;
         }
 
-        App.LPreferenceMediaSet(sourcePath);
+        PProgram.LPreferenceMediaSet(sourcePath);
         _ = PPlayerVideoLoad(sourcePath);
     }
 
@@ -282,15 +282,15 @@ public sealed partial class PViewer : PPanel
             return pResult.LSidecarResultPath;
         }
 
-        return PViewerSidecarLocate(pSidecar);
+        return PViewerSidecarFind(pSidecar);
     }
 
-    private string? PViewerSidecarLocate(LSidecar pSidecar)
+    private string? PViewerSidecarFind(LSidecar pSidecar)
     {
         var pDialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = LLocalization.LLocalizationFormat("Viewer.Locate.Title", pSidecar.Source.FileName),
-            FileName = pSidecar.Source.FileName,
+            Title = LLocalization.LLocalizationFormat("Viewer.Locate.Title", pSidecar.LSidecarSource.LSidecarFileName),
+            FileName = pSidecar.LSidecarSource.LSidecarFileName,
             Filter = LLocalization.LLocalizationTextRead("Viewer.Dialog.MediaFilter")
         };
 
@@ -299,7 +299,7 @@ public sealed partial class PViewer : PPanel
             return null;
         }
 
-        if (LSidecarSource.LSidecarVerifyCheck(pDialog.FileName, pSidecar.Source))
+        if (LSidecarSource.LSidecarVerifyCheck(pDialog.FileName, pSidecar.LSidecarSource))
         {
             return pDialog.FileName;
         }
@@ -316,13 +316,13 @@ public sealed partial class PViewer : PPanel
     private void PViewerPreviewApply()
     {
         LPreview.LPreviewApply(pViewerPlayer, LPreviewStateCurrent);
-        PPlayerColorDiagnosticRecord(pViewerPlayer);
+        PPlayerColorRecord(pViewerPlayer);
     }
 
     private void PViewerPreviewRestore()
     {
         LRotateFlip pViewerRotate = LPreviewStateCurrent.LRotateFlip;
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Viewer preview restored: rotate {pViewerRotate.LRotateKind}, "
             + $"H {pViewerRotate.LRotateFlipHorizontal}, V {pViewerRotate.LRotateFlipVertical}");
         LPreview.LPreviewRestore(pViewerPlayer, LPreviewStateCurrent);
@@ -334,7 +334,7 @@ public sealed partial class PViewer : PPanel
     {
         bool pRotateChanged = LPreviewStateCurrent.LRotateFlip.LRotateKind != pRotateFlip.LRotateKind;
         LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(pRotateFlip);
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Viewer rotate/flip set: rotate {pRotateFlip.LRotateKind}, "
             + $"H {pRotateFlip.LRotateFlipHorizontal}, V {pRotateFlip.LRotateFlipVertical}, "
             + $"player {(pViewerPlayer is null ? "none" : "ready")}, "
@@ -357,7 +357,7 @@ public sealed partial class PViewer : PPanel
     }
 }
 
-public enum LMediaOpenStatusKind
+public enum LMediaStatusKind
 {
     LMediaOpenStatusProcessablePreviewAvailable,
     LMediaOpenStatusProcessablePreviewUnavailable,
@@ -373,20 +373,20 @@ public sealed record LMediaOpenStatus(
     string? LMediaOpenFfmpegError,
     string? LMediaOpenPreviewError)
 {
-    public LMediaOpenStatusKind LMediaOpenStatusKind =>
+    public LMediaStatusKind LMediaStatusKind =>
         LMediaOpenFfmpegProcessable && LMediaOpenPreviewAvailable
-            ? LMediaOpenStatusKind.LMediaOpenStatusProcessablePreviewAvailable
+            ? LMediaStatusKind.LMediaOpenStatusProcessablePreviewAvailable
             : LMediaOpenFfmpegProcessable
-                ? LMediaOpenStatusKind.LMediaOpenStatusProcessablePreviewUnavailable
+                ? LMediaStatusKind.LMediaOpenStatusProcessablePreviewUnavailable
                 : LMediaOpenPreviewAvailable
-                    ? LMediaOpenStatusKind.LMediaOpenStatusUnprocessablePreviewAvailable
-                    : LMediaOpenStatusKind.LMediaOpenStatusUnprocessablePreviewUnavailable;
+                    ? LMediaStatusKind.LMediaOpenStatusUnprocessablePreviewAvailable
+                    : LMediaStatusKind.LMediaOpenStatusUnprocessablePreviewUnavailable;
 
-    public string LMediaOpenStatusText => LMediaOpenStatusKind switch
+    public string LMediaStatusText => LMediaStatusKind switch
     {
-        LMediaOpenStatusKind.LMediaOpenStatusProcessablePreviewAvailable => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableAvailable"),
-        LMediaOpenStatusKind.LMediaOpenStatusProcessablePreviewUnavailable => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableUnavailable"),
-        LMediaOpenStatusKind.LMediaOpenStatusUnprocessablePreviewAvailable => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableAvailable"),
+        LMediaStatusKind.LMediaOpenStatusProcessablePreviewAvailable => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableAvailable"),
+        LMediaStatusKind.LMediaOpenStatusProcessablePreviewUnavailable => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableUnavailable"),
+        LMediaStatusKind.LMediaOpenStatusUnprocessablePreviewAvailable => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableAvailable"),
         _ => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableUnavailable")
     };
 }

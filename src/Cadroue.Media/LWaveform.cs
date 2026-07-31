@@ -14,22 +14,22 @@ public static class LWaveform
     {
         return new LSidecarWaveformRecord
         {
-            BucketMilliseconds = LWaveformBucketMilliseconds,
-            DurationMilliseconds = (long)Math.Round(lWaveformDuration.TotalMilliseconds),
-            Peaks = Convert.ToBase64String(lWaveformPeaks.ToArray())
+            LSidecarBucketMilliseconds = LWaveformBucketMilliseconds,
+            LSidecarDurationMilliseconds = (long)Math.Round(lWaveformDuration.TotalMilliseconds),
+            LSidecarPeaks = Convert.ToBase64String(lWaveformPeaks.ToArray())
         };
     }
 
     public static byte[] LWaveformPeaksRead(LSidecarWaveformRecord? lWaveformRecord)
     {
-        if (lWaveformRecord is null || string.IsNullOrWhiteSpace(lWaveformRecord.Peaks))
+        if (lWaveformRecord is null || string.IsNullOrWhiteSpace(lWaveformRecord.LSidecarPeaks))
         {
             return Array.Empty<byte>();
         }
 
         try
         {
-            return Convert.FromBase64String(lWaveformRecord.Peaks);
+            return Convert.FromBase64String(lWaveformRecord.LSidecarPeaks);
         }
         catch (FormatException)
         {
@@ -40,14 +40,14 @@ public static class LWaveform
     public static bool LWaveformRecordMatch(LSidecarWaveformRecord? lWaveformRecord, TimeSpan lWaveformDuration)
     {
         if (lWaveformRecord is null
-            || lWaveformRecord.BucketMilliseconds != LWaveformBucketMilliseconds
-            || lWaveformRecord.Peaks.Length == 0)
+            || lWaveformRecord.LSidecarBucketMilliseconds != LWaveformBucketMilliseconds
+            || lWaveformRecord.LSidecarPeaks.Length == 0)
         {
             return false;
         }
 
         long lWaveformExpected = (long)Math.Round(lWaveformDuration.TotalMilliseconds);
-        return Math.Abs(lWaveformRecord.DurationMilliseconds - lWaveformExpected) <= LWaveformBucketMilliseconds;
+        return Math.Abs(lWaveformRecord.LSidecarDurationMilliseconds - lWaveformExpected) <= LWaveformBucketMilliseconds;
     }
 
     public static double[] LWaveformRangeRead(

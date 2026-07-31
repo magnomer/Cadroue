@@ -43,12 +43,12 @@ public sealed record LWorkAudioStep(
     double LWorkAudioStepAdaptivity,
     double LWorkAudioStepResidualFloor)
 {
-    public static LWorkAudioStep LWorkAudioVolumeCreate(bool lStepActive, double lStepGain) =>
+    public static LWorkAudioStep LWorkVolumeCreate(bool lStepActive, double lStepGain) =>
         new(LWorkAudioKind.LWorkAudioKindVolume, lStepActive, lStepGain,
             LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -16, -1.5, 11, false, 12, -50, false, 0, 1, 2, 0.707,
             LWorkAudioNoiseType.LWorkAudioNoiseWhite, 0, 0.5, -38);
 
-    public static LWorkAudioStep LWorkAudioNormalizeCreate(
+    public static LWorkAudioStep LWorkNormalizeCreate(
         bool lStepActive,
         LWorkAudioNormalizeMode lStepMode,
         double lStepTarget,
@@ -58,7 +58,7 @@ public sealed record LWorkAudioStep(
         new(LWorkAudioKind.LWorkAudioKindNormalize, lStepActive, 0, lStepMode, lStepTarget, lStepPeak, lStepRange, lStepTwoPass, 12, -50, false, 0, 1, 2, 0.707,
             LWorkAudioNoiseType.LWorkAudioNoiseWhite, 0, 0.5, -38);
 
-    public static LWorkAudioStep LWorkAudioNoiseCreate(
+    public static LWorkAudioStep LWorkNoiseCreate(
         bool lStepActive,
         double lStepReduction,
         double lStepNoiseFloor,
@@ -72,21 +72,21 @@ public sealed record LWorkAudioStep(
             lStepReduction, lStepNoiseFloor, lStepTrackNoise, 0, 1, 2, 0.707,
             lStepNoiseType, lStepGainSmooth, lStepAdaptivity, lStepResidualFloor);
 
-    public static LWorkAudioStep LWorkAudioHighPassCreate(
+    public static LWorkAudioStep LWorkHighCreate(
         bool lStepActive, double lStepFrequency, int lStepStages, int lStepPoles, double lStepResonance) =>
         new(LWorkAudioKind.LWorkAudioKindHighPass, lStepActive, 0,
             LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -16, -1.5, 11, false, 12, -50, false,
             lStepFrequency, lStepStages, lStepPoles, lStepResonance,
             LWorkAudioNoiseType.LWorkAudioNoiseWhite, 0, 0.5, -38);
 
-    public static LWorkAudioStep LWorkAudioLowPassCreate(
+    public static LWorkAudioStep LWorkLowCreate(
         bool lStepActive, double lStepFrequency, int lStepStages, int lStepPoles, double lStepResonance) =>
         new(LWorkAudioKind.LWorkAudioKindLowPass, lStepActive, 0,
             LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -16, -1.5, 11, false, 12, -50, false,
             lStepFrequency, lStepStages, lStepPoles, lStepResonance,
             LWorkAudioNoiseType.LWorkAudioNoiseWhite, 0, 0.5, -38);
 
-    public bool LWorkAudioStepTwoPassLoudness =>
+    public bool LWorkStepLoudness =>
         LWorkAudioStepKind == LWorkAudioKind.LWorkAudioKindNormalize
         && LWorkAudioStepActive
         && LWorkAudioStepTwoPass
@@ -95,7 +95,7 @@ public sealed record LWorkAudioStep(
 
 public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
 {
-    public static LWorkAudio LWorkAudioNoneCreate() => new(Array.Empty<LWorkAudioStep>());
+    public static LWorkAudio LWorkAudioCreate() => new(Array.Empty<LWorkAudioStep>());
 
     public bool LWorkAudioActive => LWorkAudioSteps.Any(lStep => lStep.LWorkAudioStepActive);
 }

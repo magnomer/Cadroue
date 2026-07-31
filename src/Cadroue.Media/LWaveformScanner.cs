@@ -4,14 +4,14 @@ namespace Cadroue.Media;
 
 public static class LWaveformScanner
 {
-    private const int LWaveformReadBufferBytes = 1 << 16;
+    private const int LWaveformBufferBytes = 1 << 16;
 
-    private const int LWaveformBucketCountLimit = 4_000_000;
+    private const int LWaveformBucketLimit = 4_000_000;
 
     public static byte[] LWaveformScan(
         string lWaveformSourcePath,
         TimeSpan lWaveformDuration,
-        CancellationToken lWaveformCancel = default)
+        CancellationToken lWaveformCancelSource = default)
     {
         if (string.IsNullOrWhiteSpace(lWaveformSourcePath)
             || !File.Exists(lWaveformSourcePath)
@@ -20,12 +20,12 @@ public static class LWaveformScanner
             return Array.Empty<byte>();
         }
 
-        lWaveformCancel.ThrowIfCancellationRequested();
+        lWaveformCancelSource.ThrowIfCancellationRequested();
 
         int lWaveformBucketSamples = LWaveform.LWaveformSampleRate * LWaveform.LWaveformBucketMilliseconds / 1000;
         long lWaveformBucketExpected = (long)Math.Ceiling(
             lWaveformDuration.TotalMilliseconds / LWaveform.LWaveformBucketMilliseconds);
-        if (lWaveformBucketExpected <= 0 || lWaveformBucketExpected > LWaveformBucketCountLimit)
+        if (lWaveformBucketExpected <= 0 || lWaveformBucketExpected > LWaveformBucketLimit)
         {
             return Array.Empty<byte>();
         }
@@ -53,14 +53,14 @@ public static class LWaveformScanner
                 return Array.Empty<byte>();
             }
 
-            using var lWaveformKill = lWaveformCancel.Register(
+            using var lWaveformKill = lWaveformCancelSource.Register(
                 static lProcess => { try { ((Process)lProcess!).Kill(); } catch { } }, lWaveformProcess);
 
             LWaveformStreamRead(
                 lWaveformProcess.StandardOutput.BaseStream,
                 lWaveformBucketSamples,
                 lWaveformPeaks,
-                lWaveformCancel);
+                lWaveformCancelSource);
             lWaveformProcess.WaitForExit();
         }
         catch (OperationCanceledException)
@@ -69,7 +69,7 @@ public static class LWaveformScanner
         }
         catch
         {
-            lWaveformCancel.ThrowIfCancellationRequested();
+            lWaveformCancelSource.ThrowIfCancellationRequested();
             return Array.Empty<byte>();
         }
         finally
@@ -82,7 +82,7 @@ public static class LWaveformScanner
             lWaveformProcess?.Dispose();
         }
 
-        lWaveformCancel.ThrowIfCancellationRequested();
+        lWaveformCancelSource.ThrowIfCancellationRequested();
         return lWaveformPeaks.Count == 0 ? Array.Empty<byte>() : lWaveformPeaks.ToArray();
     }
 
@@ -90,9 +90,9 @@ public static class LWaveformScanner
         Stream lWaveformStream,
         int lWaveformBucketSamples,
         List<byte> lWaveformPeaks,
-        CancellationToken lWaveformCancel)
+        CancellationToken lWaveformCancelSource)
     {
-        byte[] lWaveformBuffer = new byte[LWaveformReadBufferBytes];
+        byte[] lWaveformBuffer = new byte[LWaveformBufferBytes];
         int lWaveformCarry = -1;
         int lWaveformSampleCount = 0;
         int lWaveformBucketPeak = 0;
@@ -100,7 +100,7 @@ public static class LWaveformScanner
 
         while ((lWaveformRead = lWaveformStream.Read(lWaveformBuffer, 0, lWaveformBuffer.Length)) > 0)
         {
-            lWaveformCancel.ThrowIfCancellationRequested();
+            lWaveformCancelSource.ThrowIfCancellationRequested();
             int lWaveformOffset = 0;
             if (lWaveformCarry >= 0)
             {

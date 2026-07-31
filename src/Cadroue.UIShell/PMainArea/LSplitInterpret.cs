@@ -14,13 +14,13 @@ public static partial class LSplit
         string? lSplitSourcePath = lSplitWorkDescription.LSplitSourcePath;
         if (string.IsNullOrWhiteSpace(lSplitSourcePath))
         {
-            LAppLog.LError("Split not queued: no source file is open");
+            LTraceLog.LTraceErrorRecord("Split not queued: no source file is open");
             return 0;
         }
 
         if (lSplitWorkDescription.LSplitSections.Count == 0)
         {
-            LAppLog.LError($"Split not queued for '{Path.GetFileName(lSplitSourcePath)}': no sections have been cut");
+            LTraceLog.LTraceErrorRecord($"Split not queued for '{Path.GetFileName(lSplitSourcePath)}': no sections have been cut");
             return 0;
         }
 
@@ -73,23 +73,23 @@ public static partial class LSplit
         int lSplitSkipped = lSplitWorkDescription.LSplitSections.Count - lSplitWorkItems.Count - lSplitHidden;
         if (lSplitSkipped > 0)
         {
-            LAppLog.LError($"Split skipped {lSplitSkipped} section(s) of '{Path.GetFileName(lSplitSourcePath)}': empty or reversed range");
+            LTraceLog.LTraceErrorRecord($"Split skipped {lSplitSkipped} section(s) of '{Path.GetFileName(lSplitSourcePath)}': empty or reversed range");
         }
 
         if (lSplitHidden > 0)
         {
-            LAppLog.LInfo($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
+            LTraceLog.LTraceInfoRecord($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
         }
 
         int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems, lSplitRelayTarget);
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Split queued {lSplitAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +
             $"into '{lSplitFolder}' [batch {lSplitBatchId:N}]");
         foreach (LWorkItem lSplitItem in lSplitWorkItems)
         {
-            LAppLog.LInfo(
+            LTraceLog.LTraceInfoRecord(
                 $"Split job '{lSplitItem.LWorkOutputName}': " +
-                $"{lSplitItem.LWorkStart:hh\\:mm\\:ss\\.fff} to {lSplitItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
+                $"{lSplitItem.LWorkOrigin:hh\\:mm\\:ss\\.fff} to {lSplitItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
                 $"({lSplitItem.LWorkDuration:hh\\:mm\\:ss\\.fff})");
         }
 
@@ -132,7 +132,7 @@ public static partial class LSplit
             lSplitStem = $"{lSplitStem}_{lSplitResolvedSectionName}";
         }
 
-        string lSplitBaseName = LSplitNameSanitize(lSplitStem);
+        string lSplitBaseName = LSplitNameNormalize(lSplitStem);
         string lSplitUniqueName = lSplitBaseName;
         int lSplitAttempt = 2;
         while (!lSplitTakenNames.Add(lSplitUniqueName))
@@ -147,7 +147,7 @@ public static partial class LSplit
             : $"{lSplitUniqueName}.{lSplitExtension}";
     }
 
-    private static string LSplitNameSanitize(string lSplitName)
+    private static string LSplitNameNormalize(string lSplitName)
     {
         char[] lSplitInvalidChars = Path.GetInvalidFileNameChars();
         var lSplitBuilder = new System.Text.StringBuilder(lSplitName.Length);

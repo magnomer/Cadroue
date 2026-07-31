@@ -5,7 +5,7 @@ namespace Cadroue.Media;
 
 public static class LKeyframeSeeker
 {
-    private const double LKeyframeScanEndTolerance = 1d;
+    private const double LKeyframeScanTolerance = 1d;
     private const double LKeyframeRangeTolerance = 0.001d;
 
     public static IReadOnlyList<LKeyframeEntry> LKeyframeRangeScan(
@@ -24,7 +24,7 @@ public static class LKeyframeSeeker
         cancellationToken.ThrowIfCancellationRequested();
 
         double startSeconds = normalizedStart.TotalSeconds;
-        double scanDuration = (scanEndTime - normalizedStart).TotalSeconds + LKeyframeScanEndTolerance;
+        double scanDuration = (scanEndTime - normalizedStart).TotalSeconds + LKeyframeScanTolerance;
         string readIntervals = FormattableString.Invariant($"{startSeconds:F3}%+{scanDuration:F3}");
 
         var psi = new ProcessStartInfo("ffprobe")

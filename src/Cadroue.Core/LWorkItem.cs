@@ -27,16 +27,16 @@ public sealed class LWorkItem : INotifyPropertyChanged
         LWorkAudio? lWorkAudio = null,
         IReadOnlyList<string>? lWorkMergeSources = null)
     {
-        LWorkCrop = lWorkCrop ?? LWorkCrop.LWorkCropNoneCreate();
-        LWorkVideo = lWorkVideo ?? LWorkVideo.LWorkVideoNoneCreate();
-        LWorkAudio = lWorkAudio ?? LWorkAudio.LWorkAudioNoneCreate();
+        LWorkCrop = lWorkCrop ?? LWorkCrop.LWorkCropCreate();
+        LWorkVideo = lWorkVideo ?? LWorkVideo.LWorkVideoCreate();
+        LWorkAudio = lWorkAudio ?? LWorkAudio.LWorkAudioCreate();
         LWorkMergeSources = lWorkMergeSources ?? Array.Empty<string>();
         LWorkId = lWorkId ?? Guid.NewGuid();
         LWorkBatchId = lWorkBatchId;
         LWorkKind = lWorkKind;
         LWorkPriority = lWorkPriority;
         LWorkSourcePath = lWorkSourcePath;
-        LWorkStart = lWorkStart;
+        LWorkOrigin = lWorkStart;
         this.lWorkEnd = lWorkEnd;
         LWorkOutputName = lWorkOutputName;
         LWorkOutputPath = lWorkOutputPath;
@@ -54,7 +54,7 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public string LWorkSourcePath { get; }
 
-    public TimeSpan LWorkStart { get; }
+    public TimeSpan LWorkOrigin { get; }
 
     public TimeSpan LWorkEnd
     {
@@ -72,7 +72,7 @@ public sealed class LWorkItem : INotifyPropertyChanged
         }
     }
 
-    public TimeSpan LWorkDuration => LWorkEnd - LWorkStart;
+    public TimeSpan LWorkDuration => LWorkEnd - LWorkOrigin;
 
     public string LWorkOutputName { get; }
 

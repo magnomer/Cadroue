@@ -44,9 +44,9 @@ internal sealed partial class PSEncoder
             : LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.Copied");
     }
 
-    private static TextBlock PSScopeNoticeBuild() => new()
+    private static TextBlock PSAudioNoticeBuild() => new()
     {
-        Foreground = PMutedBrush,
+        Foreground = PSEncoderMutedBrush,
         TextWrapping = TextWrapping.Wrap,
         Margin = PSNoticeMargin,
         Visibility = Visibility.Collapsed

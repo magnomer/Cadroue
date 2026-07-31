@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,7 +13,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
-    private const string PRosterOpenIconPath = "/PAssets/PPanels/PRosterOpen.svg";
+    private const string PRosterOpenIcon = "/PAssets/PPanels/PRosterOpen.svg";
 
     private static readonly Dictionary<string, LWorkMedia?> pRosterMediaCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> pRosterMediaPending = new(StringComparer.OrdinalIgnoreCase);
@@ -100,7 +100,7 @@ public sealed partial class PRoster
         PRosterPathAdd(LLocalization.LLocalizationTextRead("Roster.Field.Location"), pWorkItem.LWorkSourcePath);
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.ResolutionFps"), PRosterMediaFormat(pSourceInfo, pWorkItem.LWorkSourcePath));
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Keyframe"), PRosterKeyframeFormat(pWorkItem.LWorkSourcePath));
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Size"), PRosterSizeFormat(PRosterSourceBytesRead(pWorkItem)));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Size"), PRosterSizeFormat(PRosterSourceRead(pWorkItem)));
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Container"), PRosterContainerFormat(pWorkItem.LWorkSourcePath));
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Duration"), pSourceInfo is null
             ? PRosterPendingFormat(pWorkItem.LWorkSourcePath)
@@ -118,8 +118,8 @@ public sealed partial class PRoster
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.ResolutionFps"), pOutputInfo is not null
             ? PRosterMediaFormat(pOutputInfo, pWorkItem.LWorkOutputPath)
             : $"{pOutput.LWorkOutputVideoSize} / {pOutput.LWorkOutputVideoFps}");
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Keyframe"), PRosterOutputKeyframeFormat(pOutputInfo));
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Size"), PRosterOutputSizeRead(pWorkItem));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Keyframe"), PRosterOutputFormat(pOutputInfo));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Size"), PRosterOutputRead(pWorkItem));
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Container"), pOutput.LWorkOutputContainer);
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Duration"), pOutputInfo is not null
             ? $"{pOutputInfo.LWorkMediaDuration:hh\\:mm\\:ss}"
@@ -138,7 +138,7 @@ public sealed partial class PRoster
 
         PRosterRowAdd(
             PRosterKindFormat(pWorkItem.LWorkKind),
-            $"{pWorkItem.LWorkStart:hh\\:mm\\:ss} - {pWorkItem.LWorkEnd:hh\\:mm\\:ss}  ({pWorkItem.LWorkDuration:hh\\:mm\\:ss})");
+            $"{pWorkItem.LWorkOrigin:hh\\:mm\\:ss} - {pWorkItem.LWorkEnd:hh\\:mm\\:ss}  ({pWorkItem.LWorkDuration:hh\\:mm\\:ss})");
 
         LWorkCrop pCrop = pWorkItem.LWorkCrop;
         if (!pCrop.LWorkCropActive)
@@ -147,7 +147,7 @@ public sealed partial class PRoster
         }
 
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Crop"), string.Empty);
-        if (pCrop.LWorkCropEdgeActive)
+        if (pCrop.LWorkEdgeActive)
         {
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Top"), $"{pCrop.LWorkCropTop} px", 14);
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Bottom"), $"{pCrop.LWorkCropBottom} px", 14);
@@ -277,7 +277,7 @@ public sealed partial class PRoster
             {
                 Width = 12,
                 Height = 12,
-                Source = PIcon.PIconRead(PRosterOpenIconPath, PRosterTheme.PRosterTextBrush),
+                Source = PIcon.PIconRead(PRosterOpenIcon, PRosterTheme.PRosterTextBrush),
                 Stretch = Stretch.Uniform
             },
             Width = 20,
@@ -343,11 +343,11 @@ public sealed partial class PRoster
             return pCached;
         }
 
-        PRosterMediaSchedule(pMediaPath);
+        PRosterMediaDefer(pMediaPath);
         return null;
     }
 
-    private void PRosterMediaSchedule(string pMediaPath)
+    private void PRosterMediaDefer(string pMediaPath)
     {
         if (!pRosterMediaPending.Add(pMediaPath))
         {
@@ -362,15 +362,15 @@ public sealed partial class PRoster
             {
                 LMediaInfo pProbedInfo = LMediaInfo.LMediaFfprobeRead(pMediaPath);
                 pProbed = new LWorkMedia(
-                    pProbedInfo.LMediaInfoVideoWidth,
-                    pProbedInfo.LMediaInfoVideoHeight,
-                    pProbedInfo.LMediaInfoVideoFrameRate,
+                    pProbedInfo.LMediaVideoWidth,
+                    pProbedInfo.LMediaVideoHeight,
+                    pProbedInfo.LMediaVideoRate,
                     (long)Math.Round(pProbedInfo.LMediaInfoDuration.TotalMilliseconds),
-                    pProbedInfo.LMediaInfoVideoPresent);
+                    pProbedInfo.LMediaVideoPresent);
             }
             catch (Exception pProbeError)
             {
-                LAppLog.LError($"Job detail could not read '{Path.GetFileName(pMediaPath)}': {pProbeError.Message}");
+                LTraceLog.LTraceErrorRecord($"Job detail could not read '{Path.GetFileName(pMediaPath)}': {pProbeError.Message}");
             }
 
             Dispatcher.BeginInvoke(new Action(() =>
@@ -407,7 +407,7 @@ public sealed partial class PRoster
         }
         catch (Exception pOpenError)
         {
-            LAppLog.LError($"Could not open '{pPath}': {pOpenError.Message}");
+            LTraceLog.LTraceErrorRecord($"Could not open '{pPath}': {pOpenError.Message}");
         }
     }
 
@@ -443,7 +443,7 @@ public sealed partial class PRoster
 
     private static string PRosterRatioFormat(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
-        if (PRosterCropSizeRead(pWorkItem, pSourceInfo) is not { } pCropSize)
+        if (PRosterCropRead(pWorkItem, pSourceInfo) is not { } pCropSize)
         {
             return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
         }
@@ -454,7 +454,7 @@ public sealed partial class PRoster
 
     private static string PRosterResolutionFormat(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
-        if (PRosterCropSizeRead(pWorkItem, pSourceInfo) is not { } pCropSize)
+        if (PRosterCropRead(pWorkItem, pSourceInfo) is not { } pCropSize)
         {
             return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
         }
@@ -478,7 +478,7 @@ public sealed partial class PRoster
         return $"{pWidth} x {pHeight}";
     }
 
-    private static (int PRosterWidth, int PRosterHeight)? PRosterCropSizeRead(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
+    private static (int PRosterWidth, int PRosterHeight)? PRosterCropRead(LWorkItem pWorkItem, LWorkMedia? pSourceInfo)
     {
         if (pSourceInfo is null || !pSourceInfo.LWorkMediaVideoPresent)
         {

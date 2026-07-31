@@ -12,7 +12,7 @@ public sealed class PSplitTab : PTabSurface
     private readonly PList pList = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PSplitTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PSplitTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;

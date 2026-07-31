@@ -7,7 +7,7 @@ namespace Cadroue.UIShell.PFlow;
 public sealed class LWaveformOrchestrator : IDisposable
 {
     private readonly object lWaveformLock = new();
-    private CancellationTokenSource? lWaveformCancel;
+    private CancellationTokenSource? lWaveformCancelSource;
     private string? lWaveformSourcePath;
     private byte[] lWaveformPeaks = Array.Empty<byte>();
     private bool lWaveformDisposed;
@@ -34,10 +34,10 @@ public sealed class LWaveformOrchestrator : IDisposable
                 return;
             }
 
-            lWaveformCancel?.Cancel();
-            lWaveformCancel?.Dispose();
-            lWaveformCancel = new CancellationTokenSource();
-            lWaveformToken = lWaveformCancel;
+            lWaveformCancelSource?.Cancel();
+            lWaveformCancelSource?.Dispose();
+            lWaveformCancelSource = new CancellationTokenSource();
+            lWaveformToken = lWaveformCancelSource;
             lWaveformSourcePath = lWaveformPath;
             lWaveformPeaks = Array.Empty<byte>();
         }
@@ -59,8 +59,8 @@ public sealed class LWaveformOrchestrator : IDisposable
         CancellationTokenSource? lWaveformPrevious;
         lock (lWaveformLock)
         {
-            lWaveformPrevious = lWaveformCancel;
-            lWaveformCancel = null;
+            lWaveformPrevious = lWaveformCancelSource;
+            lWaveformCancelSource = null;
         }
 
         lWaveformPrevious?.Cancel();
@@ -161,7 +161,7 @@ public sealed class LWaveformOrchestrator : IDisposable
             }
             catch (Exception lWaveformException)
             {
-                LAppLog.LError("Waveform could not be generated", lWaveformException);
+                LTraceLog.LTraceErrorRecord("Waveform could not be generated", lWaveformException);
             }
         }, CancellationToken.None);
     }

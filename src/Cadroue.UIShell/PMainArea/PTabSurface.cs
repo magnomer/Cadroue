@@ -22,7 +22,7 @@ public abstract class PTabSurface : UserControl
 
     public void PTabExportToggle()
     {
-        if (PTabLayoutStateRead() is { } pState)
+        if (PTabStateRead() is { } pState)
         {
             pState.PExportToggle();
             PTabWidthRaise();
@@ -30,7 +30,7 @@ public abstract class PTabSurface : UserControl
     }
 
     public virtual double PTabWidthRead() =>
-        PTabLayoutStateRead() is { } pState ? pState.PTabLayout.PMinimumTotalRead() + PTabWidthPadding : 0;
+        PTabStateRead() is { } pState ? pState.PTabLayout.PColumnTotalRead() + PTabWidthPadding : 0;
 
     protected void PTabWidthRaise() => PTabWidthChange?.Invoke();
 
@@ -69,8 +69,8 @@ public abstract class PTabSurface : UserControl
             ClipToBounds = true,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
-        var pPanelColumns = new List<ColumnDefinition>(pPanels.Count);
-        var pPanelCompactFlags = new List<bool>(pPanels.Count);
+        var pColumnItems = new List<ColumnDefinition>(pPanels.Count);
+        var pColumnCompactFlags = new List<bool>(pPanels.Count);
         var pSplitterElements = new List<UIElement>(Math.Max(0, pPanels.Count - 1));
         var pSplitterColumnDefinitions = new List<ColumnDefinition>(Math.Max(0, pPanels.Count - 1));
         var pSplitterColumns = new List<int>(Math.Max(0, pPanels.Count - 1));
@@ -80,11 +80,11 @@ public abstract class PTabSurface : UserControl
             var pPanelDefinition = new ColumnDefinition
             {
                 Width = new GridLength(1, GridUnitType.Star),
-                MinWidth = PTabPanelMinWidthRead(pPanels[index])
+                MinWidth = PTabPanelRead(pPanels[index])
             };
             pPanelGrid.ColumnDefinitions.Add(pPanelDefinition);
-            pPanelColumns.Add(pPanelDefinition);
-            pPanelCompactFlags.Add(pPanels[index] is PList or PExport or PProcessing or PInspector or PSection);
+            pColumnItems.Add(pPanelDefinition);
+            pColumnCompactFlags.Add(pPanels[index] is PList or PExport or PProcessing or PInspector or PSection);
             Grid.SetColumn(pPanels[index], pPanelColumn);
             pPanelGrid.Children.Add(pPanels[index]);
             if (index >= pPanels.Count - 1)
@@ -108,15 +108,15 @@ public abstract class PTabSurface : UserControl
             }
         }
 
-        var pPanelLayout = PResizableColumnLayout.PAttach(
+        var pPanelLayout = PColumn.PColumnAttach(
             pPanelGrid,
-            pPanelColumns,
-            lPreferenceTabLayout?.PanelWidths,
-            pPanelCompactFlags,
+            pColumnItems,
+            lPreferenceTabLayout?.LPreferencePanelWidths,
+            pColumnCompactFlags,
             pTabViewerIndex);
         for (int index = 0; index < pSplitterColumns.Count; index++)
         {
-            var pSplitter = pPanelLayout.PSplitterBuild(index);
+            var pSplitter = pPanelLayout.PColumnSplitterBuild(index);
             Grid.SetColumn(pSplitter, pSplitterColumns[index]);
             pPanelGrid.Children.Add(pSplitter);
             pSplitterElements.Add(pSplitter);
@@ -124,10 +124,10 @@ public abstract class PTabSurface : UserControl
 
         Grid.SetRow(pPanelGrid, 0);
         pGrid.Children.Add(pPanelGrid);
-        PTabGridState pTabState = PTabGridState.PTabGridStateCreate(
-            pPanelLayout, pPanels, pPanelColumns, pSplitterColumnDefinitions, pSplitterElements);
+        PTabGridState pTabState = PTabGridState.PTabStateCreate(
+            pPanelLayout, pPanels, pColumnItems, pSplitterColumnDefinitions, pSplitterElements);
         pGrid.Tag = pTabState;
-        if (lPreferenceTabLayout?.ExportHidden == true)
+        if (lPreferenceTabLayout?.LPreferenceExportHidden == true)
         {
             pTabState.PExportSet(true);
         }
@@ -137,7 +137,7 @@ public abstract class PTabSurface : UserControl
             PTabCollapseAttach(pPanels[index], index, pPanelLayout, PTabWidthRaise);
         }
 
-        if (lPreferenceTabLayout?.PanelsCollapsed is { } pCollapsedIndexes)
+        if (lPreferenceTabLayout?.LPreferencePanelsCollapsed is { } pCollapsedIndexes)
         {
             foreach (int pCollapsedIndex in pCollapsedIndexes)
             {
@@ -183,24 +183,24 @@ public abstract class PTabSurface : UserControl
             return lPreferenceTabLayout;
         }
 
-        lPreferenceTabLayout.ExportHidden = pState.PExportHidden;
+        lPreferenceTabLayout.LPreferenceExportHidden = pState.PExportHidden;
         for (int index = 0; index < pState.PTabPanels.Count; index++)
         {
             if (PTabCollapseCheck(pState.PTabPanels[index]))
             {
-                lPreferenceTabLayout.PanelsCollapsed.Add(index);
+                lPreferenceTabLayout.LPreferencePanelsCollapsed.Add(index);
             }
         }
 
-        foreach (double pWeight in pState.PTabLayout.PWeightsRead())
+        foreach (double pWeight in pState.PTabLayout.PColumnWeightsRead())
         {
-            lPreferenceTabLayout.PanelWidths.Add(pWeight);
+            lPreferenceTabLayout.LPreferencePanelWidths.Add(pWeight);
         }
 
         return lPreferenceTabLayout;
     }
 
-    private PTabGridState? PTabLayoutStateRead()
+    private PTabGridState? PTabStateRead()
     {
         return Content is Grid pGrid && pGrid.Tag is PTabGridState pState ? pState : null;
     }
@@ -215,7 +215,7 @@ public abstract class PTabSurface : UserControl
         private bool pExportVisible = true;
 
         private PTabGridState(
-            PResizableColumnLayout pTabLayout,
+            PColumn pTabLayout,
             IReadOnlyList<UIElement> pTabPanels,
             int? pExportPanelIndex,
             ColumnDefinition? pExportColumn,
@@ -232,14 +232,14 @@ public abstract class PTabSurface : UserControl
             this.pExportSplitter = pExportSplitter;
         }
 
-        public PResizableColumnLayout PTabLayout { get; }
+        public PColumn PTabLayout { get; }
 
         public IReadOnlyList<UIElement> PTabPanels { get; }
 
-        public static PTabGridState PTabGridStateCreate(
-            PResizableColumnLayout pTabLayout,
+        public static PTabGridState PTabStateCreate(
+            PColumn pTabLayout,
             IReadOnlyList<UIElement> pPanels,
-            IReadOnlyList<ColumnDefinition> pPanelColumns,
+            IReadOnlyList<ColumnDefinition> pColumnItems,
             IReadOnlyList<ColumnDefinition> pSplitterColumns,
             IReadOnlyList<UIElement> pSplitters)
         {
@@ -252,7 +252,7 @@ public abstract class PTabSurface : UserControl
                         pTabLayout,
                         pPanels,
                         index,
-                        pPanelColumns[index],
+                        pColumnItems[index],
                         pPanels[index],
                         pSplitterIndex >= 0 ? pSplitterColumns[pSplitterIndex] : null,
                         pSplitterIndex >= 0 ? pSplitters[pSplitterIndex] : null);
@@ -280,7 +280,7 @@ public abstract class PTabSurface : UserControl
 
             if (pExportHide)
             {
-                PTabLayout.PPanelHide(pExportPanelIndex.Value);
+                PTabLayout.PColumnHide(pExportPanelIndex.Value);
                 pExportPanel.Visibility = Visibility.Collapsed;
                 if (pExportSplitterColumn is not null)
                 {
@@ -294,7 +294,7 @@ public abstract class PTabSurface : UserControl
             }
             else
             {
-                PTabLayout.PPanelShow(pExportPanelIndex.Value);
+                PTabLayout.PColumnShow(pExportPanelIndex.Value);
                 pExportPanel.Visibility = Visibility.Visible;
                 if (pExportSplitterColumn is not null)
                 {
@@ -331,7 +331,7 @@ public abstract class PTabSurface : UserControl
         }
     }
 
-    private static double PTabCollapseWidthRead(UIElement pPanel) => pPanel switch
+    private static double PTabCollapseRead(UIElement pPanel) => pPanel switch
     {
         PList => PList.PListStripWidth,
         PProcessing => PProcessing.PProcessingStripWidth,
@@ -343,10 +343,10 @@ public abstract class PTabSurface : UserControl
     private static void PTabCollapseAttach(
         UIElement pPanel,
         int pPanelIndex,
-        PResizableColumnLayout pPanelLayout,
+        PColumn pPanelLayout,
         Action pCollapseNotify)
     {
-        double pStripWidth = PTabCollapseWidthRead(pPanel);
+        double pStripWidth = PTabCollapseRead(pPanel);
         if (pStripWidth <= 0)
         {
             return;
@@ -354,7 +354,7 @@ public abstract class PTabSurface : UserControl
 
         void pCollapseApply(bool pCollapsed)
         {
-            pPanelLayout.PPanelWidthSet(pPanelIndex, pCollapsed ? pStripWidth : 0);
+            pPanelLayout.PColumnWidthSet(pPanelIndex, pCollapsed ? pStripWidth : 0);
             pCollapseNotify();
         }
 
@@ -367,7 +367,7 @@ public abstract class PTabSurface : UserControl
         }
     }
 
-    private static double PTabPanelMinWidthRead(UIElement pPanel) => pPanel switch
+    private static double PTabPanelRead(UIElement pPanel) => pPanel switch
     {
         FrameworkElement { MinWidth: > 0 } pElement => pElement.MinWidth,
         PExport => 300,

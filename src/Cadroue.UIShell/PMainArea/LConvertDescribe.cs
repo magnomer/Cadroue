@@ -13,7 +13,7 @@ public static partial class LConvert
     public static async Task<int> LConvertDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lConvertSourcePaths,
-        LExportSpecificState lExportSpecificState,
+        LPreset lExportSpecificState,
         Guid lConvertRelayTarget = default)
     {
         LWorkOutput lConvertOutput = lExportSpecificState.LPresetOutputCreate();
@@ -22,14 +22,14 @@ public static partial class LConvert
         IReadOnlyList<LWorkItem> lConvertWorkItems =
             LConvert.LConvertInterpret(lWorkPriority, lConvertWorkDescription);
         int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems, lConvertRelayTarget);
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Convert queued {lConvertAdded} job(s) at {lWorkPriority} from {lConvertSourcePaths.Count} listed file(s)");
 
-        await LConvertDurationFill(lConvertWorkItems).ConfigureAwait(true);
+        await LConvertDurationResolve(lConvertWorkItems).ConfigureAwait(true);
         return lConvertAdded;
     }
 
-    private static Task LConvertDurationFill(IReadOnlyList<LWorkItem> lConvertWorkItems)
+    private static Task LConvertDurationResolve(IReadOnlyList<LWorkItem> lConvertWorkItems)
     {
         LWorkItem[] lConvertUnknown = lConvertWorkItems
             .Where(lWorkItem => lWorkItem.LWorkEnd <= TimeSpan.Zero)

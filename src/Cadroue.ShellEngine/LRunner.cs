@@ -14,7 +14,7 @@ public sealed partial class LRunner
     private readonly ConcurrentDictionary<Guid, int> lRunnerAttempts = new();
     private readonly ConcurrentDictionary<Guid, byte> lRunnerCancelled = new();
 
-    private CancellationTokenSource? lRunnerCancel;
+    private CancellationTokenSource? lRunnerCancelSource;
     private bool lRunnerSuspended;
     private int lRunnerLoopCount;
 
@@ -41,12 +41,12 @@ public sealed partial class LRunner
 
     public static Func<bool>? LRunnerVerboseSource { get; set; }
 
-    private static void LRunnerNote(string lRunnerMessage, Exception? lRunnerException = null)
+    private static void LRunnerRecord(string lRunnerMessage, Exception? lRunnerException = null)
         => LRunnerReport?.Invoke(lRunnerMessage, lRunnerException);
 
     private static bool LRunnerVerboseCheck() => LRunnerVerboseSource?.Invoke() ?? false;
 
-    private static void LRunnerFfmpegNote(string lRunnerSummary, string? lRunnerDetail = null)
+    private static void LRunnerFfmpegRecord(string lRunnerSummary, string? lRunnerDetail = null)
         => LRunnerFfmpegReport?.Invoke(lRunnerSummary, lRunnerDetail);
 
     public bool LRunnerSuspended => lRunnerSuspended;
@@ -100,7 +100,7 @@ public sealed partial class LRunner
     public void LRunnerCancel()
     {
         LRunnerRunning = false;
-        lRunnerCancel?.Cancel();
+        lRunnerCancelSource?.Cancel();
 
         if (lRunnerSuspended)
         {
@@ -151,8 +151,8 @@ public sealed partial class LRunner
     private void LRunnerLoopStart()
     {
         int lRunnerWanted = Math.Max(1, LRunnerParallelMaximum);
-        lRunnerCancel ??= new CancellationTokenSource();
-        CancellationToken lRunnerToken = lRunnerCancel.Token;
+        lRunnerCancelSource ??= new CancellationTokenSource();
+        CancellationToken lRunnerToken = lRunnerCancelSource.Token;
 
         while (Volatile.Read(ref lRunnerLoopCount) < lRunnerWanted)
         {
@@ -168,7 +168,7 @@ public sealed partial class LRunner
             while (!lRunnerToken.IsCancellationRequested && LRunnerRunning)
             {
                 LWorkItem? pNext = null;
-                LRunnerInvoke(() => pNext = lRunnerSchedule.LScheduleClaim(lRunnerId));
+                LRunnerDispatch(() => pNext = lRunnerSchedule.LScheduleClaim(lRunnerId));
                 if (pNext is null)
                 {
                     break;
@@ -181,9 +181,9 @@ public sealed partial class LRunner
         {
             if (Interlocked.Decrement(ref lRunnerLoopCount) == 0)
             {
-                lRunnerCancel = null;
+                lRunnerCancelSource = null;
                 LRunnerLeaseClear();
-                LRunnerInvoke(() =>
+                LRunnerDispatch(() =>
                 {
                     if (!lRunnerSchedule.LSchedulePendingExist())
                     {
@@ -200,7 +200,7 @@ public sealed partial class LRunner
     {
         lRunnerItems[pWorkItem.LWorkId] = pWorkItem;
         LRunnerLeaseStart(pWorkItem);
-        LRunnerInvoke(() =>
+        LRunnerDispatch(() =>
         {
             pWorkItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
             pWorkItem.LWorkProgress = 0;
@@ -218,9 +218,9 @@ public sealed partial class LRunner
         var pRunnerClock = System.Diagnostics.Stopwatch.StartNew();
         pWorkItem.LWorkStartTime = DateTimeOffset.Now;
         pWorkItem.LWorkFinishTime = null;
-        LRunnerNote(
+        LRunnerRecord(
             $"Encode started '{pWorkItem.LWorkOutputName}': {pWorkItem.LWorkKind} at {pWorkItem.LWorkPriority}, " +
-            $"{pWorkItem.LWorkStart:hh\\:mm\\:ss\\.fff}-{pWorkItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
+            $"{pWorkItem.LWorkOrigin:hh\\:mm\\:ss\\.fff}-{pWorkItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
             $"from '{Path.GetFileName(pWorkItem.LWorkSourcePath)}' to '{pWorkItem.LWorkOutputPath}' in {pStages.Count} stage(s)");
 
         try
@@ -228,7 +228,7 @@ public sealed partial class LRunner
             double pTotalSeconds = pWorkItem.LWorkKind switch
             {
                 LWorkKind.LWorkKindAudio => LRunnerMediaRead(pWorkItem.LWorkSourcePath)?.LWorkMediaDuration.TotalSeconds ?? 0,
-                LWorkKind.LWorkKindMerge => LRunnerMergeDurationRead(pWorkItem.LWorkMergeSources),
+                LWorkKind.LWorkKindMerge => LRunnerMergeRead(pWorkItem.LWorkMergeSources),
                 _ => pWorkItem.LWorkDuration.TotalSeconds
             };
 
@@ -243,7 +243,7 @@ public sealed partial class LRunner
                 {
                     string pMeasured = pMeasureStderr is null
                         ? string.Empty
-                        : LEncode.LEncodeLoudnormMeasureRead(pMeasureStderr);
+                        : LEncode.LEncodeLoudnormRead(pMeasureStderr);
                     pStageArguments = pStageArguments.Replace(LEncode.LEncodeMeasureToken, pMeasured, StringComparison.Ordinal);
                 }
 
@@ -264,8 +264,8 @@ public sealed partial class LRunner
 
             if (lRunnerCancelled.TryRemove(pWorkItem.LWorkId, out _))
             {
-                LRunnerNote($"Encode cancelled '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}; job removed, continuing with the queue");
-                LRunnerInvoke(() =>
+                LRunnerRecord($"Encode cancelled '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}; job removed, continuing with the queue");
+                LRunnerDispatch(() =>
                 {
                     pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
                     lRunnerSchedule.LScheduleItemCancel(pWorkItem);
@@ -276,13 +276,13 @@ public sealed partial class LRunner
 
             if (pExitCode == 0)
             {
-                LRunnerNote(
+                LRunnerRecord(
                     $"Encode finished '{pWorkItem.LWorkOutputName}' in {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff} " +
                     $"[{pWorkItem.LWorkOutputPath}]");
             }
             else
             {
-                LRunnerNote(
+                LRunnerRecord(
                     $"Encode failed '{pWorkItem.LWorkOutputName}': FFmpeg exit code {pExitCode} " +
                     $"after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}. {LRunnerTailRead(pRunnerError)}");
 
@@ -293,15 +293,15 @@ public sealed partial class LRunner
             }
 
             long? pOutputBytes = LRunnerBytesRead(pWorkItem.LWorkOutputPath);
-            long? pSourceBytes = LRunnerSourceBytesRead(pWorkItem);
+            long? pSourceBytes = LRunnerInputRead(pWorkItem);
             LWorkMedia? pSourceMedia = pWorkItem.LWorkSourceMedia ?? LRunnerMediaRead(pWorkItem.LWorkSourcePath);
             LWorkMedia? pOutputMedia = LRunnerMediaRead(pWorkItem.LWorkOutputPath);
             if (pOutputMedia is { LWorkMediaVideoPresent: true }
-                && LRunnerKeyframeIntervalRead(pWorkItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration) is { } pOutputKeyframeInterval)
+                && LRunnerIntervalRead(pWorkItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration) is { } pOutputKeyframeInterval)
             {
-                pOutputMedia = pOutputMedia with { LWorkMediaKeyframeIntervalMilliseconds = pOutputKeyframeInterval };
+                pOutputMedia = pOutputMedia with { LWorkKeyframeInterval = pOutputKeyframeInterval };
             }
-            LRunnerInvoke(() =>
+            LRunnerDispatch(() =>
             {
                 bool pSucceeded = pExitCode == 0;
                 pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
@@ -313,8 +313,8 @@ public sealed partial class LRunner
                 pWorkItem.LWorkStateCurrent = pSucceeded ? LWorkState.LWorkStateDone : LWorkState.LWorkStateFailed;
                 pWorkItem.LWorkMessage = pSucceeded ? string.Empty : $"FFmpeg exited with code {pExitCode}.";
 
-                lRunnerSchedule.LScheduleComplete(pWorkItem, pSucceeded, pWorkItem.LWorkMessage);
-                lRunnerSchedule.LScheduleReload();
+                lRunnerSchedule.LScheduleCommit(pWorkItem, pSucceeded, pWorkItem.LWorkMessage);
+                lRunnerSchedule.LScheduleLoad();
             });
 
             lRunnerAttempts.TryRemove(pWorkItem.LWorkId, out _);
@@ -325,23 +325,23 @@ public sealed partial class LRunner
         }
         catch (OperationCanceledException)
         {
-            LRunnerNote($"Encode cancelled '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}; returned to the queue");
+            LRunnerRecord($"Encode cancelled '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}; returned to the queue");
         }
         catch (Exception pException)
         {
-            LRunnerNote($"Encode failed '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
+            LRunnerRecord($"Encode failed '{pWorkItem.LWorkOutputName}' after {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
             if (LRunnerRetryStart(pWorkItem, pException.Message))
             {
                 return;
             }
 
-            LRunnerInvoke(() =>
+            LRunnerDispatch(() =>
             {
                 pWorkItem.LWorkFinishTime = DateTimeOffset.Now;
                 pWorkItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
                 pWorkItem.LWorkMessage = pException.Message;
-                lRunnerSchedule.LScheduleComplete(pWorkItem, false, pException.Message);
-                lRunnerSchedule.LScheduleReload();
+                lRunnerSchedule.LScheduleCommit(pWorkItem, false, pException.Message);
+                lRunnerSchedule.LScheduleLoad();
             });
 
             lRunnerAttempts.TryRemove(pWorkItem.LWorkId, out _);
@@ -377,15 +377,15 @@ public sealed partial class LRunner
             RedirectStandardError = true
         };
 
-        LRunnerInvoke(() =>
+        LRunnerDispatch(() =>
         {
             pWorkItem.LWorkProgress = 0;
             pWorkItem.LWorkMessage = pStageCount > 1
                 ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
                 : string.Empty;
         });
-        LRunnerNote($"{pStage.LEncodeStageLabel} '{pWorkItem.LWorkOutputName}': {pStartInfo.FileName} {pStartInfo.Arguments}");
-        LRunnerFfmpegNote(
+        LRunnerRecord($"{pStage.LEncodeStageLabel} '{pWorkItem.LWorkOutputName}': {pStartInfo.FileName} {pStartInfo.Arguments}");
+        LRunnerFfmpegRecord(
             $"{pStage.LEncodeStageLabel} command for '{pWorkItem.LWorkOutputName}'",
             $"{pStartInfo.FileName} {pStartInfo.Arguments}\n"
             + $"working folder {(string.IsNullOrWhiteSpace(pDirectory) ? "(process default)" : pDirectory)}\n"
@@ -400,7 +400,7 @@ public sealed partial class LRunner
         await LRunnerProgressRead(pProcess, pWorkItem, pTotalSeconds, lRunnerToken).ConfigureAwait(false);
         await pProcess.WaitForExitAsync(lRunnerToken).ConfigureAwait(false);
         string pRunnerError = await pErrorTask.ConfigureAwait(false);
-        LRunnerFfmpegNote(
+        LRunnerFfmpegRecord(
             $"Exit code {pProcess.ExitCode} for '{pWorkItem.LWorkOutputName}' [{pStage.LEncodeStageLabel}]",
             $"ran for {pRunnerClock.Elapsed:hh\\:mm\\:ss\\.fff}");
 
@@ -449,13 +449,13 @@ public sealed partial class LRunner
 
         string pRunnerMessage = $"{pRunnerReason} Retry {pAttempt} of {LRunnerRetryMaximum}.";
         bool pReleased = false;
-        LRunnerInvoke(() => pReleased = lRunnerSchedule.LScheduleItemRelease(pWorkItem.LWorkId, lRunnerId, pRunnerMessage));
+        LRunnerDispatch(() => pReleased = lRunnerSchedule.LScheduleItemRelease(pWorkItem.LWorkId, lRunnerId, pRunnerMessage));
         if (!pReleased)
         {
             return false;
         }
 
-        LRunnerNote($"Encode requeued '{pWorkItem.LWorkOutputName}': {pRunnerMessage}");
+        LRunnerRecord($"Encode requeued '{pWorkItem.LWorkOutputName}': {pRunnerMessage}");
         return true;
     }
 
@@ -467,10 +467,10 @@ public sealed partial class LRunner
         }
 
         LRunnerRunning = false;
-        LRunnerNote("Queue paused: a job failed and 'Pause queue on failure' is on");
+        LRunnerRecord("Queue paused: a job failed and 'Pause queue on failure' is on");
     }
 
-    private static double LRunnerMergeDurationRead(IReadOnlyList<string> lRunnerMergeSources)
+    private static double LRunnerMergeRead(IReadOnlyList<string> lRunnerMergeSources)
     {
         double lRunnerTotalSeconds = 0;
         foreach (string lRunnerMergeSource in lRunnerMergeSources)
@@ -492,20 +492,20 @@ public sealed partial class LRunner
         {
             Cadroue.Media.LMediaInfo lRunnerMedia = Cadroue.Media.LMediaInfo.LMediaFfprobeRead(lRunnerMediaPath);
             return new LWorkMedia(
-                lRunnerMedia.LMediaInfoVideoWidth,
-                lRunnerMedia.LMediaInfoVideoHeight,
-                lRunnerMedia.LMediaInfoVideoFrameRate,
+                lRunnerMedia.LMediaVideoWidth,
+                lRunnerMedia.LMediaVideoHeight,
+                lRunnerMedia.LMediaVideoRate,
                 (long)Math.Round(lRunnerMedia.LMediaInfoDuration.TotalMilliseconds),
-                lRunnerMedia.LMediaInfoVideoPresent);
+                lRunnerMedia.LMediaVideoPresent);
         }
         catch (Exception lRunnerException)
         {
-            LRunnerNote($"Media could not be read '{Path.GetFileName(lRunnerMediaPath)}'", lRunnerException);
+            LRunnerRecord($"Media could not be read '{Path.GetFileName(lRunnerMediaPath)}'", lRunnerException);
             return null;
         }
     }
 
-    private static double? LRunnerKeyframeIntervalRead(string lRunnerMediaPath, TimeSpan lRunnerMediaDuration)
+    private static double? LRunnerIntervalRead(string lRunnerMediaPath, TimeSpan lRunnerMediaDuration)
     {
         if (string.IsNullOrWhiteSpace(lRunnerMediaPath) || !File.Exists(lRunnerMediaPath) || lRunnerMediaDuration <= TimeSpan.Zero)
         {
@@ -527,12 +527,12 @@ public sealed partial class LRunner
         }
         catch (Exception lRunnerException)
         {
-            LRunnerNote($"Keyframe interval could not be read '{Path.GetFileName(lRunnerMediaPath)}'", lRunnerException);
+            LRunnerRecord($"Keyframe interval could not be read '{Path.GetFileName(lRunnerMediaPath)}'", lRunnerException);
             return null;
         }
     }
 
-    private static long? LRunnerSourceBytesRead(LWorkItem pWorkItem)
+    private static long? LRunnerInputRead(LWorkItem pWorkItem)
     {
         if (pWorkItem.LWorkMergeSources.Count > 1)
         {
@@ -591,7 +591,7 @@ public sealed partial class LRunner
             pRunnerBuilder.AppendLine(pRunnerLine);
             if (pRunnerLine.Length > 0)
             {
-                LRunnerFfmpegNote($"stderr '{pWorkItem.LWorkOutputName}'", pRunnerLine);
+                LRunnerFfmpegRecord($"stderr '{pWorkItem.LWorkOutputName}'", pRunnerLine);
             }
         }
 

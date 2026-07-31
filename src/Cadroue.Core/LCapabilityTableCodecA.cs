@@ -2,7 +2,7 @@ namespace Cadroue.Core;
 
 public static partial class LCapabilityTable
 {
-    private static IEnumerable<KeyValuePair<string, LCapabilityCodec>> LCapabilityCodecARead()
+    private static IEnumerable<KeyValuePair<string, LCapabilityCodec>> LCapabilityFirstRead()
     {
         yield return new("libx264", LCapabilityX26xCreate("libx264", "23"));
         yield return new("h264_mf", LCapabilityMfCreate("h264_mf"));

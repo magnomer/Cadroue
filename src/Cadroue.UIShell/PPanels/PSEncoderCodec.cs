@@ -89,7 +89,7 @@ internal sealed partial class PSEncoder
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = App.LRendererProgramCurrent,
+                FileName = PProgram.LRendererProgramCurrent,
                 Arguments = $"-hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v {pEncoder} -f null -",
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -110,7 +110,7 @@ internal sealed partial class PSEncoder
                 return (false, LLocalization.LLocalizationTextRead("Encoder.Verification.Timeout"));
             }
 
-            string pMessage = PSCodecLogCompact(await pErrorTask, await pOutputTask);
+            string pMessage = PSCodecLogShorten(await pErrorTask, await pOutputTask);
             return (pProcess.ExitCode == 0, $"exit {pProcess.ExitCode}{pMessage}");
         }
         catch (Exception pException)
@@ -119,7 +119,7 @@ internal sealed partial class PSEncoder
         }
     }
 
-    private static string PSCodecLogCompact(string pError, string pOutput)
+    private static string PSCodecLogShorten(string pError, string pOutput)
     {
         string pMessage = string.IsNullOrWhiteSpace(pError) ? pOutput : pError;
         pMessage = pMessage.Replace("\r", " ").Replace("\n", " ").Trim();

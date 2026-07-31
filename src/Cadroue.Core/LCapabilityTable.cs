@@ -115,9 +115,9 @@ public static partial class LCapabilityTable
         "Unrecognised encoder: falling back to the generic qscale controls.");
 
     public static IReadOnlyDictionary<string, LCapabilityCodec> LCapabilityMap { get; } =
-        LCapabilityCodecARead()
-            .Concat(LCapabilityCodecBRead())
-            .Concat(LCapabilityCodecCRead())
+        LCapabilityFirstRead()
+            .Concat(LCapabilitySecondRead())
+            .Concat(LCapabilityThirdRead())
             .ToDictionary(pEntry => pEntry.Key, pEntry => pEntry.Value, StringComparer.OrdinalIgnoreCase);
 
     private static LCapabilityCodec LCapabilityWebpCreate(string lEncoder) => new(

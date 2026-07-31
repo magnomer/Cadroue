@@ -28,7 +28,7 @@ public sealed partial class PViewer
         player.SeekAccurate(pPlayerSeekMilliseconds);
     }
 
-    private void PPlayerSeekCompleteHandle(object? sender, int seekMilliseconds)
+    private void PPlayerSeekHandle(object? sender, int seekMilliseconds)
     {
         pPlayerAccurateActive = false;
         if (pPlayerRendererPending && seekMilliseconds >= 0 && sender is Player pPlayerSeeked)
@@ -38,7 +38,7 @@ public sealed partial class PViewer
         }
     }
 
-    private static string PPlayerShaderContrastRead(object? pRenderer)
+    private static string PPlayerContrastRead(object? pRenderer)
     {
         if (pRenderer is null)
         {
@@ -58,7 +58,7 @@ public sealed partial class PViewer
         }
     }
 
-    private static void PPlayerColorDiagnosticRecord(Player? player)
+    private static void PPlayerColorRecord(Player? player)
     {
         if (player is null || !LTrace.LTraceCheck(LTraceKind.LTraceView))
         {
@@ -73,7 +73,7 @@ public sealed partial class PViewer
                 "Preview color applied",
                 $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}, "
                 + $"filter contrast value {(player.Config.Video.FLFilters.TryGetValue(FLFilters.Contrast, out FLFilter? pContrastFilter) ? pContrastFilter.Value.ToString() : "none")}, "
-                + $"shader contrast uniform {PPlayerShaderContrastRead(pPlayerRenderer)}");
+                + $"shader contrast uniform {PPlayerContrastRead(pPlayerRenderer)}");
         }
         catch (Exception pException)
         {
@@ -81,7 +81,7 @@ public sealed partial class PViewer
         }
     }
 
-    private void PPlayerHostDiagnosticRecord(Player? player)
+    private void PPlayerHostRecord(Player? player)
     {
         try
         {
@@ -93,7 +93,7 @@ public sealed partial class PViewer
                     || pField.Name.ToLowerInvariant().Contains("render") || pField.Name.ToLowerInvariant().Contains("child"))
                 .Select(pField => $"{pField.Name}:{pField.FieldType.Name}");
 
-            LAppLog.LInfo(
+            LTraceLog.LTraceInfoRecord(
                 "Host render diagnostic",
                 $"host type {pHostType.FullName}\n"
                 + $"host assembly {pHostAssembly.Name} {pHostAssembly.Version}\n"
@@ -106,7 +106,7 @@ public sealed partial class PViewer
         }
         catch (Exception pException)
         {
-            LAppLog.LError("Host render diagnostic failed", pException);
+            LTraceLog.LTraceErrorRecord("Host render diagnostic failed", pException);
         }
     }
 
@@ -132,7 +132,7 @@ public sealed partial class PViewer
                 + $"color space {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.ColorSpace.ToString())}\n"
                 + $"sync vp filters {player.Config.Video.SyncVPFilters}, "
                 + $"filter contrast value {(player.Config.Video.FLFilters.TryGetValue(FLFilters.Contrast, out FLFilter? pContrastFilter) ? pContrastFilter.Value.ToString() : "none")}\n"
-                + $"shader contrast uniform {PPlayerShaderContrastRead(pPlayerRenderer)}");
+                + $"shader contrast uniform {PPlayerContrastRead(pPlayerRenderer)}");
         }
         catch (Exception pPlayerException)
         {
@@ -148,8 +148,8 @@ public sealed partial class PViewer
         if (!pViewerCommandActive) return;
         int loadSerial = ++pViewerLoadSerial;
         pViewerClockTimer.Stop();
-        pViewerResumeAfterInactive = false;
-        PPlayerQuiet(pViewerPlayer);
+        pViewerResumeInactive = false;
+        PPlayerPause(pViewerPlayer);
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
             return;
@@ -160,7 +160,7 @@ public sealed partial class PViewer
         try
         {
             mediaInfo = LMediaInfo.LMediaFfprobeRead(sourcePath);
-            if (mediaInfo.LMediaInfoAudioOnly && !pViewerAudioOnlyAllowed)
+            if (mediaInfo.LMediaAudioOnly && !pViewerAudioAllowed)
             {
                 string audioOnlyError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");
                 PViewerMediaCommit(new LMediaOpenStatus(
@@ -182,7 +182,7 @@ public sealed partial class PViewer
             if (player is null)
             {
                 player = new Player(new Config());
-                if (PViewerColorPreview && LFlyleafLocal.LFlyleafLocalActive)
+                if (PViewerColorPreview && LFlyleaf.LFlyleafActive)
                 {
                     player.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
                     player.Config.Video.SyncVPFilters = false;
@@ -190,7 +190,7 @@ public sealed partial class PViewer
 
                 player.Config.Video.BackColor = PViewerBackColor;
                 player.Config.Video.ClearScreen = false;
-                player.SeekCompleted += PPlayerSeekCompleteHandle;
+                player.SeekCompleted += PPlayerSeekHandle;
                 pPlayerCreated = true;
                 LTrace.LTraceRecord(
                     LTraceKind.LTraceView,
@@ -294,7 +294,7 @@ public sealed partial class PViewer
 
     private void PViewerMediaCommit(LMediaOpenStatus mediaStatus, Player? player)
     {
-        PViewerMediaReport(mediaStatus, player);
+        PViewerMediaRecord(mediaStatus, player);
 
         Player? pPlayerPrevious = pViewerPlayer;
         bool pPlayerReused = ReferenceEquals(pPlayerPrevious, player) && player is not null;
@@ -302,23 +302,23 @@ public sealed partial class PViewer
 
         if (pPlayerReused)
         {
-            LAppLog.LInfo("Viewer player reused: same player kept on the host, no swap chain rebuild");
+            LTraceLog.LTraceInfoRecord("Viewer player reused: same player kept on the host, no swap chain rebuild");
         }
         else
         {
             if (pPlayerPrevious is not null)
             {
-                pPlayerPrevious.SeekCompleted -= PPlayerSeekCompleteHandle;
+                pPlayerPrevious.SeekCompleted -= PPlayerSeekHandle;
             }
 
             pViewerPlayer = player;
-            LAppLog.LInfo(
+            LTraceLog.LTraceInfoRecord(
                 $"Viewer player swapped: previous {(pPlayerPrevious is null ? "none" : "released")}, "
                 + $"next {(player is null ? "none" : "ready")}, "
                 + $"renderer {(player?.Renderer is null ? "none" : "ready")}");
 
             pViewerFlyleafHost.Player = player;
-            PPlayerHostDiagnosticRecord(player);
+            PPlayerHostRecord(player);
             PPlayerDispose(pPlayerPrevious);
         }
 
@@ -340,9 +340,9 @@ public sealed partial class PViewer
             return;
         }
 
-        if (App.LPreferenceStateCurrent.LPreferenceAutoplayOnLoad)
+        if (PProgram.LPreferenceStateCurrent.LPreferenceAutoplay)
         {
-            pViewerResumeAfterInactive = false;
+            pViewerResumeInactive = false;
             player.Play();
             PViewerPreviewRestore();
             PViewerPlaybackUpdate(true, PPlayerTimeRead(player));
@@ -355,31 +355,31 @@ public sealed partial class PViewer
         }
     }
 
-    private static void PViewerMediaReport(LMediaOpenStatus mediaStatus, Player? player)
+    private static void PViewerMediaRecord(LMediaOpenStatus mediaStatus, Player? player)
     {
         string pSourcePath = mediaStatus.LMediaOpenSourcePath ?? "(no path)";
         string pFileName = System.IO.Path.GetFileName(pSourcePath);
 
         if (mediaStatus.LMediaOpenMediaInfo is not LMediaInfo pMediaInfo)
         {
-            LAppLog.LError($"Media rejected '{pFileName}': {mediaStatus.LMediaOpenFfmpegError ?? "unreadable"} [{pSourcePath}]");
+            LTraceLog.LTraceErrorRecord($"Media rejected '{pFileName}': {mediaStatus.LMediaOpenFfmpegError ?? "unreadable"} [{pSourcePath}]");
             return;
         }
 
-        string pStreams = pMediaInfo.LMediaInfoVideoPresent
-            ? $"video {pMediaInfo.LMediaInfoVideoWidth}x{pMediaInfo.LMediaInfoVideoHeight} {pMediaInfo.LMediaInfoVideoCodecName} {pMediaInfo.LMediaInfoVideoFrameRate:0.###}fps"
+        string pStreams = pMediaInfo.LMediaVideoPresent
+            ? $"video {pMediaInfo.LMediaVideoWidth}x{pMediaInfo.LMediaVideoHeight} {pMediaInfo.LMediaVideoCodec} {pMediaInfo.LMediaVideoRate:0.###}fps"
             : "no video";
-        if (pMediaInfo.LMediaInfoAudioPresent)
+        if (pMediaInfo.LMediaAudioPresent)
         {
-            pStreams += $", audio {pMediaInfo.LMediaInfoAudioCodecName} {pMediaInfo.LMediaInfoAudioSampleRate}Hz {pMediaInfo.LMediaInfoAudioChannels}ch";
+            pStreams += $", audio {pMediaInfo.LMediaAudioCodec} {pMediaInfo.LMediaSampleRate}Hz {pMediaInfo.LMediaAudioChannels}ch";
         }
 
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Media opened '{pFileName}': {pMediaInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff}, {pStreams} [{pSourcePath}]");
 
         if (player is null)
         {
-            LAppLog.LError($"Preview unavailable for '{pFileName}': {mediaStatus.LMediaOpenPreviewError ?? "the player did not start"}");
+            LTraceLog.LTraceErrorRecord($"Preview unavailable for '{pFileName}': {mediaStatus.LMediaOpenPreviewError ?? "the player did not start"}");
         }
     }
 
@@ -389,7 +389,7 @@ public sealed partial class PViewer
         player.Seek(0);
     }
 
-    private static void PPlayerQuiet(Player? player)
+    private static void PPlayerPause(Player? player)
     {
         if (player is null)
         {
@@ -410,12 +410,12 @@ public sealed partial class PViewer
         pViewerClockTimer.Stop();
         if (pViewerPlayer is null)
         {
-            pViewerResumeAfterInactive = false;
+            pViewerResumeInactive = false;
             return;
         }
 
-        pViewerResumeAfterInactive = LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
-        if (!pViewerResumeAfterInactive)
+        pViewerResumeInactive = LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
+        if (!pViewerResumeInactive)
         {
             return;
         }
@@ -425,9 +425,9 @@ public sealed partial class PViewer
 
     private void PPlayerResume()
     {
-        if (!pViewerResumeAfterInactive || pViewerPlayer is null)
+        if (!pViewerResumeInactive || pViewerPlayer is null)
         {
-            pViewerResumeAfterInactive = false;
+            pViewerResumeInactive = false;
             if (LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
             {
                 pViewerClockTimer.Start();
@@ -435,7 +435,7 @@ public sealed partial class PViewer
             return;
         }
 
-        pViewerResumeAfterInactive = false;
+        pViewerResumeInactive = false;
         pViewerPlayer.Play();
         PViewerPlaybackUpdate(true, PPlayerTimeRead(pViewerPlayer));
         pViewerClockTimer.Start();
@@ -481,16 +481,16 @@ public sealed partial class PViewer
     {
         pViewerClockTimer.Stop();
         pPlayerAccurateActive = false;
-        pViewerResumeAfterInactive = false;
+        pViewerResumeInactive = false;
         PViewerPlaybackUpdate(false, null);
         if (pViewerPlayer is { } pPlayerClosing)
         {
-            pPlayerClosing.SeekCompleted -= PPlayerSeekCompleteHandle;
+            pPlayerClosing.SeekCompleted -= PPlayerSeekHandle;
         }
 
         Player? pPlayerPrevious = pViewerPlayer;
         pViewerFlyleafHost.Player = null;
-        LAppLog.LInfo($"Viewer host detached: player {(pPlayerPrevious is null ? "none" : "released")}");
+        LTraceLog.LTraceInfoRecord($"Viewer host detached: player {(pPlayerPrevious is null ? "none" : "released")}");
         PPlayerDispose(pPlayerPrevious);
         pViewerPlayer = null;
     }

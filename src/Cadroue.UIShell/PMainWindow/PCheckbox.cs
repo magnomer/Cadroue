@@ -14,15 +14,15 @@ internal static class PCheckbox
     private const double PCheckboxGap = 10;
 
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
-    private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush PAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
-    private static readonly Brush PAccentDeepBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x6B, 0xDB));
-    private static readonly Brush PMutedBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0xA5, 0xB4));
+    private static readonly Brush PCheckboxSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
+    private static readonly Brush PCheckboxTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush PCheckboxAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
+    private static readonly Brush PCheckboxDeepBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x6B, 0xDB));
+    private static readonly Brush PCheckboxMutedBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0xA5, 0xB4));
 
     internal static void PCheckboxApply(CheckBox pCheckBox)
     {
-        pCheckBox.Foreground = PTextBrush;
+        pCheckBox.Foreground = PCheckboxTextBrush;
         pCheckBox.Background = Brushes.White;
         pCheckBox.BorderBrush = PLineBrush;
         pCheckBox.Cursor = System.Windows.Input.Cursors.Hand;
@@ -84,7 +84,7 @@ internal static class PCheckbox
         pLabel.Name = "PCheckboxLabel";
         pLabel.SetValue(FrameworkElement.MarginProperty, new Thickness(PCheckboxGap, 0, 0, 0));
         pLabel.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-        pLabel.SetValue(TextElement.ForegroundProperty, PTextBrush);
+        pLabel.SetValue(TextElement.ForegroundProperty, PCheckboxTextBrush);
         pRoot.AppendChild(pLabel);
 
         pTemplate.VisualTree = pRoot;
@@ -95,36 +95,36 @@ internal static class PCheckbox
     private static void PCheckboxTriggerAdd(ControlTemplate pTemplate)
     {
         var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHover.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "PCheckboxBox"));
-        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PSoftBrush, "PCheckboxBox"));
+        pHover.Setters.Add(new Setter(Border.BorderBrushProperty, PCheckboxAccentBrush, "PCheckboxBox"));
+        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PCheckboxSoftBrush, "PCheckboxBox"));
         pTemplate.Triggers.Add(pHover);
 
         var pChecked = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
-        pChecked.Setters.Add(new Setter(Border.BackgroundProperty, PAccentBrush, "PCheckboxBox"));
-        pChecked.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "PCheckboxBox"));
+        pChecked.Setters.Add(new Setter(Border.BackgroundProperty, PCheckboxAccentBrush, "PCheckboxBox"));
+        pChecked.Setters.Add(new Setter(Border.BorderBrushProperty, PCheckboxAccentBrush, "PCheckboxBox"));
         pChecked.Setters.Add(new Setter(UIElement.OpacityProperty, 1.0, "PCheckboxTick"));
         pTemplate.Triggers.Add(pChecked);
 
         var pCheckedHover = new MultiTrigger();
         pCheckedHover.Conditions.Add(new Condition(ToggleButton.IsCheckedProperty, true));
         pCheckedHover.Conditions.Add(new Condition(UIElement.IsMouseOverProperty, true));
-        pCheckedHover.Setters.Add(new Setter(Border.BackgroundProperty, PAccentDeepBrush, "PCheckboxBox"));
-        pCheckedHover.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentDeepBrush, "PCheckboxBox"));
+        pCheckedHover.Setters.Add(new Setter(Border.BackgroundProperty, PCheckboxDeepBrush, "PCheckboxBox"));
+        pCheckedHover.Setters.Add(new Setter(Border.BorderBrushProperty, PCheckboxDeepBrush, "PCheckboxBox"));
         pTemplate.Triggers.Add(pCheckedHover);
 
         var pIndeterminate = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = null };
-        pIndeterminate.Setters.Add(new Setter(Border.BackgroundProperty, PAccentBrush, "PCheckboxBox"));
-        pIndeterminate.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "PCheckboxBox"));
+        pIndeterminate.Setters.Add(new Setter(Border.BackgroundProperty, PCheckboxAccentBrush, "PCheckboxBox"));
+        pIndeterminate.Setters.Add(new Setter(Border.BorderBrushProperty, PCheckboxAccentBrush, "PCheckboxBox"));
         pIndeterminate.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Visible, "PCheckboxDash"));
         pTemplate.Triggers.Add(pIndeterminate);
 
         var pFocus = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true };
-        pFocus.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "PCheckboxBox"));
+        pFocus.Setters.Add(new Setter(Border.BorderBrushProperty, PCheckboxAccentBrush, "PCheckboxBox"));
         pTemplate.Triggers.Add(pFocus);
 
         var pDisabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
         pDisabled.Setters.Add(new Setter(UIElement.OpacityProperty, 0.45));
-        pDisabled.Setters.Add(new Setter(TextElement.ForegroundProperty, PMutedBrush, "PCheckboxLabel"));
+        pDisabled.Setters.Add(new Setter(TextElement.ForegroundProperty, PCheckboxMutedBrush, "PCheckboxLabel"));
         pTemplate.Triggers.Add(pDisabled);
     }
 }

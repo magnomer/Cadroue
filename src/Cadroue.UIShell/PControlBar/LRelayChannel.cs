@@ -13,7 +13,7 @@ internal static class LRelayChannel
     private const string LRelayAckMessage = "ACK";
     private const string LRelayOkReply = "OK";
     private const string LRelayNoReply = "NO";
-    private const int LRelayConnectTimeoutMs = 1500;
+    private const int LRelayConnectTimeout = 1500;
 
     private static CancellationTokenSource? lRelayCancellation;
 
@@ -35,7 +35,7 @@ internal static class LRelayChannel
             Name = "CadroueRelay"
         };
         lRelayThread.Start();
-        LAppLog.LInfo($"Relay channel listening on {LRelayPipeNameCreate(Environment.ProcessId)}");
+        LTraceLog.LTraceInfoRecord($"Relay channel listening on {LRelayPipeCreate(Environment.ProcessId)}");
     }
 
     internal static void LRelayChannelStop()
@@ -72,8 +72,8 @@ internal static class LRelayChannel
         try
         {
             using var lRelayPipe = new NamedPipeClientStream(
-                ".", LRelayPipeNameCreate(lProcessId), PipeDirection.InOut);
-            lRelayPipe.Connect(LRelayConnectTimeoutMs);
+                ".", LRelayPipeCreate(lProcessId), PipeDirection.InOut);
+            lRelayPipe.Connect(LRelayConnectTimeout);
 
             var lRelayWriter = new StreamWriter(lRelayPipe) { AutoFlush = true };
             var lRelayReader = new StreamReader(lRelayPipe);
@@ -82,7 +82,7 @@ internal static class LRelayChannel
         }
         catch (Exception lException)
         {
-            LAppLog.LError($"Relay send to process {lProcessId} failed", lException);
+            LTraceLog.LTraceErrorRecord($"Relay send to process {lProcessId} failed", lException);
             return false;
         }
     }
@@ -97,15 +97,15 @@ internal static class LRelayChannel
         try
         {
             using var lRelayPipe = new NamedPipeClientStream(
-                ".", LRelayPipeNameCreate(lProcessId), PipeDirection.InOut);
-            lRelayPipe.Connect(LRelayConnectTimeoutMs);
+                ".", LRelayPipeCreate(lProcessId), PipeDirection.InOut);
+            lRelayPipe.Connect(LRelayConnectTimeout);
             var lRelayWriter = new StreamWriter(lRelayPipe) { AutoFlush = true };
             lRelayWriter.WriteLine($"{LRelayAckMessage} {lRelayId}");
             lRelayWriter.Flush();
         }
         catch (Exception lException)
         {
-            LAppLog.LError($"Relay acknowledgement to process {lProcessId} failed", lException);
+            LTraceLog.LTraceErrorRecord($"Relay acknowledgement to process {lProcessId} failed", lException);
         }
     }
 
@@ -114,7 +114,7 @@ internal static class LRelayChannel
         try
         {
             using var lRelayPipe = new NamedPipeClientStream(
-                ".", LRelayPipeNameCreate(lProcessId), PipeDirection.InOut);
+                ".", LRelayPipeCreate(lProcessId), PipeDirection.InOut);
             lRelayPipe.Connect(200);
             return true;
         }
@@ -126,7 +126,7 @@ internal static class LRelayChannel
 
     private static void LRelayListenRun(CancellationToken lRelayToken)
     {
-        string lRelayPipeName = LRelayPipeNameCreate(Environment.ProcessId);
+        string lRelayPipeName = LRelayPipeCreate(Environment.ProcessId);
         while (!lRelayToken.IsCancellationRequested)
         {
             try
@@ -145,7 +145,7 @@ internal static class LRelayChannel
             }
             catch (Exception lException)
             {
-                LAppLog.LError("Relay listener failed", lException);
+                LTraceLog.LTraceErrorRecord("Relay listener failed", lException);
             }
         }
     }
@@ -200,20 +200,20 @@ internal static class LRelayChannel
         lRelayApplication.Dispatcher.BeginInvoke(lRelayAction);
     }
 
-    private static string LRelayPipeNameCreate(int lProcessId) => $"{LRelayPipePrefix}{lProcessId}";
+    private static string LRelayPipeCreate(int lProcessId) => $"{LRelayPipePrefix}{lProcessId}";
 
     private const uint LRelayAncestorRoot = 2;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct LRelayPoint
     {
-        public int X;
-        public int Y;
+        public int LRelayX;
+        public int LRelayY;
 
         public LRelayPoint(int lPointX, int lPointY)
         {
-            X = lPointX;
-            Y = lPointY;
+            LRelayX = lPointX;
+            LRelayY = lPointY;
         }
     }
 

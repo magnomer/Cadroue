@@ -23,7 +23,7 @@ internal static class LLocalization
 
             if (lLocalizationFallbackCatalog is null)
             {
-                LAppLog.LError(
+                LTraceLog.LTraceErrorRecord(
                     "English localization could not be loaded from the program resources; keys will show untranslated.");
             }
 
@@ -37,7 +37,7 @@ internal static class LLocalization
                 LLocalizationCatalog? lLocalizationSelected = LLocalizationCatalogRead(lLocalizationCode);
                 if (lLocalizationSelected is null)
                 {
-                    LAppLog.LError(
+                    LTraceLog.LTraceErrorRecord(
                         $"Localization '{lLocalizationCode}' is unavailable; using {LLocalizationFallbackCode}.");
                 }
 
@@ -80,7 +80,7 @@ internal static class LLocalization
         }
         catch (FormatException lLocalizationException)
         {
-            LAppLog.LError(
+            LTraceLog.LTraceErrorRecord(
                 $"Localization format failed for key '{lLocalizationKey}'; showing the raw template.",
                 lLocalizationException);
             return lLocalizationTemplate;
@@ -169,7 +169,7 @@ internal static class LLocalization
         }
         catch (Exception lLocalizationException)
         {
-            LAppLog.LError($"Localization could not be loaded: {lLocalizationCode}", lLocalizationException);
+            LTraceLog.LTraceErrorRecord($"Localization could not be loaded: {lLocalizationCode}", lLocalizationException);
             return null;
         }
     }

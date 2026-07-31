@@ -14,15 +14,15 @@ internal static class PRadio
     private const double PRadioGap = 10;
 
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
-    private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush PAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
-    private static readonly Brush PAccentDeepBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x6B, 0xDB));
-    private static readonly Brush PMutedBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0xA5, 0xB4));
+    private static readonly Brush PRadioSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
+    private static readonly Brush PRadioTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush PRadioAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
+    private static readonly Brush PRadioDeepBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x6B, 0xDB));
+    private static readonly Brush PRadioMutedBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0xA5, 0xB4));
 
     internal static void PRadioApply(RadioButton pRadioButton)
     {
-        pRadioButton.Foreground = PTextBrush;
+        pRadioButton.Foreground = PRadioTextBrush;
         pRadioButton.Background = Brushes.White;
         pRadioButton.BorderBrush = PLineBrush;
         pRadioButton.Cursor = System.Windows.Input.Cursors.Hand;
@@ -67,7 +67,7 @@ internal static class PRadio
         pLabel.Name = "PRadioLabel";
         pLabel.SetValue(FrameworkElement.MarginProperty, new Thickness(PRadioGap, 0, 0, 0));
         pLabel.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-        pLabel.SetValue(TextElement.ForegroundProperty, PTextBrush);
+        pLabel.SetValue(TextElement.ForegroundProperty, PRadioTextBrush);
         pRoot.AppendChild(pLabel);
 
         pTemplate.VisualTree = pRoot;
@@ -78,30 +78,30 @@ internal static class PRadio
     private static void PRadioTriggerAdd(ControlTemplate pTemplate)
     {
         var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHover.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "PRadioRing"));
-        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PSoftBrush, "PRadioRing"));
+        pHover.Setters.Add(new Setter(Border.BorderBrushProperty, PRadioAccentBrush, "PRadioRing"));
+        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PRadioSoftBrush, "PRadioRing"));
         pTemplate.Triggers.Add(pHover);
 
         var pChecked = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
-        pChecked.Setters.Add(new Setter(Border.BackgroundProperty, PAccentBrush, "PRadioRing"));
-        pChecked.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "PRadioRing"));
+        pChecked.Setters.Add(new Setter(Border.BackgroundProperty, PRadioAccentBrush, "PRadioRing"));
+        pChecked.Setters.Add(new Setter(Border.BorderBrushProperty, PRadioAccentBrush, "PRadioRing"));
         pChecked.Setters.Add(new Setter(UIElement.OpacityProperty, 1.0, "PRadioDot"));
         pTemplate.Triggers.Add(pChecked);
 
         var pCheckedHover = new MultiTrigger();
         pCheckedHover.Conditions.Add(new Condition(ToggleButton.IsCheckedProperty, true));
         pCheckedHover.Conditions.Add(new Condition(UIElement.IsMouseOverProperty, true));
-        pCheckedHover.Setters.Add(new Setter(Border.BackgroundProperty, PAccentDeepBrush, "PRadioRing"));
-        pCheckedHover.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentDeepBrush, "PRadioRing"));
+        pCheckedHover.Setters.Add(new Setter(Border.BackgroundProperty, PRadioDeepBrush, "PRadioRing"));
+        pCheckedHover.Setters.Add(new Setter(Border.BorderBrushProperty, PRadioDeepBrush, "PRadioRing"));
         pTemplate.Triggers.Add(pCheckedHover);
 
         var pFocus = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true };
-        pFocus.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "PRadioRing"));
+        pFocus.Setters.Add(new Setter(Border.BorderBrushProperty, PRadioAccentBrush, "PRadioRing"));
         pTemplate.Triggers.Add(pFocus);
 
         var pDisabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
         pDisabled.Setters.Add(new Setter(UIElement.OpacityProperty, 0.45));
-        pDisabled.Setters.Add(new Setter(TextElement.ForegroundProperty, PMutedBrush, "PRadioLabel"));
+        pDisabled.Setters.Add(new Setter(TextElement.ForegroundProperty, PRadioMutedBrush, "PRadioLabel"));
         pTemplate.Triggers.Add(pDisabled);
     }
 }

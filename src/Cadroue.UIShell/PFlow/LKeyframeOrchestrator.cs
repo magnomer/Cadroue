@@ -11,19 +11,19 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private readonly object lKeyframeLock = new();
     private readonly SortedSet<long> lKeyframeStorage = new();
     private readonly HashSet<int> lKeyframeScannedSpans = new();
-    private const int LKeyframeFailedSpanRetryLimit = 3;
+    private const int LKeyframeRetryLimit = 3;
 
-    private const int LKeyframeSaveEveryCount = 10;
+    private const int LKeyframeSaveCount = 10;
 
     private int lKeyframeUnsavedCount;
     private (int Keyframes, int Spans) lKeyframeSavedSignature = (-1, -1);
-    private readonly Dictionary<int, int> lKeyframeFailedSpanCounts = new();
-    private CancellationTokenSource? lKeyframeCancel;
+    private readonly Dictionary<int, int> lKeyframeFailedCounts = new();
+    private CancellationTokenSource? lKeyframeCancelSource;
     private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
     private string? lKeyframeSourcePath;
     private TimeSpan lKeyframeDuration;
     private int lKeyframeRequestSerial;
-    private bool lDisposed;
+    private bool lKeyframeDisposed;
 
     public event Action<LKeyframeNotice>? LKeyframeNoticeReady;
 
@@ -37,7 +37,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
     public void LKeyframeStart(string sourcePath, TimeSpan duration, TimeSpan cursor)
     {
-        if (lDisposed || string.IsNullOrWhiteSpace(sourcePath) || duration <= TimeSpan.Zero)
+        if (lKeyframeDisposed || string.IsNullOrWhiteSpace(sourcePath) || duration <= TimeSpan.Zero)
         {
             return;
         }
@@ -60,7 +60,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
                 lKeyframeStorage.Clear();
                 lKeyframeScannedSpans.Clear();
-                lKeyframeFailedSpanCounts.Clear();
+                lKeyframeFailedCounts.Clear();
                 lKeyframeSavedSignature = (-1, -1);
                 lKeyframeSourceIdentity = identity;
                 lKeyframeSourcePath = identity.LKeyframeSourcePath;
@@ -72,10 +72,10 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
                 identity = lKeyframeSourceIdentity!;
             }
 
-            lKeyframeCancel?.Cancel();
-            lKeyframeCancel?.Dispose();
-            lKeyframeCancel = new CancellationTokenSource();
-            cancel = lKeyframeCancel;
+            lKeyframeCancelSource?.Cancel();
+            lKeyframeCancelSource?.Dispose();
+            lKeyframeCancelSource = new CancellationTokenSource();
+            cancel = lKeyframeCancelSource;
             serial = ++lKeyframeRequestSerial;
         }
 
@@ -88,8 +88,8 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         CancellationTokenSource? lKeyframeCancelPrevious;
         lock (lKeyframeLock)
         {
-            lKeyframeCancelPrevious = lKeyframeCancel;
-            lKeyframeCancel = null;
+            lKeyframeCancelPrevious = lKeyframeCancelSource;
+            lKeyframeCancelSource = null;
         }
 
         lKeyframeCancelPrevious?.Cancel();

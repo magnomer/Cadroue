@@ -43,7 +43,7 @@ public sealed partial class PRoster
         }
 
         PRosterDetailUpdate();
-        PConsole.PConsoleCurrent?.PConsoleProgressRefresh();
+        PConsole.PConsoleCurrent?.PConsoleUpdate();
     }
 
     private void PRosterUnloadHandle(object pSender, RoutedEventArgs pArguments)

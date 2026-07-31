@@ -28,10 +28,10 @@ internal sealed class PSKeymap : Window
     private const int PSSheetTabCount = 4;
     private const double PSSheetStripWidth = PSSheetTabWidth * PSSheetTabCount;
 
-    private const string PSSheetGlobalIconPath = "/PAssets/PTabs/PSSheetGeneral.svg";
-    private const string PSSheetTabIconPath = "/PAssets/PTabs/PSSheetSystem.svg";
-    private const string PSSheetFlowIconPath = "/PAssets/PTabs/PSSheetTimeline.svg";
-    private const string PSSheetSplitIconPath = "/PAssets/PTabs/PSplitButton.svg";
+    private const string PSSheetGlobalIcon = "/PAssets/PTabs/PSSheetGeneral.svg";
+    private const string PSSheetTabIcon = "/PAssets/PTabs/PSSheetSystem.svg";
+    private const string PSSheetFlowIcon = "/PAssets/PTabs/PSSheetTimeline.svg";
+    private const string PSSheetSplitIcon = "/PAssets/PTabs/PSplitButton.svg";
 
     private readonly LPreferenceState lsKeymapDraft;
     private readonly Action<LPreferenceState>? psKeymapCallback;
@@ -46,7 +46,7 @@ internal sealed class PSKeymap : Window
 
     private PSKeymap(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
-        lsKeymapDraft = App.LPreferenceStateCurrent.LPreferenceClone();
+        lsKeymapDraft = PProgram.LPreferenceStateCurrent.LPreferenceClone();
         lsKeymapDraft.LPreferenceShortcuts = LBinding.LBindingNormalize(lsKeymapDraft.LPreferenceShortcuts);
         psKeymapCallback = pApplyCallback;
 
@@ -66,7 +66,7 @@ internal sealed class PSKeymap : Window
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
         Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSFieldBodyFontSize;
+        FontSize = PSFieldFontSize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         UseLayoutRounding = true;
         SnapsToDevicePixels = true;
@@ -83,10 +83,10 @@ internal sealed class PSKeymap : Window
         var pRoot = new Grid { Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)) };
         pRoot.Children.Add(PSSheet.PSSheetControlBuild(
             PSSheetTabWidth,
-            PSKeymapSheetBuild(LBinding.LBindingScopeGlobal, PSSheetGlobalIconPath),
-            PSKeymapSheetBuild(LBinding.LBindingScopeTab, PSSheetTabIconPath),
-            PSKeymapSheetBuild(LBinding.LBindingScopeFlow, PSSheetFlowIconPath),
-            PSKeymapSheetBuild(LBinding.LBindingScopeSplit, PSSheetSplitIconPath)));
+            PSKeymapSheetBuild(LBinding.LBindingScopeGlobal, PSSheetGlobalIcon),
+            PSKeymapSheetBuild(LBinding.LBindingScopeTab, PSSheetTabIcon),
+            PSKeymapSheetBuild(LBinding.LBindingScopeFlow, PSSheetFlowIcon),
+            PSKeymapSheetBuild(LBinding.LBindingScopeSplit, PSSheetSplitIcon)));
         pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, PSSheetStripWidth));
         return pRoot;
     }
@@ -203,8 +203,8 @@ internal sealed class PSKeymap : Window
             .ToList();
 
         lsKeymapDraft.LPreferenceNormalize();
-        App.LPreferenceStateSet(lsKeymapDraft.LPreferenceClone());
-        psKeymapCallback?.Invoke(App.LPreferenceStateCurrent);
+        PProgram.LPreferenceStateSet(lsKeymapDraft.LPreferenceClone());
+        psKeymapCallback?.Invoke(PProgram.LPreferenceStateCurrent);
     }
 
     private void PSKeymapCloseHandle(object? sender, EventArgs e)

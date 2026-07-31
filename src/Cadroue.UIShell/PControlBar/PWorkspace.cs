@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using Cadroue.UIShell.PMainArea;
 using Cadroue.UIShell.PAssets;
@@ -14,14 +14,14 @@ public sealed class PWorkspace
     private const int PWorkspaceHistoryMaximum = 100;
 
     private readonly LHistory lWorkspaceHistory = new();
-    private string pWorkspaceLosslessCutPath = string.Empty;
+    private string pWorkspaceLosslesscutPath = string.Empty;
 
     public PWorkspace(
         string pTabLayoutKey,
-        LExportSpecificState? lExportSpecificState = null,
+        LPreset? lExportSpecificState = null,
         LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
-        PWorkspaceExportState = lExportSpecificState ?? LExportSpecificState.LPresetInitialCreate(pTabLayoutKey);
+        PWorkspaceExportState = lExportSpecificState ?? LPreset.LPresetInitialCreate(pTabLayoutKey);
         PWorkspaceSurface = PWorkspaceSurfaceCreate(pTabLayoutKey, PWorkspaceExportState, lPreferenceTabLayout);
         bool pHasSourceInfo = pTabLayoutKey is not ("Merge" or "Worklist");
         bool pAudioOnlyAllowed = pTabLayoutKey == "Audio";
@@ -52,7 +52,7 @@ public sealed class PWorkspace
 
     public PTabSurface PWorkspaceSurface { get; }
 
-    internal LExportSpecificState PWorkspaceExportState { get; }
+    internal LPreset PWorkspaceExportState { get; }
 
     public PFlowControl? PWorkspaceFlow { get; }
 
@@ -85,8 +85,8 @@ public sealed class PWorkspace
 
     private LHistoryEntry PWorkspaceStateRead() => new(
         PWorkspaceFlow?.PFlowSectionsRead() ?? Array.Empty<LSegment>(),
-        PWorkspaceFlow?.PFlowSectionSelectRead(),
-        LExportSpecificPresetRecord.LPresetRecordCreate(PWorkspaceExportState));
+        PWorkspaceFlow?.PFlowSelectionRead(),
+        LPresetRecord.LPresetRecordCreate(PWorkspaceExportState));
 
 
     private void PWorkspaceMediaHandle(LMediaOpenStatus pMediaStatus)
@@ -95,30 +95,30 @@ public sealed class PWorkspace
             || pMediaStatus.LMediaOpenMediaInfo is null
             || string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenSourcePath))
         {
-            pWorkspaceLosslessCutPath = string.Empty;
+            pWorkspaceLosslesscutPath = string.Empty;
             return;
         }
 
         string pMediaPath = System.IO.Path.GetFullPath(pMediaStatus.LMediaOpenSourcePath);
-        if (string.Equals(pWorkspaceLosslessCutPath, pMediaPath, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(pWorkspaceLosslesscutPath, pMediaPath, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
-        pWorkspaceLosslessCutPath = pMediaPath;
-        PFlowControl pLosslessCutFlow = PWorkspaceFlow;
+        pWorkspaceLosslesscutPath = pMediaPath;
+        PFlowControl pLosslesscutFlow = PWorkspaceFlow;
         Application.Current?.Dispatcher.BeginInvoke(
             System.Windows.Threading.DispatcherPriority.Background,
-            new Action(pLosslessCutFlow.PFlowLosslessCutDetect));
+            new Action(pLosslesscutFlow.PFlowLosslesscutFind));
     }
 
     private void PWorkspaceSectionHandle(IReadOnlyList<LSegment> pSections, int? pSectionSelect)
-        => PWorkspaceHistoryMark();
+        => PWorkspaceHistoryAdd();
 
-    private void PWorkspaceExportHandle() => PWorkspaceHistoryMark();
+    private void PWorkspaceExportHandle() => PWorkspaceHistoryAdd();
 
-    private void PWorkspaceHistoryMark()
-        => lWorkspaceHistory.LHistoryPush(PWorkspaceStateRead(), PWorkspaceHistoryMaximum);
+    private void PWorkspaceHistoryAdd()
+        => lWorkspaceHistory.LHistoryAdd(PWorkspaceStateRead(), PWorkspaceHistoryMaximum);
 
     public bool PWorkspaceUndo() => PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryUndo());
 
@@ -149,13 +149,13 @@ public sealed class PWorkspace
 
     public void PWorkspaceRelayApply(LRelay lRelay)
     {
-        if (PWorkspaceViewer is null || string.IsNullOrWhiteSpace(lRelay.SourcePath))
+        if (PWorkspaceViewer is null || string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath))
         {
             return;
         }
 
         IReadOnlyList<PFlow.LSegment> lRelaySections = lRelay.LRelaySectionsCreate();
-        int? lRelaySectionSelect = lRelay.SectionSelectIndex;
+        int? lRelaySectionSelect = lRelay.LRelaySectionIndex;
         PViewer pRelayViewer = PWorkspaceViewer;
 
         void PWorkspaceRelayMediaHandle(LMediaOpenStatus lMediaStatus)
@@ -173,7 +173,7 @@ public sealed class PWorkspace
         }
 
         pRelayViewer.PViewerMediaChange += PWorkspaceRelayMediaHandle;
-        pRelayViewer.PViewerSourceOpen(lRelay.SourcePath);
+        pRelayViewer.PViewerSourceOpen(lRelay.LRelaySourcePath);
     }
 
     private FrameworkElement PWorkspaceRootCreate()
@@ -193,7 +193,7 @@ public sealed class PWorkspace
         pRoot.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
         Grid.SetRow(PWorkspaceSource, 0);
-        UIElement pInfoRow = PWorkspaceInfoRowBuild(PWorkspaceInfo);
+        UIElement pInfoRow = PWorkspaceInfoBuild(PWorkspaceInfo);
         Grid.SetRow(pInfoRow, 1);
         Grid.SetRow(PWorkspaceSurface, 2);
         pRoot.Children.Add(PWorkspaceSource);
@@ -202,11 +202,11 @@ public sealed class PWorkspace
         return pRoot;
     }
 
-    private UIElement PWorkspaceInfoRowBuild(PInfo pInfo)
+    private UIElement PWorkspaceInfoBuild(PInfo pInfo)
     {
         var pToggleButton = new Button
         {
-            Content = PWorkspaceExportIconCreate(),
+            Content = PWorkspaceIconCreate(),
             VerticalAlignment = VerticalAlignment.Center,
             Style = PButton.PButtonSourceCreate()
         };
@@ -223,7 +223,7 @@ public sealed class PWorkspace
         return pRow;
     }
 
-    private static Image PWorkspaceExportIconCreate() => new()
+    private static Image PWorkspaceIconCreate() => new()
     {
         Width = 18,
         Height = 18,
@@ -233,7 +233,7 @@ public sealed class PWorkspace
 
     private static PTabSurface PWorkspaceSurfaceCreate(
         string pTabLayoutKey,
-        LExportSpecificState lExportSpecificState,
+        LPreset lExportSpecificState,
         LPreferenceTabLayoutRecord? lPreferenceTabLayout)
     {
         return pTabLayoutKey switch

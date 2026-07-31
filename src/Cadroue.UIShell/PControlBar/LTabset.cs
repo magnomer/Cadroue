@@ -6,14 +6,14 @@ namespace Cadroue.UIShell.PControlBar;
 
 public sealed class LTabset
 {
-    private const string lTabsetSplitIconPath = "/PAssets/PTabs/PSplitButton.svg";
-    private const string lTabsetEditIconPath = "/PAssets/PTabs/PEditButton.svg";
-    private const string lTabsetAudioIconPath = "/PAssets/PTabs/PAudioButton.svg";
-    private const string lTabsetConvertIconPath = "/PAssets/PTabs/PConvertButton.svg";
-    private const string lTabsetMergeIconPath = "/PAssets/PTabs/PMergeButton.svg";
-    private const string lTabsetWorklistIconPath = "/PAssets/PTabs/PWorklistButton.svg";
+    private const string lTabsetSplitIcon = "/PAssets/PTabs/PSplitButton.svg";
+    private const string lTabsetEditIcon = "/PAssets/PTabs/PEditButton.svg";
+    private const string lTabsetAudioIcon = "/PAssets/PTabs/PAudioButton.svg";
+    private const string lTabsetConvertIcon = "/PAssets/PTabs/PConvertButton.svg";
+    private const string lTabsetMergeIcon = "/PAssets/PTabs/PMergeButton.svg";
+    private const string lTabsetWorklistIcon = "/PAssets/PTabs/PWorklistButton.svg";
 
-    private PTabRecord? pTabsetSelectRecord;
+    private PTabRecord? pTabsetCurrent;
 
     public LTabset()
     {
@@ -25,18 +25,18 @@ public sealed class LTabset
 
     public ObservableCollection<PTabRecord> PTabsetRecords { get; }
 
-    public PTabRecord? PTabsetSelectRecord
+    public PTabRecord? PTabsetCurrent
     {
-        get => pTabsetSelectRecord;
+        get => pTabsetCurrent;
         private set
         {
-            if (ReferenceEquals(pTabsetSelectRecord, value))
+            if (ReferenceEquals(pTabsetCurrent, value))
             {
                 return;
             }
 
-            pTabsetSelectRecord = value;
-            LTabsetSelectChange?.Invoke(pTabsetSelectRecord);
+            pTabsetCurrent = value;
+            LTabsetSelectChange?.Invoke(pTabsetCurrent);
         }
     }
 
@@ -44,7 +44,7 @@ public sealed class LTabset
 
     private void LTabsetSeparatorUpdate()
     {
-        var selectedIndex = PTabsetSelectRecord is null ? -1 : PTabsetRecords.IndexOf(PTabsetSelectRecord);
+        var selectedIndex = PTabsetCurrent is null ? -1 : PTabsetRecords.IndexOf(PTabsetCurrent);
         for (var i = 0; i < PTabsetRecords.Count; i++)
         {
             PTabsetRecords[i].PTabSeparatorState =
@@ -61,24 +61,24 @@ public sealed class LTabset
 
     public PTabRecord LTabsetAdd(
         string pTabLayoutKey,
-        LExportSpecificState? lExportSpecificState = null,
+        LPreset? lExportSpecificState = null,
         LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         return pTabLayoutKey switch
         {
-            "Edit" => LTabsetTypedAdd("Edit", lTabsetEditIconPath, lExportSpecificState, lPreferenceTabLayout),
-            "Audio" => LTabsetTypedAdd("Audio", lTabsetAudioIconPath, lExportSpecificState, lPreferenceTabLayout),
-            "Convert" => LTabsetTypedAdd("Convert", lTabsetConvertIconPath, lExportSpecificState, lPreferenceTabLayout),
-            "Merge" => LTabsetTypedAdd("Merge", lTabsetMergeIconPath, lExportSpecificState, lPreferenceTabLayout),
-            "Worklist" => LTabsetTypedAdd("Worklist", lTabsetWorklistIconPath, lExportSpecificState, lPreferenceTabLayout),
-            _ => LTabsetTypedAdd("Split", lTabsetSplitIconPath, lExportSpecificState, lPreferenceTabLayout)
+            "Edit" => LTabsetTypedAdd("Edit", lTabsetEditIcon, lExportSpecificState, lPreferenceTabLayout),
+            "Audio" => LTabsetTypedAdd("Audio", lTabsetAudioIcon, lExportSpecificState, lPreferenceTabLayout),
+            "Convert" => LTabsetTypedAdd("Convert", lTabsetConvertIcon, lExportSpecificState, lPreferenceTabLayout),
+            "Merge" => LTabsetTypedAdd("Merge", lTabsetMergeIcon, lExportSpecificState, lPreferenceTabLayout),
+            "Worklist" => LTabsetTypedAdd("Worklist", lTabsetWorklistIcon, lExportSpecificState, lPreferenceTabLayout),
+            _ => LTabsetTypedAdd("Split", lTabsetSplitIcon, lExportSpecificState, lPreferenceTabLayout)
         };
     }
 
     private PTabRecord LTabsetTypedAdd(
         string pTabLayoutKey,
         string pTabIconPath,
-        LExportSpecificState? lExportSpecificState,
+        LPreset? lExportSpecificState,
         LPreferenceTabLayoutRecord? lPreferenceTabLayout)
     {
         var pTabRecord = new PTabRecord(
@@ -92,9 +92,9 @@ public sealed class LTabset
         };
         PTabsetRecords.Add(pTabRecord);
         LTabsetTitleUpdate();
-        LAppLog.LInfo($"Tab opened '{pTabRecord.PTabTitle}' ({pTabLayoutKey}): {PTabsetRecords.Count} tab(s) open");
+        LTraceLog.LTraceInfoRecord($"Tab opened '{pTabRecord.PTabTitle}' ({pTabLayoutKey}): {PTabsetRecords.Count} tab(s) open");
 
-        if (PTabsetSelectRecord is null)
+        if (PTabsetCurrent is null)
         {
             LTabsetSelect(pTabRecord);
         }
@@ -164,7 +164,7 @@ public sealed class LTabset
         {
             if (pTabRecord.PTabNameCustom.Length > 0)
             {
-                LAppLog.LInfo($"Tab name reset to the standard name for {pTabRecord.PTabLayoutKey}");
+                LTraceLog.LTraceInfoRecord($"Tab name reset to the standard name for {pTabRecord.PTabLayoutKey}");
             }
 
             pTabRecord.PTabNameCustom = string.Empty;
@@ -172,12 +172,12 @@ public sealed class LTabset
             return;
         }
 
-        pTabRecord.PTabNameCustom = LTabsetNameDistinct(pTabRecord, pTabTrimmed);
+        pTabRecord.PTabNameCustom = LTabsetNameResolve(pTabRecord, pTabTrimmed);
         LTabsetTitleUpdate();
-        LAppLog.LInfo($"Tab renamed to '{pTabRecord.PTabTitle}' ({pTabRecord.PTabLayoutKey})");
+        LTraceLog.LTraceInfoRecord($"Tab renamed to '{pTabRecord.PTabTitle}' ({pTabRecord.PTabLayoutKey})");
     }
 
-    private string LTabsetNameDistinct(PTabRecord pTabRecord, string pTabName)
+    private string LTabsetNameResolve(PTabRecord pTabRecord, string pTabName)
     {
         var lTabsetTakenNames = PTabsetRecords
             .Where(pTabItem => !ReferenceEquals(pTabItem, pTabRecord))
@@ -213,7 +213,7 @@ public sealed class LTabset
             pTabItem.PTabSelectState = ReferenceEquals(pTabItem, pTabRecord);
         }
 
-        PTabsetSelectRecord = pTabRecord;
+        PTabsetCurrent = pTabRecord;
         LTabsetSeparatorUpdate();
     }
 
@@ -255,7 +255,7 @@ public sealed class LTabset
             }
         }
 
-        LAppLog.LInfo($"Tabs cleared across {PTabsetRecords.Count} tab(s)");
+        LTraceLog.LTraceInfoRecord($"Tabs cleared across {PTabsetRecords.Count} tab(s)");
         return pTabsetCleared;
     }
 
@@ -267,13 +267,13 @@ public sealed class LTabset
             return;
         }
 
-        var pTabWasSelected = ReferenceEquals(PTabsetSelectRecord, pTabRecord);
+        var pTabWasSelected = ReferenceEquals(PTabsetCurrent, pTabRecord);
         string pTabClosedTitle = pTabRecord.PTabTitle;
         pTabRecord.PTabWorkspace.PWorkspaceClose();
         PMainArea.LCourier.LCourierTabRemove(pTabRecord.PTabId);
         PTabsetRecords.RemoveAt(pTabIndex);
         LTabsetTitleUpdate();
-        LAppLog.LInfo($"Tab closed '{pTabClosedTitle}': {PTabsetRecords.Count} tab(s) open");
+        LTraceLog.LTraceInfoRecord($"Tab closed '{pTabClosedTitle}': {PTabsetRecords.Count} tab(s) open");
 
         if (!pTabWasSelected)
         {
@@ -283,7 +283,7 @@ public sealed class LTabset
 
         if (PTabsetRecords.Count == 0)
         {
-            PTabsetSelectRecord = null;
+            PTabsetCurrent = null;
             return;
         }
 

@@ -23,9 +23,9 @@ public sealed partial class LSchedule
 
     public void LScheduleChangeRaise() => LScheduleChange?.Invoke(this);
 
-    public void LScheduleReload()
+    public void LScheduleLoad()
     {
-        LDepotIndex.LDepotIndexEnsure();
+        LDepotIndex.LDepotIndexCreate();
         LScheduleStaleClaim();
 
         var lScheduleLoaded = new List<LWorkItem>();
@@ -40,9 +40,9 @@ public sealed partial class LSchedule
                 }
 
                 if (lDepotFolder == LDepotFolder.LDepotFolderRunning
-                    && lScheduleLiveItems.TryGetValue(lWorkRecord.WorkId, out LWorkItem? lWorkLive))
+                    && lScheduleLiveItems.TryGetValue(lWorkRecord.LWorkId, out LWorkItem? lWorkLive))
                 {
-                    lScheduleRunningIds.Add(lWorkRecord.WorkId);
+                    lScheduleRunningIds.Add(lWorkRecord.LWorkId);
                     lScheduleLoaded.Add(lWorkLive);
                     continue;
                 }
@@ -88,14 +88,14 @@ public sealed partial class LSchedule
             break;
         }
 
-        string lDepotFilePath = LDepot.LDepotFilePathRead(LDepotFolder.LDepotFolderScheduled, lWorkId);
+        string lDepotFilePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, lWorkId);
         if (!File.Exists(lDepotFilePath) || LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
         {
             return;
         }
 
-        lWorkRecord.EndTicks = lWorkDuration.Ticks;
-        LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
+        lWorkRecord.LWorkEndTicks = lWorkDuration.Ticks;
+        LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
     }
 
     public int LScheduleAdd(IReadOnlyList<LWorkItem> lWorkItems, Guid lScheduleRelayTarget = default)
@@ -105,7 +105,7 @@ public sealed partial class LSchedule
             return 0;
         }
 
-        LDepotIndex.LDepotIndexEnsure();
+        LDepotIndex.LDepotIndexCreate();
         int lScheduleAddedCount = 0;
         foreach (LWorkItem lWorkItem in lWorkItems)
         {
@@ -120,7 +120,7 @@ public sealed partial class LSchedule
             }
 
             var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
-            if (!LScheduleRecordWrite(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
+            if (!LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
             {
                 continue;
             }
@@ -139,7 +139,7 @@ public sealed partial class LSchedule
 
     public Guid LScheduleLineageRead(LWorkItem lWorkItem) =>
         lWorkItem.LWorkLineage == Guid.Empty
-            ? LScheduleFileLineageRead(lWorkItem.LWorkSourcePath)
+            ? LScheduleFileRead(lWorkItem.LWorkSourcePath)
             : lWorkItem.LWorkLineage;
 
     private Guid LScheduleLineageResolve(LWorkItem lWorkItem)
@@ -152,7 +152,7 @@ public sealed partial class LSchedule
         LWorkItem? lScheduleParent = LScheduleParentFind(lWorkItem.LWorkSourcePath);
         return lScheduleParent is not null && lScheduleParent.LWorkKind != LWorkKind.LWorkKindSplit
             ? LScheduleLineageRead(lScheduleParent)
-            : LScheduleFileLineageRead(lWorkItem.LWorkSourcePath);
+            : LScheduleFileRead(lWorkItem.LWorkSourcePath);
     }
 
     private LWorkItem? LScheduleParentFind(string lWorkSourcePath)
@@ -200,7 +200,7 @@ public sealed partial class LSchedule
         }
     }
 
-    public static Guid LScheduleFileLineageRead(string lWorkFilePath)
+    public static Guid LScheduleFileRead(string lWorkFilePath)
     {
         if (string.IsNullOrWhiteSpace(lWorkFilePath))
         {
@@ -223,7 +223,7 @@ public sealed partial class LSchedule
         return new Guid(lScheduleHash.AsSpan(0, 16));
     }
 
-    public void LScheduleComplete(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage)
+    public void LScheduleCommit(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage)
     {
         lScheduleLiveItems.Remove(lWorkItem.LWorkId);
         LDepotFolder lScheduleTarget = lScheduleSucceeded
@@ -233,12 +233,12 @@ public sealed partial class LSchedule
         LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, lScheduleTarget);
 
         var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
-        lWorkRecord.State = lScheduleSucceeded
+        lWorkRecord.LWorkStateName = lScheduleSucceeded
             ? nameof(LWorkState.LWorkStateDone)
             : nameof(LWorkState.LWorkStateFailed);
-        lWorkRecord.Message = lScheduleMessage;
-        lWorkRecord.Progress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
-        LScheduleRecordWrite(lWorkRecord, lScheduleTarget);
+        lWorkRecord.LWorkMessage = lScheduleMessage;
+        lWorkRecord.LWorkProgress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
+        LScheduleRecordSave(lWorkRecord, lScheduleTarget);
     }
 
     public bool LScheduleItemCancel(LWorkItem lWorkItem)
@@ -267,7 +267,7 @@ public sealed partial class LSchedule
         bool lScheduleRemoved = false;
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
         {
-            string lDepotFilePath = LDepot.LDepotFilePathRead(lDepotFolder, lWorkId);
+            string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
             if (!File.Exists(lDepotFilePath))
             {
                 continue;
@@ -286,7 +286,7 @@ public sealed partial class LSchedule
         if (lScheduleRemoved)
         {
             LDepotIndex.LDepotIndexRemove(lWorkId);
-            LScheduleReload();
+            LScheduleLoad();
         }
 
         return lScheduleRemoved;
@@ -322,7 +322,7 @@ public sealed partial class LSchedule
         }
 
         LDepotIndex.LDepotIndexRebuild();
-        LScheduleReload();
+        LScheduleLoad();
         return lScheduleClearedCount;
     }
 
@@ -355,13 +355,13 @@ public sealed partial class LSchedule
         }
     }
 
-    private static bool LScheduleRecordWrite(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
+    private static bool LScheduleRecordSave(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
     {
         try
         {
             File.WriteAllText(
-                LDepot.LDepotFilePathRead(lDepotFolder, lWorkRecord.WorkId),
-                lWorkRecord.LWorkRecordJsonCreate());
+                LDepot.LDepotFileRead(lDepotFolder, lWorkRecord.LWorkId),
+                lWorkRecord.LWorkJsonCreate());
             LDepotIndex.LDepotIndexSet(lWorkRecord, lDepotFolder);
             return true;
         }
@@ -373,8 +373,8 @@ public sealed partial class LSchedule
 
     private static bool LScheduleMove(Guid lWorkId, LDepotFolder lDepotFrom, LDepotFolder lDepotTo)
     {
-        string lDepotFromPath = LDepot.LDepotFilePathRead(lDepotFrom, lWorkId);
-        string lDepotToPath = LDepot.LDepotFilePathRead(lDepotTo, lWorkId);
+        string lDepotFromPath = LDepot.LDepotFileRead(lDepotFrom, lWorkId);
+        string lDepotToPath = LDepot.LDepotFileRead(lDepotTo, lWorkId);
 
         try
         {

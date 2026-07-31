@@ -8,21 +8,21 @@ public sealed partial class PRoster
     public LPreferenceTabLayoutRecord PRosterLayoutRead()
     {
         var lPreferenceTabLayout = new LPreferenceTabLayoutRecord();
-        if (pRosterBody.Tag is not PResizableColumnLayout pRosterLayout)
+        if (pRosterBody.Tag is not PColumn pRosterLayout)
         {
             return lPreferenceTabLayout;
         }
 
-        foreach (double pWeight in pRosterLayout.PWeightsRead())
+        foreach (double pWeight in pRosterLayout.PColumnWeightsRead())
         {
-            lPreferenceTabLayout.PanelWidths.Add(pWeight);
+            lPreferenceTabLayout.LPreferencePanelWidths.Add(pWeight);
         }
 
         return lPreferenceTabLayout;
     }
 
     public double PRosterWidthRead() =>
-        pRosterBody.Tag is PResizableColumnLayout pRosterLayout ? pRosterLayout.PMinimumTotalRead() + 16 : 0;
+        pRosterBody.Tag is PColumn pRosterLayout ? pRosterLayout.PColumnTotalRead() + 16 : 0;
 
     private UIElement PRosterBuild(LPreferenceTabLayoutRecord? lPreferenceTabLayout)
     {
@@ -43,15 +43,15 @@ public sealed partial class PRoster
         };
         pRosterBody.ColumnDefinitions.Add(pRightColumn);
 
-        UIElement pQueue = PRosterQueuePanelBuild();
+        UIElement pQueue = PRosterPanelBuild();
         Grid.SetColumn(pQueue, 0);
         pRosterBody.Children.Add(pQueue);
 
-        var pRosterLayout = PResizableColumnLayout.PAttach(
+        var pRosterLayout = PColumn.PColumnAttach(
             pRosterBody,
             new[] { pLeftColumn, pRightColumn },
-            lPreferenceTabLayout?.PanelWidths);
-        var pSplitter = pRosterLayout.PSplitterBuild(0);
+            lPreferenceTabLayout?.LPreferencePanelWidths);
+        var pSplitter = pRosterLayout.PColumnSplitterBuild(0);
         Grid.SetColumn(pSplitter, 1);
         pRosterBody.Children.Add(pSplitter);
         pRosterBody.Tag = pRosterLayout;

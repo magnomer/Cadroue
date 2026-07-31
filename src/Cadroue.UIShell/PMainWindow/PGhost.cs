@@ -67,7 +67,7 @@ public sealed class PGhost
             return;
         }
 
-        pGhostAdorner.PGhostAdornerPointSet(pRootPoint);
+        pGhostAdorner.PGhostAdornerSet(pRootPoint);
     }
 
     public void PGhostCursorSync()
@@ -77,7 +77,7 @@ public sealed class PGhost
             return;
         }
 
-        PGhostPointSet(pGhostRoot.PointFromScreen(new Point(pCursor.X, pCursor.Y)));
+        PGhostPointSet(pGhostRoot.PointFromScreen(new Point(pCursor.PGhostX, pCursor.PGhostY)));
     }
 
     public void PGhostClear()
@@ -167,8 +167,8 @@ public sealed class PGhost
     [StructLayout(LayoutKind.Sequential)]
     private struct PGhostPoint
     {
-        public int X;
-        public int Y;
+        public int PGhostX;
+        public int PGhostY;
     }
 
     [DllImport("user32.dll", EntryPoint = "GetCursorPos")]
@@ -203,7 +203,7 @@ public sealed class PGhost
             IsHitTestVisible = false;
         }
 
-        internal void PGhostAdornerPointSet(Point pPoint)
+        internal void PGhostAdornerSet(Point pPoint)
         {
             pGhostPoint = pPoint;
             InvalidateArrange();

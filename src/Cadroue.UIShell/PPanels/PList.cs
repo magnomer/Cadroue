@@ -26,7 +26,7 @@ public sealed partial class PList : PPanel
     ];
 
     public const double PListStripWidth = 48;
-    public const string PListDragFormat = "CadrouePaths";
+    public const string PListDragKind = "CadrouePaths";
 
     private readonly StackPanel pListRowPanel;
     private readonly TextBlock pListEmptyNotice;
@@ -35,7 +35,7 @@ public sealed partial class PList : PPanel
     private readonly UIElement pListStripBody;
     private string? pListPathCurrent;
     private bool pListMinimized;
-    private Point? pListDragStart;
+    private Point? pListDragOrigin;
     private Point pListDragOffset;
     private string? pListDragPath;
 
@@ -123,7 +123,7 @@ public sealed partial class PList : PPanel
 
     public IReadOnlyList<string> PListPathsRead() => pListPaths.ToArray();
 
-    public string? PListPathCurrentRead() => pListPathCurrent;
+    public string? PListCurrentRead() => pListPathCurrent;
 
     public int PListPathsAdd(IEnumerable<string> pAddPaths)
     {
@@ -178,7 +178,7 @@ public sealed partial class PList : PPanel
             }
             catch (Exception pScanError) when (pScanError is IOException or UnauthorizedAccessException)
             {
-                LAppLog.LError($"List skipped folder '{pScanPath}': {pScanError.Message}");
+                LTraceLog.LTraceErrorRecord($"List skipped folder '{pScanPath}': {pScanError.Message}");
             }
         }
 
@@ -376,26 +376,26 @@ public sealed partial class PList : PPanel
         {
             Focus();
             PListPressHandle(pRowPath, pRowEvent);
-            pListDragStart = pRowEvent.GetPosition(null);
+            pListDragOrigin = pRowEvent.GetPosition(null);
             pListDragOffset = pRowEvent.GetPosition(pRowBorder);
             pListDragPath = pRowPath;
             pRowBorder.CaptureMouse();
             pRowEvent.Handled = true;
         };
-        pRowBorder.MouseMove += (pRowSender, pRowEvent) => PListRowDragHandle(pRowSender, pRowEvent);
+        pRowBorder.MouseMove += (pRowSender, pRowEvent) => PListDragHandle(pRowSender, pRowEvent);
         pRowBorder.MouseLeftButtonUp += (_, _) =>
         {
             pRowBorder.ReleaseMouseCapture();
-            pListDragStart = null;
+            pListDragOrigin = null;
             pListDragPath = null;
             PListReleaseHandle();
         };
         return pRowBorder;
     }
 
-    private void PListRowDragHandle(object pRowSender, MouseEventArgs pRowEvent)
+    private void PListDragHandle(object pRowSender, MouseEventArgs pRowEvent)
     {
-        if (pListDragStart is not { } pStart
+        if (pListDragOrigin is not { } pStart
             || pListDragPath is not { } pDragPath
             || pRowEvent.LeftButton != MouseButtonState.Pressed)
         {
@@ -412,9 +412,9 @@ public sealed partial class PList : PPanel
         string[] pDragPaths = PListSelectionCheck(pDragPath)
             ? PListSelectionRead().ToArray()
             : [pDragPath];
-        var pDragData = new DataObject(PListDragFormat, pDragPaths);
+        var pDragData = new DataObject(PListDragKind, pDragPaths);
         Point pGrabOffset = pListDragOffset;
-        pListDragStart = null;
+        pListDragOrigin = null;
         pListDragPath = null;
         pListPressPath = null;
         if (pRowSender is UIElement pRowElement)
@@ -422,14 +422,14 @@ public sealed partial class PList : PPanel
             pRowElement.ReleaseMouseCapture();
         }
 
-        LAppLog.LInfo($"DRAGTRACE list drag start '{Path.GetFileName(pDragPath)}'");
+        LTraceLog.LTraceInfoRecord($"DRAGTRACE list drag start '{Path.GetFileName(pDragPath)}'");
         DragDropEffects pDragResult = pRowSender is FrameworkElement pRowVisual
             ? PGhost.PGhostDragRun(
                 pRowVisual,
                 pGrabOffset,
                 () => DragDrop.DoDragDrop(pRowVisual, pDragData, DragDropEffects.Copy))
             : DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
-        LAppLog.LInfo($"DRAGTRACE list drag end effect={pDragResult}");
+        LTraceLog.LTraceInfoRecord($"DRAGTRACE list drag end effect={pDragResult}");
     }
 
     private void PListEmptyUpdate()

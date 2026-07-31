@@ -9,7 +9,7 @@ namespace Cadroue.UIShell;
 
 public sealed partial class PLogWindow
 {
-    private const string PLogOpenIconPath = "/PAssets/PPanels/POpen.svg";
+    private const string PLogOpenIcon = "/PAssets/PPanels/POpen.svg";
 
     private UIElement PLogContentBuild()
     {
@@ -21,11 +21,11 @@ public sealed partial class PLogWindow
             Margin = new Thickness(0, PSCasement.PSCasementBandHeight, 0, 0)
         };
 
-        DockPanel pLogFileRow = PLogFileRowBuild();
+        DockPanel pLogFileRow = PLogFileBuild();
         DockPanel.SetDock(pLogFileRow, Dock.Top);
         pLogBody.Children.Add(pLogFileRow);
 
-        DockPanel pLogFilterRow = PLogFilterRowBuild();
+        DockPanel pLogFilterRow = PLogFilterBuild();
         DockPanel.SetDock(pLogFilterRow, Dock.Top);
         pLogBody.Children.Add(pLogFilterRow);
 
@@ -47,12 +47,12 @@ public sealed partial class PLogWindow
         return pLogRoot;
     }
 
-    private DockPanel PLogFileRowBuild()
+    private DockPanel PLogFileBuild()
     {
         var pLogFileRow = new DockPanel { Margin = new Thickness(18, 14, 18, 0), LastChildFill = false };
 
         Button pLogOpenButton = PSField.PSInlineIconBuild(
-            PLogOpenIconPath,
+            PLogOpenIcon,
             LLocalization.LLocalizationTextRead("Log.Button.Open"),
             new Thickness(0, 0, 8, 0));
         pLogOpenButton.Click += (_, _) => PLogFolderOpen();
@@ -69,7 +69,7 @@ public sealed partial class PLogWindow
         return pLogFileRow;
     }
 
-    private DockPanel PLogFilterRowBuild()
+    private DockPanel PLogFilterBuild()
     {
         var pLogFilterRow = new DockPanel { Margin = new Thickness(18, 9, 18, 12), LastChildFill = false };
         DockPanel.SetDock(pLogCategoryCombo, Dock.Left);

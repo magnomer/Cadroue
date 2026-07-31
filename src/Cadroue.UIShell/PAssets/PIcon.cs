@@ -84,7 +84,7 @@ public static class PIcon
             pBrush.Freeze();
         }
 
-        PIconTintApplyToDrawing(pClone, pBrush);
+        PIconDrawingApply(pClone, pBrush);
         if (pClone.CanFreeze)
         {
             pClone.Freeze();
@@ -93,23 +93,23 @@ public static class PIcon
         return pClone;
     }
 
-    private static void PIconTintApplyToDrawing(Drawing pDrawing, Brush pTintBrush)
+    private static void PIconDrawingApply(Drawing pDrawing, Brush pTintBrush)
     {
         switch (pDrawing)
         {
             case DrawingGroup pGroup:
                 foreach (Drawing pChild in pGroup.Children)
                 {
-                    PIconTintApplyToDrawing(pChild, pTintBrush);
+                    PIconDrawingApply(pChild, pTintBrush);
                 }
                 break;
             case GeometryDrawing pGeometry:
-                if (PIconBrushVisible(pGeometry.Brush))
+                if (PIconBrushCheck(pGeometry.Brush))
                 {
                     pGeometry.Brush = pTintBrush;
                 }
 
-                if (pGeometry.Pen is not null && PIconBrushVisible(pGeometry.Pen.Brush))
+                if (pGeometry.Pen is not null && PIconBrushCheck(pGeometry.Pen.Brush))
                 {
                     pGeometry.Pen = pGeometry.Pen.Clone();
                     pGeometry.Pen.Brush = pTintBrush;
@@ -125,7 +125,7 @@ public static class PIcon
         }
     }
 
-    private static bool PIconBrushVisible(Brush? pBrush)
+    private static bool PIconBrushCheck(Brush? pBrush)
     {
         if (pBrush is null || pBrush.Opacity <= 0)
         {

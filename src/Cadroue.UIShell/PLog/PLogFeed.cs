@@ -57,7 +57,7 @@ public sealed partial class PLogWindow
     private void PLogFilesBuild()
     {
         string pLogCurrentPath = LTraceWriter.LTracePathRead();
-        List<string> pLogFiles = LTraceWriter.LTraceWriterFilesRead();
+        List<string> pLogFiles = LTraceWriter.LTraceFilesRead();
         if (!pLogFiles.Contains(pLogCurrentPath, StringComparer.OrdinalIgnoreCase))
         {
             pLogFiles.Insert(0, pLogCurrentPath);
@@ -95,7 +95,7 @@ public sealed partial class PLogWindow
 
         pLogFilePath = pLogPath;
         pLogFileLive = string.Equals(pLogPath, LTraceWriter.LTracePathRead(), StringComparison.OrdinalIgnoreCase);
-        pLogSourceText = LTraceWriter.LTraceWriterFileRead(pLogPath);
+        pLogSourceText = LTraceWriter.LTraceFileRead(pLogPath);
 
         pLogRowsAll.Clear();
         foreach (LTraceEntry pLogEntry in LTraceEntry.LTraceEntryParse(pLogSourceText))
@@ -192,7 +192,7 @@ public sealed partial class PLogWindow
     {
         if (e.OriginalSource is FrameworkElement pLogElement && pLogElement.DataContext is PLogRow pLogRow)
         {
-            pLogRow.PLogRowOpen = !pLogRow.PLogRowOpen;
+            pLogRow.PLogRowExpanded = !pLogRow.PLogRowExpanded;
             e.Handled = true;
         }
     }
@@ -205,7 +205,7 @@ public sealed partial class PLogWindow
         }
         catch (COMException lLogException)
         {
-            LAppLog.LError("Log copy failed", lLogException);
+            LTraceLog.LTraceErrorRecord("Log copy failed", lLogException);
         }
     }
 

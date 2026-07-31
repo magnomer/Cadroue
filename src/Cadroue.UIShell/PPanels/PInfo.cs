@@ -13,10 +13,10 @@ public sealed class PInfo : UserControl
     private static readonly SolidColorBrush PInfoMutedBrush = new(Color.FromRgb(0x9C, 0xA3, 0xAF));
     private static readonly SolidColorBrush PInfoBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly SolidColorBrush PInfoSeparatorBrush = new(Color.FromRgb(0xE5, 0xE7, 0xEB));
-    private static readonly SolidColorBrush PInfoFfmpegGoodBrush = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
-    private static readonly SolidColorBrush PInfoFfmpegBadBrush = new(Color.FromRgb(0xE0, 0x53, 0x53));
-    private static readonly SolidColorBrush PInfoPreviewGoodBrush = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
-    private static readonly SolidColorBrush PInfoPreviewBadBrush = new(Color.FromRgb(0xE0, 0x53, 0x53));
+    private static readonly SolidColorBrush PInfoFfmpegGood = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
+    private static readonly SolidColorBrush PInfoFfmpegBad = new(Color.FromRgb(0xE0, 0x53, 0x53));
+    private static readonly SolidColorBrush PInfoPreviewGood = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
+    private static readonly SolidColorBrush PInfoPreviewBad = new(Color.FromRgb(0xE0, 0x53, 0x53));
     private PViewer? pInfoViewer;
     private readonly StackPanel pInfoItemPanel;
 
@@ -72,9 +72,9 @@ public sealed class PInfo : UserControl
         }
 
         PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LMediaOpenFfmpegProcessable ? "Info.FFmpeg.Processable" : "Info.FFmpeg.Unprocessable"),
-            pMediaStatus.LMediaOpenFfmpegProcessable ? PInfoFfmpegGoodBrush : PInfoFfmpegBadBrush);
+            pMediaStatus.LMediaOpenFfmpegProcessable ? PInfoFfmpegGood : PInfoFfmpegBad);
         PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LMediaOpenPreviewAvailable ? "Info.Preview.Available" : "Info.Preview.Unavailable"),
-            pMediaStatus.LMediaOpenPreviewAvailable ? PInfoPreviewGoodBrush : PInfoPreviewBadBrush);
+            pMediaStatus.LMediaOpenPreviewAvailable ? PInfoPreviewGood : PInfoPreviewBad);
 
         if (pMediaStatus.LMediaOpenMediaInfo is not LMediaInfo pMediaInfo)
         {
@@ -83,24 +83,24 @@ public sealed class PInfo : UserControl
         }
 
         PInfoTextAdd(PInfoDurationFormat(pMediaInfo.LMediaInfoDuration));
-        if (pMediaInfo.LMediaInfoVideoPresent)
+        if (pMediaInfo.LMediaVideoPresent)
         {
-            PInfoTextAdd($"{pMediaInfo.LMediaInfoVideoWidth}×{pMediaInfo.LMediaInfoVideoHeight}");
-            if (pMediaInfo.LMediaInfoVideoFrameRate > 0)
-                PInfoTextAdd($"{pMediaInfo.LMediaInfoVideoFrameRate:0.##} fps");
-            PInfoTextAdd(PInfoCodecFormat(pMediaInfo.LMediaInfoVideoCodecName));
+            PInfoTextAdd($"{pMediaInfo.LMediaVideoWidth}×{pMediaInfo.LMediaVideoHeight}");
+            if (pMediaInfo.LMediaVideoRate > 0)
+                PInfoTextAdd($"{pMediaInfo.LMediaVideoRate:0.##} fps");
+            PInfoTextAdd(PInfoCodecFormat(pMediaInfo.LMediaVideoCodec));
         }
         else
         {
             PInfoTextAdd(LLocalization.LLocalizationTextRead("Info.Audio.Only"));
         }
 
-        if (pMediaInfo.LMediaInfoAudioPresent)
+        if (pMediaInfo.LMediaAudioPresent)
         {
-            string pKHz = (pMediaInfo.LMediaInfoAudioSampleRate / 1000.0).ToString("0.#");
-            PInfoTextAdd(PInfoCodecFormat(pMediaInfo.LMediaInfoAudioCodecName));
+            string pKHz = (pMediaInfo.LMediaSampleRate / 1000.0).ToString("0.#");
+            PInfoTextAdd(PInfoCodecFormat(pMediaInfo.LMediaAudioCodec));
             PInfoTextAdd($"{pKHz} kHz");
-            PInfoTextAdd(PInfoChannelFormat(pMediaInfo.LMediaInfoAudioChannels));
+            PInfoTextAdd(PInfoChannelFormat(pMediaInfo.LMediaAudioChannels));
         }
         else
         {

@@ -78,7 +78,7 @@ public sealed partial class PViewer
         }
 
         string? pSourcePath = PDropPathRead(dragEvent);
-        if (pSourcePath is null || PDropAudioCheck(pSourcePath) && !pViewerAudioOnlyAllowed)
+        if (pSourcePath is null || PDropAudioCheck(pSourcePath) && !pViewerAudioAllowed)
         {
             return DragDropEffects.None;
         }

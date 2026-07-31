@@ -43,7 +43,7 @@ public static class LPreview
         LPreviewFilterApply(
             lPreviewPlayer,
             FLFilters.Contrast,
-            LFlyleafLocal.LFlyleafLocalActive
+            LFlyleaf.LFlyleafActive
                 ? LPreviewValueClamp((lColor.LColorContrast - 1) * 100, -100, 100)
                 : 0);
 

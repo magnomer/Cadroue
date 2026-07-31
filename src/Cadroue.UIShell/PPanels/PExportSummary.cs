@@ -8,41 +8,41 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PExport : UserControl
 {
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
-    private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush PMutedBrush = new SolidColorBrush(Color.FromRgb(0x62, 0x6F, 0x83));
+    private static readonly Brush PExportSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
+    private static readonly Brush PExportTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush PExportMutedBrush = new SolidColorBrush(Color.FromRgb(0x62, 0x6F, 0x83));
     private static readonly Brush PHeaderFillBrush = new SolidColorBrush(Color.FromRgb(0xF3, 0xF5, 0xF8));
     private static readonly Brush PHeaderTextBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
 
-    private readonly LExportSpecificState lExportSpecificState;
-    private readonly TextBlock pSummaryContainer;
-    private readonly TextBlock pSummaryMode;
-    private readonly TextBlock pSummaryVideo;
-    private readonly TextBlock pSummaryAudio;
-    private readonly TextBlock pSummaryOutput;
+    private readonly LPreset lExportSpecificState;
+    private readonly TextBlock pExportSummaryBox;
+    private readonly TextBlock pExportSummaryMode;
+    private readonly TextBlock pExportSummaryVideo;
+    private readonly TextBlock pExportSummaryAudio;
+    private readonly TextBlock pExportSummaryOutput;
     private readonly StackPanel pPresetRowPanel;
-    private readonly bool pVideoCopyPresetDisabled;
+    private readonly bool pExportCopyDisabled;
     private string? pPresetNameSelected;
     private string? pPresetNameEditing;
     private string? pPresetNameDragging;
-    private Point? pPresetDragStart;
+    private Point? pExportDragOrigin;
     private Point pPresetDragOffset;
     private bool pPresetDragActive;
     private PGhost? pPresetDragGhost;
 
     private bool pPresetRebuilding;
 
-    private TextBox? pPresetNameBoxCurrent;
+    private TextBox? pExportBoxCurrent;
 
     private bool pExportPresetBusy;
 
-    public PExport(LExportSpecificState lExportSpecificState, bool pVideoCopyPresetDisabled = false)
+    public PExport(LPreset lExportSpecificState, bool pExportCopyDisabled = false)
     {
         this.lExportSpecificState = lExportSpecificState;
-        this.pVideoCopyPresetDisabled = pVideoCopyPresetDisabled;
+        this.pExportCopyDisabled = pExportCopyDisabled;
         FocusVisualStyle = null;
         pPresetRowPanel = new StackPanel();
-        pPresetNameSelected = lExportSpecificState.PresetName;
+        pPresetNameSelected = lExportSpecificState.LPresetName;
 
         var pPanel = new Grid();
         pPanel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -70,12 +70,12 @@ public sealed partial class PExport : UserControl
         Grid.SetRow(pSeparator, 2);
         pBody.Children.Add(pSeparator);
 
-        UIElement pSummary = PSummaryBuild(
-            PSummaryRowBuild(LLocalization.LLocalizationTextRead("Roster.Field.Container"), out pSummaryContainer),
-            PSummaryRowBuild(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), out pSummaryMode),
-            PSummaryRowBuild(LLocalization.LLocalizationTextRead("ExportSummary.Video"), out pSummaryVideo),
-            PSummaryRowBuild(LLocalization.LLocalizationTextRead("ExportSummary.Audio"), out pSummaryAudio),
-            PSummaryRowBuild(LLocalization.LLocalizationTextRead("Roster.Section.Output"), out pSummaryOutput));
+        UIElement pSummary = PExportSummaryBuild(
+            PExportLineBuild(LLocalization.LLocalizationTextRead("Roster.Field.Container"), out pExportSummaryBox),
+            PExportLineBuild(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), out pExportSummaryMode),
+            PExportLineBuild(LLocalization.LLocalizationTextRead("ExportSummary.Video"), out pExportSummaryVideo),
+            PExportLineBuild(LLocalization.LLocalizationTextRead("ExportSummary.Audio"), out pExportSummaryAudio),
+            PExportLineBuild(LLocalization.LLocalizationTextRead("Roster.Section.Output"), out pExportSummaryOutput));
         Grid.SetRow(pSummary, 3);
         pBody.Children.Add(pSummary);
 
@@ -90,7 +90,7 @@ public sealed partial class PExport : UserControl
     {
         var pInnerBorder = new Border
         {
-            Background = PSoftBrush,
+            Background = PExportSoftBrush,
             CornerRadius = new CornerRadius(9),
             Child = pContent,
             SnapsToDevicePixels = true
@@ -102,7 +102,7 @@ public sealed partial class PExport : UserControl
             Margin = new Thickness(8),
             BorderBrush = PLineBrush,
             BorderThickness = new Thickness(1),
-            Background = PSoftBrush,
+            Background = PExportSoftBrush,
             CornerRadius = new CornerRadius(10),
             Child = pInnerBorder,
             SnapsToDevicePixels = true
@@ -123,21 +123,21 @@ public sealed partial class PExport : UserControl
     private void PExportSummaryUpdate()
     {
         pExportPresetBusy = true;
-        pPresetNameSelected = lExportSpecificState.PresetName;
+        pPresetNameSelected = lExportSpecificState.LPresetName;
         if (!string.Equals(pPresetNameEditing, pPresetNameSelected, StringComparison.OrdinalIgnoreCase))
         {
             pPresetNameEditing = null;
-            pPresetNameBoxCurrent = null;
+            pExportBoxCurrent = null;
         }
 
         PExportPresetRebuild();
         pExportPresetBusy = false;
 
-        pSummaryContainer.Text = lExportSpecificState.Container;
-        pSummaryMode.Text = lExportSpecificState.ExportMode;
-        pSummaryVideo.Text = lExportSpecificState.VideoSummary;
-        pSummaryAudio.Text = lExportSpecificState.AudioSummary;
-        pSummaryOutput.Text = lExportSpecificState.OutputSummary;
+        pExportSummaryBox.Text = lExportSpecificState.LPresetContainer;
+        pExportSummaryMode.Text = lExportSpecificState.LPresetExportMode;
+        pExportSummaryVideo.Text = lExportSpecificState.LPresetVideoSummary;
+        pExportSummaryAudio.Text = lExportSpecificState.LPresetAudioSummary;
+        pExportSummaryOutput.Text = lExportSpecificState.LPresetOutputSummary;
     }
 
     private static UIElement PHeaderBuild() => new Border
@@ -157,7 +157,7 @@ public sealed partial class PExport : UserControl
         }
     };
 
-    private static Border PSummaryBuild(params UIElement[] pChildren)
+    private static Border PExportSummaryBuild(params UIElement[] pChildren)
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(new TextBlock
@@ -165,7 +165,7 @@ public sealed partial class PExport : UserControl
             Text = LLocalization.LLocalizationTextRead("ExportSummary.Header.Summary"),
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
-            Foreground = PTextBrush,
+            Foreground = PExportTextBrush,
             Margin = new Thickness(0, 0, 0, 6)
         });
 
@@ -191,14 +191,14 @@ public sealed partial class PExport : UserControl
         Margin = new Thickness(0, 8, 0, 8)
     };
 
-    private static UIElement PSummaryRowBuild(string pName, out TextBlock pValueBlock)
+    private static UIElement PExportLineBuild(string pName, out TextBlock pValueBlock)
     {
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 3) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(74) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(new TextBlock { Text = pName, Foreground = PMutedBrush, FontSize = 11, VerticalAlignment = VerticalAlignment.Top });
+        pGrid.Children.Add(new TextBlock { Text = pName, Foreground = PExportMutedBrush, FontSize = 11, VerticalAlignment = VerticalAlignment.Top });
 
-        pValueBlock = new TextBlock { Foreground = PTextBrush, FontSize = 11, TextWrapping = TextWrapping.Wrap };
+        pValueBlock = new TextBlock { Foreground = PExportTextBrush, FontSize = 11, TextWrapping = TextWrapping.Wrap };
         Grid.SetColumn(pValueBlock, 1);
         pGrid.Children.Add(pValueBlock);
         return pGrid;

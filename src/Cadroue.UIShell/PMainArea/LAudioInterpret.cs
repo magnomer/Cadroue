@@ -14,7 +14,7 @@ public static partial class LAudio
     {
         if (string.IsNullOrWhiteSpace(lAudioSourcePath))
         {
-            LAppLog.LError("Audio job not queued: no source file is open");
+            LTraceLog.LTraceErrorRecord("Audio job not queued: no source file is open");
             return 0;
         }
 
@@ -35,7 +35,7 @@ public static partial class LAudio
             lWorkAudio: lAudioProcessing);
 
         int lAudioAdded = LSchedule.LScheduleCurrent.LScheduleAdd(new[] { lAudioItem }, lAudioRelayTarget);
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Audio queued {lAudioAdded} job at {lWorkPriority} from '{Path.GetFileName(lAudioSourcePath)}' " +
             $"into '{lAudioFolder}' as '{lAudioOutputName}'");
         return lAudioAdded;

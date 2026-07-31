@@ -5,28 +5,28 @@ namespace Cadroue.UIShell.PFlow;
 public sealed partial class PFlow
 {
     private readonly LWaveformOrchestrator lWaveformOrchestrator = new();
-    private bool pFlowWaveformShow = App.LPreferenceStateCurrent.LPreferenceWaveformShow;
+    private bool pFlowWaveformActive = PProgram.LPreferenceStateCurrent.LPreferenceWaveform;
 
     public event Action<bool>? PFlowWaveformChange;
 
-    public bool PFlowWaveformCheck() => pFlowWaveformShow;
+    public bool PFlowWaveformCheck() => pFlowWaveformActive;
 
     public void PFlowWaveformSet(bool pFlowWaveformRequest)
     {
-        if (pFlowWaveformShow == pFlowWaveformRequest)
+        if (pFlowWaveformActive == pFlowWaveformRequest)
         {
             return;
         }
 
-        pFlowWaveformShow = pFlowWaveformRequest;
+        pFlowWaveformActive = pFlowWaveformRequest;
         PFlowWaveformApply();
         PFlowWaveformStart();
-        PFlowWaveformChange?.Invoke(pFlowWaveformShow);
+        PFlowWaveformChange?.Invoke(pFlowWaveformActive);
     }
 
     private void PFlowWaveformStart()
     {
-        if (pFlowUnloaded || !pFlowWaveformShow)
+        if (pFlowUnloaded || !pFlowWaveformActive)
         {
             return;
         }
@@ -62,7 +62,7 @@ public sealed partial class PFlow
             return;
         }
 
-        byte[] pFlowWaveformPeaks = pFlowWaveformShow
+        byte[] pFlowWaveformPeaks = pFlowWaveformActive
             ? lWaveformOrchestrator.LWaveformCurrent
             : Array.Empty<byte>();
         pViewfinder.PViewfinderWaveformUpdate(pFlowWaveformPeaks);

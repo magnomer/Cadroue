@@ -9,7 +9,7 @@ public static partial class LAudio
         LWorkPriority lWorkPriority,
         string? lAudioSourcePath,
         LWorkAudio lAudioProcessing,
-        LExportSpecificState lExportSpecificState,
+        LPreset lExportSpecificState,
         Guid lAudioRelayTarget = default)
     {
         return LAudio.LAudioInterpret(
@@ -24,7 +24,7 @@ public static partial class LAudio
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lAudioSourcePaths,
         LWorkAudio lAudioProcessing,
-        LExportSpecificState lExportSpecificState,
+        LPreset lExportSpecificState,
         LWorkAudio? lAudioPersistent = null,
         Guid lAudioRelayTarget = default)
     {
@@ -53,7 +53,7 @@ public static partial class LAudio
 
     public static LWorkAudio? LAudioPlanRead(string lAudioSourcePath) =>
         Cadroue.Media.LSidecarStore.LSidecarAudioRead(lAudioSourcePath) is { } lAudioRecord
-            ? new LWorkAudio(lAudioRecord.Steps.Select(LAudioStepCreate).ToArray())
+            ? new LWorkAudio(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray())
             : null;
 
     public static void LAudioPlanSave(string lAudioSourcePath, LWorkAudio lAudioPlan)
@@ -62,7 +62,7 @@ public static partial class LAudio
             lAudioSourcePath,
             new Cadroue.Media.LSidecarAudioRecord
             {
-                Steps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
+                LSidecarSteps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
             });
     }
 
@@ -75,7 +75,7 @@ public static partial class LAudio
                 .FirstOrDefault(lStep => lStep.LWorkAudioStepKind == lAudioKind);
             LWorkAudioStep? lAudioSavedStep = lAudioSaved?.LWorkAudioSteps
                 .FirstOrDefault(lStep => lStep.LWorkAudioStepKind == lAudioKind);
-            lAudioSteps.Add(lAudioPersistentStep ?? lAudioSavedStep ?? LAudioDefaultStepCreate(lAudioKind));
+            lAudioSteps.Add(lAudioPersistentStep ?? lAudioSavedStep ?? LAudioDefaultCreate(lAudioKind));
         }
 
         return new LWorkAudio(lAudioSteps);
@@ -90,65 +90,65 @@ public static partial class LAudio
         LWorkAudioKind.LWorkAudioKindNormalize
     };
 
-    private static LWorkAudioStep LAudioDefaultStepCreate(LWorkAudioKind lAudioKind) => lAudioKind switch
+    private static LWorkAudioStep LAudioDefaultCreate(LWorkAudioKind lAudioKind) => lAudioKind switch
     {
-        LWorkAudioKind.LWorkAudioKindNormalize => LWorkAudioStep.LWorkAudioNormalizeCreate(false, LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -21, -2, 11, true),
-        LWorkAudioKind.LWorkAudioKindNoiseReduction => LWorkAudioStep.LWorkAudioNoiseCreate(false, 12, -50, false, LWorkAudioNoiseType.LWorkAudioNoiseWhite, 6, 0.5, -38),
-        LWorkAudioKind.LWorkAudioKindHighPass => LWorkAudioStep.LWorkAudioHighPassCreate(false, 100, 1, 2, 0.707),
-        LWorkAudioKind.LWorkAudioKindLowPass => LWorkAudioStep.LWorkAudioLowPassCreate(false, 12000, 1, 2, 0.707),
-        _ => LWorkAudioStep.LWorkAudioVolumeCreate(false, 0)
+        LWorkAudioKind.LWorkAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(false, LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -21, -2, 11, true),
+        LWorkAudioKind.LWorkAudioKindNoiseReduction => LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LWorkAudioNoiseType.LWorkAudioNoiseWhite, 6, 0.5, -38),
+        LWorkAudioKind.LWorkAudioKindHighPass => LWorkAudioStep.LWorkHighCreate(false, 100, 1, 2, 0.707),
+        LWorkAudioKind.LWorkAudioKindLowPass => LWorkAudioStep.LWorkLowCreate(false, 12000, 1, 2, 0.707),
+        _ => LWorkAudioStep.LWorkVolumeCreate(false, 0)
     };
 
     private static LWorkAudioStep LAudioStepCreate(Cadroue.Media.LSidecarAudioStepRecord lAudioRecord) =>
         new(
-            LAudioKindCreate(lAudioRecord.Kind),
-            lAudioRecord.Active,
-            lAudioRecord.Gain,
-            string.Equals(lAudioRecord.Mode, "Dynamic", StringComparison.Ordinal)
+            LAudioKindCreate(lAudioRecord.LSidecarKind),
+            lAudioRecord.LSidecarActive,
+            lAudioRecord.LSidecarGain,
+            string.Equals(lAudioRecord.LSidecarMode, "Dynamic", StringComparison.Ordinal)
                 ? LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic
                 : LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness,
-            lAudioRecord.Target,
-            lAudioRecord.Peak,
-            lAudioRecord.Range,
-            lAudioRecord.TwoPass,
-            lAudioRecord.Reduction,
-            lAudioRecord.NoiseFloor,
-            lAudioRecord.TrackNoise,
-            lAudioRecord.Frequency,
-            lAudioRecord.Stages,
-            lAudioRecord.Poles,
-            lAudioRecord.Resonance,
-            lAudioRecord.NoiseType switch
+            lAudioRecord.LSidecarTarget,
+            lAudioRecord.LSidecarPeak,
+            lAudioRecord.LSidecarRange,
+            lAudioRecord.LSidecarTwoPass,
+            lAudioRecord.LSidecarReduction,
+            lAudioRecord.LSidecarNoiseFloor,
+            lAudioRecord.LSidecarTrackNoise,
+            lAudioRecord.LSidecarFrequency,
+            lAudioRecord.LSidecarStages,
+            lAudioRecord.LSidecarPoles,
+            lAudioRecord.LSidecarResonance,
+            lAudioRecord.LSidecarNoiseType switch
             {
                 "Vinyl" => LWorkAudioNoiseType.LWorkAudioNoiseVinyl,
                 "Shellac" => LWorkAudioNoiseType.LWorkAudioNoiseShellac,
                 _ => LWorkAudioNoiseType.LWorkAudioNoiseWhite
             },
-            lAudioRecord.GainSmooth,
-            lAudioRecord.Adaptivity,
-            lAudioRecord.ResidualFloor);
+            lAudioRecord.LSidecarGainSmooth,
+            lAudioRecord.LSidecarAdaptivity,
+            lAudioRecord.LSidecarResidualFloor);
 
     private static Cadroue.Media.LSidecarAudioStepRecord LAudioRecordCreate(LWorkAudioStep lAudioStep) => new()
     {
-        Kind = lAudioStep.LWorkAudioStepKind.ToString().Replace("LWorkAudioKind", string.Empty),
-        Active = lAudioStep.LWorkAudioStepActive,
-        Gain = lAudioStep.LWorkAudioStepGain,
-        Mode = lAudioStep.LWorkAudioStepMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic ? "Dynamic" : "Loudness",
-        Target = lAudioStep.LWorkAudioStepTarget,
-        Peak = lAudioStep.LWorkAudioStepPeak,
-        Range = lAudioStep.LWorkAudioStepRange,
-        TwoPass = lAudioStep.LWorkAudioStepTwoPass,
-        Reduction = lAudioStep.LWorkAudioStepReduction,
-        NoiseFloor = lAudioStep.LWorkAudioStepNoiseFloor,
-        TrackNoise = lAudioStep.LWorkAudioStepTrackNoise,
-        Frequency = lAudioStep.LWorkAudioStepFrequency,
-        Stages = lAudioStep.LWorkAudioStepStages,
-        Poles = lAudioStep.LWorkAudioStepPoles,
-        Resonance = lAudioStep.LWorkAudioStepResonance,
-        NoiseType = lAudioStep.LWorkAudioStepNoiseType.ToString().Replace("LWorkAudioNoise", string.Empty),
-        GainSmooth = lAudioStep.LWorkAudioStepGainSmooth,
-        Adaptivity = lAudioStep.LWorkAudioStepAdaptivity,
-        ResidualFloor = lAudioStep.LWorkAudioStepResidualFloor
+        LSidecarKind = lAudioStep.LWorkAudioStepKind.ToString().Replace("LWorkAudioKind", string.Empty),
+        LSidecarActive = lAudioStep.LWorkAudioStepActive,
+        LSidecarGain = lAudioStep.LWorkAudioStepGain,
+        LSidecarMode = lAudioStep.LWorkAudioStepMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic ? "Dynamic" : "Loudness",
+        LSidecarTarget = lAudioStep.LWorkAudioStepTarget,
+        LSidecarPeak = lAudioStep.LWorkAudioStepPeak,
+        LSidecarRange = lAudioStep.LWorkAudioStepRange,
+        LSidecarTwoPass = lAudioStep.LWorkAudioStepTwoPass,
+        LSidecarReduction = lAudioStep.LWorkAudioStepReduction,
+        LSidecarNoiseFloor = lAudioStep.LWorkAudioStepNoiseFloor,
+        LSidecarTrackNoise = lAudioStep.LWorkAudioStepTrackNoise,
+        LSidecarFrequency = lAudioStep.LWorkAudioStepFrequency,
+        LSidecarStages = lAudioStep.LWorkAudioStepStages,
+        LSidecarPoles = lAudioStep.LWorkAudioStepPoles,
+        LSidecarResonance = lAudioStep.LWorkAudioStepResonance,
+        LSidecarNoiseType = lAudioStep.LWorkAudioStepNoiseType.ToString().Replace("LWorkAudioNoise", string.Empty),
+        LSidecarGainSmooth = lAudioStep.LWorkAudioStepGainSmooth,
+        LSidecarAdaptivity = lAudioStep.LWorkAudioStepAdaptivity,
+        LSidecarResidualFloor = lAudioStep.LWorkAudioStepResidualFloor
     };
 
     private static LWorkAudioKind LAudioKindCreate(string lAudioKind) => lAudioKind switch

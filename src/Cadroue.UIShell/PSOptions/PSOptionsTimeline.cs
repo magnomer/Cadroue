@@ -13,42 +13,42 @@ namespace Cadroue.UIShell;
 
 internal sealed partial class PSOptions
 {
-    private const double PSPaletteSwatchSize = 20;
-    private const double PSPaletteSwatchGap = 5;
-    private const double PSPaletteNameWidth = 92;
+    private const double PSSpectrumSwatchSize = 20;
+    private const double PSSpectrumSwatchGap = 5;
+    private const double PSSpectrumNameWidth = 92;
 
-    private const string PSPaletteLoadIconPath = "/PAssets/PPanels/PSPaletteLoad.svg";
-    private const string PSPaletteSaveIconPath = "/PAssets/PPanels/PSPaletteSave.svg";
-    private const string PSPaletteRemoveIconPath = "/PAssets/PPanels/PSPaletteRemove.svg";
-    private const double PSPaletteRemoveSize = 26;
+    private const string PSSpectrumLoadIcon = "/PAssets/PPanels/PSSpectrumLoad.svg";
+    private const string PSSpectrumSaveIcon = "/PAssets/PPanels/PSSpectrumSave.svg";
+    private const string PSSpectrumRemoveIcon = "/PAssets/PPanels/PSSpectrumRemove.svg";
+    private const double PSSpectrumRemoveSize = 26;
 
-    private readonly Dictionary<string, Border> psPaletteRows = new(StringComparer.Ordinal);
-    private readonly StackPanel psPaletteList = new() { HorizontalAlignment = HorizontalAlignment.Left };
+    private readonly Dictionary<string, Border> psSpectrumRows = new(StringComparer.Ordinal);
+    private readonly StackPanel psSpectrumList = new() { HorizontalAlignment = HorizontalAlignment.Left };
 
-    private string psPaletteName = PSectionPalette.PSectionPaletteDefaultName;
+    private string psSpectrumName = PSectionPalette.PSectionPaletteDefault;
 
     private UIElement PSTimelineBuild()
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Order"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"), psOrderCombo)));
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"), psOptionsOrderCombo)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
-            PSOptionsSliderFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"), psKeyframeSlider, " px")));
+            PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"), psKeyframeSlider, " px")));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Overlapping"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlappingSections"), psOverlapBox)));
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlappingSections"), psOptionsOverlapBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Waveform"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.ShowWaveforms"), psWaveformBox),
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.SectionPalette"),
-            PSPaletteFieldBuild()));
+            PSSpectrumFieldBuild()));
         return pPanel;
     }
 
-    private UIElement PSPaletteFieldBuild()
+    private UIElement PSSpectrumFieldBuild()
     {
-        psPaletteName = lsOptionsDraft.LPreferenceSectionPalette;
-        PSectionPalette.PSectionPaletteReload();
-        PSPaletteListFill();
+        psSpectrumName = lsOptionsDraft.LPreferenceSectionPalette;
+        PSectionPalette.PSectionPaletteLoad();
+        PSSpectrumListBuild();
 
         var pSide = new StackPanel { VerticalAlignment = VerticalAlignment.Top, Width = PSFieldLabelWidth };
         pSide.Children.Add(new TextBlock
@@ -59,39 +59,39 @@ internal sealed partial class PSOptions
         });
 
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal };
-        pButtons.Children.Add(PSPaletteButtonBuild(PSPaletteLoadIconPath, LLocalization.LLocalizationTextRead("Options.Timeline.LoadTooltip"), PSPaletteLoad));
-        pButtons.Children.Add(PSPaletteButtonBuild(PSPaletteSaveIconPath, LLocalization.LLocalizationTextRead("Options.Timeline.SaveTooltip"), PSPaletteSave));
+        pButtons.Children.Add(PSSpectrumButtonBuild(PSSpectrumLoadIcon, LLocalization.LLocalizationTextRead("Options.Timeline.LoadTooltip"), PSSpectrumLoad));
+        pButtons.Children.Add(PSSpectrumButtonBuild(PSSpectrumSaveIcon, LLocalization.LLocalizationTextRead("Options.Timeline.SaveTooltip"), PSSpectrumSave));
         pSide.Children.Add(pButtons);
 
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(pSide);
-        Grid.SetColumn(psPaletteList, 1);
-        pGrid.Children.Add(psPaletteList);
+        Grid.SetColumn(psSpectrumList, 1);
+        pGrid.Children.Add(psSpectrumList);
         return pGrid;
     }
 
-    private void PSPaletteListFill()
+    private void PSSpectrumListBuild()
     {
-        psPaletteRows.Clear();
-        psPaletteList.Children.Clear();
+        psSpectrumRows.Clear();
+        psSpectrumList.Children.Clear();
         foreach (string pName in PSectionPalette.PSectionPaletteNames)
         {
-            Border pRow = PSPaletteRowBuild(pName);
-            psPaletteRows[pName] = pRow;
-            psPaletteList.Children.Add(PSPaletteLineBuild(pName, pRow));
+            Border pRow = PSSpectrumRowBuild(pName);
+            psSpectrumRows[pName] = pRow;
+            psSpectrumList.Children.Add(PSSpectrumLineBuild(pName, pRow));
         }
 
-        if (!psPaletteRows.ContainsKey(psPaletteName))
+        if (!psSpectrumRows.ContainsKey(psSpectrumName))
         {
-            psPaletteName = PSectionPalette.PSectionPaletteDefaultName;
+            psSpectrumName = PSectionPalette.PSectionPaletteDefault;
         }
 
-        PSPaletteSelectApply();
+        PSSpectrumActiveApply();
     }
 
-    private static Button PSPaletteButtonBuild(string pIconPath, string pTip, Action pClick)
+    private static Button PSSpectrumButtonBuild(string pIconPath, string pTip, Action pClick)
     {
         var pButton = new Button
         {
@@ -110,7 +110,7 @@ internal sealed partial class PSOptions
         return pButton;
     }
 
-    private void PSPaletteLoad()
+    private void PSSpectrumLoad()
     {
         var pDialog = new OpenFileDialog
         {
@@ -123,38 +123,38 @@ internal sealed partial class PSOptions
             return;
         }
 
-        string? pLoadedName = PSectionPalette.PSectionPaletteLoad(pDialog.FileName);
+        string? pLoadedName = PSectionPalette.PSectionPaletteImport(pDialog.FileName);
         if (pLoadedName is null)
         {
             MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.Timeline.InvalidPalette"), LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        psPaletteName = pLoadedName;
-        PSPaletteListFill();
+        psSpectrumName = pLoadedName;
+        PSSpectrumListBuild();
     }
 
-    private void PSPaletteSave()
+    private void PSSpectrumSave()
     {
         var pDialog = new SaveFileDialog
         {
             Title = LLocalization.LLocalizationTextRead("Options.Timeline.SaveTitle"),
             Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
-            FileName = $"{psPaletteName}.json",
+            FileName = $"{psSpectrumName}.json",
             InitialDirectory = Cadroue.Core.LDepot.LDepotPaletteRead()
         };
         if (pDialog.ShowDialog() == true)
         {
-            PSectionPalette.PSectionPaletteSave(psPaletteName, pDialog.FileName);
+            PSectionPalette.PSectionPaletteSave(psSpectrumName, pDialog.FileName);
         }
     }
 
-    private Border PSPaletteRowBuild(string pName)
+    private Border PSSpectrumRowBuild(string pName)
     {
         var pLabel = new TextBlock
         {
             Text = pName,
-            Width = PSPaletteNameWidth,
+            Width = PSSpectrumNameWidth,
             Foreground = PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -164,11 +164,11 @@ internal sealed partial class PSOptions
         {
             pSwatches.Children.Add(new Border
             {
-                Width = PSPaletteSwatchSize,
-                Height = PSPaletteSwatchSize,
+                Width = PSSpectrumSwatchSize,
+                Height = PSSpectrumSwatchSize,
                 CornerRadius = new CornerRadius(5),
                 Background = pBadge,
-                Margin = new Thickness(0, 0, PSPaletteSwatchGap, 0)
+                Margin = new Thickness(0, 0, PSSpectrumSwatchGap, 0)
             });
         }
 
@@ -187,48 +187,48 @@ internal sealed partial class PSOptions
             Cursor = Cursors.Hand,
             Child = pContent
         };
-        pRow.MouseLeftButtonDown += (_, _) => PSPaletteSelectSet(pName);
-        pRow.MouseEnter += (_, _) => PSPaletteHoverApply(pName, true);
-        pRow.MouseLeave += (_, _) => PSPaletteHoverApply(pName, false);
+        pRow.MouseLeftButtonDown += (_, _) => PSSpectrumSelect(pName);
+        pRow.MouseEnter += (_, _) => PSSpectrumHoverApply(pName, true);
+        pRow.MouseLeave += (_, _) => PSSpectrumHoverApply(pName, false);
         return pRow;
     }
 
-    private UIElement PSPaletteLineBuild(string pName, Border pRow)
+    private UIElement PSSpectrumLineBuild(string pName, Border pRow)
     {
         var pLine = new StackPanel { Orientation = Orientation.Horizontal };
         pLine.Children.Add(pRow);
         if (!PSectionPalette.PSectionFixedCheck(pName))
         {
-            pLine.Children.Add(PSPaletteRemoveBuild(pName));
+            pLine.Children.Add(PSSpectrumRemoveBuild(pName));
         }
 
         return pLine;
     }
 
-    private Button PSPaletteRemoveBuild(string pName)
+    private Button PSSpectrumRemoveBuild(string pName)
     {
         var pButton = new Button
         {
             Style = PButton.PButtonIconCreate(),
-            Width = PSPaletteRemoveSize,
-            MinWidth = PSPaletteRemoveSize,
-            Height = PSPaletteRemoveSize,
+            Width = PSSpectrumRemoveSize,
+            MinWidth = PSSpectrumRemoveSize,
+            Height = PSSpectrumRemoveSize,
             Margin = new Thickness(8, 0, 0, 6),
             VerticalAlignment = VerticalAlignment.Center,
             ToolTip = LLocalization.LLocalizationFormat("Options.Timeline.RemoveTooltip", pName),
             Content = new Image
             {
-                Source = PIcon.PIconRead(PSPaletteRemoveIconPath, PSFieldText),
+                Source = PIcon.PIconRead(PSSpectrumRemoveIcon, PSFieldText),
                 Width = 12,
                 Height = 12,
                 Stretch = Stretch.Uniform
             }
         };
-        pButton.Click += (_, pEvent) => { pEvent.Handled = true; PSPaletteRemove(pName); };
+        pButton.Click += (_, pEvent) => { pEvent.Handled = true; PSSpectrumRemove(pName); };
         return pButton;
     }
 
-    private void PSPaletteRemove(string pName)
+    private void PSSpectrumRemove(string pName)
     {
         MessageBoxResult pAnswer = MessageBox.Show(
             this,
@@ -243,47 +243,47 @@ internal sealed partial class PSOptions
             return;
         }
 
-        if (psPaletteName == pName)
+        if (psSpectrumName == pName)
         {
-            psPaletteName = PSectionPalette.PSectionPaletteDefaultName;
+            psSpectrumName = PSectionPalette.PSectionPaletteDefault;
         }
 
-        PSPaletteListFill();
+        PSSpectrumListBuild();
     }
 
-    private void PSPaletteSelectSet(string pName)
+    private void PSSpectrumSelect(string pName)
     {
-        psPaletteName = pName;
-        PSPaletteSelectApply();
+        psSpectrumName = pName;
+        PSSpectrumActiveApply();
     }
 
-    private void PSPaletteHoverApply(string pName, bool pHovered)
+    private void PSSpectrumHoverApply(string pName, bool pHovered)
     {
-        if (pName == psPaletteName || !psPaletteRows.TryGetValue(pName, out Border? pRow))
+        if (pName == psSpectrumName || !psSpectrumRows.TryGetValue(pName, out Border? pRow))
         {
             return;
         }
 
-        pRow.BorderBrush = pHovered ? PSPaletteAccent : PSFieldLine;
-        pRow.Background = pHovered ? PSPaletteSoft : Brushes.White;
+        pRow.BorderBrush = pHovered ? PSSpectrumAccent : PSFieldLine;
+        pRow.Background = pHovered ? PSSpectrumSoft : Brushes.White;
     }
 
-    private void PSPaletteSelectApply()
+    private void PSSpectrumActiveApply()
     {
-        foreach ((string pName, Border pRow) in psPaletteRows)
+        foreach ((string pName, Border pRow) in psSpectrumRows)
         {
-            bool pChosen = pName == psPaletteName;
-            pRow.BorderBrush = pChosen ? PSPaletteAccent : PSFieldLine;
+            bool pChosen = pName == psSpectrumName;
+            pRow.BorderBrush = pChosen ? PSSpectrumAccent : PSFieldLine;
             pRow.BorderThickness = new Thickness(pChosen ? 2 : 1);
-            pRow.Background = pChosen ? PSPaletteSoft : Brushes.White;
+            pRow.Background = pChosen ? PSSpectrumSoft : Brushes.White;
             pRow.Padding = new Thickness(pChosen ? 11 : 12, pChosen ? 7 : 8, pChosen ? 13 : 14, pChosen ? 7 : 8);
         }
     }
 
-    private static readonly Brush PSPaletteAccent = PSPaletteBrushCreate(0x4C, 0x86, 0xF7);
-    private static readonly Brush PSPaletteSoft = PSPaletteBrushCreate(0xF7, 0xF9, 0xFC);
+    private static readonly Brush PSSpectrumAccent = PSSpectrumBrushCreate(0x4C, 0x86, 0xF7);
+    private static readonly Brush PSSpectrumSoft = PSSpectrumBrushCreate(0xF7, 0xF9, 0xFC);
 
-    private static Brush PSPaletteBrushCreate(byte pRed, byte pGreen, byte pBlue)
+    private static Brush PSSpectrumBrushCreate(byte pRed, byte pGreen, byte pBlue)
     {
         var pBrush = new SolidColorBrush(Color.FromRgb(pRed, pGreen, pBlue));
         pBrush.Freeze();

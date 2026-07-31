@@ -17,7 +17,7 @@ public enum LTraceKind
 
 public static class LTrace
 {
-    private const int LTraceDrawPeriodMilliseconds = 1000;
+    private const int LTraceDrawPeriod = 1000;
 
     private static readonly object lTraceStampLock = new();
     private static readonly object lTraceDrawLock = new();
@@ -42,7 +42,7 @@ public static class LTrace
             }
 
             Volatile.Write(ref lTraceVerbose, value);
-            LTraceDrawTimerSet(value);
+            LTraceTimerSet(value);
             LTraceVerboseCallback?.Invoke(value);
             LTraceRecord(
                 LTraceKind.LTraceInfo,
@@ -126,8 +126,8 @@ public static class LTrace
         {
             LTraceRecord(
                 LTraceKind.LTraceDraw,
-                lTraceTally.LTraceDrawSummaryRead(lTraceSurface),
-                lTraceTally.LTraceDrawDetailRead());
+                lTraceTally.LTraceSummaryRead(lTraceSurface),
+                lTraceTally.LTraceDetailRead());
         }
     }
 
@@ -144,7 +144,7 @@ public static class LTrace
         }
     }
 
-    private static void LTraceDrawTimerSet(bool lTraceRunning)
+    private static void LTraceTimerSet(bool lTraceRunning)
     {
         if (!lTraceRunning)
         {
@@ -157,8 +157,8 @@ public static class LTrace
         var lTraceStarting = new Timer(
             _ => LTraceDrawTick(),
             null,
-            LTraceDrawPeriodMilliseconds,
-            LTraceDrawPeriodMilliseconds);
+            LTraceDrawPeriod,
+            LTraceDrawPeriod);
         Timer? lTracePrevious = Interlocked.Exchange(ref lTraceDrawTimer, lTraceStarting);
         lTracePrevious?.Dispose();
     }
@@ -207,11 +207,11 @@ public static class LTrace
             lTraceTriggerCounts[lTraceTrigger] = lTraceSeen + 1;
         }
 
-        internal string LTraceDrawSummaryRead(string lTraceSurface) => string.Create(
+        internal string LTraceSummaryRead(string lTraceSurface) => string.Create(
             CultureInfo.InvariantCulture,
             $"{lTraceSurface} drew {lTraceRenderCount}x in the last second");
 
-        internal string LTraceDrawDetailRead()
+        internal string LTraceDetailRead()
         {
             var lTraceBuilder = new StringBuilder();
             double lTraceAverage = lTraceRenderCount == 0 ? 0 : lTraceTotalMilliseconds / lTraceRenderCount;

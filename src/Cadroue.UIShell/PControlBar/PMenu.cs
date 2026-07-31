@@ -50,7 +50,7 @@ internal static class PMenu
         var pMenuItem = new MenuItem
         {
             Header = pMenuText,
-            Style = PMenuItemStyleCreate()
+            Style = PMenuStyleCreate()
         };
         if (pMenuIcon is not null)
         {
@@ -81,7 +81,7 @@ internal static class PMenu
         return pTemplate;
     }
 
-    private static Style PMenuItemStyleCreate()
+    private static Style PMenuStyleCreate()
     {
         var pStyle = new Style(typeof(MenuItem));
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
@@ -90,11 +90,11 @@ internal static class PMenu
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 7, 14, 7)));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PMenuItemTemplateCreate()));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PMenuItemBuild()));
         return pStyle;
     }
 
-    private static ControlTemplate PMenuItemTemplateCreate()
+    private static ControlTemplate PMenuItemBuild()
     {
         var pTemplate = new ControlTemplate(typeof(MenuItem));
         var pRow = new FrameworkElementFactory(typeof(Border));

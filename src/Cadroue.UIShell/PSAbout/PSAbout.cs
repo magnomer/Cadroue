@@ -53,7 +53,7 @@ internal sealed class PSAbout : Window
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
         Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSFieldBodyFontSize;
+        FontSize = PSFieldFontSize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         UseLayoutRounding = true;
         SnapsToDevicePixels = true;
@@ -183,7 +183,7 @@ internal sealed class PSAbout : Window
         }
         catch (Exception pException)
         {
-            LAppLog.LError($"Link could not be opened: {pEvent.Uri.AbsoluteUri}", pException);
+            LTraceLog.LTraceErrorRecord($"Link could not be opened: {pEvent.Uri.AbsoluteUri}", pException);
         }
     }
 

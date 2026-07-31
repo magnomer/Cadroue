@@ -32,7 +32,7 @@ internal static class PRosterTheme
     public static readonly Brush PRosterDoneBrush = PRosterBrushCreate(0x2F, 0x9E, 0x64);
     public static readonly Brush PRosterFailBrush = PRosterBrushCreate(0xD6, 0x45, 0x45);
 
-    public static Brush PRosterStateBrushRead(LWorkState pWorkState) => pWorkState switch
+    public static Brush PRosterStateRead(LWorkState pWorkState) => pWorkState switch
     {
         LWorkState.LWorkStateRunning => PRosterRunBrush,
         LWorkState.LWorkStateDone => PRosterDoneBrush,

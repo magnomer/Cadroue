@@ -190,9 +190,9 @@
                                                        Tag="pTabNameText" />
                                             <TextBox Grid.Column="1"
                                                      Style="{StaticResource pTabNameBoxStyle}"
-                                                     Loaded="PTabNameLoadHandle"
-                                                     KeyDown="PTabNameKeyHandle"
-                                                     LostKeyboardFocus="PTabNameLeaveHandle" />
+                                                     Loaded="PTabLoadHandle"
+                                                     KeyDown="PTabKeyHandle"
+                                                     LostKeyboardFocus="PTabLeaveHandle" />
                                             <Border Grid.Column="2"
                                                     Style="{StaticResource pTabCloseStyle}"
                                                     MouseLeftButtonDown="PTabCloseHandle">

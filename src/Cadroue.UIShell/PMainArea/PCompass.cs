@@ -15,15 +15,15 @@ public sealed class PCompass : UserControl
     private static readonly Brush pCompassNegativeBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45));
     private static readonly Brush pCompassAccentBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x80, 0xED));
     private static readonly Brush pCompassRestBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x94, 0xA3));
-    private const string PCompassWaveformIconPath = "/PAssets/PCompass/PCompassWaveform.svg";
+    private const string PCompassWaveformIcon = "/PAssets/PCompass/PCompassWaveform.svg";
     private Image pCompassWaveformIcon = null!;
     private readonly Slider pCompassVolumeSlider;
     private readonly TextBlock pCompassVolumeText;
 
     private readonly WrapPanel pCompassLinePanel;
-    private Border pCompassVolumeTrackFill = null!;
-    private Grid pCompassVolumeSliderHost = null!;
-    private bool pCompassVolumeProgramSet;
+    private Border pCompassTrackFill = null!;
+    private Grid pCompassSliderHost = null!;
+    private bool pCompassProgramValue;
 
     public PCompass(PFlowControl pFlow, bool pCompassSectionShow = false)
     {
@@ -81,7 +81,7 @@ public sealed class PCompass : UserControl
         pVolumeGroup.Children.Add(PCompassVolumeBuild());
         pVolumeGroup.Children.Add(PCompassWaveformBuild(pFlow));
         pCompassLinePanel.Children.Add(pVolumeGroup);
-        PCompassValueHandle(App.LPreferenceStateCurrent.LPreferenceVolume);
+        PCompassValueHandle(PProgram.LPreferenceStateCurrent.LPreferenceVolume);
         pFlow.PFlowWaveformChange += PCompassWaveformApply;
         PCompassWaveformApply(pFlow.PFlowWaveformCheck());
 
@@ -144,7 +144,7 @@ public sealed class PCompass : UserControl
             Margin = new Thickness(8, 0, 10, 0)
         };
 
-        pCompassVolumeSliderHost = new Grid { Width = 132, Height = 22, VerticalAlignment = VerticalAlignment.Center };
+        pCompassSliderHost = new Grid { Width = 132, Height = 22, VerticalAlignment = VerticalAlignment.Center };
         var pTrackBase = new Border
         {
             Height = 4,
@@ -152,7 +152,7 @@ public sealed class PCompass : UserControl
             Background = new SolidColorBrush(Color.FromRgb(0xD9, 0xE0, 0xEA)),
             VerticalAlignment = VerticalAlignment.Center
         };
-        pCompassVolumeTrackFill = new Border
+        pCompassTrackFill = new Border
         {
             Height = 4,
             CornerRadius = new CornerRadius(2),
@@ -160,18 +160,18 @@ public sealed class PCompass : UserControl
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center
         };
-        pCompassVolumeSliderHost.Children.Add(pTrackBase);
-        pCompassVolumeSliderHost.Children.Add(pCompassVolumeTrackFill);
-        pCompassVolumeSliderHost.Children.Add(pCompassVolumeSlider);
-        pCompassVolumeSliderHost.SizeChanged += (_, _) => PCompassTrackUpdate();
+        pCompassSliderHost.Children.Add(pTrackBase);
+        pCompassSliderHost.Children.Add(pCompassTrackFill);
+        pCompassSliderHost.Children.Add(pCompassVolumeSlider);
+        pCompassSliderHost.SizeChanged += (_, _) => PCompassTrackUpdate();
 
         Grid.SetColumn(pIcon, 0);
         Grid.SetColumn(pLabel, 1);
-        Grid.SetColumn(pCompassVolumeSliderHost, 2);
+        Grid.SetColumn(pCompassSliderHost, 2);
         Grid.SetColumn(pCompassVolumeText, 3);
         pGrid.Children.Add(pIcon);
         pGrid.Children.Add(pLabel);
-        pGrid.Children.Add(pCompassVolumeSliderHost);
+        pGrid.Children.Add(pCompassSliderHost);
         pGrid.Children.Add(pCompassVolumeText);
         return new Border { Height = 58, Padding = new Thickness(8, 0, 0, 0), Child = pGrid };
     }
@@ -212,23 +212,23 @@ public sealed class PCompass : UserControl
     private void PCompassWaveformApply(bool pCompassWaveformActive)
     {
         pCompassWaveformIcon.Source = PIcon.PIconRead(
-            PCompassWaveformIconPath,
+            PCompassWaveformIcon,
             pCompassWaveformActive ? pCompassAccentBrush : pCompassRestBrush);
     }
 
     private void PCompassValueHandle(double pVolume)
     {
-        pCompassVolumeProgramSet = true;
+        pCompassProgramValue = true;
         double pVolumeClamp = LPreferenceState.LPreferenceVolumeClamp(pVolume);
         pCompassVolumeSlider.Value = pVolumeClamp;
         pCompassVolumeText.Text = Math.Round(pVolumeClamp).ToString("0");
         PCompassTrackUpdate();
-        pCompassVolumeProgramSet = false;
+        pCompassProgramValue = false;
     }
 
     private void PCompassVolumeHandle(PFlowControl pFlow)
     {
-        if (pCompassVolumeProgramSet) return;
+        if (pCompassProgramValue) return;
         double pVolume = LPreferenceState.LPreferenceVolumeClamp(pCompassVolumeSlider.Value);
         pCompassVolumeText.Text = Math.Round(pVolume).ToString("0");
         PCompassTrackUpdate();
@@ -237,12 +237,12 @@ public sealed class PCompass : UserControl
 
     private void PCompassTrackUpdate()
     {
-        if (pCompassVolumeSliderHost is null || pCompassVolumeTrackFill is null) return;
-        if (pCompassVolumeSliderHost.ActualWidth <= 0) return;
+        if (pCompassSliderHost is null || pCompassTrackFill is null) return;
+        if (pCompassSliderHost.ActualWidth <= 0) return;
         double pRange = pCompassVolumeSlider.Maximum - pCompassVolumeSlider.Minimum;
         if (pRange <= 0) return;
         double pRate = (pCompassVolumeSlider.Value - pCompassVolumeSlider.Minimum) / pRange;
-        pCompassVolumeTrackFill.Width = Math.Max(0, pCompassVolumeSliderHost.ActualWidth * pRate);
+        pCompassTrackFill.Width = Math.Max(0, pCompassSliderHost.ActualWidth * pRate);
     }
 
     private static FrameworkElement PCompassIconBuild()
@@ -323,7 +323,7 @@ public sealed class PCompass : UserControl
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PCompassAccentBrushRead(pLabelText)),
+            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PCompassAccentRead(pLabelText)),
             Width = 24,
             Height = 24,
             Stretch = Stretch.Uniform,
@@ -343,7 +343,7 @@ public sealed class PCompass : UserControl
 
     private static Border PCompassSeparatorBuild() => new() { Width = 1, Margin = new Thickness(1, 14, 1, 12), Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC)) };
 
-    private static Brush? PCompassAccentBrushRead(string pLabelText) => pLabelText switch
+    private static Brush? PCompassAccentRead(string pLabelText) => pLabelText switch
     {
         "Play" => pCompassPositiveBrush,
         "Delete" => pCompassNegativeBrush,

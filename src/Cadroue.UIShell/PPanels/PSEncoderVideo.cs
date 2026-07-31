@@ -17,7 +17,7 @@ internal sealed partial class PSEncoder
         var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Log"), 64, new Thickness(6, 0, 0, 0));
         pVerify.Click += async (_, _) => await PSCodecVerifyHandle(psVideoEncoderCombo, pVerify);
         pLog.Click += (_, _) => MessageBox.Show(this, psCodecLog, LLocalization.LLocalizationTextRead("Encoder.Verification.LogTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
-        psVideoEncoderCombo.SelectionChanged += (_, _) => PSVideoEncoderChangeHandle();
+        psVideoEncoderCombo.SelectionChanged += (_, _) => PSVideoChangeHandle();
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoRowsRebuild();
 
         psVideoEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Encoder"), psVideoEncoderCombo, pVerify, pLog));
@@ -33,7 +33,7 @@ internal sealed partial class PSEncoder
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"), psVideoReactiveBox));
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"), psVideoFpsCombo));
         PSVideoCustomUpdate();
-        psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psPixelCombo));
+        psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psVideoPixelCombo));
 
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Stream"), psVideoStreamCombo));
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoModeCombo));
@@ -54,7 +54,7 @@ internal sealed partial class PSEncoder
     private static readonly string[] psVideoReactiveItems =
         ["Same as source", "2160p", "1440p", "1080p", "720p", "480p", "Custom"];
 
-    private static LLocalizationChoice[] PSVideoSizeChoicesRead(bool pReactive)
+    private static LLocalizationChoice[] PSVideoChoicesRead(bool pReactive)
     {
         string[] pTokens = pReactive ? psVideoReactiveItems : psVideoSizeItems;
         return pTokens.Select(pToken => pToken switch
@@ -149,7 +149,7 @@ internal sealed partial class PSEncoder
         bool pReactive = psVideoReactiveBox.IsChecked == true;
         string pSize = PSVideoSizeRead(PSComboTextRead(psVideoSizeCombo));
 
-        LLocalizationChoice[] pChoices = PSVideoSizeChoicesRead(pReactive);
+        LLocalizationChoice[] pChoices = PSVideoChoicesRead(pReactive);
         string pSelected = PSVideoLabelRead(pSize, pReactive);
         psVideoSizeCombo.ItemsSource = pChoices;
         psVideoSizeCombo.SelectedItem = pChoices.FirstOrDefault(
@@ -176,10 +176,10 @@ internal sealed partial class PSEncoder
     private LCapabilityCodec PSVideoCapabilityRead() =>
         LCapability.LCapabilityRead(PSCodecValueRead(PSComboTextRead(psVideoEncoderCombo)));
 
-    private void PSVideoEncoderChangeHandle()
+    private void PSVideoChangeHandle()
     {
         LCapabilityCodec pCodec = PSVideoCapabilityRead();
-        string[] pModeLabels = pCodec.CapabilityModeLabels;
+        string[] pModeLabels = pCodec.LCapabilityModeLabels;
 
         string pPreviousMode = PSComboTextRead(psVideoRateCombo);
 
@@ -204,8 +204,8 @@ internal sealed partial class PSEncoder
         psVideoExtraCombos.Clear();
 
         LCapabilityCodec pCodec = PSVideoCapabilityRead();
-        LCapabilityMode pMode = pCodec.CapabilityModeFind(PSComboTextRead(psVideoRateCombo));
-        bool pModeStored = string.Equals(pMode.CapabilityModeLabel, lsExportSpecificEdit.VideoRateControl, StringComparison.Ordinal);
+        LCapabilityMode pMode = pCodec.LCapabilityModeFind(PSComboTextRead(psVideoRateCombo));
+        bool pModeStored = string.Equals(pMode.CapabilityModeLabel, lsExportSpecificEdit.LPresetRateControl, StringComparison.Ordinal);
 
         PSVideoQualityBuild(pMode, pModeStored);
         PSVideoSpeedBuild(pCodec, pModeStored);
@@ -224,7 +224,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        string pStored = lsExportSpecificEdit.VideoQuality;
+        string pStored = lsExportSpecificEdit.LPresetVideoQuality;
         string pText = pModeStored && !string.IsNullOrWhiteSpace(pStored)
             ? pStored
             : pQuality.CapabilityQualityDefault;
@@ -232,7 +232,7 @@ internal sealed partial class PSEncoder
         psVideoQualityBox = PSEntryBuild(pText, 120);
         psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, psVideoQualityBox));
 
-        string pRange = pQuality.CapabilityQualityRange;
+        string pRange = pQuality.LCapabilityQualityRange;
         psVideoRowsPanel.Children.Add(PSNoticeBuild(string.IsNullOrEmpty(pRange)
             ? LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOption", pQuality.CapabilityQualityOption)
             : LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOptionRange", pQuality.CapabilityQualityOption, pRange)));
@@ -245,7 +245,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        string pStored = lsExportSpecificEdit.VideoSpeedPreset;
+        string pStored = lsExportSpecificEdit.LPresetSpeedPreset;
         string pSelected = pModeStored && !string.IsNullOrWhiteSpace(pStored)
             ? pStored
             : pSpeed.CapabilitySpeedDefault;
@@ -256,9 +256,9 @@ internal sealed partial class PSEncoder
 
     private void PSVideoExtraBuild(LCapabilityCodec pCodec)
     {
-        foreach (LCapabilityExtra pExtra in pCodec.CapabilityExtraList)
+        foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
         {
-            string pSelected = lsExportSpecificEdit.VideoExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
+            string pSelected = lsExportSpecificEdit.LPresetVideoExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
                                && pExtra.CapabilityExtraValues.Contains(pStored)
                 ? pStored
                 : pExtra.CapabilityExtraDefault;

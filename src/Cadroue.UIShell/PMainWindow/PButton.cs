@@ -10,34 +10,34 @@ public static class PButton
 {
     private static readonly SolidColorBrush PButtonTextBrush = new(Color.FromRgb(0x11, 0x18, 0x27));
 
-    private static readonly SolidColorBrush PButtonChromeGlyphBrush = new(Color.FromRgb(0x26, 0x36, 0x4A));
-    private static readonly SolidColorBrush PButtonChromeHoverBrush = new(Color.FromRgb(0xD3, 0xE1, 0xF2));
-    private static readonly SolidColorBrush PButtonChromePressedBrush = new(Color.FromRgb(0xC2, 0xD4, 0xEA));
-    private static readonly SolidColorBrush PButtonCloseHoverBrush = new(Color.FromRgb(0xE8, 0x11, 0x23));
+    private static readonly SolidColorBrush PButtonChromeGlyph = new(Color.FromRgb(0x26, 0x36, 0x4A));
+    private static readonly SolidColorBrush PButtonChromeHover = new(Color.FromRgb(0xD3, 0xE1, 0xF2));
+    private static readonly SolidColorBrush PButtonChromePressed = new(Color.FromRgb(0xC2, 0xD4, 0xEA));
+    private static readonly SolidColorBrush PButtonCloseHover = new(Color.FromRgb(0xE8, 0x11, 0x23));
 
-    private static readonly SolidColorBrush PButtonClosePressedBrush = new(Color.FromRgb(0xC5, 0x0F, 0x1F));
+    private static readonly SolidColorBrush PButtonClosePressed = new(Color.FromRgb(0xC5, 0x0F, 0x1F));
     private static readonly SolidColorBrush PButtonBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly SolidColorBrush PButtonNormalGreyBackgroundBrush = new(Color.FromRgb(0xF8, 0xFA, 0xFC));
-    private static readonly SolidColorBrush PButtonNormalGreyHoverBrush = new(Color.FromRgb(0xF1, 0xF5, 0xF9));
-    private static readonly SolidColorBrush PButtonNormalGreyPressedBrush = new(Color.FromRgb(0xE8, 0xEE, 0xF6));
-    private static readonly SolidColorBrush PButtonCommandHoverBrush = new(Color.FromRgb(0xEE, 0xF4, 0xFC));
-    private static readonly SolidColorBrush PButtonCommandPressedBrush = new(Color.FromRgb(0xDC, 0xE8, 0xF7));
-    private static readonly SolidColorBrush PButtonPanelTextBrush = new(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly SolidColorBrush PButtonPanelMutedBrush = new(Color.FromRgb(0x62, 0x6F, 0x83));
-    private static readonly SolidColorBrush PButtonNormalWhiteBackgroundBrush = new(Colors.White);
-    private static readonly SolidColorBrush PButtonNormalWhiteHoverBrush = new(Color.FromRgb(0xF8, 0xFA, 0xFC));
-    private static readonly SolidColorBrush PButtonNormalWhitePressedBrush = new(Color.FromRgb(0xF0, 0xF4, 0xFA));
+    private static readonly SolidColorBrush PButtonGreyFill = new(Color.FromRgb(0xF8, 0xFA, 0xFC));
+    private static readonly SolidColorBrush PButtonGreyHover = new(Color.FromRgb(0xF1, 0xF5, 0xF9));
+    private static readonly SolidColorBrush PButtonGreyPressed = new(Color.FromRgb(0xE8, 0xEE, 0xF6));
+    private static readonly SolidColorBrush PButtonCommandHover = new(Color.FromRgb(0xEE, 0xF4, 0xFC));
+    private static readonly SolidColorBrush PButtonCommandPressed = new(Color.FromRgb(0xDC, 0xE8, 0xF7));
+    private static readonly SolidColorBrush PButtonPanelText = new(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly SolidColorBrush PButtonPanelMuted = new(Color.FromRgb(0x62, 0x6F, 0x83));
+    private static readonly SolidColorBrush PButtonWhiteFill = new(Colors.White);
+    private static readonly SolidColorBrush PButtonWhiteHover = new(Color.FromRgb(0xF8, 0xFA, 0xFC));
+    private static readonly SolidColorBrush PButtonWhitePressed = new(Color.FromRgb(0xF0, 0xF4, 0xFA));
 
     public static Style PButtonGreyCreate()
     {
         var pStyle = PButtonBaseCreate();
         pStyle.Setters.Add(new Setter(Control.MinHeightProperty, 38.0));
-        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonNormalGreyBackgroundBrush));
+        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonGreyFill));
         pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonTextBrush));
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, PButtonBorderBrush));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonNormalGreyHoverBrush, PButtonNormalGreyPressedBrush)));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonGreyHover, PButtonGreyPressed)));
         return pStyle;
     }
 
@@ -48,14 +48,14 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.HeightProperty, 38.0));
         pStyle.Setters.Add(new Setter(Control.MinWidthProperty, 38.0));
         pStyle.Setters.Add(new Setter(Control.MinHeightProperty, 38.0));
-        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonNormalGreyBackgroundBrush));
+        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonGreyFill));
         pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonTextBrush));
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, PButtonBorderBrush));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
         pStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonNormalGreyHoverBrush, PButtonNormalGreyPressedBrush)));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonGreyHover, PButtonGreyPressed)));
         return pStyle;
     }
 
@@ -66,7 +66,7 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonCommandHoverBrush, PButtonCommandPressedBrush)));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonCommandHover, PButtonCommandPressed)));
         return pStyle;
     }
 
@@ -74,17 +74,17 @@ public static class PButton
     {
         var pStyle = PButtonBaseCreate();
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
-        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonPanelTextBrush));
+        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonPanelText));
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
         pStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonPanelTemplateCreate()));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonPanelBuild()));
         return pStyle;
     }
 
-    private static ControlTemplate PButtonPanelTemplateCreate()
+    private static ControlTemplate PButtonPanelBuild()
     {
         var pTemplate = new ControlTemplate(typeof(Button));
         var pBorder = new FrameworkElementFactory(typeof(Border));
@@ -98,11 +98,11 @@ public static class PButton
         pTemplate.VisualTree = pBorder;
 
         var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHover.Setters.Add(new Setter(Control.BackgroundProperty, PButtonNormalGreyHoverBrush));
+        pHover.Setters.Add(new Setter(Control.BackgroundProperty, PButtonGreyHover));
         pTemplate.Triggers.Add(pHover);
 
         var pDisabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
-        pDisabled.Setters.Add(new Setter(Control.ForegroundProperty, PButtonPanelMutedBrush));
+        pDisabled.Setters.Add(new Setter(Control.ForegroundProperty, PButtonPanelMuted));
         pTemplate.Triggers.Add(pDisabled);
         return pTemplate;
     }
@@ -134,13 +134,13 @@ public static class PButton
     {
         var pStyle = PButtonBaseCreate();
         pStyle.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.SemiBold));
-        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonNormalWhiteBackgroundBrush));
+        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonWhiteFill));
         pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonTextBrush));
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, PButtonBorderBrush));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
         pStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonNormalWhiteHoverBrush, PButtonNormalWhitePressedBrush)));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonWhiteHover, PButtonWhitePressed)));
         return pStyle;
     }
 
@@ -152,12 +152,12 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonChromeGlyphBrush));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonChromeTemplateCreate(pButtonClose)));
+        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonChromeGlyph));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonChromeBuild(pButtonClose)));
         return pStyle;
     }
 
-    private static ControlTemplate PButtonChromeTemplateCreate(bool pButtonClose)
+    private static ControlTemplate PButtonChromeBuild(bool pButtonClose)
     {
         var pTemplate = new ControlTemplate(typeof(Button));
         var pBorder = new FrameworkElementFactory(typeof(Border));
@@ -170,8 +170,8 @@ public static class PButton
         pBorder.AppendChild(pContent);
         pTemplate.VisualTree = pBorder;
 
-        Brush pHoverBrush = pButtonClose ? PButtonCloseHoverBrush : PButtonChromeHoverBrush;
-        Brush pPressedBrush = pButtonClose ? PButtonClosePressedBrush : PButtonChromePressedBrush;
+        Brush pHoverBrush = pButtonClose ? PButtonCloseHover : PButtonChromeHover;
+        Brush pPressedBrush = pButtonClose ? PButtonClosePressed : PButtonChromePressed;
 
         var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
         pHover.Setters.Add(new Setter(Border.BackgroundProperty, pHoverBrush, "pChromeFrame"));
@@ -199,15 +199,15 @@ public static class PButton
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
         pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
-        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonPanelTextBrush));
+        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonPanelText));
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonToggleTemplateCreate()));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonToggleBuild()));
         return pStyle;
     }
 
-    private static ControlTemplate PButtonToggleTemplateCreate()
+    private static ControlTemplate PButtonToggleBuild()
     {
         var pTemplate = new ControlTemplate(typeof(ToggleButton));
         var pBorder = new FrameworkElementFactory(typeof(Border));
@@ -223,11 +223,11 @@ public static class PButton
         pTemplate.VisualTree = pBorder;
 
         var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PButtonNormalGreyHoverBrush, "ToggleBorder"));
+        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PButtonGreyHover, "ToggleBorder"));
         pTemplate.Triggers.Add(pHover);
 
         var pChecked = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
-        pChecked.Setters.Add(new Setter(Border.BackgroundProperty, PButtonCommandPressedBrush, "ToggleBorder"));
+        pChecked.Setters.Add(new Setter(Border.BackgroundProperty, PButtonCommandPressed, "ToggleBorder"));
         pTemplate.Triggers.Add(pChecked);
         return pTemplate;
     }

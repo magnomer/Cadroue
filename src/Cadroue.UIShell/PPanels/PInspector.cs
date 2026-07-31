@@ -73,14 +73,14 @@ public sealed partial class PInspector : PPanel
 
         var pBody = new Grid();
         pBody.Children.Add(pInspectorEmptyNotice);
-        pBody.Children.Add(PInspectorCropBodyBuild());
-        pBody.Children.Add(PInspectorBrightnessBodyBuild());
-        pBody.Children.Add(PInspectorContrastBodyBuild());
-        pBody.Children.Add(PInspectorVolumeBodyBuild());
-        pBody.Children.Add(PInspectorNormalizeBodyBuild());
-        pBody.Children.Add(PInspectorNoiseBodyBuild());
-        pBody.Children.Add(PInspectorHighPassBodyBuild());
-        pBody.Children.Add(PInspectorLowPassBodyBuild());
+        pBody.Children.Add(PCropBodyBuild());
+        pBody.Children.Add(PToneBrightnessBuild());
+        pBody.Children.Add(PToneContrastBuild());
+        pBody.Children.Add(PVolumeBodyBuild());
+        pBody.Children.Add(PLoudnessBodyBuild());
+        pBody.Children.Add(PNoiseBodyBuild());
+        pBody.Children.Add(PFilterHighBuild());
+        pBody.Children.Add(PFilterLowBuild());
 
         var pScroll = new ScrollViewer
         {
@@ -204,7 +204,7 @@ public sealed partial class PInspector : PPanel
 
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)
         {
-            PInspectorToolDisarm();
+            PInspectorToolReset();
         }
     }
 

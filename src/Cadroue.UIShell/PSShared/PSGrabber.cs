@@ -29,24 +29,24 @@ internal sealed class PSGrabber
             return;
         }
 
-        double pWidth = Math.Max(pPlacement.Width, pWindow.MinWidth);
-        double pHeight = Math.Max(pPlacement.Height, pWindow.MinHeight);
+        double pWidth = Math.Max(pPlacement.LPlacementWidth, pWindow.MinWidth);
+        double pHeight = Math.Max(pPlacement.LPlacementHeight, pWindow.MinHeight);
         double pScreenRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
         double pScreenBottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
 
         pWindow.Width = pWidth;
         pWindow.Height = pHeight;
-        if (pPlacement.Left < SystemParameters.VirtualScreenLeft
-            || pPlacement.Top < SystemParameters.VirtualScreenTop
-            || pPlacement.Left + 100 > pScreenRight
-            || pPlacement.Top + 40 > pScreenBottom)
+        if (pPlacement.LPlacementLeft < SystemParameters.VirtualScreenLeft
+            || pPlacement.LPlacementTop < SystemParameters.VirtualScreenTop
+            || pPlacement.LPlacementLeft + 100 > pScreenRight
+            || pPlacement.LPlacementTop + 40 > pScreenBottom)
         {
             return;
         }
 
         pWindow.WindowStartupLocation = WindowStartupLocation.Manual;
-        pWindow.Left = pPlacement.Left;
-        pWindow.Top = pPlacement.Top;
+        pWindow.Left = pPlacement.LPlacementLeft;
+        pWindow.Top = pPlacement.LPlacementTop;
     }
 
     internal static void PSGrabberPlacementSave(Window pWindow, string pPlacementKey)

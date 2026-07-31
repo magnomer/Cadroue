@@ -49,7 +49,7 @@ public sealed partial class PLogWindow : Window
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
         Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSField.PSFieldBodyFontSize;
+        FontSize = PSField.PSFieldFontSize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         UseLayoutRounding = true;
         SnapsToDevicePixels = true;
@@ -116,9 +116,9 @@ public sealed partial class PLogWindow : Window
         }
 
         LTrace.LTraceVerbose = pLogVerboseOn;
-        LPreferenceState pLogPreferenceNext = App.LPreferenceStateCurrent.LPreferenceClone();
+        LPreferenceState pLogPreferenceNext = PProgram.LPreferenceStateCurrent.LPreferenceClone();
         pLogPreferenceNext.LPreferenceLogVerbose = pLogVerboseOn;
-        App.LPreferenceStateSet(pLogPreferenceNext);
+        PProgram.LPreferenceStateSet(pLogPreferenceNext);
     }
 
     private void PLogCloseHandle(object? sender, EventArgs e)

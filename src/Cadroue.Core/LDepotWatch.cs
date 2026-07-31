@@ -31,7 +31,7 @@ public sealed class LDepotWatch : IDisposable
     public void LDepotWatchStart()
     {
         LDepotWatchStop();
-        LDepot.LDepotEnsure();
+        LDepot.LDepotCreate();
 
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
         {

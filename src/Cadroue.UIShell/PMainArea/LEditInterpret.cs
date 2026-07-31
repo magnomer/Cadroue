@@ -39,7 +39,7 @@ public static partial class LEdit
         LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
         if (string.IsNullOrWhiteSpace(lEditWorkDescription.LEditSourcePath))
         {
-            LAppLog.LError("Edit not queued: no source file is open");
+            LTraceLog.LTraceErrorRecord("Edit not queued: no source file is open");
             return 0;
         }
 
@@ -54,13 +54,13 @@ public static partial class LEdit
         string lEditSourcePath = lEditWorkItem.LWorkSourcePath;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;
         int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd([lEditWorkItem], lEditRelayTarget);
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Edit queued {lEditAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lEditSourcePath)}' " +
             $"into '{Path.GetDirectoryName(lEditWorkItem.LWorkOutputPath)}'");
 
         if (lEditCrop.LWorkCropActive)
         {
-            LAppLog.LInfo(
+            LTraceLog.LTraceInfoRecord(
                 $"Edit job '{lEditOutputName}' crop: " +
                 $"left {lEditCrop.LWorkCropLeft}, top {lEditCrop.LWorkCropTop}, " +
                 $"right {lEditCrop.LWorkCropRight}, bottom {lEditCrop.LWorkCropBottom}, " +
@@ -73,7 +73,7 @@ public static partial class LEdit
             string lVideoSteps = string.Join(", ", lEditWorkDescription.LEditVideo.LWorkVideoSteps
                 .Where(lStep => lStep.LWorkVideoStepActive)
                 .Select(lStep => $"{lStep.LWorkVideoStepKind} {lStep.LWorkVideoStepValue:0.###}"));
-            LAppLog.LInfo($"Edit job '{lEditOutputName}' video: {lVideoSteps}");
+            LTraceLog.LTraceInfoRecord($"Edit job '{lEditOutputName}' video: {lVideoSteps}");
         }
 
         return lEditAdded;
@@ -97,7 +97,7 @@ public static partial class LEdit
             .Replace("{Date}", lEditStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lEditStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        string lEditBaseName = LEditNameSanitize(lEditStem);
+        string lEditBaseName = LEditNameNormalize(lEditStem);
         string lEditFileName = LEditNameFormat(lEditOutput, lEditBaseName, lEditSourcePath);
         return LEditSourceMatch(Path.Combine(lEditFolder, lEditFileName), lEditSourcePath)
             ? LEditNameFormat(lEditOutput, $"{lEditBaseName}_edit", lEditSourcePath)
@@ -127,7 +127,7 @@ public static partial class LEdit
         }
     }
 
-    private static string LEditNameSanitize(string lEditName)
+    private static string LEditNameNormalize(string lEditName)
     {
         char[] lEditInvalidChars = Path.GetInvalidFileNameChars();
         var lEditBuilder = new System.Text.StringBuilder(lEditName.Length);

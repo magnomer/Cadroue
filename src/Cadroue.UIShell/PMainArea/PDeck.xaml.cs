@@ -25,7 +25,7 @@ public partial class PDeck : UserControl
         lTabset = lTabsetValue;
         lTabset.LTabsetSelectChange += PDeckSelectHandle;
         lTabset.PTabsetRecords.CollectionChanged += PDeckRecordsHandle;
-        PDeckLayoutApply(lTabset.PTabsetSelectRecord);
+        PDeckLayoutApply(lTabset.PTabsetCurrent);
     }
 
     private void PDeckSelectHandle(PTabRecord? pTabRecord)

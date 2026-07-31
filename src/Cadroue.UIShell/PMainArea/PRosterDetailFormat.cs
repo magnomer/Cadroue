@@ -24,8 +24,8 @@ public sealed partial class PRoster
         return LLocalization.LLocalizationFormat("Roster.Field.KeyframeInterval", pIntervalSeconds);
     }
 
-    private static string PRosterOutputKeyframeFormat(LWorkMedia? pOutputInfo) =>
-        pOutputInfo?.LWorkMediaKeyframeIntervalMilliseconds is { } pIntervalMilliseconds && pIntervalMilliseconds > 0
+    private static string PRosterOutputFormat(LWorkMedia? pOutputInfo) =>
+        pOutputInfo?.LWorkKeyframeInterval is { } pIntervalMilliseconds && pIntervalMilliseconds > 0
             ? LLocalization.LLocalizationFormat("Roster.Field.KeyframeInterval", pIntervalMilliseconds / 1000d)
             : LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
 
@@ -56,7 +56,7 @@ public sealed partial class PRoster
         return $"{pMebibytes / pSpent.TotalSeconds:0.##} MiB/s";
     }
 
-    private static string PRosterOutputSizeRead(LWorkItem pWorkItem)
+    private static string PRosterOutputRead(LWorkItem pWorkItem)
     {
         string pOutputSize = PRosterSizeFormat(PRosterBytesRead(pWorkItem));
         return PRosterRatioRead(pWorkItem) is { } pRosterRatio
@@ -67,7 +67,7 @@ public sealed partial class PRoster
     internal static double? PRosterRatioRead(LWorkItem pWorkItem)
     {
         if (PRosterBytesRead(pWorkItem) is not { } pOutputWhole
-            || PRosterSourceBytesRead(pWorkItem) is not { } pSourceWhole
+            || PRosterSourceRead(pWorkItem) is not { } pSourceWhole
             || pSourceWhole <= 0)
         {
             return null;
@@ -97,7 +97,7 @@ public sealed partial class PRoster
                 : $"{pWholeBytes / pRosterKibi:0.##} KiB";
     }
 
-    internal static long? PRosterSourceBytesRead(LWorkItem pWorkItem)
+    internal static long? PRosterSourceRead(LWorkItem pWorkItem)
     {
         if (pWorkItem.LWorkMergeSources.Count > 1)
         {

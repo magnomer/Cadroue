@@ -8,14 +8,14 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private CheckBox pInspectorBrightnessApply = null!;
+    private CheckBox pToneBrightnessBox = null!;
     private CheckBox pInspectorBrightnessPersistent = null!;
     private Slider pInspectorBrightnessSlider = null!;
     private TextBox pInspectorBrightnessValue = null!;
     private StackPanel pInspectorBrightnessStack = null!;
     private StackPanel pInspectorBrightnessBody = null!;
 
-    private CheckBox pInspectorContrastApply = null!;
+    private CheckBox pToneContrastBox = null!;
     private CheckBox pInspectorContrastPersistent = null!;
     private Slider pInspectorContrastSlider = null!;
     private TextBox pInspectorContrastValue = null!;
@@ -23,95 +23,95 @@ public sealed partial class PInspector
     private StackPanel pInspectorContrastBody = null!;
 
     private bool pInspectorVideoSuppress;
-    private const double PInspectorBrightnessDefaultMinimum = -100;
-    private const double PInspectorBrightnessDefaultMaximum = 100;
+    private const double PToneBrightnessLeast = -100;
+    private const double PToneBrightnessMost = 100;
 
     public event Action? PInspectorVideoChange;
 
-    public LWorkVideoStep PInspectorVideoStepRead(LWorkVideoKind pStepKind) => pStepKind switch
+    public LWorkVideoStep PToneStepRead(LWorkVideoKind pStepKind) => pStepKind switch
     {
-        LWorkVideoKind.LWorkVideoKindContrast => LWorkVideoStep.LWorkVideoContrastCreate(
-            pInspectorContrastApply.IsChecked == true,
+        LWorkVideoKind.LWorkVideoKindContrast => LWorkVideoStep.LWorkContrastCreate(
+            pToneContrastBox.IsChecked == true,
             Math.Clamp(PInspectorDecimalRead(pInspectorContrastValue, 100), 0, 200)),
-        _ => LWorkVideoStep.LWorkVideoBrightnessCreate(
-            pInspectorBrightnessApply.IsChecked == true,
+        _ => LWorkVideoStep.LWorkBrightnessCreate(
+            pToneBrightnessBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorBrightnessValue, 0))
     };
 
-    public void PInspectorVideoPlanApply(LWorkVideo pVideo)
+    public void PTonePlanApply(LWorkVideo pVideo)
     {
-        PInspectorVideoStepApply(
+        PToneStepApply(
             pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindBrightness)
-            ?? LWorkVideoStep.LWorkVideoBrightnessCreate(false, 0));
-        PInspectorVideoStepApply(
+            ?? LWorkVideoStep.LWorkBrightnessCreate(false, 0));
+        PToneStepApply(
             pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast)
-            ?? LWorkVideoStep.LWorkVideoContrastCreate(false, 100));
+            ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
         PInspectorVideoChange?.Invoke();
     }
 
-    public bool PInspectorVideoPersistentAnyCheck() =>
+    public bool PTonePersistentCheck() =>
         pInspectorBrightnessPersistent.IsChecked == true
         || pInspectorContrastPersistent.IsChecked == true;
 
-    public LWorkVideo PInspectorVideoPersistentRead()
+    public LWorkVideo PTonePersistentRead()
     {
         var pSteps = new List<LWorkVideoStep>();
         if (pInspectorBrightnessPersistent.IsChecked == true)
         {
-            pSteps.Add(PInspectorVideoStepRead(LWorkVideoKind.LWorkVideoKindBrightness));
+            pSteps.Add(PToneStepRead(LWorkVideoKind.LWorkVideoKindBrightness));
         }
 
         if (pInspectorContrastPersistent.IsChecked == true)
         {
-            pSteps.Add(PInspectorVideoStepRead(LWorkVideoKind.LWorkVideoKindContrast));
+            pSteps.Add(PToneStepRead(LWorkVideoKind.LWorkVideoKindContrast));
         }
 
         return new LWorkVideo(pSteps);
     }
 
-    private StackPanel PInspectorBrightnessBodyBuild()
+    private StackPanel PToneBrightnessBuild()
     {
-        pInspectorBrightnessApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyBrightness"));
+        pToneBrightnessBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyBrightness"));
         pInspectorBrightnessPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistBrightness"));
-        pInspectorBrightnessSlider = PInspectorVideoSliderBuild(
-            PInspectorBrightnessDefaultMinimum,
-            PInspectorBrightnessDefaultMaximum,
+        pInspectorBrightnessSlider = PToneSliderBuild(
+            PToneBrightnessLeast,
+            PToneBrightnessMost,
             0);
-        pInspectorBrightnessValue = PInspectorDecimalBoxBuild();
+        pInspectorBrightnessValue = PInspectorDecimalBuild();
         pInspectorBrightnessValue.Text = "0";
         pInspectorBrightnessStack = new StackPanel();
-        PInspectorVideoWire(
-            pInspectorBrightnessApply,
+        PInspectorVideoAttach(
+            pToneBrightnessBox,
             pInspectorBrightnessStack,
             pInspectorBrightnessSlider,
             pInspectorBrightnessValue,
             null,
             null,
             "0.#");
-        pInspectorBrightnessStack.Children.Add(PInspectorPassSliderRowBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorBrightnessSlider, string.Empty, pInspectorBrightnessValue));
-        pInspectorBrightnessBody = PInspectorVideoBodyBuild(pInspectorBrightnessApply, pInspectorBrightnessStack);
-        PInspectorVideoApplyUpdate(pInspectorBrightnessApply, pInspectorBrightnessStack);
+        pInspectorBrightnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorBrightnessSlider, string.Empty, pInspectorBrightnessValue));
+        pInspectorBrightnessBody = PToneBodyBuild(pToneBrightnessBox, pInspectorBrightnessStack);
+        PToneApplyUpdate(pToneBrightnessBox, pInspectorBrightnessStack);
         return pInspectorBrightnessBody;
     }
 
-    private StackPanel PInspectorContrastBodyBuild()
+    private StackPanel PToneContrastBuild()
     {
-        pInspectorContrastApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyContrast"));
+        pToneContrastBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyContrast"));
         pInspectorContrastPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistContrast"));
-        pInspectorContrastSlider = PInspectorVideoSliderBuild(0, 200, 100);
-        pInspectorContrastValue = PInspectorDecimalBoxBuild();
+        pInspectorContrastSlider = PToneSliderBuild(0, 200, 100);
+        pInspectorContrastValue = PInspectorDecimalBuild();
         pInspectorContrastValue.Text = "100";
         pInspectorContrastStack = new StackPanel();
-        PInspectorVideoWire(
-            pInspectorContrastApply,
+        PInspectorVideoAttach(
+            pToneContrastBox,
             pInspectorContrastStack,
             pInspectorContrastSlider,
             pInspectorContrastValue,
             0,
             200,
             "0.#");
-        pInspectorContrastStack.Children.Add(PInspectorPassSliderRowBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorContrastSlider, "%", pInspectorContrastValue));
-        if (!LFlyleafLocal.LFlyleafLocalActive)
+        pInspectorContrastStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorContrastSlider, "%", pInspectorContrastValue));
+        if (!LFlyleaf.LFlyleafActive)
         {
             pInspectorContrastStack.Children.Add(new TextBlock
             {
@@ -123,12 +123,12 @@ public sealed partial class PInspector
             });
         }
 
-        pInspectorContrastBody = PInspectorVideoBodyBuild(pInspectorContrastApply, pInspectorContrastStack);
-        PInspectorVideoApplyUpdate(pInspectorContrastApply, pInspectorContrastStack);
+        pInspectorContrastBody = PToneBodyBuild(pToneContrastBox, pInspectorContrastStack);
+        PToneApplyUpdate(pToneContrastBox, pInspectorContrastStack);
         return pInspectorContrastBody;
     }
 
-    private static Slider PInspectorVideoSliderBuild(double pMinimum, double pMaximum, double pValue)
+    private static Slider PToneSliderBuild(double pMinimum, double pMaximum, double pValue)
     {
         var pSlider = new Slider
         {
@@ -141,7 +141,7 @@ public sealed partial class PInspector
         return pSlider;
     }
 
-    private static StackPanel PInspectorVideoBodyBuild(CheckBox pApply, StackPanel pStack)
+    private static StackPanel PToneBodyBuild(CheckBox pApply, StackPanel pStack)
     {
         var pBody = new StackPanel
         {
@@ -154,7 +154,7 @@ public sealed partial class PInspector
         return pBody;
     }
 
-    private void PInspectorVideoWire(
+    private void PInspectorVideoAttach(
         CheckBox pApply,
         StackPanel pStack,
         Slider pSlider,
@@ -163,8 +163,8 @@ public sealed partial class PInspector
         double? pMaximum,
         string pFormat)
     {
-        pApply.Checked += (_, _) => PInspectorVideoApplyUpdate(pApply, pStack);
-        pApply.Unchecked += (_, _) => PInspectorVideoApplyUpdate(pApply, pStack);
+        pApply.Checked += (_, _) => PToneApplyUpdate(pApply, pStack);
+        pApply.Unchecked += (_, _) => PToneApplyUpdate(pApply, pStack);
         pSlider.ValueChanged += (_, _) =>
         {
             if (pInspectorVideoSuppress)
@@ -197,7 +197,7 @@ public sealed partial class PInspector
         };
     }
 
-    private void PInspectorVideoStepApply(LWorkVideoStep pStep)
+    private void PToneStepApply(LWorkVideoStep pStep)
     {
         bool pPrevious = pInspectorVideoSuppress;
         pInspectorVideoSuppress = true;
@@ -205,20 +205,20 @@ public sealed partial class PInspector
         {
             if (pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast)
             {
-                pInspectorContrastApply.IsChecked = pStep.LWorkVideoStepActive;
+                pToneContrastBox.IsChecked = pStep.LWorkVideoStepActive;
                 pInspectorContrastValue.Text = pStep.LWorkVideoStepValue.ToString("0.#", CultureInfo.InvariantCulture);
                 pInspectorContrastSlider.Value = Math.Clamp(pStep.LWorkVideoStepValue, 0, 200);
-                PInspectorVideoApplyUpdate(pInspectorContrastApply, pInspectorContrastStack);
+                PToneApplyUpdate(pToneContrastBox, pInspectorContrastStack);
                 return;
             }
 
-            pInspectorBrightnessApply.IsChecked = pStep.LWorkVideoStepActive;
+            pToneBrightnessBox.IsChecked = pStep.LWorkVideoStepActive;
             pInspectorBrightnessValue.Text = pStep.LWorkVideoStepValue.ToString("0.#", CultureInfo.InvariantCulture);
             pInspectorBrightnessSlider.Value = Math.Clamp(
                 pStep.LWorkVideoStepValue,
                 pInspectorBrightnessSlider.Minimum,
                 pInspectorBrightnessSlider.Maximum);
-            PInspectorVideoApplyUpdate(pInspectorBrightnessApply, pInspectorBrightnessStack);
+            PToneApplyUpdate(pToneBrightnessBox, pInspectorBrightnessStack);
         }
         finally
         {
@@ -226,7 +226,7 @@ public sealed partial class PInspector
         }
     }
 
-    private void PInspectorVideoApplyUpdate(CheckBox pApply, StackPanel pStack)
+    private void PToneApplyUpdate(CheckBox pApply, StackPanel pStack)
     {
         bool pActive = pApply.IsChecked == true;
         pStack.IsEnabled = pActive;

@@ -64,7 +64,7 @@ public static class LCourier
 
         if (lCourierTarget == lCourierSourceTab)
         {
-            LAppLog.LError("Relay target refused: a tab cannot relay into itself");
+            LTraceLog.LTraceErrorRecord("Relay target refused: a tab cannot relay into itself");
             return;
         }
 
@@ -198,26 +198,26 @@ public static class LCourier
     {
         if (string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath) || !File.Exists(lWorkItem.LWorkOutputPath))
         {
-            LAppLog.LError($"Relay skipped '{lWorkItem.LWorkOutputName}': the output file is missing");
+            LTraceLog.LTraceErrorRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the output file is missing");
             return;
         }
 
         if (LCourierTabFind(lWorkItem.LWorkRelayTarget) is not { } pCourierTarget
             || pCourierTarget.PTabWorkspace.PWorkspaceSurface.PTabList is not { } pCourierList)
         {
-            LAppLog.LInfo($"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab is gone");
+            LTraceLog.LTraceInfoRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab is gone");
             return;
         }
 
-        if (App.LPreferenceStateCurrent.LPreferenceRelayTargetClear
+        if (PProgram.LPreferenceStateCurrent.LPreferenceRelayEmpty
             && lCourierClearedTargets.Add(lWorkItem.LWorkRelayTarget))
         {
             pCourierList.PListClear();
-            LAppLog.LInfo($"Relay cleared the files in tab '{pCourierTarget.PTabTitle}' before delivery");
+            LTraceLog.LTraceInfoRecord($"Relay cleared the files in tab '{pCourierTarget.PTabTitle}' before delivery");
         }
 
         int lCourierAdded = pCourierList.PListPathsAdd(new[] { lWorkItem.LWorkOutputPath });
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             lCourierAdded > 0
                 ? $"Relay added '{lWorkItem.LWorkOutputName}' to tab '{pCourierTarget.PTabTitle}'"
                 : $"Relay left '{lWorkItem.LWorkOutputName}' out of tab '{pCourierTarget.PTabTitle}': already listed");

@@ -10,8 +10,8 @@ namespace Cadroue.UIShell.PControlBar;
 public partial class PToolbar : UserControl
 {
     private LTabset? lTabset;
-    private PTabRecord? pTabDragRecord;
-    private Point pTabDragStartPoint;
+    private PTabRecord? pTabDragItem;
+    private Point pTabDragPoint;
     private bool pTabDragActive;
 
     public event Action<LPreferenceState>? PToolbarOptionsApply;
@@ -53,7 +53,7 @@ public partial class PToolbar : UserControl
             return;
         }
 
-        if (e.ClickCount >= 2 && PTabNameHitCheck(sender, e))
+        if (e.ClickCount >= 2 && PTabHitCheck(sender, e))
         {
             PTabDragClear();
             pTabRecord.PTabNameActive = true;
@@ -61,18 +61,18 @@ public partial class PToolbar : UserControl
             return;
         }
 
-        pTabDragRecord = pTabRecord;
-        pTabDragStartPoint = e.GetPosition(this);
+        pTabDragItem = pTabRecord;
+        pTabDragPoint = e.GetPosition(this);
         pTabDragActive = false;
         lTabset?.LTabsetSelect(pTabRecord);
         Mouse.Capture(sender as IInputElement);
         e.Handled = true;
     }
 
-    private static bool PTabNameHitCheck(object sender, MouseButtonEventArgs e)
+    private static bool PTabHitCheck(object sender, MouseButtonEventArgs e)
     {
         if (sender is not DependencyObject pTabFrame
-            || PTabNameElementFind(pTabFrame) is not { IsVisible: true } pNameText)
+            || PTabElementFind(pTabFrame) is not { IsVisible: true } pNameText)
         {
             return false;
         }
@@ -80,7 +80,7 @@ public partial class PToolbar : UserControl
         return pNameText.InputHitTest(e.GetPosition(pNameText)) is not null;
     }
 
-    private static FrameworkElement? PTabNameElementFind(DependencyObject pTabFrame)
+    private static FrameworkElement? PTabElementFind(DependencyObject pTabFrame)
     {
         int pChildCount = VisualTreeHelper.GetChildrenCount(pTabFrame);
         for (int pChildIndex = 0; pChildIndex < pChildCount; pChildIndex++)
@@ -91,7 +91,7 @@ public partial class PToolbar : UserControl
                 return pNameText;
             }
 
-            if (PTabNameElementFind(pChild) is { } pFound)
+            if (PTabElementFind(pChild) is { } pFound)
             {
                 return pFound;
             }
@@ -102,7 +102,7 @@ public partial class PToolbar : UserControl
 
     private void PTabMoveHandle(object sender, MouseEventArgs e)
     {
-        if (pTabDragRecord is null || e.LeftButton != MouseButtonState.Pressed)
+        if (pTabDragItem is null || e.LeftButton != MouseButtonState.Pressed)
         {
             return;
         }
@@ -110,8 +110,8 @@ public partial class PToolbar : UserControl
         Point pCurrentPoint = e.GetPosition(this);
         if (!pTabDragActive)
         {
-            double pHorizontalMove = Math.Abs(pCurrentPoint.X - pTabDragStartPoint.X);
-            double pVerticalMove = Math.Abs(pCurrentPoint.Y - pTabDragStartPoint.Y);
+            double pHorizontalMove = Math.Abs(pCurrentPoint.X - pTabDragPoint.X);
+            double pVerticalMove = Math.Abs(pCurrentPoint.Y - pTabDragPoint.Y);
             if (pHorizontalMove < SystemParameters.MinimumHorizontalDragDistance
                 && pVerticalMove < SystemParameters.MinimumVerticalDragDistance)
             {
@@ -122,13 +122,13 @@ public partial class PToolbar : UserControl
         }
 
         int pTabTargetIndex = PTabIndexResolve(e.GetPosition(pTabItemsControl));
-        lTabset?.LTabsetMove(pTabDragRecord, pTabTargetIndex);
+        lTabset?.LTabsetMove(pTabDragItem, pTabTargetIndex);
         e.Handled = true;
     }
 
     private void PTabReleaseHandle(object sender, MouseButtonEventArgs e)
     {
-        PTabRecord? pReleasedRecord = pTabDragActive ? pTabDragRecord : null;
+        PTabRecord? pReleasedRecord = pTabDragActive ? pTabDragItem : null;
         Point pReleasedScreenPoint = PointToScreen(e.GetPosition(this));
         PTabDragClear();
         e.Handled = true;
@@ -139,7 +139,7 @@ public partial class PToolbar : UserControl
         }
     }
 
-    private void PTabNameLoadHandle(object sender, RoutedEventArgs e)
+    private void PTabLoadHandle(object sender, RoutedEventArgs e)
     {
         if (sender is not TextBox pNameBox)
         {
@@ -148,10 +148,10 @@ public partial class PToolbar : UserControl
 
         System.Windows.Automation.AutomationProperties.SetName(
             pNameBox, LLocalization.LLocalizationTextRead("Tab.Rename.Name"));
-        pNameBox.IsVisibleChanged += PTabNameVisibleHandle;
+        pNameBox.IsVisibleChanged += PTabVisibleHandle;
     }
 
-    private static void PTabNameVisibleHandle(object sender, DependencyPropertyChangedEventArgs e)
+    private static void PTabVisibleHandle(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (sender is not TextBox { DataContext: PTabRecord pTabRecord } pNameBox
             || !pNameBox.IsVisible)
@@ -169,7 +169,7 @@ public partial class PToolbar : UserControl
             }));
     }
 
-    private void PTabNameKeyHandle(object sender, KeyEventArgs e)
+    private void PTabKeyHandle(object sender, KeyEventArgs e)
     {
         if (sender is not TextBox { DataContext: PTabRecord pTabRecord } pNameBox)
         {
@@ -190,7 +190,7 @@ public partial class PToolbar : UserControl
         }
     }
 
-    private void PTabNameLeaveHandle(object sender, RoutedEventArgs e)
+    private void PTabLeaveHandle(object sender, RoutedEventArgs e)
     {
         if (sender is TextBox { DataContext: PTabRecord pTabRecord } pNameBox && pTabRecord.PTabNameActive)
         {
@@ -206,7 +206,7 @@ public partial class PToolbar : UserControl
 
     private void PTabDragClear()
     {
-        pTabDragRecord = null;
+        pTabDragItem = null;
         pTabDragActive = false;
         if (Mouse.Captured is not null)
         {

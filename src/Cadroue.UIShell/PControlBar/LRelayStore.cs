@@ -14,7 +14,7 @@ internal static class LRelayStore
     {
         string lRelayFolder = LRelayFolderCreate();
         Directory.CreateDirectory(lRelayFolder);
-        string lRelayFilePath = Path.Combine(lRelayFolder, $"{lRelay.RelayId}.json");
+        string lRelayFilePath = Path.Combine(lRelayFolder, $"{lRelay.LRelayId}.json");
         string lRelayJson = JsonSerializer.Serialize(lRelay, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(lRelayFilePath, lRelayJson);
         return lRelayFilePath;
@@ -33,7 +33,7 @@ internal static class LRelayStore
         }
         catch (Exception lException)
         {
-            LAppLog.LError($"Relay payload unreadable: {lRelayFilePath}", lException);
+            LTraceLog.LTraceErrorRecord($"Relay payload unreadable: {lRelayFilePath}", lException);
             return null;
         }
     }
@@ -49,7 +49,7 @@ internal static class LRelayStore
         }
         catch (Exception lException)
         {
-            LAppLog.LError($"Relay payload could not be deleted: {lRelayFilePath}", lException);
+            LTraceLog.LTraceErrorRecord($"Relay payload could not be deleted: {lRelayFilePath}", lException);
         }
     }
 
@@ -74,7 +74,7 @@ internal static class LRelayStore
         }
         catch (Exception lException)
         {
-            LAppLog.LError("Relay folder sweep failed", lException);
+            LTraceLog.LTraceErrorRecord("Relay folder sweep failed", lException);
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -11,8 +11,8 @@ public sealed partial class PViewer
     private const double PCropHandleSize = 10;
     private const double PCropSizeMinimum = 8;
 
-    private static readonly int[] PCropHandleEdgeX = [-1, 0, 1, 1, 1, 0, -1, -1];
-    private static readonly int[] PCropHandleEdgeY = [-1, -1, -1, 0, 1, 1, 1, 0];
+    private static readonly int[] PCropEdgeX = [-1, 0, 1, 1, 1, 0, -1, -1];
+    private static readonly int[] PCropEdgeY = [-1, -1, -1, 0, 1, 1, 1, 0];
 
     private static readonly Cursor[] PCropHandleCursors =
     [
@@ -35,26 +35,26 @@ public sealed partial class PViewer
                 Visibility = Visibility.Collapsed,
                 Tag = pHandleIndex
             };
-            pHandle.MouseLeftButtonDown += PCropHandlePressHandle;
+            pHandle.MouseLeftButtonDown += PCropGripHandle;
             pViewerCropHandles[pHandleIndex] = pHandle;
             pViewerOverlay.Children.Add(pHandle);
         }
     }
 
-    private void PCropHandlePressHandle(object sender, MouseButtonEventArgs mouseEvent)
+    private void PCropGripHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
         if (!pViewerCropArmed || sender is not Rectangle { Tag: int pHandleIndex })
         {
             return;
         }
 
-        pViewerEdgeX = PCropHandleEdgeX[pHandleIndex];
-        pViewerEdgeY = PCropHandleEdgeY[pHandleIndex];
+        pViewerEdgeX = PCropEdgeX[pHandleIndex];
+        pViewerEdgeY = PCropEdgeY[pHandleIndex];
         PCropDragStart(mouseEvent.GetPosition(pViewerOverlay));
         mouseEvent.Handled = true;
     }
 
-    private void PCropMovePressHandle(object sender, MouseButtonEventArgs mouseEvent)
+    private void PCropBodyHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
         if (!pViewerCropArmed || pViewerCropBox.Visibility != Visibility.Visible)
         {
@@ -79,12 +79,12 @@ public sealed partial class PViewer
         pViewerOverlay.CaptureMouse();
     }
 
-    private void PCropDragApply(Point pDragPoint)
+    private void PCropDragApply(Point psNameDragPoint)
     {
         Rect pVideoRect = PCropRectRead();
         Rect pDragRect = pViewerEdgeX == 0 && pViewerEdgeY == 0
-            ? PCropMoveResolve(pDragPoint, pVideoRect)
-            : PCropResizeResolve(PCropPointClamp(pDragPoint), pVideoRect);
+            ? PCropMoveResolve(psNameDragPoint, pVideoRect)
+            : PCropResizeResolve(PCropPointClamp(psNameDragPoint), pVideoRect);
 
         Canvas.SetLeft(pViewerCropBox, pDragRect.X);
         Canvas.SetTop(pViewerCropBox, pDragRect.Y);
@@ -93,21 +93,21 @@ public sealed partial class PViewer
         PCropOverlayUpdate();
     }
 
-    private Rect PCropMoveResolve(Point pDragPoint, Rect pVideoRect)
+    private Rect PCropMoveResolve(Point psNameDragPoint, Rect pVideoRect)
     {
-        double pMoveX = pViewerCropOrigin.X + (pDragPoint.X - pViewerCropGrab.X);
-        double pMoveY = pViewerCropOrigin.Y + (pDragPoint.Y - pViewerCropGrab.Y);
+        double pMoveX = pViewerCropOrigin.X + (psNameDragPoint.X - pViewerCropGrab.X);
+        double pMoveY = pViewerCropOrigin.Y + (psNameDragPoint.Y - pViewerCropGrab.Y);
         pMoveX = Math.Clamp(pMoveX, pVideoRect.Left, Math.Max(pVideoRect.Left, pVideoRect.Right - pViewerCropOrigin.Width));
         pMoveY = Math.Clamp(pMoveY, pVideoRect.Top, Math.Max(pVideoRect.Top, pVideoRect.Bottom - pViewerCropOrigin.Height));
         return new Rect(pMoveX, pMoveY, pViewerCropOrigin.Width, pViewerCropOrigin.Height);
     }
 
-    private Rect PCropResizeResolve(Point pDragPoint, Rect pVideoRect)
+    private Rect PCropResizeResolve(Point psNameDragPoint, Rect pVideoRect)
     {
-        double pLeft = pViewerEdgeX < 0 ? pDragPoint.X : pViewerCropOrigin.Left;
-        double pRight = pViewerEdgeX > 0 ? pDragPoint.X : pViewerCropOrigin.Right;
-        double pTop = pViewerEdgeY < 0 ? pDragPoint.Y : pViewerCropOrigin.Top;
-        double pBottom = pViewerEdgeY > 0 ? pDragPoint.Y : pViewerCropOrigin.Bottom;
+        double pLeft = pViewerEdgeX < 0 ? psNameDragPoint.X : pViewerCropOrigin.Left;
+        double pRight = pViewerEdgeX > 0 ? psNameDragPoint.X : pViewerCropOrigin.Right;
+        double pTop = pViewerEdgeY < 0 ? psNameDragPoint.Y : pViewerCropOrigin.Top;
+        double pBottom = pViewerEdgeY > 0 ? psNameDragPoint.Y : pViewerCropOrigin.Bottom;
 
         double pWidth = Math.Max(PCropSizeMinimum, Math.Abs(pRight - pLeft));
         double pHeight = Math.Max(PCropSizeMinimum, Math.Abs(pBottom - pTop));
@@ -148,10 +148,10 @@ public sealed partial class PViewer
             pRectY = pViewerCropOrigin.Top + ((pViewerCropOrigin.Height - pHeight) / 2);
         }
 
-        return PCropRectFit(new Rect(pRectX, pRectY, pWidth, pHeight), pVideoRect);
+        return PCropRectClamp(new Rect(pRectX, pRectY, pWidth, pHeight), pVideoRect);
     }
 
-    private Rect PCropRectFit(Rect pCropRect, Rect pVideoRect)
+    private Rect PCropRectClamp(Rect pCropRect, Rect pVideoRect)
     {
         double pWidth = Math.Min(pCropRect.Width, pVideoRect.Width);
         double pHeight = Math.Min(pCropRect.Height, pVideoRect.Height);
@@ -215,8 +215,8 @@ public sealed partial class PViewer
                 continue;
             }
 
-            int pEdgeX = PCropHandleEdgeX[pHandleIndex];
-            int pEdgeY = PCropHandleEdgeY[pHandleIndex];
+            int pEdgeX = PCropEdgeX[pHandleIndex];
+            int pEdgeY = PCropEdgeY[pHandleIndex];
             double pPointX = pEdgeX == 0
                 ? pBoxLeft + (pViewerCropBox.Width / 2)
                 : pEdgeX < 0 ? pBoxLeft : pBoxLeft + pViewerCropBox.Width;
@@ -246,7 +246,7 @@ public sealed partial class PViewer
 
     public Size? PCropSourceRead()
     {
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaInfoVideoPresent)
+        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
         {
             return null;
         }
@@ -259,13 +259,13 @@ public sealed partial class PViewer
 
     private Size PCropDisplayRead()
     {
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaInfoVideoPresent)
+        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
         {
             return new Size(0, 0);
         }
 
-        double pSourceWidth = pViewerMediaInfo.LMediaInfoVideoWidth;
-        double pSourceHeight = pViewerMediaInfo.LMediaInfoVideoHeight;
+        double pSourceWidth = pViewerMediaInfo.LMediaVideoWidth;
+        double pSourceHeight = pViewerMediaInfo.LMediaVideoHeight;
         return PCropRotatedCheck()
             ? new Size(pSourceHeight, pSourceWidth)
             : new Size(pSourceWidth, pSourceHeight);
@@ -275,13 +275,13 @@ public sealed partial class PViewer
     {
         if (pCropVideo is not { Width: > 0, Height: > 0 })
         {
-            LAppLog.LInfo("Viewer crop cleared: overlay hidden");
+            LTraceLog.LTraceInfoRecord("Viewer crop cleared: overlay hidden");
             PCropHide();
             return;
         }
 
         Size pCropDisplay = PCropDisplayRead();
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Viewer crop set: {pCropVideo.Value.X:0},{pCropVideo.Value.Y:0} "
             + $"{pCropVideo.Value.Width:0}x{pCropVideo.Value.Height:0} "
             + $"over display {pCropDisplay.Width:0}x{pCropDisplay.Height:0}"
@@ -290,22 +290,22 @@ public sealed partial class PViewer
                 : string.Empty));
 
         PCropVideo = pCropVideo;
-        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxFromRect(PCropVideo));
+        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxRectRead(PCropVideo));
         pViewerCropBox.Visibility = Visibility.Visible;
         PCropBoxRestore();
     }
 
     private void PCropPressHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (!pViewerCropArmed || pViewerMediaInfo is null || !pViewerMediaInfo.LMediaInfoVideoPresent)
+        if (!pViewerCropArmed || pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
         {
             return;
         }
 
-        pViewerCropStartPoint = mouseEvent.GetPosition(pViewerOverlay);
+        pViewerCropPoint = mouseEvent.GetPosition(pViewerOverlay);
         pViewerCropBox.Visibility = Visibility.Visible;
         pViewerOverlay.CaptureMouse();
-        PCropBoxPlace(pViewerCropStartPoint.Value, pViewerCropStartPoint.Value);
+        PCropBoxPlace(pViewerCropPoint.Value, pViewerCropPoint.Value);
         mouseEvent.Handled = true;
     }
 
@@ -323,12 +323,12 @@ public sealed partial class PViewer
             return;
         }
 
-        if (pViewerCropStartPoint is null)
+        if (pViewerCropPoint is null)
         {
             return;
         }
 
-        PCropBoxPlace(pViewerCropStartPoint.Value, mouseEvent.GetPosition(pViewerOverlay));
+        PCropBoxPlace(pViewerCropPoint.Value, mouseEvent.GetPosition(pViewerOverlay));
         mouseEvent.Handled = true;
     }
 
@@ -340,23 +340,23 @@ public sealed partial class PViewer
             pViewerCropDrag = false;
             pViewerOverlay.ReleaseMouseCapture();
             PCropVideo = PCropVideoRead();
-            LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxFromRect(PCropVideo));
+            LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxRectRead(PCropVideo));
             PCropVideoChange?.Invoke(PCropVideo);
             mouseEvent.Handled = true;
             return;
         }
 
-        if (pViewerCropStartPoint is null)
+        if (pViewerCropPoint is null)
         {
             return;
         }
 
-        PCropBoxPlace(pViewerCropStartPoint.Value, mouseEvent.GetPosition(pViewerOverlay));
-        pViewerCropStartPoint = null;
+        PCropBoxPlace(pViewerCropPoint.Value, mouseEvent.GetPosition(pViewerOverlay));
+        pViewerCropPoint = null;
         pViewerOverlay.ReleaseMouseCapture();
         PCropOverlayUpdate();
         PCropVideo = PCropVideoRead();
-        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxFromRect(PCropVideo));
+        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxRectRead(PCropVideo));
         PCropVideoChange?.Invoke(PCropVideo);
         mouseEvent.Handled = true;
     }
@@ -399,7 +399,7 @@ public sealed partial class PViewer
 
     private Rect? PCropVideoRead()
     {
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaInfoVideoPresent
+        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent
             || pViewerCropBox.Visibility != Visibility.Visible)
         {
             return null;
@@ -425,7 +425,7 @@ public sealed partial class PViewer
     {
         double overlayWidth = Math.Max(0, pViewerOverlay.ActualWidth);
         double overlayHeight = Math.Max(0, pViewerOverlay.ActualHeight);
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaInfoVideoPresent
+        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent
             || overlayWidth <= 0 || overlayHeight <= 0)
         {
             return new Rect(0, 0, overlayWidth, overlayHeight);
@@ -448,7 +448,7 @@ public sealed partial class PViewer
     private void PCropBoxRestore()
     {
         if (PCropVideo is null || pViewerMediaInfo is null
-            || !pViewerMediaInfo.LMediaInfoVideoPresent)
+            || !pViewerMediaInfo.LMediaVideoPresent)
         {
             return;
         }

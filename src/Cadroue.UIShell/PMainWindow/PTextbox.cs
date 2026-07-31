@@ -7,20 +7,20 @@ namespace Cadroue.UIShell.PMainWindow;
 internal static class PTextbox
 {
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush PAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
+    private static readonly Brush PTextboxTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush PTextboxAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
 
     internal static void PTextboxApply(TextBox pTextBox)
     {
         pTextBox.Background = Brushes.White;
-        pTextBox.Foreground = PTextBrush;
+        pTextBox.Foreground = PTextboxTextBrush;
         pTextBox.BorderBrush = PLineBrush;
         pTextBox.BorderThickness = new Thickness(1);
         pTextBox.Padding = new Thickness(10, 0, 10, 0);
         pTextBox.HorizontalContentAlignment = HorizontalAlignment.Left;
         pTextBox.VerticalContentAlignment = VerticalAlignment.Center;
         pTextBox.TextAlignment = TextAlignment.Left;
-        pTextBox.SelectionBrush = PAccentBrush;
+        pTextBox.SelectionBrush = PTextboxAccentBrush;
         pTextBox.FocusVisualStyle = null;
         ScrollViewer.SetHorizontalScrollBarVisibility(pTextBox, ScrollBarVisibility.Hidden);
         ScrollViewer.SetVerticalScrollBarVisibility(pTextBox, ScrollBarVisibility.Hidden);
@@ -49,7 +49,7 @@ internal static class PTextbox
         pTemplate.VisualTree = pBorder;
 
         var pFocusTrigger = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true };
-        pFocusTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PAccentBrush, "OuterBorder"));
+        pFocusTrigger.Setters.Add(new Setter(Border.BorderBrushProperty, PTextboxAccentBrush, "OuterBorder"));
         pTemplate.Triggers.Add(pFocusTrigger);
         return pTemplate;
     }

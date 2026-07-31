@@ -9,14 +9,14 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private StackPanel PInspectorCropBodyBuild()
+    private StackPanel PCropBodyBuild()
     {
         pInspectorInsetLeft = PInspectorInsetBuild();
         pInspectorInsetRight = PInspectorInsetBuild();
         pInspectorInsetTop = PInspectorInsetBuild();
         pInspectorInsetBottom = PInspectorInsetBuild();
-        pInspectorRatioWidth = PInspectorRatioFieldBuild();
-        pInspectorRatioHeight = PInspectorRatioFieldBuild();
+        pInspectorRatioWidth = PCropFieldBuild();
+        pInspectorRatioHeight = PCropFieldBuild();
 
         pInspectorRatioFixed = new CheckBox
         {
@@ -41,8 +41,8 @@ public sealed partial class PInspector
             Visibility = Visibility.Collapsed
         };
 
-        pInspectorFlipHorizontal = PInspectorFlipBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal"));
-        pInspectorFlipVertical = PInspectorFlipBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical"));
+        pInspectorFlipHorizontal = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal"));
+        pInspectorFlipVertical = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical"));
         pInspectorFlipHorizontal.Checked += (_, _) => PInspectorRotateRaise();
         pInspectorFlipHorizontal.Unchecked += (_, _) => PInspectorRotateRaise();
         pInspectorFlipVertical.Checked += (_, _) => PInspectorRotateRaise();
@@ -58,10 +58,10 @@ public sealed partial class PInspector
 
         pInspectorCropStack = new StackPanel();
         pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Tool"), pInspectorCropTool));
-        pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Flip"), PInspectorFlipRowBuild()));
+        pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Flip"), PCropFlipBuild()));
         pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Rotate"), pInspectorRotateCombo));
         pInspectorCropStack.Children.Add(PInspectorEdgeBuild());
-        pInspectorCropStack.Children.Add(PInspectorRatioBuild());
+        pInspectorCropStack.Children.Add(PCropRatioBuild());
         pInspectorCropStack.Children.Add(pInspectorRatioFixed);
         pInspectorCropStack.Children.Add(pInspectorRatioNotice);
 
@@ -139,7 +139,7 @@ public sealed partial class PInspector
         {
             Width = 18,
             Height = 18,
-            Source = PIcon.PIconRead(PInspectorCropIconPath, pInspectorIconBrush),
+            Source = PIcon.PIconRead(PCropIcon, pInspectorIconBrush),
             Stretch = Stretch.Uniform
         };
 
@@ -260,7 +260,7 @@ public sealed partial class PInspector
         return pCellPanel;
     }
 
-    private UIElement PInspectorRatioBuild()
+    private UIElement PCropRatioBuild()
     {
         var pRatioPanel = new StackPanel
         {
@@ -282,7 +282,7 @@ public sealed partial class PInspector
         return pRatioPanel;
     }
 
-    private UIElement PInspectorFlipRowBuild()
+    private UIElement PCropFlipBuild()
     {
         var pFlipPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pFlipPanel.Children.Add(pInspectorFlipHorizontal);
@@ -290,7 +290,7 @@ public sealed partial class PInspector
         return pFlipPanel;
     }
 
-    private static CheckBox PInspectorFlipBuild(string pFlipLabel)
+    private static CheckBox PCropCheckBuild(string pFlipLabel)
     {
         var pFlip = new CheckBox
         {
@@ -306,16 +306,16 @@ public sealed partial class PInspector
         return pFlip;
     }
 
-    private TextBox PInspectorRatioFieldBuild()
+    private TextBox PCropFieldBuild()
     {
-        TextBox pRatioBox = PInspectorNumberBoxBuild();
-        pRatioBox.TextChanged += (_, _) => PInspectorRatioEditHandle();
+        TextBox pRatioBox = PInspectorNumberBuild();
+        pRatioBox.TextChanged += (_, _) => PCropRatioHandle();
         return pRatioBox;
     }
 
     private TextBox PInspectorInsetBuild()
     {
-        TextBox pInsetBox = PInspectorNumberBoxBuild();
+        TextBox pInsetBox = PInspectorNumberBuild();
         pInsetBox.TextChanged += (_, _) =>
         {
             PInspectorRatioUpdate();
@@ -324,7 +324,7 @@ public sealed partial class PInspector
         return pInsetBox;
     }
 
-    private static TextBox PInspectorNumberBoxBuild()
+    private static TextBox PInspectorNumberBuild()
     {
         var pNumberBox = new TextBox
         {

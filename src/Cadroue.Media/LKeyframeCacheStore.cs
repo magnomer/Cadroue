@@ -4,8 +4,8 @@ namespace Cadroue.Media;
 
 public static class LKeyframeCacheStore
 {
-    private const string LKeyframeCacheFolderName = "Cadroue";
-    private const string LKeyframeCacheSubFolderName = "LKeyframes";
+    private const string LKeyframeCacheFolder = "Cadroue";
+    private const string LKeyframeSubFolder = "LKeyframeList";
 
     public static bool LKeyframeCacheLoad(
         LKeyframeSourceIdentity identity,
@@ -34,7 +34,7 @@ public static class LKeyframeCacheStore
                 .Distinct()
                 .OrderBy(ms => ms)
                 .ToArray();
-            scannedSpanIndexes = (record.LScannedSpanIndexes ?? Array.Empty<int>())
+            scannedSpanIndexes = (record.LKeyframeSpanIndexes ?? Array.Empty<int>())
                 .Where(index => index >= 0)
                 .Distinct()
                 .OrderBy(index => index)
@@ -63,11 +63,11 @@ public static class LKeyframeCacheStore
         {
             LSourcePath = identity.LKeyframeSourcePath,
             LSourceLength = identity.LKeyframeSourceLength,
-            LSourceLastWriteUtcTicks = identity.LKeyframeSourceLastWriteUtcTicks,
-            LSourceDurationMilliseconds = identity.LKeyframeSourceDurationMilliseconds,
-            LSourcePartialHash = identity.LKeyframeSourcePartialHash,
+            LKeyframeSourceTicks = identity.LKeyframeWriteTicks,
+            LSourceDurationMilliseconds = identity.LKeyframeSourceDuration,
+            LSourcePartialHash = identity.LKeyframePartialHash,
             LKeyframeMilliseconds = keyframeMilliseconds.OrderBy(ms => ms).ToArray(),
-            LScannedSpanIndexes = scannedSpanIndexes.OrderBy(index => index).ToArray()
+            LKeyframeSpanIndexes = scannedSpanIndexes.OrderBy(index => index).ToArray()
         };
 
         string json = JsonSerializer.Serialize(record, new JsonSerializerOptions { WriteIndented = true });
@@ -78,9 +78,9 @@ public static class LKeyframeCacheStore
     {
         return string.Equals(record.LSourcePath, identity.LKeyframeSourcePath, StringComparison.OrdinalIgnoreCase)
             && record.LSourceLength == identity.LKeyframeSourceLength
-            && record.LSourceLastWriteUtcTicks == identity.LKeyframeSourceLastWriteUtcTicks
-            && record.LSourceDurationMilliseconds == identity.LKeyframeSourceDurationMilliseconds
-            && string.Equals(record.LSourcePartialHash, identity.LKeyframeSourcePartialHash, StringComparison.Ordinal);
+            && record.LKeyframeSourceTicks == identity.LKeyframeWriteTicks
+            && record.LSourceDurationMilliseconds == identity.LKeyframeSourceDuration
+            && string.Equals(record.LSourcePartialHash, identity.LKeyframePartialHash, StringComparison.Ordinal);
     }
 
     private static string LKeyframePathCreate(LKeyframeSourceIdentity identity)
@@ -88,9 +88,9 @@ public static class LKeyframeCacheStore
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(
             appData,
-            LKeyframeCacheFolderName,
-            LKeyframeCacheSubFolderName,
-            identity.LKeyframeSourceCacheKey + ".json");
+            LKeyframeCacheFolder,
+            LKeyframeSubFolder,
+            identity.LKeyframeCacheKey + ".json");
     }
 
     private sealed class LKeyframeCacheRecord
@@ -99,7 +99,7 @@ public static class LKeyframeCacheStore
 
         public long LSourceLength { get; set; }
 
-        public long LSourceLastWriteUtcTicks { get; set; }
+        public long LKeyframeSourceTicks { get; set; }
 
         public long LSourceDurationMilliseconds { get; set; }
 
@@ -107,6 +107,6 @@ public static class LKeyframeCacheStore
 
         public long[]? LKeyframeMilliseconds { get; set; }
 
-        public int[]? LScannedSpanIndexes { get; set; }
+        public int[]? LKeyframeSpanIndexes { get; set; }
     }
 }

@@ -13,11 +13,11 @@ public sealed record LDepotIndexRow(
 
 public static class LDepotIndex
 {
-    private const int LDepotBusyTimeoutSeconds = 5;
+    private const int LDepotBusyTimeout = 5;
 
-    public static void LDepotIndexEnsure()
+    public static void LDepotIndexCreate()
     {
-        LDepot.LDepotEnsure();
+        LDepot.LDepotCreate();
         using SqliteConnection lDepotConnection = LDepotConnectionOpen();
         using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
         lDepotCommand.CommandText = """
@@ -46,13 +46,13 @@ public static class LDepotIndex
                 folder = $folder, state = $state, priority = $priority,
                 owner_pid = $owner, output_name = $name;
             """;
-        lDepotCommand.Parameters.AddWithValue("$id", lWorkRecord.WorkId.ToString("N"));
+        lDepotCommand.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
         lDepotCommand.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
-        lDepotCommand.Parameters.AddWithValue("$state", lWorkRecord.State);
-        lDepotCommand.Parameters.AddWithValue("$priority", lWorkRecord.Priority);
-        lDepotCommand.Parameters.AddWithValue("$create", lWorkRecord.CreateTime.ToString("O"));
-        lDepotCommand.Parameters.AddWithValue("$owner", lWorkRecord.OwnerProcessId);
-        lDepotCommand.Parameters.AddWithValue("$name", lWorkRecord.OutputName);
+        lDepotCommand.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
+        lDepotCommand.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
+        lDepotCommand.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
+        lDepotCommand.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
+        lDepotCommand.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
         lDepotCommand.ExecuteNonQuery();
     }
 
@@ -95,7 +95,7 @@ public static class LDepotIndex
 
     public static void LDepotIndexRebuild()
     {
-        LDepotIndexEnsure();
+        LDepotIndexCreate();
         using SqliteConnection lDepotConnection = LDepotConnectionOpen();
         using SqliteTransaction lDepotTransaction = lDepotConnection.BeginTransaction();
 
@@ -123,13 +123,13 @@ public static class LDepotIndex
                         (work_id, folder, state, priority, create_time, owner_pid, output_name)
                     VALUES ($id, $folder, $state, $priority, $create, $owner, $name);
                     """;
-                lDepotInsert.Parameters.AddWithValue("$id", lWorkRecord.WorkId.ToString("N"));
+                lDepotInsert.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
                 lDepotInsert.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
-                lDepotInsert.Parameters.AddWithValue("$state", lWorkRecord.State);
-                lDepotInsert.Parameters.AddWithValue("$priority", lWorkRecord.Priority);
-                lDepotInsert.Parameters.AddWithValue("$create", lWorkRecord.CreateTime.ToString("O"));
-                lDepotInsert.Parameters.AddWithValue("$owner", lWorkRecord.OwnerProcessId);
-                lDepotInsert.Parameters.AddWithValue("$name", lWorkRecord.OutputName);
+                lDepotInsert.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
+                lDepotInsert.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
+                lDepotInsert.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
+                lDepotInsert.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
+                lDepotInsert.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
                 lDepotInsert.ExecuteNonQuery();
             }
         }
@@ -153,7 +153,7 @@ public static class LDepotIndex
     {
         var lDepotBuilder = new SqliteConnectionStringBuilder
         {
-            DataSource = LDepot.LDepotIndexPathRead(),
+            DataSource = LDepot.LDepotIndexFind(),
             Mode = SqliteOpenMode.ReadWriteCreate,
             Cache = SqliteCacheMode.Private
         };
@@ -163,7 +163,7 @@ public static class LDepotIndex
 
         using (SqliteCommand lDepotPragma = lDepotConnection.CreateCommand())
         {
-            lDepotPragma.CommandText = $"PRAGMA busy_timeout = {LDepotBusyTimeoutSeconds * 1000}; PRAGMA journal_mode = WAL;";
+            lDepotPragma.CommandText = $"PRAGMA busy_timeout = {LDepotBusyTimeout * 1000}; PRAGMA journal_mode = WAL;";
             lDepotPragma.ExecuteNonQuery();
         }
 

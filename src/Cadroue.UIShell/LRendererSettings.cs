@@ -8,16 +8,16 @@ public sealed class LRendererSettings
     public const string LRendererProgramFile = "ffmpeg.exe";
     public const string LRendererProgramPath = "ffmpeg";
 
-    public string? LRendererFfmpegLibraryFolder { get; set; }
+    public string? LRendererLibraryFolder { get; set; }
 
-    public bool LRendererFfmpegLibraryFolderCustomReady =>
-        LRendererFolderValidate(LRendererFfmpegLibraryFolder);
+    public bool LRendererLibraryReady =>
+        LRendererFolderValidate(LRendererLibraryFolder);
 
     public static LRendererSettings LRendererDefaultCreate()
     {
         return new LRendererSettings
         {
-            LRendererFfmpegLibraryFolder = null
+            LRendererLibraryFolder = null
         };
     }
 
@@ -25,7 +25,7 @@ public sealed class LRendererSettings
     {
         return new LRendererSettings
         {
-            LRendererFfmpegLibraryFolder = string.IsNullOrWhiteSpace(lRendererFfmpegLibraryFolder)
+            LRendererLibraryFolder = string.IsNullOrWhiteSpace(lRendererFfmpegLibraryFolder)
                 ? null
                 : Path.GetFullPath(lRendererFfmpegLibraryFolder)
         };

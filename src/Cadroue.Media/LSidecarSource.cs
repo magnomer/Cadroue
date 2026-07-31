@@ -17,7 +17,7 @@ public sealed record LSidecarSourceResult(
 
 public static class LSidecarSource
 {
-    private const int LSidecarHashSampleSize = 1024 * 1024;
+    private const int LSidecarHashSize = 1024 * 1024;
 
     public static LSidecarSourceResult LSidecarSourceResolve(string lSidecarPath, LSidecar lSidecar)
     {
@@ -30,7 +30,7 @@ public static class LSidecarSource
                 continue;
             }
 
-            if (LSidecarVerifyCheck(lCandidatePath, lSidecar.Source))
+            if (LSidecarVerifyCheck(lCandidatePath, lSidecar.LSidecarSource))
             {
                 return new LSidecarSourceResult(Path.GetFullPath(lCandidatePath), lCandidateKind, true);
             }
@@ -52,19 +52,19 @@ public static class LSidecarSource
         try
         {
             var lSidecarFile = new FileInfo(lSidecarMediaPath);
-            if (!lSidecarFile.Exists || lSidecarFile.Length != lSidecarSource.Length)
+            if (!lSidecarFile.Exists || lSidecarFile.Length != lSidecarSource.LSidecarLength)
             {
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(lSidecarSource.PartialHash))
+            if (string.IsNullOrWhiteSpace(lSidecarSource.LSidecarPartialHash))
             {
                 return true;
             }
 
             return string.Equals(
                 LSidecarHashCreate(lSidecarFile),
-                lSidecarSource.PartialHash,
+                lSidecarSource.LSidecarPartialHash,
                 StringComparison.Ordinal);
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
@@ -77,17 +77,17 @@ public static class LSidecarSource
         string lSidecarFolder,
         LSidecar lSidecar)
     {
-        if (!string.IsNullOrWhiteSpace(lSidecar.Source.FileName) && !string.IsNullOrWhiteSpace(lSidecarFolder))
+        if (!string.IsNullOrWhiteSpace(lSidecar.LSidecarSource.LSidecarFileName) && !string.IsNullOrWhiteSpace(lSidecarFolder))
         {
-            yield return (Path.Combine(lSidecarFolder, lSidecar.Source.FileName), LSidecarSourceKind.LSidecarSourceSibling);
+            yield return (Path.Combine(lSidecarFolder, lSidecar.LSidecarSource.LSidecarFileName), LSidecarSourceKind.LSidecarSourceSibling);
         }
 
-        if (!string.IsNullOrWhiteSpace(lSidecar.Source.RelativePath) && !string.IsNullOrWhiteSpace(lSidecarFolder))
+        if (!string.IsNullOrWhiteSpace(lSidecar.LSidecarSource.LSidecarRelativePath) && !string.IsNullOrWhiteSpace(lSidecarFolder))
         {
             string lSidecarRelative;
             try
             {
-                lSidecarRelative = Path.GetFullPath(Path.Combine(lSidecarFolder, lSidecar.Source.RelativePath));
+                lSidecarRelative = Path.GetFullPath(Path.Combine(lSidecarFolder, lSidecar.LSidecarSource.LSidecarRelativePath));
             }
             catch (Exception lException) when (lException is ArgumentException or NotSupportedException)
             {
@@ -100,9 +100,9 @@ public static class LSidecarSource
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(lSidecar.Source.AbsolutePath))
+        if (!string.IsNullOrWhiteSpace(lSidecar.LSidecarSource.LSidecarAbsolutePath))
         {
-            yield return (lSidecar.Source.AbsolutePath, LSidecarSourceKind.LSidecarSourceAbsolute);
+            yield return (lSidecar.LSidecarSource.LSidecarAbsolutePath, LSidecarSourceKind.LSidecarSourceAbsolute);
         }
     }
 
@@ -110,7 +110,7 @@ public static class LSidecarSource
     {
         using var lSidecarSha = SHA256.Create();
         using FileStream lSidecarStream = lSidecarFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        byte[] lSidecarBuffer = new byte[LSidecarHashSampleSize];
+        byte[] lSidecarBuffer = new byte[LSidecarHashSize];
 
         int lSidecarFirstRead = lSidecarStream.Read(lSidecarBuffer, 0, lSidecarBuffer.Length);
         if (lSidecarFirstRead > 0)
@@ -118,9 +118,9 @@ public static class LSidecarSource
             lSidecarSha.TransformBlock(lSidecarBuffer, 0, lSidecarFirstRead, null, 0);
         }
 
-        if (lSidecarStream.Length > LSidecarHashSampleSize)
+        if (lSidecarStream.Length > LSidecarHashSize)
         {
-            lSidecarStream.Position = Math.Max(0, lSidecarStream.Length - LSidecarHashSampleSize);
+            lSidecarStream.Position = Math.Max(0, lSidecarStream.Length - LSidecarHashSize);
             int lSidecarLastRead = lSidecarStream.Read(lSidecarBuffer, 0, lSidecarBuffer.Length);
             if (lSidecarLastRead > 0)
             {

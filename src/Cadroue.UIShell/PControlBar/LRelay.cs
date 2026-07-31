@@ -5,83 +5,83 @@ namespace Cadroue.UIShell.PControlBar;
 
 public sealed class LRelaySectionRecord
 {
-    public long StartTicks { get; set; }
-    public long EndTicks { get; set; }
-    public int ColorIndex { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Prefix { get; set; } = string.Empty;
-    public string Suffix { get; set; } = string.Empty;
-    public bool Hidden { get; set; }
+    public long LRelayStartTicks { get; set; }
+    public long LRelayEndTicks { get; set; }
+    public int LRelayColorIndex { get; set; }
+    public string LRelayName { get; set; } = string.Empty;
+    public string LRelayPrefix { get; set; } = string.Empty;
+    public string LRelaySuffix { get; set; } = string.Empty;
+    public bool LRelayHidden { get; set; }
 
     public static LRelaySectionRecord LRelaySectionCreate(LSegment lSegment) => new()
     {
-        StartTicks = lSegment.LSegmentStart.Ticks,
-        EndTicks = lSegment.LSegmentEnd.Ticks,
-        ColorIndex = lSegment.LSegmentColorIndex,
-        Name = lSegment.LSegmentName,
-        Prefix = lSegment.LSegmentPrefix,
-        Suffix = lSegment.LSegmentSuffix,
-        Hidden = lSegment.LSegmentHidden
+        LRelayStartTicks = lSegment.LSegmentStart.Ticks,
+        LRelayEndTicks = lSegment.LSegmentEnd.Ticks,
+        LRelayColorIndex = lSegment.LSegmentColorIndex,
+        LRelayName = lSegment.LSegmentName,
+        LRelayPrefix = lSegment.LSegmentPrefix,
+        LRelaySuffix = lSegment.LSegmentSuffix,
+        LRelayHidden = lSegment.LSegmentHidden
     };
 
     public LSegment LRelaySegmentCreate() => new(
-        TimeSpan.FromTicks(StartTicks),
-        TimeSpan.FromTicks(EndTicks),
-        ColorIndex,
-        Name)
+        TimeSpan.FromTicks(LRelayStartTicks),
+        TimeSpan.FromTicks(LRelayEndTicks),
+        LRelayColorIndex,
+        LRelayName)
     {
-        LSegmentPrefix = Prefix ?? string.Empty,
-        LSegmentSuffix = Suffix ?? string.Empty,
-        LSegmentHidden = Hidden
+        LSegmentPrefix = LRelayPrefix ?? string.Empty,
+        LSegmentSuffix = LRelaySuffix ?? string.Empty,
+        LSegmentHidden = LRelayHidden
     };
 }
 
 public sealed class LRelay
 {
-    public string LayoutKey { get; set; } = "Split";
-    public string CustomName { get; set; } = string.Empty;
-    public LExportSpecificPresetRecord Export { get; set; } = new();
-    public LPreferenceTabLayoutRecord Layout { get; set; } = new();
-    public string SourcePath { get; set; } = string.Empty;
-    public List<LRelaySectionRecord> Sections { get; set; } = new();
-    public int? SectionSelectIndex { get; set; }
+    public string LRelayLayoutKey { get; set; } = "Split";
+    public string LRelayCustomName { get; set; } = string.Empty;
+    public LPresetRecord LRelayExport { get; set; } = new();
+    public LPreferenceTabLayoutRecord LRelayLayout { get; set; } = new();
+    public string LRelaySourcePath { get; set; } = string.Empty;
+    public List<LRelaySectionRecord> LRelaySections { get; set; } = new();
+    public int? LRelaySectionIndex { get; set; }
 
-    public double DropLeft { get; set; }
-    public double DropTop { get; set; }
+    public double LRelayDropLeft { get; set; }
+    public double LRelayDropTop { get; set; }
 
-    public int SenderProcessId { get; set; }
+    public int LRelaySenderProcess { get; set; }
 
-    public string RelayId { get; set; } = string.Empty;
+    public string LRelayId { get; set; } = string.Empty;
 
     public static LRelay LRelayTabCreate(PTabRecord pTabRecord, double lDropLeft, double lDropTop)
     {
         PWorkspace pWorkspace = pTabRecord.PTabWorkspace;
         var lRelay = new LRelay
         {
-            LayoutKey = pTabRecord.PTabLayoutKey,
-            CustomName = pTabRecord.PTabNameCustom,
-            Export = LExportSpecificPresetRecord.LPresetRecordCreate(pWorkspace.PWorkspaceExportState),
-            Layout = pWorkspace.PWorkspaceLayoutRead(),
-            SourcePath = pWorkspace.PWorkspaceViewer?.PViewerSourcePath ?? string.Empty,
-            DropLeft = lDropLeft,
-            DropTop = lDropTop,
-            SenderProcessId = Environment.ProcessId,
-            RelayId = Guid.NewGuid().ToString("N")
+            LRelayLayoutKey = pTabRecord.PTabLayoutKey,
+            LRelayCustomName = pTabRecord.PTabNameCustom,
+            LRelayExport = LPresetRecord.LPresetRecordCreate(pWorkspace.PWorkspaceExportState),
+            LRelayLayout = pWorkspace.PWorkspaceLayoutRead(),
+            LRelaySourcePath = pWorkspace.PWorkspaceViewer?.PViewerSourcePath ?? string.Empty,
+            LRelayDropLeft = lDropLeft,
+            LRelayDropTop = lDropTop,
+            LRelaySenderProcess = Environment.ProcessId,
+            LRelayId = Guid.NewGuid().ToString("N")
         };
 
         if (pWorkspace.PWorkspaceFlow is { } pFlow)
         {
-            lRelay.Sections = pFlow.PFlowSectionsRead()
+            lRelay.LRelaySections = pFlow.PFlowSectionsRead()
                 .Select(LRelaySectionRecord.LRelaySectionCreate)
                 .ToList();
-            lRelay.SectionSelectIndex = pFlow.PFlowSectionSelectRead();
+            lRelay.LRelaySectionIndex = pFlow.PFlowSelectionRead();
         }
 
         return lRelay;
     }
 
-    public LExportSpecificState LRelayExportCreate() => Export.LPresetStateCreate();
+    public LPreset LRelayExportCreate() => LRelayExport.LPresetStateCreate();
 
     public IReadOnlyList<LSegment> LRelaySectionsCreate() =>
-        Sections.Select(lSection => lSection.LRelaySegmentCreate()).ToArray();
+        LRelaySections.Select(lSection => lSection.LRelaySegmentCreate()).ToArray();
 }

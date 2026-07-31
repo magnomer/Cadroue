@@ -15,7 +15,7 @@ internal sealed class PLogRow : INotifyPropertyChanged
     internal const double PLogRowHeight = 26;
     internal const double PLogChipHeight = 22;
 
-    private bool pLogRowOpen;
+    private bool pLogRowExpanded;
 
     internal PLogRow(LTraceEntry pLogEntry)
     {
@@ -54,29 +54,29 @@ internal sealed class PLogRow : INotifyPropertyChanged
 
     internal LTraceKind PLogRowCategory { get; }
 
-    public bool PLogRowOpen
+    public bool PLogRowExpanded
     {
-        get => pLogRowOpen;
+        get => pLogRowExpanded;
         set
         {
-            if (pLogRowOpen == value)
+            if (pLogRowExpanded == value)
             {
                 return;
             }
 
-            pLogRowOpen = value;
-            PLogChangeRaise(nameof(PLogRowOpen));
+            pLogRowExpanded = value;
+            PLogChangeRaise(nameof(PLogRowExpanded));
             PLogChangeRaise(nameof(PLogDetailShown));
             PLogChangeRaise(nameof(PLogChipText));
         }
     }
 
-    public Visibility PLogDetailShown => pLogRowOpen ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility PLogDetailShown => pLogRowExpanded ? Visibility.Visible : Visibility.Collapsed;
 
     public Visibility PLogChipShown => PLogRowDetailed ? Visibility.Visible : Visibility.Collapsed;
 
     public string PLogChipText =>
-        LLocalization.LLocalizationTextRead("Log.Button.Details") + (pLogRowOpen ? "  ▴" : "  ▾");
+        LLocalization.LLocalizationTextRead("Log.Button.Details") + (pLogRowExpanded ? "  ▴" : "  ▾");
 
     internal static void PLogRowApply(ListBox pLogFeed)
     {

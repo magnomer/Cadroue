@@ -31,7 +31,7 @@ public sealed partial class PFlow
 
     public void PFlowOrderApply()
     {
-        bool pMapOnTop = App.LPreferenceStateCurrent.LPreferenceTimelineOrder != "ViewfinderFirst";
+        bool pMapOnTop = PProgram.LPreferenceStateCurrent.LPreferenceTimelineOrder != "ViewfinderFirst";
         Grid.SetRow(pFlowMapReel, pMapOnTop ? 1 : 3);
         Grid.SetRow(pFlowViewfinderReel, pMapOnTop ? 3 : 1);
     }

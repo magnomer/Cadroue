@@ -30,7 +30,7 @@ public sealed partial class PRoster
         long? PRosterPlaceOriginBytes,
         string PRosterPlaceStep);
 
-    private UIElement PRosterQueuePanelBuild()
+    private UIElement PRosterPanelBuild()
     {
         var pColumnHeader = new Border
         {
@@ -38,7 +38,7 @@ public sealed partial class PRoster
             Background = PRosterTheme.PRosterHeaderBrush,
             BorderBrush = PRosterTheme.PRosterLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
-            Child = PRosterColumnHeaderBuild()
+            Child = PRosterHeaderBuild()
         };
 
         var pRoot = new DockPanel { LastChildFill = true };
@@ -49,20 +49,20 @@ public sealed partial class PRoster
         return PPanel.PPanelBorderBuild(pRoot);
     }
 
-    private static Grid PRosterColumnHeaderBuild()
+    private static Grid PRosterHeaderBuild()
     {
         var pGrid = PRosterColumnsCreate();
-        PRosterHeadCellAdd(pGrid, 0, LLocalization.LLocalizationTextRead("Roster.Queue.Step"));
-        PRosterHeadCellAdd(pGrid, 1, LLocalization.LLocalizationTextRead("Roster.Queue.Priority"));
-        PRosterHeadCellAdd(pGrid, 2, LLocalization.LLocalizationTextRead("Roster.Queue.Length"));
-        PRosterHeadCellAdd(pGrid, 3, LLocalization.LLocalizationTextRead("Roster.Queue.Progress"));
-        PRosterHeadCellAdd(pGrid, 4, LLocalization.LLocalizationTextRead("Roster.Queue.Percentage"));
-        PRosterHeadCellAdd(pGrid, 5, LLocalization.LLocalizationTextRead("Roster.Queue.State"));
-        PRosterHeadCellAdd(pGrid, 6, LLocalization.LLocalizationTextRead("Roster.Queue.Owner"));
+        PRosterHeadAdd(pGrid, 0, LLocalization.LLocalizationTextRead("Roster.Queue.Step"));
+        PRosterHeadAdd(pGrid, 1, LLocalization.LLocalizationTextRead("Roster.Queue.Priority"));
+        PRosterHeadAdd(pGrid, 2, LLocalization.LLocalizationTextRead("Roster.Queue.Length"));
+        PRosterHeadAdd(pGrid, 3, LLocalization.LLocalizationTextRead("Roster.Queue.Progress"));
+        PRosterHeadAdd(pGrid, 4, LLocalization.LLocalizationTextRead("Roster.Queue.Percentage"));
+        PRosterHeadAdd(pGrid, 5, LLocalization.LLocalizationTextRead("Roster.Queue.State"));
+        PRosterHeadAdd(pGrid, 6, LLocalization.LLocalizationTextRead("Roster.Queue.Owner"));
         return pGrid;
     }
 
-    private static void PRosterHeadCellAdd(Grid pGrid, int pColumn, string pText)
+    private static void PRosterHeadAdd(Grid pGrid, int pColumn, string pText)
     {
         var pCell = new TextBlock
         {
@@ -97,14 +97,14 @@ public sealed partial class PRoster
             FocusVisualStyle = null,
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             SelectionMode = SelectionMode.Extended,
-            ItemContainerStyle = PRosterRowStyleCreate()
+            ItemContainerStyle = PRosterStyleCreate()
         };
         ScrollViewer.SetHorizontalScrollBarVisibility(pList, ScrollBarVisibility.Disabled);
         pList.SelectionChanged += (_, _) => PRosterSelectHandle();
         return pList;
     }
 
-    private static Style PRosterRowStyleCreate()
+    private static Style PRosterStyleCreate()
     {
         var pStyle = new Style(typeof(ListBoxItem));
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
@@ -113,11 +113,11 @@ public sealed partial class PRoster
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PRosterRowTemplateCreate()));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PRosterTemplateCreate()));
         return pStyle;
     }
 
-    private static ControlTemplate PRosterRowTemplateCreate()
+    private static ControlTemplate PRosterTemplateCreate()
     {
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.Name = "pRosterRowFrame";
@@ -153,7 +153,7 @@ public sealed partial class PRoster
 
         LWorkItem[] pDesired = pRosterSchedule.LScheduleRecords.ToArray();
         var pDesiredIds = pDesired.Select(pWorkItem => pWorkItem.LWorkId).ToHashSet();
-        List<ListBoxItem> pDesiredRows = PRosterQueueRowsRead(pDesired);
+        List<ListBoxItem> pDesiredRows = PRosterRowsRead(pDesired);
 
         pRosterQueueSyncing = true;
         try
@@ -207,7 +207,7 @@ public sealed partial class PRoster
         }
     }
 
-    private List<ListBoxItem> PRosterQueueRowsRead(IReadOnlyList<LWorkItem> pWorkItems)
+    private List<ListBoxItem> PRosterRowsRead(IReadOnlyList<LWorkItem> pWorkItems)
     {
         var pDesiredRows = new List<ListBoxItem>();
         var pLineageKeep = new HashSet<Guid>();
@@ -215,15 +215,15 @@ public sealed partial class PRoster
         foreach (var pLineageEntry in PRosterLineageRead(pWorkItems))
         {
             pLineageKeep.Add(pLineageEntry.PRosterLineageId);
-            pDesiredRows.Add(PRosterLineageRowRead(pLineageEntry));
+            pDesiredRows.Add(PLineageRowRead(pLineageEntry));
 
             for (int pItemIndex = 0; pItemIndex < pLineageEntry.PRosterLineageItems.Count; pItemIndex++)
             {
                 LWorkItem pWorkItem = pLineageEntry.PRosterLineageItems[pItemIndex];
                 pRosterRowPlaces[pWorkItem.LWorkId] = new PRosterRowPlace(
                     pLineageEntry.PRosterLineageSubject,
-                    pLineageEntry.PRosterLineageOriginBytes,
-                    PRosterLineageStepRead(pWorkItem, pLineageEntry.PRosterLineageSubject, pItemIndex == 0));
+                    pLineageEntry.PLineageOriginBytes,
+                    PLineageStepRead(pWorkItem, pLineageEntry.PRosterLineageSubject, pItemIndex == 0));
 
                 if (pRosterRows.TryGetValue(pWorkItem.LWorkId, out ListBoxItem? pRow))
                 {
@@ -240,7 +240,7 @@ public sealed partial class PRoster
             }
         }
 
-        PRosterLineageTrim(pLineageKeep);
+        PRosterLineageRemove(pLineageKeep);
         return pDesiredRows;
     }
 
@@ -249,15 +249,15 @@ public sealed partial class PRoster
         var pGrid = PRosterColumnsCreate();
         pGrid.Margin = new Thickness(PRosterLineageIndent, 0, 0, 0);
 
-        TextBlock pStepCell = PRosterRowCellAdd(pGrid, 0, PRosterRowStepRead(pWorkItem), PRosterTheme.PRosterTextBrush);
-        PRosterRowCellAdd(pGrid, 1, PRosterPriorityFormat(pWorkItem.LWorkPriority), PRosterTheme.PRosterMutedBrush);
-        PRosterRowCellAdd(pGrid, 2, PRosterSpanFormat(pWorkItem.LWorkDuration), PRosterTheme.PRosterMutedBrush);
+        TextBlock pStepCell = PRosterCellAdd(pGrid, 0, PRosterStepRead(pWorkItem), PRosterTheme.PRosterTextBrush);
+        PRosterCellAdd(pGrid, 1, PRosterPriorityFormat(pWorkItem.LWorkPriority), PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 2, PRosterSpanFormat(pWorkItem.LWorkDuration), PRosterTheme.PRosterMutedBrush);
 
-        TextBlock pProgressCell = PRosterRowCellAdd(pGrid, 3, PRosterProgressFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
-        TextBlock pPercentCell = PRosterRowCellAdd(pGrid, 4, PRosterRowRatioRead(pWorkItem), PRosterTheme.PRosterMutedBrush);
-        TextBlock pStateCell = PRosterRowCellAdd(pGrid, 5, PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent),
-            PRosterTheme.PRosterStateBrushRead(pWorkItem.LWorkStateCurrent));
-        TextBlock pOwnerCell = PRosterRowCellAdd(pGrid, 6, PRosterOwnerFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
+        TextBlock pProgressCell = PRosterCellAdd(pGrid, 3, PRosterProgressFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
+        TextBlock pPercentCell = PRosterCellAdd(pGrid, 4, PRosterPlaceFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
+        TextBlock pStateCell = PRosterCellAdd(pGrid, 5, PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent),
+            PRosterTheme.PRosterStateRead(pWorkItem.LWorkStateCurrent));
+        TextBlock pOwnerCell = PRosterCellAdd(pGrid, 6, PRosterOwnerFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
 
         pRosterRowCells[pWorkItem.LWorkId] = new PRosterRowCell
         {
@@ -281,7 +281,7 @@ public sealed partial class PRoster
             return;
         }
 
-        IReadOnlyList<string> pRelayPaths = PRosterRelayPathsRead(pWorkItem);
+        IReadOnlyList<string> pRelayPaths = PRosterPathsRead(pWorkItem);
         if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
             || pRow.ContextMenu is not { } pMenu
             || pRelayPaths.Count == 0
@@ -310,7 +310,7 @@ public sealed partial class PRoster
             pAnyTarget = true;
             PTabRecord pTargetRecord = pTabRecord;
             MenuItem pItem = PMenu.PMenuItemCreate(pTabRecord.PTabTitle, pTabRecord.PTabIconSource);
-            pItem.Click += (_, _) => PRosterRelay(pTargetRecord, pRelayPaths);
+            pItem.Click += (_, _) => PRosterRelaySend(pTargetRecord, pRelayPaths);
             pMenu.Items.Add(pItem);
         }
 
@@ -320,7 +320,7 @@ public sealed partial class PRoster
         }
     }
 
-    private IReadOnlyList<string> PRosterRelayPathsRead(LWorkItem pClickedItem)
+    private IReadOnlyList<string> PRosterPathsRead(LWorkItem pClickedItem)
     {
         IReadOnlyList<LWorkItem> pSelectedItems = PRosterSelectionRead();
         IEnumerable<LWorkItem> pRelayItems =
@@ -332,7 +332,7 @@ public sealed partial class PRoster
         foreach (LWorkItem pRelayItem in pRelayItems)
         {
             if (pRelayItem.LWorkStateCurrent == LWorkState.LWorkStateDone
-                && PRosterRelayFileRead(pRelayItem) is { } pRelayPath
+                && PRosterFileRead(pRelayItem) is { } pRelayPath
                 && !pRelayPaths.Contains(pRelayPath, StringComparer.OrdinalIgnoreCase))
             {
                 pRelayPaths.Add(pRelayPath);
@@ -342,7 +342,7 @@ public sealed partial class PRoster
         return pRelayPaths;
     }
 
-    private static string? PRosterRelayFileRead(LWorkItem pWorkItem)
+    private static string? PRosterFileRead(LWorkItem pWorkItem)
     {
         if (!string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath) && File.Exists(pWorkItem.LWorkOutputPath))
         {
@@ -354,7 +354,7 @@ public sealed partial class PRoster
             : null;
     }
 
-    private static void PRosterRelay(PTabRecord pTargetRecord, IReadOnlyList<string> pRelayPaths)
+    private static void PRosterRelaySend(PTabRecord pTargetRecord, IReadOnlyList<string> pRelayPaths)
     {
         if (pTargetRecord.PTabWorkspace.PWorkspaceSurface.PTabList is not { } pTargetList)
         {
@@ -366,7 +366,7 @@ public sealed partial class PRoster
         pTargetList.PListPathsAdd(pRelayPaths);
     }
 
-    private static TextBlock PRosterRowCellAdd(Grid pGrid, int pColumn, string pText, Brush pBrush)
+    private static TextBlock PRosterCellAdd(Grid pGrid, int pColumn, string pText, Brush pBrush)
     {
         var pCell = new TextBlock
         {
@@ -389,22 +389,22 @@ public sealed partial class PRoster
             return;
         }
 
-        pCell.PRosterCellStep.Text = PRosterRowStepRead(pWorkItem);
+        pCell.PRosterCellStep.Text = PRosterStepRead(pWorkItem);
         pCell.PRosterCellProgress.Text = PRosterProgressFormat(pWorkItem);
-        pCell.PRosterCellPercent.Text = PRosterRowRatioRead(pWorkItem);
+        pCell.PRosterCellPercent.Text = PRosterPlaceFormat(pWorkItem);
         pCell.PRosterCellState.Text = PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent);
-        pCell.PRosterCellState.Foreground = PRosterTheme.PRosterStateBrushRead(pWorkItem.LWorkStateCurrent);
+        pCell.PRosterCellState.Foreground = PRosterTheme.PRosterStateRead(pWorkItem.LWorkStateCurrent);
         pCell.PRosterCellOwner.Text = PRosterOwnerFormat(pWorkItem);
     }
 
-    private string PRosterRowStepRead(LWorkItem pWorkItem) =>
+    private string PRosterStepRead(LWorkItem pWorkItem) =>
         pRosterRowPlaces.TryGetValue(pWorkItem.LWorkId, out PRosterRowPlace? pPlace)
             ? pPlace.PRosterPlaceStep
             : pWorkItem.LWorkOutputName;
 
-    private string PRosterRowRatioRead(LWorkItem pWorkItem) =>
+    private string PRosterPlaceFormat(LWorkItem pWorkItem) =>
         pRosterRowPlaces.TryGetValue(pWorkItem.LWorkId, out PRosterRowPlace? pPlace)
-            ? PRosterLineageRatioFormat(pWorkItem, pPlace.PRosterPlaceSubject, pPlace.PRosterPlaceOriginBytes)
+            ? PLineageRatioFormat(pWorkItem, pPlace.PRosterPlaceSubject, pPlace.PRosterPlaceOriginBytes)
             : PRosterRatioFormat(pWorkItem);
 
     private string PRosterOwnerFormat(LWorkItem pWorkItem)

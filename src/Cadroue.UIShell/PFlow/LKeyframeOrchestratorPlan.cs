@@ -128,7 +128,7 @@ public sealed partial class LKeyframeOrchestrator
                 }
 
                 lKeyframeScannedSpans.Add(spanIndex);
-                lKeyframeFailedSpanCounts.Remove(spanIndex);
+                lKeyframeFailedCounts.Remove(spanIndex);
             }
 
             LTrace.LTraceRecord(
@@ -137,7 +137,7 @@ public sealed partial class LKeyframeOrchestrator
                 $"{lKeyframeNewCount} new keyframe(s) of {entries.Count} found by ffprobe",
                 lKeyframeClock.Elapsed.TotalMilliseconds);
 
-            if (LKeyframeSaveDueCheck(lKeyframeNewCount))
+            if (LKeyframeSaveCheck(lKeyframeNewCount))
             {
                 LKeyframeCacheSave();
             }
@@ -155,8 +155,8 @@ public sealed partial class LKeyframeOrchestrator
                     return;
                 }
 
-                lKeyframeFailedSpanCounts.TryGetValue(spanIndex, out int lFailedSpanCount);
-                lKeyframeFailedSpanCounts[spanIndex] = lFailedSpanCount + 1;
+                lKeyframeFailedCounts.TryGetValue(spanIndex, out int lFailedSpanCount);
+                lKeyframeFailedCounts[spanIndex] = lFailedSpanCount + 1;
             }
         }
 

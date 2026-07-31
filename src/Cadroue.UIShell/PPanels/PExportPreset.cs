@@ -9,13 +9,13 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PExport
 {
-    private const string PExportPlusIconPath = "/PAssets/PPanels/PExportPlus.svg";
-    private const string PExportMinusIconPath = "/PAssets/PPanels/PExportMinus.svg";
-    private const string PExportSettingIconPath = "/PAssets/PPanels/PExportSetting.svg";
-    private const string PExportImportIconPath = "/PAssets/PPanels/PExportImport.svg";
-    private const string PExportExportIconPath = "/PAssets/PPanels/PExportExport.svg";
-    private const string PExportCheckIconPath = "/PAssets/PPanels/PExportCheck.svg";
-    private const string PExportCancelIconPath = "/PAssets/PPanels/PExportCancel.svg";
+    private const string PExportPlusIcon = "/PAssets/PPanels/PExportPlus.svg";
+    private const string PExportMinusIcon = "/PAssets/PPanels/PExportMinus.svg";
+    private const string PExportSettingIcon = "/PAssets/PPanels/PExportSetting.svg";
+    private const string PExportImportIcon = "/PAssets/PPanels/PExportImport.svg";
+    private const string PExportExportIcon = "/PAssets/PPanels/PExportExport.svg";
+    private const string PExportCheckIcon = "/PAssets/PPanels/PExportCheck.svg";
+    private const string PExportCancelIcon = "/PAssets/PPanels/PExportCancel.svg";
     private static readonly Brush PExportApplyBrush = new SolidColorBrush(Color.FromRgb(0x2E, 0xA3, 0x66));
     private static readonly Brush PExportCancelBrush = new SolidColorBrush(Color.FromRgb(0xD1, 0x43, 0x43));
 
@@ -41,17 +41,17 @@ public sealed partial class PExport
         {
             pPresetRowPanel.Children.Clear();
             bool pUserDividerAdded = false;
-            foreach (string lPresetName in LExportSpecificState.LPresetNames)
+            foreach (string lPresetName in LPreset.LPresetNames)
             {
-                if (!LExportSpecificState.LPresetNativeCheck(lPresetName)
+                if (!LPreset.LPresetNativeCheck(lPresetName)
                     && pPresetRowPanel.Children.Count > 0
                     && !pUserDividerAdded)
                 {
-                    pPresetRowPanel.Children.Add(PExportPresetDividerBuild());
+                    pPresetRowPanel.Children.Add(PExportDividerBuild());
                     pUserDividerAdded = true;
                 }
 
-                pPresetRowPanel.Children.Add(PExportPresetRowBuild(lPresetName));
+                pPresetRowPanel.Children.Add(PExportRowBuild(lPresetName));
             }
         }
         finally
@@ -60,18 +60,18 @@ public sealed partial class PExport
         }
     }
 
-    private Border PExportPresetRowBuild(string lPresetName)
+    private Border PExportRowBuild(string lPresetName)
     {
-        bool pPresetNative = LExportSpecificState.LPresetNativeCheck(lPresetName);
+        bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
         bool pPresetSelected = string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase);
         bool pPresetModified = !pPresetNative
             && pPresetSelected
-            && !LExportSpecificState.LPresetMatch(lPresetName, lExportSpecificState);
+            && !LPreset.LPresetMatch(lPresetName, lExportSpecificState);
         bool pPresetEditing = string.Equals(lPresetName, pPresetNameEditing, StringComparison.OrdinalIgnoreCase);
-        bool pPresetDisabled = PExportPresetDisabledCheck(lPresetName);
+        bool pPresetDisabled = PExportDisabledCheck(lPresetName);
         UIElement pNameElement = pPresetEditing
-            ? PExportPresetNameBoxBuild(lPresetName)
-            : PExportPresetDisplayBuild(lPresetName, pPresetModified);
+            ? PExportBoxBuild(lPresetName)
+            : PExportDisplayBuild(lPresetName, pPresetModified);
 
         var pRowBorder = new Border
         {
@@ -87,16 +87,16 @@ public sealed partial class PExport
         };
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>
         {
-            if (pPresetNative || PExportButtonSourceCheck(pEvent.OriginalSource))
+            if (pPresetNative || PExportSourceCheck(pEvent.OriginalSource))
             {
                 pPresetNameDragging = null;
-                pPresetDragStart = null;
+                pExportDragOrigin = null;
                 return;
             }
 
             pPresetNameDragging = lPresetName;
-            pPresetDragStart = pEvent.GetPosition(pRowBorder);
-            pPresetDragOffset = pPresetDragStart.Value;
+            pExportDragOrigin = pEvent.GetPosition(pRowBorder);
+            pPresetDragOffset = pExportDragOrigin.Value;
             pPresetDragActive = false;
             pRowBorder.CaptureMouse();
         };
@@ -105,7 +105,7 @@ public sealed partial class PExport
             if (!pPresetNative && pEvent.ClickCount >= 2)
             {
                 pRowBorder.ReleaseMouseCapture();
-                PExportPresetDragClear();
+                PExportDragClear();
                 PExportPresetSelect(lPresetName);
                 pPresetNameEditing = lPresetName;
                 PExportPresetRebuild();
@@ -116,7 +116,7 @@ public sealed partial class PExport
         {
             if (pPresetNameDragging is null
                 || pPresetEditing
-                || pPresetDragStart is not Point pStart
+                || pExportDragOrigin is not Point pStart
                 || pEvent.LeftButton != MouseButtonState.Pressed)
             {
                 return;
@@ -137,10 +137,10 @@ public sealed partial class PExport
             pPresetDragActive = true;
             pRowBorder.Opacity = 0.42;
             pPresetDragGhost?.PGhostCursorSync();
-            int lPresetTargetIndex = PExportPresetIndexResolve(pEvent.GetPosition(pPresetRowPanel));
-            if (PExportPresetMoveLive(pPresetNameDragging, lPresetTargetIndex, pRowBorder))
+            int lPresetTargetIndex = PExportIndexResolve(pEvent.GetPosition(pPresetRowPanel));
+            if (PExportLiveMove(pPresetNameDragging, lPresetTargetIndex, pRowBorder))
             {
-                pPresetDragStart = pEvent.GetPosition(pRowBorder);
+                pExportDragOrigin = pEvent.GetPosition(pRowBorder);
             }
 
             pEvent.Handled = true;
@@ -151,16 +151,16 @@ public sealed partial class PExport
             if (pPresetDragActive && pPresetNameDragging is string lDraggedPresetName)
             {
                 pRowBorder.Opacity = 1;
-                PExportPresetDragClear();
+                PExportDragClear();
                 pEvent.Handled = true;
                 return;
             }
 
-            PExportPresetDragClear();
+            PExportDragClear();
 
             if (!string.Equals(pPresetNameEditing, lPresetName, StringComparison.OrdinalIgnoreCase))
             {
-                PExportPresetEditCommit();
+                PExportEditCommit();
                 PExportPresetSelect(lPresetName);
             }
 
@@ -174,19 +174,19 @@ public sealed partial class PExport
             }
 
             pRowBorder.Opacity = 1;
-            PExportPresetDragClear();
+            PExportDragClear();
         };
         return pRowBorder;
     }
 
-    private bool PExportPresetDisabledCheck(string lPresetName) =>
-        pVideoCopyPresetDisabled
-        && LExportSpecificState.LPresetRead(lPresetName) is { } lPreset
-        && string.Equals(lPreset.VideoMode, "Copy", StringComparison.OrdinalIgnoreCase)
+    private bool PExportDisabledCheck(string lPresetName) =>
+        pExportCopyDisabled
+        && LPreset.LPresetRead(lPresetName) is { } lPreset
+        && string.Equals(lPreset.LPresetVideoMode, "Copy", StringComparison.OrdinalIgnoreCase)
         && (!string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lExportSpecificState.VideoMode, "Copy", StringComparison.OrdinalIgnoreCase));
+            || string.Equals(lExportSpecificState.LPresetVideoMode, "Copy", StringComparison.OrdinalIgnoreCase));
 
-    private static Border PExportPresetDividerBuild() => new()
+    private static Border PExportDividerBuild() => new()
     {
         Tag = "Divider",
         Height = 1,
@@ -194,14 +194,14 @@ public sealed partial class PExport
         Margin = new Thickness(12, 6, 12, 6)
     };
 
-    private void PExportPresetEditCommit()
+    private void PExportEditCommit()
     {
-        if (pPresetNameEditing is not string lEditingName || pPresetNameBoxCurrent is not { } pEditingBox)
+        if (pPresetNameEditing is not string lEditingName || pExportBoxCurrent is not { } pEditingBox)
         {
             return;
         }
 
-        PExportPresetNameCommit(lEditingName, pEditingBox.Text);
+        PExportNameCommit(lEditingName, pEditingBox.Text);
     }
 
     private void PExportPresetSelect(string lPresetName)
@@ -210,9 +210,9 @@ public sealed partial class PExport
         PExportPresetApply();
     }
 
-    private UIElement PExportPresetDisplayBuild(string lPresetName, bool pPresetModified)
+    private UIElement PExportDisplayBuild(string lPresetName, bool pPresetModified)
     {
-        UIElement pNameText = PExportPresetNameBuild(lPresetName, pPresetModified);
+        UIElement pNameText = PExportNameBuild(lPresetName, pPresetModified);
         if (!pPresetModified)
         {
             return pNameText;
@@ -229,17 +229,17 @@ public sealed partial class PExport
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pButtonPanel.Children.Add(PExportPresetInlineButtonBuild(PExportCheckIconPath, PExportApplyBrush, LLocalization.LLocalizationTextRead("ExportPreset.ApplyTooltip"), PExportModificationApply));
-        pButtonPanel.Children.Add(PExportPresetInlineButtonBuild(PExportCancelIconPath, PExportCancelBrush, LLocalization.LLocalizationTextRead("ExportPreset.DiscardTooltip"), PExportModificationRestore));
+        pButtonPanel.Children.Add(PExportInlineBuild(PExportCheckIcon, PExportApplyBrush, LLocalization.LLocalizationTextRead("ExportPreset.ApplyTooltip"), PExportModificationApply));
+        pButtonPanel.Children.Add(PExportInlineBuild(PExportCancelIcon, PExportCancelBrush, LLocalization.LLocalizationTextRead("ExportPreset.DiscardTooltip"), PExportModificationRestore));
         Grid.SetColumn(pButtonPanel, 1);
         pGrid.Children.Add(pButtonPanel);
         return pGrid;
     }
 
-    private UIElement PExportPresetNameBuild(string lPresetName, bool pPresetModified)
+    private UIElement PExportNameBuild(string lPresetName, bool pPresetModified)
     {
-        TextBlock pNameText = PExportPresetNameTextBuild(lPresetName, pPresetModified);
-        if (!LExportSpecificState.LPresetNativeCheck(lPresetName))
+        TextBlock pNameText = PExportTextBuild(lPresetName, pPresetModified);
+        if (!LPreset.LPresetNativeCheck(lPresetName))
         {
             return pNameText;
         }
@@ -250,23 +250,23 @@ public sealed partial class PExport
             VerticalAlignment = VerticalAlignment.Center
         };
         pPanel.Children.Add(pNameText);
-        pPanel.Children.Add(PExportPresetDefaultBadgeBuild());
+        pPanel.Children.Add(PExportBadgeBuild());
         return pPanel;
     }
 
-    private static TextBlock PExportPresetNameTextBuild(string lPresetName, bool pPresetModified) => new()
+    private static TextBlock PExportTextBuild(string lPresetName, bool pPresetModified) => new()
     {
         Text = pPresetModified
-            ? $"{LExportSpecificState.LPresetDisplayNameRead(lPresetName)} (Modified)"
-            : LExportSpecificState.LPresetDisplayNameRead(lPresetName),
+            ? $"{LPreset.LPresetDisplayRead(lPresetName)} (Modified)"
+            : LPreset.LPresetDisplayRead(lPresetName),
         FontSize = 12,
         FontStyle = pPresetModified ? FontStyles.Italic : FontStyles.Normal,
-        Foreground = PTextBrush,
+        Foreground = PExportTextBrush,
         Padding = new Thickness(2, 0, 2, 1),
         VerticalAlignment = VerticalAlignment.Center
     };
 
-    private static Border PExportPresetDefaultBadgeBuild() => new()
+    private static Border PExportBadgeBuild() => new()
     {
         Background = new SolidColorBrush(Color.FromRgb(0xE8, 0xEE, 0xF6)),
         BorderBrush = new SolidColorBrush(Color.FromRgb(0xC8, 0xD4, 0xE2)),
@@ -286,7 +286,7 @@ public sealed partial class PExport
         }
     };
 
-    private Button PExportPresetInlineButtonBuild(string pIconPath, Brush pIconBrush, string pTooltip, RoutedEventHandler pClick)
+    private Button PExportInlineBuild(string pIconPath, Brush pIconBrush, string pTooltip, RoutedEventHandler pClick)
     {
         var pButton = new Button
         {
@@ -301,19 +301,19 @@ public sealed partial class PExport
             Width = 22,
             Height = 20,
             Margin = new Thickness(2, 0, 0, 0),
-            Style = PExportButtonStyleRead()
+            Style = PExportStyleRead()
         };
         pButton.Click += pClick;
         return pButton;
     }
 
-    private TextBox PExportPresetNameBoxBuild(string lPresetName)
+    private TextBox PExportBoxBuild(string lPresetName)
     {
         var pNameBox = new TextBox
         {
             Text = lPresetName,
             FontSize = 12,
-            Foreground = PTextBrush,
+            Foreground = PExportTextBrush,
             Background = Brushes.Transparent,
             BorderThickness = new Thickness(0, 0, 0, 1),
             BorderBrush = new SolidColorBrush(Color.FromRgb(0x4A, 0x90, 0xD9)),
@@ -322,7 +322,7 @@ public sealed partial class PExport
             VerticalAlignment = VerticalAlignment.Center,
             FocusVisualStyle = null
         };
-        pPresetNameBoxCurrent = pNameBox;
+        pExportBoxCurrent = pNameBox;
         pNameBox.Loaded += (_, _) =>
         {
             pNameBox.Focus();
@@ -335,19 +335,19 @@ public sealed partial class PExport
                 return;
             }
 
-            PExportPresetNameCommit(lPresetName, pNameBox.Text);
+            PExportNameCommit(lPresetName, pNameBox.Text);
         };
         pNameBox.KeyDown += (_, pEvent) =>
         {
             if (pEvent.Key == Key.Return)
             {
-                PExportPresetNameCommit(lPresetName, pNameBox.Text);
+                PExportNameCommit(lPresetName, pNameBox.Text);
                 pEvent.Handled = true;
             }
             else if (pEvent.Key == Key.Escape)
             {
                 pPresetNameEditing = null;
-                pPresetNameBoxCurrent = null;
+                pExportBoxCurrent = null;
                 PExportPresetRebuild();
                 pEvent.Handled = true;
             }

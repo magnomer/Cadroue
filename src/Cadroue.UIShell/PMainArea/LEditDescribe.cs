@@ -12,8 +12,8 @@ public sealed record LEditWorkDescription(
 
 public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropApply)
 {
-    public static LEditPlan LEditPlanNoneCreate() =>
-        new(LWorkCrop.LWorkCropNoneCreate(), LWorkVideo.LWorkVideoNoneCreate(), false);
+    public static LEditPlan LEditEmptyCreate() =>
+        new(LWorkCrop.LWorkCropCreate(), LWorkVideo.LWorkVideoCreate(), false);
 
     public bool LEditPlanActive =>
         LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive;
@@ -27,7 +27,7 @@ public static partial class LEdit
         TimeSpan lEditDuration,
         LWorkCrop lEditCrop,
         LWorkVideo lEditVideo,
-        LExportSpecificState lExportSpecificState,
+        LPreset lExportSpecificState,
         Guid lEditRelayTarget = default)
     {
         LEditWorkDescription lEditWorkDescription = new(
@@ -43,7 +43,7 @@ public static partial class LEdit
     public static async Task<int> LEditAllDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lEditSourcePaths,
-        LExportSpecificState lExportSpecificState,
+        LPreset lExportSpecificState,
         LEditPlan? lEditCarried = null,
         Guid lEditRelayTarget = default)
     {
@@ -72,15 +72,15 @@ public static partial class LEdit
         }
 
         int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lEditWorkItems, lEditRelayTarget);
-        LAppLog.LInfo(
+        LTraceLog.LTraceInfoRecord(
             $"Edit Add All: {lEditSourcePaths.Count} listed, {lEditAdded} queued, "
             + $"plan source {(lEditCarried is null ? "sidecar per file" : "persistent for every file")}");
 
-        await LEditDurationFill(lEditWorkItems).ConfigureAwait(true);
+        await LEditDurationResolve(lEditWorkItems).ConfigureAwait(true);
         return lEditAdded;
     }
 
-    private static Task LEditDurationFill(IReadOnlyList<LWorkItem> lEditWorkItems)
+    private static Task LEditDurationResolve(IReadOnlyList<LWorkItem> lEditWorkItems)
     {
         LWorkItem[] lEditUnknown = lEditWorkItems
             .Where(lWorkItem => lWorkItem.LWorkEnd <= TimeSpan.Zero)
@@ -102,12 +102,12 @@ public static partial class LEdit
     {
         if (lEditPersistent is not { } lPersistent)
         {
-            return lEditSaved ?? LEditPlan.LEditPlanNoneCreate();
+            return lEditSaved ?? LEditPlan.LEditEmptyCreate();
         }
 
         LWorkCrop lCrop = lPersistent.LEditCropApply
             ? lPersistent.LEditCrop
-            : lEditSaved?.LEditCrop ?? LWorkCrop.LWorkCropNoneCreate();
+            : lEditSaved?.LEditCrop ?? LWorkCrop.LWorkCropCreate();
         bool lCropApply = lPersistent.LEditCropApply || (lEditSaved?.LEditCropApply ?? false);
         var lSteps = new List<LWorkVideoStep>();
         foreach (LWorkVideoKind lKind in Enum.GetValues<LWorkVideoKind>())
@@ -142,7 +142,7 @@ public static partial class LEdit
     private static int LEditParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
 
     public static LEditPlan? LEditPlanRead(string lEditSourcePath) =>
-        LEditSidecarRead(lEditSourcePath)?.Edit is { } lEditRecord ? LEditPlanCreate(lEditRecord) : null;
+        LEditSidecarRead(lEditSourcePath)?.LSidecarEdit is { } lEditRecord ? LEditPlanCreate(lEditRecord) : null;
 
     private static Cadroue.Media.LSidecar? LEditSidecarRead(string lEditSourcePath)
     {
@@ -153,27 +153,27 @@ public static partial class LEdit
         }
         catch (Exception lEditException)
         {
-            LAppLog.LError($"Edit plan could not be read for '{lEditSourcePath}'", lEditException);
+            LTraceLog.LTraceErrorRecord($"Edit plan could not be read for '{lEditSourcePath}'", lEditException);
             return null;
         }
     }
 
     private static LEditPlan LEditPlanCreate(Cadroue.Media.LSidecarEditRecord lEditRecord) => new(
         new LWorkCrop(
-            lEditRecord.CropLeft,
-            lEditRecord.CropTop,
-            lEditRecord.CropRight,
-            lEditRecord.CropBottom,
-            lEditRecord.Rotation,
-            lEditRecord.FlipHorizontal,
-            lEditRecord.FlipVertical),
-        new LWorkVideo(lEditRecord.Steps.Select(LEditVideoStepCreate).ToList()),
-        lEditRecord.CropActive);
+            lEditRecord.LSidecarCropLeft,
+            lEditRecord.LSidecarCropTop,
+            lEditRecord.LSidecarCropRight,
+            lEditRecord.LSidecarCropBottom,
+            lEditRecord.LSidecarRotation,
+            lEditRecord.LSidecarFlipHorizontal,
+            lEditRecord.LSidecarFlipVertical),
+        new LWorkVideo(lEditRecord.LSidecarSteps.Select(LEditStepCreate).ToList()),
+        lEditRecord.LSidecarCropActive);
 
-    private static LWorkVideoStep LEditVideoStepCreate(Cadroue.Media.LSidecarVideoStepRecord lEditRecord) =>
-        string.Equals(lEditRecord.Kind, "Contrast", StringComparison.Ordinal)
-            ? LWorkVideoStep.LWorkVideoContrastCreate(lEditRecord.Active, lEditRecord.Value)
-            : LWorkVideoStep.LWorkVideoBrightnessCreate(lEditRecord.Active, lEditRecord.Value);
+    private static LWorkVideoStep LEditStepCreate(Cadroue.Media.LSidecarVideoStepRecord lEditRecord) =>
+        string.Equals(lEditRecord.LSidecarKind, "Contrast", StringComparison.Ordinal)
+            ? LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
+            : LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue);
 
     public static void LEditPlanSave(string lEditSourcePath, LEditPlan lEditPlan)
     {
@@ -181,22 +181,22 @@ public static partial class LEdit
             lEditSourcePath,
             new Cadroue.Media.LSidecarEditRecord
             {
-                CropLeft = lEditPlan.LEditCrop.LWorkCropLeft,
-                CropTop = lEditPlan.LEditCrop.LWorkCropTop,
-                CropRight = lEditPlan.LEditCrop.LWorkCropRight,
-                CropBottom = lEditPlan.LEditCrop.LWorkCropBottom,
-                Rotation = lEditPlan.LEditCrop.LWorkCropRotation,
-                FlipHorizontal = lEditPlan.LEditCrop.LWorkCropFlipHorizontal,
-                FlipVertical = lEditPlan.LEditCrop.LWorkCropFlipVertical,
-                CropActive = lEditPlan.LEditCropApply,
-                Steps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditVideoStepRecordCreate).ToList()
+                LSidecarCropLeft = lEditPlan.LEditCrop.LWorkCropLeft,
+                LSidecarCropTop = lEditPlan.LEditCrop.LWorkCropTop,
+                LSidecarCropRight = lEditPlan.LEditCrop.LWorkCropRight,
+                LSidecarCropBottom = lEditPlan.LEditCrop.LWorkCropBottom,
+                LSidecarRotation = lEditPlan.LEditCrop.LWorkCropRotation,
+                LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkCropFlipHorizontal,
+                LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkCropFlipVertical,
+                LSidecarCropActive = lEditPlan.LEditCropApply,
+                LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
             });
     }
 
-    private static Cadroue.Media.LSidecarVideoStepRecord LEditVideoStepRecordCreate(LWorkVideoStep lEditStep) => new()
+    private static Cadroue.Media.LSidecarVideoStepRecord LEditRecordCreate(LWorkVideoStep lEditStep) => new()
     {
-        Kind = lEditStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast ? "Contrast" : "Brightness",
-        Active = lEditStep.LWorkVideoStepActive,
-        Value = lEditStep.LWorkVideoStepValue
+        LSidecarKind = lEditStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast ? "Contrast" : "Brightness",
+        LSidecarActive = lEditStep.LWorkVideoStepActive,
+        LSidecarValue = lEditStep.LWorkVideoStepValue
     };
 }

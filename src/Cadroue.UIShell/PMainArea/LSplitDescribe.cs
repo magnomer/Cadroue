@@ -9,7 +9,7 @@ public static partial class LSplit
         LWorkPriority lWorkPriority,
         string? lSplitSourcePath,
         IReadOnlyList<LSplitSectionDescription> lSplitSections,
-        LExportSpecificState lExportSpecificState,
+        LPreset lExportSpecificState,
         Guid lSplitRelayTarget = default)
     {
         LSplitWorkDescription lSplitWorkDescription = new(
@@ -23,11 +23,11 @@ public static partial class LSplit
     public static async Task<int> LSplitAllDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lSplitSourcePaths,
-        LExportSpecificState lExportSpecificState,
+        LPreset lExportSpecificState,
         Guid lSplitRelayTarget = default)
     {
         IReadOnlyList<LSplitPlanRecord> lSplitPlans =
-            await Task.Run(() => LSplitPlanCollect(lSplitSourcePaths)).ConfigureAwait(true);
+            await Task.Run(() => LSplitPlanCreate(lSplitSourcePaths)).ConfigureAwait(true);
 
         int lSplitAdded = 0;
         foreach (LSplitPlanRecord lSplitPlan in lSplitPlans)
@@ -43,7 +43,7 @@ public static partial class LSplit
         return lSplitAdded;
     }
 
-    private static IReadOnlyList<LSplitPlanRecord> LSplitPlanCollect(IReadOnlyList<string> lSplitSourcePaths)
+    private static IReadOnlyList<LSplitPlanRecord> LSplitPlanCreate(IReadOnlyList<string> lSplitSourcePaths)
     {
         var lSplitPlans = new List<LSplitPlanRecord>();
         foreach (string lSplitSourcePath in lSplitSourcePaths)
@@ -68,20 +68,20 @@ public static partial class LSplit
                 return Array.Empty<LSplitSectionDescription>();
             }
 
-            return lSplitSidecar.Sections
-                .Where(lSplitRecord => lSplitRecord.EndMilliseconds > lSplitRecord.StartMilliseconds)
+            return lSplitSidecar.LSidecarSections
+                .Where(lSplitRecord => lSplitRecord.LSidecarEndMilliseconds > lSplitRecord.LSidecarStartMilliseconds)
                 .Select(lSplitRecord => new LSplitSectionDescription(
-                    TimeSpan.FromMilliseconds(lSplitRecord.StartMilliseconds),
-                    TimeSpan.FromMilliseconds(lSplitRecord.EndMilliseconds),
-                    lSplitRecord.Name,
-                    lSplitRecord.Prefix,
-                    lSplitRecord.Suffix,
-                    lSplitRecord.Hidden))
+                    TimeSpan.FromMilliseconds(lSplitRecord.LSidecarStartMilliseconds),
+                    TimeSpan.FromMilliseconds(lSplitRecord.LSidecarEndMilliseconds),
+                    lSplitRecord.LSidecarName,
+                    lSplitRecord.LSidecarPrefix,
+                    lSplitRecord.LSidecarSuffix,
+                    lSplitRecord.LSidecarHidden))
                 .ToArray();
         }
         catch (Exception lSplitException)
         {
-            LAppLog.LError($"Split plan could not be read for '{lSplitSourcePath}'", lSplitException);
+            LTraceLog.LTraceErrorRecord($"Split plan could not be read for '{lSplitSourcePath}'", lSplitException);
             return Array.Empty<LSplitSectionDescription>();
         }
     }

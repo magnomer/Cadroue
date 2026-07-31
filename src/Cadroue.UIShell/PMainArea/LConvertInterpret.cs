@@ -13,7 +13,7 @@ public static partial class LConvert
         IReadOnlyList<string> lConvertSourcePaths = lConvertWorkDescription.LConvertSourcePaths;
         if (lConvertSourcePaths.Count == 0)
         {
-            LAppLog.LError("Convert not queued: the file list is empty");
+            LTraceLog.LTraceErrorRecord("Convert not queued: the file list is empty");
             return Array.Empty<LWorkItem>();
         }
 
@@ -69,7 +69,7 @@ public static partial class LConvert
             .Replace("{Date}", lConvertStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lConvertStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        string lConvertBaseName = LConvertNameSanitize(lConvertStem);
+        string lConvertBaseName = LConvertNameNormalize(lConvertStem);
         string lConvertFileName = LConvertNameFormat(lConvertOutput, lConvertBaseName, lConvertSourcePath);
         return LConvertSourceMatch(Path.Combine(lConvertFolder, lConvertFileName), lConvertSourcePath)
             ? LConvertNameFormat(lConvertOutput, $"{lConvertBaseName}_convert", lConvertSourcePath)
@@ -99,7 +99,7 @@ public static partial class LConvert
         }
     }
 
-    private static string LConvertNameSanitize(string lConvertName)
+    private static string LConvertNameNormalize(string lConvertName)
     {
         char[] lConvertInvalidChars = Path.GetInvalidFileNameChars();
         var lConvertBuilder = new System.Text.StringBuilder(lConvertName.Length);

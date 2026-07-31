@@ -9,9 +9,9 @@ namespace Cadroue.UIShell.PSShared;
 
 internal static class PSSheet
 {
-    internal const double PSSheetTabFontSize = 13;
-    internal const double PSSheetTabIconSize = 17;
-    internal const double PSSheetTabIconGap = 10;
+    internal const double PSSheetFontSize = 13;
+    internal const double PSSheetIconSize = 17;
+    internal const double PSSheetIconGap = 10;
 
     private static readonly Brush psSheetIconBrush = new SolidColorBrush(Color.FromRgb(0x2B, 0x34, 0x43));
 
@@ -61,11 +61,11 @@ internal static class PSSheet
             pHeader.Children.Add(new Image
             {
                 Source = PIcon.PIconRead(pIconPath, psSheetIconBrush),
-                Width = PSSheetTabIconSize,
-                Height = PSSheetTabIconSize,
+                Width = PSSheetIconSize,
+                Height = PSSheetIconSize,
                 Stretch = Stretch.Uniform,
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 0, PSSheetTabIconGap, 0)
+                Margin = new Thickness(0, 0, PSSheetIconGap, 0)
             });
         }
 
@@ -183,7 +183,7 @@ internal static class PSSheet
 </Style>";
         return (Style)XamlReader.Parse(pXaml
             .Replace("$TabWidth$", PSSheetNumberFormat(pTabWidth))
-            .Replace("$TabFontSize$", PSSheetNumberFormat(PSSheetTabFontSize)));
+            .Replace("$TabFontSize$", PSSheetNumberFormat(PSSheetFontSize)));
     }
 
     private static string PSSheetNumberFormat(double pValue) => pValue.ToString(CultureInfo.InvariantCulture);

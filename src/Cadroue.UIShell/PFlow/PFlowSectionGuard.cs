@@ -4,11 +4,11 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow
 {
-    private static bool PFlowOverlapAllowed => App.LPreferenceStateCurrent.LPreferenceOverlapAllowed;
+    private static bool PFlowOverlapAllowed => PProgram.LPreferenceStateCurrent.LPreferenceOverlapAllowed;
 
     private bool PFlowDestructiveConfirm(string pFlowQuestion)
     {
-        if (!App.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
+        if (!PProgram.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
         {
             return true;
         }

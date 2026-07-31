@@ -11,13 +11,13 @@ public sealed class PConvertTab : PTabSurface
     private readonly PList pList = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PConvertTab(LExportSpecificState lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PConvertTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
         pAction.PActionRun += lPriority => _ = LConvert.LConvertDescribe(
             lPriority,
-            pList.PListPathCurrentRead() is { } pConvertSelected ? new[] { pConvertSelected } : Array.Empty<string>(),
+            pList.PListCurrentRead() is { } pConvertSelected ? new[] { pConvertSelected } : Array.Empty<string>(),
             lExportSpecificState,
             pAction.PActionRelayTarget);
         pAction.PActionAllAdd += () => _ = LConvert.LConvertDescribe(

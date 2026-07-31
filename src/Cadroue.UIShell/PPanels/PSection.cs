@@ -23,16 +23,16 @@ public sealed partial class PSection : UserControl
 
     private PFlowControl? pFlowAttached;
     private IReadOnlyList<LSegment> pSectionListCurrent = Array.Empty<LSegment>();
-    private int? pSectionIndexSelectCurrent;
+    private int? pSectionIndexCurrent;
     private readonly TextBlock pSectionCountLabel;
     private readonly StackPanel pSectionRowPanel;
     private int? pSectionIndexEditing;
-    private TextBox? pSectionNameBoxCurrent;
-    private TextBox? pSectionPrefixBoxCurrent;
-    private TextBox? pSectionSuffixBoxCurrent;
+    private TextBox? pSectionNameBox;
+    private TextBox? pSectionPrefixBox;
+    private TextBox? pSectionSuffixBox;
     private bool pSectionRebuilding;
     private int? pSectionIndexDragging;
-    private Point? pSectionDragStart;
+    private Point? pSectionDragOrigin;
     private bool pSectionDragActive;
     private Border? pSectionRowDragging;
 
@@ -51,9 +51,9 @@ public sealed partial class PSection : UserControl
         UIElement pHeader = PSectionHeaderBuild();
 
         pSectionRowPanel = new StackPanel();
-        pSectionRowPanel.PreviewMouseMove += PSectionDragMoveHandle;
-        pSectionRowPanel.MouseLeftButtonUp += PSectionDragUpHandle;
-        pSectionRowPanel.LostMouseCapture += PSectionDragLostHandle;
+        pSectionRowPanel.PreviewMouseMove += PSectionMoveHandle;
+        pSectionRowPanel.MouseLeftButtonUp += PSectionUpHandle;
+        pSectionRowPanel.LostMouseCapture += PSectionLostHandle;
 
         var pScroll = new ScrollViewer
         {
@@ -185,7 +185,7 @@ public sealed partial class PSection : UserControl
         bool pSectionListSame = pSectionListCurrent.SequenceEqual(pSectionListNext)
             && pSectionRowPanel.Children.Count == pSectionListNext.Length;
         pSectionListCurrent = pSectionListNext;
-        pSectionIndexSelectCurrent = pSectionIndexSelect;
+        pSectionIndexCurrent = pSectionIndexSelect;
 
         if (pSectionDragActive)
         {
@@ -207,7 +207,7 @@ public sealed partial class PSection : UserControl
         {
             if (pSectionRowPanel.Children[pIndex] is Border pRow)
             {
-                pRow.Background = pIndex == pSectionIndexSelectCurrent
+                pRow.Background = pIndex == pSectionIndexCurrent
                     ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB))
                     : Brushes.White;
             }
@@ -224,7 +224,7 @@ public sealed partial class PSection : UserControl
             pSectionCountLabel.Text = pCount == 0 ? LLocalization.LLocalizationTextRead("Section.Header.Title") : LLocalization.LLocalizationFormat("Section.Header.Count", pCount);
             for (int i = 0; i < pCount; i++)
             {
-                pSectionRowPanel.Children.Add(PSectionRowBuild(i, pSectionListCurrent[i], i == pSectionIndexSelectCurrent));
+                pSectionRowPanel.Children.Add(PSectionRowBuild(i, pSectionListCurrent[i], i == pSectionIndexCurrent));
             }
         }
         finally
@@ -247,17 +247,17 @@ public sealed partial class PSection : UserControl
     private void PSectionDragClear()
     {
         pSectionIndexDragging = null;
-        pSectionDragStart = null;
+        pSectionDragOrigin = null;
         pSectionDragActive = false;
         pSectionRowDragging = null;
     }
 
-    private void PSectionDragMoveHandle(object pSender, MouseEventArgs pEvent)
+    private void PSectionMoveHandle(object pSender, MouseEventArgs pEvent)
     {
         if (pSectionRowDragging is not { } pDragRow
             || pSectionIndexDragging is not int pDragIndex
             || pSectionIndexEditing is not null
-            || pSectionDragStart is not Point pStart
+            || pSectionDragOrigin is not Point pStart
             || pEvent.LeftButton != MouseButtonState.Pressed)
         {
             return;
@@ -273,11 +273,11 @@ public sealed partial class PSection : UserControl
 
         pSectionDragActive = true;
         pDragRow.Opacity = 0.72;
-        PSectionMoveLive(pDragIndex, PSectionIndexResolve(pCurrent), pDragRow);
+        PSectionLiveMove(pDragIndex, PSectionIndexResolve(pCurrent), pDragRow);
         pEvent.Handled = true;
     }
 
-    private void PSectionDragUpHandle(object pSender, MouseButtonEventArgs pEvent)
+    private void PSectionUpHandle(object pSender, MouseButtonEventArgs pEvent)
     {
         if (pSectionRowDragging is not { } pDragRow)
         {
@@ -308,7 +308,7 @@ public sealed partial class PSection : UserControl
         pEvent.Handled = true;
     }
 
-    private void PSectionDragLostHandle(object pSender, MouseEventArgs pEvent)
+    private void PSectionLostHandle(object pSender, MouseEventArgs pEvent)
     {
         if (pSectionRowDragging is { } pDragRow)
         {
@@ -338,7 +338,7 @@ public sealed partial class PSection : UserControl
         return Math.Clamp(pTargetIndex, 0, pSectionRowPanel.Children.Count);
     }
 
-    private bool PSectionMoveLive(int pSectionIndex, int pTargetIndex, UIElement pSectionRow)
+    private bool PSectionLiveMove(int pSectionIndex, int pTargetIndex, UIElement pSectionRow)
     {
         int pSourceIndex = pSectionRowPanel.Children.IndexOf(pSectionRow);
         if (pSourceIndex < 0 || pFlowAttached is null)
@@ -362,19 +362,19 @@ public sealed partial class PSection : UserControl
 
     private void PSectionEditCommit()
     {
-        if (pSectionIndexEditing is not int pEditingIndex || pSectionNameBoxCurrent is not { } pEditingBox)
+        if (pSectionIndexEditing is not int pEditingIndex || pSectionNameBox is not { } pEditingBox)
         {
             return;
         }
 
         string pEditingName = pEditingBox.Text.Trim();
-        string pEditingPrefix = pSectionPrefixBoxCurrent?.Text.Trim() ?? string.Empty;
-        string pEditingSuffix = pSectionSuffixBoxCurrent?.Text.Trim() ?? string.Empty;
+        string pEditingPrefix = pSectionPrefixBox?.Text.Trim() ?? string.Empty;
+        string pEditingSuffix = pSectionSuffixBox?.Text.Trim() ?? string.Empty;
 
         pSectionIndexEditing = null;
-        pSectionNameBoxCurrent = null;
-        pSectionPrefixBoxCurrent = null;
-        pSectionSuffixBoxCurrent = null;
+        pSectionNameBox = null;
+        pSectionPrefixBox = null;
+        pSectionSuffixBox = null;
         pFlowAttached?.PFlowNameSet(pEditingIndex, pEditingName, pEditingPrefix, pEditingSuffix);
         PSectionRebuild();
     }
@@ -430,7 +430,7 @@ public sealed partial class PSection : UserControl
 
         UIElement pNameHost = pSectionIndex == pSectionIndexEditing
             ? PSectionEditorBuild(pSectionEntry)
-            : PSectionNameTextBuild(pSectionIndex, pSectionEntry);
+            : PSectionTextBuild(pSectionIndex, pSectionEntry);
 
         var pTimeLabel = new TextBlock
         {
@@ -479,7 +479,7 @@ public sealed partial class PSection : UserControl
 
             pSectionRowDragging = pRowBorder;
             pSectionIndexDragging = pSectionRowPanel.Children.IndexOf(pRowBorder);
-            pSectionDragStart = pEvent.GetPosition(pSectionRowPanel);
+            pSectionDragOrigin = pEvent.GetPosition(pSectionRowPanel);
             pSectionDragActive = false;
             pSectionRowPanel.CaptureMouse();
         };
@@ -506,7 +506,7 @@ public sealed partial class PSection : UserControl
         return pRowBorder;
     }
 
-    private TextBlock PSectionNameTextBuild(int pSectionIndex, LSegment pSectionEntry)
+    private TextBlock PSectionTextBuild(int pSectionIndex, LSegment pSectionEntry)
     {
         bool pSectionUnnamed = string.IsNullOrEmpty(pSectionEntry.LSegmentName);
         var pMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
@@ -526,12 +526,12 @@ public sealed partial class PSection : UserControl
             Foreground = pSectionUnnamed ? pMutedBrush : pNameText.Foreground
         });
 
-        PSectionAffixTextAdd(pNameText, pSectionEntry.LSegmentPrefix, pMutedBrush);
-        PSectionAffixTextAdd(pNameText, pSectionEntry.LSegmentSuffix, pMutedBrush);
+        PSectionAffixAdd(pNameText, pSectionEntry.LSegmentPrefix, pMutedBrush);
+        PSectionAffixAdd(pNameText, pSectionEntry.LSegmentSuffix, pMutedBrush);
         return pNameText;
     }
 
-    private static void PSectionAffixTextAdd(TextBlock pNameText, string pAffixValue, Brush pMutedBrush)
+    private static void PSectionAffixAdd(TextBlock pNameText, string pAffixValue, Brush pMutedBrush)
     {
         if (string.IsNullOrEmpty(pAffixValue))
         {
@@ -546,18 +546,18 @@ public sealed partial class PSection : UserControl
         TextBox pNameBox = PSectionFieldBuild(pSectionEntry.LSegmentName, 0);
         TextBox pPrefixBox = PSectionFieldBuild(pSectionEntry.LSegmentPrefix, PSectionAffixWidth);
         TextBox pSuffixBox = PSectionFieldBuild(pSectionEntry.LSegmentSuffix, PSectionAffixWidth);
-        pSectionNameBoxCurrent = pNameBox;
-        pSectionPrefixBoxCurrent = pPrefixBox;
-        pSectionSuffixBoxCurrent = pSuffixBox;
+        pSectionNameBox = pNameBox;
+        pSectionPrefixBox = pPrefixBox;
+        pSectionSuffixBox = pSuffixBox;
 
         UIElement pPrefixMark = PSectionMarkBuild(pPrefixBox);
         UIElement pSuffixMark = PSectionMarkBuild(pSuffixBox);
         PSectionAffixShow(pPrefixBox, !string.IsNullOrEmpty(pSectionEntry.LSegmentPrefix));
         PSectionAffixShow(pSuffixBox, !string.IsNullOrEmpty(pSectionEntry.LSegmentSuffix));
 
-        PSectionStepWire(pNameBox, pPrefixBox);
-        PSectionStepWire(pPrefixBox, pSuffixBox);
-        PSectionStepWire(pSuffixBox, null);
+        PSectionStepAttach(pNameBox, pPrefixBox);
+        PSectionStepAttach(pPrefixBox, pSuffixBox);
+        PSectionStepAttach(pSuffixBox, null);
 
         var pEditorPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pEditorPanel.Children.Add(pNameBox);
@@ -596,7 +596,7 @@ public sealed partial class PSection : UserControl
             pFieldBox.Width = pFieldWidth;
         }
 
-        pFieldBox.LostFocus += (_, _) => PSectionEditLeave();
+        pFieldBox.LostFocus += (_, _) => PSectionEditClose();
         pFieldBox.KeyDown += (_, pEvent) =>
         {
             if (pEvent.Key == Key.Return)
@@ -638,7 +638,7 @@ public sealed partial class PSection : UserControl
         }
     }
 
-    private static void PSectionStepWire(TextBox pFieldBox, TextBox? pNextBox)
+    private static void PSectionStepAttach(TextBox pFieldBox, TextBox? pNextBox)
     {
         pFieldBox.PreviewTextInput += (_, pFieldEvent) =>
         {
@@ -660,7 +660,7 @@ public sealed partial class PSection : UserControl
         };
     }
 
-    private void PSectionEditLeave()
+    private void PSectionEditClose()
     {
         if (pSectionRebuilding)
         {
@@ -669,7 +669,7 @@ public sealed partial class PSection : UserControl
 
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
         {
-            if (pSectionRebuilding || PSectionEditFocusCheck())
+            if (pSectionRebuilding || PSectionFocusCheck())
             {
                 return;
             }
@@ -678,19 +678,19 @@ public sealed partial class PSection : UserControl
         }));
     }
 
-    private bool PSectionEditFocusCheck()
+    private bool PSectionFocusCheck()
     {
-        return ReferenceEquals(Keyboard.FocusedElement, pSectionNameBoxCurrent)
-            || ReferenceEquals(Keyboard.FocusedElement, pSectionPrefixBoxCurrent)
-            || ReferenceEquals(Keyboard.FocusedElement, pSectionSuffixBoxCurrent);
+        return ReferenceEquals(Keyboard.FocusedElement, pSectionNameBox)
+            || ReferenceEquals(Keyboard.FocusedElement, pSectionPrefixBox)
+            || ReferenceEquals(Keyboard.FocusedElement, pSectionSuffixBox);
     }
 
     private void PSectionEditCancel()
     {
         pSectionIndexEditing = null;
-        pSectionNameBoxCurrent = null;
-        pSectionPrefixBoxCurrent = null;
-        pSectionSuffixBoxCurrent = null;
+        pSectionNameBox = null;
+        pSectionPrefixBox = null;
+        pSectionSuffixBox = null;
         PSectionRebuild();
     }
 

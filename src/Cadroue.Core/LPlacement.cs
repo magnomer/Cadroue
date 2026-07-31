@@ -4,13 +4,13 @@ namespace Cadroue.Core;
 
 public sealed class LPlacementRecord
 {
-    public double Left { get; set; }
+    public double LPlacementLeft { get; set; }
 
-    public double Top { get; set; }
+    public double LPlacementTop { get; set; }
 
-    public double Width { get; set; }
+    public double LPlacementWidth { get; set; }
 
-    public double Height { get; set; }
+    public double LPlacementHeight { get; set; }
 }
 
 public static class LPlacement
@@ -41,10 +41,10 @@ public static class LPlacement
             Dictionary<string, LPlacementRecord> lPlacements = LPlacementAllRead();
             lPlacements[lPlacementKey] = new LPlacementRecord
             {
-                Left = lLeft,
-                Top = lTop,
-                Width = lWidth,
-                Height = lHeight
+                LPlacementLeft = lLeft,
+                LPlacementTop = lTop,
+                LPlacementWidth = lWidth,
+                LPlacementHeight = lHeight
             };
 
             try

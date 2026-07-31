@@ -85,7 +85,7 @@ public sealed partial record LTraceEntry(
                 continue;
             }
 
-            Match lTraceMatch = LTraceHeaderPattern().Match(lTraceLine);
+            Match lTraceMatch = LTraceHeaderRead().Match(lTraceLine);
             if (!lTraceMatch.Success)
             {
                 if (lTraceOpen is not null)
@@ -105,7 +105,7 @@ public sealed partial record LTraceEntry(
             LTraceEntryClose(lTraceEntries, lTraceOpen, lTraceDetail);
             lTraceDetail = null;
 
-            (string lTraceSummary, double? lTraceSpan) = LTraceSummarySplit(lTraceMatch.Groups[4].Value);
+            (string lTraceSummary, double? lTraceSpan) = LTraceSummaryDivide(lTraceMatch.Groups[4].Value);
             lTraceOpen = new LTraceEntry(
                 lTraceMatch.Groups[1].Value,
                 lTraceMatch.Groups[2].Value,
@@ -134,7 +134,7 @@ public sealed partial record LTraceEntry(
             : lTraceOpen with { LTraceEntryDetail = lTraceDetail.ToString() });
     }
 
-    private static (string Summary, double? Span) LTraceSummarySplit(string lTraceTail)
+    private static (string Summary, double? Span) LTraceSummaryDivide(string lTraceTail)
     {
         int lTraceMark = lTraceTail.LastIndexOf(" — ", StringComparison.Ordinal);
         if (lTraceMark < 0)
@@ -142,7 +142,7 @@ public sealed partial record LTraceEntry(
             return (lTraceTail, null);
         }
 
-        Match lTraceSpanMatch = LTraceSpanPattern().Match(lTraceTail[(lTraceMark + 3)..]);
+        Match lTraceSpanMatch = LTraceSpanRead().Match(lTraceTail[(lTraceMark + 3)..]);
         if (!lTraceSpanMatch.Success)
         {
             return (lTraceTail, null);
@@ -176,8 +176,8 @@ public sealed partial record LTraceEntry(
     }
 
     [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+(Info|Error|Draw|View|Work|Ffmpeg)\s+(.*)$")]
-    private static partial Regex LTraceHeaderPattern();
+    private static partial Regex LTraceHeaderRead();
 
     [GeneratedRegex(@"^(\d+(?:\.\d+)?)(ms|s)$")]
-    private static partial Regex LTraceSpanPattern();
+    private static partial Regex LTraceSpanRead();
 }

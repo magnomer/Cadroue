@@ -6,8 +6,8 @@ namespace Cadroue.UIShell;
 
 public static class LRendererSettingsStore
 {
-    private const string LRendererSettingsFolderName = "Cadroue";
-    private const string LRendererSettingsFileName = "LRendererSettings.json";
+    private const string LRendererSettingsFolder = "Cadroue";
+    private const string LRendererSettingsFile = "LRendererSettings.json";
 
     public static LRendererSettings LRendererSettingsLoad()
     {
@@ -53,6 +53,6 @@ public static class LRendererSettingsStore
     private static string LRendererPathCreate()
     {
         string lRendererApplicationDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lRendererApplicationDataFolder, LRendererSettingsFolderName, LRendererSettingsFileName);
+        return Path.Combine(lRendererApplicationDataFolder, LRendererSettingsFolder, LRendererSettingsFile);
     }
 }

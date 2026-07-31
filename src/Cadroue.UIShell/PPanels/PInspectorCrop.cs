@@ -10,7 +10,7 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private const string PInspectorCropIconPath = "/PAssets/PPanels/PProcessingCrop.svg";
+    private const string PCropIcon = "/PAssets/PPanels/PProcessingCrop.svg";
     private const double PInspectorInsetWidth = 68;
 
     private static readonly Brush pInspectorWarnBrush = new SolidColorBrush(Color.FromRgb(0xC2, 0x5A, 0x1E));
@@ -61,7 +61,7 @@ public sealed partial class PInspector
     {
         if (pInspectorApplyBox.IsChecked != true)
         {
-            return LWorkCrop.LWorkCropNoneCreate();
+            return LWorkCrop.LWorkCropCreate();
         }
 
         return new LWorkCrop(
@@ -69,7 +69,7 @@ public sealed partial class PInspector
             PInspectorEvenClamp(pInspectorInsetTop),
             PInspectorEvenClamp(pInspectorInsetRight),
             PInspectorEvenClamp(pInspectorInsetBottom),
-            PInspectorRotateKindRead() switch
+            PInspectorKindRead() switch
             {
                 LRotateKind.LRotate90 => 90,
                 LRotateKind.LRotate180 => 180,
@@ -80,7 +80,7 @@ public sealed partial class PInspector
             pInspectorFlipVertical.IsChecked == true);
     }
 
-    public void PInspectorPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply)
+    public void PCropPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply)
     {
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
@@ -100,7 +100,7 @@ public sealed partial class PInspector
                 270 => 3,
                 _ => 0
             };
-            pInspectorCropPresent = pInspectorPlan.LWorkCropEdgeActive;
+            pInspectorCropPresent = pInspectorPlan.LWorkEdgeActive;
         }
         finally
         {
@@ -108,7 +108,7 @@ public sealed partial class PInspector
         }
 
         PInspectorRotateRaise();
-        if (pInspectorPlan.LWorkCropEdgeActive)
+        if (pInspectorPlan.LWorkEdgeActive)
         {
             PInspectorCropRaise();
         }
@@ -123,11 +123,11 @@ public sealed partial class PInspector
         PInspectorApplyUpdate();
     }
 
-    public bool PInspectorPersistentCheck() => pInspectorPersistentBox.IsChecked == true;
+    public bool PCropPersistentCheck() => pInspectorPersistentBox.IsChecked == true;
 
-    public bool PInspectorCropActiveCheck() => pInspectorApplyBox.IsChecked == true;
+    public bool PCropActiveCheck() => pInspectorApplyBox.IsChecked == true;
 
-    public void PInspectorMediaReset()
+    public void PCropMediaReset()
     {
         if (pInspectorPersistentBox.IsChecked == true)
         {
@@ -194,7 +194,7 @@ public sealed partial class PInspector
             : pToolArmed ? pInspectorArmedBrush : Brushes.Transparent;
 
         pInspectorToolIcon.Source = PIcon.PIconRead(
-            PInspectorCropIconPath,
+            PCropIcon,
             pToolActive ? pInspectorAccentBrush : pInspectorIconBrush);
     }
 
@@ -207,7 +207,7 @@ public sealed partial class PInspector
     public void PInspectorCropSet(Rect? pCropVideo)
     {
         Rect? pCropSnapped = pCropVideo is { Width: > 0, Height: > 0 } pCropDrawn
-            ? PInspectorRatioSnap(pCropDrawn) ?? pCropDrawn
+            ? PInspectorRatioClamp(pCropDrawn) ?? pCropDrawn
             : pCropVideo;
         bool pCropAdjusted = pCropSnapped != pCropVideo;
 
@@ -245,7 +245,7 @@ public sealed partial class PInspector
         }
     }
 
-    private Rect? PInspectorRatioSnap(Rect pCropRect)
+    private Rect? PInspectorRatioClamp(Rect pCropRect)
     {
         if (pInspectorRatioFixed.IsChecked != true)
         {
@@ -279,21 +279,21 @@ public sealed partial class PInspector
 
         double pSnapWidth = pScale * pUnitWidth;
         double pSnapHeight = pScale * pUnitHeight;
-        double pSnapX = PInspectorEvenFloor(pCropRect.X + ((pCropRect.Width - pSnapWidth) / 2));
-        double pSnapY = PInspectorEvenFloor(pCropRect.Y + ((pCropRect.Height - pSnapHeight) / 2));
-        pSnapX = Math.Clamp(pSnapX, 0, Math.Max(0, PInspectorEvenFloor(pInspectorSourceWidth - pSnapWidth)));
-        pSnapY = Math.Clamp(pSnapY, 0, Math.Max(0, PInspectorEvenFloor(pInspectorSourceHeight - pSnapHeight)));
+        double pSnapX = PInspectorEvenNormalize(pCropRect.X + ((pCropRect.Width - pSnapWidth) / 2));
+        double pSnapY = PInspectorEvenNormalize(pCropRect.Y + ((pCropRect.Height - pSnapHeight) / 2));
+        pSnapX = Math.Clamp(pSnapX, 0, Math.Max(0, PInspectorEvenNormalize(pInspectorSourceWidth - pSnapWidth)));
+        pSnapY = Math.Clamp(pSnapY, 0, Math.Max(0, PInspectorEvenNormalize(pInspectorSourceHeight - pSnapHeight)));
         return new Rect(pSnapX, pSnapY, pSnapWidth, pSnapHeight);
     }
 
-    private static double PInspectorEvenFloor(double pValue)
+    private static double PInspectorEvenNormalize(double pValue)
     {
         int pWhole = (int)Math.Floor(pValue);
         return pWhole <= 0 ? 0 : pWhole - (pWhole % 2);
     }
 
     public LRotateFlip PInspectorRotateRead() => new(
-        PInspectorRotateKindRead(),
+        PInspectorKindRead(),
         pInspectorFlipHorizontal.IsChecked == true,
         pInspectorFlipVertical.IsChecked == true);
 
@@ -326,12 +326,12 @@ public sealed partial class PInspector
         }
 
         PInspectorRotateChange?.Invoke(new LRotateFlip(
-            PInspectorRotateKindRead(),
+            PInspectorKindRead(),
             pInspectorFlipHorizontal.IsChecked == true,
             pInspectorFlipVertical.IsChecked == true));
     }
 
-    private LRotateKind PInspectorRotateKindRead() => pInspectorRotateCombo.SelectedIndex switch
+    private LRotateKind PInspectorKindRead() => pInspectorRotateCombo.SelectedIndex switch
     {
         1 => LRotateKind.LRotate90,
         2 => LRotateKind.LRotate180,
@@ -339,7 +339,7 @@ public sealed partial class PInspector
         _ => LRotateKind.LRotateNone
     };
 
-    private void PInspectorRatioEditHandle()
+    private void PCropRatioHandle()
     {
         if (pInspectorCropSuppress || pInspectorRatioSuppress)
         {
@@ -359,7 +359,7 @@ public sealed partial class PInspector
         }
     }
 
-    private void PInspectorToolDisarm()
+    private void PInspectorToolReset()
     {
         pInspectorCropSuppress = true;
         try
@@ -445,7 +445,7 @@ public sealed partial class PInspector
         {
             if (pInspectorCropPresent && !pInspectorRatioSuppress)
             {
-                PInspectorRatioText(pCropWidth, pCropHeight);
+                PInspectorRatioFormat(pCropWidth, pCropHeight);
             }
 
             pInspectorRatioNotice.Visibility = Visibility.Collapsed;
@@ -478,7 +478,7 @@ public sealed partial class PInspector
             : LLocalization.LLocalizationFormat("Inspector.Crop.HeightMismatch", pExcessPixels));
     }
 
-    private void PInspectorRatioText(double pCropWidth, double pCropHeight)
+    private void PInspectorRatioFormat(double pCropWidth, double pCropHeight)
     {
         int pWidthWhole = (int)Math.Round(pCropWidth);
         int pHeightWhole = (int)Math.Round(pCropHeight);

@@ -202,7 +202,7 @@ internal static class PSCasement
             Fill = Brushes.Transparent,
             Margin = new Thickness(2, 2, 0, 0)
         };
-        PSCasementGlyphBind(pSquare);
+        PSCasementGlyphAttach(pSquare);
         pCanvas.Children.Add(pSquare);
         return pCanvas;
     }
@@ -227,11 +227,11 @@ internal static class PSCasement
             StrokeStartLineCap = PenLineCap.Round,
             StrokeEndLineCap = PenLineCap.Round
         };
-        PSCasementGlyphBind(pRule);
+        PSCasementGlyphAttach(pRule);
         return pRule;
     }
 
-    private static void PSCasementGlyphBind(System.Windows.Shapes.Shape pGlyph)
+    private static void PSCasementGlyphAttach(System.Windows.Shapes.Shape pGlyph)
     {
         pGlyph.SetBinding(System.Windows.Shapes.Shape.StrokeProperty, new System.Windows.Data.Binding("Foreground")
         {

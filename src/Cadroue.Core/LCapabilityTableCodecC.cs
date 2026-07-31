@@ -2,7 +2,7 @@ namespace Cadroue.Core;
 
 public static partial class LCapabilityTable
 {
-    private static IEnumerable<KeyValuePair<string, LCapabilityCodec>> LCapabilityCodecCRead()
+    private static IEnumerable<KeyValuePair<string, LCapabilityCodec>> LCapabilityThirdRead()
     {
         yield return new("libxeve", new(
             "libxeve",

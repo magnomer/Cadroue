@@ -14,11 +14,11 @@ public sealed class LStation
     private LStation(string lStationLabel)
     {
         LStationLabel = lStationLabel;
-        LStationRunner = new LRunner(LSchedule.LScheduleCurrent, LStationInvoke)
+        LStationRunner = new LRunner(LSchedule.LScheduleCurrent, LStationDispatch)
         {
-            LRunnerProgramPath = App.LRendererProgramCurrent
+            LRunnerProgramPath = PProgram.LRendererProgramCurrent
         };
-        lStationAutoActive = App.LPreferenceStateCurrent.LPreferenceAutoResume;
+        lStationAutoActive = PProgram.LPreferenceStateCurrent.LPreferenceAutoActive;
         LSchedule.LScheduleCurrent.LScheduleChange += LStationScheduleHandle;
     }
 
@@ -49,14 +49,14 @@ public sealed class LStation
 
     public static LStation LStationCreate(string lStationLabel)
     {
-        LStation lStation = LStationSeedAdopt(lStationLabel);
+        LStation lStation = LStationSeedAccept(lStationLabel);
         lStationRecords.Add(lStation);
-        LStationInternalTrim();
+        LStationInternalRemove();
         LStationChange?.Invoke();
         return lStation;
     }
 
-    private static LStation LStationSeedAdopt(string lStationLabel)
+    private static LStation LStationSeedAccept(string lStationLabel)
     {
         if (lStationRecords.Count > 0 || lStationInternal is null)
         {
@@ -86,7 +86,7 @@ public sealed class LStation
         }
         catch (Exception lStationException)
         {
-            LAppLog.LError("Worklist selection could not be read", lStationException);
+            LTraceLog.LTraceErrorRecord("Worklist selection could not be read", lStationException);
             return Array.Empty<LWorkItem>();
         }
     }
@@ -105,8 +105,8 @@ public sealed class LStation
             return;
         }
 
-        LPreferenceState lPreferenceState = App.LPreferenceStateCurrent;
-        LStationRunner.LRunnerProgramPath = App.LRendererProgramCurrent;
+        LPreferenceState lPreferenceState = PProgram.LPreferenceStateCurrent;
+        LStationRunner.LRunnerProgramPath = PProgram.LRendererProgramCurrent;
         LStationRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
         LStationRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
         LStationRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;
@@ -128,7 +128,7 @@ public sealed class LStation
         LStationChange?.Invoke();
     }
 
-    private static void LStationInternalTrim()
+    private static void LStationInternalRemove()
     {
         if (lStationInternal is null || lStationRecords.Count == 0)
         {
@@ -144,7 +144,7 @@ public sealed class LStation
         lStationInternal = null;
     }
 
-    private static void LStationInvoke(Action lStationAction)
+    private static void LStationDispatch(Action lStationAction)
     {
         if (Application.Current?.Dispatcher is { } lStationDispatcher)
         {
