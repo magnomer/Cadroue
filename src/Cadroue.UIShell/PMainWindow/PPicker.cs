@@ -52,6 +52,7 @@ internal sealed class PPicker : UserControl
         pPickerItems = pItems.ToArray();
         pPickerLabels = pLabels;
         PPickerEmptyText = pEmptyText;
+        PScrollbar.PScrollbarApply(this);
 
         pPickerSummary = new TextBlock
         {

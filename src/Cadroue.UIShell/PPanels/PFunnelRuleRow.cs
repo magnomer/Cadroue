@@ -19,6 +19,13 @@ public sealed class PFunnelRuleRow : Border
 
     private const double PFunnelFieldHeight = 30;
 
+    private const double PFunnelBadgeSize = 18;
+
+    private readonly TextBlock pFunnelOrderBadge;
+    private readonly Border pFunnelTitleBar;
+    private Button? pFunnelFoldButton;
+    private StackPanel? pFunnelBody;
+    private bool pFunnelCollapsed;
     private readonly TextBox pFunnelStartField;
     private readonly TextBox pFunnelEndField;
     private readonly Border pFunnelJoinSwitch;
@@ -37,34 +44,58 @@ public sealed class PFunnelRuleRow : Border
     {
         pFunnelOptionsRead = pOptionsRead;
 
+        pFunnelOrderBadge = new TextBlock
+        {
+            FontSize = 12,
+            FontFamily = pFunnelFontFamily,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = Brushes.White,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextAlignment = TextAlignment.Center
+        };
+
         pFunnelStartField = PFunnelFieldBuild();
         pFunnelEndField = PFunnelFieldBuild();
         pFunnelJoinSwitch = PFunnelJoinBuild();
         pFunnelRelayCombo = PFunnelRelayBuild();
 
-        var pBody = new StackPanel { Margin = new Thickness(0, 2, 0, 0) };
-        pBody.Children.Add(PFunnelLabelBuild(
+        pFunnelBody = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
+        pFunnelBody.Children.Add(PFunnelLabelBuild(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.StartsWith"), pFunnelStartField));
-        pBody.Children.Add(pFunnelJoinSwitch);
-        pBody.Children.Add(PFunnelLabelBuild(
+        pFunnelBody.Children.Add(pFunnelJoinSwitch);
+        pFunnelBody.Children.Add(PFunnelLabelBuild(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.EndsWith"), pFunnelEndField));
-        pBody.Children.Add(PFunnelTargetBuild());
+        pFunnelBody.Children.Add(PFunnelTargetBuild());
 
-        var pOverlay = new Grid();
-        pOverlay.Children.Add(pBody);
-        pOverlay.Children.Add(PFunnelRemoveBuild());
+        var pCard = new DockPanel { LastChildFill = true };
+        pFunnelTitleBar = PFunnelTitleBuild();
+        DockPanel.SetDock(pFunnelTitleBar, Dock.Top);
+        pCard.Children.Add(pFunnelTitleBar);
+        pCard.Children.Add(pFunnelBody);
 
         Margin = new Thickness(0, 0, 0, 10);
-        Padding = new Thickness(10);
         Background = Brushes.White;
         BorderBrush = pFunnelLineBrush;
         BorderThickness = new Thickness(1);
         CornerRadius = new CornerRadius(8);
         SnapsToDevicePixels = true;
-        Child = pOverlay;
+        Child = pCard;
 
         PFunnelJoinUpdate();
         PFunnelRelayRebuild();
+    }
+
+    public Border PFunnelHeader => pFunnelTitleBar;
+
+    public void PFunnelOrderSet(int pOrder)
+    {
+        pFunnelOrderBadge.Text = pOrder.ToString();
+    }
+
+    public void PFunnelSelectSet(bool pSelected)
+    {
+        pFunnelTitleBar.Background = pSelected ? pFunnelActiveBrush : Brushes.Transparent;
     }
 
     public string PFunnelRowStart => pFunnelStartField.Text.Trim();
@@ -314,6 +345,128 @@ public sealed class PFunnelRuleRow : Border
         return pRow;
     }
 
+    private Border PFunnelTitleBuild()
+    {
+        var pTitleLabel = new TextBlock
+        {
+            Text = LLocalization.LLocalizationTextRead("Inspector.Funnel.Filename"),
+            FontSize = 12,
+            FontFamily = pFunnelFontFamily,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = pFunnelTitleBrush,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        var pBadge = new Border
+        {
+            MinWidth = PFunnelBadgeSize,
+            Height = PFunnelBadgeSize,
+            CornerRadius = new CornerRadius(PFunnelBadgeSize / 2),
+            Background = pFunnelAccentBrush,
+            Padding = new Thickness(6, 0, 6, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+            Child = pFunnelOrderBadge
+        };
+
+        var pBar = new DockPanel { LastChildFill = true };
+        Button pRemoveButton = PFunnelRemoveBuild();
+        pFunnelFoldButton = PFunnelFoldBuild();
+        DockPanel.SetDock(pRemoveButton, Dock.Right);
+        DockPanel.SetDock(pFunnelFoldButton, Dock.Right);
+        DockPanel.SetDock(pBadge, Dock.Left);
+        pBar.Children.Add(pRemoveButton);
+        pBar.Children.Add(pFunnelFoldButton);
+        pBar.Children.Add(pBadge);
+        pBar.Children.Add(pTitleLabel);
+
+        return new Border
+        {
+            Padding = new Thickness(10, 4, 6, 4),
+            BorderBrush = pFunnelLineBrush,
+            BorderThickness = new Thickness(0, 0, 0, 1),
+            Background = Brushes.Transparent,
+            Cursor = System.Windows.Input.Cursors.Hand,
+            Child = pBar
+        };
+    }
+
+    private Button PFunnelFoldBuild()
+    {
+        var pButton = new Button
+        {
+            Width = 20,
+            Height = 20,
+            Padding = new Thickness(0),
+            Cursor = System.Windows.Input.Cursors.Hand,
+            Style = PButton.PButtonChromeCreate(false),
+            Content = PFunnelGlyphCreate(false),
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Funnel.Minimize")
+        };
+        pButton.Click += (_, _) => PFunnelFoldToggle();
+        return pButton;
+    }
+
+    private void PFunnelFoldToggle()
+    {
+        pFunnelCollapsed = !pFunnelCollapsed;
+        if (pFunnelBody is { } pBody)
+        {
+            pBody.Visibility = pFunnelCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        pFunnelTitleBar.BorderThickness = new Thickness(0, 0, 0, pFunnelCollapsed ? 0 : 1);
+
+        if (pFunnelFoldButton is { } pFold)
+        {
+            pFold.Content = PFunnelGlyphCreate(pFunnelCollapsed);
+            pFold.ToolTip = LLocalization.LLocalizationTextRead(
+                pFunnelCollapsed ? "Inspector.Funnel.Maximize" : "Inspector.Funnel.Minimize");
+        }
+    }
+
+    private static UIElement PFunnelGlyphCreate(bool pCollapsed)
+    {
+        var pCanvas = new Canvas
+        {
+            Width = 12,
+            Height = 12,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        if (pCollapsed)
+        {
+            var pRect = new System.Windows.Shapes.Rectangle
+            {
+                Width = 9,
+                Height = 9,
+                Stroke = pFunnelMutedBrush,
+                StrokeThickness = 1.2,
+                Fill = Brushes.Transparent
+            };
+            Canvas.SetLeft(pRect, 1.5);
+            Canvas.SetTop(pRect, 1.5);
+            pCanvas.Children.Add(pRect);
+        }
+        else
+        {
+            pCanvas.Children.Add(new System.Windows.Shapes.Line
+            {
+                X1 = 1.5,
+                Y1 = 9,
+                X2 = 10.5,
+                Y2 = 9,
+                Stroke = pFunnelMutedBrush,
+                StrokeThickness = 1.25,
+                StrokeStartLineCap = PenLineCap.Square,
+                StrokeEndLineCap = PenLineCap.Square
+            });
+        }
+
+        return pCanvas;
+    }
+
     private Button PFunnelRemoveBuild()
     {
         var pButton = new Button
@@ -321,7 +474,7 @@ public sealed class PFunnelRuleRow : Border
             Width = 20,
             Height = 20,
             HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Top,
+            VerticalAlignment = VerticalAlignment.Center,
             Content = "×",
             FontSize = 15,
             Foreground = pFunnelMutedBrush,

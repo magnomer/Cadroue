@@ -107,6 +107,7 @@ internal static class PMenu
         var pRowContent = new FrameworkElementFactory(typeof(DockPanel));
 
         var pIcon = new FrameworkElementFactory(typeof(ContentPresenter));
+        pIcon.Name = "pMenuIcon";
         pIcon.SetBinding(ContentPresenter.ContentProperty, new Binding("Icon") { RelativeSource = RelativeSource.TemplatedParent });
         pIcon.SetValue(DockPanel.DockProperty, Dock.Left);
         pIcon.SetValue(FrameworkElement.WidthProperty, PMenuIconSize);
@@ -125,6 +126,10 @@ internal static class PMenu
         var pHighlight = new Trigger { Property = MenuItem.IsHighlightedProperty, Value = true };
         pHighlight.Setters.Add(new Setter(Border.BackgroundProperty, pMenuHighlightBrush, "pMenuRow"));
         pTemplate.Triggers.Add(pHighlight);
+
+        var pIconEmpty = new Trigger { Property = MenuItem.IconProperty, Value = null };
+        pIconEmpty.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Collapsed, "pMenuIcon"));
+        pTemplate.Triggers.Add(pIconEmpty);
         return pTemplate;
     }
 }

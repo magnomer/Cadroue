@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -14,6 +15,7 @@ public class PPanel : UserControl
     public PPanel(string pPanelTitle)
     {
         FocusVisualStyle = null;
+        PScrollbar.PScrollbarApply(this);
         Content = PPanelBorderBuild(new TextBlock
         {
             Text = pPanelTitle,

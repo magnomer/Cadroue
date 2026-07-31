@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -18,6 +19,7 @@ public sealed partial class PRoster : UserControl
     public PRoster(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
         FocusVisualStyle = null;
+        PScrollbar.PScrollbarApply(this);
         pRosterDetailTitle = PRosterTitleBuild(LLocalization.LLocalizationTextRead("Roster.Title.JobDetail"));
         pRosterQueueList = PRosterQueueBuild();
         pRosterDetailPanel = new StackPanel();

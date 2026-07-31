@@ -41,6 +41,7 @@ public sealed partial class PExport : UserControl
         this.lExportSpecificState = lExportSpecificState;
         this.pExportCopyDisabled = pExportCopyDisabled;
         FocusVisualStyle = null;
+        PScrollbar.PScrollbarApply(this);
         pPresetRowPanel = new StackPanel();
         pPresetNameSelected = lExportSpecificState.LPresetName;
 
