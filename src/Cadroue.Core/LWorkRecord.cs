@@ -189,6 +189,8 @@ public sealed class LWorkOutputRecord
     public string LWorkSampleRate { get; set; } = "Same as source";
     public string LWorkAudioChannels { get; set; } = "Same as source";
     public string LWorkPresetName { get; set; } = string.Empty;
+    public string LWorkCollision { get; set; } = "Overwrite";
+    public string LWorkCollisionSuffix { get; set; } = string.Empty;
 
     public static LWorkOutputRecord LWorkSnapshotCreate(LWorkOutput lWorkOutput) => new()
     {
@@ -215,7 +217,9 @@ public sealed class LWorkOutputRecord
         LWorkAudioBitrate = lWorkOutput.LWorkOutputAudioBitrate,
         LWorkSampleRate = lWorkOutput.LWorkOutputAudioSampleRate,
         LWorkAudioChannels = lWorkOutput.LWorkOutputAudioChannels,
-        LWorkPresetName = lWorkOutput.LWorkOutputPresetName
+        LWorkPresetName = lWorkOutput.LWorkOutputPresetName,
+        LWorkCollision = lWorkOutput.LWorkOutputCollision,
+        LWorkCollisionSuffix = lWorkOutput.LWorkOutputCollisionSuffix
     };
 
     public void LWorkOutputNormalize()
@@ -243,6 +247,8 @@ public sealed class LWorkOutputRecord
         LWorkSampleRate ??= "Same as source";
         LWorkAudioChannels ??= "Same as source";
         LWorkPresetName ??= string.Empty;
+        LWorkCollision ??= "Overwrite";
+        LWorkCollisionSuffix ??= string.Empty;
     }
 
     public LWorkOutput LWorkOutputCreate() => new(
@@ -269,5 +275,7 @@ public sealed class LWorkOutputRecord
         LWorkAudioBitrate,
         LWorkSampleRate,
         LWorkAudioChannels,
-        LWorkPresetName);
+        LWorkPresetName,
+        LWorkCollision,
+        LWorkCollisionSuffix);
 }

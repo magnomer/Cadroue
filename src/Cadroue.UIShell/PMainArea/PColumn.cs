@@ -210,19 +210,43 @@ internal sealed class PColumn
 
         double[] pWidths = PColumnCurrentRead(pAvailableWidth);
         double[] pMinimumWidths = PColumnMinimumRead(pAvailableWidth);
-        double pLeftWidth = pWidths[pLeftPanelIndex];
-        double pRightWidth = pWidths[pLeftPanelIndex + 1];
-        double pMinimumDelta = pMinimumWidths[pLeftPanelIndex] - pLeftWidth;
-        double pMaximumDelta = pRightWidth - pMinimumWidths[pLeftPanelIndex + 1];
-        double pClampedDelta = Math.Clamp(pDelta, pMinimumDelta, pMaximumDelta);
+        PColumnBudgetResolve(pLeftPanelIndex, out int pReceiverIndex, out int pDonorIndex, out double pReceiverSign);
+        double pReceiverDelta = pReceiverSign * pDelta;
+        double pClampedDelta = Math.Clamp(
+            pReceiverDelta,
+            pMinimumWidths[pReceiverIndex] - pWidths[pReceiverIndex],
+            pWidths[pDonorIndex] - pMinimumWidths[pDonorIndex]);
         if (Math.Abs(pClampedDelta) <= 0)
         {
             return;
         }
 
-        pWidths[pLeftPanelIndex] += pClampedDelta;
-        pWidths[pLeftPanelIndex + 1] -= pClampedDelta;
+        pWidths[pReceiverIndex] += pClampedDelta;
+        pWidths[pDonorIndex] -= pClampedDelta;
         PColumnWeightsCommit(pWidths);
+    }
+
+    private void PColumnBudgetResolve(int pLeftPanelIndex, out int pReceiverIndex, out int pDonorIndex, out double pReceiverSign)
+    {
+        if (!PColumnFlexCheck())
+        {
+            pReceiverIndex = pLeftPanelIndex;
+            pDonorIndex = pLeftPanelIndex + 1;
+            pReceiverSign = 1;
+            return;
+        }
+
+        pDonorIndex = pColumnFlexIndex;
+        if (pColumnFlexIndex > pLeftPanelIndex)
+        {
+            pReceiverIndex = pLeftPanelIndex;
+            pReceiverSign = 1;
+        }
+        else
+        {
+            pReceiverIndex = pLeftPanelIndex + 1;
+            pReceiverSign = -1;
+        }
     }
 
     private void PColumnWeightsCommit(double[] pWidths)

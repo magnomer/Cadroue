@@ -74,9 +74,15 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public TimeSpan LWorkDuration => LWorkEnd - LWorkOrigin;
 
-    public string LWorkOutputName { get; }
+    public string LWorkOutputName { get; private set; }
 
-    public string LWorkOutputPath { get; }
+    public string LWorkOutputPath { get; private set; }
+
+    public void LWorkOutputSet(string lWorkOutputPath, string lWorkOutputName)
+    {
+        LWorkOutputPath = lWorkOutputPath;
+        LWorkOutputName = lWorkOutputName;
+    }
 
     public LWorkOutput LWorkOutput { get; }
 

@@ -21,7 +21,6 @@ internal sealed class PSAbout : Window
     private const string PSAboutLogoPath = "/PAssets/PProgram/PProgramIcon.png";
 
     private const double PSAboutWidthDefault = 460;
-    private const double PSAboutHeightDefault = 480;
     private const double PSAboutWidthMinimum = 400;
     private const double PSAboutHeightMinimum = 400;
     private const double PSAboutLogoSize = 76;
@@ -47,7 +46,6 @@ internal sealed class PSAbout : Window
         Title = LLocalization.LLocalizationTextRead("About.Window.Title");
         Owner = pOwner;
         Width = PSAboutWidthDefault;
-        Height = PSAboutHeightDefault;
         MinWidth = PSAboutWidthMinimum;
         MinHeight = PSAboutHeightMinimum;
         WindowStyle = WindowStyle.None;
@@ -60,6 +58,7 @@ internal sealed class PSAbout : Window
         PScrollbar.PScrollbarApply(this);
         Content = PSAboutBuild();
         PSGrabber.PSGrabberPlacementRestore(this, PSAboutPlacementKey);
+        SizeToContent = SizeToContent.Height;
         psAboutGrabber = new PSGrabber(this);
         psAboutGrabber.PSGrabberAttach();
         Closed += PSAboutCloseHandle;

@@ -26,7 +26,9 @@ public sealed record LWorkOutput(
     string LWorkOutputAudioBitrate,
     string LWorkOutputAudioSampleRate,
     string LWorkOutputAudioChannels,
-    string LWorkOutputPresetName)
+    string LWorkOutputPresetName,
+    string LWorkOutputCollision,
+    string LWorkOutputCollisionSuffix)
 {
     public string LWorkFolderRead(string lWorkSourcePath)
     {

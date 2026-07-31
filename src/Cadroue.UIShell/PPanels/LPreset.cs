@@ -60,6 +60,8 @@ public sealed class LPreset
     public string LPresetDisplay { get; set; } = "{OriginalName}_export";
     public string LPresetContainer { get; set; } = "MP4";
     public string LPresetExtension { get; set; } = "mp4";
+    public string LPresetCollision { get; set; } = "Overwrite";
+    public string LPresetCollisionSuffix { get; set; } = "_1";
     public string LPresetExportMode { get; set; } = "Smart export";
     public string LPresetVideoStream { get; set; } = "Include";
     public string LPresetAudioStream { get; set; } = "Include first audio track";
@@ -114,7 +116,9 @@ public sealed class LPreset
         LPresetAudioBitrate,
         LPresetSampleRate,
         LPresetAudioChannels,
-        LPresetName);
+        LPresetName,
+        LPresetCollision,
+        LPresetCollisionSuffix);
 
     public LPreset LPresetClone() => new()
     {
@@ -122,6 +126,8 @@ public sealed class LPreset
         LPresetDisplay = LPresetDisplay,
         LPresetContainer = LPresetContainer,
         LPresetExtension = LPresetExtension,
+        LPresetCollision = LPresetCollision,
+        LPresetCollisionSuffix = LPresetCollisionSuffix,
         LPresetExportMode = LPresetExportMode,
         LPresetVideoStream = LPresetVideoStream,
         LPresetAudioStream = LPresetAudioStream,
@@ -171,6 +177,8 @@ public sealed class LPreset
         LPresetDisplay = lSource.LPresetDisplay;
         LPresetContainer = lSource.LPresetContainer;
         LPresetExtension = lSource.LPresetExtension;
+        LPresetCollision = lSource.LPresetCollision;
+        LPresetCollisionSuffix = lSource.LPresetCollisionSuffix;
         LPresetExportMode = lSource.LPresetExportMode;
         LPresetVideoStream = lSource.LPresetVideoStream;
         LPresetAudioStream = lSource.LPresetAudioStream;
@@ -226,6 +234,8 @@ public sealed class LPreset
         return string.Equals(lPreset.LPresetDisplay, lSource.LPresetDisplay, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetContainer, lSource.LPresetContainer, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetExtension, lSource.LPresetExtension, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetCollision, lSource.LPresetCollision, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetCollisionSuffix, lSource.LPresetCollisionSuffix, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetExportMode, lSource.LPresetExportMode, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetVideoStream, lSource.LPresetVideoStream, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetAudioStream, lSource.LPresetAudioStream, StringComparison.Ordinal)

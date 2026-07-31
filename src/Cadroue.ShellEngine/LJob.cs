@@ -34,6 +34,8 @@ internal sealed class LJob
             Directory.CreateDirectory(pDirectory);
         }
 
+        LJobCollisionApply();
+
         IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);
 
         var pJobClock = Stopwatch.StartNew();
@@ -328,6 +330,58 @@ internal sealed class LJob
 
         LRunner.LRunnerRecord($"Encode requeued '{lJobItem.LWorkOutputName}': {pJobMessage}");
         return true;
+    }
+
+    private void LJobCollisionApply()
+    {
+        LWorkOutput pOutput = lJobItem.LWorkOutput;
+        string pTarget = lJobItem.LWorkOutputPath;
+        if (string.IsNullOrWhiteSpace(pTarget) || !File.Exists(pTarget))
+        {
+            return;
+        }
+
+        if (string.Equals(pOutput.LWorkOutputCollision, "Rename output", StringComparison.Ordinal))
+        {
+            string pFreePath = LJobFreePathResolve(pTarget, pOutput.LWorkOutputCollisionSuffix);
+            lJobItem.LWorkOutputSet(pFreePath, Path.GetFileName(pFreePath));
+            LRunner.LRunnerRecord($"Output exists; renaming output to '{Path.GetFileName(pFreePath)}'");
+            return;
+        }
+
+        if (string.Equals(pOutput.LWorkOutputCollision, "Rename existing", StringComparison.Ordinal))
+        {
+            string pFreePath = LJobFreePathResolve(pTarget, pOutput.LWorkOutputCollisionSuffix);
+            try
+            {
+                File.Move(pTarget, pFreePath);
+                LRunner.LRunnerRecord($"Output exists; renaming existing file to '{Path.GetFileName(pFreePath)}'");
+            }
+            catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+            {
+                LRunner.LRunnerRecord($"Could not rename existing file '{Path.GetFileName(pTarget)}'; it will be overwritten", pException);
+            }
+        }
+    }
+
+    private static string LJobFreePathResolve(string pPath, string pSuffix)
+    {
+        string pFolder = Path.GetDirectoryName(pPath) ?? string.Empty;
+        string pStem = Path.GetFileNameWithoutExtension(pPath);
+        string pExtension = Path.GetExtension(pPath);
+        string pSuffixText = string.IsNullOrEmpty(pSuffix) ? "_1" : pSuffix;
+
+        for (int pIndex = 0; ; pIndex++)
+        {
+            string pName = pIndex == 0
+                ? $"{pStem}{pSuffixText}{pExtension}"
+                : $"{pStem}{pSuffixText} ({pIndex + 1}){pExtension}";
+            string pCandidate = Path.Combine(pFolder, pName);
+            if (!File.Exists(pCandidate))
+            {
+                return pCandidate;
+            }
+        }
     }
 
     private static void LJobTempClear(IReadOnlyList<LEncodeStage> pStages)

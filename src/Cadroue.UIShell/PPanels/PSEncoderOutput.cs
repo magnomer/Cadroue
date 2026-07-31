@@ -32,8 +32,31 @@ internal sealed partial class PSEncoder
         psOutputContainerCombo.SelectionChanged += (_, _) => PSOutputContainerHandle();
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"), psOutputContainerCombo));
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Extension"), psOutputExtensionCombo));
+
+        psCollisionSuffixRow = PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"), psCollisionSuffixBox);
+        psCollisionCombo.SelectionChanged += (_, _) => PSCollisionSuffixUpdate();
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Collision"), psCollisionCombo));
+        pPanel.Children.Add(psCollisionSuffixRow);
+        PSCollisionSuffixUpdate();
+
         PSLocationFolderUpdate();
         return PSPlateBuild(pPanel);
+    }
+
+    private static bool PSCollisionSuffixCheck(string pPolicy) =>
+        string.Equals(pPolicy, "Rename output", StringComparison.Ordinal)
+        || string.Equals(pPolicy, "Rename existing", StringComparison.Ordinal);
+
+    private void PSCollisionSuffixUpdate()
+    {
+        if (psCollisionSuffixRow is null)
+        {
+            return;
+        }
+
+        psCollisionSuffixRow.Visibility = PSCollisionSuffixCheck(PSComboTextRead(psCollisionCombo))
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private static LLocalizationChoice[] PSOutputExtensionRead(string pContainer)

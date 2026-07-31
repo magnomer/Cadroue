@@ -69,6 +69,8 @@ public sealed class LPresetRecord
     public string LPresetDisplay { get; set; } = "OriginalName_export";
     public string LPresetContainer { get; set; } = "MP4";
     public string LPresetExtension { get; set; } = string.Empty;
+    public string LPresetCollision { get; set; } = "Overwrite";
+    public string LPresetCollisionSuffix { get; set; } = "_1";
     public string LPresetExportMode { get; set; } = "Smart export";
     public string LPresetVideoStream { get; set; } = "Include";
     public string LPresetAudioStream { get; set; } = "Include first audio track";
@@ -97,6 +99,8 @@ public sealed class LPresetRecord
         LPresetDisplay = lState.LPresetDisplay,
         LPresetContainer = lState.LPresetContainer,
         LPresetExtension = lState.LPresetExtension,
+        LPresetCollision = lState.LPresetCollision,
+        LPresetCollisionSuffix = lState.LPresetCollisionSuffix,
         LPresetExportMode = lState.LPresetExportMode,
         LPresetVideoStream = lState.LPresetVideoStream,
         LPresetAudioStream = lState.LPresetAudioStream,
@@ -127,6 +131,8 @@ public sealed class LPresetRecord
         LPresetExtension = string.IsNullOrEmpty(LPresetExtension)
             ? LPreset.LPresetExtensionsRead(LPresetContainer).FirstOrDefault() ?? string.Empty
             : LPresetExtension,
+        LPresetCollision = LPresetCollision,
+        LPresetCollisionSuffix = LPresetCollisionSuffix,
         LPresetExportMode = LPresetExportMode,
         LPresetVideoStream = LPresetVideoStream,
         LPresetAudioStream = LPresetAudioStream,
