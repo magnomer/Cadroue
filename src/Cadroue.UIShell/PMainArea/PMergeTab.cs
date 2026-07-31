@@ -33,7 +33,7 @@ public sealed class PMergeTab : PTabSurface
             return PList.PListMediaScan(pDropPaths);
         };
         pList.PListItemsAdd += PMergeItemsHandle;
-        LCourier.LCourierBatchFinish += PMergeRelayFinishHandle;
+        LCourier.LCourierBatchFinish += PMergeFinishHandle;
         PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
@@ -62,7 +62,7 @@ public sealed class PMergeTab : PTabSurface
         }
     }
 
-    private void PMergeRelayFinishHandle(Guid pRelayId, Guid pTargetTabId)
+    private void PMergeFinishHandle(Guid pRelayId, Guid pTargetTabId)
     {
         if (pGroup.PGroupAutoCheck() && pTargetTabId == pAction.PActionSourceTab)
         {
@@ -70,7 +70,7 @@ public sealed class PMergeTab : PTabSurface
         }
     }
 
-    public override void PTabClose() => LCourier.LCourierBatchFinish -= PMergeRelayFinishHandle;
+    public override void PTabClose() => LCourier.LCourierBatchFinish -= PMergeFinishHandle;
 
     private void PMergePathShow(string? pSourcePath)
     {

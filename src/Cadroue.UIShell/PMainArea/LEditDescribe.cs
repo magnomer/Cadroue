@@ -126,9 +126,9 @@ public static partial class LEdit
         foreach (LWorkVideoKind lKind in Enum.GetValues<LWorkVideoKind>())
         {
             LWorkVideoStep? lPersistentStep = lPersistent.LEditVideo.LWorkVideoSteps
-                .FirstOrDefault(lStep => lStep.LWorkVideoStepKind == lKind);
+                .FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);
             LWorkVideoStep? lSavedStep = lEditSaved?.LEditVideo.LWorkVideoSteps
-                .FirstOrDefault(lStep => lStep.LWorkVideoStepKind == lKind);
+                .FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);
             if (lPersistentStep is not null)
             {
                 lSteps.Add(lPersistentStep);
@@ -216,8 +216,8 @@ public static partial class LEdit
 
     private static Cadroue.Media.LSidecarVideoStepRecord LEditRecordCreate(LWorkVideoStep lEditStep) => new()
     {
-        LSidecarKind = lEditStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast ? "Contrast" : "Brightness",
-        LSidecarActive = lEditStep.LWorkVideoStepActive,
-        LSidecarValue = lEditStep.LWorkVideoStepValue
+        LSidecarKind = lEditStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast ? "Contrast" : "Brightness",
+        LSidecarActive = lEditStep.LWorkStepActive,
+        LSidecarValue = lEditStep.LWorkStepValue
     };
 }

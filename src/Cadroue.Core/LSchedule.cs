@@ -75,7 +75,7 @@ public sealed partial class LSchedule
 
     private IEnumerable<(LDepotFolder, LWorkRecord)> LScheduleIndexPairsRead()
     {
-        foreach ((LDepotFolder lDepotFolder, string lDepotRecord) in LDepotIndex.LDepotIndexRecordsRead())
+        foreach ((LDepotFolder lDepotFolder, string lDepotRecord) in LDepotIndex.LDepotRecordsRead())
         {
             if (LScheduleRecordParse(lDepotRecord) is { } lWorkRecord)
             {

@@ -17,7 +17,7 @@ public sealed class PConvertTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority => _ = LConvert.LConvertDescribe(
             lPriority,
-            pList.PListCurrentItemRead() is { } pConvertSelected ? new[] { pConvertSelected } : Array.Empty<PListItem>(),
+            pList.PListItemRead() is { } pConvertSelected ? new[] { pConvertSelected } : Array.Empty<PListItem>(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);

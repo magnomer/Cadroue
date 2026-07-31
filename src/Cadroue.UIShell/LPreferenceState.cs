@@ -268,7 +268,7 @@ public sealed class LPreferenceTabLayoutRecord
             LPreferencePanelWidths = new List<double>(LPreferencePanelWidths),
             LPreferenceExportHidden = LPreferenceExportHidden,
             LPreferencePanelsCollapsed = new List<int>(LPreferencePanelsCollapsed),
-            LPreferenceFunnelRules = LPreferenceFunnelRules.Select(pRule => pRule.LPreferenceFunnelRuleClone()).ToList(),
+            LPreferenceFunnelRules = LPreferenceFunnelRules.Select(pRule => pRule.LPreferenceFunnelClone()).ToList(),
             LPreferenceInspectorPersistent = LPreferenceInspectorPersistent?.LPreferenceInspectorClone(),
             LPreferenceGroupAuto = LPreferenceGroupAuto,
             LPreferenceGroupStrict = LPreferenceGroupStrict,
@@ -301,22 +301,22 @@ public sealed class LPreferenceInspectorPersistentRecord
 
 public sealed class LPreferenceFunnelRuleRecord
 {
-    public string LPreferenceFunnelStartsWith { get; set; } = string.Empty;
+    public string LPreferenceFunnelStart { get; set; } = string.Empty;
 
-    public string LPreferenceFunnelEndsWith { get; set; } = string.Empty;
+    public string LPreferenceFunnelEnd { get; set; } = string.Empty;
 
-    public bool LPreferenceFunnelAndMode { get; set; }
+    public bool LPreferenceFunnelJoin { get; set; }
 
-    public int LPreferenceFunnelTargetIndex { get; set; } = -1;
+    public int LPreferenceFunnelTarget { get; set; } = -1;
 
-    public LPreferenceFunnelRuleRecord LPreferenceFunnelRuleClone()
+    public LPreferenceFunnelRuleRecord LPreferenceFunnelClone()
     {
         return new LPreferenceFunnelRuleRecord
         {
-            LPreferenceFunnelStartsWith = LPreferenceFunnelStartsWith,
-            LPreferenceFunnelEndsWith = LPreferenceFunnelEndsWith,
-            LPreferenceFunnelAndMode = LPreferenceFunnelAndMode,
-            LPreferenceFunnelTargetIndex = LPreferenceFunnelTargetIndex
+            LPreferenceFunnelStart = LPreferenceFunnelStart,
+            LPreferenceFunnelEnd = LPreferenceFunnelEnd,
+            LPreferenceFunnelJoin = LPreferenceFunnelJoin,
+            LPreferenceFunnelTarget = LPreferenceFunnelTarget
         };
     }
 }

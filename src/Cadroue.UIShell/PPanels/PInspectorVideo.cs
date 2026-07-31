@@ -41,10 +41,10 @@ public sealed partial class PInspector
     public void PTonePlanApply(LWorkVideo pVideo)
     {
         PToneStepApply(
-            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindBrightness)
+            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindBrightness)
             ?? LWorkVideoStep.LWorkBrightnessCreate(false, 0));
         PToneStepApply(
-            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast)
+            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast)
             ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
         PInspectorVideoChange?.Invoke();
     }
@@ -57,7 +57,7 @@ public sealed partial class PInspector
     {
         foreach (LWorkVideoStep pStep in pVideo.LWorkVideoSteps)
         {
-            if (pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast)
+            if (pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast)
             {
                 pInspectorContrastPersistent.IsChecked = true;
             }
@@ -218,19 +218,19 @@ public sealed partial class PInspector
         pInspectorVideoSuppress = true;
         try
         {
-            if (pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast)
+            if (pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast)
             {
-                pToneContrastBox.IsChecked = pStep.LWorkVideoStepActive;
-                pInspectorContrastValue.Text = pStep.LWorkVideoStepValue.ToString("0.#", CultureInfo.InvariantCulture);
-                pInspectorContrastSlider.Value = Math.Clamp(pStep.LWorkVideoStepValue, 0, 200);
+                pToneContrastBox.IsChecked = pStep.LWorkStepActive;
+                pInspectorContrastValue.Text = pStep.LWorkStepValue.ToString("0.#", CultureInfo.InvariantCulture);
+                pInspectorContrastSlider.Value = Math.Clamp(pStep.LWorkStepValue, 0, 200);
                 PToneApplyUpdate(pToneContrastBox, pInspectorContrastStack);
                 return;
             }
 
-            pToneBrightnessBox.IsChecked = pStep.LWorkVideoStepActive;
-            pInspectorBrightnessValue.Text = pStep.LWorkVideoStepValue.ToString("0.#", CultureInfo.InvariantCulture);
+            pToneBrightnessBox.IsChecked = pStep.LWorkStepActive;
+            pInspectorBrightnessValue.Text = pStep.LWorkStepValue.ToString("0.#", CultureInfo.InvariantCulture);
             pInspectorBrightnessSlider.Value = Math.Clamp(
-                pStep.LWorkVideoStepValue,
+                pStep.LWorkStepValue,
                 pInspectorBrightnessSlider.Minimum,
                 pInspectorBrightnessSlider.Maximum);
             PToneApplyUpdate(pToneBrightnessBox, pInspectorBrightnessStack);

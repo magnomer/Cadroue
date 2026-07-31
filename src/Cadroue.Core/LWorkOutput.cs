@@ -231,9 +231,9 @@ public enum LWorkVideoKind
 }
 
 public sealed record LWorkVideoStep(
-    LWorkVideoKind LWorkVideoStepKind,
-    bool LWorkVideoStepActive,
-    double LWorkVideoStepValue)
+    LWorkVideoKind LWorkStepKind,
+    bool LWorkStepActive,
+    double LWorkStepValue)
 {
     public static LWorkVideoStep LWorkBrightnessCreate(bool lStepActive, double lStepValue) =>
         new(LWorkVideoKind.LWorkVideoKindBrightness, lStepActive, lStepValue);
@@ -241,10 +241,10 @@ public sealed record LWorkVideoStep(
     public static LWorkVideoStep LWorkContrastCreate(bool lStepActive, double lStepValue) =>
         new(LWorkVideoKind.LWorkVideoKindContrast, lStepActive, Math.Clamp(lStepValue, 0, 200));
 
-    public double LWorkFfmpegValue => LWorkVideoStepKind switch
+    public double LWorkFfmpegValue => LWorkStepKind switch
     {
-        LWorkVideoKind.LWorkVideoKindBrightness => Math.Clamp(LWorkVideoStepValue * 0.0025d, -1, 1),
-        _ => LWorkVideoStepValue / 100d
+        LWorkVideoKind.LWorkVideoKindBrightness => Math.Clamp(LWorkStepValue * 0.0025d, -1, 1),
+        _ => LWorkStepValue / 100d
     };
 }
 
@@ -252,5 +252,5 @@ public sealed record LWorkVideo(IReadOnlyList<LWorkVideoStep> LWorkVideoSteps)
 {
     public static LWorkVideo LWorkVideoCreate() => new(Array.Empty<LWorkVideoStep>());
 
-    public bool LWorkVideoActive => LWorkVideoSteps.Any(lStep => lStep.LWorkVideoStepActive);
+    public bool LWorkVideoActive => LWorkVideoSteps.Any(lStep => lStep.LWorkStepActive);
 }

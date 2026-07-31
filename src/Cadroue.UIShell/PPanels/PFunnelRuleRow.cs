@@ -43,12 +43,12 @@ public sealed class PFunnelRuleRow : Border
         pFunnelRelayCombo = PFunnelRelayBuild();
 
         var pBody = new StackPanel { Margin = new Thickness(0, 2, 0, 0) };
-        pBody.Children.Add(PFunnelLabelRowBuild(
+        pBody.Children.Add(PFunnelLabelBuild(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.StartsWith"), pFunnelStartField));
         pBody.Children.Add(pFunnelJoinSwitch);
-        pBody.Children.Add(PFunnelLabelRowBuild(
+        pBody.Children.Add(PFunnelLabelBuild(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.EndsWith"), pFunnelEndField));
-        pBody.Children.Add(PFunnelRelayRowBuild());
+        pBody.Children.Add(PFunnelTargetBuild());
 
         var pOverlay = new Grid();
         pOverlay.Children.Add(pBody);
@@ -73,9 +73,9 @@ public sealed class PFunnelRuleRow : Border
 
     public bool PFunnelRowAnd => pFunnelAndMode;
 
-    public Guid PFunnelRowTargetId => pFunnelTargetId;
+    public Guid PFunnelTargetId => pFunnelTargetId;
 
-    public int PFunnelRowTargetPending => pFunnelTargetPending;
+    public int PFunnelTargetPending => pFunnelTargetPending;
 
     public void PFunnelRowRestore(string pStart, string pEnd, bool pAndMode, int pTargetIndex)
     {
@@ -86,7 +86,7 @@ public sealed class PFunnelRuleRow : Border
         PFunnelJoinUpdate();
     }
 
-    public void PFunnelRowTargetSet(Guid pTargetId)
+    public void PFunnelTargetSet(Guid pTargetId)
     {
         pFunnelTargetId = pTargetId;
         pFunnelTargetPending = -1;
@@ -201,7 +201,7 @@ public sealed class PFunnelRuleRow : Border
             FontFamily = pFunnelFontFamily,
             FocusVisualStyle = null,
             SelectedValuePath = "LCourierTabId",
-            ItemTemplate = PFunnelRelayTemplateBuild()
+            ItemTemplate = PFunnelTemplateBuild()
         };
         PDropdown.PDropdownApply(pCombo);
         pCombo.DropDownOpened += (_, _) => PFunnelRelayRebuild();
@@ -239,7 +239,7 @@ public sealed class PFunnelRuleRow : Border
         PFunnelRowChange?.Invoke();
     }
 
-    private static DataTemplate PFunnelRelayTemplateBuild()
+    private static DataTemplate PFunnelTemplateBuild()
     {
         var pStack = new FrameworkElementFactory(typeof(StackPanel));
         pStack.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
@@ -270,7 +270,7 @@ public sealed class PFunnelRuleRow : Border
         return new DataTemplate { VisualTree = pStack };
     }
 
-    private Grid PFunnelLabelRowBuild(string pLabel, UIElement pField)
+    private Grid PFunnelLabelBuild(string pLabel, UIElement pField)
     {
         var pRow = new Grid { Margin = new Thickness(0, 0, 0, 2) };
         pRow.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -291,7 +291,7 @@ public sealed class PFunnelRuleRow : Border
         return pRow;
     }
 
-    private Grid PFunnelRelayRowBuild()
+    private Grid PFunnelTargetBuild()
     {
         var pRow = new Grid { Margin = new Thickness(0, 8, 0, 0) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

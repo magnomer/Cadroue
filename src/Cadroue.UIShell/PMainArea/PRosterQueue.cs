@@ -283,7 +283,7 @@ public sealed partial class PRoster
 
         if (pWorkItem.LWorkStateCurrent is LWorkState.LWorkStateCancelled or LWorkState.LWorkStateFailed)
         {
-            PRosterRestartMenuBuild(pMenu, pWorkItem);
+            PRosterRestartBuild(pMenu, pWorkItem);
             return;
         }
 
@@ -325,7 +325,7 @@ public sealed partial class PRoster
         }
     }
 
-    private void PRosterRestartMenuBuild(ContextMenu pMenu, LWorkItem pClickedItem)
+    private void PRosterRestartBuild(ContextMenu pMenu, LWorkItem pClickedItem)
     {
         LWorkItem[] pRestartItems = PRosterSelectionRead()
             .Where(pItem => pItem.LWorkStateCurrent is LWorkState.LWorkStateCancelled or LWorkState.LWorkStateFailed)

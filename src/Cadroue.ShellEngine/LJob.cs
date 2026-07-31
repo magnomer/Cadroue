@@ -343,7 +343,7 @@ internal sealed class LJob
 
         if (string.Equals(pOutput.LWorkOutputCollision, "Rename output", StringComparison.Ordinal))
         {
-            string pFreePath = LJobFreePathResolve(pTarget, pOutput.LWorkOutputCollisionSuffix);
+            string pFreePath = LJobPathResolve(pTarget, pOutput.LWorkOutputCollisionSuffix);
             lJobItem.LWorkOutputSet(pFreePath, Path.GetFileName(pFreePath));
             LRunner.LRunnerRecord($"Output exists; renaming output to '{Path.GetFileName(pFreePath)}'");
             return;
@@ -351,7 +351,7 @@ internal sealed class LJob
 
         if (string.Equals(pOutput.LWorkOutputCollision, "Rename existing", StringComparison.Ordinal))
         {
-            string pFreePath = LJobFreePathResolve(pTarget, pOutput.LWorkOutputCollisionSuffix);
+            string pFreePath = LJobPathResolve(pTarget, pOutput.LWorkOutputCollisionSuffix);
             try
             {
                 File.Move(pTarget, pFreePath);
@@ -364,7 +364,7 @@ internal sealed class LJob
         }
     }
 
-    private static string LJobFreePathResolve(string pPath, string pSuffix)
+    private static string LJobPathResolve(string pPath, string pSuffix)
     {
         string pFolder = Path.GetDirectoryName(pPath) ?? string.Empty;
         string pStem = Path.GetFileNameWithoutExtension(pPath);

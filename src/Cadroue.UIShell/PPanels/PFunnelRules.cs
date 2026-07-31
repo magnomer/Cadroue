@@ -75,10 +75,10 @@ public sealed class PFunnelRules : PPanel
         {
             PFunnelRuleRow pRow = PFunnelRuleAdd();
             pRow.PFunnelRowRestore(
-                pRecord.LPreferenceFunnelStartsWith,
-                pRecord.LPreferenceFunnelEndsWith,
-                pRecord.LPreferenceFunnelAndMode,
-                pRecord.LPreferenceFunnelTargetIndex);
+                pRecord.LPreferenceFunnelStart,
+                pRecord.LPreferenceFunnelEnd,
+                pRecord.LPreferenceFunnelJoin,
+                pRecord.LPreferenceFunnelTarget);
         }
     }
 
@@ -86,14 +86,14 @@ public sealed class PFunnelRules : PPanel
     {
         foreach (PFunnelRuleRow pRow in pFunnelRows)
         {
-            int pTargetIndex = pRow.PFunnelRowTargetPending;
+            int pTargetIndex = pRow.PFunnelTargetPending;
             if (pTargetIndex >= 0 && pTargetIndex < pTabRecords.Count)
             {
-                pRow.PFunnelRowTargetSet(pTabRecords[pTargetIndex].PTabId);
+                pRow.PFunnelTargetSet(pTabRecords[pTargetIndex].PTabId);
             }
             else
             {
-                pRow.PFunnelRowTargetSet(Guid.Empty);
+                pRow.PFunnelTargetSet(Guid.Empty);
             }
         }
     }

@@ -164,9 +164,9 @@ public sealed class PEditTab : PTabSurface
     {
         pProcessing.PProcessingActiveSet("Crop", pInspector.PCropActiveCheck());
         pProcessing.PProcessingActiveSet("Brightness",
-            pInspector.PToneStepRead(LWorkVideoKind.LWorkVideoKindBrightness).LWorkVideoStepActive);
+            pInspector.PToneStepRead(LWorkVideoKind.LWorkVideoKindBrightness).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Contrast",
-            pInspector.PToneStepRead(LWorkVideoKind.LWorkVideoKindContrast).LWorkVideoStepActive);
+            pInspector.PToneStepRead(LWorkVideoKind.LWorkVideoKindContrast).LWorkStepActive);
     }
 
     private void PEditChangeHandle()
@@ -282,12 +282,12 @@ public sealed class PEditTab : PTabSurface
     {
         LWorkVideo pVideo = PEditVideoRead();
         double pBrightness = pVideo.LWorkVideoSteps
-            .FirstOrDefault(pStep => pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindBrightness
-                && pStep.LWorkVideoStepActive)
+            .FirstOrDefault(pStep => pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindBrightness
+                && pStep.LWorkStepActive)
             ?.LWorkFfmpegValue * PEditPreviewFactor ?? 0;
         double pContrast = pVideo.LWorkVideoSteps
-            .FirstOrDefault(pStep => pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast
-                && pStep.LWorkVideoStepActive)
+            .FirstOrDefault(pStep => pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast
+                && pStep.LWorkStepActive)
             ?.LWorkFfmpegValue ?? 1;
         pViewer.PViewerColorSet(new LColor(pBrightness, pContrast, 1, 0));
     }
@@ -331,8 +331,8 @@ public sealed class PEditTab : PTabSurface
         }
 
         return string.Join(", ", pEditVideo.LWorkVideoSteps
-            .Where(pStep => pStep.LWorkVideoStepActive)
-            .Select(pStep => $"{pStep.LWorkVideoStepKind} {pStep.LWorkVideoStepValue:0.###}"));
+            .Where(pStep => pStep.LWorkStepActive)
+            .Select(pStep => $"{pStep.LWorkStepKind} {pStep.LWorkStepValue:0.###}"));
     }
 
     private LEditPlan? PEditCarriedRead()

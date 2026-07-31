@@ -131,8 +131,8 @@ public sealed partial class PConsole
         }
 
         pEditableBox.IsReadOnly = true;
-        pEditableBox.PreviewMouseLeftButtonDown += PConsoleFieldPressHandle;
-        pEditableBox.LostKeyboardFocus += PConsoleFieldBlurHandle;
+        pEditableBox.PreviewMouseLeftButtonDown += PConsoleReadonlyClear;
+        pEditableBox.LostKeyboardFocus += PConsoleReadonlySet;
     }
 
     private void PConsoleCaretLock()
@@ -143,7 +143,7 @@ public sealed partial class PConsole
         }
     }
 
-    private void PConsoleFieldPressHandle(object pSender, MouseButtonEventArgs pArguments)
+    private void PConsoleReadonlyClear(object pSender, MouseButtonEventArgs pArguments)
     {
         if (pSender is TextBox pEditableBox)
         {
@@ -151,7 +151,7 @@ public sealed partial class PConsole
         }
     }
 
-    private void PConsoleFieldBlurHandle(object pSender, KeyboardFocusChangedEventArgs pArguments)
+    private void PConsoleReadonlySet(object pSender, KeyboardFocusChangedEventArgs pArguments)
     {
         if (pSender is TextBox pEditableBox)
         {

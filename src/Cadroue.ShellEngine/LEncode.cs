@@ -494,12 +494,12 @@ public static class LEncode
         var lEqParts = new List<string>();
         foreach (LWorkVideoStep lStep in lWorkVideo.LWorkVideoSteps)
         {
-            if (!lStep.LWorkVideoStepActive)
+            if (!lStep.LWorkStepActive)
             {
                 continue;
             }
 
-            switch (lStep.LWorkVideoStepKind)
+            switch (lStep.LWorkStepKind)
             {
                 case LWorkVideoKind.LWorkVideoKindBrightness:
                     lEqParts.Add(

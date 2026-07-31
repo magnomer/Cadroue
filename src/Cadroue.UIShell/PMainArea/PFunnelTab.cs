@@ -24,7 +24,7 @@ public sealed class PFunnelTab : PTabSurface
 
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += _ => PFunnelDispatch(pList.PListCurrentItemRead() is { } pSelected
+        pAction.PActionRun += _ => PFunnelDispatch(pList.PListItemRead() is { } pSelected
             ? new[] { pSelected }
             : Array.Empty<PListItem>());
         pAction.PActionAllAdd += () => PFunnelDispatch(pList.PListItemsRead());
@@ -60,18 +60,18 @@ public sealed class PFunnelTab : PTabSurface
             string pFileName = Path.GetFileName(pItem.PListItemPath);
             foreach (PFunnelRuleRow pRow in pFunnelRules.PFunnelRulesRead())
             {
-                if (!pRow.PFunnelRowMatch(pFileName) || pRow.PFunnelRowTargetId == Guid.Empty)
+                if (!pRow.PFunnelRowMatch(pFileName) || pRow.PFunnelTargetId == Guid.Empty)
                 {
                     continue;
                 }
 
                 PTabRecord? pTarget = lTabset.PTabsetRecords
-                    .FirstOrDefault(pRecord => pRecord.PTabId == pRow.PFunnelRowTargetId);
+                    .FirstOrDefault(pRecord => pRecord.PTabId == pRow.PFunnelTargetId);
                 if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList is { } pTargetList)
                 {
                     pTargetList.PListPathsAdd(new[] { pItem.PListItemPath }, pItem.PListItemRelay);
                     pRelayedPaths.Add(pItem.PListItemPath);
-                    pRelayedTargets.Add(pRow.PFunnelRowTargetId);
+                    pRelayedTargets.Add(pRow.PFunnelTargetId);
                 }
 
                 break;
@@ -132,16 +132,16 @@ public sealed class PFunnelTab : PTabSurface
         lPreferenceTabLayout.LPreferenceFunnelRules = pFunnelRules.PFunnelRulesRead()
             .Select(pRow => new LPreferenceFunnelRuleRecord
             {
-                LPreferenceFunnelStartsWith = pRow.PFunnelRowStart,
-                LPreferenceFunnelEndsWith = pRow.PFunnelRowEnd,
-                LPreferenceFunnelAndMode = pRow.PFunnelRowAnd,
-                LPreferenceFunnelTargetIndex = PFunnelTargetIndexRead(pRow.PFunnelRowTargetId)
+                LPreferenceFunnelStart = pRow.PFunnelRowStart,
+                LPreferenceFunnelEnd = pRow.PFunnelRowEnd,
+                LPreferenceFunnelJoin = pRow.PFunnelRowAnd,
+                LPreferenceFunnelTarget = PFunnelTargetRead(pRow.PFunnelTargetId)
             })
             .ToList();
         return lPreferenceTabLayout;
     }
 
-    private static int PFunnelTargetIndexRead(Guid pTargetId)
+    private static int PFunnelTargetRead(Guid pTargetId)
     {
         if (pTargetId == Guid.Empty || LTabset.LTabsetCurrent is not { } lTabset)
         {

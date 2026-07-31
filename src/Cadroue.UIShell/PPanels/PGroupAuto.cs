@@ -54,7 +54,7 @@ public sealed partial class PGroup
         return pGroupActionHost;
     }
 
-    private void PGroupActionUpdate() => pGroupActionHost.Child = PGroupActionContentBuild();
+    private void PGroupActionUpdate() => pGroupActionHost.Child = PGroupContentBuild();
 
     private void PGroupModeSet(bool pGroupModeAuto)
     {
@@ -80,7 +80,7 @@ public sealed partial class PGroup
         PGroupAutoUpdate();
     }
 
-    private UIElement PGroupActionContentBuild()
+    private UIElement PGroupContentBuild()
     {
         var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6), MinHeight = 26 };
         pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

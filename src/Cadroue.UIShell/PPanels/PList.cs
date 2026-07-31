@@ -129,7 +129,7 @@ public sealed partial class PList : PPanel
 
     public string? PListCurrentRead() => pListPathCurrent;
 
-    public PListItem? PListCurrentItemRead() =>
+    public PListItem? PListItemRead() =>
         pListPathCurrent is { } pListCurrentPath
             ? pListItems.FirstOrDefault(pListItem =>
                 string.Equals(pListItem.PListItemPath, pListCurrentPath, StringComparison.OrdinalIgnoreCase))

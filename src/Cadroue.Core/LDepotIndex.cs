@@ -115,7 +115,7 @@ public static class LDepotIndex
         }
     }
 
-    public static IReadOnlyList<(LDepotFolder LDepotRowFolder, string LDepotRowRecord)> LDepotIndexRecordsRead()
+    public static IReadOnlyList<(LDepotFolder LDepotRowFolder, string LDepotRowRecord)> LDepotRecordsRead()
     {
         var lDepotRecords = new List<(LDepotFolder, string)>();
         try
