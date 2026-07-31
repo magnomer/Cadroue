@@ -23,15 +23,15 @@ public sealed partial class PGroup
 
     public bool PGroupStrictCheck() => pGroupStrict;
 
-    public void PGroupModeSeed(bool pGroupSeedAuto, bool pGroupSeedStrict)
+    public void PGroupModeRestore(bool pGroupSeedAuto, bool pGroupSeedStrict)
     {
         pGroupAuto = pGroupSeedAuto;
         pGroupStrict = pGroupSeedStrict;
-        PGroupActionRefresh();
-        PGroupAutoRegroup();
+        PGroupActionUpdate();
+        PGroupAutoUpdate();
     }
 
-    public void PGroupAutoRegroup()
+    public void PGroupAutoUpdate()
     {
         if (!pGroupAuto)
         {
@@ -50,11 +50,11 @@ public sealed partial class PGroup
             BorderThickness = new Thickness(0, 1, 0, 0),
             Background = Brushes.White
         };
-        PGroupActionRefresh();
+        PGroupActionUpdate();
         return pGroupActionHost;
     }
 
-    private void PGroupActionRefresh() => pGroupActionHost.Child = PGroupActionContentBuild();
+    private void PGroupActionUpdate() => pGroupActionHost.Child = PGroupActionContentBuild();
 
     private void PGroupModeSet(bool pGroupModeAuto)
     {
@@ -64,8 +64,8 @@ public sealed partial class PGroup
         }
 
         pGroupAuto = pGroupModeAuto;
-        PGroupActionRefresh();
-        PGroupAutoRegroup();
+        PGroupActionUpdate();
+        PGroupAutoUpdate();
     }
 
     private void PGroupStrictSet(bool pGroupSwitchStrict)
@@ -76,8 +76,8 @@ public sealed partial class PGroup
         }
 
         pGroupStrict = pGroupSwitchStrict;
-        PGroupActionRefresh();
-        PGroupAutoRegroup();
+        PGroupActionUpdate();
+        PGroupAutoUpdate();
     }
 
     private UIElement PGroupActionContentBuild()

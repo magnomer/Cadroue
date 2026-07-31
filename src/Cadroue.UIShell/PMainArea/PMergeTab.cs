@@ -38,7 +38,7 @@ public sealed class PMergeTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
-        pGroup.PGroupModeSeed(
+        pGroup.PGroupModeRestore(
             lPreferenceTabLayout?.LPreferenceGroupAuto ?? false,
             lPreferenceTabLayout?.LPreferenceGroupStrict ?? true);
     }
@@ -58,7 +58,7 @@ public sealed class PMergeTab : PTabSurface
     {
         if (pGroup.PGroupAutoCheck() && pAddedItems.Any(pItem => pItem.PListItemRelay == Guid.Empty))
         {
-            pGroup.PGroupAutoRegroup();
+            pGroup.PGroupAutoUpdate();
         }
     }
 
@@ -66,7 +66,7 @@ public sealed class PMergeTab : PTabSurface
     {
         if (pGroup.PGroupAutoCheck() && pTargetTabId == pAction.PActionSourceTab)
         {
-            pGroup.PGroupAutoRegroup();
+            pGroup.PGroupAutoUpdate();
         }
     }
 

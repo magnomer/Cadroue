@@ -63,7 +63,7 @@ public sealed class PFunnelRuleRow : Border
         SnapsToDevicePixels = true;
         Child = pOverlay;
 
-        PFunnelJoinRefresh();
+        PFunnelJoinUpdate();
         PFunnelRelayRebuild();
     }
 
@@ -77,13 +77,13 @@ public sealed class PFunnelRuleRow : Border
 
     public int PFunnelRowTargetPending => pFunnelTargetPending;
 
-    public void PFunnelRowSeed(string pStart, string pEnd, bool pAndMode, int pTargetIndex)
+    public void PFunnelRowRestore(string pStart, string pEnd, bool pAndMode, int pTargetIndex)
     {
         pFunnelStartField.Text = pStart;
         pFunnelEndField.Text = pEnd;
         pFunnelAndMode = pAndMode;
         pFunnelTargetPending = pTargetIndex;
-        PFunnelJoinRefresh();
+        PFunnelJoinUpdate();
     }
 
     public void PFunnelRowTargetSet(Guid pTargetId)
@@ -142,7 +142,7 @@ public sealed class PFunnelRuleRow : Border
         return pHost;
     }
 
-    private void PFunnelJoinRefresh()
+    private void PFunnelJoinUpdate()
     {
         var pRow = new StackPanel { Orientation = Orientation.Horizontal };
         pRow.Children.Add(PFunnelSegmentBuild(
@@ -185,7 +185,7 @@ public sealed class PFunnelRuleRow : Border
         }
 
         pFunnelAndMode = pAndMode;
-        PFunnelJoinRefresh();
+        PFunnelJoinUpdate();
         PFunnelRowChange?.Invoke();
     }
 

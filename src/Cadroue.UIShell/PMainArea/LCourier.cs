@@ -227,7 +227,7 @@ public static class LCourier
         if (lWorkItem.LWorkRelayTarget == LCourierFinishTarget)
         {
             LTraceLog.LTraceInfoRecord($"Relay finished '{lWorkItem.LWorkOutputName}': removed at source, delivered to no tab");
-            LCourierSourceDrain(lWorkItem, true);
+            LCourierSourceRemove(lWorkItem, true);
             return;
         }
 
@@ -250,10 +250,10 @@ public static class LCourier
                 ? $"Relay added '{lWorkItem.LWorkOutputName}' to tab '{pCourierTarget.PTabTitle}'"
                 : $"Relay left '{lWorkItem.LWorkOutputName}' out of tab '{pCourierTarget.PTabTitle}': already listed");
 
-        LCourierSourceDrain(lWorkItem, false);
+        LCourierSourceRemove(lWorkItem, false);
     }
 
-    private static void LCourierSourceDrain(LWorkItem lWorkItem, bool lCourierForce)
+    private static void LCourierSourceRemove(LWorkItem lWorkItem, bool lCourierForce)
     {
         if ((!lCourierForce && !PProgram.LPreferenceStateCurrent.LPreferenceRelayEmpty)
             || lWorkItem.LWorkRelaySource == Guid.Empty

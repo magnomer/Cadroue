@@ -74,7 +74,7 @@ public sealed class PFunnelRules : PPanel
         foreach (LPreferenceFunnelRuleRecord pRecord in pRuleRecords)
         {
             PFunnelRuleRow pRow = PFunnelRuleAdd();
-            pRow.PFunnelRowSeed(
+            pRow.PFunnelRowRestore(
                 pRecord.LPreferenceFunnelStartsWith,
                 pRecord.LPreferenceFunnelEndsWith,
                 pRecord.LPreferenceFunnelAndMode,

@@ -6,14 +6,14 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PInspector
 {
     private CheckBox pSkipApplyBox = null!;
-    private CheckBox pInspectorSkipPersistent = null!;
-    private StackPanel pInspectorSkipBody = null!;
+    private CheckBox pSkipPersistentBox = null!;
+    private StackPanel pSkipBody = null!;
 
     public event Action? PSkipActiveChange;
 
     public bool PSkipActiveCheck() => pSkipApplyBox.IsChecked == true;
 
-    public bool PSkipPersistentCheck() => pInspectorSkipPersistent.IsChecked == true;
+    public bool PSkipPersistentCheck() => pSkipPersistentBox.IsChecked == true;
 
     public void PSkipApply(bool pSkipActive)
     {
@@ -22,7 +22,7 @@ public sealed partial class PInspector
 
     public void PSkipPersistentApply(bool pSkipPersistent)
     {
-        pInspectorSkipPersistent.IsChecked = pSkipPersistent;
+        pSkipPersistentBox.IsChecked = pSkipPersistent;
     }
 
     private StackPanel PSkipBodyBuild()
@@ -33,7 +33,7 @@ public sealed partial class PInspector
         pSkipApplyBox.Checked += (_, _) => PSkipActiveChange?.Invoke();
         pSkipApplyBox.Unchecked += (_, _) => PSkipActiveChange?.Invoke();
 
-        pInspectorSkipPersistent = PInspectorSwitchBuild(
+        pSkipPersistentBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Skip.PersistentTooltip"));
 
@@ -47,14 +47,14 @@ public sealed partial class PInspector
             Margin = new Thickness(0, 4, 0, 0)
         };
 
-        pInspectorSkipBody = new StackPanel
+        pSkipBody = new StackPanel
         {
             Margin = new Thickness(12, 12, 12, 12),
             Visibility = Visibility.Collapsed
         };
-        pInspectorSkipBody.Children.Add(pSkipApplyBox);
-        pInspectorSkipBody.Children.Add(PInspectorSeparatorBuild());
-        pInspectorSkipBody.Children.Add(pSkipNote);
-        return pInspectorSkipBody;
+        pSkipBody.Children.Add(pSkipApplyBox);
+        pSkipBody.Children.Add(PInspectorSeparatorBuild());
+        pSkipBody.Children.Add(pSkipNote);
+        return pSkipBody;
     }
 }

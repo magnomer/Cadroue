@@ -195,7 +195,7 @@ public sealed partial class PInspector : PPanel
         pInspectorNoiseBody.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorHighPass.PInspectorPassBody.Visibility = pHighPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorLowPass.PInspectorPassBody.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorSkipBody.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
+        pSkipBody.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorPersistentRow.Visibility = pKnownSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorPersistentBox.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorBrightnessPersistent.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -205,7 +205,7 @@ public sealed partial class PInspector : PPanel
         pInspectorNoisePersistent.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorHighPass.PInspectorPassPersistent.Visibility = pHighPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorLowPass.PInspectorPassPersistent.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorSkipPersistent.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
+        pSkipPersistentBox.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorEmptyNotice.Visibility = pKnownSelected ? Visibility.Collapsed : Visibility.Visible;
 
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)

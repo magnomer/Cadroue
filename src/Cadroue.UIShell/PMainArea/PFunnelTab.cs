@@ -24,10 +24,10 @@ public sealed class PFunnelTab : PTabSurface
 
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += _ => PFunnelDistribute(pList.PListCurrentItemRead() is { } pSelected
+        pAction.PActionRun += _ => PFunnelDispatch(pList.PListCurrentItemRead() is { } pSelected
             ? new[] { pSelected }
             : Array.Empty<PListItem>());
-        pAction.PActionAllAdd += () => PFunnelDistribute(pList.PListItemsRead());
+        pAction.PActionAllAdd += () => PFunnelDispatch(pList.PListItemsRead());
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
 
@@ -46,7 +46,7 @@ public sealed class PFunnelTab : PTabSurface
     public void PFunnelTargetsResolve(IReadOnlyList<PTabRecord> pTabRecords) =>
         pFunnelRules.PFunnelTargetsResolve(pTabRecords);
 
-    private void PFunnelDistribute(IReadOnlyList<PListItem> pItems)
+    private void PFunnelDispatch(IReadOnlyList<PListItem> pItems)
     {
         if (pItems.Count == 0 || LTabset.LTabsetCurrent is not { } lTabset)
         {

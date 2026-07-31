@@ -92,7 +92,7 @@ public sealed partial class PInspector
         || pInspectorNoisePersistent.IsChecked == true
         || pInspectorHighPass.PInspectorPassPersistent.IsChecked == true
         || pInspectorLowPass.PInspectorPassPersistent.IsChecked == true
-        || pInspectorSkipPersistent.IsChecked == true;
+        || pSkipPersistentBox.IsChecked == true;
 
     public void PInspectorPersistentApply(LWorkAudio pInspectorPlan)
     {
@@ -118,7 +118,7 @@ public sealed partial class PInspector
             }
         }
 
-        pInspectorSkipPersistent.IsChecked = pInspectorPlan.LWorkAudioSkip;
+        pSkipPersistentBox.IsChecked = pInspectorPlan.LWorkAudioSkip;
     }
 
     public LWorkAudio PInspectorPersistentRead()
@@ -149,7 +149,7 @@ public sealed partial class PInspector
             pSteps.Add(PInspectorStepRead(LWorkAudioKind.LWorkAudioKindNormalize));
         }
 
-        return new LWorkAudio(pSteps) { LWorkAudioSkip = pInspectorSkipPersistent.IsChecked == true };
+        return new LWorkAudio(pSteps) { LWorkAudioSkip = pSkipPersistentBox.IsChecked == true };
     }
 
     private void PInspectorStepApply(LWorkAudioStep pStep)

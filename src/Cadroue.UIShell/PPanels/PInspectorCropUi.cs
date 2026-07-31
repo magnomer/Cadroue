@@ -106,7 +106,7 @@ public sealed partial class PInspector
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNoisePersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorVolumePersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNormalizePersistent));
-        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorSkipPersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pSkipPersistentBox));
         return pPersistentPanel;
     }
 
