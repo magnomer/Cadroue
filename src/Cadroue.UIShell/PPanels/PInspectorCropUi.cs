@@ -78,6 +78,11 @@ public sealed partial class PInspector
         return pInspectorCropBody;
     }
 
+    public void PCropPersistentApply(bool pCropPersistent)
+    {
+        pInspectorPersistentBox.IsChecked = pCropPersistent;
+    }
+
     private UIElement PInspectorPersistentBuild()
     {
         pInspectorPersistentBox = PInspectorSwitchBuild(

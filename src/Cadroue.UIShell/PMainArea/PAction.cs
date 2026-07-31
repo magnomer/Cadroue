@@ -53,7 +53,14 @@ public sealed class PAction : UserControl
 
     public Guid PActionRelayTarget { get; private set; }
 
+    public Guid PActionSourceTab { get; set; }
+
     public Func<IReadOnlyList<LCourierOption>>? PActionRelaySource { get; set; }
+
+    public void PActionRelayHide()
+    {
+        pActionRelayButton.Visibility = Visibility.Collapsed;
+    }
 
     public void PActionRelayApply(Guid pActionRelayTarget)
     {
@@ -152,6 +159,14 @@ public sealed class PAction : UserControl
 
     private void PActionFaceUpdate()
     {
+        if (PActionRelayTarget == LCourier.LCourierFinishTarget)
+        {
+            pActionRelayLabel.Text = LLocalization.LLocalizationTextRead("Action.Relay.Finish");
+            pActionRelayIcon.Source = null;
+            pActionRelayIcon.Visibility = Visibility.Collapsed;
+            return;
+        }
+
         LCourierOption? pOption = PActionRelayTarget == Guid.Empty
             ? null
             : PActionOptionsRead().FirstOrDefault(pRow => pRow.LCourierTabId == PActionRelayTarget);
@@ -180,6 +195,8 @@ public sealed class PAction : UserControl
         {
             PActionRowAppend(pRelayMenu, pOption.LCourierTabId, pOption.LCourierTabTitle, pOption.LCourierTabIcon);
         }
+
+        PActionRowAppend(pRelayMenu, LCourier.LCourierFinishTarget, LLocalization.LLocalizationTextRead("Action.Relay.Finish"), null);
 
         pRelayMenu.IsOpen = true;
         pArgs.Handled = true;

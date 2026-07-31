@@ -93,6 +93,13 @@ public partial class PWindow : Window
             }
         }
         PMainArea.LCourier.LCourierSlotsApply(pTabset.PTabsetRecords, lPreferenceState.LPreferenceTabRelays);
+        foreach (PTabRecord pTabRecord in pTabset.PTabsetRecords)
+        {
+            if (pTabRecord.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab pFunnelSurface)
+            {
+                pFunnelSurface.PFunnelTargetsResolve(pTabset.PTabsetRecords);
+            }
+        }
         int pSelectIndex = Math.Clamp(lPreferenceState.LPreferenceTabIndex, 0, pTabset.PTabsetRecords.Count - 1);
         pTabset.LTabsetSelect(pTabset.PTabsetRecords[pSelectIndex]);
     }

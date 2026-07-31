@@ -10,21 +10,23 @@ public static partial class LSplit
         string? lSplitSourcePath,
         IReadOnlyList<LSplitSectionDescription> lSplitSections,
         LPreset lExportSpecificState,
-        Guid lSplitRelayTarget = default)
+        Guid lSplitRelayTarget = default,
+        Guid lSplitRelaySource = default)
     {
         LSplitWorkDescription lSplitWorkDescription = new(
             lSplitSourcePath,
             lSplitSections,
             lExportSpecificState.LPresetOutputCreate());
 
-        return LSplit.LSplitInterpret(lWorkPriority, lSplitWorkDescription, lSplitRelayTarget);
+        return LSplit.LSplitInterpret(lWorkPriority, lSplitWorkDescription, lSplitRelayTarget, lSplitRelaySource);
     }
 
     public static async Task<int> LSplitAllDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lSplitSourcePaths,
         LPreset lExportSpecificState,
-        Guid lSplitRelayTarget = default)
+        Guid lSplitRelayTarget = default,
+        Guid lSplitRelaySource = default)
     {
         IReadOnlyList<LSplitPlanRecord> lSplitPlans =
             await Task.Run(() => LSplitPlanCreate(lSplitSourcePaths)).ConfigureAwait(true);
@@ -37,7 +39,8 @@ public static partial class LSplit
                 lSplitPlan.LSplitPlanSourcePath,
                 lSplitPlan.LSplitPlanSections,
                 lExportSpecificState,
-                lSplitRelayTarget);
+                lSplitRelayTarget,
+                lSplitRelaySource);
         }
 
         return lSplitAdded;

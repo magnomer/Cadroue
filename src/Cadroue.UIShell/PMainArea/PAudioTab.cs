@@ -46,7 +46,8 @@ public sealed class PAudioTab : PTabSurface
                 pViewer.PViewerSourcePath,
                 PAudioProcessingRead(),
                 lExportSpecificState,
-                pAction.PActionRelayTarget);
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab);
         };
         pAction.PActionAllAdd += () =>
         {
@@ -55,7 +56,8 @@ public sealed class PAudioTab : PTabSurface
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListPathsRead(),
                 lExportSpecificState,
-                pAction.PActionRelayTarget);
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab);
         };
         pAction.PActionAllSet(
             true,
@@ -65,7 +67,28 @@ public sealed class PAudioTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
+        PAudioPersistentRestore(lPreferenceTabLayout);
         PAudioActiveUpdate();
+    }
+
+    private void PAudioPersistentRestore(LPreferenceTabLayoutRecord? lPreferenceTabLayout)
+    {
+        if (lPreferenceTabLayout?.LPreferenceInspectorPersistent?.LPreferenceAudioPersistent is not { } pAudioPersistentRecord)
+        {
+            return;
+        }
+
+        pAudioPlanLoading = true;
+        try
+        {
+            LWorkAudio pAudioPersistentPlan = LAudio.LAudioPersistentRead(pAudioPersistentRecord);
+            pInspector.PInspectorPlanApply(pAudioPersistentPlan);
+            pInspector.PInspectorPersistentApply(pAudioPersistentPlan);
+        }
+        finally
+        {
+            pAudioPlanLoading = false;
+        }
     }
 
     private void PAudioSkipHandle()
@@ -201,5 +224,17 @@ public sealed class PAudioTab : PTabSurface
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
+    public override LPreferenceTabLayoutRecord PTabLayoutRead()
+    {
+        LPreferenceTabLayoutRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        if (pInspector.PInspectorPersistentCheck())
+        {
+            lPreferenceTabLayout.LPreferenceInspectorPersistent = new LPreferenceInspectorPersistentRecord
+            {
+                LPreferenceAudioPersistent = LAudio.LAudioPersistentCreate(pInspector.PInspectorPersistentRead())
+            };
+        }
+
+        return lPreferenceTabLayout;
+    }
 }

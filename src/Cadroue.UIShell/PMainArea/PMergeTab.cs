@@ -17,12 +17,12 @@ public sealed class PMergeTab : PTabSurface
         var pAction = new PAction();
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMerge.LMergeDescribe(
-            pPriority, pGroup.PGroupGroupsRead(), lExportSpecificState, pAction.PActionRelayTarget);
+            pPriority, pGroup.PGroupGroupsRead(), lExportSpecificState, pAction.PActionRelayTarget, pAction.PActionSourceTab);
         pAction.PActionAllAdd += () => LMerge.LMergeDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pGroup.PGroupGroupsRead(),
             lExportSpecificState,
-            pAction.PActionRelayTarget);
+            pAction.PActionRelayTarget, pAction.PActionSourceTab);
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
         pGroup.PGroupSourceFiles = () => pList.PListPathsRead();

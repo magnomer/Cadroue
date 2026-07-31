@@ -328,6 +328,30 @@ public sealed partial class PList : PPanel
         }
     }
 
+    public int PListPathsRemove(IEnumerable<string> pRemovePaths)
+    {
+        var pListRemovedPaths = new List<string>();
+        foreach (string pRemovePath in pRemovePaths)
+        {
+            string? pListMatch = pListPaths.FirstOrDefault(
+                pExisting => string.Equals(pExisting, pRemovePath, StringComparison.OrdinalIgnoreCase));
+            if (pListMatch is not null && pListPaths.Remove(pListMatch))
+            {
+                pListRemovedPaths.Add(pListMatch);
+            }
+        }
+
+        if (pListRemovedPaths.Count == 0)
+        {
+            return 0;
+        }
+
+        PListRowsRebuild();
+        PListSelectApply(pListPaths.Count == 0 ? null : pListPaths[0]);
+        PListClearChange?.Invoke(pListRemovedPaths);
+        return pListRemovedPaths.Count;
+    }
+
     private void PListRowsRebuild()
     {
         pListRowPanel.Children.Clear();

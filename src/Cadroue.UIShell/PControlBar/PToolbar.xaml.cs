@@ -311,6 +311,7 @@ public partial class PToolbar : UserControl
         PTabMenuAppend(pTabAddMenu, "Audio", "Tab.Audio", PIcon.PIconRead("/PAssets/PTabs/PAudioButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Convert", "Tab.Convert", PIcon.PIconRead("/PAssets/PTabs/PConvertButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Merge", "Tab.Merge", PIcon.PIconRead("/PAssets/PTabs/PMergeButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Funnel", "Tab.Funnel", PIcon.PIconRead("/PAssets/PTabs/PFunnelButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Worklist", "Tab.Worklist", PIcon.PIconRead("/PAssets/PTabs/PWorklistButton.svg"));
 
         pTabAddMenu.IsOpen = true;

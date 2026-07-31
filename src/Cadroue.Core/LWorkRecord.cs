@@ -16,6 +16,7 @@ public sealed class LWorkRecord
     public string LWorkOutputPath { get; set; } = string.Empty;
     public List<string> LWorkMergeSources { get; set; } = [];
     public Guid LWorkRelayTarget { get; set; }
+    public Guid LWorkRelaySource { get; set; }
     public Guid LWorkLineage { get; set; }
     public string LWorkMessage { get; set; } = string.Empty;
     public double LWorkProgress { get; set; }
@@ -65,6 +66,7 @@ public sealed class LWorkRecord
         LWorkOutputPath = lWorkItem.LWorkOutputPath,
         LWorkMergeSources = lWorkItem.LWorkMergeSources.ToList(),
         LWorkRelayTarget = lWorkItem.LWorkRelayTarget,
+        LWorkRelaySource = lWorkItem.LWorkRelaySource,
         LWorkLineage = lWorkItem.LWorkLineage,
         LWorkMessage = lWorkItem.LWorkMessage,
         LWorkProgress = lWorkItem.LWorkProgress,
@@ -105,6 +107,7 @@ public sealed class LWorkRecord
             LWorkMergeSources);
 
         lWorkItem.LWorkRelayTarget = LWorkRelayTarget;
+        lWorkItem.LWorkRelaySource = LWorkRelaySource;
         lWorkItem.LWorkLineage = LWorkLineage;
         lWorkItem.LWorkStateCurrent = LWorkEnumRead(LWorkStateName, LWorkState.LWorkStatePending);
         lWorkItem.LWorkMessage = LWorkMessage;

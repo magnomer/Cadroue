@@ -161,7 +161,7 @@ public sealed class LPreferenceState
             ("Default tabs", string.Join(", ", lPreferenceOther.LPreferenceStartupTabs), string.Join(", ", LPreferenceStartupTabs)),
             ("Auto-open last media", lPreferenceOther.LPreferenceMediaAutomatic, LPreferenceMediaAutomatic),
             ("Confirm destructive actions", lPreferenceOther.LPreferenceConfirmDestructive, LPreferenceConfirmDestructive),
-            ("Clear relay target files", lPreferenceOther.LPreferenceRelayEmpty, LPreferenceRelayEmpty),
+            ("Clear source files on relay", lPreferenceOther.LPreferenceRelayEmpty, LPreferenceRelayEmpty),
             ("Language", lPreferenceOther.LPreferenceLanguage, LPreferenceLanguage),
             ("Verbose logging", lPreferenceOther.LPreferenceLogVerbose, LPreferenceLogVerbose),
             ("File record location", lPreferenceOther.LPreferenceRecordWorkspace, LPreferenceRecordWorkspace),
@@ -249,13 +249,63 @@ public sealed class LPreferenceTabLayoutRecord
 
     public List<int> LPreferencePanelsCollapsed { get; set; } = new();
 
+    public List<LPreferenceFunnelRuleRecord> LPreferenceFunnelRules { get; set; } = new();
+
+    public LPreferenceInspectorPersistentRecord? LPreferenceInspectorPersistent { get; set; }
+
     public LPreferenceTabLayoutRecord LPreferenceLayoutClone()
     {
         return new LPreferenceTabLayoutRecord
         {
             LPreferencePanelWidths = new List<double>(LPreferencePanelWidths),
             LPreferenceExportHidden = LPreferenceExportHidden,
-            LPreferencePanelsCollapsed = new List<int>(LPreferencePanelsCollapsed)
+            LPreferencePanelsCollapsed = new List<int>(LPreferencePanelsCollapsed),
+            LPreferenceFunnelRules = LPreferenceFunnelRules.Select(pRule => pRule.LPreferenceFunnelRuleClone()).ToList(),
+            LPreferenceInspectorPersistent = LPreferenceInspectorPersistent?.LPreferenceInspectorClone()
+        };
+    }
+}
+
+public sealed class LPreferenceInspectorPersistentRecord
+{
+    public Cadroue.Media.LSidecarAudioRecord? LPreferenceAudioPersistent { get; set; }
+
+    public Cadroue.Media.LSidecarEditRecord? LPreferenceEditPersistent { get; set; }
+
+    public bool LPreferenceCropPersistent { get; set; }
+
+    public bool LPreferenceSkipPersistent { get; set; }
+
+    public LPreferenceInspectorPersistentRecord LPreferenceInspectorClone()
+    {
+        return new LPreferenceInspectorPersistentRecord
+        {
+            LPreferenceAudioPersistent = LPreferenceAudioPersistent,
+            LPreferenceEditPersistent = LPreferenceEditPersistent,
+            LPreferenceCropPersistent = LPreferenceCropPersistent,
+            LPreferenceSkipPersistent = LPreferenceSkipPersistent
+        };
+    }
+}
+
+public sealed class LPreferenceFunnelRuleRecord
+{
+    public string LPreferenceFunnelStartsWith { get; set; } = string.Empty;
+
+    public string LPreferenceFunnelEndsWith { get; set; } = string.Empty;
+
+    public bool LPreferenceFunnelAndMode { get; set; }
+
+    public int LPreferenceFunnelTargetIndex { get; set; } = -1;
+
+    public LPreferenceFunnelRuleRecord LPreferenceFunnelRuleClone()
+    {
+        return new LPreferenceFunnelRuleRecord
+        {
+            LPreferenceFunnelStartsWith = LPreferenceFunnelStartsWith,
+            LPreferenceFunnelEndsWith = LPreferenceFunnelEndsWith,
+            LPreferenceFunnelAndMode = LPreferenceFunnelAndMode,
+            LPreferenceFunnelTargetIndex = LPreferenceFunnelTargetIndex
         };
     }
 }

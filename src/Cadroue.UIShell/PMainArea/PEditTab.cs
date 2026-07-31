@@ -30,13 +30,15 @@ public sealed class PEditTab : PTabSurface
             pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pInspector.PInspectorCropRead(),
             pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
             lExportSpecificState,
-            pAction.PActionRelayTarget);
+            pAction.PActionRelayTarget,
+            pAction.PActionSourceTab);
 
         pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
             lExportSpecificState,
-            pAction.PActionRelayTarget);
+            pAction.PActionRelayTarget,
+            pAction.PActionSourceTab);
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
@@ -74,7 +76,36 @@ public sealed class PEditTab : PTabSurface
         }
 
         Content = pTabGrid;
+        PEditPersistentRestore(lPreferenceTabLayout);
         PEditActiveUpdate();
+    }
+
+    private void PEditPersistentRestore(LPreferenceTabLayoutRecord? lPreferenceTabLayout)
+    {
+        if (lPreferenceTabLayout?.LPreferenceInspectorPersistent is not { LPreferenceEditPersistent: { } pEditRecord } pEditPersistent)
+        {
+            return;
+        }
+
+        pEditPlanLoading = true;
+        try
+        {
+            LEditPlan pEditPlan = LEdit.LEditPersistentRead(pEditRecord);
+            if (pEditPersistent.LPreferenceCropPersistent)
+            {
+                pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropApply);
+                pInspector.PCropPersistentApply(true);
+            }
+
+            pInspector.PTonePlanApply(pEditPlan.LEditVideo);
+            pInspector.PTonePersistentApply(pEditPlan.LEditVideo);
+            pInspector.PSkipApply(pEditPlan.LEditSkip);
+            pInspector.PSkipPersistentApply(pEditPersistent.LPreferenceSkipPersistent);
+        }
+        finally
+        {
+            pEditPlanLoading = false;
+        }
     }
 
     private void PEditSkipHandle()
@@ -356,5 +387,29 @@ public sealed class PEditTab : PTabSurface
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
+    public override LPreferenceTabLayoutRecord PTabLayoutRead()
+    {
+        LPreferenceTabLayoutRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        bool pCropPersistent = pInspector.PCropPersistentCheck();
+        bool pVideoPersistent = pInspector.PTonePersistentCheck();
+        bool pSkipPersistent = pInspector.PSkipPersistentCheck();
+        if (pCropPersistent || pVideoPersistent || pSkipPersistent)
+        {
+            var pEditCarried = new LEditPlan(
+                pCropPersistent ? pInspector.PInspectorCropRead() : LWorkCrop.LWorkCropCreate(),
+                pInspector.PTonePersistentRead(),
+                pCropPersistent && pInspector.PCropActiveCheck())
+            {
+                LEditSkip = pSkipPersistent && pInspector.PSkipActiveCheck()
+            };
+            lPreferenceTabLayout.LPreferenceInspectorPersistent = new LPreferenceInspectorPersistentRecord
+            {
+                LPreferenceEditPersistent = LEdit.LEditPersistentCreate(pEditCarried),
+                LPreferenceCropPersistent = pCropPersistent,
+                LPreferenceSkipPersistent = pSkipPersistent
+            };
+        }
+
+        return lPreferenceTabLayout;
+    }
 }

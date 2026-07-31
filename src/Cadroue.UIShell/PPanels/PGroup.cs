@@ -112,6 +112,21 @@ public sealed partial class PGroup : PPanel
         PGroupRebuild();
     }
 
+    public bool PGroupPathsRemove(IReadOnlyList<string> pGroupPaths)
+    {
+        var pGroupTargetSet = new HashSet<string>(pGroupPaths, StringComparer.OrdinalIgnoreCase);
+        int pGroupRemovedCount = pGroupRecords.RemoveAll(pRecord =>
+            pRecord.PGroupRecordPaths.Count > 0
+            && pRecord.PGroupRecordPaths.All(pRecordPath => pGroupTargetSet.Contains(pRecordPath)));
+        if (pGroupRemovedCount == 0)
+        {
+            return false;
+        }
+
+        PGroupRebuild();
+        return true;
+    }
+
     public IReadOnlyList<PGroupSelection> PGroupGroupsRead() =>
         pGroupRecords
             .Select(pRecord => new PGroupSelection(pRecord.PGroupRecordName, pRecord.PGroupRecordPaths.ToArray()))

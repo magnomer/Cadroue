@@ -14,14 +14,15 @@ public static partial class LConvert
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lConvertSourcePaths,
         LPreset lExportSpecificState,
-        Guid lConvertRelayTarget = default)
+        Guid lConvertRelayTarget = default,
+        Guid lConvertRelaySource = default)
     {
         LWorkOutput lConvertOutput = lExportSpecificState.LPresetOutputCreate();
         LConvertWorkDescription lConvertWorkDescription = new(lConvertSourcePaths, lConvertOutput);
 
         IReadOnlyList<LWorkItem> lConvertWorkItems =
             LConvert.LConvertInterpret(lWorkPriority, lConvertWorkDescription);
-        int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems, lConvertRelayTarget);
+        int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems, lConvertRelayTarget, lConvertRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Convert queued {lConvertAdded} job(s) at {lWorkPriority} from {lConvertSourcePaths.Count} listed file(s)");
 

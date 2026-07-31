@@ -53,6 +53,21 @@ public sealed partial class PInspector
         pInspectorBrightnessPersistent.IsChecked == true
         || pInspectorContrastPersistent.IsChecked == true;
 
+    public void PTonePersistentApply(LWorkVideo pVideo)
+    {
+        foreach (LWorkVideoStep pStep in pVideo.LWorkVideoSteps)
+        {
+            if (pStep.LWorkVideoStepKind == LWorkVideoKind.LWorkVideoKindContrast)
+            {
+                pInspectorContrastPersistent.IsChecked = true;
+            }
+            else
+            {
+                pInspectorBrightnessPersistent.IsChecked = true;
+            }
+        }
+    }
+
     public LWorkVideo PTonePersistentRead()
     {
         var pSteps = new List<LWorkVideoStep>();

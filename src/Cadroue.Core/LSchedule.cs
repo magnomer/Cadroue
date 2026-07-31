@@ -138,7 +138,10 @@ public sealed partial class LSchedule
         LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
     }
 
-    public int LScheduleAdd(IReadOnlyList<LWorkItem> lWorkItems, Guid lScheduleRelayTarget = default)
+    public int LScheduleAdd(
+        IReadOnlyList<LWorkItem> lWorkItems,
+        Guid lScheduleRelayTarget = default,
+        Guid lScheduleRelaySource = default)
     {
         if (lWorkItems.Count == 0)
         {
@@ -152,6 +155,11 @@ public sealed partial class LSchedule
             if (lScheduleRelayTarget != Guid.Empty)
             {
                 lWorkItem.LWorkRelayTarget = lScheduleRelayTarget;
+            }
+
+            if (lScheduleRelaySource != Guid.Empty)
+            {
+                lWorkItem.LWorkRelaySource = lScheduleRelaySource;
             }
 
             if (lWorkItem.LWorkLineage == Guid.Empty)

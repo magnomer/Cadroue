@@ -9,7 +9,8 @@ public static partial class LSplit
     public static int LSplitInterpret(
         LWorkPriority lWorkPriority,
         LSplitWorkDescription lSplitWorkDescription,
-        Guid lSplitRelayTarget = default)
+        Guid lSplitRelayTarget = default,
+        Guid lSplitRelaySource = default)
     {
         string? lSplitSourcePath = lSplitWorkDescription.LSplitSourcePath;
         if (string.IsNullOrWhiteSpace(lSplitSourcePath))
@@ -81,7 +82,7 @@ public static partial class LSplit
             LTraceLog.LTraceInfoRecord($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
         }
 
-        int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems, lSplitRelayTarget);
+        int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems, lSplitRelayTarget, lSplitRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lSplitAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +
             $"into '{lSplitFolder}' [batch {lSplitBatchId:N}]");

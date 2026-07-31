@@ -10,21 +10,24 @@ public static partial class LAudio
         string? lAudioSourcePath,
         LWorkAudio lAudioProcessing,
         LPreset lExportSpecificState,
-        Guid lAudioRelayTarget = default)
+        Guid lAudioRelayTarget = default,
+        Guid lAudioRelaySource = default)
     {
         return LAudio.LAudioInterpret(
             lWorkPriority,
             lAudioSourcePath,
             lAudioProcessing,
             lExportSpecificState.LPresetOutputCreate(),
-            lAudioRelayTarget);
+            lAudioRelayTarget,
+            lAudioRelaySource);
     }
 
     public static int LAudioAllDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<string> lAudioSourcePaths,
         LPreset lExportSpecificState,
-        Guid lAudioRelayTarget = default)
+        Guid lAudioRelayTarget = default,
+        Guid lAudioRelaySource = default)
     {
         LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
         int lAudioAdded = 0;
@@ -36,11 +39,20 @@ public static partial class LAudio
             }
 
             lAudioAdded += LAudio.LAudioInterpret(
-                lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput, lAudioRelayTarget);
+                lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput, lAudioRelayTarget, lAudioRelaySource);
         }
 
         return lAudioAdded;
     }
+
+    public static Cadroue.Media.LSidecarAudioRecord LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()
+    {
+        LSidecarSkip = lAudioPlan.LWorkAudioSkip,
+        LSidecarSteps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
+    };
+
+    public static LWorkAudio LAudioPersistentRead(Cadroue.Media.LSidecarAudioRecord lAudioRecord) =>
+        new(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray()) { LWorkAudioSkip = lAudioRecord.LSidecarSkip };
 
     public static LWorkAudio? LAudioPlanRead(string lAudioSourcePath) =>
         Cadroue.Media.LSidecarStore.LSidecarAudioRead(lAudioSourcePath) is { } lAudioRecord

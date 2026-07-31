@@ -94,6 +94,33 @@ public sealed partial class PInspector
         || pInspectorLowPass.PInspectorPassPersistent.IsChecked == true
         || pInspectorSkipPersistent.IsChecked == true;
 
+    public void PInspectorPersistentApply(LWorkAudio pInspectorPlan)
+    {
+        foreach (LWorkAudioStep pStep in pInspectorPlan.LWorkAudioSteps)
+        {
+            switch (pStep.LWorkAudioStepKind)
+            {
+                case LWorkAudioKind.LWorkAudioKindHighPass:
+                    pInspectorHighPass.PInspectorPassPersistent.IsChecked = true;
+                    break;
+                case LWorkAudioKind.LWorkAudioKindLowPass:
+                    pInspectorLowPass.PInspectorPassPersistent.IsChecked = true;
+                    break;
+                case LWorkAudioKind.LWorkAudioKindNoiseReduction:
+                    pInspectorNoisePersistent.IsChecked = true;
+                    break;
+                case LWorkAudioKind.LWorkAudioKindVolume:
+                    pInspectorVolumePersistent.IsChecked = true;
+                    break;
+                case LWorkAudioKind.LWorkAudioKindNormalize:
+                    pInspectorNormalizePersistent.IsChecked = true;
+                    break;
+            }
+        }
+
+        pInspectorSkipPersistent.IsChecked = pInspectorPlan.LWorkAudioSkip;
+    }
+
     public LWorkAudio PInspectorPersistentRead()
     {
         var pSteps = new List<LWorkAudioStep>();

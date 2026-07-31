@@ -116,7 +116,7 @@ Video can remain stream-copied when only the audio needs processing, depending o
 
 - Send completed outputs from one tab directly into another tab's Files list.
 - The destination tab remains reviewable and does not start automatically.
-- By default, the target Files list is cleared before the first delivery from a relay run; this can be disabled to collect outputs from several relays.
+- By default, each file is removed from the tab it came from once it has been relayed onward; the target tab is never cleared. This can be disabled to keep the source files in place.
 - A tab cannot relay into itself.
 - Create multiple tabs of the same type and double-click a tab name to give it a distinct workflow name.
 - Restore the previous tab layout and session on startup.

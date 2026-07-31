@@ -11,6 +11,7 @@ public sealed class LTabset
     private const string lTabsetAudioIcon = "/PAssets/PTabs/PAudioButton.svg";
     private const string lTabsetConvertIcon = "/PAssets/PTabs/PConvertButton.svg";
     private const string lTabsetMergeIcon = "/PAssets/PTabs/PMergeButton.svg";
+    private const string lTabsetFunnelIcon = "/PAssets/PTabs/PFunnelButton.svg";
     private const string lTabsetWorklistIcon = "/PAssets/PTabs/PWorklistButton.svg";
 
     private PTabRecord? pTabsetCurrent;
@@ -70,6 +71,7 @@ public sealed class LTabset
             "Audio" => LTabsetTypedAdd("Audio", lTabsetAudioIcon, lExportSpecificState, lPreferenceTabLayout),
             "Convert" => LTabsetTypedAdd("Convert", lTabsetConvertIcon, lExportSpecificState, lPreferenceTabLayout),
             "Merge" => LTabsetTypedAdd("Merge", lTabsetMergeIcon, lExportSpecificState, lPreferenceTabLayout),
+            "Funnel" => LTabsetTypedAdd("Funnel", lTabsetFunnelIcon, lExportSpecificState, lPreferenceTabLayout),
             "Worklist" => LTabsetTypedAdd("Worklist", lTabsetWorklistIcon, lExportSpecificState, lPreferenceTabLayout),
             _ => LTabsetTypedAdd("Split", lTabsetSplitIcon, lExportSpecificState, lPreferenceTabLayout)
         };
@@ -202,6 +204,7 @@ public sealed class LTabset
             "Audio" => "Tab.Audio",
             "Convert" => "Tab.Convert",
             "Merge" => "Tab.Merge",
+            "Funnel" => "Tab.Funnel",
             "Worklist" => "Tab.Worklist",
             _ => "Tab.Split"
         });

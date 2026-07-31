@@ -21,12 +21,14 @@ public sealed class PSplitTab : PTabSurface
             pViewer.PViewerSourcePath,
             pSection.PSectionSplitRead(),
             lExportSpecificState,
-            pAction.PActionRelayTarget);
+            pAction.PActionRelayTarget,
+            pAction.PActionSourceTab);
         pAction.PActionAllAdd += () => _ = LSplit.LSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListPathsRead(),
             lExportSpecificState,
-            pAction.PActionRelayTarget);
+            pAction.PActionRelayTarget,
+            pAction.PActionSourceTab);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);

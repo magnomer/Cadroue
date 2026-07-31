@@ -242,6 +242,7 @@ public sealed class PWorkspace
             "Audio" => new PAudioTab(lExportSpecificState, lPreferenceTabLayout),
             "Convert" => new PConvertTab(lExportSpecificState, lPreferenceTabLayout),
             "Merge" => new PMergeTab(lExportSpecificState, lPreferenceTabLayout),
+            "Funnel" => new PFunnelTab(lPreferenceTabLayout),
             "Worklist" => new PWorklistTab(lPreferenceTabLayout),
             _ => new PSplitTab(lExportSpecificState, lPreferenceTabLayout)
         };

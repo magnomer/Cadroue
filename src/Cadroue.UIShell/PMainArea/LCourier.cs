@@ -9,9 +9,12 @@ public sealed record LCourierOption(Guid LCourierTabId, string LCourierTabTitle,
 
 public static class LCourier
 {
+    public static readonly Guid LCourierFinishTarget = new("feed0000-0000-0000-0000-0000000ffff0");
+
+    private const int LCourierFinishSlot = -2;
+
     private static readonly Dictionary<Guid, Guid> lCourierTargets = new();
     private static readonly HashSet<Guid> lCourierDelivered = new();
-    private static readonly HashSet<Guid> lCourierClearedTargets = new();
     private static bool lCourierWatching;
 
     public static void LCourierStart()
@@ -28,6 +31,7 @@ public static class LCourier
     public static void LCourierAttach(Guid lCourierSourceTab, PAction pCourierAction)
     {
         LCourierStart();
+        pCourierAction.PActionSourceTab = lCourierSourceTab;
         pCourierAction.PActionRelaySource = () => LCourierOptionsRead(lCourierSourceTab);
         pCourierAction.PActionRelayChange += lCourierTarget =>
         {
@@ -74,7 +78,6 @@ public static class LCourier
     public static void LCourierTabRemove(Guid lCourierTabId)
     {
         lCourierTargets.Remove(lCourierTabId);
-        lCourierClearedTargets.Remove(lCourierTabId);
         foreach (Guid lCourierSourceTab in lCourierTargets
             .Where(lCourierEntry => lCourierEntry.Value == lCourierTabId)
             .Select(lCourierEntry => lCourierEntry.Key)
@@ -113,8 +116,8 @@ public static class LCourier
         foreach (PTabRecord pTabRecord in pCourierTabRecords)
         {
             Guid lCourierTarget = LCourierTargetRead(pTabRecord.PTabId);
-            int lCourierSlot = -1;
-            for (int lCourierIndex = 0; lCourierIndex < pCourierTabRecords.Count; lCourierIndex++)
+            int lCourierSlot = lCourierTarget == LCourierFinishTarget ? LCourierFinishSlot : -1;
+            for (int lCourierIndex = 0; lCourierSlot == -1 && lCourierIndex < pCourierTabRecords.Count; lCourierIndex++)
             {
                 if (pCourierTabRecords[lCourierIndex].PTabId == lCourierTarget)
                 {
@@ -141,6 +144,14 @@ public static class LCourier
             }
 
             int lCourierSlot = lCourierSlots[lCourierIndex];
+            if (lCourierSlot == LCourierFinishSlot)
+            {
+                PTabRecord pCourierFinishSource = pCourierTabRecords[lCourierIndex];
+                LCourierTargetSet(pCourierFinishSource.PTabId, LCourierFinishTarget);
+                pCourierFinishSource.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionRelayApply(LCourierFinishTarget);
+                continue;
+            }
+
             if (lCourierSlot < 0 || lCourierSlot >= pCourierTabRecords.Count || lCourierSlot == lCourierIndex)
             {
                 continue;
@@ -175,26 +186,17 @@ public static class LCourier
             lCourierDelivered.Add(lWorkItem.LWorkId);
             LCourierOutputAdd(lWorkItem);
         }
-
-        LCourierBatchUpdate(lCourierSchedule);
-    }
-
-    private static void LCourierBatchUpdate(LSchedule lCourierSchedule)
-    {
-        foreach (Guid lCourierTarget in lCourierClearedTargets.ToArray())
-        {
-            bool lCourierPending = lCourierSchedule.LScheduleRecords.Any(lWorkItem =>
-                lWorkItem.LWorkRelayTarget == lCourierTarget
-                && lWorkItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning);
-            if (!lCourierPending)
-            {
-                lCourierClearedTargets.Remove(lCourierTarget);
-            }
-        }
     }
 
     private static void LCourierOutputAdd(LWorkItem lWorkItem)
     {
+        if (lWorkItem.LWorkRelayTarget == LCourierFinishTarget)
+        {
+            LTraceLog.LTraceInfoRecord($"Relay finished '{lWorkItem.LWorkOutputName}': removed at source, delivered to no tab");
+            LCourierSourceDrain(lWorkItem, true);
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath) || !File.Exists(lWorkItem.LWorkOutputPath))
         {
             LTraceLog.LTraceErrorRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the output file is missing");
@@ -208,18 +210,43 @@ public static class LCourier
             return;
         }
 
-        if (PProgram.LPreferenceStateCurrent.LPreferenceRelayEmpty
-            && lCourierClearedTargets.Add(lWorkItem.LWorkRelayTarget))
-        {
-            pCourierList.PListClear();
-            LTraceLog.LTraceInfoRecord($"Relay cleared the files in tab '{pCourierTarget.PTabTitle}' before delivery");
-        }
-
         int lCourierAdded = pCourierList.PListPathsAdd(new[] { lWorkItem.LWorkOutputPath });
         LTraceLog.LTraceInfoRecord(
             lCourierAdded > 0
                 ? $"Relay added '{lWorkItem.LWorkOutputName}' to tab '{pCourierTarget.PTabTitle}'"
                 : $"Relay left '{lWorkItem.LWorkOutputName}' out of tab '{pCourierTarget.PTabTitle}': already listed");
+
+        LCourierSourceDrain(lWorkItem, false);
+    }
+
+    private static void LCourierSourceDrain(LWorkItem lWorkItem, bool lCourierForce)
+    {
+        if ((!lCourierForce && !PProgram.LPreferenceStateCurrent.LPreferenceRelayEmpty)
+            || lWorkItem.LWorkRelaySource == Guid.Empty
+            || LCourierTabFind(lWorkItem.LWorkRelaySource) is not { } pCourierSource)
+        {
+            return;
+        }
+
+        var lCourierDropPaths = new List<string> { lWorkItem.LWorkSourcePath };
+        lCourierDropPaths.AddRange(lWorkItem.LWorkMergeSources);
+
+        if (pCourierSource.PTabWorkspace.PWorkspaceSurface.PTabList is { } pCourierSourceList)
+        {
+            int lCourierDrained = pCourierSourceList.PListPathsRemove(lCourierDropPaths);
+            if (lCourierDrained > 0)
+            {
+                LTraceLog.LTraceInfoRecord(
+                    $"Relay removed {lCourierDrained} source file(s) from tab '{pCourierSource.PTabTitle}' after delivery");
+            }
+        }
+
+        if (pCourierSource.PTabWorkspace.PWorkspaceSurface.PTabGroup is { } pCourierSourceGroup
+            && pCourierSourceGroup.PGroupPathsRemove(lCourierDropPaths))
+        {
+            LTraceLog.LTraceInfoRecord(
+                $"Relay removed the delivered group from tab '{pCourierSource.PTabTitle}' after delivery");
+        }
     }
 
     private static PTabRecord? LCourierTabFind(Guid lCourierTabId) =>

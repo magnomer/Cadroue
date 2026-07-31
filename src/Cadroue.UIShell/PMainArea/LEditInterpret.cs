@@ -34,7 +34,8 @@ public static partial class LEdit
     public static int LEditInterpret(
         LWorkPriority lWorkPriority,
         LEditWorkDescription lEditWorkDescription,
-        Guid lEditRelayTarget = default)
+        Guid lEditRelayTarget = default,
+        Guid lEditRelaySource = default)
     {
         LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
         if (string.IsNullOrWhiteSpace(lEditWorkDescription.LEditSourcePath))
@@ -53,7 +54,7 @@ public static partial class LEdit
 
         string lEditSourcePath = lEditWorkItem.LWorkSourcePath;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;
-        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd([lEditWorkItem], lEditRelayTarget);
+        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd([lEditWorkItem], lEditRelayTarget, lEditRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Edit queued {lEditAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lEditSourcePath)}' " +
             $"into '{Path.GetDirectoryName(lEditWorkItem.LWorkOutputPath)}'");

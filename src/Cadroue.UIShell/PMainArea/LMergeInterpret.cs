@@ -10,7 +10,8 @@ public static partial class LMerge
         LWorkPriority lWorkPriority,
         IReadOnlyList<PGroup.PGroupSelection> lMergeGroups,
         LWorkOutput lMergeOutput,
-        Guid lMergeRelayTarget = default)
+        Guid lMergeRelayTarget = default,
+        Guid lMergeRelaySource = default)
     {
         DateTimeOffset lMergeStamp = DateTimeOffset.Now;
         Guid lMergeBatchId = Guid.NewGuid();
@@ -20,7 +21,7 @@ public static partial class LMerge
         foreach (PGroup.PGroupSelection lMergeGroup in lMergeGroups)
         {
             string[] lMergeSources = lMergeGroup.PGroupSelectionPaths.Where(File.Exists).ToArray();
-            if (lMergeSources.Length < 2)
+            if (lMergeSources.Length == 0)
             {
                 continue;
             }
@@ -44,11 +45,11 @@ public static partial class LMerge
 
         if (lMergeItems.Count == 0)
         {
-            LTraceLog.LTraceErrorRecord("Merge not queued: no group holds two or more existing files");
+            LTraceLog.LTraceErrorRecord("Merge not queued: no group holds an existing file");
             return 0;
         }
 
-        int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lMergeItems, lMergeRelayTarget);
+        int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lMergeItems, lMergeRelayTarget, lMergeRelaySource);
         LTraceLog.LTraceInfoRecord($"Merge queued {lMergeAdded} group(s) at {lWorkPriority} [batch {lMergeBatchId:N}]");
         foreach (LWorkItem lMergeItem in lMergeItems)
         {
