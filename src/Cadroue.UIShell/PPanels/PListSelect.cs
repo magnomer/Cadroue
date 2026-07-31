@@ -12,7 +12,10 @@ public sealed partial class PList
     private string? pListPressPath;
 
     public IReadOnlyList<string> PListSelectionRead() =>
-        pListPaths.Where(pListPathsSelected.Contains).ToArray();
+        pListItems
+            .Select(pListItem => pListItem.PListItemPath)
+            .Where(pListPathsSelected.Contains)
+            .ToArray();
 
     private bool PListSelectionCheck(string pRowPath) => pListPathsSelected.Contains(pRowPath);
 
@@ -115,7 +118,7 @@ public sealed partial class PList
         pListPathsSelected.Clear();
         for (int pIndex = Math.Min(pAnchorIndex, pRowIndex); pIndex <= Math.Max(pAnchorIndex, pRowIndex); pIndex++)
         {
-            pListPathsSelected.Add(pListPaths[pIndex]);
+            pListPathsSelected.Add(pListItems[pIndex].PListItemPath);
         }
 
         PListCurrentApply(pRowPath);
@@ -137,19 +140,20 @@ public sealed partial class PList
     private int PListIndexRead(string? pRowPath) =>
         pRowPath is null
             ? -1
-            : pListPaths.FindIndex(pExisting => string.Equals(pExisting, pRowPath, StringComparison.OrdinalIgnoreCase));
+            : pListItems.FindIndex(pExisting =>
+                string.Equals(pExisting.PListItemPath, pRowPath, StringComparison.OrdinalIgnoreCase));
 
     private void PListKeyHandle(object pKeySender, KeyEventArgs pKeyEvent)
     {
         if (pKeyEvent.Key != Key.A
             || (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control
             || pListPathsSelected.Count == 0
-            || pListPaths.Count == 0)
+            || pListItems.Count == 0)
         {
             return;
         }
 
-        PListSelectionApply(pListPaths);
+        PListSelectionApply(pListItems.Select(pListItem => pListItem.PListItemPath));
         pKeyEvent.Handled = true;
     }
 }

@@ -17,6 +17,8 @@ public static class LCourier
     private static readonly HashSet<Guid> lCourierDelivered = new();
     private static bool lCourierWatching;
 
+    public static event Action<Guid, Guid>? LCourierBatchFinish;
+
     public static void LCourierStart()
     {
         if (lCourierWatching)
@@ -185,6 +187,26 @@ public static class LCourier
 
             lCourierDelivered.Add(lWorkItem.LWorkId);
             LCourierOutputAdd(lWorkItem);
+            LCourierBatchCheck(lCourierSchedule, lWorkItem);
+        }
+    }
+
+    private static void LCourierBatchCheck(LSchedule lCourierSchedule, LWorkItem lWorkItem)
+    {
+        if (lWorkItem.LWorkBatchId == Guid.Empty
+            || lWorkItem.LWorkRelayTarget == Guid.Empty
+            || lWorkItem.LWorkRelayTarget == LCourierFinishTarget)
+        {
+            return;
+        }
+
+        bool lCourierPending = lCourierSchedule.LScheduleRecords.Any(lCourierOther =>
+            lCourierOther.LWorkBatchId == lWorkItem.LWorkBatchId
+            && lCourierOther.LWorkRelayTarget == lWorkItem.LWorkRelayTarget
+            && !lCourierDelivered.Contains(lCourierOther.LWorkId));
+        if (!lCourierPending)
+        {
+            LCourierBatchFinish?.Invoke(lWorkItem.LWorkBatchId, lWorkItem.LWorkRelayTarget);
         }
     }
 
@@ -210,7 +232,7 @@ public static class LCourier
             return;
         }
 
-        int lCourierAdded = pCourierList.PListPathsAdd(new[] { lWorkItem.LWorkOutputPath });
+        int lCourierAdded = pCourierList.PListPathsAdd(new[] { lWorkItem.LWorkOutputPath }, lWorkItem.LWorkBatchId);
         LTraceLog.LTraceInfoRecord(
             lCourierAdded > 0
                 ? $"Relay added '{lWorkItem.LWorkOutputName}' to tab '{pCourierTarget.PTabTitle}'"

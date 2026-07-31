@@ -14,6 +14,7 @@ public abstract class PTabSurface : UserControl
     public virtual PGroup? PTabGroup => null;
     public PAction? PTabAction { get; protected set; }
     public virtual bool PTabBusyCheck() => false;
+    public virtual void PTabClose() { }
     public abstract LPreferenceTabLayoutRecord PTabLayoutRead();
 
     protected const double PTabWidthPadding = 16;

@@ -417,48 +417,6 @@ public sealed partial class PGroup : PPanel
         };
     }
 
-    private UIElement PGroupActionBuild()
-    {
-        var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        pLeftPanel.Children.Add(PGroupButtonBuild(
-            "/PAssets/PPanels/PGroupStrict.svg",
-            LLocalization.LLocalizationTextRead("Group.Strict.Tooltip"),
-            (_, _) => PGroupStrictApply()));
-        pLeftPanel.Children.Add(PGroupButtonBuild(
-            "/PAssets/PPanels/PGroupLoose.svg",
-            LLocalization.LLocalizationTextRead("Group.Loose.Tooltip"),
-            (_, _) => PGroupLooseApply()));
-
-        var pRightPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-        Button pSortButton = PGroupButtonBuild(
-            "/PAssets/PPanels/PSort.svg",
-            LLocalization.LLocalizationTextRead("Group.Sort.Tooltip"),
-            (_, _) => PGroupSort());
-        pSortButton.Margin = new Thickness(0);
-        pRightPanel.Children.Add(pSortButton);
-
-        var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6), MinHeight = 26 };
-        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(pLeftPanel, 0);
-        Grid.SetColumn(pRightPanel, 2);
-        pActionGrid.Children.Add(pLeftPanel);
-        pActionGrid.Children.Add(pRightPanel);
-
-        return new Border
-        {
-            BorderBrush = pGroupLineBrush,
-            BorderThickness = new Thickness(0, 1, 0, 0),
-            Background = Brushes.White,
-            Child = pActionGrid
-        };
-    }
-
     private UIElement PGroupStripBuild()
     {
         Button pMaximizeButton = PGroupButtonBuild(

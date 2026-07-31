@@ -10,11 +10,11 @@ public sealed class PMergeTab : PTabSurface
     private readonly PViewer pViewer = new();
     private readonly PList pList = new();
     private readonly PGroup pGroup = new();
+    private readonly PAction pAction = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PMergeTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
     {
-        var pAction = new PAction();
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMerge.LMergeDescribe(
             pPriority, pGroup.PGroupGroupsRead(), lExportSpecificState, pAction.PActionRelayTarget, pAction.PActionSourceTab);
@@ -31,11 +31,34 @@ public sealed class PMergeTab : PTabSurface
             pList.PListPathsAdd(pDropPaths);
             return PList.PListMediaScan(pDropPaths);
         };
+        pList.PListItemsAdd += PMergeItemsHandle;
+        LCourier.LCourierBatchFinish += PMergeRelayFinishHandle;
         PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
+        pGroup.PGroupModeSeed(
+            lPreferenceTabLayout?.LPreferenceGroupAuto ?? false,
+            lPreferenceTabLayout?.LPreferenceGroupStrict ?? true);
     }
+
+    private void PMergeItemsHandle(IReadOnlyList<PListItem> pAddedItems)
+    {
+        if (pGroup.PGroupAutoCheck() && pAddedItems.Any(pItem => pItem.PListItemRelay == Guid.Empty))
+        {
+            pGroup.PGroupAutoRegroup();
+        }
+    }
+
+    private void PMergeRelayFinishHandle(Guid pRelayId, Guid pTargetTabId)
+    {
+        if (pGroup.PGroupAutoCheck() && pTargetTabId == pAction.PActionSourceTab)
+        {
+            pGroup.PGroupAutoRegroup();
+        }
+    }
+
+    public override void PTabClose() => LCourier.LCourierBatchFinish -= PMergeRelayFinishHandle;
 
     private void PMergePathShow(string? pSourcePath)
     {
@@ -49,5 +72,12 @@ public sealed class PMergeTab : PTabSurface
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
     public override PGroup? PTabGroup => pGroup;
-    public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
+
+    public override LPreferenceTabLayoutRecord PTabLayoutRead()
+    {
+        LPreferenceTabLayoutRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        lPreferenceTabLayout.LPreferenceGroupAuto = pGroup.PGroupAutoCheck();
+        lPreferenceTabLayout.LPreferenceGroupStrict = pGroup.PGroupStrictCheck();
+        return lPreferenceTabLayout;
+    }
 }

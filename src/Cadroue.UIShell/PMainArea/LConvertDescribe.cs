@@ -6,25 +6,36 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed record LConvertWorkDescription(
     IReadOnlyList<string> LConvertSourcePaths,
     LWorkOutput LConvertOutput,
-    IReadOnlyDictionary<string, LWorkMedia>? LConvertMedia = null);
+    IReadOnlyDictionary<string, LWorkMedia>? LConvertMedia = null,
+    IReadOnlyDictionary<string, Guid>? LConvertRelays = null);
 
 public static partial class LConvert
 {
     public static async Task<int> LConvertDescribe(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<string> lConvertSourcePaths,
+        IReadOnlyList<PListItem> lConvertSources,
         LPreset lExportSpecificState,
         Guid lConvertRelayTarget = default,
         Guid lConvertRelaySource = default)
     {
         LWorkOutput lConvertOutput = lExportSpecificState.LPresetOutputCreate();
-        LConvertWorkDescription lConvertWorkDescription = new(lConvertSourcePaths, lConvertOutput);
+        string[] lConvertSourcePaths = lConvertSources
+            .Select(lConvertSource => lConvertSource.PListItemPath)
+            .ToArray();
+        var lConvertRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        foreach (PListItem lConvertSource in lConvertSources)
+        {
+            lConvertRelays[lConvertSource.PListItemPath] = lConvertSource.PListItemRelay;
+        }
+
+        LConvertWorkDescription lConvertWorkDescription =
+            new(lConvertSourcePaths, lConvertOutput, null, lConvertRelays);
 
         IReadOnlyList<LWorkItem> lConvertWorkItems =
             LConvert.LConvertInterpret(lWorkPriority, lConvertWorkDescription);
         int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems, lConvertRelayTarget, lConvertRelaySource);
         LTraceLog.LTraceInfoRecord(
-            $"Convert queued {lConvertAdded} job(s) at {lWorkPriority} from {lConvertSourcePaths.Count} listed file(s)");
+            $"Convert queued {lConvertAdded} job(s) at {lWorkPriority} from {lConvertSourcePaths.Length} listed file(s)");
 
         await LConvertDurationResolve(lConvertWorkItems).ConfigureAwait(true);
         return lConvertAdded;

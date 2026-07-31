@@ -30,7 +30,7 @@ public sealed partial class PList : PPanel
 
     private readonly StackPanel pListRowPanel;
     private readonly TextBlock pListEmptyNotice;
-    private readonly List<string> pListPaths = [];
+    private readonly List<PListItem> pListItems = [];
     private readonly UIElement pListFullBody;
     private readonly UIElement pListStripBody;
     private string? pListPathCurrent;
@@ -42,6 +42,7 @@ public sealed partial class PList : PPanel
     public event Action<string?>? PListPathChange;
     public event Action<bool>? PListMinimizeChange;
     public event Action<IReadOnlyList<string>>? PListClearChange;
+    public event Action<IReadOnlyList<PListItem>>? PListItemsAdd;
 
     public PList() : base("")
     {
@@ -121,11 +122,20 @@ public sealed partial class PList : PPanel
         return pStrip;
     }
 
-    public IReadOnlyList<string> PListPathsRead() => pListPaths.ToArray();
+    public IReadOnlyList<string> PListPathsRead() =>
+        pListItems.Select(pListItem => pListItem.PListItemPath).ToArray();
+
+    public IReadOnlyList<PListItem> PListItemsRead() => pListItems.ToArray();
 
     public string? PListCurrentRead() => pListPathCurrent;
 
-    public int PListPathsAdd(IEnumerable<string> pAddPaths)
+    public PListItem? PListCurrentItemRead() =>
+        pListPathCurrent is { } pListCurrentPath
+            ? pListItems.FirstOrDefault(pListItem =>
+                string.Equals(pListItem.PListItemPath, pListCurrentPath, StringComparison.OrdinalIgnoreCase))
+            : null;
+
+    public int PListPathsAdd(IEnumerable<string> pAddPaths, Guid pAddRelay = default)
     {
         IReadOnlyList<string> pScannedPaths = PListMediaScan(pAddPaths);
         if (pScannedPaths.Count == 0)
@@ -133,21 +143,28 @@ public sealed partial class PList : PPanel
             return 0;
         }
 
-        int pAddedCount = 0;
+        var pAddedItems = new List<PListItem>();
         foreach (string pMediaPath in pScannedPaths)
         {
-            if (pListPaths.Any(pExisting => string.Equals(pExisting, pMediaPath, StringComparison.OrdinalIgnoreCase)))
+            if (pListItems.Any(pExisting =>
+                string.Equals(pExisting.PListItemPath, pMediaPath, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;
             }
 
-            pListPaths.Add(pMediaPath);
-            pAddedCount++;
+            var pAddedItem = new PListItem(pMediaPath, pAddRelay);
+            pListItems.Add(pAddedItem);
+            pAddedItems.Add(pAddedItem);
         }
 
         PListRowsRebuild();
         PListSelectApply(pScannedPaths[0]);
-        return pAddedCount;
+        if (pAddedItems.Count > 0)
+        {
+            PListItemsAdd?.Invoke(pAddedItems);
+        }
+
+        return pAddedItems.Count;
     }
 
     public static bool PListMediaCheck(string pMediaPath) =>
@@ -304,22 +321,23 @@ public sealed partial class PList : PPanel
             return;
         }
 
-        int pRemovedIndex = pListPaths.IndexOf(pRemovedPaths[0]);
+        int pRemovedIndex = PListIndexRead(pRemovedPaths[0]);
         foreach (string pRemovedPath in pRemovedPaths)
         {
-            pListPaths.Remove(pRemovedPath);
+            pListItems.RemoveAll(pListItem =>
+                string.Equals(pListItem.PListItemPath, pRemovedPath, StringComparison.OrdinalIgnoreCase));
         }
 
         PListRowsRebuild();
-        PListSelectApply(pListPaths.Count == 0
+        PListSelectApply(pListItems.Count == 0
             ? null
-            : pListPaths[Math.Clamp(pRemovedIndex, 0, pListPaths.Count - 1)]);
+            : pListItems[Math.Clamp(pRemovedIndex, 0, pListItems.Count - 1)].PListItemPath);
     }
 
     public void PListClear()
     {
-        string[] pListRemovedPaths = pListPaths.ToArray();
-        pListPaths.Clear();
+        string[] pListRemovedPaths = pListItems.Select(pListItem => pListItem.PListItemPath).ToArray();
+        pListItems.Clear();
         PListRowsRebuild();
         PListSelectApply(null);
         if (pListRemovedPaths.Length > 0)
@@ -333,11 +351,11 @@ public sealed partial class PList : PPanel
         var pListRemovedPaths = new List<string>();
         foreach (string pRemovePath in pRemovePaths)
         {
-            string? pListMatch = pListPaths.FirstOrDefault(
-                pExisting => string.Equals(pExisting, pRemovePath, StringComparison.OrdinalIgnoreCase));
-            if (pListMatch is not null && pListPaths.Remove(pListMatch))
+            PListItem? pListMatch = pListItems.FirstOrDefault(
+                pExisting => string.Equals(pExisting.PListItemPath, pRemovePath, StringComparison.OrdinalIgnoreCase));
+            if (pListMatch is not null && pListItems.Remove(pListMatch))
             {
-                pListRemovedPaths.Add(pListMatch);
+                pListRemovedPaths.Add(pListMatch.PListItemPath);
             }
         }
 
@@ -347,7 +365,7 @@ public sealed partial class PList : PPanel
         }
 
         PListRowsRebuild();
-        PListSelectApply(pListPaths.Count == 0 ? null : pListPaths[0]);
+        PListSelectApply(pListItems.Count == 0 ? null : pListItems[0].PListItemPath);
         PListClearChange?.Invoke(pListRemovedPaths);
         return pListRemovedPaths.Count;
     }
@@ -355,9 +373,9 @@ public sealed partial class PList : PPanel
     private void PListRowsRebuild()
     {
         pListRowPanel.Children.Clear();
-        foreach (string pRowPath in pListPaths)
+        foreach (PListItem pListItem in pListItems)
         {
-            pListRowPanel.Children.Add(PListRowBuild(pRowPath));
+            pListRowPanel.Children.Add(PListRowBuild(pListItem.PListItemPath));
         }
 
         PListEmptyUpdate();
@@ -458,6 +476,6 @@ public sealed partial class PList : PPanel
 
     private void PListEmptyUpdate()
     {
-        pListEmptyNotice.Visibility = pListPaths.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        pListEmptyNotice.Visibility = pListItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 }

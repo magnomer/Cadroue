@@ -395,7 +395,7 @@ public sealed partial class PRoster
 
         LTabset.LTabsetCurrent?.LTabsetSelect(pTargetRecord);
         pTargetList.PListClear();
-        pTargetList.PListPathsAdd(pRelayPaths);
+        pTargetList.PListPathsAdd(pRelayPaths, Guid.NewGuid());
     }
 
     private static TextBlock PRosterCellAdd(Grid pGrid, int pColumn, string pText, Brush pBrush)

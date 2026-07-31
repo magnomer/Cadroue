@@ -19,9 +19,16 @@ public static partial class LConvert
 
         LWorkOutput lConvertOutput = lConvertWorkDescription.LConvertOutput;
         var lConvertWorkItems = new List<LWorkItem>();
+        Guid lConvertLooseBatch = Guid.NewGuid();
 
         foreach (string lConvertSourcePath in lConvertSourcePaths)
         {
+            Guid lConvertBatch = lConvertWorkDescription.LConvertRelays is { } lConvertRelayMap
+                && lConvertRelayMap.TryGetValue(lConvertSourcePath, out Guid lConvertRelay)
+                && lConvertRelay != Guid.Empty
+                ? lConvertRelay
+                : lConvertLooseBatch;
+
             LWorkMedia? lConvertMedia = null;
             if (lConvertWorkDescription.LConvertMedia is { } lConvertMap)
             {
@@ -35,7 +42,7 @@ public static partial class LConvert
             string lConvertOutputName = LConvertNameCreate(lConvertOutput, lConvertSourcePath, lConvertFolder);
 
             lConvertWorkItems.Add(new LWorkItem(
-                Guid.NewGuid(),
+                lConvertBatch,
                 LWorkKind.LWorkKindConvert,
                 lWorkPriority,
                 lConvertSourcePath,

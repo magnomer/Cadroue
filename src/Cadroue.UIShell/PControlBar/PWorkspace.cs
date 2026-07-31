@@ -79,6 +79,7 @@ public sealed class PWorkspace
         }
 
         PWorkspaceExportState.LPresetChange -= PWorkspaceExportHandle;
+        PWorkspaceSurface.PTabClose();
         PWorkspaceFlow?.PFlowClose();
         PWorkspaceViewer?.PViewerClose();
     }
