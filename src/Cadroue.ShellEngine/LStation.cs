@@ -1,9 +1,7 @@
-using System.Windows;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.ShellEngine;
 
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.ShellEngine;
 
 public sealed class LStation
 {
@@ -12,15 +10,23 @@ public sealed class LStation
 
     private bool lStationAutoActive;
 
+    public static LScheduleContract? LStationSchedule { get; set; }
+
+    public static Action<Action>? LStationPost { get; set; }
+
+    public static Func<string>? LStationProgramSource { get; set; }
+
+    public static Func<LPreferenceState>? LStationPreferenceSource { get; set; }
+
     private LStation(string lStationLabel)
     {
         LStationLabel = lStationLabel;
-        LStationRunner = new LRunner(PProgram.LScheduleCurrent, LStationDispatch)
+        LStationRunner = new LRunner(LStationSchedule!, LStationPost!)
         {
-            LRunnerProgramPath = LRenderer.LRendererProgramCurrent
+            LRunnerProgramPath = LStationProgramSource!()
         };
-        lStationAutoActive = LPreference.LPreferenceStateCurrent.LPreferenceAutoActive;
-        PProgram.LScheduleCurrent.LScheduleChange += LStationScheduleHandle;
+        lStationAutoActive = LStationPreferenceSource!().LPreferenceAutoActive;
+        LStationSchedule!.LScheduleChange += LStationScheduleHandle;
     }
 
     public string LStationLabel { get; private set; }
@@ -101,13 +107,13 @@ public sealed class LStation
     {
         if (!lStationAutoActive
             || LStationRunner.LRunnerRunning
-            || !PProgram.LScheduleCurrent.LSchedulePendingExist())
+            || !LStationSchedule!.LSchedulePendingExist())
         {
             return;
         }
 
-        LPreferenceState lPreferenceState = LPreference.LPreferenceStateCurrent;
-        LStationRunner.LRunnerProgramPath = LRenderer.LRendererProgramCurrent;
+        LPreferenceState lPreferenceState = LStationPreferenceSource!();
+        LStationRunner.LRunnerProgramPath = LStationProgramSource!();
         LStationRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
         LStationRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
         LStationRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;
@@ -119,7 +125,7 @@ public sealed class LStation
     {
         lStationAutoActive = false;
         LStationSelectionSource = null;
-        PProgram.LScheduleCurrent.LScheduleChange -= LStationScheduleHandle;
+        LStationSchedule!.LScheduleChange -= LStationScheduleHandle;
         if (!lStationRecords.Remove(this))
         {
             return;
@@ -143,16 +149,5 @@ public sealed class LStation
 
         lStationInternal.LStationRunner.LRunnerDispose();
         lStationInternal = null;
-    }
-
-    private static void LStationDispatch(Action lStationAction)
-    {
-        if (System.Windows.Application.Current?.Dispatcher is { } lStationDispatcher)
-        {
-            lStationDispatcher.Invoke(lStationAction);
-            return;
-        }
-
-        lStationAction();
     }
 }

@@ -6,6 +6,7 @@ using Cadroue.UIShell.PMainWindow;
 
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIShell;
 
@@ -22,6 +23,25 @@ public partial class PProgram : System.Windows.Application
         LRelay? lRelayPayload = LRelayStartupPayload;
         LRelayStartupPayload = null;
         return lRelayPayload;
+    }
+
+    private static void LStationSeamApply()
+    {
+        LStation.LStationSchedule = LScheduleCurrent;
+        LStation.LStationPost = LStationDispatch;
+        LStation.LStationProgramSource = () => LRenderer.LRendererProgramCurrent;
+        LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
+    }
+
+    private static void LStationDispatch(Action lStationAction)
+    {
+        if (Current?.Dispatcher is { } lStationDispatcher)
+        {
+            lStationDispatcher.Invoke(lStationAction);
+            return;
+        }
+
+        lStationAction();
     }
 
     protected override void OnStartup(StartupEventArgs e)
@@ -56,6 +76,7 @@ public partial class PProgram : System.Windows.Application
         LPlacementImport();
 
         Cadroue.Media.LTool.LToolFolderSource = () => LRenderer.LRendererFolderCurrent;
+        LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
         PPanels.PSEncoder.PSCodecProbeStart();
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
