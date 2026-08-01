@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 
+using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 using FlyleafLib;
@@ -9,6 +10,19 @@ namespace Cadroue.UIShell;
 
 internal static class LRenderer
 {
+    internal static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererDefaultCreate();
+
+    internal static string LRendererFolderCurrent =>
+        string.IsNullOrWhiteSpace(LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder)
+            ? LRendererSettingsCurrent.LRendererLibraryFolder ?? string.Empty
+            : LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
+
+    internal static string LRendererProgramCurrent =>
+        LRendererLibrary.LRendererProgramRead(LRendererFolderCurrent);
+
+    internal static void LRendererSettingsLoad() =>
+        LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
+
     internal static void LRendererFlyleafStart()
     {
         try
@@ -20,13 +34,13 @@ internal static class LRenderer
             };
             LRendererLogApply(lRendererEngineConfig, LTrace.LTraceVerbose);
 
-            if (LRendererLibrary.LRendererFolderValidate(PProgram.LPreferenceStateCurrent.LPreferenceFfmpegFolder))
+            if (LRendererLibrary.LRendererFolderValidate(LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder))
             {
-                lRendererEngineConfig.FFmpegPath = PProgram.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
+                lRendererEngineConfig.FFmpegPath = LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
             }
-            else if (LRendererLibrary.LRendererFolderValidate(PProgram.LRendererSettingsCurrent.LRendererLibraryFolder))
+            else if (LRendererLibrary.LRendererFolderValidate(LRendererSettingsCurrent.LRendererLibraryFolder))
             {
-                lRendererEngineConfig.FFmpegPath = PProgram.LRendererSettingsCurrent.LRendererLibraryFolder;
+                lRendererEngineConfig.FFmpegPath = LRendererSettingsCurrent.LRendererLibraryFolder;
             }
             else
             {

@@ -102,7 +102,7 @@ internal sealed partial class PSOptions : Window
 
     private PSOptions(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
-        lsOptionsDraft = PProgram.LPreferenceStateCurrent.LPreferenceClone();
+        lsOptionsDraft = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         psOptionsCallback = pApplyCallback;
 
         psOptionsStartupSession = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Startup.LastSession"), lsOptionsDraft.LPreferenceStartupMode == "LastSession");
@@ -302,10 +302,10 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text.Trim();
 
         lsOptionsDraft.LPreferenceNormalize();
-        string psLanguagePrevious = PProgram.LPreferenceStateCurrent.LPreferenceLanguage;
-        PProgram.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
-        psOptionsCallback?.Invoke(PProgram.LPreferenceStateCurrent);
-        if (!string.Equals(psLanguagePrevious, PProgram.LPreferenceStateCurrent.LPreferenceLanguage, StringComparison.Ordinal))
+        string psLanguagePrevious = LPreference.LPreferenceStateCurrent.LPreferenceLanguage;
+        LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
+        psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
+        if (!string.Equals(psLanguagePrevious, LPreference.LPreferenceStateCurrent.LPreferenceLanguage, StringComparison.Ordinal))
         {
             MessageBox.Show(
                 this,

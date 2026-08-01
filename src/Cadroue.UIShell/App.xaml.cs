@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PMainWindow;
 
@@ -13,25 +11,9 @@ namespace Cadroue.UIShell;
 
 public partial class PProgram : System.Windows.Application
 {
-    public static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererDefaultCreate();
-    public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();
-    public static Cadroue.Core.LFrameState LFrameStateCurrent { get; private set; } = Cadroue.Core.LFrameState.LFrameDefaultCreate();
-    public static List<LBindingRecord> LBindingCurrent { get; private set; } = LBinding.LBindingNormalize(null);
-    public static LSceneRecord LSceneCurrent { get; private set; } = new();
-    public static string LSceneActiveName { get; private set; } = string.Empty;
     public static LScheduleContract LScheduleCurrent { get; private set; } = new Cadroue.Infrastructure.LSchedule();
 
     private static string? lDepotRootApplied;
-
-    public static string LRendererFolderCurrent =>
-        string.IsNullOrWhiteSpace(LPreferenceStateCurrent.LPreferenceFfmpegFolder)
-            ? LRendererSettingsCurrent.LRendererLibraryFolder ?? string.Empty
-            : LPreferenceStateCurrent.LPreferenceFfmpegFolder;
-
-    public static string LRendererProgramCurrent =>
-        LRendererLibrary.LRendererProgramRead(LRendererFolderCurrent);
-
-    private static DispatcherTimer? lPreferenceSaveTimer;
 
     public static LRelay? LRelayStartupPayload { get; private set; }
 
@@ -58,23 +40,22 @@ public partial class PProgram : System.Windows.Application
         };
 
         LRelayStartupRead(e.Args);
-        LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
+        LRenderer.LRendererSettingsLoad();
 
-        LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
-        LPreferenceStateCurrent.LPreferenceLanguage = LLocalization.LLocalizationLanguageNormalize(LPreferenceStateCurrent.LPreferenceLanguage);
-        LFrameStateCurrent = Cadroue.Infrastructure.LFrameStore.LFrameLoad();
-        LBindingCurrent = LBinding.LBindingNormalize(LBindingStore.LBindingLoad());
-        LSceneCurrent = LScene.LSceneStateLoad();
-        LSceneActiveName = LSceneCurrent.LSceneName;
-        LLocalization.LLocalizationLoad(LPreferenceStateCurrent.LPreferenceLanguage);
-        LTrace.LTraceVerbose = LPreferenceStateCurrent.LPreferenceLogVerbose;
-        Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
+        LPreference.LPreferenceWorkspaceCallback = LPreferenceWorkspaceHandle;
+        LPreference.LPreferenceLoad();
+        Cadroue.Infrastructure.LFrameStore.LFrameLoad();
+        LBinding.LBindingLoad();
+        LScene.LSceneCurrentLoad();
+        LLocalization.LLocalizationLoad(LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
+        LTrace.LTraceVerbose = LPreference.LPreferenceStateCurrent.LPreferenceLogVerbose;
+        Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
         LFlyleaf.LFlyleafResolverAttach();
         base.OnStartup(e);
         PFlow.PSectionPalette.PSectionPaletteLoad();
         LPlacementImport();
 
-        Cadroue.Media.LTool.LToolFolderSource = () => LRendererFolderCurrent;
+        Cadroue.Media.LTool.LToolFolderSource = () => LRenderer.LRendererFolderCurrent;
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
         PPanels.PSEncoder.PSCodecProbeStart();
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
@@ -124,32 +105,10 @@ public partial class PProgram : System.Windows.Application
         }
     }
 
-    public static void LPreferenceStateSet(LPreferenceState lPreferenceState)
+    private static void LPreferenceWorkspaceHandle()
     {
-        lPreferenceSaveTimer?.Stop();
-        lPreferenceState.LPreferenceNormalize();
-        lPreferenceState.LPreferenceLanguage = LLocalization.LLocalizationLanguageNormalize(lPreferenceState.LPreferenceLanguage);
-        foreach (string lPreferenceChange in lPreferenceState.LPreferenceDifferenceRead(LPreferenceStateCurrent))
-        {
-            LTraceLog.LTraceInfoRecord($"Preference changed — {lPreferenceChange}");
-        }
-
-        LPreferenceStateCurrent = lPreferenceState;
-        LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
         LDepotRootApply();
         LSidecarFolderApply();
-    }
-
-    public static void LFrameSave(Cadroue.Core.LFrameState lFrameState)
-    {
-        LFrameStateCurrent = lFrameState;
-        Cadroue.Infrastructure.LFrameStore.LFrameSave(lFrameState);
-    }
-
-    public static void LBindingSet(List<LBindingRecord> lBindingRecords)
-    {
-        LBindingCurrent = LBinding.LBindingNormalize(lBindingRecords);
-        LBindingStore.LBindingSave(LBindingCurrent);
     }
 
     public static void LSidecarFolderApply()
@@ -158,14 +117,14 @@ public partial class PProgram : System.Windows.Application
             System.IO.Path.Combine(
                 Cadroue.Infrastructure.LDepot.LDepotRootRead(),
                 Cadroue.Media.LSidecarStore.LSidecarRecordFolder),
-            LPreferenceStateCurrent.LPreferenceRecordWorkspace);
+            LPreference.LPreferenceStateCurrent.LPreferenceRecordWorkspace);
     }
 
     private static void LDepotRootApply()
     {
         try
         {
-            Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
+            Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
             string lDepotRoot = Cadroue.Infrastructure.LDepot.LDepotRootRead();
             if (string.Equals(lDepotRoot, lDepotRootApplied, StringComparison.OrdinalIgnoreCase))
             {
@@ -283,68 +242,6 @@ public partial class PProgram : System.Windows.Application
             LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: the move failed", lException);
             return false;
         }
-    }
-
-    public static void LPreferenceVolumeSet(double lPreferenceVolume)
-    {
-        double lVolume = LPreferenceState.LPreferenceVolumeClamp(lPreferenceVolume);
-        if (Math.Abs(lVolume - LPreferenceStateCurrent.LPreferenceVolume) < 0.0001)
-        {
-            return;
-        }
-
-        LPreferenceStateCurrent = LPreferenceStateCurrent.LPreferenceVolumeChange(lVolume);
-        LPreferenceDefer();
-    }
-
-    public static void LPreferenceMediaSet(string? lPreferenceMediaPath)
-    {
-        string lMediaPath = (lPreferenceMediaPath ?? string.Empty).Trim();
-        if (string.Equals(lMediaPath, LPreferenceStateCurrent.LPreferenceMediaPath, StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
-        lPreferenceNext.LPreferenceMediaPath = lMediaPath;
-        LPreferenceStateCurrent = lPreferenceNext;
-        LPreferenceDefer();
-    }
-
-    public static void LPreferenceAutoSet(bool lPreferenceAutoResume)
-    {
-        if (lPreferenceAutoResume == LPreferenceStateCurrent.LPreferenceAutoActive)
-        {
-            return;
-        }
-
-        LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
-        lPreferenceNext.LPreferenceAutoActive = lPreferenceAutoResume;
-        LPreferenceStateCurrent = lPreferenceNext;
-        LPreferenceDefer();
-    }
-
-    public static void LSceneActiveSet(string lSceneActiveName)
-    {
-        LSceneActiveName = lSceneActiveName ?? string.Empty;
-    }
-
-    private static void LPreferenceDefer()
-    {
-        lPreferenceSaveTimer ??= LPreferenceTimerCreate();
-        lPreferenceSaveTimer.Stop();
-        lPreferenceSaveTimer.Start();
-    }
-
-    private static DispatcherTimer LPreferenceTimerCreate()
-    {
-        var lPreferenceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
-        lPreferenceTimer.Tick += (_, _) =>
-        {
-            lPreferenceTimer.Stop();
-            LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
-        };
-        return lPreferenceTimer;
     }
 
 }

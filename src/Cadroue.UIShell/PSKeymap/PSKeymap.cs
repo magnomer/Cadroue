@@ -47,7 +47,7 @@ internal sealed class PSKeymap : Window
 
     private PSKeymap(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
-        lsKeymapDraft = LBinding.LBindingNormalize(PProgram.LBindingCurrent);
+        lsKeymapDraft = LBinding.LBindingNormalize(LBinding.LBindingCurrent);
         psKeymapCallback = pApplyCallback;
 
         foreach (LBindingCommand pCommand in LBinding.LBindingCatalogRead())
@@ -202,8 +202,8 @@ internal sealed class PSKeymap : Window
             })
             .ToList();
 
-        PProgram.LBindingSet(psKeymapApplied);
-        psKeymapCallback?.Invoke(PProgram.LPreferenceStateCurrent);
+        LBinding.LBindingSet(psKeymapApplied);
+        psKeymapCallback?.Invoke(LPreference.LPreferenceStateCurrent);
     }
 
     private void PSKeymapCloseHandle(object? sender, EventArgs e)

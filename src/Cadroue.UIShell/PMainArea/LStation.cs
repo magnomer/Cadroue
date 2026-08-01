@@ -17,9 +17,9 @@ public sealed class LStation
         LStationLabel = lStationLabel;
         LStationRunner = new LRunner(PProgram.LScheduleCurrent, LStationDispatch)
         {
-            LRunnerProgramPath = PProgram.LRendererProgramCurrent
+            LRunnerProgramPath = LRenderer.LRendererProgramCurrent
         };
-        lStationAutoActive = PProgram.LPreferenceStateCurrent.LPreferenceAutoActive;
+        lStationAutoActive = LPreference.LPreferenceStateCurrent.LPreferenceAutoActive;
         PProgram.LScheduleCurrent.LScheduleChange += LStationScheduleHandle;
     }
 
@@ -106,8 +106,8 @@ public sealed class LStation
             return;
         }
 
-        LPreferenceState lPreferenceState = PProgram.LPreferenceStateCurrent;
-        LStationRunner.LRunnerProgramPath = PProgram.LRendererProgramCurrent;
+        LPreferenceState lPreferenceState = LPreference.LPreferenceStateCurrent;
+        LStationRunner.LRunnerProgramPath = LRenderer.LRendererProgramCurrent;
         LStationRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
         LStationRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
         LStationRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;

@@ -103,7 +103,7 @@ public sealed partial class PFlow : UserControl
         root.Children.Add(pDividerThumb);
         root.Children.Add(reelGrid);
         Content = root;
-        Height = PProgram.LFrameStateCurrent.LFrameFlowHeight;
+        Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
     }
 
     public void PFlowAttach(LMediaInfo mediaInfo, string? sourcePath, TimeSpan cursorTime)
@@ -257,7 +257,7 @@ public sealed partial class PFlow : UserControl
         int pWheelSteps = e.Delta / 120;
         if (pWheelSteps == 0) pWheelSteps = e.Delta > 0 ? 1 : -1;
 
-        switch (PProgram.LPreferenceStateCurrent.LPreferenceWheelAction)
+        switch (LPreference.LPreferenceStateCurrent.LPreferenceWheelAction)
         {
             case "Zoom":
                 PFlowWheelZoom(pWheelSteps);
@@ -301,7 +301,7 @@ public sealed partial class PFlow : UserControl
 
     internal void PFlowDragSet(bool pFlowDragging)
     {
-        if (!pFlowCommandActive || !PProgram.LPreferenceStateCurrent.LPreferenceDragPaused) return;
+        if (!pFlowCommandActive || !LPreference.LPreferenceStateCurrent.LPreferenceDragPaused) return;
 
         if (pFlowDragging)
         {

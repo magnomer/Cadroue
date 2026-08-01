@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell;
 
@@ -47,6 +48,17 @@ public static class LBinding
         LBindingScopeFlow,
         LBindingScopeSplit
     };
+
+    public static List<LBindingRecord> LBindingCurrent { get; private set; } = LBindingNormalize(null);
+
+    public static void LBindingLoad() =>
+        LBindingCurrent = LBindingNormalize(LBindingStore.LBindingLoad());
+
+    public static void LBindingSet(List<LBindingRecord> lBindingRecords)
+    {
+        LBindingCurrent = LBindingNormalize(lBindingRecords);
+        LBindingStore.LBindingSave(LBindingCurrent);
+    }
 
     public static IReadOnlyList<LBindingCommand> LBindingCatalogRead() => lBindingCatalog;
 

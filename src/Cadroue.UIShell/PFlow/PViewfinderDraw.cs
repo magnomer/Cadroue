@@ -346,7 +346,7 @@ public sealed partial class PViewfinder
 
         double keyframeMinimumGap = Math.Max(
             PViewfinderKeyframeWidth,
-            PProgram.LPreferenceStateCurrent.LPreferenceKeyframePixels);
+            LPreference.LPreferenceStateCurrent.LPreferenceKeyframePixels);
         for (int keyframeIndex = 1; keyframeIndex < visibleSearchOffsets.Length; keyframeIndex++)
         {
             if (visibleSearchOffsets[keyframeIndex] - visibleSearchOffsets[keyframeIndex - 1] < keyframeMinimumGap)

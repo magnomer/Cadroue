@@ -256,7 +256,7 @@ public static class LCourier
 
     private static void LCourierSourceRemove(LWorkItem lWorkItem, bool lCourierForce)
     {
-        if ((!lCourierForce && !PProgram.LPreferenceStateCurrent.LPreferenceRelayEmpty)
+        if ((!lCourierForce && !LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty)
             || lWorkItem.LWorkRelaySource == Guid.Empty
             || LCourierTabFind(lWorkItem.LWorkRelaySource) is not { } pCourierSource)
         {

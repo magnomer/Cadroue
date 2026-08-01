@@ -15,6 +15,19 @@ public static class LScene
     private const string LSceneStateFileName = "session.json";
     private static readonly List<LSceneRecord> lSceneRecords = LSceneLoad();
 
+    public static LSceneRecord LSceneCurrent { get; private set; } = new();
+
+    public static string LSceneActiveName { get; private set; } = string.Empty;
+
+    public static void LSceneCurrentLoad()
+    {
+        LSceneCurrent = LSceneStateLoad();
+        LSceneActiveName = LSceneCurrent.LSceneName;
+    }
+
+    public static void LSceneActiveSet(string lSceneActiveName) =>
+        LSceneActiveName = lSceneActiveName ?? string.Empty;
+
     public static LSceneRecord LSceneStateLoad()
     {
         string lScenePath = Path.Combine(

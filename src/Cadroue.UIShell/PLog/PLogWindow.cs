@@ -119,9 +119,9 @@ public sealed partial class PLogWindow : Window
         }
 
         LTrace.LTraceVerbose = pLogVerboseOn;
-        LPreferenceState pLogPreferenceNext = PProgram.LPreferenceStateCurrent.LPreferenceClone();
+        LPreferenceState pLogPreferenceNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         pLogPreferenceNext.LPreferenceLogVerbose = pLogVerboseOn;
-        PProgram.LPreferenceStateSet(pLogPreferenceNext);
+        LPreference.LPreferenceStateSet(pLogPreferenceNext);
     }
 
     private void PLogCloseHandle(object? sender, EventArgs e)

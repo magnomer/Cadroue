@@ -6,7 +6,7 @@ namespace Cadroue.UIShell.PFlow;
 public sealed partial class PFlow
 {
     private readonly LWaveformOrchestrator lWaveformOrchestrator = new();
-    private bool pFlowWaveformActive = PProgram.LPreferenceStateCurrent.LPreferenceWaveform;
+    private bool pFlowWaveformActive = LPreference.LPreferenceStateCurrent.LPreferenceWaveform;
 
     public event Action<bool>? PFlowWaveformChange;
 

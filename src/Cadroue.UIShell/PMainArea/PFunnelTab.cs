@@ -80,7 +80,7 @@ public sealed class PFunnelTab : PTabSurface
             }
         }
 
-        if (PProgram.LPreferenceStateCurrent.LPreferenceRelayEmpty && pRelayedPaths.Count > 0)
+        if (LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty && pRelayedPaths.Count > 0)
         {
             pList.PListPathsRemove(pRelayedPaths);
         }

@@ -39,7 +39,7 @@ public sealed partial class PViewer : PPanel
     private int pViewerEdgeX;
     private int pViewerEdgeY;
     private int pViewerLoadSerial;
-    private double pViewerVolume = PProgram.LPreferenceStateCurrent.LPreferenceVolume;
+    private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private bool pViewerAudioAllowed;
     private bool pViewerCommandActive;
     private bool pViewerResumeInactive;
@@ -201,8 +201,8 @@ public sealed partial class PViewer : PPanel
     {
         if (!pViewerCommandActive) return;
         pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
-        if (PProgram.LPreferenceStateCurrent.LPreferenceVolumeUnified)
-            PProgram.LPreferenceVolumeSet(pViewerVolume);
+        if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
+            LPreference.LPreferenceVolumeSet(pViewerVolume);
         if (pViewerPlayer is null)
         {
             return;
@@ -254,7 +254,7 @@ public sealed partial class PViewer : PPanel
             sourcePath = pResolvedPath;
         }
 
-        PProgram.LPreferenceMediaSet(sourcePath);
+        LPreference.LPreferenceMediaSet(sourcePath);
         _ = PPlayerVideoLoad(sourcePath);
     }
 

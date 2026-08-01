@@ -9,7 +9,15 @@ public static class LFrameStore
     private const string LFrameFolderName = "Cadroue";
     private const string LFrameFileName = "frame.json";
 
+    public static LFrameState LFrameStateCurrent { get; private set; } = LFrameState.LFrameDefaultCreate();
+
     public static LFrameState LFrameLoad()
+    {
+        LFrameStateCurrent = LFrameRead();
+        return LFrameStateCurrent;
+    }
+
+    private static LFrameState LFrameRead()
     {
         string lFramePath = LFramePathCreate();
         if (!File.Exists(lFramePath))
@@ -32,6 +40,7 @@ public static class LFrameStore
 
     public static void LFrameSave(LFrameState lFrameState)
     {
+        LFrameStateCurrent = lFrameState;
         try
         {
             string lFramePath = LFramePathCreate();

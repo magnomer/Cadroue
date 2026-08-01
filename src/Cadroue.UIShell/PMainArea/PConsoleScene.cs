@@ -51,7 +51,7 @@ public sealed partial class PConsole
             PConsoleCaretAttach();
         }
 
-        pConsoleSceneName = PProgram.LSceneActiveName;
+        pConsoleSceneName = LScene.LSceneActiveName;
         PConsoleSceneUpdate();
 
         if (pConsoleSceneWindow is null && PConsoleWindowRead() is { } pWindow)
@@ -177,7 +177,7 @@ public sealed partial class PConsole
     private void PConsoleSceneSet(string lSceneName)
     {
         pConsoleSceneName = lSceneName;
-        PProgram.LSceneActiveSet(lSceneName);
+        LScene.LSceneActiveSet(lSceneName);
         PConsoleSceneUpdate();
     }
 

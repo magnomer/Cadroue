@@ -82,7 +82,7 @@ public sealed class PCompass : UserControl
         pVolumeGroup.Children.Add(PCompassVolumeBuild());
         pVolumeGroup.Children.Add(PCompassWaveformBuild(pFlow));
         pCompassLinePanel.Children.Add(pVolumeGroup);
-        PCompassValueHandle(PProgram.LPreferenceStateCurrent.LPreferenceVolume);
+        PCompassValueHandle(LPreference.LPreferenceStateCurrent.LPreferenceVolume);
         pFlow.PFlowWaveformChange += PCompassWaveformApply;
         PCompassWaveformApply(pFlow.PFlowWaveformCheck());
 

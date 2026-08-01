@@ -30,7 +30,7 @@ public sealed partial class PConsole
 
         bool pConsoleAutoResume = pConsoleAutoBox.IsChecked == true;
         PConsoleStationRead().LStationAutoActive = pConsoleAutoResume;
-        PProgram.LPreferenceAutoSet(pConsoleAutoResume);
+        LPreference.LPreferenceAutoSet(pConsoleAutoResume);
         PConsoleProgressUpdate();
     }
 
@@ -291,7 +291,7 @@ public sealed partial class PConsole
 
     private bool PConsoleDestructiveConfirm(string pConsoleQuestion)
     {
-        if (!PProgram.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
+        if (!LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
         {
             return true;
         }
@@ -306,8 +306,8 @@ public sealed partial class PConsole
 
     private static void PConsoleRunnerApply(LRunner pRunner)
     {
-        LPreferenceState lPreferenceState = PProgram.LPreferenceStateCurrent;
-        pRunner.LRunnerProgramPath = PProgram.LRendererProgramCurrent;
+        LPreferenceState lPreferenceState = LPreference.LPreferenceStateCurrent;
+        pRunner.LRunnerProgramPath = LRenderer.LRendererProgramCurrent;
         pRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
         pRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
         pRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;

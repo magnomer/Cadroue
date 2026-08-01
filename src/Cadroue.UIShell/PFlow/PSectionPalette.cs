@@ -123,7 +123,7 @@ internal static class PSectionPalette
 
     private static Brush[] PSectionSetRead(Dictionary<string, Brush[]> pSectionSets)
     {
-        string pActive = PProgram.LPreferenceStateCurrent.LPreferenceSectionPalette;
+        string pActive = LPreference.LPreferenceStateCurrent.LPreferenceSectionPalette;
         return pSectionSets.TryGetValue(pActive, out Brush[]? pBrushes)
             ? pBrushes
             : pSectionSets[PSectionPaletteDefault];

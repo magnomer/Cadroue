@@ -442,7 +442,7 @@ public sealed partial class PRoster
 
     private static bool PRosterCardConfirm(int pRemovableCount)
     {
-        if (!PProgram.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
+        if (!LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
         {
             return true;
         }

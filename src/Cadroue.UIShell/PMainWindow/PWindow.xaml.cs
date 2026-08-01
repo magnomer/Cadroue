@@ -39,13 +39,13 @@ public partial class PWindow : Window
         LRelay? lRelayStartup = PProgram.LRelayPayloadRead();
         if (lRelayStartup is null)
         {
-            PWindowTabsRestore(lTabset, PProgram.LPreferenceStateCurrent, PProgram.LSceneCurrent);
+            PWindowTabsRestore(lTabset, LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
         }
 
         pControlBar.PToolbarTabsetSet(lTabset);
         pControlBar.PToolbarOptionsApply += PWindowOptionsHandle;
-        PWindowOptionsHandle(PProgram.LPreferenceStateCurrent);
-        PWindowPositionRestore(PProgram.LFrameStateCurrent);
+        PWindowOptionsHandle(LPreference.LPreferenceStateCurrent);
+        PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
         pDeck.PDeckTabsetSet(lTabset);
         lTabset.LTabsetSelectChange += PWindowTabHandle;
         PWindowTabHandle(lTabset.PTabsetCurrent);
@@ -56,7 +56,7 @@ public partial class PWindow : Window
         }
         else
         {
-            PWindowMediaRestore(PProgram.LPreferenceStateCurrent);
+            PWindowMediaRestore(LPreference.LPreferenceStateCurrent);
         }
 
         LRelayChannel.LRelayTabReceive += PWindowRelayHandle;
@@ -250,7 +250,7 @@ public partial class PWindow : Window
         }
         pFlowActive.PFlowCommandSet(true);
         pFlowActive.PFlowSectionShow(pTabRecord.PTabLayoutKey == "Split");
-        pFlowActive.Height = PProgram.LFrameStateCurrent.LFrameFlowHeight;
+        pFlowActive.Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
         pFlowActive.PFlowOrderApply();
         pFlowActive.PFlowPlayingSource = pViewerActive.PViewerPlayingRead;
         pViewerActive.PViewerCommandSet(true);
@@ -260,7 +260,7 @@ public partial class PWindow : Window
         pFlowActive.PFlowPlay += pViewerActive.PViewerPlay;
         pFlowActive.PFlowPause += pViewerActive.PViewerPause;
         pFlowActive.PFlowVolumeChange += pViewerActive.PViewerVolumeSet;
-        PWindowVolumeSync(PProgram.LPreferenceStateCurrent);
+        PWindowVolumeSync(LPreference.LPreferenceStateCurrent);
     }
     private void PWindowWorkspaceDetach()
     {
@@ -295,12 +295,12 @@ public partial class PWindow : Window
     }
     private void PWindowOptionsHandle(LPreferenceState lPreferenceState)
     {
-        Width = PProgram.LFrameStateCurrent.LFrameWidth;
-        Height = PProgram.LFrameStateCurrent.LFrameHeight;
+        Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
+        Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         FontSize = PWindowFontSize;
         if (pFlowActive is not null)
         {
-            pFlowActive.Height = PProgram.LFrameStateCurrent.LFrameFlowHeight;
+            pFlowActive.Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
             pFlowActive.PFlowOrderApply();
             pFlowActive.PFlowPaletteApply();
         }
@@ -318,17 +318,17 @@ public partial class PWindow : Window
         Rect lBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
         if (lBounds.Width > 0 && lBounds.Height > 0)
         {
-            PProgram.LFrameSave(new LFrameState
+            LFrameStore.LFrameSave(new LFrameState
             {
                 LFrameLeft = lBounds.Left,
                 LFrameTop = lBounds.Top,
                 LFrameWidth = lBounds.Width,
                 LFrameHeight = lBounds.Height,
-                LFrameFlowHeight = PProgram.LFrameStateCurrent.LFrameFlowHeight
+                LFrameFlowHeight = LFrameStore.LFrameStateCurrent.LFrameFlowHeight
             });
         }
 
-        LScene.LSceneStateSave(PWindowSceneRead(PProgram.LSceneActiveName));
+        LScene.LSceneStateSave(PWindowSceneRead(LScene.LSceneActiveName));
         LRelayChannel.LRelayTabReceive -= PWindowRelayHandle;
         lTabset.LTabsetSelectChange -= PWindowTabHandle;
         pControlBar.PToolbarOptionsApply -= PWindowOptionsHandle;

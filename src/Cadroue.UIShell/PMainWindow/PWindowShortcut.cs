@@ -26,7 +26,7 @@ public partial class PWindow
     private bool PShortcutDispatch(Key pKey, ModifierKeys pModifiers)
     {
         string pShortcutGesture = LBinding.LBindingFormat(pKey, pModifiers);
-        string? pShortcutToken = LBinding.LBindingTokenFind(PProgram.LBindingCurrent, pShortcutGesture);
+        string? pShortcutToken = LBinding.LBindingTokenFind(LBinding.LBindingCurrent, pShortcutGesture);
         return pShortcutToken is not null && PShortcutRun(pShortcutToken);
     }
 

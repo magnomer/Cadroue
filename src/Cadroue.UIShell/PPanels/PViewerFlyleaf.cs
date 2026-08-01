@@ -344,7 +344,7 @@ public sealed partial class PViewer
             return;
         }
 
-        if (PProgram.LPreferenceStateCurrent.LPreferenceAutoplay)
+        if (LPreference.LPreferenceStateCurrent.LPreferenceAutoplay)
         {
             pViewerResumeInactive = false;
             player.Play();
