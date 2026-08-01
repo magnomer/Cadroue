@@ -11,10 +11,12 @@ public static partial class LCapabilityTable
                 new("CRF (constant rate factor)", new("CRF", "-crf", "32", 10, 49)),
                 new("ABR (target bitrate)", LCapabilityBitrateCreate("4M"))
             ],
-            new LCapabilitySpeed("Speed preset", "-preset", "medium", ["default", "fast", "medium", "slow", "placebo"]),
+            new LCapabilitySpeed("Speed preset", "-preset", "medium",
+                [new("default", "Default"), new("fast", "Fast"), new("medium", "Medium"), new("slow", "Slow"), new("placebo", "Placebo (slowest)")]),
             [
-                new LCapabilityExtra("Tune", "-tune", "none", ["none", "zerolatency", "psnr"]),
-                new LCapabilityExtra("Profile", "-profile", "baseline", ["baseline", "main"])
+                new LCapabilityExtra("Tune", "-tune", "none",
+                    [new("none", "None"), new("zerolatency", "Zero latency"), new("psnr", "PSNR")]),
+                new LCapabilityExtra("Profile", "-profile", "baseline", [new("baseline", "Baseline"), new("main", "Main")])
             ],
             "XEVE CRF range is 10-49, not the 0-51 of x264/x265."));
         yield return new("libxavs2", new(
@@ -32,7 +34,8 @@ public static partial class LCapabilityTable
                 new("CQP (constant quantizer)", new("QP", "-qp", "32", 0, 63)),
                 new("Target bitrate", LCapabilityBitrateCreate("50M"))
             ],
-            new LCapabilitySpeed("Speed preset", "-preset", "medium", ["fastest", "fast", "medium", "slow", "placebo"]),
+            new LCapabilitySpeed("Speed preset", "-preset", "medium",
+                [new("fastest", "Fastest"), new("fast", "Fast"), new("medium", "Medium"), new("slow", "Slow"), new("placebo", "Placebo (slowest)")]),
             null,
             "APV is an intra-only professional codec. Quantizer range is 0-63; there is no CRF."));
     }

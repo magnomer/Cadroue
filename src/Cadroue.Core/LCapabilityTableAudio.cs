@@ -4,8 +4,8 @@ public static partial class LCapabilityTable
 {
     private const string LCapabilityAudioBitrateLabel = "Target bitrate";
 
-    private static LCapabilityQuality LCapabilityAudioBitrateCreate(string lDefault = "192k") =>
-        new(LCapabilityAudioBitrateLabel, "-b:a", lDefault);
+    private static LCapabilityQuality LCapabilityAudioBitrateCreate(string lDefault = "192k", double lMinimum = 6, double lMaximum = 512) =>
+        new(LCapabilityAudioBitrateLabel, "-b:a", lDefault, lMinimum, lMaximum);
 
     public static LCapabilityCodec LCapabilityAudioFallback { get; } = new(
         "audio",
@@ -45,8 +45,10 @@ public static partial class LCapabilityTable
             ],
             null,
             [
-                new LCapabilityExtra("Profile", "-profile:a", "aac_low", ["aac_low", "aac_he", "aac_he_v2", "aac_ld", "aac_eld"]),
-                new LCapabilityExtra("Afterburner", "-afterburner", "1", ["1", "0"])
+                new LCapabilityExtra("Profile", "-profile:a", "aac_low",
+                    [new("aac_low", "AAC-LC"), new("aac_he", "HE-AAC"), new("aac_he_v2", "HE-AAC v2"),
+                     new("aac_ld", "AAC-LD"), new("aac_eld", "AAC-ELD")]),
+                new LCapabilityExtra("Afterburner", "-afterburner", "1", [new("1", "On"), new("0", "Off")])
             ],
             "Fraunhofer FDK AAC. Requires a special (often non-free) FFmpeg build; HE/HEv2 suit low bitrates."));
 
@@ -61,8 +63,8 @@ public static partial class LCapabilityTable
             "libmp3lame",
             [
                 new("VBR (quality)", new("VBR quality", "-q:a", "2", 0, 9)),
-                new("ABR (average bitrate)", LCapabilityAudioBitrateCreate()),
-                new("CBR", LCapabilityAudioBitrateCreate())
+                new("ABR (average bitrate)", LCapabilityAudioBitrateCreate("192k", 8, 320)),
+                new("CBR", LCapabilityAudioBitrateCreate("192k", 8, 320))
             ],
             null,
             null,
@@ -70,14 +72,14 @@ public static partial class LCapabilityTable
 
         yield return new("libshine", new(
             "libshine",
-            [new("CBR", LCapabilityAudioBitrateCreate("128k"))],
+            [new("CBR", LCapabilityAudioBitrateCreate("128k", 8, 320))],
             null,
             null,
             "Shine is a fixed-point CBR-only MP3 encoder, lower quality than LAME. Use only where fixed-point speed matters."));
 
         yield return new("mp3_mf", new(
             "mp3_mf",
-            [new("CBR", LCapabilityAudioBitrateCreate("192k"))],
+            [new("CBR", LCapabilityAudioBitrateCreate("192k", 8, 320))],
             null,
             null,
             "Media Foundation MP3 (Windows system encoder)."));
@@ -108,7 +110,7 @@ public static partial class LCapabilityTable
 
         yield return new("eac3", new(
             "eac3",
-            [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("384k"))],
+            [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("384k", 32, 6144))],
             null,
             null,
             "E-AC-3 (Dolby Digital Plus). Valid bitrates and channel counts are codec-constrained."));
@@ -145,26 +147,29 @@ public static partial class LCapabilityTable
 
     private static LCapabilityCodec LCapabilityOpusCreate(string lEncoder) => new(
         lEncoder,
-        [new("Target bitrate", LCapabilityAudioBitrateCreate("128k"))],
+        [new("Target bitrate", LCapabilityAudioBitrateCreate("128k", 6, 510))],
         new LCapabilitySpeed("Complexity", "-compression_level", "10", LCapabilityNumbersCreate(0, 10)),
         [
-            new LCapabilityExtra("Rate control", "-vbr", "on", ["on", "constrained", "off"]),
-            new LCapabilityExtra("Application", "-application", "audio", ["audio", "voip", "lowdelay"]),
-            new LCapabilityExtra("Frame duration", "-frame_duration", "20", ["2.5", "5", "10", "20", "40", "60"]),
-            new LCapabilityExtra("Forward error correction", "-fec", "0", ["0", "1"])
+            new LCapabilityExtra("Rate control", "-vbr", "on",
+                [new("on", "VBR"), new("constrained", "Constrained VBR"), new("off", "CBR")]),
+            new LCapabilityExtra("Application", "-application", "audio",
+                [new("audio", "Audio"), new("voip", "VoIP"), new("lowdelay", "Low delay")]),
+            new LCapabilityExtra("Frame duration", "-frame_duration", "20",
+                [new("2.5", "2.5 ms"), new("5", "5 ms"), new("10", "10 ms"), new("20", "20 ms"), new("40", "40 ms"), new("60", "60 ms")]),
+            new LCapabilityExtra("Forward error correction", "-fec", "0", [new("0", "Off"), new("1", "On")])
         ],
         "Opus. -vbr picks VBR, constrained VBR or CBR; complexity 0-10 trades speed for quality; the bitrate is a target.");
 
     private static LCapabilityCodec LCapabilityAc3Create(string lEncoder) => new(
         lEncoder,
-        [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("448k"))],
+        [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("448k", 32, 640))],
         null,
         null,
         "AC-3 (Dolby Digital) is CBR; valid bitrates and channel counts are codec-constrained.");
 
     private static LCapabilityCodec LCapabilityMp2Create(string lEncoder) => new(
         lEncoder,
-        [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("384k"))],
+        [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("384k", 32, 384))],
         null,
         null,
         "MPEG-1 Audio Layer II is CBR, used for broadcast and legacy delivery.");

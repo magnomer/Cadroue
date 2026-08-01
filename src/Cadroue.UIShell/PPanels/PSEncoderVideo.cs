@@ -234,7 +234,17 @@ internal sealed partial class PSEncoder
             : pQuality.CapabilityQualityDefault;
 
         psVideoQualityBox = PSEntryBuild(pText, 120);
-        psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, psVideoQualityBox));
+        if (pQuality.CapabilityQualityMinimum is double pMinimum && pQuality.CapabilityQualityMaximum is double pMaximum)
+        {
+            UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
+                ? PSFieldBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
+                : PSFieldSliderBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psVideoQualityBox);
+            psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, pSliderRow));
+        }
+        else
+        {
+            psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, psVideoQualityBox));
+        }
 
         string pRange = pQuality.LCapabilityQualityRange;
         psVideoRowsPanel.Children.Add(PSNoticeBuild(string.IsNullOrEmpty(pRange)
@@ -254,7 +264,7 @@ internal sealed partial class PSEncoder
             ? pStored
             : pSpeed.CapabilitySpeedDefault;
 
-        psVideoSpeedCombo = PSComboBuild(pSelected, [.. pSpeed.CapabilitySpeedValues]);
+        psVideoSpeedCombo = PSComboBuild(pSelected, PSEncoderChoicesRead(pSpeed.CapabilitySpeedValues));
         psVideoRowsPanel.Children.Add(PSFieldBuild(pSpeed.CapabilitySpeedLabel, psVideoSpeedCombo));
     }
 
@@ -263,11 +273,11 @@ internal sealed partial class PSEncoder
         foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
         {
             string pSelected = lsExportSpecificEdit.LPresetVideoExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
-                               && pExtra.CapabilityExtraValues.Contains(pStored)
+                               && pExtra.CapabilityExtraValues.Any(pChoice => string.Equals(pChoice.CapabilityChoiceValue, pStored, StringComparison.Ordinal))
                 ? pStored
                 : pExtra.CapabilityExtraDefault;
 
-            ComboBox pCombo = PSComboBuild(pSelected, [.. pExtra.CapabilityExtraValues]);
+            ComboBox pCombo = PSComboBuild(pSelected, PSEncoderChoicesRead(pExtra.CapabilityExtraValues));
             psVideoExtraCombos[pExtra.CapabilityExtraOption] = pCombo;
             psVideoRowsPanel.Children.Add(PSFieldBuild(pExtra.CapabilityExtraLabel, pCombo));
         }

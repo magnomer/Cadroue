@@ -90,6 +90,11 @@ internal sealed partial class PSEncoder : Window
     private static readonly string[] psAudioSampleTokens = ["Same as source", "44100", "48000", "88200", "96000"];
     private static readonly string[] psAudioChannelTokens = ["Same as source", "Mono", "Stereo", "5.1"];
 
+    private static LLocalizationChoice[] PSEncoderChoicesRead(IReadOnlyList<LCapabilityChoice> pChoices) =>
+        pChoices
+            .Select(pChoice => new LLocalizationChoice(pChoice.CapabilityChoiceValue, string.Empty, pChoice.CapabilityChoiceLabel))
+            .ToArray();
+
     private static string PSEncoderCustomResolve(string pValue, string[] pTokens) =>
         Array.IndexOf(pTokens, pValue) >= 0 || string.Equals(pValue, PSField.PSFieldCustomToken, StringComparison.Ordinal)
             ? string.Empty

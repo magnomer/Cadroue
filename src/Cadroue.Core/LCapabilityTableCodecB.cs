@@ -13,7 +13,8 @@ public static partial class LCapabilityTable
                 new("CBR", LCapabilityBitrateCreate("2M"))
             ],
             new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 16)),
-            [new LCapabilityExtra("Deadline", "-deadline", "good", ["best", "good", "realtime"])],
+            [new LCapabilityExtra("Deadline", "-deadline", "good",
+                [new("best", "Best"), new("good", "Good"), new("realtime", "Real-time")])],
             "VP8 constant quality requires -b:v 0 alongside -crf. Speed is -cpu-used, not a preset."));
         yield return new("libvpx-vp9", new(
             "libvpx-vp9",
@@ -25,7 +26,8 @@ public static partial class LCapabilityTable
                 new("Lossless")
             ],
             new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 8)),
-            [new LCapabilityExtra("Deadline", "-deadline", "good", ["best", "good", "realtime"])],
+            [new LCapabilityExtra("Deadline", "-deadline", "good",
+                [new("best", "Best"), new("good", "Good"), new("realtime", "Real-time")])],
             "VP9 constant quality requires -b:v 0 alongside -crf. Lossless is -lossless 1."));
         yield return new("vp9_qsv", LCapabilityQsvCreate("vp9_qsv"));
 
@@ -56,7 +58,9 @@ public static partial class LCapabilityTable
                 new("Target bitrate", LCapabilityBitrateCreate("50M"))
             ],
             null,
-            [new LCapabilityExtra("Profile", "-profile:v", "auto", ["auto", "proxy", "lt", "standard", "hq", "4444", "4444xq"])],
+            [new LCapabilityExtra("Profile", "-profile:v", "auto",
+                [new("auto", "Auto"), new("proxy", "Proxy"), new("lt", "LT"), new("standard", "Standard"),
+                 new("hq", "HQ"), new("4444", "4444"), new("4444xq", "4444 XQ")])],
             "ProRes quality is chosen mainly by profile, not by a quantizer. prores_ks is the only ProRes encoder with -profile:v."));
 
         yield return new("ffv1", new(
@@ -64,9 +68,10 @@ public static partial class LCapabilityTable
             [new("Lossless (only mode)")],
             null,
             [
-                new LCapabilityExtra("Coder", "-coder", "rice", ["rice", "range_def", "range_tab"]),
-                new LCapabilityExtra("Context", "-context", "0", ["0", "1"]),
-                new LCapabilityExtra("Slice CRC", "-slicecrc", "-1", ["-1", "0", "1"])
+                new LCapabilityExtra("Coder", "-coder", "rice",
+                    [new("rice", "Rice"), new("range_def", "Range (default table)"), new("range_tab", "Range (custom table)")]),
+                new LCapabilityExtra("Context", "-context", "0", [new("0", "Small"), new("1", "Large")]),
+                new LCapabilityExtra("Slice CRC", "-slicecrc", "-1", [new("-1", "Auto"), new("0", "Off"), new("1", "On")])
             ],
             "FFV1 is mathematically lossless. There is no quality control and no preset; -q:v is accepted but ignored."));
 
@@ -81,8 +86,9 @@ public static partial class LCapabilityTable
             ],
             null,
             [
-                new LCapabilityExtra("Format", "-format", "jp2", ["jp2", "j2k"]),
-                new LCapabilityExtra("DWT type", "-pred", "dwt97int", ["dwt97int", "dwt53"])
+                new LCapabilityExtra("Format", "-format", "jp2", [new("jp2", "JP2"), new("j2k", "J2K codestream")]),
+                new LCapabilityExtra("DWT type", "-pred", "dwt97int",
+                    [new("dwt97int", "9/7 integer (lossy)"), new("dwt53", "5/3 (lossless)")])
             ],
             "Lossless JPEG 2000 requires the reversible transform -pred dwt53."));
         yield return new("libopenjpeg", new(
@@ -93,8 +99,9 @@ public static partial class LCapabilityTable
             ],
             null,
             [
-                new LCapabilityExtra("Format", "-format", "jp2", ["jp2", "j2k", "jpt"]),
-                new LCapabilityExtra("Profile", "-profile", "jpeg2000", ["jpeg2000", "cinema2k", "cinema4k"])
+                new LCapabilityExtra("Format", "-format", "jp2", [new("jp2", "JP2"), new("j2k", "J2K codestream"), new("jpt", "JPT")]),
+                new LCapabilityExtra("Profile", "-profile", "jpeg2000",
+                    [new("jpeg2000", "JPEG 2000"), new("cinema2k", "Digital Cinema 2K"), new("cinema4k", "Digital Cinema 4K")])
             ],
             "OpenJPEG defaults to lossless; -irreversible 1 switches to the lossy DWT. No preset."));
 

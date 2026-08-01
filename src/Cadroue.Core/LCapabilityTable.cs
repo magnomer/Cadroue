@@ -5,22 +5,29 @@ public static partial class LCapabilityTable
     private const string LCapabilityBitrateLabel = "Target bitrate";
 
     private static LCapabilityQuality LCapabilityBitrateCreate(string lDefault = "8M") =>
-        new(LCapabilityBitrateLabel, "-b:v", lDefault);
+        new(LCapabilityBitrateLabel, "-b:v", lDefault, 100, 100000);
 
-    private static string[] LCapabilityNumbersCreate(int lFrom, int lTo) =>
-        Enumerable.Range(lFrom, lTo - lFrom + 1).Select(lValue => lValue.ToString()).ToArray();
+    private static LCapabilityChoice[] LCapabilityNumbersCreate(int lFrom, int lTo) =>
+        Enumerable.Range(lFrom, lTo - lFrom + 1).Select(lValue => (LCapabilityChoice)lValue.ToString()).ToArray();
 
-    private static readonly string[] LCapabilityX26xPresets =
+    private static readonly LCapabilityChoice[] LCapabilityX26xPresets =
     [
-        "ultrafast", "superfast", "veryfast", "faster", "fast",
-        "medium", "slow", "slower", "veryslow", "placebo"
+        new("ultrafast", "Ultrafast"), new("superfast", "Superfast"), new("veryfast", "Very fast"),
+        new("faster", "Faster"), new("fast", "Fast"), new("medium", "Medium"), new("slow", "Slow"),
+        new("slower", "Slower"), new("veryslow", "Very slow"), new("placebo", "Placebo (slowest)")
     ];
 
-    private static readonly string[] LCapabilityQsvPresets =
-        ["veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"];
+    private static readonly LCapabilityChoice[] LCapabilityQsvPresets =
+    [
+        new("veryfast", "Very fast"), new("faster", "Faster"), new("fast", "Fast"), new("medium", "Medium"),
+        new("slow", "Slow"), new("slower", "Slower"), new("veryslow", "Very slow")
+    ];
 
-    private static readonly string[] LCapabilityNvencPresets =
-        ["p1", "p2", "p3", "p4", "p5", "p6", "p7"];
+    private static readonly LCapabilityChoice[] LCapabilityNvencPresets =
+    [
+        new("p1", "P1 (fastest)"), new("p2", "P2"), new("p3", "P3"), new("p4", "P4 (default)"),
+        new("p5", "P5"), new("p6", "P6"), new("p7", "P7 (slowest)")
+    ];
 
     private static LCapabilityCodec LCapabilityX26xCreate(string lEncoder, string lCrfDefault) => new(
         lEncoder,
@@ -33,7 +40,9 @@ public static partial class LCapabilityTable
             new("Lossless")
         ],
         new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityX26xPresets),
-        [new LCapabilityExtra("Tune", "-tune", "none", ["none", "film", "animation", "grain", "stillimage", "fastdecode", "zerolatency"])],
+        [new LCapabilityExtra("Tune", "-tune", "none",
+            [new("none", "None"), new("film", "Film"), new("animation", "Animation"), new("grain", "Grain"),
+             new("stillimage", "Still image"), new("fastdecode", "Fast decode"), new("zerolatency", "Zero latency")])],
         $"{lEncoder} CRF default is {lCrfDefault}. Lossless uses -crf 0 (x264) or -x265-params lossless=1 (x265).");
 
     private static LCapabilityCodec LCapabilityQsvCreate(string lEncoder) => new(
@@ -46,7 +55,8 @@ public static partial class LCapabilityTable
             new("CBR", LCapabilityBitrateCreate())
         ],
         new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityQsvPresets),
-        [new LCapabilityExtra("Low power", "-low_power", "auto", ["auto", "1", "0"])],
+        [new LCapabilityExtra("Low power", "-low_power", "auto",
+            [new("auto", "Auto"), new("1", "On"), new("0", "Off")])],
         "QSV has no -rc option: the mode follows from which of -b:v, -global_quality and -look_ahead is set. Preset numbering is inverted (veryslow=1, veryfast=7).");
 
     private static LCapabilityCodec LCapabilityNvencCreate(string lEncoder) => new(
@@ -59,7 +69,9 @@ public static partial class LCapabilityTable
             new("Lossless")
         ],
         new LCapabilitySpeed("Speed preset", "-preset", "p4", LCapabilityNvencPresets),
-        [new LCapabilityExtra("Tune", "-tune", "hq", ["hq", "uhq", "ll", "ull", "lossless"])],
+        [new LCapabilityExtra("Tune", "-tune", "hq",
+            [new("hq", "High quality"), new("uhq", "Ultra-high quality"), new("ll", "Low latency"),
+             new("ull", "Ultra-low latency"), new("lossless", "Lossless")])],
         "NVENC -cq 0 means automatic. Legacy presets (slow/medium/fast/hp/hq/ll/llhq/llhp/lossless) still parse but are deprecated in favour of p1-p7.");
 
     private static LCapabilityCodec LCapabilityAmfCreate(string lEncoder) => new(
@@ -73,8 +85,11 @@ public static partial class LCapabilityTable
             new("High-quality VBR", LCapabilityBitrateCreate()),
             new("High-quality CBR", LCapabilityBitrateCreate())
         ],
-        new LCapabilitySpeed("Quality preset", "-quality", "balanced", ["balanced", "speed", "quality"]),
-        [new LCapabilityExtra("Usage", "-usage", "transcoding", ["transcoding", "ultralowlatency", "lowlatency", "webcam", "high_quality", "lowlatency_high_quality"])],
+        new LCapabilitySpeed("Quality preset", "-quality", "balanced",
+            [new("balanced", "Balanced"), new("speed", "Speed"), new("quality", "Quality")]),
+        [new LCapabilityExtra("Usage", "-usage", "transcoding",
+            [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"), new("lowlatency", "Low latency"),
+             new("webcam", "Webcam"), new("high_quality", "High quality"), new("lowlatency_high_quality", "Low latency, high quality")])],
         "AMF uses -qp_i/-qp_p/-qp_b rather than a single quantizer. There is no -preset in the x264 sense.");
 
     private static LCapabilityCodec LCapabilityMfCreate(string lEncoder) => new(
@@ -90,7 +105,9 @@ public static partial class LCapabilityTable
             new("Encoder default")
         ],
         null,
-        [new LCapabilityExtra("Scenario", "-scenario", "default", ["default", "display_remoting", "video_conference", "archive", "live_streaming", "camera_record"])],
+        [new LCapabilityExtra("Scenario", "-scenario", "default",
+            [new("default", "Default"), new("display_remoting", "Display remoting"), new("video_conference", "Video conference"),
+             new("archive", "Archive"), new("live_streaming", "Live streaming"), new("camera_record", "Camera record")])],
         "Media Foundation quality is 0-100 and HIGHER is better - the opposite of CRF. It has no speed preset.");
 
     private static LCapabilityCodec LCapabilityQscaleCreate(
@@ -127,6 +144,8 @@ public static partial class LCapabilityTable
             new("Lossless")
         ],
         null,
-        [new LCapabilityExtra("Content preset", "-preset", "default", ["none", "default", "picture", "photo", "drawing", "icon", "text"])],
+        [new LCapabilityExtra("Content preset", "-preset", "default",
+            [new("none", "None"), new("default", "Default"), new("picture", "Picture"), new("photo", "Photo"),
+             new("drawing", "Drawing"), new("icon", "Icon"), new("text", "Text")])],
         "WebP quality is 0-100 and HIGHER is better. Its -preset picks a content type (photo, drawing, icon...), not an encoding speed.");
 }

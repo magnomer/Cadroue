@@ -147,7 +147,7 @@ internal sealed partial class PSEncoder
         var pAvailableNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var pLog = new StringBuilder();
         pLog.AppendLine($"Verification: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        pLog.AppendLine("Command pattern: ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v <encoder> -f null -");
+        pLog.AppendLine("Command pattern: ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=320x240:rate=1 -frames:v 1 -an -c:v <encoder> -f null -");
         foreach (var pCandidate in PSCodecCandidates)
         {
             bool pCandidateAvailable = false;

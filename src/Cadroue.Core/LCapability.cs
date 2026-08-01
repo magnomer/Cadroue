@@ -6,29 +6,53 @@ public sealed record LCapabilityQuality(
     string CapabilityQualityDefault,
     double? CapabilityQualityMinimum = null,
     double? CapabilityQualityMaximum = null,
-    bool CapabilityQualityHigherBetter = false)
+    bool CapabilityQualityHigherBetter = false,
+    double? CapabilityQualityStep = null)
 {
-    public string LCapabilityQualityRange => CapabilityQualityMinimum is null || CapabilityQualityMaximum is null
-        ? string.Empty
-        : $"{CapabilityQualityMinimum:0.##}-{CapabilityQualityMaximum:0.##}, "
-          + (CapabilityQualityHigherBetter ? "higher is better" : "lower is better");
+    public bool LCapabilityQualityBitrate => CapabilityQualityOption is "-b:v" or "-b:a";
+
+    public string LCapabilityQualityRange =>
+        CapabilityQualityMinimum is null || CapabilityQualityMaximum is null || LCapabilityQualityBitrate
+            ? string.Empty
+            : $"{CapabilityQualityMinimum:0.##}-{CapabilityQualityMaximum:0.##}, "
+              + (CapabilityQualityHigherBetter ? "higher is better" : "lower is better");
+
+    public double LCapabilityQualityStep
+    {
+        get
+        {
+            if (CapabilityQualityStep is double lStep)
+            {
+                return lStep;
+            }
+
+            double lMinimum = CapabilityQualityMinimum ?? 0;
+            double lMaximum = CapabilityQualityMaximum ?? 0;
+            return lMinimum == Math.Floor(lMinimum) && lMaximum == Math.Floor(lMaximum) ? 1 : 0.1;
+        }
+    }
 }
 
 public sealed record LCapabilityMode(
     string CapabilityModeLabel,
     LCapabilityQuality? CapabilityModeQuality = null);
 
+public sealed record LCapabilityChoice(string CapabilityChoiceValue, string CapabilityChoiceLabel)
+{
+    public static implicit operator LCapabilityChoice(string lValue) => new(lValue, lValue);
+}
+
 public sealed record LCapabilitySpeed(
     string CapabilitySpeedLabel,
     string CapabilitySpeedOption,
     string CapabilitySpeedDefault,
-    IReadOnlyList<string> CapabilitySpeedValues);
+    IReadOnlyList<LCapabilityChoice> CapabilitySpeedValues);
 
 public sealed record LCapabilityExtra(
     string CapabilityExtraLabel,
     string CapabilityExtraOption,
     string CapabilityExtraDefault,
-    IReadOnlyList<string> CapabilityExtraValues);
+    IReadOnlyList<LCapabilityChoice> CapabilityExtraValues);
 
 public sealed record LCapabilityCodec(
     string CapabilityEncoder,

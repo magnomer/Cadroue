@@ -16,7 +16,8 @@ public static partial class LCapabilityTable
                 new("Rate control off")
             ],
             null,
-            [new LCapabilityExtra("Profile", "-profile", "constrained_baseline", ["constrained_baseline", "main", "high"])],
+            [new LCapabilityExtra("Profile", "-profile", "constrained_baseline",
+                [new("constrained_baseline", "Constrained baseline"), new("main", "Main"), new("high", "High")])],
             "OpenH264 has no CRF, no QP and no preset. Every mode is bitrate driven via -rc_mode."));
         yield return new("h264_qsv", LCapabilityQsvCreate("h264_qsv"));
         yield return new("h264_amf", LCapabilityAmfCreate("h264_amf"));
@@ -34,8 +35,9 @@ public static partial class LCapabilityTable
                 new("Constant QP", new("QP", "-qp", "32", 0, 63)),
                 new("Target bitrate", LCapabilityBitrateCreate())
             ],
-            new LCapabilitySpeed("Speed preset", "-preset", "medium", ["faster", "fast", "medium", "slow", "slower"]),
-            [new LCapabilityExtra("Profile", "-profile", "main", ["main", "high"])],
+            new LCapabilitySpeed("Speed preset", "-preset", "medium",
+                [new("faster", "Faster"), new("fast", "Fast"), new("medium", "Medium"), new("slow", "Slow"), new("slower", "Slower")]),
+            [new LCapabilityExtra("Profile", "-profile", "main", [new("main", "Main"), new("high", "High")])],
             "VVenC has no CRF. Quantizer range is 0-63 with default 32."));
 
         yield return new("libaom-av1", new(
@@ -49,8 +51,9 @@ public static partial class LCapabilityTable
             ],
             new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 8)),
             [
-                new LCapabilityExtra("Usage", "-usage", "good", ["good", "realtime", "allintra"]),
-                new LCapabilityExtra("Tune", "-tune", "psnr", ["psnr", "ssim"])
+                new LCapabilityExtra("Usage", "-usage", "good",
+                    [new("good", "Good"), new("realtime", "Real-time"), new("allintra", "All-intra")]),
+                new LCapabilityExtra("Tune", "-tune", "psnr", [new("psnr", "PSNR"), new("ssim", "SSIM")])
             ],
             "libaom has no -preset: speed is -cpu-used 0-8. Constant quality also requires -b:v 0."));
         yield return new("libsvtav1", new(
@@ -85,10 +88,14 @@ public static partial class LCapabilityTable
                 new("High-quality VBR", LCapabilityBitrateCreate()),
                 new("High-quality CBR", LCapabilityBitrateCreate())
             ],
-            new LCapabilitySpeed("Quality preset", "-quality", "balanced", ["high_quality", "quality", "balanced", "speed"]),
+            new LCapabilitySpeed("Quality preset", "-quality", "balanced",
+                [new("high_quality", "High quality"), new("quality", "Quality"), new("balanced", "Balanced"), new("speed", "Speed")]),
             [
-                new LCapabilityExtra("Usage", "-usage", "transcoding", ["transcoding", "ultralowlatency", "lowlatency", "webcam", "high_quality", "lowlatency_high_quality"]),
-                new LCapabilityExtra("Latency", "-latency", "none", ["none", "power_saving_real_time", "real_time", "lowest_latency"])
+                new LCapabilityExtra("Usage", "-usage", "transcoding",
+                    [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"), new("lowlatency", "Low latency"),
+                     new("webcam", "Webcam"), new("high_quality", "High quality"), new("lowlatency_high_quality", "Low latency, high quality")]),
+                new LCapabilityExtra("Latency", "-latency", "none",
+                    [new("none", "None"), new("power_saving_real_time", "Power-saving real-time"), new("real_time", "Real-time"), new("lowest_latency", "Lowest latency")])
             ],
             "AV1 AMF differs from H.264/HEVC AMF: quantizer range is 0-255, there is no -qp_b, and -quality adds high_quality."));
         yield return new("av1_nvenc", LCapabilityNvencCreate("av1_nvenc"));

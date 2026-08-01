@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -180,6 +181,136 @@ internal static class PSField
 
     internal static string PSComboTextRead(ComboBox pCombo) =>
         LLocalizationChoice.LLocalizationChoiceRead(pCombo.SelectedItem);
+
+    private const double PSFieldSliderWidth = 220;
+    private const double PSFieldBitrateTicks = 1000;
+
+    internal static UIElement PSFieldSliderBuild(double pMinimum, double pMaximum, double pStep, string pValue, TextBox pReadout)
+    {
+        double pStart = double.TryParse(pValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double pParsed)
+            ? Math.Clamp(pParsed, pMinimum, pMaximum)
+            : pMinimum;
+
+        var pSlider = new Slider
+        {
+            Minimum = pMinimum,
+            Maximum = pMaximum,
+            SmallChange = pStep,
+            LargeChange = pStep,
+            TickFrequency = pStep,
+            IsSnapToTickEnabled = true,
+            Value = pStart,
+            Width = PSFieldSliderWidth,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pSlider);
+
+        pReadout.IsReadOnly = true;
+        pReadout.Text = PSFieldValueFormat(pStart, pStep);
+        pSlider.ValueChanged += (_, _) => pReadout.Text = PSFieldValueFormat(pSlider.Value, pStep);
+        return PSFieldSliderCompose(pSlider, pReadout);
+    }
+
+    internal static UIElement PSFieldBitrateBuild(double pMinimumKbps, double pMaximumKbps, string pValue, TextBox pReadout)
+    {
+        double pStartKbps = Math.Clamp(PSFieldBitrateParse(pValue) ?? pMinimumKbps, pMinimumKbps, pMaximumKbps);
+
+        var pSlider = new Slider
+        {
+            Minimum = 0,
+            Maximum = PSFieldBitrateTicks,
+            SmallChange = 1,
+            LargeChange = 50,
+            Value = PSFieldPositionResolve(pStartKbps, pMinimumKbps, pMaximumKbps),
+            Width = PSFieldSliderWidth,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pSlider);
+        pReadout.Text = PSFieldBitrateFormat(pStartKbps);
+
+        bool pSync = false;
+        pSlider.ValueChanged += (_, _) =>
+        {
+            if (pSync)
+            {
+                return;
+            }
+
+            pSync = true;
+            pReadout.Text = PSFieldBitrateFormat(PSFieldBitrateResolve(pSlider.Value, pMinimumKbps, pMaximumKbps));
+            pSync = false;
+        };
+        pReadout.TextChanged += (_, _) =>
+        {
+            if (pSync || PSFieldBitrateParse(pReadout.Text) is not double pKbps)
+            {
+                return;
+            }
+
+            pSync = true;
+            pSlider.Value = PSFieldPositionResolve(Math.Clamp(pKbps, pMinimumKbps, pMaximumKbps), pMinimumKbps, pMaximumKbps);
+            pSync = false;
+        };
+        return PSFieldSliderCompose(pSlider, pReadout);
+    }
+
+    private static UIElement PSFieldSliderCompose(Slider pSlider, TextBox pReadout)
+    {
+        pReadout.Width = 68;
+        pReadout.Margin = new Thickness(12, 0, 0, 0);
+        pReadout.VerticalAlignment = VerticalAlignment.Center;
+        var pRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            MinHeight = PSFieldControlHeight
+        };
+        pRow.Children.Add(pSlider);
+        pRow.Children.Add(pReadout);
+        return pRow;
+    }
+
+    private static double PSFieldPositionResolve(double pKbps, double pMinimum, double pMaximum) =>
+        Math.Log(pKbps / pMinimum) / Math.Log(pMaximum / pMinimum) * PSFieldBitrateTicks;
+
+    private static double PSFieldBitrateResolve(double pPosition, double pMinimum, double pMaximum) =>
+        pMinimum * Math.Pow(pMaximum / pMinimum, pPosition / PSFieldBitrateTicks);
+
+    private static double? PSFieldBitrateParse(string pText)
+    {
+        pText = pText.Trim();
+        if (pText.Length == 0)
+        {
+            return null;
+        }
+
+        char pUnit = pText[^1];
+        string pNumber = char.IsDigit(pUnit) || pUnit == '.' ? pText : pText[..^1];
+        if (!double.TryParse(pNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out double pValue) || pValue <= 0)
+        {
+            return null;
+        }
+
+        return pUnit switch
+        {
+            'k' or 'K' => pValue,
+            'm' or 'M' => pValue * 1000,
+            _ => pValue / 1000
+        };
+    }
+
+    private static string PSFieldBitrateFormat(double pKbps)
+    {
+        double pRounded = Math.Round(pKbps);
+        return pRounded >= 1000
+            ? (pRounded / 1000).ToString("0.###", CultureInfo.InvariantCulture) + "M"
+            : ((long)pRounded).ToString(CultureInfo.InvariantCulture) + "k";
+    }
+
+    private static string PSFieldValueFormat(double pValue, double pStep) =>
+        pStep >= 1 && pValue == Math.Floor(pValue)
+            ? ((long)Math.Round(pValue)).ToString(CultureInfo.InvariantCulture)
+            : pValue.ToString("0.##", CultureInfo.InvariantCulture);
 
     internal const string PSFieldCustomToken = "Custom";
 

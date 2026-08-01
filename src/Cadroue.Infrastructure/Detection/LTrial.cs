@@ -63,7 +63,7 @@ public static class LTrial
         LTrialKind.LTrialKindAudio =>
             $"-hide_banner -loglevel error -f lavfi -i anullsrc=r=48000:cl=stereo -t 0.1 -vn -c:a {lEncoder} -f null -",
         _ =>
-            $"-hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v {lEncoder} -f null -"
+            $"-hide_banner -loglevel error -f lavfi -i testsrc2=size=320x240:rate=1 -frames:v 1 -an -c:v {lEncoder} -f null -"
     };
 
     private static string LTrialMessageShorten(string lError, string lOutput)
