@@ -158,7 +158,7 @@ public sealed partial class LSchedule : LScheduleContract
 
             if (lWorkItem.LWorkLineage == Guid.Empty)
             {
-                lWorkItem.LWorkLineage = LScheduleLineageResolve(lWorkItem);
+                lWorkItem.LWorkLineage = LScheduleLineage.LScheduleLineageResolve(lWorkItem, lScheduleItems);
             }
 
             var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
@@ -180,108 +180,7 @@ public sealed partial class LSchedule : LScheduleContract
     }
 
     public Guid LScheduleLineageRead(LWorkItem lWorkItem) =>
-        lWorkItem.LWorkLineage == Guid.Empty
-            ? LScheduleRootRead(lWorkItem)
-            : lWorkItem.LWorkLineage;
-
-    private Guid LScheduleLineageResolve(LWorkItem lWorkItem)
-    {
-        if (lWorkItem.LWorkKind == LWorkKind.LWorkKindMerge)
-        {
-            return Guid.NewGuid();
-        }
-
-        LWorkItem? lScheduleParent = LScheduleParentFind(lWorkItem.LWorkSourcePath);
-        return lScheduleParent is not null && lScheduleParent.LWorkKind != LWorkKind.LWorkKindSplit
-            ? LScheduleLineageRead(lScheduleParent)
-            : LScheduleRootRead(lWorkItem);
-    }
-
-    private static Guid LScheduleRootRead(LWorkItem lWorkItem)
-    {
-        string lScheduleKey;
-        try
-        {
-            lScheduleKey = Path.GetFullPath(lWorkItem.LWorkSourcePath).ToLowerInvariant();
-        }
-        catch (Exception lScheduleError) when (
-            lScheduleError is ArgumentException or IOException or NotSupportedException)
-        {
-            lScheduleKey = lWorkItem.LWorkSourcePath.ToLowerInvariant();
-        }
-
-        byte[] lScheduleHash = System.Security.Cryptography.SHA256.HashData(
-            System.Text.Encoding.UTF8.GetBytes($"{lWorkItem.LWorkBatchId:N}|{lScheduleKey}"));
-        return new Guid(lScheduleHash.AsSpan(0, 16));
-    }
-
-    private LWorkItem? LScheduleParentFind(string lWorkSourcePath)
-    {
-        if (string.IsNullOrWhiteSpace(lWorkSourcePath))
-        {
-            return null;
-        }
-
-        LWorkItem? lScheduleParent = null;
-        foreach (LWorkItem lScheduleItem in lScheduleItems)
-        {
-            if (!LSchedulePathMatch(lScheduleItem.LWorkOutputPath, lWorkSourcePath))
-            {
-                continue;
-            }
-
-            if (lScheduleParent is null || lScheduleItem.LWorkCreateTime > lScheduleParent.LWorkCreateTime)
-            {
-                lScheduleParent = lScheduleItem;
-            }
-        }
-
-        return lScheduleParent;
-    }
-
-    private static bool LSchedulePathMatch(string lScheduleLeft, string lScheduleRight)
-    {
-        if (string.IsNullOrWhiteSpace(lScheduleLeft) || string.IsNullOrWhiteSpace(lScheduleRight))
-        {
-            return false;
-        }
-
-        try
-        {
-            return string.Equals(
-                Path.GetFullPath(lScheduleLeft),
-                Path.GetFullPath(lScheduleRight),
-                StringComparison.OrdinalIgnoreCase);
-        }
-        catch (Exception lScheduleError) when (
-            lScheduleError is ArgumentException or IOException or NotSupportedException)
-        {
-            return string.Equals(lScheduleLeft, lScheduleRight, StringComparison.OrdinalIgnoreCase);
-        }
-    }
-
-    public static Guid LScheduleFileRead(string lWorkFilePath)
-    {
-        if (string.IsNullOrWhiteSpace(lWorkFilePath))
-        {
-            return Guid.NewGuid();
-        }
-
-        string lScheduleKey;
-        try
-        {
-            lScheduleKey = Path.GetFullPath(lWorkFilePath).ToLowerInvariant();
-        }
-        catch (Exception lScheduleError) when (
-            lScheduleError is ArgumentException or IOException or NotSupportedException)
-        {
-            lScheduleKey = lWorkFilePath.ToLowerInvariant();
-        }
-
-        byte[] lScheduleHash = System.Security.Cryptography.SHA256.HashData(
-            System.Text.Encoding.UTF8.GetBytes(lScheduleKey));
-        return new Guid(lScheduleHash.AsSpan(0, 16));
-    }
+        LScheduleLineage.LScheduleLineageRead(lWorkItem);
 
     public void LScheduleCommit(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage)
     {

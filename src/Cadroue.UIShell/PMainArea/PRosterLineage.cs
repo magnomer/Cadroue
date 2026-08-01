@@ -48,7 +48,7 @@ public sealed partial class PRoster
     private static string PLineageSubjectRead(LWorkItem pLineageFirst, Guid pLineageId)
     {
         if (pLineageFirst.LWorkKind == LWorkKind.LWorkKindMerge
-            || LSchedule.LScheduleFileRead(pLineageFirst.LWorkOutputPath) == pLineageId)
+            || LScheduleLineage.LScheduleFileRead(pLineageFirst.LWorkOutputPath) == pLineageId)
         {
             return pLineageFirst.LWorkOutputPath;
         }
