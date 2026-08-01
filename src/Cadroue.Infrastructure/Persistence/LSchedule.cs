@@ -79,7 +79,7 @@ public sealed partial class LSchedule
     {
         foreach ((LDepotFolder lDepotFolder, string lDepotRecord) in LDepotIndex.LDepotRecordsRead())
         {
-            if (LScheduleRecordParse(lDepotRecord) is { } lWorkRecord)
+            if (LScheduleStore.LScheduleRecordParse(lDepotRecord) is { } lWorkRecord)
             {
                 yield return (lDepotFolder, lWorkRecord);
             }
@@ -92,7 +92,7 @@ public sealed partial class LSchedule
         {
             foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
             {
-                if (LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord)
+                if (LScheduleStore.LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord)
                 {
                     yield return (lDepotFolder, lWorkRecord);
                 }
@@ -119,13 +119,13 @@ public sealed partial class LSchedule
         }
 
         string lDepotFilePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, lWorkId);
-        if (!File.Exists(lDepotFilePath) || LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+        if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
         {
             return;
         }
 
         lWorkRecord.LWorkEndTicks = lWorkDuration.Ticks;
-        LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
+        LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
     }
 
     public int LScheduleAdd(
@@ -158,7 +158,7 @@ public sealed partial class LSchedule
             }
 
             var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
-            if (!LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
+            if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
             {
                 continue;
             }
@@ -286,7 +286,7 @@ public sealed partial class LSchedule
             ? LDepotFolder.LDepotFolderDone
             : LDepotFolder.LDepotFolderFailed;
 
-        if (!LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, lScheduleTarget))
+        if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, lScheduleTarget))
         {
             LScheduleRecoverReport?.Invoke(
                 $"Work '{lWorkItem.LWorkOutputName}' could not be filed as {lScheduleTarget}; it stays running and is retried on the next scan");
@@ -299,7 +299,7 @@ public sealed partial class LSchedule
             : nameof(LWorkState.LWorkStateFailed);
         lWorkRecord.LWorkMessage = lScheduleMessage;
         lWorkRecord.LWorkProgress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
-        if (!LScheduleRecordSave(lWorkRecord, lScheduleTarget))
+        if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, lScheduleTarget))
         {
             LScheduleRecoverReport?.Invoke(
                 $"Work '{lWorkItem.LWorkOutputName}' was filed as {lScheduleTarget} but its details could not be written");
@@ -311,7 +311,7 @@ public sealed partial class LSchedule
         lScheduleLiveItems.Remove(lWorkItem.LWorkId);
         LSchedulePartialRemove(LWorkRecord.LWorkRecordCreate(lWorkItem));
 
-        if (!LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, LDepotFolder.LDepotFolderCancelled))
+        if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, LDepotFolder.LDepotFolderCancelled))
         {
             return false;
         }
@@ -324,7 +324,7 @@ public sealed partial class LSchedule
         lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
         lWorkRecord.LWorkProgress = 0;
         lWorkRecord.LWorkMessage = string.Empty;
-        LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderCancelled);
+        LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderCancelled);
         LScheduleLoad();
         return true;
     }
@@ -334,12 +334,12 @@ public sealed partial class LSchedule
         foreach (LDepotFolder lDepotFolder in new[] { LDepotFolder.LDepotFolderCancelled, LDepotFolder.LDepotFolderFailed })
         {
             string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
-            if (!File.Exists(lDepotFilePath) || LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+            if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
             {
                 continue;
             }
 
-            if (!LScheduleMove(lWorkId, lDepotFolder, LDepotFolder.LDepotFolderScheduled))
+            if (!LScheduleStore.LScheduleMove(lWorkId, lDepotFolder, LDepotFolder.LDepotFolderScheduled))
             {
                 return false;
             }
@@ -352,7 +352,7 @@ public sealed partial class LSchedule
             lWorkRecord.LWorkAttemptCount = 0;
             lWorkRecord.LWorkProgress = 0;
             lWorkRecord.LWorkMessage = string.Empty;
-            LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
+            LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
             LScheduleLoad();
             return true;
         }

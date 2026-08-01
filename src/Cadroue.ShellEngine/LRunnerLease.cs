@@ -27,7 +27,7 @@ public sealed partial class LRunner
 
         LRunnerRunning = false;
         LRunnerLeaseClear();
-        LSchedule.LScheduleRunnerRemove(lRunnerId);
+        LSentinel.LSentinelRunnerRemove(lRunnerId);
     }
 
     public void LRunnerPhaseSet(LWorkItem lWorkItem, LWorkPhase lRunnerPhase)

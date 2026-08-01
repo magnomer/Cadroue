@@ -30,7 +30,7 @@ public sealed partial class LRunner
     {
         lRunnerSchedule = lSchedule;
         lRunnerPost = lRunnerPostAction;
-        LSchedule.LScheduleRunnerAdd(lRunnerId);
+        LSentinel.LSentinelRunnerAdd(lRunnerId);
     }
 
     public string LRunnerProgramPath { get; set; } = "ffmpeg";

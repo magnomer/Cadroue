@@ -2,9 +2,9 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed partial class LSchedule
+internal static class LScheduleStore
 {
-    private static LWorkRecord? LScheduleRecordParse(string lScheduleRecordJson)
+    internal static LWorkRecord? LScheduleRecordParse(string lScheduleRecordJson)
     {
         try
         {
@@ -16,7 +16,7 @@ public sealed partial class LSchedule
         }
     }
 
-    private static LWorkRecord? LScheduleRecordRead(string lDepotFilePath)
+    internal static LWorkRecord? LScheduleRecordRead(string lDepotFilePath)
     {
         try
         {
@@ -28,7 +28,7 @@ public sealed partial class LSchedule
         }
     }
 
-    private static bool LScheduleRecordSave(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
+    internal static bool LScheduleRecordSave(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
     {
         string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkRecord.LWorkId);
         if (!LScheduleFileSave(lDepotFilePath, lWorkRecord.LWorkJsonCreate()))
@@ -67,7 +67,7 @@ public sealed partial class LSchedule
         }
     }
 
-    private static bool LScheduleMove(Guid lWorkId, LDepotFolder lDepotFrom, LDepotFolder lDepotTo)
+    internal static bool LScheduleMove(Guid lWorkId, LDepotFolder lDepotFrom, LDepotFolder lDepotTo)
     {
         string lDepotFromPath = LDepot.LDepotFileRead(lDepotFrom, lWorkId);
         string lDepotToPath = LDepot.LDepotFileRead(lDepotTo, lWorkId);
