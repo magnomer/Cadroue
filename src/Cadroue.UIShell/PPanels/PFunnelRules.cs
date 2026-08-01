@@ -78,11 +78,11 @@ public sealed class PFunnelRules : PPanel
 
     public IReadOnlyList<PFunnelRuleRow> PFunnelRulesRead() => pFunnelRows;
 
-    public void PFunnelRulesSeed(IReadOnlyList<LPreferenceFunnelRuleRecord> pRuleRecords)
+    public void PFunnelRulesSeed(IReadOnlyList<LSceneFunnelRule> pRuleRecords)
     {
-        foreach (LPreferenceFunnelRuleRecord pRecord in pRuleRecords)
+        foreach (LSceneFunnelRule pRecord in pRuleRecords)
         {
-            PFunnelForm pForm = pRecord.LPreferenceFunnelType == (int)PFunnelForm.Regex
+            PFunnelForm pForm = pRecord.LSceneFunnelType == (int)PFunnelForm.Regex
                 ? PFunnelForm.Regex
                 : PFunnelForm.Filename;
             PFunnelRuleRow pRow = PFunnelRuleAdd(pForm);

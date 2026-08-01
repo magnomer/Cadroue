@@ -20,7 +20,7 @@ public sealed class PAudioTab : PTabSurface
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pAudioPlanLoading;
 
-    public PAudioTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PAudioTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         pProcessing.PProcessingOrderedSet(true);
         pProcessing.PProcessingStepAdd("High Pass", PAudioHighIcon, "Processing.Step.HighPass");
@@ -74,9 +74,9 @@ public sealed class PAudioTab : PTabSurface
         PAudioActiveUpdate();
     }
 
-    private void PAudioPersistentRestore(LPreferenceTabLayoutRecord? lPreferenceTabLayout)
+    private void PAudioPersistentRestore(LSceneTabRecord? lPreferenceTabLayout)
     {
-        if (lPreferenceTabLayout?.LPreferenceInspectorPersistent?.LPreferenceAudioPersistent is not { } pAudioPersistentRecord)
+        if (lPreferenceTabLayout?.LSceneInspector?.LSceneInspectorAudio is not { } pAudioPersistentRecord)
         {
             return;
         }
@@ -242,14 +242,14 @@ public sealed class PAudioTab : PTabSurface
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override LPreferenceTabLayoutRecord PTabLayoutRead()
+    public override LSceneTabRecord PTabLayoutRead()
     {
-        LPreferenceTabLayoutRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
         if (pInspector.PInspectorPersistentCheck())
         {
-            lPreferenceTabLayout.LPreferenceInspectorPersistent = new LPreferenceInspectorPersistentRecord
+            lPreferenceTabLayout.LSceneInspector = new LSceneInspectorRecord
             {
-                LPreferenceAudioPersistent = LAudio.LAudioPersistentCreate(pInspector.PInspectorPersistentRead())
+                LSceneInspectorAudio = LAudio.LAudioPersistentCreate(pInspector.PInspectorPersistentRead())
             };
         }
 

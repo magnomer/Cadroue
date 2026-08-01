@@ -16,10 +16,10 @@ public sealed class PFunnelTab : PTabSurface
     private readonly PFunnelRules pFunnelRules = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PFunnelTab(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PFunnelTab(LSceneTabRecord? lPreferenceTabLayout = null)
     {
         pFunnelRules.PFunnelOptionsSet(PFunnelTargetsRead);
-        if (lPreferenceTabLayout?.LPreferenceFunnelRules is { Count: > 0 } pRuleRecords)
+        if (lPreferenceTabLayout?.LSceneFunnelRules is { Count: > 0 } pRuleRecords)
         {
             pFunnelRules.PFunnelRulesSeed(pRuleRecords);
         }
@@ -128,14 +128,14 @@ public sealed class PFunnelTab : PTabSurface
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
 
-    public override LPreferenceTabLayoutRecord PTabLayoutRead()
+    public override LSceneTabRecord PTabLayoutRead()
     {
-        LPreferenceTabLayoutRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
-        lPreferenceTabLayout.LPreferenceFunnelRules = pFunnelRules.PFunnelRulesRead()
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        lPreferenceTabLayout.LSceneFunnelRules = pFunnelRules.PFunnelRulesRead()
             .Select(pRow =>
             {
-                LPreferenceFunnelRuleRecord pRecord = pRow.PFunnelRecordCreate();
-                pRecord.LPreferenceFunnelTarget = PFunnelTargetRead(pRow.PFunnelTargetId);
+                LSceneFunnelRule pRecord = pRow.PFunnelRecordCreate();
+                pRecord.LSceneFunnelTarget = PFunnelTargetRead(pRow.PFunnelTargetId);
                 return pRecord;
             })
             .ToList();

@@ -13,7 +13,7 @@ public sealed class PMergeTab : PTabSurface
     private readonly PAction pAction = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PMergeTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PMergeTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMerge.LMergeDescribe(
@@ -39,8 +39,8 @@ public sealed class PMergeTab : PTabSurface
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
         pGroup.PGroupModeRestore(
-            lPreferenceTabLayout?.LPreferenceGroupAuto ?? false,
-            lPreferenceTabLayout?.LPreferenceGroupStrict ?? true);
+            lPreferenceTabLayout?.LSceneGroupAuto ?? false,
+            lPreferenceTabLayout?.LSceneGroupStrict ?? true);
     }
 
     private IReadOnlyDictionary<string, Guid> PMergeRelaysRead()
@@ -91,11 +91,11 @@ public sealed class PMergeTab : PTabSurface
     public override PList? PTabList => pList;
     public override PGroup? PTabGroup => pGroup;
 
-    public override LPreferenceTabLayoutRecord PTabLayoutRead()
+    public override LSceneTabRecord PTabLayoutRead()
     {
-        LPreferenceTabLayoutRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
-        lPreferenceTabLayout.LPreferenceGroupAuto = pGroup.PGroupAutoCheck();
-        lPreferenceTabLayout.LPreferenceGroupStrict = pGroup.PGroupStrictCheck();
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        lPreferenceTabLayout.LSceneGroupAuto = pGroup.PGroupAutoCheck();
+        lPreferenceTabLayout.LSceneGroupStrict = pGroup.PGroupStrictCheck();
         return lPreferenceTabLayout;
     }
 }

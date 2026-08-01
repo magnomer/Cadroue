@@ -5,9 +5,9 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
-    public LPreferenceTabLayoutRecord PRosterLayoutRead()
+    public LSceneTabRecord PRosterLayoutRead()
     {
-        var lPreferenceTabLayout = new LPreferenceTabLayoutRecord();
+        var lPreferenceTabLayout = new LSceneTabRecord();
         if (pRosterBody.Tag is not PColumn pRosterLayout)
         {
             return lPreferenceTabLayout;
@@ -15,7 +15,7 @@ public sealed partial class PRoster
 
         foreach (double pWeight in pRosterLayout.PColumnWeightsRead())
         {
-            lPreferenceTabLayout.LPreferencePanelWidths.Add(pWeight);
+            lPreferenceTabLayout.LScenePanelWidths.Add(pWeight);
         }
 
         return lPreferenceTabLayout;
@@ -24,7 +24,7 @@ public sealed partial class PRoster
     public double PRosterWidthRead() =>
         pRosterBody.Tag is PColumn pRosterLayout ? pRosterLayout.PColumnTotalRead() + 16 : 0;
 
-    private UIElement PRosterBuild(LPreferenceTabLayoutRecord? lPreferenceTabLayout)
+    private UIElement PRosterBuild(LSceneTabRecord? lPreferenceTabLayout)
     {
         var pRoot = new Grid { Margin = new Thickness(8, 8, 8, 8) };
         pRoot.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -50,7 +50,7 @@ public sealed partial class PRoster
         var pRosterLayout = PColumn.PColumnAttach(
             pRosterBody,
             new[] { pLeftColumn, pRightColumn },
-            lPreferenceTabLayout?.LPreferencePanelWidths);
+            lPreferenceTabLayout?.LScenePanelWidths);
         var pSplitter = pRosterLayout.PColumnSplitterBuild(0);
         Grid.SetColumn(pSplitter, 1);
         pRosterBody.Children.Add(pSplitter);

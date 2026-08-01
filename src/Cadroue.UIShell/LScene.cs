@@ -114,13 +114,13 @@ public static class LScene
         string lSceneNameHeld = lScene.LSceneName;
         int lSceneIndexHeld = lScene.LSceneTabIndex;
         List<List<double>> lSceneWidthsHeld = lScene.LSceneTabLayouts
-            .Select(lSceneTabLayout => lSceneTabLayout.LPreferencePanelWidths)
+            .Select(lSceneTabLayout => lSceneTabLayout.LScenePanelWidths)
             .ToList();
         lScene.LSceneName = string.Empty;
         lScene.LSceneTabIndex = 0;
-        foreach (LPreferenceTabLayoutRecord lSceneTabLayout in lScene.LSceneTabLayouts)
+        foreach (LSceneTabRecord lSceneTabLayout in lScene.LSceneTabLayouts)
         {
-            lSceneTabLayout.LPreferencePanelWidths = new List<double>();
+            lSceneTabLayout.LScenePanelWidths = new List<double>();
         }
 
         string lSceneJson = JsonSerializer.Serialize(lScene);
@@ -128,7 +128,7 @@ public static class LScene
         lScene.LSceneTabIndex = lSceneIndexHeld;
         for (int lSceneIndex = 0; lSceneIndex < lScene.LSceneTabLayouts.Count; lSceneIndex++)
         {
-            lScene.LSceneTabLayouts[lSceneIndex].LPreferencePanelWidths = lSceneWidthsHeld[lSceneIndex];
+            lScene.LSceneTabLayouts[lSceneIndex].LScenePanelWidths = lSceneWidthsHeld[lSceneIndex];
         }
 
         return lSceneJson;

@@ -15,65 +15,6 @@ public sealed class LSidecarSectionRecord
     public bool LSidecarHidden { get; set; }
 }
 
-public sealed class LSidecarEditRecord
-{
-    public int LSidecarCropLeft { get; set; }
-    public int LSidecarCropTop { get; set; }
-    public int LSidecarCropRight { get; set; }
-    public int LSidecarCropBottom { get; set; }
-    public int LSidecarRotation { get; set; }
-    public bool LSidecarFlipHorizontal { get; set; }
-    public bool LSidecarFlipVertical { get; set; }
-    public bool LSidecarCropActive { get; set; }
-    public bool LSidecarSkip { get; set; }
-    public List<LSidecarVideoStepRecord> LSidecarSteps { get; set; } = new();
-
-    public bool LSidecarEditActive =>
-        LSidecarCropActive
-        || LSidecarSkip
-        || LSidecarCropLeft > 0 || LSidecarCropTop > 0 || LSidecarCropRight > 0 || LSidecarCropBottom > 0
-        || LSidecarRotation != 0 || LSidecarFlipHorizontal || LSidecarFlipVertical
-        || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
-}
-
-public sealed class LSidecarVideoStepRecord
-{
-    public string LSidecarKind { get; set; } = string.Empty;
-    public bool LSidecarActive { get; set; }
-    public double LSidecarValue { get; set; }
-}
-
-public sealed class LSidecarAudioStepRecord
-{
-    public string LSidecarKind { get; set; } = string.Empty;
-    public bool LSidecarActive { get; set; }
-    public double LSidecarGain { get; set; }
-    public string LSidecarMode { get; set; } = "Loudness";
-    public double LSidecarTarget { get; set; } = -16;
-    public double LSidecarPeak { get; set; } = -1.5;
-    public double LSidecarRange { get; set; } = 11;
-    public bool LSidecarTwoPass { get; set; }
-    public double LSidecarReduction { get; set; } = 12;
-    public double LSidecarNoiseFloor { get; set; } = -50;
-    public bool LSidecarTrackNoise { get; set; }
-    public double LSidecarFrequency { get; set; }
-    public int LSidecarStages { get; set; } = 1;
-    public int LSidecarPoles { get; set; } = 2;
-    public double LSidecarResonance { get; set; } = 0.707;
-    public string LSidecarNoiseType { get; set; } = "White";
-    public double LSidecarGainSmooth { get; set; }
-    public double LSidecarAdaptivity { get; set; } = 0.5;
-    public double LSidecarResidualFloor { get; set; } = -38;
-}
-
-public sealed class LSidecarAudioRecord
-{
-    public bool LSidecarSkip { get; set; }
-    public List<LSidecarAudioStepRecord> LSidecarSteps { get; set; } = new();
-
-    public bool LSidecarAudioActive => LSidecarSkip || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
-}
-
 public sealed class LSidecarWaveformRecord
 {
     public int LSidecarBucketMilliseconds { get; set; }

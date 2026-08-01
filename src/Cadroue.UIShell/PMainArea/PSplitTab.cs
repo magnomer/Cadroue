@@ -12,7 +12,7 @@ public sealed class PSplitTab : PTabSurface
     private readonly PList pList = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PSplitTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PSplitTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -52,5 +52,5 @@ public sealed class PSplitTab : PTabSurface
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
+    public override LSceneTabRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
 }

@@ -9,7 +9,7 @@ public sealed class LSceneRecord
     public List<string> LSceneLayoutKeys { get; set; } = new();
     public List<string> LSceneTabNames { get; set; } = new();
     public List<LPresetRecord> LSceneTabExports { get; set; } = new();
-    public List<LPreferenceTabLayoutRecord> LSceneTabLayouts { get; set; } = new();
+    public List<LSceneTabRecord> LSceneTabLayouts { get; set; } = new();
     public List<int> LSceneTabRelays { get; set; } = new();
     public int LSceneTabIndex { get; set; }
 }

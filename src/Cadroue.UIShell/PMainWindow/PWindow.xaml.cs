@@ -86,13 +86,13 @@ public partial class PWindow : Window
             ? lScene.LSceneLayoutKeys
             : new[] { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" };
         IReadOnlyList<LPresetRecord> pTabExports = lScene.LSceneTabExports;
-        IReadOnlyList<LPreferenceTabLayoutRecord> pTabLayouts = lScene.LSceneTabLayouts;
+        IReadOnlyList<LSceneTabRecord> pTabLayouts = lScene.LSceneTabLayouts;
         for (int pTabIndex = 0; pTabIndex < pTabKeys.Count; pTabIndex++)
         {
             LPreset? pTabExportState = pTabIndex < pTabExports.Count
                 ? pTabExports[pTabIndex].LPresetStateCreate()
                 : null;
-            LPreferenceTabLayoutRecord? pTabLayout = pTabIndex < pTabLayouts.Count ? pTabLayouts[pTabIndex] : null;
+            LSceneTabRecord? pTabLayout = pTabIndex < pTabLayouts.Count ? pTabLayouts[pTabIndex] : null;
             PTabRecord pTabRestored = pTabset.LTabsetAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
             if (pTabIndex < lScene.LSceneTabNames.Count)
             {

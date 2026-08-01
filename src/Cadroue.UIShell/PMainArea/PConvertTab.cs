@@ -11,7 +11,7 @@ public sealed class PConvertTab : PTabSurface
     private readonly PList pList = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PConvertTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PConvertTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -49,5 +49,5 @@ public sealed class PConvertTab : PTabSurface
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override LPreferenceTabLayoutRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
+    public override LSceneTabRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
 }

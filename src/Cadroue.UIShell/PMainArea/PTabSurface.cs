@@ -15,7 +15,7 @@ public abstract class PTabSurface : UserControl
     public PAction? PTabAction { get; protected set; }
     public virtual bool PTabBusyCheck() => false;
     public virtual void PTabClose() { }
-    public abstract LPreferenceTabLayoutRecord PTabLayoutRead();
+    public abstract LSceneTabRecord PTabLayoutRead();
 
     protected const double PTabWidthPadding = 16;
 
@@ -52,7 +52,7 @@ public abstract class PTabSurface : UserControl
         UIElement pCompass,
         UIElement pAction,
         UIElement pFlow,
-        LPreferenceTabLayoutRecord? lPreferenceTabLayout)
+        LSceneTabRecord? lPreferenceTabLayout)
     {
         var pGrid = new Grid
         {
@@ -112,7 +112,7 @@ public abstract class PTabSurface : UserControl
         var pPanelLayout = PColumn.PColumnAttach(
             pPanelGrid,
             pColumnItems,
-            lPreferenceTabLayout?.LPreferencePanelWidths,
+            lPreferenceTabLayout?.LScenePanelWidths,
             pColumnCompactFlags,
             pTabViewerIndex);
         for (int index = 0; index < pSplitterColumns.Count; index++)
@@ -130,11 +130,11 @@ public abstract class PTabSurface : UserControl
         if (pAction is PAction pTabAction)
         {
             pTabState.PTabAction = pTabAction;
-            pTabAction.PActionAutoApply(lPreferenceTabLayout?.LPreferenceAutoRelay ?? false);
+            pTabAction.PActionAutoApply(lPreferenceTabLayout?.LSceneAutoRelay ?? false);
         }
 
         pGrid.Tag = pTabState;
-        if (lPreferenceTabLayout?.LPreferenceExportHidden == true)
+        if (lPreferenceTabLayout?.LSceneExportHidden == true)
         {
             pTabState.PExportSet(true);
         }
@@ -144,7 +144,7 @@ public abstract class PTabSurface : UserControl
             PTabCollapseAttach(pPanels[index], index, pPanelLayout, PTabWidthRaise);
         }
 
-        if (lPreferenceTabLayout?.LPreferencePanelsCollapsed is { } pCollapsedIndexes)
+        if (lPreferenceTabLayout?.LScenePanelsCollapsed is { } pCollapsedIndexes)
         {
             foreach (int pCollapsedIndex in pCollapsedIndexes)
             {
@@ -182,27 +182,27 @@ public abstract class PTabSurface : UserControl
         return pGrid;
     }
 
-    protected static LPreferenceTabLayoutRecord PTabLayoutRead(Grid pGrid)
+    protected static LSceneTabRecord PTabLayoutRead(Grid pGrid)
     {
-        var lPreferenceTabLayout = new LPreferenceTabLayoutRecord();
+        var lPreferenceTabLayout = new LSceneTabRecord();
         if (pGrid.Tag is not PTabGridState pState)
         {
             return lPreferenceTabLayout;
         }
 
-        lPreferenceTabLayout.LPreferenceExportHidden = pState.PExportHidden;
-        lPreferenceTabLayout.LPreferenceAutoRelay = pState.PTabAction?.PActionAutoRelay ?? false;
+        lPreferenceTabLayout.LSceneExportHidden = pState.PExportHidden;
+        lPreferenceTabLayout.LSceneAutoRelay = pState.PTabAction?.PActionAutoRelay ?? false;
         for (int index = 0; index < pState.PTabPanels.Count; index++)
         {
             if (PTabCollapseCheck(pState.PTabPanels[index]))
             {
-                lPreferenceTabLayout.LPreferencePanelsCollapsed.Add(index);
+                lPreferenceTabLayout.LScenePanelsCollapsed.Add(index);
             }
         }
 
         foreach (double pWeight in pState.PTabLayout.PColumnWeightsRead())
         {
-            lPreferenceTabLayout.LPreferencePanelWidths.Add(pWeight);
+            lPreferenceTabLayout.LScenePanelWidths.Add(pWeight);
         }
 
         return lPreferenceTabLayout;

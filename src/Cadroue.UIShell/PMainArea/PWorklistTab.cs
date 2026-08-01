@@ -7,7 +7,7 @@ public sealed class PWorklistTab : PTabSurface
 {
     private readonly PRoster pRoster;
 
-    public PWorklistTab(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PWorklistTab(LSceneTabRecord? lPreferenceTabLayout = null)
     {
         pRoster = new PRoster(lPreferenceTabLayout);
         Content = pRoster;
@@ -19,5 +19,5 @@ public sealed class PWorklistTab : PTabSurface
     public override PViewer? PTabViewer => null;
     public override bool PTabBusyCheck() => pRoster.PRosterBusyCheck();
     public override double PTabWidthRead() => pRoster.PRosterWidthRead();
-    public override LPreferenceTabLayoutRecord PTabLayoutRead() => pRoster.PRosterLayoutRead();
+    public override LSceneTabRecord PTabLayoutRead() => pRoster.PRosterLayoutRead();
 }

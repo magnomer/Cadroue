@@ -19,7 +19,7 @@ public sealed class PWorkspace
     public PWorkspace(
         string pTabLayoutKey,
         LPreset? lExportSpecificState = null,
-        LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+        LSceneTabRecord? lPreferenceTabLayout = null)
     {
         PWorkspaceExportState = lExportSpecificState ?? LPreset.LPresetInitialCreate(pTabLayoutKey);
         PWorkspaceSurface = PWorkspaceSurfaceCreate(pTabLayoutKey, PWorkspaceExportState, lPreferenceTabLayout);
@@ -146,7 +146,7 @@ public sealed class PWorkspace
         return true;
     }
 
-    public LPreferenceTabLayoutRecord PWorkspaceLayoutRead() => PWorkspaceSurface.PTabLayoutRead();
+    public LSceneTabRecord PWorkspaceLayoutRead() => PWorkspaceSurface.PTabLayoutRead();
 
     public void PWorkspaceRelayApply(LRelay lRelay)
     {
@@ -235,7 +235,7 @@ public sealed class PWorkspace
     private static PTabSurface PWorkspaceSurfaceCreate(
         string pTabLayoutKey,
         LPreset lExportSpecificState,
-        LPreferenceTabLayoutRecord? lPreferenceTabLayout)
+        LSceneTabRecord? lPreferenceTabLayout)
     {
         return pTabLayoutKey switch
         {

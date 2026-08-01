@@ -69,7 +69,7 @@ public sealed class LTabset
     public PTabRecord LTabsetAdd(
         string pTabLayoutKey,
         LPreset? lExportSpecificState = null,
-        LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+        LSceneTabRecord? lPreferenceTabLayout = null)
     {
         return pTabLayoutKey switch
         {
@@ -87,7 +87,7 @@ public sealed class LTabset
         string pTabLayoutKey,
         string pTabIconPath,
         LPreset? lExportSpecificState,
-        LPreferenceTabLayoutRecord? lPreferenceTabLayout)
+        LSceneTabRecord? lPreferenceTabLayout)
     {
         var pTabRecord = new PTabRecord(
             LTabsetTitleRead(pTabLayoutKey),

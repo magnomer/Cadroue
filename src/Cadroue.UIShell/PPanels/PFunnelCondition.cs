@@ -107,22 +107,22 @@ internal sealed class PFunnelCondition : Grid
         };
     }
 
-    public LPreferenceFunnelMatchRecord PFunnelConditionRecordRead()
+    public LSceneFunnelMatch PFunnelConditionRecordRead()
     {
-        return new LPreferenceFunnelMatchRecord
+        return new LSceneFunnelMatch
         {
-            LPreferenceFunnelText = PFunnelConditionText,
-            LPreferenceFunnelCase = pFunnelCase,
-            LPreferenceFunnelJoin = pFunnelAnd
+            LSceneFunnelText = PFunnelConditionText,
+            LSceneFunnelCase = pFunnelCase,
+            LSceneFunnelJoin = pFunnelAnd
         };
     }
 
-    public void PFunnelConditionRestore(LPreferenceFunnelMatchRecord? pMatch)
+    public void PFunnelConditionRestore(LSceneFunnelMatch? pMatch)
     {
-        pMatch ??= new LPreferenceFunnelMatchRecord();
-        pFunnelField.Text = pMatch.LPreferenceFunnelText;
-        pFunnelCase = pMatch.LPreferenceFunnelCase;
-        pFunnelAnd = pMatch.LPreferenceFunnelJoin;
+        pMatch ??= new LSceneFunnelMatch();
+        pFunnelField.Text = pMatch.LSceneFunnelText;
+        pFunnelCase = pMatch.LSceneFunnelCase;
+        pFunnelAnd = pMatch.LSceneFunnelJoin;
         PFunnelCaseApply();
         if (pFunnelJoin is not null)
         {

@@ -108,52 +108,52 @@ public sealed class PFunnelRuleRow : Border
         PFunnelRelayRebuild();
     }
 
-    public void PFunnelRowRestore(LPreferenceFunnelRuleRecord pRecord)
+    public void PFunnelRowRestore(LSceneFunnelRule pRecord)
     {
         if (pFunnelForm == PFunnelForm.Regex)
         {
             if (pFunnelRegexField is not null)
             {
-                pFunnelRegexField.Text = pRecord.LPreferenceFunnelRegex;
+                pFunnelRegexField.Text = pRecord.LSceneFunnelRegex;
             }
 
             if (pFunnelWholeCheck is not null)
             {
-                pFunnelWholeCheck.IsChecked = pRecord.LPreferenceFunnelWhole;
+                pFunnelWholeCheck.IsChecked = pRecord.LSceneFunnelWhole;
             }
 
             pFunnelRegexReady = false;
         }
         else
         {
-            PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRestore(pRecord.LPreferenceFunnelContains);
-            PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRestore(pRecord.LPreferenceFunnelStart);
-            PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRestore(pRecord.LPreferenceFunnelEnd);
-            PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRestore(pRecord.LPreferenceFunnelExtension);
+            PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRestore(pRecord.LSceneFunnelContains);
+            PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRestore(pRecord.LSceneFunnelStart);
+            PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRestore(pRecord.LSceneFunnelEnd);
+            PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRestore(pRecord.LSceneFunnelExtension);
         }
 
-        pFunnelTargetPending = pRecord.LPreferenceFunnelTarget;
+        pFunnelTargetPending = pRecord.LSceneFunnelTarget;
     }
 
-    public LPreferenceFunnelRuleRecord PFunnelRecordCreate()
+    public LSceneFunnelRule PFunnelRecordCreate()
     {
         if (pFunnelForm == PFunnelForm.Regex)
         {
-            return new LPreferenceFunnelRuleRecord
+            return new LSceneFunnelRule
             {
-                LPreferenceFunnelType = (int)PFunnelForm.Regex,
-                LPreferenceFunnelRegex = pFunnelRegexField?.Text.Trim() ?? string.Empty,
-                LPreferenceFunnelWhole = pFunnelWholeCheck?.IsChecked == true
+                LSceneFunnelType = (int)PFunnelForm.Regex,
+                LSceneFunnelRegex = pFunnelRegexField?.Text.Trim() ?? string.Empty,
+                LSceneFunnelWhole = pFunnelWholeCheck?.IsChecked == true
             };
         }
 
-        return new LPreferenceFunnelRuleRecord
+        return new LSceneFunnelRule
         {
-            LPreferenceFunnelType = (int)PFunnelForm.Filename,
-            LPreferenceFunnelContains = PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRecordRead(),
-            LPreferenceFunnelStart = PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRecordRead(),
-            LPreferenceFunnelEnd = PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRecordRead(),
-            LPreferenceFunnelExtension = PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRecordRead()
+            LSceneFunnelType = (int)PFunnelForm.Filename,
+            LSceneFunnelContains = PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRecordRead(),
+            LSceneFunnelStart = PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRecordRead(),
+            LSceneFunnelEnd = PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRecordRead(),
+            LSceneFunnelExtension = PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRecordRead()
         };
     }
 

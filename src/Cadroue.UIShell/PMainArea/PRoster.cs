@@ -18,7 +18,7 @@ public sealed partial class PRoster : UserControl
     private readonly List<LWorkItem> pRosterWatchedItems = new();
     private bool pRosterClosed;
 
-    public PRoster(LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PRoster(LSceneTabRecord? lPreferenceTabLayout = null)
     {
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);

@@ -21,7 +21,7 @@ public sealed class PEditTab : PTabSurface
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pEditPlanLoading;
 
-    public PEditTab(LPreset lExportSpecificState, LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+    public PEditTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -85,9 +85,9 @@ public sealed class PEditTab : PTabSurface
         PEditActiveUpdate();
     }
 
-    private void PEditPersistentRestore(LPreferenceTabLayoutRecord? lPreferenceTabLayout)
+    private void PEditPersistentRestore(LSceneTabRecord? lPreferenceTabLayout)
     {
-        if (lPreferenceTabLayout?.LPreferenceInspectorPersistent is not { LPreferenceEditPersistent: { } pEditRecord } pEditPersistent)
+        if (lPreferenceTabLayout?.LSceneInspector is not { LSceneInspectorEdit: { } pEditRecord } pEditPersistent)
         {
             return;
         }
@@ -96,7 +96,7 @@ public sealed class PEditTab : PTabSurface
         try
         {
             LEditPlan pEditPlan = LEdit.LEditPersistentRead(pEditRecord);
-            if (pEditPersistent.LPreferenceCropPersistent)
+            if (pEditPersistent.LSceneInspectorCrop)
             {
                 pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropApply);
                 pInspector.PCropPersistentApply(true);
@@ -105,7 +105,7 @@ public sealed class PEditTab : PTabSurface
             pInspector.PTonePlanApply(pEditPlan.LEditVideo);
             pInspector.PTonePersistentApply(pEditPlan.LEditVideo);
             pInspector.PSkipApply(pEditPlan.LEditSkip);
-            pInspector.PSkipPersistentApply(pEditPersistent.LPreferenceSkipPersistent);
+            pInspector.PSkipPersistentApply(pEditPersistent.LSceneInspectorSkip);
         }
         finally
         {
@@ -406,9 +406,9 @@ public sealed class PEditTab : PTabSurface
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override LPreferenceTabLayoutRecord PTabLayoutRead()
+    public override LSceneTabRecord PTabLayoutRead()
     {
-        LPreferenceTabLayoutRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
         bool pCropPersistent = pInspector.PCropPersistentCheck();
         bool pVideoPersistent = pInspector.PTonePersistentCheck();
         bool pSkipPersistent = pInspector.PSkipPersistentCheck();
@@ -421,11 +421,11 @@ public sealed class PEditTab : PTabSurface
             {
                 LEditSkip = pSkipPersistent && pInspector.PSkipActiveCheck()
             };
-            lPreferenceTabLayout.LPreferenceInspectorPersistent = new LPreferenceInspectorPersistentRecord
+            lPreferenceTabLayout.LSceneInspector = new LSceneInspectorRecord
             {
-                LPreferenceEditPersistent = LEdit.LEditPersistentCreate(pEditCarried),
-                LPreferenceCropPersistent = pCropPersistent,
-                LPreferenceSkipPersistent = pSkipPersistent
+                LSceneInspectorEdit = LEdit.LEditPersistentCreate(pEditCarried),
+                LSceneInspectorCrop = pCropPersistent,
+                LSceneInspectorSkip = pSkipPersistent
             };
         }
 

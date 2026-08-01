@@ -65,13 +65,13 @@ public static partial class LAudio
             lAudioItems, lAudioRelayTarget, lAudioRelaySource);
     }
 
-    public static Cadroue.Media.LSidecarAudioRecord LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()
+    public static Cadroue.Core.LSidecarAudioRecord LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()
     {
         LSidecarSkip = lAudioPlan.LWorkAudioSkip,
         LSidecarSteps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
     };
 
-    public static LWorkAudio LAudioPersistentRead(Cadroue.Media.LSidecarAudioRecord lAudioRecord) =>
+    public static LWorkAudio LAudioPersistentRead(Cadroue.Core.LSidecarAudioRecord lAudioRecord) =>
         new(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray()) { LWorkAudioSkip = lAudioRecord.LSidecarSkip };
 
     public static LWorkAudio? LAudioPlanRead(string lAudioSourcePath) =>
@@ -83,7 +83,7 @@ public static partial class LAudio
     {
         Cadroue.Media.LSidecarStore.LSidecarAudioSave(
             lAudioSourcePath,
-            new Cadroue.Media.LSidecarAudioRecord
+            new Cadroue.Core.LSidecarAudioRecord
             {
                 LSidecarSkip = lAudioPlan.LWorkAudioSkip,
                 LSidecarSteps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
@@ -124,7 +124,7 @@ public static partial class LAudio
         _ => LWorkAudioStep.LWorkVolumeCreate(false, 0)
     };
 
-    private static LWorkAudioStep LAudioStepCreate(Cadroue.Media.LSidecarAudioStepRecord lAudioRecord) =>
+    private static LWorkAudioStep LAudioStepCreate(Cadroue.Core.LSidecarAudioStepRecord lAudioRecord) =>
         new(
             LAudioKindCreate(lAudioRecord.LSidecarKind),
             lAudioRecord.LSidecarActive,
@@ -153,7 +153,7 @@ public static partial class LAudio
             lAudioRecord.LSidecarAdaptivity,
             lAudioRecord.LSidecarResidualFloor);
 
-    private static Cadroue.Media.LSidecarAudioStepRecord LAudioRecordCreate(LWorkAudioStep lAudioStep) => new()
+    private static Cadroue.Core.LSidecarAudioStepRecord LAudioRecordCreate(LWorkAudioStep lAudioStep) => new()
     {
         LSidecarKind = lAudioStep.LWorkAudioStepKind.ToString().Replace("LWorkAudioKind", string.Empty),
         LSidecarActive = lAudioStep.LWorkAudioStepActive,

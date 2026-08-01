@@ -41,7 +41,7 @@ public sealed class LRelay
     public string LRelayLayoutKey { get; set; } = "Split";
     public string LRelayCustomName { get; set; } = string.Empty;
     public LPresetRecord LRelayExport { get; set; } = new();
-    public LPreferenceTabLayoutRecord LRelayLayout { get; set; } = new();
+    public LSceneTabRecord LRelayLayout { get; set; } = new();
     public string LRelaySourcePath { get; set; } = string.Empty;
     public List<LRelaySectionRecord> LRelaySections { get; set; } = new();
     public int? LRelaySectionIndex { get; set; }

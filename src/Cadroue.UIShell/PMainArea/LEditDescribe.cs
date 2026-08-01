@@ -164,7 +164,7 @@ public static partial class LEdit
 
     private static int LEditParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
 
-    public static Cadroue.Media.LSidecarEditRecord LEditPersistentCreate(LEditPlan lEditPlan) => new()
+    public static Cadroue.Core.LSidecarEditRecord LEditPersistentCreate(LEditPlan lEditPlan) => new()
     {
         LSidecarCropLeft = lEditPlan.LEditCrop.LWorkCropLeft,
         LSidecarCropTop = lEditPlan.LEditCrop.LWorkCropTop,
@@ -178,7 +178,7 @@ public static partial class LEdit
         LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
     };
 
-    public static LEditPlan LEditPersistentRead(Cadroue.Media.LSidecarEditRecord lEditRecord) =>
+    public static LEditPlan LEditPersistentRead(Cadroue.Core.LSidecarEditRecord lEditRecord) =>
         LEditPlanCreate(lEditRecord);
 
     public static LEditPlan? LEditPlanRead(string lEditSourcePath) =>
@@ -198,7 +198,7 @@ public static partial class LEdit
         }
     }
 
-    private static LEditPlan LEditPlanCreate(Cadroue.Media.LSidecarEditRecord lEditRecord) => new(
+    private static LEditPlan LEditPlanCreate(Cadroue.Core.LSidecarEditRecord lEditRecord) => new(
         new LWorkCrop(
             lEditRecord.LSidecarCropLeft,
             lEditRecord.LSidecarCropTop,
@@ -210,7 +210,7 @@ public static partial class LEdit
         new LWorkVideo(lEditRecord.LSidecarSteps.Select(LEditStepCreate).ToList()),
         lEditRecord.LSidecarCropActive) { LEditSkip = lEditRecord.LSidecarSkip };
 
-    private static LWorkVideoStep LEditStepCreate(Cadroue.Media.LSidecarVideoStepRecord lEditRecord) =>
+    private static LWorkVideoStep LEditStepCreate(Cadroue.Core.LSidecarVideoStepRecord lEditRecord) =>
         string.Equals(lEditRecord.LSidecarKind, "Contrast", StringComparison.Ordinal)
             ? LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
             : LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue);
@@ -219,7 +219,7 @@ public static partial class LEdit
     {
         Cadroue.Media.LSidecarStore.LSidecarEditSave(
             lEditSourcePath,
-            new Cadroue.Media.LSidecarEditRecord
+            new Cadroue.Core.LSidecarEditRecord
             {
                 LSidecarCropLeft = lEditPlan.LEditCrop.LWorkCropLeft,
                 LSidecarCropTop = lEditPlan.LEditCrop.LWorkCropTop,
@@ -234,7 +234,7 @@ public static partial class LEdit
             });
     }
 
-    private static Cadroue.Media.LSidecarVideoStepRecord LEditRecordCreate(LWorkVideoStep lEditStep) => new()
+    private static Cadroue.Core.LSidecarVideoStepRecord LEditRecordCreate(LWorkVideoStep lEditStep) => new()
     {
         LSidecarKind = lEditStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast ? "Contrast" : "Brightness",
         LSidecarActive = lEditStep.LWorkStepActive,

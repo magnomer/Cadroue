@@ -18,7 +18,7 @@ public sealed class PTabRecord : INotifyPropertyChanged
         string pTabLayoutKey,
         ImageSource pTabIconSource,
         LPreset? lExportSpecificState = null,
-        LPreferenceTabLayoutRecord? lPreferenceTabLayout = null)
+        LSceneTabRecord? lPreferenceTabLayout = null)
     {
         PTabId = Guid.NewGuid();
         PTabTitle = pTabTitle;
