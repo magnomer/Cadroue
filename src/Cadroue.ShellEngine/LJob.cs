@@ -66,7 +66,7 @@ internal sealed class LJob
                 {
                     string pMeasured = pMeasureStderr is null
                         ? string.Empty
-                        : LEncode.LEncodeLoudnormRead(pMeasureStderr);
+                        : LEncodeLoudnorm.LEncodeLoudnormRead(pMeasureStderr);
                     pStageArguments = pStageArguments.Replace(LEncode.LEncodeMeasureToken, pMeasured, StringComparison.Ordinal);
                 }
 

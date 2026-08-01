@@ -3,6 +3,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Media;
 
+using Cadroue.Core;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PViewfinder : FrameworkElement

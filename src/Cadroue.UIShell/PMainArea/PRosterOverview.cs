@@ -330,7 +330,7 @@ public sealed partial class PRoster
             double? pMeasured = null;
             try
             {
-                pMeasured = LMediaInfo.LMediaLoudnessRead(pMediaPath);
+                pMeasured = LMedia.LMediaLoudnessRead(pMediaPath);
             }
             catch (Exception pMeasureError)
             {

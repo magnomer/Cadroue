@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Cadroue.Media;
+namespace Cadroue.Core;
 
 public sealed record LKeyframeSourceIdentity
 {

@@ -205,7 +205,7 @@ public static class LSidecarStore
             TimeSpan lSidecarProbed;
             try
             {
-                lSidecarProbed = LMediaInfo.LMediaFfprobeRead(lSidecarSourcePath).LMediaInfoDuration;
+                lSidecarProbed = LMedia.LMediaFfprobeRead(lSidecarSourcePath).LMediaInfoDuration;
             }
             catch (Exception)
             {

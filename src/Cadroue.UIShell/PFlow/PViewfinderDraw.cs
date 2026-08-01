@@ -5,6 +5,8 @@ using Cadroue.Media;
 using Cadroue.UIShell;
 using Cadroue.UIShell.PPanels;
 
+using Cadroue.Core;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PViewfinder

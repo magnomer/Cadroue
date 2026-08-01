@@ -10,6 +10,8 @@ using Cadroue.UIShell.PMainWindow;
 using FlyleafLib.Controls.WPF;
 using FlyleafLib.MediaPlayer;
 
+using Cadroue.Core;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer : PPanel

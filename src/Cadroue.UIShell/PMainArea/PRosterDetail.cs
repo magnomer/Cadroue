@@ -247,7 +247,7 @@ public sealed partial class PRoster
             LWorkMedia? pProbed = null;
             try
             {
-                LMediaInfo pProbedInfo = LMediaInfo.LMediaFfprobeRead(pMediaPath);
+                LMediaInfo pProbedInfo = LMedia.LMediaFfprobeRead(pMediaPath);
                 pProbed = new LWorkMedia(
                     pProbedInfo.LMediaVideoWidth,
                     pProbedInfo.LMediaVideoHeight,

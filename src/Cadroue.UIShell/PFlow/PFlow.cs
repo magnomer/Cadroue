@@ -6,6 +6,8 @@ using System.Windows.Threading;
 using Cadroue.Media;
 using Cadroue.UIShell;
 
+using Cadroue.Core;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow : UserControl

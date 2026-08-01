@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using Cadroue.Core;
+
 namespace Cadroue.Media;
 
 public sealed class LSidecarSectionRecord

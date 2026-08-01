@@ -25,7 +25,7 @@ internal static class LProbe
 
         try
         {
-            LMediaInfo lProbeMedia = LMediaInfo.LMediaFfprobeRead(lProbeMediaPath);
+            LMediaInfo lProbeMedia = LMedia.LMediaFfprobeRead(lProbeMediaPath);
             return new LWorkMedia(
                 lProbeMedia.LMediaVideoWidth,
                 lProbeMedia.LMediaVideoHeight,

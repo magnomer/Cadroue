@@ -6,6 +6,8 @@ using FlyleafLib;
 using FlyleafLib.MediaFramework.MediaRenderer;
 using FlyleafLib.MediaPlayer;
 
+using Cadroue.Core;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer
@@ -159,7 +161,7 @@ public sealed partial class PViewer
         string? ffmpegError = null;
         try
         {
-            mediaInfo = LMediaInfo.LMediaFfprobeRead(sourcePath);
+            mediaInfo = LMedia.LMediaFfprobeRead(sourcePath);
             if (mediaInfo.LMediaAudioOnly && !pViewerAudioAllowed)
             {
                 string audioOnlyError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");

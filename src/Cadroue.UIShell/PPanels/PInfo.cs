@@ -5,6 +5,8 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using Cadroue.Core;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed class PInfo : UserControl
@@ -67,7 +69,7 @@ public sealed class PInfo : UserControl
 
         if (string.IsNullOrEmpty(pMediaStatus.LMediaOpenSourcePath))
         {
-            PInfoStatusAdd(LLocalization.LLocalizationTextRead(LMediaInfo.LMediaFfprobeExist() ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"), PInfoMutedBrush);
+            PInfoStatusAdd(LLocalization.LLocalizationTextRead(LMedia.LMediaFfprobeExist() ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"), PInfoMutedBrush);
             return;
         }
 

@@ -1,4 +1,4 @@
-namespace Cadroue.Media;
+namespace Cadroue.Core;
 
 public sealed record LKeyframeScanRange
 {

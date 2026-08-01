@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Globalization;
 
+using Cadroue.Core;
+
 namespace Cadroue.Media;
 
 public static class LKeyframeSeeker
