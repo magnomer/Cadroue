@@ -7,7 +7,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
-    private void PRosterScheduleHandle(LSchedule lSchedule)
+    private void PRosterScheduleHandle(LScheduleContract lSchedule)
     {
         PRosterWatchDetach();
         foreach (LWorkItem lWorkItem in lSchedule.LScheduleRecords)

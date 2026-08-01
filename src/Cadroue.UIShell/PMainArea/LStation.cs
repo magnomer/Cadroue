@@ -95,7 +95,7 @@ public sealed class LStation
     public bool LStationBusyCheck() =>
         LStationRunner.LRunnerRunning || LStationRunner.LRunnerSuspended;
 
-    private void LStationScheduleHandle(LSchedule lSchedule) => LStationAutoApply();
+    private void LStationScheduleHandle(LScheduleContract lSchedule) => LStationAutoApply();
 
     private void LStationAutoApply()
     {

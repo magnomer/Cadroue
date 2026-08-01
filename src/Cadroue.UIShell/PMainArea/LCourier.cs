@@ -172,9 +172,9 @@ public static class LCourier
         }
     }
 
-    private static void LCourierScheduleHandle(LSchedule lCourierSchedule) => LCourierDispatch(lCourierSchedule);
+    private static void LCourierScheduleHandle(LScheduleContract lCourierSchedule) => LCourierDispatch(lCourierSchedule);
 
-    private static void LCourierDispatch(LSchedule lCourierSchedule)
+    private static void LCourierDispatch(LScheduleContract lCourierSchedule)
     {
         foreach (LWorkItem lWorkItem in lCourierSchedule.LScheduleRecords.ToArray())
         {
@@ -192,7 +192,7 @@ public static class LCourier
         }
     }
 
-    private static void LCourierBatchCheck(LSchedule lCourierSchedule, LWorkItem lWorkItem)
+    private static void LCourierBatchCheck(LScheduleContract lCourierSchedule, LWorkItem lWorkItem)
     {
         if (lWorkItem.LWorkBatchId == Guid.Empty
             || lWorkItem.LWorkRelayTarget == Guid.Empty

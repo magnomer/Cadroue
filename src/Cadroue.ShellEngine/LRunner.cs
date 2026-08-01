@@ -7,7 +7,7 @@ namespace Cadroue.ShellEngine;
 
 public sealed partial class LRunner
 {
-    internal readonly LSchedule lRunnerSchedule;
+    internal readonly LScheduleContract lRunnerSchedule;
     private readonly Action<Action> lRunnerPost;
     internal readonly ConcurrentDictionary<Guid, LWorkItem> lRunnerItems = new();
     internal readonly ConcurrentDictionary<Guid, Process> lRunnerProcesses = new();
@@ -26,7 +26,7 @@ public sealed partial class LRunner
         public int LRunnerBatchActive;
     }
 
-    public LRunner(LSchedule lSchedule, Action<Action> lRunnerPostAction)
+    public LRunner(LScheduleContract lSchedule, Action<Action> lRunnerPostAction)
     {
         lRunnerSchedule = lSchedule;
         lRunnerPost = lRunnerPostAction;

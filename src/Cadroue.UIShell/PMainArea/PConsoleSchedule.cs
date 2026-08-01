@@ -108,7 +108,7 @@ public sealed partial class PConsole
             && PConsoleStationRead().LStationRunner.LRunnerOwnerCheck(pWorkItem))
         .ToArray();
 
-    private void PConsoleScheduleHandle(LSchedule lSchedule)
+    private void PConsoleScheduleHandle(LScheduleContract lSchedule)
     {
         PConsoleWatchDetach();
         foreach (LWorkItem lWorkItem in lSchedule.LScheduleRecords)

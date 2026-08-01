@@ -4,7 +4,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed partial class LSchedule
+public sealed partial class LSchedule : LScheduleContract
 {
     private readonly ObservableCollection<LWorkItem> lScheduleItems = new();
     private readonly Dictionary<Guid, LWorkItem> lScheduleLiveItems = new();
@@ -22,7 +22,7 @@ public sealed partial class LSchedule
 
     public ReadOnlyObservableCollection<LWorkItem> LScheduleRecords { get; }
 
-    public event Action<LSchedule>? LScheduleChange;
+    public event Action<LScheduleContract>? LScheduleChange;
 
     public int LScheduleDoneCount =>
         lScheduleItems.Count(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone);
