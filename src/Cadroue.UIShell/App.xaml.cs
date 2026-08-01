@@ -19,6 +19,7 @@ public partial class PProgram : System.Windows.Application
     public static List<LBindingRecord> LBindingCurrent { get; private set; } = LBinding.LBindingNormalize(null);
     public static LSceneRecord LSceneCurrent { get; private set; } = new();
     public static string LSceneActiveName { get; private set; } = string.Empty;
+    public static LScheduleContract LScheduleCurrent { get; private set; } = new Cadroue.Infrastructure.LSchedule();
 
     private static string? lDepotRootApplied;
 
@@ -79,7 +80,6 @@ public partial class PProgram : System.Windows.Application
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;
-        LSchedule.LScheduleCurrentSet(new LSchedule());
         Cadroue.Infrastructure.LSchedule.LScheduleRecoverReport = LTraceLog.LTraceInfoRecord;
         LTraceLog.LTraceInfoRecord($"Application started: version {PProgramVersionRead()}, process {Environment.ProcessId}");
         LTraceLog.LTraceInfoRecord(LFlyleaf.LFlyleafActive
@@ -233,7 +233,7 @@ public partial class PProgram : System.Windows.Application
     {
         try
         {
-            int lScheduleRecovered = Cadroue.Infrastructure.LSchedule.LScheduleCurrent.LScheduleStaleClaim();
+            int lScheduleRecovered = LScheduleCurrent.LScheduleStaleClaim();
             if (lScheduleRecovered > 0)
             {
                 LTraceLog.LTraceInfoRecord($"Worklist recovery: {lScheduleRecovered} interrupted job(s) resolved at startup");

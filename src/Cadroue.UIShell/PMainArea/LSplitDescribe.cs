@@ -34,7 +34,7 @@ public static partial class LSplit
             return 0;
         }
 
-        int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(
+        int lSplitAdded = PProgram.LScheduleCurrent.LScheduleAdd(
             lSplitWorkItems, lSplitRelayTarget, lSplitRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lSplitAdded} of {lSplitWorkItems.Count} job(s) at {lWorkPriority} " +

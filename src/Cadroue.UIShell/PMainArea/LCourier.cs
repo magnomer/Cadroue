@@ -28,7 +28,7 @@ public static class LCourier
         }
 
         lCourierWatching = true;
-        LSchedule.LScheduleCurrent.LScheduleChange += LCourierScheduleHandle;
+        PProgram.LScheduleCurrent.LScheduleChange += LCourierScheduleHandle;
     }
 
     public static void LCourierAttach(Guid lCourierSourceTab, PAction pCourierAction)

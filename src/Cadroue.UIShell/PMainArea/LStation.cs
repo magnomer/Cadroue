@@ -15,12 +15,12 @@ public sealed class LStation
     private LStation(string lStationLabel)
     {
         LStationLabel = lStationLabel;
-        LStationRunner = new LRunner(LSchedule.LScheduleCurrent, LStationDispatch)
+        LStationRunner = new LRunner(PProgram.LScheduleCurrent, LStationDispatch)
         {
             LRunnerProgramPath = PProgram.LRendererProgramCurrent
         };
         lStationAutoActive = PProgram.LPreferenceStateCurrent.LPreferenceAutoActive;
-        LSchedule.LScheduleCurrent.LScheduleChange += LStationScheduleHandle;
+        PProgram.LScheduleCurrent.LScheduleChange += LStationScheduleHandle;
     }
 
     public string LStationLabel { get; private set; }
@@ -101,7 +101,7 @@ public sealed class LStation
     {
         if (!lStationAutoActive
             || LStationRunner.LRunnerRunning
-            || !LSchedule.LScheduleCurrent.LSchedulePendingExist())
+            || !PProgram.LScheduleCurrent.LSchedulePendingExist())
         {
             return;
         }
@@ -119,7 +119,7 @@ public sealed class LStation
     {
         lStationAutoActive = false;
         LStationSelectionSource = null;
-        LSchedule.LScheduleCurrent.LScheduleChange -= LStationScheduleHandle;
+        PProgram.LScheduleCurrent.LScheduleChange -= LStationScheduleHandle;
         if (!lStationRecords.Remove(this))
         {
             return;

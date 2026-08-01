@@ -28,7 +28,7 @@ public static partial class LMerge
             return 0;
         }
 
-        int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(
+        int lMergeAdded = PProgram.LScheduleCurrent.LScheduleAdd(
             lMergeItems, lMergeRelayTarget, lMergeRelaySource);
         LTraceLog.LTraceInfoRecord($"Merge queued {lMergeAdded} group(s) at {lWorkPriority}");
         return lMergeAdded;

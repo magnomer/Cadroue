@@ -46,7 +46,7 @@ public static partial class LEdit
             return 0;
         }
 
-        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(
+        int lEditAdded = PProgram.LScheduleCurrent.LScheduleAdd(
             lEditWorkItems, lEditRelayTarget, lEditRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Edit queued {lEditAdded} job(s) at {lWorkPriority} from " +
@@ -92,7 +92,7 @@ public static partial class LEdit
             lEditItem.LWorkTab = lEditTab;
         }
 
-        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lEditWorkItems, lEditRelayTarget, lEditRelaySource);
+        int lEditAdded = PProgram.LScheduleCurrent.LScheduleAdd(lEditWorkItems, lEditRelayTarget, lEditRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Edit Add All: {lEditSources.Count} listed, {lEditAdded} queued from saved plans");
 
@@ -121,7 +121,7 @@ public static partial class LEdit
 
         for (int lEditIndex = 0; lEditIndex < lEditUnknown.Length; lEditIndex++)
         {
-            LSchedule.LScheduleCurrent.LScheduleDurationSet(
+            PProgram.LScheduleCurrent.LScheduleDurationSet(
                 lEditUnknown[lEditIndex].LWorkId, lEditResolved[lEditIndex]);
         }
     }

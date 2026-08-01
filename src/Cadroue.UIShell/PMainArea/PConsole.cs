@@ -18,7 +18,7 @@ public sealed partial class PConsole : UserControl
     private const double PConsoleSwitchWidth = 34;
     private const double PConsoleSwitchSize = 18;
 
-    private readonly LSchedule pConsoleSchedule = LSchedule.LScheduleCurrent;
+    private readonly LScheduleContract pConsoleSchedule = PProgram.LScheduleCurrent;
     private readonly Button pConsolePreviousButton;
     private readonly Button pConsoleNextButton;
     private readonly CheckBox pConsoleAutoBox;

@@ -8,7 +8,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster : UserControl
 {
-    private readonly LSchedule pRosterSchedule = LSchedule.LScheduleCurrent;
+    private readonly LScheduleContract pRosterSchedule = PProgram.LScheduleCurrent;
     private readonly LStation pRosterStation = LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist"));
     private readonly Grid pRosterBody;
     private readonly StackPanel pRosterQueuePanel = new();

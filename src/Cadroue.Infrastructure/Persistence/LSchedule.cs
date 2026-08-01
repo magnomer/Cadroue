@@ -14,12 +14,6 @@ public sealed partial class LSchedule : LScheduleContract
         LScheduleRecords = new ReadOnlyObservableCollection<LWorkItem>(lScheduleItems);
     }
 
-    private static LSchedule? lScheduleCurrent;
-
-    public static LSchedule LScheduleCurrent => lScheduleCurrent ??= new();
-
-    public static void LScheduleCurrentSet(LSchedule lSchedule) => lScheduleCurrent = lSchedule;
-
     public ReadOnlyObservableCollection<LWorkItem> LScheduleRecords { get; }
 
     public event Action<LScheduleContract>? LScheduleChange;

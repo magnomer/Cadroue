@@ -82,7 +82,7 @@ public sealed partial class PRoster
         {
             foreach (LWorkItem pRestartItem in pRestartTargets)
             {
-                LSchedule.LScheduleCurrent.LScheduleItemReset(pRestartItem.LWorkId);
+                PProgram.LScheduleCurrent.LScheduleItemReset(pRestartItem.LWorkId);
             }
         };
         pMenu.Items.Add(pRestart);
