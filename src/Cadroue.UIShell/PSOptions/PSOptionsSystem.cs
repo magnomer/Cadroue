@@ -259,8 +259,8 @@ internal sealed partial class PSOptions
             return LLocalization.LLocalizationTextRead("Options.System.FFmpegBlank");
         }
 
-        bool pProgramReady = LRendererSettings.LRendererProgramExist(pFolder);
-        bool pLibraryReady = LRendererSettings.LRendererFolderValidate(pFolder);
+        bool pProgramReady = LRendererLibrary.LRendererProgramExist(pFolder);
+        bool pLibraryReady = LRendererLibrary.LRendererFolderValidate(pFolder);
         if (pProgramReady && pLibraryReady)
         {
             return LLocalization.LLocalizationTextRead("Options.System.FFmpegReady");

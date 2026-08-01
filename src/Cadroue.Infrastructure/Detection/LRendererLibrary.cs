@@ -1,35 +1,13 @@
 using System;
 using System.IO;
+using System.Linq;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.Infrastructure;
 
-public sealed class LRendererSettings
+public static class LRendererLibrary
 {
     public const string LRendererProgramFile = "ffmpeg.exe";
     public const string LRendererProgramPath = "ffmpeg";
-
-    public string? LRendererLibraryFolder { get; set; }
-
-    public bool LRendererLibraryReady =>
-        LRendererFolderValidate(LRendererLibraryFolder);
-
-    public static LRendererSettings LRendererDefaultCreate()
-    {
-        return new LRendererSettings
-        {
-            LRendererLibraryFolder = null
-        };
-    }
-
-    public LRendererSettings LRendererFolderChange(string? lRendererFfmpegLibraryFolder)
-    {
-        return new LRendererSettings
-        {
-            LRendererLibraryFolder = string.IsNullOrWhiteSpace(lRendererFfmpegLibraryFolder)
-                ? null
-                : Path.GetFullPath(lRendererFfmpegLibraryFolder)
-        };
-    }
 
     public static bool LRendererFolderValidate(string? lRendererFfmpegLibraryFolder)
     {

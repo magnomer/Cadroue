@@ -29,7 +29,7 @@ public partial class PProgram : Application
             : LPreferenceStateCurrent.LPreferenceFfmpegFolder;
 
     public static string LRendererProgramCurrent =>
-        LRendererSettings.LRendererProgramRead(LRendererFolderCurrent);
+        LRendererLibrary.LRendererProgramRead(LRendererFolderCurrent);
 
     private static DispatcherTimer? lPreferenceSaveTimer;
 
@@ -359,17 +359,17 @@ public partial class PProgram : Application
             };
             LRendererLogApply(lRendererEngineConfig, LTrace.LTraceVerbose);
 
-            if (LRendererSettings.LRendererFolderValidate(LPreferenceStateCurrent.LPreferenceFfmpegFolder))
+            if (LRendererLibrary.LRendererFolderValidate(LPreferenceStateCurrent.LPreferenceFfmpegFolder))
             {
                 lRendererEngineConfig.FFmpegPath = LPreferenceStateCurrent.LPreferenceFfmpegFolder;
             }
-            else if (LRendererSettingsCurrent.LRendererLibraryReady)
+            else if (LRendererLibrary.LRendererFolderValidate(LRendererSettingsCurrent.LRendererLibraryFolder))
             {
                 lRendererEngineConfig.FFmpegPath = LRendererSettingsCurrent.LRendererLibraryFolder;
             }
             else
             {
-                string? lRendererLocalPath = LRendererSettings.LRendererFolderFind();
+                string? lRendererLocalPath = LRendererLibrary.LRendererFolderFind();
                 if (lRendererLocalPath is not null)
                 {
                     lRendererEngineConfig.FFmpegPath = lRendererLocalPath;
