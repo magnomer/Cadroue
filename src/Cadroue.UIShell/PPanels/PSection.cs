@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.Core;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PAssets;

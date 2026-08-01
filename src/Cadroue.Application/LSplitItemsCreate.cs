@@ -1,10 +1,7 @@
 using System.IO;
 using Cadroue.Core;
-using Cadroue.UIShell;
 
-using Cadroue.Infrastructure;
-
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.Application;
 
 public static partial class LSplit
 {
@@ -12,18 +9,20 @@ public static partial class LSplit
         LWorkPriority lWorkPriority,
         LSplitWorkDescription lSplitWorkDescription,
         string lSplitTab,
+        Action<string> lInfoLog,
+        Action<string> lErrorLog,
         Guid lSplitBatchId = default)
     {
         string? lSplitSourcePath = lSplitWorkDescription.LSplitSourcePath;
         if (string.IsNullOrWhiteSpace(lSplitSourcePath))
         {
-            LTraceLog.LTraceErrorRecord("Split not queued: no source file is open");
+            lErrorLog("Split not queued: no source file is open");
             return Array.Empty<LWorkItem>();
         }
 
         if (lSplitWorkDescription.LSplitSections.Count == 0)
         {
-            LTraceLog.LTraceErrorRecord($"Split not queued for '{Path.GetFileName(lSplitSourcePath)}': no sections have been cut");
+            lErrorLog($"Split not queued for '{Path.GetFileName(lSplitSourcePath)}': no sections have been cut");
             return Array.Empty<LWorkItem>();
         }
 
@@ -76,12 +75,12 @@ public static partial class LSplit
         int lSplitSkipped = lSplitWorkDescription.LSplitSections.Count - lSplitWorkItems.Count - lSplitHidden;
         if (lSplitSkipped > 0)
         {
-            LTraceLog.LTraceErrorRecord($"Split skipped {lSplitSkipped} section(s) of '{Path.GetFileName(lSplitSourcePath)}': empty or reversed range");
+            lErrorLog($"Split skipped {lSplitSkipped} section(s) of '{Path.GetFileName(lSplitSourcePath)}': empty or reversed range");
         }
 
         if (lSplitHidden > 0)
         {
-            LTraceLog.LTraceInfoRecord($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
+            lInfoLog($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
         }
 
         foreach (LWorkItem lSplitItem in lSplitWorkItems)
@@ -89,12 +88,12 @@ public static partial class LSplit
             lSplitItem.LWorkTab = lSplitTab;
         }
 
-        LTraceLog.LTraceInfoRecord(
+        lInfoLog(
             $"Split built {lSplitWorkItems.Count} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +
             $"into '{lSplitFolder}' [batch {lSplitBatch:N}]");
         foreach (LWorkItem lSplitItem in lSplitWorkItems)
         {
-            LTraceLog.LTraceInfoRecord(
+            lInfoLog(
                 $"Split job '{lSplitItem.LWorkOutputName}': " +
                 $"{lSplitItem.LWorkOrigin:hh\\:mm\\:ss\\.fff} to {lSplitItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
                 $"({lSplitItem.LWorkDuration:hh\\:mm\\:ss\\.fff})");

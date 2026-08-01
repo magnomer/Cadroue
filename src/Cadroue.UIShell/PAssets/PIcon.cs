@@ -66,7 +66,7 @@ public static class PIcon
 
     private static Stream PIconStreamRead(Uri pIconUri)
     {
-        StreamResourceInfo? pIconResource = Application.GetResourceStream(pIconUri);
+        StreamResourceInfo? pIconResource = System.Windows.Application.GetResourceStream(pIconUri);
         if (pIconResource is null)
         {
             throw new InvalidOperationException($"Icon asset was not found: {pIconUri}");

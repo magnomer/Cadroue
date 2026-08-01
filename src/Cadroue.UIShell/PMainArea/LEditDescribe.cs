@@ -4,13 +4,6 @@ using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public sealed record LEditWorkDescription(
-    string? LEditSourcePath,
-    TimeSpan LEditDuration,
-    LWorkCrop LEditCrop,
-    LWorkVideo LEditVideo,
-    LWorkOutput LEditOutput);
-
 public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropApply)
 {
     public bool LEditSkip { get; init; }
@@ -42,8 +35,12 @@ public static partial class LEdit
             lExportSpecificState.LPresetOutputCreate());
 
         string lEditTab = PControlBar.LTabset.LTabsetTitleRead(lEditRelaySource);
-        IReadOnlyList<LWorkItem> lEditWorkItems = LEdit.LEditItemsCreate(
-            lWorkPriority, lEditWorkDescription, lEditTab);
+        IReadOnlyList<LWorkItem> lEditWorkItems = Cadroue.Application.LEdit.LEditItemsCreate(
+            lWorkPriority,
+            lEditWorkDescription,
+            lEditTab,
+            lEditMessage => LTraceLog.LTraceInfoRecord(lEditMessage),
+            lEditMessage => LTraceLog.LTraceErrorRecord(lEditMessage));
         if (lEditWorkItems.Count == 0)
         {
             return 0;
@@ -79,7 +76,7 @@ public static partial class LEdit
             Guid lEditBatch = lEditSource.LWorkSourceBatch != Guid.Empty
                 ? lEditSource.LWorkSourceBatch
                 : lEditLooseBatch;
-            lEditWorkItems.Add(LEditWorkCreate(
+            lEditWorkItems.Add(Cadroue.Application.LEdit.LEditWorkCreate(
                 lWorkPriority,
                 lEditSourcePath,
                 Cadroue.Media.LSidecarStore.LSidecarDurationRead(lEditSourcePath),

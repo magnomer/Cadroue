@@ -1,14 +1,11 @@
 using System.IO;
 using Cadroue.Core;
-using Cadroue.UIShell;
 
-using Cadroue.Infrastructure;
-
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.Application;
 
 public static partial class LEdit
 {
-    internal static LWorkItem LEditWorkCreate(
+    public static LWorkItem LEditWorkCreate(
         LWorkPriority lWorkPriority,
         string lEditSourcePath,
         TimeSpan lEditDuration,
@@ -37,12 +34,14 @@ public static partial class LEdit
     public static IReadOnlyList<LWorkItem> LEditItemsCreate(
         LWorkPriority lWorkPriority,
         LEditWorkDescription lEditWorkDescription,
-        string lEditTab)
+        string lEditTab,
+        Action<string> lInfoLog,
+        Action<string> lErrorLog)
     {
         LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
         if (string.IsNullOrWhiteSpace(lEditWorkDescription.LEditSourcePath))
         {
-            LTraceLog.LTraceErrorRecord("Edit not queued: no source file is open");
+            lErrorLog("Edit not queued: no source file is open");
             return Array.Empty<LWorkItem>();
         }
 
@@ -57,14 +56,14 @@ public static partial class LEdit
 
         lEditWorkItem.LWorkTab = lEditTab;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;
-        LTraceLog.LTraceInfoRecord(
+        lInfoLog(
             $"Edit built job '{lEditOutputName}' at {lWorkPriority} from " +
             $"'{Path.GetFileName(lEditWorkItem.LWorkSourcePath)}' " +
             $"into '{Path.GetDirectoryName(lEditWorkItem.LWorkOutputPath)}'");
 
         if (lEditCrop.LWorkCropActive)
         {
-            LTraceLog.LTraceInfoRecord(
+            lInfoLog(
                 $"Edit job '{lEditOutputName}' crop: " +
                 $"left {lEditCrop.LWorkCropLeft}, top {lEditCrop.LWorkCropTop}, " +
                 $"right {lEditCrop.LWorkCropRight}, bottom {lEditCrop.LWorkCropBottom}, " +
@@ -77,7 +76,7 @@ public static partial class LEdit
             string lVideoSteps = string.Join(", ", lEditWorkDescription.LEditVideo.LWorkVideoSteps
                 .Where(lStep => lStep.LWorkStepActive)
                 .Select(lStep => $"{lStep.LWorkStepKind} {lStep.LWorkStepValue:0.###}"));
-            LTraceLog.LTraceInfoRecord($"Edit job '{lEditOutputName}' video: {lVideoSteps}");
+            lInfoLog($"Edit job '{lEditOutputName}' video: {lVideoSteps}");
         }
 
         return new[] { lEditWorkItem };

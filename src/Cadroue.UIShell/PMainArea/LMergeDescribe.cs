@@ -15,11 +15,13 @@ public static partial class LMerge
         IReadOnlyDictionary<string, Guid>? lMergeRelays = null)
     {
         string lMergeTab = PControlBar.LTabset.LTabsetTitleRead(lMergeRelaySource);
-        IReadOnlyList<LWorkItem> lMergeItems = LMerge.LMergeItemsCreate(
+        IReadOnlyList<LWorkItem> lMergeItems = Cadroue.Application.LMerge.LMergeItemsCreate(
             lWorkPriority,
             lMergeGroups,
             lExportSpecificState.LPresetOutputCreate(),
             lMergeTab,
+            lMergeMessage => LTraceLog.LTraceInfoRecord(lMergeMessage),
+            lMergeMessage => LTraceLog.LTraceErrorRecord(lMergeMessage),
             lMergeRelays);
         if (lMergeItems.Count == 0)
         {

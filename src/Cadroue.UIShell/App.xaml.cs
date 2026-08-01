@@ -11,7 +11,7 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell;
 
-public partial class PProgram : Application
+public partial class PProgram : System.Windows.Application
 {
     public static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererDefaultCreate();
     public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();

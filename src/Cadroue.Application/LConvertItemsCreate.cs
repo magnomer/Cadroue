@@ -1,22 +1,21 @@
 using System.IO;
 using Cadroue.Core;
-using Cadroue.Media;
 
-using Cadroue.Infrastructure;
-
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.Application;
 
 public static partial class LConvert
 {
     public static IReadOnlyList<LWorkItem> LConvertItemsCreate(
         LWorkPriority lWorkPriority,
         LConvertWorkDescription lConvertWorkDescription,
-        string lConvertTab)
+        string lConvertTab,
+        Action<string> lErrorLog,
+        Func<string, TimeSpan> lDurationRead)
     {
         IReadOnlyList<string> lConvertSourcePaths = lConvertWorkDescription.LConvertSourcePaths;
         if (lConvertSourcePaths.Count == 0)
         {
-            LTraceLog.LTraceErrorRecord("Convert not queued: the file list is empty");
+            lErrorLog("Convert not queued: the file list is empty");
             return Array.Empty<LWorkItem>();
         }
 
@@ -39,7 +38,7 @@ public static partial class LConvert
             }
 
             TimeSpan lConvertDuration = lConvertMedia?.LWorkMediaDuration
-                ?? LSidecarStore.LSidecarDurationRead(lConvertSourcePath);
+                ?? lDurationRead(lConvertSourcePath);
 
             string lConvertFolder = lConvertOutput.LWorkFolderRead(lConvertSourcePath);
             string lConvertOutputName = LConvertNameCreate(lConvertOutput, lConvertSourcePath, lConvertFolder);

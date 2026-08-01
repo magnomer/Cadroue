@@ -1,6 +1,4 @@
-using Cadroue.Core;
-
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.Core;
 
 public sealed record LSplitSectionDescription(
     TimeSpan LSplitSectionStart,

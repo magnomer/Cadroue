@@ -22,8 +22,13 @@ public static partial class LSplit
             lExportSpecificState.LPresetOutputCreate());
 
         string lSplitTab = PControlBar.LTabset.LTabsetTitleRead(lSplitRelaySource);
-        IReadOnlyList<LWorkItem> lSplitWorkItems = LSplit.LSplitItemsCreate(
-            lWorkPriority, lSplitWorkDescription, lSplitTab, lSplitBatchId);
+        IReadOnlyList<LWorkItem> lSplitWorkItems = Cadroue.Application.LSplit.LSplitItemsCreate(
+            lWorkPriority,
+            lSplitWorkDescription,
+            lSplitTab,
+            lSplitMessage => LTraceLog.LTraceInfoRecord(lSplitMessage),
+            lSplitMessage => LTraceLog.LTraceErrorRecord(lSplitMessage),
+            lSplitBatchId);
         if (lSplitWorkItems.Count == 0)
         {
             return 0;

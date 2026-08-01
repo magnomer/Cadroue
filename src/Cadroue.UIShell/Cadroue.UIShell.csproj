@@ -13,6 +13,7 @@
     <ProjectReference Include="..\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj" />
     <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
     <ProjectReference Include="..\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
+    <ProjectReference Include="..\Cadroue.Application\Cadroue.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,9 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\localization\*.json"
-                      Link="localization\%(Filename)%(Extension)"
-                      LogicalName="localization.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\localization\*.json" Link="localization\%(Filename)%(Extension)" LogicalName="localization.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,8 +38,7 @@
 
   <Target Name="ExcludeFlyleafFromSingleFile" BeforeTargets="_ComputeFilesToBundle">
     <ItemGroup>
-      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)"
-                             Condition="$([System.String]::Copy('%(FileName)').StartsWith('Flyleaf'))">
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="$([System.String]::Copy('%(FileName)').StartsWith('Flyleaf'))">
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>

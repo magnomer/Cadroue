@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.UIShell", "Cadroue.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.Media", "Cadroue.Media\Cadroue.Media.csproj", "{1ECE4190-3733-470D-B42D-2E915DB695DD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.Application", "Cadroue.Application\Cadroue.Application.csproj", "{78244AFD-F478-40C7-878C-5ABCC0590223}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{1ECE4190-3733-470D-B42D-2E915DB695DD}.Release|x64.Build.0 = Release|Any CPU
 		{1ECE4190-3733-470D-B42D-2E915DB695DD}.Release|x86.ActiveCfg = Release|Any CPU
 		{1ECE4190-3733-470D-B42D-2E915DB695DD}.Release|x86.Build.0 = Release|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Debug|x64.Build.0 = Debug|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Debug|x86.Build.0 = Debug|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Release|x64.ActiveCfg = Release|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Release|x64.Build.0 = Release|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Release|x86.ActiveCfg = Release|Any CPU
+		{78244AFD-F478-40C7-878C-5ABCC0590223}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

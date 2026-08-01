@@ -110,7 +110,7 @@ public sealed class PWorkspace
 
         pWorkspaceLosslesscutPath = pMediaPath;
         PFlowControl pLosslesscutFlow = PWorkspaceFlow;
-        Application.Current?.Dispatcher.BeginInvoke(
+        System.Windows.Application.Current?.Dispatcher.BeginInvoke(
             System.Windows.Threading.DispatcherPriority.Background,
             new Action(pLosslesscutFlow.PFlowLosslesscutFind));
     }
@@ -216,7 +216,7 @@ public sealed class PWorkspace
             }
 
             PFlowControl pRelayFlow = PWorkspaceFlow;
-            Application.Current?.Dispatcher.BeginInvoke(
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Background,
                 new Action(() => pRelayFlow.PFlowSectionsSet(lRelaySections, lRelaySectionSelect)));
         }

@@ -147,7 +147,7 @@ public sealed class LStation
 
     private static void LStationDispatch(Action lStationAction)
     {
-        if (Application.Current?.Dispatcher is { } lStationDispatcher)
+        if (System.Windows.Application.Current?.Dispatcher is { } lStationDispatcher)
         {
             lStationDispatcher.Invoke(lStationAction);
             return;

@@ -1,9 +1,7 @@
 using System.IO;
 using Cadroue.Core;
 
-using Cadroue.Infrastructure;
-
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.Application;
 
 public static partial class LMerge
 {
@@ -12,6 +10,8 @@ public static partial class LMerge
         IReadOnlyList<LWorkGroup> lMergeGroups,
         LWorkOutput lMergeOutput,
         string lMergeTab,
+        Action<string> lInfoLog,
+        Action<string> lErrorLog,
         IReadOnlyDictionary<string, Guid>? lMergeRelays = null)
     {
         DateTimeOffset lMergeStamp = DateTimeOffset.Now;
@@ -47,14 +47,14 @@ public static partial class LMerge
 
         if (lMergeItems.Count == 0)
         {
-            LTraceLog.LTraceErrorRecord("Merge not queued: no group holds an existing file");
+            lErrorLog("Merge not queued: no group holds an existing file");
             return Array.Empty<LWorkItem>();
         }
 
         foreach (LWorkItem lMergeItem in lMergeItems)
         {
             lMergeItem.LWorkTab = lMergeTab;
-            LTraceLog.LTraceInfoRecord(
+            lInfoLog(
                 $"Merge built job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s) [batch {lMergeItem.LWorkBatchId:N}]");
         }
 

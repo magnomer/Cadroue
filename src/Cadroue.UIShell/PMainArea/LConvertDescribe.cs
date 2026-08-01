@@ -4,12 +4,6 @@ using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public sealed record LConvertWorkDescription(
-    IReadOnlyList<string> LConvertSourcePaths,
-    LWorkOutput LConvertOutput,
-    IReadOnlyDictionary<string, LWorkMedia>? LConvertMedia = null,
-    IReadOnlyDictionary<string, Guid>? LConvertRelays = null);
-
 public static partial class LConvert
 {
     public static async Task<int> LConvertDescribe(
@@ -34,7 +28,12 @@ public static partial class LConvert
 
         string lConvertTab = PControlBar.LTabset.LTabsetTitleRead(lConvertRelaySource);
         IReadOnlyList<LWorkItem> lConvertWorkItems =
-            LConvert.LConvertItemsCreate(lWorkPriority, lConvertWorkDescription, lConvertTab);
+            Cadroue.Application.LConvert.LConvertItemsCreate(
+                lWorkPriority,
+                lConvertWorkDescription,
+                lConvertTab,
+                lConvertMessage => LTraceLog.LTraceErrorRecord(lConvertMessage),
+                Cadroue.Media.LSidecarStore.LSidecarDurationRead);
 
         int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems, lConvertRelayTarget, lConvertRelaySource);
         LTraceLog.LTraceInfoRecord(
