@@ -17,13 +17,17 @@ public sealed class PConvertTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority => _ = LConvert.LConvertDescribe(
             lPriority,
-            pList.PListItemRead() is { } pConvertSelected ? new[] { pConvertSelected } : Array.Empty<PListItem>(),
+            pList.PListItemRead() is { } pConvertSelected
+                ? new[] { new LWorkSource(pConvertSelected.PListItemPath, pConvertSelected.PListItemRelay) }
+                : Array.Empty<LWorkSource>(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
         pAction.PActionAllAdd += () => _ = LConvert.LConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListItemsRead(),
+            pList.PListItemsRead()
+                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .ToArray(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);

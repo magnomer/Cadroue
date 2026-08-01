@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 using static Cadroue.UIShell.PSShared.PSField;
 

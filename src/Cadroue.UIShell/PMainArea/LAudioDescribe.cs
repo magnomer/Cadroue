@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
@@ -13,42 +14,55 @@ public static partial class LAudio
         Guid lAudioRelayTarget = default,
         Guid lAudioRelaySource = default)
     {
-        return LAudio.LAudioInterpret(
-            lWorkPriority,
-            lAudioSourcePath,
-            lAudioProcessing,
-            lExportSpecificState.LPresetOutputCreate(),
-            lAudioRelayTarget,
-            lAudioRelaySource);
+        LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
+        string lAudioTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
+        LWorkItem? lAudioItem = LAudio.LAudioItemCreate(
+            lWorkPriority, lAudioSourcePath, lAudioProcessing, lAudioOutput, lAudioTab);
+        if (lAudioItem is null)
+        {
+            return 0;
+        }
+
+        int lAudioAdded = LSchedule.LScheduleCurrent.LScheduleAdd(
+            new[] { lAudioItem }, lAudioRelayTarget, lAudioRelaySource);
+        LTraceLog.LTraceInfoRecord(
+            $"Audio queued {lAudioAdded} job at {lWorkPriority} from " +
+            $"'{System.IO.Path.GetFileName(lAudioSourcePath)}'");
+        return lAudioAdded;
     }
 
     public static int LAudioAllDescribe(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<PListItem> lAudioSources,
+        IReadOnlyList<LWorkSource> lAudioSources,
         LPreset lExportSpecificState,
         Guid lAudioRelayTarget = default,
         Guid lAudioRelaySource = default)
     {
         LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
+        string lAudioTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
         Guid lAudioLooseBatch = Guid.NewGuid();
-        int lAudioAdded = 0;
-        foreach (PListItem lAudioSource in lAudioSources)
+        var lAudioItems = new List<LWorkItem>();
+        foreach (LWorkSource lAudioSource in lAudioSources)
         {
-            string lAudioSourcePath = lAudioSource.PListItemPath;
+            string lAudioSourcePath = lAudioSource.LWorkSourcePath;
             if (LAudioPlanRead(lAudioSourcePath) is not { LWorkAudioActive: true } lAudioPlan)
             {
                 continue;
             }
 
-            Guid lAudioBatch = lAudioSource.PListItemRelay != Guid.Empty
-                ? lAudioSource.PListItemRelay
+            Guid lAudioBatch = lAudioSource.LWorkSourceBatch != Guid.Empty
+                ? lAudioSource.LWorkSourceBatch
                 : lAudioLooseBatch;
-            lAudioAdded += LAudio.LAudioInterpret(
-                lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput,
-                lAudioRelayTarget, lAudioRelaySource, lAudioBatch);
+            if (LAudio.LAudioItemCreate(
+                    lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput, lAudioTab, lAudioBatch)
+                is { } lAudioItem)
+            {
+                lAudioItems.Add(lAudioItem);
+            }
         }
 
-        return lAudioAdded;
+        return LSchedule.LScheduleCurrent.LScheduleAdd(
+            lAudioItems, lAudioRelayTarget, lAudioRelaySource);
     }
 
     public static Cadroue.Media.LSidecarAudioRecord LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()

@@ -116,7 +116,7 @@ internal sealed partial class PSOptions
         {
             Title = LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"),
             Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
-            InitialDirectory = Cadroue.Core.LDepot.LDepotPaletteRead()
+            InitialDirectory = Cadroue.Infrastructure.LDepot.LDepotPaletteRead()
         };
         if (pDialog.ShowDialog() != true)
         {
@@ -141,7 +141,7 @@ internal sealed partial class PSOptions
             Title = LLocalization.LLocalizationTextRead("Options.Timeline.SaveTitle"),
             Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
             FileName = $"{psSpectrumName}.json",
-            InitialDirectory = Cadroue.Core.LDepot.LDepotPaletteRead()
+            InitialDirectory = Cadroue.Infrastructure.LDepot.LDepotPaletteRead()
         };
         if (pDialog.ShowDialog() == true)
         {

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PControlBar;
 
 namespace Cadroue.UIShell.PMainArea;

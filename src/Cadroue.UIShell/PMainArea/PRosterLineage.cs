@@ -1,5 +1,6 @@
 using System.IO;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PMainArea;
 

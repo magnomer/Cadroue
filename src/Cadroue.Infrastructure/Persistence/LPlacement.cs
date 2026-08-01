@@ -1,6 +1,8 @@
 using System.Text.Json;
 
-namespace Cadroue.Core;
+using Cadroue.Core;
+
+namespace Cadroue.Infrastructure;
 
 public sealed class LPlacementRecord
 {

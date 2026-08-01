@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows.Controls;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
 

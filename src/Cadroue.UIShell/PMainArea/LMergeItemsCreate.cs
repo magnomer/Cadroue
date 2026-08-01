@@ -1,17 +1,15 @@
 using System.IO;
 using Cadroue.Core;
-using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LMerge
 {
-    public static int LMergeInterpret(
+    public static IReadOnlyList<LWorkItem> LMergeItemsCreate(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<PGroup.PGroupSelection> lMergeGroups,
+        IReadOnlyList<LWorkGroup> lMergeGroups,
         LWorkOutput lMergeOutput,
-        Guid lMergeRelayTarget = default,
-        Guid lMergeRelaySource = default,
+        string lMergeTab,
         IReadOnlyDictionary<string, Guid>? lMergeRelays = null)
     {
         DateTimeOffset lMergeStamp = DateTimeOffset.Now;
@@ -19,9 +17,9 @@ public static partial class LMerge
         var lMergeTakenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lMergeItems = new List<LWorkItem>();
 
-        foreach (PGroup.PGroupSelection lMergeGroup in lMergeGroups)
+        foreach (LWorkGroup lMergeGroup in lMergeGroups)
         {
-            string[] lMergeSources = lMergeGroup.PGroupSelectionPaths.Where(File.Exists).ToArray();
+            string[] lMergeSources = lMergeGroup.LWorkGroupPaths.Where(File.Exists).ToArray();
             if (lMergeSources.Length == 0)
             {
                 continue;
@@ -29,7 +27,7 @@ public static partial class LMerge
 
             string lMergeBasePath = lMergeSources[0];
             string lMergeFolder = lMergeOutput.LWorkFolderRead(lMergeBasePath);
-            string lMergeName = LMergeNameCreate(lMergeOutput, lMergeBasePath, lMergeGroup.PGroupSelectionName, lMergeStamp, lMergeTakenNames);
+            string lMergeName = LMergeNameCreate(lMergeOutput, lMergeBasePath, lMergeGroup.LWorkGroupName, lMergeStamp, lMergeTakenNames);
             Guid lMergeBatch = LMergeBatchResolve(lMergeSources, lMergeRelays, lMergeLooseBatch);
 
             lMergeItems.Add(new LWorkItem(
@@ -48,24 +46,17 @@ public static partial class LMerge
         if (lMergeItems.Count == 0)
         {
             LTraceLog.LTraceErrorRecord("Merge not queued: no group holds an existing file");
-            return 0;
+            return Array.Empty<LWorkItem>();
         }
 
-        string lMergeTab = PControlBar.LTabset.LTabsetTitleRead(lMergeRelaySource);
         foreach (LWorkItem lMergeItem in lMergeItems)
         {
             lMergeItem.LWorkTab = lMergeTab;
-        }
-
-        int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lMergeItems, lMergeRelayTarget, lMergeRelaySource);
-        LTraceLog.LTraceInfoRecord($"Merge queued {lMergeAdded} group(s) at {lWorkPriority}");
-        foreach (LWorkItem lMergeItem in lMergeItems)
-        {
             LTraceLog.LTraceInfoRecord(
-                $"Merge job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s) [batch {lMergeItem.LWorkBatchId:N}]");
+                $"Merge built job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s) [batch {lMergeItem.LWorkBatchId:N}]");
         }
 
-        return lMergeAdded;
+        return lMergeItems;
     }
 
     private static Guid LMergeBatchResolve(

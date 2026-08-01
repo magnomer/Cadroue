@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 

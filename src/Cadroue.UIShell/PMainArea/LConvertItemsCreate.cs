@@ -6,9 +6,10 @@ namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LConvert
 {
-    public static IReadOnlyList<LWorkItem> LConvertInterpret(
+    public static IReadOnlyList<LWorkItem> LConvertItemsCreate(
         LWorkPriority lWorkPriority,
-        LConvertWorkDescription lConvertWorkDescription)
+        LConvertWorkDescription lConvertWorkDescription,
+        string lConvertTab)
     {
         IReadOnlyList<string> lConvertSourcePaths = lConvertWorkDescription.LConvertSourcePaths;
         if (lConvertSourcePaths.Count == 0)
@@ -52,7 +53,8 @@ public static partial class LConvert
                 Path.Combine(lConvertFolder, lConvertOutputName),
                 lConvertOutput)
             {
-                LWorkSourceMedia = lConvertMedia
+                LWorkSourceMedia = lConvertMedia,
+                LWorkTab = lConvertTab
             });
         }
 

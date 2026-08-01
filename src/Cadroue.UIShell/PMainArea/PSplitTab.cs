@@ -25,7 +25,9 @@ public sealed class PSplitTab : PTabSurface
             pAction.PActionSourceTab);
         pAction.PActionAllAdd += () => _ = LSplit.LSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListItemsRead(),
+            pList.PListItemsRead()
+                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .ToArray(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text.Json;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell;
 

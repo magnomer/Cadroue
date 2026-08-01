@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 

@@ -17,11 +17,11 @@ public sealed class PMergeTab : PTabSurface
     {
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMerge.LMergeDescribe(
-            pPriority, pGroup.PGroupGroupsRead(), lExportSpecificState,
+            pPriority, PMergeGroupsRead(), lExportSpecificState,
             pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         pAction.PActionAllAdd += () => LMerge.LMergeDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pGroup.PGroupGroupsRead(),
+            PMergeGroupsRead(),
             lExportSpecificState,
             pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         pList.PListPathChange += PMergePathShow;
@@ -53,6 +53,12 @@ public sealed class PMergeTab : PTabSurface
 
         return pMergeRelays;
     }
+
+    private IReadOnlyList<LWorkGroup> PMergeGroupsRead() =>
+        pGroup.PGroupGroupsRead()
+            .Select(pGroupSelection => new LWorkGroup(
+                pGroupSelection.PGroupSelectionName, pGroupSelection.PGroupSelectionPaths))
+            .ToArray();
 
     private void PMergeItemsHandle(IReadOnlyList<PListItem> pAddedItems)
     {

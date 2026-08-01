@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PMainArea;

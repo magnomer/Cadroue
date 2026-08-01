@@ -1,6 +1,8 @@
 using System.Diagnostics;
 
-namespace Cadroue.Core;
+using Cadroue.Core;
+
+namespace Cadroue.Infrastructure;
 
 public sealed partial class LSchedule
 {

@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
@@ -40,12 +41,25 @@ public static partial class LEdit
             lEditVideo,
             lExportSpecificState.LPresetOutputCreate());
 
-        return LEdit.LEditInterpret(lWorkPriority, lEditWorkDescription, lEditRelayTarget, lEditRelaySource);
+        string lEditTab = PControlBar.LTabset.LTabsetTitleRead(lEditRelaySource);
+        IReadOnlyList<LWorkItem> lEditWorkItems = LEdit.LEditItemsCreate(
+            lWorkPriority, lEditWorkDescription, lEditTab);
+        if (lEditWorkItems.Count == 0)
+        {
+            return 0;
+        }
+
+        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(
+            lEditWorkItems, lEditRelayTarget, lEditRelaySource);
+        LTraceLog.LTraceInfoRecord(
+            $"Edit queued {lEditAdded} job(s) at {lWorkPriority} from " +
+            $"'{System.IO.Path.GetFileName(lEditSourcePath)}'");
+        return lEditAdded;
     }
 
     public static async Task<int> LEditAllDescribe(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<PListItem> lEditSources,
+        IReadOnlyList<LWorkSource> lEditSources,
         LPreset lExportSpecificState,
         Guid lEditRelayTarget = default,
         Guid lEditRelaySource = default)
@@ -54,16 +68,16 @@ public static partial class LEdit
         var lEditWorkItems = new List<LWorkItem>();
         Guid lEditLooseBatch = Guid.NewGuid();
 
-        foreach (PListItem lEditSource in lEditSources)
+        foreach (LWorkSource lEditSource in lEditSources)
         {
-            string lEditSourcePath = lEditSource.PListItemPath;
+            string lEditSourcePath = lEditSource.LWorkSourcePath;
             if (LEditPlanRead(lEditSourcePath) is not { LEditPlanActive: true } lEditPlan)
             {
                 continue;
             }
 
-            Guid lEditBatch = lEditSource.PListItemRelay != Guid.Empty
-                ? lEditSource.PListItemRelay
+            Guid lEditBatch = lEditSource.LWorkSourceBatch != Guid.Empty
+                ? lEditSource.LWorkSourceBatch
                 : lEditLooseBatch;
             lEditWorkItems.Add(LEditWorkCreate(
                 lWorkPriority,

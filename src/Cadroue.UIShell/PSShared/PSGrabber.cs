@@ -24,7 +24,7 @@ internal sealed class PSGrabber
 
     internal static void PSGrabberPlacementRestore(Window pWindow, string pPlacementKey)
     {
-        if (Cadroue.Core.LPlacement.LPlacementRead(pPlacementKey) is not { } pPlacement)
+        if (Cadroue.Infrastructure.LPlacement.LPlacementRead(pPlacementKey) is not { } pPlacement)
         {
             return;
         }
@@ -54,7 +54,7 @@ internal sealed class PSGrabber
         Rect pBounds = pWindow.WindowState == WindowState.Normal
             ? new Rect(pWindow.Left, pWindow.Top, pWindow.Width, pWindow.Height)
             : pWindow.RestoreBounds;
-        Cadroue.Core.LPlacement.LPlacementSave(pPlacementKey, pBounds.Left, pBounds.Top, pBounds.Width, pBounds.Height);
+        Cadroue.Infrastructure.LPlacement.LPlacementSave(pPlacementKey, pBounds.Left, pBounds.Top, pBounds.Width, pBounds.Height);
     }
 
     internal void PSGrabberAttach()

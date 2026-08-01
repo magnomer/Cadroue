@@ -5,26 +5,29 @@ namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LAudio
 {
-    public static int LAudioInterpret(
+    public static LWorkItem? LAudioItemCreate(
         LWorkPriority lWorkPriority,
         string? lAudioSourcePath,
         LWorkAudio lAudioProcessing,
         LWorkOutput lAudioOutput,
-        Guid lAudioRelayTarget = default,
-        Guid lAudioRelaySource = default,
+        string lAudioTab,
         Guid lAudioBatchId = default)
     {
         if (string.IsNullOrWhiteSpace(lAudioSourcePath))
         {
             LTraceLog.LTraceErrorRecord("Audio job not queued: no source file is open");
-            return 0;
+            return null;
         }
 
         string lAudioFolder = lAudioOutput.LWorkFolderRead(lAudioSourcePath);
         string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
         Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : Guid.NewGuid();
 
-        var lAudioItem = new LWorkItem(
+        LTraceLog.LTraceInfoRecord(
+            $"Audio built job at {lWorkPriority} from '{Path.GetFileName(lAudioSourcePath)}' " +
+            $"into '{lAudioFolder}' as '{lAudioOutputName}'");
+
+        return new LWorkItem(
             lAudioBatch,
             LWorkKind.LWorkKindAudio,
             lWorkPriority,
@@ -34,14 +37,10 @@ public static partial class LAudio
             lAudioOutputName,
             Path.Combine(lAudioFolder, lAudioOutputName),
             lAudioOutput,
-            lWorkAudio: lAudioProcessing.LWorkAudioSkip ? LWorkAudio.LWorkAudioCreate() : lAudioProcessing);
-        lAudioItem.LWorkTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
-
-        int lAudioAdded = LSchedule.LScheduleCurrent.LScheduleAdd(new[] { lAudioItem }, lAudioRelayTarget, lAudioRelaySource);
-        LTraceLog.LTraceInfoRecord(
-            $"Audio queued {lAudioAdded} job at {lWorkPriority} from '{Path.GetFileName(lAudioSourcePath)}' " +
-            $"into '{lAudioFolder}' as '{lAudioOutputName}'");
-        return lAudioAdded;
+            lWorkAudio: lAudioProcessing.LWorkAudioSkip ? LWorkAudio.LWorkAudioCreate() : lAudioProcessing)
+        {
+            LWorkTab = lAudioTab
+        };
     }
 
     private static string LAudioNameCreate(string lAudioSourcePath, string lAudioFolder, LWorkOutput lAudioOutput)

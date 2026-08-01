@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
@@ -13,31 +14,27 @@ public static partial class LConvert
 {
     public static async Task<int> LConvertDescribe(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<PListItem> lConvertSources,
+        IReadOnlyList<LWorkSource> lConvertSources,
         LPreset lExportSpecificState,
         Guid lConvertRelayTarget = default,
         Guid lConvertRelaySource = default)
     {
         LWorkOutput lConvertOutput = lExportSpecificState.LPresetOutputCreate();
         string[] lConvertSourcePaths = lConvertSources
-            .Select(lConvertSource => lConvertSource.PListItemPath)
+            .Select(lConvertSource => lConvertSource.LWorkSourcePath)
             .ToArray();
         var lConvertRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-        foreach (PListItem lConvertSource in lConvertSources)
+        foreach (LWorkSource lConvertSource in lConvertSources)
         {
-            lConvertRelays[lConvertSource.PListItemPath] = lConvertSource.PListItemRelay;
+            lConvertRelays[lConvertSource.LWorkSourcePath] = lConvertSource.LWorkSourceBatch;
         }
 
         LConvertWorkDescription lConvertWorkDescription =
             new(lConvertSourcePaths, lConvertOutput, null, lConvertRelays);
 
-        IReadOnlyList<LWorkItem> lConvertWorkItems =
-            LConvert.LConvertInterpret(lWorkPriority, lConvertWorkDescription);
         string lConvertTab = PControlBar.LTabset.LTabsetTitleRead(lConvertRelaySource);
-        foreach (LWorkItem lConvertItem in lConvertWorkItems)
-        {
-            lConvertItem.LWorkTab = lConvertTab;
-        }
+        IReadOnlyList<LWorkItem> lConvertWorkItems =
+            LConvert.LConvertItemsCreate(lWorkPriority, lConvertWorkDescription, lConvertTab);
 
         int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems, lConvertRelayTarget, lConvertRelaySource);
         LTraceLog.LTraceInfoRecord(

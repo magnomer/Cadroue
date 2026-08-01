@@ -6,24 +6,23 @@ namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LSplit
 {
-    public static int LSplitInterpret(
+    public static IReadOnlyList<LWorkItem> LSplitItemsCreate(
         LWorkPriority lWorkPriority,
         LSplitWorkDescription lSplitWorkDescription,
-        Guid lSplitRelayTarget = default,
-        Guid lSplitRelaySource = default,
+        string lSplitTab,
         Guid lSplitBatchId = default)
     {
         string? lSplitSourcePath = lSplitWorkDescription.LSplitSourcePath;
         if (string.IsNullOrWhiteSpace(lSplitSourcePath))
         {
             LTraceLog.LTraceErrorRecord("Split not queued: no source file is open");
-            return 0;
+            return Array.Empty<LWorkItem>();
         }
 
         if (lSplitWorkDescription.LSplitSections.Count == 0)
         {
             LTraceLog.LTraceErrorRecord($"Split not queued for '{Path.GetFileName(lSplitSourcePath)}': no sections have been cut");
-            return 0;
+            return Array.Empty<LWorkItem>();
         }
 
         LWorkOutput lSplitOutput = lSplitWorkDescription.LSplitOutput;
@@ -83,15 +82,13 @@ public static partial class LSplit
             LTraceLog.LTraceInfoRecord($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
         }
 
-        string lSplitTab = PControlBar.LTabset.LTabsetTitleRead(lSplitRelaySource);
         foreach (LWorkItem lSplitItem in lSplitWorkItems)
         {
             lSplitItem.LWorkTab = lSplitTab;
         }
 
-        int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems, lSplitRelayTarget, lSplitRelaySource);
         LTraceLog.LTraceInfoRecord(
-            $"Split queued {lSplitAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +
+            $"Split built {lSplitWorkItems.Count} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +
             $"into '{lSplitFolder}' [batch {lSplitBatch:N}]");
         foreach (LWorkItem lSplitItem in lSplitWorkItems)
         {
@@ -101,7 +98,7 @@ public static partial class LSplit
                 $"({lSplitItem.LWorkDuration:hh\\:mm\\:ss\\.fff})");
         }
 
-        return lSplitAdded;
+        return lSplitWorkItems;
     }
 
 

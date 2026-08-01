@@ -8,4 +8,19 @@
     <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
     <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Backs work.db. Carries a native e_sqlite3 per runtime identifier, so the shell must
+      set IncludeNativeLibrariesForSelfExtract for the single-file publish to unpack it.
+    -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+
+    <!--
+      Direct reference only to lift the native SQLite past the version Microsoft.Data.Sqlite
+      10.0.10 pins transitively (2.1.11), which carries GHSA-2m69-gcr7-jv3q. Remove this once
+      Microsoft.Data.Sqlite ships depending on a patched bundle on its own.
+    -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
+  </ItemGroup>
 </Project>

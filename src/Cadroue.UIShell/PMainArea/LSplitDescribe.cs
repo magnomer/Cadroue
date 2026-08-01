@@ -1,4 +1,6 @@
+using System.IO;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
@@ -19,24 +21,36 @@ public static partial class LSplit
             lSplitSections,
             lExportSpecificState.LPresetOutputCreate());
 
-        return LSplit.LSplitInterpret(
-            lWorkPriority, lSplitWorkDescription, lSplitRelayTarget, lSplitRelaySource, lSplitBatchId);
+        string lSplitTab = PControlBar.LTabset.LTabsetTitleRead(lSplitRelaySource);
+        IReadOnlyList<LWorkItem> lSplitWorkItems = LSplit.LSplitItemsCreate(
+            lWorkPriority, lSplitWorkDescription, lSplitTab, lSplitBatchId);
+        if (lSplitWorkItems.Count == 0)
+        {
+            return 0;
+        }
+
+        int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(
+            lSplitWorkItems, lSplitRelayTarget, lSplitRelaySource);
+        LTraceLog.LTraceInfoRecord(
+            $"Split queued {lSplitAdded} of {lSplitWorkItems.Count} job(s) at {lWorkPriority} " +
+            $"from '{Path.GetFileName(lSplitSourcePath)}'");
+        return lSplitAdded;
     }
 
     public static async Task<int> LSplitAllDescribe(
         LWorkPriority lWorkPriority,
-        IReadOnlyList<PListItem> lSplitSources,
+        IReadOnlyList<LWorkSource> lSplitSources,
         LPreset lExportSpecificState,
         Guid lSplitRelayTarget = default,
         Guid lSplitRelaySource = default)
     {
         string[] lSplitSourcePaths = lSplitSources
-            .Select(lSplitSource => lSplitSource.PListItemPath)
+            .Select(lSplitSource => lSplitSource.LWorkSourcePath)
             .ToArray();
         var lSplitRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-        foreach (PListItem lSplitSource in lSplitSources)
+        foreach (LWorkSource lSplitSource in lSplitSources)
         {
-            lSplitRelays[lSplitSource.PListItemPath] = lSplitSource.PListItemRelay;
+            lSplitRelays[lSplitSource.LWorkSourcePath] = lSplitSource.LWorkSourceBatch;
         }
 
         IReadOnlyList<LSplitPlanRecord> lSplitPlans =

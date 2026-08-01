@@ -197,7 +197,7 @@ internal static class PSectionPalette
         }
 
         string pTargetPath = Path.Combine(
-            Cadroue.Core.LDepot.LDepotPaletteRead(),
+            Cadroue.Infrastructure.LDepot.LDepotPaletteRead(),
             PSectionFileCreate(pPalette.Name));
         File.Copy(pSourcePath, pTargetPath, true);
         PSectionPaletteLoad();
@@ -224,7 +224,7 @@ internal static class PSectionPalette
     }
 
     private static string PSectionHiddenRead() =>
-        Path.Combine(Cadroue.Core.LDepot.LDepotPaletteRead(), PSectionHiddenFile);
+        Path.Combine(Cadroue.Infrastructure.LDepot.LDepotPaletteRead(), PSectionHiddenFile);
 
     private static void PSectionHiddenLoad()
     {
@@ -268,7 +268,7 @@ internal static class PSectionPalette
     {
         try
         {
-            return Directory.EnumerateFiles(Cadroue.Core.LDepot.LDepotPaletteRead(), "*.json")
+            return Directory.EnumerateFiles(Cadroue.Infrastructure.LDepot.LDepotPaletteRead(), "*.json")
                 .Where(pPath => !string.Equals(Path.GetFileName(pPath), PSectionHiddenFile, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(pPath => pPath);
         }

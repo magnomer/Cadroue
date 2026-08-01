@@ -55,7 +55,7 @@ public partial class PProgram : Application
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
         LLocalization.LLocalizationLoad(LPreferenceStateCurrent.LPreferenceLanguage);
         LTrace.LTraceVerbose = LPreferenceStateCurrent.LPreferenceLogVerbose;
-        Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
+        Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
         LFlyleaf.LFlyleafResolverAttach();
         base.OnStartup(e);
         PFlow.PSectionPalette.PSectionPaletteLoad();
@@ -67,7 +67,7 @@ public partial class PProgram : Application
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;
-        Cadroue.Core.LSchedule.LScheduleRecoverReport = LTraceLog.LTraceInfoRecord;
+        Cadroue.Infrastructure.LSchedule.LScheduleRecoverReport = LTraceLog.LTraceInfoRecord;
         LTraceLog.LTraceInfoRecord($"Application started: version {PProgramVersionRead()}, process {Environment.ProcessId}");
         LTraceLog.LTraceInfoRecord(LFlyleaf.LFlyleafActive
             ? "Local Flyleaf preview engine active"
@@ -131,7 +131,7 @@ public partial class PProgram : Application
     {
         Cadroue.Media.LSidecarStore.LSidecarFolderSet(
             System.IO.Path.Combine(
-                Cadroue.Core.LDepot.LDepotRootRead(),
+                Cadroue.Infrastructure.LDepot.LDepotRootRead(),
                 Cadroue.Media.LSidecarStore.LSidecarRecordFolder),
             LPreferenceStateCurrent.LPreferenceRecordWorkspace);
     }
@@ -140,8 +140,8 @@ public partial class PProgram : Application
     {
         try
         {
-            Cadroue.Core.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
-            string lDepotRoot = Cadroue.Core.LDepot.LDepotRootRead();
+            Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
+            string lDepotRoot = Cadroue.Infrastructure.LDepot.LDepotRootRead();
             if (string.Equals(lDepotRoot, lDepotRootApplied, StringComparison.OrdinalIgnoreCase))
             {
                 return;
@@ -149,11 +149,11 @@ public partial class PProgram : Application
 
             if (lDepotRootApplied is string lDepotPrevious && !LDepotFolderMove(lDepotPrevious, lDepotRoot))
             {
-                Cadroue.Core.LDepot.LDepotRootSet(lDepotPrevious);
+                Cadroue.Infrastructure.LDepot.LDepotRootSet(lDepotPrevious);
                 return;
             }
 
-            Cadroue.Core.LDepotIndex.LDepotIndexCreate();
+            Cadroue.Infrastructure.LDepotIndex.LDepotIndexCreate();
             lDepotRootApplied = lDepotRoot;
             LSidecarFolderApply();
             LTraceLog.LTraceInfoRecord($"Workspace at {lDepotRoot}");
@@ -188,7 +188,7 @@ public partial class PProgram : Application
 
     private static void LPlacementEntryImport(System.Text.Json.JsonElement lPreferenceRoot, string lPrefix, string lPlacementKey)
     {
-        if (Cadroue.Core.LPlacement.LPlacementExist(lPlacementKey)
+        if (Cadroue.Infrastructure.LPlacement.LPlacementExist(lPlacementKey)
             || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Left", out System.Text.Json.JsonElement lLeft)
             || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Top", out System.Text.Json.JsonElement lTop)
             || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Width", out System.Text.Json.JsonElement lWidth)
@@ -199,7 +199,7 @@ public partial class PProgram : Application
             return;
         }
 
-        Cadroue.Core.LPlacement.LPlacementSave(
+        Cadroue.Infrastructure.LPlacement.LPlacementSave(
             lPlacementKey, lLeft.GetDouble(), lTop.GetDouble(), lWidth.GetDouble(), lHeight.GetDouble());
         LTraceLog.LTraceInfoRecord($"Subwindow placement carried from preferences: {lPlacementKey}");
     }
@@ -208,7 +208,7 @@ public partial class PProgram : Application
     {
         try
         {
-            int lScheduleRecovered = Cadroue.Core.LSchedule.LScheduleCurrent.LScheduleStaleClaim();
+            int lScheduleRecovered = Cadroue.Infrastructure.LSchedule.LScheduleCurrent.LScheduleStaleClaim();
             if (lScheduleRecovered > 0)
             {
                 LTraceLog.LTraceInfoRecord($"Worklist recovery: {lScheduleRecovered} interrupted job(s) resolved at startup");
@@ -243,13 +243,13 @@ public partial class PProgram : Application
     {
         try
         {
-            if (Cadroue.Core.LDepot.LDepotRunningCheck(lDepotPrevious))
+            if (Cadroue.Infrastructure.LDepot.LDepotRunningCheck(lDepotPrevious))
             {
                 LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: a job is running, so nothing was moved");
                 return false;
             }
 
-            Cadroue.Core.LDepot.LDepotMove(lDepotPrevious, lDepotNext);
+            Cadroue.Infrastructure.LDepot.LDepotMove(lDepotPrevious, lDepotNext);
             LTraceLog.LTraceInfoRecord($"Workspace moved from {lDepotPrevious}");
             return true;
         }

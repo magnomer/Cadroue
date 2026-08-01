@@ -32,17 +32,16 @@ public static partial class LEdit
             lWorkVideo: lEditVideo);
     }
 
-    public static int LEditInterpret(
+    public static IReadOnlyList<LWorkItem> LEditItemsCreate(
         LWorkPriority lWorkPriority,
         LEditWorkDescription lEditWorkDescription,
-        Guid lEditRelayTarget = default,
-        Guid lEditRelaySource = default)
+        string lEditTab)
     {
         LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
         if (string.IsNullOrWhiteSpace(lEditWorkDescription.LEditSourcePath))
         {
             LTraceLog.LTraceErrorRecord("Edit not queued: no source file is open");
-            return 0;
+            return Array.Empty<LWorkItem>();
         }
 
         LWorkItem lEditWorkItem = LEditWorkCreate(
@@ -54,12 +53,11 @@ public static partial class LEdit
             lEditWorkDescription.LEditOutput,
             Guid.NewGuid());
 
-        lEditWorkItem.LWorkTab = PControlBar.LTabset.LTabsetTitleRead(lEditRelaySource);
-        string lEditSourcePath = lEditWorkItem.LWorkSourcePath;
+        lEditWorkItem.LWorkTab = lEditTab;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;
-        int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd([lEditWorkItem], lEditRelayTarget, lEditRelaySource);
         LTraceLog.LTraceInfoRecord(
-            $"Edit queued {lEditAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lEditSourcePath)}' " +
+            $"Edit built job '{lEditOutputName}' at {lWorkPriority} from " +
+            $"'{Path.GetFileName(lEditWorkItem.LWorkSourcePath)}' " +
             $"into '{Path.GetDirectoryName(lEditWorkItem.LWorkOutputPath)}'");
 
         if (lEditCrop.LWorkCropActive)
@@ -80,7 +78,7 @@ public static partial class LEdit
             LTraceLog.LTraceInfoRecord($"Edit job '{lEditOutputName}' video: {lVideoSteps}");
         }
 
-        return lEditAdded;
+        return new[] { lEditWorkItem };
     }
 
 

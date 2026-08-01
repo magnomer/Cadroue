@@ -1,4 +1,6 @@
-namespace Cadroue.Core;
+using Cadroue.Core;
+
+namespace Cadroue.Infrastructure;
 
 public enum LDepotFolder
 {

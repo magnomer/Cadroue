@@ -1,6 +1,8 @@
 using Microsoft.Data.Sqlite;
 
-namespace Cadroue.Core;
+using Cadroue.Core;
+
+namespace Cadroue.Infrastructure;
 
 public sealed record LDepotIndexRow(
     Guid LDepotRowWorkId,
