@@ -50,7 +50,7 @@ public sealed partial class PConsole
             PConsoleCaretAttach();
         }
 
-        pConsoleSceneName = PProgram.LPreferenceStateCurrent.LPreferenceSceneName;
+        pConsoleSceneName = PProgram.LSceneActiveName;
         PConsoleSceneUpdate();
 
         if (pConsoleSceneWindow is null && PConsoleWindowRead() is { } pWindow)
@@ -176,7 +176,7 @@ public sealed partial class PConsole
     private void PConsoleSceneSet(string lSceneName)
     {
         pConsoleSceneName = lSceneName;
-        PProgram.LPreferenceSceneSet(lSceneName);
+        PProgram.LSceneActiveSet(lSceneName);
         PConsoleSceneUpdate();
     }
 

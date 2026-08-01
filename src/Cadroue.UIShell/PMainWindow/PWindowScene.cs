@@ -7,30 +7,26 @@ namespace Cadroue.UIShell.PMainWindow;
 
 public partial class PWindow
 {
-    public LSceneRecord PWindowSceneRead(string lSceneName)
+    public LSceneRecord PWindowSceneRead(string lSceneName) => new()
     {
-        var lScenePrefs = new LPreferenceState
-        {
-            LPreferenceLayoutKeys = lTabset.PTabsetRecords
-                .Select(pTabRecord => pTabRecord.PTabLayoutKey)
-                .ToList(),
-            LPreferenceTabExports = lTabset.PTabsetRecords
-                .Select(pTabRecord => LPresetRecord.LPresetRecordCreate(pTabRecord.PTabWorkspace.PWorkspaceExportState))
-                .ToList(),
-            LPreferenceTabLayouts = lTabset.PTabsetRecords
-                .Select(pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceLayoutRead())
-                .ToList(),
-            LPreferenceTabRelays = PMainArea.LCourier.LCourierSlotsRead(lTabset.PTabsetRecords).ToList(),
-            LPreferenceTabNames = lTabset.PTabsetRecords
-                .Select(pTabRecord => pTabRecord.PTabNameCustom)
-                .ToList(),
-            LPreferenceTabIndex = lTabset.PTabsetCurrent is null
-                ? 0
-                : Math.Max(0, lTabset.PTabsetRecords.IndexOf(lTabset.PTabsetCurrent))
-        };
-
-        return LSceneRecord.LSceneRecordCreate(lSceneName, lScenePrefs);
-    }
+        LSceneName = lSceneName,
+        LSceneLayoutKeys = lTabset.PTabsetRecords
+            .Select(pTabRecord => pTabRecord.PTabLayoutKey)
+            .ToList(),
+        LSceneTabExports = lTabset.PTabsetRecords
+            .Select(pTabRecord => LPresetRecord.LPresetRecordCreate(pTabRecord.PTabWorkspace.PWorkspaceExportState))
+            .ToList(),
+        LSceneTabLayouts = lTabset.PTabsetRecords
+            .Select(pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceLayoutRead())
+            .ToList(),
+        LSceneTabRelays = PMainArea.LCourier.LCourierSlotsRead(lTabset.PTabsetRecords).ToList(),
+        LSceneTabNames = lTabset.PTabsetRecords
+            .Select(pTabRecord => pTabRecord.PTabNameCustom)
+            .ToList(),
+        LSceneTabIndex = lTabset.PTabsetCurrent is null
+            ? 0
+            : Math.Max(0, lTabset.PTabsetRecords.IndexOf(lTabset.PTabsetCurrent))
+    };
 
     public void PWindowSceneApply(LSceneRecord lScene)
     {
@@ -39,8 +35,6 @@ public partial class PWindow
             lTabset.LTabsetClose(lTabset.PTabsetRecords[0]);
         }
 
-        var lScenePrefs = new LPreferenceState { LPreferenceStartupMode = "LastSession" };
-        lScene.LSceneStateApply(lScenePrefs);
-        PWindowTabsRestore(lTabset, lScenePrefs);
+        PWindowSceneRestore(lTabset, lScene);
     }
 }

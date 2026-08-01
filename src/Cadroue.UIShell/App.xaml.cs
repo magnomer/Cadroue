@@ -18,6 +18,8 @@ public partial class PProgram : Application
     public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();
     public static Cadroue.Core.LFrameState LFrameStateCurrent { get; private set; } = Cadroue.Core.LFrameState.LFrameDefaultCreate();
     public static List<LBindingRecord> LBindingCurrent { get; private set; } = LBinding.LBindingNormalize(null);
+    public static LSceneRecord LSceneCurrent { get; private set; } = new();
+    public static string LSceneActiveName { get; private set; } = string.Empty;
 
     private static string? lDepotRootApplied;
 
@@ -61,6 +63,8 @@ public partial class PProgram : Application
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
         LFrameStateCurrent = Cadroue.Infrastructure.LFrameStore.LFrameLoad();
         LBindingCurrent = LBinding.LBindingNormalize(LBindingStore.LBindingLoad());
+        LSceneCurrent = LScene.LSceneStateLoad();
+        LSceneActiveName = LSceneCurrent.LSceneName;
         LLocalization.LLocalizationLoad(LPreferenceStateCurrent.LPreferenceLanguage);
         LTrace.LTraceVerbose = LPreferenceStateCurrent.LPreferenceLogVerbose;
         Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
@@ -319,17 +323,9 @@ public partial class PProgram : Application
         LPreferenceDefer();
     }
 
-    public static void LPreferenceSceneSet(string lPreferenceSceneName)
+    public static void LSceneActiveSet(string lSceneActiveName)
     {
-        if (string.Equals(lPreferenceSceneName, LPreferenceStateCurrent.LPreferenceSceneName, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
-        lPreferenceNext.LPreferenceSceneName = lPreferenceSceneName;
-        LPreferenceStateCurrent = lPreferenceNext;
-        LPreferenceDefer();
+        LSceneActiveName = lSceneActiveName ?? string.Empty;
     }
 
     private static void LPreferenceDefer()

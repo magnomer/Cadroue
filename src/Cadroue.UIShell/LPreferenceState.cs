@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
 using Cadroue.UIShell.PFlow;
-using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell;
 
@@ -40,15 +38,6 @@ public sealed class LPreferenceState
     public string LPreferenceFfmpegFolder { get; set; } = string.Empty;
     public string LPreferenceMediaPath { get; set; } = string.Empty;
 
-    public List<string> LPreferenceLayoutKeys { get; set; } = new();
-    public int LPreferenceTabIndex { get; set; }
-
-    public List<LPresetRecord> LPreferenceTabExports { get; set; } = new();
-    public List<LPreferenceTabLayoutRecord> LPreferenceTabLayouts { get; set; } = new();
-    public List<int> LPreferenceTabRelays { get; set; } = new();
-    public List<string> LPreferenceTabNames { get; set; } = new();
-    public string LPreferenceSceneName { get; set; } = string.Empty;
-
     public static LPreferenceState LPreferenceDefaultCreate()
     {
         return new LPreferenceState
@@ -78,9 +67,7 @@ public sealed class LPreferenceState
             LPreferenceAutoActive = false,
             LPreferenceWorkspaceFolder = string.Empty,
             LPreferenceFfmpegFolder = string.Empty,
-            LPreferenceMediaPath = string.Empty,
-            LPreferenceLayoutKeys = new List<string> { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" },
-            LPreferenceTabIndex = 0
+            LPreferenceMediaPath = string.Empty
         };
     }
 
@@ -120,16 +107,7 @@ public sealed class LPreferenceState
             LPreferenceAutoActive = LPreferenceAutoActive,
             LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
             LPreferenceFfmpegFolder = LPreferenceFfmpegFolder,
-            LPreferenceMediaPath = LPreferenceMediaPath,
-            LPreferenceLayoutKeys = new List<string>(LPreferenceLayoutKeys),
-            LPreferenceTabIndex = LPreferenceTabIndex,
-            LPreferenceTabExports = new List<LPresetRecord>(LPreferenceTabExports),
-            LPreferenceTabLayouts = LPreferenceTabLayouts
-                .Select(lPreferenceTabLayout => lPreferenceTabLayout.LPreferenceLayoutClone())
-                .ToList(),
-            LPreferenceTabRelays = new List<int>(LPreferenceTabRelays),
-            LPreferenceTabNames = new List<string>(LPreferenceTabNames),
-            LPreferenceSceneName = LPreferenceSceneName
+            LPreferenceMediaPath = LPreferenceMediaPath
         };
     }
 
@@ -192,12 +170,6 @@ public sealed class LPreferenceState
         LPreferenceWorkspaceFolder = (LPreferenceWorkspaceFolder ?? string.Empty).Trim();
         LPreferenceFfmpegFolder = (LPreferenceFfmpegFolder ?? string.Empty).Trim();
         LPreferenceMediaPath = (LPreferenceMediaPath ?? string.Empty).Trim();
-        LPreferenceTabIndex = Math.Max(0, LPreferenceTabIndex);
-        if (LPreferenceLayoutKeys is null || LPreferenceLayoutKeys.Count == 0)
-            LPreferenceLayoutKeys = new List<string> { "Split" };
-        LPreferenceTabLayouts ??= new List<LPreferenceTabLayoutRecord>();
-        LPreferenceTabRelays ??= new List<int>();
-        LPreferenceTabNames ??= new List<string>();
     }
 
     [JsonIgnore]

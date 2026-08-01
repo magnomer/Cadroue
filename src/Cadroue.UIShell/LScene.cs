@@ -10,7 +10,52 @@ public static class LScene
 {
     private const string LSceneFolderName = "Cadroue";
     private const string LSceneFileName = "LScenePresets.json";
+    private const string LSceneStateFileName = "session.json";
     private static readonly List<LSceneRecord> lSceneRecords = LSceneLoad();
+
+    public static LSceneRecord LSceneStateLoad()
+    {
+        string lScenePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            LSceneFolderName,
+            LSceneStateFileName);
+        if (!File.Exists(lScenePath))
+        {
+            return new LSceneRecord();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<LSceneRecord>(File.ReadAllText(lScenePath)) ?? new LSceneRecord();
+        }
+        catch
+        {
+            return new LSceneRecord();
+        }
+    }
+
+    public static void LSceneStateSave(LSceneRecord lScene)
+    {
+        try
+        {
+            string lScenePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                LSceneFolderName,
+                LSceneStateFileName);
+            string? lSceneFolder = Path.GetDirectoryName(lScenePath);
+            if (!string.IsNullOrWhiteSpace(lSceneFolder))
+            {
+                Directory.CreateDirectory(lSceneFolder);
+            }
+
+            File.WriteAllText(
+                lScenePath,
+                JsonSerializer.Serialize(lScene, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch
+        {
+        }
+    }
 
     public static IReadOnlyList<string> LSceneNames =>
         lSceneRecords.Select(lSceneRecord => lSceneRecord.LSceneName).ToList();

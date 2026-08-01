@@ -38,7 +38,7 @@ public partial class PWindow : Window
         LRelay? lRelayStartup = PProgram.LRelayPayloadRead();
         if (lRelayStartup is null)
         {
-            PWindowTabsRestore(lTabset, PProgram.LPreferenceStateCurrent);
+            PWindowTabsRestore(lTabset, PProgram.LPreferenceStateCurrent, PProgram.LSceneCurrent);
         }
 
         pControlBar.PToolbarTabsetSet(lTabset);
@@ -64,7 +64,7 @@ public partial class PWindow : Window
         PreviewKeyDown += PShortcutKeyHandle;
         Closed += PWindowCloseHandle;
     }
-    private static void PWindowTabsRestore(LTabset pTabset, LPreferenceState lPreferenceState)
+    private static void PWindowTabsRestore(LTabset pTabset, LPreferenceState lPreferenceState, LSceneRecord lScene)
     {
         if (lPreferenceState.LPreferenceStartupMode == "DefaultTab")
         {
@@ -77,11 +77,16 @@ public partial class PWindow : Window
             return;
         }
 
-        IReadOnlyList<string> pTabKeys = lPreferenceState.LPreferenceLayoutKeys.Count > 0
-            ? lPreferenceState.LPreferenceLayoutKeys
+        PWindowSceneRestore(pTabset, lScene);
+    }
+
+    private static void PWindowSceneRestore(LTabset pTabset, LSceneRecord lScene)
+    {
+        IReadOnlyList<string> pTabKeys = lScene.LSceneLayoutKeys.Count > 0
+            ? lScene.LSceneLayoutKeys
             : new[] { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" };
-        IReadOnlyList<LPresetRecord> pTabExports = lPreferenceState.LPreferenceTabExports;
-        IReadOnlyList<LPreferenceTabLayoutRecord> pTabLayouts = lPreferenceState.LPreferenceTabLayouts;
+        IReadOnlyList<LPresetRecord> pTabExports = lScene.LSceneTabExports;
+        IReadOnlyList<LPreferenceTabLayoutRecord> pTabLayouts = lScene.LSceneTabLayouts;
         for (int pTabIndex = 0; pTabIndex < pTabKeys.Count; pTabIndex++)
         {
             LPreset? pTabExportState = pTabIndex < pTabExports.Count
@@ -89,12 +94,12 @@ public partial class PWindow : Window
                 : null;
             LPreferenceTabLayoutRecord? pTabLayout = pTabIndex < pTabLayouts.Count ? pTabLayouts[pTabIndex] : null;
             PTabRecord pTabRestored = pTabset.LTabsetAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
-            if (pTabIndex < lPreferenceState.LPreferenceTabNames.Count)
+            if (pTabIndex < lScene.LSceneTabNames.Count)
             {
-                pTabset.LTabsetNameSet(pTabRestored, lPreferenceState.LPreferenceTabNames[pTabIndex]);
+                pTabset.LTabsetNameSet(pTabRestored, lScene.LSceneTabNames[pTabIndex]);
             }
         }
-        PMainArea.LCourier.LCourierSlotsApply(pTabset.PTabsetRecords, lPreferenceState.LPreferenceTabRelays);
+        PMainArea.LCourier.LCourierSlotsApply(pTabset.PTabsetRecords, lScene.LSceneTabRelays);
         foreach (PTabRecord pTabRecord in pTabset.PTabsetRecords)
         {
             if (pTabRecord.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab pFunnelSurface)
@@ -102,7 +107,7 @@ public partial class PWindow : Window
                 pFunnelSurface.PFunnelTargetsResolve(pTabset.PTabsetRecords);
             }
         }
-        int pSelectIndex = Math.Clamp(lPreferenceState.LPreferenceTabIndex, 0, pTabset.PTabsetRecords.Count - 1);
+        int pSelectIndex = Math.Clamp(lScene.LSceneTabIndex, 0, pTabset.PTabsetRecords.Count - 1);
         pTabset.LTabsetSelect(pTabset.PTabsetRecords[pSelectIndex]);
     }
     private void PWindowMediaRestore(LPreferenceState lPreferenceState)
@@ -319,17 +324,7 @@ public partial class PWindow : Window
             });
         }
 
-        LPreferenceState lPrefs = PProgram.LPreferenceStateCurrent.LPreferenceClone();
-        lPrefs.LPreferenceLayoutKeys = lTabset.PTabsetRecords.Select(r => r.PTabLayoutKey).ToList();
-        lPrefs.LPreferenceTabExports = lTabset.PTabsetRecords
-            .Select(r => LPresetRecord.LPresetRecordCreate(r.PTabWorkspace.PWorkspaceExportState))
-            .ToList();
-        lPrefs.LPreferenceTabLayouts = lTabset.PTabsetRecords.Select(r => r.PTabWorkspace.PWorkspaceLayoutRead()).ToList();
-        lPrefs.LPreferenceTabRelays = PMainArea.LCourier.LCourierSlotsRead(lTabset.PTabsetRecords).ToList();
-        lPrefs.LPreferenceTabNames = lTabset.PTabsetRecords.Select(r => r.PTabNameCustom).ToList();
-        lPrefs.LPreferenceTabIndex = lTabset.PTabsetCurrent is null ? 0
-            : Math.Max(0, lTabset.PTabsetRecords.IndexOf(lTabset.PTabsetCurrent));
-        PProgram.LPreferenceStateSet(lPrefs);
+        LScene.LSceneStateSave(PWindowSceneRead(PProgram.LSceneActiveName));
         LRelayChannel.LRelayTabReceive -= PWindowRelayHandle;
         lTabset.LTabsetSelectChange -= PWindowTabHandle;
         pControlBar.PToolbarOptionsApply -= PWindowOptionsHandle;
