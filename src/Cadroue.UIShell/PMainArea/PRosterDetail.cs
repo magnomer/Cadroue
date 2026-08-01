@@ -57,6 +57,14 @@ public sealed partial class PRoster
         pRosterDetailPanel.Children.Clear();
         pRosterRowTarget = pRosterDetailPanel;
 
+        if (pRosterCardId != Guid.Empty)
+        {
+            PSummaryAdd(pRosterSchedule.LScheduleRecords
+                .Where(pRecord => pRecord.LWorkBatchId == pRosterCardId)
+                .ToArray());
+            return;
+        }
+
         if (PRosterSelectRead() is not { } pWorkItem)
         {
             pRosterDetailPanel.Children.Add(new TextBlock
@@ -131,7 +139,18 @@ public sealed partial class PRoster
         if (PRosterReencodeCheck(pOutput.LWorkOutputAudioMode))
         {
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Encoder"), pOutput.LWorkOutputAudioEncoder);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Bitrate"), pOutput.LWorkOutputAudioBitrate);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.RateControl"), pOutput.LWorkOutputAudioRateControl);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Quality"), pOutput.LWorkOutputAudioQuality);
+            if (!string.IsNullOrWhiteSpace(pOutput.LWorkOutputAudioSpeed))
+            {
+                PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"), pOutput.LWorkOutputAudioSpeed);
+            }
+
+            if (pOutput.LWorkOutputAudioExtras.Count > 0)
+            {
+                PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Extras"), string.Join("  ", pOutput.LWorkOutputAudioExtras.Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
+            }
+
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.SampleRate"), pOutput.LWorkOutputAudioSampleRate);
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Channels"), pOutput.LWorkOutputAudioChannels);
         }

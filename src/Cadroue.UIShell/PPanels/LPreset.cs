@@ -35,8 +35,11 @@ public sealed partial class LPreset
 
     public Dictionary<string, string> LPresetVideoExtras { get; set; } = new(StringComparer.Ordinal);
 
-    public string LPresetAudioEncoder { get; set; } = "AAC";
-    public string LPresetAudioBitrate { get; set; } = "96k";
+    public string LPresetAudioEncoder { get; set; } = "AAC, native / aac";
+    public string LPresetAudioRateControl { get; set; } = "Target bitrate";
+    public string LPresetAudioQuality { get; set; } = "192k";
+    public string LPresetAudioSpeed { get; set; } = string.Empty;
+    public Dictionary<string, string> LPresetAudioExtras { get; set; } = new(StringComparer.Ordinal);
     public string LPresetSampleRate { get; set; } = "Same as source";
     public string LPresetAudioChannels { get; set; } = "Same as source";
 
@@ -65,7 +68,10 @@ public sealed partial class LPreset
         LPresetAudioStream,
         LPresetAudioMode,
         LPresetAudioEncoder,
-        LPresetAudioBitrate,
+        LPresetAudioRateControl,
+        LPresetAudioQuality,
+        LPresetAudioSpeed,
+        new Dictionary<string, string>(LPresetAudioExtras, StringComparer.Ordinal),
         LPresetSampleRate,
         LPresetAudioChannels,
         LPresetName,
@@ -97,7 +103,10 @@ public sealed partial class LPreset
         LPresetPixelLayout = LPresetPixelLayout,
         LPresetVideoExtras = new Dictionary<string, string>(LPresetVideoExtras, StringComparer.Ordinal),
         LPresetAudioEncoder = LPresetAudioEncoder,
-        LPresetAudioBitrate = LPresetAudioBitrate,
+        LPresetAudioRateControl = LPresetAudioRateControl,
+        LPresetAudioQuality = LPresetAudioQuality,
+        LPresetAudioSpeed = LPresetAudioSpeed,
+        LPresetAudioExtras = new Dictionary<string, string>(LPresetAudioExtras, StringComparer.Ordinal),
         LPresetSampleRate = LPresetSampleRate,
         LPresetAudioChannels = LPresetAudioChannels
     };
@@ -129,7 +138,10 @@ public sealed partial class LPreset
         LPresetPixelLayout = lSource.LPresetPixelLayout;
         LPresetVideoExtras = new Dictionary<string, string>(lSource.LPresetVideoExtras, StringComparer.Ordinal);
         LPresetAudioEncoder = lSource.LPresetAudioEncoder;
-        LPresetAudioBitrate = lSource.LPresetAudioBitrate;
+        LPresetAudioRateControl = lSource.LPresetAudioRateControl;
+        LPresetAudioQuality = lSource.LPresetAudioQuality;
+        LPresetAudioSpeed = lSource.LPresetAudioSpeed;
+        LPresetAudioExtras = new Dictionary<string, string>(lSource.LPresetAudioExtras, StringComparer.Ordinal);
         LPresetSampleRate = lSource.LPresetSampleRate;
         LPresetAudioChannels = lSource.LPresetAudioChannels;
         LPresetChange?.Invoke();

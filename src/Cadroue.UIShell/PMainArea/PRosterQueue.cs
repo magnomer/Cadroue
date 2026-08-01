@@ -15,8 +15,11 @@ public sealed partial class PRoster
     private readonly Dictionary<Guid, Border> pRosterStepRows = new();
     private readonly Dictionary<Guid, PRosterRowPlace> pRosterRowPlaces = new();
     private readonly List<Guid> pRosterOrderedIds = new();
+    private readonly Dictionary<Guid, Border> pRosterCardHeaders = new();
+    private readonly HashSet<Guid> pRosterStageIds = new();
     private readonly HashSet<Guid> pRosterSelectedIds = new();
     private Guid pRosterCurrentId;
+    private Guid pRosterCardId;
 
     private sealed class PRosterRowCell
     {
@@ -129,6 +132,8 @@ public sealed partial class PRoster
         pRosterRowPlaces.Clear();
         pRosterStepRows.Clear();
         pRosterOrderedIds.Clear();
+        pRosterCardHeaders.Clear();
+        pRosterStageIds.Clear();
         pRosterQueuePanel.Children.Clear();
 
         foreach (Guid pBatchId in pBatchOrder)
@@ -142,16 +147,36 @@ public sealed partial class PRoster
         {
             pRosterCurrentId = Guid.Empty;
         }
+
+        if (pRosterCardId != Guid.Empty && !pBatchOrder.Contains(pRosterCardId))
+        {
+            pRosterCardId = Guid.Empty;
+        }
     }
 
     private Border PRosterBatchBuild(IReadOnlyList<PRosterLineageEntry> pLineages)
     {
         var pStack = new StackPanel();
+
+        LWorkItem[] pBatchItems = pLineages.SelectMany(pLineage => pLineage.PRosterLineageItems).ToArray();
+        pStack.Children.Add(PRosterCardBuild(pBatchItems));
+
+        HashSet<string> pConsumed = PRosterConsumedRead(pBatchItems);
+        HashSet<string> pProduced = PRosterProducedRead(pBatchItems);
+        foreach (LWorkItem pWorkItem in pBatchItems)
+        {
+            if (PRosterStageCheck(pWorkItem, pConsumed, pProduced))
+            {
+                pRosterStageIds.Add(pWorkItem.LWorkId);
+            }
+        }
+
         foreach (PRosterLineageEntry pLineage in pLineages)
         {
-            pStack.Children.Add(PRosterFileBuild(pLineage));
-
             List<LWorkItem> pStepItems = pLineage.PRosterLineageItems;
+            bool pLineageStage = pStepItems.Count > 0 && pRosterStageIds.Contains(pStepItems[^1].LWorkId);
+            pStack.Children.Add(PRosterFileBuild(pLineage, pLineageStage));
+
             for (int pItemIndex = 0; pItemIndex < pStepItems.Count; pItemIndex++)
             {
                 LWorkItem pWorkItem = pStepItems[pItemIndex];
@@ -173,21 +198,28 @@ public sealed partial class PRoster
             Background = Brushes.White,
             BorderBrush = PRosterTheme.PRosterLineBrush,
             BorderThickness = new Thickness(1),
-            Padding = new Thickness(0, 4, 0, 6),
+            Padding = new Thickness(0, 0, 0, 6),
             Margin = new Thickness(0, 0, 0, 8),
             Child = pStack
         };
     }
 
-    private static TextBlock PRosterFileBuild(PRosterLineageEntry pLineage) => new()
+    private static Border PRosterFileBuild(PRosterLineageEntry pLineage, bool pStage) => new()
     {
-        Text = PLineageTitleRead(pLineage),
-        FontSize = PRosterTheme.PRosterRowSize,
-        FontWeight = FontWeights.SemiBold,
-        Foreground = PRosterTheme.PRosterTitleBrush,
-        TextTrimming = TextTrimming.CharacterEllipsis,
-        Margin = new Thickness(12, 5, 12, 3)
+        Background = pStage ? PRosterTheme.PRosterStageBrush : Brushes.Transparent,
+        Padding = new Thickness(12, 5, 12, 3),
+        Child = new TextBlock
+        {
+            Text = PLineageTitleRead(pLineage),
+            FontSize = PRosterTheme.PRosterRowSize,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = PRosterTheme.PRosterTitleBrush,
+            TextTrimming = TextTrimming.CharacterEllipsis
+        }
     };
+
+    private Brush PRosterShadeRead(Guid pRowId) =>
+        pRosterStageIds.Contains(pRowId) ? PRosterTheme.PRosterStageBrush : Brushes.Transparent;
 
     private Border PRosterRowBuild(LWorkItem pWorkItem)
     {
@@ -232,7 +264,7 @@ public sealed partial class PRoster
         pRosterStepRows[pRowId] = pRow;
         pRow.Background = pRosterSelectedIds.Contains(pRowId)
             ? PRosterTheme.PRosterSelectBrush
-            : Brushes.Transparent;
+            : PRosterShadeRead(pRowId);
         return pRow;
     }
 
@@ -244,7 +276,7 @@ public sealed partial class PRoster
         pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        UIElement pConnector = PRosterConnectorBuild(pLast);
+        UIElement pConnector = PRosterConnectorBuild(pLast, pRosterStageIds.Contains(pWorkItem.LWorkId));
         Grid.SetColumn(pConnector, 0);
         pStepGrid.Children.Add(pConnector);
 
@@ -265,19 +297,20 @@ public sealed partial class PRoster
         return pStepCell;
     }
 
-    private static UIElement PRosterConnectorBuild(bool pLast)
+    private static UIElement PRosterConnectorBuild(bool pLast, bool pStage)
     {
+        Brush pSpineBrush = pStage ? PRosterTheme.PRosterMutedBrush : PRosterTheme.PRosterTrunkBrush;
         var pGrid = new Grid { Width = 18, UseLayoutRounding = true };
         pGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         pGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-        var pSpineUpper = PRosterSpineBuild();
+        var pSpineUpper = PRosterSpineBuild(pSpineBrush);
         Grid.SetRow(pSpineUpper, 0);
         pGrid.Children.Add(pSpineUpper);
 
         if (!pLast)
         {
-            var pSpineLower = PRosterSpineBuild();
+            var pSpineLower = PRosterSpineBuild(pSpineBrush);
             Grid.SetRow(pSpineLower, 1);
             pGrid.Children.Add(pSpineLower);
         }
@@ -287,8 +320,8 @@ public sealed partial class PRoster
             Width = 8,
             Height = 8,
             CornerRadius = new CornerRadius(4),
-            Background = Brushes.White,
-            BorderBrush = PRosterTheme.PRosterAccentBrush,
+            Background = pStage ? PRosterTheme.PRosterTextBrush : Brushes.White,
+            BorderBrush = pStage ? PRosterTheme.PRosterTextBrush : PRosterTheme.PRosterAccentBrush,
             BorderThickness = new Thickness(2),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center,
@@ -300,10 +333,10 @@ public sealed partial class PRoster
         return pGrid;
     }
 
-    private static Border PRosterSpineBuild() => new()
+    private static Border PRosterSpineBuild(Brush pSpineBrush) => new()
     {
         Width = 2,
-        Background = PRosterTheme.PRosterTrunkBrush,
+        Background = pSpineBrush,
         HorizontalAlignment = HorizontalAlignment.Left,
         VerticalAlignment = VerticalAlignment.Stretch,
         Margin = new Thickness(7, 0, 0, 0)
@@ -343,6 +376,8 @@ public sealed partial class PRoster
     private void PRosterStepSelect(LWorkItem pWorkItem)
     {
         Guid pId = pWorkItem.LWorkId;
+        pRosterCardId = Guid.Empty;
+        PRosterCardApply();
         ModifierKeys pModifiers = Keyboard.Modifiers;
 
         if ((pModifiers & ModifierKeys.Shift) != 0 && pRosterCurrentId != Guid.Empty)
@@ -385,7 +420,7 @@ public sealed partial class PRoster
             return;
         }
 
-        pRow.Background = pOver ? PRosterTheme.PRosterHeaderBrush : Brushes.Transparent;
+        pRow.Background = pOver ? PRosterTheme.PRosterHeaderBrush : PRosterShadeRead(pId);
     }
 
     private void PRosterSelectApply()
@@ -394,7 +429,7 @@ public sealed partial class PRoster
         {
             pRow.Background = pRosterSelectedIds.Contains(pRowId)
                 ? PRosterTheme.PRosterSelectBrush
-                : Brushes.Transparent;
+                : PRosterShadeRead(pRowId);
         }
     }
 

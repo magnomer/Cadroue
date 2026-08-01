@@ -181,6 +181,42 @@ internal static class PSField
     internal static string PSComboTextRead(ComboBox pCombo) =>
         LLocalizationChoice.LLocalizationChoiceRead(pCombo.SelectedItem);
 
+    internal const string PSFieldCustomToken = "Custom";
+
+    internal static UIElement PSFieldCustomBuild(string pLabel, TextBox pBox)
+    {
+        UIElement pRow = PSFieldBuild(pLabel, pBox);
+        pRow.Visibility = Visibility.Collapsed;
+        return pRow;
+    }
+
+    internal static void PSFieldCustomToggle(ComboBox pCombo, UIElement? pRow)
+    {
+        if (pRow is null)
+        {
+            return;
+        }
+
+        pRow.Visibility = string.Equals(PSComboTextRead(pCombo), PSFieldCustomToken, StringComparison.Ordinal)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    internal static string PSFieldCustomResolve(string pValue, params string[] pTokens) =>
+        Array.IndexOf(pTokens, pValue) >= 0 ? pValue : PSFieldCustomToken;
+
+    internal static string PSFieldCustomRead(ComboBox pCombo, TextBox pBox, string pFallback)
+    {
+        string pSelected = PSComboTextRead(pCombo);
+        if (!string.Equals(pSelected, PSFieldCustomToken, StringComparison.Ordinal))
+        {
+            return pSelected;
+        }
+
+        string pCustom = pBox.Text.Trim();
+        return string.IsNullOrEmpty(pCustom) ? pFallback : pCustom;
+    }
+
     internal static Thickness PSNoticeMargin => new(PSFieldLabelWidth, -7, 0, 9);
 
     internal static UIElement PSNoticeBuild(string pText) => new TextBlock

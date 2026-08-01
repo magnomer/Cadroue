@@ -121,7 +121,10 @@ public sealed partial class LPreset
             && string.Equals(lPreset.LPresetPixelLayout, lSource.LPresetPixelLayout, StringComparison.Ordinal)
             && LPresetExtraMatch(lPreset.LPresetVideoExtras, lSource.LPresetVideoExtras)
             && string.Equals(lPreset.LPresetAudioEncoder, lSource.LPresetAudioEncoder, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudioBitrate, lSource.LPresetAudioBitrate, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudioRateControl, lSource.LPresetAudioRateControl, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudioQuality, lSource.LPresetAudioQuality, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudioSpeed, lSource.LPresetAudioSpeed, StringComparison.Ordinal)
+            && LPresetExtraMatch(lPreset.LPresetAudioExtras, lSource.LPresetAudioExtras)
             && string.Equals(lPreset.LPresetSampleRate, lSource.LPresetSampleRate, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetAudioChannels, lSource.LPresetAudioChannels, StringComparison.Ordinal);
     }
@@ -343,8 +346,9 @@ public sealed partial class LPreset
         {
             ["-tune"] = "none"
         },
-        LPresetAudioEncoder = "AAC",
-        LPresetAudioBitrate = "320k",
+        LPresetAudioEncoder = "AAC, native / aac",
+        LPresetAudioRateControl = "Target bitrate",
+        LPresetAudioQuality = "320k",
         LPresetSampleRate = "48000",
         LPresetAudioChannels = "Same as source"
     };
@@ -374,8 +378,9 @@ public sealed partial class LPreset
         {
             ["-tune"] = "none"
         },
-        LPresetAudioEncoder = "AAC",
-        LPresetAudioBitrate = "96k",
+        LPresetAudioEncoder = "AAC, native / aac",
+        LPresetAudioRateControl = "Target bitrate",
+        LPresetAudioQuality = "192k",
         LPresetSampleRate = "Same as source",
         LPresetAudioChannels = "Same as source"
     };
@@ -405,8 +410,9 @@ public sealed partial class LPreset
         {
             ["-tune"] = "none"
         },
-        LPresetAudioEncoder = "AAC",
-        LPresetAudioBitrate = "96k",
+        LPresetAudioEncoder = "AAC, native / aac",
+        LPresetAudioRateControl = "Target bitrate",
+        LPresetAudioQuality = "192k",
         LPresetSampleRate = "Same as source",
         LPresetAudioChannels = "Same as source"
     };

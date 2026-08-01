@@ -189,7 +189,10 @@ public sealed class LWorkOutputRecord
     public string LWorkAudioStream { get; set; } = string.Empty;
     public string LWorkAudioMode { get; set; } = "Auto";
     public string LWorkAudioEncoder { get; set; } = string.Empty;
-    public string LWorkAudioBitrate { get; set; } = string.Empty;
+    public string LWorkAudioRateControl { get; set; } = string.Empty;
+    public string LWorkAudioQuality { get; set; } = string.Empty;
+    public string LWorkAudioSpeed { get; set; } = string.Empty;
+    public Dictionary<string, string> LWorkAudioExtras { get; set; } = new();
     public string LWorkSampleRate { get; set; } = "Same as source";
     public string LWorkAudioChannels { get; set; } = "Same as source";
     public string LWorkPresetName { get; set; } = string.Empty;
@@ -218,7 +221,10 @@ public sealed class LWorkOutputRecord
         LWorkAudioStream = lWorkOutput.LWorkOutputAudioStream,
         LWorkAudioMode = lWorkOutput.LWorkOutputAudioMode,
         LWorkAudioEncoder = lWorkOutput.LWorkOutputAudioEncoder,
-        LWorkAudioBitrate = lWorkOutput.LWorkOutputAudioBitrate,
+        LWorkAudioRateControl = lWorkOutput.LWorkOutputAudioRateControl,
+        LWorkAudioQuality = lWorkOutput.LWorkOutputAudioQuality,
+        LWorkAudioSpeed = lWorkOutput.LWorkOutputAudioSpeed,
+        LWorkAudioExtras = new Dictionary<string, string>(lWorkOutput.LWorkOutputAudioExtras, StringComparer.Ordinal),
         LWorkSampleRate = lWorkOutput.LWorkOutputAudioSampleRate,
         LWorkAudioChannels = lWorkOutput.LWorkOutputAudioChannels,
         LWorkPresetName = lWorkOutput.LWorkOutputPresetName,
@@ -247,7 +253,10 @@ public sealed class LWorkOutputRecord
         LWorkAudioStream ??= string.Empty;
         LWorkAudioMode ??= "Auto";
         LWorkAudioEncoder ??= string.Empty;
-        LWorkAudioBitrate ??= string.Empty;
+        LWorkAudioRateControl ??= string.Empty;
+        LWorkAudioQuality ??= string.Empty;
+        LWorkAudioSpeed ??= string.Empty;
+        LWorkAudioExtras ??= new();
         LWorkSampleRate ??= "Same as source";
         LWorkAudioChannels ??= "Same as source";
         LWorkPresetName ??= string.Empty;
@@ -276,7 +285,10 @@ public sealed class LWorkOutputRecord
         LWorkAudioStream,
         LWorkAudioMode,
         LWorkAudioEncoder,
-        LWorkAudioBitrate,
+        LWorkAudioRateControl,
+        LWorkAudioQuality,
+        LWorkAudioSpeed,
+        new Dictionary<string, string>(LWorkAudioExtras, StringComparer.Ordinal),
         LWorkSampleRate,
         LWorkAudioChannels,
         LWorkPresetName,

@@ -81,6 +81,7 @@ internal sealed partial class PSEncoder
     {
         PSOutputExtensionUpdate();
         PSCodecContainerHandle();
+        PSAudioContainerHandle();
     }
 
     private void PSNameBoxPrepare()

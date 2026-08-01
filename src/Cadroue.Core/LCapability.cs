@@ -62,6 +62,26 @@ public static class LCapability
         return LCapabilityTable.LCapabilityFallback;
     }
 
+    public static LCapabilityCodec LCapabilityAudioRead(string? lEncoder)
+    {
+        if (string.IsNullOrWhiteSpace(lEncoder))
+        {
+            return LCapabilityTable.LCapabilityAudioFallback;
+        }
+
+        if (LCapabilityTable.LCapabilityAudioMap.TryGetValue(lEncoder, out LCapabilityCodec? lCodec))
+        {
+            return lCodec;
+        }
+
+        if (lEncoder.StartsWith("pcm_", StringComparison.OrdinalIgnoreCase))
+        {
+            return LCapabilityTable.LCapabilityAudioUncompressed;
+        }
+
+        return LCapabilityTable.LCapabilityAudioFallback;
+    }
+
     public static string LCapabilityNameRead(string? lEncoderText)
     {
         if (string.IsNullOrWhiteSpace(lEncoderText))

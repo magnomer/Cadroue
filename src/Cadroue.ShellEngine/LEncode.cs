@@ -534,7 +534,7 @@ public static class LEncode
 
         if (string.Equals(lOutput.LWorkOutputAudioStream, "Include all audio tracks", StringComparison.OrdinalIgnoreCase))
         {
-            lArguments.Append(" -map 0:v:0 -map 0:a");
+            lArguments.Append(" -map 0:v:0? -map 0:a");
         }
 
         if (string.Equals(lOutput.LWorkOutputAudioMode, "Copy", StringComparison.OrdinalIgnoreCase))
@@ -564,10 +564,33 @@ public static class LEncode
             lArguments.Append(CultureInfo.InvariantCulture, $" -c:a {lAudioName}");
         }
 
-        if (!string.IsNullOrWhiteSpace(lOutput.LWorkOutputAudioBitrate)
-            && !string.Equals(lOutput.LWorkOutputAudioBitrate, "Custom", StringComparison.OrdinalIgnoreCase))
+        LCapabilityCodec lCodec = LCapability.LCapabilityAudioRead(lAudioName);
+        LCapabilityMode lMode = lCodec.LCapabilityModeFind(lOutput.LWorkOutputAudioRateControl);
+        if (lMode.CapabilityModeQuality is LCapabilityQuality lQuality)
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -b:a {lOutput.LWorkOutputAudioBitrate}");
+            string lValue = string.IsNullOrWhiteSpace(lOutput.LWorkOutputAudioQuality)
+                ? lQuality.CapabilityQualityDefault
+                : lOutput.LWorkOutputAudioQuality;
+            if (!string.IsNullOrWhiteSpace(lValue)
+                && !string.Equals(lValue, "Custom", StringComparison.OrdinalIgnoreCase))
+            {
+                lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality.CapabilityQualityOption} {lValue}");
+            }
+        }
+
+        if (lCodec.CapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LWorkOutputAudioSpeed))
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.CapabilitySpeedOption} {lOutput.LWorkOutputAudioSpeed}");
+        }
+
+        foreach (var lExtra in lOutput.LWorkOutputAudioExtras)
+        {
+            if (string.IsNullOrWhiteSpace(lExtra.Value) || string.Equals(lExtra.Value, "none", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lExtra.Key} {lExtra.Value}");
         }
 
         if (!LEncodeSourceCheck(lOutput.LWorkOutputAudioSampleRate)
@@ -595,7 +618,7 @@ public static class LEncode
         "Mono" => 1,
         "Stereo" => 2,
         "5.1" => 6,
-        _ => null
+        _ => int.TryParse(lChannels, out int lCount) && lCount > 0 ? lCount : null
     };
 
     private static string LEncodeScaleResolve(string lSize, bool lReactive)

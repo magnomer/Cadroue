@@ -32,6 +32,10 @@ internal sealed partial class PSEncoder
         psVideoEncodePanel.Children.Add(psVideoCustomRow);
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"), psVideoReactiveBox));
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"), psVideoFpsCombo));
+        psVideoFpsCustomRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.CustomFps"), psVideoFpsCustom);
+        psVideoEncodePanel.Children.Add(psVideoFpsCustomRow);
+        psVideoFpsCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psVideoFpsCombo, psVideoFpsCustomRow);
+        PSFieldCustomToggle(psVideoFpsCombo, psVideoFpsCustomRow);
         PSVideoCustomUpdate();
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psVideoPixelCombo));
 

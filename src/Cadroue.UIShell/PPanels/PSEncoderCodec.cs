@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.Infrastructure;
 
 using static Cadroue.UIShell.PSShared.PSField;
 
@@ -55,8 +55,46 @@ internal sealed partial class PSEncoder
 
     private UIElement PSModePlateBuild() => PSPlateBuild(PSFieldBuild(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), psModeCombo));
 
+    private static HashSet<string>? psCodecAvailable;
+    private static Task? psCodecProbeTask;
+
+    internal static void PSCodecProbeStart() => psCodecProbeTask = Task.Run(PSCodecProbeRun);
+
+    private static async Task PSCodecProbeRun()
+    {
+        var pAvailable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var pCandidate in PSCodecCandidates)
+        {
+            foreach (string pEncoder in pCandidate.PSCodecValues)
+            {
+                if ((await LTrial.LTrialRun(pEncoder, LTrialKind.LTrialKindVideo)).LTrialSuccess)
+                {
+                    pAvailable.Add(pEncoder);
+                }
+            }
+        }
+
+        if (pAvailable.Count > 0)
+        {
+            psCodecAvailable = pAvailable;
+        }
+    }
+
+    private void PSCodecRefreshArrange()
+    {
+        if (psCodecProbeTask is { IsCompleted: false } pTask)
+        {
+            pTask.ContinueWith(
+                _ => Dispatcher.BeginInvoke(() => { if (IsLoaded) PSCodecContainerHandle(); }),
+                TaskScheduler.Default);
+        }
+    }
+
     private static string[] PSCodecItemsRead() =>
-        PSCodecCandidates.Select(pCandidate => pCandidate.PSCodecText).ToArray();
+        PSCodecCandidates
+            .Where(PSCodecAvailableCheck)
+            .Select(pCandidate => pCandidate.PSCodecText)
+            .ToArray();
 
     private static string[] PSCodecItemsRead(string pContainer)
     {
@@ -66,10 +104,13 @@ internal sealed partial class PSEncoder
         }
 
         return PSCodecCandidates
-            .Where(pCandidate => PSCodecContainerCheck(pCandidate.PSCodecText, pContainer))
+            .Where(pCandidate => PSCodecContainerCheck(pCandidate.PSCodecText, pContainer) && PSCodecAvailableCheck(pCandidate))
             .Select(pCandidate => pCandidate.PSCodecText)
             .ToArray();
     }
+
+    private static bool PSCodecAvailableCheck((string PSCodecText, string[] PSCodecValues) pCandidate) =>
+        psCodecAvailable is not { } pSet || pCandidate.PSCodecValues.Any(pSet.Contains);
 
     private static bool PSCodecContainerCheck(string pText, string pContainer) =>
         PSCodecContainerTable.TryGetValue(pText.Split(',')[0].Trim(), out string[]? pContainers)
@@ -103,6 +144,7 @@ internal sealed partial class PSEncoder
         pButton.IsEnabled = false;
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Verification.Checking");
         var pAvailable = new List<string>();
+        var pAvailableNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var pLog = new StringBuilder();
         pLog.AppendLine($"Verification: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         pLog.AppendLine("Command pattern: ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v <encoder> -f null -");
@@ -113,9 +155,14 @@ internal sealed partial class PSEncoder
             pLog.AppendLine(pCandidate.PSCodecText);
             foreach (string pEncoder in pCandidate.PSCodecValues)
             {
-                var pResult = await PSCodecCompatibleRead(pEncoder);
-                pCandidateAvailable |= pResult.PSCodecSuccess;
-                pLog.AppendLine($"  {pEncoder}: {(pResult.PSCodecSuccess ? "OK" : "FAIL")} - {pResult.PSCodecMessage}");
+                LTrialResult pResult = await LTrial.LTrialRun(pEncoder, LTrialKind.LTrialKindVideo);
+                pCandidateAvailable |= pResult.LTrialSuccess;
+                if (pResult.LTrialSuccess)
+                {
+                    pAvailableNames.Add(pEncoder);
+                }
+
+                pLog.AppendLine($"  {pEncoder}: {(pResult.LTrialSuccess ? "OK" : "FAIL")} - {pResult.LTrialMessage}");
             }
 
             if (pCandidateAvailable)
@@ -124,53 +171,11 @@ internal sealed partial class PSEncoder
             }
         }
 
+        psCodecAvailable = pAvailableNames.Count > 0 ? pAvailableNames : psCodecAvailable;
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
         psCodecLog = pLog.ToString();
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Button.Verify");
         pButton.IsEnabled = true;
-    }
-
-    private static async Task<(bool PSCodecSuccess, string PSCodecMessage)> PSCodecCompatibleRead(string pEncoder)
-    {
-        using var pProcess = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = PProgram.LRendererProgramCurrent,
-                Arguments = $"-hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=1 -frames:v 1 -an -c:v {pEncoder} -f null -",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            }
-        };
-
-        try
-        {
-            pProcess.Start();
-            Task<string> pErrorTask = pProcess.StandardError.ReadToEndAsync();
-            Task<string> pOutputTask = pProcess.StandardOutput.ReadToEndAsync();
-            Task pExitTask = pProcess.WaitForExitAsync();
-            if (await Task.WhenAny(pExitTask, Task.Delay(TimeSpan.FromSeconds(6))) != pExitTask)
-            {
-                pProcess.Kill(true);
-                return (false, LLocalization.LLocalizationTextRead("Encoder.Verification.Timeout"));
-            }
-
-            string pMessage = PSCodecLogShorten(await pErrorTask, await pOutputTask);
-            return (pProcess.ExitCode == 0, $"exit {pProcess.ExitCode}{pMessage}");
-        }
-        catch (Exception pException)
-        {
-            return (false, pException.Message);
-        }
-    }
-
-    private static string PSCodecLogShorten(string pError, string pOutput)
-    {
-        string pMessage = string.IsNullOrWhiteSpace(pError) ? pOutput : pError;
-        pMessage = pMessage.Replace("\r", " ").Replace("\n", " ").Trim();
-        return string.IsNullOrWhiteSpace(pMessage) ? string.Empty : $": {pMessage[..Math.Min(500, pMessage.Length)]}";
     }
 }

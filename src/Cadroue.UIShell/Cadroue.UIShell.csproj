@@ -12,6 +12,7 @@
     <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
     <ProjectReference Include="..\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj" />
     <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
+    <ProjectReference Include="..\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

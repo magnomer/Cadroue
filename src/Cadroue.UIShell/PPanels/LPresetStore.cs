@@ -89,7 +89,10 @@ public sealed class LPresetRecord
     public string LPresetPixelLayout { get; set; } = "Auto";
     public Dictionary<string, string> LPresetVideoExtras { get; set; } = new();
     public string LPresetAudioEncoder { get; set; } = "AAC";
-    public string LPresetAudioBitrate { get; set; } = "96k";
+    public string LPresetAudioRateControl { get; set; } = "Target bitrate";
+    public string LPresetAudioQuality { get; set; } = "192k";
+    public string LPresetAudioSpeed { get; set; } = string.Empty;
+    public Dictionary<string, string> LPresetAudioExtras { get; set; } = new();
     public string LPresetSampleRate { get; set; } = "Same as source";
     public string LPresetAudioChannels { get; set; } = "Same as source";
 
@@ -118,7 +121,10 @@ public sealed class LPresetRecord
         LPresetPixelLayout = lState.LPresetPixelLayout,
         LPresetVideoExtras = new Dictionary<string, string>(lState.LPresetVideoExtras),
         LPresetAudioEncoder = lState.LPresetAudioEncoder,
-        LPresetAudioBitrate = lState.LPresetAudioBitrate,
+        LPresetAudioRateControl = lState.LPresetAudioRateControl,
+        LPresetAudioQuality = lState.LPresetAudioQuality,
+        LPresetAudioSpeed = lState.LPresetAudioSpeed,
+        LPresetAudioExtras = new Dictionary<string, string>(lState.LPresetAudioExtras, StringComparer.Ordinal),
         LPresetSampleRate = lState.LPresetSampleRate,
         LPresetAudioChannels = lState.LPresetAudioChannels
     };
@@ -150,7 +156,10 @@ public sealed class LPresetRecord
         LPresetPixelLayout = LPresetPixelLayout,
         LPresetVideoExtras = new Dictionary<string, string>(LPresetVideoExtras, StringComparer.Ordinal),
         LPresetAudioEncoder = LPresetAudioEncoder,
-        LPresetAudioBitrate = LPresetAudioBitrate,
+        LPresetAudioRateControl = LPresetAudioRateControl,
+        LPresetAudioQuality = LPresetAudioQuality,
+        LPresetAudioSpeed = LPresetAudioSpeed,
+        LPresetAudioExtras = new Dictionary<string, string>(LPresetAudioExtras, StringComparer.Ordinal),
         LPresetSampleRate = LPresetSampleRate,
         LPresetAudioChannels = LPresetAudioChannels
     };

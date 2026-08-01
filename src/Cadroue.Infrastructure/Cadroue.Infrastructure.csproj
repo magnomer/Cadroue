@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
+    <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
   </ItemGroup>
 </Project>
