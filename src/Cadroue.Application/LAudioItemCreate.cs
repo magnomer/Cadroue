@@ -1,9 +1,7 @@
 using System.IO;
 using Cadroue.Core;
 
-using Cadroue.Infrastructure;
-
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.Application;
 
 public static partial class LAudio
 {
@@ -13,11 +11,13 @@ public static partial class LAudio
         LWorkAudio lAudioProcessing,
         LWorkOutput lAudioOutput,
         string lAudioTab,
+        Action<string> lInfoLog,
+        Action<string> lErrorLog,
         Guid lAudioBatchId = default)
     {
         if (string.IsNullOrWhiteSpace(lAudioSourcePath))
         {
-            LTraceLog.LTraceErrorRecord("Audio job not queued: no source file is open");
+            lErrorLog("Audio job not queued: no source file is open");
             return null;
         }
 
@@ -25,7 +25,7 @@ public static partial class LAudio
         string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
         Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : Guid.NewGuid();
 
-        LTraceLog.LTraceInfoRecord(
+        lInfoLog(
             $"Audio built job at {lWorkPriority} from '{Path.GetFileName(lAudioSourcePath)}' " +
             $"into '{lAudioFolder}' as '{lAudioOutputName}'");
 

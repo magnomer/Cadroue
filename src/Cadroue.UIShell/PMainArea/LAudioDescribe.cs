@@ -16,8 +16,10 @@ public static partial class LAudio
     {
         LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
         string lAudioTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
-        LWorkItem? lAudioItem = LAudio.LAudioItemCreate(
-            lWorkPriority, lAudioSourcePath, lAudioProcessing, lAudioOutput, lAudioTab);
+        LWorkItem? lAudioItem = Cadroue.Application.LAudio.LAudioItemCreate(
+            lWorkPriority, lAudioSourcePath, lAudioProcessing, lAudioOutput, lAudioTab,
+            lAudioMessage => LTraceLog.LTraceInfoRecord(lAudioMessage),
+            lAudioMessage => LTraceLog.LTraceErrorRecord(lAudioMessage));
         if (lAudioItem is null)
         {
             return 0;
@@ -53,8 +55,11 @@ public static partial class LAudio
             Guid lAudioBatch = lAudioSource.LWorkSourceBatch != Guid.Empty
                 ? lAudioSource.LWorkSourceBatch
                 : lAudioLooseBatch;
-            if (LAudio.LAudioItemCreate(
-                    lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput, lAudioTab, lAudioBatch)
+            if (Cadroue.Application.LAudio.LAudioItemCreate(
+                    lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput, lAudioTab,
+                    lAudioMessage => LTraceLog.LTraceInfoRecord(lAudioMessage),
+                    lAudioMessage => LTraceLog.LTraceErrorRecord(lAudioMessage),
+                    lAudioBatch)
                 is { } lAudioItem)
             {
                 lAudioItems.Add(lAudioItem);
