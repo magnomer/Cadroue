@@ -1,4 +1,5 @@
 using System.Windows;
+using Cadroue.Core;
 using Cadroue.UIShell;
 using System.Windows.Controls;
 using System.Windows.Input;

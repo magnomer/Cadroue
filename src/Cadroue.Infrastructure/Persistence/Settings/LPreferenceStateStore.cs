@@ -1,8 +1,8 @@
-using System;
-using System.IO;
 using System.Text.Json;
 
-namespace Cadroue.UIShell;
+using Cadroue.Core;
+
+namespace Cadroue.Infrastructure;
 
 public static class LPreferenceStateStore
 {

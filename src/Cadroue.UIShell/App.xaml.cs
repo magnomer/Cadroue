@@ -61,6 +61,7 @@ public partial class PProgram : Application
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
 
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
+        LPreferenceStateCurrent.LPreferenceLanguage = LLocalization.LLocalizationLanguageNormalize(LPreferenceStateCurrent.LPreferenceLanguage);
         LFrameStateCurrent = Cadroue.Infrastructure.LFrameStore.LFrameLoad();
         LBindingCurrent = LBinding.LBindingNormalize(LBindingStore.LBindingLoad());
         LSceneCurrent = LScene.LSceneStateLoad();
@@ -128,6 +129,7 @@ public partial class PProgram : Application
     {
         lPreferenceSaveTimer?.Stop();
         lPreferenceState.LPreferenceNormalize();
+        lPreferenceState.LPreferenceLanguage = LLocalization.LLocalizationLanguageNormalize(lPreferenceState.LPreferenceLanguage);
         foreach (string lPreferenceChange in lPreferenceState.LPreferenceDifferenceRead(LPreferenceStateCurrent))
         {
             LTraceLog.LTraceInfoRecord($"Preference changed — {lPreferenceChange}");

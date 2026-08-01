@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;

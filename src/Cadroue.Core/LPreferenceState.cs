@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Cadroue.UIShell.PFlow;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.Core;
 
 public sealed class LPreferenceState
 {
+    public const string LPreferenceSectionPaletteDefault = "Cadroue";
+
     public string LPreferenceStartupMode { get; set; } = "LastSession";
     public List<string> LPreferenceStartupTabs { get; set; } = new() { "Split" };
     public bool LPreferenceMediaAutomatic { get; set; }
@@ -24,7 +25,7 @@ public sealed class LPreferenceState
 
     public string LPreferenceTimelineOrder { get; set; } = "MapFirst";
     public double LPreferenceKeyframePixels { get; set; }
-    public string LPreferenceSectionPalette { get; set; } = PSectionPalette.PSectionPaletteDefault;
+    public string LPreferenceSectionPalette { get; set; } = LPreferenceSectionPaletteDefault;
     public bool LPreferenceOverlapAllowed { get; set; } = true;
     public bool LPreferenceWaveform { get; set; } = true;
 
@@ -57,7 +58,7 @@ public sealed class LPreferenceState
             LPreferenceDragPaused = true,
             LPreferenceTimelineOrder = "MapFirst",
             LPreferenceKeyframePixels = 5,
-            LPreferenceSectionPalette = PSectionPalette.PSectionPaletteDefault,
+            LPreferenceSectionPalette = LPreferenceSectionPaletteDefault,
             LPreferenceOverlapAllowed = true,
             LPreferenceWaveform = true,
             LPreferenceParallelMaximum = 1,
@@ -155,12 +156,11 @@ public sealed class LPreferenceState
         if (LPreferenceStartupMode is not "LastSession" and not "DefaultTab") LPreferenceStartupMode = "LastSession";
         if (LPreferenceStartupTabs is null || LPreferenceStartupTabs.Count == 0)
             LPreferenceStartupTabs = new List<string> { "Split" };
-        LPreferenceLanguage = LLocalization.LLocalizationLanguageNormalize(LPreferenceLanguage);
         if (LPreferenceVolumeMode is not "Unified" and not "PerTab") LPreferenceVolumeMode = "Unified";
         if (LPreferenceWheelAction is not "Seek" and not "Zoom" and not "Volume") LPreferenceWheelAction = "Seek";
         if (LPreferenceTimelineOrder is not "MapFirst" and not "ViewfinderFirst") LPreferenceTimelineOrder = "MapFirst";
         if (string.IsNullOrWhiteSpace(LPreferenceSectionPalette))
-            LPreferenceSectionPalette = PSectionPalette.PSectionPaletteDefault;
+            LPreferenceSectionPalette = LPreferenceSectionPaletteDefault;
 
         LPreferenceVolume = LPreferenceVolumeClamp(LPreferenceVolume);
         LPreferenceKeyframePixels = LPreferenceNumberClamp(LPreferenceKeyframePixels, 1, 50, 5);
