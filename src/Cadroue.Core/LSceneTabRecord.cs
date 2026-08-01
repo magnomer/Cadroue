@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.Core;
 
 public sealed class LSceneTabRecord
 {

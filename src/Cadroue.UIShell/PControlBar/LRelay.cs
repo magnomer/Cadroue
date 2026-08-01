@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PFlow;
 using Cadroue.UIShell.PPanels;
 
@@ -60,7 +61,7 @@ public sealed class LRelay
         {
             LRelayLayoutKey = pTabRecord.PTabLayoutKey,
             LRelayCustomName = pTabRecord.PTabNameCustom,
-            LRelayExport = LPresetRecord.LPresetRecordCreate(pWorkspace.PWorkspaceExportState),
+            LRelayExport = pWorkspace.PWorkspaceExportState.LPresetRecordCreate(),
             LRelayLayout = pWorkspace.PWorkspaceLayoutRead(),
             LRelaySourcePath = pWorkspace.PWorkspaceViewer?.PViewerSourcePath ?? string.Empty,
             LRelayDropLeft = lDropLeft,
@@ -80,7 +81,7 @@ public sealed class LRelay
         return lRelay;
     }
 
-    public LPreset LRelayExportCreate() => LRelayExport.LPresetStateCreate();
+    public LPreset LRelayExportCreate() => LPreset.LPresetStateCreate(LRelayExport);
 
     public IReadOnlyList<LSegment> LRelaySectionsCreate() =>
         LRelaySections.Select(lSection => lSection.LRelaySegmentCreate()).ToArray();

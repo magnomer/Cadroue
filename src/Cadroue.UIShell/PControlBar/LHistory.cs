@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PFlow;
 using Cadroue.UIShell.PPanels;
 

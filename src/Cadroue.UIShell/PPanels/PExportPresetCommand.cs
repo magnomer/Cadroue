@@ -1,3 +1,5 @@
+using Cadroue.Infrastructure;
+using Cadroue.Core;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
@@ -94,7 +96,7 @@ public sealed partial class PExport
 
         try
         {
-            LPresetStore.LPresetFileSave(lExportSpecificState, pDialog.FileName);
+            LPresetStore.LPresetFileSave(lExportSpecificState.LPresetRecordCreate(), pDialog.FileName);
         }
         catch (Exception pError)
         {
@@ -124,7 +126,8 @@ public sealed partial class PExport
         LPreset? lImportedPreset;
         try
         {
-            lImportedPreset = LPresetStore.LPresetFileLoad(pDialog.FileName);
+            LPresetRecord? lImportedRecord = LPresetStore.LPresetFileLoad(pDialog.FileName);
+            lImportedPreset = lImportedRecord is null ? null : LPreset.LPresetStateCreate(lImportedRecord);
         }
         catch (Exception pError)
         {

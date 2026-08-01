@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Cadroue.UIShell.PPanels;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.Core;
 
 public sealed class LSceneRecord
 {

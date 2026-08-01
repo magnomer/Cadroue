@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using System;
 using System.Linq;
 using Cadroue.UIShell.PControlBar;
@@ -14,7 +15,7 @@ public partial class PWindow
             .Select(pTabRecord => pTabRecord.PTabLayoutKey)
             .ToList(),
         LSceneTabExports = lTabset.PTabsetRecords
-            .Select(pTabRecord => LPresetRecord.LPresetRecordCreate(pTabRecord.PTabWorkspace.PWorkspaceExportState))
+            .Select(pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceExportState.LPresetRecordCreate())
             .ToList(),
         LSceneTabLayouts = lTabset.PTabsetRecords
             .Select(pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceLayoutRead())

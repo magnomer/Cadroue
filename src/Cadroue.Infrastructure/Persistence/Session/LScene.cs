@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace Cadroue.UIShell;
+using Cadroue.Core;
+
+namespace Cadroue.Infrastructure;
 
 public static class LScene
 {

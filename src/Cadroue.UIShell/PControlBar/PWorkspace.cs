@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.UIShell.PMainArea;
@@ -87,7 +88,7 @@ public sealed class PWorkspace
     private LHistoryEntry PWorkspaceStateRead() => new(
         PWorkspaceFlow?.PFlowSectionsRead() ?? Array.Empty<LSegment>(),
         PWorkspaceFlow?.PFlowSelectionRead(),
-        LPresetRecord.LPresetRecordCreate(PWorkspaceExportState));
+        PWorkspaceExportState.LPresetRecordCreate());
 
 
     private void PWorkspaceMediaHandle(LMediaOpenStatus pMediaStatus)
@@ -136,7 +137,7 @@ public sealed class PWorkspace
         try
         {
             PWorkspaceFlow?.PFlowSectionsSet(lHistoryEntry.LHistorySections, lHistoryEntry.LHistorySectionSelect);
-            PWorkspaceExportState.LPresetCopy(lHistoryEntry.LHistoryExport.LPresetStateCreate());
+            PWorkspaceExportState.LPresetCopy(LPreset.LPresetStateCreate(lHistoryEntry.LHistoryExport));
         }
         finally
         {

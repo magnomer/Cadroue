@@ -147,6 +147,74 @@ public sealed partial class LPreset
         LPresetChange?.Invoke();
     }
 
+    public LPresetRecord LPresetRecordCreate() => new()
+    {
+        LPresetName = LPresetName,
+        LPresetDisplay = LPresetDisplay,
+        LPresetContainer = LPresetContainer,
+        LPresetExtension = LPresetExtension,
+        LPresetCollision = LPresetCollision,
+        LPresetCollisionSuffix = LPresetCollisionSuffix,
+        LPresetExportMode = LPresetExportMode,
+        LPresetVideoStream = LPresetVideoStream,
+        LPresetAudioStream = LPresetAudioStream,
+        LPresetVideoMode = LPresetVideoMode,
+        LPresetAudioMode = LPresetAudioMode,
+        LPresetVideoEncoder = LPresetVideoEncoder,
+        LPresetRateControl = LPresetRateControl,
+        LPresetVideoQuality = LPresetVideoQuality,
+        LPresetSpeedPreset = LPresetSpeedPreset,
+        LPresetLocation = LPresetLocation,
+        LPresetLocationFolder = LPresetLocationFolder,
+        LPresetVideoSize = LPresetVideoSize,
+        LPresetSizeReactive = LPresetSizeReactive,
+        LPresetVideoFps = LPresetVideoFps,
+        LPresetPixelLayout = LPresetPixelLayout,
+        LPresetVideoExtras = new Dictionary<string, string>(LPresetVideoExtras),
+        LPresetAudioEncoder = LPresetAudioEncoder,
+        LPresetAudioRateControl = LPresetAudioRateControl,
+        LPresetAudioQuality = LPresetAudioQuality,
+        LPresetAudioSpeed = LPresetAudioSpeed,
+        LPresetAudioExtras = new Dictionary<string, string>(LPresetAudioExtras, StringComparer.Ordinal),
+        LPresetSampleRate = LPresetSampleRate,
+        LPresetAudioChannels = LPresetAudioChannels
+    };
+
+    public static LPreset LPresetStateCreate(LPresetRecord lRecord) => new()
+    {
+        LPresetName = lRecord.LPresetName,
+        LPresetDisplay = lRecord.LPresetDisplay,
+        LPresetContainer = lRecord.LPresetContainer,
+        LPresetExtension = string.IsNullOrEmpty(lRecord.LPresetExtension)
+            ? LPresetExtensionsRead(lRecord.LPresetContainer).FirstOrDefault() ?? string.Empty
+            : lRecord.LPresetExtension,
+        LPresetCollision = lRecord.LPresetCollision,
+        LPresetCollisionSuffix = lRecord.LPresetCollisionSuffix,
+        LPresetExportMode = lRecord.LPresetExportMode,
+        LPresetVideoStream = lRecord.LPresetVideoStream,
+        LPresetAudioStream = lRecord.LPresetAudioStream,
+        LPresetVideoMode = lRecord.LPresetVideoMode,
+        LPresetAudioMode = lRecord.LPresetAudioMode,
+        LPresetVideoEncoder = lRecord.LPresetVideoEncoder,
+        LPresetRateControl = lRecord.LPresetRateControl,
+        LPresetVideoQuality = lRecord.LPresetVideoQuality,
+        LPresetSpeedPreset = lRecord.LPresetSpeedPreset,
+        LPresetLocation = string.Equals(lRecord.LPresetLocation, "Custom folder", StringComparison.Ordinal) ? "Custom location" : lRecord.LPresetLocation,
+        LPresetLocationFolder = lRecord.LPresetLocationFolder,
+        LPresetVideoSize = lRecord.LPresetVideoSize,
+        LPresetSizeReactive = lRecord.LPresetSizeReactive,
+        LPresetVideoFps = lRecord.LPresetVideoFps,
+        LPresetPixelLayout = lRecord.LPresetPixelLayout,
+        LPresetVideoExtras = new Dictionary<string, string>(lRecord.LPresetVideoExtras, StringComparer.Ordinal),
+        LPresetAudioEncoder = lRecord.LPresetAudioEncoder,
+        LPresetAudioRateControl = lRecord.LPresetAudioRateControl,
+        LPresetAudioQuality = lRecord.LPresetAudioQuality,
+        LPresetAudioSpeed = lRecord.LPresetAudioSpeed,
+        LPresetAudioExtras = new Dictionary<string, string>(lRecord.LPresetAudioExtras, StringComparer.Ordinal),
+        LPresetSampleRate = lRecord.LPresetSampleRate,
+        LPresetAudioChannels = lRecord.LPresetAudioChannels
+    };
+
     private string LAudioStreamSummary => LPresetAudioStream switch
     {
         "Include first audio track" => "Include the first track",

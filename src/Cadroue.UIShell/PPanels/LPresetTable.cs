@@ -1,3 +1,5 @@
+using Cadroue.Infrastructure;
+using Cadroue.Core;
 using System.Collections.ObjectModel;
 
 namespace Cadroue.UIShell.PPanels;
@@ -11,7 +13,7 @@ public sealed partial class LPreset
         LPresetNativeAdd(LPresetAudioCreate());
         LPresetNativeAdd(LPresetSplitCreate());
         LPresetNativeAdd(LPresetMergeCreate());
-        IReadOnlyList<LPreset>? lStoredPresets = LPresetStore.LPresetLoad();
+        IReadOnlyList<LPresetRecord>? lStoredPresets = LPresetStore.LPresetLoad();
         if (lStoredPresets is null)
         {
             var lDefault = new LPreset { LPresetName = "MP4_H264_AAC_Default" };
@@ -19,9 +21,9 @@ public sealed partial class LPreset
             return;
         }
 
-        foreach (LPreset lPreset in lStoredPresets)
+        foreach (LPresetRecord lRecord in lStoredPresets)
         {
-            LPresetStoredAdd(lPreset);
+            LPresetStoredAdd(LPreset.LPresetStateCreate(lRecord));
         }
     }
 
@@ -302,7 +304,7 @@ public sealed partial class LPreset
                 lPresets.Add(lPreset.LPresetClone());
             }
         }
-        LPresetStore.LPresetSave(lPresets);
+        LPresetStore.LPresetSave(lPresets.Select(lPreset => lPreset.LPresetRecordCreate()).ToList());
     }
 
     public static bool LPresetNativeCheck(string lPresetName) =>

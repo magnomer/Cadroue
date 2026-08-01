@@ -1,3 +1,4 @@
+using Cadroue.Infrastructure;
 using System;
 using System.Windows;
 using System.Windows.Input;
@@ -90,7 +91,7 @@ public partial class PWindow : Window
         for (int pTabIndex = 0; pTabIndex < pTabKeys.Count; pTabIndex++)
         {
             LPreset? pTabExportState = pTabIndex < pTabExports.Count
-                ? pTabExports[pTabIndex].LPresetStateCreate()
+                ? LPreset.LPresetStateCreate(pTabExports[pTabIndex])
                 : null;
             LSceneTabRecord? pTabLayout = pTabIndex < pTabLayouts.Count ? pTabLayouts[pTabIndex] : null;
             PTabRecord pTabRestored = pTabset.LTabsetAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
