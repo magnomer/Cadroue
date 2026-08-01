@@ -112,6 +112,8 @@ public sealed class LSidecar
 
     public LSidecarWaveformRecord? LSidecarWaveform { get; set; }
 
+    public double LSidecarLoudness { get; set; }
+
     public IReadOnlyList<int> LSidecarSpansRead(int lSidecarSpanGridMilliseconds) =>
         LSidecarSpanGrid == lSidecarSpanGridMilliseconds ? LSidecarScannedSpans : Array.Empty<int>();
 

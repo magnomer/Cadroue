@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Cadroue.Media;
 
@@ -91,6 +93,8 @@ public sealed record LMediaInfo
 
     public int LMediaAudioChannels { get; }
 
+    public int LMediaAudioBitrate { get; init; }
+
     public static LMediaInfo LMediaFfprobeRead(string sourcePath)
     {
         var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
@@ -141,6 +145,66 @@ public sealed record LMediaInfo
         {
             throw new InvalidOperationException(LMediaInvalidFormat(errorText), ex);
         }
+    }
+
+    public static double? LMediaLoudnessRead(string sourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
+        {
+            return null;
+        }
+
+        var psi = new ProcessStartInfo(LTool.LToolFfmpegRead())
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        psi.ArgumentList.Add("-hide_banner");
+        psi.ArgumentList.Add("-nostats");
+        psi.ArgumentList.Add("-i");
+        psi.ArgumentList.Add(sourcePath);
+        psi.ArgumentList.Add("-map");
+        psi.ArgumentList.Add("0:a:0");
+        psi.ArgumentList.Add("-af");
+        psi.ArgumentList.Add("ebur128");
+        psi.ArgumentList.Add("-f");
+        psi.ArgumentList.Add("null");
+        psi.ArgumentList.Add("-");
+
+        try
+        {
+            using var process = Process.Start(psi);
+            if (process is null)
+            {
+                return null;
+            }
+
+            Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
+            Task<string> errorTask = process.StandardError.ReadToEndAsync();
+            process.WaitForExit();
+            _ = outputTask.GetAwaiter().GetResult();
+            return LMediaLoudnessParse(errorTask.GetAwaiter().GetResult());
+        }
+        catch (Exception lMediaException) when (lMediaException is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
+        {
+            return null;
+        }
+    }
+
+    private static double? LMediaLoudnessParse(string ffmpegText)
+    {
+        MatchCollection lMediaMatches = Regex.Matches(ffmpegText, @"I:\s*(-?\d+(?:\.\d+)?)\s*LUFS");
+        if (lMediaMatches.Count == 0)
+        {
+            return null;
+        }
+
+        string lMediaValue = lMediaMatches[^1].Groups[1].Value;
+        return double.TryParse(lMediaValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double lMediaLoudness)
+            ? lMediaLoudness
+            : null;
     }
 
     public static bool LMediaFfprobeExist() => LMediaFfprobeCheck();
@@ -218,7 +282,7 @@ public sealed record LMediaInfo
         string videoCodec = "unknown";
         bool audioPresent = false;
         string audioCodec = "";
-        int sampleRate = 0, channels = 0;
+        int sampleRate = 0, channels = 0, audioBitrate = 0;
 
         if (root.TryGetProperty("streams", out JsonElement streams))
         {
@@ -239,11 +303,16 @@ public sealed record LMediaInfo
                     if (stream.TryGetProperty("sample_rate", out JsonElement sr))
                         int.TryParse(sr.GetString(), out sampleRate);
                     channels = stream.TryGetProperty("channels", out JsonElement ch) ? ch.GetInt32() : 0;
+                    if (stream.TryGetProperty("bit_rate", out JsonElement abr))
+                        int.TryParse(abr.GetString(), out audioBitrate);
                 }
             }
         }
 
-        return new LMediaInfo(duration, videoWidth, videoHeight, fps, videoCodec, audioPresent, audioCodec, sampleRate, channels);
+        return new LMediaInfo(duration, videoWidth, videoHeight, fps, videoCodec, audioPresent, audioCodec, sampleRate, channels)
+        {
+            LMediaAudioBitrate = audioPresent ? audioBitrate : 0
+        };
     }
 
     private static double LMediaFpsResolve(JsonElement videoStream)

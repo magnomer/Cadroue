@@ -31,7 +31,12 @@ internal static class LProbe
                 lProbeMedia.LMediaVideoHeight,
                 lProbeMedia.LMediaVideoRate,
                 (long)Math.Round(lProbeMedia.LMediaInfoDuration.TotalMilliseconds),
-                lProbeMedia.LMediaVideoPresent);
+                lProbeMedia.LMediaVideoPresent)
+            {
+                LWorkMediaCodec = lProbeMedia.LMediaAudioCodec,
+                LWorkMediaBitrate = lProbeMedia.LMediaAudioBitrate,
+                LWorkMediaSamplerate = lProbeMedia.LMediaSampleRate
+            };
         }
         catch (Exception lProbeException)
         {

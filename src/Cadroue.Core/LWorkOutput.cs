@@ -194,13 +194,19 @@ public sealed record LWorkOutput(
 public sealed record LWorkMedia(
     int LWorkMediaWidth,
     int LWorkMediaHeight,
-    double LWorkMediaFrameRate,
-    long LWorkMediaDurationMilliseconds,
-    bool LWorkMediaVideoPresent)
+    double LWorkMediaFramerate,
+    long LWorkMediaMilliseconds,
+    bool LWorkMediaVideo)
 {
-    public TimeSpan LWorkMediaDuration => TimeSpan.FromMilliseconds(LWorkMediaDurationMilliseconds);
+    public TimeSpan LWorkMediaDuration => TimeSpan.FromMilliseconds(LWorkMediaMilliseconds);
 
     public double? LWorkKeyframeInterval { get; init; }
+
+    public string LWorkMediaCodec { get; init; } = "";
+
+    public int LWorkMediaBitrate { get; init; }
+
+    public int LWorkMediaSamplerate { get; init; }
 }
 
 public sealed record LWorkCrop(

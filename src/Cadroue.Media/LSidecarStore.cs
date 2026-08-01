@@ -83,6 +83,7 @@ public static class LSidecarStore
                 lSidecar.LSidecarEdit = lSidecarPrevious?.LSidecarEdit;
                 lSidecar.LSidecarAudio = lSidecarPrevious?.LSidecarAudio;
                 lSidecar.LSidecarWaveform = lSidecarPrevious?.LSidecarWaveform;
+                lSidecar.LSidecarLoudness = lSidecarPrevious?.LSidecarLoudness ?? 0;
 
                 return LSidecarFileSave(lSidecarPath, lSidecar);
             }
@@ -155,6 +156,21 @@ public static class LSidecarStore
 
     public static bool LSidecarWaveformSave(string lSidecarSourcePath, LSidecarWaveformRecord? lSidecarWaveform) =>
         LSidecarRecordSave(lSidecarSourcePath, lSidecar => lSidecar.LSidecarWaveform = lSidecarWaveform);
+
+    public static double LSidecarLoudnessRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            return LSidecarRead(LSidecarPathRead(lSidecarSourcePath))?.LSidecarLoudness ?? 0;
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return 0;
+        }
+    }
+
+    public static bool LSidecarLoudnessSave(string lSidecarSourcePath, double lSidecarLoudness) =>
+        LSidecarRecordSave(lSidecarSourcePath, lSidecar => lSidecar.LSidecarLoudness = lSidecarLoudness);
 
     public static TimeSpan LSidecarDurationRead(string lSidecarSourcePath)
     {

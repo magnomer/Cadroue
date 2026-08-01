@@ -120,7 +120,7 @@ internal sealed class LJob
             long? pSourceBytes = LProbe.LProbeInputRead(lJobItem);
             LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia ?? LProbe.LProbeMediaRead(lJobItem.LWorkSourcePath);
             LWorkMedia? pOutputMedia = LProbe.LProbeMediaRead(lJobItem.LWorkOutputPath);
-            if (pOutputMedia is { LWorkMediaVideoPresent: true }
+            if (pOutputMedia is { LWorkMediaVideo: true }
                 && LProbe.LProbeIntervalRead(lJobItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration) is { } pOutputKeyframeInterval)
             {
                 pOutputMedia = pOutputMedia with { LWorkKeyframeInterval = pOutputKeyframeInterval };

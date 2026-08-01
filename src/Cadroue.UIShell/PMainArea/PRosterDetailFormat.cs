@@ -6,27 +6,88 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
-    private static string PRosterKeyframeFormat(string? pSourcePath)
+    private static double? PRosterIntervalRead(string? pSourcePath)
     {
         if (string.IsNullOrWhiteSpace(pSourcePath))
         {
-            return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
+            return null;
         }
 
         IReadOnlyList<long>? pKeyframes =
             LSidecarStore.LSidecarRead(LSidecarStore.LSidecarPathRead(pSourcePath))?.LSidecarKeyframesRead();
         if (pKeyframes is not { Count: > 1 })
         {
-            return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
+            return null;
         }
 
-        double pIntervalSeconds = (pKeyframes[^1] - pKeyframes[0]) / 1000d / (pKeyframes.Count - 1);
-        return LLocalization.LLocalizationFormat("Roster.Field.KeyframeInterval", pIntervalSeconds);
+        return (pKeyframes[^1] - pKeyframes[0]) / 1000d / (pKeyframes.Count - 1);
     }
 
-    private static string PRosterOutputFormat(LWorkMedia? pOutputInfo) =>
-        pOutputInfo?.LWorkKeyframeInterval is { } pIntervalMilliseconds && pIntervalMilliseconds > 0
-            ? LLocalization.LLocalizationFormat("Roster.Field.KeyframeInterval", pIntervalMilliseconds / 1000d)
+    private static readonly Dictionary<string, double?> pRosterKeyframeCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> pRosterKeyframePending = new(StringComparer.OrdinalIgnoreCase);
+
+    private double? PRosterKeyframeRead(string? pSourcePath, TimeSpan pDuration)
+    {
+        if (PRosterIntervalRead(pSourcePath) is { } pSidecarInterval)
+        {
+            return pSidecarInterval;
+        }
+
+        if (string.IsNullOrWhiteSpace(pSourcePath) || !File.Exists(pSourcePath) || pDuration <= TimeSpan.Zero)
+        {
+            return null;
+        }
+
+        if (pRosterKeyframeCache.TryGetValue(pSourcePath, out double? pCached))
+        {
+            return pCached;
+        }
+
+        PRosterKeyframeDefer(pSourcePath, pDuration);
+        return null;
+    }
+
+    private void PRosterKeyframeDefer(string pSourcePath, TimeSpan pDuration)
+    {
+        if (!pRosterKeyframePending.Add(pSourcePath))
+        {
+            return;
+        }
+
+        Guid pRosterProbeId = PRosterSelectRead()?.LWorkId ?? Guid.Empty;
+        _ = Task.Run(() =>
+        {
+            double? pInterval = null;
+            try
+            {
+                IReadOnlyList<LKeyframeEntry> pKeyframes = LKeyframeSeeker.LKeyframeRangeScan(pSourcePath, TimeSpan.Zero, pDuration);
+                if (pKeyframes.Count >= 2)
+                {
+                    double pSpanMilliseconds =
+                        (pKeyframes[^1].LKeyframePresentationTime - pKeyframes[0].LKeyframePresentationTime).TotalMilliseconds;
+                    pInterval = pSpanMilliseconds / 1000d / (pKeyframes.Count - 1);
+                }
+            }
+            catch (Exception pScanError)
+            {
+                LTraceLog.LTraceErrorRecord($"Job detail could not scan keyframes '{Path.GetFileName(pSourcePath)}': {pScanError.Message}");
+            }
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                pRosterKeyframePending.Remove(pSourcePath);
+                pRosterKeyframeCache[pSourcePath] = pInterval;
+                if (PRosterSelectRead()?.LWorkId == pRosterProbeId)
+                {
+                    PRosterDetailUpdate();
+                }
+            }));
+        });
+    }
+
+    private static string PRosterRateFormat(double? pRatePerSecond) =>
+        pRatePerSecond is { } pRate && pRate > 0
+            ? LLocalization.LLocalizationFormat("Roster.Field.KeyframeRate", pRate)
             : LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
 
     private static string PRosterStampFormat(DateTimeOffset? pStamp) =>
@@ -39,7 +100,16 @@ public sealed partial class PRoster
             return LLocalization.LLocalizationTextRead("Roster.Value.NotYet");
         }
 
-        return $"{pSpent:hh\\:mm\\:ss\\.fff}";
+        if (pSpent < TimeSpan.Zero)
+        {
+            pSpent = TimeSpan.Zero;
+        }
+
+        var pRounded = TimeSpan.FromSeconds(Math.Max(1, (long)Math.Ceiling(pSpent.TotalSeconds)));
+        int pHours = (int)pRounded.TotalHours;
+        return pHours > 0
+            ? $"{pHours}:{pRounded.Minutes:00}:{pRounded.Seconds:00}"
+            : $"{pRounded.Minutes:00}:{pRounded.Seconds:00}";
     }
 
     private static string PRosterSpeedFormat(LWorkItem pWorkItem)
@@ -54,14 +124,6 @@ public sealed partial class PRoster
 
         double pMebibytes = pBytes / 1048576d;
         return $"{pMebibytes / pSpent.TotalSeconds:0.##} MiB/s";
-    }
-
-    private static string PRosterOutputRead(LWorkItem pWorkItem)
-    {
-        string pOutputSize = PRosterSizeFormat(PRosterBytesRead(pWorkItem));
-        return PRosterRatioRead(pWorkItem) is { } pRosterRatio
-            ? $"{pOutputSize}  ({pRosterRatio:P1})"
-            : pOutputSize;
     }
 
     internal static double? PRosterRatioRead(LWorkItem pWorkItem)
@@ -79,22 +141,30 @@ public sealed partial class PRoster
     internal static string PRosterRatioFormat(LWorkItem pWorkItem) =>
         PRosterRatioRead(pWorkItem) is { } pRosterRatio ? $"{pRosterRatio:P1}" : "-";
 
-    private static string PRosterSizeFormat(long? pSizeBytes)
+    private static string PRosterMebiFormat(long? pSizeBytes)
     {
         if (pSizeBytes is not { } pWholeBytes || pWholeBytes < 0)
         {
             return LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
         }
 
-        const double pRosterKibi = 1024d;
-        const double pRosterMebi = pRosterKibi * 1024d;
-        const double pRosterGibi = pRosterMebi * 1024d;
+        double pMebibytes = pWholeBytes / 1048576d;
+        return pMebibytes >= 1024d
+            ? $"{pMebibytes / 1024d:0.#} GiB"
+            : $"{Math.Round(pMebibytes)} MiB";
+    }
 
-        return pWholeBytes >= pRosterGibi
-            ? $"{pWholeBytes / pRosterGibi:0.##} GiB"
-            : pWholeBytes >= pRosterMebi
-                ? $"{pWholeBytes / pRosterMebi:0.##} MiB"
-                : $"{pWholeBytes / pRosterKibi:0.##} KiB";
+    private static string PRosterClockFormat(TimeSpan pSpan)
+    {
+        if (pSpan < TimeSpan.Zero)
+        {
+            pSpan = TimeSpan.Zero;
+        }
+
+        int pHours = (int)pSpan.TotalHours;
+        return pHours > 0
+            ? $"{pHours}:{pSpan.Minutes:00}:{pSpan.Seconds:00}"
+            : $"{pSpan.Minutes}:{pSpan.Seconds:00}";
     }
 
     internal static long? PRosterSourceRead(LWorkItem pWorkItem)
