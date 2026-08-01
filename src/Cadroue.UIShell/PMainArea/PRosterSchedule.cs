@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Windows;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -9,27 +8,15 @@ public sealed partial class PRoster
 {
     private void PRosterScheduleHandle(LScheduleContract lSchedule)
     {
-        PRosterWatchDetach();
-        foreach (LWorkItem lWorkItem in lSchedule.LScheduleRecords)
-        {
-            lWorkItem.PropertyChanged += PRosterItemHandle;
-            pRosterWatchedItems.Add(lWorkItem);
-        }
-
         PRosterQueueRebuild();
         PRosterDetailUpdate();
     }
 
-    private void PRosterItemHandle(object? pSender, PropertyChangedEventArgs pArguments)
+    private void PRosterItemHandle(LWorkItem pWorkItem, LScheduleNotice pNotice)
     {
-        if (pSender is not LWorkItem pWorkItem)
-        {
-            return;
-        }
-
         PRosterRowUpdate(pWorkItem);
 
-        if (pArguments.PropertyName != nameof(LWorkItem.LWorkProgress)
+        if (pNotice != LScheduleNotice.LScheduleNoticeProgress
             && ReferenceEquals(pWorkItem, PRosterSelectRead()))
         {
             PRosterDetailUpdate();
@@ -53,19 +40,9 @@ public sealed partial class PRoster
 
         pRosterClosed = true;
         pRosterSchedule.LScheduleChange -= PRosterScheduleHandle;
+        pRosterSchedule.LScheduleItemChange -= PRosterItemHandle;
         IsVisibleChanged -= PRosterVisibleHandle;
         Unloaded -= PRosterUnloadHandle;
         pRosterStation.LStationClose();
-        PRosterWatchDetach();
-    }
-
-    private void PRosterWatchDetach()
-    {
-        foreach (LWorkItem pWorkItem in pRosterWatchedItems)
-        {
-            pWorkItem.PropertyChanged -= PRosterItemHandle;
-        }
-
-        pRosterWatchedItems.Clear();
     }
 }

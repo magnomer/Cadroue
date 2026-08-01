@@ -42,7 +42,7 @@ public partial class PProgram : System.Windows.Application
         LRelayStartupRead(e.Args);
         LRenderer.LRendererSettingsLoad();
 
-        LPreference.LPreferenceWorkspaceCallback = LPreferenceWorkspaceHandle;
+        LPreference.LPreferenceDepotCallback = LPreferenceDepotHandle;
         LPreference.LPreferenceLoad();
         Cadroue.Infrastructure.LFrameStore.LFrameLoad();
         LBinding.LBindingLoad();
@@ -105,7 +105,7 @@ public partial class PProgram : System.Windows.Application
         }
     }
 
-    private static void LPreferenceWorkspaceHandle()
+    private static void LPreferenceDepotHandle()
     {
         LDepotRootApply();
         LSidecarFolderApply();

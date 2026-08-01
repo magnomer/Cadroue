@@ -18,10 +18,15 @@ public sealed partial class LSchedule : LScheduleContract
 
     public event Action<LScheduleContract>? LScheduleChange;
 
+    public event Action<LWorkItem, LScheduleNotice>? LScheduleItemChange;
+
     public int LScheduleDoneCount =>
         lScheduleItems.Count(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone);
 
     public void LScheduleChangeRaise() => LScheduleChange?.Invoke(this);
+
+    public void LScheduleItemRaise(LWorkItem lWorkItem, LScheduleNotice lScheduleNotice) =>
+        LScheduleItemChange?.Invoke(lWorkItem, lScheduleNotice);
 
     public void LScheduleLoad()
     {
@@ -113,6 +118,7 @@ public sealed partial class LSchedule : LScheduleContract
             }
 
             lWorkItem.LWorkEnd = lWorkDuration;
+            LScheduleItemRaise(lWorkItem, LScheduleNotice.LScheduleNoticeStatus);
             break;
         }
 

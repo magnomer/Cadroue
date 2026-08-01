@@ -10,7 +10,7 @@ public static class LPreference
 {
     public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();
 
-    public static Action? LPreferenceWorkspaceCallback { get; set; }
+    public static Action? LPreferenceDepotCallback { get; set; }
 
     private static DispatcherTimer? lPreferenceSaveTimer;
 
@@ -33,7 +33,7 @@ public static class LPreference
 
         LPreferenceStateCurrent = lPreferenceState;
         LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
-        LPreferenceWorkspaceCallback?.Invoke();
+        LPreferenceDepotCallback?.Invoke();
     }
 
     public static void LPreferenceVolumeSet(double lPreferenceVolume)

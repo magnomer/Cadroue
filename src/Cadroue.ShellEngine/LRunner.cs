@@ -292,7 +292,11 @@ public sealed partial class LRunner
             return;
         }
 
-        LRunnerDispatch(() => pWorkItem.LWorkMessage = pMessage);
+        LRunnerDispatch(() =>
+        {
+            pWorkItem.LWorkMessage = pMessage;
+            lRunnerSchedule.LScheduleItemRaise(pWorkItem, LScheduleNotice.LScheduleNoticeStatus);
+        });
     }
 
     private static void LRunnerPartialRemove(LWorkItem? pWorkItem)

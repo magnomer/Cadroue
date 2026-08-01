@@ -26,6 +26,7 @@ internal sealed class LJob
             lJobItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
             lJobItem.LWorkProgress = 0;
             lJobItem.LWorkMessage = string.Empty;
+            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
         });
 
         string pDirectory = Path.GetDirectoryName(lJobItem.LWorkOutputPath) ?? string.Empty;
@@ -205,6 +206,7 @@ internal sealed class LJob
             lJobItem.LWorkMessage = pStageCount > 1
                 ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
                 : string.Empty;
+            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
         });
         LRunner.LRunnerRecord($"{pStage.LEncodeStageLabel} '{lJobItem.LWorkOutputName}': {pStartInfo.FileName} {pStartInfo.Arguments}");
         LRunner.LRunnerFfmpegRecord(
@@ -265,12 +267,20 @@ internal sealed class LJob
                     if (pBlockMicroseconds >= 0 && pTotalSeconds > 0)
                     {
                         double pFraction = pBlockMicroseconds / 1_000_000d / pTotalSeconds;
-                        lJobOwner.LRunnerDispatch(() => lJobItem.LWorkProgress = pFraction);
+                        lJobOwner.LRunnerDispatch(() =>
+                        {
+                            lJobItem.LWorkProgress = pFraction;
+                            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
+                        });
                     }
 
                     if (string.Equals(pValue, "end", StringComparison.Ordinal))
                     {
-                        lJobOwner.LRunnerDispatch(() => lJobItem.LWorkProgress = 1);
+                        lJobOwner.LRunnerDispatch(() =>
+                        {
+                            lJobItem.LWorkProgress = 1;
+                            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
+                        });
                     }
 
                     if (pJobBlock is not null)

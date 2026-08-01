@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Animation;
@@ -110,17 +109,10 @@ public sealed partial class PConsole
 
     private void PConsoleScheduleHandle(LScheduleContract lSchedule)
     {
-        PConsoleWatchDetach();
-        foreach (LWorkItem lWorkItem in lSchedule.LScheduleRecords)
-        {
-            lWorkItem.PropertyChanged += PConsoleItemHandle;
-            pConsoleWatchedItems.Add(lWorkItem);
-        }
-
         PConsoleProgressUpdate();
     }
 
-    private void PConsoleItemHandle(object? pSender, PropertyChangedEventArgs pArguments)
+    private void PConsoleItemHandle(LWorkItem pWorkItem, LScheduleNotice pNotice)
     {
         PConsoleProgressDefer();
     }
@@ -335,6 +327,7 @@ public sealed partial class PConsole
     private void PConsoleUnloadHandle(object pSender, RoutedEventArgs pArguments)
     {
         pConsoleSchedule.LScheduleChange -= PConsoleScheduleHandle;
+        pConsoleSchedule.LScheduleItemChange -= PConsoleItemHandle;
         LStation.LStationChange -= PConsoleStationHandle;
         if (pConsoleDepotWatch is not null)
         {
@@ -342,20 +335,9 @@ public sealed partial class PConsole
         }
 
         Unloaded -= PConsoleUnloadHandle;
-        PConsoleWatchDetach();
         if (ReferenceEquals(PConsoleCurrent, this))
         {
             PConsoleCurrent = null;
         }
-    }
-
-    private void PConsoleWatchDetach()
-    {
-        foreach (LWorkItem pWorkItem in pConsoleWatchedItems)
-        {
-            pWorkItem.PropertyChanged -= PConsoleItemHandle;
-        }
-
-        pConsoleWatchedItems.Clear();
     }
 }

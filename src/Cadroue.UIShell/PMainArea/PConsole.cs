@@ -37,7 +37,6 @@ public sealed partial class PConsole : UserControl
     private readonly Button pConsoleClearButton;
     private readonly Button pConsoleEmptyButton;
     private readonly Button pConsoleTabsButton;
-    private readonly List<LWorkItem> pConsoleWatchedItems = new();
 
     public PConsole()
     {
@@ -84,6 +83,7 @@ public sealed partial class PConsole : UserControl
         PConsoleSceneAttach();
 
         pConsoleSchedule.LScheduleChange += PConsoleScheduleHandle;
+        pConsoleSchedule.LScheduleItemChange += PConsoleItemHandle;
         LStation.LStationChange += PConsoleStationHandle;
         PConsoleDepotAttach();
         Unloaded += PConsoleUnloadHandle;

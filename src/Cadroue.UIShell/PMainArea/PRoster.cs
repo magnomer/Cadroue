@@ -15,7 +15,6 @@ public sealed partial class PRoster : UserControl
     private readonly ScrollViewer pRosterQueueScroll;
     private readonly StackPanel pRosterDetailPanel;
     private readonly TextBlock pRosterDetailTitle;
-    private readonly List<LWorkItem> pRosterWatchedItems = new();
     private bool pRosterClosed;
 
     public PRoster(LSceneTabRecord? lPreferenceTabLayout = null)
@@ -30,6 +29,7 @@ public sealed partial class PRoster : UserControl
         Content = PRosterBuild(lPreferenceTabLayout);
 
         pRosterSchedule.LScheduleChange += PRosterScheduleHandle;
+        pRosterSchedule.LScheduleItemChange += PRosterItemHandle;
         PRosterConsoleAttach();
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;

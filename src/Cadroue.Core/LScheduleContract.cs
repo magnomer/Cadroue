@@ -2,6 +2,12 @@ using System.Collections.ObjectModel;
 
 namespace Cadroue.Core;
 
+public enum LScheduleNotice
+{
+    LScheduleNoticeProgress,
+    LScheduleNoticeStatus
+}
+
 public interface LScheduleContract
 {
     ReadOnlyObservableCollection<LWorkItem> LScheduleRecords { get; }
@@ -10,7 +16,11 @@ public interface LScheduleContract
 
     event Action<LScheduleContract>? LScheduleChange;
 
+    event Action<LWorkItem, LScheduleNotice>? LScheduleItemChange;
+
     void LScheduleChangeRaise();
+
+    void LScheduleItemRaise(LWorkItem lWorkItem, LScheduleNotice lScheduleNotice);
 
     void LScheduleLoad();
 

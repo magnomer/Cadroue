@@ -1,14 +1,8 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
 namespace Cadroue.Core;
 
-public sealed class LWorkItem : INotifyPropertyChanged
+public sealed class LWorkItem
 {
-    private LWorkState lWorkStateCurrent = LWorkState.LWorkStatePending;
-    private string lWorkMessage = string.Empty;
     private double lWorkProgress;
-    private TimeSpan lWorkEnd;
 
     public LWorkItem(
         Guid lWorkBatchId,
@@ -37,7 +31,7 @@ public sealed class LWorkItem : INotifyPropertyChanged
         LWorkPriority = lWorkPriority;
         LWorkSourcePath = lWorkSourcePath;
         LWorkOrigin = lWorkStart;
-        this.lWorkEnd = lWorkEnd;
+        LWorkEnd = lWorkEnd;
         LWorkOutputName = lWorkOutputName;
         LWorkOutputPath = lWorkOutputPath;
         LWorkOutput = lWorkOutput;
@@ -56,21 +50,7 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public TimeSpan LWorkOrigin { get; }
 
-    public TimeSpan LWorkEnd
-    {
-        get => lWorkEnd;
-        set
-        {
-            if (lWorkEnd == value)
-            {
-                return;
-            }
-
-            lWorkEnd = value;
-            LWorkPropertyChange();
-            LWorkPropertyChange(nameof(LWorkDuration));
-        }
-    }
+    public TimeSpan LWorkEnd { get; set; }
 
     public TimeSpan LWorkDuration => LWorkEnd - LWorkOrigin;
 
@@ -124,56 +104,13 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public int LWorkAttemptCount { get; set; }
 
-    public LWorkState LWorkStateCurrent
-    {
-        get => lWorkStateCurrent;
-        set
-        {
-            if (lWorkStateCurrent == value)
-            {
-                return;
-            }
+    public LWorkState LWorkStateCurrent { get; set; } = LWorkState.LWorkStatePending;
 
-            lWorkStateCurrent = value;
-            LWorkPropertyChange();
-        }
-    }
-
-    public string LWorkMessage
-    {
-        get => lWorkMessage;
-        set
-        {
-            if (lWorkMessage == value)
-            {
-                return;
-            }
-
-            lWorkMessage = value;
-            LWorkPropertyChange();
-        }
-    }
+    public string LWorkMessage { get; set; } = string.Empty;
 
     public double LWorkProgress
     {
         get => lWorkProgress;
-        set
-        {
-            double lWorkClamped = value < 0 ? 0 : value > 1 ? 1 : value;
-            if (lWorkProgress.Equals(lWorkClamped))
-            {
-                return;
-            }
-
-            lWorkProgress = lWorkClamped;
-            LWorkPropertyChange();
-        }
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void LWorkPropertyChange([CallerMemberName] string? lWorkPropertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(lWorkPropertyName));
+        set => lWorkProgress = value < 0 ? 0 : value > 1 ? 1 : value;
     }
 }
