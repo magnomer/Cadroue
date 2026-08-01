@@ -1,5 +1,7 @@
 using System.Windows;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer

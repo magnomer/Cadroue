@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell;
 
 public sealed partial class PLogWindow

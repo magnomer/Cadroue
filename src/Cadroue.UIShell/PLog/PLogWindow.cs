@@ -7,6 +7,8 @@ using System.Windows.Threading;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell;
 
 public sealed partial class PLogWindow : Window

@@ -7,6 +7,8 @@ using Cadroue.Media;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster

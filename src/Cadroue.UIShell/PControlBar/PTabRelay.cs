@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Windows;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PControlBar;
 
 public partial class PToolbar

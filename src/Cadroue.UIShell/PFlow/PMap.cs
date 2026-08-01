@@ -5,6 +5,8 @@ using Cadroue.Media;
 
 using Cadroue.Core;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PMap : FrameworkElement

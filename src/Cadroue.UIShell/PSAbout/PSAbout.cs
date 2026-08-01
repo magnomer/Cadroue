@@ -11,6 +11,8 @@ using Cadroue.UIShell.PSShared;
 
 using static Cadroue.UIShell.PSShared.PSField;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell;
 
 internal sealed class PSAbout : Window

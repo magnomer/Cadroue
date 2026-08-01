@@ -6,6 +6,8 @@ using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PMainWindow;
 using FlyleafLib;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell;
 
 public partial class PProgram : Application

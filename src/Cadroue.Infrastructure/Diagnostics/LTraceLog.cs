@@ -1,4 +1,4 @@
-namespace Cadroue.UIShell;
+namespace Cadroue.Infrastructure;
 
 public static class LTraceLog
 {

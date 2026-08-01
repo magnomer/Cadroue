@@ -2,6 +2,8 @@ using System.IO;
 using System.Globalization;
 using System.Reflection;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell;
 
 internal static class LLocalization

@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Media;
 using Cadroue.Media;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed class LWaveformOrchestrator : IDisposable

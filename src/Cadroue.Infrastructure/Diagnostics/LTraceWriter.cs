@@ -5,9 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.Infrastructure;
 
 public static class LTraceWriter
 {

@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.Infrastructure;
 
 public sealed partial record LTraceEntry(
     string LTraceEntryTime,

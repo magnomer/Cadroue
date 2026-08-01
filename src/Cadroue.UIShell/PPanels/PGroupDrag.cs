@@ -3,6 +3,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Cadroue.UIShell.PMainWindow;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PGroup

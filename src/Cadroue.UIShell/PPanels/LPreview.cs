@@ -3,6 +3,8 @@ using FlyleafLib;
 using FlyleafLib.MediaFramework.MediaRenderer;
 using FlyleafLib.MediaPlayer;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PPanels;
 
 public static class LPreview

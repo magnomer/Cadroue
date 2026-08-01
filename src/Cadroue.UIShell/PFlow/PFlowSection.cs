@@ -6,6 +6,8 @@ using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PPanels;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow

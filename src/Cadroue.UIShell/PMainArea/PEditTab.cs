@@ -2,6 +2,8 @@ using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PEditTab : PTabSurface

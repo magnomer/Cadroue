@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.Infrastructure;
 
 public enum LTraceKind
 {

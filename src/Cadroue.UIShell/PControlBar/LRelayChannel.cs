@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PControlBar;
 
 internal static class LRelayChannel

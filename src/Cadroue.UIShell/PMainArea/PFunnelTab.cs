@@ -4,6 +4,8 @@ using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PFunnelTab : PTabSurface

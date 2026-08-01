@@ -2,6 +2,8 @@ using System.IO;
 using Cadroue.Core;
 using Cadroue.Media;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LConvert

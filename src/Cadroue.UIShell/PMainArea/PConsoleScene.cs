@@ -10,6 +10,8 @@ using System.Windows.Threading;
 using Cadroue.UIShell.PMainWindow;
 using Microsoft.Win32;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PConsole

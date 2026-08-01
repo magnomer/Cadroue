@@ -4,6 +4,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer

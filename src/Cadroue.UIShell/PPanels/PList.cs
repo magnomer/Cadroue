@@ -7,6 +7,8 @@ using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 using Microsoft.Win32;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PList : PPanel

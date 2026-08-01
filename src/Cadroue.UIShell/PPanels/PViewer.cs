@@ -12,6 +12,8 @@ using FlyleafLib.MediaPlayer;
 
 using Cadroue.Core;
 
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer : PPanel
