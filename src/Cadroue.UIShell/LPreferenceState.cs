@@ -40,12 +40,6 @@ public sealed class LPreferenceState
     public string LPreferenceFfmpegFolder { get; set; } = string.Empty;
     public string LPreferenceMediaPath { get; set; } = string.Empty;
 
-    public double LPreferenceProgramWidth { get; set; }
-    public double LPreferenceProgramHeight { get; set; }
-    public double? LPreferenceProgramLeft { get; set; }
-    public double? LPreferenceProgramTop { get; set; }
-    public double LPreferenceFlowHeight { get; set; }
-
     public List<string> LPreferenceLayoutKeys { get; set; } = new();
     public int LPreferenceTabIndex { get; set; }
 
@@ -54,8 +48,6 @@ public sealed class LPreferenceState
     public List<int> LPreferenceTabRelays { get; set; } = new();
     public List<string> LPreferenceTabNames { get; set; } = new();
     public string LPreferenceSceneName { get; set; } = string.Empty;
-
-    public List<LBindingRecord> LPreferenceShortcuts { get; set; } = new();
 
     public static LPreferenceState LPreferenceDefaultCreate()
     {
@@ -87,14 +79,8 @@ public sealed class LPreferenceState
             LPreferenceWorkspaceFolder = string.Empty,
             LPreferenceFfmpegFolder = string.Empty,
             LPreferenceMediaPath = string.Empty,
-            LPreferenceProgramWidth = 1280,
-            LPreferenceProgramHeight = 760,
-            LPreferenceProgramLeft = null,
-            LPreferenceProgramTop = null,
-            LPreferenceFlowHeight = 280,
             LPreferenceLayoutKeys = new List<string> { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" },
-            LPreferenceTabIndex = 0,
-            LPreferenceShortcuts = LBinding.LBindingDefaultCreate()
+            LPreferenceTabIndex = 0
         };
     }
 
@@ -135,11 +121,6 @@ public sealed class LPreferenceState
             LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
             LPreferenceFfmpegFolder = LPreferenceFfmpegFolder,
             LPreferenceMediaPath = LPreferenceMediaPath,
-            LPreferenceProgramWidth = LPreferenceProgramWidth,
-            LPreferenceProgramHeight = LPreferenceProgramHeight,
-            LPreferenceProgramLeft = LPreferenceProgramLeft,
-            LPreferenceProgramTop = LPreferenceProgramTop,
-            LPreferenceFlowHeight = LPreferenceFlowHeight,
             LPreferenceLayoutKeys = new List<string>(LPreferenceLayoutKeys),
             LPreferenceTabIndex = LPreferenceTabIndex,
             LPreferenceTabExports = new List<LPresetRecord>(LPreferenceTabExports),
@@ -148,10 +129,7 @@ public sealed class LPreferenceState
                 .ToList(),
             LPreferenceTabRelays = new List<int>(LPreferenceTabRelays),
             LPreferenceTabNames = new List<string>(LPreferenceTabNames),
-            LPreferenceSceneName = LPreferenceSceneName,
-            LPreferenceShortcuts = LPreferenceShortcuts
-                .Select(lPreferenceShortcut => lPreferenceShortcut.LBindingRecordClone())
-                .ToList()
+            LPreferenceSceneName = LPreferenceSceneName
         };
     }
 
@@ -211,9 +189,6 @@ public sealed class LPreferenceState
         LPreferenceParallelMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceParallelMaximum, 1, 8, 1));
         LPreferenceRetryMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceRetryMaximum, 0, 10, 3));
 
-        LPreferenceProgramWidth = LPreferenceNumberClamp(LPreferenceProgramWidth, 800, 4000, 1280);
-        LPreferenceProgramHeight = LPreferenceNumberClamp(LPreferenceProgramHeight, 400, 3000, 760);
-        LPreferenceFlowHeight = LPreferenceNumberClamp(LPreferenceFlowHeight, 200, 520, 280);
         LPreferenceWorkspaceFolder = (LPreferenceWorkspaceFolder ?? string.Empty).Trim();
         LPreferenceFfmpegFolder = (LPreferenceFfmpegFolder ?? string.Empty).Trim();
         LPreferenceMediaPath = (LPreferenceMediaPath ?? string.Empty).Trim();
@@ -223,7 +198,6 @@ public sealed class LPreferenceState
         LPreferenceTabLayouts ??= new List<LPreferenceTabLayoutRecord>();
         LPreferenceTabRelays ??= new List<int>();
         LPreferenceTabNames ??= new List<string>();
-        LPreferenceShortcuts = LBinding.LBindingNormalize(LPreferenceShortcuts);
     }
 
     [JsonIgnore]

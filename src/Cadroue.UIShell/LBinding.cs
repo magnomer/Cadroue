@@ -2,21 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
+using Cadroue.Core;
 
 namespace Cadroue.UIShell;
-
-public sealed class LBindingRecord
-{
-    public string LBindingRecordToken { get; set; } = string.Empty;
-
-    public string LBindingRecordGesture { get; set; } = string.Empty;
-
-    public LBindingRecord LBindingRecordClone() => new()
-    {
-        LBindingRecordToken = LBindingRecordToken,
-        LBindingRecordGesture = LBindingRecordGesture
-    };
-}
 
 public sealed record LBindingCommand(
     string LBindingCommandToken,

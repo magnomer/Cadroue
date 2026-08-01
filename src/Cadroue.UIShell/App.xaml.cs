@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -6,6 +7,7 @@ using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PMainWindow;
 using FlyleafLib;
 
+using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell;
@@ -14,6 +16,8 @@ public partial class PProgram : Application
 {
     public static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererDefaultCreate();
     public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();
+    public static Cadroue.Core.LFrameState LFrameStateCurrent { get; private set; } = Cadroue.Core.LFrameState.LFrameDefaultCreate();
+    public static List<LBindingRecord> LBindingCurrent { get; private set; } = LBinding.LBindingNormalize(null);
 
     private static string? lDepotRootApplied;
 
@@ -55,6 +59,8 @@ public partial class PProgram : Application
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
 
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
+        LFrameStateCurrent = Cadroue.Infrastructure.LFrameStore.LFrameLoad();
+        LBindingCurrent = LBinding.LBindingNormalize(LBindingStore.LBindingLoad());
         LLocalization.LLocalizationLoad(LPreferenceStateCurrent.LPreferenceLanguage);
         LTrace.LTraceVerbose = LPreferenceStateCurrent.LPreferenceLogVerbose;
         Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
@@ -127,6 +133,18 @@ public partial class PProgram : Application
         LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
         LDepotRootApply();
         LSidecarFolderApply();
+    }
+
+    public static void LFrameSave(Cadroue.Core.LFrameState lFrameState)
+    {
+        LFrameStateCurrent = lFrameState;
+        Cadroue.Infrastructure.LFrameStore.LFrameSave(lFrameState);
+    }
+
+    public static void LBindingSet(List<LBindingRecord> lBindingRecords)
+    {
+        LBindingCurrent = LBinding.LBindingNormalize(lBindingRecords);
+        LBindingStore.LBindingSave(LBindingCurrent);
     }
 
     public static void LSidecarFolderApply()

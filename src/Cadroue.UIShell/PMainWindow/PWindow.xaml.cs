@@ -44,7 +44,7 @@ public partial class PWindow : Window
         pControlBar.PToolbarTabsetSet(lTabset);
         pControlBar.PToolbarOptionsApply += PWindowOptionsHandle;
         PWindowOptionsHandle(PProgram.LPreferenceStateCurrent);
-        PWindowPositionRestore(PProgram.LPreferenceStateCurrent);
+        PWindowPositionRestore(PProgram.LFrameStateCurrent);
         pDeck.PDeckTabsetSet(lTabset);
         lTabset.LTabsetSelectChange += PWindowTabHandle;
         PWindowTabHandle(lTabset.PTabsetCurrent);
@@ -158,9 +158,9 @@ public partial class PWindow : Window
         Activate();
     }
 
-    private void PWindowPositionRestore(LPreferenceState lPrefs)
+    private void PWindowPositionRestore(LFrameState lFrame)
     {
-        if (lPrefs.LPreferenceProgramLeft is not double pLeft || lPrefs.LPreferenceProgramTop is not double pTop)
+        if (lFrame.LFrameLeft is not double pLeft || lFrame.LFrameTop is not double pTop)
             return;
         double pVRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
         double pVBottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
@@ -241,7 +241,7 @@ public partial class PWindow : Window
         }
         pFlowActive.PFlowCommandSet(true);
         pFlowActive.PFlowSectionShow(pTabRecord.PTabLayoutKey == "Split");
-        pFlowActive.Height = PProgram.LPreferenceStateCurrent.LPreferenceFlowHeight;
+        pFlowActive.Height = PProgram.LFrameStateCurrent.LFrameFlowHeight;
         pFlowActive.PFlowOrderApply();
         pFlowActive.PFlowPlayingSource = pViewerActive.PViewerPlayingRead;
         pViewerActive.PViewerCommandSet(true);
@@ -286,12 +286,12 @@ public partial class PWindow : Window
     }
     private void PWindowOptionsHandle(LPreferenceState lPreferenceState)
     {
-        Width = lPreferenceState.LPreferenceProgramWidth;
-        Height = lPreferenceState.LPreferenceProgramHeight;
+        Width = PProgram.LFrameStateCurrent.LFrameWidth;
+        Height = PProgram.LFrameStateCurrent.LFrameHeight;
         FontSize = PWindowFontSize;
         if (pFlowActive is not null)
         {
-            pFlowActive.Height = lPreferenceState.LPreferenceFlowHeight;
+            pFlowActive.Height = PProgram.LFrameStateCurrent.LFrameFlowHeight;
             pFlowActive.PFlowOrderApply();
             pFlowActive.PFlowPaletteApply();
         }
@@ -306,15 +306,20 @@ public partial class PWindow : Window
     }
     private void PWindowCloseHandle(object? sender, EventArgs eventArgs)
     {
-        LPreferenceState lPrefs = PProgram.LPreferenceStateCurrent.LPreferenceClone();
         Rect lBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
         if (lBounds.Width > 0 && lBounds.Height > 0)
         {
-            lPrefs.LPreferenceProgramLeft = lBounds.Left;
-            lPrefs.LPreferenceProgramTop = lBounds.Top;
-            lPrefs.LPreferenceProgramWidth = lBounds.Width;
-            lPrefs.LPreferenceProgramHeight = lBounds.Height;
+            PProgram.LFrameSave(new LFrameState
+            {
+                LFrameLeft = lBounds.Left,
+                LFrameTop = lBounds.Top,
+                LFrameWidth = lBounds.Width,
+                LFrameHeight = lBounds.Height,
+                LFrameFlowHeight = PProgram.LFrameStateCurrent.LFrameFlowHeight
+            });
         }
+
+        LPreferenceState lPrefs = PProgram.LPreferenceStateCurrent.LPreferenceClone();
         lPrefs.LPreferenceLayoutKeys = lTabset.PTabsetRecords.Select(r => r.PTabLayoutKey).ToList();
         lPrefs.LPreferenceTabExports = lTabset.PTabsetRecords
             .Select(r => LPresetRecord.LPresetRecordCreate(r.PTabWorkspace.PWorkspaceExportState))

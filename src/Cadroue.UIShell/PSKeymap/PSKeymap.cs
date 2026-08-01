@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+using Cadroue.Core;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;
 
@@ -33,7 +34,7 @@ internal sealed class PSKeymap : Window
     private const string PSSheetFlowIcon = "/PAssets/PTabs/PSSheetTimeline.svg";
     private const string PSSheetSplitIcon = "/PAssets/PTabs/PSplitButton.svg";
 
-    private readonly LPreferenceState lsKeymapDraft;
+    private readonly List<LBindingRecord> lsKeymapDraft;
     private readonly Action<LPreferenceState>? psKeymapCallback;
     private readonly PSGrabber psKeymapGrabber;
     private readonly Dictionary<string, PSKeymapChord> psKeymapChords = new(StringComparer.Ordinal);
@@ -46,14 +47,13 @@ internal sealed class PSKeymap : Window
 
     private PSKeymap(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
-        lsKeymapDraft = PProgram.LPreferenceStateCurrent.LPreferenceClone();
-        lsKeymapDraft.LPreferenceShortcuts = LBinding.LBindingNormalize(lsKeymapDraft.LPreferenceShortcuts);
+        lsKeymapDraft = LBinding.LBindingNormalize(PProgram.LBindingCurrent);
         psKeymapCallback = pApplyCallback;
 
         foreach (LBindingCommand pCommand in LBinding.LBindingCatalogRead())
         {
             psKeymapChords[pCommand.LBindingCommandToken] = new PSKeymapChord(
-                LBinding.LBindingGestureRead(lsKeymapDraft.LPreferenceShortcuts, pCommand.LBindingCommandToken),
+                LBinding.LBindingGestureRead(lsKeymapDraft, pCommand.LBindingCommandToken),
                 PSKeymapConflictClear);
         }
 
@@ -194,7 +194,7 @@ internal sealed class PSKeymap : Window
 
     private void PSKeymapApply()
     {
-        lsKeymapDraft.LPreferenceShortcuts = psKeymapChords
+        List<LBindingRecord> psKeymapApplied = psKeymapChords
             .Select(pEntry => new LBindingRecord
             {
                 LBindingRecordToken = pEntry.Key,
@@ -202,8 +202,7 @@ internal sealed class PSKeymap : Window
             })
             .ToList();
 
-        lsKeymapDraft.LPreferenceNormalize();
-        PProgram.LPreferenceStateSet(lsKeymapDraft.LPreferenceClone());
+        PProgram.LBindingSet(psKeymapApplied);
         psKeymapCallback?.Invoke(PProgram.LPreferenceStateCurrent);
     }
 

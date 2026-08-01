@@ -103,7 +103,7 @@ public sealed partial class PFlow : UserControl
         root.Children.Add(pDividerThumb);
         root.Children.Add(reelGrid);
         Content = root;
-        Height = PProgram.LPreferenceStateCurrent.LPreferenceFlowHeight;
+        Height = PProgram.LFrameStateCurrent.LFrameFlowHeight;
     }
 
     public void PFlowAttach(LMediaInfo mediaInfo, string? sourcePath, TimeSpan cursorTime)
