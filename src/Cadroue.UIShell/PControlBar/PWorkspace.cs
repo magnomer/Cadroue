@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.UIShell.PMainArea;
@@ -149,6 +150,41 @@ public sealed class PWorkspace
 
     public LSceneTabRecord PWorkspaceLayoutRead() => PWorkspaceSurface.PTabLayoutRead();
 
+    public LRelay PWorkspaceRelayCreate(PTabRecord pTabRecord, double pDropLeft, double pDropTop)
+    {
+        var lRelay = new LRelay
+        {
+            LRelayLayoutKey = pTabRecord.PTabLayoutKey,
+            LRelayCustomName = pTabRecord.PTabNameCustom,
+            LRelayExport = PWorkspaceExportState.LPresetRecordCreate(),
+            LRelayLayout = PWorkspaceLayoutRead(),
+            LRelaySourcePath = PWorkspaceViewer?.PViewerSourcePath ?? string.Empty,
+            LRelayDropLeft = pDropLeft,
+            LRelayDropTop = pDropTop,
+            LRelaySenderProcess = Environment.ProcessId,
+            LRelayId = Guid.NewGuid().ToString("N")
+        };
+
+        if (PWorkspaceFlow is { } pFlow)
+        {
+            lRelay.LRelaySections = pFlow.PFlowSectionsRead()
+                .Select(lSegment => new LRelaySectionRecord
+                {
+                    LRelayStartTicks = lSegment.LSegmentStart.Ticks,
+                    LRelayEndTicks = lSegment.LSegmentEnd.Ticks,
+                    LRelayColorIndex = lSegment.LSegmentColorIndex,
+                    LRelayName = lSegment.LSegmentName,
+                    LRelayPrefix = lSegment.LSegmentPrefix,
+                    LRelaySuffix = lSegment.LSegmentSuffix,
+                    LRelayHidden = lSegment.LSegmentHidden
+                })
+                .ToList();
+            lRelay.LRelaySectionIndex = pFlow.PFlowSelectionRead();
+        }
+
+        return lRelay;
+    }
+
     public void PWorkspaceRelayApply(LRelay lRelay)
     {
         if (PWorkspaceViewer is null || string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath))
@@ -156,7 +192,18 @@ public sealed class PWorkspace
             return;
         }
 
-        IReadOnlyList<PFlow.LSegment> lRelaySections = lRelay.LRelaySectionsCreate();
+        IReadOnlyList<PFlow.LSegment> lRelaySections = lRelay.LRelaySections
+            .Select(lSection => new PFlow.LSegment(
+                TimeSpan.FromTicks(lSection.LRelayStartTicks),
+                TimeSpan.FromTicks(lSection.LRelayEndTicks),
+                lSection.LRelayColorIndex,
+                lSection.LRelayName)
+            {
+                LSegmentPrefix = lSection.LRelayPrefix,
+                LSegmentSuffix = lSection.LRelaySuffix,
+                LSegmentHidden = lSection.LRelayHidden
+            })
+            .ToList();
         int? lRelaySectionSelect = lRelay.LRelaySectionIndex;
         PViewer pRelayViewer = PWorkspaceViewer;
 

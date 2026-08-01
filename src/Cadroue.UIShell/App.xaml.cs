@@ -118,7 +118,6 @@ public partial class PProgram : Application
             if (LRelayStartupPayload is { } lRelayPayload)
             {
                 LTraceLog.LTraceInfoRecord($"Started to receive a relayed '{lRelayPayload.LRelayLayoutKey}' tab");
-                LRelayChannel.LRelayAckSend(lRelayPayload.LRelaySenderProcess, lRelayPayload.LRelayId);
             }
 
             return;

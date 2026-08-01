@@ -1,18 +1,16 @@
 using System.IO;
 using System.Text.Json;
 
-using Cadroue.Infrastructure;
+namespace Cadroue.Infrastructure;
 
-namespace Cadroue.UIShell.PControlBar;
-
-internal static class LRelayStore
+public static class LRelayStore
 {
     private const string LRelayFolderName = "Cadroue";
     private const string LRelaySubfolderName = "relay";
 
     private static readonly TimeSpan LRelayStaleAge = TimeSpan.FromHours(12);
 
-    internal static string LRelayFileSave(LRelay lRelay)
+    public static string LRelayFileSave(LRelay lRelay)
     {
         string lRelayFolder = LRelayFolderCreate();
         Directory.CreateDirectory(lRelayFolder);
@@ -22,7 +20,7 @@ internal static class LRelayStore
         return lRelayFilePath;
     }
 
-    internal static LRelay? LRelayFileLoad(string lRelayFilePath)
+    public static LRelay? LRelayFileLoad(string lRelayFilePath)
     {
         if (!File.Exists(lRelayFilePath))
         {
@@ -40,7 +38,7 @@ internal static class LRelayStore
         }
     }
 
-    internal static void LRelayFileClear(string lRelayFilePath)
+    public static void LRelayFileClear(string lRelayFilePath)
     {
         try
         {
@@ -55,7 +53,7 @@ internal static class LRelayStore
         }
     }
 
-    internal static void LRelayStaleClear()
+    public static void LRelayStaleClear()
     {
         string lRelayFolder = LRelayFolderCreate();
         if (!Directory.Exists(lRelayFolder))

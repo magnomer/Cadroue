@@ -142,7 +142,7 @@ public partial class PWindow : Window
     {
         PTabRecord pRelayTabRecord = lTabset.LTabsetAdd(
             lRelay.LRelayLayoutKey,
-            lRelay.LRelayExportCreate(),
+            LPreset.LPresetStateCreate(lRelay.LRelayExport),
             lRelay.LRelayLayout);
         if (!string.IsNullOrWhiteSpace(lRelay.LRelayCustomName))
         {
@@ -155,13 +155,16 @@ public partial class PWindow : Window
 
     private void PWindowRelayHandle(LRelay lRelay)
     {
-        PWindowRelayAccept(lRelay);
-        if (WindowState == WindowState.Minimized)
+        Dispatcher.BeginInvoke(new Action(() =>
         {
-            WindowState = WindowState.Normal;
-        }
+            PWindowRelayAccept(lRelay);
+            if (WindowState == WindowState.Minimized)
+            {
+                WindowState = WindowState.Normal;
+            }
 
-        Activate();
+            Activate();
+        }));
     }
 
     private void PWindowPositionRestore(LFrameState lFrame)

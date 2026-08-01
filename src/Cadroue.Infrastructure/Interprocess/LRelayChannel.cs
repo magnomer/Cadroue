@@ -2,28 +2,22 @@ using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Windows;
 
-using Cadroue.Infrastructure;
+namespace Cadroue.Infrastructure;
 
-namespace Cadroue.UIShell.PControlBar;
-
-internal static class LRelayChannel
+public static class LRelayChannel
 {
     private const string LRelayPipePrefix = "Cadroue.Relay.";
     private const string LRelayTabMessage = "TAB";
-    private const string LRelayAckMessage = "ACK";
     private const string LRelayOkReply = "OK";
     private const string LRelayNoReply = "NO";
     private const int LRelayConnectTimeout = 1500;
 
     private static CancellationTokenSource? lRelayCancellation;
 
-    internal static event Action<LRelay>? LRelayTabReceive;
+    public static event Action<LRelay>? LRelayTabReceive;
 
-    internal static event Action<string>? LRelayAckReceive;
-
-    internal static void LRelayChannelStart()
+    public static void LRelayChannelStart()
     {
         if (lRelayCancellation is not null)
         {
@@ -40,13 +34,13 @@ internal static class LRelayChannel
         LTraceLog.LTraceInfoRecord($"Relay channel listening on {LRelayPipeCreate(Environment.ProcessId)}");
     }
 
-    internal static void LRelayChannelStop()
+    public static void LRelayChannelStop()
     {
         lRelayCancellation?.Cancel();
         lRelayCancellation = null;
     }
 
-    internal static int? LRelayInstanceFind(double lScreenLeft, double lScreenTop)
+    public static int? LRelayInstanceFind(double lScreenLeft, double lScreenTop)
     {
         IntPtr lWindowHandle = WindowFromPoint(new LRelayPoint((int)lScreenLeft, (int)lScreenTop));
         if (lWindowHandle == IntPtr.Zero)
@@ -69,7 +63,7 @@ internal static class LRelayChannel
         return LRelayPipeCheck(lProcessId) ? lProcessId : null;
     }
 
-    internal static bool LRelayChannelSend(int lProcessId, string lRelayFilePath)
+    public static bool LRelayChannelSend(int lProcessId, string lRelayFilePath)
     {
         try
         {
@@ -86,28 +80,6 @@ internal static class LRelayChannel
         {
             LTraceLog.LTraceErrorRecord($"Relay send to process {lProcessId} failed", lException);
             return false;
-        }
-    }
-
-    internal static void LRelayAckSend(int lProcessId, string lRelayId)
-    {
-        if (lProcessId == 0 || lProcessId == Environment.ProcessId)
-        {
-            return;
-        }
-
-        try
-        {
-            using var lRelayPipe = new NamedPipeClientStream(
-                ".", LRelayPipeCreate(lProcessId), PipeDirection.InOut);
-            lRelayPipe.Connect(LRelayConnectTimeout);
-            var lRelayWriter = new StreamWriter(lRelayPipe) { AutoFlush = true };
-            lRelayWriter.WriteLine($"{LRelayAckMessage} {lRelayId}");
-            lRelayWriter.Flush();
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord($"Relay acknowledgement to process {lProcessId} failed", lException);
         }
     }
 
@@ -168,12 +140,6 @@ internal static class LRelayChannel
         string lRelayVerb = lRelayMessage[..lRelaySplitIndex];
         string lRelayBody = lRelayMessage[(lRelaySplitIndex + 1)..].Trim();
 
-        if (string.Equals(lRelayVerb, LRelayAckMessage, StringComparison.Ordinal))
-        {
-            LRelayDispatch(() => LRelayAckReceive?.Invoke(lRelayBody));
-            return;
-        }
-
         if (!string.Equals(lRelayVerb, LRelayTabMessage, StringComparison.Ordinal))
         {
             return;
@@ -188,18 +154,7 @@ internal static class LRelayChannel
 
         lRelayWriter.WriteLine(LRelayOkReply);
         LRelayStore.LRelayFileClear(lRelayBody);
-        LRelayDispatch(() => LRelayTabReceive?.Invoke(lRelay));
-    }
-
-    private static void LRelayDispatch(Action lRelayAction)
-    {
-        Application? lRelayApplication = Application.Current;
-        if (lRelayApplication is null)
-        {
-            return;
-        }
-
-        lRelayApplication.Dispatcher.BeginInvoke(lRelayAction);
+        LRelayTabReceive?.Invoke(lRelay);
     }
 
     private static string LRelayPipeCreate(int lProcessId) => $"{LRelayPipePrefix}{lProcessId}";

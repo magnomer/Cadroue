@@ -27,7 +27,7 @@ public partial class PToolbar
             return false;
         }
 
-        LRelay lRelay = LRelay.LRelayTabCreate(pTabRecord, pDipPoint.X, pDipPoint.Y);
+        LRelay lRelay = pTabRecord.PTabWorkspace.PWorkspaceRelayCreate(pTabRecord, pDipPoint.X, pDipPoint.Y);
         string lRelayFilePath;
         try
         {
