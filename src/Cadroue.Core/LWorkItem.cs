@@ -100,6 +100,8 @@ public sealed class LWorkItem : INotifyPropertyChanged
 
     public Guid LWorkLineage { get; set; }
 
+    public string LWorkTab { get; set; } = string.Empty;
+
     public DateTimeOffset LWorkCreateTime { get; }
 
     public DateTimeOffset? LWorkStartTime { get; set; }

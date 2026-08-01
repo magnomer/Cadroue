@@ -51,6 +51,12 @@ public static partial class LMerge
             return 0;
         }
 
+        string lMergeTab = PControlBar.LTabset.LTabsetTitleRead(lMergeRelaySource);
+        foreach (LWorkItem lMergeItem in lMergeItems)
+        {
+            lMergeItem.LWorkTab = lMergeTab;
+        }
+
         int lMergeAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lMergeItems, lMergeRelayTarget, lMergeRelaySource);
         LTraceLog.LTraceInfoRecord($"Merge queued {lMergeAdded} group(s) at {lWorkPriority}");
         foreach (LWorkItem lMergeItem in lMergeItems)

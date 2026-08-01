@@ -83,6 +83,12 @@ public static partial class LSplit
             LTraceLog.LTraceInfoRecord($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
         }
 
+        string lSplitTab = PControlBar.LTabset.LTabsetTitleRead(lSplitRelaySource);
+        foreach (LWorkItem lSplitItem in lSplitWorkItems)
+        {
+            lSplitItem.LWorkTab = lSplitTab;
+        }
+
         int lSplitAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lSplitWorkItems, lSplitRelayTarget, lSplitRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lSplitAdded} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +

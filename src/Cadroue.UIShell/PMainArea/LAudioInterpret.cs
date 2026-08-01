@@ -35,6 +35,7 @@ public static partial class LAudio
             Path.Combine(lAudioFolder, lAudioOutputName),
             lAudioOutput,
             lWorkAudio: lAudioProcessing.LWorkAudioSkip ? LWorkAudio.LWorkAudioCreate() : lAudioProcessing);
+        lAudioItem.LWorkTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
 
         int lAudioAdded = LSchedule.LScheduleCurrent.LScheduleAdd(new[] { lAudioItem }, lAudioRelayTarget, lAudioRelaySource);
         LTraceLog.LTraceInfoRecord(

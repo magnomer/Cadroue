@@ -26,6 +26,10 @@ public sealed class LTabset
 
     public ObservableCollection<PTabRecord> PTabsetRecords { get; }
 
+    public static string LTabsetTitleRead(Guid pTabsetTabId) =>
+        LTabsetCurrent?.PTabsetRecords.FirstOrDefault(pTabItem => pTabItem.PTabId == pTabsetTabId)?.PTabTitle
+        ?? string.Empty;
+
     public PTabRecord? PTabsetCurrent
     {
         get => pTabsetCurrent;

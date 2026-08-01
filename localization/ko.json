@@ -529,7 +529,7 @@
   "Roster.Lineage.From": "{0}에서",
   "Roster.Lineage.FromMore": "{0} 외 {1}개에서",
   "Roster.Lineage.Split": "{Terms.Split} → {0}",
-  "Roster.Lineage.Step": "({0})",
+  "Roster.Lineage.Step": "{0}",
   "Roster.Empty.Notice": "{Terms.Settings}을 볼 {Terms.Job}을 선택하십시오.",
   "Roster.Explorer.Tooltip": "Explorer에서 이 {Terms.File} 표시",
   "Roster.Section.Source": "{Terms.Source}",

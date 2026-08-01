@@ -33,6 +33,12 @@ public static partial class LConvert
 
         IReadOnlyList<LWorkItem> lConvertWorkItems =
             LConvert.LConvertInterpret(lWorkPriority, lConvertWorkDescription);
+        string lConvertTab = PControlBar.LTabset.LTabsetTitleRead(lConvertRelaySource);
+        foreach (LWorkItem lConvertItem in lConvertWorkItems)
+        {
+            lConvertItem.LWorkTab = lConvertTab;
+        }
+
         int lConvertAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lConvertWorkItems, lConvertRelayTarget, lConvertRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Convert queued {lConvertAdded} job(s) at {lWorkPriority} from {lConvertSourcePaths.Length} listed file(s)");

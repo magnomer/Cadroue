@@ -18,6 +18,7 @@ public sealed class LWorkRecord
     public Guid LWorkRelayTarget { get; set; }
     public Guid LWorkRelaySource { get; set; }
     public Guid LWorkLineage { get; set; }
+    public string LWorkTab { get; set; } = string.Empty;
     public string LWorkMessage { get; set; } = string.Empty;
     public double LWorkProgress { get; set; }
     public DateTimeOffset LWorkCreateTime { get; set; } = DateTimeOffset.Now;
@@ -68,6 +69,7 @@ public sealed class LWorkRecord
         LWorkRelayTarget = lWorkItem.LWorkRelayTarget,
         LWorkRelaySource = lWorkItem.LWorkRelaySource,
         LWorkLineage = lWorkItem.LWorkLineage,
+        LWorkTab = lWorkItem.LWorkTab,
         LWorkMessage = lWorkItem.LWorkMessage,
         LWorkProgress = lWorkItem.LWorkProgress,
         LWorkCreateTime = lWorkItem.LWorkCreateTime,
@@ -109,6 +111,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkRelayTarget = LWorkRelayTarget;
         lWorkItem.LWorkRelaySource = LWorkRelaySource;
         lWorkItem.LWorkLineage = LWorkLineage;
+        lWorkItem.LWorkTab = LWorkTab;
         lWorkItem.LWorkStateCurrent = LWorkEnumRead(LWorkStateName, LWorkState.LWorkStatePending);
         lWorkItem.LWorkMessage = LWorkMessage;
         lWorkItem.LWorkProgress = LWorkProgress;
@@ -148,6 +151,7 @@ public sealed class LWorkRecord
         LWorkPriorityName ??= nameof(LWorkPriority.LWorkPriorityNormal);
         LWorkStateName ??= nameof(LWorkState.LWorkStatePending);
         LWorkSourcePath ??= string.Empty;
+        LWorkTab ??= string.Empty;
         LWorkOutputName ??= string.Empty;
         LWorkOutputPath ??= string.Empty;
         LWorkMessage ??= string.Empty;

@@ -529,7 +529,7 @@
   "Roster.Lineage.From": "from {0}",
   "Roster.Lineage.FromMore": "from {0} +{1}",
   "Roster.Lineage.Split": "{Terms.Split} → {0}",
-  "Roster.Lineage.Step": "({0})",
+  "Roster.Lineage.Step": "{0}",
   "Roster.Empty.Notice": "Select a {Terms.Job} to see its settings.",
   "Roster.Explorer.Tooltip": "Show this {Terms.File} in Explorer",
   "Roster.Section.Source": "{Terms.Source}",

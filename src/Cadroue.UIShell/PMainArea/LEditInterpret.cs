@@ -54,6 +54,7 @@ public static partial class LEdit
             lEditWorkDescription.LEditOutput,
             Guid.NewGuid());
 
+        lEditWorkItem.LWorkTab = PControlBar.LTabset.LTabsetTitleRead(lEditRelaySource);
         string lEditSourcePath = lEditWorkItem.LWorkSourcePath;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;
         int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd([lEditWorkItem], lEditRelayTarget, lEditRelaySource);

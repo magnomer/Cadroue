@@ -8,7 +8,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
-    private void PRosterMenuOpen(ListBoxItem pRow, ContextMenuEventArgs pArgs)
+    private void PRosterMenuOpen(Border pRow, ContextMenuEventArgs pArgs)
     {
         if (pRow.Tag is not LWorkItem pWorkItem || pRow.ContextMenu is not { } pMenu)
         {

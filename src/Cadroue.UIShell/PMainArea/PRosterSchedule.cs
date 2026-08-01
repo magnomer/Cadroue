@@ -37,11 +37,6 @@ public sealed partial class PRoster
 
     private void PRosterSelectHandle()
     {
-        if (pRosterQueueSyncing)
-        {
-            return;
-        }
-
         PRosterDetailUpdate();
         PConsole.PConsoleCurrent?.PConsoleUpdate();
     }

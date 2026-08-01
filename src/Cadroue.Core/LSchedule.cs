@@ -175,7 +175,7 @@ public sealed partial class LSchedule
 
     public Guid LScheduleLineageRead(LWorkItem lWorkItem) =>
         lWorkItem.LWorkLineage == Guid.Empty
-            ? LScheduleFileRead(lWorkItem.LWorkSourcePath)
+            ? LScheduleRootRead(lWorkItem)
             : lWorkItem.LWorkLineage;
 
     private Guid LScheduleLineageResolve(LWorkItem lWorkItem)
@@ -188,7 +188,25 @@ public sealed partial class LSchedule
         LWorkItem? lScheduleParent = LScheduleParentFind(lWorkItem.LWorkSourcePath);
         return lScheduleParent is not null && lScheduleParent.LWorkKind != LWorkKind.LWorkKindSplit
             ? LScheduleLineageRead(lScheduleParent)
-            : LScheduleFileRead(lWorkItem.LWorkSourcePath);
+            : LScheduleRootRead(lWorkItem);
+    }
+
+    private static Guid LScheduleRootRead(LWorkItem lWorkItem)
+    {
+        string lScheduleKey;
+        try
+        {
+            lScheduleKey = Path.GetFullPath(lWorkItem.LWorkSourcePath).ToLowerInvariant();
+        }
+        catch (Exception lScheduleError) when (
+            lScheduleError is ArgumentException or IOException or NotSupportedException)
+        {
+            lScheduleKey = lWorkItem.LWorkSourcePath.ToLowerInvariant();
+        }
+
+        byte[] lScheduleHash = System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes($"{lWorkItem.LWorkBatchId:N}|{lScheduleKey}"));
+        return new Guid(lScheduleHash.AsSpan(0, 16));
     }
 
     private LWorkItem? LScheduleParentFind(string lWorkSourcePath)

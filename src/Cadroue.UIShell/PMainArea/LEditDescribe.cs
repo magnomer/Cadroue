@@ -75,6 +75,12 @@ public static partial class LEdit
                 lEditBatch));
         }
 
+        string lEditTab = PControlBar.LTabset.LTabsetTitleRead(lEditRelaySource);
+        foreach (LWorkItem lEditItem in lEditWorkItems)
+        {
+            lEditItem.LWorkTab = lEditTab;
+        }
+
         int lEditAdded = LSchedule.LScheduleCurrent.LScheduleAdd(lEditWorkItems, lEditRelayTarget, lEditRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Edit Add All: {lEditSources.Count} listed, {lEditAdded} queued from saved plans");

@@ -1,10 +1,10 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.UIShell.PControlBar;
+using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainArea;
@@ -12,9 +12,11 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed partial class PRoster
 {
     private readonly Dictionary<Guid, PRosterRowCell> pRosterRowCells = new();
-    private readonly Dictionary<Guid, ListBoxItem> pRosterRows = new();
+    private readonly Dictionary<Guid, Border> pRosterStepRows = new();
     private readonly Dictionary<Guid, PRosterRowPlace> pRosterRowPlaces = new();
-    private bool pRosterQueueSyncing;
+    private readonly List<Guid> pRosterOrderedIds = new();
+    private readonly HashSet<Guid> pRosterSelectedIds = new();
+    private Guid pRosterCurrentId;
 
     private sealed class PRosterRowCell
     {
@@ -28,7 +30,8 @@ public sealed partial class PRoster
     private sealed record PRosterRowPlace(
         string PRosterPlaceSubject,
         long? PRosterPlaceOriginBytes,
-        string PRosterPlaceStep);
+        string PRosterPlaceStep,
+        bool PRosterPlaceLast);
 
     private UIElement PRosterPanelBuild()
     {
@@ -44,7 +47,7 @@ public sealed partial class PRoster
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pColumnHeader, Dock.Top);
         pRoot.Children.Add(pColumnHeader);
-        pRoot.Children.Add(pRosterQueueList);
+        pRoot.Children.Add(pRosterQueueScroll);
 
         return PPanel.PPanelBorderBuild(pRoot);
     }
@@ -88,168 +91,110 @@ public sealed partial class PRoster
         return pGrid;
     }
 
-    private ListBox PRosterQueueBuild()
+    private ScrollViewer PRosterQueueBuild()
     {
-        var pList = new ListBox
+        var pScroll = new ScrollViewer
         {
-            BorderThickness = new Thickness(0),
-            Background = Brushes.White,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             FocusVisualStyle = null,
-            HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            SelectionMode = SelectionMode.Extended,
-            ItemContainerStyle = PRosterStyleCreate()
+            Padding = new Thickness(8, 8, 8, 8),
+            Content = pRosterQueuePanel
         };
-        ScrollViewer.SetHorizontalScrollBarVisibility(pList, ScrollBarVisibility.Disabled);
-        pList.SelectionChanged += (_, _) => PRosterSelectHandle();
-        return pList;
-    }
-
-    private static Style PRosterStyleCreate()
-    {
-        var pStyle = new Style(typeof(ListBoxItem));
-        pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
-        pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
-        pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));
-        pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PRosterTemplateCreate()));
-        return pStyle;
-    }
-
-    private static ControlTemplate PRosterTemplateCreate()
-    {
-        var pBorder = new FrameworkElementFactory(typeof(Border));
-        pBorder.Name = "pRosterRowFrame";
-        pBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
-        pBorder.SetValue(Border.BorderBrushProperty, PRosterTheme.PRosterLineBrush);
-        pBorder.SetValue(Border.BorderThicknessProperty, new Thickness(0, 0, 0, 1));
-        pBorder.SetValue(Border.PaddingProperty, PRosterTheme.PRosterRowPadding);
-
-        var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
-        pBorder.AppendChild(pContent);
-
-        var pTemplate = new ControlTemplate(typeof(ListBoxItem)) { VisualTree = pBorder };
-
-        var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PRosterTheme.PRosterHeaderBrush, "pRosterRowFrame"));
-        pTemplate.Triggers.Add(pHover);
-
-        var pSelected = new Trigger { Property = ListBoxItem.IsSelectedProperty, Value = true };
-        pSelected.Setters.Add(new Setter(Border.BackgroundProperty, PRosterTheme.PRosterSelectBrush, "pRosterRowFrame"));
-        pTemplate.Triggers.Add(pSelected);
-
-        return pTemplate;
+        PScrollbar.PScrollbarApply(pScroll);
+        return pScroll;
     }
 
     private void PRosterQueueRebuild()
     {
-        var pSelectedIds = pRosterQueueList.SelectedItems
-            .OfType<ListBoxItem>()
-            .Select(pRow => pRow.Tag)
-            .OfType<LWorkItem>()
-            .Select(pWorkItem => pWorkItem.LWorkId)
-            .ToHashSet();
+        LWorkItem[] pItems = pRosterSchedule.LScheduleRecords.ToArray();
+        IReadOnlyList<PRosterLineageEntry> pLineages = PRosterLineageRead(pItems);
 
-        LWorkItem[] pDesired = pRosterSchedule.LScheduleRecords.ToArray();
-        var pDesiredIds = pDesired.Select(pWorkItem => pWorkItem.LWorkId).ToHashSet();
-        List<ListBoxItem> pDesiredRows = PRosterRowsRead(pDesired);
-
-        pRosterQueueSyncing = true;
-        try
+        var pBatchOrder = new List<Guid>();
+        var pBatchMap = new Dictionary<Guid, List<PRosterLineageEntry>>();
+        foreach (PRosterLineageEntry pLineage in pLineages)
         {
-            foreach (Guid pStaleId in pRosterRows.Keys.Where(pRowId => !pDesiredIds.Contains(pRowId)).ToArray())
+            Guid pBatchId = pLineage.PRosterLineageItems[0].LWorkBatchId;
+            if (!pBatchMap.TryGetValue(pBatchId, out List<PRosterLineageEntry>? pBatchLineages))
             {
-                pRosterRowCells.Remove(pStaleId);
-                pRosterRows.Remove(pStaleId);
-                pRosterRowPlaces.Remove(pStaleId);
+                pBatchLineages = new List<PRosterLineageEntry>();
+                pBatchMap[pBatchId] = pBatchLineages;
+                pBatchOrder.Add(pBatchId);
             }
 
-            var pDesiredSet = pDesiredRows.ToHashSet();
-            for (int pIndex = pRosterQueueList.Items.Count - 1; pIndex >= 0; pIndex--)
-            {
-                if (pRosterQueueList.Items[pIndex] is not ListBoxItem pExistingRow
-                    || !pDesiredSet.Contains(pExistingRow))
-                {
-                    pRosterQueueList.Items.RemoveAt(pIndex);
-                }
-            }
-
-            for (int pIndex = 0; pIndex < pDesiredRows.Count; pIndex++)
-            {
-                ListBoxItem pRow = pDesiredRows[pIndex];
-                int pCurrentIndex = pRosterQueueList.Items.IndexOf(pRow);
-                if (pCurrentIndex == pIndex)
-                {
-                    continue;
-                }
-
-                if (pCurrentIndex >= 0)
-                {
-                    pRosterQueueList.Items.RemoveAt(pCurrentIndex);
-                }
-
-                pRosterQueueList.Items.Insert(Math.Min(pIndex, pRosterQueueList.Items.Count), pRow);
-            }
-
-            foreach (ListBoxItem pRow in pRosterQueueList.Items.OfType<ListBoxItem>())
-            {
-                bool pSelected = pRow.Tag is LWorkItem pWorkItem && pSelectedIds.Contains(pWorkItem.LWorkId);
-                if (pRow.IsSelected != pSelected)
-                {
-                    pRow.IsSelected = pSelected;
-                }
-            }
+            pBatchLineages.Add(pLineage);
         }
-        finally
+
+        pRosterRowCells.Clear();
+        pRosterRowPlaces.Clear();
+        pRosterStepRows.Clear();
+        pRosterOrderedIds.Clear();
+        pRosterQueuePanel.Children.Clear();
+
+        foreach (Guid pBatchId in pBatchOrder)
         {
-            pRosterQueueSyncing = false;
+            pRosterQueuePanel.Children.Add(PRosterBatchBuild(pBatchMap[pBatchId]));
+        }
+
+        var pPresent = pRosterOrderedIds.ToHashSet();
+        pRosterSelectedIds.RemoveWhere(pRosterId => !pPresent.Contains(pRosterId));
+        if (!pPresent.Contains(pRosterCurrentId))
+        {
+            pRosterCurrentId = Guid.Empty;
         }
     }
 
-    private List<ListBoxItem> PRosterRowsRead(IReadOnlyList<LWorkItem> pWorkItems)
+    private Border PRosterBatchBuild(IReadOnlyList<PRosterLineageEntry> pLineages)
     {
-        var pDesiredRows = new List<ListBoxItem>();
-        var pLineageKeep = new HashSet<Guid>();
-
-        foreach (var pLineageEntry in PRosterLineageRead(pWorkItems))
+        var pStack = new StackPanel();
+        foreach (PRosterLineageEntry pLineage in pLineages)
         {
-            pLineageKeep.Add(pLineageEntry.PRosterLineageId);
-            pDesiredRows.Add(PLineageRowRead(pLineageEntry));
+            pStack.Children.Add(PRosterFileBuild(pLineage));
 
-            for (int pItemIndex = 0; pItemIndex < pLineageEntry.PRosterLineageItems.Count; pItemIndex++)
+            List<LWorkItem> pStepItems = pLineage.PRosterLineageItems;
+            for (int pItemIndex = 0; pItemIndex < pStepItems.Count; pItemIndex++)
             {
-                LWorkItem pWorkItem = pLineageEntry.PRosterLineageItems[pItemIndex];
+                LWorkItem pWorkItem = pStepItems[pItemIndex];
+                bool pLast = pItemIndex == pStepItems.Count - 1;
                 pRosterRowPlaces[pWorkItem.LWorkId] = new PRosterRowPlace(
-                    pLineageEntry.PRosterLineageSubject,
-                    pLineageEntry.PLineageOriginBytes,
-                    PLineageStepRead(pWorkItem, pLineageEntry.PRosterLineageSubject, pItemIndex == 0));
+                    pLineage.PRosterLineageSubject,
+                    pLineage.PLineageOriginBytes,
+                    PLineageStepRead(pWorkItem, pLineage.PRosterLineageSubject),
+                    pLast);
 
-                if (pRosterRows.TryGetValue(pWorkItem.LWorkId, out ListBoxItem? pRow))
-                {
-                    pRow.Tag = pWorkItem;
-                    PRosterRowUpdate(pWorkItem);
-                }
-                else
-                {
-                    pRow = PRosterRowBuild(pWorkItem);
-                    pRosterRows[pWorkItem.LWorkId] = pRow;
-                }
-
-                pDesiredRows.Add(pRow);
+                pRosterOrderedIds.Add(pWorkItem.LWorkId);
+                pStack.Children.Add(PRosterRowBuild(pWorkItem));
             }
         }
 
-        PRosterLineageRemove(pLineageKeep);
-        return pDesiredRows;
+        return new Border
+        {
+            CornerRadius = new CornerRadius(PRosterTheme.PRosterCorner),
+            Background = Brushes.White,
+            BorderBrush = PRosterTheme.PRosterLineBrush,
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(0, 4, 0, 6),
+            Margin = new Thickness(0, 0, 0, 8),
+            Child = pStack
+        };
     }
 
-    private ListBoxItem PRosterRowBuild(LWorkItem pWorkItem)
+    private static TextBlock PRosterFileBuild(PRosterLineageEntry pLineage) => new()
+    {
+        Text = PLineageTitleRead(pLineage),
+        FontSize = PRosterTheme.PRosterRowSize,
+        FontWeight = FontWeights.SemiBold,
+        Foreground = PRosterTheme.PRosterTitleBrush,
+        TextTrimming = TextTrimming.CharacterEllipsis,
+        Margin = new Thickness(12, 5, 12, 3)
+    };
+
+    private Border PRosterRowBuild(LWorkItem pWorkItem)
     {
         var pGrid = PRosterColumnsCreate();
-        pGrid.Margin = new Thickness(PRosterLineageIndent, 0, 0, 0);
+        pGrid.MinHeight = 29;
 
-        TextBlock pStepCell = PRosterCellAdd(pGrid, 0, PRosterStepRead(pWorkItem), PRosterTheme.PRosterTextBrush);
+        TextBlock pStepCell = PRosterStepAdd(pGrid, pWorkItem);
         PRosterCellAdd(pGrid, 1, PRosterPriorityFormat(pWorkItem.LWorkPriority), PRosterTheme.PRosterMutedBrush);
         PRosterCellAdd(pGrid, 2, PRosterSpanFormat(pWorkItem.LWorkDuration), PRosterTheme.PRosterMutedBrush);
 
@@ -268,10 +213,101 @@ public sealed partial class PRoster
             PRosterCellOwner = pOwnerCell
         };
 
-        var pRow = new ListBoxItem { Content = pGrid, Tag = pWorkItem, ContextMenu = PMenu.PMenuContextCreate() };
+        var pRow = new Border
+        {
+            Padding = new Thickness(12, 0, 12, 0),
+            Background = Brushes.Transparent,
+            Cursor = Cursors.Hand,
+            Child = pGrid,
+            Tag = pWorkItem,
+            ContextMenu = PMenu.PMenuContextCreate()
+        };
+
+        Guid pRowId = pWorkItem.LWorkId;
+        pRow.PreviewMouseLeftButtonDown += (_, _) => PRosterStepSelect(pWorkItem);
+        pRow.MouseEnter += (_, _) => PRosterHoverApply(pRowId, true);
+        pRow.MouseLeave += (_, _) => PRosterHoverApply(pRowId, false);
         pRow.ContextMenuOpening += (_, pArgs) => PRosterMenuOpen(pRow, pArgs);
+
+        pRosterStepRows[pRowId] = pRow;
+        pRow.Background = pRosterSelectedIds.Contains(pRowId)
+            ? PRosterTheme.PRosterSelectBrush
+            : Brushes.Transparent;
         return pRow;
     }
+
+    private TextBlock PRosterStepAdd(Grid pGrid, LWorkItem pWorkItem)
+    {
+        bool pLast = !pRosterRowPlaces.TryGetValue(pWorkItem.LWorkId, out PRosterRowPlace? pPlace) || pPlace.PRosterPlaceLast;
+
+        var pStepGrid = new Grid();
+        pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+        UIElement pConnector = PRosterConnectorBuild(pLast);
+        Grid.SetColumn(pConnector, 0);
+        pStepGrid.Children.Add(pConnector);
+
+        var pStepCell = new TextBlock
+        {
+            Text = PRosterStepRead(pWorkItem),
+            FontSize = PRosterTheme.PRosterRowSize,
+            Foreground = PRosterTheme.PRosterTextBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 10, 0),
+            TextTrimming = TextTrimming.CharacterEllipsis
+        };
+        Grid.SetColumn(pStepCell, 1);
+        pStepGrid.Children.Add(pStepCell);
+
+        Grid.SetColumn(pStepGrid, 0);
+        pGrid.Children.Add(pStepGrid);
+        return pStepCell;
+    }
+
+    private static UIElement PRosterConnectorBuild(bool pLast)
+    {
+        var pGrid = new Grid { Width = 18, UseLayoutRounding = true };
+        pGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        pGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+        var pSpineUpper = PRosterSpineBuild();
+        Grid.SetRow(pSpineUpper, 0);
+        pGrid.Children.Add(pSpineUpper);
+
+        if (!pLast)
+        {
+            var pSpineLower = PRosterSpineBuild();
+            Grid.SetRow(pSpineLower, 1);
+            pGrid.Children.Add(pSpineLower);
+        }
+
+        var pNode = new Border
+        {
+            Width = 8,
+            Height = 8,
+            CornerRadius = new CornerRadius(4),
+            Background = Brushes.White,
+            BorderBrush = PRosterTheme.PRosterAccentBrush,
+            BorderThickness = new Thickness(2),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(4, 0, 0, 0)
+        };
+        Grid.SetRowSpan(pNode, 2);
+        pGrid.Children.Add(pNode);
+
+        return pGrid;
+    }
+
+    private static Border PRosterSpineBuild() => new()
+    {
+        Width = 2,
+        Background = PRosterTheme.PRosterTrunkBrush,
+        HorizontalAlignment = HorizontalAlignment.Left,
+        VerticalAlignment = VerticalAlignment.Stretch,
+        Margin = new Thickness(7, 0, 0, 0)
+    };
 
     private static TextBlock PRosterCellAdd(Grid pGrid, int pColumn, string pText, Brush pBrush)
     {
@@ -302,6 +338,64 @@ public sealed partial class PRoster
         pCell.PRosterCellState.Text = PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent);
         pCell.PRosterCellState.Foreground = PRosterTheme.PRosterStateRead(pWorkItem.LWorkStateCurrent);
         pCell.PRosterCellOwner.Text = PRosterOwnerFormat(pWorkItem);
+    }
+
+    private void PRosterStepSelect(LWorkItem pWorkItem)
+    {
+        Guid pId = pWorkItem.LWorkId;
+        ModifierKeys pModifiers = Keyboard.Modifiers;
+
+        if ((pModifiers & ModifierKeys.Shift) != 0 && pRosterCurrentId != Guid.Empty)
+        {
+            int pAnchor = pRosterOrderedIds.IndexOf(pRosterCurrentId);
+            int pTarget = pRosterOrderedIds.IndexOf(pId);
+            if (pAnchor >= 0 && pTarget >= 0)
+            {
+                pRosterSelectedIds.Clear();
+                for (int pIndex = Math.Min(pAnchor, pTarget); pIndex <= Math.Max(pAnchor, pTarget); pIndex++)
+                {
+                    pRosterSelectedIds.Add(pRosterOrderedIds[pIndex]);
+                }
+            }
+        }
+        else if ((pModifiers & ModifierKeys.Control) != 0)
+        {
+            if (!pRosterSelectedIds.Add(pId))
+            {
+                pRosterSelectedIds.Remove(pId);
+            }
+
+            pRosterCurrentId = pId;
+        }
+        else
+        {
+            pRosterSelectedIds.Clear();
+            pRosterSelectedIds.Add(pId);
+            pRosterCurrentId = pId;
+        }
+
+        PRosterSelectApply();
+        PRosterSelectHandle();
+    }
+
+    private void PRosterHoverApply(Guid pId, bool pOver)
+    {
+        if (pRosterSelectedIds.Contains(pId) || !pRosterStepRows.TryGetValue(pId, out Border? pRow))
+        {
+            return;
+        }
+
+        pRow.Background = pOver ? PRosterTheme.PRosterHeaderBrush : Brushes.Transparent;
+    }
+
+    private void PRosterSelectApply()
+    {
+        foreach ((Guid pRowId, Border pRow) in pRosterStepRows)
+        {
+            pRow.Background = pRosterSelectedIds.Contains(pRowId)
+                ? PRosterTheme.PRosterSelectBrush
+                : Brushes.Transparent;
+        }
     }
 
     private string PRosterStepRead(LWorkItem pWorkItem) =>
@@ -344,12 +438,12 @@ public sealed partial class PRoster
     private static string PRosterSpanFormat(TimeSpan pSpan) => $"{pSpan:hh\\:mm\\:ss}";
 
     private LWorkItem? PRosterSelectRead() =>
-        pRosterQueueList.SelectedItem is ListBoxItem { Tag: LWorkItem pWorkItem } ? pWorkItem : null;
+        pRosterCurrentId == Guid.Empty
+            ? null
+            : pRosterSchedule.LScheduleRecords.FirstOrDefault(pWorkItem => pWorkItem.LWorkId == pRosterCurrentId);
 
     private IReadOnlyList<LWorkItem> PRosterSelectionRead() =>
-        pRosterQueueList.SelectedItems
-            .OfType<ListBoxItem>()
-            .Select(pRow => pRow.Tag)
-            .OfType<LWorkItem>()
+        pRosterSchedule.LScheduleRecords
+            .Where(pWorkItem => pRosterSelectedIds.Contains(pWorkItem.LWorkId))
             .ToArray();
 }
