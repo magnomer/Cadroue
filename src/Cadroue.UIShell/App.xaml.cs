@@ -5,7 +5,6 @@ using System.Windows;
 using System.Windows.Threading;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PMainWindow;
-using FlyleafLib;
 
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -88,7 +87,7 @@ public partial class PProgram : Application
             : "NuGet Flyleaf preview engine active");
         LDepotRootApply();
         LScheduleRecoverRun();
-        LRendererFlyleafStart();
+        LRenderer.LRendererFlyleafStart();
         LRelayStore.LRelayStaleClear();
         LRelayChannel.LRelayChannelStart();
 
@@ -348,68 +347,4 @@ public partial class PProgram : Application
         return lPreferenceTimer;
     }
 
-    private static void LRendererFlyleafStart()
-    {
-        try
-        {
-            var lRendererEngineConfig = new EngineConfig
-            {
-                UIRefresh = false,
-                UIRefreshInterval = 250
-            };
-            LRendererLogApply(lRendererEngineConfig, LTrace.LTraceVerbose);
-
-            if (LRendererLibrary.LRendererFolderValidate(LPreferenceStateCurrent.LPreferenceFfmpegFolder))
-            {
-                lRendererEngineConfig.FFmpegPath = LPreferenceStateCurrent.LPreferenceFfmpegFolder;
-            }
-            else if (LRendererLibrary.LRendererFolderValidate(LRendererSettingsCurrent.LRendererLibraryFolder))
-            {
-                lRendererEngineConfig.FFmpegPath = LRendererSettingsCurrent.LRendererLibraryFolder;
-            }
-            else
-            {
-                string? lRendererLocalPath = LRendererLibrary.LRendererFolderFind();
-                if (lRendererLocalPath is not null)
-                {
-                    lRendererEngineConfig.FFmpegPath = lRendererLocalPath;
-                }
-            }
-
-            LTraceLog.LTraceInfoRecord(LFlyleaf.LFlyleafReportRead(typeof(Engine).Assembly));
-            Engine.Start(lRendererEngineConfig);
-            LTrace.LTraceVerboseCallback = LRendererVerboseApply;
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord("Renderer startup failed", lException);
-        }
-    }
-
-    private static void LRendererLogApply(EngineConfig lRendererConfig, bool lRendererVerbose)
-    {
-        if (!lRendererVerbose)
-        {
-            lRendererConfig.LogLevel = LogLevel.Quiet;
-            lRendererConfig.LogOutput = string.Empty;
-            return;
-        }
-
-        string lRendererLogFolder = LFlyleaf.LFlyleafRootRead();
-        System.IO.Directory.CreateDirectory(lRendererLogFolder);
-        lRendererConfig.LogLevel = LogLevel.Debug;
-        lRendererConfig.LogOutput = System.IO.Path.Combine(lRendererLogFolder, "flyleaf-debug.log");
-    }
-
-    private static void LRendererVerboseApply(bool lRendererVerbose)
-    {
-        try
-        {
-            LRendererLogApply(Engine.Config, lRendererVerbose);
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord("Renderer log switch failed", lException);
-        }
-    }
 }
