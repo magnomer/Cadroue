@@ -223,7 +223,7 @@ internal sealed partial class PSEncoder
         var pVerify = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Verify"), 84, new Thickness(8, 0, 0, 0));
         var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Log"), 64, new Thickness(6, 0, 0, 0));
         pVerify.Click += async (_, _) => await PSAudioVerifyHandle(psAudioEncoderCombo, pVerify);
-        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, LLocalization.LLocalizationTextRead("Encoder.Verification.LogTitle"), psAudioResults);
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, LLocalization.LLocalizationTextRead("Encoder.Verification.AudioTitle"), psAudioResults);
         psAudioEncoderCombo.SelectionChanged += (_, _) => PSAudioChangeHandle();
         psAudioRateCombo.SelectionChanged += (_, _) => PSAudioRowsRebuild();
 

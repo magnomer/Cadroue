@@ -23,30 +23,40 @@ internal sealed class PSVerdict : Window
     private const double PSVerdictWidthMinimum = 480;
     private const double PSVerdictHeightDefault = 560;
     private const double PSVerdictHeightMinimum = 360;
-    private const double PSVerdictFamilyWidth = 190;
+    private const double PSVerdictFamilyWidth = 180;
     private const double PSVerdictEncoderWidth = 150;
-    private const double PSVerdictResultWidth = 70;
+    private const double PSVerdictStatusWidth = 120;
+    private const double PSVerdictInset = 18;
     private const double PSVerdictRowGap = 6;
 
     private static readonly Brush PSVerdictPassFill = PSVerdictBrushCreate(0xE8, 0xF1, 0xE7);
     private static readonly Brush PSVerdictPassInk = PSVerdictBrushCreate(0x2E, 0x5B, 0x2B);
     private static readonly Brush PSVerdictFailFill = PSVerdictBrushCreate(0xFB, 0xE3, 0xE3);
     private static readonly Brush PSVerdictFailInk = PSVerdictBrushCreate(0x8C, 0x1D, 0x1D);
+    private static readonly Brush PSVerdictDetailFill = PSVerdictBrushCreate(0xF1, 0xF5, 0xFA);
+    private static readonly FontFamily PSVerdictDetailFont = new("Consolas, Cascadia Mono, monospace");
+
+    private static PSVerdict? psVerdictCurrent;
 
     private readonly IReadOnlyList<PSVerdictRow> psVerdictRows;
+    private readonly string psVerdictTitle;
     private readonly PSGrabber psVerdictGrabber;
 
     internal static void PSVerdictShow(Window pOwner, string pTitle, IReadOnlyList<PSVerdictRow> pRows)
     {
+        psVerdictCurrent?.Close();
         var psVerdict = new PSVerdict(pOwner, pTitle, pRows);
-        psVerdict.ShowDialog();
+        psVerdictCurrent = psVerdict;
+        psVerdict.Show();
     }
 
     private PSVerdict(Window pOwner, string pTitle, IReadOnlyList<PSVerdictRow> pRows)
     {
         psVerdictRows = pRows;
+        psVerdictTitle = pTitle;
         Title = pTitle;
-        Owner = pOwner;
+        Owner = pOwner.Owner ?? pOwner;
+        ShowInTaskbar = true;
         Width = PSVerdictWidthDefault;
         Height = PSVerdictHeightDefault;
         MinWidth = PSVerdictWidthMinimum;
@@ -70,7 +80,7 @@ internal sealed class PSVerdict : Window
     {
         var pRoot = new Grid { Background = PSCasement.PSCasementBandFill };
         pRoot.Children.Add(PSVerdictRootBuild());
-        pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, 0, null, pCloseOnly: true));
+        pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, 0, psVerdictTitle, pCloseOnly: true));
         return pRoot;
     }
 
@@ -94,9 +104,12 @@ internal sealed class PSVerdict : Window
         DockPanel.SetDock(pFooter, Dock.Bottom);
         pRoot.Children.Add(pFooter);
 
-        var pBody = new StackPanel { Margin = new Thickness(18, 14, 18, 0) };
+        var pBody = new StackPanel { Margin = new Thickness(0, 14, 0, 0) };
         pBody.Children.Add(PSVerdictTableBuild());
-        pRoot.Children.Add(PSSheet.PSSheetScrollBuild(pBody));
+
+        ScrollViewer pScroll = PSSheet.PSSheetScrollBuild(pBody);
+        pScroll.Margin = new Thickness(PSVerdictInset, 0, PSVerdictInset, 8);
+        pRoot.Children.Add(pScroll);
         return pRoot;
     }
 
@@ -112,49 +125,108 @@ internal sealed class PSVerdict : Window
             };
         }
 
+        var pTable = new StackPanel();
+        pTable.Children.Add(PSVerdictHeaderBuild());
+        foreach (PSVerdictRow pEntry in psVerdictRows)
+        {
+            pTable.Children.Add(PSVerdictRowBuild(pEntry));
+        }
+
+        return PSPlateBuild(pTable);
+    }
+
+    private static Grid PSVerdictGridBuild()
+    {
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSVerdictFamilyWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSVerdictEncoderWidth) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSVerdictResultWidth) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSVerdictStatusWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-        pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        PSVerdictHeaderAdd(pGrid, 0, "Encoder.Verification.Family");
-        PSVerdictHeaderAdd(pGrid, 1, "Encoder.Verification.Encoder");
-        PSVerdictHeaderAdd(pGrid, 2, "Encoder.Verification.Result");
-        PSVerdictHeaderAdd(pGrid, 3, "Encoder.Verification.Detail");
-
-        int pRow = 1;
-        foreach (PSVerdictRow pEntry in psVerdictRows)
-        {
-            pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            PSVerdictCellAdd(pGrid, pRow, 0, PSVerdictTextBuild(pEntry.PSVerdictFamily, PSFieldText));
-            PSVerdictCellAdd(pGrid, pRow, 1, PSVerdictTextBuild(pEntry.PSVerdictEncoder, PSFieldMuted));
-            PSVerdictCellAdd(pGrid, pRow, 2, PSVerdictBadgeBuild(pEntry.PSVerdictSuccess));
-            PSVerdictCellAdd(pGrid, pRow, 3, PSVerdictTextBuild(pEntry.PSVerdictMessage, PSFieldMuted));
-            pRow++;
-        }
-
-        return PSPlateBuild(pGrid);
+        return pGrid;
     }
 
-    private static void PSVerdictHeaderAdd(Grid pGrid, int pColumn, string pKey)
+    private static UIElement PSVerdictHeaderBuild()
+    {
+        Grid pGrid = PSVerdictGridBuild();
+        PSVerdictHeaderCellAdd(pGrid, 0, "Encoder.Verification.Family");
+        PSVerdictHeaderCellAdd(pGrid, 1, "Encoder.Verification.Encoder");
+        PSVerdictHeaderCellAdd(pGrid, 2, "Encoder.Verification.Status");
+        pGrid.Margin = new Thickness(0, 0, 0, PSVerdictRowGap);
+        return pGrid;
+    }
+
+    private static void PSVerdictHeaderCellAdd(Grid pGrid, int pColumn, string pKey)
     {
         var pHeader = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead(pKey),
             Foreground = PSFieldMuted,
             FontWeight = FontWeights.SemiBold,
-            Margin = new Thickness(0, 0, 10, PSVerdictRowGap)
+            Margin = new Thickness(0, 0, 10, 0)
         };
-        Grid.SetRow(pHeader, 0);
         Grid.SetColumn(pHeader, pColumn);
         pGrid.Children.Add(pHeader);
     }
 
-    private static void PSVerdictCellAdd(Grid pGrid, int pRow, int pColumn, UIElement pCell)
+    private UIElement PSVerdictRowBuild(PSVerdictRow pEntry)
     {
-        Grid.SetRow(pCell, pRow);
+        Grid pRowGrid = PSVerdictGridBuild();
+        pRowGrid.MinHeight = PSFieldChipHeight;
+        pRowGrid.Margin = new Thickness(0, 0, 0, PSVerdictRowGap);
+        PSVerdictCellAdd(pRowGrid, 0, PSVerdictTextBuild(pEntry.PSVerdictFamily, PSFieldText));
+        PSVerdictCellAdd(pRowGrid, 1, PSVerdictTextBuild(pEntry.PSVerdictEncoder, PSFieldMuted));
+        PSVerdictCellAdd(pRowGrid, 2, PSVerdictBadgeBuild(pEntry.PSVerdictSuccess));
+
+        var pRow = new StackPanel();
+        pRow.Children.Add(pRowGrid);
+        if (!PSVerdictDetailCheck(pEntry))
+        {
+            return pRow;
+        }
+
+        var pDetail = new Border
+        {
+            Background = PSVerdictDetailFill,
+            CornerRadius = new CornerRadius(4),
+            Padding = new Thickness(10, 6, 10, 6),
+            Margin = new Thickness(0, 0, 0, PSVerdictRowGap),
+            Visibility = Visibility.Collapsed,
+            Child = new TextBlock
+            {
+                Text = pEntry.PSVerdictMessage,
+                Foreground = PSFieldMuted,
+                FontFamily = PSVerdictDetailFont,
+                TextWrapping = TextWrapping.Wrap
+            }
+        };
+
+        Button pChip = PSVerdictChipBuild(false);
+        pChip.HorizontalAlignment = HorizontalAlignment.Left;
+        pChip.Click += (_, _) =>
+        {
+            bool pShown = pDetail.Visibility == Visibility.Visible;
+            pDetail.Visibility = pShown ? Visibility.Collapsed : Visibility.Visible;
+            pChip.Content = PSVerdictChipText(!pShown);
+        };
+
+        PSVerdictCellAdd(pRowGrid, 3, pChip);
+        pRow.Children.Add(pDetail);
+        return pRow;
+    }
+
+    private static bool PSVerdictDetailCheck(PSVerdictRow pEntry)
+    {
+        string pMessage = pEntry.PSVerdictMessage.Trim();
+        if (pMessage.Length == 0)
+        {
+            return false;
+        }
+
+        return !(pEntry.PSVerdictSuccess && string.Equals(pMessage, "exit 0", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void PSVerdictCellAdd(Grid pGrid, int pColumn, UIElement pCell)
+    {
         Grid.SetColumn(pCell, pColumn);
         pGrid.Children.Add(pCell);
     }
@@ -165,28 +237,39 @@ internal sealed class PSVerdict : Window
         Foreground = pInk,
         TextWrapping = TextWrapping.Wrap,
         VerticalAlignment = VerticalAlignment.Center,
-        Margin = new Thickness(0, 0, 10, PSVerdictRowGap)
+        Margin = new Thickness(0, 0, 10, 0)
     };
 
-    private static UIElement PSVerdictBadgeBuild(bool pSuccess)
+    private static UIElement PSVerdictBadgeBuild(bool pSuccess) => new Border
     {
-        var pBadge = new Border
+        Background = pSuccess ? PSVerdictPassFill : PSVerdictFailFill,
+        CornerRadius = new CornerRadius(3),
+        Padding = new Thickness(8, 1, 8, 1),
+        HorizontalAlignment = HorizontalAlignment.Left,
+        VerticalAlignment = VerticalAlignment.Center,
+        Margin = new Thickness(0, 0, 10, 0),
+        Child = new TextBlock
         {
-            Background = pSuccess ? PSVerdictPassFill : PSVerdictFailFill,
-            CornerRadius = new CornerRadius(3),
-            Padding = new Thickness(8, 1, 8, 1),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 10, PSVerdictRowGap),
-            Child = new TextBlock
-            {
-                Text = LLocalization.LLocalizationTextRead(pSuccess ? "Encoder.Verification.Pass" : "Encoder.Verification.Fail"),
-                Foreground = pSuccess ? PSVerdictPassInk : PSVerdictFailInk,
-                FontWeight = FontWeights.SemiBold
-            }
-        };
-        return pBadge;
-    }
+            Text = LLocalization.LLocalizationTextRead(pSuccess
+                ? "Encoder.Verification.Available"
+                : "Encoder.Verification.Unavailable"),
+            Foreground = pSuccess ? PSVerdictPassInk : PSVerdictFailInk,
+            FontWeight = FontWeights.SemiBold
+        }
+    };
+
+    private static Button PSVerdictChipBuild(bool pShown) => new()
+    {
+        Content = PSVerdictChipText(pShown),
+        Height = PSFieldChipHeight,
+        Padding = new Thickness(10, 0, 10, 0),
+        VerticalAlignment = VerticalAlignment.Center,
+        FontSize = 11,
+        Style = PButton.PButtonWhiteCreate()
+    };
+
+    private static string PSVerdictChipText(bool pShown) =>
+        LLocalization.LLocalizationTextRead("Encoder.Verification.Details") + (pShown ? "  ▴" : "  ▾");
 
     private static Brush PSVerdictBrushCreate(byte pRed, byte pGreen, byte pBlue)
     {
@@ -200,6 +283,10 @@ internal sealed class PSVerdict : Window
         PSGrabber.PSGrabberPlacementSave(this, PSVerdictPlacementKey);
         psVerdictGrabber.PSGrabberDetach();
         Closed -= PSVerdictCloseHandle;
+        if (ReferenceEquals(psVerdictCurrent, this))
+        {
+            psVerdictCurrent = null;
+        }
     }
 
     protected override void OnSourceInitialized(EventArgs pEvent)
