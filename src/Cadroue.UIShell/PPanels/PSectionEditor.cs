@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.Core;
 using Cadroue.UIShell.PFlow;
 
 namespace Cadroue.UIShell.PPanels;

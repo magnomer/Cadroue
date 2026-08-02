@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PPanels;
+using Cadroue.Core;
 
 namespace Cadroue.UIShell.PFlow;
 

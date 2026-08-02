@@ -6,62 +6,60 @@ using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PPanels;
 
+using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow
 {
+    private void PFlowSectionApply(List<LSegment> pFlowSections, int? pFlowActive)
+    {
+        lSectionList.Clear();
+        lSectionList.AddRange(pFlowSections);
+        lSectionIndexActive = pFlowActive;
+    }
+
     private void PFlowSectionAdd()
     {
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
-        if (lCursor >= lSpool.LSpoolDuration) return;
-        if (PFlowInsideCheck(lCursor, -1)) return;
-        TimeSpan pSectionEnd = PFlowLimitRead(lCursor, lSpool.LSpoolDuration, -1);
-        if (pSectionEnd <= lCursor) return;
-        lSectionList.Add(new LSegment(lCursor, pSectionEnd, PFlowColorRead(), string.Empty));
-        lSectionIndexActive = lSectionList.Count - 1;
-        PFlowSectionRecord("added", lSectionIndexActive.Value);
+        if (LSegment.LSegmentAdd(lSectionList, lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed)
+            is not { } pFlowPlan) return;
+        PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.Active);
+        PFlowSectionRecord("added", lSectionIndexActive!.Value);
         PFlowSectionUpdate();
     }
 
     private void PFlowStartSet()
     {
-        if (lSpool is null) return;
-        if (lSectionIndexActive is null) { PFlowSectionAdd(); return; }
-        LSegment section = lSectionList[lSectionIndexActive.Value];
-        if (section.LSegmentEnd < lCursor) { PFlowSectionAdd(); return; }
-        if (lCursor >= section.LSegmentEnd) return;
-        if (lCursor < PFlowFloorRead(section.LSegmentStart, lSectionIndexActive.Value)) return;
-        lSectionList[lSectionIndexActive.Value] = section with { LSegmentStart = lCursor };
-        PFlowSectionRecord("start set", lSectionIndexActive.Value);
+        if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
+        bool pFlowAdded = lSectionIndexActive is null
+            || lSectionList[lSectionIndexActive.Value].LSegmentEnd < lCursor;
+        if (LSegment.LSegmentStartSet(lSectionList, lSectionIndexActive, lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed)
+            is not { } pFlowPlan) return;
+        PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.Active);
+        PFlowSectionRecord(pFlowAdded ? "added" : "start set", lSectionIndexActive!.Value);
         PFlowSectionUpdate();
     }
 
     private void PFlowSectionDivide()
     {
-        if (lSectionIndexActive is null) return;
-        LSegment section = lSectionList[lSectionIndexActive.Value];
-        if (lCursor <= section.LSegmentStart || lCursor >= section.LSegmentEnd) return;
-        int index = lSectionIndexActive.Value;
-        int secondColorIndex = PFlowColorRead();
-        lSectionList.RemoveAt(index);
-        lSectionList.Insert(index, new LSegment(lCursor, section.LSegmentEnd, secondColorIndex, string.Empty));
-        lSectionList.Insert(index, section with { LSegmentEnd = lCursor });
-        lSectionIndexActive = index;
-        PFlowSectionRecord($"split at {lCursor:hh\\:mm\\:ss\\.fff}, left half", index);
-        PFlowSectionRecord("split, right half", index + 1);
+        if (LSegment.LSegmentDivide(lSectionList, lSectionIndexActive, lCursor, PFlowColorRead())
+            is not { } pFlowPlan) return;
+        PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.First);
+        PFlowSectionRecord($"split at {lCursor:hh\\:mm\\:ss\\.fff}, left half", pFlowPlan.First);
+        PFlowSectionRecord("split, right half", pFlowPlan.Second);
         PFlowSectionUpdate();
     }
 
     private void PFlowEndSet()
     {
-        if (lSectionIndexActive is null) return;
-        LSegment section = lSectionList[lSectionIndexActive.Value];
-        if (lCursor <= section.LSegmentStart) return;
-        if (lCursor > PFlowLimitRead(section.LSegmentEnd, lCursor, lSectionIndexActive.Value)) return;
-        lSectionList[lSectionIndexActive.Value] = section with { LSegmentEnd = lCursor };
-        PFlowSectionRecord("end set", lSectionIndexActive.Value);
+        if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
+        bool pFlowAdded = lSectionIndexActive is null;
+        if (LSegment.LSegmentEndSet(lSectionList, lSectionIndexActive, lCursor, PFlowColorRead(), PFlowOverlapAllowed)
+            is not { } pFlowPlan) return;
+        PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.Active);
+        PFlowSectionRecord(pFlowAdded ? "added" : "end set", lSectionIndexActive!.Value);
         PFlowSectionUpdate();
     }
 

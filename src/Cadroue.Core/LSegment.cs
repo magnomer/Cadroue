@@ -1,6 +1,6 @@
-namespace Cadroue.UIShell.PFlow;
+namespace Cadroue.Core;
 
-public readonly record struct LSegment(TimeSpan LSegmentStart, TimeSpan LSegmentEnd, int LSegmentColorIndex, string LSegmentName)
+public readonly partial record struct LSegment(TimeSpan LSegmentStart, TimeSpan LSegmentEnd, int LSegmentColorIndex, string LSegmentName)
 {
     private readonly string? lSegmentPrefix;
     private readonly string? lSegmentSuffix;

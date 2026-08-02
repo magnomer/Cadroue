@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using Cadroue.Core;
 using Cadroue.Media;
 using Newtonsoft.Json;
 

@@ -192,8 +192,8 @@ public sealed class PWorkspace
             return;
         }
 
-        IReadOnlyList<PFlow.LSegment> lRelaySections = lRelay.LRelaySections
-            .Select(lSection => new PFlow.LSegment(
+        IReadOnlyList<LSegment> lRelaySections = lRelay.LRelaySections
+            .Select(lSection => new LSegment(
                 TimeSpan.FromTicks(lSection.LRelayStartTicks),
                 TimeSpan.FromTicks(lSection.LRelayEndTicks),
                 lSection.LRelayColorIndex,
