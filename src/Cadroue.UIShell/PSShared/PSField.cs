@@ -185,11 +185,13 @@ internal static class PSField
     private const double PSFieldSliderWidth = 220;
     private const double PSFieldBitrateTicks = 1000;
 
-    internal static UIElement PSFieldSliderBuild(double pMinimum, double pMaximum, double pStep, string pValue, TextBox pReadout)
+    internal static UIElement PSFieldSliderBuild(double pMinimum, double pMaximum, double pStep, string pValue, TextBox pReadout, bool pHigherBetter)
     {
         double pStart = double.TryParse(pValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double pParsed)
             ? Math.Clamp(pParsed, pMinimum, pMaximum)
             : pMinimum;
+
+        double PSFieldQualityResolve(double pPosition) => pHigherBetter ? pPosition : pMinimum + pMaximum - pPosition;
 
         var pSlider = new Slider
         {
@@ -199,7 +201,7 @@ internal static class PSField
             LargeChange = pStep,
             TickFrequency = pStep,
             IsSnapToTickEnabled = true,
-            Value = pStart,
+            Value = PSFieldQualityResolve(pStart),
             Width = PSFieldSliderWidth,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -207,7 +209,7 @@ internal static class PSField
 
         pReadout.IsReadOnly = true;
         pReadout.Text = PSFieldValueFormat(pStart, pStep);
-        pSlider.ValueChanged += (_, _) => pReadout.Text = PSFieldValueFormat(pSlider.Value, pStep);
+        pSlider.ValueChanged += (_, _) => pReadout.Text = PSFieldValueFormat(PSFieldQualityResolve(pSlider.Value), pStep);
         return PSFieldSliderCompose(pSlider, pReadout);
     }
 
@@ -256,7 +258,7 @@ internal static class PSField
 
     private static UIElement PSFieldSliderCompose(Slider pSlider, TextBox pReadout)
     {
-        pReadout.Width = 68;
+        pReadout.Width = 88;
         pReadout.Margin = new Thickness(12, 0, 0, 0);
         pReadout.VerticalAlignment = VerticalAlignment.Center;
         var pRow = new StackPanel
@@ -303,7 +305,7 @@ internal static class PSField
     {
         double pRounded = Math.Round(pKbps);
         return pRounded >= 1000
-            ? (pRounded / 1000).ToString("0.###", CultureInfo.InvariantCulture) + "M"
+            ? (pRounded / 1000).ToString("0.##", CultureInfo.InvariantCulture) + "M"
             : ((long)pRounded).ToString(CultureInfo.InvariantCulture) + "k";
     }
 

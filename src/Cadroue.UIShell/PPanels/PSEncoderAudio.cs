@@ -315,7 +315,7 @@ internal sealed partial class PSEncoder
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
                 ? PSFieldBitrateBuild(pMinimum, pMaximum, pText, psAudioQualityBox)
-                : PSFieldSliderBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psAudioQualityBox);
+                : PSFieldSliderBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psAudioQualityBox, pQuality.CapabilityQualityHigherBetter);
             psAudioRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, pSliderRow));
         }
         else
