@@ -320,7 +320,8 @@ public sealed partial class LSchedule : LScheduleContract
 
     public int LScheduleAllClear()
     {
-        int lScheduleClearedCount = LScheduleFolderClear(new[]
+        int lScheduleClearedCount = LScheduleStaleClear();
+        lScheduleClearedCount += LScheduleFolderClear(new[]
         {
             LDepotFolder.LDepotFolderScheduled,
             LDepotFolder.LDepotFolderDone,
@@ -328,6 +329,30 @@ public sealed partial class LSchedule : LScheduleContract
             LDepotFolder.LDepotFolderCancelled
         });
         LTraceLog.LTraceInfoRecord($"Schedule: cleared {lScheduleClearedCount} work item(s) (all)");
+        return lScheduleClearedCount;
+    }
+
+    private int LScheduleStaleClear()
+    {
+        int lScheduleClearedCount = 0;
+        foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderRunning).ToArray())
+        {
+            LWorkRecord? lWorkRecord = LScheduleStore.LScheduleRecordRead(lDepotFilePath);
+            if (lWorkRecord is null || !LSentinel.LSentinelStaleCheck(lWorkRecord))
+            {
+                continue;
+            }
+
+            try
+            {
+                File.Delete(lDepotFilePath);
+                lScheduleClearedCount++;
+            }
+            catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
+            {
+            }
+        }
+
         return lScheduleClearedCount;
     }
 
@@ -350,6 +375,7 @@ public sealed partial class LSchedule : LScheduleContract
         }
 
         LDepotIndex.LDepotIndexRebuild();
+        LDepotIndex.LDepotIndexCompact();
         LScheduleLoad();
         return lScheduleClearedCount;
     }

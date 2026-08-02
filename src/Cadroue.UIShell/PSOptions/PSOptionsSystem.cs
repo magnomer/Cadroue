@@ -206,6 +206,7 @@ internal sealed partial class PSOptions
 
         int pRemoved = LDepot.LDepotFolderClear(LDepotFolder.LDepotFolderDone, LDepotFolder.LDepotFolderFailed);
         LDepotIndex.LDepotIndexRebuild();
+        LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();
         MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
@@ -232,8 +233,10 @@ internal sealed partial class PSOptions
         int pRemoved = LDepot.LDepotFolderClear(
             LDepotFolder.LDepotFolderScheduled,
             LDepotFolder.LDepotFolderDone,
-            LDepotFolder.LDepotFolderFailed);
+            LDepotFolder.LDepotFolderFailed,
+            LDepotFolder.LDepotFolderCancelled);
         LDepotIndex.LDepotIndexRebuild();
+        LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();
         MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
     }

@@ -234,6 +234,40 @@ public static class LDepotIndex
         }
     }
 
+    public static void LDepotIndexRelease()
+    {
+        try
+        {
+            using (SqliteConnection lDepotConnection = LDepotConnectionOpen())
+            using (SqliteCommand lDepotCommand = lDepotConnection.CreateCommand())
+            {
+                lDepotCommand.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
+                lDepotCommand.ExecuteNonQuery();
+            }
+        }
+        catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
+        {
+            LDepotIndexReport("could not be flushed before the move", lDepotException);
+        }
+
+        SqliteConnection.ClearAllPools();
+    }
+
+    public static void LDepotIndexCompact()
+    {
+        try
+        {
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
+            lDepotCommand.CommandText = "PRAGMA wal_checkpoint(TRUNCATE); VACUUM;";
+            lDepotCommand.ExecuteNonQuery();
+        }
+        catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
+        {
+            LDepotIndexReport("compaction failed", lDepotException);
+        }
+    }
+
     private static LWorkRecord? LDepotRecordRead(string lDepotFilePath)
     {
         try

@@ -16,14 +16,14 @@ public partial class PToolbar
         }
 
         Point pDipPoint = PTabDipRead(pRelayWindow, pDevicePoint);
-        if (PTabInsideCheck(pRelayWindow, pDipPoint))
+        if (PTabInsideCheck(pRelayWindow, pDevicePoint))
         {
             return false;
         }
 
         if (pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabBusyCheck())
         {
-            PTabBusyShow(pTabRecord);
+            PTabBusyShow(pRelayWindow, pTabRecord);
             return false;
         }
 
@@ -64,10 +64,11 @@ public partial class PToolbar
         return true;
     }
 
-    private static void PTabBusyShow(PTabRecord pTabRecord)
+    private static void PTabBusyShow(Window pRelayWindow, PTabRecord pTabRecord)
     {
         LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' kept: the worklist is still working");
         MessageBox.Show(
+            pRelayWindow,
             LLocalization.LLocalizationTextRead("Tab.Relay.BusyMessage"),
             LLocalization.LLocalizationTextRead("Tab.Relay.BusyTitle"),
             MessageBoxButton.OK,
@@ -80,20 +81,18 @@ public partial class PToolbar
             .TransformFromDevice.Transform(pDevicePoint) ?? pDevicePoint;
     }
 
-    private static bool PTabInsideCheck(Window pRelayWindow, Point pDipPoint)
+    private static bool PTabInsideCheck(Window pRelayWindow, Point pDevicePoint)
     {
         if (pRelayWindow.WindowState == WindowState.Minimized)
         {
             return false;
         }
 
-        var pWindowBounds = new Rect(
-            pRelayWindow.Left,
-            pRelayWindow.Top,
-            pRelayWindow.ActualWidth,
-            pRelayWindow.ActualHeight);
-
-        return pWindowBounds.Contains(pDipPoint);
+        Point pWindowPoint = pRelayWindow.PointFromScreen(pDevicePoint);
+        return pWindowPoint.X >= 0
+            && pWindowPoint.Y >= 0
+            && pWindowPoint.X <= pRelayWindow.ActualWidth
+            && pWindowPoint.Y <= pRelayWindow.ActualHeight;
     }
 
     private static bool PTabRelayStart(string lRelayFilePath)

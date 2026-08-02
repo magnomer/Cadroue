@@ -54,11 +54,11 @@ public static class LEncode
         else
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin)}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
             if (lWorkItem.LWorkEnd > lWorkItem.LWorkOrigin)
             {
-                lArguments.Append(CultureInfo.InvariantCulture, $" -to {LEncodeTimeFormat(lWorkItem.LWorkEnd)}");
+                lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lWorkItem.LWorkDuration)}");
             }
-            lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         }
 
         LEncodeVideo.LEncodeVideoAppend(lArguments, lWorkItem, lOutput);

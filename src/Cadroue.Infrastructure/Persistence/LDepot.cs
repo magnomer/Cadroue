@@ -160,6 +160,7 @@ public static class LDepot
                 return false;
             }
 
+            LDepotIndex.LDepotIndexRelease();
             LDepotMove(lDepotPrevious, lDepotNext);
             LTraceLog.LTraceInfoRecord($"Workspace moved from {lDepotPrevious}");
             return true;

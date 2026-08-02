@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Cadroue.Core;
 
 public enum LAudioKind
@@ -23,8 +25,15 @@ public enum LGrain
     LGrainShellac
 }
 
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "LWorkStepType")]
+[JsonDerivedType(typeof(LWorkVolumeStep), "Volume")]
+[JsonDerivedType(typeof(LWorkNormalizeStep), "Normalize")]
+[JsonDerivedType(typeof(LWorkNoiseStep), "Noise")]
+[JsonDerivedType(typeof(LWorkPassStep), "Pass")]
+[JsonDerivedType(typeof(LWorkEqualizerStep), "Equalizer")]
 public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepActive)
 {
+    [JsonIgnore]
     public virtual bool LWorkStepLoudness => false;
 
     public static LWorkAudioStep LWorkVolumeCreate(bool lStepActive, double lStepGain) =>

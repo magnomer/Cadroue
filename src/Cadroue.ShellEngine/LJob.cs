@@ -19,6 +19,23 @@ internal sealed class LJob
 
     internal async Task LJobRun()
     {
+        string pJobInvalid = LJobValidate();
+        if (pJobInvalid.Length > 0)
+        {
+            LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobInvalid}");
+            lJobOwner.LRunnerDispatch(() =>
+            {
+                lJobItem.LWorkFinishTime = DateTimeOffset.Now;
+                lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+                lJobItem.LWorkMessage = pJobInvalid;
+                lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobInvalid);
+                lJobOwner.lRunnerSchedule.LScheduleLoad();
+            });
+            lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
+            lJobOwner.LRunnerFailureApply();
+            return;
+        }
+
         lJobOwner.lRunnerItems[lJobItem.LWorkId] = lJobItem;
         lJobOwner.LRunnerLeaseStart(lJobItem);
         lJobOwner.LRunnerDispatch(() =>
@@ -38,6 +55,10 @@ internal sealed class LJob
         LJobCollisionApply();
 
         IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);
+        if (pStages.Count == 0)
+        {
+            throw new InvalidOperationException("the stored job produced no encode steps (incomplete or corrupt)");
+        }
 
         var pJobClock = Stopwatch.StartNew();
         lJobItem.LWorkStartTime = DateTimeOffset.Now;
@@ -179,6 +200,36 @@ internal sealed class LJob
             lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
             LJobTempClear(pStages);
         }
+    }
+
+    private string LJobValidate()
+    {
+        if (lJobItem.LWorkKind == LWorkKind.LWorkKindMerge)
+        {
+            if (lJobItem.LWorkMergeSources.Count == 0)
+            {
+                return "the merge has no source files (the stored job is incomplete or corrupt)";
+            }
+
+            foreach (string pMergeSource in lJobItem.LWorkMergeSources)
+            {
+                if (string.IsNullOrWhiteSpace(pMergeSource) || !File.Exists(pMergeSource))
+                {
+                    return $"a merge source is missing: '{pMergeSource}'";
+                }
+            }
+        }
+        else if (string.IsNullOrWhiteSpace(lJobItem.LWorkSourcePath) || !File.Exists(lJobItem.LWorkSourcePath))
+        {
+            return $"the source file is missing: '{lJobItem.LWorkSourcePath}'";
+        }
+
+        if (string.IsNullOrWhiteSpace(lJobItem.LWorkOutputPath))
+        {
+            return "the output path is empty (the stored job is incomplete or corrupt)";
+        }
+
+        return string.Empty;
     }
 
     private async Task<(int, string)> LJobStageRun(

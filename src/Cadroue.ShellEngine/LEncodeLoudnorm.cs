@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 
 namespace Cadroue.ShellEngine;
@@ -22,7 +23,12 @@ public static class LEncodeLoudnorm
                 || !lValues.TryGetValue("input_tp", out string? lInputTp)
                 || !lValues.TryGetValue("input_lra", out string? lInputLra)
                 || !lValues.TryGetValue("input_thresh", out string? lInputThresh)
-                || !lValues.TryGetValue("target_offset", out string? lTargetOffset))
+                || !lValues.TryGetValue("target_offset", out string? lTargetOffset)
+                || !LEncodeMeasuredCheck(lInputI)
+                || !LEncodeMeasuredCheck(lInputTp)
+                || !LEncodeMeasuredCheck(lInputLra)
+                || !LEncodeMeasuredCheck(lInputThresh)
+                || !LEncodeMeasuredCheck(lTargetOffset))
             {
                 return string.Empty;
             }
@@ -35,4 +41,8 @@ public static class LEncodeLoudnorm
             return string.Empty;
         }
     }
+
+    private static bool LEncodeMeasuredCheck(string lValue) =>
+        double.TryParse(lValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double lMeasured)
+        && double.IsFinite(lMeasured);
 }

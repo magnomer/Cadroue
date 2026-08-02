@@ -149,7 +149,7 @@ public sealed class LWorkRecord
             lWorkRecord?.LWorkRecordNormalize();
             return lWorkRecord;
         }
-        catch (JsonException)
+        catch (Exception lWorkException) when (lWorkException is JsonException or NotSupportedException)
         {
             return null;
         }
