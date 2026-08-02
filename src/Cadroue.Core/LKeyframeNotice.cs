@@ -1,8 +1,4 @@
-using Cadroue.Media;
-
-using Cadroue.Core;
-
-namespace Cadroue.UIShell.PFlow;
+namespace Cadroue.Core;
 
 public sealed class LKeyframeNotice
 {

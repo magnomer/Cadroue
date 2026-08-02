@@ -73,7 +73,13 @@ public partial class PProgram : System.Windows.Application
         LFlyleaf.LFlyleafResolverAttach();
         base.OnStartup(e);
         PFlow.PSectionPalette.PSectionPaletteLoad();
-        LPlacementImport();
+        Cadroue.Infrastructure.LPlacement.LPlacementImport(
+            LPreferenceStateStore.LPreferencePathRead(),
+            new (string, string)[]
+            {
+                ("Encoder", PPanels.PSEncoder.PSEncoderPlacementKey),
+                ("Options", PSOptions.PSOptionsPlacementKey),
+            });
 
         Cadroue.Media.LTool.LToolFolderSource = () => LRenderer.LRendererFolderCurrent;
         LStationSeamApply();
@@ -152,7 +158,8 @@ public partial class PProgram : System.Windows.Application
                 return;
             }
 
-            if (lDepotRootApplied is string lDepotPrevious && !LDepotFolderMove(lDepotPrevious, lDepotRoot))
+            if (lDepotRootApplied is string lDepotPrevious
+                && !Cadroue.Infrastructure.LDepot.LDepotFolderMove(lDepotPrevious, lDepotRoot))
             {
                 Cadroue.Infrastructure.LDepot.LDepotRootSet(lDepotPrevious);
                 return;
@@ -168,45 +175,6 @@ public partial class PProgram : System.Windows.Application
             lDepotRootApplied = null;
             LTraceLog.LTraceErrorRecord("Workspace folder could not be prepared", lException);
         }
-    }
-
-    private static void LPlacementImport()
-    {
-        try
-        {
-            string lPreferencePath = LPreferenceStateStore.LPreferencePathRead();
-            if (!System.IO.File.Exists(lPreferencePath))
-            {
-                return;
-            }
-
-            using var lPreferenceDocument = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(lPreferencePath));
-            System.Text.Json.JsonElement lPreferenceRoot = lPreferenceDocument.RootElement;
-            LPlacementEntryImport(lPreferenceRoot, "Encoder", PPanels.PSEncoder.PSEncoderPlacementKey);
-            LPlacementEntryImport(lPreferenceRoot, "Options", PSOptions.PSOptionsPlacementKey);
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord("Subwindow placement could not be carried from preferences", lException);
-        }
-    }
-
-    private static void LPlacementEntryImport(System.Text.Json.JsonElement lPreferenceRoot, string lPrefix, string lPlacementKey)
-    {
-        if (Cadroue.Infrastructure.LPlacement.LPlacementExist(lPlacementKey)
-            || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Left", out System.Text.Json.JsonElement lLeft)
-            || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Top", out System.Text.Json.JsonElement lTop)
-            || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Width", out System.Text.Json.JsonElement lWidth)
-            || !lPreferenceRoot.TryGetProperty($"LPreference{lPrefix}Height", out System.Text.Json.JsonElement lHeight)
-            || lLeft.ValueKind != System.Text.Json.JsonValueKind.Number
-            || lTop.ValueKind != System.Text.Json.JsonValueKind.Number)
-        {
-            return;
-        }
-
-        Cadroue.Infrastructure.LPlacement.LPlacementSave(
-            lPlacementKey, lLeft.GetDouble(), lTop.GetDouble(), lWidth.GetDouble(), lHeight.GetDouble());
-        LTraceLog.LTraceInfoRecord($"Subwindow placement carried from preferences: {lPlacementKey}");
     }
 
     private static void LScheduleRecoverRun()
@@ -243,26 +211,5 @@ public partial class PProgram : System.Windows.Application
 
     private static string PProgramVersionRead() =>
         System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
-
-    private static bool LDepotFolderMove(string lDepotPrevious, string lDepotNext)
-    {
-        try
-        {
-            if (Cadroue.Infrastructure.LDepot.LDepotRunningCheck(lDepotPrevious))
-            {
-                LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: a job is running, so nothing was moved");
-                return false;
-            }
-
-            Cadroue.Infrastructure.LDepot.LDepotMove(lDepotPrevious, lDepotNext);
-            LTraceLog.LTraceInfoRecord($"Workspace moved from {lDepotPrevious}");
-            return true;
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: the move failed", lException);
-            return false;
-        }
-    }
 
 }

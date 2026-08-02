@@ -1,10 +1,6 @@
-using System.Windows;
-using System.Windows.Media;
 using Cadroue.Media;
 
-using Cadroue.Infrastructure;
-
-namespace Cadroue.UIShell.PFlow;
+namespace Cadroue.Infrastructure;
 
 public sealed class LWaveformOrchestrator : IDisposable
 {
@@ -79,60 +75,6 @@ public sealed class LWaveformOrchestrator : IDisposable
         }
 
         LWaveformReady?.Invoke(Array.Empty<byte>());
-    }
-
-    public static Geometry? LWaveformGeometryCreate(
-        byte[] lWaveformPeaks,
-        double lWaveformWidth,
-        double lWaveformRailTop,
-        double lWaveformRailHeight,
-        TimeSpan lWaveformRangeStart,
-        TimeSpan lWaveformRangeEnd)
-    {
-        int lWaveformColumnCount = (int)Math.Ceiling(lWaveformWidth);
-        if (lWaveformColumnCount <= 1 || lWaveformRailHeight <= 2)
-        {
-            return null;
-        }
-
-        double[] lWaveformColumns = LWaveform.LWaveformRangeRead(
-            lWaveformPeaks, lWaveformRangeStart, lWaveformRangeEnd, lWaveformColumnCount);
-        if (lWaveformColumns.Length == 0)
-        {
-            return null;
-        }
-
-        double lWaveformColumnWidth = lWaveformWidth / lWaveformColumnCount;
-        double lWaveformCenterY = lWaveformRailTop + lWaveformRailHeight / 2;
-        double lWaveformHalfHeight = lWaveformRailHeight / 2 - 1;
-        var lWaveformGeometry = new StreamGeometry();
-        using (StreamGeometryContext lWaveformContext = lWaveformGeometry.Open())
-        {
-            lWaveformContext.BeginFigure(
-                new Point(0, lWaveformCenterY - lWaveformColumns[0] * lWaveformHalfHeight), true, true);
-            for (int lWaveformColumn = 1; lWaveformColumn < lWaveformColumns.Length; lWaveformColumn++)
-            {
-                lWaveformContext.LineTo(
-                    new Point(
-                        lWaveformColumn * lWaveformColumnWidth,
-                        lWaveformCenterY - lWaveformColumns[lWaveformColumn] * lWaveformHalfHeight),
-                    false,
-                    false);
-            }
-
-            for (int lWaveformColumn = lWaveformColumns.Length - 1; lWaveformColumn >= 0; lWaveformColumn--)
-            {
-                lWaveformContext.LineTo(
-                    new Point(
-                        lWaveformColumn * lWaveformColumnWidth,
-                        lWaveformCenterY + lWaveformColumns[lWaveformColumn] * lWaveformHalfHeight),
-                    false,
-                    false);
-            }
-        }
-
-        lWaveformGeometry.Freeze();
-        return lWaveformGeometry;
     }
 
     private void LWaveformScanStart(string lWaveformPath, TimeSpan lWaveformDuration, CancellationToken lWaveformToken)

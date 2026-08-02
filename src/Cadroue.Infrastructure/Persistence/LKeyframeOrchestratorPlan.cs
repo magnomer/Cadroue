@@ -1,8 +1,6 @@
 using Cadroue.Media;
 
-using Cadroue.Infrastructure;
-
-namespace Cadroue.UIShell.PFlow;
+namespace Cadroue.Infrastructure;
 
 public sealed partial class LKeyframeOrchestrator
 {

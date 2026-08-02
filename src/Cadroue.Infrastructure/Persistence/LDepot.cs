@@ -150,6 +150,27 @@ public static class LDepot
         return Directory.Exists(lDepotRunning) && Directory.EnumerateFiles(lDepotRunning).Any();
     }
 
+    public static bool LDepotFolderMove(string lDepotPrevious, string lDepotNext)
+    {
+        try
+        {
+            if (LDepotRunningCheck(lDepotPrevious))
+            {
+                LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: a job is running, so nothing was moved");
+                return false;
+            }
+
+            LDepotMove(lDepotPrevious, lDepotNext);
+            LTraceLog.LTraceInfoRecord($"Workspace moved from {lDepotPrevious}");
+            return true;
+        }
+        catch (Exception lException)
+        {
+            LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: the move failed", lException);
+            return false;
+        }
+    }
+
     public static void LDepotMove(string lDepotSource, string lDepotTarget)
     {
         if (!Directory.Exists(lDepotSource))

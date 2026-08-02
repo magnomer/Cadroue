@@ -72,7 +72,7 @@ public sealed partial class PMap
             return;
         }
 
-        Geometry? waveformGeometry = LWaveformOrchestrator.LWaveformGeometryCreate(
+        Geometry? waveformGeometry = PFlow.PFlowWaveformBuild(
             lWaveformPeaks, actualWidth, railTop, railHeight, TimeSpan.Zero, lSpool.LSpoolDuration);
         if (waveformGeometry is not null)
         {

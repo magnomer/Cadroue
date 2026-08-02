@@ -1,12 +1,9 @@
 using System.IO;
 using Cadroue.Media;
-using Cadroue.UIShell;
 
 using Cadroue.Core;
 
-using Cadroue.Infrastructure;
-
-namespace Cadroue.UIShell.PFlow;
+namespace Cadroue.Infrastructure;
 
 public sealed partial class LKeyframeOrchestrator
 {

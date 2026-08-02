@@ -6,6 +6,7 @@ using Cadroue.UIShell;
 using Cadroue.UIShell.PPanels;
 
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PFlow;
 
@@ -191,7 +192,7 @@ public sealed partial class PViewfinder
         TimeSpan rangeStart,
         TimeSpan rangeEnd)
     {
-        Geometry? waveformGeometry = LWaveformOrchestrator.LWaveformGeometryCreate(
+        Geometry? waveformGeometry = PFlow.PFlowWaveformBuild(
             lWaveformPeaks, actualWidth, railTop, railHeight, rangeStart, rangeEnd);
         if (waveformGeometry is not null)
         {
