@@ -98,11 +98,15 @@ public sealed class LWorkItem
 
     public int LWorkOwnerProcess { get; set; }
 
+    public long LWorkOwnerStamp { get; set; }
+
     public Guid LWorkOwnerRunner { get; set; }
 
     public LWorkPhase LWorkPhaseCurrent { get; set; }
 
     public int LWorkAttemptCount { get; set; }
+
+    public int LWorkRecoverCount { get; set; }
 
     public LWorkState LWorkStateCurrent { get; set; } = LWorkState.LWorkStatePending;
 

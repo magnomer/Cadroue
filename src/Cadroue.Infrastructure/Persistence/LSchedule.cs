@@ -222,6 +222,7 @@ public sealed partial class LSchedule : LScheduleContract
         var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateCancelled);
         lWorkRecord.LWorkOwnerProcess = 0;
+        lWorkRecord.LWorkOwnerStamp = 0;
         lWorkRecord.LWorkOwnerRunner = Guid.Empty;
         lWorkRecord.LWorkLeaseTime = default;
         lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
@@ -249,10 +250,12 @@ public sealed partial class LSchedule : LScheduleContract
 
             lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStatePending);
             lWorkRecord.LWorkOwnerProcess = 0;
+            lWorkRecord.LWorkOwnerStamp = 0;
             lWorkRecord.LWorkOwnerRunner = Guid.Empty;
             lWorkRecord.LWorkLeaseTime = default;
             lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
             lWorkRecord.LWorkAttemptCount = 0;
+            lWorkRecord.LWorkRecoverCount = 0;
             lWorkRecord.LWorkProgress = 0;
             lWorkRecord.LWorkMessage = string.Empty;
             LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);

@@ -35,6 +35,7 @@ public sealed partial class LSchedule
 
             lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateRunning);
             lWorkRecord.LWorkOwnerProcess = Environment.ProcessId;
+            lWorkRecord.LWorkOwnerStamp = LSentinel.LSentinelStampRead();
             lWorkRecord.LWorkOwnerRunner = lRunnerId;
             lWorkRecord.LWorkLeaseTime = DateTimeOffset.Now;
             lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseStarted);
@@ -143,29 +144,30 @@ public sealed partial class LSchedule
             LSchedulePartialRemove(lWorkRecord);
             string lSchedulePhase = LSchedulePhaseFormat(lWorkRecord.LWorkPhaseName);
 
-            if (lWorkRecord.LWorkAttemptCount >= LScheduleAttemptLimit)
+            if (lWorkRecord.LWorkRecoverCount >= LScheduleAttemptLimit)
             {
                 if (LScheduleFailedSet(
                         lWorkRecord,
-                        $"Stopped unexpectedly while {lSchedulePhase} on attempt {lWorkRecord.LWorkAttemptCount}. Not retried again."))
+                        $"Stopped unexpectedly while {lSchedulePhase} on attempt {lWorkRecord.LWorkRecoverCount}. Not retried again."))
                 {
                     lScheduleReclaimedCount++;
                     LScheduleRecoverReport?.Invoke(
                         $"Work '{lWorkRecord.LWorkOutputName}' failed: stopped unexpectedly while {lSchedulePhase} " +
-                        $"after {lWorkRecord.LWorkAttemptCount} attempt(s)");
+                        $"after {lWorkRecord.LWorkRecoverCount} recovery attempt(s)");
                 }
 
                 continue;
             }
 
+            lWorkRecord.LWorkRecoverCount++;
             if (LScheduleRecordRelease(
                     lWorkRecord,
-                    $"Recovered after an unexpected stop while {lSchedulePhase} (attempt {lWorkRecord.LWorkAttemptCount})."))
+                    $"Recovered after an unexpected stop while {lSchedulePhase} (attempt {lWorkRecord.LWorkRecoverCount})."))
             {
                 lScheduleReclaimedCount++;
                 LScheduleRecoverReport?.Invoke(
                     $"Work '{lWorkRecord.LWorkOutputName}' returned to the queue: stopped unexpectedly while {lSchedulePhase} " +
-                    $"(attempt {lWorkRecord.LWorkAttemptCount} of {LScheduleAttemptLimit})");
+                    $"(attempt {lWorkRecord.LWorkRecoverCount} of {LScheduleAttemptLimit})");
             }
         }
 
@@ -205,6 +207,7 @@ public sealed partial class LSchedule
 
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateFailed);
         lWorkRecord.LWorkOwnerProcess = 0;
+        lWorkRecord.LWorkOwnerStamp = 0;
         lWorkRecord.LWorkOwnerRunner = Guid.Empty;
         lWorkRecord.LWorkLeaseTime = default;
         lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
@@ -233,6 +236,7 @@ public sealed partial class LSchedule
 
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStatePending);
         lWorkRecord.LWorkOwnerProcess = 0;
+        lWorkRecord.LWorkOwnerStamp = 0;
         lWorkRecord.LWorkOwnerRunner = Guid.Empty;
         lWorkRecord.LWorkLeaseTime = default;
         lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);

@@ -17,6 +17,7 @@ public sealed partial class LRunner
     private readonly object lRunnerGate = new();
     private LRunnerBatch? lRunnerBatch;
     private bool lRunnerSuspended;
+    private volatile bool lRunnerRunning;
 
     private static readonly TimeSpan lRunnerPollInterval = TimeSpan.FromMilliseconds(500);
 
@@ -59,7 +60,11 @@ public sealed partial class LRunner
 
     public bool LRunnerSuspended => lRunnerSuspended;
 
-    public bool LRunnerRunning { get; private set; }
+    public bool LRunnerRunning
+    {
+        get => lRunnerRunning;
+        private set => lRunnerRunning = value;
+    }
 
     public void LRunnerStart()
     {

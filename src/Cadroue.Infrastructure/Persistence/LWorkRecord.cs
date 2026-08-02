@@ -39,6 +39,8 @@ public sealed class LWorkRecord
 
     public int LWorkOwnerProcess { get; set; }
 
+    public long LWorkOwnerStamp { get; set; }
+
     public Guid LWorkOwnerRunner { get; set; }
 
     public DateTimeOffset LWorkLeaseTime { get; set; }
@@ -46,6 +48,8 @@ public sealed class LWorkRecord
     public string LWorkPhaseName { get; set; } = nameof(LWorkPhase.LWorkPhaseNone);
 
     public int LWorkAttemptCount { get; set; }
+
+    public int LWorkRecoverCount { get; set; }
 
     public LWorkOutputRecord LWorkOutputSnapshot { get; set; } = new();
 
@@ -82,9 +86,11 @@ public sealed class LWorkRecord
         LWorkSourceMedia = lWorkItem.LWorkSourceMedia,
         LWorkOutputMedia = lWorkItem.LWorkOutputMedia,
         LWorkOwnerProcess = lWorkItem.LWorkOwnerProcess,
+        LWorkOwnerStamp = lWorkItem.LWorkOwnerStamp,
         LWorkOwnerRunner = lWorkItem.LWorkOwnerRunner,
         LWorkPhaseName = lWorkItem.LWorkPhaseCurrent.ToString(),
         LWorkAttemptCount = lWorkItem.LWorkAttemptCount,
+        LWorkRecoverCount = lWorkItem.LWorkRecoverCount,
         LWorkOutputSnapshot = LWorkOutputRecord.LWorkSnapshotCreate(lWorkItem.LWorkOutput),
         LWorkCrop = lWorkItem.LWorkCrop,
         LWorkVideo = lWorkItem.LWorkVideo,
@@ -118,9 +124,11 @@ public sealed class LWorkRecord
         lWorkItem.LWorkMessage = LWorkMessage;
         lWorkItem.LWorkProgress = LWorkProgress;
         lWorkItem.LWorkOwnerProcess = LWorkOwnerProcess;
+        lWorkItem.LWorkOwnerStamp = LWorkOwnerStamp;
         lWorkItem.LWorkOwnerRunner = LWorkOwnerRunner;
         lWorkItem.LWorkPhaseCurrent = LWorkEnumRead(LWorkPhaseName, LWorkPhase.LWorkPhaseNone);
         lWorkItem.LWorkAttemptCount = LWorkAttemptCount;
+        lWorkItem.LWorkRecoverCount = LWorkRecoverCount;
         lWorkItem.LWorkStartTime = LWorkStartTime;
         lWorkItem.LWorkFinishTime = LWorkFinishTime;
         lWorkItem.LWorkOutputBytes = LWorkOutputBytes;

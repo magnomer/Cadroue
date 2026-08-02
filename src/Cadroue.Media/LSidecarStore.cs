@@ -88,7 +88,7 @@ public static class LSidecarStore
                 return LSidecarFileSave(lSidecarPath, lSidecar);
             }
         }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or TimeoutException)
         {
             return false;
         }
@@ -121,7 +121,7 @@ public static class LSidecarStore
                 return LSidecarFileSave(lSidecarPath, lSidecar);
             }
         }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException or TimeoutException)
         {
             return false;
         }
@@ -226,7 +226,7 @@ public static class LSidecarStore
 
             return lSidecarProbed;
         }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException or TimeoutException)
         {
             return TimeSpan.Zero;
         }

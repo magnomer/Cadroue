@@ -12,6 +12,23 @@ public static class LSentinel
     private static readonly HashSet<Guid> lSentinelLiveRunners = new();
     private static readonly object lSentinelRunnerLock = new();
 
+    private static readonly long lSentinelStamp = LSentinelStampResolve();
+
+    public static long LSentinelStampRead() => lSentinelStamp;
+
+    private static long LSentinelStampResolve()
+    {
+        try
+        {
+            using Process lSentinelProcess = Process.GetCurrentProcess();
+            return lSentinelProcess.StartTime.ToUniversalTime().Ticks;
+        }
+        catch (Exception lException) when (lException is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            return 0;
+        }
+    }
+
     public static void LSentinelRunnerAdd(Guid lRunnerId)
     {
         lock (lSentinelRunnerLock)
@@ -40,13 +57,13 @@ public static class LSentinel
     {
         bool lSentinelOwnerAlive = lWorkRecord.LWorkOwnerProcess == Environment.ProcessId
             ? LSentinelRunnerCheck(lWorkRecord.LWorkOwnerRunner)
-            : LSentinelProcessCheck(lWorkRecord.LWorkOwnerProcess);
+            : LSentinelProcessCheck(lWorkRecord.LWorkOwnerProcess, lWorkRecord.LWorkOwnerStamp);
 
         bool lSentinelLeaseStale = DateTimeOffset.Now - lWorkRecord.LWorkLeaseTime > LSentinelLeaseExpiry;
         return !lSentinelOwnerAlive && lSentinelLeaseStale;
     }
 
-    private static bool LSentinelProcessCheck(int lProcessId)
+    private static bool LSentinelProcessCheck(int lProcessId, long lOwnerStamp)
     {
         if (lProcessId <= 0)
         {
@@ -56,13 +73,27 @@ public static class LSentinel
         try
         {
             using Process lSentinelProcess = Process.GetProcessById(lProcessId);
-            return !lSentinelProcess.HasExited;
+            if (lSentinelProcess.HasExited)
+            {
+                return false;
+            }
+
+            if (lOwnerStamp == 0)
+            {
+                return true;
+            }
+
+            return lSentinelProcess.StartTime.ToUniversalTime().Ticks == lOwnerStamp;
         }
         catch (ArgumentException)
         {
             return false;
         }
         catch (InvalidOperationException)
+        {
+            return false;
+        }
+        catch (System.ComponentModel.Win32Exception)
         {
             return false;
         }

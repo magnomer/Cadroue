@@ -8,14 +8,12 @@ public sealed class LLatchScope : IDisposable
 {
     private readonly object lLatchGate;
     private readonly Mutex? lLatchMutex;
-    private readonly bool lLatchHeld;
     private bool lLatchDisposed;
 
-    internal LLatchScope(object lLatchGate, Mutex? lLatchMutex, bool lLatchHeld)
+    internal LLatchScope(object lLatchGate, Mutex? lLatchMutex)
     {
         this.lLatchGate = lLatchGate;
         this.lLatchMutex = lLatchMutex;
-        this.lLatchHeld = lLatchHeld;
     }
 
     public void Dispose()
@@ -28,10 +26,7 @@ public sealed class LLatchScope : IDisposable
         lLatchDisposed = true;
         try
         {
-            if (lLatchHeld)
-            {
-                lLatchMutex?.ReleaseMutex();
-            }
+            lLatchMutex?.ReleaseMutex();
         }
         catch (ApplicationException)
         {
@@ -58,20 +53,21 @@ public static class LLatch
         Monitor.Enter(lLatchGate);
 
         Mutex? lLatchMutex = null;
-        bool lLatchHeld = false;
         try
         {
             lLatchMutex = new Mutex(false, LLatchNameCreate(lLatchKey));
             try
             {
-                lLatchHeld = lLatchMutex.WaitOne(lLatchWaitLimit);
+                if (!lLatchMutex.WaitOne(lLatchWaitLimit))
+                {
+                    throw new TimeoutException("LLatch claim timed out for " + lLatchKey);
+                }
             }
             catch (AbandonedMutexException)
             {
-                lLatchHeld = true;
             }
 
-            return new LLatchScope(lLatchGate, lLatchMutex, lLatchHeld);
+            return new LLatchScope(lLatchGate, lLatchMutex);
         }
         catch
         {
@@ -85,6 +81,6 @@ public static class LLatch
     {
         string lLatchHash = Convert.ToHexString(
             SHA256.HashData(Encoding.UTF8.GetBytes(lLatchKey.ToUpperInvariant())));
-        return "Cadroue.Latch." + lLatchHash;
+        return @"Global\Cadroue.Latch." + lLatchHash;
     }
 }

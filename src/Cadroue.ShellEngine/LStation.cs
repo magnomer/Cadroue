@@ -6,6 +6,7 @@ namespace Cadroue.ShellEngine;
 public sealed class LStation
 {
     private static readonly List<LStation> lStationRecords = new();
+    private static readonly object lStationBoardLock = new();
     private static LStation? lStationInternal;
 
     private bool lStationAutoActive;
@@ -52,13 +53,29 @@ public sealed class LStation
 
     public static event Action? LStationChange;
 
-    public static IReadOnlyList<LStation> LStationRecords => lStationRecords.ToArray();
+    public static IReadOnlyList<LStation> LStationRecords
+    {
+        get
+        {
+            lock (lStationBoardLock)
+            {
+                return lStationRecords.ToArray();
+            }
+        }
+    }
 
     public static LStation LStationCreate(string lStationLabel)
     {
-        LStation lStation = LStationSeedAccept(lStationLabel);
-        lStationRecords.Add(lStation);
-        LStationInternalRemove();
+        LStation lStation;
+        LStation? lStationRetired;
+        lock (lStationBoardLock)
+        {
+            lStation = LStationSeedAccept(lStationLabel);
+            lStationRecords.Add(lStation);
+            lStationRetired = LStationInternalRemove();
+        }
+
+        lStationRetired?.LStationRunner.LRunnerDispose();
         LStationChange?.Invoke();
         return lStation;
     }
@@ -78,12 +95,25 @@ public sealed class LStation
 
     public static LStation LStationInternalRead()
     {
-        lStationInternal ??= new LStation("Background worklist");
-        return lStationInternal;
+        lock (lStationBoardLock)
+        {
+            lStationInternal ??= new LStation("Background worklist");
+            return lStationInternal;
+        }
     }
 
-    public static LStation[] LStationBoardRead() =>
-        lStationRecords.Count > 0 ? lStationRecords.ToArray() : new[] { LStationInternalRead() };
+    public static LStation[] LStationBoardRead()
+    {
+        lock (lStationBoardLock)
+        {
+            if (lStationRecords.Count > 0)
+            {
+                return lStationRecords.ToArray();
+            }
+        }
+
+        return new[] { LStationInternalRead() };
+    }
 
     public IReadOnlyList<LWorkItem> LStationSelectionRead()
     {
@@ -126,7 +156,14 @@ public sealed class LStation
         lStationAutoActive = false;
         LStationSelectionSource = null;
         LStationSchedule!.LScheduleChange -= LStationScheduleHandle;
-        if (!lStationRecords.Remove(this))
+
+        bool lStationRemoved;
+        lock (lStationBoardLock)
+        {
+            lStationRemoved = lStationRecords.Remove(this);
+        }
+
+        if (!lStationRemoved)
         {
             return;
         }
@@ -135,19 +172,20 @@ public sealed class LStation
         LStationChange?.Invoke();
     }
 
-    private static void LStationInternalRemove()
+    private static LStation? LStationInternalRemove()
     {
         if (lStationInternal is null || lStationRecords.Count == 0)
         {
-            return;
+            return null;
         }
 
         if (lStationInternal.LStationRunner.LRunnerRunning)
         {
-            return;
+            return null;
         }
 
-        lStationInternal.LStationRunner.LRunnerDispose();
+        LStation lStationRetired = lStationInternal;
         lStationInternal = null;
+        return lStationRetired;
     }
 }
