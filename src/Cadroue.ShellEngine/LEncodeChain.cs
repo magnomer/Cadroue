@@ -33,7 +33,7 @@ internal static class LEncodeChain
         for (int lIndex = 0; lIndex < lWorkAudio.LWorkAudioSteps.Count; lIndex++)
         {
             LWorkAudioStep lStep = lWorkAudio.LWorkAudioSteps[lIndex];
-            if (!lStep.LWorkAudioStepActive)
+            if (!lStep.LWorkStepActive)
             {
                 continue;
             }
@@ -48,8 +48,8 @@ internal static class LEncodeChain
                 case LWorkNoiseStep lNoise:
                     string lNoiseType = lNoise.LWorkNoiseType switch
                     {
-                        LWorkAudioNoiseType.LWorkAudioNoiseVinyl => "vinyl",
-                        LWorkAudioNoiseType.LWorkAudioNoiseShellac => "shellac",
+                        LGrain.LGrainVinyl => "vinyl",
+                        LGrain.LGrainShellac => "shellac",
                         _ => "white"
                     };
                     string lDenoise = string.Create(
@@ -71,14 +71,14 @@ internal static class LEncodeChain
                     LEncodePassAppend(lFilters, lPass, lPass.LWorkPassHigh ? "highpass" : "lowpass");
                     break;
                 case LWorkEqualizerStep lEqualizer:
-                    foreach (LWorkEqualizerBand lBand in lEqualizer.LWorkEqualizerBands)
+                    foreach (LWorkBand lBand in lEqualizer.LWorkEqualizerBands)
                     {
-                        LEncodeEqualizerAppend(lFilters, lBand.LWorkEqualizerBandFrequency, lBand.LWorkEqualizerBandGain);
+                        LEncodeEqualizerAppend(lFilters, lBand.LWorkBandFrequency, lBand.LWorkBandGain);
                     }
 
                     break;
                 case LWorkNormalizeStep lNormalize:
-                    if (lNormalize.LWorkNormalizeMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic)
+                    if (lNormalize.LWorkNormalizeMode == LLeveling.LLevelingDynamic)
                     {
                         int lFrame = (int)Math.Clamp(Math.Round(lNormalize.LWorkNormalizeFrame), 10, 8000);
                         int lGauss = (int)Math.Clamp(Math.Round(lNormalize.LWorkNormalizeGauss), 3, 301);
@@ -87,7 +87,7 @@ internal static class LEncodeChain
                             lGauss++;
                         }
 
-                        double lMaxGain = Math.Clamp(lNormalize.LWorkNormalizeMaxGain, 1, 100);
+                        double lMaxGain = Math.Clamp(lNormalize.LWorkNormalizeGain, 1, 100);
                         string lDynamic = string.Create(
                             CultureInfo.InvariantCulture,
                             $"dynaudnorm=f={lFrame}:g={lGauss}:m={lMaxGain.ToString("0.###", CultureInfo.InvariantCulture)}:p=0.95");

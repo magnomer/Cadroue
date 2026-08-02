@@ -60,12 +60,12 @@ public sealed partial class PMap
         pMapPreviousX = mouseX;
         if (leftHandleRect.Contains(mousePoint))
         {
-            pMapDragMode = PMapDragMode.PMapDragResizeStart;
+            pMapDragMode = PMapDragMode.PMapResizeStart;
             lMapDragTime = lSpool.LSpoolRangeOrigin;
         }
         else if (rightHandleRect.Contains(mousePoint))
         {
-            pMapDragMode = PMapDragMode.PMapDragResizeEnd;
+            pMapDragMode = PMapDragMode.PMapResizeEnd;
             lMapDragTime = lSpool.LSpoolRangeLimit;
         }
         else if (moveHandleRect.Contains(mousePoint))
@@ -100,12 +100,12 @@ public sealed partial class PMap
 
         switch (pMapDragMode)
         {
-            case PMapDragMode.PMapDragResizeStart:
+            case PMapDragMode.PMapResizeStart:
                 lSpool.LSpoolStartSet(lMapDragTime + dragDeltaTime);
                 PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;
-            case PMapDragMode.PMapDragResizeEnd:
+            case PMapDragMode.PMapResizeEnd:
                 lSpool.LSpoolEndSet(lMapDragTime + dragDeltaTime);
                 PMapSpoolChange?.Invoke();
                 InvalidateVisual();

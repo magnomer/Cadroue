@@ -54,7 +54,7 @@ public sealed partial class PFlow
                     File.GetLastWriteTime(pLosslesscutPath),
                     pLosslesscutProject.LLosslesscutProjectVersion?.ToString() ?? pLosslesscutUnspecified,
                     pLosslesscutProject.LLosslesscutProjectSegments.Count,
-                    pLosslesscutProject.LLosslesscutProjectMediaFileName.PFlowFallbackRead(pLosslesscutUnspecified),
+                    pLosslesscutProject.LLosslesscutProjectMedia.PFlowFallbackRead(pLosslesscutUnspecified),
                     pLosslesscutChoiceMeaning),
                 LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.Title"),
                 MessageBoxButton.YesNo,
@@ -116,11 +116,11 @@ public sealed partial class PFlow
             lSourcePath,
             lSpool.LSpoolDuration);
 
-        if (!pLosslesscutResult.LLosslesscutResultMediaMatch
+        if (!pLosslesscutResult.LLosslesscutResultMatch
             && MessageBox.Show(
                 LLocalization.LLocalizationFormat(
                     "Flow.LosslessCut.Import.MediaMismatch",
-                    pLosslesscutResult.LLosslesscutResultMediaFileName,
+                    pLosslesscutResult.LLosslesscutResultMedia,
                     Path.GetFileName(lSourcePath)),
                 LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.MediaMismatchTitle"),
                 MessageBoxButton.YesNo,
@@ -198,7 +198,7 @@ public sealed partial class PFlow
                 pLosslesscutResult.LLosslesscutResultVersion?.ToString() ?? pLosslesscutUnspecified),
             LLocalization.LLocalizationFormat(
                 "Flow.LosslessCut.Summary.Media",
-                pLosslesscutResult.LLosslesscutResultMediaFileName.PFlowFallbackRead(pLosslesscutUnspecified)),
+                pLosslesscutResult.LLosslesscutResultMedia.PFlowFallbackRead(pLosslesscutUnspecified)),
             LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Valid", pLosslesscutResult.LLosslesscutResultSections.Count),
             LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Skipped", pLosslesscutResult.LLosslesscutResultIssues.Count)
         };

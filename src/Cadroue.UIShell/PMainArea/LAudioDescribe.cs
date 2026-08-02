@@ -99,46 +99,46 @@ public static partial class LAudio
     {
         bool lAudioSkip = (lAudioPersistent?.LWorkAudioSkip ?? false) || (lAudioSaved?.LWorkAudioSkip ?? false);
         var lAudioSteps = new List<LWorkAudioStep>();
-        foreach (LWorkAudioKind lAudioKind in LAudioKindsRead())
+        foreach (LAudioKind lAudioKind in LAudioKindsRead())
         {
             LWorkAudioStep? lAudioPersistentStep = lAudioPersistent?.LWorkAudioSteps
-                .FirstOrDefault(lStep => lStep.LWorkAudioStepKind == lAudioKind);
+                .FirstOrDefault(lStep => lStep.LWorkStepKind == lAudioKind);
             LWorkAudioStep? lAudioSavedStep = lAudioSaved?.LWorkAudioSteps
-                .FirstOrDefault(lStep => lStep.LWorkAudioStepKind == lAudioKind);
+                .FirstOrDefault(lStep => lStep.LWorkStepKind == lAudioKind);
             lAudioSteps.Add(lAudioPersistentStep ?? lAudioSavedStep ?? LAudioDefaultCreate(lAudioKind));
         }
 
         return new LWorkAudio(lAudioSteps) { LWorkAudioSkip = lAudioSkip };
     }
 
-    private static IReadOnlyList<LWorkAudioKind> LAudioKindsRead() => new[]
+    private static IReadOnlyList<LAudioKind> LAudioKindsRead() => new[]
     {
-        LWorkAudioKind.LWorkAudioKindHighPass,
-        LWorkAudioKind.LWorkAudioKindLowPass,
-        LWorkAudioKind.LWorkAudioKindNoiseReduction,
-        LWorkAudioKind.LWorkAudioKindEqualizer,
-        LWorkAudioKind.LWorkAudioKindVolume,
-        LWorkAudioKind.LWorkAudioKindNormalize
+        LAudioKind.LAudioKindHighpass,
+        LAudioKind.LAudioKindLowpass,
+        LAudioKind.LAudioKindDenoise,
+        LAudioKind.LAudioKindEqualizer,
+        LAudioKind.LAudioKindVolume,
+        LAudioKind.LAudioKindNormalize
     };
 
-    private static LWorkAudioStep LAudioDefaultCreate(LWorkAudioKind lAudioKind) => lAudioKind switch
+    private static LWorkAudioStep LAudioDefaultCreate(LAudioKind lAudioKind) => lAudioKind switch
     {
-        LWorkAudioKind.LWorkAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(false, LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -21, -2, 6, true),
-        LWorkAudioKind.LWorkAudioKindNoiseReduction => LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LWorkAudioNoiseType.LWorkAudioNoiseWhite, 6, 0.5, -38),
-        LWorkAudioKind.LWorkAudioKindHighPass => LWorkAudioStep.LWorkHighCreate(false, 80, 2, 2, 0.707),
-        LWorkAudioKind.LWorkAudioKindLowPass => LWorkAudioStep.LWorkLowCreate(false, 16000, 2, 2, 0.707),
-        LWorkAudioKind.LWorkAudioKindEqualizer => LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkEqualizerDefaultCreate()),
+        LAudioKind.LAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(false, LLeveling.LLevelingLoudness, -21, -2, 6, true),
+        LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38),
+        LAudioKind.LAudioKindHighpass => LWorkAudioStep.LWorkHighCreate(false, 80, 2, 2, 0.707),
+        LAudioKind.LAudioKindLowpass => LWorkAudioStep.LWorkLowCreate(false, 16000, 2, 2, 0.707),
+        LAudioKind.LAudioKindEqualizer => LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate()),
         _ => LWorkAudioStep.LWorkVolumeCreate(false, 0)
     };
 
     private static LWorkAudioStep LAudioStepCreate(Cadroue.Core.LSidecarAudioStepRecord lAudioRecord) =>
         LAudioKindCreate(lAudioRecord.LSidecarKind) switch
         {
-            LWorkAudioKind.LWorkAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(
+            LAudioKind.LAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(
                 lAudioRecord.LSidecarActive,
                 string.Equals(lAudioRecord.LSidecarMode, "Dynamic", StringComparison.Ordinal)
-                    ? LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic
-                    : LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness,
+                    ? LLeveling.LLevelingDynamic
+                    : LLeveling.LLevelingLoudness,
                 lAudioRecord.LSidecarTarget,
                 lAudioRecord.LSidecarPeak,
                 lAudioRecord.LSidecarRange,
@@ -147,30 +147,30 @@ public static partial class LAudio
                 lAudioRecord.LSidecarGauss,
                 lAudioRecord.LSidecarMaxGain,
                 lAudioRecord.LSidecarCompress),
-            LWorkAudioKind.LWorkAudioKindNoiseReduction => LWorkAudioStep.LWorkNoiseCreate(
+            LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(
                 lAudioRecord.LSidecarActive,
                 lAudioRecord.LSidecarReduction,
                 lAudioRecord.LSidecarNoiseFloor,
                 lAudioRecord.LSidecarTrackNoise,
                 lAudioRecord.LSidecarNoiseType switch
                 {
-                    "Vinyl" => LWorkAudioNoiseType.LWorkAudioNoiseVinyl,
-                    "Shellac" => LWorkAudioNoiseType.LWorkAudioNoiseShellac,
-                    _ => LWorkAudioNoiseType.LWorkAudioNoiseWhite
+                    "Vinyl" => LGrain.LGrainVinyl,
+                    "Shellac" => LGrain.LGrainShellac,
+                    _ => LGrain.LGrainWhite
                 },
                 lAudioRecord.LSidecarGainSmooth,
                 lAudioRecord.LSidecarAdaptivity,
                 lAudioRecord.LSidecarResidualFloor),
-            LWorkAudioKind.LWorkAudioKindHighPass => LWorkAudioStep.LWorkHighCreate(
+            LAudioKind.LAudioKindHighpass => LWorkAudioStep.LWorkHighCreate(
                 lAudioRecord.LSidecarActive, lAudioRecord.LSidecarFrequency,
                 lAudioRecord.LSidecarStages, lAudioRecord.LSidecarPoles, lAudioRecord.LSidecarResonance),
-            LWorkAudioKind.LWorkAudioKindLowPass => LWorkAudioStep.LWorkLowCreate(
+            LAudioKind.LAudioKindLowpass => LWorkAudioStep.LWorkLowCreate(
                 lAudioRecord.LSidecarActive, lAudioRecord.LSidecarFrequency,
                 lAudioRecord.LSidecarStages, lAudioRecord.LSidecarPoles, lAudioRecord.LSidecarResonance),
-            LWorkAudioKind.LWorkAudioKindEqualizer => LWorkAudioStep.LWorkEqualizerCreate(
+            LAudioKind.LAudioKindEqualizer => LWorkAudioStep.LWorkEqualizerCreate(
                 lAudioRecord.LSidecarActive,
                 lAudioRecord.LSidecarEqualizerBands
-                    .Select(lBand => new LWorkEqualizerBand(lBand.LSidecarBandFrequency, lBand.LSidecarBandGain))
+                    .Select(lBand => new LWorkBand(lBand.LSidecarBandFrequency, lBand.LSidecarBandGain))
                     .ToArray()),
             _ => LWorkAudioStep.LWorkVolumeCreate(lAudioRecord.LSidecarActive, lAudioRecord.LSidecarGain)
         };
@@ -179,8 +179,8 @@ public static partial class LAudio
     {
         var lAudioRecord = new Cadroue.Core.LSidecarAudioStepRecord
         {
-            LSidecarKind = lAudioStep.LWorkAudioStepKind.ToString().Replace("LWorkAudioKind", string.Empty),
-            LSidecarActive = lAudioStep.LWorkAudioStepActive
+            LSidecarKind = lAudioStep.LWorkStepKind.ToString().Replace("LAudioKind", string.Empty),
+            LSidecarActive = lAudioStep.LWorkStepActive
         };
 
         switch (lAudioStep)
@@ -189,14 +189,14 @@ public static partial class LAudio
                 lAudioRecord.LSidecarGain = lVolume.LWorkVolumeGain;
                 break;
             case LWorkNormalizeStep lNormalize:
-                lAudioRecord.LSidecarMode = lNormalize.LWorkNormalizeMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic ? "Dynamic" : "Loudness";
+                lAudioRecord.LSidecarMode = lNormalize.LWorkNormalizeMode == LLeveling.LLevelingDynamic ? "Dynamic" : "Loudness";
                 lAudioRecord.LSidecarTarget = lNormalize.LWorkNormalizeTarget;
                 lAudioRecord.LSidecarPeak = lNormalize.LWorkNormalizePeak;
                 lAudioRecord.LSidecarRange = lNormalize.LWorkNormalizeRange;
-                lAudioRecord.LSidecarTwoPass = lNormalize.LWorkNormalizeTwoPass;
+                lAudioRecord.LSidecarTwoPass = lNormalize.LWorkTwoPass;
                 lAudioRecord.LSidecarFrame = lNormalize.LWorkNormalizeFrame;
                 lAudioRecord.LSidecarGauss = lNormalize.LWorkNormalizeGauss;
-                lAudioRecord.LSidecarMaxGain = lNormalize.LWorkNormalizeMaxGain;
+                lAudioRecord.LSidecarMaxGain = lNormalize.LWorkNormalizeGain;
                 lAudioRecord.LSidecarCompress = lNormalize.LWorkNormalizeCompress;
                 break;
             case LWorkNoiseStep lNoise:
@@ -218,8 +218,8 @@ public static partial class LAudio
                 lAudioRecord.LSidecarEqualizerBands = lEqualizer.LWorkEqualizerBands
                     .Select(lBand => new Cadroue.Core.LSidecarEqualizerBandRecord
                     {
-                        LSidecarBandFrequency = lBand.LWorkEqualizerBandFrequency,
-                        LSidecarBandGain = lBand.LWorkEqualizerBandGain
+                        LSidecarBandFrequency = lBand.LWorkBandFrequency,
+                        LSidecarBandGain = lBand.LWorkBandGain
                     })
                     .ToList();
                 break;
@@ -228,13 +228,13 @@ public static partial class LAudio
         return lAudioRecord;
     }
 
-    private static LWorkAudioKind LAudioKindCreate(string lAudioKind) => lAudioKind switch
+    private static LAudioKind LAudioKindCreate(string lAudioKind) => lAudioKind switch
     {
-        "Normalize" => LWorkAudioKind.LWorkAudioKindNormalize,
-        "NoiseReduction" => LWorkAudioKind.LWorkAudioKindNoiseReduction,
-        "HighPass" => LWorkAudioKind.LWorkAudioKindHighPass,
-        "LowPass" => LWorkAudioKind.LWorkAudioKindLowPass,
-        "Equalizer" => LWorkAudioKind.LWorkAudioKindEqualizer,
-        _ => LWorkAudioKind.LWorkAudioKindVolume
+        "Normalize" => LAudioKind.LAudioKindNormalize,
+        "NoiseReduction" => LAudioKind.LAudioKindDenoise,
+        "HighPass" => LAudioKind.LAudioKindHighpass,
+        "LowPass" => LAudioKind.LAudioKindLowpass,
+        "Equalizer" => LAudioKind.LAudioKindEqualizer,
+        _ => LAudioKind.LAudioKindVolume
     };
 }

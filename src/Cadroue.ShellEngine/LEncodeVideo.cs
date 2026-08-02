@@ -135,12 +135,12 @@ internal static class LEncodeVideo
             lFilters.Add(lRotate);
         }
 
-        if (lCrop.LWorkCropFlipHorizontal)
+        if (lCrop.LWorkFlipHorizontal)
         {
             lFilters.Add("hflip");
         }
 
-        if (lCrop.LWorkCropFlipVertical)
+        if (lCrop.LWorkFlipVertical)
         {
             lFilters.Add("vflip");
         }
@@ -191,11 +191,11 @@ internal static class LEncodeVideo
 
             switch (lStep.LWorkStepKind)
             {
-                case LWorkVideoKind.LWorkVideoKindBrightness:
+                case LColorKind.LColorKindBrightness:
                     lEqParts.Add(
                         $"brightness={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
                     break;
-                case LWorkVideoKind.LWorkVideoKindContrast:
+                case LColorKind.LColorKindContrast:
                     lEqParts.Add(
                         $"contrast={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
                     break;

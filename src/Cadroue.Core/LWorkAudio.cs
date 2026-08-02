@@ -1,29 +1,29 @@
 namespace Cadroue.Core;
 
-public enum LWorkAudioKind
+public enum LAudioKind
 {
-    LWorkAudioKindVolume,
-    LWorkAudioKindNormalize,
-    LWorkAudioKindNoiseReduction,
-    LWorkAudioKindHighPass,
-    LWorkAudioKindLowPass,
-    LWorkAudioKindEqualizer
+    LAudioKindVolume,
+    LAudioKindNormalize,
+    LAudioKindDenoise,
+    LAudioKindHighpass,
+    LAudioKindLowpass,
+    LAudioKindEqualizer
 }
 
-public enum LWorkAudioNormalizeMode
+public enum LLeveling
 {
-    LWorkAudioNormalizeLoudness,
-    LWorkAudioNormalizeDynamic
+    LLevelingLoudness,
+    LLevelingDynamic
 }
 
-public enum LWorkAudioNoiseType
+public enum LGrain
 {
-    LWorkAudioNoiseWhite,
-    LWorkAudioNoiseVinyl,
-    LWorkAudioNoiseShellac
+    LGrainWhite,
+    LGrainVinyl,
+    LGrainShellac
 }
 
-public abstract record LWorkAudioStep(LWorkAudioKind LWorkAudioStepKind, bool LWorkAudioStepActive)
+public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepActive)
 {
     public virtual bool LWorkStepLoudness => false;
 
@@ -32,7 +32,7 @@ public abstract record LWorkAudioStep(LWorkAudioKind LWorkAudioStepKind, bool LW
 
     public static LWorkAudioStep LWorkNormalizeCreate(
         bool lStepActive,
-        LWorkAudioNormalizeMode lStepMode,
+        LLeveling lStepMode,
         double lStepTarget,
         double lStepPeak,
         double lStepRange,
@@ -50,7 +50,7 @@ public abstract record LWorkAudioStep(LWorkAudioKind LWorkAudioStepKind, bool LW
         double lStepReduction,
         double lStepNoiseFloor,
         bool lStepTrackNoise,
-        LWorkAudioNoiseType lStepNoiseType,
+        LGrain lStepNoiseType,
         double lStepGainSmooth,
         double lStepAdaptivity,
         double lStepResidualFloor) =>
@@ -61,15 +61,15 @@ public abstract record LWorkAudioStep(LWorkAudioKind LWorkAudioStepKind, bool LW
     public static LWorkAudioStep LWorkHighCreate(
         bool lStepActive, double lStepFrequency, int lStepStages, int lStepPoles, double lStepResonance) =>
         new LWorkPassStep(
-            LWorkAudioKind.LWorkAudioKindHighPass, lStepActive, true, lStepFrequency, lStepStages, lStepPoles, lStepResonance);
+            LAudioKind.LAudioKindHighpass, lStepActive, true, lStepFrequency, lStepStages, lStepPoles, lStepResonance);
 
     public static LWorkAudioStep LWorkLowCreate(
         bool lStepActive, double lStepFrequency, int lStepStages, int lStepPoles, double lStepResonance) =>
         new LWorkPassStep(
-            LWorkAudioKind.LWorkAudioKindLowPass, lStepActive, false, lStepFrequency, lStepStages, lStepPoles, lStepResonance);
+            LAudioKind.LAudioKindLowpass, lStepActive, false, lStepFrequency, lStepStages, lStepPoles, lStepResonance);
 
     public static LWorkAudioStep LWorkEqualizerCreate(
-        bool lStepActive, IReadOnlyList<LWorkEqualizerBand> lStepBands) =>
+        bool lStepActive, IReadOnlyList<LWorkBand> lStepBands) =>
         new LWorkEqualizerStep(lStepActive, lStepBands);
 }
 
@@ -79,5 +79,5 @@ public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
 
     public static LWorkAudio LWorkAudioCreate() => new(Array.Empty<LWorkAudioStep>());
 
-    public bool LWorkAudioActive => LWorkAudioSkip || LWorkAudioSteps.Any(lStep => lStep.LWorkAudioStepActive);
+    public bool LWorkAudioActive => LWorkAudioSkip || LWorkAudioSteps.Any(lStep => lStep.LWorkStepActive);
 }

@@ -68,7 +68,7 @@ public static partial class LEdit
                 $"left {lEditCrop.LWorkCropLeft}, top {lEditCrop.LWorkCropTop}, " +
                 $"right {lEditCrop.LWorkCropRight}, bottom {lEditCrop.LWorkCropBottom}, " +
                 $"rotate {lEditCrop.LWorkCropRotation}, " +
-                $"hflip {lEditCrop.LWorkCropFlipHorizontal}, vflip {lEditCrop.LWorkCropFlipVertical}");
+                $"hflip {lEditCrop.LWorkFlipHorizontal}, vflip {lEditCrop.LWorkFlipVertical}");
         }
 
         if (lEditWorkDescription.LEditVideo.LWorkVideoActive)

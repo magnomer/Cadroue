@@ -32,7 +32,7 @@ public sealed partial class PRoster
 
     private sealed record PRosterRowPlace(
         string PRosterPlaceSubject,
-        long? PRosterPlaceOriginBytes,
+        long? PRosterOriginBytes,
         string PRosterPlaceStep,
         bool PRosterPlaceLast);
 
@@ -440,7 +440,7 @@ public sealed partial class PRoster
 
     private string PRosterPlaceFormat(LWorkItem pWorkItem) =>
         pRosterRowPlaces.TryGetValue(pWorkItem.LWorkId, out PRosterRowPlace? pPlace)
-            ? PLineageRatioFormat(pWorkItem, pPlace.PRosterPlaceSubject, pPlace.PRosterPlaceOriginBytes)
+            ? PLineageRatioFormat(pWorkItem, pPlace.PRosterPlaceSubject, pPlace.PRosterOriginBytes)
             : PRosterRatioFormat(pWorkItem);
 
     private string PRosterOwnerFormat(LWorkItem pWorkItem)

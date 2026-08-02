@@ -214,7 +214,7 @@ internal sealed class LJob
             $"{pStartInfo.FileName} {pStartInfo.Arguments}\n"
             + $"working folder {(string.IsNullOrWhiteSpace(pDirectory) ? "(process default)" : pDirectory)}\n"
             + $"source {lJobItem.LWorkSourcePath}\n"
-            + $"output {pStage.LEncodeStageOutputPath}");
+            + $"output {pStage.LEncodeStagePath}");
 
         using var pProcess = new Process { StartInfo = pStartInfo };
         lJobToken.ThrowIfCancellationRequested();
@@ -398,16 +398,16 @@ internal sealed class LJob
     {
         foreach (LEncodeStage pStage in pStages)
         {
-            if (!pStage.LEncodeStageTemporary || string.IsNullOrWhiteSpace(pStage.LEncodeStageOutputPath))
+            if (!pStage.LEncodeStageTemporary || string.IsNullOrWhiteSpace(pStage.LEncodeStagePath))
             {
                 continue;
             }
 
             try
             {
-                if (File.Exists(pStage.LEncodeStageOutputPath))
+                if (File.Exists(pStage.LEncodeStagePath))
                 {
-                    File.Delete(pStage.LEncodeStageOutputPath);
+                    File.Delete(pStage.LEncodeStagePath);
                 }
             }
             catch (IOException)

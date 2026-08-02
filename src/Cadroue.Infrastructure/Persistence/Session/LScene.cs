@@ -12,7 +12,7 @@ public static class LScene
 {
     private const string LSceneFolderName = "Cadroue";
     private const string LSceneFileName = "LScenePresets.json";
-    private const string LSceneStateFileName = "session.json";
+    private const string LSceneStateName = "session.json";
     private static readonly List<LSceneRecord> lSceneRecords = LSceneLoad();
 
     public static LSceneRecord LSceneCurrent { get; private set; } = new();
@@ -33,7 +33,7 @@ public static class LScene
         string lScenePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             LSceneFolderName,
-            LSceneStateFileName);
+            LSceneStateName);
         if (!File.Exists(lScenePath))
         {
             return new LSceneRecord();
@@ -56,7 +56,7 @@ public static class LScene
             string lScenePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 LSceneFolderName,
-                LSceneStateFileName);
+                LSceneStateName);
             string? lSceneFolder = Path.GetDirectoryName(lScenePath);
             if (!string.IsNullOrWhiteSpace(lSceneFolder))
             {

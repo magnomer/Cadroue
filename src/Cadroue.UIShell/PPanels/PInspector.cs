@@ -12,7 +12,7 @@ public sealed partial class PInspector : PPanel
     private static readonly Brush pInspectorTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
     private static readonly Brush pInspectorMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
 
-    private const double PInspectorLabelWidth = 58;
+    private const double PInspectorLabelWidth = 80;
     private const double PInspectorFieldHeight = 26;
     private const double PInspectorRowHeight = 34;
 

@@ -36,7 +36,7 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingOrderChange += PAudioPlanSave;
         pInspector.PSkipActiveChange += PAudioSkipHandle;
         pInspector.PInspectorPlanChange += PAudioPersistentWrite;
-        pInspector.PInspectorAudioActiveChange += PAudioChangeHandle;
+        pInspector.PInspectorAudioChange += PAudioChangeHandle;
 
         var pAction = new PAction();
         PTabAction = pAction;
@@ -153,9 +153,9 @@ public sealed class PAudioTab : PTabSurface
     {
         foreach (string pStepName in pProcessing.PProcessingStepsRead())
         {
-            if (PAudioKindRead(pStepName) is LWorkAudioKind pStepKind)
+            if (PAudioKindRead(pStepName) is LAudioKind pStepKind)
             {
-                pProcessing.PProcessingActiveSet(pStepName, pInspector.PInspectorStepRead(pStepKind).LWorkAudioStepActive);
+                pProcessing.PProcessingActiveSet(pStepName, pInspector.PInspectorStepRead(pStepKind).LWorkStepActive);
             }
         }
     }
@@ -171,7 +171,7 @@ public sealed class PAudioTab : PTabSurface
         var pSteps = new List<LWorkAudioStep>();
         foreach (string pStepName in pProcessing.PProcessingStepsRead())
         {
-            if (PAudioKindRead(pStepName) is LWorkAudioKind pStepKind)
+            if (PAudioKindRead(pStepName) is LAudioKind pStepKind)
             {
                 pSteps.Add(pInspector.PInspectorStepRead(pStepKind));
             }
@@ -180,14 +180,14 @@ public sealed class PAudioTab : PTabSurface
         return new LWorkAudio(pSteps) { LWorkAudioSkip = pInspector.PSkipActiveCheck() };
     }
 
-    private static LWorkAudioKind? PAudioKindRead(string pStepName) => pStepName switch
+    private static LAudioKind? PAudioKindRead(string pStepName) => pStepName switch
     {
-        "Volume" => LWorkAudioKind.LWorkAudioKindVolume,
-        "Normalize" => LWorkAudioKind.LWorkAudioKindNormalize,
-        "Noise Reduction" => LWorkAudioKind.LWorkAudioKindNoiseReduction,
-        "High Pass" => LWorkAudioKind.LWorkAudioKindHighPass,
-        "Low Pass" => LWorkAudioKind.LWorkAudioKindLowPass,
-        "Equalizer" => LWorkAudioKind.LWorkAudioKindEqualizer,
+        "Volume" => LAudioKind.LAudioKindVolume,
+        "Normalize" => LAudioKind.LAudioKindNormalize,
+        "Noise Reduction" => LAudioKind.LAudioKindDenoise,
+        "High Pass" => LAudioKind.LAudioKindHighpass,
+        "Low Pass" => LAudioKind.LAudioKindLowpass,
+        "Equalizer" => LAudioKind.LAudioKindEqualizer,
         _ => null
     };
 

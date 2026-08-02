@@ -102,9 +102,9 @@ public sealed class PSource : UserControl
             pSourceViewer.PViewerMediaChange += PSourceMediaHandle;
     }
 
-    private void PSourceMediaHandle(LMediaOpenStatus pMediaStatus)
+    private void PSourceMediaHandle(LCargo pMediaStatus)
     {
-        pSourcePathBox.Text = pMediaStatus.LMediaOpenSourcePath;
+        pSourcePathBox.Text = pMediaStatus.LCargoSourcePath;
     }
 
     private void PSourceTextHandle(object sender, TextChangedEventArgs e)

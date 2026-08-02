@@ -167,7 +167,7 @@ public sealed partial class PViewer
             if (mediaInfo.LMediaAudioOnly && !pViewerAudioAllowed)
             {
                 string audioOnlyError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");
-                PViewerMediaCommit(new LMediaOpenStatus(
+                PViewerMediaCommit(new LCargo(
                     sourcePath, null, false, false, audioOnlyError, audioOnlyError), null);
                 return;
             }
@@ -235,7 +235,7 @@ public sealed partial class PViewer
             return;
         }
 
-        LMediaOpenStatus mediaStatus = new(
+        LCargo mediaStatus = new(
             sourcePath,
             mediaInfo,
             mediaInfo is not null,
@@ -296,7 +296,7 @@ public sealed partial class PViewer
         }
     }
 
-    private void PViewerMediaCommit(LMediaOpenStatus mediaStatus, Player? player)
+    private void PViewerMediaCommit(LCargo mediaStatus, Player? player)
     {
         PViewerMediaRecord(mediaStatus, player);
 
@@ -327,8 +327,8 @@ public sealed partial class PViewer
         }
 
         PViewerHostShow(player is not null);
-        pViewerMediaInfo = mediaStatus.LMediaOpenMediaInfo;
-        PViewerSourcePath = mediaStatus.LMediaOpenSourcePath;
+        pViewerMediaInfo = mediaStatus.LCargoMediaInfo;
+        PViewerSourcePath = mediaStatus.LCargoSourcePath;
         LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
         if (!PCropPersistent)
         {
@@ -359,14 +359,14 @@ public sealed partial class PViewer
         }
     }
 
-    private static void PViewerMediaRecord(LMediaOpenStatus mediaStatus, Player? player)
+    private static void PViewerMediaRecord(LCargo mediaStatus, Player? player)
     {
-        string pSourcePath = mediaStatus.LMediaOpenSourcePath ?? "(no path)";
+        string pSourcePath = mediaStatus.LCargoSourcePath ?? "(no path)";
         string pFileName = System.IO.Path.GetFileName(pSourcePath);
 
-        if (mediaStatus.LMediaOpenMediaInfo is not LMediaInfo pMediaInfo)
+        if (mediaStatus.LCargoMediaInfo is not LMediaInfo pMediaInfo)
         {
-            LTraceLog.LTraceErrorRecord($"Media rejected '{pFileName}': {mediaStatus.LMediaOpenFfmpegError ?? "unreadable"} [{pSourcePath}]");
+            LTraceLog.LTraceErrorRecord($"Media rejected '{pFileName}': {mediaStatus.LCargoFfmpegError ?? "unreadable"} [{pSourcePath}]");
             return;
         }
 
@@ -383,7 +383,7 @@ public sealed partial class PViewer
 
         if (player is null)
         {
-            LTraceLog.LTraceErrorRecord($"Preview unavailable for '{pFileName}': {mediaStatus.LMediaOpenPreviewError ?? "the player did not start"}");
+            LTraceLog.LTraceErrorRecord($"Preview unavailable for '{pFileName}': {mediaStatus.LCargoPreviewError ?? "the player did not start"}");
         }
     }
 
@@ -445,7 +445,7 @@ public sealed partial class PViewer
         pViewerClockTimer.Start();
     }
 
-    private void PViewerMediaRaise(LMediaOpenStatus mediaStatus)
+    private void PViewerMediaRaise(LCargo mediaStatus)
     {
         try
         {

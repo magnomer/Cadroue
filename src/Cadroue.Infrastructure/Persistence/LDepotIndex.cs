@@ -5,13 +5,13 @@ using Cadroue.Core;
 namespace Cadroue.Infrastructure;
 
 public sealed record LDepotIndexRow(
-    Guid LDepotRowWorkId,
-    LDepotFolder LDepotRowFolder,
-    LWorkState LDepotRowState,
-    LWorkPriority LDepotRowPriority,
-    DateTimeOffset LDepotRowCreateTime,
-    int LDepotRowOwnerProcessId,
-    string LDepotRowOutputName);
+    Guid LLedgerWorkId,
+    LDepotFolder LLedgerFolder,
+    LWorkState LLedgerState,
+    LWorkPriority LLedgerPriority,
+    DateTimeOffset LLedgerCreateTime,
+    int LLedgerProcessId,
+    string LLedgerOutputName);
 
 public static class LDepotIndex
 {
@@ -117,7 +117,7 @@ public static class LDepotIndex
         }
     }
 
-    public static IReadOnlyList<(LDepotFolder LDepotRowFolder, string LDepotRowRecord)> LDepotRecordsRead()
+    public static IReadOnlyList<(LDepotFolder LLedgerFolder, string LDepotRowRecord)> LDepotRecordsRead()
     {
         var lDepotRecords = new List<(LDepotFolder, string)>();
         try

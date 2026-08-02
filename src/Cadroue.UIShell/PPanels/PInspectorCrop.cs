@@ -48,7 +48,7 @@ public sealed partial class PInspector
     public event Action<Rect?>? PInspectorCropChange;
     public event Action<LRotateFlip>? PInspectorRotateChange;
     public event Action<bool>? PInspectorPersistentChange;
-    public event Action? PInspectorCropActiveChange;
+    public event Action? PCropActiveChange;
 
     public void PInspectorSourceSet(double pSourceWidth, double pSourceHeight)
     {
@@ -91,8 +91,8 @@ public sealed partial class PInspector
             pInspectorInsetTop.Text = pInspectorPlan.LWorkCropTop.ToString();
             pInspectorInsetRight.Text = pInspectorPlan.LWorkCropRight.ToString();
             pInspectorInsetBottom.Text = pInspectorPlan.LWorkCropBottom.ToString();
-            pInspectorFlipHorizontal.IsChecked = pInspectorPlan.LWorkCropFlipHorizontal;
-            pInspectorFlipVertical.IsChecked = pInspectorPlan.LWorkCropFlipVertical;
+            pInspectorFlipHorizontal.IsChecked = pInspectorPlan.LWorkFlipHorizontal;
+            pInspectorFlipVertical.IsChecked = pInspectorPlan.LWorkFlipVertical;
             pInspectorRotateCombo.SelectedIndex = pInspectorPlan.LWorkCropRotation switch
             {
                 90 => 1,
@@ -181,7 +181,7 @@ public sealed partial class PInspector
         bool pApplyActive = pInspectorApplyBox.IsChecked == true;
         pInspectorCropStack.IsEnabled = pApplyActive;
         pInspectorCropStack.Opacity = pApplyActive ? 1 : 0.4;
-        PInspectorCropActiveChange?.Invoke();
+        PCropActiveChange?.Invoke();
     }
 
     private void PInspectorToolUpdate()

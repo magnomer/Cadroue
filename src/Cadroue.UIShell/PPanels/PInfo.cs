@@ -63,22 +63,22 @@ public sealed class PInfo : UserControl
             pInfoViewer.PViewerMediaChange += PInfoMediaHandle;
     }
 
-    private void PInfoMediaHandle(LMediaOpenStatus pMediaStatus)
+    private void PInfoMediaHandle(LCargo pMediaStatus)
     {
         pInfoItemPanel.Children.Clear();
 
-        if (string.IsNullOrEmpty(pMediaStatus.LMediaOpenSourcePath))
+        if (string.IsNullOrEmpty(pMediaStatus.LCargoSourcePath))
         {
             PInfoStatusAdd(LLocalization.LLocalizationTextRead(LMedia.LMediaFfprobeExist() ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"), PInfoMutedBrush);
             return;
         }
 
-        PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LMediaOpenFfmpegProcessable ? "Info.FFmpeg.Processable" : "Info.FFmpeg.Unprocessable"),
-            pMediaStatus.LMediaOpenFfmpegProcessable ? PInfoFfmpegGood : PInfoFfmpegBad);
-        PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LMediaOpenPreviewAvailable ? "Info.Preview.Available" : "Info.Preview.Unavailable"),
-            pMediaStatus.LMediaOpenPreviewAvailable ? PInfoPreviewGood : PInfoPreviewBad);
+        PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LCargoProcessable ? "Info.FFmpeg.Processable" : "Info.FFmpeg.Unprocessable"),
+            pMediaStatus.LCargoProcessable ? PInfoFfmpegGood : PInfoFfmpegBad);
+        PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LCargoPreviewAvailable ? "Info.Preview.Available" : "Info.Preview.Unavailable"),
+            pMediaStatus.LCargoPreviewAvailable ? PInfoPreviewGood : PInfoPreviewBad);
 
-        if (pMediaStatus.LMediaOpenMediaInfo is not LMediaInfo pMediaInfo)
+        if (pMediaStatus.LCargoMediaInfo is not LMediaInfo pMediaInfo)
         {
             PInfoErrorAdd(pMediaStatus);
             return;
@@ -110,12 +110,12 @@ public sealed class PInfo : UserControl
         }
     }
 
-    private void PInfoErrorAdd(LMediaOpenStatus pMediaStatus)
+    private void PInfoErrorAdd(LCargo pMediaStatus)
     {
-        if (!string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenFfmpegError))
-            PInfoTextAdd(PInfoTextShorten(LLocalization.LLocalizationFormat("Info.Error.FFmpeg", pMediaStatus.LMediaOpenFfmpegError)), true);
-        if (!string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenPreviewError))
-            PInfoTextAdd(PInfoTextShorten(LLocalization.LLocalizationFormat("Info.Error.Preview", pMediaStatus.LMediaOpenPreviewError)), true);
+        if (!string.IsNullOrWhiteSpace(pMediaStatus.LCargoFfmpegError))
+            PInfoTextAdd(PInfoTextShorten(LLocalization.LLocalizationFormat("Info.Error.FFmpeg", pMediaStatus.LCargoFfmpegError)), true);
+        if (!string.IsNullOrWhiteSpace(pMediaStatus.LCargoPreviewError))
+            PInfoTextAdd(PInfoTextShorten(LLocalization.LLocalizationFormat("Info.Error.Preview", pMediaStatus.LCargoPreviewError)), true);
     }
 
     private void PInfoClear()

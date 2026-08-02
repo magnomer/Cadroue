@@ -9,7 +9,7 @@ public sealed record LSplitSectionDescription(
     bool LSplitSectionHidden = false);
 
 public sealed record LSplitPlanRecord(
-    string LSplitPlanSourcePath,
+    string LSplitSourcePath,
     IReadOnlyList<LSplitSectionDescription> LSplitPlanSections);
 
 public sealed record LSplitWorkDescription(

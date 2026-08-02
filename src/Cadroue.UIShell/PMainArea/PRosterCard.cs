@@ -140,7 +140,7 @@ public sealed partial class PRoster
 
         var pRoot = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
         Grid.SetIsSharedSizeScope(pRoot, true);
-        pRoot.Children.Add(PRosterOverviewGridBuild(pSourceStack, pOutputStack));
+        pRoot.Children.Add(PRosterGridBuild(pSourceStack, pOutputStack));
 
         (IReadOnlyList<string> pSourcePaths, IReadOnlyList<string> pOutputPaths) = PSummaryPathsRead(pBatchItems);
         pRoot.Children.Add(PRosterDividerBuild());

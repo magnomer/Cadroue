@@ -140,7 +140,7 @@ public static partial class LEdit
             : lEditSaved?.LEditCrop ?? LWorkCrop.LWorkCropCreate();
         bool lCropApply = lPersistent.LEditCropApply || (lEditSaved?.LEditCropApply ?? false);
         var lSteps = new List<LWorkVideoStep>();
-        foreach (LWorkVideoKind lKind in Enum.GetValues<LWorkVideoKind>())
+        foreach (LColorKind lKind in Enum.GetValues<LColorKind>())
         {
             LWorkVideoStep? lPersistentStep = lPersistent.LEditVideo.LWorkVideoSteps
                 .FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);
@@ -168,8 +168,8 @@ public static partial class LEdit
         LSidecarCropRight = lEditPlan.LEditCrop.LWorkCropRight,
         LSidecarCropBottom = lEditPlan.LEditCrop.LWorkCropBottom,
         LSidecarRotation = lEditPlan.LEditCrop.LWorkCropRotation,
-        LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkCropFlipHorizontal,
-        LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkCropFlipVertical,
+        LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkFlipHorizontal,
+        LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkFlipVertical,
         LSidecarCropActive = lEditPlan.LEditCropApply,
         LSidecarSkip = lEditPlan.LEditSkip,
         LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
@@ -223,8 +223,8 @@ public static partial class LEdit
                 LSidecarCropRight = lEditPlan.LEditCrop.LWorkCropRight,
                 LSidecarCropBottom = lEditPlan.LEditCrop.LWorkCropBottom,
                 LSidecarRotation = lEditPlan.LEditCrop.LWorkCropRotation,
-                LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkCropFlipHorizontal,
-                LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkCropFlipVertical,
+                LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkFlipHorizontal,
+                LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkFlipVertical,
                 LSidecarCropActive = lEditPlan.LEditCropApply,
                 LSidecarSkip = lEditPlan.LEditSkip,
                 LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
@@ -233,7 +233,7 @@ public static partial class LEdit
 
     private static Cadroue.Core.LSidecarVideoStepRecord LEditRecordCreate(LWorkVideoStep lEditStep) => new()
     {
-        LSidecarKind = lEditStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast ? "Contrast" : "Brightness",
+        LSidecarKind = lEditStep.LWorkStepKind == LColorKind.LColorKindContrast ? "Contrast" : "Brightness",
         LSidecarActive = lEditStep.LWorkStepActive,
         LSidecarValue = lEditStep.LWorkStepValue
     };

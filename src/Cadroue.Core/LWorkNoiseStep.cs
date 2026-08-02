@@ -1,12 +1,12 @@
 namespace Cadroue.Core;
 
 public sealed record LWorkNoiseStep(
-    bool LWorkAudioStepActive,
+    bool LWorkStepActive,
     double LWorkNoiseReduction,
     double LWorkNoiseFloor,
     bool LWorkNoiseTrack,
-    LWorkAudioNoiseType LWorkNoiseType,
+    LGrain LWorkNoiseType,
     double LWorkNoiseSmooth,
     double LWorkNoiseAdaptivity,
     double LWorkNoiseResidual)
-    : LWorkAudioStep(LWorkAudioKind.LWorkAudioKindNoiseReduction, LWorkAudioStepActive);
+    : LWorkAudioStep(LAudioKind.LAudioKindDenoise, LWorkStepActive);

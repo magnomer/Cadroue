@@ -92,17 +92,17 @@ public sealed class PWorkspace
         PWorkspaceExportState.LPresetRecordCreate());
 
 
-    private void PWorkspaceMediaHandle(LMediaOpenStatus pMediaStatus)
+    private void PWorkspaceMediaHandle(LCargo pMediaStatus)
     {
         if (PWorkspaceFlow is null
-            || pMediaStatus.LMediaOpenMediaInfo is null
-            || string.IsNullOrWhiteSpace(pMediaStatus.LMediaOpenSourcePath))
+            || pMediaStatus.LCargoMediaInfo is null
+            || string.IsNullOrWhiteSpace(pMediaStatus.LCargoSourcePath))
         {
             pWorkspaceLosslesscutPath = string.Empty;
             return;
         }
 
-        string pMediaPath = System.IO.Path.GetFullPath(pMediaStatus.LMediaOpenSourcePath);
+        string pMediaPath = System.IO.Path.GetFullPath(pMediaStatus.LCargoSourcePath);
         if (string.Equals(pWorkspaceLosslesscutPath, pMediaPath, StringComparison.OrdinalIgnoreCase))
         {
             return;
@@ -207,10 +207,10 @@ public sealed class PWorkspace
         int? lRelaySectionSelect = lRelay.LRelaySectionIndex;
         PViewer pRelayViewer = PWorkspaceViewer;
 
-        void PWorkspaceRelayMediaHandle(LMediaOpenStatus lMediaStatus)
+        void PWorkspaceRelayHandle(LCargo lMediaStatus)
         {
-            pRelayViewer.PViewerMediaChange -= PWorkspaceRelayMediaHandle;
-            if (lMediaStatus.LMediaOpenMediaInfo is null || PWorkspaceFlow is null || lRelaySections.Count == 0)
+            pRelayViewer.PViewerMediaChange -= PWorkspaceRelayHandle;
+            if (lMediaStatus.LCargoMediaInfo is null || PWorkspaceFlow is null || lRelaySections.Count == 0)
             {
                 return;
             }
@@ -221,7 +221,7 @@ public sealed class PWorkspace
                 new Action(() => pRelayFlow.PFlowSectionsSet(lRelaySections, lRelaySectionSelect)));
         }
 
-        pRelayViewer.PViewerMediaChange += PWorkspaceRelayMediaHandle;
+        pRelayViewer.PViewerMediaChange += PWorkspaceRelayHandle;
         pRelayViewer.PViewerSourceOpen(lRelay.LRelaySourcePath);
     }
 

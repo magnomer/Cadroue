@@ -180,7 +180,7 @@ public sealed partial class PRoster
             PRosterContainerFormat(pWorkItem.LWorkSourcePath),
             PRosterContainerFormat(pWorkItem.LWorkOutputPath), false);
 
-        Grid pColumnsGrid = PRosterOverviewGridBuild(pSourceStack, pOutputStack);
+        Grid pColumnsGrid = PRosterGridBuild(pSourceStack, pOutputStack);
 
         var pSourcePaths = new StackPanel
         {
@@ -258,12 +258,12 @@ public sealed partial class PRoster
             pRightStack.Children.Add(PRosterLineBuild(pRight, false, !string.Equals(pLeft, pRight, StringComparison.Ordinal)));
         }
 
-        Grid pGrid = PRosterOverviewGridBuild(pLeftStack, pRightStack);
+        Grid pGrid = PRosterGridBuild(pLeftStack, pRightStack);
         pGrid.Margin = new Thickness(0, 8, 0, 0);
         return pGrid;
     }
 
-    private static Grid PRosterOverviewGridBuild(UIElement pSource, UIElement pOutput)
+    private static Grid PRosterGridBuild(UIElement pSource, UIElement pOutput)
     {
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "RosterOverviewSource" });

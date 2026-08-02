@@ -10,7 +10,7 @@ namespace Cadroue.ShellEngine;
 public sealed record LEncodeStage(
     string LEncodeStageArguments,
     string LEncodeStageLabel,
-    string LEncodeStageOutputPath,
+    string LEncodeStagePath,
     bool LEncodeStageTemporary,
     bool LEncodeStageMeasure = false);
 

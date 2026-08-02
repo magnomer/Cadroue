@@ -3,26 +3,26 @@ using Newtonsoft.Json.Linq;
 
 namespace Cadroue.Media;
 
-public sealed record LLosslesscutSegment(
-    int LLosslesscutSegmentIndex,
-    decimal? LLosslesscutSegmentStartSeconds,
-    decimal? LLosslesscutSegmentEndSeconds,
-    string LLosslesscutSegmentName,
-    bool LLosslesscutSegmentStartSpecified,
-    bool LLosslesscutSegmentEndSpecified,
-    bool LLosslesscutSegmentObject);
+public sealed record LClip(
+    int LClipIndex,
+    decimal? LClipStartSeconds,
+    decimal? LClipEndSeconds,
+    string LClipName,
+    bool LClipStartSpecified,
+    bool LClipEndSpecified,
+    bool LClipObject);
 
 public sealed record LLosslesscutProject(
     int? LLosslesscutProjectVersion,
-    string LLosslesscutProjectMediaFileName,
-    IReadOnlyList<LLosslesscutSegment> LLosslesscutProjectSegments);
+    string LLosslesscutProjectMedia,
+    IReadOnlyList<LClip> LLosslesscutProjectSegments);
 
 public sealed record LLosslesscutIssue(int LLosslesscutIssueIndex, string LLosslesscutIssueReason);
 
 public sealed record LLosslesscutResult(
     int? LLosslesscutResultVersion,
-    string LLosslesscutResultMediaFileName,
-    bool LLosslesscutResultMediaMatch,
+    string LLosslesscutResultMedia,
+    bool LLosslesscutResultMatch,
     IReadOnlyList<LSidecarSectionRecord> LLosslesscutResultSections,
     IReadOnlyList<LLosslesscutIssue> LLosslesscutResultIssues);
 
@@ -54,7 +54,7 @@ public static class LLosslesscut
 
         int? lLosslesscutVersion = LLosslesscutIntegerRead(lLosslesscutObject["version"]);
         string lLosslesscutMediaFileName = LLosslesscutStringRead(lLosslesscutObject["mediaFileName"]);
-        var lLosslesscutSegments = new List<LLosslesscutSegment>();
+        var lLosslesscutSegments = new List<LClip>();
 
         if (lLosslesscutObject["cutSegments"] is JArray lLosslesscutArray)
         {
@@ -62,7 +62,7 @@ public static class LLosslesscut
             {
                 if (lLosslesscutArray[lLosslesscutIndex] is not JObject lLosslesscutSegmentObject)
                 {
-                    lLosslesscutSegments.Add(new LLosslesscutSegment(
+                    lLosslesscutSegments.Add(new LClip(
                         lLosslesscutIndex,
                         null,
                         null,
@@ -82,7 +82,7 @@ public static class LLosslesscut
                     && lLosslesscutEndToken.Type != JTokenType.Null
                     && lLosslesscutEndToken.Type != JTokenType.Undefined;
 
-                lLosslesscutSegments.Add(new LLosslesscutSegment(
+                lLosslesscutSegments.Add(new LClip(
                     lLosslesscutIndex,
                     LLosslesscutDecimalRead(lLosslesscutStartToken),
                     LLosslesscutDecimalRead(lLosslesscutEndToken),
@@ -104,39 +104,39 @@ public static class LLosslesscut
         string lLosslesscutSourcePath,
         TimeSpan lLosslesscutDuration)
     {
-        bool lLosslesscutMediaMatch = string.IsNullOrWhiteSpace(lLosslesscutProject.LLosslesscutProjectMediaFileName)
+        bool lLosslesscutMediaMatch = string.IsNullOrWhiteSpace(lLosslesscutProject.LLosslesscutProjectMedia)
             || LLosslesscutMediaMatch(
                 lLosslesscutSourcePath,
-                lLosslesscutProject.LLosslesscutProjectMediaFileName);
+                lLosslesscutProject.LLosslesscutProjectMedia);
 
         long lLosslesscutDurationMilliseconds = Math.Max(0, (long)Math.Round(lLosslesscutDuration.TotalMilliseconds));
         var lLosslesscutSections = new List<LSidecarSectionRecord>();
         var lLosslesscutIssues = new List<LLosslesscutIssue>();
 
-        foreach (LLosslesscutSegment lLosslesscutSegment in lLosslesscutProject.LLosslesscutProjectSegments)
+        foreach (LClip lLosslesscutSegment in lLosslesscutProject.LLosslesscutProjectSegments)
         {
-            if (!lLosslesscutSegment.LLosslesscutSegmentObject)
+            if (!lLosslesscutSegment.LClipObject)
             {
                 lLosslesscutIssues.Add(new LLosslesscutIssue(
-                    lLosslesscutSegment.LLosslesscutSegmentIndex,
+                    lLosslesscutSegment.LClipIndex,
                     "segment is not an object"));
                 continue;
             }
 
-            if (lLosslesscutSegment.LLosslesscutSegmentStartSpecified
-                && lLosslesscutSegment.LLosslesscutSegmentStartSeconds is null)
+            if (lLosslesscutSegment.LClipStartSpecified
+                && lLosslesscutSegment.LClipStartSeconds is null)
             {
                 lLosslesscutIssues.Add(new LLosslesscutIssue(
-                    lLosslesscutSegment.LLosslesscutSegmentIndex,
+                    lLosslesscutSegment.LClipIndex,
                     "start is not numeric"));
                 continue;
             }
 
-            if (lLosslesscutSegment.LLosslesscutSegmentEndSpecified
-                && lLosslesscutSegment.LLosslesscutSegmentEndSeconds is null)
+            if (lLosslesscutSegment.LClipEndSpecified
+                && lLosslesscutSegment.LClipEndSeconds is null)
             {
                 lLosslesscutIssues.Add(new LLosslesscutIssue(
-                    lLosslesscutSegment.LLosslesscutSegmentIndex,
+                    lLosslesscutSegment.LClipIndex,
                     "end is not numeric"));
                 continue;
             }
@@ -145,12 +145,12 @@ public static class LLosslesscut
             long lLosslesscutEndMilliseconds;
             try
             {
-                if (lLosslesscutSegment.LLosslesscutSegmentStartSeconds is decimal lLosslesscutStartSeconds)
+                if (lLosslesscutSegment.LClipStartSeconds is decimal lLosslesscutStartSeconds)
                 {
                     lLosslesscutStartMilliseconds = LLosslesscutMillisecondsResolve(lLosslesscutStartSeconds);
                 }
 
-                if (lLosslesscutSegment.LLosslesscutSegmentEndSeconds is decimal lLosslesscutEndSeconds)
+                if (lLosslesscutSegment.LClipEndSeconds is decimal lLosslesscutEndSeconds)
                 {
                     lLosslesscutEndMilliseconds = LLosslesscutMillisecondsResolve(lLosslesscutEndSeconds);
                 }
@@ -161,7 +161,7 @@ public static class LLosslesscut
                 else
                 {
                     lLosslesscutIssues.Add(new LLosslesscutIssue(
-                        lLosslesscutSegment.LLosslesscutSegmentIndex,
+                        lLosslesscutSegment.LClipIndex,
                         "end is omitted and the open media duration is unavailable"));
                     continue;
                 }
@@ -169,7 +169,7 @@ public static class LLosslesscut
             catch (OverflowException)
             {
                 lLosslesscutIssues.Add(new LLosslesscutIssue(
-                    lLosslesscutSegment.LLosslesscutSegmentIndex,
+                    lLosslesscutSegment.LClipIndex,
                     "time is outside the supported range"));
                 continue;
             }
@@ -177,7 +177,7 @@ public static class LLosslesscut
             if (lLosslesscutStartMilliseconds < 0)
             {
                 lLosslesscutIssues.Add(new LLosslesscutIssue(
-                    lLosslesscutSegment.LLosslesscutSegmentIndex,
+                    lLosslesscutSegment.LClipIndex,
                     "start is negative"));
                 continue;
             }
@@ -185,7 +185,7 @@ public static class LLosslesscut
             if (lLosslesscutEndMilliseconds <= lLosslesscutStartMilliseconds)
             {
                 lLosslesscutIssues.Add(new LLosslesscutIssue(
-                    lLosslesscutSegment.LLosslesscutSegmentIndex,
+                    lLosslesscutSegment.LClipIndex,
                     "end does not follow start"));
                 continue;
             }
@@ -193,7 +193,7 @@ public static class LLosslesscut
             if (lLosslesscutDurationMilliseconds > 0 && lLosslesscutEndMilliseconds > lLosslesscutDurationMilliseconds)
             {
                 lLosslesscutIssues.Add(new LLosslesscutIssue(
-                    lLosslesscutSegment.LLosslesscutSegmentIndex,
+                    lLosslesscutSegment.LClipIndex,
                     "end exceeds the open media duration"));
                 continue;
             }
@@ -203,7 +203,7 @@ public static class LLosslesscut
                 LSidecarStartMilliseconds = lLosslesscutStartMilliseconds,
                 LSidecarEndMilliseconds = lLosslesscutEndMilliseconds,
                 LSidecarColorIndex = lLosslesscutSections.Count,
-                LSidecarName = lLosslesscutSegment.LLosslesscutSegmentName,
+                LSidecarName = lLosslesscutSegment.LClipName,
                 LSidecarPrefix = string.Empty,
                 LSidecarSuffix = string.Empty
             });
@@ -211,7 +211,7 @@ public static class LLosslesscut
 
         return new LLosslesscutResult(
             lLosslesscutProject.LLosslesscutProjectVersion,
-            lLosslesscutProject.LLosslesscutProjectMediaFileName,
+            lLosslesscutProject.LLosslesscutProjectMedia,
             lLosslesscutMediaMatch,
             lLosslesscutSections,
             lLosslesscutIssues);
@@ -253,10 +253,10 @@ public static class LLosslesscut
             try
             {
                 LLosslesscutProject lLosslesscutProject = LLosslesscutRead(lLosslesscutCandidatePath);
-                if (!string.IsNullOrWhiteSpace(lLosslesscutProject.LLosslesscutProjectMediaFileName)
+                if (!string.IsNullOrWhiteSpace(lLosslesscutProject.LLosslesscutProjectMedia)
                     && LLosslesscutMediaMatch(
                         lLosslesscutFullPath,
-                        lLosslesscutProject.LLosslesscutProjectMediaFileName))
+                        lLosslesscutProject.LLosslesscutProjectMedia))
                 {
                     lLosslesscutMatches.Add(lLosslesscutCandidatePath);
                 }

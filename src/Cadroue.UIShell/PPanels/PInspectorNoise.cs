@@ -37,11 +37,11 @@ public sealed partial class PInspector
     private bool pInspectorNoisePresetSuppress;
     private string? pInspectorNoiseBaseToken;
 
-    private LWorkAudioNoiseType PNoiseTypeRead() => pInspectorNoiseType.SelectedIndex switch
+    private LGrain PNoiseTypeRead() => pInspectorNoiseType.SelectedIndex switch
     {
-        1 => LWorkAudioNoiseType.LWorkAudioNoiseVinyl,
-        2 => LWorkAudioNoiseType.LWorkAudioNoiseShellac,
-        _ => LWorkAudioNoiseType.LWorkAudioNoiseWhite
+        1 => LGrain.LGrainVinyl,
+        2 => LGrain.LGrainShellac,
+        _ => LGrain.LGrainWhite
     };
 
     private StackPanel PNoiseBodyBuild()
@@ -66,6 +66,7 @@ public sealed partial class PInspector
         pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Light", "Inspector.Noise.Light"));
         pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Medium", "Inspector.Noise.Medium"));
         pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Strong", "Inspector.Noise.Strong"));
+        pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Dialogue", "Inspector.Noise.Dialogue"));
         pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Vinyl", "Inspector.Noise.Vinyl"));
         pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Shellac", "Inspector.Noise.Shellac"));
         pInspectorNoisePreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
@@ -197,25 +198,27 @@ public sealed partial class PInspector
         return pInspectorNoiseBody;
     }
 
-    private static (double Reduction, double Floor, double Smooth, double Adaptivity, double Residual, int Type)? PNoisePresetByToken(string pToken) =>
+    private static (double Reduction, double Floor, double Smooth, double Adaptivity, double Residual, int Type)? PNoiseValuesRead(string pToken) =>
         pToken switch
         {
             "Light" => (8d, -50d, 4d, 0.5d, -38d, 0),
             "Medium" => (12d, -50d, 6d, 0.5d, -38d, 0),
             "Strong" => (24d, -45d, 10d, 0.4d, -30d, 0),
+            "Dialogue" => (10d, -50d, 5d, 0.8d, -40d, 0),
             "Vinyl" => (12d, -50d, 6d, 0.5d, -38d, 1),
             "Shellac" => (12d, -50d, 8d, 0.5d, -35d, 2),
             _ => null
         };
 
     private (double Reduction, double Floor, double Smooth, double Adaptivity, double Residual, int Type)? PNoisePresetCurrent() =>
-        pInspectorNoiseBaseToken is { } pBase ? PNoisePresetByToken(pBase) : null;
+        pInspectorNoiseBaseToken is { } pBase ? PNoiseValuesRead(pBase) : null;
 
-    private static string PNoisePresetKeyRead(string pToken) => pToken switch
+    private static string PNoiseKeyRead(string pToken) => pToken switch
     {
         "Light" => "Inspector.Noise.Light",
         "Medium" => "Inspector.Noise.Medium",
         "Strong" => "Inspector.Noise.Strong",
+        "Dialogue" => "Inspector.Noise.Dialogue",
         "Vinyl" => "Inspector.Noise.Vinyl",
         "Shellac" => "Inspector.Noise.Shellac",
         _ => "Inspector.Common.Custom"
@@ -255,7 +258,7 @@ public sealed partial class PInspector
         }
 
         string pName = LLocalizationChoice.LLocalizationChoiceRead(pInspectorNoisePreset.SelectedItem);
-        if (string.IsNullOrEmpty(pName) || pName == "Custom" || PNoisePresetByToken(pName) is not { } pPreset)
+        if (string.IsNullOrEmpty(pName) || pName == "Custom" || PNoiseValuesRead(pName) is not { } pPreset)
         {
             pInspectorNoiseBaseToken = null;
             return;
@@ -263,14 +266,14 @@ public sealed partial class PInspector
 
         pInspectorNoiseBaseToken = pName;
         PNoiseValuesApply(pPreset);
-        PNoiseCustomLabelReset();
+        PNoiseCustomReset();
         PInspectorActiveRaise();
     }
 
     private void PNoiseDeviationCheck()
     {
         if (pInspectorNoisePresetSuppress || pInspectorNoiseBaseToken is not { } pBase
-            || PNoisePresetByToken(pBase) is not { } pPreset)
+            || PNoiseValuesRead(pBase) is not { } pPreset)
         {
             return;
         }
@@ -278,34 +281,34 @@ public sealed partial class PInspector
         pInspectorNoisePresetSuppress = true;
         if (PNoiseValuesMatch(pPreset))
         {
-            PNoiseCustomLabelReset();
-            PNoisePresetItemSelect(pBase);
+            PNoiseCustomReset();
+            PNoisePresetSelect(pBase);
         }
         else
         {
-            PNoiseCustomLabelSet(pBase);
+            PNoiseCustomSet(pBase);
         }
 
         pInspectorNoisePresetSuppress = false;
     }
 
-    private void PNoiseCustomLabelSet(string pBase)
+    private void PNoiseCustomSet(string pBase)
     {
         int pLast = pInspectorNoisePreset.Items.Count - 1;
         string pText = LLocalization.LLocalizationFormat(
             "Inspector.Common.PresetCustom",
-            LLocalization.LLocalizationTextRead(PNoisePresetKeyRead(pBase)));
+            LLocalization.LLocalizationTextRead(PNoiseKeyRead(pBase)));
         pInspectorNoisePreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
         pInspectorNoisePreset.SelectedIndex = pLast;
     }
 
-    private void PNoiseCustomLabelReset()
+    private void PNoiseCustomReset()
     {
         int pLast = pInspectorNoisePreset.Items.Count - 1;
         pInspectorNoisePreset.Items[pLast] = new LLocalizationChoice("Custom", "Inspector.Common.Custom");
     }
 
-    private void PNoisePresetItemSelect(string pToken)
+    private void PNoisePresetSelect(string pToken)
     {
         for (int pIndex = 0; pIndex < pInspectorNoisePreset.Items.Count; pIndex++)
         {
@@ -337,23 +340,23 @@ public sealed partial class PInspector
         pInspectorNoiseAdaptivity.Text = pStep.LWorkNoiseAdaptivity.ToString("0.###", CultureInfo.InvariantCulture);
         pInspectorNoiseType.SelectedIndex = pStep.LWorkNoiseType switch
         {
-            LWorkAudioNoiseType.LWorkAudioNoiseVinyl => 1,
-            LWorkAudioNoiseType.LWorkAudioNoiseShellac => 2,
+            LGrain.LGrainVinyl => 1,
+            LGrain.LGrainShellac => 2,
             _ => 0
         };
         pInspectorNoiseSuppress = false;
         pNoiseSmoothSuppress = false;
         pInspectorNoisePresetSuppress = false;
-        PNoiseRestoreReflect();
+        PNoisePresetUpdate();
     }
 
-    private void PNoiseRestoreReflect()
+    private void PNoisePresetUpdate()
     {
         pInspectorNoisePresetSuppress = true;
         string? pMatch = null;
-        foreach (string pToken in new[] { "Light", "Medium", "Strong", "Vinyl", "Shellac" })
+        foreach (string pToken in new[] { "Light", "Medium", "Strong", "Dialogue", "Vinyl", "Shellac" })
         {
-            if (PNoisePresetByToken(pToken) is { } pPreset && PNoiseValuesMatch(pPreset))
+            if (PNoiseValuesRead(pToken) is { } pPreset && PNoiseValuesMatch(pPreset))
             {
                 pMatch = pToken;
                 break;
@@ -363,13 +366,13 @@ public sealed partial class PInspector
         if (pMatch is not null)
         {
             pInspectorNoiseBaseToken = pMatch;
-            PNoiseCustomLabelReset();
-            PNoisePresetItemSelect(pMatch);
+            PNoiseCustomReset();
+            PNoisePresetSelect(pMatch);
         }
         else
         {
             pInspectorNoiseBaseToken = null;
-            PNoiseCustomLabelReset();
+            PNoiseCustomReset();
             pInspectorNoisePreset.SelectedIndex = pInspectorNoisePreset.Items.Count - 1;
         }
 

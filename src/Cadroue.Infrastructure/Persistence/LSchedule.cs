@@ -38,8 +38,8 @@ public sealed partial class LSchedule : LScheduleContract
         }
 
         LScheduleItemsBuild(LDepotIndex.LDepotIndexDirty
-            ? LScheduleFolderPairsRead()
-            : LScheduleIndexPairsRead());
+            ? LScheduleFolderRead()
+            : LScheduleIndexRead());
     }
 
     private void LScheduleItemsBuild(IEnumerable<(LDepotFolder LDepotFolder, LWorkRecord LWorkRecord)> lSchedulePairs)
@@ -78,7 +78,7 @@ public sealed partial class LSchedule : LScheduleContract
         LScheduleChange?.Invoke(this);
     }
 
-    private IEnumerable<(LDepotFolder, LWorkRecord)> LScheduleIndexPairsRead()
+    private IEnumerable<(LDepotFolder, LWorkRecord)> LScheduleIndexRead()
     {
         foreach ((LDepotFolder lDepotFolder, string lDepotRecord) in LDepotIndex.LDepotRecordsRead())
         {
@@ -89,7 +89,7 @@ public sealed partial class LSchedule : LScheduleContract
         }
     }
 
-    private static IEnumerable<(LDepotFolder, LWorkRecord)> LScheduleFolderPairsRead()
+    private static IEnumerable<(LDepotFolder, LWorkRecord)> LScheduleFolderRead()
     {
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
         {

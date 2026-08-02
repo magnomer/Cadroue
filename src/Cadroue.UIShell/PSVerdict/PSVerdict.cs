@@ -148,14 +148,14 @@ internal sealed class PSVerdict : Window
     private static UIElement PSVerdictHeaderBuild()
     {
         Grid pGrid = PSVerdictGridBuild();
-        PSVerdictHeaderCellAdd(pGrid, 0, "Encoder.Verification.Family");
-        PSVerdictHeaderCellAdd(pGrid, 1, "Encoder.Verification.Encoder");
-        PSVerdictHeaderCellAdd(pGrid, 2, "Encoder.Verification.Status");
+        PSVerdictHeaderAdd(pGrid, 0, "Encoder.Verification.Family");
+        PSVerdictHeaderAdd(pGrid, 1, "Encoder.Verification.Encoder");
+        PSVerdictHeaderAdd(pGrid, 2, "Encoder.Verification.Status");
         pGrid.Margin = new Thickness(0, 0, 0, PSVerdictRowGap);
         return pGrid;
     }
 
-    private static void PSVerdictHeaderCellAdd(Grid pGrid, int pColumn, string pKey)
+    private static void PSVerdictHeaderAdd(Grid pGrid, int pColumn, string pKey)
     {
         var pHeader = new TextBlock
         {

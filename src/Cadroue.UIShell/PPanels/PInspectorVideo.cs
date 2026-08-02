@@ -28,9 +28,9 @@ public sealed partial class PInspector
 
     public event Action? PInspectorVideoChange;
 
-    public LWorkVideoStep PToneStepRead(LWorkVideoKind pStepKind) => pStepKind switch
+    public LWorkVideoStep PToneStepRead(LColorKind pStepKind) => pStepKind switch
     {
-        LWorkVideoKind.LWorkVideoKindContrast => LWorkVideoStep.LWorkContrastCreate(
+        LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(
             pToneContrastBox.IsChecked == true,
             Math.Clamp(PInspectorDecimalRead(pInspectorContrastValue, 100), 0, 200)),
         _ => LWorkVideoStep.LWorkBrightnessCreate(
@@ -41,10 +41,10 @@ public sealed partial class PInspector
     public void PTonePlanApply(LWorkVideo pVideo)
     {
         PToneStepApply(
-            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindBrightness)
+            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindBrightness)
             ?? LWorkVideoStep.LWorkBrightnessCreate(false, 0));
         PToneStepApply(
-            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast)
+            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindContrast)
             ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
         PInspectorVideoChange?.Invoke();
     }
@@ -57,7 +57,7 @@ public sealed partial class PInspector
     {
         foreach (LWorkVideoStep pStep in pVideo.LWorkVideoSteps)
         {
-            if (pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast)
+            if (pStep.LWorkStepKind == LColorKind.LColorKindContrast)
             {
                 pInspectorContrastPersistent.IsChecked = true;
             }
@@ -73,12 +73,12 @@ public sealed partial class PInspector
         var pSteps = new List<LWorkVideoStep>();
         if (pInspectorBrightnessPersistent.IsChecked == true)
         {
-            pSteps.Add(PToneStepRead(LWorkVideoKind.LWorkVideoKindBrightness));
+            pSteps.Add(PToneStepRead(LColorKind.LColorKindBrightness));
         }
 
         if (pInspectorContrastPersistent.IsChecked == true)
         {
-            pSteps.Add(PToneStepRead(LWorkVideoKind.LWorkVideoKindContrast));
+            pSteps.Add(PToneStepRead(LColorKind.LColorKindContrast));
         }
 
         return new LWorkVideo(pSteps);
@@ -218,7 +218,7 @@ public sealed partial class PInspector
         pInspectorVideoSuppress = true;
         try
         {
-            if (pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast)
+            if (pStep.LWorkStepKind == LColorKind.LColorKindContrast)
             {
                 pToneContrastBox.IsChecked = pStep.LWorkStepActive;
                 pInspectorContrastValue.Text = pStep.LWorkStepValue.ToString("0.#", CultureInfo.InvariantCulture);

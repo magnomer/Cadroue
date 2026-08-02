@@ -1,20 +1,20 @@
 namespace Cadroue.Core;
 
 public sealed record LWorkNormalizeStep(
-    bool LWorkAudioStepActive,
-    LWorkAudioNormalizeMode LWorkNormalizeMode,
+    bool LWorkStepActive,
+    LLeveling LWorkNormalizeMode,
     double LWorkNormalizeTarget,
     double LWorkNormalizePeak,
     double LWorkNormalizeRange,
-    bool LWorkNormalizeTwoPass,
+    bool LWorkTwoPass,
     double LWorkNormalizeFrame,
     double LWorkNormalizeGauss,
-    double LWorkNormalizeMaxGain,
+    double LWorkNormalizeGain,
     double LWorkNormalizeCompress)
-    : LWorkAudioStep(LWorkAudioKind.LWorkAudioKindNormalize, LWorkAudioStepActive)
+    : LWorkAudioStep(LAudioKind.LAudioKindNormalize, LWorkStepActive)
 {
     public override bool LWorkStepLoudness =>
-        LWorkAudioStepActive
-        && LWorkNormalizeTwoPass
-        && LWorkNormalizeMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness;
+        LWorkStepActive
+        && LWorkTwoPass
+        && LWorkNormalizeMode == LLeveling.LLevelingLoudness;
 }

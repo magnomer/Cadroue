@@ -1,4 +1,4 @@
 namespace Cadroue.Core;
 
-public sealed record LWorkVolumeStep(bool LWorkAudioStepActive, double LWorkVolumeGain)
-    : LWorkAudioStep(LWorkAudioKind.LWorkAudioKindVolume, LWorkAudioStepActive);
+public sealed record LWorkVolumeStep(bool LWorkStepActive, double LWorkVolumeGain)
+    : LWorkAudioStep(LAudioKind.LAudioKindVolume, LWorkStepActive);

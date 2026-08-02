@@ -121,7 +121,7 @@ public sealed partial class PViewer
             ? "Media closed"
             : $"Media closed '{System.IO.Path.GetFileName(pViewerClosedPath)}' [{pViewerClosedPath}]");
 
-        PViewerMediaRaise(new LMediaOpenStatus(string.Empty, null, false, false, null, null));
+        PViewerMediaRaise(new LCargo(string.Empty, null, false, false, null, null));
         return true;
     }
 

@@ -95,25 +95,25 @@ public sealed partial class PGroup
         List<string> pTargetPaths = pGroupRecords[pTargetIndex].PGroupRecordPaths;
 
         if (pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
-            && pMove.PGroupMoveSourceIndex >= 0
-            && pMove.PGroupMoveSourceIndex < pGroupRecords.Count)
+            && pMove.PGroupMoveIndex >= 0
+            && pMove.PGroupMoveIndex < pGroupRecords.Count)
         {
-            List<string> pSourcePaths = pGroupRecords[pMove.PGroupMoveSourceIndex].PGroupRecordPaths;
+            List<string> pSourcePaths = pGroupRecords[pMove.PGroupMoveIndex].PGroupRecordPaths;
             int pRemovedIndex = pSourcePaths.FindIndex(pPath =>
                 string.Equals(pPath, pMove.PGroupMovePath, StringComparison.OrdinalIgnoreCase));
             if (pRemovedIndex >= 0)
             {
                 pSourcePaths.RemoveAt(pRemovedIndex);
-                if (pMove.PGroupMoveSourceIndex == pTargetIndex && pRemovedIndex < pInsertAt)
+                if (pMove.PGroupMoveIndex == pTargetIndex && pRemovedIndex < pInsertAt)
                 {
                     pInsertAt--;
                 }
             }
 
             PGroupPathInsert(pTargetPaths, pMove.PGroupMovePath, pInsertAt);
-            LTraceLog.LTraceInfoRecord(pMove.PGroupMoveSourceIndex == pTargetIndex
+            LTraceLog.LTraceInfoRecord(pMove.PGroupMoveIndex == pTargetIndex
                 ? $"Group {pTargetIndex + 1}: reordered '{Path.GetFileName(pMove.PGroupMovePath)}'"
-                : $"Group {pTargetIndex + 1}: moved in '{Path.GetFileName(pMove.PGroupMovePath)}' from group {pMove.PGroupMoveSourceIndex + 1}");
+                : $"Group {pTargetIndex + 1}: moved in '{Path.GetFileName(pMove.PGroupMovePath)}' from group {pMove.PGroupMoveIndex + 1}");
         }
         else if (PGroupPathsRead(pEvent) is { Count: > 0 } pAddPaths)
         {
@@ -143,10 +143,10 @@ public sealed partial class PGroup
 
         var pNewPaths = new List<string>();
         if (pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
-            && pMove.PGroupMoveSourceIndex >= 0
-            && pMove.PGroupMoveSourceIndex < pGroupRecords.Count)
+            && pMove.PGroupMoveIndex >= 0
+            && pMove.PGroupMoveIndex < pGroupRecords.Count)
         {
-            List<string> pSourcePaths = pGroupRecords[pMove.PGroupMoveSourceIndex].PGroupRecordPaths;
+            List<string> pSourcePaths = pGroupRecords[pMove.PGroupMoveIndex].PGroupRecordPaths;
             if (pSourcePaths.RemoveAll(pPath =>
                     string.Equals(pPath, pMove.PGroupMovePath, StringComparison.OrdinalIgnoreCase)) > 0)
             {
@@ -203,5 +203,5 @@ public sealed partial class PGroup
         pPaths.Insert(Math.Clamp(pInsertAt, 0, pPaths.Count), pPath);
     }
 
-    private sealed record PGroupMovePayload(int PGroupMoveSourceIndex, string PGroupMovePath);
+    private sealed record PGroupMovePayload(int PGroupMoveIndex, string PGroupMovePath);
 }

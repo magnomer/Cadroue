@@ -280,11 +280,11 @@ public partial class PWindow : Window
         pFlowActive = null;
         pViewerActive = null;
     }
-    private void PWindowMediaHandle(LMediaOpenStatus mediaStatus)
+    private void PWindowMediaHandle(LCargo mediaStatus)
     {
-        if (mediaStatus.LMediaOpenMediaInfo is LMediaInfo mediaInfo)
+        if (mediaStatus.LCargoMediaInfo is LMediaInfo mediaInfo)
         {
-            pFlowActive?.PFlowAttach(mediaInfo, mediaStatus.LMediaOpenSourcePath, TimeSpan.Zero);
+            pFlowActive?.PFlowAttach(mediaInfo, mediaStatus.LCargoSourcePath, TimeSpan.Zero);
             return;
         }
         pFlowActive?.PFlowClear();

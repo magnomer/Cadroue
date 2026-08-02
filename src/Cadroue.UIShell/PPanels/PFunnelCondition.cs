@@ -108,7 +108,7 @@ internal sealed class PFunnelCondition : Grid
         };
     }
 
-    public LSceneFunnelMatch PFunnelConditionRecordRead()
+    public LSceneFunnelMatch PFunnelConditionRead()
     {
         return new LSceneFunnelMatch
         {

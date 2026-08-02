@@ -45,7 +45,7 @@ public sealed partial class PViewer : PPanel
     private bool pViewerResumeInactive;
     private bool pViewerUnloaded;
 
-    public event Action<LMediaOpenStatus>? PViewerMediaChange;
+    public event Action<LCargo>? PViewerMediaChange;
     public event Action<TimeSpan>? PViewerClockTick;
     public event Action<Rect?>? PCropVideoChange;
 
@@ -362,36 +362,36 @@ public sealed partial class PViewer : PPanel
     }
 }
 
-public enum LMediaStatusKind
+public enum LCargoGrade
 {
-    LMediaOpenStatusProcessablePreviewAvailable,
-    LMediaOpenStatusProcessablePreviewUnavailable,
-    LMediaOpenStatusUnprocessablePreviewAvailable,
-    LMediaOpenStatusUnprocessablePreviewUnavailable
+    LCargoGradeFull,
+    LCargoGradeBlind,
+    LCargoGradeView,
+    LCargoGradeVoid
 }
 
-public sealed record LMediaOpenStatus(
-    string LMediaOpenSourcePath,
-    LMediaInfo? LMediaOpenMediaInfo,
-    bool LMediaOpenFfmpegProcessable,
-    bool LMediaOpenPreviewAvailable,
-    string? LMediaOpenFfmpegError,
-    string? LMediaOpenPreviewError)
+public sealed record LCargo(
+    string LCargoSourcePath,
+    LMediaInfo? LCargoMediaInfo,
+    bool LCargoProcessable,
+    bool LCargoPreviewAvailable,
+    string? LCargoFfmpegError,
+    string? LCargoPreviewError)
 {
-    public LMediaStatusKind LMediaStatusKind =>
-        LMediaOpenFfmpegProcessable && LMediaOpenPreviewAvailable
-            ? LMediaStatusKind.LMediaOpenStatusProcessablePreviewAvailable
-            : LMediaOpenFfmpegProcessable
-                ? LMediaStatusKind.LMediaOpenStatusProcessablePreviewUnavailable
-                : LMediaOpenPreviewAvailable
-                    ? LMediaStatusKind.LMediaOpenStatusUnprocessablePreviewAvailable
-                    : LMediaStatusKind.LMediaOpenStatusUnprocessablePreviewUnavailable;
+    public LCargoGrade LCargoGrade =>
+        LCargoProcessable && LCargoPreviewAvailable
+            ? LCargoGrade.LCargoGradeFull
+            : LCargoProcessable
+                ? LCargoGrade.LCargoGradeBlind
+                : LCargoPreviewAvailable
+                    ? LCargoGrade.LCargoGradeView
+                    : LCargoGrade.LCargoGradeVoid;
 
-    public string LMediaStatusText => LMediaStatusKind switch
+    public string LCargoStatusText => LCargoGrade switch
     {
-        LMediaStatusKind.LMediaOpenStatusProcessablePreviewAvailable => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableAvailable"),
-        LMediaStatusKind.LMediaOpenStatusProcessablePreviewUnavailable => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableUnavailable"),
-        LMediaStatusKind.LMediaOpenStatusUnprocessablePreviewAvailable => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableAvailable"),
+        LCargoGrade.LCargoGradeFull => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableAvailable"),
+        LCargoGrade.LCargoGradeBlind => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableUnavailable"),
+        LCargoGrade.LCargoGradeView => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableAvailable"),
         _ => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableUnavailable")
     };
 }

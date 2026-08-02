@@ -218,8 +218,8 @@ public sealed record LWorkCrop(
     int LWorkCropRight,
     int LWorkCropBottom,
     int LWorkCropRotation,
-    bool LWorkCropFlipHorizontal,
-    bool LWorkCropFlipVertical)
+    bool LWorkFlipHorizontal,
+    bool LWorkFlipVertical)
 {
     public static LWorkCrop LWorkCropCreate() => new(0, 0, 0, 0, 0, false, false);
 
@@ -229,30 +229,30 @@ public sealed record LWorkCrop(
     public bool LWorkCropActive =>
         LWorkEdgeActive
         || LWorkCropRotation != 0
-        || LWorkCropFlipHorizontal
-        || LWorkCropFlipVertical;
+        || LWorkFlipHorizontal
+        || LWorkFlipVertical;
 }
 
-public enum LWorkVideoKind
+public enum LColorKind
 {
-    LWorkVideoKindBrightness,
-    LWorkVideoKindContrast
+    LColorKindBrightness,
+    LColorKindContrast
 }
 
 public sealed record LWorkVideoStep(
-    LWorkVideoKind LWorkStepKind,
+    LColorKind LWorkStepKind,
     bool LWorkStepActive,
     double LWorkStepValue)
 {
     public static LWorkVideoStep LWorkBrightnessCreate(bool lStepActive, double lStepValue) =>
-        new(LWorkVideoKind.LWorkVideoKindBrightness, lStepActive, lStepValue);
+        new(LColorKind.LColorKindBrightness, lStepActive, lStepValue);
 
     public static LWorkVideoStep LWorkContrastCreate(bool lStepActive, double lStepValue) =>
-        new(LWorkVideoKind.LWorkVideoKindContrast, lStepActive, Math.Clamp(lStepValue, 0, 200));
+        new(LColorKind.LColorKindContrast, lStepActive, Math.Clamp(lStepValue, 0, 200));
 
     public double LWorkFfmpegValue => LWorkStepKind switch
     {
-        LWorkVideoKind.LWorkVideoKindBrightness => Math.Clamp(LWorkStepValue * 0.0025d, -1, 1),
+        LColorKind.LColorKindBrightness => Math.Clamp(LWorkStepValue * 0.0025d, -1, 1),
         _ => LWorkStepValue / 100d
     };
 }

@@ -58,7 +58,7 @@ public sealed partial class PFlow
             }
         };
 
-        void PFlowNameKeyHandle(object pSender, KeyEventArgs pNameKeyEvent)
+        void PFlowNameHandle(object pSender, KeyEventArgs pNameKeyEvent)
         {
             switch (pNameKeyEvent.Key)
             {
@@ -74,9 +74,9 @@ public sealed partial class PFlow
             }
         }
 
-        pNameBox.KeyDown += PFlowNameKeyHandle;
-        pPrefixBox.KeyDown += PFlowNameKeyHandle;
-        pSuffixBox.KeyDown += PFlowNameKeyHandle;
+        pNameBox.KeyDown += PFlowNameHandle;
+        pPrefixBox.KeyDown += PFlowNameHandle;
+        pSuffixBox.KeyDown += PFlowNameHandle;
 
         pFlowNamePopup = pNamePopup;
         pNamePopup.IsOpen = true;

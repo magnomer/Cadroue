@@ -151,10 +151,10 @@ public sealed class PFunnelRuleRow : Border
         return new LSceneFunnelRule
         {
             LSceneFunnelType = (int)PFunnelForm.Filename,
-            LSceneFunnelContains = PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRecordRead(),
-            LSceneFunnelStart = PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRecordRead(),
-            LSceneFunnelEnd = PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRecordRead(),
-            LSceneFunnelExtension = PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRecordRead()
+            LSceneFunnelContains = PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRead(),
+            LSceneFunnelStart = PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRead(),
+            LSceneFunnelEnd = PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRead(),
+            LSceneFunnelExtension = PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRead()
         };
     }
 

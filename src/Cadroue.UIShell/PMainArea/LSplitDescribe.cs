@@ -64,10 +64,10 @@ public static partial class LSplit
         int lSplitAdded = 0;
         foreach (LSplitPlanRecord lSplitPlan in lSplitPlans)
         {
-            lSplitRelays.TryGetValue(lSplitPlan.LSplitPlanSourcePath, out Guid lSplitBatch);
+            lSplitRelays.TryGetValue(lSplitPlan.LSplitSourcePath, out Guid lSplitBatch);
             lSplitAdded += LSplitDescribe(
                 lWorkPriority,
-                lSplitPlan.LSplitPlanSourcePath,
+                lSplitPlan.LSplitSourcePath,
                 lSplitPlan.LSplitPlanSections,
                 lExportSpecificState,
                 lSplitRelayTarget,

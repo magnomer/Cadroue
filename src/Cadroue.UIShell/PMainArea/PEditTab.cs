@@ -64,8 +64,8 @@ public sealed class PEditTab : PTabSurface
         pInspector.PInspectorCropChange += _ => PEditPlanSave();
         pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
-        pInspector.PInspectorCropActiveChange += PEditActiveUpdate;
-        pInspector.PInspectorCropActiveChange += PEditPlanSave;
+        pInspector.PCropActiveChange += PEditActiveUpdate;
+        pInspector.PCropActiveChange += PEditPlanSave;
         pInspector.PInspectorVideoChange += PEditChangeHandle;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
@@ -168,9 +168,9 @@ public sealed class PEditTab : PTabSurface
     {
         pProcessing.PProcessingActiveSet("Crop", pInspector.PCropActiveCheck());
         pProcessing.PProcessingActiveSet("Brightness",
-            pInspector.PToneStepRead(LWorkVideoKind.LWorkVideoKindBrightness).LWorkStepActive);
+            pInspector.PToneStepRead(LColorKind.LColorKindBrightness).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Contrast",
-            pInspector.PToneStepRead(LWorkVideoKind.LWorkVideoKindContrast).LWorkStepActive);
+            pInspector.PToneStepRead(LColorKind.LColorKindContrast).LWorkStepActive);
     }
 
     private void PEditChangeHandle()
@@ -286,11 +286,11 @@ public sealed class PEditTab : PTabSurface
     {
         LWorkVideo pVideo = PEditVideoRead();
         double pBrightness = pVideo.LWorkVideoSteps
-            .FirstOrDefault(pStep => pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindBrightness
+            .FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindBrightness
                 && pStep.LWorkStepActive)
             ?.LWorkFfmpegValue * PEditPreviewFactor ?? 0;
         double pContrast = pVideo.LWorkVideoSteps
-            .FirstOrDefault(pStep => pStep.LWorkStepKind == LWorkVideoKind.LWorkVideoKindContrast
+            .FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindContrast
                 && pStep.LWorkStepActive)
             ?.LWorkFfmpegValue ?? 1;
         pViewer.PViewerColorSet(new LColor(pBrightness, pContrast, 1, 0));
@@ -316,8 +316,8 @@ public sealed class PEditTab : PTabSurface
         string pEdges = pCrop.LWorkEdgeActive
             ? $"edges {pCrop.LWorkCropLeft}/{pCrop.LWorkCropTop}/{pCrop.LWorkCropRight}/{pCrop.LWorkCropBottom}"
             : "no edges";
-        string pFlip = pCrop.LWorkCropFlipHorizontal || pCrop.LWorkCropFlipVertical
-            ? $"flip {(pCrop.LWorkCropFlipHorizontal ? "H" : "")}{(pCrop.LWorkCropFlipVertical ? "V" : "")}"
+        string pFlip = pCrop.LWorkFlipHorizontal || pCrop.LWorkFlipVertical
+            ? $"flip {(pCrop.LWorkFlipHorizontal ? "H" : "")}{(pCrop.LWorkFlipVertical ? "V" : "")}"
             : "no flip";
         return $"{pEdges}, rotate {pCrop.LWorkCropRotation}, {pFlip}";
     }
@@ -365,7 +365,7 @@ public sealed class PEditTab : PTabSurface
         var pSteps = new List<LWorkVideoStep>();
         foreach (string pStepName in pProcessing.PProcessingStepsRead())
         {
-            if (PEditKindRead(pStepName) is LWorkVideoKind pKind)
+            if (PEditKindRead(pStepName) is LColorKind pKind)
             {
                 pSteps.Add(pInspector.PToneStepRead(pKind));
             }
@@ -374,10 +374,10 @@ public sealed class PEditTab : PTabSurface
         return new LWorkVideo(pSteps);
     }
 
-    private static LWorkVideoKind? PEditKindRead(string pStepName) => pStepName switch
+    private static LColorKind? PEditKindRead(string pStepName) => pStepName switch
     {
-        "Brightness" => LWorkVideoKind.LWorkVideoKindBrightness,
-        "Contrast" => LWorkVideoKind.LWorkVideoKindContrast,
+        "Brightness" => LColorKind.LColorKindBrightness,
+        "Contrast" => LColorKind.LColorKindContrast,
         _ => null
     };
 
