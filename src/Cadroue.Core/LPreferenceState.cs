@@ -25,6 +25,7 @@ public sealed class LPreferenceState
 
     public string LPreferenceTimelineOrder { get; set; } = "MapFirst";
     public double LPreferenceKeyframePixels { get; set; }
+    public double LPreferenceKeyframeDelay { get; set; }
     public string LPreferenceSectionPalette { get; set; } = LPreferencePaletteDefault;
     public bool LPreferenceOverlapAllowed { get; set; } = true;
     public bool LPreferenceWaveform { get; set; } = true;
@@ -58,6 +59,7 @@ public sealed class LPreferenceState
             LPreferenceDragPaused = true,
             LPreferenceTimelineOrder = "MapFirst",
             LPreferenceKeyframePixels = 5,
+            LPreferenceKeyframeDelay = 1000,
             LPreferenceSectionPalette = LPreferencePaletteDefault,
             LPreferenceOverlapAllowed = true,
             LPreferenceWaveform = true,
@@ -98,6 +100,7 @@ public sealed class LPreferenceState
             LPreferenceDragPaused = LPreferenceDragPaused,
             LPreferenceTimelineOrder = LPreferenceTimelineOrder,
             LPreferenceKeyframePixels = LPreferenceKeyframePixels,
+            LPreferenceKeyframeDelay = LPreferenceKeyframeDelay,
             LPreferenceSectionPalette = LPreferenceSectionPalette,
             LPreferenceOverlapAllowed = LPreferenceOverlapAllowed,
             LPreferenceWaveform = LPreferenceWaveform,
@@ -131,6 +134,7 @@ public sealed class LPreferenceState
             ("Pause while dragging", lPreferenceOther.LPreferenceDragPaused, LPreferenceDragPaused),
             ("Timeline order", lPreferenceOther.LPreferenceTimelineOrder, LPreferenceTimelineOrder),
             ("Keyframe minimum spacing", lPreferenceOther.LPreferenceKeyframePixels, LPreferenceKeyframePixels),
+            ("Keyframe scan delay", lPreferenceOther.LPreferenceKeyframeDelay, LPreferenceKeyframeDelay),
             ("Section colour palette", lPreferenceOther.LPreferenceSectionPalette, LPreferenceSectionPalette),
             ("Allow overlapping sections", lPreferenceOther.LPreferenceOverlapAllowed, LPreferenceOverlapAllowed),
             ("Show waveforms", lPreferenceOther.LPreferenceWaveform, LPreferenceWaveform),
@@ -166,6 +170,7 @@ public sealed class LPreferenceState
 
         LPreferenceVolume = LPreferenceVolumeClamp(LPreferenceVolume);
         LPreferenceKeyframePixels = LPreferenceNumberClamp(LPreferenceKeyframePixels, 1, 50, 5);
+        LPreferenceKeyframeDelay = LPreferenceNumberClamp(LPreferenceKeyframeDelay, 0, 5000, 1000);
         LPreferenceParallelMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceParallelMaximum, 1, 8, 1));
         LPreferenceRetryMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceRetryMaximum, 0, 10, 3));
 

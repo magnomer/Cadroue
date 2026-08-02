@@ -86,6 +86,7 @@ internal sealed partial class PSOptions : Window
 
     private readonly ComboBox psOptionsOrderCombo;
     private readonly Slider psKeyframeSlider;
+    private readonly Slider psKeyframeDelaySlider;
     private readonly CheckBox psOptionsOverlapBox;
     private readonly CheckBox psWaveformBox;
 
@@ -128,6 +129,7 @@ internal sealed partial class PSOptions : Window
 
         psOptionsOrderCombo = PSComboBuild(lsOptionsDraft.LPreferenceTimelineOrder, PSOptionsOrderItems);
         psKeyframeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframePixels, 1, 50);
+        psKeyframeDelaySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframeDelay, 0, 5000);
         psOptionsOverlapBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlapCheck"), lsOptionsDraft.LPreferenceOverlapAllowed);
         psWaveformBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformCheck"), lsOptionsDraft.LPreferenceWaveform);
 
@@ -289,6 +291,7 @@ internal sealed partial class PSOptions : Window
 
         lsOptionsDraft.LPreferenceTimelineOrder = PSComboTextRead(psOptionsOrderCombo);
         lsOptionsDraft.LPreferenceKeyframePixels = psKeyframeSlider.Value;
+        lsOptionsDraft.LPreferenceKeyframeDelay = psKeyframeDelaySlider.Value;
         lsOptionsDraft.LPreferenceSectionPalette = psSpectrumName;
         lsOptionsDraft.LPreferenceOverlapAllowed = psOptionsOverlapBox.IsChecked == true;
         lsOptionsDraft.LPreferenceWaveform = psWaveformBox.IsChecked == true;

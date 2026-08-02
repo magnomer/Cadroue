@@ -34,6 +34,9 @@ internal sealed partial class PSOptions
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"), psOptionsOrderCombo)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
             PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"), psKeyframeSlider, " px")));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelay"),
+            PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayLabel"), psKeyframeDelaySlider, " ms"),
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Overlapping"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlappingSections"), psOptionsOverlapBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Waveform"),

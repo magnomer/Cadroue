@@ -19,7 +19,6 @@ public sealed partial class PFlow : UserControl
     private const double PFlowSeekDivisor = 40;
     private const double PFlowHeightMinimum = 200;
     private const double PFlowHeightMaximum = 520;
-    private static readonly TimeSpan PFlowResumeDelay = TimeSpan.FromSeconds(2);
     private readonly LKeyframeOrchestrator lKeyframeOrchestrator = new();
     private readonly DispatcherTimer lKeyframeRequestTimer;
     private readonly DispatcherTimer lKeyframeResumeTimer;
@@ -78,7 +77,7 @@ public sealed partial class PFlow : UserControl
         lWaveformOrchestrator.LWaveformReady += PFlowWaveformHandle;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         lKeyframeRequestTimer.Tick += PFlowTimerHandle;
-        lKeyframeResumeTimer = new DispatcherTimer { Interval = PFlowResumeDelay };
+        lKeyframeResumeTimer = new DispatcherTimer { Interval = PFlowResumeRead() };
         lKeyframeResumeTimer.Tick += PFlowResumeHandle;
         pDividerThumb = PDividerBuild();
         pDividerThumb.MouseLeftButtonDown += PDividerPressHandle;
@@ -390,8 +389,12 @@ public sealed partial class PFlow : UserControl
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
         lKeyframeOrchestrator.LKeyframeSuspend();
+        lKeyframeResumeTimer.Interval = PFlowResumeRead();
         if (pFlowCommandActive && !pFlowUnloaded) lKeyframeResumeTimer.Start();
     }
+
+    private static TimeSpan PFlowResumeRead()
+        => TimeSpan.FromMilliseconds(LPreference.LPreferenceStateCurrent.LPreferenceKeyframeDelay);
 
     private void PFlowKeyframeRun()
     {
