@@ -77,8 +77,8 @@ internal sealed partial class PSEncoder : Window
     private TextBox? psAudioQualityBox;
     private ComboBox? psAudioSpeedCombo;
     private bool psAudioRowsBusy;
-    private string psCodecLog = LLocalization.LLocalizationTextRead("Encoder.Verification.NotRun");
-    private string psAudioLog = LLocalization.LLocalizationTextRead("Encoder.Verification.NotRun");
+    private IReadOnlyList<PSVerdictRow> psCodecResults = Array.Empty<PSVerdictRow>();
+    private IReadOnlyList<PSVerdictRow> psAudioResults = Array.Empty<PSVerdictRow>();
     private string? psEncoderFolderPath;
     private readonly PSGrabber psEncoderGrabber;
 

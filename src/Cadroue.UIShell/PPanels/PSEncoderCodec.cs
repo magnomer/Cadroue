@@ -145,14 +145,10 @@ internal sealed partial class PSEncoder
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Verification.Checking");
         var pAvailable = new List<string>();
         var pAvailableNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var pLog = new StringBuilder();
-        pLog.AppendLine($"Verification: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        pLog.AppendLine("Command pattern: ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=320x240:rate=1 -frames:v 1 -an -c:v <encoder> -f null -");
+        var pRows = new List<PSVerdictRow>();
         foreach (var pCandidate in PSCodecCandidates)
         {
             bool pCandidateAvailable = false;
-            pLog.AppendLine();
-            pLog.AppendLine(pCandidate.PSCodecText);
             foreach (string pEncoder in pCandidate.PSCodecValues)
             {
                 LTrialResult pResult = await LTrial.LTrialRun(pEncoder, LTrialKind.LTrialKindVideo);
@@ -162,7 +158,7 @@ internal sealed partial class PSEncoder
                     pAvailableNames.Add(pEncoder);
                 }
 
-                pLog.AppendLine($"  {pEncoder}: {(pResult.LTrialSuccess ? "OK" : "FAIL")} - {pResult.LTrialMessage}");
+                pRows.Add(new PSVerdictRow(pCandidate.PSCodecText, pEncoder, pResult.LTrialSuccess, pResult.LTrialMessage));
             }
 
             if (pCandidateAvailable)
@@ -174,8 +170,23 @@ internal sealed partial class PSEncoder
         psCodecAvailable = pAvailableNames.Count > 0 ? pAvailableNames : psCodecAvailable;
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
-        psCodecLog = pLog.ToString();
+        psCodecResults = pRows;
+        PSVerdictLogRecord("video", pRows);
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Button.Verify");
         pButton.IsEnabled = true;
+    }
+
+    private static void PSVerdictLogRecord(string pKind, IReadOnlyList<PSVerdictRow> pRows)
+    {
+        int pPassed = pRows.Count(pRow => pRow.PSVerdictSuccess);
+        var pDetail = new StringBuilder();
+        foreach (PSVerdictRow pRow in pRows)
+        {
+            pDetail.AppendLine($"{pRow.PSVerdictFamily} / {pRow.PSVerdictEncoder}: {(pRow.PSVerdictSuccess ? "OK" : "FAIL")} - {pRow.PSVerdictMessage}");
+        }
+
+        LTraceLog.LTraceInfoRecord(
+            $"Encoder verification ({pKind}): {pPassed} of {pRows.Count} encoder(s) available",
+            pDetail.ToString().TrimEnd());
     }
 }

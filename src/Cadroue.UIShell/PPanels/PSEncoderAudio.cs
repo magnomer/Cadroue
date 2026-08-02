@@ -1,4 +1,3 @@
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
@@ -198,15 +197,11 @@ internal sealed partial class PSEncoder
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Verification.Checking");
         LInventory.LInventoryReset();
         var pAvailable = new List<string>();
-        var pLog = new StringBuilder();
-        pLog.AppendLine($"Verification: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        pLog.AppendLine("Command pattern: ffmpeg -hide_banner -loglevel error -f lavfi -i anullsrc=r=48000:cl=stereo -t 0.1 -vn -c:a <encoder> -f null -");
+        var pRows = new List<PSVerdictRow>();
         foreach (var pCandidate in PSAudioCandidates)
         {
             LTrialResult pResult = await LTrial.LTrialRun(pCandidate.PSAudioName, LTrialKind.LTrialKindAudio);
-            pLog.AppendLine();
-            pLog.AppendLine(pCandidate.PSAudioText);
-            pLog.AppendLine($"  {pCandidate.PSAudioName}: {(pResult.LTrialSuccess ? "OK" : "FAIL")} - {pResult.LTrialMessage}");
+            pRows.Add(new PSVerdictRow(pCandidate.PSAudioText, pCandidate.PSAudioName, pResult.LTrialSuccess, pResult.LTrialMessage));
             if (pResult.LTrialSuccess)
             {
                 pAvailable.Add(pCandidate.PSAudioText);
@@ -215,7 +210,8 @@ internal sealed partial class PSEncoder
 
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
-        psAudioLog = pLog.ToString();
+        psAudioResults = pRows;
+        PSVerdictLogRecord("audio", pRows);
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Button.Verify");
         pButton.IsEnabled = true;
     }
@@ -227,7 +223,7 @@ internal sealed partial class PSEncoder
         var pVerify = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Verify"), 84, new Thickness(8, 0, 0, 0));
         var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Log"), 64, new Thickness(6, 0, 0, 0));
         pVerify.Click += async (_, _) => await PSAudioVerifyHandle(psAudioEncoderCombo, pVerify);
-        pLog.Click += (_, _) => MessageBox.Show(this, psAudioLog, LLocalization.LLocalizationTextRead("Encoder.Verification.LogTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, LLocalization.LLocalizationTextRead("Encoder.Verification.LogTitle"), psAudioResults);
         psAudioEncoderCombo.SelectionChanged += (_, _) => PSAudioChangeHandle();
         psAudioRateCombo.SelectionChanged += (_, _) => PSAudioRowsRebuild();
 
