@@ -13,7 +13,7 @@ public sealed class LWorkItem
         TimeSpan lWorkEnd,
         string lWorkOutputName,
         string lWorkOutputPath,
-        LWorkOutput lWorkOutput,
+        LEncoding lWorkOutput,
         Guid? lWorkId = null,
         DateTimeOffset? lWorkCreateTime = null,
         LWorkCrop? lWorkCrop = null,
@@ -64,7 +64,7 @@ public sealed class LWorkItem
         LWorkOutputName = lWorkOutputName;
     }
 
-    public LWorkOutput LWorkOutput { get; }
+    public LEncoding LWorkOutput { get; }
 
     public LWorkCrop LWorkCrop { get; }
 

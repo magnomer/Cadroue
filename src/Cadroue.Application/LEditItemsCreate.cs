@@ -11,10 +11,10 @@ public static partial class LEdit
         TimeSpan lEditDuration,
         LWorkCrop lEditCrop,
         LWorkVideo lEditVideo,
-        LWorkOutput lEditOutput,
+        LEncoding lEditOutput,
         Guid lEditBatchId)
     {
-        string lEditFolder = lEditOutput.LWorkFolderRead(lEditSourcePath);
+        string lEditFolder = lEditOutput.LEncodingFolderRead(lEditSourcePath);
         string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath, lEditFolder);
 
         return new LWorkItem(
@@ -83,12 +83,12 @@ public static partial class LEdit
     }
 
 
-    private static string LEditNameCreate(LWorkOutput lEditOutput, string lEditSourcePath, string lEditFolder)
+    private static string LEditNameCreate(LEncoding lEditOutput, string lEditSourcePath, string lEditFolder)
     {
         string lEditSourceStem = Path.GetFileNameWithoutExtension(lEditSourcePath);
-        string lEditPattern = string.IsNullOrWhiteSpace(lEditOutput.LWorkOutputNamePattern)
+        string lEditPattern = string.IsNullOrWhiteSpace(lEditOutput.LEncodingNamePattern)
             ? "{OriginalName}"
-            : lEditOutput.LWorkOutputNamePattern;
+            : lEditOutput.LEncodingNamePattern;
 
         DateTimeOffset lEditStamp = DateTimeOffset.Now;
         string lEditStem = lEditPattern
@@ -100,7 +100,7 @@ public static partial class LEdit
             .Replace("{Date}", lEditStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lEditStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        lEditStem = LWorkOutput.LWorkOutputShorten(lEditStem);
+        lEditStem = LEncoding.LEncodingShorten(lEditStem);
 
         string lEditBaseName = LEditNameNormalize(lEditStem);
         string lEditFileName = LEditNameFormat(lEditOutput, lEditBaseName, lEditSourcePath);
@@ -109,9 +109,9 @@ public static partial class LEdit
             : lEditFileName;
     }
 
-    private static string LEditNameFormat(LWorkOutput lEditOutput, string lEditBaseName, string lEditSourcePath)
+    private static string LEditNameFormat(LEncoding lEditOutput, string lEditBaseName, string lEditSourcePath)
     {
-        string lEditExtension = lEditOutput.LWorkExtensionResolve(lEditSourcePath);
+        string lEditExtension = lEditOutput.LEncodingExtensionResolve(lEditSourcePath);
         return string.IsNullOrWhiteSpace(lEditExtension)
             ? lEditBaseName
             : $"{lEditBaseName}.{lEditExtension}";

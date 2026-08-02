@@ -128,7 +128,7 @@ public sealed partial class PRoster
 
     private UIElement PRosterComparisonBuild(LWorkItem pWorkItem, LWorkMedia? pSourceInfo, long? pSourceBytes, long? pOutputBytes)
     {
-        LWorkOutput pOutput = pWorkItem.LWorkOutput;
+        LEncoding pOutput = pWorkItem.LWorkOutput;
         LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia ?? PRosterMediaRead(pWorkItem.LWorkOutputPath);
 
         bool pSourceAudio = (pSourceInfo?.LWorkMediaSamplerate ?? 0) > 0;
@@ -158,12 +158,12 @@ public sealed partial class PRoster
             PRosterDimensionFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
             pOutputInfo is { LWorkMediaVideo: true }
                 ? $"{pOutputInfo.LWorkMediaWidth} x {pOutputInfo.LWorkMediaHeight}"
-                : PRosterDimensionFormat(pOutput.LWorkOutputVideoSize), false);
+                : PRosterDimensionFormat(pOutput.LEncodingVideo.LEncodingSize), false);
         PairAdd(
             PRosterFpsFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
             pOutputInfo is { LWorkMediaVideo: true }
                 ? $"{pOutputInfo.LWorkMediaFramerate:0.###} fps"
-                : PRosterFpsFormat(pOutput.LWorkOutputVideoFps), false);
+                : PRosterFpsFormat(pOutput.LEncodingVideo.LEncodingFps), false);
         PairAdd(
             PRosterRateFormat(PRosterKeyframeRead(pWorkItem.LWorkSourcePath, pSourceInfo?.LWorkMediaDuration ?? TimeSpan.Zero) is { } pSourceInterval && pSourceInterval > 0
                 ? pSourceInterval

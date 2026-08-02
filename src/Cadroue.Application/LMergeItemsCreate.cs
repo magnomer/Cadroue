@@ -8,7 +8,7 @@ public static partial class LMerge
     public static IReadOnlyList<LWorkItem> LMergeItemsCreate(
         LWorkPriority lWorkPriority,
         IReadOnlyList<LWorkGroup> lMergeGroups,
-        LWorkOutput lMergeOutput,
+        LEncoding lMergeOutput,
         string lMergeTab,
         Action<string> lInfoLog,
         Action<string> lErrorLog,
@@ -28,7 +28,7 @@ public static partial class LMerge
             }
 
             string lMergeBasePath = lMergeSources[0];
-            string lMergeFolder = lMergeOutput.LWorkFolderRead(lMergeBasePath);
+            string lMergeFolder = lMergeOutput.LEncodingFolderRead(lMergeBasePath);
             string lMergeName = LMergeNameCreate(lMergeOutput, lMergeBasePath, lMergeGroup.LWorkGroupName, lMergeStamp, lMergeTakenNames);
             Guid lMergeBatch = LMergeBatchResolve(lMergeSources, lMergeRelays, lMergeLooseBatch);
 
@@ -81,15 +81,15 @@ public static partial class LMerge
     }
 
     private static string LMergeNameCreate(
-        LWorkOutput lMergeOutput,
+        LEncoding lMergeOutput,
         string lMergeBasePath,
         string lMergeGroupName,
         DateTimeOffset lMergeStamp,
         HashSet<string> lMergeTakenNames)
     {
-        string lMergePattern = string.IsNullOrWhiteSpace(lMergeOutput.LWorkOutputNamePattern)
+        string lMergePattern = string.IsNullOrWhiteSpace(lMergeOutput.LEncodingNamePattern)
             ? "{OriginalName}"
-            : lMergeOutput.LWorkOutputNamePattern;
+            : lMergeOutput.LEncodingNamePattern;
 
         string lMergeStemName = lMergePattern
             .Replace("{Prefix}", string.Empty, StringComparison.OrdinalIgnoreCase)
@@ -100,7 +100,7 @@ public static partial class LMerge
             .Replace("{Date}", lMergeStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lMergeStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        lMergeStemName = LWorkOutput.LWorkOutputShorten(lMergeStemName);
+        lMergeStemName = LEncoding.LEncodingShorten(lMergeStemName);
 
         string lMergeBaseName = LMergeNameNormalize(lMergeStemName);
         string lMergeUniqueName = lMergeBaseName;
@@ -111,7 +111,7 @@ public static partial class LMerge
             lMergeAttempt++;
         }
 
-        string lMergeExtension = lMergeOutput.LWorkExtensionResolve(lMergeBasePath);
+        string lMergeExtension = lMergeOutput.LEncodingExtensionResolve(lMergeBasePath);
         return string.IsNullOrWhiteSpace(lMergeExtension)
             ? lMergeUniqueName
             : $"{lMergeUniqueName}.{lMergeExtension}";

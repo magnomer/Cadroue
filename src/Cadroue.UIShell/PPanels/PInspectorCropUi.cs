@@ -103,10 +103,10 @@ public sealed partial class PInspector
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorContrastPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorHighPass.PInspectorPassPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorLowPass.PInspectorPassPersistent));
-        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNoisePersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pNoisePersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorVolumePersistent));
-        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorNormalizePersistent));
-        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorEqualizerPersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pLoudnessPersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pEqualizerPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pSkipPersistentBox));
         return pPersistentPanel;
     }

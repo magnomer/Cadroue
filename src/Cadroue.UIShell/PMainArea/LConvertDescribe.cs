@@ -13,7 +13,7 @@ public static partial class LConvert
         Guid lConvertRelayTarget = default,
         Guid lConvertRelaySource = default)
     {
-        LWorkOutput lConvertOutput = lExportSpecificState.LPresetOutputCreate();
+        LEncoding lConvertOutput = lExportSpecificState.LPresetOutputCreate();
         string[] lConvertSourcePaths = lConvertSources
             .Select(lConvertSource => lConvertSource.LWorkSourcePath)
             .ToArray();

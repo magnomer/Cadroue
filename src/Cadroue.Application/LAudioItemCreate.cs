@@ -9,7 +9,7 @@ public static partial class LAudio
         LWorkPriority lWorkPriority,
         string? lAudioSourcePath,
         LWorkAudio lAudioProcessing,
-        LWorkOutput lAudioOutput,
+        LEncoding lAudioOutput,
         string lAudioTab,
         Action<string> lInfoLog,
         Action<string> lErrorLog,
@@ -21,7 +21,7 @@ public static partial class LAudio
             return null;
         }
 
-        string lAudioFolder = lAudioOutput.LWorkFolderRead(lAudioSourcePath);
+        string lAudioFolder = lAudioOutput.LEncodingFolderRead(lAudioSourcePath);
         string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
         Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : Guid.NewGuid();
 
@@ -45,10 +45,10 @@ public static partial class LAudio
         };
     }
 
-    private static string LAudioNameCreate(string lAudioSourcePath, string lAudioFolder, LWorkOutput lAudioOutput)
+    private static string LAudioNameCreate(string lAudioSourcePath, string lAudioFolder, LEncoding lAudioOutput)
     {
         string lAudioStem = Path.GetFileNameWithoutExtension(lAudioSourcePath);
-        string lAudioExtension = lAudioOutput.LWorkExtensionResolve(lAudioSourcePath);
+        string lAudioExtension = lAudioOutput.LEncodingExtensionResolve(lAudioSourcePath);
         string lAudioBaseName = string.IsNullOrWhiteSpace(lAudioExtension)
             ? lAudioStem
             : $"{lAudioStem}.{lAudioExtension}";

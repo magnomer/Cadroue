@@ -19,7 +19,7 @@ public static partial class LConvert
             return Array.Empty<LWorkItem>();
         }
 
-        LWorkOutput lConvertOutput = lConvertWorkDescription.LConvertOutput;
+        LEncoding lConvertOutput = lConvertWorkDescription.LConvertOutput;
         var lConvertWorkItems = new List<LWorkItem>();
         Guid lConvertLooseBatch = Guid.NewGuid();
 
@@ -40,7 +40,7 @@ public static partial class LConvert
             TimeSpan lConvertDuration = lConvertMedia?.LWorkMediaDuration
                 ?? lDurationRead(lConvertSourcePath);
 
-            string lConvertFolder = lConvertOutput.LWorkFolderRead(lConvertSourcePath);
+            string lConvertFolder = lConvertOutput.LEncodingFolderRead(lConvertSourcePath);
             string lConvertOutputName = LConvertNameCreate(lConvertOutput, lConvertSourcePath, lConvertFolder);
 
             lConvertWorkItems.Add(new LWorkItem(
@@ -62,12 +62,12 @@ public static partial class LConvert
         return lConvertWorkItems;
     }
 
-    private static string LConvertNameCreate(LWorkOutput lConvertOutput, string lConvertSourcePath, string lConvertFolder)
+    private static string LConvertNameCreate(LEncoding lConvertOutput, string lConvertSourcePath, string lConvertFolder)
     {
         string lConvertSourceStem = Path.GetFileNameWithoutExtension(lConvertSourcePath);
-        string lConvertPattern = string.IsNullOrWhiteSpace(lConvertOutput.LWorkOutputNamePattern)
+        string lConvertPattern = string.IsNullOrWhiteSpace(lConvertOutput.LEncodingNamePattern)
             ? "{OriginalName}"
-            : lConvertOutput.LWorkOutputNamePattern;
+            : lConvertOutput.LEncodingNamePattern;
 
         DateTimeOffset lConvertStamp = DateTimeOffset.Now;
         string lConvertStem = lConvertPattern
@@ -79,7 +79,7 @@ public static partial class LConvert
             .Replace("{Date}", lConvertStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lConvertStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        lConvertStem = LWorkOutput.LWorkOutputShorten(lConvertStem);
+        lConvertStem = LEncoding.LEncodingShorten(lConvertStem);
 
         string lConvertBaseName = LConvertNameNormalize(lConvertStem);
         string lConvertFileName = LConvertNameFormat(lConvertOutput, lConvertBaseName, lConvertSourcePath);
@@ -88,9 +88,9 @@ public static partial class LConvert
             : lConvertFileName;
     }
 
-    private static string LConvertNameFormat(LWorkOutput lConvertOutput, string lConvertBaseName, string lConvertSourcePath)
+    private static string LConvertNameFormat(LEncoding lConvertOutput, string lConvertBaseName, string lConvertSourcePath)
     {
-        string lConvertExtension = lConvertOutput.LWorkExtensionResolve(lConvertSourcePath);
+        string lConvertExtension = lConvertOutput.LEncodingExtensionResolve(lConvertSourcePath);
         return string.IsNullOrWhiteSpace(lConvertExtension)
             ? lConvertBaseName
             : $"{lConvertBaseName}.{lConvertExtension}";

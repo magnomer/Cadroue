@@ -42,7 +42,7 @@ public static class LEncode
 
     internal static string LEncodeArgumentBuild(LWorkItem lWorkItem)
     {
-        LWorkOutput lOutput = lWorkItem.LWorkOutput;
+        LEncoding lOutput = lWorkItem.LWorkOutput;
         var lArguments = new StringBuilder();
 
         LEncodeHeaderAppend(lArguments);
@@ -84,7 +84,7 @@ public static class LEncode
 
     private static IReadOnlyList<LEncodeStage> LEncodeStepsBuild(LWorkItem lWorkItem)
     {
-        LWorkOutput lOutput = lWorkItem.LWorkOutput;
+        LEncoding lOutput = lWorkItem.LWorkOutput;
         string lAudioFolder = LDepot.LDepotAudioRead();
         string lRawWav = Path.Combine(lAudioFolder, $"{lWorkItem.LWorkId:N}.raw.wav");
         string lProcessedWav = Path.Combine(lAudioFolder, $"{lWorkItem.LWorkId:N}.proc.wav");
@@ -137,8 +137,8 @@ public static class LEncode
         lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioInputWav)}");
 
-        bool lVideoExcluded = string.Equals(lOutput.LWorkOutputVideoStream, "Exclude", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lOutput.LWorkOutputVideoMode, "Exclude", StringComparison.OrdinalIgnoreCase);
+        bool lVideoExcluded = string.Equals(lOutput.LEncodingVideo.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
         if (!lVideoExcluded)
         {
             lMux.Append(" -map 0:v:0?");
@@ -147,7 +147,7 @@ public static class LEncode
 
         if (!lVideoExcluded)
         {
-            if (string.Equals(lOutput.LWorkOutputVideoMode, "Copy", StringComparison.OrdinalIgnoreCase)
+            if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
                 && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput))
             {
                 lMux.Append(" -c:v copy");

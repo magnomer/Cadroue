@@ -28,12 +28,12 @@ public sealed partial class PInspector
     }
 
     private CheckBox pEqualizerApplyBox = null!;
-    private CheckBox pInspectorEqualizerPersistent = null!;
-    private ComboBox pInspectorEqualizerPreset = null!;
-    private StackPanel pInspectorEqualizerStack = null!;
-    private StackPanel pInspectorEqualizerRowPanel = null!;
-    private StackPanel pInspectorEqualizerBody = null!;
-    private bool pInspectorEqualizerPresetSuppress;
+    private CheckBox pEqualizerPersistent = null!;
+    private ComboBox pEqualizerPreset = null!;
+    private StackPanel pEqualizerStack = null!;
+    private StackPanel pEqualizerRowPanel = null!;
+    private StackPanel pEqualizerBody = null!;
+    private bool pEqualizerPresetSuppress;
     private string? pEqualizerBaseToken;
     private readonly List<PInspectorBand> pEqualizerRows = new();
 
@@ -60,7 +60,7 @@ public sealed partial class PInspector
     {
         pEqualizerApplyBox.IsChecked = pStep.LWorkStepActive;
         pEqualizerRows.Clear();
-        pInspectorEqualizerRowPanel.Children.Clear();
+        pEqualizerRowPanel.Children.Clear();
         foreach (LWorkBand pBand in pStep.LWorkEqualizerBands)
         {
             PEqualizerRowAdd(pBand.LWorkBandFrequency, pBand.LWorkBandGain, false);
@@ -78,11 +78,11 @@ public sealed partial class PInspector
         pEqualizerApplyBox.Checked += (_, _) => PEqualizerApplyUpdate();
         pEqualizerApplyBox.Unchecked += (_, _) => PEqualizerApplyUpdate();
 
-        pInspectorEqualizerPersistent = PInspectorSwitchBuild(
+        pEqualizerPersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Equalizer.PersistentTooltip"));
 
-        pInspectorEqualizerPreset = new ComboBox
+        pEqualizerPreset = new ComboBox
         {
             Height = PInspectorFieldHeight,
             Width = 140,
@@ -90,21 +90,21 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PDropdown.PDropdownApply(pInspectorEqualizerPreset);
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Flat", "Inspector.Equalizer.Preset.Flat"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Bass boost", "Inspector.Equalizer.Preset.BassBoost"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Bright", "Inspector.Equalizer.Preset.Bright"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Warm", "Inspector.Equalizer.Preset.Warm"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Loudness", "Inspector.Equalizer.Preset.Loudness"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Vocal", "Inspector.Equalizer.Preset.Vocal"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("De-ess", "Inspector.Equalizer.Preset.Deess"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Podcast", "Inspector.Equalizer.Preset.Podcast"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Telephone", "Inspector.Equalizer.Preset.Telephone"));
-        pInspectorEqualizerPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
-        pInspectorEqualizerPreset.SelectedIndex = 0;
-        pInspectorEqualizerPreset.SelectionChanged += (_, _) => PEqualizerPresetApply();
+        PDropdown.PDropdownApply(pEqualizerPreset);
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Flat", "Inspector.Equalizer.Preset.Flat"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Bass boost", "Inspector.Equalizer.Preset.BassBoost"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Bright", "Inspector.Equalizer.Preset.Bright"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Warm", "Inspector.Equalizer.Preset.Warm"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Loudness", "Inspector.Equalizer.Preset.Loudness"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Vocal", "Inspector.Equalizer.Preset.Vocal"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("De-ess", "Inspector.Equalizer.Preset.Deess"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Podcast", "Inspector.Equalizer.Preset.Podcast"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Telephone", "Inspector.Equalizer.Preset.Telephone"));
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
+        pEqualizerPreset.SelectedIndex = 0;
+        pEqualizerPreset.SelectionChanged += (_, _) => PEqualizerPresetApply();
 
-        pInspectorEqualizerRowPanel = new StackPanel();
+        pEqualizerRowPanel = new StackPanel();
 
         Button pAddButton = new()
         {
@@ -127,20 +127,20 @@ public sealed partial class PInspector
             PEqualizerDeviationCheck();
         };
 
-        pInspectorEqualizerStack = new StackPanel();
-        pInspectorEqualizerStack.Children.Add(PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pInspectorEqualizerPreset));
-        pInspectorEqualizerStack.Children.Add(pInspectorEqualizerRowPanel);
-        pInspectorEqualizerStack.Children.Add(pAddButton);
+        pEqualizerStack = new StackPanel();
+        pEqualizerStack.Children.Add(PInspectorFieldBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pEqualizerPreset));
+        pEqualizerStack.Children.Add(pEqualizerRowPanel);
+        pEqualizerStack.Children.Add(pAddButton);
 
-        pInspectorEqualizerBody = new StackPanel
+        pEqualizerBody = new StackPanel
         {
             Margin = new Thickness(12, 12, 12, 12),
             Visibility = Visibility.Collapsed
         };
-        pInspectorEqualizerBody.Children.Add(pEqualizerApplyBox);
-        pInspectorEqualizerBody.Children.Add(PInspectorSeparatorBuild());
-        pInspectorEqualizerBody.Children.Add(pInspectorEqualizerStack);
+        pEqualizerBody.Children.Add(pEqualizerApplyBox);
+        pEqualizerBody.Children.Add(PInspectorSeparatorBuild());
+        pEqualizerBody.Children.Add(pEqualizerStack);
 
         foreach (LWorkBand pBand in LWorkEqualizerStep.LWorkBandsCreate())
         {
@@ -149,7 +149,7 @@ public sealed partial class PInspector
 
         PEqualizerPresetUpdate();
         PEqualizerApplyUpdate();
-        return pInspectorEqualizerBody;
+        return pEqualizerBody;
     }
 
     private void PEqualizerRowAdd(double pFrequency, double pGain, bool pRaise)
@@ -267,7 +267,7 @@ public sealed partial class PInspector
         pRemoveButton.Click += (_, _) => PEqualizerRowRemove(pBand);
 
         pEqualizerRows.Add(pBand);
-        pInspectorEqualizerRowPanel.Children.Add(pLine);
+        pEqualizerRowPanel.Children.Add(pLine);
 
         if (pRaise)
         {
@@ -278,7 +278,7 @@ public sealed partial class PInspector
     private void PEqualizerRowRemove(PInspectorBand pBand)
     {
         pEqualizerRows.Remove(pBand);
-        pInspectorEqualizerRowPanel.Children.Remove(pBand.PInspectorBandRow);
+        pEqualizerRowPanel.Children.Remove(pBand.PInspectorBandRow);
         PInspectorActiveRaise();
         PEqualizerDeviationCheck();
     }
@@ -314,7 +314,7 @@ public sealed partial class PInspector
     private void PEqualizerRowsApply(double[] pGains)
     {
         pEqualizerRows.Clear();
-        pInspectorEqualizerRowPanel.Children.Clear();
+        pEqualizerRowPanel.Children.Clear();
         for (int pIndex = 0; pIndex < pEqualizerBandGrid.Length; pIndex++)
         {
             PEqualizerRowAdd(pEqualizerBandGrid[pIndex], pGains[pIndex], false);
@@ -343,35 +343,35 @@ public sealed partial class PInspector
 
     private void PEqualizerPresetApply()
     {
-        if (pInspectorEqualizerPresetSuppress)
+        if (pEqualizerPresetSuppress)
         {
             return;
         }
 
-        string pName = LLocalizationChoice.LLocalizationChoiceRead(pInspectorEqualizerPreset.SelectedItem);
+        string pName = LLocalizationChoice.LLocalizationChoiceRead(pEqualizerPreset.SelectedItem);
         if (string.IsNullOrEmpty(pName) || pName == "Custom" || PEqualizerValuesRead(pName) is not { } pGains)
         {
             pEqualizerBaseToken = null;
             return;
         }
 
-        pInspectorEqualizerPresetSuppress = true;
+        pEqualizerPresetSuppress = true;
         pEqualizerBaseToken = pName;
         PEqualizerRowsApply(pGains);
         PEqualizerCustomReset();
-        pInspectorEqualizerPresetSuppress = false;
+        pEqualizerPresetSuppress = false;
         PInspectorActiveRaise();
     }
 
     private void PEqualizerDeviationCheck()
     {
-        if (pInspectorEqualizerPresetSuppress || pEqualizerBaseToken is not { } pBase
+        if (pEqualizerPresetSuppress || pEqualizerBaseToken is not { } pBase
             || PEqualizerValuesRead(pBase) is not { } pGains)
         {
             return;
         }
 
-        pInspectorEqualizerPresetSuppress = true;
+        pEqualizerPresetSuppress = true;
         if (PEqualizerValuesMatch(pGains))
         {
             PEqualizerCustomReset();
@@ -382,12 +382,12 @@ public sealed partial class PInspector
             PEqualizerCustomSet(pBase);
         }
 
-        pInspectorEqualizerPresetSuppress = false;
+        pEqualizerPresetSuppress = false;
     }
 
     private void PEqualizerPresetUpdate()
     {
-        pInspectorEqualizerPresetSuppress = true;
+        pEqualizerPresetSuppress = true;
         string? pMatch = null;
         foreach (string pToken in new[] { "Flat", "Bass boost", "Bright", "Warm", "Loudness", "Vocal", "De-ess", "Podcast", "Telephone" })
         {
@@ -408,35 +408,35 @@ public sealed partial class PInspector
         {
             pEqualizerBaseToken = null;
             PEqualizerCustomReset();
-            pInspectorEqualizerPreset.SelectedIndex = pInspectorEqualizerPreset.Items.Count - 1;
+            pEqualizerPreset.SelectedIndex = pEqualizerPreset.Items.Count - 1;
         }
 
-        pInspectorEqualizerPresetSuppress = false;
+        pEqualizerPresetSuppress = false;
     }
 
     private void PEqualizerCustomSet(string pBase)
     {
-        int pLast = pInspectorEqualizerPreset.Items.Count - 1;
+        int pLast = pEqualizerPreset.Items.Count - 1;
         string pText = LLocalization.LLocalizationFormat(
             "Inspector.Common.PresetCustom",
             LLocalization.LLocalizationTextRead(PEqualizerKeyRead(pBase)));
-        pInspectorEqualizerPreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
-        pInspectorEqualizerPreset.SelectedIndex = pLast;
+        pEqualizerPreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
+        pEqualizerPreset.SelectedIndex = pLast;
     }
 
     private void PEqualizerCustomReset()
     {
-        int pLast = pInspectorEqualizerPreset.Items.Count - 1;
-        pInspectorEqualizerPreset.Items[pLast] = new LLocalizationChoice("Custom", "Inspector.Common.Custom");
+        int pLast = pEqualizerPreset.Items.Count - 1;
+        pEqualizerPreset.Items[pLast] = new LLocalizationChoice("Custom", "Inspector.Common.Custom");
     }
 
     private void PEqualizerPresetSelect(string pToken)
     {
-        for (int pIndex = 0; pIndex < pInspectorEqualizerPreset.Items.Count; pIndex++)
+        for (int pIndex = 0; pIndex < pEqualizerPreset.Items.Count; pIndex++)
         {
-            if (LLocalizationChoice.LLocalizationChoiceRead(pInspectorEqualizerPreset.Items[pIndex]) == pToken)
+            if (LLocalizationChoice.LLocalizationChoiceRead(pEqualizerPreset.Items[pIndex]) == pToken)
             {
-                pInspectorEqualizerPreset.SelectedIndex = pIndex;
+                pEqualizerPreset.SelectedIndex = pIndex;
                 return;
             }
         }
@@ -455,8 +455,8 @@ public sealed partial class PInspector
     private void PEqualizerApplyUpdate()
     {
         bool pEqualizerActive = pEqualizerApplyBox.IsChecked == true;
-        pInspectorEqualizerStack.IsEnabled = pEqualizerActive;
-        pInspectorEqualizerStack.Opacity = pEqualizerActive ? 1 : 0.4;
+        pEqualizerStack.IsEnabled = pEqualizerActive;
+        pEqualizerStack.Opacity = pEqualizerActive ? 1 : 0.4;
         PInspectorActiveRaise();
     }
 }

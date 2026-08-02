@@ -107,28 +107,28 @@ public sealed partial class LPreset
             && string.Equals(lPreset.LPresetCollision, lSource.LPresetCollision, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetCollisionSuffix, lSource.LPresetCollisionSuffix, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetExportMode, lSource.LPresetExportMode, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideoStream, lSource.LPresetVideoStream, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudioStream, lSource.LPresetAudioStream, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideoMode, lSource.LPresetVideoMode, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudioMode, lSource.LPresetAudioMode, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideoEncoder, lSource.LPresetVideoEncoder, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetRateControl, lSource.LPresetRateControl, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideoQuality, lSource.LPresetVideoQuality, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetSpeedPreset, lSource.LPresetSpeedPreset, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetVideo.LPresetStream, lSource.LPresetVideo.LPresetStream, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudio.LPresetStream, lSource.LPresetAudio.LPresetStream, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetVideo.LPresetMode, lSource.LPresetVideo.LPresetMode, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudio.LPresetMode, lSource.LPresetAudio.LPresetMode, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetVideo.LPresetEncoder, lSource.LPresetVideo.LPresetEncoder, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetVideo.LPresetRateControl, lSource.LPresetVideo.LPresetRateControl, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetVideo.LPresetQuality, lSource.LPresetVideo.LPresetQuality, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetVideo.LPresetSpeedPreset, lSource.LPresetVideo.LPresetSpeedPreset, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetLocation, lSource.LPresetLocation, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetLocationFolder, lSource.LPresetLocationFolder, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideoSize, lSource.LPresetVideoSize, StringComparison.Ordinal)
-            && lPreset.LPresetSizeReactive == lSource.LPresetSizeReactive
-            && string.Equals(lPreset.LPresetVideoFps, lSource.LPresetVideoFps, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetPixelLayout, lSource.LPresetPixelLayout, StringComparison.Ordinal)
-            && LPresetExtraMatch(lPreset.LPresetVideoExtras, lSource.LPresetVideoExtras)
-            && string.Equals(lPreset.LPresetAudioEncoder, lSource.LPresetAudioEncoder, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudioRateControl, lSource.LPresetAudioRateControl, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudioQuality, lSource.LPresetAudioQuality, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudioSpeed, lSource.LPresetAudioSpeed, StringComparison.Ordinal)
-            && LPresetExtraMatch(lPreset.LPresetAudioExtras, lSource.LPresetAudioExtras)
-            && string.Equals(lPreset.LPresetSampleRate, lSource.LPresetSampleRate, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudioChannels, lSource.LPresetAudioChannels, StringComparison.Ordinal);
+            && string.Equals(lPreset.LPresetVideo.LPresetSize, lSource.LPresetVideo.LPresetSize, StringComparison.Ordinal)
+            && lPreset.LPresetVideo.LPresetSizeReactive == lSource.LPresetVideo.LPresetSizeReactive
+            && string.Equals(lPreset.LPresetVideo.LPresetFps, lSource.LPresetVideo.LPresetFps, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetVideo.LPresetPixelLayout, lSource.LPresetVideo.LPresetPixelLayout, StringComparison.Ordinal)
+            && LPresetExtraMatch(lPreset.LPresetVideo.LPresetExtras, lSource.LPresetVideo.LPresetExtras)
+            && string.Equals(lPreset.LPresetAudio.LPresetEncoder, lSource.LPresetAudio.LPresetEncoder, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudio.LPresetRateControl, lSource.LPresetAudio.LPresetRateControl, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudio.LPresetQuality, lSource.LPresetAudio.LPresetQuality, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudio.LPresetSpeed, lSource.LPresetAudio.LPresetSpeed, StringComparison.Ordinal)
+            && LPresetExtraMatch(lPreset.LPresetAudio.LPresetExtras, lSource.LPresetAudio.LPresetExtras)
+            && string.Equals(lPreset.LPresetAudio.LPresetSampleRate, lSource.LPresetAudio.LPresetSampleRate, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetAudio.LPresetChannels, lSource.LPresetAudio.LPresetChannels, StringComparison.Ordinal);
     }
 
     private static bool LPresetExtraMatch(
@@ -330,29 +330,35 @@ public sealed partial class LPreset
         LPresetContainer = "Same as source",
         LPresetExtension = "",
         LPresetExportMode = "Smart export",
-        LPresetVideoStream = "Include",
-        LPresetAudioStream = "Include first audio track",
-        LPresetVideoMode = "Copy",
-        LPresetAudioMode = "Auto",
-        LPresetVideoEncoder = "H.264, x264 / libx264",
-        LPresetRateControl = "CRF (constant quality)",
-        LPresetVideoQuality = "28",
-        LPresetSpeedPreset = "medium",
         LPresetLocation = "Subfolder",
         LPresetLocationFolder = "Audio",
-        LPresetVideoSize = "Same as source",
-        LPresetSizeReactive = false,
-        LPresetVideoFps = "Same as source",
-        LPresetPixelLayout = "Auto",
-        LPresetVideoExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+        LPresetVideo = new LPresetVideo
         {
-            ["-tune"] = "none"
+            LPresetStream = "Include",
+            LPresetMode = "Copy",
+            LPresetEncoder = "H.264, x264 / libx264",
+            LPresetRateControl = "CRF (constant quality)",
+            LPresetQuality = "28",
+            LPresetSpeedPreset = "medium",
+            LPresetSize = "Same as source",
+            LPresetSizeReactive = false,
+            LPresetFps = "Same as source",
+            LPresetPixelLayout = "Auto",
+            LPresetExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["-tune"] = "none"
+            }
         },
-        LPresetAudioEncoder = "AAC, native / aac",
-        LPresetAudioRateControl = "Target bitrate",
-        LPresetAudioQuality = "320k",
-        LPresetSampleRate = "48000",
-        LPresetAudioChannels = "Same as source"
+        LPresetAudio = new LPresetAudio
+        {
+            LPresetStream = "Include first audio track",
+            LPresetMode = "Auto",
+            LPresetEncoder = "AAC, native / aac",
+            LPresetRateControl = "Target bitrate",
+            LPresetQuality = "320k",
+            LPresetSampleRate = "48000",
+            LPresetChannels = "Same as source"
+        }
     };
 
     private static LPreset LPresetSplitCreate() => new()
@@ -362,29 +368,35 @@ public sealed partial class LPreset
         LPresetContainer = "Same as source",
         LPresetExtension = "",
         LPresetExportMode = "Smart export",
-        LPresetVideoStream = "Include",
-        LPresetAudioStream = "Include first audio track",
-        LPresetVideoMode = "Copy",
-        LPresetAudioMode = "Copy",
-        LPresetVideoEncoder = "H.264, x264 / libx264",
-        LPresetRateControl = "CRF (constant quality)",
-        LPresetVideoQuality = "28",
-        LPresetSpeedPreset = "medium",
         LPresetLocation = "Same as source",
         LPresetLocationFolder = string.Empty,
-        LPresetVideoSize = "Same as source",
-        LPresetSizeReactive = false,
-        LPresetVideoFps = "Same as source",
-        LPresetPixelLayout = "Auto",
-        LPresetVideoExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+        LPresetVideo = new LPresetVideo
         {
-            ["-tune"] = "none"
+            LPresetStream = "Include",
+            LPresetMode = "Copy",
+            LPresetEncoder = "H.264, x264 / libx264",
+            LPresetRateControl = "CRF (constant quality)",
+            LPresetQuality = "28",
+            LPresetSpeedPreset = "medium",
+            LPresetSize = "Same as source",
+            LPresetSizeReactive = false,
+            LPresetFps = "Same as source",
+            LPresetPixelLayout = "Auto",
+            LPresetExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["-tune"] = "none"
+            }
         },
-        LPresetAudioEncoder = "AAC, native / aac",
-        LPresetAudioRateControl = "Target bitrate",
-        LPresetAudioQuality = "192k",
-        LPresetSampleRate = "Same as source",
-        LPresetAudioChannels = "Same as source"
+        LPresetAudio = new LPresetAudio
+        {
+            LPresetStream = "Include first audio track",
+            LPresetMode = "Copy",
+            LPresetEncoder = "AAC, native / aac",
+            LPresetRateControl = "Target bitrate",
+            LPresetQuality = "192k",
+            LPresetSampleRate = "Same as source",
+            LPresetChannels = "Same as source"
+        }
     };
 
     private static LPreset LPresetMergeCreate() => new()
@@ -394,29 +406,35 @@ public sealed partial class LPreset
         LPresetContainer = "Same as source",
         LPresetExtension = "",
         LPresetExportMode = "Smart export",
-        LPresetVideoStream = "Include",
-        LPresetAudioStream = "Include first audio track",
-        LPresetVideoMode = "Copy",
-        LPresetAudioMode = "Copy",
-        LPresetVideoEncoder = "H.264, x264 / libx264",
-        LPresetRateControl = "CRF (constant quality)",
-        LPresetVideoQuality = "28",
-        LPresetSpeedPreset = "medium",
         LPresetLocation = "Same as source",
         LPresetLocationFolder = string.Empty,
-        LPresetVideoSize = "Same as source",
-        LPresetSizeReactive = false,
-        LPresetVideoFps = "Same as source",
-        LPresetPixelLayout = "Auto",
-        LPresetVideoExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+        LPresetVideo = new LPresetVideo
         {
-            ["-tune"] = "none"
+            LPresetStream = "Include",
+            LPresetMode = "Copy",
+            LPresetEncoder = "H.264, x264 / libx264",
+            LPresetRateControl = "CRF (constant quality)",
+            LPresetQuality = "28",
+            LPresetSpeedPreset = "medium",
+            LPresetSize = "Same as source",
+            LPresetSizeReactive = false,
+            LPresetFps = "Same as source",
+            LPresetPixelLayout = "Auto",
+            LPresetExtras = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["-tune"] = "none"
+            }
         },
-        LPresetAudioEncoder = "AAC, native / aac",
-        LPresetAudioRateControl = "Target bitrate",
-        LPresetAudioQuality = "192k",
-        LPresetSampleRate = "Same as source",
-        LPresetAudioChannels = "Same as source"
+        LPresetAudio = new LPresetAudio
+        {
+            LPresetStream = "Include first audio track",
+            LPresetMode = "Copy",
+            LPresetEncoder = "AAC, native / aac",
+            LPresetRateControl = "Target bitrate",
+            LPresetQuality = "192k",
+            LPresetSampleRate = "Same as source",
+            LPresetChannels = "Same as source"
+        }
     };
 
     private static readonly Dictionary<string, string[]> LPresetExtensionTable = new(StringComparer.Ordinal)

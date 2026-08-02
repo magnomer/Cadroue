@@ -2,14 +2,9 @@ namespace Cadroue.Core;
 
 public static partial class LCapabilityTable
 {
-    private const string LCapabilityAudioBitrateLabel = "Target bitrate";
-
-    private static LCapabilityQuality LCapabilityAudioBitrateCreate(string lDefault = "192k", double lMinimum = 6, double lMaximum = 512) =>
-        new(LCapabilityAudioBitrateLabel, "-b:a", lDefault, lMinimum, lMaximum);
-
     public static LCapabilityCodec LCapabilityAudioFallback { get; } = new(
         "audio",
-        [new("Target bitrate", LCapabilityAudioBitrateCreate())],
+        [new("Target bitrate", LCapabilityBitrateCreate("192k", "-b:a", 6, 512))],
         null,
         null,
         "Generic encoder: only a target bitrate is offered.");
@@ -22,15 +17,15 @@ public static partial class LCapabilityTable
         "Uncompressed PCM: the encoder itself fixes the sample format, so no bitrate or quality applies.");
 
     public static IReadOnlyDictionary<string, LCapabilityCodec> LCapabilityAudioMap { get; } =
-        LCapabilityAudioTableRead()
+        LCapabilityAudioCreate()
             .ToDictionary(pEntry => pEntry.Key, pEntry => pEntry.Value, StringComparer.OrdinalIgnoreCase);
 
-    private static IEnumerable<KeyValuePair<string, LCapabilityCodec>> LCapabilityAudioTableRead()
+    private static IEnumerable<KeyValuePair<string, LCapabilityCodec>> LCapabilityAudioCreate()
     {
         yield return new("aac", new(
             "aac",
             [
-                new("Target bitrate", LCapabilityAudioBitrateCreate()),
+                new("Target bitrate", LCapabilityBitrateCreate("192k", "-b:a", 6, 512)),
                 new("VBR quality (experimental)", new("VBR quality", "-q:a", "1", 0.1, 2, true))
             ],
             null,
@@ -40,7 +35,7 @@ public static partial class LCapabilityTable
         yield return new("libfdk_aac", new(
             "libfdk_aac",
             [
-                new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate()),
+                new("Target bitrate (CBR)", LCapabilityBitrateCreate("192k", "-b:a", 6, 512)),
                 new("VBR", new("VBR level", "-vbr", "4", 1, 5, true))
             ],
             null,
@@ -54,7 +49,7 @@ public static partial class LCapabilityTable
 
         yield return new("aac_mf", new(
             "aac_mf",
-            [new("Target bitrate", LCapabilityAudioBitrateCreate())],
+            [new("Target bitrate", LCapabilityBitrateCreate("192k", "-b:a", 6, 512))],
             null,
             null,
             "Media Foundation AAC (Windows system encoder)."));
@@ -63,8 +58,8 @@ public static partial class LCapabilityTable
             "libmp3lame",
             [
                 new("VBR (quality)", new("VBR quality", "-q:a", "2", 0, 9)),
-                new("ABR (average bitrate)", LCapabilityAudioBitrateCreate("192k", 8, 320)),
-                new("CBR", LCapabilityAudioBitrateCreate("192k", 8, 320))
+                new("ABR (average bitrate)", LCapabilityBitrateCreate("192k", "-b:a", 8, 320)),
+                new("CBR", LCapabilityBitrateCreate("192k", "-b:a", 8, 320))
             ],
             null,
             null,
@@ -72,14 +67,14 @@ public static partial class LCapabilityTable
 
         yield return new("libshine", new(
             "libshine",
-            [new("CBR", LCapabilityAudioBitrateCreate("128k", 8, 320))],
+            [new("CBR", LCapabilityBitrateCreate("128k", "-b:a", 8, 320))],
             null,
             null,
             "Shine is a fixed-point CBR-only MP3 encoder, lower quality than LAME. Use only where fixed-point speed matters."));
 
         yield return new("mp3_mf", new(
             "mp3_mf",
-            [new("CBR", LCapabilityAudioBitrateCreate("192k", 8, 320))],
+            [new("CBR", LCapabilityBitrateCreate("192k", "-b:a", 8, 320))],
             null,
             null,
             "Media Foundation MP3 (Windows system encoder)."));
@@ -91,7 +86,7 @@ public static partial class LCapabilityTable
             "libvorbis",
             [
                 new("VBR (quality)", new("VBR quality", "-q:a", "5", -1, 10, true)),
-                new("Target bitrate", LCapabilityAudioBitrateCreate())
+                new("Target bitrate", LCapabilityBitrateCreate("192k", "-b:a", 6, 512))
             ],
             null,
             null,
@@ -99,25 +94,25 @@ public static partial class LCapabilityTable
 
         yield return new("vorbis", new(
             "vorbis",
-            [new("Target bitrate", LCapabilityAudioBitrateCreate())],
+            [new("Target bitrate", LCapabilityBitrateCreate("192k", "-b:a", 6, 512))],
             null,
             null,
             "Native Vorbis is experimental and lower quality than libvorbis."));
 
-        yield return new("ac3", LCapabilityAc3Create("ac3"));
-        yield return new("ac3_fixed", LCapabilityAc3Create("ac3_fixed"));
-        yield return new("ac3_mf", LCapabilityAc3Create("ac3_mf"));
+        yield return new("ac3", LCapabilityActhreeCreate("ac3"));
+        yield return new("ac3_fixed", LCapabilityActhreeCreate("ac3_fixed"));
+        yield return new("ac3_mf", LCapabilityActhreeCreate("ac3_mf"));
 
         yield return new("eac3", new(
             "eac3",
-            [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("384k", 32, 6144))],
+            [new("Target bitrate (CBR)", LCapabilityBitrateCreate("384k", "-b:a", 32, 6144))],
             null,
             null,
             "E-AC-3 (Dolby Digital Plus). Valid bitrates and channel counts are codec-constrained."));
 
-        yield return new("mp2", LCapabilityMp2Create("mp2"));
-        yield return new("mp2fixed", LCapabilityMp2Create("mp2fixed"));
-        yield return new("libtwolame", LCapabilityMp2Create("libtwolame"));
+        yield return new("mp2", LCapabilityMptwoCreate("mp2"));
+        yield return new("mp2fixed", LCapabilityMptwoCreate("mp2fixed"));
+        yield return new("libtwolame", LCapabilityMptwoCreate("libtwolame"));
 
         yield return new("flac", new(
             "flac",
@@ -147,7 +142,7 @@ public static partial class LCapabilityTable
 
     private static LCapabilityCodec LCapabilityOpusCreate(string lEncoder) => new(
         lEncoder,
-        [new("Target bitrate", LCapabilityAudioBitrateCreate("128k", 6, 510))],
+        [new("Target bitrate", LCapabilityBitrateCreate("128k", "-b:a", 6, 510))],
         new LCapabilitySpeed("Complexity", "-compression_level", "10", LCapabilityNumbersCreate(0, 10)),
         [
             new LCapabilityExtra("Rate control", "-vbr", "on",
@@ -160,16 +155,16 @@ public static partial class LCapabilityTable
         ],
         "Opus. -vbr picks VBR, constrained VBR or CBR; complexity 0-10 trades speed for quality; the bitrate is a target.");
 
-    private static LCapabilityCodec LCapabilityAc3Create(string lEncoder) => new(
+    private static LCapabilityCodec LCapabilityActhreeCreate(string lEncoder) => new(
         lEncoder,
-        [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("448k", 32, 640))],
+        [new("Target bitrate (CBR)", LCapabilityBitrateCreate("448k", "-b:a", 32, 640))],
         null,
         null,
         "AC-3 (Dolby Digital) is CBR; valid bitrates and channel counts are codec-constrained.");
 
-    private static LCapabilityCodec LCapabilityMp2Create(string lEncoder) => new(
+    private static LCapabilityCodec LCapabilityMptwoCreate(string lEncoder) => new(
         lEncoder,
-        [new("Target bitrate (CBR)", LCapabilityAudioBitrateCreate("384k", 32, 384))],
+        [new("Target bitrate (CBR)", LCapabilityBitrateCreate("384k", "-b:a", 32, 384))],
         null,
         null,
         "MPEG-1 Audio Layer II is CBR, used for broadcast and legacy delivery.");

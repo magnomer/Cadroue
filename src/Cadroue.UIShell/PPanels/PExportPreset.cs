@@ -192,9 +192,9 @@ public sealed partial class PExport
     private bool PExportDisabledCheck(string lPresetName) =>
         pExportCopyDisabled
         && LPreset.LPresetRead(lPresetName) is { } lPreset
-        && string.Equals(lPreset.LPresetVideoMode, "Copy", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(lPreset.LPresetVideo.LPresetMode, "Copy", StringComparison.OrdinalIgnoreCase)
         && (!string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lExportSpecificState.LPresetVideoMode, "Copy", StringComparison.OrdinalIgnoreCase));
+            || string.Equals(lExportSpecificState.LPresetVideo.LPresetMode, "Copy", StringComparison.OrdinalIgnoreCase));
 
     private static Border PExportDividerBuild() => new()
     {

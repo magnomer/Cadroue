@@ -26,9 +26,9 @@ public static partial class LSplit
             return Array.Empty<LWorkItem>();
         }
 
-        LWorkOutput lSplitOutput = lSplitWorkDescription.LSplitOutput;
+        LEncoding lSplitOutput = lSplitWorkDescription.LSplitOutput;
         string lSplitSourceStem = Path.GetFileNameWithoutExtension(lSplitSourcePath);
-        string lSplitFolder = lSplitOutput.LWorkFolderRead(lSplitSourcePath);
+        string lSplitFolder = lSplitOutput.LEncodingFolderRead(lSplitSourcePath);
         DateTimeOffset lSplitStamp = DateTimeOffset.Now;
         Guid lSplitBatch = lSplitBatchId != Guid.Empty ? lSplitBatchId : Guid.NewGuid();
 
@@ -104,7 +104,7 @@ public static partial class LSplit
 
 
     private static string LSplitNameCreate(
-        LWorkOutput lSplitOutput,
+        LEncoding lSplitOutput,
         string lSplitSourcePath,
         string lSplitSourceStem,
         LSplitSectionDescription lSplitSection,
@@ -113,9 +113,9 @@ public static partial class LSplit
         HashSet<string> lSplitTakenNames)
     {
         string lSplitSectionName = lSplitSection.LSplitSectionName;
-        string lSplitPattern = string.IsNullOrWhiteSpace(lSplitOutput.LWorkOutputNamePattern)
+        string lSplitPattern = string.IsNullOrWhiteSpace(lSplitOutput.LEncodingNamePattern)
             ? "{OriginalName}"
-            : lSplitOutput.LWorkOutputNamePattern;
+            : lSplitOutput.LEncodingNamePattern;
 
         bool lSplitHasNumber = lSplitPattern.Contains("{SectionNumber}", StringComparison.OrdinalIgnoreCase);
         bool lSplitHasSectionName = lSplitPattern.Contains("{SectionName}", StringComparison.OrdinalIgnoreCase);
@@ -133,7 +133,7 @@ public static partial class LSplit
             .Replace("{Date}", lSplitStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lSplitStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        lSplitStem = LWorkOutput.LWorkOutputShorten(lSplitStem);
+        lSplitStem = LEncoding.LEncodingShorten(lSplitStem);
 
         if (!lSplitHasNumber && !lSplitHasSectionName)
         {
@@ -149,7 +149,7 @@ public static partial class LSplit
             lSplitAttempt++;
         }
 
-        string lSplitExtension = lSplitOutput.LWorkExtensionResolve(lSplitSourcePath);
+        string lSplitExtension = lSplitOutput.LEncodingExtensionResolve(lSplitSourcePath);
         return string.IsNullOrWhiteSpace(lSplitExtension)
             ? lSplitUniqueName
             : $"{lSplitUniqueName}.{lSplitExtension}";

@@ -5,4 +5,4 @@ public sealed record LEditWorkDescription(
     TimeSpan LEditDuration,
     LWorkCrop LEditCrop,
     LWorkVideo LEditVideo,
-    LWorkOutput LEditOutput);
+    LEncoding LEditOutput);

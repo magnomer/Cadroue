@@ -15,4 +15,4 @@ public sealed record LSplitPlanRecord(
 public sealed record LSplitWorkDescription(
     string? LSplitSourcePath,
     IReadOnlyList<LSplitSectionDescription> LSplitSections,
-    LWorkOutput LSplitOutput);
+    LEncoding LSplitOutput);

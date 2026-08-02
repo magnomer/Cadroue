@@ -61,7 +61,7 @@ public static partial class LEdit
         Guid lEditRelayTarget = default,
         Guid lEditRelaySource = default)
     {
-        LWorkOutput lEditOutput = lExportSpecificState.LPresetOutputCreate();
+        LEncoding lEditOutput = lExportSpecificState.LPresetOutputCreate();
         var lEditWorkItems = new List<LWorkItem>();
         Guid lEditLooseBatch = Guid.NewGuid();
 
@@ -207,7 +207,7 @@ public static partial class LEdit
         new LWorkVideo(lEditRecord.LSidecarSteps.Select(LEditStepCreate).ToList()),
         lEditRecord.LSidecarCropActive) { LEditSkip = lEditRecord.LSidecarSkip };
 
-    private static LWorkVideoStep LEditStepCreate(Cadroue.Core.LSidecarVideoStepRecord lEditRecord) =>
+    private static LWorkVideoStep LEditStepCreate(Cadroue.Core.LSidecarVideoStep lEditRecord) =>
         string.Equals(lEditRecord.LSidecarKind, "Contrast", StringComparison.Ordinal)
             ? LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
             : LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue);
@@ -231,7 +231,7 @@ public static partial class LEdit
             });
     }
 
-    private static Cadroue.Core.LSidecarVideoStepRecord LEditRecordCreate(LWorkVideoStep lEditStep) => new()
+    private static Cadroue.Core.LSidecarVideoStep LEditRecordCreate(LWorkVideoStep lEditStep) => new()
     {
         LSidecarKind = lEditStep.LWorkStepKind == LColorKind.LColorKindContrast ? "Contrast" : "Brightness",
         LSidecarActive = lEditStep.LWorkStepActive,

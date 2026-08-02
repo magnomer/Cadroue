@@ -4,7 +4,7 @@ public static partial class LCapabilityTable
 {
     private static IEnumerable<KeyValuePair<string, LCapabilityCodec>> LCapabilityFirstRead()
     {
-        yield return new("libx264", LCapabilityX26xCreate("libx264", "23"));
+        yield return new("libx264", LCapabilityLibxCreate("libx264", "23"));
         yield return new("h264_mf", LCapabilityMfCreate("h264_mf"));
         yield return new("libopenh264", new(
             "libopenh264",
@@ -23,7 +23,7 @@ public static partial class LCapabilityTable
         yield return new("h264_amf", LCapabilityAmfCreate("h264_amf"));
         yield return new("h264_nvenc", LCapabilityNvencCreate("h264_nvenc"));
 
-        yield return new("libx265", LCapabilityX26xCreate("libx265", "28"));
+        yield return new("libx265", LCapabilityLibxCreate("libx265", "28"));
         yield return new("hevc_qsv", LCapabilityQsvCreate("hevc_qsv"));
         yield return new("hevc_amf", LCapabilityAmfCreate("hevc_amf"));
         yield return new("hevc_mf", LCapabilityMfCreate("hevc_mf"));

@@ -7,32 +7,32 @@ namespace Cadroue.ShellEngine;
 
 internal static class LEncodeAudio
 {
-    internal static void LEncodeAudioAppend(StringBuilder lArguments, LWorkOutput lOutput)
+    internal static void LEncodeAudioAppend(StringBuilder lArguments, LEncoding lOutput)
     {
-        if (string.Equals(lOutput.LWorkOutputAudioStream, "Exclude", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lOutput.LWorkOutputAudioMode, "Exclude", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(lOutput.LEncodingAudio.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase))
         {
             lArguments.Append(" -an");
             return;
         }
 
-        if (string.Equals(lOutput.LWorkOutputAudioStream, "Include all audio tracks", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(lOutput.LEncodingAudio.LEncodingStream, "Include all audio tracks", StringComparison.OrdinalIgnoreCase))
         {
             lArguments.Append(" -map 0:v:0? -map 0:a");
         }
 
-        if (string.Equals(lOutput.LWorkOutputAudioMode, "Copy", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase))
         {
             lArguments.Append(" -c:a copy");
             return;
         }
 
-        LEncodeSettingsAppend(lArguments, lOutput, LEncodeTrackRead(lOutput.LWorkOutputAudioEncoder));
+        LEncodeSettingsAppend(lArguments, lOutput, LEncodeTrackRead(lOutput.LEncodingAudio.LEncodingEncoder));
     }
 
-    internal static void LEncodeMuxAppend(StringBuilder lArguments, LWorkOutput lOutput)
+    internal static void LEncodeMuxAppend(StringBuilder lArguments, LEncoding lOutput)
     {
-        string lAudioName = LEncodeTrackRead(lOutput.LWorkOutputAudioEncoder);
+        string lAudioName = LEncodeTrackRead(lOutput.LEncodingAudio.LEncodingEncoder);
         if (string.IsNullOrWhiteSpace(lAudioName))
         {
             lAudioName = "aac";
@@ -41,7 +41,7 @@ internal static class LEncodeAudio
         LEncodeSettingsAppend(lArguments, lOutput, lAudioName);
     }
 
-    private static void LEncodeSettingsAppend(StringBuilder lArguments, LWorkOutput lOutput, string lAudioName)
+    private static void LEncodeSettingsAppend(StringBuilder lArguments, LEncoding lOutput, string lAudioName)
     {
         if (!string.IsNullOrWhiteSpace(lAudioName))
         {
@@ -49,12 +49,12 @@ internal static class LEncodeAudio
         }
 
         LCapabilityCodec lCodec = LCapability.LCapabilityAudioRead(lAudioName);
-        LCapabilityMode lMode = lCodec.LCapabilityModeFind(lOutput.LWorkOutputAudioRateControl);
+        LCapabilityMode lMode = lCodec.LCapabilityModeFind(lOutput.LEncodingAudio.LEncodingRateControl);
         if (lMode.CapabilityModeQuality is LCapabilityQuality lQuality)
         {
-            string lValue = string.IsNullOrWhiteSpace(lOutput.LWorkOutputAudioQuality)
+            string lValue = string.IsNullOrWhiteSpace(lOutput.LEncodingAudio.LEncodingQuality)
                 ? lQuality.CapabilityQualityDefault
-                : lOutput.LWorkOutputAudioQuality;
+                : lOutput.LEncodingAudio.LEncodingQuality;
             if (!string.IsNullOrWhiteSpace(lValue)
                 && !string.Equals(lValue, "Custom", StringComparison.OrdinalIgnoreCase))
             {
@@ -62,12 +62,12 @@ internal static class LEncodeAudio
             }
         }
 
-        if (lCodec.CapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LWorkOutputAudioSpeed))
+        if (lCodec.CapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LEncodingAudio.LEncodingSpeed))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.CapabilitySpeedOption} {lOutput.LWorkOutputAudioSpeed}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.CapabilitySpeedOption} {lOutput.LEncodingAudio.LEncodingSpeed}");
         }
 
-        foreach (var lExtra in lOutput.LWorkOutputAudioExtras)
+        foreach (var lExtra in lOutput.LEncodingAudio.LEncodingExtras)
         {
             if (string.IsNullOrWhiteSpace(lExtra.Value) || string.Equals(lExtra.Value, "none", StringComparison.OrdinalIgnoreCase))
             {
@@ -77,13 +77,13 @@ internal static class LEncodeAudio
             lArguments.Append(CultureInfo.InvariantCulture, $" {lExtra.Key} {lExtra.Value}");
         }
 
-        if (!LEncode.LEncodeSourceCheck(lOutput.LWorkOutputAudioSampleRate)
-            && int.TryParse(lOutput.LWorkOutputAudioSampleRate, out int lSampleRate))
+        if (!LEncode.LEncodeSourceCheck(lOutput.LEncodingAudio.LEncodingSampleRate)
+            && int.TryParse(lOutput.LEncodingAudio.LEncodingSampleRate, out int lSampleRate))
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -ar {lSampleRate}");
         }
 
-        int? lChannels = LEncodeChannelRead(lOutput.LWorkOutputAudioChannels);
+        int? lChannels = LEncodeChannelRead(lOutput.LEncodingAudio.LEncodingChannels);
         if (lChannels is int lChannelCount)
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -ac {lChannelCount}");

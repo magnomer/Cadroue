@@ -4,13 +4,14 @@ public static partial class LCapabilityTable
 {
     private const string LCapabilityBitrateLabel = "Target bitrate";
 
-    private static LCapabilityQuality LCapabilityBitrateCreate(string lDefault = "8M") =>
-        new(LCapabilityBitrateLabel, "-b:v", lDefault, 100, 100000);
+    private static LCapabilityQuality LCapabilityBitrateCreate(
+        string lDefault = "8M", string lOption = "-b:v", double lMinimum = 100, double lMaximum = 100000) =>
+        new(LCapabilityBitrateLabel, lOption, lDefault, lMinimum, lMaximum);
 
     private static LCapabilityChoice[] LCapabilityNumbersCreate(int lFrom, int lTo) =>
         Enumerable.Range(lFrom, lTo - lFrom + 1).Select(lValue => (LCapabilityChoice)lValue.ToString()).ToArray();
 
-    private static readonly LCapabilityChoice[] LCapabilityX26xPresets =
+    private static readonly LCapabilityChoice[] LCapabilityLibxPresets =
     [
         new("ultrafast", "Ultrafast"), new("superfast", "Superfast"), new("veryfast", "Very fast"),
         new("faster", "Faster"), new("fast", "Fast"), new("medium", "Medium"), new("slow", "Slow"),
@@ -29,7 +30,7 @@ public static partial class LCapabilityTable
         new("p5", "P5"), new("p6", "P6"), new("p7", "P7 (slowest)")
     ];
 
-    private static LCapabilityCodec LCapabilityX26xCreate(string lEncoder, string lCrfDefault) => new(
+    private static LCapabilityCodec LCapabilityLibxCreate(string lEncoder, string lCrfDefault) => new(
         lEncoder,
         [
             new("CRF (constant quality)", new("CRF", "-crf", lCrfDefault, 0, 51)),
@@ -39,7 +40,7 @@ public static partial class LCapabilityTable
             new("CBR", LCapabilityBitrateCreate()),
             new("Lossless")
         ],
-        new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityX26xPresets),
+        new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityLibxPresets),
         [new LCapabilityExtra("Tune", "-tune", "none",
             [new("none", "None"), new("film", "Film"), new("animation", "Animation"), new("grain", "Grain"),
              new("stillimage", "Still image"), new("fastdecode", "Fast decode"), new("zerolatency", "Zero latency")])],

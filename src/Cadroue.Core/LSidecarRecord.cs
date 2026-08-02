@@ -14,7 +14,7 @@ public sealed class LSidecarEditRecord
     public bool LSidecarFlipVertical { get; set; }
     public bool LSidecarCropActive { get; set; }
     public bool LSidecarSkip { get; set; }
-    public List<LSidecarVideoStepRecord> LSidecarSteps { get; set; } = new();
+    public List<LSidecarVideoStep> LSidecarSteps { get; set; } = new();
 
     public bool LSidecarEditActive =>
         LSidecarCropActive
@@ -24,14 +24,14 @@ public sealed class LSidecarEditRecord
         || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }
 
-public sealed class LSidecarVideoStepRecord
+public sealed class LSidecarVideoStep
 {
     public string LSidecarKind { get; set; } = string.Empty;
     public bool LSidecarActive { get; set; }
     public double LSidecarValue { get; set; }
 }
 
-public sealed class LSidecarAudioStepRecord
+public sealed class LSidecarAudioStep
 {
     public string LSidecarKind { get; set; } = string.Empty;
     public bool LSidecarActive { get; set; }
@@ -56,10 +56,10 @@ public sealed class LSidecarAudioStepRecord
     public double LSidecarGainSmooth { get; set; }
     public double LSidecarAdaptivity { get; set; } = 0.5;
     public double LSidecarResidualFloor { get; set; } = -38;
-    public List<LSidecarEqualizerBandRecord> LSidecarEqualizerBands { get; set; } = new();
+    public List<LSidecarEqualizerBand> LSidecarEqualizerBands { get; set; } = new();
 }
 
-public sealed class LSidecarEqualizerBandRecord
+public sealed class LSidecarEqualizerBand
 {
     public double LSidecarBandFrequency { get; set; } = 1000;
     public double LSidecarBandGain { get; set; }
@@ -68,7 +68,7 @@ public sealed class LSidecarEqualizerBandRecord
 public sealed class LSidecarAudioRecord
 {
     public bool LSidecarSkip { get; set; }
-    public List<LSidecarAudioStepRecord> LSidecarSteps { get; set; } = new();
+    public List<LSidecarAudioStep> LSidecarSteps { get; set; } = new();
 
     public bool LSidecarAudioActive => LSidecarSkip || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }

@@ -14,7 +14,7 @@ public static partial class LAudio
         Guid lAudioRelayTarget = default,
         Guid lAudioRelaySource = default)
     {
-        LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
+        LEncoding lAudioOutput = lExportSpecificState.LPresetOutputCreate();
         string lAudioTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
         LWorkItem? lAudioItem = Cadroue.Application.LAudio.LAudioItemCreate(
             lWorkPriority, lAudioSourcePath, lAudioProcessing, lAudioOutput, lAudioTab,
@@ -40,7 +40,7 @@ public static partial class LAudio
         Guid lAudioRelayTarget = default,
         Guid lAudioRelaySource = default)
     {
-        LWorkOutput lAudioOutput = lExportSpecificState.LPresetOutputCreate();
+        LEncoding lAudioOutput = lExportSpecificState.LPresetOutputCreate();
         string lAudioTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
         Guid lAudioLooseBatch = Guid.NewGuid();
         var lAudioItems = new List<LWorkItem>();
@@ -131,7 +131,7 @@ public static partial class LAudio
         _ => LWorkAudioStep.LWorkVolumeCreate(false, 0)
     };
 
-    private static LWorkAudioStep LAudioStepCreate(Cadroue.Core.LSidecarAudioStepRecord lAudioRecord) =>
+    private static LWorkAudioStep LAudioStepCreate(Cadroue.Core.LSidecarAudioStep lAudioRecord) =>
         LAudioKindCreate(lAudioRecord.LSidecarKind) switch
         {
             LAudioKind.LAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(
@@ -175,9 +175,9 @@ public static partial class LAudio
             _ => LWorkAudioStep.LWorkVolumeCreate(lAudioRecord.LSidecarActive, lAudioRecord.LSidecarGain)
         };
 
-    private static Cadroue.Core.LSidecarAudioStepRecord LAudioRecordCreate(LWorkAudioStep lAudioStep)
+    private static Cadroue.Core.LSidecarAudioStep LAudioRecordCreate(LWorkAudioStep lAudioStep)
     {
-        var lAudioRecord = new Cadroue.Core.LSidecarAudioStepRecord
+        var lAudioRecord = new Cadroue.Core.LSidecarAudioStep
         {
             LSidecarKind = lAudioStep.LWorkStepKind.ToString().Replace("LAudioKind", string.Empty),
             LSidecarActive = lAudioStep.LWorkStepActive
@@ -216,7 +216,7 @@ public static partial class LAudio
                 break;
             case LWorkEqualizerStep lEqualizer:
                 lAudioRecord.LSidecarEqualizerBands = lEqualizer.LWorkEqualizerBands
-                    .Select(lBand => new Cadroue.Core.LSidecarEqualizerBandRecord
+                    .Select(lBand => new Cadroue.Core.LSidecarEqualizerBand
                     {
                         LSidecarBandFrequency = lBand.LWorkBandFrequency,
                         LSidecarBandGain = lBand.LWorkBandGain

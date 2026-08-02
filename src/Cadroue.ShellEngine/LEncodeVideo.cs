@@ -9,16 +9,16 @@ internal static class LEncodeVideo
 {
     private const string LEncodeBitrateOption = "-b:v";
 
-    internal static void LEncodeVideoAppend(StringBuilder lArguments, LWorkItem lWorkItem, LWorkOutput lOutput)
+    internal static void LEncodeVideoAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
     {
-        if (string.Equals(lOutput.LWorkOutputVideoStream, "Exclude", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lOutput.LWorkOutputVideoMode, "Exclude", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(lOutput.LEncodingVideo.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase))
         {
             lArguments.Append(" -vn");
             return;
         }
 
-        if (string.Equals(lOutput.LWorkOutputVideoMode, "Copy", StringComparison.OrdinalIgnoreCase)
+        if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             && !LEncodeVideoCheck(lWorkItem, lOutput))
         {
             lArguments.Append(" -c:v copy");
@@ -28,9 +28,9 @@ internal static class LEncodeVideo
         LEncodeEncoderAppend(lArguments, lWorkItem, lOutput);
     }
 
-    internal static void LEncodeEncoderAppend(StringBuilder lArguments, LWorkItem lWorkItem, LWorkOutput lOutput)
+    internal static void LEncodeEncoderAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
     {
-        string lEncoderName = LCapability.LCapabilityNameRead(lOutput.LWorkOutputVideoEncoder);
+        string lEncoderName = LCapability.LCapabilityNameRead(lOutput.LEncodingVideo.LEncodingEncoder);
         if (string.IsNullOrWhiteSpace(lEncoderName))
         {
             LEncodeFilterAppend(lArguments, lWorkItem, lOutput);
@@ -40,15 +40,15 @@ internal static class LEncodeVideo
         lArguments.Append(CultureInfo.InvariantCulture, $" -c:v {lEncoderName}");
 
         LCapabilityCodec lCodec = LCapability.LCapabilityRead(lEncoderName);
-        LCapabilityMode lMode = lCodec.LCapabilityModeFind(lOutput.LWorkOutputRateControl);
-        LEncodeQualityAppend(lArguments, lEncoderName, lMode, lOutput.LWorkOutputQuality);
+        LCapabilityMode lMode = lCodec.LCapabilityModeFind(lOutput.LEncodingVideo.LEncodingRateControl);
+        LEncodeQualityAppend(lArguments, lEncoderName, lMode, lOutput.LEncodingVideo.LEncodingQuality);
 
-        if (lCodec.CapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LWorkOutputSpeedPreset))
+        if (lCodec.CapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingSpeedPreset))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.CapabilitySpeedOption} {lOutput.LWorkOutputSpeedPreset}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.CapabilitySpeedOption} {lOutput.LEncodingVideo.LEncodingSpeedPreset}");
         }
 
-        foreach (var lExtra in lOutput.LWorkOutputVideoExtras)
+        foreach (var lExtra in lOutput.LEncodingVideo.LEncodingExtras)
         {
             if (string.IsNullOrWhiteSpace(lExtra.Value) || string.Equals(lExtra.Value, "none", StringComparison.OrdinalIgnoreCase))
             {
@@ -117,7 +117,7 @@ internal static class LEncodeVideo
         }
     }
 
-    private static void LEncodeFilterAppend(StringBuilder lArguments, LWorkItem lWorkItem, LWorkOutput lOutput)
+    private static void LEncodeFilterAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
     {
         var lFilters = new List<string>();
         LWorkCrop lCrop = lWorkItem.LWorkCrop;
@@ -154,10 +154,10 @@ internal static class LEncodeVideo
 
         LEncodeFiltersAppend(lFilters, lWorkItem.LWorkVideo);
 
-        string? lSize = LEncodeSizeRead(lOutput.LWorkOutputVideoSize);
+        string? lSize = LEncodeSizeRead(lOutput.LEncodingVideo.LEncodingSize);
         if (lSize is not null)
         {
-            lFilters.Add(LEncodeScaleResolve(lSize, lOutput.LWorkSizeReactive));
+            lFilters.Add(LEncodeScaleResolve(lSize, lOutput.LEncodingVideo.LEncodingSizeReactive));
             lFilters.Add("setsar=1");
         }
 
@@ -166,16 +166,16 @@ internal static class LEncodeVideo
             lArguments.Append(CultureInfo.InvariantCulture, $" -vf {LEncode.LEncodeFormat(string.Join(',', lFilters))}");
         }
 
-        if (!LEncode.LEncodeSourceCheck(lOutput.LWorkOutputVideoFps)
-            && double.TryParse(lOutput.LWorkOutputVideoFps, NumberStyles.Float, CultureInfo.InvariantCulture, out double lFps))
+        if (!LEncode.LEncodeSourceCheck(lOutput.LEncodingVideo.LEncodingFps)
+            && double.TryParse(lOutput.LEncodingVideo.LEncodingFps, NumberStyles.Float, CultureInfo.InvariantCulture, out double lFps))
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -r {lFps.ToString(CultureInfo.InvariantCulture)}");
         }
 
-        if (!string.IsNullOrWhiteSpace(lOutput.LWorkOutputPixelFormat)
-            && !string.Equals(lOutput.LWorkOutputPixelFormat, "Auto", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingPixelFormat)
+            && !string.Equals(lOutput.LEncodingVideo.LEncodingPixelFormat, "Auto", StringComparison.OrdinalIgnoreCase))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lOutput.LWorkOutputPixelFormat}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lOutput.LEncodingVideo.LEncodingPixelFormat}");
         }
     }
 
@@ -208,10 +208,10 @@ internal static class LEncodeVideo
         }
     }
 
-    internal static bool LEncodeVideoCheck(LWorkItem lWorkItem, LWorkOutput lOutput) =>
+    internal static bool LEncodeVideoCheck(LWorkItem lWorkItem, LEncoding lOutput) =>
         lWorkItem.LWorkCrop.LWorkCropActive
         || lWorkItem.LWorkVideo.LWorkVideoActive
-        || LEncodeSizeRead(lOutput.LWorkOutputVideoSize) is not null;
+        || LEncodeSizeRead(lOutput.LEncodingVideo.LEncodingSize) is not null;
 
     private static string LEncodeScaleResolve(string lSize, bool lReactive)
     {

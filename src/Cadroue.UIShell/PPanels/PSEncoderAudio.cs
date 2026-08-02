@@ -231,15 +231,15 @@ internal sealed partial class PSEncoder
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.RateControl"), psAudioRateCombo));
         psAudioEncodePanel.Children.Add(psAudioRowsPanel);
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"), psAudioSampleCombo));
-        psAudioSampleCustomRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.CustomSampleRate"), psAudioSampleCustom);
-        psAudioEncodePanel.Children.Add(psAudioSampleCustomRow);
-        psAudioSampleCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psAudioSampleCombo, psAudioSampleCustomRow);
+        psAudioSampleRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.CustomSampleRate"), psAudioSampleCustom);
+        psAudioEncodePanel.Children.Add(psAudioSampleRow);
+        psAudioSampleCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psAudioSampleCombo, psAudioSampleRow);
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Channels"), psAudioChannelCombo));
-        psAudioChannelCustomRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.CustomChannels"), psAudioChannelCustom);
-        psAudioEncodePanel.Children.Add(psAudioChannelCustomRow);
-        psAudioChannelCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelCustomRow);
-        PSFieldCustomToggle(psAudioSampleCombo, psAudioSampleCustomRow);
-        PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelCustomRow);
+        psAudioChannelRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.CustomChannels"), psAudioChannelCustom);
+        psAudioEncodePanel.Children.Add(psAudioChannelRow);
+        psAudioChannelCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelRow);
+        PSFieldCustomToggle(psAudioSampleCombo, psAudioSampleRow);
+        PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelRow);
 
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Stream"), psAudioStreamCombo));
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Mode"), psAudioModeCombo));
@@ -286,7 +286,7 @@ internal sealed partial class PSEncoder
 
         LCapabilityCodec pCodec = PSAudioCapabilityRead();
         LCapabilityMode pMode = pCodec.LCapabilityModeFind(PSComboTextRead(psAudioRateCombo));
-        bool pModeStored = string.Equals(pMode.CapabilityModeLabel, lsExportSpecificEdit.LPresetAudioRateControl, StringComparison.Ordinal);
+        bool pModeStored = string.Equals(pMode.CapabilityModeLabel, lsExportSpecificEdit.LPresetAudio.LPresetRateControl, StringComparison.Ordinal);
 
         PSAudioQualityBuild(pMode, pModeStored);
         PSAudioSpeedBuild(pCodec, pModeStored);
@@ -305,7 +305,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        string pStored = lsExportSpecificEdit.LPresetAudioQuality;
+        string pStored = lsExportSpecificEdit.LPresetAudio.LPresetQuality;
         string pText = pModeStored && !string.IsNullOrWhiteSpace(pStored)
             ? pStored
             : pQuality.CapabilityQualityDefault;
@@ -336,7 +336,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        string pStored = lsExportSpecificEdit.LPresetAudioSpeed;
+        string pStored = lsExportSpecificEdit.LPresetAudio.LPresetSpeed;
         string pSelected = pModeStored && !string.IsNullOrWhiteSpace(pStored)
             ? pStored
             : pSpeed.CapabilitySpeedDefault;
@@ -349,7 +349,7 @@ internal sealed partial class PSEncoder
     {
         foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
         {
-            string pSelected = lsExportSpecificEdit.LPresetAudioExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
+            string pSelected = lsExportSpecificEdit.LPresetAudio.LPresetExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
                                && pExtra.CapabilityExtraValues.Any(pChoice => string.Equals(pChoice.CapabilityChoiceValue, pStored, StringComparison.Ordinal))
                 ? pStored
                 : pExtra.CapabilityExtraDefault;

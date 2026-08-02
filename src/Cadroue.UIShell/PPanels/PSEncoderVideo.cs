@@ -32,10 +32,10 @@ internal sealed partial class PSEncoder
         psVideoEncodePanel.Children.Add(psVideoCustomRow);
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"), psVideoReactiveBox));
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"), psVideoFpsCombo));
-        psVideoFpsCustomRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.CustomFps"), psVideoFpsCustom);
-        psVideoEncodePanel.Children.Add(psVideoFpsCustomRow);
-        psVideoFpsCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psVideoFpsCombo, psVideoFpsCustomRow);
-        PSFieldCustomToggle(psVideoFpsCombo, psVideoFpsCustomRow);
+        psVideoFpsRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.CustomFps"), psVideoFpsCustom);
+        psVideoEncodePanel.Children.Add(psVideoFpsRow);
+        psVideoFpsCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psVideoFpsCombo, psVideoFpsRow);
+        PSFieldCustomToggle(psVideoFpsCombo, psVideoFpsRow);
         PSVideoCustomUpdate();
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psVideoPixelCombo));
 
@@ -209,7 +209,7 @@ internal sealed partial class PSEncoder
 
         LCapabilityCodec pCodec = PSVideoCapabilityRead();
         LCapabilityMode pMode = pCodec.LCapabilityModeFind(PSComboTextRead(psVideoRateCombo));
-        bool pModeStored = string.Equals(pMode.CapabilityModeLabel, lsExportSpecificEdit.LPresetRateControl, StringComparison.Ordinal);
+        bool pModeStored = string.Equals(pMode.CapabilityModeLabel, lsExportSpecificEdit.LPresetVideo.LPresetRateControl, StringComparison.Ordinal);
 
         PSVideoQualityBuild(pMode, pModeStored);
         PSVideoSpeedBuild(pCodec, pModeStored);
@@ -228,7 +228,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        string pStored = lsExportSpecificEdit.LPresetVideoQuality;
+        string pStored = lsExportSpecificEdit.LPresetVideo.LPresetQuality;
         string pText = pModeStored && !string.IsNullOrWhiteSpace(pStored)
             ? pStored
             : pQuality.CapabilityQualityDefault;
@@ -259,7 +259,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        string pStored = lsExportSpecificEdit.LPresetSpeedPreset;
+        string pStored = lsExportSpecificEdit.LPresetVideo.LPresetSpeedPreset;
         string pSelected = pModeStored && !string.IsNullOrWhiteSpace(pStored)
             ? pStored
             : pSpeed.CapabilitySpeedDefault;
@@ -272,7 +272,7 @@ internal sealed partial class PSEncoder
     {
         foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
         {
-            string pSelected = lsExportSpecificEdit.LPresetVideoExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
+            string pSelected = lsExportSpecificEdit.LPresetVideo.LPresetExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
                                && pExtra.CapabilityExtraValues.Any(pChoice => string.Equals(pChoice.CapabilityChoiceValue, pStored, StringComparison.Ordinal))
                 ? pStored
                 : pExtra.CapabilityExtraDefault;

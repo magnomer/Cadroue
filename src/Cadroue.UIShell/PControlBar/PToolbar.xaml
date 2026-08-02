@@ -94,7 +94,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="pTabAddButtonFrame"
+                        <Border x:Name="pTabAddFrame"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
@@ -104,11 +104,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="pTabAddButtonFrame" Property="Background" Value="#EEF4FC" />
-                                <Setter TargetName="pTabAddButtonFrame" Property="BorderBrush" Value="#D5E0ED" />
+                                <Setter TargetName="pTabAddFrame" Property="Background" Value="#EEF4FC" />
+                                <Setter TargetName="pTabAddFrame" Property="BorderBrush" Value="#D5E0ED" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="pTabAddButtonFrame" Property="Background" Value="#FFFFFF" />
+                                <Setter TargetName="pTabAddFrame" Property="Background" Value="#FFFFFF" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

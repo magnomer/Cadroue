@@ -344,24 +344,24 @@ internal sealed class LJob
 
     private void LJobCollisionApply()
     {
-        LWorkOutput pOutput = lJobItem.LWorkOutput;
+        LEncoding pOutput = lJobItem.LWorkOutput;
         string pTarget = lJobItem.LWorkOutputPath;
         if (string.IsNullOrWhiteSpace(pTarget) || !File.Exists(pTarget))
         {
             return;
         }
 
-        if (string.Equals(pOutput.LWorkOutputCollision, "Rename output", StringComparison.Ordinal))
+        if (string.Equals(pOutput.LEncodingCollision, "Rename output", StringComparison.Ordinal))
         {
-            string pFreePath = LJobPathResolve(pTarget, pOutput.LWorkOutputCollisionSuffix);
+            string pFreePath = LJobPathResolve(pTarget, pOutput.LEncodingCollisionSuffix);
             lJobItem.LWorkOutputSet(pFreePath, Path.GetFileName(pFreePath));
             LRunner.LRunnerRecord($"Output exists; renaming output to '{Path.GetFileName(pFreePath)}'");
             return;
         }
 
-        if (string.Equals(pOutput.LWorkOutputCollision, "Rename existing", StringComparison.Ordinal))
+        if (string.Equals(pOutput.LEncodingCollision, "Rename existing", StringComparison.Ordinal))
         {
-            string pFreePath = LJobPathResolve(pTarget, pOutput.LWorkOutputCollisionSuffix);
+            string pFreePath = LJobPathResolve(pTarget, pOutput.LEncodingCollisionSuffix);
             try
             {
                 File.Move(pTarget, pFreePath);

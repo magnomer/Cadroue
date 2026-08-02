@@ -185,61 +185,49 @@ public sealed class LWorkOutputRecord
     public string LWorkLocation { get; set; } = "Same as source";
     public string LWorkLocationFolder { get; set; } = string.Empty;
     public string LWorkExportMode { get; set; } = "Smart export";
-    public string LWorkVideoStream { get; set; } = "Include";
-    public string LWorkVideoMode { get; set; } = "Auto";
-    public string LWorkVideoEncoder { get; set; } = string.Empty;
-    public string LWorkRateControl { get; set; } = string.Empty;
-    public string LWorkQuality { get; set; } = string.Empty;
-    public string LWorkSpeedPreset { get; set; } = string.Empty;
-    public string LWorkVideoSize { get; set; } = "Same as source";
-    public bool LWorkSizeReactive { get; set; }
-    public string LWorkVideoFps { get; set; } = "Same as source";
-    public string LWorkPixelLayout { get; set; } = "Auto";
-    public Dictionary<string, string> LWorkVideoExtras { get; set; } = new();
-    public string LWorkAudioStream { get; set; } = string.Empty;
-    public string LWorkAudioMode { get; set; } = "Auto";
-    public string LWorkAudioEncoder { get; set; } = string.Empty;
-    public string LWorkAudioRateControl { get; set; } = string.Empty;
-    public string LWorkAudioQuality { get; set; } = string.Empty;
-    public string LWorkAudioSpeed { get; set; } = string.Empty;
-    public Dictionary<string, string> LWorkAudioExtras { get; set; } = new();
-    public string LWorkSampleRate { get; set; } = "Same as source";
-    public string LWorkAudioChannels { get; set; } = "Same as source";
+    public LWorkVideoRecord LWorkOutputVideo { get; set; } = new();
+    public LWorkAudioRecord LWorkOutputAudio { get; set; } = new();
     public string LWorkPresetName { get; set; } = string.Empty;
     public string LWorkCollision { get; set; } = "Overwrite";
     public string LWorkCollisionSuffix { get; set; } = string.Empty;
 
-    public static LWorkOutputRecord LWorkSnapshotCreate(LWorkOutput lWorkOutput) => new()
+    public static LWorkOutputRecord LWorkSnapshotCreate(LEncoding lEncoding) => new()
     {
-        LWorkNamePattern = lWorkOutput.LWorkOutputNamePattern,
-        LWorkContainer = lWorkOutput.LWorkOutputContainer,
-        LWorkExtension = lWorkOutput.LWorkOutputExtension,
-        LWorkLocation = lWorkOutput.LWorkOutputLocation,
-        LWorkLocationFolder = lWorkOutput.LWorkOutputLocationFolder,
-        LWorkExportMode = lWorkOutput.LWorkOutputExportMode,
-        LWorkVideoStream = lWorkOutput.LWorkOutputVideoStream,
-        LWorkVideoMode = lWorkOutput.LWorkOutputVideoMode,
-        LWorkVideoEncoder = lWorkOutput.LWorkOutputVideoEncoder,
-        LWorkRateControl = lWorkOutput.LWorkOutputRateControl,
-        LWorkQuality = lWorkOutput.LWorkOutputQuality,
-        LWorkSpeedPreset = lWorkOutput.LWorkOutputSpeedPreset,
-        LWorkVideoSize = lWorkOutput.LWorkOutputVideoSize,
-        LWorkSizeReactive = lWorkOutput.LWorkSizeReactive,
-        LWorkVideoFps = lWorkOutput.LWorkOutputVideoFps,
-        LWorkPixelLayout = lWorkOutput.LWorkOutputPixelFormat,
-        LWorkVideoExtras = new Dictionary<string, string>(lWorkOutput.LWorkOutputVideoExtras, StringComparer.Ordinal),
-        LWorkAudioStream = lWorkOutput.LWorkOutputAudioStream,
-        LWorkAudioMode = lWorkOutput.LWorkOutputAudioMode,
-        LWorkAudioEncoder = lWorkOutput.LWorkOutputAudioEncoder,
-        LWorkAudioRateControl = lWorkOutput.LWorkOutputAudioRateControl,
-        LWorkAudioQuality = lWorkOutput.LWorkOutputAudioQuality,
-        LWorkAudioSpeed = lWorkOutput.LWorkOutputAudioSpeed,
-        LWorkAudioExtras = new Dictionary<string, string>(lWorkOutput.LWorkOutputAudioExtras, StringComparer.Ordinal),
-        LWorkSampleRate = lWorkOutput.LWorkOutputAudioSampleRate,
-        LWorkAudioChannels = lWorkOutput.LWorkOutputAudioChannels,
-        LWorkPresetName = lWorkOutput.LWorkOutputPresetName,
-        LWorkCollision = lWorkOutput.LWorkOutputCollision,
-        LWorkCollisionSuffix = lWorkOutput.LWorkOutputCollisionSuffix
+        LWorkNamePattern = lEncoding.LEncodingNamePattern,
+        LWorkContainer = lEncoding.LEncodingContainer,
+        LWorkExtension = lEncoding.LEncodingExtension,
+        LWorkLocation = lEncoding.LEncodingLocation,
+        LWorkLocationFolder = lEncoding.LEncodingLocationFolder,
+        LWorkExportMode = lEncoding.LEncodingExportMode,
+        LWorkOutputVideo = new LWorkVideoRecord
+        {
+            LWorkStream = lEncoding.LEncodingVideo.LEncodingStream,
+            LWorkMode = lEncoding.LEncodingVideo.LEncodingMode,
+            LWorkEncoder = lEncoding.LEncodingVideo.LEncodingEncoder,
+            LWorkRateControl = lEncoding.LEncodingVideo.LEncodingRateControl,
+            LWorkQuality = lEncoding.LEncodingVideo.LEncodingQuality,
+            LWorkSpeedPreset = lEncoding.LEncodingVideo.LEncodingSpeedPreset,
+            LWorkSize = lEncoding.LEncodingVideo.LEncodingSize,
+            LWorkSizeReactive = lEncoding.LEncodingVideo.LEncodingSizeReactive,
+            LWorkFps = lEncoding.LEncodingVideo.LEncodingFps,
+            LWorkPixelLayout = lEncoding.LEncodingVideo.LEncodingPixelFormat,
+            LWorkExtras = new Dictionary<string, string>(lEncoding.LEncodingVideo.LEncodingExtras, StringComparer.Ordinal)
+        },
+        LWorkOutputAudio = new LWorkAudioRecord
+        {
+            LWorkStream = lEncoding.LEncodingAudio.LEncodingStream,
+            LWorkMode = lEncoding.LEncodingAudio.LEncodingMode,
+            LWorkEncoder = lEncoding.LEncodingAudio.LEncodingEncoder,
+            LWorkRateControl = lEncoding.LEncodingAudio.LEncodingRateControl,
+            LWorkQuality = lEncoding.LEncodingAudio.LEncodingQuality,
+            LWorkSpeed = lEncoding.LEncodingAudio.LEncodingSpeed,
+            LWorkExtras = new Dictionary<string, string>(lEncoding.LEncodingAudio.LEncodingExtras, StringComparer.Ordinal),
+            LWorkSampleRate = lEncoding.LEncodingAudio.LEncodingSampleRate,
+            LWorkChannels = lEncoding.LEncodingAudio.LEncodingChannels
+        },
+        LWorkPresetName = lEncoding.LEncodingPresetName,
+        LWorkCollision = lEncoding.LEncodingCollision,
+        LWorkCollisionSuffix = lEncoding.LEncodingCollisionSuffix
     };
 
     public void LWorkOutputNormalize()
@@ -250,58 +238,98 @@ public sealed class LWorkOutputRecord
         LWorkLocation ??= "Same as source";
         LWorkLocationFolder ??= string.Empty;
         LWorkExportMode ??= "Smart export";
-        LWorkVideoStream ??= "Include";
-        LWorkVideoMode ??= "Auto";
-        LWorkVideoEncoder ??= string.Empty;
-        LWorkRateControl ??= string.Empty;
-        LWorkQuality ??= string.Empty;
-        LWorkSpeedPreset ??= string.Empty;
-        LWorkVideoSize ??= "Same as source";
-        LWorkVideoFps ??= "Same as source";
-        LWorkPixelLayout ??= "Auto";
-        LWorkVideoExtras ??= new();
-        LWorkAudioStream ??= string.Empty;
-        LWorkAudioMode ??= "Auto";
-        LWorkAudioEncoder ??= string.Empty;
-        LWorkAudioRateControl ??= string.Empty;
-        LWorkAudioQuality ??= string.Empty;
-        LWorkAudioSpeed ??= string.Empty;
-        LWorkAudioExtras ??= new();
-        LWorkSampleRate ??= "Same as source";
-        LWorkAudioChannels ??= "Same as source";
+        (LWorkOutputVideo ??= new()).LWorkVideoNormalize();
+        (LWorkOutputAudio ??= new()).LWorkAudioNormalize();
         LWorkPresetName ??= string.Empty;
         LWorkCollision ??= "Overwrite";
         LWorkCollisionSuffix ??= string.Empty;
     }
 
-    public LWorkOutput LWorkOutputCreate() => new(
+    public LEncoding LWorkOutputCreate() => new(
         LWorkNamePattern,
         LWorkContainer,
         LWorkExtension,
         LWorkLocation,
         LWorkLocationFolder,
         LWorkExportMode,
-        LWorkVideoStream,
-        LWorkVideoMode,
-        LWorkVideoEncoder,
-        LWorkRateControl,
-        LWorkQuality,
-        LWorkSpeedPreset,
-        LWorkVideoSize,
-        LWorkSizeReactive,
-        LWorkVideoFps,
-        LWorkPixelLayout,
-        new Dictionary<string, string>(LWorkVideoExtras, StringComparer.Ordinal),
-        LWorkAudioStream,
-        LWorkAudioMode,
-        LWorkAudioEncoder,
-        LWorkAudioRateControl,
-        LWorkAudioQuality,
-        LWorkAudioSpeed,
-        new Dictionary<string, string>(LWorkAudioExtras, StringComparer.Ordinal),
-        LWorkSampleRate,
-        LWorkAudioChannels,
+        new LEncodingVideo(
+            LWorkOutputVideo.LWorkStream,
+            LWorkOutputVideo.LWorkMode,
+            LWorkOutputVideo.LWorkEncoder,
+            LWorkOutputVideo.LWorkRateControl,
+            LWorkOutputVideo.LWorkQuality,
+            LWorkOutputVideo.LWorkSpeedPreset,
+            LWorkOutputVideo.LWorkSize,
+            LWorkOutputVideo.LWorkSizeReactive,
+            LWorkOutputVideo.LWorkFps,
+            LWorkOutputVideo.LWorkPixelLayout,
+            new Dictionary<string, string>(LWorkOutputVideo.LWorkExtras, StringComparer.Ordinal)),
+        new LEncodingAudio(
+            LWorkOutputAudio.LWorkStream,
+            LWorkOutputAudio.LWorkMode,
+            LWorkOutputAudio.LWorkEncoder,
+            LWorkOutputAudio.LWorkRateControl,
+            LWorkOutputAudio.LWorkQuality,
+            LWorkOutputAudio.LWorkSpeed,
+            new Dictionary<string, string>(LWorkOutputAudio.LWorkExtras, StringComparer.Ordinal),
+            LWorkOutputAudio.LWorkSampleRate,
+            LWorkOutputAudio.LWorkChannels),
         LWorkPresetName,
         LWorkCollision,
         LWorkCollisionSuffix);
+}
+
+public sealed class LWorkVideoRecord
+{
+    public string LWorkStream { get; set; } = "Include";
+    public string LWorkMode { get; set; } = "Auto";
+    public string LWorkEncoder { get; set; } = string.Empty;
+    public string LWorkRateControl { get; set; } = string.Empty;
+    public string LWorkQuality { get; set; } = string.Empty;
+    public string LWorkSpeedPreset { get; set; } = string.Empty;
+    public string LWorkSize { get; set; } = "Same as source";
+    public bool LWorkSizeReactive { get; set; }
+    public string LWorkFps { get; set; } = "Same as source";
+    public string LWorkPixelLayout { get; set; } = "Auto";
+    public Dictionary<string, string> LWorkExtras { get; set; } = new();
+
+    public void LWorkVideoNormalize()
+    {
+        LWorkStream ??= "Include";
+        LWorkMode ??= "Auto";
+        LWorkEncoder ??= string.Empty;
+        LWorkRateControl ??= string.Empty;
+        LWorkQuality ??= string.Empty;
+        LWorkSpeedPreset ??= string.Empty;
+        LWorkSize ??= "Same as source";
+        LWorkFps ??= "Same as source";
+        LWorkPixelLayout ??= "Auto";
+        LWorkExtras ??= new();
+    }
+}
+
+public sealed class LWorkAudioRecord
+{
+    public string LWorkStream { get; set; } = string.Empty;
+    public string LWorkMode { get; set; } = "Auto";
+    public string LWorkEncoder { get; set; } = string.Empty;
+    public string LWorkRateControl { get; set; } = string.Empty;
+    public string LWorkQuality { get; set; } = string.Empty;
+    public string LWorkSpeed { get; set; } = string.Empty;
+    public Dictionary<string, string> LWorkExtras { get; set; } = new();
+    public string LWorkSampleRate { get; set; } = "Same as source";
+    public string LWorkChannels { get; set; } = "Same as source";
+
+    public void LWorkAudioNormalize()
+    {
+        LWorkStream ??= string.Empty;
+        LWorkMode ??= "Auto";
+        LWorkEncoder ??= string.Empty;
+        LWorkRateControl ??= string.Empty;
+        LWorkQuality ??= string.Empty;
+        LWorkSpeed ??= string.Empty;
+        LWorkExtras ??= new();
+        LWorkSampleRate ??= "Same as source";
+        LWorkChannels ??= "Same as source";
+    }
 }
