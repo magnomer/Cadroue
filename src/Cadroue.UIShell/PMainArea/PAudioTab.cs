@@ -18,6 +18,7 @@ public sealed class PAudioTab : PTabSurface
     private readonly PList pList = new();
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
+    private readonly LSMonitor pAudioMonitor = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pAudioPlanLoading;
 
@@ -37,6 +38,7 @@ public sealed class PAudioTab : PTabSurface
         pInspector.PSkipActiveChange += PAudioSkipHandle;
         pInspector.PInspectorPlanChange += PAudioPersistentWrite;
         pInspector.PInspectorAudioChange += PAudioChangeHandle;
+        pInspector.PInspectorMonitorShow += PAudioMonitorShow;
 
         var pAction = new PAction();
         PTabAction = pAction;
@@ -164,7 +166,11 @@ public sealed class PAudioTab : PTabSurface
     {
         PAudioActiveUpdate();
         PAudioPlanSave();
+        pAudioMonitor.LSMonitorPlanApply(PAudioProcessingRead());
     }
+
+    private void PAudioMonitorShow() =>
+        PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), pAudioMonitor);
 
     private LWorkAudio PAudioProcessingRead()
     {
@@ -223,6 +229,8 @@ public sealed class PAudioTab : PTabSurface
 
         pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
         PAudioActiveUpdate();
+        pAudioMonitor.LSMonitorSourceOpen(pViewer.PViewerSourcePath, pViewer.PViewerDurationRead());
+        pAudioMonitor.LSMonitorPlanApply(PAudioProcessingRead());
     }
 
     private void PAudioPlanSave()
@@ -240,6 +248,12 @@ public sealed class PAudioTab : PTabSurface
 
         LAudio.LAudioPlanSave(pSourcePath, pAudioPlan);
         PAudioPersistentWrite();
+    }
+
+    public override void PTabClose()
+    {
+        base.PTabClose();
+        pAudioMonitor.Dispose();
     }
 
     public override PFlowControl PTabFlow => pFlow;

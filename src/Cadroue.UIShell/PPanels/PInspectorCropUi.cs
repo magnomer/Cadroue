@@ -175,9 +175,11 @@ public sealed partial class PInspector
         return pToolButton;
     }
 
-    private static Style PInspectorToolCreate()
+    private static Style PInspectorToolCreate() => PInspectorToolCreate(typeof(ToggleButton));
+
+    private static Style PInspectorToolCreate(Type pControlType)
     {
-        var pTemplate = new ControlTemplate(typeof(ToggleButton));
+        var pTemplate = new ControlTemplate(pControlType);
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
         pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
@@ -188,7 +190,7 @@ public sealed partial class PInspector
         pBorder.AppendChild(pContent);
         pTemplate.VisualTree = pBorder;
 
-        var pStyle = new Style(typeof(ToggleButton));
+        var pStyle = new Style(pControlType);
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
         pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, System.Windows.Input.Cursors.Hand));
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));

@@ -2,13 +2,15 @@ using System.Diagnostics;
 
 namespace Cadroue.Media;
 
+public readonly record struct LWaveformScanResult(byte[] LWaveformPeaks, byte[] LWaveformRms);
+
 public static class LWaveformScanner
 {
     private const int LWaveformBufferBytes = 1 << 16;
 
     private const int LWaveformBucketLimit = 4_000_000;
 
-    public static byte[] LWaveformScan(
+    public static LWaveformScanResult LWaveformScan(
         string lWaveformSourcePath,
         TimeSpan lWaveformDuration,
         CancellationToken lWaveformCancelSource = default)
@@ -17,7 +19,7 @@ public static class LWaveformScanner
             || !File.Exists(lWaveformSourcePath)
             || lWaveformDuration <= TimeSpan.Zero)
         {
-            return Array.Empty<byte>();
+            return new LWaveformScanResult(Array.Empty<byte>(), Array.Empty<byte>());
         }
 
         lWaveformCancelSource.ThrowIfCancellationRequested();
@@ -27,7 +29,7 @@ public static class LWaveformScanner
             lWaveformDuration.TotalMilliseconds / LWaveform.LWaveformBucketMilliseconds);
         if (lWaveformBucketExpected <= 0 || lWaveformBucketExpected > LWaveformBucketLimit)
         {
-            return Array.Empty<byte>();
+            return new LWaveformScanResult(Array.Empty<byte>(), Array.Empty<byte>());
         }
 
         var lWaveformStart = new ProcessStartInfo(LTool.LToolFfmpegRead())
@@ -43,6 +45,7 @@ public static class LWaveformScanner
         };
 
         var lWaveformPeaks = new List<byte>((int)lWaveformBucketExpected);
+        var lWaveformRms = new List<byte>((int)lWaveformBucketExpected);
         Process? lWaveformProcess = null;
 
         try
@@ -50,7 +53,7 @@ public static class LWaveformScanner
             lWaveformProcess = Process.Start(lWaveformStart);
             if (lWaveformProcess is null)
             {
-                return Array.Empty<byte>();
+                return new LWaveformScanResult(Array.Empty<byte>(), Array.Empty<byte>());
             }
 
             using var lWaveformKill = lWaveformCancelSource.Register(
@@ -60,6 +63,7 @@ public static class LWaveformScanner
                 lWaveformProcess.StandardOutput.BaseStream,
                 lWaveformBucketSamples,
                 lWaveformPeaks,
+                lWaveformRms,
                 lWaveformCancelSource);
             lWaveformProcess.WaitForExit();
         }
@@ -70,7 +74,7 @@ public static class LWaveformScanner
         catch
         {
             lWaveformCancelSource.ThrowIfCancellationRequested();
-            return Array.Empty<byte>();
+            return new LWaveformScanResult(Array.Empty<byte>(), Array.Empty<byte>());
         }
         finally
         {
@@ -83,19 +87,23 @@ public static class LWaveformScanner
         }
 
         lWaveformCancelSource.ThrowIfCancellationRequested();
-        return lWaveformPeaks.Count == 0 ? Array.Empty<byte>() : lWaveformPeaks.ToArray();
+        return lWaveformPeaks.Count == 0
+            ? new LWaveformScanResult(Array.Empty<byte>(), Array.Empty<byte>())
+            : new LWaveformScanResult(lWaveformPeaks.ToArray(), lWaveformRms.ToArray());
     }
 
     private static void LWaveformStreamRead(
         Stream lWaveformStream,
         int lWaveformBucketSamples,
         List<byte> lWaveformPeaks,
+        List<byte> lWaveformRms,
         CancellationToken lWaveformCancelSource)
     {
         byte[] lWaveformBuffer = new byte[LWaveformBufferBytes];
         int lWaveformCarry = -1;
         int lWaveformSampleCount = 0;
         int lWaveformBucketPeak = 0;
+        double lWaveformBucketSquares = 0;
         int lWaveformRead;
 
         while ((lWaveformRead = lWaveformStream.Read(lWaveformBuffer, 0, lWaveformBuffer.Length)) > 0)
@@ -107,9 +115,11 @@ public static class LWaveformScanner
                 LWaveformSampleAdd(
                     (short)(lWaveformCarry | (lWaveformBuffer[0] << 8)),
                     ref lWaveformBucketPeak,
+                    ref lWaveformBucketSquares,
                     ref lWaveformSampleCount,
                     lWaveformBucketSamples,
-                    lWaveformPeaks);
+                    lWaveformPeaks,
+                    lWaveformRms);
                 lWaveformCarry = -1;
                 lWaveformOffset = 1;
             }
@@ -119,9 +129,11 @@ public static class LWaveformScanner
                 LWaveformSampleAdd(
                     (short)(lWaveformBuffer[lWaveformOffset] | (lWaveformBuffer[lWaveformOffset + 1] << 8)),
                     ref lWaveformBucketPeak,
+                    ref lWaveformBucketSquares,
                     ref lWaveformSampleCount,
                     lWaveformBucketSamples,
-                    lWaveformPeaks);
+                    lWaveformPeaks,
+                    lWaveformRms);
             }
 
             if (lWaveformOffset < lWaveformRead)
@@ -133,17 +145,21 @@ public static class LWaveformScanner
         if (lWaveformSampleCount > 0)
         {
             lWaveformPeaks.Add((byte)lWaveformBucketPeak);
+            lWaveformRms.Add(LWaveformRmsRead(lWaveformBucketSquares, lWaveformSampleCount));
         }
     }
 
     private static void LWaveformSampleAdd(
         short lWaveformSample,
         ref int lWaveformBucketPeak,
+        ref double lWaveformBucketSquares,
         ref int lWaveformSampleCount,
         int lWaveformBucketSamples,
-        List<byte> lWaveformPeaks)
+        List<byte> lWaveformPeaks,
+        List<byte> lWaveformRms)
     {
         int lWaveformLevel = lWaveformSample == short.MinValue ? short.MaxValue : Math.Abs((int)lWaveformSample);
+        lWaveformBucketSquares += (double)lWaveformLevel * lWaveformLevel;
         lWaveformLevel = lWaveformLevel * LWaveform.LWaveformPeakMaximum / short.MaxValue;
         if (lWaveformLevel > lWaveformBucketPeak)
         {
@@ -156,7 +172,16 @@ public static class LWaveformScanner
         }
 
         lWaveformPeaks.Add((byte)lWaveformBucketPeak);
+        lWaveformRms.Add(LWaveformRmsRead(lWaveformBucketSquares, lWaveformSampleCount));
         lWaveformBucketPeak = 0;
+        lWaveformBucketSquares = 0;
         lWaveformSampleCount = 0;
+    }
+
+    private static byte LWaveformRmsRead(double lWaveformSquares, int lWaveformCount)
+    {
+        double lWaveformRoot = Math.Sqrt(lWaveformSquares / lWaveformCount);
+        int lWaveformLevel = (int)(lWaveformRoot * LWaveform.LWaveformPeakMaximum / short.MaxValue);
+        return (byte)Math.Clamp(lWaveformLevel, 0, LWaveform.LWaveformPeakMaximum);
     }
 }

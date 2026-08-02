@@ -20,6 +20,7 @@ public sealed class LSidecarWaveformRecord
     public int LSidecarBucketMilliseconds { get; set; }
     public long LSidecarDurationMilliseconds { get; set; }
     public string LSidecarPeaks { get; set; } = string.Empty;
+    public string LSidecarRms { get; set; } = string.Empty;
 }
 
 public sealed class LSidecarSourceRecord
@@ -169,6 +170,7 @@ public sealed class LSidecar
         if (LSidecarWaveform is { } lSidecarWaveform)
         {
             lSidecarWaveform.LSidecarPeaks ??= string.Empty;
+            lSidecarWaveform.LSidecarRms ??= string.Empty;
         }
     }
 

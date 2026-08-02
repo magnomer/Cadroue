@@ -10,26 +10,34 @@ public static class LWaveform
 
     public static LSidecarWaveformRecord LWaveformRecordCreate(
         IReadOnlyCollection<byte> lWaveformPeaks,
+        IReadOnlyCollection<byte> lWaveformRms,
         TimeSpan lWaveformDuration)
     {
         return new LSidecarWaveformRecord
         {
             LSidecarBucketMilliseconds = LWaveformBucketMilliseconds,
             LSidecarDurationMilliseconds = (long)Math.Round(lWaveformDuration.TotalMilliseconds),
-            LSidecarPeaks = Convert.ToBase64String(lWaveformPeaks.ToArray())
+            LSidecarPeaks = Convert.ToBase64String(lWaveformPeaks.ToArray()),
+            LSidecarRms = Convert.ToBase64String(lWaveformRms.ToArray())
         };
     }
 
-    public static byte[] LWaveformPeaksRead(LSidecarWaveformRecord? lWaveformRecord)
+    public static byte[] LWaveformPeaksRead(LSidecarWaveformRecord? lWaveformRecord) =>
+        LWaveformBytesRead(lWaveformRecord?.LSidecarPeaks);
+
+    public static byte[] LWaveformRmsRead(LSidecarWaveformRecord? lWaveformRecord) =>
+        LWaveformBytesRead(lWaveformRecord?.LSidecarRms);
+
+    private static byte[] LWaveformBytesRead(string? lWaveformEncoded)
     {
-        if (lWaveformRecord is null || string.IsNullOrWhiteSpace(lWaveformRecord.LSidecarPeaks))
+        if (string.IsNullOrWhiteSpace(lWaveformEncoded))
         {
             return Array.Empty<byte>();
         }
 
         try
         {
-            return Convert.FromBase64String(lWaveformRecord.LSidecarPeaks);
+            return Convert.FromBase64String(lWaveformEncoded);
         }
         catch (FormatException)
         {
@@ -41,7 +49,8 @@ public static class LWaveform
     {
         if (lWaveformRecord is null
             || lWaveformRecord.LSidecarBucketMilliseconds != LWaveformBucketMilliseconds
-            || lWaveformRecord.LSidecarPeaks.Length == 0)
+            || lWaveformRecord.LSidecarPeaks.Length == 0
+            || lWaveformRecord.LSidecarRms.Length == 0)
         {
             return false;
         }
@@ -98,4 +107,5 @@ public static class LWaveform
 
         return lWaveformColumns;
     }
+
 }

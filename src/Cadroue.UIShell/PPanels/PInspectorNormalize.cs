@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
@@ -43,6 +44,8 @@ public sealed partial class PInspector
     private string? pLoudnessBaseToken;
     private bool pLoudnessPresetSuppress;
 
+    public event Action? PInspectorMonitorShow;
+
     private LLeveling PLoudnessModeRead() =>
         pLoudnessMode.SelectedIndex == 1
             ? LLeveling.LLevelingDynamic
@@ -53,6 +56,23 @@ public sealed partial class PInspector
         pLoudnessApplyBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
         pLoudnessApplyBox.Checked += (_, _) => PLoudnessApplyUpdate();
         pLoudnessApplyBox.Unchecked += (_, _) => PLoudnessApplyUpdate();
+
+        var pViewerButton = new Button
+        {
+            ToolTip = LLocalization.LLocalizationTextRead("NormalizePreview.Button.Tooltip"),
+            Width = 32,
+            Height = 32,
+            VerticalAlignment = VerticalAlignment.Center,
+            Style = PInspectorToolCreate(typeof(Button)),
+            Content = new Image
+            {
+                Width = 18,
+                Height = 18,
+                Stretch = Stretch.Uniform,
+                Source = PIcon.PIconRead("/PAssets/PPanels/PProcessingNormalize.svg", pInspectorIconBrush)
+            }
+        };
+        pViewerButton.Click += (_, _) => PInspectorMonitorShow?.Invoke();
 
         pLoudnessPersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
@@ -88,38 +108,38 @@ public sealed partial class PInspector
         pLoudnessTarget.Text = "-21";
         Slider pTargetSlider = PInspectorSliderBind(
             pLoudnessTarget, PLoudnessTargetLeast, PLoudnessTargetMost, -21, "0.#",
-            () => PLoudnessPresetCurrent()?.Target ?? -21, PLoudnessDeviationCheck);
+            () => PLoudnessPresetCurrent()?.Target ?? -21, PLoudnessValueUpdate);
         pLoudnessPeak = PInspectorDecimalBuild();
         pLoudnessPeak.Text = "-2";
         Slider pPeakSlider = PInspectorSliderBind(
             pLoudnessPeak, PLoudnessPeakLeast, PLoudnessPeakMost, -2, "0.#",
-            () => PLoudnessPresetCurrent()?.Peak ?? -2, PLoudnessDeviationCheck);
+            () => PLoudnessPresetCurrent()?.Peak ?? -2, PLoudnessValueUpdate);
         pLoudnessRange = PInspectorDecimalBuild();
         pLoudnessRange.Text = "6";
         Slider pRangeSlider = PInspectorSliderBind(
             pLoudnessRange, PLoudnessRangeLeast, PLoudnessRangeMost, 6, "0.#",
-            () => PLoudnessPresetCurrent()?.Range ?? 6, PLoudnessDeviationCheck);
+            () => PLoudnessPresetCurrent()?.Range ?? 6, PLoudnessValueUpdate);
 
         pDynamicFrame = PInspectorDecimalBuild();
         pDynamicFrame.Text = "300";
         Slider pFrameSlider = PInspectorSliderBind(
             pDynamicFrame, PDynamicFrameLeast, PDynamicFrameMost, 300, "0",
-            () => PDynamicPresetCurrent()?.Frame ?? 300, PDynamicDeviationCheck);
+            () => PDynamicPresetCurrent()?.Frame ?? 300, PDynamicValueUpdate);
         pDynamicGauss = PInspectorDecimalBuild();
         pDynamicGauss.Text = "21";
         Slider pGaussSlider = PInspectorSliderBind(
             pDynamicGauss, PDynamicGaussLeast, PDynamicGaussMost, 21, "0",
-            () => PDynamicPresetCurrent()?.Gauss ?? 21, PDynamicDeviationCheck);
+            () => PDynamicPresetCurrent()?.Gauss ?? 21, PDynamicValueUpdate);
         pDynamicMaxGain = PInspectorDecimalBuild();
         pDynamicMaxGain.Text = "10";
         Slider pMaxGainSlider = PInspectorSliderBind(
             pDynamicMaxGain, PDynamicGainLeast, PDynamicGainMost, 10, "0.#",
-            () => PDynamicPresetCurrent()?.MaxGain ?? 10, PDynamicDeviationCheck);
+            () => PDynamicPresetCurrent()?.MaxGain ?? 10, PDynamicValueUpdate);
         pDynamicCompress = PInspectorDecimalBuild();
         pDynamicCompress.Text = "6";
         Slider pCompressSlider = PInspectorSliderBind(
             pDynamicCompress, PDynamicCompressLeast, PDynamicCompressMost, 6, "0.#",
-            () => PDynamicPresetCurrent()?.Compress ?? 6, PDynamicDeviationCheck);
+            () => PDynamicPresetCurrent()?.Compress ?? 6, PDynamicValueUpdate);
 
         pLoudnessTwoPass = new CheckBox
         {
@@ -133,6 +153,8 @@ public sealed partial class PInspector
             Margin = new Thickness(0, 8, 0, 0)
         };
         PMainWindow.PCheckbox.PCheckboxApply(pLoudnessTwoPass);
+        pLoudnessTwoPass.Checked += (_, _) => PInspectorActiveRaise();
+        pLoudnessTwoPass.Unchecked += (_, _) => PInspectorActiveRaise();
 
         pLoudnessStack = new StackPanel();
         pLoudnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Target"), pTargetSlider, "LUFS", pLoudnessTarget));
@@ -157,6 +179,7 @@ public sealed partial class PInspector
         };
 
         pLoudnessPanel = new StackPanel();
+        pLoudnessPanel.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("NormalizePreview.Button.Label"), pViewerButton));
         pLoudnessPanel.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Mode"), pLoudnessMode));
         pLoudnessPanel.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pLoudnessPreset));
         pLoudnessPanel.Children.Add(pLoudnessStack);
@@ -264,6 +287,12 @@ public sealed partial class PInspector
         pLoudnessPresetSuppress = false;
     }
 
+    private void PLoudnessValueUpdate()
+    {
+        PLoudnessDeviationCheck();
+        PInspectorActiveRaise();
+    }
+
     private void PLoudnessCustomSet(string pBase)
     {
         int pLast = pLoudnessPreset.Items.Count - 1;
@@ -347,6 +376,8 @@ public sealed partial class PInspector
         {
             PDynamicPresetUpdate();
         }
+
+        PInspectorActiveRaise();
     }
 
     private void PNormalizePresetBuild(bool pLoudness)
@@ -462,6 +493,12 @@ public sealed partial class PInspector
         }
 
         pLoudnessPresetSuppress = false;
+    }
+
+    private void PDynamicValueUpdate()
+    {
+        PDynamicDeviationCheck();
+        PInspectorActiveRaise();
     }
 
     private void PDynamicCustomSet(string pBase)
