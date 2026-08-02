@@ -33,7 +33,11 @@ public sealed partial class PInspector
             PInspectorDecimalRead(pInspectorNormalizeTarget, -16),
             PInspectorDecimalRead(pInspectorNormalizePeak, -1.5),
             PInspectorDecimalRead(pInspectorNormalizeRange, 11),
-            pLoudnessTwoPass.IsChecked == true),
+            pLoudnessTwoPass.IsChecked == true,
+            PInspectorDecimalRead(pInspectorNormalizeFrame, 300),
+            PInspectorDecimalRead(pInspectorNormalizeGauss, 21),
+            PInspectorDecimalRead(pInspectorNormalizeMaxGain, 10),
+            PInspectorDecimalRead(pInspectorNormalizeCompress, 6)),
         LWorkAudioKind.LWorkAudioKindNoiseReduction => LWorkAudioStep.LWorkNoiseCreate(
             pNoiseApplyBox.IsChecked == true,
             Math.Clamp(PInspectorDecimalRead(pNoiseReductionValue, 12), PNoiseReductionLeast, PNoiseReductionMost),
@@ -55,6 +59,7 @@ public sealed partial class PInspector
             PFilterStagesRead(pInspectorLowPass),
             PFilterPolesRead(pInspectorLowPass),
             PFilterResonanceRead(pInspectorLowPass)),
+        LWorkAudioKind.LWorkAudioKindEqualizer => PEqualizerStepRead(),
         _ => LWorkAudioStep.LWorkVolumeCreate(
             pVolumeApplyBox.IsChecked == true,
             Math.Clamp(PInspectorDecimalRead(pInspectorVolumeValue, 0), PVolumeLeastDb, PVolumeMostDb))
@@ -64,19 +69,22 @@ public sealed partial class PInspector
     {
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkAudioStepKind == LWorkAudioKind.LWorkAudioKindHighPass)
-                ?? LWorkAudioStep.LWorkHighCreate(false, 100, 1, 2, 0.707));
+                ?? LWorkAudioStep.LWorkHighCreate(false, 80, 2, 2, 0.707));
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkAudioStepKind == LWorkAudioKind.LWorkAudioKindLowPass)
-                ?? LWorkAudioStep.LWorkLowCreate(false, 12000, 1, 2, 0.707));
+                ?? LWorkAudioStep.LWorkLowCreate(false, 16000, 2, 2, 0.707));
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkAudioStepKind == LWorkAudioKind.LWorkAudioKindNoiseReduction)
                 ?? LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LWorkAudioNoiseType.LWorkAudioNoiseWhite, 6, 0.5, -38));
+        PInspectorStepApply(
+            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkAudioStepKind == LWorkAudioKind.LWorkAudioKindEqualizer)
+                ?? LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkEqualizerDefaultCreate()));
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkAudioStepKind == LWorkAudioKind.LWorkAudioKindVolume)
                 ?? LWorkAudioStep.LWorkVolumeCreate(false, 0));
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkAudioStepKind == LWorkAudioKind.LWorkAudioKindNormalize)
-                ?? LWorkAudioStep.LWorkNormalizeCreate(false, LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -16, -1.5, 11, true));
+                ?? LWorkAudioStep.LWorkNormalizeCreate(false, LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness, -21, -2, 6, true));
         PInspectorActiveRaise();
     }
 
@@ -92,6 +100,7 @@ public sealed partial class PInspector
         || pInspectorNoisePersistent.IsChecked == true
         || pInspectorHighPass.PInspectorPassPersistent.IsChecked == true
         || pInspectorLowPass.PInspectorPassPersistent.IsChecked == true
+        || pInspectorEqualizerPersistent.IsChecked == true
         || pSkipPersistentBox.IsChecked == true;
 
     public void PInspectorPersistentApply(LWorkAudio pInspectorPlan)
@@ -114,6 +123,9 @@ public sealed partial class PInspector
                     break;
                 case LWorkAudioKind.LWorkAudioKindNormalize:
                     pInspectorNormalizePersistent.IsChecked = true;
+                    break;
+                case LWorkAudioKind.LWorkAudioKindEqualizer:
+                    pInspectorEqualizerPersistent.IsChecked = true;
                     break;
             }
         }
@@ -149,51 +161,50 @@ public sealed partial class PInspector
             pSteps.Add(PInspectorStepRead(LWorkAudioKind.LWorkAudioKindNormalize));
         }
 
+        if (pInspectorEqualizerPersistent.IsChecked == true)
+        {
+            pSteps.Add(PInspectorStepRead(LWorkAudioKind.LWorkAudioKindEqualizer));
+        }
+
         return new LWorkAudio(pSteps) { LWorkAudioSkip = pSkipPersistentBox.IsChecked == true };
     }
 
     private void PInspectorStepApply(LWorkAudioStep pStep)
     {
-        switch (pStep.LWorkAudioStepKind)
+        switch (pStep)
         {
-            case LWorkAudioKind.LWorkAudioKindNormalize:
-                pLoudnessApplyBox.IsChecked = pStep.LWorkAudioStepActive;
-                pInspectorNormalizeMode.SelectedIndex = pStep.LWorkAudioStepMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic ? 1 : 0;
-                string pNormalizePreset = PLoudnessPresetResolve(
-                    pStep.LWorkAudioStepTarget, pStep.LWorkAudioStepPeak, pStep.LWorkAudioStepRange);
-                pInspectorNormalizePreset.SelectedItem = pInspectorNormalizePreset.Items
-                    .Cast<object>()
-                    .FirstOrDefault(pItem => LLocalizationChoice.LLocalizationChoiceRead(pItem) == pNormalizePreset);
-                pInspectorNormalizeTarget.Text = pStep.LWorkAudioStepTarget.ToString("0.###", CultureInfo.InvariantCulture);
-                pInspectorNormalizePeak.Text = pStep.LWorkAudioStepPeak.ToString("0.###", CultureInfo.InvariantCulture);
-                pInspectorNormalizeRange.Text = pStep.LWorkAudioStepRange.ToString("0.###", CultureInfo.InvariantCulture);
-                pLoudnessTwoPass.IsChecked = pStep.LWorkAudioStepTwoPass;
+            case LWorkNormalizeStep pNormalize:
+                pLoudnessApplyBox.IsChecked = pNormalize.LWorkAudioStepActive;
+                pInspectorNormalizePresetSuppress = true;
+                pInspectorNormalizeMode.SelectedIndex = pNormalize.LWorkNormalizeMode == LWorkAudioNormalizeMode.LWorkAudioNormalizeDynamic ? 1 : 0;
+                pInspectorNormalizeTarget.Text = pNormalize.LWorkNormalizeTarget.ToString("0.###", CultureInfo.InvariantCulture);
+                pInspectorNormalizePeak.Text = pNormalize.LWorkNormalizePeak.ToString("0.###", CultureInfo.InvariantCulture);
+                pInspectorNormalizeRange.Text = pNormalize.LWorkNormalizeRange.ToString("0.###", CultureInfo.InvariantCulture);
+                pLoudnessTwoPass.IsChecked = pNormalize.LWorkNormalizeTwoPass;
+                pInspectorNormalizeFrame.Text = pNormalize.LWorkNormalizeFrame.ToString("0.###", CultureInfo.InvariantCulture);
+                pInspectorNormalizeGauss.Text = pNormalize.LWorkNormalizeGauss.ToString("0.###", CultureInfo.InvariantCulture);
+                pInspectorNormalizeMaxGain.Text = pNormalize.LWorkNormalizeMaxGain.ToString("0.###", CultureInfo.InvariantCulture);
+                pInspectorNormalizeCompress.Text = pNormalize.LWorkNormalizeCompress.ToString("0.###", CultureInfo.InvariantCulture);
+                pInspectorNormalizePresetSuppress = false;
                 PLoudnessApplyUpdate();
                 PLoudnessModeUpdate();
                 break;
-            case LWorkAudioKind.LWorkAudioKindNoiseReduction:
-                pNoiseApplyBox.IsChecked = pStep.LWorkAudioStepActive;
-                pInspectorNoisePreset.SelectedIndex = pInspectorNoisePreset.Items.Count - 1;
-                PNoiseValueSet(pStep);
-                pInspectorNoiseTrack.IsChecked = pStep.LWorkAudioStepTrackNoise;
-                pInspectorNoiseType.SelectedIndex = pStep.LWorkAudioStepNoiseType switch
-                {
-                    LWorkAudioNoiseType.LWorkAudioNoiseVinyl => 1,
-                    LWorkAudioNoiseType.LWorkAudioNoiseShellac => 2,
-                    _ => 0
-                };
+            case LWorkNoiseStep pNoise:
+                pNoiseApplyBox.IsChecked = pNoise.LWorkAudioStepActive;
+                PNoiseValueSet(pNoise);
+                pInspectorNoiseTrack.IsChecked = pNoise.LWorkNoiseTrack;
                 PNoiseApplyUpdate();
                 break;
-            case LWorkAudioKind.LWorkAudioKindHighPass:
-                PFilterActiveSet(pInspectorHighPass, pStep);
+            case LWorkPassStep pPass:
+                PFilterActiveSet(pPass.LWorkPassHigh ? pInspectorHighPass : pInspectorLowPass, pPass);
                 break;
-            case LWorkAudioKind.LWorkAudioKindLowPass:
-                PFilterActiveSet(pInspectorLowPass, pStep);
+            case LWorkEqualizerStep pEqualizer:
+                PEqualizerActiveSet(pEqualizer);
                 break;
-            default:
-                pVolumeApplyBox.IsChecked = pStep.LWorkAudioStepActive;
-                pInspectorVolumeValue.Text = pStep.LWorkAudioStepGain.ToString("0.#", CultureInfo.InvariantCulture);
-                pInspectorVolumeSlider.Value = Math.Clamp(pStep.LWorkAudioStepGain, PVolumeLeastDb, PVolumeMostDb);
+            case LWorkVolumeStep pVolume:
+                pVolumeApplyBox.IsChecked = pVolume.LWorkAudioStepActive;
+                pInspectorVolumeValue.Text = pVolume.LWorkVolumeGain.ToString("0.#", CultureInfo.InvariantCulture);
+                pInspectorVolumeSlider.Value = Math.Clamp(pVolume.LWorkVolumeGain, PVolumeLeastDb, PVolumeMostDb);
                 PVolumeWarnUpdate();
                 PVolumeApplyUpdate();
                 break;
@@ -218,6 +229,7 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center
         };
         PSlider.PSliderApply(pInspectorVolumeSlider);
+        PSlider.PSliderResetApply(pInspectorVolumeSlider, static () => 0);
 
         pInspectorVolumeValue = PInspectorDecimalBuild();
         pInspectorVolumeValue.Text = "0";
@@ -338,4 +350,46 @@ public sealed partial class PInspector
         double.TryParse(pDecimalBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double pValue)
             ? pValue
             : pFallback;
+
+    private static Slider PInspectorSliderBind(
+        TextBox pValueBox,
+        double pMin,
+        double pMax,
+        double pFallback,
+        string pFormat,
+        Func<double>? pResetRead,
+        Action pChanged)
+    {
+        var pSlider = new Slider
+        {
+            Minimum = pMin,
+            Maximum = pMax,
+            Value = Math.Clamp(PInspectorDecimalRead(pValueBox, pFallback), pMin, pMax),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pSlider);
+        if (pResetRead is not null)
+        {
+            PSlider.PSliderResetApply(pSlider, pResetRead);
+        }
+
+        bool[] pSuppress = { false };
+        pSlider.ValueChanged += (_, _) =>
+        {
+            if (pSuppress[0]) { return; }
+            pSuppress[0] = true;
+            pValueBox.Text = pSlider.Value.ToString(pFormat, CultureInfo.InvariantCulture);
+            pSuppress[0] = false;
+            pChanged();
+        };
+        pValueBox.TextChanged += (_, _) =>
+        {
+            if (pSuppress[0]) { return; }
+            pSuppress[0] = true;
+            pSlider.Value = Math.Clamp(PInspectorDecimalRead(pValueBox, pFallback), pMin, pMax);
+            pSuppress[0] = false;
+            pChanged();
+        };
+        return pSlider;
+    }
 }

@@ -41,6 +41,10 @@ public sealed class LSidecarAudioStepRecord
     public double LSidecarPeak { get; set; } = -1.5;
     public double LSidecarRange { get; set; } = 11;
     public bool LSidecarTwoPass { get; set; }
+    public double LSidecarFrame { get; set; } = 300;
+    public double LSidecarGauss { get; set; } = 21;
+    public double LSidecarMaxGain { get; set; } = 10;
+    public double LSidecarCompress { get; set; } = 6;
     public double LSidecarReduction { get; set; } = 12;
     public double LSidecarNoiseFloor { get; set; } = -50;
     public bool LSidecarTrackNoise { get; set; }
@@ -52,6 +56,13 @@ public sealed class LSidecarAudioStepRecord
     public double LSidecarGainSmooth { get; set; }
     public double LSidecarAdaptivity { get; set; } = 0.5;
     public double LSidecarResidualFloor { get; set; } = -38;
+    public List<LSidecarEqualizerBandRecord> LSidecarEqualizerBands { get; set; } = new();
+}
+
+public sealed class LSidecarEqualizerBandRecord
+{
+    public double LSidecarBandFrequency { get; set; } = 1000;
+    public double LSidecarBandGain { get; set; }
 }
 
 public sealed class LSidecarAudioRecord

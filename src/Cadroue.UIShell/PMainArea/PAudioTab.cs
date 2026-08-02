@@ -11,6 +11,7 @@ public sealed class PAudioTab : PTabSurface
     private const string PAudioNoiseIcon = "/PAssets/PPanels/PProcessingNoiseReduction.svg";
     private const string PAudioHighIcon = "/PAssets/PPanels/PProcessingHighPass.svg";
     private const string PAudioLowIcon = "/PAssets/PPanels/PProcessingLowPass.svg";
+    private const string PAudioEqualizerIcon = "/PAssets/PPanels/PProcessingEqualizer.svg";
 
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
@@ -26,6 +27,7 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingStepAdd("High Pass", PAudioHighIcon, "Processing.Step.HighPass");
         pProcessing.PProcessingStepAdd("Low Pass", PAudioLowIcon, "Processing.Step.LowPass");
         pProcessing.PProcessingStepAdd("Noise Reduction", PAudioNoiseIcon, "Processing.Step.NoiseReduction");
+        pProcessing.PProcessingStepAdd("Equalizer", PAudioEqualizerIcon, "Processing.Step.Equalizer");
         pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIcon, "Processing.Step.Volume");
         pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIcon, "Processing.Step.Normalize");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
@@ -185,6 +187,7 @@ public sealed class PAudioTab : PTabSurface
         "Noise Reduction" => LWorkAudioKind.LWorkAudioKindNoiseReduction,
         "High Pass" => LWorkAudioKind.LWorkAudioKindHighPass,
         "Low Pass" => LWorkAudioKind.LWorkAudioKindLowPass,
+        "Equalizer" => LWorkAudioKind.LWorkAudioKindEqualizer,
         _ => null
     };
 

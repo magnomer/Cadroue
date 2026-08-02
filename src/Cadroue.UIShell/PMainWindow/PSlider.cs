@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Markup;
+using System.Windows.Media;
 
 namespace Cadroue.UIShell.PMainWindow;
 
@@ -16,6 +18,35 @@ internal static class PSlider
         pSlider.FocusVisualStyle = null;
         pSlider.VerticalAlignment = VerticalAlignment.Center;
         pSlider.Template = PSliderTemplateBuild();
+    }
+
+    internal static void PSliderResetApply(Slider pSlider, Func<double> pDefaultRead)
+    {
+        pSlider.PreviewMouseLeftButtonDown += (_, pEvent) =>
+        {
+            if (pEvent.ClickCount < 2
+                || pEvent.OriginalSource is not DependencyObject pSource
+                || !PSliderThumbHit(pSource))
+            {
+                return;
+            }
+
+            pSlider.Value = pDefaultRead();
+            pEvent.Handled = true;
+        };
+    }
+
+    private static bool PSliderThumbHit(DependencyObject pSource)
+    {
+        for (DependencyObject? pNode = pSource; pNode is not null; pNode = VisualTreeHelper.GetParent(pNode))
+        {
+            if (pNode is Thumb)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static ControlTemplate PSliderTemplateBuild()

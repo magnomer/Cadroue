@@ -69,6 +69,7 @@ $RECYCLE.BIN/
 # Project-internal docs (excluded from tracking)
 docs-internal/
 docs-work/
+snapshots/
 .agents/
 .claude/
 .codegraph/

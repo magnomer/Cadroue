@@ -9,6 +9,21 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
+    private const double PLoudnessTargetLeast = -36;
+    private const double PLoudnessTargetMost = -5;
+    private const double PLoudnessPeakLeast = -9;
+    private const double PLoudnessPeakMost = 0;
+    private const double PLoudnessRangeLeast = 1;
+    private const double PLoudnessRangeMost = 20;
+    private const double PDynamicFrameLeast = 50;
+    private const double PDynamicFrameMost = 1000;
+    private const double PDynamicGaussLeast = 3;
+    private const double PDynamicGaussMost = 101;
+    private const double PDynamicMaxGainLeast = 1;
+    private const double PDynamicMaxGainMost = 40;
+    private const double PDynamicCompressLeast = 0;
+    private const double PDynamicCompressMost = 30;
+
     private CheckBox pLoudnessApplyBox = null!;
     private CheckBox pInspectorNormalizePersistent = null!;
     private ComboBox pInspectorNormalizePreset = null!;
@@ -16,10 +31,17 @@ public sealed partial class PInspector
     private TextBox pInspectorNormalizeTarget = null!;
     private TextBox pInspectorNormalizePeak = null!;
     private TextBox pInspectorNormalizeRange = null!;
+    private TextBox pInspectorNormalizeFrame = null!;
+    private TextBox pInspectorNormalizeGauss = null!;
+    private TextBox pInspectorNormalizeMaxGain = null!;
+    private TextBox pInspectorNormalizeCompress = null!;
     private CheckBox pLoudnessTwoPass = null!;
     private StackPanel pInspectorNormalizeStack = null!;
     private StackPanel pLoudnessStack = null!;
+    private StackPanel pDynamicStack = null!;
     private StackPanel pInspectorNormalizeBody = null!;
+    private string? pInspectorNormalizeBaseToken;
+    private bool pInspectorNormalizePresetSuppress;
 
     private LWorkAudioNormalizeMode PLoudnessModeRead() =>
         pInspectorNormalizeMode.SelectedIndex == 1
@@ -45,14 +67,8 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pInspectorNormalizePreset);
-        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Streaming", "Inspector.Normalize.Streaming"));
-        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Podcast", "Inspector.Normalize.Podcast"));
-        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Medium", "Inspector.Normalize.Medium"));
-        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Broadcast", "Inspector.Normalize.Broadcast"));
-        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("TV", "Inspector.Normalize.TV"));
-        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
-        pInspectorNormalizePreset.SelectedIndex = 2;
-        pInspectorNormalizePreset.SelectionChanged += (_, _) => PLoudnessPresetApply();
+        PNormalizePresetListBuild(true);
+        pInspectorNormalizePreset.SelectionChanged += (_, _) => PNormalizePresetApply();
 
         pInspectorNormalizeMode = new ComboBox
         {
@@ -69,11 +85,41 @@ public sealed partial class PInspector
         pInspectorNormalizeMode.SelectionChanged += (_, _) => PLoudnessModeUpdate();
 
         pInspectorNormalizeTarget = PInspectorDecimalBuild();
-        pInspectorNormalizeTarget.Text = "-16";
+        pInspectorNormalizeTarget.Text = "-21";
+        Slider pTargetSlider = PInspectorSliderBind(
+            pInspectorNormalizeTarget, PLoudnessTargetLeast, PLoudnessTargetMost, -21, "0.#",
+            () => PLoudnessPresetCurrent()?.Target ?? -21, PLoudnessDeviationCheck);
         pInspectorNormalizePeak = PInspectorDecimalBuild();
-        pInspectorNormalizePeak.Text = "-1.5";
+        pInspectorNormalizePeak.Text = "-2";
+        Slider pPeakSlider = PInspectorSliderBind(
+            pInspectorNormalizePeak, PLoudnessPeakLeast, PLoudnessPeakMost, -2, "0.#",
+            () => PLoudnessPresetCurrent()?.Peak ?? -2, PLoudnessDeviationCheck);
         pInspectorNormalizeRange = PInspectorDecimalBuild();
-        pInspectorNormalizeRange.Text = "11";
+        pInspectorNormalizeRange.Text = "6";
+        Slider pRangeSlider = PInspectorSliderBind(
+            pInspectorNormalizeRange, PLoudnessRangeLeast, PLoudnessRangeMost, 6, "0.#",
+            () => PLoudnessPresetCurrent()?.Range ?? 6, PLoudnessDeviationCheck);
+
+        pInspectorNormalizeFrame = PInspectorDecimalBuild();
+        pInspectorNormalizeFrame.Text = "300";
+        Slider pFrameSlider = PInspectorSliderBind(
+            pInspectorNormalizeFrame, PDynamicFrameLeast, PDynamicFrameMost, 300, "0",
+            () => PDynamicPresetCurrent()?.Frame ?? 300, PDynamicDeviationCheck);
+        pInspectorNormalizeGauss = PInspectorDecimalBuild();
+        pInspectorNormalizeGauss.Text = "21";
+        Slider pGaussSlider = PInspectorSliderBind(
+            pInspectorNormalizeGauss, PDynamicGaussLeast, PDynamicGaussMost, 21, "0",
+            () => PDynamicPresetCurrent()?.Gauss ?? 21, PDynamicDeviationCheck);
+        pInspectorNormalizeMaxGain = PInspectorDecimalBuild();
+        pInspectorNormalizeMaxGain.Text = "10";
+        Slider pMaxGainSlider = PInspectorSliderBind(
+            pInspectorNormalizeMaxGain, PDynamicMaxGainLeast, PDynamicMaxGainMost, 10, "0.#",
+            () => PDynamicPresetCurrent()?.MaxGain ?? 10, PDynamicDeviationCheck);
+        pInspectorNormalizeCompress = PInspectorDecimalBuild();
+        pInspectorNormalizeCompress.Text = "6";
+        Slider pCompressSlider = PInspectorSliderBind(
+            pInspectorNormalizeCompress, PDynamicCompressLeast, PDynamicCompressMost, 6, "0.#",
+            () => PDynamicPresetCurrent()?.Compress ?? 6, PDynamicDeviationCheck);
 
         pLoudnessTwoPass = new CheckBox
         {
@@ -89,10 +135,16 @@ public sealed partial class PInspector
         PMainWindow.PCheckbox.PCheckboxApply(pLoudnessTwoPass);
 
         pLoudnessStack = new StackPanel();
-        pLoudnessStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Target"), PLoudnessRowBuild(pInspectorNormalizeTarget, "LUFS")));
-        pLoudnessStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Peak"), PLoudnessRowBuild(pInspectorNormalizePeak, "dBTP")));
-        pLoudnessStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Range"), PLoudnessRowBuild(pInspectorNormalizeRange, "LU")));
+        pLoudnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Target"), pTargetSlider, "LUFS", pInspectorNormalizeTarget));
+        pLoudnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Peak"), pPeakSlider, "dBTP", pInspectorNormalizePeak));
+        pLoudnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Range"), pRangeSlider, "LU", pInspectorNormalizeRange));
         pLoudnessStack.Children.Add(pLoudnessTwoPass);
+
+        pDynamicStack = new StackPanel { Visibility = Visibility.Collapsed };
+        pDynamicStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Dynamic.Frame"), pFrameSlider, "ms", pInspectorNormalizeFrame));
+        pDynamicStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Dynamic.Smoothness"), pGaussSlider, "g", pInspectorNormalizeGauss));
+        pDynamicStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Dynamic.MaxGain"), pMaxGainSlider, "×", pInspectorNormalizeMaxGain));
+        pDynamicStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Dynamic.Compress"), pCompressSlider, "s", pInspectorNormalizeCompress));
 
         var pNotice = new TextBlock
         {
@@ -105,9 +157,10 @@ public sealed partial class PInspector
         };
 
         pInspectorNormalizeStack = new StackPanel();
-        pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pInspectorNormalizePreset));
         pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Mode"), pInspectorNormalizeMode));
+        pInspectorNormalizeStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pInspectorNormalizePreset));
         pInspectorNormalizeStack.Children.Add(pLoudnessStack);
+        pInspectorNormalizeStack.Children.Add(pDynamicStack);
         pInspectorNormalizeStack.Children.Add(pNotice);
 
         pInspectorNormalizeBody = new StackPanel
@@ -125,70 +178,147 @@ public sealed partial class PInspector
         return pInspectorNormalizeBody;
     }
 
-    private static string PLoudnessPresetResolve(double pTarget, double pPeak, double pRange)
+    private static (double Target, double Peak, double Range)? PLoudnessPresetByToken(string pToken) =>
+        pToken switch
+        {
+            "Loud" => (-9d, -1d, 6d),
+            "Streaming" => (-14d, -1d, 9d),
+            "Podcast" => (-16d, -1.5d, 8d),
+            "Dialogue" => (-18d, -1.5d, 7d),
+            "Audiobook" => (-21d, -2d, 6d),
+            "Broadcast" => (-23d, -1d, 15d),
+            "TV" => (-24d, -2d, 20d),
+            "Film" => (-27d, -2d, 18d),
+            _ => null
+        };
+
+    private (double Target, double Peak, double Range)? PLoudnessPresetCurrent() =>
+        pInspectorNormalizeBaseToken is { } pBase ? PLoudnessPresetByToken(pBase) : null;
+
+    private static string PLoudnessPresetKeyRead(string pToken) => pToken switch
     {
-        bool pNear(double pLeft, double pRight) => Math.Abs(pLeft - pRight) < 0.01;
-        if (pNear(pTarget, -14) && pNear(pPeak, -1) && pNear(pRange, 11)) return "Streaming";
-        if (pNear(pTarget, -21) && pNear(pPeak, -2) && pNear(pRange, 11)) return "Medium";
-        if (pNear(pTarget, -23) && pNear(pPeak, -1) && pNear(pRange, 11)) return "Broadcast";
-        if (pNear(pTarget, -24) && pNear(pPeak, -2) && pNear(pRange, 11)) return "TV";
-        return "Custom";
+        "Loud" => "Inspector.Normalize.Loud",
+        "Streaming" => "Inspector.Normalize.Streaming",
+        "Podcast" => "Inspector.Normalize.Podcast",
+        "Dialogue" => "Inspector.Normalize.Dialogue",
+        "Audiobook" => "Inspector.Normalize.Audiobook",
+        "Broadcast" => "Inspector.Normalize.Broadcast",
+        "TV" => "Inspector.Normalize.TV",
+        "Film" => "Inspector.Normalize.Film",
+        _ => "Inspector.Common.Custom"
+    };
+
+    private bool PLoudnessValuesMatch((double Target, double Peak, double Range) pPreset) =>
+        Math.Abs(PInspectorDecimalRead(pInspectorNormalizeTarget, -16) - pPreset.Target) < 0.05
+        && Math.Abs(PInspectorDecimalRead(pInspectorNormalizePeak, -1.5) - pPreset.Peak) < 0.05
+        && Math.Abs(PInspectorDecimalRead(pInspectorNormalizeRange, 11) - pPreset.Range) < 0.05;
+
+    private void PLoudnessValuesApply((double Target, double Peak, double Range) pPreset)
+    {
+        pInspectorNormalizePresetSuppress = true;
+        pInspectorNormalizeTarget.Text = pPreset.Target.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizePeak.Text = pPreset.Peak.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizeRange.Text = pPreset.Range.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizePresetSuppress = false;
     }
 
     private void PLoudnessPresetApply()
     {
-        string pPreset = LLocalizationChoice.LLocalizationChoiceRead(pInspectorNormalizePreset.SelectedItem);
-        if (string.IsNullOrEmpty(pPreset) || pPreset == "Custom")
+        if (pInspectorNormalizePresetSuppress)
         {
-            PLoudnessSet(false);
             return;
         }
 
-        (double pTarget, double pPeak, double pRange) = pPreset switch
+        string pName = LLocalizationChoice.LLocalizationChoiceRead(pInspectorNormalizePreset.SelectedItem);
+        if (string.IsNullOrEmpty(pName) || pName == "Custom" || PLoudnessPresetByToken(pName) is not { } pPreset)
         {
-            "Streaming" => (-14d, -1d, 11d),
-            "Medium" => (-21d, -2d, 11d),
-            "Broadcast" => (-23d, -1d, 11d),
-            "TV" => (-24d, -2d, 11d),
-            _ => (-16d, -1.5d, 11d)
-        };
+            pInspectorNormalizeBaseToken = null;
+            return;
+        }
 
-        pInspectorNormalizeTarget.Text = pTarget.ToString("0.###", CultureInfo.InvariantCulture);
-        pInspectorNormalizePeak.Text = pPeak.ToString("0.###", CultureInfo.InvariantCulture);
-        pInspectorNormalizeRange.Text = pRange.ToString("0.###", CultureInfo.InvariantCulture);
-        PLoudnessSet(true);
+        pInspectorNormalizeBaseToken = pName;
+        PLoudnessValuesApply(pPreset);
+        PLoudnessCustomLabelReset();
+        PInspectorActiveRaise();
     }
 
-    private void PLoudnessSet(bool pLocked)
+    private void PLoudnessDeviationCheck()
     {
-        double pOpacity = pLocked ? 0.6 : 1;
-        pInspectorNormalizeTarget.IsReadOnly = pLocked;
-        pInspectorNormalizePeak.IsReadOnly = pLocked;
-        pInspectorNormalizeRange.IsReadOnly = pLocked;
-        pInspectorNormalizeTarget.Opacity = pOpacity;
-        pInspectorNormalizePeak.Opacity = pOpacity;
-        pInspectorNormalizeRange.Opacity = pOpacity;
+        if (pInspectorNormalizePresetSuppress || pInspectorNormalizeBaseToken is not { } pBase
+            || PLoudnessPresetByToken(pBase) is not { } pPreset)
+        {
+            return;
+        }
+
+        pInspectorNormalizePresetSuppress = true;
+        if (PLoudnessValuesMatch(pPreset))
+        {
+            PLoudnessCustomLabelReset();
+            PLoudnessPresetItemSelect(pBase);
+        }
+        else
+        {
+            PLoudnessCustomLabelSet(pBase);
+        }
+
+        pInspectorNormalizePresetSuppress = false;
     }
 
-    private UIElement PLoudnessRowBuild(TextBox pValueBox, string pUnitLabel)
+    private void PLoudnessCustomLabelSet(string pBase)
     {
-        pValueBox.VerticalAlignment = VerticalAlignment.Center;
-        var pUnitRow = new StackPanel
+        int pLast = pInspectorNormalizePreset.Items.Count - 1;
+        string pText = LLocalization.LLocalizationFormat(
+            "Inspector.Common.PresetCustom",
+            LLocalization.LLocalizationTextRead(PLoudnessPresetKeyRead(pBase)));
+        pInspectorNormalizePreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
+        pInspectorNormalizePreset.SelectedIndex = pLast;
+    }
+
+    private void PLoudnessCustomLabelReset()
+    {
+        int pLast = pInspectorNormalizePreset.Items.Count - 1;
+        pInspectorNormalizePreset.Items[pLast] = new LLocalizationChoice("Custom", "Inspector.Common.Custom");
+    }
+
+    private void PLoudnessPresetItemSelect(string pToken)
+    {
+        for (int pIndex = 0; pIndex < pInspectorNormalizePreset.Items.Count; pIndex++)
         {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        pUnitRow.Children.Add(pValueBox);
-        pUnitRow.Children.Add(new TextBlock
+            if (LLocalizationChoice.LLocalizationChoiceRead(pInspectorNormalizePreset.Items[pIndex]) == pToken)
+            {
+                pInspectorNormalizePreset.SelectedIndex = pIndex;
+                return;
+            }
+        }
+    }
+
+    private void PLoudnessRestoreReflect()
+    {
+        pInspectorNormalizePresetSuppress = true;
+        string? pMatch = null;
+        foreach (string pToken in new[] { "Loud", "Streaming", "Podcast", "Dialogue", "Audiobook", "Broadcast", "TV", "Film" })
         {
-            Text = pUnitLabel,
-            FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            Foreground = pInspectorMutedBrush,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(8, 0, 0, 0)
-        });
-        return pUnitRow;
+            if (PLoudnessPresetByToken(pToken) is { } pPreset && PLoudnessValuesMatch(pPreset))
+            {
+                pMatch = pToken;
+                break;
+            }
+        }
+
+        if (pMatch is not null)
+        {
+            pInspectorNormalizeBaseToken = pMatch;
+            PLoudnessCustomLabelReset();
+            PLoudnessPresetItemSelect(pMatch);
+        }
+        else
+        {
+            pInspectorNormalizeBaseToken = null;
+            PLoudnessCustomLabelReset();
+            pInspectorNormalizePreset.SelectedIndex = pInspectorNormalizePreset.Items.Count - 1;
+        }
+
+        pInspectorNormalizePresetSuppress = false;
     }
 
     private void PLoudnessApplyUpdate()
@@ -202,7 +332,174 @@ public sealed partial class PInspector
     private void PLoudnessModeUpdate()
     {
         bool pLoudness = PLoudnessModeRead() == LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness;
-        pLoudnessStack.IsEnabled = pLoudness;
-        pLoudnessStack.Opacity = pLoudness ? 1 : 0.4;
+        pLoudnessStack.Visibility = pLoudness ? Visibility.Visible : Visibility.Collapsed;
+        pDynamicStack.Visibility = pLoudness ? Visibility.Collapsed : Visibility.Visible;
+
+        pInspectorNormalizePresetSuppress = true;
+        PNormalizePresetListBuild(pLoudness);
+        pInspectorNormalizePresetSuppress = false;
+
+        if (pLoudness)
+        {
+            PLoudnessRestoreReflect();
+        }
+        else
+        {
+            PDynamicRestoreReflect();
+        }
+    }
+
+    private void PNormalizePresetListBuild(bool pLoudness)
+    {
+        pInspectorNormalizePreset.Items.Clear();
+        if (pLoudness)
+        {
+            foreach (string pToken in new[] { "Loud", "Streaming", "Podcast", "Dialogue", "Audiobook", "Broadcast", "TV", "Film" })
+            {
+                pInspectorNormalizePreset.Items.Add(new LLocalizationChoice(pToken, PLoudnessPresetKeyRead(pToken)));
+            }
+        }
+        else
+        {
+            foreach (string pToken in new[] { "Gentle", "Leveler", "Voice", "Aggressive", "Music" })
+            {
+                pInspectorNormalizePreset.Items.Add(new LLocalizationChoice(pToken, PDynamicPresetKeyRead(pToken)));
+            }
+        }
+
+        pInspectorNormalizePreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
+    }
+
+    private void PNormalizePresetApply()
+    {
+        if (PLoudnessModeRead() == LWorkAudioNormalizeMode.LWorkAudioNormalizeLoudness)
+        {
+            PLoudnessPresetApply();
+        }
+        else
+        {
+            PDynamicPresetApply();
+        }
+    }
+
+    private static (double Frame, double Gauss, double MaxGain, double Compress)? PDynamicPresetByToken(string pToken) =>
+        pToken switch
+        {
+            "Gentle" => (500d, 31d, 7d, 0d),
+            "Leveler" => (300d, 21d, 10d, 6d),
+            "Voice" => (200d, 15d, 12d, 8d),
+            "Aggressive" => (150d, 11d, 15d, 12d),
+            "Music" => (400d, 31d, 8d, 0d),
+            _ => null
+        };
+
+    private (double Frame, double Gauss, double MaxGain, double Compress)? PDynamicPresetCurrent() =>
+        pInspectorNormalizeBaseToken is { } pBase ? PDynamicPresetByToken(pBase) : null;
+
+    private static string PDynamicPresetKeyRead(string pToken) => pToken switch
+    {
+        "Gentle" => "Inspector.Dynamic.Gentle",
+        "Leveler" => "Inspector.Dynamic.Leveler",
+        "Voice" => "Inspector.Dynamic.Voice",
+        "Aggressive" => "Inspector.Dynamic.Aggressive",
+        "Music" => "Inspector.Dynamic.Music",
+        _ => "Inspector.Common.Custom"
+    };
+
+    private bool PDynamicValuesMatch((double Frame, double Gauss, double MaxGain, double Compress) pPreset) =>
+        Math.Abs(PInspectorDecimalRead(pInspectorNormalizeFrame, 300) - pPreset.Frame) < 0.5
+        && Math.Abs(PInspectorDecimalRead(pInspectorNormalizeGauss, 21) - pPreset.Gauss) < 0.5
+        && Math.Abs(PInspectorDecimalRead(pInspectorNormalizeMaxGain, 10) - pPreset.MaxGain) < 0.05
+        && Math.Abs(PInspectorDecimalRead(pInspectorNormalizeCompress, 6) - pPreset.Compress) < 0.05;
+
+    private void PDynamicValuesApply((double Frame, double Gauss, double MaxGain, double Compress) pPreset)
+    {
+        pInspectorNormalizePresetSuppress = true;
+        pInspectorNormalizeFrame.Text = pPreset.Frame.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizeGauss.Text = pPreset.Gauss.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizeMaxGain.Text = pPreset.MaxGain.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizeCompress.Text = pPreset.Compress.ToString("0.###", CultureInfo.InvariantCulture);
+        pInspectorNormalizePresetSuppress = false;
+    }
+
+    private void PDynamicPresetApply()
+    {
+        if (pInspectorNormalizePresetSuppress)
+        {
+            return;
+        }
+
+        string pName = LLocalizationChoice.LLocalizationChoiceRead(pInspectorNormalizePreset.SelectedItem);
+        if (string.IsNullOrEmpty(pName) || pName == "Custom" || PDynamicPresetByToken(pName) is not { } pPreset)
+        {
+            pInspectorNormalizeBaseToken = null;
+            return;
+        }
+
+        pInspectorNormalizeBaseToken = pName;
+        PDynamicValuesApply(pPreset);
+        PLoudnessCustomLabelReset();
+        PInspectorActiveRaise();
+    }
+
+    private void PDynamicDeviationCheck()
+    {
+        if (pInspectorNormalizePresetSuppress || pInspectorNormalizeBaseToken is not { } pBase
+            || PDynamicPresetByToken(pBase) is not { } pPreset)
+        {
+            return;
+        }
+
+        pInspectorNormalizePresetSuppress = true;
+        if (PDynamicValuesMatch(pPreset))
+        {
+            PLoudnessCustomLabelReset();
+            PLoudnessPresetItemSelect(pBase);
+        }
+        else
+        {
+            PDynamicCustomLabelSet(pBase);
+        }
+
+        pInspectorNormalizePresetSuppress = false;
+    }
+
+    private void PDynamicCustomLabelSet(string pBase)
+    {
+        int pLast = pInspectorNormalizePreset.Items.Count - 1;
+        string pText = LLocalization.LLocalizationFormat(
+            "Inspector.Common.PresetCustom",
+            LLocalization.LLocalizationTextRead(PDynamicPresetKeyRead(pBase)));
+        pInspectorNormalizePreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
+        pInspectorNormalizePreset.SelectedIndex = pLast;
+    }
+
+    private void PDynamicRestoreReflect()
+    {
+        pInspectorNormalizePresetSuppress = true;
+        string? pMatch = null;
+        foreach (string pToken in new[] { "Gentle", "Leveler", "Voice", "Aggressive", "Music" })
+        {
+            if (PDynamicPresetByToken(pToken) is { } pPreset && PDynamicValuesMatch(pPreset))
+            {
+                pMatch = pToken;
+                break;
+            }
+        }
+
+        if (pMatch is not null)
+        {
+            pInspectorNormalizeBaseToken = pMatch;
+            PLoudnessCustomLabelReset();
+            PLoudnessPresetItemSelect(pMatch);
+        }
+        else
+        {
+            pInspectorNormalizeBaseToken = null;
+            PLoudnessCustomLabelReset();
+            pInspectorNormalizePreset.SelectedIndex = pInspectorNormalizePreset.Items.Count - 1;
+        }
+
+        pInspectorNormalizePresetSuppress = false;
     }
 }
