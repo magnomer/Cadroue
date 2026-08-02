@@ -71,7 +71,7 @@ public static class LCourier
 
         if (lCourierTarget == lCourierSourceTab)
         {
-            LTraceLog.LTraceErrorRecord("Relay target refused: a tab cannot relay into itself");
+            LTraceLog.LTraceWarningRecord("Relay target refused: a tab cannot relay into itself");
             return;
         }
 
@@ -234,14 +234,14 @@ public static class LCourier
 
         if (string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath) || !File.Exists(lWorkItem.LWorkOutputPath))
         {
-            LTraceLog.LTraceErrorRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the output file is missing");
+            LTraceLog.LTraceWarningRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the output file is missing");
             return;
         }
 
         if (LCourierTabFind(lWorkItem.LWorkRelayTarget) is not { } pCourierTarget
             || pCourierTarget.PTabWorkspace.PWorkspaceSurface.PTabList is not { } pCourierList)
         {
-            LTraceLog.LTraceInfoRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab is gone");
+            LTraceLog.LTraceWarningRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab is gone");
             return;
         }
 

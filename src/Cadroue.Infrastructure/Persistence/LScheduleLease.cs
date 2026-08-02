@@ -7,7 +7,7 @@ public sealed partial class LSchedule
     public const int LScheduleLeaseSeconds = 10;
     public const int LScheduleAttemptLimit = 3;
 
-    public static Action<string>? LScheduleRecoverReport { get; set; }
+    internal static string LScheduleIdShorten(Guid lWorkId) => lWorkId.ToString("N")[..8];
 
     public LWorkItem? LScheduleClaim(Guid lRunnerId)
     {
@@ -42,13 +42,15 @@ public sealed partial class LSchedule
             lWorkRecord.LWorkAttemptCount++;
             if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning))
             {
-                LScheduleRecoverReport?.Invoke(
-                    $"Work '{lWorkRecord.LWorkOutputName}' was claimed but its owner/lease could not be written; it may be reclaimed after the lease expires");
+                LTraceLog.LTraceWarningRecord(
+                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] was claimed but its owner/lease could not be written; it may be reclaimed after the lease expires");
             }
 
             LWorkItem lWorkClaimed = lWorkRecord.LWorkItemCreate();
             lWorkClaimed.LWorkStateCurrent = LWorkState.LWorkStateRunning;
             lScheduleLiveItems[lWorkRecord.LWorkId] = lWorkClaimed;
+            LTraceLog.LTraceInfoRecord(
+                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] claimed");
             return lWorkClaimed;
         }
 
@@ -151,8 +153,8 @@ public sealed partial class LSchedule
                         $"Stopped unexpectedly while {lSchedulePhase} on attempt {lWorkRecord.LWorkRecoverCount}. Not retried again."))
                 {
                     lScheduleReclaimedCount++;
-                    LScheduleRecoverReport?.Invoke(
-                        $"Work '{lWorkRecord.LWorkOutputName}' failed: stopped unexpectedly while {lSchedulePhase} " +
+                    LTraceLog.LTraceWarningRecord(
+                        $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] failed: stopped unexpectedly while {lSchedulePhase} " +
                         $"after {lWorkRecord.LWorkRecoverCount} recovery attempt(s)");
                 }
 
@@ -165,8 +167,8 @@ public sealed partial class LSchedule
                     $"Recovered after an unexpected stop while {lSchedulePhase} (attempt {lWorkRecord.LWorkRecoverCount})."))
             {
                 lScheduleReclaimedCount++;
-                LScheduleRecoverReport?.Invoke(
-                    $"Work '{lWorkRecord.LWorkOutputName}' returned to the queue: stopped unexpectedly while {lSchedulePhase} " +
+                LTraceLog.LTraceWarningRecord(
+                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] returned to the queue: stopped unexpectedly while {lSchedulePhase} " +
                     $"(attempt {lWorkRecord.LWorkRecoverCount} of {LScheduleAttemptLimit})");
             }
         }
@@ -214,8 +216,8 @@ public sealed partial class LSchedule
         lWorkRecord.LWorkMessage = lScheduleMessage;
         if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderFailed))
         {
-            LScheduleRecoverReport?.Invoke(
-                $"Work '{lWorkRecord.LWorkOutputName}' was filed as Failed but its details could not be written");
+            LTraceLog.LTraceWarningRecord(
+                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] was filed as Failed but its details could not be written");
         }
 
         return true;
@@ -244,8 +246,8 @@ public sealed partial class LSchedule
         lWorkRecord.LWorkMessage = lScheduleMessage ?? string.Empty;
         if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
         {
-            LScheduleRecoverReport?.Invoke(
-                $"Work '{lWorkRecord.LWorkOutputName}' was returned to the queue but its details could not be written");
+            LTraceLog.LTraceWarningRecord(
+                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] was returned to the queue but its details could not be written");
         }
 
         return true;

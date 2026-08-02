@@ -88,7 +88,6 @@ public partial class PProgram : System.Windows.Application
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;
-        Cadroue.Infrastructure.LSchedule.LScheduleRecoverReport = LTraceLog.LTraceInfoRecord;
         LTraceLog.LTraceInfoRecord($"Application started: version {PProgramVersionRead()}, process {Environment.ProcessId}");
         LTraceLog.LTraceInfoRecord(LFlyleaf.LFlyleafActive
             ? "Local Flyleaf preview engine active"

@@ -8,6 +8,7 @@ namespace Cadroue.Infrastructure;
 public enum LTraceKind
 {
     LTraceInfo,
+    LTraceWarning,
     LTraceError,
     LTraceDraw,
     LTraceView,
@@ -54,7 +55,8 @@ public static class LTrace
     }
 
     public static bool LTraceCheck(LTraceKind lTraceKind) =>
-        lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceError || Volatile.Read(ref lTraceVerbose);
+        lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceWarning or LTraceKind.LTraceError
+            || Volatile.Read(ref lTraceVerbose);
 
     public static void LTraceRecord(
         LTraceKind lTraceKind,

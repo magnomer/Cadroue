@@ -89,6 +89,7 @@ internal sealed class PLogRow : INotifyPropertyChanged
 
     internal static (Brush Fill, Brush Ink) PLogBadgeRead(LTraceKind pLogKind) => pLogKind switch
     {
+        LTraceKind.LTraceWarning => (PLogBrushCreate(0xFD, 0xF3, 0xDA), PLogBrushCreate(0x8A, 0x60, 0x0A)),
         LTraceKind.LTraceError => (PLogBrushCreate(0xFB, 0xE3, 0xE3), PLogBrushCreate(0x8C, 0x1D, 0x1D)),
         LTraceKind.LTraceDraw => (PLogBrushCreate(0xE8, 0xF1, 0xE7), PLogBrushCreate(0x2E, 0x5B, 0x2B)),
         LTraceKind.LTraceView => (PLogBrushCreate(0xED, 0xE8, 0xF7), PLogBrushCreate(0x46, 0x30, 0x8A)),

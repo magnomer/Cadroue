@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -90,7 +91,6 @@ public sealed partial class PGroup
 
     private void PGroupCardHandle(int pTargetIndex, StackPanel pFileRows, DragEventArgs pEvent)
     {
-        LTraceLog.LTraceInfoRecord($"DRAGTRACE group card drop target={pTargetIndex}");
         int pInsertAt = PGroupInsertResolve(pFileRows, pEvent);
         List<string> pTargetPaths = pGroupRecords[pTargetIndex].PGroupRecordPaths;
 
@@ -111,6 +111,9 @@ public sealed partial class PGroup
             }
 
             PGroupPathInsert(pTargetPaths, pMove.PGroupMovePath, pInsertAt);
+            LTraceLog.LTraceInfoRecord(pMove.PGroupMoveSourceIndex == pTargetIndex
+                ? $"Group {pTargetIndex + 1}: reordered '{Path.GetFileName(pMove.PGroupMovePath)}'"
+                : $"Group {pTargetIndex + 1}: moved in '{Path.GetFileName(pMove.PGroupMovePath)}' from group {pMove.PGroupMoveSourceIndex + 1}");
         }
         else if (PGroupPathsRead(pEvent) is { Count: > 0 } pAddPaths)
         {
@@ -119,6 +122,8 @@ public sealed partial class PGroup
                 PGroupPathInsert(pTargetPaths, pAddPath, pInsertAt);
                 pInsertAt++;
             }
+
+            LTraceLog.LTraceInfoRecord($"Group {pTargetIndex + 1}: added {pAddPaths.Count} file(s)");
         }
         else
         {
@@ -131,7 +136,6 @@ public sealed partial class PGroup
 
     private void PGroupDropHandle(object pSender, DragEventArgs pEvent)
     {
-        LTraceLog.LTraceInfoRecord("DRAGTRACE group container drop");
         if (pEvent.Handled)
         {
             return;
@@ -169,6 +173,7 @@ public sealed partial class PGroup
         }
 
         pGroupRecords.Add(pRecord);
+        LTraceLog.LTraceInfoRecord($"Group {pGroupRecords.Count}: created with {pNewPaths.Count} file(s)");
         pEvent.Handled = true;
         PGroupRebuild();
     }

@@ -466,14 +466,16 @@ public sealed partial class PList : PPanel
             pRowElement.ReleaseMouseCapture();
         }
 
-        LTraceLog.LTraceInfoRecord($"DRAGTRACE list drag start '{Path.GetFileName(pDragPath)}'");
-        DragDropEffects pDragResult = pRowSender is FrameworkElement pRowVisual
-            ? PGhost.PGhostDragRun(
+        if (pRowSender is FrameworkElement pRowVisual)
+        {
+            PGhost.PGhostDragRun(
                 pRowVisual,
                 pGrabOffset,
-                () => DragDrop.DoDragDrop(pRowVisual, pDragData, DragDropEffects.Copy))
-            : DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
-        LTraceLog.LTraceInfoRecord($"DRAGTRACE list drag end effect={pDragResult}");
+                () => DragDrop.DoDragDrop(pRowVisual, pDragData, DragDropEffects.Copy));
+            return;
+        }
+
+        DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
     }
 
     private void PListEmptyUpdate()

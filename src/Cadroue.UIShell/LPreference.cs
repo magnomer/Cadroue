@@ -13,6 +13,7 @@ public static class LPreference
     public static Action? LPreferenceDepotCallback { get; set; }
 
     private static DispatcherTimer? lPreferenceSaveTimer;
+    private static LPreferenceState? lPreferenceBaseline;
 
     public static void LPreferenceLoad()
     {
@@ -44,6 +45,7 @@ public static class LPreference
             return;
         }
 
+        lPreferenceBaseline ??= LPreferenceStateCurrent.LPreferenceClone();
         LPreferenceStateCurrent = LPreferenceStateCurrent.LPreferenceVolumeChange(lVolume);
         LPreferenceDefer();
     }
@@ -56,6 +58,7 @@ public static class LPreference
             return;
         }
 
+        lPreferenceBaseline ??= LPreferenceStateCurrent.LPreferenceClone();
         LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
         lPreferenceNext.LPreferenceMediaPath = lMediaPath;
         LPreferenceStateCurrent = lPreferenceNext;
@@ -69,6 +72,7 @@ public static class LPreference
             return;
         }
 
+        lPreferenceBaseline ??= LPreferenceStateCurrent.LPreferenceClone();
         LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
         lPreferenceNext.LPreferenceAutoActive = lPreferenceAutoResume;
         LPreferenceStateCurrent = lPreferenceNext;
@@ -89,6 +93,15 @@ public static class LPreference
         {
             lPreferenceTimer.Stop();
             LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
+            if (lPreferenceBaseline is { } lPreferenceWas)
+            {
+                foreach (string lPreferenceChange in LPreferenceStateCurrent.LPreferenceDifferenceRead(lPreferenceWas))
+                {
+                    LTraceLog.LTraceInfoRecord($"Preference saved — {lPreferenceChange}");
+                }
+
+                lPreferenceBaseline = null;
+            }
         };
         return lPreferenceTimer;
     }

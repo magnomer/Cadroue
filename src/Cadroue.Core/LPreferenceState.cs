@@ -139,7 +139,9 @@ public sealed class LPreferenceState
             ("Retry", lPreferenceOther.LPreferenceRetryAllowed, LPreferenceRetryAllowed),
             ("Retry limit", lPreferenceOther.LPreferenceRetryMaximum, LPreferenceRetryMaximum),
             ("Workspace folder", lPreferenceOther.LPreferenceWorkspaceFolder, LPreferenceWorkspaceFolder),
-            ("FFmpeg folder", lPreferenceOther.LPreferenceFfmpegFolder, LPreferenceFfmpegFolder)
+            ("FFmpeg folder", lPreferenceOther.LPreferenceFfmpegFolder, LPreferenceFfmpegFolder),
+            ("Resume queue at launch", lPreferenceOther.LPreferenceAutoActive, LPreferenceAutoActive),
+            ("Last media", lPreferenceOther.LPreferenceMediaPath, LPreferenceMediaPath)
         };
 
         foreach ((string lName, object lWas, object lNow) in lPreferenceFields)

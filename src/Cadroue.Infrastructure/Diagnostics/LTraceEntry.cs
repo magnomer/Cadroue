@@ -16,12 +16,13 @@ public sealed partial record LTraceEntry(
     internal const int LTraceIndentWidth = 30;
 
     private const int LTraceDeltaWidth = 7;
-    private const int LTraceKindWidth = 6;
+    private const int LTraceKindWidth = 7;
 
     public bool LTraceEntryDetailed => !string.IsNullOrWhiteSpace(LTraceEntryDetail);
 
     public static string LTraceKindRead(LTraceKind lTraceKind) => lTraceKind switch
     {
+        LTraceKind.LTraceWarning => "Warning",
         LTraceKind.LTraceError => "Error",
         LTraceKind.LTraceDraw => "Draw",
         LTraceKind.LTraceView => "View",
@@ -32,6 +33,7 @@ public sealed partial record LTraceEntry(
 
     public static LTraceKind LTraceKindFind(string lTraceText) => lTraceText switch
     {
+        "Warning" => LTraceKind.LTraceWarning,
         "Error" => LTraceKind.LTraceError,
         "Draw" => LTraceKind.LTraceDraw,
         "View" => LTraceKind.LTraceView,
@@ -175,7 +177,7 @@ public sealed partial record LTraceEntry(
         }
     }
 
-    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+(Info|Error|Draw|View|Work|Ffmpeg)\s+(.*)$")]
+    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+(Info|Warning|Error|Draw|View|Work|Ffmpeg)\s+(.*)$")]
     private static partial Regex LTraceHeaderRead();
 
     [GeneratedRegex(@"^(\d+(?:\.\d+)?)(ms|s)$")]

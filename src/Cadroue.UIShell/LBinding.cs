@@ -56,8 +56,19 @@ public static class LBinding
 
     public static void LBindingSet(List<LBindingRecord> lBindingRecords)
     {
+        List<LBindingRecord> lBindingPrevious = LBindingCurrent;
         LBindingCurrent = LBindingNormalize(lBindingRecords);
         LBindingStore.LBindingSave(LBindingCurrent);
+
+        int lBindingChanged = LBindingCurrent.Count(lBindingNext =>
+            !string.Equals(
+                LBindingGestureRead(lBindingPrevious, lBindingNext.LBindingRecordToken),
+                lBindingNext.LBindingRecordGesture,
+                StringComparison.Ordinal));
+        if (lBindingChanged > 0)
+        {
+            LTraceLog.LTraceInfoRecord($"Shortcuts: {lBindingChanged} binding(s) changed");
+        }
     }
 
     public static IReadOnlyList<LBindingCommand> LBindingCatalogRead() => lBindingCatalog;

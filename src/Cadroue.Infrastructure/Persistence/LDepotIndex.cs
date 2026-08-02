@@ -149,7 +149,7 @@ public static class LDepotIndex
     }
 
     private static void LDepotIndexReport(string lDepotDetail, Exception lDepotException)
-        => LSchedule.LScheduleRecoverReport?.Invoke(
+        => LTraceLog.LTraceWarningRecord(
             $"Queue index {lDepotDetail} (the index rebuilds from the work folders): {lDepotException.Message}");
 
     public static IReadOnlyList<LDepotIndexRow> LDepotIndexRead()
