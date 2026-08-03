@@ -614,6 +614,7 @@
   "Roster.Field.ExportMode": "{Terms.Export} {Terms.Mode}",
   "Roster.Field.Queued": "{Terms.Queued}",
   "Roster.Field.Message": "{Terms.Message}",
+  "Roster.Field.FailureReason": "실패 원인",
   "Roster.Field.Mode": "{Terms.Mode}",
   "Roster.Field.Encoder": "{Terms.Encoder}",
   "Roster.Field.RateControl": "레이트 제어",

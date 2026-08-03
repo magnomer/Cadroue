@@ -23,6 +23,7 @@ from typing import Iterable
 RENDER_ROOT = Path(__file__).resolve().parent
 MAP_ROOT = RENDER_ROOT.parent
 SOURCE_ROOT = MAP_ROOT / "source"
+SOURCE_TREES = (SOURCE_ROOT / "ui", SOURCE_ROOT / "functionality")
 CODE_ROOT = MAP_ROOT.parents[1] / "src"
 KINDS = {"input", "process", "decision", "storage", "external", "output", "error", "note"}
 EDGE_MARKERS = {"left", "right", "up", "down", "loop"}
@@ -622,7 +623,13 @@ def main() -> int:
     parser.add_argument("--strict", action="store_true", help="Treat unresolved C# ownership as errors.")
     args = parser.parse_args()
     reporter = Reporter(args.strict)
-    all_maps = [parse_map(path, reporter) for path in sorted(SOURCE_ROOT.rglob("*.lmap"))]
+    source_paths = sorted(
+        path
+        for source_tree in SOURCE_TREES
+        if source_tree.is_dir()
+        for path in source_tree.rglob("*.lmap")
+    )
+    all_maps = [parse_map(path, reporter) for path in source_paths]
     ids, fragments = validate(all_maps, reporter)
     for issue in reporter.errors + reporter.warnings:
         print(issue, file=sys.stderr)

@@ -229,7 +229,24 @@ internal sealed class LJob
             return "the output path is empty (the stored job is incomplete or corrupt)";
         }
 
+        IEnumerable<string> pJobInputs = lJobItem.LWorkKind == LWorkKind.LWorkKindMerge
+            ? lJobItem.LWorkMergeSources
+            : new[] { lJobItem.LWorkSourcePath };
+        if (LJobInputCollisionCheck(lJobItem.LWorkOutputPath, pJobInputs))
+        {
+            return "the output path is the same as an input file; the source will not be overwritten";
+        }
+
         return string.Empty;
+    }
+
+    internal static bool LJobInputCollisionCheck(string pOutputPath, IEnumerable<string> pInputPaths)
+    {
+        string pOutputFullPath = Path.GetFullPath(pOutputPath);
+        return pInputPaths.Any(pInputPath => string.Equals(
+            pOutputFullPath,
+            Path.GetFullPath(pInputPath),
+            StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task<(int, string)> LJobStageRun(

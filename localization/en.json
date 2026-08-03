@@ -632,6 +632,7 @@
   "Roster.Field.ExportMode": "{Terms.Export} {Terms.Mode}",
   "Roster.Field.Queued": "{Terms.Queued}",
   "Roster.Field.Message": "{Terms.Message}",
+  "Roster.Field.FailureReason": "Failure reason",
   "Roster.Field.Mode": "{Terms.Mode}",
   "Roster.Field.Encoder": "{Terms.Encoder}",
   "Roster.Field.RateControl": "Rate control",

@@ -175,6 +175,7 @@ docs/
 Rules:
 
 - `source/` contains authoritative `.lmap` files.
+- The renderer discovers maps recursively only below the authoritative `source/ui/` and `source/functionality/` trees. It does not infer inclusion from map IDs, filenames, implementation symbols, or project-specific source content; obsolete sibling trees are ignored.
 - UI source files may live under `ui/shared/` when one implementation is used by several tabs, but `@tabs` must enumerate every applicable tab. The generated index presents that map under each named tab.
 - `functionality/` contains only operations that are not specific to one tab type.
 - `index.html`, `maps/`, `assets/`, and `manifest.json` are generated output.

@@ -16,6 +16,7 @@
 @alias encode = Cadroue.ShellEngine.LEncode
 @alias probe = Cadroue.ShellEngine.LProbe
 @alias schedule = Cadroue.Infrastructure.LSchedule
+@alias roster = Cadroue.UIShell.PMainArea.PRoster
 
 [input] Worker receives claimed work <input>
 - Create a job for the claimed item and worker token @ runner.LRunnerLoopRun(...)
@@ -23,14 +24,19 @@
 > validate
 
 [validate] Validate stored work <decision>
-- Validate required sources and output information @ job.LJobValidate(...)
+- Validate required sources, output information, and normalized input/output path separation @ job.LJobValidate(...)
+- Compare the final output path with every input before any collision policy can run @ job.LJobInputCollisionCheck(...)
 ? "Stored work is invalid" > invalid
 ? "Stored work is valid" > prepare
 
 [invalid] Commit validation failure <error>
 - Mark the item failed, commit its message, and reload the schedule @ job.LJobRun(...)
 - Remove its attempt record and count a runner failure @ job.LJobRun(...)
-= Invalid stored work never starts FFmpeg.
+> invalid-visible
+
+[invalid-visible] Validation failure is visible <output>
+- Display the failed reason first in the selected item's detail pane @ roster.PRosterDetailUpdate(...)
+= Invalid stored work never starts FFmpeg and its persisted reason is shown at the top of job details.
 
 [prepare] Prepare execution <process>
 - Register the live item and start lease renewal @ job.LJobRun(...)

@@ -3,7 +3,7 @@
 @title Handle source and output path collision
 @area 5. Processing and FFmpeg
 @entry input
-@summary Trace work creation and collision handling when an output path can equal one of its source paths, including the destructive failure paths under Rename existing and Overwrite.
+@summary Reject a work item whose normalized output path equals any input path before collision handling or FFmpeg can alter the source.
 @section II. Functionality
 @flow TB
 @related processing.run-job, queue.create-edit-work, queue.create-convert-work, queue.create-audio-work, queue.create-split-work, queue.create-merge-work
@@ -16,7 +16,6 @@
 @alias split = Cadroue.Application.LSplit
 @alias merge = Cadroue.Application.LMerge
 @alias job = Cadroue.ShellEngine.LJob
-@alias encode = Cadroue.ShellEngine.LEncode
 
 [input] Work output path is formed <input>
 - Avoid an exact source/output path match by appending an edit suffix for Edit work @ edit.LEditNameCreate(...)
@@ -24,18 +23,20 @@
 - Avoid an exact source/output path match by appending an audio suffix for Audio work @ audio.LAudioNameCreate(...)
 - Create Split names with within-batch uniqueness but without a full-path comparison against the source @ split.LSplitNameCreate(...)
 - Create Merge names with within-batch uniqueness but without comparison against every merge source @ merge.LMergeNameCreate(...)
-> equality
+> validate
 
-[equality] Does a work item retain equal source and output paths? <decision>
-? "Paths differ" > normal
-? "Output equals a source path" > validate
+[validate] Validate resolved input and output paths <decision>
+- Normalize the final output path and compare it with every input path using Windows path semantics @ job.LJobInputCollisionCheck(...)
+? "Output equals an input path" > rejected
+? "Every input path is distinct" > policy
 
-[validate] Validate stored work independently <process>
-- Confirm that source files exist and that the output path is non-empty without rejecting source/output equality @ job.LJobValidate(...)
-> policy
+[rejected] Reject unsafe work <error>
+- Stop before live registration, directory creation, collision handling, stage construction, or FFmpeg startup @ job.LJobRun(...)
+- Mark the item failed, persist the reason, reload the schedule, and apply runner failure behavior @ job.LJobRun(...)
+= The source remains untouched and the failed item records why it was rejected.
 
-[policy] Apply selected collision policy <decision>
-- Detect that the target already exists because it is also a source file @ job.LJobCollisionApply(...)
+[policy] Apply policy only to a distinct output path <decision>
+- Handle an existing destination only after validation proves it is not an input @ job.LJobCollisionApply(...)
 ? "Rename output" > rename-output
 ? "Rename existing" > rename-existing
 ? "Overwrite" > overwrite
@@ -44,18 +45,13 @@
 - Resolve a free output name and update the work item's output path @ job.LJobCollisionApply(...)
 > normal
 
-[rename-existing] Move the existing source away <error>
-- Rename the existing target file while leaving the work item's source path unchanged @ job.LJobCollisionApply(...)
-- Build the later FFmpeg command with the now-missing original source path @ encode.LEncodeArgumentBuild(...)
-> broken
+[rename-existing] Move the existing destination away <process>
+- Resolve a free name and move the distinct existing destination @ job.LJobCollisionApply(...)
+> normal
 
-[overwrite] Keep identical input and output <error>
-- Leave the equal source and output paths unchanged under Overwrite @ job.LJobCollisionApply(...)
-- Build an FFmpeg command with overwrite enabled and the same path as input and output @ encode.LEncodeHeaderAppend(...)
-> broken
+[overwrite] Replace a distinct destination <process>
+- Leave the distinct output path in place for FFmpeg overwrite handling @ job.LJobCollisionApply(...)
+> normal
 
 [normal] Continue with distinct paths <output>
 = FFmpeg receives separate source and output paths.
-
-[broken] Processing chain fails <output>
-= The job reaches FFmpeg with either a missing source path or the same file as input and output, so normal completion and relay cannot proceed.

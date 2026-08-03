@@ -79,6 +79,16 @@ public sealed partial class PRoster
             return;
         }
 
+        if (pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateFailed
+            && !string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))
+        {
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.FailureReason"),
+                pWorkItem.LWorkMessage,
+                pValueBold: true,
+                pValueBrush: PRosterTheme.PRosterFailBrush);
+        }
+
         LWorkMedia? pSourceInfo = pWorkItem.LWorkSourceMedia
             ?? PRosterMediaRead(pWorkItem.LWorkSourcePath);
         PRosterOverviewAdd(pWorkItem, pSourceInfo);
@@ -105,7 +115,8 @@ public sealed partial class PRoster
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Priority"), PRosterPriorityFormat(pWorkItem.LWorkPriority));
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), pWorkItem.LWorkOutput.LEncodingExportMode);
 
-        if (!string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))
+        if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateFailed
+            && !string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))
         {
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Message"), pWorkItem.LWorkMessage);
         }
