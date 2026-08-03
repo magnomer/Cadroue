@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
+    <ProjectReference Include="..\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

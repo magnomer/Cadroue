@@ -3,7 +3,7 @@
 @title Move to nearest keyframe
 @area 3. Keyframes and waveform
 @entry input
-@summary Compare the adjacent timestamps in the complete stored keyframe set and move immediately when either side has a candidate, without first confirming local scan coverage.
+@summary Compare adjacent keyframes only after scan coverage in both directions proves that the nearest candidate is valid.
 @section II. Functionality
 @flow TB
 @related keyframes.scan, keyframes.previous, keyframes.next
@@ -15,22 +15,28 @@
 - Dispatch the nearest-keyframe shortcut when timeline commands and a spool are active @ flow.PFlowShortcutDispatch(...)
 > find
 
-[find] Compare stored neighbours <decision>
-- Resolve the strict previous and next timestamps from the entire stored keyframe set @ key.LKeyframeNearestMove(...)
-- Choose the closer stored timestamp; an equal distance chooses the previous timestamp @ key.LKeyframeNearestMove(...)
-- Make the choice without checking whether the span around the current cursor has been scanned @ key.LKeyframeNearestMove(...)
-? "At least one stored neighbour exists" > move
-? "No stored neighbour exists" > defer
+[find] Compare covered neighbours <decision>
+- Resolve previous and next candidates only when their contiguous directional scan coverage is current @ key.LKeyframeNearestMove(...)
+- Choose the closer proven timestamp; an equal distance chooses the previous timestamp @ key.LKeyframeNearestMove(...)
+? "Both directions are covered and a candidate exists" > move
+? "Both directions are covered and no candidate exists" > unavailable
+? "Either direction has incomplete coverage" > scan
 
 [move] Move to stored candidate <process>
 - Accept the non-null selected candidate and propagate it as the new cursor @ flow.PFlowKeyframeMove(...)
 - Update both timeline views, request a scan around the new position, and seek the preview @ flow.PFlowCursorPropagate(...)
 > result
 
-[result] Nearest stored keyframe selected <output>
-= A remote stored keyframe can win even when no keyframe search has been performed around the requested cursor position.
+[result] Nearest keyframe selected <output>
+= The cursor moves only after both directional searches are sufficiently covered for a reliable comparison.
 
-[defer] Request scanning near current cursor <process>
-- Defer a keyframe scan around the unchanged cursor only when neither stored neighbour exists @ flow.PFlowKeyframeMove(...)
-- Start the delayed scan request @ flow.PFlowKeyframeDefer(...)
-> map:keyframes.scan
+[unavailable] No nearest keyframe <output>
+= The covered search ranges contain no adjacent keyframe, so the cursor remains unchanged.
+
+[scan] Scan around the unchanged cursor <process>
+- Keep the nearest-keyframe command pending and start a focused scan immediately @ flow.PFlowKeyframeMove(...)
+> wait
+
+[wait] Re-evaluate current scan notices <process>
+- Retry the pending command whenever a source-current scan notice updates keyframes and covered ranges @ flow.PFlowNoticeHandle(...)
+> find

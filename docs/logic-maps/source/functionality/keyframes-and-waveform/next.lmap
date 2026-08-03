@@ -3,7 +3,7 @@
 @title Move to next keyframe
 @area 3. Keyframes and waveform
 @entry input
-@summary Resolve the earliest stored keyframe after the cursor and move immediately when any candidate exists, without first confirming that the cursor region has been scanned.
+@summary Resolve the earliest stored keyframe after the cursor only after contiguous scan coverage proves that the candidate is valid.
 @section II. Functionality
 @flow TB
 @related keyframes.scan, keyframes.previous, keyframes.nearest
@@ -15,21 +15,28 @@
 - Dispatch the next-keyframe shortcut when timeline commands and a spool are active @ flow.PFlowShortcutDispatch(...)
 > find
 
-[find] Search stored keyframes <decision>
-- Search the entire stored keyframe set for the least timestamp strictly after the cursor @ key.LKeyframeMoveFind(...)
-- Return that stored timestamp without checking whether the span around the current cursor has been scanned @ key.LKeyframeMoveFind(...)
-? "Any later stored keyframe exists" > move
-? "No later stored keyframe exists" > defer
+[find] Resolve a covered following point <decision>
+- Find the least stored timestamp in the forward search range @ key.LKeyframeMoveResolve(...)
+- Require every scan span between the cursor and candidate, or the cursor and search boundary when no candidate exists, to be current @ key.LKeyframeMoveResolve(...)
+? "Coverage is current and a candidate exists" > move
+? "Coverage is current and no candidate exists" > unavailable
+? "Required coverage is incomplete" > scan
 
 [move] Move to stored candidate <process>
 - Accept the non-null stored candidate and propagate it as the new cursor @ flow.PFlowKeyframeMove(...)
 - Update both timeline views, request a scan around the new position, and seek the preview @ flow.PFlowCursorPropagate(...)
 > result
 
-[result] Next stored keyframe selected <output>
-= The cursor may move to a remote previously scanned region when the current cursor region has not been scanned.
+[result] Next keyframe selected <output>
+= The cursor moves only to a candidate proven by contiguous scanned coverage.
 
-[defer] Request scanning near current cursor <process>
-- Defer a keyframe scan around the unchanged cursor only when no later stored candidate exists @ flow.PFlowKeyframeMove(...)
-- Start the delayed scan request @ flow.PFlowKeyframeDefer(...)
-> map:keyframes.scan
+[unavailable] No next keyframe <output>
+= The covered forward search range contains no next keyframe, so the cursor remains unchanged.
+
+[scan] Scan around the unchanged cursor <process>
+- Keep the next-keyframe command pending and start a focused scan immediately @ flow.PFlowKeyframeMove(...)
+> wait
+
+[wait] Re-evaluate current scan notices <process>
+- Retry the pending command whenever a source-current scan notice updates keyframes and covered ranges @ flow.PFlowNoticeHandle(...)
+> find

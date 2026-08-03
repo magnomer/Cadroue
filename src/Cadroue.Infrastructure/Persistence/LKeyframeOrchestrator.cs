@@ -97,45 +97,75 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         lKeyframeCancelPrevious?.Dispose();
     }
 
-    public TimeSpan? LKeyframePreviousMove(TimeSpan cursor)
+    public LKeyframeMoveResult LKeyframePreviousMove(TimeSpan cursor)
         => LKeyframeMoveFind(cursor, -1);
 
-    public TimeSpan? LKeyframeNextMove(TimeSpan cursor)
+    public LKeyframeMoveResult LKeyframeNextMove(TimeSpan cursor)
         => LKeyframeMoveFind(cursor, 1);
 
-    public TimeSpan? LKeyframeNearestMove(TimeSpan cursor)
+    public LKeyframeMoveResult LKeyframeNearestMove(TimeSpan cursor)
     {
         var previous = LKeyframePreviousMove(cursor);
         var next = LKeyframeNextMove(cursor);
-        if (previous is null) return next;
-        if (next is null) return previous;
-        return cursor - previous.Value <= next.Value - cursor ? previous : next;
+        if (!previous.LKeyframeReady || !next.LKeyframeReady)
+        {
+            return LKeyframeMoveResult.LKeyframePending;
+        }
+
+        if (previous.LKeyframeTarget is null) return next;
+        if (next.LKeyframeTarget is null) return previous;
+        return cursor - previous.LKeyframeTarget.Value <= next.LKeyframeTarget.Value - cursor ? previous : next;
     }
 
-    private TimeSpan? LKeyframeMoveFind(TimeSpan cursor, int direction)
+    private LKeyframeMoveResult LKeyframeMoveFind(TimeSpan cursor, int direction)
     {
-        long cursorMs = (long)Math.Round(cursor.TotalMilliseconds);
-        long? target = null;
         lock (lKeyframeLock)
         {
-            foreach (long ms in lKeyframeStorage)
-            {
-                if (direction < 0)
-                {
-                    if (ms >= cursorMs) break;
-                    target = ms;
-                    continue;
-                }
+            return LKeyframeMoveResolve(
+                lKeyframeStorage,
+                lKeyframeScannedSpans,
+                lKeyframeDuration,
+                cursor,
+                direction);
+        }
+    }
 
-                if (ms > cursorMs)
-                {
-                    target = ms;
-                    break;
-                }
+    internal static LKeyframeMoveResult LKeyframeMoveResolve(
+        IReadOnlyCollection<long> keyframes,
+        IReadOnlySet<int> scannedSpans,
+        TimeSpan duration,
+        TimeSpan cursor,
+        int direction)
+    {
+        long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
+        long cursorMs = Math.Clamp((long)Math.Round(cursor.TotalMilliseconds), 0, durationMs);
+        long searchRangeMs = (long)(direction < 0 ? lKeyframeRangeBefore : lKeyframeRangeAfter).TotalMilliseconds;
+        long rangeStartMs = direction < 0 ? Math.Max(0, cursorMs - searchRangeMs) : cursorMs;
+        long rangeEndMs = direction < 0 ? cursorMs : Math.Min(durationMs, cursorMs + searchRangeMs);
+
+        if (rangeEndMs <= rangeStartMs)
+        {
+            return LKeyframeMoveResult.LKeyframeReadyResult(null);
+        }
+
+        long? target = direction < 0
+            ? keyframes.Where(ms => ms >= rangeStartMs && ms < cursorMs).Select(ms => (long?)ms).Max()
+            : keyframes.Where(ms => ms > cursorMs && ms < rangeEndMs).Select(ms => (long?)ms).Min();
+
+        long coverageStartMs = direction < 0 ? target ?? rangeStartMs : cursorMs;
+        long coverageEndMs = direction < 0 ? cursorMs : target is null ? rangeEndMs : target.Value + 1;
+        int firstSpan = (int)(coverageStartMs / LKeyframeGridMilliseconds);
+        int lastSpan = (int)((coverageEndMs - 1) / LKeyframeGridMilliseconds);
+        for (int span = firstSpan; span <= lastSpan; span++)
+        {
+            if (!scannedSpans.Contains(span))
+            {
+                return LKeyframeMoveResult.LKeyframePending;
             }
         }
 
-        return target is null ? null : TimeSpan.FromMilliseconds(target.Value);
+        return LKeyframeMoveResult.LKeyframeReadyResult(
+            target is null ? null : TimeSpan.FromMilliseconds(target.Value));
     }
 
 }

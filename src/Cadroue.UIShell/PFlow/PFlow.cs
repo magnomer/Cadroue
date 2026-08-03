@@ -27,6 +27,7 @@ public sealed partial class PFlow : UserControl
     private System.Windows.Controls.Primitives.Popup? pFlowNamePopup;
 
     private string? pFlowKeyframeStamp;
+    private int? pFlowKeyframePendingDirection;
 
     private const double PFlowNameHeight = 32;
     private const double PFlowNameWidth = 220;
@@ -112,6 +113,7 @@ public sealed partial class PFlow : UserControl
         lKeyframeResumeTimer.Stop();
         lSourcePath = string.IsNullOrWhiteSpace(sourcePath) ? null : sourcePath;
         lSpool = new LSpool(mediaInfo.LMediaInfoDuration);
+        pFlowKeyframePendingDirection = null;
         lCursor = PFlowCursorClamp(cursorTime);
         lSectionList.Clear();
         lSectionIndexActive = null;
@@ -169,6 +171,7 @@ public sealed partial class PFlow : UserControl
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
         lKeyframeOrchestrator.LKeyframeSuspend();
+        pFlowKeyframePendingDirection = null;
         lSourcePath = null;
         lSpool = null;
         lCursor = TimeSpan.Zero;
@@ -204,6 +207,7 @@ public sealed partial class PFlow : UserControl
             lKeyframeRequestTimer.Stop();
             lKeyframeResumeTimer.Stop();
             lKeyframeOrchestrator.LKeyframeSuspend();
+            pFlowKeyframePendingDirection = null;
         }
     }
 
@@ -245,9 +249,9 @@ public sealed partial class PFlow : UserControl
             case "setEnd" when pFlowSectionActive: PFlowEndSet(); return true;
             case "deleteSection" when pFlowSectionActive: PFlowSectionDelete(); return true;
             case "nameSection" when pFlowSectionActive: return PFlowNameShow();
-            case "previousKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframePreviousMove(lCursor)); return true;
-            case "nearestKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeNearestMove(lCursor)); return true;
-            case "nextKey": PFlowKeyframeMove(lKeyframeOrchestrator.LKeyframeNextMove(lCursor)); return true;
+            case "previousKey": PFlowKeyframeMove(-1); return true;
+            case "nearestKey": PFlowKeyframeMove(0); return true;
+            case "nextKey": PFlowKeyframeMove(1); return true;
             default: return false;
         }
     }
@@ -356,6 +360,7 @@ public sealed partial class PFlow : UserControl
 
     private void PFlowCursorPropagate(TimeSpan cursorTime, bool pFlowViewerSeekRequest, bool lKeyframeRestartRequest)
     {
+        pFlowKeyframePendingDirection = null;
         lCursor = PFlowCursorClamp(cursorTime);
         pViewfinder.PViewfinderCursorUpdate(lCursor);
         pMap.PMapCursorUpdate(lCursor);
@@ -430,6 +435,10 @@ public sealed partial class PFlow : UserControl
                 PFlowKeyframeRecord(notice);
                 pViewfinder.PViewfinderKeyframesUpdate(notice.LKeyframeList, notice.LKeyframeRanges);
                 pMap.PMapKeyframesUpdate(notice.LKeyframeRanges);
+                if (pFlowKeyframePendingDirection is int direction)
+                {
+                    PFlowKeyframeMove(direction, false);
+                }
             }
         }, DispatcherPriority.Background);
     }
@@ -453,14 +462,35 @@ public sealed partial class PFlow : UserControl
             $"{TimeSpan.FromSeconds(pFlowScanned):hh\\:mm\\:ss} scanned across {notice.LKeyframeRanges.Count} range(s)");
     }
 
-    private void PFlowKeyframeMove(TimeSpan? keyframeTargetTime)
+    private void PFlowKeyframeMove(int direction, bool requestScan = true)
     {
-        if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath) || keyframeTargetTime is null)
+        if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath))
         {
             PFlowKeyframeDefer();
             return;
         }
-        PFlowCursorPropagate(keyframeTargetTime.Value, true, true);
+
+        LKeyframeMoveResult result = direction switch
+        {
+            < 0 => lKeyframeOrchestrator.LKeyframePreviousMove(lCursor),
+            > 0 => lKeyframeOrchestrator.LKeyframeNextMove(lCursor),
+            _ => lKeyframeOrchestrator.LKeyframeNearestMove(lCursor)
+        };
+        if (!result.LKeyframeReady)
+        {
+            pFlowKeyframePendingDirection = direction;
+            if (requestScan)
+            {
+                PFlowKeyframeRun();
+            }
+            return;
+        }
+
+        pFlowKeyframePendingDirection = null;
+        if (result.LKeyframeTarget is not null)
+        {
+            PFlowCursorPropagate(result.LKeyframeTarget.Value, true, true);
+        }
     }
 
     private void PDividerPressHandle(object sender, MouseButtonEventArgs e)
