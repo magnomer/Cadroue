@@ -1,25 +1,34 @@
 @format 1
 @id ui-event.7a1fe4211badc1c0
-@title Viewer Active — viewer media change
+@title Active viewer media change
 @section I. UI
 @area UI event
 @tabs Split, Edit, Convert, Audio, Merge, Funnel, Global interface
 @event-ref cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pViewerActive|PViewerMediaChange|1
 @entry input
-@summary Handle the viewer media change event emitted by Viewer Active through the exact route registered in PWindow.PWindowWorkspaceAttach.
+@summary Attach media to the active flow or clear it on empty media; inactive lifecycle cleanup does not depend on this subscription.
 @tag viewer media change
 @tag PWindow
 @alias owner = Cadroue.UIShell.PMainWindow.PWindow
+@alias flow = Cadroue.UIShell.PFlow.PFlow
 
-[input] UI event <input>
-- Receive the viewer media change event from Viewer Active through its current registration @ owner.PWindowWorkspaceAttach
-> route
+[input] Active viewer media changed <input>
+- Receive media status through the subscription installed for the active workspace @ owner.PWindowWorkspaceAttach
+> media
 
-[route] Registered handler path <process>
-- Invoke the registered owner handler @ owner.PWindowMediaHandle
-! Registered call path: PWindowMediaHandle
+[media] Does the status contain media info? <decision>
+- Inspect the cargo passed to the window media handler @ owner.PWindowMediaHandle
+? "Media info is present" > attach
+? "Media info is empty" > clear
+
+[attach] Attach active flow <process>
+- Attach media information, source path, and zero start time to the active flow @ flow.PFlowAttach
 > output
 
-[output] UI state after the event <output>
-= The viewer media change event has completed through the current implementation.
+[clear] Clear active flow <process>
+- Clear the active flow; repeated cleanup is harmless @ flow.PFlowClear
+> output
+
+[output] Active flow synchronized <output>
+= The active flow matches its viewer. Inactive removals are synchronized directly by the tab lifecycle handler.
 ! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pViewerActive|PViewerMediaChange|1

@@ -3,7 +3,7 @@
 @title Deliver completed output
 @area 6. Relay and routing
 @entry input
-@summary Deliver a completed output, optionally drain its source tab, and show how an inactive source tab can retain flow sections after its file and viewer are removed.
+@summary Deliver only to an accepting destination, drain source media with activation-independent cleanup, and leave failed deliveries eligible for retry.
 @section II. Functionality
 @flow TB
 @related processing.complete, queue.clear-tabs, relay.receive-tab
@@ -15,25 +15,37 @@
 @alias group = Cadroue.UIShell.PPanels.PGroup
 @alias surface = Cadroue.UIShell.PMainArea.PTabSurface
 @alias viewer = Cadroue.UIShell.PPanels.PViewer
-@alias window = Cadroue.UIShell.PMainWindow.PWindow
 @alias flow = Cadroue.UIShell.PFlow.PFlow
 
 [input] Schedule change after completion <input>
 - Scan done work owned by this process for undelivered relay targets @ courier.LCourierDispatch(...)
+> reserve
+
+[reserve] Reserve this delivery attempt <process>
+- Add the work ID to the delivered set before attempting delivery @ courier.LCourierDispatch(...)
 > target
 
 [target] Resolve delivery target <decision>
 ? "Finish target" > finish
 ? "Output exists and destination tab is available" > add
-? "Output or destination is unavailable" > skipped
+? "Output or destination is unavailable" > retry
 
 [finish] Finish relay chain <process>
 - Record chain completion and force source removal @ courier.LCourierOutputAdd(...)
-> drain
+> finish-remove
+
+[finish-remove] Force source cleanup <process>
+- Remove source list and group paths regardless of the relay-empty preference @ courier.LCourierSourceRemove(...)
+> finished
 
 [add] Add output to destination <process>
 - Add the output path to the destination list with its batch cohort @ list.PListPathsAdd(...)
-> drain
+> accepted
+
+[accepted] Did the destination accept the output? <decision>
+- Accept either a newly added path or the same path already present in the destination @ courier.LCourierOutputAdd(...)
+? "New or already present" > drain
+? "Destination rejected the path" > retry
 
 [drain] Should source inputs be removed? <decision>
 - Apply the force flag, relay-empty preference, source-tab identity, and source-tab availability checks @ courier.LCourierSourceRemove(...)
@@ -43,31 +55,21 @@
 [remove] Remove source containers <process>
 - Remove the delivered source and merge-source paths from the source list @ list.PListPathsRemove(...)
 - Remove matching paths from the source group container @ group.PGroupPathsRemove(...)
-- Close the source viewer when the removed list entry is its loaded media @ surface.PTabViewerAttach(...)
-- Raise an empty-media notification after the viewer closes @ viewer.PViewerMediaClose(...)
-> active
-
-[active] Is the source workspace active? <decision>
-- The window media handler is attached only to the active viewer @ window.PWindowWorkspaceAttach(...)
-? "Source viewer is active" > flow-clear
-? "Source viewer is inactive" > retained
-
-[flow-clear] Clear active source flow <process>
-- Receive the empty-media notification and clear the active flow state @ window.PWindowMediaHandle(...)
-- Remove its source, spool, sections, keyframes, and waveform state @ flow.PFlowClear(...)
-> arrive
-
-[retained] Inactive source flow remains <error>
-- Leave the inactive source flow unchanged because no window media handler is subscribed to that viewer @ window.PWindowWorkspaceDetach(...)
+- When a removed path is loaded, force-close its viewer and directly clear its flow @ surface.PTabViewerAttach(...)
+@ viewer.PViewerMediaClose(...)
+@ flow.PFlowClear(...)
 > arrive
 
 [arrive] Continue downstream relay <process>
 - Invoke automatic downstream action when enabled @ courier.LCourierArrive(...)
 > result
 
-[skipped] Delivery skipped <error>
-- Record the missing output or destination @ courier.LCourierOutputAdd(...)
-= The completed work remains done but is not delivered.
+[retry] Delivery not committed <error>
+- Remove the reserved work ID when delivery returns false, or remove it and rethrow when delivery raises @ courier.LCourierDispatch(...)
+= The completed work remains eligible for a later delivery attempt; source content is not drained.
 
 [result] Delivery complete <output>
-= The destination receives the output, while an inactive drained source tab can still display sections belonging to the removed media.
+= The destination accepted the output before source removal; any removed loaded media and its dependent flow state are cleared even in an inactive source tab.
+
+[finished] Relay chain finished <output>
+= Source paths are drained without delivery to another tab, and the work ID remains marked delivered.

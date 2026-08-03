@@ -3,7 +3,7 @@
 @title Remove selected files
 @area UI workflow
 @entry input
-@summary Remove the current selection from a media list and repair current-row state.
+@summary Remove selected paths, repair current-row state, and notify tab lifecycle handlers when loaded media was removed.
 @section I. UI
 @tabs Split, Edit, Convert, Audio, Merge, Funnel
 @flow TB
@@ -23,10 +23,11 @@
 [remove] Remove rows <process>
 - Remove matching list items and rebuild visible rows @ list.PListPathsRemove(...)
 - Repair selection, current path, and empty-state display @ list.PListPathsRemove(...)
+- Publish the successfully removed paths for viewer and flow invalidation @ list.PListPathsRemove(...)
 > result
 
 [result] Files removed <output>
-= Selected paths no longer participate in the tab operation.
+= Selected paths no longer participate; removing the loaded path also force-closes Preview and clears the tab flow.
 
 [unchanged] List unchanged <output>
 = No row is removed.

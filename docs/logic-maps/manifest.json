@@ -44,11 +44,11 @@
       "area": "3. Keyframes and waveform",
       "tabs": [],
       "event_ref": null,
-      "summary": "Compare the adjacent timestamps in the complete stored keyframe set and move immediately when either side has a candidate, without first confirming local scan coverage.",
+      "summary": "Compare adjacent keyframes only after scan coverage in both directions proves that the nearest candidate is valid.",
       "href": "maps/functionality/keyframes-and-waveform/nearest.html",
       "tags": [],
-      "hash": "4d7c1fd81260",
-      "search": "ii. functionality 3. keyframes and waveform move to nearest keyframe compare the adjacent timestamps in the complete stored keyframe set and move immediately when either side has a candidate, without first confirming local scan coverage. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator nearest-keyframe command dispatch the nearest-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) compare stored neighbours resolve the strict previous and next timestamps from the entire stored keyframe set key.lkeyframenearestmove(...) choose the closer stored timestamp; an equal distance chooses the previous timestamp key.lkeyframenearestmove(...) make the choice without checking whether the span around the current cursor has been scanned key.lkeyframenearestmove(...) move to stored candidate accept the non-null selected candidate and propagate it as the new cursor flow.pflowkeyframemove(...) update both timeline views, request a scan around the new position, and seek the preview flow.pflowcursorpropagate(...) nearest stored keyframe selected request scanning near current cursor defer a keyframe scan around the unchanged cursor only when neither stored neighbour exists flow.pflowkeyframemove(...) start the delayed scan request flow.pflowkeyframedefer(...)"
+      "hash": "03870049a214",
+      "search": "ii. functionality 3. keyframes and waveform move to nearest keyframe compare adjacent keyframes only after scan coverage in both directions proves that the nearest candidate is valid. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator nearest-keyframe command dispatch the nearest-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) compare covered neighbours resolve previous and next candidates only when their contiguous directional scan coverage is current key.lkeyframenearestmove(...) choose the closer proven timestamp; an equal distance chooses the previous timestamp key.lkeyframenearestmove(...) move to stored candidate accept the non-null selected candidate and propagate it as the new cursor flow.pflowkeyframemove(...) update both timeline views, request a scan around the new position, and seek the preview flow.pflowcursorpropagate(...) nearest keyframe selected no nearest keyframe scan around the unchanged cursor keep the nearest-keyframe command pending and start a focused scan immediately flow.pflowkeyframemove(...) re-evaluate current scan notices retry the pending command whenever a source-current scan notice updates keyframes and covered ranges flow.pflownoticehandle(...)"
     },
     {
       "id": "keyframes.next",
@@ -57,11 +57,11 @@
       "area": "3. Keyframes and waveform",
       "tabs": [],
       "event_ref": null,
-      "summary": "Resolve the earliest stored keyframe after the cursor and move immediately when any candidate exists, without first confirming that the cursor region has been scanned.",
+      "summary": "Resolve the earliest stored keyframe after the cursor only after contiguous scan coverage proves that the candidate is valid.",
       "href": "maps/functionality/keyframes-and-waveform/next.html",
       "tags": [],
-      "hash": "2f137917b569",
-      "search": "ii. functionality 3. keyframes and waveform move to next keyframe resolve the earliest stored keyframe after the cursor and move immediately when any candidate exists, without first confirming that the cursor region has been scanned. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator next-keyframe command dispatch the next-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) search stored keyframes search the entire stored keyframe set for the least timestamp strictly after the cursor key.lkeyframemovefind(...) return that stored timestamp without checking whether the span around the current cursor has been scanned key.lkeyframemovefind(...) move to stored candidate accept the non-null stored candidate and propagate it as the new cursor flow.pflowkeyframemove(...) update both timeline views, request a scan around the new position, and seek the preview flow.pflowcursorpropagate(...) next stored keyframe selected request scanning near current cursor defer a keyframe scan around the unchanged cursor only when no later stored candidate exists flow.pflowkeyframemove(...) start the delayed scan request flow.pflowkeyframedefer(...)"
+      "hash": "321f171f94e2",
+      "search": "ii. functionality 3. keyframes and waveform move to next keyframe resolve the earliest stored keyframe after the cursor only after contiguous scan coverage proves that the candidate is valid. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator next-keyframe command dispatch the next-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) resolve a covered following point find the least stored timestamp in the forward search range key.lkeyframemoveresolve(...) require every scan span between the cursor and candidate, or the cursor and search boundary when no candidate exists, to be current key.lkeyframemoveresolve(...) move to stored candidate accept the non-null stored candidate and propagate it as the new cursor flow.pflowkeyframemove(...) update both timeline views, request a scan around the new position, and seek the preview flow.pflowcursorpropagate(...) next keyframe selected no next keyframe scan around the unchanged cursor keep the next-keyframe command pending and start a focused scan immediately flow.pflowkeyframemove(...) re-evaluate current scan notices retry the pending command whenever a source-current scan notice updates keyframes and covered ranges flow.pflownoticehandle(...)"
     },
     {
       "id": "keyframes.previous",
@@ -70,11 +70,11 @@
       "area": "3. Keyframes and waveform",
       "tabs": [],
       "event_ref": null,
-      "summary": "Resolve the latest stored keyframe before the cursor and move immediately when any candidate exists, without first confirming that the cursor region has been scanned.",
+      "summary": "Resolve the latest stored keyframe before the cursor only after contiguous scan coverage proves that the candidate is valid.",
       "href": "maps/functionality/keyframes-and-waveform/previous.html",
       "tags": [],
-      "hash": "e43457ef5a53",
-      "search": "ii. functionality 3. keyframes and waveform move to previous keyframe resolve the latest stored keyframe before the cursor and move immediately when any candidate exists, without first confirming that the cursor region has been scanned. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator previous-keyframe command dispatch the previous-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) search stored keyframes search the entire stored keyframe set for the greatest timestamp strictly before the cursor key.lkeyframemovefind(...) return that stored timestamp without checking whether the span around the current cursor has been scanned key.lkeyframemovefind(...) move to stored candidate accept the non-null stored candidate and propagate it as the new cursor flow.pflowkeyframemove(...) update both timeline views, request a scan around the new position, and seek the preview flow.pflowcursorpropagate(...) previous stored keyframe selected request scanning near current cursor defer a keyframe scan around the unchanged cursor only when no earlier stored candidate exists flow.pflowkeyframemove(...) start the delayed scan request flow.pflowkeyframedefer(...)"
+      "hash": "2092eda862c3",
+      "search": "ii. functionality 3. keyframes and waveform move to previous keyframe resolve the latest stored keyframe before the cursor only after contiguous scan coverage proves that the candidate is valid. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator previous-keyframe command dispatch the previous-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) resolve a covered prior point find the greatest stored timestamp in the backward search range key.lkeyframemoveresolve(...) require every scan span between the candidate and cursor, or the search boundary and cursor when no candidate exists, to be current key.lkeyframemoveresolve(...) move to stored candidate accept the non-null stored candidate and propagate it as the new cursor flow.pflowkeyframemove(...) update both timeline views, request a scan around the new position, and seek the preview flow.pflowcursorpropagate(...) previous keyframe selected no previous keyframe scan around the unchanged cursor keep the previous-keyframe command pending and start a focused scan immediately flow.pflowkeyframemove(...) re-evaluate current scan notices retry the pending command whenever a source-current scan notice updates keyframes and covered ranges flow.pflownoticehandle(...)"
     },
     {
       "id": "keyframes.scan",
@@ -525,11 +525,11 @@
       "area": "4. Queue and scheduling",
       "tabs": [],
       "event_ref": null,
-      "summary": "Confirm the command, clear viewer, file-list, and group state in every tab, and show why section state is cleared only for the active workspace.",
+      "summary": "Confirm the command, then use each workspace's activation-independent media reset to clear preview, flow, files, and group state.",
       "href": "maps/functionality/queue-and-scheduling/clear-tabs.html",
       "tags": [],
-      "hash": "c70728794ac5",
-      "search": "ii. functionality 4. queue and scheduling clear all tab contents confirm the command, clear viewer, file-list, and group state in every tab, and show why section state is cleared only for the active workspace. console tabset viewer list group window flow cadroue.uishell.pmainarea.pconsole cadroue.uishell.pcontrolbar.ltabset cadroue.uishell.ppanels.pviewer cadroue.uishell.ppanels.plist cadroue.uishell.ppanels.pgroup cadroue.uishell.pmainwindow.pwindow cadroue.uishell.pflow.pflow clear tabs requested receive the clear tabs command console.pconsoletabshandle(...) confirm removal apply the destructive-action confirmation preference console.pconsoledestructiveconfirm(...) clear each tab container force-close the tab viewer when media is loaded tabset.ltabsetcontentclear(...) clear every non-empty file list list.plistclear(...) clear every merge group container group.pgroupclear(...) raise an empty-media notification from each viewer that was closed viewer.pviewermediaclose(...) is this the active workspace? the window subscribes its media handler only to the currently attached viewer window.pwindowworkspaceattach(...) clear active timeline state receive the empty-media notification for the active viewer window.pwindowmediahandle(...) clear the active flow source, spool, cursor, sections, keyframes, and waveform flow.pflowclear(...) inactive flow receives no clear event leave the inactive workspace flow untouched because its viewer is not subscribed to the window media handler window.pwindowworkspacedetach(...) tab clearing finishes tabs unchanged"
+      "hash": "11e5fce375e2",
+      "search": "ii. functionality 4. queue and scheduling clear all tab contents confirm the command, then use each workspace's activation-independent media reset to clear preview, flow, files, and group state. console tabset workspace viewer list group flow cadroue.uishell.pmainarea.pconsole cadroue.uishell.pcontrolbar.ltabset cadroue.uishell.pcontrolbar.pworkspace cadroue.uishell.ppanels.pviewer cadroue.uishell.ppanels.plist cadroue.uishell.ppanels.pgroup cadroue.uishell.pflow.pflow clear tabs requested receive the clear tabs command console.pconsoletabshandle(...) confirm removal apply the destructive-action confirmation preference console.pconsoledestructiveconfirm(...) clear each workspace iterate every tab and invoke its tab-owned media reset tabset.ltabsetcontentclear(...) force-close loaded viewer media even when the workspace is inactive workspace.pworkspacemediaclear(...) viewer.pviewermediaclose(...) clear flow source, spool, cursor, sections, keyframes, waveform, and selection without an active-command guard workspace.pworkspacemediaclear(...) flow.pflowclear(...) clear a non-empty file list and publish its removed paths workspace.pworkspacemediaclear(...) list.plistclear(...) clear merge-group state workspace.pworkspacemediaclear(...) group.pgroupclear(...) tab clearing finishes tabs unchanged"
     },
     {
       "id": "queue.load",
@@ -630,14 +630,14 @@
       "area": "6. Relay and routing",
       "tabs": [],
       "event_ref": null,
-      "summary": "Deliver a completed output, optionally drain its source tab, and show how an inactive source tab can retain flow sections after its file and viewer are removed.",
+      "summary": "Deliver only to an accepting destination, drain source media with activation-independent cleanup, and leave failed deliveries eligible for retry.",
       "href": "maps/functionality/relay-and-routing/deliver-output.html",
       "tags": [
         "relay",
         "delivery"
       ],
-      "hash": "c91e650cf8a0",
-      "search": "ii. functionality 6. relay and routing deliver completed output deliver a completed output, optionally drain its source tab, and show how an inactive source tab can retain flow sections after its file and viewer are removed. relay delivery courier list group surface viewer window flow cadroue.uishell.pmainarea.lcourier cadroue.uishell.ppanels.plist cadroue.uishell.ppanels.pgroup cadroue.uishell.pmainarea.ptabsurface cadroue.uishell.ppanels.pviewer cadroue.uishell.pmainwindow.pwindow cadroue.uishell.pflow.pflow schedule change after completion scan done work owned by this process for undelivered relay targets courier.lcourierdispatch(...) resolve delivery target finish relay chain record chain completion and force source removal courier.lcourieroutputadd(...) add output to destination add the output path to the destination list with its batch cohort list.plistpathsadd(...) should source inputs be removed? apply the force flag, relay-empty preference, source-tab identity, and source-tab availability checks courier.lcouriersourceremove(...) remove source containers remove the delivered source and merge-source paths from the source list list.plistpathsremove(...) remove matching paths from the source group container group.pgrouppathsremove(...) close the source viewer when the removed list entry is its loaded media surface.ptabviewerattach(...) raise an empty-media notification after the viewer closes viewer.pviewermediaclose(...) is the source workspace active? the window media handler is attached only to the active viewer window.pwindowworkspaceattach(...) clear active source flow receive the empty-media notification and clear the active flow state window.pwindowmediahandle(...) remove its source, spool, sections, keyframes, and waveform state flow.pflowclear(...) inactive source flow remains leave the inactive source flow unchanged because no window media handler is subscribed to that viewer window.pwindowworkspacedetach(...) continue downstream relay invoke automatic downstream action when enabled courier.lcourierarrive(...) delivery skipped record the missing output or destination courier.lcourieroutputadd(...) delivery complete"
+      "hash": "35d081b2f69b",
+      "search": "ii. functionality 6. relay and routing deliver completed output deliver only to an accepting destination, drain source media with activation-independent cleanup, and leave failed deliveries eligible for retry. relay delivery courier list group surface viewer flow cadroue.uishell.pmainarea.lcourier cadroue.uishell.ppanels.plist cadroue.uishell.ppanels.pgroup cadroue.uishell.pmainarea.ptabsurface cadroue.uishell.ppanels.pviewer cadroue.uishell.pflow.pflow schedule change after completion scan done work owned by this process for undelivered relay targets courier.lcourierdispatch(...) reserve this delivery attempt add the work id to the delivered set before attempting delivery courier.lcourierdispatch(...) resolve delivery target finish relay chain record chain completion and force source removal courier.lcourieroutputadd(...) force source cleanup remove source list and group paths regardless of the relay-empty preference courier.lcouriersourceremove(...) add output to destination add the output path to the destination list with its batch cohort list.plistpathsadd(...) did the destination accept the output? accept either a newly added path or the same path already present in the destination courier.lcourieroutputadd(...) should source inputs be removed? apply the force flag, relay-empty preference, source-tab identity, and source-tab availability checks courier.lcouriersourceremove(...) remove source containers remove the delivered source and merge-source paths from the source list list.plistpathsremove(...) remove matching paths from the source group container group.pgrouppathsremove(...) when a removed path is loaded, force-close its viewer and directly clear its flow surface.ptabviewerattach(...) viewer.pviewermediaclose(...) flow.pflowclear(...) continue downstream relay invoke automatic downstream action when enabled courier.lcourierarrive(...) delivery not committed remove the reserved work id when delivery returns false, or remove it and rethrow when delivery raises courier.lcourierdispatch(...) delivery complete relay chain finished"
     },
     {
       "id": "relay.receive-tab",
@@ -3591,21 +3591,21 @@
     },
     {
       "id": "ui-event.e529dc9caf79c29d",
-      "title": "Button \u2014 click",
+      "title": "Console button click",
       "section": "I. UI",
       "area": "UI event",
       "tabs": [
         "Global interface"
       ],
       "event_ref": "cs|PMainArea/PConsole.cs|PConsoleButtonBuild|pButton|Click|1",
-      "summary": "Handle the click event exposed by PConsole.PConsoleButtonBuild and follow its registered code path.",
+      "summary": "Invoke the handler supplied for a console button; Clear Tabs confirms destruction and starts the all-workspace media reset.",
       "href": "maps/ui/global/pconsole/pconsole-button-build-p-button-click-1.html",
       "tags": [
         "click",
         "PConsole"
       ],
-      "hash": "9e88333f41f2",
-      "search": "i. ui ui event global interface button \u2014 click handle the click event exposed by pconsole.pconsolebuttonbuild and follow its registered code path. click pconsole owner cadroue.uishell.pmainarea.pconsole ui event receive the click event from the button owner.pconsolebuttonbuild registered handler path update the visual or selection state owned by the handler owner.pconsolebuttonbuild ui state after the event"
+      "hash": "4f9af76b213a",
+      "search": "i. ui ui event global interface console button click invoke the handler supplied for a console button; clear tabs confirms destruction and starts the all-workspace media reset. click pconsole owner tabset cadroue.uishell.pmainarea.pconsole cadroue.uishell.pcontrolbar.ltabset console button clicked invoke the routed click handler supplied when the reusable button was built owner.pconsolebuttonbuild which handler owns this button? confirm destructive clearing ask for confirmation according to the destructive-action preference owner.pconsoletabshandle owner.pconsoledestructiveconfirm clear all tab workspaces invoke the tabset's all-workspace content clear tabset.ltabsetcontentclear tabs cleared delegated console action clearing cancelled"
     },
     {
       "id": "ui-event.80dd6417eb8edcad",
@@ -6256,7 +6256,7 @@
     },
     {
       "id": "ui-event.62e724086f3f7fa6",
-      "title": "Program Schedule Current \u2014 schedule change",
+      "title": "Current schedule changed",
       "section": "I. UI",
       "area": "UI event",
       "tabs": [
@@ -6267,14 +6267,14 @@
         "Merge"
       ],
       "event_ref": "cs|PMainArea/LCourier.cs|LCourierStart|PProgram.LScheduleCurrent|LScheduleChange|1",
-      "summary": "Handle the schedule change event emitted by Program Schedule Current through the exact route registered in LCourier.LCourierStart.",
+      "summary": "Dispatch completed relay work through delivery acceptance, retry bookkeeping, source cleanup, and downstream arrival.",
       "href": "maps/ui/shared/lcourier/lcourier-lcourier-start-pprogram-lschedule-current-lschedule-change-1.html",
       "tags": [
         "schedule change",
         "LCourier"
       ],
-      "hash": "5be65a0aa3ad",
-      "search": "i. ui ui event split edit convert audio merge program schedule current \u2014 schedule change handle the schedule change event emitted by program schedule current through the exact route registered in lcourier.lcourierstart. schedule change lcourier owner cadroue.uishell.pmainarea.lcourier ui event receive the schedule change event from program schedule current through its current registration owner.lcourierstart registered handler path invoke the registered owner handler owner.lcourierschedulehandle ui state after the event"
+      "hash": "053c79581bc4",
+      "search": "i. ui ui event split edit convert audio merge current schedule changed dispatch completed relay work through delivery acceptance, retry bookkeeping, source cleanup, and downstream arrival. schedule change lcourier owner cadroue.uishell.pmainarea.lcourier current schedule changed receive the schedule event through the one-time courier subscription owner.lcourierstart dispatch relay candidates forward the schedule to the courier dispatcher owner.lcourierschedulehandle select done, locally owned, targeted work that is not already delivered owner.lcourierdispatch deliver completed output reserve each work id, attempt output delivery, and remove the reservation on rejection or exception owner.lcourierdispatch"
     },
     {
       "id": "ui-event.9d08a92f070b2b8e",
@@ -9176,7 +9176,7 @@
     },
     {
       "id": "ui-event.9080cb76bd917653",
-      "title": "List \u2014 clear change",
+      "title": "List clear change",
       "section": "I. UI",
       "area": "UI event",
       "tabs": [
@@ -9188,14 +9188,14 @@
         "Funnel"
       ],
       "event_ref": "cs|PMainArea/PTabSurface.cs|PTabViewerAttach|pList|PListClearChange|1",
-      "summary": "Handle the clear change event emitted by List through the exact route registered in PTabSurface.PTabViewerAttach.",
+      "summary": "When removed paths include the loaded media, force-close the viewer and clear that tab's flow even if the tab is inactive.",
       "href": "maps/ui/shared/ptab-surface/ptab-surface-ptab-viewer-attach-p-list-plist-clear-change-1.html",
       "tags": [
         "clear change",
         "PTabSurface"
       ],
-      "hash": "4b3f706e8eda",
-      "search": "i. ui ui event split edit convert audio merge funnel list \u2014 clear change handle the clear change event emitted by list through the exact route registered in ptabsurface.ptabviewerattach. clear change ptabsurface owner cadroue.uishell.pmainarea.ptabsurface ui event receive the clear change event from list through its current registration owner.ptabviewerattach registered handler path invoke the registered owner handler owner.if ui state after the event"
+      "hash": "8ad1e172ade6",
+      "search": "i. ui ui event split edit convert audio merge funnel list clear change when removed paths include the loaded media, force-close the viewer and clear that tab's flow even if the tab is inactive. clear change ptabsurface owner viewer flow cadroue.uishell.pmainarea.ptabsurface cadroue.uishell.ppanels.pviewer cadroue.uishell.pflow.pflow list paths removed receive the removed paths through the handler registered by the tab surface owner.ptabviewerattach was the loaded path removed? compare the viewer source path with every removed path, ignoring case owner.ptabviewerattach clear media-dependent tab state force-close viewer and player state regardless of viewer command activation viewer.pviewermediaclose directly clear flow source, sections, keyframes, waveform, cursor, and selection flow.pflowclear removed media cleared unrelated removal"
     },
     {
       "id": "ui-event.2e1cb3b2603c3155",
@@ -9424,7 +9424,7 @@
     },
     {
       "id": "ui-event.43db94b2102f75cb",
-      "title": "Viewer flyleaf host \u2014 is visible changed",
+      "title": "Viewer host visibility changed",
       "section": "I. UI",
       "area": "UI event",
       "tabs": [
@@ -9436,14 +9436,14 @@
         "Funnel"
       ],
       "event_ref": "cs|PPanels/PViewerLifetime.cs|PViewerHostAttach|pViewerFlyleafHost|IsVisibleChanged|1",
-      "summary": "Handle the is visible changed event exposed by PViewer.PViewerHostAttach and follow its registered code path.",
+      "summary": "Record Flyleaf host visibility and native-surface diagnostics; this event observes teardown but does not perform or complete it.",
       "href": "maps/ui/shared/pviewer/pviewer-host-attach-p-viewer-flyleaf-host-is-visible-changed-1.html",
       "tags": [
         "is visible changed",
         "PViewer"
       ],
-      "hash": "d99592aa5496",
-      "search": "i. ui ui event split edit convert audio merge funnel viewer flyleaf host \u2014 is visible changed handle the is visible changed event exposed by pviewer.pviewerhostattach and follow its registered code path. is visible changed pviewer owner cadroue.uishell.ppanels.pviewer ui event receive the is visible changed event from the viewer flyleaf host owner.pviewerhostattach registered handler path execute viewer host record owner.pviewerhostrecord evaluate the handler's implemented conditional branches owner.pviewerhostrecord update the visual or selection state owned by the handler owner.pviewerhostrecord ui state after the event"
+      "hash": "a0046aa59c0a",
+      "search": "i. ui ui event split edit convert audio merge funnel viewer host visibility changed record flyleaf host visibility and native-surface diagnostics; this event observes teardown but does not perform or complete it. is visible changed pviewer owner cadroue.uishell.ppanels.pviewer flyleaf host visibility changed receive the host visibility event installed during viewer host attachment owner.pviewerhostattach record host state record panel and host visibility, command state, surface, handle, disposal, overlay, player, and renderer diagnostics when view tracing is enabled owner.pviewerhostrecord visibility observed"
     },
     {
       "id": "ui-event.6a2920b0849c999c",
@@ -9864,7 +9864,7 @@
     },
     {
       "id": "ui-event.2959244b1e3d05e8",
-      "title": "Window \u2014 preview key down",
+      "title": "Window preview key down",
       "section": "I. UI",
       "area": "UI event",
       "tabs": [
@@ -9878,14 +9878,14 @@
         "Global interface"
       ],
       "event_ref": "cs|PMainWindow/PWindow.xaml.cs|PWindow|this|PreviewKeyDown|1",
-      "summary": "Handle the preview key down event emitted by Window through the exact route registered in PWindow.PWindow.",
+      "summary": "Resolve configured shortcuts; the Unload gesture (F4 by default) clears the current workspace as one media-dependent state unit.",
       "href": "maps/ui/shared/pwindow/pwindow-pwindow-this-preview-key-down-1.html",
       "tags": [
         "preview key down",
         "PWindow"
       ],
-      "hash": "defe07c79ddd",
-      "search": "i. ui ui event split edit convert audio merge funnel worklist global interface window \u2014 preview key down handle the preview key down event emitted by window through the exact route registered in pwindow.pwindow. preview key down pwindow owner cadroue.uishell.pmainwindow.pwindow ui event receive the preview key down event from window through its current registration owner.pwindow registered handler path invoke the registered owner handler owner.pshortcutkeyhandle ui state after the event"
+      "hash": "93257509e954",
+      "search": "i. ui ui event split edit convert audio merge funnel worklist global interface window preview key down resolve configured shortcuts; the unload gesture (f4 by default) clears the current workspace as one media-dependent state unit. preview key down pwindow owner workspace cadroue.uishell.pmainwindow.pwindow cadroue.uishell.pcontrolbar.pworkspace preview key down receive the window preview-key event owner.pwindow did the key originate in an editor? walk visual parents to protect text and password input owner.pwindowinputfind resolve the configured shortcut format the gesture, look up its token, and dispatch it owner.pshortcutdispatch clear current workspace media route the unload token through the shortcut runner and media-close handler owner.pshortcutrun owner.pshortcutmediaclose invoke the current workspace's complete media reset workspace.pworkspacemediaclear unload handled other shortcut route editor keeps key"
     },
     {
       "id": "ui-event.ee76658f4fcd4c87",
@@ -10057,7 +10057,7 @@
     },
     {
       "id": "ui-event.7a1fe4211badc1c0",
-      "title": "Viewer Active \u2014 viewer media change",
+      "title": "Active viewer media change",
       "section": "I. UI",
       "area": "UI event",
       "tabs": [
@@ -10070,14 +10070,14 @@
         "Global interface"
       ],
       "event_ref": "cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pViewerActive|PViewerMediaChange|1",
-      "summary": "Handle the viewer media change event emitted by Viewer Active through the exact route registered in PWindow.PWindowWorkspaceAttach.",
+      "summary": "Attach media to the active flow or clear it on empty media; inactive lifecycle cleanup does not depend on this subscription.",
       "href": "maps/ui/shared/pwindow/pwindow-pwindow-workspace-attach-p-viewer-active-pviewer-media-change-1.html",
       "tags": [
         "viewer media change",
         "PWindow"
       ],
-      "hash": "82105d2aaf04",
-      "search": "i. ui ui event split edit convert audio merge funnel global interface viewer active \u2014 viewer media change handle the viewer media change event emitted by viewer active through the exact route registered in pwindow.pwindowworkspaceattach. viewer media change pwindow owner cadroue.uishell.pmainwindow.pwindow ui event receive the viewer media change event from viewer active through its current registration owner.pwindowworkspaceattach registered handler path invoke the registered owner handler owner.pwindowmediahandle ui state after the event"
+      "hash": "b0f53a7e2541",
+      "search": "i. ui ui event split edit convert audio merge funnel global interface active viewer media change attach media to the active flow or clear it on empty media; inactive lifecycle cleanup does not depend on this subscription. viewer media change pwindow owner flow cadroue.uishell.pmainwindow.pwindow cadroue.uishell.pflow.pflow active viewer media changed receive media status through the subscription installed for the active workspace owner.pwindowworkspaceattach does the status contain media info? inspect the cargo passed to the window media handler owner.pwindowmediahandle attach active flow attach media information, source path, and zero start time to the active flow flow.pflowattach clear active flow clear the active flow; repeated cleanup is harmless flow.pflowclear active flow synchronized"
     },
     {
       "id": "ui-event.1dc0ca0d2b58f6cd",
@@ -10283,11 +10283,11 @@
         "Funnel"
       ],
       "event_ref": null,
-      "summary": "Remove every item from one tab's media list and publish an empty current selection.",
+      "summary": "Remove every item, publish an empty selection, and notify tab lifecycle handlers of every removed path.",
       "href": "maps/ui/shared/workflow/workflows/clear.html",
       "tags": [],
-      "hash": "d1a588f0d1ad",
-      "search": "i. ui ui workflow split edit convert audio merge funnel clear file list remove every item from one tab's media list and publish an empty current selection. list cadroue.uishell.ppanels.plist clear requested receive a clear request from the list, relay policy, or worklist action list.plistclear(...) clear list state remove all items, selected paths, and the current path list.plistclear(...) rebuild rows, update the empty notice, and publish path change list.plistclear(...) list cleared"
+      "hash": "fb4ff6cb3b92",
+      "search": "i. ui ui workflow split edit convert audio merge funnel clear file list remove every item, publish an empty selection, and notify tab lifecycle handlers of every removed path. list cadroue.uishell.ppanels.plist clear requested receive a clear request from the list, relay policy, or worklist action list.plistclear(...) clear list state remove all items, selected paths, and the current path list.plistclear(...) rebuild rows, update the empty notice, and publish path change list.plistclear(...) publish the removed paths so a loaded viewer and its flow can be invalidated list.plistclear(...) list cleared"
     },
     {
       "id": "preview.close-media",
@@ -10303,14 +10303,14 @@
         "Funnel"
       ],
       "event_ref": null,
-      "summary": "Dispose active playback state, clear preview transformations, and clear the connected timeline.",
+      "summary": "Hide the host, synchronously detach and dispose playback, clear preview state, and publish empty media; lifecycle callers also clear the tab flow directly.",
       "href": "maps/ui/shared/workflow/workflows/close-media.html",
       "tags": [
         "media",
         "close"
       ],
-      "hash": "316aa83d94a4",
-      "search": "i. ui ui workflow split edit convert audio merge funnel close media dispose active playback state, clear preview transformations, and clear the connected timeline. media close viewer window flow cadroue.uishell.ppanels.pviewer cadroue.uishell.pmainwindow.pwindow cadroue.uishell.pflow.pflow close media request receive the viewer close command viewer.pviewermediaclose(...) check active media confirm that the viewer is active and holds a source or media record viewer.pviewermediaclose(...) clear preview stop and dispose the player viewer.pviewermediaclose(...) clear source, media, crop, and playback state viewer.pviewermediaclose(...) publish an empty media status viewer.pviewermediaclose(...) clear timeline receive the empty media status window.pwindowmediahandle(...) clear timeline models, views, keyframes, waveform, and selection flow.pflowclear(...) no change"
+      "hash": "bb378266d60e",
+      "search": "i. ui ui workflow split edit convert audio merge funnel close media hide the host, synchronously detach and dispose playback, clear preview state, and publish empty media; lifecycle callers also clear the tab flow directly. media close viewer window flow cadroue.uishell.ppanels.pviewer cadroue.uishell.pmainwindow.pwindow cadroue.uishell.pflow.pflow close media request receive the viewer close command viewer.pviewermediaclose(...) can this close run? reject an unloaded viewer and reject an inactive viewer only when the caller did not force lifecycle cleanup viewer.pviewermediaclose(...) is media loaded? check for either a source path or media record viewer.pviewermediaclose(...) clear preview collapse the flyleaf host before detaching its player viewer.pviewermediaclose(...) stop the clock, detach the host player, dispose the player, and null the player reference viewer.pviewermediaclose(...) clear source, media, crop, and playback state viewer.pviewermediaclose(...) publish an empty media status viewer.pviewermediaclose(...) propagate empty media let the active window subscription clear its connected flow window.pwindowmediahandle(...) let workspace and list-removal lifecycle routes clear their tab flow directly, including inactive flows flow.pflowclear(...) close rejected no change"
     },
     {
       "id": "export.commit-modifications",
@@ -10472,11 +10472,11 @@
         "Funnel"
       ],
       "event_ref": null,
-      "summary": "Remove the current selection from a media list and repair current-row state.",
+      "summary": "Remove selected paths, repair current-row state, and notify tab lifecycle handlers when loaded media was removed.",
       "href": "maps/ui/shared/workflow/workflows/remove.html",
       "tags": [],
-      "hash": "3dd4930a198c",
-      "search": "i. ui ui workflow split edit convert audio merge funnel remove selected files remove the current selection from a media list and repair current-row state. list cadroue.uishell.ppanels.plist remove command receive the list remove command list.plistremove(...) read selection read selected paths or fall back to the current row list.plistremove(...) remove rows remove matching list items and rebuild visible rows list.plistpathsremove(...) repair selection, current path, and empty-state display list.plistpathsremove(...) files removed list unchanged"
+      "hash": "ac87852243e7",
+      "search": "i. ui ui workflow split edit convert audio merge funnel remove selected files remove selected paths, repair current-row state, and notify tab lifecycle handlers when loaded media was removed. list cadroue.uishell.ppanels.plist remove command receive the list remove command list.plistremove(...) read selection read selected paths or fall back to the current row list.plistremove(...) remove rows remove matching list items and rebuild visible rows list.plistpathsremove(...) repair selection, current path, and empty-state display list.plistpathsremove(...) publish the successfully removed paths for viewer and flow invalidation list.plistpathsremove(...) files removed list unchanged"
     },
     {
       "id": "export.rename-preset",

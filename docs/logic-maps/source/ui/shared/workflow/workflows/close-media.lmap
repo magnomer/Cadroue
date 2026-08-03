@@ -3,7 +3,7 @@
 @title Close media
 @area UI workflow
 @entry input
-@summary Dispose active playback state, clear preview transformations, and clear the connected timeline.
+@summary Hide the host, synchronously detach and dispose playback, clear preview state, and publish empty media; lifecycle callers also clear the tab flow directly.
 @section I. UI
 @tabs Split, Edit, Convert, Audio, Merge, Funnel
 @flow TB
@@ -19,21 +19,30 @@
 - Receive the viewer close command @ viewer.PViewerMediaClose(...)
 > eligible
 
-[eligible] Check active media <decision>
-- Confirm that the viewer is active and holds a source or media record @ viewer.PViewerMediaClose(...)
-? "Media is active" > clear
+[eligible] Can this close run? <decision>
+- Reject an unloaded viewer and reject an inactive viewer only when the caller did not force lifecycle cleanup @ viewer.PViewerMediaClose(...)
+? "Unloaded, or inactive without force" > rejected
+? "Eligible viewer" > media
+
+[media] Is media loaded? <decision>
+- Check for either a source path or media record @ viewer.PViewerMediaClose(...)
 ? "Nothing is open" > unchanged
+? "Media is loaded" > clear
 
 [clear] Clear preview <process>
-- Stop and dispose the player @ viewer.PViewerMediaClose(...)
+- Collapse the Flyleaf host before detaching its player @ viewer.PViewerMediaClose(...)
+- Stop the clock, detach the host player, dispose the player, and null the player reference @ viewer.PViewerMediaClose(...)
 - Clear source, media, crop, and playback state @ viewer.PViewerMediaClose(...)
 - Publish an empty media status @ viewer.PViewerMediaClose(...)
 > timeline
 
-[timeline] Clear timeline <output>
-- Receive the empty media status @ window.PWindowMediaHandle(...)
-- Clear timeline models, views, keyframes, waveform, and selection @ flow.PFlowClear(...)
-= No media remains active in the preview or timeline.
+[timeline] Propagate empty media <output>
+- Let the active window subscription clear its connected flow @ window.PWindowMediaHandle(...)
+- Let workspace and list-removal lifecycle routes clear their tab flow directly, including inactive flows @ flow.PFlowClear(...)
+= Logical viewer state is empty synchronously; host visibility diagnostics are observational and native-frame disappearance may complete separately.
+
+[rejected] Close rejected <error>
+= A normal user command cannot close an inactive viewer; lifecycle cleanup must pass the force flag.
 
 [unchanged] No change <output>
 = Existing empty state is unchanged.

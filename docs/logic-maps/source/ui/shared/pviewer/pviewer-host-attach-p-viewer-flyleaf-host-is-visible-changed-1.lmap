@@ -1,26 +1,24 @@
 @format 1
 @id ui-event.43db94b2102f75cb
-@title Viewer flyleaf host — is visible changed
+@title Viewer host visibility changed
 @section I. UI
 @area UI event
 @tabs Split, Edit, Convert, Audio, Merge, Funnel
 @event-ref cs|PPanels/PViewerLifetime.cs|PViewerHostAttach|pViewerFlyleafHost|IsVisibleChanged|1
 @entry input
-@summary Handle the is visible changed event exposed by PViewer.PViewerHostAttach and follow its registered code path.
+@summary Record Flyleaf host visibility and native-surface diagnostics; this event observes teardown but does not perform or complete it.
 @tag is visible changed
 @tag PViewer
 @alias owner = Cadroue.UIShell.PPanels.PViewer
 
-[input] UI event <input>
-- Receive the is visible changed event from the viewer flyleaf host @ owner.PViewerHostAttach
-> route
+[input] Flyleaf host visibility changed <input>
+- Receive the host visibility event installed during viewer host attachment @ owner.PViewerHostAttach
+> trace
 
-[route] Registered handler path <process>
-- Execute viewer host record @ owner.PViewerHostRecord
-- Evaluate the handler's implemented conditional branches @ owner.PViewerHostRecord
-- Update the visual or selection state owned by the handler @ owner.PViewerHostRecord
+[trace] Record host state <process>
+- Record panel and host visibility, command state, surface, handle, disposal, overlay, player, and renderer diagnostics when view tracing is enabled @ owner.PViewerHostRecord
 > output
 
-[output] UI state after the event <output>
-= The is visible changed event has completed through the current implementation.
+[output] Visibility observed <output>
+= The diagnostic snapshot is recorded; logical media close and player disposal occur in the close-media workflow, and native-frame disappearance is not declared complete by this event.
 ! Code binding: cs|PPanels/PViewerLifetime.cs|PViewerHostAttach|pViewerFlyleafHost|IsVisibleChanged|1

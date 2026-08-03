@@ -1,25 +1,25 @@
 @format 1
 @id ui-event.62e724086f3f7fa6
-@title Program Schedule Current — schedule change
+@title Current schedule changed
 @section I. UI
 @area UI event
 @tabs Split, Edit, Convert, Audio, Merge
 @event-ref cs|PMainArea/LCourier.cs|LCourierStart|PProgram.LScheduleCurrent|LScheduleChange|1
 @entry input
-@summary Handle the schedule change event emitted by Program Schedule Current through the exact route registered in LCourier.LCourierStart.
+@summary Dispatch completed relay work through delivery acceptance, retry bookkeeping, source cleanup, and downstream arrival.
 @tag schedule change
 @tag LCourier
 @alias owner = Cadroue.UIShell.PMainArea.LCourier
 
-[input] UI event <input>
-- Receive the schedule change event from Program Schedule Current through its current registration @ owner.LCourierStart
-> route
+[input] Current schedule changed <input>
+- Receive the schedule event through the one-time courier subscription @ owner.LCourierStart
+> dispatch
 
-[route] Registered handler path <process>
-- Invoke the registered owner handler @ owner.LCourierScheduleHandle
-! Registered call path: LCourierScheduleHandle
-> output
+[dispatch] Dispatch relay candidates <process>
+- Forward the schedule to the courier dispatcher @ owner.LCourierScheduleHandle
+- Select done, locally owned, targeted work that is not already delivered @ owner.LCourierDispatch
+> delivery
 
-[output] UI state after the event <output>
-= The schedule change event has completed through the current implementation.
-! Code binding: cs|PMainArea/LCourier.cs|LCourierStart|PProgram.LScheduleCurrent|LScheduleChange|1
+[delivery] Deliver completed output <process>
+- Reserve each work ID, attempt output delivery, and remove the reservation on rejection or exception @ owner.LCourierDispatch
+> map:relay.deliver-output

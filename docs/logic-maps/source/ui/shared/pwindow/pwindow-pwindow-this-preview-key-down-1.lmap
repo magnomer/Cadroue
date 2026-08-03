@@ -1,25 +1,43 @@
 @format 1
 @id ui-event.2959244b1e3d05e8
-@title Window — preview key down
+@title Window preview key down
 @section I. UI
 @area UI event
 @tabs Split, Edit, Convert, Audio, Merge, Funnel, Worklist, Global interface
 @event-ref cs|PMainWindow/PWindow.xaml.cs|PWindow|this|PreviewKeyDown|1
 @entry input
-@summary Handle the preview key down event emitted by Window through the exact route registered in PWindow.PWindow.
+@summary Resolve configured shortcuts; the Unload gesture (F4 by default) clears the current workspace as one media-dependent state unit.
 @tag preview key down
 @tag PWindow
 @alias owner = Cadroue.UIShell.PMainWindow.PWindow
+@alias workspace = Cadroue.UIShell.PControlBar.PWorkspace
 
-[input] UI event <input>
-- Receive the preview key down event from Window through its current registration @ owner.PWindow
-> route
+[input] Preview key down <input>
+- Receive the window preview-key event @ owner.PWindow
+> editable
 
-[route] Registered handler path <process>
-- Invoke the registered owner handler @ owner.PShortcutKeyHandle
-! Registered call path: PShortcutKeyHandle
+[editable] Did the key originate in an editor? <decision>
+- Walk visual parents to protect text and password input @ owner.PWindowInputFind
+? "Text input owns the key" > ignored
+? "Global shortcut is allowed" > resolve
+
+[resolve] Resolve the configured shortcut <decision>
+- Format the gesture, look up its token, and dispatch it @ owner.PShortcutDispatch
+? "Token is Unload" > unload
+? "Another or no token" > other
+
+[unload] Clear current workspace media <process>
+- Route the Unload token through the shortcut runner and media-close handler @ owner.PShortcutRun
+@ owner.PShortcutMediaClose
+- Invoke the current workspace's complete media reset @ workspace.PWorkspaceMediaClear
 > output
 
-[output] UI state after the event <output>
-= The preview key down event has completed through the current implementation.
+[output] Unload handled <output>
+= Preview, player, flow, sections, keyframes, waveform, files, selection, and group state are cleared together.
 ! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindow|this|PreviewKeyDown|1
+
+[other] Other shortcut route <output>
+= The resolved non-Unload command runs, or an unmapped gesture remains unhandled.
+
+[ignored] Editor keeps key <output>
+= No global shortcut runs.

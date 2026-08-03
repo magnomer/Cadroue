@@ -3,7 +3,7 @@
 @title Clear file list
 @area UI workflow
 @entry input
-@summary Remove every item from one tab's media list and publish an empty current selection.
+@summary Remove every item, publish an empty selection, and notify tab lifecycle handlers of every removed path.
 @section I. UI
 @tabs Split, Edit, Convert, Audio, Merge, Funnel
 @flow TB
@@ -18,7 +18,8 @@
 [clear] Clear list state <process>
 - Remove all items, selected paths, and the current path @ list.PListClear(...)
 - Rebuild rows, update the empty notice, and publish path change @ list.PListClear(...)
+- Publish the removed paths so a loaded viewer and its flow can be invalidated @ list.PListClear(...)
 > result
 
 [result] List cleared <output>
-= No media item remains in the list.
+= No media item remains; if the loaded path was removed, the tab attachment force-closes Preview and clears its flow.
