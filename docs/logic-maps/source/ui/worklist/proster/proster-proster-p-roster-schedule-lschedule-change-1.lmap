@@ -10,16 +10,20 @@
 @tag schedule change
 @tag PRoster
 @alias owner = Cadroue.UIShell.PMainArea.PRoster
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
+@alias tabset = Cadroue.UIShell.PControlBar.LTabset
 
 [input] UI event <input>
 - Receive the schedule change event from Roster Schedule through its current registration @ owner.PRoster
 > route
 
 [route] Registered handler path <process>
-- Invoke the registered owner handler @ owner.PRosterScheduleHandle
-! Registered call path: PRosterScheduleHandle
+- Rebuild the queue and lineage rows from the current schedule @ owner.PRosterScheduleHandle
+- Resolve each displayed work step from a live tab title, cached stable-stage title, saved-plan source stage, or recorded work-tab fallback @ courier.LCourierWorkTitleRead(...)
+@ tabset.LTabsetTitleRead(...)
+- Refresh the selected-work detail after rebuilding the queue @ owner.PRosterScheduleHandle
 > output
 
 [output] UI state after the event <output>
-= The schedule change event has completed through the current implementation.
+= Queue, lineage, and selected-work detail reflect the current schedule, including titles recovered from durable relay stages.
 ! Code binding: cs|PMainArea/PRoster.cs|PRoster|pRosterSchedule|LScheduleChange|1

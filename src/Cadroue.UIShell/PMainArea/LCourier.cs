@@ -16,8 +16,11 @@ public static class LCourier
     private const int LCourierFinishSlot = -2;
 
     private static readonly Dictionary<Guid, Guid> lCourierTargets = new();
+    private static readonly Dictionary<Guid, string> lCourierStageTitles = new();
     private static readonly HashSet<Guid> lCourierDelivered = new();
     private static bool lCourierWatching;
+    private static bool lCourierDispatching;
+    private static bool lCourierDispatchPending;
 
     public static void LCourierStart()
     {
@@ -42,24 +45,38 @@ public static class LCourier
             return 0;
         }
 
-        bool lCourierStableSource = LRelayPlanStore.LRelayPlanRead(
-            lCourierItems[0].LWorkBatchId, out LRelayPlanRecord lCourierExisting)
-            && lCourierExisting.LRelayStages.Any(lCourierStage => lCourierStage.LRelayStageId == lCourierRelaySource);
-        if (lCourierStableSource || lCourierRelayTarget is { } lCourierStableTarget
-            && lCourierExisting.LRelayStages.Any(lCourierStage => lCourierStage.LRelayStageId == lCourierStableTarget))
-        {
-            return PProgram.LScheduleCurrent.LScheduleAdd(
-                lCourierItems, lCourierRelayTarget, lCourierRelaySource);
-        }
-
-        if (lCourierRelayTarget == Guid.Empty || lCourierRelayTarget == LCourierFinishTarget)
-        {
-            return PProgram.LScheduleCurrent.LScheduleAdd(
-                lCourierItems, lCourierRelayTarget, lCourierRelaySource);
-        }
-
         foreach (IGrouping<Guid, LWorkItem> lCourierBatch in lCourierItems.GroupBy(lCourierItem => lCourierItem.LWorkBatchId))
         {
+            if (LRelayPlanStore.LRelayPlanRead(lCourierBatch.Key, out LRelayPlanRecord lCourierExisting))
+            {
+                LRelayStageRecord? lCourierSourceStage = lCourierExisting.LRelayStages.FirstOrDefault(
+                    lCourierStage => lCourierStage.LRelayStageId == lCourierRelaySource
+                        || lCourierStage.LRelayOriginalTab == lCourierRelaySource);
+                LRelayStageRecord? lCourierTargetStage = lCourierExisting.LRelayStages.FirstOrDefault(
+                    lCourierStage => lCourierStage.LRelayStageId == lCourierRelayTarget
+                        || lCourierStage.LRelayOriginalTab == lCourierRelayTarget);
+                Guid lCourierStableSource = lCourierSourceStage?.LRelayStageId ?? lCourierRelaySource;
+                Guid lCourierStableTarget = lCourierSourceStage?.LRelayNextStage
+                    ?? lCourierTargetStage?.LRelayStageId
+                    ?? lCourierRelayTarget;
+                foreach (LWorkItem lCourierItem in lCourierBatch)
+                {
+                    lCourierItem.LWorkRelayTarget = lCourierStableTarget;
+                    lCourierItem.LWorkRelaySource = lCourierStableSource;
+                }
+                continue;
+            }
+
+            if (lCourierRelayTarget == Guid.Empty || lCourierRelayTarget == LCourierFinishTarget)
+            {
+                foreach (LWorkItem lCourierItem in lCourierBatch)
+                {
+                    lCourierItem.LWorkRelayTarget = lCourierRelayTarget;
+                    lCourierItem.LWorkRelaySource = lCourierRelaySource;
+                }
+                continue;
+            }
+
             LRelayPlanRecord? lCourierPlan = lCourierPreparedPlan is null
                 ? LRelayPlan.LRelayPlanCreate(lCourierBatch.Key, lCourierRelayTarget)
                 : LRelayPlan.LRelayPlanCopy(lCourierPreparedPlan, lCourierBatch.Key);
@@ -119,6 +136,31 @@ public static class LCourier
 
     public static Guid LCourierTargetRead(Guid lCourierSourceTab) =>
         lCourierTargets.TryGetValue(lCourierSourceTab, out Guid lCourierTarget) ? lCourierTarget : Guid.Empty;
+
+    public static string LCourierStageTitleRead(Guid lCourierStageId) =>
+        lCourierStageTitles.TryGetValue(lCourierStageId, out string? lCourierTitle)
+            ? lCourierTitle
+            : string.Empty;
+
+    public static string LCourierWorkTitleRead(LWorkItem lCourierItem)
+    {
+        string lCourierTitle = LTabset.LTabsetTitleRead(lCourierItem.LWorkRelaySource);
+        if (!string.IsNullOrWhiteSpace(lCourierTitle))
+        {
+            return lCourierTitle;
+        }
+
+        if (LRelayPlanStore.LRelayPlanRead(lCourierItem.LWorkBatchId, out LRelayPlanRecord lCourierPlan)
+            && lCourierPlan.LRelayStages.FirstOrDefault(
+                lCourierStage => lCourierStage.LRelayStageId == lCourierItem.LWorkRelaySource)
+                is { } lCourierSourceStage)
+        {
+            lCourierStageTitles[lCourierSourceStage.LRelayStageId] = lCourierSourceStage.LRelayTitle;
+            return lCourierSourceStage.LRelayTitle;
+        }
+
+        return lCourierItem.LWorkTab;
+    }
 
     public static void LCourierTargetSet(Guid lCourierSourceTab, Guid lCourierTarget)
     {
@@ -247,33 +289,52 @@ public static class LCourier
 
     private static void LCourierDispatch(LScheduleContract lCourierSchedule)
     {
-        foreach (LWorkItem lWorkItem in lCourierSchedule.LScheduleRecords.ToArray())
+        if (lCourierDispatching)
         {
-            bool lCourierPlanOwned = LCourierPlanOwnedCheck(lWorkItem);
-            bool lCourierOwnerEligible = lWorkItem.LWorkOwnerProcess == Environment.ProcessId
-                || lCourierPlanOwned && !LSentinel.LSentinelOwnerAliveCheck(
-                    lWorkItem.LWorkOwnerProcess, lWorkItem.LWorkOwnerStamp);
-            if (lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
-                || lWorkItem.LWorkRelayTarget == Guid.Empty
-                || !lCourierOwnerEligible
-                || lCourierDelivered.Contains(lWorkItem.LWorkId))
-            {
-                continue;
-            }
+            lCourierDispatchPending = true;
+            return;
+        }
 
-            lCourierDelivered.Add(lWorkItem.LWorkId);
-            try
+        lCourierDispatching = true;
+        try
+        {
+            do
             {
-                if (!LCourierOutputAdd(lWorkItem))
+                lCourierDispatchPending = false;
+                foreach (LWorkItem lWorkItem in lCourierSchedule.LScheduleRecords.ToArray())
                 {
-                    lCourierDelivered.Remove(lWorkItem.LWorkId);
+                    bool lCourierPlanOwned = LCourierPlanOwnedCheck(lWorkItem);
+                    bool lCourierOwnerEligible = lWorkItem.LWorkOwnerProcess == Environment.ProcessId
+                        || lCourierPlanOwned && !LSentinel.LSentinelOwnerAliveCheck(
+                            lWorkItem.LWorkOwnerProcess, lWorkItem.LWorkOwnerStamp);
+                    if (lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
+                        || lWorkItem.LWorkRelayTarget == Guid.Empty
+                        || !lCourierOwnerEligible
+                        || lCourierDelivered.Contains(lWorkItem.LWorkId))
+                    {
+                        continue;
+                    }
+
+                    lCourierDelivered.Add(lWorkItem.LWorkId);
+                    try
+                    {
+                        if (!LCourierOutputAdd(lWorkItem))
+                        {
+                            lCourierDelivered.Remove(lWorkItem.LWorkId);
+                        }
+                    }
+                    catch
+                    {
+                        lCourierDelivered.Remove(lWorkItem.LWorkId);
+                        throw;
+                    }
                 }
             }
-            catch
-            {
-                lCourierDelivered.Remove(lWorkItem.LWorkId);
-                throw;
-            }
+            while (lCourierDispatchPending);
+        }
+        finally
+        {
+            lCourierDispatching = false;
         }
 
         LSeal.LSealSweep();
@@ -483,6 +544,7 @@ public static class LCourier
 
                 lCourierAction.PActionSourceTab = lCourierStage.LRelayStageId;
                 lCourierAction.PActionRelayPlanApply(lCourierStage.LRelayNextStage);
+                lCourierStageTitles[lCourierStage.LRelayStageId] = lCourierStage.LRelayTitle;
                 string[] lCourierPaths = lCourierStage.LRelayPendingInputs
                     .Select(lCourierInput => lCourierInput.LRelayPath)
                     .Distinct(StringComparer.OrdinalIgnoreCase)

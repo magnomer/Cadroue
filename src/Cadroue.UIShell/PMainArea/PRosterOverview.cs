@@ -54,10 +54,7 @@ public sealed partial class PRoster
     }
 
     private static string PRosterTabRead(LWorkItem pWorkItem)
-    {
-        string pTabName = PControlBar.LTabset.LTabsetTitleRead(pWorkItem.LWorkRelaySource);
-        return string.IsNullOrWhiteSpace(pTabName) ? pWorkItem.LWorkTab : pTabName;
-    }
+        => LCourier.LCourierWorkTitleRead(pWorkItem);
 
     private static UIElement? PRosterMeterBuild(LWorkItem pWorkItem)
     {

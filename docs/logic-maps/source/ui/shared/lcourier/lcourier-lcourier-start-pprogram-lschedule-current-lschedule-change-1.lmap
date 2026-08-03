@@ -17,9 +17,11 @@
 
 [dispatch] Dispatch relay candidates <process>
 - Forward the schedule to the courier dispatcher @ owner.LCourierScheduleHandle
-- Select done, locally owned, targeted work that is not already delivered @ owner.LCourierDispatch
+- Coalesce nested schedule notifications into another scan instead of recursively dispatching @ owner.LCourierDispatch
+- Select done targeted work that is locally owned, or belongs to a saved plan whose prior owner is no longer alive @ owner.LCourierDispatch
 > delivery
 
 [delivery] Deliver completed output <process>
 - Reserve each work ID, attempt output delivery, and remove the reservation on rejection or exception @ owner.LCourierDispatch
+- Repeat the scan when a nested notification marked dispatch pending @ owner.LCourierDispatch
 > map:relay.deliver-output

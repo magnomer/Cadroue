@@ -20,17 +20,42 @@
 - Receive work items with optional relay source and target identifiers @ courier.LCourierScheduleAdd(...)
 > relay
 
-[relay] Is this a new relay submission? <decision>
+[relay] Resolve batch routing <decision>
+- Check each cohort for an existing durable plan before inspecting the mutable live route @ planstore.LRelayPlanRead(...)
+? "Batch already has a saved plan" > normalize
+? "No target or Finish target" > direct
 ? "Live target starts a new route" > snapshot
-? "No relay or work already belongs to a saved plan" > prepare
 
-[snapshot] Persist the complete route <process>
+[normalize] Reuse stable stage identities <process>
+- Resolve the requested source from either its stable-stage or original-tab identity @ courier.LCourierScheduleAdd(...)
+- Prefer the saved source stage's next stage, then a matching saved target stage, then the requested target @ courier.LCourierScheduleAdd(...)
+- Put the resolved stable source and target identities on every item in the cohort @ courier.LCourierScheduleAdd(...)
+> prepare
+
+[direct] Preserve direct routing <process>
+- Put the requested empty or Finish target and source identity on every item in the cohort @ courier.LCourierScheduleAdd(...)
+> prepare
+
+[snapshot] Capture the complete route <process>
 - Clone every reachable stage's layout, processing, output, automatic, and Funnel routing settings @ plan.LRelayPlanCreate(...)
-- Replace temporary destination-tab GUIDs with stable stage IDs and save the plan before queue insertion @ planstore.LRelayPlanSave(...)
+- Replace temporary destination-tab GUIDs with stable stage IDs @ plan.LRelayPlanCreate(...)
+> plan-save
+
+[plan-save] Save before queue insertion <decision>
+- Atomically save the captured plan in the active workspace @ planstore.LRelayPlanSave(...)
+? "Plan saved" > stable-entry
+? "Plan missing or save failed" > legacy
+
+[stable-entry] Assign saved-plan entry <process>
+- Put the saved entry-stage ID and requested source identity on every immediate item @ courier.LCourierScheduleAdd(...)
+> prepare
+
+[legacy] Retain compatible live routing <process>
+- Put the requested live target and source identities on every item when capture or persistence fails @ courier.LCourierScheduleAdd(...)
 > prepare
 
 [prepare] Prepare each record <process>
-- Apply relay routing to the item @ schedule.LScheduleAdd(...)
+- Preserve relay identities already assigned by the courier; only non-empty direct arguments override them @ schedule.LScheduleAdd(...)
 - Resolve lineage when it has not already been assigned @ schedule.LScheduleAdd(...)
 - Convert the work item to its persistent record @ schedule.LScheduleAdd(...)
 > save

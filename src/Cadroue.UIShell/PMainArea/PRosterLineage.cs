@@ -102,11 +102,7 @@ public sealed partial class PRoster
 
     private static string PLineageTabRead(LWorkItem pWorkItem)
     {
-        string pTabName = PControlBar.LTabset.LTabsetTitleRead(pWorkItem.LWorkRelaySource);
-        if (string.IsNullOrWhiteSpace(pTabName))
-        {
-            pTabName = pWorkItem.LWorkTab;
-        }
+        string pTabName = LCourier.LCourierWorkTitleRead(pWorkItem);
 
         return LLocalization.LLocalizationFormat(
             "Roster.Lineage.Step",
