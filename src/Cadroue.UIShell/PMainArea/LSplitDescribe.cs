@@ -7,14 +7,15 @@ namespace Cadroue.UIShell.PMainArea;
 
 public static partial class LSplit
 {
-    public static int LSplitDescribe(
+    internal static int LSplitDescribe(
         LWorkPriority lWorkPriority,
         string? lSplitSourcePath,
         IReadOnlyList<LSplitSectionDescription> lSplitSections,
         LPreset lExportSpecificState,
         Guid lSplitRelayTarget = default,
         Guid lSplitRelaySource = default,
-        Guid lSplitBatchId = default)
+        Guid lSplitBatchId = default,
+        LRelayPlanRecord? lSplitPreparedPlan = null)
     {
         LSplitWorkDescription lSplitWorkDescription = new(
             lSplitSourcePath,
@@ -34,20 +35,21 @@ public static partial class LSplit
             return 0;
         }
 
-        int lSplitAdded = PProgram.LScheduleCurrent.LScheduleAdd(
-            lSplitWorkItems, lSplitRelayTarget, lSplitRelaySource);
+        int lSplitAdded = LCourier.LCourierScheduleAdd(
+            lSplitWorkItems, lSplitRelayTarget, lSplitRelaySource, lSplitPreparedPlan);
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lSplitAdded} of {lSplitWorkItems.Count} job(s) at {lWorkPriority} " +
             $"from '{Path.GetFileName(lSplitSourcePath)}'");
         return lSplitAdded;
     }
 
-    public static async Task<int> LSplitAllDescribe(
+    internal static async Task<int> LSplitAllDescribe(
         LWorkPriority lWorkPriority,
         IReadOnlyList<LWorkSource> lSplitSources,
         LPreset lExportSpecificState,
         Guid lSplitRelayTarget = default,
-        Guid lSplitRelaySource = default)
+        Guid lSplitRelaySource = default,
+        LRelayPlanRecord? lSplitPreparedPlan = null)
     {
         string[] lSplitSourcePaths = lSplitSources
             .Select(lSplitSource => lSplitSource.LWorkSourcePath)
@@ -72,7 +74,8 @@ public static partial class LSplit
                 lExportSpecificState,
                 lSplitRelayTarget,
                 lSplitRelaySource,
-                lSplitBatch);
+                lSplitBatch,
+                lSplitPreparedPlan);
         }
 
         return lSplitAdded;

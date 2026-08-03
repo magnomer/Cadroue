@@ -1,0 +1,62 @@
+@format 1
+@id relay.execute-durable-plan
+@title Execute durable Auto-relay plan
+@area 6. Relay and routing
+@entry submit
+@summary Snapshot a complete Auto-relay graph at submission and materialize later stages without consulting mutable tabs.
+@section II. Functionality
+@flow TB
+@related queue.add-work, relay.deliver-output, project.restore-session
+@tag relay
+@tag persistence
+@tag plan
+
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
+@alias plan = Cadroue.UIShell.PMainArea.LRelayPlan
+@alias planstore = Cadroue.UIShell.PMainArea.LRelayPlanStore
+
+[submit] User submits work with a relay target <input>
+- Group immediate work by cohort and inspect the live route once @ courier.LCourierScheduleAdd(...)
+> capture
+
+[capture] Capture reachable stages <process>
+- Give every stage a new stable ID and clone its layout, processing, export, automatic, Merge, and Funnel state @ plan.LRelayPlanCreate(...)
+- Translate ordinary edges and Funnel targets from temporary tab identities to stable stage identities @ plan.LRelayPlanCreate(...)
+> persist
+
+[persist] Save before scheduling <decision>
+- Atomically save the plan in the active workspace and put its entry-stage ID on immediate work @ planstore.LRelayPlanSave(...)
+? "Plan saved" > wait
+? "Plan cannot be saved" > legacy
+
+[wait] Predecessor executes <process>
+- Keep future work deferred until a predecessor output exists @ courier.LCourierDispatch(...)
+> arrive
+
+[arrive] Resolve saved stage <decision>
+- Load the cohort plan by batch ID and resolve the work's stable target @ planstore.LRelayPlanRead(...)
+? "Automatic ordinary stage" > materialize
+? "Merge stage still has reachable work" > collect
+? "Funnel stage" > branch
+? "Automatic was disabled at submission" > checkpoint
+
+[materialize] Materialize from snapshot <process>
+- Construct a detached workspace from the saved layout and export preset @ courier.LCourierPlanStageArrive(...)
+- Queue new work with the same cohort and the saved next-stage ID @ courier.LCourierScheduleAdd(...)
+> wait
+
+[collect] Persist Merge inputs <storage>
+- Retain cohort inputs until no pending or undelivered work can still reach the Merge stage @ courier.LCourierPlanMergeBlocked(...)
+> arrive
+
+[branch] Apply saved Funnel rules <process>
+- Match the filename against the snapshotted rules and continue at the saved target stage @ plan.LRelayFunnelTargetRead(...)
+> arrive
+
+[checkpoint] Pause plan-owned input <storage>
+- Persist the input at the stage and optionally mirror it into the original tab when that view still exists @ courier.LCourierPlanStageArrive(...)
+= Later checkbox or tab changes do not implicitly resume or redirect the submitted plan.
+
+[legacy] Compatible fallback <error>
+- Retain live-tab routing when the durable plan cannot be constituted or persisted @ courier.LCourierScheduleAdd(...)
+= Work remains schedulable, and the failure is recorded.

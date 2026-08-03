@@ -16,6 +16,11 @@ public static class LSentinel
 
     public static long LSentinelStampRead() => lSentinelStamp;
 
+    public static bool LSentinelOwnerAliveCheck(int lProcessId, long lOwnerStamp) =>
+        lProcessId == Environment.ProcessId
+            ? lOwnerStamp == 0 || lOwnerStamp == lSentinelStamp
+            : LSentinelProcessCheck(lProcessId, lOwnerStamp);
+
     private static long LSentinelStampResolve()
     {
         try

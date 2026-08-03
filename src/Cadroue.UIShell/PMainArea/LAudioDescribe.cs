@@ -25,7 +25,7 @@ public static partial class LAudio
             return 0;
         }
 
-        int lAudioAdded = PProgram.LScheduleCurrent.LScheduleAdd(
+        int lAudioAdded = LCourier.LCourierScheduleAdd(
             new[] { lAudioItem }, lAudioRelayTarget, lAudioRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Audio queued {lAudioAdded} job at {lWorkPriority} from " +
@@ -66,7 +66,7 @@ public static partial class LAudio
             }
         }
 
-        return PProgram.LScheduleCurrent.LScheduleAdd(
+        return LCourier.LCourierScheduleAdd(
             lAudioItems, lAudioRelayTarget, lAudioRelaySource);
     }
 

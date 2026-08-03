@@ -101,6 +101,9 @@ public sealed class PAction : UserControl
         PActionFaceUpdate();
     }
 
+    internal void PActionRelayPlanApply(Guid pActionRelayTarget) =>
+        PActionRelayTarget = pActionRelayTarget;
+
     private Button PActionRelayBuild()
     {
         var pChevron = new System.Windows.Shapes.Path

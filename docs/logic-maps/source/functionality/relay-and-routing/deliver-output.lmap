@@ -3,7 +3,7 @@
 @title Deliver completed output
 @area 6. Relay and routing
 @entry input
-@summary Deliver only to an accepting destination, drain source media with activation-independent cleanup, and leave failed deliveries eligible for retry.
+@summary Resume plan-owned output from durable stage snapshots, while retaining compatible live-tab delivery for legacy work.
 @section II. Functionality
 @flow TB
 @related processing.complete, queue.clear-tabs, relay.receive-tab
@@ -16,9 +16,10 @@
 @alias surface = Cadroue.UIShell.PMainArea.PTabSurface
 @alias viewer = Cadroue.UIShell.PPanels.PViewer
 @alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias planstore = Cadroue.UIShell.PMainArea.LRelayPlanStore
 
 [input] Schedule change after completion <input>
-- Scan done work owned by this process for undelivered relay targets @ courier.LCourierDispatch(...)
+- Scan done work for undelivered relay targets; saved-plan work is eligible after process restart @ courier.LCourierDispatch(...)
 > reserve
 
 [reserve] Reserve this delivery attempt <process>
@@ -27,8 +28,15 @@
 
 [target] Resolve delivery target <decision>
 ? "Finish target" > finish
+? "Stable stage exists in the saved batch plan" > plan
 ? "Output exists and destination tab is available" > add
 ? "Output or destination is unavailable" > retry
+
+[plan] Continue from the immutable plan <process>
+- Resolve the stable stage and record its input independently of the original tab instance @ planstore.LRelayPlanRead(...)
+- Run ordinary and Merge stages in a detached workspace restored from the saved layout and export preset @ courier.LCourierPlanStageArrive(...)
+- Resolve Funnel branches from the saved rules, and persist paused inputs when automatic relay was disabled at submission @ courier.LCourierPlanOutputAdd(...)
+> drain
 
 [finish] Finish relay chain <process>
 - Record chain completion and force source removal @ courier.LCourierOutputAdd(...)

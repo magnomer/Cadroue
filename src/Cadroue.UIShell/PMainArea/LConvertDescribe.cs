@@ -35,7 +35,7 @@ public static partial class LConvert
                 lConvertMessage => LTraceLog.LTraceErrorRecord(lConvertMessage),
                 Cadroue.Media.LSidecarStore.LSidecarDurationRead);
 
-        int lConvertAdded = PProgram.LScheduleCurrent.LScheduleAdd(lConvertWorkItems, lConvertRelayTarget, lConvertRelaySource);
+        int lConvertAdded = LCourier.LCourierScheduleAdd(lConvertWorkItems, lConvertRelayTarget, lConvertRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Convert queued {lConvertAdded} job(s) at {lWorkPriority} from {lConvertSourcePaths.Length} listed file(s)");
 

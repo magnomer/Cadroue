@@ -3,7 +3,7 @@
 @title Restore session
 @area 7. Project persistence
 @entry input
-@summary Recreate tabs, per-tab output and layout state, names, relay routing, target resolution, selection, and optional last media.
+@summary Recreate the visible session while durable relay plans continue to use their own stable stage identities and snapshots.
 @section II. Functionality
 @flow TB
 @related preview.open-media, project.save-session
@@ -12,6 +12,7 @@
 
 @alias window = Cadroue.UIShell.PMainWindow.PWindow
 @alias scene = Cadroue.Infrastructure.LScene
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
 
 [input] Main window is created <input>
 - Choose default tabs or the last saved session from preferences @ window.PWindowTabsRestore(...)
@@ -22,6 +23,7 @@
 - Restore custom tab names @ window.PWindowSceneRestore(...)
 - Restore relay slots and resolve funnel targets @ window.PWindowSceneRestore(...)
 - Select the saved active tab index @ window.PWindowSceneRestore(...)
+! Restored tab GUIDs are display identities only; unfinished saved plans resolve stable stage IDs through the courier.
 > media
 
 [media] Restore optional media <decision>
@@ -33,4 +35,4 @@
 > map:preview.open-media
 
 [result] Session restored <output>
-= Tabs and workspace relationships reflect the saved session or configured defaults.
+= Tabs reflect the saved session, while previously submitted relay routes remain authoritative in their durable batch plans.

@@ -12,9 +12,21 @@
 
 @alias schedule = Cadroue.Infrastructure.LSchedule
 @alias store = Cadroue.Infrastructure.LScheduleStore
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
+@alias plan = Cadroue.UIShell.PMainArea.LRelayPlan
+@alias planstore = Cadroue.UIShell.PMainArea.LRelayPlanStore
 
 [input] Built work items arrive <input>
-- Receive work items with optional relay source and target identifiers @ schedule.LScheduleAdd(...)
+- Receive work items with optional relay source and target identifiers @ courier.LCourierScheduleAdd(...)
+> relay
+
+[relay] Is this a new relay submission? <decision>
+? "Live target starts a new route" > snapshot
+? "No relay or work already belongs to a saved plan" > prepare
+
+[snapshot] Persist the complete route <process>
+- Clone every reachable stage's layout, processing, output, automatic, and Funnel routing settings @ plan.LRelayPlanCreate(...)
+- Replace temporary destination-tab GUIDs with stable stage IDs and save the plan before queue insertion @ planstore.LRelayPlanSave(...)
 > prepare
 
 [prepare] Prepare each record <process>

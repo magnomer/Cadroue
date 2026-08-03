@@ -10,15 +10,17 @@
 @tag click
 @tag PAction
 @alias owner = Cadroue.UIShell.PMainArea.PAction
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
 
 [input] UI event <input>
 - Receive the click event from the action all button @ owner.PAction
 > route
 
 [route] Registered handler path <process>
-- Update the visual or selection state owned by the handler @ owner.PAction
+- Build the tab-specific work descriptions through the registered handler @ owner.PAction
+- At the scheduling boundary, snapshot the complete relay graph and stage settings for each submitted cohort @ courier.LCourierScheduleAdd(...)
 > output
 
 [output] UI state after the event <output>
-= The click event has completed through the current implementation.
+= Immediate work is queued with stable relay-stage identifiers; later tab changes cannot rewrite its saved route.
 ! Code binding: cs|PMainArea/PAction.cs|PAction|pActionAllButton|Click|1

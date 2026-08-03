@@ -392,14 +392,14 @@
       "area": "7. Project persistence",
       "tabs": [],
       "event_ref": null,
-      "summary": "Recreate tabs, per-tab output and layout state, names, relay routing, target resolution, selection, and optional last media.",
+      "summary": "Recreate the visible session while durable relay plans continue to use their own stable stage identities and snapshots.",
       "href": "maps/functionality/project-persistence/restore-session.html",
       "tags": [
         "session",
         "restore"
       ],
-      "hash": "6cb3b4846706",
-      "search": "ii. functionality 7. project persistence restore session recreate tabs, per-tab output and layout state, names, relay routing, target resolution, selection, and optional last media. session restore window scene cadroue.uishell.pmainwindow.pwindow cadroue.infrastructure.lscene main window is created choose default tabs or the last saved session from preferences window.pwindowtabsrestore(...) restore tabs create each saved tab with its output preset and layout record window.pwindowscenerestore(...) restore custom tab names window.pwindowscenerestore(...) restore relay slots and resolve funnel targets window.pwindowscenerestore(...) select the saved active tab index window.pwindowscenerestore(...) restore optional media check the open-last-media preference and saved path window.pwindowmediarestore(...) continue with media open session restored"
+      "hash": "7681c0f764fe",
+      "search": "ii. functionality 7. project persistence restore session recreate the visible session while durable relay plans continue to use their own stable stage identities and snapshots. session restore window scene courier cadroue.uishell.pmainwindow.pwindow cadroue.infrastructure.lscene cadroue.uishell.pmainarea.lcourier main window is created choose default tabs or the last saved session from preferences window.pwindowtabsrestore(...) restore tabs create each saved tab with its output preset and layout record window.pwindowscenerestore(...) restore custom tab names window.pwindowscenerestore(...) restore relay slots and resolve funnel targets window.pwindowscenerestore(...) select the saved active tab index window.pwindowscenerestore(...) restore optional media check the open-last-media preference and saved path window.pwindowmediarestore(...) continue with media open session restored"
     },
     {
       "id": "project.save-scene",
@@ -443,8 +443,8 @@
         "queue",
         "persistence"
       ],
-      "hash": "ad0f798f0db3",
-      "search": "ii. functionality 4. queue and scheduling add work to schedule persist built work records as pending items, assign routing and lineage, and notify schedule observers. queue persistence schedule store cadroue.infrastructure.lschedule cadroue.infrastructure.lschedulestore built work items arrive receive work items with optional relay source and target identifiers schedule.lscheduleadd(...) prepare each record apply relay routing to the item schedule.lscheduleadd(...) resolve lineage when it has not already been assigned schedule.lscheduleadd(...) convert the work item to its persistent record schedule.lscheduleadd(...) persist pending work save the record in the scheduled depot folder store.lschedulerecordsave(...) publish pending item add the item to the observable in-memory schedule schedule.lscheduleadd(...) skip unsaved item record that the item could not be filed schedule.lscheduleadd(...) schedule changed notify schedule observers when at least one item was added schedule.lscheduleadd(...)"
+      "hash": "54864bd8e269",
+      "search": "ii. functionality 4. queue and scheduling add work to schedule persist built work records as pending items, assign routing and lineage, and notify schedule observers. queue persistence schedule store courier plan planstore cadroue.infrastructure.lschedule cadroue.infrastructure.lschedulestore cadroue.uishell.pmainarea.lcourier cadroue.uishell.pmainarea.lrelayplan cadroue.uishell.pmainarea.lrelayplanstore built work items arrive receive work items with optional relay source and target identifiers courier.lcourierscheduleadd(...) is this a new relay submission? persist the complete route clone every reachable stage's layout, processing, output, automatic, and funnel routing settings plan.lrelayplancreate(...) replace temporary destination-tab guids with stable stage ids and save the plan before queue insertion planstore.lrelayplansave(...) prepare each record apply relay routing to the item schedule.lscheduleadd(...) resolve lineage when it has not already been assigned schedule.lscheduleadd(...) convert the work item to its persistent record schedule.lscheduleadd(...) persist pending work save the record in the scheduled depot folder store.lschedulerecordsave(...) publish pending item add the item to the observable in-memory schedule schedule.lscheduleadd(...) skip unsaved item record that the item could not be filed schedule.lscheduleadd(...) schedule changed notify schedule observers when at least one item was added schedule.lscheduleadd(...)"
     },
     {
       "id": "queue.apply-runner-configuration",
@@ -630,14 +630,31 @@
       "area": "6. Relay and routing",
       "tabs": [],
       "event_ref": null,
-      "summary": "Deliver only to an accepting destination, drain source media with activation-independent cleanup, and leave failed deliveries eligible for retry.",
+      "summary": "Resume plan-owned output from durable stage snapshots, while retaining compatible live-tab delivery for legacy work.",
       "href": "maps/functionality/relay-and-routing/deliver-output.html",
       "tags": [
         "relay",
         "delivery"
       ],
-      "hash": "35d081b2f69b",
-      "search": "ii. functionality 6. relay and routing deliver completed output deliver only to an accepting destination, drain source media with activation-independent cleanup, and leave failed deliveries eligible for retry. relay delivery courier list group surface viewer flow cadroue.uishell.pmainarea.lcourier cadroue.uishell.ppanels.plist cadroue.uishell.ppanels.pgroup cadroue.uishell.pmainarea.ptabsurface cadroue.uishell.ppanels.pviewer cadroue.uishell.pflow.pflow schedule change after completion scan done work owned by this process for undelivered relay targets courier.lcourierdispatch(...) reserve this delivery attempt add the work id to the delivered set before attempting delivery courier.lcourierdispatch(...) resolve delivery target finish relay chain record chain completion and force source removal courier.lcourieroutputadd(...) force source cleanup remove source list and group paths regardless of the relay-empty preference courier.lcouriersourceremove(...) add output to destination add the output path to the destination list with its batch cohort list.plistpathsadd(...) did the destination accept the output? accept either a newly added path or the same path already present in the destination courier.lcourieroutputadd(...) should source inputs be removed? apply the force flag, relay-empty preference, source-tab identity, and source-tab availability checks courier.lcouriersourceremove(...) remove source containers remove the delivered source and merge-source paths from the source list list.plistpathsremove(...) remove matching paths from the source group container group.pgrouppathsremove(...) when a removed path is loaded, force-close its viewer and directly clear its flow surface.ptabviewerattach(...) viewer.pviewermediaclose(...) flow.pflowclear(...) continue downstream relay invoke automatic downstream action when enabled courier.lcourierarrive(...) delivery not committed remove the reserved work id when delivery returns false, or remove it and rethrow when delivery raises courier.lcourierdispatch(...) delivery complete relay chain finished"
+      "hash": "5e5ecd86f883",
+      "search": "ii. functionality 6. relay and routing deliver completed output resume plan-owned output from durable stage snapshots, while retaining compatible live-tab delivery for legacy work. relay delivery courier list group surface viewer flow planstore cadroue.uishell.pmainarea.lcourier cadroue.uishell.ppanels.plist cadroue.uishell.ppanels.pgroup cadroue.uishell.pmainarea.ptabsurface cadroue.uishell.ppanels.pviewer cadroue.uishell.pflow.pflow cadroue.uishell.pmainarea.lrelayplanstore schedule change after completion scan done work for undelivered relay targets; saved-plan work is eligible after process restart courier.lcourierdispatch(...) reserve this delivery attempt add the work id to the delivered set before attempting delivery courier.lcourierdispatch(...) resolve delivery target continue from the immutable plan resolve the stable stage and record its input independently of the original tab instance planstore.lrelayplanread(...) run ordinary and merge stages in a detached workspace restored from the saved layout and export preset courier.lcourierplanstagearrive(...) resolve funnel branches from the saved rules, and persist paused inputs when automatic relay was disabled at submission courier.lcourierplanoutputadd(...) finish relay chain record chain completion and force source removal courier.lcourieroutputadd(...) force source cleanup remove source list and group paths regardless of the relay-empty preference courier.lcouriersourceremove(...) add output to destination add the output path to the destination list with its batch cohort list.plistpathsadd(...) did the destination accept the output? accept either a newly added path or the same path already present in the destination courier.lcourieroutputadd(...) should source inputs be removed? apply the force flag, relay-empty preference, source-tab identity, and source-tab availability checks courier.lcouriersourceremove(...) remove source containers remove the delivered source and merge-source paths from the source list list.plistpathsremove(...) remove matching paths from the source group container group.pgrouppathsremove(...) when a removed path is loaded, force-close its viewer and directly clear its flow surface.ptabviewerattach(...) viewer.pviewermediaclose(...) flow.pflowclear(...) continue downstream relay invoke automatic downstream action when enabled courier.lcourierarrive(...) delivery not committed remove the reserved work id when delivery returns false, or remove it and rethrow when delivery raises courier.lcourierdispatch(...) delivery complete relay chain finished"
+    },
+    {
+      "id": "relay.execute-durable-plan",
+      "title": "Execute durable Auto-relay plan",
+      "section": "II. Functionality",
+      "area": "6. Relay and routing",
+      "tabs": [],
+      "event_ref": null,
+      "summary": "Snapshot a complete Auto-relay graph at submission and materialize later stages without consulting mutable tabs.",
+      "href": "maps/functionality/relay-and-routing/execute-durable-plan.html",
+      "tags": [
+        "relay",
+        "persistence",
+        "plan"
+      ],
+      "hash": "08561902d270",
+      "search": "ii. functionality 6. relay and routing execute durable auto-relay plan snapshot a complete auto-relay graph at submission and materialize later stages without consulting mutable tabs. relay persistence plan courier plan planstore cadroue.uishell.pmainarea.lcourier cadroue.uishell.pmainarea.lrelayplan cadroue.uishell.pmainarea.lrelayplanstore user submits work with a relay target group immediate work by cohort and inspect the live route once courier.lcourierscheduleadd(...) capture reachable stages give every stage a new stable id and clone its layout, processing, export, automatic, merge, and funnel state plan.lrelayplancreate(...) translate ordinary edges and funnel targets from temporary tab identities to stable stage identities plan.lrelayplancreate(...) save before scheduling atomically save the plan in the active workspace and put its entry-stage id on immediate work planstore.lrelayplansave(...) predecessor executes keep future work deferred until a predecessor output exists courier.lcourierdispatch(...) resolve saved stage load the cohort plan by batch id and resolve the work's stable target planstore.lrelayplanread(...) materialize from snapshot construct a detached workspace from the saved layout and export preset courier.lcourierplanstagearrive(...) queue new work with the same cohort and the saved next-stage id courier.lcourierscheduleadd(...) persist merge inputs retain cohort inputs until no pending or undelivered work can still reach the merge stage courier.lcourierplanmergeblocked(...) apply saved funnel rules match the filename against the snapshotted rules and continue at the saved target stage plan.lrelayfunneltargetread(...) pause plan-owned input persist the input at the stage and optionally mirror it into the original tab when that view still exists courier.lcourierplanstagearrive(...) compatible fallback retain live-tab routing when the durable plan cannot be constituted or persisted courier.lcourierscheduleadd(...)"
     },
     {
       "id": "relay.receive-tab",
@@ -6314,8 +6331,8 @@
         "click",
         "PAction"
       ],
-      "hash": "1f9c091c526b",
-      "search": "i. ui ui event split edit convert audio merge funnel action all button \u2014 click handle the click event exposed by paction.paction and follow its registered code path. click paction owner cadroue.uishell.pmainarea.paction ui event receive the click event from the action all button owner.paction registered handler path update the visual or selection state owned by the handler owner.paction ui state after the event"
+      "hash": "58c7b96c4d51",
+      "search": "i. ui ui event split edit convert audio merge funnel action all button \u2014 click handle the click event exposed by paction.paction and follow its registered code path. click paction owner courier cadroue.uishell.pmainarea.paction cadroue.uishell.pmainarea.lcourier ui event receive the click event from the action all button owner.paction registered handler path build the tab-specific work descriptions through the registered handler owner.paction at the scheduling boundary, snapshot the complete relay graph and stage settings for each submitted cohort courier.lcourierscheduleadd(...) ui state after the event"
     },
     {
       "id": "ui-event.fcdfcda7cfab0970",
