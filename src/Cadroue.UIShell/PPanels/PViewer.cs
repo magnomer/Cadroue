@@ -66,8 +66,7 @@ public sealed partial class PViewer : PPanel
             StrokeThickness = 2,
             StrokeDashArray = new DoubleCollection { 4, 3 },
             Fill = Brushes.Transparent,
-            Visibility = Visibility.Collapsed,
-            IsHitTestVisible = false
+            Visibility = Visibility.Collapsed
         };
 
         pViewerOverlay = new Canvas
