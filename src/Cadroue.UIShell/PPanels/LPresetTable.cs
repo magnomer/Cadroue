@@ -53,6 +53,8 @@ public sealed partial class LPreset
 
     public static ObservableCollection<string> LPresetNames { get; } = new();
 
+    public static event Action? LPresetStoreChange;
+
     public static LPreset LPresetInitialCreate(string lPresetTabKey)
     {
         var lPresetState = new LPreset();
@@ -305,6 +307,7 @@ public sealed partial class LPreset
             }
         }
         LPresetStore.LPresetSave(lPresets.Select(lPreset => lPreset.LPresetRecordCreate()).ToList());
+        LPresetStoreChange?.Invoke();
     }
 
     public static bool LPresetNativeCheck(string lPresetName) =>

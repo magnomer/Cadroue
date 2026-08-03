@@ -22,6 +22,37 @@ public sealed partial class PExport
         }
     }
 
+    private void PExportPresetSync()
+    {
+        if (pExportPresetBusy || pPresetNameEditing is not null)
+        {
+            return;
+        }
+
+        if (pPresetNameSelected is string lPresetName
+            && LPreset.LPresetNames.Any(lName => string.Equals(lName, lPresetName, StringComparison.OrdinalIgnoreCase)))
+        {
+            if (pExportPresetClean)
+            {
+                pExportPresetBusy = true;
+                LPreset.LPresetTryLoad(lPresetName, lExportSpecificState);
+                pExportPresetBusy = false;
+            }
+
+            PExportSummaryUpdate();
+            return;
+        }
+
+        pExportPresetBusy = true;
+        if (LPreset.LPresetFirstName is string lFirstName && LPreset.LPresetTryLoad(lFirstName, lExportSpecificState))
+        {
+            pPresetNameSelected = lFirstName;
+        }
+
+        pExportPresetBusy = false;
+        PExportSummaryUpdate();
+    }
+
     private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
         string lPresetName = PExportNameCreate(LLocalization.LLocalizationTextRead("ExportPreset.DefaultName"));

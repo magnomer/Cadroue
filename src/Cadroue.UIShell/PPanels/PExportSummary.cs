@@ -36,6 +36,8 @@ public sealed partial class PExport : UserControl
 
     private bool pExportPresetBusy;
 
+    private bool pExportPresetClean = true;
+
     public PExport(LPreset lExportSpecificState, bool pExportCopyDisabled = false)
     {
         this.lExportSpecificState = lExportSpecificState;
@@ -85,6 +87,13 @@ public sealed partial class PExport : UserControl
 
         PExportSummaryUpdate();
         Content = PExportFrameBuild(pPanel);
+
+        Loaded += (_, _) =>
+        {
+            LPreset.LPresetStoreChange += PExportPresetSync;
+            PExportPresetSync();
+        };
+        Unloaded += (_, _) => LPreset.LPresetStoreChange -= PExportPresetSync;
     }
 
     private static Border PExportFrameBuild(UIElement pContent)
@@ -139,6 +148,9 @@ public sealed partial class PExport : UserControl
         pExportSummaryVideo.Text = lExportSpecificState.LPresetVideoSummary;
         pExportSummaryAudio.Text = lExportSpecificState.LPresetAudioSummary;
         pExportSummaryOutput.Text = lExportSpecificState.LPresetOutputSummary;
+
+        pExportPresetClean = pPresetNameSelected is not string lPresetSelected
+            || LPreset.LPresetMatch(lPresetSelected, lExportSpecificState);
     }
 
     private static UIElement PHeaderBuild() => new Border
