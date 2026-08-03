@@ -250,19 +250,7 @@ public sealed class LTabset
         bool pTabsetCleared = false;
         foreach (PTabRecord pTabRecord in PTabsetRecords)
         {
-            PWorkspace pTabWorkspace = pTabRecord.PTabWorkspace;
-            pTabsetCleared |= pTabWorkspace.PWorkspaceViewer?.PViewerMediaClose(true) == true;
-
-            if (pTabWorkspace.PWorkspaceList is { } pTabList && pTabList.PListPathsRead().Count > 0)
-            {
-                pTabList.PListClear();
-                pTabsetCleared = true;
-            }
-
-            if (pTabWorkspace.PWorkspaceSurface.PTabGroup is { } pTabGroup)
-            {
-                pTabGroup.PGroupClear();
-            }
+            pTabsetCleared |= pTabRecord.PTabWorkspace.PWorkspaceMediaClear();
         }
 
         LTraceLog.LTraceInfoRecord($"Tabs cleared across {PTabsetRecords.Count} tab(s)");

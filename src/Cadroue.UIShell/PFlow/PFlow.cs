@@ -159,9 +159,13 @@ public sealed partial class PFlow : UserControl
         PFlowKeyframeDefer();
     }
 
-    public void PFlowClear()
+    public bool PFlowClear()
     {
-        if (!pFlowCommandActive) return;
+        if (lSourcePath is null && lSpool is null && lSectionList.Count == 0 && lSectionIndexActive is null)
+        {
+            return false;
+        }
+
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
         lKeyframeOrchestrator.LKeyframeSuspend();
@@ -178,6 +182,7 @@ public sealed partial class PFlow : UserControl
         pMapLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
         pMapLabelRight.Text = PFlowTimeFormat(TimeSpan.Zero);
         PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexActive);
+        return true;
     }
 
     public void PFlowVolumeSet(double volume)

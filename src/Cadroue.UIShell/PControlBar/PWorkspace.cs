@@ -62,6 +62,21 @@ public sealed class PWorkspace
 
     public PList? PWorkspaceList { get; }
 
+    public bool PWorkspaceMediaClear()
+    {
+        bool pWorkspaceCleared = PWorkspaceViewer?.PViewerMediaClose(true) == true;
+        pWorkspaceCleared |= PWorkspaceFlow?.PFlowClear() == true;
+
+        if (PWorkspaceList is { } pList && pList.PListPathsRead().Count > 0)
+        {
+            pList.PListClear();
+            pWorkspaceCleared = true;
+        }
+
+        PWorkspaceSurface.PTabGroup?.PGroupClear();
+        return pWorkspaceCleared;
+    }
+
     public PSection? PWorkspaceSection { get; }
 
     public PSource? PWorkspaceSource { get; }

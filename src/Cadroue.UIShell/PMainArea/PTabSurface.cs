@@ -36,14 +36,15 @@ public abstract class PTabSurface : UserControl
 
     protected void PTabWidthRaise() => PTabWidthChange?.Invoke();
 
-    protected static void PTabViewerAttach(PList pList, PViewer pViewer)
+    protected static void PTabViewerAttach(PList pList, PViewer pViewer, PFlowControl pFlow)
     {
         pList.PListClearChange += pRemovedPaths =>
         {
             if (pViewer.PViewerSourcePath is { } pLoadedPath
                 && pRemovedPaths.Any(pRemoved => string.Equals(pRemoved, pLoadedPath, StringComparison.OrdinalIgnoreCase)))
             {
-                pViewer.PViewerMediaClose();
+                pViewer.PViewerMediaClose(true);
+                pFlow.PFlowClear();
             }
         };
     }

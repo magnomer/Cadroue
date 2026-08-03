@@ -83,7 +83,7 @@ public sealed class PAudioTab : PTabSurface
             LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
         pList.PListPathChange += PAudioPathShow;
         pList.PListItemsAdd += PAudioItemsHandle;
-        PTabViewerAttach(pList, pViewer);
+        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;

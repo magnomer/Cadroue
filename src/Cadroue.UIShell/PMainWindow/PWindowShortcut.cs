@@ -81,15 +81,13 @@ public partial class PWindow
 
     private bool PShortcutMediaClose()
     {
-        if (pViewerActive is null && pListActive is null)
+        PWorkspace? pWorkspace = lTabset.PTabsetCurrent?.PTabWorkspace;
+        if (pWorkspace is not null)
         {
-            return false;
+            return pWorkspace.PWorkspaceMediaClear();
         }
 
-        pViewerActive?.PViewerMediaClose();
-        pListActive?.PListClear();
-        pWindowSurfaceActive?.PTabGroup?.PGroupClear();
-        return true;
+        return false;
     }
 
     private bool PShortcutPlayToggle()

@@ -33,7 +33,7 @@ public sealed class PMergeTab : PTabSurface
             return PList.PListMediaScan(pDropPaths);
         };
         pList.PListItemsAdd += PMergeItemsHandle;
-        PTabViewerAttach(pList, pViewer);
+        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
