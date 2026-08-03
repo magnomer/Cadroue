@@ -36,7 +36,8 @@ public static partial class LEdit
         LEditWorkDescription lEditWorkDescription,
         string lEditTab,
         Action<string> lInfoLog,
-        Action<string> lErrorLog)
+        Action<string> lErrorLog,
+        Guid lEditBatchId = default)
     {
         LWorkCrop lEditCrop = lEditWorkDescription.LEditCrop;
         if (string.IsNullOrWhiteSpace(lEditWorkDescription.LEditSourcePath))
@@ -52,7 +53,7 @@ public static partial class LEdit
             lEditCrop,
             lEditWorkDescription.LEditVideo,
             lEditWorkDescription.LEditOutput,
-            Guid.NewGuid());
+            lEditBatchId == Guid.Empty ? Guid.NewGuid() : lEditBatchId);
 
         lEditWorkItem.LWorkTab = lEditTab;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;

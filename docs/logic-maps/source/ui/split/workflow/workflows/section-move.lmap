@@ -18,9 +18,9 @@
 > guard
 
 [guard] Check effective change <decision>
-- Confirm the section exists and the requested state differs where applicable @ flow.PFlowSectionMove(...)
+- Confirm section editing is enabled, the section exists, and the requested position differs @ flow.PFlowSectionMove(...)
 ? "The request changes section state" > mutate
-? "The request is invalid or already satisfied" > unchanged
+? "The source is locked, or the request is invalid or already satisfied" > unchanged
 
 [mutate] Change section state <process>
 - Move the section to the requested list position and preserve its selection @ flow.PFlowSectionMove(...)

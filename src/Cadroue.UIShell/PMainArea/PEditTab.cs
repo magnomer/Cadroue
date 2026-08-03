@@ -25,19 +25,28 @@ public sealed class PEditTab : PTabSurface
     {
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += lPriority => LEdit.LEditDescribe(
-            lPriority,
-            pViewer.PViewerSourcePath,
-            pViewer.PViewerDurationRead(),
-            pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pInspector.PInspectorCropRead(),
-            pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
-            lExportSpecificState,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab);
+        pAction.PActionRun += lPriority =>
+        {
+            if (pList.PListUnlockedItemRead() is not { } pEditSelected)
+            {
+                return;
+            }
+
+            LEdit.LEditDescribe(
+                lPriority,
+                pEditSelected.PListItemPath,
+                pViewer.PViewerDurationRead(),
+                pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pInspector.PInspectorCropRead(),
+                pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
+                lExportSpecificState,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab,
+                pEditSelected.PListItemRelay);
+        };
 
         pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListItemsRead()
+            pList.PListUnlockedItemsRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
             lExportSpecificState,
@@ -45,7 +54,7 @@ public sealed class PEditTab : PTabSurface
             pAction.PActionSourceTab);
         pAction.PActionItemsAdd += pEditPaths => _ = LEdit.LEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListItemsRead()
+            pList.PListUnlockedItemsRead()
                 .Where(pItem => pEditPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
@@ -83,7 +92,11 @@ public sealed class PEditTab : PTabSurface
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, new PExport(lExportSpecificState, true) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        var pExport = new PExport(lExportSpecificState, true);
+        PTabLockAttach(pList, pProcessing, pInspector, pExport);
+        pList.PListCurrentLockChange += pLocked =>
+            pViewer.PCropToolSet(!pLocked && pInspector.PInspectorToolCheck());
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         if (lPreferenceTabLayout is null)
         {
             pInspector.PInspectorMinimizeSet(true);
@@ -135,7 +148,7 @@ public sealed class PEditTab : PTabSurface
             return;
         }
 
-        foreach (string pEditPath in pList.PListPathsRead())
+        foreach (string pEditPath in pList.PListUnlockedItemsRead().Select(pItem => pItem.PListItemPath))
         {
             LEdit.LEditPlanSave(pEditPath, LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath), pEditCarried));
         }
@@ -410,7 +423,9 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditPlanSave()
     {
-        if (pEditPlanLoading || pViewer.PViewerSourcePath is not { } pEditSourcePath)
+        if (pEditPlanLoading
+            || pViewer.PViewerSourcePath is not { } pEditSourcePath
+            || pList.PListPathLockedCheck(pEditSourcePath))
         {
             return;
         }

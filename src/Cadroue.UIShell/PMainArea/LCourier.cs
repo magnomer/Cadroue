@@ -18,6 +18,7 @@ public static class LCourier
     private static readonly Dictionary<Guid, Guid> lCourierTargets = new();
     private static readonly Dictionary<Guid, string> lCourierStageTitles = new();
     private static readonly HashSet<Guid> lCourierDelivered = new();
+    private static readonly HashSet<Guid> lCourierScheduledBatches = new();
     private static bool lCourierWatching;
     private static bool lCourierDispatching;
     private static bool lCourierDispatchPending;
@@ -30,6 +31,9 @@ public static class LCourier
         }
 
         lCourierWatching = true;
+        lCourierScheduledBatches.UnionWith(PProgram.LScheduleCurrent.LScheduleRecords
+            .Select(lCourierItem => lCourierItem.LWorkBatchId)
+            .Where(lCourierBatch => lCourierBatch != Guid.Empty));
         PProgram.LScheduleCurrent.LScheduleChange += LCourierScheduleHandle;
         LCourierDispatch(PProgram.LScheduleCurrent);
     }
@@ -99,7 +103,33 @@ public static class LCourier
                 $"Relay plan {lCourierPlan.LRelayPlanId:N} captured {lCourierPlan.LRelayStages.Count} stable stage(s)");
         }
 
-        return PProgram.LScheduleCurrent.LScheduleAdd(lCourierItems);
+        IReadOnlyList<LWorkItem> lCourierAccepted =
+            PProgram.LScheduleCurrent.LScheduleAcceptedAdd(lCourierItems);
+        LCourierSourceLock(lCourierAccepted, lCourierRelaySource);
+        return lCourierAccepted.Count;
+    }
+
+    private static void LCourierSourceLock(
+        IReadOnlyList<LWorkItem> lCourierAccepted,
+        Guid lCourierSourceTab)
+    {
+        if (lCourierAccepted.Count == 0
+            || LCourierTabFind(lCourierSourceTab)?.PTabWorkspace.PWorkspaceSurface.PTabList is not { } lCourierList)
+        {
+            return;
+        }
+
+        var lCourierLocks = new List<(string PListPath, Guid PListBatch)>();
+        foreach (LWorkItem lCourierItem in lCourierAccepted)
+        {
+            lCourierLocks.Add((lCourierItem.LWorkSourcePath, lCourierItem.LWorkBatchId));
+            foreach (string lCourierMergeSource in lCourierItem.LWorkMergeSources)
+            {
+                lCourierLocks.Add((lCourierMergeSource, lCourierItem.LWorkBatchId));
+            }
+        }
+
+        lCourierList.PListPathsLock(lCourierLocks.Distinct().ToArray());
     }
 
     internal static LRelayPlanRecord? LCourierPlanPrepare(Guid lCourierRelayTarget) =>
@@ -277,14 +307,74 @@ public static class LCourier
 
     private static void LCourierScheduleHandle(LScheduleContract lCourierSchedule)
     {
+        Guid[] lCourierLiveBatches = lCourierSchedule.LScheduleRecords
+            .Select(lCourierItem => lCourierItem.LWorkBatchId)
+            .Where(lCourierBatch => lCourierBatch != Guid.Empty)
+            .Distinct()
+            .ToArray();
+
         if (System.Windows.Application.Current?.Dispatcher is { } lCourierDispatcher
             && !lCourierDispatcher.CheckAccess())
         {
-            lCourierDispatcher.BeginInvoke(new Action(() => LCourierDispatch(lCourierSchedule)));
+            lCourierDispatcher.BeginInvoke(new Action(() =>
+                LCourierScheduleApply(lCourierSchedule, lCourierLiveBatches)));
             return;
         }
 
+        LCourierScheduleApply(lCourierSchedule, lCourierLiveBatches);
+    }
+
+    private static void LCourierScheduleApply(
+        LScheduleContract lCourierSchedule,
+        IReadOnlyCollection<Guid> lCourierLiveBatches)
+    {
+        LCourierRemovedBatchesClean(lCourierSchedule, lCourierLiveBatches);
         LCourierDispatch(lCourierSchedule);
+    }
+
+    private static void LCourierRemovedBatchesClean(
+        LScheduleContract lCourierSchedule,
+        IReadOnlyCollection<Guid> lCourierLiveBatches)
+    {
+        Guid[] lCourierRemovedBatches = lCourierScheduledBatches
+            .Where(lCourierBatch => !lCourierLiveBatches.Contains(lCourierBatch))
+            .ToArray();
+
+        lCourierScheduledBatches.Clear();
+        lCourierScheduledBatches.UnionWith(lCourierLiveBatches);
+        if (lCourierRemovedBatches.Length == 0 || LTabset.LTabsetCurrent is not { } lCourierTabset)
+        {
+            return;
+        }
+
+        var lCourierRemovedSet = lCourierRemovedBatches.ToHashSet();
+        foreach (PTabRecord lCourierTab in lCourierTabset.PTabsetRecords)
+        {
+            PTabSurface lCourierSurface = lCourierTab.PTabWorkspace.PWorkspaceSurface;
+            if (lCourierSurface.PTabList is not { } lCourierList)
+            {
+                continue;
+            }
+
+            string[] lCourierRemovedPaths = lCourierList.PListItemsRead()
+                .Where(lCourierItem => lCourierRemovedSet.Contains(lCourierItem.PListItemRelay))
+                .Select(lCourierItem => lCourierItem.PListItemPath)
+                .ToArray();
+            if (lCourierRemovedPaths.Length == 0)
+            {
+                continue;
+            }
+
+            lCourierList.PListPathsRemove(lCourierRemovedPaths);
+            lCourierSurface.PTabGroup?.PGroupPathsRemove(lCourierRemovedPaths);
+            LTraceLog.LTraceInfoRecord(
+                $"Relay removed {lCourierRemovedPaths.Length} file(s) from tab '{lCourierTab.PTabTitle}' after their batch left the worklist");
+        }
+
+        var lCourierLiveWork = lCourierSchedule.LScheduleRecords
+            .Select(lCourierItem => lCourierItem.LWorkId)
+            .ToHashSet();
+        lCourierDelivered.RemoveWhere(lCourierWorkId => !lCourierLiveWork.Contains(lCourierWorkId));
     }
 
     private static void LCourierDispatch(LScheduleContract lCourierSchedule)
@@ -433,8 +523,7 @@ public static class LCourier
     private static void LCourierSourceRemove(LWorkItem lWorkItem, bool lCourierForce)
     {
         if ((!lCourierForce && !LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty)
-            || lWorkItem.LWorkRelaySource == Guid.Empty
-            || LCourierTabFind(lWorkItem.LWorkRelaySource) is not { } pCourierSource)
+            || LCourierSourceTabFind(lWorkItem) is not { } pCourierSource)
         {
             return;
         }
@@ -458,6 +547,24 @@ public static class LCourier
             LTraceLog.LTraceInfoRecord(
                 $"Relay removed the delivered group from tab '{pCourierSource.PTabTitle}' after delivery");
         }
+    }
+
+    private static PTabRecord? LCourierSourceTabFind(LWorkItem lWorkItem)
+    {
+        Guid lCourierSourceTab = lWorkItem.LWorkRelaySource;
+        if (lCourierSourceTab == Guid.Empty)
+        {
+            return null;
+        }
+
+        if (LRelayPlanStore.LRelayPlanRead(lWorkItem.LWorkBatchId, out LRelayPlanRecord lCourierPlan)
+            && lCourierPlan.LRelayStages.FirstOrDefault(
+                lCourierStage => lCourierStage.LRelayStageId == lCourierSourceTab) is { } lCourierSourceStage)
+        {
+            lCourierSourceTab = lCourierSourceStage.LRelayOriginalTab;
+        }
+
+        return LCourierTabFind(lCourierSourceTab);
     }
 
     private static PTabRecord? LCourierTabFind(Guid lCourierTabId) =>
@@ -521,6 +628,12 @@ public static class LCourier
             }
             lCourierStage.LRelayPendingInputs.Clear();
             return;
+        }
+
+        if (LCourierTabFind(lCourierStage.LRelayOriginalTab)?
+            .PTabWorkspace.PWorkspaceSurface.PTabList is { } lCourierVisibleList)
+        {
+            lCourierVisibleList.PListPathsTrack(new[] { lCourierPath }, lCourierBatch);
         }
 
         if (string.Equals(lCourierStage.LRelayLayoutKey, "Merge", StringComparison.Ordinal)

@@ -49,6 +49,20 @@ public abstract class PTabSurface : UserControl
         };
     }
 
+    protected static void PTabLockAttach(PList pList, params UIElement[] pEditors)
+    {
+        void pLockApply(bool pLocked)
+        {
+            foreach (UIElement pEditor in pEditors)
+            {
+                pEditor.IsEnabled = !pLocked;
+            }
+        }
+
+        pList.PListCurrentLockChange += pLockApply;
+        pLockApply(pList.PListCurrentLockedCheck());
+    }
+
     protected Grid PTabGridBuild(
         IReadOnlyList<UIElement> pPanels,
         UIElement pCompass,

@@ -44,6 +44,8 @@ public sealed partial class PInspector
     private bool pInspectorCropPresent;
 
     public event Action<bool>? PInspectorToolChange;
+
+    public bool PInspectorToolCheck() => pInspectorCropTool.IsChecked == true;
     public event Action<Size?>? PInspectorRatioChange;
     public event Action<Rect?>? PInspectorCropChange;
     public event Action<LRotateFlip>? PInspectorRotateChange;

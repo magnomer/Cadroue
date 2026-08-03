@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.edit-current-lock-change
+@title Edit source lock change
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pList|PListCurrentLockChange|1
+@entry input
+@summary Keep the interactive crop overlay unavailable while the current Edit source is locked.
+@tag source lock
+@tag PEditTab
+@alias tab = Cadroue.UIShell.PMainArea.PEditTab
+@alias inspector = Cadroue.UIShell.PPanels.PInspector
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+
+[input] Current Edit source lock changes <input>
+- Receive the current list item's locked state through the constructor registration @ tab.PEditTab
+> apply
+
+[apply] Synchronize crop tool <process>
+- Read whether the inspector crop tool is selected @ inspector.PInspectorToolCheck
+- Enable the viewer crop tool only when the source is unlocked and the inspector tool is selected @ viewer.PCropToolSet
+> output
+
+[output] Crop overlay synchronized <output>
+= A submitted Edit source cannot be changed through the viewer crop overlay.
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pList|PListCurrentLockChange|1

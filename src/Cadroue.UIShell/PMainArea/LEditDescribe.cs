@@ -25,7 +25,8 @@ public static partial class LEdit
         LWorkVideo lEditVideo,
         LPreset lExportSpecificState,
         Guid lEditRelayTarget = default,
-        Guid lEditRelaySource = default)
+        Guid lEditRelaySource = default,
+        Guid lEditBatchId = default)
     {
         LEditWorkDescription lEditWorkDescription = new(
             lEditSourcePath,
@@ -40,7 +41,8 @@ public static partial class LEdit
             lEditWorkDescription,
             lEditTab,
             lEditMessage => LTraceLog.LTraceInfoRecord(lEditMessage),
-            lEditMessage => LTraceLog.LTraceErrorRecord(lEditMessage));
+            lEditMessage => LTraceLog.LTraceErrorRecord(lEditMessage),
+            lEditBatchId);
         if (lEditWorkItems.Count == 0)
         {
             return 0;

@@ -31,6 +31,11 @@ public interface LScheduleContract
         Guid lScheduleRelayTarget = default,
         Guid lScheduleRelaySource = default);
 
+    IReadOnlyList<LWorkItem> LScheduleAcceptedAdd(
+        IReadOnlyList<LWorkItem> lWorkItems,
+        Guid lScheduleRelayTarget = default,
+        Guid lScheduleRelaySource = default);
+
     Guid LScheduleLineageRead(LWorkItem lWorkItem);
 
     void LScheduleCommit(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage);

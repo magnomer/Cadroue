@@ -13,4 +13,6 @@ public sealed class PListItem
     public Guid PListItemRelay { get; set; }
 
     public bool PListItemDelivered { get; set; }
+
+    public bool PListItemLocked { get; set; }
 }

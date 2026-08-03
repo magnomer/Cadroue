@@ -3,7 +3,7 @@
 @title Remove selected files
 @area UI workflow
 @entry input
-@summary Remove selected paths, repair current-row state, and notify tab lifecycle handlers when loaded media was removed.
+@summary Remove selected unlocked paths, repair current-row state, and notify tab lifecycle handlers when loaded media was removed.
 @section I. UI
 @tabs Split, Edit, Convert, Audio, Merge, Funnel
 @flow TB
@@ -16,9 +16,9 @@
 > selection
 
 [selection] Read selection <decision>
-- Read selected paths or fall back to the current row @ list.PListRemove(...)
-? "Nothing is selected" > unchanged
-? "Paths are selected" > remove
+- Read selected paths or fall back to the current row, then exclude rows already locked by accepted work @ list.PListRemove(...)
+? "No unlocked path is selected" > unchanged
+? "Unlocked paths are selected" > remove
 
 [remove] Remove rows <process>
 - Remove matching list items and rebuild visible rows @ list.PListPathsRemove(...)
@@ -30,4 +30,4 @@
 = Selected paths no longer participate; removing the loaded path also force-closes Preview and clears the tab flow.
 
 [unchanged] List unchanged <output>
-= No row is removed.
+= No row is removed; locked submitted rows remain until the list is cleared.

@@ -19,9 +19,10 @@
 - Handle list drag @ owner.PListDragHandle
 - Check list selection @ owner.PListSelectionCheck
 - Read list selection @ owner.PListSelectionRead
+- Remove locked submitted paths from a multi-row drag and cancel when none remain @ owner.PListPathLockedCheck
 - Evaluate the handler's implemented conditional branches @ owner.PListDragHandle
 > output
 
 [output] UI state after the event <output>
-= The mouse move event has completed through the current implementation.
+= A drag contains only unlocked paths; a locked-only selection produces no drag operation.
 ! Code binding: cs|PPanels/PList.cs|PListRowBuild|pRowBorder|MouseMove|1

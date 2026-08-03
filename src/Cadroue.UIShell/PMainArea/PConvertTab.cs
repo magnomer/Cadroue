@@ -17,7 +17,7 @@ public sealed class PConvertTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority => _ = LConvert.LConvertDescribe(
             lPriority,
-            pList.PListItemRead() is { } pConvertSelected
+            pList.PListUnlockedItemRead() is { } pConvertSelected
                 ? new[] { new LWorkSource(pConvertSelected.PListItemPath, pConvertSelected.PListItemRelay) }
                 : Array.Empty<LWorkSource>(),
             lExportSpecificState,
@@ -25,7 +25,7 @@ public sealed class PConvertTab : PTabSurface
             pAction.PActionSourceTab);
         pAction.PActionAllAdd += () => _ = LConvert.LConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListItemsRead()
+            pList.PListUnlockedItemsRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
             lExportSpecificState,
@@ -33,7 +33,7 @@ public sealed class PConvertTab : PTabSurface
             pAction.PActionSourceTab);
         pAction.PActionItemsAdd += pConvertPaths => _ = LConvert.LConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListItemsRead()
+            pList.PListUnlockedItemsRead()
                 .Where(pItem => pConvertPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
@@ -43,7 +43,9 @@ public sealed class PConvertTab : PTabSurface
         pList.PListPathChange += PConvertPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        var pExport = new PExport(lExportSpecificState);
+        PTabLockAttach(pList, pExport);
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
     }
 

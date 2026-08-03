@@ -16,18 +16,26 @@ public sealed class PSplitTab : PTabSurface
     {
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += lPriority => LSplit.LSplitDescribe(
-            lPriority,
-            pViewer.PViewerSourcePath,
-            pSection.PSectionSplitRead(),
-            lExportSpecificState,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab,
-            default,
-            LCourier.LCourierPlanPrepare(pAction.PActionRelayTarget));
+        pAction.PActionRun += lPriority =>
+        {
+            if (pList.PListUnlockedItemRead() is not { } pSplitSelected)
+            {
+                return;
+            }
+
+            LSplit.LSplitDescribe(
+                lPriority,
+                pSplitSelected.PListItemPath,
+                pSection.PSectionSplitRead(),
+                lExportSpecificState,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab,
+                pSplitSelected.PListItemRelay,
+                LCourier.LCourierPlanPrepare(pAction.PActionRelayTarget));
+        };
         pAction.PActionAllAdd += () => _ = LSplit.LSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListItemsRead()
+            pList.PListUnlockedItemsRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
             lExportSpecificState,
@@ -36,7 +44,7 @@ public sealed class PSplitTab : PTabSurface
             LCourier.LCourierPlanPrepare(pAction.PActionRelayTarget));
         pAction.PActionItemsAdd += pSplitPaths => _ = LSplit.LSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListItemsRead()
+            pList.PListUnlockedItemsRead()
                 .Where(pItem => pSplitPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
@@ -50,7 +58,11 @@ public sealed class PSplitTab : PTabSurface
         pList.PListPathChange += PSplitPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pSection, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow, true), pAction, pFlow, lPreferenceTabLayout);
+        var pExport = new PExport(lExportSpecificState);
+        PTabLockAttach(pList, pSection, pExport);
+        pList.PListCurrentLockChange += pLocked => pFlow.PFlowSectionEditSet(!pLocked);
+        pFlow.PFlowSectionEditSet(!pList.PListCurrentLockedCheck());
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pSection, pViewer, pExport }, new PCompass(pFlow, true), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
     }
 

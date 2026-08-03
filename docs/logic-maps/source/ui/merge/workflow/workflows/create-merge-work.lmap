@@ -3,7 +3,7 @@
 @title Create merge work
 @area UI workflow
 @entry input
-@summary Convert the Merge tab's current groups into durable work while preserving output, tab, and relay lineage.
+@summary Convert the Merge tab's unlocked group members into durable work while preserving output, tab, batch, and relay lineage.
 @section I. UI
 @tabs Merge
 @flow TB
@@ -11,10 +11,13 @@
 
 @alias ui = Cadroue.UIShell.PMainArea.LMerge
 @alias merge = Cadroue.Application.LMerge
-@alias schedule = Cadroue.Infrastructure.LSchedule
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
+@alias tab = Cadroue.UIShell.PMainArea.PMergeTab
 
 [input] Merge tab requests work <input>
 - Receive priority, ordered groups, output preset, tab identity, and relay routing @ ui.LMergeDescribe(...)
+- Exclude locked paths and discard groups left empty by that filtering @ tab.PMergeGroupsRead(...)
+- Read relay batches only for unlocked sources @ tab.PMergeRelaysRead(...)
 > build
 
 [build] Build group work <decision>
@@ -23,12 +26,12 @@
 ? "One or more groups produce work" > persist
 
 [persist] Add durable work <storage>
-- Add every merge item with relay target and source lineage @ schedule.LScheduleAdd(...)
+- Add every merge item with relay target and source lineage, then lock all accepted source and Merge-source paths by batch @ courier.LCourierScheduleAdd(...)
 - Record the number of queued groups @ ui.LMergeDescribe(...)
 > result
 
 [result] Merge groups queued <output>
-= Each surviving group appears as one pending merge job with its order preserved.
+= Each surviving group appears as one pending merge job with its order preserved, and its accepted members are locked.
 
 [rejected] Nothing queued <error>
 = No merge work record is added.

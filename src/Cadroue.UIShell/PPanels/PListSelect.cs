@@ -36,15 +36,18 @@ public sealed partial class PList
         pListPathCurrent = pCurrentPath;
         PListSelectionUpdate();
         PListPathChange?.Invoke(pListPathCurrent);
+        PListCurrentLockChange?.Invoke(PListCurrentLockedCheck());
     }
 
     private void PListSelectionUpdate()
     {
-        foreach (UIElement pRow in pListRowPanel.Children)
+        foreach ((string pRowPath, Border pRowBorder) in pListRows)
         {
-            if (pRow is Border { Tag: string pRowPath } pRowBorder)
+            PListItem? pListItem = pListItems.FirstOrDefault(pCandidate => string.Equals(
+                pCandidate.PListItemPath, pRowPath, StringComparison.OrdinalIgnoreCase));
+            if (pListItem is not null)
             {
-                pRowBorder.Background = PListSelectionCheck(pRowPath) ? pListSelectBrush : Brushes.White;
+                pRowBorder.Background = PListRowBackgroundRead(pListItem);
             }
         }
     }

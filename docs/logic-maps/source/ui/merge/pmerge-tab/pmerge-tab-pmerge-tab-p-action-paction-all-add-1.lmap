@@ -16,8 +16,8 @@
 > route
 
 [route] Registered handler path <process>
-- Invoke the registered owner handler @ owner.PMergeGroupsRead
-- Continue through the owner callback @ owner.PMergeRelaysRead
+- Remove locked paths and groups left empty by that filtering @ owner.PMergeGroupsRead
+- Read relay batches only for unlocked list members @ owner.PMergeRelaysRead
 ! Registered call path: LMerge.LMergeDescribe → PMergeGroupsRead → PMergeRelaysRead
 > output
 

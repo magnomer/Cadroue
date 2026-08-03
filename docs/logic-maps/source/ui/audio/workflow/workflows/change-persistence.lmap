@@ -22,15 +22,15 @@
 ? "No persistent plan is selected" > unchanged
 ? "A persistent plan is available" > propagate
 
-[propagate] Save carried plan for listed sources <storage>
+[propagate] Save carried plan for unlocked sources <storage>
 - Read the selected persistent processing steps and Skip state @ inspector.PInspectorPersistentRead(...)
 - Read and merge each source's existing audio plan @ audio.LAudioPlanRead(...)
 @ audio.LAudioPlanResolve(...)
-- Save the merged plan for every listed source @ audio.LAudioPlanSave(...)
+- Save the merged plan for every unlocked listed source @ audio.LAudioPlanSave(...)
 > result
 
 [result] Persistent audio state propagated <output>
-= Each listed source receives the selected persistent parts of the current Audio plan.
+= Each unlocked listed source receives the selected persistent parts of the current Audio plan; submitted locked sources retain their queued state.
 
 [unchanged] Propagation suppressed <output>
 = Existing source plans remain unchanged.

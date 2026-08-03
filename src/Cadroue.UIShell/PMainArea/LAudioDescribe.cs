@@ -12,14 +12,16 @@ public static partial class LAudio
         LWorkAudio lAudioProcessing,
         LPreset lExportSpecificState,
         Guid lAudioRelayTarget = default,
-        Guid lAudioRelaySource = default)
+        Guid lAudioRelaySource = default,
+        Guid lAudioBatchId = default)
     {
         LEncoding lAudioOutput = lExportSpecificState.LPresetOutputCreate();
         string lAudioTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
         LWorkItem? lAudioItem = Cadroue.Application.LAudio.LAudioItemCreate(
             lWorkPriority, lAudioSourcePath, lAudioProcessing, lAudioOutput, lAudioTab,
             lAudioMessage => LTraceLog.LTraceInfoRecord(lAudioMessage),
-            lAudioMessage => LTraceLog.LTraceErrorRecord(lAudioMessage));
+            lAudioMessage => LTraceLog.LTraceErrorRecord(lAudioMessage),
+            lAudioBatchId);
         if (lAudioItem is null)
         {
             return 0;

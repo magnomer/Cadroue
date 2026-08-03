@@ -18,9 +18,9 @@
 > guard
 
 [guard] Check effective change <decision>
-- Confirm the section exists and the requested state differs where applicable @ flow.PFlowSectionToggle(...)
+- Confirm section editing is enabled, the section exists, and the requested state differs where applicable @ flow.PFlowSectionToggle(...)
 ? "The request changes section state" > mutate
-? "The request is invalid or already satisfied" > unchanged
+? "The source is locked, or the request is invalid or already satisfied" > unchanged
 
 [mutate] Change section state <process>
 - Invert the section's hidden state and record the change @ flow.PFlowSectionToggle(...)

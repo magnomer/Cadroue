@@ -17,7 +17,7 @@
 > guard
 
 [guard] Check save target <decision>
-- Confirm plan restoration is not in progress and an active source exists @ tab.PAudioPlanSave(...)
+- Confirm plan restoration is not in progress, an active source exists, and that source is not locked by accepted work @ tab.PAudioPlanSave(...)
 ? "No writable active plan exists" > unchanged
 ? "Current plan can be saved" > persist
 
@@ -30,4 +30,4 @@
 = The active source sidecar contains the current audio plan.
 
 [unchanged] Save suppressed <output>
-= No sidecar write occurs during restoration or without an active source.
+= No sidecar write occurs during restoration, without an active source, or after that source has been submitted.

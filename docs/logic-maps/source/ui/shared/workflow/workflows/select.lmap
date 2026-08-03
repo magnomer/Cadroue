@@ -22,5 +22,5 @@
 > current
 
 [current] Publish current path <output>
-- Set the current path and publish the list path-change event @ list.PListCurrentApply(...)
+- Set the current path, publish the list path-change event, and publish whether the current row is locked @ list.PListCurrentApply(...)
 > map:preview.open-media

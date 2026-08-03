@@ -3,7 +3,7 @@
 @title Create audio work from saved plans
 @area UI workflow
 @entry input
-@summary Create audio jobs only for listed sources with active saved sidecar plans while retaining relay batches.
+@summary Create audio jobs only for unlocked listed sources with active saved sidecar plans, retain relay batches, and lock accepted sources.
 @section I. UI
 @tabs Audio
 @flow TB
@@ -11,10 +11,10 @@
 
 @alias ui = Cadroue.UIShell.PMainArea.LAudio
 @alias audio = Cadroue.Application.LAudio
-@alias schedule = Cadroue.Infrastructure.LSchedule
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
 
 [input] Add All audio request <input>
-- Receive listed sources, priority, preset, and relay routing @ ui.LAudioAllDescribe(...)
+- Receive unlocked listed sources, priority, preset, and relay routing @ ui.LAudioAllDescribe(...)
 > plans
 
 [plans] Select active plans <decision>
@@ -25,11 +25,11 @@
 
 [build] Build and persist jobs <storage>
 - Create an audio item per active plan and retain or assign its relay batch @ audio.LAudioItemCreate(...)
-- Add all built items with relay lineage @ schedule.LScheduleAdd(...)
+- Add all built items with relay lineage and lock only accepted sources @ courier.LCourierScheduleAdd(...)
 > result
 
 [result] Saved audio plans queued <output>
-= Listed sources with active saved plans become pending audio work.
+= Unlocked listed sources with active saved plans become pending audio work and are locked against resubmission.
 
 [rejected] Nothing queued <output>
 = Sources without active audio plans remain unchanged.

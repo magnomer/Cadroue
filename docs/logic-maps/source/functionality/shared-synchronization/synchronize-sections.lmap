@@ -14,7 +14,7 @@
 > persist
 
 [persist] Attempt keyframe and section persistence <process>
-- Skip saving while restoring a sidecar or without a source @ flow.PFlowSidecarSave(...)
+- Skip saving while section editing is locked, while restoring a sidecar, or without a source @ flow.PFlowSidecarSave(...)
 - Request persistence of keyframes, scanned spans, and sections; waveform data is not saved here @ flow.PFlowSidecarSave(...)
 - Try the source sidecar, then fall back to the keyframe cache when the sidecar refuses it @ key.LKeyframeSidecarSave(...)
 > result

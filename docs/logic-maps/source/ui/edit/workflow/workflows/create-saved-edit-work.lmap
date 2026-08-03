@@ -3,7 +3,7 @@
 @title Create edit work from saved plans
 @area UI workflow
 @entry input
-@summary Create one edit item for each listed source whose sidecar contains an active saved plan, then repair unknown durations.
+@summary Create one edit item for each unlocked listed source whose sidecar contains an active saved plan, lock accepted sources, then repair unknown durations.
 @section I. UI
 @tabs Edit
 @flow TB
@@ -12,10 +12,11 @@
 @alias ui = Cadroue.UIShell.PMainArea.LEdit
 @alias edit = Cadroue.Application.LEdit
 @alias schedule = Cadroue.Infrastructure.LSchedule
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
 @alias sidecar = Cadroue.Media.LSidecarStore
 
 [input] Add All edit request <input>
-- Receive priority, listed sources, output preset, and relay routing @ ui.LEditAllDescribe(...)
+- Receive priority, unlocked listed sources, output preset, and relay routing @ ui.LEditAllDescribe(...)
 > plans
 
 [plans] Read saved plans <decision>
@@ -26,7 +27,7 @@
 
 [build] Build and persist items <storage>
 - Create one work item per active plan, preserving or assigning its source batch @ edit.LEditWorkCreate(...)
-- Apply the source-tab title and add relay lineage to the schedule @ schedule.LScheduleAdd(...)
+- Apply the source-tab title, add relay lineage to the schedule, and lock only accepted sources @ courier.LCourierScheduleAdd(...)
 > duration
 
 [duration] Resolve missing durations <process>
@@ -35,7 +36,7 @@
 > result
 
 [result] Saved edit plans queued <output>
-= Every listed source with an active saved plan becomes pending edit work.
+= Every unlocked listed source with an active saved plan becomes pending edit work and is locked against resubmission.
 
 [rejected] Nothing queued <output>
 = Sources without active saved plans are left untouched.

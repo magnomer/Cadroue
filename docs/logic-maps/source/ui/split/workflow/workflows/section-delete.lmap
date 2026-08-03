@@ -18,10 +18,11 @@
 > guard
 
 [guard] Confirm deletion <decision>
+- Refuse deletion when the active source is locked by accepted work @ flow.PFlowSectionDelete(...)
 - Confirm that a section is selected @ flow.PFlowSectionDelete(...)
 - Request destructive-action confirmation when configured @ flow.PFlowDestructiveConfirm(...)
 ? "Deletion is confirmed" > remove
-? "No selection or confirmation declined" > unchanged
+? "Source locked, no selection, or confirmation declined" > unchanged
 
 [remove] Remove section <process>
 - Record the section deletion @ flow.PFlowSectionRecord(...)

@@ -13,6 +13,11 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow
 {
+    private bool pFlowSectionEditEnabled = true;
+
+    public void PFlowSectionEditSet(bool pFlowSectionEdit) =>
+        pFlowSectionEditEnabled = pFlowSectionEdit;
+
     private void PFlowSectionApply(List<LSegment> pFlowSections, int? pFlowActive)
     {
         lSectionList.Clear();
@@ -22,6 +27,7 @@ public sealed partial class PFlow
 
     private void PFlowSectionAdd()
     {
+        if (!pFlowSectionEditEnabled) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
         if (LSegment.LSegmentAdd(lSectionList, lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed)
             is not { } pFlowPlan) return;
@@ -32,6 +38,7 @@ public sealed partial class PFlow
 
     private void PFlowStartSet()
     {
+        if (!pFlowSectionEditEnabled) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
         bool pFlowAdded = lSectionIndexActive is null
             || lSectionList[lSectionIndexActive.Value].LSegmentEnd < lCursor;
@@ -44,6 +51,7 @@ public sealed partial class PFlow
 
     private void PFlowSectionDivide()
     {
+        if (!pFlowSectionEditEnabled) return;
         if (LSegment.LSegmentDivide(lSectionList, lSectionIndexActive, lCursor, PFlowColorRead())
             is not { } pFlowPlan) return;
         PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.First);
@@ -54,6 +62,7 @@ public sealed partial class PFlow
 
     private void PFlowEndSet()
     {
+        if (!pFlowSectionEditEnabled) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
         bool pFlowAdded = lSectionIndexActive is null;
         if (LSegment.LSegmentEndSet(lSectionList, lSectionIndexActive, lCursor, PFlowColorRead(), PFlowOverlapAllowed)
@@ -65,6 +74,7 @@ public sealed partial class PFlow
 
     public void PFlowSectionDelete()
     {
+        if (!pFlowSectionEditEnabled) return;
         if (lSectionIndexActive is null) return;
         if (!PFlowDestructiveConfirm(LLocalization.LLocalizationTextRead("Flow.Section.DeleteConfirm"))) return;
         int index = lSectionIndexActive.Value;
@@ -105,7 +115,7 @@ public sealed partial class PFlow
 
     private void PFlowSidecarSave()
     {
-        if (pFlowSidecarRestoring || lSourcePath is null)
+        if (!pFlowSectionEditEnabled || pFlowSidecarRestoring || lSourcePath is null)
         {
             return;
         }
@@ -147,7 +157,7 @@ public sealed partial class PFlow
 
     public void PFlowSectionToggle(int pSectionIndex)
     {
-        if (pSectionIndex < 0 || pSectionIndex >= lSectionList.Count)
+        if (!pFlowSectionEditEnabled || pSectionIndex < 0 || pSectionIndex >= lSectionList.Count)
         {
             return;
         }
@@ -212,7 +222,7 @@ public sealed partial class PFlow
 
     public void PFlowSectionsSet(IReadOnlyList<LSegment> lSections, int? lSectionSelect)
     {
-        if (lSpool is null)
+        if ((!pFlowSectionEditEnabled && !pFlowSidecarRestoring) || lSpool is null)
         {
             return;
         }
@@ -234,7 +244,7 @@ public sealed partial class PFlow
 
     public bool PFlowSectionMove(int pSectionSource, int pSectionTarget)
     {
-        if (pSectionSource < 0 || pSectionSource >= lSectionList.Count)
+        if (!pFlowSectionEditEnabled || pSectionSource < 0 || pSectionSource >= lSectionList.Count)
         {
             return false;
         }
@@ -263,7 +273,7 @@ public sealed partial class PFlow
 
     public bool PFlowSectionSort()
     {
-        if (lSectionList.Count < 2)
+        if (!pFlowSectionEditEnabled || lSectionList.Count < 2)
         {
             return false;
         }
@@ -300,7 +310,7 @@ public sealed partial class PFlow
 
     public void PFlowNameSet(int pSectionIndex, string pSectionName, string? pSectionPrefix, string? pSectionSuffix)
     {
-        if (pSectionIndex < 0 || pSectionIndex >= lSectionList.Count) return;
+        if (!pFlowSectionEditEnabled || pSectionIndex < 0 || pSectionIndex >= lSectionList.Count) return;
 
         LSegment pSectionEntry = lSectionList[pSectionIndex];
         string pSectionPrefixNew = pSectionPrefix ?? pSectionEntry.LSegmentPrefix;

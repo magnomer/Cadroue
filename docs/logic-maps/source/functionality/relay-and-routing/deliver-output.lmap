@@ -76,7 +76,8 @@
 ? "Destination rejected the path" > retry
 
 [drain] Should source inputs be removed? <decision>
-- Apply the force flag, relay-empty preference, source-tab identity, and source-tab availability checks @ courier.LCourierSourceRemove(...)
+- Apply the force flag and relay-empty preference, then resolve a stable plan-stage source back to its original live tab when available @ courier.LCourierSourceTabFind(...)
+@ courier.LCourierSourceRemove(...)
 ? "Source removal is disabled or impossible" > arrive
 ? "Source removal proceeds" > remove
 

@@ -135,15 +135,21 @@ public sealed partial class LSchedule : LScheduleContract
     public int LScheduleAdd(
         IReadOnlyList<LWorkItem> lWorkItems,
         Guid lScheduleRelayTarget = default,
+        Guid lScheduleRelaySource = default) =>
+        LScheduleAcceptedAdd(lWorkItems, lScheduleRelayTarget, lScheduleRelaySource).Count;
+
+    public IReadOnlyList<LWorkItem> LScheduleAcceptedAdd(
+        IReadOnlyList<LWorkItem> lWorkItems,
+        Guid lScheduleRelayTarget = default,
         Guid lScheduleRelaySource = default)
     {
         if (lWorkItems.Count == 0)
         {
-            return 0;
+            return Array.Empty<LWorkItem>();
         }
 
         LDepotIndex.LDepotIndexCreate();
-        int lScheduleAddedCount = 0;
+        var lScheduleAccepted = new List<LWorkItem>(lWorkItems.Count);
         foreach (LWorkItem lWorkItem in lWorkItems)
         {
             if (lScheduleRelayTarget != Guid.Empty)
@@ -169,17 +175,17 @@ public sealed partial class LSchedule : LScheduleContract
                 continue;
             }
 
-            lScheduleAddedCount++;
+            lScheduleAccepted.Add(lWorkItem);
             lScheduleItems.Add(lWorkItem);
         }
 
-        if (lScheduleAddedCount > 0)
+        if (lScheduleAccepted.Count > 0)
         {
-            LTraceLog.LTraceInfoRecord($"Schedule: added {lScheduleAddedCount} work item(s)");
+            LTraceLog.LTraceInfoRecord($"Schedule: added {lScheduleAccepted.Count} work item(s)");
             LScheduleChange?.Invoke(this);
         }
 
-        return lScheduleAddedCount;
+        return lScheduleAccepted;
     }
 
     public Guid LScheduleLineageRead(LWorkItem lWorkItem) =>

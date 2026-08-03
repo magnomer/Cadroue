@@ -3,7 +3,7 @@
 @title Create split work
 @area UI workflow
 @entry input
-@summary Convert visible Split sections into one pending work item per enabled valid section.
+@summary Convert visible Split sections for unlocked sources into pending work, then lock each source whose records were accepted.
 @section I. UI
 @tabs Split
 @flow TB
@@ -12,11 +12,11 @@
 @tag create-split-work
 
 @alias splitUi = Cadroue.UIShell.PMainArea.LSplit
-@alias schedule = Cadroue.Infrastructure.LSchedule
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
 @alias split = Cadroue.Application.LSplit
 
 [input] Queue command <input>
-- Receive a queue request and capture its priority, sources, output preset, tab, and relay routing @ splitUi.LSplitDescribe(...)
+- Receive a queue request and capture its priority, unlocked sources, source batch IDs, output preset, tab, and relay routing @ splitUi.LSplitDescribe(...)
 > build
 
 [build] Build work descriptions <decision>
@@ -28,11 +28,12 @@
 ? "No valid work item can be built" > rejected
 
 [persist] Add work to schedule <storage>
-- Assign relay routing and lineage and persist every work record @ schedule.LScheduleAdd(...)
+- Assign relay routing and lineage, persist every work record, and lock only sources represented by accepted items @ courier.LCourierScheduleAdd(...)
 > result
 
 [result] Work queued <output>
 = Successfully persisted work appears as pending in the shared worklist.
+= Its source sections and editing controls are locked until the list is cleared.
 
 [rejected] Queue request rejected <error>
 = No work record is added.

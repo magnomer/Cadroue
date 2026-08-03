@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.ptab-lock-current-change
+@title Current source lock change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PMainArea/PTabSurface.cs|PTabLockAttach|pList|PListCurrentLockChange|1
+@entry input
+@summary Disable each tab's mutable editor surfaces while its current source is locked by accepted work.
+@tag source lock
+@tag PTabSurface
+@alias surface = Cadroue.UIShell.PMainArea.PTabSurface
+
+[input] Current-row lock state changes <input>
+- Receive the current source's locked state from the tab list @ surface.PTabLockAttach
+> apply
+
+[apply] Synchronize editor availability <process>
+- Disable every attached processing, inspector, group, section, and export surface when locked; enable them when unlocked @ surface.PTabLockAttach
+> output
+
+[output] Editor state synchronized <output>
+= The active tab cannot mutate settings that belong to a submitted source, while Preview and list navigation remain available.
+! Code binding: cs|PMainArea/PTabSurface.cs|PTabLockAttach|pList|PListCurrentLockChange|1

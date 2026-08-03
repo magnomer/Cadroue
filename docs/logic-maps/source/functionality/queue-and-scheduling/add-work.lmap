@@ -3,7 +3,7 @@
 @title Add work to schedule
 @area 4. Queue and scheduling
 @entry input
-@summary Persist built work records as pending items, assign routing and lineage, and notify schedule observers.
+@summary Persist built work records as pending items, return the accepted subset, lock its source cohort, and notify schedule observers.
 @section II. Functionality
 @flow TB
 @related queue.claim-work
@@ -15,6 +15,7 @@
 @alias courier = Cadroue.UIShell.PMainArea.LCourier
 @alias plan = Cadroue.UIShell.PMainArea.LRelayPlan
 @alias planstore = Cadroue.UIShell.PMainArea.LRelayPlanStore
+@alias list = Cadroue.UIShell.PPanels.PList
 
 [input] Built work items arrive <input>
 - Receive work items with optional relay source and target identifiers @ courier.LCourierScheduleAdd(...)
@@ -55,9 +56,9 @@
 > prepare
 
 [prepare] Prepare each record <process>
-- Preserve relay identities already assigned by the courier; only non-empty direct arguments override them @ schedule.LScheduleAdd(...)
-- Resolve lineage when it has not already been assigned @ schedule.LScheduleAdd(...)
-- Convert the work item to its persistent record @ schedule.LScheduleAdd(...)
+- Preserve relay identities already assigned by the courier; only non-empty direct arguments override them @ schedule.LScheduleAcceptedAdd(...)
+- Resolve lineage when it has not already been assigned @ schedule.LScheduleAcceptedAdd(...)
+- Convert the work item to its persistent record @ schedule.LScheduleAcceptedAdd(...)
 > save
 
 [save] Persist pending work <decision>
@@ -66,13 +67,22 @@
 ? "Record save fails" > skipped
 
 [collect] Publish pending item <process>
-- Add the item to the observable in-memory schedule @ schedule.LScheduleAdd(...)
+- Add the item to the accepted subset and observable in-memory schedule @ schedule.LScheduleAcceptedAdd(...)
 > result
 
 [skipped] Skip unsaved item <error>
-- Record that the item could not be filed @ schedule.LScheduleAdd(...)
+- Record that the item could not be filed and omit it from the accepted subset @ schedule.LScheduleAcceptedAdd(...)
 = The unsaved item is absent from the schedule.
 
-[result] Schedule changed <output>
-- Notify schedule observers when at least one item was added @ schedule.LScheduleAdd(...)
+[result] Schedule changed <process>
+- Notify schedule observers and return the accepted items when at least one record was added @ schedule.LScheduleAcceptedAdd(...)
+> lock
+
+[lock] Lock accepted source cohort <process>
+- Collect each accepted item's source and Merge sources with its work batch ID @ courier.LCourierSourceLock(...)
+- Mark matching source-list items locked, retain the batch as their relay cohort, rebuild grouped rows, and publish current-lock state @ list.PListPathsLock(...)
+> locked
+
+[locked] Accepted work is protected <output>
 = Every successfully saved item is visible and claimable as pending work.
+= Its matching live source rows are grouped by submitted batch and cannot be submitted or edited again until the list is cleared.

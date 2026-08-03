@@ -26,7 +26,9 @@ public sealed class PMergeTab : PTabSurface
             pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
-        pGroup.PGroupSourceFiles = () => pList.PListPathsRead();
+        pGroup.PGroupSourceFiles = () => pList.PListUnlockedItemsRead()
+            .Select(pItem => pItem.PListItemPath)
+            .ToArray();
         pGroup.PGroupFileRequest = pDropPaths =>
         {
             pList.PListPathsAdd(pDropPaths);
@@ -35,7 +37,9 @@ public sealed class PMergeTab : PTabSurface
         pList.PListItemsAdd += PMergeItemsHandle;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, new PExport(lExportSpecificState) }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        var pExport = new PExport(lExportSpecificState);
+        PTabLockAttach(pList, pGroup, pExport);
+        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
         pGroup.PGroupModeRestore(
             lPreferenceTabLayout?.LSceneGroupAuto ?? false,
@@ -45,7 +49,7 @@ public sealed class PMergeTab : PTabSurface
     private IReadOnlyDictionary<string, Guid> PMergeRelaysRead()
     {
         var pMergeRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-        foreach (PListItem pItem in pList.PListItemsRead())
+        foreach (PListItem pItem in pList.PListUnlockedItemsRead())
         {
             pMergeRelays[pItem.PListItemPath] = pItem.PListItemRelay;
         }
@@ -56,7 +60,11 @@ public sealed class PMergeTab : PTabSurface
     private IReadOnlyList<LWorkGroup> PMergeGroupsRead() =>
         pGroup.PGroupGroupsRead()
             .Select(pGroupSelection => new LWorkGroup(
-                pGroupSelection.PGroupSelectionName, pGroupSelection.PGroupSelectionPaths))
+                pGroupSelection.PGroupSelectionName,
+                pGroupSelection.PGroupSelectionPaths
+                    .Where(pPath => !pList.PListPathLockedCheck(pPath))
+                    .ToArray()))
+            .Where(pGroupSelection => pGroupSelection.LWorkGroupPaths.Count > 0)
             .ToArray();
 
     private void PMergeItemsHandle(IReadOnlyList<PListItem> pAddedItems)

@@ -10,14 +10,16 @@
 @tag run
 @tag PConvertTab
 @alias owner = Cadroue.UIShell.PMainArea.PConvertTab
+@alias list = Cadroue.UIShell.PPanels.PList
 
 [input] UI event <input>
 - Receive the run event from Action through its current registration @ owner.PConvertTab
 > route
 
 [route] Registered handler path <process>
-- Invoke the registered owner handler @ owner.LWorkSource
-! Registered call path: LConvert.LConvertDescribe → pList.PListItemRead → LWorkSource
+- Read the current item only if it is unlocked and preserve its relay batch @ list.PListUnlockedItemRead
+- Submit that source through the registered delegate @ owner.PConvertTab
+! Registered call path: LConvert.LConvertDescribe → pList.PListUnlockedItemRead → LWorkSource
 > output
 
 [output] UI state after the event <output>

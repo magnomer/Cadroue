@@ -22,10 +22,11 @@
 - Check list selection @ owner.PListSelectionCheck
 - Apply list current @ owner.PListCurrentApply
 - Apply list select @ owner.PListSelectApply
+- Arm mouse capture and drag tracking only when the pressed row is unlocked @ owner.PListRowBuild
 - Evaluate the handler's implemented conditional branches @ owner.PListPressHandle
 - Mark the routed event handled on the implemented paths @ owner.PListPressHandle
 > output
 
 [output] UI state after the event <output>
-= The mouse left button down event has completed through the current implementation.
+= Selection and current-row state are updated for any row, while locked submitted rows cannot begin a drag.
 ! Code binding: cs|PPanels/PList.cs|PListRowBuild|pRowBorder|MouseLeftButtonDown|1

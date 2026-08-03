@@ -12,10 +12,11 @@
 @alias ui = Cadroue.UIShell.PMainArea.LConvert
 @alias convert = Cadroue.Application.LConvert
 @alias schedule = Cadroue.Infrastructure.LSchedule
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
 @alias sidecar = Cadroue.Media.LSidecarStore
 
 [input] Convert tab requests work <input>
-- Receive priority, listed sources, output preset, source tab, and relay target @ ui.LConvertDescribe(...)
+- Receive priority, unlocked listed sources, output preset, source tab, and relay target @ ui.LConvertDescribe(...)
 - Convert the preset and source relay batches into a work description @ ui.LConvertDescribe(...)
 > build
 
@@ -25,7 +26,7 @@
 ? "One or more items are produced" > persist
 
 [persist] Add durable work <storage>
-- Assign relay lineage and add every item to the shared schedule @ schedule.LScheduleAdd(...)
+- Assign relay lineage, add every item to the shared schedule, and lock only sources whose records were accepted @ courier.LCourierScheduleAdd(...)
 - Record the queue result @ ui.LConvertDescribe(...)
 > duration
 
@@ -40,7 +41,7 @@
 > result
 
 [result] Convert work queued <output>
-= Persisted conversion items retain their tab and relay lineage; resolvable unknown durations are updated after insertion.
+= Persisted conversion items retain their tab and relay lineage; their sources are locked, and resolvable unknown durations are updated after insertion.
 
 [rejected] Nothing queued <error>
 = No conversion work record is added.

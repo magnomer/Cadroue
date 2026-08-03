@@ -23,14 +23,14 @@
 ? "No carried plan can be formed" > unchanged
 ? "A carried plan is available" > propagate
 
-[propagate] Save carried plan for listed sources <storage>
+[propagate] Save carried plan for unlocked sources <storage>
 - Read each source's existing plan and merge the carried Crop, tone, and Skip portions @ edit.LEditPlanRead(...)
 @ edit.LEditPlanResolve(...)
-- Save the merged plan for every listed source @ edit.LEditPlanSave(...)
+- Save the merged plan for every unlocked listed source @ edit.LEditPlanSave(...)
 > result
 
 [result] Persistent edit state propagated <output>
-= Each listed source receives the selected persistent parts of the current Edit plan.
+= Each unlocked listed source receives the selected persistent parts of the current Edit plan; submitted locked sources retain their queued state.
 
 [unchanged] Propagation suppressed <output>
 = Existing source plans remain unchanged.

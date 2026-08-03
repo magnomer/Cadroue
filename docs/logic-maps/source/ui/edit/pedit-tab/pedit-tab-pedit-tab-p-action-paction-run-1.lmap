@@ -10,14 +10,16 @@
 @tag run
 @tag PEditTab
 @alias owner = Cadroue.UIShell.PMainArea.PEditTab
+@alias list = Cadroue.UIShell.PPanels.PList
 
 [input] UI event <input>
 - Receive the run event from Action through its current registration @ owner.PEditTab
 > route
 
 [route] Registered handler path <process>
+- Require the current list item to be unlocked and carry its relay batch into the job @ list.PListUnlockedItemRead
 - Invoke the registered owner handler @ owner.PEditVideoRead
-! Registered call path: LEdit.LEditDescribe → pViewer.PViewerDurationRead → pInspector.PSkipActiveCheck → LWorkCrop.LWorkCropCreate → pInspector.PInspectorCropRead → LWorkVideo.LWorkVideoCreate → PEditVideoRead
+! Registered call path: pList.PListUnlockedItemRead → LEdit.LEditDescribe → pViewer.PViewerDurationRead → pInspector.PSkipActiveCheck → LWorkCrop.LWorkCropCreate → pInspector.PInspectorCropRead → LWorkVideo.LWorkVideoCreate → PEditVideoRead
 > output
 
 [output] UI state after the event <output>

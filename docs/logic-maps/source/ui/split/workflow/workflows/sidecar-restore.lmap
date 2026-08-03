@@ -28,7 +28,7 @@
 [apply] Apply stored sections <process>
 - Mark restoration so synchronization cannot rewrite the same sidecar @ flow.PFlowSidecarApply(...)
 - Convert stored section records into timeline segments @ flow.PFlowSidecarApply(...)
-- Keep only sections valid for the active media duration @ flow.PFlowSectionsSet(...)
+- Keep only sections valid for the active media duration; restoration is allowed even if the source was subsequently locked @ flow.PFlowSectionsSet(...)
 > fragment:shared.synchronize-sections
 
 [empty] Nothing to restore <output>
