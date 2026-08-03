@@ -10,6 +10,9 @@ public static class LSeal
     private static readonly Dictionary<Guid, int> lSealPending = new();
     private static bool lSealSweeping;
 
+    private static volatile IReadOnlyList<(Guid lSealCohort, DateTimeOffset lSealBirth)> lSealActive =
+        Array.Empty<(Guid, DateTimeOffset)>();
+
     public static void LSealPendingAdd(Guid lSealCohort)
     {
         if (lSealCohort == Guid.Empty)
@@ -85,6 +88,7 @@ public static class LSeal
             }
             while (lSealFiredAny);
 
+            LSealActiveRefresh(lSealItems, lSealTabset);
             LSealClean(lSealItems, lSealTabset);
         }
         finally
@@ -92,6 +96,97 @@ public static class LSeal
             lSealSweeping = false;
         }
     }
+
+    public static bool LSealCohortClaimCheck(Guid lSealCohort)
+    {
+        IReadOnlyList<(Guid lSealCohort, DateTimeOffset lSealBirth)> lSealSnapshot = lSealActive;
+        DateTimeOffset? lSealSelf = null;
+        DateTimeOffset? lSealOldestOther = null;
+        foreach ((Guid lSealEntry, DateTimeOffset lSealBirth) in lSealSnapshot)
+        {
+            if (lSealEntry == lSealCohort)
+            {
+                lSealSelf = lSealBirth;
+            }
+            else if (lSealOldestOther is null || lSealBirth < lSealOldestOther)
+            {
+                lSealOldestOther = lSealBirth;
+            }
+        }
+
+        if (lSealSelf is null)
+        {
+            return true;
+        }
+
+        return lSealOldestOther is null || lSealSelf <= lSealOldestOther;
+    }
+
+    private static void LSealActiveRefresh(IReadOnlyList<LWorkItem> lSealItems, LTabset lSealTabset)
+    {
+        var lSealBirths = new Dictionary<Guid, DateTimeOffset>();
+        var lSealActiveSet = new HashSet<Guid>();
+        foreach (LWorkItem lSealItem in lSealItems)
+        {
+            if (lSealItem.LWorkBatchId == Guid.Empty)
+            {
+                continue;
+            }
+
+            if (!lSealBirths.TryGetValue(lSealItem.LWorkBatchId, out DateTimeOffset lSealSeen)
+                || lSealItem.LWorkCreateTime < lSealSeen)
+            {
+                lSealBirths[lSealItem.LWorkBatchId] = lSealItem.LWorkCreateTime;
+            }
+
+            if (LSealItemActive(lSealItem))
+            {
+                lSealActiveSet.Add(lSealItem.LWorkBatchId);
+            }
+        }
+
+        foreach (Guid lSealCohort in lSealPending.Keys)
+        {
+            lSealActiveSet.Add(lSealCohort);
+        }
+
+        foreach (PTabRecord lSealTab in lSealTabset.PTabsetRecords)
+        {
+            if (lSealTab.PTabWorkspace.PWorkspaceSurface is not PMergeTab
+                || lSealTab.PTabWorkspace.PWorkspaceSurface.PTabAction is not { PActionAutoRelay: true }
+                || lSealTab.PTabWorkspace.PWorkspaceSurface.PTabList is not { } lSealList)
+            {
+                continue;
+            }
+
+            foreach (Guid lSealCohort in LSealCohortsHeld(lSealList))
+            {
+                if (!lSealFired.Contains((lSealCohort, lSealTab.PTabId)))
+                {
+                    lSealActiveSet.Add(lSealCohort);
+                }
+            }
+        }
+
+        lSealActive = lSealActiveSet
+            .Select(lSealCohort => (lSealCohort,
+                lSealBirths.TryGetValue(lSealCohort, out DateTimeOffset lSealBirth)
+                    ? lSealBirth
+                    : DateTimeOffset.MaxValue))
+            .ToArray();
+    }
+
+    private static bool LSealItemActive(LWorkItem lSealItem) => lSealItem.LWorkStateCurrent switch
+    {
+        LWorkState.LWorkStatePending => true,
+        LWorkState.LWorkStateRunning => true,
+        LWorkState.LWorkStateDone =>
+            lSealItem.LWorkRelayTarget != Guid.Empty
+            && lSealItem.LWorkRelayTarget != LCourier.LCourierFinishTarget
+            && lSealItem.LWorkOwnerProcess == Environment.ProcessId
+            && !LCourier.LCourierDeliveredCheck(lSealItem.LWorkId),
+        _ => false
+    };
 
     private static bool LSealNodeCheck(
         Guid lSealCohort,

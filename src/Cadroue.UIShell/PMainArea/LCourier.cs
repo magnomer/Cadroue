@@ -205,9 +205,15 @@ public static class LCourier
         LSeal.LSealPendingAdd(lCourierCohort);
         void LCourierArriveRun()
         {
-            pCourierAction.PActionItemsRun(new[] { lCourierPath });
-            LSeal.LSealPendingRemove(lCourierCohort);
-            LSeal.LSealSweep();
+            try
+            {
+                pCourierAction.PActionItemsRun(new[] { lCourierPath });
+            }
+            finally
+            {
+                LSeal.LSealPendingRemove(lCourierCohort);
+                LSeal.LSealSweep();
+            }
         }
 
         if (System.Windows.Application.Current?.Dispatcher is { } pCourierDispatcher)
