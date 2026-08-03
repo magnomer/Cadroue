@@ -187,7 +187,18 @@ public static class LCourier
             }
 
             lCourierDelivered.Add(lWorkItem.LWorkId);
-            LCourierOutputAdd(lWorkItem);
+            try
+            {
+                if (!LCourierOutputAdd(lWorkItem))
+                {
+                    lCourierDelivered.Remove(lWorkItem.LWorkId);
+                }
+            }
+            catch
+            {
+                lCourierDelivered.Remove(lWorkItem.LWorkId);
+                throw;
+            }
         }
 
         LSeal.LSealSweep();
@@ -226,30 +237,40 @@ public static class LCourier
         }
     }
 
-    private static void LCourierOutputAdd(LWorkItem lWorkItem)
+    private static bool LCourierOutputAdd(LWorkItem lWorkItem)
     {
         if (lWorkItem.LWorkRelayTarget == LCourierFinishTarget)
         {
             LTraceLog.LTraceInfoRecord($"Relay finished '{lWorkItem.LWorkOutputName}': removed at source, delivered to no tab");
             LCourierSourceRemove(lWorkItem, true);
-            return;
+            return true;
         }
 
         if (string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath) || !File.Exists(lWorkItem.LWorkOutputPath))
         {
             LTraceLog.LTraceWarningRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the output file is missing");
-            return;
+            return false;
         }
 
         if (LCourierTabFind(lWorkItem.LWorkRelayTarget) is not { } pCourierTarget
             || pCourierTarget.PTabWorkspace.PWorkspaceSurface.PTabList is not { } pCourierList)
         {
             LTraceLog.LTraceWarningRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab is gone");
-            return;
+            return false;
         }
 
         int lCourierAdded = pCourierList.PListPathsAdd(
             new[] { lWorkItem.LWorkOutputPath }, lWorkItem.LWorkBatchId, true);
+        bool lCourierAccepted = lCourierAdded > 0 || pCourierList.PListPathsRead().Any(
+            lCourierPath => string.Equals(
+                lCourierPath, lWorkItem.LWorkOutputPath, StringComparison.OrdinalIgnoreCase));
+        if (!lCourierAccepted)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab rejected the output");
+            return false;
+        }
+
         LTraceLog.LTraceInfoRecord(
             lCourierAdded > 0
                 ? $"Relay added '{lWorkItem.LWorkOutputName}' to tab '{pCourierTarget.PTabTitle}'"
@@ -257,6 +278,7 @@ public static class LCourier
 
         LCourierSourceRemove(lWorkItem, false);
         LCourierArrive(lWorkItem.LWorkRelayTarget, lWorkItem.LWorkOutputPath, lWorkItem.LWorkBatchId);
+        return true;
     }
 
     private static void LCourierSourceRemove(LWorkItem lWorkItem, bool lCourierForce)
