@@ -254,6 +254,12 @@ public sealed class PEditTab : PTabSurface
                 LTraceLog.LTraceInfoRecord(
                     $"Edit applying {(pEditCarryWins ? "persistent" : "sidecar")} plan to '{pEditName}': "
                     + $"{PEditPlanFormat(pEditApply)}");
+                pViewer.PViewerRotateSet(PEditRotateResolve(pEditApply.LEditCrop));
+                if (pViewer.PCropSourceRead() is { } pEditRotatedSource)
+                {
+                    pInspector.PInspectorSourceSet(pEditRotatedSource.Width, pEditRotatedSource.Height);
+                }
+
                 pInspector.PCropPlanApply(pEditApply.LEditCrop, pEditApply.LEditCropApply);
                 pInspector.PTonePlanApply(pEditApply.LEditVideo);
                 pInspector.PSkipApply(pEditApply.LEditSkip);
@@ -261,6 +267,7 @@ public sealed class PEditTab : PTabSurface
             else
             {
                 LTraceLog.LTraceInfoRecord($"Edit applying no plan to '{pEditName}': inspector left cleared");
+                pViewer.PViewerRotateSet(LRotateFlip.LRotateDefaultCreate());
                 pInspector.PTonePlanApply(LWorkVideo.LWorkVideoCreate());
                 pInspector.PSkipApply(false);
             }
@@ -389,6 +396,17 @@ public sealed class PEditTab : PTabSurface
         "Contrast" => LColorKind.LColorKindContrast,
         _ => null
     };
+
+    private static LRotateFlip PEditRotateResolve(LWorkCrop pEditCrop) => new(
+        pEditCrop.LWorkCropRotation switch
+        {
+            90 => LRotateKind.LRotate90,
+            180 => LRotateKind.LRotate180,
+            270 => LRotateKind.LRotate270,
+            _ => LRotateKind.LRotateNone
+        },
+        pEditCrop.LWorkFlipHorizontal,
+        pEditCrop.LWorkFlipVertical);
 
     private void PEditPlanSave()
     {

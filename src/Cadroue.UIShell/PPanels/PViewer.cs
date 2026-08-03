@@ -254,6 +254,7 @@ public sealed partial class PViewer : PPanel
         }
 
         LPreference.LPreferenceMediaSet(sourcePath);
+        LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate());
         _ = PPlayerVideoLoad(sourcePath);
     }
 
