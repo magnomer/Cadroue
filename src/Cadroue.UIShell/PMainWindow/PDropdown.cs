@@ -1,9 +1,11 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Cadroue.UIShell.PAssets;
 
 namespace Cadroue.UIShell.PMainWindow;
 
@@ -27,6 +29,15 @@ internal static class PDropdown
         pCombo.IsEditable = true;
         pCombo.Template = PDropdownTemplateBuild(true);
         pCombo.ItemContainerStyle = PDropdownStyleBuild();
+    }
+
+    internal static void PDropdownEditableActionApply(
+        ComboBox pCombo,
+        string pActionTooltip)
+    {
+        pCombo.IsEditable = true;
+        pCombo.Template = PDropdownTemplateBuild(true);
+        pCombo.ItemContainerStyle = PDropdownActionStyleBuild(pActionTooltip);
     }
 
     private static ControlTemplate PDropdownTemplateBuild(bool pEditable)
@@ -223,24 +234,29 @@ internal static class PDropdown
 
     private static Style PDropdownStyleBuild()
     {
+        return PDropdownStyleBuild(PDropdownRowBuild());
+    }
+
+    private static Style PDropdownStyleBuild(ControlTemplate pRowTemplate)
+    {
         var pStyle = new Style(typeof(ComboBoxItem));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PDropdownRowBuild()));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, pRowTemplate));
         return pStyle;
+    }
+
+    private static Style PDropdownActionStyleBuild(string pActionTooltip)
+    {
+        return PDropdownStyleBuild(PDropdownActionRowBuild(pActionTooltip));
     }
 
     private static ControlTemplate PDropdownRowBuild()
     {
         var pTemplate = new ControlTemplate(typeof(ComboBoxItem));
-        var pBorder = new FrameworkElementFactory(typeof(Border));
-        pBorder.Name = "ItemBorder";
-        pBorder.SetValue(Border.BackgroundProperty, Brushes.Transparent);
-        pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
-        pBorder.SetValue(FrameworkElement.MarginProperty, new Thickness(4));
-        pBorder.SetValue(Border.PaddingProperty, new Thickness(12, 6, 12, 6));
+        var pBorder = PDropdownRowBorderBuild(new Thickness(12, 6, 12, 6));
 
         var pDock = new FrameworkElementFactory(typeof(DockPanel));
         pBorder.AppendChild(pDock);
@@ -254,6 +270,57 @@ internal static class PDropdown
         pTemplate.VisualTree = pBorder;
         PDropdownRowAdd(pTemplate);
         return pTemplate;
+    }
+
+    private static ControlTemplate PDropdownActionRowBuild(string pActionTooltip)
+    {
+        var pTemplate = new ControlTemplate(typeof(ComboBoxItem));
+        var pBorder = PDropdownRowBorderBuild(new Thickness(12, 6, 2, 6));
+
+        var pDock = new FrameworkElementFactory(typeof(DockPanel));
+        pBorder.AppendChild(pDock);
+
+        var pAction = new FrameworkElementFactory(typeof(Button));
+        pAction.SetValue(DockPanel.DockProperty, Dock.Right);
+        pAction.SetValue(FrameworkElement.WidthProperty, 13.0);
+        pAction.SetValue(FrameworkElement.HeightProperty, 13.0);
+        pAction.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        pAction.SetValue(Control.PaddingProperty, new Thickness(0));
+        pAction.SetValue(FrameworkElement.StyleProperty, PButton.PButtonChromeCreate(false));
+        pAction.SetValue(FrameworkElement.ToolTipProperty, pActionTooltip);
+        pAction.SetValue(AutomationProperties.NameProperty, pActionTooltip);
+
+        var pMinus = new FrameworkElementFactory(typeof(Image));
+        pMinus.SetValue(Image.SourceProperty, PIcon.PIconRead("/PAssets/PPanels/PExportMinus.svg", PDropdownTextBrush));
+        pMinus.SetValue(FrameworkElement.WidthProperty, 8.0);
+        pMinus.SetValue(FrameworkElement.HeightProperty, 8.0);
+        pMinus.SetValue(Image.StretchProperty, Stretch.Uniform);
+        pAction.AppendChild(pMinus);
+        pDock.AppendChild(pAction);
+
+        FrameworkElementFactory pCheck = PDropdownCheckBuild();
+        pCheck.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 8, 0));
+        pDock.AppendChild(pCheck);
+
+        var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
+        pContent.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+        pContent.SetValue(ContentPresenter.MarginProperty, new Thickness(0, 0, 8, 0));
+        pDock.AppendChild(pContent);
+
+        pTemplate.VisualTree = pBorder;
+        PDropdownRowAdd(pTemplate);
+        return pTemplate;
+    }
+
+    private static FrameworkElementFactory PDropdownRowBorderBuild(Thickness pPadding)
+    {
+        var pBorder = new FrameworkElementFactory(typeof(Border));
+        pBorder.Name = "ItemBorder";
+        pBorder.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+        pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
+        pBorder.SetValue(FrameworkElement.MarginProperty, new Thickness(4));
+        pBorder.SetValue(Border.PaddingProperty, pPadding);
+        return pBorder;
     }
 
     private static FrameworkElementFactory PDropdownCheckBuild()

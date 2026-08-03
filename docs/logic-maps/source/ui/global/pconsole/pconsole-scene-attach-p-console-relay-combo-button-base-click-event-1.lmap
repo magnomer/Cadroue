@@ -1,0 +1,33 @@
+@format 1
+@id ui-event.e6c181fede45
+@title Console relay combo — scene-row action click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref addhandler|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|ButtonBase.ClickEvent|PConsoleDeleteHandle|1
+@entry input
+@summary Delete the named scene represented by a dropdown-row minus button without loading that scene.
+@tag button base click
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] Scene-row action clicked <input>
+- Receive the bubbled button click registered on the console scene dropdown @ owner.PConsoleSceneAttach
+> target
+
+[target] Is this a named scene action? <decision>
+- Read the scene name from the clicked row button's data context @ owner.PConsoleDeleteHandle
+? "No scene name" > ignored
+? "Named scene" > delete
+
+[delete] Delete named scene <process>
+- Mark the action handled, cancel deferred scene loading, and run the named-scene deletion flow @ owner.PConsoleDeleteHandle
+> output
+
+[output] Selector refreshed <output>
+= The stored scene is removed, the active association is cleared when necessary, and the current window layout is preserved.
+! Continues in project.delete-scene.
+
+[ignored] Non-row button ignored <output>
+= Button events without a named-scene data context continue without invoking scene deletion.
+! Code binding: addhandler|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|ButtonBase.ClickEvent|PConsoleDeleteHandle|1

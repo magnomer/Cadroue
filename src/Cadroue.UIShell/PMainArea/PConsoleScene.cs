@@ -26,6 +26,10 @@ public sealed partial class PConsole
 
     private void PConsoleSceneAttach()
     {
+        PDropdown.PDropdownEditableActionApply(
+            pConsoleRelayCombo,
+            LLocalization.LLocalizationTextRead("Console.Scene.DeleteTooltip"));
+        pConsoleRelayCombo.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(PConsoleDeleteHandle));
         pConsoleRelayCombo.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.ComboTooltip");
         pConsoleSaveButton.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.SaveTooltip");
         pConsoleExportButton.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.ExportTooltip");
@@ -125,6 +129,30 @@ public sealed partial class PConsole
         }
     }
 
+    private void PConsoleDeleteHandle(object pSender, RoutedEventArgs pArguments)
+    {
+        if (pArguments.OriginalSource is not Button { DataContext: string lSceneName })
+        {
+            return;
+        }
+
+        pArguments.Handled = true;
+        pConsoleReloadName = null;
+        if (!LScene.LSceneDelete(lSceneName))
+        {
+            return;
+        }
+
+        if (string.Equals(pConsoleSceneName, lSceneName, StringComparison.OrdinalIgnoreCase))
+        {
+            pConsoleSceneName = string.Empty;
+            LScene.LSceneActiveSet(string.Empty);
+        }
+
+        PConsoleSceneRebuild();
+        LTraceLog.LTraceInfoRecord($"Scene deleted '{lSceneName}'");
+    }
+
     private void PConsoleCloseHandle(object? pSender, EventArgs pArguments)
     {
         string? lSceneName = pConsoleReloadName;
@@ -168,7 +196,9 @@ public sealed partial class PConsole
     private void PConsoleSceneUpdate()
     {
         pConsoleSceneApplying = true;
-        pConsoleRelayCombo.SelectedItem = null;
+        pConsoleRelayCombo.SelectedItem = LScene.LSceneRead(pConsoleSceneName) is not null
+            ? pConsoleSceneName
+            : null;
         pConsoleRelayCombo.Text = pConsoleSceneName;
         pConsoleSceneApplying = false;
         PConsoleMarkUpdate();

@@ -1,8 +1,8 @@
 {
   "format": 2,
   "ui_event_coverage": {
-    "covered": 492,
-    "total": 492
+    "covered": 495,
+    "total": 495
   },
   "maps": [
     {
@@ -340,11 +340,11 @@
       "area": "7. Project persistence",
       "tabs": [],
       "event_ref": null,
-      "summary": "Show the current scene-preset controls and the missing UI route to the existing persistent deletion method.",
+      "summary": "Remove a named scene through its dropdown-row action while preserving the current window layout.",
       "href": "maps/functionality/project-persistence/delete-scene.html",
       "tags": [],
-      "hash": "ce88d3f52a20",
-      "search": "ii. functionality 7. project persistence delete named scene show the current scene-preset controls and the missing ui route to the existing persistent deletion method. console scene cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lscene scene controls are attached attach save, export, import, selection, and dropdown handlers to the scene-preset controls console.pconsolesceneattach(...) is a delete action exposed? build and attach no delete button, dropdown-row removal command, or deletion event handler console.pconsolesceneattach(...) deletion cannot be requested keep the persistent deletion operation unreachable from the current scene-preset ui scene.lscenedelete(...)"
+      "hash": "48347015e87d",
+      "search": "ii. functionality 7. project persistence delete named scene remove a named scene through its dropdown-row action while preserving the current window layout. console scene cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lscene scene delete requested receive the minus-button click from a named scene row and suppress scene loading for that click console.pconsoledeletehandle(...) remove saved scene find the named scene case-insensitively, remove it, and persist the remaining collection scene.lscenedelete(...) was the deleted scene active? compare the deleted name with the active scene association console.pconsoledeletehandle(...) clear active association clear the console scene name and the shared active-scene name without applying another scene console.pconsoledeletehandle(...) refresh scene selector rebuild the dropdown items, restore the surviving active selection and checkmark, and update the displayed name console.pconsolescenerebuild(...) scene deleted scene unchanged"
     },
     {
       "id": "project.export-scene",
@@ -3876,6 +3876,24 @@
       ],
       "hash": "0466a3716677",
       "search": "i. ui ui event global interface console import button \u2014 click handle the click event exposed by pconsole.pconsolesceneattach and follow its registered code path. click pconsole owner cadroue.uishell.pmainarea.pconsole ui event receive the click event from the console import button owner.pconsolesceneattach registered handler path handle console import owner.pconsoleimporthandle show console error owner.pconsoleerrorshow create console name owner.pconsolenamecreate rebuild console scene owner.pconsolescenerebuild evaluate the handler's implemented conditional branches owner.pconsoleimporthandle ui state after the event"
+    },
+    {
+      "id": "ui-event.e6c181fede45",
+      "title": "Console relay combo \u2014 scene-row action click",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Global interface"
+      ],
+      "event_ref": "addhandler|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|ButtonBase.ClickEvent|PConsoleDeleteHandle|1",
+      "summary": "Delete the named scene represented by a dropdown-row minus button without loading that scene.",
+      "href": "maps/ui/global/pconsole/pconsole-scene-attach-p-console-relay-combo-button-base-click-event-1.html",
+      "tags": [
+        "button base click",
+        "PConsole"
+      ],
+      "hash": "88a3b861ad9b",
+      "search": "i. ui ui event global interface console relay combo \u2014 scene-row action click delete the named scene represented by a dropdown-row minus button without loading that scene. button base click pconsole owner cadroue.uishell.pmainarea.pconsole scene-row action clicked receive the bubbled button click registered on the console scene dropdown owner.pconsolesceneattach is this a named scene action? read the scene name from the clicked row button's data context owner.pconsoledeletehandle delete named scene mark the action handled, cancel deferred scene loading, and run the named-scene deletion flow owner.pconsoledeletehandle selector refreshed non-row button ignored"
     },
     {
       "id": "ui-event.d86bfb411f7e7a79",
@@ -8743,6 +8761,50 @@
       "search": "i. ui ui event split edit convert audio merge slider \u2014 value changed handle the value changed event exposed by psfield.psfieldbitratebuild and follow its registered code path. value changed psfield owner cadroue.uishell.psshared.psfield ui event receive the value changed event from the slider owner.psfieldbitratebuild registered handler path format ps field bitrate owner.psfieldbitrateformat ui state after the event"
     },
     {
+      "id": "ui-event.quality-readout-key-down",
+      "title": "Quality readout \u2014 key down",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Split",
+        "Edit",
+        "Convert",
+        "Audio",
+        "Merge"
+      ],
+      "event_ref": "cs|PSShared/PSField.cs|PSFieldSliderBuild|pReadout|KeyDown|1",
+      "summary": "Commit a manually entered ranged quality value when Enter is pressed.",
+      "href": "maps/ui/shared/psfield/psfield-slider-build-p-readout-key-down-1.html",
+      "tags": [
+        "key down",
+        "PSField"
+      ],
+      "hash": "d947e671ff34",
+      "search": "i. ui ui event split edit convert audio merge quality readout \u2014 key down commit a manually entered ranged quality value when enter is pressed. key down psfield owner cadroue.uishell.psshared.psfield ui event receive the key down event from the quality readout owner.psfieldsliderbuild check commit key check whether the pressed key is enter owner.psfieldsliderbuild normalize manual quality parse, clamp, snap, and format the typed quality while synchronizing the slider owner.psfieldsliderbuild preserve intermediate text quality committed"
+    },
+    {
+      "id": "ui-event.quality-readout-lost-focus",
+      "title": "Quality readout \u2014 focus lost",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Split",
+        "Edit",
+        "Convert",
+        "Audio",
+        "Merge"
+      ],
+      "event_ref": "cs|PSShared/PSField.cs|PSFieldSliderBuild|pReadout|LostKeyboardFocus|1",
+      "summary": "Validate and normalize a manually entered ranged quality value when editing ends.",
+      "href": "maps/ui/shared/psfield/psfield-slider-build-p-readout-lost-keyboard-focus-1.html",
+      "tags": [
+        "lost keyboard focus",
+        "PSField"
+      ],
+      "hash": "04fb82b841b5",
+      "search": "i. ui ui event split edit convert audio merge quality readout \u2014 focus lost validate and normalize a manually entered ranged quality value when editing ends. lost keyboard focus psfield owner cadroue.uishell.psshared.psfield ui event receive the lost keyboard focus event from the quality readout owner.psfieldsliderbuild normalize manual quality parse, clamp, snap, and format the typed quality while synchronizing the slider owner.psfieldsliderbuild quality committed"
+    },
+    {
       "id": "ui-event.f8cf8ed2388b5aaa",
       "title": "Slider \u2014 value changed",
       "section": "I. UI",
@@ -10260,14 +10322,14 @@
         "Merge"
       ],
       "event_ref": null,
-      "summary": "Build the video or audio quality control, synchronize supported bitrate entry, and show why ranged non-bitrate quality values cannot be typed manually.",
+      "summary": "Build the video or audio quality control and synchronize sliders with editable quality and bitrate entry.",
       "href": "maps/ui/shared/workflow/workflows/change-quality.html",
       "tags": [
         "quality",
         "encoder"
       ],
-      "hash": "022e0f703698",
-      "search": "i. ui ui workflow split edit convert audio merge change encoding quality build the video or audio quality control, synchronize supported bitrate entry, and show why ranged non-bitrate quality values cannot be typed manually. quality encoder video audio field encoder cadroue.uishell.ppanels.psencoder cadroue.uishell.ppanels.psencoder cadroue.uishell.psshared.psfield cadroue.uishell.ppanels.psencoder encoder quality row requested resolve the selected video rate-control mode and its quality capability video.psvideoqualitybuild(...) resolve the selected audio rate-control mode and its quality capability audio.psaudioqualitybuild(...) select quality-control shape create a text box for the stored or default quality value field.psentrybuild(...) use editable text entry present the quality text box without a slider or read-only conversion video.psvideoqualitybuild(...) synchronize slider and manual entry keep the bitrate text box editable and update the slider when valid text is entered field.psfieldbitratebuild(...) update the text box when the bitrate slider moves field.psfieldbitratebuild(...) restrict input to slider mark the quality readout as read-only field.psfieldsliderbuild(...) replace its text only when the slider value changes field.psfieldsliderbuild(...) store displayed quality copy the displayed video and audio quality text into the edited preset when apply or ok is pressed encoder.psencoderapply(...) quality value stored"
+      "hash": "00551fccdc82",
+      "search": "i. ui ui workflow split edit convert audio merge change encoding quality build the video or audio quality control and synchronize sliders with editable quality and bitrate entry. quality encoder video audio field encoder cadroue.uishell.ppanels.psencoder cadroue.uishell.ppanels.psencoder cadroue.uishell.psshared.psfield cadroue.uishell.ppanels.psencoder encoder quality row requested resolve the selected video rate-control mode and its quality capability video.psvideoqualitybuild(...) resolve the selected audio rate-control mode and its quality capability audio.psaudioqualitybuild(...) select quality-control shape create a text box for the stored or default quality value field.psentrybuild(...) use editable text entry present the quality text box without a slider or read-only conversion video.psvideoqualitybuild(...) synchronize slider and manual entry keep the bitrate text box editable and update the slider when valid text is entered field.psfieldbitratebuild(...) update the text box when the bitrate slider moves field.psfieldbitratebuild(...) synchronize slider and manual quality entry allow incomplete text while the user edits the quality readout field.psfieldsliderbuild(...) on enter or focus loss, parse, clamp, snap, and normalize the typed quality value field.psfieldsliderbuild(...) update the text box when the quality slider moves, including inverted quality ranges field.psfieldsliderbuild(...) store displayed quality copy the displayed video and audio quality text into the edited preset when apply or ok is pressed encoder.psencoderapply(...) quality value stored"
     },
     {
       "id": "files.clear",

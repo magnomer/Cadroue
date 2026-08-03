@@ -218,6 +218,7 @@
   "Console.Scene.SaveTooltip": "Save every tab and its settings under the name in the box",
   "Console.Scene.ExportTooltip": "Write the selected window preset to a file",
   "Console.Scene.ImportTooltip": "Load a window preset from a file",
+  "Console.Scene.DeleteTooltip": "Delete this window preset",
   "Console.Scene.SaveTitle": "Save window preset",
   "Console.Scene.NameRequired": "Type a name for the window preset first.",
   "Console.Scene.LoadTitle": "Load window preset",

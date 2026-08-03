@@ -218,6 +218,7 @@
   "Console.Scene.SaveTooltip": "상자에 입력한 이름으로 모든 탭과 설정을 저장합니다",
   "Console.Scene.ExportTooltip": "선택한 창 프리셋을 파일로 저장합니다",
   "Console.Scene.ImportTooltip": "파일에서 창 프리셋을 불러옵니다",
+  "Console.Scene.DeleteTooltip": "이 창 프리셋을 삭제합니다",
   "Console.Scene.SaveTitle": "창 프리셋 저장",
   "Console.Scene.NameRequired": "먼저 창 프리셋의 이름을 입력하세요.",
   "Console.Scene.LoadTitle": "창 프리셋 불러오기",
