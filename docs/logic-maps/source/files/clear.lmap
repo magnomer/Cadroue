@@ -1,0 +1,22 @@
+@format 1
+@id files.clear
+@title Clear file list
+@area Files
+@entry input
+@summary Remove every item from one tab's media list and publish an empty current selection.
+@flow TB
+@related files.add, files.remove
+
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[input] Clear requested <input>
+- Receive a clear request from the list, relay policy, or worklist action @ list.PListClear(...)
+> clear
+
+[clear] Clear list state <process>
+- Remove all items, selected paths, and the current path @ list.PListClear(...)
+- Rebuild rows, update the empty notice, and publish path change @ list.PListClear(...)
+> result
+
+[result] List cleared <output>
+= No media item remains in the list.

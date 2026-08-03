@@ -1,0 +1,23 @@
+@format 1
+@id processing.stop
+@title Stop processing
+@area Processing
+@entry input
+@summary Active work is returned to the queue and this runner owns no claims.
+@flow TB
+@related processing.run-job
+@tag processing
+@tag stop
+
+@alias runner = Cadroue.ShellEngine.LRunner
+
+[input] Stop processing command <input>
+- Receive the worklist control command @ runner.LRunnerCancel(...)
+> apply
+
+[apply] Change runner state <process>
+- Cancel worker loops, resume suspended processes before killing them, clear leases and partial outputs, and release owned claims @ runner.LRunnerCancel(...)
+> result
+
+[result] Runner state changed <output>
+=Active work is returned to the queue and this runner owns no claims.

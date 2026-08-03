@@ -1,0 +1,31 @@
+@format 1
+@id audio.reorder-steps
+@title Reorder audio processing steps
+@area Audio
+@entry input
+@summary Move one ordered audio processing step by its buttons or drag operation, renumber the list, and request persistence of the changed order.
+@flow TB
+@related audio.save-plan
+
+@alias processing = Cadroue.UIShell.PPanels.PProcessing
+@alias tab = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] Reorder requested <input>
+- Move the selected step with an order button @ processing.PProcessingStepMove(...)
+- Or move the dragged row and commit its changed order on release @ processing.PProcessingMoveHandle(...)
+@ processing.PProcessingUpHandle(...)
+> move
+
+[move] Apply new order <decision>
+- Validate the selected index and target position, then move the row and renumber ordered steps @ processing.PProcessingStepMove(...)
+? "No eligible move occurs" > unchanged
+? "A step changes position" > persist
+
+[persist] Request plan persistence <output>
+- Publish the ordered-list change after a button move or a completed drag @ processing.PProcessingStepMove(...)
+@ processing.PProcessingUpHandle(...)
+- Receive the ordered-list event and save the active source plan @ tab.PAudioTab(...)
+> map:audio.save-plan
+
+[unchanged] Order unchanged <output>
+= The existing audio processing order remains in effect.

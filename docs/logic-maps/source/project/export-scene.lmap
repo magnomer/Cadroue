@@ -1,0 +1,30 @@
+@format 1
+@id project.export-scene
+@title Export scene
+@area Project
+@entry input
+@summary Export a stored or current scene as a standalone JSON file selected by the user.
+@flow TB
+@related project.import-scene, project.save-scene
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias scene = Cadroue.Infrastructure.LScene
+
+[input] Export requested <input>
+- Resolve the named stored scene or capture the current window @ console.PConsoleExportHandle(...)
+> choose
+
+[choose] Choose destination <decision>
+- Show the scene save-file dialog @ console.PConsoleExportHandle(...)
+? "Dialog is cancelled" > unchanged
+? "Destination is chosen" > write
+
+[write] Write scene file <storage>
+- Serialize the scene as JSON at the selected path @ scene.LSceneFileSave(...)
+> result
+
+[result] Scene exported <output>
+= A standalone scene JSON file exists at the chosen path.
+
+[unchanged] Export cancelled <output>
+= No scene file is written.

@@ -1,0 +1,30 @@
+@format 1
+@id split.section-add
+@title Add section
+@area Split
+@entry input
+@summary Create a new section at the current cursor and synchronize every section representation.
+@flow TB
+@related shared.synchronize-sections
+@tag section
+@tag section-add
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Core.LSegment
+
+[input] Add section command <input>
+- Receive the section command in the active Split timeline @ flow.PFlowSectionAdd(...)
+> validate
+
+[validate] Validate section request <decision>
+- Validate the current cursor, selection, duration, and overlap constraints @ segment.LSegmentAdd(...)
+? "A valid section plan is produced" > apply
+? "The request cannot produce a valid plan" > unchanged
+
+[apply] Apply section plan <process>
+- Replace the section list and active selection with the returned plan @ flow.PFlowSectionApply(...)
+- Record the new section in the log @ flow.PFlowSectionRecord(...)
+> fragment:shared.synchronize-sections
+
+[unchanged] No change <output>
+=The request does not change the section model.

@@ -1,0 +1,24 @@
+@format 1
+@id audio.change-skip
+@title Change audio skip state
+@area Audio
+@entry input
+@summary Enable or disable Skip for the active Audio source, synchronize the processing list, and request plan persistence.
+@flow TB
+@related audio.save-plan, audio.select-step
+
+@alias inspector = Cadroue.UIShell.PPanels.PInspector
+@alias processing = Cadroue.UIShell.PPanels.PProcessing
+@alias tab = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] Skip state changes <input>
+- Publish the Skip Apply control change @ inspector.PSkipBodyBuild(...)
+> update
+
+[update] Synchronize audio state <process>
+- Update the visible No Processing state @ processing.PProcessingSkipSet(...)
+- Receive the Skip event and request an active-source plan save @ tab.PAudioSkipHandle(...)
+> persist
+
+[persist] Continue to plan persistence <output>
+> map:audio.save-plan

@@ -1,0 +1,22 @@
+@format 1
+@id export.restore-modifications
+@title Restore preset modifications
+@area Export
+@entry input
+@summary Discard tab-specific output changes by reapplying the selected preset.
+@flow TB
+@related export.commit-modifications, export.apply-preset
+
+@alias export = Cadroue.UIShell.PPanels.PExport
+
+[input] Restore requested <input>
+- Receive the modified preset's cancel command @ export.PExportModificationRestore(...)
+> restore
+
+[restore] Reapply preset <process>
+- Replace tab-specific state with the selected preset @ export.PExportPresetApply(...)
+- Refresh summary and modified indication @ export.PExportPresetSync(...)
+> result
+
+[result] Modifications discarded <output>
+= Current output state again matches the selected preset.

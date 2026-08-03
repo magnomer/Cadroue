@@ -1,0 +1,40 @@
+@format 1
+@id queue.add-work
+@title Add work to schedule
+@area Queue
+@entry input
+@summary Persist built work records as pending items, assign routing and lineage, and notify schedule observers.
+@flow TB
+@related queue.claim-work
+@tag queue
+@tag persistence
+
+@alias schedule = Cadroue.Infrastructure.LSchedule
+@alias store = Cadroue.Infrastructure.LScheduleStore
+
+[input] Built work items arrive <input>
+- Receive work items with optional relay source and target identifiers @ schedule.LScheduleAdd(...)
+> prepare
+
+[prepare] Prepare each record <process>
+- Apply relay routing to the item @ schedule.LScheduleAdd(...)
+- Resolve lineage when it has not already been assigned @ schedule.LScheduleAdd(...)
+- Convert the work item to its persistent record @ schedule.LScheduleAdd(...)
+> save
+
+[save] Persist pending work <decision>
+- Save the record in the scheduled depot folder @ store.LScheduleRecordSave(...)
+? "Record save succeeds" > collect
+? "Record save fails" > skipped
+
+[collect] Publish pending item <process>
+- Add the item to the observable in-memory schedule @ schedule.LScheduleAdd(...)
+> result
+
+[skipped] Skip unsaved item <error>
+- Record that the item could not be filed @ schedule.LScheduleAdd(...)
+= The unsaved item is absent from the schedule.
+
+[result] Schedule changed <output>
+- Notify schedule observers when at least one item was added @ schedule.LScheduleAdd(...)
+= Every successfully saved item is visible and claimable as pending work.

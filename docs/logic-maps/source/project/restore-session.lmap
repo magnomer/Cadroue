@@ -1,0 +1,35 @@
+@format 1
+@id project.restore-session
+@title Restore session
+@area Project
+@entry input
+@summary Recreate tabs, per-tab output and layout state, names, relay routing, target resolution, selection, and optional last media.
+@flow TB
+@related preview.open-media, project.save-session
+@tag session
+@tag restore
+
+@alias window = Cadroue.UIShell.PMainWindow.PWindow
+@alias scene = Cadroue.Infrastructure.LScene
+
+[input] Main window is created <input>
+- Choose default tabs or the last saved session from preferences @ window.PWindowTabsRestore(...)
+> tabs
+
+[tabs] Restore tabs <process>
+- Create each saved tab with its output preset and layout record @ window.PWindowSceneRestore(...)
+- Restore custom tab names @ window.PWindowSceneRestore(...)
+- Restore relay slots and resolve funnel targets @ window.PWindowSceneRestore(...)
+- Select the saved active tab index @ window.PWindowSceneRestore(...)
+> media
+
+[media] Restore optional media <decision>
+- Check the open-last-media preference and saved path @ window.PWindowMediaRestore(...)
+? "Saved media exists and automatic restore is enabled" > open
+? "Media restore is disabled or unavailable" > result
+
+[open] Continue with media open <output>
+> map:preview.open-media
+
+[result] Session restored <output>
+= Tabs and workspace relationships reflect the saved session or configured defaults.

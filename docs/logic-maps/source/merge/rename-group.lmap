@@ -1,0 +1,22 @@
+@format 1
+@id merge.rename-group
+@title Rename merge group
+@area Merge
+@entry input
+@summary Commit a new display and output name for one merge group.
+@flow TB
+@related queue.create-merge-work
+
+@alias group = Cadroue.UIShell.PPanels.PGroup
+
+[input] Group name editing begins <input>
+- Replace the group heading with an editor @ group.PGroupEditStart(...)
+> commit
+
+[commit] Commit group name <process>
+- Normalize and store the edited group name @ group.PGroupEditStart(...)
+- Rebuild the group card heading @ group.PGroupRebuild(...)
+> result
+
+[result] Group renamed <output>
+= The visible group and its future merge output use the committed name.

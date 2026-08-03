@@ -1,0 +1,40 @@
+@format 1
+@id logging.emit-entry
+@title Emit log entry
+@area Logging
+@entry input
+@summary Create a structured trace entry, publish it to live viewers, enqueue its text, and flush batches to the active log file.
+@flow TB
+@related logging.open-feed
+@tag logging
+@tag trace
+
+@alias trace = Cadroue.Infrastructure.LTrace
+@alias traceWriter = Cadroue.Infrastructure.LTraceWriter
+
+[input] Component records a trace <input>
+- Receive a trace kind, summary, optional detail, and duration @ trace.LTraceRecord(...)
+> filter
+
+[filter] Check category <decision>
+- Determine whether this trace kind is enabled @ trace.LTraceCheck(...)
+? "Category is enabled" > publish
+? "Category is disabled" > omitted
+
+[publish] Publish trace <process>
+- Create and append the structured in-memory trace entry @ trace.LTraceRecord(...)
+- Notify live log subscribers @ trace.LTraceRecord(...)
+- Format and enqueue the entry for disk writing @ traceWriter.LTraceWriterRecord(...)
+> write
+
+[write] Persist batch <storage>
+- Start the background writer when first needed @ traceWriter.LTraceWriterStart(...)
+- Append queued entries in bounded batches and record dropped-entry counts @ traceWriter.LTraceWriterRun(...)
+- Flush the writer after an idle interval @ traceWriter.LTracePersistRun(...)
+> result
+
+[omitted] Entry omitted <output>
+= Disabled verbose-category entries are neither published nor persisted.
+
+[result] Entry available <output>
+= The entry is visible to live subscribers and durable after the writer flushes.

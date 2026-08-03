@@ -1,0 +1,30 @@
+@format 1
+@id split.section-divide
+@title Divide section
+@area Split
+@entry input
+@summary Divide the selected section at the cursor and select the left half.
+@flow TB
+@related shared.synchronize-sections
+@tag section
+@tag section-divide
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Core.LSegment
+
+[input] Divide section command <input>
+- Receive the section command in the active Split timeline @ flow.PFlowSectionDivide(...)
+> validate
+
+[validate] Validate section request <decision>
+- Require an active section and a cursor strictly inside its start and end boundaries @ segment.LSegmentDivide(...)
+? "A valid section plan is produced" > apply
+? "The request cannot produce a valid plan" > unchanged
+
+[apply] Apply section plan <process>
+- Replace the source section with the two returned halves @ flow.PFlowSectionApply(...)
+- Record both resulting halves in the log @ flow.PFlowSectionRecord(...)
+> fragment:shared.synchronize-sections
+
+[unchanged] No change <output>
+=The request does not change the section model.

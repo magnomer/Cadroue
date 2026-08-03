@@ -12,8 +12,15 @@ x86/
 [Aa][Rr][Mm]64/
 build/
 bld/
-[Ll]og/
-[Ll]ogs/
+artifacts/
+tmp/
+.verify-build/
+
+# Published / packaged binaries
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
 
 # Visual Studio / Rider / VS Code
 .vs/
@@ -33,20 +40,23 @@ packages/
 !packages/build/
 project.lock.json
 project.fragment.lock.json
-artifacts/
 
-# Test / coverage
+# Test and coverage output
 [Tt]est[Rr]esult*/
-*.coverage
-*.coveragexml
+coverage/
 coverage*.json
 coverage*.xml
+*.coverage
+*.coveragexml
 
-# Misc temp / precompiled
+# Logs, temporary files, and generated intermediates
+[Ll]og/
+[Ll]ogs/
+*.log
 *.tmp
+*.temp
 *.tmp_proj
 *_wpftmp.csproj
-local-flyleaf/
 *.cache
 *.dll
 *.exe
@@ -59,21 +69,23 @@ local-flyleaf/
 *.iobj
 *.ipdb
 *.pch
-*.log
 
-# OS
+# OS metadata
 [Dd]esktop.ini
 Thumbs.db
+ehthumbs.db
 $RECYCLE.BIN/
 
-# Project-internal docs (excluded from tracking)
-docs-internal/
-docs-work/
-snapshots/
+# AI / local project state
 .agents/
 .claude/
 .codegraph/
 .codex/
 
-# Build-lifecycle helper scripts (local, project-internal)
-*.ps1
+# Project-internal material
+/docs-internal/
+/docs-work/
+/snapshots/
+
+# Build-lifecycle helper scripts
+/*.ps1

@@ -1,0 +1,32 @@
+@format 1
+@id queue.create-audio-work
+@title Create active audio work
+@area Queue
+@entry input
+@summary Create one audio job from the active source and current processing plan, preserving preset, tab, and relay state.
+@flow TB
+@related queue.create-saved-audio-work, audio.save-plan
+
+@alias ui = Cadroue.UIShell.PMainArea.LAudio
+@alias audio = Cadroue.Application.LAudio
+@alias schedule = Cadroue.Infrastructure.LSchedule
+
+[input] Audio tab requests work <input>
+- Receive the active source, current audio plan, output preset, and relay routing @ ui.LAudioDescribe(...)
+> build
+
+[build] Build audio item <decision>
+- Convert the preset, validate the source and plan, and create one audio work item @ audio.LAudioItemCreate(...)
+? "The source or plan cannot produce work" > rejected
+? "An audio item is created" > persist
+
+[persist] Add durable work <storage>
+- Add the item with source-tab and relay lineage @ schedule.LScheduleAdd(...)
+- Record the queue result @ ui.LAudioDescribe(...)
+> result
+
+[result] Audio work queued <output>
+= The current audio plan appears as pending work.
+
+[rejected] Nothing queued <error>
+= No audio work record is added.

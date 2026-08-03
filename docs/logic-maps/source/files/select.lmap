@@ -1,0 +1,24 @@
+@format 1
+@id files.select
+@title Select media-list item
+@area Files
+@entry input
+@summary Update list selection and current-path state, then publish the selected path so its owning tab can open the media.
+@flow TB
+@related files.add, files.remove, preview.open-media
+
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[input] List item selected <input>
+- Handle a plain, range, or toggle selection gesture on a media row @ list.PListPressHandle(...)
+> selection
+
+[selection] Update selection state <process>
+- Apply single, range, or toggle selection and update row highlighting @ list.PListSelectApply(...)
+@ list.PListRangeApply(...)
+@ list.PListSelectionToggle(...)
+> current
+
+[current] Publish current path <output>
+- Set the current path and publish the list path-change event @ list.PListCurrentApply(...)
+> map:preview.open-media

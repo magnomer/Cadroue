@@ -1,0 +1,1276 @@
+{
+  "format": 1,
+  "maps": [
+    {
+      "id": "application.shutdown",
+      "title": "Application shutdown",
+      "area": "Application",
+      "summary": "Persist window and session state, detach active workspaces, stop relay intake, and flush the log.",
+      "href": "maps/application/shutdown.html",
+      "tags": [
+        "shutdown",
+        "session"
+      ],
+      "hash": "2057fa74b7c6",
+      "search": "application shutdown persist window and session state, detach active workspaces, stop relay intake, and flush the log. shutdown session window scene app tracewriter cadroue.uishell.pmainwindow.pwindow cadroue.infrastructure.lscene cadroue.uishell.pprogram cadroue.infrastructure.ltracewriter window closes receive the main-window close event window.pwindowclosehandle(...) persist visible state save the window bounds and timeline height window.pwindowclosehandle(...) capture the current tabs, layouts, exports, relays, and names window.pwindowsceneread(...) save the current session to disk scene.lscenestatesave(...) detach workspaces unsubscribe the window from relay, tab, options, keyboard, drop, and resize events window.pwindowclosehandle(...) close every tab workspace window.pwindowclosehandle(...) application exits stop the relay channel app.onexit(...) flush queued trace entries tracewriter.ltracewriterpersist(...)"
+    },
+    {
+      "id": "application.startup",
+      "title": "Application startup",
+      "area": "Application",
+      "summary": "Initialize shared services, restore persisted state, recover work, and show the main window.",
+      "href": "maps/application/startup.html",
+      "tags": [
+        "startup",
+        "restore"
+      ],
+      "hash": "aff86ee9afc5",
+      "search": "application startup initialize shared services, restore persisted state, recover work, and show the main window. startup restore app preference scene schedule cadroue.uishell.pprogram cadroue.uishell.lpreference cadroue.infrastructure.lscene cadroue.infrastructure.lschedule process startup receive the wpf startup event app.onstartup(...) read an optional relayed-tab payload app.lrelaystartupread(...) restore persisted configuration load renderer settings app.onstartup(...) load and normalize preferences preference.lpreferenceload(...) load the current scene scene.lscenecurrentload(...) load localization and shortcut state app.onstartup(...) prepare workspace and services attempt to apply the workspace and sidecar roots app.ldepotrootapply(...) establish remaining application services connect stations to the shared schedule app.lstationseamapply(...) connect runner reporting to the logging system app.onstartup(...) recover interrupted work resolve stale running claims app.lschedulerecoverrun(...) start the relay channel and preview engine app.onstartup(...) show the application create and show the main window app.onstartup(...)"
+    },
+    {
+      "id": "audio.change-persistence",
+      "title": "Change audio persistent setting",
+      "area": "Audio",
+      "summary": "Change a processing-step or Skip Persistent setting and propagate the carried portion of the current Audio plan to listed sources.",
+      "href": "maps/audio/change-persistence.html",
+      "tags": [],
+      "hash": "4b7440d1b17f",
+      "search": "change audio persistent setting change a processing-step or skip persistent setting and propagate the carried portion of the current audio plan to listed sources. inspector tab audio cadroue.uishell.ppanels.pinspector cadroue.uishell.pmainarea.paudiotab cadroue.uishell.pmainarea.laudio persistent setting changes publish a prepared processing-step or skip persistent-setting change inspector.pinspectorpersistentprepare(...) check whether a persistent plan exists suppress propagation while plans are restoring or no persistent step is selected tab.paudiopersistentwrite(...) save carried plan for listed sources read the selected persistent processing steps and skip state inspector.pinspectorpersistentread(...) read and merge each source's existing audio plan audio.laudioplanread(...) audio.laudioplanresolve(...) save the merged plan for every listed source audio.laudioplansave(...) persistent audio state propagated propagation suppressed"
+    },
+    {
+      "id": "audio.change-skip",
+      "title": "Change audio skip state",
+      "area": "Audio",
+      "summary": "Enable or disable Skip for the active Audio source, synchronize the processing list, and request plan persistence.",
+      "href": "maps/audio/change-skip.html",
+      "tags": [],
+      "hash": "499bd842913e",
+      "search": "change audio skip state enable or disable skip for the active audio source, synchronize the processing list, and request plan persistence. inspector processing tab cadroue.uishell.ppanels.pinspector cadroue.uishell.ppanels.pprocessing cadroue.uishell.pmainarea.paudiotab skip state changes publish the skip apply control change inspector.pskipbodybuild(...) synchronize audio state update the visible no processing state processing.pprocessingskipset(...) receive the skip event and request an active-source plan save tab.paudioskiphandle(...) continue to plan persistence"
+    },
+    {
+      "id": "audio.open-normalization-monitor",
+      "title": "Open normalization monitor",
+      "area": "Audio",
+      "summary": "Open the single normalization-monitor window for the active Audio tab and populate it from the current monitor source.",
+      "href": "maps/audio/open-normalization-monitor.html",
+      "tags": [],
+      "hash": "fbf835aed8bd",
+      "search": "open normalization monitor open the single normalization-monitor window for the active audio tab and populate it from the current monitor source. inspector tab monitor source cadroue.uishell.ppanels.pinspector cadroue.uishell.pmainarea.paudiotab cadroue.uishell.ppanels.psmonitor cadroue.uishell.ppanels.lsmonitor monitor requested raise the normalization-monitor request from the inspector button inspector.ploudnessbodybuild(...) replace monitor window forward the request from the audio tab to the monitor window tab.paudiomonitorshow(...) close an existing monitor and show a new owner-bound monitor monitor.psmonitorshow(...) populate monitor subscribe to monitor estimates and request an immediate update monitor.psmonitor(...) publish empty estimates while waveform data is unavailable, or before-and-after envelopes when it is available source.lsmonitorupdate(...)"
+    },
+    {
+      "id": "audio.reorder-steps",
+      "title": "Reorder audio processing steps",
+      "area": "Audio",
+      "summary": "Move one ordered audio processing step by its buttons or drag operation, renumber the list, and request persistence of the changed order.",
+      "href": "maps/audio/reorder-steps.html",
+      "tags": [],
+      "hash": "6b586909dab7",
+      "search": "reorder audio processing steps move one ordered audio processing step by its buttons or drag operation, renumber the list, and request persistence of the changed order. processing tab cadroue.uishell.ppanels.pprocessing cadroue.uishell.pmainarea.paudiotab reorder requested move the selected step with an order button processing.pprocessingstepmove(...) or move the dragged row and commit its changed order on release processing.pprocessingmovehandle(...) processing.pprocessinguphandle(...) apply new order validate the selected index and target position, then move the row and renumber ordered steps processing.pprocessingstepmove(...) request plan persistence publish the ordered-list change after a button move or a completed drag processing.pprocessingstepmove(...) processing.pprocessinguphandle(...) receive the ordered-list event and save the active source plan tab.paudiotab(...) order unchanged"
+    },
+    {
+      "id": "audio.restore-plan",
+      "title": "Restore audio plan",
+      "area": "Audio",
+      "summary": "Resolve saved and tab-persistent audio settings for the newly active source and apply them to the inspector and processing view.",
+      "href": "maps/audio/restore-plan.html",
+      "tags": [],
+      "hash": "cfb20af2130e",
+      "search": "restore audio plan resolve saved and tab-persistent audio settings for the newly active source and apply them to the inspector and processing view. tab audio cadroue.uishell.pmainarea.paudiotab cadroue.uishell.pmainarea.laudio active audio source changes start plan restoration for the viewer's active source tab.paudioplanrestore(...) read plan sources read the source sidecar audio plan audio.laudioplanread(...) resolve saved values with tab-persistent values audio.laudioplanresolve(...) apply resolved plan apply resolved steps and skip state to the inspector tab.paudioplanrestore(...) refresh the visible processing steps and active state tab.paudioactiveupdate(...) audio plan restored"
+    },
+    {
+      "id": "audio.save-plan",
+      "title": "Save audio plan",
+      "area": "Audio",
+      "summary": "Capture the current inspector plan after an audio-setting change and store it in the active source sidecar.",
+      "href": "maps/audio/save-plan.html",
+      "tags": [],
+      "hash": "4eff0e3495fa",
+      "search": "save audio plan capture the current inspector plan after an audio-setting change and store it in the active source sidecar. tab audio cadroue.uishell.pmainarea.paudiotab cadroue.uishell.pmainarea.laudio audio setting changes receive a processing, parameter, active-state, or skip change tab.paudiochangehandle(...) check save target confirm plan restoration is not in progress and an active source exists tab.paudioplansave(...) persist plan read the current ordered audio processing plan tab.paudioprocessingread(...) store skip state and processing steps in the source sidecar audio.laudioplansave(...) audio plan saved save suppressed"
+    },
+    {
+      "id": "audio.select-step",
+      "title": "Select audio processing step",
+      "area": "Audio",
+      "summary": "Select one audio processing row or the No Processing row, display its inspector, and clear an active skip setting when an actual step is selected.",
+      "href": "maps/audio/select-step.html",
+      "tags": [],
+      "hash": "72ee3fecdb88",
+      "search": "select audio processing step select one audio processing row or the no processing row, display its inspector, and clear an active skip setting when an actual step is selected. processing inspector tab cadroue.uishell.ppanels.pprocessing cadroue.uishell.ppanels.pinspector cadroue.uishell.pmainarea.paudiotab processing row selected handle a processing-row press or no processing-row activation processing.pprocessingrowbuild(...) processing.pprocessingskipbuild(...) select and reveal step mark the selected row and raise the selected step event processing.pprocessingselectapply(...) show the matching inspector body and unminimize it inspector.pinspectorstepshow(...) reconcile skip state clear persistent and active skip state only when an actual audio step was selected tab.paudiostephandle(...) processing editor selected"
+    },
+    {
+      "id": "audio.toggle-step",
+      "title": "Change audio processing setting",
+      "area": "Audio",
+      "summary": "Apply one audio inspector setting change to the tab, refresh active-step state and monitoring data, then request plan persistence.",
+      "href": "maps/audio/toggle-step.html",
+      "tags": [],
+      "hash": "458f3d3b09c6",
+      "search": "change audio processing setting apply one audio inspector setting change to the tab, refresh active-step state and monitoring data, then request plan persistence. tab inspector monitor cadroue.uishell.pmainarea.paudiotab cadroue.uishell.ppanels.pinspector cadroue.uishell.ppanels.lsmonitor audio setting changes publish an active-state or parameter change from the audio inspector inspector.pinspectoractiveraise(...) update audio surface refresh every processing-row active indicator tab.paudioactiveupdate(...) rebuild the monitor's planned audio chain monitor.lsmonitorplanapply(...) request sidecar-plan persistence for the current source tab.paudiochangehandle(...) continue to plan persistence"
+    },
+    {
+      "id": "edit.change-crop",
+      "title": "Change Crop, rotation, or flip",
+      "area": "Edit",
+      "summary": "Apply a Crop control, rotation or flip, ratio, or viewer-rectangle change to the Edit preview and request persistence of the active source plan.",
+      "href": "maps/edit/change-crop.html",
+      "tags": [],
+      "hash": "d723935cd504",
+      "search": "change crop, rotation, or flip apply a crop control, rotation or flip, ratio, or viewer-rectangle change to the edit preview and request persistence of the active source plan. inspector tab cadroue.uishell.ppanels.pinspector cadroue.uishell.pmainarea.pedittab crop state changes enable or disable the crop state and refresh its editor surface inspector.pinspectorapplyupdate(...) publish a changed crop rectangle from inset, ratio, or viewer-drawing input inspector.pinspectorcropraise(...) publish a changed rotation or flip state inspector.pinspectorrotateraise(...) convert a ratio constraint into a viewer crop ratio inspector.pinspectorratioupdate(...) synchronize crop preview apply crop and rotation events to the viewer through the edit-tab event subscriptions tab.pedittab(...) update inspector crop state when the viewer reports an adjusted rectangle tab.peditcropshow(...) save crop or rotation changes for the active source through the edit-tab event subscriptions tab.pedittab(...) continue to plan persistence"
+    },
+    {
+      "id": "edit.change-persistence",
+      "title": "Change edit persistent setting",
+      "area": "Edit",
+      "summary": "Change a Crop, tone, or Skip Persistent setting and propagate the carried portion of the current Edit plan to listed sources.",
+      "href": "maps/edit/change-persistence.html",
+      "tags": [],
+      "hash": "f72b378aed8d",
+      "search": "change edit persistent setting change a crop, tone, or skip persistent setting and propagate the carried portion of the current edit plan to listed sources. inspector tab edit cadroue.uishell.ppanels.pinspector cadroue.uishell.pmainarea.pedittab cadroue.uishell.pmainarea.ledit persistent setting changes publish a crop-specific persistent-state change inspector.pinspectorpersistentraise(...) publish any prepared persistent-setting change inspector.pinspectorpersistentprepare(...) check whether a carried plan exists suppress propagation while plans are restoring or no persistent portion is selected tab.peditpersistentwrite(...) save carried plan for listed sources read each source's existing plan and merge the carried crop, tone, and skip portions edit.leditplanread(...) edit.leditplanresolve(...) save the merged plan for every listed source edit.leditplansave(...) persistent edit state propagated propagation suppressed"
+    },
+    {
+      "id": "edit.change-skip",
+      "title": "Change edit skip state",
+      "area": "Edit",
+      "summary": "Enable or disable Skip for the active Edit source, synchronize the processing list, and request plan persistence.",
+      "href": "maps/edit/change-skip.html",
+      "tags": [],
+      "hash": "24ebcdc9fb3b",
+      "search": "change edit skip state enable or disable skip for the active edit source, synchronize the processing list, and request plan persistence. inspector processing tab cadroue.uishell.ppanels.pinspector cadroue.uishell.ppanels.pprocessing cadroue.uishell.pmainarea.pedittab skip state changes publish the skip apply control change inspector.pskipbodybuild(...) synchronize edit state update the visible no processing state processing.pprocessingskipset(...) receive the skip event and request an active-source plan save tab.peditskiphandle(...) continue to plan persistence"
+    },
+    {
+      "id": "edit.change-tone",
+      "title": "Change brightness or contrast",
+      "area": "Edit",
+      "summary": "Apply a brightness or contrast control change to the preview, refresh the processing indicators, and request persistence of the active source plan.",
+      "href": "maps/edit/change-tone.html",
+      "tags": [],
+      "hash": "c4fd4be9e464",
+      "search": "change brightness or contrast apply a brightness or contrast control change to the preview, refresh the processing indicators, and request persistence of the active source plan. inspector tab cadroue.uishell.ppanels.pinspector cadroue.uishell.pmainarea.pedittab tone control changes interpret a brightness or contrast checkbox, slider, or number-field change and raise the inspector event inspector.pinspectorvideoattach(...) apply tone state refresh crop and tone active-step indicators tab.peditactiveupdate(...) convert active brightness and contrast values into preview color state tab.peditcolorapply(...) request persistence for the active source tab.peditchangehandle(...) continue to plan persistence"
+    },
+    {
+      "id": "edit.restore-plan",
+      "title": "Restore edit plan",
+      "area": "Edit",
+      "summary": "Resolve source-sidecar and tab-persistent Crop, rotation, tone, and skip state when the active edit source changes.",
+      "href": "maps/edit/restore-plan.html",
+      "tags": [],
+      "hash": "f9f3dccdd34b",
+      "search": "restore edit plan resolve source-sidecar and tab-persistent crop, rotation, tone, and skip state when the active edit source changes. tab edit cadroue.uishell.pmainarea.pedittab cadroue.uishell.pmainarea.ledit active edit source changes begin crop and plan restoration for the active viewer source tab.peditcroprestore(...) resolve plan sources read the source sidecar plan edit.leditplanread(...) merge it with tab-persistent crop, tone, and skip settings edit.leditplanresolve(...) apply edit state apply rotation, crop, tone, and skip state to viewer and inspector tab.peditcroprestore(...) refresh preview transformations and processing indicators tab.peditviewerapply(...) edit plan restored"
+    },
+    {
+      "id": "edit.save-plan",
+      "title": "Save edit plan",
+      "area": "Edit",
+      "summary": "Capture the active source's current Crop, tone, and skip state and persist it in the sidecar.",
+      "href": "maps/edit/save-plan.html",
+      "tags": [],
+      "hash": "d91d292d1743",
+      "search": "save edit plan capture the active source's current crop, tone, and skip state and persist it in the sidecar. tab edit cadroue.uishell.pmainarea.pedittab cadroue.uishell.pmainarea.ledit save request arrives receive a save request from an edit-state event or source restoration tab.peditplansave(...) check save target suppress writes during restoration or without an active source tab.peditplansave(...) store sidecar plan read the current crop, tone, and skip state for the active source tab.peditplansave(...) persist the active source's edit plan edit.leditplansave(...) propagate any enabled persistent settings to every listed source tab.peditpersistentwrite(...) edit plan saved save suppressed"
+    },
+    {
+      "id": "export.add-preset",
+      "title": "Add export preset",
+      "area": "Export",
+      "summary": "Create and persist a uniquely named custom export preset from the current tab-specific export state.",
+      "href": "maps/export/add-preset.html",
+      "tags": [],
+      "hash": "684f7555675c",
+      "search": "add export preset create and persist a uniquely named custom export preset from the current tab-specific export state. export cadroue.uishell.ppanels.pexport add preset requested receive the add-preset command export.pexportpresetadd(...) create custom preset resolve a unique preset name and assign it to the current export state export.pexportpresetadd(...) persist the preset, select it, and refresh the export summary export.pexportpresetadd(...) preset added"
+    },
+    {
+      "id": "export.apply-preset",
+      "title": "Apply export preset",
+      "area": "Export",
+      "summary": "Replace the tab-specific export state with the selected preset and refresh its summary.",
+      "href": "maps/export/apply-preset.html",
+      "tags": [],
+      "hash": "1acdf73a8e94",
+      "search": "apply export preset replace the tab-specific export state with the selected preset and refresh its summary. export cadroue.uishell.ppanels.pexport preset selected for application receive the selected preset's apply command export.pexportpresetapply(...) apply preset state copy the selected preset into the tab-specific export state export.pexportpresetapply(...) refresh the export summary and modified-state surface export.pexportsummaryupdate(...) preset applied"
+    },
+    {
+      "id": "export.commit-modifications",
+      "title": "Commit preset modifications",
+      "area": "Export",
+      "summary": "Copy current tab-specific output modifications back into the selected custom preset.",
+      "href": "maps/export/commit-modifications.html",
+      "tags": [],
+      "hash": "33f01835ae81",
+      "search": "commit preset modifications copy current tab-specific output modifications back into the selected custom preset. export cadroue.uishell.ppanels.pexport commit modifications requested receive the modified preset's confirmation command export.pexportmodificationapply(...) check mutability reject modification of a native preset export.pexportmodificationapply(...) update preset replace the custom preset with current tab-specific export state export.pexportmodificationapply(...) refresh the rows and clear modified indication through the export summary update export.pexportsummaryupdate(...) preset updated preset unchanged"
+    },
+    {
+      "id": "export.delete-preset",
+      "title": "Delete export preset",
+      "area": "Export",
+      "summary": "Remove one selected custom export preset while protecting native presets, then select the first surviving preset.",
+      "href": "maps/export/delete-preset.html",
+      "tags": [],
+      "hash": "3a7667f7ace2",
+      "search": "delete export preset remove one selected custom export preset while protecting native presets, then select the first surviving preset. export cadroue.uishell.ppanels.pexport delete requested receive the selected preset's delete command export.pexportpresetdelete(...) check preset kind reject deletion of native presets export.pexportpresetdelete(...) remove preset delete the custom preset, load the first surviving preset when possible, and refresh the summary export.pexportpresetdelete(...) preset deleted preset retained"
+    },
+    {
+      "id": "export.edit-preset",
+      "title": "Edit export preset",
+      "area": "Export",
+      "summary": "Open the encoder editor for current export state and refresh modification status after a confirmed edit.",
+      "href": "maps/export/edit-preset.html",
+      "tags": [],
+      "hash": "ac2331927f07",
+      "search": "edit export preset open the encoder editor for current export state and refresh modification status after a confirmed edit. export cadroue.uishell.ppanels.pexport encoder settings requested open the encoder settings dialog for tab-specific state export.pexportdialogshow(...) edit output settings let the dialog modify video, audio, container, and encoder options export.pexportdialogshow(...) refresh export surface recompute summary and selected-preset modification state export.pexportsummaryupdate(...) export settings edited settings unchanged"
+    },
+    {
+      "id": "export.load-presets",
+      "title": "Import preset",
+      "area": "Export",
+      "summary": "Read one selected preset JSON file, assign it a collision-free name, persist it, and select it.",
+      "href": "maps/export/load-presets.html",
+      "tags": [],
+      "hash": "1e029aca1164",
+      "search": "import preset read one selected preset json file, assign it a collision-free name, persist it, and select it. export cadroue.uishell.ppanels.pexport import presets requested show an open-file dialog for preset json export.pexportpresetload(...) read preset file parse and validate the selected preset file export.pexportpresetload(...) store imported preset resolve a unique name, copy the imported state, persist it, select it, and refresh the summary export.pexportpresetload(...) preset imported import failed"
+    },
+    {
+      "id": "export.rename-preset",
+      "title": "Rename export preset",
+      "area": "Export",
+      "summary": "Validate and commit a requested new name for one custom export preset.",
+      "href": "maps/export/rename-preset.html",
+      "tags": [],
+      "hash": "c0692aa9b600",
+      "search": "rename export preset validate and commit a requested new name for one custom export preset. export cadroue.uishell.ppanels.pexport preset name committed receive old and edited preset names export.pexportnamecommit(...) check rename protect native presets and reject blank, unchanged, or duplicate requested names export.pexportnamecommit(...) rename preset update the preset name, selection, and visible rows export.pexportnamecommit(...) preset renamed name unchanged"
+    },
+    {
+      "id": "export.reorder-presets",
+      "title": "Reorder export presets",
+      "area": "Export",
+      "summary": "Move one custom export preset to a new visible index while leaving native presets fixed.",
+      "href": "maps/export/reorder-presets.html",
+      "tags": [],
+      "hash": "726b38dabb3b",
+      "search": "reorder export presets move one custom export preset to a new visible index while leaving native presets fixed. export cadroue.uishell.ppanels.pexport preset drag begins track a custom preset drag and resolve the target index export.pexportlivemove(...) apply live order reject native-preset movement and no-op indices export.pexportlivemove(...) preset moved order unchanged"
+    },
+    {
+      "id": "export.restore-modifications",
+      "title": "Restore preset modifications",
+      "area": "Export",
+      "summary": "Discard tab-specific output changes by reapplying the selected preset.",
+      "href": "maps/export/restore-modifications.html",
+      "tags": [],
+      "hash": "83a9d034d680",
+      "search": "restore preset modifications discard tab-specific output changes by reapplying the selected preset. export cadroue.uishell.ppanels.pexport restore requested receive the modified preset's cancel command export.pexportmodificationrestore(...) reapply preset replace tab-specific state with the selected preset export.pexportpresetapply(...) refresh summary and modified indication export.pexportpresetsync(...) modifications discarded"
+    },
+    {
+      "id": "export.save-presets",
+      "title": "Export preset",
+      "area": "Export",
+      "summary": "Write the current tab-specific export preset as one standalone JSON file.",
+      "href": "maps/export/save-presets.html",
+      "tags": [],
+      "hash": "8a7a049e67a4",
+      "search": "export preset write the current tab-specific export preset as one standalone json file. export cadroue.uishell.ppanels.pexport export presets requested show a save-file dialog for the preset collection export.pexportpresetsave(...) choose destination write preset file serialize the current tab-specific preset record to the selected path export.pexportpresetsave(...) presets exported export cancelled"
+    },
+    {
+      "id": "files.add",
+      "title": "Add files or folders",
+      "area": "Files",
+      "summary": "Expand selected files and folders into supported media paths, deduplicate them, and append new list items.",
+      "href": "maps/files/add.html",
+      "tags": [],
+      "hash": "f38afbf74bb6",
+      "search": "add files or folders expand selected files and folders into supported media paths, deduplicate them, and append new list items. list cadroue.uishell.ppanels.plist paths supplied receive paths from file dialog, folder dialog, drop, relay, or session restoration list.plistpathsadd(...) expand supported media recursively scan supplied paths and retain supported media files list.plistmediascan(...) add and refresh rows skip paths already present and create rows for new paths with relay cohort state list.plistpathsadd(...) rebuild the list and select the first scanned path even when every scanned path was already present list.plistpathsadd(...) files added existing file selected list unchanged"
+    },
+    {
+      "id": "files.clear",
+      "title": "Clear file list",
+      "area": "Files",
+      "summary": "Remove every item from one tab's media list and publish an empty current selection.",
+      "href": "maps/files/clear.html",
+      "tags": [],
+      "hash": "81a43e9b4287",
+      "search": "clear file list remove every item from one tab's media list and publish an empty current selection. list cadroue.uishell.ppanels.plist clear requested receive a clear request from the list, relay policy, or worklist action list.plistclear(...) clear list state remove all items, selected paths, and the current path list.plistclear(...) rebuild rows, update the empty notice, and publish path change list.plistclear(...) list cleared"
+    },
+    {
+      "id": "files.remove",
+      "title": "Remove selected files",
+      "area": "Files",
+      "summary": "Remove the current selection from a media list and repair current-row state.",
+      "href": "maps/files/remove.html",
+      "tags": [],
+      "hash": "a815b0d77f51",
+      "search": "remove selected files remove the current selection from a media list and repair current-row state. list cadroue.uishell.ppanels.plist remove command receive the list remove command list.plistremove(...) read selection read selected paths or fall back to the current row list.plistremove(...) remove rows remove matching list items and rebuild visible rows list.plistpathsremove(...) repair selection, current path, and empty-state display list.plistpathsremove(...) files removed list unchanged"
+    },
+    {
+      "id": "files.select",
+      "title": "Select media-list item",
+      "area": "Files",
+      "summary": "Update list selection and current-path state, then publish the selected path so its owning tab can open the media.",
+      "href": "maps/files/select.html",
+      "tags": [],
+      "hash": "ea661dea56c5",
+      "search": "select media-list item update list selection and current-path state, then publish the selected path so its owning tab can open the media. list cadroue.uishell.ppanels.plist list item selected handle a plain, range, or toggle selection gesture on a media row list.plistpresshandle(...) update selection state apply single, range, or toggle selection and update row highlighting list.plistselectapply(...) list.plistrangeapply(...) list.plistselectiontoggle(...) publish current path set the current path and publish the list path-change event list.plistcurrentapply(...)"
+    },
+    {
+      "id": "funnel.add-rule",
+      "title": "Add funnel rule",
+      "area": "Funnel",
+      "summary": "Add one filename or regular-expression rule to the ordered funnel rule list.",
+      "href": "maps/funnel/add-rule.html",
+      "tags": [],
+      "hash": "b25176774532",
+      "search": "add funnel rule add one filename or regular-expression rule to the ordered funnel rule list. rules cadroue.uishell.ppanels.pfunnelrules add-rule command receive the selected rule form from the add menu rules.pfunnelmenushow(...) create rule row create the rule editor and attach remove and drag handlers rules.pfunnelruleadd(...) append it, apply order numbers, and update the empty notice rules.pfunnelruleadd(...) rule added"
+    },
+    {
+      "id": "funnel.dispatch",
+      "title": "Dispatch files through funnel",
+      "area": "Funnel",
+      "summary": "Match selected or all listed files against ordered funnel rules and deliver each first match to its target tab.",
+      "href": "maps/funnel/dispatch.html",
+      "tags": [],
+      "hash": "a3c41bee8134",
+      "search": "dispatch files through funnel match selected or all listed files against ordered funnel rules and deliver each first match to its target tab. tab list courier seal cadroue.uishell.pmainarea.pfunneltab cadroue.uishell.ppanels.plist cadroue.uishell.pmainarea.lcourier cadroue.uishell.pmainarea.lseal funnel action requested receive selected or all listed items tab.pfunneldispatch(...) match ordered rules test each filename and stop at its first rule with a usable target tab.pfunneldispatch(...) deliver matched files add each matched file to the target list with its cohort and delivered state list.plistpathsadd(...) remove delivered sources when empty-target-files preference is enabled list.plistpathsremove(...) record courier arrival and sweep completed cohorts courier.lcourierarrive(...) seal.lsealsweep(...) funnel dispatch complete nothing dispatched"
+    },
+    {
+      "id": "funnel.move-rule",
+      "title": "Move funnel rule",
+      "area": "Funnel",
+      "summary": "Reorder one funnel rule by dragging it to a new position and renumber the list.",
+      "href": "maps/funnel/move-rule.html",
+      "tags": [],
+      "hash": "c57ccc9270de",
+      "search": "move funnel rule reorder one funnel rule by dragging it to a new position and renumber the list. rules cadroue.uishell.ppanels.pfunnelrules rule drag begins capture the pressed rule and drag origin rules.pfunnelpresshandle(...) track requested position activate dragging after threshold and resolve the target index rules.pfunnelmovehandle(...) reorder rule move the rule in the model and visual panel rules.pfunnelrowmove(...) reapply rule order labels rules.pfunnelorderapply(...) rule moved order unchanged"
+    },
+    {
+      "id": "funnel.remove-rule",
+      "title": "Remove funnel rule",
+      "area": "Funnel",
+      "summary": "Remove one requested funnel rule and renumber the remaining ordered rules.",
+      "href": "maps/funnel/remove-rule.html",
+      "tags": [],
+      "hash": "de2eb618878d",
+      "search": "remove funnel rule remove one requested funnel rule and renumber the remaining ordered rules. rules cadroue.uishell.ppanels.pfunnelrules rule removal requested receive the row's remove event rules.pfunnelruleremove(...) remove rule clear selection when it belongs to the row and detach the row from model and view rules.pfunnelruleremove(...) reapply order numbers and empty-state visibility rules.pfunnelorderapply(...) rule removed"
+    },
+    {
+      "id": "funnel.resolve-targets",
+      "title": "Resolve restored funnel targets",
+      "area": "Funnel",
+      "summary": "Convert restored target indices into live tab identifiers after the tab set has been rebuilt.",
+      "href": "maps/funnel/resolve-targets.html",
+      "tags": [],
+      "hash": "8254ee17534c",
+      "search": "resolve restored funnel targets convert restored target indices into live tab identifiers after the tab set has been rebuilt. tab rules cadroue.uishell.pmainarea.pfunneltab cadroue.uishell.ppanels.pfunnelrules restored tabs become available receive the rebuilt ordered tab records tab.pfunneltargetsresolve(...) resolve every pending target translate each saved target index into the corresponding live tab identifier rules.pfunneltargetsresolve(...) target restored target cleared"
+    },
+    {
+      "id": "import.losslesscut-detection",
+      "title": "Detect adjacent LosslessCut project",
+      "area": "Import",
+      "summary": "Inspect adjacent LosslessCut projects in order and transfer an accepted candidate to the import operation.",
+      "href": "maps/import/losslesscut-detection.html",
+      "tags": [
+        "losslesscut",
+        "detection"
+      ],
+      "hash": "259a15d60f30",
+      "search": "detect adjacent losslesscut project inspect adjacent losslesscut projects in order and transfer an accepted candidate to the import operation. losslesscut detection flow lossless cadroue.uishell.pflow.pflow cadroue.media.llosslesscut media attachment requests adjacent-project detection begin adjacent losslesscut discovery for the active media flow.pflowlosslesscutfind(...) discover candidates find adjacent losslesscut project files lossless.llosslesscutadjacentread(...) inspect next candidate read the candidate project lossless.llosslesscutread(...) present its file, version, segment count, and declared media flow.pflowlosslesscutfind(...) continue with import detection ends"
+    },
+    {
+      "id": "import.losslesscut-import",
+      "title": "Import LosslessCut project",
+      "area": "Import",
+      "summary": "Validate a LosslessCut project against active media, let the user choose replace or append, and commit imported sections.",
+      "href": "maps/import/losslesscut-import.html",
+      "tags": [
+        "losslesscut",
+        "import"
+      ],
+      "hash": "76052adb433c",
+      "search": "import losslesscut project validate a losslesscut project against active media, let the user choose replace or append, and commit imported sections. losslesscut import flow lossless cadroue.uishell.pflow.pflow cadroue.media.llosslesscut losslesscut import request receive an explicit or detected project path flow.pflowlosslesscutimport(...) read project read and parse the losslesscut project lossless.llosslesscutread(...) check project version check whether the declared version is supported lossless.llosslesscutversioncheck(...) validate media and segments validate the declared media name and segment ranges against the active media lossless.llosslesscutvalidate(...) check usable segments choose import mode present validation results and request replace, append, or cancel flow.pflowlosslesscutimport(...) commit imported sections convert valid records to palette-colored timeline segments flow.pflowlosslesscutcreate(...) replace or append sections and select the first imported segment flow.pflowlosslesscutimport(...) read failed record and present the project read failure flow.pflowlosslesscutimport(...) no usable segments present the validation summary flow.pflowlosslesscutimport(...) import cancelled"
+    },
+    {
+      "id": "keyframes.nearest",
+      "title": "Move to nearest keyframe",
+      "area": "Keyframes",
+      "summary": "Dispatch the nearest-keyframe shortcut, compare the adjacent known keyframes, and propagate the selected target to the timeline and preview.",
+      "href": "maps/keyframes/nearest.html",
+      "tags": [],
+      "hash": "f3acb1d8f268",
+      "search": "move to nearest keyframe dispatch the nearest-keyframe shortcut, compare the adjacent known keyframes, and propagate the selected target to the timeline and preview. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator nearest-keyframe command dispatch the nearest-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) compare adjacent keyframes find the strict previous and next known keyframes, then choose the closer one; ties choose the previous keyframe key.lkeyframenearestmove(...) propagate keyframe target update the cursor, views, keyframe scan request, and preview seek flow.pflowkeyframemove(...) nearest keyframe resolved no nearest keyframe"
+    },
+    {
+      "id": "keyframes.next",
+      "title": "Move to next keyframe",
+      "area": "Keyframes",
+      "summary": "Dispatch the next-keyframe shortcut, resolve the nearest known keyframe strictly after the cursor, and propagate it to the timeline and preview.",
+      "href": "maps/keyframes/next.html",
+      "tags": [],
+      "hash": "171278ef208c",
+      "search": "move to next keyframe dispatch the next-keyframe shortcut, resolve the nearest known keyframe strictly after the cursor, and propagate it to the timeline and preview. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator next-keyframe command dispatch the next-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) find following point search stored keyframes strictly after the cursor key.lkeyframemovefind(...) propagate keyframe target update the cursor, views, keyframe scan request, and preview seek flow.pflowkeyframemove(...) next keyframe resolved no next keyframe"
+    },
+    {
+      "id": "keyframes.previous",
+      "title": "Move to previous keyframe",
+      "area": "Keyframes",
+      "summary": "Dispatch the previous-keyframe shortcut, resolve the nearest known keyframe strictly before the cursor, and propagate it to the timeline and preview.",
+      "href": "maps/keyframes/previous.html",
+      "tags": [],
+      "hash": "72f929425df3",
+      "search": "move to previous keyframe dispatch the previous-keyframe shortcut, resolve the nearest known keyframe strictly before the cursor, and propagate it to the timeline and preview. flow key cadroue.uishell.pflow.pflow cadroue.infrastructure.lkeyframeorchestrator previous-keyframe command dispatch the previous-keyframe shortcut when timeline commands and a spool are active flow.pflowshortcutdispatch(...) find prior point search stored keyframes strictly before the cursor key.lkeyframemovefind(...) propagate keyframe target update the cursor, views, keyframe scan request, and preview seek flow.pflowkeyframemove(...) previous keyframe resolved no previous keyframe"
+    },
+    {
+      "id": "keyframes.scan",
+      "title": "Scan nearby keyframes",
+      "area": "Keyframes",
+      "summary": "Load cached keyframes for a source, concurrently scan the centre and both directional ranges around the cursor, and publish source-current results.",
+      "href": "maps/keyframes/scan.html",
+      "tags": [],
+      "hash": "71e3baacb8b2",
+      "search": "scan nearby keyframes load cached keyframes for a source, concurrently scan the centre and both directional ranges around the cursor, and publish source-current results. key cadroue.infrastructure.lkeyframeorchestrator keyframes requested receive source, duration, and current cursor key.lkeyframestart(...) establish source state replace state and load cache when source identity changes key.lkeyframecacheload(...) cancel obsolete scanning and publish currently known keyframes key.lkeyframenoticepublish(...) plan nearby spans divide the search range around the cursor into centre, backward, and forward spans key.lkeyframeplanstart(...) start three scan paths start the centre span and independent backward and forward directional scans concurrently key.lkeyframeplanrun(...) scan each path's spans scan the centre once; each directional path scans its spans sequentially key.lkeyframespanrun(...) merge discovered keyframes, publish each completed attempt, and cache at the save threshold key.lkeyframespanrun(...) finish the request cache and publish persist the keyframe sidecar after all three paths finish key.lkeyframesidecarpersist(...) failed spans are counted but not retried in this request; later requests may scan them until the retry limit key.lkeyframespanrun(...) keyframes available scan discarded"
+    },
+    {
+      "id": "keyframes.suspend",
+      "title": "Suspend keyframe scanning",
+      "area": "Keyframes",
+      "summary": "Cancel and dispose the active keyframe scan request without discarding accumulated keyframes.",
+      "href": "maps/keyframes/suspend.html",
+      "tags": [],
+      "hash": "2e88611fb231",
+      "search": "suspend keyframe scanning cancel and dispose the active keyframe scan request without discarding accumulated keyframes. key cadroue.infrastructure.lkeyframeorchestrator scanning suspension requested receive media replacement, timeline clearing, or disposal request key.lkeyframesuspend(...) cancel active work detach, cancel, and dispose the current scan token source key.lkeyframesuspend(...) scanning suspended"
+    },
+    {
+      "id": "logging.emit-entry",
+      "title": "Emit log entry",
+      "area": "Logging",
+      "summary": "Create a structured trace entry, publish it to live viewers, enqueue its text, and flush batches to the active log file.",
+      "href": "maps/logging/emit-entry.html",
+      "tags": [
+        "logging",
+        "trace"
+      ],
+      "hash": "661230778a86",
+      "search": "emit log entry create a structured trace entry, publish it to live viewers, enqueue its text, and flush batches to the active log file. logging trace trace tracewriter cadroue.infrastructure.ltrace cadroue.infrastructure.ltracewriter component records a trace receive a trace kind, summary, optional detail, and duration trace.ltracerecord(...) check category determine whether this trace kind is enabled trace.ltracecheck(...) publish trace create and append the structured in-memory trace entry trace.ltracerecord(...) notify live log subscribers trace.ltracerecord(...) format and enqueue the entry for disk writing tracewriter.ltracewriterrecord(...) persist batch start the background writer when first needed tracewriter.ltracewriterstart(...) append queued entries in bounded batches and record dropped-entry counts tracewriter.ltracewriterrun(...) flush the writer after an idle interval tracewriter.ltracepersistrun(...) entry omitted entry available"
+    },
+    {
+      "id": "logging.open-feed",
+      "title": "Open log feed",
+      "area": "Logging",
+      "summary": "Load a selected log file into structured rows, apply category filtering, and append live entries in bounded batches.",
+      "href": "maps/logging/open-feed.html",
+      "tags": [
+        "logging",
+        "viewer"
+      ],
+      "hash": "28f97fae5c76",
+      "search": "open log feed load a selected log file into structured rows, apply category filtering, and append live entries in bounded batches. logging viewer logwindow tracewriter cadroue.uishell.plogwindow cadroue.infrastructure.ltracewriter log window opens or file selection changes build available categories and log-file choices logwindow.plogcategorybuild(...) select and request a log file logwindow.plogfilesbuild(...) load selected log flush and read the selected log file tracewriter.ltracefileread(...) parse the text into structured rows logwindow.plogfileload(...) limit retained rows and apply the selected category logwindow.plogfileload(...) receive live entries buffer trace notifications until the ui flush interval logwindow.plogappendhandle(...) append visible batch add buffered entries to all rows, source text, and the filtered view logwindow.plogflushhandle(...) enforce the row limit and scroll to the latest visible entry logwindow.plogflushhandle(...) log feed visible"
+    },
+    {
+      "id": "merge.auto-group",
+      "title": "Automatically group merge files",
+      "area": "Merge",
+      "summary": "Derive merge groups from filename stems and numeric runs using strict or loose automatic grouping.",
+      "href": "maps/merge/auto-group.html",
+      "tags": [],
+      "hash": "bfcefe1338f8",
+      "search": "automatically group merge files derive merge groups from filename stems and numeric runs using strict or loose automatic grouping. group cadroue.uishell.ppanels.pgroup automatic grouping selected receive strict or loose automatic grouping mode group.pgroupautoapply(...) derive groups parse filenames and divide sorted files into compatible runs group.pgroupautoresolve(...) replace the group model and rebuild the visible group cards group.pgroupautoupdate(...) automatic groups visible"
+    },
+    {
+      "id": "merge.create-group-drop",
+      "title": "Create merge group from empty-area drop",
+      "area": "Merge",
+      "summary": "Drop source files or a dragged group item onto the empty group-panel area to create a new merge group.",
+      "href": "maps/merge/create-group-drop.html",
+      "tags": [],
+      "hash": "8200020f7e3e",
+      "search": "create merge group from empty-area drop drop source files or a dragged group item onto the empty group-panel area to create a new merge group. group cadroue.uishell.ppanels.pgroup empty group-panel area receives a drop receive external files, list paths, or a dragged group item group.pgroupdrophandle(...) collect paths for the new group for a dragged group item, remove its matching source path from the original group group.pgroupdrophandle(...) for external files, request supported media paths before grouping group.pgrouppathsread(...) add a new group create a default-named group and insert each collected path group.pgroupdrophandle(...) rebuild group cards; an emptied source group remains in the model group.pgrouprebuild(...) new merge group visible groups unchanged"
+    },
+    {
+      "id": "merge.move-file",
+      "title": "Move file between merge groups",
+      "area": "Merge",
+      "summary": "Move a dragged group source to a group-card position; an existing destination copy silently prevents reinsertion after source removal.",
+      "href": "maps/merge/move-file.html",
+      "tags": [],
+      "hash": "4038f7452a98",
+      "search": "move file between merge groups move a dragged group source to a group-card position; an existing destination copy silently prevents reinsertion after source removal. group cadroue.uishell.ppanels.pgroup group file drag begins build a drag payload from a group row group.pgroupdraghandle(...) resolve a group-card position resolve the target group's insertion index from its file rows group.pgroupcardhandle(...) move sources remove the dragged source from its original group before insertion group.pgroupcardhandle(...) insert it at the resolved position only when the destination has no matching path group.pgrouppathinsert(...) rebuild group cards; an emptied source group remains in the model group.pgrouprebuild(...) group membership changed groups unchanged"
+    },
+    {
+      "id": "merge.remove-file",
+      "title": "Remove file from merge group",
+      "area": "Merge",
+      "summary": "Remove one source from one merge group while retaining the group even when it becomes empty.",
+      "href": "maps/merge/remove-file.html",
+      "tags": [],
+      "hash": "0d41b45ccf95",
+      "search": "remove file from merge group remove one source from one merge group while retaining the group even when it becomes empty. group cadroue.uishell.ppanels.pgroup group file removal requested receive the remove command for a group source row group.pgroupitemremove(...) remove membership remove the source from its group and rebuild group cards group.pgroupitemremove(...) group source removed"
+    },
+    {
+      "id": "merge.remove-group",
+      "title": "Remove merge group",
+      "area": "Merge",
+      "summary": "Remove one complete merge group from the current Merge tab.",
+      "href": "maps/merge/remove-group.html",
+      "tags": [],
+      "hash": "db07626c24ae",
+      "search": "remove merge group remove one complete merge group from the current merge tab. group cadroue.uishell.ppanels.pgroup group removal requested receive the remove command for a group card group.pgroupremove(...) remove group remove the group record and rebuild the visible group list group.pgroupremove(...) group removed"
+    },
+    {
+      "id": "merge.rename-group",
+      "title": "Rename merge group",
+      "area": "Merge",
+      "summary": "Commit a new display and output name for one merge group.",
+      "href": "maps/merge/rename-group.html",
+      "tags": [],
+      "hash": "89bf46385e83",
+      "search": "rename merge group commit a new display and output name for one merge group. group cadroue.uishell.ppanels.pgroup group name editing begins replace the group heading with an editor group.pgroupeditstart(...) commit group name normalize and store the edited group name group.pgroupeditstart(...) rebuild the group card heading group.pgrouprebuild(...) group renamed"
+    },
+    {
+      "id": "preferences.apply",
+      "title": "Apply preferences",
+      "area": "Preferences",
+      "summary": "Collect the options draft, normalize and persist it, apply live settings, and notify when a language change requires restart.",
+      "href": "maps/preferences/apply.html",
+      "tags": [
+        "preferences",
+        "settings"
+      ],
+      "hash": "dc7a09b808e2",
+      "search": "apply preferences collect the options draft, normalize and persist it, apply live settings, and notify when a language change requires restart. preferences settings options preference prefstore window cadroue.uishell.psoptions cadroue.uishell.lpreference cadroue.infrastructure.lpreferencestatestore cadroue.uishell.pmainwindow.pwindow user chooses apply or ok receive the options-window apply command options.psoptionsapply(...) build preference state copy general, system, playback, timeline, and work controls into the draft options.psoptionsapply(...) normalize values and clone the draft options.psoptionsapply(...) commit preferences record differences from the previous preference state preference.lpreferencestateset(...) replace current preferences and save json to application data preference.lpreferencestateset(...) reapply depot and sidecar roots through the registered callback preference.lpreferencestateset(...) apply live window state apply window, timeline, palette, and volume settings window.pwindowoptionshandle(...) check language change present restart notice tell the user that the new language is applied after restart options.psoptionsapply(...) preferences applied"
+    },
+    {
+      "id": "preferences.persist",
+      "title": "Persist preference change",
+      "area": "Preferences",
+      "summary": "Coalesce high-frequency preference changes and write the latest normalized preference state after the defer interval.",
+      "href": "maps/preferences/persist.html",
+      "tags": [],
+      "hash": "338e9f7220a1",
+      "search": "persist preference change coalesce high-frequency preference changes and write the latest normalized preference state after the defer interval. preference store cadroue.uishell.lpreference cadroue.infrastructure.lpreferencestatestore preference setter changes state update the relevant value in current preference state preference.lpreferencestateset(...) coalesce writes restart the preference save timer so a burst produces one write preference.lpreferencedefer(...) write latest state normalize and save the current preference state when the timer expires store.lpreferencestatesave(...) preference durable"
+    },
+    {
+      "id": "preview.close-media",
+      "title": "Close media",
+      "area": "Preview",
+      "summary": "Dispose active playback state, clear preview transformations, and clear the connected timeline.",
+      "href": "maps/preview/close-media.html",
+      "tags": [
+        "media",
+        "close"
+      ],
+      "hash": "4e09d8695185",
+      "search": "close media dispose active playback state, clear preview transformations, and clear the connected timeline. media close viewer window flow cadroue.uishell.ppanels.pviewer cadroue.uishell.pmainwindow.pwindow cadroue.uishell.pflow.pflow close media request receive the viewer close command viewer.pviewermediaclose(...) check active media confirm that the viewer is active and holds a source or media record viewer.pviewermediaclose(...) clear preview stop and dispose the player viewer.pviewermediaclose(...) clear source, media, crop, and playback state viewer.pviewermediaclose(...) publish an empty media status viewer.pviewermediaclose(...) clear timeline receive the empty media status window.pwindowmediahandle(...) clear timeline models, views, keyframes, waveform, and selection flow.pflowclear(...) no change"
+    },
+    {
+      "id": "preview.open-media",
+      "title": "Open media",
+      "area": "Preview",
+      "summary": "Resolve the selected media, attempt FFprobe and Flyleaf independently, commit the new availability state, and synchronize the timeline.",
+      "href": "maps/preview/open-media.html",
+      "tags": [
+        "media",
+        "flyleaf",
+        "ffprobe"
+      ],
+      "hash": "104e08291c15",
+      "search": "open media resolve the selected media, attempt ffprobe and flyleaf independently, commit the new availability state, and synchronize the timeline. media flyleaf ffprobe viewer preference window flow cadroue.uishell.ppanels.pviewer cadroue.uishell.lpreference cadroue.uishell.pmainwindow.pwindow cadroue.uishell.pflow.pflow media open request receive a source path from the user, drop target, list, relay, or session restore viewer.pviewersourceopen(...) resolve source resolve a sidecar to its media source when needed viewer.pviewersidecarresolve(...) record the source as the last opened media preference.lpreferencemediaset(...) probe the media attempt to read media information with ffprobe viewer.pplayervideoload(...) attempt preview opening create or reuse a flyleaf player, then attempt to open and pause the source viewer.pplayervideoload(...) commit an unavailable source commit a new source status with neither processing nor preview availability viewer.pviewermediacommit(...) commit preview state swap or retain the player and bind it to the host viewer.pviewermediacommit(...) reset playback and non-persistent crop state viewer.pviewermediacommit(...) apply autoplay or an initial paused frame viewer.pviewermediacommit(...) publish the media status to the active workspace viewer.pviewermediaraise(...) apply media status to the timeline receive the committed media status window.pwindowmediahandle(...) initialize timeline for the source attach media duration, cursor, sections, keyframes, and waveform work flow.pflowattach(...) clear the current timeline clear timeline media and suspend its keyframe work flow.pflowclear(...) new media state committed sidecar opening rejected"
+    },
+    {
+      "id": "preview.pause",
+      "title": "Pause playback",
+      "area": "Preview",
+      "summary": "Playback is paused at the current position.",
+      "href": "maps/preview/pause.html",
+      "tags": [
+        "playback",
+        "pause"
+      ],
+      "hash": "be0ece2890b1",
+      "search": "pause playback playback is paused at the current position. playback pause viewer cadroue.uishell.ppanels.pviewer pause playback request receive the active workspace command viewer.pviewerpause(...) check preview readiness confirm that viewer commands are enabled and a player exists viewer.pviewerpause(...) apply playback state pause flyleaf playback and stop the preview clock viewer.pviewerpause(...) playback synchronized no change"
+    },
+    {
+      "id": "preview.play",
+      "title": "Start playback",
+      "area": "Preview",
+      "summary": "Playback is running and cursor ticks are emitted.",
+      "href": "maps/preview/play.html",
+      "tags": [
+        "playback",
+        "play"
+      ],
+      "hash": "1a8d0a1d0373",
+      "search": "start playback playback is running and cursor ticks are emitted. playback play viewer cadroue.uishell.ppanels.pviewer start playback request receive the active workspace command viewer.pviewerplay(...) check preview readiness confirm that viewer commands are enabled and a player exists viewer.pviewerplay(...) apply playback state start flyleaf playback and the preview clock viewer.pviewerplay(...) playback synchronized no change"
+    },
+    {
+      "id": "preview.seek",
+      "title": "Seek preview",
+      "area": "Preview",
+      "summary": "The preview and timeline cursor converge on the requested position.",
+      "href": "maps/preview/seek.html",
+      "tags": [
+        "playback",
+        "seek"
+      ],
+      "hash": "c98704ad6c10",
+      "search": "seek preview the preview and timeline cursor converge on the requested position. playback seek viewer cadroue.uishell.ppanels.pviewer seek preview request receive the active workspace command viewer.pviewerseek(...) check preview readiness confirm that viewer commands are enabled and a player exists viewer.pviewerseek(...) apply playback state request an accurate flyleaf seek and publish the requested position viewer.pviewerseek(...) playback synchronized no change"
+    },
+    {
+      "id": "preview.waveform-generation",
+      "title": "Generate waveform",
+      "area": "Preview",
+      "summary": "Reuse live or stored waveform data when possible; otherwise scan, persist, and publish data only while it still belongs to the active source.",
+      "href": "maps/preview/waveform-generation.html",
+      "tags": [
+        "waveform",
+        "sidecar"
+      ],
+      "hash": "822c06ce3003",
+      "search": "generate waveform reuse live or stored waveform data when possible; otherwise scan, persist, and publish data only while it still belongs to the active source. waveform sidecar flow wave scan sidecar cadroue.uishell.pflow.pflow cadroue.infrastructure.lwaveformorchestrator cadroue.media.lwaveformscanner cadroue.media.lsidecarstore waveform requested request waveform work after media attachment or display-state change flow.pflowwaveformstart(...) validate request reject a disposed orchestrator, missing path, or nonpositive duration and clear current data wave.lwaveformstart(...) check live in-memory data re-publish peaks already held for the same source wave.lwaveformstart(...) replace work and inspect sidecar cancel obsolete work, establish the source, and publish an empty interim waveform wave.lwaveformstart(...) read stored waveform data from the sidecar sidecar.lsidecarwaveformread(...) scan audio envelope decode and aggregate peaks and rms values in background work scan.lwaveformscan(...) evaluate scan save scanned waveform save scanned waveform data to the source sidecar sidecar.lsidecarwaveformsave(...) apply source-matched data reject results that no longer belong to the active source wave.lwaveformapply(...) publish waveform notify the timeline and redraw both timeline views flow.pflowwaveformhandle(...) waveform cleared no waveform available stale result discarded waveform generation failed log the scan or sidecar-save failure wave.lwaveformscanstart(...)"
+    },
+    {
+      "id": "processing.complete",
+      "title": "Complete processing",
+      "area": "Processing",
+      "summary": "Commit a finished job as done or failed, reload observable state, apply failure-pausing policy, and clean temporary resources.",
+      "href": "maps/processing/complete.html",
+      "tags": [
+        "processing",
+        "completion"
+      ],
+      "hash": "07972112c9df",
+      "search": "complete processing commit a finished job as done or failed, reload observable state, apply failure-pausing policy, and clean temporary resources. processing completion job schedule runner cadroue.shellengine.ljob cadroue.infrastructure.lschedule cadroue.shellengine.lrunner job reaches a final result receive final ffmpeg status and collected output metadata job.ljobrun(...) commit final state set finish time, sizes, media metadata, progress, state, and message job.ljobrun(...) move the running record to done or failed storage schedule.lschedulecommit(...) save final record details and reload the schedule schedule.lschedulecommit(...) successful result failed result pause the queue when failure-pausing is enabled runner.lrunnerfailureapply(...) release job resources remove process and live-item registrations and stop lease renewal job.ljobrun(...) / finally remove temporary stage files job.ljobtempclear(...)"
+    },
+    {
+      "id": "processing.pause",
+      "title": "Pause processing",
+      "area": "Processing",
+      "summary": "No new work is claimed; suspendable active processes are paused.",
+      "href": "maps/processing/pause.html",
+      "tags": [
+        "processing",
+        "pause"
+      ],
+      "hash": "92e6e2e50b4d",
+      "search": "pause processing no new work is claimed; suspendable active processes are paused. processing pause runner cadroue.shellengine.lrunner pause processing command receive the worklist control command runner.lrunnerpause(...) change runner state mark the runner inactive and suspend every active ffmpeg process that the operating system accepts runner.lrunnerpause(...) runner state changed"
+    },
+    {
+      "id": "processing.retry",
+      "title": "Retry failed job",
+      "area": "Processing",
+      "summary": "Apply retry policy to a failed running item and release it back to pending state when another attempt is allowed.",
+      "href": "maps/processing/retry.html",
+      "tags": [
+        "processing",
+        "retry"
+      ],
+      "hash": "237badf80565",
+      "search": "retry failed job apply retry policy to a failed running item and release it back to pending state when another attempt is allowed. processing retry job schedule cadroue.shellengine.ljob cadroue.infrastructure.lschedule job failure requests retry receive the failure reason from ffmpeg exit or a job exception job.ljobretrystart(...) check retry policy confirm retry is enabled and increment the runner-local retry count job.ljobretrystart(...) release claimed work move the owned running record back to scheduled state with the retry message schedule.lscheduleitemrelease(...) retry scheduled retry unavailable"
+    },
+    {
+      "id": "processing.run-job",
+      "title": "Run FFmpeg job",
+      "area": "Processing",
+      "summary": "Validate one claimed item, run its FFmpeg stages, and commit success, retry, cancellation, or failure according to the path actually reached.",
+      "href": "maps/processing/run-job.html",
+      "tags": [
+        "ffmpeg",
+        "job"
+      ],
+      "hash": "2d053e55f941",
+      "search": "run ffmpeg job validate one claimed item, run its ffmpeg stages, and commit success, retry, cancellation, or failure according to the path actually reached. ffmpeg job runner job encode probe schedule cadroue.shellengine.lrunner cadroue.shellengine.ljob cadroue.shellengine.lencode cadroue.shellengine.lprobe cadroue.infrastructure.lschedule worker receives claimed work create a job for the claimed item and worker token runner.lrunnerlooprun(...) begin execution of that item job.ljobrun(...) validate stored work validate required sources and output information job.ljobvalidate(...) commit validation failure mark the item failed, commit its message, and reload the schedule job.ljobrun(...) remove its attempt record and count a runner failure job.ljobrun(...) prepare execution register the live item and start lease renewal job.ljobrun(...) create the output directory and apply collision policy job.ljobcollisionapply(...) build the required ffmpeg stages encode.lencodestagesbuild(...) enter guarded execution enter the guarded stage, retry, probe, and commit block job.ljobrun(...) run the next stage attach and start the ffmpeg process job.ljobstagerun(...) read progress blocks and publish phase and percentage job.ljobprogressread(...) collect standard error and process exit state job.ljobstagerun(...) evaluate stage result commit explicit cancellation request durable cancellation for the item job.ljobrun(...) file the item as cancelled and remove partial output schedule.lscheduleitemcancel(...) requeue failed attempt inspect normal process result probe source and output sizes and media properties after normal process completion job.ljobrun(...) probe the output keyframe interval when applicable probe.lprobeintervalread(...) commit normal completion commit success when the exit code is zero, otherwise commit final ffmpeg failure job.ljobrun(...) reload the schedule and update runner failure state when required job.ljobrun(...) explicit cancellation complete runner cancellation observed log cancellation, remove live process/item registrations, stop lease renewal, and clear temporary stages job.ljobrun(...) / finally evaluate execution exception catch an execution exception that bypasses normal output probing job.ljobrun(...) commit exception failure commit the exception message as final failure without probing output job.ljobrun(...)"
+    },
+    {
+      "id": "processing.start",
+      "title": "Start processing",
+      "area": "Processing",
+      "summary": "Workers are running or resumed and schedule observers see the new state.",
+      "href": "maps/processing/start.html",
+      "tags": [
+        "processing",
+        "start"
+      ],
+      "hash": "e42613c281a5",
+      "search": "start processing workers are running or resumed and schedule observers see the new state. processing start runner cadroue.shellengine.lrunner start processing command receive the worklist control command runner.lrunnerstart(...) change runner state mark the runner active and start or resume enough worker loops for the configured parallel limit runner.lrunnerstart(...) runner state changed"
+    },
+    {
+      "id": "processing.stop",
+      "title": "Stop processing",
+      "area": "Processing",
+      "summary": "Active work is returned to the queue and this runner owns no claims.",
+      "href": "maps/processing/stop.html",
+      "tags": [
+        "processing",
+        "stop"
+      ],
+      "hash": "4819b591b217",
+      "search": "stop processing active work is returned to the queue and this runner owns no claims. processing stop runner cadroue.shellengine.lrunner stop processing command receive the worklist control command runner.lrunnercancel(...) change runner state cancel worker loops, resume suspended processes before killing them, clear leases and partial outputs, and release owned claims runner.lrunnercancel(...) runner state changed"
+    },
+    {
+      "id": "project.delete-scene",
+      "title": "Delete named scene",
+      "area": "Project",
+      "summary": "Confirm and remove one named scene from the persistent scene collection.",
+      "href": "maps/project/delete-scene.html",
+      "tags": [],
+      "hash": "6eefd2c72fcb",
+      "search": "delete named scene confirm and remove one named scene from the persistent scene collection. console scene cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lscene scene delete requested receive the close command for a named scene row console.pconsolesceneclose(...) confirm deletion ask the user to confirm removal console.pconsolesceneclose(...) delete scene remove the named scene and persist the collection scene.lscenedelete(...) rebuild the scene list console.pconsolescenerebuild(...) scene deleted scene retained"
+    },
+    {
+      "id": "project.export-scene",
+      "title": "Export scene",
+      "area": "Project",
+      "summary": "Export a stored or current scene as a standalone JSON file selected by the user.",
+      "href": "maps/project/export-scene.html",
+      "tags": [],
+      "hash": "da86125157b5",
+      "search": "export scene export a stored or current scene as a standalone json file selected by the user. console scene cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lscene export requested resolve the named stored scene or capture the current window console.pconsoleexporthandle(...) choose destination show the scene save-file dialog console.pconsoleexporthandle(...) write scene file serialize the scene as json at the selected path scene.lscenefilesave(...) scene exported export cancelled"
+    },
+    {
+      "id": "project.import-scene",
+      "title": "Import scene",
+      "area": "Project",
+      "summary": "Read a standalone scene JSON file, assign a collision-free name, and add it to the persisted scene collection.",
+      "href": "maps/project/import-scene.html",
+      "tags": [],
+      "hash": "35bced2f7e6b",
+      "search": "import scene read a standalone scene json file, assign a collision-free name, and add it to the persisted scene collection. console scene cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lscene import requested show the scene open-file dialog console.pconsoleimporthandle(...) parse scene file read and validate the selected json scene scene.lscenefileload(...) resolve imported name derive a missing name and make it unique in the scene collection console.pconsolenamecreate(...) save imported scene add the scene to persistent named scenes and rebuild the list scene.lscenesave(...) scene imported import failed"
+    },
+    {
+      "id": "project.load-scene",
+      "title": "Load named scene",
+      "area": "Project",
+      "summary": "Confirm replacement of the current window and rebuild it from one stored named scene.",
+      "href": "maps/project/load-scene.html",
+      "tags": [],
+      "hash": "ff550d004e81",
+      "search": "load named scene confirm replacement of the current window and rebuild it from one stored named scene. console scene cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lscene load scene requested receive a selected scene and check unsaved divergence console.pconsoleloadhandle(...) confirm replacement ask before replacing a materially different current scene console.pconsolesceneconfirm(...) read and apply scene read the named scene from persistent collection scene.lsceneread(...) rebuild the window from the scene and set it active console.pconsolesceneload(...) scene loaded current scene retained"
+    },
+    {
+      "id": "project.restore-session",
+      "title": "Restore session",
+      "area": "Project",
+      "summary": "Recreate tabs, per-tab output and layout state, names, relay routing, target resolution, selection, and optional last media.",
+      "href": "maps/project/restore-session.html",
+      "tags": [
+        "session",
+        "restore"
+      ],
+      "hash": "bbc4c7639ac1",
+      "search": "restore session recreate tabs, per-tab output and layout state, names, relay routing, target resolution, selection, and optional last media. session restore window scene cadroue.uishell.pmainwindow.pwindow cadroue.infrastructure.lscene main window is created choose default tabs or the last saved session from preferences window.pwindowtabsrestore(...) restore tabs create each saved tab with its output preset and layout record window.pwindowscenerestore(...) restore custom tab names window.pwindowscenerestore(...) restore relay slots and resolve funnel targets window.pwindowscenerestore(...) select the saved active tab index window.pwindowscenerestore(...) restore optional media check the open-last-media preference and saved path window.pwindowmediarestore(...) continue with media open session restored"
+    },
+    {
+      "id": "project.save-scene",
+      "title": "Save named scene",
+      "area": "Project",
+      "summary": "Capture the current window as a named scene and persist it in the scene collection.",
+      "href": "maps/project/save-scene.html",
+      "tags": [],
+      "hash": "7ead0d7847c4",
+      "search": "save named scene capture the current window as a named scene and persist it in the scene collection. console scene cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lscene save scene requested read and validate the entered scene name console.pconsolesavehandle(...) capture current window capture tabs, layouts, exports, relays, and names under the requested scene name console.pconsolesavehandle(...) save scene collection add or replace the named scene and persist the collection scene.lscenesave(...) rebuild and select the scene list entry console.pconsolesavehandle(...) scene saved"
+    },
+    {
+      "id": "project.save-session",
+      "title": "Save session",
+      "area": "Project",
+      "summary": "Capture the current tab arrangement and workspace state and persist it as the next startup session.",
+      "href": "maps/project/save-session.html",
+      "tags": [
+        "session",
+        "save"
+      ],
+      "hash": "246f804d13ad",
+      "search": "save session capture the current tab arrangement and workspace state and persist it as the next startup session. session save window scene cadroue.uishell.pmainwindow.pwindow cadroue.infrastructure.lscene main window closes begin session capture during window close window.pwindowclosehandle(...) capture session model read tab layout keys, output presets, workspace layouts, relay slots, custom names, and active index window.pwindowsceneread(...) persist session create the application-data folder when needed and serialize the session record scene.lscenestatesave(...) session durable"
+    },
+    {
+      "id": "queue.add-work",
+      "title": "Add work to schedule",
+      "area": "Queue",
+      "summary": "Persist built work records as pending items, assign routing and lineage, and notify schedule observers.",
+      "href": "maps/queue/add-work.html",
+      "tags": [
+        "queue",
+        "persistence"
+      ],
+      "hash": "5a931e0c0f1a",
+      "search": "add work to schedule persist built work records as pending items, assign routing and lineage, and notify schedule observers. queue persistence schedule store cadroue.infrastructure.lschedule cadroue.infrastructure.lschedulestore built work items arrive receive work items with optional relay source and target identifiers schedule.lscheduleadd(...) prepare each record apply relay routing to the item schedule.lscheduleadd(...) resolve lineage when it has not already been assigned schedule.lscheduleadd(...) convert the work item to its persistent record schedule.lscheduleadd(...) persist pending work save the record in the scheduled depot folder store.lschedulerecordsave(...) publish pending item add the item to the observable in-memory schedule schedule.lscheduleadd(...) skip unsaved item record that the item could not be filed schedule.lscheduleadd(...) schedule changed notify schedule observers when at least one item was added schedule.lscheduleadd(...)"
+    },
+    {
+      "id": "queue.apply-runner-configuration",
+      "title": "Apply runner configuration",
+      "area": "Queue",
+      "summary": "Copy the current renderer, parallelism, pause-on-failure, and retry preferences into a station runner before starting it.",
+      "href": "maps/queue/apply-runner-configuration.html",
+      "tags": [],
+      "hash": "f27a5f2be916",
+      "search": "apply runner configuration copy the current renderer, parallelism, pause-on-failure, and retry preferences into a station runner before starting it. console runner cadroue.uishell.pmainarea.pconsole cadroue.shellengine.lrunner station start requested read the active station's runner console.pconsolestarthandle(...) apply current configuration set renderer program, parallel limit, failure pause, retry permission, and retry limit console.pconsolerunnerapply(...) continue runner start start the configured runner runner.lrunnerstart(...)"
+    },
+    {
+      "id": "queue.cancel-work",
+      "title": "Cancel running work",
+      "area": "Queue",
+      "summary": "Confirm cancellation of currently running items, disable automatic execution, and arm per-item cancellation; only a nonzero observed exit becomes cancelled storage.",
+      "href": "maps/queue/cancel-work.html",
+      "tags": [
+        "queue",
+        "cancellation"
+      ],
+      "hash": "f54051d86b78",
+      "search": "cancel running work confirm cancellation of currently running items, disable automatic execution, and arm per-item cancellation; only a nonzero observed exit becomes cancelled storage. queue cancellation console runner job schedule cadroue.uishell.pmainarea.pconsole cadroue.shellengine.lrunner cadroue.shellengine.ljob cadroue.infrastructure.lschedule user requests cancellation receive the cancel command for the active station console.pconsolecancelhandle(...) inspect running work read all running items owned by the active station console.pconsolerunningread(...) confirm destructive action show the running-item cancellation confirmation console.pconsolecancelhandle(...) signal every running job disable automatic execution for the station console.pconsolecancelhandle(...) arm explicit cancellation for each running work identifier runner.lrunnerjobcancel(...) kill an already attached ffmpeg process, or kill it when it attaches runner.lrunnerprocessattach(...) running job observes termination distinguish explicit item cancellation from general runner cancellation job.ljobrun(...) persist restartable cancellation set the finish time and request durable cancellation job.ljobrun(...) remove partial output, move the record to cancelled storage, clear ownership, and reload the schedule schedule.lscheduleitemcancel(...) cancellation armed work completes before cancellation commit the zero-exit job through normal completion job.ljobrun(...) observed cancellation stored no cancellation"
+    },
+    {
+      "id": "queue.claim-work",
+      "title": "Claim queued work",
+      "area": "Queue",
+      "summary": "Select the next eligible pending item, move it to running state, and establish ownership and lease data.",
+      "href": "maps/queue/claim-work.html",
+      "tags": [
+        "queue",
+        "claim",
+        "lease"
+      ],
+      "hash": "8b8d38565853",
+      "search": "claim queued work select the next eligible pending item, move it to running state, and establish ownership and lease data. queue claim lease schedule store cadroue.infrastructure.lschedule cadroue.infrastructure.lschedulestore worker requests work request the next item for a runner identity schedule.lscheduleclaim(...) order candidates read all scheduled work records schedule.lscheduleclaim(...) order high-priority work first and then by creation time schedule.lscheduleclaim(...) check next candidate apply the cohort gate to the candidate batch schedule.lscheduleclaim(...) acquire running-file claim move the record from scheduled to running storage store.lschedulemove(...) establish ownership set running state, process identity, runner identity, lease time, phase, and attempt count schedule.lscheduleclaim(...) save the owned record in running storage store.lschedulerecordsave(...) register the live running item and record the claim schedule.lscheduleclaim(...) work claimed no claim"
+    },
+    {
+      "id": "queue.clear-all",
+      "title": "Clear all non-running work",
+      "area": "Queue",
+      "summary": "Confirm and remove all clearable durable work while preserving work that cannot safely be cleared.",
+      "href": "maps/queue/clear-all.html",
+      "tags": [],
+      "hash": "c383508b12ee",
+      "search": "clear all non-running work confirm and remove all clearable durable work while preserving work that cannot safely be cleared. console schedule cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lschedule clear all requested receive the clear all command console.pconsoleallhandle(...) confirm removal apply the destructive-action confirmation preference console.pconsoledestructiveconfirm(...) remove clearable records clear durable schedule folders and repair stale state schedule.lscheduleallclear(...) clearable work removed schedule unchanged"
+    },
+    {
+      "id": "queue.clear-done",
+      "title": "Clear completed work",
+      "area": "Queue",
+      "summary": "Confirm and remove durable completed work records from the shared schedule.",
+      "href": "maps/queue/clear-done.html",
+      "tags": [],
+      "hash": "301fb177e284",
+      "search": "clear completed work confirm and remove durable completed work records from the shared schedule. console schedule cadroue.uishell.pmainarea.pconsole cadroue.infrastructure.lschedule clear done requested receive the clear done command console.pconsoledonehandle(...) confirm removal apply the destructive-action confirmation preference console.pconsoledestructiveconfirm(...) remove completed records delete durable done records and reload schedule state schedule.lscheduledoneclear(...) completed work cleared schedule unchanged"
+    },
+    {
+      "id": "queue.clear-tabs",
+      "title": "Clear all tab contents",
+      "area": "Queue",
+      "summary": "Confirm and clear user content from every current tab without deleting the tabs themselves.",
+      "href": "maps/queue/clear-tabs.html",
+      "tags": [],
+      "hash": "15366586f766",
+      "search": "clear all tab contents confirm and clear user content from every current tab without deleting the tabs themselves. console tabset cadroue.uishell.pmainarea.pconsole cadroue.uishell.pcontrolbar.ltabset clear tabs requested receive the clear tabs command console.pconsoletabshandle(...) confirm removal apply the destructive-action confirmation preference console.pconsoledestructiveconfirm(...) clear tab workspaces request content clearing from every tab workspace tabset.ltabsetcontentclear(...) tab contents cleared tabs unchanged"
+    },
+    {
+      "id": "queue.create-audio-work",
+      "title": "Create active audio work",
+      "area": "Queue",
+      "summary": "Create one audio job from the active source and current processing plan, preserving preset, tab, and relay state.",
+      "href": "maps/queue/create-audio-work.html",
+      "tags": [],
+      "hash": "75ad8d885d75",
+      "search": "create active audio work create one audio job from the active source and current processing plan, preserving preset, tab, and relay state. ui audio schedule cadroue.uishell.pmainarea.laudio cadroue.application.laudio cadroue.infrastructure.lschedule audio tab requests work receive the active source, current audio plan, output preset, and relay routing ui.laudiodescribe(...) build audio item convert the preset, validate the source and plan, and create one audio work item audio.laudioitemcreate(...) add durable work add the item with source-tab and relay lineage schedule.lscheduleadd(...) record the queue result ui.laudiodescribe(...) audio work queued nothing queued"
+    },
+    {
+      "id": "queue.create-convert-work",
+      "title": "Create convert work",
+      "area": "Queue",
+      "summary": "Convert the tab request into work items, preserve relay routing, persist them, then repair unknown durations asynchronously.",
+      "href": "maps/queue/create-convert-work.html",
+      "tags": [],
+      "hash": "30adeb0e7c3c",
+      "search": "create convert work convert the tab request into work items, preserve relay routing, persist them, then repair unknown durations asynchronously. ui convert schedule sidecar cadroue.uishell.pmainarea.lconvert cadroue.application.lconvert cadroue.infrastructure.lschedule cadroue.media.lsidecarstore convert tab requests work receive priority, listed sources, output preset, source tab, and relay target ui.lconvertdescribe(...) convert the preset and source relay batches into a work description ui.lconvertdescribe(...) build conversion items validate sources, recover known durations, and choose safe output paths convert.lconvertitemscreate(...) add durable work assign relay lineage and add every item to the shared schedule schedule.lscheduleadd(...) record the queue result ui.lconvertdescribe(...) repair unknown durations find newly persisted items whose end time is still unknown ui.lconvertdurationresolve(...) resolve and update duration resolve unknown durations in bounded parallel work sidecar.lsidecardurationresolve(...) update each already-persisted schedule record schedule.lscheduledurationset(...) convert work queued nothing queued"
+    },
+    {
+      "id": "queue.create-edit-work",
+      "title": "Create active edit work",
+      "area": "Queue",
+      "summary": "Create edit work from the active media and current Crop and tone state, then preserve tab and relay lineage in the schedule.",
+      "href": "maps/queue/create-edit-work.html",
+      "tags": [],
+      "hash": "4cc874ca2e0c",
+      "search": "create active edit work create edit work from the active media and current crop and tone state, then preserve tab and relay lineage in the schedule. ui edit schedule cadroue.uishell.pmainarea.ledit cadroue.application.ledit cadroue.infrastructure.lschedule edit tab requests current work receive the active source, duration, crop state, tone state, output preset, and relay routing ui.leditdescribe(...) convert the output preset into an edit work description ui.leditdescribe(...) build active edit item validate the source and create a safe output path edit.ledititemscreate(...) create one work item with the current crop and video state edit.leditworkcreate(...) add durable work add the item with relay target and source lineage schedule.lscheduleadd(...) record the queue result ui.leditdescribe(...) active edit queued nothing queued"
+    },
+    {
+      "id": "queue.create-merge-work",
+      "title": "Create merge work",
+      "area": "Queue",
+      "summary": "Convert the Merge tab's current groups into durable work while preserving output, tab, and relay lineage.",
+      "href": "maps/queue/create-merge-work.html",
+      "tags": [],
+      "hash": "fd58ad4895e4",
+      "search": "create merge work convert the merge tab's current groups into durable work while preserving output, tab, and relay lineage. ui merge schedule cadroue.uishell.pmainarea.lmerge cadroue.application.lmerge cadroue.infrastructure.lschedule merge tab requests work receive priority, ordered groups, output preset, tab identity, and relay routing ui.lmergedescribe(...) build group work remove missing sources, resolve cohort lineage, and create safe output names merge.lmergeitemscreate(...) add durable work add every merge item with relay target and source lineage schedule.lscheduleadd(...) record the number of queued groups ui.lmergedescribe(...) merge groups queued nothing queued"
+    },
+    {
+      "id": "queue.create-saved-audio-work",
+      "title": "Create audio work from saved plans",
+      "area": "Queue",
+      "summary": "Create audio jobs only for listed sources with active saved sidecar plans while retaining relay batches.",
+      "href": "maps/queue/create-saved-audio-work.html",
+      "tags": [],
+      "hash": "4eec8b080364",
+      "search": "create audio work from saved plans create audio jobs only for listed sources with active saved sidecar plans while retaining relay batches. ui audio schedule cadroue.uishell.pmainarea.laudio cadroue.application.laudio cadroue.infrastructure.lschedule add all audio request receive listed sources, priority, preset, and relay routing ui.laudioalldescribe(...) select active plans read the saved audio plan for each listed source ui.laudioplanread(...) skip sources whose saved plan is absent or inactive ui.laudioalldescribe(...) build and persist jobs create an audio item per active plan and retain or assign its relay batch audio.laudioitemcreate(...) add all built items with relay lineage schedule.lscheduleadd(...) saved audio plans queued nothing queued"
+    },
+    {
+      "id": "queue.create-saved-edit-work",
+      "title": "Create edit work from saved plans",
+      "area": "Queue",
+      "summary": "Create one edit item for each listed source whose sidecar contains an active saved plan, then repair unknown durations.",
+      "href": "maps/queue/create-saved-edit-work.html",
+      "tags": [],
+      "hash": "96d0bc1776e3",
+      "search": "create edit work from saved plans create one edit item for each listed source whose sidecar contains an active saved plan, then repair unknown durations. ui edit schedule sidecar cadroue.uishell.pmainarea.ledit cadroue.application.ledit cadroue.infrastructure.lschedule cadroue.media.lsidecarstore add all edit request receive priority, listed sources, output preset, and relay routing ui.leditalldescribe(...) read saved plans read each source's saved edit plan ui.leditplanread(...) skip sources without an active saved plan ui.leditalldescribe(...) build and persist items create one work item per active plan, preserving or assigning its source batch edit.leditworkcreate(...) apply the source-tab title and add relay lineage to the schedule schedule.lscheduleadd(...) resolve missing durations resolve missing durations in bounded parallel work sidecar.lsidecardurationresolve(...) update affected persisted schedule records schedule.lscheduledurationset(...) saved edit plans queued nothing queued"
+    },
+    {
+      "id": "queue.create-split-work",
+      "title": "Create split work",
+      "area": "Queue",
+      "summary": "Convert visible Split sections into one pending work item per enabled valid section.",
+      "href": "maps/queue/create-split-work.html",
+      "tags": [
+        "queue",
+        "create-split-work"
+      ],
+      "hash": "302042ab5723",
+      "search": "create split work convert visible split sections into one pending work item per enabled valid section. queue create-split-work splitui schedule split cadroue.uishell.pmainarea.lsplit cadroue.infrastructure.lschedule cadroue.application.lsplit queue command receive a queue request and capture its priority, sources, output preset, tab, and relay routing splitui.lsplitdescribe(...) build work descriptions build a split description from the active media, sections, and output preset splitui.lsplitdescribe(...) reject a missing source or empty section set split.lsplititemscreate(...) skip hidden and invalid ranges while preserving section numbering split.lsplititemscreate(...) create unique output names and split work items split.lsplititemscreate(...) add work to schedule assign relay routing and lineage and persist every work record schedule.lscheduleadd(...) work queued queue request rejected"
+    },
+    {
+      "id": "queue.load",
+      "title": "Load schedule",
+      "area": "Queue",
+      "summary": "Reconcile the persistent depot and index into the observable worklist.",
+      "href": "maps/queue/load.html",
+      "tags": [
+        "queue",
+        "load",
+        "index"
+      ],
+      "hash": "b031350b432b",
+      "search": "load schedule reconcile the persistent depot and index into the observable worklist. queue load index schedule cadroue.infrastructure.lschedule schedule load requested begin a schedule refresh after startup or a durable state transition schedule.lscheduleload(...) prepare index create the depot index and recover stale claims schedule.lscheduleload(...) rebuild the index when it is dirty schedule.lscheduleload(...) read indexed records parse records exposed by the depot index schedule.lscheduleindexread(...) scan depot folders read records directly from every schedule-state folder schedule.lschedulefolderread(...) rebuild observable schedule preserve live running objects and recreate other work items schedule.lscheduleitemsbuild(...) sort work by creation time and notify observers schedule.lscheduleitemsbuild(...)"
+    },
+    {
+      "id": "queue.recover-stale",
+      "title": "Recover stale claims",
+      "area": "Queue",
+      "summary": "Resolve running records whose owner or lease is stale and either requeue or fail them according to recovery limits.",
+      "href": "maps/queue/recover-stale.html",
+      "tags": [
+        "queue",
+        "recovery",
+        "stale"
+      ],
+      "hash": "b5ac16e0db00",
+      "search": "recover stale claims resolve running records whose owner or lease is stale and either requeue or fail them according to recovery limits. queue recovery stale schedule cadroue.infrastructure.lschedule startup or schedule scan scan running records for stale ownership schedule.lschedulestaleclaim(...) check each running record determine whether its process, runner sentinel, or lease is stale schedule.lschedulestaleclaim(...) requeue interrupted work remove partial output and release ownership fields schedule.lschedulestaleclaim(...) move the record back to scheduled storage schedule.lschedulestaleclaim(...) attempt to save its reset metadata after the move schedule.lschedulestaleclaim(...) fail repeatedly stale work remove partial output and mark the record failed schedule.lschedulestaleclaim(...) move the record to failed storage schedule.lschedulestaleclaim(...) attempt to save its failure details after the move schedule.lschedulestaleclaim(...) recovery result"
+    },
+    {
+      "id": "queue.remove-work",
+      "title": "Remove work record",
+      "area": "Queue",
+      "summary": "The selected work item no longer exists in the worklist.",
+      "href": "maps/queue/remove-work.html",
+      "tags": [
+        "queue",
+        "remove-work"
+      ],
+      "hash": "33929e17576c",
+      "search": "remove work record the selected work item no longer exists in the worklist. queue remove-work schedule cadroue.infrastructure.lschedule remove work record request receive the selected work identifier or live work item schedule.lscheduleremove(...) apply durable transition delete every durable record for the work identifier, update the index, and reload the schedule schedule.lscheduleremove(...) schedule changed transition failed"
+    },
+    {
+      "id": "queue.reset-work",
+      "title": "Reset cancelled or failed work",
+      "area": "Queue",
+      "summary": "The work item is pending with a fresh retry and recovery history.",
+      "href": "maps/queue/reset-work.html",
+      "tags": [
+        "queue",
+        "reset-work"
+      ],
+      "hash": "ac0f90234919",
+      "search": "reset cancelled or failed work the work item is pending with a fresh retry and recovery history. queue reset-work schedule cadroue.infrastructure.lschedule reset cancelled or failed work request receive the selected work identifier or live work item schedule.lscheduleitemreset(...) apply durable transition move a cancelled or failed record to scheduled storage and clear ownership, counters, progress, and message schedule.lscheduleitemreset(...) schedule changed transition failed"
+    },
+    {
+      "id": "queue.switch-station",
+      "title": "Switch worklist station",
+      "area": "Queue",
+      "summary": "Move the console to the previous or next station and refresh progress and controls for that station.",
+      "href": "maps/queue/switch-station.html",
+      "tags": [],
+      "hash": "ebde2d266c1d",
+      "search": "switch worklist station move the console to the previous or next station and refresh progress and controls for that station. console cadroue.uishell.pmainarea.pconsole station navigation requested receive previous or next station command console.pconsolestationmove(...) resolve station wrap the requested step across the current station board console.pconsolestationmove(...) station switched refresh progress, status, and controls for the new station console.pconsoleprogressupdate(...) station unchanged"
+    },
+    {
+      "id": "queue.toggle-automatic",
+      "title": "Toggle automatic execution",
+      "area": "Queue",
+      "summary": "Enable or disable automatic execution for the active station and persist the preference.",
+      "href": "maps/queue/toggle-automatic.html",
+      "tags": [],
+      "hash": "759a3eb52343",
+      "search": "toggle automatic execution enable or disable automatic execution for the active station and persist the preference. console preference cadroue.uishell.pmainarea.pconsole cadroue.uishell.lpreference automatic checkbox changes receive the automatic-execution checkbox state console.pconsoleautohandle(...) apply station state set automatic execution on the active station console.pconsoleautohandle(...) persist the automatic-execution preference preference.lpreferenceautoset(...) refresh console status and controls console.pconsoleprogressupdate(...) automatic execution changed"
+    },
+    {
+      "id": "relay.deliver-output",
+      "title": "Deliver completed output",
+      "area": "Relay",
+      "summary": "Route a locally completed output to its destination tab, optionally drain source inputs, and trigger automatic downstream work.",
+      "href": "maps/relay/deliver-output.html",
+      "tags": [
+        "relay",
+        "delivery"
+      ],
+      "hash": "c5dcc7e5e797",
+      "search": "deliver completed output route a locally completed output to its destination tab, optionally drain source inputs, and trigger automatic downstream work. relay delivery courier list cadroue.uishell.pmainarea.lcourier cadroue.uishell.ppanels.plist schedule change after completion scan done work owned by this process for undelivered relay targets courier.lcourierdispatch(...) resolve delivery target finish relay chain record chain completion and force source removal courier.lcourieroutputadd(...) add output to destination add the output path to the destination list with its batch cohort list.plistpathsadd(...) remove delivered source entries when the preference allows it courier.lcouriersourceremove(...) invoke automatic downstream action when enabled courier.lcourierarrive(...) delivery skipped record the missing output or destination courier.lcourieroutputadd(...) delivery complete"
+    },
+    {
+      "id": "relay.receive-tab",
+      "title": "Receive relayed tab",
+      "area": "Relay",
+      "summary": "Restore a startup relay payload or accept a live relay-channel payload as a new selected tab.",
+      "href": "maps/relay/receive-tab.html",
+      "tags": [
+        "relay",
+        "tab"
+      ],
+      "hash": "8778566d357f",
+      "search": "receive relayed tab restore a startup relay payload or accept a live relay-channel payload as a new selected tab. relay tab app window cadroue.uishell.pprogram cadroue.uishell.pmainwindow.pwindow relay payload is supplied identify the delivery path read a startup relay payload read and clear the startup relay file app.lrelaystartupread(...) place the startup window apply the relayed window position before restoring its tab window.pwindowrelayplace(...) a relay channel payload arrives receive a live delivery from the process relay channel window.pwindowrelayhandle(...) restore relayed tab add a tab with the relayed layout, output preset, and custom name window.pwindowrelayaccept(...) select the new tab and apply relayed media, sections, and list state window.pwindowrelayaccept(...) restore and present live delivery accept the delivered tab on the ui dispatcher window.pwindowrelayhandle(...) restore the window when minimized and activate it window.pwindowrelayhandle(...) relayed tab available"
+    },
+    {
+      "id": "relay.select-target",
+      "title": "Select relay target",
+      "area": "Relay",
+      "summary": "Select or clear the target tab that should receive output from newly created work.",
+      "href": "maps/relay/select-target.html",
+      "tags": [],
+      "hash": "f140a22c736f",
+      "search": "select relay target select or clear the target tab that should receive output from newly created work. action cadroue.uishell.pmainarea.paction relay menu selection receive a target-tab or none selection action.pactionrelayselect(...) apply relay target store the selected target identifier and publish target change action.pactionrelayapply(...) refresh relay button icon, text, and active state action.pactionfaceupdate(...) relay target selected"
+    },
+    {
+      "id": "relay.toggle-automatic",
+      "title": "Toggle automatic relay",
+      "area": "Relay",
+      "summary": "Enable or disable automatic submission when delivered files arrive in a target tab.",
+      "href": "maps/relay/toggle-automatic.html",
+      "tags": [],
+      "hash": "0fa13df8bd0f",
+      "search": "toggle automatic relay enable or disable automatic submission when delivered files arrive in a target tab. action cadroue.uishell.pmainarea.paction auto-relay checkbox changes receive the requested automatic relay state action.pactionautoapply(...) apply tab action state update auto-relay state and its visible checkbox action.pactionautoapply(...) automatic relay changed"
+    },
+    {
+      "id": "split.section-add",
+      "title": "Add section",
+      "area": "Split",
+      "summary": "Create a new section at the current cursor and synchronize every section representation.",
+      "href": "maps/split/section-add.html",
+      "tags": [
+        "section",
+        "section-add"
+      ],
+      "hash": "e2f00a7135b0",
+      "search": "add section create a new section at the current cursor and synchronize every section representation. section section-add flow segment cadroue.uishell.pflow.pflow cadroue.core.lsegment add section command receive the section command in the active split timeline flow.pflowsectionadd(...) validate section request validate the current cursor, selection, duration, and overlap constraints segment.lsegmentadd(...) apply section plan replace the section list and active selection with the returned plan flow.pflowsectionapply(...) record the new section in the log flow.pflowsectionrecord(...) no change"
+    },
+    {
+      "id": "split.section-delete",
+      "title": "Delete section",
+      "area": "Split",
+      "summary": "Confirm and remove the active section, select the nearest survivor, and synchronize section state.",
+      "href": "maps/split/section-delete.html",
+      "tags": [
+        "section",
+        "delete"
+      ],
+      "hash": "65ee58ec1283",
+      "search": "delete section confirm and remove the active section, select the nearest survivor, and synchronize section state. section delete flow cadroue.uishell.pflow.pflow delete section command receive the delete command for the active section flow.pflowsectiondelete(...) confirm deletion confirm that a section is selected flow.pflowsectiondelete(...) request destructive-action confirmation when configured flow.pflowdestructiveconfirm(...) remove section record the section deletion flow.pflowsectionrecord(...) remove the active section and select the nearest remaining section flow.pflowsectiondelete(...) no change"
+    },
+    {
+      "id": "split.section-divide",
+      "title": "Divide section",
+      "area": "Split",
+      "summary": "Divide the selected section at the cursor and select the left half.",
+      "href": "maps/split/section-divide.html",
+      "tags": [
+        "section",
+        "section-divide"
+      ],
+      "hash": "e688e67a841b",
+      "search": "divide section divide the selected section at the cursor and select the left half. section section-divide flow segment cadroue.uishell.pflow.pflow cadroue.core.lsegment divide section command receive the section command in the active split timeline flow.pflowsectiondivide(...) validate section request require an active section and a cursor strictly inside its start and end boundaries segment.lsegmentdivide(...) apply section plan replace the source section with the two returned halves flow.pflowsectionapply(...) record both resulting halves in the log flow.pflowsectionrecord(...) no change"
+    },
+    {
+      "id": "split.section-end-set",
+      "title": "Set section end",
+      "area": "Split",
+      "summary": "Set the selected section end, or create a section ending at the cursor, and synchronize section state.",
+      "href": "maps/split/section-end-set.html",
+      "tags": [
+        "section",
+        "section-end-set"
+      ],
+      "hash": "54cabeb75cf5",
+      "search": "set section end set the selected section end, or create a section ending at the cursor, and synchronize section state. section section-end-set flow segment cadroue.uishell.pflow.pflow cadroue.core.lsegment set section end command receive the section command in the active split timeline flow.pflowendset(...) validate section request when editing an active section, require a cursor after its start and within the permitted next-section boundary; when no section is active, attempt an end-anchored section creation segment.lsegmentendset(...) apply section plan determine whether the operation creates or edits a section flow.pflowendset(...) replace the section list and active selection with the returned plan flow.pflowsectionapply(...) record the resulting section boundary flow.pflowsectionrecord(...) no change"
+    },
+    {
+      "id": "split.section-move",
+      "title": "Move section",
+      "area": "Split",
+      "summary": "Reorder a section and preserve its active selection.",
+      "href": "maps/split/section-move.html",
+      "tags": [
+        "section",
+        "section-move"
+      ],
+      "hash": "4c148e9afe45",
+      "search": "move section reorder a section and preserve its active selection. section section-move flow cadroue.uishell.pflow.pflow move section request receive the requested section change flow.pflowsectionmove(...) check effective change confirm the section exists and the requested state differs where applicable flow.pflowsectionmove(...) change section state move the section to the requested list position and preserve its selection flow.pflowsectionmove(...) record the section change flow.pflowsectionrecord(...) no change"
+    },
+    {
+      "id": "split.section-rename",
+      "title": "Rename section",
+      "area": "Split",
+      "summary": "Change a section's naming data and synchronize all section representations.",
+      "href": "maps/split/section-rename.html",
+      "tags": [
+        "section",
+        "section-rename"
+      ],
+      "hash": "0d66a40f2b0b",
+      "search": "rename section change a section's naming data and synchronize all section representations. section section-rename flow cadroue.uishell.pflow.pflow rename section request receive the requested section change flow.pflownameset(...) check effective change confirm the section exists and the requested state differs where applicable flow.pflownameset(...) change section state replace the section name, prefix, and suffix and record the change flow.pflownameset(...) record the section change flow.pflowsectionrecord(...) no change"
+    },
+    {
+      "id": "split.section-seek",
+      "title": "Seek to section",
+      "area": "Split",
+      "summary": "Select a requested section, synchronize selection state, and seek preview to its start.",
+      "href": "maps/split/section-seek.html",
+      "tags": [
+        "section",
+        "seek"
+      ],
+      "hash": "be902abd8473",
+      "search": "seek to section select a requested section, synchronize selection state, and seek preview to its start. section seek flow cadroue.uishell.pflow.pflow section seek request receive a section activation request flow.pflowsectionseek(...) check request confirm commands are enabled and the section index exists flow.pflowsectionseek(...) select and seek set the requested section as active flow.pflowsectionseek(...) refresh the viewfinder, map, workspace model, and source sidecar flow.pflowsectionupdate(...) seek preview propagate the section start to timeline views and the preview flow.pflowcursorpropagate(...) no change"
+    },
+    {
+      "id": "split.section-sort",
+      "title": "Sort sections",
+      "area": "Split",
+      "summary": "Sort sections by name while keeping the selected section active.",
+      "href": "maps/split/section-sort.html",
+      "tags": [
+        "section",
+        "section-sort"
+      ],
+      "hash": "474e029fc7b9",
+      "search": "sort sections sort sections by name while keeping the selected section active. section section-sort flow cadroue.uishell.pflow.pflow sort sections request receive the requested section change flow.pflowsectionsort(...) check effective change confirm the section exists and the requested state differs where applicable flow.pflowsectionsort(...) change section state sort sections by name and relocate the active selection flow.pflowsectionsort(...) record the section change flow.pflowsectionrecord(...) no change"
+    },
+    {
+      "id": "split.section-start-set",
+      "title": "Set section start",
+      "area": "Split",
+      "summary": "Set the selected section start, or create a section beginning at the cursor, and synchronize section state.",
+      "href": "maps/split/section-start-set.html",
+      "tags": [
+        "section",
+        "section-start-set"
+      ],
+      "hash": "8841b17f6512",
+      "search": "set section start set the selected section start, or create a section beginning at the cursor, and synchronize section state. section section-start-set flow segment cadroue.uishell.pflow.pflow cadroue.core.lsegment set section start command receive the section command in the active split timeline flow.pflowstartset(...) validate section request validate the current cursor, selection, duration, and overlap constraints segment.lsegmentstartset(...) apply section plan determine whether the operation creates or edits a section flow.pflowstartset(...) replace the section list and active selection with the returned plan flow.pflowsectionapply(...) record the resulting section boundary flow.pflowsectionrecord(...) no change"
+    },
+    {
+      "id": "split.section-toggle",
+      "title": "Toggle section",
+      "area": "Split",
+      "summary": "Turn a section on or off for later split-work creation.",
+      "href": "maps/split/section-toggle.html",
+      "tags": [
+        "section",
+        "section-toggle"
+      ],
+      "hash": "4e87d8c38e5f",
+      "search": "toggle section turn a section on or off for later split-work creation. section section-toggle flow cadroue.uishell.pflow.pflow toggle section request receive the requested section change flow.pflowsectiontoggle(...) check effective change confirm the section exists and the requested state differs where applicable flow.pflowsectiontoggle(...) change section state invert the section's hidden state and record the change flow.pflowsectiontoggle(...) record the section change flow.pflowsectionrecord(...) no change"
+    },
+    {
+      "id": "split.sidecar-restore",
+      "title": "Restore sections from sidecar",
+      "area": "Split",
+      "summary": "Read stored sections for newly opened media and apply valid records without writing them back during restoration.",
+      "href": "maps/split/sidecar-restore.html",
+      "tags": [
+        "section",
+        "sidecar",
+        "restore"
+      ],
+      "hash": "8fd4ec29d354",
+      "search": "restore sections from sidecar read stored sections for newly opened media and apply valid records without writing them back during restoration. section sidecar restore flow sidecar cadroue.uishell.pflow.pflow cadroue.media.lsidecarstore timeline attaches media request section restoration for the active source flow.pflowsidecarrestore(...) read sidecar resolve and read the source sidecar sidecar.lsidecarread(...) apply stored sections mark restoration so synchronization cannot rewrite the same sidecar flow.pflowsidecarapply(...) convert stored section records into timeline segments flow.pflowsidecarapply(...) keep only sections valid for the active media duration flow.pflowsectionsset(...) nothing to restore restore failed record the sidecar restoration failure flow.pflowsidecarrestore(...)"
+    },
+    {
+      "id": "tabs.add",
+      "title": "Add tab",
+      "area": "Tabs",
+      "summary": "Create one tab of the selected layout type, insert it into the tab set, and select it.",
+      "href": "maps/tabs/add.html",
+      "tags": [],
+      "hash": "c384db894359",
+      "search": "add tab create one tab of the selected layout type, insert it into the tab set, and select it. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab type selected receive a tab-layout choice from the add menu toolbar.ptablayoutadd(...) create typed tab create the selected workspace and tab record with a unique title tabset.ltabsetadd(...) insert the record and refresh ordinal titles and separators tabset.ltabsettypedadd(...) select new tab make the new tab current tabset.ltabsetselect(...)"
+    },
+    {
+      "id": "tabs.close",
+      "title": "Close tab",
+      "area": "Tabs",
+      "summary": "Close one tab, dispose its workspace, and choose the next current tab.",
+      "href": "maps/tabs/close.html",
+      "tags": [],
+      "hash": "84d1d733f2d0",
+      "search": "close tab close one tab, dispose its workspace, and choose the next current tab. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab close requested receive the close gesture for a tab record toolbar.ptabclosehandle(...) remove tab close the workspace and remove its record tabset.ltabsetclose(...) select an adjacent surviving tab and refresh titles and separators tabset.ltabsetclose(...) tab closed"
+    },
+    {
+      "id": "tabs.move",
+      "title": "Move tab",
+      "area": "Tabs",
+      "summary": "Reorder one tab by dragging it to a resolved insertion index.",
+      "href": "maps/tabs/move.html",
+      "tags": [],
+      "hash": "4459bed4138f",
+      "search": "move tab reorder one tab by dragging it to a resolved insertion index. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab drag begins capture the pressed tab and drag origin toolbar.ptabpresshandle(...) resolve insertion activate dragging after threshold and resolve the target index toolbar.ptabmovehandle(...) reorder tab move the record in the tab set and update derived titles tabset.ltabsetmove(...) tab moved order unchanged"
+    },
+    {
+      "id": "tabs.relay-out",
+      "title": "Relay tab to another process",
+      "area": "Tabs",
+      "summary": "Detect a tab dropped outside the application, serialize it, deliver it to a process under the drop point when available, or launch a new receiver.",
+      "href": "maps/tabs/relay-out.html",
+      "tags": [],
+      "hash": "728f247850db",
+      "search": "relay tab to another process detect a tab dropped outside the application, serialize it, deliver it to a process under the drop point when available, or launch a new receiver. toolbar cadroue.uishell.pcontrolbar.ptoolbar tab drag released check whether the released tab lies outside the current application window toolbar.ptabrelaycheck(...) check relay eligibility reject a drop inside the window or a busy tab toolbar.ptabrelaycheck(...) save relay payload serialize the tab state to a relay file toolbar.ptabrelaycheck(...) find a receiver under the drop point find an existing cadroue process at the released screen position toolbar.ptabrelaycheck(...) deliver to existing process send the saved relay-file path through that process's relay channel toolbar.ptabrelaycheck(...) start a new receiving process start cadroue with the relay-file argument toolbar.ptabrelaystart(...) close originating tab close the tab only after a live delivery or new-process launch succeeds toolbar.ptabrelaycheck(...) tab relayed tab retained"
+    },
+    {
+      "id": "tabs.rename",
+      "title": "Rename tab",
+      "area": "Tabs",
+      "summary": "Commit an edited tab name, normalize it against existing names, and refresh dependent titles.",
+      "href": "maps/tabs/rename.html",
+      "tags": [],
+      "hash": "f56dbd0cbc92",
+      "search": "rename tab commit an edited tab name, normalize it against existing names, and refresh dependent titles. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab name committed receive the edited name from keyboard or focus completion toolbar.ptabnamecommit(...) resolve usable name normalize the requested name and avoid duplicate visible titles tabset.ltabsetnameset(...) refresh titles derived from the tab set tabset.ltabsettitleupdate(...) tab renamed"
+    },
+    {
+      "id": "tabs.select",
+      "title": "Select tab",
+      "area": "Tabs",
+      "summary": "Change the current tab and synchronize visible workspace ownership.",
+      "href": "maps/tabs/select.html",
+      "tags": [],
+      "hash": "9ecc0e4fdff1",
+      "search": "select tab change the current tab and synchronize visible workspace ownership. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab pressed identify the pressed tab record toolbar.ptabpresshandle(...) change current record set the requested record as current and update tab selection state tabset.ltabsetselect(...) tab selected"
+    },
+    {
+      "id": "tools.discover-ffmpeg",
+      "title": "Discover FFmpeg library",
+      "area": "Tools",
+      "summary": "Choose the FFmpeg library used by Flyleaf from the explicit preference, stored renderer setting, or discovered local installation.",
+      "href": "maps/tools/discover-ffmpeg.html",
+      "tags": [],
+      "hash": "abc87f9e5665",
+      "search": "discover ffmpeg library choose the ffmpeg library used by flyleaf from the explicit preference, stored renderer setting, or discovered local installation. renderer library cadroue.uishell.lrenderer cadroue.infrastructure.lrendererlibrary preview renderer starts begin flyleaf engine configuration renderer.lrendererflyleafstart(...) check configured folders validate the user preference first, then the stored renderer-library folder library.lrendererfoldervalidate(...) search local installation search supported local locations for an ffmpeg library folder library.lrendererfolderfind(...) start preview engine start flyleaf with the resolved folder or its default resolution renderer.lrendererflyleafstart(...) renderer available renderer startup failed"
+    },
+    {
+      "id": "tools.install-local-flyleaf",
+      "title": "Install local Flyleaf",
+      "area": "Tools",
+      "summary": "Clone or update Flyleaf, patch the contrast shader, build it, and install the resulting runtime for Cadroue.",
+      "href": "maps/tools/install-local-flyleaf.html",
+      "tags": [],
+      "hash": "82fa7b5d2c88",
+      "search": "install local flyleaf clone or update flyleaf, patch the contrast shader, build it, and install the resulting runtime for cadroue. flyleaf cadroue.uishell.lflyleaf local flyleaf install requested start installation in the cadroue flyleaf root flyleaf.lflyleafinstallstart(...) prepare source tree clone flyleaf when absent, otherwise reset and fast-forward the existing checkout flyleaf.lflyleafcommandrun(...) patch and build find and patch the contrast shader implementation flyleaf.lflyleafshaderfind(...) flyleaf.lflyleafshaderapply(...) locate and build flyleaflib in release configuration flyleaf.lflyleafprojectfind(...) flyleaf.lflyleafcommandrun(...) install runtime copy the built runtime and save its assembly and source locations flyleaf.lflyleafruntimecreate(...) flyleaf.lflyleafinstallstart(...) evaluate installation convert the completed attempt or caught exception into an installation result flyleaf.lflyleafinstallstart(...) local flyleaf installed installation failed catch, log, and return the installation failure flyleaf.lflyleafinstallstart(...)"
+    }
+  ]
+}

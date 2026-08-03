@@ -1,0 +1,47 @@
+@format 1
+@id keyframes.scan
+@title Scan nearby keyframes
+@area Keyframes
+@entry input
+@summary Load cached keyframes for a source, concurrently scan the centre and both directional ranges around the cursor, and publish source-current results.
+@flow TB
+@related keyframes.previous, keyframes.next, keyframes.suspend
+
+@alias key = Cadroue.Infrastructure.LKeyframeOrchestrator
+
+[input] Keyframes requested <input>
+- Receive source, duration, and current cursor @ key.LKeyframeStart(...)
+> source
+
+[source] Establish source state <process>
+- Replace state and load cache when source identity changes @ key.LKeyframeCacheLoad(...)
+- Cancel obsolete scanning and publish currently known keyframes @ key.LKeyframeNoticePublish(...)
+> plan
+
+[plan] Plan nearby spans <process>
+- Divide the search range around the cursor into centre, backward, and forward spans @ key.LKeyframePlanStart(...)
+> concurrent
+
+[concurrent] Start three scan paths <process>
+- Start the centre span and independent backward and forward directional scans concurrently @ key.LKeyframePlanRun(...)
+> scan
+
+[scan] Scan each path's spans <external>
+- Scan the centre once; each directional path scans its spans sequentially @ key.LKeyframeSpanRun(...)
+- Merge discovered keyframes, publish each completed attempt, and cache at the save threshold @ key.LKeyframeSpanRun(...)
+> outcome
+
+[outcome] Finish the request <decision>
+? "Work is current" > persist
+? "Work is cancelled or stale" > discarded
+
+[persist] Cache and publish <storage>
+- Persist the keyframe sidecar after all three paths finish @ key.LKeyframeSidecarPersist(...)
+- Failed spans are counted but not retried in this request; later requests may scan them until the retry limit @ key.LKeyframeSpanRun(...)
+> result
+
+[result] Keyframes available <output>
+= Current cached and newly scanned keyframes are available for navigation and display.
+
+[discarded] Scan discarded <output>
+= Cancelled or stale work does not replace the active source state.

@@ -1,0 +1,30 @@
+@format 1
+@id split.section-delete
+@title Delete section
+@area Split
+@entry input
+@summary Confirm and remove the active section, select the nearest survivor, and synchronize section state.
+@flow TB
+@related shared.synchronize-sections
+@tag section
+@tag delete
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+
+[input] Delete section command <input>
+- Receive the delete command for the active section @ flow.PFlowSectionDelete(...)
+> guard
+
+[guard] Confirm deletion <decision>
+- Confirm that a section is selected @ flow.PFlowSectionDelete(...)
+- Request destructive-action confirmation when configured @ flow.PFlowDestructiveConfirm(...)
+? "Deletion is confirmed" > remove
+? "No selection or confirmation declined" > unchanged
+
+[remove] Remove section <process>
+- Record the section deletion @ flow.PFlowSectionRecord(...)
+- Remove the active section and select the nearest remaining section @ flow.PFlowSectionDelete(...)
+> fragment:shared.synchronize-sections
+
+[unchanged] No change <output>
+= The section list is unchanged.

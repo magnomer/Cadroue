@@ -1,0 +1,36 @@
+@format 1
+@id queue.create-split-work
+@title Create split work
+@area Queue
+@entry input
+@summary Convert visible Split sections into one pending work item per enabled valid section.
+@flow TB
+@related queue.add-work, processing.start
+@tag queue
+@tag create-split-work
+
+@alias splitUi = Cadroue.UIShell.PMainArea.LSplit
+@alias schedule = Cadroue.Infrastructure.LSchedule
+@alias split = Cadroue.Application.LSplit
+
+[input] Queue command <input>
+- Receive a queue request and capture its priority, sources, output preset, tab, and relay routing @ splitUi.LSplitDescribe(...)
+> build
+
+[build] Build work descriptions <decision>
+- Build a split description from the active media, sections, and output preset @ splitUi.LSplitDescribe(...)
+- Reject a missing source or empty section set @ split.LSplitItemsCreate(...)
+- Skip hidden and invalid ranges while preserving section numbering @ split.LSplitItemsCreate(...)
+- Create unique output names and split work items @ split.LSplitItemsCreate(...)
+? "One or more valid work items are built" > persist
+? "No valid work item can be built" > rejected
+
+[persist] Add work to schedule <storage>
+- Assign relay routing and lineage and persist every work record @ schedule.LScheduleAdd(...)
+> result
+
+[result] Work queued <output>
+= Successfully persisted work appears as pending in the shared worklist.
+
+[rejected] Queue request rejected <error>
+= No work record is added.

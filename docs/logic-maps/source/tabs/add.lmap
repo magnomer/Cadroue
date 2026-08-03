@@ -1,0 +1,24 @@
+@format 1
+@id tabs.add
+@title Add tab
+@area Tabs
+@entry input
+@summary Create one tab of the selected layout type, insert it into the tab set, and select it.
+@flow TB
+@related tabs.select, tabs.close
+
+@alias toolbar = Cadroue.UIShell.PControlBar.PToolbar
+@alias tabset = Cadroue.UIShell.PControlBar.LTabset
+
+[input] Tab type selected <input>
+- Receive a tab-layout choice from the add menu @ toolbar.PTabLayoutAdd(...)
+> create
+
+[create] Create typed tab <process>
+- Create the selected workspace and tab record with a unique title @ tabset.LTabsetAdd(...)
+- Insert the record and refresh ordinal titles and separators @ tabset.LTabsetTypedAdd(...)
+> select
+
+[select] Select new tab <output>
+- Make the new tab current @ tabset.LTabsetSelect(...)
+= The selected tab surface is visible and included in session state.

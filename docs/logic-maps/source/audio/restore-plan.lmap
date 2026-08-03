@@ -1,0 +1,28 @@
+@format 1
+@id audio.restore-plan
+@title Restore audio plan
+@area Audio
+@entry input
+@summary Resolve saved and tab-persistent audio settings for the newly active source and apply them to the inspector and processing view.
+@flow TB
+@related audio.save-plan, queue.create-saved-audio-work
+
+@alias tab = Cadroue.UIShell.PMainArea.PAudioTab
+@alias audio = Cadroue.UIShell.PMainArea.LAudio
+
+[input] Active audio source changes <input>
+- Start plan restoration for the viewer's active source @ tab.PAudioPlanRestore(...)
+> read
+
+[read] Read plan sources <process>
+- Read the source sidecar audio plan @ audio.LAudioPlanRead(...)
+- Resolve saved values with tab-persistent values @ audio.LAudioPlanResolve(...)
+> apply
+
+[apply] Apply resolved plan <process>
+- Apply resolved steps and skip state to the inspector @ tab.PAudioPlanRestore(...)
+- Refresh the visible processing steps and active state @ tab.PAudioActiveUpdate(...)
+> result
+
+[result] Audio plan restored <output>
+= The inspector and processing surface represent the resolved plan for the active source.

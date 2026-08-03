@@ -1,0 +1,22 @@
+@format 1
+@id tabs.select
+@title Select tab
+@area Tabs
+@entry input
+@summary Change the current tab and synchronize visible workspace ownership.
+@flow TB
+@related tabs.add, tabs.close
+
+@alias toolbar = Cadroue.UIShell.PControlBar.PToolbar
+@alias tabset = Cadroue.UIShell.PControlBar.LTabset
+
+[input] Tab pressed <input>
+- Identify the pressed tab record @ toolbar.PTabPressHandle(...)
+> select
+
+[select] Change current record <process>
+- Set the requested record as current and update tab selection state @ tabset.LTabsetSelect(...)
+> result
+
+[result] Tab selected <output>
+= The requested workspace becomes the active tab surface.

@@ -1,0 +1,25 @@
+@format 1
+@id queue.switch-station
+@title Switch worklist station
+@area Queue
+@entry input
+@summary Move the console to the previous or next station and refresh progress and controls for that station.
+@flow TB
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+
+[input] Station navigation requested <input>
+- Receive Previous or Next station command @ console.PConsoleStationMove(...)
+> switch
+
+[switch] Resolve station <decision>
+- Wrap the requested step across the current station board @ console.PConsoleStationMove(...)
+? "Only one station exists" > unchanged
+? "A different station is resolved" > result
+
+[result] Station switched <output>
+- Refresh progress, status, and controls for the new station @ console.PConsoleProgressUpdate(...)
+= Console actions now govern the selected station.
+
+[unchanged] Station unchanged <output>
+= The current station remains selected.

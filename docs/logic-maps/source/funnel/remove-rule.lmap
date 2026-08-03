@@ -1,0 +1,22 @@
+@format 1
+@id funnel.remove-rule
+@title Remove funnel rule
+@area Funnel
+@entry input
+@summary Remove one requested funnel rule and renumber the remaining ordered rules.
+@flow TB
+@related funnel.add-rule, funnel.move-rule
+
+@alias rules = Cadroue.UIShell.PPanels.PFunnelRules
+
+[input] Rule removal requested <input>
+- Receive the row's remove event @ rules.PFunnelRuleRemove(...)
+> remove
+
+[remove] Remove rule <process>
+- Clear selection when it belongs to the row and detach the row from model and view @ rules.PFunnelRuleRemove(...)
+- Reapply order numbers and empty-state visibility @ rules.PFunnelOrderApply(...)
+> result
+
+[result] Rule removed <output>
+= The remaining rules keep their relative order and contiguous numbers.

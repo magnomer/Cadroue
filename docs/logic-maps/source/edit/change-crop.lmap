@@ -1,0 +1,27 @@
+@format 1
+@id edit.change-crop
+@title Change Crop, rotation, or flip
+@area Edit
+@entry input
+@summary Apply a Crop control, rotation or flip, ratio, or viewer-rectangle change to the Edit preview and request persistence of the active source plan.
+@flow TB
+@related edit.save-plan, edit.restore-plan
+
+@alias inspector = Cadroue.UIShell.PPanels.PInspector
+@alias tab = Cadroue.UIShell.PMainArea.PEditTab
+
+[input] Crop state changes <input>
+- Enable or disable the Crop state and refresh its editor surface @ inspector.PInspectorApplyUpdate(...)
+- Publish a changed Crop rectangle from inset, ratio, or viewer-drawing input @ inspector.PInspectorCropRaise(...)
+- Publish a changed rotation or flip state @ inspector.PInspectorRotateRaise(...)
+- Convert a ratio constraint into a viewer Crop ratio @ inspector.PInspectorRatioUpdate(...)
+> preview
+
+[preview] Synchronize Crop preview <process>
+- Apply Crop and rotation events to the viewer through the Edit-tab event subscriptions @ tab.PEditTab(...)
+- Update inspector Crop state when the viewer reports an adjusted rectangle @ tab.PEditCropShow(...)
+- Save Crop or rotation changes for the active source through the Edit-tab event subscriptions @ tab.PEditTab(...)
+> persist
+
+[persist] Continue to plan persistence <output>
+> map:edit.save-plan

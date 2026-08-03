@@ -1,0 +1,23 @@
+@format 1
+@id tabs.close
+@title Close tab
+@area Tabs
+@entry input
+@summary Close one tab, dispose its workspace, and choose the next current tab.
+@flow TB
+@related tabs.add, tabs.select
+
+@alias toolbar = Cadroue.UIShell.PControlBar.PToolbar
+@alias tabset = Cadroue.UIShell.PControlBar.LTabset
+
+[input] Tab close requested <input>
+- Receive the close gesture for a tab record @ toolbar.PTabCloseHandle(...)
+> close
+
+[close] Remove tab <process>
+- Close the workspace and remove its record @ tabset.LTabsetClose(...)
+- Select an adjacent surviving tab and refresh titles and separators @ tabset.LTabsetClose(...)
+> result
+
+[result] Tab closed <output>
+= The closed workspace no longer participates in the tab set or session capture.

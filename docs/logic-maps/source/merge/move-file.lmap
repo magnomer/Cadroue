@@ -1,0 +1,31 @@
+@format 1
+@id merge.move-file
+@title Move file between merge groups
+@area Merge
+@entry input
+@summary Move a dragged group source to a group-card position; an existing destination copy silently prevents reinsertion after source removal.
+@flow TB
+@related merge.auto-group, queue.create-merge-work
+
+@alias group = Cadroue.UIShell.PPanels.PGroup
+
+[input] Group file drag begins <input>
+- Build a drag payload from a group row @ group.PGroupDragHandle(...)
+> drop
+
+[drop] Resolve a group-card position <decision>
+- Resolve the target group's insertion index from its file rows @ group.PGroupCardHandle(...)
+? "Drag source is no longer in a valid group" > unchanged
+? "A target group card accepts the drop" > apply
+
+[apply] Move sources <process>
+- Remove the dragged source from its original group before insertion @ group.PGroupCardHandle(...)
+- Insert it at the resolved position only when the destination has no matching path @ group.PGroupPathInsert(...)
+- Rebuild group cards; an emptied source group remains in the model @ group.PGroupRebuild(...)
+> result
+
+[result] Group membership changed <output>
+= The source is reordered or moved; a duplicate destination leaves it removed from its source group.
+
+[unchanged] Groups unchanged <output>
+= No membership or order changes.

@@ -1,0 +1,36 @@
+@format 1
+@id queue.load
+@title Load schedule
+@area Queue
+@entry input
+@summary Reconcile the persistent depot and index into the observable worklist.
+@flow TB
+@related queue.recover-stale
+@tag queue
+@tag load
+@tag index
+
+@alias schedule = Cadroue.Infrastructure.LSchedule
+
+[input] Schedule load requested <input>
+- Begin a schedule refresh after startup or a durable state transition @ schedule.LScheduleLoad(...)
+> index
+
+[index] Prepare index <decision>
+- Create the depot index and recover stale claims @ schedule.LScheduleLoad(...)
+- Rebuild the index when it is dirty @ schedule.LScheduleLoad(...)
+? "Index is usable" > read-index
+? "Index remains dirty" > read-folders
+
+[read-index] Read indexed records <process>
+- Parse records exposed by the depot index @ schedule.LScheduleIndexRead(...)
+> rebuild
+
+[read-folders] Scan depot folders <process>
+- Read records directly from every schedule-state folder @ schedule.LScheduleFolderRead(...)
+> rebuild
+
+[rebuild] Rebuild observable schedule <output>
+- Preserve live running objects and recreate other work items @ schedule.LScheduleItemsBuild(...)
+- Sort work by creation time and notify observers @ schedule.LScheduleItemsBuild(...)
+= The worklist reflects durable schedule state.

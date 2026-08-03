@@ -1,0 +1,30 @@
+@format 1
+@id keyframes.previous
+@title Move to previous keyframe
+@area Keyframes
+@entry input
+@summary Dispatch the previous-keyframe shortcut, resolve the nearest known keyframe strictly before the cursor, and propagate it to the timeline and preview.
+@flow TB
+@related keyframes.scan, keyframes.next
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias key = Cadroue.Infrastructure.LKeyframeOrchestrator
+
+[input] Previous-keyframe command <input>
+- Dispatch the previous-keyframe shortcut when timeline commands and a spool are active @ flow.PFlowShortcutDispatch(...)
+> find
+
+[find] Find prior point <decision>
+- Search stored keyframes strictly before the cursor @ key.LKeyframeMoveFind(...)
+? "A prior keyframe exists" > move
+? "No prior keyframe is known" > unavailable
+
+[move] Propagate keyframe target <process>
+- Update the cursor, views, keyframe scan request, and preview seek @ flow.PFlowKeyframeMove(...)
+> result
+
+[result] Previous keyframe resolved <output>
+= The cursor and preview move to the nearest known prior keyframe time.
+
+[unavailable] No previous keyframe <output>
+= The move is deferred so nearby keyframes can be scanned later.

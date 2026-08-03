@@ -1,0 +1,39 @@
+@format 1
+@id relay.deliver-output
+@title Deliver completed output
+@area Relay
+@entry input
+@summary Route a locally completed output to its destination tab, optionally drain source inputs, and trigger automatic downstream work.
+@flow TB
+@related processing.complete
+@tag relay
+@tag delivery
+
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[input] Schedule change after completion <input>
+- Scan done work owned by this process for undelivered relay targets @ courier.LCourierDispatch(...)
+> target
+
+[target] Resolve delivery target <decision>
+? "Finish target" > finish
+? "Output exists and destination tab is available" > add
+? "Output or destination is unavailable" > skipped
+
+[finish] Finish relay chain <process>
+- Record chain completion and force source removal @ courier.LCourierOutputAdd(...)
+> result
+
+[add] Add output to destination <process>
+- Add the output path to the destination list with its batch cohort @ list.PListPathsAdd(...)
+- Remove delivered source entries when the preference allows it @ courier.LCourierSourceRemove(...)
+- Invoke automatic downstream action when enabled @ courier.LCourierArrive(...)
+> result
+
+[skipped] Delivery skipped <error>
+- Record the missing output or destination @ courier.LCourierOutputAdd(...)
+= The completed work remains done but is not delivered.
+
+[result] Delivery complete <output>
+= The output is delivered once and downstream cohort state is refreshed.
