@@ -3,7 +3,7 @@
 @title Change encoding quality
 @area UI workflow
 @entry input
-@summary Build the video or audio quality control, synchronize supported bitrate entry, and show why ranged non-bitrate quality values cannot be typed manually.
+@summary Build the video or audio quality control and synchronize sliders with editable quality and bitrate entry.
 @section I. UI
 @tabs Split, Edit, Convert, Audio, Merge
 @flow TB
@@ -36,9 +36,10 @@
 - Update the text box when the bitrate slider moves @ field.PSFieldBitrateBuild(...)
 > apply
 
-[slider] Restrict input to slider <error>
-- Mark the quality readout as read-only @ field.PSFieldSliderBuild(...)
-- Replace its text only when the slider value changes @ field.PSFieldSliderBuild(...)
+[slider] Synchronize slider and manual quality entry <process>
+- Allow incomplete text while the user edits the quality readout @ field.PSFieldSliderBuild(...)
+- On Enter or focus loss, parse, clamp, snap, and normalize the typed quality value @ field.PSFieldSliderBuild(...)
+- Update the text box when the quality slider moves, including inverted quality ranges @ field.PSFieldSliderBuild(...)
 > apply
 
 [apply] Store displayed quality <storage>
@@ -46,4 +47,4 @@
 > result
 
 [result] Quality value stored <output>
-= Bitrate and unbounded quality fields accept typed input, while ranged non-bitrate quality fields can only be changed through the slider.
+= Bitrate, unbounded quality, and ranged quality fields accept typed input; ranged values are normalized to the codec capability.

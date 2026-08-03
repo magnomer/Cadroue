@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
 
@@ -188,7 +189,8 @@ internal static class PSField
     internal static UIElement PSFieldSliderBuild(double pMinimum, double pMaximum, double pStep, string pValue, TextBox pReadout, bool pHigherBetter)
     {
         double pStart = double.TryParse(pValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double pParsed)
-            ? Math.Clamp(pParsed, pMinimum, pMaximum)
+            && double.IsFinite(pParsed)
+            ? PSFieldQualityNormalize(pParsed, pMinimum, pMaximum, pStep)
             : pMinimum;
 
         double PSFieldQualityResolve(double pPosition) => pHigherBetter ? pPosition : pMinimum + pMaximum - pPosition;
@@ -207,9 +209,45 @@ internal static class PSField
         };
         PSlider.PSliderApply(pSlider);
 
-        pReadout.IsReadOnly = true;
         pReadout.Text = PSFieldValueFormat(pStart, pStep);
-        pSlider.ValueChanged += (_, _) => pReadout.Text = PSFieldValueFormat(PSFieldQualityResolve(pSlider.Value), pStep);
+
+        bool pSync = false;
+        void PSFieldQualityCommit()
+        {
+            double pQuality;
+            if (!double.TryParse(pReadout.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double pTyped)
+                || !double.IsFinite(pTyped))
+            {
+                pQuality = PSFieldQualityResolve(pSlider.Value);
+            }
+            else
+            {
+                pQuality = PSFieldQualityNormalize(pTyped, pMinimum, pMaximum, pStep);
+            }
+
+            pSync = true;
+            pSlider.Value = PSFieldQualityResolve(pQuality);
+            pReadout.Text = PSFieldValueFormat(pQuality, pStep);
+            pReadout.CaretIndex = pReadout.Text.Length;
+            pSync = false;
+        }
+
+        pSlider.ValueChanged += (_, _) =>
+        {
+            if (!pSync)
+            {
+                pReadout.Text = PSFieldValueFormat(PSFieldQualityResolve(pSlider.Value), pStep);
+            }
+        };
+        pReadout.KeyDown += (_, pEvent) =>
+        {
+            if (pEvent.Key == Key.Return)
+            {
+                PSFieldQualityCommit();
+                pEvent.Handled = true;
+            }
+        };
+        pReadout.LostKeyboardFocus += (_, _) => PSFieldQualityCommit();
         return PSFieldSliderCompose(pSlider, pReadout);
     }
 
@@ -313,6 +351,13 @@ internal static class PSField
         pStep >= 1 && pValue == Math.Floor(pValue)
             ? ((long)Math.Round(pValue)).ToString(CultureInfo.InvariantCulture)
             : pValue.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static double PSFieldQualityNormalize(double pValue, double pMinimum, double pMaximum, double pStep)
+    {
+        double pClamped = Math.Clamp(pValue, pMinimum, pMaximum);
+        double pStepped = pMinimum + Math.Round((pClamped - pMinimum) / pStep, MidpointRounding.AwayFromZero) * pStep;
+        return Math.Clamp(pStepped, pMinimum, pMaximum);
+    }
 
     internal const string PSFieldCustomToken = "Custom";
 
