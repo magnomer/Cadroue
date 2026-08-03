@@ -43,6 +43,15 @@ public sealed class PEditTab : PTabSurface
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
+        pAction.PActionItemsAdd += pEditPaths => _ = LEdit.LEditAllDescribe(
+            LWorkPriority.LWorkPriorityNormal,
+            pList.PListItemsRead()
+                .Where(pItem => pEditPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
+                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .ToArray(),
+            lExportSpecificState,
+            pAction.PActionRelayTarget,
+            pAction.PActionSourceTab);
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));

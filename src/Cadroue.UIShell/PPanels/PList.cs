@@ -137,12 +137,17 @@ public sealed partial class PList : PPanel
                 string.Equals(pListItem.PListItemPath, pListCurrentPath, StringComparison.OrdinalIgnoreCase))
             : null;
 
-    public int PListPathsAdd(IEnumerable<string> pAddPaths, Guid pAddRelay = default)
+    public int PListPathsAdd(IEnumerable<string> pAddPaths, Guid pAddRelay = default, bool pAddDelivered = false)
     {
         IReadOnlyList<string> pScannedPaths = PListMediaScan(pAddPaths);
         if (pScannedPaths.Count == 0)
         {
             return 0;
+        }
+
+        if (pAddRelay == Guid.Empty)
+        {
+            pAddRelay = Guid.NewGuid();
         }
 
         var pAddedItems = new List<PListItem>();
@@ -154,7 +159,7 @@ public sealed partial class PList : PPanel
                 continue;
             }
 
-            var pAddedItem = new PListItem(pMediaPath, pAddRelay);
+            var pAddedItem = new PListItem(pMediaPath, pAddRelay) { PListItemDelivered = pAddDelivered };
             pListItems.Add(pAddedItem);
             pAddedItems.Add(pAddedItem);
         }

@@ -56,7 +56,7 @@ public sealed class PFunnelTab : PTabSurface
         }
 
         var pRelayedPaths = new List<string>();
-        var pRelayedTargets = new HashSet<Guid>();
+        var pRelayedRoutes = new List<(Guid pFunnelTarget, string pFunnelPath, Guid pFunnelCohort)>();
         foreach (PListItem pItem in pItems)
         {
             string pFileName = Path.GetFileName(pItem.PListItemPath);
@@ -71,9 +71,9 @@ public sealed class PFunnelTab : PTabSurface
                     .FirstOrDefault(pRecord => pRecord.PTabId == pRow.PFunnelTargetId);
                 if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList is { } pTargetList)
                 {
-                    pTargetList.PListPathsAdd(new[] { pItem.PListItemPath }, pItem.PListItemRelay);
+                    pTargetList.PListPathsAdd(new[] { pItem.PListItemPath }, pItem.PListItemRelay, true);
                     pRelayedPaths.Add(pItem.PListItemPath);
-                    pRelayedTargets.Add(pRow.PFunnelTargetId);
+                    pRelayedRoutes.Add((pRow.PFunnelTargetId, pItem.PListItemPath, pItem.PListItemRelay));
                 }
 
                 break;
@@ -85,10 +85,12 @@ public sealed class PFunnelTab : PTabSurface
             pList.PListPathsRemove(pRelayedPaths);
         }
 
-        foreach (Guid pRelayedTarget in pRelayedTargets)
+        foreach ((Guid pFunnelTarget, string pFunnelPath, Guid pFunnelCohort) in pRelayedRoutes)
         {
-            LCourier.LCourierAutoRelay(pRelayedTarget);
+            LCourier.LCourierArrive(pFunnelTarget, pFunnelPath, pFunnelCohort);
         }
+
+        LSeal.LSealSweep();
 
         LTraceLog.LTraceInfoRecord(
             $"Funnel relayed {pRelayedPaths.Count} of {pItems.Count} file(s) by filename rule");

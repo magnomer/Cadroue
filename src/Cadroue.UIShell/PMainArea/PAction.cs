@@ -22,6 +22,7 @@ public sealed class PAction : UserControl
 
     public event Action<LWorkPriority>? PActionRun;
     public event Action? PActionAllAdd;
+    public event Action<IReadOnlyList<string>>? PActionItemsAdd;
     public event Action<Guid>? PActionRelayChange;
 
     public PAction()
@@ -74,6 +75,8 @@ public sealed class PAction : UserControl
     }
 
     public void PActionAllRun() => PActionAllAdd?.Invoke();
+
+    public void PActionItemsRun(IReadOnlyList<string> pActionPaths) => PActionItemsAdd?.Invoke(pActionPaths);
 
     private CheckBox PActionAutoBuild()
     {

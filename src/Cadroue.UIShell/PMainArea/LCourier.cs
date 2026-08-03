@@ -18,8 +18,6 @@ public static class LCourier
     private static readonly HashSet<Guid> lCourierDelivered = new();
     private static bool lCourierWatching;
 
-    public static event Action<Guid, Guid>? LCourierBatchFinish;
-
     public static void LCourierStart()
     {
         if (lCourierWatching)
@@ -172,6 +170,8 @@ public static class LCourier
         }
     }
 
+    public static bool LCourierDeliveredCheck(Guid lCourierWorkId) => lCourierDelivered.Contains(lCourierWorkId);
+
     private static void LCourierScheduleHandle(LScheduleContract lCourierSchedule) => LCourierDispatch(lCourierSchedule);
 
     private static void LCourierDispatch(LScheduleContract lCourierSchedule)
@@ -188,39 +188,36 @@ public static class LCourier
 
             lCourierDelivered.Add(lWorkItem.LWorkId);
             LCourierOutputAdd(lWorkItem);
-            LCourierBatchCheck(lCourierSchedule, lWorkItem);
         }
+
+        LSeal.LSealSweep();
     }
 
-    private static void LCourierBatchCheck(LScheduleContract lCourierSchedule, LWorkItem lWorkItem)
+    public static void LCourierArrive(Guid lCourierTargetTab, string lCourierPath, Guid lCourierCohort)
     {
-        if (lWorkItem.LWorkBatchId == Guid.Empty
-            || lWorkItem.LWorkRelayTarget == Guid.Empty
-            || lWorkItem.LWorkRelayTarget == LCourierFinishTarget)
-        {
-            return;
-        }
-
-        bool lCourierPending = lCourierSchedule.LScheduleRecords.Any(lCourierOther =>
-            lCourierOther.LWorkBatchId == lWorkItem.LWorkBatchId
-            && lCourierOther.LWorkRelayTarget == lWorkItem.LWorkRelayTarget
-            && !lCourierDelivered.Contains(lCourierOther.LWorkId));
-        if (!lCourierPending)
-        {
-            LCourierBatchFinish?.Invoke(lWorkItem.LWorkBatchId, lWorkItem.LWorkRelayTarget);
-            LCourierAutoRelay(lWorkItem.LWorkRelayTarget);
-        }
-    }
-
-    public static void LCourierAutoRelay(Guid lCourierTarget)
-    {
-        if (LCourierTabFind(lCourierTarget) is not { } pCourierTarget
+        if (LCourierTabFind(lCourierTargetTab) is not { } pCourierTarget
+            || pCourierTarget.PTabWorkspace.PWorkspaceSurface is PMergeTab
             || pCourierTarget.PTabWorkspace.PWorkspaceSurface.PTabAction is not { PActionAutoRelay: true } pCourierAction)
         {
             return;
         }
 
-        System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(pCourierAction.PActionAllRun));
+        LSeal.LSealPendingAdd(lCourierCohort);
+        void LCourierArriveRun()
+        {
+            pCourierAction.PActionItemsRun(new[] { lCourierPath });
+            LSeal.LSealPendingRemove(lCourierCohort);
+            LSeal.LSealSweep();
+        }
+
+        if (System.Windows.Application.Current?.Dispatcher is { } pCourierDispatcher)
+        {
+            pCourierDispatcher.BeginInvoke(new Action(LCourierArriveRun));
+        }
+        else
+        {
+            LCourierArriveRun();
+        }
     }
 
     private static void LCourierOutputAdd(LWorkItem lWorkItem)
@@ -245,13 +242,15 @@ public static class LCourier
             return;
         }
 
-        int lCourierAdded = pCourierList.PListPathsAdd(new[] { lWorkItem.LWorkOutputPath }, lWorkItem.LWorkBatchId);
+        int lCourierAdded = pCourierList.PListPathsAdd(
+            new[] { lWorkItem.LWorkOutputPath }, lWorkItem.LWorkBatchId, true);
         LTraceLog.LTraceInfoRecord(
             lCourierAdded > 0
                 ? $"Relay added '{lWorkItem.LWorkOutputName}' to tab '{pCourierTarget.PTabTitle}'"
                 : $"Relay left '{lWorkItem.LWorkOutputName}' out of tab '{pCourierTarget.PTabTitle}': already listed");
 
         LCourierSourceRemove(lWorkItem, false);
+        LCourierArrive(lWorkItem.LWorkRelayTarget, lWorkItem.LWorkOutputPath, lWorkItem.LWorkBatchId);
     }
 
     private static void LCourierSourceRemove(LWorkItem lWorkItem, bool lCourierForce)

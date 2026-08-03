@@ -31,6 +31,15 @@ public sealed class PConvertTab : PTabSurface
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
+        pAction.PActionItemsAdd += pConvertPaths => _ = LConvert.LConvertDescribe(
+            LWorkPriority.LWorkPriorityNormal,
+            pList.PListItemsRead()
+                .Where(pItem => pConvertPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
+                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .ToArray(),
+            lExportSpecificState,
+            pAction.PActionRelayTarget,
+            pAction.PActionSourceTab);
         pList.PListPathChange += PConvertPathShow;
         PTabViewerAttach(pList, pViewer);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);

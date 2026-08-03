@@ -65,6 +65,19 @@ public sealed class PAudioTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
+        pAction.PActionItemsAdd += pAudioPaths =>
+        {
+            PAudioPlanSave();
+            LAudio.LAudioAllDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                pList.PListItemsRead()
+                    .Where(pItem => pAudioPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
+                    .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                    .ToArray(),
+                lExportSpecificState,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab);
+        };
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));

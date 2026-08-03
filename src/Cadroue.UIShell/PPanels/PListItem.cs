@@ -11,4 +11,6 @@ public sealed class PListItem
     public string PListItemPath { get; }
 
     public Guid PListItemRelay { get; set; }
+
+    public bool PListItemDelivered { get; set; }
 }

@@ -31,6 +31,15 @@ public sealed class PSplitTab : PTabSurface
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
+        pAction.PActionItemsAdd += pSplitPaths => _ = LSplit.LSplitAllDescribe(
+            LWorkPriority.LWorkPriorityNormal,
+            pList.PListItemsRead()
+                .Where(pItem => pSplitPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
+                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .ToArray(),
+            lExportSpecificState,
+            pAction.PActionRelayTarget,
+            pAction.PActionSourceTab);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
