@@ -31,7 +31,7 @@ public sealed class LTabset
 
     public static string LTabsetTitleRead(Guid pTabsetTabId) =>
         LTabsetCurrent?.PTabsetRecords.FirstOrDefault(pTabItem => pTabItem.PTabId == pTabsetTabId)?.PTabTitle
-        ?? PMainArea.LCourier.LCourierStageTitleRead(pTabsetTabId);
+        ?? PMainArea.LCourier.LCourierStageRead(pTabsetTabId);
 
     public PTabRecord? PTabsetCurrent
     {

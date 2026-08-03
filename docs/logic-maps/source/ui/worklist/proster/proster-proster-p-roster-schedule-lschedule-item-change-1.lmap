@@ -27,7 +27,7 @@
 ? "Selected item has a non-progress change" > detail
 
 [detail] Refresh selected-work detail <process>
-- Resolve the displayed title from a live tab, cached stable stage, saved-plan source stage, or recorded work-tab fallback @ courier.LCourierWorkTitleRead(...)
+- Resolve the displayed title from a live tab, cached stable stage, saved-plan source stage, or recorded work-tab fallback @ courier.LWorkTitleRead(...)
 @ tabset.LTabsetTitleRead(...)
 - Rebuild the selected-work detail @ owner.PRosterItemHandle
 > output

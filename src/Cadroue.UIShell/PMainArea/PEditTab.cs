@@ -27,7 +27,7 @@ public sealed class PEditTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority =>
         {
-            if (pList.PListUnlockedItemRead() is not { } pEditSelected)
+            if (pList.PListEditableRead() is not { } pEditSelected)
             {
                 return;
             }
@@ -46,7 +46,7 @@ public sealed class PEditTab : PTabSurface
 
         pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedItemsRead()
+            pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
             lExportSpecificState,
@@ -54,7 +54,7 @@ public sealed class PEditTab : PTabSurface
             pAction.PActionSourceTab);
         pAction.PActionItemsAdd += pEditPaths => _ = LEdit.LEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedItemsRead()
+            pList.PListUnlockedRead()
                 .Where(pItem => pEditPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
@@ -94,7 +94,7 @@ public sealed class PEditTab : PTabSurface
 
         var pExport = new PExport(lExportSpecificState, true);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
-        pList.PListCurrentLockChange += pLocked =>
+        pList.PListLockChange += pLocked =>
             pViewer.PCropToolSet(!pLocked && pInspector.PInspectorToolCheck());
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         if (lPreferenceTabLayout is null)
@@ -148,7 +148,7 @@ public sealed class PEditTab : PTabSurface
             return;
         }
 
-        foreach (string pEditPath in pList.PListUnlockedItemsRead().Select(pItem => pItem.PListItemPath))
+        foreach (string pEditPath in pList.PListUnlockedRead().Select(pItem => pItem.PListItemPath))
         {
             LEdit.LEditPlanSave(pEditPath, LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath), pEditCarried));
         }
@@ -425,7 +425,7 @@ public sealed class PEditTab : PTabSurface
     {
         if (pEditPlanLoading
             || pViewer.PViewerSourcePath is not { } pEditSourcePath
-            || pList.PListPathLockedCheck(pEditSourcePath))
+            || pList.PListLockCheck(pEditSourcePath))
         {
             return;
         }

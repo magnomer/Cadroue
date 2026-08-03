@@ -26,7 +26,7 @@ public sealed partial class PConsole
 
     private void PConsoleSceneAttach()
     {
-        PDropdown.PDropdownEditableActionApply(
+        PDropdown.PDropdownActionApply(
             pConsoleRelayCombo,
             LLocalization.LLocalizationTextRead("Console.Scene.DeleteTooltip"));
         pConsoleRelayCombo.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(PConsoleDeleteHandle));

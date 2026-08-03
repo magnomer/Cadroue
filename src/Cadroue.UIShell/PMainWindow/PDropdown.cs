@@ -31,13 +31,13 @@ internal static class PDropdown
         pCombo.ItemContainerStyle = PDropdownStyleBuild();
     }
 
-    internal static void PDropdownEditableActionApply(
+    internal static void PDropdownActionApply(
         ComboBox pCombo,
         string pActionTooltip)
     {
         pCombo.IsEditable = true;
         pCombo.Template = PDropdownTemplateBuild(true);
-        pCombo.ItemContainerStyle = PDropdownActionStyleBuild(pActionTooltip);
+        pCombo.ItemContainerStyle = PDropdownStyleBuild(pActionTooltip);
     }
 
     private static ControlTemplate PDropdownTemplateBuild(bool pEditable)
@@ -248,15 +248,15 @@ internal static class PDropdown
         return pStyle;
     }
 
-    private static Style PDropdownActionStyleBuild(string pActionTooltip)
+    private static Style PDropdownStyleBuild(string pActionTooltip)
     {
-        return PDropdownStyleBuild(PDropdownActionRowBuild(pActionTooltip));
+        return PDropdownStyleBuild(PDropdownActionBuild(pActionTooltip));
     }
 
     private static ControlTemplate PDropdownRowBuild()
     {
         var pTemplate = new ControlTemplate(typeof(ComboBoxItem));
-        var pBorder = PDropdownRowBorderBuild(new Thickness(12, 6, 12, 6));
+        var pBorder = PDropdownBorderBuild(new Thickness(12, 6, 12, 6));
 
         var pDock = new FrameworkElementFactory(typeof(DockPanel));
         pBorder.AppendChild(pDock);
@@ -272,10 +272,10 @@ internal static class PDropdown
         return pTemplate;
     }
 
-    private static ControlTemplate PDropdownActionRowBuild(string pActionTooltip)
+    private static ControlTemplate PDropdownActionBuild(string pActionTooltip)
     {
         var pTemplate = new ControlTemplate(typeof(ComboBoxItem));
-        var pBorder = PDropdownRowBorderBuild(new Thickness(12, 6, 2, 6));
+        var pBorder = PDropdownBorderBuild(new Thickness(12, 6, 2, 6));
 
         var pDock = new FrameworkElementFactory(typeof(DockPanel));
         pBorder.AppendChild(pDock);
@@ -312,7 +312,7 @@ internal static class PDropdown
         return pTemplate;
     }
 
-    private static FrameworkElementFactory PDropdownRowBorderBuild(Thickness pPadding)
+    private static FrameworkElementFactory PDropdownBorderBuild(Thickness pPadding)
     {
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.Name = "ItemBorder";

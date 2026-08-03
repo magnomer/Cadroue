@@ -101,7 +101,7 @@ public sealed class PAction : UserControl
         PActionFaceUpdate();
     }
 
-    internal void PActionRelayPlanApply(Guid pActionRelayTarget) =>
+    internal void PActionPlanApply(Guid pActionRelayTarget) =>
         PActionRelayTarget = pActionRelayTarget;
 
     private Button PActionRelayBuild()

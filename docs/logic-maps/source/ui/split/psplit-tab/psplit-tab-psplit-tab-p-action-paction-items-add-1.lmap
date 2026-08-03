@@ -17,9 +17,9 @@
 > route
 
 [route] Registered handler path <process>
-- Intersect the requested paths with unlocked list items and preserve each relay batch @ list.PListUnlockedItemsRead
+- Intersect the requested paths with unlocked list items and preserve each relay batch @ list.PListUnlockedRead
 - Submit those sources through the registered delegate @ owner.PSplitTab
-! Registered call path: LSplit.LSplitAllDescribe → pList.PListUnlockedItemsRead → Where → pSplitPaths.Contains → Select → LWorkSource → ToArray
+! Registered call path: LSplit.LSplitAllDescribe → pList.PListUnlockedRead → Where → pSplitPaths.Contains → Select → LWorkSource → ToArray
 > output
 
 [output] UI state after the event <output>

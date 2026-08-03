@@ -17,9 +17,9 @@
 > route
 
 [route] Registered handler path <process>
-- Require the current list item to be unlocked before submitting it @ list.PListUnlockedItemRead
+- Require the current list item to be unlocked before submitting it @ list.PListEditableRead
 - Submit its path, sections, and relay batch through the registered delegate @ owner.PSplitTab
-! Registered call path: pList.PListUnlockedItemRead → LSplit.LSplitDescribe → pSection.PSectionSplitRead
+! Registered call path: pList.PListEditableRead → LSplit.LSplitDescribe → pSection.PSectionSplitRead
 > output
 
 [output] UI state after the event <output>

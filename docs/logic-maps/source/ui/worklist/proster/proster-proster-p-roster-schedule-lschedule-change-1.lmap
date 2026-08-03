@@ -19,7 +19,7 @@
 
 [route] Registered handler path <process>
 - Rebuild the queue and lineage rows from the current schedule @ owner.PRosterScheduleHandle
-- Resolve each displayed work step from a live tab title, cached stable-stage title, saved-plan source stage, or recorded work-tab fallback @ courier.LCourierWorkTitleRead(...)
+- Resolve each displayed work step from a live tab title, cached stable-stage title, saved-plan source stage, or recorded work-tab fallback @ courier.LWorkTitleRead(...)
 @ tabset.LTabsetTitleRead(...)
 - Refresh the selected-work detail after rebuilding the queue @ owner.PRosterScheduleHandle
 > output

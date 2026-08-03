@@ -44,7 +44,7 @@ public sealed class PAudioTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority =>
         {
-            if (pList.PListUnlockedItemRead() is not { } pAudioSelected)
+            if (pList.PListEditableRead() is not { } pAudioSelected)
             {
                 return;
             }
@@ -64,7 +64,7 @@ public sealed class PAudioTab : PTabSurface
             PAudioPlanSave();
             LAudio.LAudioAllDescribe(
                 LWorkPriority.LWorkPriorityNormal,
-                pList.PListUnlockedItemsRead()
+                pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                     .ToArray(),
                 lExportSpecificState,
@@ -76,7 +76,7 @@ public sealed class PAudioTab : PTabSurface
             PAudioPlanSave();
             LAudio.LAudioAllDescribe(
                 LWorkPriority.LWorkPriorityNormal,
-                pList.PListUnlockedItemsRead()
+                pList.PListUnlockedRead()
                     .Where(pItem => pAudioPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
                     .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                     .ToArray(),
@@ -133,7 +133,7 @@ public sealed class PAudioTab : PTabSurface
         }
 
         LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
-        foreach (string pAudioPath in pList.PListUnlockedItemsRead().Select(pItem => pItem.PListItemPath))
+        foreach (string pAudioPath in pList.PListUnlockedRead().Select(pItem => pItem.PListItemPath))
         {
             LAudio.LAudioPlanSave(pAudioPath, LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath), pAudioPersistent));
         }
@@ -258,7 +258,7 @@ public sealed class PAudioTab : PTabSurface
     {
         if (pAudioPlanLoading
             || pViewer.PViewerSourcePath is not { } pSourcePath
-            || pList.PListPathLockedCheck(pSourcePath))
+            || pList.PListLockCheck(pSourcePath))
         {
             return;
         }

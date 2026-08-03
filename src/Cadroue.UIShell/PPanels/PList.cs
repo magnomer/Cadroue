@@ -21,7 +21,7 @@ public sealed partial class PList : PPanel
     private static readonly Brush pListRowBrush = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
     private static readonly Brush pListMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
     private static readonly Brush pListLockedBrush = new SolidColorBrush(Color.FromRgb(0xF3, 0xF5, 0xF8));
-    private static readonly Brush pListLockedSelectBrush = new SolidColorBrush(Color.FromRgb(0xE4, 0xEB, 0xF3));
+    private static readonly Brush pListLockedAccent = new SolidColorBrush(Color.FromRgb(0xE4, 0xEB, 0xF3));
 
     private static readonly string[] pListMediaExtensions =
     [
@@ -48,7 +48,7 @@ public sealed partial class PList : PPanel
     public event Action<bool>? PListMinimizeChange;
     public event Action<IReadOnlyList<string>>? PListClearChange;
     public event Action<IReadOnlyList<PListItem>>? PListItemsAdd;
-    public event Action<bool>? PListCurrentLockChange;
+    public event Action<bool>? PListLockChange;
 
     public PList() : base("")
     {
@@ -133,7 +133,7 @@ public sealed partial class PList : PPanel
 
     public IReadOnlyList<PListItem> PListItemsRead() => pListItems.ToArray();
 
-    public IReadOnlyList<PListItem> PListUnlockedItemsRead() =>
+    public IReadOnlyList<PListItem> PListUnlockedRead() =>
         pListItems.Where(pListItem => !pListItem.PListItemLocked).ToArray();
 
     public string? PListCurrentRead() => pListPathCurrent;
@@ -144,12 +144,12 @@ public sealed partial class PList : PPanel
                 string.Equals(pListItem.PListItemPath, pListCurrentPath, StringComparison.OrdinalIgnoreCase))
             : null;
 
-    public PListItem? PListUnlockedItemRead() =>
+    public PListItem? PListEditableRead() =>
         PListItemRead() is { PListItemLocked: false } pListItem ? pListItem : null;
 
-    public bool PListCurrentLockedCheck() => PListItemRead()?.PListItemLocked == true;
+    public bool PListLockCheck() => PListItemRead()?.PListItemLocked == true;
 
-    public bool PListPathLockedCheck(string pListPath) =>
+    public bool PListLockCheck(string pListPath) =>
         pListItems.FirstOrDefault(pListItem => string.Equals(
             pListItem.PListItemPath, pListPath, StringComparison.OrdinalIgnoreCase))?.PListItemLocked == true;
 
@@ -177,7 +177,7 @@ public sealed partial class PList : PPanel
         if (pListLocked > 0)
         {
             PListRowsRebuild();
-            PListCurrentLockChange?.Invoke(PListCurrentLockedCheck());
+            PListLockChange?.Invoke(PListLockCheck());
         }
 
         return pListLocked;
@@ -214,7 +214,7 @@ public sealed partial class PList : PPanel
         if (pTrackedCount > 0)
         {
             PListRowsRebuild();
-            PListCurrentLockChange?.Invoke(PListCurrentLockedCheck());
+            PListLockChange?.Invoke(PListLockCheck());
         }
 
         return pTrackedCount;
@@ -406,7 +406,7 @@ public sealed partial class PList : PPanel
     private void PListRemove()
     {
         IReadOnlyList<string> pRemovedPaths = PListSelectionRead()
-            .Where(pListPath => !PListPathLockedCheck(pListPath))
+            .Where(pListPath => !PListLockCheck(pListPath))
             .ToArray();
         if (pRemovedPaths.Count == 0)
         {
@@ -484,7 +484,7 @@ public sealed partial class PList : PPanel
                     .Where(pCandidate => pCandidate.PListItemLocked
                         && pCandidate.PListItemRelay == pListItem.PListItemRelay)
                     .ToArray();
-                pListRowPanel.Children.Add(PListLockedCardBuild(pListGroupItems));
+                pListRowPanel.Children.Add(PListCardBuild(pListGroupItems));
             }
         }
 
@@ -517,7 +517,7 @@ public sealed partial class PList : PPanel
         var pRowBorder = new Border
         {
             Padding = new Thickness(12, 7, 12, 7),
-            Background = PListRowBackgroundRead(pListItem),
+            Background = PListBackgroundRead(pListItem),
             BorderBrush = pListLineBrush,
             BorderThickness = new Thickness(0, 0, 0, pListBottomBorder ? 1 : 0),
             Cursor = Cursors.Hand,
@@ -551,7 +551,7 @@ public sealed partial class PList : PPanel
         return pRowBorder;
     }
 
-    private UIElement PListLockedCardBuild(IReadOnlyList<PListItem> pListLockedItems)
+    private UIElement PListCardBuild(IReadOnlyList<PListItem> pListLockedItems)
     {
         var pListCardRows = new StackPanel();
         var pListHeader = new StackPanel
@@ -598,9 +598,9 @@ public sealed partial class PList : PPanel
         };
     }
 
-    private Brush PListRowBackgroundRead(PListItem pListItem) =>
+    private Brush PListBackgroundRead(PListItem pListItem) =>
         PListSelectionCheck(pListItem.PListItemPath)
-            ? pListItem.PListItemLocked ? pListLockedSelectBrush : pListSelectBrush
+            ? pListItem.PListItemLocked ? pListLockedAccent : pListSelectBrush
             : pListItem.PListItemLocked ? Brushes.Transparent : Brushes.White;
 
     private void PListDragHandle(object pRowSender, MouseEventArgs pRowEvent)
@@ -621,7 +621,7 @@ public sealed partial class PList : PPanel
 
         string[] pDragPaths = PListSelectionCheck(pDragPath)
             ? PListSelectionRead()
-                .Where(pListPath => !PListPathLockedCheck(pListPath))
+                .Where(pListPath => !PListLockCheck(pListPath))
                 .ToArray()
             : [pDragPath];
         if (pDragPaths.Length == 0)

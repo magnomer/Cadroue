@@ -26,7 +26,7 @@
 > validate
 
 [validate] Validate resolved input and output paths <decision>
-- Normalize the final output path and compare it with every input path using Windows path semantics @ job.LJobInputCollisionCheck(...)
+- Normalize the final output path and compare it with every input path using Windows path semantics @ job.LJobCollisionCheck(...)
 ? "Output equals an input path" > rejected
 ? "Every input path is distinct" > policy
 

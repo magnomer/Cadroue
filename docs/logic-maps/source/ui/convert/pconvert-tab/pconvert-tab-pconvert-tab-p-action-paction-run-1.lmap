@@ -17,9 +17,9 @@
 > route
 
 [route] Registered handler path <process>
-- Read the current item only if it is unlocked and preserve its relay batch @ list.PListUnlockedItemRead
+- Read the current item only if it is unlocked and preserve its relay batch @ list.PListEditableRead
 - Submit that source through the registered delegate @ owner.PConvertTab
-! Registered call path: LConvert.LConvertDescribe → pList.PListUnlockedItemRead → LWorkSource
+! Registered call path: LConvert.LConvertDescribe → pList.PListEditableRead → LWorkSource
 > output
 
 [output] UI state after the event <output>

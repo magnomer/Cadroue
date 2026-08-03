@@ -18,8 +18,8 @@
 
 [route] Registered handler path <process>
 - Invoke the registered owner handler @ owner.PAudioPlanSave
-- Intersect the requested paths with unlocked list items and preserve each relay batch @ list.PListUnlockedItemsRead
-! Registered call path: PAudioPlanSave → LAudio.LAudioAllDescribe → pList.PListUnlockedItemsRead → Where → pAudioPaths.Contains → Select → LWorkSource → ToArray
+- Intersect the requested paths with unlocked list items and preserve each relay batch @ list.PListUnlockedRead
+! Registered call path: PAudioPlanSave → LAudio.LAudioAllDescribe → pList.PListUnlockedRead → Where → pAudioPaths.Contains → Select → LWorkSource → ToArray
 > output
 
 [output] UI state after the event <output>

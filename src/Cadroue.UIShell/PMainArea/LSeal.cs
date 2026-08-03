@@ -97,7 +97,7 @@ public static class LSeal
         }
     }
 
-    public static bool LSealCohortClaimCheck(Guid lSealCohort)
+    public static bool LSealClaimCheck(Guid lSealCohort)
     {
         IReadOnlyList<(Guid lSealCohort, DateTimeOffset lSealBirth)> lSealSnapshot = lSealActive;
         DateTimeOffset? lSealSelf = null;

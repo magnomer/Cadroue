@@ -59,8 +59,8 @@ public abstract class PTabSurface : UserControl
             }
         }
 
-        pList.PListCurrentLockChange += pLockApply;
-        pLockApply(pList.PListCurrentLockedCheck());
+        pList.PListLockChange += pLockApply;
+        pLockApply(pList.PListLockCheck());
     }
 
     protected Grid PTabGridBuild(

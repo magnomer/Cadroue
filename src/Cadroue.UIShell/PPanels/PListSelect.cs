@@ -36,7 +36,7 @@ public sealed partial class PList
         pListPathCurrent = pCurrentPath;
         PListSelectionUpdate();
         PListPathChange?.Invoke(pListPathCurrent);
-        PListCurrentLockChange?.Invoke(PListCurrentLockedCheck());
+        PListLockChange?.Invoke(PListLockCheck());
     }
 
     private void PListSelectionUpdate()
@@ -47,7 +47,7 @@ public sealed partial class PList
                 pCandidate.PListItemPath, pRowPath, StringComparison.OrdinalIgnoreCase));
             if (pListItem is not null)
             {
-                pRowBorder.Background = PListRowBackgroundRead(pListItem);
+                pRowBorder.Background = PListBackgroundRead(pListItem);
             }
         }
     }

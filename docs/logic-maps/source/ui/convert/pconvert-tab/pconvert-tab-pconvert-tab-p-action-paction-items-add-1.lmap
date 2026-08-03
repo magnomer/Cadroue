@@ -17,9 +17,9 @@
 > route
 
 [route] Registered handler path <process>
-- Intersect the requested paths with unlocked list items and preserve each relay batch @ list.PListUnlockedItemsRead
+- Intersect the requested paths with unlocked list items and preserve each relay batch @ list.PListUnlockedRead
 - Submit those sources through the registered delegate @ owner.PConvertTab
-! Registered call path: LConvert.LConvertDescribe → pList.PListUnlockedItemsRead → Where → pConvertPaths.Contains → Select → LWorkSource → ToArray
+! Registered call path: LConvert.LConvertDescribe → pList.PListUnlockedRead → Where → pConvertPaths.Contains → Select → LWorkSource → ToArray
 > output
 
 [output] UI state after the event <output>

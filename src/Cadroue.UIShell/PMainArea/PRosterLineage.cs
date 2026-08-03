@@ -102,7 +102,7 @@ public sealed partial class PRoster
 
     private static string PLineageTabRead(LWorkItem pWorkItem)
     {
-        string pTabName = LCourier.LCourierWorkTitleRead(pWorkItem);
+        string pTabName = LCourier.LWorkTitleRead(pWorkItem);
 
         return LLocalization.LLocalizationFormat(
             "Roster.Lineage.Step",

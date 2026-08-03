@@ -17,10 +17,10 @@
 > route
 
 [route] Registered handler path <process>
-- Require the current list item to be unlocked and carry its relay batch into the job @ list.PListUnlockedItemRead
+- Require the current list item to be unlocked and carry its relay batch into the job @ list.PListEditableRead
 - Invoke the registered owner handler @ owner.PAudioPlanSave
 - Continue through the owner callback @ owner.PAudioProcessingRead
-! Registered call path: pList.PListUnlockedItemRead → PAudioPlanSave → LAudio.LAudioDescribe → PAudioProcessingRead
+! Registered call path: pList.PListEditableRead → PAudioPlanSave → LAudio.LAudioDescribe → PAudioProcessingRead
 > output
 
 [output] UI state after the event <output>

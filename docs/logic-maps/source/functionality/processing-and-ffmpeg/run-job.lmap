@@ -25,7 +25,7 @@
 
 [validate] Validate stored work <decision>
 - Validate required sources, output information, and normalized input/output path separation @ job.LJobValidate(...)
-- Compare the final output path with every input before any collision policy can run @ job.LJobInputCollisionCheck(...)
+- Compare the final output path with every input before any collision policy can run @ job.LJobCollisionCheck(...)
 ? "Stored work is invalid" > invalid
 ? "Stored work is valid" > prepare
 

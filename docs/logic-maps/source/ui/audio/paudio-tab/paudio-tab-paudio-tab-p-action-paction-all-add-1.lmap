@@ -18,8 +18,8 @@
 
 [route] Registered handler path <process>
 - Invoke the registered owner handler @ owner.PAudioPlanSave
-- Select only unlocked list items and preserve each relay batch in the work-source request @ list.PListUnlockedItemsRead
-! Registered call path: PAudioPlanSave → LAudio.LAudioAllDescribe → pList.PListUnlockedItemsRead → Select → LWorkSource → ToArray
+- Select only unlocked list items and preserve each relay batch in the work-source request @ list.PListUnlockedRead
+! Registered call path: PAudioPlanSave → LAudio.LAudioAllDescribe → pList.PListUnlockedRead → Select → LWorkSource → ToArray
 > output
 
 [output] UI state after the event <output>

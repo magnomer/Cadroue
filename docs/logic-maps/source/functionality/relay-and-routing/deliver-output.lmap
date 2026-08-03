@@ -40,17 +40,17 @@
 
 [plan] Resolve saved delivery <decision>
 - Load the saved batch plan and resolve the work's stable target stage @ planstore.LRelayPlanRead(...)
-- Check whether this work ID was already committed to the plan @ courier.LCourierPlanOutputAdd(...)
+- Check whether this work ID was already committed to the plan @ courier.LCourierOutputAdd(...)
 ? "Work was already committed" > plan-drain
 ? "Work has not been committed" > plan-apply
 
 [plan-apply] Apply and persist saved stage <process>
-- Append the stage input and execute, route, collect, or pause it according to the saved stage snapshot @ courier.LCourierPlanStageArrive(...)
-- Record the delivered work ID and save the mutated plan @ courier.LCourierPlanOutputAdd(...)
+- Append the stage input and execute, route, collect, or pause it according to the saved stage snapshot @ courier.LCourierStageArrive(...)
+- Record the delivered work ID and save the mutated plan @ courier.LCourierOutputAdd(...)
 > plan-save
 
 [plan-save] Was plan delivery committed? <decision>
-- Inspect the final durable-plan save result @ courier.LCourierPlanOutputAdd(...)
+- Inspect the final durable-plan save result @ courier.LCourierOutputAdd(...)
 ? "Plan save succeeds" > plan-drain
 ? "Plan save fails" > retry
 
@@ -76,7 +76,7 @@
 ? "Destination rejected the path" > retry
 
 [drain] Should source inputs be removed? <decision>
-- Apply the force flag and relay-empty preference, then resolve a stable plan-stage source back to its original live tab when available @ courier.LCourierSourceTabFind(...)
+- Apply the force flag and relay-empty preference, then resolve a stable plan-stage source back to its original live tab when available @ courier.LCourierTabFind(...)
 @ courier.LCourierSourceRemove(...)
 ? "Source removal is disabled or impossible" > arrive
 ? "Source removal proceeds" > remove

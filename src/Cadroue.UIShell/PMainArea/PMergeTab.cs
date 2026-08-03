@@ -26,7 +26,7 @@ public sealed class PMergeTab : PTabSurface
             pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
-        pGroup.PGroupSourceFiles = () => pList.PListUnlockedItemsRead()
+        pGroup.PGroupSourceFiles = () => pList.PListUnlockedRead()
             .Select(pItem => pItem.PListItemPath)
             .ToArray();
         pGroup.PGroupFileRequest = pDropPaths =>
@@ -49,7 +49,7 @@ public sealed class PMergeTab : PTabSurface
     private IReadOnlyDictionary<string, Guid> PMergeRelaysRead()
     {
         var pMergeRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-        foreach (PListItem pItem in pList.PListUnlockedItemsRead())
+        foreach (PListItem pItem in pList.PListUnlockedRead())
         {
             pMergeRelays[pItem.PListItemPath] = pItem.PListItemRelay;
         }
@@ -62,7 +62,7 @@ public sealed class PMergeTab : PTabSurface
             .Select(pGroupSelection => new LWorkGroup(
                 pGroupSelection.PGroupSelectionName,
                 pGroupSelection.PGroupSelectionPaths
-                    .Where(pPath => !pList.PListPathLockedCheck(pPath))
+                    .Where(pPath => !pList.PListLockCheck(pPath))
                     .ToArray()))
             .Where(pGroupSelection => pGroupSelection.LWorkGroupPaths.Count > 0)
             .ToArray();

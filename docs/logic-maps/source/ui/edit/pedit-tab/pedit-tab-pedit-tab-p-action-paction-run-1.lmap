@@ -17,9 +17,9 @@
 > route
 
 [route] Registered handler path <process>
-- Require the current list item to be unlocked and carry its relay batch into the job @ list.PListUnlockedItemRead
+- Require the current list item to be unlocked and carry its relay batch into the job @ list.PListEditableRead
 - Invoke the registered owner handler @ owner.PEditVideoRead
-! Registered call path: pList.PListUnlockedItemRead → LEdit.LEditDescribe → pViewer.PViewerDurationRead → pInspector.PSkipActiveCheck → LWorkCrop.LWorkCropCreate → pInspector.PInspectorCropRead → LWorkVideo.LWorkVideoCreate → PEditVideoRead
+! Registered call path: pList.PListEditableRead → LEdit.LEditDescribe → pViewer.PViewerDurationRead → pInspector.PSkipActiveCheck → LWorkCrop.LWorkCropCreate → pInspector.PInspectorCropRead → LWorkVideo.LWorkVideoCreate → PEditVideoRead
 > output
 
 [output] UI state after the event <output>

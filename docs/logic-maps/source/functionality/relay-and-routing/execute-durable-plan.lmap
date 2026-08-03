@@ -64,8 +64,8 @@
 ? "Automatic was disabled at submission" > checkpoint
 
 [materialize] Materialize from snapshot <process>
-- Construct a detached workspace from the saved layout and export preset @ courier.LCourierPlanStageArrive(...)
-- Require the detached surface to expose both an action and a list before it can schedule work @ courier.LCourierPlanStageArrive(...)
+- Construct a detached workspace from the saved layout and export preset @ courier.LCourierStageArrive(...)
+- Require the detached surface to expose both an action and a list before it can schedule work @ courier.LCourierStageArrive(...)
 > materialize-ready
 
 [materialize-ready] Can the saved stage run? <decision>
@@ -73,18 +73,18 @@
 ? "Detached surface cannot run work" > consumed
 
 [queue-stage] Queue materialized work <process>
-- Apply the stable source-stage and next-stage identities to the detached action @ courier.LCourierPlanStageArrive(...)
-- Add distinct pending inputs and run all Merge inputs or the selected ordinary inputs @ courier.LCourierPlanStageArrive(...)
-- Clear persisted inputs after invoking the stage action @ courier.LCourierPlanStageArrive(...)
+- Apply the stable source-stage and next-stage identities to the detached action @ courier.LCourierStageArrive(...)
+- Add distinct pending inputs and run all Merge inputs or the selected ordinary inputs @ courier.LCourierStageArrive(...)
+- Clear persisted inputs after invoking the stage action @ courier.LCourierStageArrive(...)
 > wait [loop]
 
 [collect] Persist Merge inputs <storage>
-- Retain cohort inputs until no pending or undelivered work can still reach the Merge stage @ courier.LCourierPlanMergeBlocked(...)
+- Retain cohort inputs until no pending or undelivered work can still reach the Merge stage @ courier.LCourierMergeCheck(...)
 > wait [loop]
 
 [branch] Apply saved Funnel rules <process>
-- Match the filename against the snapshotted rules @ plan.LRelayFunnelTargetRead(...)
-- Continue recursively at the resolved saved target stage @ courier.LCourierPlanStageArrive(...)
+- Match the filename against the snapshotted rules @ plan.LRelayTargetRead(...)
+- Continue recursively at the resolved saved target stage @ courier.LCourierStageArrive(...)
 > funnel-result
 
 [funnel-result] Did a saved rule resolve? <decision>
@@ -92,7 +92,7 @@
 ? "No target stage exists" > consumed
 
 [checkpoint] Pause plan-owned input <storage>
-- Persist the input at the stage and optionally mirror it into the original tab when that view still exists @ courier.LCourierPlanStageArrive(...)
+- Persist the input at the stage and optionally mirror it into the original tab when that view still exists @ courier.LCourierStageArrive(...)
 > paused
 
 [paused] Plan paused <output>

@@ -19,7 +19,7 @@
 - Handle list drag @ owner.PListDragHandle
 - Check list selection @ owner.PListSelectionCheck
 - Read list selection @ owner.PListSelectionRead
-- Remove locked submitted paths from a multi-row drag and cancel when none remain @ owner.PListPathLockedCheck
+- Remove locked submitted paths from a multi-row drag and cancel when none remain @ owner.PListLockCheck
 - Evaluate the handler's implemented conditional branches @ owner.PListDragHandle
 > output
 

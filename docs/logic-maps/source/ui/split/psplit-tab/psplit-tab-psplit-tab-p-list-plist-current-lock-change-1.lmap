@@ -4,7 +4,7 @@
 @section I. UI
 @area UI event
 @tabs Split
-@event-ref cs|PMainArea/PSplitTab.cs|PSplitTab|pList|PListCurrentLockChange|1
+@event-ref cs|PMainArea/PSplitTab.cs|PSplitTab|pList|PListLockChange|1
 @entry input
 @summary Prevent section mutations and sidecar writes while the current Split source is locked.
 @tag source lock
@@ -17,9 +17,9 @@
 > apply
 
 [apply] Synchronize section editability <process>
-- Disable section mutations and their sidecar-save path while locked, and restore them when unlocked @ flow.PFlowSectionEditSet
+- Disable section mutations and their sidecar-save path while locked, and restore them when unlocked @ flow.PFlowEditSet
 > output
 
 [output] Timeline edit state synchronized <output>
 = Existing sections remain visible and selectable, but a submitted source cannot be changed until the list is cleared.
-! Code binding: cs|PMainArea/PSplitTab.cs|PSplitTab|pList|PListCurrentLockChange|1
+! Code binding: cs|PMainArea/PSplitTab.cs|PSplitTab|pList|PListLockChange|1

@@ -282,8 +282,8 @@
         "ffmpeg",
         "job"
       ],
-      "hash": "4574734672c2",
-      "search": "ii. functionality 5. processing and ffmpeg run ffmpeg job validate one claimed item, run its ffmpeg stages, and commit success, retry, cancellation, or failure according to the path actually reached. ffmpeg job runner job encode probe schedule roster cadroue.shellengine.lrunner cadroue.shellengine.ljob cadroue.shellengine.lencode cadroue.shellengine.lprobe cadroue.infrastructure.lschedule cadroue.uishell.pmainarea.proster worker receives claimed work create a job for the claimed item and worker token runner.lrunnerlooprun(...) begin execution of that item job.ljobrun(...) validate stored work validate required sources, output information, and normalized input/output path separation job.ljobvalidate(...) compare the final output path with every input before any collision policy can run job.ljobinputcollisioncheck(...) commit validation failure mark the item failed, commit its message, and reload the schedule job.ljobrun(...) remove its attempt record and count a runner failure job.ljobrun(...) validation failure is visible display the failed reason first in the selected item's detail pane roster.prosterdetailupdate(...) prepare execution register the live item and start lease renewal job.ljobrun(...) create the output directory and apply collision policy job.ljobcollisionapply(...) build the required ffmpeg stages encode.lencodestagesbuild(...) enter guarded execution enter the guarded stage, retry, probe, and commit block job.ljobrun(...) run the next stage attach and start the ffmpeg process job.ljobstagerun(...) read progress blocks and publish phase and percentage job.ljobprogressread(...) collect standard error and process exit state job.ljobstagerun(...) evaluate stage result commit explicit cancellation request durable cancellation for the item job.ljobrun(...) file the item as cancelled and remove partial output schedule.lscheduleitemcancel(...) requeue failed attempt inspect normal process result probe source and output sizes and media properties after normal process completion job.ljobrun(...) probe the output keyframe interval when applicable probe.lprobeintervalread(...) commit normal completion commit success when the exit code is zero, otherwise commit final ffmpeg failure job.ljobrun(...) reload the schedule and update runner failure state when required job.ljobrun(...) explicit cancellation complete runner cancellation observed log cancellation, remove live process/item registrations, stop lease renewal, and clear temporary stages job.ljobrun(...) / finally evaluate execution exception catch an execution exception that bypasses normal output probing job.ljobrun(...) commit exception failure commit the exception message as final failure without probing output job.ljobrun(...)"
+      "hash": "ac1b65e1f272",
+      "search": "ii. functionality 5. processing and ffmpeg run ffmpeg job validate one claimed item, run its ffmpeg stages, and commit success, retry, cancellation, or failure according to the path actually reached. ffmpeg job runner job encode probe schedule roster cadroue.shellengine.lrunner cadroue.shellengine.ljob cadroue.shellengine.lencode cadroue.shellengine.lprobe cadroue.infrastructure.lschedule cadroue.uishell.pmainarea.proster worker receives claimed work create a job for the claimed item and worker token runner.lrunnerlooprun(...) begin execution of that item job.ljobrun(...) validate stored work validate required sources, output information, and normalized input/output path separation job.ljobvalidate(...) compare the final output path with every input before any collision policy can run job.ljobcollisioncheck(...) commit validation failure mark the item failed, commit its message, and reload the schedule job.ljobrun(...) remove its attempt record and count a runner failure job.ljobrun(...) validation failure is visible display the failed reason first in the selected item's detail pane roster.prosterdetailupdate(...) prepare execution register the live item and start lease renewal job.ljobrun(...) create the output directory and apply collision policy job.ljobcollisionapply(...) build the required ffmpeg stages encode.lencodestagesbuild(...) enter guarded execution enter the guarded stage, retry, probe, and commit block job.ljobrun(...) run the next stage attach and start the ffmpeg process job.ljobstagerun(...) read progress blocks and publish phase and percentage job.ljobprogressread(...) collect standard error and process exit state job.ljobstagerun(...) evaluate stage result commit explicit cancellation request durable cancellation for the item job.ljobrun(...) file the item as cancelled and remove partial output schedule.lscheduleitemcancel(...) requeue failed attempt inspect normal process result probe source and output sizes and media properties after normal process completion job.ljobrun(...) probe the output keyframe interval when applicable probe.lprobeintervalread(...) commit normal completion commit success when the exit code is zero, otherwise commit final ffmpeg failure job.ljobrun(...) reload the schedule and update runner failure state when required job.ljobrun(...) explicit cancellation complete runner cancellation observed log cancellation, remove live process/item registrations, stop lease renewal, and clear temporary stages job.ljobrun(...) / finally evaluate execution exception catch an execution exception that bypasses normal output probing job.ljobrun(...) commit exception failure commit the exception message as final failure without probing output job.ljobrun(...)"
     },
     {
       "id": "processing.source-output-collision",
@@ -298,8 +298,8 @@
         "collision",
         "overwrite"
       ],
-      "hash": "a7cd2dc0a09c",
-      "search": "ii. functionality 5. processing and ffmpeg handle source and output path collision reject a work item whose normalized output path equals any input path before collision handling or ffmpeg can alter the source. collision overwrite edit convert audio split merge job cadroue.application.ledit cadroue.application.lconvert cadroue.application.laudio cadroue.application.lsplit cadroue.application.lmerge cadroue.shellengine.ljob work output path is formed avoid an exact source/output path match by appending an edit suffix for edit work edit.leditnamecreate(...) avoid an exact source/output path match by appending a convert suffix for convert work convert.lconvertnamecreate(...) avoid an exact source/output path match by appending an audio suffix for audio work audio.laudionamecreate(...) create split names with within-batch uniqueness but without a full-path comparison against the source split.lsplitnamecreate(...) create merge names with within-batch uniqueness but without comparison against every merge source merge.lmergenamecreate(...) validate resolved input and output paths normalize the final output path and compare it with every input path using windows path semantics job.ljobinputcollisioncheck(...) reject unsafe work stop before live registration, directory creation, collision handling, stage construction, or ffmpeg startup job.ljobrun(...) mark the item failed, persist the reason, reload the schedule, and apply runner failure behavior job.ljobrun(...) apply policy only to a distinct output path handle an existing destination only after validation proves it is not an input job.ljobcollisionapply(...) move output to a free path resolve a free output name and update the work item's output path job.ljobcollisionapply(...) move the existing destination away resolve a free name and move the distinct existing destination job.ljobcollisionapply(...) replace a distinct destination leave the distinct output path in place for ffmpeg overwrite handling job.ljobcollisionapply(...) continue with distinct paths"
+      "hash": "fb355847d89d",
+      "search": "ii. functionality 5. processing and ffmpeg handle source and output path collision reject a work item whose normalized output path equals any input path before collision handling or ffmpeg can alter the source. collision overwrite edit convert audio split merge job cadroue.application.ledit cadroue.application.lconvert cadroue.application.laudio cadroue.application.lsplit cadroue.application.lmerge cadroue.shellengine.ljob work output path is formed avoid an exact source/output path match by appending an edit suffix for edit work edit.leditnamecreate(...) avoid an exact source/output path match by appending a convert suffix for convert work convert.lconvertnamecreate(...) avoid an exact source/output path match by appending an audio suffix for audio work audio.laudionamecreate(...) create split names with within-batch uniqueness but without a full-path comparison against the source split.lsplitnamecreate(...) create merge names with within-batch uniqueness but without comparison against every merge source merge.lmergenamecreate(...) validate resolved input and output paths normalize the final output path and compare it with every input path using windows path semantics job.ljobcollisioncheck(...) reject unsafe work stop before live registration, directory creation, collision handling, stage construction, or ffmpeg startup job.ljobrun(...) mark the item failed, persist the reason, reload the schedule, and apply runner failure behavior job.ljobrun(...) apply policy only to a distinct output path handle an existing destination only after validation proves it is not an input job.ljobcollisionapply(...) move output to a free path resolve a free output name and update the work item's output path job.ljobcollisionapply(...) move the existing destination away resolve a free name and move the distinct existing destination job.ljobcollisionapply(...) replace a distinct destination leave the distinct output path in place for ffmpeg overwrite handling job.ljobcollisionapply(...) continue with distinct paths"
     },
     {
       "id": "processing.start",
@@ -636,8 +636,8 @@
         "relay",
         "delivery"
       ],
-      "hash": "fbb2fc58b9a7",
-      "search": "ii. functionality 6. relay and routing deliver completed output resume plan-owned output from durable stage snapshots, while retaining compatible live-tab delivery for legacy work. relay delivery courier list group surface viewer flow planstore cadroue.uishell.pmainarea.lcourier cadroue.uishell.ppanels.plist cadroue.uishell.ppanels.pgroup cadroue.uishell.pmainarea.ptabsurface cadroue.uishell.ppanels.pviewer cadroue.uishell.pflow.pflow cadroue.uishell.pmainarea.lrelayplanstore schedule change after completion scan done targeted work that has not already been delivered courier.lcourierdispatch(...) accept work owned by this process, or saved-plan work whose recorded owner is no longer alive courier.lcourierdispatch(...) reserve this delivery attempt add the work id to the delivered set before attempting delivery courier.lcourierdispatch(...) resolve delivery target select saved or live destination look for the work's stable target in its saved batch plan planstore.lrelayplanread(...) resolve saved delivery load the saved batch plan and resolve the work's stable target stage planstore.lrelayplanread(...) check whether this work id was already committed to the plan courier.lcourierplanoutputadd(...) apply and persist saved stage append the stage input and execute, route, collect, or pause it according to the saved stage snapshot courier.lcourierplanstagearrive(...) record the delivered work id and save the mutated plan courier.lcourierplanoutputadd(...) was plan delivery committed? inspect the final durable-plan save result courier.lcourierplanoutputadd(...) drain saved-plan source apply ordinary preference-based source cleanup without invoking the live-tab arrival path courier.lcouriersourceremove(...) finish relay chain record chain completion and force source removal courier.lcourieroutputadd(...) force source cleanup remove source list and group paths regardless of the relay-empty preference courier.lcouriersourceremove(...) add output to destination add the output path to the destination list with its batch cohort list.plistpathsadd(...) did the destination accept the output? accept either a newly added path or the same path already present in the destination courier.lcourieroutputadd(...) should source inputs be removed? apply the force flag and relay-empty preference, then resolve a stable plan-stage source back to its original live tab when available courier.lcouriersourcetabfind(...) courier.lcouriersourceremove(...) remove source containers remove the delivered source and merge-source paths from the source list list.plistpathsremove(...) remove matching paths from the source group container group.pgrouppathsremove(...) when a removed path is loaded, force-close its viewer and directly clear its flow surface.ptabviewerattach(...) viewer.pviewermediaclose(...) flow.pflowclear(...) continue downstream relay invoke automatic downstream action when enabled courier.lcourierarrive(...) delivery not committed remove the reserved work id when delivery returns false, or remove it and rethrow when delivery raises courier.lcourierdispatch(...) delivery complete saved-plan delivery complete relay chain finished"
+      "hash": "8b3539e969d6",
+      "search": "ii. functionality 6. relay and routing deliver completed output resume plan-owned output from durable stage snapshots, while retaining compatible live-tab delivery for legacy work. relay delivery courier list group surface viewer flow planstore cadroue.uishell.pmainarea.lcourier cadroue.uishell.ppanels.plist cadroue.uishell.ppanels.pgroup cadroue.uishell.pmainarea.ptabsurface cadroue.uishell.ppanels.pviewer cadroue.uishell.pflow.pflow cadroue.uishell.pmainarea.lrelayplanstore schedule change after completion scan done targeted work that has not already been delivered courier.lcourierdispatch(...) accept work owned by this process, or saved-plan work whose recorded owner is no longer alive courier.lcourierdispatch(...) reserve this delivery attempt add the work id to the delivered set before attempting delivery courier.lcourierdispatch(...) resolve delivery target select saved or live destination look for the work's stable target in its saved batch plan planstore.lrelayplanread(...) resolve saved delivery load the saved batch plan and resolve the work's stable target stage planstore.lrelayplanread(...) check whether this work id was already committed to the plan courier.lcourieroutputadd(...) apply and persist saved stage append the stage input and execute, route, collect, or pause it according to the saved stage snapshot courier.lcourierstagearrive(...) record the delivered work id and save the mutated plan courier.lcourieroutputadd(...) was plan delivery committed? inspect the final durable-plan save result courier.lcourieroutputadd(...) drain saved-plan source apply ordinary preference-based source cleanup without invoking the live-tab arrival path courier.lcouriersourceremove(...) finish relay chain record chain completion and force source removal courier.lcourieroutputadd(...) force source cleanup remove source list and group paths regardless of the relay-empty preference courier.lcouriersourceremove(...) add output to destination add the output path to the destination list with its batch cohort list.plistpathsadd(...) did the destination accept the output? accept either a newly added path or the same path already present in the destination courier.lcourieroutputadd(...) should source inputs be removed? apply the force flag and relay-empty preference, then resolve a stable plan-stage source back to its original live tab when available courier.lcouriertabfind(...) courier.lcouriersourceremove(...) remove source containers remove the delivered source and merge-source paths from the source list list.plistpathsremove(...) remove matching paths from the source group container group.pgrouppathsremove(...) when a removed path is loaded, force-close its viewer and directly clear its flow surface.ptabviewerattach(...) viewer.pviewermediaclose(...) flow.pflowclear(...) continue downstream relay invoke automatic downstream action when enabled courier.lcourierarrive(...) delivery not committed remove the reserved work id when delivery returns false, or remove it and rethrow when delivery raises courier.lcourierdispatch(...) delivery complete saved-plan delivery complete relay chain finished"
     },
     {
       "id": "relay.execute-durable-plan",
@@ -653,8 +653,8 @@
         "persistence",
         "plan"
       ],
-      "hash": "b4e79fe817d4",
-      "search": "ii. functionality 6. relay and routing execute durable auto-relay plan snapshot a complete auto-relay graph at submission and materialize later stages without consulting mutable tabs. relay persistence plan courier plan planstore cadroue.uishell.pmainarea.lcourier cadroue.uishell.pmainarea.lrelayplan cadroue.uishell.pmainarea.lrelayplanstore user submits work with a relay target group immediate work by cohort and check for an existing saved plan before inspecting the live route courier.lcourierscheduleadd(...) select routing authority load any durable plan already owned by the cohort planstore.lrelayplanread(...) normalize saved-plan work resolve original-tab or stable-stage source and target identities against the saved stages courier.lcourierscheduleadd(...) prefer the saved source stage's next stage when assigning the stable target courier.lcourierscheduleadd(...) keep direct route preserve the empty or finish target without creating a durable stage graph courier.lcourierscheduleadd(...) capture reachable stages give every stage a new stable id and clone its layout, processing, export, automatic, merge, and funnel state plan.lrelayplancreate(...) translate ordinary edges and funnel targets from temporary tab identities to stable stage identities plan.lrelayplancreate(...) save before scheduling atomically save the plan in the active workspace planstore.lrelayplansave(...) assign stable entry put the plan's entry-stage id on immediate work before adding it to the schedule courier.lcourierscheduleadd(...) lock only the immediate source items that the schedule actually accepted courier.lcouriersourcelock(...) predecessor executes keep future stages as snapshots until completed predecessor work becomes eligible for dispatch courier.lcourierdispatch(...) resolve saved stage load the cohort plan by batch id planstore.lrelayplanread(...) resolve the work's stable target stage from that plan courier.lcourieroutputadd(...) materialize from snapshot construct a detached workspace from the saved layout and export preset courier.lcourierplanstagearrive(...) require the detached surface to expose both an action and a list before it can schedule work courier.lcourierplanstagearrive(...) can the saved stage run? queue materialized work apply the stable source-stage and next-stage identities to the detached action courier.lcourierplanstagearrive(...) add distinct pending inputs and run all merge inputs or the selected ordinary inputs courier.lcourierplanstagearrive(...) clear persisted inputs after invoking the stage action courier.lcourierplanstagearrive(...) persist merge inputs retain cohort inputs until no pending or undelivered work can still reach the merge stage courier.lcourierplanmergeblocked(...) apply saved funnel rules match the filename against the snapshotted rules plan.lrelayfunneltargetread(...) continue recursively at the resolved saved target stage courier.lcourierplanstagearrive(...) did a saved rule resolve? pause plan-owned input persist the input at the stage and optionally mirror it into the original tab when that view still exists courier.lcourierplanstagearrive(...) plan paused stage continuation stops compatible fallback retain live-tab routing when the durable plan cannot be constituted or persisted courier.lcourierscheduleadd(...)"
+      "hash": "72b83b163ea4",
+      "search": "ii. functionality 6. relay and routing execute durable auto-relay plan snapshot a complete auto-relay graph at submission and materialize later stages without consulting mutable tabs. relay persistence plan courier plan planstore cadroue.uishell.pmainarea.lcourier cadroue.uishell.pmainarea.lrelayplan cadroue.uishell.pmainarea.lrelayplanstore user submits work with a relay target group immediate work by cohort and check for an existing saved plan before inspecting the live route courier.lcourierscheduleadd(...) select routing authority load any durable plan already owned by the cohort planstore.lrelayplanread(...) normalize saved-plan work resolve original-tab or stable-stage source and target identities against the saved stages courier.lcourierscheduleadd(...) prefer the saved source stage's next stage when assigning the stable target courier.lcourierscheduleadd(...) keep direct route preserve the empty or finish target without creating a durable stage graph courier.lcourierscheduleadd(...) capture reachable stages give every stage a new stable id and clone its layout, processing, export, automatic, merge, and funnel state plan.lrelayplancreate(...) translate ordinary edges and funnel targets from temporary tab identities to stable stage identities plan.lrelayplancreate(...) save before scheduling atomically save the plan in the active workspace planstore.lrelayplansave(...) assign stable entry put the plan's entry-stage id on immediate work before adding it to the schedule courier.lcourierscheduleadd(...) lock only the immediate source items that the schedule actually accepted courier.lcouriersourcelock(...) predecessor executes keep future stages as snapshots until completed predecessor work becomes eligible for dispatch courier.lcourierdispatch(...) resolve saved stage load the cohort plan by batch id planstore.lrelayplanread(...) resolve the work's stable target stage from that plan courier.lcourieroutputadd(...) materialize from snapshot construct a detached workspace from the saved layout and export preset courier.lcourierstagearrive(...) require the detached surface to expose both an action and a list before it can schedule work courier.lcourierstagearrive(...) can the saved stage run? queue materialized work apply the stable source-stage and next-stage identities to the detached action courier.lcourierstagearrive(...) add distinct pending inputs and run all merge inputs or the selected ordinary inputs courier.lcourierstagearrive(...) clear persisted inputs after invoking the stage action courier.lcourierstagearrive(...) persist merge inputs retain cohort inputs until no pending or undelivered work can still reach the merge stage courier.lcouriermergecheck(...) apply saved funnel rules match the filename against the snapshotted rules plan.lrelaytargetread(...) continue recursively at the resolved saved target stage courier.lcourierstagearrive(...) did a saved rule resolve? pause plan-owned input persist the input at the stage and optionally mirror it into the original tab when that view still exists courier.lcourierstagearrive(...) plan paused stage continuation stops compatible fallback retain live-tab routing when the durable plan cannot be constituted or persisted courier.lcourierscheduleadd(...)"
     },
     {
       "id": "relay.receive-tab",
@@ -705,8 +705,8 @@
         "all add",
         "PAudioTab"
       ],
-      "hash": "5a3ecad798ab",
-      "search": "i. ui ui event audio action \u2014 all add handle the all add event emitted by action through the exact route registered in paudiotab.paudiotab. all add paudiotab owner list cadroue.uishell.pmainarea.paudiotab cadroue.uishell.ppanels.plist ui event receive the all add event from action through its current registration owner.paudiotab registered handler path invoke the registered owner handler owner.paudioplansave select only unlocked list items and preserve each relay batch in the work-source request list.plistunlockeditemsread ui state after the event"
+      "hash": "b6aab6279de3",
+      "search": "i. ui ui event audio action \u2014 all add handle the all add event emitted by action through the exact route registered in paudiotab.paudiotab. all add paudiotab owner list cadroue.uishell.pmainarea.paudiotab cadroue.uishell.ppanels.plist ui event receive the all add event from action through its current registration owner.paudiotab registered handler path invoke the registered owner handler owner.paudioplansave select only unlocked list items and preserve each relay batch in the work-source request list.plistunlockedread ui state after the event"
     },
     {
       "id": "ui-event.7f1983a29c246d91",
@@ -723,8 +723,8 @@
         "items add",
         "PAudioTab"
       ],
-      "hash": "6e7419d537b7",
-      "search": "i. ui ui event audio action \u2014 items add handle the items add event emitted by action through the exact route registered in paudiotab.paudiotab. items add paudiotab owner list cadroue.uishell.pmainarea.paudiotab cadroue.uishell.ppanels.plist ui event receive the items add event from action through its current registration owner.paudiotab registered handler path invoke the registered owner handler owner.paudioplansave intersect the requested paths with unlocked list items and preserve each relay batch list.plistunlockeditemsread ui state after the event"
+      "hash": "c0f47613cf8b",
+      "search": "i. ui ui event audio action \u2014 items add handle the items add event emitted by action through the exact route registered in paudiotab.paudiotab. items add paudiotab owner list cadroue.uishell.pmainarea.paudiotab cadroue.uishell.ppanels.plist ui event receive the items add event from action through its current registration owner.paudiotab registered handler path invoke the registered owner handler owner.paudioplansave intersect the requested paths with unlocked list items and preserve each relay batch list.plistunlockedread ui state after the event"
     },
     {
       "id": "ui-event.e9f0a318da604842",
@@ -741,8 +741,8 @@
         "run",
         "PAudioTab"
       ],
-      "hash": "75a2d257a0f5",
-      "search": "i. ui ui event audio action \u2014 run handle the run event emitted by action through the exact route registered in paudiotab.paudiotab. run paudiotab owner list cadroue.uishell.pmainarea.paudiotab cadroue.uishell.ppanels.plist ui event receive the run event from action through its current registration owner.paudiotab registered handler path require the current list item to be unlocked and carry its relay batch into the job list.plistunlockeditemread invoke the registered owner handler owner.paudioplansave continue through the owner callback owner.paudioprocessingread ui state after the event"
+      "hash": "21c519a011e8",
+      "search": "i. ui ui event audio action \u2014 run handle the run event emitted by action through the exact route registered in paudiotab.paudiotab. run paudiotab owner list cadroue.uishell.pmainarea.paudiotab cadroue.uishell.ppanels.plist ui event receive the run event from action through its current registration owner.paudiotab registered handler path require the current list item to be unlocked and carry its relay batch into the job list.plisteditableread invoke the registered owner handler owner.paudioplansave continue through the owner callback owner.paudioprocessingread ui state after the event"
     },
     {
       "id": "ui-event.b1b5552bfd2f7ee1",
@@ -1953,8 +1953,8 @@
         "all add",
         "PConvertTab"
       ],
-      "hash": "4aab9d1e673c",
-      "search": "i. ui ui event convert action \u2014 all add handle the all add event emitted by action through the exact route registered in pconverttab.pconverttab. all add pconverttab owner list cadroue.uishell.pmainarea.pconverttab cadroue.uishell.ppanels.plist ui event receive the all add event from action through its current registration owner.pconverttab registered handler path select only unlocked list items and preserve each relay batch in the work-source request list.plistunlockeditemsread submit those sources through the registered delegate owner.pconverttab ui state after the event"
+      "hash": "a0fa0aade6cf",
+      "search": "i. ui ui event convert action \u2014 all add handle the all add event emitted by action through the exact route registered in pconverttab.pconverttab. all add pconverttab owner list cadroue.uishell.pmainarea.pconverttab cadroue.uishell.ppanels.plist ui event receive the all add event from action through its current registration owner.pconverttab registered handler path select only unlocked list items and preserve each relay batch in the work-source request list.plistunlockedread submit those sources through the registered delegate owner.pconverttab ui state after the event"
     },
     {
       "id": "ui-event.d775c8862a22e1bf",
@@ -1971,8 +1971,8 @@
         "items add",
         "PConvertTab"
       ],
-      "hash": "43f3ee473426",
-      "search": "i. ui ui event convert action \u2014 items add handle the items add event emitted by action through the exact route registered in pconverttab.pconverttab. items add pconverttab owner list cadroue.uishell.pmainarea.pconverttab cadroue.uishell.ppanels.plist ui event receive the items add event from action through its current registration owner.pconverttab registered handler path intersect the requested paths with unlocked list items and preserve each relay batch list.plistunlockeditemsread submit those sources through the registered delegate owner.pconverttab ui state after the event"
+      "hash": "1042c8720c52",
+      "search": "i. ui ui event convert action \u2014 items add handle the items add event emitted by action through the exact route registered in pconverttab.pconverttab. items add pconverttab owner list cadroue.uishell.pmainarea.pconverttab cadroue.uishell.ppanels.plist ui event receive the items add event from action through its current registration owner.pconverttab registered handler path intersect the requested paths with unlocked list items and preserve each relay batch list.plistunlockedread submit those sources through the registered delegate owner.pconverttab ui state after the event"
     },
     {
       "id": "ui-event.4e4b81aea2d86b79",
@@ -1989,8 +1989,8 @@
         "run",
         "PConvertTab"
       ],
-      "hash": "6e57b1da2357",
-      "search": "i. ui ui event convert action \u2014 run handle the run event emitted by action through the exact route registered in pconverttab.pconverttab. run pconverttab owner list cadroue.uishell.pmainarea.pconverttab cadroue.uishell.ppanels.plist ui event receive the run event from action through its current registration owner.pconverttab registered handler path read the current item only if it is unlocked and preserve its relay batch list.plistunlockeditemread submit that source through the registered delegate owner.pconverttab ui state after the event"
+      "hash": "17b679ef5646",
+      "search": "i. ui ui event convert action \u2014 run handle the run event emitted by action through the exact route registered in pconverttab.pconverttab. run pconverttab owner list cadroue.uishell.pmainarea.pconverttab cadroue.uishell.ppanels.plist ui event receive the run event from action through its current registration owner.pconverttab registered handler path read the current item only if it is unlocked and preserve its relay batch list.plisteditableread submit that source through the registered delegate owner.pconverttab ui state after the event"
     },
     {
       "id": "ui-event.f54bc7d3e238821f",
@@ -2094,8 +2094,8 @@
         "all add",
         "PEditTab"
       ],
-      "hash": "3f147415bfce",
-      "search": "i. ui ui event edit action \u2014 all add handle the all add event emitted by action through the exact route registered in pedittab.pedittab. all add pedittab owner list cadroue.uishell.pmainarea.pedittab cadroue.uishell.ppanels.plist ui event receive the all add event from action through its current registration owner.pedittab registered handler path select only unlocked list items and preserve each relay batch in the work-source request list.plistunlockeditemsread submit those sources through the registered delegate owner.pedittab ui state after the event"
+      "hash": "a2eb177b4e53",
+      "search": "i. ui ui event edit action \u2014 all add handle the all add event emitted by action through the exact route registered in pedittab.pedittab. all add pedittab owner list cadroue.uishell.pmainarea.pedittab cadroue.uishell.ppanels.plist ui event receive the all add event from action through its current registration owner.pedittab registered handler path select only unlocked list items and preserve each relay batch in the work-source request list.plistunlockedread submit those sources through the registered delegate owner.pedittab ui state after the event"
     },
     {
       "id": "ui-event.15936ad579d439b5",
@@ -2112,8 +2112,8 @@
         "items add",
         "PEditTab"
       ],
-      "hash": "81efcadf4b27",
-      "search": "i. ui ui event edit action \u2014 items add handle the items add event emitted by action through the exact route registered in pedittab.pedittab. items add pedittab owner list cadroue.uishell.pmainarea.pedittab cadroue.uishell.ppanels.plist ui event receive the items add event from action through its current registration owner.pedittab registered handler path intersect the requested paths with unlocked list items and preserve each relay batch list.plistunlockeditemsread submit those sources through the registered delegate owner.pedittab ui state after the event"
+      "hash": "fe876648459a",
+      "search": "i. ui ui event edit action \u2014 items add handle the items add event emitted by action through the exact route registered in pedittab.pedittab. items add pedittab owner list cadroue.uishell.pmainarea.pedittab cadroue.uishell.ppanels.plist ui event receive the items add event from action through its current registration owner.pedittab registered handler path intersect the requested paths with unlocked list items and preserve each relay batch list.plistunlockedread submit those sources through the registered delegate owner.pedittab ui state after the event"
     },
     {
       "id": "ui-event.66672fee61e69da9",
@@ -2130,8 +2130,8 @@
         "run",
         "PEditTab"
       ],
-      "hash": "59bf1304c556",
-      "search": "i. ui ui event edit action \u2014 run handle the run event emitted by action through the exact route registered in pedittab.pedittab. run pedittab owner list cadroue.uishell.pmainarea.pedittab cadroue.uishell.ppanels.plist ui event receive the run event from action through its current registration owner.pedittab registered handler path require the current list item to be unlocked and carry its relay batch into the job list.plistunlockeditemread invoke the registered owner handler owner.peditvideoread ui state after the event"
+      "hash": "32a251006730",
+      "search": "i. ui ui event edit action \u2014 run handle the run event emitted by action through the exact route registered in pedittab.pedittab. run pedittab owner list cadroue.uishell.pmainarea.pedittab cadroue.uishell.ppanels.plist ui event receive the run event from action through its current registration owner.pedittab registered handler path require the current list item to be unlocked and carry its relay batch into the job list.plisteditableread invoke the registered owner handler owner.peditvideoread ui state after the event"
     },
     {
       "id": "ui-event.e9a58843af1f3a8f",
@@ -2357,14 +2357,14 @@
       "tabs": [
         "Edit"
       ],
-      "event_ref": "cs|PMainArea/PEditTab.cs|PEditTab|pList|PListCurrentLockChange|1",
+      "event_ref": "cs|PMainArea/PEditTab.cs|PEditTab|pList|PListLockChange|1",
       "summary": "Keep the interactive crop overlay unavailable while the current Edit source is locked.",
       "href": "maps/ui/edit/pedit-tab/pedit-tab-pedit-tab-p-list-plist-current-lock-change-1.html",
       "tags": [
         "source lock",
         "PEditTab"
       ],
-      "hash": "85c16ad46086",
+      "hash": "bc4f8897ae74",
       "search": "i. ui ui event edit edit source lock change keep the interactive crop overlay unavailable while the current edit source is locked. source lock pedittab tab inspector viewer cadroue.uishell.pmainarea.pedittab cadroue.uishell.ppanels.pinspector cadroue.uishell.ppanels.pviewer current edit source lock changes receive the current list item's locked state through the constructor registration tab.pedittab synchronize crop tool read whether the inspector crop tool is selected inspector.pinspectortoolcheck enable the viewer crop tool only when the source is unlocked and the inspector tool is selected viewer.pcroptoolset crop overlay synchronized"
     },
     {
@@ -7523,8 +7523,8 @@
         "mouse move",
         "PList"
       ],
-      "hash": "d8a9e9ed398d",
-      "search": "i. ui ui event split edit convert audio merge funnel row border \u2014 mouse move handle the mouse move event exposed by plist.plistrowbuild and follow its registered code path. mouse move plist owner cadroue.uishell.ppanels.plist ui event receive the mouse move event from the row border owner.plistrowbuild registered handler path handle list drag owner.plistdraghandle check list selection owner.plistselectioncheck read list selection owner.plistselectionread remove locked submitted paths from a multi-row drag and cancel when none remain owner.plistpathlockedcheck evaluate the handler's implemented conditional branches owner.plistdraghandle ui state after the event"
+      "hash": "55588f7b624b",
+      "search": "i. ui ui event split edit convert audio merge funnel row border \u2014 mouse move handle the mouse move event exposed by plist.plistrowbuild and follow its registered code path. mouse move plist owner cadroue.uishell.ppanels.plist ui event receive the mouse move event from the row border owner.plistrowbuild registered handler path handle list drag owner.plistdraghandle check list selection owner.plistselectioncheck read list selection owner.plistselectionread remove locked submitted paths from a multi-row drag and cancel when none remain owner.plistlockcheck evaluate the handler's implemented conditional branches owner.plistdraghandle ui state after the event"
     },
     {
       "id": "ui-event.4748ccd4d67e18e5",
@@ -9283,14 +9283,14 @@
         "Audio",
         "Merge"
       ],
-      "event_ref": "cs|PMainArea/PTabSurface.cs|PTabLockAttach|pList|PListCurrentLockChange|1",
+      "event_ref": "cs|PMainArea/PTabSurface.cs|PTabLockAttach|pList|PListLockChange|1",
       "summary": "Disable each tab's mutable editor surfaces while its current source is locked by accepted work.",
       "href": "maps/ui/shared/ptab-surface/ptab-surface-ptab-lock-attach-p-list-plist-current-lock-change-1.html",
       "tags": [
         "source lock",
         "PTabSurface"
       ],
-      "hash": "e8d91b109ba9",
+      "hash": "1f859f07d2e5",
       "search": "i. ui ui event split edit convert audio merge current source lock change disable each tab's mutable editor surfaces while its current source is locked by accepted work. source lock ptabsurface surface cadroue.uishell.pmainarea.ptabsurface current-row lock state changes receive the current source's locked state from the tab list surface.ptablockattach synchronize editor availability disable every attached processing, inspector, group, section, and export surface when locked; enable them when unlocked surface.ptablockattach editor state synchronized"
     },
     {
@@ -11080,8 +11080,8 @@
         "all add",
         "PSplitTab"
       ],
-      "hash": "39bcb5ea9c0d",
-      "search": "i. ui ui event split action \u2014 all add handle the all add event emitted by action through the exact route registered in psplittab.psplittab. all add psplittab owner list cadroue.uishell.pmainarea.psplittab cadroue.uishell.ppanels.plist ui event receive the all add event from action through its current registration owner.psplittab registered handler path select only unlocked list items and preserve each relay batch in the work-source request list.plistunlockeditemsread submit those sources through the registered delegate owner.psplittab ui state after the event"
+      "hash": "b1b26278a6a7",
+      "search": "i. ui ui event split action \u2014 all add handle the all add event emitted by action through the exact route registered in psplittab.psplittab. all add psplittab owner list cadroue.uishell.pmainarea.psplittab cadroue.uishell.ppanels.plist ui event receive the all add event from action through its current registration owner.psplittab registered handler path select only unlocked list items and preserve each relay batch in the work-source request list.plistunlockedread submit those sources through the registered delegate owner.psplittab ui state after the event"
     },
     {
       "id": "ui-event.ea9ab019fc364e55",
@@ -11098,8 +11098,8 @@
         "items add",
         "PSplitTab"
       ],
-      "hash": "e5919b2909d5",
-      "search": "i. ui ui event split action \u2014 items add handle the items add event emitted by action through the exact route registered in psplittab.psplittab. items add psplittab owner list cadroue.uishell.pmainarea.psplittab cadroue.uishell.ppanels.plist ui event receive the items add event from action through its current registration owner.psplittab registered handler path intersect the requested paths with unlocked list items and preserve each relay batch list.plistunlockeditemsread submit those sources through the registered delegate owner.psplittab ui state after the event"
+      "hash": "6ae439216def",
+      "search": "i. ui ui event split action \u2014 items add handle the items add event emitted by action through the exact route registered in psplittab.psplittab. items add psplittab owner list cadroue.uishell.pmainarea.psplittab cadroue.uishell.ppanels.plist ui event receive the items add event from action through its current registration owner.psplittab registered handler path intersect the requested paths with unlocked list items and preserve each relay batch list.plistunlockedread submit those sources through the registered delegate owner.psplittab ui state after the event"
     },
     {
       "id": "ui-event.db6ba2ce547b691c",
@@ -11116,8 +11116,8 @@
         "run",
         "PSplitTab"
       ],
-      "hash": "bef40dc096d2",
-      "search": "i. ui ui event split action \u2014 run handle the run event emitted by action through the exact route registered in psplittab.psplittab. run psplittab owner list cadroue.uishell.pmainarea.psplittab cadroue.uishell.ppanels.plist ui event receive the run event from action through its current registration owner.psplittab registered handler path require the current list item to be unlocked before submitting it list.plistunlockeditemread submit its path, sections, and relay batch through the registered delegate owner.psplittab ui state after the event"
+      "hash": "e479e79b263f",
+      "search": "i. ui ui event split action \u2014 run handle the run event emitted by action through the exact route registered in psplittab.psplittab. run psplittab owner list cadroue.uishell.pmainarea.psplittab cadroue.uishell.ppanels.plist ui event receive the run event from action through its current registration owner.psplittab registered handler path require the current list item to be unlocked before submitting it list.plisteditableread submit its path, sections, and relay batch through the registered delegate owner.psplittab ui state after the event"
     },
     {
       "id": "ui-event.split-current-lock-change",
@@ -11127,15 +11127,15 @@
       "tabs": [
         "Split"
       ],
-      "event_ref": "cs|PMainArea/PSplitTab.cs|PSplitTab|pList|PListCurrentLockChange|1",
+      "event_ref": "cs|PMainArea/PSplitTab.cs|PSplitTab|pList|PListLockChange|1",
       "summary": "Prevent section mutations and sidecar writes while the current Split source is locked.",
       "href": "maps/ui/split/psplit-tab/psplit-tab-psplit-tab-p-list-plist-current-lock-change-1.html",
       "tags": [
         "source lock",
         "PSplitTab"
       ],
-      "hash": "921c0d8419bf",
-      "search": "i. ui ui event split split source lock change prevent section mutations and sidecar writes while the current split source is locked. source lock psplittab tab flow cadroue.uishell.pmainarea.psplittab cadroue.uishell.pflow.pflow current split source lock changes receive the current list item's locked state through the constructor registration tab.psplittab synchronize section editability disable section mutations and their sidecar-save path while locked, and restore them when unlocked flow.pflowsectioneditset timeline edit state synchronized"
+      "hash": "74eebe6bb41e",
+      "search": "i. ui ui event split split source lock change prevent section mutations and sidecar writes while the current split source is locked. source lock psplittab tab flow cadroue.uishell.pmainarea.psplittab cadroue.uishell.pflow.pflow current split source lock changes receive the current list item's locked state through the constructor registration tab.psplittab synchronize section editability disable section mutations and their sidecar-save path while locked, and restore them when unlocked flow.pfloweditset timeline edit state synchronized"
     },
     {
       "id": "ui-event.90efc4a16d86904e",
@@ -11531,8 +11531,8 @@
         "schedule change",
         "PRoster"
       ],
-      "hash": "f07577df6de4",
-      "search": "i. ui ui event worklist roster schedule \u2014 schedule change handle the schedule change event emitted by roster schedule through the exact route registered in proster.proster. schedule change proster owner courier tabset cadroue.uishell.pmainarea.proster cadroue.uishell.pmainarea.lcourier cadroue.uishell.pcontrolbar.ltabset ui event receive the schedule change event from roster schedule through its current registration owner.proster registered handler path rebuild the queue and lineage rows from the current schedule owner.prosterschedulehandle resolve each displayed work step from a live tab title, cached stable-stage title, saved-plan source stage, or recorded work-tab fallback courier.lcourierworktitleread(...) tabset.ltabsettitleread(...) refresh the selected-work detail after rebuilding the queue owner.prosterschedulehandle ui state after the event"
+      "hash": "2264c6953c75",
+      "search": "i. ui ui event worklist roster schedule \u2014 schedule change handle the schedule change event emitted by roster schedule through the exact route registered in proster.proster. schedule change proster owner courier tabset cadroue.uishell.pmainarea.proster cadroue.uishell.pmainarea.lcourier cadroue.uishell.pcontrolbar.ltabset ui event receive the schedule change event from roster schedule through its current registration owner.proster registered handler path rebuild the queue and lineage rows from the current schedule owner.prosterschedulehandle resolve each displayed work step from a live tab title, cached stable-stage title, saved-plan source stage, or recorded work-tab fallback courier.lworktitleread(...) tabset.ltabsettitleread(...) refresh the selected-work detail after rebuilding the queue owner.prosterschedulehandle ui state after the event"
     },
     {
       "id": "ui-event.e8cf2c58d99f679b",
@@ -11549,8 +11549,8 @@
         "schedule item change",
         "PRoster"
       ],
-      "hash": "4d71bffe03c3",
-      "search": "i. ui ui event worklist roster schedule \u2014 schedule item change handle the schedule item change event emitted by roster schedule through the exact route registered in proster.proster. schedule item change proster owner courier tabset cadroue.uishell.pmainarea.proster cadroue.uishell.pmainarea.lcourier cadroue.uishell.pcontrolbar.ltabset ui event receive the schedule item change event from roster schedule through its current registration owner.proster registered handler path refresh the changed work row owner.prosteritemhandle should selected detail refresh? compare the notice kind and changed item with the selected work owner.prosteritemhandle refresh selected-work detail resolve the displayed title from a live tab, cached stable stage, saved-plan source stage, or recorded work-tab fallback courier.lcourierworktitleread(...) tabset.ltabsettitleread(...) rebuild the selected-work detail owner.prosteritemhandle ui state after the event"
+      "hash": "d71c5294477d",
+      "search": "i. ui ui event worklist roster schedule \u2014 schedule item change handle the schedule item change event emitted by roster schedule through the exact route registered in proster.proster. schedule item change proster owner courier tabset cadroue.uishell.pmainarea.proster cadroue.uishell.pmainarea.lcourier cadroue.uishell.pcontrolbar.ltabset ui event receive the schedule item change event from roster schedule through its current registration owner.proster registered handler path refresh the changed work row owner.prosteritemhandle should selected detail refresh? compare the notice kind and changed item with the selected work owner.prosteritemhandle refresh selected-work detail resolve the displayed title from a live tab, cached stable stage, saved-plan source stage, or recorded work-tab fallback courier.lworktitleread(...) tabset.ltabsettitleread(...) rebuild the selected-work detail owner.prosteritemhandle ui state after the event"
     },
     {
       "id": "ui-event.05b68e55389aa9d7",

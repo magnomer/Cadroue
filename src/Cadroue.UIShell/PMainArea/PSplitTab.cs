@@ -18,7 +18,7 @@ public sealed class PSplitTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority =>
         {
-            if (pList.PListUnlockedItemRead() is not { } pSplitSelected)
+            if (pList.PListEditableRead() is not { } pSplitSelected)
             {
                 return;
             }
@@ -35,7 +35,7 @@ public sealed class PSplitTab : PTabSurface
         };
         pAction.PActionAllAdd += () => _ = LSplit.LSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedItemsRead()
+            pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
             lExportSpecificState,
@@ -44,7 +44,7 @@ public sealed class PSplitTab : PTabSurface
             LCourier.LCourierPlanPrepare(pAction.PActionRelayTarget));
         pAction.PActionItemsAdd += pSplitPaths => _ = LSplit.LSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedItemsRead()
+            pList.PListUnlockedRead()
                 .Where(pItem => pSplitPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
@@ -60,8 +60,8 @@ public sealed class PSplitTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lExportSpecificState);
         PTabLockAttach(pList, pSection, pExport);
-        pList.PListCurrentLockChange += pLocked => pFlow.PFlowSectionEditSet(!pLocked);
-        pFlow.PFlowSectionEditSet(!pList.PListCurrentLockedCheck());
+        pList.PListLockChange += pLocked => pFlow.PFlowEditSet(!pLocked);
+        pFlow.PFlowEditSet(!pList.PListLockCheck());
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pSection, pViewer, pExport }, new PCompass(pFlow, true), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
     }

@@ -27,7 +27,7 @@ public sealed partial class PFlow : UserControl
     private System.Windows.Controls.Primitives.Popup? pFlowNamePopup;
 
     private string? pFlowKeyframeStamp;
-    private int? pFlowKeyframePendingDirection;
+    private int? pFlowKeyframeDirection;
 
     private const double PFlowNameHeight = 32;
     private const double PFlowNameWidth = 220;
@@ -113,7 +113,7 @@ public sealed partial class PFlow : UserControl
         lKeyframeResumeTimer.Stop();
         lSourcePath = string.IsNullOrWhiteSpace(sourcePath) ? null : sourcePath;
         lSpool = new LSpool(mediaInfo.LMediaInfoDuration);
-        pFlowKeyframePendingDirection = null;
+        pFlowKeyframeDirection = null;
         lCursor = PFlowCursorClamp(cursorTime);
         lSectionList.Clear();
         lSectionIndexActive = null;
@@ -171,7 +171,7 @@ public sealed partial class PFlow : UserControl
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
         lKeyframeOrchestrator.LKeyframeSuspend();
-        pFlowKeyframePendingDirection = null;
+        pFlowKeyframeDirection = null;
         lSourcePath = null;
         lSpool = null;
         lCursor = TimeSpan.Zero;
@@ -207,7 +207,7 @@ public sealed partial class PFlow : UserControl
             lKeyframeRequestTimer.Stop();
             lKeyframeResumeTimer.Stop();
             lKeyframeOrchestrator.LKeyframeSuspend();
-            pFlowKeyframePendingDirection = null;
+            pFlowKeyframeDirection = null;
         }
     }
 
@@ -360,7 +360,7 @@ public sealed partial class PFlow : UserControl
 
     private void PFlowCursorPropagate(TimeSpan cursorTime, bool pFlowViewerSeekRequest, bool lKeyframeRestartRequest)
     {
-        pFlowKeyframePendingDirection = null;
+        pFlowKeyframeDirection = null;
         lCursor = PFlowCursorClamp(cursorTime);
         pViewfinder.PViewfinderCursorUpdate(lCursor);
         pMap.PMapCursorUpdate(lCursor);
@@ -435,7 +435,7 @@ public sealed partial class PFlow : UserControl
                 PFlowKeyframeRecord(notice);
                 pViewfinder.PViewfinderKeyframesUpdate(notice.LKeyframeList, notice.LKeyframeRanges);
                 pMap.PMapKeyframesUpdate(notice.LKeyframeRanges);
-                if (pFlowKeyframePendingDirection is int direction)
+                if (pFlowKeyframeDirection is int direction)
                 {
                     PFlowKeyframeMove(direction, false);
                 }
@@ -478,7 +478,7 @@ public sealed partial class PFlow : UserControl
         };
         if (!result.LKeyframeReady)
         {
-            pFlowKeyframePendingDirection = direction;
+            pFlowKeyframeDirection = direction;
             if (requestScan)
             {
                 PFlowKeyframeRun();
@@ -486,7 +486,7 @@ public sealed partial class PFlow : UserControl
             return;
         }
 
-        pFlowKeyframePendingDirection = null;
+        pFlowKeyframeDirection = null;
         if (result.LKeyframeTarget is not null)
         {
             PFlowCursorPropagate(result.LKeyframeTarget.Value, true, true);

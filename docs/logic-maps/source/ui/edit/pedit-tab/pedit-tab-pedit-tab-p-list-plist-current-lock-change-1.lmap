@@ -4,7 +4,7 @@
 @section I. UI
 @area UI event
 @tabs Edit
-@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pList|PListCurrentLockChange|1
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pList|PListLockChange|1
 @entry input
 @summary Keep the interactive crop overlay unavailable while the current Edit source is locked.
 @tag source lock
@@ -24,4 +24,4 @@
 
 [output] Crop overlay synchronized <output>
 = A submitted Edit source cannot be changed through the viewer crop overlay.
-! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pList|PListCurrentLockChange|1
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pList|PListLockChange|1

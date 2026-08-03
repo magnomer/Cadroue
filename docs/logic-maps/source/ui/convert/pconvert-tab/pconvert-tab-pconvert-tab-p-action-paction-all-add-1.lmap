@@ -17,9 +17,9 @@
 > route
 
 [route] Registered handler path <process>
-- Select only unlocked list items and preserve each relay batch in the work-source request @ list.PListUnlockedItemsRead
+- Select only unlocked list items and preserve each relay batch in the work-source request @ list.PListUnlockedRead
 - Submit those sources through the registered delegate @ owner.PConvertTab
-! Registered call path: LConvert.LConvertDescribe → pList.PListUnlockedItemsRead → Select → LWorkSource → ToArray
+! Registered call path: LConvert.LConvertDescribe → pList.PListUnlockedRead → Select → LWorkSource → ToArray
 > output
 
 [output] UI state after the event <output>

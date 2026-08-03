@@ -26,11 +26,11 @@ internal sealed class LRelayStageRecord
     public Guid LRelayNextStage { get; set; }
     public LPresetRecord LRelayExport { get; set; } = new();
     public LSceneTabRecord LRelayLayout { get; set; } = new();
-    public List<LRelayFunnelRuleRecord> LRelayFunnelRules { get; set; } = new();
+    public List<LFunnelRule> LRelayFunnelRules { get; set; } = new();
     public List<LRelayInputRecord> LRelayPendingInputs { get; set; } = new();
 }
 
-internal sealed class LRelayFunnelRuleRecord
+internal sealed class LFunnelRule
 {
     public LSceneFunnelRule LRelayRule { get; set; } = new();
     public Guid LRelayTargetStage { get; set; }
@@ -54,7 +54,7 @@ internal static class LRelayPlanStore
         {
             try
             {
-                string lRelayPath = LRelayPlanPathRead(lRelayPlanId);
+                string lRelayPath = LRelayPathRead(lRelayPlanId);
                 LRelayPlanRecord? lRelayRead = File.Exists(lRelayPath)
                     ? JsonSerializer.Deserialize<LRelayPlanRecord>(File.ReadAllText(lRelayPath), lRelayPlanJson)
                     : null;
@@ -90,7 +90,7 @@ internal static class LRelayPlanStore
     {
         lock (lRelayPlanGate)
         {
-            string lRelayPath = LRelayPlanPathRead(lRelayPlan.LRelayPlanId);
+            string lRelayPath = LRelayPathRead(lRelayPlan.LRelayPlanId);
             string lRelayTemporary = lRelayPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
@@ -112,7 +112,7 @@ internal static class LRelayPlanStore
         }
     }
 
-    private static string LRelayPlanPathRead(Guid lRelayPlanId) =>
+    private static string LRelayPathRead(Guid lRelayPlanId) =>
         Path.Combine(LDepot.LDepotRootRead(), LRelayPlanFolder, $"{lRelayPlanId:N}.json");
 }
 
@@ -166,7 +166,7 @@ internal static class LRelayPlan
                         && lRelayRule.LSceneFunnelTarget < lRelayTabs.Length
                         ? LRelayStageCreate(lRelayTabs[lRelayRule.LSceneFunnelTarget].PTabId)
                         : Guid.Empty;
-                    lRelayStage.LRelayFunnelRules.Add(new LRelayFunnelRuleRecord
+                    lRelayStage.LRelayFunnelRules.Add(new LFunnelRule
                     {
                         LRelayRule = lRelayRule.LSceneFunnelClone(),
                         LRelayTargetStage = lRelayRuleTarget
@@ -200,10 +200,10 @@ internal static class LRelayPlan
         return lRelayCopy;
     }
 
-    public static Guid LRelayFunnelTargetRead(LRelayStageRecord lRelayStage, string lRelayPath)
+    public static Guid LRelayTargetRead(LRelayStageRecord lRelayStage, string lRelayPath)
     {
         string lRelayName = Path.GetFileName(lRelayPath);
-        foreach (LRelayFunnelRuleRecord lRelayRule in lRelayStage.LRelayFunnelRules)
+        foreach (LFunnelRule lRelayRule in lRelayStage.LRelayFunnelRules)
         {
             if (LRelayRuleMatch(lRelayRule.LRelayRule, lRelayName))
             {

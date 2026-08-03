@@ -31,7 +31,7 @@ public partial class PProgram : System.Windows.Application
         LStation.LStationPost = LStationDispatch;
         LStation.LStationProgramSource = () => LRenderer.LRendererProgramCurrent;
         LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
-        LSchedule.LScheduleCohortGate = PMainArea.LSeal.LSealCohortClaimCheck;
+        LSchedule.LScheduleCohortGate = PMainArea.LSeal.LSealClaimCheck;
     }
 
     private static void LStationDispatch(Action lStationAction)

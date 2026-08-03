@@ -54,7 +54,7 @@ public sealed partial class PRoster
     }
 
     private static string PRosterTabRead(LWorkItem pWorkItem)
-        => LCourier.LCourierWorkTitleRead(pWorkItem);
+        => LCourier.LWorkTitleRead(pWorkItem);
 
     private static UIElement? PRosterMeterBuild(LWorkItem pWorkItem)
     {

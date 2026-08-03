@@ -6,15 +6,15 @@ namespace Cadroue.Tests;
 public sealed class LSentinelTests
 {
     [Fact]
-    public void LSentinelOwnerAliveCheckAcceptsCurrentProcessStamp()
+    public void LSentinelOwnerCheckAcceptsCurrentProcessStamp()
     {
-        Assert.True(LSentinel.LSentinelOwnerAliveCheck(
+        Assert.True(LSentinel.LSentinelOwnerCheck(
             Environment.ProcessId, LSentinel.LSentinelStampRead()));
     }
 
     [Fact]
-    public void LSentinelOwnerAliveCheckRejectsMissingProcess()
+    public void LSentinelOwnerCheckRejectsMissingProcess()
     {
-        Assert.False(LSentinel.LSentinelOwnerAliveCheck(int.MaxValue, 1));
+        Assert.False(LSentinel.LSentinelOwnerCheck(int.MaxValue, 1));
     }
 }

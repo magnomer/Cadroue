@@ -4,7 +4,7 @@
 @section I. UI
 @area UI event
 @tabs Split, Edit, Convert, Audio, Merge
-@event-ref cs|PMainArea/PTabSurface.cs|PTabLockAttach|pList|PListCurrentLockChange|1
+@event-ref cs|PMainArea/PTabSurface.cs|PTabLockAttach|pList|PListLockChange|1
 @entry input
 @summary Disable each tab's mutable editor surfaces while its current source is locked by accepted work.
 @tag source lock
@@ -21,4 +21,4 @@
 
 [output] Editor state synchronized <output>
 = The active tab cannot mutate settings that belong to a submitted source, while Preview and list navigation remain available.
-! Code binding: cs|PMainArea/PTabSurface.cs|PTabLockAttach|pList|PListCurrentLockChange|1
+! Code binding: cs|PMainArea/PTabSurface.cs|PTabLockAttach|pList|PListLockChange|1

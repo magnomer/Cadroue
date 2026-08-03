@@ -232,7 +232,7 @@ internal sealed class LJob
         IEnumerable<string> pJobInputs = lJobItem.LWorkKind == LWorkKind.LWorkKindMerge
             ? lJobItem.LWorkMergeSources
             : new[] { lJobItem.LWorkSourcePath };
-        if (LJobInputCollisionCheck(lJobItem.LWorkOutputPath, pJobInputs))
+        if (LJobCollisionCheck(lJobItem.LWorkOutputPath, pJobInputs))
         {
             return "the output path is the same as an input file; the source will not be overwritten";
         }
@@ -240,7 +240,7 @@ internal sealed class LJob
         return string.Empty;
     }
 
-    internal static bool LJobInputCollisionCheck(string pOutputPath, IEnumerable<string> pInputPaths)
+    internal static bool LJobCollisionCheck(string pOutputPath, IEnumerable<string> pInputPaths)
     {
         string pOutputFullPath = Path.GetFullPath(pOutputPath);
         return pInputPaths.Any(pInputPath => string.Equals(

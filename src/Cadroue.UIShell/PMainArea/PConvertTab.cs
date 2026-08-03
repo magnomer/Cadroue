@@ -17,7 +17,7 @@ public sealed class PConvertTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority => _ = LConvert.LConvertDescribe(
             lPriority,
-            pList.PListUnlockedItemRead() is { } pConvertSelected
+            pList.PListEditableRead() is { } pConvertSelected
                 ? new[] { new LWorkSource(pConvertSelected.PListItemPath, pConvertSelected.PListItemRelay) }
                 : Array.Empty<LWorkSource>(),
             lExportSpecificState,
@@ -25,7 +25,7 @@ public sealed class PConvertTab : PTabSurface
             pAction.PActionSourceTab);
         pAction.PActionAllAdd += () => _ = LConvert.LConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedItemsRead()
+            pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
             lExportSpecificState,
@@ -33,7 +33,7 @@ public sealed class PConvertTab : PTabSurface
             pAction.PActionSourceTab);
         pAction.PActionItemsAdd += pConvertPaths => _ = LConvert.LConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedItemsRead()
+            pList.PListUnlockedRead()
                 .Where(pItem => pConvertPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
                 .ToArray(),
