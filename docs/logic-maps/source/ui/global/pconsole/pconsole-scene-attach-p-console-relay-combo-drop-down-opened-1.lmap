@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.c9c374e0cd433873
+@title Console relay combo — drop down opened
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|DropDownOpened|1
+@entry input
+@summary Handle the drop down opened event exposed by PConsole.PConsoleSceneAttach and follow its registered code path.
+@tag drop down opened
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the drop down opened event from the console relay combo @ owner.PConsoleSceneAttach
+> route
+
+[route] Registered handler path <process>
+- Handle console open @ owner.PConsoleOpenHandle
+- Set console caret @ owner.PConsoleCaretSet
+- Update console mark @ owner.PConsoleMarkUpdate
+> output
+
+[output] UI state after the event <output>
+= The drop down opened event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|DropDownOpened|1

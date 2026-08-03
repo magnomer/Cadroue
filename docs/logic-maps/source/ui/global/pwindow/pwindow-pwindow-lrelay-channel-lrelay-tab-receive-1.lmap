@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.5521b876cef9a77d
+@title Relay Channel — relay tab receive
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindow|LRelayChannel|LRelayTabReceive|1
+@entry input
+@summary Handle the relay tab receive event emitted by Relay Channel through the exact route registered in PWindow.PWindow.
+@tag relay tab receive
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the relay tab receive event from Relay Channel through its current registration @ owner.PWindow
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PWindowRelayHandle
+! Registered call path: PWindowRelayHandle
+> output
+
+[output] UI state after the event <output>
+= The relay tab receive event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindow|LRelayChannel|LRelayTabReceive|1

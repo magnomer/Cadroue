@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.7bd2d2636b77f74e
+@title Control Bar — toolbar options apply
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindow|pControlBar|PToolbarOptionsApply|1
+@entry input
+@summary Handle the toolbar options apply event emitted by Control Bar through the exact route registered in PWindow.PWindow.
+@tag toolbar options apply
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the toolbar options apply event from Control Bar through its current registration @ owner.PWindow
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PWindowOptionsHandle
+! Registered call path: PWindowOptionsHandle
+> output
+
+[output] UI state after the event <output>
+= The toolbar options apply event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindow|pControlBar|PToolbarOptionsApply|1

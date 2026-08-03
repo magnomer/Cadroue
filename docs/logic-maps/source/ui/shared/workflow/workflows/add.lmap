@@ -1,0 +1,36 @@
+@format 1
+@id files.add
+@title Add files or folders
+@area UI workflow
+@entry input
+@summary Expand selected files and folders into supported media paths, deduplicate them, and append new list items.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@flow TB
+@related files.remove, files.clear
+
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[input] Paths supplied <input>
+- Receive paths from file dialog, folder dialog, drop, relay, or session restoration @ list.PListPathsAdd(...)
+> scan
+
+[scan] Expand supported media <process>
+- Recursively scan supplied paths and retain supported media files @ list.PListMediaScan(...)
+> append
+
+[append] Add and refresh rows <decision>
+- Skip paths already present and create rows for new paths with relay cohort state @ list.PListPathsAdd(...)
+- Rebuild the list and select the first scanned path even when every scanned path was already present @ list.PListPathsAdd(...)
+? "No supported media path was scanned" > unchanged
+? "Only existing paths were scanned" > refreshed
+? "One or more paths are new" > result
+
+[result] Files added <output>
+= New media rows are visible and the list publishes its items-added event.
+
+[refreshed] Existing file selected <output>
+= No row is added, but the list is rebuilt and its first scanned path becomes current; a path-change event is raised.
+
+[unchanged] List unchanged <output>
+= No supported media path was found, so the list is not rebuilt or reselection is performed.

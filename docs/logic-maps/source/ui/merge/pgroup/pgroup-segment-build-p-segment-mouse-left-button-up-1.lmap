@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.66aa144637799d55
+@title Segment — mouse left button up
+@section I. UI
+@area UI event
+@tabs Merge
+@event-ref cs|PPanels/PGroupAuto.cs|PGroupSegmentBuild|pSegment|MouseLeftButtonUp|1
+@entry input
+@summary Handle the mouse left button up event exposed by PGroup.PGroupSegmentBuild and follow its registered code path.
+@tag mouse left button up
+@tag PGroup
+@alias owner = Cadroue.UIShell.PPanels.PGroup
+
+[input] UI event <input>
+- Receive the mouse left button up event from the segment @ owner.PGroupSegmentBuild
+> route
+
+[route] Registered handler path <process>
+- Continue through the implementation owned by the event handler @ owner.PGroupSegmentBuild
+> output
+
+[output] UI state after the event <output>
+= The mouse left button up event has completed through the current implementation.
+! Code binding: cs|PPanels/PGroupAuto.cs|PGroupSegmentBuild|pSegment|MouseLeftButtonUp|1

@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.adc5fddebdbac9ee
+@title Border — mouse enter
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderOutput.cs|PSNameOperatorBuild|pBorder|MouseEnter|1
+@entry input
+@summary Handle the mouse enter event exposed by PSEncoder.PSNameOperatorBuild and follow its registered code path.
+@tag mouse enter
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the mouse enter event from the border @ owner.PSNameOperatorBuild
+> route
+
+[route] Registered handler path <process>
+- Evaluate the handler's implemented conditional branches @ owner.PSNameOperatorBuild
+- Mark the routed event handled on the implemented paths @ owner.PSNameOperatorBuild
+- Update the visual or selection state owned by the handler @ owner.PSNameOperatorBuild
+> output
+
+[output] UI state after the event <output>
+= The mouse enter event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderOutput.cs|PSNameOperatorBuild|pBorder|MouseEnter|1

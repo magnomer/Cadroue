@@ -1,0 +1,28 @@
+@format 1
+@id queue.reset-work
+@title Reset cancelled or failed work
+@area 4. Queue and scheduling
+@entry input
+@summary The work item is pending with a fresh retry and recovery history.
+@section II. Functionality
+@flow TB
+@related queue.load
+@tag queue
+@tag reset-work
+
+@alias schedule = Cadroue.Infrastructure.LSchedule
+
+[input] Reset cancelled or failed work request <input>
+- Receive the selected work identifier or live work item @ schedule.LScheduleItemReset(...)
+> apply
+
+[apply] Apply durable transition <decision>
+- Move a cancelled or failed record to scheduled storage and clear ownership, counters, progress, and message @ schedule.LScheduleItemReset(...)
+? "Durable transition succeeds" > result
+? "Record is absent or storage transition fails" > failed
+
+[result] Schedule changed <output>
+=The work item is pending with a fresh retry and recovery history.
+
+[failed] Transition failed <error>
+= Existing durable work state remains authoritative.

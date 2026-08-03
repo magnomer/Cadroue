@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.f4b9a3ed73f08e1b
+@title Viewer overlay — mouse left button down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PPanels/PViewer.cs|PViewer|pViewerOverlay|MouseLeftButtonDown|1
+@entry input
+@summary Handle the mouse left button down event exposed by PViewer.PViewer and follow its registered code path.
+@tag mouse left button down
+@tag PViewer
+@alias owner = Cadroue.UIShell.PPanels.PViewer
+
+[input] UI event <input>
+- Receive the mouse left button down event from the viewer overlay @ owner.PViewer
+> route
+
+[route] Registered handler path <process>
+- Handle crop press @ owner.PCropPressHandle
+- Execute crop box place @ owner.PCropBoxPlace
+- Evaluate the handler's implemented conditional branches @ owner.PCropPressHandle
+- Mark the routed event handled on the implemented paths @ owner.PCropPressHandle
+- Update the visual or selection state owned by the handler @ owner.PCropPressHandle
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: cs|PPanels/PViewer.cs|PViewer|pViewerOverlay|MouseLeftButtonDown|1

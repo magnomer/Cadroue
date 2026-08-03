@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.91cbd16a5c705beb
+@title Border — preview mouse left button down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderOutput.cs|PSNameOperatorBuild|pBorder|PreviewMouseLeftButtonDown|1
+@entry input
+@summary Handle the preview mouse left button down event exposed by PSEncoder.PSNameOperatorBuild and follow its registered code path.
+@tag preview mouse left button down
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the preview mouse left button down event from the border @ owner.PSNameOperatorBuild
+> route
+
+[route] Registered handler path <process>
+- Evaluate the handler's implemented conditional branches @ owner.PSNameOperatorBuild
+- Mark the routed event handled on the implemented paths @ owner.PSNameOperatorBuild
+- Update the visual or selection state owned by the handler @ owner.PSNameOperatorBuild
+> output
+
+[output] UI state after the event <output>
+= The preview mouse left button down event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderOutput.cs|PSNameOperatorBuild|pBorder|PreviewMouseLeftButtonDown|1

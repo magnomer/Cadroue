@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.58bc92e33305b192
+@title Apply — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderContent.cs|PSEncoderRootBuild|pApply|Click|1
+@entry input
+@summary Handle the click event exposed by PSEncoder.PSEncoderRootBuild and follow its registered code path.
+@tag click
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the click event from the apply @ owner.PSEncoderRootBuild
+> route
+
+[route] Registered handler path <process>
+- Apply ps encoder @ owner.PSEncoderApply
+- Check ps location named @ owner.PSLocationNamedCheck
+- Read ps video size @ owner.PSVideoSizeRead
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderContent.cs|PSEncoderRootBuild|pApply|Click|1

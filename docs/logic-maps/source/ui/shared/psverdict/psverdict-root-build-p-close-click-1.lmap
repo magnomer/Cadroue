@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.87d523001d348f5b
+@title Close — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PSVerdict/PSVerdict.cs|PSVerdictRootBuild|pClose|Click|1
+@entry input
+@summary Handle the click event exposed by PSVerdict.PSVerdictRootBuild and follow its registered code path.
+@tag click
+@tag PSVerdict
+@alias owner = Cadroue.UIShell.PSVerdict
+
+[input] UI event <input>
+- Receive the click event from the close @ owner.PSVerdictRootBuild
+> route
+
+[route] Registered handler path <process>
+- Update the visual or selection state owned by the handler @ owner.PSVerdictRootBuild
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSVerdict/PSVerdict.cs|PSVerdictRootBuild|pClose|Click|1

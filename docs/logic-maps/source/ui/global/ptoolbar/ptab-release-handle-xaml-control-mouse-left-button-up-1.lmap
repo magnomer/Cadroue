@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.3bc7e9d3556c8a31
+@title Handle tab release — mouse left button up
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref xaml|PControlBar/PToolbar.xaml|MouseLeftButtonUp|PTabReleaseHandle|1
+@entry input
+@summary Handle the mouse left button up event exposed by PToolbar.PTabReleaseHandle and follow its registered code path.
+@tag mouse left button up
+@tag PToolbar
+@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+
+[input] UI event <input>
+- Dispatch the XAML mouse left button up event to its named handler @ owner.PTabReleaseHandle
+> route
+
+[route] Registered handler path <process>
+- Clear tab drag @ owner.PTabDragClear
+- Check tab relay @ owner.PTabRelayCheck
+- Evaluate the handler's implemented conditional branches @ owner.PTabReleaseHandle
+- Mark the routed event handled on the implemented paths @ owner.PTabReleaseHandle
+> output
+
+[output] UI state after the event <output>
+= The mouse left button up event has completed through the current implementation.
+! Code binding: xaml|PControlBar/PToolbar.xaml|MouseLeftButtonUp|PTabReleaseHandle|1

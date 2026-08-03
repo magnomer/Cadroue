@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.4748ccd4d67e18e5
+@title Map — lost mouse capture
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PMapInput.cs|OnLostMouseCapture
+@entry input
+@summary Handle the lost mouse capture event exposed by PMap.OnLostMouseCapture and follow its registered code path.
+@tag lost mouse capture
+@tag PMap
+@alias owner = Cadroue.UIShell.PFlow.PMap
+
+[input] UI event <input>
+- Receive the framework lost mouse capture callback @ owner.OnLostMouseCapture
+> route
+
+[route] Registered handler path <process>
+- Clear map drag @ owner.PMapDragClear
+> output
+
+[output] UI state after the event <output>
+= The lost mouse capture event has completed through the current implementation.
+! Code binding: override|PFlow/PMapInput.cs|OnLostMouseCapture

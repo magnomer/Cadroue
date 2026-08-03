@@ -1,0 +1,31 @@
+@format 1
+@id export.rename-preset
+@title Rename export preset
+@area UI workflow
+@entry input
+@summary Validate and commit a requested new name for one custom export preset.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge
+@flow TB
+@related export.add-preset
+
+@alias export = Cadroue.UIShell.PPanels.PExport
+
+[input] Preset name committed <input>
+- Receive old and edited preset names @ export.PExportNameCommit(...)
+> eligible
+
+[eligible] Check rename <decision>
+- Protect native presets and reject blank, unchanged, or duplicate requested names @ export.PExportNameCommit(...)
+? "Rename is invalid or targets a native preset" > unchanged
+? "Requested custom name is usable" > commit
+
+[commit] Rename preset <process>
+- Update the preset name, selection, and visible rows @ export.PExportNameCommit(...)
+> result
+
+[result] Preset renamed <output>
+= The custom preset is available under the requested name.
+
+[unchanged] Name unchanged <output>
+= The existing preset name remains active.

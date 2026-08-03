@@ -1,0 +1,31 @@
+@format 1
+@id split.section-toggle
+@title Toggle section
+@area UI workflow
+@entry input
+@summary Turn a section on or off for later split-work creation.
+@section I. UI
+@tabs Split
+@flow TB
+@related shared.synchronize-sections
+@tag section
+@tag section-toggle
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+
+[input] Toggle section request <input>
+- Receive the requested section change @ flow.PFlowSectionToggle(...)
+> guard
+
+[guard] Check effective change <decision>
+- Confirm the section exists and the requested state differs where applicable @ flow.PFlowSectionToggle(...)
+? "The request changes section state" > mutate
+? "The request is invalid or already satisfied" > unchanged
+
+[mutate] Change section state <process>
+- Invert the section's hidden state and record the change @ flow.PFlowSectionToggle(...)
+- Record the section change @ flow.PFlowSectionRecord(...)
+> fragment:shared.synchronize-sections
+
+[unchanged] No change <output>
+= Section state is unchanged.

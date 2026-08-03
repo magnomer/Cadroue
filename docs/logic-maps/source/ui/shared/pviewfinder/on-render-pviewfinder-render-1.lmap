@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.c2ebe58db2bc175a
+@title Viewfinder — render
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PViewfinder.cs|OnRender
+@entry input
+@summary Handle the render event exposed by PViewfinder.OnRender and follow its registered code path.
+@tag render
+@tag PViewfinder
+@alias owner = Cadroue.UIShell.PFlow.PViewfinder
+
+[input] UI event <input>
+- Receive the framework render callback @ owner.OnRender
+> route
+
+[route] Registered handler path <process>
+- Draw viewfinder content @ owner.PViewfinderContentDraw
+- Evaluate the handler's implemented conditional branches @ owner.OnRender
+> output
+
+[output] UI state after the event <output>
+= The render event has completed through the current implementation.
+! Code binding: override|PFlow/PViewfinder.cs|OnRender

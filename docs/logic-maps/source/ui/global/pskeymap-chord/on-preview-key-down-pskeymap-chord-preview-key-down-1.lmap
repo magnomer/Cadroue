@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.85b7aeb142bc550e
+@title Keymap chord — preview key down
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref override|PSKeymap/PSKeymapChord.cs|OnPreviewKeyDown
+@entry input
+@summary Handle the preview key down event exposed by PSKeymapChord.OnPreviewKeyDown and follow its registered code path.
+@tag preview key down
+@tag PSKeymapChord
+@alias owner = Cadroue.UIShell.PSKeymapChord
+
+[input] UI event <input>
+- Receive the framework preview key down callback @ owner.OnPreviewKeyDown
+> route
+
+[route] Registered handler path <process>
+- Execute ps keymap chord cancel @ owner.PSKeymapChordCancel
+- Commit ps keymap chord @ owner.PSKeymapChordCommit
+- Update ps keymap text @ owner.PSKeymapTextUpdate
+- Evaluate the handler's implemented conditional branches @ owner.OnPreviewKeyDown
+- Mark the routed event handled on the implemented paths @ owner.OnPreviewKeyDown
+> output
+
+[output] UI state after the event <output>
+= The preview key down event has completed through the current implementation.
+! Code binding: override|PSKeymap/PSKeymapChord.cs|OnPreviewKeyDown

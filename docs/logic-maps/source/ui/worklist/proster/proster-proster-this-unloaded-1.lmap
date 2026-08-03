@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.46a0b8df247e56f0
+@title Roster — unloaded
+@section I. UI
+@area UI event
+@tabs Worklist
+@event-ref cs|PMainArea/PRoster.cs|PRoster|this|Unloaded|1
+@entry input
+@summary Handle the unloaded event emitted by Roster through the exact route registered in PRoster.PRoster.
+@tag unloaded
+@tag PRoster
+@alias owner = Cadroue.UIShell.PMainArea.PRoster
+
+[input] UI event <input>
+- Receive the unloaded event from Roster through its current registration @ owner.PRoster
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PRosterUnloadHandle
+! Registered call path: PRosterUnloadHandle
+> output
+
+[output] UI state after the event <output>
+= The unloaded event has completed through the current implementation.
+! Code binding: cs|PMainArea/PRoster.cs|PRoster|this|Unloaded|1

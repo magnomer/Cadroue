@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.ca314efb1aff96d4
+@title Name box — key down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PExportPreset.cs|PExportBoxBuild|pNameBox|KeyDown|1
+@entry input
+@summary Handle the key down event exposed by PExport.PExportBoxBuild and follow its registered code path.
+@tag key down
+@tag PExport
+@alias owner = Cadroue.UIShell.PPanels.PExport
+
+[input] UI event <input>
+- Receive the key down event from the name box @ owner.PExportBoxBuild
+> route
+
+[route] Registered handler path <process>
+- Commit export name @ owner.PExportNameCommit
+- Rebuild export preset @ owner.PExportPresetRebuild
+- Update export summary @ owner.PExportSummaryUpdate
+- Evaluate the handler's implemented conditional branches @ owner.PExportNameCommit
+- Mark the routed event handled on the implemented paths @ owner.PExportNameCommit
+> output
+
+[output] UI state after the event <output>
+= The key down event has completed through the current implementation.
+! Code binding: cs|PPanels/PExportPreset.cs|PExportBoxBuild|pNameBox|KeyDown|1

@@ -1,0 +1,33 @@
+@format 1
+@id split.section-start-set
+@title Set section start
+@area UI workflow
+@entry input
+@summary Set the selected section start, or create a section beginning at the cursor, and synchronize section state.
+@section I. UI
+@tabs Split
+@flow TB
+@related shared.synchronize-sections
+@tag section
+@tag section-start-set
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Core.LSegment
+
+[input] Set section start command <input>
+- Receive the section command in the active Split timeline @ flow.PFlowStartSet(...)
+> validate
+
+[validate] Validate section request <decision>
+- Validate the current cursor, selection, duration, and overlap constraints @ segment.LSegmentStartSet(...)
+? "A valid section plan is produced" > apply
+? "The request cannot produce a valid plan" > unchanged
+
+[apply] Apply section plan <process>
+- Determine whether the operation creates or edits a section @ flow.PFlowStartSet(...)
+- Replace the section list and active selection with the returned plan @ flow.PFlowSectionApply(...)
+- Record the resulting section boundary @ flow.PFlowSectionRecord(...)
+> fragment:shared.synchronize-sections
+
+[unchanged] No change <output>
+=The request does not change the section model.

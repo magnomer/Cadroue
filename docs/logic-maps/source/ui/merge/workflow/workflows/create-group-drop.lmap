@@ -1,0 +1,33 @@
+@format 1
+@id merge.create-group-drop
+@title Create merge group from empty-area drop
+@area UI workflow
+@entry input
+@summary Drop source files or a dragged group item onto the empty group-panel area to create a new merge group.
+@section I. UI
+@tabs Merge
+@flow TB
+@related merge.move-file, merge.auto-group
+
+@alias group = Cadroue.UIShell.PPanels.PGroup
+
+[input] Empty group-panel area receives a drop <input>
+- Receive external files, list paths, or a dragged group item @ group.PGroupDropHandle(...)
+> collect
+
+[collect] Collect paths for the new group <decision>
+- For a dragged group item, remove its matching source path from the original group @ group.PGroupDropHandle(...)
+- For external files, request supported media paths before grouping @ group.PGroupPathsRead(...)
+? "No usable path is collected" > unchanged
+? "One or more paths are collected" > create
+
+[create] Add a new group <process>
+- Create a default-named group and insert each collected path @ group.PGroupDropHandle(...)
+- Rebuild group cards; an emptied source group remains in the model @ group.PGroupRebuild(...)
+> result
+
+[result] New merge group visible <output>
+= The collected paths form a new group at the end of the merge-group list.
+
+[unchanged] Groups unchanged <output>
+= The empty-area drop did not yield a usable path.

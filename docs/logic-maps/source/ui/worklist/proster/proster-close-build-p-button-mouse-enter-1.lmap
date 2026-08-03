@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.b3026d7073b4fd4c
+@title Button — mouse enter
+@section I. UI
+@area UI event
+@tabs Worklist
+@event-ref cs|PMainArea/PRosterCard.cs|PRosterCloseBuild|pButton|MouseEnter|1
+@entry input
+@summary Handle the mouse enter event exposed by PRoster.PRosterCloseBuild and follow its registered code path.
+@tag mouse enter
+@tag PRoster
+@alias owner = Cadroue.UIShell.PMainArea.PRoster
+
+[input] UI event <input>
+- Receive the mouse enter event from the button @ owner.PRosterCloseBuild
+> route
+
+[route] Registered handler path <process>
+- Mark the routed event handled on the implemented paths @ owner.PRosterCloseBuild
+- Update the visual or selection state owned by the handler @ owner.PRosterCloseBuild
+> output
+
+[output] UI state after the event <output>
+= The mouse enter event has completed through the current implementation.
+! Code binding: cs|PMainArea/PRosterCard.cs|PRosterCloseBuild|pButton|MouseEnter|1

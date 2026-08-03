@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.cc174f59b8de8fec
+@title Preset — store change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PExportSummary.cs|PExport|LPreset|LPresetStoreChange|1
+@entry input
+@summary Handle the store change event emitted by Preset through the exact route registered in PExport.PExport.
+@tag store change
+@tag PExport
+@alias owner = Cadroue.UIShell.PPanels.PExport
+
+[input] UI event <input>
+- Receive the store change event from Preset through its current registration @ owner.PExport
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PExportPresetSync
+! Registered call path: PExportPresetSync
+> output
+
+[output] UI state after the event <output>
+= The store change event has completed through the current implementation.
+! Code binding: cs|PPanels/PExportSummary.cs|PExport|LPreset|LPresetStoreChange|1

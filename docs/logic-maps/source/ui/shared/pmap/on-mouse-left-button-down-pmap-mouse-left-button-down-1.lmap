@@ -1,0 +1,30 @@
+@format 1
+@id ui-event.31aa9e75cef5d613
+@title Map — mouse left button down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PMapInput.cs|OnMouseLeftButtonDown
+@entry input
+@summary Handle the mouse left button down event exposed by PMap.OnMouseLeftButtonDown and follow its registered code path.
+@tag mouse left button down
+@tag PMap
+@alias owner = Cadroue.UIShell.PFlow.PMap
+
+[input] UI event <input>
+- Receive the framework mouse left button down callback @ owner.OnMouseLeftButtonDown
+> route
+
+[route] Registered handler path <process>
+- Resolve map body @ owner.PMapBodyResolve
+- Resolve map left @ owner.PMapLeftResolve
+- Resolve map right @ owner.PMapRightResolve
+- Resolve map move @ owner.PMapMoveResolve
+- Resolve map ratio @ owner.PMapRatioResolve
+- Evaluate the handler's implemented conditional branches @ owner.OnMouseLeftButtonDown
+- Mark the routed event handled on the implemented paths @ owner.OnMouseLeftButtonDown
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: override|PFlow/PMapInput.cs|OnMouseLeftButtonDown

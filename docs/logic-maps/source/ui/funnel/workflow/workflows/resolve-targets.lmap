@@ -1,0 +1,28 @@
+@format 1
+@id funnel.resolve-targets
+@title Resolve restored funnel targets
+@area UI workflow
+@entry input
+@summary Convert restored target indices into live tab identifiers after the tab set has been rebuilt.
+@section I. UI
+@tabs Funnel
+@flow TB
+@related project.restore-session
+
+@alias tab = Cadroue.UIShell.PMainArea.PFunnelTab
+@alias rules = Cadroue.UIShell.PPanels.PFunnelRules
+
+[input] Restored tabs become available <input>
+- Receive the rebuilt ordered tab records @ tab.PFunnelTargetsResolve(...)
+> resolve
+
+[resolve] Resolve every pending target <decision>
+- Translate each saved target index into the corresponding live tab identifier @ rules.PFunnelTargetsResolve(...)
+? "Saved index is in range" > assigned
+? "Saved index is absent or invalid" > cleared
+
+[assigned] Target restored <output>
+= The rule points to the corresponding live target tab.
+
+[cleared] Target cleared <output>
+= The rule remains usable but has no delivery target.

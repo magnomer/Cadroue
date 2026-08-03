@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.2c48c7056239eaf3
+@title Keymap — source initialized
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref override|PSKeymap/PSKeymap.cs|OnSourceInitialized
+@entry input
+@summary Handle the source initialized event exposed by PSKeymap.OnSourceInitialized and follow its registered code path.
+@tag source initialized
+@tag PSKeymap
+@alias owner = Cadroue.UIShell.PSKeymap
+
+[input] UI event <input>
+- Receive the framework source initialized callback @ owner.OnSourceInitialized
+> route
+
+[route] Registered handler path <process>
+- Apply ps keymap dwm @ owner.PSKeymapDwmApply
+> output
+
+[output] UI state after the event <output>
+= The source initialized event has completed through the current implementation.
+! Code binding: override|PSKeymap/PSKeymap.cs|OnSourceInitialized

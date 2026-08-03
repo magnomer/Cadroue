@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.2ebb156374669795
+@title Cancel — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderContent.cs|PSEncoderRootBuild|pCancel|Click|1
+@entry input
+@summary Handle the click event exposed by PSEncoder.PSEncoderRootBuild and follow its registered code path.
+@tag click
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the click event from the cancel @ owner.PSEncoderRootBuild
+> route
+
+[route] Registered handler path <process>
+- Update the visual or selection state owned by the handler @ owner.PSEncoderRootBuild
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderContent.cs|PSEncoderRootBuild|pCancel|Click|1

@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.ae2f3425dc507ab3
+@title Name box — is visible changed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PControlBar/PToolbarTab.cs|PTabLoadHandle|pNameBox|IsVisibleChanged|1
+@entry input
+@summary Handle the is visible changed event exposed by PToolbar.PTabLoadHandle and follow its registered code path.
+@tag is visible changed
+@tag PToolbar
+@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+
+[input] UI event <input>
+- Receive the is visible changed event from the name box @ owner.PTabLoadHandle
+> route
+
+[route] Registered handler path <process>
+- Handle tab visible @ owner.PTabVisibleHandle
+- Execute action @ owner.Action
+- Evaluate the handler's implemented conditional branches @ owner.PTabVisibleHandle
+- Update the visual or selection state owned by the handler @ owner.PTabVisibleHandle
+> output
+
+[output] UI state after the event <output>
+= The is visible changed event has completed through the current implementation.
+! Code binding: cs|PControlBar/PToolbarTab.cs|PTabLoadHandle|pNameBox|IsVisibleChanged|1

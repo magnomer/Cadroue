@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.4bd2e626fae63f53
+@title Funnel whole check — checked
+@section I. UI
+@area UI event
+@tabs Funnel
+@event-ref cs|PPanels/PFunnelRuleRow.cs|PFunnelRegexBuild|pFunnelWholeCheck|Checked|1
+@entry input
+@summary Handle the checked event exposed by PFunnelRuleRow.PFunnelRegexBuild and follow its registered code path.
+@tag checked
+@tag PFunnelRuleRow
+@alias owner = Cadroue.UIShell.PPanels.PFunnelRuleRow
+
+[input] UI event <input>
+- Receive the checked event from the funnel whole check @ owner.PFunnelRegexBuild
+> route
+
+[route] Registered handler path <process>
+- Update the visual or selection state owned by the handler @ owner.PFunnelRegexBuild
+> output
+
+[output] UI state after the event <output>
+= The checked event has completed through the current implementation.
+! Code binding: cs|PPanels/PFunnelRuleRow.cs|PFunnelRegexBuild|pFunnelWholeCheck|Checked|1

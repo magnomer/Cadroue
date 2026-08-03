@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.9f6d3e79fa6d2cd3
+@title Options — source initialized
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref override|PSOptions/PSOptions.cs|OnSourceInitialized
+@entry input
+@summary Handle the source initialized event exposed by PSOptions.OnSourceInitialized and follow its registered code path.
+@tag source initialized
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the framework source initialized callback @ owner.OnSourceInitialized
+> route
+
+[route] Registered handler path <process>
+- Apply ps options dwm @ owner.PSOptionsDwmApply
+> output
+
+[output] UI state after the event <output>
+= The source initialized event has completed through the current implementation.
+! Code binding: override|PSOptions/PSOptions.cs|OnSourceInitialized

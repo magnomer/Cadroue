@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.8f6dd4b5e796ae2b
+@title Viewer Active — viewer clock tick
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel, Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pViewerActive|PViewerClockTick|1
+@entry input
+@summary Handle the viewer clock tick event emitted by Viewer Active through the exact route registered in PWindow.PWindowWorkspaceAttach.
+@tag viewer clock tick
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the viewer clock tick event from Viewer Active through its current registration @ owner.PWindowWorkspaceAttach
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PWindowClockHandle
+! Registered call path: PWindowClockHandle
+> output
+
+[output] UI state after the event <output>
+= The viewer clock tick event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pViewerActive|PViewerClockTick|1

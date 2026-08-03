@@ -1,0 +1,22 @@
+@format 1
+@id keyframes.suspend
+@title Suspend keyframe scanning
+@area 3. Keyframes and waveform
+@entry input
+@summary Cancel and dispose the active keyframe scan request without discarding accumulated keyframes.
+@section II. Functionality
+@flow TB
+@related keyframes.scan
+
+@alias key = Cadroue.Infrastructure.LKeyframeOrchestrator
+
+[input] Scanning suspension requested <input>
+- Receive media replacement, timeline clearing, or disposal request @ key.LKeyframeSuspend(...)
+> cancel
+
+[cancel] Cancel active work <process>
+- Detach, cancel, and dispose the current scan token source @ key.LKeyframeSuspend(...)
+> result
+
+[result] Scanning suspended <output>
+= Active scan work stops; already accumulated keyframes remain available until source state changes.

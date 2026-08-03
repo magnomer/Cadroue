@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.944027caa4638b48
+@title Processing — step open
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pProcessing|PProcessingStepOpen|1
+@entry input
+@summary Handle the step open event emitted by Processing through the exact route registered in PEditTab.PEditTab.
+@tag step open
+@tag PEditTab
+@alias owner = Cadroue.UIShell.PMainArea.PEditTab
+
+[input] UI event <input>
+- Receive the step open event from Processing through its current registration @ owner.PEditTab
+> route
+
+[route] Registered handler path <process>
+- Execute the registered delegate without substituting a different route @ owner.PEditTab
+! Registered call path: pInspector.PInspectorMinimizeSet
+> output
+
+[output] UI state after the event <output>
+= The step open event has completed through the current implementation.
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pProcessing|PProcessingStepOpen|1

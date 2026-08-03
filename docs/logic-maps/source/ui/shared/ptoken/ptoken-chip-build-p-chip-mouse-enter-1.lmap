@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.2e1cb3b2603c3155
+@title Chip — mouse enter
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PMainWindow/PToken.cs|PTokenChipBuild|pChip|MouseEnter|1
+@entry input
+@summary Handle the mouse enter event exposed by PToken.PTokenChipBuild and follow its registered code path.
+@tag mouse enter
+@tag PToken
+@alias owner = Cadroue.UIShell.PMainWindow.PToken
+
+[input] UI event <input>
+- Receive the mouse enter event from the chip @ owner.PTokenChipBuild
+> route
+
+[route] Registered handler path <process>
+- Update the visual or selection state owned by the handler @ owner.PTokenChipBuild
+> output
+
+[output] UI state after the event <output>
+= The mouse enter event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PToken.cs|PTokenChipBuild|pChip|MouseEnter|1

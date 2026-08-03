@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.4d2205847a6307d4
+@title Value box — text changed
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorVolume.cs|PInspectorSliderBind|pValueBox|TextChanged|1
+@entry input
+@summary Handle the text changed event exposed by PInspector.PInspectorSliderBind and follow its registered code path.
+@tag text changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the text changed event from the value box @ owner.PInspectorSliderBind
+> route
+
+[route] Registered handler path <process>
+- Read inspector decimal @ owner.PInspectorDecimalRead
+> output
+
+[output] UI state after the event <output>
+= The text changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorVolume.cs|PInspectorSliderBind|pValueBox|TextChanged|1

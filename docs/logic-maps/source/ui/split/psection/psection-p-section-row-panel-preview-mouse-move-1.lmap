@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.3213c1f6610edc99
+@title Section row panel — preview mouse move
+@section I. UI
+@area UI event
+@tabs Split
+@event-ref cs|PPanels/PSection.cs|PSection|pSectionRowPanel|PreviewMouseMove|1
+@entry input
+@summary Handle the preview mouse move event exposed by PSection.PSection and follow its registered code path.
+@tag preview mouse move
+@tag PSection
+@alias owner = Cadroue.UIShell.PPanels.PSection
+
+[input] UI event <input>
+- Receive the preview mouse move event from the section row panel @ owner.PSection
+> route
+
+[route] Registered handler path <process>
+- Handle section move @ owner.PSectionMoveHandle
+- Move section live @ owner.PSectionLiveMove
+- Resolve section index @ owner.PSectionIndexResolve
+- Evaluate the handler's implemented conditional branches @ owner.PSectionMoveHandle
+- Mark the routed event handled on the implemented paths @ owner.PSectionMoveHandle
+> output
+
+[output] UI state after the event <output>
+= The preview mouse move event has completed through the current implementation.
+! Code binding: cs|PPanels/PSection.cs|PSection|pSectionRowPanel|PreviewMouseMove|1

@@ -78,9 +78,14 @@ Do not reorganize a map to resemble a desired architecture. When one method curr
 
 This repetition is intentional. It reveals actual responsibility without adding an evaluation.
 
-### 3.4 Prefer operational boundaries over source-folder boundaries
+### 3.4 Use the mandatory two-part information architecture
 
-Maps are grouped by what the program does: Split, Queue, Processing, Project, Preview, Import, Preferences, Logging, and similar domains. The reader must not need to know the current source folder to find a workflow.
+Every complete map belongs to exactly one of these sections:
+
+1. **I. UI** — maps initiated by or directly bound to interface events. UI maps are presented under every tab in which that event can occur: Split, Edit, Convert, Audio, Merge, Funnel, Worklist, or Global interface. A shared control is not hidden in a generic bucket; its map appears in each applicable tab collection.
+2. **II. Functionality** — operational logic that is not specific to one tab type. Queue claiming, FFmpeg execution, persistence, media analysis, relay transport, and similar shared operations belong here.
+
+Tab-specific work creation or editing logic must not be placed under Functionality merely because it eventually calls a shared service. The initiating surface determines the UI map; a separate linked Functionality map may document the reusable downstream operation.
 
 ### 3.5 One map covers one complete operation
 
@@ -112,6 +117,20 @@ The generated HTML opens at a readable one-to-one scale. It must not automatical
 
 Connections use orthogonal routes through the vertical gaps between node rows or the outer margins of the map. A connection must not pass behind or through a card. The renderer should order nodes to reduce crossings and allocate separate routing lanes when several connections share a row gap. Crossings between connections are acceptable only when the graph cannot be laid out clearly without them; unconstrained curves across the card field are prohibited.
 
+### 3.9 UI-event coverage is code-audited
+
+Every current UI event binding must have a code-bound map. The audited set includes:
+
+- Qualified C# subscriptions such as `button.Click +=`, including Cadroue-defined coordination events such as `PViewerMediaChange`, `PActionRun`, `PFlowSectionChange`, and `LScheduleChange`.
+- Bare framework or application subscriptions on the current control or window, such as `PreviewKeyDown +=`, `Closed +=`, `Loaded +=`, and `DispatcherUnhandledException +=`.
+- Routed-event registrations through `AddHandler(...)`, including window-level drag/drop routes and delegated list-button clicks.
+- XAML event attributes such as `Click="Handler"` or `MouseMove="Handler"`.
+- WPF event and lifecycle overrides such as `OnMouseWheel`, `OnPreviewKeyDown`, and `OnSourceInitialized`.
+
+Each code-bound UI map declares an `@event-ref`. Strict generation compares those references with the current `src/Cadroue.UIShell` source. A newly added event without a map, a duplicated event reference, or a map for an event that no longer exists blocks generation.
+
+Coverage is measured from the code, not from a desired map count. The count may grow or shrink with the interface, but complete coverage must always be 100 percent.
+
 ## 4. Directory structure
 
 Use the following structure:
@@ -120,16 +139,29 @@ Use the following structure:
 docs/
 └── logic-maps/
     ├── index.html
+    ├── manifest.json
     ├── source/
-    │   ├── split/
-    │   ├── queue/
-    │   ├── processing/
-    │   ├── project/
-    │   ├── preview/
-    │   ├── import/
-    │   ├── preferences/
-    │   ├── logging/
-    │   └── shared/
+    │   ├── ui/
+    │   │   ├── split/
+    │   │   ├── edit/
+    │   │   ├── convert/
+    │   │   ├── audio/
+    │   │   ├── merge/
+    │   │   ├── funnel/
+    │   │   ├── worklist/
+    │   │   ├── global/
+    │   │   └── shared/
+    │   └── functionality/
+    │       ├── application-lifecycle/
+    │       ├── media-discovery-and-import/
+    │       ├── keyframes-and-waveform/
+    │       ├── queue-and-scheduling/
+    │       ├── processing-and-ffmpeg/
+    │       ├── relay-and-routing/
+    │       ├── project-persistence/
+    │       ├── preferences-and-tools/
+    │       ├── logging/
+    │       └── shared-synchronization/
     ├── maps/
     ├── assets/
     └── render/
@@ -143,15 +175,14 @@ docs/
 Rules:
 
 - `source/` contains authoritative `.lmap` files.
+- UI source files may live under `ui/shared/` when one implementation is used by several tabs, but `@tabs` must enumerate every applicable tab. The generated index presents that map under each named tab.
+- `functionality/` contains only operations that are not specific to one tab type.
 - `index.html`, `maps/`, `assets/`, and `manifest.json` are generated output.
-- `render/generate.py` performs validation and generation in one command.
-- `render/generate.ps1` is an optional Windows launcher for `generate.py`; it
-  is not a second generator.
-- `render/guideline.md` defines the authoring and rendering rules.
-- `render/site.css` and `render/site.js` are the renderer sources copied into generated `assets/`.
-- `shared/` contains reusable subflows that are referenced by several maps.
+- `render/generate.py` validates syntax, implementation ownership, UI-event coverage, and generation in one command.
+- `render/generate.ps1` is an optional Windows launcher for `generate.py`; it is not a second generator.
+- `render/site.css` and `render/site.js` are copied into generated `assets/`.
 - Generated files may be deleted and recreated at any time; `source/` and `render/` must never be removed by generation.
-- No generated HTML may contain information that is absent from the `.lmap` source or verified source-code metadata.
+- No generated HTML may contain operational information absent from `.lmap` source or verified source-code metadata.
 
 Generate the site from `docs/logic-maps/` with:
 
@@ -159,16 +190,13 @@ Generate the site from `docs/logic-maps/` with:
 python render/generate.py --strict
 ```
 
-On Windows, the optional launcher passes arguments directly to the Python
-generator and offers to install Python through winget when Python is missing:
+On Windows:
 
 ```powershell
 .\render\generate.ps1 --strict
 ```
 
-The generator uses only Python's standard library. `--strict` is required for a
-completed map set: it turns an unresolved implementation ownership reference
-into an error instead of a warning.
+The generator uses only Python's standard library. `--strict` is required for a completed map set.
 
 ## 5. Source format
 
@@ -187,16 +215,21 @@ Logic maps use the line-oriented `.lmap` format. It is deliberately small, dense
 
 ### 5.2 Required header
 
-Every complete map begins with:
+Every complete map begins with section metadata. A code-bound UI event uses:
 
 ```text
 @format 1
-@id split.section-creation
-@title Section creation
-@area Split
+@id ui-event.example
+@title Add button — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PPanels/PList.cs|PListButtonBuild|pButton|Click|1
 @entry input
-@summary Create a new split section at the current position and synchronize program state.
+@summary Handle the add-button click and follow its registered code path.
 ```
+
+A shared functional operation uses `@section II. Functionality`, a numbered functional `@area`, and no `@tabs`.
 
 Header fields:
 
@@ -205,13 +238,25 @@ Header fields:
 | `@format` | Yes | Logic-map format version. Initially `1`. |
 | `@id` | Yes | Globally unique stable identifier. |
 | `@title` | Yes | Human-readable title. |
-| `@area` | Yes | Functional navigation group. |
+| `@section` | Yes | Exactly `I. UI` or `II. Functionality`. |
+| `@area` | Yes | `UI event`, `UI workflow`, or the numbered Functionality group. |
+| `@tabs` | UI maps | Comma-separated tabs in which the UI event or workflow can occur. |
+| `@event-ref` | Direct UI-event maps | Stable code binding produced from the current C#, XAML, or override event route. |
 | `@entry` | Yes | Identifier of the first node. |
 | `@summary` | Yes | One-sentence scope statement. |
 | `@flow` | No | Preferred primary direction: `TB` or `LR`. Default: `TB`. |
 | `@related` | No | Comma-separated related map IDs. |
 | `@tag` | No | Search tags. May appear more than once. |
 | `@allow-cycle` | No | Map-level permission for an intentional cycle. Default: `false`. |
+
+`@event-ref` forms are generated and validated as follows:
+
+```text
+cs|<UIShell-relative .cs file>|<containing method>|<event source>|<event name>|<ordinal>
+addhandler|<UIShell-relative .cs file>|<containing method>|<event target>|<routed event>|<handler>|<ordinal>
+xaml|<UIShell-relative .xaml file>|<event name>|<handler>|<ordinal>
+override|<UIShell-relative .cs file>|<override method>
+```
 
 ### 5.3 Implementation aliases
 
@@ -615,37 +660,43 @@ Follow this order for every map.
 
 State the initiating event and the final observable or durable result in one sentence.
 
-### Step 2 — Trace the actual implementation
+### Step 2 — Classify the map
+
+Place an interface-triggered path in `I. UI` and list every applicable tab in `@tabs`. Place a reusable operation in `II. Functionality` only when it is not specific to one tab type.
+
+For a direct UI binding, copy the exact code-derived `@event-ref`; never invent or approximate it.
+
+### Step 3 — Trace the actual implementation
 
 Follow event handlers, commands, coordinators, services, models, persistence, external processes, callbacks, and refresh paths. Do not infer ownership from method names alone.
 
-### Step 3 — List meaningful actions in execution order
+### Step 4 — List meaningful actions in execution order
 
 Write one exact action per line before arranging boxes.
 
-### Step 4 — Bind every action immediately
+### Step 5 — Bind every action immediately
 
 Attach the verified governing method or other implementation boundary to the same line.
 
-### Step 5 — Group actions into nodes
+### Step 6 — Group actions into nodes
 
 Use responsibility, decisions, external boundaries, and state commits to choose node boundaries.
 
-### Step 6 — Add branches, parallel paths, and map links
+### Step 7 — Add branches, parallel paths, and map links
 
 Use labeled conditional edges and explicit map or fragment references.
 
-### Step 7 — Record terminal states
+### Step 8 — Record terminal states
 
 Use state lines in output or error nodes to state what is true when the path ends.
 
-### Step 8 — Generate and inspect HTML
+### Step 9 — Generate and inspect HTML
 
 Check readability, crossings, branch labels, action–method proximity, scrolling, dark mode, and narrow-window behavior.
 
-### Step 9 — Run strict validation
+### Step 10 — Run strict validation
 
-A map is complete only when required fields, node references, implementation references, and terminal paths pass validation.
+A map set is complete only when required fields, node references, implementation references, terminal paths, and direct UI-event coverage all pass. The console must report complete coverage, such as `UI event coverage: 492/492`; the exact number is determined from the current code.
 
 ## 13. HTML generation contract
 
@@ -665,12 +716,12 @@ Generation requirements:
 2. Validate syntax and graph integrity before rendering.
 3. Resolve aliases.
 4. Attempt to verify C# symbols against `src/**/*.cs`.
-5. Generate the area navigation and map index.
-6. Generate one page per map.
-7. Generate a searchable implementation index.
-8. Record a source hash for each generated map.
-9. Report errors and warnings in the console.
-10. Exit with a nonzero status when validation errors exist.
+5. Scan current C#, XAML, and UI overrides and verify complete `@event-ref` coverage.
+6. Generate `I. UI` in the fixed tab order and `II. Functionality` in numbered functional groups.
+7. Generate one page per unique map, while displaying shared UI maps under every applicable tab.
+8. Generate a searchable implementation index.
+9. Record a source hash for each generated map.
+10. Report errors, warnings, and UI-event coverage in the console; exit nonzero on any validation error.
 
 The generated site must not require a CDN, package installation at viewing time, network access, a local server, or a browser extension. All CSS, JavaScript, icons, and fonts must be local or use system-font fallbacks.
 
@@ -681,7 +732,7 @@ The generated site must not require a CDN, package installation at viewing time,
 The desktop layout uses three clear regions:
 
 1. **Top bar** — site title, current area and map, global search, theme control.
-2. **Navigation sidebar** — areas, maps, status counts, and unresolved-reference indicators.
+2. **Navigation sidebar** — compact links to the authoritative tab and functionality collections, with map counts. The searchable index holds the complete catalogue rather than repeating hundreds of links on every map page.
 3. **Map workspace** — map heading, metadata, visual graph, and optional collapsible details.
 
 A permanent third inspector column is not required. Detailed symbol information may open in a lightweight side sheet or popover so the main graph remains dominant.
@@ -692,7 +743,8 @@ Each map page shows:
 
 - Title
 - Summary
-- Area
+- Section
+- Applicable tabs or functionality area
 - Source path
 - Related maps
 - Validation status
@@ -704,11 +756,11 @@ Metadata must remain compact and visually subordinate to the graph.
 
 The sidebar must:
 
-- Group maps by `@area`.
-- Preserve alphabetical or explicitly configured order.
-- Show the active map clearly.
-- Collapse inactive areas.
-- Display small warning counts without dominating navigation.
+- Show **I. UI** first, with Split, Edit, Convert, Audio, Merge, Funnel, Worklist, and Global interface in that exact order.
+- Show **II. Functionality** second, grouped by numbered `@area`.
+- Present a shared UI map under every tab named by `@tabs` on the index.
+- Link directly to each complete tab or functionality collection without duplicating the full catalogue inside every map page.
+- Keep the current location visible in the top-bar breadcrumb and page metadata.
 - Remain usable with keyboard navigation.
 
 ### 14.4 Search
@@ -956,6 +1008,10 @@ The DOM should preserve a logical reading order independent of the graph coordin
 ### 19.1 Errors that block generation
 
 - Missing required header field
+- Invalid `@section` value
+- UI map without `@tabs`, or an unknown tab name
+- Direct UI event with no map
+- Duplicate or stale `@event-ref`
 - Duplicate map ID
 - Duplicate node ID within a map
 - Missing entry node
@@ -998,11 +1054,12 @@ Warnings do not change the documented behavior and must not be silently promoted
 The generator must print a compact summary:
 
 ```text
-Logic maps: 24 parsed, 24 generated
-Fragments: 5 parsed
+Logic maps: 608 parsed, 608 generated
+Fragments: 1 parsed
 Errors: 0
-Warnings: 3
+Warnings: 0
 Unresolved symbols: 0
+UI event coverage: 492/492
 Output: docs/logic-maps/index.html
 ```
 
@@ -1057,7 +1114,9 @@ The following example demonstrates the format. Names are illustrative; productio
 @format 1
 @id split.section-creation
 @title Section creation
-@area Split
+@section I. UI
+@area UI workflow
+@tabs Split
 @entry input
 @summary Create a section at the current timeline position and synchronize model, view, and modified state.
 @flow TB

@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.2846f63953242297
+@title Button — click
+@section I. UI
+@area UI event
+@tabs Funnel
+@event-ref cs|PPanels/PFunnelRuleFrame.cs|PFunnelFoldBuild|pButton|Click|1
+@entry input
+@summary Handle the click event exposed by PFunnelRuleFrame.PFunnelFoldBuild and follow its registered code path.
+@tag click
+@tag PFunnelRuleFrame
+@alias owner = Cadroue.UIShell.PPanels.PFunnelRuleFrame
+
+[input] UI event <input>
+- Receive the click event from the button @ owner.PFunnelFoldBuild
+> route
+
+[route] Registered handler path <process>
+- Toggle funnel fold @ owner.PFunnelFoldToggle
+- Create funnel glyph @ owner.PFunnelGlyphCreate
+- Evaluate the handler's implemented conditional branches @ owner.PFunnelFoldToggle
+- Update the visual or selection state owned by the handler @ owner.PFunnelFoldToggle
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PPanels/PFunnelRuleFrame.cs|PFunnelFoldBuild|pButton|Click|1

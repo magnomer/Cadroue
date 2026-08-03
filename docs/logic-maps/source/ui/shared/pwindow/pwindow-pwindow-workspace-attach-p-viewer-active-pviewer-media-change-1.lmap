@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.7a1fe4211badc1c0
+@title Viewer Active — viewer media change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel, Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pViewerActive|PViewerMediaChange|1
+@entry input
+@summary Handle the viewer media change event emitted by Viewer Active through the exact route registered in PWindow.PWindowWorkspaceAttach.
+@tag viewer media change
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the viewer media change event from Viewer Active through its current registration @ owner.PWindowWorkspaceAttach
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PWindowMediaHandle
+! Registered call path: PWindowMediaHandle
+> output
+
+[output] UI state after the event <output>
+= The viewer media change event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pViewerActive|PViewerMediaChange|1

@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.b45db1a1a22d4235
+@title Browse button — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PPanels/PSource.cs|PSource|pBrowseButton|Click|1
+@entry input
+@summary Handle the click event exposed by PSource.PSource and follow its registered code path.
+@tag click
+@tag PSource
+@alias owner = Cadroue.UIShell.PPanels.PSource
+
+[input] UI event <input>
+- Receive the click event from the browse button @ owner.PSource
+> route
+
+[route] Registered handler path <process>
+- Handle source open @ owner.PSourceOpenHandle
+- Read source filter @ owner.PSourceFilterRead
+- Check source audio @ owner.PSourceAudioCheck
+- Evaluate the handler's implemented conditional branches @ owner.PSourceOpenHandle
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PPanels/PSource.cs|PSource|pBrowseButton|Click|1

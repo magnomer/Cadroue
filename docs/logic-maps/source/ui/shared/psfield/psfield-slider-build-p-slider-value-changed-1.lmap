@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.f8cf8ed2388b5aaa
+@title Slider — value changed
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PSShared/PSField.cs|PSFieldSliderBuild|pSlider|ValueChanged|1
+@entry input
+@summary Handle the value changed event exposed by PSField.PSFieldSliderBuild and follow its registered code path.
+@tag value changed
+@tag PSField
+@alias owner = Cadroue.UIShell.PSShared.PSField
+
+[input] UI event <input>
+- Receive the value changed event from the slider @ owner.PSFieldSliderBuild
+> route
+
+[route] Registered handler path <process>
+- Format ps field value @ owner.PSFieldValueFormat
+> output
+
+[output] UI state after the event <output>
+= The value changed event has completed through the current implementation.
+! Code binding: cs|PSShared/PSField.cs|PSFieldSliderBuild|pSlider|ValueChanged|1

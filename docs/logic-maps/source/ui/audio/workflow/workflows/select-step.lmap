@@ -1,0 +1,32 @@
+@format 1
+@id audio.select-step
+@title Select audio processing step
+@area UI workflow
+@entry input
+@summary Select one audio processing row or the No Processing row, display its inspector, and clear an active skip setting when an actual step is selected.
+@section I. UI
+@tabs Audio
+@flow TB
+@related audio.toggle-step
+
+@alias processing = Cadroue.UIShell.PPanels.PProcessing
+@alias inspector = Cadroue.UIShell.PPanels.PInspector
+@alias tab = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] Processing row selected <input>
+- Handle a processing-row press or No Processing-row activation @ processing.PProcessingRowBuild(...)
+@ processing.PProcessingSkipBuild(...)
+> select
+
+[select] Select and reveal step <process>
+- Mark the selected row and raise the selected step event @ processing.PProcessingSelectApply(...)
+- Show the matching inspector body and unminimize it @ inspector.PInspectorStepShow(...)
+> skip
+
+[skip] Reconcile skip state <decision>
+- Clear persistent and active skip state only when an actual audio step was selected @ tab.PAudioStepHandle(...)
+? "No Processing remains selected" > result
+? "An audio step is selected" > result
+
+[result] Processing editor selected <output>
+= The selected audio editor is visible; selecting a real step cannot leave No Processing active.

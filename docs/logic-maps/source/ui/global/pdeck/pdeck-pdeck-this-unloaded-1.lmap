@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.73ca8f8a2e381372
+@title Deck — unloaded
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PDeck.xaml.cs|PDeck|this|Unloaded|1
+@entry input
+@summary Handle the unloaded event emitted by Deck through the exact route registered in PDeck.PDeck.
+@tag unloaded
+@tag PDeck
+@alias owner = Cadroue.UIShell.PMainArea.PDeck
+
+[input] UI event <input>
+- Receive the unloaded event from Deck through its current registration @ owner.PDeck
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PDeckUnloadHandle
+! Registered call path: PDeckUnloadHandle
+> output
+
+[output] UI state after the event <output>
+= The unloaded event has completed through the current implementation.
+! Code binding: cs|PMainArea/PDeck.xaml.cs|PDeck|this|Unloaded|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.a2ccca3e9176a2fe
+@title Inspector Panel — inspector minimize change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PMainArea/PTabSurface.cs|PTabCollapseAttach|pInspectorPanel|PInspectorMinimizeChange|1
+@entry input
+@summary Handle the inspector minimize change event emitted by Inspector Panel through the exact route registered in PTabSurface.PTabCollapseAttach.
+@tag inspector minimize change
+@tag PTabSurface
+@alias owner = Cadroue.UIShell.PMainArea.PTabSurface
+
+[input] UI event <input>
+- Receive the inspector minimize change event from Inspector Panel through its current registration @ owner.PTabCollapseAttach
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.pCollapseApply
+! Registered call path: pCollapseApply
+> output
+
+[output] UI state after the event <output>
+= The inspector minimize change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PTabSurface.cs|PTabCollapseAttach|pInspectorPanel|PInspectorMinimizeChange|1

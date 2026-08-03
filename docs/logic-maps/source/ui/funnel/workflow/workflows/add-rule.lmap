@@ -1,0 +1,24 @@
+@format 1
+@id funnel.add-rule
+@title Add funnel rule
+@area UI workflow
+@entry input
+@summary Add one filename or regular-expression rule to the ordered funnel rule list.
+@section I. UI
+@tabs Funnel
+@flow TB
+@related funnel.remove-rule, funnel.move-rule
+
+@alias rules = Cadroue.UIShell.PPanels.PFunnelRules
+
+[input] Add-rule command <input>
+- Receive the selected rule form from the add menu @ rules.PFunnelMenuShow(...)
+> create
+
+[create] Create rule row <process>
+- Create the rule editor and attach remove and drag handlers @ rules.PFunnelRuleAdd(...)
+- Append it, apply order numbers, and update the empty notice @ rules.PFunnelRuleAdd(...)
+> result
+
+[result] Rule added <output>
+= One editable rule appears at the end of the ordered list.

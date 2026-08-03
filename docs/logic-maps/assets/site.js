@@ -22,7 +22,7 @@
   const padding=90;
   const columnGap=82;
   const rowGap=170;
-  let scale=1,tx=0,ty=0,drag=false,last=null,geometry={},rowMetrics={};
+  let scale=1,tx=0,ty=0,drag=false,pointerStart=null,last=null,geometry={},rowMetrics={};
 
   function visit(id,seen=new Set()){
     if(depth[id]!=null)return depth[id];
@@ -180,10 +180,31 @@
   }
   requestAnimationFrame(()=>requestAnimationFrame(()=>{layout();readable();}));
   new ResizeObserver(()=>{layout();apply();}).observe(canvas);
-  canvas.addEventListener('wheel',event=>{event.preventDefault();scale=Math.max(.35,Math.min(1.8,scale*(event.deltaY<0?1.1:.9)));apply();},{passive:false});
-  canvas.onpointerdown=event=>{if(event.target.closest('.node'))return;drag=true;last=[event.clientX,event.clientY];canvas.setPointerCapture(event.pointerId);};
-  canvas.onpointermove=event=>{if(!drag)return;tx+=event.clientX-last[0];ty+=event.clientY-last[1];last=[event.clientX,event.clientY];apply();};
-  canvas.onpointerup=()=>drag=false;
+  canvas.addEventListener('wheel',event=>{
+    event.preventDefault();
+    tx-=event.deltaX;
+    ty-=event.deltaY;
+    apply();
+  },{passive:false});
+  canvas.onpointerdown=event=>{
+    if(event.button!==0||event.target.closest('.node'))return;
+    pointerStart=[event.clientX,event.clientY];
+    last=pointerStart;
+    canvas.setPointerCapture(event.pointerId);
+  };
+  canvas.onpointermove=event=>{
+    if(!pointerStart||!last)return;
+    const deltaX=event.clientX-pointerStart[0],deltaY=event.clientY-pointerStart[1];
+    if(!drag&&Math.hypot(deltaX,deltaY)<5)return;
+    drag=true;
+    tx+=event.clientX-last[0];ty+=event.clientY-last[1];last=[event.clientX,event.clientY];apply();
+  };
+  function finishPointer(event){
+    if(event.pointerId!=null&&canvas.hasPointerCapture(event.pointerId))canvas.releasePointerCapture(event.pointerId);
+    drag=false;pointerStart=null;last=null;
+  }
+  canvas.onpointerup=finishPointer;
+  canvas.onpointercancel=finishPointer;
   document.querySelector('[data-fit]')?.addEventListener('click',fit);
   document.querySelector('[data-in]')?.addEventListener('click',()=>{scale=Math.min(1.8,scale+.1);apply();});
   document.querySelector('[data-out]')?.addEventListener('click',()=>{scale=Math.max(.35,scale-.1);apply();});

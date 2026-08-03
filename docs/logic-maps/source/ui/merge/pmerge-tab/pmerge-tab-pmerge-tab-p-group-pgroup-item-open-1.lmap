@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.2149070ecd358435
+@title Group — item open
+@section I. UI
+@area UI event
+@tabs Merge
+@event-ref cs|PMainArea/PMergeTab.cs|PMergeTab|pGroup|PGroupItemOpen|1
+@entry input
+@summary Handle the item open event emitted by Group through the exact route registered in PMergeTab.PMergeTab.
+@tag item open
+@tag PMergeTab
+@alias owner = Cadroue.UIShell.PMainArea.PMergeTab
+
+[input] UI event <input>
+- Receive the item open event from Group through its current registration @ owner.PMergeTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PMergePathShow
+! Registered call path: PMergePathShow
+> output
+
+[output] UI state after the event <output>
+= The item open event has completed through the current implementation.
+! Code binding: cs|PMainArea/PMergeTab.cs|PMergeTab|pGroup|PGroupItemOpen|1

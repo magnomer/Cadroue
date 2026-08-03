@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.9dd6e233de9739df
+@title Slider — value changed
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorVideo.cs|PInspectorVideoAttach|pSlider|ValueChanged|1
+@entry input
+@summary Handle the value changed event exposed by PInspector.PInspectorVideoAttach and follow its registered code path.
+@tag value changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the value changed event from the slider @ owner.PInspectorVideoAttach
+> route
+
+[route] Registered handler path <process>
+- Evaluate the handler's implemented conditional branches @ owner.PInspectorVideoAttach
+- Update the visual or selection state owned by the handler @ owner.PInspectorVideoAttach
+> output
+
+[output] UI state after the event <output>
+= The value changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorVideo.cs|PInspectorVideoAttach|pSlider|ValueChanged|1

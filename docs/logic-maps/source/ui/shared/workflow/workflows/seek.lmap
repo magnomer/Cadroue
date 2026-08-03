@@ -1,0 +1,33 @@
+@format 1
+@id preview.seek
+@title Seek preview
+@area UI workflow
+@entry input
+@summary The preview and timeline cursor converge on the requested position.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@flow TB
+@related preview.open-media
+@tag playback
+@tag seek
+
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+
+[input] Seek preview request <input>
+- Receive the active workspace command @ viewer.PViewerSeek(...)
+> guard
+
+[guard] Check preview readiness <decision>
+- Confirm that viewer commands are enabled and a player exists @ viewer.PViewerSeek(...)
+? "Preview is ready" > apply
+? "Preview is unavailable" > unchanged
+
+[apply] Apply playback state <process>
+- Request an accurate Flyleaf seek and publish the requested position @ viewer.PViewerSeek(...)
+> result
+
+[result] Playback synchronized <output>
+=The preview and timeline cursor converge on the requested position.
+
+[unchanged] No change <output>
+= Playback state is unchanged.

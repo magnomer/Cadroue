@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.dd9c967a5eaea393
+@title Grabber window — lost mouse capture
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Global interface
+@event-ref cs|PSShared/PSGrabber.cs|PSGrabberAttach|psGrabberWindow|LostMouseCapture|1
+@entry input
+@summary Handle the lost mouse capture event exposed by PSGrabber.PSGrabberAttach and follow its registered code path.
+@tag lost mouse capture
+@tag PSGrabber
+@alias owner = Cadroue.UIShell.PSShared.PSGrabber
+
+[input] UI event <input>
+- Receive the lost mouse capture event from the grabber window @ owner.PSGrabberAttach
+> route
+
+[route] Registered handler path <process>
+- Handle ps grabber capture @ owner.PSGrabberCaptureHandle
+- Apply ps grabber cursor @ owner.PSGrabberCursorApply
+> output
+
+[output] UI state after the event <output>
+= The lost mouse capture event has completed through the current implementation.
+! Code binding: cs|PSShared/PSGrabber.cs|PSGrabberAttach|psGrabberWindow|LostMouseCapture|1

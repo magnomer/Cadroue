@@ -1,0 +1,30 @@
+@format 1
+@id ui-event.f3d411736a779a6a
+@title Inset box — text changed
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorCropUi.cs|PInspectorInsetBuild|pInsetBox|TextChanged|1
+@entry input
+@summary Handle the text changed event exposed by PInspector.PInspectorInsetBuild and follow its registered code path.
+@tag text changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the text changed event from the inset box @ owner.PInspectorInsetBuild
+> route
+
+[route] Registered handler path <process>
+- Update inspector ratio @ owner.PInspectorRatioUpdate
+- Read inspector number @ owner.PInspectorNumberRead
+- Show inspector notice @ owner.PInspectorNoticeShow
+- Format inspector ratio @ owner.PInspectorRatioFormat
+- Read inspector even @ owner.PInspectorEvenRead
+- Evaluate the handler's implemented conditional branches @ owner.PInspectorRatioUpdate
+- Update the visual or selection state owned by the handler @ owner.PInspectorRatioUpdate
+> output
+
+[output] UI state after the event <output>
+= The text changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorCropUi.cs|PInspectorInsetBuild|pInsetBox|TextChanged|1

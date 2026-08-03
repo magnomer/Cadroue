@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.50ea8a19d4ba26e4
+@title Popup — closed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainWindow/PPicker.cs|PPickerPopupBuild|pPopup|Closed|1
+@entry input
+@summary Handle the closed event exposed by PPicker.PPickerPopupBuild and follow its registered code path.
+@tag closed
+@tag PPicker
+@alias owner = Cadroue.UIShell.PMainWindow.PPicker
+
+[input] UI event <input>
+- Receive the closed event from the popup @ owner.PPickerPopupBuild
+> route
+
+[route] Registered handler path <process>
+- Update the visual or selection state owned by the handler @ owner.PPickerPopupBuild
+> output
+
+[output] UI state after the event <output>
+= The closed event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PPicker.cs|PPickerPopupBuild|pPopup|Closed|1

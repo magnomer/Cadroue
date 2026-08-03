@@ -1,0 +1,30 @@
+@format 1
+@id ui-event.28b8550c70b0fd3e
+@title Video rate combo — selection changed
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderVideo.cs|PSVideoPlateBuild|psVideoRateCombo|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PSEncoder.PSVideoPlateBuild and follow its registered code path.
+@tag selection changed
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the selection changed event from the video rate combo @ owner.PSVideoPlateBuild
+> route
+
+[route] Registered handler path <process>
+- Rebuild ps video rows @ owner.PSVideoRowsRebuild
+- Read ps video capability @ owner.PSVideoCapabilityRead
+- Build ps video quality @ owner.PSVideoQualityBuild
+- Build ps video speed @ owner.PSVideoSpeedBuild
+- Build ps video extra @ owner.PSVideoExtraBuild
+- Evaluate the handler's implemented conditional branches @ owner.PSVideoRowsRebuild
+- Update the visual or selection state owned by the handler @ owner.PSVideoRowsRebuild
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderVideo.cs|PSVideoPlateBuild|psVideoRateCombo|SelectionChanged|1

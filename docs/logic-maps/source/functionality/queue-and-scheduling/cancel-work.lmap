@@ -1,0 +1,60 @@
+@format 1
+@id queue.cancel-work
+@title Cancel running work
+@area 4. Queue and scheduling
+@entry input
+@summary Confirm cancellation of currently running items, disable automatic execution, and arm per-item cancellation; only a nonzero observed exit becomes cancelled storage.
+@section II. Functionality
+@flow TB
+@related processing.run-job, queue.load
+@tag queue
+@tag cancellation
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias runner = Cadroue.ShellEngine.LRunner
+@alias job = Cadroue.ShellEngine.LJob
+@alias schedule = Cadroue.Infrastructure.LSchedule
+
+[input] User requests cancellation <input>
+- Receive the Cancel command for the active station @ console.PConsoleCancelHandle(...)
+> inspect
+
+[inspect] Inspect running work <decision>
+- Read all running items owned by the active station @ console.PConsoleRunningRead(...)
+? "No item is running" > unchanged
+? "One or more items are running" > confirm
+
+[confirm] Confirm destructive action <decision>
+- Show the running-item cancellation confirmation @ console.PConsoleCancelHandle(...)
+? "User declines" > unchanged
+? "User confirms" > signal
+
+[signal] Signal every running job <process>
+- Disable automatic execution for the station @ console.PConsoleCancelHandle(...)
+- Arm explicit cancellation for each running work identifier @ runner.LRunnerJobCancel(...)
+- Kill an already attached FFmpeg process, or kill it when it attaches @ runner.LRunnerProcessAttach(...)
+> observe
+
+[observe] Running job observes termination <decision>
+- Distinguish explicit item cancellation from general runner cancellation @ job.LJobRun(...)
+? "The explicit cancellation produces a nonzero process exit" > persist
+? "The process exits successfully before cancellation is observed" > completed
+? "The process has not reached the observable cancellation path yet" > armed
+
+[persist] Persist restartable cancellation <storage>
+- Set the finish time and request durable cancellation @ job.LJobRun(...)
+- Remove partial output, move the record to cancelled storage, clear ownership, and reload the schedule @ schedule.LScheduleItemCancel(...)
+> result
+
+[armed] Cancellation armed <output>
+= The job remains marked for explicit cancellation and will be terminated when its process attaches or exits.
+
+[completed] Work completes before cancellation <output>
+- Commit the zero-exit job through normal completion @ job.LJobRun(...)
+= The work is stored as successful, not cancelled.
+
+[result] Observed cancellation stored <output>
+= This observed job is stored as cancelled and can be restarted; automatic execution remains disabled.
+
+[unchanged] No cancellation <output>
+= Running work and automatic-execution state are unchanged.

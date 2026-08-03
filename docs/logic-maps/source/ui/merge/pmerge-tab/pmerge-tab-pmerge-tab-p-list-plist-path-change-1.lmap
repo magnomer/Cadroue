@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.ff21b052db03627d
+@title List — path change
+@section I. UI
+@area UI event
+@tabs Merge
+@event-ref cs|PMainArea/PMergeTab.cs|PMergeTab|pList|PListPathChange|1
+@entry input
+@summary Handle the path change event emitted by List through the exact route registered in PMergeTab.PMergeTab.
+@tag path change
+@tag PMergeTab
+@alias owner = Cadroue.UIShell.PMainArea.PMergeTab
+
+[input] UI event <input>
+- Receive the path change event from List through its current registration @ owner.PMergeTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PMergePathShow
+! Registered call path: PMergePathShow
+> output
+
+[output] UI state after the event <output>
+= The path change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PMergeTab.cs|PMergeTab|pList|PListPathChange|1

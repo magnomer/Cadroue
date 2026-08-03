@@ -1,0 +1,38 @@
+@format 1
+@id logging.open-feed
+@title Open log feed
+@area 9. Logging
+@entry input
+@summary Load a selected log file into structured rows, apply category filtering, and append live entries in bounded batches.
+@section II. Functionality
+@flow TB
+@related logging.emit-entry
+@tag logging
+@tag viewer
+
+@alias logWindow = Cadroue.UIShell.PLogWindow
+@alias traceWriter = Cadroue.Infrastructure.LTraceWriter
+
+[input] Log window opens or file selection changes <input>
+- Build available categories and log-file choices @ logWindow.PLogCategoryBuild(...)
+- Select and request a log file @ logWindow.PLogFilesBuild(...)
+> load
+
+[load] Load selected log <process>
+- Flush and read the selected log file @ traceWriter.LTraceFileRead(...)
+- Parse the text into structured rows @ logWindow.PLogFileLoad(...)
+- Limit retained rows and apply the selected category @ logWindow.PLogFileLoad(...)
+> live
+
+[live] Receive live entries <decision>
+- Buffer trace notifications until the UI flush interval @ logWindow.PLogAppendHandle(...)
+? "Selected file is the current live log" > append
+? "A historical log is selected" > result
+
+[append] Append visible batch <process>
+- Add buffered entries to all rows, source text, and the filtered view @ logWindow.PLogFlushHandle(...)
+- Enforce the row limit and scroll to the latest visible entry @ logWindow.PLogFlushHandle(...)
+> result
+
+[result] Log feed visible <output>
+= The feed reflects the selected file and category, with live updates only for the current log.

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.0ac633c21b32599c
+@title Workspace Viewer — viewer media change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Funnel
+@event-ref cs|PControlBar/PWorkspace.cs|PWorkspace|PWorkspaceViewer|PViewerMediaChange|1
+@entry input
+@summary Handle the viewer media change event emitted by Workspace Viewer through the exact route registered in PWorkspace.PWorkspace.
+@tag viewer media change
+@tag PWorkspace
+@alias owner = Cadroue.UIShell.PControlBar.PWorkspace
+
+[input] UI event <input>
+- Receive the viewer media change event from Workspace Viewer through its current registration @ owner.PWorkspace
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PWorkspaceMediaHandle
+! Registered call path: PWorkspaceMediaHandle
+> output
+
+[output] UI state after the event <output>
+= The viewer media change event has completed through the current implementation.
+! Code binding: cs|PControlBar/PWorkspace.cs|PWorkspace|PWorkspaceViewer|PViewerMediaChange|1

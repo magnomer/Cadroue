@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.8ef9cb48c4c455e4
+@title Tab window — preview mouse down
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PControlBar/PToolbarTab.cs|PTabLoadHandle|pTabWindow|PreviewMouseDown|1
+@entry input
+@summary Handle the preview mouse down event exposed by PToolbar.PTabLoadHandle and follow its registered code path.
+@tag preview mouse down
+@tag PToolbar
+@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+
+[input] UI event <input>
+- Receive the preview mouse down event from the tab window @ owner.PTabLoadHandle
+> route
+
+[route] Registered handler path <process>
+- Evaluate the handler's implemented conditional branches @ owner.PTabLoadHandle
+> output
+
+[output] UI state after the event <output>
+= The preview mouse down event has completed through the current implementation.
+! Code binding: cs|PControlBar/PToolbarTab.cs|PTabLoadHandle|pTabWindow|PreviewMouseDown|1

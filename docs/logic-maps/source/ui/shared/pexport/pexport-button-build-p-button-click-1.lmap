@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.20a4815fd74d7188
+@title Button — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PExportPresetAction.cs|PExportButtonBuild|pButton|Click|1
+@entry input
+@summary Handle the click event exposed by PExport.PExportButtonBuild and follow its registered code path.
+@tag click
+@tag PExport
+@alias owner = Cadroue.UIShell.PPanels.PExport
+
+[input] UI event <input>
+- Receive the click event from the button @ owner.PExportButtonBuild
+> route
+
+[route] Registered handler path <process>
+- Evaluate the handler's implemented conditional branches @ owner.PExportButtonBuild
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PPanels/PExportPresetAction.cs|PExportButtonBuild|pButton|Click|1

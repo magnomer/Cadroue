@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.9080cb76bd917653
+@title List — clear change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PMainArea/PTabSurface.cs|PTabViewerAttach|pList|PListClearChange|1
+@entry input
+@summary Handle the clear change event emitted by List through the exact route registered in PTabSurface.PTabViewerAttach.
+@tag clear change
+@tag PTabSurface
+@alias owner = Cadroue.UIShell.PMainArea.PTabSurface
+
+[input] UI event <input>
+- Receive the clear change event from List through its current registration @ owner.PTabViewerAttach
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.if
+! Registered call path: pRemovedPaths.Any → string.Equals → pViewer.PViewerMediaClose
+> output
+
+[output] UI state after the event <output>
+= The clear change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PTabSurface.cs|PTabViewerAttach|pList|PListClearChange|1

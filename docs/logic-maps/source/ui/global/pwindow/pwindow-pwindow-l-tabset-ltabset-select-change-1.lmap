@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.b1f04d03de2445e0
+@title Tabset — select change
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindow|lTabset|LTabsetSelectChange|1
+@entry input
+@summary Handle the select change event emitted by Tabset through the exact route registered in PWindow.PWindow.
+@tag select change
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the select change event from Tabset through its current registration @ owner.PWindow
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PWindowTabHandle
+! Registered call path: PWindowTabHandle
+> output
+
+[output] UI state after the event <output>
+= The select change event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindow|lTabset|LTabsetSelectChange|1

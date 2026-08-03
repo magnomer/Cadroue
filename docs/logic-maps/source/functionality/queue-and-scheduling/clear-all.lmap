@@ -1,0 +1,31 @@
+@format 1
+@id queue.clear-all
+@title Clear all non-running work
+@area 4. Queue and scheduling
+@entry input
+@summary Confirm and remove all clearable durable work while preserving work that cannot safely be cleared.
+@section II. Functionality
+@flow TB
+@related queue.clear-done, queue.cancel-work
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias schedule = Cadroue.Infrastructure.LSchedule
+
+[input] Clear All requested <input>
+- Receive the Clear All command @ console.PConsoleAllHandle(...)
+> confirm
+
+[confirm] Confirm removal <decision>
+- Apply the destructive-action confirmation preference @ console.PConsoleDestructiveConfirm(...)
+? "Removal is declined" > unchanged
+? "Removal proceeds" > clear
+
+[clear] Remove clearable records <storage>
+- Clear durable schedule folders and repair stale state @ schedule.LScheduleAllClear(...)
+> result
+
+[result] Clearable work removed <output>
+= The schedule retains only work not eligible for the clear operation.
+
+[unchanged] Schedule unchanged <output>
+= No record is removed.

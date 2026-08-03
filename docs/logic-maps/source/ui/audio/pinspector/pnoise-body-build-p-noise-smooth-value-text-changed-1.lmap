@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.412298adef38b154
+@title Noise smooth value — text changed
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorNoise.cs|PNoiseBodyBuild|pNoiseSmoothValue|TextChanged|1
+@entry input
+@summary Handle the text changed event exposed by PInspector.PNoiseBodyBuild and follow its registered code path.
+@tag text changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the text changed event from the noise smooth value @ owner.PNoiseBodyBuild
+> route
+
+[route] Registered handler path <process>
+- Read inspector decimal @ owner.PInspectorDecimalRead
+> output
+
+[output] UI state after the event <output>
+= The text changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorNoise.cs|PNoiseBodyBuild|pNoiseSmoothValue|TextChanged|1

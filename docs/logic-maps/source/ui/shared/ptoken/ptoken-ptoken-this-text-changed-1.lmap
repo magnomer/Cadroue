@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.397d8ab314e14ca2
+@title Token — text changed
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PMainWindow/PToken.cs|PToken|this|TextChanged|1
+@entry input
+@summary Handle the text changed event emitted by Token through the exact route registered in PToken.PToken.
+@tag text changed
+@tag PToken
+@alias owner = Cadroue.UIShell.PMainWindow.PToken
+
+[input] UI event <input>
+- Receive the text changed event from Token through its current registration @ owner.PToken
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PTokenTextHandle
+! Registered call path: PTokenTextHandle
+> output
+
+[output] UI state after the event <output>
+= The text changed event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PToken.cs|PToken|this|TextChanged|1

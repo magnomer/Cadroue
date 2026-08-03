@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.b1b5552bfd2f7ee1
+@title Inspector — audio change
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PMainArea/PAudioTab.cs|PAudioTab|pInspector|PInspectorAudioChange|1
+@entry input
+@summary Handle the audio change event emitted by Inspector through the exact route registered in PAudioTab.PAudioTab.
+@tag audio change
+@tag PAudioTab
+@alias owner = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] UI event <input>
+- Receive the audio change event from Inspector through its current registration @ owner.PAudioTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PAudioChangeHandle
+! Registered call path: PAudioChangeHandle
+> output
+
+[output] UI state after the event <output>
+= The audio change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PAudioTab.cs|PAudioTab|pInspector|PInspectorAudioChange|1

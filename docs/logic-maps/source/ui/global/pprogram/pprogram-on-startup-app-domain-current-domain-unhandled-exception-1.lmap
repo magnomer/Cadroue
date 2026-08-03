@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.736fdcdc37104371
+@title App Domain Current Domain — unhandled exception
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|App.xaml.cs|OnStartup|AppDomain.CurrentDomain|UnhandledException|1
+@entry input
+@summary Handle the unhandled exception event emitted by App Domain Current Domain through the exact route registered in PProgram.OnStartup.
+@tag unhandled exception
+@tag PProgram
+@alias owner = Cadroue.UIShell.PProgram
+
+[input] UI event <input>
+- Receive the unhandled exception event from App Domain Current Domain through its current registration @ owner.OnStartup
+> route
+
+[route] Registered handler path <process>
+- Execute the registered delegate without substituting a different route @ owner.OnStartup
+! Registered call path: LTraceLog.LTraceErrorRecord
+> output
+
+[output] UI state after the event <output>
+= The unhandled exception event has completed through the current implementation.
+! Code binding: cs|App.xaml.cs|OnStartup|AppDomain.CurrentDomain|UnhandledException|1

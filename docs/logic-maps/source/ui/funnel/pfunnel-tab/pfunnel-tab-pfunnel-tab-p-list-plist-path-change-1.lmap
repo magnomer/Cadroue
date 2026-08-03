@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.1c801b7fcfc90caa
+@title List — path change
+@section I. UI
+@area UI event
+@tabs Funnel
+@event-ref cs|PMainArea/PFunnelTab.cs|PFunnelTab|pList|PListPathChange|1
+@entry input
+@summary Handle the path change event emitted by List through the exact route registered in PFunnelTab.PFunnelTab.
+@tag path change
+@tag PFunnelTab
+@alias owner = Cadroue.UIShell.PMainArea.PFunnelTab
+
+[input] UI event <input>
+- Receive the path change event from List through its current registration @ owner.PFunnelTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PFunnelPathShow
+! Registered call path: PFunnelPathShow
+> output
+
+[output] UI state after the event <output>
+= The path change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PFunnelTab.cs|PFunnelTab|pList|PListPathChange|1

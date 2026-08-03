@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.64555520f6d8ccef
+@title Log Flush Timer — tick
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PLog/PLogWindow.cs|PLogWindow|pLogFlushTimer|Tick|1
+@entry input
+@summary Handle the tick event emitted by Log Flush Timer through the exact route registered in PLogWindow.PLogWindow.
+@tag tick
+@tag PLogWindow
+@alias owner = Cadroue.UIShell.PLogWindow
+
+[input] UI event <input>
+- Receive the tick event from Log Flush Timer through its current registration @ owner.PLogWindow
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PLogFlushHandle
+! Registered call path: PLogFlushHandle
+> output
+
+[output] UI state after the event <output>
+= The tick event has completed through the current implementation.
+! Code binding: cs|PLog/PLogWindow.cs|PLogWindow|pLogFlushTimer|Tick|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.f54bc7d3e238821f
+@title List — path change
+@section I. UI
+@area UI event
+@tabs Convert
+@event-ref cs|PMainArea/PConvertTab.cs|PConvertTab|pList|PListPathChange|1
+@entry input
+@summary Handle the path change event emitted by List through the exact route registered in PConvertTab.PConvertTab.
+@tag path change
+@tag PConvertTab
+@alias owner = Cadroue.UIShell.PMainArea.PConvertTab
+
+[input] UI event <input>
+- Receive the path change event from List through its current registration @ owner.PConvertTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PConvertPathShow
+! Registered call path: PConvertPathShow
+> output
+
+[output] UI state after the event <output>
+= The path change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConvertTab.cs|PConvertTab|pList|PListPathChange|1

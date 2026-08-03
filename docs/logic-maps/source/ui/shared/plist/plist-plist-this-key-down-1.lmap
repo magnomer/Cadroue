@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.122871d668321cad
+@title List — key down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PPanels/PList.cs|PList|this|KeyDown|1
+@entry input
+@summary Handle the key down event emitted by List through the exact route registered in PList.PList.
+@tag key down
+@tag PList
+@alias owner = Cadroue.UIShell.PPanels.PList
+
+[input] UI event <input>
+- Receive the key down event from List through its current registration @ owner.PList
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PListKeyHandle
+! Registered call path: PListKeyHandle
+> output
+
+[output] UI state after the event <output>
+= The key down event has completed through the current implementation.
+! Code binding: cs|PPanels/PList.cs|PList|this|KeyDown|1

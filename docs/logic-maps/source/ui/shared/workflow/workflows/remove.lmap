@@ -1,0 +1,32 @@
+@format 1
+@id files.remove
+@title Remove selected files
+@area UI workflow
+@entry input
+@summary Remove the current selection from a media list and repair current-row state.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@flow TB
+@related files.add, files.clear
+
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[input] Remove command <input>
+- Receive the list Remove command @ list.PListRemove(...)
+> selection
+
+[selection] Read selection <decision>
+- Read selected paths or fall back to the current row @ list.PListRemove(...)
+? "Nothing is selected" > unchanged
+? "Paths are selected" > remove
+
+[remove] Remove rows <process>
+- Remove matching list items and rebuild visible rows @ list.PListPathsRemove(...)
+- Repair selection, current path, and empty-state display @ list.PListPathsRemove(...)
+> result
+
+[result] Files removed <output>
+= Selected paths no longer participate in the tab operation.
+
+[unchanged] List unchanged <output>
+= No row is removed.

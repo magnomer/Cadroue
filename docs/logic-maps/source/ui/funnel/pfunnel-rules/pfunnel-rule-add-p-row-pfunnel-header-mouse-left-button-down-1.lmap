@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.26e8ca888aa8dc90
+@title Row p funnel header — mouse left button down
+@section I. UI
+@area UI event
+@tabs Funnel
+@event-ref cs|PPanels/PFunnelRules.cs|PFunnelRuleAdd|pRow.PFunnelHeader|MouseLeftButtonDown|1
+@entry input
+@summary Handle the mouse left button down event exposed by PFunnelRules.PFunnelRuleAdd and follow its registered code path.
+@tag mouse left button down
+@tag PFunnelRules
+@alias owner = Cadroue.UIShell.PPanels.PFunnelRules
+
+[input] UI event <input>
+- Receive the mouse left button down event from the row p funnel header @ owner.PFunnelRuleAdd
+> route
+
+[route] Registered handler path <process>
+- Handle funnel press @ owner.PFunnelPressHandle
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: cs|PPanels/PFunnelRules.cs|PFunnelRuleAdd|pRow.PFunnelHeader|MouseLeftButtonDown|1

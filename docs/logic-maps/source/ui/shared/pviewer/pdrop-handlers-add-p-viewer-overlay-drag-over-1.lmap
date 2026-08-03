@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.b2e888d71b7d49f8
+@title Viewer overlay — drag over
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PPanels/PViewerDrop.cs|PDropHandlersAdd|pViewerOverlay|DragOver|1
+@entry input
+@summary Handle the drag over event exposed by PViewer.PDropHandlersAdd and follow its registered code path.
+@tag drag over
+@tag PViewer
+@alias owner = Cadroue.UIShell.PPanels.PViewer
+
+[input] UI event <input>
+- Receive the drag over event from the viewer overlay @ owner.PDropHandlersAdd
+> route
+
+[route] Registered handler path <process>
+- Execute viewer drag accept @ owner.PViewerDragAccept
+- Read drop effect @ owner.PDropEffectRead
+- Mark the routed event handled on the implemented paths @ owner.PViewerDragAccept
+> output
+
+[output] UI state after the event <output>
+= The drag over event has completed through the current implementation.
+! Code binding: cs|PPanels/PViewerDrop.cs|PDropHandlersAdd|pViewerOverlay|DragOver|1

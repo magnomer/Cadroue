@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.282b8cf3c4ebd2b5
+@title Loudness two pass — checked
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorNormalize.cs|PLoudnessBodyBuild|pLoudnessTwoPass|Checked|1
+@entry input
+@summary Handle the checked event exposed by PInspector.PLoudnessBodyBuild and follow its registered code path.
+@tag checked
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the checked event from the loudness two pass @ owner.PLoudnessBodyBuild
+> route
+
+[route] Registered handler path <process>
+- Raise inspector active @ owner.PInspectorActiveRaise
+> output
+
+[output] UI state after the event <output>
+= The checked event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorNormalize.cs|PLoudnessBodyBuild|pLoudnessTwoPass|Checked|1

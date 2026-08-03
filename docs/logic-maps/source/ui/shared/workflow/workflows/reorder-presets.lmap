@@ -1,0 +1,27 @@
+@format 1
+@id export.reorder-presets
+@title Reorder export presets
+@area UI workflow
+@entry input
+@summary Move one custom export preset to a new visible index while leaving native presets fixed.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge
+@flow TB
+@related export.add-preset
+
+@alias export = Cadroue.UIShell.PPanels.PExport
+
+[input] Preset drag begins <input>
+- Track a custom preset drag and resolve the target index @ export.PExportLiveMove(...)
+> move
+
+[move] Apply live order <decision>
+- Reject native-preset movement and no-op indices @ export.PExportLiveMove(...)
+? "Move is not allowed" > unchanged
+? "A new custom index is valid" > result
+
+[result] Preset moved <output>
+= Custom preset order matches the visible list.
+
+[unchanged] Order unchanged <output>
+= Native and custom preset order remains unchanged.

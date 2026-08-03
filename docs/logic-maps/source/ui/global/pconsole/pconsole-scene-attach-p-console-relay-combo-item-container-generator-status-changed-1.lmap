@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.bd8a64734f8d3b4e
+@title Console relay combo item container generator — status changed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo.ItemContainerGenerator|StatusChanged|1
+@entry input
+@summary Handle the status changed event exposed by PConsole.PConsoleSceneAttach and follow its registered code path.
+@tag status changed
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the status changed event from the console relay combo item container generator @ owner.PConsoleSceneAttach
+> route
+
+[route] Registered handler path <process>
+- Handle console rows @ owner.PConsoleRowsHandle
+- Evaluate the handler's implemented conditional branches @ owner.PConsoleRowsHandle
+> output
+
+[output] UI state after the event <output>
+= The status changed event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo.ItemContainerGenerator|StatusChanged|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.bdb15ce1530cc61e
+@title Map — mouse left button up
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PMapInput.cs|OnMouseLeftButtonUp
+@entry input
+@summary Handle the mouse left button up event exposed by PMap.OnMouseLeftButtonUp and follow its registered code path.
+@tag mouse left button up
+@tag PMap
+@alias owner = Cadroue.UIShell.PFlow.PMap
+
+[input] UI event <input>
+- Receive the framework mouse left button up callback @ owner.OnMouseLeftButtonUp
+> route
+
+[route] Registered handler path <process>
+- Clear map drag @ owner.PMapDragClear
+- Mark the routed event handled on the implemented paths @ owner.OnMouseLeftButtonUp
+> output
+
+[output] UI state after the event <output>
+= The mouse left button up event has completed through the current implementation.
+! Code binding: override|PFlow/PMapInput.cs|OnMouseLeftButtonUp

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.cb9bca0611eeb345
+@title Inspector — monitor show
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PMainArea/PAudioTab.cs|PAudioTab|pInspector|PInspectorMonitorShow|1
+@entry input
+@summary Handle the monitor show event emitted by Inspector through the exact route registered in PAudioTab.PAudioTab.
+@tag monitor show
+@tag PAudioTab
+@alias owner = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] UI event <input>
+- Receive the monitor show event from Inspector through its current registration @ owner.PAudioTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PAudioMonitorShow
+! Registered call path: PAudioMonitorShow
+> output
+
+[output] UI state after the event <output>
+= The monitor show event has completed through the current implementation.
+! Code binding: cs|PMainArea/PAudioTab.cs|PAudioTab|pInspector|PInspectorMonitorShow|1

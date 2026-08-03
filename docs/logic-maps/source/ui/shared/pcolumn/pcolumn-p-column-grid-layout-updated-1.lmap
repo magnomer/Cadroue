@@ -1,0 +1,30 @@
+@format 1
+@id ui-event.646cf8732f425843
+@title Column grid — layout updated
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PMainArea/PColumn.cs|PColumn|pColumnGrid|LayoutUpdated|1
+@entry input
+@summary Handle the layout updated event exposed by PColumn.PColumn and follow its registered code path.
+@tag layout updated
+@tag PColumn
+@alias owner = Cadroue.UIShell.PMainArea.PColumn
+
+[input] UI event <input>
+- Receive the layout updated event from the column grid @ owner.PColumn
+> route
+
+[route] Registered handler path <process>
+- Apply column minimum @ owner.PColumnMinimumApply
+- Read column available @ owner.PColumnAvailableRead
+- Read column minimum @ owner.PColumnMinimumRead
+- Apply column default @ owner.PColumnDefaultApply
+- Check column flex @ owner.PColumnFlexCheck
+- Create column pixels @ owner.PColumnPixelsCreate
+- Evaluate the handler's implemented conditional branches @ owner.PColumnMinimumApply
+> output
+
+[output] UI state after the event <output>
+= The layout updated event has completed through the current implementation.
+! Code binding: cs|PMainArea/PColumn.cs|PColumn|pColumnGrid|LayoutUpdated|1

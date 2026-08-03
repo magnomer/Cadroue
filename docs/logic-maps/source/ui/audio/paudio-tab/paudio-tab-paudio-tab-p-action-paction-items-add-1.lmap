@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.7f1983a29c246d91
+@title Action — items add
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PMainArea/PAudioTab.cs|PAudioTab|pAction|PActionItemsAdd|1
+@entry input
+@summary Handle the items add event emitted by Action through the exact route registered in PAudioTab.PAudioTab.
+@tag items add
+@tag PAudioTab
+@alias owner = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] UI event <input>
+- Receive the items add event from Action through its current registration @ owner.PAudioTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PAudioPlanSave
+- Continue through the owner callback @ owner.LWorkSource
+! Registered call path: PAudioPlanSave → LAudio.LAudioAllDescribe → pList.PListItemsRead → Where → pAudioPaths.Contains → Select → LWorkSource → ToArray
+> output
+
+[output] UI state after the event <output>
+= The items add event has completed through the current implementation.
+! Code binding: cs|PMainArea/PAudioTab.cs|PAudioTab|pAction|PActionItemsAdd|1

@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.3de6a87ea7089332
+@title Row border — preview mouse move
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PExportPreset.cs|PExportRowBuild|pRowBorder|PreviewMouseMove|1
+@entry input
+@summary Handle the preview mouse move event exposed by PExport.PExportRowBuild and follow its registered code path.
+@tag preview mouse move
+@tag PExport
+@alias owner = Cadroue.UIShell.PPanels.PExport
+
+[input] UI event <input>
+- Receive the preview mouse move event from the row border @ owner.PExportRowBuild
+> route
+
+[route] Registered handler path <process>
+- Resolve export index @ owner.PExportIndexResolve
+- Evaluate the handler's implemented conditional branches @ owner.PExportIndexResolve
+- Mark the routed event handled on the implemented paths @ owner.PExportIndexResolve
+- Update the visual or selection state owned by the handler @ owner.PExportIndexResolve
+> output
+
+[output] UI state after the event <output>
+= The preview mouse move event has completed through the current implementation.
+! Code binding: cs|PPanels/PExportPreset.cs|PExportRowBuild|pRowBorder|PreviewMouseMove|1

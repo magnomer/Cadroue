@@ -1,0 +1,30 @@
+@format 1
+@id ui-event.c4741d09738ee1cb
+@title Row — context menu opening
+@section I. UI
+@area UI event
+@tabs Worklist
+@event-ref cs|PMainArea/PRosterQueue.cs|PRosterRowBuild|pRow|ContextMenuOpening|1
+@entry input
+@summary Handle the context menu opening event exposed by PRoster.PRosterRowBuild and follow its registered code path.
+@tag context menu opening
+@tag PRoster
+@alias owner = Cadroue.UIShell.PMainArea.PRoster
+
+[input] UI event <input>
+- Receive the context menu opening event from the row @ owner.PRosterRowBuild
+> route
+
+[route] Registered handler path <process>
+- Open roster menu @ owner.PRosterMenuOpen
+- Build roster restart @ owner.PRosterRestartBuild
+- Read roster paths @ owner.PRosterPathsRead
+- Send roster relay @ owner.PRosterRelaySend
+- Evaluate the handler's implemented conditional branches @ owner.PRosterMenuOpen
+- Mark the routed event handled on the implemented paths @ owner.PRosterMenuOpen
+- Update the visual or selection state owned by the handler @ owner.PRosterMenuOpen
+> output
+
+[output] UI state after the event <output>
+= The context menu opening event has completed through the current implementation.
+! Code binding: cs|PMainArea/PRosterQueue.cs|PRosterRowBuild|pRow|ContextMenuOpening|1

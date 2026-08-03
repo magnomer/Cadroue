@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.9fd72e4d7d284aaf
+@title Log file combo — selection changed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PLog/PLogFeed.cs|PLogFilesBuild|pLogFileCombo|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PLogWindow.PLogFilesBuild and follow its registered code path.
+@tag selection changed
+@tag PLogWindow
+@alias owner = Cadroue.UIShell.PLogWindow
+
+[input] UI event <input>
+- Receive the selection changed event from the log file combo @ owner.PLogFilesBuild
+> route
+
+[route] Registered handler path <process>
+- Load log file @ owner.PLogFileLoad
+- Remove log rows @ owner.PLogRowsRemove
+- Apply log rows @ owner.PLogRowsApply
+- Evaluate the handler's implemented conditional branches @ owner.PLogFileLoad
+- Update the visual or selection state owned by the handler @ owner.PLogFileLoad
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PLog/PLogFeed.cs|PLogFilesBuild|pLogFileCombo|SelectionChanged|1

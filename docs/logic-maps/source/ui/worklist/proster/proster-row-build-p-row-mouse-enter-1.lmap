@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.f5a63b7712ff6d8f
+@title Row — mouse enter
+@section I. UI
+@area UI event
+@tabs Worklist
+@event-ref cs|PMainArea/PRosterQueue.cs|PRosterRowBuild|pRow|MouseEnter|1
+@entry input
+@summary Handle the mouse enter event exposed by PRoster.PRosterRowBuild and follow its registered code path.
+@tag mouse enter
+@tag PRoster
+@alias owner = Cadroue.UIShell.PMainArea.PRoster
+
+[input] UI event <input>
+- Receive the mouse enter event from the row @ owner.PRosterRowBuild
+> route
+
+[route] Registered handler path <process>
+- Apply roster hover @ owner.PRosterHoverApply
+- Read roster shade @ owner.PRosterShadeRead
+- Evaluate the handler's implemented conditional branches @ owner.PRosterHoverApply
+- Update the visual or selection state owned by the handler @ owner.PRosterHoverApply
+> output
+
+[output] UI state after the event <output>
+= The mouse enter event has completed through the current implementation.
+! Code binding: cs|PMainArea/PRosterQueue.cs|PRosterRowBuild|pRow|MouseEnter|1

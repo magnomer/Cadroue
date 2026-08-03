@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.ad144cc5564f9357
+@title Log owner — closed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PLog/PLogWindow.cs|PLogOwnerAttach|pLogOwner|Closed|1
+@entry input
+@summary Handle the closed event exposed by PLogWindow.PLogOwnerAttach and follow its registered code path.
+@tag closed
+@tag PLogWindow
+@alias owner = Cadroue.UIShell.PLogWindow
+
+[input] UI event <input>
+- Receive the closed event from the log owner @ owner.PLogOwnerAttach
+> route
+
+[route] Registered handler path <process>
+- Handle log owner @ owner.PLogOwnerHandle
+> output
+
+[output] UI state after the event <output>
+= The closed event has completed through the current implementation.
+! Code binding: cs|PLog/PLogWindow.cs|PLogOwnerAttach|pLogOwner|Closed|1

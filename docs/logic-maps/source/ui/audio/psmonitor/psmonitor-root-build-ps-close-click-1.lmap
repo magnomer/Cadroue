@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.9bbb7b39d43b6a09
+@title Close — click
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PSMonitor.cs|PSMonitorRootBuild|psClose|Click|1
+@entry input
+@summary Handle the click event exposed by PSMonitor.PSMonitorRootBuild and follow its registered code path.
+@tag click
+@tag PSMonitor
+@alias owner = Cadroue.UIShell.PPanels.PSMonitor
+
+[input] UI event <input>
+- Receive the click event from the close @ owner.PSMonitorRootBuild
+> route
+
+[route] Registered handler path <process>
+- Update the visual or selection state owned by the handler @ owner.PSMonitorRootBuild
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PPanels/PSMonitor.cs|PSMonitorRootBuild|psClose|Click|1

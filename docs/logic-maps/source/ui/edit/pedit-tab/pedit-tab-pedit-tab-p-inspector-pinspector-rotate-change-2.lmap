@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.1e0b37eba398e6f9
+@title Inspector — rotate change
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pInspector|PInspectorRotateChange|2
+@entry input
+@summary Handle the rotate change event emitted by Inspector through the exact route registered in PEditTab.PEditTab.
+@tag rotate change
+@tag PEditTab
+@alias owner = Cadroue.UIShell.PMainArea.PEditTab
+
+[input] UI event <input>
+- Receive the rotate change event from Inspector through its current registration @ owner.PEditTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PEditPlanSave
+! Registered call path: PEditPlanSave
+> output
+
+[output] UI state after the event <output>
+= The rotate change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pInspector|PInspectorRotateChange|2

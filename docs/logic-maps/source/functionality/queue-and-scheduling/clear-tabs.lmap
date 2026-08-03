@@ -1,0 +1,53 @@
+@format 1
+@id queue.clear-tabs
+@title Clear all tab contents
+@area 4. Queue and scheduling
+@entry input
+@summary Confirm the command, clear viewer, file-list, and group state in every tab, and show why section state is cleared only for the active workspace.
+@section II. Functionality
+@flow TB
+@related files.clear, preview.close-media, split.section-delete
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias tabset = Cadroue.UIShell.PControlBar.LTabset
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+@alias list = Cadroue.UIShell.PPanels.PList
+@alias group = Cadroue.UIShell.PPanels.PGroup
+@alias window = Cadroue.UIShell.PMainWindow.PWindow
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+
+[input] Clear Tabs requested <input>
+- Receive the Clear Tabs command @ console.PConsoleTabsHandle(...)
+> confirm
+
+[confirm] Confirm removal <decision>
+- Apply the destructive-action confirmation preference @ console.PConsoleDestructiveConfirm(...)
+? "Clearing is declined" > unchanged
+? "Clearing proceeds" > clear
+
+[clear] Clear each tab container <process>
+- Force-close the tab viewer when media is loaded @ tabset.LTabsetContentClear(...)
+- Clear every non-empty file list @ list.PListClear(...)
+- Clear every merge group container @ group.PGroupClear(...)
+- Raise an empty-media notification from each viewer that was closed @ viewer.PViewerMediaClose(...)
+> active
+
+[active] Is this the active workspace? <decision>
+- The window subscribes its media handler only to the currently attached viewer @ window.PWindowWorkspaceAttach(...)
+? "Viewer belongs to active workspace" > flow-clear
+? "Viewer belongs to inactive workspace" > retained
+
+[flow-clear] Clear active timeline state <process>
+- Receive the empty-media notification for the active viewer @ window.PWindowMediaHandle(...)
+- Clear the active flow source, spool, cursor, sections, keyframes, and waveform @ flow.PFlowClear(...)
+> complete
+
+[retained] Inactive flow receives no clear event <error>
+- Leave the inactive workspace flow untouched because its viewer is not subscribed to the window media handler @ window.PWindowWorkspaceDetach(...)
+> complete
+
+[complete] Tab clearing finishes <output>
+= Viewer, file-list, and group state is cleared across tabs, but an inactive tab can retain its section list after its media has been unloaded.
+
+[unchanged] Tabs unchanged <output>
+= No tab content is cleared.

@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.e9f0a318da604842
+@title Action — run
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PMainArea/PAudioTab.cs|PAudioTab|pAction|PActionRun|1
+@entry input
+@summary Handle the run event emitted by Action through the exact route registered in PAudioTab.PAudioTab.
+@tag run
+@tag PAudioTab
+@alias owner = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] UI event <input>
+- Receive the run event from Action through its current registration @ owner.PAudioTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PAudioPlanSave
+- Continue through the owner callback @ owner.PAudioProcessingRead
+! Registered call path: PAudioPlanSave → LAudio.LAudioDescribe → PAudioProcessingRead
+> output
+
+[output] UI state after the event <output>
+= The run event has completed through the current implementation.
+! Code binding: cs|PMainArea/PAudioTab.cs|PAudioTab|pAction|PActionRun|1

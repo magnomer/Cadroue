@@ -1,0 +1,33 @@
+@format 1
+@id split.section-end-set
+@title Set section end
+@area UI workflow
+@entry input
+@summary Set the selected section end, or create a section ending at the cursor, and synchronize section state.
+@section I. UI
+@tabs Split
+@flow TB
+@related shared.synchronize-sections
+@tag section
+@tag section-end-set
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Core.LSegment
+
+[input] Set section end command <input>
+- Receive the section command in the active Split timeline @ flow.PFlowEndSet(...)
+> validate
+
+[validate] Validate section request <decision>
+- When editing an active section, require a cursor after its start and within the permitted next-section boundary; when no section is active, attempt an end-anchored section creation @ segment.LSegmentEndSet(...)
+? "A valid section plan is produced" > apply
+? "The request cannot produce a valid plan" > unchanged
+
+[apply] Apply section plan <process>
+- Determine whether the operation creates or edits a section @ flow.PFlowEndSet(...)
+- Replace the section list and active selection with the returned plan @ flow.PFlowSectionApply(...)
+- Record the resulting section boundary @ flow.PFlowSectionRecord(...)
+> fragment:shared.synchronize-sections
+
+[unchanged] No change <output>
+=The request does not change the section model.

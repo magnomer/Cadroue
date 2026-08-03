@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.5e36c72ddc64a3c6
+@title Console relay combo — selection changed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PConsole.PConsoleSceneAttach and follow its registered code path.
+@tag selection changed
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the selection changed event from the console relay combo @ owner.PConsoleSceneAttach
+> route
+
+[route] Registered handler path <process>
+- Handle console select @ owner.PConsoleSelectHandle
+- Evaluate the handler's implemented conditional branches @ owner.PConsoleSelectHandle
+- Update the visual or selection state owned by the handler @ owner.PConsoleSelectHandle
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|SelectionChanged|1

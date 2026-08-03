@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.fa454bf007174e14
+@title List — path change
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PMainArea/PAudioTab.cs|PAudioTab|pList|PListPathChange|1
+@entry input
+@summary Handle the path change event emitted by List through the exact route registered in PAudioTab.PAudioTab.
+@tag path change
+@tag PAudioTab
+@alias owner = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] UI event <input>
+- Receive the path change event from List through its current registration @ owner.PAudioTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PAudioPathShow
+! Registered call path: PAudioPathShow
+> output
+
+[output] UI state after the event <output>
+= The path change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PAudioTab.cs|PAudioTab|pList|PListPathChange|1

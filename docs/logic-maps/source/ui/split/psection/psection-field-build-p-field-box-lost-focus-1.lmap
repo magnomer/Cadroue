@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.eb9a9c4f27629bd5
+@title Field box — lost focus
+@section I. UI
+@area UI event
+@tabs Split
+@event-ref cs|PPanels/PSectionEditor.cs|PSectionFieldBuild|pFieldBox|LostFocus|1
+@entry input
+@summary Handle the lost focus event exposed by PSection.PSectionFieldBuild and follow its registered code path.
+@tag lost focus
+@tag PSection
+@alias owner = Cadroue.UIShell.PPanels.PSection
+
+[input] UI event <input>
+- Receive the lost focus event from the field box @ owner.PSectionFieldBuild
+> route
+
+[route] Registered handler path <process>
+- Close section edit @ owner.PSectionEditClose
+- Check section focus @ owner.PSectionFocusCheck
+- Commit section edit @ owner.PSectionEditCommit
+- Evaluate the handler's implemented conditional branches @ owner.PSectionEditClose
+> output
+
+[output] UI state after the event <output>
+= The lost focus event has completed through the current implementation.
+! Code binding: cs|PPanels/PSectionEditor.cs|PSectionFieldBuild|pFieldBox|LostFocus|1

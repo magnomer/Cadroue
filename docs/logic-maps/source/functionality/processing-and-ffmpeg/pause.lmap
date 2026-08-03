@@ -1,0 +1,24 @@
+@format 1
+@id processing.pause
+@title Pause processing
+@area 5. Processing and FFmpeg
+@entry input
+@summary No new work is claimed; suspendable active processes are paused.
+@section II. Functionality
+@flow TB
+@related processing.run-job
+@tag processing
+@tag pause
+
+@alias runner = Cadroue.ShellEngine.LRunner
+
+[input] Pause processing command <input>
+- Receive the worklist control command @ runner.LRunnerPause(...)
+> apply
+
+[apply] Change runner state <process>
+- Mark the runner inactive and suspend every active FFmpeg process that the operating system accepts @ runner.LRunnerPause(...)
+> result
+
+[result] Runner state changed <output>
+=No new work is claimed; suspendable active processes are paused.

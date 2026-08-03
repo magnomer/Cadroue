@@ -1,0 +1,30 @@
+@format 1
+@id ui-event.e1a8279529559bb9
+@title Poles — selection changed
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorPass.cs|PInspectorPassBuild|pPoles|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PInspector.PInspectorPassBuild and follow its registered code path.
+@tag selection changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the selection changed event from the poles @ owner.PInspectorPassBuild
+> route
+
+[route] Registered handler path <process>
+- Check filter deviation @ owner.PFilterDeviationCheck
+- Read filter values @ owner.PFilterValuesRead
+- Execute filter values match @ owner.PFilterValuesMatch
+- Reset filter custom @ owner.PFilterCustomReset
+- Select filter preset @ owner.PFilterPresetSelect
+- Set filter custom @ owner.PFilterCustomSet
+- Evaluate the handler's implemented conditional branches @ owner.PFilterDeviationCheck
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorPass.cs|PInspectorPassBuild|pPoles|SelectionChanged|1

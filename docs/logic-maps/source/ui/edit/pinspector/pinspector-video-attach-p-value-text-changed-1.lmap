@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.1fb53b821b6445e0
+@title Value — text changed
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorVideo.cs|PInspectorVideoAttach|pValue|TextChanged|1
+@entry input
+@summary Handle the text changed event exposed by PInspector.PInspectorVideoAttach and follow its registered code path.
+@tag text changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the text changed event from the value @ owner.PInspectorVideoAttach
+> route
+
+[route] Registered handler path <process>
+- Read inspector decimal @ owner.PInspectorDecimalRead
+> output
+
+[output] UI state after the event <output>
+= The text changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorVideo.cs|PInspectorVideoAttach|pValue|TextChanged|1

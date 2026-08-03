@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.2959244b1e3d05e8
+@title Window — preview key down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel, Worklist, Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindow|this|PreviewKeyDown|1
+@entry input
+@summary Handle the preview key down event emitted by Window through the exact route registered in PWindow.PWindow.
+@tag preview key down
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the preview key down event from Window through its current registration @ owner.PWindow
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PShortcutKeyHandle
+! Registered call path: PShortcutKeyHandle
+> output
+
+[output] UI state after the event <output>
+= The preview key down event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindow|this|PreviewKeyDown|1

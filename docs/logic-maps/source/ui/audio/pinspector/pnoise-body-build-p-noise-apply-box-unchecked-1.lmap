@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.75fa63ecc1a349b7
+@title Noise apply box — unchecked
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorNoise.cs|PNoiseBodyBuild|pNoiseApplyBox|Unchecked|1
+@entry input
+@summary Handle the unchecked event exposed by PInspector.PNoiseBodyBuild and follow its registered code path.
+@tag unchecked
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the unchecked event from the noise apply box @ owner.PNoiseBodyBuild
+> route
+
+[route] Registered handler path <process>
+- Update noise apply @ owner.PNoiseApplyUpdate
+- Raise inspector active @ owner.PInspectorActiveRaise
+- Update the visual or selection state owned by the handler @ owner.PNoiseApplyUpdate
+> output
+
+[output] UI state after the event <output>
+= The unchecked event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorNoise.cs|PNoiseBodyBuild|pNoiseApplyBox|Unchecked|1

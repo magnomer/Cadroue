@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.ee76658f4fcd4c87
+@title List Active — list minimize change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel, Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindowWidthAttach|pListActive|PListMinimizeChange|1
+@entry input
+@summary Handle the list minimize change event emitted by List Active through the exact route registered in PWindow.PWindowWidthAttach.
+@tag list minimize change
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the list minimize change event from List Active through its current registration @ owner.PWindowWidthAttach
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PWindowListHandle
+! Registered call path: PWindowListHandle
+> output
+
+[output] UI state after the event <output>
+= The list minimize change event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindowWidthAttach|pListActive|PListMinimizeChange|1

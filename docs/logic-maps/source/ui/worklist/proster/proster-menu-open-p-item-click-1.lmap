@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.c5ae70420b461da5
+@title Item — click
+@section I. UI
+@area UI event
+@tabs Worklist
+@event-ref cs|PMainArea/PRosterMenu.cs|PRosterMenuOpen|pItem|Click|1
+@entry input
+@summary Handle the click event exposed by PRoster.PRosterMenuOpen and follow its registered code path.
+@tag click
+@tag PRoster
+@alias owner = Cadroue.UIShell.PMainArea.PRoster
+
+[input] UI event <input>
+- Receive the click event from the item @ owner.PRosterMenuOpen
+> route
+
+[route] Registered handler path <process>
+- Send roster relay @ owner.PRosterRelaySend
+- Evaluate the handler's implemented conditional branches @ owner.PRosterRelaySend
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PMainArea/PRosterMenu.cs|PRosterMenuOpen|pItem|Click|1

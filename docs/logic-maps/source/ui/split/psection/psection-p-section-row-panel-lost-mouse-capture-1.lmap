@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.cb184390a0ba550b
+@title Section row panel — lost mouse capture
+@section I. UI
+@area UI event
+@tabs Split
+@event-ref cs|PPanels/PSection.cs|PSection|pSectionRowPanel|LostMouseCapture|1
+@entry input
+@summary Handle the lost mouse capture event exposed by PSection.PSection and follow its registered code path.
+@tag lost mouse capture
+@tag PSection
+@alias owner = Cadroue.UIShell.PPanels.PSection
+
+[input] UI event <input>
+- Receive the lost mouse capture event from the section row panel @ owner.PSection
+> route
+
+[route] Registered handler path <process>
+- Handle section lost @ owner.PSectionLostHandle
+- Clear section drag @ owner.PSectionDragClear
+- Evaluate the handler's implemented conditional branches @ owner.PSectionLostHandle
+> output
+
+[output] UI state after the event <output>
+= The lost mouse capture event has completed through the current implementation.
+! Code binding: cs|PPanels/PSection.cs|PSection|pSectionRowPanel|LostMouseCapture|1

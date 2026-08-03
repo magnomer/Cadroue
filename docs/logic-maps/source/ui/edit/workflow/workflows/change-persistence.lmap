@@ -1,0 +1,36 @@
+@format 1
+@id edit.change-persistence
+@title Change edit persistent setting
+@area UI workflow
+@entry input
+@summary Change a Crop, tone, or Skip Persistent setting and propagate the carried portion of the current Edit plan to listed sources.
+@section I. UI
+@tabs Edit
+@flow TB
+@related edit.restore-plan, edit.save-plan
+
+@alias inspector = Cadroue.UIShell.PPanels.PInspector
+@alias tab = Cadroue.UIShell.PMainArea.PEditTab
+@alias edit = Cadroue.UIShell.PMainArea.LEdit
+
+[input] Persistent setting changes <input>
+- Publish a Crop-specific persistent-state change @ inspector.PInspectorPersistentRaise(...)
+- Publish any prepared persistent-setting change @ inspector.PInspectorPersistentPrepare(...)
+> guard
+
+[guard] Check whether a carried plan exists <decision>
+- Suppress propagation while plans are restoring or no persistent portion is selected @ tab.PEditPersistentWrite(...)
+? "No carried plan can be formed" > unchanged
+? "A carried plan is available" > propagate
+
+[propagate] Save carried plan for listed sources <storage>
+- Read each source's existing plan and merge the carried Crop, tone, and Skip portions @ edit.LEditPlanRead(...)
+@ edit.LEditPlanResolve(...)
+- Save the merged plan for every listed source @ edit.LEditPlanSave(...)
+> result
+
+[result] Persistent edit state propagated <output>
+= Each listed source receives the selected persistent parts of the current Edit plan.
+
+[unchanged] Propagation suppressed <output>
+= Existing source plans remain unchanged.

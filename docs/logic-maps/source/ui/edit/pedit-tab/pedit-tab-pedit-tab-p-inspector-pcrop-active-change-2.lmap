@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.dab65579504db18e
+@title Inspector — crop active change
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pInspector|PCropActiveChange|2
+@entry input
+@summary Handle the crop active change event emitted by Inspector through the exact route registered in PEditTab.PEditTab.
+@tag crop active change
+@tag PEditTab
+@alias owner = Cadroue.UIShell.PMainArea.PEditTab
+
+[input] UI event <input>
+- Receive the crop active change event from Inspector through its current registration @ owner.PEditTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PEditPlanSave
+! Registered call path: PEditPlanSave
+> output
+
+[output] UI state after the event <output>
+= The crop active change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pInspector|PCropActiveChange|2

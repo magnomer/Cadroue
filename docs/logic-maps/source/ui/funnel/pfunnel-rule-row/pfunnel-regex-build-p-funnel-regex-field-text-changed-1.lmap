@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.02230e87f69e3f07
+@title Funnel regex field — text changed
+@section I. UI
+@area UI event
+@tabs Funnel
+@event-ref cs|PPanels/PFunnelRuleRow.cs|PFunnelRegexBuild|pFunnelRegexField|TextChanged|1
+@entry input
+@summary Handle the text changed event exposed by PFunnelRuleRow.PFunnelRegexBuild and follow its registered code path.
+@tag text changed
+@tag PFunnelRuleRow
+@alias owner = Cadroue.UIShell.PPanels.PFunnelRuleRow
+
+[input] UI event <input>
+- Receive the text changed event from the funnel regex field @ owner.PFunnelRegexBuild
+> route
+
+[route] Registered handler path <process>
+- Update the visual or selection state owned by the handler @ owner.PFunnelRegexBuild
+> output
+
+[output] UI state after the event <output>
+= The text changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PFunnelRuleRow.cs|PFunnelRegexBuild|pFunnelRegexField|TextChanged|1

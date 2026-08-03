@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.9ec60ee641cc8775
+@title Color dot — mouse left button down
+@section I. UI
+@area UI event
+@tabs Split
+@event-ref cs|PPanels/PSection.cs|PSectionRowBuild|pColorDot|MouseLeftButtonDown|1
+@entry input
+@summary Handle the mouse left button down event exposed by PSection.PSectionRowBuild and follow its registered code path.
+@tag mouse left button down
+@tag PSection
+@alias owner = Cadroue.UIShell.PPanels.PSection
+
+[input] UI event <input>
+- Receive the mouse left button down event from the color dot @ owner.PSectionRowBuild
+> route
+
+[route] Registered handler path <process>
+- Clear section drag @ owner.PSectionDragClear
+- Mark the routed event handled on the implemented paths @ owner.PSectionDragClear
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: cs|PPanels/PSection.cs|PSectionRowBuild|pColorDot|MouseLeftButtonDown|1

@@ -1,0 +1,61 @@
+@format 1
+@id processing.source-output-collision
+@title Handle source and output path collision
+@area 5. Processing and FFmpeg
+@entry input
+@summary Trace work creation and collision handling when an output path can equal one of its source paths, including the destructive failure paths under Rename existing and Overwrite.
+@section II. Functionality
+@flow TB
+@related processing.run-job, queue.create-edit-work, queue.create-convert-work, queue.create-audio-work, queue.create-split-work, queue.create-merge-work
+@tag collision
+@tag overwrite
+
+@alias edit = Cadroue.Application.LEdit
+@alias convert = Cadroue.Application.LConvert
+@alias audio = Cadroue.Application.LAudio
+@alias split = Cadroue.Application.LSplit
+@alias merge = Cadroue.Application.LMerge
+@alias job = Cadroue.ShellEngine.LJob
+@alias encode = Cadroue.ShellEngine.LEncode
+
+[input] Work output path is formed <input>
+- Avoid an exact source/output path match by appending an edit suffix for Edit work @ edit.LEditNameCreate(...)
+- Avoid an exact source/output path match by appending a convert suffix for Convert work @ convert.LConvertNameCreate(...)
+- Avoid an exact source/output path match by appending an audio suffix for Audio work @ audio.LAudioNameCreate(...)
+- Create Split names with within-batch uniqueness but without a full-path comparison against the source @ split.LSplitNameCreate(...)
+- Create Merge names with within-batch uniqueness but without comparison against every merge source @ merge.LMergeNameCreate(...)
+> equality
+
+[equality] Does a work item retain equal source and output paths? <decision>
+? "Paths differ" > normal
+? "Output equals a source path" > validate
+
+[validate] Validate stored work independently <process>
+- Confirm that source files exist and that the output path is non-empty without rejecting source/output equality @ job.LJobValidate(...)
+> policy
+
+[policy] Apply selected collision policy <decision>
+- Detect that the target already exists because it is also a source file @ job.LJobCollisionApply(...)
+? "Rename output" > rename-output
+? "Rename existing" > rename-existing
+? "Overwrite" > overwrite
+
+[rename-output] Move output to a free path <process>
+- Resolve a free output name and update the work item's output path @ job.LJobCollisionApply(...)
+> normal
+
+[rename-existing] Move the existing source away <error>
+- Rename the existing target file while leaving the work item's source path unchanged @ job.LJobCollisionApply(...)
+- Build the later FFmpeg command with the now-missing original source path @ encode.LEncodeArgumentBuild(...)
+> broken
+
+[overwrite] Keep identical input and output <error>
+- Leave the equal source and output paths unchanged under Overwrite @ job.LJobCollisionApply(...)
+- Build an FFmpeg command with overwrite enabled and the same path as input and output @ encode.LEncodeHeaderAppend(...)
+> broken
+
+[normal] Continue with distinct paths <output>
+= FFmpeg receives separate source and output paths.
+
+[broken] Processing chain fails <output>
+= The job reaches FFmpeg with either a missing source path or the same file as input and output, so normal completion and relay cannot proceed.

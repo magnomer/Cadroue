@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.3c1b2a6a6a5875b0
+@title Verify — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderVideo.cs|PSVideoPlateBuild|pVerify|Click|1
+@entry input
+@summary Handle the click event exposed by PSEncoder.PSVideoPlateBuild and follow its registered code path.
+@tag click
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the click event from the verify @ owner.PSVideoPlateBuild
+> route
+
+[route] Registered handler path <process>
+- Handle ps codec verify @ owner.PSCodecVerifyHandle
+- Execute ps verdict log record @ owner.PSVerdictLogRecord
+- Evaluate the handler's implemented conditional branches @ owner.PSCodecVerifyHandle
+- Update the visual or selection state owned by the handler @ owner.PSCodecVerifyHandle
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderVideo.cs|PSVideoPlateBuild|pVerify|Click|1

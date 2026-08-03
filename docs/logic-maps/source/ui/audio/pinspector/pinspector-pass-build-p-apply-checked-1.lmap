@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.e1d0c98562db005a
+@title Apply — checked
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorPass.cs|PInspectorPassBuild|pApply|Checked|1
+@entry input
+@summary Handle the checked event exposed by PInspector.PInspectorPassBuild and follow its registered code path.
+@tag checked
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the checked event from the apply @ owner.PInspectorPassBuild
+> route
+
+[route] Registered handler path <process>
+- Update filter apply @ owner.PFilterApplyUpdate
+- Raise inspector active @ owner.PInspectorActiveRaise
+- Update the visual or selection state owned by the handler @ owner.PFilterApplyUpdate
+> output
+
+[output] UI state after the event <output>
+= The checked event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorPass.cs|PInspectorPassBuild|pApply|Checked|1

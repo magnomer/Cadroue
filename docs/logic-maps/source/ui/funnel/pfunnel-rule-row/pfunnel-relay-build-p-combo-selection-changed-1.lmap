@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.3304fc11d9bcb681
+@title Combo — selection changed
+@section I. UI
+@area UI event
+@tabs Funnel
+@event-ref cs|PPanels/PFunnelRuleRow.cs|PFunnelRelayBuild|pCombo|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PFunnelRuleRow.PFunnelRelayBuild and follow its registered code path.
+@tag selection changed
+@tag PFunnelRuleRow
+@alias owner = Cadroue.UIShell.PPanels.PFunnelRuleRow
+
+[input] UI event <input>
+- Receive the selection changed event from the combo @ owner.PFunnelRelayBuild
+> route
+
+[route] Registered handler path <process>
+- Handle funnel relay @ owner.PFunnelRelayHandle
+- Evaluate the handler's implemented conditional branches @ owner.PFunnelRelayHandle
+- Update the visual or selection state owned by the handler @ owner.PFunnelRelayHandle
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PFunnelRuleRow.cs|PFunnelRelayBuild|pCombo|SelectionChanged|1

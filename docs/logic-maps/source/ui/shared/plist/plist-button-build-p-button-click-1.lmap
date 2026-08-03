@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.35b06b355a74d7f9
+@title Button — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PPanels/PList.cs|PListButtonBuild|pButton|Click|1
+@entry input
+@summary Handle the click event exposed by PList.PListButtonBuild and follow its registered code path.
+@tag click
+@tag PList
+@alias owner = Cadroue.UIShell.PPanels.PList
+
+[input] UI event <input>
+- Receive the click event from the button @ owner.PListButtonBuild
+> route
+
+[route] Registered handler path <process>
+- Continue through the implementation owned by the event handler @ owner.PListButtonBuild
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PPanels/PList.cs|PListButtonBuild|pButton|Click|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.a0b880deffb24fd2
+@title Window — preview mouse left button up
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainWindow/PWindowResize.cs|PResizeHandlersAdd|this|PreviewMouseLeftButtonUp|1
+@entry input
+@summary Handle the preview mouse left button up event emitted by Window through the exact route registered in PWindow.PResizeHandlersAdd.
+@tag preview mouse left button up
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the preview mouse left button up event from Window through its current registration @ owner.PResizeHandlersAdd
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PResizeReleaseHandle
+! Registered call path: PResizeReleaseHandle
+> output
+
+[output] UI state after the event <output>
+= The preview mouse left button up event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindowResize.cs|PResizeHandlersAdd|this|PreviewMouseLeftButtonUp|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.493554e16899cf8f
+@title Window — lost mouse capture
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainWindow/PWindowResize.cs|PResizeHandlersAdd|this|LostMouseCapture|1
+@entry input
+@summary Handle the lost mouse capture event emitted by Window through the exact route registered in PWindow.PResizeHandlersAdd.
+@tag lost mouse capture
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the lost mouse capture event from Window through its current registration @ owner.PResizeHandlersAdd
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PResizeCaptureHandle
+! Registered call path: PResizeCaptureHandle
+> output
+
+[output] UI state after the event <output>
+= The lost mouse capture event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindowResize.cs|PResizeHandlersAdd|this|LostMouseCapture|1

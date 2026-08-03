@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.842c967e9088a3d6
+@title S Keymap — closed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSKeymap/PSKeymap.cs|PSKeymap|this|Closed|1
+@entry input
+@summary Handle the closed event emitted by S Keymap through the exact route registered in PSKeymap.PSKeymap.
+@tag closed
+@tag PSKeymap
+@alias owner = Cadroue.UIShell.PSKeymap
+
+[input] UI event <input>
+- Receive the closed event from S Keymap through its current registration @ owner.PSKeymap
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PSKeymapCloseHandle
+! Registered call path: PSKeymapCloseHandle
+> output
+
+[output] UI state after the event <output>
+= The closed event has completed through the current implementation.
+! Code binding: cs|PSKeymap/PSKeymap.cs|PSKeymap|this|Closed|1

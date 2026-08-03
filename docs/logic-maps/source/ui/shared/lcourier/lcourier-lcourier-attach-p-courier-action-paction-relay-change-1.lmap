@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.0795241517017f9d
+@title Courier Action — action relay change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PMainArea/LCourier.cs|LCourierAttach|pCourierAction|PActionRelayChange|1
+@entry input
+@summary Handle the action relay change event emitted by Courier Action through the exact route registered in LCourier.LCourierAttach.
+@tag action relay change
+@tag LCourier
+@alias owner = Cadroue.UIShell.PMainArea.LCourier
+
+[input] UI event <input>
+- Receive the action relay change event from Courier Action through its current registration @ owner.LCourierAttach
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.LCourierTargetSet
+- Continue through the owner callback @ owner.LCourierTargetRead
+! Registered call path: LCourierTargetSet → pCourierAction.PActionRelayApply → LCourierTargetRead
+> output
+
+[output] UI state after the event <output>
+= The action relay change event has completed through the current implementation.
+! Code binding: cs|PMainArea/LCourier.cs|LCourierAttach|pCourierAction|PActionRelayChange|1

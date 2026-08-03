@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.eb49058366c0ef63
+@title Console relay combo — mouse enter
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|MouseEnter|1
+@entry input
+@summary Handle the mouse enter event exposed by PConsole.PConsoleSceneAttach and follow its registered code path.
+@tag mouse enter
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the mouse enter event from the console relay combo @ owner.PConsoleSceneAttach
+> route
+
+[route] Registered handler path <process>
+- Handle console drop @ owner.PConsoleDropHandle
+- Update console mark @ owner.PConsoleMarkUpdate
+> output
+
+[output] UI state after the event <output>
+= The mouse enter event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|MouseEnter|1

@@ -1,0 +1,31 @@
+@format 1
+@id export.load-presets
+@title Import preset
+@area UI workflow
+@entry input
+@summary Read one selected preset JSON file, assign it a collision-free name, persist it, and select it.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge
+@flow TB
+@related export.save-presets
+
+@alias export = Cadroue.UIShell.PPanels.PExport
+
+[input] Import presets requested <input>
+- Show an open-file dialog for preset JSON @ export.PExportPresetLoad(...)
+> read
+
+[read] Read preset file <decision>
+- Parse and validate the selected preset file @ export.PExportPresetLoad(...)
+? "File is invalid or unreadable" > failed
+? "A valid preset is read" > merge
+
+[merge] Store imported preset <process>
+- Resolve a unique name, copy the imported state, persist it, select it, and refresh the summary @ export.PExportPresetLoad(...)
+> result
+
+[result] Preset imported <output>
+= The imported preset is selected under its resolved unique name.
+
+[failed] Import failed <error>
+= Existing presets remain authoritative.

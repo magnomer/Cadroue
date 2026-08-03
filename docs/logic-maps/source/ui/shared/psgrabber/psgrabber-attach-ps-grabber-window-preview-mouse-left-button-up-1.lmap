@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.9da7a5fd86d9ece6
+@title Grabber window — preview mouse left button up
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Global interface
+@event-ref cs|PSShared/PSGrabber.cs|PSGrabberAttach|psGrabberWindow|PreviewMouseLeftButtonUp|1
+@entry input
+@summary Handle the preview mouse left button up event exposed by PSGrabber.PSGrabberAttach and follow its registered code path.
+@tag preview mouse left button up
+@tag PSGrabber
+@alias owner = Cadroue.UIShell.PSShared.PSGrabber
+
+[input] UI event <input>
+- Receive the preview mouse left button up event from the grabber window @ owner.PSGrabberAttach
+> route
+
+[route] Registered handler path <process>
+- Handle ps grabber release @ owner.PSGrabberReleaseHandle
+- Evaluate the handler's implemented conditional branches @ owner.PSGrabberReleaseHandle
+- Mark the routed event handled on the implemented paths @ owner.PSGrabberReleaseHandle
+> output
+
+[output] UI state after the event <output>
+= The preview mouse left button up event has completed through the current implementation.
+! Code binding: cs|PSShared/PSGrabber.cs|PSGrabberAttach|psGrabberWindow|PreviewMouseLeftButtonUp|1

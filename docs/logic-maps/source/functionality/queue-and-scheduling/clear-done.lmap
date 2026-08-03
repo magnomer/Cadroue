@@ -1,0 +1,31 @@
+@format 1
+@id queue.clear-done
+@title Clear completed work
+@area 4. Queue and scheduling
+@entry input
+@summary Confirm and remove durable completed work records from the shared schedule.
+@section II. Functionality
+@flow TB
+@related queue.clear-all
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias schedule = Cadroue.Infrastructure.LSchedule
+
+[input] Clear Done requested <input>
+- Receive the Clear Done command @ console.PConsoleDoneHandle(...)
+> confirm
+
+[confirm] Confirm removal <decision>
+- Apply the destructive-action confirmation preference @ console.PConsoleDestructiveConfirm(...)
+? "Removal is declined" > unchanged
+? "Removal proceeds" > clear
+
+[clear] Remove completed records <storage>
+- Delete durable done records and reload schedule state @ schedule.LScheduleDoneClear(...)
+> result
+
+[result] Completed work cleared <output>
+= Completed work records no longer appear in the shared schedule.
+
+[unchanged] Schedule unchanged <output>
+= No record is removed.

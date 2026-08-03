@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.e0bc8e79201d6ebe
+@title Keyframe Request Timer — tick
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PFlow/PFlow.cs|PFlow|lKeyframeRequestTimer|Tick|1
+@entry input
+@summary Handle the tick event emitted by Keyframe Request Timer through the exact route registered in PFlow.PFlow.
+@tag tick
+@tag PFlow
+@alias owner = Cadroue.UIShell.PFlow.PFlow
+
+[input] UI event <input>
+- Receive the tick event from Keyframe Request Timer through its current registration @ owner.PFlow
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PFlowTimerHandle
+! Registered call path: PFlowTimerHandle
+> output
+
+[output] UI state after the event <output>
+= The tick event has completed through the current implementation.
+! Code binding: cs|PFlow/PFlow.cs|PFlow|lKeyframeRequestTimer|Tick|1

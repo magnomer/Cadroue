@@ -1,0 +1,30 @@
+@format 1
+@id ui-event.533510d9c4cecbf4
+@title Rotate combo — selection changed
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorCropUi.cs|PInspectorRotateBuild|pRotateCombo|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PInspector.PInspectorRotateBuild and follow its registered code path.
+@tag selection changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the selection changed event from the rotate combo @ owner.PInspectorRotateBuild
+> route
+
+[route] Registered handler path <process>
+- Update inspector ratio @ owner.PInspectorRatioUpdate
+- Read inspector number @ owner.PInspectorNumberRead
+- Show inspector notice @ owner.PInspectorNoticeShow
+- Format inspector ratio @ owner.PInspectorRatioFormat
+- Read inspector even @ owner.PInspectorEvenRead
+- Evaluate the handler's implemented conditional branches @ owner.PInspectorRatioUpdate
+- Update the visual or selection state owned by the handler @ owner.PInspectorRatioUpdate
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorCropUi.cs|PInspectorRotateBuild|pRotateCombo|SelectionChanged|1

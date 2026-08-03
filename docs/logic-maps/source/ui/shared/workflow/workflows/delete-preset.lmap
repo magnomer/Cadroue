@@ -1,0 +1,31 @@
+@format 1
+@id export.delete-preset
+@title Delete export preset
+@area UI workflow
+@entry input
+@summary Remove one selected custom export preset while protecting native presets, then select the first surviving preset.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge
+@flow TB
+@related export.add-preset
+
+@alias export = Cadroue.UIShell.PPanels.PExport
+
+[input] Delete requested <input>
+- Receive the selected preset's Delete command @ export.PExportPresetDelete(...)
+> eligible
+
+[eligible] Check preset kind <decision>
+- Reject deletion of native presets @ export.PExportPresetDelete(...)
+? "No preset is selected or the preset is native" > unchanged
+? "Selected custom preset can be deleted" > remove
+
+[remove] Remove preset <process>
+- Delete the custom preset, load the first surviving preset when possible, and refresh the summary @ export.PExportPresetDelete(...)
+> result
+
+[result] Preset deleted <output>
+= The custom preset is no longer available.
+
+[unchanged] Preset retained <output>
+= Preset collection is unchanged.

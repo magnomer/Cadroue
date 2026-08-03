@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.a0aa9426e966e614
+@title Tabset Tabset Records — collection changed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PDeck.xaml.cs|PDeckTabsetSet|lTabset.PTabsetRecords|CollectionChanged|1
+@entry input
+@summary Handle the collection changed event emitted by Tabset Tabset Records through the exact route registered in PDeck.PDeckTabsetSet.
+@tag collection changed
+@tag PDeck
+@alias owner = Cadroue.UIShell.PMainArea.PDeck
+
+[input] UI event <input>
+- Receive the collection changed event from Tabset Tabset Records through its current registration @ owner.PDeckTabsetSet
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PDeckRecordsHandle
+! Registered call path: PDeckRecordsHandle
+> output
+
+[output] UI state after the event <output>
+= The collection changed event has completed through the current implementation.
+! Code binding: cs|PMainArea/PDeck.xaml.cs|PDeckTabsetSet|lTabset.PTabsetRecords|CollectionChanged|1

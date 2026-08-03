@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.d775c8862a22e1bf
+@title Action — items add
+@section I. UI
+@area UI event
+@tabs Convert
+@event-ref cs|PMainArea/PConvertTab.cs|PConvertTab|pAction|PActionItemsAdd|1
+@entry input
+@summary Handle the items add event emitted by Action through the exact route registered in PConvertTab.PConvertTab.
+@tag items add
+@tag PConvertTab
+@alias owner = Cadroue.UIShell.PMainArea.PConvertTab
+
+[input] UI event <input>
+- Receive the items add event from Action through its current registration @ owner.PConvertTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.LWorkSource
+! Registered call path: LConvert.LConvertDescribe → pList.PListItemsRead → Where → pConvertPaths.Contains → Select → LWorkSource → ToArray
+> output
+
+[output] UI state after the event <output>
+= The items add event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConvertTab.cs|PConvertTab|pAction|PActionItemsAdd|1

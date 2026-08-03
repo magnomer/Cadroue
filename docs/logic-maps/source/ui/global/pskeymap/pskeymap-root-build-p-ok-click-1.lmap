@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.505a5cdde9c35cf5
+@title Ok — click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSKeymap/PSKeymap.cs|PSKeymapRootBuild|pOk|Click|1
+@entry input
+@summary Handle the click event exposed by PSKeymap.PSKeymapRootBuild and follow its registered code path.
+@tag click
+@tag PSKeymap
+@alias owner = Cadroue.UIShell.PSKeymap
+
+[input] UI event <input>
+- Receive the click event from the ok @ owner.PSKeymapRootBuild
+> route
+
+[route] Registered handler path <process>
+- Apply ps keymap @ owner.PSKeymapApply
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSKeymap/PSKeymap.cs|PSKeymapRootBuild|pOk|Click|1

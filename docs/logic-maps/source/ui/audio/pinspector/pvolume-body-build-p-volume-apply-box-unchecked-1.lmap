@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.3620cd67b2c93bc7
+@title Volume apply box — unchecked
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorVolume.cs|PVolumeBodyBuild|pVolumeApplyBox|Unchecked|1
+@entry input
+@summary Handle the unchecked event exposed by PInspector.PVolumeBodyBuild and follow its registered code path.
+@tag unchecked
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the unchecked event from the volume apply box @ owner.PVolumeBodyBuild
+> route
+
+[route] Registered handler path <process>
+- Update volume apply @ owner.PVolumeApplyUpdate
+- Raise inspector active @ owner.PInspectorActiveRaise
+- Update the visual or selection state owned by the handler @ owner.PVolumeApplyUpdate
+> output
+
+[output] UI state after the event <output>
+= The unchecked event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorVolume.cs|PVolumeBodyBuild|pVolumeApplyBox|Unchecked|1

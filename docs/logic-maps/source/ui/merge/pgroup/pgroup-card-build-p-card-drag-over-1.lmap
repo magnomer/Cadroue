@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.f79b8ac643df323a
+@title Card — drag over
+@section I. UI
+@area UI event
+@tabs Merge
+@event-ref cs|PPanels/PGroup.cs|PGroupCardBuild|pCard|DragOver|1
+@entry input
+@summary Handle the drag over event exposed by PGroup.PGroupCardBuild and follow its registered code path.
+@tag drag over
+@tag PGroup
+@alias owner = Cadroue.UIShell.PPanels.PGroup
+
+[input] UI event <input>
+- Receive the drag over event from the card @ owner.PGroupCardBuild
+> route
+
+[route] Registered handler path <process>
+- Handle group over @ owner.PGroupOverHandle
+- Mark the routed event handled on the implemented paths @ owner.PGroupOverHandle
+> output
+
+[output] UI state after the event <output>
+= The drag over event has completed through the current implementation.
+! Code binding: cs|PPanels/PGroup.cs|PGroupCardBuild|pCard|DragOver|1

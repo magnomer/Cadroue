@@ -1,0 +1,39 @@
+@format 1
+@id processing.complete
+@title Complete processing
+@area 5. Processing and FFmpeg
+@entry input
+@summary Commit a finished job as done or failed, reload observable state, apply failure-pausing policy, and clean temporary resources.
+@section II. Functionality
+@flow TB
+@related processing.run-job, relay.deliver-output
+@tag processing
+@tag completion
+
+@alias job = Cadroue.ShellEngine.LJob
+@alias schedule = Cadroue.Infrastructure.LSchedule
+@alias runner = Cadroue.ShellEngine.LRunner
+
+[input] Job reaches a final result <input>
+- Receive final FFmpeg status and collected output metadata @ job.LJobRun(...)
+> commit
+
+[commit] Commit final state <decision>
+- Set finish time, sizes, media metadata, progress, state, and message @ job.LJobRun(...)
+- Move the running record to done or failed storage @ schedule.LScheduleCommit(...)
+- Save final record details and reload the schedule @ schedule.LScheduleCommit(...)
+? "Job succeeded" > done
+? "Job failed" > failed
+
+[done] Successful result <process>
+= Output metadata is visible and the durable work record is done.
+> cleanup
+
+[failed] Failed result <process>
+- Pause the queue when failure-pausing is enabled @ runner.LRunnerFailureApply(...)
+> cleanup
+
+[cleanup] Release job resources <output>
+- Remove process and live-item registrations and stop lease renewal @ job.LJobRun(...) / finally
+- Remove temporary stage files @ job.LJobTempClear(...)
+= Job-owned runtime resources are released; the durable record remains done or failed.

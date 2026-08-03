@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.ecf271e4e239fa80
+@title Number box — preview text input
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderOutput.cs|PSNameOperatorBuild|psNumberBox|PreviewTextInput|1
+@entry input
+@summary Handle the preview text input event exposed by PSEncoder.PSNameOperatorBuild and follow its registered code path.
+@tag preview text input
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the preview text input event from the number box @ owner.PSNameOperatorBuild
+> route
+
+[route] Registered handler path <process>
+- Check ps name digits @ owner.PSNameDigitsCheck
+- Evaluate the handler's implemented conditional branches @ owner.PSNameDigitsCheck
+- Mark the routed event handled on the implemented paths @ owner.PSNameDigitsCheck
+> output
+
+[output] UI state after the event <output>
+= The preview text input event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderOutput.cs|PSNameOperatorBuild|psNumberBox|PreviewTextInput|1

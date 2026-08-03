@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.a7808eacb41c48ed
+@title Chip — click
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PSVerdict/PSVerdict.cs|PSVerdictRowBuild|pChip|Click|1
+@entry input
+@summary Handle the click event exposed by PSVerdict.PSVerdictRowBuild and follow its registered code path.
+@tag click
+@tag PSVerdict
+@alias owner = Cadroue.UIShell.PSVerdict
+
+[input] UI event <input>
+- Receive the click event from the chip @ owner.PSVerdictRowBuild
+> route
+
+[route] Registered handler path <process>
+- Execute ps verdict chip text @ owner.PSVerdictChipText
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSVerdict/PSVerdict.cs|PSVerdictRowBuild|pChip|Click|1

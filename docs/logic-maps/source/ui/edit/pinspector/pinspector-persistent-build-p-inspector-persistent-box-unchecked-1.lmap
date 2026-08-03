@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.214714bfc14545b6
+@title Inspector persistent box — unchecked
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorCropUi.cs|PInspectorPersistentBuild|pInspectorPersistentBox|Unchecked|1
+@entry input
+@summary Handle the unchecked event exposed by PInspector.PInspectorPersistentBuild and follow its registered code path.
+@tag unchecked
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the unchecked event from the inspector persistent box @ owner.PInspectorPersistentBuild
+> route
+
+[route] Registered handler path <process>
+- Raise inspector persistent @ owner.PInspectorPersistentRaise
+> output
+
+[output] UI state after the event <output>
+= The unchecked event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorCropUi.cs|PInspectorPersistentBuild|pInspectorPersistentBox|Unchecked|1

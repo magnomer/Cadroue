@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.7fe90ed8ec07d347
+@title Row — mouse enter
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsTimeline.cs|PSSpectrumRowBuild|pRow|MouseEnter|1
+@entry input
+@summary Handle the mouse enter event exposed by PSOptions.PSSpectrumRowBuild and follow its registered code path.
+@tag mouse enter
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the mouse enter event from the row @ owner.PSSpectrumRowBuild
+> route
+
+[route] Registered handler path <process>
+- Apply ps spectrum hover @ owner.PSSpectrumHoverApply
+- Evaluate the handler's implemented conditional branches @ owner.PSSpectrumHoverApply
+- Update the visual or selection state owned by the handler @ owner.PSSpectrumHoverApply
+> output
+
+[output] UI state after the event <output>
+= The mouse enter event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsTimeline.cs|PSSpectrumRowBuild|pRow|MouseEnter|1

@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.4e03ea85666cf1ef
+@title Box — checked
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainWindow/PPicker.cs|PPickerPopupBuild|pBox|Checked|1
+@entry input
+@summary Handle the checked event exposed by PPicker.PPickerPopupBuild and follow its registered code path.
+@tag checked
+@tag PPicker
+@alias owner = Cadroue.UIShell.PMainWindow.PPicker
+
+[input] UI event <input>
+- Receive the checked event from the box @ owner.PPickerPopupBuild
+> route
+
+[route] Registered handler path <process>
+- Update picker summary @ owner.PPickerSummaryUpdate
+- Read picker selection @ owner.PPickerSelectionRead
+- Update the visual or selection state owned by the handler @ owner.PPickerSummaryUpdate
+> output
+
+[output] UI state after the event <output>
+= The checked event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PPicker.cs|PPickerPopupBuild|pBox|Checked|1

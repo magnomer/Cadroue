@@ -1,0 +1,24 @@
+@format 1
+@id export.add-preset
+@title Add export preset
+@area UI workflow
+@entry input
+@summary Create and persist a uniquely named custom export preset from the current tab-specific export state.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge
+@flow TB
+@related export.apply-preset, export.delete-preset
+
+@alias export = Cadroue.UIShell.PPanels.PExport
+
+[input] Add preset requested <input>
+- Receive the add-preset command @ export.PExportPresetAdd(...)
+> create
+
+[create] Create custom preset <process>
+- Resolve a unique preset name and assign it to the current export state @ export.PExportPresetAdd(...)
+- Persist the preset, select it, and refresh the export summary @ export.PExportPresetAdd(...)
+> result
+
+[result] Preset added <output>
+= A new persisted custom preset is selected in the tab.

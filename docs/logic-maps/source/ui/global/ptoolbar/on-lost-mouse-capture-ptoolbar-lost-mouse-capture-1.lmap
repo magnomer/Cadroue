@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.58524a673762a9c9
+@title Toolbar — lost mouse capture
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref override|PControlBar/PToolbarTab.cs|OnLostMouseCapture
+@entry input
+@summary Handle the lost mouse capture event exposed by PToolbar.OnLostMouseCapture and follow its registered code path.
+@tag lost mouse capture
+@tag PToolbar
+@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+
+[input] UI event <input>
+- Receive the framework lost mouse capture callback @ owner.OnLostMouseCapture
+> route
+
+[route] Registered handler path <process>
+- Clear tab drag @ owner.PTabDragClear
+> output
+
+[output] UI state after the event <output>
+= The lost mouse capture event has completed through the current implementation.
+! Code binding: override|PControlBar/PToolbarTab.cs|OnLostMouseCapture

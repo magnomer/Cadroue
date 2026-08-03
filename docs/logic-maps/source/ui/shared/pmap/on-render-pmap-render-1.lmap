@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.030b7b8f297d09d0
+@title Map — render
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PMap.cs|OnRender
+@entry input
+@summary Handle the render event exposed by PMap.OnRender and follow its registered code path.
+@tag render
+@tag PMap
+@alias owner = Cadroue.UIShell.PFlow.PMap
+
+[input] UI event <input>
+- Receive the framework render callback @ owner.OnRender
+> route
+
+[route] Registered handler path <process>
+- Draw map content @ owner.PMapContentDraw
+- Evaluate the handler's implemented conditional branches @ owner.OnRender
+> output
+
+[output] UI state after the event <output>
+= The render event has completed through the current implementation.
+! Code binding: override|PFlow/PMap.cs|OnRender

@@ -1,0 +1,25 @@
+@format 1
+@id queue.toggle-automatic
+@title Toggle automatic execution
+@area 4. Queue and scheduling
+@entry input
+@summary Enable or disable automatic execution for the active station and persist the preference.
+@section II. Functionality
+@flow TB
+@related processing.start, processing.stop
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias preference = Cadroue.UIShell.LPreference
+
+[input] Automatic checkbox changes <input>
+- Receive the automatic-execution checkbox state @ console.PConsoleAutoHandle(...)
+> apply
+
+[apply] Apply station state <process>
+- Set automatic execution on the active station @ console.PConsoleAutoHandle(...)
+- Persist the automatic-execution preference @ preference.LPreferenceAutoSet(...)
+- Refresh console status and controls @ console.PConsoleProgressUpdate(...)
+> result
+
+[result] Automatic execution changed <output>
+= The active station and saved preference use the requested automatic state.

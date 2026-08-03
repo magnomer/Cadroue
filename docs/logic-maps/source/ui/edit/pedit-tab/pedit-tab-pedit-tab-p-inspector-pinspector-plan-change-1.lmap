@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.cff9cbbbdbee8cc7
+@title Inspector — plan change
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pInspector|PInspectorPlanChange|1
+@entry input
+@summary Handle the plan change event emitted by Inspector through the exact route registered in PEditTab.PEditTab.
+@tag plan change
+@tag PEditTab
+@alias owner = Cadroue.UIShell.PMainArea.PEditTab
+
+[input] UI event <input>
+- Receive the plan change event from Inspector through its current registration @ owner.PEditTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PEditPersistentWrite
+! Registered call path: PEditPersistentWrite
+> output
+
+[output] UI state after the event <output>
+= The plan change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pInspector|PInspectorPlanChange|1

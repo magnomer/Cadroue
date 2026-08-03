@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.549609f3f3cfbf69
+@title Window — preview mouse down
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsoleScene.cs|PConsoleLoadHandle|pWindow|PreviewMouseDown|1
+@entry input
+@summary Handle the preview mouse down event exposed by PConsole.PConsoleLoadHandle and follow its registered code path.
+@tag preview mouse down
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the preview mouse down event from the window @ owner.PConsoleLoadHandle
+> route
+
+[route] Registered handler path <process>
+- Handle console press @ owner.PConsolePressHandle
+- Check console combo @ owner.PConsoleComboCheck
+- Clear console focus @ owner.PConsoleFocusClear
+- Evaluate the handler's implemented conditional branches @ owner.PConsolePressHandle
+> output
+
+[output] UI state after the event <output>
+= The preview mouse down event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsoleScene.cs|PConsoleLoadHandle|pWindow|PreviewMouseDown|1

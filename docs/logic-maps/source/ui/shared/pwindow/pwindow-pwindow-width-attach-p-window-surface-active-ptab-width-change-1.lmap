@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.6f63534aae3f039a
+@title Window Surface Active — tab width change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel, Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindowWidthAttach|pWindowSurfaceActive|PTabWidthChange|1
+@entry input
+@summary Handle the tab width change event emitted by Window Surface Active through the exact route registered in PWindow.PWindowWidthAttach.
+@tag tab width change
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the tab width change event from Window Surface Active through its current registration @ owner.PWindowWidthAttach
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PWindowWidthHandle
+! Registered call path: PWindowWidthHandle
+> output
+
+[output] UI state after the event <output>
+= The tab width change event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindowWidthAttach|pWindowSurfaceActive|PTabWidthChange|1

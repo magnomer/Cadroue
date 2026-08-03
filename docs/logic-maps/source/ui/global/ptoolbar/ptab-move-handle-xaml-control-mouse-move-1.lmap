@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.34ce4036b7dc3f6c
+@title Handle tab move — mouse move
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref xaml|PControlBar/PToolbar.xaml|MouseMove|PTabMoveHandle|1
+@entry input
+@summary Handle the mouse move event exposed by PToolbar.PTabMoveHandle and follow its registered code path.
+@tag mouse move
+@tag PToolbar
+@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+
+[input] UI event <input>
+- Dispatch the XAML mouse move event to its named handler @ owner.PTabMoveHandle
+> route
+
+[route] Registered handler path <process>
+- Resolve tab index @ owner.PTabIndexResolve
+- Evaluate the handler's implemented conditional branches @ owner.PTabMoveHandle
+- Mark the routed event handled on the implemented paths @ owner.PTabMoveHandle
+> output
+
+[output] UI state after the event <output>
+= The mouse move event has completed through the current implementation.
+! Code binding: xaml|PControlBar/PToolbar.xaml|MouseMove|PTabMoveHandle|1

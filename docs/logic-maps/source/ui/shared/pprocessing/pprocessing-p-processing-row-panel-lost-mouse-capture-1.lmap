@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.3bd474c99c60842f
+@title Processing row panel — lost mouse capture
+@section I. UI
+@area UI event
+@tabs Edit, Audio
+@event-ref cs|PPanels/PProcessing.cs|PProcessing|pProcessingRowPanel|LostMouseCapture|1
+@entry input
+@summary Handle the lost mouse capture event exposed by PProcessing.PProcessing and follow its registered code path.
+@tag lost mouse capture
+@tag PProcessing
+@alias owner = Cadroue.UIShell.PPanels.PProcessing
+
+[input] UI event <input>
+- Receive the lost mouse capture event from the processing row panel @ owner.PProcessing
+> route
+
+[route] Registered handler path <process>
+- Handle processing lost @ owner.PProcessingLostHandle
+- Clear processing drag @ owner.PProcessingDragClear
+- Evaluate the handler's implemented conditional branches @ owner.PProcessingLostHandle
+> output
+
+[output] UI state after the event <output>
+= The lost mouse capture event has completed through the current implementation.
+! Code binding: cs|PPanels/PProcessing.cs|PProcessing|pProcessingRowPanel|LostMouseCapture|1

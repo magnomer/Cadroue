@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.cce7c99bbdadc183
+@title Monitor Orchestrator — waveform ready
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/LSMonitor.cs|LSMonitor|lMonitorOrchestrator|LWaveformReady|1
+@entry input
+@summary Handle the waveform ready event emitted by Monitor Orchestrator through the exact route registered in LSMonitor.LSMonitor.
+@tag waveform ready
+@tag LSMonitor
+@alias owner = Cadroue.UIShell.PPanels.LSMonitor
+
+[input] UI event <input>
+- Receive the waveform ready event from Monitor Orchestrator through its current registration @ owner.LSMonitor
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.LSMonitorPeaksHandle
+! Registered call path: LSMonitorPeaksHandle
+> output
+
+[output] UI state after the event <output>
+= The waveform ready event has completed through the current implementation.
+! Code binding: cs|PPanels/LSMonitor.cs|LSMonitor|lMonitorOrchestrator|LWaveformReady|1

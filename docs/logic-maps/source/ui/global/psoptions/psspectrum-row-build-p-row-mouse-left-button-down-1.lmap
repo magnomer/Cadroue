@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.ebdc2a2e9e344b67
+@title Row — mouse left button down
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsTimeline.cs|PSSpectrumRowBuild|pRow|MouseLeftButtonDown|1
+@entry input
+@summary Handle the mouse left button down event exposed by PSOptions.PSSpectrumRowBuild and follow its registered code path.
+@tag mouse left button down
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the mouse left button down event from the row @ owner.PSSpectrumRowBuild
+> route
+
+[route] Registered handler path <process>
+- Select ps spectrum @ owner.PSSpectrumSelect
+- Apply ps spectrum active @ owner.PSSpectrumActiveApply
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsTimeline.cs|PSSpectrumRowBuild|pRow|MouseLeftButtonDown|1

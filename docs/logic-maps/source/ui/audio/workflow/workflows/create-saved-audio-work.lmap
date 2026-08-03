@@ -1,0 +1,35 @@
+@format 1
+@id queue.create-saved-audio-work
+@title Create audio work from saved plans
+@area UI workflow
+@entry input
+@summary Create audio jobs only for listed sources with active saved sidecar plans while retaining relay batches.
+@section I. UI
+@tabs Audio
+@flow TB
+@related queue.create-audio-work, audio.restore-plan
+
+@alias ui = Cadroue.UIShell.PMainArea.LAudio
+@alias audio = Cadroue.Application.LAudio
+@alias schedule = Cadroue.Infrastructure.LSchedule
+
+[input] Add All audio request <input>
+- Receive listed sources, priority, preset, and relay routing @ ui.LAudioAllDescribe(...)
+> plans
+
+[plans] Select active plans <decision>
+- Read the saved audio plan for each listed source @ ui.LAudioPlanRead(...)
+- Skip sources whose saved plan is absent or inactive @ ui.LAudioAllDescribe(...)
+? "No active plan remains" > rejected
+? "At least one active plan remains" > build
+
+[build] Build and persist jobs <storage>
+- Create an audio item per active plan and retain or assign its relay batch @ audio.LAudioItemCreate(...)
+- Add all built items with relay lineage @ schedule.LScheduleAdd(...)
+> result
+
+[result] Saved audio plans queued <output>
+= Listed sources with active saved plans become pending audio work.
+
+[rejected] Nothing queued <output>
+= Sources without active audio plans remain unchanged.

@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.0084c20649c70d22
+@title Number box — preview text input
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorCropUi.cs|PInspectorNumberBuild|pNumberBox|PreviewTextInput|1
+@entry input
+@summary Handle the preview text input event exposed by PInspector.PInspectorNumberBuild and follow its registered code path.
+@tag preview text input
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the preview text input event from the number box @ owner.PInspectorNumberBuild
+> route
+
+[route] Registered handler path <process>
+- Mark the routed event handled on the implemented paths @ owner.PInspectorNumberBuild
+> output
+
+[output] UI state after the event <output>
+= The preview text input event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorCropUi.cs|PInspectorNumberBuild|pNumberBox|PreviewTextInput|1

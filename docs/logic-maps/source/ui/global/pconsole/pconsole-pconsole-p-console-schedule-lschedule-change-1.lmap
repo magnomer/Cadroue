@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.b40a477fa30d010a
+@title Console Schedule — schedule change
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsole.cs|PConsole|pConsoleSchedule|LScheduleChange|1
+@entry input
+@summary Handle the schedule change event emitted by Console Schedule through the exact route registered in PConsole.PConsole.
+@tag schedule change
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the schedule change event from Console Schedule through its current registration @ owner.PConsole
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PConsoleScheduleHandle
+! Registered call path: PConsoleScheduleHandle
+> output
+
+[output] UI state after the event <output>
+= The schedule change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsole.cs|PConsole|pConsoleSchedule|LScheduleChange|1

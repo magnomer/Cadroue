@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.ad1c6206394be478
+@title Drag area — mouse left button down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Global interface
+@event-ref cs|PSShared/PSCasement.cs|PSCasementOverlayBuild|pDragArea|MouseLeftButtonDown|1
+@entry input
+@summary Handle the mouse left button down event exposed by PSCasement.PSCasementOverlayBuild and follow its registered code path.
+@tag mouse left button down
+@tag PSCasement
+@alias owner = Cadroue.UIShell.PSShared.PSCasement
+
+[input] UI event <input>
+- Receive the mouse left button down event from the drag area @ owner.PSCasementOverlayBuild
+> route
+
+[route] Registered handler path <process>
+- Handle ps casement drag @ owner.PSCasementDragHandle
+- Toggle ps casement maximize @ owner.PSCasementMaximizeToggle
+- Evaluate the handler's implemented conditional branches @ owner.PSCasementDragHandle
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: cs|PSShared/PSCasement.cs|PSCasementOverlayBuild|pDragArea|MouseLeftButtonDown|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.13be23704825d637
+@title Task Scheduler — unobserved task exception
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|App.xaml.cs|OnStartup|TaskScheduler|UnobservedTaskException|1
+@entry input
+@summary Handle the unobserved task exception event emitted by Task Scheduler through the exact route registered in PProgram.OnStartup.
+@tag unobserved task exception
+@tag PProgram
+@alias owner = Cadroue.UIShell.PProgram
+
+[input] UI event <input>
+- Receive the unobserved task exception event from Task Scheduler through its current registration @ owner.OnStartup
+> route
+
+[route] Registered handler path <process>
+- Execute the registered delegate without substituting a different route @ owner.OnStartup
+! Registered call path: LTraceLog.LTraceErrorRecord → pEvent.SetObserved
+> output
+
+[output] UI state after the event <output>
+= The unobserved task exception event has completed through the current implementation.
+! Code binding: cs|App.xaml.cs|OnStartup|TaskScheduler|UnobservedTaskException|1

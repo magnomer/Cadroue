@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.d86bfb411f7e7a79
+@title Console relay combo — drop down closed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|DropDownClosed|1
+@entry input
+@summary Handle the drop down closed event exposed by PConsole.PConsoleSceneAttach and follow its registered code path.
+@tag drop down closed
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the drop down closed event from the console relay combo @ owner.PConsoleSceneAttach
+> route
+
+[route] Registered handler path <process>
+- Handle console close @ owner.PConsoleCloseHandle
+- Update console scene @ owner.PConsoleSceneUpdate
+- Load console scene @ owner.PConsoleSceneLoad
+- Evaluate the handler's implemented conditional branches @ owner.PConsoleCloseHandle
+> output
+
+[output] UI state after the event <output>
+= The drop down closed event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsoleScene.cs|PConsoleSceneAttach|pConsoleRelayCombo|DropDownClosed|1

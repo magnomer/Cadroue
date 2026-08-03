@@ -1,0 +1,48 @@
+@format 1
+@id queue.claim-work
+@title Claim queued work
+@area 4. Queue and scheduling
+@entry input
+@summary Select the next eligible pending item, move it to running state, and establish ownership and lease data.
+@section II. Functionality
+@flow TB
+@allow-cycle true
+@related processing.run-job
+@tag queue
+@tag claim
+@tag lease
+
+@alias schedule = Cadroue.Infrastructure.LSchedule
+@alias store = Cadroue.Infrastructure.LScheduleStore
+
+[input] Worker requests work <input>
+- Request the next item for a runner identity @ schedule.LScheduleClaim(...)
+> order
+
+[order] Order candidates <process>
+- Read all scheduled work records @ schedule.LScheduleClaim(...)
+- Order high-priority work first and then by creation time @ schedule.LScheduleClaim(...)
+> candidate
+
+[candidate] Check next candidate <decision>
+- Apply the cohort gate to the candidate batch @ schedule.LScheduleClaim(...)
+? "Candidate cohort is eligible" > move
+? "Candidate cohort is held" > candidate [loop]
+? "No candidates remain" > none
+
+[move] Acquire running-file claim <decision>
+- Move the record from scheduled to running storage @ store.LScheduleMove(...)
+? "Move succeeds" > own
+? "Another process wins or move fails" > candidate [loop]
+
+[own] Establish ownership <storage>
+- Set running state, process identity, runner identity, lease time, phase, and attempt count @ schedule.LScheduleClaim(...)
+- Save the owned record in running storage @ store.LScheduleRecordSave(...)
+- Register the live running item and record the claim @ schedule.LScheduleClaim(...)
+> claimed
+
+[claimed] Work claimed <output>
+= The caller receives one running work item after its file move. If ownership metadata cannot be saved, the claim remains runnable but may be reclaimed after lease expiry.
+
+[none] No claim <output>
+= The caller receives no work item.

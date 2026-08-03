@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.088b39f2a6086945
+@title ps Monitor Source — s monitor ready
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PSMonitor.cs|PSMonitor|psMonitorSource|LSMonitorReady|1
+@entry input
+@summary Handle the s monitor ready event emitted by ps Monitor Source through the exact route registered in PSMonitor.PSMonitor.
+@tag s monitor ready
+@tag PSMonitor
+@alias owner = Cadroue.UIShell.PPanels.PSMonitor
+
+[input] UI event <input>
+- Receive the s monitor ready event from ps Monitor Source through its current registration @ owner.PSMonitor
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PSMonitorReadyHandle
+! Registered call path: PSMonitorReadyHandle
+> output
+
+[output] UI state after the event <output>
+= The s monitor ready event has completed through the current implementation.
+! Code binding: cs|PPanels/PSMonitor.cs|PSMonitor|psMonitorSource|LSMonitorReady|1

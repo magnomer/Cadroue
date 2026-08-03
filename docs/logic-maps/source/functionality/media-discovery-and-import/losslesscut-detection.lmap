@@ -1,0 +1,38 @@
+@format 1
+@id import.losslesscut-detection
+@title Detect adjacent LosslessCut project
+@area 2. Media discovery and import
+@entry input
+@summary Inspect adjacent LosslessCut projects in order and transfer an accepted candidate to the import operation.
+@section II. Functionality
+@flow TB
+@allow-cycle true
+@related import.losslesscut-import
+@tag losslesscut
+@tag detection
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias lossless = Cadroue.Media.LLosslesscut
+
+[input] Media attachment requests adjacent-project detection <input>
+- Begin adjacent LosslessCut discovery for the active media @ flow.PFlowLosslesscutFind(...)
+> discover
+
+[discover] Discover candidates <decision>
+- Find adjacent LosslessCut project files @ lossless.LLosslesscutAdjacentRead(...)
+? "At least one candidate exists" > inspect
+? "No candidate exists" > none
+
+[inspect] Inspect next candidate <decision>
+- Read the candidate project @ lossless.LLosslesscutRead(...)
+- Present its file, version, segment count, and declared media @ flow.PFlowLosslesscutFind(...)
+? "User accepts this candidate" > transfer
+? "User declines and another candidate exists" > inspect [loop]
+? "User declines the last candidate" > none
+? "Candidate read fails" > inspect [loop]
+
+[transfer] Continue with import <output>
+> map:import.losslesscut-import
+
+[none] Detection ends <output>
+= Existing sections are unchanged.

@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.1a6f36f69c70fbc0
+@title Encoder — source initialized
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref override|PPanels/PSEncoder.cs|OnSourceInitialized
+@entry input
+@summary Handle the source initialized event exposed by PSEncoder.OnSourceInitialized and follow its registered code path.
+@tag source initialized
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the framework source initialized callback @ owner.OnSourceInitialized
+> route
+
+[route] Registered handler path <process>
+- Apply ps encoder dwm @ owner.PSEncoderDwmApply
+> output
+
+[output] UI state after the event <output>
+= The source initialized event has completed through the current implementation.
+! Code binding: override|PPanels/PSEncoder.cs|OnSourceInitialized

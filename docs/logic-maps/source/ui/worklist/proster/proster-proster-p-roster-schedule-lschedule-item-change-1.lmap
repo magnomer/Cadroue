@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.e8cf2c58d99f679b
+@title Roster Schedule — schedule item change
+@section I. UI
+@area UI event
+@tabs Worklist
+@event-ref cs|PMainArea/PRoster.cs|PRoster|pRosterSchedule|LScheduleItemChange|1
+@entry input
+@summary Handle the schedule item change event emitted by Roster Schedule through the exact route registered in PRoster.PRoster.
+@tag schedule item change
+@tag PRoster
+@alias owner = Cadroue.UIShell.PMainArea.PRoster
+
+[input] UI event <input>
+- Receive the schedule item change event from Roster Schedule through its current registration @ owner.PRoster
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PRosterItemHandle
+! Registered call path: PRosterItemHandle
+> output
+
+[output] UI state after the event <output>
+= The schedule item change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PRoster.cs|PRoster|pRosterSchedule|LScheduleItemChange|1

@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.9020556f408e8707
+@title Handle tab press — mouse left button down
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref xaml|PControlBar/PToolbar.xaml|MouseLeftButtonDown|PTabPressHandle|1
+@entry input
+@summary Handle the mouse left button down event exposed by PToolbar.PTabPressHandle and follow its registered code path.
+@tag mouse left button down
+@tag PToolbar
+@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+
+[input] UI event <input>
+- Dispatch the XAML mouse left button down event to its named handler @ owner.PTabPressHandle
+> route
+
+[route] Registered handler path <process>
+- Check tab hit @ owner.PTabHitCheck
+- Clear tab drag @ owner.PTabDragClear
+- Evaluate the handler's implemented conditional branches @ owner.PTabPressHandle
+- Mark the routed event handled on the implemented paths @ owner.PTabPressHandle
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: xaml|PControlBar/PToolbar.xaml|MouseLeftButtonDown|PTabPressHandle|1

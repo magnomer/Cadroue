@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.3d6530eb2b8aed67
+@title Keymap chord — click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref override|PSKeymap/PSKeymapChord.cs|OnClick
+@entry input
+@summary Handle the click event exposed by PSKeymapChord.OnClick and follow its registered code path.
+@tag click
+@tag PSKeymapChord
+@alias owner = Cadroue.UIShell.PSKeymapChord
+
+[input] UI event <input>
+- Receive the framework click callback @ owner.OnClick
+> route
+
+[route] Registered handler path <process>
+- Start ps keymap chord @ owner.PSKeymapChordStart
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: override|PSKeymap/PSKeymapChord.cs|OnClick

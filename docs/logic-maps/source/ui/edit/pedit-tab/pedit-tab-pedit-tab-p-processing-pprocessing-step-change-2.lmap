@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.5df208f4ff82e827
+@title Processing — step change
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pProcessing|PProcessingStepChange|2
+@entry input
+@summary Handle the step change event emitted by Processing through the exact route registered in PEditTab.PEditTab.
+@tag step change
+@tag PEditTab
+@alias owner = Cadroue.UIShell.PMainArea.PEditTab
+
+[input] UI event <input>
+- Receive the step change event from Processing through its current registration @ owner.PEditTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PEditStepHandle
+! Registered call path: PEditStepHandle
+> output
+
+[output] UI state after the event <output>
+= The step change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pProcessing|PProcessingStepChange|2

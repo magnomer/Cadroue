@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.0a1d3586dd44989c
+@title Inspector ratio fixed — unchecked
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorCropUi.cs|PCropBodyBuild|pInspectorRatioFixed|Unchecked|1
+@entry input
+@summary Handle the unchecked event exposed by PInspector.PCropBodyBuild and follow its registered code path.
+@tag unchecked
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the unchecked event from the inspector ratio fixed @ owner.PCropBodyBuild
+> route
+
+[route] Registered handler path <process>
+- Commit inspector ratio @ owner.PInspectorRatioCommit
+- Update inspector ratio @ owner.PInspectorRatioUpdate
+- Raise inspector ratio @ owner.PInspectorRatioRaise
+> output
+
+[output] UI state after the event <output>
+= The unchecked event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorCropUi.cs|PCropBodyBuild|pInspectorRatioFixed|Unchecked|1

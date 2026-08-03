@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.150351b0b8f5a602
+@title Video mode combo — selection changed
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderVideo.cs|PSVideoPlateBuild|psVideoModeCombo|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PSEncoder.PSVideoPlateBuild and follow its registered code path.
+@tag selection changed
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the selection changed event from the video mode combo @ owner.PSVideoPlateBuild
+> route
+
+[route] Registered handler path <process>
+- Update ps video scope @ owner.PSVideoScopeUpdate
+- Update the visual or selection state owned by the handler @ owner.PSVideoScopeUpdate
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderVideo.cs|PSVideoPlateBuild|psVideoModeCombo|SelectionChanged|1

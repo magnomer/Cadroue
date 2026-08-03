@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.aaaed17b14288e3c
+@title Open — click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsSystem.cs|PSSystemFlyleafBuild|pOpen|Click|1
+@entry input
+@summary Handle the click event exposed by PSOptions.PSSystemFlyleafBuild and follow its registered code path.
+@tag click
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the click event from the open @ owner.PSSystemFlyleafBuild
+> route
+
+[route] Registered handler path <process>
+- Open ps system folder @ owner.PSSystemFolderOpen
+- Evaluate the handler's implemented conditional branches @ owner.PSSystemFolderOpen
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsSystem.cs|PSSystemFlyleafBuild|pOpen|Click|1

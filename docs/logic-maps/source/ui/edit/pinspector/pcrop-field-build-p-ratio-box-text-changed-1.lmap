@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.319938b8e22d5231
+@title Ratio box — text changed
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorCropUi.cs|PCropFieldBuild|pRatioBox|TextChanged|1
+@entry input
+@summary Handle the text changed event exposed by PInspector.PCropFieldBuild and follow its registered code path.
+@tag text changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the text changed event from the ratio box @ owner.PCropFieldBuild
+> route
+
+[route] Registered handler path <process>
+- Handle crop ratio @ owner.PCropRatioHandle
+- Clear inspector crop @ owner.PInspectorCropClear
+- Raise inspector ratio @ owner.PInspectorRatioRaise
+- Update inspector ratio @ owner.PInspectorRatioUpdate
+- Evaluate the handler's implemented conditional branches @ owner.PCropRatioHandle
+> output
+
+[output] UI state after the event <output>
+= The text changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorCropUi.cs|PCropFieldBuild|pRatioBox|TextChanged|1

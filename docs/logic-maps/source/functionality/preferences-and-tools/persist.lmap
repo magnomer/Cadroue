@@ -1,0 +1,27 @@
+@format 1
+@id preferences.persist
+@title Persist preference change
+@area 8. Preferences and tools
+@entry input
+@summary Coalesce high-frequency preference changes and write the latest normalized preference state after the defer interval.
+@section II. Functionality
+@flow TB
+@related preferences.apply
+
+@alias preference = Cadroue.UIShell.LPreference
+@alias store = Cadroue.Infrastructure.LPreferenceStateStore
+
+[input] Preference setter changes state <input>
+- Update the relevant value in current preference state @ preference.LPreferenceStateSet(...)
+> defer
+
+[defer] Coalesce writes <process>
+- Restart the preference save timer so a burst produces one write @ preference.LPreferenceDefer(...)
+> persist
+
+[persist] Write latest state <storage>
+- Normalize and save the current preference state when the timer expires @ store.LPreferenceStateSave(...)
+> result
+
+[result] Preference durable <output>
+= The latest normalized preference state is available to a future application start.

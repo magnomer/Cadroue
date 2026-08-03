@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.8a39d90b155406fc
+@title Slider — value changed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptions.cs|PSOptionsFieldBuild|pSlider|ValueChanged|1
+@entry input
+@summary Handle the value changed event exposed by PSOptions.PSOptionsFieldBuild and follow its registered code path.
+@tag value changed
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the value changed event from the slider @ owner.PSOptionsFieldBuild
+> route
+
+[route] Registered handler path <process>
+- Format ps options number @ owner.PSOptionsNumberFormat
+> output
+
+[output] UI state after the event <output>
+= The value changed event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptions.cs|PSOptionsFieldBuild|pSlider|ValueChanged|1

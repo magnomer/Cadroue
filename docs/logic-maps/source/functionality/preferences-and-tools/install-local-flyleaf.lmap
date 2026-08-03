@@ -1,0 +1,45 @@
+@format 1
+@id tools.install-local-flyleaf
+@title Install local Flyleaf
+@area 8. Preferences and tools
+@entry input
+@summary Clone or update Flyleaf, patch the contrast shader, build it, and install the resulting runtime for Cadroue.
+@section II. Functionality
+@flow TB
+@related tools.discover-ffmpeg
+
+@alias flyleaf = Cadroue.UIShell.LFlyleaf
+
+[input] Local Flyleaf install requested <input>
+- Start installation in the Cadroue Flyleaf root @ flyleaf.LFlyleafInstallStart(...)
+> source
+
+[source] Prepare source tree <external>
+- Clone Flyleaf when absent, otherwise reset and fast-forward the existing checkout @ flyleaf.LFlyleafCommandRun(...)
+> patch
+
+[patch] Patch and build <external>
+- Find and patch the contrast shader implementation @ flyleaf.LFlyleafShaderFind(...)
+@ flyleaf.LFlyleafShaderApply(...)
+- Locate and build FlyleafLib in Release configuration @ flyleaf.LFlyleafProjectFind(...)
+@ flyleaf.LFlyleafCommandRun(...)
+> install
+
+[install] Install runtime <storage>
+- Copy the built runtime and save its assembly and source locations @ flyleaf.LFlyleafRuntimeCreate(...)
+@ flyleaf.LFlyleafInstallStart(...)
+> outcome
+
+[outcome] Evaluate installation <decision>
+- Convert the completed attempt or caught exception into an installation result @ flyleaf.LFlyleafInstallStart(...)
+? "Every installation step succeeds" > result
+? "Any installation step throws" > failed
+
+[result] Local Flyleaf installed <output>
+= Cadroue can use the recorded local Flyleaf runtime on a subsequent load.
+
+[failed] Installation failed <error>
+- Catch, log, and return the installation failure @ flyleaf.LFlyleafInstallStart(...)
+= Existing runtime state remains authoritative.
+
+! Exceptions from source preparation, patching, building, or runtime creation are caught by the governing install method and represented by the failed outcome.

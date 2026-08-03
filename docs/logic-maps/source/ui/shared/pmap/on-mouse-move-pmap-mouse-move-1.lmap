@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.984af5bd6634f3de
+@title Map — mouse move
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PMapInput.cs|OnMouseMove
+@entry input
+@summary Handle the mouse move event exposed by PMap.OnMouseMove and follow its registered code path.
+@tag mouse move
+@tag PMap
+@alias owner = Cadroue.UIShell.PFlow.PMap
+
+[input] UI event <input>
+- Receive the framework mouse move callback @ owner.OnMouseMove
+> route
+
+[route] Registered handler path <process>
+- Resolve map cursor @ owner.PMapCursorResolve
+- Resolve map ratio @ owner.PMapRatioResolve
+- Evaluate the handler's implemented conditional branches @ owner.OnMouseMove
+- Mark the routed event handled on the implemented paths @ owner.OnMouseMove
+> output
+
+[output] UI state after the event <output>
+= The mouse move event has completed through the current implementation.
+! Code binding: override|PFlow/PMapInput.cs|OnMouseMove

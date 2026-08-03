@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.d514746d99ccc563
+@title Auto box — checked
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsole.cs|PConsoleAutoBuild|pAutoBox|Checked|1
+@entry input
+@summary Handle the checked event exposed by PConsole.PConsoleAutoBuild and follow its registered code path.
+@tag checked
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the checked event from the auto box @ owner.PConsoleAutoBuild
+> route
+
+[route] Registered handler path <process>
+- Handle console auto @ owner.PConsoleAutoHandle
+- Read console station @ owner.PConsoleStationRead
+- Update console progress @ owner.PConsoleProgressUpdate
+- Evaluate the handler's implemented conditional branches @ owner.PConsoleAutoHandle
+> output
+
+[output] UI state after the event <output>
+= The checked event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsole.cs|PConsoleAutoBuild|pAutoBox|Checked|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.b88bb2a14fffca99
+@title System ffmpeg box — text changed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsSystem.cs|PSSystemBuild|psSystemFfmpegBox|TextChanged|1
+@entry input
+@summary Handle the text changed event exposed by PSOptions.PSSystemBuild and follow its registered code path.
+@tag text changed
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the text changed event from the system ffmpeg box @ owner.PSSystemBuild
+> route
+
+[route] Registered handler path <process>
+- Format ps system ffmpeg @ owner.PSSystemFfmpegFormat
+- Evaluate the handler's implemented conditional branches @ owner.PSSystemFfmpegFormat
+> output
+
+[output] UI state after the event <output>
+= The text changed event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsSystem.cs|PSSystemBuild|psSystemFfmpegBox|TextChanged|1

@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.1dabc5350134ee7e
+@title Ffmpeg browse — click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsSystem.cs|PSSystemBuild|pFfmpegBrowse|Click|1
+@entry input
+@summary Handle the click event exposed by PSOptions.PSSystemBuild and follow its registered code path.
+@tag click
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the click event from the ffmpeg browse @ owner.PSSystemBuild
+> route
+
+[route] Registered handler path <process>
+- Read ps system folder @ owner.PSSystemFolderRead
+- Evaluate the handler's implemented conditional branches @ owner.PSSystemFolderRead
+- Update the visual or selection state owned by the handler @ owner.PSSystemFolderRead
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsSystem.cs|PSSystemBuild|pFfmpegBrowse|Click|1

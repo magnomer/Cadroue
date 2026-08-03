@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.a454e0bbdcf9b1a2
+@title Slider — value changed
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorVolume.cs|PInspectorSliderBind|pSlider|ValueChanged|1
+@entry input
+@summary Handle the value changed event exposed by PInspector.PInspectorSliderBind and follow its registered code path.
+@tag value changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the value changed event from the slider @ owner.PInspectorSliderBind
+> route
+
+[route] Registered handler path <process>
+- Evaluate the handler's implemented conditional branches @ owner.PInspectorSliderBind
+- Update the visual or selection state owned by the handler @ owner.PInspectorSliderBind
+> output
+
+[output] UI state after the event <output>
+= The value changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorVolume.cs|PInspectorSliderBind|pSlider|ValueChanged|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.e6c008ad087df9f8
+@title Console Depot Watch — depot change
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PMainArea/PConsoleSchedule.cs|PConsoleDepotAttach|pConsoleDepotWatch|LDepotChange|1
+@entry input
+@summary Handle the depot change event emitted by Console Depot Watch through the exact route registered in PConsole.PConsoleDepotAttach.
+@tag depot change
+@tag PConsole
+@alias owner = Cadroue.UIShell.PMainArea.PConsole
+
+[input] UI event <input>
+- Receive the depot change event from Console Depot Watch through its current registration @ owner.PConsoleDepotAttach
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PConsoleDepotHandle
+! Registered call path: PConsoleDepotHandle
+> output
+
+[output] UI state after the event <output>
+= The depot change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PConsoleSchedule.cs|PConsoleDepotAttach|pConsoleDepotWatch|LDepotChange|1

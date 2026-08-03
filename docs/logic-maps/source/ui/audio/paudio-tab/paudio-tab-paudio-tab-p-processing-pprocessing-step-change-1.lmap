@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.e3f5e3c4eb2dac7c
+@title Processing — step change
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PMainArea/PAudioTab.cs|PAudioTab|pProcessing|PProcessingStepChange|1
+@entry input
+@summary Handle the step change event emitted by Processing through the exact route registered in PAudioTab.PAudioTab.
+@tag step change
+@tag PAudioTab
+@alias owner = Cadroue.UIShell.PMainArea.PAudioTab
+
+[input] UI event <input>
+- Receive the step change event from Processing through its current registration @ owner.PAudioTab
+> route
+
+[route] Registered handler path <process>
+- Execute the registered delegate without substituting a different route @ owner.PAudioTab
+! Registered call path: pInspector.PInspectorStepShow
+> output
+
+[output] UI state after the event <output>
+= The step change event has completed through the current implementation.
+! Code binding: cs|PMainArea/PAudioTab.cs|PAudioTab|pProcessing|PProcessingStepChange|1

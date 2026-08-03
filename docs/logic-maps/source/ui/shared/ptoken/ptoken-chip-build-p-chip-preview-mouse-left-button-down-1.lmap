@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.df83cee1836d6424
+@title Chip — preview mouse left button down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PMainWindow/PToken.cs|PTokenChipBuild|pChip|PreviewMouseLeftButtonDown|1
+@entry input
+@summary Handle the preview mouse left button down event exposed by PToken.PTokenChipBuild and follow its registered code path.
+@tag preview mouse left button down
+@tag PToken
+@alias owner = Cadroue.UIShell.PMainWindow.PToken
+
+[input] UI event <input>
+- Receive the preview mouse left button down event from the chip @ owner.PTokenChipBuild
+> route
+
+[route] Registered handler path <process>
+- Update the visual or selection state owned by the handler @ owner.PTokenChipBuild
+> output
+
+[output] UI state after the event <output>
+= The preview mouse left button down event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PToken.cs|PTokenChipBuild|pChip|PreviewMouseLeftButtonDown|1

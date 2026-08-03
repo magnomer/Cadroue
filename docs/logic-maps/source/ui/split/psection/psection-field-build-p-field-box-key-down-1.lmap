@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.5a99a04bb91ba485
+@title Field box — key down
+@section I. UI
+@area UI event
+@tabs Split
+@event-ref cs|PPanels/PSectionEditor.cs|PSectionFieldBuild|pFieldBox|KeyDown|1
+@entry input
+@summary Handle the key down event exposed by PSection.PSectionFieldBuild and follow its registered code path.
+@tag key down
+@tag PSection
+@alias owner = Cadroue.UIShell.PPanels.PSection
+
+[input] UI event <input>
+- Receive the key down event from the field box @ owner.PSectionFieldBuild
+> route
+
+[route] Registered handler path <process>
+- Commit section edit @ owner.PSectionEditCommit
+- Rebuild section @ owner.PSectionRebuild
+- Evaluate the handler's implemented conditional branches @ owner.PSectionEditCommit
+- Mark the routed event handled on the implemented paths @ owner.PSectionEditCommit
+> output
+
+[output] UI state after the event <output>
+= The key down event has completed through the current implementation.
+! Code binding: cs|PPanels/PSectionEditor.cs|PSectionFieldBuild|pFieldBox|KeyDown|1

@@ -1,0 +1,23 @@
+@format 1
+@id merge.remove-file
+@title Remove file from merge group
+@area UI workflow
+@entry input
+@summary Remove one source from one merge group while retaining the group even when it becomes empty.
+@section I. UI
+@tabs Merge
+@flow TB
+@related merge.remove-group
+
+@alias group = Cadroue.UIShell.PPanels.PGroup
+
+[input] Group file removal requested <input>
+- Receive the remove command for a group source row @ group.PGroupItemRemove(...)
+> remove
+
+[remove] Remove membership <process>
+- Remove the source from its group and rebuild group cards @ group.PGroupItemRemove(...)
+> result
+
+[result] Group source removed <output>
+= The source no longer participates in that merge group; an empty group remains until separately removed.

@@ -1,0 +1,30 @@
+@format 1
+@id ui-event.63d9e7720087e918
+@title Card — drop
+@section I. UI
+@area UI event
+@tabs Merge
+@event-ref cs|PPanels/PGroup.cs|PGroupCardBuild|pCard|Drop|1
+@entry input
+@summary Handle the drop event exposed by PGroup.PGroupCardBuild and follow its registered code path.
+@tag drop
+@tag PGroup
+@alias owner = Cadroue.UIShell.PPanels.PGroup
+
+[input] UI event <input>
+- Receive the drop event from the card @ owner.PGroupCardBuild
+> route
+
+[route] Registered handler path <process>
+- Handle group card @ owner.PGroupCardHandle
+- Resolve group insert @ owner.PGroupInsertResolve
+- Execute group path insert @ owner.PGroupPathInsert
+- Read group paths @ owner.PGroupPathsRead
+- Rebuild group @ owner.PGroupRebuild
+- Evaluate the handler's implemented conditional branches @ owner.PGroupCardHandle
+- Mark the routed event handled on the implemented paths @ owner.PGroupCardHandle
+> output
+
+[output] UI state after the event <output>
+= The drop event has completed through the current implementation.
+! Code binding: cs|PPanels/PGroup.cs|PGroupCardBuild|pCard|Drop|1

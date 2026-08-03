@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.1762505da63fce76
+@title Condition — funnel condition change
+@section I. UI
+@area UI event
+@tabs Funnel
+@event-ref cs|PPanels/PFunnelRuleRow.cs|PFunnelRuleRow|pCondition|PFunnelConditionChange|1
+@entry input
+@summary Handle the funnel condition change event emitted by Condition through the exact route registered in PFunnelRuleRow.PFunnelRuleRow.
+@tag funnel condition change
+@tag PFunnelRuleRow
+@alias owner = Cadroue.UIShell.PPanels.PFunnelRuleRow
+
+[input] UI event <input>
+- Receive the funnel condition change event from Condition through its current registration @ owner.PFunnelRuleRow
+> route
+
+[route] Registered handler path <process>
+- Execute the registered delegate without substituting a different route @ owner.PFunnelRuleRow
+! Registered call path: Invoke
+> output
+
+[output] UI state after the event <output>
+= The funnel condition change event has completed through the current implementation.
+! Code binding: cs|PPanels/PFunnelRuleRow.cs|PFunnelRuleRow|pCondition|PFunnelConditionChange|1

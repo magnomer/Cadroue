@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.0965671f83f35d2b
+@title Location combo — selection changed
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PSEncoderOutput.cs|PSLocationFieldBuild|psLocationCombo|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PSEncoder.PSLocationFieldBuild and follow its registered code path.
+@tag selection changed
+@tag PSEncoder
+@alias owner = Cadroue.UIShell.PPanels.PSEncoder
+
+[input] UI event <input>
+- Receive the selection changed event from the location combo @ owner.PSLocationFieldBuild
+> route
+
+[route] Registered handler path <process>
+- Handle ps location change @ owner.PSLocationChangeHandle
+- Update ps location folder @ owner.PSLocationFolderUpdate
+- Evaluate the handler's implemented conditional branches @ owner.PSLocationChangeHandle
+- Update the visual or selection state owned by the handler @ owner.PSLocationChangeHandle
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PSEncoderOutput.cs|PSLocationFieldBuild|psLocationCombo|SelectionChanged|1

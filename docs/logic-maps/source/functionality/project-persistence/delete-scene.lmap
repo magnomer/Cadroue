@@ -1,0 +1,24 @@
+@format 1
+@id project.delete-scene
+@title Delete named scene
+@area 7. Project persistence
+@entry input
+@summary Show the current scene-preset controls and the missing UI route to the existing persistent deletion method.
+@section II. Functionality
+@flow TB
+@related project.save-scene, project.load-scene, project.import-scene, project.export-scene
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias scene = Cadroue.Infrastructure.LScene
+
+[input] Scene controls are attached <input>
+- Attach Save, Export, Import, selection, and dropdown handlers to the scene-preset controls @ console.PConsoleSceneAttach(...)
+> capability
+
+[capability] Is a delete action exposed? <decision>
+- Build and attach no delete button, dropdown-row removal command, or deletion event handler @ console.PConsoleSceneAttach(...)
+? "Available current controls" > unavailable
+
+[unavailable] Deletion cannot be requested <error>
+- Keep the persistent deletion operation unreachable from the current scene-preset UI @ scene.LSceneDelete(...)
+= A named scene can be saved, loaded, imported, and exported, but it cannot be removed through the interface.

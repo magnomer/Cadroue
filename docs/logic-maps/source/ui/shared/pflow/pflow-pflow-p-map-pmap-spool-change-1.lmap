@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.45fa33cdf2ceeace
+@title Map — spool change
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PFlow/PFlow.cs|PFlow|pMap|PMapSpoolChange|1
+@entry input
+@summary Handle the spool change event emitted by Map through the exact route registered in PFlow.PFlow.
+@tag spool change
+@tag PFlow
+@alias owner = Cadroue.UIShell.PFlow.PFlow
+
+[input] UI event <input>
+- Receive the spool change event from Map through its current registration @ owner.PFlow
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PFlowSpoolHandle
+! Registered call path: PFlowSpoolHandle
+> output
+
+[output] UI state after the event <output>
+= The spool change event has completed through the current implementation.
+! Code binding: cs|PFlow/PFlow.cs|PFlow|pMap|PMapSpoolChange|1

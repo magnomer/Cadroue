@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.8cb67f4530b9f65e
+@title Workspace clear — click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsSystem.cs|PSSystemBuild|pWorkspaceClear|Click|1
+@entry input
+@summary Handle the click event exposed by PSOptions.PSSystemBuild and follow its registered code path.
+@tag click
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the click event from the workspace clear @ owner.PSSystemBuild
+> route
+
+[route] Registered handler path <process>
+- Clear ps workspace @ owner.PSWorkspaceClear
+- Update ps workspace size @ owner.PSWorkspaceSizeUpdate
+- Evaluate the handler's implemented conditional branches @ owner.PSWorkspaceClear
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsSystem.cs|PSSystemBuild|pWorkspaceClear|Click|1

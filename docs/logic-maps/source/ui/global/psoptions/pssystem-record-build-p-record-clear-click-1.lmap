@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.41506837088870b1
+@title Record clear — click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsSystem.cs|PSSystemRecordBuild|pRecordClear|Click|1
+@entry input
+@summary Handle the click event exposed by PSOptions.PSSystemRecordBuild and follow its registered code path.
+@tag click
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the click event from the record clear @ owner.PSSystemRecordBuild
+> route
+
+[route] Registered handler path <process>
+- Clear ps system record @ owner.PSSystemRecordClear
+- Update ps workspace size @ owner.PSWorkspaceSizeUpdate
+- Evaluate the handler's implemented conditional branches @ owner.PSSystemRecordClear
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsSystem.cs|PSSystemRecordBuild|pRecordClear|Click|1

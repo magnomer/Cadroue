@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.5949566752f73a48
+@title Flow Active — flow pause
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel, Global interface
+@event-ref cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pFlowActive|PFlowPause|1
+@entry input
+@summary Handle the flow pause event emitted by Flow Active through the exact route registered in PWindow.PWindowWorkspaceAttach.
+@tag flow pause
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the flow pause event from Flow Active through its current registration @ owner.PWindowWorkspaceAttach
+> route
+
+[route] Registered handler path <process>
+- Execute the registered delegate without substituting a different route @ owner.PWindowWorkspaceAttach
+! Registered call path: pViewerActive.PViewerPause
+> output
+
+[output] UI state after the event <output>
+= The flow pause event has completed through the current implementation.
+! Code binding: cs|PMainWindow/PWindow.xaml.cs|PWindowWorkspaceAttach|pFlowActive|PFlowPause|1

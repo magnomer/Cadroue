@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.262760c3d8bda35c
+@title Workspace open — click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsSystem.cs|PSSystemBuild|pWorkspaceOpen|Click|1
+@entry input
+@summary Handle the click event exposed by PSOptions.PSSystemBuild and follow its registered code path.
+@tag click
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the click event from the workspace open @ owner.PSSystemBuild
+> route
+
+[route] Registered handler path <process>
+- Open ps system folder @ owner.PSSystemFolderOpen
+- Evaluate the handler's implemented conditional branches @ owner.PSSystemFolderOpen
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsSystem.cs|PSSystemBuild|pWorkspaceOpen|Click|1

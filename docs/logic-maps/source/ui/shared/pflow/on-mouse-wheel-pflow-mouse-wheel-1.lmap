@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.dbf46a1f0bafb251
+@title Flow — mouse wheel
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PFlow.cs|OnMouseWheel
+@entry input
+@summary Handle the mouse wheel event exposed by PFlow.OnMouseWheel and follow its registered code path.
+@tag mouse wheel
+@tag PFlow
+@alias owner = Cadroue.UIShell.PFlow.PFlow
+
+[input] UI event <input>
+- Receive the framework mouse wheel callback @ owner.OnMouseWheel
+> route
+
+[route] Registered handler path <process>
+- Execute flow wheel zoom @ owner.PFlowWheelZoom
+- Raise flow volume @ owner.PFlowVolumeRaise
+- Execute flow wheel seek @ owner.PFlowWheelSeek
+- Evaluate the handler's implemented conditional branches @ owner.OnMouseWheel
+- Mark the routed event handled on the implemented paths @ owner.OnMouseWheel
+> output
+
+[output] UI state after the event <output>
+= The mouse wheel event has completed through the current implementation.
+! Code binding: override|PFlow/PFlow.cs|OnMouseWheel

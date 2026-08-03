@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.05b68e55389aa9d7
+@title Roster — is visible changed
+@section I. UI
+@area UI event
+@tabs Worklist
+@event-ref cs|PMainArea/PRoster.cs|PRoster|this|IsVisibleChanged|1
+@entry input
+@summary Handle the is visible changed event emitted by Roster through the exact route registered in PRoster.PRoster.
+@tag is visible changed
+@tag PRoster
+@alias owner = Cadroue.UIShell.PMainArea.PRoster
+
+[input] UI event <input>
+- Receive the is visible changed event from Roster through its current registration @ owner.PRoster
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PRosterVisibleHandle
+! Registered call path: PRosterVisibleHandle
+> output
+
+[output] UI state after the event <output>
+= The is visible changed event has completed through the current implementation.
+! Code binding: cs|PMainArea/PRoster.cs|PRoster|this|IsVisibleChanged|1

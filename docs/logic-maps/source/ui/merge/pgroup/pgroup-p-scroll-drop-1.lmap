@@ -1,0 +1,29 @@
+@format 1
+@id ui-event.c7a52730017ffac8
+@title Scroll — drop
+@section I. UI
+@area UI event
+@tabs Merge
+@event-ref cs|PPanels/PGroup.cs|PGroup|pScroll|Drop|1
+@entry input
+@summary Handle the drop event exposed by PGroup.PGroup and follow its registered code path.
+@tag drop
+@tag PGroup
+@alias owner = Cadroue.UIShell.PPanels.PGroup
+
+[input] UI event <input>
+- Receive the drop event from the scroll @ owner.PGroup
+> route
+
+[route] Registered handler path <process>
+- Handle group drop @ owner.PGroupDropHandle
+- Read group paths @ owner.PGroupPathsRead
+- Execute group path insert @ owner.PGroupPathInsert
+- Rebuild group @ owner.PGroupRebuild
+- Evaluate the handler's implemented conditional branches @ owner.PGroupDropHandle
+- Mark the routed event handled on the implemented paths @ owner.PGroupDropHandle
+> output
+
+[output] UI state after the event <output>
+= The drop event has completed through the current implementation.
+! Code binding: cs|PPanels/PGroup.cs|PGroup|pScroll|Drop|1

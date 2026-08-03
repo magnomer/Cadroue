@@ -1,0 +1,32 @@
+@format 1
+@id export.commit-modifications
+@title Commit preset modifications
+@area UI workflow
+@entry input
+@summary Copy current tab-specific output modifications back into the selected custom preset.
+@section I. UI
+@tabs Split, Edit, Convert, Audio, Merge
+@flow TB
+@related export.restore-modifications, export.edit-preset
+
+@alias export = Cadroue.UIShell.PPanels.PExport
+
+[input] Commit modifications requested <input>
+- Receive the modified preset's confirmation command @ export.PExportModificationApply(...)
+> eligible
+
+[eligible] Check mutability <decision>
+- Reject modification of a native preset @ export.PExportModificationApply(...)
+? "Selected preset is native" > unchanged
+? "Selected custom preset is writable" > commit
+
+[commit] Update preset <process>
+- Replace the custom preset with current tab-specific export state @ export.PExportModificationApply(...)
+- Refresh the rows and clear modified indication through the export summary update @ export.PExportSummaryUpdate(...)
+> result
+
+[result] Preset updated <output>
+= The selected custom preset contains the current output settings.
+
+[unchanged] Preset unchanged <output>
+= Native preset data is not overwritten.

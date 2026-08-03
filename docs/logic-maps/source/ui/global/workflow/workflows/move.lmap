@@ -1,0 +1,32 @@
+@format 1
+@id tabs.move
+@title Move tab
+@area UI workflow
+@entry input
+@summary Reorder one tab by dragging it to a resolved insertion index.
+@section I. UI
+@tabs Global interface
+@flow TB
+@related tabs.select
+
+@alias toolbar = Cadroue.UIShell.PControlBar.PToolbar
+@alias tabset = Cadroue.UIShell.PControlBar.LTabset
+
+[input] Tab drag begins <input>
+- Capture the pressed tab and drag origin @ toolbar.PTabPressHandle(...)
+> track
+
+[track] Resolve insertion <decision>
+- Activate dragging after threshold and resolve the target index @ toolbar.PTabMoveHandle(...)
+? "Target index is unchanged" > unchanged
+? "A different insertion index is reached" > reorder
+
+[reorder] Reorder tab <process>
+- Move the record in the tab set and update derived titles @ tabset.LTabsetMove(...)
+> result
+
+[result] Tab moved <output>
+= Visible and persisted tab order use the new index.
+
+[unchanged] Order unchanged <output>
+= The tab remains at its current index.

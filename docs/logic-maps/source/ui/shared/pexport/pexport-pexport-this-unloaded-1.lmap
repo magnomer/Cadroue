@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.634eb473ff72e1cb
+@title Export — unloaded
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge
+@event-ref cs|PPanels/PExportSummary.cs|PExport|this|Unloaded|1
+@entry input
+@summary Handle the unloaded event emitted by Export through the exact route registered in PExport.PExport.
+@tag unloaded
+@tag PExport
+@alias owner = Cadroue.UIShell.PPanels.PExport
+
+[input] UI event <input>
+- Receive the unloaded event from Export through its current registration @ owner.PExport
+> route
+
+[route] Registered handler path <process>
+- Execute the registered delegate without substituting a different route @ owner.PExport
+! Registered call path: (_, _) => LPreset.LPresetStoreChange -= PExportPresetSync
+> output
+
+[output] UI state after the event <output>
+= The unloaded event has completed through the current implementation.
+! Code binding: cs|PPanels/PExportSummary.cs|PExport|this|Unloaded|1

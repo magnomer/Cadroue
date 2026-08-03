@@ -1,0 +1,29 @@
+@format 1
+@id ui-event.615c9727a54479d1
+@title Canvas — size changed
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PSMonitor.cs|PSMonitorRailBuild|psCanvas|SizeChanged|1
+@entry input
+@summary Handle the size changed event exposed by PSMonitor.PSMonitorRailBuild and follow its registered code path.
+@tag size changed
+@tag PSMonitor
+@alias owner = Cadroue.UIShell.PPanels.PSMonitor
+
+[input] UI event <input>
+- Receive the size changed event from the canvas @ owner.PSMonitorRailBuild
+> route
+
+[route] Registered handler path <process>
+- Draw ps monitor envelope @ owner.PSMonitorEnvelopeDraw
+- Draw ps monitor axis @ owner.PSMonitorAxisDraw
+- Read ps monitor level @ owner.PSMonitorLevelRead
+- Read ps monitor column @ owner.PSMonitorColumnRead
+- Evaluate the handler's implemented conditional branches @ owner.PSMonitorEnvelopeDraw
+- Update the visual or selection state owned by the handler @ owner.PSMonitorEnvelopeDraw
+> output
+
+[output] UI state after the event <output>
+= The size changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PSMonitor.cs|PSMonitorRailBuild|psCanvas|SizeChanged|1

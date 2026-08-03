@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.f2d0271631b5c251
+@title List — items add
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pList|PListItemsAdd|1
+@entry input
+@summary Handle the items add event emitted by List through the exact route registered in PEditTab.PEditTab.
+@tag items add
+@tag PEditTab
+@alias owner = Cadroue.UIShell.PMainArea.PEditTab
+
+[input] UI event <input>
+- Receive the items add event from List through its current registration @ owner.PEditTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PEditItemsHandle
+! Registered call path: PEditItemsHandle
+> output
+
+[output] UI state after the event <output>
+= The items add event has completed through the current implementation.
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pList|PListItemsAdd|1

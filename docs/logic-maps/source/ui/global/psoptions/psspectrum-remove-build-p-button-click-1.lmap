@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.8b00c4d86ffd0208
+@title Button — click
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PSOptions/PSOptionsTimeline.cs|PSSpectrumRemoveBuild|pButton|Click|1
+@entry input
+@summary Handle the click event exposed by PSOptions.PSSpectrumRemoveBuild and follow its registered code path.
+@tag click
+@tag PSOptions
+@alias owner = Cadroue.UIShell.PSOptions
+
+[input] UI event <input>
+- Receive the click event from the button @ owner.PSSpectrumRemoveBuild
+> route
+
+[route] Registered handler path <process>
+- Remove ps spectrum @ owner.PSSpectrumRemove
+- Build ps spectrum list @ owner.PSSpectrumListBuild
+- Evaluate the handler's implemented conditional branches @ owner.PSSpectrumRemove
+- Mark the routed event handled on the implemented paths @ owner.PSSpectrumRemove
+> output
+
+[output] UI state after the event <output>
+= The click event has completed through the current implementation.
+! Code binding: cs|PSOptions/PSOptionsTimeline.cs|PSSpectrumRemoveBuild|pButton|Click|1

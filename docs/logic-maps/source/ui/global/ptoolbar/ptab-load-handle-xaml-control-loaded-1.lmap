@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.bab66489bae1b2df
+@title Handle tab load — loaded
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref xaml|PControlBar/PToolbar.xaml|Loaded|PTabLoadHandle|1
+@entry input
+@summary Handle the loaded event exposed by PToolbar.PTabLoadHandle and follow its registered code path.
+@tag loaded
+@tag PToolbar
+@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+
+[input] UI event <input>
+- Dispatch the XAML loaded event to its named handler @ owner.PTabLoadHandle
+> route
+
+[route] Registered handler path <process>
+- Check tab inside @ owner.PTabInsideCheck
+- Commit tab name @ owner.PTabNameCommit
+- Evaluate the handler's implemented conditional branches @ owner.PTabLoadHandle
+> output
+
+[output] UI state after the event <output>
+= The loaded event has completed through the current implementation.
+! Code binding: xaml|PControlBar/PToolbar.xaml|Loaded|PTabLoadHandle|1

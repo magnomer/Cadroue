@@ -1,0 +1,73 @@
+@format 1
+@id relay.deliver-output
+@title Deliver completed output
+@area 6. Relay and routing
+@entry input
+@summary Deliver a completed output, optionally drain its source tab, and show how an inactive source tab can retain flow sections after its file and viewer are removed.
+@section II. Functionality
+@flow TB
+@related processing.complete, queue.clear-tabs, relay.receive-tab
+@tag relay
+@tag delivery
+
+@alias courier = Cadroue.UIShell.PMainArea.LCourier
+@alias list = Cadroue.UIShell.PPanels.PList
+@alias group = Cadroue.UIShell.PPanels.PGroup
+@alias surface = Cadroue.UIShell.PMainArea.PTabSurface
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+@alias window = Cadroue.UIShell.PMainWindow.PWindow
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+
+[input] Schedule change after completion <input>
+- Scan done work owned by this process for undelivered relay targets @ courier.LCourierDispatch(...)
+> target
+
+[target] Resolve delivery target <decision>
+? "Finish target" > finish
+? "Output exists and destination tab is available" > add
+? "Output or destination is unavailable" > skipped
+
+[finish] Finish relay chain <process>
+- Record chain completion and force source removal @ courier.LCourierOutputAdd(...)
+> drain
+
+[add] Add output to destination <process>
+- Add the output path to the destination list with its batch cohort @ list.PListPathsAdd(...)
+> drain
+
+[drain] Should source inputs be removed? <decision>
+- Apply the force flag, relay-empty preference, source-tab identity, and source-tab availability checks @ courier.LCourierSourceRemove(...)
+? "Source removal is disabled or impossible" > arrive
+? "Source removal proceeds" > remove
+
+[remove] Remove source containers <process>
+- Remove the delivered source and merge-source paths from the source list @ list.PListPathsRemove(...)
+- Remove matching paths from the source group container @ group.PGroupPathsRemove(...)
+- Close the source viewer when the removed list entry is its loaded media @ surface.PTabViewerAttach(...)
+- Raise an empty-media notification after the viewer closes @ viewer.PViewerMediaClose(...)
+> active
+
+[active] Is the source workspace active? <decision>
+- The window media handler is attached only to the active viewer @ window.PWindowWorkspaceAttach(...)
+? "Source viewer is active" > flow-clear
+? "Source viewer is inactive" > retained
+
+[flow-clear] Clear active source flow <process>
+- Receive the empty-media notification and clear the active flow state @ window.PWindowMediaHandle(...)
+- Remove its source, spool, sections, keyframes, and waveform state @ flow.PFlowClear(...)
+> arrive
+
+[retained] Inactive source flow remains <error>
+- Leave the inactive source flow unchanged because no window media handler is subscribed to that viewer @ window.PWindowWorkspaceDetach(...)
+> arrive
+
+[arrive] Continue downstream relay <process>
+- Invoke automatic downstream action when enabled @ courier.LCourierArrive(...)
+> result
+
+[skipped] Delivery skipped <error>
+- Record the missing output or destination @ courier.LCourierOutputAdd(...)
+= The completed work remains done but is not delivered.
+
+[result] Delivery complete <output>
+= The destination receives the output, while an inactive drained source tab can still display sections belonging to the removed media.

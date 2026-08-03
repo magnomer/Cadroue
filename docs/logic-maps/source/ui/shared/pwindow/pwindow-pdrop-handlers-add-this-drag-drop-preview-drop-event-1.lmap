@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.60df5b87fabc3ac7
+@title Window — drag drop preview drop
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel, Global interface
+@event-ref addhandler|PMainWindow/PWindowDrop.cs|PDropHandlersAdd|this|DragDrop.PreviewDropEvent|PDropHandle|1
+@entry input
+@summary Handle the drag drop preview drop event emitted by Window through the exact route registered in PWindow.PDropHandlersAdd.
+@tag drag drop preview drop
+@tag PWindow
+@alias owner = Cadroue.UIShell.PMainWindow.PWindow
+
+[input] UI event <input>
+- Receive the drag drop preview drop event from Window through its current registration @ owner.PDropHandlersAdd
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PDropHandle
+> output
+
+[output] UI state after the event <output>
+= The drag drop preview drop event has completed through the current implementation.
+! Code binding: addhandler|PMainWindow/PWindowDrop.cs|PDropHandlersAdd|this|DragDrop.PreviewDropEvent|PDropHandle|1

@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.66672fee61e69da9
+@title Action — run
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PMainArea/PEditTab.cs|PEditTab|pAction|PActionRun|1
+@entry input
+@summary Handle the run event emitted by Action through the exact route registered in PEditTab.PEditTab.
+@tag run
+@tag PEditTab
+@alias owner = Cadroue.UIShell.PMainArea.PEditTab
+
+[input] UI event <input>
+- Receive the run event from Action through its current registration @ owner.PEditTab
+> route
+
+[route] Registered handler path <process>
+- Invoke the registered owner handler @ owner.PEditVideoRead
+! Registered call path: LEdit.LEditDescribe → pViewer.PViewerDurationRead → pInspector.PSkipActiveCheck → LWorkCrop.LWorkCropCreate → pInspector.PInspectorCropRead → LWorkVideo.LWorkVideoCreate → PEditVideoRead
+> output
+
+[output] UI state after the event <output>
+= The run event has completed through the current implementation.
+! Code binding: cs|PMainArea/PEditTab.cs|PEditTab|pAction|PActionRun|1

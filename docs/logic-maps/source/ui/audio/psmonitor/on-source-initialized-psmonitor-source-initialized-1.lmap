@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.c00ca1c129909e39
+@title Monitor — source initialized
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref override|PPanels/PSMonitor.cs|OnSourceInitialized
+@entry input
+@summary Handle the source initialized event exposed by PSMonitor.OnSourceInitialized and follow its registered code path.
+@tag source initialized
+@tag PSMonitor
+@alias owner = Cadroue.UIShell.PPanels.PSMonitor
+
+[input] UI event <input>
+- Receive the framework source initialized callback @ owner.OnSourceInitialized
+> route
+
+[route] Registered handler path <process>
+- Continue through the implementation owned by the event handler @ owner.OnSourceInitialized
+> output
+
+[output] UI state after the event <output>
+= The source initialized event has completed through the current implementation.
+! Code binding: override|PPanels/PSMonitor.cs|OnSourceInitialized

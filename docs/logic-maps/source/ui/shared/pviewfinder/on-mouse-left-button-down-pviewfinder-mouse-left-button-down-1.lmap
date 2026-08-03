@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.1aee64c130326f2a
+@title Viewfinder — mouse left button down
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PViewfinderInput.cs|OnMouseLeftButtonDown
+@entry input
+@summary Handle the mouse left button down event exposed by PViewfinder.OnMouseLeftButtonDown and follow its registered code path.
+@tag mouse left button down
+@tag PViewfinder
+@alias owner = Cadroue.UIShell.PFlow.PViewfinder
+
+[input] UI event <input>
+- Receive the framework mouse left button down callback @ owner.OnMouseLeftButtonDown
+> route
+
+[route] Registered handler path <process>
+- Resolve viewfinder position @ owner.PViewfinderPositionResolve
+- Execute viewfinder select propagate @ owner.PViewfinderSelectPropagate
+- Evaluate the handler's implemented conditional branches @ owner.OnMouseLeftButtonDown
+- Mark the routed event handled on the implemented paths @ owner.OnMouseLeftButtonDown
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: override|PFlow/PViewfinderInput.cs|OnMouseLeftButtonDown

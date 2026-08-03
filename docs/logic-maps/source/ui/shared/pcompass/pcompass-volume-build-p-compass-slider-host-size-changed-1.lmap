@@ -1,0 +1,25 @@
+@format 1
+@id ui-event.4f397bef659baeb1
+@title Compass slider host — size changed
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref cs|PMainArea/PCompass.cs|PCompassVolumeBuild|pCompassSliderHost|SizeChanged|1
+@entry input
+@summary Handle the size changed event exposed by PCompass.PCompassVolumeBuild and follow its registered code path.
+@tag size changed
+@tag PCompass
+@alias owner = Cadroue.UIShell.PMainArea.PCompass
+
+[input] UI event <input>
+- Receive the size changed event from the compass slider host @ owner.PCompassVolumeBuild
+> route
+
+[route] Registered handler path <process>
+- Update compass track @ owner.PCompassTrackUpdate
+- Evaluate the handler's implemented conditional branches @ owner.PCompassTrackUpdate
+> output
+
+[output] UI state after the event <output>
+= The size changed event has completed through the current implementation.
+! Code binding: cs|PMainArea/PCompass.cs|PCompassVolumeBuild|pCompassSliderHost|SizeChanged|1

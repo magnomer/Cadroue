@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.93d013330f531097
+@title Log category combo — selection changed
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref cs|PLog/PLogFeed.cs|PLogCategoryBuild|pLogCategoryCombo|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PLogWindow.PLogCategoryBuild and follow its registered code path.
+@tag selection changed
+@tag PLogWindow
+@alias owner = Cadroue.UIShell.PLogWindow
+
+[input] UI event <input>
+- Receive the selection changed event from the log category combo @ owner.PLogCategoryBuild
+> route
+
+[route] Registered handler path <process>
+- Apply log rows @ owner.PLogRowsApply
+- Read log category @ owner.PLogCategoryRead
+- Execute log feed scroll @ owner.PLogFeedScroll
+- Evaluate the handler's implemented conditional branches @ owner.PLogRowsApply
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PLog/PLogFeed.cs|PLogCategoryBuild|pLogCategoryCombo|SelectionChanged|1

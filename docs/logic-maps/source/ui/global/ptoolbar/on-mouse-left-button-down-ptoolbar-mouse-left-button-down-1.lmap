@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.2b1db2413efdfd3d
+@title Toolbar — mouse left button down
+@section I. UI
+@area UI event
+@tabs Global interface
+@event-ref override|PControlBar/PToolbarChrome.cs|OnMouseLeftButtonDown
+@entry input
+@summary Handle the mouse left button down event exposed by PToolbar.OnMouseLeftButtonDown and follow its registered code path.
+@tag mouse left button down
+@tag PToolbar
+@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+
+[input] UI event <input>
+- Receive the framework mouse left button down callback @ owner.OnMouseLeftButtonDown
+> route
+
+[route] Registered handler path <process>
+- Execute toolbar button find @ owner.PToolbarButtonFind
+- Execute toolbar tab find @ owner.PToolbarTabFind
+- Toggle chrome maximize @ owner.PChromeMaximizeToggle
+- Evaluate the handler's implemented conditional branches @ owner.OnMouseLeftButtonDown
+- Mark the routed event handled on the implemented paths @ owner.OnMouseLeftButtonDown
+> output
+
+[output] UI state after the event <output>
+= The mouse left button down event has completed through the current implementation.
+! Code binding: override|PControlBar/PToolbarChrome.cs|OnMouseLeftButtonDown

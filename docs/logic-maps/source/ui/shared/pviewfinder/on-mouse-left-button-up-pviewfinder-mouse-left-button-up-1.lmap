@@ -1,0 +1,26 @@
+@format 1
+@id ui-event.87fc56d07aa7be1a
+@title Viewfinder — mouse left button up
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PViewfinderInput.cs|OnMouseLeftButtonUp
+@entry input
+@summary Handle the mouse left button up event exposed by PViewfinder.OnMouseLeftButtonUp and follow its registered code path.
+@tag mouse left button up
+@tag PViewfinder
+@alias owner = Cadroue.UIShell.PFlow.PViewfinder
+
+[input] UI event <input>
+- Receive the framework mouse left button up callback @ owner.OnMouseLeftButtonUp
+> route
+
+[route] Registered handler path <process>
+- Clear viewfinder drag @ owner.PViewfinderDragClear
+- Evaluate the handler's implemented conditional branches @ owner.OnMouseLeftButtonUp
+- Mark the routed event handled on the implemented paths @ owner.OnMouseLeftButtonUp
+> output
+
+[output] UI state after the event <output>
+= The mouse left button up event has completed through the current implementation.
+! Code binding: override|PFlow/PViewfinderInput.cs|OnMouseLeftButtonUp

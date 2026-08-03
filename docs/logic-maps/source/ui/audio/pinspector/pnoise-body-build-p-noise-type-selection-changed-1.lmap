@@ -1,0 +1,29 @@
+@format 1
+@id ui-event.d26584ec11852fc1
+@title Noise type — selection changed
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorNoise.cs|PNoiseBodyBuild|pNoiseType|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PInspector.PNoiseBodyBuild and follow its registered code path.
+@tag selection changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the selection changed event from the noise type @ owner.PNoiseBodyBuild
+> route
+
+[route] Registered handler path <process>
+- Check noise deviation @ owner.PNoiseDeviationCheck
+- Execute noise values match @ owner.PNoiseValuesMatch
+- Reset noise custom @ owner.PNoiseCustomReset
+- Select noise preset @ owner.PNoisePresetSelect
+- Set noise custom @ owner.PNoiseCustomSet
+- Evaluate the handler's implemented conditional branches @ owner.PNoiseDeviationCheck
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorNoise.cs|PNoiseBodyBuild|pNoiseType|SelectionChanged|1

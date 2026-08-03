@@ -1,0 +1,28 @@
+@format 1
+@id ui-event.0ef124eade95407d
+@title Loudness preset — selection changed
+@section I. UI
+@area UI event
+@tabs Audio
+@event-ref cs|PPanels/PInspectorNormalize.cs|PLoudnessBodyBuild|pLoudnessPreset|SelectionChanged|1
+@entry input
+@summary Handle the selection changed event exposed by PInspector.PLoudnessBodyBuild and follow its registered code path.
+@tag selection changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] UI event <input>
+- Receive the selection changed event from the loudness preset @ owner.PLoudnessBodyBuild
+> route
+
+[route] Registered handler path <process>
+- Apply normalize preset @ owner.PNormalizePresetApply
+- Read loudness mode @ owner.PLoudnessModeRead
+- Apply loudness preset @ owner.PLoudnessPresetApply
+- Apply dynamic preset @ owner.PDynamicPresetApply
+- Evaluate the handler's implemented conditional branches @ owner.PNormalizePresetApply
+> output
+
+[output] UI state after the event <output>
+= The selection changed event has completed through the current implementation.
+! Code binding: cs|PPanels/PInspectorNormalize.cs|PLoudnessBodyBuild|pLoudnessPreset|SelectionChanged|1

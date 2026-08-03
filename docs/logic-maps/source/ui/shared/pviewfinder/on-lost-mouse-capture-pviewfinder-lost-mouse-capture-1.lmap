@@ -1,0 +1,24 @@
+@format 1
+@id ui-event.bc10925350c02294
+@title Viewfinder — lost mouse capture
+@section I. UI
+@area UI event
+@tabs Split, Edit, Convert, Audio, Merge, Funnel
+@event-ref override|PFlow/PViewfinderInput.cs|OnLostMouseCapture
+@entry input
+@summary Handle the lost mouse capture event exposed by PViewfinder.OnLostMouseCapture and follow its registered code path.
+@tag lost mouse capture
+@tag PViewfinder
+@alias owner = Cadroue.UIShell.PFlow.PViewfinder
+
+[input] UI event <input>
+- Receive the framework lost mouse capture callback @ owner.OnLostMouseCapture
+> route
+
+[route] Registered handler path <process>
+- Clear viewfinder drag @ owner.PViewfinderDragClear
+> output
+
+[output] UI state after the event <output>
+= The lost mouse capture event has completed through the current implementation.
+! Code binding: override|PFlow/PViewfinderInput.cs|OnLostMouseCapture
