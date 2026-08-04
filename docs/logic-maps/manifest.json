@@ -1,8 +1,8 @@
 {
   "format": 2,
   "ui_event_coverage": {
-    "covered": 498,
-    "total": 498
+    "covered": 500,
+    "total": 500
   },
   "maps": [
     {
@@ -282,8 +282,8 @@
         "ffmpeg",
         "job"
       ],
-      "hash": "ac1b65e1f272",
-      "search": "ii. functionality 5. processing and ffmpeg run ffmpeg job validate one claimed item, run its ffmpeg stages, and commit success, retry, cancellation, or failure according to the path actually reached. ffmpeg job runner job encode probe schedule roster cadroue.shellengine.lrunner cadroue.shellengine.ljob cadroue.shellengine.lencode cadroue.shellengine.lprobe cadroue.infrastructure.lschedule cadroue.uishell.pmainarea.proster worker receives claimed work create a job for the claimed item and worker token runner.lrunnerlooprun(...) begin execution of that item job.ljobrun(...) validate stored work validate required sources, output information, and normalized input/output path separation job.ljobvalidate(...) compare the final output path with every input before any collision policy can run job.ljobcollisioncheck(...) commit validation failure mark the item failed, commit its message, and reload the schedule job.ljobrun(...) remove its attempt record and count a runner failure job.ljobrun(...) validation failure is visible display the failed reason first in the selected item's detail pane roster.prosterdetailupdate(...) prepare execution register the live item and start lease renewal job.ljobrun(...) create the output directory and apply collision policy job.ljobcollisionapply(...) build the required ffmpeg stages encode.lencodestagesbuild(...) enter guarded execution enter the guarded stage, retry, probe, and commit block job.ljobrun(...) run the next stage attach and start the ffmpeg process job.ljobstagerun(...) read progress blocks and publish phase and percentage job.ljobprogressread(...) collect standard error and process exit state job.ljobstagerun(...) evaluate stage result commit explicit cancellation request durable cancellation for the item job.ljobrun(...) file the item as cancelled and remove partial output schedule.lscheduleitemcancel(...) requeue failed attempt inspect normal process result probe source and output sizes and media properties after normal process completion job.ljobrun(...) probe the output keyframe interval when applicable probe.lprobeintervalread(...) commit normal completion commit success when the exit code is zero, otherwise commit final ffmpeg failure job.ljobrun(...) reload the schedule and update runner failure state when required job.ljobrun(...) explicit cancellation complete runner cancellation observed log cancellation, remove live process/item registrations, stop lease renewal, and clear temporary stages job.ljobrun(...) / finally evaluate execution exception catch an execution exception that bypasses normal output probing job.ljobrun(...) commit exception failure commit the exception message as final failure without probing output job.ljobrun(...)"
+      "hash": "d7dd55335aac",
+      "search": "ii. functionality 5. processing and ffmpeg run ffmpeg job validate one claimed item, run its ffmpeg stages, and commit success, retry, cancellation, or failure according to the path actually reached. ffmpeg job runner job encode video probe schedule roster cadroue.shellengine.lrunner cadroue.shellengine.ljob cadroue.shellengine.lencode cadroue.shellengine.lencodevideo cadroue.shellengine.lprobe cadroue.infrastructure.lschedule cadroue.uishell.pmainarea.proster worker receives claimed work create a job for the claimed item and worker token runner.lrunnerlooprun(...) begin execution of that item job.ljobrun(...) validate stored work validate required sources, output information, and normalized input/output path separation job.ljobvalidate(...) compare the final output path with every input before any collision policy can run job.ljobcollisioncheck(...) commit validation failure mark the item failed, commit its message, and reload the schedule job.ljobrun(...) remove its attempt record and count a runner failure job.ljobrun(...) validation failure is visible display the failed reason first in the selected item's detail pane roster.prosterdetailupdate(...) prepare execution register the live item and start lease renewal job.ljobrun(...) create the output directory and apply collision policy job.ljobcollisionapply(...) build the required ffmpeg stages encode.lencodestagesbuild(...) build video geometry filters in preview order: horizontal flip, vertical flip, rotation, then crop video.lencodegeometryfiltersread(...) enter guarded execution enter the guarded stage, retry, probe, and commit block job.ljobrun(...) run the next stage attach and start the ffmpeg process job.ljobstagerun(...) read progress blocks and publish phase and percentage job.ljobprogressread(...) collect standard error and process exit state job.ljobstagerun(...) evaluate stage result commit explicit cancellation request durable cancellation for the item job.ljobrun(...) file the item as cancelled and remove partial output schedule.lscheduleitemcancel(...) requeue failed attempt inspect normal process result probe source and output sizes and media properties after normal process completion job.ljobrun(...) probe the output keyframe interval when applicable probe.lprobeintervalread(...) commit normal completion commit success when the exit code is zero, otherwise commit final ffmpeg failure job.ljobrun(...) reload the schedule and update runner failure state when required job.ljobrun(...) explicit cancellation complete runner cancellation observed log cancellation, remove live process/item registrations, stop lease renewal, and clear temporary stages job.ljobrun(...) / finally evaluate execution exception catch an execution exception that bypasses normal output probing job.ljobrun(...) commit exception failure commit the exception message as final failure without probing output job.ljobrun(...)"
     },
     {
       "id": "processing.source-output-collision",
@@ -2076,8 +2076,8 @@
         "rotate change",
         "PEditTab"
       ],
-      "hash": "09e4cbd847fd",
-      "search": "i. ui ui event edit inspector \u2014 rotate change handle the rotate change event emitted by inspector through the exact route registered in pedittab.peditcroprestore. rotate change pedittab owner cadroue.uishell.pmainarea.pedittab ui event receive the rotate change event from inspector through its current registration owner.peditcroprestore registered handler path execute the registered delegate without substituting a different route owner.peditcroprestore ui state after the event"
+      "hash": "7fef2baf1ace",
+      "search": "i. ui ui event edit inspector \u2014 rotate change handle the rotate change event emitted by inspector through the exact route registered in pedittab.peditcroprestore. rotate change pedittab owner cadroue.uishell.pmainarea.pedittab ui event receive the rotate change event from inspector through its current registration owner.peditcroprestore registered handler path restore the registered rotation handler after plan loading owner.peditcroprestore apply later rotation changes and refresh inspector source dimensions for the rotated orientation owner.peditrotatehandle ui state after the event"
     },
     {
       "id": "ui-event.14cde8acbed91a88",
@@ -2274,8 +2274,8 @@
         "rotate change",
         "PEditTab"
       ],
-      "hash": "0b586b7e0e5a",
-      "search": "i. ui ui event edit inspector \u2014 rotate change handle the rotate change event emitted by inspector through the exact route registered in pedittab.pedittab. rotate change pedittab owner cadroue.uishell.pmainarea.pedittab ui event receive the rotate change event from inspector through its current registration owner.pedittab registered handler path execute the registered delegate without substituting a different route owner.pedittab ui state after the event"
+      "hash": "9ece304bcbd1",
+      "search": "i. ui ui event edit inspector \u2014 rotate change handle the rotate change event emitted by inspector through the exact route registered in pedittab.pedittab. rotate change pedittab owner cadroue.uishell.pmainarea.pedittab ui event receive the rotate change event from inspector through its current registration owner.pedittab registered handler path invoke the registered rotation handler owner.peditrotatehandle apply the transform to the viewer and refresh inspector source dimensions for the rotated orientation owner.peditrotatehandle ui state after the event"
     },
     {
       "id": "ui-event.1e0b37eba398e6f9",
@@ -2782,6 +2782,42 @@
       "search": "i. ui ui event edit persistent box \u2014 unchecked handle the unchecked event exposed by pinspector.pinspectorpersistentprepare and follow its registered code path. unchecked pinspector owner cadroue.uishell.ppanels.pinspector ui event receive the unchecked event from the persistent box owner.pinspectorpersistentprepare registered handler path update the visual or selection state owned by the handler owner.pinspectorpersistentprepare ui state after the event"
     },
     {
+      "id": "ui-event.22f83f488b461c9c",
+      "title": "Crop ratio preset \u2014 selection changed",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Edit"
+      ],
+      "event_ref": "cs|PPanels/PInspectorCropUi.cs|PInspectorRatioPresetBuild|pPresetCombo|SelectionChanged|1",
+      "summary": "Show Custom ratio entry or apply the selected fixed preset as the largest centered even Crop inside the available bounds.",
+      "href": "maps/ui/edit/pinspector/pinspector-ratio-preset-build-p-preset-combo-selection-changed-1.html",
+      "tags": [
+        "selection changed",
+        "PInspector"
+      ],
+      "hash": "aa6f7a84cbe3",
+      "search": "i. ui ui event edit crop ratio preset \u2014 selection changed show custom ratio entry or apply the selected fixed preset as the largest centered even crop inside the available bounds. selection changed pinspector owner cadroue.uishell.ppanels.pinspector ratio preset selected receive the selection changed event from the crop ratio preset combo owner.pinspectorratiopresetbuild apply preset behavior ignore suppressed selection changes and show manual fields when custom is selected owner.pinspectorratiopresethandle read the current crop bounds, or the full rotated frame when no edges have been removed owner.pinspectorratiopresethandle fit the largest centered rectangle with exact ratio, even dimensions, and even offsets inside those bounds owner.pinspectorratiofit update the ratio, fixed-ratio state, and four crop edges under event suppression owner.pinspectorratiopresethandle publish one ratio change and one crop change, then refresh notices and resulting resolution owner.pinspectorratiopresethandle preset selection complete"
+    },
+    {
+      "id": "ui-event.6abfb3a1d1e496be",
+      "title": "Crop edges \u2014 Reset clicked",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Edit"
+      ],
+      "event_ref": "cs|PPanels/PInspectorCropUi.cs|PInspectorResetBuild|pResetButton|Click|1",
+      "summary": "Reset all four Crop edges to zero and clear the Crop box without changing the other Edit transform settings.",
+      "href": "maps/ui/edit/pinspector/pinspector-reset-build-p-reset-button-click-1.html",
+      "tags": [
+        "click",
+        "PInspector"
+      ],
+      "hash": "09a302b70921",
+      "search": "i. ui ui event edit crop edges \u2014 reset clicked reset all four crop edges to zero and clear the crop box without changing the other edit transform settings. click pinspector owner cadroue.uishell.ppanels.pinspector reset clicked receive the click event from the crop reset button owner.pinspectorresetbuild reset crop edges set left, top, right, and bottom to zero under crop-event suppression owner.pinspectoredgesreset publish a cleared crop rectangle so the viewer hides its crop box owner.pinspectoredgesreset refresh ratio notices, resulting resolution, and crop-tool appearance owner.pinspectoredgesreset crop edges reset"
+    },
+    {
       "id": "ui-event.533510d9c4cecbf4",
       "title": "Rotate combo \u2014 selection changed",
       "section": "I. UI",
@@ -2970,11 +3006,11 @@
         "Edit"
       ],
       "event_ref": null,
-      "summary": "Apply a Crop control, rotation or flip, ratio, or viewer-rectangle change to the Edit preview and request persistence of the active source plan.",
+      "summary": "Apply Crop edges, Reset, ratio presets, rotation or flip, or viewer-rectangle changes to the Edit preview and request persistence of the active source plan.",
       "href": "maps/ui/edit/workflow/workflows/change-crop.html",
       "tags": [],
-      "hash": "a7f81d99fb26",
-      "search": "i. ui ui workflow edit change crop, rotation, or flip apply a crop control, rotation or flip, ratio, or viewer-rectangle change to the edit preview and request persistence of the active source plan. inspector tab cadroue.uishell.ppanels.pinspector cadroue.uishell.pmainarea.pedittab crop state changes enable or disable the crop state and refresh its editor surface inspector.pinspectorapplyupdate(...) publish a changed crop rectangle from inset, ratio, or viewer-drawing input inspector.pinspectorcropraise(...) publish a changed rotation or flip state inspector.pinspectorrotateraise(...) convert a ratio constraint into a viewer crop ratio inspector.pinspectorratioupdate(...) synchronize crop preview apply crop and rotation events to the viewer through the edit-tab event subscriptions tab.pedittab(...) update inspector crop state when the viewer reports an adjusted rectangle tab.peditcropshow(...) save crop or rotation changes for the active source through the edit-tab event subscriptions tab.pedittab(...) continue to plan persistence"
+      "hash": "43116cdf5c9f",
+      "search": "i. ui ui workflow edit change crop, rotation, or flip apply crop edges, reset, ratio presets, rotation or flip, or viewer-rectangle changes to the edit preview and request persistence of the active source plan. inspector tab cadroue.uishell.ppanels.pinspector cadroue.uishell.pmainarea.pedittab crop state changes enable or disable the crop state and refresh its editor surface inspector.pinspectorapplyupdate(...) publish a changed crop rectangle from inset, ratio, or viewer-drawing input inspector.pinspectorcropraise(...) reset all four crop edges without changing ratio, rotation, flip, apply, or persistence settings inspector.pinspectoredgesreset(...) fit a selected ratio preset to the largest centered even-pixel rectangle inside the current crop or full frame inspector.pinspectorratiopresethandle(...) publish a changed rotation or flip state inspector.pinspectorrotateraise(...) convert a ratio constraint into a viewer crop ratio inspector.pinspectorratioupdate(...) recompute the read-only resulting resolution from the source and effective even crop edges inspector.pinspectorresolutionupdate(...) synchronize crop preview apply crop events to the viewer through the edit-tab event subscriptions tab.pedittab(...) apply rotation to the viewer and synchronize the inspector with the rotated source dimensions tab.peditrotatehandle(...) update inspector crop state when the viewer reports an adjusted rectangle tab.peditcropshow(...) save crop or rotation changes for the active source through the edit-tab event subscriptions tab.pedittab(...) continue to plan persistence"
     },
     {
       "id": "edit.change-persistence",
@@ -10610,11 +10646,11 @@
         "Merge"
       ],
       "event_ref": null,
-      "summary": "Validate and commit a requested new name for one custom export preset.",
+      "summary": "Validate and rename one custom export preset without letting selection-change handling replace its encoding or output settings.",
       "href": "maps/ui/shared/workflow/workflows/rename-preset.html",
       "tags": [],
-      "hash": "29b523c64956",
-      "search": "i. ui ui workflow split edit convert audio merge rename export preset validate and commit a requested new name for one custom export preset. export cadroue.uishell.ppanels.pexport preset name committed receive old and edited preset names export.pexportnamecommit(...) check rename protect native presets and reject blank, unchanged, or duplicate requested names export.pexportnamecommit(...) rename preset update the preset name, selection, and visible rows export.pexportnamecommit(...) preset renamed name unchanged"
+      "hash": "01c93e3b89b1",
+      "search": "i. ui ui workflow split edit convert audio merge rename export preset validate and rename one custom export preset without letting selection-change handling replace its encoding or output settings. export cadroue.uishell.ppanels.pexport preset name committed receive old and edited preset names export.pexportnamecommit(...) check rename protect native presets and reject blank, unchanged, or duplicate requested names export.pexportnamecommit(...) rename preset hold the export-preset busy guard while the store renames the complete preset record export.pexportnamecommit(...) when renaming the selected preset, update its name and selected identity before releasing the guard export.pexportnamecommit(...) rebuild the visible rows or refresh the selected summary after the guarded rename succeeds export.pexportnamecommit(...) preset renamed name unchanged"
     },
     {
       "id": "export.reorder-presets",

@@ -19,13 +19,20 @@ public sealed partial class PInspector
             return null;
         }
 
+        return PInspectorRatioFit(pCropRect, pRatioWidth, pRatioHeight);
+    }
+
+    private static Rect? PInspectorRatioFit(Rect pBounds, int pRatioWidth, int pRatioHeight)
+    {
+        if (pBounds.Width <= 0 || pBounds.Height <= 0 || pRatioWidth <= 0 || pRatioHeight <= 0)
+        {
+            return null;
+        }
+
         int pDivisor = PInspectorDivisorRead(pRatioWidth, pRatioHeight);
         int pUnitWidth = pRatioWidth / pDivisor;
         int pUnitHeight = pRatioHeight / pDivisor;
-
-        int pScale = (int)Math.Floor(Math.Min(
-            pCropRect.Width / pUnitWidth,
-            pCropRect.Height / pUnitHeight));
+        int pScale = (int)Math.Floor(Math.Min(pBounds.Width / pUnitWidth, pBounds.Height / pUnitHeight));
 
         while (pScale > 0 && ((pScale * pUnitWidth % 2) != 0 || (pScale * pUnitHeight % 2) != 0))
         {
@@ -37,13 +44,26 @@ public sealed partial class PInspector
             return null;
         }
 
-        double pSnapWidth = pScale * pUnitWidth;
-        double pSnapHeight = pScale * pUnitHeight;
-        double pSnapX = PInspectorEvenNormalize(pCropRect.X + ((pCropRect.Width - pSnapWidth) / 2));
-        double pSnapY = PInspectorEvenNormalize(pCropRect.Y + ((pCropRect.Height - pSnapHeight) / 2));
-        pSnapX = Math.Clamp(pSnapX, 0, Math.Max(0, PInspectorEvenNormalize(pInspectorSourceWidth - pSnapWidth)));
-        pSnapY = Math.Clamp(pSnapY, 0, Math.Max(0, PInspectorEvenNormalize(pInspectorSourceHeight - pSnapHeight)));
-        return new Rect(pSnapX, pSnapY, pSnapWidth, pSnapHeight);
+        double pWidth = pScale * pUnitWidth;
+        double pHeight = pScale * pUnitHeight;
+        double pMinimumX = Math.Ceiling(pBounds.Left / 2) * 2;
+        double pMinimumY = Math.Ceiling(pBounds.Top / 2) * 2;
+        double pMaximumX = PInspectorEvenNormalize(pBounds.Right - pWidth);
+        double pMaximumY = PInspectorEvenNormalize(pBounds.Bottom - pHeight);
+        if (pMaximumX < pMinimumX || pMaximumY < pMinimumY)
+        {
+            return null;
+        }
+
+        double pX = Math.Clamp(
+            PInspectorEvenNormalize(pBounds.X + ((pBounds.Width - pWidth) / 2)),
+            pMinimumX,
+            pMaximumX);
+        double pY = Math.Clamp(
+            PInspectorEvenNormalize(pBounds.Y + ((pBounds.Height - pHeight) / 2)),
+            pMinimumY,
+            pMaximumY);
+        return new Rect(pX, pY, pWidth, pHeight);
     }
 
     private static double PInspectorEvenNormalize(double pValue)
@@ -78,6 +98,79 @@ public sealed partial class PInspector
         PInspectorRatioRaise();
     }
 
+    private void PInspectorRatioPresetHandle()
+    {
+        if (pInspectorRatioSuppress || pInspectorRatioPreset.SelectedIndex < 0)
+        {
+            return;
+        }
+
+        bool pCustom = pInspectorRatioPreset.SelectedIndex == 0;
+        pInspectorRatioCustomPanel.Visibility = pCustom ? Visibility.Visible : Visibility.Collapsed;
+        if (pCustom)
+        {
+            return;
+        }
+
+        (int pRatioWidth, int pRatioHeight) = pInspectorRatioPreset.SelectedIndex switch
+        {
+            1 => (16, 9),
+            2 => (9, 16),
+            3 => (4, 3),
+            4 => (3, 4),
+            5 => (1, 1),
+            6 => (21, 9),
+            _ => (0, 0)
+        };
+        if (!pInspectorSourcePresent || pRatioWidth <= 0 || pRatioHeight <= 0)
+        {
+            return;
+        }
+
+        double pLeft = Math.Max(0, PInspectorNumberRead(pInspectorInsetLeft));
+        double pTop = Math.Max(0, PInspectorNumberRead(pInspectorInsetTop));
+        double pRight = Math.Max(0, PInspectorNumberRead(pInspectorInsetRight));
+        double pBottom = Math.Max(0, PInspectorNumberRead(pInspectorInsetBottom));
+        double pBoundsWidth = pInspectorSourceWidth - pLeft - pRight;
+        double pBoundsHeight = pInspectorSourceHeight - pTop - pBottom;
+        if (pBoundsWidth <= 0 || pBoundsHeight <= 0)
+        {
+            PInspectorRatioUpdate();
+            return;
+        }
+
+        var pBounds = new Rect(pLeft, pTop, pBoundsWidth, pBoundsHeight);
+        Rect? pPresetCrop = PInspectorRatioFit(pBounds, pRatioWidth, pRatioHeight);
+        if (pPresetCrop is not { } pCrop)
+        {
+            PInspectorRatioUpdate();
+            return;
+        }
+
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        pInspectorCropSuppress = true;
+        pInspectorRatioSuppress = true;
+        try
+        {
+            pInspectorRatioWidth.Text = pRatioWidth.ToString(CultureInfo.InvariantCulture);
+            pInspectorRatioHeight.Text = pRatioHeight.ToString(CultureInfo.InvariantCulture);
+            pInspectorRatioFixed.IsChecked = true;
+            pInspectorInsetLeft.Text = PInspectorEdgeFormat(pCrop.X);
+            pInspectorInsetTop.Text = PInspectorEdgeFormat(pCrop.Y);
+            pInspectorInsetRight.Text = PInspectorEdgeFormat(pInspectorSourceWidth - pCrop.Right);
+            pInspectorInsetBottom.Text = PInspectorEdgeFormat(pInspectorSourceHeight - pCrop.Bottom);
+        }
+        finally
+        {
+            pInspectorRatioSuppress = false;
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+
+        PInspectorRatioRaise();
+        PInspectorCropRaise();
+        PInspectorRatioUpdate();
+    }
+
     private void PInspectorRatioRaise()
     {
         if (pInspectorCropSuppress)
@@ -100,6 +193,13 @@ public sealed partial class PInspector
 
     private void PInspectorRatioUpdate()
     {
+        PInspectorResolutionUpdate();
+        if (!pInspectorSourcePresent)
+        {
+            pInspectorRatioNotice.Visibility = Visibility.Collapsed;
+            return;
+        }
+
         double pCropWidth = pInspectorSourceWidth
             - PInspectorNumberRead(pInspectorInsetLeft)
             - PInspectorNumberRead(pInspectorInsetRight);
@@ -148,6 +248,25 @@ public sealed partial class PInspector
         PInspectorNoticeShow(pWide > pTall
             ? LLocalization.LLocalizationFormat("Inspector.Crop.WidthMismatch", pExcessPixels)
             : LLocalization.LLocalizationFormat("Inspector.Crop.HeightMismatch", pExcessPixels));
+    }
+
+    private void PInspectorResolutionUpdate()
+    {
+        if (!pInspectorSourcePresent)
+        {
+            pInspectorResolution.Text = "—";
+            return;
+        }
+
+        double pWidth = pInspectorSourceWidth
+            - PInspectorEvenClamp(pInspectorInsetLeft)
+            - PInspectorEvenClamp(pInspectorInsetRight);
+        double pHeight = pInspectorSourceHeight
+            - PInspectorEvenClamp(pInspectorInsetTop)
+            - PInspectorEvenClamp(pInspectorInsetBottom);
+        pInspectorResolution.Text = pWidth > 0 && pHeight > 0
+            ? $"{Math.Round(pWidth).ToString(CultureInfo.InvariantCulture)} × {Math.Round(pHeight).ToString(CultureInfo.InvariantCulture)}"
+            : "—";
     }
 
     private void PInspectorRatioFormat(double pCropWidth, double pCropHeight)

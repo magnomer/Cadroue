@@ -1,0 +1,29 @@
+@format 1
+@id ui-event.22f83f488b461c9c
+@title Crop ratio preset — selection changed
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorCropUi.cs|PInspectorRatioPresetBuild|pPresetCombo|SelectionChanged|1
+@entry input
+@summary Show Custom ratio entry or apply the selected fixed preset as the largest centered even Crop inside the available bounds.
+@tag selection changed
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] Ratio preset selected <input>
+- Receive the selection changed event from the Crop ratio preset combo @ owner.PInspectorRatioPresetBuild
+> route
+
+[route] Apply preset behavior <process>
+- Ignore suppressed selection changes and show manual fields when Custom is selected @ owner.PInspectorRatioPresetHandle
+- Read the current Crop bounds, or the full rotated frame when no edges have been removed @ owner.PInspectorRatioPresetHandle
+- Fit the largest centered rectangle with exact ratio, even dimensions, and even offsets inside those bounds @ owner.PInspectorRatioFit
+- Update the ratio, fixed-ratio state, and four Crop edges under event suppression @ owner.PInspectorRatioPresetHandle
+- Publish one ratio change and one Crop change, then refresh notices and resulting resolution @ owner.PInspectorRatioPresetHandle
+> output
+
+[output] Preset selection complete <output>
+= Custom leaves manual ratio editing available without drawing a new Crop.
+= A fixed preset draws a centered Crop without expanding beyond an existing Crop.
+! Code binding: cs|PPanels/PInspectorCropUi.cs|PInspectorRatioPresetBuild|pPresetCombo|SelectionChanged|1

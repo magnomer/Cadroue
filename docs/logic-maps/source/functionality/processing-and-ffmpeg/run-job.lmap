@@ -14,6 +14,7 @@
 @alias runner = Cadroue.ShellEngine.LRunner
 @alias job = Cadroue.ShellEngine.LJob
 @alias encode = Cadroue.ShellEngine.LEncode
+@alias video = Cadroue.ShellEngine.LEncodeVideo
 @alias probe = Cadroue.ShellEngine.LProbe
 @alias schedule = Cadroue.Infrastructure.LSchedule
 @alias roster = Cadroue.UIShell.PMainArea.PRoster
@@ -42,6 +43,7 @@
 - Register the live item and start lease renewal @ job.LJobRun(...)
 - Create the output directory and apply collision policy @ job.LJobCollisionApply(...)
 - Build the required FFmpeg stages @ encode.LEncodeStagesBuild(...)
+- Build video geometry filters in preview order: horizontal flip, vertical flip, rotation, then Crop @ video.LEncodeGeometryFiltersRead(...)
 > guarded
 
 [guarded] Enter guarded execution <decision>

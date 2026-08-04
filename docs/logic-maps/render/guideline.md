@@ -181,8 +181,10 @@ Rules:
 - `index.html`, `maps/`, `assets/`, and `manifest.json` are generated output.
 - `render/generate.py` validates syntax, implementation ownership, UI-event coverage, and generation in one command.
 - `render/generate.ps1` is an optional Windows launcher for `generate.py`; it is not a second generator.
-- `render/site.css` and `render/site.js` are copied into generated `assets/`.
-- Generated files may be deleted and recreated at any time; `source/` and `render/` must never be removed by generation.
+- `render/site.css` and `render/site.js` are copied into generated `assets/`; `assets/navigation.js` is generated once as shared count-free navigation data.
+- Generation uses content-aware writes: unchanged output files retain their bytes and timestamps, while output files with no authoritative source are removed as stale.
+- Per-map pages must not embed global map counts, catalogues, or implementation indexes. Those changing aggregates belong in `index.html`, `manifest.json`, or shared assets so a local map edit stays local.
+- `source/` and `render/` must never be removed or rewritten by generation.
 - No generated HTML may contain operational information absent from `.lmap` source or verified source-code metadata.
 
 Generate the site from `docs/logic-maps/` with:

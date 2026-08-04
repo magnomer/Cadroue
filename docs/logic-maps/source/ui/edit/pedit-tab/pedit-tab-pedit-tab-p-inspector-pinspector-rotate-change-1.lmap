@@ -16,8 +16,9 @@
 > route
 
 [route] Registered handler path <process>
-- Execute the registered delegate without substituting a different route @ owner.PEditTab
-! Registered call path: pViewer.PViewerRotateSet
+- Invoke the registered rotation handler @ owner.PEditRotateHandle
+- Apply the transform to the viewer and refresh inspector source dimensions for the rotated orientation @ owner.PEditRotateHandle
+! Registered call path: PEditRotateHandle
 > output
 
 [output] UI state after the event <output>

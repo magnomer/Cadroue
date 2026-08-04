@@ -8,6 +8,35 @@
     localStorage.setItem('lmap-theme',theme);
   });
 
+  const navigation=document.querySelector('[data-navigation-root]');
+  if(navigation){
+    const base=navigation.dataset.navigationRoot||'';
+    const home=document.createElement('a');
+    home.className='nav-home';
+    home.href=`${base}index.html`;
+    home.textContent='Logic maps';
+    navigation.append(home);
+
+    const addSection=(title,entries)=>{
+      const heading=document.createElement('h2');
+      heading.className='nav-major';
+      heading.textContent=title;
+      navigation.append(heading);
+      for(const entry of entries||[]){
+        const link=document.createElement('a');
+        link.className='nav-section';
+        link.href=`${base}index.html#${entry.anchor}`;
+        const label=document.createElement('span');
+        label.textContent=entry.label;
+        link.append(label);
+        navigation.append(link);
+      }
+    };
+    const shared=window.CadroueLogicNavigation||{};
+    addSection('I. UI',shared.ui);
+    addSection('II. Functionality',shared.functionality);
+  }
+
   const canvas=document.querySelector('.canvas');
   if(!canvas)return;
   const world=canvas.querySelector('.world');

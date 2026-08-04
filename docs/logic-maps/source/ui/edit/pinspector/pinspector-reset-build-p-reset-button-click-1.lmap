@@ -1,0 +1,27 @@
+@format 1
+@id ui-event.6abfb3a1d1e496be
+@title Crop edges — Reset clicked
+@section I. UI
+@area UI event
+@tabs Edit
+@event-ref cs|PPanels/PInspectorCropUi.cs|PInspectorResetBuild|pResetButton|Click|1
+@entry input
+@summary Reset all four Crop edges to zero and clear the Crop box without changing the other Edit transform settings.
+@tag click
+@tag PInspector
+@alias owner = Cadroue.UIShell.PPanels.PInspector
+
+[input] Reset clicked <input>
+- Receive the click event from the Crop Reset button @ owner.PInspectorResetBuild
+> route
+
+[route] Reset Crop edges <process>
+- Set Left, Top, Right, and Bottom to zero under Crop-event suppression @ owner.PInspectorEdgesReset
+- Publish a cleared Crop rectangle so the viewer hides its Crop box @ owner.PInspectorEdgesReset
+- Refresh ratio notices, resulting resolution, and Crop-tool appearance @ owner.PInspectorEdgesReset
+> output
+
+[output] Crop edges reset <output>
+= The four Crop edge values are zero and the full rotated source resolution is shown.
+= Ratio, rotation, flips, Apply, and persistence settings are unchanged.
+! Code binding: cs|PPanels/PInspectorCropUi.cs|PInspectorResetBuild|pResetButton|Click|1

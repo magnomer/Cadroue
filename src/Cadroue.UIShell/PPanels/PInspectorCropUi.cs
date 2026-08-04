@@ -17,6 +17,16 @@ public sealed partial class PInspector
         pInspectorInsetBottom = PInspectorInsetBuild();
         pInspectorRatioWidth = PCropFieldBuild();
         pInspectorRatioHeight = PCropFieldBuild();
+        pInspectorRatioPreset = PInspectorRatioPresetBuild();
+        pInspectorResolution = new TextBlock
+        {
+            Text = "—",
+            FontSize = 11,
+            FontFamily = pInspectorFontFamily,
+            Foreground = pInspectorMutedBrush,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
 
         pInspectorRatioFixed = new CheckBox
         {
@@ -241,7 +251,45 @@ public sealed partial class PInspector
         PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Left"), pInspectorInsetLeft), 1, 0);
         PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Right"), pInspectorInsetRight), 1, 2);
         PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Bottom"), pInspectorInsetBottom), 2, 1);
+        PInspectorCellAdd(pCropGrid, PInspectorResolutionBuild(), 1, 1);
+        PInspectorCellAdd(pCropGrid, PInspectorResetBuild(), 2, 2);
         return pCropGrid;
+    }
+
+    private UIElement PInspectorResolutionBuild() => new Border
+    {
+        MinWidth = 84,
+        Height = PInspectorFieldHeight,
+        Padding = new Thickness(7, 0, 7, 0),
+        Background = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC)),
+        BorderBrush = PPanelLineBrush,
+        BorderThickness = new Thickness(1),
+        CornerRadius = new CornerRadius(8),
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Bottom,
+        Margin = new Thickness(3),
+        ToolTip = LLocalization.LLocalizationTextRead("Inspector.Crop.Resolution"),
+        Child = pInspectorResolution
+    };
+
+    private UIElement PInspectorResetBuild()
+    {
+        var pResetButton = new Button
+        {
+            Content = LLocalization.LLocalizationTextRead("Inspector.Crop.Reset"),
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Crop.ResetTooltip"),
+            Height = PInspectorFieldHeight,
+            MinWidth = 64,
+            Padding = new Thickness(8, 0, 8, 0),
+            FontSize = 11,
+            FontFamily = pInspectorFontFamily,
+            Style = PButton.PButtonPanelCreate(),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            Margin = new Thickness(3)
+        };
+        pResetButton.Click += (_, _) => PInspectorEdgesReset();
+        return pResetButton;
     }
 
     private static void PInspectorCellAdd(Grid pCropGrid, UIElement pCell, int pRow, int pColumn)
@@ -273,14 +321,21 @@ public sealed partial class PInspector
 
     private UIElement PCropRatioBuild()
     {
-        var pRatioPanel = new StackPanel
+        var pRatioRoot = new StackPanel
         {
-            Orientation = Orientation.Horizontal,
             Margin = new Thickness(0, 14, 0, 0)
         };
-        pRatioPanel.Children.Add(PInspectorLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Ratio")));
-        pRatioPanel.Children.Add(pInspectorRatioWidth);
-        pRatioPanel.Children.Add(new TextBlock
+        var pPresetPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        pPresetPanel.Children.Add(PInspectorLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Ratio")));
+        pPresetPanel.Children.Add(pInspectorRatioPreset);
+
+        pInspectorRatioCustomPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Margin = new Thickness(PInspectorLabelWidth, 6, 0, 0)
+        };
+        pInspectorRatioCustomPanel.Children.Add(pInspectorRatioWidth);
+        pInspectorRatioCustomPanel.Children.Add(new TextBlock
         {
             Text = "×",
             FontSize = 12,
@@ -289,8 +344,33 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(7, 0, 7, 0)
         });
-        pRatioPanel.Children.Add(pInspectorRatioHeight);
-        return pRatioPanel;
+        pInspectorRatioCustomPanel.Children.Add(pInspectorRatioHeight);
+        pRatioRoot.Children.Add(pPresetPanel);
+        pRatioRoot.Children.Add(pInspectorRatioCustomPanel);
+        return pRatioRoot;
+    }
+
+    private ComboBox PInspectorRatioPresetBuild()
+    {
+        var pPresetCombo = new ComboBox
+        {
+            Height = PInspectorFieldHeight,
+            Width = 140,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily
+        };
+        PDropdown.PDropdownApply(pPresetCombo);
+        pPresetCombo.Items.Add(new LLocalizationChoice("Custom", "Inspector.Crop.RatioCustom"));
+        pPresetCombo.Items.Add("16:9");
+        pPresetCombo.Items.Add("9:16");
+        pPresetCombo.Items.Add("4:3");
+        pPresetCombo.Items.Add("3:4");
+        pPresetCombo.Items.Add("1:1");
+        pPresetCombo.Items.Add("21:9");
+        pPresetCombo.SelectedIndex = 0;
+        pPresetCombo.SelectionChanged += (_, _) => PInspectorRatioPresetHandle();
+        return pPresetCombo;
     }
 
     private UIElement PCropFlipBuild()

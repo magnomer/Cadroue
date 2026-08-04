@@ -78,7 +78,7 @@ public sealed class PEditTab : PTabSurface
         pInspector.PInspectorToolChange += pViewer.PCropToolSet;
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
         pInspector.PInspectorCropChange += pViewer.PCropVideoSet;
-        pInspector.PInspectorRotateChange += pViewer.PViewerRotateSet;
+        pInspector.PInspectorRotateChange += PEditRotateHandle;
         pInspector.PInspectorCropChange += _ => PEditPlanSave();
         pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
@@ -223,6 +223,10 @@ public sealed class PEditTab : PTabSurface
         {
             pInspector.PInspectorSourceSet(pCropSource.Width, pCropSource.Height);
         }
+        else
+        {
+            pInspector.PInspectorSourceSet(0, 0);
+        }
 
         LTraceLog.LTraceInfoRecord($"Edit crop from viewer: {PEditRectFormat(pCropVideo)}");
         pInspector.PInspectorCropSet(pCropVideo);
@@ -236,13 +240,17 @@ public sealed class PEditTab : PTabSurface
 
         pEditPlanLoading = true;
         pInspector.PInspectorCropChange -= pViewer.PCropVideoSet;
-        pInspector.PInspectorRotateChange -= pViewer.PViewerRotateSet;
+        pInspector.PInspectorRotateChange -= PEditRotateHandle;
         try
         {
             System.Windows.Size? pCropSource = pViewer.PCropSourceRead();
             if (pCropSource is { } pCropSize)
             {
                 pInspector.PInspectorSourceSet(pCropSize.Width, pCropSize.Height);
+            }
+            else
+            {
+                pInspector.PInspectorSourceSet(0, 0);
             }
 
             LEditPlan? pEditPersistent = PEditCarriedRead();
@@ -288,7 +296,7 @@ public sealed class PEditTab : PTabSurface
         finally
         {
             pInspector.PInspectorCropChange += pViewer.PCropVideoSet;
-            pInspector.PInspectorRotateChange += pViewer.PViewerRotateSet;
+            pInspector.PInspectorRotateChange += PEditRotateHandle;
             pEditPlanLoading = false;
         }
 
@@ -309,6 +317,15 @@ public sealed class PEditTab : PTabSurface
         pViewer.PViewerRotateSet(pEditRotate);
         pViewer.PCropVideoSet(pEditRect);
         PEditColorApply();
+    }
+
+    private void PEditRotateHandle(LRotateFlip pRotateFlip)
+    {
+        pViewer.PViewerRotateSet(pRotateFlip);
+        if (pViewer.PCropSourceRead() is { } pRotatedSource)
+        {
+            pInspector.PInspectorSourceSet(pRotatedSource.Width, pRotatedSource.Height);
+        }
     }
 
     private void PEditColorApply()

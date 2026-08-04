@@ -3,7 +3,7 @@
 @title Rename export preset
 @area UI workflow
 @entry input
-@summary Validate and commit a requested new name for one custom export preset.
+@summary Validate and rename one custom export preset without letting selection-change handling replace its encoding or output settings.
 @section I. UI
 @tabs Split, Edit, Convert, Audio, Merge
 @flow TB
@@ -21,11 +21,14 @@
 ? "Requested custom name is usable" > commit
 
 [commit] Rename preset <process>
-- Update the preset name, selection, and visible rows @ export.PExportNameCommit(...)
+- Hold the export-preset busy guard while the store renames the complete preset record @ export.PExportNameCommit(...)
+- When renaming the selected preset, update its name and selected identity before releasing the guard @ export.PExportNameCommit(...)
+- Rebuild the visible rows or refresh the selected summary after the guarded rename succeeds @ export.PExportNameCommit(...)
 > result
 
 [result] Preset renamed <output>
 = The custom preset is available under the requested name.
+= Its existing encoding and output settings are preserved instead of being overwritten by a selection-change reload.
 
 [unchanged] Name unchanged <output>
 = The existing preset name remains active.

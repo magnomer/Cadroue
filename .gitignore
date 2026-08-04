@@ -69,6 +69,8 @@ coverage*.xml
 *.iobj
 *.ipdb
 *.pch
+__pycache__/
+*.py[cod]
 
 # OS metadata
 [Dd]esktop.ini

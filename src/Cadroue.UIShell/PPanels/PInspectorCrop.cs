@@ -25,8 +25,11 @@ public sealed partial class PInspector
     private TextBox pInspectorInsetBottom = null!;
     private TextBox pInspectorRatioWidth = null!;
     private TextBox pInspectorRatioHeight = null!;
+    private ComboBox pInspectorRatioPreset = null!;
+    private StackPanel pInspectorRatioCustomPanel = null!;
     private CheckBox pInspectorRatioFixed = null!;
     private TextBlock pInspectorRatioNotice = null!;
+    private TextBlock pInspectorResolution = null!;
     private CheckBox pInspectorFlipHorizontal = null!;
     private CheckBox pInspectorFlipVertical = null!;
     private ComboBox pInspectorRotateCombo = null!;
@@ -39,6 +42,7 @@ public sealed partial class PInspector
 
     private double pInspectorSourceWidth = 1920;
     private double pInspectorSourceHeight = 1080;
+    private bool pInspectorSourcePresent;
     private bool pInspectorCropSuppress;
     private bool pInspectorRatioSuppress;
     private bool pInspectorCropPresent;
@@ -54,8 +58,9 @@ public sealed partial class PInspector
 
     public void PInspectorSourceSet(double pSourceWidth, double pSourceHeight)
     {
-        pInspectorSourceWidth = pSourceWidth;
-        pInspectorSourceHeight = pSourceHeight;
+        pInspectorSourcePresent = pSourceWidth > 0 && pSourceHeight > 0;
+        pInspectorSourceWidth = pInspectorSourcePresent ? pSourceWidth : 0;
+        pInspectorSourceHeight = pInspectorSourcePresent ? pSourceHeight : 0;
         PInspectorRatioUpdate();
     }
 
@@ -151,6 +156,7 @@ public sealed partial class PInspector
             pInspectorFlipVertical.IsChecked = false;
             pInspectorRotateCombo.SelectedIndex = 0;
             pInspectorRatioFixed.IsChecked = false;
+            pInspectorRatioPreset.SelectedIndex = 0;
             pInspectorInsetLeft.Text = "0";
             pInspectorInsetTop.Text = "0";
             pInspectorInsetRight.Text = "0";
@@ -315,6 +321,28 @@ public sealed partial class PInspector
         }
 
         PInspectorCropChange?.Invoke(null);
+    }
+
+    private void PInspectorEdgesReset()
+    {
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        pInspectorCropSuppress = true;
+        try
+        {
+            pInspectorInsetLeft.Text = "0";
+            pInspectorInsetTop.Text = "0";
+            pInspectorInsetRight.Text = "0";
+            pInspectorInsetBottom.Text = "0";
+            pInspectorCropPresent = false;
+        }
+        finally
+        {
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+
+        PInspectorCropChange?.Invoke(null);
+        PInspectorRatioUpdate();
+        PInspectorToolUpdate();
     }
 
     private void PInspectorCropRaise()

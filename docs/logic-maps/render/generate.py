@@ -13,12 +13,10 @@ import html
 import json
 import os
 import re
-import shutil
 import sys
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
 
 RENDER_ROOT = Path(__file__).resolve().parent
 MAP_ROOT = RENDER_ROOT.parent
@@ -29,6 +27,17 @@ KINDS = {"input", "process", "decision", "storage", "external", "output", "error
 EDGE_MARKERS = {"left", "right", "up", "down", "loop"}
 SECTION_ORDER = ("I. UI", "II. Functionality")
 TAB_ORDER = ("Split", "Edit", "Convert", "Audio", "Merge", "Funnel", "Worklist", "Global interface")
+FUNCTIONALITY_ORDER = (
+    "1. Application lifecycle",
+    "2. Media discovery and import",
+    "3. Keyframes and waveform",
+    "4. Queue and scheduling",
+    "5. Processing and FFmpeg",
+    "6. Relay and routing",
+    "7. Project persistence",
+    "8. Preferences and tools",
+    "9. Logging",
+)
 UI_EVENT_NAMES = set("""Click MouseLeftButtonDown MouseLeftButtonUp MouseRightButtonDown MouseRightButtonUp MouseMove MouseEnter MouseLeave MouseWheel PreviewMouseMove PreviewMouseLeftButtonDown PreviewMouseLeftButtonUp PreviewMouseWheel PreviewMouseDown PreviewMouseUp PreviewMouseRightButtonDown PreviewMouseRightButtonUp LostMouseCapture KeyDown PreviewKeyDown KeyUp PreviewTextInput TextChanged SelectionChanged Selected Unselected Checked Unchecked ValueChanged DragStarted DragDelta DragCompleted DragEnter DragOver DragLeave Drop GiveFeedback GotFocus LostFocus LostKeyboardFocus Loaded Unloaded Closed Closing SizeChanged IsVisibleChanged LayoutUpdated DropDownOpened DropDownClosed StatusChanged Deactivated ContextMenuOpening ContextMenuClosing RequestNavigate SeekCompleted ScrollChanged""".split())
 
 
@@ -377,6 +386,8 @@ def validate(all_maps: list[LogicMap], reporter: Reporter) -> tuple[dict[str, Lo
                     reporter.issue("ERROR", item.path, 1, f"Unknown UI tab '{tab}'.")
         elif item.headers.get("tabs"):
             reporter.issue("WARNING", item.path, 1, "Functionality map should not declare @tabs.")
+        if section == "II. Functionality" and item.headers.get("area") not in FUNCTIONALITY_ORDER:
+            reporter.issue("ERROR", item.path, 1, f"Unknown functionality area '{item.headers.get('area', '')}'.")
         if item.headers.get("id") in ids:
             reporter.issue("ERROR", item.path, 1, f"Duplicate map ID '{item.headers['id']}'.")
         else:
@@ -486,57 +497,81 @@ def resolved_reference(item: LogicMap, reference: str) -> str:
     return f"{prefix}{item.aliases[alias]}.{tail[0]}" + (f" /{tail[1]}" if len(tail) == 2 else "")
 
 
-def navigation(maps: Iterable[LogicMap], current_id: str, depth: int) -> str:
-    """Render compact section navigation.
+def anchor(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
-    The complete searchable catalogue belongs on the index page. Repeating
-    hundreds of map links inside every generated page makes both navigation
-    and generation unnecessarily heavy, so map pages link to the authoritative
-    tab and functionality collections instead.
+
+def navigation_script() -> str:
+    """Emit stable shared navigation data without per-map counts.
+
+    Counts and the searchable catalogue live on the index page. Keeping them
+    out of every map page prevents one added or removed map from rewriting the
+    complete generated site.
     """
+    navigation = {
+        "ui": [
+            {"label": f"{index}. {tab}", "anchor": f"ui-{anchor(tab)}"}
+            for index, tab in enumerate(TAB_ORDER, 1)
+        ],
+        "functionality": [
+            {"label": area, "anchor": f"functionality-{anchor(area)}"}
+            for area in FUNCTIONALITY_ORDER
+        ],
+    }
+    return "window.CadroueLogicNavigation=" + json.dumps(navigation, separators=(",", ":")) + ";\n"
+
+
+def page(title: str, crumb: str, body: str, depth: int) -> str:
     prefix = "../" * depth
-    items = list(maps)
-
-    def anchor(value: str) -> str:
-        return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-
-    parts = [f'<a class="nav-home" href="{prefix}index.html">Logic maps</a>']
-    parts.append('<h2 class="nav-major">I. UI</h2>')
-    for index, tab in enumerate(TAB_ORDER, 1):
-        count = sum(
-            1 for item in items
-            if item.headers.get("section") == "I. UI" and tab in map_tabs(item)
-        )
-        parts.append(
-            f'<a class="nav-section" href="{prefix}index.html#ui-{anchor(tab)}">'
-            f'<span>{index}. {h(tab)}</span><strong>{count}</strong></a>')
-
-    parts.append('<h2 class="nav-major">II. Functionality</h2>')
-    groups: dict[str, int] = defaultdict(int)
-    for item in items:
-        if item.headers.get("section") == "II. Functionality":
-            groups[item.headers["area"]] += 1
-    for area in sorted(groups):
-        parts.append(
-            f'<a class="nav-section" href="{prefix}index.html#functionality-{anchor(area)}">'
-            f'<span>{h(area)}</span><strong>{groups[area]}</strong></a>')
-    return "".join(parts)
-
-def page(title: str, crumb: str, body: str, nav: str, depth: int) -> str:
-    prefix = "../" * depth
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{h(title)} — Cadroue Logic Maps</title><link rel="stylesheet" href="{prefix}assets/site.css"></head><body><header class="top"><div class="brand">Cadroue Logic Maps</div><div class="crumb">{h(crumb)}</div><div class="spacer"></div><button class="iconbtn" data-theme-toggle aria-label="Toggle light and dark theme">◐</button></header><div class="shell"><nav class="nav" aria-label="Logic map navigation">{nav}</nav><main class="main">{body}</main></div><script src="{prefix}assets/site.js"></script></body></html>'''
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{h(title)} — Cadroue Logic Maps</title><link rel="stylesheet" href="{prefix}assets/site.css"></head><body><header class="top"><div class="brand">Cadroue Logic Maps</div><div class="crumb">{h(crumb)}</div><div class="spacer"></div><button class="iconbtn" data-theme-toggle aria-label="Toggle light and dark theme">◐</button></header><div class="shell"><nav class="nav" aria-label="Logic map navigation" data-navigation-root="{prefix}"></nav><main class="main">{body}</main></div><script src="{prefix}assets/navigation.js"></script><script src="{prefix}assets/site.js"></script></body></html>'''
 
 
-def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter: Reporter) -> None:
-    for generated in (MAP_ROOT / "index.html", MAP_ROOT / "manifest.json", MAP_ROOT / "assets", MAP_ROOT / "maps"):
-        if generated.is_dir():
-            shutil.rmtree(generated)
-        elif generated.exists():
-            generated.unlink()
-    (MAP_ROOT / "assets").mkdir()
-    (MAP_ROOT / "maps").mkdir()
-    shutil.copy2(RENDER_ROOT / "site.css", MAP_ROOT / "assets" / "site.css")
-    shutil.copy2(RENDER_ROOT / "site.js", MAP_ROOT / "assets" / "site.js")
+def write_bytes_if_changed(path: Path, content: bytes) -> bool:
+    if path.is_file() and path.read_bytes() == content:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_bytes(content)
+    os.replace(temporary, path)
+    return True
+
+
+def write_text_if_changed(path: Path, content: str) -> bool:
+    return write_bytes_if_changed(path, content.encode("utf-8"))
+
+
+def stale_outputs_remove(expected: set[Path]) -> int:
+    removed = 0
+    for root in (MAP_ROOT / "assets", MAP_ROOT / "maps"):
+        if not root.is_dir():
+            continue
+        for path in root.rglob("*"):
+            if path.is_file() and path not in expected:
+                path.unlink()
+                removed += 1
+        for directory in sorted((path for path in root.rglob("*") if path.is_dir()), key=lambda path: len(path.parts), reverse=True):
+            if not any(directory.iterdir()):
+                directory.rmdir()
+    return removed
+
+
+def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter: Reporter) -> tuple[int, int]:
+    expected: set[Path] = set()
+    updated = 0
+
+    def emit_bytes(path: Path, content: bytes) -> None:
+        nonlocal updated
+        expected.add(path)
+        updated += int(write_bytes_if_changed(path, content))
+
+    def emit_text(path: Path, content: str) -> None:
+        nonlocal updated
+        expected.add(path)
+        updated += int(write_text_if_changed(path, content))
+
+    emit_bytes(MAP_ROOT / "assets" / "site.css", (RENDER_ROOT / "site.css").read_bytes())
+    emit_bytes(MAP_ROOT / "assets" / "site.js", (RENDER_ROOT / "site.js").read_bytes())
+    emit_text(MAP_ROOT / "assets" / "navigation.js", navigation_script())
     implementations: dict[str, list[dict[str, object]]] = defaultdict(list)
     manifest: list[dict[str, object]] = []
     maps = list(ids.values())
@@ -581,7 +616,7 @@ def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter:
         body = f'<div class="heading"><h1>{h(item.headers["title"])}</h1><p class="summary">{h(item.headers["summary"])}</p><div class="meta"><span class="pill">{h(item.headers["section"])}</span><span class="pill">{h(placement)}</span>{event_pill}<span class="pill">source/{h(relative_source(item))}</span><span class="pill">valid</span><span class="pill">sha256 {digest}</span>{related}</div></div><div class="toolbar"><button class="tool" data-out>−</button><button class="tool" data-fit>Fit</button><button class="tool" data-in>+</button></div><div class="canvas" data-edges="{edge_json}"><div class="world"><svg class="edges" aria-hidden="true"></svg><div class="nodes">{"".join(nodes)}</div></div></div>'
         depth = len(Path(relative).parts)
         crumb = f'{item.headers["section"]} / {placement} / {item.headers["title"]}'
-        output.write_text(page(item.headers["title"], crumb, body, navigation(maps, item.headers["id"], depth), depth), encoding="utf-8")
+        emit_text(output, page(item.headers["title"], crumb, body, depth))
         searchable = [item.headers["section"], item.headers["area"], *tabs, item.headers["title"], item.headers["summary"], *item.tags, *item.aliases.keys(), *item.aliases.values()]
         for node in item.nodes:
             searchable.append(node.title)
@@ -615,8 +650,9 @@ def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter:
         implementation_html.append(f'<div class="impl" data-search="{h(search)}"><code>{h(symbol)}</code>{links}</div>')
     coverage = f'{reporter.ui_events_covered}/{reporter.ui_events_total}'
     index_body = f'''<div class="index-wrap"><div class="hero"><h1>Cadroue logic maps</h1><p class="summary">{len(maps)} verified maps and {len(fragments)} shared fragment. Direct UI-event coverage: <strong>{coverage}</strong>.</p><div class="coverage-strip"><span><strong>{len(ui_entries)}</strong> UI maps</span><span><strong>{len(functionality)}</strong> functionality maps</span><span><strong>{reporter.ui_events_total}</strong> current UI bindings audited</span></div><input class="search" type="search" placeholder="Search maps, actions, tabs, or implementation symbols" aria-label="Search logic maps"></div><div id="maps">{"".join(sections)}</div><section class="area"><h2>Implementation index · {len(implementations)}</h2><div id="implementations">{"".join(implementation_html)}</div></section><p class="empty">No matching maps or implementation references.</p></div><script>document.querySelector('.search').addEventListener('input',e=>{{const q=e.target.value.toLowerCase().trim();let shown=0;document.querySelectorAll('[data-search]').forEach(x=>{{const yes=!q||x.dataset.search.includes(q);x.style.display=yes?'':'none';if(yes)shown++}});document.querySelector('.empty').style.display=shown?'none':'block'}})</script>'''
-    (MAP_ROOT / "index.html").write_text(page("Index", "I. UI / II. Functionality", index_body, navigation(maps, "", 0), 0), encoding="utf-8")
-    (MAP_ROOT / "manifest.json").write_text(json.dumps({"format": 2, "ui_event_coverage": {"covered": reporter.ui_events_covered, "total": reporter.ui_events_total}, "maps": manifest}, indent=2) + "\n", encoding="utf-8")
+    emit_text(MAP_ROOT / "index.html", page("Index", "I. UI / II. Functionality", index_body, 0))
+    emit_text(MAP_ROOT / "manifest.json", json.dumps({"format": 2, "ui_event_coverage": {"covered": reporter.ui_events_covered, "total": reporter.ui_events_total}, "maps": manifest}, indent=2) + "\n")
+    return updated, stale_outputs_remove(expected)
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate and render Cadroue logic maps.")
@@ -636,13 +672,15 @@ def main() -> int:
     if reporter.errors:
         print(f"Logic-map generation stopped: {len(reporter.errors)} error(s).", file=sys.stderr)
         return 1
-    generate(ids, fragments, reporter)
+    updated, removed = generate(ids, fragments, reporter)
     print(f"Logic maps: {len(ids)} parsed, {len(ids)} generated")
     print(f"Fragments: {len(fragments)} parsed")
     print(f"Errors: {len(reporter.errors)}")
     print(f"Warnings: {len(reporter.warnings)}")
     print(f"Unresolved symbols: {reporter.unresolved}")
     print(f"UI event coverage: {reporter.ui_events_covered}/{reporter.ui_events_total}")
+    print(f"Generated files updated: {updated}")
+    print(f"Stale generated files removed: {removed}")
     print("Output: docs/logic-maps/index.html")
     return 0
 
