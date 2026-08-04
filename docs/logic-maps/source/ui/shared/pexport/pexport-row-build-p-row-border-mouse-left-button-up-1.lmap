@@ -16,8 +16,8 @@
 > route
 
 [route] Registered handler path <process>
-- Clear export drag @ owner.PExportDragClear
-- Mark the routed event handled on the implemented paths @ owner.PExportDragClear
+- Commit any active rename and select a row clicked without panel capture @ owner.PExportRowBuild
+- Mark the routed event handled on the implemented paths @ owner.PExportRowBuild
 > output
 
 [output] UI state after the event <output>

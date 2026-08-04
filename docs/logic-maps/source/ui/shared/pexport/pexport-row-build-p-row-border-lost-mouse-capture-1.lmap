@@ -4,15 +4,15 @@
 @section I. UI
 @area UI event
 @tabs Split, Edit, Convert, Audio, Merge
-@event-ref cs|PPanels/PExportPreset.cs|PExportRowBuild|pRowBorder|LostMouseCapture|1
+@event-ref cs|PPanels/PExportSummary.cs|PExport|pPresetRowPanel|LostMouseCapture|1
 @entry input
-@summary Handle the lost mouse capture event exposed by PExport.PExportRowBuild and follow its registered code path.
+@summary Cancel preset dragging and clear its visual feedback when the stable preset panel loses mouse capture.
 @tag lost mouse capture
 @tag PExport
 @alias owner = Cadroue.UIShell.PPanels.PExport
 
 [input] UI event <input>
-- Receive the lost mouse capture event from the row border @ owner.PExportRowBuild
+- Receive the lost mouse capture event from the preset panel @ owner.PExportLostHandle
 > route
 
 [route] Registered handler path <process>
@@ -21,4 +21,4 @@
 
 [output] UI state after the event <output>
 = The lost mouse capture event has completed through the current implementation.
-! Code binding: cs|PPanels/PExportPreset.cs|PExportRowBuild|pRowBorder|LostMouseCapture|1
+! Code binding: cs|PPanels/PExportSummary.cs|PExport|pPresetRowPanel|LostMouseCapture|1

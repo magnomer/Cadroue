@@ -24,7 +24,7 @@ public sealed partial class PExport
 
     private void PExportPresetSync()
     {
-        if (pExportPresetBusy || pPresetNameEditing is not null)
+        if (pExportPresetBusy || pPresetNameEditing is not null || pPresetDragActive)
         {
             return;
         }

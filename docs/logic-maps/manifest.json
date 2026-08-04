@@ -1,8 +1,8 @@
 {
   "format": 2,
   "ui_event_coverage": {
-    "covered": 507,
-    "total": 507
+    "covered": 508,
+    "total": 508
   },
   "maps": [
     {
@@ -5637,8 +5637,8 @@
         "mouse move",
         "PTabNavigator"
       ],
-      "hash": "437f4660b061",
-      "search": "i. ui ui event global interface handle tab move \u2014 mouse move handle the mouse move event exposed by ptabnavigator.ptabmovehandle and follow its registered code path. mouse move ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse move event to its named handler owner.ptabmovehandle registered handler path resolve tab index owner.ptabindexresolve evaluate the handler's implemented conditional branches owner.ptabmovehandle mark the routed event handled on the implemented paths owner.ptabmovehandle ui state after the event"
+      "hash": "636410e1940b",
+      "search": "i. ui ui event global interface handle tab move \u2014 mouse move handle the mouse move event exposed by ptabnavigator.ptabmovehandle and follow its registered code path. mouse move ptabnavigator owner tabset cadroue.uishell.pcontrolbar.ptabnavigator cadroue.uishell.pcontrolbar.ltabset ui event dispatch the xaml mouse move event to its named handler owner.ptabmovehandle registered handler path show and synchronize the shared drag ghost after the pointer crosses the drag threshold owner.ptabmovehandle resolve tab index owner.ptabindexresolve reorder the real tab collection for the resolved index tabset.ltabsetmove evaluate the handler's implemented conditional branches owner.ptabmovehandle mark the routed event handled on the implemented paths owner.ptabmovehandle ui state after the event"
     },
     {
       "id": "ui-event.34ce4036b7dc3f6d",
@@ -5949,11 +5949,11 @@
         "Global interface"
       ],
       "event_ref": null,
-      "summary": "Reorder one tab by dragging it to a resolved insertion index.",
+      "summary": "Reorder one tab with a pointer-following ghost, then keep it in this window or relay it on release.",
       "href": "maps/ui/global/workflow/workflows/move.html",
       "tags": [],
-      "hash": "48f0b56bf8e0",
-      "search": "i. ui ui workflow global interface move tab reorder one tab by dragging it to a resolved insertion index. navigator tabset cadroue.uishell.pcontrolbar.ptabnavigator cadroue.uishell.pcontrolbar.ltabset tab drag begins capture the pressed tab and drag origin navigator.ptabpresshandle(...) resolve insertion activate dragging after threshold and resolve the target index navigator.ptabmovehandle(...) reorder tab move the record in the tab set and update derived titles tabset.ltabsetmove(...) tab moved order unchanged"
+      "hash": "8a408bc0f672",
+      "search": "i. ui ui workflow global interface move tab reorder one tab with a pointer-following ghost, then keep it in this window or relay it on release. navigator tabset ghost cadroue.uishell.pcontrolbar.ptabnavigator cadroue.uishell.pcontrolbar.ltabset cadroue.uishell.pmainwindow.pghost tab drag begins store the pressed tab, source element, drag origin, and pointer grab offset navigator.ptabpresshandle(...) select the tab and capture the mouse to its visual element navigator.ptabpresshandle(...) drag threshold crossed? compare pointer travel with the standard horizontal and vertical drag distances navigator.ptabmovehandle(...) show drag feedback dim the live tab and capture its rendered image in an adorner-layer ghost ghost.pghostshow(...) track pointer and insertion synchronize the ghost with the system cursor ghost.pghostcursorsync(...) resolve the insertion index from tab centers navigator.ptabindexresolve(...) immediately move the real tab record to the resolved index tabset.ltabsetmove(...) finish drag restore the tab opacity, remove the ghost, and release mouse capture navigator.ptabdragclear(...) check whether the release point is outside the current window navigator.ptabrelaycheck(...) tab moved tab relayed click remains below threshold"
     },
     {
       "id": "tabs.relay-out",
@@ -7054,6 +7054,28 @@
       "search": "i. ui ui event split edit convert audio merge export \u2014 unloaded handle the unloaded event emitted by export through the exact route registered in pexport.pexport. unloaded pexport owner cadroue.uishell.ppanels.pexport ui event receive the unloaded event from export through its current registration owner.pexport registered handler path execute the registered delegate without substituting a different route owner.pexport ui state after the event"
     },
     {
+      "id": "ui-event.pexport-preset-panel-up",
+      "title": "Preset panel - mouse left button up",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Split",
+        "Edit",
+        "Convert",
+        "Audio",
+        "Merge"
+      ],
+      "event_ref": "cs|PPanels/PExportSummary.cs|PExport|pPresetRowPanel|MouseLeftButtonUp|1",
+      "summary": "Finish a captured preset click or drag before releasing stable panel capture.",
+      "href": "maps/ui/shared/pexport/pexport-preset-panel-mouse-left-button-up-1.html",
+      "tags": [
+        "mouse left button up",
+        "PExport"
+      ],
+      "hash": "770ebd4efdd1",
+      "search": "i. ui ui event split edit convert audio merge preset panel - mouse left button up finish a captured preset click or drag before releasing stable panel capture. mouse left button up pexport owner cadroue.uishell.ppanels.pexport ui event receive mouse release from the captured preset panel owner.pexportuphandle finish interaction restore source opacity and remove the shared ghost owner.pexportdragclear release panel capture after drag state has been cleared owner.pexportuphandle select the preset only when the pointer never crossed the drag threshold owner.pexportuphandle preset interaction complete"
+    },
+    {
       "id": "ui-event.d7fcdc7445b830ac",
       "title": "Row border \u2014 lost mouse capture",
       "section": "I. UI",
@@ -7065,15 +7087,15 @@
         "Audio",
         "Merge"
       ],
-      "event_ref": "cs|PPanels/PExportPreset.cs|PExportRowBuild|pRowBorder|LostMouseCapture|1",
-      "summary": "Handle the lost mouse capture event exposed by PExport.PExportRowBuild and follow its registered code path.",
+      "event_ref": "cs|PPanels/PExportSummary.cs|PExport|pPresetRowPanel|LostMouseCapture|1",
+      "summary": "Cancel preset dragging and clear its visual feedback when the stable preset panel loses mouse capture.",
       "href": "maps/ui/shared/pexport/pexport-row-build-p-row-border-lost-mouse-capture-1.html",
       "tags": [
         "lost mouse capture",
         "PExport"
       ],
-      "hash": "4e585da994d9",
-      "search": "i. ui ui event split edit convert audio merge row border \u2014 lost mouse capture handle the lost mouse capture event exposed by pexport.pexportrowbuild and follow its registered code path. lost mouse capture pexport owner cadroue.uishell.ppanels.pexport ui event receive the lost mouse capture event from the row border owner.pexportrowbuild registered handler path clear export drag owner.pexportdragclear ui state after the event"
+      "hash": "66c746e7b593",
+      "search": "i. ui ui event split edit convert audio merge row border \u2014 lost mouse capture cancel preset dragging and clear its visual feedback when the stable preset panel loses mouse capture. lost mouse capture pexport owner cadroue.uishell.ppanels.pexport ui event receive the lost mouse capture event from the preset panel owner.pexportlosthandle registered handler path clear export drag owner.pexportdragclear ui state after the event"
     },
     {
       "id": "ui-event.aad10309811f5cf4",
@@ -7116,8 +7138,8 @@
         "mouse left button up",
         "PExport"
       ],
-      "hash": "277eb7ff2fea",
-      "search": "i. ui ui event split edit convert audio merge row border \u2014 mouse left button up handle the mouse left button up event exposed by pexport.pexportrowbuild and follow its registered code path. mouse left button up pexport owner cadroue.uishell.ppanels.pexport ui event receive the mouse left button up event from the row border owner.pexportrowbuild registered handler path clear export drag owner.pexportdragclear mark the routed event handled on the implemented paths owner.pexportdragclear ui state after the event"
+      "hash": "18dd539ea8bd",
+      "search": "i. ui ui event split edit convert audio merge row border \u2014 mouse left button up handle the mouse left button up event exposed by pexport.pexportrowbuild and follow its registered code path. mouse left button up pexport owner cadroue.uishell.ppanels.pexport ui event receive the mouse left button up event from the row border owner.pexportrowbuild registered handler path commit any active rename and select a row clicked without panel capture owner.pexportrowbuild mark the routed event handled on the implemented paths owner.pexportrowbuild ui state after the event"
     },
     {
       "id": "ui-event.c159bd16877578e3",
@@ -7153,15 +7175,15 @@
         "Audio",
         "Merge"
       ],
-      "event_ref": "cs|PPanels/PExportPreset.cs|PExportRowBuild|pRowBorder|PreviewMouseMove|1",
-      "summary": "Handle the preview mouse move event exposed by PExport.PExportRowBuild and follow its registered code path.",
+      "event_ref": "cs|PPanels/PExportSummary.cs|PExport|pPresetRowPanel|PreviewMouseMove|1",
+      "summary": "Track preset dragging in the stable preset-panel coordinate space and update the shared ghost and live order.",
       "href": "maps/ui/shared/pexport/pexport-row-build-p-row-border-preview-mouse-move-1.html",
       "tags": [
         "preview mouse move",
         "PExport"
       ],
-      "hash": "33def233e4a6",
-      "search": "i. ui ui event split edit convert audio merge row border \u2014 preview mouse move handle the preview mouse move event exposed by pexport.pexportrowbuild and follow its registered code path. preview mouse move pexport owner cadroue.uishell.ppanels.pexport ui event receive the preview mouse move event from the row border owner.pexportrowbuild registered handler path resolve export index owner.pexportindexresolve evaluate the handler's implemented conditional branches owner.pexportindexresolve mark the routed event handled on the implemented paths owner.pexportindexresolve update the visual or selection state owned by the handler owner.pexportindexresolve ui state after the event"
+      "hash": "13b99c459598",
+      "search": "i. ui ui event split edit convert audio merge row border \u2014 preview mouse move track preset dragging in the stable preset-panel coordinate space and update the shared ghost and live order. preview mouse move pexport owner cadroue.uishell.ppanels.pexport ui event receive the preview mouse move event from the captured preset panel owner.pexportmovehandle registered handler path cross the drag threshold using coordinates relative to the stable preset panel owner.pexportmovehandle show and synchronize the shared ghost using the row-relative grab offset owner.pexportmovehandle resolve the target index and move the live row owner.pexportlivemove ui state after the event"
     },
     {
       "id": "ui-event.dbf46a1f0bafb251",
@@ -10791,11 +10813,11 @@
         "Merge"
       ],
       "event_ref": null,
-      "summary": "Move one custom export preset to a new visible index while leaving native presets fixed.",
+      "summary": "Move one custom export preset with stable panel capture and a cursor-aligned shared ghost.",
       "href": "maps/ui/shared/workflow/workflows/reorder-presets.html",
       "tags": [],
-      "hash": "421ffaa2790b",
-      "search": "i. ui ui workflow split edit convert audio merge reorder export presets move one custom export preset to a new visible index while leaving native presets fixed. export cadroue.uishell.ppanels.pexport preset drag begins track a custom preset drag and resolve the target index export.pexportlivemove(...) apply live order reject native-preset movement and no-op indices export.pexportlivemove(...) preset moved order unchanged"
+      "hash": "330fe8158e11",
+      "search": "i. ui ui workflow split edit convert audio merge reorder export presets move one custom export preset with stable panel capture and a cursor-aligned shared ghost. export cadroue.uishell.ppanels.pexport preset drag begins capture the stable preset panel while retaining the pressed row and row-relative grab offset export.pexportrowbuild(...) track drag measure movement in preset-panel coordinates and show the shared row ghost after the threshold export.pexportmovehandle(...) resolve the target index without changing the drag origin coordinate space export.pexportindexresolve(...) apply live order reject native-preset movement and no-op indices export.pexportlivemove(...) synchronize order persist the order while suppressing a rebuild of the initiating panel during its active drag export.pexportpresetsync(...) finish drag restore opacity, clear the ghost, and release panel capture export.pexportuphandle(...) preset moved"
     },
     {
       "id": "export.restore-modifications",

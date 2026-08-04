@@ -3,30 +3,47 @@
 @title Move tab
 @area UI workflow
 @entry input
-@summary Reorder one tab by dragging it to a resolved insertion index.
+@summary Reorder one tab with a pointer-following ghost, then keep it in this window or relay it on release.
 @section I. UI
 @tabs Global interface
 @flow TB
-@related tabs.select
+@related tabs.select, tabs.relay-out
 
 @alias navigator = Cadroue.UIShell.PControlBar.PTabNavigator
 @alias tabset = Cadroue.UIShell.PControlBar.LTabset
+@alias ghost = Cadroue.UIShell.PMainWindow.PGhost
 
 [input] Tab drag begins <input>
-- Capture the pressed tab and drag origin @ navigator.PTabPressHandle(...)
+- Store the pressed tab, source element, drag origin, and pointer grab offset @ navigator.PTabPressHandle(...)
+- Select the tab and capture the mouse to its visual element @ navigator.PTabPressHandle(...)
+> threshold
+
+[threshold] Drag threshold crossed? <decision>
+- Compare pointer travel with the standard horizontal and vertical drag distances @ navigator.PTabMoveHandle(...)
+? "No" > waiting
+? "Yes" > visualize
+
+[visualize] Show drag feedback <process>
+- Dim the live tab and capture its rendered image in an adorner-layer ghost @ ghost.PGhostShow(...)
 > track
 
-[track] Resolve insertion <decision>
-- Activate dragging after threshold and resolve the target index @ navigator.PTabMoveHandle(...)
-? "Target index is unchanged" > unchanged
-? "A different insertion index is reached" > reorder
+[track] Track pointer and insertion <process>
+- Synchronize the ghost with the system cursor @ ghost.PGhostCursorSync(...)
+- Resolve the insertion index from tab centers @ navigator.PTabIndexResolve(...)
+- Immediately move the real tab record to the resolved index @ tabset.LTabsetMove(...)
+> release
 
-[reorder] Reorder tab <process>
-- Move the record in the tab set and update derived titles @ tabset.LTabsetMove(...)
-> result
+[release] Finish drag <decision>
+- Restore the tab opacity, remove the ghost, and release mouse capture @ navigator.PTabDragClear(...)
+- Check whether the release point is outside the current window @ navigator.PTabRelayCheck(...)
+? "Inside this window or relay fails" > result
+? "Relay succeeds" > relayed
 
 [result] Tab moved <output>
-= Visible and persisted tab order use the new index.
+= The tab remains in this window at its latest resolved index.
 
-[unchanged] Order unchanged <output>
-= The tab remains at its current index.
+[relayed] Tab relayed <output>
+= The destination receives the tab and the source tab closes.
+
+[waiting] Click remains below threshold <output>
+= No ghost is created and tab order does not change.

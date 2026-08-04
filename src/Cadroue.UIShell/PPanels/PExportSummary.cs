@@ -28,6 +28,8 @@ public sealed partial class PExport : UserControl
     private Point? pExportDragOrigin;
     private Point pPresetDragOffset;
     private bool pPresetDragActive;
+    private Border? pPresetRowDragging;
+    private double pPresetRowOpacity;
     private PGhost? pPresetDragGhost;
 
     private bool pPresetRebuilding;
@@ -45,6 +47,9 @@ public sealed partial class PExport : UserControl
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         pPresetRowPanel = new StackPanel();
+        pPresetRowPanel.PreviewMouseMove += PExportMoveHandle;
+        pPresetRowPanel.MouseLeftButtonUp += PExportUpHandle;
+        pPresetRowPanel.LostMouseCapture += PExportLostHandle;
         pPresetNameSelected = lExportSpecificState.LPresetName;
 
         var pPanel = new Grid();

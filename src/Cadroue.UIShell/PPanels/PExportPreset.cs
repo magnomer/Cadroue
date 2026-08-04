@@ -100,55 +100,24 @@ public sealed partial class PExport
             }
 
             pPresetNameDragging = lPresetName;
-            pExportDragOrigin = pEvent.GetPosition(pRowBorder);
-            pPresetDragOffset = pExportDragOrigin.Value;
+            pPresetRowDragging = pRowBorder;
+            pPresetRowOpacity = pRowBorder.Opacity;
+            pExportDragOrigin = pEvent.GetPosition(pPresetRowPanel);
+            pPresetDragOffset = pEvent.GetPosition(pRowBorder);
             pPresetDragActive = false;
-            pRowBorder.CaptureMouse();
+            pPresetRowPanel.CaptureMouse();
         };
         pRowBorder.MouseLeftButtonDown += (_, pEvent) =>
         {
             if (!pPresetNative && pEvent.ClickCount >= 2)
             {
-                pRowBorder.ReleaseMouseCapture();
                 PExportDragClear();
+                pPresetRowPanel.ReleaseMouseCapture();
                 PExportPresetSelect(lPresetName);
                 pPresetNameEditing = lPresetName;
                 PExportPresetRebuild();
                 pEvent.Handled = true;
             }
-        };
-        pRowBorder.PreviewMouseMove += (_, pEvent) =>
-        {
-            if (pPresetNameDragging is null
-                || pPresetEditing
-                || pExportDragOrigin is not Point pStart
-                || pEvent.LeftButton != MouseButtonState.Pressed)
-            {
-                return;
-            }
-
-            Point pCurrent = pEvent.GetPosition(pRowBorder);
-            if (Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
-                && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
-            {
-                return;
-            }
-
-            if (!pPresetDragActive)
-            {
-                pPresetDragGhost = PGhost.PGhostShow(pRowBorder, pPresetDragOffset);
-            }
-
-            pPresetDragActive = true;
-            pRowBorder.Opacity = 0.42;
-            pPresetDragGhost?.PGhostCursorSync();
-            int lPresetTargetIndex = PExportIndexResolve(pEvent.GetPosition(pPresetRowPanel));
-            if (PExportLiveMove(pPresetNameDragging, lPresetTargetIndex, pRowBorder))
-            {
-                pExportDragOrigin = pEvent.GetPosition(pRowBorder);
-            }
-
-            pEvent.Handled = true;
         };
         pRowBorder.MouseLeftButtonUp += (_, pEvent) =>
         {
@@ -157,17 +126,6 @@ public sealed partial class PExport
                 return;
             }
 
-            pRowBorder.ReleaseMouseCapture();
-            if (pPresetDragActive && pPresetNameDragging is string lDraggedPresetName)
-            {
-                pRowBorder.Opacity = 1;
-                PExportDragClear();
-                pEvent.Handled = true;
-                return;
-            }
-
-            PExportDragClear();
-
             if (!string.Equals(pPresetNameEditing, lPresetName, StringComparison.OrdinalIgnoreCase))
             {
                 PExportEditCommit();
@@ -175,16 +133,6 @@ public sealed partial class PExport
             }
 
             pEvent.Handled = true;
-        };
-        pRowBorder.LostMouseCapture += (_, _) =>
-        {
-            if (Mouse.LeftButton == MouseButtonState.Pressed)
-            {
-                return;
-            }
-
-            pRowBorder.Opacity = 1;
-            PExportDragClear();
         };
         return pRowBorder;
     }

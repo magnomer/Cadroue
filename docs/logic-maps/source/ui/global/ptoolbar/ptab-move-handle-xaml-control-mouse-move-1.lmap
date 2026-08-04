@@ -10,13 +10,16 @@
 @tag mouse move
 @tag PTabNavigator
 @alias owner = Cadroue.UIShell.PControlBar.PTabNavigator
+@alias tabset = Cadroue.UIShell.PControlBar.LTabset
 
 [input] UI event <input>
 - Dispatch the XAML mouse move event to its named handler @ owner.PTabMoveHandle
 > route
 
 [route] Registered handler path <process>
+- Show and synchronize the shared drag ghost after the pointer crosses the drag threshold @ owner.PTabMoveHandle
 - Resolve tab index @ owner.PTabIndexResolve
+- Reorder the real tab collection for the resolved index @ tabset.LTabsetMove
 - Evaluate the handler's implemented conditional branches @ owner.PTabMoveHandle
 - Mark the routed event handled on the implemented paths @ owner.PTabMoveHandle
 > output

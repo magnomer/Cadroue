@@ -8,11 +8,73 @@ public sealed partial class PExport
 {
     private void PExportDragClear()
     {
+        if (pPresetRowDragging is not null)
+        {
+            pPresetRowDragging.Opacity = pPresetRowOpacity;
+        }
+
         pPresetDragGhost?.PGhostClear();
         pPresetDragGhost = null;
+        pPresetRowDragging = null;
         pPresetNameDragging = null;
         pExportDragOrigin = null;
         pPresetDragActive = false;
+    }
+
+    private void PExportMoveHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent)
+    {
+        if (pPresetNameDragging is not { } lPresetName
+            || pPresetRowDragging is not { } pPresetRow
+            || pPresetNameEditing is not null
+            || pExportDragOrigin is not Point pStart
+            || pEvent.LeftButton != System.Windows.Input.MouseButtonState.Pressed)
+        {
+            return;
+        }
+
+        Point pCurrent = pEvent.GetPosition(pPresetRowPanel);
+        if (!pPresetDragActive
+            && Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
+            && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        if (!pPresetDragActive)
+        {
+            pPresetDragActive = true;
+            pPresetRow.Opacity = 0.42;
+            pPresetDragGhost = PMainWindow.PGhost.PGhostShow(pPresetRow, pPresetDragOffset);
+        }
+
+        pPresetDragGhost?.PGhostCursorSync();
+        PExportLiveMove(lPresetName, PExportIndexResolve(pCurrent), pPresetRow);
+        pEvent.Handled = true;
+    }
+
+    private void PExportUpHandle(object pSender, System.Windows.Input.MouseButtonEventArgs pEvent)
+    {
+        if (pPresetRowDragging is null || pPresetNameDragging is not { } lPresetName)
+        {
+            return;
+        }
+
+        bool pDragMoved = pPresetDragActive;
+        PExportDragClear();
+        pPresetRowPanel.ReleaseMouseCapture();
+
+        if (!pDragMoved && !string.Equals(pPresetNameEditing, lPresetName, StringComparison.OrdinalIgnoreCase))
+        {
+            PExportEditCommit();
+            PExportPresetSelect(lPresetName);
+        }
+
+        pEvent.Handled = true;
+    }
+
+    private void PExportLostHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent)
+    {
+        PExportDragClear();
     }
 
     private int PExportIndexResolve(Point pMousePoint)

@@ -4,24 +4,23 @@
 @section I. UI
 @area UI event
 @tabs Split, Edit, Convert, Audio, Merge
-@event-ref cs|PPanels/PExportPreset.cs|PExportRowBuild|pRowBorder|PreviewMouseMove|1
+@event-ref cs|PPanels/PExportSummary.cs|PExport|pPresetRowPanel|PreviewMouseMove|1
 @entry input
-@summary Handle the preview mouse move event exposed by PExport.PExportRowBuild and follow its registered code path.
+@summary Track preset dragging in the stable preset-panel coordinate space and update the shared ghost and live order.
 @tag preview mouse move
 @tag PExport
 @alias owner = Cadroue.UIShell.PPanels.PExport
 
 [input] UI event <input>
-- Receive the preview mouse move event from the row border @ owner.PExportRowBuild
+- Receive the preview mouse move event from the captured preset panel @ owner.PExportMoveHandle
 > route
 
 [route] Registered handler path <process>
-- Resolve export index @ owner.PExportIndexResolve
-- Evaluate the handler's implemented conditional branches @ owner.PExportIndexResolve
-- Mark the routed event handled on the implemented paths @ owner.PExportIndexResolve
-- Update the visual or selection state owned by the handler @ owner.PExportIndexResolve
+- Cross the drag threshold using coordinates relative to the stable preset panel @ owner.PExportMoveHandle
+- Show and synchronize the shared ghost using the row-relative grab offset @ owner.PExportMoveHandle
+- Resolve the target index and move the live row @ owner.PExportLiveMove
 > output
 
 [output] UI state after the event <output>
 = The preview mouse move event has completed through the current implementation.
-! Code binding: cs|PPanels/PExportPreset.cs|PExportRowBuild|pRowBorder|PreviewMouseMove|1
+! Code binding: cs|PPanels/PExportSummary.cs|PExport|pPresetRowPanel|PreviewMouseMove|1

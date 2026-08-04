@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PAssets;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PControlBar;
 
@@ -13,8 +14,11 @@ public partial class PTabNavigator : UserControl
 
     private LTabset? lTabset;
     private PTabRecord? pTabDragItem;
+    private FrameworkElement? pTabDragElement;
     private Point pTabDragPoint;
+    private Point pTabDragGrabOffset;
     private bool pTabDragActive;
+    private PGhost? pTabGhost;
     private bool pTabVertical;
 
     public PTabNavigator()
@@ -52,7 +56,7 @@ public partial class PTabNavigator : UserControl
 
     private void PTabPressHandle(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: PTabRecord pTabRecord })
+        if (sender is not FrameworkElement { DataContext: PTabRecord pTabRecord } pTabElement)
         {
             return;
         }
@@ -66,7 +70,9 @@ public partial class PTabNavigator : UserControl
         }
 
         pTabDragItem = pTabRecord;
+        pTabDragElement = pTabElement;
         pTabDragPoint = e.GetPosition(this);
+        pTabDragGrabOffset = e.GetPosition(pTabElement);
         pTabDragActive = false;
         lTabset?.LTabsetSelect(pTabRecord);
         Mouse.Capture(sender as IInputElement);
@@ -123,8 +129,14 @@ public partial class PTabNavigator : UserControl
             }
 
             pTabDragActive = true;
+            if (pTabDragElement is { } pTabElement)
+            {
+                pTabElement.Opacity = 0.72;
+                pTabGhost = PGhost.PGhostShow(pTabElement, pTabDragGrabOffset);
+            }
         }
 
+        pTabGhost?.PGhostCursorSync();
         int pTabTargetIndex = PTabIndexResolve(e.GetPosition(pTabItemsControl));
         lTabset?.LTabsetMove(pTabDragItem, pTabTargetIndex);
         e.Handled = true;
@@ -260,6 +272,14 @@ public partial class PTabNavigator : UserControl
     {
         pTabDragItem = null;
         pTabDragActive = false;
+        if (pTabDragElement is not null)
+        {
+            pTabDragElement.Opacity = 1;
+            pTabDragElement = null;
+        }
+
+        pTabGhost?.PGhostClear();
+        pTabGhost = null;
         if (Mouse.Captured is not null)
         {
             Mouse.Capture(null);
