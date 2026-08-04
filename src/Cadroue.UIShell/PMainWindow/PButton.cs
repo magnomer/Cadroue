@@ -146,6 +146,11 @@ public static class PButton
 
     public static Style PButtonChromeCreate(bool pButtonClose)
     {
+        return PButtonChromeCreate(pButtonClose, new CornerRadius(0));
+    }
+
+    public static Style PButtonChromeCreate(bool pButtonClose, CornerRadius pCornerRadius)
+    {
         var pStyle = new Style(typeof(Button));
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
@@ -153,16 +158,17 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonChromeGlyph));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonChromeBuild(pButtonClose)));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonChromeBuild(pButtonClose, pCornerRadius)));
         return pStyle;
     }
 
-    private static ControlTemplate PButtonChromeBuild(bool pButtonClose)
+    private static ControlTemplate PButtonChromeBuild(bool pButtonClose, CornerRadius pCornerRadius)
     {
         var pTemplate = new ControlTemplate(typeof(Button));
         var pBorder = new FrameworkElementFactory(typeof(Border));
         pBorder.Name = "pChromeFrame";
         pBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+        pBorder.SetValue(Border.CornerRadiusProperty, pCornerRadius);
 
         var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
         pContent.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);

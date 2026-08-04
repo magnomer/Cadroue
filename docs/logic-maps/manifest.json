@@ -1,8 +1,8 @@
 {
   "format": 2,
   "ui_event_coverage": {
-    "covered": 500,
-    "total": 500
+    "covered": 507,
+    "total": 507
   },
   "maps": [
     {
@@ -179,8 +179,8 @@
         "preferences",
         "settings"
       ],
-      "hash": "616e2345d357",
-      "search": "ii. functionality 8. preferences and tools apply preferences collect the options draft, normalize and persist it, apply live settings, and notify when a language change requires restart. preferences settings options preference prefstore window cadroue.uishell.psoptions cadroue.uishell.lpreference cadroue.infrastructure.lpreferencestatestore cadroue.uishell.pmainwindow.pwindow user chooses apply or ok receive the options-window apply command options.psoptionsapply(...) build preference state copy general, system, playback, timeline, and work controls into the draft options.psoptionsapply(...) normalize values and clone the draft options.psoptionsapply(...) commit preferences record differences from the previous preference state preference.lpreferencestateset(...) replace current preferences and save json to application data preference.lpreferencestateset(...) reapply depot and sidecar roots through the registered callback preference.lpreferencestateset(...) apply live window state apply window, timeline, palette, and volume settings window.pwindowoptionshandle(...) check language change present restart notice tell the user that the new language is applied after restart options.psoptionsapply(...) preferences applied"
+      "hash": "f5508efaf0c9",
+      "search": "ii. functionality 8. preferences and tools apply preferences collect the options draft, normalize and persist it, apply live settings, and notify when a language change requires restart. preferences settings options preference prefstore window cadroue.uishell.psoptions cadroue.uishell.lpreference cadroue.infrastructure.lpreferencestatestore cadroue.uishell.pmainwindow.pwindow user chooses apply or ok receive the options-window apply command options.psoptionsapply(...) build preference state copy general, system, playback, timeline, and work controls into the draft options.psoptionsapply(...) normalize values and clone the draft options.psoptionsapply(...) commit preferences record differences from the previous preference state preference.lpreferencestateset(...) replace current preferences and save json to application data preference.lpreferencestateset(...) reapply depot and sidecar roots through the registered callback preference.lpreferencestateset(...) apply live window state apply window size, tab orientation, timeline, palette, and volume settings window.pwindowoptionshandle(...) reparent the tab navigator and scene controls for the selected orientation window.pwindowtablayoutapply(...) recalculate the minimum window width with any vertical tab rail reserved window.pwindowwidthapply(...) check language change present restart notice tell the user that the new language is applied after restart options.psoptionsapply(...) preferences applied"
     },
     {
       "id": "tools.discover-ffmpeg",
@@ -5199,14 +5199,14 @@
         "Global interface"
       ],
       "event_ref": "override|PControlBar/PToolbarTab.cs|OnLostMouseCapture",
-      "summary": "Handle the lost mouse capture event exposed by PToolbar.OnLostMouseCapture and follow its registered code path.",
+      "summary": "Handle the lost mouse capture event exposed by PTabNavigator.OnLostMouseCapture and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/on-lost-mouse-capture-ptoolbar-lost-mouse-capture-1.html",
       "tags": [
         "lost mouse capture",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "37935c11d700",
-      "search": "i. ui ui event global interface toolbar \u2014 lost mouse capture handle the lost mouse capture event exposed by ptoolbar.onlostmousecapture and follow its registered code path. lost mouse capture ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event receive the framework lost mouse capture callback owner.onlostmousecapture registered handler path clear tab drag owner.ptabdragclear ui state after the event"
+      "hash": "0200ac2675c1",
+      "search": "i. ui ui event global interface toolbar \u2014 lost mouse capture handle the lost mouse capture event exposed by ptabnavigator.onlostmousecapture and follow its registered code path. lost mouse capture ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event receive the framework lost mouse capture callback owner.onlostmousecapture registered handler path clear tab drag owner.ptabdragclear ui state after the event"
     },
     {
       "id": "ui-event.2b1db2413efdfd3d",
@@ -5396,15 +5396,33 @@
       "tabs": [
         "Global interface"
       ],
-      "event_ref": "xaml|PControlBar/PToolbar.xaml|MouseLeftButtonDown|PTabCloseHandle|1",
-      "summary": "Handle the mouse left button down event exposed by PToolbar.PTabCloseHandle and follow its registered code path.",
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonDown|PTabCloseHandle|1",
+      "summary": "Handle the mouse left button down event exposed by PTabNavigator.PTabCloseHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-close-handle-xaml-control-mouse-left-button-down-1.html",
       "tags": [
         "mouse left button down",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "481cd63bc187",
-      "search": "i. ui ui event global interface handle tab close \u2014 mouse left button down handle the mouse left button down event exposed by ptoolbar.ptabclosehandle and follow its registered code path. mouse left button down ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event dispatch the xaml mouse left button down event to its named handler owner.ptabclosehandle registered handler path clear tab drag owner.ptabdragclear evaluate the handler's implemented conditional branches owner.ptabclosehandle mark the routed event handled on the implemented paths owner.ptabclosehandle ui state after the event"
+      "hash": "78b4e98da5d7",
+      "search": "i. ui ui event global interface handle tab close \u2014 mouse left button down handle the mouse left button down event exposed by ptabnavigator.ptabclosehandle and follow its registered code path. mouse left button down ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse left button down event to its named handler owner.ptabclosehandle registered handler path clear tab drag owner.ptabdragclear evaluate the handler's implemented conditional branches owner.ptabclosehandle mark the routed event handled on the implemented paths owner.ptabclosehandle ui state after the event"
+    },
+    {
+      "id": "ui-event.565f04022237940b",
+      "title": "Handle vertical tab close - mouse left button down",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Global interface"
+      ],
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonDown|PTabCloseHandle|2",
+      "summary": "Handle the mouse left button down event exposed by the vertical PTabNavigator close control and follow its registered code path.",
+      "href": "maps/ui/global/ptoolbar/ptab-close-handle-xaml-control-mouse-left-button-down-2.html",
+      "tags": [
+        "mouse left button down",
+        "PTabNavigator"
+      ],
+      "hash": "2aadb9af520c",
+      "search": "i. ui ui event global interface handle vertical tab close - mouse left button down handle the mouse left button down event exposed by the vertical ptabnavigator close control and follow its registered code path. mouse left button down ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse left button down event to its named handler owner.ptabclosehandle registered handler path clear tab drag owner.ptabdragclear evaluate the handler's implemented conditional branches owner.ptabclosehandle mark the routed event handled on the implemented paths owner.ptabclosehandle ui state after the event"
     },
     {
       "id": "ui-event.4565161255996a06",
@@ -5414,15 +5432,33 @@
       "tabs": [
         "Global interface"
       ],
-      "event_ref": "xaml|PControlBar/PToolbar.xaml|KeyDown|PTabKeyHandle|1",
-      "summary": "Handle the key down event exposed by PToolbar.PTabKeyHandle and follow its registered code path.",
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|KeyDown|PTabKeyHandle|1",
+      "summary": "Handle the key down event exposed by PTabNavigator.PTabKeyHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-key-handle-xaml-control-key-down-1.html",
       "tags": [
         "key down",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "bdb976cde81a",
-      "search": "i. ui ui event global interface handle tab key \u2014 key down handle the key down event exposed by ptoolbar.ptabkeyhandle and follow its registered code path. key down ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event dispatch the xaml key down event to its named handler owner.ptabkeyhandle registered handler path commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptabkeyhandle mark the routed event handled on the implemented paths owner.ptabkeyhandle ui state after the event"
+      "hash": "18c8c5ccfac1",
+      "search": "i. ui ui event global interface handle tab key \u2014 key down handle the key down event exposed by ptabnavigator.ptabkeyhandle and follow its registered code path. key down ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml key down event to its named handler owner.ptabkeyhandle registered handler path commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptabkeyhandle mark the routed event handled on the implemented paths owner.ptabkeyhandle ui state after the event"
+    },
+    {
+      "id": "ui-event.4565161255996a07",
+      "title": "Handle vertical tab key - key down",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Global interface"
+      ],
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|KeyDown|PTabKeyHandle|2",
+      "summary": "Handle the key down event exposed by the vertical PTabNavigator tab template and follow its registered code path.",
+      "href": "maps/ui/global/ptoolbar/ptab-key-handle-xaml-control-key-down-2.html",
+      "tags": [
+        "key down",
+        "PTabNavigator"
+      ],
+      "hash": "a9842a4b7cdc",
+      "search": "i. ui ui event global interface handle vertical tab key - key down handle the key down event exposed by the vertical ptabnavigator tab template and follow its registered code path. key down ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml key down event to its named handler owner.ptabkeyhandle registered handler path commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptabkeyhandle mark the routed event handled on the implemented paths owner.ptabkeyhandle ui state after the event"
     },
     {
       "id": "ui-event.deac241b8f23773e",
@@ -5432,15 +5468,33 @@
       "tabs": [
         "Global interface"
       ],
-      "event_ref": "xaml|PControlBar/PToolbar.xaml|LostKeyboardFocus|PTabLeaveHandle|1",
-      "summary": "Handle the lost keyboard focus event exposed by PToolbar.PTabLeaveHandle and follow its registered code path.",
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|LostKeyboardFocus|PTabLeaveHandle|1",
+      "summary": "Handle the lost keyboard focus event exposed by PTabNavigator.PTabLeaveHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-leave-handle-xaml-control-lost-keyboard-focus-1.html",
       "tags": [
         "lost keyboard focus",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "c4f104ed29fb",
-      "search": "i. ui ui event global interface handle tab leave \u2014 lost keyboard focus handle the lost keyboard focus event exposed by ptoolbar.ptableavehandle and follow its registered code path. lost keyboard focus ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event dispatch the xaml lost keyboard focus event to its named handler owner.ptableavehandle registered handler path commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptableavehandle ui state after the event"
+      "hash": "b264f54faf2c",
+      "search": "i. ui ui event global interface handle tab leave \u2014 lost keyboard focus handle the lost keyboard focus event exposed by ptabnavigator.ptableavehandle and follow its registered code path. lost keyboard focus ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml lost keyboard focus event to its named handler owner.ptableavehandle registered handler path commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptableavehandle ui state after the event"
+    },
+    {
+      "id": "ui-event.deac241b8f23773f",
+      "title": "Handle vertical tab leave - lost keyboard focus",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Global interface"
+      ],
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|LostKeyboardFocus|PTabLeaveHandle|2",
+      "summary": "Handle the lost keyboard focus event exposed by the vertical PTabNavigator tab template and follow its registered code path.",
+      "href": "maps/ui/global/ptoolbar/ptab-leave-handle-xaml-control-lost-keyboard-focus-2.html",
+      "tags": [
+        "lost keyboard focus",
+        "PTabNavigator"
+      ],
+      "hash": "9927a901988d",
+      "search": "i. ui ui event global interface handle vertical tab leave - lost keyboard focus handle the lost keyboard focus event exposed by the vertical ptabnavigator tab template and follow its registered code path. lost keyboard focus ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml lost keyboard focus event to its named handler owner.ptableavehandle registered handler path commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptableavehandle ui state after the event"
     },
     {
       "id": "ui-event.ae2f3425dc507ab3",
@@ -5451,14 +5505,14 @@
         "Global interface"
       ],
       "event_ref": "cs|PControlBar/PToolbarTab.cs|PTabLoadHandle|pNameBox|IsVisibleChanged|1",
-      "summary": "Handle the is visible changed event exposed by PToolbar.PTabLoadHandle and follow its registered code path.",
+      "summary": "Handle the is visible changed event exposed by PTabNavigator.PTabLoadHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-load-handle-p-name-box-is-visible-changed-1.html",
       "tags": [
         "is visible changed",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "6fbb941eed4f",
-      "search": "i. ui ui event global interface name box \u2014 is visible changed handle the is visible changed event exposed by ptoolbar.ptabloadhandle and follow its registered code path. is visible changed ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event receive the is visible changed event from the name box owner.ptabloadhandle registered handler path handle tab visible owner.ptabvisiblehandle execute action owner.action evaluate the handler's implemented conditional branches owner.ptabvisiblehandle update the visual or selection state owned by the handler owner.ptabvisiblehandle ui state after the event"
+      "hash": "86a75c6a9a42",
+      "search": "i. ui ui event global interface name box \u2014 is visible changed handle the is visible changed event exposed by ptabnavigator.ptabloadhandle and follow its registered code path. is visible changed ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event receive the is visible changed event from the name box owner.ptabloadhandle registered handler path handle tab visible owner.ptabvisiblehandle execute action owner.action evaluate the handler's implemented conditional branches owner.ptabvisiblehandle update the visual or selection state owned by the handler owner.ptabvisiblehandle ui state after the event"
     },
     {
       "id": "ui-event.fb6e9e35b3256029",
@@ -5469,14 +5523,14 @@
         "Global interface"
       ],
       "event_ref": "cs|PControlBar/PToolbarTab.cs|PTabLoadHandle|pNameBox|IsVisibleChanged|2",
-      "summary": "Handle the is visible changed event exposed by PToolbar.PTabLoadHandle and follow its registered code path.",
+      "summary": "Handle the is visible changed event exposed by PTabNavigator.PTabLoadHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-load-handle-p-name-box-is-visible-changed-2.html",
       "tags": [
         "is visible changed",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "cdf628254f8a",
-      "search": "i. ui ui event global interface name box \u2014 is visible changed handle the is visible changed event exposed by ptoolbar.ptabloadhandle and follow its registered code path. is visible changed ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event receive the is visible changed event from the name box owner.ptabloadhandle registered handler path evaluate the handler's implemented conditional branches owner.ptabloadhandle ui state after the event"
+      "hash": "417f67341104",
+      "search": "i. ui ui event global interface name box \u2014 is visible changed handle the is visible changed event exposed by ptabnavigator.ptabloadhandle and follow its registered code path. is visible changed ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event receive the is visible changed event from the name box owner.ptabloadhandle registered handler path evaluate the handler's implemented conditional branches owner.ptabloadhandle ui state after the event"
     },
     {
       "id": "ui-event.8ef9cb48c4c455e4",
@@ -5487,14 +5541,14 @@
         "Global interface"
       ],
       "event_ref": "cs|PControlBar/PToolbarTab.cs|PTabLoadHandle|pTabWindow|PreviewMouseDown|1",
-      "summary": "Handle the preview mouse down event exposed by PToolbar.PTabLoadHandle and follow its registered code path.",
+      "summary": "Handle the preview mouse down event exposed by PTabNavigator.PTabLoadHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-load-handle-p-tab-window-preview-mouse-down-1.html",
       "tags": [
         "preview mouse down",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "3e33b405395a",
-      "search": "i. ui ui event global interface tab window \u2014 preview mouse down handle the preview mouse down event exposed by ptoolbar.ptabloadhandle and follow its registered code path. preview mouse down ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event receive the preview mouse down event from the tab window owner.ptabloadhandle registered handler path evaluate the handler's implemented conditional branches owner.ptabloadhandle ui state after the event"
+      "hash": "158b41b4f5d0",
+      "search": "i. ui ui event global interface tab window \u2014 preview mouse down handle the preview mouse down event exposed by ptabnavigator.ptabloadhandle and follow its registered code path. preview mouse down ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event receive the preview mouse down event from the tab window owner.ptabloadhandle registered handler path evaluate the handler's implemented conditional branches owner.ptabloadhandle ui state after the event"
     },
     {
       "id": "ui-event.bab66489bae1b2df",
@@ -5504,15 +5558,33 @@
       "tabs": [
         "Global interface"
       ],
-      "event_ref": "xaml|PControlBar/PToolbar.xaml|Loaded|PTabLoadHandle|1",
-      "summary": "Handle the loaded event exposed by PToolbar.PTabLoadHandle and follow its registered code path.",
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|Loaded|PTabLoadHandle|1",
+      "summary": "Handle the loaded event exposed by PTabNavigator.PTabLoadHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-load-handle-xaml-control-loaded-1.html",
       "tags": [
         "loaded",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "3f8b2c4fac7a",
-      "search": "i. ui ui event global interface handle tab load \u2014 loaded handle the loaded event exposed by ptoolbar.ptabloadhandle and follow its registered code path. loaded ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event dispatch the xaml loaded event to its named handler owner.ptabloadhandle registered handler path check tab inside owner.ptabinsidecheck commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptabloadhandle ui state after the event"
+      "hash": "20fdb66bee35",
+      "search": "i. ui ui event global interface handle tab load \u2014 loaded handle the loaded event exposed by ptabnavigator.ptabloadhandle and follow its registered code path. loaded ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml loaded event to its named handler owner.ptabloadhandle registered handler path check tab inside owner.ptabinsidecheck commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptabloadhandle ui state after the event"
+    },
+    {
+      "id": "ui-event.bab66489bae1b2e0",
+      "title": "Handle vertical tab load - loaded",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Global interface"
+      ],
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|Loaded|PTabLoadHandle|2",
+      "summary": "Handle the loaded event exposed by the vertical PTabNavigator tab template and follow its registered code path.",
+      "href": "maps/ui/global/ptoolbar/ptab-load-handle-xaml-control-loaded-2.html",
+      "tags": [
+        "loaded",
+        "PTabNavigator"
+      ],
+      "hash": "df4373ba5bdc",
+      "search": "i. ui ui event global interface handle vertical tab load - loaded handle the loaded event exposed by the vertical ptabnavigator tab template and follow its registered code path. loaded ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml loaded event to its named handler owner.ptabloadhandle registered handler path check tab inside owner.ptabinsidecheck commit tab name owner.ptabnamecommit evaluate the handler's implemented conditional branches owner.ptabloadhandle ui state after the event"
     },
     {
       "id": "ui-event.211acfebcfb912a3",
@@ -5523,14 +5595,14 @@
         "Global interface"
       ],
       "event_ref": "cs|PControlBar/PToolbarTab.cs|PTabMenuAppend|pTabAddMenuItem|Click|1",
-      "summary": "Handle the click event exposed by PToolbar.PTabMenuAppend and follow its registered code path.",
+      "summary": "Handle the click event exposed by PTabNavigator.PTabMenuAppend and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-menu-append-p-tab-add-menu-item-click-1.html",
       "tags": [
         "click",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "d8cb4e2c02de",
-      "search": "i. ui ui event global interface tab add menu item \u2014 click handle the click event exposed by ptoolbar.ptabmenuappend and follow its registered code path. click ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event receive the click event from the tab add menu item owner.ptabmenuappend registered handler path add tab layout owner.ptablayoutadd evaluate the handler's implemented conditional branches owner.ptablayoutadd ui state after the event"
+      "hash": "154198c05ce7",
+      "search": "i. ui ui event global interface tab add menu item \u2014 click handle the click event exposed by ptabnavigator.ptabmenuappend and follow its registered code path. click ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event receive the click event from the tab add menu item owner.ptabmenuappend registered handler path add tab layout owner.ptablayoutadd evaluate the handler's implemented conditional branches owner.ptablayoutadd ui state after the event"
     },
     {
       "id": "ui-event.d75ccb783c5197a7",
@@ -5540,15 +5612,15 @@
       "tabs": [
         "Global interface"
       ],
-      "event_ref": "xaml|PControlBar/PToolbar.xaml|Click|PTabMenuHandle|1",
-      "summary": "Handle the click event exposed by PToolbar.PTabMenuHandle and follow its registered code path.",
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|Click|PTabMenuHandle|1",
+      "summary": "Handle the click event exposed by PTabNavigator.PTabMenuHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-menu-handle-xaml-control-click-1.html",
       "tags": [
         "click",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "6be6c10e1a14",
-      "search": "i. ui ui event global interface handle tab menu \u2014 click handle the click event exposed by ptoolbar.ptabmenuhandle and follow its registered code path. click ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event dispatch the xaml click event to its named handler owner.ptabmenuhandle registered handler path execute tab menu append owner.ptabmenuappend evaluate the handler's implemented conditional branches owner.ptabmenuhandle mark the routed event handled on the implemented paths owner.ptabmenuhandle ui state after the event"
+      "hash": "00a3fcf96ee2",
+      "search": "i. ui ui event global interface handle tab menu \u2014 click handle the click event exposed by ptabnavigator.ptabmenuhandle and follow its registered code path. click ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml click event to its named handler owner.ptabmenuhandle registered handler path execute tab menu append owner.ptabmenuappend evaluate the handler's implemented conditional branches owner.ptabmenuhandle mark the routed event handled on the implemented paths owner.ptabmenuhandle ui state after the event"
     },
     {
       "id": "ui-event.34ce4036b7dc3f6c",
@@ -5558,15 +5630,33 @@
       "tabs": [
         "Global interface"
       ],
-      "event_ref": "xaml|PControlBar/PToolbar.xaml|MouseMove|PTabMoveHandle|1",
-      "summary": "Handle the mouse move event exposed by PToolbar.PTabMoveHandle and follow its registered code path.",
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|MouseMove|PTabMoveHandle|1",
+      "summary": "Handle the mouse move event exposed by PTabNavigator.PTabMoveHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-move-handle-xaml-control-mouse-move-1.html",
       "tags": [
         "mouse move",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "a43a3ea84a5f",
-      "search": "i. ui ui event global interface handle tab move \u2014 mouse move handle the mouse move event exposed by ptoolbar.ptabmovehandle and follow its registered code path. mouse move ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event dispatch the xaml mouse move event to its named handler owner.ptabmovehandle registered handler path resolve tab index owner.ptabindexresolve evaluate the handler's implemented conditional branches owner.ptabmovehandle mark the routed event handled on the implemented paths owner.ptabmovehandle ui state after the event"
+      "hash": "437f4660b061",
+      "search": "i. ui ui event global interface handle tab move \u2014 mouse move handle the mouse move event exposed by ptabnavigator.ptabmovehandle and follow its registered code path. mouse move ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse move event to its named handler owner.ptabmovehandle registered handler path resolve tab index owner.ptabindexresolve evaluate the handler's implemented conditional branches owner.ptabmovehandle mark the routed event handled on the implemented paths owner.ptabmovehandle ui state after the event"
+    },
+    {
+      "id": "ui-event.34ce4036b7dc3f6d",
+      "title": "Handle vertical tab move - mouse move",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Global interface"
+      ],
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|MouseMove|PTabMoveHandle|2",
+      "summary": "Handle the mouse move event exposed by the vertical PTabNavigator tab template and follow its registered code path.",
+      "href": "maps/ui/global/ptoolbar/ptab-move-handle-xaml-control-mouse-move-2.html",
+      "tags": [
+        "mouse move",
+        "PTabNavigator"
+      ],
+      "hash": "65d4bb0f495f",
+      "search": "i. ui ui event global interface handle vertical tab move - mouse move handle the mouse move event exposed by the vertical ptabnavigator tab template and follow its registered code path. mouse move ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse move event to its named handler owner.ptabmovehandle registered handler path resolve tab index owner.ptabindexresolve evaluate the handler's implemented conditional branches owner.ptabmovehandle mark the routed event handled on the implemented paths owner.ptabmovehandle ui state after the event"
     },
     {
       "id": "ui-event.9020556f408e8707",
@@ -5576,15 +5666,33 @@
       "tabs": [
         "Global interface"
       ],
-      "event_ref": "xaml|PControlBar/PToolbar.xaml|MouseLeftButtonDown|PTabPressHandle|1",
-      "summary": "Handle the mouse left button down event exposed by PToolbar.PTabPressHandle and follow its registered code path.",
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonDown|PTabPressHandle|1",
+      "summary": "Handle the mouse left button down event exposed by PTabNavigator.PTabPressHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-press-handle-xaml-control-mouse-left-button-down-1.html",
       "tags": [
         "mouse left button down",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "8a5b5186dd47",
-      "search": "i. ui ui event global interface handle tab press \u2014 mouse left button down handle the mouse left button down event exposed by ptoolbar.ptabpresshandle and follow its registered code path. mouse left button down ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event dispatch the xaml mouse left button down event to its named handler owner.ptabpresshandle registered handler path check tab hit owner.ptabhitcheck clear tab drag owner.ptabdragclear evaluate the handler's implemented conditional branches owner.ptabpresshandle mark the routed event handled on the implemented paths owner.ptabpresshandle ui state after the event"
+      "hash": "9d678504161b",
+      "search": "i. ui ui event global interface handle tab press \u2014 mouse left button down handle the mouse left button down event exposed by ptabnavigator.ptabpresshandle and follow its registered code path. mouse left button down ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse left button down event to its named handler owner.ptabpresshandle registered handler path check tab hit owner.ptabhitcheck clear tab drag owner.ptabdragclear evaluate the handler's implemented conditional branches owner.ptabpresshandle mark the routed event handled on the implemented paths owner.ptabpresshandle ui state after the event"
+    },
+    {
+      "id": "ui-event.9020556f408e8708",
+      "title": "Handle vertical tab press - mouse left button down",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Global interface"
+      ],
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonDown|PTabPressHandle|2",
+      "summary": "Handle the mouse left button down event exposed by the vertical PTabNavigator tab template and follow its registered code path.",
+      "href": "maps/ui/global/ptoolbar/ptab-press-handle-xaml-control-mouse-left-button-down-2.html",
+      "tags": [
+        "mouse left button down",
+        "PTabNavigator"
+      ],
+      "hash": "ca9f34a6e98d",
+      "search": "i. ui ui event global interface handle vertical tab press - mouse left button down handle the mouse left button down event exposed by the vertical ptabnavigator tab template and follow its registered code path. mouse left button down ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse left button down event to its named handler owner.ptabpresshandle registered handler path check tab hit owner.ptabhitcheck clear tab drag owner.ptabdragclear evaluate the handler's implemented conditional branches owner.ptabpresshandle mark the routed event handled on the implemented paths owner.ptabpresshandle ui state after the event"
     },
     {
       "id": "ui-event.3bc7e9d3556c8a31",
@@ -5594,15 +5702,33 @@
       "tabs": [
         "Global interface"
       ],
-      "event_ref": "xaml|PControlBar/PToolbar.xaml|MouseLeftButtonUp|PTabReleaseHandle|1",
-      "summary": "Handle the mouse left button up event exposed by PToolbar.PTabReleaseHandle and follow its registered code path.",
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonUp|PTabReleaseHandle|1",
+      "summary": "Handle the mouse left button up event exposed by PTabNavigator.PTabReleaseHandle and follow its registered code path.",
       "href": "maps/ui/global/ptoolbar/ptab-release-handle-xaml-control-mouse-left-button-up-1.html",
       "tags": [
         "mouse left button up",
-        "PToolbar"
+        "PTabNavigator"
       ],
-      "hash": "0e832e22eabc",
-      "search": "i. ui ui event global interface handle tab release \u2014 mouse left button up handle the mouse left button up event exposed by ptoolbar.ptabreleasehandle and follow its registered code path. mouse left button up ptoolbar owner cadroue.uishell.pcontrolbar.ptoolbar ui event dispatch the xaml mouse left button up event to its named handler owner.ptabreleasehandle registered handler path clear tab drag owner.ptabdragclear check tab relay owner.ptabrelaycheck evaluate the handler's implemented conditional branches owner.ptabreleasehandle mark the routed event handled on the implemented paths owner.ptabreleasehandle ui state after the event"
+      "hash": "c34511354f3d",
+      "search": "i. ui ui event global interface handle tab release \u2014 mouse left button up handle the mouse left button up event exposed by ptabnavigator.ptabreleasehandle and follow its registered code path. mouse left button up ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse left button up event to its named handler owner.ptabreleasehandle registered handler path clear tab drag owner.ptabdragclear check tab relay owner.ptabrelaycheck evaluate the handler's implemented conditional branches owner.ptabreleasehandle mark the routed event handled on the implemented paths owner.ptabreleasehandle ui state after the event"
+    },
+    {
+      "id": "ui-event.3bc7e9d3556c8a32",
+      "title": "Handle vertical tab release - mouse left button up",
+      "section": "I. UI",
+      "area": "UI event",
+      "tabs": [
+        "Global interface"
+      ],
+      "event_ref": "xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonUp|PTabReleaseHandle|2",
+      "summary": "Handle the mouse left button up event exposed by the vertical PTabNavigator tab template and follow its registered code path.",
+      "href": "maps/ui/global/ptoolbar/ptab-release-handle-xaml-control-mouse-left-button-up-2.html",
+      "tags": [
+        "mouse left button up",
+        "PTabNavigator"
+      ],
+      "hash": "a2f0ef517e73",
+      "search": "i. ui ui event global interface handle vertical tab release - mouse left button up handle the mouse left button up event exposed by the vertical ptabnavigator tab template and follow its registered code path. mouse left button up ptabnavigator owner cadroue.uishell.pcontrolbar.ptabnavigator ui event dispatch the xaml mouse left button up event to its named handler owner.ptabreleasehandle registered handler path clear tab drag owner.ptabdragclear check tab relay owner.ptabrelaycheck evaluate the handler's implemented conditional branches owner.ptabreleasehandle mark the routed event handled on the implemented paths owner.ptabreleasehandle ui state after the event"
     },
     {
       "id": "ui-event.954de796e22b54a2",
@@ -5763,8 +5889,8 @@
         "toolbar options apply",
         "PWindow"
       ],
-      "hash": "dd2d995dc78b",
-      "search": "i. ui ui event global interface control bar \u2014 toolbar options apply handle the toolbar options apply event emitted by control bar through the exact route registered in pwindow.pwindow. toolbar options apply pwindow owner cadroue.uishell.pmainwindow.pwindow ui event receive the toolbar options apply event from control bar through its current registration owner.pwindow registered handler path invoke the registered owner handler owner.pwindowoptionshandle ui state after the event"
+      "hash": "ce926406e2bc",
+      "search": "i. ui ui event global interface control bar \u2014 toolbar options apply handle the toolbar options apply event emitted by control bar through the exact route registered in pwindow.pwindow. toolbar options apply pwindow owner cadroue.uishell.pmainwindow.pwindow ui event receive the toolbar options apply event from control bar through its current registration owner.pwindow registered handler path invoke the registered owner handler owner.pwindowoptionshandle reparent the tab navigator and scene controls for the selected orientation owner.pwindowtablayoutapply recalculate the minimum window width with any vertical tab rail reserved owner.pwindowwidthapply ui state after the event"
     },
     {
       "id": "ui-event.b30cdf6d83460640",
@@ -5796,8 +5922,8 @@
       "summary": "Create one tab of the selected layout type, insert it into the tab set, and select it.",
       "href": "maps/ui/global/workflow/workflows/add.html",
       "tags": [],
-      "hash": "e6e4059eb21f",
-      "search": "i. ui ui workflow global interface add tab create one tab of the selected layout type, insert it into the tab set, and select it. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab type selected receive a tab-layout choice from the add menu toolbar.ptablayoutadd(...) create typed tab create the selected workspace and tab record with a unique title tabset.ltabsetadd(...) insert the record and refresh ordinal titles and separators tabset.ltabsettypedadd(...) select new tab make the new tab current tabset.ltabsetselect(...)"
+      "hash": "de420300deb2",
+      "search": "i. ui ui workflow global interface add tab create one tab of the selected layout type, insert it into the tab set, and select it. navigator tabset cadroue.uishell.pcontrolbar.ptabnavigator cadroue.uishell.pcontrolbar.ltabset tab type selected receive a tab-layout choice from the add menu navigator.ptablayoutadd(...) create typed tab create the selected workspace and tab record with a unique title tabset.ltabsetadd(...) insert the record and refresh ordinal titles and separators tabset.ltabsettypedadd(...) select new tab make the new tab current tabset.ltabsetselect(...)"
     },
     {
       "id": "tabs.close",
@@ -5811,8 +5937,8 @@
       "summary": "Close one tab, dispose its workspace, and choose the next current tab.",
       "href": "maps/ui/global/workflow/workflows/close.html",
       "tags": [],
-      "hash": "8df5d4fdc1fc",
-      "search": "i. ui ui workflow global interface close tab close one tab, dispose its workspace, and choose the next current tab. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab close requested receive the close gesture for a tab record toolbar.ptabclosehandle(...) remove tab close the workspace and remove its record tabset.ltabsetclose(...) select an adjacent surviving tab and refresh titles and separators tabset.ltabsetclose(...) tab closed"
+      "hash": "f585c7e5e913",
+      "search": "i. ui ui workflow global interface close tab close one tab, dispose its workspace, and choose the next current tab. navigator tabset cadroue.uishell.pcontrolbar.ptabnavigator cadroue.uishell.pcontrolbar.ltabset tab close requested receive the close gesture for a tab record navigator.ptabclosehandle(...) remove tab close the workspace and remove its record tabset.ltabsetclose(...) select an adjacent surviving tab and refresh titles and separators tabset.ltabsetclose(...) tab closed"
     },
     {
       "id": "tabs.move",
@@ -5826,8 +5952,8 @@
       "summary": "Reorder one tab by dragging it to a resolved insertion index.",
       "href": "maps/ui/global/workflow/workflows/move.html",
       "tags": [],
-      "hash": "f61a511f0344",
-      "search": "i. ui ui workflow global interface move tab reorder one tab by dragging it to a resolved insertion index. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab drag begins capture the pressed tab and drag origin toolbar.ptabpresshandle(...) resolve insertion activate dragging after threshold and resolve the target index toolbar.ptabmovehandle(...) reorder tab move the record in the tab set and update derived titles tabset.ltabsetmove(...) tab moved order unchanged"
+      "hash": "48f0b56bf8e0",
+      "search": "i. ui ui workflow global interface move tab reorder one tab by dragging it to a resolved insertion index. navigator tabset cadroue.uishell.pcontrolbar.ptabnavigator cadroue.uishell.pcontrolbar.ltabset tab drag begins capture the pressed tab and drag origin navigator.ptabpresshandle(...) resolve insertion activate dragging after threshold and resolve the target index navigator.ptabmovehandle(...) reorder tab move the record in the tab set and update derived titles tabset.ltabsetmove(...) tab moved order unchanged"
     },
     {
       "id": "tabs.relay-out",
@@ -5841,8 +5967,8 @@
       "summary": "Detect a tab dropped outside the application, serialize it, deliver it to a process under the drop point when available, or launch a new receiver.",
       "href": "maps/ui/global/workflow/workflows/relay-out.html",
       "tags": [],
-      "hash": "76eb0b633de9",
-      "search": "i. ui ui workflow global interface relay tab to another process detect a tab dropped outside the application, serialize it, deliver it to a process under the drop point when available, or launch a new receiver. toolbar cadroue.uishell.pcontrolbar.ptoolbar tab drag released check whether the released tab lies outside the current application window toolbar.ptabrelaycheck(...) check relay eligibility reject a drop inside the window or a busy tab toolbar.ptabrelaycheck(...) save relay payload serialize the tab state to a relay file toolbar.ptabrelaycheck(...) find a receiver under the drop point find an existing cadroue process at the released screen position toolbar.ptabrelaycheck(...) deliver to existing process send the saved relay-file path through that process's relay channel toolbar.ptabrelaycheck(...) start a new receiving process start cadroue with the relay-file argument toolbar.ptabrelaystart(...) close originating tab close the tab only after a live delivery or new-process launch succeeds toolbar.ptabrelaycheck(...) tab relayed tab retained"
+      "hash": "836627f2f572",
+      "search": "i. ui ui workflow global interface relay tab to another process detect a tab dropped outside the application, serialize it, deliver it to a process under the drop point when available, or launch a new receiver. navigator cadroue.uishell.pcontrolbar.ptabnavigator tab drag released check whether the released tab lies outside the current application window navigator.ptabrelaycheck(...) check relay eligibility reject a drop inside the window or a busy tab navigator.ptabrelaycheck(...) save relay payload serialize the tab state to a relay file navigator.ptabrelaycheck(...) find a receiver under the drop point find an existing cadroue process at the released screen position navigator.ptabrelaycheck(...) deliver to existing process send the saved relay-file path through that process's relay channel navigator.ptabrelaycheck(...) start a new receiving process start cadroue with the relay-file argument navigator.ptabrelaystart(...) close originating tab close the tab only after a live delivery or new-process launch succeeds navigator.ptabrelaycheck(...) tab relayed tab retained"
     },
     {
       "id": "tabs.rename",
@@ -5856,8 +5982,8 @@
       "summary": "Commit an edited tab name, normalize it against existing names, and refresh dependent titles.",
       "href": "maps/ui/global/workflow/workflows/rename.html",
       "tags": [],
-      "hash": "7896ea1cbac0",
-      "search": "i. ui ui workflow global interface rename tab commit an edited tab name, normalize it against existing names, and refresh dependent titles. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab name committed receive the edited name from keyboard or focus completion toolbar.ptabnamecommit(...) resolve usable name normalize the requested name and avoid duplicate visible titles tabset.ltabsetnameset(...) refresh titles derived from the tab set tabset.ltabsettitleupdate(...) tab renamed"
+      "hash": "b5df0225a3b3",
+      "search": "i. ui ui workflow global interface rename tab commit an edited tab name, normalize it against existing names, and refresh dependent titles. navigator tabset cadroue.uishell.pcontrolbar.ptabnavigator cadroue.uishell.pcontrolbar.ltabset tab name committed receive the edited name from keyboard or focus completion navigator.ptabnamecommit(...) resolve usable name normalize the requested name and avoid duplicate visible titles tabset.ltabsetnameset(...) refresh titles derived from the tab set tabset.ltabsettitleupdate(...) tab renamed"
     },
     {
       "id": "tabs.select",
@@ -5871,8 +5997,8 @@
       "summary": "Change the current tab and synchronize visible workspace ownership.",
       "href": "maps/ui/global/workflow/workflows/select.html",
       "tags": [],
-      "hash": "9d5e9f69acdf",
-      "search": "i. ui ui workflow global interface select tab change the current tab and synchronize visible workspace ownership. toolbar tabset cadroue.uishell.pcontrolbar.ptoolbar cadroue.uishell.pcontrolbar.ltabset tab pressed identify the pressed tab record toolbar.ptabpresshandle(...) change current record set the requested record as current and update tab selection state tabset.ltabsetselect(...) tab selected"
+      "hash": "e310fdb2c184",
+      "search": "i. ui ui workflow global interface select tab change the current tab and synchronize visible workspace ownership. navigator tabset cadroue.uishell.pcontrolbar.ptabnavigator cadroue.uishell.pcontrolbar.ltabset tab pressed identify the pressed tab record navigator.ptabpresshandle(...) change current record set the requested record as current and update tab selection state tabset.ltabsetselect(...) tab selected"
     },
     {
       "id": "ui-event.22eb8458b5d748fb",
@@ -6521,8 +6647,8 @@
         "drag delta",
         "PColumn"
       ],
-      "hash": "53c65d62e998",
-      "search": "i. ui ui event split edit convert audio merge funnel thumb \u2014 drag delta handle the drag delta event exposed by pcolumn.pcolumnsplitterbuild and follow its registered code path. drag delta pcolumn owner cadroue.uishell.pmainarea.pcolumn ui event receive the drag delta event from the thumb owner.pcolumnsplitterbuild registered handler path apply column drag owner.pcolumndragapply read column available owner.pcolumnavailableread read column current owner.pcolumncurrentread read column minimum owner.pcolumnminimumread resolve column budget owner.pcolumnbudgetresolve commit column weights owner.pcolumnweightscommit evaluate the handler's implemented conditional branches owner.pcolumndragapply ui state after the event"
+      "hash": "501cce8e25a5",
+      "search": "i. ui ui event split edit convert audio merge funnel thumb \u2014 drag delta handle the drag delta event exposed by pcolumn.pcolumnsplitterbuild and follow its registered code path. drag delta pcolumn owner cadroue.uishell.pmainarea.pcolumn ui event receive the drag delta event from the thumb owner.pcolumnsplitterbuild registered handler path apply column drag owner.pcolumndragapply read column available owner.pcolumnavailableread read column current owner.pcolumncurrentread read column minimum owner.pcolumnminimumread resolve column budget owner.pcolumnbudgetresolve commit column weights owner.pcolumnweightscommit publish the changed width through the attached callback owner.pcolumnweightscommit evaluate the handler's implemented conditional branches owner.pcolumndragapply ui state after the event"
     },
     {
       "id": "ui-event.eb353aad9241f3cf",

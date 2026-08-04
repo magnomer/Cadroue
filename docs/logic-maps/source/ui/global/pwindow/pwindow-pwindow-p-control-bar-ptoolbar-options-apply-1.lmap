@@ -17,6 +17,8 @@
 
 [route] Registered handler path <process>
 - Invoke the registered owner handler @ owner.PWindowOptionsHandle
+- Reparent the tab navigator and scene controls for the selected orientation @ owner.PWindowTabLayoutApply
+- Recalculate the minimum window width with any vertical tab rail reserved @ owner.PWindowWidthApply
 ! Registered call path: PWindowOptionsHandle
 > output
 

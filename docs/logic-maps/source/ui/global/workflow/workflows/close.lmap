@@ -9,11 +9,11 @@
 @flow TB
 @related tabs.add, tabs.select
 
-@alias toolbar = Cadroue.UIShell.PControlBar.PToolbar
+@alias navigator = Cadroue.UIShell.PControlBar.PTabNavigator
 @alias tabset = Cadroue.UIShell.PControlBar.LTabset
 
 [input] Tab close requested <input>
-- Receive the close gesture for a tab record @ toolbar.PTabCloseHandle(...)
+- Receive the close gesture for a tab record @ navigator.PTabCloseHandle(...)
 > close
 
 [close] Remove tab <process>

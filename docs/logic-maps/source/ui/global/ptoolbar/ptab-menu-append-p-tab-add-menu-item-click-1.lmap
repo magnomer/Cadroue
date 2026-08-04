@@ -6,10 +6,10 @@
 @tabs Global interface
 @event-ref cs|PControlBar/PToolbarTab.cs|PTabMenuAppend|pTabAddMenuItem|Click|1
 @entry input
-@summary Handle the click event exposed by PToolbar.PTabMenuAppend and follow its registered code path.
+@summary Handle the click event exposed by PTabNavigator.PTabMenuAppend and follow its registered code path.
 @tag click
-@tag PToolbar
-@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+@tag PTabNavigator
+@alias owner = Cadroue.UIShell.PControlBar.PTabNavigator
 
 [input] UI event <input>
 - Receive the click event from the tab add menu item @ owner.PTabMenuAppend

@@ -19,14 +19,16 @@
                 <ContentControl x:Name="pTabHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
                 <ContentControl x:Name="pSceneHost" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" />
             </Grid>
-            <Border x:Name="pRailHeaderDivider" Grid.Column="2" Width="1" HorizontalAlignment="Left" Background="#C9D6E5" Visibility="Collapsed" Panel.ZIndex="2" />
-            <Border Grid.Column="3" Background="#EAF2FC" CornerRadius="9" ClipToBounds="True">
-                <StackPanel Orientation="Horizontal" Background="Transparent" VerticalAlignment="Top">
-                    <Button x:Name="pChromeMinimizeButton" Click="PChromeMinimizeHandle"><Canvas Width="18" Height="16"><Line X1="2" Y1="12" X2="14" Y2="12" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.25" /></Canvas></Button>
-                    <Button x:Name="pChromeMaximizeButton" Click="PChromeMaximizeHandle"><Canvas Width="18" Height="16"><Rectangle Width="12" Height="12" Canvas.Left="2" Canvas.Top="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.2" Fill="Transparent" /></Canvas></Button>
-                    <Button x:Name="pChromeCloseButton" Click="PChromeCloseHandle"><Canvas Width="18" Height="16"><Line X1="2.5" Y1="2.5" X2="13.5" Y2="13.5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.25"/><Line X1="13.5" Y1="2.5" X2="2.5" Y2="13.5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.25"/></Canvas></Button>
-                </StackPanel>
-            </Border>
+            <Border x:Name="pRailHeaderDivider" Grid.Column="1" Width="1" HorizontalAlignment="Right" Background="#C9D6E5" Visibility="Collapsed" Panel.ZIndex="2" />
+            <Grid x:Name="pChromeHost" Grid.Column="3" Background="Transparent">
+                <Border Background="#EAF2FC" CornerRadius="0,9,9,9" ClipToBounds="True">
+                    <StackPanel Orientation="Horizontal" Background="Transparent" VerticalAlignment="Top">
+                        <Button x:Name="pChromeMinimizeButton" Click="PChromeMinimizeHandle"><Canvas Width="18" Height="16"><Line X1="2" Y1="12" X2="14" Y2="12" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.25" /></Canvas></Button>
+                        <Button x:Name="pChromeMaximizeButton" Click="PChromeMaximizeHandle"><Canvas Width="18" Height="16"><Rectangle Width="12" Height="12" Canvas.Left="2" Canvas.Top="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.2" Fill="Transparent" /></Canvas></Button>
+                        <Button x:Name="pChromeCloseButton" Click="PChromeCloseHandle"><Canvas Width="18" Height="16"><Line X1="2.5" Y1="2.5" X2="13.5" Y2="13.5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.25"/><Line X1="13.5" Y1="2.5" X2="2.5" Y2="13.5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.25"/></Canvas></Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

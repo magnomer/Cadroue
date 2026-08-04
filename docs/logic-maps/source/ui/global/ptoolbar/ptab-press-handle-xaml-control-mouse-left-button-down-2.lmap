@@ -1,12 +1,12 @@
 @format 1
-@id ui-event.9020556f408e8707
-@title Handle tab press — mouse left button down
+@id ui-event.9020556f408e8708
+@title Handle vertical tab press - mouse left button down
 @section I. UI
 @area UI event
 @tabs Global interface
-@event-ref xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonDown|PTabPressHandle|1
+@event-ref xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonDown|PTabPressHandle|2
 @entry input
-@summary Handle the mouse left button down event exposed by PTabNavigator.PTabPressHandle and follow its registered code path.
+@summary Handle the mouse left button down event exposed by the vertical PTabNavigator tab template and follow its registered code path.
 @tag mouse left button down
 @tag PTabNavigator
 @alias owner = Cadroue.UIShell.PControlBar.PTabNavigator
@@ -24,4 +24,4 @@
 
 [output] UI state after the event <output>
 = The mouse left button down event has completed through the current implementation.
-! Code binding: xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonDown|PTabPressHandle|1
+! Code binding: xaml|PControlBar/PTabNavigator.xaml|MouseLeftButtonDown|PTabPressHandle|2

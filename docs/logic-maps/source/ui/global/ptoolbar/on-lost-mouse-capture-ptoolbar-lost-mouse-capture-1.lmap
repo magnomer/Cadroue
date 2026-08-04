@@ -6,10 +6,10 @@
 @tabs Global interface
 @event-ref override|PControlBar/PToolbarTab.cs|OnLostMouseCapture
 @entry input
-@summary Handle the lost mouse capture event exposed by PToolbar.OnLostMouseCapture and follow its registered code path.
+@summary Handle the lost mouse capture event exposed by PTabNavigator.OnLostMouseCapture and follow its registered code path.
 @tag lost mouse capture
-@tag PToolbar
-@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+@tag PTabNavigator
+@alias owner = Cadroue.UIShell.PControlBar.PTabNavigator
 
 [input] UI event <input>
 - Receive the framework lost mouse capture callback @ owner.OnLostMouseCapture

@@ -30,7 +30,9 @@
 > live
 
 [live] Apply live window state <process>
-- Apply window, timeline, palette, and volume settings @ window.PWindowOptionsHandle(...)
+- Apply window size, tab orientation, timeline, palette, and volume settings @ window.PWindowOptionsHandle(...)
+- Reparent the tab navigator and scene controls for the selected orientation @ window.PWindowTabLayoutApply(...)
+- Recalculate the minimum window width with any vertical tab rail reserved @ window.PWindowWidthApply(...)
 > language
 
 [language] Check language change <decision>

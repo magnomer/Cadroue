@@ -22,6 +22,7 @@
 - Read column minimum @ owner.PColumnMinimumRead
 - Resolve column budget @ owner.PColumnBudgetResolve
 - Commit column weights @ owner.PColumnWeightsCommit
+- Publish the changed width through the attached callback @ owner.PColumnWeightsCommit
 - Evaluate the handler's implemented conditional branches @ owner.PColumnDragApply
 > output
 

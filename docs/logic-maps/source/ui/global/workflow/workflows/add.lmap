@@ -9,11 +9,11 @@
 @flow TB
 @related tabs.select, tabs.close
 
-@alias toolbar = Cadroue.UIShell.PControlBar.PToolbar
+@alias navigator = Cadroue.UIShell.PControlBar.PTabNavigator
 @alias tabset = Cadroue.UIShell.PControlBar.LTabset
 
 [input] Tab type selected <input>
-- Receive a tab-layout choice from the add menu @ toolbar.PTabLayoutAdd(...)
+- Receive a tab-layout choice from the add menu @ navigator.PTabLayoutAdd(...)
 > create
 
 [create] Create typed tab <process>

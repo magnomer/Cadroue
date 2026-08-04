@@ -4,12 +4,12 @@
 @section I. UI
 @area UI event
 @tabs Global interface
-@event-ref xaml|PControlBar/PToolbar.xaml|Click|PTabMenuHandle|1
+@event-ref xaml|PControlBar/PTabNavigator.xaml|Click|PTabMenuHandle|1
 @entry input
-@summary Handle the click event exposed by PToolbar.PTabMenuHandle and follow its registered code path.
+@summary Handle the click event exposed by PTabNavigator.PTabMenuHandle and follow its registered code path.
 @tag click
-@tag PToolbar
-@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+@tag PTabNavigator
+@alias owner = Cadroue.UIShell.PControlBar.PTabNavigator
 
 [input] UI event <input>
 - Dispatch the XAML click event to its named handler @ owner.PTabMenuHandle
@@ -23,4 +23,4 @@
 
 [output] UI state after the event <output>
 = The click event has completed through the current implementation.
-! Code binding: xaml|PControlBar/PToolbar.xaml|Click|PTabMenuHandle|1
+! Code binding: xaml|PControlBar/PTabNavigator.xaml|Click|PTabMenuHandle|1

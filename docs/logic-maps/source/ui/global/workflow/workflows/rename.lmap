@@ -9,11 +9,11 @@
 @flow TB
 @related tabs.add
 
-@alias toolbar = Cadroue.UIShell.PControlBar.PToolbar
+@alias navigator = Cadroue.UIShell.PControlBar.PTabNavigator
 @alias tabset = Cadroue.UIShell.PControlBar.LTabset
 
 [input] Tab name committed <input>
-- Receive the edited name from keyboard or focus completion @ toolbar.PTabNameCommit(...)
+- Receive the edited name from keyboard or focus completion @ navigator.PTabNameCommit(...)
 > normalize
 
 [normalize] Resolve usable name <process>

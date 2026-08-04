@@ -13,16 +13,16 @@ public partial class PToolbar
 
     private void PChromeButtonsApply()
     {
-        PChromeButtonApply(pChromeMinimizeButton, false);
-        PChromeButtonApply(pChromeMaximizeButton, false);
-        PChromeButtonApply(pChromeCloseButton, true);
+        PChromeButtonApply(pChromeMinimizeButton, false, new CornerRadius(0, 0, 0, 9));
+        PChromeButtonApply(pChromeMaximizeButton, false, new CornerRadius(0));
+        PChromeButtonApply(pChromeCloseButton, true, new CornerRadius(0, 9, 9, 0));
     }
 
-    private static void PChromeButtonApply(Button pChromeButton, bool pChromeClose)
+    private static void PChromeButtonApply(Button pChromeButton, bool pChromeClose, CornerRadius pChromeCornerRadius)
     {
         pChromeButton.Width = PChromeButtonWidth;
         pChromeButton.Height = PChromeButtonHeight;
-        pChromeButton.Style = PMainWindow.PButton.PButtonChromeCreate(pChromeClose);
+        pChromeButton.Style = PMainWindow.PButton.PButtonChromeCreate(pChromeClose, pChromeCornerRadius);
     }
 
     private void PChromeMinimizeHandle(object sender, RoutedEventArgs e)

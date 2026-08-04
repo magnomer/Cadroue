@@ -9,38 +9,38 @@
 @flow TB
 @related relay.receive-tab
 
-@alias toolbar = Cadroue.UIShell.PControlBar.PToolbar
+@alias navigator = Cadroue.UIShell.PControlBar.PTabNavigator
 
 [input] Tab drag released <input>
-- Check whether the released tab lies outside the current application window @ toolbar.PTabRelayCheck(...)
+- Check whether the released tab lies outside the current application window @ navigator.PTabRelayCheck(...)
 > eligible
 
 [eligible] Check relay eligibility <decision>
-- Reject a drop inside the window or a busy tab @ toolbar.PTabRelayCheck(...)
+- Reject a drop inside the window or a busy tab @ navigator.PTabRelayCheck(...)
 ? "Relay is not allowed" > unchanged
 ? "Tab can leave this process" > serialize
 
 [serialize] Save relay payload <storage>
-- Serialize the tab state to a relay file @ toolbar.PTabRelayCheck(...)
+- Serialize the tab state to a relay file @ navigator.PTabRelayCheck(...)
 > target
 
 [target] Find a receiver under the drop point <decision>
-- Find an existing Cadroue process at the released screen position @ toolbar.PTabRelayCheck(...)
+- Find an existing Cadroue process at the released screen position @ navigator.PTabRelayCheck(...)
 ? "Receiving process found" > deliver
 ? "No receiving process found" > launch
 
 [deliver] Deliver to existing process <process>
-- Send the saved relay-file path through that process's relay channel @ toolbar.PTabRelayCheck(...)
+- Send the saved relay-file path through that process's relay channel @ navigator.PTabRelayCheck(...)
 ? "Delivery accepted" > close
 ? "Delivery refused" > unchanged
 
 [launch] Start a new receiving process <external>
-- Start Cadroue with the relay-file argument @ toolbar.PTabRelayStart(...)
+- Start Cadroue with the relay-file argument @ navigator.PTabRelayStart(...)
 ? "Process started" > close
 ? "Launch failed" > unchanged
 
 [close] Close originating tab <process>
-- Close the tab only after a live delivery or new-process launch succeeds @ toolbar.PTabRelayCheck(...)
+- Close the tab only after a live delivery or new-process launch succeeds @ navigator.PTabRelayCheck(...)
 > result
 
 [result] Tab relayed <output>

@@ -1,12 +1,12 @@
 @format 1
-@id ui-event.deac241b8f23773e
-@title Handle tab leave — lost keyboard focus
+@id ui-event.deac241b8f23773f
+@title Handle vertical tab leave - lost keyboard focus
 @section I. UI
 @area UI event
 @tabs Global interface
-@event-ref xaml|PControlBar/PTabNavigator.xaml|LostKeyboardFocus|PTabLeaveHandle|1
+@event-ref xaml|PControlBar/PTabNavigator.xaml|LostKeyboardFocus|PTabLeaveHandle|2
 @entry input
-@summary Handle the lost keyboard focus event exposed by PTabNavigator.PTabLeaveHandle and follow its registered code path.
+@summary Handle the lost keyboard focus event exposed by the vertical PTabNavigator tab template and follow its registered code path.
 @tag lost keyboard focus
 @tag PTabNavigator
 @alias owner = Cadroue.UIShell.PControlBar.PTabNavigator
@@ -22,4 +22,4 @@
 
 [output] UI state after the event <output>
 = The lost keyboard focus event has completed through the current implementation.
-! Code binding: xaml|PControlBar/PTabNavigator.xaml|LostKeyboardFocus|PTabLeaveHandle|1
+! Code binding: xaml|PControlBar/PTabNavigator.xaml|LostKeyboardFocus|PTabLeaveHandle|2

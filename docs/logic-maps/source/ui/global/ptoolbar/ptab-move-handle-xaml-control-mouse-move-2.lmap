@@ -1,12 +1,12 @@
 @format 1
-@id ui-event.34ce4036b7dc3f6c
-@title Handle tab move — mouse move
+@id ui-event.34ce4036b7dc3f6d
+@title Handle vertical tab move - mouse move
 @section I. UI
 @area UI event
 @tabs Global interface
-@event-ref xaml|PControlBar/PTabNavigator.xaml|MouseMove|PTabMoveHandle|1
+@event-ref xaml|PControlBar/PTabNavigator.xaml|MouseMove|PTabMoveHandle|2
 @entry input
-@summary Handle the mouse move event exposed by PTabNavigator.PTabMoveHandle and follow its registered code path.
+@summary Handle the mouse move event exposed by the vertical PTabNavigator tab template and follow its registered code path.
 @tag mouse move
 @tag PTabNavigator
 @alias owner = Cadroue.UIShell.PControlBar.PTabNavigator
@@ -23,4 +23,4 @@
 
 [output] UI state after the event <output>
 = The mouse move event has completed through the current implementation.
-! Code binding: xaml|PControlBar/PTabNavigator.xaml|MouseMove|PTabMoveHandle|1
+! Code binding: xaml|PControlBar/PTabNavigator.xaml|MouseMove|PTabMoveHandle|2

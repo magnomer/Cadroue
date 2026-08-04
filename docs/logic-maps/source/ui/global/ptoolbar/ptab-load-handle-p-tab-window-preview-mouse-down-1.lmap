@@ -6,10 +6,10 @@
 @tabs Global interface
 @event-ref cs|PControlBar/PToolbarTab.cs|PTabLoadHandle|pTabWindow|PreviewMouseDown|1
 @entry input
-@summary Handle the preview mouse down event exposed by PToolbar.PTabLoadHandle and follow its registered code path.
+@summary Handle the preview mouse down event exposed by PTabNavigator.PTabLoadHandle and follow its registered code path.
 @tag preview mouse down
-@tag PToolbar
-@alias owner = Cadroue.UIShell.PControlBar.PToolbar
+@tag PTabNavigator
+@alias owner = Cadroue.UIShell.PControlBar.PTabNavigator
 
 [input] UI event <input>
 - Receive the preview mouse down event from the tab window @ owner.PTabLoadHandle
