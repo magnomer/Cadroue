@@ -16,6 +16,7 @@ public sealed class LPreferenceState
     public string LPreferenceLanguage { get; set; } = "en";
     public bool LPreferenceLogVerbose { get; set; }
     public bool LPreferenceRecordWorkspace { get; set; }
+    public bool LPreferenceVerticalTabs { get; set; }
 
     public double LPreferenceVolume { get; set; }
     public string LPreferenceVolumeMode { get; set; } = "Unified";
@@ -52,6 +53,7 @@ public sealed class LPreferenceState
             LPreferenceLanguage = "en",
             LPreferenceLogVerbose = false,
             LPreferenceRecordWorkspace = false,
+            LPreferenceVerticalTabs = false,
             LPreferenceVolume = 100,
             LPreferenceVolumeMode = "Unified",
             LPreferenceAutoplay = false,
@@ -93,6 +95,7 @@ public sealed class LPreferenceState
             LPreferenceLanguage = LPreferenceLanguage,
             LPreferenceLogVerbose = LPreferenceLogVerbose,
             LPreferenceRecordWorkspace = LPreferenceRecordWorkspace,
+            LPreferenceVerticalTabs = LPreferenceVerticalTabs,
             LPreferenceVolume = LPreferenceVolume,
             LPreferenceVolumeMode = LPreferenceVolumeMode,
             LPreferenceAutoplay = LPreferenceAutoplay,
@@ -127,6 +130,7 @@ public sealed class LPreferenceState
             ("Language", lPreferenceOther.LPreferenceLanguage, LPreferenceLanguage),
             ("Verbose logging", lPreferenceOther.LPreferenceLogVerbose, LPreferenceLogVerbose),
             ("File record location", lPreferenceOther.LPreferenceRecordWorkspace, LPreferenceRecordWorkspace),
+            ("Vertical tabs", lPreferenceOther.LPreferenceVerticalTabs, LPreferenceVerticalTabs),
             ("Volume mode", lPreferenceOther.LPreferenceVolumeMode, LPreferenceVolumeMode),
             ("Default volume", lPreferenceOther.LPreferenceVolume, LPreferenceVolume),
             ("Autoplay on load", lPreferenceOther.LPreferenceAutoplay, LPreferenceAutoplay),

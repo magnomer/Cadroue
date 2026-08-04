@@ -24,6 +24,7 @@ public partial class PWindow : Window
     private const int PWindowColorBackground = 0x00F7E8DC;
     private const double PWindowWidthFloor = 900;
     private readonly LTabset lTabset;
+    private readonly PTabNavigator pTabNavigator;
     private bool pResizeActive;
     private int pResizeDirection;
     private Point pResizeStartPointer;
@@ -36,13 +37,15 @@ public partial class PWindow : Window
         InitializeComponent();
         Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
         lTabset = new LTabset();
+        pTabNavigator = new PTabNavigator();
+        pTabNavigator.PTabNavigatorTabsetSet(lTabset);
         LRelay? lRelayStartup = PProgram.LRelayPayloadRead();
         if (lRelayStartup is null)
         {
             PWindowTabsRestore(lTabset, LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
         }
 
-        pControlBar.PToolbarTabsetSet(lTabset);
+        pControlBar.PToolbarTabHostSet(pTabNavigator);
         pControlBar.PToolbarOptionsApply += PWindowOptionsHandle;
         PWindowOptionsHandle(LPreference.LPreferenceStateCurrent);
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
@@ -230,13 +233,11 @@ public partial class PWindow : Window
     private void PWindowWidthApply()
     {
         double pWindowRequired = pWindowSurfaceActive?.PTabWidthRead() ?? 0;
-        if (pWindowRequired <= 0)
-        {
-            MinWidth = PWindowWidthFloor;
-            return;
-        }
-
-        MinWidth = Math.Max(PWindowWidthFloor, pWindowRequired);
+        double pWindowContentMinimum = Math.Max(PWindowWidthFloor, pWindowRequired);
+        double pWindowReservedWidth = pTabRailColumn.Width.IsAbsolute
+            ? pTabRailColumn.Width.Value
+            : 0;
+        MinWidth = pWindowContentMinimum + pWindowReservedWidth;
         if (Width < MinWidth)
         {
             Width = MinWidth;
@@ -298,6 +299,7 @@ public partial class PWindow : Window
         Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
         Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         FontSize = PWindowFontSize;
+        PWindowTabLayoutApply(lPreferenceState.LPreferenceVerticalTabs);
         if (pFlowActive is not null)
         {
             pFlowActive.Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
@@ -305,6 +307,31 @@ public partial class PWindow : Window
             pFlowActive.PFlowPaletteApply();
         }
         PWindowVolumeSync(lPreferenceState);
+    }
+
+    private void PWindowTabLayoutApply(bool pVertical)
+    {
+        UIElement pSceneControls = pConsole.PConsoleSceneControlsRead();
+        pControlBar.PToolbarTabHostSet(null);
+        pTabRailHost.Content = null;
+        pConsole.PConsoleSceneHostSet(null);
+        pControlBar.PToolbarSceneHostSet(null);
+
+        pTabNavigator.PTabNavigatorVerticalSet(pVertical);
+        pControlBar.PToolbarVerticalSet(pVertical);
+        pTabRailColumn.Width = new GridLength(pVertical ? PTabNavigator.PTabRailWidth : 0);
+        if (pVertical)
+        {
+            pTabRailHost.Content = pTabNavigator;
+            pControlBar.PToolbarSceneHostSet(pSceneControls);
+        }
+        else
+        {
+            pControlBar.PToolbarTabHostSet(pTabNavigator);
+            pConsole.PConsoleSceneHostSet(pSceneControls);
+        }
+
+        PWindowWidthApply();
     }
     private void PWindowVolumeSync(LPreferenceState lPreferenceState)
     {

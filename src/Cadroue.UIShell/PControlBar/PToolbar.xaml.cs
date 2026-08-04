@@ -10,8 +10,6 @@ namespace Cadroue.UIShell.PControlBar;
 
 public partial class PToolbar : UserControl
 {
-    private LTabset? lTabset;
-
     public event Action<LPreferenceState>? PToolbarOptionsApply;
 
     public PToolbar()
@@ -20,10 +18,23 @@ public partial class PToolbar : UserControl
         PChromeButtonsApply();
     }
 
-    public void PToolbarTabsetSet(LTabset lTabsetValue)
+    public void PToolbarTabHostSet(UIElement? pTabs)
     {
-        lTabset = lTabsetValue;
-        DataContext = lTabset;
+        pTabHost.Content = pTabs;
+    }
+
+    public void PToolbarSceneHostSet(UIElement? pSceneControls)
+    {
+        pSceneHost.Content = pSceneControls;
+    }
+
+    public void PToolbarVerticalSet(bool pVertical)
+    {
+        pRailHeaderColumn.Width = new GridLength(pVertical ? PTabNavigator.PTabRailWidth - 56 : 0);
+        pTitleCenter.Background = pVertical ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Transparent;
+        pRailHeaderDivider.Visibility = pVertical ? Visibility.Visible : Visibility.Collapsed;
+        pTabHost.Visibility = pVertical ? Visibility.Collapsed : Visibility.Visible;
+        pSceneHost.Visibility = pVertical ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void PToolbarOptionsShow()
@@ -40,7 +51,9 @@ public partial class PToolbar : UserControl
     {
         while (pToolbarSource is not null)
         {
-            if (pToolbarSource is Button)
+            if (pToolbarSource is System.Windows.Controls.Primitives.ButtonBase
+                or System.Windows.Controls.Primitives.TextBoxBase
+                or System.Windows.Controls.Primitives.Selector)
             {
                 return true;
             }

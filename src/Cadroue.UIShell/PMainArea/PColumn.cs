@@ -20,6 +20,7 @@ internal sealed class PColumn
     private readonly double[] pColumnFixedWidths;
     private readonly double[] pColumnPixelWidths;
     private readonly int pColumnFlexIndex;
+    private readonly Action? pColumnWidthChange;
     private double pColumnAppliedWidth = -1;
     private bool pColumnDefaultsPending;
     private bool pColumnPixelsReady;
@@ -29,7 +30,8 @@ internal sealed class PColumn
         IReadOnlyList<ColumnDefinition> pColumnItems,
         IReadOnlyList<double>? pStoredWidths,
         IReadOnlyList<bool>? pCompactPanels,
-        int pFlexPanelIndex)
+        int pFlexPanelIndex,
+        Action? pWidthChange)
     {
         this.pColumnGrid = pColumnGrid;
         this.pColumnItems = pColumnItems;
@@ -41,6 +43,7 @@ internal sealed class PColumn
         pColumnFixedWidths = new double[pColumnItems.Count];
         pColumnPixelWidths = new double[pColumnItems.Count];
         pColumnFlexIndex = pFlexPanelIndex >= 0 && pFlexPanelIndex < pColumnItems.Count ? pFlexPanelIndex : -1;
+        pColumnWidthChange = pWidthChange;
         pColumnDefaultsPending = !PColumnStoredCheck(pStoredWidths, pColumnItems.Count)
             && pColumnCompactFlags.Any(pCompact => pCompact);
 
@@ -53,9 +56,10 @@ internal sealed class PColumn
         IReadOnlyList<ColumnDefinition> pColumnItems,
         IReadOnlyList<double>? pStoredWidths,
         IReadOnlyList<bool>? pCompactPanels = null,
-        int pFlexPanelIndex = -1)
+        int pFlexPanelIndex = -1,
+        Action? pWidthChange = null)
     {
-        return new PColumn(pColumnGrid, pColumnItems, pStoredWidths, pCompactPanels, pFlexPanelIndex);
+        return new PColumn(pColumnGrid, pColumnItems, pStoredWidths, pCompactPanels, pFlexPanelIndex, pWidthChange);
     }
 
     private bool PColumnFlexCheck() =>
@@ -119,9 +123,18 @@ internal sealed class PColumn
             }
 
             pVisibleCount++;
-            pMinimumTotal += pColumnFixedWidths[index] > 0
-                ? pColumnFixedWidths[index]
-                : pColumnMinimumWidths[index];
+            if (pColumnFixedWidths[index] > 0)
+            {
+                pMinimumTotal += pColumnFixedWidths[index];
+            }
+            else if (PColumnFlexCheck() && pColumnPixelsReady && index != pColumnFlexIndex)
+            {
+                pMinimumTotal += Math.Max(pColumnMinimumWidths[index], pColumnPixelWidths[index]);
+            }
+            else
+            {
+                pMinimumTotal += pColumnMinimumWidths[index];
+            }
         }
 
         return pMinimumTotal + pColumnSplitterWidth * Math.Max(0, pVisibleCount - 1);
@@ -269,6 +282,7 @@ internal sealed class PColumn
         }
 
         PColumnWeightsApply();
+        pColumnWidthChange?.Invoke();
     }
 
     private void PColumnWeightsApply()
@@ -324,6 +338,7 @@ internal sealed class PColumn
 
         pColumnPixelsReady = true;
         PColumnWeightsApply();
+        pColumnWidthChange?.Invoke();
     }
 
     private void PColumnMinimumApply()

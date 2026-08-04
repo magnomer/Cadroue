@@ -37,6 +37,9 @@ public sealed partial class PConsole : UserControl
     private readonly Button pConsoleClearButton;
     private readonly Button pConsoleEmptyButton;
     private readonly Button pConsoleTabsButton;
+    private readonly StackPanel pConsoleSceneControls;
+    private readonly ContentControl pConsoleSceneHost;
+    private readonly Border pConsoleSceneSeparator;
 
     public PConsole()
     {
@@ -73,6 +76,17 @@ public sealed partial class PConsole : UserControl
         pConsoleSaveButton = PConsoleInlineBuild("PConsoleSave.svg");
         pConsoleExportButton = PConsoleInlineBuild("PExportExport.svg");
         pConsoleImportButton = PConsoleInlineBuild("PExportImport.svg");
+        pConsoleSceneControls = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pConsoleSceneControls.Children.Add(pConsoleRelayCombo);
+        pConsoleSceneControls.Children.Add(pConsoleSaveButton);
+        pConsoleSceneControls.Children.Add(pConsoleExportButton);
+        pConsoleSceneControls.Children.Add(pConsoleImportButton);
+        pConsoleSceneHost = new ContentControl { Content = pConsoleSceneControls };
+        pConsoleSceneSeparator = PConsoleSeparatorBuild();
         pConsolePreviousButton = PConsoleSwitchBuild(
             "PConsolePrevious.svg", LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"), PConsolePreviousHandle);
         pConsoleNextButton = PConsoleSwitchBuild(
@@ -96,6 +110,14 @@ public sealed partial class PConsole : UserControl
 
     public void PConsoleUpdate() => PConsoleProgressUpdate();
 
+    public UIElement PConsoleSceneControlsRead() => pConsoleSceneControls;
+
+    public void PConsoleSceneHostSet(UIElement? pSceneControls)
+    {
+        pConsoleSceneHost.Content = pSceneControls;
+        pConsoleSceneSeparator.Visibility = pSceneControls is null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
     private UIElement PConsoleBuild()
     {
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
@@ -117,11 +139,8 @@ public sealed partial class PConsole : UserControl
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var pAutoRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pAutoRow.Children.Add(pConsoleAutoBox);
-        pAutoRow.Children.Add(PConsoleSeparatorBuild());
-        pAutoRow.Children.Add(pConsoleRelayCombo);
-        pAutoRow.Children.Add(pConsoleSaveButton);
-        pAutoRow.Children.Add(pConsoleExportButton);
-        pAutoRow.Children.Add(pConsoleImportButton);
+        pAutoRow.Children.Add(pConsoleSceneSeparator);
+        pAutoRow.Children.Add(pConsoleSceneHost);
 
         Grid.SetColumn(pButtons, 0);
         Grid.SetColumn(pConsoleStatus, 1);

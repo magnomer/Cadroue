@@ -130,7 +130,8 @@ public abstract class PTabSurface : UserControl
             pColumnItems,
             lPreferenceTabLayout?.LScenePanelWidths,
             pColumnCompactFlags,
-            pTabViewerIndex);
+            pTabViewerIndex,
+            PTabWidthRaise);
         for (int index = 0; index < pSplitterColumns.Count; index++)
         {
             var pSplitter = pPanelLayout.PColumnSplitterBuild(index);

@@ -7,11 +7,48 @@ using Cadroue.UIShell.PAssets;
 
 namespace Cadroue.UIShell.PControlBar;
 
-public partial class PToolbar
+public partial class PTabNavigator : UserControl
 {
+    public const double PTabRailWidth = 180;
+
+    private LTabset? lTabset;
     private PTabRecord? pTabDragItem;
     private Point pTabDragPoint;
     private bool pTabDragActive;
+    private bool pTabVertical;
+
+    public PTabNavigator()
+    {
+        InitializeComponent();
+        PTabNavigatorVerticalSet(false);
+    }
+
+    public void PTabNavigatorTabsetSet(LTabset pTabset)
+    {
+        lTabset = pTabset;
+        DataContext = pTabset;
+    }
+
+    public void PTabNavigatorVerticalSet(bool pVertical)
+    {
+        pTabVertical = pVertical;
+        Width = pVertical ? PTabRailWidth : double.NaN;
+        Height = pVertical ? double.NaN : 56;
+        HorizontalAlignment = HorizontalAlignment.Stretch;
+        VerticalAlignment = VerticalAlignment.Stretch;
+        pTabRoot.Background = pVertical
+            ? new SolidColorBrush(Color.FromRgb(0xEA, 0xF2, 0xFC))
+            : Brushes.Transparent;
+        pTabRoot.BorderThickness = pVertical ? new Thickness(0, 0, 1, 0) : new Thickness(0);
+        pTabScroll.VerticalScrollBarVisibility = pVertical ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
+        pTabStack.Orientation = pVertical ? Orientation.Vertical : Orientation.Horizontal;
+        pTabItemsControl.ItemsPanel = (ItemsPanelTemplate)FindResource(
+            pVertical ? "pVerticalItemsPanel" : "pHorizontalItemsPanel");
+        pTabItemsControl.ItemTemplate = (DataTemplate)FindResource(
+            pVertical ? "pVerticalTabTemplate" : "pHorizontalTabTemplate");
+        pTabAddButton.Style = (Style)FindResource(
+            pVertical ? "pTabAddVerticalStyle" : "pTabAddHorizontalStyle");
+    }
 
     private void PTabPressHandle(object sender, MouseButtonEventArgs e)
     {
@@ -246,8 +283,11 @@ public partial class PToolbar
             }
 
             Point pItemPoint = pItemElement.TransformToAncestor(pTabItemsControl).Transform(new Point(0, 0));
-            double pItemCenterX = pItemPoint.X + pItemElement.ActualWidth / 2;
-            if (pTabMousePoint.X > pItemCenterX)
+            double pItemCenter = pTabVertical
+                ? pItemPoint.Y + pItemElement.ActualHeight / 2
+                : pItemPoint.X + pItemElement.ActualWidth / 2;
+            double pPointer = pTabVertical ? pTabMousePoint.Y : pTabMousePoint.X;
+            if (pPointer > pItemCenter)
             {
                 pTargetIndex = index + 1;
             }
