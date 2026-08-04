@@ -273,7 +273,23 @@ public sealed partial class PExport
         }
 
         lPresetState.LPresetName = lName;
-        if (!LPreset.LPresetNameSet(lOldPresetName, lName, lPresetState))
+        bool lPresetRenamed;
+        pExportPresetBusy = true;
+        try
+        {
+            lPresetRenamed = LPreset.LPresetNameSet(lOldPresetName, lName, lPresetState);
+            if (lPresetRenamed && lCurrentPresetRename)
+            {
+                lExportSpecificState.LPresetName = lName;
+                pPresetNameSelected = lName;
+            }
+        }
+        finally
+        {
+            pExportPresetBusy = false;
+        }
+
+        if (!lPresetRenamed)
         {
             PExportPresetRebuild();
             return;
@@ -281,8 +297,6 @@ public sealed partial class PExport
 
         if (lCurrentPresetRename)
         {
-            lExportSpecificState.LPresetName = lName;
-            pPresetNameSelected = lName;
             PExportSummaryUpdate();
         }
         else
