@@ -119,38 +119,7 @@ internal static class LEncodeVideo
 
     private static void LEncodeFilterAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
     {
-        var lFilters = new List<string>();
-        LWorkCrop lCrop = lWorkItem.LWorkCrop;
-
-        string? lRotate = lCrop.LWorkCropRotation switch
-        {
-            90 => "transpose=1",
-            180 => "transpose=1,transpose=1",
-            270 => "transpose=2",
-            _ => null
-        };
-
-        if (lRotate is not null)
-        {
-            lFilters.Add(lRotate);
-        }
-
-        if (lCrop.LWorkFlipHorizontal)
-        {
-            lFilters.Add("hflip");
-        }
-
-        if (lCrop.LWorkFlipVertical)
-        {
-            lFilters.Add("vflip");
-        }
-
-        if (lCrop.LWorkEdgeActive)
-        {
-            lFilters.Add(string.Create(
-                CultureInfo.InvariantCulture,
-                $"crop=in_w-{lCrop.LWorkCropLeft}-{lCrop.LWorkCropRight}:in_h-{lCrop.LWorkCropTop}-{lCrop.LWorkCropBottom}:{lCrop.LWorkCropLeft}:{lCrop.LWorkCropTop}"));
-        }
+        var lFilters = new List<string>(LEncodeGeometryFiltersRead(lWorkItem.LWorkCrop));
 
         LEncodeFiltersAppend(lFilters, lWorkItem.LWorkVideo);
 
@@ -177,6 +146,45 @@ internal static class LEncodeVideo
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lOutput.LEncodingVideo.LEncodingPixelFormat}");
         }
+    }
+
+    internal static IReadOnlyList<string> LEncodeGeometryFiltersRead(LWorkCrop lCrop)
+    {
+        var lFilters = new List<string>();
+
+        // Flyleaf applies its flip flags in source space, before Rotation. Keep FFmpeg's
+        // sequential filter graph in that same order so combined transforms match preview.
+        if (lCrop.LWorkFlipHorizontal)
+        {
+            lFilters.Add("hflip");
+        }
+
+        if (lCrop.LWorkFlipVertical)
+        {
+            lFilters.Add("vflip");
+        }
+
+        string? lRotate = lCrop.LWorkCropRotation switch
+        {
+            90 => "transpose=1",
+            180 => "transpose=1,transpose=1",
+            270 => "transpose=2",
+            _ => null
+        };
+
+        if (lRotate is not null)
+        {
+            lFilters.Add(lRotate);
+        }
+
+        if (lCrop.LWorkEdgeActive)
+        {
+            lFilters.Add(string.Create(
+                CultureInfo.InvariantCulture,
+                $"crop=in_w-{lCrop.LWorkCropLeft}-{lCrop.LWorkCropRight}:in_h-{lCrop.LWorkCropTop}-{lCrop.LWorkCropBottom}:{lCrop.LWorkCropLeft}:{lCrop.LWorkCropTop}"));
+        }
+
+        return lFilters;
     }
 
     private static void LEncodeFiltersAppend(List<string> lFilters, LWorkVideo lWorkVideo)
