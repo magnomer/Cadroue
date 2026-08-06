@@ -6,12 +6,15 @@ namespace Cadroue.MigrationInterface;
 public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropApply)
 {
     public bool LEditSkip { get; init; }
+    public bool LEditRatioFixed { get; init; }
+    public int LEditRatioWidth { get; init; }
+    public int LEditRatioHeight { get; init; }
 
     public static LEditPlan LEditEmptyCreate() =>
         new(LWorkCrop.LWorkCropCreate(), LWorkVideo.LWorkVideoCreate(), false);
 
     public bool LEditPlanActive =>
-        LEditSkip || LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive;
+        LEditSkip || LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive || LEditRatioFixed;
 }
 
 public static class LEdit
@@ -46,7 +49,17 @@ public static class LEdit
             }
         }
 
-        return new LEditPlan(lCrop, new LWorkVideo(lSteps), lCropApply) { LEditSkip = lEditSkip };
+        bool lRatioFixed = lPersistent.LEditCropApply ? lPersistent.LEditRatioFixed : lEditSaved?.LEditRatioFixed ?? false;
+        int lRatioWidth = lPersistent.LEditCropApply ? lPersistent.LEditRatioWidth : lEditSaved?.LEditRatioWidth ?? 0;
+        int lRatioHeight = lPersistent.LEditCropApply ? lPersistent.LEditRatioHeight : lEditSaved?.LEditRatioHeight ?? 0;
+
+        return new LEditPlan(lCrop, new LWorkVideo(lSteps), lCropApply)
+        {
+            LEditSkip = lEditSkip,
+            LEditRatioFixed = lRatioFixed,
+            LEditRatioWidth = lRatioWidth,
+            LEditRatioHeight = lRatioHeight
+        };
     }
 
     public static Cadroue.Core.LSidecarEditRecord LEditPersistentCreate(LEditPlan lEditPlan) => new()
@@ -59,6 +72,9 @@ public static class LEdit
         LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkFlipHorizontal,
         LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkFlipVertical,
         LSidecarCropActive = lEditPlan.LEditCropApply,
+        LSidecarRatioFixed = lEditPlan.LEditRatioFixed,
+        LSidecarRatioWidth = lEditPlan.LEditRatioWidth,
+        LSidecarRatioHeight = lEditPlan.LEditRatioHeight,
         LSidecarSkip = lEditPlan.LEditSkip,
         LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
     };
@@ -93,7 +109,13 @@ public static class LEdit
             lEditRecord.LSidecarFlipHorizontal,
             lEditRecord.LSidecarFlipVertical),
         new LWorkVideo(lEditRecord.LSidecarSteps.Select(LEditStepCreate).ToList()),
-        lEditRecord.LSidecarCropActive) { LEditSkip = lEditRecord.LSidecarSkip };
+        lEditRecord.LSidecarCropActive)
+    {
+        LEditSkip = lEditRecord.LSidecarSkip,
+        LEditRatioFixed = lEditRecord.LSidecarRatioFixed,
+        LEditRatioWidth = lEditRecord.LSidecarRatioWidth,
+        LEditRatioHeight = lEditRecord.LSidecarRatioHeight
+    };
 
     private static LWorkVideoStep LEditStepCreate(Cadroue.Core.LSidecarVideoStep lEditRecord) =>
         string.Equals(lEditRecord.LSidecarKind, "Contrast", StringComparison.Ordinal)
@@ -114,6 +136,9 @@ public static class LEdit
                 LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkFlipHorizontal,
                 LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkFlipVertical,
                 LSidecarCropActive = lEditPlan.LEditCropApply,
+                LSidecarRatioFixed = lEditPlan.LEditRatioFixed,
+                LSidecarRatioWidth = lEditPlan.LEditRatioWidth,
+                LSidecarRatioHeight = lEditPlan.LEditRatioHeight,
                 LSidecarSkip = lEditPlan.LEditSkip,
                 LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
             });

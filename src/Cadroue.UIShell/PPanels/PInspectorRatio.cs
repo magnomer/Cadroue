@@ -109,6 +109,7 @@ public sealed partial class PInspector
         pInspectorRatioCustomPanel.Visibility = pCustom ? Visibility.Visible : Visibility.Collapsed;
         if (pCustom)
         {
+            PInspectorRatioReset();
             return;
         }
 

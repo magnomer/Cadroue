@@ -217,7 +217,6 @@ public sealed partial class PInspector
         Rect? pCropSnapped = pCropVideo is { Width: > 0, Height: > 0 } pCropDrawn
             ? PInspectorRatioClamp(pCropDrawn) ?? pCropDrawn
             : pCropVideo;
-        bool pCropAdjusted = pCropSnapped != pCropVideo;
 
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
@@ -247,7 +246,7 @@ public sealed partial class PInspector
             pInspectorCropSuppress = pCropSuppressPrevious;
         }
 
-        if (pCropAdjusted)
+        if (pInspectorCropPresent)
         {
             PInspectorCropChange?.Invoke(pCropSnapped);
         }
@@ -370,4 +369,72 @@ public sealed partial class PInspector
         double.TryParse(pNumberBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out double pNumber)
             ? pNumber
             : 0;
+
+    public (bool RatioFixed, int RatioWidth, int RatioHeight) PInspectorRatioRead() => (
+        pInspectorRatioFixed.IsChecked == true,
+        (int)Math.Round(PInspectorNumberRead(pInspectorRatioWidth)),
+        (int)Math.Round(PInspectorNumberRead(pInspectorRatioHeight)));
+
+    public void PInspectorRatioApply(bool pRatioFixed, int pRatioWidth, int pRatioHeight)
+    {
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        bool pRatioSuppressPrevious = pInspectorRatioSuppress;
+        pInspectorCropSuppress = true;
+        pInspectorRatioSuppress = true;
+        try
+        {
+            int pPresetIndex = PInspectorPresetResolve(pRatioWidth, pRatioHeight);
+            pInspectorRatioPreset.SelectedIndex = pPresetIndex;
+            pInspectorRatioCustomPanel.Visibility = pPresetIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+            pInspectorRatioWidth.Text = pRatioWidth.ToString(CultureInfo.InvariantCulture);
+            pInspectorRatioHeight.Text = pRatioHeight.ToString(CultureInfo.InvariantCulture);
+            pInspectorRatioFixed.IsChecked = pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0;
+        }
+        finally
+        {
+            pInspectorRatioSuppress = pRatioSuppressPrevious;
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+
+        PInspectorRatioRaise();
+        PInspectorRatioUpdate();
+    }
+
+    public void PInspectorRatioReset()
+    {
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        bool pRatioSuppressPrevious = pInspectorRatioSuppress;
+        pInspectorCropSuppress = true;
+        pInspectorRatioSuppress = true;
+        try
+        {
+            pInspectorRatioFixed.IsChecked = false;
+            pInspectorRatioPreset.SelectedIndex = 0;
+            pInspectorRatioCustomPanel.Visibility = Visibility.Visible;
+            pInspectorRatioWidth.Text = "0";
+            pInspectorRatioHeight.Text = "0";
+        }
+        finally
+        {
+            pInspectorRatioSuppress = pRatioSuppressPrevious;
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+
+        PInspectorRatioChange?.Invoke(null);
+        PInspectorRatioUpdate();
+    }
+
+    private static int PInspectorPresetResolve(int pRatioWidth, int pRatioHeight) =>
+        pRatioWidth <= 0 || pRatioHeight <= 0
+            ? 0
+            : (pRatioWidth, pRatioHeight) switch
+            {
+                (16, 9) => 1,
+                (9, 16) => 2,
+                (4, 3) => 3,
+                (3, 4) => 4,
+                (1, 1) => 5,
+                (21, 9) => 6,
+                _ => 0
+            };
 }

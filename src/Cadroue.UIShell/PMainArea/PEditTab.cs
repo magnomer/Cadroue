@@ -78,6 +78,7 @@ public sealed class PEditTab : PTabSurface
 
         pInspector.PInspectorToolChange += pViewer.PCropToolSet;
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
+        pInspector.PInspectorRatioChange += _ => PEditPlanSave();
         pInspector.PInspectorCropChange += pViewer.PCropVideoSet;
         pInspector.PInspectorRotateChange += PEditRotateHandle;
         pInspector.PInspectorCropChange += _ => PEditPlanSave();
@@ -122,6 +123,7 @@ public sealed class PEditTab : PTabSurface
             if (pEditPersistent.LSceneInspectorCrop)
             {
                 pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropApply);
+                pInspector.PInspectorRatioApply(pEditPlan.LEditRatioFixed, pEditPlan.LEditRatioWidth, pEditPlan.LEditRatioHeight);
                 pInspector.PCropPersistentApply(true);
             }
 
@@ -283,6 +285,7 @@ public sealed class PEditTab : PTabSurface
                 }
 
                 pInspector.PCropPlanApply(pEditApply.LEditCrop, pEditApply.LEditCropApply);
+                pInspector.PInspectorRatioApply(pEditApply.LEditRatioFixed, pEditApply.LEditRatioWidth, pEditApply.LEditRatioHeight);
                 pInspector.PTonePlanApply(pEditApply.LEditVideo);
                 pInspector.PSkipApply(pEditApply.LEditSkip);
             }
@@ -290,6 +293,7 @@ public sealed class PEditTab : PTabSurface
             {
                 LTraceLog.LTraceInfoRecord($"Edit applying no plan to '{pEditName}': inspector left cleared");
                 pViewer.PViewerRotateSet(LRotateFlip.LRotateDefaultCreate());
+                pInspector.PInspectorRatioReset();
                 pInspector.PTonePlanApply(LWorkVideo.LWorkVideoCreate());
                 pInspector.PSkipApply(false);
             }
@@ -404,7 +408,14 @@ public sealed class PEditTab : PTabSurface
             ? pInspector.PTonePersistentRead()
             : LWorkVideo.LWorkVideoCreate();
         bool pSkip = pSkipPersistent && pInspector.PSkipActiveCheck();
-        return new LEditPlan(pCrop, pVideo, pCropApply) { LEditSkip = pSkip };
+        (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
+        return new LEditPlan(pCrop, pVideo, pCropApply)
+        {
+            LEditSkip = pSkip,
+            LEditRatioFixed = pCropPersistent && pRatioFixed,
+            LEditRatioWidth = pCropPersistent ? pRatioWidth : 0,
+            LEditRatioHeight = pCropPersistent ? pRatioHeight : 0
+        };
     }
 
     private LWorkVideo PEditVideoRead()
@@ -448,10 +459,17 @@ public sealed class PEditTab : PTabSurface
             return;
         }
 
+        (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
         var pEditPlan = new LEditPlan(
             pInspector.PInspectorCropRead(),
             PEditVideoRead(),
-            pInspector.PCropActiveCheck()) { LEditSkip = pInspector.PSkipActiveCheck() };
+            pInspector.PCropActiveCheck())
+        {
+            LEditSkip = pInspector.PSkipActiveCheck(),
+            LEditRatioFixed = pRatioFixed,
+            LEditRatioWidth = pRatioWidth,
+            LEditRatioHeight = pRatioHeight
+        };
         if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath) is null)
         {
             return;
@@ -474,12 +492,16 @@ public sealed class PEditTab : PTabSurface
         bool pSkipPersistent = pInspector.PSkipPersistentCheck();
         if (pCropPersistent || pVideoPersistent || pSkipPersistent)
         {
+            (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
             var pEditCarried = new LEditPlan(
                 pCropPersistent ? pInspector.PInspectorCropRead() : LWorkCrop.LWorkCropCreate(),
                 pInspector.PTonePersistentRead(),
                 pCropPersistent && pInspector.PCropActiveCheck())
             {
-                LEditSkip = pSkipPersistent && pInspector.PSkipActiveCheck()
+                LEditSkip = pSkipPersistent && pInspector.PSkipActiveCheck(),
+                LEditRatioFixed = pCropPersistent && pRatioFixed,
+                LEditRatioWidth = pCropPersistent ? pRatioWidth : 0,
+                LEditRatioHeight = pCropPersistent ? pRatioHeight : 0
             };
             lPreferenceTabLayout.LSceneInspector = new LSceneInspectorRecord
             {

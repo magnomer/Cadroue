@@ -64,7 +64,14 @@ public sealed partial class PInspector
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Crop.ApplyTooltip"));
         pInspectorApplyBox.Checked += (_, _) => PInspectorApplyUpdate();
-        pInspectorApplyBox.Unchecked += (_, _) => PInspectorApplyUpdate();
+        pInspectorApplyBox.Unchecked += (_, _) =>
+        {
+            PInspectorApplyUpdate();
+            if (!pInspectorCropSuppress)
+            {
+                PInspectorRatioReset();
+            }
+        };
 
         pInspectorCropStack = new StackPanel();
         pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Tool"), pInspectorCropTool));

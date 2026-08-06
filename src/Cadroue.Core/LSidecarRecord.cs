@@ -13,6 +13,9 @@ public sealed class LSidecarEditRecord
     public bool LSidecarFlipHorizontal { get; set; }
     public bool LSidecarFlipVertical { get; set; }
     public bool LSidecarCropActive { get; set; }
+    public bool LSidecarRatioFixed { get; set; }
+    public int LSidecarRatioWidth { get; set; }
+    public int LSidecarRatioHeight { get; set; }
     public bool LSidecarSkip { get; set; }
     public List<LSidecarVideoStep> LSidecarSteps { get; set; } = new();
 
@@ -21,6 +24,7 @@ public sealed class LSidecarEditRecord
         || LSidecarSkip
         || LSidecarCropLeft > 0 || LSidecarCropTop > 0 || LSidecarCropRight > 0 || LSidecarCropBottom > 0
         || LSidecarRotation != 0 || LSidecarFlipHorizontal || LSidecarFlipVertical
+        || LSidecarRatioFixed
         || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }
 
