@@ -92,6 +92,17 @@ public sealed partial class PExport
                 return;
             }
 
+            if (!pPresetNative && pEvent.ClickCount >= 2)
+            {
+                PExportDragClear();
+                pPresetRowPanel.ReleaseMouseCapture();
+                PExportPresetSelect(lPresetName);
+                pPresetNameEditing = lPresetName;
+                PExportPresetRebuild();
+                pEvent.Handled = true;
+                return;
+            }
+
             if (pPresetNative || PExportSourceCheck(pEvent.OriginalSource))
             {
                 pPresetNameDragging = null;
@@ -106,18 +117,6 @@ public sealed partial class PExport
             pPresetDragOffset = pEvent.GetPosition(pRowBorder);
             pPresetDragActive = false;
             pPresetRowPanel.CaptureMouse();
-        };
-        pRowBorder.MouseLeftButtonDown += (_, pEvent) =>
-        {
-            if (!pPresetNative && pEvent.ClickCount >= 2)
-            {
-                PExportDragClear();
-                pPresetRowPanel.ReleaseMouseCapture();
-                PExportPresetSelect(lPresetName);
-                pPresetNameEditing = lPresetName;
-                PExportPresetRebuild();
-                pEvent.Handled = true;
-            }
         };
         pRowBorder.MouseLeftButtonUp += (_, pEvent) =>
         {

@@ -328,8 +328,31 @@ public static class LCourier
         LScheduleContract lCourierSchedule,
         IReadOnlyCollection<Guid> lCourierLiveBatches)
     {
+        LCourierSourcesUnlock(lCourierSchedule);
         LCourierBatchesClean(lCourierSchedule, lCourierLiveBatches);
         LCourierDispatch(lCourierSchedule);
+    }
+
+    private static void LCourierSourcesUnlock(LScheduleContract lCourierSchedule)
+    {
+        foreach (LWorkItem lCourierItem in lCourierSchedule.LScheduleRecords)
+        {
+            if (lCourierItem.LWorkRelayTarget != Guid.Empty
+                || lCourierItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning
+                || LCourierTabFind(lCourierItem) is not { } lCourierSource
+                || lCourierSource.PTabWorkspace.PWorkspaceSurface.PTabList is not { } lCourierList)
+            {
+                continue;
+            }
+
+            var lCourierUnlocks = new List<(string PListPath, Guid PListBatch)>
+            {
+                (lCourierItem.LWorkSourcePath, lCourierItem.LWorkBatchId)
+            };
+            lCourierUnlocks.AddRange(lCourierItem.LWorkMergeSources.Select(
+                lCourierPath => (lCourierPath, lCourierItem.LWorkBatchId)));
+            lCourierList.PListPathsUnlock(lCourierUnlocks.Distinct().ToArray());
+        }
     }
 
     private static void LCourierBatchesClean(

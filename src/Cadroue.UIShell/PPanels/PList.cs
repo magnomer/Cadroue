@@ -183,6 +183,35 @@ public sealed partial class PList : PPanel
         return pListLocked;
     }
 
+    public int PListPathsUnlock(IEnumerable<(string PListPath, Guid PListBatch)> pListUnlocks)
+    {
+        int pListUnlocked = 0;
+        Guid pListRelay = Guid.NewGuid();
+        foreach ((string pListPath, Guid pListBatch) in pListUnlocks)
+        {
+            PListItem? pListItem = pListItems.FirstOrDefault(pExisting => string.Equals(
+                pExisting.PListItemPath, pListPath, StringComparison.OrdinalIgnoreCase));
+            if (pListItem is null
+                || !pListItem.PListItemLocked
+                || pListItem.PListItemRelay != pListBatch)
+            {
+                continue;
+            }
+
+            pListItem.PListItemRelay = pListRelay;
+            pListItem.PListItemLocked = false;
+            pListUnlocked++;
+        }
+
+        if (pListUnlocked > 0)
+        {
+            PListRowsRebuild();
+            PListLockChange?.Invoke(PListLockCheck());
+        }
+
+        return pListUnlocked;
+    }
+
     public int PListPathsTrack(IEnumerable<string> pTrackPaths, Guid pTrackBatch)
     {
         IReadOnlyList<string> pTrackedPaths = PListMediaScan(pTrackPaths);
