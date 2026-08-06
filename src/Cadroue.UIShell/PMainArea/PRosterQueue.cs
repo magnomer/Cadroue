@@ -24,6 +24,7 @@ public sealed partial class PRoster
     private sealed class PRosterRowCell
     {
         public required TextBlock PRosterCellStep { get; init; }
+        public required TextBlock PRosterCellDuration { get; init; }
         public required TextBlock PRosterCellProgress { get; init; }
         public required TextBlock PRosterCellPercent { get; init; }
         public required TextBlock PRosterCellState { get; init; }
@@ -228,7 +229,7 @@ public sealed partial class PRoster
 
         TextBlock pStepCell = PRosterStepAdd(pGrid, pWorkItem);
         PRosterCellAdd(pGrid, 1, PRosterPriorityFormat(pWorkItem.LWorkPriority), PRosterTheme.PRosterMutedBrush);
-        PRosterCellAdd(pGrid, 2, PRosterSpanFormat(pWorkItem.LWorkDuration), PRosterTheme.PRosterMutedBrush);
+        TextBlock pDurationCell = PRosterCellAdd(pGrid, 2, PRosterSpanFormat(pWorkItem.LWorkDuration), PRosterTheme.PRosterMutedBrush);
 
         TextBlock pProgressCell = PRosterCellAdd(pGrid, 3, PRosterProgressFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
         TextBlock pPercentCell = PRosterCellAdd(pGrid, 4, PRosterPlaceFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
@@ -239,6 +240,7 @@ public sealed partial class PRoster
         pRosterRowCells[pWorkItem.LWorkId] = new PRosterRowCell
         {
             PRosterCellStep = pStepCell,
+            PRosterCellDuration = pDurationCell,
             PRosterCellProgress = pProgressCell,
             PRosterCellPercent = pPercentCell,
             PRosterCellState = pStateCell,
@@ -366,6 +368,7 @@ public sealed partial class PRoster
         }
 
         pCell.PRosterCellStep.Text = PRosterStepRead(pWorkItem);
+        pCell.PRosterCellDuration.Text = PRosterSpanFormat(pWorkItem.LWorkDuration);
         pCell.PRosterCellProgress.Text = PRosterProgressFormat(pWorkItem);
         pCell.PRosterCellPercent.Text = PRosterPlaceFormat(pWorkItem);
         pCell.PRosterCellState.Text = PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent);

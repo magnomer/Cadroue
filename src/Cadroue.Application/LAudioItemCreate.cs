@@ -13,6 +13,7 @@ public static partial class LAudio
         string lAudioTab,
         Action<string> lInfoLog,
         Action<string> lErrorLog,
+        Func<string, TimeSpan> lAudioDurationRead,
         Guid lAudioBatchId = default)
     {
         if (string.IsNullOrWhiteSpace(lAudioSourcePath))
@@ -21,6 +22,7 @@ public static partial class LAudio
             return null;
         }
 
+        TimeSpan lAudioDuration = lAudioDurationRead(lAudioSourcePath);
         string lAudioFolder = lAudioOutput.LEncodingFolderRead(lAudioSourcePath);
         string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
         Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : Guid.NewGuid();
@@ -35,7 +37,7 @@ public static partial class LAudio
             lWorkPriority,
             lAudioSourcePath,
             TimeSpan.Zero,
-            TimeSpan.Zero,
+            lAudioDuration,
             lAudioOutputName,
             Path.Combine(lAudioFolder, lAudioOutputName),
             lAudioOutput,

@@ -21,7 +21,7 @@ public static class LMessenger
         LRelayPlanRecord? lMessengerPlan = null) =>
         LMessengerRouteSource?.Invoke(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan) ?? 0;
 
-    public static int LMessengerAudioDescribe(
+    public static async Task<int> LMessengerAudioDescribe(
         LWorkPriority lMessengerPriority,
         string? lMessengerSourcePath,
         LWorkAudio lMessengerProcessing,
@@ -36,6 +36,7 @@ public static class LMessenger
             lMessengerPriority, lMessengerSourcePath, lMessengerProcessing, lMessengerOutput, lMessengerTab,
             lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
             lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+            Cadroue.Media.LSidecarStore.LSidecarDurationRead,
             lMessengerBatchId);
         if (lMessengerItem is null)
         {
@@ -46,6 +47,7 @@ public static class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Audio queued {lMessengerAdded} job at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
+        await LMessengerDurationResolve(new[] { lMessengerItem }).ConfigureAwait(false);
         return lMessengerAdded;
     }
 
@@ -80,7 +82,7 @@ public static class LMessenger
         return lMessengerAdded;
     }
 
-    public static int LMessengerAudioAllDescribe(
+    public static async Task<int> LMessengerAudioAllDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
         LPreset lMessengerPreset,
@@ -106,6 +108,7 @@ public static class LMessenger
                     lMessengerPriority, lMessengerSourcePath, lMessengerPlan, lMessengerOutput, lMessengerTab,
                     lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
                     lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+                    Cadroue.Media.LSidecarStore.LSidecarDurationRead,
                     lMessengerBatch)
                 is { } lMessengerItem)
             {
@@ -113,7 +116,9 @@ public static class LMessenger
             }
         }
 
-        return LMessengerRoute(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded = LMessengerRoute(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        await LMessengerDurationResolve(lMessengerItems).ConfigureAwait(false);
+        return lMessengerAdded;
     }
 
     public static async Task<int> LMessengerSplitAllDescribe(
@@ -137,13 +142,16 @@ public static class LMessenger
             await Task.Run(() => LMessengerSplitPlanCreate(lMessengerSourcePaths)).ConfigureAwait(false);
 
         int lMessengerAdded = 0;
-        foreach (LSplitPlanRecord lMessengerPlan in lMessengerPlans)
+        LMessengerPost(() =>
         {
-            lMessengerRelays.TryGetValue(lMessengerPlan.LSplitSourcePath, out Guid lMessengerBatch);
-            lMessengerAdded += LMessengerSplitDescribe(
-                lMessengerPriority, lMessengerPlan.LSplitSourcePath, lMessengerPlan.LSplitPlanSections,
-                lMessengerPreset, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch, lMessengerPreparedPlan);
-        }
+            foreach (LSplitPlanRecord lMessengerPlan in lMessengerPlans)
+            {
+                lMessengerRelays.TryGetValue(lMessengerPlan.LSplitSourcePath, out Guid lMessengerBatch);
+                lMessengerAdded += LMessengerSplitDescribe(
+                    lMessengerPriority, lMessengerPlan.LSplitSourcePath, lMessengerPlan.LSplitPlanSections,
+                    lMessengerPreset, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch, lMessengerPreparedPlan);
+            }
+        });
         return lMessengerAdded;
     }
 
