@@ -2,6 +2,7 @@ using Cadroue.Core;
 using System.Collections.ObjectModel;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PPanels;
+using Cadroue.MigrationInterface;
 
 using Cadroue.Infrastructure;
 
@@ -268,7 +269,7 @@ public sealed class LTabset
         var pTabWasSelected = ReferenceEquals(PTabsetCurrent, pTabRecord);
         string pTabClosedTitle = pTabRecord.PTabTitle;
         pTabRecord.PTabWorkspace.PWorkspaceClose();
-        PMainArea.LCourier.LCourierTabRemove(pTabRecord.PTabId);
+        Cadroue.MigrationInterface.LCartographer.LCartographerTabRemove(pTabRecord.PTabId);
         PTabsetRecords.RemoveAt(pTabIndex);
         LTabsetTitleUpdate();
         LTraceLog.LTraceInfoRecord($"Tab closed '{pTabClosedTitle}': {PTabsetRecords.Count} tab(s) open");

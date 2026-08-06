@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.Application", "Cadr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.Tests", "Cadroue.Tests\Cadroue.Tests.csproj", "{CB638AAD-F4AA-4BD0-8AA8-AB94AC8B2754}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.MigrationInterface", "Cadroue.MigrationInterface\Cadroue.MigrationInterface.csproj", "{31720C64-EA68-4B71-BBBD-C5330952BA2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,18 @@ Global
 		{CB638AAD-F4AA-4BD0-8AA8-AB94AC8B2754}.Release|x64.Build.0 = Release|Any CPU
 		{CB638AAD-F4AA-4BD0-8AA8-AB94AC8B2754}.Release|x86.ActiveCfg = Release|Any CPU
 		{CB638AAD-F4AA-4BD0-8AA8-AB94AC8B2754}.Release|x86.Build.0 = Release|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Debug|x64.Build.0 = Debug|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Debug|x86.Build.0 = Debug|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Release|x64.ActiveCfg = Release|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Release|x64.Build.0 = Release|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Release|x86.ActiveCfg = Release|Any CPU
+		{31720C64-EA68-4B71-BBBD-C5330952BA2C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

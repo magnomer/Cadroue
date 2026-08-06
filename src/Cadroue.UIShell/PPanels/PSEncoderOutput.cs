@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
+using Cadroue.MigrationInterface;
 
 using static Cadroue.UIShell.PSShared.PSField;
 

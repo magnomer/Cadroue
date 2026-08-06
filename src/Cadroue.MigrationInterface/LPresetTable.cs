@@ -2,7 +2,7 @@ using Cadroue.Infrastructure;
 using Cadroue.Core;
 using System.Collections.ObjectModel;
 
-namespace Cadroue.UIShell.PPanels;
+namespace Cadroue.MigrationInterface;
 
 public sealed partial class LPreset
 {

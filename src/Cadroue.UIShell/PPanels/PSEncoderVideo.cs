@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.UIShell.PMainWindow;
+using Cadroue.MigrationInterface;
 
 using static Cadroue.UIShell.PSShared.PSField;
 

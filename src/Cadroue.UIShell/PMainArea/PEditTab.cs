@@ -1,6 +1,7 @@
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
+using Cadroue.MigrationInterface;
 
 using Cadroue.Infrastructure;
 
@@ -32,7 +33,7 @@ public sealed class PEditTab : PTabSurface
                 return;
             }
 
-            LEdit.LEditDescribe(
+            LMessenger.LMessengerEditDescribe(
                 lPriority,
                 pEditSelected.PListItemPath,
                 pViewer.PViewerDurationRead(),
@@ -44,7 +45,7 @@ public sealed class PEditTab : PTabSurface
                 pEditSelected.PListItemRelay);
         };
 
-        pAction.PActionAllAdd += () => _ = LEdit.LEditAllDescribe(
+        pAction.PActionAllAdd += () => _ = LMessenger.LMessengerEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
@@ -52,7 +53,7 @@ public sealed class PEditTab : PTabSurface
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
-        pAction.PActionItemsAdd += pEditPaths => _ = LEdit.LEditAllDescribe(
+        pAction.PActionItemsAdd += pEditPaths => _ = LMessenger.LMessengerEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
                 .Where(pItem => pEditPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))

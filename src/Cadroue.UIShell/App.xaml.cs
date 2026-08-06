@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Cadroue.UIShell.PControlBar;
@@ -32,6 +34,22 @@ public partial class PProgram : System.Windows.Application
         LStation.LStationProgramSource = () => LRenderer.LRendererProgramCurrent;
         LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
         LSchedule.LScheduleCohortGate = PMainArea.LSeal.LSealClaimCheck;
+
+        Cadroue.MigrationInterface.LMessenger.LMessengerScheduleSource = () => LScheduleCurrent;
+        Cadroue.MigrationInterface.LCartographer.LCartographerTabsSource = () =>
+            PControlBar.LTabset.LTabsetCurrent?.PTabsetRecords.Select(pTab =>
+                new Cadroue.MigrationInterface.LCartographerTab(
+                    pTab.PTabId,
+                    pTab.PTabLayoutKey,
+                    pTab.PTabTitle,
+                    pTab.PTabWorkspace.PWorkspaceExportState.LPresetRecordCreate(),
+                    pTab.PTabWorkspace.PWorkspaceLayoutRead().LSceneTabClone(),
+                    pTab.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab)).ToArray()
+            ?? (IReadOnlyList<Cadroue.MigrationInterface.LCartographerTab>)Array.Empty<Cadroue.MigrationInterface.LCartographerTab>();
+        Cadroue.MigrationInterface.LMessenger.LMessengerTitleSource = PControlBar.LTabset.LTabsetTitleRead;
+        Cadroue.MigrationInterface.LMessenger.LMessengerRouteSource =
+            (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
+                PMainArea.LCourier.LCourierScheduleAdd(lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
     }
 
     private static void LStationDispatch(Action lStationAction)

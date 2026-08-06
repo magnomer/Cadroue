@@ -1,6 +1,7 @@
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
+using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -16,10 +17,10 @@ public sealed class PMergeTab : PTabSurface
     public PMergeTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         PTabAction = pAction;
-        pAction.PActionRun += pPriority => LMerge.LMergeDescribe(
+        pAction.PActionRun += pPriority => LMessenger.LMessengerMergeDescribe(
             pPriority, PMergeGroupsRead(), lExportSpecificState,
             pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
-        pAction.PActionAllAdd += () => LMerge.LMergeDescribe(
+        pAction.PActionAllAdd += () => LMessenger.LMessengerMergeDescribe(
             LWorkPriority.LWorkPriorityNormal,
             PMergeGroupsRead(),
             lExportSpecificState,

@@ -1,6 +1,7 @@
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
+using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -50,7 +51,7 @@ public sealed class PAudioTab : PTabSurface
             }
 
             PAudioPlanSave();
-            LAudio.LAudioDescribe(
+            LMessenger.LMessengerAudioDescribe(
                 lPriority,
                 pAudioSelected.PListItemPath,
                 PAudioProcessingRead(),
@@ -62,7 +63,7 @@ public sealed class PAudioTab : PTabSurface
         pAction.PActionAllAdd += () =>
         {
             PAudioPlanSave();
-            LAudio.LAudioAllDescribe(
+            LMessenger.LMessengerAudioAllDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
@@ -74,7 +75,7 @@ public sealed class PAudioTab : PTabSurface
         pAction.PActionItemsAdd += pAudioPaths =>
         {
             PAudioPlanSave();
-            LAudio.LAudioAllDescribe(
+            LMessenger.LMessengerAudioAllDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Where(pItem => pAudioPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))

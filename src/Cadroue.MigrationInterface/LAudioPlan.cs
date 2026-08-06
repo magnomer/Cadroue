@@ -1,77 +1,9 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
-using Cadroue.UIShell.PPanels;
 
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.MigrationInterface;
 
-public static partial class LAudio
+public static class LAudio
 {
-    public static int LAudioDescribe(
-        LWorkPriority lWorkPriority,
-        string? lAudioSourcePath,
-        LWorkAudio lAudioProcessing,
-        LPreset lExportSpecificState,
-        Guid lAudioRelayTarget = default,
-        Guid lAudioRelaySource = default,
-        Guid lAudioBatchId = default)
-    {
-        LEncoding lAudioOutput = lExportSpecificState.LPresetOutputCreate();
-        string lAudioTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
-        LWorkItem? lAudioItem = Cadroue.Application.LAudio.LAudioItemCreate(
-            lWorkPriority, lAudioSourcePath, lAudioProcessing, lAudioOutput, lAudioTab,
-            lAudioMessage => LTraceLog.LTraceInfoRecord(lAudioMessage),
-            lAudioMessage => LTraceLog.LTraceErrorRecord(lAudioMessage),
-            lAudioBatchId);
-        if (lAudioItem is null)
-        {
-            return 0;
-        }
-
-        int lAudioAdded = LCourier.LCourierScheduleAdd(
-            new[] { lAudioItem }, lAudioRelayTarget, lAudioRelaySource);
-        LTraceLog.LTraceInfoRecord(
-            $"Audio queued {lAudioAdded} job at {lWorkPriority} from " +
-            $"'{System.IO.Path.GetFileName(lAudioSourcePath)}'");
-        return lAudioAdded;
-    }
-
-    public static int LAudioAllDescribe(
-        LWorkPriority lWorkPriority,
-        IReadOnlyList<LWorkSource> lAudioSources,
-        LPreset lExportSpecificState,
-        Guid lAudioRelayTarget = default,
-        Guid lAudioRelaySource = default)
-    {
-        LEncoding lAudioOutput = lExportSpecificState.LPresetOutputCreate();
-        string lAudioTab = PControlBar.LTabset.LTabsetTitleRead(lAudioRelaySource);
-        Guid lAudioLooseBatch = Guid.NewGuid();
-        var lAudioItems = new List<LWorkItem>();
-        foreach (LWorkSource lAudioSource in lAudioSources)
-        {
-            string lAudioSourcePath = lAudioSource.LWorkSourcePath;
-            if (LAudioPlanRead(lAudioSourcePath) is not { LWorkAudioActive: true } lAudioPlan)
-            {
-                continue;
-            }
-
-            Guid lAudioBatch = lAudioSource.LWorkSourceBatch != Guid.Empty
-                ? lAudioSource.LWorkSourceBatch
-                : lAudioLooseBatch;
-            if (Cadroue.Application.LAudio.LAudioItemCreate(
-                    lWorkPriority, lAudioSourcePath, lAudioPlan, lAudioOutput, lAudioTab,
-                    lAudioMessage => LTraceLog.LTraceInfoRecord(lAudioMessage),
-                    lAudioMessage => LTraceLog.LTraceErrorRecord(lAudioMessage),
-                    lAudioBatch)
-                is { } lAudioItem)
-            {
-                lAudioItems.Add(lAudioItem);
-            }
-        }
-
-        return LCourier.LCourierScheduleAdd(
-            lAudioItems, lAudioRelayTarget, lAudioRelaySource);
-    }
-
     public static Cadroue.Core.LSidecarAudioRecord LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()
     {
         LSidecarSkip = lAudioPlan.LWorkAudioSkip,

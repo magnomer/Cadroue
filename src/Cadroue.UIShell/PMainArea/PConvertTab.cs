@@ -1,6 +1,7 @@
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
+using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -15,7 +16,7 @@ public sealed class PConvertTab : PTabSurface
     {
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += lPriority => _ = LConvert.LConvertDescribe(
+        pAction.PActionRun += lPriority => _ = LMessenger.LMessengerConvertDescribe(
             lPriority,
             pList.PListEditableRead() is { } pConvertSelected
                 ? new[] { new LWorkSource(pConvertSelected.PListItemPath, pConvertSelected.PListItemRelay) }
@@ -23,7 +24,7 @@ public sealed class PConvertTab : PTabSurface
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
-        pAction.PActionAllAdd += () => _ = LConvert.LConvertDescribe(
+        pAction.PActionAllAdd += () => _ = LMessenger.LMessengerConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
@@ -31,7 +32,7 @@ public sealed class PConvertTab : PTabSurface
             lExportSpecificState,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
-        pAction.PActionItemsAdd += pConvertPaths => _ = LConvert.LConvertDescribe(
+        pAction.PActionItemsAdd += pConvertPaths => _ = LMessenger.LMessengerConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
                 .Where(pItem => pConvertPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))

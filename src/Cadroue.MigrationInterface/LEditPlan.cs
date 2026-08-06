@@ -1,8 +1,7 @@
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.UIShell.PPanels;
 
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.MigrationInterface;
 
 public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropApply)
 {
@@ -15,119 +14,8 @@ public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool 
         LEditSkip || LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive;
 }
 
-public static partial class LEdit
+public static class LEdit
 {
-    public static int LEditDescribe(
-        LWorkPriority lWorkPriority,
-        string? lEditSourcePath,
-        TimeSpan lEditDuration,
-        LWorkCrop lEditCrop,
-        LWorkVideo lEditVideo,
-        LPreset lExportSpecificState,
-        Guid lEditRelayTarget = default,
-        Guid lEditRelaySource = default,
-        Guid lEditBatchId = default)
-    {
-        LEditWorkDescription lEditWorkDescription = new(
-            lEditSourcePath,
-            lEditDuration,
-            lEditCrop,
-            lEditVideo,
-            lExportSpecificState.LPresetOutputCreate());
-
-        string lEditTab = PControlBar.LTabset.LTabsetTitleRead(lEditRelaySource);
-        IReadOnlyList<LWorkItem> lEditWorkItems = Cadroue.Application.LEdit.LEditItemsCreate(
-            lWorkPriority,
-            lEditWorkDescription,
-            lEditTab,
-            lEditMessage => LTraceLog.LTraceInfoRecord(lEditMessage),
-            lEditMessage => LTraceLog.LTraceErrorRecord(lEditMessage),
-            lEditBatchId);
-        if (lEditWorkItems.Count == 0)
-        {
-            return 0;
-        }
-
-        int lEditAdded = LCourier.LCourierScheduleAdd(
-            lEditWorkItems, lEditRelayTarget, lEditRelaySource);
-        LTraceLog.LTraceInfoRecord(
-            $"Edit queued {lEditAdded} job(s) at {lWorkPriority} from " +
-            $"'{System.IO.Path.GetFileName(lEditSourcePath)}'");
-        return lEditAdded;
-    }
-
-    public static async Task<int> LEditAllDescribe(
-        LWorkPriority lWorkPriority,
-        IReadOnlyList<LWorkSource> lEditSources,
-        LPreset lExportSpecificState,
-        Guid lEditRelayTarget = default,
-        Guid lEditRelaySource = default)
-    {
-        LEncoding lEditOutput = lExportSpecificState.LPresetOutputCreate();
-        var lEditWorkItems = new List<LWorkItem>();
-        Guid lEditLooseBatch = Guid.NewGuid();
-
-        foreach (LWorkSource lEditSource in lEditSources)
-        {
-            string lEditSourcePath = lEditSource.LWorkSourcePath;
-            if (LEditPlanRead(lEditSourcePath) is not { LEditPlanActive: true } lEditPlan)
-            {
-                continue;
-            }
-
-            Guid lEditBatch = lEditSource.LWorkSourceBatch != Guid.Empty
-                ? lEditSource.LWorkSourceBatch
-                : lEditLooseBatch;
-            lEditWorkItems.Add(Cadroue.Application.LEdit.LEditWorkCreate(
-                lWorkPriority,
-                lEditSourcePath,
-                Cadroue.Media.LSidecarStore.LSidecarDurationRead(lEditSourcePath),
-                lEditPlan.LEditSkip ? LWorkCrop.LWorkCropCreate() : lEditPlan.LEditCrop,
-                lEditPlan.LEditSkip ? LWorkVideo.LWorkVideoCreate() : lEditPlan.LEditVideo,
-                lEditOutput,
-                lEditBatch));
-        }
-
-        string lEditTab = PControlBar.LTabset.LTabsetTitleRead(lEditRelaySource);
-        foreach (LWorkItem lEditItem in lEditWorkItems)
-        {
-            lEditItem.LWorkTab = lEditTab;
-        }
-
-        int lEditAdded = LCourier.LCourierScheduleAdd(lEditWorkItems, lEditRelayTarget, lEditRelaySource);
-        LTraceLog.LTraceInfoRecord(
-            $"Edit Add All: {lEditSources.Count} listed, {lEditAdded} queued from saved plans");
-
-        await LEditDurationResolve(lEditWorkItems).ConfigureAwait(true);
-        return lEditAdded;
-    }
-
-    private static async Task LEditDurationResolve(IReadOnlyList<LWorkItem> lEditWorkItems)
-    {
-        LWorkItem[] lEditUnknown = lEditWorkItems
-            .Where(lWorkItem => lWorkItem.LWorkEnd <= TimeSpan.Zero)
-            .ToArray();
-        if (lEditUnknown.Length == 0)
-        {
-            return;
-        }
-
-        var lEditResolved = new TimeSpan[lEditUnknown.Length];
-        await Task.Run(() => Parallel.For(
-            0,
-            lEditUnknown.Length,
-            new ParallelOptions { MaxDegreeOfParallelism = LEditParallelRead() },
-            lEditIndex => lEditResolved[lEditIndex] =
-                Cadroue.Media.LSidecarStore.LSidecarDurationResolve(lEditUnknown[lEditIndex].LWorkSourcePath)))
-            .ConfigureAwait(true);
-
-        for (int lEditIndex = 0; lEditIndex < lEditUnknown.Length; lEditIndex++)
-        {
-            PProgram.LScheduleCurrent.LScheduleDurationSet(
-                lEditUnknown[lEditIndex].LWorkId, lEditResolved[lEditIndex]);
-        }
-    }
-
     public static LEditPlan LEditPlanResolve(LEditPlan? lEditSaved, LEditPlan? lEditPersistent)
     {
         if (lEditPersistent is not { } lPersistent)
@@ -160,8 +48,6 @@ public static partial class LEdit
 
         return new LEditPlan(lCrop, new LWorkVideo(lSteps), lCropApply) { LEditSkip = lEditSkip };
     }
-
-    private static int LEditParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
 
     public static Cadroue.Core.LSidecarEditRecord LEditPersistentCreate(LEditPlan lEditPlan) => new()
     {

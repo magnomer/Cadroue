@@ -1,6 +1,7 @@
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
+using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -23,7 +24,7 @@ public sealed class PSplitTab : PTabSurface
                 return;
             }
 
-            LSplit.LSplitDescribe(
+            LMessenger.LMessengerSplitDescribe(
                 lPriority,
                 pSplitSelected.PListItemPath,
                 pSection.PSectionSplitRead(),
@@ -33,7 +34,7 @@ public sealed class PSplitTab : PTabSurface
                 pSplitSelected.PListItemRelay,
                 LCourier.LCourierPlanPrepare(pAction.PActionRelayTarget));
         };
-        pAction.PActionAllAdd += () => _ = LSplit.LSplitAllDescribe(
+        pAction.PActionAllAdd += () => _ = LMessenger.LMessengerSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
@@ -42,7 +43,7 @@ public sealed class PSplitTab : PTabSurface
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab,
             LCourier.LCourierPlanPrepare(pAction.PActionRelayTarget));
-        pAction.PActionItemsAdd += pSplitPaths => _ = LSplit.LSplitAllDescribe(
+        pAction.PActionItemsAdd += pSplitPaths => _ = LMessenger.LMessengerSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
                 .Where(pItem => pSplitPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))

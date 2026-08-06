@@ -10,6 +10,10 @@ internal sealed class LJob
     private readonly LWorkItem lJobItem;
     private readonly CancellationToken lJobToken;
 
+    private double lJobTotalSeconds;
+    private long lJobBlockMicroseconds = -1;
+    private System.Text.StringBuilder? lJobProgressBlock;
+
     internal LJob(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobCancelToken)
     {
         lJobOwner = lJobRunner;
@@ -72,8 +76,8 @@ internal sealed class LJob
         {
             double pTotalSeconds = lJobItem.LWorkKind switch
             {
-                LWorkKind.LWorkKindAudio => LProbe.LProbeMediaRead(lJobItem.LWorkSourcePath)?.LWorkMediaDuration.TotalSeconds ?? 0,
-                LWorkKind.LWorkKindMerge => LProbe.LProbeMergeRead(lJobItem.LWorkMergeSources),
+                LWorkKind.LWorkKindAudio => LScout.LScoutMediaRead(lJobItem.LWorkSourcePath)?.LWorkMediaDuration.TotalSeconds ?? 0,
+                LWorkKind.LWorkKindMerge => LScout.LScoutMergeRead(lJobItem.LWorkMergeSources),
                 _ => lJobItem.LWorkDuration.TotalSeconds
             };
 
@@ -138,12 +142,12 @@ internal sealed class LJob
                 }
             }
 
-            long? pOutputBytes = LProbe.LProbeBytesRead(lJobItem.LWorkOutputPath);
-            long? pSourceBytes = LProbe.LProbeInputRead(lJobItem);
-            LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia ?? LProbe.LProbeMediaRead(lJobItem.LWorkSourcePath);
-            LWorkMedia? pOutputMedia = LProbe.LProbeMediaRead(lJobItem.LWorkOutputPath);
+            long? pOutputBytes = LScout.LScoutBytesRead(lJobItem.LWorkOutputPath);
+            long? pSourceBytes = LScout.LScoutInputRead(lJobItem);
+            LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath);
+            LWorkMedia? pOutputMedia = LScout.LScoutMediaRead(lJobItem.LWorkOutputPath);
             if (pOutputMedia is { LWorkMediaVideo: true }
-                && LProbe.LProbeIntervalRead(lJobItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration) is { } pOutputKeyframeInterval)
+                && LScout.LScoutIntervalRead(lJobItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration) is { } pOutputKeyframeInterval)
             {
                 pOutputMedia = pOutputMedia with { LWorkKeyframeInterval = pOutputKeyframeInterval };
             }
@@ -258,16 +262,6 @@ internal sealed class LJob
         Stopwatch pJobClock,
         string pDirectory)
     {
-        var pStartInfo = new ProcessStartInfo
-        {
-            FileName = lJobOwner.LRunnerProgramPath,
-            Arguments = pStageArguments,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-
         lJobOwner.LRunnerDispatch(() =>
         {
             lJobItem.LWorkProgress = 0;
@@ -276,113 +270,96 @@ internal sealed class LJob
                 : string.Empty;
             lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
         });
-        LRunner.LRunnerRecord($"{pStage.LEncodeStageLabel} '{lJobItem.LWorkOutputName}': {pStartInfo.FileName} {pStartInfo.Arguments}");
+        LRunner.LRunnerRecord($"{pStage.LEncodeStageLabel} '{lJobItem.LWorkOutputName}': {lJobOwner.LRunnerProgramPath} {pStageArguments}");
         LRunner.LRunnerFfmpegRecord(
             $"{pStage.LEncodeStageLabel} command for '{lJobItem.LWorkOutputName}'",
-            $"{pStartInfo.FileName} {pStartInfo.Arguments}\n"
+            $"{lJobOwner.LRunnerProgramPath} {pStageArguments}\n"
             + $"working folder {(string.IsNullOrWhiteSpace(pDirectory) ? "(process default)" : pDirectory)}\n"
             + $"source {lJobItem.LWorkSourcePath}\n"
             + $"output {pStage.LEncodeStagePath}");
 
-        using var pProcess = new Process { StartInfo = pStartInfo };
-        lJobToken.ThrowIfCancellationRequested();
-        pProcess.Start();
-        lJobOwner.LRunnerProcessAttach(lJobItem.LWorkId, pProcess, lJobToken);
+        lJobTotalSeconds = pTotalSeconds;
+        lJobBlockMicroseconds = -1;
+        lJobProgressBlock = LRunner.LRunnerVerboseCheck() ? new System.Text.StringBuilder() : null;
 
-        Task<string> pErrorTask = LJobErrorRead(pProcess);
-        await LJobProgressRead(pProcess, pTotalSeconds).ConfigureAwait(false);
-        await pProcess.WaitForExitAsync(lJobToken).ConfigureAwait(false);
-        string pJobError = await pErrorTask.ConfigureAwait(false);
+        var pJobEmployer = new LEmployer(lJobOwner.LRunnerProgramPath);
+        LEmployerResult pJobResult = await pJobEmployer.LEmployerRun(
+            pStageArguments,
+            lJobToken,
+            pProcess => lJobOwner.LRunnerProcessAttach(lJobItem.LWorkId, pProcess, lJobToken),
+            LJobOutputRead,
+            LJobStderrRead).ConfigureAwait(false);
+
         LRunner.LRunnerFfmpegRecord(
-            $"Exit code {pProcess.ExitCode} for '{lJobItem.LWorkOutputName}' [{pStage.LEncodeStageLabel}]",
+            $"Exit code {pJobResult.LEmployerExit} for '{lJobItem.LWorkOutputName}' [{pStage.LEncodeStageLabel}]",
             $"ran for {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}");
 
-        int pStageExit = pProcess.ExitCode;
         lJobOwner.lRunnerProcesses.TryRemove(lJobItem.LWorkId, out _);
-        return (pStageExit, pJobError);
+        return (pJobResult.LEmployerExit, pJobResult.LEmployerError);
     }
 
-    private async Task LJobProgressRead(Process pProcess, double pTotalSeconds)
+    private void LJobOutputRead(string pLine)
     {
-        long pBlockMicroseconds = -1;
-        bool pJobVerbose = LRunner.LRunnerVerboseCheck();
-        var pJobBlock = pJobVerbose ? new System.Text.StringBuilder() : null;
-
-        while (await pProcess.StandardOutput.ReadLineAsync(lJobToken).ConfigureAwait(false) is string pLine)
+        int pSeparator = pLine.IndexOf('=');
+        if (pSeparator <= 0)
         {
-            int pSeparator = pLine.IndexOf('=');
-            if (pSeparator <= 0)
-            {
-                continue;
-            }
+            return;
+        }
 
-            string pKey = pLine[..pSeparator];
-            string pValue = pLine[(pSeparator + 1)..].Trim();
-            pJobBlock?.AppendLine(pLine);
+        string pKey = pLine[..pSeparator];
+        string pValue = pLine[(pSeparator + 1)..].Trim();
+        lJobProgressBlock?.AppendLine(pLine);
 
-            switch (pKey)
-            {
-                case "out_time_us":
-                case "out_time_ms":
-                    if (long.TryParse(pValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out long pParsed))
+        switch (pKey)
+        {
+            case "out_time_us":
+            case "out_time_ms":
+                if (long.TryParse(pValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out long pParsed))
+                {
+                    lJobBlockMicroseconds = pParsed;
+                }
+                break;
+
+            case "progress":
+                lJobOwner.LRunnerDispatch(() => lJobOwner.LRunnerPhaseSet(lJobItem, LWorkPhase.LWorkPhaseEncoding));
+                if (lJobBlockMicroseconds >= 0 && lJobTotalSeconds > 0)
+                {
+                    double pFraction = lJobBlockMicroseconds / 1_000_000d / lJobTotalSeconds;
+                    lJobOwner.LRunnerDispatch(() =>
                     {
-                        pBlockMicroseconds = pParsed;
-                    }
-                    break;
+                        lJobItem.LWorkProgress = pFraction;
+                        lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
+                    });
+                }
 
-                case "progress":
-                    lJobOwner.LRunnerDispatch(() => lJobOwner.LRunnerPhaseSet(lJobItem, LWorkPhase.LWorkPhaseEncoding));
-                    if (pBlockMicroseconds >= 0 && pTotalSeconds > 0)
+                if (string.Equals(pValue, "end", StringComparison.Ordinal))
+                {
+                    lJobOwner.LRunnerDispatch(() =>
                     {
-                        double pFraction = pBlockMicroseconds / 1_000_000d / pTotalSeconds;
-                        lJobOwner.LRunnerDispatch(() =>
-                        {
-                            lJobItem.LWorkProgress = pFraction;
-                            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
-                        });
-                    }
+                        lJobItem.LWorkProgress = 1;
+                        lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
+                    });
+                }
 
-                    if (string.Equals(pValue, "end", StringComparison.Ordinal))
-                    {
-                        lJobOwner.LRunnerDispatch(() =>
-                        {
-                            lJobItem.LWorkProgress = 1;
-                            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
-                        });
-                    }
+                if (lJobProgressBlock is not null)
+                {
+                    LRunner.LRunnerFfmpegRecord(
+                        $"stdout progress '{lJobItem.LWorkOutputName}'",
+                        lJobProgressBlock.ToString());
+                    lJobProgressBlock.Clear();
+                }
 
-                    if (pJobBlock is not null)
-                    {
-                        LRunner.LRunnerFfmpegRecord(
-                            $"stdout progress '{lJobItem.LWorkOutputName}'",
-                            pJobBlock.ToString());
-                        pJobBlock.Clear();
-                    }
-
-                    pBlockMicroseconds = -1;
-                    break;
-            }
+                lJobBlockMicroseconds = -1;
+                break;
         }
     }
 
-    private async Task<string> LJobErrorRead(Process pProcess)
+    private void LJobStderrRead(string pLine)
     {
-        if (!LRunner.LRunnerVerboseCheck())
+        if (pLine.Length > 0 && LRunner.LRunnerVerboseCheck())
         {
-            return await pProcess.StandardError.ReadToEndAsync(lJobToken).ConfigureAwait(false);
+            LRunner.LRunnerFfmpegRecord($"stderr '{lJobItem.LWorkOutputName}'", pLine);
         }
-
-        var pJobBuilder = new System.Text.StringBuilder();
-        while (await pProcess.StandardError.ReadLineAsync(lJobToken).ConfigureAwait(false) is string pJobLine)
-        {
-            pJobBuilder.AppendLine(pJobLine);
-            if (pJobLine.Length > 0)
-            {
-                LRunner.LRunnerFfmpegRecord($"stderr '{lJobItem.LWorkOutputName}'", pJobLine);
-            }
-        }
-
-        return pJobBuilder.ToString();
     }
 
     private bool LJobRetryStart(string pJobReason)

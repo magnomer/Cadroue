@@ -7,6 +7,7 @@ using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PMainWindow;
 public partial class PWindow : Window

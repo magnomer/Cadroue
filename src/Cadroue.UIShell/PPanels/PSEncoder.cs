@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using Cadroue.MigrationInterface;
 
 using static Cadroue.UIShell.PSShared.PSField;
 

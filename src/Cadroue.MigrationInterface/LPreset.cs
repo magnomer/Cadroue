@@ -1,6 +1,6 @@
 using Cadroue.Core;
 
-namespace Cadroue.UIShell.PPanels;
+namespace Cadroue.MigrationInterface;
 
 public sealed partial class LPreset
 {

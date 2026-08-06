@@ -93,6 +93,12 @@ public sealed class LSceneFunnelRule
     }
 }
 
+public enum LSceneFunnelForm
+{
+    LSceneFunnelFormFilename,
+    LSceneFunnelFormRegex
+}
+
 public sealed class LSceneFunnelMatch
 {
     public string LSceneFunnelText { get; set; } = string.Empty;

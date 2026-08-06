@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
 
@@ -249,7 +250,7 @@ public static class LSeal
                 return true;
             }
 
-            lSealCurrent = LCourier.LCourierTargetRead(lSealCurrent);
+            lSealCurrent = LCartographer.LCartographerTargetRead(lSealCurrent);
         }
 
         return false;

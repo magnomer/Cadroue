@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
+using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PPanels;
 
