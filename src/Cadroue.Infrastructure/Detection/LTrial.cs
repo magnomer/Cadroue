@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Cadroue.Core;
 using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
@@ -40,6 +41,7 @@ public static class LTrial
         try
         {
             lProcess.Start();
+            LCustody.LCustodyAttach(lProcess);
             Task<string> lErrorTask = lProcess.StandardError.ReadToEndAsync();
             Task<string> lOutputTask = lProcess.StandardOutput.ReadToEndAsync();
             Task lExitTask = lProcess.WaitForExitAsync();

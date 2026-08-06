@@ -34,6 +34,7 @@ public static class LMedia
         int exitCode;
         using (var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started."))
         {
+            LCustody.LCustodyAttach(process);
             Task<string> jsonTask = process.StandardOutput.ReadToEndAsync();
             Task<string> errorTask = process.StandardError.ReadToEndAsync();
             process.WaitForExit();
@@ -96,6 +97,7 @@ public static class LMedia
                 return null;
             }
 
+            LCustody.LCustodyAttach(process);
             Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
             Task<string> errorTask = process.StandardError.ReadToEndAsync();
             process.WaitForExit();
@@ -143,6 +145,7 @@ public static class LMedia
                 return false;
             }
 
+            LCustody.LCustodyAttach(process);
             process.WaitForExit();
             return process.ExitCode == 0;
         }

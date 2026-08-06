@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text;
 
+using Cadroue.Core;
+
 namespace Cadroue.ShellEngine;
 
 internal readonly record struct LEmployerResult(int LEmployerExit, string LEmployerError);
@@ -34,6 +36,7 @@ internal sealed class LEmployer
         using var lEmployerProcess = new Process { StartInfo = lEmployerStartInfo };
         lEmployerToken.ThrowIfCancellationRequested();
         lEmployerProcess.Start();
+        LCustody.LCustodyAttach(lEmployerProcess);
         lEmployerAttach(lEmployerProcess);
 
         Task<string> lEmployerErrorTask = LEmployerErrorRead(lEmployerProcess, lEmployerToken, lEmployerErrorRead);

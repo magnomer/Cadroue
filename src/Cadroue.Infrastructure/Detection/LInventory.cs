@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Cadroue.Core;
 using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
@@ -70,6 +71,7 @@ public static class LInventory
                 return Array.Empty<LInventoryEncoder>();
             }
 
+            LCustody.LCustodyAttach(lInventoryProcess);
             Task<string> lInventoryOutputTask = lInventoryProcess.StandardOutput.ReadToEndAsync();
             Task<string> lInventoryErrorTask = lInventoryProcess.StandardError.ReadToEndAsync();
             lInventoryProcess.WaitForExit();

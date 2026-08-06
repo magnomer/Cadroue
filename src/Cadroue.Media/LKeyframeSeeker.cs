@@ -49,6 +49,7 @@ public static class LKeyframeSeeker
             if (process is null)
                 return Array.Empty<LKeyframeEntry>();
 
+            LCustody.LCustodyAttach(process);
             using var killOnCancel = cancellationToken.Register(
                 static p => { try { ((Process)p!).Kill(); } catch { } }, process);
 

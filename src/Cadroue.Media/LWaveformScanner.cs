@@ -1,5 +1,7 @@
 using System.Diagnostics;
 
+using Cadroue.Core;
+
 namespace Cadroue.Media;
 
 public readonly record struct LWaveformScanResult(byte[] LWaveformPeaks, byte[] LWaveformRms);
@@ -56,6 +58,7 @@ public static class LWaveformScanner
                 return new LWaveformScanResult(Array.Empty<byte>(), Array.Empty<byte>());
             }
 
+            LCustody.LCustodyAttach(lWaveformProcess);
             using var lWaveformKill = lWaveformCancelSource.Register(
                 static lProcess => { try { ((Process)lProcess!).Kill(); } catch { } }, lWaveformProcess);
 
