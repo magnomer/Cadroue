@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using System.Windows;
@@ -183,8 +184,9 @@ public sealed class PWorkspace
 
         if (PWorkspaceFlow is { } pFlow)
         {
-            lRelay.LRelaySections = LRelayPayload.LRelayRecordsCreate(pFlow.PFlowSectionsRead());
-            lRelay.LRelaySectionIndex = pFlow.PFlowSelectionRead();
+            LSegment lRelaySegment = pFlow.PFlowSegment;
+            lRelay.LRelaySections = LRelayPayload.LRelayRecordsCreate(lRelaySegment.LSegmentListRead());
+            lRelay.LRelaySectionIndex = lRelaySegment.LSegmentSelectionRead();
         }
 
         return lRelay;
@@ -209,10 +211,10 @@ public sealed class PWorkspace
                 return;
             }
 
-            PFlowControl pRelayFlow = PWorkspaceFlow;
+            LSegment pRelaySegment = PWorkspaceFlow.PFlowSegment;
             System.Windows.Application.Current?.Dispatcher.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Background,
-                new Action(() => pRelayFlow.PFlowSectionsSet(lRelaySections, lRelaySectionSelect)));
+                new Action(() => pRelaySegment.LSegmentSet(lRelaySections, lRelaySectionSelect)));
         }
 
         pRelayViewer.PViewerMediaChange += PWorkspaceRelayHandle;

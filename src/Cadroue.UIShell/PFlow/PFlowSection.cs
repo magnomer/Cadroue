@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.MigrationInterface;
@@ -136,6 +137,8 @@ public sealed partial class PFlow
             .ToArray();
 
     public int? PFlowSelectionRead() => lSegment.LSegmentSelectionRead();
+
+    public LSegment PFlowSegment => lSegment;
 
     public void PFlowSectionsSet(IReadOnlyList<LPiece> lSections, int? lSectionSelect)
     {
