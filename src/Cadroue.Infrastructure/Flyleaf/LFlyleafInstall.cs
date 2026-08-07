@@ -1,18 +1,16 @@
 using System.Diagnostics;
 using System.IO;
 
-using Cadroue.Infrastructure;
+namespace Cadroue.Infrastructure;
 
-namespace Cadroue.UIShell;
-
-internal sealed class LFlyleafInstallResult
+public sealed class LFlyleafInstallResult
 {
     public bool LFlyleafInstallSuccess { get; init; }
 
     public string LFlyleafInstallMessage { get; init; } = string.Empty;
 }
 
-internal static partial class LFlyleaf
+public static partial class LFlyleaf
 {
     private const string LFlyleafRepositoryUrl = "https://github.com/SuRGeoNix/Flyleaf.git";
 
@@ -55,7 +53,7 @@ internal static partial class LFlyleaf
             return new LFlyleafInstallResult
             {
                 LFlyleafInstallSuccess = true,
-                LFlyleafInstallMessage = LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed")
+                LFlyleafInstallMessage = string.Empty
             };
         }
         catch (Exception lException)
@@ -64,9 +62,7 @@ internal static partial class LFlyleaf
             return new LFlyleafInstallResult
             {
                 LFlyleafInstallSuccess = false,
-                LFlyleafInstallMessage = LLocalization.LLocalizationFormat(
-                    "Flyleaf.Local.Install.Failed",
-                    lException.Message)
+                LFlyleafInstallMessage = lException.Message
             };
         }
     }

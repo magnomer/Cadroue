@@ -5,9 +5,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text.Json;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.Infrastructure;
 
 internal sealed class LFlyleafRecord
 {
@@ -16,7 +15,7 @@ internal sealed class LFlyleafRecord
     public string LFlyleafSourceFolder { get; set; } = string.Empty;
 }
 
-internal static partial class LFlyleaf
+public static partial class LFlyleaf
 {
     private const string LFlyleafRootFolder = "local-flyleaf";
     private const string LFlyleafSourceName = "source";
@@ -200,21 +199,9 @@ internal static partial class LFlyleaf
         }
     }
 
-    public static string LFlyleafStatusRead()
-    {
-        string lRoot = LFlyleafRootRead();
-        if (LFlyleafFolderValidate(LFlyleafFolderRead()))
-        {
-            return LLocalization.LLocalizationFormat(
-                "Flyleaf.Local.Status.Installed",
-                LDepot.LDepotRootRead(),
-                LFlyleafFolderRead());
-        }
+    public static bool LFlyleafInstalledCheck() => LFlyleafFolderValidate(LFlyleafFolderRead());
 
-        return LLocalization.LLocalizationFormat("Flyleaf.Local.Status.NotInstalled", lRoot);
-    }
-
-    private static string? LFlyleafFolderRead()
+    public static string? LFlyleafFolderRead()
     {
         try
         {

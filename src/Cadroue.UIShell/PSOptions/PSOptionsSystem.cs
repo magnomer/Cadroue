@@ -77,7 +77,7 @@ internal sealed partial class PSOptions
             Foreground = PSFieldMuted,
             TextWrapping = TextWrapping.Wrap,
             Margin = PSNoticeMargin,
-            Text = LFlyleaf.LFlyleafStatusRead()
+            Text = PSSystemFlyleafStatusFormat()
         };
 
         Button pInstall = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.InstallFlyleaf"), 160, new Thickness(0, 0, 8, 0));
@@ -87,11 +87,13 @@ internal sealed partial class PSOptions
             pInstall.IsEnabled = false;
             pState.Text = LLocalization.LLocalizationTextRead("Options.System.FlyleafInstalling");
             LFlyleafInstallResult pResult = await LFlyleaf.LFlyleafInstallStart();
-            pState.Text = LFlyleaf.LFlyleafStatusRead();
+            pState.Text = PSSystemFlyleafStatusFormat();
             pInstall.IsEnabled = true;
             MessageBox.Show(
                 this,
-                pResult.LFlyleafInstallMessage,
+                pResult.LFlyleafInstallSuccess
+                    ? LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed")
+                    : LLocalization.LLocalizationFormat("Flyleaf.Local.Install.Failed", pResult.LFlyleafInstallMessage),
                 LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf"),
                 MessageBoxButton.OK,
                 pResult.LFlyleafInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
@@ -107,6 +109,14 @@ internal sealed partial class PSOptions
             pState,
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FlyleafNotice")));
     }
+
+    private static string PSSystemFlyleafStatusFormat() =>
+        LFlyleaf.LFlyleafInstalledCheck()
+            ? LLocalization.LLocalizationFormat(
+                "Flyleaf.Local.Status.Installed",
+                LDepot.LDepotRootRead(),
+                LFlyleaf.LFlyleafFolderRead() ?? string.Empty)
+            : LLocalization.LLocalizationFormat("Flyleaf.Local.Status.NotInstalled", LFlyleaf.LFlyleafRootRead());
 
     private UIElement PSSystemRecordBuild()
     {
