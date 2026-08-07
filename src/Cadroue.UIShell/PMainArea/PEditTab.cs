@@ -19,7 +19,7 @@ public sealed class PEditTab : PTabSurface
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new() { PViewerColorPreview = true };
     private readonly PInspector pInspector = new();
-    private readonly PList pList = new();
+    private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pEditPlanLoading;
@@ -37,20 +37,20 @@ public sealed class PEditTab : PTabSurface
 
             LMessenger.LMessengerEditDescribe(
                 lPriority,
-                pEditSelected.PListItemPath,
+                pEditSelected.LDocketEntryPath,
                 pViewer.PViewerDurationRead(),
                 pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pInspector.PInspectorCropRead(),
                 pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
                 lExportSpecificState,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
-                pEditSelected.PListItemRelay);
+                pEditSelected.LDocketEntryBatch);
         };
 
         pAction.PActionAllAdd += () => _ = LMessenger.LMessengerEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
-                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
@@ -58,8 +58,8 @@ public sealed class PEditTab : PTabSurface
         pAction.PActionItemsAdd += pEditPaths => _ = LMessenger.LMessengerEditAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
-                .Where(pItem => pEditPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
-                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .Where(pItem => pEditPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
@@ -153,7 +153,7 @@ public sealed class PEditTab : PTabSurface
             return;
         }
 
-        foreach (string pEditPath in pList.PListUnlockedRead().Select(pItem => pItem.PListItemPath))
+        foreach (string pEditPath in pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath))
         {
             LEdit.LEditPlanSave(
                 pEditPath,
@@ -162,16 +162,16 @@ public sealed class PEditTab : PTabSurface
         }
     }
 
-    private void PEditItemsHandle(IReadOnlyList<PListItem> pEditAddedItems)
+    private void PEditItemsHandle(IReadOnlyList<LDocketEntry> pEditAddedItems)
     {
         if (pEditPlanLoading || PEditCarriedRead() is not { } pEditCarried)
         {
             return;
         }
 
-        foreach (PListItem pEditAddedItem in pEditAddedItems)
+        foreach (LDocketEntry pEditAddedItem in pEditAddedItems)
         {
-            string pEditPath = pEditAddedItem.PListItemPath;
+            string pEditPath = pEditAddedItem.LDocketEntryPath;
             LEdit.LEditPlanSave(
                 pEditPath,
                 LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad), pEditCarried),

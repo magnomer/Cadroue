@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
@@ -10,7 +11,7 @@ public sealed class PSplitTab : PTabSurface
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
     private readonly PSection pSection = new();
-    private readonly PList pList = new();
+    private readonly PList pList = new(new LDocket());
     private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PSplitTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
@@ -26,18 +27,18 @@ public sealed class PSplitTab : PTabSurface
 
             LMessenger.LMessengerSplitDescribe(
                 lPriority,
-                pSplitSelected.PListItemPath,
+                pSplitSelected.LDocketEntryPath,
                 pFlow.PFlowSplitRead(),
                 lExportSpecificState,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
-                pSplitSelected.PListItemRelay,
+                pSplitSelected.LDocketEntryBatch,
                 LCartographer.LCartographerPlanPrepare(pAction.PActionRelayTarget));
         };
         pAction.PActionAllAdd += () => _ = LMessenger.LMessengerSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
-                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
@@ -46,8 +47,8 @@ public sealed class PSplitTab : PTabSurface
         pAction.PActionItemsAdd += pSplitPaths => _ = LMessenger.LMessengerSplitAllDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
-                .Where(pItem => pSplitPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
-                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .Where(pItem => pSplitPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
             lExportSpecificState,
             pAction.PActionRelayTarget,

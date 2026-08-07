@@ -97,8 +97,8 @@ public sealed partial class PList
             }
 
             string[] pListRemovedPaths = pListTabList.PListItemsRead()
-                .Where(pListItem => pListRemovedSet.Contains(pListItem.PListItemRelay))
-                .Select(pListItem => pListItem.PListItemPath)
+                .Where(pListItem => pListRemovedSet.Contains(pListItem.LDocketEntryBatch))
+                .Select(pListItem => pListItem.LDocketEntryPath)
                 .ToArray();
             if (pListRemovedPaths.Length == 0)
             {

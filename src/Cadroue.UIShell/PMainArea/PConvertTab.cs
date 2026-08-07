@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
@@ -9,7 +10,7 @@ public sealed class PConvertTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
-    private readonly PList pList = new();
+    private readonly PList pList = new(new LDocket());
     private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PConvertTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
@@ -19,7 +20,7 @@ public sealed class PConvertTab : PTabSurface
         pAction.PActionRun += lPriority => _ = LMessenger.LMessengerConvertDescribe(
             lPriority,
             pList.PListEditableRead() is { } pConvertSelected
-                ? new[] { new LWorkSource(pConvertSelected.PListItemPath, pConvertSelected.PListItemRelay) }
+                ? new[] { new LWorkSource(pConvertSelected.LDocketEntryPath, pConvertSelected.LDocketEntryBatch) }
                 : Array.Empty<LWorkSource>(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
@@ -27,7 +28,7 @@ public sealed class PConvertTab : PTabSurface
         pAction.PActionAllAdd += () => _ = LMessenger.LMessengerConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
-                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
             lExportSpecificState,
             pAction.PActionRelayTarget,
@@ -35,8 +36,8 @@ public sealed class PConvertTab : PTabSurface
         pAction.PActionItemsAdd += pConvertPaths => _ = LMessenger.LMessengerConvertDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
-                .Where(pItem => pConvertPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
-                .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                .Where(pItem => pConvertPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
             lExportSpecificState,
             pAction.PActionRelayTarget,

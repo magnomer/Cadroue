@@ -1,4 +1,5 @@
 using System.IO;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
@@ -13,7 +14,7 @@ public sealed class PFunnelTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
-    private readonly PList pList = new();
+    private readonly PList pList = new(new LDocket());
     private readonly PFunnelRules pFunnelRules = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
@@ -29,7 +30,7 @@ public sealed class PFunnelTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += _ => PFunnelDispatch(pList.PListItemRead() is { } pSelected
             ? new[] { pSelected }
-            : Array.Empty<PListItem>());
+            : Array.Empty<LDocketEntry>());
         pAction.PActionAllAdd += () => PFunnelDispatch(pList.PListItemsRead());
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
@@ -49,7 +50,7 @@ public sealed class PFunnelTab : PTabSurface
     public void PFunnelTargetsResolve(IReadOnlyList<PTabRecord> pTabRecords) =>
         pFunnelRules.PFunnelTargetsResolve(pTabRecords);
 
-    private void PFunnelDispatch(IReadOnlyList<PListItem> pItems)
+    private void PFunnelDispatch(IReadOnlyList<LDocketEntry> pItems)
     {
         if (pItems.Count == 0 || PStrip.PStripCurrent is not { } pStrip)
         {
@@ -58,9 +59,9 @@ public sealed class PFunnelTab : PTabSurface
 
         var pRelayedPaths = new List<string>();
         var pRelayedRoutes = new List<(Guid pFunnelTarget, string pFunnelPath, Guid pFunnelCohort)>();
-        foreach (PListItem pItem in pItems)
+        foreach (LDocketEntry pItem in pItems)
         {
-            string pFileName = Path.GetFileName(pItem.PListItemPath);
+            string pFileName = Path.GetFileName(pItem.LDocketEntryPath);
             foreach (PFunnelRuleRow pRow in pFunnelRules.PFunnelRulesRead())
             {
                 if (!pRow.PFunnelRowMatch(pFileName) || pRow.PFunnelTargetId == Guid.Empty)
@@ -72,9 +73,9 @@ public sealed class PFunnelTab : PTabSurface
                     .FirstOrDefault(pRecord => pRecord.PTabId == pRow.PFunnelTargetId);
                 if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList is { } pTargetList)
                 {
-                    pTargetList.PListPathsAdd(new[] { pItem.PListItemPath }, pItem.PListItemRelay, true);
-                    pRelayedPaths.Add(pItem.PListItemPath);
-                    pRelayedRoutes.Add((pRow.PFunnelTargetId, pItem.PListItemPath, pItem.PListItemRelay));
+                    pTargetList.PListPathsAdd(new[] { pItem.LDocketEntryPath }, pItem.LDocketEntryBatch, true);
+                    pRelayedPaths.Add(pItem.LDocketEntryPath);
+                    pRelayedRoutes.Add((pRow.PFunnelTargetId, pItem.LDocketEntryPath, pItem.LDocketEntryBatch));
                 }
 
                 break;

@@ -18,7 +18,7 @@ public sealed class PAudioTab : PTabSurface
 
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
-    private readonly PList pList = new();
+    private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
     private readonly LSMonitor pAudioMonitor = new();
@@ -55,12 +55,12 @@ public sealed class PAudioTab : PTabSurface
             PAudioPlanSave();
             _ = LMessenger.LMessengerAudioDescribe(
                 lPriority,
-                pAudioSelected.PListItemPath,
+                pAudioSelected.LDocketEntryPath,
                 PAudioProcessingRead(),
                 lExportSpecificState,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
-                pAudioSelected.PListItemRelay);
+                pAudioSelected.LDocketEntryBatch);
         };
         pAction.PActionAllAdd += () =>
         {
@@ -68,7 +68,7 @@ public sealed class PAudioTab : PTabSurface
             _ = LMessenger.LMessengerAudioAllDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
-                    .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
                 lExportSpecificState,
                 pAction.PActionRelayTarget,
@@ -80,8 +80,8 @@ public sealed class PAudioTab : PTabSurface
             _ = LMessenger.LMessengerAudioAllDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
-                    .Where(pItem => pAudioPaths.Contains(pItem.PListItemPath, StringComparer.OrdinalIgnoreCase))
-                    .Select(pItem => new LWorkSource(pItem.PListItemPath, pItem.PListItemRelay))
+                    .Where(pItem => pAudioPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
                 lExportSpecificState,
                 pAction.PActionRelayTarget,
@@ -136,7 +136,7 @@ public sealed class PAudioTab : PTabSurface
         }
 
         LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
-        foreach (string pAudioPath in pList.PListUnlockedRead().Select(pItem => pItem.PListItemPath))
+        foreach (string pAudioPath in pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath))
         {
             LAudio.LAudioPlanSave(
                 pAudioPath,
@@ -145,7 +145,7 @@ public sealed class PAudioTab : PTabSurface
         }
     }
 
-    private void PAudioItemsHandle(IReadOnlyList<PListItem> pAudioAddedItems)
+    private void PAudioItemsHandle(IReadOnlyList<LDocketEntry> pAudioAddedItems)
     {
         if (pAudioPlanLoading || !pInspector.PInspectorPersistentCheck())
         {
@@ -153,9 +153,9 @@ public sealed class PAudioTab : PTabSurface
         }
 
         LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
-        foreach (PListItem pAudioAddedItem in pAudioAddedItems)
+        foreach (LDocketEntry pAudioAddedItem in pAudioAddedItems)
         {
-            string pAudioPath = pAudioAddedItem.PListItemPath;
+            string pAudioPath = pAudioAddedItem.LDocketEntryPath;
             LAudio.LAudioPlanSave(
                 pAudioPath,
                 LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad), pAudioPersistent),

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.Application;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -12,8 +13,7 @@ public sealed partial class PList
     private string? pListPressPath;
 
     public IReadOnlyList<string> PListSelectionRead() =>
-        pListItems
-            .Select(pListItem => pListItem.PListItemPath)
+        pListDocket.LDocketPathsRead()
             .Where(pListPathsSelected.Contains)
             .ToArray();
 
@@ -43,9 +43,7 @@ public sealed partial class PList
     {
         foreach ((string pRowPath, Border pRowBorder) in pListRows)
         {
-            PListItem? pListItem = pListItems.FirstOrDefault(pCandidate => string.Equals(
-                pCandidate.PListItemPath, pRowPath, StringComparison.OrdinalIgnoreCase));
-            if (pListItem is not null)
+            if (pListDocket.LDocketItemFind(pRowPath) is { } pListItem)
             {
                 pRowBorder.Background = PListBackgroundRead(pListItem);
             }
@@ -118,10 +116,11 @@ public sealed partial class PList
             pAnchorIndex = pRowIndex;
         }
 
+        IReadOnlyList<string> pPaths = pListDocket.LDocketPathsRead();
         pListPathsSelected.Clear();
         for (int pIndex = Math.Min(pAnchorIndex, pRowIndex); pIndex <= Math.Max(pAnchorIndex, pRowIndex); pIndex++)
         {
-            pListPathsSelected.Add(pListItems[pIndex].PListItemPath);
+            pListPathsSelected.Add(pPaths[pIndex]);
         }
 
         PListCurrentApply(pRowPath);
@@ -140,23 +139,37 @@ public sealed partial class PList
             : PListSelectionRead().LastOrDefault());
     }
 
-    private int PListIndexRead(string? pRowPath) =>
-        pRowPath is null
-            ? -1
-            : pListItems.FindIndex(pExisting =>
-                string.Equals(pExisting.PListItemPath, pRowPath, StringComparison.OrdinalIgnoreCase));
+    private int PListIndexRead(string? pRowPath)
+    {
+        if (pRowPath is null)
+        {
+            return -1;
+        }
+
+        IReadOnlyList<string> pPaths = pListDocket.LDocketPathsRead();
+        for (int pIndex = 0; pIndex < pPaths.Count; pIndex++)
+        {
+            if (string.Equals(pPaths[pIndex], pRowPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return pIndex;
+            }
+        }
+
+        return -1;
+    }
 
     private void PListKeyHandle(object pKeySender, KeyEventArgs pKeyEvent)
     {
+        IReadOnlyList<string> pPaths = pListDocket.LDocketPathsRead();
         if (pKeyEvent.Key != Key.A
             || (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control
             || pListPathsSelected.Count == 0
-            || pListItems.Count == 0)
+            || pPaths.Count == 0)
         {
             return;
         }
 
-        PListSelectionApply(pListItems.Select(pListItem => pListItem.PListItemPath));
+        PListSelectionApply(pPaths);
         pKeyEvent.Handled = true;
     }
 }

@@ -91,8 +91,8 @@ public partial class PProgram : System.Windows.Application
                         pSurface is PMainArea.PMergeTab,
                         pSurface.PTabAction is { PActionAutoRelay: true },
                         pSurface.PTabList!.PListItemsRead()
-                            .Where(pItem => pItem.PListItemDelivered && pItem.PListItemRelay != Guid.Empty)
-                            .Select(pItem => pItem.PListItemRelay)
+                            .Where(pItem => pItem.LDocketEntryDelivered && pItem.LDocketEntryBatch != Guid.Empty)
+                            .Select(pItem => pItem.LDocketEntryBatch)
                             .Distinct()
                             .ToArray());
                 })

@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
@@ -9,7 +10,7 @@ public sealed class PMergeTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
-    private readonly PList pList = new();
+    private readonly PList pList = new(new LDocket());
     private readonly PGroup pGroup = new();
     private readonly PAction pAction = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
@@ -28,7 +29,7 @@ public sealed class PMergeTab : PTabSurface
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
         pGroup.PGroupSourceFiles = () => pList.PListUnlockedRead()
-            .Select(pItem => pItem.PListItemPath)
+            .Select(pItem => pItem.LDocketEntryPath)
             .ToArray();
         pGroup.PGroupFileRequest = pDropPaths =>
         {
@@ -50,9 +51,9 @@ public sealed class PMergeTab : PTabSurface
     private IReadOnlyDictionary<string, Guid> PMergeRelaysRead()
     {
         var pMergeRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-        foreach (PListItem pItem in pList.PListUnlockedRead())
+        foreach (LDocketEntry pItem in pList.PListUnlockedRead())
         {
-            pMergeRelays[pItem.PListItemPath] = pItem.PListItemRelay;
+            pMergeRelays[pItem.LDocketEntryPath] = pItem.LDocketEntryBatch;
         }
 
         return pMergeRelays;
@@ -68,7 +69,7 @@ public sealed class PMergeTab : PTabSurface
             .Where(pGroupSelection => pGroupSelection.LWorkGroupPaths.Count > 0)
             .ToArray();
 
-    private void PMergeItemsHandle(IReadOnlyList<PListItem> pAddedItems)
+    private void PMergeItemsHandle(IReadOnlyList<LDocketEntry> pAddedItems)
     {
         if (pGroup.PGroupAutoCheck())
         {

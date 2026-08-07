@@ -1,8 +1,9 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.Application;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 using Microsoft.Win32;
@@ -26,9 +27,9 @@ public sealed partial class PList : PPanel
     public const double PListStripWidth = 48;
     public const string PListDragKind = "CadrouePaths";
 
+    private readonly LDocket pListDocket;
     private readonly StackPanel pListRowPanel;
     private readonly TextBlock pListEmptyNotice;
-    private readonly List<PListItem> pListItems = [];
     private readonly Dictionary<string, Border> pListRows = new(StringComparer.OrdinalIgnoreCase);
     private readonly UIElement pListFullBody;
     private readonly UIElement pListStripBody;
@@ -41,11 +42,12 @@ public sealed partial class PList : PPanel
     public event Action<string?>? PListPathChange;
     public event Action<bool>? PListMinimizeChange;
     public event Action<IReadOnlyList<string>>? PListClearChange;
-    public event Action<IReadOnlyList<PListItem>>? PListItemsAdd;
+    public event Action<IReadOnlyList<LDocketEntry>>? PListItemsAdd;
     public event Action<bool>? PListLockChange;
 
-    public PList() : base("")
+    public PList(LDocket pListOwner) : base("")
     {
+        pListDocket = pListOwner;
         pListRowPanel = new StackPanel();
 
         pListEmptyNotice = new TextBlock
@@ -92,7 +94,14 @@ public sealed partial class PList : PPanel
         Focusable = true;
         KeyDown += PListKeyHandle;
         Content = PPanelBorderBuild(pBodyHost);
+        pListDocket.LDocketChange += PListDocketHandle;
         PListEmptyUpdate();
+    }
+
+    private void PListDocketHandle(IReadOnlyList<LDocketEntry> pListEntries)
+    {
+        PListRowsRebuild();
+        PListSelectionUpdate();
     }
 
     public bool PListMinimizedCheck() => pListMinimized;
@@ -122,55 +131,29 @@ public sealed partial class PList : PPanel
         return pStrip;
     }
 
-    public IReadOnlyList<string> PListPathsRead() =>
-        pListItems.Select(pListItem => pListItem.PListItemPath).ToArray();
+    public IReadOnlyList<string> PListPathsRead() => pListDocket.LDocketPathsRead();
 
-    public IReadOnlyList<PListItem> PListItemsRead() => pListItems.ToArray();
+    public IReadOnlyList<LDocketEntry> PListItemsRead() => pListDocket.LDocketItemsRead();
 
-    public IReadOnlyList<PListItem> PListUnlockedRead() =>
-        pListItems.Where(pListItem => !pListItem.PListItemLocked).ToArray();
+    public IReadOnlyList<LDocketEntry> PListUnlockedRead() => pListDocket.LDocketUnlockedRead();
 
     public string? PListCurrentRead() => pListPathCurrent;
 
-    public PListItem? PListItemRead() =>
-        pListPathCurrent is { } pListCurrentPath
-            ? pListItems.FirstOrDefault(pListItem =>
-                string.Equals(pListItem.PListItemPath, pListCurrentPath, StringComparison.OrdinalIgnoreCase))
-            : null;
+    public LDocketEntry? PListItemRead() =>
+        pListPathCurrent is { } pListCurrentPath ? pListDocket.LDocketItemFind(pListCurrentPath) : null;
 
-    public PListItem? PListEditableRead() =>
-        PListItemRead() is { PListItemLocked: false } pListItem ? pListItem : null;
+    public LDocketEntry? PListEditableRead() =>
+        PListItemRead() is { LDocketEntryLocked: false } pListItem ? pListItem : null;
 
-    public bool PListLockCheck() => PListItemRead()?.PListItemLocked == true;
+    public bool PListLockCheck() => PListItemRead()?.LDocketEntryLocked == true;
 
-    public bool PListLockCheck(string pListPath) =>
-        pListItems.FirstOrDefault(pListItem => string.Equals(
-            pListItem.PListItemPath, pListPath, StringComparison.OrdinalIgnoreCase))?.PListItemLocked == true;
+    public bool PListLockCheck(string pListPath) => pListDocket.LDocketLockCheck(pListPath);
 
     public int PListPathsLock(IEnumerable<(string PListPath, Guid PListBatch)> pListLocks)
     {
-        int pListLocked = 0;
-        foreach ((string pListPath, Guid pListBatch) in pListLocks)
-        {
-            PListItem? pListItem = pListItems.FirstOrDefault(pExisting => string.Equals(
-                pExisting.PListItemPath, pListPath, StringComparison.OrdinalIgnoreCase));
-            if (pListItem is null || pListItem.PListItemLocked)
-            {
-                continue;
-            }
-
-            if (pListBatch != Guid.Empty)
-            {
-                pListItem.PListItemRelay = pListBatch;
-            }
-
-            pListItem.PListItemLocked = true;
-            pListLocked++;
-        }
-
+        int pListLocked = pListDocket.LDocketClaim(pListLocks.ToArray());
         if (pListLocked > 0)
         {
-            PListRowsRebuild();
             PListLockChange?.Invoke(PListLockCheck());
         }
 
@@ -179,27 +162,9 @@ public sealed partial class PList : PPanel
 
     public int PListPathsUnlock(IEnumerable<(string PListPath, Guid PListBatch)> pListUnlocks)
     {
-        int pListUnlocked = 0;
-        Guid pListRelay = Cadroue.Application.LGate.LGateBatchCreate();
-        foreach ((string pListPath, Guid pListBatch) in pListUnlocks)
-        {
-            PListItem? pListItem = pListItems.FirstOrDefault(pExisting => string.Equals(
-                pExisting.PListItemPath, pListPath, StringComparison.OrdinalIgnoreCase));
-            if (pListItem is null
-                || !pListItem.PListItemLocked
-                || pListItem.PListItemRelay != pListBatch)
-            {
-                continue;
-            }
-
-            pListItem.PListItemRelay = pListRelay;
-            pListItem.PListItemLocked = false;
-            pListUnlocked++;
-        }
-
+        int pListUnlocked = pListDocket.LDocketRelease(pListUnlocks.ToArray());
         if (pListUnlocked > 0)
         {
-            PListRowsRebuild();
             PListLockChange?.Invoke(PListLockCheck());
         }
 
@@ -209,34 +174,9 @@ public sealed partial class PList : PPanel
     public int PListPathsTrack(IEnumerable<string> pTrackPaths, Guid pTrackBatch)
     {
         IReadOnlyList<string> pTrackedPaths = PListMediaScan(pTrackPaths);
-        int pTrackedCount = 0;
-        foreach (string pTrackedPath in pTrackedPaths)
-        {
-            PListItem? pTrackedItem = pListItems.FirstOrDefault(pExisting => string.Equals(
-                pExisting.PListItemPath, pTrackedPath, StringComparison.OrdinalIgnoreCase));
-            if (pTrackedItem is null)
-            {
-                pListItems.Add(new PListItem(pTrackedPath, pTrackBatch)
-                {
-                    PListItemDelivered = true,
-                    PListItemLocked = true
-                });
-                pTrackedCount++;
-                continue;
-            }
-
-            if (!pTrackedItem.PListItemLocked || pTrackedItem.PListItemRelay != pTrackBatch)
-            {
-                pTrackedItem.PListItemRelay = pTrackBatch;
-                pTrackedItem.PListItemDelivered = true;
-                pTrackedItem.PListItemLocked = true;
-                pTrackedCount++;
-            }
-        }
-
+        int pTrackedCount = pListDocket.LDocketDeliveredAdd(pTrackedPaths, pTrackBatch);
         if (pTrackedCount > 0)
         {
-            PListRowsRebuild();
             PListLockChange?.Invoke(PListLockCheck());
         }
 
@@ -251,33 +191,23 @@ public sealed partial class PList : PPanel
             return 0;
         }
 
-        if (pAddRelay == Guid.Empty)
-        {
-            pAddRelay = Cadroue.Application.LGate.LGateBatchCreate();
-        }
+        var pExistingPaths = new HashSet<string>(pListDocket.LDocketPathsRead(), StringComparer.OrdinalIgnoreCase);
+        pListDocket.LDocketPathsAdd(pScannedPaths, pAddRelay, pAddDelivered);
+        LDocketEntry[] pAddedItems = pScannedPaths
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(pMediaPath => !pExistingPaths.Contains(pMediaPath))
+            .Select(pMediaPath => pListDocket.LDocketItemFind(pMediaPath))
+            .Where(pAddedItem => pAddedItem is not null)
+            .Select(pAddedItem => pAddedItem!)
+            .ToArray();
 
-        var pAddedItems = new List<PListItem>();
-        foreach (string pMediaPath in pScannedPaths)
-        {
-            if (pListItems.Any(pExisting =>
-                string.Equals(pExisting.PListItemPath, pMediaPath, StringComparison.OrdinalIgnoreCase)))
-            {
-                continue;
-            }
-
-            var pAddedItem = new PListItem(pMediaPath, pAddRelay) { PListItemDelivered = pAddDelivered };
-            pListItems.Add(pAddedItem);
-            pAddedItems.Add(pAddedItem);
-        }
-
-        PListRowsRebuild();
         PListSelectApply(pScannedPaths[0]);
-        if (pAddedItems.Count > 0)
+        if (pAddedItems.Length > 0)
         {
             PListItemsAdd?.Invoke(pAddedItems);
         }
 
-        return pAddedItems.Count;
+        return pAddedItems.Length;
     }
 
     public static bool PListMediaCheck(string pMediaPath) =>
@@ -437,55 +367,41 @@ public sealed partial class PList : PPanel
         }
 
         int pRemovedIndex = PListIndexRead(pRemovedPaths[0]);
-        foreach (string pRemovedPath in pRemovedPaths)
-        {
-            pListItems.RemoveAll(pListItem =>
-                string.Equals(pListItem.PListItemPath, pRemovedPath, StringComparison.OrdinalIgnoreCase));
-        }
-
-        PListRowsRebuild();
-        PListSelectApply(pListItems.Count == 0
+        pListDocket.LDocketPathsRemove(pRemovedPaths);
+        IReadOnlyList<string> pRemainingPaths = pListDocket.LDocketPathsRead();
+        PListSelectApply(pRemainingPaths.Count == 0
             ? null
-            : pListItems[Math.Clamp(pRemovedIndex, 0, pListItems.Count - 1)].PListItemPath);
+            : pRemainingPaths[Math.Clamp(pRemovedIndex, 0, pRemainingPaths.Count - 1)]);
     }
 
     public void PListClear()
     {
-        string[] pListRemovedPaths = pListItems
-            .Where(pListItem => !pListItem.PListItemLocked)
-            .Select(pListItem => pListItem.PListItemPath)
+        string[] pListRemovedPaths = pListDocket.LDocketUnlockedRead()
+            .Select(pListItem => pListItem.LDocketEntryPath)
             .ToArray();
-        pListItems.RemoveAll(pListItem => !pListItem.PListItemLocked);
-        PListRowsRebuild();
-        PListSelectApply(pListItems.FirstOrDefault()?.PListItemPath);
-        if (pListRemovedPaths.Length > 0)
+        if (pListRemovedPaths.Length == 0)
         {
-            PListClearChange?.Invoke(pListRemovedPaths);
+            return;
         }
+
+        pListDocket.LDocketPathsRemove(pListRemovedPaths);
+        PListSelectApply(pListDocket.LDocketPathsRead().FirstOrDefault());
+        PListClearChange?.Invoke(pListRemovedPaths);
     }
 
     public int PListPathsRemove(IEnumerable<string> pRemovePaths)
     {
-        var pListRemovedPaths = new List<string>();
-        foreach (string pRemovePath in pRemovePaths)
-        {
-            PListItem? pListMatch = pListItems.FirstOrDefault(
-                pExisting => string.Equals(pExisting.PListItemPath, pRemovePath, StringComparison.OrdinalIgnoreCase));
-            if (pListMatch is not null && pListItems.Remove(pListMatch))
-            {
-                pListRemovedPaths.Add(pListMatch.PListItemPath);
-            }
-        }
-
-        if (pListRemovedPaths.Count == 0)
+        var pExistingPaths = new HashSet<string>(pListDocket.LDocketPathsRead(), StringComparer.OrdinalIgnoreCase);
+        string[] pListRemovedPaths = pRemovePaths.Where(pExistingPaths.Contains).ToArray();
+        if (pListRemovedPaths.Length == 0)
         {
             return 0;
         }
 
-        PListRowsRebuild();
-        PListSelectApply(pListItems.Count == 0 ? null : pListItems[0].PListItemPath);
+        pListDocket.LDocketPathsRemove(pListRemovedPaths);
+        PListSelectApply(pListDocket.LDocketPathsRead().FirstOrDefault());
         PListClearChange?.Invoke(pListRemovedPaths);
-        return pListRemovedPaths.Count;
+        return pListRemovedPaths.Length;
     }
 
     private void PListRowsRebuild()
@@ -493,19 +409,20 @@ public sealed partial class PList : PPanel
         pListRowPanel.Children.Clear();
         pListRows.Clear();
         var pListGroupsShown = new HashSet<Guid>();
-        foreach (PListItem pListItem in pListItems)
+        IReadOnlyList<LDocketEntry> pListEntries = pListDocket.LDocketItemsRead();
+        foreach (LDocketEntry pListItem in pListEntries)
         {
-            if (!pListItem.PListItemLocked)
+            if (!pListItem.LDocketEntryLocked)
             {
                 pListRowPanel.Children.Add(PListRowBuild(pListItem));
                 continue;
             }
 
-            if (pListGroupsShown.Add(pListItem.PListItemRelay))
+            if (pListGroupsShown.Add(pListItem.LDocketEntryBatch))
             {
-                PListItem[] pListGroupItems = pListItems
-                    .Where(pCandidate => pCandidate.PListItemLocked
-                        && pCandidate.PListItemRelay == pListItem.PListItemRelay)
+                LDocketEntry[] pListGroupItems = pListEntries
+                    .Where(pCandidate => pCandidate.LDocketEntryLocked
+                        && pCandidate.LDocketEntryBatch == pListItem.LDocketEntryBatch)
                     .ToArray();
                 pListRowPanel.Children.Add(PListCardBuild(pListGroupItems));
             }
@@ -514,15 +431,15 @@ public sealed partial class PList : PPanel
         PListEmptyUpdate();
     }
 
-    private Border PListRowBuild(PListItem pListItem, bool pListBottomBorder = true)
+    private Border PListRowBuild(LDocketEntry pListItem, bool pListBottomBorder = true)
     {
-        string pRowPath = pListItem.PListItemPath;
+        string pRowPath = pListItem.LDocketEntryPath;
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         pRowContent.Children.Add(new Image
         {
             Width = 14,
             Height = 14,
-            Source = PIcon.PIconRead("/PAssets/PPanels/PVideo.svg", pListItem.PListItemLocked ? pListMutedBrush : pListIconBrush),
+            Source = PIcon.PIconRead("/PAssets/PPanels/PVideo.svg", pListItem.LDocketEntryLocked ? pListMutedBrush : pListIconBrush),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
@@ -532,7 +449,7 @@ public sealed partial class PList : PPanel
             Text = Path.GetFileName(pRowPath),
             FontSize = 12,
             FontFamily = pListFontFamily,
-            Foreground = pListItem.PListItemLocked ? pListMutedBrush : pListRowBrush,
+            Foreground = pListItem.LDocketEntryLocked ? pListMutedBrush : pListRowBrush,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
         });
@@ -544,7 +461,7 @@ public sealed partial class PList : PPanel
             BorderBrush = pListLineBrush,
             BorderThickness = new Thickness(0, 0, 0, pListBottomBorder ? 1 : 0),
             Cursor = Cursors.Hand,
-            ToolTip = pListItem.PListItemLocked
+            ToolTip = pListItem.LDocketEntryLocked
                 ? $"{pRowPath}\n{LLocalization.LLocalizationTextRead("List.Locked.Tooltip")}" : pRowPath,
             Child = pRowContent,
             Tag = pRowPath
@@ -553,7 +470,7 @@ public sealed partial class PList : PPanel
         {
             Focus();
             PListPressHandle(pRowPath, pRowEvent);
-            if (!pListItem.PListItemLocked)
+            if (!pListItem.LDocketEntryLocked)
             {
                 pListDragOrigin = pRowEvent.GetPosition(null);
                 pListDragOffset = pRowEvent.GetPosition(pRowBorder);
@@ -574,7 +491,7 @@ public sealed partial class PList : PPanel
         return pRowBorder;
     }
 
-    private UIElement PListCardBuild(IReadOnlyList<PListItem> pListLockedItems)
+    private UIElement PListCardBuild(IReadOnlyList<LDocketEntry> pListLockedItems)
     {
         var pListCardRows = new StackPanel();
         var pListHeader = new StackPanel
@@ -584,7 +501,7 @@ public sealed partial class PList : PPanel
         };
         pListHeader.Children.Add(new TextBlock
         {
-            Text = "\uE72E",
+            Text = "",
             FontSize = 11,
             FontFamily = new FontFamily("Segoe MDL2 Assets"),
             Foreground = pListMutedBrush,
@@ -621,10 +538,10 @@ public sealed partial class PList : PPanel
         };
     }
 
-    private Brush PListBackgroundRead(PListItem pListItem) =>
-        PListSelectionCheck(pListItem.PListItemPath)
-            ? pListItem.PListItemLocked ? pListLockedAccent : pListSelectBrush
-            : pListItem.PListItemLocked ? Brushes.Transparent : Brushes.White;
+    private Brush PListBackgroundRead(LDocketEntry pListItem) =>
+        PListSelectionCheck(pListItem.LDocketEntryPath)
+            ? pListItem.LDocketEntryLocked ? pListLockedAccent : pListSelectBrush
+            : pListItem.LDocketEntryLocked ? Brushes.Transparent : Brushes.White;
 
     private void PListDragHandle(object pRowSender, MouseEventArgs pRowEvent)
     {
@@ -675,6 +592,6 @@ public sealed partial class PList : PPanel
 
     private void PListEmptyUpdate()
     {
-        pListEmptyNotice.Visibility = pListItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        pListEmptyNotice.Visibility = pListDocket.LDocketItemsRead().Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 }
