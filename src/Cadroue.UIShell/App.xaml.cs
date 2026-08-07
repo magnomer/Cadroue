@@ -74,6 +74,8 @@ public partial class PProgram : System.Windows.Application
                 .FirstOrDefault(pTab => pTab.PTabId == lSealNodeId)
                 ?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionAllRun();
         Cadroue.MigrationInterface.LSeal.LSealDeliveredSource = PMainArea.LCourier.LCourierDeliveredCheck;
+
+        Cadroue.MigrationInterface.LPreview.LPreviewApplySeam = PPanels.PViewer.PViewerPlayerApply;
     }
 
     private static void LStationDispatch(Action lStationAction)

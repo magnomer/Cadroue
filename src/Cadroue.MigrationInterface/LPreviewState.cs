@@ -1,31 +1,6 @@
-using System;
-using System.Windows;
+namespace Cadroue.MigrationInterface;
 
-namespace Cadroue.UIShell.PPanels;
-
-public sealed record LCropbox(double LCropboxX, double LCropboxY, double LCropboxWidth, double LCropboxHeight)
-{
-    public static LCropbox? LCropboxRectRead(Rect? lCropboxRect)
-    {
-        if (lCropboxRect is null)
-        {
-            return null;
-        }
-
-        Rect lCropboxRectValue = lCropboxRect.Value;
-        if (lCropboxRectValue.Width <= 0 || lCropboxRectValue.Height <= 0)
-        {
-            return null;
-        }
-
-        return new LCropbox(lCropboxRectValue.X, lCropboxRectValue.Y, lCropboxRectValue.Width, lCropboxRectValue.Height);
-    }
-
-    public Rect LCropboxRectCreate()
-    {
-        return new Rect(LCropboxX, LCropboxY, LCropboxWidth, LCropboxHeight);
-    }
-}
+public sealed record LCropbox(double LCropboxX, double LCropboxY, double LCropboxWidth, double LCropboxHeight);
 
 public sealed record LColor(
     double LColorBrightness,

@@ -14,6 +14,8 @@ using Cadroue.Core;
 
 using Cadroue.Infrastructure;
 
+using Cadroue.MigrationInterface;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer : PPanel

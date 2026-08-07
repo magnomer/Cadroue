@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 
 using Cadroue.Infrastructure;
+using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -292,7 +293,7 @@ public sealed partial class PViewer
                 : string.Empty));
 
         PCropVideo = pCropVideo;
-        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxRectRead(PCropVideo));
+        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(PViewerCropboxRead(PCropVideo));
         pViewerCropBox.Visibility = Visibility.Visible;
         PCropBoxRestore();
     }
@@ -342,7 +343,7 @@ public sealed partial class PViewer
             pViewerCropDrag = false;
             pViewerOverlay.ReleaseMouseCapture();
             PCropVideo = PCropVideoRead();
-            LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxRectRead(PCropVideo));
+            LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(PViewerCropboxRead(PCropVideo));
             PCropVideoChange?.Invoke(PCropVideo);
             mouseEvent.Handled = true;
             return;
@@ -358,9 +359,19 @@ public sealed partial class PViewer
         pViewerOverlay.ReleaseMouseCapture();
         PCropOverlayUpdate();
         PCropVideo = PCropVideoRead();
-        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(LCropbox.LCropboxRectRead(PCropVideo));
+        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(PViewerCropboxRead(PCropVideo));
         PCropVideoChange?.Invoke(PCropVideo);
         mouseEvent.Handled = true;
+    }
+
+    private static LCropbox? PViewerCropboxRead(Rect? pViewerCropRect)
+    {
+        if (pViewerCropRect is not Rect pViewerRect || pViewerRect.Width <= 0 || pViewerRect.Height <= 0)
+        {
+            return null;
+        }
+
+        return new LCropbox(pViewerRect.X, pViewerRect.Y, pViewerRect.Width, pViewerRect.Height);
     }
 
     private void PCropBoxPlace(Point startPoint, Point endPoint)

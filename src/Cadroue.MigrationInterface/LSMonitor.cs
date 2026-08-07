@@ -2,11 +2,11 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
 
-namespace Cadroue.UIShell.PPanels;
+namespace Cadroue.MigrationInterface;
 
-internal readonly record struct LSMonitorEstimate(double[] LSMonitorBefore, double[] LSMonitorAfter);
+public readonly record struct LSMonitorEstimate(double[] LSMonitorBefore, double[] LSMonitorAfter);
 
-internal sealed class LSMonitor : IDisposable
+public sealed class LSMonitor : IDisposable
 {
     private readonly LWaveformOrchestrator lMonitorOrchestrator = new();
     private byte[] lMonitorPeaks = Array.Empty<byte>();

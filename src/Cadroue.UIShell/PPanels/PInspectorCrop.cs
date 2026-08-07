@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 using Cadroue.UIShell.PAssets;
 
 namespace Cadroue.UIShell.PPanels;
