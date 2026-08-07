@@ -6,6 +6,7 @@ public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool 
 {
     public bool LEditSkip { get; init; }
     public bool LEditRatioFixed { get; init; }
+    public bool LEditRatioLenient { get; init; }
     public int LEditRatioWidth { get; init; }
     public int LEditRatioHeight { get; init; }
 
@@ -49,6 +50,7 @@ public static partial class LEdit
         }
 
         bool lRatioFixed = lPersistent.LEditCropApply ? lPersistent.LEditRatioFixed : lEditSaved?.LEditRatioFixed ?? false;
+        bool lRatioLenient = lPersistent.LEditCropApply ? lPersistent.LEditRatioLenient : lEditSaved?.LEditRatioLenient ?? false;
         int lRatioWidth = lPersistent.LEditCropApply ? lPersistent.LEditRatioWidth : lEditSaved?.LEditRatioWidth ?? 0;
         int lRatioHeight = lPersistent.LEditCropApply ? lPersistent.LEditRatioHeight : lEditSaved?.LEditRatioHeight ?? 0;
 
@@ -56,6 +58,7 @@ public static partial class LEdit
         {
             LEditSkip = lEditSkip,
             LEditRatioFixed = lRatioFixed,
+            LEditRatioLenient = lRatioLenient,
             LEditRatioWidth = lRatioWidth,
             LEditRatioHeight = lRatioHeight
         };
@@ -72,6 +75,7 @@ public static partial class LEdit
         LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkFlipVertical,
         LSidecarCropActive = lEditPlan.LEditCropApply,
         LSidecarRatioFixed = lEditPlan.LEditRatioFixed,
+        LSidecarRatioLenient = lEditPlan.LEditRatioLenient,
         LSidecarRatioWidth = lEditPlan.LEditRatioWidth,
         LSidecarRatioHeight = lEditPlan.LEditRatioHeight,
         LSidecarSkip = lEditPlan.LEditSkip,
@@ -98,6 +102,7 @@ public static partial class LEdit
     {
         LEditSkip = lEditRecord.LSidecarSkip,
         LEditRatioFixed = lEditRecord.LSidecarRatioFixed,
+        LEditRatioLenient = lEditRecord.LSidecarRatioLenient,
         LEditRatioWidth = lEditRecord.LSidecarRatioWidth,
         LEditRatioHeight = lEditRecord.LSidecarRatioHeight
     };

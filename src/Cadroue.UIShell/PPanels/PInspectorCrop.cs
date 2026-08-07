@@ -13,6 +13,7 @@ public sealed partial class PInspector
 {
     private const string PCropIcon = "/PAssets/PPanels/PProcessingCrop.svg";
     private const double PInspectorInsetWidth = 68;
+    private const double PInspectorRatioTolerance = 0.01;
 
     private static readonly Brush pInspectorWarnBrush = new SolidColorBrush(Color.FromRgb(0xC2, 0x5A, 0x1E));
     private static readonly Brush pInspectorIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
@@ -29,6 +30,7 @@ public sealed partial class PInspector
     private ComboBox pInspectorRatioPreset = null!;
     private StackPanel pInspectorRatioCustomPanel = null!;
     private CheckBox pInspectorRatioFixed = null!;
+    private CheckBox pInspectorRatioLenient = null!;
     private TextBlock pInspectorRatioNotice = null!;
     private TextBlock pInspectorResolution = null!;
     private CheckBox pInspectorFlipHorizontal = null!;
@@ -160,6 +162,8 @@ public sealed partial class PInspector
             pInspectorFlipVertical.IsChecked = false;
             pInspectorRotateCombo.SelectedIndex = 0;
             pInspectorRatioFixed.IsChecked = false;
+            pInspectorRatioLenient.IsChecked = false;
+            pInspectorRatioLenient.IsEnabled = false;
             pInspectorRatioPreset.SelectedIndex = 0;
             pInspectorInsetLeft.Text = "0";
             pInspectorInsetTop.Text = "0";
@@ -403,12 +407,13 @@ public sealed partial class PInspector
             ? pNumber
             : 0;
 
-    public (bool RatioFixed, int RatioWidth, int RatioHeight) PInspectorRatioRead() => (
+    public (bool RatioFixed, bool RatioLenient, int RatioWidth, int RatioHeight) PInspectorRatioRead() => (
         pInspectorRatioFixed.IsChecked == true,
+        pInspectorRatioFixed.IsChecked == true && pInspectorRatioLenient.IsChecked == true,
         (int)Math.Round(PInspectorNumberRead(pInspectorRatioWidth)),
         (int)Math.Round(PInspectorNumberRead(pInspectorRatioHeight)));
 
-    public void PInspectorRatioApply(bool pRatioFixed, int pRatioWidth, int pRatioHeight)
+    public void PInspectorRatioApply(bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight)
     {
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         bool pRatioSuppressPrevious = pInspectorRatioSuppress;
@@ -422,6 +427,8 @@ public sealed partial class PInspector
             pInspectorRatioWidth.Text = pRatioWidth.ToString(CultureInfo.InvariantCulture);
             pInspectorRatioHeight.Text = pRatioHeight.ToString(CultureInfo.InvariantCulture);
             pInspectorRatioFixed.IsChecked = pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0;
+            pInspectorRatioLenient.IsChecked = pRatioLenient && pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0;
+            pInspectorRatioLenient.IsEnabled = pInspectorRatioFixed.IsChecked == true;
         }
         finally
         {
@@ -443,6 +450,8 @@ public sealed partial class PInspector
         try
         {
             pInspectorRatioFixed.IsChecked = false;
+            pInspectorRatioLenient.IsChecked = false;
+            pInspectorRatioLenient.IsEnabled = false;
             pInspectorRatioPreset.SelectedIndex = 0;
             pInspectorRatioCustomPanel.Visibility = Visibility.Visible;
             pInspectorRatioWidth.Text = "0";

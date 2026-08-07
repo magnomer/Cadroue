@@ -60,7 +60,7 @@ internal static class LRenderer
         string lRendererLogFolder = LFlyleaf.LFlyleafRootRead();
         Directory.CreateDirectory(lRendererLogFolder);
         lRendererConfig.LogLevel = LogLevel.Debug;
-        lRendererConfig.LogOutput = Path.Combine(lRendererLogFolder, "flyleaf-debug.log");
+        lRendererConfig.LogOutput = Path.Combine(lRendererLogFolder, $"flyleaf-debug-{Environment.ProcessId}.log");
     }
 
     private static void LRendererVerboseApply(bool lRendererVerbose)

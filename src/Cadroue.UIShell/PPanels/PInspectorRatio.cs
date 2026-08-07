@@ -29,14 +29,25 @@ public sealed partial class PInspector
             return null;
         }
 
-        LCropbox? pFit = LCropbox.LCropboxAnchorResolve(
-            PInspectorCropboxResolve(pDesired),
-            new LCropbox(0, 0, pInspectorSourceWidth, pInspectorSourceHeight),
-            pRatioWidth,
-            pRatioHeight,
-            pDriveAxis,
-            pAnchorX,
-            pAnchorY);
+        LCropbox pBounds = new LCropbox(0, 0, pInspectorSourceWidth, pInspectorSourceHeight);
+        LCropbox? pFit = pInspectorRatioLenient.IsChecked == true
+            ? LCropbox.LCropboxAnchorLenientResolve(
+                PInspectorCropboxResolve(pDesired),
+                pBounds,
+                pRatioWidth,
+                pRatioHeight,
+                pDriveAxis,
+                pAnchorX,
+                pAnchorY,
+                PInspectorRatioTolerance)
+            : LCropbox.LCropboxAnchorResolve(
+                PInspectorCropboxResolve(pDesired),
+                pBounds,
+                pRatioWidth,
+                pRatioHeight,
+                pDriveAxis,
+                pAnchorX,
+                pAnchorY);
         return pFit is { } pCropbox ? PInspectorRectResolve(pCropbox) : null;
     }
 
@@ -98,6 +109,7 @@ public sealed partial class PInspector
 
     private void PInspectorRatioCommit()
     {
+        pInspectorRatioLenient.IsEnabled = pInspectorRatioFixed.IsChecked == true;
         PInspectorEdgeLockClear();
         PInspectorRatioUpdate();
         PInspectorRatioRaise();
@@ -238,6 +250,13 @@ public sealed partial class PInspector
         if (pRatioWidth <= 0 || pRatioHeight <= 0)
         {
             PInspectorNoticeShow(LLocalization.LLocalizationTextRead("Inspector.Crop.RatioError"));
+            return;
+        }
+
+        if (pInspectorRatioLenient.IsChecked == true
+            && LCropbox.LCropboxRatioErrorResolve(pCropWidth, pCropHeight, pRatioWidth, pRatioHeight) <= PInspectorRatioTolerance)
+        {
+            pInspectorRatioNotice.Visibility = Visibility.Collapsed;
             return;
         }
 

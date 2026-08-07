@@ -8,6 +8,7 @@ public sealed class LCropboxState
     private bool lCropboxStateApply;
     private bool lCropboxStatePersistent;
     private bool lCropboxStateRatioFixed;
+    private bool lCropboxStateRatioLenient;
     private int lCropboxStateRatioWidth;
     private int lCropboxStateRatioHeight;
 
@@ -20,8 +21,8 @@ public sealed class LCropboxState
 
     public bool LCropboxStatePersistent => lCropboxStatePersistent;
 
-    public (bool RatioFixed, int RatioWidth, int RatioHeight) LCropboxStateRatio =>
-        (lCropboxStateRatioFixed, lCropboxStateRatioWidth, lCropboxStateRatioHeight);
+    public (bool RatioFixed, bool RatioLenient, int RatioWidth, int RatioHeight) LCropboxStateRatio =>
+        (lCropboxStateRatioFixed, lCropboxStateRatioLenient, lCropboxStateRatioWidth, lCropboxStateRatioHeight);
 
     public void LCropboxStateCropSet(LWorkCrop lCrop)
     {
@@ -41,19 +42,21 @@ public sealed class LCropboxState
         LCropboxStateRaise();
     }
 
-    public void LCropboxStateRatioSet(bool lRatioFixed, int lRatioWidth, int lRatioHeight)
+    public void LCropboxStateRatioSet(bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
     {
         lCropboxStateRatioFixed = lRatioFixed;
+        lCropboxStateRatioLenient = lRatioLenient;
         lCropboxStateRatioWidth = lRatioWidth;
         lCropboxStateRatioHeight = lRatioHeight;
         LCropboxStateRaise();
     }
 
-    public void LCropboxStateSet(LWorkCrop lCrop, bool lApply, bool lRatioFixed, int lRatioWidth, int lRatioHeight)
+    public void LCropboxStateSet(LWorkCrop lCrop, bool lApply, bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
     {
         lCropboxStateCrop = lCrop;
         lCropboxStateApply = lApply;
         lCropboxStateRatioFixed = lRatioFixed;
+        lCropboxStateRatioLenient = lRatioLenient;
         lCropboxStateRatioWidth = lRatioWidth;
         lCropboxStateRatioHeight = lRatioHeight;
         LCropboxStateRaise();
@@ -64,6 +67,7 @@ public sealed class LCropboxState
         lCropboxStateCrop = LWorkCrop.LWorkCropCreate();
         lCropboxStateApply = false;
         lCropboxStateRatioFixed = false;
+        lCropboxStateRatioLenient = false;
         lCropboxStateRatioWidth = 0;
         lCropboxStateRatioHeight = 0;
         LCropboxStateRaise();

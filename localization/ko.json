@@ -279,6 +279,8 @@
   "Inspector.Common.Custom": "{Terms.Custom}",
   "Inspector.Common.Amount": "{Terms.Amount}",
   "Inspector.Crop.FixedRatio": "고정 비율",
+  "Inspector.Crop.Lenient": "관대하게",
+  "Inspector.Crop.LenientTooltip": "작은 비율 오차(1% 이내)를 경고 없이 허용합니다. 자르기 동작은 고정 비율과 동일합니다",
   "Inspector.Crop.DrawTooltip": "{Terms.Preview}에 자르기 상자 그리기",
   "Inspector.Crop.Tool": "도구",
   "Inspector.Crop.Flip": "{Terms.Flip}",

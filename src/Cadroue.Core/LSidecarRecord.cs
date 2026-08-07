@@ -14,6 +14,7 @@ public sealed class LSidecarEditRecord
     public bool LSidecarFlipVertical { get; set; }
     public bool LSidecarCropActive { get; set; }
     public bool LSidecarRatioFixed { get; set; }
+    public bool LSidecarRatioLenient { get; set; }
     public int LSidecarRatioWidth { get; set; }
     public int LSidecarRatioHeight { get; set; }
     public bool LSidecarSkip { get; set; }

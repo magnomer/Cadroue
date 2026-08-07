@@ -281,6 +281,8 @@
   "Inspector.Common.PresetCustom": "{0} ({Terms.Custom})",
   "Inspector.Common.Amount": "{Terms.Amount}",
   "Inspector.Crop.FixedRatio": "Fixed ratio",
+  "Inspector.Crop.Lenient": "Lenient",
+  "Inspector.Crop.LenientTooltip": "Accept a small ratio deviation (within 1%) without warning; cropping behaves the same as fixed ratio",
   "Inspector.Crop.DrawTooltip": "Draw the crop box on the {Terms.Preview}",
   "Inspector.Crop.Tool": "Tool",
   "Inspector.Crop.Flip": "{Terms.Flip}",

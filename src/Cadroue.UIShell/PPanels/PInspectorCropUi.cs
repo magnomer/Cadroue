@@ -41,6 +41,21 @@ public sealed partial class PInspector
         pInspectorRatioFixed.Checked += (_, _) => PInspectorRatioCommit();
         pInspectorRatioFixed.Unchecked += (_, _) => PInspectorRatioCommit();
 
+        pInspectorRatioLenient = new CheckBox
+        {
+            Content = LLocalization.LLocalizationTextRead("Inspector.Crop.Lenient"),
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Crop.LenientTooltip"),
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily,
+            Foreground = PPanelTextBrush,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            IsEnabled = false,
+            Margin = new Thickness(PInspectorLabelWidth, 4, 0, 0)
+        };
+        PCheckbox.PCheckboxApply(pInspectorRatioLenient);
+        pInspectorRatioLenient.Checked += (_, _) => PInspectorRatioCommit();
+        pInspectorRatioLenient.Unchecked += (_, _) => PInspectorRatioCommit();
+
         pInspectorRatioNotice = new TextBlock
         {
             FontSize = 11,
@@ -80,6 +95,7 @@ public sealed partial class PInspector
         pInspectorCropStack.Children.Add(PInspectorEdgeBuild());
         pInspectorCropStack.Children.Add(PCropRatioBuild());
         pInspectorCropStack.Children.Add(pInspectorRatioFixed);
+        pInspectorCropStack.Children.Add(pInspectorRatioLenient);
         pInspectorCropStack.Children.Add(pInspectorRatioNotice);
 
         pInspectorCropBody = new StackPanel
