@@ -363,37 +363,3 @@ public sealed partial class PViewer : PPanel
         PViewerPreviewApply();
     }
 }
-
-public enum LCargoGrade
-{
-    LCargoGradeFull,
-    LCargoGradeBlind,
-    LCargoGradeView,
-    LCargoGradeVoid
-}
-
-public sealed record LCargo(
-    string LCargoSourcePath,
-    LMediaInfo? LCargoMediaInfo,
-    bool LCargoProcessable,
-    bool LCargoPreviewAvailable,
-    string? LCargoFfmpegError,
-    string? LCargoPreviewError)
-{
-    public LCargoGrade LCargoGrade =>
-        LCargoProcessable && LCargoPreviewAvailable
-            ? LCargoGrade.LCargoGradeFull
-            : LCargoProcessable
-                ? LCargoGrade.LCargoGradeBlind
-                : LCargoPreviewAvailable
-                    ? LCargoGrade.LCargoGradeView
-                    : LCargoGrade.LCargoGradeVoid;
-
-    public string LCargoStatusText => LCargoGrade switch
-    {
-        LCargoGrade.LCargoGradeFull => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableAvailable"),
-        LCargoGrade.LCargoGradeBlind => LLocalization.LLocalizationTextRead("Viewer.Status.ProcessableUnavailable"),
-        LCargoGrade.LCargoGradeView => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableAvailable"),
-        _ => LLocalization.LLocalizationTextRead("Viewer.Status.UnprocessableUnavailable")
-    };
-}

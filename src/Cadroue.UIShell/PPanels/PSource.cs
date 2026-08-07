@@ -1,3 +1,4 @@
+using Cadroue.Core;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PAssets;
 using Cadroue.Media;

@@ -1,5 +1,6 @@
 using System.Windows;
 
+using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.MigrationInterface;
 
