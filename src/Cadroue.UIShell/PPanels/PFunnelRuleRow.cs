@@ -32,7 +32,7 @@ public sealed class PFunnelRuleRow : Border
     private readonly PFunnelForm pFunnelForm;
     private readonly List<PFunnelCondition> pFunnelConditions = new();
     private readonly ComboBox pFunnelRelayCombo;
-    private readonly Func<IReadOnlyList<LCourierOption>> pFunnelOptionsRead;
+    private readonly Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsRead;
     private readonly PFunnelRuleFrame pFunnelFrame;
     private TextBox? pFunnelRegexField;
     private CheckBox? pFunnelWholeCheck;
@@ -47,7 +47,7 @@ public sealed class PFunnelRuleRow : Border
     public event Action? PFunnelRowChange;
     public event Action<PFunnelRuleRow>? PFunnelRowRemove;
 
-    public PFunnelRuleRow(Func<IReadOnlyList<LCourierOption>> pOptionsRead, PFunnelForm pForm = PFunnelForm.Filename)
+    public PFunnelRuleRow(Func<IReadOnlyList<PActionRelayOption>> pOptionsRead, PFunnelForm pForm = PFunnelForm.Filename)
     {
         pFunnelForm = pForm;
         pFunnelOptionsRead = pOptionsRead;
@@ -280,7 +280,7 @@ public sealed class PFunnelRuleRow : Border
             FontSize = 12,
             FontFamily = pFunnelFontFamily,
             FocusVisualStyle = null,
-            SelectedValuePath = "LCourierTabId",
+            SelectedValuePath = "PActionRelayTabId",
             ItemTemplate = PFunnelTemplateBuild()
         };
         PDropdown.PDropdownApply(pCombo);
@@ -292,12 +292,12 @@ public sealed class PFunnelRuleRow : Border
     private void PFunnelRelayRebuild()
     {
         pFunnelRelayBusy = true;
-        var pOptions = new List<LCourierOption>
+        var pOptions = new List<PActionRelayOption>
         {
             new(Guid.Empty, LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone"), null)
         };
         pOptions.AddRange(pFunnelOptionsRead());
-        if (pFunnelTargetId != Guid.Empty && pOptions.All(pOption => pOption.LCourierTabId != pFunnelTargetId))
+        if (pFunnelTargetId != Guid.Empty && pOptions.All(pOption => pOption.PActionRelayTabId != pFunnelTargetId))
         {
             pFunnelTargetId = Guid.Empty;
         }
@@ -325,7 +325,7 @@ public sealed class PFunnelRuleRow : Border
         pStack.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
 
         var pIconStyle = new Style(typeof(Image));
-        var pIconTrigger = new DataTrigger { Binding = new Binding("LCourierTabIcon"), Value = null };
+        var pIconTrigger = new DataTrigger { Binding = new Binding("PActionRelayTabIcon"), Value = null };
         pIconTrigger.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Collapsed));
         pIconStyle.Triggers.Add(pIconTrigger);
 
@@ -336,14 +336,14 @@ public sealed class PFunnelRuleRow : Border
         pIcon.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 6, 0));
         pIcon.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
         pIcon.SetValue(FrameworkElement.StyleProperty, pIconStyle);
-        pIcon.SetBinding(Image.SourceProperty, new Binding("LCourierTabIcon"));
+        pIcon.SetBinding(Image.SourceProperty, new Binding("PActionRelayTabIcon"));
 
         var pText = new FrameworkElementFactory(typeof(TextBlock));
         pText.SetValue(TextBlock.FontSizeProperty, 12.0);
         pText.SetValue(TextBlock.FontFamilyProperty, pFunnelFontFamily);
         pText.SetValue(TextBlock.ForegroundProperty, pFunnelTitleBrush);
         pText.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-        pText.SetBinding(TextBlock.TextProperty, new Binding("LCourierTabTitle"));
+        pText.SetBinding(TextBlock.TextProperty, new Binding("PActionRelayTabTitle"));
 
         pStack.AppendChild(pIcon);
         pStack.AppendChild(pText);

@@ -1,6 +1,7 @@
 using Cadroue.Core;
 using System.Collections.ObjectModel;
 using Cadroue.UIShell.PAssets;
+using Cadroue.UIShell.PMainArea;
 using Cadroue.UIShell.PPanels;
 using Cadroue.MigrationInterface;
 
@@ -146,8 +147,66 @@ public sealed class PStrip
                 : PStripTitleRead(pTabRecord.PTabLayoutKey);
         }
 
-        PMainArea.LCourier.LCourierFaceUpdate();
+        PStripRelayUpdate();
     }
+
+    public static void PStripRelayUpdate()
+    {
+        if (PStripCurrent is not { } pStripTabset)
+        {
+            return;
+        }
+
+        foreach (PTabRecord pTabRecord in pStripTabset.PStripRecords)
+        {
+            pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionRelayApply(
+                LCartographer.LCartographerTargetRead(pTabRecord.PTabId));
+        }
+    }
+
+    public static IReadOnlyList<PActionRelayOption> PStripRelayRead(Guid pStripSourceTab)
+    {
+        if (PStripCurrent is not { } pStripTabset)
+        {
+            return Array.Empty<PActionRelayOption>();
+        }
+
+        var pStripOptions = new List<PActionRelayOption>();
+        foreach (PTabRecord pTabRecord in pStripTabset.PStripRecords)
+        {
+            if (pTabRecord.PTabId == pStripSourceTab
+                || pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null)
+            {
+                continue;
+            }
+
+            pStripOptions.Add(new PActionRelayOption(
+                pTabRecord.PTabId, pTabRecord.PTabTitle, pTabRecord.PTabIconSource));
+        }
+
+        return pStripOptions;
+    }
+
+    public static PTabRecord? PStripTabFind(LWorkItem lWorkItem)
+    {
+        Guid pStripSourceTab = lWorkItem.LWorkRelaySource;
+        if (pStripSourceTab == Guid.Empty)
+        {
+            return null;
+        }
+
+        if (LCartographerPlanStore.LCartographerPlanRead(lWorkItem.LWorkBatchId, out LCartographerPlanRecord pStripPlan)
+            && pStripPlan.LCartographerStages.FirstOrDefault(
+                pStripStage => pStripStage.LCartographerStageId == pStripSourceTab) is { } pStripSourceStage)
+        {
+            pStripSourceTab = pStripSourceStage.LCartographerOriginalTab;
+        }
+
+        return PStripTabFind(pStripSourceTab);
+    }
+
+    public static PTabRecord? PStripTabFind(Guid pStripTabId) =>
+        PStripCurrent?.PStripRecords.FirstOrDefault(pTabRecord => pTabRecord.PTabId == pStripTabId);
 
     public void PStripNameSet(PTabRecord pTabRecord, string pTabName)
     {

@@ -274,6 +274,50 @@ public sealed class PWorkspace
         Source = PIcon.PIconRead("/PAssets/PPanels/PExportToggle.svg")
     };
 
+    public static bool PWorkspaceStageRun(LCartographerStagePlan pWorkspacePlan)
+    {
+        bool PWorkspacePlanRun()
+        {
+            LPreset pWorkspacePreset = LPreset.LPresetStateCreate(pWorkspacePlan.LCartographerExport);
+            var pWorkspaceStaged = new PWorkspace(
+                pWorkspacePlan.LCartographerLayoutKey, pWorkspacePreset, pWorkspacePlan.LCartographerLayout);
+            try
+            {
+                PTabSurface pWorkspaceSurface = pWorkspaceStaged.PWorkspaceSurface;
+                if (pWorkspaceSurface.PTabAction is not { } pWorkspaceAction || pWorkspaceSurface.PTabList is not { } pWorkspaceList)
+                {
+                    return false;
+                }
+
+                pWorkspaceAction.PActionSourceTab = pWorkspacePlan.LCartographerStageId;
+                pWorkspaceAction.PActionPlanApply(pWorkspacePlan.LCartographerNextStage);
+                string[] pWorkspacePaths = pWorkspacePlan.LCartographerPaths.ToArray();
+                pWorkspaceList.PListPathsAdd(pWorkspacePaths, pWorkspacePlan.LCartographerBatch, true);
+                if (pWorkspacePlan.LCartographerMerge)
+                {
+                    pWorkspaceAction.PActionAllRun();
+                }
+                else
+                {
+                    pWorkspaceAction.PActionItemsRun(pWorkspacePaths);
+                }
+                return true;
+            }
+            finally
+            {
+                pWorkspaceStaged.PWorkspaceClose();
+            }
+        }
+
+        if (System.Windows.Application.Current?.Dispatcher is { } pWorkspaceDispatcher
+            && !pWorkspaceDispatcher.CheckAccess())
+        {
+            return pWorkspaceDispatcher.Invoke(PWorkspacePlanRun);
+        }
+
+        return PWorkspacePlanRun();
+    }
+
     private static PTabSurface PWorkspaceSurfaceCreate(
         string pTabLayoutKey,
         LPreset lExportSpecificState,

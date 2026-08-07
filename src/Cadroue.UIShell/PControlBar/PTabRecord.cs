@@ -29,7 +29,7 @@ public sealed class PTabRecord : INotifyPropertyChanged
         PTabWorkspace = new PWorkspace(pTabLayoutKey, lExportSpecificState, lPreferenceTabLayout);
         if (PTabWorkspace.PWorkspaceSurface.PTabAction is { } pTabAction)
         {
-            PMainArea.LCourier.LCourierAttach(PTabId, pTabAction);
+            pTabAction.PActionRelayAttach(PTabId);
         }
     }
 

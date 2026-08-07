@@ -2,9 +2,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 using Cadroue.UIShell.PAssets;
+using Cadroue.UIShell.PControlBar;
 
 namespace Cadroue.UIShell.PMainArea;
+
+public sealed record PActionRelayOption(Guid PActionRelayTabId, string PActionRelayTabTitle, ImageSource? PActionRelayTabIcon);
 
 public sealed class PAction : UserControl
 {
@@ -60,7 +64,53 @@ public sealed class PAction : UserControl
 
     public Guid PActionSourceTab { get; set; }
 
-    public Func<IReadOnlyList<LCourierOption>>? PActionRelaySource { get; set; }
+    public Func<IReadOnlyList<PActionRelayOption>>? PActionRelaySource { get; set; }
+
+    public void PActionRelayAttach(Guid pActionSourceTab)
+    {
+        LCartographer.LCartographerStart();
+        PActionSourceTab = pActionSourceTab;
+        PActionRelaySource = () => PStrip.PStripRelayRead(pActionSourceTab);
+        PActionRelayChange += pActionTarget =>
+        {
+            LCartographer.LCartographerTargetSet(pActionSourceTab, pActionTarget);
+            PActionRelayApply(LCartographer.LCartographerTargetRead(pActionSourceTab));
+        };
+        PActionRelayApply(LCartographer.LCartographerTargetRead(pActionSourceTab));
+    }
+
+    public static void PActionArrive(Guid pActionTargetTab, string pActionPath, Guid pActionCohort)
+    {
+        if (PStrip.PStripTabFind(pActionTargetTab) is not { } pActionTarget
+            || pActionTarget.PTabWorkspace.PWorkspaceSurface is PMergeTab
+            || pActionTarget.PTabWorkspace.PWorkspaceSurface.PTabAction is not { PActionAutoRelay: true } pActionSurface)
+        {
+            return;
+        }
+
+        LSeal.LSealPendingAdd(pActionCohort);
+        void PActionArriveRun()
+        {
+            try
+            {
+                pActionSurface.PActionItemsRun(new[] { pActionPath });
+            }
+            finally
+            {
+                LSeal.LSealPendingRemove(pActionCohort);
+                LSeal.LSealSweep();
+            }
+        }
+
+        if (System.Windows.Application.Current?.Dispatcher is { } pActionDispatcher)
+        {
+            pActionDispatcher.BeginInvoke(new Action(PActionArriveRun));
+        }
+        else
+        {
+            PActionArriveRun();
+        }
+    }
 
     public void PActionRelayHide()
     {
@@ -195,7 +245,7 @@ public sealed class PAction : UserControl
 
     private void PActionFaceUpdate()
     {
-        if (PActionRelayTarget == LCourier.LCourierFinishTarget)
+        if (PActionRelayTarget == LCartographer.LCartographerFinishTarget)
         {
             pActionRelayLabel.Text = LLocalization.LLocalizationTextRead("Action.Relay.Finish");
             pActionRelayIcon.Source = null;
@@ -203,36 +253,36 @@ public sealed class PAction : UserControl
             return;
         }
 
-        LCourierOption? pOption = PActionRelayTarget == Guid.Empty
+        PActionRelayOption? pOption = PActionRelayTarget == Guid.Empty
             ? null
-            : PActionOptionsRead().FirstOrDefault(pRow => pRow.LCourierTabId == PActionRelayTarget);
+            : PActionOptionsRead().FirstOrDefault(pRow => pRow.PActionRelayTabId == PActionRelayTarget);
 
         if (PActionRelayTarget != Guid.Empty && pOption is null)
         {
             PActionRelayTarget = Guid.Empty;
         }
 
-        pActionRelayLabel.Text = pOption?.LCourierTabTitle
+        pActionRelayLabel.Text = pOption?.PActionRelayTabTitle
             ?? LLocalization.LLocalizationTextRead("Action.Relay.None");
-        pActionRelayIcon.Source = pOption?.LCourierTabIcon;
-        pActionRelayIcon.Visibility = pOption?.LCourierTabIcon is null
+        pActionRelayIcon.Source = pOption?.PActionRelayTabIcon;
+        pActionRelayIcon.Visibility = pOption?.PActionRelayTabIcon is null
             ? Visibility.Collapsed
             : Visibility.Visible;
     }
 
-    private IReadOnlyList<LCourierOption> PActionOptionsRead() =>
-        PActionRelaySource?.Invoke() ?? Array.Empty<LCourierOption>();
+    private IReadOnlyList<PActionRelayOption> PActionOptionsRead() =>
+        PActionRelaySource?.Invoke() ?? Array.Empty<PActionRelayOption>();
 
     private void PActionOpenHandle(object pSender, RoutedEventArgs pArgs)
     {
         ContextMenu pRelayMenu = PControlBar.PMenu.PMenuCreate(pActionRelayButton);
         PActionRowAppend(pRelayMenu, Guid.Empty, LLocalization.LLocalizationTextRead("Action.Relay.None"), null);
-        foreach (LCourierOption pOption in PActionOptionsRead())
+        foreach (PActionRelayOption pOption in PActionOptionsRead())
         {
-            PActionRowAppend(pRelayMenu, pOption.LCourierTabId, pOption.LCourierTabTitle, pOption.LCourierTabIcon);
+            PActionRowAppend(pRelayMenu, pOption.PActionRelayTabId, pOption.PActionRelayTabTitle, pOption.PActionRelayTabIcon);
         }
 
-        PActionRowAppend(pRelayMenu, LCourier.LCourierFinishTarget, LLocalization.LLocalizationTextRead("Action.Relay.Finish"), null);
+        PActionRowAppend(pRelayMenu, LCartographer.LCartographerFinishTarget, LLocalization.LLocalizationTextRead("Action.Relay.Finish"), null);
 
         pRelayMenu.IsOpen = true;
         pArgs.Handled = true;

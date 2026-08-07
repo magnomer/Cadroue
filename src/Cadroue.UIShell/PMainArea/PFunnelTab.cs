@@ -88,7 +88,7 @@ public sealed class PFunnelTab : PTabSurface
 
         foreach ((Guid pFunnelTarget, string pFunnelPath, Guid pFunnelCohort) in pRelayedRoutes)
         {
-            LCourier.LCourierArrive(pFunnelTarget, pFunnelPath, pFunnelCohort);
+            PAction.PActionArrive(pFunnelTarget, pFunnelPath, pFunnelCohort);
         }
 
         LSeal.LSealSweep();
@@ -97,9 +97,9 @@ public sealed class PFunnelTab : PTabSurface
             $"Funnel relayed {pRelayedPaths.Count} of {pItems.Count} file(s) by filename rule");
     }
 
-    private IReadOnlyList<LCourierOption> PFunnelTargetsRead()
+    private IReadOnlyList<PActionRelayOption> PFunnelTargetsRead()
     {
-        var pOptions = new List<LCourierOption>();
+        var pOptions = new List<PActionRelayOption>();
         if (PStrip.PStripCurrent is not { } pStrip)
         {
             return pOptions;
@@ -113,7 +113,7 @@ public sealed class PFunnelTab : PTabSurface
                 continue;
             }
 
-            pOptions.Add(new LCourierOption(pRecord.PTabId, pRecord.PTabTitle, pRecord.PTabIconSource));
+            pOptions.Add(new PActionRelayOption(pRecord.PTabId, pRecord.PTabTitle, pRecord.PTabIconSource));
         }
 
         return pOptions;

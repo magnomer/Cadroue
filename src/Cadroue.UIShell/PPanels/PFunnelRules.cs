@@ -21,7 +21,7 @@ public sealed class PFunnelRules : PPanel
     private readonly StackPanel pFunnelRowPanel;
     private readonly TextBlock pFunnelEmptyNotice;
     private readonly List<PFunnelRuleRow> pFunnelRows = new();
-    private Func<IReadOnlyList<LCourierOption>> pFunnelOptionsRead = static () => Array.Empty<LCourierOption>();
+    private Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsRead = static () => Array.Empty<PActionRelayOption>();
     private PFunnelRuleRow? pFunnelRowDragging;
     private PFunnelRuleRow? pFunnelRowSelected;
     private Point? pFunnelDragOrigin;
@@ -72,7 +72,7 @@ public sealed class PFunnelRules : PPanel
         PFunnelEmptyUpdate();
     }
 
-    public void PFunnelOptionsSet(Func<IReadOnlyList<LCourierOption>> pOptionsRead)
+    public void PFunnelOptionsSet(Func<IReadOnlyList<PActionRelayOption>> pOptionsRead)
     {
         pFunnelOptionsRead = pOptionsRead;
     }

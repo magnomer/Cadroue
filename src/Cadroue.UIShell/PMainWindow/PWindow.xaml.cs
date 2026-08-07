@@ -104,7 +104,7 @@ public partial class PWindow : Window
                 pTabset.PStripNameSet(pTabRestored, lScene.LSceneTabNames[pTabIndex]);
             }
         }
-        PMainArea.LCourier.LCourierSlotsApply(pTabset.PStripRecords, lScene.LSceneTabRelays);
+        PWindowRelayApply(pTabset.PStripRecords, lScene.LSceneTabRelays);
         foreach (PTabRecord pTabRecord in pTabset.PStripRecords)
         {
             if (pTabRecord.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab pFunnelSurface)
