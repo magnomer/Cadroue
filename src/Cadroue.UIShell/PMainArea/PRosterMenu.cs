@@ -124,13 +124,21 @@ public sealed partial class PRoster
 
     private static void PRosterRelaySend(PTabRecord pTargetRecord, IReadOnlyList<string> pRelayPaths)
     {
-        if (pTargetRecord.PTabWorkspace.PWorkspaceSurface.PTabList is not { } pTargetList)
+        if (pTargetRecord.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pTargetOwner)
         {
             return;
         }
 
         PStrip.PStripCurrent?.PStripSelect(pTargetRecord);
-        pTargetList.PListClear();
-        pTargetList.PListPathsAdd(pRelayPaths, Cadroue.Application.LGate.LGateBatchCreate());
+        string[] pClearPaths = pTargetOwner.LDocketUnlockedRead()
+            .Select(pEntry => pEntry.LDocketEntryPath)
+            .ToArray();
+        if (pClearPaths.Length > 0)
+        {
+            pTargetOwner.LDocketPathsRemove(pClearPaths);
+        }
+
+        pTargetOwner.LDocketPathsAdd(
+            PList.PListMediaScan(pRelayPaths), Cadroue.Application.LGate.LGateBatchCreate());
     }
 }

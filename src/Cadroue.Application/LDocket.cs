@@ -6,6 +6,10 @@ public sealed class LDocket
 
     public event Action<IReadOnlyList<LDocketEntry>>? LDocketChange;
 
+    public event Action<IReadOnlyList<LDocketEntry>>? LDocketAdded;
+
+    public event Action<IReadOnlyList<string>>? LDocketRemoved;
+
     public IReadOnlyList<LDocketEntry> LDocketItemsRead() => lDocketEntries.ToArray();
 
     public IReadOnlyList<LDocketEntry> LDocketUnlockedRead() =>
@@ -33,7 +37,7 @@ public sealed class LDocket
             lDocketBatch = LGate.LGateBatchCreate();
         }
 
-        int lDocketAdded = 0;
+        var lDocketAddedItems = new List<LDocketEntry>();
         foreach (string lDocketPath in lDocketPaths)
         {
             if (LDocketItemFind(lDocketPath) is not null)
@@ -41,28 +45,35 @@ public sealed class LDocket
                 continue;
             }
 
-            lDocketEntries.Add(new LDocketEntry(lDocketPath, lDocketBatch) { LDocketEntryDelivered = lDocketDelivered });
-            lDocketAdded++;
+            var lDocketEntry = new LDocketEntry(lDocketPath, lDocketBatch) { LDocketEntryDelivered = lDocketDelivered };
+            lDocketEntries.Add(lDocketEntry);
+            lDocketAddedItems.Add(lDocketEntry);
         }
 
-        if (lDocketAdded > 0)
+        if (lDocketAddedItems.Count > 0)
         {
             LDocketRaise();
+            LDocketAdded?.Invoke(lDocketAddedItems);
         }
 
-        return lDocketAdded;
+        return lDocketAddedItems.Count;
     }
 
     public int LDocketPathsRemove(IReadOnlyList<string> lDocketPaths)
     {
         HashSet<string> lDocketRemoved = lDocketPaths.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        int lDocketCount = lDocketEntries.RemoveAll(lDocketEntry => lDocketRemoved.Contains(lDocketEntry.LDocketEntryPath));
-        if (lDocketCount > 0)
+        string[] lDocketRemovedPaths = lDocketEntries
+            .Where(lDocketEntry => lDocketRemoved.Contains(lDocketEntry.LDocketEntryPath))
+            .Select(lDocketEntry => lDocketEntry.LDocketEntryPath)
+            .ToArray();
+        lDocketEntries.RemoveAll(lDocketEntry => lDocketRemoved.Contains(lDocketEntry.LDocketEntryPath));
+        if (lDocketRemovedPaths.Length > 0)
         {
             LDocketRaise();
+            LDocketRemoved?.Invoke(lDocketRemovedPaths);
         }
 
-        return lDocketCount;
+        return lDocketRemovedPaths.Length;
     }
 
     public int LDocketClaim(IReadOnlyList<(string LDocketPath, Guid LDocketBatch)> lDocketClaims)

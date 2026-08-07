@@ -71,9 +71,10 @@ public sealed class PFunnelTab : PTabSurface
 
                 PTabRecord? pTarget = pStrip.PStripRecords
                     .FirstOrDefault(pRecord => pRecord.PTabId == pRow.PFunnelTargetId);
-                if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList is { } pTargetList)
+                if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pTargetOwner)
                 {
-                    pTargetList.PListPathsAdd(new[] { pItem.LDocketEntryPath }, pItem.LDocketEntryBatch, true);
+                    pTargetOwner.LDocketPathsAdd(
+                        PList.PListMediaScan(new[] { pItem.LDocketEntryPath }), pItem.LDocketEntryBatch, true);
                     pRelayedPaths.Add(pItem.LDocketEntryPath);
                     pRelayedRoutes.Add((pRow.PFunnelTargetId, pItem.LDocketEntryPath, pItem.LDocketEntryBatch));
                 }
@@ -84,7 +85,7 @@ public sealed class PFunnelTab : PTabSurface
 
         if (LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty && pRelayedPaths.Count > 0)
         {
-            pList.PListPathsRemove(pRelayedPaths);
+            pList.PListDocketRead().LDocketPathsRemove(pRelayedPaths);
         }
 
         foreach ((Guid pFunnelTarget, string pFunnelPath, Guid pFunnelCohort) in pRelayedRoutes)
