@@ -91,92 +91,34 @@ public sealed partial class PViewer
 
     private void PCropDragApply(Point psNameDragPoint)
     {
-        Rect pVideoRect = PCropRectRead();
-        Rect pDragRect = pViewerEdgeX == 0 && pViewerEdgeY == 0
-            ? PCropMoveResolve(psNameDragPoint, pVideoRect)
-            : PCropResizeResolve(PCropPointClamp(psNameDragPoint), pVideoRect);
+        LCropbox pCropVideo = PCropboxResolve(PCropRectRead());
+        LCropbox pCropOrigin = PCropboxResolve(pViewerCropOrigin);
+        LCropbox pCropResult;
+        if (pViewerEdgeX == 0 && pViewerEdgeY == 0)
+        {
+            pCropResult = LCropbox.LCropboxMoveResolve(
+                pCropOrigin, pViewerCropGrab.X, pViewerCropGrab.Y, psNameDragPoint.X, psNameDragPoint.Y, pCropVideo);
+        }
+        else
+        {
+            Point pCropClamped = PCropPointClamp(psNameDragPoint);
+            pCropResult = LCropbox.LCropboxResizeResolve(
+                pCropOrigin, pCropClamped.X, pCropClamped.Y, pViewerEdgeX, pViewerEdgeY,
+                pViewerCropRatio?.Width ?? 0, pViewerCropRatio?.Height ?? 0, pCropVideo, PCropSizeMinimum);
+        }
 
-        Canvas.SetLeft(pViewerCropBox, pDragRect.X);
-        Canvas.SetTop(pViewerCropBox, pDragRect.Y);
-        pViewerCropBox.Width = pDragRect.Width;
-        pViewerCropBox.Height = pDragRect.Height;
+        Canvas.SetLeft(pViewerCropBox, pCropResult.LCropboxX);
+        Canvas.SetTop(pViewerCropBox, pCropResult.LCropboxY);
+        pViewerCropBox.Width = pCropResult.LCropboxWidth;
+        pViewerCropBox.Height = pCropResult.LCropboxHeight;
         PCropOverlayUpdate();
     }
 
-    private Rect PCropMoveResolve(Point psNameDragPoint, Rect pVideoRect)
-    {
-        double pMoveX = pViewerCropOrigin.X + (psNameDragPoint.X - pViewerCropGrab.X);
-        double pMoveY = pViewerCropOrigin.Y + (psNameDragPoint.Y - pViewerCropGrab.Y);
-        pMoveX = Math.Clamp(pMoveX, pVideoRect.Left, Math.Max(pVideoRect.Left, pVideoRect.Right - pViewerCropOrigin.Width));
-        pMoveY = Math.Clamp(pMoveY, pVideoRect.Top, Math.Max(pVideoRect.Top, pVideoRect.Bottom - pViewerCropOrigin.Height));
-        return new Rect(pMoveX, pMoveY, pViewerCropOrigin.Width, pViewerCropOrigin.Height);
-    }
+    private static LCropbox PCropboxResolve(Rect pCropRect) =>
+        new LCropbox(pCropRect.X, pCropRect.Y, pCropRect.Width, pCropRect.Height);
 
-    private Rect PCropResizeResolve(Point psNameDragPoint, Rect pVideoRect)
-    {
-        double pLeft = pViewerEdgeX < 0 ? psNameDragPoint.X : pViewerCropOrigin.Left;
-        double pRight = pViewerEdgeX > 0 ? psNameDragPoint.X : pViewerCropOrigin.Right;
-        double pTop = pViewerEdgeY < 0 ? psNameDragPoint.Y : pViewerCropOrigin.Top;
-        double pBottom = pViewerEdgeY > 0 ? psNameDragPoint.Y : pViewerCropOrigin.Bottom;
-
-        double pWidth = Math.Max(PCropSizeMinimum, Math.Abs(pRight - pLeft));
-        double pHeight = Math.Max(PCropSizeMinimum, Math.Abs(pBottom - pTop));
-
-        if (pViewerCropRatio is Size pCropRatio)
-        {
-            if (pViewerEdgeX != 0 && pViewerEdgeY != 0)
-            {
-                if (pWidth * pCropRatio.Height > pHeight * pCropRatio.Width)
-                {
-                    pWidth = pHeight * pCropRatio.Width / pCropRatio.Height;
-                }
-                else
-                {
-                    pHeight = pWidth * pCropRatio.Height / pCropRatio.Width;
-                }
-            }
-            else if (pViewerEdgeX != 0)
-            {
-                pHeight = pWidth * pCropRatio.Height / pCropRatio.Width;
-            }
-            else
-            {
-                pWidth = pHeight * pCropRatio.Width / pCropRatio.Height;
-            }
-        }
-
-        double pRectX = pViewerEdgeX < 0 ? pViewerCropOrigin.Right - pWidth : pViewerCropOrigin.Left;
-        double pRectY = pViewerEdgeY < 0 ? pViewerCropOrigin.Bottom - pHeight : pViewerCropOrigin.Top;
-
-        if (pViewerEdgeX == 0)
-        {
-            pRectX = pViewerCropOrigin.Left + ((pViewerCropOrigin.Width - pWidth) / 2);
-        }
-
-        if (pViewerEdgeY == 0)
-        {
-            pRectY = pViewerCropOrigin.Top + ((pViewerCropOrigin.Height - pHeight) / 2);
-        }
-
-        return PCropRectClamp(new Rect(pRectX, pRectY, pWidth, pHeight), pVideoRect);
-    }
-
-    private Rect PCropRectClamp(Rect pCropRect, Rect pVideoRect)
-    {
-        double pWidth = Math.Min(pCropRect.Width, pVideoRect.Width);
-        double pHeight = Math.Min(pCropRect.Height, pVideoRect.Height);
-
-        if (pViewerCropRatio is not null)
-        {
-            double pScale = Math.Min(pWidth / pCropRect.Width, pHeight / pCropRect.Height);
-            pWidth = pCropRect.Width * pScale;
-            pHeight = pCropRect.Height * pScale;
-        }
-
-        double pFitX = Math.Clamp(pCropRect.X, pVideoRect.Left, Math.Max(pVideoRect.Left, pVideoRect.Right - pWidth));
-        double pFitY = Math.Clamp(pCropRect.Y, pVideoRect.Top, Math.Max(pVideoRect.Top, pVideoRect.Bottom - pHeight));
-        return new Rect(pFitX, pFitY, pWidth, pHeight);
-    }
+    private static Rect PCropRectResolve(LCropbox pCropbox) =>
+        new Rect(pCropbox.LCropboxX, pCropbox.LCropboxY, pCropbox.LCropboxWidth, pCropbox.LCropboxHeight);
 
     private void PCropOverlayUpdate()
     {
@@ -277,11 +219,9 @@ public sealed partial class PViewer
             return new Size(0, 0);
         }
 
-        double pSourceWidth = pViewerMediaInfo.LMediaVideoWidth;
-        double pSourceHeight = pViewerMediaInfo.LMediaVideoHeight;
-        return PCropRotatedCheck()
-            ? new Size(pSourceHeight, pSourceWidth)
-            : new Size(pSourceWidth, pSourceHeight);
+        (double pSourceWidth, double pSourceHeight) = LCropbox.LCropboxSourceResolve(
+            pViewerMediaInfo.LMediaVideoWidth, pViewerMediaInfo.LMediaVideoHeight, PCropRotatedCheck());
+        return new Size(pSourceWidth, pSourceHeight);
     }
 
     public void PCropVideoSet(Rect? pCropVideo)
@@ -391,36 +331,21 @@ public sealed partial class PViewer
     {
         Point clampedStart = PCropPointClamp(startPoint);
         Point clampedEnd = PCropPointClamp(endPoint);
-        double width = Math.Abs(clampedStart.X - clampedEnd.X);
-        double height = Math.Abs(clampedStart.Y - clampedEnd.Y);
-
-        if (pViewerCropRatio is Size cropRatio)
-        {
-            if (width * cropRatio.Height > height * cropRatio.Width)
-            {
-                width = height * cropRatio.Width / cropRatio.Height;
-            }
-            else
-            {
-                height = width * cropRatio.Height / cropRatio.Width;
-            }
-        }
-
-        double left = clampedEnd.X < clampedStart.X ? clampedStart.X - width : clampedStart.X;
-        double top = clampedEnd.Y < clampedStart.Y ? clampedStart.Y - height : clampedStart.Y;
-        Canvas.SetLeft(pViewerCropBox, left);
-        Canvas.SetTop(pViewerCropBox, top);
-        pViewerCropBox.Width = width;
-        pViewerCropBox.Height = height;
+        LCropbox pCropDrawn = LCropbox.LCropboxDrawResolve(
+            clampedStart.X, clampedStart.Y, clampedEnd.X, clampedEnd.Y,
+            pViewerCropRatio?.Width ?? 0, pViewerCropRatio?.Height ?? 0);
+        Canvas.SetLeft(pViewerCropBox, pCropDrawn.LCropboxX);
+        Canvas.SetTop(pViewerCropBox, pCropDrawn.LCropboxY);
+        pViewerCropBox.Width = pCropDrawn.LCropboxWidth;
+        pViewerCropBox.Height = pCropDrawn.LCropboxHeight;
         PCropOverlayUpdate();
     }
 
     private Point PCropPointClamp(Point point)
     {
-        Rect videoRect = PCropRectRead();
-        double x = Math.Max(videoRect.Left, Math.Min(videoRect.Right, point.X));
-        double y = Math.Max(videoRect.Top, Math.Min(videoRect.Bottom, point.Y));
-        return new Point(x, y);
+        (double pClampX, double pClampY) = LCropbox.LCropboxPointClamp(
+            point.X, point.Y, PCropboxResolve(PCropRectRead()));
+        return new Point(pClampX, pClampY);
     }
 
     private Rect? PCropVideoRead()
@@ -438,13 +363,12 @@ public sealed partial class PViewer
         }
 
         Size displaySize = PCropDisplayRead();
-        double overlayLeft = Canvas.GetLeft(pViewerCropBox);
-        double overlayTop = Canvas.GetTop(pViewerCropBox);
-        double videoX = (overlayLeft - videoRect.Left) / videoRect.Width * displaySize.Width;
-        double videoY = (overlayTop - videoRect.Top) / videoRect.Height * displaySize.Height;
-        double videoWidth = pViewerCropBox.Width / videoRect.Width * displaySize.Width;
-        double videoHeight = pViewerCropBox.Height / videoRect.Height * displaySize.Height;
-        return new Rect(videoX, videoY, videoWidth, videoHeight);
+        LCropbox pCropOverlay = new LCropbox(
+            Canvas.GetLeft(pViewerCropBox), Canvas.GetTop(pViewerCropBox),
+            pViewerCropBox.Width, pViewerCropBox.Height);
+        LCropbox pCropPixel = LCropbox.LCropboxPixelResolve(
+            pCropOverlay, PCropboxResolve(videoRect), displaySize.Width, displaySize.Height);
+        return PCropRectResolve(pCropPixel);
     }
 
     private Rect PCropRectRead()
@@ -458,12 +382,8 @@ public sealed partial class PViewer
         }
 
         Size displaySize = PCropDisplayRead();
-        double videoWidth = displaySize.Width;
-        double videoHeight = displaySize.Height;
-        double scale = Math.Min(overlayWidth / videoWidth, overlayHeight / videoHeight);
-        double displayWidth = videoWidth * scale;
-        double displayHeight = videoHeight * scale;
-        return new Rect((overlayWidth - displayWidth) / 2, (overlayHeight - displayHeight) / 2, displayWidth, displayHeight);
+        return PCropRectResolve(LCropbox.LCropboxDisplayResolve(
+            displaySize.Width, displaySize.Height, overlayWidth, overlayHeight));
     }
 
     private void PCropSizeHandle(object sender, SizeChangedEventArgs sizeChangedEventArgs)
@@ -480,17 +400,18 @@ public sealed partial class PViewer
         }
 
         Rect videoRect = PCropRectRead();
-        Rect cropVideo = PCropVideo.Value;
         Size displaySize = PCropDisplayRead();
         if (displaySize.Width <= 0 || displaySize.Height <= 0)
         {
             return;
         }
 
-        Canvas.SetLeft(pViewerCropBox, videoRect.Left + (cropVideo.X / displaySize.Width * videoRect.Width));
-        Canvas.SetTop(pViewerCropBox, videoRect.Top + (cropVideo.Y / displaySize.Height * videoRect.Height));
-        pViewerCropBox.Width = cropVideo.Width / displaySize.Width * videoRect.Width;
-        pViewerCropBox.Height = cropVideo.Height / displaySize.Height * videoRect.Height;
+        LCropbox pCropOverlay = LCropbox.LCropboxOverlayResolve(
+            PCropboxResolve(PCropVideo.Value), PCropboxResolve(videoRect), displaySize.Width, displaySize.Height);
+        Canvas.SetLeft(pViewerCropBox, pCropOverlay.LCropboxX);
+        Canvas.SetTop(pViewerCropBox, pCropOverlay.LCropboxY);
+        pViewerCropBox.Width = pCropOverlay.LCropboxWidth;
+        pViewerCropBox.Height = pCropOverlay.LCropboxHeight;
         PCropOverlayUpdate();
     }
 
