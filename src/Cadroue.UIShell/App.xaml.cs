@@ -33,7 +33,7 @@ public partial class PProgram : System.Windows.Application
         LStation.LStationPost = LStationDispatch;
         LStation.LStationProgramSource = () => LRenderer.LRendererProgramCurrent;
         LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
-        LSchedule.LScheduleCohortGate = PMainArea.LSeal.LSealClaimCheck;
+        LSchedule.LScheduleCohortGate = Cadroue.MigrationInterface.LSeal.LSealClaimCheck;
 
         Cadroue.MigrationInterface.LMessenger.LMessengerScheduleSource = () => LScheduleCurrent;
         Cadroue.MigrationInterface.LCartographer.LCartographerTabsSource = () =>
@@ -51,6 +51,29 @@ public partial class PProgram : System.Windows.Application
         Cadroue.MigrationInterface.LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 PMainArea.LCourier.LCourierScheduleAdd(lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
+
+        Cadroue.MigrationInterface.LSeal.LSealNodesSource = () =>
+            PControlBar.LTabset.LTabsetCurrent?.PTabsetRecords
+                .Where(pTab => pTab.PTabWorkspace.PWorkspaceSurface.PTabList is not null)
+                .Select(pTab =>
+                {
+                    PMainArea.PTabSurface pSurface = pTab.PTabWorkspace.PWorkspaceSurface;
+                    return new Cadroue.MigrationInterface.LSealNode(
+                        pTab.PTabId,
+                        pSurface is PMainArea.PMergeTab,
+                        pSurface.PTabAction is { PActionAutoRelay: true },
+                        pSurface.PTabList!.PListItemsRead()
+                            .Where(pItem => pItem.PListItemDelivered && pItem.PListItemRelay != Guid.Empty)
+                            .Select(pItem => pItem.PListItemRelay)
+                            .Distinct()
+                            .ToArray());
+                })
+                .ToArray();
+        Cadroue.MigrationInterface.LSeal.LSealFireSeam = lSealNodeId =>
+            PControlBar.LTabset.LTabsetCurrent?.PTabsetRecords
+                .FirstOrDefault(pTab => pTab.PTabId == lSealNodeId)
+                ?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionAllRun();
+        Cadroue.MigrationInterface.LSeal.LSealDeliveredSource = PMainArea.LCourier.LCourierDeliveredCheck;
     }
 
     private static void LStationDispatch(Action lStationAction)

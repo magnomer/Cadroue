@@ -1,9 +1,12 @@
 using Cadroue.Core;
-using Cadroue.MigrationInterface;
-using Cadroue.UIShell.PControlBar;
-using Cadroue.UIShell.PPanels;
 
-namespace Cadroue.UIShell.PMainArea;
+namespace Cadroue.MigrationInterface;
+
+public sealed record LSealNode(
+    Guid LSealNodeId,
+    bool LSealNodeMerge,
+    bool LSealNodeAutoRelay,
+    IReadOnlyList<Guid> LSealNodeCohorts);
 
 public static class LSeal
 {
@@ -13,6 +16,19 @@ public static class LSeal
 
     private static volatile IReadOnlyList<(Guid lSealCohort, DateTimeOffset lSealBirth)> lSealActive =
         Array.Empty<(Guid, DateTimeOffset)>();
+
+    public static Func<IReadOnlyList<LSealNode>?>? LSealNodesSource { get; set; }
+
+    public static Action<Guid>? LSealFireSeam { get; set; }
+
+    public static Func<Guid, bool>? LSealDeliveredSource { get; set; }
+
+    private static IReadOnlyList<LWorkItem> LSealScheduleRead() =>
+        (IReadOnlyList<LWorkItem>?)LMessenger.LMessengerScheduleSource?.Invoke()?.LScheduleRecords
+            ?? Array.Empty<LWorkItem>();
+
+    private static bool LSealDeliveredCheck(Guid lSealWorkId) =>
+        LSealDeliveredSource?.Invoke(lSealWorkId) ?? false;
 
     public static void LSealPendingAdd(Guid lSealCohort)
     {
@@ -46,7 +62,7 @@ public static class LSeal
 
     public static void LSealSweep()
     {
-        if (lSealSweeping || LTabset.LTabsetCurrent is not { } lSealTabset)
+        if (lSealSweeping || LSealNodesSource?.Invoke() is not { } lSealNodes)
         {
             return;
         }
@@ -54,43 +70,42 @@ public static class LSeal
         lSealSweeping = true;
         try
         {
-            IReadOnlyList<LWorkItem> lSealItems = PProgram.LScheduleCurrent.LScheduleRecords.ToArray();
+            IReadOnlyList<LWorkItem> lSealItems = LSealScheduleRead();
             bool lSealFiredAny;
             do
             {
                 lSealFiredAny = false;
-                foreach (PTabRecord lSealTab in lSealTabset.PTabsetRecords)
+                foreach (LSealNode lSealNode in lSealNodes)
                 {
-                    if (lSealTab.PTabWorkspace.PWorkspaceSurface is not PMergeTab
-                        || lSealTab.PTabWorkspace.PWorkspaceSurface.PTabAction is not { PActionAutoRelay: true } lSealAction
-                        || lSealTab.PTabWorkspace.PWorkspaceSurface.PTabList is not { } lSealList)
+                    if (!lSealNode.LSealNodeMerge || !lSealNode.LSealNodeAutoRelay)
                     {
                         continue;
                     }
 
-                    foreach (Guid lSealCohort in LSealCohortsHeld(lSealList))
+                    foreach (Guid lSealCohort in lSealNode.LSealNodeCohorts)
                     {
-                        if (lSealFired.Contains((lSealCohort, lSealTab.PTabId))
-                            || !LSealNodeCheck(lSealCohort, lSealTab.PTabId, lSealItems, lSealTabset))
+                        if (lSealFired.Contains((lSealCohort, lSealNode.LSealNodeId))
+                            || !LSealNodeCheck(lSealCohort, lSealNode.LSealNodeId, lSealItems, lSealNodes))
                         {
                             continue;
                         }
 
-                        lSealFired.Add((lSealCohort, lSealTab.PTabId));
-                        lSealAction.PActionAllRun();
+                        lSealFired.Add((lSealCohort, lSealNode.LSealNodeId));
+                        LSealFireSeam?.Invoke(lSealNode.LSealNodeId);
                         lSealFiredAny = true;
                     }
                 }
 
                 if (lSealFiredAny)
                 {
-                    lSealItems = PProgram.LScheduleCurrent.LScheduleRecords.ToArray();
+                    lSealItems = LSealScheduleRead();
+                    lSealNodes = LSealNodesSource?.Invoke() ?? lSealNodes;
                 }
             }
             while (lSealFiredAny);
 
-            LSealActiveRefresh(lSealItems, lSealTabset);
-            LSealClean(lSealItems, lSealTabset);
+            LSealActiveRefresh(lSealItems, lSealNodes);
+            LSealClean(lSealItems, lSealNodes);
         }
         finally
         {
@@ -123,7 +138,7 @@ public static class LSeal
         return lSealOldestOther is null || lSealSelf <= lSealOldestOther;
     }
 
-    private static void LSealActiveRefresh(IReadOnlyList<LWorkItem> lSealItems, LTabset lSealTabset)
+    private static void LSealActiveRefresh(IReadOnlyList<LWorkItem> lSealItems, IReadOnlyList<LSealNode> lSealNodes)
     {
         var lSealBirths = new Dictionary<Guid, DateTimeOffset>();
         var lSealActiveSet = new HashSet<Guid>();
@@ -151,18 +166,16 @@ public static class LSeal
             lSealActiveSet.Add(lSealCohort);
         }
 
-        foreach (PTabRecord lSealTab in lSealTabset.PTabsetRecords)
+        foreach (LSealNode lSealNode in lSealNodes)
         {
-            if (lSealTab.PTabWorkspace.PWorkspaceSurface is not PMergeTab
-                || lSealTab.PTabWorkspace.PWorkspaceSurface.PTabAction is not { PActionAutoRelay: true }
-                || lSealTab.PTabWorkspace.PWorkspaceSurface.PTabList is not { } lSealList)
+            if (!lSealNode.LSealNodeMerge || !lSealNode.LSealNodeAutoRelay)
             {
                 continue;
             }
 
-            foreach (Guid lSealCohort in LSealCohortsHeld(lSealList))
+            foreach (Guid lSealCohort in lSealNode.LSealNodeCohorts)
             {
-                if (!lSealFired.Contains((lSealCohort, lSealTab.PTabId)))
+                if (!lSealFired.Contains((lSealCohort, lSealNode.LSealNodeId)))
                 {
                     lSealActiveSet.Add(lSealCohort);
                 }
@@ -183,9 +196,9 @@ public static class LSeal
         LWorkState.LWorkStateRunning => true,
         LWorkState.LWorkStateDone =>
             lSealItem.LWorkRelayTarget != Guid.Empty
-            && lSealItem.LWorkRelayTarget != LCourier.LCourierFinishTarget
+            && lSealItem.LWorkRelayTarget != LCartographer.LCartographerFinishTarget
             && lSealItem.LWorkOwnerProcess == Environment.ProcessId
-            && !LCourier.LCourierDeliveredCheck(lSealItem.LWorkId),
+            && !LSealDeliveredCheck(lSealItem.LWorkId),
         _ => false
     };
 
@@ -193,7 +206,7 @@ public static class LSeal
         Guid lSealCohort,
         Guid lSealNode,
         IReadOnlyList<LWorkItem> lSealItems,
-        LTabset lSealTabset)
+        IReadOnlyList<LSealNode> lSealNodes)
     {
         if (LSealPendingRead(lSealCohort) > 0)
         {
@@ -210,25 +223,24 @@ public static class LSeal
             bool lSealProducing = lSealItem.LWorkStateCurrent != LWorkState.LWorkStateDone;
             bool lSealUndelivered = lSealItem.LWorkStateCurrent == LWorkState.LWorkStateDone
                 && lSealItem.LWorkOwnerProcess == Environment.ProcessId
-                && !LCourier.LCourierDeliveredCheck(lSealItem.LWorkId);
+                && !LSealDeliveredCheck(lSealItem.LWorkId);
             if ((lSealProducing || lSealUndelivered) && LSealReach(lSealItem.LWorkRelayTarget, lSealNode))
             {
                 return false;
             }
         }
 
-        foreach (PTabRecord lSealOther in lSealTabset.PTabsetRecords)
+        foreach (LSealNode lSealOther in lSealNodes)
         {
-            if (lSealOther.PTabId == lSealNode
-                || lSealOther.PTabWorkspace.PWorkspaceSurface is not PMergeTab
-                || lSealOther.PTabWorkspace.PWorkspaceSurface.PTabList is not { } lSealOtherList
-                || lSealFired.Contains((lSealCohort, lSealOther.PTabId))
-                || !LSealCohortsHeld(lSealOtherList).Contains(lSealCohort))
+            if (lSealOther.LSealNodeId == lSealNode
+                || !lSealOther.LSealNodeMerge
+                || lSealFired.Contains((lSealCohort, lSealOther.LSealNodeId))
+                || !lSealOther.LSealNodeCohorts.Contains(lSealCohort))
             {
                 continue;
             }
 
-            if (LSealReach(lSealOther.PTabId, lSealNode))
+            if (LSealReach(lSealOther.LSealNodeId, lSealNode))
             {
                 return false;
             }
@@ -242,7 +254,7 @@ public static class LSeal
         var lSealSeen = new HashSet<Guid>();
         Guid lSealCurrent = lSealFrom;
         while (lSealCurrent != Guid.Empty
-            && lSealCurrent != LCourier.LCourierFinishTarget
+            && lSealCurrent != LCartographer.LCartographerFinishTarget
             && lSealSeen.Add(lSealCurrent))
         {
             if (lSealCurrent == lSealTarget)
@@ -256,24 +268,14 @@ public static class LSeal
         return false;
     }
 
-    private static IReadOnlyList<Guid> LSealCohortsHeld(PList lSealList) =>
-        lSealList.PListItemsRead()
-            .Where(lSealItem => lSealItem.PListItemDelivered && lSealItem.PListItemRelay != Guid.Empty)
-            .Select(lSealItem => lSealItem.PListItemRelay)
-            .Distinct()
-            .ToArray();
-
-    private static void LSealClean(IReadOnlyList<LWorkItem> lSealItems, LTabset lSealTabset)
+    private static void LSealClean(IReadOnlyList<LWorkItem> lSealItems, IReadOnlyList<LSealNode> lSealNodes)
     {
         var lSealLive = lSealItems.Select(lSealItem => lSealItem.LWorkBatchId).ToHashSet();
-        foreach (PTabRecord lSealTab in lSealTabset.PTabsetRecords)
+        foreach (LSealNode lSealNode in lSealNodes)
         {
-            if (lSealTab.PTabWorkspace.PWorkspaceSurface.PTabList is { } lSealList)
+            foreach (Guid lSealCohort in lSealNode.LSealNodeCohorts)
             {
-                foreach (Guid lSealCohort in LSealCohortsHeld(lSealList))
-                {
-                    lSealLive.Add(lSealCohort);
-                }
+                lSealLive.Add(lSealCohort);
             }
         }
 
