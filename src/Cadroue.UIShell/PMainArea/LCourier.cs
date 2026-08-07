@@ -16,7 +16,6 @@ public static class LCourier
 
     private const int LCourierFinishSlot = -2;
 
-    private static readonly Dictionary<Guid, string> lCourierStageTitles = new();
     private static readonly HashSet<Guid> lCourierDelivered = new();
     private static readonly HashSet<Guid> lCourierScheduledBatches = new();
     private static bool lCourierWatching;
@@ -31,6 +30,9 @@ public static class LCourier
         }
 
         lCourierWatching = true;
+        LCartographer.LCartographerDeliverySeam = new LCartographerDelivery(
+            LCourierTabAdd, LCourierTabPlace, LCourierTabTrack, LCourierSourceRemove, LCourierStageRun, LCourierArrive);
+        LCartographer.LCartographerScheduleSource = () => PProgram.LScheduleCurrent.LScheduleRecords;
         lCourierScheduledBatches.UnionWith(PProgram.LScheduleCurrent.LScheduleRecords
             .Select(lCourierItem => lCourierItem.LWorkBatchId)
             .Where(lCourierBatch => lCourierBatch != Guid.Empty));
@@ -49,59 +51,8 @@ public static class LCourier
             return 0;
         }
 
-        foreach (IGrouping<Guid, LWorkItem> lCourierBatch in lCourierItems.GroupBy(lCourierItem => lCourierItem.LWorkBatchId))
-        {
-            if (LRelayPlanStore.LRelayPlanRead(lCourierBatch.Key, out LRelayPlanRecord lCourierExisting))
-            {
-                LRelayStageRecord? lCourierSourceStage = lCourierExisting.LRelayStages.FirstOrDefault(
-                    lCourierStage => lCourierStage.LRelayStageId == lCourierRelaySource
-                        || lCourierStage.LRelayOriginalTab == lCourierRelaySource);
-                LRelayStageRecord? lCourierTargetStage = lCourierExisting.LRelayStages.FirstOrDefault(
-                    lCourierStage => lCourierStage.LRelayStageId == lCourierRelayTarget
-                        || lCourierStage.LRelayOriginalTab == lCourierRelayTarget);
-                Guid lCourierStableSource = lCourierSourceStage?.LRelayStageId ?? lCourierRelaySource;
-                Guid lCourierStableTarget = lCourierSourceStage?.LRelayNextStage
-                    ?? lCourierTargetStage?.LRelayStageId
-                    ?? lCourierRelayTarget;
-                foreach (LWorkItem lCourierItem in lCourierBatch)
-                {
-                    lCourierItem.LWorkRelayTarget = lCourierStableTarget;
-                    lCourierItem.LWorkRelaySource = lCourierStableSource;
-                }
-                continue;
-            }
-
-            if (lCourierRelayTarget == Guid.Empty || lCourierRelayTarget == LCourierFinishTarget)
-            {
-                foreach (LWorkItem lCourierItem in lCourierBatch)
-                {
-                    lCourierItem.LWorkRelayTarget = lCourierRelayTarget;
-                    lCourierItem.LWorkRelaySource = lCourierRelaySource;
-                }
-                continue;
-            }
-
-            LRelayPlanRecord? lCourierPlan = lCourierPreparedPlan is null
-                ? LCartographer.LCartographerPlanCreate(lCourierBatch.Key, lCourierRelayTarget)
-                : LCartographer.LCartographerPlanCopy(lCourierPreparedPlan, lCourierBatch.Key);
-            if (lCourierPlan is null || !LRelayPlanStore.LRelayPlanSave(lCourierPlan))
-            {
-                foreach (LWorkItem lCourierItem in lCourierBatch)
-                {
-                    lCourierItem.LWorkRelayTarget = lCourierRelayTarget;
-                    lCourierItem.LWorkRelaySource = lCourierRelaySource;
-                }
-                continue;
-            }
-
-            foreach (LWorkItem lCourierItem in lCourierBatch)
-            {
-                lCourierItem.LWorkRelayTarget = lCourierPlan.LRelayEntryStage;
-                lCourierItem.LWorkRelaySource = lCourierRelaySource;
-            }
-            LTraceLog.LTraceInfoRecord(
-                $"Relay plan {lCourierPlan.LRelayPlanId:N} captured {lCourierPlan.LRelayStages.Count} stable stage(s)");
-        }
+        LCartographer.LCartographerRelaySet(
+            lCourierItems, lCourierRelayTarget, lCourierRelaySource, lCourierPreparedPlan);
 
         IReadOnlyList<LWorkItem> lCourierAccepted =
             PProgram.LScheduleCurrent.LScheduleAcceptedAdd(lCourierItems);
@@ -162,31 +113,6 @@ public static class LCourier
             pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionRelayApply(
                 LCartographer.LCartographerTargetRead(pTabRecord.PTabId));
         }
-    }
-
-    public static string LCourierStageRead(Guid lCourierStageId) =>
-        lCourierStageTitles.TryGetValue(lCourierStageId, out string? lCourierTitle)
-            ? lCourierTitle
-            : string.Empty;
-
-    public static string LWorkTitleRead(LWorkItem lCourierItem)
-    {
-        string lCourierTitle = LTabset.LTabsetTitleRead(lCourierItem.LWorkRelaySource);
-        if (!string.IsNullOrWhiteSpace(lCourierTitle))
-        {
-            return lCourierTitle;
-        }
-
-        if (LRelayPlanStore.LRelayPlanRead(lCourierItem.LWorkBatchId, out LRelayPlanRecord lCourierPlan)
-            && lCourierPlan.LRelayStages.FirstOrDefault(
-                lCourierStage => lCourierStage.LRelayStageId == lCourierItem.LWorkRelaySource)
-                is { } lCourierSourceStage)
-        {
-            lCourierStageTitles[lCourierSourceStage.LRelayStageId] = lCourierSourceStage.LRelayTitle;
-            return lCourierSourceStage.LRelayTitle;
-        }
-
-        return lCourierItem.LWorkTab;
     }
 
     public static IReadOnlyList<LCourierOption> LCourierOptionsRead(Guid lCourierSourceTab)
@@ -384,14 +310,7 @@ public static class LCourier
                 lCourierDispatchPending = false;
                 foreach (LWorkItem lWorkItem in lCourierSchedule.LScheduleRecords.ToArray())
                 {
-                    bool lCourierPlanOwned = LCartographer.LCartographerOwnershipCheck(lWorkItem);
-                    bool lCourierOwnerEligible = lWorkItem.LWorkOwnerProcess == Environment.ProcessId
-                        || lCourierPlanOwned && !LSentinel.LSentinelOwnerCheck(
-                            lWorkItem.LWorkOwnerProcess, lWorkItem.LWorkOwnerStamp);
-                    if (lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
-                        || lWorkItem.LWorkRelayTarget == Guid.Empty
-                        || !lCourierOwnerEligible
-                        || lCourierDelivered.Contains(lWorkItem.LWorkId))
+                    if (!LCartographer.LCartographerDeliverableCheck(lWorkItem, lCourierDelivered))
                     {
                         continue;
                     }
@@ -399,7 +318,7 @@ public static class LCourier
                     lCourierDelivered.Add(lWorkItem.LWorkId);
                     try
                     {
-                        if (!LCourierOutputAdd(lWorkItem))
+                        if (!LCartographer.LCartographerDeliver(lWorkItem))
                         {
                             lCourierDelivered.Remove(lWorkItem.LWorkId);
                         }
@@ -454,61 +373,46 @@ public static class LCourier
         }
     }
 
-    private static bool LCourierOutputAdd(LWorkItem lWorkItem)
+    private static bool LCourierTabAdd(Guid lCourierTargetTab, string lCourierPath, Guid lCourierBatch)
     {
-        if (lWorkItem.LWorkRelayTarget == LCourierFinishTarget)
-        {
-            LTraceLog.LTraceInfoRecord($"Relay finished '{lWorkItem.LWorkOutputName}': removed at source, delivered to no tab");
-            LCourierSourceRemove(lWorkItem, true);
-            return true;
-        }
-
-        if (string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath) || !File.Exists(lWorkItem.LWorkOutputPath))
-        {
-            LTraceLog.LTraceWarningRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the output file is missing");
-            return false;
-        }
-
-        if (LRelayPlanStore.LRelayPlanRead(lWorkItem.LWorkBatchId, out LRelayPlanRecord lCourierPlan)
-            && lCourierPlan.LRelayStages.FirstOrDefault(
-                lCourierStage => lCourierStage.LRelayStageId == lWorkItem.LWorkRelayTarget) is { } lCourierStage)
-        {
-            if (!LCourierOutputAdd(lWorkItem, lCourierPlan, lCourierStage))
-            {
-                return false;
-            }
-
-            LCourierSourceRemove(lWorkItem, false);
-            return true;
-        }
-
-        if (LCourierTabFind(lWorkItem.LWorkRelayTarget) is not { } pCourierTarget
+        if (LCourierTabFind(lCourierTargetTab) is not { } pCourierTarget
             || pCourierTarget.PTabWorkspace.PWorkspaceSurface.PTabList is not { } pCourierList)
         {
-            LTraceLog.LTraceWarningRecord($"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab is gone");
+            LTraceLog.LTraceWarningRecord($"Relay skipped '{Path.GetFileName(lCourierPath)}': the destination tab is gone");
             return false;
         }
 
-        int lCourierAdded = pCourierList.PListPathsAdd(
-            new[] { lWorkItem.LWorkOutputPath }, lWorkItem.LWorkBatchId, true);
+        int lCourierAdded = pCourierList.PListPathsAdd(new[] { lCourierPath }, lCourierBatch, true);
         bool lCourierAccepted = lCourierAdded > 0 || pCourierList.PListPathsRead().Any(
-            lCourierPath => string.Equals(
-                lCourierPath, lWorkItem.LWorkOutputPath, StringComparison.OrdinalIgnoreCase));
+            lCourierExisting => string.Equals(lCourierExisting, lCourierPath, StringComparison.OrdinalIgnoreCase));
         if (!lCourierAccepted)
         {
             LTraceLog.LTraceWarningRecord(
-                $"Relay skipped '{lWorkItem.LWorkOutputName}': the destination tab rejected the output");
+                $"Relay skipped '{Path.GetFileName(lCourierPath)}': the destination tab rejected the output");
             return false;
         }
 
         LTraceLog.LTraceInfoRecord(
             lCourierAdded > 0
-                ? $"Relay added '{lWorkItem.LWorkOutputName}' to tab '{pCourierTarget.PTabTitle}'"
-                : $"Relay left '{lWorkItem.LWorkOutputName}' out of tab '{pCourierTarget.PTabTitle}': already listed");
-
-        LCourierSourceRemove(lWorkItem, false);
-        LCourierArrive(lWorkItem.LWorkRelayTarget, lWorkItem.LWorkOutputPath, lWorkItem.LWorkBatchId);
+                ? $"Relay added '{Path.GetFileName(lCourierPath)}' to tab '{pCourierTarget.PTabTitle}'"
+                : $"Relay left '{Path.GetFileName(lCourierPath)}' out of tab '{pCourierTarget.PTabTitle}': already listed");
         return true;
+    }
+
+    private static void LCourierTabPlace(Guid lCourierOriginalTab, string lCourierPath, Guid lCourierBatch)
+    {
+        if (LCourierTabFind(lCourierOriginalTab)?.PTabWorkspace.PWorkspaceSurface.PTabList is { } lCourierList)
+        {
+            lCourierList.PListPathsAdd(new[] { lCourierPath }, lCourierBatch, true);
+        }
+    }
+
+    private static void LCourierTabTrack(Guid lCourierOriginalTab, string lCourierPath, Guid lCourierBatch)
+    {
+        if (LCourierTabFind(lCourierOriginalTab)?.PTabWorkspace.PWorkspaceSurface.PTabList is { } lCourierList)
+        {
+            lCourierList.PListPathsTrack(new[] { lCourierPath }, lCourierBatch);
+        }
     }
 
     private static void LCourierSourceRemove(LWorkItem lWorkItem, bool lCourierForce)
@@ -561,97 +465,26 @@ public static class LCourier
     private static PTabRecord? LCourierTabFind(Guid lCourierTabId) =>
         LTabset.LTabsetCurrent?.PTabsetRecords.FirstOrDefault(pTabRecord => pTabRecord.PTabId == lCourierTabId);
 
-    private static bool LCourierOutputAdd(
-        LWorkItem lCourierItem,
-        LRelayPlanRecord lCourierPlan,
-        LRelayStageRecord lCourierStage)
+    private static bool LCourierStageRun(LCartographerStagePlan lCourierPlan)
     {
-        if (lCourierPlan.LRelayDeliveredWork.Contains(lCourierItem.LWorkId))
+        bool LCourierPlanRun()
         {
-            return true;
-        }
-
-        LCourierStageArrive(
-            lCourierPlan, lCourierStage, lCourierItem.LWorkOutputPath,
-            lCourierItem.LWorkRelaySource, lCourierItem.LWorkBatchId);
-        lCourierPlan.LRelayDeliveredWork.Add(lCourierItem.LWorkId);
-        return LRelayPlanStore.LRelayPlanSave(lCourierPlan);
-    }
-
-    private static void LCourierStageArrive(
-        LRelayPlanRecord lCourierPlan,
-        LRelayStageRecord lCourierStage,
-        string lCourierPath,
-        Guid lCourierSourceStage,
-        Guid lCourierBatch)
-    {
-        lCourierStage.LRelayPendingInputs.Add(new LRelayInputRecord
-        {
-            LRelayPath = lCourierPath,
-            LRelaySourceStage = lCourierSourceStage
-        });
-        LRelayPlanStore.LRelayPlanSave(lCourierPlan);
-
-        if (!lCourierStage.LRelayLayout.LSceneAutoRelay)
-        {
-            if (LCourierTabFind(lCourierStage.LRelayOriginalTab)?.PTabWorkspace.PWorkspaceSurface.PTabList is { } lCourierList)
-            {
-                lCourierList.PListPathsAdd(new[] { lCourierPath }, lCourierBatch, true);
-            }
-            LTraceLog.LTraceInfoRecord(
-                $"Relay plan {lCourierPlan.LRelayPlanId:N} paused at stage '{lCourierStage.LRelayTitle}'");
-            return;
-        }
-
-        if (string.Equals(lCourierStage.LRelayLayoutKey, "Funnel", StringComparison.Ordinal))
-        {
-            Guid lCourierTargetId = LCartographer.LCartographerRouteRead(lCourierStage, lCourierPath);
-            if (lCourierPlan.LRelayStages.FirstOrDefault(
-                lCourierCandidate => lCourierCandidate.LRelayStageId == lCourierTargetId) is { } lCourierTarget)
-            {
-                LCourierStageArrive(
-                    lCourierPlan, lCourierTarget, lCourierPath,
-                    lCourierStage.LRelayStageId, lCourierBatch);
-            }
-            lCourierStage.LRelayPendingInputs.Clear();
-            return;
-        }
-
-        if (LCourierTabFind(lCourierStage.LRelayOriginalTab)?
-            .PTabWorkspace.PWorkspaceSurface.PTabList is { } lCourierVisibleList)
-        {
-            lCourierVisibleList.PListPathsTrack(new[] { lCourierPath }, lCourierBatch);
-        }
-
-        if (string.Equals(lCourierStage.LRelayLayoutKey, "Merge", StringComparison.Ordinal)
-            && LCartographer.LCartographerMergeCheck(
-                lCourierPlan, lCourierStage, lCourierBatch, PProgram.LScheduleCurrent.LScheduleRecords))
-        {
-            return;
-        }
-
-        void LCourierPlanRun()
-        {
-            LPreset lCourierPreset = LPreset.LPresetStateCreate(lCourierStage.LRelayExport);
+            LPreset lCourierPreset = LPreset.LPresetStateCreate(lCourierPlan.LCartographerExport);
             var lCourierWorkspace = new PWorkspace(
-                lCourierStage.LRelayLayoutKey, lCourierPreset, lCourierStage.LRelayLayout.LSceneTabClone());
+                lCourierPlan.LCartographerLayoutKey, lCourierPreset, lCourierPlan.LCartographerLayout);
             try
             {
                 PTabSurface lCourierSurface = lCourierWorkspace.PWorkspaceSurface;
                 if (lCourierSurface.PTabAction is not { } lCourierAction || lCourierSurface.PTabList is not { } lCourierList)
                 {
-                    return;
+                    return false;
                 }
 
-                lCourierAction.PActionSourceTab = lCourierStage.LRelayStageId;
-                lCourierAction.PActionPlanApply(lCourierStage.LRelayNextStage);
-                lCourierStageTitles[lCourierStage.LRelayStageId] = lCourierStage.LRelayTitle;
-                string[] lCourierPaths = lCourierStage.LRelayPendingInputs
-                    .Select(lCourierInput => lCourierInput.LRelayPath)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToArray();
-                lCourierList.PListPathsAdd(lCourierPaths, lCourierBatch, true);
-                if (string.Equals(lCourierStage.LRelayLayoutKey, "Merge", StringComparison.Ordinal))
+                lCourierAction.PActionSourceTab = lCourierPlan.LCartographerStageId;
+                lCourierAction.PActionPlanApply(lCourierPlan.LCartographerNextStage);
+                string[] lCourierPaths = lCourierPlan.LCartographerPaths.ToArray();
+                lCourierList.PListPathsAdd(lCourierPaths, lCourierPlan.LCartographerBatch, true);
+                if (lCourierPlan.LCartographerMerge)
                 {
                     lCourierAction.PActionAllRun();
                 }
@@ -659,8 +492,7 @@ public static class LCourier
                 {
                     lCourierAction.PActionItemsRun(lCourierPaths);
                 }
-                lCourierStage.LRelayPendingInputs.Clear();
-                LRelayPlanStore.LRelayPlanSave(lCourierPlan);
+                return true;
             }
             finally
             {
@@ -671,12 +503,10 @@ public static class LCourier
         if (System.Windows.Application.Current?.Dispatcher is { } lCourierDispatcher
             && !lCourierDispatcher.CheckAccess())
         {
-            lCourierDispatcher.Invoke(LCourierPlanRun);
+            return lCourierDispatcher.Invoke(LCourierPlanRun);
         }
-        else
-        {
-            LCourierPlanRun();
-        }
+
+        return LCourierPlanRun();
     }
 
 }

@@ -1,6 +1,7 @@
 using System.IO;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -102,7 +103,7 @@ public sealed partial class PRoster
 
     private static string PLineageTabRead(LWorkItem pWorkItem)
     {
-        string pTabName = LCourier.LWorkTitleRead(pWorkItem);
+        string pTabName = LCartographer.LCartographerTitleRead(pWorkItem);
 
         return LLocalization.LLocalizationFormat(
             "Roster.Lineage.Step",

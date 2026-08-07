@@ -47,6 +47,7 @@ public partial class PProgram : System.Windows.Application
                     pTab.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab)).ToArray()
             ?? (IReadOnlyList<Cadroue.MigrationInterface.LCartographerTab>)Array.Empty<Cadroue.MigrationInterface.LCartographerTab>();
         Cadroue.MigrationInterface.LMessenger.LMessengerTitleSource = PControlBar.LTabset.LTabsetTitleRead;
+        Cadroue.MigrationInterface.LCartographer.LCartographerTitleSource = PControlBar.LTabset.LTabsetTitleRead;
         Cadroue.MigrationInterface.LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 PMainArea.LCourier.LCourierScheduleAdd(lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
