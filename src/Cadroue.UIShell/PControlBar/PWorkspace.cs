@@ -183,18 +183,7 @@ public sealed class PWorkspace
 
         if (PWorkspaceFlow is { } pFlow)
         {
-            lRelay.LRelaySections = pFlow.PFlowSectionsRead()
-                .Select(lSegment => new LRelaySectionRecord
-                {
-                    LRelayStartTicks = lSegment.LSegmentStart.Ticks,
-                    LRelayEndTicks = lSegment.LSegmentEnd.Ticks,
-                    LRelayColorIndex = lSegment.LSegmentColorIndex,
-                    LRelayName = lSegment.LSegmentName,
-                    LRelayPrefix = lSegment.LSegmentPrefix,
-                    LRelaySuffix = lSegment.LSegmentSuffix,
-                    LRelayHidden = lSegment.LSegmentHidden
-                })
-                .ToList();
+            lRelay.LRelaySections = LRelayPayload.LRelayRecordsCreate(pFlow.PFlowSectionsRead());
             lRelay.LRelaySectionIndex = pFlow.PFlowSelectionRead();
         }
 
@@ -208,18 +197,7 @@ public sealed class PWorkspace
             return;
         }
 
-        IReadOnlyList<LSegment> lRelaySections = lRelay.LRelaySections
-            .Select(lSection => new LSegment(
-                TimeSpan.FromTicks(lSection.LRelayStartTicks),
-                TimeSpan.FromTicks(lSection.LRelayEndTicks),
-                lSection.LRelayColorIndex,
-                lSection.LRelayName)
-            {
-                LSegmentPrefix = lSection.LRelayPrefix,
-                LSegmentSuffix = lSection.LRelaySuffix,
-                LSegmentHidden = lSection.LRelayHidden
-            })
-            .ToList();
+        IReadOnlyList<LSegment> lRelaySections = LRelayPayload.LRelaySegmentsCreate(lRelay.LRelaySections);
         int? lRelaySectionSelect = lRelay.LRelaySectionIndex;
         PViewer pRelayViewer = PWorkspaceViewer;
 

@@ -127,6 +127,7 @@ public partial class PProgram : System.Windows.Application
             });
 
         Cadroue.Media.LTool.LToolFolderSource = () => LRenderer.LRendererFolderCurrent;
+        PFlow.PFlow.PFlowSidecarSource = LSidecarSectionsRead;
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
         PPanels.PSEncoder.PSCodecProbeStart();
@@ -219,6 +220,24 @@ public partial class PProgram : System.Windows.Application
             lDepotRootApplied = null;
             LTraceLog.LTraceErrorRecord("Workspace folder could not be prepared", lException);
         }
+    }
+
+    private static IReadOnlyList<Cadroue.Media.LSidecarSectionRecord> LSidecarSectionsRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            string lSidecarPath = Cadroue.Media.LSidecarStore.LSidecarPathRead(lSidecarSourcePath);
+            if (Cadroue.Media.LSidecarStore.LSidecarRead(lSidecarPath) is { } lSidecar)
+            {
+                return lSidecar.LSidecarSections;
+            }
+        }
+        catch (Exception lSidecarException)
+        {
+            LTraceLog.LTraceErrorRecord("Sidecar sections could not be restored", lSidecarException);
+        }
+
+        return Array.Empty<Cadroue.Media.LSidecarSectionRecord>();
     }
 
     private static void LScheduleRecoverRun()

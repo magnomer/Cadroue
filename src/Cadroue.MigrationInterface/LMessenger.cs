@@ -91,7 +91,7 @@ public static class LMessenger
     {
         LEncoding lMessengerOutput = lMessengerPreset.LPresetOutputCreate();
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
-        Guid lMessengerLooseBatch = Guid.NewGuid();
+        Guid lMessengerLooseBatch = Cadroue.Application.LGate.LGateBatchCreate();
         var lMessengerItems = new List<LWorkItem>();
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
@@ -343,7 +343,7 @@ public static class LMessenger
     {
         LEncoding lMessengerOutput = lMessengerPreset.LPresetOutputCreate();
         var lMessengerItems = new List<LWorkItem>();
-        Guid lMessengerLooseBatch = Guid.NewGuid();
+        Guid lMessengerLooseBatch = Cadroue.Application.LGate.LGateBatchCreate();
 
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {

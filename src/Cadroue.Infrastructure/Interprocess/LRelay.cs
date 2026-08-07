@@ -30,3 +30,34 @@ public sealed class LRelay
 
     public string LRelayId { get; set; } = string.Empty;
 }
+
+public static class LRelayPayload
+{
+    public static List<LRelaySectionRecord> LRelayRecordsCreate(IReadOnlyList<LSegment> lRelaySegments) =>
+        lRelaySegments
+            .Select(lRelaySegment => new LRelaySectionRecord
+            {
+                LRelayStartTicks = lRelaySegment.LSegmentStart.Ticks,
+                LRelayEndTicks = lRelaySegment.LSegmentEnd.Ticks,
+                LRelayColorIndex = lRelaySegment.LSegmentColorIndex,
+                LRelayName = lRelaySegment.LSegmentName,
+                LRelayPrefix = lRelaySegment.LSegmentPrefix,
+                LRelaySuffix = lRelaySegment.LSegmentSuffix,
+                LRelayHidden = lRelaySegment.LSegmentHidden
+            })
+            .ToList();
+
+    public static IReadOnlyList<LSegment> LRelaySegmentsCreate(IReadOnlyList<LRelaySectionRecord> lRelaySections) =>
+        lRelaySections
+            .Select(lRelaySection => new LSegment(
+                TimeSpan.FromTicks(lRelaySection.LRelayStartTicks),
+                TimeSpan.FromTicks(lRelaySection.LRelayEndTicks),
+                lRelaySection.LRelayColorIndex,
+                lRelaySection.LRelayName)
+            {
+                LSegmentPrefix = lRelaySection.LRelayPrefix,
+                LSegmentSuffix = lRelaySection.LRelaySuffix,
+                LSegmentHidden = lRelaySection.LRelayHidden
+            })
+            .ToList();
+}

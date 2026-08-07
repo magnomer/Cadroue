@@ -23,12 +23,6 @@ public sealed partial class PList : PPanel
     private static readonly Brush pListLockedBrush = new SolidColorBrush(Color.FromRgb(0xF3, 0xF5, 0xF8));
     private static readonly Brush pListLockedAccent = new SolidColorBrush(Color.FromRgb(0xE4, 0xEB, 0xF3));
 
-    private static readonly string[] pListMediaExtensions =
-    [
-        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts", ".mts", ".m2ts",
-        ".mp3", ".aac", ".flac", ".wav", ".ogg"
-    ];
-
     public const double PListStripWidth = 48;
     public const string PListDragKind = "CadrouePaths";
 
@@ -186,7 +180,7 @@ public sealed partial class PList : PPanel
     public int PListPathsUnlock(IEnumerable<(string PListPath, Guid PListBatch)> pListUnlocks)
     {
         int pListUnlocked = 0;
-        Guid pListRelay = Guid.NewGuid();
+        Guid pListRelay = Cadroue.Application.LGate.LGateBatchCreate();
         foreach ((string pListPath, Guid pListBatch) in pListUnlocks)
         {
             PListItem? pListItem = pListItems.FirstOrDefault(pExisting => string.Equals(
@@ -259,7 +253,7 @@ public sealed partial class PList : PPanel
 
         if (pAddRelay == Guid.Empty)
         {
-            pAddRelay = Guid.NewGuid();
+            pAddRelay = Cadroue.Application.LGate.LGateBatchCreate();
         }
 
         var pAddedItems = new List<PListItem>();
@@ -287,7 +281,7 @@ public sealed partial class PList : PPanel
     }
 
     public static bool PListMediaCheck(string pMediaPath) =>
-        pListMediaExtensions.Contains(Path.GetExtension(pMediaPath), StringComparer.OrdinalIgnoreCase);
+        Cadroue.Media.LMedia.LMediaCheck(pMediaPath);
 
     public static IReadOnlyList<string> PListMediaScan(IEnumerable<string> pScanPaths)
     {

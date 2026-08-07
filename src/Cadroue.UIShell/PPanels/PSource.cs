@@ -121,7 +121,7 @@ public sealed class PSource : UserControl
             Filter = PSourceFilterRead()
         };
         if (pDialog.ShowDialog() != true) return;
-        if (PSourceAudioCheck(pDialog.FileName) && !pSourceAudioAllowed)
+        if (Cadroue.Media.LMedia.LMediaAudioCheck(pDialog.FileName) && !pSourceAudioAllowed)
         {
             MessageBox.Show(LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
@@ -133,30 +133,23 @@ public sealed class PSource : UserControl
 
     private string PSourceFilterRead()
     {
-        const string pVideoPattern = "*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.ts;*.mts;*.m2ts";
-        const string pAudioPattern = "*.mp3;*.aac;*.flac;*.wav;*.ogg";
+        string pVideoPattern = PSourcePatternRead(Cadroue.Media.LMedia.LMediaVideoExtensions);
+        string pAudioPattern = PSourcePatternRead(Cadroue.Media.LMedia.LMediaAudioExtensions);
         const string pSidecarPattern = "*.cad";
         return pSourceAudioAllowed
             ? LLocalization.LLocalizationFormat("Source.Dialog.MediaProjectFilter", pVideoPattern, pAudioPattern, pSidecarPattern)
             : LLocalization.LLocalizationFormat("Source.Dialog.VideoProjectFilter", pVideoPattern, pSidecarPattern);
     }
 
-    private static bool PSourceAudioCheck(string pSourcePath)
-    {
-        string pExtension = System.IO.Path.GetExtension(pSourcePath);
-        return pExtension.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
-            || pExtension.Equals(".aac", StringComparison.OrdinalIgnoreCase)
-            || pExtension.Equals(".flac", StringComparison.OrdinalIgnoreCase)
-            || pExtension.Equals(".wav", StringComparison.OrdinalIgnoreCase)
-            || pExtension.Equals(".ogg", StringComparison.OrdinalIgnoreCase);
-    }
+    private static string PSourcePatternRead(IReadOnlyList<string> pSourceExtensions) =>
+        string.Join(";", pSourceExtensions.Select(pSourceExtension => $"*{pSourceExtension}"));
 
     private void PSourceKeyHandle(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Return) return;
         string pPath = pSourcePathBox.Text.Trim();
         if (!File.Exists(pPath)) return;
-        if (PSourceAudioCheck(pPath) && !pSourceAudioAllowed)
+        if (Cadroue.Media.LMedia.LMediaAudioCheck(pPath) && !pSourceAudioAllowed)
         {
             MessageBox.Show(LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
                 MessageBoxButton.OK, MessageBoxImage.Information);

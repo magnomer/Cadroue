@@ -131,6 +131,6 @@ public sealed partial class PRoster
 
         PStrip.PStripCurrent?.PStripSelect(pTargetRecord);
         pTargetList.PListClear();
-        pTargetList.PListPathsAdd(pRelayPaths, Guid.NewGuid());
+        pTargetList.PListPathsAdd(pRelayPaths, Cadroue.Application.LGate.LGateBatchCreate());
     }
 }

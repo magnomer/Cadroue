@@ -142,17 +142,11 @@ public sealed partial class PFlow : UserControl
             return;
         }
 
-        try
+        IReadOnlyList<Cadroue.Media.LSidecarSectionRecord> pFlowSections =
+            PFlowSidecarSource?.Invoke(pFlowSourcePath) ?? Array.Empty<Cadroue.Media.LSidecarSectionRecord>();
+        if (pFlowSections.Count > 0)
         {
-            string pFlowSidecarPath = Cadroue.Media.LSidecarStore.LSidecarPathRead(pFlowSourcePath);
-            if (Cadroue.Media.LSidecarStore.LSidecarRead(pFlowSidecarPath) is { } pFlowSidecar)
-            {
-                PFlowSidecarApply(pFlowSidecar.LSidecarSections);
-            }
-        }
-        catch (Exception pFlowException)
-        {
-            LTraceLog.LTraceErrorRecord("Sidecar sections could not be restored", pFlowException);
+            PFlowSidecarApply(pFlowSections);
         }
     }
 

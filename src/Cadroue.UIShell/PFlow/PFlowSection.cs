@@ -15,6 +15,8 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow
 {
+    public static Func<string, IReadOnlyList<Cadroue.Media.LSidecarSectionRecord>>? PFlowSidecarSource { get; set; }
+
     private bool pFlowSectionEditable = true;
 
     public void PFlowEditSet(bool pFlowSectionEdit) =>

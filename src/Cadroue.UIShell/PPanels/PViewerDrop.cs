@@ -78,7 +78,7 @@ public sealed partial class PViewer
         }
 
         string? pSourcePath = PDropPathRead(dragEvent);
-        if (pSourcePath is null || PDropAudioCheck(pSourcePath) && !pViewerAudioAllowed)
+        if (pSourcePath is null || Cadroue.Media.LMedia.LMediaAudioCheck(pSourcePath) && !pViewerAudioAllowed)
         {
             return DragDropEffects.None;
         }
@@ -101,16 +101,6 @@ public sealed partial class PViewer
             return DragDropEffects.Link;
         }
         return DragDropEffects.None;
-    }
-
-    private static bool PDropAudioCheck(string sourcePath)
-    {
-        string extension = Path.GetExtension(sourcePath);
-        return extension.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
-            || extension.Equals(".aac", StringComparison.OrdinalIgnoreCase)
-            || extension.Equals(".flac", StringComparison.OrdinalIgnoreCase)
-            || extension.Equals(".wav", StringComparison.OrdinalIgnoreCase)
-            || extension.Equals(".ogg", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string? PDropPathRead(DragEventArgs dragEvent)
