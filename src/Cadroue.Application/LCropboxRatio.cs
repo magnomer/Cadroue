@@ -133,6 +133,81 @@ public sealed partial record LCropbox
         return (LCropboxEvenCeilResolve(lCropboxExcess), lCropboxIsWide);
     }
 
+    public static (double Left, double Top, double Right, double Bottom)? LCropboxLockResolve(
+        double lCropboxSourceWidth,
+        double lCropboxSourceHeight,
+        double lCropboxLeft,
+        double lCropboxTop,
+        double lCropboxRight,
+        double lCropboxBottom,
+        bool lCropboxLeftLock,
+        bool lCropboxTopLock,
+        bool lCropboxRightLock,
+        bool lCropboxBottomLock,
+        double lCropboxRatioWidth,
+        double lCropboxRatioHeight,
+        bool lCropboxHorizontal)
+    {
+        double lCropboxWidth = lCropboxSourceWidth - lCropboxLeft - lCropboxRight;
+        double lCropboxHeight = lCropboxSourceHeight - lCropboxTop - lCropboxBottom;
+        if (lCropboxWidth <= 0 || lCropboxHeight <= 0
+            || lCropboxRatioWidth <= 0 || lCropboxRatioHeight <= 0)
+        {
+            return null;
+        }
+
+        if (lCropboxHorizontal)
+        {
+            if (lCropboxTopLock && lCropboxBottomLock)
+            {
+                return null;
+            }
+
+            double lCropboxTargetHeight = LCropboxEvenNormalize(lCropboxWidth * lCropboxRatioHeight / lCropboxRatioWidth);
+            if (lCropboxTargetHeight <= 0 || lCropboxTargetHeight > lCropboxSourceHeight)
+            {
+                return null;
+            }
+
+            double lCropboxNewTop = lCropboxBottomLock
+                ? lCropboxSourceHeight - lCropboxBottom - lCropboxTargetHeight
+                : lCropboxTop;
+            double lCropboxNewBottom = lCropboxBottomLock
+                ? lCropboxBottom
+                : lCropboxSourceHeight - lCropboxTop - lCropboxTargetHeight;
+            if (lCropboxNewTop < 0 || lCropboxNewBottom < 0)
+            {
+                return null;
+            }
+
+            return (lCropboxLeft, lCropboxNewTop, lCropboxRight, lCropboxNewBottom);
+        }
+
+        if (lCropboxLeftLock && lCropboxRightLock)
+        {
+            return null;
+        }
+
+        double lCropboxTargetWidth = LCropboxEvenNormalize(lCropboxHeight * lCropboxRatioWidth / lCropboxRatioHeight);
+        if (lCropboxTargetWidth <= 0 || lCropboxTargetWidth > lCropboxSourceWidth)
+        {
+            return null;
+        }
+
+        double lCropboxNewLeft = lCropboxRightLock
+            ? lCropboxSourceWidth - lCropboxRight - lCropboxTargetWidth
+            : lCropboxLeft;
+        double lCropboxNewRight = lCropboxRightLock
+            ? lCropboxRight
+            : lCropboxSourceWidth - lCropboxLeft - lCropboxTargetWidth;
+        if (lCropboxNewLeft < 0 || lCropboxNewRight < 0)
+        {
+            return null;
+        }
+
+        return (lCropboxNewLeft, lCropboxTop, lCropboxNewRight, lCropboxBottom);
+    }
+
     public static double LCropboxEvenNormalize(double lCropboxValue)
     {
         int lCropboxWhole = (int)Math.Floor(lCropboxValue);

@@ -47,6 +47,7 @@ public sealed partial class PInspector
     private bool pInspectorCropSuppress;
     private bool pInspectorRatioSuppress;
     private bool pInspectorCropPresent;
+    private readonly bool[] pInspectorEdgeLocked = new bool[4];
 
     public event Action<bool>? PInspectorToolChange;
 
@@ -90,6 +91,7 @@ public sealed partial class PInspector
 
     public void PCropPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply)
     {
+        PInspectorEdgeLockClear();
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         try
@@ -147,6 +149,7 @@ public sealed partial class PInspector
 
     private void PInspectorCropReset()
     {
+        PInspectorEdgeLockClear();
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         try
@@ -220,59 +223,29 @@ public sealed partial class PInspector
             return;
         }
 
+        TextBox pEdgeBox = pEdge switch
+        {
+            0 => pInspectorInsetLeft,
+            2 => pInspectorInsetRight,
+            1 => pInspectorInsetTop,
+            _ => pInspectorInsetBottom
+        };
+        pInspectorEdgeLocked[pEdge] = !string.IsNullOrWhiteSpace(pEdgeBox.Text);
+
         if (pInspectorRatioFixed.IsChecked == true && pInspectorSourcePresent && !pInspectorRatioSuppress)
         {
-            PInspectorInsetRatioResolve(pEdge);
+            PInspectorRatioResolve(pEdge);
         }
 
         PInspectorRatioUpdate();
         PInspectorCropRaise();
     }
 
-    private void PInspectorInsetRatioResolve(int pEdge)
-    {
-        double pLeft = Math.Max(0, PInspectorNumberRead(pInspectorInsetLeft));
-        double pTop = Math.Max(0, PInspectorNumberRead(pInspectorInsetTop));
-        double pRight = Math.Max(0, PInspectorNumberRead(pInspectorInsetRight));
-        double pBottom = Math.Max(0, PInspectorNumberRead(pInspectorInsetBottom));
-        double pWidth = pInspectorSourceWidth - pLeft - pRight;
-        double pHeight = pInspectorSourceHeight - pTop - pBottom;
-        if (pWidth <= 0 || pHeight <= 0)
-        {
-            return;
-        }
-
-        (int pDrive, int pAnchorX, int pAnchorY) = pEdge switch
-        {
-            0 => (0, -1, -1),
-            2 => (0, 1, -1),
-            1 => (1, -1, -1),
-            _ => (1, -1, 1)
-        };
-
-        Rect? pFit = PInspectorRatioAnchorFit(new Rect(pLeft, pTop, pWidth, pHeight), pDrive, pAnchorX, pAnchorY);
-        if (pFit is not { } pRect)
-        {
-            return;
-        }
-
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        pInspectorCropSuppress = true;
-        try
-        {
-            pInspectorInsetLeft.Text = PInspectorEdgeFormat(pRect.X);
-            pInspectorInsetTop.Text = PInspectorEdgeFormat(pRect.Y);
-            pInspectorInsetRight.Text = PInspectorEdgeFormat(pInspectorSourceWidth - pRect.Right);
-            pInspectorInsetBottom.Text = PInspectorEdgeFormat(pInspectorSourceHeight - pRect.Bottom);
-        }
-        finally
-        {
-            pInspectorCropSuppress = pCropSuppressPrevious;
-        }
-    }
+    private void PInspectorEdgeLockClear() => Array.Clear(pInspectorEdgeLocked);
 
     public void PInspectorCropSet(Rect? pCropVideo, int pDriveAxis, int pAnchorX, int pAnchorY)
     {
+        PInspectorEdgeLockClear();
         Rect? pCropSnapped = pCropVideo is { Width: > 0, Height: > 0 } pCropDrawn
             ? PInspectorRatioAnchorFit(pCropDrawn, pDriveAxis, pAnchorX, pAnchorY) ?? pCropDrawn
             : pCropVideo;
@@ -383,6 +356,7 @@ public sealed partial class PInspector
 
     private void PInspectorEdgesReset()
     {
+        PInspectorEdgeLockClear();
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         try
@@ -461,6 +435,7 @@ public sealed partial class PInspector
 
     public void PInspectorRatioReset()
     {
+        PInspectorEdgeLockClear();
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         bool pRatioSuppressPrevious = pInspectorRatioSuppress;
         pInspectorCropSuppress = true;

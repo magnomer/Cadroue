@@ -60,8 +60,45 @@ public sealed partial class PInspector
         }
     }
 
+    private void PInspectorRatioResolve(int pEdge)
+    {
+        (double Left, double Top, double Right, double Bottom)? pFit = LCropbox.LCropboxLockResolve(
+            pInspectorSourceWidth,
+            pInspectorSourceHeight,
+            Math.Max(0, PInspectorNumberRead(pInspectorInsetLeft)),
+            Math.Max(0, PInspectorNumberRead(pInspectorInsetTop)),
+            Math.Max(0, PInspectorNumberRead(pInspectorInsetRight)),
+            Math.Max(0, PInspectorNumberRead(pInspectorInsetBottom)),
+            pInspectorEdgeLocked[0],
+            pInspectorEdgeLocked[1],
+            pInspectorEdgeLocked[2],
+            pInspectorEdgeLocked[3],
+            PInspectorNumberRead(pInspectorRatioWidth),
+            PInspectorNumberRead(pInspectorRatioHeight),
+            pEdge is 0 or 2);
+        if (pFit is not { } pEdges)
+        {
+            return;
+        }
+
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        pInspectorCropSuppress = true;
+        try
+        {
+            pInspectorInsetLeft.Text = PInspectorEdgeFormat(pEdges.Left);
+            pInspectorInsetTop.Text = PInspectorEdgeFormat(pEdges.Top);
+            pInspectorInsetRight.Text = PInspectorEdgeFormat(pEdges.Right);
+            pInspectorInsetBottom.Text = PInspectorEdgeFormat(pEdges.Bottom);
+        }
+        finally
+        {
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+    }
+
     private void PInspectorRatioCommit()
     {
+        PInspectorEdgeLockClear();
         PInspectorRatioUpdate();
         PInspectorRatioRaise();
     }
