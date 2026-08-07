@@ -1,6 +1,6 @@
-namespace Cadroue.MigrationInterface;
+using Cadroue.Application;
 
-public sealed record LCropbox(double LCropboxX, double LCropboxY, double LCropboxWidth, double LCropboxHeight);
+namespace Cadroue.MigrationInterface;
 
 public sealed record LColor(
     double LColorBrightness,

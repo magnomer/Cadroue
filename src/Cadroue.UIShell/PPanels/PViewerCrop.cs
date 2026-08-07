@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using Cadroue.Application;
 using Cadroue.Infrastructure;
 using Cadroue.MigrationInterface;
 
