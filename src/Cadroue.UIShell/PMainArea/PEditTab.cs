@@ -157,8 +157,8 @@ public sealed class PEditTab : PTabSurface
         {
             LEdit.LEditPlanSave(
                 pEditPath,
-                LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LSidecarStore.LSidecarEditRead), pEditCarried),
-                LSidecarStore.LSidecarEditSave);
+                LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad), pEditCarried),
+                LLibrarian.LLibrarianEditSave);
         }
     }
 
@@ -174,8 +174,8 @@ public sealed class PEditTab : PTabSurface
             string pEditPath = pEditAddedItem.PListItemPath;
             LEdit.LEditPlanSave(
                 pEditPath,
-                LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LSidecarStore.LSidecarEditRead), pEditCarried),
-                LSidecarStore.LSidecarEditSave);
+                LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad), pEditCarried),
+                LLibrarian.LLibrarianEditSave);
         }
     }
 
@@ -266,7 +266,7 @@ public sealed class PEditTab : PTabSurface
 
             LEditPlan? pEditPersistent = PEditCarriedRead();
             LEditPlan? pEditSaved = pViewer.PViewerSourcePath is { } pEditSourcePath
-                ? LEdit.LEditPlanRead(pEditSourcePath, LSidecarStore.LSidecarEditRead)
+                ? LEdit.LEditPlanRead(pEditSourcePath, LLibrarian.LLibrarianEditLoad)
                 : null;
 
             LTraceLog.LTraceInfoRecord(
@@ -478,14 +478,14 @@ public sealed class PEditTab : PTabSurface
             LEditRatioWidth = pRatioWidth,
             LEditRatioHeight = pRatioHeight
         };
-        if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath, LSidecarStore.LSidecarEditRead) is null)
+        if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath, LLibrarian.LLibrarianEditLoad) is null)
         {
             return;
         }
 
         LTraceLog.LTraceInfoRecord(
             $"Edit plan saved for '{System.IO.Path.GetFileName(pEditSourcePath)}': {PEditPlanFormat(pEditPlan)}");
-        LEdit.LEditPlanSave(pEditSourcePath, pEditPlan, LSidecarStore.LSidecarEditSave);
+        LEdit.LEditPlanSave(pEditSourcePath, pEditPlan, LLibrarian.LLibrarianEditSave);
         PEditPersistentWrite();
     }
 

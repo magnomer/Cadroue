@@ -266,16 +266,27 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LLibrarian.LLibrarianAudioSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioSave;
         Cadroue.Application.LLibrarian.LLibrarianLoudnessSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessSave;
         Cadroue.Application.LLibrarian.LLibrarianWaveformSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformSave;
+        Cadroue.Application.LLibrarian.LLibrarianFileCheckSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarFileCheck;
+        Cadroue.Application.LLibrarian.LLibrarianSourceResolveSeam = LSidecarSourceResolve;
+        Cadroue.Application.LLibrarian.LLibrarianSourceVerifySeam = LSidecarSourceVerify;
     }
+
+    private static Cadroue.Core.LSidecarSourceResult? LSidecarSourceResolve(string lSidecarPath) =>
+        Cadroue.Infrastructure.LSidecarStore.LSidecarRead(lSidecarPath) is { } lSidecar
+            ? Cadroue.Media.LSidecarSource.LSidecarSourceResolve(lSidecarPath, lSidecar)
+            : null;
+
+    private static bool LSidecarSourceVerify(string lSidecarMediaPath, string lSidecarPath) =>
+        Cadroue.Infrastructure.LSidecarStore.LSidecarRead(lSidecarPath) is { } lSidecar
+        && Cadroue.Media.LSidecarSource.LSidecarVerifyCheck(lSidecarMediaPath, lSidecar.LSidecarSource);
 
     private static IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> LSidecarSectionsRead(string lSidecarSourcePath)
     {
         try
         {
-            string lSidecarPath = Cadroue.Infrastructure.LSidecarStore.LSidecarPathRead(lSidecarSourcePath);
-            if (Cadroue.Infrastructure.LSidecarStore.LSidecarRead(lSidecarPath) is { } lSidecar)
+            if (Cadroue.Application.LLibrarian.LLibrarianLoad(lSidecarSourcePath) is { } lSidecarCore)
             {
-                return lSidecar.LSidecarSections;
+                return lSidecarCore.LSidecarSections;
             }
         }
         catch (Exception lSidecarException)

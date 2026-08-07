@@ -4,19 +4,6 @@ using Cadroue.Core;
 
 namespace Cadroue.Media;
 
-public enum LSidecarSourceKind
-{
-    LSidecarSourceSibling,
-    LSidecarSourceRelative,
-    LSidecarSourceAbsolute,
-    LSidecarSourceMissing
-}
-
-public sealed record LSidecarSourceResult(
-    string LSidecarResultPath,
-    LSidecarSourceKind LSidecarResultKind,
-    bool LSidecarResultVerified);
-
 public static class LSidecarSource
 {
     private const int LSidecarHashSize = 1024 * 1024;
@@ -34,7 +21,7 @@ public static class LSidecarSource
 
             if (LSidecarVerifyCheck(lCandidatePath, lSidecar.LSidecarSource))
             {
-                return new LSidecarSourceResult(Path.GetFullPath(lCandidatePath), lCandidateKind, true);
+                return new LSidecarSourceResult(Path.GetFullPath(lCandidatePath), lCandidateKind, true, lSidecar.LSidecarSource.LSidecarFileName);
             }
         }
 
@@ -42,11 +29,11 @@ public static class LSidecarSource
         {
             if (!string.IsNullOrWhiteSpace(lCandidatePath) && File.Exists(lCandidatePath))
             {
-                return new LSidecarSourceResult(Path.GetFullPath(lCandidatePath), lCandidateKind, false);
+                return new LSidecarSourceResult(Path.GetFullPath(lCandidatePath), lCandidateKind, false, lSidecar.LSidecarSource.LSidecarFileName);
             }
         }
 
-        return new LSidecarSourceResult(string.Empty, LSidecarSourceKind.LSidecarSourceMissing, false);
+        return new LSidecarSourceResult(string.Empty, LSidecarSourceKind.LSidecarSourceMissing, false, lSidecar.LSidecarSource.LSidecarFileName);
     }
 
     public static bool LSidecarVerifyCheck(string lSidecarMediaPath, LSidecarSourceRecord lSidecarSource)

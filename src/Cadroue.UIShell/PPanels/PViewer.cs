@@ -11,6 +11,7 @@ using FlyleafLib.Controls.WPF;
 using FlyleafLib.MediaPlayer;
 
 using Cadroue.Core;
+using Cadroue.Application;
 
 using Cadroue.Infrastructure;
 
@@ -245,7 +246,7 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
-        if (LSidecarStore.LSidecarFileCheck(sourcePath))
+        if (LLibrarian.LLibrarianFileCheck(sourcePath))
         {
             if (PViewerSidecarResolve(sourcePath) is not { } pResolvedPath)
             {
@@ -262,8 +263,8 @@ public sealed partial class PViewer : PPanel
 
     private string? PViewerSidecarResolve(string pSidecarPath)
     {
-        LSidecar? pSidecar = LSidecarStore.LSidecarRead(pSidecarPath);
-        if (pSidecar is null)
+        LSidecarSourceResult? pResult = LLibrarian.LLibrarianSourceResolve(pSidecarPath);
+        if (pResult is null)
         {
             MessageBox.Show(
                 LLocalization.LLocalizationTextRead("Viewer.Sidecar.ReadError"),
@@ -273,7 +274,6 @@ public sealed partial class PViewer : PPanel
             return null;
         }
 
-        LSidecarSourceResult pResult = LSidecarSource.LSidecarSourceResolve(pSidecarPath, pSidecar);
         if (pResult.LSidecarResultVerified)
         {
             return pResult.LSidecarResultPath;
@@ -289,15 +289,15 @@ public sealed partial class PViewer : PPanel
             return pResult.LSidecarResultPath;
         }
 
-        return PViewerSidecarFind(pSidecar);
+        return PViewerSidecarFind(pSidecarPath, pResult.LSidecarResultFileName);
     }
 
-    private string? PViewerSidecarFind(LSidecar pSidecar)
+    private string? PViewerSidecarFind(string pSidecarPath, string pSidecarFileName)
     {
         var pDialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = LLocalization.LLocalizationFormat("Viewer.Locate.Title", pSidecar.LSidecarSource.LSidecarFileName),
-            FileName = pSidecar.LSidecarSource.LSidecarFileName,
+            Title = LLocalization.LLocalizationFormat("Viewer.Locate.Title", pSidecarFileName),
+            FileName = pSidecarFileName,
             Filter = LLocalization.LLocalizationTextRead("Viewer.Dialog.MediaFilter")
         };
 
@@ -306,7 +306,7 @@ public sealed partial class PViewer : PPanel
             return null;
         }
 
-        if (LSidecarSource.LSidecarVerifyCheck(pDialog.FileName, pSidecar.LSidecarSource))
+        if (LLibrarian.LLibrarianSourceVerify(pDialog.FileName, pSidecarPath))
         {
             return pDialog.FileName;
         }

@@ -16,6 +16,10 @@ public static class LLibrarian
     public static Func<string, TimeSpan>? LLibrarianDurationReadSeam;
     public static Func<string, TimeSpan>? LLibrarianDurationResolveSeam;
 
+    public static Func<string, bool>? LLibrarianFileCheckSeam;
+    public static Func<string, LSidecarSourceResult?>? LLibrarianSourceResolveSeam;
+    public static Func<string, string, bool>? LLibrarianSourceVerifySeam;
+
     public static Func<string, LSidecarEditRecord?, bool>? LLibrarianEditSaveSeam;
     public static Func<string, LSidecarAudioRecord?, bool>? LLibrarianAudioSaveSeam;
     public static Func<string, double, bool>? LLibrarianLoudnessSaveSeam;
@@ -44,6 +48,15 @@ public static class LLibrarian
 
     public static TimeSpan LLibrarianDurationResolve(string lLibrarianSourcePath) =>
         LLibrarianDurationResolveSeam?.Invoke(lLibrarianSourcePath) ?? TimeSpan.Zero;
+
+    public static bool LLibrarianFileCheck(string lLibrarianPath) =>
+        LLibrarianFileCheckSeam?.Invoke(lLibrarianPath) ?? false;
+
+    public static LSidecarSourceResult? LLibrarianSourceResolve(string lLibrarianSidecarPath) =>
+        LLibrarianSourceResolveSeam?.Invoke(lLibrarianSidecarPath);
+
+    public static bool LLibrarianSourceVerify(string lLibrarianMediaPath, string lLibrarianSidecarPath) =>
+        LLibrarianSourceVerifySeam?.Invoke(lLibrarianMediaPath, lLibrarianSidecarPath) ?? false;
 
     public static bool LLibrarianEditSave(string lLibrarianSourcePath, LSidecarEditRecord? lLibrarianEdit) =>
         LLibrarianEditSaveSeam?.Invoke(lLibrarianSourcePath, lLibrarianEdit) ?? false;

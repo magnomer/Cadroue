@@ -36,7 +36,7 @@ public static class LMessenger
             lMessengerPriority, lMessengerSourcePath, lMessengerProcessing, lMessengerOutput, lMessengerTab,
             lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
             lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
-            Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead,
+            Cadroue.Application.LLibrarian.LLibrarianDurationRead,
             lMessengerBatchId);
         if (lMessengerItem is null)
         {
@@ -96,7 +96,7 @@ public static class LMessenger
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (Cadroue.Application.LAudio.LAudioPlanRead(lMessengerSourcePath, Cadroue.Infrastructure.LSidecarStore.LSidecarAudioRead)
+            if (Cadroue.Application.LAudio.LAudioPlanRead(lMessengerSourcePath, Cadroue.Application.LLibrarian.LLibrarianAudioLoad)
                 is not { LWorkAudioActive: true } lMessengerPlan)
             {
                 continue;
@@ -109,7 +109,7 @@ public static class LMessenger
                     lMessengerPriority, lMessengerSourcePath, lMessengerPlan, lMessengerOutput, lMessengerTab,
                     lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
                     lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
-                    Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead,
+                    Cadroue.Application.LLibrarian.LLibrarianDurationRead,
                     lMessengerBatch)
                 is { } lMessengerItem)
             {
@@ -174,8 +174,7 @@ public static class LMessenger
     {
         try
         {
-            string lMessengerSidecarPath = Cadroue.Infrastructure.LSidecarStore.LSidecarPathRead(lMessengerSourcePath);
-            if (Cadroue.Infrastructure.LSidecarStore.LSidecarRead(lMessengerSidecarPath) is not { } lMessengerSidecar)
+            if (Cadroue.Application.LLibrarian.LLibrarianLoad(lMessengerSourcePath) is not { } lMessengerSidecar)
             {
                 return Array.Empty<LSplitSectionDescription>();
             }
@@ -278,7 +277,7 @@ public static class LMessenger
             Cadroue.Application.LConvert.LConvertItemsCreate(
                 lMessengerPriority, lMessengerDescription, lMessengerTab,
                 lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
-                Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead);
+                Cadroue.Application.LLibrarian.LLibrarianDurationRead);
 
         int lMessengerAdded = LMessengerRoute(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
@@ -304,7 +303,7 @@ public static class LMessenger
             lMessengerUnknown.Length,
             new ParallelOptions { MaxDegreeOfParallelism = LMessengerParallelRead() },
             lMessengerIndex => lMessengerResolved[lMessengerIndex] =
-                Cadroue.Infrastructure.LSidecarStore.LSidecarDurationResolve(lMessengerUnknown[lMessengerIndex].LWorkSourcePath)))
+                Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerUnknown[lMessengerIndex].LWorkSourcePath)))
             .ConfigureAwait(false);
 
         if (LMessengerScheduleSource?.Invoke() is not { } lMessengerSchedule)
@@ -349,7 +348,7 @@ public static class LMessenger
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (Cadroue.Application.LEdit.LEditPlanRead(lMessengerSourcePath, Cadroue.Infrastructure.LSidecarStore.LSidecarEditRead)
+            if (Cadroue.Application.LEdit.LEditPlanRead(lMessengerSourcePath, Cadroue.Application.LLibrarian.LLibrarianEditLoad)
                 is not { LEditPlanActive: true } lMessengerPlan)
             {
                 continue;
@@ -361,7 +360,7 @@ public static class LMessenger
             lMessengerItems.Add(Cadroue.Application.LEdit.LEditWorkCreate(
                 lMessengerPriority,
                 lMessengerSourcePath,
-                Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead(lMessengerSourcePath),
+                Cadroue.Application.LLibrarian.LLibrarianDurationRead(lMessengerSourcePath),
                 lMessengerPlan.LEditSkip ? LWorkCrop.LWorkCropCreate() : lMessengerPlan.LEditCrop,
                 lMessengerPlan.LEditSkip ? LWorkVideo.LWorkVideoCreate() : lMessengerPlan.LEditVideo,
                 lMessengerOutput,

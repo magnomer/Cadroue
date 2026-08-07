@@ -4,7 +4,6 @@ using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 using Cadroue.Application;
 using Cadroue.MigrationInterface;
 using Cadroue.Media;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -141,8 +140,8 @@ public sealed class PAudioTab : PTabSurface
         {
             LAudio.LAudioPlanSave(
                 pAudioPath,
-                LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath, LSidecarStore.LSidecarAudioRead), pAudioPersistent),
-                LSidecarStore.LSidecarAudioSave);
+                LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad), pAudioPersistent),
+                LLibrarian.LLibrarianAudioSave);
         }
     }
 
@@ -159,8 +158,8 @@ public sealed class PAudioTab : PTabSurface
             string pAudioPath = pAudioAddedItem.PListItemPath;
             LAudio.LAudioPlanSave(
                 pAudioPath,
-                LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath, LSidecarStore.LSidecarAudioRead), pAudioPersistent),
-                LSidecarStore.LSidecarAudioSave);
+                LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad), pAudioPersistent),
+                LLibrarian.LLibrarianAudioSave);
         }
     }
 
@@ -244,7 +243,7 @@ public sealed class PAudioTab : PTabSurface
         try
         {
             LWorkAudio? pSaved = pViewer.PViewerSourcePath is { } pSourcePath
-                ? LAudio.LAudioPlanRead(pSourcePath, LSidecarStore.LSidecarAudioRead)
+                ? LAudio.LAudioPlanRead(pSourcePath, LLibrarian.LLibrarianAudioLoad)
                 : null;
             LWorkAudio? pPersistent = pInspector.PInspectorPersistentCheck()
                 ? pInspector.PInspectorPersistentRead()
@@ -274,12 +273,12 @@ public sealed class PAudioTab : PTabSurface
         }
 
         LWorkAudio pAudioPlan = PAudioProcessingRead();
-        if (!pAudioPlan.LWorkAudioActive && LAudio.LAudioPlanRead(pSourcePath, LSidecarStore.LSidecarAudioRead) is null)
+        if (!pAudioPlan.LWorkAudioActive && LAudio.LAudioPlanRead(pSourcePath, LLibrarian.LLibrarianAudioLoad) is null)
         {
             return;
         }
 
-        LAudio.LAudioPlanSave(pSourcePath, pAudioPlan, LSidecarStore.LSidecarAudioSave);
+        LAudio.LAudioPlanSave(pSourcePath, pAudioPlan, LLibrarian.LLibrarianAudioSave);
         PAudioPersistentWrite();
     }
 

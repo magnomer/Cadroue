@@ -12,6 +12,20 @@ public sealed class LSidecarCoreRecord
     public double LSidecarLoudness { get; set; }
 }
 
+public enum LSidecarSourceKind
+{
+    LSidecarSourceSibling,
+    LSidecarSourceRelative,
+    LSidecarSourceAbsolute,
+    LSidecarSourceMissing
+}
+
+public sealed record LSidecarSourceResult(
+    string LSidecarResultPath,
+    LSidecarSourceKind LSidecarResultKind,
+    bool LSidecarResultVerified,
+    string LSidecarResultFileName);
+
 public sealed class LSidecarCacheRecord
 {
     public int LSidecarVersion { get; set; } = 2;
