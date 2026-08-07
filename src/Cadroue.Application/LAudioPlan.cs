@@ -1,33 +1,26 @@
 using Cadroue.Core;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Application;
 
-public static class LAudio
+public static partial class LAudio
 {
-    public static Cadroue.Core.LSidecarAudioRecord LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()
+    public static LSidecarAudioRecord LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()
     {
         LSidecarSkip = lAudioPlan.LWorkAudioSkip,
         LSidecarSteps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
     };
 
-    public static LWorkAudio LAudioPersistentRead(Cadroue.Core.LSidecarAudioRecord lAudioRecord) =>
+    public static LWorkAudio LAudioPersistentRead(LSidecarAudioRecord lAudioRecord) =>
         new(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray()) { LWorkAudioSkip = lAudioRecord.LSidecarSkip };
 
-    public static LWorkAudio? LAudioPlanRead(string lAudioSourcePath) =>
-        Cadroue.Media.LSidecarStore.LSidecarAudioRead(lAudioSourcePath) is { } lAudioRecord
+    public static LWorkAudio? LAudioPlanRead(string lAudioSourcePath, Func<string, LSidecarAudioRecord?> lSidecarRead) =>
+        lSidecarRead(lAudioSourcePath) is { } lAudioRecord
             ? new LWorkAudio(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray()) { LWorkAudioSkip = lAudioRecord.LSidecarSkip }
             : null;
 
-    public static void LAudioPlanSave(string lAudioSourcePath, LWorkAudio lAudioPlan)
-    {
-        Cadroue.Media.LSidecarStore.LSidecarAudioSave(
-            lAudioSourcePath,
-            new Cadroue.Core.LSidecarAudioRecord
-            {
-                LSidecarSkip = lAudioPlan.LWorkAudioSkip,
-                LSidecarSteps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
-            });
-    }
+    public static void LAudioPlanSave(
+        string lAudioSourcePath, LWorkAudio lAudioPlan, Func<string, LSidecarAudioRecord?, bool> lSidecarSave) =>
+        lSidecarSave(lAudioSourcePath, LAudioPersistentCreate(lAudioPlan));
 
     public static LWorkAudio LAudioPlanResolve(LWorkAudio? lAudioSaved, LWorkAudio? lAudioPersistent)
     {
@@ -65,7 +58,7 @@ public static class LAudio
         _ => LWorkAudioStep.LWorkVolumeCreate(false, 0)
     };
 
-    private static LWorkAudioStep LAudioStepCreate(Cadroue.Core.LSidecarAudioStep lAudioRecord) =>
+    private static LWorkAudioStep LAudioStepCreate(LSidecarAudioStep lAudioRecord) =>
         LAudioKindCreate(lAudioRecord.LSidecarKind) switch
         {
             LAudioKind.LAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(
@@ -109,9 +102,9 @@ public static class LAudio
             _ => LWorkAudioStep.LWorkVolumeCreate(lAudioRecord.LSidecarActive, lAudioRecord.LSidecarGain)
         };
 
-    private static Cadroue.Core.LSidecarAudioStep LAudioRecordCreate(LWorkAudioStep lAudioStep)
+    private static LSidecarAudioStep LAudioRecordCreate(LWorkAudioStep lAudioStep)
     {
-        var lAudioRecord = new Cadroue.Core.LSidecarAudioStep
+        var lAudioRecord = new LSidecarAudioStep
         {
             LSidecarKind = lAudioStep.LWorkStepKind.ToString().Replace("LAudioKind", string.Empty),
             LSidecarActive = lAudioStep.LWorkStepActive
@@ -150,7 +143,7 @@ public static class LAudio
                 break;
             case LWorkEqualizerStep lEqualizer:
                 lAudioRecord.LSidecarEqualizerBands = lEqualizer.LWorkEqualizerBands
-                    .Select(lBand => new Cadroue.Core.LSidecarEqualizerBand
+                    .Select(lBand => new LSidecarEqualizerBand
                     {
                         LSidecarBandFrequency = lBand.LWorkBandFrequency,
                         LSidecarBandGain = lBand.LWorkBandGain

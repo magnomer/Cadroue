@@ -1,7 +1,6 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Application;
 
 public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropApply)
 {
@@ -17,7 +16,7 @@ public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool 
         LEditSkip || LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive || LEditRatioFixed;
 }
 
-public static class LEdit
+public static partial class LEdit
 {
     public static LEditPlan LEditPlanResolve(LEditPlan? lEditSaved, LEditPlan? lEditPersistent)
     {
@@ -62,7 +61,7 @@ public static class LEdit
         };
     }
 
-    public static Cadroue.Core.LSidecarEditRecord LEditPersistentCreate(LEditPlan lEditPlan) => new()
+    public static LSidecarEditRecord LEditPersistentCreate(LEditPlan lEditPlan) => new()
     {
         LSidecarCropLeft = lEditPlan.LEditCrop.LWorkCropLeft,
         LSidecarCropTop = lEditPlan.LEditCrop.LWorkCropTop,
@@ -79,27 +78,13 @@ public static class LEdit
         LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
     };
 
-    public static LEditPlan LEditPersistentRead(Cadroue.Core.LSidecarEditRecord lEditRecord) =>
+    public static LEditPlan LEditPersistentRead(LSidecarEditRecord lEditRecord) =>
         LEditPlanCreate(lEditRecord);
 
-    public static LEditPlan? LEditPlanRead(string lEditSourcePath) =>
-        LEditSidecarRead(lEditSourcePath)?.LSidecarEdit is { } lEditRecord ? LEditPlanCreate(lEditRecord) : null;
+    public static LEditPlan? LEditPlanRead(string lEditSourcePath, Func<string, LSidecarEditRecord?> lSidecarRead) =>
+        lSidecarRead(lEditSourcePath) is { } lEditRecord ? LEditPlanCreate(lEditRecord) : null;
 
-    private static Cadroue.Media.LSidecar? LEditSidecarRead(string lEditSourcePath)
-    {
-        try
-        {
-            return Cadroue.Media.LSidecarStore.LSidecarRead(
-                Cadroue.Media.LSidecarStore.LSidecarPathRead(lEditSourcePath));
-        }
-        catch (Exception lEditException)
-        {
-            LTraceLog.LTraceErrorRecord($"Edit plan could not be read for '{lEditSourcePath}'", lEditException);
-            return null;
-        }
-    }
-
-    private static LEditPlan LEditPlanCreate(Cadroue.Core.LSidecarEditRecord lEditRecord) => new(
+    private static LEditPlan LEditPlanCreate(LSidecarEditRecord lEditRecord) => new(
         new LWorkCrop(
             lEditRecord.LSidecarCropLeft,
             lEditRecord.LSidecarCropTop,
@@ -117,34 +102,16 @@ public static class LEdit
         LEditRatioHeight = lEditRecord.LSidecarRatioHeight
     };
 
-    private static LWorkVideoStep LEditStepCreate(Cadroue.Core.LSidecarVideoStep lEditRecord) =>
+    private static LWorkVideoStep LEditStepCreate(LSidecarVideoStep lEditRecord) =>
         string.Equals(lEditRecord.LSidecarKind, "Contrast", StringComparison.Ordinal)
             ? LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
             : LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue);
 
-    public static void LEditPlanSave(string lEditSourcePath, LEditPlan lEditPlan)
-    {
-        Cadroue.Media.LSidecarStore.LSidecarEditSave(
-            lEditSourcePath,
-            new Cadroue.Core.LSidecarEditRecord
-            {
-                LSidecarCropLeft = lEditPlan.LEditCrop.LWorkCropLeft,
-                LSidecarCropTop = lEditPlan.LEditCrop.LWorkCropTop,
-                LSidecarCropRight = lEditPlan.LEditCrop.LWorkCropRight,
-                LSidecarCropBottom = lEditPlan.LEditCrop.LWorkCropBottom,
-                LSidecarRotation = lEditPlan.LEditCrop.LWorkCropRotation,
-                LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkFlipHorizontal,
-                LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkFlipVertical,
-                LSidecarCropActive = lEditPlan.LEditCropApply,
-                LSidecarRatioFixed = lEditPlan.LEditRatioFixed,
-                LSidecarRatioWidth = lEditPlan.LEditRatioWidth,
-                LSidecarRatioHeight = lEditPlan.LEditRatioHeight,
-                LSidecarSkip = lEditPlan.LEditSkip,
-                LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
-            });
-    }
+    public static void LEditPlanSave(
+        string lEditSourcePath, LEditPlan lEditPlan, Func<string, LSidecarEditRecord?, bool> lSidecarSave) =>
+        lSidecarSave(lEditSourcePath, LEditPersistentCreate(lEditPlan));
 
-    private static Cadroue.Core.LSidecarVideoStep LEditRecordCreate(LWorkVideoStep lEditStep) => new()
+    private static LSidecarVideoStep LEditRecordCreate(LWorkVideoStep lEditStep) => new()
     {
         LSidecarKind = lEditStep.LWorkStepKind == LColorKind.LColorKindContrast ? "Contrast" : "Brightness",
         LSidecarActive = lEditStep.LWorkStepActive,

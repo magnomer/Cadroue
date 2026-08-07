@@ -1,7 +1,9 @@
 using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
+using Cadroue.Application;
 using Cadroue.MigrationInterface;
+using Cadroue.Media;
 
 using Cadroue.Infrastructure;
 
@@ -153,7 +155,10 @@ public sealed class PEditTab : PTabSurface
 
         foreach (string pEditPath in pList.PListUnlockedRead().Select(pItem => pItem.PListItemPath))
         {
-            LEdit.LEditPlanSave(pEditPath, LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath), pEditCarried));
+            LEdit.LEditPlanSave(
+                pEditPath,
+                LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LSidecarStore.LSidecarEditRead), pEditCarried),
+                LSidecarStore.LSidecarEditSave);
         }
     }
 
@@ -167,7 +172,10 @@ public sealed class PEditTab : PTabSurface
         foreach (PListItem pEditAddedItem in pEditAddedItems)
         {
             string pEditPath = pEditAddedItem.PListItemPath;
-            LEdit.LEditPlanSave(pEditPath, LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath), pEditCarried));
+            LEdit.LEditPlanSave(
+                pEditPath,
+                LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LSidecarStore.LSidecarEditRead), pEditCarried),
+                LSidecarStore.LSidecarEditSave);
         }
     }
 
@@ -258,7 +266,7 @@ public sealed class PEditTab : PTabSurface
 
             LEditPlan? pEditPersistent = PEditCarriedRead();
             LEditPlan? pEditSaved = pViewer.PViewerSourcePath is { } pEditSourcePath
-                ? LEdit.LEditPlanRead(pEditSourcePath)
+                ? LEdit.LEditPlanRead(pEditSourcePath, LSidecarStore.LSidecarEditRead)
                 : null;
 
             LTraceLog.LTraceInfoRecord(
@@ -470,14 +478,14 @@ public sealed class PEditTab : PTabSurface
             LEditRatioWidth = pRatioWidth,
             LEditRatioHeight = pRatioHeight
         };
-        if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath) is null)
+        if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath, LSidecarStore.LSidecarEditRead) is null)
         {
             return;
         }
 
         LTraceLog.LTraceInfoRecord(
             $"Edit plan saved for '{System.IO.Path.GetFileName(pEditSourcePath)}': {PEditPlanFormat(pEditPlan)}");
-        LEdit.LEditPlanSave(pEditSourcePath, pEditPlan);
+        LEdit.LEditPlanSave(pEditSourcePath, pEditPlan, LSidecarStore.LSidecarEditSave);
         PEditPersistentWrite();
     }
 

@@ -96,7 +96,8 @@ public static class LMessenger
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (LAudio.LAudioPlanRead(lMessengerSourcePath) is not { LWorkAudioActive: true } lMessengerPlan)
+            if (Cadroue.Application.LAudio.LAudioPlanRead(lMessengerSourcePath, Cadroue.Media.LSidecarStore.LSidecarAudioRead)
+                is not { LWorkAudioActive: true } lMessengerPlan)
             {
                 continue;
             }
@@ -348,7 +349,8 @@ public static class LMessenger
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (LEdit.LEditPlanRead(lMessengerSourcePath) is not { LEditPlanActive: true } lMessengerPlan)
+            if (Cadroue.Application.LEdit.LEditPlanRead(lMessengerSourcePath, Cadroue.Media.LSidecarStore.LSidecarEditRead)
+                is not { LEditPlanActive: true } lMessengerPlan)
             {
                 continue;
             }
