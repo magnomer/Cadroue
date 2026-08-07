@@ -13,6 +13,7 @@ public abstract class PTabSurface : UserControl
     public abstract PViewer? PTabViewer { get; }
     public virtual PList? PTabList => null;
     public virtual PGroup? PTabGroup => null;
+    public virtual bool PTabSectionShow => false;
     public PAction? PTabAction { get; protected set; }
     public virtual bool PTabBusyCheck() => false;
     public virtual void PTabClose() { }

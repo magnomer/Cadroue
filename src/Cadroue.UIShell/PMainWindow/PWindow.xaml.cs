@@ -251,7 +251,7 @@ public partial class PWindow : Window
             return;
         }
         pFlowActive.PFlowCommandSet(true);
-        pFlowActive.PFlowSectionShow(pTabRecord.PTabLayoutKey == "Split");
+        pFlowActive.PFlowSectionShow(pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabSectionShow);
         pFlowActive.Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
         pFlowActive.PFlowOrderApply();
         pFlowActive.PFlowPlayingSource = pViewerActive.PViewerPlayingRead;
