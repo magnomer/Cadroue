@@ -240,7 +240,8 @@ public sealed class PEditTab : PTabSurface
         }
 
         LTraceLog.LTraceInfoRecord($"Edit crop from viewer: {PEditRectFormat(pCropVideo)}");
-        pInspector.PInspectorCropSet(pCropVideo);
+        (int pCropDrive, int pCropAnchorX, int pCropAnchorY) = pViewer.PCropAnchorRead();
+        pInspector.PInspectorCropSet(pCropVideo, pCropDrive, pCropAnchorX, pCropAnchorY);
     }
 
     private void PEditCropRestore()

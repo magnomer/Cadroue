@@ -213,10 +213,68 @@ public sealed partial class PInspector
         return pWhole <= 0 ? 0 : pWhole - (pWhole % 2);
     }
 
-    public void PInspectorCropSet(Rect? pCropVideo)
+    private void PInspectorInsetChange(int pEdge)
+    {
+        if (pInspectorCropSuppress)
+        {
+            return;
+        }
+
+        if (pInspectorRatioFixed.IsChecked == true && pInspectorSourcePresent && !pInspectorRatioSuppress)
+        {
+            PInspectorInsetRatioResolve(pEdge);
+        }
+
+        PInspectorRatioUpdate();
+        PInspectorCropRaise();
+    }
+
+    private void PInspectorInsetRatioResolve(int pEdge)
+    {
+        double pLeft = Math.Max(0, PInspectorNumberRead(pInspectorInsetLeft));
+        double pTop = Math.Max(0, PInspectorNumberRead(pInspectorInsetTop));
+        double pRight = Math.Max(0, PInspectorNumberRead(pInspectorInsetRight));
+        double pBottom = Math.Max(0, PInspectorNumberRead(pInspectorInsetBottom));
+        double pWidth = pInspectorSourceWidth - pLeft - pRight;
+        double pHeight = pInspectorSourceHeight - pTop - pBottom;
+        if (pWidth <= 0 || pHeight <= 0)
+        {
+            return;
+        }
+
+        (int pDrive, int pAnchorX, int pAnchorY) = pEdge switch
+        {
+            0 => (0, -1, -1),
+            2 => (0, 1, -1),
+            1 => (1, -1, -1),
+            _ => (1, -1, 1)
+        };
+
+        Rect? pFit = PInspectorRatioAnchorFit(new Rect(pLeft, pTop, pWidth, pHeight), pDrive, pAnchorX, pAnchorY);
+        if (pFit is not { } pRect)
+        {
+            return;
+        }
+
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        pInspectorCropSuppress = true;
+        try
+        {
+            pInspectorInsetLeft.Text = PInspectorEdgeFormat(pRect.X);
+            pInspectorInsetTop.Text = PInspectorEdgeFormat(pRect.Y);
+            pInspectorInsetRight.Text = PInspectorEdgeFormat(pInspectorSourceWidth - pRect.Right);
+            pInspectorInsetBottom.Text = PInspectorEdgeFormat(pInspectorSourceHeight - pRect.Bottom);
+        }
+        finally
+        {
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+    }
+
+    public void PInspectorCropSet(Rect? pCropVideo, int pDriveAxis, int pAnchorX, int pAnchorY)
     {
         Rect? pCropSnapped = pCropVideo is { Width: > 0, Height: > 0 } pCropDrawn
-            ? PInspectorRatioClamp(pCropDrawn) ?? pCropDrawn
+            ? PInspectorRatioAnchorFit(pCropDrawn, pDriveAxis, pAnchorX, pAnchorY) ?? pCropDrawn
             : pCropVideo;
 
         bool pCropSuppressPrevious = pInspectorCropSuppress;

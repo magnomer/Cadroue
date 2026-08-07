@@ -42,6 +42,9 @@ public sealed partial class PViewer : PPanel
     private bool pViewerCropDrag;
     private int pViewerEdgeX;
     private int pViewerEdgeY;
+    private int pViewerCropDrive = -1;
+    private int pViewerCropAnchorX = -1;
+    private int pViewerCropAnchorY = -1;
     private int pViewerLoadSerial;
     private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private bool pViewerAudioAllowed;

@@ -11,10 +11,10 @@ public sealed partial class PInspector
 {
     private StackPanel PCropBodyBuild()
     {
-        pInspectorInsetLeft = PInspectorInsetBuild();
-        pInspectorInsetRight = PInspectorInsetBuild();
-        pInspectorInsetTop = PInspectorInsetBuild();
-        pInspectorInsetBottom = PInspectorInsetBuild();
+        pInspectorInsetLeft = PInspectorInsetBuild(0);
+        pInspectorInsetRight = PInspectorInsetBuild(2);
+        pInspectorInsetTop = PInspectorInsetBuild(1);
+        pInspectorInsetBottom = PInspectorInsetBuild(3);
         pInspectorRatioWidth = PCropFieldBuild();
         pInspectorRatioHeight = PCropFieldBuild();
         pInspectorRatioPreset = PInspectorRatioPresetBuild();
@@ -411,14 +411,10 @@ public sealed partial class PInspector
         return pRatioBox;
     }
 
-    private TextBox PInspectorInsetBuild()
+    private TextBox PInspectorInsetBuild(int pEdge)
     {
         TextBox pInsetBox = PInspectorNumberBuild();
-        pInsetBox.TextChanged += (_, _) =>
-        {
-            PInspectorRatioUpdate();
-            PInspectorCropRaise();
-        };
+        pInsetBox.TextChanged += (_, _) => PInspectorInsetChange(pEdge);
         return pInsetBox;
     }
 

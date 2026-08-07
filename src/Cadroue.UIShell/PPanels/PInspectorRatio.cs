@@ -5,23 +5,6 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private Rect? PInspectorRatioClamp(Rect pCropRect)
-    {
-        if (pInspectorRatioFixed.IsChecked != true)
-        {
-            return null;
-        }
-
-        int pRatioWidth = (int)Math.Round(PInspectorNumberRead(pInspectorRatioWidth));
-        int pRatioHeight = (int)Math.Round(PInspectorNumberRead(pInspectorRatioHeight));
-        if (pRatioWidth <= 0 || pRatioHeight <= 0)
-        {
-            return null;
-        }
-
-        return PInspectorRatioFit(pCropRect, pRatioWidth, pRatioHeight);
-    }
-
     private static Rect? PInspectorRatioFit(Rect pBounds, int pRatioWidth, int pRatioHeight)
     {
         if (pBounds.Width <= 0 || pBounds.Height <= 0 || pRatioWidth <= 0 || pRatioHeight <= 0)
@@ -71,6 +54,92 @@ public sealed partial class PInspector
         int pWhole = (int)Math.Floor(pValue);
         return pWhole <= 0 ? 0 : pWhole - (pWhole % 2);
     }
+
+    private Rect? PInspectorRatioAnchorFit(Rect pDesired, int pDriveAxis, int pAnchorX, int pAnchorY)
+    {
+        if (pInspectorRatioFixed.IsChecked != true
+            || pDesired.Width <= 0 || pDesired.Height <= 0
+            || pInspectorSourceWidth <= 0 || pInspectorSourceHeight <= 0)
+        {
+            return null;
+        }
+
+        int pRatioWidth = (int)Math.Round(PInspectorNumberRead(pInspectorRatioWidth));
+        int pRatioHeight = (int)Math.Round(PInspectorNumberRead(pInspectorRatioHeight));
+        if (pRatioWidth <= 0 || pRatioHeight <= 0)
+        {
+            return null;
+        }
+
+        return PInspectorRatioAnchorResolve(
+            pDesired,
+            new Rect(0, 0, pInspectorSourceWidth, pInspectorSourceHeight),
+            pRatioWidth,
+            pRatioHeight,
+            pDriveAxis,
+            pAnchorX,
+            pAnchorY);
+    }
+
+    private static Rect? PInspectorRatioAnchorResolve(
+        Rect pDesired,
+        Rect pBounds,
+        int pRatioWidth,
+        int pRatioHeight,
+        int pDriveAxis,
+        int pAnchorX,
+        int pAnchorY)
+    {
+        int pDivisor = PInspectorDivisorRead(pRatioWidth, pRatioHeight);
+        int pUnitWidth = pRatioWidth / pDivisor;
+        int pUnitHeight = pRatioHeight / pDivisor;
+
+        double pScaleRaw = pDriveAxis switch
+        {
+            0 => pDesired.Width / pUnitWidth,
+            1 => pDesired.Height / pUnitHeight,
+            _ => Math.Min(pDesired.Width / pUnitWidth, pDesired.Height / pUnitHeight)
+        };
+
+        int pScale = (int)Math.Round(pScaleRaw);
+        while (pScale > 0)
+        {
+            double pWidth = pScale * pUnitWidth;
+            double pHeight = pScale * pUnitHeight;
+            if ((pWidth % 2) != 0 || (pHeight % 2) != 0)
+            {
+                pScale--;
+                continue;
+            }
+
+            double pMaximumX = PInspectorEvenNormalize(pBounds.Width - pWidth);
+            double pMaximumY = PInspectorEvenNormalize(pBounds.Height - pHeight);
+            if (pMaximumX < 0 || pMaximumY < 0)
+            {
+                pScale--;
+                continue;
+            }
+
+            double pX = Math.Clamp(
+                PInspectorEvenNormalize(PInspectorAnchorPlace(pDesired.X, pDesired.Width, pWidth, pAnchorX)),
+                0,
+                pMaximumX);
+            double pY = Math.Clamp(
+                PInspectorEvenNormalize(PInspectorAnchorPlace(pDesired.Y, pDesired.Height, pHeight, pAnchorY)),
+                0,
+                pMaximumY);
+            return new Rect(pX, pY, pWidth, pHeight);
+        }
+
+        return null;
+    }
+
+    private static double PInspectorAnchorPlace(double pOrigin, double pDesiredSize, double pSize, int pAnchor) => pAnchor switch
+    {
+        < 0 => pOrigin,
+        > 0 => pOrigin + pDesiredSize - pSize,
+        _ => pOrigin + ((pDesiredSize - pSize) / 2)
+    };
 
     private void PCropRatioHandle()
     {
