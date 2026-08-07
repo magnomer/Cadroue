@@ -128,7 +128,7 @@ public partial class PProgram : System.Windows.Application
         LPreferenceDebounceApply();
         LPreference.LPreferenceLoad();
         Cadroue.Infrastructure.LFrameStore.LFrameLoad();
-        LBinding.LBindingLoad();
+        Cadroue.MigrationInterface.LBinding.LBindingLoad();
         LScene.LSceneCurrentLoad();
         LLocalization.LLocalizationLoad(LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
         LTrace.LTraceVerbose = LPreference.LPreferenceStateCurrent.LPreferenceLogVerbose;
