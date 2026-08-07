@@ -300,7 +300,7 @@ public sealed partial class PConsole
     private static void PConsoleRunnerApply(LRunner pRunner)
     {
         LPreferenceState lPreferenceState = LPreference.LPreferenceStateCurrent;
-        pRunner.LRunnerProgramPath = LRenderer.LRendererProgramCurrent;
+        pRunner.LRunnerProgramPath = Cadroue.MigrationInterface.LRenderer.LRendererProgramCurrent;
         pRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
         pRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
         pRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-using Cadroue.Core;
 using Cadroue.MigrationInterface;
 using Cadroue.Infrastructure;
 
@@ -11,19 +10,6 @@ namespace Cadroue.UIShell;
 
 internal static class LRenderer
 {
-    internal static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererDefaultCreate();
-
-    internal static string LRendererFolderCurrent =>
-        string.IsNullOrWhiteSpace(LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder)
-            ? LRendererSettingsCurrent.LRendererLibraryFolder ?? string.Empty
-            : LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
-
-    internal static string LRendererProgramCurrent =>
-        LRendererLibrary.LRendererProgramRead(LRendererFolderCurrent);
-
-    internal static void LRendererSettingsLoad() =>
-        LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
-
     internal static void LRendererFlyleafStart()
     {
         try
@@ -39,9 +25,9 @@ internal static class LRenderer
             {
                 lRendererEngineConfig.FFmpegPath = LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
             }
-            else if (LRendererLibrary.LRendererFolderValidate(LRendererSettingsCurrent.LRendererLibraryFolder))
+            else if (LRendererLibrary.LRendererFolderValidate(Cadroue.MigrationInterface.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder))
             {
-                lRendererEngineConfig.FFmpegPath = LRendererSettingsCurrent.LRendererLibraryFolder;
+                lRendererEngineConfig.FFmpegPath = Cadroue.MigrationInterface.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder;
             }
             else
             {

@@ -47,7 +47,7 @@ public partial class PProgram : System.Windows.Application
     {
         LStation.LStationSchedule = LScheduleCurrent;
         LStation.LStationPost = LStationDispatch;
-        LStation.LStationProgramSource = () => LRenderer.LRendererProgramCurrent;
+        LStation.LStationProgramSource = () => Cadroue.MigrationInterface.LRenderer.LRendererProgramCurrent;
         LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
         LSchedule.LScheduleCohortGate = Cadroue.MigrationInterface.LSeal.LSealClaimCheck;
 
@@ -121,7 +121,7 @@ public partial class PProgram : System.Windows.Application
         };
 
         LRelayStartupRead(e.Args);
-        LRenderer.LRendererSettingsLoad();
+        Cadroue.MigrationInterface.LRenderer.LRendererSettingsLoad();
 
         LPreference.LPreferenceDepotCallback = LPreferenceDepotHandle;
         LPreference.LPreferenceLanguageNormalizeSeam = LLocalization.LLocalizationLanguageNormalize;
@@ -144,7 +144,7 @@ public partial class PProgram : System.Windows.Application
                 ("Options", PSOptions.PSOptionsPlacementKey),
             });
 
-        Cadroue.Media.LTool.LToolFolderSource = () => LRenderer.LRendererFolderCurrent;
+        Cadroue.Media.LTool.LToolFolderSource = () => Cadroue.MigrationInterface.LRenderer.LRendererFolderCurrent;
         PFlow.PFlow.PFlowSidecarSource = LSidecarSectionsRead;
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
