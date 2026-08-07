@@ -1,59 +1,17 @@
 using System.Globalization;
 using System.Windows;
 
+using Cadroue.Application;
+
 namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private static Rect? PInspectorRatioFit(Rect pBounds, int pRatioWidth, int pRatioHeight)
-    {
-        if (pBounds.Width <= 0 || pBounds.Height <= 0 || pRatioWidth <= 0 || pRatioHeight <= 0)
-        {
-            return null;
-        }
+    private static LCropbox PInspectorCropboxResolve(Rect pRect) =>
+        new LCropbox(pRect.X, pRect.Y, pRect.Width, pRect.Height);
 
-        int pDivisor = PInspectorDivisorRead(pRatioWidth, pRatioHeight);
-        int pUnitWidth = pRatioWidth / pDivisor;
-        int pUnitHeight = pRatioHeight / pDivisor;
-        int pScale = (int)Math.Floor(Math.Min(pBounds.Width / pUnitWidth, pBounds.Height / pUnitHeight));
-
-        while (pScale > 0 && ((pScale * pUnitWidth % 2) != 0 || (pScale * pUnitHeight % 2) != 0))
-        {
-            pScale--;
-        }
-
-        if (pScale <= 0)
-        {
-            return null;
-        }
-
-        double pWidth = pScale * pUnitWidth;
-        double pHeight = pScale * pUnitHeight;
-        double pMinimumX = Math.Ceiling(pBounds.Left / 2) * 2;
-        double pMinimumY = Math.Ceiling(pBounds.Top / 2) * 2;
-        double pMaximumX = PInspectorEvenNormalize(pBounds.Right - pWidth);
-        double pMaximumY = PInspectorEvenNormalize(pBounds.Bottom - pHeight);
-        if (pMaximumX < pMinimumX || pMaximumY < pMinimumY)
-        {
-            return null;
-        }
-
-        double pX = Math.Clamp(
-            PInspectorEvenNormalize(pBounds.X + ((pBounds.Width - pWidth) / 2)),
-            pMinimumX,
-            pMaximumX);
-        double pY = Math.Clamp(
-            PInspectorEvenNormalize(pBounds.Y + ((pBounds.Height - pHeight) / 2)),
-            pMinimumY,
-            pMaximumY);
-        return new Rect(pX, pY, pWidth, pHeight);
-    }
-
-    private static double PInspectorEvenNormalize(double pValue)
-    {
-        int pWhole = (int)Math.Floor(pValue);
-        return pWhole <= 0 ? 0 : pWhole - (pWhole % 2);
-    }
+    private static Rect PInspectorRectResolve(LCropbox pCropbox) =>
+        new Rect(pCropbox.LCropboxX, pCropbox.LCropboxY, pCropbox.LCropboxWidth, pCropbox.LCropboxHeight);
 
     private Rect? PInspectorRatioAnchorFit(Rect pDesired, int pDriveAxis, int pAnchorX, int pAnchorY)
     {
@@ -71,75 +29,16 @@ public sealed partial class PInspector
             return null;
         }
 
-        return PInspectorRatioAnchorResolve(
-            pDesired,
-            new Rect(0, 0, pInspectorSourceWidth, pInspectorSourceHeight),
+        LCropbox? pFit = LCropbox.LCropboxAnchorResolve(
+            PInspectorCropboxResolve(pDesired),
+            new LCropbox(0, 0, pInspectorSourceWidth, pInspectorSourceHeight),
             pRatioWidth,
             pRatioHeight,
             pDriveAxis,
             pAnchorX,
             pAnchorY);
+        return pFit is { } pCropbox ? PInspectorRectResolve(pCropbox) : null;
     }
-
-    private static Rect? PInspectorRatioAnchorResolve(
-        Rect pDesired,
-        Rect pBounds,
-        int pRatioWidth,
-        int pRatioHeight,
-        int pDriveAxis,
-        int pAnchorX,
-        int pAnchorY)
-    {
-        int pDivisor = PInspectorDivisorRead(pRatioWidth, pRatioHeight);
-        int pUnitWidth = pRatioWidth / pDivisor;
-        int pUnitHeight = pRatioHeight / pDivisor;
-
-        double pScaleRaw = pDriveAxis switch
-        {
-            0 => pDesired.Width / pUnitWidth,
-            1 => pDesired.Height / pUnitHeight,
-            _ => Math.Min(pDesired.Width / pUnitWidth, pDesired.Height / pUnitHeight)
-        };
-
-        int pScale = (int)Math.Round(pScaleRaw);
-        while (pScale > 0)
-        {
-            double pWidth = pScale * pUnitWidth;
-            double pHeight = pScale * pUnitHeight;
-            if ((pWidth % 2) != 0 || (pHeight % 2) != 0)
-            {
-                pScale--;
-                continue;
-            }
-
-            double pMaximumX = PInspectorEvenNormalize(pBounds.Width - pWidth);
-            double pMaximumY = PInspectorEvenNormalize(pBounds.Height - pHeight);
-            if (pMaximumX < 0 || pMaximumY < 0)
-            {
-                pScale--;
-                continue;
-            }
-
-            double pX = Math.Clamp(
-                PInspectorEvenNormalize(PInspectorAnchorPlace(pDesired.X, pDesired.Width, pWidth, pAnchorX)),
-                0,
-                pMaximumX);
-            double pY = Math.Clamp(
-                PInspectorEvenNormalize(PInspectorAnchorPlace(pDesired.Y, pDesired.Height, pHeight, pAnchorY)),
-                0,
-                pMaximumY);
-            return new Rect(pX, pY, pWidth, pHeight);
-        }
-
-        return null;
-    }
-
-    private static double PInspectorAnchorPlace(double pOrigin, double pDesiredSize, double pSize, int pAnchor) => pAnchor switch
-    {
-        < 0 => pOrigin,
-        > 0 => pOrigin + pDesiredSize - pSize,
-        _ => pOrigin + ((pDesiredSize - pSize) / 2)
-    };
 
     private void PCropRatioHandle()
     {
@@ -209,14 +108,17 @@ public sealed partial class PInspector
             return;
         }
 
-        var pBounds = new Rect(pLeft, pTop, pBoundsWidth, pBoundsHeight);
-        Rect? pPresetCrop = PInspectorRatioFit(pBounds, pRatioWidth, pRatioHeight);
-        if (pPresetCrop is not { } pCrop)
+        LCropbox? pPresetCrop = LCropbox.LCropboxRatioResolve(
+            new LCropbox(pLeft, pTop, pBoundsWidth, pBoundsHeight),
+            pRatioWidth,
+            pRatioHeight);
+        if (pPresetCrop is not { } pCropbox)
         {
             PInspectorRatioUpdate();
             return;
         }
 
+        Rect pCrop = PInspectorRectResolve(pCropbox);
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         pInspectorRatioSuppress = true;
@@ -302,20 +204,18 @@ public sealed partial class PInspector
             return;
         }
 
-        double pWide = pCropWidth * pRatioHeight;
-        double pTall = pCropHeight * pRatioWidth;
-        double pExcess = pWide > pTall
-            ? pCropWidth - (pCropHeight * pRatioWidth / pRatioHeight)
-            : pCropHeight - (pCropWidth * pRatioHeight / pRatioWidth);
-
-        int pExcessPixels = PInspectorEvenRead(pExcess);
+        (int pExcessPixels, bool pWide) = LCropbox.LCropboxExcessResolve(
+            pCropWidth,
+            pCropHeight,
+            pRatioWidth,
+            pRatioHeight);
         if (pExcessPixels <= 0)
         {
             pInspectorRatioNotice.Visibility = Visibility.Collapsed;
             return;
         }
 
-        PInspectorNoticeShow(pWide > pTall
+        PInspectorNoticeShow(pWide
             ? LLocalization.LLocalizationFormat("Inspector.Crop.WidthMismatch", pExcessPixels)
             : LLocalization.LLocalizationFormat("Inspector.Crop.HeightMismatch", pExcessPixels));
     }
@@ -341,37 +241,16 @@ public sealed partial class PInspector
 
     private void PInspectorRatioFormat(double pCropWidth, double pCropHeight)
     {
-        int pWidthWhole = (int)Math.Round(pCropWidth);
-        int pHeightWhole = (int)Math.Round(pCropHeight);
-        int pDivisor = PInspectorDivisorRead(pWidthWhole, pHeightWhole);
-        pInspectorRatioWidth.Text = (pWidthWhole / pDivisor).ToString(CultureInfo.InvariantCulture);
-        pInspectorRatioHeight.Text = (pHeightWhole / pDivisor).ToString(CultureInfo.InvariantCulture);
+        (int pRatioWidth, int pRatioHeight) = LCropbox.LCropboxRatioNormalize(
+            (int)Math.Round(pCropWidth),
+            (int)Math.Round(pCropHeight));
+        pInspectorRatioWidth.Text = pRatioWidth.ToString(CultureInfo.InvariantCulture);
+        pInspectorRatioHeight.Text = pRatioHeight.ToString(CultureInfo.InvariantCulture);
     }
 
     private void PInspectorNoticeShow(string pNoticeText)
     {
         pInspectorRatioNotice.Text = pNoticeText;
         pInspectorRatioNotice.Visibility = Visibility.Visible;
-    }
-
-    private static int PInspectorDivisorRead(int pFirst, int pSecond)
-    {
-        while (pSecond != 0)
-        {
-            (pFirst, pSecond) = (pSecond, pFirst % pSecond);
-        }
-
-        return pFirst == 0 ? 1 : pFirst;
-    }
-
-    private static int PInspectorEvenRead(double pExcess)
-    {
-        if (pExcess < 1)
-        {
-            return 0;
-        }
-
-        int pWhole = (int)Math.Ceiling(pExcess - 0.001);
-        return pWhole + (pWhole % 2);
     }
 }
