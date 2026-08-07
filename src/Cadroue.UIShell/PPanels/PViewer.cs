@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -51,6 +52,7 @@ public sealed partial class PViewer : PPanel
     public event Action<LCargo>? PViewerMediaChange;
     public event Action<TimeSpan>? PViewerClockTick;
     public event Action<Rect?>? PCropVideoChange;
+    public event Action<KeyEventArgs>? PViewerKeyDispatch;
 
     public string? PViewerSourcePath { get; private set; }
     public Rect? PCropVideo { get; private set; }

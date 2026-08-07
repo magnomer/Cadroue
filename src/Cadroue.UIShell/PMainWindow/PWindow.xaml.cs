@@ -258,6 +258,7 @@ public partial class PWindow : Window
         pViewerActive.PViewerCommandSet(true);
         pViewerActive.PViewerMediaChange += PWindowMediaHandle;
         pViewerActive.PViewerClockTick += PWindowClockHandle;
+        pViewerActive.PViewerKeyDispatch += PShortcutViewerKeyHandle;
         pFlowActive.PFlowCursorChange += pViewerActive.PViewerSeek;
         pFlowActive.PFlowPlay += pViewerActive.PViewerPlay;
         pFlowActive.PFlowPause += pViewerActive.PViewerPause;
@@ -270,6 +271,7 @@ public partial class PWindow : Window
         {
             pViewerActive.PViewerMediaChange -= PWindowMediaHandle;
             pViewerActive.PViewerClockTick -= PWindowClockHandle;
+            pViewerActive.PViewerKeyDispatch -= PShortcutViewerKeyHandle;
             pFlowActive.PFlowCursorChange -= pViewerActive.PViewerSeek;
             pFlowActive.PFlowPlay -= pViewerActive.PViewerPlay;
             pFlowActive.PFlowPause -= pViewerActive.PViewerPause;

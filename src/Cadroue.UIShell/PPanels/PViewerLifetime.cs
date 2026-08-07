@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Input;
 
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -15,12 +16,38 @@ public sealed partial class PViewer
         Loaded += (_, _) => PViewerHostRecord("panel loaded");
         IsVisibleChanged += (_, pVisibleEvent) =>
             PViewerHostRecord($"panel visible {pVisibleEvent.NewValue}");
-        pViewerFlyleafHost.Loaded += (_, _) => PViewerHostRecord("host loaded");
+        pViewerFlyleafHost.Loaded += (_, _) =>
+        {
+            PViewerHostRecord("host loaded");
+            PViewerKeyForwardAttach();
+        };
         pViewerFlyleafHost.IsVisibleChanged += (_, pVisibleEvent) =>
             PViewerHostRecord($"host visible {pVisibleEvent.NewValue}");
         pViewerFlyleafHost.SizeChanged += (_, pSizeEvent) =>
             PViewerHostRecord($"host sized {pSizeEvent.NewSize.Width:0}x{pSizeEvent.NewSize.Height:0}");
         PViewerHostRecord("host built");
+    }
+
+    private void PViewerKeyForwardAttach()
+    {
+        Window? pViewerKeySurface = pViewerFlyleafHost.Surface;
+        if (pViewerKeySurface is not null)
+        {
+            pViewerKeySurface.PreviewKeyDown -= PViewerHostKeyHandle;
+            pViewerKeySurface.PreviewKeyDown += PViewerHostKeyHandle;
+        }
+
+        Window? pViewerKeyOverlay = pViewerFlyleafHost.Overlay;
+        if (pViewerKeyOverlay is not null)
+        {
+            pViewerKeyOverlay.PreviewKeyDown -= PViewerHostKeyHandle;
+            pViewerKeyOverlay.PreviewKeyDown += PViewerHostKeyHandle;
+        }
+    }
+
+    private void PViewerHostKeyHandle(object sender, KeyEventArgs e)
+    {
+        PViewerKeyDispatch?.Invoke(e);
     }
 
     private void PViewerHostShow(bool pViewerHostVisible)

@@ -11,6 +11,16 @@ public partial class PWindow
 {
     private void PShortcutKeyHandle(object sender, KeyEventArgs e)
     {
+        PShortcutKeyProcess(e);
+    }
+
+    private void PShortcutViewerKeyHandle(KeyEventArgs e)
+    {
+        PShortcutKeyProcess(e);
+    }
+
+    private void PShortcutKeyProcess(KeyEventArgs e)
+    {
         if (PWindowInputFind(e.OriginalSource as DependencyObject))
         {
             return;
