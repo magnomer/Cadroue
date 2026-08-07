@@ -157,35 +157,20 @@ public sealed partial class PFlow
             return;
         }
 
-        IReadOnlyList<LPiece> pLosslesscutExisting = lSegment.LSegmentListRead();
-        IReadOnlyList<LPiece> pLosslesscutImported = PFlowLosslesscutCreate(
-            pLosslesscutResult.LLosslesscutResultSections,
-            pLosslesscutMode == MessageBoxResult.No ? pLosslesscutExisting.Count : 0);
+        int pLosslesscutPalette = Math.Max(1, PSectionPalette.PSectionActiveCount);
+        if (pLosslesscutMode == MessageBoxResult.Yes)
+        {
+            lSegment.LSegmentLosslesscutSet(pLosslesscutResult.LLosslesscutResultSections, pLosslesscutPalette);
+        }
+        else
+        {
+            lSegment.LSegmentLosslesscutAppend(pLosslesscutResult.LLosslesscutResultSections, pLosslesscutPalette);
+        }
 
-        int pLosslesscutSelection = pLosslesscutMode == MessageBoxResult.Yes ? 0 : pLosslesscutExisting.Count;
-        IReadOnlyList<LPiece> pLosslesscutTarget = pLosslesscutMode == MessageBoxResult.Yes
-            ? pLosslesscutImported
-            : pLosslesscutExisting.Concat(pLosslesscutImported).ToArray();
-
-        PFlowSectionsSet(pLosslesscutTarget, pLosslesscutTarget.Count > 0 ? pLosslesscutSelection : null);
         LTraceLog.LTraceInfoRecord(
             $"LosslessCut project imported from '{pLosslesscutPath}': "
-            + $"{pLosslesscutImported.Count} segment(s), "
+            + $"{pLosslesscutResult.LLosslesscutResultSections.Count} segment(s), "
             + $"{pLosslesscutResult.LLosslesscutResultIssues.Count} skipped");
-    }
-
-    private static IReadOnlyList<LPiece> PFlowLosslesscutCreate(
-        IReadOnlyList<LSidecarSectionRecord> pLosslesscutSections,
-        int pLosslesscutColorOffset)
-    {
-        int pLosslesscutPaletteCount = Math.Max(1, PSectionPalette.PSectionActiveCount);
-        return pLosslesscutSections
-            .Select((pLosslesscutSection, pLosslesscutIndex) => new LPiece(
-                TimeSpan.FromMilliseconds(pLosslesscutSection.LSidecarStartMilliseconds),
-                TimeSpan.FromMilliseconds(pLosslesscutSection.LSidecarEndMilliseconds),
-                (pLosslesscutColorOffset + pLosslesscutIndex) % pLosslesscutPaletteCount,
-                pLosslesscutSection.LSidecarName ?? string.Empty))
-            .ToArray();
     }
 
     private static string PFlowLosslesscutFormat(

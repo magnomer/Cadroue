@@ -98,6 +98,37 @@ public sealed class LSegment
         LSegmentApply(lSegmentList, lSegmentClamp);
     }
 
+    public void LSegmentLosslesscutSet(IReadOnlyList<LSidecarSectionRecord> lSegmentSections, int lSegmentPaletteCount)
+    {
+        List<LPiece> lSegmentImported = LSegmentLosslesscutCreate(lSegmentSections, 0, lSegmentPaletteCount);
+        LSegmentApply(lSegmentImported, lSegmentImported.Count > 0 ? 0 : null);
+    }
+
+    public void LSegmentLosslesscutAppend(IReadOnlyList<LSidecarSectionRecord> lSegmentSections, int lSegmentPaletteCount)
+    {
+        int lSegmentFirst = lSegmentPieces.Count;
+        List<LPiece> lSegmentImported = LSegmentLosslesscutCreate(lSegmentSections, lSegmentFirst, lSegmentPaletteCount);
+        if (lSegmentImported.Count == 0) return;
+        List<LPiece> lSegmentList = lSegmentPieces.ToList();
+        lSegmentList.AddRange(lSegmentImported);
+        LSegmentApply(lSegmentList, lSegmentFirst);
+    }
+
+    private static List<LPiece> LSegmentLosslesscutCreate(
+        IReadOnlyList<LSidecarSectionRecord> lSegmentSections,
+        int lSegmentColorOffset,
+        int lSegmentPaletteCount)
+    {
+        int lSegmentPalette = Math.Max(1, lSegmentPaletteCount);
+        return lSegmentSections
+            .Select((lSegmentSection, lSegmentIndex) => new LPiece(
+                TimeSpan.FromMilliseconds(lSegmentSection.LSidecarStartMilliseconds),
+                TimeSpan.FromMilliseconds(lSegmentSection.LSidecarEndMilliseconds),
+                (lSegmentColorOffset + lSegmentIndex) % lSegmentPalette,
+                lSegmentSection.LSidecarName ?? string.Empty))
+            .ToList();
+    }
+
     public void LSegmentAdd(TimeSpan lSegmentCursor, TimeSpan lSegmentDuration, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
     {
         if (LPiece.LPieceAdd(lSegmentPieces, lSegmentCursor, lSegmentDuration, lSegmentColorIndex, lSegmentOverlapAllowed)
