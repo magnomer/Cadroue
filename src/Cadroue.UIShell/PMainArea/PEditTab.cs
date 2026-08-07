@@ -21,6 +21,7 @@ public sealed class PEditTab : PTabSurface
     private readonly PInspector pInspector = new();
     private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
+    private readonly LCropboxState pCropOwner = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pEditPlanLoading;
 
@@ -39,7 +40,7 @@ public sealed class PEditTab : PTabSurface
                 lPriority,
                 pEditSelected.LDocketEntryPath,
                 pViewer.PViewerDurationRead(),
-                pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pInspector.PInspectorCropRead(),
+                pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pCropOwner.LCropboxStateCrop,
                 pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
                 lPresetOwner,
                 pAction.PActionRelayTarget,
@@ -80,12 +81,17 @@ public sealed class PEditTab : PTabSurface
 
         pInspector.PInspectorToolChange += pViewer.PCropToolSet;
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
+        pInspector.PInspectorRatioChange += _ => PEditRatioWrite();
         pInspector.PInspectorRatioChange += _ => PEditPlanSave();
         pInspector.PInspectorCropChange += pViewer.PCropVideoSet;
+        pInspector.PInspectorCropChange += _ => PEditCropWrite();
         pInspector.PInspectorRotateChange += PEditRotateHandle;
         pInspector.PInspectorCropChange += _ => PEditPlanSave();
+        pInspector.PInspectorRotateChange += _ => PEditCropWrite();
         pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
+        pInspector.PInspectorPersistentChange += pCropOwner.LCropboxStatePersistentSet;
+        pInspector.PCropActiveChange += PEditActiveWrite;
         pInspector.PCropActiveChange += PEditActiveUpdate;
         pInspector.PCropActiveChange += PEditPlanSave;
         pInspector.PInspectorVideoChange += PEditChangeHandle;
@@ -127,6 +133,13 @@ public sealed class PEditTab : PTabSurface
                 pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropApply);
                 pInspector.PInspectorRatioApply(pEditPlan.LEditRatioFixed, pEditPlan.LEditRatioWidth, pEditPlan.LEditRatioHeight);
                 pInspector.PCropPersistentApply(true);
+                pCropOwner.LCropboxStateSet(
+                    pEditPlan.LEditCrop,
+                    pEditPlan.LEditCropApply,
+                    pEditPlan.LEditRatioFixed,
+                    pEditPlan.LEditRatioWidth,
+                    pEditPlan.LEditRatioHeight);
+                pCropOwner.LCropboxStatePersistentSet(true);
             }
 
             pInspector.PTonePlanApply(pEditPlan.LEditVideo);
@@ -197,9 +210,19 @@ public sealed class PEditTab : PTabSurface
         }
     }
 
+    private void PEditCropWrite() => pCropOwner.LCropboxStateCropSet(pInspector.PInspectorCropRead());
+
+    private void PEditRatioWrite()
+    {
+        (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
+        pCropOwner.LCropboxStateRatioSet(pRatioFixed, pRatioWidth, pRatioHeight);
+    }
+
+    private void PEditActiveWrite() => pCropOwner.LCropboxStateApplySet(pInspector.PCropActiveCheck());
+
     private void PEditActiveUpdate()
     {
-        pProcessing.PProcessingActiveSet("Crop", pInspector.PCropActiveCheck());
+        pProcessing.PProcessingActiveSet("Crop", pCropOwner.LCropboxStateApply);
         pProcessing.PProcessingActiveSet("Brightness",
             pInspector.PToneStepRead(LColorKind.LColorKindBrightness).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Contrast",
@@ -297,6 +320,12 @@ public sealed class PEditTab : PTabSurface
                 pInspector.PInspectorRatioApply(pEditApply.LEditRatioFixed, pEditApply.LEditRatioWidth, pEditApply.LEditRatioHeight);
                 pInspector.PTonePlanApply(pEditApply.LEditVideo);
                 pInspector.PSkipApply(pEditApply.LEditSkip);
+                pCropOwner.LCropboxStateSet(
+                    pEditApply.LEditCrop,
+                    pEditApply.LEditCropApply,
+                    pEditApply.LEditRatioFixed,
+                    pEditApply.LEditRatioWidth,
+                    pEditApply.LEditRatioHeight);
             }
             else
             {
@@ -305,6 +334,7 @@ public sealed class PEditTab : PTabSurface
                 pInspector.PInspectorRatioReset();
                 pInspector.PTonePlanApply(LWorkVideo.LWorkVideoCreate());
                 pInspector.PSkipApply(false);
+                pCropOwner.LCropboxStateReset();
             }
         }
         finally
@@ -401,7 +431,7 @@ public sealed class PEditTab : PTabSurface
 
     private LEditPlan? PEditCarriedRead()
     {
-        bool pCropPersistent = pInspector.PCropPersistentCheck();
+        bool pCropPersistent = pCropOwner.LCropboxStatePersistent;
         bool pVideoPersistent = pInspector.PTonePersistentCheck();
         bool pSkipPersistent = pInspector.PSkipPersistentCheck();
         if (!pCropPersistent && !pVideoPersistent && !pSkipPersistent)
@@ -409,15 +439,15 @@ public sealed class PEditTab : PTabSurface
             return null;
         }
 
-        bool pCropApply = pCropPersistent && pInspector.PCropActiveCheck();
+        bool pCropApply = pCropPersistent && pCropOwner.LCropboxStateApply;
         LWorkCrop pCrop = pCropPersistent
-            ? pInspector.PInspectorCropRead()
+            ? pCropOwner.LCropboxStateCrop
             : LWorkCrop.LWorkCropCreate();
         LWorkVideo pVideo = pVideoPersistent
             ? pInspector.PTonePersistentRead()
             : LWorkVideo.LWorkVideoCreate();
         bool pSkip = pSkipPersistent && pInspector.PSkipActiveCheck();
-        (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
+        (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
         return new LEditPlan(pCrop, pVideo, pCropApply)
         {
             LEditSkip = pSkip,
@@ -468,11 +498,11 @@ public sealed class PEditTab : PTabSurface
             return;
         }
 
-        (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
+        (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
         var pEditPlan = new LEditPlan(
-            pInspector.PInspectorCropRead(),
+            pCropOwner.LCropboxStateCrop,
             PEditVideoRead(),
-            pInspector.PCropActiveCheck())
+            pCropOwner.LCropboxStateApply)
         {
             LEditSkip = pInspector.PSkipActiveCheck(),
             LEditRatioFixed = pRatioFixed,
@@ -496,16 +526,16 @@ public sealed class PEditTab : PTabSurface
     public override LSceneTabRecord PTabLayoutRead()
     {
         LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
-        bool pCropPersistent = pInspector.PCropPersistentCheck();
+        bool pCropPersistent = pCropOwner.LCropboxStatePersistent;
         bool pVideoPersistent = pInspector.PTonePersistentCheck();
         bool pSkipPersistent = pInspector.PSkipPersistentCheck();
         if (pCropPersistent || pVideoPersistent || pSkipPersistent)
         {
-            (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
+            (bool pRatioFixed, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
             var pEditCarried = new LEditPlan(
-                pCropPersistent ? pInspector.PInspectorCropRead() : LWorkCrop.LWorkCropCreate(),
+                pCropPersistent ? pCropOwner.LCropboxStateCrop : LWorkCrop.LWorkCropCreate(),
                 pInspector.PTonePersistentRead(),
-                pCropPersistent && pInspector.PCropActiveCheck())
+                pCropPersistent && pCropOwner.LCropboxStateApply)
             {
                 LEditSkip = pSkipPersistent && pInspector.PSkipActiveCheck(),
                 LEditRatioFixed = pCropPersistent && pRatioFixed,
