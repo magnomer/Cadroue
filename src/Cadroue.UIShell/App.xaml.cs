@@ -157,7 +157,9 @@ public partial class PProgram : System.Windows.Application
 
         Cadroue.Media.LTool.LToolFolderSource = () => Cadroue.MigrationInterface.LRenderer.LRendererFolderCurrent;
         LLibrarianSeamApply();
-        PFlow.PFlow.PFlowSidecarSource = LSidecarSectionsRead;
+        Cadroue.Application.LSegment.LSegmentLoadSeam = LSidecarSectionsRead;
+        Cadroue.Application.LSegment.LSegmentSaveSeam = (lSidecarSourcePath, lSidecarSections) =>
+            Cadroue.Infrastructure.LSidecarStore.LSidecarSectionsSave(lSidecarSourcePath, lSidecarSections);
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
         PPanels.PSEncoder.PSCodecProbeStart();

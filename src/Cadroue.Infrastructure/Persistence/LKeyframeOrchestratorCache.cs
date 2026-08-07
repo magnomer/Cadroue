@@ -128,8 +128,7 @@ public sealed partial class LKeyframeOrchestrator
             identity,
             keyframes,
             scannedSpans,
-            LKeyframeGridMilliseconds,
-            LKeyframeSectionsRead());
+            LKeyframeGridMilliseconds);
         bool lKeyframePersisted = lKeyframeSidecarWritten
             || LKeyframeCacheStore.LKeyframeCacheSave(identity, keyframes, scannedSpans);
 
@@ -165,21 +164,6 @@ public sealed partial class LKeyframeOrchestrator
 
             lKeyframeUnsavedCount = 0;
             return true;
-        }
-    }
-
-    public Func<IReadOnlyList<LSidecarSectionRecord>>? LKeyframeSectionsSource { get; set; }
-
-    private IReadOnlyList<LSidecarSectionRecord> LKeyframeSectionsRead()
-    {
-        try
-        {
-            return LKeyframeSectionsSource?.Invoke() ?? Array.Empty<LSidecarSectionRecord>();
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord("Sidecar sections could not be read", lException);
-            return Array.Empty<LSidecarSectionRecord>();
         }
     }
 

@@ -6,8 +6,6 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow
 {
-    public static Func<string, IReadOnlyList<Cadroue.Core.LSidecarSectionRecord>>? PFlowSidecarSource { get; set; }
-
     private bool pFlowSectionEditable = true;
 
     public void PFlowEditSet(bool pFlowSectionEdit) =>
@@ -19,7 +17,6 @@ public sealed partial class PFlow
         pViewfinder.PViewfinderSectionsUpdate(pFlowSections, pFlowActive);
         pMap.PMapSectionsUpdate(pFlowSections, pFlowActive);
         PFlowSectionChange?.Invoke(pFlowSections, pFlowActive);
-        PFlowSidecarSave();
     }
 
     private void PFlowSectionAdd()
@@ -95,28 +92,6 @@ public sealed partial class PFlow
             $"{pFlowSection.LPieceStart:hh\\:mm\\:ss\\.fff}-{pFlowSection.LPieceEnd:hh\\:mm\\:ss\\.fff}");
     }
 
-    private void PFlowSidecarSave()
-    {
-        if (!pFlowSectionEditable || pFlowSidecarRestoring || lSourcePath is null)
-        {
-            return;
-        }
-
-        try
-        {
-            lKeyframeOrchestrator.LKeyframeSidecarSave();
-            LTraceLog.LTraceInfoRecord(
-                $"Sidecar written for '{System.IO.Path.GetFileName(lSourcePath)}': " +
-                $"{lSegment.LSegmentListRead().Count} section(s)");
-        }
-        catch (Exception pFlowException)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Sidecar could not be written for '{System.IO.Path.GetFileName(lSourcePath)}'",
-                pFlowException);
-        }
-    }
-
     public void PFlowSectionSelect(int pSectionIndex)
     {
         PFlowViewfinderSelect(pSectionIndex);
@@ -160,59 +135,11 @@ public sealed partial class PFlow
                 lSection.LPieceHidden))
             .ToArray();
 
-    internal IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> PFlowSidecarRead() =>
-        lSegment.LSegmentListRead()
-            .Select(lSection => new Cadroue.Core.LSidecarSectionRecord
-            {
-                LSidecarStartMilliseconds = (long)lSection.LPieceStart.TotalMilliseconds,
-                LSidecarEndMilliseconds = (long)lSection.LPieceEnd.TotalMilliseconds,
-                LSidecarColorIndex = lSection.LPieceColorIndex,
-                LSidecarName = lSection.LPieceName,
-                LSidecarPrefix = lSection.LPiecePrefix,
-                LSidecarSuffix = lSection.LPieceSuffix,
-                LSidecarHidden = lSection.LPieceHidden
-            })
-            .ToArray();
-
-    internal void PFlowSidecarApply(IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> lSidecarSections)
-    {
-        if (lSpool is null || lSegment.LSegmentListRead().Count > 0 || lSidecarSections.Count == 0)
-        {
-            return;
-        }
-
-        LTraceLog.LTraceInfoRecord(
-            $"Sidecar restored for '{System.IO.Path.GetFileName(lSourcePath)}': " +
-            $"{lSidecarSections.Count} section(s)");
-        pFlowSidecarRestoring = true;
-        try
-        {
-            PFlowSectionsSet(
-                lSidecarSections
-                    .Select(lSection => new LPiece(
-                        TimeSpan.FromMilliseconds(lSection.LSidecarStartMilliseconds),
-                        TimeSpan.FromMilliseconds(lSection.LSidecarEndMilliseconds),
-                        lSection.LSidecarColorIndex,
-                        lSection.LSidecarName)
-                    {
-                        LPiecePrefix = lSection.LSidecarPrefix ?? string.Empty,
-                        LPieceSuffix = lSection.LSidecarSuffix ?? string.Empty,
-                        LPieceHidden = lSection.LSidecarHidden
-                    })
-                    .ToArray(),
-                null);
-        }
-        finally
-        {
-            pFlowSidecarRestoring = false;
-        }
-    }
-
     public int? PFlowSelectionRead() => lSegment.LSegmentSelectionRead();
 
     public void PFlowSectionsSet(IReadOnlyList<LPiece> lSections, int? lSectionSelect)
     {
-        if ((!pFlowSectionEditable && !pFlowSidecarRestoring) || lSpool is null)
+        if (!pFlowSectionEditable || lSpool is null)
         {
             return;
         }

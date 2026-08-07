@@ -52,7 +52,6 @@ public sealed partial class PFlow : UserControl
     private TimeSpan lCursor;
     private string? lSourcePath;
 
-    private bool pFlowSidecarRestoring;
     private double pDividerStartY;
     private double pDividerStartHeight;
     private bool pDividerState;
@@ -79,7 +78,6 @@ public sealed partial class PFlow : UserControl
         pMap.PMapDragChange += PFlowDragSet;
         lSegment.LSegmentChange += PFlowSegmentHandle;
         lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
-        lKeyframeOrchestrator.LKeyframeSectionsSource = PFlowSidecarRead;
         lWaveformOrchestrator.LWaveformReady += PFlowWaveformHandle;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         lKeyframeRequestTimer.Tick += PFlowTimerHandle;
@@ -132,25 +130,10 @@ public sealed partial class PFlow : UserControl
         pMapLabelRight.Text = PFlowTimeFormat(lSpool.LSpoolDuration);
         pViewfinder.PViewfinderKeyframesUpdate(Array.Empty<LKeyframeEntry>(), Array.Empty<LKeyframeScanRange>());
         pMap.PMapKeyframesUpdate(Array.Empty<LKeyframeScanRange>());
-        PFlowSidecarRestore();
+        lSegment.LSegmentLoad(lSpool.LSpoolDuration);
         PFlowSectionChange?.Invoke(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
         PFlowKeyframeRun();
         PFlowWaveformStart();
-    }
-
-    private void PFlowSidecarRestore()
-    {
-        if (lSourcePath is not { } pFlowSourcePath)
-        {
-            return;
-        }
-
-        IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> pFlowSections =
-            PFlowSidecarSource?.Invoke(pFlowSourcePath) ?? Array.Empty<Cadroue.Core.LSidecarSectionRecord>();
-        if (pFlowSections.Count > 0)
-        {
-            PFlowSidecarApply(pFlowSections);
-        }
     }
 
     public void PFlowCursorUpdate(TimeSpan cursorTime)

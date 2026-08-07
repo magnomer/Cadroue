@@ -89,12 +89,14 @@ public static class LSidecarStore
         return lSidecar is not null && lSidecar.LSidecarSourceMatch(lSidecarIdentity) ? lSidecar : null;
     }
 
+    public static bool LSidecarSectionsSave(string lSidecarSourcePath, IReadOnlyList<LSidecarSectionRecord> lSidecarSections) =>
+        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSections = lSidecarSections.ToList());
+
     public static bool LSidecarSave(
         LKeyframeSourceIdentity lSidecarIdentity,
         IReadOnlyCollection<long> lSidecarKeyframeMilliseconds,
         IReadOnlyCollection<int> lSidecarScannedSpans,
-        int lSidecarSpanGridMilliseconds,
-        IReadOnlyList<LSidecarSectionRecord> lSidecarSections)
+        int lSidecarSpanGridMilliseconds)
     {
         string lSidecarPreciousPath = LSidecarPathRead(lSidecarIdentity.LKeyframeSourcePath);
         bool lSidecarCoreSaved;
@@ -111,7 +113,6 @@ public static class LSidecarStore
                         : new LSidecarCoreRecord();
                 lSidecarCore.LSidecarVersion = 2;
                 lSidecarCore.LSidecarSource = LSidecarSourceCreate(lSidecarIdentity, lSidecarPreciousPath);
-                lSidecarCore.LSidecarSections = lSidecarSections.ToList();
 
                 lSidecarCoreSaved = LSidecarFile.LSidecarFileSave(lSidecarPreciousPath, LSidecarParse.LSidecarCoreFormat(lSidecarCore));
             }

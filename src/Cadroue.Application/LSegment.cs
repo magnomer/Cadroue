@@ -7,8 +7,12 @@ public sealed class LSegment
     private readonly List<LPiece> lSegmentPieces = new();
     private int? lSegmentIndexActive;
     private string? lSegmentSourcePath;
+    private bool lSegmentRestoring;
 
     public Action<IReadOnlyList<LPiece>, int?>? LSegmentChange;
+
+    public static Func<string, IReadOnlyList<LSidecarSectionRecord>>? LSegmentLoadSeam;
+    public static Action<string, IReadOnlyList<LSidecarSectionRecord>>? LSegmentSaveSeam;
 
     public IReadOnlyList<LPiece> LSegmentListRead() => lSegmentPieces.ToArray();
 
@@ -22,6 +26,67 @@ public sealed class LSegment
     {
         lSegmentPieces.Clear();
         lSegmentIndexActive = null;
+    }
+
+    public void LSegmentLoad(TimeSpan lSegmentDuration)
+    {
+        if (lSegmentSourcePath is not { } lSegmentSource || lSegmentPieces.Count > 0) return;
+
+        IReadOnlyList<LSidecarSectionRecord> lSegmentRecords =
+            LSegmentLoadSeam?.Invoke(lSegmentSource) ?? Array.Empty<LSidecarSectionRecord>();
+        if (lSegmentRecords.Count == 0) return;
+
+        List<LPiece> lSegmentList = new();
+        foreach (LSidecarSectionRecord lSegmentRecord in lSegmentRecords)
+        {
+            LPiece lSegmentPiece = LSegmentPieceCreate(lSegmentRecord);
+            if (lSegmentPiece.LPieceEnd <= lSegmentDuration && lSegmentPiece.LPieceStart < lSegmentPiece.LPieceEnd)
+            {
+                lSegmentList.Add(lSegmentPiece);
+            }
+        }
+
+        lSegmentRestoring = true;
+        try
+        {
+            LSegmentApply(lSegmentList, null);
+        }
+        finally
+        {
+            lSegmentRestoring = false;
+        }
+    }
+
+    public IReadOnlyList<LSidecarSectionRecord> LSegmentRecordsRead() =>
+        lSegmentPieces.Select(LSegmentRecordCreate).ToArray();
+
+    private static LSidecarSectionRecord LSegmentRecordCreate(LPiece lSegmentPiece) => new()
+    {
+        LSidecarStartMilliseconds = (long)lSegmentPiece.LPieceStart.TotalMilliseconds,
+        LSidecarEndMilliseconds = (long)lSegmentPiece.LPieceEnd.TotalMilliseconds,
+        LSidecarColorIndex = lSegmentPiece.LPieceColorIndex,
+        LSidecarName = lSegmentPiece.LPieceName,
+        LSidecarPrefix = lSegmentPiece.LPiecePrefix,
+        LSidecarSuffix = lSegmentPiece.LPieceSuffix,
+        LSidecarHidden = lSegmentPiece.LPieceHidden
+    };
+
+    private static LPiece LSegmentPieceCreate(LSidecarSectionRecord lSegmentRecord) =>
+        new(
+            TimeSpan.FromMilliseconds(lSegmentRecord.LSidecarStartMilliseconds),
+            TimeSpan.FromMilliseconds(lSegmentRecord.LSidecarEndMilliseconds),
+            lSegmentRecord.LSidecarColorIndex,
+            lSegmentRecord.LSidecarName)
+        {
+            LPiecePrefix = lSegmentRecord.LSidecarPrefix ?? string.Empty,
+            LPieceSuffix = lSegmentRecord.LSidecarSuffix ?? string.Empty,
+            LPieceHidden = lSegmentRecord.LSidecarHidden
+        };
+
+    private void LSegmentSave()
+    {
+        if (lSegmentRestoring || lSegmentSourcePath is not { } lSegmentSource) return;
+        LSegmentSaveSeam?.Invoke(lSegmentSource, LSegmentRecordsRead());
     }
 
     public void LSegmentSet(IReadOnlyList<LPiece> lSegmentSections, int? lSegmentSelect)
@@ -157,5 +222,6 @@ public sealed class LSegment
         lSegmentPieces.AddRange(lSegmentSections);
         lSegmentIndexActive = lSegmentSelect;
         LSegmentChange?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
+        LSegmentSave();
     }
 }
