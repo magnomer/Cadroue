@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 
+using Cadroue.Core;
+
 namespace Cadroue.Media;
 
 public enum LSidecarSourceKind

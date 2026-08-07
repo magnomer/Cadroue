@@ -15,9 +15,8 @@ public sealed partial class PRoster
             return null;
         }
 
-        IReadOnlyList<long>? pKeyframes =
-            LSidecarStore.LSidecarRead(LSidecarStore.LSidecarPathRead(pSourcePath))?.LSidecarKeyframesRead();
-        if (pKeyframes is not { Count: > 1 })
+        IReadOnlyList<long> pKeyframes = Cadroue.Application.LLibrarian.LLibrarianKeyframesLoad(pSourcePath);
+        if (pKeyframes.Count <= 1)
         {
             return null;
         }

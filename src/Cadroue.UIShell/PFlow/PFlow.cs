@@ -142,8 +142,8 @@ public sealed partial class PFlow : UserControl
             return;
         }
 
-        IReadOnlyList<Cadroue.Media.LSidecarSectionRecord> pFlowSections =
-            PFlowSidecarSource?.Invoke(pFlowSourcePath) ?? Array.Empty<Cadroue.Media.LSidecarSectionRecord>();
+        IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> pFlowSections =
+            PFlowSidecarSource?.Invoke(pFlowSourcePath) ?? Array.Empty<Cadroue.Core.LSidecarSectionRecord>();
         if (pFlowSections.Count > 0)
         {
             PFlowSidecarApply(pFlowSections);

@@ -156,6 +156,7 @@ public partial class PProgram : System.Windows.Application
             });
 
         Cadroue.Media.LTool.LToolFolderSource = () => Cadroue.MigrationInterface.LRenderer.LRendererFolderCurrent;
+        LLibrarianSeamApply();
         PFlow.PFlow.PFlowSidecarSource = LSidecarSectionsRead;
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
@@ -214,10 +215,10 @@ public partial class PProgram : System.Windows.Application
 
     public static void LSidecarFolderApply()
     {
-        Cadroue.Media.LSidecarStore.LSidecarFolderSet(
+        Cadroue.Infrastructure.LSidecarStore.LSidecarFolderSet(
             System.IO.Path.Combine(
                 Cadroue.Infrastructure.LDepot.LDepotRootRead(),
-                Cadroue.Media.LSidecarStore.LSidecarRecordFolder),
+                Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder),
             LPreference.LPreferenceStateCurrent.LPreferenceRecordWorkspace);
     }
 
@@ -251,12 +252,28 @@ public partial class PProgram : System.Windows.Application
         }
     }
 
-    private static IReadOnlyList<Cadroue.Media.LSidecarSectionRecord> LSidecarSectionsRead(string lSidecarSourcePath)
+    private static void LLibrarianSeamApply()
+    {
+        Cadroue.Application.LLibrarian.LLibrarianCoreLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarCoreRead;
+        Cadroue.Application.LLibrarian.LLibrarianKeyframesSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarKeyframesRead;
+        Cadroue.Application.LLibrarian.LLibrarianWaveformLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformRead;
+        Cadroue.Application.LLibrarian.LLibrarianEditLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarEditRead;
+        Cadroue.Application.LLibrarian.LLibrarianAudioLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioRead;
+        Cadroue.Application.LLibrarian.LLibrarianLoudnessLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessRead;
+        Cadroue.Application.LLibrarian.LLibrarianDurationReadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead;
+        Cadroue.Application.LLibrarian.LLibrarianDurationResolveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationResolve;
+        Cadroue.Application.LLibrarian.LLibrarianEditSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarEditSave;
+        Cadroue.Application.LLibrarian.LLibrarianAudioSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioSave;
+        Cadroue.Application.LLibrarian.LLibrarianLoudnessSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessSave;
+        Cadroue.Application.LLibrarian.LLibrarianWaveformSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformSave;
+    }
+
+    private static IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> LSidecarSectionsRead(string lSidecarSourcePath)
     {
         try
         {
-            string lSidecarPath = Cadroue.Media.LSidecarStore.LSidecarPathRead(lSidecarSourcePath);
-            if (Cadroue.Media.LSidecarStore.LSidecarRead(lSidecarPath) is { } lSidecar)
+            string lSidecarPath = Cadroue.Infrastructure.LSidecarStore.LSidecarPathRead(lSidecarSourcePath);
+            if (Cadroue.Infrastructure.LSidecarStore.LSidecarRead(lSidecarPath) is { } lSidecar)
             {
                 return lSidecar.LSidecarSections;
             }
@@ -266,7 +283,7 @@ public partial class PProgram : System.Windows.Application
             LTraceLog.LTraceErrorRecord("Sidecar sections could not be restored", lSidecarException);
         }
 
-        return Array.Empty<Cadroue.Media.LSidecarSectionRecord>();
+        return Array.Empty<Cadroue.Core.LSidecarSectionRecord>();
     }
 
     private static void LScheduleRecoverRun()

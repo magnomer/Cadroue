@@ -305,7 +305,7 @@ public sealed partial class PRoster
 
         if (pFromSidecar)
         {
-            double pStored = LSidecarStore.LSidecarLoudnessRead(pMediaPath);
+            double pStored = Cadroue.Application.LLibrarian.LLibrarianLoudnessRead(pMediaPath);
             if (pStored != 0)
             {
                 pRosterLoudnessCache[pMediaPath] = pStored;
@@ -339,7 +339,7 @@ public sealed partial class PRoster
 
             if (pMeasured is { } pLoudness && pFromSidecar)
             {
-                LSidecarStore.LSidecarLoudnessSave(pMediaPath, pLoudness);
+                Cadroue.Application.LLibrarian.LLibrarianLoudnessSave(pMediaPath, pLoudness);
             }
 
             Dispatcher.BeginInvoke(new Action(() =>

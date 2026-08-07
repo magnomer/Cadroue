@@ -15,7 +15,7 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow
 {
-    public static Func<string, IReadOnlyList<Cadroue.Media.LSidecarSectionRecord>>? PFlowSidecarSource { get; set; }
+    public static Func<string, IReadOnlyList<Cadroue.Core.LSidecarSectionRecord>>? PFlowSidecarSource { get; set; }
 
     private bool pFlowSectionEditable = true;
 
@@ -174,9 +174,9 @@ public sealed partial class PFlow
 
     public IReadOnlyList<LSegment> PFlowSectionsRead() => lSectionList.ToArray();
 
-    internal IReadOnlyList<Cadroue.Media.LSidecarSectionRecord> PFlowSidecarRead() =>
+    internal IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> PFlowSidecarRead() =>
         lSectionList
-            .Select(lSection => new Cadroue.Media.LSidecarSectionRecord
+            .Select(lSection => new Cadroue.Core.LSidecarSectionRecord
             {
                 LSidecarStartMilliseconds = (long)lSection.LSegmentStart.TotalMilliseconds,
                 LSidecarEndMilliseconds = (long)lSection.LSegmentEnd.TotalMilliseconds,
@@ -188,7 +188,7 @@ public sealed partial class PFlow
             })
             .ToArray();
 
-    internal void PFlowSidecarApply(IReadOnlyList<Cadroue.Media.LSidecarSectionRecord> lSidecarSections)
+    internal void PFlowSidecarApply(IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> lSidecarSections)
     {
         if (lSpool is null || lSectionList.Count > 0 || lSidecarSections.Count == 0)
         {

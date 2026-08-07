@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.Media;
 
 public static class LWaveform

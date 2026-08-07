@@ -76,3 +76,33 @@ public sealed class LSidecarAudioRecord
 
     public bool LSidecarAudioActive => LSidecarSkip || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }
+
+public sealed class LSidecarSectionRecord
+{
+    public long LSidecarStartMilliseconds { get; set; }
+    public long LSidecarEndMilliseconds { get; set; }
+    public int LSidecarColorIndex { get; set; }
+    public string LSidecarName { get; set; } = string.Empty;
+    public string LSidecarPrefix { get; set; } = string.Empty;
+    public string LSidecarSuffix { get; set; } = string.Empty;
+    public bool LSidecarHidden { get; set; }
+}
+
+public sealed class LSidecarWaveformRecord
+{
+    public int LSidecarBucketMilliseconds { get; set; }
+    public long LSidecarDurationMilliseconds { get; set; }
+    public string LSidecarPeaks { get; set; } = string.Empty;
+    public string LSidecarRms { get; set; } = string.Empty;
+}
+
+public sealed class LSidecarSourceRecord
+{
+    public string LSidecarFileName { get; set; } = string.Empty;
+    public string LSidecarRelativePath { get; set; } = string.Empty;
+    public string LSidecarAbsolutePath { get; set; } = string.Empty;
+    public long LSidecarLength { get; set; }
+    public long LSidecarWriteTicks { get; set; }
+    public long LSidecarDurationMilliseconds { get; set; }
+    public string LSidecarPartialHash { get; set; } = string.Empty;
+}

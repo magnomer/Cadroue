@@ -134,13 +134,13 @@ internal sealed partial class PSOptions
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), pRecordRow),
             PSNoticeBuild(LLocalization.LLocalizationFormat(
                 "Options.System.FileRecordNotice",
-                System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Media.LSidecarStore.LSidecarRecordFolder))),
+                System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder))),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pRecordButtonRow));
     }
 
     private void PSSystemRecordClear()
     {
-        string pRecordFolder = Cadroue.Media.LSidecarStore.LSidecarFolderRead();
+        string pRecordFolder = Cadroue.Infrastructure.LSidecarStore.LSidecarFolderRead();
         if (string.IsNullOrWhiteSpace(pRecordFolder) || !Directory.Exists(pRecordFolder))
         {
             MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.System.NoFileRecord"), LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), MessageBoxButton.OK, MessageBoxImage.Information);
@@ -158,7 +158,7 @@ internal sealed partial class PSOptions
             return;
         }
 
-        int pRemoved = Cadroue.Media.LSidecarStore.LSidecarFolderClear();
+        int pRemoved = Cadroue.Infrastructure.LSidecarStore.LSidecarFolderClear();
         PSWorkspaceSizeUpdate();
         MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.FileRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
