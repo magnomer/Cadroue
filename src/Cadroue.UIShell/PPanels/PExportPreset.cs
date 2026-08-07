@@ -37,6 +37,7 @@ public sealed partial class PExport
 
     private void PExportPresetRebuild()
     {
+        LPreset lWorking = PExportWorkingRead();
         pPresetRebuilding = true;
         try
         {
@@ -52,7 +53,7 @@ public sealed partial class PExport
                     pUserDividerAdded = true;
                 }
 
-                pPresetRowPanel.Children.Add(PExportRowBuild(lPresetName));
+                pPresetRowPanel.Children.Add(PExportRowBuild(lPresetName, lWorking));
             }
         }
         finally
@@ -61,15 +62,15 @@ public sealed partial class PExport
         }
     }
 
-    private Border PExportRowBuild(string lPresetName)
+    private Border PExportRowBuild(string lPresetName, LPreset lWorking)
     {
         bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
         bool pPresetSelected = string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase);
         bool pPresetModified = !pPresetNative
             && pPresetSelected
-            && !LPreset.LPresetMatch(lPresetName, lExportSpecificState);
+            && !LPreset.LPresetMatch(lPresetName, lWorking);
         bool pPresetEditing = string.Equals(lPresetName, pPresetNameEditing, StringComparison.OrdinalIgnoreCase);
-        bool pPresetDisabled = PExportDisabledCheck(lPresetName);
+        bool pPresetDisabled = PExportDisabledCheck(lPresetName, lWorking);
         UIElement pNameElement = pPresetEditing
             ? PExportBoxBuild(lPresetName)
             : PExportDisplayBuild(lPresetName, pPresetModified);
@@ -137,12 +138,12 @@ public sealed partial class PExport
         return pRowBorder;
     }
 
-    private bool PExportDisabledCheck(string lPresetName) =>
+    private bool PExportDisabledCheck(string lPresetName, LPreset lWorking) =>
         pExportCopyDisabled
         && LPreset.LPresetRead(lPresetName) is { } lPreset
         && string.Equals(lPreset.LPresetVideo.LPresetMode, "Copy", StringComparison.OrdinalIgnoreCase)
         && (!string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lExportSpecificState.LPresetVideo.LPresetMode, "Copy", StringComparison.OrdinalIgnoreCase));
+            || string.Equals(lWorking.LPresetVideo.LPresetMode, "Copy", StringComparison.OrdinalIgnoreCase));
 
     private static Border PExportDividerBuild() => new()
     {
@@ -165,7 +166,7 @@ public sealed partial class PExport
     private void PExportPresetSelect(string lPresetName)
     {
         pPresetNameSelected = lPresetName;
-        PExportPresetApply();
+        lPresetOwner.LPresetSelectionSelect(lPresetName);
     }
 
     private UIElement PExportDisplayBuild(string lPresetName, bool pPresetModified)

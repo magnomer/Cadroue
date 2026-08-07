@@ -34,6 +34,7 @@ public sealed class LPresetSelection
         set
         {
             lPresetSelectionValue = value;
+            LPresetSelectionName = value.LPresetName;
             LPresetSelectionRaise();
         }
     }

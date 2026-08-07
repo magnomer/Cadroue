@@ -10,19 +10,6 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PExport
 {
-    private void PExportPresetApply()
-    {
-        if (pExportPresetBusy || pPresetNameSelected is not string lPresetName)
-        {
-            return;
-        }
-
-        if (LPreset.LPresetTryLoad(lPresetName, lExportSpecificState))
-        {
-            PExportSummaryUpdate();
-        }
-    }
-
     private void PExportPresetSync()
     {
         if (pExportPresetBusy || pPresetNameEditing is not null || pPresetDragActive)
@@ -30,39 +17,33 @@ public sealed partial class PExport
             return;
         }
 
-        if (pPresetNameSelected is string lPresetName
-            && LPreset.LPresetNames.Any(lName => string.Equals(lName, lPresetName, StringComparison.OrdinalIgnoreCase)))
+        string lSelectedName = lPresetOwner.LPresetSelectionName;
+        if (!string.IsNullOrEmpty(lSelectedName)
+            && LPreset.LPresetNames.Any(lName => string.Equals(lName, lSelectedName, StringComparison.OrdinalIgnoreCase)))
         {
             if (pExportPresetClean)
             {
-                pExportPresetBusy = true;
-                LPreset.LPresetTryLoad(lPresetName, lExportSpecificState);
-                pExportPresetBusy = false;
+                lPresetOwner.LPresetSelectionSelect(lSelectedName);
+                return;
             }
 
             PExportSummaryUpdate();
             return;
         }
 
-        pExportPresetBusy = true;
-        if (LPreset.LPresetFirstName is string lFirstName && LPreset.LPresetTryLoad(lFirstName, lExportSpecificState))
+        if (LPreset.LPresetFirstName is string lFirstName)
         {
-            pPresetNameSelected = lFirstName;
+            lPresetOwner.LPresetSelectionSelect(lFirstName);
+            return;
         }
 
-        pExportPresetBusy = false;
         PExportSummaryUpdate();
     }
 
     private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
         string lPresetName = PExportNameCreate(LLocalization.LLocalizationTextRead("ExportPreset.DefaultName"));
-        lExportSpecificState.LPresetName = lPresetName;
-        LPreset.LPresetSave(lPresetName, lExportSpecificState);
-        pExportPresetBusy = true;
-        pPresetNameSelected = lPresetName;
-        pExportPresetBusy = false;
-        PExportSummaryUpdate();
+        lPresetOwner.LPresetSelectionSave(lPresetName);
     }
 
     private void PExportPresetDelete(object sender, RoutedEventArgs e)
@@ -82,27 +63,22 @@ public sealed partial class PExport
             return;
         }
 
-        string? lNextPresetName = LPreset.LPresetFirstName;
-        pExportPresetBusy = true;
-        if (lNextPresetName is not null && LPreset.LPresetTryLoad(lNextPresetName, lExportSpecificState))
+        if (LPreset.LPresetFirstName is string lNextPresetName)
         {
-            pPresetNameSelected = lNextPresetName;
+            lPresetOwner.LPresetSelectionSelect(lNextPresetName);
         }
         else
         {
-            lExportSpecificState.LPresetName = string.Empty;
-            pPresetNameSelected = null;
+            PExportSummaryUpdate();
         }
-
-        pExportPresetBusy = false;
-        PExportSummaryUpdate();
     }
 
     private void PExportPresetSave(object sender, RoutedEventArgs e)
     {
-        string lPresetName = string.IsNullOrWhiteSpace(lExportSpecificState.LPresetName)
+        LPresetRecord lPresetValue = lPresetOwner.LPresetSelectionValue;
+        string lPresetName = string.IsNullOrWhiteSpace(lPresetValue.LPresetName)
             ? pPresetNameSelected ?? string.Empty
-            : lExportSpecificState.LPresetName;
+            : lPresetValue.LPresetName;
 
         char[] pInvalidCharacters = Path.GetInvalidFileNameChars();
         string pFileName = new string(lPresetName
@@ -128,7 +104,7 @@ public sealed partial class PExport
 
         try
         {
-            LPresetStore.LPresetFileSave(lExportSpecificState.LPresetRecordCreate(), pDialog.FileName);
+            LPresetStore.LPresetFileSave(lPresetValue, pDialog.FileName);
         }
         catch (Exception pError)
         {
@@ -155,11 +131,10 @@ public sealed partial class PExport
             return;
         }
 
-        LPreset? lImportedPreset;
+        LPresetRecord? lImportedRecord;
         try
         {
-            LPresetRecord? lImportedRecord = LPresetStore.LPresetFileLoad(pDialog.FileName);
-            lImportedPreset = lImportedRecord is null ? null : LPreset.LPresetStateCreate(lImportedRecord);
+            lImportedRecord = LPresetStore.LPresetFileLoad(pDialog.FileName);
         }
         catch (Exception pError)
         {
@@ -171,7 +146,7 @@ public sealed partial class PExport
             return;
         }
 
-        if (lImportedPreset is null)
+        if (lImportedRecord is null)
         {
             MessageBox.Show(
                 LLocalization.LLocalizationTextRead("ExportPreset.Error.Invalid"),
@@ -181,7 +156,7 @@ public sealed partial class PExport
             return;
         }
 
-        string lImportedName = lImportedPreset.LPresetName.Trim();
+        string lImportedName = lImportedRecord.LPresetName.Trim();
         if (string.IsNullOrWhiteSpace(lImportedName))
         {
             lImportedName = Path.GetFileNameWithoutExtension(pDialog.FileName).Trim();
@@ -192,13 +167,9 @@ public sealed partial class PExport
                 ? LLocalization.LLocalizationTextRead("ExportPreset.ImportedName")
                 : lImportedName);
 
-        lExportSpecificState.LPresetCopy(lImportedPreset);
-        lExportSpecificState.LPresetName = lPresetName;
-        LPreset.LPresetSave(lPresetName, lExportSpecificState);
-        pExportPresetBusy = true;
-        pPresetNameSelected = lPresetName;
-        pExportPresetBusy = false;
-        PExportSummaryUpdate();
+        lImportedRecord.LPresetName = lPresetName;
+        lPresetOwner.LPresetSelectionValue = lImportedRecord;
+        lPresetOwner.LPresetSelectionSave(lPresetName);
     }
 
     private void PExportModificationApply(object sender, RoutedEventArgs e)
@@ -214,23 +185,18 @@ public sealed partial class PExport
             return;
         }
 
-        lExportSpecificState.LPresetName = lPresetName;
-        LPreset.LPresetSave(lPresetName, lExportSpecificState);
-        PExportSummaryUpdate();
+        lPresetOwner.LPresetSelectionSave(lPresetName);
     }
 
     private void PExportModificationRestore(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (pPresetNameSelected is not string lPresetName)
+        if (pPresetNameSelected is not string)
         {
             return;
         }
 
-        if (LPreset.LPresetTryLoad(lPresetName, lExportSpecificState))
-        {
-            PExportSummaryUpdate();
-        }
+        lPresetOwner.LPresetSelectionRestore();
     }
 
     private void PExportNameCommit(string lOldPresetName, string lNewPresetName)
@@ -262,61 +228,45 @@ public sealed partial class PExport
         }
 
         bool lCurrentPresetRename = string.Equals(pPresetNameSelected, lOldPresetName, StringComparison.OrdinalIgnoreCase);
-        var lPresetState = new LPreset();
         if (lCurrentPresetRename)
         {
-            lPresetState.LPresetCopy(lExportSpecificState);
+            if (!lPresetOwner.LPresetSelectionSet(lName))
+            {
+                PExportPresetRebuild();
+            }
+
+            return;
         }
-        else if (!LPreset.LPresetTryLoad(lOldPresetName, lPresetState))
+
+        var lPresetState = new LPreset();
+        if (!LPreset.LPresetTryLoad(lOldPresetName, lPresetState))
         {
             PExportPresetRebuild();
             return;
         }
 
         lPresetState.LPresetName = lName;
-        bool lPresetRenamed;
-        pExportPresetBusy = true;
-        try
-        {
-            lPresetRenamed = LPreset.LPresetNameSet(lOldPresetName, lName, lPresetState);
-            if (lPresetRenamed && lCurrentPresetRename)
-            {
-                lExportSpecificState.LPresetName = lName;
-                pPresetNameSelected = lName;
-            }
-        }
-        finally
-        {
-            pExportPresetBusy = false;
-        }
-
-        if (!lPresetRenamed)
+        if (!LPreset.LPresetNameSet(lOldPresetName, lName, lPresetState))
         {
             PExportPresetRebuild();
             return;
         }
 
-        if (lCurrentPresetRename)
-        {
-            PExportSummaryUpdate();
-        }
-        else
-        {
-            PExportPresetRebuild();
-        }
+        PExportPresetRebuild();
     }
 
     private void PExportDialogShow(object sender, RoutedEventArgs e)
     {
         var pButton = (Button)sender;
-        var psEncoder = new PSEncoder(lExportSpecificState, PExportSummaryUpdate)
+        LPreset pWorking = PExportWorkingRead();
+        var psEncoder = new PSEncoder(pWorking, () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate())
         {
             Owner = Window.GetWindow(pButton)
         };
 
         if (psEncoder.ShowDialog() == true)
         {
-            PExportSummaryUpdate();
+            lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate();
         }
     }
 

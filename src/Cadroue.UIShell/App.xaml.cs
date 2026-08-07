@@ -43,6 +43,18 @@ public partial class PProgram : System.Windows.Application
         };
     }
 
+    private static void LPresetSelectionSeamApply()
+    {
+        Cadroue.Application.LPresetSelection.LPresetLoadSeam = lName =>
+            LPreset.LPresetRead(lName)?.LPresetRecordCreate();
+        Cadroue.Application.LPresetSelection.LPresetSaveSeam = (lName, lRecord) =>
+            LPreset.LPresetSave(lName, LPreset.LPresetStateCreate(lRecord));
+        Cadroue.Application.LPresetSelection.LPresetRenameSeam = (lOldName, lNewName, lRecord) =>
+            LPreset.LPresetNameSet(lOldName, lNewName, LPreset.LPresetStateCreate(lRecord));
+        Cadroue.Application.LPresetSelection.LPresetOutputSeam = lRecord =>
+            LPreset.LPresetStateCreate(lRecord).LPresetOutputCreate();
+    }
+
     private static void LStationSeamApply()
     {
         LStation.LStationSchedule = LScheduleCurrent;
@@ -160,6 +172,7 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LSegment.LSegmentLoadSeam = LSidecarSectionsRead;
         Cadroue.Application.LSegment.LSegmentSaveSeam = (lSidecarSourcePath, lSidecarSections) =>
             Cadroue.Infrastructure.LSidecarStore.LSidecarSectionsSave(lSidecarSourcePath, lSidecarSections);
+        LPresetSelectionSeamApply();
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
         PPanels.PSEncoder.PSCodecProbeStart();

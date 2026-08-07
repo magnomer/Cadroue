@@ -15,7 +15,7 @@ public sealed class PMergeTab : PTabSurface
     private readonly PAction pAction = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PMergeTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PMergeTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMessenger.LMessengerMergeDescribe(
@@ -39,7 +39,7 @@ public sealed class PMergeTab : PTabSurface
         pList.PListItemsAdd += PMergeItemsHandle;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        var pExport = new PExport(lExportSpecificState);
+        var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pGroup, pExport);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;

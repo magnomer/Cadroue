@@ -13,7 +13,7 @@ public sealed class PConvertTab : PTabSurface
     private readonly PList pList = new(new LDocket());
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PConvertTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PConvertTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -45,7 +45,7 @@ public sealed class PConvertTab : PTabSurface
         pList.PListPathChange += PConvertPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        var pExport = new PExport(lExportSpecificState);
+        var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;

@@ -24,7 +24,7 @@ public sealed class PEditTab : PTabSurface
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pEditPlanLoading;
 
-    public PEditTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PEditTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -96,7 +96,7 @@ public sealed class PEditTab : PTabSurface
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
-        var pExport = new PExport(lExportSpecificState, true);
+        var pExport = new PExport(lPresetOwner, true);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pList.PListLockChange += pLocked =>
             pViewer.PCropToolSet(!pLocked && pInspector.PInspectorToolCheck());

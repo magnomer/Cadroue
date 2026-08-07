@@ -26,7 +26,11 @@ public sealed class PWorkspace
         LSceneTabRecord? lPreferenceTabLayout = null)
     {
         PWorkspaceExportState = lExportSpecificState ?? LPreset.LPresetInitialCreate(pTabLayoutKey);
-        PWorkspaceSurface = PWorkspaceSurfaceCreate(pTabLayoutKey, PWorkspaceExportState, lPreferenceTabLayout);
+        PWorkspacePresetOwner = new LPresetSelection(
+            PWorkspaceExportState.LPresetRecordCreate(), PWorkspaceExportState.LPresetName);
+        PWorkspacePresetOwner.LPresetSelectionChange += PWorkspacePresetHandle;
+        PWorkspaceSurface = PWorkspaceSurfaceCreate(
+            pTabLayoutKey, PWorkspaceExportState, PWorkspacePresetOwner, lPreferenceTabLayout);
         bool pHasSourceInfo = pTabLayoutKey is not ("Merge" or "Worklist");
         bool pAudioOnlyAllowed = pTabLayoutKey == "Audio";
         PWorkspaceSource = pHasSourceInfo ? new PSource(pAudioOnlyAllowed) : null;
@@ -57,6 +61,8 @@ public sealed class PWorkspace
     public PTabSurface PWorkspaceSurface { get; }
 
     internal LPreset PWorkspaceExportState { get; }
+
+    internal LPresetSelection PWorkspacePresetOwner { get; }
 
     public PFlowControl? PWorkspaceFlow { get; }
 
@@ -98,6 +104,7 @@ public sealed class PWorkspace
         }
 
         PWorkspaceExportState.LPresetChange -= PWorkspaceExportHandle;
+        PWorkspacePresetOwner.LPresetSelectionChange -= PWorkspacePresetHandle;
         PWorkspaceSurface.PTabClose();
         PWorkspaceFlow?.PFlowClose();
         PWorkspaceViewer?.PViewerClose();
@@ -137,6 +144,9 @@ public sealed class PWorkspace
 
     private void PWorkspaceExportHandle() => PWorkspaceHistoryAdd();
 
+    private void PWorkspacePresetHandle()
+        => PWorkspaceExportState.LPresetCopy(LPreset.LPresetStateCreate(PWorkspacePresetOwner.LPresetSelectionValue));
+
     private void PWorkspaceHistoryAdd()
         => lWorkspaceHistory.LHistoryAdd(PWorkspaceStateRead(), PWorkspaceHistoryMaximum);
 
@@ -155,7 +165,7 @@ public sealed class PWorkspace
         try
         {
             PWorkspaceFlow?.PFlowSectionsSet(lHistoryEntry.LHistorySections, lHistoryEntry.LHistorySectionSelect);
-            PWorkspaceExportState.LPresetCopy(LPreset.LPresetStateCreate(lHistoryEntry.LHistoryExport));
+            PWorkspacePresetOwner.LPresetSelectionValue = lHistoryEntry.LHistoryExport;
         }
         finally
         {
@@ -324,17 +334,18 @@ public sealed class PWorkspace
     private static PTabSurface PWorkspaceSurfaceCreate(
         string pTabLayoutKey,
         LPreset lExportSpecificState,
+        LPresetSelection lPresetOwner,
         LSceneTabRecord? lPreferenceTabLayout)
     {
         return pTabLayoutKey switch
         {
-            "Edit" => new PEditTab(lExportSpecificState, lPreferenceTabLayout),
-            "Audio" => new PAudioTab(lExportSpecificState, lPreferenceTabLayout),
-            "Convert" => new PConvertTab(lExportSpecificState, lPreferenceTabLayout),
-            "Merge" => new PMergeTab(lExportSpecificState, lPreferenceTabLayout),
+            "Edit" => new PEditTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout),
+            "Audio" => new PAudioTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout),
+            "Convert" => new PConvertTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout),
+            "Merge" => new PMergeTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout),
             "Funnel" => new PFunnelTab(lPreferenceTabLayout),
             "Worklist" => new PWorklistTab(lPreferenceTabLayout),
-            _ => new PSplitTab(lExportSpecificState, lPreferenceTabLayout)
+            _ => new PSplitTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout)
         };
     }
 }

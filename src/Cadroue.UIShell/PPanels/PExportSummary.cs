@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
+using Cadroue.Application;
 using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PPanels;
@@ -15,7 +16,7 @@ public sealed partial class PExport : UserControl
     private static readonly Brush PHeaderFillBrush = new SolidColorBrush(Color.FromRgb(0xF3, 0xF5, 0xF8));
     private static readonly Brush PHeaderTextBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
 
-    private readonly LPreset lExportSpecificState;
+    private readonly LPresetSelection lPresetOwner;
     private readonly TextBlock pExportSummaryBox;
     private readonly TextBlock pExportSummaryMode;
     private readonly TextBlock pExportSummaryVideo;
@@ -41,9 +42,9 @@ public sealed partial class PExport : UserControl
 
     private bool pExportPresetClean = true;
 
-    public PExport(LPreset lExportSpecificState, bool pExportCopyDisabled = false)
+    public PExport(LPresetSelection lPresetOwner, bool pExportCopyDisabled = false)
     {
-        this.lExportSpecificState = lExportSpecificState;
+        this.lPresetOwner = lPresetOwner;
         this.pExportCopyDisabled = pExportCopyDisabled;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
@@ -51,7 +52,7 @@ public sealed partial class PExport : UserControl
         pPresetRowPanel.PreviewMouseMove += PExportMoveHandle;
         pPresetRowPanel.MouseLeftButtonUp += PExportUpHandle;
         pPresetRowPanel.LostMouseCapture += PExportLostHandle;
-        pPresetNameSelected = lExportSpecificState.LPresetName;
+        pPresetNameSelected = lPresetOwner.LPresetSelectionName;
 
         var pPanel = new Grid();
         pPanel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -97,10 +98,17 @@ public sealed partial class PExport : UserControl
         Loaded += (_, _) =>
         {
             LPreset.LPresetStoreChange += PExportPresetSync;
+            lPresetOwner.LPresetSelectionChange += PExportSummaryUpdate;
             PExportPresetSync();
         };
-        Unloaded += (_, _) => LPreset.LPresetStoreChange -= PExportPresetSync;
+        Unloaded += (_, _) =>
+        {
+            LPreset.LPresetStoreChange -= PExportPresetSync;
+            lPresetOwner.LPresetSelectionChange -= PExportSummaryUpdate;
+        };
     }
+
+    private LPreset PExportWorkingRead() => LPreset.LPresetStateCreate(lPresetOwner.LPresetSelectionValue);
 
     private static Border PExportFrameBuild(UIElement pContent)
     {
@@ -138,8 +146,11 @@ public sealed partial class PExport : UserControl
 
     private void PExportSummaryUpdate()
     {
+        LPreset lWorking = PExportWorkingRead();
         pExportPresetBusy = true;
-        pPresetNameSelected = lExportSpecificState.LPresetName;
+        pPresetNameSelected = string.IsNullOrEmpty(lPresetOwner.LPresetSelectionName)
+            ? null
+            : lPresetOwner.LPresetSelectionName;
         if (!string.Equals(pPresetNameEditing, pPresetNameSelected, StringComparison.OrdinalIgnoreCase))
         {
             pPresetNameEditing = null;
@@ -149,14 +160,14 @@ public sealed partial class PExport : UserControl
         PExportPresetRebuild();
         pExportPresetBusy = false;
 
-        pExportSummaryBox.Text = lExportSpecificState.LPresetContainer;
-        pExportSummaryMode.Text = lExportSpecificState.LPresetExportMode;
-        pExportSummaryVideo.Text = lExportSpecificState.LPresetVideoSummary;
-        pExportSummaryAudio.Text = lExportSpecificState.LPresetAudioSummary;
-        pExportSummaryOutput.Text = lExportSpecificState.LPresetOutputSummary;
+        pExportSummaryBox.Text = lWorking.LPresetContainer;
+        pExportSummaryMode.Text = lWorking.LPresetExportMode;
+        pExportSummaryVideo.Text = lWorking.LPresetVideoSummary;
+        pExportSummaryAudio.Text = lWorking.LPresetAudioSummary;
+        pExportSummaryOutput.Text = lWorking.LPresetOutputSummary;
 
-        pExportPresetClean = pPresetNameSelected is not string lPresetSelected
-            || LPreset.LPresetMatch(lPresetSelected, lExportSpecificState);
+        pExportPresetClean = string.IsNullOrEmpty(pPresetNameSelected)
+            || LPreset.LPresetMatch(pPresetNameSelected, lWorking);
     }
 
     private static UIElement PHeaderBuild() => new Border

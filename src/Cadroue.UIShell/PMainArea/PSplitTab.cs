@@ -14,7 +14,7 @@ public sealed class PSplitTab : PTabSurface
     private readonly PList pList = new(new LDocket());
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PSplitTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PSplitTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -60,7 +60,7 @@ public sealed class PSplitTab : PTabSurface
         pList.PListPathChange += PSplitPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        var pExport = new PExport(lExportSpecificState);
+        var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pSection, pExport);
         pList.PListLockChange += pLocked => pFlow.PFlowEditSet(!pLocked);
         pFlow.PFlowEditSet(!pList.PListLockCheck());

@@ -25,7 +25,7 @@ public sealed class PAudioTab : PTabSurface
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pAudioPlanLoading;
 
-    public PAudioTab(LPreset lExportSpecificState, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PAudioTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         pProcessing.PProcessingOrderedSet(true);
         pProcessing.PProcessingStepAdd("High Pass", PAudioHighIcon, "Processing.Step.HighPass");
@@ -94,7 +94,7 @@ public sealed class PAudioTab : PTabSurface
         pList.PListItemsAdd += PAudioItemsHandle;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        var pExport = new PExport(lExportSpecificState);
+        var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
