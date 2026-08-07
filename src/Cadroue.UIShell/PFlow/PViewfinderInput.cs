@@ -3,6 +3,8 @@ using System.Windows.Input;
 using Cadroue.Core;
 using Cadroue.Media;
 
+using Cadroue.MigrationInterface;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PViewfinder

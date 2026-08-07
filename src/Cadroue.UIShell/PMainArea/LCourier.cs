@@ -103,12 +103,12 @@ public static class LCourier
 
     public static void LCourierFaceUpdate()
     {
-        if (LTabset.LTabsetCurrent is not { } lCourierTabset)
+        if (PStrip.PStripCurrent is not { } lCourierTabset)
         {
             return;
         }
 
-        foreach (PTabRecord pTabRecord in lCourierTabset.PTabsetRecords)
+        foreach (PTabRecord pTabRecord in lCourierTabset.PStripRecords)
         {
             pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionRelayApply(
                 LCartographer.LCartographerTargetRead(pTabRecord.PTabId));
@@ -117,13 +117,13 @@ public static class LCourier
 
     public static IReadOnlyList<LCourierOption> LCourierOptionsRead(Guid lCourierSourceTab)
     {
-        if (LTabset.LTabsetCurrent is not { } lCourierTabset)
+        if (PStrip.PStripCurrent is not { } lCourierTabset)
         {
             return Array.Empty<LCourierOption>();
         }
 
         var lCourierOptions = new List<LCourierOption>();
-        foreach (PTabRecord pTabRecord in lCourierTabset.PTabsetRecords)
+        foreach (PTabRecord pTabRecord in lCourierTabset.PStripRecords)
         {
             if (pTabRecord.PTabId == lCourierSourceTab
                 || pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null)
@@ -259,13 +259,13 @@ public static class LCourier
 
         lCourierScheduledBatches.Clear();
         lCourierScheduledBatches.UnionWith(lCourierLiveBatches);
-        if (lCourierRemovedBatches.Length == 0 || LTabset.LTabsetCurrent is not { } lCourierTabset)
+        if (lCourierRemovedBatches.Length == 0 || PStrip.PStripCurrent is not { } lCourierTabset)
         {
             return;
         }
 
         var lCourierRemovedSet = lCourierRemovedBatches.ToHashSet();
-        foreach (PTabRecord lCourierTab in lCourierTabset.PTabsetRecords)
+        foreach (PTabRecord lCourierTab in lCourierTabset.PStripRecords)
         {
             PTabSurface lCourierSurface = lCourierTab.PTabWorkspace.PWorkspaceSurface;
             if (lCourierSurface.PTabList is not { } lCourierList)
@@ -463,7 +463,7 @@ public static class LCourier
     }
 
     private static PTabRecord? LCourierTabFind(Guid lCourierTabId) =>
-        LTabset.LTabsetCurrent?.PTabsetRecords.FirstOrDefault(pTabRecord => pTabRecord.PTabId == lCourierTabId);
+        PStrip.PStripCurrent?.PStripRecords.FirstOrDefault(pTabRecord => pTabRecord.PTabId == lCourierTabId);
 
     private static bool LCourierStageRun(LCartographerStagePlan lCourierPlan)
     {

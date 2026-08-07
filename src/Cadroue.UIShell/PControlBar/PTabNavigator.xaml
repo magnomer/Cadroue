@@ -164,7 +164,7 @@
     <Border x:Name="pTabRoot" Background="Transparent" BorderBrush="#C9D6E5" BorderThickness="0">
         <ScrollViewer x:Name="pTabScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
             <StackPanel x:Name="pTabStack" Orientation="Horizontal">
-                <ItemsControl x:Name="pTabItemsControl" ItemsSource="{Binding PTabsetRecords}" ItemTemplate="{StaticResource pHorizontalTabTemplate}" ItemsPanel="{StaticResource pHorizontalItemsPanel}" />
+                <ItemsControl x:Name="pTabItemsControl" ItemsSource="{Binding PStripRecords}" ItemTemplate="{StaticResource pHorizontalTabTemplate}" ItemsPanel="{StaticResource pHorizontalItemsPanel}" />
                 <Button x:Name="pTabAddButton" Style="{StaticResource pTabAddHorizontalStyle}" Content="+" Click="PTabMenuHandle" />
             </StackPanel>
         </ScrollViewer>

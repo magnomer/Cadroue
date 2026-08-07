@@ -12,31 +12,31 @@ public partial class PWindow
     public LSceneRecord PWindowSceneRead(string lSceneName) => new()
     {
         LSceneName = lSceneName,
-        LSceneLayoutKeys = lTabset.PTabsetRecords
+        LSceneLayoutKeys = pStrip.PStripRecords
             .Select(pTabRecord => pTabRecord.PTabLayoutKey)
             .ToList(),
-        LSceneTabExports = lTabset.PTabsetRecords
+        LSceneTabExports = pStrip.PStripRecords
             .Select(pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceExportState.LPresetRecordCreate())
             .ToList(),
-        LSceneTabLayouts = lTabset.PTabsetRecords
+        LSceneTabLayouts = pStrip.PStripRecords
             .Select(pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceLayoutRead())
             .ToList(),
-        LSceneTabRelays = PMainArea.LCourier.LCourierSlotsRead(lTabset.PTabsetRecords).ToList(),
-        LSceneTabNames = lTabset.PTabsetRecords
+        LSceneTabRelays = PMainArea.LCourier.LCourierSlotsRead(pStrip.PStripRecords).ToList(),
+        LSceneTabNames = pStrip.PStripRecords
             .Select(pTabRecord => pTabRecord.PTabNameCustom)
             .ToList(),
-        LSceneTabIndex = lTabset.PTabsetCurrent is null
+        LSceneTabIndex = pStrip.PStripSelected is null
             ? 0
-            : Math.Max(0, lTabset.PTabsetRecords.IndexOf(lTabset.PTabsetCurrent))
+            : Math.Max(0, pStrip.PStripRecords.IndexOf(pStrip.PStripSelected))
     };
 
     public void PWindowSceneApply(LSceneRecord lScene)
     {
-        while (lTabset.PTabsetRecords.Count > 0)
+        while (pStrip.PStripRecords.Count > 0)
         {
-            lTabset.LTabsetClose(lTabset.PTabsetRecords[0]);
+            pStrip.PStripClose(pStrip.PStripRecords[0]);
         }
 
-        PWindowSceneRestore(lTabset, lScene);
+        PWindowSceneRestore(pStrip, lScene);
     }
 }

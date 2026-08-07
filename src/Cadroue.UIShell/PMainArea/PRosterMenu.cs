@@ -26,7 +26,7 @@ public sealed partial class PRoster
         IReadOnlyList<string> pRelayPaths = PRosterPathsRead(pWorkItem);
         if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
             || pRelayPaths.Count == 0
-            || LTabset.LTabsetCurrent is not { } pTabset)
+            || PStrip.PStripCurrent is not { } pTabset)
         {
             pArgs.Handled = true;
             return;
@@ -41,7 +41,7 @@ public sealed partial class PRoster
         pMenu.Items.Add(pHeader);
 
         bool pAnyTarget = false;
-        foreach (PTabRecord pTabRecord in pTabset.PTabsetRecords)
+        foreach (PTabRecord pTabRecord in pTabset.PStripRecords)
         {
             if (pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null)
             {
@@ -129,7 +129,7 @@ public sealed partial class PRoster
             return;
         }
 
-        LTabset.LTabsetCurrent?.LTabsetSelect(pTargetRecord);
+        PStrip.PStripCurrent?.PStripSelect(pTargetRecord);
         pTargetList.PListClear();
         pTargetList.PListPathsAdd(pRelayPaths, Guid.NewGuid());
     }

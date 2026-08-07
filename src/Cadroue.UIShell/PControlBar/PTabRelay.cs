@@ -44,7 +44,7 @@ public partial class PTabNavigator
             if (LRelayChannel.LRelayChannelSend(lTargetProcessId, lRelayFilePath))
             {
                 LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed to process {lTargetProcessId}");
-                lTabset?.LTabsetClose(pTabRecord);
+                pStrip?.PStripClose(pTabRecord);
                 return true;
             }
 
@@ -60,7 +60,7 @@ public partial class PTabNavigator
         }
 
         LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed to a new instance");
-        lTabset?.LTabsetClose(pTabRecord);
+        pStrip?.PStripClose(pTabRecord);
         return true;
     }
 

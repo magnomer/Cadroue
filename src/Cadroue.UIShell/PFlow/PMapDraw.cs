@@ -5,6 +5,8 @@ using Cadroue.UIShell.PPanels;
 
 using Cadroue.Core;
 
+using Cadroue.MigrationInterface;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PMap

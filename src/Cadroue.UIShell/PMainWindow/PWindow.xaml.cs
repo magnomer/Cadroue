@@ -24,7 +24,7 @@ public partial class PWindow : Window
     private const int PWindowCaptionColor = 35;
     private const int PWindowColorBackground = 0x00F7E8DC;
     private const double PWindowWidthFloor = 900;
-    private readonly LTabset lTabset;
+    private readonly PStrip pStrip;
     private readonly PTabNavigator pTabNavigator;
     private bool pResizeActive;
     private int pResizeDirection;
@@ -37,22 +37,22 @@ public partial class PWindow : Window
     {
         InitializeComponent();
         Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
-        lTabset = new LTabset();
+        pStrip = new PStrip();
         pTabNavigator = new PTabNavigator();
-        pTabNavigator.PTabNavigatorTabsetSet(lTabset);
+        pTabNavigator.PTabNavigatorTabsetSet(pStrip);
         LRelay? lRelayStartup = PProgram.LRelayPayloadRead();
         if (lRelayStartup is null)
         {
-            PWindowTabsRestore(lTabset, LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
+            PWindowTabsRestore(pStrip, LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
         }
 
         pControlBar.PToolbarTabHostSet(pTabNavigator);
         pControlBar.PToolbarOptionsApply += PWindowOptionsHandle;
         PWindowOptionsHandle(LPreference.LPreferenceStateCurrent);
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
-        pDeck.PDeckTabsetSet(lTabset);
-        lTabset.LTabsetSelectChange += PWindowTabHandle;
-        PWindowTabHandle(lTabset.PTabsetCurrent);
+        pDeck.PDeckTabsetSet(pStrip);
+        pStrip.PStripSelectChange += PWindowTabHandle;
+        PWindowTabHandle(pStrip.PStripSelected);
         if (lRelayStartup is { } lRelayPayload)
         {
             PWindowRelayPlace(lRelayPayload);
@@ -69,23 +69,23 @@ public partial class PWindow : Window
         PreviewKeyDown += PShortcutKeyHandle;
         Closed += PWindowCloseHandle;
     }
-    private static void PWindowTabsRestore(LTabset pTabset, LPreferenceState lPreferenceState, LSceneRecord lScene)
+    private static void PWindowTabsRestore(PStrip pTabset, LPreferenceState lPreferenceState, LSceneRecord lScene)
     {
         if (lPreferenceState.LPreferenceStartupMode == "DefaultTab")
         {
             foreach (string pStartupKey in lPreferenceState.LPreferenceStartupTabs)
             {
-                pTabset.LTabsetAdd(pStartupKey);
+                pTabset.PStripAdd(pStartupKey);
             }
 
-            pTabset.LTabsetSelect(pTabset.PTabsetRecords[0]);
+            pTabset.PStripSelect(pTabset.PStripRecords[0]);
             return;
         }
 
         PWindowSceneRestore(pTabset, lScene);
     }
 
-    private static void PWindowSceneRestore(LTabset pTabset, LSceneRecord lScene)
+    private static void PWindowSceneRestore(PStrip pTabset, LSceneRecord lScene)
     {
         IReadOnlyList<string> pTabKeys = lScene.LSceneLayoutKeys.Count > 0
             ? lScene.LSceneLayoutKeys
@@ -98,22 +98,22 @@ public partial class PWindow : Window
                 ? LPreset.LPresetStateCreate(pTabExports[pTabIndex])
                 : null;
             LSceneTabRecord? pTabLayout = pTabIndex < pTabLayouts.Count ? pTabLayouts[pTabIndex] : null;
-            PTabRecord pTabRestored = pTabset.LTabsetAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
+            PTabRecord pTabRestored = pTabset.PStripAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
             if (pTabIndex < lScene.LSceneTabNames.Count)
             {
-                pTabset.LTabsetNameSet(pTabRestored, lScene.LSceneTabNames[pTabIndex]);
+                pTabset.PStripNameSet(pTabRestored, lScene.LSceneTabNames[pTabIndex]);
             }
         }
-        PMainArea.LCourier.LCourierSlotsApply(pTabset.PTabsetRecords, lScene.LSceneTabRelays);
-        foreach (PTabRecord pTabRecord in pTabset.PTabsetRecords)
+        PMainArea.LCourier.LCourierSlotsApply(pTabset.PStripRecords, lScene.LSceneTabRelays);
+        foreach (PTabRecord pTabRecord in pTabset.PStripRecords)
         {
             if (pTabRecord.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab pFunnelSurface)
             {
-                pFunnelSurface.PFunnelTargetsResolve(pTabset.PTabsetRecords);
+                pFunnelSurface.PFunnelTargetsResolve(pTabset.PStripRecords);
             }
         }
-        int pSelectIndex = Math.Clamp(lScene.LSceneTabIndex, 0, pTabset.PTabsetRecords.Count - 1);
-        pTabset.LTabsetSelect(pTabset.PTabsetRecords[pSelectIndex]);
+        int pSelectIndex = Math.Clamp(lScene.LSceneTabIndex, 0, pTabset.PStripRecords.Count - 1);
+        pTabset.PStripSelect(pTabset.PStripRecords[pSelectIndex]);
     }
     private void PWindowMediaRestore(LPreferenceState lPreferenceState)
     {
@@ -144,16 +144,16 @@ public partial class PWindow : Window
 
     private void PWindowRelayAccept(LRelay lRelay)
     {
-        PTabRecord pRelayTabRecord = lTabset.LTabsetAdd(
+        PTabRecord pRelayTabRecord = pStrip.PStripAdd(
             lRelay.LRelayLayoutKey,
             LPreset.LPresetStateCreate(lRelay.LRelayExport),
             lRelay.LRelayLayout);
         if (!string.IsNullOrWhiteSpace(lRelay.LRelayCustomName))
         {
-            lTabset.LTabsetNameSet(pRelayTabRecord, lRelay.LRelayCustomName);
+            pStrip.PStripNameSet(pRelayTabRecord, lRelay.LRelayCustomName);
         }
 
-        lTabset.LTabsetSelect(pRelayTabRecord);
+        pStrip.PStripSelect(pRelayTabRecord);
         pRelayTabRecord.PTabWorkspace.PWorkspaceRelayApply(lRelay);
     }
 
@@ -358,14 +358,14 @@ public partial class PWindow : Window
 
         LScene.LSceneStateSave(PWindowSceneRead(LScene.LSceneActiveName));
         LRelayChannel.LRelayTabReceive -= PWindowRelayHandle;
-        lTabset.LTabsetSelectChange -= PWindowTabHandle;
+        pStrip.PStripSelectChange -= PWindowTabHandle;
         pControlBar.PToolbarOptionsApply -= PWindowOptionsHandle;
         PreviewKeyDown -= PShortcutKeyHandle;
         PDropHandlersRemove();
         PResizeHandlersRemove();
         PWindowWidthDetach();
         PWindowWorkspaceDetach();
-        foreach (PTabRecord pTabRecord in lTabset.PTabsetRecords)
+        foreach (PTabRecord pTabRecord in pStrip.PStripRecords)
         {
             pTabRecord.PTabWorkspace.PWorkspaceClose();
         }

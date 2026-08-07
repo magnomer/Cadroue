@@ -51,7 +51,7 @@ public sealed class PFunnelTab : PTabSurface
 
     private void PFunnelDispatch(IReadOnlyList<PListItem> pItems)
     {
-        if (pItems.Count == 0 || LTabset.LTabsetCurrent is not { } lTabset)
+        if (pItems.Count == 0 || PStrip.PStripCurrent is not { } pStrip)
         {
             return;
         }
@@ -68,7 +68,7 @@ public sealed class PFunnelTab : PTabSurface
                     continue;
                 }
 
-                PTabRecord? pTarget = lTabset.PTabsetRecords
+                PTabRecord? pTarget = pStrip.PStripRecords
                     .FirstOrDefault(pRecord => pRecord.PTabId == pRow.PFunnelTargetId);
                 if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList is { } pTargetList)
                 {
@@ -100,12 +100,12 @@ public sealed class PFunnelTab : PTabSurface
     private IReadOnlyList<LCourierOption> PFunnelTargetsRead()
     {
         var pOptions = new List<LCourierOption>();
-        if (LTabset.LTabsetCurrent is not { } lTabset)
+        if (PStrip.PStripCurrent is not { } pStrip)
         {
             return pOptions;
         }
 
-        foreach (PTabRecord pRecord in lTabset.PTabsetRecords)
+        foreach (PTabRecord pRecord in pStrip.PStripRecords)
         {
             if (ReferenceEquals(pRecord.PTabWorkspace.PWorkspaceSurface, this)
                 || pRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null)
@@ -147,14 +147,14 @@ public sealed class PFunnelTab : PTabSurface
 
     private static int PFunnelTargetRead(Guid pTargetId)
     {
-        if (pTargetId == Guid.Empty || LTabset.LTabsetCurrent is not { } lTabset)
+        if (pTargetId == Guid.Empty || PStrip.PStripCurrent is not { } pStrip)
         {
             return -1;
         }
 
-        for (int pIndex = 0; pIndex < lTabset.PTabsetRecords.Count; pIndex++)
+        for (int pIndex = 0; pIndex < pStrip.PStripRecords.Count; pIndex++)
         {
-            if (lTabset.PTabsetRecords[pIndex].PTabId == pTargetId)
+            if (pStrip.PStripRecords[pIndex].PTabId == pTargetId)
             {
                 return pIndex;
             }

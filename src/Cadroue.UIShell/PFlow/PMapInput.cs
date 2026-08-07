@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Input;
 
+using Cadroue.MigrationInterface;
+
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PMap

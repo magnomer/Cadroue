@@ -37,7 +37,7 @@ public partial class PProgram : System.Windows.Application
 
         Cadroue.MigrationInterface.LMessenger.LMessengerScheduleSource = () => LScheduleCurrent;
         Cadroue.MigrationInterface.LCartographer.LCartographerTabsSource = () =>
-            PControlBar.LTabset.LTabsetCurrent?.PTabsetRecords.Select(pTab =>
+            PControlBar.PStrip.PStripCurrent?.PStripRecords.Select(pTab =>
                 new Cadroue.MigrationInterface.LCartographerTab(
                     pTab.PTabId,
                     pTab.PTabLayoutKey,
@@ -46,14 +46,14 @@ public partial class PProgram : System.Windows.Application
                     pTab.PTabWorkspace.PWorkspaceLayoutRead().LSceneTabClone(),
                     pTab.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab)).ToArray()
             ?? (IReadOnlyList<Cadroue.MigrationInterface.LCartographerTab>)Array.Empty<Cadroue.MigrationInterface.LCartographerTab>();
-        Cadroue.MigrationInterface.LMessenger.LMessengerTitleSource = PControlBar.LTabset.LTabsetTitleRead;
-        Cadroue.MigrationInterface.LCartographer.LCartographerTitleSource = PControlBar.LTabset.LTabsetTitleRead;
+        Cadroue.MigrationInterface.LMessenger.LMessengerTitleSource = PControlBar.PStrip.PStripTitleRead;
+        Cadroue.MigrationInterface.LCartographer.LCartographerTitleSource = PControlBar.PStrip.PStripTitleRead;
         Cadroue.MigrationInterface.LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 PMainArea.LCourier.LCourierScheduleAdd(lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
 
         Cadroue.MigrationInterface.LSeal.LSealNodesSource = () =>
-            PControlBar.LTabset.LTabsetCurrent?.PTabsetRecords
+            PControlBar.PStrip.PStripCurrent?.PStripRecords
                 .Where(pTab => pTab.PTabWorkspace.PWorkspaceSurface.PTabList is not null)
                 .Select(pTab =>
                 {
@@ -70,7 +70,7 @@ public partial class PProgram : System.Windows.Application
                 })
                 .ToArray();
         Cadroue.MigrationInterface.LSeal.LSealFireSeam = lSealNodeId =>
-            PControlBar.LTabset.LTabsetCurrent?.PTabsetRecords
+            PControlBar.PStrip.PStripCurrent?.PStripRecords
                 .FirstOrDefault(pTab => pTab.PTabId == lSealNodeId)
                 ?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionAllRun();
         Cadroue.MigrationInterface.LSeal.LSealDeliveredSource = PMainArea.LCourier.LCourierDeliveredCheck;

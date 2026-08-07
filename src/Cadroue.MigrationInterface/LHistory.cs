@@ -1,35 +1,32 @@
 using Cadroue.Core;
-using Cadroue.UIShell.PFlow;
-using Cadroue.UIShell.PPanels;
-using Cadroue.MigrationInterface;
 
-namespace Cadroue.UIShell.PControlBar;
+namespace Cadroue.MigrationInterface;
 
-internal sealed record LHistoryEntry(
+public sealed record LHistoryEntry(
     IReadOnlyList<LSegment> LHistorySections,
     int? LHistorySectionSelect,
     LPresetRecord LHistoryExport);
 
-internal sealed class LHistory
+public sealed class LHistory
 {
     private readonly List<LHistoryEntry> lHistoryPast = new();
     private readonly List<LHistoryEntry> lHistoryFuture = new();
     private LHistoryEntry? lHistoryPresent;
 
-    internal bool LHistoryApplying { get; set; }
+    public bool LHistoryApplying { get; set; }
 
-    internal bool LHistoryUndoReady => lHistoryPast.Count > 0;
+    public bool LHistoryUndoReady => lHistoryPast.Count > 0;
 
-    internal bool LHistoryRedoReady => lHistoryFuture.Count > 0;
+    public bool LHistoryRedoReady => lHistoryFuture.Count > 0;
 
-    internal void LHistoryReset(LHistoryEntry lHistoryEntry)
+    public void LHistoryReset(LHistoryEntry lHistoryEntry)
     {
         lHistoryPast.Clear();
         lHistoryFuture.Clear();
         lHistoryPresent = lHistoryEntry;
     }
 
-    internal void LHistoryAdd(LHistoryEntry lHistoryEntry, int lHistoryMaximum)
+    public void LHistoryAdd(LHistoryEntry lHistoryEntry, int lHistoryMaximum)
     {
         if (LHistoryApplying)
         {
@@ -56,7 +53,7 @@ internal sealed class LHistory
         }
     }
 
-    internal LHistoryEntry? LHistoryUndo()
+    public LHistoryEntry? LHistoryUndo()
     {
         if (lHistoryPast.Count == 0 || lHistoryPresent is null)
         {
@@ -69,7 +66,7 @@ internal sealed class LHistory
         return lHistoryPresent;
     }
 
-    internal LHistoryEntry? LHistoryRedo()
+    public LHistoryEntry? LHistoryRedo()
     {
         if (lHistoryFuture.Count == 0 || lHistoryPresent is null)
         {

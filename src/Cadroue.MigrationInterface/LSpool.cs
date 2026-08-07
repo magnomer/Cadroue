@@ -1,4 +1,4 @@
-namespace Cadroue.UIShell.PFlow;
+namespace Cadroue.MigrationInterface;
 
 public sealed class LSpool
 {

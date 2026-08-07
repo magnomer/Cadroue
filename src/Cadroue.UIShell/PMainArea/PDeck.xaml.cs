@@ -6,7 +6,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public partial class PDeck : UserControl
 {
-    private LTabset? lTabset;
+    private PStrip? pStrip;
 
     public PDeck()
     {
@@ -14,18 +14,18 @@ public partial class PDeck : UserControl
         Unloaded += PDeckUnloadHandle;
     }
 
-    public void PDeckTabsetSet(LTabset lTabsetValue)
+    public void PDeckTabsetSet(PStrip lTabsetValue)
     {
-        if (lTabset is not null)
+        if (pStrip is not null)
         {
-            lTabset.LTabsetSelectChange -= PDeckSelectHandle;
-            lTabset.PTabsetRecords.CollectionChanged -= PDeckRecordsHandle;
+            pStrip.PStripSelectChange -= PDeckSelectHandle;
+            pStrip.PStripRecords.CollectionChanged -= PDeckRecordsHandle;
         }
 
-        lTabset = lTabsetValue;
-        lTabset.LTabsetSelectChange += PDeckSelectHandle;
-        lTabset.PTabsetRecords.CollectionChanged += PDeckRecordsHandle;
-        PDeckLayoutApply(lTabset.PTabsetCurrent);
+        pStrip = lTabsetValue;
+        pStrip.PStripSelectChange += PDeckSelectHandle;
+        pStrip.PStripRecords.CollectionChanged += PDeckRecordsHandle;
+        PDeckLayoutApply(pStrip.PStripSelected);
     }
 
     private void PDeckSelectHandle(PTabRecord? pTabRecord)
@@ -40,11 +40,11 @@ public partial class PDeck : UserControl
 
     private void PDeckUnloadHandle(object sender, RoutedEventArgs e)
     {
-        if (lTabset is not null)
+        if (pStrip is not null)
         {
-            lTabset.LTabsetSelectChange -= PDeckSelectHandle;
-            lTabset.PTabsetRecords.CollectionChanged -= PDeckRecordsHandle;
-            lTabset = null;
+            pStrip.PStripSelectChange -= PDeckSelectHandle;
+            pStrip.PStripRecords.CollectionChanged -= PDeckRecordsHandle;
+            pStrip = null;
         }
     }
 
@@ -95,12 +95,12 @@ public partial class PDeck : UserControl
 
     private void PDeckClosedRemove()
     {
-        if (lTabset is null)
+        if (pStrip is null)
         {
             return;
         }
 
-        var pOpenRoots = lTabset.PTabsetRecords
+        var pOpenRoots = pStrip.PStripRecords
             .Select(pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceRoot)
             .ToHashSet();
 

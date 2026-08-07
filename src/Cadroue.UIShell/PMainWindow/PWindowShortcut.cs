@@ -42,7 +42,7 @@ public partial class PWindow
             case "Redo":
                 return PShortcutHistoryRun(true);
             case "UnloadAll":
-                return lTabset.LTabsetContentClear();
+                return pStrip.PStripContentClear();
             case "PlayPause":
                 return PShortcutPlayToggle();
             case "Unload":
@@ -70,7 +70,7 @@ public partial class PWindow
 
     private bool PShortcutHistoryRun(bool pShortcutRedo)
     {
-        PWorkspace? pWorkspace = lTabset.PTabsetCurrent?.PTabWorkspace;
+        PWorkspace? pWorkspace = pStrip.PStripSelected?.PTabWorkspace;
         if (pWorkspace is null)
         {
             return false;
@@ -81,7 +81,7 @@ public partial class PWindow
 
     private bool PShortcutMediaClose()
     {
-        PWorkspace? pWorkspace = lTabset.PTabsetCurrent?.PTabWorkspace;
+        PWorkspace? pWorkspace = pStrip.PStripSelected?.PTabWorkspace;
         if (pWorkspace is not null)
         {
             return pWorkspace.PWorkspaceMediaClear();

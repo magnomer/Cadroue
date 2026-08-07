@@ -12,7 +12,7 @@ public partial class PTabNavigator : UserControl
 {
     public const double PTabRailWidth = 180;
 
-    private LTabset? lTabset;
+    private PStrip? pStrip;
     private PTabRecord? pTabDragItem;
     private FrameworkElement? pTabDragElement;
     private Point pTabDragPoint;
@@ -27,9 +27,9 @@ public partial class PTabNavigator : UserControl
         PTabNavigatorVerticalSet(false);
     }
 
-    public void PTabNavigatorTabsetSet(LTabset pTabset)
+    public void PTabNavigatorTabsetSet(PStrip pTabset)
     {
-        lTabset = pTabset;
+        pStrip = pTabset;
         DataContext = pTabset;
     }
 
@@ -74,7 +74,7 @@ public partial class PTabNavigator : UserControl
         pTabDragPoint = e.GetPosition(this);
         pTabDragGrabOffset = e.GetPosition(pTabElement);
         pTabDragActive = false;
-        lTabset?.LTabsetSelect(pTabRecord);
+        pStrip?.PStripSelect(pTabRecord);
         Mouse.Capture(sender as IInputElement);
         e.Handled = true;
     }
@@ -138,7 +138,7 @@ public partial class PTabNavigator : UserControl
 
         pTabGhost?.PGhostCursorSync();
         int pTabTargetIndex = PTabIndexResolve(e.GetPosition(pTabItemsControl));
-        lTabset?.LTabsetMove(pTabDragItem, pTabTargetIndex);
+        pStrip?.PStripMove(pTabDragItem, pTabTargetIndex);
         e.Handled = true;
     }
 
@@ -265,7 +265,7 @@ public partial class PTabNavigator : UserControl
     private void PTabNameCommit(PTabRecord pTabRecord, string pTabName)
     {
         pTabRecord.PTabNameActive = false;
-        lTabset?.LTabsetNameSet(pTabRecord, pTabName);
+        pStrip?.PStripNameSet(pTabRecord, pTabName);
     }
 
     private void PTabDragClear()
@@ -288,15 +288,15 @@ public partial class PTabNavigator : UserControl
 
     private int PTabIndexResolve(Point pTabMousePoint)
     {
-        if (lTabset is null || lTabset.PTabsetRecords.Count == 0)
+        if (pStrip is null || pStrip.PStripRecords.Count == 0)
         {
             return 0;
         }
 
         int pTargetIndex = 0;
-        for (int index = 0; index < lTabset.PTabsetRecords.Count; index++)
+        for (int index = 0; index < pStrip.PStripRecords.Count; index++)
         {
-            PTabRecord pTabRecord = lTabset.PTabsetRecords[index];
+            PTabRecord pTabRecord = pStrip.PStripRecords[index];
             if (pTabItemsControl.ItemContainerGenerator.ContainerFromItem(pTabRecord) is not FrameworkElement pItemElement)
             {
                 continue;
@@ -313,7 +313,7 @@ public partial class PTabNavigator : UserControl
             }
         }
 
-        return Math.Clamp(pTargetIndex, 0, lTabset.PTabsetRecords.Count - 1);
+        return Math.Clamp(pTargetIndex, 0, pStrip.PStripRecords.Count - 1);
     }
 
     private void PTabMenuHandle(object sender, RoutedEventArgs e)
@@ -346,10 +346,10 @@ public partial class PTabNavigator : UserControl
 
     private void PTabLayoutAdd(string pTabLayoutKey)
     {
-        var pTabRecord = lTabset?.LTabsetAdd(pTabLayoutKey);
+        var pTabRecord = pStrip?.PStripAdd(pTabLayoutKey);
         if (pTabRecord is not null)
         {
-            lTabset?.LTabsetSelect(pTabRecord);
+            pStrip?.PStripSelect(pTabRecord);
         }
     }
 
@@ -359,7 +359,7 @@ public partial class PTabNavigator : UserControl
         e.Handled = true;
         if (sender is FrameworkElement { DataContext: PTabRecord pTabRecord })
         {
-            lTabset?.LTabsetClose(pTabRecord);
+            pStrip?.PStripClose(pTabRecord);
         }
     }
 

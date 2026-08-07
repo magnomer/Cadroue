@@ -278,7 +278,7 @@ public sealed partial class PConsole
     private void PConsoleTabsHandle(object pSender, RoutedEventArgs pArguments)
     {
         if (!PConsoleDestructiveConfirm(LLocalization.LLocalizationTextRead("Console.ClearTabs.Confirm"))) return;
-        PControlBar.LTabset.LTabsetCurrent?.LTabsetContentClear();
+        PControlBar.PStrip.PStripCurrent?.PStripContentClear();
     }
 
     private bool PConsoleDestructiveConfirm(string pConsoleQuestion)
