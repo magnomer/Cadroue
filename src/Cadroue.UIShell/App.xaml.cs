@@ -64,9 +64,12 @@ public partial class PProgram : System.Windows.Application
             ?? (IReadOnlyList<Cadroue.MigrationInterface.LCartographerTab>)Array.Empty<Cadroue.MigrationInterface.LCartographerTab>();
         Cadroue.MigrationInterface.LMessenger.LMessengerTitleSource = PControlBar.PStrip.PStripTitleRead;
         Cadroue.MigrationInterface.LCartographer.LCartographerTitleSource = PControlBar.PStrip.PStripTitleRead;
+        Cadroue.MigrationInterface.LCartographer.LCartographerScheduleContract = LScheduleCurrent;
+        Cadroue.MigrationInterface.LCartographer.LCartographerLockSeam = PMainArea.LCourier.LCourierSourceLock;
         Cadroue.MigrationInterface.LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
-                PMainArea.LCourier.LCourierScheduleAdd(lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
+                Cadroue.MigrationInterface.LCartographer.LCartographerAccept(
+                    lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
 
         Cadroue.MigrationInterface.LSeal.LSealNodesSource = () =>
             PControlBar.PStrip.PStripCurrent?.PStripRecords

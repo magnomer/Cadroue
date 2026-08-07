@@ -30,9 +30,11 @@ public sealed record LCartographerDelivery(
     Action<Guid, string, Guid> LCartographerTabTrack,
     Action<LWorkItem, bool> LCartographerSourceDrop,
     Func<LCartographerStagePlan, bool> LCartographerStageRun,
-    Action<Guid, string, Guid> LCartographerTabArrive);
+    Action<Guid, string, Guid> LCartographerTabArrive,
+    Action<IReadOnlyList<Guid>> LCartographerBatchEvict,
+    Action<IReadOnlyList<(string PListPath, Guid PListBatch)>> LCartographerSourceUnlock);
 
-public static class LCartographer
+public static partial class LCartographer
 {
     public static readonly Guid LCartographerFinishTarget = new("feed0000-0000-0000-0000-0000000ffff0");
 
@@ -293,11 +295,6 @@ public static class LCartographer
     }
 
     public static LCartographerDelivery? LCartographerDeliverySeam { get; set; }
-
-    public static Func<IReadOnlyList<LWorkItem>>? LCartographerScheduleSource { get; set; }
-
-    private static IReadOnlyList<LWorkItem> LCartographerScheduleRead() =>
-        LCartographerScheduleSource?.Invoke() ?? Array.Empty<LWorkItem>();
 
     public static bool LCartographerDeliver(LWorkItem lCartographerItem)
     {

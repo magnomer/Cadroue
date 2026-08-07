@@ -16,7 +16,6 @@ public static class LCourier
 
     private const int LCourierFinishSlot = -2;
 
-    private static readonly HashSet<Guid> lCourierScheduledBatches = new();
     private static bool lCourierWatching;
 
     public static void LCourierStart()
@@ -28,36 +27,12 @@ public static class LCourier
 
         lCourierWatching = true;
         LCartographer.LCartographerDeliverySeam = new LCartographerDelivery(
-            LCourierTabAdd, LCourierTabPlace, LCourierTabTrack, LCourierSourceRemove, LCourierStageRun, LCourierArrive);
-        LCartographer.LCartographerScheduleSource = () => PProgram.LScheduleCurrent.LScheduleRecords;
-        lCourierScheduledBatches.UnionWith(PProgram.LScheduleCurrent.LScheduleRecords
-            .Select(lCourierItem => lCourierItem.LWorkBatchId)
-            .Where(lCourierBatch => lCourierBatch != Guid.Empty));
-        PProgram.LScheduleCurrent.LScheduleChange += LCourierScheduleHandle;
-        LCartographer.LCartographerDispatch(PProgram.LScheduleCurrent.LScheduleRecords);
+            LCourierTabAdd, LCourierTabPlace, LCourierTabTrack, LCourierSourceRemove, LCourierStageRun, LCourierArrive,
+            LCourierBatchEvict, LCourierSourceUnlock);
+        LCartographer.LCartographerStart();
     }
 
-    internal static int LCourierScheduleAdd(
-        IReadOnlyList<LWorkItem> lCourierItems,
-        Guid lCourierRelayTarget = default,
-        Guid lCourierRelaySource = default,
-        LCartographerPlanRecord? lCourierPreparedPlan = null)
-    {
-        if (lCourierItems.Count == 0)
-        {
-            return 0;
-        }
-
-        LCartographer.LCartographerRelaySet(
-            lCourierItems, lCourierRelayTarget, lCourierRelaySource, lCourierPreparedPlan);
-
-        IReadOnlyList<LWorkItem> lCourierAccepted =
-            PProgram.LScheduleCurrent.LScheduleAcceptedAdd(lCourierItems);
-        LCourierSourceLock(lCourierAccepted, lCourierRelaySource);
-        return lCourierAccepted.Count;
-    }
-
-    private static void LCourierSourceLock(
+    internal static void LCourierSourceLock(
         IReadOnlyList<LWorkItem> lCourierAccepted,
         Guid lCourierSourceTab)
     {
@@ -79,11 +54,6 @@ public static class LCourier
 
         lCourierList.PListPathsLock(lCourierLocks.Distinct().ToArray());
     }
-
-    internal static LCartographerPlanRecord? LCourierPlanPrepare(Guid lCourierRelayTarget) =>
-        lCourierRelayTarget == Guid.Empty || lCourierRelayTarget == LCourierFinishTarget
-            ? null
-            : LCartographer.LCartographerPlanCreate(Guid.Empty, lCourierRelayTarget);
 
     public static void LCourierAttach(Guid lCourierSourceTab, PAction pCourierAction)
     {
@@ -194,67 +164,9 @@ public static class LCourier
         }
     }
 
-    private static void LCourierScheduleHandle(LScheduleContract lCourierSchedule)
+    internal static void LCourierBatchEvict(IReadOnlyList<Guid> lCourierRemovedBatches)
     {
-        Guid[] lCourierLiveBatches = lCourierSchedule.LScheduleRecords
-            .Select(lCourierItem => lCourierItem.LWorkBatchId)
-            .Where(lCourierBatch => lCourierBatch != Guid.Empty)
-            .Distinct()
-            .ToArray();
-
-        if (System.Windows.Application.Current?.Dispatcher is { } lCourierDispatcher
-            && !lCourierDispatcher.CheckAccess())
-        {
-            lCourierDispatcher.BeginInvoke(new Action(() =>
-                LCourierScheduleApply(lCourierSchedule, lCourierLiveBatches)));
-            return;
-        }
-
-        LCourierScheduleApply(lCourierSchedule, lCourierLiveBatches);
-    }
-
-    private static void LCourierScheduleApply(
-        LScheduleContract lCourierSchedule,
-        IReadOnlyCollection<Guid> lCourierLiveBatches)
-    {
-        LCourierSourcesUnlock(lCourierSchedule);
-        LCourierBatchesClean(lCourierSchedule, lCourierLiveBatches);
-        LCartographer.LCartographerDispatch(lCourierSchedule.LScheduleRecords);
-    }
-
-    private static void LCourierSourcesUnlock(LScheduleContract lCourierSchedule)
-    {
-        foreach (LWorkItem lCourierItem in lCourierSchedule.LScheduleRecords)
-        {
-            if (lCourierItem.LWorkRelayTarget != Guid.Empty
-                || lCourierItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning
-                || LCourierTabFind(lCourierItem) is not { } lCourierSource
-                || lCourierSource.PTabWorkspace.PWorkspaceSurface.PTabList is not { } lCourierList)
-            {
-                continue;
-            }
-
-            var lCourierUnlocks = new List<(string PListPath, Guid PListBatch)>
-            {
-                (lCourierItem.LWorkSourcePath, lCourierItem.LWorkBatchId)
-            };
-            lCourierUnlocks.AddRange(lCourierItem.LWorkMergeSources.Select(
-                lCourierPath => (lCourierPath, lCourierItem.LWorkBatchId)));
-            lCourierList.PListPathsUnlock(lCourierUnlocks.Distinct().ToArray());
-        }
-    }
-
-    private static void LCourierBatchesClean(
-        LScheduleContract lCourierSchedule,
-        IReadOnlyCollection<Guid> lCourierLiveBatches)
-    {
-        Guid[] lCourierRemovedBatches = lCourierScheduledBatches
-            .Where(lCourierBatch => !lCourierLiveBatches.Contains(lCourierBatch))
-            .ToArray();
-
-        lCourierScheduledBatches.Clear();
-        lCourierScheduledBatches.UnionWith(lCourierLiveBatches);
-        if (lCourierRemovedBatches.Length == 0 || PStrip.PStripCurrent is not { } lCourierTabset)
+        if (PStrip.PStripCurrent is not { } lCourierTabset)
         {
             return;
         }
@@ -282,10 +194,22 @@ public static class LCourier
             LTraceLog.LTraceInfoRecord(
                 $"Relay removed {lCourierRemovedPaths.Length} file(s) from tab '{lCourierTab.PTabTitle}' after their batch left the worklist");
         }
+    }
 
-        LCartographer.LCartographerDeliveredRemove(lCourierSchedule.LScheduleRecords
-            .Select(lCourierItem => lCourierItem.LWorkId)
-            .ToHashSet());
+    internal static void LCourierSourceUnlock(IReadOnlyList<(string PListPath, Guid PListBatch)> lCourierUnlocks)
+    {
+        if (lCourierUnlocks.Count == 0 || PStrip.PStripCurrent is not { } lCourierTabset)
+        {
+            return;
+        }
+
+        foreach (PTabRecord lCourierTab in lCourierTabset.PStripRecords)
+        {
+            if (lCourierTab.PTabWorkspace.PWorkspaceSurface.PTabList is { } lCourierList)
+            {
+                lCourierList.PListPathsUnlock(lCourierUnlocks);
+            }
+        }
     }
 
     public static void LCourierArrive(Guid lCourierTargetTab, string lCourierPath, Guid lCourierCohort)
