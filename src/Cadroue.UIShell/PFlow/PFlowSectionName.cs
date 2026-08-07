@@ -20,10 +20,10 @@ public sealed partial class PFlow
 
         PFlowNameClose();
 
-        LSegment pNameSection = lSectionList[pSectionIndex];
-        TextBox pNameBox = PFlowNameBuild(pNameSection.LSegmentName, PFlowNameWidth);
-        TextBox pPrefixBox = PFlowNameBuild(pNameSection.LSegmentPrefix, PFlowAffixWidth);
-        TextBox pSuffixBox = PFlowNameBuild(pNameSection.LSegmentSuffix, PFlowAffixWidth);
+        LPiece pNameSection = lSectionList[pSectionIndex];
+        TextBox pNameBox = PFlowNameBuild(pNameSection.LPieceName, PFlowNameWidth);
+        TextBox pPrefixBox = PFlowNameBuild(pNameSection.LPiecePrefix, PFlowAffixWidth);
+        TextBox pSuffixBox = PFlowNameBuild(pNameSection.LPieceSuffix, PFlowAffixWidth);
 
         var pFieldPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pFieldPanel.Children.Add(pNameBox);
@@ -32,8 +32,8 @@ public sealed partial class PFlow
         pFieldPanel.Children.Add(PFlowAffixBuild(pSuffixBox));
         pFieldPanel.Children.Add(pSuffixBox);
 
-        PFlowAffixShow(pPrefixBox, !string.IsNullOrEmpty(pNameSection.LSegmentPrefix));
-        PFlowAffixShow(pSuffixBox, !string.IsNullOrEmpty(pNameSection.LSegmentSuffix));
+        PFlowAffixShow(pPrefixBox, !string.IsNullOrEmpty(pNameSection.LPiecePrefix));
+        PFlowAffixShow(pSuffixBox, !string.IsNullOrEmpty(pNameSection.LPieceSuffix));
 
         PFlowStepAttach(pNameBox, pPrefixBox);
         PFlowStepAttach(pPrefixBox, pSuffixBox);

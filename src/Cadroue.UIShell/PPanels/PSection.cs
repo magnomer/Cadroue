@@ -22,7 +22,7 @@ public sealed partial class PSection : UserControl
     private const double PSectionDisabledOpacity = 0.4;
 
     private PFlowControl? pFlowAttached;
-    private IReadOnlyList<LSegment> pSectionListCurrent = Array.Empty<LSegment>();
+    private IReadOnlyList<LPiece> pSectionListCurrent = Array.Empty<LPiece>();
     private int? pSectionIndexCurrent;
     private readonly TextBlock pSectionCountLabel;
     private readonly StackPanel pSectionRowPanel;
@@ -156,12 +156,12 @@ public sealed partial class PSection : UserControl
     {
         return pSectionListCurrent
             .Select(pSection => new LSplitSectionDescription(
-                pSection.LSegmentStart,
-                pSection.LSegmentEnd,
-                pSection.LSegmentName,
-                pSection.LSegmentPrefix,
-                pSection.LSegmentSuffix,
-                pSection.LSegmentHidden))
+                pSection.LPieceStart,
+                pSection.LPieceEnd,
+                pSection.LPieceName,
+                pSection.LPiecePrefix,
+                pSection.LPieceSuffix,
+                pSection.LPieceHidden))
             .ToArray();
     }
 
@@ -172,9 +172,9 @@ public sealed partial class PSection : UserControl
         pFlowAttached = null;
     }
 
-    private void PSectionUpdateHandle(IReadOnlyList<LSegment> pSectionList, int? pSectionIndexSelect)
+    private void PSectionUpdateHandle(IReadOnlyList<LPiece> pSectionList, int? pSectionIndexSelect)
     {
-        LSegment[] pSectionListNext = pSectionList.ToArray();
+        LPiece[] pSectionListNext = pSectionList.ToArray();
         bool pSectionListSame = pSectionListCurrent.SequenceEqual(pSectionListNext)
             && pSectionRowPanel.Children.Count == pSectionListNext.Length;
         pSectionListCurrent = pSectionListNext;
@@ -226,7 +226,7 @@ public sealed partial class PSection : UserControl
         }
     }
 
-    private Border PSectionRowBuild(int pSectionIndex, LSegment pSectionEntry, bool pSectionSelected)
+    private Border PSectionRowBuild(int pSectionIndex, LPiece pSectionEntry, bool pSectionSelected)
     {
         int capturedIndex = pSectionIndex;
 
@@ -249,7 +249,7 @@ public sealed partial class PSection : UserControl
             MinWidth = PSectionBadgeSize,
             Height = PSectionBadgeSize,
             CornerRadius = new CornerRadius(PSectionBadgeSize / 2),
-            Background = PSectionPalette.PSectionBadgeRead(pSectionEntry.LSegmentColorIndex),
+            Background = PSectionPalette.PSectionBadgeRead(pSectionEntry.LPieceColorIndex),
             Padding = new Thickness(PSectionBadgePadding, 0, PSectionBadgePadding, 0),
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
@@ -281,7 +281,7 @@ public sealed partial class PSection : UserControl
 
         var pTimeLabel = new TextBlock
         {
-            Text = $"{PSectionTimeFormat(pSectionEntry.LSegmentStart)} → {PSectionTimeFormat(pSectionEntry.LSegmentEnd)}"
+            Text = $"{PSectionTimeFormat(pSectionEntry.LPieceStart)} → {PSectionTimeFormat(pSectionEntry.LPieceEnd)}"
                 + $"  ({PSectionTimeFormat(PSectionSpanRead(pSectionEntry))})",
             FontSize = 11,
             FontFamily = pSectionFontFamily,
@@ -292,7 +292,7 @@ public sealed partial class PSection : UserControl
 
         var pRowContent = new Grid
         {
-            Opacity = pSectionEntry.LSegmentHidden ? PSectionDisabledOpacity : 1
+            Opacity = pSectionEntry.LPieceHidden ? PSectionDisabledOpacity : 1
         };
         pRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -354,9 +354,9 @@ public sealed partial class PSection : UserControl
         return pRowBorder;
     }
 
-    private TextBlock PSectionTextBuild(int pSectionIndex, LSegment pSectionEntry)
+    private TextBlock PSectionTextBuild(int pSectionIndex, LPiece pSectionEntry)
     {
-        bool pSectionUnnamed = string.IsNullOrEmpty(pSectionEntry.LSegmentName);
+        bool pSectionUnnamed = string.IsNullOrEmpty(pSectionEntry.LPieceName);
         var pMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
         var pNameText = new TextBlock
         {
@@ -369,13 +369,13 @@ public sealed partial class PSection : UserControl
         };
 
         pNameText.Inlines.Add(new System.Windows.Documents.Run(
-            pSectionUnnamed ? PSectionPlaceholderFormat(pSectionIndex) : pSectionEntry.LSegmentName)
+            pSectionUnnamed ? PSectionPlaceholderFormat(pSectionIndex) : pSectionEntry.LPieceName)
         {
             Foreground = pSectionUnnamed ? pMutedBrush : pNameText.Foreground
         });
 
-        PSectionAffixAdd(pNameText, pSectionEntry.LSegmentPrefix, pMutedBrush);
-        PSectionAffixAdd(pNameText, pSectionEntry.LSegmentSuffix, pMutedBrush);
+        PSectionAffixAdd(pNameText, pSectionEntry.LPiecePrefix, pMutedBrush);
+        PSectionAffixAdd(pNameText, pSectionEntry.LPieceSuffix, pMutedBrush);
         return pNameText;
     }
 
@@ -391,9 +391,9 @@ public sealed partial class PSection : UserControl
 
     private static string PSectionPlaceholderFormat(int pSectionIndex) => LLocalization.LLocalizationFormat("Section.DefaultName", pSectionIndex + 1);
 
-    private static TimeSpan PSectionSpanRead(LSegment pSectionEntry)
+    private static TimeSpan PSectionSpanRead(LPiece pSectionEntry)
     {
-        TimeSpan pSectionSpan = pSectionEntry.LSegmentEnd - pSectionEntry.LSegmentStart;
+        TimeSpan pSectionSpan = pSectionEntry.LPieceEnd - pSectionEntry.LPieceStart;
         return pSectionSpan < TimeSpan.Zero ? TimeSpan.Zero : pSectionSpan;
     }
 

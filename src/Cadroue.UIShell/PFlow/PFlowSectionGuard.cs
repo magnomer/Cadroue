@@ -25,11 +25,11 @@ public sealed partial class PFlow
     }
 
     private bool PFlowInsideCheck(TimeSpan pFlowTime, int pFlowSkipIndex)
-        => LSegment.LSegmentInsideCheck(lSectionList, pFlowTime, pFlowSkipIndex, PFlowOverlapAllowed);
+        => LPiece.LPieceInsideCheck(lSectionList, pFlowTime, pFlowSkipIndex, PFlowOverlapAllowed);
 
     private TimeSpan PFlowLimitRead(TimeSpan pFlowFrom, TimeSpan pFlowCeiling, int pFlowSkipIndex)
-        => LSegment.LSegmentLimitRead(lSectionList, pFlowFrom, pFlowCeiling, pFlowSkipIndex, PFlowOverlapAllowed);
+        => LPiece.LPieceLimitRead(lSectionList, pFlowFrom, pFlowCeiling, pFlowSkipIndex, PFlowOverlapAllowed);
 
     private TimeSpan PFlowFloorRead(TimeSpan pFlowUntil, int pFlowSkipIndex)
-        => LSegment.LSegmentFloorRead(lSectionList, pFlowUntil, pFlowSkipIndex, PFlowOverlapAllowed);
+        => LPiece.LPieceFloorRead(lSectionList, pFlowUntil, pFlowSkipIndex, PFlowOverlapAllowed);
 }

@@ -103,7 +103,7 @@ public sealed class PWorkspace
     }
 
     private LHistoryEntry PWorkspaceStateRead() => new(
-        PWorkspaceFlow?.PFlowSectionsRead() ?? Array.Empty<LSegment>(),
+        PWorkspaceFlow?.PFlowSectionsRead() ?? Array.Empty<LPiece>(),
         PWorkspaceFlow?.PFlowSelectionRead(),
         PWorkspaceExportState.LPresetRecordCreate());
 
@@ -131,7 +131,7 @@ public sealed class PWorkspace
             new Action(pLosslesscutFlow.PFlowLosslesscutFind));
     }
 
-    private void PWorkspaceSectionHandle(IReadOnlyList<LSegment> pSections, int? pSectionSelect)
+    private void PWorkspaceSectionHandle(IReadOnlyList<LPiece> pSections, int? pSectionSelect)
         => PWorkspaceHistoryAdd();
 
     private void PWorkspaceExportHandle() => PWorkspaceHistoryAdd();
@@ -197,7 +197,7 @@ public sealed class PWorkspace
             return;
         }
 
-        IReadOnlyList<LSegment> lRelaySections = LRelayPayload.LRelaySegmentsCreate(lRelay.LRelaySections);
+        IReadOnlyList<LPiece> lRelaySections = LRelayPayload.LRelaySegmentsCreate(lRelay.LRelaySections);
         int? lRelaySectionSelect = lRelay.LRelaySectionIndex;
         PViewer pRelayViewer = PWorkspaceViewer;
 

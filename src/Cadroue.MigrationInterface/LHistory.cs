@@ -3,7 +3,7 @@ using Cadroue.Core;
 namespace Cadroue.MigrationInterface;
 
 public sealed record LHistoryEntry(
-    IReadOnlyList<LSegment> LHistorySections,
+    IReadOnlyList<LPiece> LHistorySections,
     int? LHistorySectionSelect,
     LPresetRecord LHistoryExport);
 

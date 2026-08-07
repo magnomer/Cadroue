@@ -70,8 +70,8 @@ public sealed partial class PViewfinder
     {
         for (int index = lSectionList.Count - 1; index >= 0; index--)
         {
-            LSegment section = lSectionList[index];
-            if (requestTime >= section.LSegmentStart && requestTime <= section.LSegmentEnd)
+            LPiece section = lSectionList[index];
+            if (requestTime >= section.LPieceStart && requestTime <= section.LPieceEnd)
             {
                 PViewfinderSectionSelect?.Invoke(index);
                 return;

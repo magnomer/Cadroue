@@ -90,7 +90,7 @@ public sealed partial class PMap : FrameworkElement
     private LSpool? lSpool;
     private TimeSpan lCursor;
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-    private IReadOnlyList<LSegment> lSectionList = Array.Empty<LSegment>();
+    private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
     private byte[] lWaveformPeaks = Array.Empty<byte>();
     private int? lSectionIndexActive;
     private PMapDragMode pMapDragMode;
@@ -130,7 +130,7 @@ public sealed partial class PMap : FrameworkElement
         lSpool = null;
         lCursor = TimeSpan.Zero;
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-        lSectionList = Array.Empty<LSegment>();
+        lSectionList = Array.Empty<LPiece>();
         lWaveformPeaks = Array.Empty<byte>();
         lSectionIndexActive = null;
         PMapDrawDefer("clear");
@@ -142,9 +142,9 @@ public sealed partial class PMap : FrameworkElement
         PMapDrawDefer("waveform");
     }
 
-    public void PMapSectionsUpdate(IReadOnlyList<LSegment>? sections, int? selectedIndex)
+    public void PMapSectionsUpdate(IReadOnlyList<LPiece>? sections, int? selectedIndex)
     {
-        lSectionList = sections?.ToArray() ?? Array.Empty<LSegment>();
+        lSectionList = sections?.ToArray() ?? Array.Empty<LPiece>();
         lSectionIndexActive = selectedIndex;
         PMapDrawDefer("sections");
     }

@@ -38,7 +38,7 @@ public sealed partial class PFlow : UserControl
     private readonly TextBlock pViewfinderLabelRight = PReelLabelBuild();
     private readonly TextBlock pMapLabelLeft = PReelLabelBuild();
     private readonly TextBlock pMapLabelRight = PReelLabelBuild();
-    private readonly List<LSegment> lSectionList = new();
+    private readonly List<LPiece> lSectionList = new();
     private readonly StackPanel pFlowSectionButtons = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
     private Border? pDividerThumb;
     private readonly Grid pFlowViewfinderReel;
@@ -63,7 +63,7 @@ public sealed partial class PFlow : UserControl
     public event Action? PFlowPause;
     public event Action<double>? PFlowVolumeChange;
     public event Action<double>? PFlowVolumeValue;
-    public event Action<IReadOnlyList<LSegment>, int?>? PFlowSectionChange;
+    public event Action<IReadOnlyList<LPiece>, int?>? PFlowSectionChange;
 
     public PFlow()
     {

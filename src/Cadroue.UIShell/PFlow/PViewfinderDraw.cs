@@ -89,9 +89,9 @@ public sealed partial class PViewfinder
         double sectionHeight = Math.Max(4, railBottom - railTop - PViewfinderSectionInset * 2);
         for (int index = 0; index < lSectionList.Count; index++)
         {
-            LSegment section = lSectionList[index];
-            TimeSpan sectionStart = section.LSegmentStart < rangeStart ? rangeStart : section.LSegmentStart;
-            TimeSpan sectionEnd = section.LSegmentEnd > rangeEnd ? rangeEnd : section.LSegmentEnd;
+            LPiece section = lSectionList[index];
+            TimeSpan sectionStart = section.LPieceStart < rangeStart ? rangeStart : section.LPieceStart;
+            TimeSpan sectionEnd = section.LPieceEnd > rangeEnd ? rangeEnd : section.LPieceEnd;
             if (sectionEnd <= sectionStart)
             {
                 continue;
@@ -100,19 +100,19 @@ public sealed partial class PViewfinder
             double sectionStartX = Math.Clamp((sectionStart - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
             double sectionEndX = Math.Clamp((sectionEnd - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
-            Brush sectionBrush = PSectionPalette.PSectionPaletteRead(section.LSegmentColorIndex);
+            Brush sectionBrush = PSectionPalette.PSectionPaletteRead(section.LPieceColorIndex);
             Pen? sectionPen = index == lSectionIndexActive ? new Pen(Brushes.Black, 1.5) : null;
             var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
 
-            if (section.LSegmentHidden)
+            if (section.LPieceHidden)
             {
                 drawingContext.PushOpacity(PViewfinderHiddenOpacity);
             }
 
             drawingContext.DrawRoundedRectangle(sectionBrush, sectionPen, sectionRect, 3, 3);
-            PViewfinderSectionDraw(drawingContext, sectionRect, index, section.LSegmentColorIndex, section.LSegmentName);
+            PViewfinderSectionDraw(drawingContext, sectionRect, index, section.LPieceColorIndex, section.LPieceName);
 
-            if (section.LSegmentHidden)
+            if (section.LPieceHidden)
             {
                 drawingContext.Pop();
             }

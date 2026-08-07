@@ -33,31 +33,31 @@ public sealed class LRelay
 
 public static class LRelayPayload
 {
-    public static List<LRelaySectionRecord> LRelayRecordsCreate(IReadOnlyList<LSegment> lRelaySegments) =>
+    public static List<LRelaySectionRecord> LRelayRecordsCreate(IReadOnlyList<LPiece> lRelaySegments) =>
         lRelaySegments
             .Select(lRelaySegment => new LRelaySectionRecord
             {
-                LRelayStartTicks = lRelaySegment.LSegmentStart.Ticks,
-                LRelayEndTicks = lRelaySegment.LSegmentEnd.Ticks,
-                LRelayColorIndex = lRelaySegment.LSegmentColorIndex,
-                LRelayName = lRelaySegment.LSegmentName,
-                LRelayPrefix = lRelaySegment.LSegmentPrefix,
-                LRelaySuffix = lRelaySegment.LSegmentSuffix,
-                LRelayHidden = lRelaySegment.LSegmentHidden
+                LRelayStartTicks = lRelaySegment.LPieceStart.Ticks,
+                LRelayEndTicks = lRelaySegment.LPieceEnd.Ticks,
+                LRelayColorIndex = lRelaySegment.LPieceColorIndex,
+                LRelayName = lRelaySegment.LPieceName,
+                LRelayPrefix = lRelaySegment.LPiecePrefix,
+                LRelaySuffix = lRelaySegment.LPieceSuffix,
+                LRelayHidden = lRelaySegment.LPieceHidden
             })
             .ToList();
 
-    public static IReadOnlyList<LSegment> LRelaySegmentsCreate(IReadOnlyList<LRelaySectionRecord> lRelaySections) =>
+    public static IReadOnlyList<LPiece> LRelaySegmentsCreate(IReadOnlyList<LRelaySectionRecord> lRelaySections) =>
         lRelaySections
-            .Select(lRelaySection => new LSegment(
+            .Select(lRelaySection => new LPiece(
                 TimeSpan.FromTicks(lRelaySection.LRelayStartTicks),
                 TimeSpan.FromTicks(lRelaySection.LRelayEndTicks),
                 lRelaySection.LRelayColorIndex,
                 lRelaySection.LRelayName)
             {
-                LSegmentPrefix = lRelaySection.LRelayPrefix,
-                LSegmentSuffix = lRelaySection.LRelaySuffix,
-                LSegmentHidden = lRelaySection.LRelayHidden
+                LPiecePrefix = lRelaySection.LRelayPrefix,
+                LPieceSuffix = lRelaySection.LRelaySuffix,
+                LPieceHidden = lRelaySection.LRelayHidden
             })
             .ToList();
 }

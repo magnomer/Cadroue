@@ -35,19 +35,19 @@ public sealed partial class PSection
         PSectionRebuild();
     }
 
-    private UIElement PSectionEditorBuild(LSegment pSectionEntry)
+    private UIElement PSectionEditorBuild(LPiece pSectionEntry)
     {
-        TextBox pNameBox = PSectionFieldBuild(pSectionEntry.LSegmentName, 0);
-        TextBox pPrefixBox = PSectionFieldBuild(pSectionEntry.LSegmentPrefix, PSectionAffixWidth);
-        TextBox pSuffixBox = PSectionFieldBuild(pSectionEntry.LSegmentSuffix, PSectionAffixWidth);
+        TextBox pNameBox = PSectionFieldBuild(pSectionEntry.LPieceName, 0);
+        TextBox pPrefixBox = PSectionFieldBuild(pSectionEntry.LPiecePrefix, PSectionAffixWidth);
+        TextBox pSuffixBox = PSectionFieldBuild(pSectionEntry.LPieceSuffix, PSectionAffixWidth);
         pSectionNameBox = pNameBox;
         pSectionPrefixBox = pPrefixBox;
         pSectionSuffixBox = pSuffixBox;
 
         UIElement pPrefixMark = PSectionMarkBuild(pPrefixBox);
         UIElement pSuffixMark = PSectionMarkBuild(pSuffixBox);
-        PSectionAffixShow(pPrefixBox, !string.IsNullOrEmpty(pSectionEntry.LSegmentPrefix));
-        PSectionAffixShow(pSuffixBox, !string.IsNullOrEmpty(pSectionEntry.LSegmentSuffix));
+        PSectionAffixShow(pPrefixBox, !string.IsNullOrEmpty(pSectionEntry.LPiecePrefix));
+        PSectionAffixShow(pSuffixBox, !string.IsNullOrEmpty(pSectionEntry.LPieceSuffix));
 
         PSectionStepAttach(pNameBox, pPrefixBox);
         PSectionStepAttach(pPrefixBox, pSuffixBox);

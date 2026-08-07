@@ -74,7 +74,7 @@ public sealed partial class PViewfinder : FrameworkElement
     private TimeSpan lCursor;
     private IReadOnlyList<LKeyframeEntry> lKeyframeList = Array.Empty<LKeyframeEntry>();
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-    private IReadOnlyList<LSegment> lSectionList = Array.Empty<LSegment>();
+    private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
     private byte[] lWaveformPeaks = Array.Empty<byte>();
     private int? lSectionIndexActive;
     private PViewfinderDragMode pViewfinderDragMode;
@@ -112,7 +112,7 @@ public sealed partial class PViewfinder : FrameworkElement
         lCursor = TimeSpan.Zero;
         lKeyframeList = Array.Empty<LKeyframeEntry>();
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-        lSectionList = Array.Empty<LSegment>();
+        lSectionList = Array.Empty<LPiece>();
         lWaveformPeaks = Array.Empty<byte>();
         lSectionIndexActive = null;
         PViewfinderDrawDefer("clear");
@@ -164,9 +164,9 @@ public sealed partial class PViewfinder : FrameworkElement
             return Rect.Empty;
         }
 
-        LSegment pSection = lSectionList[pSectionIndex];
-        TimeSpan pStart = pSection.LSegmentStart < pRangeStart ? pRangeStart : pSection.LSegmentStart;
-        TimeSpan pEnd = pSection.LSegmentEnd > pRangeEnd ? pRangeEnd : pSection.LSegmentEnd;
+        LPiece pSection = lSectionList[pSectionIndex];
+        TimeSpan pStart = pSection.LPieceStart < pRangeStart ? pRangeStart : pSection.LPieceStart;
+        TimeSpan pEnd = pSection.LPieceEnd > pRangeEnd ? pRangeEnd : pSection.LPieceEnd;
         if (pEnd <= pStart)
         {
             return Rect.Empty;
@@ -177,9 +177,9 @@ public sealed partial class PViewfinder : FrameworkElement
         return new Rect(pLeft, pRailTop, Math.Max(1, pRight - pLeft), pRailBottom - pRailTop);
     }
 
-    public void PViewfinderSectionsUpdate(IReadOnlyList<LSegment>? sections, int? selectedIndex)
+    public void PViewfinderSectionsUpdate(IReadOnlyList<LPiece>? sections, int? selectedIndex)
     {
-        lSectionList = sections?.ToArray() ?? Array.Empty<LSegment>();
+        lSectionList = sections?.ToArray() ?? Array.Empty<LPiece>();
         lSectionIndexActive = selectedIndex;
         PViewfinderDrawDefer("sections");
     }

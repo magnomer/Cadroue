@@ -22,7 +22,7 @@ public sealed partial class PFlow
     public void PFlowEditSet(bool pFlowSectionEdit) =>
         pFlowSectionEditable = pFlowSectionEdit;
 
-    private void PFlowSectionApply(List<LSegment> pFlowSections, int? pFlowActive)
+    private void PFlowSectionApply(List<LPiece> pFlowSections, int? pFlowActive)
     {
         lSectionList.Clear();
         lSectionList.AddRange(pFlowSections);
@@ -33,7 +33,7 @@ public sealed partial class PFlow
     {
         if (!pFlowSectionEditable) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
-        if (LSegment.LSegmentAdd(lSectionList, lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed)
+        if (LPiece.LPieceAdd(lSectionList, lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed)
             is not { } pFlowPlan) return;
         PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.Active);
         PFlowSectionRecord("added", lSectionIndexActive!.Value);
@@ -45,8 +45,8 @@ public sealed partial class PFlow
         if (!pFlowSectionEditable) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
         bool pFlowAdded = lSectionIndexActive is null
-            || lSectionList[lSectionIndexActive.Value].LSegmentEnd < lCursor;
-        if (LSegment.LSegmentStartSet(lSectionList, lSectionIndexActive, lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed)
+            || lSectionList[lSectionIndexActive.Value].LPieceEnd < lCursor;
+        if (LPiece.LPieceStartSet(lSectionList, lSectionIndexActive, lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed)
             is not { } pFlowPlan) return;
         PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.Active);
         PFlowSectionRecord(pFlowAdded ? "added" : "start set", lSectionIndexActive!.Value);
@@ -56,7 +56,7 @@ public sealed partial class PFlow
     private void PFlowSectionDivide()
     {
         if (!pFlowSectionEditable) return;
-        if (LSegment.LSegmentDivide(lSectionList, lSectionIndexActive, lCursor, PFlowColorRead())
+        if (LPiece.LPieceDivide(lSectionList, lSectionIndexActive, lCursor, PFlowColorRead())
             is not { } pFlowPlan) return;
         PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.First);
         PFlowSectionRecord($"split at {lCursor:hh\\:mm\\:ss\\.fff}, left half", pFlowPlan.First);
@@ -69,7 +69,7 @@ public sealed partial class PFlow
         if (!pFlowSectionEditable) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
         bool pFlowAdded = lSectionIndexActive is null;
-        if (LSegment.LSegmentEndSet(lSectionList, lSectionIndexActive, lCursor, PFlowColorRead(), PFlowOverlapAllowed)
+        if (LPiece.LPieceEndSet(lSectionList, lSectionIndexActive, lCursor, PFlowColorRead(), PFlowOverlapAllowed)
             is not { } pFlowPlan) return;
         PFlowSectionApply(pFlowPlan.Sections, pFlowPlan.Active);
         PFlowSectionRecord(pFlowAdded ? "added" : "end set", lSectionIndexActive!.Value);
@@ -100,13 +100,13 @@ public sealed partial class PFlow
             return;
         }
 
-        LSegment pFlowSection = lSectionList[pFlowIndex];
-        string pFlowName = string.IsNullOrEmpty(pFlowSection.LSegmentName)
+        LPiece pFlowSection = lSectionList[pFlowIndex];
+        string pFlowName = string.IsNullOrEmpty(pFlowSection.LPieceName)
             ? "unnamed"
-            : $"'{pFlowSection.LSegmentName}'";
+            : $"'{pFlowSection.LPieceName}'";
         LTraceLog.LTraceInfoRecord(
             $"Section {pFlowAction} #{pFlowIndex + 1} of {lSectionList.Count} in '{pFlowSource}': {pFlowName} " +
-            $"{pFlowSection.LSegmentStart:hh\\:mm\\:ss\\.fff}-{pFlowSection.LSegmentEnd:hh\\:mm\\:ss\\.fff}");
+            $"{pFlowSection.LPieceStart:hh\\:mm\\:ss\\.fff}-{pFlowSection.LPieceEnd:hh\\:mm\\:ss\\.fff}");
     }
 
     private void PFlowSectionUpdate()
@@ -156,7 +156,7 @@ public sealed partial class PFlow
 
         lSectionIndexActive = pSectionIndex;
         PFlowSectionUpdate();
-        PFlowCursorPropagate(lSectionList[pSectionIndex].LSegmentStart, true, true);
+        PFlowCursorPropagate(lSectionList[pSectionIndex].LPieceStart, true, true);
     }
 
     public void PFlowSectionToggle(int pSectionIndex)
@@ -166,25 +166,25 @@ public sealed partial class PFlow
             return;
         }
 
-        LSegment pSectionEntry = lSectionList[pSectionIndex];
-        lSectionList[pSectionIndex] = pSectionEntry with { LSegmentHidden = !pSectionEntry.LSegmentHidden };
-        PFlowSectionRecord(lSectionList[pSectionIndex].LSegmentHidden ? "turned off" : "turned on", pSectionIndex);
+        LPiece pSectionEntry = lSectionList[pSectionIndex];
+        lSectionList[pSectionIndex] = pSectionEntry with { LPieceHidden = !pSectionEntry.LPieceHidden };
+        PFlowSectionRecord(lSectionList[pSectionIndex].LPieceHidden ? "turned off" : "turned on", pSectionIndex);
         PFlowSectionUpdate();
     }
 
-    public IReadOnlyList<LSegment> PFlowSectionsRead() => lSectionList.ToArray();
+    public IReadOnlyList<LPiece> PFlowSectionsRead() => lSectionList.ToArray();
 
     internal IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> PFlowSidecarRead() =>
         lSectionList
             .Select(lSection => new Cadroue.Core.LSidecarSectionRecord
             {
-                LSidecarStartMilliseconds = (long)lSection.LSegmentStart.TotalMilliseconds,
-                LSidecarEndMilliseconds = (long)lSection.LSegmentEnd.TotalMilliseconds,
-                LSidecarColorIndex = lSection.LSegmentColorIndex,
-                LSidecarName = lSection.LSegmentName,
-                LSidecarPrefix = lSection.LSegmentPrefix,
-                LSidecarSuffix = lSection.LSegmentSuffix,
-                LSidecarHidden = lSection.LSegmentHidden
+                LSidecarStartMilliseconds = (long)lSection.LPieceStart.TotalMilliseconds,
+                LSidecarEndMilliseconds = (long)lSection.LPieceEnd.TotalMilliseconds,
+                LSidecarColorIndex = lSection.LPieceColorIndex,
+                LSidecarName = lSection.LPieceName,
+                LSidecarPrefix = lSection.LPiecePrefix,
+                LSidecarSuffix = lSection.LPieceSuffix,
+                LSidecarHidden = lSection.LPieceHidden
             })
             .ToArray();
 
@@ -203,15 +203,15 @@ public sealed partial class PFlow
         {
             PFlowSectionsSet(
                 lSidecarSections
-                    .Select(lSection => new LSegment(
+                    .Select(lSection => new LPiece(
                         TimeSpan.FromMilliseconds(lSection.LSidecarStartMilliseconds),
                         TimeSpan.FromMilliseconds(lSection.LSidecarEndMilliseconds),
                         lSection.LSidecarColorIndex,
                         lSection.LSidecarName)
                     {
-                        LSegmentPrefix = lSection.LSidecarPrefix ?? string.Empty,
-                        LSegmentSuffix = lSection.LSidecarSuffix ?? string.Empty,
-                        LSegmentHidden = lSection.LSidecarHidden
+                        LPiecePrefix = lSection.LSidecarPrefix ?? string.Empty,
+                        LPieceSuffix = lSection.LSidecarSuffix ?? string.Empty,
+                        LPieceHidden = lSection.LSidecarHidden
                     })
                     .ToArray(),
                 null);
@@ -224,7 +224,7 @@ public sealed partial class PFlow
 
     public int? PFlowSelectionRead() => lSectionIndexActive;
 
-    public void PFlowSectionsSet(IReadOnlyList<LSegment> lSections, int? lSectionSelect)
+    public void PFlowSectionsSet(IReadOnlyList<LPiece> lSections, int? lSectionSelect)
     {
         if ((!pFlowSectionEditable && !pFlowSidecarRestoring) || lSpool is null)
         {
@@ -232,9 +232,9 @@ public sealed partial class PFlow
         }
 
         lSectionList.Clear();
-        foreach (LSegment lSection in lSections)
+        foreach (LPiece lSection in lSections)
         {
-            if (lSection.LSegmentEnd <= lSpool.LSpoolDuration && lSection.LSegmentStart < lSection.LSegmentEnd)
+            if (lSection.LPieceEnd <= lSpool.LSpoolDuration && lSection.LPieceStart < lSection.LPieceEnd)
             {
                 lSectionList.Add(lSection);
             }
@@ -262,7 +262,7 @@ public sealed partial class PFlow
             return false;
         }
 
-        LSegment pSectionMoved = lSectionList[pSectionSource];
+        LPiece pSectionMoved = lSectionList[pSectionSource];
         lSectionList.RemoveAt(pSectionSource);
         lSectionList.Insert(pSectionInsert, pSectionMoved);
         if (lSectionIndexActive == pSectionSource)
@@ -282,12 +282,12 @@ public sealed partial class PFlow
             return false;
         }
 
-        LSegment? pSectionSelected = lSectionIndexActive is int pSelectIndex
+        LPiece? pSectionSelected = lSectionIndexActive is int pSelectIndex
             ? lSectionList[pSelectIndex]
             : null;
 
-        List<LSegment> pSectionSorted = lSectionList
-            .OrderBy(pSection => pSection.LSegmentName, StringComparer.CurrentCultureIgnoreCase)
+        List<LPiece> pSectionSorted = lSectionList
+            .OrderBy(pSection => pSection.LPieceName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
         if (pSectionSorted.SequenceEqual(lSectionList))
@@ -316,22 +316,22 @@ public sealed partial class PFlow
     {
         if (!pFlowSectionEditable || pSectionIndex < 0 || pSectionIndex >= lSectionList.Count) return;
 
-        LSegment pSectionEntry = lSectionList[pSectionIndex];
-        string pSectionPrefixNew = pSectionPrefix ?? pSectionEntry.LSegmentPrefix;
-        string pSectionSuffixNew = pSectionSuffix ?? pSectionEntry.LSegmentSuffix;
-        if (string.Equals(pSectionEntry.LSegmentName, pSectionName, StringComparison.Ordinal)
-            && string.Equals(pSectionEntry.LSegmentPrefix, pSectionPrefixNew, StringComparison.Ordinal)
-            && string.Equals(pSectionEntry.LSegmentSuffix, pSectionSuffixNew, StringComparison.Ordinal))
+        LPiece pSectionEntry = lSectionList[pSectionIndex];
+        string pSectionPrefixNew = pSectionPrefix ?? pSectionEntry.LPiecePrefix;
+        string pSectionSuffixNew = pSectionSuffix ?? pSectionEntry.LPieceSuffix;
+        if (string.Equals(pSectionEntry.LPieceName, pSectionName, StringComparison.Ordinal)
+            && string.Equals(pSectionEntry.LPiecePrefix, pSectionPrefixNew, StringComparison.Ordinal)
+            && string.Equals(pSectionEntry.LPieceSuffix, pSectionSuffixNew, StringComparison.Ordinal))
         {
             return;
         }
 
-        string pSectionWas = pSectionEntry.LSegmentName;
+        string pSectionWas = pSectionEntry.LPieceName;
         lSectionList[pSectionIndex] = pSectionEntry with
         {
-            LSegmentName = pSectionName,
-            LSegmentPrefix = pSectionPrefixNew,
-            LSegmentSuffix = pSectionSuffixNew
+            LPieceName = pSectionName,
+            LPiecePrefix = pSectionPrefixNew,
+            LPieceSuffix = pSectionSuffixNew
         };
         PFlowSectionRecord(
             string.IsNullOrEmpty(pSectionWas) ? "named" : $"renamed from '{pSectionWas}' to",

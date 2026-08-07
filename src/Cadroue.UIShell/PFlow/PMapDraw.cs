@@ -99,32 +99,32 @@ public sealed partial class PMap
         double sectionHeight = Math.Max(4, railHeight - PMapSectionInset * 2);
         for (int index = 0; index < lSectionList.Count; index++)
         {
-            LSegment section = lSectionList[index];
-            if (section.LSegmentEnd <= section.LSegmentStart)
+            LPiece section = lSectionList[index];
+            if (section.LPieceEnd <= section.LPieceStart)
             {
                 continue;
             }
 
-            double sectionStartX = Math.Clamp(section.LSegmentStart.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
-            double sectionEndX = Math.Clamp(section.LSegmentEnd.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double sectionStartX = Math.Clamp(section.LPieceStart.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double sectionEndX = Math.Clamp(section.LPieceEnd.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
             Pen? sectionPen = index == lSectionIndexActive ? pMapSectionPen : null;
             var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
 
-            if (section.LSegmentHidden)
+            if (section.LPieceHidden)
             {
                 drawingContext.PushOpacity(PMapHiddenOpacity);
             }
 
             drawingContext.DrawRoundedRectangle(
-                PSectionPalette.PSectionPaletteRead(section.LSegmentColorIndex),
+                PSectionPalette.PSectionPaletteRead(section.LPieceColorIndex),
                 sectionPen,
                 sectionRect,
                 3,
                 3);
-            PMapSectionDraw(drawingContext, sectionRect, index, section.LSegmentColorIndex);
+            PMapSectionDraw(drawingContext, sectionRect, index, section.LPieceColorIndex);
 
-            if (section.LSegmentHidden)
+            if (section.LPieceHidden)
             {
                 drawingContext.Pop();
             }
