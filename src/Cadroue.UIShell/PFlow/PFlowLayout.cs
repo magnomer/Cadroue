@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;

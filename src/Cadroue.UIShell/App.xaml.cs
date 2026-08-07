@@ -8,6 +8,7 @@ using Cadroue.UIShell.PMainWindow;
 
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.MigrationInterface;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.UIShell;
@@ -25,6 +26,21 @@ public partial class PProgram : System.Windows.Application
         LRelay? lRelayPayload = LRelayStartupPayload;
         LRelayStartupPayload = null;
         return lRelayPayload;
+    }
+
+    private static void LPreferenceDebounceApply()
+    {
+        var lPreferenceTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
+        lPreferenceTimer.Tick += (_, _) =>
+        {
+            lPreferenceTimer.Stop();
+            LPreference.LPreferenceSaveCommit();
+        };
+        LPreference.LPreferenceDebounceSeam = () =>
+        {
+            lPreferenceTimer.Stop();
+            lPreferenceTimer.Start();
+        };
     }
 
     private static void LStationSeamApply()
@@ -108,6 +124,8 @@ public partial class PProgram : System.Windows.Application
         LRenderer.LRendererSettingsLoad();
 
         LPreference.LPreferenceDepotCallback = LPreferenceDepotHandle;
+        LPreference.LPreferenceLanguageNormalizeSeam = LLocalization.LLocalizationLanguageNormalize;
+        LPreferenceDebounceApply();
         LPreference.LPreferenceLoad();
         Cadroue.Infrastructure.LFrameStore.LFrameLoad();
         LBinding.LBindingLoad();

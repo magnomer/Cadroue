@@ -1,10 +1,9 @@
 using System;
-using System.Windows.Threading;
 
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.MigrationInterface;
 
 public static class LPreference
 {
@@ -12,21 +11,23 @@ public static class LPreference
 
     public static Action? LPreferenceDepotCallback { get; set; }
 
-    private static DispatcherTimer? lPreferenceSaveTimer;
+    public static Action? LPreferenceDebounceSeam { get; set; }
+
+    public static Func<string?, string>? LPreferenceLanguageNormalizeSeam { get; set; }
+
     private static LPreferenceState? lPreferenceBaseline;
 
     public static void LPreferenceLoad()
     {
         LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
         LPreferenceStateCurrent.LPreferenceLanguage =
-            LLocalization.LLocalizationLanguageNormalize(LPreferenceStateCurrent.LPreferenceLanguage);
+            LPreferenceLanguageNormalize(LPreferenceStateCurrent.LPreferenceLanguage);
     }
 
     public static void LPreferenceStateSet(LPreferenceState lPreferenceState)
     {
-        lPreferenceSaveTimer?.Stop();
         lPreferenceState.LPreferenceNormalize();
-        lPreferenceState.LPreferenceLanguage = LLocalization.LLocalizationLanguageNormalize(lPreferenceState.LPreferenceLanguage);
+        lPreferenceState.LPreferenceLanguage = LPreferenceLanguageNormalize(lPreferenceState.LPreferenceLanguage);
         foreach (string lPreferenceChange in lPreferenceState.LPreferenceDifferenceRead(LPreferenceStateCurrent))
         {
             LTraceLog.LTraceInfoRecord($"Preference changed — {lPreferenceChange}");
@@ -79,30 +80,22 @@ public static class LPreference
         LPreferenceDefer();
     }
 
-    private static void LPreferenceDefer()
+    public static void LPreferenceSaveCommit()
     {
-        lPreferenceSaveTimer ??= LPreferenceTimerCreate();
-        lPreferenceSaveTimer.Stop();
-        lPreferenceSaveTimer.Start();
-    }
-
-    private static DispatcherTimer LPreferenceTimerCreate()
-    {
-        var lPreferenceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
-        lPreferenceTimer.Tick += (_, _) =>
+        LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
+        if (lPreferenceBaseline is { } lPreferenceWas)
         {
-            lPreferenceTimer.Stop();
-            LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
-            if (lPreferenceBaseline is { } lPreferenceWas)
+            foreach (string lPreferenceChange in LPreferenceStateCurrent.LPreferenceDifferenceRead(lPreferenceWas))
             {
-                foreach (string lPreferenceChange in LPreferenceStateCurrent.LPreferenceDifferenceRead(lPreferenceWas))
-                {
-                    LTraceLog.LTraceInfoRecord($"Preference saved — {lPreferenceChange}");
-                }
-
-                lPreferenceBaseline = null;
+                LTraceLog.LTraceInfoRecord($"Preference saved — {lPreferenceChange}");
             }
-        };
-        return lPreferenceTimer;
+
+            lPreferenceBaseline = null;
+        }
     }
+
+    private static string LPreferenceLanguageNormalize(string? lPreferenceLanguage) =>
+        LPreferenceLanguageNormalizeSeam?.Invoke(lPreferenceLanguage) ?? (lPreferenceLanguage ?? string.Empty);
+
+    private static void LPreferenceDefer() => LPreferenceDebounceSeam?.Invoke();
 }

@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;

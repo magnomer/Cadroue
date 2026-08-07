@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Animation;
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 using LEncode = Cadroue.ShellEngine.LEncode;

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using Cadroue.Media;
+using Cadroue.MigrationInterface;
 using Cadroue.UIShell;
 using Cadroue.UIShell.PPanels;
 

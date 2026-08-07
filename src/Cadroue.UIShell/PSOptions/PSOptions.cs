@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;

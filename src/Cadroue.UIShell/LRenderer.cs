@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Cadroue.Core;
+using Cadroue.MigrationInterface;
 using Cadroue.Infrastructure;
 
 using FlyleafLib;
