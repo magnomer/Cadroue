@@ -30,7 +30,7 @@ public sealed class PWorkspace
             PWorkspaceExportState.LPresetRecordCreate(), PWorkspaceExportState.LPresetName);
         PWorkspacePresetOwner.LPresetSelectionChange += PWorkspacePresetHandle;
         PWorkspaceSurface = PWorkspaceSurfaceCreate(
-            pTabLayoutKey, PWorkspaceExportState, PWorkspacePresetOwner, lPreferenceTabLayout);
+            pTabLayoutKey, PWorkspacePresetOwner, lPreferenceTabLayout);
         bool pHasSourceInfo = pTabLayoutKey is not ("Merge" or "Worklist");
         bool pAudioOnlyAllowed = pTabLayoutKey == "Audio";
         PWorkspaceSource = pHasSourceInfo ? new PSource(pAudioOnlyAllowed) : null;
@@ -333,19 +333,18 @@ public sealed class PWorkspace
 
     private static PTabSurface PWorkspaceSurfaceCreate(
         string pTabLayoutKey,
-        LPreset lExportSpecificState,
         LPresetSelection lPresetOwner,
         LSceneTabRecord? lPreferenceTabLayout)
     {
         return pTabLayoutKey switch
         {
-            "Edit" => new PEditTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout),
-            "Audio" => new PAudioTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout),
-            "Convert" => new PConvertTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout),
-            "Merge" => new PMergeTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout),
+            "Edit" => new PEditTab(lPresetOwner, lPreferenceTabLayout),
+            "Audio" => new PAudioTab(lPresetOwner, lPreferenceTabLayout),
+            "Convert" => new PConvertTab(lPresetOwner, lPreferenceTabLayout),
+            "Merge" => new PMergeTab(lPresetOwner, lPreferenceTabLayout),
             "Funnel" => new PFunnelTab(lPreferenceTabLayout),
             "Worklist" => new PWorklistTab(lPreferenceTabLayout),
-            _ => new PSplitTab(lExportSpecificState, lPresetOwner, lPreferenceTabLayout)
+            _ => new PSplitTab(lPresetOwner, lPreferenceTabLayout)
         };
     }
 }

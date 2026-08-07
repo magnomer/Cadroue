@@ -25,12 +25,16 @@ public static class LMessenger
         LWorkPriority lMessengerPriority,
         string? lMessengerSourcePath,
         LWorkAudio lMessengerProcessing,
-        LPreset lMessengerPreset,
+        Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         Guid lMessengerBatchId)
     {
-        LEncoding lMessengerOutput = lMessengerPreset.LPresetOutputCreate();
+        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        {
+            return 0;
+        }
+
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         LWorkItem? lMessengerItem = Cadroue.Application.LAudio.LAudioItemCreate(
             lMessengerPriority, lMessengerSourcePath, lMessengerProcessing, lMessengerOutput, lMessengerTab,
@@ -55,14 +59,19 @@ public static class LMessenger
         LWorkPriority lMessengerPriority,
         string? lMessengerSourcePath,
         IReadOnlyList<LSplitSectionDescription> lMessengerSections,
-        LPreset lMessengerPreset,
+        Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         Guid lMessengerBatchId,
         LCartographerPlanRecord? lMessengerPreparedPlan)
     {
+        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        {
+            return 0;
+        }
+
         LSplitWorkDescription lMessengerDescription = new(
-            lMessengerSourcePath, lMessengerSections, lMessengerPreset.LPresetOutputCreate());
+            lMessengerSourcePath, lMessengerSections, lMessengerOutput);
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LSplit.LSplitItemsCreate(
             lMessengerPriority, lMessengerDescription, lMessengerTab,
@@ -85,11 +94,15 @@ public static class LMessenger
     public static async Task<int> LMessengerAudioAllDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
-        LPreset lMessengerPreset,
+        Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default)
     {
-        LEncoding lMessengerOutput = lMessengerPreset.LPresetOutputCreate();
+        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        {
+            return 0;
+        }
+
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         Guid lMessengerLooseBatch = Cadroue.Application.LGate.LGateBatchCreate();
         var lMessengerItems = new List<LWorkItem>();
@@ -125,7 +138,7 @@ public static class LMessenger
     public static async Task<int> LMessengerSplitAllDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
-        LPreset lMessengerPreset,
+        Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default,
         LCartographerPlanRecord? lMessengerPreparedPlan = null)
@@ -150,7 +163,7 @@ public static class LMessenger
                 lMessengerRelays.TryGetValue(lMessengerPlan.LSplitSourcePath, out Guid lMessengerBatch);
                 lMessengerAdded += LMessengerSplitDescribe(
                     lMessengerPriority, lMessengerPlan.LSplitSourcePath, lMessengerPlan.LSplitPlanSections,
-                    lMessengerPreset, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch, lMessengerPreparedPlan);
+                    lMessengerOwner, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch, lMessengerPreparedPlan);
             }
         });
         return lMessengerAdded;
@@ -202,14 +215,19 @@ public static class LMessenger
         TimeSpan lMessengerDuration,
         LWorkCrop lMessengerCrop,
         LWorkVideo lMessengerVideo,
-        LPreset lMessengerPreset,
+        Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         Guid lMessengerBatchId)
     {
+        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        {
+            return 0;
+        }
+
         LEditWorkDescription lMessengerDescription = new(
             lMessengerSourcePath, lMessengerDuration, lMessengerCrop, lMessengerVideo,
-            lMessengerPreset.LPresetOutputCreate());
+            lMessengerOutput);
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LEdit.LEditItemsCreate(
             lMessengerPriority, lMessengerDescription, lMessengerTab,
@@ -231,14 +249,19 @@ public static class LMessenger
     public static int LMessengerMergeDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkGroup> lMessengerGroups,
-        LPreset lMessengerPreset,
+        Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         IReadOnlyDictionary<string, Guid>? lMessengerRelays)
     {
+        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        {
+            return 0;
+        }
+
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LMerge.LMergeItemsCreate(
-            lMessengerPriority, lMessengerGroups, lMessengerPreset.LPresetOutputCreate(), lMessengerTab,
+            lMessengerPriority, lMessengerGroups, lMessengerOutput, lMessengerTab,
             lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
             lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
             lMessengerRelays);
@@ -255,11 +278,15 @@ public static class LMessenger
     public static async Task<int> LMessengerConvertDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
-        LPreset lMessengerPreset,
+        Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource)
     {
-        LEncoding lMessengerOutput = lMessengerPreset.LPresetOutputCreate();
+        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        {
+            return 0;
+        }
+
         string[] lMessengerSourcePaths = lMessengerSources
             .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
             .ToArray();
@@ -337,11 +364,15 @@ public static class LMessenger
     public static async Task<int> LMessengerEditAllDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
-        LPreset lMessengerPreset,
+        Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default)
     {
-        LEncoding lMessengerOutput = lMessengerPreset.LPresetOutputCreate();
+        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        {
+            return 0;
+        }
+
         var lMessengerItems = new List<LWorkItem>();
         Guid lMessengerLooseBatch = Cadroue.Application.LGate.LGateBatchCreate();
 

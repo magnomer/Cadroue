@@ -15,16 +15,16 @@ public sealed class PMergeTab : PTabSurface
     private readonly PAction pAction = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PMergeTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PMergeTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMessenger.LMessengerMergeDescribe(
-            pPriority, PMergeGroupsRead(), lExportSpecificState,
+            pPriority, PMergeGroupsRead(), lPresetOwner,
             pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         pAction.PActionAllAdd += () => LMessenger.LMessengerMergeDescribe(
             LWorkPriority.LWorkPriorityNormal,
             PMergeGroupsRead(),
-            lExportSpecificState,
+            lPresetOwner,
             pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;

@@ -24,7 +24,7 @@ public sealed class PEditTab : PTabSurface
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pEditPlanLoading;
 
-    public PEditTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PEditTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -41,7 +41,7 @@ public sealed class PEditTab : PTabSurface
                 pViewer.PViewerDurationRead(),
                 pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pInspector.PInspectorCropRead(),
                 pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
-                lExportSpecificState,
+                lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
                 pEditSelected.LDocketEntryBatch);
@@ -52,7 +52,7 @@ public sealed class PEditTab : PTabSurface
             pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
-            lExportSpecificState,
+            lPresetOwner,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
         pAction.PActionItemsAdd += pEditPaths => _ = LMessenger.LMessengerEditAllDescribe(
@@ -61,7 +61,7 @@ public sealed class PEditTab : PTabSurface
                 .Where(pItem => pEditPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
-            lExportSpecificState,
+            lPresetOwner,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
         pAction.PActionAllSet(

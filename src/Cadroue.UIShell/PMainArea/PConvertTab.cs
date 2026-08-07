@@ -13,7 +13,7 @@ public sealed class PConvertTab : PTabSurface
     private readonly PList pList = new(new LDocket());
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PConvertTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PConvertTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -22,7 +22,7 @@ public sealed class PConvertTab : PTabSurface
             pList.PListEditableRead() is { } pConvertSelected
                 ? new[] { new LWorkSource(pConvertSelected.LDocketEntryPath, pConvertSelected.LDocketEntryBatch) }
                 : Array.Empty<LWorkSource>(),
-            lExportSpecificState,
+            lPresetOwner,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
         pAction.PActionAllAdd += () => _ = LMessenger.LMessengerConvertDescribe(
@@ -30,7 +30,7 @@ public sealed class PConvertTab : PTabSurface
             pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
-            lExportSpecificState,
+            lPresetOwner,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
         pAction.PActionItemsAdd += pConvertPaths => _ = LMessenger.LMessengerConvertDescribe(
@@ -39,7 +39,7 @@ public sealed class PConvertTab : PTabSurface
                 .Where(pItem => pConvertPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
-            lExportSpecificState,
+            lPresetOwner,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab);
         pList.PListPathChange += PConvertPathShow;

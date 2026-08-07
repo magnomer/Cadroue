@@ -14,7 +14,7 @@ public sealed class PSplitTab : PTabSurface
     private readonly PList pList = new(new LDocket());
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PSplitTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PSplitTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         var pAction = new PAction();
         PTabAction = pAction;
@@ -29,7 +29,7 @@ public sealed class PSplitTab : PTabSurface
                 lPriority,
                 pSplitSelected.LDocketEntryPath,
                 pFlow.PFlowSplitRead(),
-                lExportSpecificState,
+                lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
                 pSplitSelected.LDocketEntryBatch,
@@ -40,7 +40,7 @@ public sealed class PSplitTab : PTabSurface
             pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
-            lExportSpecificState,
+            lPresetOwner,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab,
             LCartographer.LCartographerPlanPrepare(pAction.PActionRelayTarget));
@@ -50,7 +50,7 @@ public sealed class PSplitTab : PTabSurface
                 .Where(pItem => pSplitPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                 .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                 .ToArray(),
-            lExportSpecificState,
+            lPresetOwner,
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab,
             LCartographer.LCartographerPlanPrepare(pAction.PActionRelayTarget));

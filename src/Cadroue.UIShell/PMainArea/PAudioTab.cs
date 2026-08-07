@@ -25,7 +25,7 @@ public sealed class PAudioTab : PTabSurface
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pAudioPlanLoading;
 
-    public PAudioTab(LPreset lExportSpecificState, LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PAudioTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
         pProcessing.PProcessingOrderedSet(true);
         pProcessing.PProcessingStepAdd("High Pass", PAudioHighIcon, "Processing.Step.HighPass");
@@ -57,7 +57,7 @@ public sealed class PAudioTab : PTabSurface
                 lPriority,
                 pAudioSelected.LDocketEntryPath,
                 PAudioProcessingRead(),
-                lExportSpecificState,
+                lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
                 pAudioSelected.LDocketEntryBatch);
@@ -70,7 +70,7 @@ public sealed class PAudioTab : PTabSurface
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lExportSpecificState,
+                lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
@@ -83,7 +83,7 @@ public sealed class PAudioTab : PTabSurface
                     .Where(pItem => pAudioPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lExportSpecificState,
+                lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
