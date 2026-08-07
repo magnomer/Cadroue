@@ -7,7 +7,7 @@ public static class LMessenger
 {
     public static Func<Guid, string>? LMessengerTitleSource { get; set; }
 
-    public static Func<IReadOnlyList<LWorkItem>, Guid, Guid, LRelayPlanRecord?, int>? LMessengerRouteSource { get; set; }
+    public static Func<IReadOnlyList<LWorkItem>, Guid, Guid, LCartographerPlanRecord?, int>? LMessengerRouteSource { get; set; }
 
     public static Func<LScheduleContract?>? LMessengerScheduleSource { get; set; }
 
@@ -18,7 +18,7 @@ public static class LMessenger
         IReadOnlyList<LWorkItem> lMessengerItems,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
-        LRelayPlanRecord? lMessengerPlan = null) =>
+        LCartographerPlanRecord? lMessengerPlan = null) =>
         LMessengerRouteSource?.Invoke(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan) ?? 0;
 
     public static async Task<int> LMessengerAudioDescribe(
@@ -59,7 +59,7 @@ public static class LMessenger
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         Guid lMessengerBatchId,
-        LRelayPlanRecord? lMessengerPreparedPlan)
+        LCartographerPlanRecord? lMessengerPreparedPlan)
     {
         LSplitWorkDescription lMessengerDescription = new(
             lMessengerSourcePath, lMessengerSections, lMessengerPreset.LPresetOutputCreate());
@@ -127,7 +127,7 @@ public static class LMessenger
         LPreset lMessengerPreset,
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default,
-        LRelayPlanRecord? lMessengerPreparedPlan = null)
+        LCartographerPlanRecord? lMessengerPreparedPlan = null)
     {
         var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkSource lMessengerSource in lMessengerSources)
