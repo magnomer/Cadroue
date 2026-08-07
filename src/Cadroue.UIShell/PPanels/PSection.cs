@@ -152,19 +152,6 @@ public sealed partial class PSection : UserControl
         PSectionRebuild();
     }
 
-    public IReadOnlyList<LSplitSectionDescription> PSectionSplitRead()
-    {
-        return pSectionListCurrent
-            .Select(pSection => new LSplitSectionDescription(
-                pSection.LPieceStart,
-                pSection.LPieceEnd,
-                pSection.LPieceName,
-                pSection.LPiecePrefix,
-                pSection.LPieceSuffix,
-                pSection.LPieceHidden))
-            .ToArray();
-    }
-
     private void PSectionDetach()
     {
         if (pFlowAttached is null) return;

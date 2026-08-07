@@ -157,14 +157,15 @@ public sealed partial class PFlow
             return;
         }
 
+        IReadOnlyList<LPiece> pLosslesscutExisting = lSegment.LSegmentListRead();
         IReadOnlyList<LPiece> pLosslesscutImported = PFlowLosslesscutCreate(
             pLosslesscutResult.LLosslesscutResultSections,
-            pLosslesscutMode == MessageBoxResult.No ? lSectionList.Count : 0);
+            pLosslesscutMode == MessageBoxResult.No ? pLosslesscutExisting.Count : 0);
 
-        int pLosslesscutSelection = pLosslesscutMode == MessageBoxResult.Yes ? 0 : lSectionList.Count;
+        int pLosslesscutSelection = pLosslesscutMode == MessageBoxResult.Yes ? 0 : pLosslesscutExisting.Count;
         IReadOnlyList<LPiece> pLosslesscutTarget = pLosslesscutMode == MessageBoxResult.Yes
             ? pLosslesscutImported
-            : lSectionList.Concat(pLosslesscutImported).ToArray();
+            : pLosslesscutExisting.Concat(pLosslesscutImported).ToArray();
 
         PFlowSectionsSet(pLosslesscutTarget, pLosslesscutTarget.Count > 0 ? pLosslesscutSelection : null);
         LTraceLog.LTraceInfoRecord(

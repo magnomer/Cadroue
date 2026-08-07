@@ -8,6 +8,8 @@ using Cadroue.UIShell;
 
 using Cadroue.Core;
 
+using Cadroue.Application;
+
 using Cadroue.Infrastructure;
 
 using Cadroue.MigrationInterface;
@@ -38,7 +40,8 @@ public sealed partial class PFlow : UserControl
     private readonly TextBlock pViewfinderLabelRight = PReelLabelBuild();
     private readonly TextBlock pMapLabelLeft = PReelLabelBuild();
     private readonly TextBlock pMapLabelRight = PReelLabelBuild();
-    private readonly List<LPiece> lSectionList = new();
+    private readonly LSegment lSegment = new();
+    private bool pFlowSegmentFired;
     private readonly StackPanel pFlowSectionButtons = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
     private Border? pDividerThumb;
     private readonly Grid pFlowViewfinderReel;
@@ -50,7 +53,6 @@ public sealed partial class PFlow : UserControl
     private string? lSourcePath;
 
     private bool pFlowSidecarRestoring;
-    private int? lSectionIndexActive;
     private double pDividerStartY;
     private double pDividerStartHeight;
     private bool pDividerState;
@@ -75,6 +77,7 @@ public sealed partial class PFlow : UserControl
         pMap.PMapCursorChange += PFlowMapSeek;
         pMap.PMapSpoolChange += PFlowSpoolHandle;
         pMap.PMapDragChange += PFlowDragSet;
+        lSegment.LSegmentChange += PFlowSegmentHandle;
         lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
         lKeyframeOrchestrator.LKeyframeSectionsSource = PFlowSidecarRead;
         lWaveformOrchestrator.LWaveformReady += PFlowWaveformHandle;
@@ -117,12 +120,12 @@ public sealed partial class PFlow : UserControl
         lSpool = new LSpool(mediaInfo.LMediaInfoDuration);
         pFlowKeyframeDirection = null;
         lCursor = PFlowCursorClamp(cursorTime);
-        lSectionList.Clear();
-        lSectionIndexActive = null;
+        lSegment.LSegmentSourceSet(lSourcePath);
+        lSegment.LSegmentReset();
         pViewfinder.PViewfinderAttach(lSpool, lCursor);
         pMap.PMapAttach(lSpool, lCursor);
-        pViewfinder.PViewfinderSectionsUpdate(lSectionList, lSectionIndexActive);
-        pMap.PMapSectionsUpdate(lSectionList, lSectionIndexActive);
+        pViewfinder.PViewfinderSectionsUpdate(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
+        pMap.PMapSectionsUpdate(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
         pViewfinderLabelLeft.Text = PFlowTimeFormat(lSpool.LSpoolRangeOrigin);
         pViewfinderLabelRight.Text = PFlowTimeFormat(lSpool.LSpoolRangeLimit);
         pMapLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
@@ -130,7 +133,7 @@ public sealed partial class PFlow : UserControl
         pViewfinder.PViewfinderKeyframesUpdate(Array.Empty<LKeyframeEntry>(), Array.Empty<LKeyframeScanRange>());
         pMap.PMapKeyframesUpdate(Array.Empty<LKeyframeScanRange>());
         PFlowSidecarRestore();
-        PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexActive);
+        PFlowSectionChange?.Invoke(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
         PFlowKeyframeRun();
         PFlowWaveformStart();
     }
@@ -159,7 +162,8 @@ public sealed partial class PFlow : UserControl
 
     public bool PFlowClear()
     {
-        if (lSourcePath is null && lSpool is null && lSectionList.Count == 0 && lSectionIndexActive is null)
+        if (lSourcePath is null && lSpool is null
+            && lSegment.LSegmentListRead().Count == 0 && lSegment.LSegmentSelectionRead() is null)
         {
             return false;
         }
@@ -171,8 +175,8 @@ public sealed partial class PFlow : UserControl
         lSourcePath = null;
         lSpool = null;
         lCursor = TimeSpan.Zero;
-        lSectionList.Clear();
-        lSectionIndexActive = null;
+        lSegment.LSegmentSourceSet(null);
+        lSegment.LSegmentReset();
         pViewfinder.PViewfinderClear();
         pMap.PMapClear();
         PFlowWaveformClear();
@@ -180,7 +184,7 @@ public sealed partial class PFlow : UserControl
         pViewfinderLabelRight.Text = PFlowTimeFormat(TimeSpan.Zero);
         pMapLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
         pMapLabelRight.Text = PFlowTimeFormat(TimeSpan.Zero);
-        PFlowSectionChange?.Invoke(lSectionList.AsReadOnly(), lSectionIndexActive);
+        PFlowSectionChange?.Invoke(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
         return true;
     }
 

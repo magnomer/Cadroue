@@ -27,7 +27,7 @@ public sealed class PSplitTab : PTabSurface
             LMessenger.LMessengerSplitDescribe(
                 lPriority,
                 pSplitSelected.PListItemPath,
-                pSection.PSectionSplitRead(),
+                pFlow.PFlowSplitRead(),
                 lExportSpecificState,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,

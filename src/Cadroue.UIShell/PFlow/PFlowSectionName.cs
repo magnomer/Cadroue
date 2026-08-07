@@ -13,14 +13,15 @@ public sealed partial class PFlow
 {
     private bool PFlowNameShow()
     {
-        if (lSectionIndexActive is not int pSectionIndex || pSectionIndex >= lSectionList.Count)
+        IReadOnlyList<LPiece> pFlowSections = lSegment.LSegmentListRead();
+        if (lSegment.LSegmentSelectionRead() is not int pSectionIndex || pSectionIndex >= pFlowSections.Count)
         {
             return false;
         }
 
         PFlowNameClose();
 
-        LPiece pNameSection = lSectionList[pSectionIndex];
+        LPiece pNameSection = pFlowSections[pSectionIndex];
         TextBox pNameBox = PFlowNameBuild(pNameSection.LPieceName, PFlowNameWidth);
         TextBox pPrefixBox = PFlowNameBuild(pNameSection.LPiecePrefix, PFlowAffixWidth);
         TextBox pSuffixBox = PFlowNameBuild(pNameSection.LPieceSuffix, PFlowAffixWidth);
