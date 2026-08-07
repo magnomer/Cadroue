@@ -21,14 +21,12 @@ public static class LSeal
 
     public static Action<Guid>? LSealFireSeam { get; set; }
 
-    public static Func<Guid, bool>? LSealDeliveredSource { get; set; }
-
     private static IReadOnlyList<LWorkItem> LSealScheduleRead() =>
         (IReadOnlyList<LWorkItem>?)LMessenger.LMessengerScheduleSource?.Invoke()?.LScheduleRecords
             ?? Array.Empty<LWorkItem>();
 
     private static bool LSealDeliveredCheck(Guid lSealWorkId) =>
-        LSealDeliveredSource?.Invoke(lSealWorkId) ?? false;
+        LCartographer.LCartographerDeliveredCheck(lSealWorkId);
 
     public static void LSealPendingAdd(Guid lSealCohort)
     {

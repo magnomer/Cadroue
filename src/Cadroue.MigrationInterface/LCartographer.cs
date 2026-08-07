@@ -36,6 +36,10 @@ public static class LCartographer
 {
     public static readonly Guid LCartographerFinishTarget = new("feed0000-0000-0000-0000-0000000ffff0");
 
+    private static readonly HashSet<Guid> lCartographerDelivered = new();
+    private static bool lCartographerDispatching;
+    private static bool lCartographerDispatchPending;
+
     public static Func<IReadOnlyList<LCartographerTab>>? LCartographerTabsSource { get; set; }
 
     public static LCartographerPlanRecord? LCartographerPlanCreate(Guid lCartographerPlanId, Guid lCartographerTarget)
@@ -221,9 +225,59 @@ public static class LCartographer
         && lCartographerPlan.LCartographerStages.Any(
             lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelayTarget);
 
-    public static bool LCartographerDeliverableCheck(
-        LWorkItem lCartographerItem,
-        IReadOnlySet<Guid> lCartographerDelivered)
+    public static bool LCartographerDeliveredCheck(Guid lCartographerWorkId) =>
+        lCartographerDelivered.Contains(lCartographerWorkId);
+
+    public static void LCartographerDeliveredRemove(IReadOnlySet<Guid> lCartographerLiveWork) =>
+        lCartographerDelivered.RemoveWhere(lCartographerWorkId => !lCartographerLiveWork.Contains(lCartographerWorkId));
+
+    public static void LCartographerDispatch(IReadOnlyList<LWorkItem> lCartographerSchedule)
+    {
+        if (lCartographerDispatching)
+        {
+            lCartographerDispatchPending = true;
+            return;
+        }
+
+        lCartographerDispatching = true;
+        try
+        {
+            do
+            {
+                lCartographerDispatchPending = false;
+                foreach (LWorkItem lCartographerItem in lCartographerSchedule.ToArray())
+                {
+                    if (!LCartographerDeliverableCheck(lCartographerItem))
+                    {
+                        continue;
+                    }
+
+                    lCartographerDelivered.Add(lCartographerItem.LWorkId);
+                    try
+                    {
+                        if (!LCartographerDeliver(lCartographerItem))
+                        {
+                            lCartographerDelivered.Remove(lCartographerItem.LWorkId);
+                        }
+                    }
+                    catch
+                    {
+                        lCartographerDelivered.Remove(lCartographerItem.LWorkId);
+                        throw;
+                    }
+                }
+            }
+            while (lCartographerDispatchPending);
+        }
+        finally
+        {
+            lCartographerDispatching = false;
+        }
+
+        LSeal.LSealSweep();
+    }
+
+    public static bool LCartographerDeliverableCheck(LWorkItem lCartographerItem)
     {
         if (lCartographerItem.LWorkStateCurrent != LWorkState.LWorkStateDone
             || lCartographerItem.LWorkRelayTarget == Guid.Empty

@@ -16,11 +16,8 @@ public static class LCourier
 
     private const int LCourierFinishSlot = -2;
 
-    private static readonly HashSet<Guid> lCourierDelivered = new();
     private static readonly HashSet<Guid> lCourierScheduledBatches = new();
     private static bool lCourierWatching;
-    private static bool lCourierDispatching;
-    private static bool lCourierDispatchPending;
 
     public static void LCourierStart()
     {
@@ -37,7 +34,7 @@ public static class LCourier
             .Select(lCourierItem => lCourierItem.LWorkBatchId)
             .Where(lCourierBatch => lCourierBatch != Guid.Empty));
         PProgram.LScheduleCurrent.LScheduleChange += LCourierScheduleHandle;
-        LCourierDispatch(PProgram.LScheduleCurrent);
+        LCartographer.LCartographerDispatch(PProgram.LScheduleCurrent.LScheduleRecords);
     }
 
     internal static int LCourierScheduleAdd(
@@ -197,8 +194,6 @@ public static class LCourier
         }
     }
 
-    public static bool LCourierDeliveredCheck(Guid lCourierWorkId) => lCourierDelivered.Contains(lCourierWorkId);
-
     private static void LCourierScheduleHandle(LScheduleContract lCourierSchedule)
     {
         Guid[] lCourierLiveBatches = lCourierSchedule.LScheduleRecords
@@ -224,7 +219,7 @@ public static class LCourier
     {
         LCourierSourcesUnlock(lCourierSchedule);
         LCourierBatchesClean(lCourierSchedule, lCourierLiveBatches);
-        LCourierDispatch(lCourierSchedule);
+        LCartographer.LCartographerDispatch(lCourierSchedule.LScheduleRecords);
     }
 
     private static void LCourierSourcesUnlock(LScheduleContract lCourierSchedule)
@@ -288,56 +283,9 @@ public static class LCourier
                 $"Relay removed {lCourierRemovedPaths.Length} file(s) from tab '{lCourierTab.PTabTitle}' after their batch left the worklist");
         }
 
-        var lCourierLiveWork = lCourierSchedule.LScheduleRecords
+        LCartographer.LCartographerDeliveredRemove(lCourierSchedule.LScheduleRecords
             .Select(lCourierItem => lCourierItem.LWorkId)
-            .ToHashSet();
-        lCourierDelivered.RemoveWhere(lCourierWorkId => !lCourierLiveWork.Contains(lCourierWorkId));
-    }
-
-    private static void LCourierDispatch(LScheduleContract lCourierSchedule)
-    {
-        if (lCourierDispatching)
-        {
-            lCourierDispatchPending = true;
-            return;
-        }
-
-        lCourierDispatching = true;
-        try
-        {
-            do
-            {
-                lCourierDispatchPending = false;
-                foreach (LWorkItem lWorkItem in lCourierSchedule.LScheduleRecords.ToArray())
-                {
-                    if (!LCartographer.LCartographerDeliverableCheck(lWorkItem, lCourierDelivered))
-                    {
-                        continue;
-                    }
-
-                    lCourierDelivered.Add(lWorkItem.LWorkId);
-                    try
-                    {
-                        if (!LCartographer.LCartographerDeliver(lWorkItem))
-                        {
-                            lCourierDelivered.Remove(lWorkItem.LWorkId);
-                        }
-                    }
-                    catch
-                    {
-                        lCourierDelivered.Remove(lWorkItem.LWorkId);
-                        throw;
-                    }
-                }
-            }
-            while (lCourierDispatchPending);
-        }
-        finally
-        {
-            lCourierDispatching = false;
-        }
-
-        LSeal.LSealSweep();
+            .ToHashSet());
     }
 
     public static void LCourierArrive(Guid lCourierTargetTab, string lCourierPath, Guid lCourierCohort)
