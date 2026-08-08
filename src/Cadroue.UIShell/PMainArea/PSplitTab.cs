@@ -32,8 +32,7 @@ public sealed class PSplitTab : PTabSurface
                 lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
-                pSplitSelected.LDocketEntryBatch,
-                LCartographer.LCartographerPlanPrepare(pAction.PActionRelayTarget));
+                pSplitSelected.LDocketEntryBatch);
         };
         pAction.PActionAllAdd += () => _ = LMessenger.LMessengerSplitDescribe(
             LWorkPriority.LWorkPriorityNormal,
@@ -42,8 +41,7 @@ public sealed class PSplitTab : PTabSurface
                 .ToArray(),
             lPresetOwner,
             pAction.PActionRelayTarget,
-            pAction.PActionSourceTab,
-            LCartographer.LCartographerPlanPrepare(pAction.PActionRelayTarget));
+            pAction.PActionSourceTab);
         pAction.PActionItemsAdd += pSplitPaths => _ = LMessenger.LMessengerSplitDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
@@ -52,8 +50,7 @@ public sealed class PSplitTab : PTabSurface
                 .ToArray(),
             lPresetOwner,
             pAction.PActionRelayTarget,
-            pAction.PActionSourceTab,
-            LCartographer.LCartographerPlanPrepare(pAction.PActionRelayTarget));
+            pAction.PActionSourceTab);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);

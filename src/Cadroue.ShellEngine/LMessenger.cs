@@ -66,8 +66,7 @@ public static class LMessenger
         Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
-        Guid lMessengerBatchId,
-        LCartographerPlanRecord? lMessengerPreparedPlan)
+        Guid lMessengerBatchId)
     {
         if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
         {
@@ -87,8 +86,9 @@ public static class LMessenger
             return 0;
         }
 
+        LCartographerPlanRecord? lMessengerPlan = LCartographer.LCartographerPlanPrepare(lMessengerRelayTarget);
         int lMessengerAdded = LMessengerRoute(
-            lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPreparedPlan);
+            lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan);
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lMessengerAdded} of {lMessengerItems.Count} job(s) at {lMessengerPriority} " +
             $"from '{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
@@ -144,8 +144,7 @@ public static class LMessenger
         IReadOnlyList<LWorkSource> lMessengerSources,
         Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget = default,
-        Guid lMessengerRelaySource = default,
-        LCartographerPlanRecord? lMessengerPreparedPlan = null)
+        Guid lMessengerRelaySource = default)
     {
         var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkSource lMessengerSource in lMessengerSources)
@@ -167,7 +166,7 @@ public static class LMessenger
                 lMessengerRelays.TryGetValue(lMessengerPlan.LSplitSourcePath, out Guid lMessengerBatch);
                 lMessengerAdded += LMessengerSplitDescribe(
                     lMessengerPriority, lMessengerPlan.LSplitSourcePath, lMessengerPlan.LSplitPlanSections,
-                    lMessengerOwner, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch, lMessengerPreparedPlan);
+                    lMessengerOwner, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch);
             }
         });
         return lMessengerAdded;
