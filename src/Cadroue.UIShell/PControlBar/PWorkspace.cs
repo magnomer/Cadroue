@@ -177,27 +177,25 @@ public sealed class PWorkspace
 
     public LRelay PWorkspaceRelayCreate(PTabRecord pTabRecord, double pDropLeft, double pDropTop)
     {
-        var lRelay = new LRelay
-        {
-            LRelayLayoutKey = pTabRecord.PTabLayoutKey,
-            LRelayCustomName = pTabRecord.PTabNameCustom,
-            LRelayExport = PWorkspaceExportState.LPresetRecordCreate(),
-            LRelayLayout = PWorkspaceLayoutRead(),
-            LRelaySourcePath = PWorkspaceViewer?.PViewerSourcePath ?? string.Empty,
-            LRelayDropLeft = pDropLeft,
-            LRelayDropTop = pDropTop,
-            LRelaySenderProcess = Environment.ProcessId,
-            LRelayId = Guid.NewGuid().ToString("N")
-        };
-
+        IReadOnlyList<LPiece> lRelaySections = Array.Empty<LPiece>();
+        int? lRelaySectionIndex = null;
         if (PWorkspaceFlow is { } pFlow)
         {
             LSegment lRelaySegment = pFlow.PFlowSegment;
-            lRelay.LRelaySections = LRelayPayload.LRelayRecordsCreate(lRelaySegment.LSegmentListRead());
-            lRelay.LRelaySectionIndex = lRelaySegment.LSegmentSelectionRead();
+            lRelaySections = lRelaySegment.LSegmentListRead();
+            lRelaySectionIndex = lRelaySegment.LSegmentSelectionRead();
         }
 
-        return lRelay;
+        return LRelayPayload.LRelayCreate(
+            pTabRecord.PTabLayoutKey,
+            pTabRecord.PTabNameCustom,
+            PWorkspaceExportState.LPresetRecordCreate(),
+            PWorkspaceLayoutRead(),
+            PWorkspaceViewer?.PViewerSourcePath ?? string.Empty,
+            pDropLeft,
+            pDropTop,
+            lRelaySections,
+            lRelaySectionIndex);
     }
 
     public void PWorkspaceRelayApply(LRelay lRelay)

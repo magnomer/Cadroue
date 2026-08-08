@@ -47,6 +47,25 @@ public static class LRelayPayload
             })
             .ToList();
 
+    public static LRelay LRelayCreate(
+        string layoutKey, string customName, LPresetRecord export,
+        LSceneTabRecord layout, string sourcePath, double dropLeft, double dropTop,
+        IReadOnlyList<LPiece> sections, int? sectionIndex) =>
+        new()
+        {
+            LRelayLayoutKey = layoutKey,
+            LRelayCustomName = customName,
+            LRelayExport = export,
+            LRelayLayout = layout,
+            LRelaySourcePath = sourcePath,
+            LRelayDropLeft = dropLeft,
+            LRelayDropTop = dropTop,
+            LRelaySections = LRelayRecordsCreate(sections),
+            LRelaySectionIndex = sectionIndex,
+            LRelaySenderProcess = Environment.ProcessId,
+            LRelayId = Guid.NewGuid().ToString("N")
+        };
+
     public static IReadOnlyList<LPiece> LRelaySegmentsCreate(IReadOnlyList<LRelaySectionRecord> lRelaySections) =>
         lRelaySections
             .Select(lRelaySection => new LPiece(
