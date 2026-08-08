@@ -15,10 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
-    <ProjectReference Include="..\Cadroue.Application\Cadroue.Application.csproj" />
-    <ProjectReference Include="..\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
-    <ProjectReference Include="..\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj" />
+    <ProjectReference Include="..\..\src\Cadroue.Core\Cadroue.Core.csproj" />
+    <ProjectReference Include="..\..\src\Cadroue.Application\Cadroue.Application.csproj" />
+    <ProjectReference Include="..\..\src\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj" />
   </ItemGroup>
 
 </Project>
