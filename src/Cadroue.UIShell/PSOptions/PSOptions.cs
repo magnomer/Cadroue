@@ -307,10 +307,9 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceRetryAllowed = psOptionsRetryBox.IsChecked == true;
         lsOptionsDraft.LPreferenceRetryMaximum = psOptionsRetrySlider.Value;
 
-        lsOptionsDraft.LPreferenceWorkspaceFolder = psWorkspaceBox.Text.Trim();
-        lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text.Trim();
+        lsOptionsDraft.LPreferenceWorkspaceFolder = psWorkspaceBox.Text;
+        lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;
 
-        lsOptionsDraft.LPreferenceNormalize();
         string psLanguagePrevious = LPreference.LPreferenceStateCurrent.LPreferenceLanguage;
         LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
         psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
