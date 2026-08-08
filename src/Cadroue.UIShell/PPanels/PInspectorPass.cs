@@ -61,14 +61,14 @@ public sealed partial class PInspector
     private StackPanel PFilterHighBuild()
     {
         LPassbandPreset pHighDefault = LPassband.LPassbandRead(true, LPassband.LPassbandHighDefault)!;
-        pInspectorHighPass = PInspectorPassBuild(pHighDefault.LPassbandCutoff, 20, 300, LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"), pFilterHighChoices, true, LPassband.LPassbandHighDefault);
+        pInspectorHighPass = PInspectorPassBuild(pHighDefault.LPassbandCutoff, LPassband.LPassbandHighFloor, LPassband.LPassbandHighCeiling, LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"), pFilterHighChoices, true, LPassband.LPassbandHighDefault);
         return pInspectorHighPass.PInspectorPassBody;
     }
 
     private StackPanel PFilterLowBuild()
     {
         LPassbandPreset pLowDefault = LPassband.LPassbandRead(false, LPassband.LPassbandLowDefault)!;
-        pInspectorLowPass = PInspectorPassBuild(pLowDefault.LPassbandCutoff, 3000, 20000, LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"), pFilterLowChoices, false, LPassband.LPassbandLowDefault);
+        pInspectorLowPass = PInspectorPassBuild(pLowDefault.LPassbandCutoff, LPassband.LPassbandLowFloor, LPassband.LPassbandLowCeiling, LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"), pFilterLowChoices, false, LPassband.LPassbandLowDefault);
         return pInspectorLowPass.PInspectorPassBody;
     }
 

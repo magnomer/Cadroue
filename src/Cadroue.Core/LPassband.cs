@@ -19,6 +19,10 @@ public static class LPassband
     public const int LPassbandStagesMost = 8;
     public const double LPassbandResonanceLeast = 0.1;
     public const double LPassbandResonanceMost = 2;
+    public const double LPassbandHighFloor = 20;
+    public const double LPassbandHighCeiling = 300;
+    public const double LPassbandLowFloor = 3000;
+    public const double LPassbandLowCeiling = 20000;
 
     public static readonly IReadOnlyList<LPassbandPreset> LPassbandHighPresets = new[]
     {
