@@ -25,7 +25,7 @@ public partial class PWindow : Window
     private const int PWindowColorBackground = 0x00F7E8DC;
     private const double PWindowWidthFloor = 900;
     private readonly PStrip pStrip;
-    private readonly PTabNavigator pTabNavigator;
+    private readonly PRail pRail;
     private bool pResizeActive;
     private int pResizeDirection;
     private Point pResizeStartPointer;
@@ -38,15 +38,15 @@ public partial class PWindow : Window
         InitializeComponent();
         Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
         pStrip = new PStrip();
-        pTabNavigator = new PTabNavigator();
-        pTabNavigator.PTabNavigatorAttach(pStrip);
+        pRail = new PRail();
+        pRail.PRailAttach(pStrip);
         LRelay? lRelayStartup = PProgram.LRelayPayloadRead();
         if (lRelayStartup is null)
         {
             PWindowTabsRestore(pStrip, LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
         }
 
-        pControlBar.PToolbarTabSet(pTabNavigator);
+        pControlBar.PToolbarTabSet(pRail);
         pControlBar.PToolbarOptionsApply += PWindowOptionsHandle;
         PWindowOptionsHandle(LPreference.LPreferenceStateCurrent);
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
@@ -320,17 +320,17 @@ public partial class PWindow : Window
         pConsole.PConsoleSceneSet(null);
         pControlBar.PToolbarSceneSet(null);
 
-        pTabNavigator.PTabNavigatorApply(pVertical);
+        pRail.PRailApply(pVertical);
         pControlBar.PToolbarVerticalSet(pVertical);
-        pTabRailColumn.Width = new GridLength(pVertical ? PTabNavigator.PTabRailWidth : 0);
+        pTabRailColumn.Width = new GridLength(pVertical ? PRail.PRailWidth : 0);
         if (pVertical)
         {
-            pTabRailHost.Content = pTabNavigator;
+            pTabRailHost.Content = pRail;
             pControlBar.PToolbarSceneSet(pSceneControls);
         }
         else
         {
-            pControlBar.PToolbarTabSet(pTabNavigator);
+            pControlBar.PToolbarTabSet(pRail);
             pConsole.PConsoleSceneSet(pSceneControls);
         }
 

@@ -1,4 +1,4 @@
-<UserControl x:Class="Cadroue.UIShell.PControlBar.PTabNavigator"
+<UserControl x:Class="Cadroue.UIShell.PControlBar.PRail"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:pControlBar="clr-namespace:Cadroue.UIShell.PControlBar"

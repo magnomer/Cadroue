@@ -8,9 +8,9 @@ using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PControlBar;
 
-public partial class PTabNavigator : UserControl
+public partial class PRail : UserControl
 {
-    public const double PTabRailWidth = 180;
+    public const double PRailWidth = 180;
 
     private PStrip? pStrip;
     private PTabRecord? pTabDragItem;
@@ -21,22 +21,22 @@ public partial class PTabNavigator : UserControl
     private PGhost? pTabGhost;
     private bool pTabVertical;
 
-    public PTabNavigator()
+    public PRail()
     {
         InitializeComponent();
-        PTabNavigatorApply(false);
+        PRailApply(false);
     }
 
-    public void PTabNavigatorAttach(PStrip pTabset)
+    public void PRailAttach(PStrip pTabset)
     {
         pStrip = pTabset;
         DataContext = pTabset;
     }
 
-    public void PTabNavigatorApply(bool pVertical)
+    public void PRailApply(bool pVertical)
     {
         pTabVertical = pVertical;
-        Width = pVertical ? PTabRailWidth : double.NaN;
+        Width = pVertical ? PRailWidth : double.NaN;
         Height = pVertical ? double.NaN : 56;
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;

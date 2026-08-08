@@ -5,7 +5,7 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PControlBar;
 
-public partial class PTabNavigator
+public partial class PRail
 {
     private bool PTabRelayCheck(PTabRecord pTabRecord, Point pDevicePoint)
     {

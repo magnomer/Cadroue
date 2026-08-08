@@ -211,7 +211,7 @@ public partial class PProgram : System.Windows.Application
     {
         for (int lIndex = 0; lIndex < lStartupArguments.Length - 1; lIndex++)
         {
-            if (!string.Equals(lStartupArguments[lIndex], PTabNavigator.PTabRelayArgument, StringComparison.Ordinal))
+            if (!string.Equals(lStartupArguments[lIndex], PRail.PTabRelayArgument, StringComparison.Ordinal))
             {
                 continue;
             }
