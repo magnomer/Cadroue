@@ -21,9 +21,10 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer : PPanel
 {
-    private readonly Border pViewerSurface;
+    private Border? pViewerSurface;
     private readonly Button pViewerCloseButton;
-    private readonly FlyleafHost pViewerFlyleafHost;
+    private FlyleafHost? pViewerFlyleafHost;
+    private bool pViewerHostBuilt;
     private readonly Canvas pViewerOverlay;
     private readonly Rectangle pViewerCropBox;
     private readonly DispatcherTimer pViewerClockTimer;
@@ -101,40 +102,11 @@ public sealed partial class PViewer : PPanel
 
         pViewerCloseButton = PViewerCloseBuild();
 
-        var pViewerOverlayHost = new Grid();
-        pViewerOverlayHost.Children.Add(pViewerOverlay);
-        pViewerOverlayHost.Children.Add(pViewerCloseButton);
-
-        pViewerFlyleafHost = new FlyleafHost
-        {
-            Content = pViewerOverlayHost,
-            VideoBackground = Brushes.White,
-            ToggleFullScreenOnDoubleClick = AvailableWindows.None,
-            AttachedDragMove = AttachedDragMoveOptions.None,
-            Visibility = Visibility.Collapsed
-        };
-
-        pViewerSurface = new Border
-        {
-            Margin = PPanelOuterMargin,
-            BorderBrush = PPanelLineBrush,
-            BorderThickness = new Thickness(1),
-            Background = Brushes.White,
-            CornerRadius = new CornerRadius(0),
-            Child = pViewerFlyleafHost,
-            AllowDrop = true,
-            ClipToBounds = true,
-            SnapsToDevicePixels = true
-        };
-
-        Content = pViewerSurface;
-
         PDropHandlersAdd();
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
         LMediaProbe.LMediaProbeReady += PViewerProbeHandle;
-        PViewerHostAttach();
     }
 
     private Button PViewerCloseBuild()

@@ -1,5 +1,9 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using FlyleafLib.Controls.WPF;
+using FlyleafLib.MediaPlayer;
 
 using Cadroue.Core;
 using Cadroue.Media;
@@ -12,8 +16,45 @@ public sealed partial class PViewer
 {
     private int pViewerHostStamp;
 
+    private void PViewerHostBuild()
+    {
+        if (pViewerHostBuilt) return;
+
+        var pViewerOverlayHost = new Grid();
+        pViewerOverlayHost.Children.Add(pViewerOverlay);
+        pViewerOverlayHost.Children.Add(pViewerCloseButton);
+
+        pViewerFlyleafHost = new FlyleafHost
+        {
+            Content = pViewerOverlayHost,
+            VideoBackground = Brushes.White,
+            ToggleFullScreenOnDoubleClick = AvailableWindows.None,
+            AttachedDragMove = AttachedDragMoveOptions.None,
+            Visibility = Visibility.Collapsed
+        };
+
+        pViewerSurface = new Border
+        {
+            Margin = PPanelOuterMargin,
+            BorderBrush = PPanelLineBrush,
+            BorderThickness = new Thickness(1),
+            Background = Brushes.White,
+            CornerRadius = new CornerRadius(0),
+            Child = pViewerFlyleafHost,
+            AllowDrop = true,
+            ClipToBounds = true,
+            SnapsToDevicePixels = true
+        };
+
+        Content = pViewerSurface;
+        pViewerHostBuilt = true;
+        PViewerHostAttach();
+    }
+
     private void PViewerHostAttach()
     {
+        if (pViewerFlyleafHost is null) return;
+
         Loaded += (_, _) => PViewerHostRecord("panel loaded");
         IsVisibleChanged += (_, pVisibleEvent) =>
             PViewerHostRecord($"panel visible {pVisibleEvent.NewValue}");
@@ -31,6 +72,8 @@ public sealed partial class PViewer
 
     private void PViewerKeyAttach()
     {
+        if (pViewerFlyleafHost is null) return;
+
         Window? pViewerKeySurface = pViewerFlyleafHost.Surface;
         if (pViewerKeySurface is not null)
         {
@@ -53,6 +96,8 @@ public sealed partial class PViewer
 
     private void PViewerHostShow(bool pViewerHostVisible)
     {
+        if (pViewerFlyleafHost is null) return;
+
         Visibility pViewerHostTarget = pViewerHostVisible ? Visibility.Visible : Visibility.Collapsed;
         if (pViewerFlyleafHost.Visibility == pViewerHostTarget)
         {
@@ -66,7 +111,7 @@ public sealed partial class PViewer
 
     private void PViewerHostRecord(string pViewerStage)
     {
-        if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
+        if (pViewerFlyleafHost is null || !LTrace.LTraceCheck(LTraceKind.LTraceUi))
         {
             pViewerHostStamp++;
             return;
@@ -158,11 +203,13 @@ public sealed partial class PViewer
 
     private void PViewerFlyleafDispose()
     {
+        if (pViewerFlyleafHost is null) return;
+
         try
         {
             pViewerFlyleafHost.Player = null;
             pViewerFlyleafHost.Content = null;
-            pViewerSurface.Child = null;
+            if (pViewerSurface is not null) pViewerSurface.Child = null;
             ((IDisposable)pViewerFlyleafHost).Dispose();
         }
         catch

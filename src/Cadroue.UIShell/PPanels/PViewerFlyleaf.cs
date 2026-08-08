@@ -90,6 +90,8 @@ public sealed partial class PViewer
 
     private void PPlayerHostRecord(Player? player)
     {
+        if (pViewerFlyleafHost is null) return;
+
         try
         {
             var pHostType = pViewerFlyleafHost.GetType();
@@ -336,7 +338,7 @@ public sealed partial class PViewer
                 + $"next {(player is null ? "none" : "ready")}, "
                 + $"renderer {(player?.Renderer is null ? "none" : "ready")}");
 
-            pViewerFlyleafHost.Player = player;
+            if (pViewerFlyleafHost is not null) pViewerFlyleafHost.Player = player;
             PPlayerHostRecord(player);
             PPlayerDispose(pPlayerPrevious);
         }
@@ -508,7 +510,7 @@ public sealed partial class PViewer
         }
 
         Player? pPlayerPrevious = pViewerPlayer;
-        pViewerFlyleafHost.Player = null;
+        if (pViewerFlyleafHost is not null) pViewerFlyleafHost.Player = null;
         LTraceLog.LTraceInfoRecord($"Viewer host detached: player {(pPlayerPrevious is null ? "none" : "released")}");
         PPlayerDispose(pPlayerPrevious);
         pViewerPlayer = null;
