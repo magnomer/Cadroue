@@ -7,7 +7,6 @@ using Cadroue.UIShell;
 using Cadroue.UIShell.PPanels;
 
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PFlow;
 
@@ -297,15 +296,13 @@ public sealed partial class PViewfinder
         TimeSpan rangeEnd,
         double rangeSeconds)
     {
-        TimeSpan visibleSearchStart = PViewfinderMaxResolve(rangeStart, lCursor - LKeyframeOrchestrator.LKeyframeRangeBefore);
-        TimeSpan visibleSearchEnd = PViewfinderMinResolve(rangeEnd, lCursor + LKeyframeOrchestrator.LKeyframeRangeAfter);
-        if (visibleSearchEnd <= visibleSearchStart)
+        IReadOnlyList<LKeyframeEntry> visible = LKeyframeView.LKeyframeVisibleResolve(lKeyframeList, lCursor, lSpool!);
+        if (visible.Count == 0)
         {
             return;
         }
 
-        double[] visibleSearchOffsets = lKeyframeList
-            .Where(entry => entry.LKeyframePresentationTime >= visibleSearchStart && entry.LKeyframePresentationTime <= visibleSearchEnd)
+        double[] visibleSearchOffsets = visible
             .Select(entry => (entry.LKeyframePresentationTime - rangeStart).TotalSeconds / rangeSeconds * actualWidth)
             .ToArray();
         if (!PViewfinderVisibilityCheck(actualWidth, rangeSeconds, visibleSearchOffsets))
@@ -359,12 +356,6 @@ public sealed partial class PViewfinder
 
         return true;
     }
-
-    private static TimeSpan PViewfinderMinResolve(TimeSpan first, TimeSpan second)
-        => first <= second ? first : second;
-
-    private static TimeSpan PViewfinderMaxResolve(TimeSpan first, TimeSpan second)
-        => first >= second ? first : second;
 
     private void PViewfinderTicksDraw(
         DrawingContext drawingContext,

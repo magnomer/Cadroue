@@ -399,7 +399,7 @@ public sealed partial class PFlow : UserControl
                 LTraceKind.LTraceWork,
                 $"Keyframe scan requested around {lCursor:hh\\:mm\\:ss\\.fff}",
                 $"source {System.IO.Path.GetFileName(lSourcePath)}, duration {lSpool.LSpoolDuration:hh\\:mm\\:ss}\n"
-                + $"window {LKeyframeOrchestrator.LKeyframeRangeBefore:hh\\:mm\\:ss} before to {LKeyframeOrchestrator.LKeyframeRangeAfter:hh\\:mm\\:ss} after the cursor");
+                + $"window {LKeyframeView.LKeyframeRangeBefore:hh\\:mm\\:ss} before to {LKeyframeView.LKeyframeRangeAfter:hh\\:mm\\:ss} after the cursor");
             lKeyframeOrchestrator.LKeyframeStart(lSourcePath, lSpool.LSpoolDuration, lCursor);
         }
     }

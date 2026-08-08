@@ -28,10 +28,6 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
     public int LKeyframeCurrentSerial => lKeyframeRequestSerial;
 
-    public static TimeSpan LKeyframeRangeBefore => LKeyframeView.LKeyframeRangeBefore;
-
-    public static TimeSpan LKeyframeRangeAfter => LKeyframeView.LKeyframeRangeAfter;
-
     public static TimeSpan LKeyframeSearchDuration => LKeyframeView.LKeyframeRangeBefore + LKeyframeView.LKeyframeRangeAfter;
 
     public void LKeyframeStart(string sourcePath, TimeSpan duration, TimeSpan cursor)
