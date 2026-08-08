@@ -7,8 +7,6 @@ namespace Cadroue.Infrastructure;
 public sealed partial class LKeyframeOrchestrator : IDisposable
 {
     private const int LKeyframeGridMilliseconds = 20000;
-    private static readonly TimeSpan lKeyframeRangeBefore = TimeSpan.FromMinutes(10);
-    private static readonly TimeSpan lKeyframeRangeAfter = TimeSpan.FromMinutes(10);
     private readonly object lKeyframeLock = new();
     private readonly SortedSet<long> lKeyframeStorage = new();
     private readonly HashSet<int> lKeyframeScannedSpans = new();
@@ -30,11 +28,11 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
     public int LKeyframeCurrentSerial => lKeyframeRequestSerial;
 
-    public static TimeSpan LKeyframeRangeBefore => lKeyframeRangeBefore;
+    public static TimeSpan LKeyframeRangeBefore => LKeyframeView.LKeyframeRangeBefore;
 
-    public static TimeSpan LKeyframeRangeAfter => lKeyframeRangeAfter;
+    public static TimeSpan LKeyframeRangeAfter => LKeyframeView.LKeyframeRangeAfter;
 
-    public static TimeSpan LKeyframeSearchDuration => lKeyframeRangeBefore + lKeyframeRangeAfter;
+    public static TimeSpan LKeyframeSearchDuration => LKeyframeView.LKeyframeRangeBefore + LKeyframeView.LKeyframeRangeAfter;
 
     public void LKeyframeStart(string sourcePath, TimeSpan duration, TimeSpan cursor)
     {
@@ -139,7 +137,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     {
         long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
         long cursorMs = Math.Clamp((long)Math.Round(cursor.TotalMilliseconds), 0, durationMs);
-        long searchRangeMs = (long)(direction < 0 ? lKeyframeRangeBefore : lKeyframeRangeAfter).TotalMilliseconds;
+        long searchRangeMs = (long)(direction < 0 ? LKeyframeView.LKeyframeRangeBefore : LKeyframeView.LKeyframeRangeAfter).TotalMilliseconds;
         long rangeStartMs = direction < 0 ? Math.Max(0, cursorMs - searchRangeMs) : cursorMs;
         long rangeEndMs = direction < 0 ? cursorMs : Math.Min(durationMs, cursorMs + searchRangeMs);
 

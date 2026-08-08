@@ -1,5 +1,7 @@
 using Cadroue.Media;
 
+using Cadroue.Core;
+
 namespace Cadroue.Infrastructure;
 
 public sealed partial class LKeyframeOrchestrator
@@ -166,8 +168,8 @@ public sealed partial class LKeyframeOrchestrator
     private static (int First, int Center, int Last) LKeyframeBoundsCreate(TimeSpan duration, TimeSpan cursor)
     {
         long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
-        long startMs = Math.Max(0, (long)(cursor - lKeyframeRangeBefore).TotalMilliseconds);
-        long endMs = Math.Min(durationMs, (long)(cursor + lKeyframeRangeAfter).TotalMilliseconds);
+        long startMs = Math.Max(0, (long)(cursor - LKeyframeView.LKeyframeRangeBefore).TotalMilliseconds);
+        long endMs = Math.Min(durationMs, (long)(cursor + LKeyframeView.LKeyframeRangeAfter).TotalMilliseconds);
         int first = (int)(startMs / LKeyframeGridMilliseconds);
         int last = (int)(Math.Max(0, endMs - 1) / LKeyframeGridMilliseconds);
         int center = (int)(Math.Clamp(cursor.TotalMilliseconds, 0d, (double)durationMs) / LKeyframeGridMilliseconds);
