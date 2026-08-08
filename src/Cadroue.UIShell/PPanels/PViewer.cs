@@ -213,6 +213,7 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
+        PViewerHostBuild();
         pViewerCommandActive = true;
         PPlayerResume();
     }
