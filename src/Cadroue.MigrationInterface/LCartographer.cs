@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -133,59 +132,13 @@ public static partial class LCartographer
         string lCartographerName = Path.GetFileName(lCartographerPath);
         foreach (LCartographerFunnelRule lCartographerRule in lCartographerStage.LCartographerFunnelRules)
         {
-            if (LCartographerRuleMatch(lCartographerRule.LCartographerRule, lCartographerName))
+            if (LClassifier.LClassifierMatch(lCartographerRule.LCartographerRule, lCartographerName))
             {
                 return lCartographerRule.LCartographerTargetStage;
             }
         }
 
         return Guid.Empty;
-    }
-
-    private static bool LCartographerRuleMatch(LSceneFunnelRule lCartographerRule, string lCartographerName)
-    {
-        if (lCartographerRule.LSceneFunnelType == (int)LSceneFunnelForm.LSceneFunnelFormRegex)
-        {
-            if (string.IsNullOrWhiteSpace(lCartographerRule.LSceneFunnelRegex)) return false;
-            try
-            {
-                string lCartographerSubject = lCartographerRule.LSceneFunnelWhole
-                    ? lCartographerName
-                    : Path.GetFileNameWithoutExtension(lCartographerName);
-                return Regex.IsMatch(lCartographerSubject, lCartographerRule.LSceneFunnelRegex, RegexOptions.IgnoreCase);
-            }
-            catch (ArgumentException) { return false; }
-        }
-
-        var lCartographerParts = new[]
-        {
-            (lCartographerRule.LSceneFunnelContains, 0),
-            (lCartographerRule.LSceneFunnelStart, 1),
-            (lCartographerRule.LSceneFunnelEnd, 2),
-            (lCartographerRule.LSceneFunnelExtension, 3)
-        };
-        bool lCartographerHasResult = false;
-        bool lCartographerResult = false;
-        foreach ((LSceneFunnelMatch lCartographerMatch, int lCartographerKind) in lCartographerParts)
-        {
-            if (string.IsNullOrWhiteSpace(lCartographerMatch.LSceneFunnelText)) continue;
-            StringComparison lCartographerComparison = lCartographerMatch.LSceneFunnelCase
-                ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            bool lCartographerCurrent = lCartographerKind switch
-            {
-                0 => lCartographerName.Contains(lCartographerMatch.LSceneFunnelText, lCartographerComparison),
-                1 => lCartographerName.StartsWith(lCartographerMatch.LSceneFunnelText, lCartographerComparison),
-                2 => lCartographerName.EndsWith(lCartographerMatch.LSceneFunnelText, lCartographerComparison),
-                _ => string.Equals(Path.GetExtension(lCartographerName).TrimStart('.'),
-                    lCartographerMatch.LSceneFunnelText.TrimStart('.'), lCartographerComparison)
-            };
-            lCartographerResult = !lCartographerHasResult
-                ? lCartographerCurrent
-                : lCartographerMatch.LSceneFunnelJoin ? lCartographerResult && lCartographerCurrent : lCartographerResult || lCartographerCurrent;
-            lCartographerHasResult = true;
-        }
-
-        return lCartographerHasResult && lCartographerResult;
     }
 
     private static readonly Dictionary<Guid, Guid> lCartographerTargets = new();
