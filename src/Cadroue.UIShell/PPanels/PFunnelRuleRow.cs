@@ -1,6 +1,4 @@
 using Cadroue.Core;
-using System.IO;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -36,9 +34,6 @@ public sealed class PFunnelRuleRow : Border
     private readonly PFunnelRuleFrame pFunnelFrame;
     private TextBox? pFunnelRegexField;
     private CheckBox? pFunnelWholeCheck;
-    private Regex? pFunnelRegex;
-    private string pFunnelRegexText = string.Empty;
-    private bool pFunnelRegexReady;
 
     private bool pFunnelRelayBusy;
     private Guid pFunnelTargetId;
@@ -122,8 +117,6 @@ public sealed class PFunnelRuleRow : Border
             {
                 pFunnelWholeCheck.IsChecked = pRecord.LSceneFunnelWhole;
             }
-
-            pFunnelRegexReady = false;
         }
         else
         {
@@ -158,41 +151,6 @@ public sealed class PFunnelRuleRow : Border
         };
     }
 
-    public bool PFunnelRowMatch(string pFileName)
-    {
-        if (pFunnelForm == PFunnelForm.Regex)
-        {
-            return PFunnelRegexMatch(pFileName);
-        }
-
-        bool pHasResult = false;
-        bool pAccumulator = false;
-
-        foreach (PFunnelCondition pCondition in pFunnelConditions)
-        {
-            if (pCondition.PFunnelConditionText.Length == 0)
-            {
-                continue;
-            }
-
-            bool pResult = pCondition.PFunnelConditionMatch(pFileName);
-
-            if (!pHasResult)
-            {
-                pAccumulator = pResult;
-                pHasResult = true;
-            }
-            else
-            {
-                pAccumulator = pCondition.PFunnelConditionAnd
-                    ? pAccumulator && pResult
-                    : pAccumulator || pResult;
-            }
-        }
-
-        return pHasResult && pAccumulator;
-    }
-
     private PFunnelCondition PFunnelConditionFind(PFunnelKind pKind)
         => pFunnelConditions.First(pItem => pItem.PFunnelConditionKind == pKind);
 
@@ -208,11 +166,7 @@ public sealed class PFunnelRuleRow : Border
             Margin = new Thickness(0, 0, 0, 8)
         };
         PTextbox.PTextboxApply(pFunnelRegexField);
-        pFunnelRegexField.TextChanged += (_, _) =>
-        {
-            pFunnelRegexReady = false;
-            PFunnelRowChange?.Invoke();
-        };
+        pFunnelRegexField.TextChanged += (_, _) => PFunnelRowChange?.Invoke();
 
         pFunnelWholeCheck = new CheckBox
         {
@@ -229,44 +183,6 @@ public sealed class PFunnelRuleRow : Border
         pStack.Children.Add(pFunnelRegexField);
         pStack.Children.Add(pFunnelWholeCheck);
         return pStack;
-    }
-
-    private bool PFunnelRegexMatch(string pFileName)
-    {
-        string pPattern = pFunnelRegexField?.Text.Trim() ?? string.Empty;
-        if (pPattern.Length == 0)
-        {
-            return false;
-        }
-
-        PFunnelRegexResolve(pPattern);
-        if (pFunnelRegex is null)
-        {
-            return false;
-        }
-
-        bool pWhole = pFunnelWholeCheck?.IsChecked == true;
-        string pSubject = pWhole ? pFileName : Path.GetFileNameWithoutExtension(pFileName);
-        return pFunnelRegex.IsMatch(pSubject);
-    }
-
-    private void PFunnelRegexResolve(string pPattern)
-    {
-        if (pFunnelRegexReady && pFunnelRegexText == pPattern)
-        {
-            return;
-        }
-
-        pFunnelRegexReady = true;
-        pFunnelRegexText = pPattern;
-        try
-        {
-            pFunnelRegex = new Regex(pPattern, RegexOptions.IgnoreCase);
-        }
-        catch (ArgumentException)
-        {
-            pFunnelRegex = null;
-        }
     }
 
     private ComboBox PFunnelRelayBuild()

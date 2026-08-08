@@ -59,27 +59,31 @@ public sealed class PFunnelTab : PTabSurface
 
         var pRelayedPaths = new List<string>();
         var pRelayedRoutes = new List<(Guid pFunnelTarget, string pFunnelPath, Guid pFunnelCohort)>();
+        IReadOnlyList<PFunnelRuleRow> pRows = pFunnelRules.PFunnelRulesRead();
+        var pRules = pRows.Select(pRow => pRow.PFunnelRecordCreate()).ToList();
         foreach (LDocketEntry pItem in pItems)
         {
             string pFileName = Path.GetFileName(pItem.LDocketEntryPath);
-            foreach (PFunnelRuleRow pRow in pFunnelRules.PFunnelRulesRead())
+            int pMatch = LClassifier.LClassifierRouteRead(pRules, pFileName);
+            if (pMatch < 0)
             {
-                if (!pRow.PFunnelRowMatch(pFileName) || pRow.PFunnelTargetId == Guid.Empty)
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                PTabRecord? pTarget = pStrip.PStripRecords
-                    .FirstOrDefault(pRecord => pRecord.PTabId == pRow.PFunnelTargetId);
-                if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pTargetOwner)
-                {
-                    pTargetOwner.LDocketPathsAdd(
-                        PList.PListMediaScan(new[] { pItem.LDocketEntryPath }), pItem.LDocketEntryBatch, true);
-                    pRelayedPaths.Add(pItem.LDocketEntryPath);
-                    pRelayedRoutes.Add((pRow.PFunnelTargetId, pItem.LDocketEntryPath, pItem.LDocketEntryBatch));
-                }
+            Guid pTargetId = pRows[pMatch].PFunnelTargetId;
+            if (pTargetId == Guid.Empty)
+            {
+                continue;
+            }
 
-                break;
+            PTabRecord? pTarget = pStrip.PStripRecords
+                .FirstOrDefault(pRecord => pRecord.PTabId == pTargetId);
+            if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pTargetOwner)
+            {
+                pTargetOwner.LDocketPathsAdd(
+                    PList.PListMediaScan(new[] { pItem.LDocketEntryPath }), pItem.LDocketEntryBatch, true);
+                pRelayedPaths.Add(pItem.LDocketEntryPath);
+                pRelayedRoutes.Add((pTargetId, pItem.LDocketEntryPath, pItem.LDocketEntryBatch));
             }
         }
 

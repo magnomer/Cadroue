@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -89,25 +88,6 @@ internal sealed class PFunnelCondition : Grid
 
     public string PFunnelConditionText => pFunnelField.Text.Trim();
 
-    public bool PFunnelConditionAnd => pFunnelAnd;
-
-    public bool PFunnelConditionMatch(string pFileName)
-    {
-        string pText = PFunnelConditionText;
-        StringComparison pComparison = pFunnelCase
-            ? StringComparison.Ordinal
-            : StringComparison.OrdinalIgnoreCase;
-
-        return pFunnelKind switch
-        {
-            PFunnelKind.Contains => pFileName.Contains(pText, pComparison),
-            PFunnelKind.Start => pFileName.StartsWith(pText, pComparison),
-            PFunnelKind.End => pFileName.EndsWith(pText, pComparison),
-            PFunnelKind.Extension => PFunnelExtensionMatch(pFileName, pText, pComparison),
-            _ => false
-        };
-    }
-
     public LSceneFunnelMatch PFunnelConditionRead()
     {
         return new LSceneFunnelMatch
@@ -129,13 +109,6 @@ internal sealed class PFunnelCondition : Grid
         {
             PFunnelJoinApply();
         }
-    }
-
-    private static bool PFunnelExtensionMatch(string pFileName, string pText, StringComparison pComparison)
-    {
-        string pExtension = Path.GetExtension(pFileName).TrimStart('.');
-        string pWanted = pText.TrimStart('.');
-        return string.Equals(pExtension, pWanted, pComparison);
     }
 
     private static TextBox PFunnelFieldBuild()

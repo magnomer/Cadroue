@@ -160,4 +160,33 @@ public sealed class LClassifierTests
         rule.LSceneFunnelExtension = Cond("avi");
         Assert.False(LClassifier.LClassifierMatch(rule, "clip.mp4"));
     }
+
+    // ---- Route read ----
+
+    [Fact]
+    public void RouteRead_ReturnsFirstMatchIndex()
+    {
+        LSceneFunnelRule first = Filename();
+        first.LSceneFunnelContains = Cond("zzz");
+        LSceneFunnelRule second = Filename();
+        second.LSceneFunnelExtension = Cond("mp4");
+        LSceneFunnelRule third = Filename();
+        third.LSceneFunnelContains = Cond("clip");
+
+        Assert.Equal(1, LClassifier.LClassifierRouteRead(new[] { first, second, third }, "clip.mp4"));
+    }
+
+    [Fact]
+    public void RouteRead_NoMatch_ReturnsMinusOne()
+    {
+        LSceneFunnelRule rule = Filename();
+        rule.LSceneFunnelContains = Cond("zzz");
+        Assert.Equal(-1, LClassifier.LClassifierRouteRead(new[] { rule }, "clip.mp4"));
+    }
+
+    [Fact]
+    public void RouteRead_Empty_ReturnsMinusOne()
+    {
+        Assert.Equal(-1, LClassifier.LClassifierRouteRead(System.Array.Empty<LSceneFunnelRule>(), "clip.mp4"));
+    }
 }

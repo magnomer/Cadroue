@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -6,6 +7,19 @@ namespace Cadroue.Core;
 
 public static class LClassifier
 {
+    public static int LClassifierRouteRead(IReadOnlyList<LSceneFunnelRule> lClassifierRules, string lClassifierName)
+    {
+        for (int lClassifierIndex = 0; lClassifierIndex < lClassifierRules.Count; lClassifierIndex++)
+        {
+            if (LClassifierMatch(lClassifierRules[lClassifierIndex], lClassifierName))
+            {
+                return lClassifierIndex;
+            }
+        }
+
+        return -1;
+    }
+
     public static bool LClassifierMatch(LSceneFunnelRule lClassifierRule, string lClassifierName)
     {
         if (lClassifierRule.LSceneFunnelType == (int)LSceneFunnelForm.LSceneFunnelFormRegex)
