@@ -288,6 +288,57 @@ public sealed partial class LSchedule : LScheduleContract
 
     public bool LScheduleRemove(Guid lWorkId)
     {
+        bool lScheduleRemoved = LScheduleFileRemove(lWorkId);
+        if (lScheduleRemoved)
+        {
+            LScheduleLoad();
+            LTraceLog.LTraceInfoRecord($"Schedule: work [{LScheduleIdShorten(lWorkId)}] removed");
+        }
+
+        return lScheduleRemoved;
+    }
+
+    public IReadOnlyList<Guid> LScheduleRemovableRead(IEnumerable<Guid> lWorkIds)
+    {
+        var lScheduleStates = new Dictionary<Guid, LWorkState>();
+        foreach (LWorkItem lWorkItem in lScheduleItems)
+        {
+            lScheduleStates[lWorkItem.LWorkId] = lWorkItem.LWorkStateCurrent;
+        }
+
+        return LScheduleRemovableResolve(lWorkIds, lScheduleStates);
+    }
+
+    internal static IReadOnlyList<Guid> LScheduleRemovableResolve(
+        IEnumerable<Guid> lWorkIds,
+        IReadOnlyDictionary<Guid, LWorkState> lScheduleStates) =>
+        lWorkIds
+            .Where(lWorkId => lScheduleStates.TryGetValue(lWorkId, out LWorkState lWorkState)
+                && lWorkState != LWorkState.LWorkStateRunning)
+            .ToArray();
+
+    public int LScheduleBatchRemove(IEnumerable<Guid> lWorkIds)
+    {
+        int lScheduleRemovedCount = 0;
+        foreach (Guid lWorkId in lWorkIds)
+        {
+            if (LScheduleFileRemove(lWorkId))
+            {
+                lScheduleRemovedCount++;
+            }
+        }
+
+        if (lScheduleRemovedCount > 0)
+        {
+            LScheduleLoad();
+            LTraceLog.LTraceInfoRecord($"Schedule: removed {lScheduleRemovedCount} work item(s)");
+        }
+
+        return lScheduleRemovedCount;
+    }
+
+    private bool LScheduleFileRemove(Guid lWorkId)
+    {
         bool lScheduleRemoved = false;
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
         {
@@ -310,8 +361,6 @@ public sealed partial class LSchedule : LScheduleContract
         if (lScheduleRemoved)
         {
             LDepotIndex.LDepotIndexRemove(lWorkId);
-            LScheduleLoad();
-            LTraceLog.LTraceInfoRecord($"Schedule: work [{LScheduleIdShorten(lWorkId)}] removed");
         }
 
         return lScheduleRemoved;

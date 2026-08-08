@@ -427,18 +427,14 @@ public sealed partial class PRoster
 
     private void PRosterCardRemove(IReadOnlyList<LWorkItem> pBatchItems)
     {
-        LWorkItem[] pRemovable = pBatchItems
-            .Where(pWorkItem => pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning)
-            .ToArray();
-        if (pRemovable.Length == 0 || !PRosterCardConfirm(pRemovable.Length))
+        IReadOnlyList<Guid> pRemovable = pRosterSchedule.LScheduleRemovableRead(
+            pBatchItems.Select(pWorkItem => pWorkItem.LWorkId));
+        if (pRemovable.Count == 0 || !PRosterCardConfirm(pRemovable.Count))
         {
             return;
         }
 
-        foreach (LWorkItem pWorkItem in pRemovable)
-        {
-            pRosterSchedule.LScheduleRemove(pWorkItem.LWorkId);
-        }
+        pRosterSchedule.LScheduleBatchRemove(pRemovable);
     }
 
     private static bool PRosterCardConfirm(int pRemovableCount)

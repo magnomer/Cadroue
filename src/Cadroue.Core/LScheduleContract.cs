@@ -46,6 +46,10 @@ public interface LScheduleContract
 
     bool LScheduleRemove(Guid lWorkId);
 
+    IReadOnlyList<Guid> LScheduleRemovableRead(IEnumerable<Guid> lWorkIds);
+
+    int LScheduleBatchRemove(IEnumerable<Guid> lWorkIds);
+
     int LScheduleDoneClear();
 
     int LScheduleAllClear();
