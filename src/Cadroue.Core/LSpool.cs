@@ -115,7 +115,16 @@ public sealed class LSpool
     public double LSpoolRatioResolve(TimeSpan t)
         => LSpoolDuration.TotalSeconds > 0 ? t.TotalSeconds / LSpoolDuration.TotalSeconds : 0;
 
-    public void LSpoolInZoom(TimeSpan cursor)
+    public void LSpoolZoom(TimeSpan cursor, int steps)
+    {
+        for (int i = 0; i < Math.Abs(steps); i++)
+        {
+            if (steps > 0) LSpoolInZoom(cursor);
+            else LSpoolOutZoom(cursor);
+        }
+    }
+
+    private void LSpoolInZoom(TimeSpan cursor)
     {
         var span = LSpoolRangeLimit - LSpoolRangeOrigin;
         if (span <= TimeSpan.Zero)
@@ -134,7 +143,7 @@ public sealed class LSpool
         LSpoolNormalize();
     }
 
-    public void LSpoolOutZoom(TimeSpan cursor)
+    private void LSpoolOutZoom(TimeSpan cursor)
     {
         var span = LSpoolRangeLimit - LSpoolRangeOrigin;
         if (span <= TimeSpan.Zero)

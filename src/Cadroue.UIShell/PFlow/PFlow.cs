@@ -222,8 +222,8 @@ public sealed partial class PFlow : UserControl
         if (!pFlowCommandActive || lSpool is null) return false;
         switch (pFlowShortcutCode)
         {
-            case "zoomIn": lSpool.LSpoolInZoom(lCursor); PFlowSpoolUpdate(); return true;
-            case "zoomOut": lSpool.LSpoolOutZoom(lCursor); PFlowSpoolUpdate(); return true;
+            case "zoomIn": lSpool.LSpoolZoom(lCursor, 1); PFlowSpoolUpdate(); return true;
+            case "zoomOut": lSpool.LSpoolZoom(lCursor, -1); PFlowSpoolUpdate(); return true;
             case "addSection" when pFlowSectionActive: PFlowSectionAdd(); return true;
             case "setStart" when pFlowSectionActive: PFlowStartSet(); return true;
             case "splitSection" when pFlowSectionActive: PFlowSectionDivide(); return true;
@@ -271,18 +271,7 @@ public sealed partial class PFlow : UserControl
     private void PFlowWheelZoom(int pWheelSteps)
     {
         if (lSpool is null) return;
-        for (int pWheelIndex = 0; pWheelIndex < Math.Abs(pWheelSteps); pWheelIndex++)
-        {
-            if (pWheelSteps > 0)
-            {
-                lSpool.LSpoolInZoom(lCursor);
-            }
-            else
-            {
-                lSpool.LSpoolOutZoom(lCursor);
-            }
-        }
-
+        lSpool.LSpoolZoom(lCursor, pWheelSteps);
         PFlowSpoolHandle();
     }
 
