@@ -159,6 +159,10 @@ public partial class PProgram : System.Windows.Application
         LPreference.LPreferenceTraceSeam = LTraceLog.LTraceInfoRecord;
         LPreferenceDebounceApply();
         LPreference.LPreferenceLoad();
+        System.Windows.EventManager.RegisterClassHandler(
+            typeof(System.Windows.FrameworkElement),
+            System.Windows.Controls.ToolTipService.ToolTipOpeningEvent,
+            new System.Windows.Controls.ToolTipEventHandler(PNameplate.PNameplateToolTipHandle));
         Cadroue.Infrastructure.LFrameStore.LFrameLoad();
         Cadroue.Infrastructure.LBinding.LBindingLoad();
         LScene.LSceneCurrentLoad();
