@@ -203,13 +203,13 @@ public sealed partial class PViewer
 
     private void PViewerFlyleafDispose()
     {
-        if (pViewerFlyleafHost is null) return;
+        if (!pViewerHostBuilt || pViewerFlyleafHost is null || pViewerSurface is null) return;
 
         try
         {
             pViewerFlyleafHost.Player = null;
             pViewerFlyleafHost.Content = null;
-            if (pViewerSurface is not null) pViewerSurface.Child = null;
+            pViewerSurface.Child = null;
             ((IDisposable)pViewerFlyleafHost).Dispose();
         }
         catch
