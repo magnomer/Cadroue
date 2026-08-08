@@ -1,4 +1,3 @@
-using Cadroue.Infrastructure;
 using Cadroue.Core;
 using System.Collections.ObjectModel;
 
@@ -8,12 +7,23 @@ public sealed partial class LPreset
 {
     private static readonly Dictionary<string, LPreset> LPresetMap = new(StringComparer.OrdinalIgnoreCase);
 
-    static LPreset()
+    public static Func<IReadOnlyList<LPresetRecord>?>? LPresetStoreLoadSeam;
+    public static Action<IReadOnlyList<LPresetRecord>>? LPresetStoreSaveSeam;
+
+    private static bool LPresetInitialized;
+
+    public static void LPresetInitialize()
     {
+        if (LPresetInitialized)
+        {
+            return;
+        }
+        LPresetInitialized = true;
+
         LPresetNativeAdd(LPresetAudioCreate());
         LPresetNativeAdd(LPresetSplitCreate());
         LPresetNativeAdd(LPresetMergeCreate());
-        IReadOnlyList<LPresetRecord>? lStoredPresets = LPresetStore.LPresetLoad();
+        IReadOnlyList<LPresetRecord>? lStoredPresets = LPresetStoreLoadSeam?.Invoke();
         if (lStoredPresets is null)
         {
             var lDefault = new LPreset { LPresetName = "MP4_H264_AAC_Default" };
@@ -306,7 +316,7 @@ public sealed partial class LPreset
                 lPresets.Add(lPreset.LPresetClone());
             }
         }
-        LPresetStore.LPresetSave(lPresets.Select(lPreset => lPreset.LPresetRecordCreate()).ToList());
+        LPresetStoreSaveSeam?.Invoke(lPresets.Select(lPreset => lPreset.LPresetRecordCreate()).ToList());
         LPresetStoreChange?.Invoke();
     }
 

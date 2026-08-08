@@ -173,6 +173,9 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LSegment.LSegmentSaveSeam = (lSidecarSourcePath, lSidecarSections) =>
             Cadroue.Infrastructure.LSidecarStore.LSidecarSectionsSave(lSidecarSourcePath, lSidecarSections);
         LPresetSelectionSeamApply();
+        LPreset.LPresetStoreLoadSeam = LPresetStore.LPresetLoad;
+        LPreset.LPresetStoreSaveSeam = LPresetStore.LPresetSave;
+        LPreset.LPresetInitialize();
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
         PPanels.PSEncoder.PSCodecProbeStart();
