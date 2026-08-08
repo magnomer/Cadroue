@@ -250,18 +250,14 @@ public sealed partial class PConsole
 
     private void PConsoleRemoveHandle(object pSender, RoutedEventArgs pArguments)
     {
-        LWorkItem[] pConsoleRemovable = PConsoleStationRead().LStationSelectionRead()
-            .Where(pWorkItem => pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning)
-            .ToArray();
-        if (pConsoleRemovable.Length == 0)
+        IReadOnlyList<Guid> pConsoleRemovable = pConsoleSchedule.LScheduleRemovableRead(
+            PConsoleStationRead().LStationSelectionRead().Select(pWorkItem => pWorkItem.LWorkId));
+        if (pConsoleRemovable.Count == 0)
         {
             return;
         }
 
-        foreach (LWorkItem pWorkItem in pConsoleRemovable)
-        {
-            pConsoleSchedule.LScheduleRemove(pWorkItem.LWorkId);
-        }
+        pConsoleSchedule.LScheduleBatchRemove(pConsoleRemovable);
     }
 
     private void PConsoleDoneHandle(object pSender, RoutedEventArgs pArguments)
