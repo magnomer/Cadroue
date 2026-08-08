@@ -5,7 +5,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
-using Cadroue.MigrationInterface;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;
 
@@ -49,13 +49,13 @@ internal sealed class PSKeymap : Window
 
     private PSKeymap(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
-        lsKeymapDraft = Cadroue.MigrationInterface.LBinding.LBindingNormalize(Cadroue.MigrationInterface.LBinding.LBindingCurrent);
+        lsKeymapDraft = Cadroue.Infrastructure.LBinding.LBindingNormalize(Cadroue.Infrastructure.LBinding.LBindingCurrent);
         psKeymapCallback = pApplyCallback;
 
-        foreach (LBindingCommand pCommand in Cadroue.MigrationInterface.LBinding.LBindingCatalogRead())
+        foreach (LBindingCommand pCommand in Cadroue.Infrastructure.LBinding.LBindingCatalogRead())
         {
             psKeymapChords[pCommand.LBindingCommandToken] = new PSKeymapChord(
-                Cadroue.MigrationInterface.LBinding.LBindingGestureRead(lsKeymapDraft, pCommand.LBindingCommandToken),
+                Cadroue.Infrastructure.LBinding.LBindingGestureRead(lsKeymapDraft, pCommand.LBindingCommandToken),
                 PSKeymapConflictClear);
         }
 
@@ -85,17 +85,17 @@ internal sealed class PSKeymap : Window
         var pRoot = new Grid { Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)) };
         pRoot.Children.Add(PSSheet.PSSheetControlBuild(
             PSSheetTabWidth,
-            PSKeymapSheetBuild(Cadroue.MigrationInterface.LBinding.LBindingScopeGlobal, PSSheetGlobalIcon),
-            PSKeymapSheetBuild(Cadroue.MigrationInterface.LBinding.LBindingScopeTab, PSSheetTabIcon),
-            PSKeymapSheetBuild(Cadroue.MigrationInterface.LBinding.LBindingScopeFlow, PSSheetFlowIcon),
-            PSKeymapSheetBuild(Cadroue.MigrationInterface.LBinding.LBindingScopeSplit, PSSheetSplitIcon)));
+            PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeGlobal, PSSheetGlobalIcon),
+            PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeTab, PSSheetTabIcon),
+            PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeFlow, PSSheetFlowIcon),
+            PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeSplit, PSSheetSplitIcon)));
         pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, PSSheetStripWidth));
         return pRoot;
     }
 
     private TabItem PSKeymapSheetBuild(string pScope, string pIconPath)
     {
-        string pScopeTitle = LLocalization.LLocalizationTextRead(Cadroue.MigrationInterface.LBinding.LBindingLabelRead(pScope));
+        string pScopeTitle = LLocalization.LLocalizationTextRead(Cadroue.Infrastructure.LBinding.LBindingLabelRead(pScope));
         return PSSheet.PSSheetBuild(
             pScopeTitle,
             pIconPath,
@@ -105,7 +105,7 @@ internal sealed class PSKeymap : Window
     private UIElement PSKeymapScopeBuild(string pScope, string pScopeTitle)
     {
         var pRows = new List<UIElement>();
-        foreach (LBindingCommand pCommand in Cadroue.MigrationInterface.LBinding.LBindingScopeRead(pScope))
+        foreach (LBindingCommand pCommand in Cadroue.Infrastructure.LBinding.LBindingScopeRead(pScope))
         {
             pRows.Add(PSKeymapRowBuild(pCommand));
         }
@@ -190,7 +190,7 @@ internal sealed class PSKeymap : Window
     {
         foreach (KeyValuePair<string, PSKeymapChord> pEntry in psKeymapChords)
         {
-            pEntry.Value.PSKeymapChordSet(Cadroue.MigrationInterface.LBinding.LBindingDefaultRead(pEntry.Key));
+            pEntry.Value.PSKeymapChordSet(Cadroue.Infrastructure.LBinding.LBindingDefaultRead(pEntry.Key));
         }
     }
 
@@ -204,7 +204,7 @@ internal sealed class PSKeymap : Window
             })
             .ToList();
 
-        Cadroue.MigrationInterface.LBinding.LBindingSet(psKeymapApplied);
+        Cadroue.Infrastructure.LBinding.LBindingSet(psKeymapApplied);
         psKeymapCallback?.Invoke(LPreference.LPreferenceStateCurrent);
     }
 

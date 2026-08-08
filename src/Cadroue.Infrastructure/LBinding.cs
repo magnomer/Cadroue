@@ -1,7 +1,6 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Infrastructure;
 
 public sealed record LBindingCommand(
     string LBindingCommandToken,

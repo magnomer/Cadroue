@@ -36,8 +36,8 @@ public partial class PWindow
     private bool PShortcutDispatch(Key pKey, ModifierKeys pModifiers)
     {
         string pShortcutGesture = LBinding.LBindingFormat(pKey, pModifiers);
-        string? pShortcutToken = Cadroue.MigrationInterface.LBinding.LBindingTokenFind(
-            Cadroue.MigrationInterface.LBinding.LBindingCurrent, pShortcutGesture);
+        string? pShortcutToken = Cadroue.Infrastructure.LBinding.LBindingTokenFind(
+            Cadroue.Infrastructure.LBinding.LBindingCurrent, pShortcutGesture);
         return pShortcutToken is not null && PShortcutRun(pShortcutToken);
     }
 
