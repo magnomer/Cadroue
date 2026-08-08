@@ -18,13 +18,6 @@ public enum LLeveling
     LLevelingDynamic
 }
 
-public enum LGrain
-{
-    LGrainWhite,
-    LGrainVinyl,
-    LGrainShellac
-}
-
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "LWorkStepType")]
 [JsonDerivedType(typeof(LWorkVolumeStep), "Volume")]
 [JsonDerivedType(typeof(LWorkNormalizeStep), "Normalize")]
