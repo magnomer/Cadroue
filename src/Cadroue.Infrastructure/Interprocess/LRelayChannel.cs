@@ -6,6 +6,8 @@ using System.Threading;
 
 namespace Cadroue.Infrastructure;
 
+public enum LRelayOutcome { LRelayOutcomeExisting, LRelayOutcomeLaunched, LRelayOutcomeFailed }
+
 public static class LRelayChannel
 {
     public const string LRelayArgument = "--relay";
@@ -114,6 +116,29 @@ public static class LRelayChannel
             LTraceLog.LTraceErrorRecord($"Relay send to process {lProcessId} failed", lException);
             return false;
         }
+    }
+
+    public static LRelayOutcome LRelayDispatch(string lRelayFilePath, double lScreenLeft, double lScreenTop)
+    {
+        if (LRelayInstanceFind(lScreenLeft, lScreenTop) is int lTargetProcessId)
+        {
+            if (LRelayChannelSend(lTargetProcessId, lRelayFilePath))
+            {
+                return LRelayOutcome.LRelayOutcomeExisting;
+            }
+
+            LRelayStore.LRelayFileClear(lRelayFilePath);
+            LTraceLog.LTraceErrorRecord($"Relay target {lTargetProcessId} refused the tab; tab kept", null);
+            return LRelayOutcome.LRelayOutcomeFailed;
+        }
+
+        if (LRelayInstanceStart(lRelayFilePath))
+        {
+            return LRelayOutcome.LRelayOutcomeLaunched;
+        }
+
+        LRelayStore.LRelayFileClear(lRelayFilePath);
+        return LRelayOutcome.LRelayOutcomeFailed;
     }
 
     public static bool LRelayInstanceStart(string lRelayFilePath)

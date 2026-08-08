@@ -38,29 +38,16 @@ public partial class PRail
             return false;
         }
 
-        if (LRelayChannel.LRelayInstanceFind(pDevicePoint.X, pDevicePoint.Y) is int lTargetProcessId)
+        switch (LRelayChannel.LRelayDispatch(lRelayFilePath, pDevicePoint.X, pDevicePoint.Y))
         {
-            if (LRelayChannel.LRelayChannelSend(lTargetProcessId, lRelayFilePath))
-            {
-                LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed to process {lTargetProcessId}");
+            case LRelayOutcome.LRelayOutcomeExisting:
+            case LRelayOutcome.LRelayOutcomeLaunched:
+                LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed");
                 pStrip?.PStripClose(pTabRecord);
                 return true;
-            }
-
-            LRelayStore.LRelayFileClear(lRelayFilePath);
-            LTraceLog.LTraceErrorRecord($"Relay target {lTargetProcessId} refused the tab; tab kept", null);
-            return false;
+            default:
+                return false;
         }
-
-        if (!LRelayChannel.LRelayInstanceStart(lRelayFilePath))
-        {
-            LRelayStore.LRelayFileClear(lRelayFilePath);
-            return false;
-        }
-
-        LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed to a new instance");
-        pStrip?.PStripClose(pTabRecord);
-        return true;
     }
 
     private static void PTabBusyShow(Window pRelayWindow, PTabRecord pTabRecord)

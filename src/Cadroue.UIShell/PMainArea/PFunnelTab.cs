@@ -1,11 +1,9 @@
-using System.IO;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
-using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.UIShell.PMainArea;
@@ -52,55 +50,19 @@ public sealed class PFunnelTab : PTabSurface
 
     private void PFunnelDispatch(IReadOnlyList<LDocketEntry> pItems)
     {
-        if (pItems.Count == 0 || PStrip.PStripCurrent is not { } pStrip)
+        if (pItems.Count == 0)
         {
             return;
         }
 
-        var pRelayedPaths = new List<string>();
-        var pRelayedRoutes = new List<(Guid pFunnelTarget, string pFunnelPath, Guid pFunnelCohort)>();
         IReadOnlyList<PFunnelRuleRow> pRows = pFunnelRules.PFunnelRulesRead();
         var pRules = pRows.Select(pRow => pRow.PFunnelRecordCreate()).ToList();
-        foreach (LDocketEntry pItem in pItems)
-        {
-            string pFileName = Path.GetFileName(pItem.LDocketEntryPath);
-            int pMatch = LClassifier.LClassifierRouteRead(pRules, pFileName);
-            if (pMatch < 0)
-            {
-                continue;
-            }
+        var pTargets = pRows.Select(pRow => pRow.PFunnelTargetId).ToList();
+        var pDispatchItems = pItems
+            .Select(pItem => (pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
+            .ToList();
 
-            Guid pTargetId = pRows[pMatch].PFunnelTargetId;
-            if (pTargetId == Guid.Empty)
-            {
-                continue;
-            }
-
-            PTabRecord? pTarget = pStrip.PStripRecords
-                .FirstOrDefault(pRecord => pRecord.PTabId == pTargetId);
-            if (pTarget?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pTargetOwner)
-            {
-                pTargetOwner.LDocketPathsAdd(
-                    PList.PListMediaScan(new[] { pItem.LDocketEntryPath }), pItem.LDocketEntryBatch, true);
-                pRelayedPaths.Add(pItem.LDocketEntryPath);
-                pRelayedRoutes.Add((pTargetId, pItem.LDocketEntryPath, pItem.LDocketEntryBatch));
-            }
-        }
-
-        if (LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty && pRelayedPaths.Count > 0)
-        {
-            pList.PListDocketRead().LDocketPathsRemove(pRelayedPaths);
-        }
-
-        foreach ((Guid pFunnelTarget, string pFunnelPath, Guid pFunnelCohort) in pRelayedRoutes)
-        {
-            PAction.PActionArrive(pFunnelTarget, pFunnelPath, pFunnelCohort);
-        }
-
-        LSeal.LSealSweep();
-
-        LTraceLog.LTraceInfoRecord(
-            $"Funnel relayed {pRelayedPaths.Count} of {pItems.Count} file(s) by filename rule");
+        LMessenger.LMessengerFunnelDescribe(pRules, pTargets, pDispatchItems);
     }
 
     private IReadOnlyList<PActionRelayOption> PFunnelTargetsRead()

@@ -82,6 +82,21 @@ public partial class PProgram : System.Windows.Application
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 Cadroue.ShellEngine.LCartographer.LCartographerAccept(
                     lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
+        Cadroue.ShellEngine.LMessenger.LMessengerFunnelDeliverSource = (pFunnelTarget, pFunnelPath, pFunnelCohort) =>
+        {
+            if (!PPanels.PList.PListDeliveredAdd(pFunnelTarget, pFunnelPath, pFunnelCohort))
+            {
+                return false;
+            }
+
+            PMainArea.PAction.PActionArrive(pFunnelTarget, pFunnelPath, pFunnelCohort);
+            return true;
+        };
+        Cadroue.ShellEngine.LMessenger.LMessengerFunnelDrainSource = pFunnelDrainPaths =>
+        {
+            PControlBar.PStrip.PStripCurrent?.PStripSelected?.PTabWorkspace.PWorkspaceSurface
+                .PTabList?.PListDocketRead()?.LDocketPathsRemove(pFunnelDrainPaths);
+        };
 
         Cadroue.ShellEngine.LSeal.LSealNodesSource = () =>
             PControlBar.PStrip.PStripCurrent?.PStripRecords

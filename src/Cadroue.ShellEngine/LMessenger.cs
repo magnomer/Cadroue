@@ -11,6 +11,10 @@ public static class LMessenger
 
     public static Func<LScheduleContract?>? LMessengerScheduleSource { get; set; }
 
+    public static Func<Guid, string, Guid, bool>? LMessengerFunnelDeliverSource { get; set; }
+
+    public static Action<IReadOnlyList<string>>? LMessengerFunnelDrainSource { get; set; }
+
     private static string LMessengerTitleRead(Guid lMessengerRelaySource) =>
         LMessengerTitleSource?.Invoke(lMessengerRelaySource) ?? string.Empty;
 
@@ -360,6 +364,40 @@ public static class LMessenger
     }
 
     private static int LMessengerParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
+
+    public static int LMessengerFunnelDescribe(
+        IReadOnlyList<LSceneFunnelRule> lMessengerRules,
+        IReadOnlyList<Guid> lMessengerTargets,
+        IReadOnlyList<(string LMessengerPath, Guid LMessengerCohort)> lMessengerItems)
+    {
+        var lMessengerRelayed = new List<string>();
+        foreach ((string lMessengerPath, Guid lMessengerCohort) in lMessengerItems)
+        {
+            int lMessengerMatch = LClassifier.LClassifierRouteRead(
+                lMessengerRules, System.IO.Path.GetFileName(lMessengerPath));
+            if (lMessengerMatch < 0 || lMessengerTargets[lMessengerMatch] == Guid.Empty)
+            {
+                continue;
+            }
+
+            if (LMessengerFunnelDeliverSource?.Invoke(
+                    lMessengerTargets[lMessengerMatch], lMessengerPath, lMessengerCohort) == true)
+            {
+                lMessengerRelayed.Add(lMessengerPath);
+            }
+        }
+
+        if (Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty
+            && lMessengerRelayed.Count > 0)
+        {
+            LMessengerFunnelDrainSource?.Invoke(lMessengerRelayed);
+        }
+
+        LSeal.LSealSweep();
+        LTraceLog.LTraceInfoRecord(
+            $"Funnel relayed {lMessengerRelayed.Count} of {lMessengerItems.Count} file(s) by filename rule");
+        return lMessengerRelayed.Count;
+    }
 
     public static async Task<int> LMessengerEditDescribe(
         LWorkPriority lMessengerPriority,
