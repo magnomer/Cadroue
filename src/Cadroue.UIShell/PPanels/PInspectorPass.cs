@@ -13,30 +13,26 @@ public sealed partial class PInspector
     private const double PFilterResonanceLeast = 0.1;
     private const double PFilterResonanceMost = 2;
 
-    private sealed record PInspectorPassPreset(
+    private sealed record PInspectorPassChoice(
         string PInspectorPassToken,
-        string PInspectorPassKey,
-        double Cutoff,
-        int Stages,
-        int Poles,
-        double Resonance);
+        string PInspectorPassKey);
 
-    private static readonly PInspectorPassPreset[] pFilterHighPresets =
+    private static readonly PInspectorPassChoice[] pFilterHighChoices =
     {
-        new("Rumble", "Inspector.Pass.Preset.Rumble", 30, 2, 2, 0.707),
-        new("Wind", "Inspector.Pass.Preset.Wind", 60, 4, 2, 0.707),
-        new("Voice", "Inspector.Pass.Preset.Voice", 80, 2, 2, 0.707),
-        new("Speech (tight)", "Inspector.Pass.Preset.SpeechTight", 100, 4, 2, 0.707),
-        new("Tighten", "Inspector.Pass.Preset.Tighten", 200, 2, 2, 0.707)
+        new("Rumble", "Inspector.Pass.Preset.Rumble"),
+        new("Wind", "Inspector.Pass.Preset.Wind"),
+        new("Voice", "Inspector.Pass.Preset.Voice"),
+        new("Speech (tight)", "Inspector.Pass.Preset.SpeechTight"),
+        new("Tighten", "Inspector.Pass.Preset.Tighten")
     };
 
-    private static readonly PInspectorPassPreset[] pFilterLowPresets =
+    private static readonly PInspectorPassChoice[] pFilterLowChoices =
     {
-        new("Air tame", "Inspector.Pass.Preset.Airtame", 16000, 2, 2, 0.707),
-        new("Soften", "Inspector.Pass.Preset.Soften", 10000, 2, 2, 0.707),
-        new("Warm", "Inspector.Pass.Preset.Warm", 8000, 3, 2, 0.707),
-        new("AM radio", "Inspector.Pass.Preset.AmRadio", 5000, 4, 2, 0.707),
-        new("Telephone", "Inspector.Pass.Preset.Telephone", 3400, 4, 2, 0.707)
+        new("Air tame", "Inspector.Pass.Preset.Airtame"),
+        new("Soften", "Inspector.Pass.Preset.Soften"),
+        new("Warm", "Inspector.Pass.Preset.Warm"),
+        new("AM radio", "Inspector.Pass.Preset.AmRadio"),
+        new("Telephone", "Inspector.Pass.Preset.Telephone")
     };
 
     private sealed class PInspectorPass
@@ -52,7 +48,8 @@ public sealed partial class PInspector
         public required TextBox PInspectorPassResonance { get; init; }
         public required StackPanel PInspectorPassStack { get; init; }
         public required StackPanel PInspectorPassBody { get; init; }
-        public required IReadOnlyList<PInspectorPassPreset> PInspectorPassPresets { get; init; }
+        public required IReadOnlyList<PInspectorPassChoice> PInspectorPassPresets { get; init; }
+        public bool PInspectorPassHigh { get; init; }
         public double PInspectorPassMin { get; init; }
         public double PInspectorPassMax { get; init; }
         public double PInspectorPassDefault { get; init; }
@@ -67,13 +64,13 @@ public sealed partial class PInspector
 
     private StackPanel PFilterHighBuild()
     {
-        pInspectorHighPass = PInspectorPassBuild(80, 20, 300, LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"), pFilterHighPresets, "Voice");
+        pInspectorHighPass = PInspectorPassBuild(80, 20, 300, LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"), pFilterHighChoices, true, "Voice");
         return pInspectorHighPass.PInspectorPassBody;
     }
 
     private StackPanel PFilterLowBuild()
     {
-        pInspectorLowPass = PInspectorPassBuild(16000, 3000, 20000, LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"), pFilterLowPresets, "Air tame");
+        pInspectorLowPass = PInspectorPassBuild(16000, 3000, 20000, LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"), pFilterLowChoices, false, "Air tame");
         return pInspectorLowPass.PInspectorPassBody;
     }
 
@@ -92,7 +89,7 @@ public sealed partial class PInspector
         PInspectorDecimalRead(pPass.PInspectorPassResonance, 0.707);
 
     private PInspectorPass PInspectorPassBuild(
-        double pDefault, double pMin, double pMax, string pApplyTip, IReadOnlyList<PInspectorPassPreset> pPresets, string pDefaultToken)
+        double pDefault, double pMin, double pMax, string pApplyTip, IReadOnlyList<PInspectorPassChoice> pPresets, bool pHigh, string pDefaultToken)
     {
         CheckBox pApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), pApplyTip);
         CheckBox pPersistent = PInspectorSwitchBuild(
@@ -108,7 +105,7 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pPreset);
-        foreach (PInspectorPassPreset pPresetEntry in pPresets)
+        foreach (PInspectorPassChoice pPresetEntry in pPresets)
         {
             pPreset.Items.Add(new LLocalizationChoice(pPresetEntry.PInspectorPassToken, pPresetEntry.PInspectorPassKey));
         }
@@ -175,13 +172,14 @@ public sealed partial class PInspector
             PInspectorPassStack = pStack,
             PInspectorPassBody = pBody,
             PInspectorPassPresets = pPresets,
+            PInspectorPassHigh = pHigh,
             PInspectorPassMin = pMin,
             PInspectorPassMax = pMax,
             PInspectorPassDefault = pDefault
         };
 
-        PSlider.PSliderResetApply(pFrequency, () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.Cutoff : pDefault);
-        PSlider.PSliderResetApply(pStages, () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.Stages : 1);
+        PSlider.PSliderResetApply(pFrequency, () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.LPassbandCutoff : pDefault);
+        PSlider.PSliderResetApply(pStages, () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.LPassbandStages : 1);
 
         pApply.Checked += (_, _) => PFilterApplyUpdate(pPass);
         pApply.Unchecked += (_, _) => PFilterApplyUpdate(pPass);
@@ -222,7 +220,7 @@ public sealed partial class PInspector
         pPoles.SelectionChanged += (_, _) => PFilterDeviationCheck(pPass);
         Slider pResonanceSlider = PInspectorSliderBind(
             pResonance, PFilterResonanceLeast, PFilterResonanceMost, 0.707, "0.###",
-            () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.Resonance : 0.707,
+            () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.LPassbandResonance : 0.707,
             () => PFilterDeviationCheck(pPass));
 
         pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pPreset));
@@ -251,39 +249,43 @@ public sealed partial class PInspector
         return pPass;
     }
 
-    private static PInspectorPassPreset? PFilterValuesRead(PInspectorPass pPass, string pToken)
+    private static string PFilterKeyRead(PInspectorPass pPass, string pToken)
     {
-        foreach (PInspectorPassPreset pEntry in pPass.PInspectorPassPresets)
+        foreach (PInspectorPassChoice pEntry in pPass.PInspectorPassPresets)
         {
             if (pEntry.PInspectorPassToken == pToken)
             {
-                return pEntry;
+                return pEntry.PInspectorPassKey;
             }
         }
 
-        return null;
+        return string.Empty;
     }
 
-    private static PInspectorPassPreset? PFilterPresetCurrent(PInspectorPass pPass) =>
-        pPass.PInspectorPassBase is { } pBase ? PFilterValuesRead(pPass, pBase) : null;
+    private static Cadroue.Core.LPassbandPreset? PFilterPresetCurrent(PInspectorPass pPass) =>
+        pPass.PInspectorPassBase is { } pBase
+            ? Cadroue.Core.LPassband.LPassbandRead(pPass.PInspectorPassHigh, pBase)
+            : null;
 
-    private bool PFilterValuesMatch(PInspectorPass pPass, PInspectorPassPreset pPreset) =>
-        Math.Abs(PInspectorPassRead(pPass) - pPreset.Cutoff) < 0.5
-        && PFilterStagesRead(pPass) == pPreset.Stages
-        && PFilterPolesRead(pPass) == pPreset.Poles
-        && Math.Abs(PFilterResonanceRead(pPass) - pPreset.Resonance) < 0.001;
+    private string? PFilterMatchRead(PInspectorPass pPass) =>
+        Cadroue.Core.LPassband.LPassbandMatch(
+            pPass.PInspectorPassHigh,
+            PInspectorPassRead(pPass),
+            PFilterStagesRead(pPass),
+            PFilterPolesRead(pPass),
+            PFilterResonanceRead(pPass));
 
-    private static void PFilterValuesApply(PInspectorPass pPass, PInspectorPassPreset pPreset)
+    private static void PFilterValuesApply(PInspectorPass pPass, Cadroue.Core.LPassbandPreset pPreset)
     {
         pPass.PInspectorPassSuppress = true;
         pPass.PFilterStageSuppress = true;
         pPass.PInspectorPresetSuppress = true;
-        pPass.PInspectorPassFrequency.Value = Math.Clamp(pPreset.Cutoff, pPass.PInspectorPassMin, pPass.PInspectorPassMax);
-        pPass.PInspectorPassValue.Text = pPreset.Cutoff.ToString("0", CultureInfo.InvariantCulture);
-        pPass.PInspectorPassStages.Value = Math.Clamp(pPreset.Stages, PFilterStagesLeast, PFilterStagesMost);
-        pPass.PFilterStageValue.Text = pPreset.Stages.ToString(CultureInfo.InvariantCulture);
-        pPass.PInspectorPassPoles.SelectedIndex = pPreset.Poles == 1 ? 0 : 1;
-        pPass.PInspectorPassResonance.Text = pPreset.Resonance.ToString("0.###", CultureInfo.InvariantCulture);
+        pPass.PInspectorPassFrequency.Value = Math.Clamp(pPreset.LPassbandCutoff, pPass.PInspectorPassMin, pPass.PInspectorPassMax);
+        pPass.PInspectorPassValue.Text = pPreset.LPassbandCutoff.ToString("0", CultureInfo.InvariantCulture);
+        pPass.PInspectorPassStages.Value = Math.Clamp(pPreset.LPassbandStages, PFilterStagesLeast, PFilterStagesMost);
+        pPass.PFilterStageValue.Text = pPreset.LPassbandStages.ToString(CultureInfo.InvariantCulture);
+        pPass.PInspectorPassPoles.SelectedIndex = pPreset.LPassbandPoles == 1 ? 0 : 1;
+        pPass.PInspectorPassResonance.Text = pPreset.LPassbandResonance.ToString("0.###", CultureInfo.InvariantCulture);
         pPass.PInspectorPassSuppress = false;
         pPass.PFilterStageSuppress = false;
         pPass.PInspectorPresetSuppress = false;
@@ -297,7 +299,8 @@ public sealed partial class PInspector
         }
 
         string pName = LLocalizationChoice.LLocalizationChoiceRead(pPass.PInspectorPassPreset.SelectedItem);
-        if (string.IsNullOrEmpty(pName) || pName == "Custom" || PFilterValuesRead(pPass, pName) is not { } pPreset)
+        if (string.IsNullOrEmpty(pName) || pName == "Custom"
+            || Cadroue.Core.LPassband.LPassbandRead(pPass.PInspectorPassHigh, pName) is not { } pPreset)
         {
             pPass.PInspectorPassBase = null;
             return;
@@ -312,31 +315,31 @@ public sealed partial class PInspector
     private void PFilterDeviationCheck(PInspectorPass pPass)
     {
         if (pPass.PInspectorPresetSuppress || pPass.PInspectorPassBase is not { } pBase
-            || PFilterValuesRead(pPass, pBase) is not { } pPreset)
+            || Cadroue.Core.LPassband.LPassbandRead(pPass.PInspectorPassHigh, pBase) is null)
         {
             return;
         }
 
         pPass.PInspectorPresetSuppress = true;
-        if (PFilterValuesMatch(pPass, pPreset))
+        if (PFilterMatchRead(pPass) == pBase)
         {
             PFilterCustomReset(pPass);
             PFilterPresetSelect(pPass, pBase);
         }
         else
         {
-            PFilterCustomSet(pPass, pPreset);
+            PFilterCustomSet(pPass, pBase);
         }
 
         pPass.PInspectorPresetSuppress = false;
     }
 
-    private static void PFilterCustomSet(PInspectorPass pPass, PInspectorPassPreset pPreset)
+    private static void PFilterCustomSet(PInspectorPass pPass, string pToken)
     {
         int pLast = pPass.PInspectorPassPreset.Items.Count - 1;
         string pText = LLocalization.LLocalizationFormat(
             "Inspector.Common.PresetCustom",
-            LLocalization.LLocalizationTextRead(pPreset.PInspectorPassKey));
+            LLocalization.LLocalizationTextRead(PFilterKeyRead(pPass, pToken)));
         pPass.PInspectorPassPreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
         pPass.PInspectorPassPreset.SelectedIndex = pLast;
     }
@@ -387,21 +390,12 @@ public sealed partial class PInspector
     private void PFilterPresetUpdate(PInspectorPass pPass)
     {
         pPass.PInspectorPresetSuppress = true;
-        PInspectorPassPreset? pMatch = null;
-        foreach (PInspectorPassPreset pEntry in pPass.PInspectorPassPresets)
-        {
-            if (PFilterValuesMatch(pPass, pEntry))
-            {
-                pMatch = pEntry;
-                break;
-            }
-        }
-
+        string? pMatch = PFilterMatchRead(pPass);
         if (pMatch is not null)
         {
-            pPass.PInspectorPassBase = pMatch.PInspectorPassToken;
+            pPass.PInspectorPassBase = pMatch;
             PFilterCustomReset(pPass);
-            PFilterPresetSelect(pPass, pMatch.PInspectorPassToken);
+            PFilterPresetSelect(pPass, pMatch);
         }
         else
         {
