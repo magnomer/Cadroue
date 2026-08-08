@@ -254,44 +254,44 @@ public sealed partial class PRoster
             return;
         }
 
-        Guid pRosterProbeId = PRosterSelectRead()?.LWorkId ?? Guid.Empty;
-        _ = Task.Run(() =>
+        LMediaProbe.LMediaProbeDefer(pMediaPath);
+    }
+
+    private void PRosterMediaReadyHandle(LMediaProbeResult pResult)
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
         {
-            LWorkMedia? pProbed = null;
-            try
+            string pMediaPath = pResult.LMediaProbeSourcePath;
+            if (!pRosterMediaPending.Remove(pMediaPath))
             {
-                LMediaInfo pProbedInfo = LMedia.LMediaFfprobeRead(pMediaPath);
-                pProbed = new LWorkMedia(
-                    pProbedInfo.LMediaVideoWidth,
-                    pProbedInfo.LMediaVideoHeight,
-                    pProbedInfo.LMediaVideoRate,
-                    (long)Math.Round(pProbedInfo.LMediaInfoDuration.TotalMilliseconds),
-                    pProbedInfo.LMediaVideoPresent)
-                {
-                    LWorkMediaCodec = pProbedInfo.LMediaAudioCodec,
-                    LWorkMediaBitrate = pProbedInfo.LMediaAudioBitrate,
-                    LWorkMediaSamplerate = pProbedInfo.LMediaSampleRate
-                };
-            }
-            catch (Exception pProbeError)
-            {
-                LTraceLog.LTraceErrorRecord($"Job detail could not read '{Path.GetFileName(pMediaPath)}': {pProbeError.Message}");
+                return;
             }
 
-            Dispatcher.BeginInvoke(new Action(() =>
+            if (pResult.LMediaProbeInfo is not { } pProbedInfo)
             {
-                pRosterMediaPending.Remove(pMediaPath);
-                if (pProbed is not null)
-                {
-                    pRosterMediaCache[pMediaPath] = pProbed;
-                }
+                LTraceLog.LTraceErrorRecord($"Job detail could not read '{Path.GetFileName(pMediaPath)}': {pResult.LMediaProbeError}");
+                return;
+            }
 
-                if (PRosterSelectRead()?.LWorkId == pRosterProbeId)
-                {
-                    PRosterDetailUpdate();
-                }
-            }));
-        });
+            pRosterMediaCache[pMediaPath] = new LWorkMedia(
+                pProbedInfo.LMediaVideoWidth,
+                pProbedInfo.LMediaVideoHeight,
+                pProbedInfo.LMediaVideoRate,
+                (long)Math.Round(pProbedInfo.LMediaInfoDuration.TotalMilliseconds),
+                pProbedInfo.LMediaVideoPresent)
+            {
+                LWorkMediaCodec = pProbedInfo.LMediaAudioCodec,
+                LWorkMediaBitrate = pProbedInfo.LMediaAudioBitrate,
+                LWorkMediaSamplerate = pProbedInfo.LMediaSampleRate
+            };
+
+            if (PRosterSelectRead() is { } pSelected
+                && (string.Equals(pSelected.LWorkSourcePath, pMediaPath, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(pSelected.LWorkOutputPath, pMediaPath, StringComparison.OrdinalIgnoreCase)))
+            {
+                PRosterDetailUpdate();
+            }
+        }));
     }
 
     private static void PRosterPathOpen(string pPath)

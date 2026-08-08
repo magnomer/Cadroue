@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Media;
 using Cadroue.ShellEngine;
 using Cadroue.UIShell.PMainWindow;
 
@@ -31,6 +32,7 @@ public sealed partial class PRoster : UserControl
 
         pRosterSchedule.LScheduleChange += PRosterScheduleHandle;
         pRosterSchedule.LScheduleItemChange += PRosterItemHandle;
+        LMediaProbe.LMediaProbeReady += PRosterMediaReadyHandle;
         PRosterConsoleAttach();
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;

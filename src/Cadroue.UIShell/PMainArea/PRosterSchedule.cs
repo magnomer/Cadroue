@@ -1,6 +1,7 @@
 using System.Windows;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Media;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -41,6 +42,7 @@ public sealed partial class PRoster
         pRosterClosed = true;
         pRosterSchedule.LScheduleChange -= PRosterScheduleHandle;
         pRosterSchedule.LScheduleItemChange -= PRosterItemHandle;
+        LMediaProbe.LMediaProbeReady -= PRosterMediaReadyHandle;
         IsVisibleChanged -= PRosterVisibleHandle;
         Unloaded -= PRosterUnloadHandle;
         pRosterStation.LStationClose();
