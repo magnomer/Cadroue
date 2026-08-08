@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,6 +16,10 @@ public static class LTraceWriter
     private const int LTraceWriterBatch = 256;
 
     public const string LTraceFolderName = "log";
+    public const string LTraceArchiveSuffix = ".gz";
+
+    private const int LTraceArchiveKeep = 20;
+    private const int LTraceArchiveDays = 14;
 
     private static readonly BlockingCollection<string> lTraceWriterQueue =
         new(new ConcurrentQueue<string>(), LTraceWriterCapacity);
@@ -98,7 +103,8 @@ public static class LTraceWriter
                 return new List<string>();
             }
 
-            return Directory.GetFiles(lTraceFolder, "Cadroue-*.log")
+            return Directory.GetFiles(lTraceFolder, "Cadroue-*")
+                .Where(LTraceFileCheck)
                 .OrderByDescending(lTraceFile => lTraceFile, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
@@ -126,15 +132,26 @@ public static class LTraceWriter
 
                 using var lTraceStream = new FileStream(
                     lTracePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                using var lTraceReader = new StreamReader(lTraceStream, Encoding.UTF8);
-                return lTraceReader.ReadToEnd();
+                Stream lTraceContent = lTracePath.EndsWith(LTraceArchiveSuffix, StringComparison.OrdinalIgnoreCase)
+                    ? new GZipStream(lTraceStream, CompressionMode.Decompress)
+                    : lTraceStream;
+                using (lTraceContent)
+                using (var lTraceReader = new StreamReader(lTraceContent, Encoding.UTF8))
+                {
+                    return lTraceReader.ReadToEnd();
+                }
             }
-            catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
+            catch (Exception lTraceException)
+                when (lTraceException is IOException or UnauthorizedAccessException or InvalidDataException)
             {
                 return string.Empty;
             }
         }
     }
+
+    private static bool LTraceFileCheck(string lTracePath) =>
+        lTracePath.EndsWith(".log", StringComparison.OrdinalIgnoreCase)
+        || lTracePath.EndsWith(".log" + LTraceArchiveSuffix, StringComparison.OrdinalIgnoreCase);
 
     public static void LTraceWriterClear()
     {
@@ -171,6 +188,7 @@ public static class LTraceWriter
 
     private static void LTraceWriterRun()
     {
+        LTraceArchiveRun();
         while (true)
         {
             try
@@ -272,5 +290,94 @@ public static class LTraceWriter
 
         lTraceWriterStream = null;
         lTraceWriterPath = null;
+    }
+
+    private static void LTraceArchiveRun()
+    {
+        lock (lTraceWriterLock)
+        {
+            try
+            {
+                string lTraceFolder = LTraceFolderRead();
+                if (!Directory.Exists(lTraceFolder))
+                {
+                    return;
+                }
+
+                string lTraceCurrent = LTracePathRead();
+                foreach (string lTraceStale in Directory.GetFiles(lTraceFolder, "Cadroue-*"))
+                {
+                    if (!lTraceStale.EndsWith(".log", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(lTraceStale, lTraceCurrent, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    LTraceArchiveSave(lTraceStale);
+                }
+
+                LTraceStaleRemove(lTraceFolder);
+            }
+            catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
+            {
+            }
+        }
+    }
+
+    private static void LTraceArchiveSave(string lTracePath)
+    {
+        string lTraceTarget = lTracePath + LTraceArchiveSuffix;
+        try
+        {
+            using (var lTraceSource = new FileStream(lTracePath, FileMode.Open, FileAccess.Read, FileShare.None))
+            using (var lTraceTargetStream = new FileStream(lTraceTarget, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var lTraceGzip = new GZipStream(lTraceTargetStream, CompressionLevel.SmallestSize))
+            {
+                lTraceSource.CopyTo(lTraceGzip);
+            }
+
+            File.Delete(lTracePath);
+        }
+        catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
+        {
+            try
+            {
+                if (File.Exists(lTraceTarget))
+                {
+                    File.Delete(lTraceTarget);
+                }
+            }
+            catch (Exception lTraceCleanup) when (lTraceCleanup is IOException or UnauthorizedAccessException)
+            {
+            }
+        }
+    }
+
+    private static void LTraceStaleRemove(string lTraceFolder)
+    {
+        List<string> lTraceArchives = Directory
+            .GetFiles(lTraceFolder, "Cadroue-*" + LTraceArchiveSuffix)
+            .OrderByDescending(lTraceFile => lTraceFile, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        DateTime lTraceCutoff = DateTime.UtcNow.AddDays(-LTraceArchiveDays);
+        for (int lTraceIndex = 0; lTraceIndex < lTraceArchives.Count; lTraceIndex++)
+        {
+            string lTraceFile = lTraceArchives[lTraceIndex];
+            bool lTraceExcess = lTraceIndex >= LTraceArchiveKeep;
+            bool lTraceAged = File.GetLastWriteTimeUtc(lTraceFile) < lTraceCutoff;
+            if (!lTraceExcess && !lTraceAged)
+            {
+                continue;
+            }
+
+            try
+            {
+                File.Delete(lTraceFile);
+            }
+            catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
+            {
+            }
+        }
     }
 }
