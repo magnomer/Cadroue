@@ -66,6 +66,21 @@ public static class LBinding
         }
     }
 
+    public static string LBindingGestureFormat(string lBindingKeyName, bool lBindingCtrl, bool lBindingAlt, bool lBindingShift, bool lBindingWin)
+    {
+        if (string.IsNullOrEmpty(lBindingKeyName))
+        {
+            return string.Empty;
+        }
+
+        string lBindingPrefix = string.Empty;
+        if (lBindingCtrl) lBindingPrefix += "Ctrl+";
+        if (lBindingAlt) lBindingPrefix += "Alt+";
+        if (lBindingShift) lBindingPrefix += "Shift+";
+        if (lBindingWin) lBindingPrefix += "Win+";
+        return lBindingPrefix + lBindingKeyName;
+    }
+
     public static IReadOnlyList<LBindingCommand> LBindingCatalogRead() => lBindingCatalog;
 
     public static IReadOnlyList<string> LBindingScopesRead() => lBindingScopes;

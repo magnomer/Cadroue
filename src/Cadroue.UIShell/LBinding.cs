@@ -7,17 +7,12 @@ public static class LBinding
     public static string LBindingFormat(Key lBindingKey, ModifierKeys lBindingModifiers)
     {
         string lBindingName = LBindingKeyFormat(lBindingKey);
-        if (lBindingName.Length == 0)
-        {
-            return string.Empty;
-        }
-
-        string lBindingPrefix = string.Empty;
-        if ((lBindingModifiers & ModifierKeys.Control) != 0) lBindingPrefix += "Ctrl+";
-        if ((lBindingModifiers & ModifierKeys.Alt) != 0) lBindingPrefix += "Alt+";
-        if ((lBindingModifiers & ModifierKeys.Shift) != 0) lBindingPrefix += "Shift+";
-        if ((lBindingModifiers & ModifierKeys.Windows) != 0) lBindingPrefix += "Win+";
-        return lBindingPrefix + lBindingName;
+        return Cadroue.Infrastructure.LBinding.LBindingGestureFormat(
+            lBindingName,
+            (lBindingModifiers & ModifierKeys.Control) != 0,
+            (lBindingModifiers & ModifierKeys.Alt) != 0,
+            (lBindingModifiers & ModifierKeys.Shift) != 0,
+            (lBindingModifiers & ModifierKeys.Windows) != 0);
     }
 
     public static bool LBindingModifierCheck(Key lBindingKey) => lBindingKey is
