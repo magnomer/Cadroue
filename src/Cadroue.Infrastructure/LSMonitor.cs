@@ -1,8 +1,7 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.Media;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Infrastructure;
 
 public readonly record struct LSMonitorEstimate(double[] LSMonitorBefore, double[] LSMonitorAfter);
 

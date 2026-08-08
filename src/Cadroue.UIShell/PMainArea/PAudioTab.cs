@@ -2,6 +2,7 @@ using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 using Cadroue.Application;
+using Cadroue.Infrastructure;
 using Cadroue.MigrationInterface;
 using Cadroue.Media;
 
