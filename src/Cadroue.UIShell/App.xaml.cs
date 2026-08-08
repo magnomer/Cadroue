@@ -8,6 +8,7 @@ using Cadroue.UIShell.PMainWindow;
 
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Application;
 using Cadroue.MigrationInterface;
 using Cadroue.ShellEngine;
 

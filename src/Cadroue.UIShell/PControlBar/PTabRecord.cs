@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using Cadroue.UIShell.PPanels;
-using Cadroue.MigrationInterface;
+using Cadroue.Application;
 
 namespace Cadroue.UIShell.PControlBar;
 

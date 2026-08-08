@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.Application;
-using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PPanels;
 

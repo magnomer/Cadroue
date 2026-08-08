@@ -1,13 +1,9 @@
 using Cadroue.Core;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Application;
 
 public sealed partial class LPreset
 {
-    public const string LPresetAudioDefault = "Audio Processing (default)";
-    public const string LPresetSplitDefault = "Split (default)";
-    public const string LPresetMergeDefault = "Merge (default)";
-
     public string LPresetName { get; set; } = "MP4_H264_AAC_Default";
     public string LPresetDisplay { get; set; } = "{OriginalName}_export";
     public string LPresetContainer { get; set; } = "MP4";

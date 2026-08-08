@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainArea;
 using Cadroue.UIShell.PPanels;
+using Cadroue.Application;
 using Cadroue.MigrationInterface;
 
 using Cadroue.Infrastructure;
