@@ -21,6 +21,15 @@ public sealed record LGrainPreset(
 
 public static class LGrainCatalog
 {
+    public const double LGrainReductionLeast = 0;
+    public const double LGrainReductionMost = 30;
+    public const double LGrainSmoothLeast = 0;
+    public const double LGrainSmoothMost = 50;
+    public const double LGrainFloorLeast = -80;
+    public const double LGrainFloorMost = -20;
+    public const double LGrainAdaptivityLeast = 0;
+    public const double LGrainAdaptivityMost = 1;
+
     public static readonly IReadOnlyList<LGrainPreset> LGrainPresets = new[]
     {
         new LGrainPreset("Light", 8, -50, 4, 0.5, -38, LGrain.LGrainWhite),

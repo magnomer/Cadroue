@@ -9,15 +9,6 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private const double PNoiseReductionLeast = 0;
-    private const double PNoiseReductionMost = 30;
-    private const double PNoiseSmoothLeast = 0;
-    private const double PNoiseSmoothMost = 50;
-    private const double PNoiseFloorLeast = -80;
-    private const double PNoiseFloorMost = -20;
-    private const double PNoiseAdaptivityLeast = 0;
-    private const double PNoiseAdaptivityMost = 1;
-
     private CheckBox pNoiseApplyBox = null!;
     private CheckBox pNoisePersistent = null!;
     private ComboBox pNoisePreset = null!;
@@ -75,8 +66,8 @@ public sealed partial class PInspector
 
         pNoiseReduction = new Slider
         {
-            Minimum = PNoiseReductionLeast,
-            Maximum = PNoiseReductionMost,
+            Minimum = LGrainCatalog.LGrainReductionLeast,
+            Maximum = LGrainCatalog.LGrainReductionMost,
             Value = 12,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -97,15 +88,15 @@ public sealed partial class PInspector
             if (pNoiseSuppress) { return; }
             pNoiseSuppress = true;
             pNoiseReduction.Value = Math.Clamp(
-                PInspectorDecimalRead(pNoiseReductionValue, 12), PNoiseReductionLeast, PNoiseReductionMost);
+                PInspectorDecimalRead(pNoiseReductionValue, 12), LGrainCatalog.LGrainReductionLeast, LGrainCatalog.LGrainReductionMost);
             pNoiseSuppress = false;
             PNoiseDeviationCheck();
         };
 
         pNoiseSmooth = new Slider
         {
-            Minimum = PNoiseSmoothLeast,
-            Maximum = PNoiseSmoothMost,
+            Minimum = LGrainCatalog.LGrainSmoothLeast,
+            Maximum = LGrainCatalog.LGrainSmoothMost,
             Value = 6,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -126,7 +117,7 @@ public sealed partial class PInspector
             if (pNoiseSmoothSuppress) { return; }
             pNoiseSmoothSuppress = true;
             pNoiseSmooth.Value = Math.Clamp(
-                PInspectorDecimalRead(pNoiseSmoothValue, 6), PNoiseSmoothLeast, PNoiseSmoothMost);
+                PInspectorDecimalRead(pNoiseSmoothValue, 6), LGrainCatalog.LGrainSmoothLeast, LGrainCatalog.LGrainSmoothMost);
             pNoiseSmoothSuppress = false;
             PNoiseDeviationCheck();
         };
@@ -134,17 +125,17 @@ public sealed partial class PInspector
         pNoiseFloor = PInspectorDecimalBuild();
         pNoiseFloor.Text = "-50";
         Slider pNoiseFloorSlider = PInspectorSliderBind(
-            pNoiseFloor, PNoiseFloorLeast, PNoiseFloorMost, -50, "0.#",
+            pNoiseFloor, LGrainCatalog.LGrainFloorLeast, LGrainCatalog.LGrainFloorMost, -50, "0.#",
             () => PNoisePresetCurrent()?.LGrainFloor ?? -50, PNoiseDeviationCheck);
         pNoiseAdaptivity = PInspectorDecimalBuild();
         pNoiseAdaptivity.Text = "0.5";
         Slider pNoiseAdaptivitySlider = PInspectorSliderBind(
-            pNoiseAdaptivity, PNoiseAdaptivityLeast, PNoiseAdaptivityMost, 0.5, "0.###",
+            pNoiseAdaptivity, LGrainCatalog.LGrainAdaptivityLeast, LGrainCatalog.LGrainAdaptivityMost, 0.5, "0.###",
             () => PNoisePresetCurrent()?.LGrainAdaptivity ?? 0.5, PNoiseDeviationCheck);
         pNoiseResidual = PInspectorDecimalBuild();
         pNoiseResidual.Text = "-38";
         Slider pNoiseResidualSlider = PInspectorSliderBind(
-            pNoiseResidual, PNoiseFloorLeast, PNoiseFloorMost, -38, "0.#",
+            pNoiseResidual, LGrainCatalog.LGrainFloorLeast, LGrainCatalog.LGrainFloorMost, -38, "0.#",
             () => PNoisePresetCurrent()?.LGrainResidual ?? -38, PNoiseDeviationCheck);
 
         pNoiseType = new ComboBox
@@ -225,9 +216,9 @@ public sealed partial class PInspector
         pNoiseSuppress = true;
         pNoiseSmoothSuppress = true;
         pNoisePresetSuppress = true;
-        pNoiseReduction.Value = Math.Clamp(pPreset.LGrainReduction, PNoiseReductionLeast, PNoiseReductionMost);
+        pNoiseReduction.Value = Math.Clamp(pPreset.LGrainReduction, LGrainCatalog.LGrainReductionLeast, LGrainCatalog.LGrainReductionMost);
         pNoiseReductionValue.Text = pPreset.LGrainReduction.ToString("0.#", CultureInfo.InvariantCulture);
-        pNoiseSmooth.Value = Math.Clamp(pPreset.LGrainSmooth, PNoiseSmoothLeast, PNoiseSmoothMost);
+        pNoiseSmooth.Value = Math.Clamp(pPreset.LGrainSmooth, LGrainCatalog.LGrainSmoothLeast, LGrainCatalog.LGrainSmoothMost);
         pNoiseSmoothValue.Text = pPreset.LGrainSmooth.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseFloor.Text = pPreset.LGrainFloor.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseResidual.Text = pPreset.LGrainResidual.ToString("0.#", CultureInfo.InvariantCulture);
@@ -320,13 +311,13 @@ public sealed partial class PInspector
         pNoisePresetSuppress = true;
         pNoiseReduction.Value = Math.Clamp(
             pStep.LWorkNoiseReduction,
-            PNoiseReductionLeast,
-            PNoiseReductionMost);
+            LGrainCatalog.LGrainReductionLeast,
+            LGrainCatalog.LGrainReductionMost);
         pNoiseReductionValue.Text = pStep.LWorkNoiseReduction.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseSmooth.Value = Math.Clamp(
             pStep.LWorkNoiseSmooth,
-            PNoiseSmoothLeast,
-            PNoiseSmoothMost);
+            LGrainCatalog.LGrainSmoothLeast,
+            LGrainCatalog.LGrainSmoothMost);
         pNoiseSmoothValue.Text = pStep.LWorkNoiseSmooth.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseFloor.Text = pStep.LWorkNoiseFloor.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseResidual.Text = pStep.LWorkNoiseResidual.ToString("0.#", CultureInfo.InvariantCulture);

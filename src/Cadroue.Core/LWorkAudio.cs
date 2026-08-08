@@ -57,8 +57,13 @@ public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepAc
         double lStepAdaptivity,
         double lStepResidualFloor) =>
         new LWorkNoiseStep(
-            lStepActive, lStepReduction, lStepNoiseFloor, lStepTrackNoise,
-            lStepNoiseType, lStepGainSmooth, lStepAdaptivity, lStepResidualFloor);
+            lStepActive,
+            Math.Clamp(lStepReduction, LGrainCatalog.LGrainReductionLeast, LGrainCatalog.LGrainReductionMost),
+            Math.Clamp(lStepNoiseFloor, LGrainCatalog.LGrainFloorLeast, LGrainCatalog.LGrainFloorMost),
+            lStepTrackNoise, lStepNoiseType,
+            Math.Clamp(lStepGainSmooth, LGrainCatalog.LGrainSmoothLeast, LGrainCatalog.LGrainSmoothMost),
+            Math.Clamp(lStepAdaptivity, LGrainCatalog.LGrainAdaptivityLeast, LGrainCatalog.LGrainAdaptivityMost),
+            Math.Clamp(lStepResidualFloor, LGrainCatalog.LGrainFloorLeast, LGrainCatalog.LGrainFloorMost));
 
     public static LWorkAudioStep LWorkHighCreate(
         bool lStepActive, double lStepFrequency, int lStepStages, int lStepPoles, double lStepResonance) =>

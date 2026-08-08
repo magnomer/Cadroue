@@ -82,4 +82,46 @@ public sealed class LGrainTests
     {
         Assert.Equal(type, LGrainCatalog.LGrainParse(LGrainCatalog.LGrainFormat(type)));
     }
+
+    [Fact]
+    public void NoiseCreate_OutOfRange_Clamps()
+    {
+        var step = (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
+            true, 99, -50, false, LGrain.LGrainWhite, 6, 0.5, -38);
+
+        Assert.Equal(30, step.LWorkNoiseReduction);
+    }
+
+    [Fact]
+    public void NoiseCreate_BelowFloor_ClampsFloorAndResidual()
+    {
+        var step = (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
+            true, 12, -90, false, LGrain.LGrainWhite, 6, 0.5, -5);
+
+        Assert.Equal(-80, step.LWorkNoiseFloor);
+        Assert.Equal(-20, step.LWorkNoiseResidual);
+    }
+
+    [Fact]
+    public void NoiseCreate_AboveMax_ClampsSmoothAndAdaptivity()
+    {
+        var step = (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
+            true, 12, -50, false, LGrain.LGrainWhite, 99, 2, -38);
+
+        Assert.Equal(50, step.LWorkNoiseSmooth);
+        Assert.Equal(1, step.LWorkNoiseAdaptivity);
+    }
+
+    [Fact]
+    public void NoiseCreate_InRange_PassesThrough()
+    {
+        var step = (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
+            true, 20, -50, false, LGrain.LGrainWhite, 6, 0.5, -38);
+
+        Assert.Equal(20, step.LWorkNoiseReduction);
+        Assert.Equal(-50, step.LWorkNoiseFloor);
+        Assert.Equal(6, step.LWorkNoiseSmooth);
+        Assert.Equal(0.5, step.LWorkNoiseAdaptivity);
+        Assert.Equal(-38, step.LWorkNoiseResidual);
+    }
 }

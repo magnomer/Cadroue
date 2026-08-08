@@ -40,11 +40,11 @@ public sealed partial class PInspector
             PInspectorDecimalRead(pDynamicCompress, 6)),
         LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(
             pNoiseApplyBox.IsChecked == true,
-            Math.Clamp(PInspectorDecimalRead(pNoiseReductionValue, 12), PNoiseReductionLeast, PNoiseReductionMost),
+            Math.Clamp(PInspectorDecimalRead(pNoiseReductionValue, 12), LGrainCatalog.LGrainReductionLeast, LGrainCatalog.LGrainReductionMost),
             PInspectorDecimalRead(pNoiseFloor, -50),
             pNoiseTrack.IsChecked == true,
             PNoiseTypeRead(),
-            Math.Clamp(PInspectorDecimalRead(pNoiseSmoothValue, 6), PNoiseSmoothLeast, PNoiseSmoothMost),
+            Math.Clamp(PInspectorDecimalRead(pNoiseSmoothValue, 6), LGrainCatalog.LGrainSmoothLeast, LGrainCatalog.LGrainSmoothMost),
             Math.Clamp(PInspectorDecimalRead(pNoiseAdaptivity, 0.5), 0, 1),
             PInspectorDecimalRead(pNoiseResidual, -38)),
         LAudioKind.LAudioKindHighpass => LWorkAudioStep.LWorkHighCreate(
