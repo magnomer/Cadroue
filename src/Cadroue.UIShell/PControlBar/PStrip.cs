@@ -22,6 +22,7 @@ public sealed class PStrip
 
     private PTabRecord? pStripSelected;
     private PTabRecord? pStripHovered;
+    private bool pStripUpdateSuspended;
 
     public PStrip()
     {
@@ -53,6 +54,10 @@ public sealed class PStrip
     }
 
     public event Action<PTabRecord?>? PStripSelectChange;
+
+    public void PStripUpdateSuspend() => pStripUpdateSuspended = true;
+
+    public void PStripUpdateResume() => pStripUpdateSuspended = false;
 
     private IReadOnlyList<LTabsetSlot> PStripSlotsRead() =>
         PStripRecords
@@ -146,9 +151,15 @@ public sealed class PStrip
             PTabOrdinal = LTabset.LTabsetOrdinalRead(PStripSlotsRead(), pTabLayoutKey)
         };
         PStripRecords.Add(pTabRecord);
-        PStripTitleUpdate();
         LTraceLog.LTraceInfoRecord(
             $"Tab opened '{pTabRecord.PTabTitle}' ({pTabLayoutKey}): {PStripRecords.Count} tab(s) open");
+
+        if (pStripUpdateSuspended)
+        {
+            return pTabRecord;
+        }
+
+        PStripTitleUpdate();
 
         if (PStripSelected is null)
         {
@@ -162,8 +173,13 @@ public sealed class PStrip
         return pTabRecord;
     }
 
-    private void PStripTitleUpdate()
+    public void PStripTitleUpdate()
     {
+        if (pStripUpdateSuspended)
+        {
+            return;
+        }
+
         IReadOnlyList<LTabsetTitlePlan> pStripPlans = LTabset.LTabsetTitlePlan(PStripSlotsRead());
         Dictionary<Guid, PTabRecord> pStripById = PStripRecords.ToDictionary(pTabItem => pTabItem.PTabId);
         foreach (LTabsetTitlePlan pStripPlan in pStripPlans)
@@ -363,5 +379,19 @@ public sealed class PStrip
 
         var pTabNextIndex = LTabset.LTabsetNextResolve(PStripRecords.Count, pTabIndex);
         PStripSelect(PStripRecords[pTabNextIndex]);
+    }
+
+    public void PStripAllClose()
+    {
+        foreach (PTabRecord pTabRecord in PStripRecords)
+        {
+            pTabRecord.PTabWorkspace.PWorkspaceClose();
+            LCartographer.LCartographerTabRemove(pTabRecord.PTabId);
+        }
+
+        pStripHovered = null;
+        PStripRecords.Clear();
+        PStripSelected = null;
+        LTraceLog.LTraceInfoRecord("All tabs closed");
     }
 }

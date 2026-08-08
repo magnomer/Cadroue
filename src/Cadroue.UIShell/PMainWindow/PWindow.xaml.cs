@@ -100,6 +100,7 @@ public partial class PWindow : Window
             : new[] { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" };
         IReadOnlyList<LPresetRecord> pTabExports = lScene.LSceneTabExports;
         IReadOnlyList<LSceneTabRecord> pTabLayouts = lScene.LSceneTabLayouts;
+        pTabset.PStripUpdateSuspend();
         for (int pTabIndex = 0; pTabIndex < pTabKeys.Count; pTabIndex++)
         {
             LPreset? pTabExportState = pTabIndex < pTabExports.Count
@@ -112,6 +113,7 @@ public partial class PWindow : Window
                 pTabset.PStripNameSet(pTabRestored, lScene.LSceneTabNames[pTabIndex]);
             }
         }
+        pTabset.PStripUpdateResume();
         PWindowRelayApply(pTabset.PStripRecords, lScene.LSceneTabRelays);
         foreach (PTabRecord pTabRecord in pTabset.PStripRecords)
         {
@@ -121,6 +123,7 @@ public partial class PWindow : Window
             }
         }
         int pSelectIndex = Math.Clamp(lScene.LSceneTabIndex, 0, pTabset.PStripRecords.Count - 1);
+        pTabset.PStripTitleUpdate();
         pTabset.PStripSelect(pTabset.PStripRecords[pSelectIndex]);
     }
     private void PWindowMediaRestore(LPreferenceState lPreferenceState)

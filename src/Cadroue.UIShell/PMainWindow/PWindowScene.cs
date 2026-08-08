@@ -33,10 +33,7 @@ public partial class PWindow
 
     public void PWindowSceneApply(LSceneRecord lScene)
     {
-        while (pStrip.PStripRecords.Count > 0)
-        {
-            pStrip.PStripClose(pStrip.PStripRecords[0]);
-        }
+        pStrip.PStripAllClose();
 
         LTrace.LTraceLoadingSet(true);
         try
