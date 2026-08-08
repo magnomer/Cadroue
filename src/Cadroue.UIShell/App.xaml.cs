@@ -115,7 +115,7 @@ public partial class PProgram : System.Windows.Application
                 .FirstOrDefault(pTab => pTab.PTabId == lSealNodeId)
                 ?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionAllRun();
 
-        Cadroue.MigrationInterface.LPreview.LPreviewApplySeam = PPanels.PViewer.PViewerPlayerApply;
+        Cadroue.Application.LPreview.LPreviewApplySeam = PPanels.PViewer.PViewerPlayerApply;
     }
 
     private static void LStationDispatch(Action lStationAction)

@@ -4,7 +4,7 @@ using FlyleafLib.MediaFramework.MediaRenderer;
 using FlyleafLib.MediaPlayer;
 
 using Cadroue.Infrastructure;
-using Cadroue.MigrationInterface;
+using Cadroue.Application;
 
 namespace Cadroue.UIShell.PPanels;
 
