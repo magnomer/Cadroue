@@ -12,12 +12,6 @@ public enum LAudioKind
     LAudioKindEqualizer
 }
 
-public enum LLeveling
-{
-    LLevelingLoudness,
-    LLevelingDynamic
-}
-
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "LWorkStepType")]
 [JsonDerivedType(typeof(LWorkVolumeStep), "Volume")]
 [JsonDerivedType(typeof(LWorkNormalizeStep), "Normalize")]
