@@ -201,22 +201,8 @@ public sealed partial class PInspector
         return pLoudnessBody;
     }
 
-    private static (double Target, double Peak, double Range)? PLoudnessValuesRead(string pToken) =>
-        pToken switch
-        {
-            "Loud" => (-9d, -1d, 6d),
-            "Streaming" => (-14d, -1d, 9d),
-            "Podcast" => (-16d, -1.5d, 8d),
-            "Dialogue" => (-18d, -1.5d, 7d),
-            "Audiobook" => (-21d, -2d, 6d),
-            "Broadcast" => (-23d, -1d, 15d),
-            "TV" => (-24d, -2d, 20d),
-            "Film" => (-27d, -2d, 18d),
-            _ => null
-        };
-
     private (double Target, double Peak, double Range)? PLoudnessPresetCurrent() =>
-        pLoudnessBaseToken is { } pBase ? PLoudnessValuesRead(pBase) : null;
+        pLoudnessBaseToken is { } pBase ? LLevelingCatalog.LLevelingLoudnessRead(pBase) : null;
 
     private static string PLoudnessKeyRead(string pToken) => pToken switch
     {
@@ -231,10 +217,11 @@ public sealed partial class PInspector
         _ => "Inspector.Common.Custom"
     };
 
-    private bool PLoudnessValuesMatch((double Target, double Peak, double Range) pPreset) =>
-        Math.Abs(PInspectorDecimalRead(pLoudnessTarget, -16) - pPreset.Target) < 0.05
-        && Math.Abs(PInspectorDecimalRead(pLoudnessPeak, -1.5) - pPreset.Peak) < 0.05
-        && Math.Abs(PInspectorDecimalRead(pLoudnessRange, 11) - pPreset.Range) < 0.05;
+    private string? PLoudnessValuesMatch() =>
+        LLevelingCatalog.LLevelingLoudnessMatch(
+            PInspectorDecimalRead(pLoudnessTarget, -16),
+            PInspectorDecimalRead(pLoudnessPeak, -1.5),
+            PInspectorDecimalRead(pLoudnessRange, 11));
 
     private void PLoudnessValuesApply((double Target, double Peak, double Range) pPreset)
     {
@@ -253,7 +240,7 @@ public sealed partial class PInspector
         }
 
         string pName = LLocalizationChoice.LLocalizationChoiceRead(pLoudnessPreset.SelectedItem);
-        if (string.IsNullOrEmpty(pName) || pName == "Custom" || PLoudnessValuesRead(pName) is not { } pPreset)
+        if (string.IsNullOrEmpty(pName) || pName == "Custom" || LLevelingCatalog.LLevelingLoudnessRead(pName) is not { } pPreset)
         {
             pLoudnessBaseToken = null;
             return;
@@ -268,13 +255,13 @@ public sealed partial class PInspector
     private void PLoudnessDeviationCheck()
     {
         if (pLoudnessPresetSuppress || pLoudnessBaseToken is not { } pBase
-            || PLoudnessValuesRead(pBase) is not { } pPreset)
+            || LLevelingCatalog.LLevelingLoudnessRead(pBase) is null)
         {
             return;
         }
 
         pLoudnessPresetSuppress = true;
-        if (PLoudnessValuesMatch(pPreset))
+        if (PLoudnessValuesMatch() == pBase)
         {
             PLoudnessCustomReset();
             PLoudnessPresetSelect(pBase);
@@ -321,19 +308,9 @@ public sealed partial class PInspector
         }
     }
 
-    private void PLoudnessPresetUpdate()
+    private void PNormalizePresetUpdate(string? pMatch)
     {
         pLoudnessPresetSuppress = true;
-        string? pMatch = null;
-        foreach (string pToken in new[] { "Loud", "Streaming", "Podcast", "Dialogue", "Audiobook", "Broadcast", "TV", "Film" })
-        {
-            if (PLoudnessValuesRead(pToken) is { } pPreset && PLoudnessValuesMatch(pPreset))
-            {
-                pMatch = pToken;
-                break;
-            }
-        }
-
         if (pMatch is not null)
         {
             pLoudnessBaseToken = pMatch;
@@ -368,14 +345,7 @@ public sealed partial class PInspector
         PNormalizePresetBuild(pLoudness);
         pLoudnessPresetSuppress = false;
 
-        if (pLoudness)
-        {
-            PLoudnessPresetUpdate();
-        }
-        else
-        {
-            PDynamicPresetUpdate();
-        }
+        PNormalizePresetUpdate(pLoudness ? PLoudnessValuesMatch() : PDynamicValuesMatch());
 
         PInspectorActiveRaise();
     }
@@ -385,14 +355,14 @@ public sealed partial class PInspector
         pLoudnessPreset.Items.Clear();
         if (pLoudness)
         {
-            foreach (string pToken in new[] { "Loud", "Streaming", "Podcast", "Dialogue", "Audiobook", "Broadcast", "TV", "Film" })
+            foreach (string pToken in LLevelingCatalog.LLevelingLoudnessTokens)
             {
                 pLoudnessPreset.Items.Add(new LLocalizationChoice(pToken, PLoudnessKeyRead(pToken)));
             }
         }
         else
         {
-            foreach (string pToken in new[] { "Gentle", "Leveler", "Voice", "Aggressive", "Music" })
+            foreach (string pToken in LLevelingCatalog.LLevelingDynamicTokens)
             {
                 pLoudnessPreset.Items.Add(new LLocalizationChoice(pToken, PDynamicKeyRead(pToken)));
             }
@@ -413,19 +383,8 @@ public sealed partial class PInspector
         }
     }
 
-    private static (double Frame, double Gauss, double MaxGain, double Compress)? PDynamicValuesRead(string pToken) =>
-        pToken switch
-        {
-            "Gentle" => (500d, 31d, 7d, 0d),
-            "Leveler" => (300d, 21d, 10d, 6d),
-            "Voice" => (200d, 15d, 12d, 8d),
-            "Aggressive" => (150d, 11d, 15d, 12d),
-            "Music" => (400d, 31d, 8d, 0d),
-            _ => null
-        };
-
     private (double Frame, double Gauss, double MaxGain, double Compress)? PDynamicPresetCurrent() =>
-        pLoudnessBaseToken is { } pBase ? PDynamicValuesRead(pBase) : null;
+        pLoudnessBaseToken is { } pBase ? LLevelingCatalog.LLevelingDynamicRead(pBase) : null;
 
     private static string PDynamicKeyRead(string pToken) => pToken switch
     {
@@ -437,11 +396,12 @@ public sealed partial class PInspector
         _ => "Inspector.Common.Custom"
     };
 
-    private bool PDynamicValuesMatch((double Frame, double Gauss, double MaxGain, double Compress) pPreset) =>
-        Math.Abs(PInspectorDecimalRead(pDynamicFrame, 300) - pPreset.Frame) < 0.5
-        && Math.Abs(PInspectorDecimalRead(pDynamicGauss, 21) - pPreset.Gauss) < 0.5
-        && Math.Abs(PInspectorDecimalRead(pDynamicMaxGain, 10) - pPreset.MaxGain) < 0.05
-        && Math.Abs(PInspectorDecimalRead(pDynamicCompress, 6) - pPreset.Compress) < 0.05;
+    private string? PDynamicValuesMatch() =>
+        LLevelingCatalog.LLevelingDynamicMatch(
+            PInspectorDecimalRead(pDynamicFrame, 300),
+            PInspectorDecimalRead(pDynamicGauss, 21),
+            PInspectorDecimalRead(pDynamicMaxGain, 10),
+            PInspectorDecimalRead(pDynamicCompress, 6));
 
     private void PDynamicValuesApply((double Frame, double Gauss, double MaxGain, double Compress) pPreset)
     {
@@ -461,7 +421,7 @@ public sealed partial class PInspector
         }
 
         string pName = LLocalizationChoice.LLocalizationChoiceRead(pLoudnessPreset.SelectedItem);
-        if (string.IsNullOrEmpty(pName) || pName == "Custom" || PDynamicValuesRead(pName) is not { } pPreset)
+        if (string.IsNullOrEmpty(pName) || pName == "Custom" || LLevelingCatalog.LLevelingDynamicRead(pName) is not { } pPreset)
         {
             pLoudnessBaseToken = null;
             return;
@@ -476,13 +436,13 @@ public sealed partial class PInspector
     private void PDynamicDeviationCheck()
     {
         if (pLoudnessPresetSuppress || pLoudnessBaseToken is not { } pBase
-            || PDynamicValuesRead(pBase) is not { } pPreset)
+            || LLevelingCatalog.LLevelingDynamicRead(pBase) is null)
         {
             return;
         }
 
         pLoudnessPresetSuppress = true;
-        if (PDynamicValuesMatch(pPreset))
+        if (PDynamicValuesMatch() == pBase)
         {
             PLoudnessCustomReset();
             PLoudnessPresetSelect(pBase);
@@ -509,34 +469,5 @@ public sealed partial class PInspector
             LLocalization.LLocalizationTextRead(PDynamicKeyRead(pBase)));
         pLoudnessPreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
         pLoudnessPreset.SelectedIndex = pLast;
-    }
-
-    private void PDynamicPresetUpdate()
-    {
-        pLoudnessPresetSuppress = true;
-        string? pMatch = null;
-        foreach (string pToken in new[] { "Gentle", "Leveler", "Voice", "Aggressive", "Music" })
-        {
-            if (PDynamicValuesRead(pToken) is { } pPreset && PDynamicValuesMatch(pPreset))
-            {
-                pMatch = pToken;
-                break;
-            }
-        }
-
-        if (pMatch is not null)
-        {
-            pLoudnessBaseToken = pMatch;
-            PLoudnessCustomReset();
-            PLoudnessPresetSelect(pMatch);
-        }
-        else
-        {
-            pLoudnessBaseToken = null;
-            PLoudnessCustomReset();
-            pLoudnessPreset.SelectedIndex = pLoudnessPreset.Items.Count - 1;
-        }
-
-        pLoudnessPresetSuppress = false;
     }
 }
