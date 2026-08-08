@@ -71,7 +71,7 @@ public partial class PWindow : Window
     }
     private static void PWindowTabsRestore(PStrip pTabset, LPreferenceState lPreferenceState, LSceneRecord lScene)
     {
-        PStrip.PStripRestoring = true;
+        LTrace.LTraceLoadingSet(true);
         try
         {
             if (lPreferenceState.LPreferenceStartupMode == "DefaultTab")
@@ -89,7 +89,7 @@ public partial class PWindow : Window
         }
         finally
         {
-            PStrip.PStripRestoring = false;
+            LTrace.LTraceLoadingSet(false);
         }
     }
 

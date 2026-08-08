@@ -31,8 +31,6 @@ public sealed class PStrip
 
     public static PStrip? PStripCurrent { get; private set; }
 
-    public static bool PStripRestoring { get; set; }
-
     public ObservableCollection<PTabRecord> PStripRecords { get; }
 
     public static string PStripTitleRead(Guid pStripTabId) =>
@@ -149,15 +147,8 @@ public sealed class PStrip
         };
         PStripRecords.Add(pTabRecord);
         PStripTitleUpdate();
-        string pStripOpenedMessage = $"Tab opened '{pTabRecord.PTabTitle}' ({pTabLayoutKey}): {PStripRecords.Count} tab(s) open";
-        if (PStripRestoring)
-        {
-            LTraceLog.LTraceLoadingRecord(pStripOpenedMessage);
-        }
-        else
-        {
-            LTraceLog.LTraceInfoRecord(pStripOpenedMessage);
-        }
+        LTraceLog.LTraceInfoRecord(
+            $"Tab opened '{pTabRecord.PTabTitle}' ({pTabLayoutKey}): {PStripRecords.Count} tab(s) open");
 
         if (PStripSelected is null)
         {

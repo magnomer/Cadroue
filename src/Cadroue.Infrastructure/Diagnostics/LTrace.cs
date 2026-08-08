@@ -27,6 +27,7 @@ public static class LTrace
     private static long lTracePreviousStamp = -1;
     private static Timer? lTraceDrawTimer;
     private static bool lTraceVerbose;
+    private static bool lTraceLoading;
 
     public static event Action<LTraceEntry>? LTraceAppend;
 
@@ -54,9 +55,18 @@ public static class LTrace
         }
     }
 
+    public static bool LTraceLoading
+    {
+        get => Volatile.Read(ref lTraceLoading);
+    }
+
+    public static void LTraceLoadingSet(bool lTraceLoadingActive) =>
+        Volatile.Write(ref lTraceLoading, lTraceLoadingActive);
+
     public static bool LTraceCheck(LTraceKind lTraceKind) =>
         lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceLoading or LTraceKind.LTraceWarning or LTraceKind.LTraceError
-            || Volatile.Read(ref lTraceVerbose);
+            || Volatile.Read(ref lTraceVerbose)
+            || (Volatile.Read(ref lTraceLoading) && lTraceKind is LTraceKind.LTraceUi);
 
     public static void LTraceRecord(
         LTraceKind lTraceKind,
@@ -64,6 +74,12 @@ public static class LTrace
         string? lTraceDetail = null,
         double? lTraceMilliseconds = null)
     {
+        if (Volatile.Read(ref lTraceLoading)
+            && lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceUi)
+        {
+            lTraceKind = LTraceKind.LTraceLoading;
+        }
+
         if (!LTraceCheck(lTraceKind))
         {
             return;

@@ -4,6 +4,7 @@ using System.Linq;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
 using Cadroue.ShellEngine;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PMainWindow;
 
@@ -37,14 +38,14 @@ public partial class PWindow
             pStrip.PStripClose(pStrip.PStripRecords[0]);
         }
 
-        PStrip.PStripRestoring = true;
+        LTrace.LTraceLoadingSet(true);
         try
         {
             PWindowSceneRestore(pStrip, lScene);
         }
         finally
         {
-            PStrip.PStripRestoring = false;
+            LTrace.LTraceLoadingSet(false);
         }
     }
 
