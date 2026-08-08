@@ -32,9 +32,6 @@ public sealed partial class PInspector
     private string? pEqualizerBaseToken;
     private readonly List<PInspectorBand> pEqualizerRows = new();
 
-    private static readonly double[] pEqualizerBandGrid =
-        { 31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 };
-
     public LWorkAudioStep PEqualizerStepRead()
     {
         var pBands = new List<LWorkBand>();
@@ -84,15 +81,11 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pEqualizerPreset);
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("Flat", "Inspector.Equalizer.Preset.Flat"));
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("Bass boost", "Inspector.Equalizer.Preset.BassBoost"));
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("Bright", "Inspector.Equalizer.Preset.Bright"));
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("Warm", "Inspector.Equalizer.Preset.Warm"));
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("Loudness", "Inspector.Equalizer.Preset.Loudness"));
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("Vocal", "Inspector.Equalizer.Preset.Vocal"));
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("De-ess", "Inspector.Equalizer.Preset.Deess"));
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("Podcast", "Inspector.Equalizer.Preset.Podcast"));
-        pEqualizerPreset.Items.Add(new LLocalizationChoice("Telephone", "Inspector.Equalizer.Preset.Telephone"));
+        foreach (string pToken in LContourCatalog.LContourTokensRead())
+        {
+            pEqualizerPreset.Items.Add(new LLocalizationChoice(pToken, PEqualizerKeyRead(pToken)));
+        }
+
         pEqualizerPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
         pEqualizerPreset.SelectedIndex = 0;
         pEqualizerPreset.SelectionChanged += (_, _) => PEqualizerPresetApply();
@@ -278,20 +271,6 @@ public sealed partial class PInspector
         PEqualizerDeviationCheck();
     }
 
-    private static double[]? PEqualizerValuesRead(string pToken) => pToken switch
-    {
-        "Flat" => new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        "Bass boost" => new double[] { 6, 5, 3, 1, 0, 0, 0, 0, 0, 0 },
-        "Bright" => new double[] { 0, 0, 0, 0, 0, 0, 1, 3, 5, 6 },
-        "Warm" => new double[] { 2, 3, 2, 1, 0, 0, -1, -2, -3, -2 },
-        "Loudness" => new double[] { 6, 4, 2, 0, -2, -3, -1, 1, 4, 6 },
-        "Vocal" => new double[] { -3, -2, 0, 1, 2, 2, 3, 2, 1, 0 },
-        "De-ess" => new double[] { 0, 0, 0, 0, 0, 0, 0, -2, -6, -3 },
-        "Podcast" => new double[] { -6, -3, 0, -1, 0, 1, 2, 3, 2, 1 },
-        "Telephone" => new double[] { -12, -10, -4, 0, 2, 4, 3, 0, -8, -12 },
-        _ => null
-    };
-
     private static string PEqualizerKeyRead(string pToken) => pToken switch
     {
         "Flat" => "Inspector.Equalizer.Preset.Flat",
@@ -308,32 +287,26 @@ public sealed partial class PInspector
 
     private void PEqualizerRowsApply(double[] pGains)
     {
+        double[] pGrid = LContourCatalog.LContourBandGrid;
         pEqualizerRows.Clear();
         pEqualizerRowPanel.Children.Clear();
-        for (int pIndex = 0; pIndex < pEqualizerBandGrid.Length; pIndex++)
+        for (int pIndex = 0; pIndex < pGrid.Length; pIndex++)
         {
-            PEqualizerRowAdd(pEqualizerBandGrid[pIndex], pGains[pIndex], false);
+            PEqualizerRowAdd(pGrid[pIndex], pGains[pIndex], false);
         }
     }
 
-    private bool PEqualizerValuesMatch(double[] pGains)
+    private (double[] Frequencies, double[] Gains) PEqualizerCurrentRead()
     {
-        if (pEqualizerRows.Count != pEqualizerBandGrid.Length)
-        {
-            return false;
-        }
-
+        var pFrequencies = new double[pEqualizerRows.Count];
+        var pGains = new double[pEqualizerRows.Count];
         for (int pIndex = 0; pIndex < pEqualizerRows.Count; pIndex++)
         {
-            double pFrequency = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandFrequency, 0);
-            double pGain = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandValue, 0);
-            if (Math.Abs(pFrequency - pEqualizerBandGrid[pIndex]) > 0.5 || Math.Abs(pGain - pGains[pIndex]) > 0.05)
-            {
-                return false;
-            }
+            pFrequencies[pIndex] = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandFrequency, 0);
+            pGains[pIndex] = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandValue, 0);
         }
 
-        return true;
+        return (pFrequencies, pGains);
     }
 
     private void PEqualizerPresetApply()
@@ -344,7 +317,8 @@ public sealed partial class PInspector
         }
 
         string pName = LLocalizationChoice.LLocalizationChoiceRead(pEqualizerPreset.SelectedItem);
-        if (string.IsNullOrEmpty(pName) || pName == "Custom" || PEqualizerValuesRead(pName) is not { } pGains)
+        if (string.IsNullOrEmpty(pName) || pName == "Custom"
+            || LContourCatalog.LContourGainsRead(pName) is not { } pGains)
         {
             pEqualizerBaseToken = null;
             return;
@@ -361,13 +335,14 @@ public sealed partial class PInspector
     private void PEqualizerDeviationCheck()
     {
         if (pEqualizerPresetSuppress || pEqualizerBaseToken is not { } pBase
-            || PEqualizerValuesRead(pBase) is not { } pGains)
+            || LContourCatalog.LContourGainsRead(pBase) is not { } pGains)
         {
             return;
         }
 
+        (double[] pFrequencies, double[] pCurrentGains) = PEqualizerCurrentRead();
         pEqualizerPresetSuppress = true;
-        if (PEqualizerValuesMatch(pGains))
+        if (LContourCatalog.LContourMatch(pFrequencies, pCurrentGains, pGains))
         {
             PEqualizerCustomReset();
             PEqualizerPresetSelect(pBase);
@@ -383,16 +358,8 @@ public sealed partial class PInspector
     private void PEqualizerPresetUpdate()
     {
         pEqualizerPresetSuppress = true;
-        string? pMatch = null;
-        foreach (string pToken in new[] { "Flat", "Bass boost", "Bright", "Warm", "Loudness", "Vocal", "De-ess", "Podcast", "Telephone" })
-        {
-            if (PEqualizerValuesRead(pToken) is { } pGains && PEqualizerValuesMatch(pGains))
-            {
-                pMatch = pToken;
-                break;
-            }
-        }
-
+        (double[] pFrequencies, double[] pGains) = PEqualizerCurrentRead();
+        string? pMatch = LContourCatalog.LContourPresetFind(pFrequencies, pGains);
         if (pMatch is not null)
         {
             pEqualizerBaseToken = pMatch;
