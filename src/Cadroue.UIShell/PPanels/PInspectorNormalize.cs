@@ -38,6 +38,7 @@ public sealed partial class PInspector
 
     private StackPanel PLoudnessBodyBuild()
     {
+        var pDefault = LLevelingCatalog.LLevelingDefaultRead();
         pLoudnessApplyBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
         pLoudnessApplyBox.Checked += (_, _) => PLoudnessApplyUpdate();
         pLoudnessApplyBox.Unchecked += (_, _) => PLoudnessApplyUpdate();
@@ -90,41 +91,41 @@ public sealed partial class PInspector
         pLoudnessMode.SelectionChanged += (_, _) => PLoudnessModeUpdate();
 
         pLoudnessTarget = PInspectorDecimalBuild();
-        pLoudnessTarget.Text = "-21";
+        pLoudnessTarget.Text = pDefault.Target.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pTargetSlider = PInspectorSliderBind(
-            pLoudnessTarget, LLevelingCatalog.LLevelingTargetLeast, LLevelingCatalog.LLevelingTargetMost, -21, "0.#",
-            () => PLoudnessPresetCurrent()?.Target ?? -21, PLoudnessValueUpdate);
+            pLoudnessTarget, LLevelingCatalog.LLevelingTargetLeast, LLevelingCatalog.LLevelingTargetMost, pDefault.Target, "0.#",
+            () => PLoudnessPresetCurrent()?.Target ?? pDefault.Target, PLoudnessValueUpdate);
         pLoudnessPeak = PInspectorDecimalBuild();
-        pLoudnessPeak.Text = "-2";
+        pLoudnessPeak.Text = pDefault.Peak.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pPeakSlider = PInspectorSliderBind(
-            pLoudnessPeak, LLevelingCatalog.LLevelingPeakLeast, LLevelingCatalog.LLevelingPeakMost, -2, "0.#",
-            () => PLoudnessPresetCurrent()?.Peak ?? -2, PLoudnessValueUpdate);
+            pLoudnessPeak, LLevelingCatalog.LLevelingPeakLeast, LLevelingCatalog.LLevelingPeakMost, pDefault.Peak, "0.#",
+            () => PLoudnessPresetCurrent()?.Peak ?? pDefault.Peak, PLoudnessValueUpdate);
         pLoudnessRange = PInspectorDecimalBuild();
-        pLoudnessRange.Text = "6";
+        pLoudnessRange.Text = pDefault.Range.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pRangeSlider = PInspectorSliderBind(
-            pLoudnessRange, LLevelingCatalog.LLevelingRangeLeast, LLevelingCatalog.LLevelingRangeMost, 6, "0.#",
-            () => PLoudnessPresetCurrent()?.Range ?? 6, PLoudnessValueUpdate);
+            pLoudnessRange, LLevelingCatalog.LLevelingRangeLeast, LLevelingCatalog.LLevelingRangeMost, pDefault.Range, "0.#",
+            () => PLoudnessPresetCurrent()?.Range ?? pDefault.Range, PLoudnessValueUpdate);
 
         pDynamicFrame = PInspectorDecimalBuild();
-        pDynamicFrame.Text = "300";
+        pDynamicFrame.Text = pDefault.Frame.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pFrameSlider = PInspectorSliderBind(
-            pDynamicFrame, LLevelingCatalog.LLevelingFrameLeast, LLevelingCatalog.LLevelingFrameMost, 300, "0",
-            () => PDynamicPresetCurrent()?.Frame ?? 300, PDynamicValueUpdate);
+            pDynamicFrame, LLevelingCatalog.LLevelingFrameLeast, LLevelingCatalog.LLevelingFrameMost, pDefault.Frame, "0",
+            () => PDynamicPresetCurrent()?.Frame ?? pDefault.Frame, PDynamicValueUpdate);
         pDynamicGauss = PInspectorDecimalBuild();
-        pDynamicGauss.Text = "21";
+        pDynamicGauss.Text = pDefault.Gauss.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pGaussSlider = PInspectorSliderBind(
-            pDynamicGauss, LLevelingCatalog.LLevelingGaussLeast, LLevelingCatalog.LLevelingGaussMost, 21, "0",
-            () => PDynamicPresetCurrent()?.Gauss ?? 21, PDynamicValueUpdate);
+            pDynamicGauss, LLevelingCatalog.LLevelingGaussLeast, LLevelingCatalog.LLevelingGaussMost, pDefault.Gauss, "0",
+            () => PDynamicPresetCurrent()?.Gauss ?? pDefault.Gauss, PDynamicValueUpdate);
         pDynamicMaxGain = PInspectorDecimalBuild();
-        pDynamicMaxGain.Text = "10";
+        pDynamicMaxGain.Text = pDefault.MaxGain.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pMaxGainSlider = PInspectorSliderBind(
-            pDynamicMaxGain, LLevelingCatalog.LLevelingGainLeast, LLevelingCatalog.LLevelingGainMost, 10, "0.#",
-            () => PDynamicPresetCurrent()?.MaxGain ?? 10, PDynamicValueUpdate);
+            pDynamicMaxGain, LLevelingCatalog.LLevelingGainLeast, LLevelingCatalog.LLevelingGainMost, pDefault.MaxGain, "0.#",
+            () => PDynamicPresetCurrent()?.MaxGain ?? pDefault.MaxGain, PDynamicValueUpdate);
         pDynamicCompress = PInspectorDecimalBuild();
-        pDynamicCompress.Text = "6";
+        pDynamicCompress.Text = pDefault.Compress.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pCompressSlider = PInspectorSliderBind(
-            pDynamicCompress, LLevelingCatalog.LLevelingCompressLeast, LLevelingCatalog.LLevelingCompressMost, 6, "0.#",
-            () => PDynamicPresetCurrent()?.Compress ?? 6, PDynamicValueUpdate);
+            pDynamicCompress, LLevelingCatalog.LLevelingCompressLeast, LLevelingCatalog.LLevelingCompressMost, pDefault.Compress, "0.#",
+            () => PDynamicPresetCurrent()?.Compress ?? pDefault.Compress, PDynamicValueUpdate);
 
         pLoudnessTwoPass = new CheckBox
         {
@@ -134,7 +135,7 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center,
-            IsChecked = true,
+            IsChecked = pDefault.TwoPass,
             Margin = new Thickness(0, 8, 0, 0)
         };
         PMainWindow.PCheckbox.PCheckboxApply(pLoudnessTwoPass);

@@ -46,6 +46,22 @@ public sealed class LWorkNormalizeBoundTests
     }
 
     [Fact]
+    public void LevelingDefaultRead_ReturnsCanonicalStep()
+    {
+        var (target, peak, range, twoPass, frame, gauss, maxGain, compress) =
+            LLevelingCatalog.LLevelingDefaultRead();
+
+        Assert.Equal(-21, target);
+        Assert.Equal(-2, peak);
+        Assert.Equal(6, range);
+        Assert.True(twoPass);
+        Assert.Equal(300, frame);
+        Assert.Equal(21, gauss);
+        Assert.Equal(10, maxGain);
+        Assert.Equal(6, compress);
+    }
+
+    [Fact]
     public void NormalizeCreate_InRange_Unchanged()
     {
         LWorkNormalizeStep step = Create(

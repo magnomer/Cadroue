@@ -39,6 +39,10 @@ public static class LLevelingCatalog
     public const double LLevelingCompressLeast = 0;
     public const double LLevelingCompressMost = 30;
 
+    public static (double Target, double Peak, double Range, bool TwoPass,
+        double Frame, double Gauss, double MaxGain, double Compress) LLevelingDefaultRead() =>
+        (-21, -2, 6, true, 300, 21, 10, 6);
+
     public static readonly IReadOnlyList<LLevelingLoudnessPreset> LLevelingLoudnessPresets = new[]
     {
         new LLevelingLoudnessPreset("Loud", -9, -1, 6),

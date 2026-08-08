@@ -48,9 +48,17 @@ public static partial class LAudio
         LAudioKind.LAudioKindNormalize
     };
 
+    public static LWorkAudioStep LAudioNormalizeCreate()
+    {
+        var (lTarget, lPeak, lRange, lTwoPass, lFrame, lGauss, lMaxGain, lCompress) =
+            LLevelingCatalog.LLevelingDefaultRead();
+        return LWorkAudioStep.LWorkNormalizeCreate(
+            false, LLeveling.LLevelingLoudness, lTarget, lPeak, lRange, lTwoPass, lFrame, lGauss, lMaxGain, lCompress);
+    }
+
     private static LWorkAudioStep LAudioDefaultCreate(LAudioKind lAudioKind) => lAudioKind switch
     {
-        LAudioKind.LAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(false, LLeveling.LLevelingLoudness, -21, -2, 6, true),
+        LAudioKind.LAudioKindNormalize => LAudioNormalizeCreate(),
         LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38),
         LAudioKind.LAudioKindHighpass => LPassband.LPassbandStepCreate(true, false),
         LAudioKind.LAudioKindLowpass => LPassband.LPassbandStepCreate(false, false),

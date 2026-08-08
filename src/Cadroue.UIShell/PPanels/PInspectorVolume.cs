@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIShell.PMainWindow;
 
@@ -31,10 +32,10 @@ public sealed partial class PInspector
             PInspectorDecimalRead(pLoudnessPeak, -1.5),
             PInspectorDecimalRead(pLoudnessRange, 11),
             pLoudnessTwoPass.IsChecked == true,
-            PInspectorDecimalRead(pDynamicFrame, 300),
-            PInspectorDecimalRead(pDynamicGauss, 21),
-            PInspectorDecimalRead(pDynamicMaxGain, 10),
-            PInspectorDecimalRead(pDynamicCompress, 6)),
+            PInspectorDecimalRead(pDynamicFrame, LLevelingCatalog.LLevelingDefaultRead().Frame),
+            PInspectorDecimalRead(pDynamicGauss, LLevelingCatalog.LLevelingDefaultRead().Gauss),
+            PInspectorDecimalRead(pDynamicMaxGain, LLevelingCatalog.LLevelingDefaultRead().MaxGain),
+            PInspectorDecimalRead(pDynamicCompress, LLevelingCatalog.LLevelingDefaultRead().Compress)),
         LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(
             pNoiseApplyBox.IsChecked == true,
             Math.Clamp(PInspectorDecimalRead(pNoiseReductionValue, 12), LGrainCatalog.LGrainReductionLeast, LGrainCatalog.LGrainReductionMost),
@@ -81,7 +82,7 @@ public sealed partial class PInspector
                 ?? LWorkAudioStep.LWorkVolumeCreate(false, 0));
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindNormalize)
-                ?? LWorkAudioStep.LWorkNormalizeCreate(false, LLeveling.LLevelingLoudness, -21, -2, 6, true));
+                ?? LAudio.LAudioNormalizeCreate());
         PInspectorActiveRaise();
     }
 
