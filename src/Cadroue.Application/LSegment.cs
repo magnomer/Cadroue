@@ -36,20 +36,14 @@ public sealed class LSegment
             LSegmentLoadSeam?.Invoke(lSegmentSource) ?? Array.Empty<LSidecarSectionRecord>();
         if (lSegmentRecords.Count == 0) return;
 
-        List<LPiece> lSegmentList = new();
-        foreach (LSidecarSectionRecord lSegmentRecord in lSegmentRecords)
-        {
-            LPiece lSegmentPiece = LSegmentPieceCreate(lSegmentRecord);
-            if (lSegmentPiece.LPieceEnd <= lSegmentDuration && lSegmentPiece.LPieceStart < lSegmentPiece.LPieceEnd)
-            {
-                lSegmentList.Add(lSegmentPiece);
-            }
-        }
+        IReadOnlyList<LPiece> lSegmentList = LPiece.LPieceValidSelect(
+            lSegmentRecords.Select(LSegmentPieceCreate).ToArray(),
+            lSegmentDuration);
 
         lSegmentRestoring = true;
         try
         {
-            LSegmentApply(lSegmentList, null);
+            LSegmentApply(lSegmentList.ToList(), null);
         }
         finally
         {
@@ -96,6 +90,12 @@ public sealed class LSegment
             ? null
             : Math.Clamp(lSelect, 0, lSegmentList.Count - 1);
         LSegmentApply(lSegmentList, lSegmentClamp);
+    }
+
+    public void LSegmentBoundSet(IReadOnlyList<LPiece> lSegmentSections, int? lSegmentSelect, TimeSpan lSegmentDuration)
+    {
+        IReadOnlyList<LPiece> lSegmentValid = LPiece.LPieceValidSelect(lSegmentSections, lSegmentDuration);
+        LSegmentSet(lSegmentValid, lSegmentSelect);
     }
 
     public void LSegmentLosslesscutSet(IReadOnlyList<LSidecarSectionRecord> lSegmentSections, int lSegmentPaletteCount)

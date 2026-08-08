@@ -146,16 +146,7 @@ public sealed partial class PFlow
             return;
         }
 
-        List<LPiece> pFlowValid = new();
-        foreach (LPiece lSection in lSections)
-        {
-            if (lSection.LPieceEnd <= lSpool.LSpoolDuration && lSection.LPieceStart < lSection.LPieceEnd)
-            {
-                pFlowValid.Add(lSection);
-            }
-        }
-
-        lSegment.LSegmentSet(pFlowValid, lSectionSelect);
+        lSegment.LSegmentBoundSet(lSections, lSectionSelect, lSpool.LSpoolDuration);
     }
 
     public bool PFlowSectionMove(int pSectionSource, int pSectionTarget)

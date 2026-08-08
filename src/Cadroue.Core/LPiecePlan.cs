@@ -2,6 +2,20 @@ namespace Cadroue.Core;
 
 public readonly partial record struct LPiece
 {
+    public static IReadOnlyList<LPiece> LPieceValidSelect(IReadOnlyList<LPiece> lPieceSections, TimeSpan lPieceDuration)
+    {
+        List<LPiece> lPieceValid = new();
+        foreach (LPiece lPieceSection in lPieceSections)
+        {
+            if (lPieceSection.LPieceEnd <= lPieceDuration && lPieceSection.LPieceStart < lPieceSection.LPieceEnd)
+            {
+                lPieceValid.Add(lPieceSection);
+            }
+        }
+
+        return lPieceValid;
+    }
+
     public static bool LPieceInsideCheck(
         IReadOnlyList<LPiece> lPieces,
         TimeSpan lPieceTime,

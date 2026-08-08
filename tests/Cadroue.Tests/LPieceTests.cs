@@ -14,6 +14,46 @@ public sealed class LPieceTests
 
     private static TimeSpan At(double seconds) => TimeSpan.FromSeconds(seconds);
 
+    // ---- ValidSelect ----
+
+    [Fact]
+    public void ValidSelect_SectionPastDuration_Dropped()
+    {
+        var sections = new[] { Seg(0, 5), Seg(8, 12) };
+        var valid = LPiece.LPieceValidSelect(sections, At(10));
+        Assert.Single(valid);
+        Assert.Equal(At(5), valid[0].LPieceEnd);
+    }
+
+    [Fact]
+    public void ValidSelect_ZeroOrNegativeLength_Dropped()
+    {
+        var sections = new[] { Seg(3, 3), Seg(6, 4), Seg(1, 2) };
+        var valid = LPiece.LPieceValidSelect(sections, At(10));
+        Assert.Single(valid);
+        Assert.Equal(At(1), valid[0].LPieceStart);
+        Assert.Equal(At(2), valid[0].LPieceEnd);
+    }
+
+    [Fact]
+    public void ValidSelect_AllValid_RoundTripsPreservingOrder()
+    {
+        var sections = new[] { Seg(0, 3), Seg(4, 6), Seg(7, 10) };
+        var valid = LPiece.LPieceValidSelect(sections, At(10));
+        Assert.Equal(3, valid.Count);
+        Assert.Equal(At(0), valid[0].LPieceStart);
+        Assert.Equal(At(4), valid[1].LPieceStart);
+        Assert.Equal(At(7), valid[2].LPieceStart);
+    }
+
+    [Fact]
+    public void ValidSelect_EndEqualToDuration_Kept()
+    {
+        var sections = new[] { Seg(5, 10) };
+        var valid = LPiece.LPieceValidSelect(sections, At(10));
+        Assert.Single(valid);
+    }
+
     // ---- InsideCheck ----
 
     [Fact]
