@@ -24,6 +24,21 @@ public sealed record LLevelingDynamicPreset(
 
 public static class LLevelingCatalog
 {
+    public const double LLevelingTargetLeast = -36;
+    public const double LLevelingTargetMost = -5;
+    public const double LLevelingPeakLeast = -9;
+    public const double LLevelingPeakMost = 0;
+    public const double LLevelingRangeLeast = 1;
+    public const double LLevelingRangeMost = 20;
+    public const double LLevelingFrameLeast = 50;
+    public const double LLevelingFrameMost = 1000;
+    public const double LLevelingGaussLeast = 3;
+    public const double LLevelingGaussMost = 101;
+    public const double LLevelingGainLeast = 1;
+    public const double LLevelingGainMost = 40;
+    public const double LLevelingCompressLeast = 0;
+    public const double LLevelingCompressMost = 30;
+
     public static readonly IReadOnlyList<LLevelingLoudnessPreset> LLevelingLoudnessPresets = new[]
     {
         new LLevelingLoudnessPreset("Loud", -9, -1, 6),

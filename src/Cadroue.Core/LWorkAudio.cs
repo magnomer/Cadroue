@@ -39,8 +39,15 @@ public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepAc
         double lStepMaxGain = 10,
         double lStepCompress = 6) =>
         new LWorkNormalizeStep(
-            lStepActive, lStepMode, lStepTarget, lStepPeak, lStepRange, lStepTwoPass,
-            lStepFrame, lStepGauss, lStepMaxGain, lStepCompress);
+            lStepActive, lStepMode,
+            Math.Clamp(lStepTarget, LLevelingCatalog.LLevelingTargetLeast, LLevelingCatalog.LLevelingTargetMost),
+            Math.Clamp(lStepPeak, LLevelingCatalog.LLevelingPeakLeast, LLevelingCatalog.LLevelingPeakMost),
+            Math.Clamp(lStepRange, LLevelingCatalog.LLevelingRangeLeast, LLevelingCatalog.LLevelingRangeMost),
+            lStepTwoPass,
+            Math.Clamp(lStepFrame, LLevelingCatalog.LLevelingFrameLeast, LLevelingCatalog.LLevelingFrameMost),
+            Math.Clamp(lStepGauss, LLevelingCatalog.LLevelingGaussLeast, LLevelingCatalog.LLevelingGaussMost),
+            Math.Clamp(lStepMaxGain, LLevelingCatalog.LLevelingGainLeast, LLevelingCatalog.LLevelingGainMost),
+            Math.Clamp(lStepCompress, LLevelingCatalog.LLevelingCompressLeast, LLevelingCatalog.LLevelingCompressMost));
 
     public static LWorkAudioStep LWorkNoiseCreate(
         bool lStepActive,

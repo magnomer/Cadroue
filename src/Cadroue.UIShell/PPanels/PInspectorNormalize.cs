@@ -10,21 +10,6 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private const double PLoudnessTargetLeast = -36;
-    private const double PLoudnessTargetMost = -5;
-    private const double PLoudnessPeakLeast = -9;
-    private const double PLoudnessPeakMost = 0;
-    private const double PLoudnessRangeLeast = 1;
-    private const double PLoudnessRangeMost = 20;
-    private const double PDynamicFrameLeast = 50;
-    private const double PDynamicFrameMost = 1000;
-    private const double PDynamicGaussLeast = 3;
-    private const double PDynamicGaussMost = 101;
-    private const double PDynamicGainLeast = 1;
-    private const double PDynamicGainMost = 40;
-    private const double PDynamicCompressLeast = 0;
-    private const double PDynamicCompressMost = 30;
-
     private CheckBox pLoudnessApplyBox = null!;
     private CheckBox pLoudnessPersistent = null!;
     private ComboBox pLoudnessPreset = null!;
@@ -107,38 +92,38 @@ public sealed partial class PInspector
         pLoudnessTarget = PInspectorDecimalBuild();
         pLoudnessTarget.Text = "-21";
         Slider pTargetSlider = PInspectorSliderBind(
-            pLoudnessTarget, PLoudnessTargetLeast, PLoudnessTargetMost, -21, "0.#",
+            pLoudnessTarget, LLevelingCatalog.LLevelingTargetLeast, LLevelingCatalog.LLevelingTargetMost, -21, "0.#",
             () => PLoudnessPresetCurrent()?.Target ?? -21, PLoudnessValueUpdate);
         pLoudnessPeak = PInspectorDecimalBuild();
         pLoudnessPeak.Text = "-2";
         Slider pPeakSlider = PInspectorSliderBind(
-            pLoudnessPeak, PLoudnessPeakLeast, PLoudnessPeakMost, -2, "0.#",
+            pLoudnessPeak, LLevelingCatalog.LLevelingPeakLeast, LLevelingCatalog.LLevelingPeakMost, -2, "0.#",
             () => PLoudnessPresetCurrent()?.Peak ?? -2, PLoudnessValueUpdate);
         pLoudnessRange = PInspectorDecimalBuild();
         pLoudnessRange.Text = "6";
         Slider pRangeSlider = PInspectorSliderBind(
-            pLoudnessRange, PLoudnessRangeLeast, PLoudnessRangeMost, 6, "0.#",
+            pLoudnessRange, LLevelingCatalog.LLevelingRangeLeast, LLevelingCatalog.LLevelingRangeMost, 6, "0.#",
             () => PLoudnessPresetCurrent()?.Range ?? 6, PLoudnessValueUpdate);
 
         pDynamicFrame = PInspectorDecimalBuild();
         pDynamicFrame.Text = "300";
         Slider pFrameSlider = PInspectorSliderBind(
-            pDynamicFrame, PDynamicFrameLeast, PDynamicFrameMost, 300, "0",
+            pDynamicFrame, LLevelingCatalog.LLevelingFrameLeast, LLevelingCatalog.LLevelingFrameMost, 300, "0",
             () => PDynamicPresetCurrent()?.Frame ?? 300, PDynamicValueUpdate);
         pDynamicGauss = PInspectorDecimalBuild();
         pDynamicGauss.Text = "21";
         Slider pGaussSlider = PInspectorSliderBind(
-            pDynamicGauss, PDynamicGaussLeast, PDynamicGaussMost, 21, "0",
+            pDynamicGauss, LLevelingCatalog.LLevelingGaussLeast, LLevelingCatalog.LLevelingGaussMost, 21, "0",
             () => PDynamicPresetCurrent()?.Gauss ?? 21, PDynamicValueUpdate);
         pDynamicMaxGain = PInspectorDecimalBuild();
         pDynamicMaxGain.Text = "10";
         Slider pMaxGainSlider = PInspectorSliderBind(
-            pDynamicMaxGain, PDynamicGainLeast, PDynamicGainMost, 10, "0.#",
+            pDynamicMaxGain, LLevelingCatalog.LLevelingGainLeast, LLevelingCatalog.LLevelingGainMost, 10, "0.#",
             () => PDynamicPresetCurrent()?.MaxGain ?? 10, PDynamicValueUpdate);
         pDynamicCompress = PInspectorDecimalBuild();
         pDynamicCompress.Text = "6";
         Slider pCompressSlider = PInspectorSliderBind(
-            pDynamicCompress, PDynamicCompressLeast, PDynamicCompressMost, 6, "0.#",
+            pDynamicCompress, LLevelingCatalog.LLevelingCompressLeast, LLevelingCatalog.LLevelingCompressMost, 6, "0.#",
             () => PDynamicPresetCurrent()?.Compress ?? 6, PDynamicValueUpdate);
 
         pLoudnessTwoPass = new CheckBox
