@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.Application;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 
@@ -19,6 +20,7 @@ public sealed partial class PGroup : PPanel
     private static readonly Brush pGroupIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
 
     private readonly List<PGroupRecord> pGroupRecords = [];
+    private readonly LGroupSelection lGroupOwner;
     private readonly StackPanel pGroupRowPanel;
     private readonly TextBlock pGroupEmptyNotice;
     private readonly UIElement pGroupFullBody;
@@ -31,8 +33,9 @@ public sealed partial class PGroup : PPanel
 
     public event Action<string>? PGroupItemOpen;
 
-    public PGroup() : base("")
+    public PGroup(LGroupSelection lGroupOwner) : base("")
     {
+        this.lGroupOwner = lGroupOwner;
         UIElement pHeader = PGroupHeaderBuild();
 
         pGroupRowPanel = new StackPanel();
@@ -83,6 +86,13 @@ public sealed partial class PGroup : PPanel
 
         Content = PPanelBorderBuild(pBodyHost);
         PGroupRebuild();
+
+        Loaded += (_, _) =>
+        {
+            lGroupOwner.LGroupSelectionChange += PGroupSelectionUpdate;
+            PGroupSelectionUpdate();
+        };
+        Unloaded += (_, _) => lGroupOwner.LGroupSelectionChange -= PGroupSelectionUpdate;
     }
 
     private void PGroupSort()

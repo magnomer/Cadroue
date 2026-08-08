@@ -34,6 +34,43 @@ public sealed class LSeriesTests
     }
 
     [Fact]
+    public void Resolve_First_UsesFirstNumericallySortedFileName()
+    {
+        IReadOnlyList<LSeriesGroup> lSeriesGroups =
+            LSeries.LSeriesResolve(
+                new[] { "A (2).mp4", "A (1).mp4" },
+                true,
+                LSeriesNameMode.LSeriesNameFirst);
+
+        LSeriesGroup lSeriesGroup = Assert.Single(lSeriesGroups);
+        Assert.Equal("A (1)", lSeriesGroup.Name);
+        Assert.Equal(new[] { "A (1).mp4", "A (2).mp4" }, lSeriesGroup.Paths);
+    }
+
+    [Fact]
+    public void Resolve_First_LooseGroupUsesFirstNameAcrossNumberGaps()
+    {
+        IReadOnlyList<LSeriesGroup> lSeriesGroups =
+            LSeries.LSeriesResolve(
+                new[] { "A (3).mp4", "A (1).mp4" },
+                false,
+                LSeriesNameMode.LSeriesNameFirst);
+
+        LSeriesGroup lSeriesGroup = Assert.Single(lSeriesGroups);
+        Assert.Equal("A (1)", lSeriesGroup.Name);
+        Assert.Equal(new[] { "A (1).mp4", "A (3).mp4" }, lSeriesGroup.Paths);
+    }
+
+    [Fact]
+    public void Resolve_Remove_RemainsDefaultAndUsesBaseName()
+    {
+        IReadOnlyList<LSeriesGroup> lSeriesGroups =
+            LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (2).mp4" }, true);
+
+        Assert.Equal("A", Assert.Single(lSeriesGroups).Name);
+    }
+
+    [Fact]
     public void Resolve_Loose_LumpsGappedNumbersIntoOneNamedByBase()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =

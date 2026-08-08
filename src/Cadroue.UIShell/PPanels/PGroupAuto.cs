@@ -11,29 +11,14 @@ public sealed partial class PGroup
     private static readonly Brush pGroupActiveBrush = new SolidColorBrush(Color.FromRgb(0xCE, 0xE1, 0xFB));
 
     private Border pGroupActionHost = null!;
-    private bool pGroupAuto;
-    private bool pGroupStrict = true;
-
-    public bool PGroupAutoCheck() => pGroupAuto;
-
-    public bool PGroupStrictCheck() => pGroupStrict;
-
-    public void PGroupModeRestore(bool pGroupSeedAuto, bool pGroupSeedStrict)
-    {
-        pGroupAuto = pGroupSeedAuto;
-        pGroupStrict = pGroupSeedStrict;
-        PGroupActionUpdate();
-        PGroupAutoUpdate();
-    }
-
     public void PGroupAutoUpdate()
     {
-        if (!pGroupAuto)
+        if (!lGroupOwner.LGroupAuto)
         {
             return;
         }
 
-        PGroupAutoApply(pGroupStrict);
+        PGroupAutoApply();
         PGroupSort();
     }
 
@@ -51,26 +36,8 @@ public sealed partial class PGroup
 
     private void PGroupActionUpdate() => pGroupActionHost.Child = PGroupContentBuild();
 
-    private void PGroupModeSet(bool pGroupModeAuto)
+    private void PGroupSelectionUpdate()
     {
-        if (pGroupAuto == pGroupModeAuto)
-        {
-            return;
-        }
-
-        pGroupAuto = pGroupModeAuto;
-        PGroupActionUpdate();
-        PGroupAutoUpdate();
-    }
-
-    private void PGroupStrictSet(bool pGroupSwitchStrict)
-    {
-        if (pGroupStrict == pGroupSwitchStrict)
-        {
-            return;
-        }
-
-        pGroupStrict = pGroupSwitchStrict;
         PGroupActionUpdate();
         PGroupAutoUpdate();
     }
@@ -85,36 +52,54 @@ public sealed partial class PGroup
         Border pModeToggle = PGroupToggleBuild(
             LLocalization.LLocalizationTextRead("Group.Manual.Label"),
             LLocalization.LLocalizationTextRead("Group.Manual.Tooltip"),
-            !pGroupAuto,
-            () => PGroupModeSet(false),
+            !lGroupOwner.LGroupAuto,
+            () => lGroupOwner.LGroupAutoRequest(false),
             LLocalization.LLocalizationTextRead("Group.Auto.Label"),
             LLocalization.LLocalizationTextRead("Group.Auto.Tooltip"),
-            pGroupAuto,
-            () => PGroupModeSet(true));
+            lGroupOwner.LGroupAuto,
+            () => lGroupOwner.LGroupAutoRequest(true));
         pModeToggle.HorizontalAlignment = HorizontalAlignment.Left;
         Grid.SetColumn(pModeToggle, 0);
         pActionGrid.Children.Add(pModeToggle);
 
-        UIElement pTrailing = pGroupAuto ? PGroupSwitchBuild() : PGroupManualBuild();
+        UIElement pTrailing = lGroupOwner.LGroupAuto ? PGroupSwitchBuild() : PGroupManualBuild();
         Grid.SetColumn(pTrailing, 2);
         pActionGrid.Children.Add(pTrailing);
         return pActionGrid;
     }
 
-    private Border PGroupSwitchBuild()
+    private StackPanel PGroupSwitchBuild()
     {
+        var pSwitches = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         Border pStrictToggle = PGroupToggleBuild(
             LLocalization.LLocalizationTextRead("Group.Strict.Label"),
             LLocalization.LLocalizationTextRead("Group.Strict.Tooltip"),
-            pGroupStrict,
-            () => PGroupStrictSet(true),
+            lGroupOwner.LGroupStrict,
+            () => lGroupOwner.LGroupStrictRequest(true),
             LLocalization.LLocalizationTextRead("Group.Loose.Label"),
             LLocalization.LLocalizationTextRead("Group.Loose.Tooltip"),
-            !pGroupStrict,
-            () => PGroupStrictSet(false));
-        pStrictToggle.HorizontalAlignment = HorizontalAlignment.Right;
+            !lGroupOwner.LGroupStrict,
+            () => lGroupOwner.LGroupStrictRequest(false));
         pStrictToggle.Margin = new Thickness(8, 0, 0, 0);
-        return pStrictToggle;
+        pSwitches.Children.Add(pStrictToggle);
+
+        Border pNameToggle = PGroupToggleBuild(
+            LLocalization.LLocalizationTextRead("Group.First.Label"),
+            LLocalization.LLocalizationTextRead("Group.First.Tooltip"),
+            lGroupOwner.LGroupNameMode == LSeriesNameMode.LSeriesNameFirst,
+            () => lGroupOwner.LGroupNameModeRequest(LSeriesNameMode.LSeriesNameFirst),
+            LLocalization.LLocalizationTextRead("Group.NumberRemove.Label"),
+            LLocalization.LLocalizationTextRead("Group.NumberRemove.Tooltip"),
+            lGroupOwner.LGroupNameMode == LSeriesNameMode.LSeriesNameRemove,
+            () => lGroupOwner.LGroupNameModeRequest(LSeriesNameMode.LSeriesNameRemove));
+        pNameToggle.Margin = new Thickness(8, 0, 0, 0);
+        pSwitches.Children.Add(pNameToggle);
+        return pSwitches;
     }
 
     private StackPanel PGroupManualBuild()
@@ -198,10 +183,10 @@ public sealed partial class PGroup
 
     private void PGroupLooseApply() => PGroupAutoApply(false);
 
-    private void PGroupAutoApply(bool pGroupStrict)
+    private void PGroupAutoApply(bool? pGroupStrict = null)
     {
         IReadOnlyList<string> pFiles = PGroupSourceFiles?.Invoke() ?? Array.Empty<string>();
-        IReadOnlyList<LSeriesGroup> pGroups = LSeries.LSeriesResolve(pFiles, pGroupStrict);
+        IReadOnlyList<LSeriesGroup> pGroups = lGroupOwner.LGroupResolve(pFiles, pGroupStrict);
 
         pGroupRecords.Clear();
         foreach (LSeriesGroup pGroupSeries in pGroups)

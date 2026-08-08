@@ -9,12 +9,21 @@ namespace Cadroue.Core;
 
 public readonly record struct LSeriesGroup(string Name, IReadOnlyList<string> Paths);
 
+public enum LSeriesNameMode
+{
+    LSeriesNameRemove,
+    LSeriesNameFirst
+}
+
 public static class LSeries
 {
     private static readonly Regex lSeriesNumberPattern =
         new(@"^(?<base>.*?)\s*\((?<number>\d+)\)\s*$", RegexOptions.CultureInvariant);
 
-    public static IReadOnlyList<LSeriesGroup> LSeriesResolve(IReadOnlyList<string> lSeriesPaths, bool lSeriesStrict)
+    public static IReadOnlyList<LSeriesGroup> LSeriesResolve(
+        IReadOnlyList<string> lSeriesPaths,
+        bool lSeriesStrict,
+        LSeriesNameMode lSeriesNameMode = LSeriesNameMode.LSeriesNameRemove)
     {
         var lSeriesBuckets = new List<(string? Base, List<LSeriesItem> Items)>();
         var lSeriesBaseIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -51,7 +60,7 @@ public static class LSeries
             if (!lSeriesStrict)
             {
                 lSeriesGroups.Add(LSeriesGroupCreate(
-                    lSeriesSorted.Count > 1 ? lSeriesBase : lSeriesSorted[0].Stem, lSeriesSorted));
+                    LSeriesGroupNameResolve(lSeriesBase, lSeriesSorted, lSeriesNameMode), lSeriesSorted));
                 continue;
             }
 
@@ -59,7 +68,9 @@ public static class LSeries
             bool lSeriesMultipleRuns = lSeriesRuns.Count > 1;
             foreach (List<LSeriesItem> lSeriesRun in lSeriesRuns)
             {
-                string lSeriesRunName = !lSeriesMultipleRuns && lSeriesRun.Count > 1 ? lSeriesBase : lSeriesRun[0].Stem;
+                string lSeriesRunName = !lSeriesMultipleRuns
+                    ? LSeriesGroupNameResolve(lSeriesBase, lSeriesRun, lSeriesNameMode)
+                    : lSeriesRun[0].Stem;
                 lSeriesGroups.Add(LSeriesGroupCreate(lSeriesRunName, lSeriesRun));
             }
         }
@@ -89,6 +100,14 @@ public static class LSeries
 
     private static LSeriesGroup LSeriesGroupCreate(string lSeriesName, IEnumerable<LSeriesItem> lSeriesItems) =>
         new(lSeriesName, lSeriesItems.Select(lSeriesItem => lSeriesItem.Path).ToList());
+
+    private static string LSeriesGroupNameResolve(
+        string lSeriesBase,
+        IReadOnlyList<LSeriesItem> lSeriesItems,
+        LSeriesNameMode lSeriesNameMode) =>
+        lSeriesItems.Count > 1 && lSeriesNameMode == LSeriesNameMode.LSeriesNameRemove
+            ? lSeriesBase
+            : lSeriesItems[0].Stem;
 
     private static LSeriesItem LSeriesItemParse(string lSeriesPath)
     {

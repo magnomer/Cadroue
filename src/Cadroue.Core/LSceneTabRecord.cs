@@ -19,6 +19,8 @@ public sealed class LSceneTabRecord
 
     public bool LSceneGroupStrict { get; set; } = true;
 
+    public LSeriesNameMode LSceneGroupNameMode { get; set; } = LSeriesNameMode.LSeriesNameRemove;
+
     public bool LSceneAutoRelay { get; set; }
 
     public LSceneTabRecord LSceneTabClone()
@@ -32,6 +34,7 @@ public sealed class LSceneTabRecord
             LSceneInspector = LSceneInspector?.LSceneInspectorClone(),
             LSceneGroupAuto = LSceneGroupAuto,
             LSceneGroupStrict = LSceneGroupStrict,
+            LSceneGroupNameMode = LSceneGroupNameMode,
             LSceneAutoRelay = LSceneAutoRelay
         };
     }

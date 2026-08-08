@@ -11,12 +11,18 @@ public sealed class PMergeTab : PTabSurface
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
     private readonly PList pList = new(new LDocket());
-    private readonly PGroup pGroup = new();
+    private readonly LGroupSelection lGroupOwner;
+    private readonly PGroup pGroup;
     private readonly PAction pAction = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PMergeTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
+        lGroupOwner = new LGroupSelection(
+            lPreferenceTabLayout?.LSceneGroupAuto ?? false,
+            lPreferenceTabLayout?.LSceneGroupStrict ?? true,
+            lPreferenceTabLayout?.LSceneGroupNameMode ?? LSeriesNameMode.LSeriesNameRemove);
+        pGroup = new PGroup(lGroupOwner);
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMessenger.LMessengerMergeDescribe(
             pPriority, PMergeGroupsRead(), lPresetOwner,
@@ -43,9 +49,6 @@ public sealed class PMergeTab : PTabSurface
         PTabLockAttach(pList, pGroup, pExport);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;
-        pGroup.PGroupModeRestore(
-            lPreferenceTabLayout?.LSceneGroupAuto ?? false,
-            lPreferenceTabLayout?.LSceneGroupStrict ?? true);
     }
 
     private IReadOnlyDictionary<string, Guid> PMergeRelaysRead()
@@ -71,7 +74,7 @@ public sealed class PMergeTab : PTabSurface
 
     private void PMergeItemsHandle(IReadOnlyList<LDocketEntry> pAddedItems)
     {
-        if (pGroup.PGroupAutoCheck())
+        if (lGroupOwner.LGroupAuto)
         {
             pGroup.PGroupAutoUpdate();
         }
@@ -93,8 +96,9 @@ public sealed class PMergeTab : PTabSurface
     public override LSceneTabRecord PTabLayoutRead()
     {
         LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
-        lPreferenceTabLayout.LSceneGroupAuto = pGroup.PGroupAutoCheck();
-        lPreferenceTabLayout.LSceneGroupStrict = pGroup.PGroupStrictCheck();
+        lPreferenceTabLayout.LSceneGroupAuto = lGroupOwner.LGroupAuto;
+        lPreferenceTabLayout.LSceneGroupStrict = lGroupOwner.LGroupStrict;
+        lPreferenceTabLayout.LSceneGroupNameMode = lGroupOwner.LGroupNameMode;
         return lPreferenceTabLayout;
     }
 }
