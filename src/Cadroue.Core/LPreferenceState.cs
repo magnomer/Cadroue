@@ -17,6 +17,7 @@ public sealed class LPreferenceState
     public bool LPreferenceLogVerbose { get; set; }
     public bool LPreferenceRecordWorkspace { get; set; }
     public bool LPreferenceVerticalTabs { get; set; }
+    public bool LPreferenceDeveloperActive { get; set; }
 
     public double LPreferenceVolume { get; set; }
     public string LPreferenceVolumeMode { get; set; } = "Unified";
@@ -54,6 +55,7 @@ public sealed class LPreferenceState
             LPreferenceLogVerbose = false,
             LPreferenceRecordWorkspace = false,
             LPreferenceVerticalTabs = false,
+            LPreferenceDeveloperActive = false,
             LPreferenceVolume = 100,
             LPreferenceVolumeMode = "Unified",
             LPreferenceAutoplay = false,
@@ -96,6 +98,7 @@ public sealed class LPreferenceState
             LPreferenceLogVerbose = LPreferenceLogVerbose,
             LPreferenceRecordWorkspace = LPreferenceRecordWorkspace,
             LPreferenceVerticalTabs = LPreferenceVerticalTabs,
+            LPreferenceDeveloperActive = LPreferenceDeveloperActive,
             LPreferenceVolume = LPreferenceVolume,
             LPreferenceVolumeMode = LPreferenceVolumeMode,
             LPreferenceAutoplay = LPreferenceAutoplay,
