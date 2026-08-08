@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Core;
 
 using Xunit;
 
@@ -49,5 +50,45 @@ public sealed class LPreviewTests
         var result = Resolve(state);
 
         Assert.Equal(270u, result.LPreviewRotation);
+    }
+
+    [Fact]
+    public void ColorResolve_InactiveSteps_ResolvesToNeutral()
+    {
+        var video = new LWorkVideo(new[]
+        {
+            LWorkVideoStep.LWorkBrightnessCreate(false, 80),
+            LWorkVideoStep.LWorkContrastCreate(false, 150)
+        });
+
+        var result = LPreview.LPreviewColorResolve(video);
+
+        Assert.Equal(new LColor(0, 1, 1, 0), result);
+    }
+
+    [Fact]
+    public void ColorResolve_ActiveBrightness_ScalesByFactor()
+    {
+        var video = new LWorkVideo(new[]
+        {
+            LWorkVideoStep.LWorkBrightnessCreate(true, 80)
+        });
+
+        var result = LPreview.LPreviewColorResolve(video);
+
+        Assert.Equal(0.5, result.LColorBrightness, 10);
+    }
+
+    [Fact]
+    public void ColorResolve_ActiveContrast_PassesFfmpegValueThrough()
+    {
+        var video = new LWorkVideo(new[]
+        {
+            LWorkVideoStep.LWorkContrastCreate(true, 150)
+        });
+
+        var result = LPreview.LPreviewColorResolve(video);
+
+        Assert.Equal(1.5, result.LColorContrast, 10);
     }
 }

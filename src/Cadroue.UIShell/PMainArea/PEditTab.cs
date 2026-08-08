@@ -14,7 +14,6 @@ public sealed class PEditTab : PTabSurface
     private const string PEditCropIcon = "/PAssets/PPanels/PProcessingCrop.svg";
     private const string PEditBrightnessIcon = "/PAssets/PPanels/PProcessingBrightness.svg";
     private const string PEditContrastIcon = "/PAssets/PPanels/PProcessingContrast.svg";
-    private const double PEditPreviewFactor = 2.5;
 
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new() { PViewerColorPreview = true };
@@ -376,16 +375,7 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditColorApply()
     {
-        LWorkVideo pVideo = PEditVideoRead();
-        double pBrightness = pVideo.LWorkVideoSteps
-            .FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindBrightness
-                && pStep.LWorkStepActive)
-            ?.LWorkFfmpegValue * PEditPreviewFactor ?? 0;
-        double pContrast = pVideo.LWorkVideoSteps
-            .FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindContrast
-                && pStep.LWorkStepActive)
-            ?.LWorkFfmpegValue ?? 1;
-        pViewer.PViewerColorSet(new LColor(pBrightness, pContrast, 1, 0));
+        pViewer.PViewerColorSet(LPreview.LPreviewColorResolve(PEditVideoRead()));
     }
 
     private static string PEditRectFormat(System.Windows.Rect? pEditRect) =>

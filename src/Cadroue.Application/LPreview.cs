@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.Application;
 
 public sealed record LPreviewApplication(
@@ -12,7 +14,22 @@ public sealed record LPreviewApplication(
 
 public static class LPreview
 {
+    public const double LPreviewBrightnessFactor = 2.5;
+
     public static Action<object, LPreviewApplication>? LPreviewApplySeam;
+
+    public static LColor LPreviewColorResolve(LWorkVideo lVideo)
+    {
+        double lBrightness = (lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindBrightness
+                && lStep.LWorkStepActive)
+            ?.LWorkFfmpegValue ?? 0) * LPreviewBrightnessFactor;
+        double lContrast = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindContrast
+                && lStep.LWorkStepActive)
+            ?.LWorkFfmpegValue ?? 1;
+        return new LColor(lBrightness, lContrast, 1, 0);
+    }
 
     public static void LPreviewApply(object? lPreviewTarget, LPreviewState lPreviewState)
     {
