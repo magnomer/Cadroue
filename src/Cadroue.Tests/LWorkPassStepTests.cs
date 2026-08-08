@@ -27,6 +27,38 @@ public sealed class LWorkPassStepTests
     }
 
     [Fact]
+    public void HighCreate_StagesBelowRange_ClampsToOne()
+    {
+        var step = (LWorkPassStep)LWorkAudioStep.LWorkHighCreate(true, 80, 0, 2, 0.707);
+
+        Assert.Equal(1, step.LWorkPassStages);
+    }
+
+    [Fact]
+    public void HighCreate_ResonanceBelowRange_ClampsToLeast()
+    {
+        var step = (LWorkPassStep)LWorkAudioStep.LWorkHighCreate(true, 80, 2, 2, 0);
+
+        Assert.Equal(0.1, step.LWorkPassResonance);
+    }
+
+    [Fact]
+    public void LowCreate_StagesAboveRange_ClampsToEight()
+    {
+        var step = (LWorkPassStep)LWorkAudioStep.LWorkLowCreate(true, 9000, 20, 2, 0.707);
+
+        Assert.Equal(8, step.LWorkPassStages);
+    }
+
+    [Fact]
+    public void LowCreate_ResonanceAboveRange_ClampsToMost()
+    {
+        var step = (LWorkPassStep)LWorkAudioStep.LWorkLowCreate(true, 9000, 2, 2, 5);
+
+        Assert.Equal(2, step.LWorkPassResonance);
+    }
+
+    [Fact]
     public void PassbandStepCreate_High_YieldsVoiceDefault()
     {
         var step = (LWorkPassStep)LPassband.LPassbandStepCreate(true, false);

@@ -9,11 +9,6 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private const double PFilterStagesLeast = 1;
-    private const double PFilterStagesMost = 8;
-    private const double PFilterResonanceLeast = 0.1;
-    private const double PFilterResonanceMost = 2;
-
     private sealed record PInspectorPassChoice(
         string PInspectorPassToken,
         string PInspectorPassKey);
@@ -131,8 +126,8 @@ public sealed partial class PInspector
 
         var pStages = new Slider
         {
-            Minimum = PFilterStagesLeast,
-            Maximum = PFilterStagesMost,
+            Minimum = LPassband.LPassbandStagesLeast,
+            Maximum = LPassband.LPassbandStagesMost,
             Value = 1,
             IsSnapToTickEnabled = true,
             TickFrequency = 1,
@@ -215,13 +210,13 @@ public sealed partial class PInspector
         {
             if (pPass.PFilterStageSuppress) { return; }
             pPass.PFilterStageSuppress = true;
-            pStages.Value = Math.Clamp(Math.Round(PInspectorDecimalRead(pStageValue, 1)), PFilterStagesLeast, PFilterStagesMost);
+            pStages.Value = Math.Clamp(Math.Round(PInspectorDecimalRead(pStageValue, 1)), LPassband.LPassbandStagesLeast, LPassband.LPassbandStagesMost);
             pPass.PFilterStageSuppress = false;
             PFilterDeviationCheck(pPass);
         };
         pPoles.SelectionChanged += (_, _) => PFilterDeviationCheck(pPass);
         Slider pResonanceSlider = PInspectorSliderBind(
-            pResonance, PFilterResonanceLeast, PFilterResonanceMost, 0.707, "0.###",
+            pResonance, LPassband.LPassbandResonanceLeast, LPassband.LPassbandResonanceMost, 0.707, "0.###",
             () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.LPassbandResonance : 0.707,
             () => PFilterDeviationCheck(pPass));
 
@@ -284,7 +279,7 @@ public sealed partial class PInspector
         pPass.PInspectorPresetSuppress = true;
         pPass.PInspectorPassFrequency.Value = Math.Clamp(pPreset.LPassbandCutoff, pPass.PInspectorPassMin, pPass.PInspectorPassMax);
         pPass.PInspectorPassValue.Text = pPreset.LPassbandCutoff.ToString("0", CultureInfo.InvariantCulture);
-        pPass.PInspectorPassStages.Value = Math.Clamp(pPreset.LPassbandStages, PFilterStagesLeast, PFilterStagesMost);
+        pPass.PInspectorPassStages.Value = Math.Clamp(pPreset.LPassbandStages, LPassband.LPassbandStagesLeast, LPassband.LPassbandStagesMost);
         pPass.PFilterStageValue.Text = pPreset.LPassbandStages.ToString(CultureInfo.InvariantCulture);
         pPass.PInspectorPassPoles.SelectedIndex = pPreset.LPassbandPoles == 1 ? 0 : 1;
         pPass.PInspectorPassResonance.Text = pPreset.LPassbandResonance.ToString("0.###", CultureInfo.InvariantCulture);
@@ -377,8 +372,8 @@ public sealed partial class PInspector
         pPass.PInspectorPassValue.Text = pStep.LWorkPassFrequency.ToString("0", CultureInfo.InvariantCulture);
         pPass.PInspectorPassStages.Value = Math.Clamp(
             pStep.LWorkPassStages,
-            PFilterStagesLeast,
-            PFilterStagesMost);
+            LPassband.LPassbandStagesLeast,
+            LPassband.LPassbandStagesMost);
         pPass.PFilterStageValue.Text = pStep.LWorkPassStages.ToString(CultureInfo.InvariantCulture);
         pPass.PInspectorPassPoles.SelectedIndex = pStep.LWorkPassPoles == 1 ? 0 : 1;
         pPass.PInspectorPassResonance.Text = pStep.LWorkPassResonance.ToString("0.###", CultureInfo.InvariantCulture);

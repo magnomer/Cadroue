@@ -15,6 +15,11 @@ public static class LPassband
     public const string LPassbandHighDefault = "Voice";
     public const string LPassbandLowDefault = "Air tame";
 
+    public const int LPassbandStagesLeast = 1;
+    public const int LPassbandStagesMost = 8;
+    public const double LPassbandResonanceLeast = 0.1;
+    public const double LPassbandResonanceMost = 2;
+
     public static readonly IReadOnlyList<LPassbandPreset> LPassbandHighPresets = new[]
     {
         new LPassbandPreset("Rumble", 30, 2, 2, 0.707),

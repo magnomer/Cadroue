@@ -72,18 +72,18 @@ public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepAc
         new LWorkPassStep(
             LAudioKind.LAudioKindHighpass, lStepActive, true,
             lStepFrequency,
-            Math.Clamp(lStepStages, 1, 8),
+            Math.Clamp(lStepStages, LPassband.LPassbandStagesLeast, LPassband.LPassbandStagesMost),
             lStepPoles <= 1 ? 1 : 2,
-            Math.Clamp(lStepResonance, 0.1, 2));
+            Math.Clamp(lStepResonance, LPassband.LPassbandResonanceLeast, LPassband.LPassbandResonanceMost));
 
     public static LWorkAudioStep LWorkLowCreate(
         bool lStepActive, double lStepFrequency, int lStepStages, int lStepPoles, double lStepResonance) =>
         new LWorkPassStep(
             LAudioKind.LAudioKindLowpass, lStepActive, false,
             lStepFrequency,
-            Math.Clamp(lStepStages, 1, 8),
+            Math.Clamp(lStepStages, LPassband.LPassbandStagesLeast, LPassband.LPassbandStagesMost),
             lStepPoles <= 1 ? 1 : 2,
-            Math.Clamp(lStepResonance, 0.1, 2));
+            Math.Clamp(lStepResonance, LPassband.LPassbandResonanceLeast, LPassband.LPassbandResonanceMost));
 
     public static LWorkAudioStep LWorkEqualizerCreate(
         bool lStepActive, IReadOnlyList<LWorkBand> lStepBands) =>
