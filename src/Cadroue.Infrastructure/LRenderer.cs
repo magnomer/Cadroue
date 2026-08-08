@@ -1,8 +1,7 @@
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Infrastructure;
 
 public static class LRenderer
 {

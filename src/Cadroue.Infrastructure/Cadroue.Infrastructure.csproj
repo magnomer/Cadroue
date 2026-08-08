@@ -6,6 +6,7 @@
     <NoWarn>$(NoWarn);CA2255</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Cadroue.Application\Cadroue.Application.csproj" />
     <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
     <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
   </ItemGroup>

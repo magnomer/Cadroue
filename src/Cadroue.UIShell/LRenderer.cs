@@ -25,9 +25,9 @@ internal static class LRenderer
             {
                 lRendererEngineConfig.FFmpegPath = LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
             }
-            else if (LRendererLibrary.LRendererFolderValidate(Cadroue.MigrationInterface.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder))
+            else if (LRendererLibrary.LRendererFolderValidate(Cadroue.Infrastructure.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder))
             {
-                lRendererEngineConfig.FFmpegPath = Cadroue.MigrationInterface.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder;
+                lRendererEngineConfig.FFmpegPath = Cadroue.Infrastructure.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder;
             }
             else
             {
