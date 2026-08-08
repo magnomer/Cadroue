@@ -161,24 +161,7 @@ public sealed partial class PFlow
     public bool PFlowSectionMove(int pSectionSource, int pSectionTarget)
     {
         if (!pFlowSectionEditable) return false;
-        int pFlowCount = lSegment.LSegmentListRead().Count;
-        if (pSectionSource < 0 || pSectionSource >= pFlowCount)
-        {
-            return false;
-        }
-
-        int pFlowInsert = Math.Clamp(
-            pSectionSource < pSectionTarget ? pSectionTarget - 1 : pSectionTarget,
-            0,
-            pFlowCount - 1);
-        if (pFlowInsert == pSectionSource)
-        {
-            return false;
-        }
-
-        pFlowSegmentFired = false;
-        lSegment.LSegmentMove(pSectionSource, pSectionTarget);
-        if (!pFlowSegmentFired) return false;
+        if (lSegment.LSegmentMove(pSectionSource, pSectionTarget) is not int pFlowInsert) return false;
         PFlowSectionRecord($"moved from #{pSectionSource + 1} to", pFlowInsert);
         return true;
     }

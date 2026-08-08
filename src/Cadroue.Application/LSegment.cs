@@ -175,14 +175,14 @@ public sealed class LSegment
         LSegmentApply(lSegmentList, lSegmentIndexActive);
     }
 
-    public void LSegmentMove(int lSegmentSource, int lSegmentTarget)
+    public int? LSegmentMove(int lSegmentSource, int lSegmentTarget)
     {
-        if (lSegmentSource < 0 || lSegmentSource >= lSegmentPieces.Count) return;
+        if (lSegmentSource < 0 || lSegmentSource >= lSegmentPieces.Count) return null;
         int lSegmentInsert = Math.Clamp(
             lSegmentSource < lSegmentTarget ? lSegmentTarget - 1 : lSegmentTarget,
             0,
             lSegmentPieces.Count - 1);
-        if (lSegmentInsert == lSegmentSource) return;
+        if (lSegmentInsert == lSegmentSource) return null;
 
         List<LPiece> lSegmentList = lSegmentPieces.ToList();
         LPiece lSegmentMoved = lSegmentList[lSegmentSource];
@@ -190,6 +190,7 @@ public sealed class LSegment
         lSegmentList.Insert(lSegmentInsert, lSegmentMoved);
         int? lSegmentSelect = lSegmentIndexActive == lSegmentSource ? lSegmentInsert : lSegmentIndexActive;
         LSegmentApply(lSegmentList, lSegmentSelect);
+        return lSegmentInsert;
     }
 
     public void LSegmentSort()
