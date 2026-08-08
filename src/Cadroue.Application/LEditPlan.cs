@@ -107,10 +107,13 @@ public static partial class LEdit
         LEditRatioHeight = lEditRecord.LSidecarRatioHeight
     };
 
-    private static LWorkVideoStep LEditStepCreate(LSidecarVideoStep lEditRecord) =>
-        string.Equals(lEditRecord.LSidecarKind, "Contrast", StringComparison.Ordinal)
+    private static LWorkVideoStep LEditStepCreate(LSidecarVideoStep lEditRecord)
+    {
+        LColorKind lKind = LColor.LColorKindParse(lEditRecord.LSidecarKind) ?? LColorKind.LColorKindBrightness;
+        return lKind == LColorKind.LColorKindContrast
             ? LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
             : LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue);
+    }
 
     public static void LEditPlanSave(
         string lEditSourcePath, LEditPlan lEditPlan, Func<string, LSidecarEditRecord?, bool> lSidecarSave) =>
@@ -118,7 +121,7 @@ public static partial class LEdit
 
     private static LSidecarVideoStep LEditRecordCreate(LWorkVideoStep lEditStep) => new()
     {
-        LSidecarKind = lEditStep.LWorkStepKind == LColorKind.LColorKindContrast ? "Contrast" : "Brightness",
+        LSidecarKind = LColor.LColorKindFormat(lEditStep.LWorkStepKind),
         LSidecarActive = lEditStep.LWorkStepActive,
         LSidecarValue = lEditStep.LWorkStepValue
     };

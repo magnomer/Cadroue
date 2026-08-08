@@ -33,7 +33,7 @@ public sealed partial class PInspector
     {
         LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(
             pToneContrastBox.IsChecked == true,
-            Math.Clamp(PInspectorDecimalRead(pInspectorContrastValue, 100), 0, 200)),
+            PInspectorDecimalRead(pInspectorContrastValue, 100)),
         _ => LWorkVideoStep.LWorkBrightnessCreate(
             pToneBrightnessBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorBrightnessValue, 0))

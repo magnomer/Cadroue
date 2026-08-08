@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.Application;
 
 public sealed record LColor(
@@ -10,6 +12,16 @@ public sealed record LColor(
     {
         return new LColor(0, 1, 1, 0);
     }
+
+    public static LColorKind? LColorKindParse(string lKindToken) => lKindToken switch
+    {
+        "Contrast" => LColorKind.LColorKindContrast,
+        "Brightness" => LColorKind.LColorKindBrightness,
+        _ => null
+    };
+
+    public static string LColorKindFormat(LColorKind lKind) =>
+        lKind == LColorKind.LColorKindContrast ? "Contrast" : "Brightness";
 }
 
 public enum LRotateKind

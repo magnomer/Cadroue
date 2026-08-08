@@ -455,7 +455,7 @@ public sealed class PEditTab : PTabSurface
         var pSteps = new List<LWorkVideoStep>();
         foreach (string pStepName in pProcessing.PProcessingStepsRead())
         {
-            if (PEditKindRead(pStepName) is LColorKind pKind)
+            if (LColor.LColorKindParse(pStepName) is { } pKind)
             {
                 pSteps.Add(pInspector.PToneStepRead(pKind));
             }
@@ -463,13 +463,6 @@ public sealed class PEditTab : PTabSurface
 
         return new LWorkVideo(pSteps);
     }
-
-    private static LColorKind? PEditKindRead(string pStepName) => pStepName switch
-    {
-        "Brightness" => LColorKind.LColorKindBrightness,
-        "Contrast" => LColorKind.LColorKindContrast,
-        _ => null
-    };
 
     private static LRotateFlip PEditRotateResolve(LWorkCrop pEditCrop) => new(
         pEditCrop.LWorkCropRotation switch
