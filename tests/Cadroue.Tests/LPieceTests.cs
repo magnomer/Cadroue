@@ -190,6 +190,7 @@ public sealed class LPieceTests
         Assert.NotNull(plan);
         Assert.Equal(2, plan!.Value.Sections.Count);
         Assert.Equal(At(5), plan.Value.Sections[^1].LPieceStart);
+        Assert.True(plan.Value.Added);
     }
 
     [Fact]
@@ -200,6 +201,7 @@ public sealed class LPieceTests
         Assert.NotNull(plan);
         Assert.Equal(At(4), plan!.Value.Sections[0].LPieceStart);
         Assert.Equal(At(8), plan.Value.Sections[0].LPieceEnd);
+        Assert.False(plan.Value.Added);
     }
 
     [Fact]
@@ -225,6 +227,7 @@ public sealed class LPieceTests
         Assert.NotNull(plan);
         Assert.Equal(TimeSpan.Zero, plan!.Value.Sections[0].LPieceStart);
         Assert.Equal(At(4), plan.Value.Sections[0].LPieceEnd);
+        Assert.True(plan.Value.Added);
     }
 
     [Fact]
@@ -234,6 +237,7 @@ public sealed class LPieceTests
         var plan = LPiece.LPieceEndSet(sections, 0, At(6), 0, OverlapOff);
         Assert.NotNull(plan);
         Assert.Equal(At(6), plan!.Value.Sections[0].LPieceEnd);
+        Assert.False(plan.Value.Added);
     }
 
     [Fact]

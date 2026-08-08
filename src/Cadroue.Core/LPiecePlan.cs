@@ -158,7 +158,7 @@ public readonly partial record struct LPiece
         return (lPieceList, lPieceList.Count - 1);
     }
 
-    public static (List<LPiece> Sections, int? Active)? LPieceStartSet(
+    public static (List<LPiece> Sections, int? Active, bool Added)? LPieceStartSet(
         IReadOnlyList<LPiece> lPieces,
         int? lPieceActiveIndex,
         TimeSpan lPieceCursor,
@@ -166,17 +166,16 @@ public readonly partial record struct LPiece
         int lPieceColorIndex,
         bool lPieceOverlapAllowed)
     {
-        if (lPieceActiveIndex is null)
+        if (lPieceActiveIndex is null
+            || lPieces[lPieceActiveIndex.Value].LPieceEnd < lPieceCursor)
         {
-            return LPieceAdd(lPieces, lPieceCursor, lPieceDuration, lPieceColorIndex, lPieceOverlapAllowed);
+            return LPieceAdd(lPieces, lPieceCursor, lPieceDuration, lPieceColorIndex, lPieceOverlapAllowed)
+                is { } lPieceAddPlan
+                ? (lPieceAddPlan.Sections, lPieceAddPlan.Active, true)
+                : null;
         }
 
         LPiece lPiece = lPieces[lPieceActiveIndex.Value];
-        if (lPiece.LPieceEnd < lPieceCursor)
-        {
-            return LPieceAdd(lPieces, lPieceCursor, lPieceDuration, lPieceColorIndex, lPieceOverlapAllowed);
-        }
-
         if (lPieceCursor >= lPiece.LPieceEnd)
         {
             return null;
@@ -189,10 +188,10 @@ public readonly partial record struct LPiece
 
         List<LPiece> lPieceList = lPieces.ToList();
         lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceStart = lPieceCursor };
-        return (lPieceList, lPieceActiveIndex);
+        return (lPieceList, lPieceActiveIndex, false);
     }
 
-    public static (List<LPiece> Sections, int? Active)? LPieceEndSet(
+    public static (List<LPiece> Sections, int? Active, bool Added)? LPieceEndSet(
         IReadOnlyList<LPiece> lPieces,
         int? lPieceActiveIndex,
         TimeSpan lPieceCursor,
@@ -201,7 +200,10 @@ public readonly partial record struct LPiece
     {
         if (lPieceActiveIndex is null)
         {
-            return LPieceEndCreate(lPieces, lPieceCursor, lPieceColorIndex, lPieceOverlapAllowed);
+            return LPieceEndCreate(lPieces, lPieceCursor, lPieceColorIndex, lPieceOverlapAllowed)
+                is { } lPieceEndPlan
+                ? (lPieceEndPlan.Sections, lPieceEndPlan.Active, true)
+                : null;
         }
 
         LPiece lPiece = lPieces[lPieceActiveIndex.Value];
@@ -217,7 +219,7 @@ public readonly partial record struct LPiece
 
         List<LPiece> lPieceList = lPieces.ToList();
         lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceEnd = lPieceCursor };
-        return (lPieceList, lPieceActiveIndex);
+        return (lPieceList, lPieceActiveIndex, false);
     }
 
     public static (List<LPiece> Sections, int First, int Second)? LPieceDivide(

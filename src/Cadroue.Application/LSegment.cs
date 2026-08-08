@@ -136,18 +136,20 @@ public sealed class LSegment
         LSegmentApply(lSegmentPlan.Sections, lSegmentPlan.Active);
     }
 
-    public void LSegmentStartSet(TimeSpan lSegmentCursor, TimeSpan lSegmentDuration, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
+    public bool? LSegmentStartSet(TimeSpan lSegmentCursor, TimeSpan lSegmentDuration, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
     {
         if (LPiece.LPieceStartSet(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentDuration, lSegmentColorIndex, lSegmentOverlapAllowed)
-            is not { } lSegmentPlan) return;
+            is not { } lSegmentPlan) return null;
         LSegmentApply(lSegmentPlan.Sections, lSegmentPlan.Active);
+        return lSegmentPlan.Added;
     }
 
-    public void LSegmentEndSet(TimeSpan lSegmentCursor, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
+    public bool? LSegmentEndSet(TimeSpan lSegmentCursor, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
     {
         if (LPiece.LPieceEndSet(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentColorIndex, lSegmentOverlapAllowed)
-            is not { } lSegmentPlan) return;
+            is not { } lSegmentPlan) return null;
         LSegmentApply(lSegmentPlan.Sections, lSegmentPlan.Active);
+        return lSegmentPlan.Added;
     }
 
     public void LSegmentDivide(TimeSpan lSegmentCursor, int lSegmentColorIndex)

@@ -32,12 +32,8 @@ public sealed partial class PFlow
     {
         if (!pFlowSectionEditable) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
-        int? pFlowActive = lSegment.LSegmentSelectionRead();
-        IReadOnlyList<LPiece> pFlowSections = lSegment.LSegmentListRead();
-        bool pFlowAdded = pFlowActive is null || pFlowSections[pFlowActive.Value].LPieceEnd < lCursor;
-        pFlowSegmentFired = false;
-        lSegment.LSegmentStartSet(lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed);
-        if (pFlowSegmentFired) PFlowSectionRecord(pFlowAdded ? "added" : "start set", lSegment.LSegmentSelectionRead()!.Value);
+        if (lSegment.LSegmentStartSet(lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed) is not bool pFlowAdded) return;
+        PFlowSectionRecord(pFlowAdded ? "added" : "start set", lSegment.LSegmentSelectionRead()!.Value);
     }
 
     private void PFlowSectionDivide()
@@ -55,10 +51,8 @@ public sealed partial class PFlow
     {
         if (!pFlowSectionEditable) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
-        bool pFlowAdded = lSegment.LSegmentSelectionRead() is null;
-        pFlowSegmentFired = false;
-        lSegment.LSegmentEndSet(lCursor, PFlowColorRead(), PFlowOverlapAllowed);
-        if (pFlowSegmentFired) PFlowSectionRecord(pFlowAdded ? "added" : "end set", lSegment.LSegmentSelectionRead()!.Value);
+        if (lSegment.LSegmentEndSet(lCursor, PFlowColorRead(), PFlowOverlapAllowed) is not bool pFlowAdded) return;
+        PFlowSectionRecord(pFlowAdded ? "added" : "end set", lSegment.LSegmentSelectionRead()!.Value);
     }
 
     public void PFlowSectionDelete()
