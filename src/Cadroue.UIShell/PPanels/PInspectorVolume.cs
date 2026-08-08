@@ -9,9 +9,6 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private const double PVolumeLeastDb = -24;
-    private const double PVolumeMostDb = 24;
-
     private CheckBox pVolumeApplyBox = null!;
     private CheckBox pInspectorVolumePersistent = null!;
     private Slider pInspectorVolumeSlider = null!;
@@ -62,7 +59,7 @@ public sealed partial class PInspector
         LAudioKind.LAudioKindEqualizer => PEqualizerStepRead(),
         _ => LWorkAudioStep.LWorkVolumeCreate(
             pVolumeApplyBox.IsChecked == true,
-            Math.Clamp(PInspectorDecimalRead(pInspectorVolumeValue, 0), PVolumeLeastDb, PVolumeMostDb))
+            Math.Clamp(PInspectorDecimalRead(pInspectorVolumeValue, 0), LWorkAudio.LWorkVolumeGainLeast, LWorkAudio.LWorkVolumeGainMost))
     };
 
     public void PInspectorPlanApply(LWorkAudio pInspectorPlan)
@@ -204,7 +201,7 @@ public sealed partial class PInspector
             case LWorkVolumeStep pVolume:
                 pVolumeApplyBox.IsChecked = pVolume.LWorkStepActive;
                 pInspectorVolumeValue.Text = pVolume.LWorkVolumeGain.ToString("0.#", CultureInfo.InvariantCulture);
-                pInspectorVolumeSlider.Value = Math.Clamp(pVolume.LWorkVolumeGain, PVolumeLeastDb, PVolumeMostDb);
+                pInspectorVolumeSlider.Value = Math.Clamp(pVolume.LWorkVolumeGain, LWorkAudio.LWorkVolumeGainLeast, LWorkAudio.LWorkVolumeGainMost);
                 PVolumeWarnUpdate();
                 PVolumeApplyUpdate();
                 break;
@@ -223,8 +220,8 @@ public sealed partial class PInspector
 
         pInspectorVolumeSlider = new Slider
         {
-            Minimum = PVolumeLeastDb,
-            Maximum = PVolumeMostDb,
+            Minimum = LWorkAudio.LWorkVolumeGainLeast,
+            Maximum = LWorkAudio.LWorkVolumeGainMost,
             Value = 0,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -255,7 +252,7 @@ public sealed partial class PInspector
 
             pInspectorVolumeSuppress = true;
             pInspectorVolumeSlider.Value = Math.Clamp(
-                PInspectorDecimalRead(pInspectorVolumeValue, 0), PVolumeLeastDb, PVolumeMostDb);
+                PInspectorDecimalRead(pInspectorVolumeValue, 0), LWorkAudio.LWorkVolumeGainLeast, LWorkAudio.LWorkVolumeGainMost);
             pInspectorVolumeSuppress = false;
             PVolumeWarnUpdate();
         };

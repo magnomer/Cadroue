@@ -30,7 +30,8 @@ public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepAc
     public virtual bool LWorkStepLoudness => false;
 
     public static LWorkAudioStep LWorkVolumeCreate(bool lStepActive, double lStepGain) =>
-        new LWorkVolumeStep(lStepActive, lStepGain);
+        new LWorkVolumeStep(lStepActive,
+            Math.Clamp(lStepGain, LWorkAudio.LWorkVolumeGainLeast, LWorkAudio.LWorkVolumeGainMost));
 
     public static LWorkAudioStep LWorkNormalizeCreate(
         bool lStepActive,
@@ -99,6 +100,9 @@ public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepAc
 
 public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
 {
+    public const double LWorkVolumeGainLeast = -24;
+    public const double LWorkVolumeGainMost = 24;
+
     public bool LWorkAudioSkip { get; init; }
 
     public static LWorkAudio LWorkAudioCreate() => new(Array.Empty<LWorkAudioStep>());
