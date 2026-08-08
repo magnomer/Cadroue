@@ -125,7 +125,7 @@
         <ItemsPanelTemplate x:Key="pVerticalItemsPanel"><StackPanel Orientation="Vertical" /></ItemsPanelTemplate>
         <DataTemplate x:Key="pHorizontalTabTemplate" DataType="{x:Type pControlBar:PTabRecord}">
             <Grid Margin="0,12,0,0">
-                <Border Style="{StaticResource pTabFrameHorizontalStyle}" MouseLeftButtonDown="PTabPressHandle" MouseMove="PTabMoveHandle" MouseLeftButtonUp="PTabReleaseHandle">
+                <Border Style="{StaticResource pTabFrameHorizontalStyle}" MouseEnter="PTabHoverEnterHandle" MouseLeave="PTabHoverLeaveHandle" MouseLeftButtonDown="PTabPressHandle" MouseMove="PTabMoveHandle" MouseLeftButtonUp="PTabReleaseHandle">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <Image Width="17" Height="17" Source="{Binding PTabIconSource}" Margin="0,0,10,0" />
@@ -144,7 +144,7 @@
         </DataTemplate>
         <DataTemplate x:Key="pVerticalTabTemplate" DataType="{x:Type pControlBar:PTabRecord}">
             <Grid Margin="8,4,0,0">
-                <Border Style="{StaticResource pTabFrameVerticalStyle}" MouseLeftButtonDown="PTabPressHandle" MouseMove="PTabMoveHandle" MouseLeftButtonUp="PTabReleaseHandle">
+                <Border Style="{StaticResource pTabFrameVerticalStyle}" MouseEnter="PTabHoverEnterHandle" MouseLeave="PTabHoverLeaveHandle" MouseLeftButtonDown="PTabPressHandle" MouseMove="PTabMoveHandle" MouseLeftButtonUp="PTabReleaseHandle">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <Image Width="17" Height="17" Source="{Binding PTabIconSource}" Margin="0,0,10,0" />

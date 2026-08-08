@@ -35,6 +35,7 @@ public partial class PRail : UserControl
 
     public void PRailApply(bool pVertical)
     {
+        pStrip?.PStripHoverClear();
         pTabVertical = pVertical;
         Width = pVertical ? PRailWidth : double.NaN;
         Height = pVertical ? double.NaN : 56;
@@ -52,6 +53,22 @@ public partial class PRail : UserControl
             pVertical ? "pVerticalTabTemplate" : "pHorizontalTabTemplate");
         pTabAddButton.Style = (Style)FindResource(
             pVertical ? "pTabAddVerticalStyle" : "pTabAddHorizontalStyle");
+    }
+
+    private void PTabHoverEnterHandle(object sender, MouseEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: PTabRecord pTabRecord })
+        {
+            pStrip?.PStripHoverSet(pTabRecord);
+        }
+    }
+
+    private void PTabHoverLeaveHandle(object sender, MouseEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: PTabRecord pTabRecord })
+        {
+            pStrip?.PStripHoverClear(pTabRecord);
+        }
     }
 
     private void PTabPressHandle(object sender, MouseButtonEventArgs e)

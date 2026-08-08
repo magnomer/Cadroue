@@ -21,6 +21,7 @@ public sealed class PStrip
     private const string pStripWorklistIcon = "/PAssets/PTabs/PWorklistButton.svg";
 
     private PTabRecord? pStripSelected;
+    private PTabRecord? pStripHovered;
 
     public PStrip()
     {
@@ -62,13 +63,49 @@ public sealed class PStrip
     private void PStripSeparatorUpdate()
     {
         var selectedIndex = PStripSelected is null ? -1 : PStripRecords.IndexOf(PStripSelected);
+        var hoveredIndex = pStripHovered is null ? -1 : PStripRecords.IndexOf(pStripHovered);
         for (var i = 0; i < PStripRecords.Count; i++)
         {
             PStripRecords[i].PTabSeparatorState =
                 i < PStripRecords.Count - 1
                 && i != selectedIndex
-                && i != selectedIndex - 1;
+                && i != selectedIndex - 1
+                && i != hoveredIndex
+                && i != hoveredIndex - 1;
         }
+    }
+
+    internal void PStripHoverSet(PTabRecord pTabRecord)
+    {
+        if (ReferenceEquals(pStripHovered, pTabRecord))
+        {
+            return;
+        }
+
+        pStripHovered = pTabRecord;
+        PStripSeparatorUpdate();
+    }
+
+    internal void PStripHoverClear(PTabRecord pTabRecord)
+    {
+        if (!ReferenceEquals(pStripHovered, pTabRecord))
+        {
+            return;
+        }
+
+        pStripHovered = null;
+        PStripSeparatorUpdate();
+    }
+
+    internal void PStripHoverClear()
+    {
+        if (pStripHovered is null)
+        {
+            return;
+        }
+
+        pStripHovered = null;
+        PStripSeparatorUpdate();
     }
 
     public PTabRecord PStripAdd()
@@ -299,6 +336,11 @@ public sealed class PStrip
         }
 
         var pTabWasSelected = ReferenceEquals(PStripSelected, pTabRecord);
+        if (ReferenceEquals(pStripHovered, pTabRecord))
+        {
+            pStripHovered = null;
+        }
+
         string pTabClosedTitle = pTabRecord.PTabTitle;
         pTabRecord.PTabWorkspace.PWorkspaceClose();
         LCartographer.LCartographerTabRemove(pTabRecord.PTabId);
