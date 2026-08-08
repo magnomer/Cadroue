@@ -46,6 +46,7 @@ public sealed partial class PViewer : PPanel
     private int pViewerCropAnchorX = -1;
     private int pViewerCropAnchorY = -1;
     private int pViewerLoadSerial;
+    private string? pViewerLoadPath;
     private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private bool pViewerAudioAllowed;
     private bool pViewerCommandActive;
@@ -133,6 +134,7 @@ public sealed partial class PViewer : PPanel
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
+        LMediaProbe.LMediaProbeReady += PViewerProbeReadyHandle;
         PViewerHostAttach();
     }
 
@@ -263,7 +265,7 @@ public sealed partial class PViewer : PPanel
 
         LPreference.LPreferenceMediaSet(sourcePath);
         LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate());
-        _ = PPlayerVideoLoad(sourcePath);
+        PPlayerVideoLoad(sourcePath);
     }
 
     private string? PViewerSidecarResolve(string pSidecarPath)

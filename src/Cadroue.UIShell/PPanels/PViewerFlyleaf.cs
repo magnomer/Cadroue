@@ -149,7 +149,7 @@ public sealed partial class PViewer
         }
     }
 
-    private async Task PPlayerVideoLoad(string sourcePath)
+    private void PPlayerVideoLoad(string sourcePath)
     {
         if (!pViewerCommandActive) return;
         int loadSerial = ++pViewerLoadSerial;
@@ -161,22 +161,35 @@ public sealed partial class PViewer
             return;
         }
 
-        LMediaInfo? mediaInfo = null;
-        string? ffmpegError = null;
-        try
+        pViewerLoadPath = sourcePath;
+        LMediaProbe.LMediaProbeDefer(sourcePath);
+    }
+
+    private void PViewerProbeReadyHandle(LMediaProbeResult result)
+    {
+        Dispatcher.BeginInvoke(() =>
         {
-            mediaInfo = LMedia.LMediaFfprobeRead(sourcePath);
-            if (mediaInfo.LMediaAudioOnly && !pViewerAudioAllowed)
+            if (pViewerUnloaded || result.LMediaProbeSourcePath != pViewerLoadPath)
             {
-                string audioOnlyError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");
-                PViewerMediaCommit(new LCargo(
-                    sourcePath, null, false, false, audioOnlyError, audioOnlyError), null);
                 return;
             }
-        }
-        catch (Exception exception)
+
+            PPlayerMediaApply(
+                result.LMediaProbeSourcePath,
+                result.LMediaProbeInfo,
+                result.LMediaProbeError,
+                pViewerLoadSerial);
+        });
+    }
+
+    private void PPlayerMediaApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)
+    {
+        if (mediaInfo is { LMediaAudioOnly: true } && !pViewerAudioAllowed)
         {
-            ffmpegError = exception.Message;
+            string audioOnlyError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");
+            PViewerMediaCommit(new LCargo(
+                sourcePath, null, false, false, audioOnlyError, audioOnlyError), null);
+            return;
         }
 
         Player? player = pViewerPlayer;
@@ -245,7 +258,6 @@ public sealed partial class PViewer
             ffmpegError,
             previewError);
         PViewerMediaCommit(mediaStatus, player);
-        await Task.CompletedTask.ConfigureAwait(true);
     }
 
     private static void PPlayerOpen(Player player, string sourcePath)

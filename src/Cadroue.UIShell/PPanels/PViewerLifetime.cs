@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 
 using Cadroue.Core;
+using Cadroue.Media;
 using Cadroue.Infrastructure;
 using Cadroue.MigrationInterface;
 
@@ -107,6 +108,7 @@ public sealed partial class PViewer
         {
             pViewerUnloaded = true;
             pViewerLoadSerial++;
+            LMediaProbe.LMediaProbeReady -= PViewerProbeReadyHandle;
             pViewerClockTimer.Tick -= PViewerClockHandle;
             pViewerOverlay.MouseLeftButtonDown -= PCropPressHandle;
             pViewerOverlay.MouseMove -= PCropMoveHandle;
