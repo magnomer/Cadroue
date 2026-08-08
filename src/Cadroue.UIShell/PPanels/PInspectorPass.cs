@@ -79,8 +79,7 @@ public sealed partial class PInspector
             pPass.PInspectorPassMin, pPass.PInspectorPassMax);
 
     private int PFilterStagesRead(PInspectorPass pPass) =>
-        (int)Math.Clamp(Math.Round(PInspectorDecimalRead(pPass.PFilterStageValue, 1)),
-            PFilterStagesLeast, PFilterStagesMost);
+        (int)Math.Round(PInspectorDecimalRead(pPass.PFilterStageValue, 1));
 
     private static int PFilterPolesRead(PInspectorPass pPass) =>
         pPass.PInspectorPassPoles.SelectedIndex == 0 ? 1 : 2;
