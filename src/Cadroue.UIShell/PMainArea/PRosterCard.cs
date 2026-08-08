@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Core;
-using Cadroue.MigrationInterface;
+using Cadroue.Application;
 
 namespace Cadroue.UIShell.PMainArea;
 

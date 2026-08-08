@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-using Cadroue.MigrationInterface;
+using Cadroue.Application;
 
 namespace Cadroue.UIShell.PFlow;
 

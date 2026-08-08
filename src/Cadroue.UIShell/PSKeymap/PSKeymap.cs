@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.Application;
 using Cadroue.MigrationInterface;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;

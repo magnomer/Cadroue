@@ -2,7 +2,7 @@ using System;
 
 using Cadroue.Core;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Application;
 
 public static class LPreference
 {
