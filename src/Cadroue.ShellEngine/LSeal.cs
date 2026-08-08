@@ -1,6 +1,6 @@
 using Cadroue.Core;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.ShellEngine;
 
 public sealed record LSealNode(
     Guid LSealNodeId,

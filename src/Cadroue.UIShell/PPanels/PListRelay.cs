@@ -2,7 +2,6 @@ using System.IO;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.MigrationInterface;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PMainArea;
 

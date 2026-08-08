@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
-using Cadroue.MigrationInterface;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIShell.PMainWindow;
 

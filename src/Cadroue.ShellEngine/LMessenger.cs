@@ -1,7 +1,7 @@
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.ShellEngine;
 
 public static class LMessenger
 {

@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
-using Cadroue.MigrationInterface;
+using Cadroue.ShellEngine;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PControlBar;
 

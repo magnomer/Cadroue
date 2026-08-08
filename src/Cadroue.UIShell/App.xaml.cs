@@ -9,7 +9,6 @@ using Cadroue.UIShell.PMainWindow;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Application;
-using Cadroue.MigrationInterface;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.UIShell;
@@ -62,24 +61,24 @@ public partial class PProgram : System.Windows.Application
         LStation.LStationPost = LStationDispatch;
         LStation.LStationProgramSource = () => Cadroue.Infrastructure.LRenderer.LRendererProgramCurrent;
         LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
-        LSchedule.LScheduleCohortGate = Cadroue.MigrationInterface.LSeal.LSealClaimCheck;
+        LSchedule.LScheduleCohortGate = Cadroue.ShellEngine.LSeal.LSealClaimCheck;
 
-        Cadroue.MigrationInterface.LMessenger.LMessengerScheduleSource = () => LScheduleCurrent;
-        Cadroue.MigrationInterface.LCartographer.LCartographerTabsSource = () =>
+        Cadroue.ShellEngine.LMessenger.LMessengerScheduleSource = () => LScheduleCurrent;
+        Cadroue.ShellEngine.LCartographer.LCartographerTabsSource = () =>
             PControlBar.PStrip.PStripCurrent?.PStripRecords.Select(pTab =>
-                new Cadroue.MigrationInterface.LCartographerTab(
+                new Cadroue.ShellEngine.LCartographerTab(
                     pTab.PTabId,
                     pTab.PTabLayoutKey,
                     pTab.PTabTitle,
                     pTab.PTabWorkspace.PWorkspaceExportState.LPresetRecordCreate(),
                     pTab.PTabWorkspace.PWorkspaceLayoutRead().LSceneTabClone(),
                     pTab.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab)).ToArray()
-            ?? (IReadOnlyList<Cadroue.MigrationInterface.LCartographerTab>)Array.Empty<Cadroue.MigrationInterface.LCartographerTab>();
-        Cadroue.MigrationInterface.LMessenger.LMessengerTitleSource = PControlBar.PStrip.PStripTitleRead;
-        Cadroue.MigrationInterface.LCartographer.LCartographerTitleSource = PControlBar.PStrip.PStripTitleRead;
-        Cadroue.MigrationInterface.LCartographer.LCartographerScheduleContract = LScheduleCurrent;
-        Cadroue.MigrationInterface.LCartographer.LCartographerLockSeam = PPanels.PList.PListSourceLock;
-        Cadroue.MigrationInterface.LCartographer.LCartographerDeliverySeam = new Cadroue.MigrationInterface.LCartographerDelivery(
+            ?? (IReadOnlyList<Cadroue.ShellEngine.LCartographerTab>)Array.Empty<Cadroue.ShellEngine.LCartographerTab>();
+        Cadroue.ShellEngine.LMessenger.LMessengerTitleSource = PControlBar.PStrip.PStripTitleRead;
+        Cadroue.ShellEngine.LCartographer.LCartographerTitleSource = PControlBar.PStrip.PStripTitleRead;
+        Cadroue.ShellEngine.LCartographer.LCartographerScheduleContract = LScheduleCurrent;
+        Cadroue.ShellEngine.LCartographer.LCartographerLockSeam = PPanels.PList.PListSourceLock;
+        Cadroue.ShellEngine.LCartographer.LCartographerDeliverySeam = new Cadroue.ShellEngine.LCartographerDelivery(
             PPanels.PList.PListDeliveredAdd,
             PPanels.PList.PListDeliveredPlace,
             PPanels.PList.PListDeliveredTrack,
@@ -88,18 +87,18 @@ public partial class PProgram : System.Windows.Application
             PMainArea.PAction.PActionArrive,
             PPanels.PList.PListBatchEvict,
             PPanels.PList.PListSourceUnlock);
-        Cadroue.MigrationInterface.LMessenger.LMessengerRouteSource =
+        Cadroue.ShellEngine.LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
-                Cadroue.MigrationInterface.LCartographer.LCartographerAccept(
+                Cadroue.ShellEngine.LCartographer.LCartographerAccept(
                     lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
 
-        Cadroue.MigrationInterface.LSeal.LSealNodesSource = () =>
+        Cadroue.ShellEngine.LSeal.LSealNodesSource = () =>
             PControlBar.PStrip.PStripCurrent?.PStripRecords
                 .Where(pTab => pTab.PTabWorkspace.PWorkspaceSurface.PTabList is not null)
                 .Select(pTab =>
                 {
                     PMainArea.PTabSurface pSurface = pTab.PTabWorkspace.PWorkspaceSurface;
-                    return new Cadroue.MigrationInterface.LSealNode(
+                    return new Cadroue.ShellEngine.LSealNode(
                         pTab.PTabId,
                         pSurface is PMainArea.PMergeTab,
                         pSurface.PTabAction is { PActionAutoRelay: true },
@@ -110,7 +109,7 @@ public partial class PProgram : System.Windows.Application
                             .ToArray());
                 })
                 .ToArray();
-        Cadroue.MigrationInterface.LSeal.LSealFireSeam = lSealNodeId =>
+        Cadroue.ShellEngine.LSeal.LSealFireSeam = lSealNodeId =>
             PControlBar.PStrip.PStripCurrent?.PStripRecords
                 .FirstOrDefault(pTab => pTab.PTabId == lSealNodeId)
                 ?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionAllRun();

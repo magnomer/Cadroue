@@ -3,7 +3,7 @@ using System.Text.Json;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.ShellEngine;
 
 public sealed record LCartographerTab(
     Guid LCartographerTabId,

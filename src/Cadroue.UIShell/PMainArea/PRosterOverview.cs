@@ -6,7 +6,7 @@ using Cadroue.Core;
 using Cadroue.Media;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
-using Cadroue.MigrationInterface;
+using Cadroue.ShellEngine;
 
 using Cadroue.Infrastructure;
 

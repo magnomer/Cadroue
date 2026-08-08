@@ -1,8 +1,7 @@
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.ShellEngine;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.ShellEngine;
 
 public static partial class LCartographer
 {
