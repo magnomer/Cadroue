@@ -43,7 +43,7 @@ public partial class PProgram : System.Windows.Application
         };
     }
 
-    private static void LPresetSelectionSeamApply()
+    private static void LPresetSelectionAttach()
     {
         Cadroue.Application.LPresetSelection.LPresetLoadSeam = lName =>
             LPreset.LPresetRead(lName)?.LPresetRecordCreate();
@@ -147,7 +147,7 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Infrastructure.LRenderer.LRendererSettingsLoad();
 
         LPreference.LPreferenceDepotCallback = LPreferenceDepotHandle;
-        LPreference.LPreferenceLanguageNormalizeSeam = LLocalization.LLocalizationLanguageNormalize;
+        LPreference.LPreferenceLanguageSeam = LLocalization.LLocalizationLanguageNormalize;
         LPreference.LPreferenceLoadSeam = LPreferenceStateStore.LPreferenceStateLoad;
         LPreference.LPreferenceSaveSeam = LPreferenceStateStore.LPreferenceStateSave;
         LPreference.LPreferenceTraceSeam = LTraceLog.LTraceInfoRecord;
@@ -175,9 +175,9 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LSegment.LSegmentLoadSeam = LSidecarSectionsRead;
         Cadroue.Application.LSegment.LSegmentSaveSeam = (lSidecarSourcePath, lSidecarSections) =>
             Cadroue.Infrastructure.LSidecarStore.LSidecarSectionsSave(lSidecarSourcePath, lSidecarSections);
-        LPresetSelectionSeamApply();
-        LPreset.LPresetStoreLoadSeam = LPresetStore.LPresetLoad;
-        LPreset.LPresetStoreSaveSeam = LPresetStore.LPresetSave;
+        LPresetSelectionAttach();
+        LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;
+        LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
         LPreset.LPresetInitialize();
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
@@ -275,21 +275,21 @@ public partial class PProgram : System.Windows.Application
 
     private static void LLibrarianSeamApply()
     {
-        Cadroue.Application.LLibrarian.LLibrarianCoreLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarCoreRead;
+        Cadroue.Application.LLibrarian.LLibrarianCoreReader = Cadroue.Infrastructure.LSidecarStore.LSidecarCoreRead;
         Cadroue.Application.LLibrarian.LLibrarianKeyframesSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarKeyframesRead;
-        Cadroue.Application.LLibrarian.LLibrarianWaveformLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformRead;
-        Cadroue.Application.LLibrarian.LLibrarianEditLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarEditRead;
-        Cadroue.Application.LLibrarian.LLibrarianAudioLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioRead;
-        Cadroue.Application.LLibrarian.LLibrarianLoudnessLoadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessRead;
-        Cadroue.Application.LLibrarian.LLibrarianDurationReadSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead;
-        Cadroue.Application.LLibrarian.LLibrarianDurationResolveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationResolve;
-        Cadroue.Application.LLibrarian.LLibrarianEditSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarEditSave;
-        Cadroue.Application.LLibrarian.LLibrarianAudioSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioSave;
-        Cadroue.Application.LLibrarian.LLibrarianLoudnessSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessSave;
-        Cadroue.Application.LLibrarian.LLibrarianWaveformSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformSave;
-        Cadroue.Application.LLibrarian.LLibrarianFileCheckSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarFileCheck;
-        Cadroue.Application.LLibrarian.LLibrarianSourceResolveSeam = LSidecarSourceResolve;
-        Cadroue.Application.LLibrarian.LLibrarianSourceVerifySeam = LSidecarSourceVerify;
+        Cadroue.Application.LLibrarian.LLibrarianWaveformReader = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformRead;
+        Cadroue.Application.LLibrarian.LLibrarianEditReader = Cadroue.Infrastructure.LSidecarStore.LSidecarEditRead;
+        Cadroue.Application.LLibrarian.LLibrarianAudioReader = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioRead;
+        Cadroue.Application.LLibrarian.LLibrarianLoudnessReader = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessRead;
+        Cadroue.Application.LLibrarian.LLibrarianDurationReader = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead;
+        Cadroue.Application.LLibrarian.LLibrarianDurationResolver = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationResolve;
+        Cadroue.Application.LLibrarian.LLibrarianEditWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarEditSave;
+        Cadroue.Application.LLibrarian.LLibrarianAudioWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioSave;
+        Cadroue.Application.LLibrarian.LLibrarianLoudnessWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessSave;
+        Cadroue.Application.LLibrarian.LLibrarianWaveformWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformSave;
+        Cadroue.Application.LLibrarian.LLibrarianFileChecker = Cadroue.Infrastructure.LSidecarStore.LSidecarFileCheck;
+        Cadroue.Application.LLibrarian.LLibrarianSourceResolver = LSidecarSourceResolve;
+        Cadroue.Application.LLibrarian.LLibrarianSourceVerifier = LSidecarSourceVerify;
     }
 
     private static Cadroue.Core.LSidecarSourceResult? LSidecarSourceResolve(string lSidecarPath) =>

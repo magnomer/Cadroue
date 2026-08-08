@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 public sealed record LSealNode(
     Guid LSealNodeId,
     bool LSealNodeMerge,
-    bool LSealNodeAutoRelay,
+    bool LSealNodeRelay,
     IReadOnlyList<Guid> LSealNodeCohorts);
 
 public static class LSeal
@@ -75,7 +75,7 @@ public static class LSeal
                 lSealFiredAny = false;
                 foreach (LSealNode lSealNode in lSealNodes)
                 {
-                    if (!lSealNode.LSealNodeMerge || !lSealNode.LSealNodeAutoRelay)
+                    if (!lSealNode.LSealNodeMerge || !lSealNode.LSealNodeRelay)
                     {
                         continue;
                     }
@@ -166,7 +166,7 @@ public static class LSeal
 
         foreach (LSealNode lSealNode in lSealNodes)
         {
-            if (!lSealNode.LSealNodeMerge || !lSealNode.LSealNodeAutoRelay)
+            if (!lSealNode.LSealNodeMerge || !lSealNode.LSealNodeRelay)
             {
                 continue;
             }

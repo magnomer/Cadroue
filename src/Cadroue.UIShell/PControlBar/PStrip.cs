@@ -318,7 +318,7 @@ public sealed class PStrip
             return;
         }
 
-        var pTabNextIndex = LTabset.LTabsetNextIndexRead(PStripRecords.Count, pTabIndex);
+        var pTabNextIndex = LTabset.LTabsetNextResolve(PStripRecords.Count, pTabIndex);
         PStripSelect(PStripRecords[pTabNextIndex]);
     }
 }

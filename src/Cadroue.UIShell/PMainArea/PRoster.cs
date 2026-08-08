@@ -32,8 +32,8 @@ public sealed partial class PRoster : UserControl
 
         pRosterSchedule.LScheduleChange += PRosterScheduleHandle;
         pRosterSchedule.LScheduleItemChange += PRosterItemHandle;
-        LMediaProbe.LMediaProbeReady += PRosterMediaReadyHandle;
-        LMediaProbe.LMediaLoudnessReady += PRosterLoudnessReadyHandle;
+        LMediaProbe.LMediaProbeReady += PRosterMediaHandle;
+        LMediaProbe.LMediaLoudnessReady += PRosterLoudnessHandle;
         PRosterConsoleAttach();
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;

@@ -119,7 +119,7 @@ internal static class LEncodeVideo
 
     private static void LEncodeFilterAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
     {
-        var lFilters = new List<string>(LEncodeGeometryFiltersRead(lWorkItem.LWorkCrop));
+        var lFilters = new List<string>(LEncodeGeometryRead(lWorkItem.LWorkCrop));
 
         LEncodeFiltersAppend(lFilters, lWorkItem.LWorkVideo);
 
@@ -148,7 +148,7 @@ internal static class LEncodeVideo
         }
     }
 
-    internal static IReadOnlyList<string> LEncodeGeometryFiltersRead(LWorkCrop lCrop)
+    internal static IReadOnlyList<string> LEncodeGeometryRead(LWorkCrop lCrop)
     {
         var lFilters = new List<string>();
 

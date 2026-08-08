@@ -12,7 +12,7 @@ public sealed class LEncodeVideoTests
     {
         var lCrop = new LWorkCrop(0, 0, 0, 0, 90, false, true);
 
-        IReadOnlyList<string> lFilters = LEncodeVideo.LEncodeGeometryFiltersRead(lCrop);
+        IReadOnlyList<string> lFilters = LEncodeVideo.LEncodeGeometryRead(lCrop);
 
         Assert.Equal(new[] { "vflip", "transpose=1" }, lFilters);
     }
@@ -22,7 +22,7 @@ public sealed class LEncodeVideoTests
     {
         var lCrop = new LWorkCrop(2, 4, 6, 8, 270, true, true);
 
-        IReadOnlyList<string> lFilters = LEncodeVideo.LEncodeGeometryFiltersRead(lCrop);
+        IReadOnlyList<string> lFilters = LEncodeVideo.LEncodeGeometryRead(lCrop);
 
         Assert.Equal(
             new[]

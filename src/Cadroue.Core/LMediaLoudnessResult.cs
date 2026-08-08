@@ -1,6 +1,6 @@
 namespace Cadroue.Core;
 
 public sealed record LMediaLoudnessResult(
-    string LMediaLoudnessSourcePath,
+    string LMediaLoudnessPath,
     double? LMediaLoudnessValue,
     string? LMediaLoudnessError);

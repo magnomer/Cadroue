@@ -12,13 +12,13 @@ public sealed class LClassifierTests
     private static LSceneFunnelRule Regex(string pattern, bool whole) =>
         new()
         {
-            LSceneFunnelType = (int)LSceneFunnelForm.LSceneFunnelFormRegex,
+            LSceneFunnelType = (int)LSceneFunnelForm.LSceneFunnelRegex,
             LSceneFunnelRegex = pattern,
             LSceneFunnelWhole = whole
         };
 
     private static LSceneFunnelRule Filename() =>
-        new() { LSceneFunnelType = (int)LSceneFunnelForm.LSceneFunnelFormFilename };
+        new() { LSceneFunnelType = (int)LSceneFunnelForm.LSceneFunnelFilename };
 
     // ---- Regex form ----
 

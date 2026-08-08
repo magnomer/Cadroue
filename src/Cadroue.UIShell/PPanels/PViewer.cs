@@ -42,8 +42,8 @@ public sealed partial class PViewer : PPanel
     private int pViewerEdgeX;
     private int pViewerEdgeY;
     private int pViewerCropDrive = -1;
-    private int pViewerCropAnchorX = -1;
-    private int pViewerCropAnchorY = -1;
+    private int pViewerAnchorX = -1;
+    private int pViewerAnchorY = -1;
     private int pViewerLoadSerial;
     private string? pViewerLoadPath;
     private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
@@ -133,7 +133,7 @@ public sealed partial class PViewer : PPanel
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
-        LMediaProbe.LMediaProbeReady += PViewerProbeReadyHandle;
+        LMediaProbe.LMediaProbeReady += PViewerProbeHandle;
         PViewerHostAttach();
     }
 
@@ -295,7 +295,7 @@ public sealed partial class PViewer : PPanel
             return pResult.LSidecarResultPath;
         }
 
-        return PViewerSidecarFind(pSidecarPath, pResult.LSidecarResultFileName);
+        return PViewerSidecarFind(pSidecarPath, pResult.LSidecarResultName);
     }
 
     private string? PViewerSidecarFind(string pSidecarPath, string pSidecarFileName)

@@ -55,16 +55,16 @@ public sealed class PInfo : UserControl
 
         PInfoClear();
 
-        LMediaProbe.LMediaAvailabilityReady += PInfoAvailabilityReadyHandle;
+        LMediaProbe.LMediaAvailabilityReady += PInfoAvailabilityHandle;
         Unloaded += PInfoUnloadedHandle;
     }
 
     private void PInfoUnloadedHandle(object sender, RoutedEventArgs e)
     {
-        LMediaProbe.LMediaAvailabilityReady -= PInfoAvailabilityReadyHandle;
+        LMediaProbe.LMediaAvailabilityReady -= PInfoAvailabilityHandle;
     }
 
-    private void PInfoAvailabilityReadyHandle(bool ready)
+    private void PInfoAvailabilityHandle(bool ready)
     {
         Dispatcher.BeginInvoke(() =>
         {

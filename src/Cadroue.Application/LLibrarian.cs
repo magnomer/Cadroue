@@ -7,66 +7,66 @@ namespace Cadroue.Application;
 
 public static class LLibrarian
 {
-    public static Func<string, LSidecarCoreRecord?>? LLibrarianCoreLoadSeam;
+    public static Func<string, LSidecarCoreRecord?>? LLibrarianCoreReader;
     public static Func<string, IReadOnlyList<long>>? LLibrarianKeyframesSeam;
-    public static Func<string, LSidecarWaveformRecord?>? LLibrarianWaveformLoadSeam;
-    public static Func<string, LSidecarEditRecord?>? LLibrarianEditLoadSeam;
-    public static Func<string, LSidecarAudioRecord?>? LLibrarianAudioLoadSeam;
-    public static Func<string, double>? LLibrarianLoudnessLoadSeam;
-    public static Func<string, TimeSpan>? LLibrarianDurationReadSeam;
-    public static Func<string, TimeSpan>? LLibrarianDurationResolveSeam;
+    public static Func<string, LSidecarWaveformRecord?>? LLibrarianWaveformReader;
+    public static Func<string, LSidecarEditRecord?>? LLibrarianEditReader;
+    public static Func<string, LSidecarAudioRecord?>? LLibrarianAudioReader;
+    public static Func<string, double>? LLibrarianLoudnessReader;
+    public static Func<string, TimeSpan>? LLibrarianDurationReader;
+    public static Func<string, TimeSpan>? LLibrarianDurationResolver;
 
-    public static Func<string, bool>? LLibrarianFileCheckSeam;
-    public static Func<string, LSidecarSourceResult?>? LLibrarianSourceResolveSeam;
-    public static Func<string, string, bool>? LLibrarianSourceVerifySeam;
+    public static Func<string, bool>? LLibrarianFileChecker;
+    public static Func<string, LSidecarSourceResult?>? LLibrarianSourceResolver;
+    public static Func<string, string, bool>? LLibrarianSourceVerifier;
 
-    public static Func<string, LSidecarEditRecord?, bool>? LLibrarianEditSaveSeam;
-    public static Func<string, LSidecarAudioRecord?, bool>? LLibrarianAudioSaveSeam;
-    public static Func<string, double, bool>? LLibrarianLoudnessSaveSeam;
-    public static Func<string, LSidecarWaveformRecord?, bool>? LLibrarianWaveformSaveSeam;
+    public static Func<string, LSidecarEditRecord?, bool>? LLibrarianEditWriter;
+    public static Func<string, LSidecarAudioRecord?, bool>? LLibrarianAudioWriter;
+    public static Func<string, double, bool>? LLibrarianLoudnessWriter;
+    public static Func<string, LSidecarWaveformRecord?, bool>? LLibrarianWaveformWriter;
 
     public static LSidecarCoreRecord? LLibrarianLoad(string lLibrarianSourcePath) =>
-        LLibrarianCoreLoadSeam?.Invoke(lLibrarianSourcePath);
+        LLibrarianCoreReader?.Invoke(lLibrarianSourcePath);
 
     public static IReadOnlyList<long> LLibrarianKeyframesLoad(string lLibrarianSourcePath) =>
         LLibrarianKeyframesSeam?.Invoke(lLibrarianSourcePath) ?? Array.Empty<long>();
 
     public static LSidecarWaveformRecord? LLibrarianWaveformLoad(string lLibrarianSourcePath) =>
-        LLibrarianWaveformLoadSeam?.Invoke(lLibrarianSourcePath);
+        LLibrarianWaveformReader?.Invoke(lLibrarianSourcePath);
 
     public static LSidecarEditRecord? LLibrarianEditLoad(string lLibrarianSourcePath) =>
-        LLibrarianEditLoadSeam?.Invoke(lLibrarianSourcePath);
+        LLibrarianEditReader?.Invoke(lLibrarianSourcePath);
 
     public static LSidecarAudioRecord? LLibrarianAudioLoad(string lLibrarianSourcePath) =>
-        LLibrarianAudioLoadSeam?.Invoke(lLibrarianSourcePath);
+        LLibrarianAudioReader?.Invoke(lLibrarianSourcePath);
 
     public static double LLibrarianLoudnessRead(string lLibrarianSourcePath) =>
-        LLibrarianLoudnessLoadSeam?.Invoke(lLibrarianSourcePath) ?? 0;
+        LLibrarianLoudnessReader?.Invoke(lLibrarianSourcePath) ?? 0;
 
     public static TimeSpan LLibrarianDurationRead(string lLibrarianSourcePath) =>
-        LLibrarianDurationReadSeam?.Invoke(lLibrarianSourcePath) ?? TimeSpan.Zero;
+        LLibrarianDurationReader?.Invoke(lLibrarianSourcePath) ?? TimeSpan.Zero;
 
     public static TimeSpan LLibrarianDurationResolve(string lLibrarianSourcePath) =>
-        LLibrarianDurationResolveSeam?.Invoke(lLibrarianSourcePath) ?? TimeSpan.Zero;
+        LLibrarianDurationResolver?.Invoke(lLibrarianSourcePath) ?? TimeSpan.Zero;
 
     public static bool LLibrarianFileCheck(string lLibrarianPath) =>
-        LLibrarianFileCheckSeam?.Invoke(lLibrarianPath) ?? false;
+        LLibrarianFileChecker?.Invoke(lLibrarianPath) ?? false;
 
     public static LSidecarSourceResult? LLibrarianSourceResolve(string lLibrarianSidecarPath) =>
-        LLibrarianSourceResolveSeam?.Invoke(lLibrarianSidecarPath);
+        LLibrarianSourceResolver?.Invoke(lLibrarianSidecarPath);
 
     public static bool LLibrarianSourceVerify(string lLibrarianMediaPath, string lLibrarianSidecarPath) =>
-        LLibrarianSourceVerifySeam?.Invoke(lLibrarianMediaPath, lLibrarianSidecarPath) ?? false;
+        LLibrarianSourceVerifier?.Invoke(lLibrarianMediaPath, lLibrarianSidecarPath) ?? false;
 
     public static bool LLibrarianEditSave(string lLibrarianSourcePath, LSidecarEditRecord? lLibrarianEdit) =>
-        LLibrarianEditSaveSeam?.Invoke(lLibrarianSourcePath, lLibrarianEdit) ?? false;
+        LLibrarianEditWriter?.Invoke(lLibrarianSourcePath, lLibrarianEdit) ?? false;
 
     public static bool LLibrarianAudioSave(string lLibrarianSourcePath, LSidecarAudioRecord? lLibrarianAudio) =>
-        LLibrarianAudioSaveSeam?.Invoke(lLibrarianSourcePath, lLibrarianAudio) ?? false;
+        LLibrarianAudioWriter?.Invoke(lLibrarianSourcePath, lLibrarianAudio) ?? false;
 
     public static bool LLibrarianLoudnessSave(string lLibrarianSourcePath, double lLibrarianLoudness) =>
-        LLibrarianLoudnessSaveSeam?.Invoke(lLibrarianSourcePath, lLibrarianLoudness) ?? false;
+        LLibrarianLoudnessWriter?.Invoke(lLibrarianSourcePath, lLibrarianLoudness) ?? false;
 
     public static bool LLibrarianWaveformSave(string lLibrarianSourcePath, LSidecarWaveformRecord? lLibrarianWaveform) =>
-        LLibrarianWaveformSaveSeam?.Invoke(lLibrarianSourcePath, lLibrarianWaveform) ?? false;
+        LLibrarianWaveformWriter?.Invoke(lLibrarianSourcePath, lLibrarianWaveform) ?? false;
 }

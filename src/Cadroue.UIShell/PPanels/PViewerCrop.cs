@@ -54,8 +54,8 @@ public sealed partial class PViewer
         pViewerEdgeX = PCropEdgeX[pHandleIndex];
         pViewerEdgeY = PCropEdgeY[pHandleIndex];
         pViewerCropDrive = pViewerEdgeX != 0 && pViewerEdgeY != 0 ? -1 : pViewerEdgeX != 0 ? 0 : 1;
-        pViewerCropAnchorX = -pViewerEdgeX;
-        pViewerCropAnchorY = -pViewerEdgeY;
+        pViewerAnchorX = -pViewerEdgeX;
+        pViewerAnchorY = -pViewerEdgeY;
         PCropDragStart(mouseEvent.GetPosition(pViewerOverlay));
         mouseEvent.Handled = true;
     }
@@ -70,8 +70,8 @@ public sealed partial class PViewer
         pViewerEdgeX = 0;
         pViewerEdgeY = 0;
         pViewerCropDrive = -1;
-        pViewerCropAnchorX = -1;
-        pViewerCropAnchorY = -1;
+        pViewerAnchorX = -1;
+        pViewerAnchorY = -1;
         PCropDragStart(mouseEvent.GetPosition(pViewerOverlay));
         mouseEvent.Handled = true;
     }
@@ -196,7 +196,7 @@ public sealed partial class PViewer
     }
 
     public (int Drive, int AnchorX, int AnchorY) PCropAnchorRead() =>
-        (pViewerCropDrive, pViewerCropAnchorX, pViewerCropAnchorY);
+        (pViewerCropDrive, pViewerAnchorX, pViewerAnchorY);
 
     public Size? PCropSourceRead()
     {
@@ -256,8 +256,8 @@ public sealed partial class PViewer
 
         pViewerCropPoint = mouseEvent.GetPosition(pViewerOverlay);
         pViewerCropDrive = -1;
-        pViewerCropAnchorX = -1;
-        pViewerCropAnchorY = -1;
+        pViewerAnchorX = -1;
+        pViewerAnchorY = -1;
         pViewerCropBox.Visibility = Visibility.Visible;
         pViewerOverlay.CaptureMouse();
         PCropBoxPlace(pViewerCropPoint.Value, pViewerCropPoint.Value);

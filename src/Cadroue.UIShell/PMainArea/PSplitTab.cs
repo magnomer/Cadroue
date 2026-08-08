@@ -35,7 +35,7 @@ public sealed class PSplitTab : PTabSurface
                 pSplitSelected.LDocketEntryBatch,
                 LCartographer.LCartographerPlanPrepare(pAction.PActionRelayTarget));
         };
-        pAction.PActionAllAdd += () => _ = LMessenger.LMessengerSplitAllDescribe(
+        pAction.PActionAllAdd += () => _ = LMessenger.LMessengerSplitDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
                 .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
@@ -44,7 +44,7 @@ public sealed class PSplitTab : PTabSurface
             pAction.PActionRelayTarget,
             pAction.PActionSourceTab,
             LCartographer.LCartographerPlanPrepare(pAction.PActionRelayTarget));
-        pAction.PActionItemsAdd += pSplitPaths => _ = LMessenger.LMessengerSplitAllDescribe(
+        pAction.PActionItemsAdd += pSplitPaths => _ = LMessenger.LMessengerSplitDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
                 .Where(pItem => pSplitPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))

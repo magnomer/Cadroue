@@ -78,7 +78,7 @@ internal static class LSidecarParse
 
     internal static LSidecar LSidecarCompose(LSidecarCoreRecord lSidecarCore, LSidecarCacheRecord? lSidecarCache)
     {
-        LSidecarCacheRecord? lSidecarValid = LSidecarCacheIntegrityApply(lSidecarCache);
+        LSidecarCacheRecord? lSidecarValid = LSidecarCacheValidate(lSidecarCache);
         return new LSidecar
         {
             LSidecarVersion = lSidecarCore.LSidecarVersion,
@@ -94,7 +94,7 @@ internal static class LSidecarParse
         };
     }
 
-    internal static LSidecarCacheRecord? LSidecarCacheIntegrityApply(LSidecarCacheRecord? lSidecarCache)
+    internal static LSidecarCacheRecord? LSidecarCacheValidate(LSidecarCacheRecord? lSidecarCache)
     {
         if (lSidecarCache is not { LSidecarKeyframeCount: > 0 })
         {
@@ -102,7 +102,7 @@ internal static class LSidecarParse
         }
 
         IReadOnlyList<long> lSidecarKeyframes = LSidecarKeyframe.LSidecarKeyframeParse(lSidecarCache.LSidecarKeyframeDeltas);
-        if (LSidecarKeyframe.LSidecarKeyframeIntegrityCheck(
+        if (LSidecarKeyframe.LSidecarKeyframeCheck(
                 lSidecarKeyframes,
                 lSidecarCache.LSidecarKeyframeCount,
                 lSidecarCache.LSidecarKeyframeLast))

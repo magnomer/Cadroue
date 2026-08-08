@@ -22,7 +22,7 @@ public static class LClassifier
 
     public static bool LClassifierMatch(LSceneFunnelRule lClassifierRule, string lClassifierName)
     {
-        if (lClassifierRule.LSceneFunnelType == (int)LSceneFunnelForm.LSceneFunnelFormRegex)
+        if (lClassifierRule.LSceneFunnelType == (int)LSceneFunnelForm.LSceneFunnelRegex)
         {
             if (string.IsNullOrWhiteSpace(lClassifierRule.LSceneFunnelRegex))
             {

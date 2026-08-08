@@ -110,9 +110,9 @@ public sealed partial class PConsole : UserControl
 
     public void PConsoleUpdate() => PConsoleProgressUpdate();
 
-    public UIElement PConsoleSceneControlsRead() => pConsoleSceneControls;
+    public UIElement PConsoleSceneRead() => pConsoleSceneControls;
 
-    public void PConsoleSceneHostSet(UIElement? pSceneControls)
+    public void PConsoleSceneSet(UIElement? pSceneControls)
     {
         pConsoleSceneHost.Content = pSceneControls;
         pConsoleSceneSeparator.Visibility = pSceneControls is null ? Visibility.Collapsed : Visibility.Visible;

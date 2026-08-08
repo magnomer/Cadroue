@@ -166,17 +166,17 @@ public sealed partial class PViewer
         LMediaProbe.LMediaProbeDefer(sourcePath);
     }
 
-    private void PViewerProbeReadyHandle(LMediaProbeResult result)
+    private void PViewerProbeHandle(LMediaProbeResult result)
     {
         Dispatcher.BeginInvoke(() =>
         {
-            if (pViewerUnloaded || result.LMediaProbeSourcePath != pViewerLoadPath)
+            if (pViewerUnloaded || result.LMediaProbePath != pViewerLoadPath)
             {
                 return;
             }
 
             PPlayerMediaApply(
-                result.LMediaProbeSourcePath,
+                result.LMediaProbePath,
                 result.LMediaProbeInfo,
                 result.LMediaProbeError,
                 pViewerLoadSerial);

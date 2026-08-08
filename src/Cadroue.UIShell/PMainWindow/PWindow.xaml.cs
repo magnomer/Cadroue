@@ -39,14 +39,14 @@ public partial class PWindow : Window
         Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
         pStrip = new PStrip();
         pTabNavigator = new PTabNavigator();
-        pTabNavigator.PTabNavigatorTabsetSet(pStrip);
+        pTabNavigator.PTabNavigatorAttach(pStrip);
         LRelay? lRelayStartup = PProgram.LRelayPayloadRead();
         if (lRelayStartup is null)
         {
             PWindowTabsRestore(pStrip, LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
         }
 
-        pControlBar.PToolbarTabHostSet(pTabNavigator);
+        pControlBar.PToolbarTabSet(pTabNavigator);
         pControlBar.PToolbarOptionsApply += PWindowOptionsHandle;
         PWindowOptionsHandle(LPreference.LPreferenceStateCurrent);
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
@@ -258,7 +258,7 @@ public partial class PWindow : Window
         pViewerActive.PViewerCommandSet(true);
         pViewerActive.PViewerMediaChange += PWindowMediaHandle;
         pViewerActive.PViewerClockTick += PWindowClockHandle;
-        pViewerActive.PViewerKeyDispatch += PShortcutViewerKeyHandle;
+        pViewerActive.PViewerKeyDispatch += PShortcutViewerHandle;
         pFlowActive.PFlowCursorChange += pViewerActive.PViewerSeek;
         pFlowActive.PFlowPlay += pViewerActive.PViewerPlay;
         pFlowActive.PFlowPause += pViewerActive.PViewerPause;
@@ -271,7 +271,7 @@ public partial class PWindow : Window
         {
             pViewerActive.PViewerMediaChange -= PWindowMediaHandle;
             pViewerActive.PViewerClockTick -= PWindowClockHandle;
-            pViewerActive.PViewerKeyDispatch -= PShortcutViewerKeyHandle;
+            pViewerActive.PViewerKeyDispatch -= PShortcutViewerHandle;
             pFlowActive.PFlowCursorChange -= pViewerActive.PViewerSeek;
             pFlowActive.PFlowPlay -= pViewerActive.PViewerPlay;
             pFlowActive.PFlowPause -= pViewerActive.PViewerPause;
@@ -302,7 +302,7 @@ public partial class PWindow : Window
         Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
         Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         FontSize = PWindowFontSize;
-        PWindowTabLayoutApply(lPreferenceState.LPreferenceVerticalTabs);
+        PWindowLayoutApply(lPreferenceState.LPreferenceVerticalTabs);
         if (pFlowActive is not null)
         {
             pFlowActive.Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
@@ -312,26 +312,26 @@ public partial class PWindow : Window
         PWindowVolumeSync(lPreferenceState);
     }
 
-    private void PWindowTabLayoutApply(bool pVertical)
+    private void PWindowLayoutApply(bool pVertical)
     {
-        UIElement pSceneControls = pConsole.PConsoleSceneControlsRead();
-        pControlBar.PToolbarTabHostSet(null);
+        UIElement pSceneControls = pConsole.PConsoleSceneRead();
+        pControlBar.PToolbarTabSet(null);
         pTabRailHost.Content = null;
-        pConsole.PConsoleSceneHostSet(null);
-        pControlBar.PToolbarSceneHostSet(null);
+        pConsole.PConsoleSceneSet(null);
+        pControlBar.PToolbarSceneSet(null);
 
-        pTabNavigator.PTabNavigatorVerticalSet(pVertical);
+        pTabNavigator.PTabNavigatorApply(pVertical);
         pControlBar.PToolbarVerticalSet(pVertical);
         pTabRailColumn.Width = new GridLength(pVertical ? PTabNavigator.PTabRailWidth : 0);
         if (pVertical)
         {
             pTabRailHost.Content = pTabNavigator;
-            pControlBar.PToolbarSceneHostSet(pSceneControls);
+            pControlBar.PToolbarSceneSet(pSceneControls);
         }
         else
         {
-            pControlBar.PToolbarTabHostSet(pTabNavigator);
-            pConsole.PConsoleSceneHostSet(pSceneControls);
+            pControlBar.PToolbarTabSet(pTabNavigator);
+            pConsole.PConsoleSceneSet(pSceneControls);
         }
 
         PWindowWidthApply();

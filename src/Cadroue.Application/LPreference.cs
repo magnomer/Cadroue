@@ -12,7 +12,7 @@ public static class LPreference
 
     public static Action? LPreferenceDebounceSeam { get; set; }
 
-    public static Func<string?, string>? LPreferenceLanguageNormalizeSeam { get; set; }
+    public static Func<string?, string>? LPreferenceLanguageSeam { get; set; }
 
     public static Func<LPreferenceState>? LPreferenceLoadSeam { get; set; }
 
@@ -100,7 +100,7 @@ public static class LPreference
     }
 
     private static string LPreferenceLanguageNormalize(string? lPreferenceLanguage) =>
-        LPreferenceLanguageNormalizeSeam?.Invoke(lPreferenceLanguage) ?? (lPreferenceLanguage ?? string.Empty);
+        LPreferenceLanguageSeam?.Invoke(lPreferenceLanguage) ?? (lPreferenceLanguage ?? string.Empty);
 
     private static void LPreferenceDefer() => LPreferenceDebounceSeam?.Invoke();
 }

@@ -66,7 +66,7 @@ public sealed class PAudioTab : PTabSurface
         pAction.PActionAllAdd += () =>
         {
             PAudioPlanSave();
-            _ = LMessenger.LMessengerAudioAllDescribe(
+            _ = LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
@@ -78,7 +78,7 @@ public sealed class PAudioTab : PTabSurface
         pAction.PActionItemsAdd += pAudioPaths =>
         {
             PAudioPlanSave();
-            _ = LMessenger.LMessengerAudioAllDescribe(
+            _ = LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Where(pItem => pAudioPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))

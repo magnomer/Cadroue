@@ -79,7 +79,7 @@ public sealed partial class PExport
             ? pPresetNameSelected ?? string.Empty
             : lPresetValue.LPresetName;
 
-        string pFileName = LPreset.LPresetFileNameCreate(lPresetName);
+        string pFileName = LPreset.LPresetFileFormat(lPresetName);
 
         var pDialog = new SaveFileDialog
         {
@@ -151,7 +151,7 @@ public sealed partial class PExport
             return;
         }
 
-        string lImportedName = LPreset.LPresetImportNameResolve(lImportedRecord.LPresetName, pDialog.FileName);
+        string lImportedName = LPreset.LPresetNameResolve(lImportedRecord.LPresetName, pDialog.FileName);
 
         string lPresetName = LPreset.LPresetNameCreate(
             string.IsNullOrWhiteSpace(lImportedName)

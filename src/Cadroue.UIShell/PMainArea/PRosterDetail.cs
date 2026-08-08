@@ -257,11 +257,11 @@ public sealed partial class PRoster
         LMediaProbe.LMediaProbeDefer(pMediaPath);
     }
 
-    private void PRosterMediaReadyHandle(LMediaProbeResult pResult)
+    private void PRosterMediaHandle(LMediaProbeResult pResult)
     {
         Dispatcher.BeginInvoke(new Action(() =>
         {
-            string pMediaPath = pResult.LMediaProbeSourcePath;
+            string pMediaPath = pResult.LMediaProbePath;
             if (!pRosterMediaPending.Remove(pMediaPath))
             {
                 return;

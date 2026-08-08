@@ -8,7 +8,7 @@ using Cadroue.UIShell.PControlBar;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public sealed record PActionRelayOption(Guid PActionRelayTabId, string PActionRelayTabTitle, ImageSource? PActionRelayTabIcon);
+public sealed record PActionRelayOption(Guid PActionRelayId, string PActionRelayTitle, ImageSource? PActionRelayIcon);
 
 public sealed class PAction : UserControl
 {
@@ -255,17 +255,17 @@ public sealed class PAction : UserControl
 
         PActionRelayOption? pOption = PActionRelayTarget == Guid.Empty
             ? null
-            : PActionOptionsRead().FirstOrDefault(pRow => pRow.PActionRelayTabId == PActionRelayTarget);
+            : PActionOptionsRead().FirstOrDefault(pRow => pRow.PActionRelayId == PActionRelayTarget);
 
         if (PActionRelayTarget != Guid.Empty && pOption is null)
         {
             PActionRelayTarget = Guid.Empty;
         }
 
-        pActionRelayLabel.Text = pOption?.PActionRelayTabTitle
+        pActionRelayLabel.Text = pOption?.PActionRelayTitle
             ?? LLocalization.LLocalizationTextRead("Action.Relay.None");
-        pActionRelayIcon.Source = pOption?.PActionRelayTabIcon;
-        pActionRelayIcon.Visibility = pOption?.PActionRelayTabIcon is null
+        pActionRelayIcon.Source = pOption?.PActionRelayIcon;
+        pActionRelayIcon.Visibility = pOption?.PActionRelayIcon is null
             ? Visibility.Collapsed
             : Visibility.Visible;
     }
@@ -279,7 +279,7 @@ public sealed class PAction : UserControl
         PActionRowAppend(pRelayMenu, Guid.Empty, LLocalization.LLocalizationTextRead("Action.Relay.None"), null);
         foreach (PActionRelayOption pOption in PActionOptionsRead())
         {
-            PActionRowAppend(pRelayMenu, pOption.PActionRelayTabId, pOption.PActionRelayTabTitle, pOption.PActionRelayTabIcon);
+            PActionRowAppend(pRelayMenu, pOption.PActionRelayId, pOption.PActionRelayTitle, pOption.PActionRelayIcon);
         }
 
         PActionRowAppend(pRelayMenu, LCartographer.LCartographerFinishTarget, LLocalization.LLocalizationTextRead("Action.Relay.Finish"), null);

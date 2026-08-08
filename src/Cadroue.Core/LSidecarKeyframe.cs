@@ -37,15 +37,13 @@ public static class LSidecarKeyframe
         return lSidecarKeyframes;
     }
 
-    public static int LSidecarKeyframeCountRead(IReadOnlyList<long> lSidecarKeyframes) => lSidecarKeyframes.Count;
-
-    public static long LSidecarKeyframeLastRead(IReadOnlyList<long> lSidecarKeyframes) =>
+    public static long LSidecarLastRead(IReadOnlyList<long> lSidecarKeyframes) =>
         lSidecarKeyframes.Count == 0 ? 0 : lSidecarKeyframes[^1];
 
-    public static bool LSidecarKeyframeIntegrityCheck(
+    public static bool LSidecarKeyframeCheck(
         IReadOnlyList<long> lSidecarKeyframes,
         int lSidecarExpectedCount,
         long lSidecarExpectedLast) =>
         lSidecarKeyframes.Count == lSidecarExpectedCount
-        && LSidecarKeyframeLastRead(lSidecarKeyframes) == lSidecarExpectedLast;
+        && LSidecarLastRead(lSidecarKeyframes) == lSidecarExpectedLast;
 }

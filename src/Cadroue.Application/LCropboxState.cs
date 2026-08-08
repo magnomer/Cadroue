@@ -7,10 +7,10 @@ public sealed class LCropboxState
     private LWorkCrop lCropboxStateCrop = LWorkCrop.LWorkCropCreate();
     private bool lCropboxStateApply;
     private bool lCropboxStatePersistent;
-    private bool lCropboxStateRatioFixed;
-    private bool lCropboxStateRatioLenient;
-    private int lCropboxStateRatioWidth;
-    private int lCropboxStateRatioHeight;
+    private bool lCropboxRatioFixed;
+    private bool lCropboxRatioLenient;
+    private int lCropboxRatioWidth;
+    private int lCropboxRatioHeight;
 
     public event Action? LCropboxStateChange;
 
@@ -22,32 +22,32 @@ public sealed class LCropboxState
     public bool LCropboxStatePersistent => lCropboxStatePersistent;
 
     public (bool RatioFixed, bool RatioLenient, int RatioWidth, int RatioHeight) LCropboxStateRatio =>
-        (lCropboxStateRatioFixed, lCropboxStateRatioLenient, lCropboxStateRatioWidth, lCropboxStateRatioHeight);
+        (lCropboxRatioFixed, lCropboxRatioLenient, lCropboxRatioWidth, lCropboxRatioHeight);
 
-    public void LCropboxStateCropSet(LWorkCrop lCrop)
+    public void LCropboxCropSet(LWorkCrop lCrop)
     {
         lCropboxStateCrop = lCrop;
         LCropboxStateRaise();
     }
 
-    public void LCropboxStateApplySet(bool lApply)
+    public void LCropboxApplySet(bool lApply)
     {
         lCropboxStateApply = lApply;
         LCropboxStateRaise();
     }
 
-    public void LCropboxStatePersistentSet(bool lPersistent)
+    public void LCropboxPersistentSet(bool lPersistent)
     {
         lCropboxStatePersistent = lPersistent;
         LCropboxStateRaise();
     }
 
-    public void LCropboxStateRatioSet(bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
+    public void LCropboxRatioSet(bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
     {
-        lCropboxStateRatioFixed = lRatioFixed;
-        lCropboxStateRatioLenient = lRatioLenient;
-        lCropboxStateRatioWidth = lRatioWidth;
-        lCropboxStateRatioHeight = lRatioHeight;
+        lCropboxRatioFixed = lRatioFixed;
+        lCropboxRatioLenient = lRatioLenient;
+        lCropboxRatioWidth = lRatioWidth;
+        lCropboxRatioHeight = lRatioHeight;
         LCropboxStateRaise();
     }
 
@@ -55,10 +55,10 @@ public sealed class LCropboxState
     {
         lCropboxStateCrop = lCrop;
         lCropboxStateApply = lApply;
-        lCropboxStateRatioFixed = lRatioFixed;
-        lCropboxStateRatioLenient = lRatioLenient;
-        lCropboxStateRatioWidth = lRatioWidth;
-        lCropboxStateRatioHeight = lRatioHeight;
+        lCropboxRatioFixed = lRatioFixed;
+        lCropboxRatioLenient = lRatioLenient;
+        lCropboxRatioWidth = lRatioWidth;
+        lCropboxRatioHeight = lRatioHeight;
         LCropboxStateRaise();
     }
 
@@ -66,10 +66,10 @@ public sealed class LCropboxState
     {
         lCropboxStateCrop = LWorkCrop.LWorkCropCreate();
         lCropboxStateApply = false;
-        lCropboxStateRatioFixed = false;
-        lCropboxStateRatioLenient = false;
-        lCropboxStateRatioWidth = 0;
-        lCropboxStateRatioHeight = 0;
+        lCropboxRatioFixed = false;
+        lCropboxRatioLenient = false;
+        lCropboxRatioWidth = 0;
+        lCropboxRatioHeight = 0;
         LCropboxStateRaise();
     }
 

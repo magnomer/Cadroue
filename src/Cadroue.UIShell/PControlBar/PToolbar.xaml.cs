@@ -18,12 +18,12 @@ public partial class PToolbar : UserControl
         PChromeButtonsApply();
     }
 
-    public void PToolbarTabHostSet(UIElement? pTabs)
+    public void PToolbarTabSet(UIElement? pTabs)
     {
         pTabHost.Content = pTabs;
     }
 
-    public void PToolbarSceneHostSet(UIElement? pSceneControls)
+    public void PToolbarSceneSet(UIElement? pSceneControls)
     {
         pSceneHost.Content = pSceneControls;
     }

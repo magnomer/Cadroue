@@ -77,7 +77,7 @@ internal sealed partial class PSOptions
             Foreground = PSFieldMuted,
             TextWrapping = TextWrapping.Wrap,
             Margin = PSNoticeMargin,
-            Text = PSSystemFlyleafStatusFormat()
+            Text = PSSystemFlyleafFormat()
         };
 
         Button pInstall = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.InstallFlyleaf"), 160, new Thickness(0, 0, 8, 0));
@@ -87,7 +87,7 @@ internal sealed partial class PSOptions
             pInstall.IsEnabled = false;
             pState.Text = LLocalization.LLocalizationTextRead("Options.System.FlyleafInstalling");
             LFlyleafInstallResult pResult = await LFlyleaf.LFlyleafInstallStart();
-            pState.Text = PSSystemFlyleafStatusFormat();
+            pState.Text = PSSystemFlyleafFormat();
             pInstall.IsEnabled = true;
             MessageBox.Show(
                 this,
@@ -110,7 +110,7 @@ internal sealed partial class PSOptions
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FlyleafNotice")));
     }
 
-    private static string PSSystemFlyleafStatusFormat() =>
+    private static string PSSystemFlyleafFormat() =>
         LFlyleaf.LFlyleafInstalledCheck()
             ? LLocalization.LLocalizationFormat(
                 "Flyleaf.Local.Status.Installed",

@@ -112,7 +112,7 @@ public sealed partial record LCropbox
         return null;
     }
 
-    public static LCropbox? LCropboxAnchorLenientResolve(
+    public static LCropbox? LCropboxLenientResolve(
         LCropbox lCropboxDesired,
         LCropbox lCropboxBounds,
         int lCropboxRatioWidth,
@@ -161,7 +161,7 @@ public sealed partial record LCropbox
             lCropboxWidth = Math.Clamp(LCropboxEvenRound(lCropboxHeight * lCropboxRatio), 2, lCropboxMaximumWidth);
         }
 
-        if (LCropboxRatioErrorResolve(lCropboxWidth, lCropboxHeight, lCropboxUnitWidth, lCropboxUnitHeight) > lCropboxTolerance)
+        if (LCropboxErrorResolve(lCropboxWidth, lCropboxHeight, lCropboxUnitWidth, lCropboxUnitHeight) > lCropboxTolerance)
         {
             return null;
         }
@@ -213,7 +213,7 @@ public sealed partial record LCropbox
         return (lCropboxExcess < 0 ? 0 : lCropboxExcess, lCropboxIsWide);
     }
 
-    public static double LCropboxRatioErrorResolve(
+    public static double LCropboxErrorResolve(
         double lCropboxCropWidth,
         double lCropboxCropHeight,
         double lCropboxRatioWidth,

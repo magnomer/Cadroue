@@ -16,7 +16,7 @@ public partial class PTabNavigator : UserControl
     private PTabRecord? pTabDragItem;
     private FrameworkElement? pTabDragElement;
     private Point pTabDragPoint;
-    private Point pTabDragGrabOffset;
+    private Point pTabDragOffset;
     private bool pTabDragActive;
     private PGhost? pTabGhost;
     private bool pTabVertical;
@@ -24,16 +24,16 @@ public partial class PTabNavigator : UserControl
     public PTabNavigator()
     {
         InitializeComponent();
-        PTabNavigatorVerticalSet(false);
+        PTabNavigatorApply(false);
     }
 
-    public void PTabNavigatorTabsetSet(PStrip pTabset)
+    public void PTabNavigatorAttach(PStrip pTabset)
     {
         pStrip = pTabset;
         DataContext = pTabset;
     }
 
-    public void PTabNavigatorVerticalSet(bool pVertical)
+    public void PTabNavigatorApply(bool pVertical)
     {
         pTabVertical = pVertical;
         Width = pVertical ? PTabRailWidth : double.NaN;
@@ -72,7 +72,7 @@ public partial class PTabNavigator : UserControl
         pTabDragItem = pTabRecord;
         pTabDragElement = pTabElement;
         pTabDragPoint = e.GetPosition(this);
-        pTabDragGrabOffset = e.GetPosition(pTabElement);
+        pTabDragOffset = e.GetPosition(pTabElement);
         pTabDragActive = false;
         pStrip?.PStripSelect(pTabRecord);
         Mouse.Capture(sender as IInputElement);
@@ -132,7 +132,7 @@ public partial class PTabNavigator : UserControl
             if (pTabDragElement is { } pTabElement)
             {
                 pTabElement.Opacity = 0.72;
-                pTabGhost = PGhost.PGhostShow(pTabElement, pTabDragGrabOffset);
+                pTabGhost = PGhost.PGhostShow(pTabElement, pTabDragOffset);
             }
         }
 

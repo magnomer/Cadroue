@@ -28,7 +28,7 @@ public sealed partial class PInspector
     private TextBox pInspectorRatioWidth = null!;
     private TextBox pInspectorRatioHeight = null!;
     private ComboBox pInspectorRatioPreset = null!;
-    private StackPanel pInspectorRatioCustomPanel = null!;
+    private StackPanel pInspectorCustomPanel = null!;
     private CheckBox pInspectorRatioFixed = null!;
     private CheckBox pInspectorRatioLenient = null!;
     private TextBlock pInspectorRatioNotice = null!;
@@ -93,7 +93,7 @@ public sealed partial class PInspector
 
     public void PCropPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply)
     {
-        PInspectorEdgeLockClear();
+        PInspectorEdgeClear();
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         try
@@ -151,7 +151,7 @@ public sealed partial class PInspector
 
     private void PInspectorCropReset()
     {
-        PInspectorEdgeLockClear();
+        PInspectorEdgeClear();
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         try
@@ -245,13 +245,13 @@ public sealed partial class PInspector
         PInspectorCropRaise();
     }
 
-    private void PInspectorEdgeLockClear() => Array.Clear(pInspectorEdgeLocked);
+    private void PInspectorEdgeClear() => Array.Clear(pInspectorEdgeLocked);
 
     public void PInspectorCropSet(Rect? pCropVideo, int pDriveAxis, int pAnchorX, int pAnchorY)
     {
-        PInspectorEdgeLockClear();
+        PInspectorEdgeClear();
         Rect? pCropSnapped = pCropVideo is { Width: > 0, Height: > 0 } pCropDrawn
-            ? PInspectorRatioAnchorFit(pCropDrawn, pDriveAxis, pAnchorX, pAnchorY) ?? pCropDrawn
+            ? PInspectorRatioResolve(pCropDrawn, pDriveAxis, pAnchorX, pAnchorY) ?? pCropDrawn
             : pCropVideo;
 
         bool pCropSuppressPrevious = pInspectorCropSuppress;
@@ -360,7 +360,7 @@ public sealed partial class PInspector
 
     private void PInspectorEdgesReset()
     {
-        PInspectorEdgeLockClear();
+        PInspectorEdgeClear();
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         pInspectorCropSuppress = true;
         try
@@ -423,7 +423,7 @@ public sealed partial class PInspector
         {
             int pPresetIndex = PInspectorPresetResolve(pRatioWidth, pRatioHeight);
             pInspectorRatioPreset.SelectedIndex = pPresetIndex;
-            pInspectorRatioCustomPanel.Visibility = pPresetIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+            pInspectorCustomPanel.Visibility = pPresetIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
             pInspectorRatioWidth.Text = pRatioWidth.ToString(CultureInfo.InvariantCulture);
             pInspectorRatioHeight.Text = pRatioHeight.ToString(CultureInfo.InvariantCulture);
             pInspectorRatioFixed.IsChecked = pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0;
@@ -442,7 +442,7 @@ public sealed partial class PInspector
 
     public void PInspectorRatioReset()
     {
-        PInspectorEdgeLockClear();
+        PInspectorEdgeClear();
         bool pCropSuppressPrevious = pInspectorCropSuppress;
         bool pRatioSuppressPrevious = pInspectorRatioSuppress;
         pInspectorCropSuppress = true;
@@ -453,7 +453,7 @@ public sealed partial class PInspector
             pInspectorRatioLenient.IsChecked = false;
             pInspectorRatioLenient.IsEnabled = false;
             pInspectorRatioPreset.SelectedIndex = 0;
-            pInspectorRatioCustomPanel.Visibility = Visibility.Visible;
+            pInspectorCustomPanel.Visibility = Visibility.Visible;
             pInspectorRatioWidth.Text = "0";
             pInspectorRatioHeight.Text = "0";
         }

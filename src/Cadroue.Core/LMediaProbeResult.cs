@@ -1,6 +1,6 @@
 namespace Cadroue.Core;
 
 public sealed record LMediaProbeResult(
-    string LMediaProbeSourcePath,
+    string LMediaProbePath,
     LMediaInfo? LMediaProbeInfo,
     string? LMediaProbeError);

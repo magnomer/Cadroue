@@ -328,11 +328,11 @@ public sealed partial class PRoster
         LMediaProbe.LMediaLoudnessDefer(pMediaPath);
     }
 
-    private void PRosterLoudnessReadyHandle(LMediaLoudnessResult pResult)
+    private void PRosterLoudnessHandle(LMediaLoudnessResult pResult)
     {
         Dispatcher.BeginInvoke(new Action(() =>
         {
-            string pMediaPath = pResult.LMediaLoudnessSourcePath;
+            string pMediaPath = pResult.LMediaLoudnessPath;
             if (!pRosterLoudnessPending.Remove(pMediaPath, out bool pFromSidecar))
             {
                 return;

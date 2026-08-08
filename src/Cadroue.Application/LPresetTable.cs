@@ -8,8 +8,8 @@ public sealed partial class LPreset
 {
     private static readonly Dictionary<string, LPreset> LPresetMap = new(StringComparer.OrdinalIgnoreCase);
 
-    public static Func<IReadOnlyList<LPresetRecord>?>? LPresetStoreLoadSeam;
-    public static Action<IReadOnlyList<LPresetRecord>>? LPresetStoreSaveSeam;
+    public static Func<IReadOnlyList<LPresetRecord>?>? LPresetLoadSeam;
+    public static Action<IReadOnlyList<LPresetRecord>>? LPresetSaveSeam;
 
     private static bool LPresetInitialized;
 
@@ -24,7 +24,7 @@ public sealed partial class LPreset
         LPresetNativeAdd(LPresetAudioCreate());
         LPresetNativeAdd(LPresetSplitCreate());
         LPresetNativeAdd(LPresetMergeCreate());
-        IReadOnlyList<LPresetRecord>? lStoredPresets = LPresetStoreLoadSeam?.Invoke();
+        IReadOnlyList<LPresetRecord>? lStoredPresets = LPresetLoadSeam?.Invoke();
         if (lStoredPresets is null)
         {
             var lDefault = new LPreset { LPresetName = "MP4_H264_AAC_Default" };
@@ -306,7 +306,7 @@ public sealed partial class LPreset
         }
     }
 
-    public static string LPresetFileNameCreate(string lPresetName)
+    public static string LPresetFileFormat(string lPresetName)
     {
         char[] lInvalidCharacters = Path.GetInvalidFileNameChars();
         return new string(lPresetName
@@ -315,7 +315,7 @@ public sealed partial class LPreset
             .ToArray());
     }
 
-    public static string LPresetImportNameResolve(string lStoredName, string lFilePath)
+    public static string LPresetNameResolve(string lStoredName, string lFilePath)
     {
         string lName = lStoredName.Trim();
         return string.IsNullOrWhiteSpace(lName)
@@ -351,7 +351,7 @@ public sealed partial class LPreset
                 lPresets.Add(lPreset.LPresetClone());
             }
         }
-        LPresetStoreSaveSeam?.Invoke(lPresets.Select(lPreset => lPreset.LPresetRecordCreate()).ToList());
+        LPresetSaveSeam?.Invoke(lPresets.Select(lPreset => lPreset.LPresetRecordCreate()).ToList());
         LPresetStoreChange?.Invoke();
     }
 

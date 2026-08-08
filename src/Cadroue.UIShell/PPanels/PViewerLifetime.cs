@@ -20,7 +20,7 @@ public sealed partial class PViewer
         pViewerFlyleafHost.Loaded += (_, _) =>
         {
             PViewerHostRecord("host loaded");
-            PViewerKeyForwardAttach();
+            PViewerKeyAttach();
         };
         pViewerFlyleafHost.IsVisibleChanged += (_, pVisibleEvent) =>
             PViewerHostRecord($"host visible {pVisibleEvent.NewValue}");
@@ -29,24 +29,24 @@ public sealed partial class PViewer
         PViewerHostRecord("host built");
     }
 
-    private void PViewerKeyForwardAttach()
+    private void PViewerKeyAttach()
     {
         Window? pViewerKeySurface = pViewerFlyleafHost.Surface;
         if (pViewerKeySurface is not null)
         {
-            pViewerKeySurface.PreviewKeyDown -= PViewerHostKeyHandle;
-            pViewerKeySurface.PreviewKeyDown += PViewerHostKeyHandle;
+            pViewerKeySurface.PreviewKeyDown -= PViewerKeyHandle;
+            pViewerKeySurface.PreviewKeyDown += PViewerKeyHandle;
         }
 
         Window? pViewerKeyOverlay = pViewerFlyleafHost.Overlay;
         if (pViewerKeyOverlay is not null)
         {
-            pViewerKeyOverlay.PreviewKeyDown -= PViewerHostKeyHandle;
-            pViewerKeyOverlay.PreviewKeyDown += PViewerHostKeyHandle;
+            pViewerKeyOverlay.PreviewKeyDown -= PViewerKeyHandle;
+            pViewerKeyOverlay.PreviewKeyDown += PViewerKeyHandle;
         }
     }
 
-    private void PViewerHostKeyHandle(object sender, KeyEventArgs e)
+    private void PViewerKeyHandle(object sender, KeyEventArgs e)
     {
         PViewerKeyDispatch?.Invoke(e);
     }
@@ -108,7 +108,7 @@ public sealed partial class PViewer
         {
             pViewerUnloaded = true;
             pViewerLoadSerial++;
-            LMediaProbe.LMediaProbeReady -= PViewerProbeReadyHandle;
+            LMediaProbe.LMediaProbeReady -= PViewerProbeHandle;
             pViewerClockTimer.Tick -= PViewerClockHandle;
             pViewerOverlay.MouseLeftButtonDown -= PCropPressHandle;
             pViewerOverlay.MouseMove -= PCropMoveHandle;

@@ -196,7 +196,7 @@ public sealed class PFunnelRuleRow : Border
             FontSize = 12,
             FontFamily = pFunnelFontFamily,
             FocusVisualStyle = null,
-            SelectedValuePath = "PActionRelayTabId",
+            SelectedValuePath = "PActionRelayId",
             ItemTemplate = PFunnelTemplateBuild()
         };
         PDropdown.PDropdownApply(pCombo);
@@ -213,7 +213,7 @@ public sealed class PFunnelRuleRow : Border
             new(Guid.Empty, LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone"), null)
         };
         pOptions.AddRange(pFunnelOptionsRead());
-        if (pFunnelTargetId != Guid.Empty && pOptions.All(pOption => pOption.PActionRelayTabId != pFunnelTargetId))
+        if (pFunnelTargetId != Guid.Empty && pOptions.All(pOption => pOption.PActionRelayId != pFunnelTargetId))
         {
             pFunnelTargetId = Guid.Empty;
         }
@@ -241,7 +241,7 @@ public sealed class PFunnelRuleRow : Border
         pStack.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
 
         var pIconStyle = new Style(typeof(Image));
-        var pIconTrigger = new DataTrigger { Binding = new Binding("PActionRelayTabIcon"), Value = null };
+        var pIconTrigger = new DataTrigger { Binding = new Binding("PActionRelayIcon"), Value = null };
         pIconTrigger.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Collapsed));
         pIconStyle.Triggers.Add(pIconTrigger);
 
@@ -252,14 +252,14 @@ public sealed class PFunnelRuleRow : Border
         pIcon.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 6, 0));
         pIcon.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
         pIcon.SetValue(FrameworkElement.StyleProperty, pIconStyle);
-        pIcon.SetBinding(Image.SourceProperty, new Binding("PActionRelayTabIcon"));
+        pIcon.SetBinding(Image.SourceProperty, new Binding("PActionRelayIcon"));
 
         var pText = new FrameworkElementFactory(typeof(TextBlock));
         pText.SetValue(TextBlock.FontSizeProperty, 12.0);
         pText.SetValue(TextBlock.FontFamilyProperty, pFunnelFontFamily);
         pText.SetValue(TextBlock.ForegroundProperty, pFunnelTitleBrush);
         pText.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-        pText.SetBinding(TextBlock.TextProperty, new Binding("PActionRelayTabTitle"));
+        pText.SetBinding(TextBlock.TextProperty, new Binding("PActionRelayTitle"));
 
         pStack.AppendChild(pIcon);
         pStack.AppendChild(pText);

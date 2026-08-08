@@ -47,30 +47,30 @@ public sealed class LPresetNameTests
     [Fact]
     public void FileNameCreate_InvalidCharacters_ReplacedWithUnderscore()
     {
-        Assert.Equal("a_b_c_d", LPreset.LPresetFileNameCreate("a/b:c?d"));
+        Assert.Equal("a_b_c_d", LPreset.LPresetFileFormat("a/b:c?d"));
     }
 
     [Fact]
     public void FileNameCreate_TrimsSurroundingSpaces()
     {
-        Assert.Equal("Clean", LPreset.LPresetFileNameCreate("  Clean  "));
+        Assert.Equal("Clean", LPreset.LPresetFileFormat("  Clean  "));
     }
 
     [Fact]
     public void FileNameCreate_CleanName_ReturnedUnchanged()
     {
-        Assert.Equal("Clean Name", LPreset.LPresetFileNameCreate("Clean Name"));
+        Assert.Equal("Clean Name", LPreset.LPresetFileFormat("Clean Name"));
     }
 
     [Fact]
     public void ImportNameResolve_NonBlankStoredName_ReturnedTrimmed()
     {
-        Assert.Equal("Stored", LPreset.LPresetImportNameResolve("  Stored  ", @"C:\dir\file.json"));
+        Assert.Equal("Stored", LPreset.LPresetNameResolve("  Stored  ", @"C:\dir\file.json"));
     }
 
     [Fact]
     public void ImportNameResolve_BlankStoredName_FallsBackToFileStem()
     {
-        Assert.Equal("file", LPreset.LPresetImportNameResolve("   ", @"C:\dir\file.json"));
+        Assert.Equal("file", LPreset.LPresetNameResolve("   ", @"C:\dir\file.json"));
     }
 }

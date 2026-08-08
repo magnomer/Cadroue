@@ -91,7 +91,7 @@ public static class LMessenger
         return lMessengerAdded;
     }
 
-    public static async Task<int> LMessengerAudioAllDescribe(
+    public static async Task<int> LMessengerAudioDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
         Cadroue.Application.LPresetSelection lMessengerOwner,
@@ -135,7 +135,7 @@ public static class LMessenger
         return lMessengerAdded;
     }
 
-    public static async Task<int> LMessengerSplitAllDescribe(
+    public static async Task<int> LMessengerSplitDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
         Cadroue.Application.LPresetSelection lMessengerOwner,
@@ -153,7 +153,7 @@ public static class LMessenger
             .ToArray();
 
         IReadOnlyList<LSplitPlanRecord> lMessengerPlans =
-            await Task.Run(() => LMessengerSplitPlanCreate(lMessengerSourcePaths)).ConfigureAwait(false);
+            await Task.Run(() => LMessengerSplitCreate(lMessengerSourcePaths)).ConfigureAwait(false);
 
         int lMessengerAdded = 0;
         LMessengerPost(() =>
@@ -169,12 +169,12 @@ public static class LMessenger
         return lMessengerAdded;
     }
 
-    private static IReadOnlyList<LSplitPlanRecord> LMessengerSplitPlanCreate(IReadOnlyList<string> lMessengerSourcePaths)
+    private static IReadOnlyList<LSplitPlanRecord> LMessengerSplitCreate(IReadOnlyList<string> lMessengerSourcePaths)
     {
         var lMessengerPlans = new List<LSplitPlanRecord>();
         foreach (string lMessengerSourcePath in lMessengerSourcePaths)
         {
-            IReadOnlyList<LSplitSectionDescription> lMessengerSections = LMessengerSplitPlanRead(lMessengerSourcePath);
+            IReadOnlyList<LSplitSectionDescription> lMessengerSections = LMessengerSplitRead(lMessengerSourcePath);
             if (lMessengerSections.Count > 0)
             {
                 lMessengerPlans.Add(new LSplitPlanRecord(lMessengerSourcePath, lMessengerSections));
@@ -183,7 +183,7 @@ public static class LMessenger
         return lMessengerPlans;
     }
 
-    private static IReadOnlyList<LSplitSectionDescription> LMessengerSplitPlanRead(string lMessengerSourcePath)
+    private static IReadOnlyList<LSplitSectionDescription> LMessengerSplitRead(string lMessengerSourcePath)
     {
         try
         {
@@ -361,7 +361,7 @@ public static class LMessenger
 
     private static int LMessengerParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
 
-    public static async Task<int> LMessengerEditAllDescribe(
+    public static async Task<int> LMessengerEditDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
         Cadroue.Application.LPresetSelection lMessengerOwner,

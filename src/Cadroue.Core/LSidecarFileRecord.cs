@@ -24,7 +24,7 @@ public sealed record LSidecarSourceResult(
     string LSidecarResultPath,
     LSidecarSourceKind LSidecarResultKind,
     bool LSidecarResultVerified,
-    string LSidecarResultFileName);
+    string LSidecarResultName);
 
 public sealed class LSidecarCacheRecord
 {

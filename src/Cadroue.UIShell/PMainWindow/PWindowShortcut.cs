@@ -14,7 +14,7 @@ public partial class PWindow
         PShortcutKeyProcess(e);
     }
 
-    private void PShortcutViewerKeyHandle(KeyEventArgs e)
+    private void PShortcutViewerHandle(KeyEventArgs e)
     {
         PShortcutKeyProcess(e);
     }

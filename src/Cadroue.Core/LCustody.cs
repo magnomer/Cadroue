@@ -51,7 +51,7 @@ public static class LCustody
             }
 
             IntPtr lCustodyHandle = CreateJobObject(IntPtr.Zero, null);
-            if (lCustodyHandle == IntPtr.Zero || !LCustodyKillOnCloseSet(lCustodyHandle))
+            if (lCustodyHandle == IntPtr.Zero || !LCustodyLimitApply(lCustodyHandle))
             {
                 lCustodyUnavailable = true;
                 if (lCustodyHandle != IntPtr.Zero)
@@ -67,7 +67,7 @@ public static class LCustody
         }
     }
 
-    private static bool LCustodyKillOnCloseSet(IntPtr lCustodyHandle)
+    private static bool LCustodyLimitApply(IntPtr lCustodyHandle)
     {
         var lCustodyLimit = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION
         {

@@ -95,8 +95,8 @@ public sealed class LSceneFunnelRule
 
 public enum LSceneFunnelForm
 {
-    LSceneFunnelFormFilename,
-    LSceneFunnelFormRegex
+    LSceneFunnelFilename,
+    LSceneFunnelRegex
 }
 
 public sealed class LSceneFunnelMatch

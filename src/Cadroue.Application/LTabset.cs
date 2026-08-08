@@ -76,6 +76,6 @@ public static class LTabset
         return lTabsetDistinct;
     }
 
-    public static int LTabsetNextIndexRead(int lTabsetCount, int lTabsetClosedIndex) =>
+    public static int LTabsetNextResolve(int lTabsetCount, int lTabsetClosedIndex) =>
         Math.Min(lTabsetClosedIndex, lTabsetCount - 1);
 }

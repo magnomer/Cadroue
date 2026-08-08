@@ -13,7 +13,7 @@ public sealed partial class PInspector
     private static Rect PInspectorRectResolve(LCropbox pCropbox) =>
         new Rect(pCropbox.LCropboxX, pCropbox.LCropboxY, pCropbox.LCropboxWidth, pCropbox.LCropboxHeight);
 
-    private Rect? PInspectorRatioAnchorFit(Rect pDesired, int pDriveAxis, int pAnchorX, int pAnchorY)
+    private Rect? PInspectorRatioResolve(Rect pDesired, int pDriveAxis, int pAnchorX, int pAnchorY)
     {
         if (pInspectorRatioFixed.IsChecked != true
             || pDesired.Width <= 0 || pDesired.Height <= 0
@@ -31,7 +31,7 @@ public sealed partial class PInspector
 
         LCropbox pBounds = new LCropbox(0, 0, pInspectorSourceWidth, pInspectorSourceHeight);
         LCropbox? pFit = pInspectorRatioLenient.IsChecked == true
-            ? LCropbox.LCropboxAnchorLenientResolve(
+            ? LCropbox.LCropboxLenientResolve(
                 PInspectorCropboxResolve(pDesired),
                 pBounds,
                 pRatioWidth,
@@ -110,12 +110,12 @@ public sealed partial class PInspector
     private void PInspectorRatioCommit()
     {
         pInspectorRatioLenient.IsEnabled = pInspectorRatioFixed.IsChecked == true;
-        PInspectorEdgeLockClear();
+        PInspectorEdgeClear();
         PInspectorRatioUpdate();
         PInspectorRatioRaise();
     }
 
-    private void PInspectorRatioPresetHandle()
+    private void PInspectorRatioHandle()
     {
         if (pInspectorRatioSuppress || pInspectorRatioPreset.SelectedIndex < 0)
         {
@@ -123,7 +123,7 @@ public sealed partial class PInspector
         }
 
         bool pCustom = pInspectorRatioPreset.SelectedIndex == 0;
-        pInspectorRatioCustomPanel.Visibility = pCustom ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorCustomPanel.Visibility = pCustom ? Visibility.Visible : Visibility.Collapsed;
         if (pCustom)
         {
             PInspectorRatioReset();
@@ -254,7 +254,7 @@ public sealed partial class PInspector
         }
 
         if (pInspectorRatioLenient.IsChecked == true
-            && LCropbox.LCropboxRatioErrorResolve(pCropWidth, pCropHeight, pRatioWidth, pRatioHeight) <= PInspectorRatioTolerance)
+            && LCropbox.LCropboxErrorResolve(pCropWidth, pCropHeight, pRatioWidth, pRatioHeight) <= PInspectorRatioTolerance)
         {
             pInspectorRatioNotice.Visibility = Visibility.Collapsed;
             return;

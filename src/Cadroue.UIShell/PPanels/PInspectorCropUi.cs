@@ -17,7 +17,7 @@ public sealed partial class PInspector
         pInspectorInsetBottom = PInspectorInsetBuild(3);
         pInspectorRatioWidth = PCropFieldBuild();
         pInspectorRatioHeight = PCropFieldBuild();
-        pInspectorRatioPreset = PInspectorRatioPresetBuild();
+        pInspectorRatioPreset = PInspectorRatioBuild();
         pInspectorResolution = new TextBlock
         {
             Text = "—",
@@ -352,13 +352,13 @@ public sealed partial class PInspector
         pPresetPanel.Children.Add(PInspectorLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Ratio")));
         pPresetPanel.Children.Add(pInspectorRatioPreset);
 
-        pInspectorRatioCustomPanel = new StackPanel
+        pInspectorCustomPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             Margin = new Thickness(PInspectorLabelWidth, 6, 0, 0)
         };
-        pInspectorRatioCustomPanel.Children.Add(pInspectorRatioWidth);
-        pInspectorRatioCustomPanel.Children.Add(new TextBlock
+        pInspectorCustomPanel.Children.Add(pInspectorRatioWidth);
+        pInspectorCustomPanel.Children.Add(new TextBlock
         {
             Text = "×",
             FontSize = 12,
@@ -367,13 +367,13 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(7, 0, 7, 0)
         });
-        pInspectorRatioCustomPanel.Children.Add(pInspectorRatioHeight);
+        pInspectorCustomPanel.Children.Add(pInspectorRatioHeight);
         pRatioRoot.Children.Add(pPresetPanel);
-        pRatioRoot.Children.Add(pInspectorRatioCustomPanel);
+        pRatioRoot.Children.Add(pInspectorCustomPanel);
         return pRatioRoot;
     }
 
-    private ComboBox PInspectorRatioPresetBuild()
+    private ComboBox PInspectorRatioBuild()
     {
         var pPresetCombo = new ComboBox
         {
@@ -392,7 +392,7 @@ public sealed partial class PInspector
         pPresetCombo.Items.Add("1:1");
         pPresetCombo.Items.Add("21:9");
         pPresetCombo.SelectedIndex = 0;
-        pPresetCombo.SelectionChanged += (_, _) => PInspectorRatioPresetHandle();
+        pPresetCombo.SelectionChanged += (_, _) => PInspectorRatioHandle();
         return pPresetCombo;
     }
 

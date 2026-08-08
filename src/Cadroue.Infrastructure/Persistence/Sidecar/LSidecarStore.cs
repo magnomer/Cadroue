@@ -30,7 +30,7 @@ public static class LSidecarStore
             ? Path.Combine(lSidecarFolder, LSidecarKeyCreate(lSidecarSourcePath) + LSidecarExtension)
             : Path.ChangeExtension(Path.GetFullPath(lSidecarSourcePath), LSidecarExtension);
 
-    internal static string LSidecarCachePathRead(string lSidecarPreciousPath) =>
+    internal static string LSidecarCacheResolve(string lSidecarPreciousPath) =>
         Path.ChangeExtension(lSidecarPreciousPath, LSidecarCacheExtension);
 
     private static string LSidecarKeyCreate(string lSidecarSourcePath)
@@ -79,7 +79,7 @@ public static class LSidecarStore
             return null;
         }
 
-        LSidecarCacheRecord? lSidecarCache = LSidecarCacheStore.LSidecarCacheReadPath(lSidecarPreciousPath, lSidecarCoreJson);
+        LSidecarCacheRecord? lSidecarCache = LSidecarCacheStore.LSidecarCacheLoad(lSidecarPreciousPath, lSidecarCoreJson);
         return LSidecarParse.LSidecarCompose(lSidecarCore, lSidecarCache);
     }
 
@@ -122,7 +122,7 @@ public static class LSidecarStore
             return false;
         }
 
-        bool lSidecarCacheSaved = LSidecarCacheStore.LSidecarCacheKeyframeSave(
+        bool lSidecarCacheSaved = LSidecarCacheStore.LSidecarCacheSave(
             lSidecarIdentity,
             lSidecarPreciousPath,
             lSidecarKeyframeMilliseconds,
@@ -166,7 +166,7 @@ public static class LSidecarStore
     {
         try
         {
-            return LSidecarCacheStore.LSidecarCacheReadFor(lSidecarSourcePath)?.LSidecarWaveform;
+            return LSidecarCacheStore.LSidecarCacheRead(lSidecarSourcePath)?.LSidecarWaveform;
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
         {
