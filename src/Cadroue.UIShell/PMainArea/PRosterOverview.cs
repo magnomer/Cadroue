@@ -319,39 +319,44 @@ public sealed partial class PRoster
 
     private void PRosterLoudnessDefer(string pMediaPath, bool pFromSidecar)
     {
-        if (!File.Exists(pMediaPath) || !pRosterLoudnessPending.Add(pMediaPath))
+        if (!File.Exists(pMediaPath) || pRosterLoudnessPending.ContainsKey(pMediaPath))
         {
             return;
         }
 
-        Guid pRosterProbeId = PRosterSelectRead()?.LWorkId ?? Guid.Empty;
-        _ = Task.Run(() =>
+        pRosterLoudnessPending[pMediaPath] = pFromSidecar;
+        LMediaProbe.LMediaLoudnessDefer(pMediaPath);
+    }
+
+    private void PRosterLoudnessReadyHandle(LMediaLoudnessResult pResult)
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
         {
-            double? pMeasured = null;
-            try
+            string pMediaPath = pResult.LMediaLoudnessSourcePath;
+            if (!pRosterLoudnessPending.Remove(pMediaPath, out bool pFromSidecar))
             {
-                pMeasured = LMedia.LMediaLoudnessRead(pMediaPath);
-            }
-            catch (Exception pMeasureError)
-            {
-                LTraceLog.LTraceErrorRecord($"Job detail could not measure loudness '{Path.GetFileName(pMediaPath)}': {pMeasureError.Message}");
+                return;
             }
 
-            if (pMeasured is { } pLoudness && pFromSidecar)
+            if (pResult.LMediaLoudnessError is { } pError)
+            {
+                LTraceLog.LTraceErrorRecord($"Job detail could not measure loudness '{Path.GetFileName(pMediaPath)}': {pError}");
+            }
+
+            if (pResult.LMediaLoudnessValue is { } pLoudness && pFromSidecar)
             {
                 Cadroue.Application.LLibrarian.LLibrarianLoudnessSave(pMediaPath, pLoudness);
             }
 
-            Dispatcher.BeginInvoke(new Action(() =>
+            pRosterLoudnessCache[pMediaPath] = pResult.LMediaLoudnessValue;
+
+            if (PRosterSelectRead() is { } pSelected
+                && (string.Equals(pSelected.LWorkSourcePath, pMediaPath, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(pSelected.LWorkOutputPath, pMediaPath, StringComparison.OrdinalIgnoreCase)))
             {
-                pRosterLoudnessPending.Remove(pMediaPath);
-                pRosterLoudnessCache[pMediaPath] = pMeasured;
-                if (PRosterSelectRead()?.LWorkId == pRosterProbeId)
-                {
-                    PRosterDetailUpdate();
-                }
-            }));
-        });
+                PRosterDetailUpdate();
+            }
+        }));
     }
 
     private static Button PRosterOpenBuild(string pPath)

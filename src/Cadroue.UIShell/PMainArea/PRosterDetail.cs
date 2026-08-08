@@ -21,7 +21,7 @@ public sealed partial class PRoster
     private static readonly HashSet<string> pRosterMediaPending = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly Dictionary<string, double?> pRosterLoudnessCache = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly HashSet<string> pRosterLoudnessPending = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, bool> pRosterLoudnessPending = new(StringComparer.OrdinalIgnoreCase);
 
     private StackPanel pRosterRowTarget = null!;
 

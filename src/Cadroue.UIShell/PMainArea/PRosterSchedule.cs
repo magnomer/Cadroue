@@ -43,6 +43,7 @@ public sealed partial class PRoster
         pRosterSchedule.LScheduleChange -= PRosterScheduleHandle;
         pRosterSchedule.LScheduleItemChange -= PRosterItemHandle;
         LMediaProbe.LMediaProbeReady -= PRosterMediaReadyHandle;
+        LMediaProbe.LMediaLoudnessReady -= PRosterLoudnessReadyHandle;
         IsVisibleChanged -= PRosterVisibleHandle;
         Unloaded -= PRosterUnloadHandle;
         pRosterStation.LStationClose();
