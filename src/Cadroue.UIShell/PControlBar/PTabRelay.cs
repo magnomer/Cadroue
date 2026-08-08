@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Windows;
 
 using Cadroue.Infrastructure;
@@ -53,7 +52,7 @@ public partial class PRail
             return false;
         }
 
-        if (!PTabRelayStart(lRelayFilePath))
+        if (!LRelayChannel.LRelayInstanceStart(lRelayFilePath))
         {
             LRelayStore.LRelayFileClear(lRelayFilePath);
             return false;
@@ -95,28 +94,4 @@ public partial class PRail
             && pWindowPoint.Y <= pRelayWindow.ActualHeight;
     }
 
-    private static bool PTabRelayStart(string lRelayFilePath)
-    {
-        string? pRelayProgramPath = Environment.ProcessPath;
-        if (string.IsNullOrWhiteSpace(pRelayProgramPath))
-        {
-            LTraceLog.LTraceErrorRecord("Relay launch skipped: program path unknown", null);
-            return false;
-        }
-
-        try
-        {
-            var pRelayStart = new ProcessStartInfo(pRelayProgramPath) { UseShellExecute = false };
-            pRelayStart.ArgumentList.Add(PTabRelayArgument);
-            pRelayStart.ArgumentList.Add(lRelayFilePath);
-            return Process.Start(pRelayStart) is not null;
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord("Relay launch failed; tab kept", lException);
-            return false;
-        }
-    }
-
-    internal const string PTabRelayArgument = "--relay";
 }

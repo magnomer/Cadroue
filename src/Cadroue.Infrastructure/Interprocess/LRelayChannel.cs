@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -7,6 +8,8 @@ namespace Cadroue.Infrastructure;
 
 public static class LRelayChannel
 {
+    public const string LRelayArgument = "--relay";
+
     private const string LRelayPipePrefix = "Cadroue.Relay.";
     private const string LRelayTabMessage = "TAB";
     private const string LRelayOkReply = "OK";
@@ -79,6 +82,29 @@ public static class LRelayChannel
         catch (Exception lException)
         {
             LTraceLog.LTraceErrorRecord($"Relay send to process {lProcessId} failed", lException);
+            return false;
+        }
+    }
+
+    public static bool LRelayInstanceStart(string lRelayFilePath)
+    {
+        string? pRelayProgramPath = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(pRelayProgramPath))
+        {
+            LTraceLog.LTraceErrorRecord("Relay launch skipped: program path unknown", null);
+            return false;
+        }
+
+        try
+        {
+            var pRelayStart = new ProcessStartInfo(pRelayProgramPath) { UseShellExecute = false };
+            pRelayStart.ArgumentList.Add(LRelayArgument);
+            pRelayStart.ArgumentList.Add(lRelayFilePath);
+            return Process.Start(pRelayStart) is not null;
+        }
+        catch (Exception lException)
+        {
+            LTraceLog.LTraceErrorRecord("Relay launch failed; tab kept", lException);
             return false;
         }
     }
