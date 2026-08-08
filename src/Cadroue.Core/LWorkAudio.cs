@@ -84,8 +84,17 @@ public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepAc
             Math.Clamp(lStepResonance, LPassband.LPassbandResonanceLeast, LPassband.LPassbandResonanceMost));
 
     public static LWorkAudioStep LWorkEqualizerCreate(
-        bool lStepActive, IReadOnlyList<LWorkBand> lStepBands) =>
-        new LWorkEqualizerStep(lStepActive, lStepBands);
+        bool lStepActive, IReadOnlyList<LWorkBand> lStepBands)
+    {
+        var lStepClamped = lStepBands
+            .Select(lBand => new LWorkBand(
+                Math.Clamp(lBand.LWorkBandFrequency,
+                    LContourCatalog.LContourFrequencyLeast, LContourCatalog.LContourFrequencyMost),
+                Math.Clamp(lBand.LWorkBandGain,
+                    LContourCatalog.LContourGainLeast, LContourCatalog.LContourGainMost)))
+            .ToArray();
+        return new LWorkEqualizerStep(lStepActive, lStepClamped);
+    }
 }
 
 public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)

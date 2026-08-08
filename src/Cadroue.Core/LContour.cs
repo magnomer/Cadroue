@@ -5,6 +5,12 @@ namespace Cadroue.Core;
 
 public static class LContourCatalog
 {
+    public const double LContourGainLeast = -12;
+    public const double LContourGainMost = 12;
+    public const double LContourFrequencyLeast = 20;
+    public const double LContourFrequencyMost = 20000;
+    public const double LContourFrequencyDefault = 1000;
+
     public static readonly double[] LContourBandGrid =
         { 31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 };
 

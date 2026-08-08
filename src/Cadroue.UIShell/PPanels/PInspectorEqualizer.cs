@@ -12,11 +12,6 @@ public sealed partial class PInspector
 {
     private const string pEqualizerAddIcon = "/PAssets/PPanels/PFunnelAdd.svg";
     private const string pEqualizerRemoveIcon = "/PAssets/PPanels/PFunnelRemove.svg";
-    private const double PEqualizerLeastDb = -12;
-    private const double PEqualizerMostDb = 12;
-    private const double PEqualizerLeastHz = 20;
-    private const double PEqualizerMostHz = 20000;
-    private const double PEqualizerDefaultHz = 1000;
 
     private sealed class PInspectorBand
     {
@@ -45,11 +40,9 @@ public sealed partial class PInspector
         var pBands = new List<LWorkBand>();
         foreach (PInspectorBand pRow in pEqualizerRows)
         {
-            double pFrequency = Math.Clamp(
-                PInspectorDecimalRead(pRow.PInspectorBandFrequency, PEqualizerDefaultHz),
-                PEqualizerLeastHz, PEqualizerMostHz);
-            double pGain = Math.Clamp(
-                PInspectorDecimalRead(pRow.PInspectorBandValue, 0), PEqualizerLeastDb, PEqualizerMostDb);
+            double pFrequency = PInspectorDecimalRead(
+                pRow.PInspectorBandFrequency, LContourCatalog.LContourFrequencyDefault);
+            double pGain = PInspectorDecimalRead(pRow.PInspectorBandValue, 0);
             pBands.Add(new LWorkBand(pFrequency, pGain));
         }
 
@@ -123,7 +116,7 @@ public sealed partial class PInspector
         };
         pAddButton.Click += (_, _) =>
         {
-            PEqualizerRowAdd(PEqualizerDefaultHz, 0, true);
+            PEqualizerRowAdd(LContourCatalog.LContourFrequencyDefault, 0, true);
             PEqualizerDeviationCheck();
         };
 
@@ -160,9 +153,9 @@ public sealed partial class PInspector
 
         var pSlider = new Slider
         {
-            Minimum = PEqualizerLeastDb,
-            Maximum = PEqualizerMostDb,
-            Value = Math.Clamp(pGain, PEqualizerLeastDb, PEqualizerMostDb),
+            Minimum = LContourCatalog.LContourGainLeast,
+            Maximum = LContourCatalog.LContourGainMost,
+            Value = Math.Clamp(pGain, LContourCatalog.LContourGainLeast, LContourCatalog.LContourGainMost),
             VerticalAlignment = VerticalAlignment.Center
         };
         PSlider.PSliderApply(pSlider);
@@ -254,7 +247,9 @@ public sealed partial class PInspector
             }
 
             pBand.PInspectorBandSuppress = true;
-            pSlider.Value = Math.Clamp(PInspectorDecimalRead(pValueBox, 0), PEqualizerLeastDb, PEqualizerMostDb);
+            pSlider.Value = Math.Clamp(
+                PInspectorDecimalRead(pValueBox, 0),
+                LContourCatalog.LContourGainLeast, LContourCatalog.LContourGainMost);
             pBand.PInspectorBandSuppress = false;
             PInspectorActiveRaise();
             PEqualizerDeviationCheck();
