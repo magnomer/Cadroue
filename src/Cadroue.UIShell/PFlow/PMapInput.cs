@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-using Cadroue.MigrationInterface;
+using Cadroue.Core;
 
 namespace Cadroue.UIShell.PFlow;
 

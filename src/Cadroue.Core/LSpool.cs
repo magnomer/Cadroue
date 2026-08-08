@@ -1,4 +1,4 @@
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Core;
 
 public sealed class LSpool
 {
