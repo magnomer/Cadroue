@@ -20,6 +20,36 @@ public static class LRelayChannel
 
     public static event Action<LRelay>? LRelayTabReceive;
 
+    public static LRelay? LRelayStartupPayload { get; private set; }
+
+    public static LRelay? LRelayPayloadRead()
+    {
+        LRelay? lRelayPayload = LRelayStartupPayload;
+        LRelayStartupPayload = null;
+        return lRelayPayload;
+    }
+
+    public static void LRelayStartupRead(string[] lStartupArguments)
+    {
+        for (int lIndex = 0; lIndex < lStartupArguments.Length - 1; lIndex++)
+        {
+            if (!string.Equals(lStartupArguments[lIndex], LRelayArgument, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            string lRelayFilePath = lStartupArguments[lIndex + 1];
+            LRelayStartupPayload = LRelayStore.LRelayFileLoad(lRelayFilePath);
+            LRelayStore.LRelayFileClear(lRelayFilePath);
+            if (LRelayStartupPayload is { } lRelayPayload)
+            {
+                LTraceLog.LTraceInfoRecord($"Started to receive a relayed '{lRelayPayload.LRelayLayoutKey}' tab");
+            }
+
+            return;
+        }
+    }
+
     public static void LRelayChannelStart()
     {
         if (lRelayCancellation is not null)

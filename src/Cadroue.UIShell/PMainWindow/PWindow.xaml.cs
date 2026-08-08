@@ -40,7 +40,7 @@ public partial class PWindow : Window
         pStrip = new PStrip();
         pRail = new PRail();
         pRail.PRailAttach(pStrip);
-        LRelay? lRelayStartup = PProgram.LRelayPayloadRead();
+        LRelay? lRelayStartup = LRelayChannel.LRelayPayloadRead();
         if (lRelayStartup is null)
         {
             PWindowTabsRestore(pStrip, LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);

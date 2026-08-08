@@ -19,15 +19,6 @@ public partial class PProgram : System.Windows.Application
 
     private static string? lDepotRootApplied;
 
-    public static LRelay? LRelayStartupPayload { get; private set; }
-
-    public static LRelay? LRelayPayloadRead()
-    {
-        LRelay? lRelayPayload = LRelayStartupPayload;
-        LRelayStartupPayload = null;
-        return lRelayPayload;
-    }
-
     private static void LPreferenceDebounceApply()
     {
         var lPreferenceTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
@@ -143,7 +134,7 @@ public partial class PProgram : System.Windows.Application
             pEvent.SetObserved();
         };
 
-        LRelayStartupRead(e.Args);
+        LRelayChannel.LRelayStartupRead(e.Args);
         Cadroue.Infrastructure.LRenderer.LRendererSettingsLoad();
 
         LPreference.LPreferenceDepotCallback = LPreferenceDepotHandle;
@@ -205,27 +196,6 @@ public partial class PProgram : System.Windows.Application
         LRelayChannel.LRelayChannelStop();
         LTraceWriter.LTraceWriterPersist();
         base.OnExit(e);
-    }
-
-    private static void LRelayStartupRead(string[] lStartupArguments)
-    {
-        for (int lIndex = 0; lIndex < lStartupArguments.Length - 1; lIndex++)
-        {
-            if (!string.Equals(lStartupArguments[lIndex], LRelayChannel.LRelayArgument, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            string lRelayFilePath = lStartupArguments[lIndex + 1];
-            LRelayStartupPayload = LRelayStore.LRelayFileLoad(lRelayFilePath);
-            LRelayStore.LRelayFileClear(lRelayFilePath);
-            if (LRelayStartupPayload is { } lRelayPayload)
-            {
-                LTraceLog.LTraceInfoRecord($"Started to receive a relayed '{lRelayPayload.LRelayLayoutKey}' tab");
-            }
-
-            return;
-        }
     }
 
     private static void LPreferenceDepotHandle()
