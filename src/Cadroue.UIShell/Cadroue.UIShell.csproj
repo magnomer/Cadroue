@@ -14,7 +14,6 @@
     <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
     <ProjectReference Include="..\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
     <ProjectReference Include="..\Cadroue.Application\Cadroue.Application.csproj" />
-    <ProjectReference Include="..\Cadroue.MigrationInterface\Cadroue.MigrationInterface.csproj" />
   </ItemGroup>
 
   <ItemGroup>
