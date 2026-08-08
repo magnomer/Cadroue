@@ -1,5 +1,6 @@
 using Cadroue.Core;
 using System.Collections.ObjectModel;
+using System.IO;
 
 namespace Cadroue.Application;
 
@@ -303,6 +304,23 @@ public sealed partial class LPreset
                 return lCandidate;
             }
         }
+    }
+
+    public static string LPresetFileNameCreate(string lPresetName)
+    {
+        char[] lInvalidCharacters = Path.GetInvalidFileNameChars();
+        return new string(lPresetName
+            .Trim()
+            .Select(lCharacter => lInvalidCharacters.Contains(lCharacter) ? '_' : lCharacter)
+            .ToArray());
+    }
+
+    public static string LPresetImportNameResolve(string lStoredName, string lFilePath)
+    {
+        string lName = lStoredName.Trim();
+        return string.IsNullOrWhiteSpace(lName)
+            ? Path.GetFileNameWithoutExtension(lFilePath).Trim()
+            : lName;
     }
 
     private static int LPresetIndexRead(string lPresetName)

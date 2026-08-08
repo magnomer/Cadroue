@@ -1,7 +1,6 @@
 using Cadroue.Infrastructure;
 using Cadroue.Core;
 using Microsoft.Win32;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
@@ -80,11 +79,7 @@ public sealed partial class PExport
             ? pPresetNameSelected ?? string.Empty
             : lPresetValue.LPresetName;
 
-        char[] pInvalidCharacters = Path.GetInvalidFileNameChars();
-        string pFileName = new string(lPresetName
-            .Trim()
-            .Select(pCharacter => pInvalidCharacters.Contains(pCharacter) ? '_' : pCharacter)
-            .ToArray());
+        string pFileName = LPreset.LPresetFileNameCreate(lPresetName);
 
         var pDialog = new SaveFileDialog
         {
@@ -156,11 +151,7 @@ public sealed partial class PExport
             return;
         }
 
-        string lImportedName = lImportedRecord.LPresetName.Trim();
-        if (string.IsNullOrWhiteSpace(lImportedName))
-        {
-            lImportedName = Path.GetFileNameWithoutExtension(pDialog.FileName).Trim();
-        }
+        string lImportedName = LPreset.LPresetImportNameResolve(lImportedRecord.LPresetName, pDialog.FileName);
 
         string lPresetName = LPreset.LPresetNameCreate(
             string.IsNullOrWhiteSpace(lImportedName)
