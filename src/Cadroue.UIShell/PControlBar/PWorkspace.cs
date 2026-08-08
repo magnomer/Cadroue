@@ -301,7 +301,7 @@ public sealed class PWorkspace
                 pWorkspaceAction.PActionPlanApply(pWorkspacePlan.LCartographerNextStage);
                 string[] pWorkspacePaths = pWorkspacePlan.LCartographerPaths.ToArray();
                 pWorkspaceList.PListDocketRead().LDocketPathsAdd(
-                    PList.PListMediaScan(pWorkspacePaths), pWorkspacePlan.LCartographerBatch, true);
+                    pWorkspacePaths, pWorkspacePlan.LCartographerBatch, true);
                 if (pWorkspacePlan.LCartographerMerge)
                 {
                     pWorkspaceAction.PActionAllRun();

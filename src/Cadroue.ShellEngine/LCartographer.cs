@@ -2,6 +2,7 @@ using System.IO;
 using System.Text.Json;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -363,6 +364,7 @@ public static partial class LCartographer
         string[] lCartographerPaths = lCartographerStage.LCartographerPendingInputs
             .Select(lCartographerInput => lCartographerInput.LCartographerPath)
             .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(lCartographerPath => File.Exists(lCartographerPath) && LMedia.LMediaCheck(lCartographerPath))
             .ToArray();
         LCartographerStageSet(lCartographerStage.LCartographerStageId, lCartographerStage.LCartographerTitle);
         bool lCartographerRan = lCartographerSeam.LCartographerStageRun(new LCartographerStagePlan(
