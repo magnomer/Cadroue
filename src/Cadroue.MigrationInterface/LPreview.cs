@@ -1,3 +1,5 @@
+using Cadroue.Application;
+
 namespace Cadroue.MigrationInterface;
 
 public sealed record LPreviewApplication(

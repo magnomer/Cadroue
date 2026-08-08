@@ -8,6 +8,8 @@ using FlyleafLib.MediaPlayer;
 
 using Cadroue.Core;
 
+using Cadroue.Application;
+
 using Cadroue.Infrastructure;
 
 using Cadroue.MigrationInterface;

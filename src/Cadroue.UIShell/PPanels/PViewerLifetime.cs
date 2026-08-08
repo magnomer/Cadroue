@@ -3,8 +3,8 @@ using System.Windows.Input;
 
 using Cadroue.Core;
 using Cadroue.Media;
+using Cadroue.Application;
 using Cadroue.Infrastructure;
-using Cadroue.MigrationInterface;
 
 namespace Cadroue.UIShell.PPanels;
 

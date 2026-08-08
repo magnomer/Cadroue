@@ -1,6 +1,4 @@
-using Cadroue.Application;
-
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Application;
 
 public sealed record LColor(
     double LColorBrightness,
