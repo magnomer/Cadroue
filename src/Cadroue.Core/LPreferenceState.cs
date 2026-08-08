@@ -134,6 +134,7 @@ public sealed class LPreferenceState
             ("Verbose logging", lPreferenceOther.LPreferenceLogVerbose, LPreferenceLogVerbose),
             ("File record location", lPreferenceOther.LPreferenceRecordWorkspace, LPreferenceRecordWorkspace),
             ("Vertical tabs", lPreferenceOther.LPreferenceVerticalTabs, LPreferenceVerticalTabs),
+            ("Developer mode", lPreferenceOther.LPreferenceDeveloperActive, LPreferenceDeveloperActive),
             ("Volume mode", lPreferenceOther.LPreferenceVolumeMode, LPreferenceVolumeMode),
             ("Default volume", lPreferenceOther.LPreferenceVolume, LPreferenceVolume),
             ("Autoplay on load", lPreferenceOther.LPreferenceAutoplay, LPreferenceAutoplay),

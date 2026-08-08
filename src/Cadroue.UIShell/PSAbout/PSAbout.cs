@@ -41,6 +41,8 @@ internal sealed class PSAbout : Window
     private int psAboutLogoTapCount;
     private DateTime psAboutLogoTapLast;
 
+    private TextBlock? psAboutDeveloper;
+
     internal static void PSAboutShow(Window pOwner)
     {
         var psAbout = new PSAbout(pOwner);
@@ -123,6 +125,20 @@ internal sealed class PSAbout : Window
         };
         pLogo.MouseLeftButtonUp += PSAboutLogoTapHandle;
         pHeader.Children.Add(pLogo);
+
+        psAboutDeveloper = new TextBlock
+        {
+            Text = LLocalization.LLocalizationTextRead("About.Developer.Active"),
+            FontWeight = FontWeights.SemiBold,
+            Foreground = PSFieldText,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 0, 0, 4),
+            Visibility = Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceDeveloperActive
+                ? Visibility.Visible
+                : Visibility.Collapsed
+        };
+        pHeader.Children.Add(psAboutDeveloper);
+
         pHeader.Children.Add(new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Terms.Cadroue"),
@@ -189,7 +205,12 @@ internal sealed class PSAbout : Window
         if (psAboutLogoTapCount >= 10)
         {
             psAboutLogoTapCount = 0;
-            Cadroue.Application.LPreference.LPreferenceDeveloperSet(true);
+            bool psAboutDeveloperNext = !Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceDeveloperActive;
+            Cadroue.Application.LPreference.LPreferenceDeveloperSet(psAboutDeveloperNext);
+            if (psAboutDeveloper is not null)
+            {
+                psAboutDeveloper.Visibility = psAboutDeveloperNext ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
     }
 

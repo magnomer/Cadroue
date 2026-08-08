@@ -160,6 +160,7 @@
   "Chrome.Menu.Exit": "{Terms.Exit}",
   "About.Window.Title": "{Terms.Cadroue} {Terms.About}",
   "About.Version.Format": "{Terms.Version} {0}",
+  "About.Developer.Active": "개발자 모드 켜짐",
   "About.Credits.Title": "사용된 프로그램 및 라이브러리",
   "About.Button.Close": "{Terms.Close}",
   "Chrome.Shortcuts.Title": "{Terms.Shortcuts}",

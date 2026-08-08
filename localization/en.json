@@ -160,6 +160,7 @@
   "Chrome.Menu.Exit": "{Terms.Exit}",
   "About.Window.Title": "{Terms.About} {Terms.Cadroue}",
   "About.Version.Format": "{Terms.Version} {0}",
+  "About.Developer.Active": "Developer Mode is ON",
   "About.Credits.Title": "Programs and libraries used",
   "About.Button.Close": "{Terms.Close}",
   "Chrome.Shortcuts.Title": "{Terms.Shortcuts}",
