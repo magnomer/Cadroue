@@ -85,6 +85,18 @@ public static class LPreference
         LPreferenceDefer();
     }
 
+    public static void LPreferenceDeveloperSet(bool lPreferenceDeveloperActive)
+    {
+        if (lPreferenceDeveloperActive == LPreferenceStateCurrent.LPreferenceDeveloperActive)
+        {
+            return;
+        }
+
+        LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
+        lPreferenceNext.LPreferenceDeveloperActive = lPreferenceDeveloperActive;
+        LPreferenceStateSet(lPreferenceNext);
+    }
+
     public static void LPreferenceSaveCommit()
     {
         LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent);

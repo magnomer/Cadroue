@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using Cadroue.UIShell.PAssets;
@@ -36,6 +37,9 @@ internal sealed class PSAbout : Window
     };
 
     private readonly PSGrabber psAboutGrabber;
+
+    private int psAboutLogoTapCount;
+    private DateTime psAboutLogoTapLast;
 
     internal static void PSAboutShow(Window pOwner)
     {
@@ -101,7 +105,7 @@ internal sealed class PSAbout : Window
         return pRoot;
     }
 
-    private static UIElement PSAboutHeaderBuild()
+    private UIElement PSAboutHeaderBuild()
     {
         var pHeader = new StackPanel
         {
@@ -109,14 +113,16 @@ internal sealed class PSAbout : Window
             Margin = new Thickness(0, 0, 0, 26)
         };
 
-        pHeader.Children.Add(new Image
+        var pLogo = new Image
         {
             Source = PIcon.PIconRead(PSAboutLogoPath),
             Width = PSAboutLogoSize,
             Height = PSAboutLogoSize,
             Stretch = Stretch.Uniform,
             Margin = new Thickness(0, 0, 0, 12)
-        });
+        };
+        pLogo.MouseLeftButtonUp += PSAboutLogoTapHandle;
+        pHeader.Children.Add(pLogo);
         pHeader.Children.Add(new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Terms.Cadroue"),
@@ -173,6 +179,18 @@ internal sealed class PSAbout : Window
         };
         pText.Inlines.Add(pLink);
         return pText;
+    }
+
+    private void PSAboutLogoTapHandle(object pSender, MouseButtonEventArgs pEvent)
+    {
+        DateTime pNow = DateTime.UtcNow;
+        psAboutLogoTapCount = (pNow - psAboutLogoTapLast).TotalSeconds > 1.5 ? 1 : psAboutLogoTapCount + 1;
+        psAboutLogoTapLast = pNow;
+        if (psAboutLogoTapCount >= 10)
+        {
+            psAboutLogoTapCount = 0;
+            Cadroue.Application.LPreference.LPreferenceDeveloperSet(true);
+        }
     }
 
     private static void PSAboutLinkHandle(object pSender, RequestNavigateEventArgs pEvent)
