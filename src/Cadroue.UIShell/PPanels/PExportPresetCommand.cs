@@ -208,50 +208,7 @@ public sealed partial class PExport
 
         pPresetNameEditing = null;
         pExportBoxCurrent = null;
-        if (LPreset.LPresetNativeCheck(lOldPresetName))
-        {
-            PExportPresetRebuild();
-            return;
-        }
-
-        string lName = lNewPresetName.Trim();
-        if (string.IsNullOrWhiteSpace(lName) || string.Equals(lOldPresetName, lName, StringComparison.OrdinalIgnoreCase))
-        {
-            PExportPresetRebuild();
-            return;
-        }
-
-        if (LPreset.LPresetNames.Any(lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
-        {
-            PExportPresetRebuild();
-            return;
-        }
-
-        bool lCurrentPresetRename = string.Equals(pPresetNameSelected, lOldPresetName, StringComparison.OrdinalIgnoreCase);
-        if (lCurrentPresetRename)
-        {
-            if (!lPresetOwner.LPresetSelectionSet(lName))
-            {
-                PExportPresetRebuild();
-            }
-
-            return;
-        }
-
-        var lPresetState = new LPreset();
-        if (!LPreset.LPresetTryLoad(lOldPresetName, lPresetState))
-        {
-            PExportPresetRebuild();
-            return;
-        }
-
-        lPresetState.LPresetName = lName;
-        if (!LPreset.LPresetNameSet(lOldPresetName, lName, lPresetState))
-        {
-            PExportPresetRebuild();
-            return;
-        }
-
+        lPresetOwner.LPresetSelectionRename(lOldPresetName, lNewPresetName);
         PExportPresetRebuild();
     }
 

@@ -69,6 +69,31 @@ public sealed class LPresetSelection
         return true;
     }
 
+    public bool LPresetSelectionRename(string lOldName, string lNewName)
+    {
+        string lName = lNewName.Trim();
+        if (string.IsNullOrWhiteSpace(lName)
+            || string.Equals(lOldName, lName, StringComparison.OrdinalIgnoreCase)
+            || LPreset.LPresetNativeCheck(lOldName)
+            || LPreset.LPresetNames.Any(lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        if (string.Equals(lOldName, LPresetSelectionName, StringComparison.OrdinalIgnoreCase))
+        {
+            return LPresetSelectionSet(lName);
+        }
+
+        if (LPresetLoadSeam?.Invoke(lOldName) is not { } lRecord)
+        {
+            return false;
+        }
+
+        lRecord.LPresetName = lName;
+        return LPresetRenameSeam?.Invoke(lOldName, lName, lRecord) ?? false;
+    }
+
     public void LPresetSelectionSave(string lPresetName)
     {
         string lName = lPresetName.Trim();

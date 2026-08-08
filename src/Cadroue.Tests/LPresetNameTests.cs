@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Preset")]
 public sealed class LPresetNameTests
 {
     private static void Seed(params string[] lNames)
