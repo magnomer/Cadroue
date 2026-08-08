@@ -1,6 +1,6 @@
 using Cadroue.Core;
 
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Application;
 
 public sealed record LHistoryEntry(
     IReadOnlyList<LPiece> LHistorySections,
