@@ -1,4 +1,4 @@
-namespace Cadroue.MigrationInterface;
+namespace Cadroue.Application;
 
 public sealed record LTabsetSlot(
     Guid LTabsetId,
