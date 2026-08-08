@@ -21,6 +21,8 @@ public sealed class PInfo : UserControl
     private static readonly SolidColorBrush PInfoPreviewBad = new(Color.FromRgb(0xE0, 0x53, 0x53));
     private PViewer? pInfoViewer;
     private readonly StackPanel pInfoItemPanel;
+    private bool? pInfoFfmpegReady;
+    private LCargo? pInfoLastStatus;
 
     public PInfo()
     {
@@ -52,6 +54,24 @@ public sealed class PInfo : UserControl
         Content = pRoot;
 
         PInfoClear();
+
+        LMediaProbe.LMediaAvailabilityReady += PInfoAvailabilityReadyHandle;
+        Unloaded += PInfoUnloadedHandle;
+    }
+
+    private void PInfoUnloadedHandle(object sender, RoutedEventArgs e)
+    {
+        LMediaProbe.LMediaAvailabilityReady -= PInfoAvailabilityReadyHandle;
+    }
+
+    private void PInfoAvailabilityReadyHandle(bool ready)
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            pInfoFfmpegReady = ready;
+            if (pInfoLastStatus is LCargo pStatus && string.IsNullOrEmpty(pStatus.LCargoSourcePath))
+                PInfoMediaHandle(pStatus);
+        });
     }
 
     public void PInfoAttach(PViewer? pViewer)
@@ -65,11 +85,14 @@ public sealed class PInfo : UserControl
 
     private void PInfoMediaHandle(LCargo pMediaStatus)
     {
+        pInfoLastStatus = pMediaStatus;
         pInfoItemPanel.Children.Clear();
 
         if (string.IsNullOrEmpty(pMediaStatus.LCargoSourcePath))
         {
-            PInfoStatusAdd(LLocalization.LLocalizationTextRead(LMedia.LMediaFfprobeExist() ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"), PInfoMutedBrush);
+            PInfoStatusAdd(LLocalization.LLocalizationTextRead(pInfoFfmpegReady == true ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"), PInfoMutedBrush);
+            if (pInfoFfmpegReady is null)
+                LMediaProbe.LMediaAvailabilityDefer();
             return;
         }
 
