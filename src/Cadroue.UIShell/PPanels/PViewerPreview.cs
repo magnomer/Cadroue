@@ -41,7 +41,7 @@ public sealed partial class PViewer
         }
 
         LTrace.LTraceRecord(
-            LTraceKind.LTraceView,
+            LTraceKind.LTraceUi,
             $"Video processor forced from {pViewerWas} to Flyleaf",
             "FLVP runs custom pixel shaders per frame; D3D11VP would use the driver's video processor\n"
             + $"caused by: {pViewerReason}");

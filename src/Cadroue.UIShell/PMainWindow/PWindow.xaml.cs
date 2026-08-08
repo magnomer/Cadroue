@@ -71,18 +71,26 @@ public partial class PWindow : Window
     }
     private static void PWindowTabsRestore(PStrip pTabset, LPreferenceState lPreferenceState, LSceneRecord lScene)
     {
-        if (lPreferenceState.LPreferenceStartupMode == "DefaultTab")
+        PStrip.PStripRestoring = true;
+        try
         {
-            foreach (string pStartupKey in lPreferenceState.LPreferenceStartupTabs)
+            if (lPreferenceState.LPreferenceStartupMode == "DefaultTab")
             {
-                pTabset.PStripAdd(pStartupKey);
+                foreach (string pStartupKey in lPreferenceState.LPreferenceStartupTabs)
+                {
+                    pTabset.PStripAdd(pStartupKey);
+                }
+
+                pTabset.PStripSelect(pTabset.PStripRecords[0]);
+                return;
             }
 
-            pTabset.PStripSelect(pTabset.PStripRecords[0]);
-            return;
+            PWindowSceneRestore(pTabset, lScene);
         }
-
-        PWindowSceneRestore(pTabset, lScene);
+        finally
+        {
+            PStrip.PStripRestoring = false;
+        }
     }
 
     private static void PWindowSceneRestore(PStrip pTabset, LSceneRecord lScene)

@@ -191,8 +191,8 @@ public partial class PProgram : System.Windows.Application
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;
-        LTraceLog.LTraceInfoRecord($"Application started: version {PProgramVersionRead()}, process {Environment.ProcessId}");
-        LTraceLog.LTraceInfoRecord(LFlyleaf.LFlyleafActive
+        LTraceLog.LTraceLoadingRecord($"Application started: version {PProgramVersionRead()}, process {Environment.ProcessId}");
+        LTraceLog.LTraceLoadingRecord(LFlyleaf.LFlyleafActive
             ? "Local Flyleaf preview engine active"
             : "NuGet Flyleaf preview engine active");
         LDepotRootApply();
@@ -249,7 +249,7 @@ public partial class PProgram : System.Windows.Application
             Cadroue.Infrastructure.LDepotIndex.LDepotIndexCreate();
             lDepotRootApplied = lDepotRoot;
             LSidecarFolderApply();
-            LTraceLog.LTraceInfoRecord($"Workspace at {lDepotRoot}");
+            LTraceLog.LTraceLoadingRecord($"Workspace at {lDepotRoot}");
         }
         catch (Exception lException)
         {

@@ -37,7 +37,15 @@ public partial class PWindow
             pStrip.PStripClose(pStrip.PStripRecords[0]);
         }
 
-        PWindowSceneRestore(pStrip, lScene);
+        PStrip.PStripRestoring = true;
+        try
+        {
+            PWindowSceneRestore(pStrip, lScene);
+        }
+        finally
+        {
+            PStrip.PStripRestoring = false;
+        }
     }
 
     public static IReadOnlyList<int> PWindowRelayRead(IReadOnlyList<PTabRecord> pWindowTabRecords)

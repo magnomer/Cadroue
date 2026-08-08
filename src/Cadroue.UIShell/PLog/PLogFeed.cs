@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.UIShell.PMainWindow;
+using Cadroue.UIShell.PSShared;
 
 using Cadroue.Infrastructure;
 
@@ -12,49 +14,48 @@ namespace Cadroue.UIShell;
 
 public sealed partial class PLogWindow
 {
-    private void PLogCategoryBuild()
+    private PPicker PLogCategoryBuild()
     {
-        pLogCategoryCombo.Items.Add(new ComboBoxItem
-        {
-            Content = LLocalization.LLocalizationTextRead("Log.Category.All"),
-            Tag = null
-        });
+        string[] pLogTokens = Enum.GetValues<LTraceKind>()
+            .Select(LTraceEntry.LTraceKindRead)
+            .ToArray();
 
-        foreach (LTraceKind pLogKind in Enum.GetValues<LTraceKind>())
+        var pLogPicker = new PPicker(
+            pLogTokens,
+            Array.Empty<string>(),
+            LLocalization.LLocalizationTextRead("Log.Category.All"))
         {
-            pLogCategoryCombo.Items.Add(new ComboBoxItem
-            {
-                Content = LTraceEntry.LTraceKindRead(pLogKind),
-                Tag = pLogKind
-            });
-        }
-
-        pLogCategoryCombo.SelectedIndex = 0;
-        pLogCategoryCombo.SelectionChanged += (_, _) => PLogRowsApply();
-        PLogCategoryApply();
+            Width = 200,
+            Height = PSField.PSFieldControlHeight,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        pLogPicker.PPickerChange += PLogRowsApply;
+        return pLogPicker;
     }
 
     private void PLogCategoryApply()
     {
-        foreach (object pLogItem in pLogCategoryCombo.Items)
+        foreach (LTraceKind pLogKind in Enum.GetValues<LTraceKind>())
         {
-            if (pLogItem is not ComboBoxItem pLogEntry || pLogEntry.Tag is not LTraceKind pLogKind)
-            {
-                continue;
-            }
-
             bool pLogAllowed = LTrace.LTraceCheck(pLogKind);
-            pLogEntry.IsEnabled = pLogAllowed;
-            pLogEntry.ToolTip = pLogAllowed
-                ? null
-                : LLocalization.LLocalizationTextRead("Log.Category.VerboseNotice");
+            pLogCategoryPicker.PPickerEnableSet(
+                LTraceEntry.LTraceKindRead(pLogKind),
+                pLogAllowed,
+                pLogAllowed ? null : LLocalization.LLocalizationTextRead("Log.Category.VerboseNotice"));
         }
     }
 
-    private LTraceKind? PLogCategoryRead() =>
-        pLogCategoryCombo.SelectedItem is ComboBoxItem pLogItem && pLogItem.Tag is LTraceKind pLogKind
-            ? pLogKind
-            : null;
+    private HashSet<LTraceKind> PLogCategoryRead()
+    {
+        var pLogKinds = new HashSet<LTraceKind>();
+        foreach (string pLogToken in pLogCategoryPicker.PPickerSelectionRead())
+        {
+            pLogKinds.Add(LTraceEntry.LTraceKindFind(pLogToken));
+        }
+
+        return pLogKinds;
+    }
 
     private void PLogFilesBuild()
     {
@@ -111,11 +112,11 @@ public sealed partial class PLogWindow
 
     private void PLogRowsApply()
     {
-        LTraceKind? pLogCategory = PLogCategoryRead();
+        HashSet<LTraceKind> pLogCategories = PLogCategoryRead();
         pLogRowsShown.Clear();
         foreach (PLogRow pLogRow in pLogRowsAll)
         {
-            if (pLogCategory is null || pLogRow.PLogRowCategory == pLogCategory)
+            if (pLogCategories.Count == 0 || pLogCategories.Contains(pLogRow.PLogRowCategory))
             {
                 pLogRowsShown.Add(pLogRow);
             }
@@ -168,12 +169,12 @@ public sealed partial class PLogWindow
             return;
         }
 
-        LTraceKind? pLogCategory = PLogCategoryRead();
+        HashSet<LTraceKind> pLogCategories = PLogCategoryRead();
         foreach (LTraceEntry pLogEntry in pLogBatch)
         {
             var pLogRow = new PLogRow(pLogEntry);
             pLogRowsAll.Add(pLogRow);
-            if (pLogCategory is null || pLogRow.PLogRowCategory == pLogCategory)
+            if (pLogCategories.Count == 0 || pLogCategories.Contains(pLogRow.PLogRowCategory))
             {
                 pLogRowsShown.Add(pLogRow);
             }

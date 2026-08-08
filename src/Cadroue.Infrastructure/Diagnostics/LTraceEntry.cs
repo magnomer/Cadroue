@@ -22,10 +22,10 @@ public sealed partial record LTraceEntry(
 
     public static string LTraceKindRead(LTraceKind lTraceKind) => lTraceKind switch
     {
+        LTraceKind.LTraceLoading => "Loading",
         LTraceKind.LTraceWarning => "Warning",
         LTraceKind.LTraceError => "Error",
-        LTraceKind.LTraceDraw => "Draw",
-        LTraceKind.LTraceView => "View",
+        LTraceKind.LTraceUi => "UI",
         LTraceKind.LTraceWork => "Work",
         LTraceKind.LTraceFfmpeg => "Ffmpeg",
         _ => "Info"
@@ -33,10 +33,12 @@ public sealed partial record LTraceEntry(
 
     public static LTraceKind LTraceKindFind(string lTraceText) => lTraceText switch
     {
+        "Loading" => LTraceKind.LTraceLoading,
         "Warning" => LTraceKind.LTraceWarning,
         "Error" => LTraceKind.LTraceError,
-        "Draw" => LTraceKind.LTraceDraw,
-        "View" => LTraceKind.LTraceView,
+        "UI" => LTraceKind.LTraceUi,
+        "Draw" => LTraceKind.LTraceUi,
+        "View" => LTraceKind.LTraceUi,
         "Work" => LTraceKind.LTraceWork,
         "Ffmpeg" => LTraceKind.LTraceFfmpeg,
         _ => LTraceKind.LTraceInfo
@@ -177,7 +179,7 @@ public sealed partial record LTraceEntry(
         }
     }
 
-    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+(Info|Warning|Error|Draw|View|Work|Ffmpeg)\s+(.*)$")]
+    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+(Info|Loading|Warning|Error|UI|Draw|View|Work|Ffmpeg)\s+(.*)$")]
     private static partial Regex LTraceHeaderRead();
 
     [GeneratedRegex(@"^(\d+(?:\.\d+)?)(ms|s)$")]

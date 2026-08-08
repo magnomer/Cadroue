@@ -28,7 +28,7 @@ public sealed partial class PLogWindow : Window
 
     private readonly ListBox pLogFeed;
     private readonly ComboBox pLogFileCombo;
-    private readonly ComboBox pLogCategoryCombo;
+    private readonly PPicker pLogCategoryPicker;
     private readonly CheckBox pLogVerboseBox;
     private readonly DispatcherTimer pLogFlushTimer;
     private readonly PSGrabber pLogGrabber;
@@ -40,7 +40,7 @@ public sealed partial class PLogWindow : Window
     private PLogWindow()
     {
         pLogFileCombo = PLogComboBuild(320);
-        pLogCategoryCombo = PLogComboBuild(200);
+        pLogCategoryPicker = PLogCategoryBuild();
         pLogVerboseBox = PLogVerboseBuild();
         pLogFeed = PLogFeedBuild();
 
@@ -59,7 +59,7 @@ public sealed partial class PLogWindow : Window
         PScrollbar.PScrollbarApply(this);
         Content = PLogContentBuild();
 
-        PLogCategoryBuild();
+        PLogCategoryApply();
         PLogFilesBuild();
 
         pLogFlushTimer = new DispatcherTimer(DispatcherPriority.Background)

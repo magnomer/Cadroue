@@ -8,10 +8,10 @@ namespace Cadroue.Infrastructure;
 public enum LTraceKind
 {
     LTraceInfo,
+    LTraceLoading,
     LTraceWarning,
     LTraceError,
-    LTraceDraw,
-    LTraceView,
+    LTraceUi,
     LTraceWork,
     LTraceFfmpeg
 }
@@ -49,13 +49,13 @@ public static class LTrace
                 LTraceKind.LTraceInfo,
                 value ? "Verbose logging on" : "Verbose logging off",
                 value
-                    ? "Draw, View, Work and Ffmpeg entries are now recorded.\nDraw entries are aggregated once per second per surface."
+                    ? "UI, Work and Ffmpeg entries are now recorded.\nUI draw entries are aggregated once per second per surface."
                     : null);
         }
     }
 
     public static bool LTraceCheck(LTraceKind lTraceKind) =>
-        lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceWarning or LTraceKind.LTraceError
+        lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceLoading or LTraceKind.LTraceWarning or LTraceKind.LTraceError
             || Volatile.Read(ref lTraceVerbose);
 
     public static void LTraceRecord(
@@ -127,7 +127,7 @@ public static class LTrace
         foreach ((string lTraceSurface, LTraceDrawTally lTraceTally) in lTraceReady)
         {
             LTraceRecord(
-                LTraceKind.LTraceDraw,
+                LTraceKind.LTraceUi,
                 lTraceTally.LTraceSummaryRead(lTraceSurface),
                 lTraceTally.LTraceDetailRead());
         }

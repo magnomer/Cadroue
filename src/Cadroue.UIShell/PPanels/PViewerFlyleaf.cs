@@ -27,7 +27,7 @@ public sealed partial class PViewer
         bool pPlayerWasRunning = pPlayerAccurateActive;
         pPlayerAccurateActive = true;
         LTrace.LTraceRecord(
-            LTraceKind.LTraceView,
+            LTraceKind.LTraceUi,
             $"Seek accurate to {playbackPosition:hh\\:mm\\:ss\\.fff}",
             pPlayerWasRunning
                 ? "a seek was still running; queued for Flyleaf to conflate"
@@ -67,7 +67,7 @@ public sealed partial class PViewer
 
     private static void PPlayerColorRecord(Player? player)
     {
-        if (player is null || !LTrace.LTraceCheck(LTraceKind.LTraceView))
+        if (player is null || !LTrace.LTraceCheck(LTraceKind.LTraceUi))
         {
             return;
         }
@@ -76,7 +76,7 @@ public sealed partial class PViewer
         {
             var pPlayerRenderer = player.Renderer;
             LTrace.LTraceRecord(
-                LTraceKind.LTraceView,
+                LTraceKind.LTraceUi,
                 "Preview color applied",
                 $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}, "
                 + $"filter contrast value {(player.Config.Video.FLFilters.TryGetValue(FLFilters.Contrast, out FLFilter? pContrastFilter) ? pContrastFilter.Value.ToString() : "none")}, "
@@ -84,7 +84,7 @@ public sealed partial class PViewer
         }
         catch (Exception pException)
         {
-            LTrace.LTraceRecord(LTraceKind.LTraceView, "Preview color diagnostic failed", pException.Message);
+            LTrace.LTraceRecord(LTraceKind.LTraceUi, "Preview color diagnostic failed", pException.Message);
         }
     }
 
@@ -119,7 +119,7 @@ public sealed partial class PViewer
 
     private static void PPlayerRendererRecord(Player player)
     {
-        if (!LTrace.LTraceCheck(LTraceKind.LTraceView))
+        if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
         {
             return;
         }
@@ -129,7 +129,7 @@ public sealed partial class PViewer
             var pPlayerRenderer = player.Renderer;
             var pPlayerDecoder = player.decoder?.VideoDecoder;
             LTrace.LTraceRecord(
-                LTraceKind.LTraceView,
+                LTraceKind.LTraceUi,
                 "Renderer resolved after the first completed seek",
                 $"processor requested {player.Config.Video.VideoProcessor}, "
                 + $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}\n"
@@ -144,7 +144,7 @@ public sealed partial class PViewer
         catch (Exception pPlayerException)
         {
             LTrace.LTraceRecord(
-                LTraceKind.LTraceView,
+                LTraceKind.LTraceUi,
                 "Renderer state could not be read",
                 pPlayerException.Message);
         }
@@ -213,7 +213,7 @@ public sealed partial class PViewer
                 player.SeekCompleted += PPlayerSeekHandle;
                 pPlayerCreated = true;
                 LTrace.LTraceRecord(
-                    LTraceKind.LTraceView,
+                    LTraceKind.LTraceUi,
                     "Player created",
                     PPlayerConfigRead(player),
                     pPlayerClock.Elapsed.TotalMilliseconds);
@@ -224,7 +224,7 @@ public sealed partial class PViewer
             PPlayerOpen(player, sourcePath);
             pPlayerRendererPending = true;
             LTrace.LTraceRecord(
-                LTraceKind.LTraceView,
+                LTraceKind.LTraceUi,
                 $"Player opened '{System.IO.Path.GetFileName(sourcePath)}'",
                 PPlayerAccelRead(player),
                 pPlayerClock.Elapsed.TotalMilliseconds - pPlayerBeforeOpen);

@@ -18,6 +18,11 @@ public static class LTraceLog
         LTrace.LTraceRecord(LTraceKind.LTraceInfo, lMessage, lDetail);
     }
 
+    public static void LTraceLoadingRecord(string lMessage, string? lDetail = null)
+    {
+        LTrace.LTraceRecord(LTraceKind.LTraceLoading, lMessage, lDetail);
+    }
+
     public static void LTraceWarningRecord(string lMessage, string? lDetail = null)
     {
         LTrace.LTraceRecord(LTraceKind.LTraceWarning, lMessage, lDetail);

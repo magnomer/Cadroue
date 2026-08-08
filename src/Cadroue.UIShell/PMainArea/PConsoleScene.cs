@@ -182,7 +182,7 @@ public sealed partial class PConsole
 
         pWindow.PWindowSceneApply(lScene);
         PConsoleSceneSet(lSceneName);
-        LTraceLog.LTraceInfoRecord($"Scene loaded '{lSceneName}'");
+        LTraceLog.LTraceLoadingRecord($"Scene loaded '{lSceneName}'");
     }
 
     private void PConsoleSceneRebuild()
@@ -346,7 +346,7 @@ public sealed partial class PConsole
             lSceneName.Length > 0 ? lSceneName : LLocalization.LLocalizationTextRead("Console.Scene.ImportedName"));
         LScene.LSceneSave(lScene);
         PConsoleSceneRebuild();
-        LTraceLog.LTraceInfoRecord($"Scene imported '{lScene.LSceneName}'");
+        LTraceLog.LTraceLoadingRecord($"Scene imported '{lScene.LSceneName}'");
     }
 
     private static bool PConsoleSceneConfirm(string lSceneName) =>

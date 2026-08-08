@@ -26,6 +26,8 @@ internal sealed class PPicker : UserControl
     private readonly Border pPickerFrame;
     private readonly Popup pPickerPopup;
 
+    internal event Action? PPickerChange;
+
     internal PPicker(IReadOnlyList<string> pItems, IReadOnlyList<string> pSelected, string pEmptyText)
         : this(pItems, pSelected, pEmptyText, new Dictionary<string, string>(StringComparer.Ordinal))
     {
@@ -92,6 +94,15 @@ internal sealed class PPicker : UserControl
     internal IReadOnlyList<string> PPickerSelectionRead() =>
         pPickerItems.Where(pItem => pPickerBoxes[pItem].IsChecked == true).ToArray();
 
+    internal void PPickerEnableSet(string pToken, bool pEnabled, string? pTooltip)
+    {
+        if (pPickerBoxes.TryGetValue(pToken, out CheckBox? pBox))
+        {
+            pBox.IsEnabled = pEnabled;
+            pBox.ToolTip = pTooltip;
+        }
+    }
+
     private ToggleButton PPickerArrowBuild()
     {
         var pArrow = new ToggleButton
@@ -121,8 +132,8 @@ internal sealed class PPicker : UserControl
                 Margin = new Thickness(8, 6, 8, 6)
             };
             PCheckbox.PCheckboxApply(pBox);
-            pBox.Checked += (_, _) => PPickerSummaryUpdate();
-            pBox.Unchecked += (_, _) => PPickerSummaryUpdate();
+            pBox.Checked += (_, _) => PPickerChangeHandle();
+            pBox.Unchecked += (_, _) => PPickerChangeHandle();
             pPickerBoxes[pItem] = pBox;
             pList.Children.Add(pBox);
         }
@@ -163,6 +174,12 @@ internal sealed class PPicker : UserControl
     {
         pPickerPopup.IsOpen = pOpen;
         pPickerFrame.BorderBrush = pOpen ? PPickerAccentBrush : PLineBrush;
+    }
+
+    private void PPickerChangeHandle()
+    {
+        PPickerSummaryUpdate();
+        PPickerChange?.Invoke();
     }
 
     private void PPickerSummaryUpdate()

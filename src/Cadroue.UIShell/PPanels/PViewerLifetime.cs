@@ -66,7 +66,7 @@ public sealed partial class PViewer
 
     private void PViewerHostRecord(string pViewerStage)
     {
-        if (!LTrace.LTraceCheck(LTraceKind.LTraceView))
+        if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
         {
             pViewerHostStamp++;
             return;
@@ -88,7 +88,7 @@ public sealed partial class PViewer
         }
 
         LTrace.LTraceRecord(
-            LTraceKind.LTraceView,
+            LTraceKind.LTraceUi,
             $"Viewer host [{++pViewerHostStamp}] {pViewerStage}",
             $"panel visible {IsVisible}, host visible {pViewerFlyleafHost.IsVisible}, command {(pViewerCommandActive ? "on" : "off")}\n"
             + $"surface {(pViewerHostSurface is null ? "none" : $"{pViewerHostSurface.Visibility} {pViewerHostSurface.Width:0}x{pViewerHostSurface.Height:0}")}, "

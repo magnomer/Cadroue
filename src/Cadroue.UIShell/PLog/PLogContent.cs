@@ -74,9 +74,9 @@ public sealed partial class PLogWindow
     private DockPanel PLogFilterBuild()
     {
         var pLogFilterRow = new DockPanel { Margin = new Thickness(18, 9, 18, 12), LastChildFill = false };
-        DockPanel.SetDock(pLogCategoryCombo, Dock.Left);
+        DockPanel.SetDock(pLogCategoryPicker, Dock.Left);
         DockPanel.SetDock(pLogVerboseBox, Dock.Right);
-        pLogFilterRow.Children.Add(pLogCategoryCombo);
+        pLogFilterRow.Children.Add(pLogCategoryPicker);
         pLogFilterRow.Children.Add(pLogVerboseBox);
         return pLogFilterRow;
     }
