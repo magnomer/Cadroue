@@ -34,7 +34,6 @@ public sealed partial class PLogWindow : Window
     private readonly PSGrabber pLogGrabber;
 
     private Window? pLogOwnerWindow;
-    private string pLogSourceText = string.Empty;
     private string pLogFilePath = string.Empty;
     private bool pLogFileLive = true;
 

@@ -97,10 +97,10 @@ public sealed partial class PLogWindow
 
         pLogFilePath = pLogPath;
         pLogFileLive = string.Equals(pLogPath, LTraceWriter.LTracePathRead(), StringComparison.OrdinalIgnoreCase);
-        pLogSourceText = LTraceWriter.LTraceFileRead(pLogPath);
+        string pLogText = LTraceWriter.LTraceFileRead(pLogPath);
 
         pLogRowsAll.Clear();
-        foreach (LTraceEntry pLogEntry in LTraceEntry.LTraceEntryParse(pLogSourceText))
+        foreach (LTraceEntry pLogEntry in LTraceEntry.LTraceEntryParse(pLogText))
         {
             pLogRowsAll.Add(new PLogRow(pLogEntry));
         }
@@ -173,7 +173,6 @@ public sealed partial class PLogWindow
         {
             var pLogRow = new PLogRow(pLogEntry);
             pLogRowsAll.Add(pLogRow);
-            pLogSourceText += LTraceEntry.LTraceEntryFormat(pLogEntry);
             if (pLogCategory is null || pLogRow.PLogRowCategory == pLogCategory)
             {
                 pLogRowsShown.Add(pLogRow);
@@ -203,7 +202,7 @@ public sealed partial class PLogWindow
     {
         try
         {
-            Clipboard.SetText(pLogSourceText);
+            Clipboard.SetText(LTraceWriter.LTraceFileRead(pLogFilePath));
         }
         catch (COMException lLogException)
         {
