@@ -3,6 +3,8 @@ namespace Cadroue.Core;
 public sealed class LSpool
 {
     private static readonly TimeSpan lSpoolRangeMinimum = TimeSpan.FromSeconds(5);
+    private const double LSpoolSeekFloor = 0.04;
+    private const double LSpoolSeekDivisor = 40;
 
     public TimeSpan LSpoolRangeOrigin { get; private set; }
     public TimeSpan LSpoolRangeLimit { get; private set; }
@@ -148,6 +150,13 @@ public sealed class LSpool
         LSpoolRangeOrigin = cursor - newSpan * ratio;
         LSpoolRangeLimit = cursor + newSpan * (1 - ratio);
         LSpoolNormalize();
+    }
+
+    public TimeSpan LSpoolStepResolve(int steps)
+    {
+        double span = (LSpoolRangeLimit - LSpoolRangeOrigin).TotalSeconds;
+        double seconds = Math.Max(LSpoolSeekFloor, span / LSpoolSeekDivisor);
+        return TimeSpan.FromSeconds(seconds * steps);
     }
 
     private TimeSpan LSpoolMinimumRead()

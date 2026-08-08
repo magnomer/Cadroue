@@ -19,8 +19,6 @@ namespace Cadroue.UIShell.PFlow;
 public sealed partial class PFlow : UserControl
 {
     private const double PFlowVolumeStep = 5;
-    private const double PFlowSeekFloor = 0.04;
-    private const double PFlowSeekDivisor = 40;
     private const double PFlowHeightMinimum = 200;
     private const double PFlowHeightMaximum = 520;
     private readonly LKeyframeOrchestrator lKeyframeOrchestrator = new();
@@ -267,9 +265,7 @@ public sealed partial class PFlow : UserControl
     private void PFlowWheelSeek(int pWheelSteps)
     {
         if (lSpool is null) return;
-        TimeSpan pWheelRange = lSpool.LSpoolRangeLimit - lSpool.LSpoolRangeOrigin;
-        double pWheelSeconds = Math.Max(PFlowSeekFloor, pWheelRange.TotalSeconds / PFlowSeekDivisor);
-        PFlowCursorSeek(PFlowCursorClamp(lCursor + TimeSpan.FromSeconds(pWheelSeconds * pWheelSteps)));
+        PFlowCursorSeek(PFlowCursorClamp(lCursor + lSpool.LSpoolStepResolve(pWheelSteps)));
     }
 
     private void PFlowWheelZoom(int pWheelSteps)
