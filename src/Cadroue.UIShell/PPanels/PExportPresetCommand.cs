@@ -42,7 +42,7 @@ public sealed partial class PExport
 
     private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
-        string lPresetName = PExportNameCreate(LLocalization.LLocalizationTextRead("ExportPreset.DefaultName"));
+        string lPresetName = LPreset.LPresetNameCreate(LLocalization.LLocalizationTextRead("ExportPreset.DefaultName"));
         lPresetOwner.LPresetSelectionSave(lPresetName);
     }
 
@@ -162,7 +162,7 @@ public sealed partial class PExport
             lImportedName = Path.GetFileNameWithoutExtension(pDialog.FileName).Trim();
         }
 
-        string lPresetName = PExportNameCreate(
+        string lPresetName = LPreset.LPresetNameCreate(
             string.IsNullOrWhiteSpace(lImportedName)
                 ? LLocalization.LLocalizationTextRead("ExportPreset.ImportedName")
                 : lImportedName);
@@ -267,23 +267,6 @@ public sealed partial class PExport
         if (psEncoder.ShowDialog() == true)
         {
             lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate();
-        }
-    }
-
-    private static string PExportNameCreate(string pBaseName)
-    {
-        if (!LPreset.LPresetNames.Any(lName => string.Equals(lName, pBaseName, StringComparison.OrdinalIgnoreCase)))
-        {
-            return pBaseName;
-        }
-
-        for (int lIndex = 2; ; lIndex++)
-        {
-            string lCandidate = $"{pBaseName} {lIndex}";
-            if (!LPreset.LPresetNames.Any(lName => string.Equals(lName, lCandidate, StringComparison.OrdinalIgnoreCase)))
-            {
-                return lCandidate;
-            }
         }
     }
 }

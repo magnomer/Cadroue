@@ -288,6 +288,23 @@ public sealed partial class LPreset
 
     public static string? LPresetFirstName => LPresetNames.Count > 0 ? LPresetNames[0] : null;
 
+    public static string LPresetNameCreate(string lBaseName)
+    {
+        if (!LPresetNames.Any(lName => string.Equals(lName, lBaseName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return lBaseName;
+        }
+
+        for (int lIndex = 2; ; lIndex++)
+        {
+            string lCandidate = $"{lBaseName} {lIndex}";
+            if (!LPresetNames.Any(lName => string.Equals(lName, lCandidate, StringComparison.OrdinalIgnoreCase)))
+            {
+                return lCandidate;
+            }
+        }
+    }
+
     private static int LPresetIndexRead(string lPresetName)
     {
         for (int lIndex = 0; lIndex < LPresetNames.Count; lIndex++)
