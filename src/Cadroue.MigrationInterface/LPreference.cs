@@ -1,7 +1,6 @@
 using System;
 
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.MigrationInterface;
 
@@ -15,11 +14,17 @@ public static class LPreference
 
     public static Func<string?, string>? LPreferenceLanguageNormalizeSeam { get; set; }
 
+    public static Func<LPreferenceState>? LPreferenceLoadSeam { get; set; }
+
+    public static Action<LPreferenceState>? LPreferenceSaveSeam { get; set; }
+
+    public static Action<string>? LPreferenceTraceSeam { get; set; }
+
     private static LPreferenceState? lPreferenceBaseline;
 
     public static void LPreferenceLoad()
     {
-        LPreferenceStateCurrent = LPreferenceStateStore.LPreferenceStateLoad();
+        LPreferenceStateCurrent = LPreferenceLoadSeam?.Invoke() ?? LPreferenceState.LPreferenceDefaultCreate();
         LPreferenceStateCurrent.LPreferenceLanguage =
             LPreferenceLanguageNormalize(LPreferenceStateCurrent.LPreferenceLanguage);
     }
@@ -30,11 +35,11 @@ public static class LPreference
         lPreferenceState.LPreferenceLanguage = LPreferenceLanguageNormalize(lPreferenceState.LPreferenceLanguage);
         foreach (string lPreferenceChange in lPreferenceState.LPreferenceDifferenceRead(LPreferenceStateCurrent))
         {
-            LTraceLog.LTraceInfoRecord($"Preference changed — {lPreferenceChange}");
+            LPreferenceTraceSeam?.Invoke($"Preference changed — {lPreferenceChange}");
         }
 
         LPreferenceStateCurrent = lPreferenceState;
-        LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
+        LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent);
         LPreferenceDepotCallback?.Invoke();
     }
 
@@ -82,12 +87,12 @@ public static class LPreference
 
     public static void LPreferenceSaveCommit()
     {
-        LPreferenceStateStore.LPreferenceStateSave(LPreferenceStateCurrent);
+        LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent);
         if (lPreferenceBaseline is { } lPreferenceWas)
         {
             foreach (string lPreferenceChange in LPreferenceStateCurrent.LPreferenceDifferenceRead(lPreferenceWas))
             {
-                LTraceLog.LTraceInfoRecord($"Preference saved — {lPreferenceChange}");
+                LPreferenceTraceSeam?.Invoke($"Preference saved — {lPreferenceChange}");
             }
 
             lPreferenceBaseline = null;

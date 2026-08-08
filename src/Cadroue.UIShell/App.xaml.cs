@@ -149,6 +149,9 @@ public partial class PProgram : System.Windows.Application
 
         LPreference.LPreferenceDepotCallback = LPreferenceDepotHandle;
         LPreference.LPreferenceLanguageNormalizeSeam = LLocalization.LLocalizationLanguageNormalize;
+        LPreference.LPreferenceLoadSeam = LPreferenceStateStore.LPreferenceStateLoad;
+        LPreference.LPreferenceSaveSeam = LPreferenceStateStore.LPreferenceStateSave;
+        LPreference.LPreferenceTraceSeam = LTraceLog.LTraceInfoRecord;
         LPreferenceDebounceApply();
         LPreference.LPreferenceLoad();
         Cadroue.Infrastructure.LFrameStore.LFrameLoad();
