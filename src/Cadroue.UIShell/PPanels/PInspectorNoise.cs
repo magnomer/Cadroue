@@ -37,12 +37,12 @@ public sealed partial class PInspector
     private bool pNoisePresetSuppress;
     private string? pNoiseBaseToken;
 
-    private LGrain PNoiseTypeRead() => pNoiseType.SelectedIndex switch
+    private LGrain PNoiseTypeRead() => LGrainCatalog.LGrainParse(pNoiseType.SelectedIndex switch
     {
-        1 => LGrain.LGrainVinyl,
-        2 => LGrain.LGrainShellac,
-        _ => LGrain.LGrainWhite
-    };
+        1 => "Vinyl",
+        2 => "Shellac",
+        _ => "White"
+    });
 
     private StackPanel PNoiseBodyBuild()
     {
@@ -331,10 +331,10 @@ public sealed partial class PInspector
         pNoiseFloor.Text = pStep.LWorkNoiseFloor.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseResidual.Text = pStep.LWorkNoiseResidual.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseAdaptivity.Text = pStep.LWorkNoiseAdaptivity.ToString("0.###", CultureInfo.InvariantCulture);
-        pNoiseType.SelectedIndex = pStep.LWorkNoiseType switch
+        pNoiseType.SelectedIndex = LGrainCatalog.LGrainFormat(pStep.LWorkNoiseType) switch
         {
-            LGrain.LGrainVinyl => 1,
-            LGrain.LGrainShellac => 2,
+            "Vinyl" => 1,
+            "Shellac" => 2,
             _ => 0
         };
         pNoiseSuppress = false;

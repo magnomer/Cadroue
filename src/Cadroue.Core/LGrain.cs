@@ -31,6 +31,20 @@ public static class LGrainCatalog
         new LGrainPreset("Shellac", 12, -50, 8, 0.5, -35, LGrain.LGrainShellac)
     };
 
+    public static string LGrainFormat(LGrain lType) => lType switch
+    {
+        LGrain.LGrainVinyl => "Vinyl",
+        LGrain.LGrainShellac => "Shellac",
+        _ => "White"
+    };
+
+    public static LGrain LGrainParse(string lToken) => lToken switch
+    {
+        "Vinyl" => LGrain.LGrainVinyl,
+        "Shellac" => LGrain.LGrainShellac,
+        _ => LGrain.LGrainWhite
+    };
+
     public static LGrainPreset? LGrainRead(string lToken)
     {
         foreach (LGrainPreset lPreset in LGrainPresets)

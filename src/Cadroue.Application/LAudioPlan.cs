@@ -79,12 +79,7 @@ public static partial class LAudio
                 lAudioRecord.LSidecarReduction,
                 lAudioRecord.LSidecarNoiseFloor,
                 lAudioRecord.LSidecarTrackNoise,
-                lAudioRecord.LSidecarNoiseType switch
-                {
-                    "Vinyl" => LGrain.LGrainVinyl,
-                    "Shellac" => LGrain.LGrainShellac,
-                    _ => LGrain.LGrainWhite
-                },
+                LGrainCatalog.LGrainParse(lAudioRecord.LSidecarNoiseType),
                 lAudioRecord.LSidecarGainSmooth,
                 lAudioRecord.LSidecarAdaptivity,
                 lAudioRecord.LSidecarResidualFloor),
@@ -130,7 +125,7 @@ public static partial class LAudio
                 lAudioRecord.LSidecarReduction = lNoise.LWorkNoiseReduction;
                 lAudioRecord.LSidecarNoiseFloor = lNoise.LWorkNoiseFloor;
                 lAudioRecord.LSidecarTrackNoise = lNoise.LWorkNoiseTrack;
-                lAudioRecord.LSidecarNoiseType = lNoise.LWorkNoiseType.ToString().Replace("LWorkAudioNoise", string.Empty);
+                lAudioRecord.LSidecarNoiseType = LGrainCatalog.LGrainFormat(lNoise.LWorkNoiseType);
                 lAudioRecord.LSidecarGainSmooth = lNoise.LWorkNoiseSmooth;
                 lAudioRecord.LSidecarAdaptivity = lNoise.LWorkNoiseAdaptivity;
                 lAudioRecord.LSidecarResidualFloor = lNoise.LWorkNoiseResidual;
