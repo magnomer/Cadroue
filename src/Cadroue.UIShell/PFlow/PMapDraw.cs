@@ -29,21 +29,10 @@ public sealed partial class PMap
         }
 
         double durationSeconds = lSpool.LSpoolDuration.TotalSeconds;
-        foreach (LKeyframeScanRange range in lKeyframeScannedRanges)
+        foreach (LKeyframeScanRange range in LKeyframeView.LKeyframeCoverageResolve(lKeyframeScannedRanges, lSpool, true))
         {
-            TimeSpan scanStart = range.LKeyframeRangeOrigin < TimeSpan.Zero
-                ? TimeSpan.Zero
-                : range.LKeyframeRangeOrigin;
-            TimeSpan scanEnd = range.LKeyframeRangeLimit > lSpool.LSpoolDuration
-                ? lSpool.LSpoolDuration
-                : range.LKeyframeRangeLimit;
-            if (scanEnd <= scanStart)
-            {
-                continue;
-            }
-
-            double scanStartX = Math.Clamp(scanStart.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
-            double scanEndX = Math.Clamp(scanEnd.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double scanStartX = Math.Clamp(range.LKeyframeRangeOrigin.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double scanEndX = Math.Clamp(range.LKeyframeRangeLimit.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
             double scanWidth = Math.Max(1, scanEndX - scanStartX);
             if (scanStartX + scanWidth > actualWidth)
             {

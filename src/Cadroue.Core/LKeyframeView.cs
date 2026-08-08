@@ -29,6 +29,32 @@ public static class LKeyframeView
         return visible;
     }
 
+    public static IReadOnlyList<LKeyframeScanRange> LKeyframeCoverageResolve(
+        IReadOnlyList<LKeyframeScanRange> ranges,
+        LSpool spool,
+        bool wholeMedia)
+    {
+        TimeSpan visibleStart = wholeMedia ? TimeSpan.Zero : spool.LSpoolRangeOrigin;
+        TimeSpan visibleEnd = wholeMedia ? spool.LSpoolDuration : spool.LSpoolRangeLimit;
+        if (visibleEnd <= visibleStart)
+        {
+            return Array.Empty<LKeyframeScanRange>();
+        }
+
+        var coverage = new List<LKeyframeScanRange>();
+        foreach (LKeyframeScanRange range in ranges)
+        {
+            TimeSpan start = LKeyframeMaxResolve(visibleStart, range.LKeyframeRangeOrigin);
+            TimeSpan end = LKeyframeMinResolve(visibleEnd, range.LKeyframeRangeLimit);
+            if (end > start)
+            {
+                coverage.Add(new LKeyframeScanRange(start, end));
+            }
+        }
+
+        return coverage;
+    }
+
     private static TimeSpan LKeyframeMinResolve(TimeSpan first, TimeSpan second)
         => first <= second ? first : second;
 

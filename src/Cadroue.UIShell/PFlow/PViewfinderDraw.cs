@@ -254,21 +254,10 @@ public sealed partial class PViewfinder
         TimeSpan rangeEnd,
         double rangeSeconds)
     {
-        foreach (LKeyframeScanRange range in lKeyframeScannedRanges)
+        foreach (LKeyframeScanRange range in LKeyframeView.LKeyframeCoverageResolve(lKeyframeScannedRanges, lSpool!, false))
         {
-            TimeSpan scanStart = range.LKeyframeRangeOrigin < rangeStart
-                ? rangeStart
-                : range.LKeyframeRangeOrigin;
-            TimeSpan scanEnd = range.LKeyframeRangeLimit > rangeEnd
-                ? rangeEnd
-                : range.LKeyframeRangeLimit;
-            if (scanEnd <= scanStart)
-            {
-                continue;
-            }
-
-            double scanStartX = Math.Clamp((scanStart - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
-            double scanEndX = Math.Clamp((scanEnd - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
+            double scanStartX = Math.Clamp((range.LKeyframeRangeOrigin - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
+            double scanEndX = Math.Clamp((range.LKeyframeRangeLimit - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
             double scanWidth = Math.Max(1, scanEndX - scanStartX);
             if (scanStartX + scanWidth > actualWidth)
             {
