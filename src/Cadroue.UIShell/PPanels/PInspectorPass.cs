@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.Core;
 using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
@@ -64,13 +65,15 @@ public sealed partial class PInspector
 
     private StackPanel PFilterHighBuild()
     {
-        pInspectorHighPass = PInspectorPassBuild(80, 20, 300, LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"), pFilterHighChoices, true, "Voice");
+        LPassbandPreset pHighDefault = LPassband.LPassbandRead(true, LPassband.LPassbandHighDefault)!;
+        pInspectorHighPass = PInspectorPassBuild(pHighDefault.LPassbandCutoff, 20, 300, LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"), pFilterHighChoices, true, LPassband.LPassbandHighDefault);
         return pInspectorHighPass.PInspectorPassBody;
     }
 
     private StackPanel PFilterLowBuild()
     {
-        pInspectorLowPass = PInspectorPassBuild(16000, 3000, 20000, LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"), pFilterLowChoices, false, "Air tame");
+        LPassbandPreset pLowDefault = LPassband.LPassbandRead(false, LPassband.LPassbandLowDefault)!;
+        pInspectorLowPass = PInspectorPassBuild(pLowDefault.LPassbandCutoff, 3000, 20000, LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"), pFilterLowChoices, false, LPassband.LPassbandLowDefault);
         return pInspectorLowPass.PInspectorPassBody;
     }
 

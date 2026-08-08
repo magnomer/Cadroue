@@ -12,6 +12,9 @@ public sealed record LPassbandPreset(
 
 public static class LPassband
 {
+    public const string LPassbandHighDefault = "Voice";
+    public const string LPassbandLowDefault = "Air tame";
+
     public static readonly IReadOnlyList<LPassbandPreset> LPassbandHighPresets = new[]
     {
         new LPassbandPreset("Rumble", 30, 2, 2, 0.707),
@@ -29,6 +32,16 @@ public static class LPassband
         new LPassbandPreset("AM radio", 5000, 4, 2, 0.707),
         new LPassbandPreset("Telephone", 3400, 4, 2, 0.707)
     };
+
+    public static LWorkAudioStep LPassbandStepCreate(bool lHigh, bool lActive)
+    {
+        LPassbandPreset lPreset = LPassbandRead(lHigh, lHigh ? LPassbandHighDefault : LPassbandLowDefault)!;
+        return lHigh
+            ? LWorkAudioStep.LWorkHighCreate(
+                lActive, lPreset.LPassbandCutoff, lPreset.LPassbandStages, lPreset.LPassbandPoles, lPreset.LPassbandResonance)
+            : LWorkAudioStep.LWorkLowCreate(
+                lActive, lPreset.LPassbandCutoff, lPreset.LPassbandStages, lPreset.LPassbandPoles, lPreset.LPassbandResonance);
+    }
 
     public static LPassbandPreset? LPassbandRead(bool lHigh, string lToken)
     {

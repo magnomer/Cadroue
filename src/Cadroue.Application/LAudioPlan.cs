@@ -52,8 +52,8 @@ public static partial class LAudio
     {
         LAudioKind.LAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(false, LLeveling.LLevelingLoudness, -21, -2, 6, true),
         LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38),
-        LAudioKind.LAudioKindHighpass => LWorkAudioStep.LWorkHighCreate(false, 80, 2, 2, 0.707),
-        LAudioKind.LAudioKindLowpass => LWorkAudioStep.LWorkLowCreate(false, 16000, 2, 2, 0.707),
+        LAudioKind.LAudioKindHighpass => LPassband.LPassbandStepCreate(true, false),
+        LAudioKind.LAudioKindLowpass => LPassband.LPassbandStepCreate(false, false),
         LAudioKind.LAudioKindEqualizer => LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate()),
         _ => LWorkAudioStep.LWorkVolumeCreate(false, 0)
     };

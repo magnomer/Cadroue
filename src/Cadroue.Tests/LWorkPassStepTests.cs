@@ -25,4 +25,24 @@ public sealed class LWorkPassStepTests
         Assert.Equal(1, step.LWorkPassPoles);
         Assert.Equal(0.1, step.LWorkPassResonance);
     }
+
+    [Fact]
+    public void PassbandStepCreate_High_YieldsVoiceDefault()
+    {
+        var step = (LWorkPassStep)LPassband.LPassbandStepCreate(true, false);
+
+        Assert.Equal(80, step.LWorkPassFrequency);
+        Assert.Equal(2, step.LWorkPassStages);
+        Assert.Equal(2, step.LWorkPassPoles);
+        Assert.Equal(0.707, step.LWorkPassResonance);
+        Assert.False(step.LWorkStepActive);
+    }
+
+    [Fact]
+    public void PassbandStepCreate_Low_YieldsAirTameDefault()
+    {
+        var step = (LWorkPassStep)LPassband.LPassbandStepCreate(false, false);
+
+        Assert.Equal(16000, step.LWorkPassFrequency);
+    }
 }

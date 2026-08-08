@@ -69,10 +69,10 @@ public sealed partial class PInspector
     {
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindHighpass)
-                ?? LWorkAudioStep.LWorkHighCreate(false, 80, 2, 2, 0.707));
+                ?? LPassband.LPassbandStepCreate(true, false));
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindLowpass)
-                ?? LWorkAudioStep.LWorkLowCreate(false, 16000, 2, 2, 0.707));
+                ?? LPassband.LPassbandStepCreate(false, false));
         PInspectorStepApply(
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindDenoise)
                 ?? LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38));
