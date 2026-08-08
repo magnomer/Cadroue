@@ -15,8 +15,6 @@ namespace Cadroue.UIShell.PControlBar;
 
 public sealed class PWorkspace
 {
-    private const int PWorkspaceHistoryMaximum = 100;
-
     private readonly LHistory lWorkspaceHistory = new();
     private string pWorkspaceLosslesscutPath = string.Empty;
 
@@ -148,7 +146,7 @@ public sealed class PWorkspace
         => PWorkspaceExportState.LPresetCopy(LPreset.LPresetStateCreate(PWorkspacePresetOwner.LPresetSelectionValue));
 
     private void PWorkspaceHistoryAdd()
-        => lWorkspaceHistory.LHistoryAdd(PWorkspaceStateRead(), PWorkspaceHistoryMaximum);
+        => lWorkspaceHistory.LHistoryAdd(PWorkspaceStateRead());
 
     public bool PWorkspaceUndo() => PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryUndo());
 

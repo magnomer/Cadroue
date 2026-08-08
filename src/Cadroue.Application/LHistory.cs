@@ -9,6 +9,8 @@ public sealed record LHistoryEntry(
 
 public sealed class LHistory
 {
+    private const int LHistoryDepthMaximum = 100;
+
     private readonly List<LHistoryEntry> lHistoryPast = new();
     private readonly List<LHistoryEntry> lHistoryFuture = new();
     private LHistoryEntry? lHistoryPresent;
@@ -26,7 +28,7 @@ public sealed class LHistory
         lHistoryPresent = lHistoryEntry;
     }
 
-    public void LHistoryAdd(LHistoryEntry lHistoryEntry, int lHistoryMaximum)
+    public void LHistoryAdd(LHistoryEntry lHistoryEntry)
     {
         if (LHistoryApplying)
         {
@@ -47,7 +49,7 @@ public sealed class LHistory
         lHistoryPast.Add(lHistoryPresent);
         lHistoryFuture.Clear();
         lHistoryPresent = lHistoryEntry;
-        while (lHistoryMaximum > 0 && lHistoryPast.Count > lHistoryMaximum)
+        while (lHistoryPast.Count > LHistoryDepthMaximum)
         {
             lHistoryPast.RemoveAt(0);
         }
