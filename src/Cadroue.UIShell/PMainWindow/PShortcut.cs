@@ -1,55 +1,55 @@
 using System.Windows.Input;
 
-namespace Cadroue.UIShell;
+namespace Cadroue.UIShell.PMainWindow;
 
-public static class LBinding
+public static class PShortcut
 {
-    public static string LBindingFormat(Key lBindingKey, ModifierKeys lBindingModifiers)
+    public static string PShortcutGestureFormat(Key pShortcutKey, ModifierKeys pShortcutModifiers)
     {
-        string lBindingName = LBindingKeyFormat(lBindingKey);
+        string pShortcutName = PShortcutKeyFormat(pShortcutKey);
         return Cadroue.Infrastructure.LBinding.LBindingGestureFormat(
-            lBindingName,
-            (lBindingModifiers & ModifierKeys.Control) != 0,
-            (lBindingModifiers & ModifierKeys.Alt) != 0,
-            (lBindingModifiers & ModifierKeys.Shift) != 0,
-            (lBindingModifiers & ModifierKeys.Windows) != 0);
+            pShortcutName,
+            (pShortcutModifiers & ModifierKeys.Control) != 0,
+            (pShortcutModifiers & ModifierKeys.Alt) != 0,
+            (pShortcutModifiers & ModifierKeys.Shift) != 0,
+            (pShortcutModifiers & ModifierKeys.Windows) != 0);
     }
 
-    public static bool LBindingModifierCheck(Key lBindingKey) => lBindingKey is
+    public static bool PShortcutModifierCheck(Key pShortcutKey) => pShortcutKey is
         Key.LeftCtrl or Key.RightCtrl
         or Key.LeftAlt or Key.RightAlt
         or Key.LeftShift or Key.RightShift
         or Key.LWin or Key.RWin
         or Key.System or Key.None or Key.ImeProcessed;
 
-    private static string LBindingKeyFormat(Key lBindingKey)
+    private static string PShortcutKeyFormat(Key pShortcutKey)
     {
-        if (LBindingModifierCheck(lBindingKey) || lBindingKey is Key.Enter or Key.Escape)
+        if (PShortcutModifierCheck(pShortcutKey) || pShortcutKey is Key.Enter or Key.Escape)
         {
             return string.Empty;
         }
 
-        if (lBindingKey is >= Key.A and <= Key.Z)
+        if (pShortcutKey is >= Key.A and <= Key.Z)
         {
-            return lBindingKey.ToString();
+            return pShortcutKey.ToString();
         }
 
-        if (lBindingKey is >= Key.D0 and <= Key.D9)
+        if (pShortcutKey is >= Key.D0 and <= Key.D9)
         {
-            return ((int)(lBindingKey - Key.D0)).ToString();
+            return ((int)(pShortcutKey - Key.D0)).ToString();
         }
 
-        if (lBindingKey is >= Key.F1 and <= Key.F24)
+        if (pShortcutKey is >= Key.F1 and <= Key.F24)
         {
-            return "F" + (int)(lBindingKey - Key.F1 + 1);
+            return "F" + (int)(pShortcutKey - Key.F1 + 1);
         }
 
-        if (lBindingKey is >= Key.NumPad0 and <= Key.NumPad9)
+        if (pShortcutKey is >= Key.NumPad0 and <= Key.NumPad9)
         {
-            return "Num" + (int)(lBindingKey - Key.NumPad0);
+            return "Num" + (int)(pShortcutKey - Key.NumPad0);
         }
 
-        return lBindingKey switch
+        return pShortcutKey switch
         {
             Key.Space => "Space",
             Key.Tab => "Tab",

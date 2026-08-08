@@ -78,7 +78,7 @@ internal sealed class PSKeymapChord : Button
             return;
         }
 
-        string psKeymapChordCaught = LBinding.LBindingFormat(psKeymapChordKey, Keyboard.Modifiers);
+        string psKeymapChordCaught = PShortcut.PShortcutGestureFormat(psKeymapChordKey, Keyboard.Modifiers);
         if (psKeymapChordCaught.Length == 0)
         {
             return;
