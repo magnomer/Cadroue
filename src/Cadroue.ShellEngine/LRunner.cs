@@ -84,6 +84,10 @@ public sealed partial class LRunner
             if (lRunnerSuspended)
             {
                 LRunnerProcessResume();
+                if (lRunnerBatch is null)
+                {
+                    LRunnerBatchStart();
+                }
             }
             else
             {
@@ -287,6 +291,7 @@ public sealed partial class LRunner
             if (lRunnerCurrent)
             {
                 lRunnerBatch = null;
+                lRunnerSuspended = false;
             }
         }
 
