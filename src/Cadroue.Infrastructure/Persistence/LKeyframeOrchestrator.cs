@@ -23,6 +23,18 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private TimeSpan lKeyframeDuration;
     private int lKeyframeRequestSerial;
     private bool lKeyframeDisposed;
+    private readonly Func<string, TimeSpan, TimeSpan, CancellationToken, IReadOnlyList<LKeyframeEntry>> lKeyframeScanner;
+
+    public LKeyframeOrchestrator()
+        : this(LKeyframeSeeker.LKeyframeRangeScan)
+    {
+    }
+
+    internal LKeyframeOrchestrator(
+        Func<string, TimeSpan, TimeSpan, CancellationToken, IReadOnlyList<LKeyframeEntry>> scanner)
+    {
+        lKeyframeScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
+    }
 
     public event Action<LKeyframeNotice>? LKeyframeNoticeReady;
 

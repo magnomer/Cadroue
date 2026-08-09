@@ -112,7 +112,7 @@ public sealed partial class LKeyframeOrchestrator
         var lKeyframeClock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
-            var entries = LKeyframeSeeker.LKeyframeRangeScan(sourcePath, start, end, cancellationToken);
+            var entries = lKeyframeScanner(sourcePath, start, end, cancellationToken);
             int lKeyframeNewCount = 0;
             lock (lKeyframeLock)
             {
