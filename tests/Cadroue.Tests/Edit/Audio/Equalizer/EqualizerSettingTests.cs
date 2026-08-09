@@ -4,10 +4,10 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LWorkEqualizerBoundTests
+public sealed class EqualizerSettingTests
 {
     [Fact]
-    public void EqualizerCreate_AboveRange_ClampsToBound()
+    public void EqualizerSetting_FrequencyBelowMinimumAndGainAboveMaximum_AreClamped()
     {
         var step = (LWorkEqualizerStep)LWorkAudioStep.LWorkEqualizerCreate(
             true, new[] { new LWorkBand(5, 99) });
@@ -17,7 +17,7 @@ public sealed class LWorkEqualizerBoundTests
     }
 
     [Fact]
-    public void EqualizerCreate_BelowRange_ClampsToBound()
+    public void EqualizerSetting_FrequencyAboveMaximumAndGainBelowMinimum_AreClamped()
     {
         var step = (LWorkEqualizerStep)LWorkAudioStep.LWorkEqualizerCreate(
             true, new[] { new LWorkBand(999999, -99) });

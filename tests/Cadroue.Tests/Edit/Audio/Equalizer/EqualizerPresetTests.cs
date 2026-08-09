@@ -4,10 +4,10 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LContourTests
+public sealed class EqualizerPresetTests
 {
     [Fact]
-    public void BandGrid_HasTenBands()
+    public void EqualizerPreset_BandGrid_HasTenBands()
     {
         Assert.Equal(10, LContourCatalog.LContourBandGrid.Length);
     }
@@ -22,7 +22,7 @@ public sealed class LContourTests
     [InlineData("De-ess")]
     [InlineData("Podcast")]
     [InlineData("Telephone")]
-    public void GainsRead_KnownToken_HasTenGains(string token)
+    public void EqualizerPreset_KnownToken_HasTenGains(string token)
     {
         double[]? gains = LContourCatalog.LContourGainsRead(token);
         Assert.NotNull(gains);
@@ -30,19 +30,19 @@ public sealed class LContourTests
     }
 
     [Fact]
-    public void GainsRead_UnknownToken_ReturnsNull()
+    public void EqualizerPreset_UnknownToken_ReturnsNoGains()
     {
         Assert.Null(LContourCatalog.LContourGainsRead("Custom"));
     }
 
     [Fact]
-    public void TokensRead_ReturnsNinePresets()
+    public void EqualizerPreset_Catalog_HasNinePresets()
     {
         Assert.Equal(9, LContourCatalog.LContourTokensRead().Count);
     }
 
     [Fact]
-    public void Match_ExactBassBoost_ReturnsTrue()
+    public void EqualizerPreset_ExactBassBoostSettings_Match()
     {
         double[] gains = { 6, 5, 3, 1, 0, 0, 0, 0, 0, 0 };
         Assert.True(LContourCatalog.LContourMatch(
@@ -50,7 +50,7 @@ public sealed class LContourTests
     }
 
     [Fact]
-    public void Match_WithinTolerance_ReturnsTrue()
+    public void EqualizerPreset_SettingsWithinTolerance_Match()
     {
         double[] freqs = { 31.4, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 };
         double[] gains = { 6.04, 5, 3, 1, 0, 0, 0, 0, 0, 0 };
@@ -59,7 +59,7 @@ public sealed class LContourTests
     }
 
     [Fact]
-    public void Match_GainOutsideTolerance_ReturnsFalse()
+    public void EqualizerPreset_GainBeyondTolerance_DoesNotMatch()
     {
         double[] gains = { 6.1, 5, 3, 1, 0, 0, 0, 0, 0, 0 };
         Assert.False(LContourCatalog.LContourMatch(
@@ -67,7 +67,7 @@ public sealed class LContourTests
     }
 
     [Fact]
-    public void Match_WrongCount_ReturnsFalse()
+    public void EqualizerPreset_WrongBandCount_DoesNotMatch()
     {
         double[] freqs = { 31, 62 };
         double[] gains = { 0, 0 };
@@ -75,14 +75,14 @@ public sealed class LContourTests
     }
 
     [Fact]
-    public void PresetFind_Zeros_ReturnsFlat()
+    public void EqualizerPreset_ZeroGains_FindFlatPreset()
     {
         double[] gains = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         Assert.Equal("Flat", LContourCatalog.LContourPresetFind(LContourCatalog.LContourBandGrid, gains));
     }
 
     [Fact]
-    public void PresetFind_Deviated_ReturnsNull()
+    public void EqualizerPreset_DeviatedGains_FindNoPreset()
     {
         double[] gains = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         Assert.Null(LContourCatalog.LContourPresetFind(LContourCatalog.LContourBandGrid, gains));
