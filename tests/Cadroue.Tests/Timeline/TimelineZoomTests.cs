@@ -4,31 +4,31 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LSpoolTests
+public sealed class TimelineZoomTests
 {
     [Fact]
-    public void StepResolve_FullRange_SpanOverForty()
+    public void NavigationStep_UsesOneFortiethOfTimelineRange()
     {
         var spool = new LSpool(TimeSpan.FromSeconds(400));
         Assert.Equal(10.0, spool.LSpoolStepResolve(1).TotalSeconds, 6);
     }
 
     [Fact]
-    public void StepResolve_SmallRange_FloorsAtFloor()
+    public void NavigationStep_ShortTimelineUsesMinimumDistance()
     {
         var spool = new LSpool(TimeSpan.FromSeconds(1));
         Assert.Equal(0.04, spool.LSpoolStepResolve(1).TotalSeconds, 6);
     }
 
     [Fact]
-    public void StepResolve_NegativeSteps_NegativeDelta()
+    public void NavigationStep_NegativeCountMovesBackward()
     {
         var spool = new LSpool(TimeSpan.FromSeconds(400));
         Assert.Equal(-10.0, spool.LSpoolStepResolve(-1).TotalSeconds, 6);
     }
 
     [Fact]
-    public void StepResolve_MagnitudeScalesLinearly()
+    public void NavigationStep_MagnitudeScalesWithCount()
     {
         var spool = new LSpool(TimeSpan.FromSeconds(400));
         Assert.Equal(
@@ -38,7 +38,7 @@ public sealed class LSpoolTests
     }
 
     [Fact]
-    public void Zoom_PositiveStep_HalvesRange()
+    public void ZoomIn_HalvesTimelineRange()
     {
         var spool = new LSpool(TimeSpan.FromSeconds(400));
         spool.LSpoolZoom(TimeSpan.FromSeconds(200), 1);
@@ -46,7 +46,7 @@ public sealed class LSpoolTests
     }
 
     [Fact]
-    public void Zoom_NegativeStep_DoublesRange()
+    public void ZoomOut_DoublesTimelineRange()
     {
         var spool = new LSpool(TimeSpan.FromSeconds(400));
         spool.LSpoolZoom(TimeSpan.FromSeconds(200), 1);
@@ -55,7 +55,7 @@ public sealed class LSpoolTests
     }
 
     [Fact]
-    public void Zoom_ThreeSteps_MatchesThreeSingleZooms()
+    public void Zoom_MultipleStepsMatchRepeatedZooms()
     {
         var cursor = TimeSpan.FromSeconds(200);
         var multi = new LSpool(TimeSpan.FromSeconds(400));
@@ -71,7 +71,7 @@ public sealed class LSpoolTests
     }
 
     [Fact]
-    public void Zoom_ZeroSteps_LeavesRangeUnchanged()
+    public void Zoom_ZeroStepsKeepsTimelineRange()
     {
         var spool = new LSpool(TimeSpan.FromSeconds(400));
         var origin = spool.LSpoolRangeOrigin;
@@ -82,7 +82,7 @@ public sealed class LSpoolTests
     }
 
     [Fact]
-    public void Zoom_CursorAnchoredRatio_PreservedAcrossMultiStep()
+    public void Zoom_KeepsCursorRelativePosition()
     {
         var cursor = TimeSpan.FromSeconds(100);
         var spool = new LSpool(TimeSpan.FromSeconds(400));
