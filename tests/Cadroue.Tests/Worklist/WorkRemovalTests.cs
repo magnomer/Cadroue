@@ -1,13 +1,14 @@
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+
 using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LScheduleRemovableTests
+public sealed class WorkRemovalTests
 {
     [Fact]
-    public void LScheduleRemovableResolveKeepsOnlyNonRunningIds()
+    public void PendingAndDoneWork_AreRemovableWhileRunningWorkIsNot()
     {
         Guid lFirst = Guid.NewGuid();
         Guid lSecond = Guid.NewGuid();
@@ -26,7 +27,7 @@ public sealed class LScheduleRemovableTests
     }
 
     [Fact]
-    public void LScheduleRemovableResolveSkipsUnknownIds()
+    public void PendingWork_IsRemovableWhileUnknownWorkIsSkipped()
     {
         Guid lKnown = Guid.NewGuid();
         var lScheduleStates = new Dictionary<Guid, LWorkState>

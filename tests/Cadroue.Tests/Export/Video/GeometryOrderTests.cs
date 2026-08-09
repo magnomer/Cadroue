@@ -5,10 +5,10 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LEncodeVideoTests
+public sealed class GeometryOrderTests
 {
     [Fact]
-    public void GeometryFilters_VerticalFlipAndClockwiseRotation_MatchesPreviewOrder()
+    public void VerticalFlipAndClockwiseRotation_FiltersMatchPreviewOrder()
     {
         var lCrop = new LWorkCrop(0, 0, 0, 0, 90, false, true);
 
@@ -18,7 +18,7 @@ public sealed class LEncodeVideoTests
     }
 
     [Fact]
-    public void GeometryFilters_FlipsPrecedeRotationAndCrop()
+    public void FlipsRotationAndCrop_FiltersFollowGeometryOrder()
     {
         var lCrop = new LWorkCrop(2, 4, 6, 8, 270, true, true);
 

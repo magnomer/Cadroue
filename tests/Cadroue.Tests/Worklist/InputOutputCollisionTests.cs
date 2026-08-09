@@ -4,10 +4,10 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LJobTests
+public sealed class InputOutputCollisionTests
 {
     [Fact]
-    public void InputCollisionCheck_NormalizedSamePath_ReturnsTrue()
+    public void Output_NormalizedToInput_Collides()
     {
         string pSource = Path.Combine(Path.GetTempPath(), "cadroue", "source.mp4");
         string pOutput = Path.Combine(Path.GetTempPath(), "cadroue", ".", "source.mp4");
@@ -16,7 +16,7 @@ public sealed class LJobTests
     }
 
     [Fact]
-    public void InputCollisionCheck_DifferentPath_ReturnsFalse()
+    public void Output_DifferentFromInput_DoesNotCollide()
     {
         string pFolder = Path.Combine(Path.GetTempPath(), "cadroue");
 
@@ -26,7 +26,7 @@ public sealed class LJobTests
     }
 
     [Fact]
-    public void InputCollisionCheck_SameNameInDifferentFolder_ReturnsFalse()
+    public void Output_SameNameInDifferentFolder_DoesNotCollide()
     {
         string pRoot = Path.Combine(Path.GetTempPath(), "cadroue");
 
@@ -36,7 +36,7 @@ public sealed class LJobTests
     }
 
     [Fact]
-    public void InputCollisionCheck_WindowsCaseDifference_ReturnsTrue()
+    public void Output_MatchingInputByCase_CollidesOnWindows()
     {
         string pSource = Path.Combine(Path.GetTempPath(), "cadroue", "Source.mp4");
         string pOutput = Path.Combine(Path.GetTempPath(), "CADROUE", "source.MP4");
@@ -45,7 +45,7 @@ public sealed class LJobTests
     }
 
     [Fact]
-    public void InputCollisionCheck_AnyMergeInputMatches_ReturnsTrue()
+    public void Output_MatchingAnyMergeInput_Collides()
     {
         string pFolder = Path.Combine(Path.GetTempPath(), "cadroue");
         string pOutput = Path.Combine(pFolder, "second.mp4");
