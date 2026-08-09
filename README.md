@@ -10,11 +10,11 @@
 
 <br>
 
-**KO** · FFmpeg 작업을 미리 설계하고, 파일을 분류해 대기열에 쌓으며, 결과물을 다음 단계로 이어 주는 Windows 데스크톱 애플리케이션입니다.
+**KO** · FFmpeg 작업을 계획하고 실행하는 것을 도와주는 Windows 데스크톱 프로그램입니다.
 
 <br>
 
-> Built with the help of Claude and ChatGPT through vibe coding. Cadroue is a personal project, so bugs may still exist.
+> Cadroue is a personal project developed with assistance from Claude and ChatGPT. It remains under active development, so bugs may still exist.
 
 <br><br>
 
@@ -35,26 +35,13 @@
 > **Development status**  
 > Cadroue is under active development. Common workflows and operation combinations have been tested, but unusual inputs or complex processing chains may still expose bugs.
 
+> **Documentation version:** 2.9.10600
+
 ### What Cadroue is
 
-Cadroue is a Windows desktop application for planning, routing, queuing, and processing FFmpeg media workflows. It organizes work into separate **Split**, **Edit**, **Audio**, **Convert**, **Merge**, **Funnel**, and **Worklist** tabs.
+Cadroue is a Windows desktop application for planning, routing, queuing, and processing FFmpeg media workflows. Work is organized into separate **Split**, **Edit**, **Audio**, **Convert**, **Merge**, **Funnel**, and **Worklist** tabs. You can open several tabs of the same type and give each one a workflow-specific name.
 
-Each processing tab prepares a particular kind of job. The Worklist executes those jobs through FFmpeg while retaining their relationship to the original media and to any earlier or later Cadroue jobs.
-
-### Why Cadroue exists
-
-Splitting one video file is easy, and many applications already do it well. Cadroue is intended for the larger workflow around that operation: preparing different plans for many files, keeping those plans for later, controlling a persistent queue, prioritizing urgent work, passing outputs into the next operation, and tracing related jobs back to their common source.
-
-A typical workflow may look like this:
-
-1. Review several recordings and save a different split, crop, or audio plan for each file.
-2. Add the prepared jobs to a persistent queue.
-3. Insert urgent work ahead of ordinary queued work without interrupting the job already running.
-4. Relay completed outputs into another tab—for example, from Split to Audio and then to Merge.
-5. Route incoming files automatically with a Funnel tab.
-6. Inspect the resulting chain of related jobs in the Worklist by source lineage.
-
-Cadroue stores reusable per-file preparation in `.cad` sidecars, either beside the media file or in the configured workspace. A record can preserve source identity, keyframes, split sections, edit settings, and audio-processing plans.
+Each processing tab prepares a particular kind of job. The Worklist executes those jobs through FFmpeg while preserving their relationship to the original media and to earlier or later Cadroue jobs. Resizable and collapsible panels let each tab adapt to the task at hand.
 
 ### Main features
 
@@ -63,6 +50,7 @@ Cadroue stores reusable per-file preparation in `.cad` sidecars, either beside t
 - Create multiple named sections from one media file.
 - Set, split, rename, enable, disable, reorder, and delete sections.
 - Navigate to the previous, nearest, or next keyframe.
+- Zoom and seek on the timeline, optionally display an audio waveform, and choose whether sections may overlap.
 - Save section plans and scanned keyframe data in the file's `.cad` record.
 - Import recognized segments from LosslessCut `.llc` projects.
 - Construct output names from tokens such as the original name, section number, section name, date, time, prefix, and suffix.
@@ -82,12 +70,13 @@ Audio processing is represented as an ordered list, so the processing sequence r
 
 - High-pass filtering
 - Low-pass filtering
+- Parametric equalization with built-in presets and custom frequency bands
 - Noise reduction
 - Volume adjustment
 - Loudness or dynamic normalization
 - Optional two-pass loudness normalization
 
-Steps can be enabled, disabled, reordered, inspected, and saved per file. When only audio requires processing, the video stream can remain copied when the chosen export settings permit it.
+Steps can be enabled, disabled, reordered, inspected, and saved per file. A normalization viewer compares estimated before-and-after waveforms, and persistent processing settings can be applied to newly loaded files. When only audio requires processing, the video stream can remain copied when the chosen export settings permit it.
 
 #### Convert and export
 
@@ -95,6 +84,8 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. When o
 - Independent video and audio inclusion, exclusion, stream-copy, and encoding choices.
 - Built-in container choices for MP4, Matroska, MOV, WebM, M4A, MP3, WAV, FLAC, and OGG, together with access to formats supported by the selected FFmpeg build.
 - Video size, frame rate, pixel format, rate control, quality, and encoder-specific controls.
+- Output placement beside the source, in a subfolder or sibling folder, or in a custom location.
+- Audio sample-rate and channel controls, plus reactive video sizing that follows clip orientation.
 - Software and hardware encoder definitions, used only when the selected FFmpeg build supports them.
 - First-audio-track or all-audio-track selection.
 - Importable and exportable Cadroue encoding presets.
@@ -124,7 +115,7 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. When o
 - Persistent, file-backed queue records.
 - Normal-priority and high-priority work.
 - Configurable parallel processing.
-- Start, pause, resume, cancel, stop, remove, and clearing controls.
+- Start, pause, resume, cancel, stop, remove, clear-done, and clear-all controls.
 - Optional automatic resume, retry limits, and pause-on-failure behavior.
 - Recovery of work left running after an unexpected shutdown.
 - Detailed source, output, encoding, progress, speed, attempt, ownership, and relay information.
@@ -142,6 +133,16 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. When o
 - Drag a tab outside the current window to move it into another Cadroue window or open it in a new Cadroue instance.
 - Save, load, import, and export named window presets containing the complete tab arrangement and tab settings.
 - Restore the previous tab layout and session at startup.
+- Resize or collapse tab panels, hide the Export panel, and choose horizontal or vertical tabs.
+- Customize global, active-tab, timeline, and Split-tab keyboard shortcuts.
+
+#### Timeline, workspace, and maintenance
+
+- Show an audio waveform on individual timelines or enable waveforms by default.
+- Configure timeline strip order, keyframe spacing and scan delay, section overlap, and map/viewfinder placement.
+- Select, import, export, and remove JSON section-colour palettes.
+- Keep `.cad` records beside their media or centrally in the workspace.
+- Inspect workspace use, clear completed work records, clear workspace records, and automatically remove old completed records while preserving scheduled and running work.
 
 ### Preview and processing
 
@@ -156,7 +157,7 @@ Enabled edit and audio steps are compiled into ordered FFmpeg filter chains. Ord
 #### Running Cadroue
 
 - Windows 10 version 2004 / build 19041 or later
-- `ffmpeg.exe` and `ffprobe.exe` available on `PATH`
+- FFmpeg and FFprobe available on `PATH`
 - Alternatively, an FFmpeg folder selected under **Options → System**
 
 Published builds are self-contained and do not require a separately installed .NET runtime. FFmpeg and FFprobe are not bundled.
@@ -169,7 +170,7 @@ Published builds are self-contained and do not require a separately installed .N
 
 ### Getting started
 
-1. Launch `Cadroue.exe`.
+1. Launch Cadroue.
 2. Open **Options → System** and confirm the workspace and FFmpeg configuration.
 3. Create or select a Split, Edit, Audio, Convert, Merge, Funnel, or Worklist tab.
 4. Drop media files or folders into a tab's Files panel.
@@ -188,7 +189,7 @@ Audio-only files can be opened only in an Audio tab. A Funnel tab routes files b
 From the repository root, create a self-contained Windows build with:
 
 ```shell
-dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Release --runtime win-x64 --self-contained true --output .\publish\win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 To run the development version directly:
@@ -197,20 +198,14 @@ To run the development version directly:
 dotnet run --project .\src\Cadroue.UIShell\Cadroue.UIShell.csproj
 ```
 
-The published executable is written to:
-
-```text
-publish\win-x64\Cadroue.exe
-```
-
-For another Windows architecture, replace `win-x64` in the publish command and output path with the required runtime identifier, such as `win-arm64`.
+For another Windows architecture, replace `win-x64` in the publish command with the required runtime identifier, such as `win-arm64`.
 
 ### Repository structure
 
 ```text
 src/
 ├─ Cadroue.Core/            Work records, scheduling contracts, priorities, presets, and shared state models
-├─ Cadroue.Application/     Core-only work-item planning
+├─ Cadroue.Application/     Application services and work-item planning
 ├─ Cadroue.Media/           Media inspection, keyframes, .cad sidecars, and LosslessCut import
 ├─ Cadroue.Infrastructure/  Persistence, queue storage, detection, interprocess relay, and diagnostics
 ├─ Cadroue.ShellEngine/     FFmpeg command construction and process execution
@@ -220,7 +215,10 @@ localization/
 ├─ en.json
 └─ ko.json
 
-docs-work/                  Design notes and planned processing work
+tests/
+└─ Cadroue.Tests/           Automated unit and integration tests
+
+docs/                       Generated logic maps
 ```
 
 ### Current limitations
@@ -259,7 +257,9 @@ Cadroue is built with:
 
 ### License
 
-No project license has been added to this repository yet. Until a license is selected and included, reuse and distribution rights are not granted beyond the rights provided by GitHub's terms for viewing and forking a public repository.
+Cadroue is licensed under the [Mozilla Public License 2.0](https://www.mozilla.org/MPL/2.0/). The MPL-2.0 permits use, modification, and distribution, including in commercial software, while requiring source files derived from MPL-licensed files to remain available under the same license.
+
+Licenses and attribution for bundled libraries and assets, including Flyleaf and Phosphor Icons, are listed in [Third-Party Notices](THIRD-PARTY-NOTICES.md).
 
 ---
 
@@ -268,23 +268,17 @@ No project license has been added to this repository yet. Until a license is sel
 ## 한국어
 
 > **개발 상태**  
-> Cadroue는 기능 추가와 구조 개선이 계속되고 있습니다. 자주 쓰는 작업 흐름은 반복해서 확인하고 있지만, 형식이 특이한 파일이나 여러 단계를 길게 연결한 작업에서는 아직 예상하지 못한 문제가 나타날 수 있습니다.
+> Cadroue는 현재도 기능 개선 중입니다. 대체적인 작업 및 기능은 확인되었으나, 문제나 버그가 있을 수 있습니다.
+>
+> 이 문서는 **2.9.10600** 버전을 기준으로 작성했습니다.
 
-### Cadroue 소개
+### 소개
 
-Cadroue는 FFmpeg 명령을 조금 더 쉽게 실행하는 단순 변환기가 아닙니다. 여러 미디어 파일에 서로 다른 작업 계획을 미리 만들어 두고, 실행 순서와 우선순위를 관리하며, 한 작업의 결과를 다음 작업으로 넘겨 긴 처리 흐름을 이어 가기 위한 Windows 데스크톱 애플리케이션입니다.
+Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작업 환경을 제공합니다. 파일 별로 분할·편집·오디오 처리 계획을 미리 설정한 다음, 원하는 작업을 실행할 수 있습니다. 급한 작업을 먼저 처리하거나, 앞 단계에서 만든 결과물을 다른 탭으로 전달하는 것도 가능합니다.
 
-작업은 **분할(Split)**, **편집(Edit)**, **오디오(Audio)**, **변환(Convert)**, **병합(Merge)**, **퍼널(Funnel)**, **작업 목록(Worklist)** 탭으로 나뉩니다. 분할·편집·오디오·변환·병합 탭에서는 무엇을 어떻게 처리할지 준비하고, 작업 목록에서는 준비된 항목을 FFmpeg로 실제 실행합니다. 퍼널 탭은 들어온 파일을 이름 규칙에 따라 알맞은 탭으로 보내는 역할을 합니다.
+이 프로그램은 **분할(Split)**, **편집(Edit)**, **오디오(Audio)**, **변환(Convert)**, **병합(Merge)**, **퍼널(Funnel)**, **작업 목록(Worklist)** 등의 탭으로 구성되어 있습니다. 작업을 준비하는 탭에서 작업 계획을 준비 한 다음, 작업 목록 탭에서 FFmpeg 처리를 실행합니다. 파일 이름 규칙에 따라 알맞은 탭으로 분배하는 기능도 있으며, 같은 종류의 탭을 여러 개 열어 각기 다른 용도로 사용할 수도 있습니다.
 
-파일마다 만든 계획은 미디어 파일 옆이나 지정한 작업 공간에 `.cad` 기록으로 남길 수 있습니다. 원본을 다시 열었을 때 이전에 찾은 키프레임, 분할 구간, 편집 값, 오디오 처리 순서를 그대로 이어서 사용할 수 있으므로, 검토와 실행을 한 번에 끝낼 필요가 없습니다.
-
-### 왜 만들었나
-
-영상 파일 하나를 몇 구간으로 나누는 일 자체는 어렵지 않습니다. 이미 그 일을 잘하는 프로그램도 많습니다. Cadroue가 다루려는 것은 ‘자르기’보다 그 앞뒤에 이어지는 작업입니다.
-
-예를 들어 여러 녹화물을 차례로 확인하면서 파일마다 다른 분할 계획과 편집 값을 저장해 두고, 실제 출력은 나중에 한꺼번에 실행할 수 있습니다. 대기 중인 작업이 많아도 급한 항목만 높은 우선순위로 앞세울 수 있으며, 이미 처리 중인 작업을 중단할 필요는 없습니다. 분할이 끝난 파일을 오디오 탭으로 보내고, 다시 병합 탭으로 넘기는 식으로 후속 작업도 연결할 수 있습니다. 반복해서 들어오는 파일은 퍼널 규칙으로 자동 분류할 수 있고, 작업 목록에서는 같은 원본에서 갈라져 나온 결과와 그 뒤에 이어진 작업을 함께 확인할 수 있습니다.
-
-즉 Cadroue의 중심은 분할 알고리즘이 아니라, **여러 파일에 대한 계획을 보관하고, 대기열을 운영하고, 결과물을 다음 단계로 이어 주는 작업 관리 방식**에 있습니다.
+파일별 설정은 `.cad` 파일의 형태로 보관되며, 원본 미디어와 동일한 위치에 보관할 지, 혹은 전용 작업 공간에 보관할 지 선택할 수 있습니다. 분석된 키프레임, 분할 구간, 편집 값, 오디오 처리 순서등이 기록되기 때문에 처리 계획을 미리 설정한 후에 나중에 실제 인코딩을 진행할 수도 있습니다.
 
 ### 탭별 기능
 
@@ -293,6 +287,7 @@ Cadroue는 FFmpeg 명령을 조금 더 쉽게 실행하는 단순 변환기가 �
 - 하나의 미디어를 여러 구간으로 나누고 각 구간에 이름을 붙일 수 있습니다.
 - 구간을 새로 만들거나 다시 나누고, 순서를 바꾸고, 필요 없는 구간을 끄거나 삭제할 수 있습니다.
 - 이전 키프레임, 현재 위치에서 가장 가까운 키프레임, 다음 키프레임으로 이동할 수 있습니다.
+- 타임라인을 확대해 세밀하게 탐색할 수 있으며, 오디오 파형 표시와 구간 겹침 허용 여부를 상황에 맞게 바꿀 수 있습니다.
 - 찾아낸 키프레임과 분할 계획을 `.cad` 기록에 저장합니다.
 - LosslessCut의 `.llc` 프로젝트에 들어 있는 구간을 가져올 수 있습니다.
 - 원본 이름, 구간 번호, 구간 이름, 날짜, 시간, 접두사, 접미사 등을 조합해 출력 파일 이름을 만들 수 있습니다.
@@ -313,12 +308,13 @@ Cadroue는 FFmpeg 명령을 조금 더 쉽게 실행하는 단순 변환기가 �
 
 - 하이패스 필터
 - 로우패스 필터
+- 프리셋과 사용자 지정 밴드를 지원하는 파라메트릭 이퀄라이저
 - 노이즈 감소
 - 볼륨 조정
 - 라우드니스 정규화 또는 동적 정규화
 - 선택적으로 사용하는 2패스 라우드니스 정규화
 
-오디오만 손보는 작업에서는 출력 설정이 허용하는 한 비디오 스트림을 다시 인코딩하지 않고 그대로 복사할 수 있습니다.
+정규화 뷰어를 열면 처리 전후의 예상 파형을 확대해 비교할 수 있습니다. 자주 쓰는 설정은 새로 불러오는 파일에도 계속 적용되도록 고정할 수 있습니다. 오디오만 손보는 작업에서는 출력 설정이 허용하는 한 비디오 스트림을 다시 인코딩하지 않고 그대로 복사합니다.
 
 #### 변환과 출력
 
@@ -326,6 +322,8 @@ Cadroue는 FFmpeg 명령을 조금 더 쉽게 실행하는 단순 변환기가 �
 - 비디오와 오디오를 각각 제외하거나 포함할 수 있고, 스트림 복사와 인코딩 여부도 따로 선택할 수 있습니다.
 - MP4, Matroska, MOV, WebM, M4A, MP3, WAV, FLAC, OGG를 기본 선택지로 제공하며, 사용 중인 FFmpeg가 지원하는 다른 형식도 선택할 수 있습니다.
 - 해상도, 프레임 레이트, 픽셀 형식, 비트레이트·품질 제어 방식과 인코더별 옵션을 설정할 수 있습니다.
+- 오디오 샘플 레이트와 채널 수를 지정할 수 있으며, 세로·가로 영상 방향에 맞춰 해상도가 반응하도록 설정할 수 있습니다.
+- 결과물은 원본과 같은 위치, 하위 폴더, 원본 폴더 옆의 별도 폴더 또는 사용자가 고른 경로에 저장할 수 있습니다.
 - 소프트웨어 인코더와 하드웨어 인코더는 현재 선택된 FFmpeg 빌드가 실제로 지원할 때만 사용됩니다.
 - 첫 번째 오디오 트랙만 넣거나 모든 오디오 트랙을 포함할 수 있습니다.
 - Cadroue 인코딩 프리셋을 파일로 내보내거나 다시 가져올 수 있습니다.
@@ -356,7 +354,7 @@ Cadroue는 FFmpeg 명령을 조금 더 쉽게 실행하는 단순 변환기가 �
 - 대기열은 파일에 저장되므로 프로그램을 닫았다가 다시 열어도 남아 있습니다.
 - 일반 우선순위와 높은 우선순위를 구분합니다.
 - 동시에 실행할 작업 수를 설정할 수 있습니다.
-- 시작, 일시 정지, 재개, 취소, 중지, 제거, 기록 비우기를 지원합니다.
+- 시작, 일시 정지, 재개, 취소, 중지, 선택 항목 제거, 완료 항목 비우기, 전체 비우기를 지원합니다.
 - 자동 재개, 실패 작업 재시도 횟수, 실패 시 대기열 일시 정지를 설정할 수 있습니다.
 - 프로그램이 예기치 않게 종료되었을 때 실행 중으로 남은 기록을 복구합니다.
 - 원본과 출력 경로, 인코딩 설정, 진행률, 처리 속도, 시도 횟수, 어느 탭에서 만든 작업인지, 어디로 전달되는지를 자세히 볼 수 있습니다.
@@ -373,6 +371,14 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 현재 창의 탭 구성과 각 탭의 설정은 **창 프리셋**으로 저장할 수 있습니다. 이름을 붙여 저장한 프리셋을 다시 불러올 수 있고, 파일로 내보내거나 가져올 수도 있습니다. 프로그램을 시작할 때 직전 세션의 탭 구성을 복원하도록 설정하는 것도 가능합니다.
 
+작업 화면의 패널 너비는 직접 조절할 수 있고, 당장 쓰지 않는 패널은 접어 둘 수 있습니다. 출력 패널만 따로 숨기는 것도 가능합니다. 탭 목록은 가로와 세로 배치 중에서 선택할 수 있으며, 전역·현재 탭·타임라인·분할 탭에 쓰는 키보드 단축키도 사용 습관에 맞게 다시 지정할 수 있습니다.
+
+### 타임라인과 작업 공간 관리
+
+타임라인은 단순한 재생 막대에 그치지 않습니다. 패널별로 오디오 파형을 켜거나 끌 수 있고, 새 패널의 기본 표시 여부도 지정할 수 있습니다. 맵과 뷰파인더의 배치 순서, 키프레임 간격과 검색 지연 시간, 구간 겹침 허용 여부를 옵션에서 조정할 수 있습니다. 분할 구간의 색상 팔레트는 JSON 파일로 내보내거나 가져와 다른 환경에서도 재사용할 수 있습니다.
+
+작업 공간에는 대기열 기록과 파일별 `.cad` 기록이 쌓입니다. 옵션 화면에서 사용량을 확인하고, 완료·실패 기록만 골라 정리하거나 작업 공간 기록을 비울 수 있습니다. 오래된 기록을 자동으로 삭제하도록 설정해 두어도 예약되었거나 실행 중인 작업은 정리 대상에서 제외됩니다.
+
 ### 미리보기와 실제 출력
 
 미리보기가 되지 않는 파일이라고 해서 반드시 FFmpeg 처리까지 불가능한 것은 아닙니다. Cadroue는 **화면에서 재생할 수 있는지**와 **FFmpeg로 작업할 수 있는지**를 별개의 상태로 판단해 표시합니다.
@@ -386,7 +392,7 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 #### Cadroue 실행
 
 - Windows 10 버전 2004 / 빌드 19041 이상
-- `PATH`에서 찾을 수 있는 `ffmpeg.exe`와 `ffprobe.exe`
+- `PATH`에서 찾을 수 있는 FFmpeg와 FFprobe
 - 또는 **옵션 → 시스템**에서 직접 지정한 FFmpeg 폴더
 
 배포용 빌드는 자체 포함 방식이므로 .NET 런타임을 따로 설치할 필요가 없습니다. FFmpeg와 FFprobe는 Cadroue에 포함되어 있지 않습니다.
@@ -399,7 +405,7 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 ### 처음 사용하기
 
-1. `Cadroue.exe`를 실행합니다.
+1. Cadroue를 실행합니다.
 2. **옵션 → 시스템**에서 작업 공간과 FFmpeg 위치를 확인합니다.
 3. 필요한 분할, 편집, 오디오, 변환, 병합, 퍼널 또는 작업 목록 탭을 만들거나 선택합니다.
 4. 파일 패널에 미디어 파일이나 폴더를 끌어 놓습니다.
@@ -418,7 +424,7 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 저장소 루트에서 다음 명령을 실행하면 자체 포함 Windows 빌드를 만들 수 있습니다.
 
 ```shell
-dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Release --runtime win-x64 --self-contained true --output .\publish\win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 개발 버전을 바로 실행하려면 다음 명령을 사용합니다.
@@ -427,22 +433,16 @@ dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Rele
 dotnet run --project .\src\Cadroue.UIShell\Cadroue.UIShell.csproj
 ```
 
-완성된 실행 파일은 다음 위치에 생성됩니다.
-
-```text
-publish\win-x64\Cadroue.exe
-```
-
-다른 Windows 아키텍처를 대상으로 할 때는 명령과 출력 경로의 `win-x64`를 `win-arm64`와 같은 알맞은 런타임 식별자로 바꾸면 됩니다.
+다른 Windows 아키텍처를 대상으로 하려면 명령의 `win-x64`를 `win-arm64`와 같은 알맞은 런타임 식별자로 바꾸면 됩니다.
 
 ### 저장소 구성
 
 ```text
 src/
-├─ Cadroue.Core/            작업 기록, 스케줄 계약, 우선순위, 프리셋, 공유 상태 모델
-├─ Cadroue.Application/     Core에만 의존하는 작업 항목 계획
+├─ Cadroue.Core/            작업 기록, 예약 규칙, 우선순위, 프리셋, 공유 상태 모델
+├─ Cadroue.Application/     애플리케이션 서비스와 작업 항목 계획
 ├─ Cadroue.Media/           미디어 분석, 키프레임, .cad 기록, LosslessCut 가져오기
-├─ Cadroue.Infrastructure/  저장소, 대기열 보관, 감지, 프로세스 간 전달, 진단
+├─ Cadroue.Infrastructure/  영속화, 대기열 저장, 환경 감지, 프로세스 간 전달, 진단
 ├─ Cadroue.ShellEngine/     FFmpeg 명령 구성과 프로세스 실행
 └─ Cadroue.UIShell/         WPF 애플리케이션, 탭, 패널, 미리보기, 옵션, 현지화
 
@@ -450,7 +450,10 @@ localization/
 ├─ en.json
 └─ ko.json
 
-docs-work/                  설계 메모와 앞으로 진행할 처리 기능 정리
+tests/
+└─ Cadroue.Tests/           단위 테스트와 통합 테스트
+
+docs/                       생성된 로직 맵
 ```
 
 ### 현재 제한 사항
@@ -489,4 +492,6 @@ Cadroue는 다음 기술을 사용합니다.
 
 ### 라이선스
 
-현재 이 저장소에는 별도의 프로젝트 라이선스가 없습니다. 따라서 공개 저장소를 열람하고 포크할 수 있도록 GitHub 약관에서 허용하는 범위를 제외하면, 코드를 재사용하거나 다시 배포할 권한이 자동으로 부여되는 것은 아닙니다.
+Cadroue는 [Mozilla Public License 2.0](https://www.mozilla.org/MPL/2.0/)에 따라 배포됩니다. MPL-2.0은 상업용 소프트웨어를 포함한 사용, 수정 및 재배포를 허용하며, MPL 라이선스가 적용된 파일에서 파생된 소스 파일은 같은 라이선스로 공개하도록 요구합니다.
+
+Flyleaf와 Phosphor Icons를 포함하여 함께 배포되는 라이브러리 및 에셋의 라이선스와 저작자 표시는 [제3자 고지](THIRD-PARTY-NOTICES.md)에서 확인할 수 있습니다.
