@@ -10,7 +10,7 @@ public static class LMediaProbe
 
     public static event Action<bool>? LMediaAvailabilityReady;
 
-    public static void LMediaProbeDefer(string sourcePath)
+    public static void LMediaProbeDefer(string sourcePath, CancellationToken lMediaProbeToken = default)
     {
         Task.Run(() =>
         {
@@ -18,7 +18,11 @@ public static class LMediaProbe
             string? lMediaProbeError = null;
             try
             {
-                lMediaProbeInfo = LMedia.LMediaFfprobeRead(sourcePath);
+                lMediaProbeInfo = LMedia.LMediaFfprobeRead(sourcePath, lMediaProbeToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             catch (Exception lMediaProbeException)
             {
@@ -26,10 +30,10 @@ public static class LMediaProbe
             }
 
             LMediaProbeReady?.Invoke(new LMediaProbeResult(sourcePath, lMediaProbeInfo, lMediaProbeError));
-        });
+        }, lMediaProbeToken);
     }
 
-    public static void LMediaLoudnessDefer(string sourcePath)
+    public static void LMediaLoudnessDefer(string sourcePath, CancellationToken lMediaProbeToken = default)
     {
         Task.Run(() =>
         {
@@ -37,7 +41,11 @@ public static class LMediaProbe
             string? lMediaLoudnessError = null;
             try
             {
-                lMediaLoudnessValue = LMedia.LMediaLoudnessRead(sourcePath);
+                lMediaLoudnessValue = LMedia.LMediaLoudnessRead(sourcePath, lMediaProbeToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             catch (Exception lMediaLoudnessException)
             {
@@ -45,15 +53,15 @@ public static class LMediaProbe
             }
 
             LMediaLoudnessReady?.Invoke(new LMediaLoudnessResult(sourcePath, lMediaLoudnessValue, lMediaLoudnessError));
-        });
+        }, lMediaProbeToken);
     }
 
-    public static void LMediaAvailabilityDefer()
+    public static void LMediaAvailabilityDefer(CancellationToken lMediaProbeToken = default)
     {
         Task.Run(() =>
         {
             bool lMediaAvailable = LMedia.LMediaFfprobeExist();
             LMediaAvailabilityReady?.Invoke(lMediaAvailable);
-        });
+        }, lMediaProbeToken);
     }
 }
