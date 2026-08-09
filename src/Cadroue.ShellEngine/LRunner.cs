@@ -60,6 +60,15 @@ public sealed partial class LRunner
 
     public bool LRunnerSuspended => lRunnerSuspended;
 
+    internal async Task LRunnerResumeAwait(CancellationToken lRunnerToken)
+    {
+        while (lRunnerSuspended)
+        {
+            lRunnerToken.ThrowIfCancellationRequested();
+            await Task.Delay(lRunnerPollInterval, lRunnerToken).ConfigureAwait(false);
+        }
+    }
+
     public bool LRunnerRunning
     {
         get => lRunnerRunning;

@@ -86,6 +86,8 @@ internal sealed class LJob
             string? pMeasureStderr = null;
             for (int pStageIndex = 0; pStageIndex < pStages.Count; pStageIndex++)
             {
+                await lJobOwner.LRunnerResumeAwait(lJobToken).ConfigureAwait(false);
+
                 LEncodeStage pStage = pStages[pStageIndex];
                 string pStageArguments = pStage.LEncodeStageArguments;
                 if (pStageArguments.Contains(LEncode.LEncodeMeasureToken, StringComparison.Ordinal))
