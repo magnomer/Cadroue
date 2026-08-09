@@ -7,13 +7,8 @@ namespace Cadroue.UIShell.PControlBar;
 
 public partial class PToolbar
 {
-    private void PLogoClickHandle(object sender, MouseButtonEventArgs e)
+    private void PLogoMenuShow(FrameworkElement pLogoButton)
     {
-        if (sender is not FrameworkElement pLogoButton)
-        {
-            return;
-        }
-
         ContextMenu pLogoMenu = PMenu.PMenuCreate(pLogoButton);
 
         PLogoItemAppend(pLogoMenu, "Options", "Chrome.Menu.Options", "/PAssets/PMenus/PMenuPreferences.svg");
@@ -23,7 +18,6 @@ public partial class PToolbar
         PLogoItemAppend(pLogoMenu, "Exit", "Chrome.Menu.Exit", "/PAssets/PMenus/PMenuExit.svg");
 
         pLogoMenu.IsOpen = true;
-        e.Handled = true;
     }
 
     private void PLogoItemAppend(ContextMenu pLogoMenu, string pLogoMenuToken, string pLogoMenuKey, string pLogoMenuIconPath)

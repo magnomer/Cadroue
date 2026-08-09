@@ -73,9 +73,6 @@ internal sealed partial class PSOptions
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FFmpeg"),
             PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psSystemFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
             pFfmpegState));
-        pPanel.Children.Add(PSSystemFlyleafBuild());
-        pPanel.Children.Add(PSSystemMpvBuild());
-        pPanel.Children.Add(PSSystemRecheckBuild());
         pPanel.Children.Add(PSSystemRecordBuild());
         return pPanel;
     }
@@ -115,7 +112,7 @@ internal sealed partial class PSOptions
         pButtons.Children.Add(pOpen);
 
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.PreviewEngine"), pButtons),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Setup"), pButtons),
             pState,
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FlyleafNotice")));
     }

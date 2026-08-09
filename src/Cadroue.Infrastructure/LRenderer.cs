@@ -30,36 +30,39 @@ public static class LRenderer
     public static void LRendererSettingsLoad() =>
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
 
+    public const string LRendererEngineFlyleafToken = "Flyleaf";
+    public const string LRendererEngineMpvToken = "Mpv";
+
     public static LPreviewEngine LRendererEngineRead() => lRendererEnginePreview;
 
     public static void LRendererEngineStart()
     {
         LRendererFlyleafSeam?.Invoke();
+        LRendererEngineSet(LRendererPreferenceRead());
+    }
 
-        LMpvProbe lRendererOutcome = LMpv.LMpvResultRead();
-        if (lRendererOutcome != LMpvProbe.LMpvProbeUnknown)
+    public static void LRendererEngineSet(LPreviewEngine lRendererEngine)
+    {
+        LPreviewEngine lRendererResolved =
+            lRendererEngine == LPreviewEngine.LPreviewEngineMpv && LMpv.LMpvInstalledCheck()
+                ? LPreviewEngine.LPreviewEngineMpv
+                : LPreviewEngine.LPreviewEngineFlyleaf;
+        if (lRendererResolved == lRendererEnginePreview)
         {
-            LRendererEngineApply(lRendererOutcome);
             return;
         }
 
-        _ = Task.Run(() =>
-        {
-            LMpvProbe lRendererProbed;
-            try
-            {
-                lRendererProbed = LMpv.LMpvCheck();
-            }
-            catch
-            {
-                lRendererProbed = LMpvProbe.LMpvProbeUnusable;
-            }
-
-            LMpv.LMpvResultSave(lRendererProbed);
-            LRendererEngineApply(lRendererProbed);
-            LRendererEngineChange?.Invoke();
-        });
+        lRendererEnginePreview = lRendererResolved;
+        LRendererEngineChange?.Invoke();
     }
+
+    private static LPreviewEngine LRendererPreferenceRead() =>
+        string.Equals(
+            LPreference.LPreferenceStateCurrent.LPreferencePreviewEngine,
+            LRendererEngineMpvToken,
+            StringComparison.Ordinal)
+            ? LPreviewEngine.LPreviewEngineMpv
+            : LPreviewEngine.LPreviewEngineFlyleaf;
 
     public static Task<LMpvProbe> LRendererEngineCheck()
     {
@@ -83,17 +86,10 @@ public static class LRenderer
                 }
 
                 LMpv.LMpvResultSave(lRendererProbed);
-                LRendererEngineApply(lRendererProbed);
-                LRendererEngineChange?.Invoke();
                 return lRendererProbed;
             });
 
             return lRendererCheckRun;
         }
     }
-
-    private static void LRendererEngineApply(LMpvProbe lRendererOutcome) =>
-        lRendererEnginePreview = lRendererOutcome == LMpvProbe.LMpvProbeUsable
-            ? LPreviewEngine.LPreviewEngineMpv
-            : LPreviewEngine.LPreviewEngineFlyleaf;
 }

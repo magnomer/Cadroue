@@ -44,7 +44,7 @@ internal sealed partial class PSOptions
         pButtons.Children.Add(pOpen);
 
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.LocalMpv"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.PreviewEngine"), pButtons),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Setup"), pButtons),
             pState,
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.MpvInstallNotice")));
     }
@@ -64,7 +64,7 @@ internal sealed partial class PSOptions
             Text = PSSystemRecheckFormat(LRenderer.LRendererEngineRead())
         };
 
-        Button pRecheck = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.RecheckEngine"), 200, new Thickness(0));
+        Button pRecheck = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.Playback.CheckEngines"), 200, new Thickness(0));
         pRecheck.Click += async (_, _) =>
         {
             pRecheck.IsEnabled = false;
@@ -80,10 +80,10 @@ internal sealed partial class PSOptions
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pButtons.Children.Add(pRecheck);
 
-        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.RecheckMpv"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.PreviewEngine"), pButtons),
-            pState,
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.RecheckNotice")));
+        var pPanel = new StackPanel();
+        pPanel.Children.Add(PSFieldBuild(string.Empty, pButtons));
+        pPanel.Children.Add(pState);
+        return pPanel;
     }
 
     private static string PSSystemRecheckFormat(LPreviewEngine pEngine) =>

@@ -80,6 +80,8 @@ internal sealed partial class PSOptions : Window
     private readonly CheckBox psVerticalTabsBox;
     private readonly ComboBox psOptionsLanguageCombo;
 
+    private readonly RadioButton psOptionsEngineFlyleaf;
+    private readonly RadioButton psOptionsEngineMpv;
     private readonly CheckBox psOptionsAutoplayBox;
     private readonly ComboBox psOptionsVolumeCombo;
     private readonly Slider psOptionsVolumeSlider;
@@ -125,6 +127,12 @@ internal sealed partial class PSOptions : Window
         psRelayClearBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Relay.ClearCheck"), lsOptionsDraft.LPreferenceRelayEmpty);
         psVerticalTabsBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Layout.VerticalTabs"), lsOptionsDraft.LPreferenceVerticalTabs);
         psOptionsLanguageCombo = PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguagesRead());
+
+        bool psEngineMpvInstalled = Cadroue.Infrastructure.LMpv.LMpvInstalledCheck();
+        bool psEngineMpv = psEngineMpvInstalled && string.Equals(lsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal);
+        psOptionsEngineFlyleaf = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Playback.EngineFlyleaf"), !psEngineMpv, "PSOptionsEngine");
+        psOptionsEngineMpv = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Playback.EngineMpv"), psEngineMpv, "PSOptionsEngine");
+        psOptionsEngineMpv.IsEnabled = psEngineMpvInstalled;
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"), lsOptionsDraft.LPreferenceAutoplay);
         psOptionsVolumeCombo = PSComboBuild(lsOptionsDraft.LPreferenceVolumeMode, PSOptionsVolumeItems);
@@ -254,6 +262,9 @@ internal sealed partial class PSOptions : Window
     private UIElement PSPlaybackBuild()
     {
         var pPanel = new StackPanel();
+        pPanel.Children.Add(PSPlaybackEngineBuild());
+        pPanel.Children.Add(PSSystemFlyleafBuild());
+        pPanel.Children.Add(PSSystemMpvBuild());
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"), psOptionsAutoplayBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumePlate"),
@@ -264,6 +275,18 @@ internal sealed partial class PSOptions : Window
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Dragging"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.WhileDragging"), psOptionsDragBox)));
         return pPanel;
+    }
+
+    private UIElement PSPlaybackEngineBuild()
+    {
+        var pRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pRow.Children.Add(psOptionsEngineFlyleaf);
+        pRow.Children.Add(psOptionsEngineMpv);
+
+        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Preview"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Engine"), pRow),
+            PSSystemRecheckBuild(),
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Playback.EngineNotice")));
     }
 
     private UIElement PSWorkBuild()
@@ -299,6 +322,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceVolume = psOptionsVolumeSlider.Value;
         lsOptionsDraft.LPreferenceWheelAction = PSComboTextRead(psOptionsWheelCombo);
         lsOptionsDraft.LPreferenceDragPaused = psOptionsDragBox.IsChecked == true;
+        lsOptionsDraft.LPreferencePreviewEngine = psOptionsEngineMpv.IsChecked == true ? "Mpv" : "Flyleaf";
 
         lsOptionsDraft.LPreferenceTimelineOrder = PSComboTextRead(psOptionsOrderCombo);
         lsOptionsDraft.LPreferenceKeyframePixels = psKeyframeSlider.Value;
@@ -320,6 +344,10 @@ internal sealed partial class PSOptions : Window
 
         string psLanguagePrevious = LPreference.LPreferenceStateCurrent.LPreferenceLanguage;
         LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
+        Cadroue.Infrastructure.LRenderer.LRendererEngineSet(
+            psOptionsEngineMpv.IsChecked == true
+                ? LPreviewEngine.LPreviewEngineMpv
+                : LPreviewEngine.LPreviewEngineFlyleaf);
         psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
         if (!string.Equals(psLanguagePrevious, LPreference.LPreferenceStateCurrent.LPreferenceLanguage, StringComparison.Ordinal))
         {

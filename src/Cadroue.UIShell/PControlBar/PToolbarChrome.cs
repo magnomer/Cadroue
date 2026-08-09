@@ -1,7 +1,10 @@
+using System;
 using System.Windows;
 using Cadroue.UIShell;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Cadroue.UIShell.PControlBar;
 
@@ -10,6 +13,12 @@ public partial class PToolbar
     private const double PChromeButtonHeight = 56;
 
     private const double PChromeButtonWidth = 48;
+
+    private Point pChromePressPoint;
+
+    private bool pChromePressArmed;
+
+    private bool pChromeDragActive;
 
     private void PChromeButtonsApply()
     {
@@ -55,22 +64,102 @@ public partial class PToolbar
     {
         base.OnMouseLeftButtonDown(e);
 
-        if (PToolbarButtonFind(e.OriginalSource as DependencyObject)
-            || PToolbarTabFind(e.OriginalSource as DependencyObject))
-        {
-            return;
-        }
-
-        if (e.ClickCount == 2)
+        if (e.ClickCount == 2 && PChromeCaptionCheck(e.OriginalSource as DependencyObject))
         {
             PChromeMaximizeToggle();
             e.Handled = true;
+        }
+    }
+
+    protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        base.OnPreviewMouseLeftButtonDown(e);
+        pChromePressArmed = false;
+        pChromeDragActive = false;
+        if (!PChromeCaptionCheck(e.OriginalSource as DependencyObject))
+        {
             return;
         }
 
-        if (e.ButtonState == MouseButtonState.Pressed)
+        pChromePressPoint = e.GetPosition(this);
+        pChromePressArmed = true;
+    }
+
+    protected override void OnPreviewMouseMove(MouseEventArgs e)
+    {
+        base.OnPreviewMouseMove(e);
+        if (!pChromePressArmed || pChromeDragActive || e.LeftButton != MouseButtonState.Pressed)
         {
-            Window.GetWindow(this)?.DragMove();
+            return;
         }
+
+        Point pChromePoint = e.GetPosition(this);
+        if (Math.Abs(pChromePoint.X - pChromePressPoint.X) < SystemParameters.MinimumHorizontalDragDistance
+            && Math.Abs(pChromePoint.Y - pChromePressPoint.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        pChromeDragActive = true;
+        if (Mouse.Captured is not null)
+        {
+            Mouse.Capture(null);
+        }
+
+        Window.GetWindow(this)?.DragMove();
+        pChromePressArmed = false;
+        pChromeDragActive = false;
+    }
+
+    protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
+    {
+        base.OnPreviewMouseLeftButtonUp(e);
+        bool pChromeClicked = pChromePressArmed && !pChromeDragActive;
+        pChromePressArmed = false;
+        pChromeDragActive = false;
+        if (pChromeClicked && PChromeLogoCheck(e.OriginalSource as DependencyObject))
+        {
+            PLogoMenuShow(pLogoHost);
+        }
+    }
+
+    private bool PChromeCaptionCheck(DependencyObject? pChromeSource)
+    {
+        while (pChromeSource is not null)
+        {
+            if (pChromeSource is FrameworkElement { DataContext: PTabRecord }
+                or TextBoxBase
+                or Selector
+                or RangeBase
+                or Thumb
+                or ScrollBar)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(pChromeSource, this))
+            {
+                return true;
+            }
+
+            pChromeSource = VisualTreeHelper.GetParent(pChromeSource);
+        }
+
+        return false;
+    }
+
+    private bool PChromeLogoCheck(DependencyObject? pChromeSource)
+    {
+        while (pChromeSource is not null)
+        {
+            if (ReferenceEquals(pChromeSource, pLogoHost))
+            {
+                return true;
+            }
+
+            pChromeSource = VisualTreeHelper.GetParent(pChromeSource);
+        }
+
+        return false;
     }
 }

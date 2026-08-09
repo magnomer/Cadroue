@@ -47,36 +47,4 @@ public partial class PToolbar : UserControl
     {
         PSKeymap.PSKeymapShow(Window.GetWindow(this)!, PToolbarOptionsApply);
     }
-
-    private static bool PToolbarButtonFind(DependencyObject? pToolbarSource)
-    {
-        while (pToolbarSource is not null)
-        {
-            if (pToolbarSource is System.Windows.Controls.Primitives.ButtonBase
-                or System.Windows.Controls.Primitives.TextBoxBase
-                or System.Windows.Controls.Primitives.Selector)
-            {
-                return true;
-            }
-
-            pToolbarSource = VisualTreeHelper.GetParent(pToolbarSource);
-        }
-
-        return false;
-    }
-
-    private static bool PToolbarTabFind(DependencyObject? pToolbarSource)
-    {
-        while (pToolbarSource is not null)
-        {
-            if (pToolbarSource is FrameworkElement { DataContext: PTabRecord })
-            {
-                return true;
-            }
-
-            pToolbarSource = VisualTreeHelper.GetParent(pToolbarSource);
-        }
-
-        return false;
-    }
 }

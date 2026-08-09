@@ -24,6 +24,7 @@ public sealed class LPreferenceState
     public bool LPreferenceAutoplay { get; set; }
     public string LPreferenceWheelAction { get; set; } = "Seek";
     public bool LPreferenceDragPaused { get; set; } = true;
+    public string LPreferencePreviewEngine { get; set; } = "Flyleaf";
 
     public string LPreferenceTimelineOrder { get; set; } = "MapFirst";
     public double LPreferenceKeyframePixels { get; set; }
@@ -64,6 +65,7 @@ public sealed class LPreferenceState
             LPreferenceAutoplay = false,
             LPreferenceWheelAction = "Seek",
             LPreferenceDragPaused = true,
+            LPreferencePreviewEngine = "Flyleaf",
             LPreferenceTimelineOrder = "MapFirst",
             LPreferenceKeyframePixels = 5,
             LPreferenceKeyframeDelay = 1000,
@@ -109,6 +111,7 @@ public sealed class LPreferenceState
             LPreferenceAutoplay = LPreferenceAutoplay,
             LPreferenceWheelAction = LPreferenceWheelAction,
             LPreferenceDragPaused = LPreferenceDragPaused,
+            LPreferencePreviewEngine = LPreferencePreviewEngine,
             LPreferenceTimelineOrder = LPreferenceTimelineOrder,
             LPreferenceKeyframePixels = LPreferenceKeyframePixels,
             LPreferenceKeyframeDelay = LPreferenceKeyframeDelay,
@@ -147,6 +150,7 @@ public sealed class LPreferenceState
             ("Autoplay on load", lPreferenceOther.LPreferenceAutoplay, LPreferenceAutoplay),
             ("Mousewheel", lPreferenceOther.LPreferenceWheelAction, LPreferenceWheelAction),
             ("Pause while dragging", lPreferenceOther.LPreferenceDragPaused, LPreferenceDragPaused),
+            ("Preview engine", lPreferenceOther.LPreferencePreviewEngine, LPreferencePreviewEngine),
             ("Timeline order", lPreferenceOther.LPreferenceTimelineOrder, LPreferenceTimelineOrder),
             ("Keyframe minimum spacing", lPreferenceOther.LPreferenceKeyframePixels, LPreferenceKeyframePixels),
             ("Keyframe scan delay", lPreferenceOther.LPreferenceKeyframeDelay, LPreferenceKeyframeDelay),
@@ -181,6 +185,7 @@ public sealed class LPreferenceState
             LPreferenceStartupTabs = new List<string> { "Split" };
         if (LPreferenceVolumeMode is not "Unified" and not "PerTab") LPreferenceVolumeMode = "Unified";
         if (LPreferenceWheelAction is not "Seek" and not "Zoom" and not "Volume") LPreferenceWheelAction = "Seek";
+        if (LPreferencePreviewEngine is not "Flyleaf" and not "Mpv") LPreferencePreviewEngine = "Flyleaf";
         if (LPreferenceTimelineOrder is not "MapFirst" and not "ViewfinderFirst") LPreferenceTimelineOrder = "MapFirst";
         if (string.IsNullOrWhiteSpace(LPreferenceSectionPalette))
             LPreferenceSectionPalette = LPreferencePaletteDefault;
