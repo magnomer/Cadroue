@@ -38,6 +38,9 @@ public sealed class LPreferenceState
     public double LPreferenceRetryMaximum { get; set; }
     public bool LPreferenceAutoActive { get; set; }
 
+    public bool LPreferenceRecordCleanupActive { get; set; }
+    public int LPreferenceRecordCleanupDays { get; set; } = 30;
+
     public string LPreferenceWorkspaceFolder { get; set; } = string.Empty;
     public string LPreferenceFfmpegFolder { get; set; } = string.Empty;
     public string LPreferenceMediaPath { get; set; } = string.Empty;
@@ -72,6 +75,8 @@ public sealed class LPreferenceState
             LPreferenceRetryAllowed = false,
             LPreferenceRetryMaximum = 3,
             LPreferenceAutoActive = false,
+            LPreferenceRecordCleanupActive = false,
+            LPreferenceRecordCleanupDays = 30,
             LPreferenceWorkspaceFolder = string.Empty,
             LPreferenceFfmpegFolder = string.Empty,
             LPreferenceMediaPath = string.Empty
@@ -115,6 +120,8 @@ public sealed class LPreferenceState
             LPreferenceRetryAllowed = LPreferenceRetryAllowed,
             LPreferenceRetryMaximum = LPreferenceRetryMaximum,
             LPreferenceAutoActive = LPreferenceAutoActive,
+            LPreferenceRecordCleanupActive = LPreferenceRecordCleanupActive,
+            LPreferenceRecordCleanupDays = LPreferenceRecordCleanupDays,
             LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
             LPreferenceFfmpegFolder = LPreferenceFfmpegFolder,
             LPreferenceMediaPath = LPreferenceMediaPath
@@ -153,6 +160,8 @@ public sealed class LPreferenceState
             ("Workspace folder", lPreferenceOther.LPreferenceWorkspaceFolder, LPreferenceWorkspaceFolder),
             ("FFmpeg folder", lPreferenceOther.LPreferenceFfmpegFolder, LPreferenceFfmpegFolder),
             ("Resume queue at launch", lPreferenceOther.LPreferenceAutoActive, LPreferenceAutoActive),
+            ("Delete old records", lPreferenceOther.LPreferenceRecordCleanupActive, LPreferenceRecordCleanupActive),
+            ("Record retention days", lPreferenceOther.LPreferenceRecordCleanupDays, LPreferenceRecordCleanupDays),
             ("Last media", lPreferenceOther.LPreferenceMediaPath, LPreferenceMediaPath)
         };
 
@@ -181,6 +190,7 @@ public sealed class LPreferenceState
         LPreferenceKeyframeDelay = LPreferenceNumberClamp(LPreferenceKeyframeDelay, 0, 5000, 1000);
         LPreferenceParallelMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceParallelMaximum, 1, 8, 1));
         LPreferenceRetryMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceRetryMaximum, 0, 10, 3));
+        LPreferenceRecordCleanupDays = (int)Math.Round(LPreferenceNumberClamp(LPreferenceRecordCleanupDays, 1, 365, 30));
 
         LPreferenceWorkspaceFolder = (LPreferenceWorkspaceFolder ?? string.Empty).Trim();
         LPreferenceFfmpegFolder = (LPreferenceFfmpegFolder ?? string.Empty).Trim();
