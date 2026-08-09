@@ -14,7 +14,9 @@ build/
 bld/
 artifacts/
 tmp/
+/temp/
 .verify-build/
+/run/
 
 # Published / packaged binaries
 *.appx
@@ -91,3 +93,4 @@ $RECYCLE.BIN/
 
 # Build-lifecycle helper scripts
 /*.ps1
+

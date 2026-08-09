@@ -24,12 +24,6 @@ public sealed partial class PViewer
             return;
         }
 
-        LPreviewMpvEqualizer pViewerEqualizer = LPreview.LPreviewMpvEqualizerResolve(LPreviewStateCurrent);
-        pViewerPlayer.PPlayerEqualizerSet(
-            pViewerEqualizer.LPreviewBrightness,
-            pViewerEqualizer.LPreviewContrast,
-            pViewerEqualizer.LPreviewSaturation,
-            pViewerEqualizer.LPreviewHue);
         PViewerMpvFilterApply(LPreview.LPreviewMpvFilterResolve(LPreviewStateCurrent));
     }
 
@@ -53,7 +47,15 @@ public sealed partial class PViewer
         }
 
         pViewerMpvFilter = pViewerFilter;
-        pViewerPlayer.PPlayerFilterSet(pViewerFilter);
+        try
+        {
+            pViewerPlayer.PPlayerFilterSet(pViewerFilter);
+        }
+        catch (Exception pViewerFilterException)
+        {
+            LTraceLog.LTraceErrorRecord(
+                $"mpv rejected preview filter '{pViewerFilter}': {pViewerFilterException.Message}");
+        }
     }
 
     public bool PViewerEditEligible { get; set; }
@@ -142,7 +144,7 @@ public sealed partial class PViewer
         (pViewerCloseButton.Parent as Panel)?.Children.Remove(pViewerCloseButton);
     }
 
-    private void PViewerMpvApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)
+    private async void PViewerMpvApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)
     {
         if (mediaInfo is { LMediaAudioOnly: true } && !pViewerAudioAllowed)
         {
@@ -172,7 +174,7 @@ public sealed partial class PViewer
             }
 
             pViewerPlayer.PPlayerVolumeSet(pViewerVolume);
-            pViewerPlayer.PPlayerOpen(sourcePath);
+            await System.Threading.Tasks.Task.Run(() => pViewerPlayer.PPlayerOpen(sourcePath));
         }
         catch (Exception pViewerException)
         {

@@ -127,7 +127,9 @@ public sealed partial class PInspector
             200,
             "0.#");
         pInspectorContrastStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorContrastSlider, "%", pInspectorContrastValue));
-        if (!LFlyleaf.LFlyleafActive)
+        bool pContrastPreview = LFlyleaf.LFlyleafActive
+            || LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
+        if (!pContrastPreview)
         {
             pInspectorContrastStack.Children.Add(new TextBlock
             {

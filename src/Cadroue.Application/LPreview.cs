@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Cadroue.Core;
 
 namespace Cadroue.Application;
@@ -11,12 +13,6 @@ public sealed record LPreviewApplication(
     bool LPreviewFlipHorizontal,
     bool LPreviewFlipVertical,
     string LPreviewReason);
-
-public sealed record LPreviewMpvEqualizer(
-    int LPreviewBrightness,
-    int LPreviewContrast,
-    int LPreviewSaturation,
-    int LPreviewHue);
 
 public static class LPreview
 {
@@ -57,20 +53,35 @@ public static class LPreview
         LPreviewApplySeam?.Invoke(lPreviewTarget, LPreviewApplicationResolve(lPreviewState, "preview restored"));
     }
 
-    public static LPreviewMpvEqualizer LPreviewMpvEqualizerResolve(LPreviewState lPreviewState)
+    private static string LPreviewMpvEqFilterResolve(LColor lColor)
     {
-        LColor lColor = lPreviewState.LColor;
-        double lFfmpegBrightness = lColor.LColorBrightness / LPreviewBrightnessFactor;
-        return new LPreviewMpvEqualizer(
-            LPreviewValueClamp(lFfmpegBrightness * 100, -100, 100),
-            LPreviewValueClamp((lColor.LColorContrast - 1) * 100, -100, 100),
-            LPreviewValueClamp((lColor.LColorSaturation - 1) * 100, -100, 100),
-            LPreviewValueClamp(lColor.LColorHue / 180 * 100, -100, 100));
+        double lBrightness = lColor.LColorBrightness / LPreviewBrightnessFactor;
+        double lContrast = lColor.LColorContrast;
+        var lEqParts = new List<string>();
+
+        if (lBrightness != 0)
+        {
+            lEqParts.Add($"brightness={lBrightness.ToString("0.###", CultureInfo.InvariantCulture)}");
+        }
+
+        if (lContrast != 1)
+        {
+            lEqParts.Add($"contrast={lContrast.ToString("0.###", CultureInfo.InvariantCulture)}");
+        }
+
+        return lEqParts.Count > 0 ? "eq=" + string.Join(':', lEqParts) : string.Empty;
     }
 
     public static string LPreviewMpvFilterResolve(LPreviewState lPreviewState)
     {
         var lFilters = new List<string>();
+
+        string lEq = LPreviewMpvEqFilterResolve(lPreviewState.LColor);
+        if (lEq.Length > 0)
+        {
+            lFilters.Add(lEq);
+        }
+
         LRotateFlip lRotateFlip = lPreviewState.LRotateFlip;
 
         if (lRotateFlip.LRotateFlipHorizontal)
@@ -105,7 +116,7 @@ public static class LPreview
             lFilters.Add($"crop={lCropWidth}:{lCropHeight}:{lCropX}:{lCropY}");
         }
 
-        return string.Join(',', lFilters);
+        return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;
     }
 
     private static LPreviewApplication LPreviewApplicationResolve(LPreviewState lPreviewState, string lPreviewReason)
