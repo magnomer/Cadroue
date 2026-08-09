@@ -24,7 +24,7 @@ public sealed class EqualizerPresetTests
     [InlineData("Telephone")]
     public void EqualizerPreset_KnownToken_HasTenGains(string token)
     {
-        double[]? gains = LContourCatalog.LContourGainsRead(token);
+        double[]? gains = TInterface.ContourGainsRead(token);
         Assert.NotNull(gains);
         Assert.Equal(10, gains!.Length);
     }
@@ -32,21 +32,21 @@ public sealed class EqualizerPresetTests
     [Fact]
     public void EqualizerPreset_UnknownToken_ReturnsNoGains()
     {
-        Assert.Null(LContourCatalog.LContourGainsRead("Custom"));
+        Assert.Null(TInterface.ContourGainsRead("Custom"));
     }
 
     [Fact]
     public void EqualizerPreset_Catalog_HasNinePresets()
     {
-        Assert.Equal(9, LContourCatalog.LContourTokensRead().Count);
+        Assert.Equal(9, TInterface.ContourTokensRead().Count);
     }
 
     [Fact]
     public void EqualizerPreset_ExactBassBoostSettings_Match()
     {
         double[] gains = { 6, 5, 3, 1, 0, 0, 0, 0, 0, 0 };
-        Assert.True(LContourCatalog.LContourMatch(
-            LContourCatalog.LContourBandGrid, gains, LContourCatalog.LContourGainsRead("Bass boost")!));
+        Assert.True(TInterface.ContourMatch(
+            LContourCatalog.LContourBandGrid, gains, TInterface.ContourGainsRead("Bass boost")!));
     }
 
     [Fact]
@@ -54,16 +54,16 @@ public sealed class EqualizerPresetTests
     {
         double[] freqs = { 31.4, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 };
         double[] gains = { 6.04, 5, 3, 1, 0, 0, 0, 0, 0, 0 };
-        Assert.True(LContourCatalog.LContourMatch(
-            freqs, gains, LContourCatalog.LContourGainsRead("Bass boost")!));
+        Assert.True(TInterface.ContourMatch(
+            freqs, gains, TInterface.ContourGainsRead("Bass boost")!));
     }
 
     [Fact]
     public void EqualizerPreset_GainBeyondTolerance_DoesNotMatch()
     {
         double[] gains = { 6.1, 5, 3, 1, 0, 0, 0, 0, 0, 0 };
-        Assert.False(LContourCatalog.LContourMatch(
-            LContourCatalog.LContourBandGrid, gains, LContourCatalog.LContourGainsRead("Bass boost")!));
+        Assert.False(TInterface.ContourMatch(
+            LContourCatalog.LContourBandGrid, gains, TInterface.ContourGainsRead("Bass boost")!));
     }
 
     [Fact]
@@ -71,20 +71,20 @@ public sealed class EqualizerPresetTests
     {
         double[] freqs = { 31, 62 };
         double[] gains = { 0, 0 };
-        Assert.False(LContourCatalog.LContourMatch(freqs, gains, LContourCatalog.LContourGainsRead("Flat")!));
+        Assert.False(TInterface.ContourMatch(freqs, gains, TInterface.ContourGainsRead("Flat")!));
     }
 
     [Fact]
     public void EqualizerPreset_ZeroGains_FindFlatPreset()
     {
         double[] gains = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        Assert.Equal("Flat", LContourCatalog.LContourPresetFind(LContourCatalog.LContourBandGrid, gains));
+        Assert.Equal("Flat", TInterface.ContourPresetFind(LContourCatalog.LContourBandGrid, gains));
     }
 
     [Fact]
     public void EqualizerPreset_DeviatedGains_FindNoPreset()
     {
         double[] gains = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        Assert.Null(LContourCatalog.LContourPresetFind(LContourCatalog.LContourBandGrid, gains));
+        Assert.Null(TInterface.ContourPresetFind(LContourCatalog.LContourBandGrid, gains));
     }
 }

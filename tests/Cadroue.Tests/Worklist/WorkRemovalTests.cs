@@ -20,7 +20,7 @@ public sealed class WorkRemovalTests
             [lRunning] = LWorkState.LWorkStateRunning
         };
 
-        IReadOnlyList<Guid> lRemovable = LSchedule.LScheduleRemovableResolve(
+        IReadOnlyList<Guid> lRemovable = TInterface.ScheduleRemovableResolve(
             new[] { lFirst, lSecond, lRunning }, lScheduleStates);
 
         Assert.Equal(new[] { lFirst, lSecond }, lRemovable);
@@ -35,7 +35,7 @@ public sealed class WorkRemovalTests
             [lKnown] = LWorkState.LWorkStatePending
         };
 
-        IReadOnlyList<Guid> lRemovable = LSchedule.LScheduleRemovableResolve(
+        IReadOnlyList<Guid> lRemovable = TInterface.ScheduleRemovableResolve(
             new[] { lKnown, Guid.NewGuid() }, lScheduleStates);
 
         Assert.Equal(new[] { lKnown }, lRemovable);

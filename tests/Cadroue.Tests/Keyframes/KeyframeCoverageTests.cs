@@ -14,7 +14,7 @@ public sealed class KeyframeCoverageTests
         var spool = Spool(100, 200);
         var ranges = new[] { Scan(120, 180) };
 
-        var result = LKeyframeView.LKeyframeCoverageResolve(ranges, spool, false);
+        var result = TInterface.KeyframeCoverageResolve(ranges, spool, false);
 
         Assert.Single(result);
         Assert.Equal(At(120), result[0].LKeyframeRangeOrigin);
@@ -27,7 +27,7 @@ public sealed class KeyframeCoverageTests
         var spool = Spool(100, 200);
         var ranges = new[] { Scan(50, 150), Scan(180, 250) };
 
-        var result = LKeyframeView.LKeyframeCoverageResolve(ranges, spool, false);
+        var result = TInterface.KeyframeCoverageResolve(ranges, spool, false);
 
         Assert.Equal(2, result.Count);
         Assert.Equal(At(100), result[0].LKeyframeRangeOrigin);
@@ -42,7 +42,7 @@ public sealed class KeyframeCoverageTests
         var spool = Spool(100, 200);
         var ranges = new[] { Scan(10, 50), Scan(300, 400) };
 
-        var result = LKeyframeView.LKeyframeCoverageResolve(ranges, spool, false);
+        var result = TInterface.KeyframeCoverageResolve(ranges, spool, false);
 
         Assert.Empty(result);
     }
@@ -50,10 +50,10 @@ public sealed class KeyframeCoverageTests
     [Fact]
     public void CoverageRanges_WithInvertedBounds_AreEmpty()
     {
-        var spool = new LSpool(TimeSpan.Zero);
+        LSpool spool = TInterface.SpoolCreate(TimeSpan.Zero);
         var ranges = new[] { Scan(120, 180) };
 
-        var result = LKeyframeView.LKeyframeCoverageResolve(ranges, spool, true);
+        var result = TInterface.KeyframeCoverageResolve(ranges, spool, true);
 
         Assert.Empty(result);
     }
@@ -64,7 +64,7 @@ public sealed class KeyframeCoverageTests
         var spool = Spool(0, 500);
         var ranges = new[] { Scan(300, 350), Scan(100, 150), Scan(200, 250) };
 
-        var result = LKeyframeView.LKeyframeCoverageResolve(ranges, spool, true);
+        var result = TInterface.KeyframeCoverageResolve(ranges, spool, true);
 
         Assert.Equal(
             new[] { At(300), At(100), At(200) },
@@ -75,12 +75,12 @@ public sealed class KeyframeCoverageTests
     public void CoverageRanges_ForWholeMedia_UseFullDuration()
     {
         var spool = Spool(100, 200);
-        spool.LSpoolStartSet(At(120));
-        spool.LSpoolEndSet(At(180));
+        TInterface.SpoolStartSet(spool, At(120));
+        TInterface.SpoolEndSet(spool, At(180));
         var ranges = new[] { Scan(0, 300) };
 
-        var whole = LKeyframeView.LKeyframeCoverageResolve(ranges, spool, true);
-        var working = LKeyframeView.LKeyframeCoverageResolve(ranges, spool, false);
+        var whole = TInterface.KeyframeCoverageResolve(ranges, spool, true);
+        var working = TInterface.KeyframeCoverageResolve(ranges, spool, false);
 
         Assert.Equal(At(0), whole[0].LKeyframeRangeOrigin);
         Assert.Equal(spool.LSpoolDuration, whole[0].LKeyframeRangeLimit);

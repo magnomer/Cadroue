@@ -1,0 +1,235 @@
+using Cadroue.Application;
+using Cadroue.Core;
+using Cadroue.Infrastructure;
+using Cadroue.ShellEngine;
+
+namespace Cadroue.Tests;
+
+/// <summary>
+/// Test-side boundary for production operations. Every member is a transparent relay:
+/// it delegates to exactly one production operation and does not alter its inputs or result.
+/// </summary>
+internal static class TInterface
+{
+    internal static bool ClassifierMatch(LSceneFunnelRule rule, string name) =>
+        LClassifier.LClassifierMatch(rule, name);
+
+    internal static int ClassifierRouteRead(IReadOnlyList<LSceneFunnelRule> rules, string name) =>
+        LClassifier.LClassifierRouteRead(rules, name);
+
+    internal static IReadOnlyList<LSeriesGroup> SeriesResolve(
+        IReadOnlyList<string> paths,
+        bool strict,
+        LSeriesNameMode nameMode = LSeriesNameMode.LSeriesNameRemove) =>
+        LSeries.LSeriesResolve(paths, strict, nameMode);
+
+    internal static IReadOnlyList<LPiece> PieceValidSelect(IReadOnlyList<LPiece> sections, TimeSpan duration) =>
+        LPiece.LPieceValidSelect(sections, duration);
+
+    internal static bool PieceInsideCheck(
+        IReadOnlyList<LPiece> sections, TimeSpan time, int skipIndex, bool overlapAllowed) =>
+        LPiece.LPieceInsideCheck(sections, time, skipIndex, overlapAllowed);
+
+    internal static TimeSpan PieceLimitRead(
+        IReadOnlyList<LPiece> sections, TimeSpan from, TimeSpan ceiling, int skipIndex, bool overlapAllowed) =>
+        LPiece.LPieceLimitRead(sections, from, ceiling, skipIndex, overlapAllowed);
+
+    internal static TimeSpan PieceFloorRead(
+        IReadOnlyList<LPiece> sections, TimeSpan until, int skipIndex, bool overlapAllowed) =>
+        LPiece.LPieceFloorRead(sections, until, skipIndex, overlapAllowed);
+
+    internal static (List<LPiece> Sections, int? Active)? PieceAdd(
+        IReadOnlyList<LPiece> sections, TimeSpan cursor, TimeSpan duration, int colorIndex, bool overlapAllowed) =>
+        LPiece.LPieceAdd(sections, cursor, duration, colorIndex, overlapAllowed);
+
+    internal static (List<LPiece> Sections, int? Active)? PieceEndCreate(
+        IReadOnlyList<LPiece> sections, TimeSpan cursor, int colorIndex, bool overlapAllowed) =>
+        LPiece.LPieceEndCreate(sections, cursor, colorIndex, overlapAllowed);
+
+    internal static (List<LPiece> Sections, int? Active, bool Added)? PieceStartSet(
+        IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, TimeSpan duration,
+        int colorIndex, bool overlapAllowed) =>
+        LPiece.LPieceStartSet(sections, activeIndex, cursor, duration, colorIndex, overlapAllowed);
+
+    internal static (List<LPiece> Sections, int? Active, bool Added)? PieceEndSet(
+        IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex, bool overlapAllowed) =>
+        LPiece.LPieceEndSet(sections, activeIndex, cursor, colorIndex, overlapAllowed);
+
+    internal static (List<LPiece> Sections, int First, int Second)? PieceDivide(
+        IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex) =>
+        LPiece.LPieceDivide(sections, activeIndex, cursor, colorIndex);
+
+    internal static LSpool SpoolCreate(TimeSpan duration) => new(duration);
+    internal static TimeSpan SpoolStepResolve(LSpool spool, int count) => spool.LSpoolStepResolve(count);
+    internal static void SpoolZoom(LSpool spool, TimeSpan cursor, int steps) => spool.LSpoolZoom(cursor, steps);
+    internal static void SpoolStartSet(LSpool spool, TimeSpan start) => spool.LSpoolStartSet(start);
+    internal static void SpoolEndSet(LSpool spool, TimeSpan end) => spool.LSpoolEndSet(end);
+
+    internal static IReadOnlyList<LKeyframeEntry> KeyframeVisibleResolve(
+        IReadOnlyList<LKeyframeEntry> keyframes, TimeSpan cursor, LSpool spool) =>
+        LKeyframeView.LKeyframeVisibleResolve(keyframes, cursor, spool);
+
+    internal static IReadOnlyList<LKeyframeScanRange> KeyframeCoverageResolve(
+        IReadOnlyList<LKeyframeScanRange> ranges, LSpool spool, bool wholeMedia) =>
+        LKeyframeView.LKeyframeCoverageResolve(ranges, spool, wholeMedia);
+
+    internal static LKeyframeMoveResult KeyframeMoveResolve(
+        IReadOnlyCollection<long> keyframes, IReadOnlySet<int> scannedSpans,
+        TimeSpan duration, TimeSpan cursor, int direction) =>
+        LKeyframeOrchestrator.LKeyframeMoveResolve(keyframes, scannedSpans, duration, cursor, direction);
+
+    internal static LPreferenceState PreferenceDefaultCreate() => LPreferenceState.LPreferenceDefaultCreate();
+    internal static LPreferenceState PreferenceCreate(int cleanupDays = 30) =>
+        new() { LPreferenceRecordCleanupDays = cleanupDays };
+    internal static LPreferenceState PreferenceClone(LPreferenceState state) => state.LPreferenceClone();
+    internal static void PreferenceNormalize(LPreferenceState state) => state.LPreferenceNormalize();
+    internal static IEnumerable<string> PreferenceDifferenceRead(LPreferenceState state, LPreferenceState before) =>
+        state.LPreferenceDifferenceRead(before);
+
+    internal static LGroupSelection GroupSelectionCreate(
+        bool groupAuto = false,
+        bool groupStrict = true,
+        LSeriesNameMode nameMode = LSeriesNameMode.LSeriesNameRemove) =>
+        new(groupAuto, groupStrict, nameMode);
+
+    internal static void GroupNameModeRequest(LGroupSelection selection, LSeriesNameMode mode) =>
+        selection.LGroupNameModeRequest(mode);
+
+    internal static IReadOnlyList<LSeriesGroup> GroupResolve(LGroupSelection selection, IReadOnlyList<string> paths) =>
+        selection.LGroupResolve(paths);
+
+    internal static LPreviewState PreviewDefaultCreate() => LPreviewState.LPreviewDefaultCreate();
+    internal static LColor ColorCreate(double brightness, double contrast, double saturation, double hue) =>
+        new(brightness, contrast, saturation, hue);
+    internal static LRotateFlip RotateFlipCreate(LRotateKind rotate, bool horizontal, bool vertical) =>
+        new(rotate, horizontal, vertical);
+    internal static LPreviewState PreviewColorChange(LPreviewState state, LColor color) => state.LColorChange(color);
+    internal static LPreviewState PreviewRotateFlipChange(LPreviewState state, LRotateFlip rotateFlip) =>
+        state.LRotateFlipChange(rotateFlip);
+    internal static LColor PreviewColorResolve(LWorkVideo video) => LPreview.LPreviewColorResolve(video);
+
+    internal static LColorKind? ColorKindParse(string token) => LColor.LColorKindParse(token);
+    internal static string ColorKindFormat(LColorKind kind) => LColor.LColorKindFormat(kind);
+    internal static LEditPlan EditPersistentRead(LSidecarEditRecord record) => LEdit.LEditPersistentRead(record);
+    internal static LSidecarEditRecord SidecarEditRecordCreate(string kind, bool active, double value) =>
+        new()
+        {
+            LSidecarSteps = new List<LSidecarVideoStep>
+            {
+                new() { LSidecarKind = kind, LSidecarActive = active, LSidecarValue = value }
+            }
+        };
+
+    internal static LWorkCrop WorkCropCreate() => LWorkCrop.LWorkCropCreate();
+    internal static LWorkCrop WorkCropCreate(
+        int left, int top, int right, int bottom, int rotation, bool horizontal, bool vertical) =>
+        new(left, top, right, bottom, rotation, horizontal, vertical);
+    internal static LWorkVideo WorkVideoCreate() => LWorkVideo.LWorkVideoCreate();
+    internal static LWorkVideo WorkVideoCreate(IReadOnlyList<LWorkVideoStep> steps) => new(steps);
+    internal static LWorkBand WorkBandCreate(double frequency, double gain) => new(frequency, gain);
+    internal static LWorkAudio WorkAudioCreate(IReadOnlyList<LWorkAudioStep> steps) => new(steps);
+    internal static LWorkMedia WorkMediaCreate(int width, int height, double rate, long durationMs, bool audio) =>
+        new(width, height, rate, durationMs, audio);
+    internal static LSplitSectionDescription SplitSectionCreate(
+        TimeSpan start, TimeSpan end, string name, bool hidden = false) =>
+        new(start, end, name, LSplitSectionHidden: hidden);
+    internal static LSplitWorkDescription SplitDescriptionCreate(
+        string? source, IReadOnlyList<LSplitSectionDescription> sections, LEncoding output) =>
+        new(source, sections, output);
+    internal static LConvertWorkDescription ConvertDescriptionCreate(
+        IReadOnlyList<string> sources, LEncoding output, IReadOnlyDictionary<string, LWorkMedia>? media = null) =>
+        new(sources, output, media);
+    internal static LEditWorkDescription EditDescriptionCreate(
+        string? source, TimeSpan duration, LWorkCrop crop, LWorkVideo video, LEncoding output) =>
+        new(source, duration, crop, video, output);
+    internal static LWorkGroup WorkGroupCreate(string name, IReadOnlyList<string> sources) => new(name, sources);
+    internal static LWorkVideoStep WorkBrightnessCreate(bool active, double value) =>
+        LWorkVideoStep.LWorkBrightnessCreate(active, value);
+    internal static LWorkVideoStep WorkContrastCreate(bool active, double value) =>
+        LWorkVideoStep.LWorkContrastCreate(active, value);
+    internal static LWorkAudioStep WorkVolumeCreate(bool active, double gain) =>
+        LWorkAudioStep.LWorkVolumeCreate(active, gain);
+    internal static LWorkAudioStep WorkNormalizeCreate(
+        bool active, LLeveling mode, double target, double peak, double range, bool twoPass,
+        double frame, double gauss, double maxGain, double compress) =>
+        LWorkAudioStep.LWorkNormalizeCreate(active, mode, target, peak, range, twoPass, frame, gauss, maxGain, compress);
+    internal static LWorkAudioStep WorkNoiseCreate(
+        bool active, double reduction, double floor, bool outputNoise, LGrain grain,
+        double smooth, double adaptivity, double residual) =>
+        LWorkAudioStep.LWorkNoiseCreate(active, reduction, floor, outputNoise, grain, smooth, adaptivity, residual);
+    internal static LWorkAudioStep WorkHighCreate(
+        bool active, double frequency, int stages, int poles, double resonance) =>
+        LWorkAudioStep.LWorkHighCreate(active, frequency, stages, poles, resonance);
+    internal static LWorkAudioStep WorkLowCreate(
+        bool active, double frequency, int stages, int poles, double resonance) =>
+        LWorkAudioStep.LWorkLowCreate(active, frequency, stages, poles, resonance);
+    internal static LWorkAudioStep WorkEqualizerCreate(bool active, IReadOnlyList<LWorkBand> bands) =>
+        LWorkAudioStep.LWorkEqualizerCreate(active, bands);
+
+    internal static IReadOnlyList<string> ContourTokensRead() => LContourCatalog.LContourTokensRead();
+    internal static double[]? ContourGainsRead(string token) => LContourCatalog.LContourGainsRead(token);
+    internal static bool ContourMatch(
+        IReadOnlyList<double> frequencies, IReadOnlyList<double> gains, double[] expected) =>
+        LContourCatalog.LContourMatch(frequencies, gains, expected);
+    internal static string? ContourPresetFind(IReadOnlyList<double> frequencies, IReadOnlyList<double> gains) =>
+        LContourCatalog.LContourPresetFind(frequencies, gains);
+
+    internal static string GrainFormat(LGrain grain) => LGrainCatalog.LGrainFormat(grain);
+    internal static LGrain GrainParse(string token) => LGrainCatalog.LGrainParse(token);
+    internal static LGrainPreset? GrainRead(string token) => LGrainCatalog.LGrainRead(token);
+    internal static string? GrainMatch(
+        double reduction, double floor, double smooth, double adaptivity, double residual, LGrain grain) =>
+        LGrainCatalog.LGrainMatch(reduction, floor, smooth, adaptivity, residual, grain);
+
+    internal static LPassbandPreset? PassbandRead(bool high, string token) => LPassband.LPassbandRead(high, token);
+    internal static string? PassbandMatch(bool high, double frequency, int stages, int poles, double resonance) =>
+        LPassband.LPassbandMatch(high, frequency, stages, poles, resonance);
+    internal static LWorkAudioStep PassbandStepCreate(bool high, bool active) =>
+        LPassband.LPassbandStepCreate(high, active);
+
+    internal static (double Target, double Peak, double Range)? LevelingLoudnessRead(string token) =>
+        LLevelingCatalog.LLevelingLoudnessRead(token);
+    internal static (double Frame, double Gauss, double MaxGain, double Compress)? LevelingDynamicRead(string token) =>
+        LLevelingCatalog.LLevelingDynamicRead(token);
+    internal static string? LevelingLoudnessMatch(double target, double peak, double range) =>
+        LLevelingCatalog.LLevelingLoudnessMatch(target, peak, range);
+    internal static string? LevelingDynamicMatch(double frame, double gauss, double maxGain, double compress) =>
+        LLevelingCatalog.LLevelingDynamicMatch(frame, gauss, maxGain, compress);
+    internal static (double Target, double Peak, double Range, bool TwoPass, double Frame, double Gauss, double MaxGain, double Compress)
+        LevelingDefaultRead() => LLevelingCatalog.LLevelingDefaultRead();
+
+    internal static bool RetentionExpiredCheck(DateTime writeUtc, DateTime nowUtc, int days) =>
+        LRetention.LRetentionExpiredCheck(writeUtc, nowUtc, days);
+    internal static bool RetentionExcludedCheck(string relativePath) => LRetention.LRetentionExcludedCheck(relativePath);
+    internal static IReadOnlyList<Guid> ScheduleRemovableResolve(
+        IEnumerable<Guid> workIds, IReadOnlyDictionary<Guid, LWorkState> states) =>
+        LSchedule.LScheduleRemovableResolve(workIds, states);
+    internal static bool JobCollisionCheck(string output, IReadOnlyList<string> sources) =>
+        LJob.LJobCollisionCheck(output, sources);
+    internal static IReadOnlyList<string> EncodeGeometryRead(LWorkCrop crop) => LEncodeVideo.LEncodeGeometryRead(crop);
+
+    internal static LWorkItem? AudioItemCreate(
+        LWorkPriority priority, string? source, LWorkAudio processing, LEncoding output, string tab,
+        Action<string> infoLog, Action<string> errorLog, Func<string, TimeSpan> durationRead, Guid batchId = default) =>
+        LAudio.LAudioItemCreate(priority, source, processing, output, tab, infoLog, errorLog, durationRead, batchId);
+
+    internal static IReadOnlyList<LWorkItem> ConvertItemsCreate(
+        LWorkPriority priority, LConvertWorkDescription description, string tab,
+        Action<string> errorLog, Func<string, TimeSpan> durationRead) =>
+        LConvert.LConvertItemsCreate(priority, description, tab, errorLog, durationRead);
+
+    internal static IReadOnlyList<LWorkItem> EditItemsCreate(
+        LWorkPriority priority, LEditWorkDescription description, string tab,
+        Action<string> infoLog, Action<string> errorLog, Guid batchId = default) =>
+        LEdit.LEditItemsCreate(priority, description, tab, infoLog, errorLog, batchId);
+
+    internal static IReadOnlyList<LWorkItem> MergeItemsCreate(
+        LWorkPriority priority, IReadOnlyList<LWorkGroup> groups, LEncoding output, string tab,
+        Action<string> infoLog, Action<string> errorLog, IReadOnlyDictionary<string, Guid>? relays = null) =>
+        LMerge.LMergeItemsCreate(priority, groups, output, tab, infoLog, errorLog, relays);
+
+    internal static IReadOnlyList<LWorkItem> SplitItemsCreate(
+        LWorkPriority priority, LSplitWorkDescription description, string tab,
+        Action<string> infoLog, Action<string> errorLog, Guid batchId = default) =>
+        LSplit.LSplitItemsCreate(priority, description, tab, infoLog, errorLog, batchId);
+}

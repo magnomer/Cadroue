@@ -9,7 +9,7 @@ public sealed class NoiseReductionSettingTests
     [Fact]
     public void NoiseReductionAmount_AboveMaximum_IsClamped()
     {
-        var step = (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
+        var step = (LWorkNoiseStep)TInterface.WorkNoiseCreate(
             true, 99, -50, false, LGrain.LGrainWhite, 6, 0.5, -38);
 
         Assert.Equal(30, step.LWorkNoiseReduction);
@@ -18,7 +18,7 @@ public sealed class NoiseReductionSettingTests
     [Fact]
     public void NoiseFloor_BelowMinimum_ClampsFloorAndResidual()
     {
-        var step = (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
+        var step = (LWorkNoiseStep)TInterface.WorkNoiseCreate(
             true, 12, -90, false, LGrain.LGrainWhite, 6, 0.5, -5);
 
         Assert.Equal(-80, step.LWorkNoiseFloor);
@@ -28,7 +28,7 @@ public sealed class NoiseReductionSettingTests
     [Fact]
     public void SmoothAndAdaptivity_AboveMaximum_AreClamped()
     {
-        var step = (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
+        var step = (LWorkNoiseStep)TInterface.WorkNoiseCreate(
             true, 12, -50, false, LGrain.LGrainWhite, 99, 2, -38);
 
         Assert.Equal(50, step.LWorkNoiseSmooth);
@@ -38,7 +38,7 @@ public sealed class NoiseReductionSettingTests
     [Fact]
     public void NoiseReductionSettings_WithinRange_PassThrough()
     {
-        var step = (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
+        var step = (LWorkNoiseStep)TInterface.WorkNoiseCreate(
             true, 20, -50, false, LGrain.LGrainWhite, 6, 0.5, -38);
 
         Assert.Equal(20, step.LWorkNoiseReduction);

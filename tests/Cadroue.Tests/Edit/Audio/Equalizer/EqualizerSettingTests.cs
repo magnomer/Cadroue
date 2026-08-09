@@ -9,8 +9,8 @@ public sealed class EqualizerSettingTests
     [Fact]
     public void EqualizerSetting_FrequencyBelowMinimumAndGainAboveMaximum_AreClamped()
     {
-        var step = (LWorkEqualizerStep)LWorkAudioStep.LWorkEqualizerCreate(
-            true, new[] { new LWorkBand(5, 99) });
+        var step = (LWorkEqualizerStep)TInterface.WorkEqualizerCreate(
+            true, new[] { TInterface.WorkBandCreate(5, 99) });
 
         Assert.Equal(20, step.LWorkEqualizerBands[0].LWorkBandFrequency);
         Assert.Equal(12, step.LWorkEqualizerBands[0].LWorkBandGain);
@@ -19,8 +19,8 @@ public sealed class EqualizerSettingTests
     [Fact]
     public void EqualizerSetting_FrequencyAboveMaximumAndGainBelowMinimum_AreClamped()
     {
-        var step = (LWorkEqualizerStep)LWorkAudioStep.LWorkEqualizerCreate(
-            true, new[] { new LWorkBand(999999, -99) });
+        var step = (LWorkEqualizerStep)TInterface.WorkEqualizerCreate(
+            true, new[] { TInterface.WorkBandCreate(999999, -99) });
 
         Assert.Equal(20000, step.LWorkEqualizerBands[0].LWorkBandFrequency);
         Assert.Equal(-12, step.LWorkEqualizerBands[0].LWorkBandGain);

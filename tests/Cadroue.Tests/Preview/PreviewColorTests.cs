@@ -10,7 +10,7 @@ public sealed class PreviewColorTests
     [Fact]
     public void Apply_DefaultColor_ResolvesToNeutral()
     {
-        var state = LPreviewState.LPreviewDefaultCreate();
+        LPreviewState state = TInterface.PreviewDefaultCreate();
 
         var result = new TPreview().ApplyState(state);
 
@@ -24,8 +24,9 @@ public sealed class PreviewColorTests
     [Fact]
     public void Apply_ContrastTwo_ClampsToCeiling()
     {
-        var state = LPreviewState.LPreviewDefaultCreate()
-            .LColorChange(new LColor(0, 2, 1, 0));
+        LPreviewState state = TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(),
+            TInterface.ColorCreate(0, 2, 1, 0));
 
         var result = new TPreview().ApplyState(state);
 
@@ -35,26 +36,26 @@ public sealed class PreviewColorTests
     [Fact]
     public void ColorResolve_InactiveSteps_ResolvesToNeutral()
     {
-        var video = new LWorkVideo(new[]
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
         {
-            LWorkVideoStep.LWorkBrightnessCreate(false, 80),
-            LWorkVideoStep.LWorkContrastCreate(false, 150)
+            TInterface.WorkBrightnessCreate(false, 80),
+            TInterface.WorkContrastCreate(false, 150)
         });
 
-        var result = LPreview.LPreviewColorResolve(video);
+        var result = TInterface.PreviewColorResolve(video);
 
-        Assert.Equal(new LColor(0, 1, 1, 0), result);
+        Assert.Equal(TInterface.ColorCreate(0, 1, 1, 0), result);
     }
 
     [Fact]
     public void ColorResolve_ActiveBrightness_ScalesByFactor()
     {
-        var video = new LWorkVideo(new[]
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
         {
-            LWorkVideoStep.LWorkBrightnessCreate(true, 80)
+            TInterface.WorkBrightnessCreate(true, 80)
         });
 
-        var result = LPreview.LPreviewColorResolve(video);
+        var result = TInterface.PreviewColorResolve(video);
 
         Assert.Equal(0.5, result.LColorBrightness, 10);
     }
@@ -62,12 +63,12 @@ public sealed class PreviewColorTests
     [Fact]
     public void ColorResolve_ActiveContrast_PassesFfmpegValueThrough()
     {
-        var video = new LWorkVideo(new[]
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
         {
-            LWorkVideoStep.LWorkContrastCreate(true, 150)
+            TInterface.WorkContrastCreate(true, 150)
         });
 
-        var result = LPreview.LPreviewColorResolve(video);
+        var result = TInterface.PreviewColorResolve(video);
 
         Assert.Equal(1.5, result.LColorContrast, 10);
     }

@@ -10,9 +10,9 @@ public sealed class GeometryOrderTests
     [Fact]
     public void VerticalFlipAndClockwiseRotation_FiltersMatchPreviewOrder()
     {
-        var lCrop = new LWorkCrop(0, 0, 0, 0, 90, false, true);
+        LWorkCrop lCrop = TInterface.WorkCropCreate(0, 0, 0, 0, 90, false, true);
 
-        IReadOnlyList<string> lFilters = LEncodeVideo.LEncodeGeometryRead(lCrop);
+        IReadOnlyList<string> lFilters = TInterface.EncodeGeometryRead(lCrop);
 
         Assert.Equal(new[] { "vflip", "transpose=1" }, lFilters);
     }
@@ -20,9 +20,9 @@ public sealed class GeometryOrderTests
     [Fact]
     public void FlipsRotationAndCrop_FiltersFollowGeometryOrder()
     {
-        var lCrop = new LWorkCrop(2, 4, 6, 8, 270, true, true);
+        LWorkCrop lCrop = TInterface.WorkCropCreate(2, 4, 6, 8, 270, true, true);
 
-        IReadOnlyList<string> lFilters = LEncodeVideo.LEncodeGeometryRead(lCrop);
+        IReadOnlyList<string> lFilters = TInterface.EncodeGeometryRead(lCrop);
 
         Assert.Equal(
             new[]

@@ -11,7 +11,7 @@ public sealed class KeyframeNavigationTests
     [Fact]
     public void PreviousKeyframe_WithUnscannedGap_RemainsPending()
     {
-        var result = LKeyframeOrchestrator.LKeyframeMoveResolve(
+        var result = TInterface.KeyframeMoveResolve(
             new long[] { 90_000 },
             new HashSet<int> { 3, 4 },
             At(600),
@@ -25,7 +25,7 @@ public sealed class KeyframeNavigationTests
     [Fact]
     public void PreviousKeyframe_WithContiguousCoverage_ReturnsCandidate()
     {
-        var result = LKeyframeOrchestrator.LKeyframeMoveResolve(
+        var result = TInterface.KeyframeMoveResolve(
             new long[] { 90_000 },
             new HashSet<int> { 4, 5, 6, 7, 8 },
             At(600),
@@ -39,7 +39,7 @@ public sealed class KeyframeNavigationTests
     [Fact]
     public void NextKeyframe_WithUnscannedGap_RemainsPending()
     {
-        var result = LKeyframeOrchestrator.LKeyframeMoveResolve(
+        var result = TInterface.KeyframeMoveResolve(
             new long[] { 270_000 },
             new HashSet<int> { 13 },
             At(600),
@@ -52,7 +52,7 @@ public sealed class KeyframeNavigationTests
     [Fact]
     public void PreviousKeyframe_WhenFullyScannedWithoutCandidate_IsReadyWithoutTarget()
     {
-        var result = LKeyframeOrchestrator.LKeyframeMoveResolve(
+        var result = TInterface.KeyframeMoveResolve(
             Array.Empty<long>(),
             new HashSet<int> { 0, 1, 2 },
             At(60),

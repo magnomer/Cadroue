@@ -17,9 +17,9 @@ public sealed class NormalizationPresetTests
     [InlineData("Film")]
     public void LoudnessPreset_KnownToken_RoundTrips(string token)
     {
-        (double Target, double Peak, double Range)? preset = LLevelingCatalog.LLevelingLoudnessRead(token);
+        (double Target, double Peak, double Range)? preset = TInterface.LevelingLoudnessRead(token);
         Assert.NotNull(preset);
-        Assert.Equal(token, LLevelingCatalog.LLevelingLoudnessMatch(preset!.Value.Target, preset.Value.Peak, preset.Value.Range));
+        Assert.Equal(token, TInterface.LevelingLoudnessMatch(preset!.Value.Target, preset.Value.Peak, preset.Value.Range));
     }
 
     [Theory]
@@ -30,40 +30,40 @@ public sealed class NormalizationPresetTests
     [InlineData("Music")]
     public void DynamicPreset_KnownToken_RoundTrips(string token)
     {
-        (double Frame, double Gauss, double MaxGain, double Compress)? preset = LLevelingCatalog.LLevelingDynamicRead(token);
+        (double Frame, double Gauss, double MaxGain, double Compress)? preset = TInterface.LevelingDynamicRead(token);
         Assert.NotNull(preset);
-        Assert.Equal(token, LLevelingCatalog.LLevelingDynamicMatch(preset!.Value.Frame, preset.Value.Gauss, preset.Value.MaxGain, preset.Value.Compress));
+        Assert.Equal(token, TInterface.LevelingDynamicMatch(preset!.Value.Frame, preset.Value.Gauss, preset.Value.MaxGain, preset.Value.Compress));
     }
 
     [Fact]
     public void LoudnessPreset_SettingsOutsideTolerance_AreNotMatched()
     {
-        Assert.Null(LLevelingCatalog.LLevelingLoudnessMatch(-9.5, -1, 6));
+        Assert.Null(TInterface.LevelingLoudnessMatch(-9.5, -1, 6));
     }
 
     [Fact]
     public void DynamicPreset_SettingsOutsideTolerance_AreNotMatched()
     {
-        Assert.Null(LLevelingCatalog.LLevelingDynamicMatch(500, 31, 7.5, 0));
+        Assert.Null(TInterface.LevelingDynamicMatch(500, 31, 7.5, 0));
     }
 
     [Fact]
     public void LoudnessPreset_UnknownToken_ReturnsNull()
     {
-        Assert.Null(LLevelingCatalog.LLevelingLoudnessRead("Nope"));
+        Assert.Null(TInterface.LevelingLoudnessRead("Nope"));
     }
 
     [Fact]
     public void DynamicPreset_UnknownToken_ReturnsNull()
     {
-        Assert.Null(LLevelingCatalog.LLevelingDynamicRead("Nope"));
+        Assert.Null(TInterface.LevelingDynamicRead("Nope"));
     }
 
     [Fact]
     public void LevelingDefaultRead_ReturnsCanonicalStep()
     {
         var (target, peak, range, twoPass, frame, gauss, maxGain, compress) =
-            LLevelingCatalog.LLevelingDefaultRead();
+            TInterface.LevelingDefaultRead();
 
         Assert.Equal(-21, target);
         Assert.Equal(-2, peak);

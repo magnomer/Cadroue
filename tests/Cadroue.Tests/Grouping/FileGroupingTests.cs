@@ -13,7 +13,7 @@ public sealed class FileGroupingTests
     public void UnnumberedFiles_FormSeparateGroups()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(new[] { "Alpha.mp4", "Beta.mp4" }, true);
+            TInterface.SeriesResolve(new[] { "Alpha.mp4", "Beta.mp4" }, true);
 
         Assert.Equal(2, lSeriesGroups.Count);
         Assert.Equal("Alpha", lSeriesGroups[0].Name);
@@ -26,7 +26,7 @@ public sealed class FileGroupingTests
     public void LooseGrouping_CombinesConsecutiveFiles()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (2).mp4" }, false);
+            TInterface.SeriesResolve(new[] { "A (1).mp4", "A (2).mp4" }, false);
 
         LSeriesGroup lSeriesGroup = Assert.Single(lSeriesGroups);
         Assert.Equal("A", lSeriesGroup.Name);
@@ -37,7 +37,7 @@ public sealed class FileGroupingTests
     public void LooseGrouping_CombinesFilesAcrossNumberGaps()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (3).mp4" }, false);
+            TInterface.SeriesResolve(new[] { "A (1).mp4", "A (3).mp4" }, false);
 
         LSeriesGroup lSeriesGroup = Assert.Single(lSeriesGroups);
         Assert.Equal("A", lSeriesGroup.Name);
@@ -48,7 +48,7 @@ public sealed class FileGroupingTests
     public void StrictGrouping_SplitsFilesAcrossNumberGaps()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (3).mp4" }, true);
+            TInterface.SeriesResolve(new[] { "A (1).mp4", "A (3).mp4" }, true);
 
         Assert.Equal(2, lSeriesGroups.Count);
         Assert.Equal("A (1)", lSeriesGroups[0].Name);
@@ -61,7 +61,7 @@ public sealed class FileGroupingTests
     public void StrictGrouping_KeepsConsecutiveFilesTogether()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (2).mp4" }, true);
+            TInterface.SeriesResolve(new[] { "A (1).mp4", "A (2).mp4" }, true);
 
         LSeriesGroup lSeriesGroup = Assert.Single(lSeriesGroups);
         Assert.Equal("A", lSeriesGroup.Name);
@@ -72,7 +72,7 @@ public sealed class FileGroupingTests
     public void DifferentBaseNames_FormSeparateGroups()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(new[] { "A (1).mp4", "B (1).mp4" }, true);
+            TInterface.SeriesResolve(new[] { "A (1).mp4", "B (1).mp4" }, true);
 
         Assert.Equal(2, lSeriesGroups.Count);
         Assert.Contains(lSeriesGroups, lSeriesGroup => lSeriesGroup.Paths.Single() == "A (1).mp4");

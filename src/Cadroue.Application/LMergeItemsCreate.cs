@@ -22,7 +22,7 @@ public static partial class LMerge
         foreach (LWorkGroup lMergeGroup in lMergeGroups)
         {
             string[] lMergeSources = lMergeGroup.LWorkGroupPaths.Where(File.Exists).ToArray();
-            if (lMergeSources.Length == 0)
+            if (lMergeSources.Length < 2)
             {
                 continue;
             }
@@ -47,7 +47,7 @@ public static partial class LMerge
 
         if (lMergeItems.Count == 0)
         {
-            lErrorLog("Merge not queued: no group holds an existing file");
+            lErrorLog("Merge not queued: no group holds at least two existing files");
             return Array.Empty<LWorkItem>();
         }
 

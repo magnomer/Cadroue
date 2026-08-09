@@ -13,24 +13,24 @@ public sealed class RecordExpirationTests
     [Fact]
     public void Expired_FortyDaysOld_ThirtyDayBudget_True()
     {
-        Assert.True(LRetention.LRetentionExpiredCheck(Now.AddDays(-40), Now, 30));
+        Assert.True(TInterface.RetentionExpiredCheck(Now.AddDays(-40), Now, 30));
     }
 
     [Fact]
     public void Expired_TenDaysOld_ThirtyDayBudget_False()
     {
-        Assert.False(LRetention.LRetentionExpiredCheck(Now.AddDays(-10), Now, 30));
+        Assert.False(TInterface.RetentionExpiredCheck(Now.AddDays(-10), Now, 30));
     }
 
     [Fact]
     public void Expired_ZeroDays_NeverExpired()
     {
-        Assert.False(LRetention.LRetentionExpiredCheck(Now.AddDays(-40), Now, 0));
+        Assert.False(TInterface.RetentionExpiredCheck(Now.AddDays(-40), Now, 0));
     }
 
     [Fact]
     public void Expired_NegativeDays_NeverExpired()
     {
-        Assert.False(LRetention.LRetentionExpiredCheck(Now.AddDays(-40), Now, -5));
+        Assert.False(TInterface.RetentionExpiredCheck(Now.AddDays(-40), Now, -5));
     }
 }

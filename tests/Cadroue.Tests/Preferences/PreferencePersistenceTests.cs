@@ -10,7 +10,7 @@ public sealed class PreferencePersistenceTests
     public void LegacyJson_WithoutVerticalTabs_DefaultsToHorizontal()
     {
         LPreferenceState lPreferenceState = JsonSerializer.Deserialize<LPreferenceState>("{\"LPreferenceLanguage\":\"en\"}")!;
-        lPreferenceState.LPreferenceNormalize();
+        TInterface.PreferenceNormalize(lPreferenceState);
 
         Assert.False(lPreferenceState.LPreferenceVerticalTabs);
     }
@@ -18,7 +18,7 @@ public sealed class PreferencePersistenceTests
     [Fact]
     public void JsonRoundTrip_PreservesVerticalTabs()
     {
-        LPreferenceState lPreferenceState = LPreferenceState.LPreferenceDefaultCreate();
+        LPreferenceState lPreferenceState = TInterface.PreferenceDefaultCreate();
         lPreferenceState.LPreferenceVerticalTabs = true;
 
         string lPreferenceJson = JsonSerializer.Serialize(lPreferenceState);

@@ -9,7 +9,7 @@ public sealed class NormalizationSettingTests
     private static LWorkNormalizeStep Create(
         double target = -21, double peak = -2, double range = 6,
         double frame = 300, double gauss = 21, double maxGain = 10, double compress = 6) =>
-        (LWorkNormalizeStep)LWorkAudioStep.LWorkNormalizeCreate(
+        (LWorkNormalizeStep)TInterface.WorkNormalizeCreate(
             true, LLeveling.LLevelingLoudness, target, peak, range, true,
             frame, gauss, maxGain, compress);
 

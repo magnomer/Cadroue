@@ -10,11 +10,11 @@ public sealed class GroupNamingModeTests
     [Fact]
     public void DifferentNameMode_ChangesOwnerStateAndNotifiesSubscriber()
     {
-        var lGroupSelection = new LGroupSelection();
+        LGroupSelection lGroupSelection = TInterface.GroupSelectionCreate();
         int lGroupChanges = 0;
         lGroupSelection.LGroupSelectionChange += () => lGroupChanges++;
 
-        lGroupSelection.LGroupNameModeRequest(LSeriesNameMode.LSeriesNameFirst);
+        TInterface.GroupNameModeRequest(lGroupSelection, LSeriesNameMode.LSeriesNameFirst);
 
         Assert.Equal(LSeriesNameMode.LSeriesNameFirst, lGroupSelection.LGroupNameMode);
         Assert.Equal(1, lGroupChanges);
@@ -23,11 +23,11 @@ public sealed class GroupNamingModeTests
     [Fact]
     public void SameNameMode_DoesNotNotifySubscriber()
     {
-        var lGroupSelection = new LGroupSelection();
+        LGroupSelection lGroupSelection = TInterface.GroupSelectionCreate();
         int lGroupChanges = 0;
         lGroupSelection.LGroupSelectionChange += () => lGroupChanges++;
 
-        lGroupSelection.LGroupNameModeRequest(LSeriesNameMode.LSeriesNameRemove);
+        TInterface.GroupNameModeRequest(lGroupSelection, LSeriesNameMode.LSeriesNameRemove);
 
         Assert.Equal(0, lGroupChanges);
     }

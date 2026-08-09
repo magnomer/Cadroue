@@ -8,16 +8,16 @@ public sealed class TabPreferenceTests
     [Fact]
     public void VerticalTabs_DefaultToHorizontal()
     {
-        Assert.False(LPreferenceState.LPreferenceDefaultCreate().LPreferenceVerticalTabs);
+        Assert.False(TInterface.PreferenceDefaultCreate().LPreferenceVerticalTabs);
     }
 
     [Fact]
     public void VerticalTabs_Clone_PreservesSelection()
     {
-        LPreferenceState lPreferenceState = LPreferenceState.LPreferenceDefaultCreate();
+        LPreferenceState lPreferenceState = TInterface.PreferenceDefaultCreate();
         lPreferenceState.LPreferenceVerticalTabs = true;
 
-        LPreferenceState lPreferenceClone = lPreferenceState.LPreferenceClone();
+        LPreferenceState lPreferenceClone = TInterface.PreferenceClone(lPreferenceState);
 
         Assert.True(lPreferenceClone.LPreferenceVerticalTabs);
     }
@@ -25,12 +25,12 @@ public sealed class TabPreferenceTests
     [Fact]
     public void VerticalTabs_Changed_AreReportedInDifference()
     {
-        LPreferenceState lPreferenceBefore = LPreferenceState.LPreferenceDefaultCreate();
-        LPreferenceState lPreferenceAfter = lPreferenceBefore.LPreferenceClone();
+        LPreferenceState lPreferenceBefore = TInterface.PreferenceDefaultCreate();
+        LPreferenceState lPreferenceAfter = TInterface.PreferenceClone(lPreferenceBefore);
         lPreferenceAfter.LPreferenceVerticalTabs = true;
 
         Assert.Contains(
             "Vertical tabs: False -> True",
-            lPreferenceAfter.LPreferenceDifferenceRead(lPreferenceBefore));
+            TInterface.PreferenceDifferenceRead(lPreferenceAfter, lPreferenceBefore));
     }
 }

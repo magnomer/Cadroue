@@ -10,8 +10,9 @@ public sealed class PreviewGeometryTests
     [Fact]
     public void Apply_Rotate270_ResolvesRotation()
     {
-        var state = LPreviewState.LPreviewDefaultCreate()
-            .LRotateFlipChange(new LRotateFlip(LRotateKind.LRotate270, false, false));
+        LPreviewState state = TInterface.PreviewRotateFlipChange(
+            TInterface.PreviewDefaultCreate(),
+            TInterface.RotateFlipCreate(LRotateKind.LRotate270, false, false));
 
         var result = new TPreview().ApplyState(state);
 

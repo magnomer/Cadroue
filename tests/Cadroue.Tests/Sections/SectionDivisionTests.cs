@@ -12,14 +12,14 @@ public sealed class SectionDivisionTests
     public void NoActiveSection_DivisionIsRejected()
     {
         var sections = new[] { Seg(0, 8) };
-        Assert.Null(LPiece.LPieceDivide(sections, null, At(4), 0));
+        Assert.Null(TInterface.PieceDivide(sections, null, At(4), 0));
     }
 
     [Fact]
     public void CursorInsideActiveSection_DividesIntoTwoHalves()
     {
         var sections = new[] { Seg(0, 8) };
-        var plan = LPiece.LPieceDivide(sections, 0, At(3), 1);
+        var plan = TInterface.PieceDivide(sections, 0, At(3), 1);
         Assert.NotNull(plan);
         Assert.Equal(2, plan!.Value.Sections.Count);
         Assert.Equal(At(0), plan.Value.Sections[0].LPieceStart);
@@ -36,6 +36,6 @@ public sealed class SectionDivisionTests
     public void CursorAtSectionBoundary_DivisionIsRejected(double cursorSeconds)
     {
         var sections = new[] { Seg(0, 8) };
-        Assert.Null(LPiece.LPieceDivide(sections, 0, At(cursorSeconds), 0));
+        Assert.Null(TInterface.PieceDivide(sections, 0, At(cursorSeconds), 0));
     }
 }

@@ -15,7 +15,7 @@ public sealed class RecordProtectionTests
     [InlineData("work.db-shm")]
     public void Excluded_ProtectedPaths_True(string path)
     {
-        Assert.True(LRetention.LRetentionExcludedCheck(path));
+        Assert.True(TInterface.RetentionExcludedCheck(path));
     }
 
     [Theory]
@@ -24,18 +24,18 @@ public sealed class RecordProtectionTests
     [InlineData("relayplans/p.json")]
     public void Excluded_OrdinaryPaths_False(string path)
     {
-        Assert.False(LRetention.LRetentionExcludedCheck(path));
+        Assert.False(TInterface.RetentionExcludedCheck(path));
     }
 
     [Fact]
     public void Excluded_CaseInsensitiveRoot_True()
     {
-        Assert.True(LRetention.LRetentionExcludedCheck("Scheduled/x.json"));
+        Assert.True(TInterface.RetentionExcludedCheck("Scheduled/x.json"));
     }
 
     [Fact]
     public void Excluded_Backslash_Root_True()
     {
-        Assert.True(LRetention.LRetentionExcludedCheck("running\\y.json"));
+        Assert.True(TInterface.RetentionExcludedCheck("running\\y.json"));
     }
 }

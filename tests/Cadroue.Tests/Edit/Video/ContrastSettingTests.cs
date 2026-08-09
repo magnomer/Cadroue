@@ -12,7 +12,7 @@ public sealed class ContrastSettingTests
     [InlineData(500, 200)]
     public void Contrast_OutOfRange_IsClampedToBounds(double lStepValue, double lExpected)
     {
-        var step = LWorkVideoStep.LWorkContrastCreate(true, lStepValue);
+        var step = TInterface.WorkContrastCreate(true, lStepValue);
 
         Assert.Equal(lExpected, step.LWorkStepValue);
     }

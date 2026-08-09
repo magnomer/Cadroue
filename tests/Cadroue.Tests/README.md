@@ -1,15 +1,14 @@
 # Cadroue.Tests
 
-Test layout and policy for the test-restructure jobs. Each later job converts one feature and is independent of the others; each deletes its own source `L*Tests.cs` file after moving its tests.
+Test layout and policy for the behaviour-focused test suite.
 
-## Two-tier policy
+## Interface boundary
 
-- **Tier A — needs a `T`-prefixed adapter under `/Interface`.** Any test whose path touches file I/O, the OS, process-global mutable static state, or a static seam. The adapter owns setup/teardown and hides production types.
-- **Tier B — direct call, reorganise only.** Pure value/math functions (no state, no I/O) and inspection of an external contract file. These keep calling `Cadroue.*` directly; only the file/class/method names change to behaviour names.
+Every production operation used by a test is relayed through a `T`-prefixed adapter or helper under `/Interface`. This includes pure value operations and production object construction; test bodies do not invoke methods or constructors from `src` directly.
 
-## Adapter rule (Tier A only)
+An adapter may translate, invoke, observe, and clean up. It must not repair the behaviour under test: each operation transparently delegates to the production path, never reimplements production logic, fakes notifications, or returns success the production path did not produce.
 
-An adapter may translate, invoke, observe, and clean up. It must not repair the behaviour under test: call at most one production entry point per operation; never manually initialise state, fake notifications, or return success the production path did not produce.
+`InterfaceBoundaryTests` enforces this boundary for future test changes.
 
 ## Naming rule
 

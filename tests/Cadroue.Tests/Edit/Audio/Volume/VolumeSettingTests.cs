@@ -9,7 +9,7 @@ public sealed class VolumeSettingTests
     [Fact]
     public void VolumeGain_AboveMaximum_IsClamped()
     {
-        var step = (LWorkVolumeStep)LWorkAudioStep.LWorkVolumeCreate(true, 40);
+        var step = (LWorkVolumeStep)TInterface.WorkVolumeCreate(true, 40);
 
         Assert.Equal(24, step.LWorkVolumeGain);
     }
@@ -17,7 +17,7 @@ public sealed class VolumeSettingTests
     [Fact]
     public void VolumeGain_BelowMinimum_IsClamped()
     {
-        var step = (LWorkVolumeStep)LWorkAudioStep.LWorkVolumeCreate(true, -40);
+        var step = (LWorkVolumeStep)TInterface.WorkVolumeCreate(true, -40);
 
         Assert.Equal(-24, step.LWorkVolumeGain);
     }
@@ -25,7 +25,7 @@ public sealed class VolumeSettingTests
     [Fact]
     public void VolumeGain_WithinRange_IsUnchanged()
     {
-        var step = (LWorkVolumeStep)LWorkAudioStep.LWorkVolumeCreate(true, 6);
+        var step = (LWorkVolumeStep)TInterface.WorkVolumeCreate(true, 6);
 
         Assert.Equal(6, step.LWorkVolumeGain);
     }

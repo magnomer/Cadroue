@@ -9,37 +9,37 @@ public sealed class PassFilterPresetTests
     [Fact]
     public void HighPassPreset_ExactVoiceSettings_Match()
     {
-        Assert.Equal("Voice", LPassband.LPassbandMatch(true, 80, 2, 2, 0.707));
+        Assert.Equal("Voice", TInterface.PassbandMatch(true, 80, 2, 2, 0.707));
     }
 
     [Fact]
     public void HighPassPreset_SettingsWithinTolerance_Match()
     {
-        Assert.Equal("Voice", LPassband.LPassbandMatch(true, 80.3, 2, 2, 0.707));
+        Assert.Equal("Voice", TInterface.PassbandMatch(true, 80.3, 2, 2, 0.707));
     }
 
     [Fact]
     public void HighPassPreset_CutoffBeyondTolerance_DoesNotMatch()
     {
-        Assert.Null(LPassband.LPassbandMatch(true, 81, 2, 2, 0.707));
+        Assert.Null(TInterface.PassbandMatch(true, 81, 2, 2, 0.707));
     }
 
     [Fact]
     public void LowPassPreset_ExactAirTameSettings_Match()
     {
-        Assert.Equal("Air tame", LPassband.LPassbandMatch(false, 16000, 2, 2, 0.707));
+        Assert.Equal("Air tame", TInterface.PassbandMatch(false, 16000, 2, 2, 0.707));
     }
 
     [Fact]
     public void HighPassPreset_UnmatchedSettings_DoNotMatch()
     {
-        Assert.Null(LPassband.LPassbandMatch(true, 500, 5, 2, 0.5));
+        Assert.Null(TInterface.PassbandMatch(true, 500, 5, 2, 0.5));
     }
 
     [Fact]
     public void HighPassPreset_KnownToken_ReturnsPreset()
     {
-        LPassbandPreset? preset = LPassband.LPassbandRead(true, "Voice");
+        LPassbandPreset? preset = TInterface.PassbandRead(true, "Voice");
         Assert.NotNull(preset);
         Assert.Equal(80, preset!.LPassbandCutoff);
     }
@@ -47,13 +47,13 @@ public sealed class PassFilterPresetTests
     [Fact]
     public void HighPassPreset_UnknownToken_ReturnsNoPreset()
     {
-        Assert.Null(LPassband.LPassbandRead(true, "Nope"));
+        Assert.Null(TInterface.PassbandRead(true, "Nope"));
     }
 
     [Fact]
     public void HighPassDefault_UsesVoiceSettingsAndIsInactive()
     {
-        var step = (LWorkPassStep)LPassband.LPassbandStepCreate(true, false);
+        var step = (LWorkPassStep)TInterface.PassbandStepCreate(true, false);
 
         Assert.Equal(80, step.LWorkPassFrequency);
         Assert.Equal(2, step.LWorkPassStages);
@@ -65,7 +65,7 @@ public sealed class PassFilterPresetTests
     [Fact]
     public void LowPassDefault_UsesAirTameCutoff()
     {
-        var step = (LWorkPassStep)LPassband.LPassbandStepCreate(false, false);
+        var step = (LWorkPassStep)TInterface.PassbandStepCreate(false, false);
 
         Assert.Equal(16000, step.LWorkPassFrequency);
     }

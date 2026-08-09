@@ -20,7 +20,7 @@ public sealed class RouteSelectionTests
         LSceneFunnelRule third = Filename();
         third.LSceneFunnelContains = Cond("clip");
 
-        Assert.Equal(1, LClassifier.LClassifierRouteRead(new[] { first, second, third }, "clip.mp4"));
+        Assert.Equal(1, TInterface.ClassifierRouteRead(new[] { first, second, third }, "clip.mp4"));
     }
 
     [Fact]
@@ -28,12 +28,12 @@ public sealed class RouteSelectionTests
     {
         LSceneFunnelRule rule = Filename();
         rule.LSceneFunnelContains = Cond("zzz");
-        Assert.Equal(-1, LClassifier.LClassifierRouteRead(new[] { rule }, "clip.mp4"));
+        Assert.Equal(-1, TInterface.ClassifierRouteRead(new[] { rule }, "clip.mp4"));
     }
 
     [Fact]
     public void EmptyRuleSet_ReturnsMinusOne()
     {
-        Assert.Equal(-1, LClassifier.LClassifierRouteRead(Array.Empty<LSceneFunnelRule>(), "clip.mp4"));
+        Assert.Equal(-1, TInterface.ClassifierRouteRead(Array.Empty<LSceneFunnelRule>(), "clip.mp4"));
     }
 }

@@ -12,7 +12,7 @@ public sealed class InputOutputCollisionTests
         string pSource = Path.Combine(Path.GetTempPath(), "cadroue", "source.mp4");
         string pOutput = Path.Combine(Path.GetTempPath(), "cadroue", ".", "source.mp4");
 
-        Assert.True(LJob.LJobCollisionCheck(pOutput, new[] { pSource }));
+        Assert.True(TInterface.JobCollisionCheck(pOutput, new[] { pSource }));
     }
 
     [Fact]
@@ -20,7 +20,7 @@ public sealed class InputOutputCollisionTests
     {
         string pFolder = Path.Combine(Path.GetTempPath(), "cadroue");
 
-        Assert.False(LJob.LJobCollisionCheck(
+        Assert.False(TInterface.JobCollisionCheck(
             Path.Combine(pFolder, "output.mp4"),
             new[] { Path.Combine(pFolder, "source.mp4") }));
     }
@@ -30,7 +30,7 @@ public sealed class InputOutputCollisionTests
     {
         string pRoot = Path.Combine(Path.GetTempPath(), "cadroue");
 
-        Assert.False(LJob.LJobCollisionCheck(
+        Assert.False(TInterface.JobCollisionCheck(
             Path.Combine(pRoot, "output", "source.mp4"),
             new[] { Path.Combine(pRoot, "input", "source.mp4") }));
     }
@@ -41,7 +41,7 @@ public sealed class InputOutputCollisionTests
         string pSource = Path.Combine(Path.GetTempPath(), "cadroue", "Source.mp4");
         string pOutput = Path.Combine(Path.GetTempPath(), "CADROUE", "source.MP4");
 
-        Assert.True(LJob.LJobCollisionCheck(pOutput, new[] { pSource }));
+        Assert.True(TInterface.JobCollisionCheck(pOutput, new[] { pSource }));
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class InputOutputCollisionTests
         string pFolder = Path.Combine(Path.GetTempPath(), "cadroue");
         string pOutput = Path.Combine(pFolder, "second.mp4");
 
-        Assert.True(LJob.LJobCollisionCheck(pOutput, new[]
+        Assert.True(TInterface.JobCollisionCheck(pOutput, new[]
         {
             Path.Combine(pFolder, "first.mp4"),
             pOutput
