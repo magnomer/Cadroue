@@ -4,10 +4,10 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LWorkVolumeBoundTests
+public sealed class VolumeSettingTests
 {
     [Fact]
-    public void VolumeCreate_AboveRange_ClampsToBound()
+    public void VolumeGain_AboveMaximum_IsClamped()
     {
         var step = (LWorkVolumeStep)LWorkAudioStep.LWorkVolumeCreate(true, 40);
 
@@ -15,7 +15,7 @@ public sealed class LWorkVolumeBoundTests
     }
 
     [Fact]
-    public void VolumeCreate_BelowRange_ClampsToBound()
+    public void VolumeGain_BelowMinimum_IsClamped()
     {
         var step = (LWorkVolumeStep)LWorkAudioStep.LWorkVolumeCreate(true, -40);
 
@@ -23,7 +23,7 @@ public sealed class LWorkVolumeBoundTests
     }
 
     [Fact]
-    public void VolumeCreate_InRange_Unchanged()
+    public void VolumeGain_WithinRange_IsUnchanged()
     {
         var step = (LWorkVolumeStep)LWorkAudioStep.LWorkVolumeCreate(true, 6);
 
