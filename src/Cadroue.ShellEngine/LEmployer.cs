@@ -10,10 +10,12 @@ internal readonly record struct LEmployerResult(int LEmployerExit, string LEmplo
 internal sealed class LEmployer
 {
     private readonly string lEmployerProgramPath;
+    private readonly string lEmployerArgumentPrefix;
 
-    internal LEmployer(string lEmployerProgramPath)
+    internal LEmployer(string lEmployerProgramPath, string lEmployerArgumentPrefix = "")
     {
         this.lEmployerProgramPath = lEmployerProgramPath;
+        this.lEmployerArgumentPrefix = lEmployerArgumentPrefix;
     }
 
     internal async Task<LEmployerResult> LEmployerRun(
@@ -26,7 +28,9 @@ internal sealed class LEmployer
         var lEmployerStartInfo = new ProcessStartInfo
         {
             FileName = lEmployerProgramPath,
-            Arguments = lEmployerArguments,
+            Arguments = string.IsNullOrWhiteSpace(lEmployerArgumentPrefix)
+                ? lEmployerArguments
+                : $"{lEmployerArgumentPrefix} {lEmployerArguments}",
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,

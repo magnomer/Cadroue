@@ -36,6 +36,10 @@ public sealed partial class LRunner
 
     public string LRunnerProgramPath { get; set; } = "ffmpeg";
 
+    public string LRunnerProgramArgumentPrefix { get; set; } = string.Empty;
+
+    public Func<string, string>? LRunnerProgramArgumentsTransform { get; set; }
+
     public int LRunnerParallelMaximum { get; set; } = 1;
 
     public bool LRunnerFailurePaused { get; set; }
@@ -146,6 +150,7 @@ public sealed partial class LRunner
         lock (lRunnerGate)
         {
             LRunnerRunning = false;
+            LWorkItem[] lRunnerStoppingItems = lRunnerItems.Values.ToArray();
             lRunnerBatch?.LRunnerBatchSource.Cancel();
             lRunnerBatch = null;
 
@@ -161,7 +166,7 @@ public sealed partial class LRunner
 
             lRunnerSuspended = false;
             LRunnerLeaseClear();
-            foreach (LWorkItem lRunnerItem in lRunnerItems.Values)
+            foreach (LWorkItem lRunnerItem in lRunnerStoppingItems)
             {
                 LRunnerPartialRemove(lRunnerItem);
             }
@@ -240,7 +245,11 @@ public sealed partial class LRunner
                 LRunnerDispatch(() =>
                 {
                     pNext = lRunnerSchedule.LScheduleClaim(lRunnerId);
-                    if (pNext is null)
+                    if (pNext is not null)
+                    {
+                        lRunnerSchedule.LScheduleLoad();
+                    }
+                    else
                     {
                         pPending = lRunnerSchedule.LSchedulePendingExist();
                     }

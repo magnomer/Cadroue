@@ -264,6 +264,8 @@ internal sealed class LJob
         Stopwatch pJobClock,
         string pDirectory)
     {
+        string pExecutableArguments = lJobOwner.LRunnerProgramArgumentsTransform?.Invoke(pStageArguments)
+            ?? pStageArguments;
         lJobOwner.LRunnerDispatch(() =>
         {
             lJobItem.LWorkProgress = 0;
@@ -272,10 +274,10 @@ internal sealed class LJob
                 : string.Empty;
             lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
         });
-        LRunner.LRunnerRecord($"{pStage.LEncodeStageLabel} '{lJobItem.LWorkOutputName}': {lJobOwner.LRunnerProgramPath} {pStageArguments}");
+        LRunner.LRunnerRecord($"{pStage.LEncodeStageLabel} '{lJobItem.LWorkOutputName}': {lJobOwner.LRunnerProgramPath} {pExecutableArguments}");
         LRunner.LRunnerFfmpegRecord(
             $"{pStage.LEncodeStageLabel} command for '{lJobItem.LWorkOutputName}'",
-            $"{lJobOwner.LRunnerProgramPath} {pStageArguments}\n"
+            $"{lJobOwner.LRunnerProgramPath} {pExecutableArguments}\n"
             + $"working folder {(string.IsNullOrWhiteSpace(pDirectory) ? "(process default)" : pDirectory)}\n"
             + $"source {lJobItem.LWorkSourcePath}\n"
             + $"output {pStage.LEncodeStagePath}");
@@ -284,9 +286,11 @@ internal sealed class LJob
         lJobBlockMicroseconds = -1;
         lJobProgressBlock = LRunner.LRunnerVerboseCheck() ? new System.Text.StringBuilder() : null;
 
-        var pJobEmployer = new LEmployer(lJobOwner.LRunnerProgramPath);
+        var pJobEmployer = new LEmployer(
+            lJobOwner.LRunnerProgramPath,
+            lJobOwner.LRunnerProgramArgumentPrefix);
         LEmployerResult pJobResult = await pJobEmployer.LEmployerRun(
-            pStageArguments,
+            pExecutableArguments,
             lJobToken,
             pProcess => lJobOwner.LRunnerProcessAttach(lJobItem.LWorkId, pProcess, lJobToken),
             LJobOutputRead,
