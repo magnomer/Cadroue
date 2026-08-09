@@ -56,12 +56,20 @@ internal sealed partial class PSOptions
         pClearRow.Children.Add(pDoneClear);
         pClearRow.Children.Add(pWorkspaceClear);
 
+        UIElement pCleanupRow = PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupDays"), psOptionsCleanupSlider, LLocalization.LLocalizationTextRead("Options.System.CleanupUnit"));
+        pCleanupRow.IsEnabled = psOptionsCleanupBox.IsChecked == true;
+        psOptionsCleanupBox.Checked += (_, _) => pCleanupRow.IsEnabled = true;
+        psOptionsCleanupBox.Unchecked += (_, _) => pCleanupRow.IsEnabled = false;
+
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.Workspace"),
             PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psWorkspaceBox, pWorkspaceBrowse, pWorkspaceOpen),
             PSNoticeBuild(LLocalization.LLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRead())),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CurrentSize"), psWorkspaceSize),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pClearRow)));
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pClearRow),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.AutoDelete"), psOptionsCleanupBox),
+            pCleanupRow,
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FFmpeg"),
             PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psSystemFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
             pFfmpegState));
