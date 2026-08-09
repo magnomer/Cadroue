@@ -2,12 +2,19 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
 public sealed class LMpv : IDisposable
 {
     private const string LMpvLibraryFile = "libmpv-2.dll";
+    private const string LMpvProbeSource = "av://lavfi:testsrc=d=1:s=64x64";
+    private static readonly TimeSpan LMpvProbeBudget = TimeSpan.FromSeconds(4);
+
+    private const int LMpvEventShutdown = 1;
+    private const int LMpvEventEndFile = 7;
+    private const int LMpvEventFileLoaded = 8;
 
     private static bool lMpvResolverActive;
     private static readonly object lMpvResolverGate = new();
@@ -52,7 +59,15 @@ public sealed class LMpv : IDisposable
         }
 
         lMpvHandle = lHandle;
-        LMpvOptionSet("wid", lWindowHandle.ToString());
+        if (lWindowHandle != nint.Zero)
+        {
+            LMpvOptionSet("wid", lWindowHandle.ToString());
+        }
+        else
+        {
+            LMpvOptionSet("vo", "null");
+            LMpvOptionSet("ao", "null");
+        }
 
         int lResult = LMpvNative.mpv_initialize(lMpvHandle);
         LMpvResultCheck(lResult, "mpv_initialize");
@@ -116,6 +131,60 @@ public sealed class LMpv : IDisposable
     public void LMpvOpen(string lPath)
     {
         LMpvCommandRun("loadfile", lPath);
+    }
+
+    public static LMpvProbe LMpvCheck()
+    {
+        try
+        {
+            using LMpv lMpv = new();
+            lMpv.LMpvHandleCreate(nint.Zero);
+            lMpv.LMpvOpen(LMpvProbeSource);
+            return lMpv.LMpvFileLoadedWait(LMpvProbeBudget);
+        }
+        catch (DllNotFoundException)
+        {
+            return LMpvProbe.LMpvProbeUnusable;
+        }
+        catch (InvalidOperationException)
+        {
+            return LMpvProbe.LMpvProbeUnusable;
+        }
+        catch
+        {
+            return LMpvProbe.LMpvProbeUnknown;
+        }
+    }
+
+    public LMpvProbe LMpvFileLoadedWait(TimeSpan lBudget)
+    {
+        LMpvHandleGuard();
+        DateTime lDeadline = DateTime.UtcNow + lBudget;
+        while (true)
+        {
+            double lRemaining = (lDeadline - DateTime.UtcNow).TotalSeconds;
+            if (lRemaining <= 0)
+            {
+                return LMpvProbe.LMpvProbeUnusable;
+            }
+
+            nint lEvent = LMpvNative.mpv_wait_event(lMpvHandle, Math.Min(0.1, lRemaining));
+            if (lEvent == nint.Zero)
+            {
+                continue;
+            }
+
+            int lEventId = Marshal.ReadInt32(lEvent);
+            if (lEventId == LMpvEventFileLoaded)
+            {
+                return LMpvProbe.LMpvProbeUsable;
+            }
+
+            if (lEventId == LMpvEventEndFile || lEventId == LMpvEventShutdown)
+            {
+                return LMpvProbe.LMpvProbeUnusable;
+            }
+        }
     }
 
     public void LMpvDispose()

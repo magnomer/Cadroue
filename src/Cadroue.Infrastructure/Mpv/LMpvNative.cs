@@ -28,6 +28,9 @@ internal static class LMpvNative
         [MarshalAs(UnmanagedType.LPUTF8Str)] string lData);
 
     [DllImport(LMpvLibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern nint mpv_wait_event(nint lHandle, double lTimeout);
+
+    [DllImport(LMpvLibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void mpv_terminate_destroy(nint lHandle);
 
     [DllImport(LMpvLibraryName, CallingConvention = CallingConvention.Cdecl)]
