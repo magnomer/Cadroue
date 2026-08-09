@@ -25,7 +25,7 @@ public static class LRenderer
     public static void LRendererSettingsLoad() =>
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
 
-    public static LPreviewEngine LRendererEnginePreviewRead() => lRendererEnginePreview;
+    public static LPreviewEngine LRendererEngineRead() => lRendererEnginePreview;
 
     public static void LRendererEngineStart()
     {
