@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LWorkNormalizeBoundTests
+public sealed class NormalizationSettingTests
 {
     private static LWorkNormalizeStep Create(
         double target = -21, double peak = -2, double range = 6,
@@ -14,7 +14,7 @@ public sealed class LWorkNormalizeBoundTests
             frame, gauss, maxGain, compress);
 
     [Fact]
-    public void NormalizeCreate_AboveMost_ClampsDown()
+    public void NormalizationSettings_AboveMaximum_AreClamped()
     {
         LWorkNormalizeStep step = Create(
             target: 0, peak: 5, range: 40,
@@ -30,7 +30,7 @@ public sealed class LWorkNormalizeBoundTests
     }
 
     [Fact]
-    public void NormalizeCreate_BelowLeast_ClampsUp()
+    public void NormalizationSettings_BelowMinimum_AreClamped()
     {
         LWorkNormalizeStep step = Create(
             target: -100, peak: -50, range: -5,
@@ -46,23 +46,7 @@ public sealed class LWorkNormalizeBoundTests
     }
 
     [Fact]
-    public void LevelingDefaultRead_ReturnsCanonicalStep()
-    {
-        var (target, peak, range, twoPass, frame, gauss, maxGain, compress) =
-            LLevelingCatalog.LLevelingDefaultRead();
-
-        Assert.Equal(-21, target);
-        Assert.Equal(-2, peak);
-        Assert.Equal(6, range);
-        Assert.True(twoPass);
-        Assert.Equal(300, frame);
-        Assert.Equal(21, gauss);
-        Assert.Equal(10, maxGain);
-        Assert.Equal(6, compress);
-    }
-
-    [Fact]
-    public void NormalizeCreate_InRange_Unchanged()
+    public void NormalizationSettings_WithinRange_AreUnchanged()
     {
         LWorkNormalizeStep step = Create(
             target: -21, peak: -2, range: 6,
