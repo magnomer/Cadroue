@@ -37,6 +37,14 @@
 
 > **Documentation version:** 2.9.10600
 
+### Screenshots
+
+<img width="1588" height="1087" alt="Screenshot1" src="https://github.com/user-attachments/assets/161a22da-9b89-4b41-b987-3253671d2723" />
+<img width="1588" height="1087" alt="Screenshot2" src="https://github.com/user-attachments/assets/d7b5eda2-762e-4c8b-b25e-66291dab7dd9" />
+<img width="1588" height="1087" alt="Screenshot3" src="https://github.com/user-attachments/assets/d0f1a3d8-4655-47bb-a802-761c40e9c781" />
+<img width="1588" height="1087" alt="Screenshot4" src="https://github.com/user-attachments/assets/f64069b3-3b33-4930-8e49-54a08049901d" />
+
+
 ### What Cadroue is
 
 Cadroue is a Windows desktop application for planning, routing, queuing, and processing FFmpeg media workflows. Work is organized into separate **Split**, **Edit**, **Audio**, **Convert**, **Merge**, **Funnel**, and **Worklist** tabs. You can open several tabs of the same type and give each one a workflow-specific name.
@@ -271,6 +279,13 @@ Licenses and attribution for bundled libraries and assets, including Flyleaf and
 > Cadroue는 현재도 기능 개선 중입니다. 대체적인 작업 및 기능은 확인되었으나, 문제나 버그가 있을 수 있습니다.
 >
 > 이 문서는 **2.9.10600** 버전을 기준으로 작성했습니다.
+
+### 스크린샷
+
+<img width="1588" height="1087" alt="Screenshot1" src="https://github.com/user-attachments/assets/161a22da-9b89-4b41-b987-3253671d2723" />
+<img width="1588" height="1087" alt="Screenshot2" src="https://github.com/user-attachments/assets/d7b5eda2-762e-4c8b-b25e-66291dab7dd9" />
+<img width="1588" height="1087" alt="Screenshot3" src="https://github.com/user-attachments/assets/d0f1a3d8-4655-47bb-a802-761c40e9c781" />
+<img width="1588" height="1087" alt="Screenshot4" src="https://github.com/user-attachments/assets/f64069b3-3b33-4930-8e49-54a08049901d" />
 
 ### 소개
 
