@@ -22,11 +22,22 @@ public sealed class MergeWorkCreationTests : IDisposable
     }
 
     [Fact]
-    public void FewerThanTwoInputs_ProducesNoWork()
+    public void SingleFileGroup_ProducesOneMergeWorkItem()
     {
         string only = File("only.mov");
 
-        IReadOnlyList<LWorkItem> work = Create(new[] { only }, WorkCreationOutput.Create());
+        LWorkItem item = Assert.Single(Create(new[] { only }, WorkCreationOutput.Create()));
+
+        Assert.Equal(LWorkKind.LWorkKindMerge, item.LWorkKind);
+        Assert.Equal(new[] { only }, item.LWorkMergeSources);
+    }
+
+    [Fact]
+    public void GroupWithNoExistingFile_ProducesNoWork()
+    {
+        string missing = Path.Combine(testFolder, "missing.mov");
+
+        IReadOnlyList<LWorkItem> work = Create(new[] { missing }, WorkCreationOutput.Create());
 
         Assert.Empty(work);
     }
