@@ -34,6 +34,12 @@ public sealed partial class LMpv : IDisposable
 
     public static string LMpvLibraryRead()
     {
+        string? lInstallFolder = LMpvFolderRead();
+        if (lInstallFolder is not null)
+        {
+            return Path.Combine(lInstallFolder, LMpvLibraryFile);
+        }
+
         string lFolder = LRenderer.LRendererFolderCurrent;
         if (!string.IsNullOrWhiteSpace(lFolder))
         {
