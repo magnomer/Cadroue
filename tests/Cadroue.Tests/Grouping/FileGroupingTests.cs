@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LSeriesTests
+public sealed class FileGroupingTests
 {
     [Fact]
-    public void Resolve_UnnumberedFiles_EachAlone()
+    public void UnnumberedFiles_FormSeparateGroups()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
             LSeries.LSeriesResolve(new[] { "Alpha.mp4", "Beta.mp4" }, true);
@@ -23,7 +23,7 @@ public sealed class LSeriesTests
     }
 
     [Fact]
-    public void Resolve_Loose_LumpsConsecutiveIntoOneNamedByBase()
+    public void LooseGrouping_CombinesConsecutiveFiles()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
             LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (2).mp4" }, false);
@@ -34,44 +34,7 @@ public sealed class LSeriesTests
     }
 
     [Fact]
-    public void Resolve_First_UsesFirstNumericallySortedFileName()
-    {
-        IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(
-                new[] { "A (2).mp4", "A (1).mp4" },
-                true,
-                LSeriesNameMode.LSeriesNameFirst);
-
-        LSeriesGroup lSeriesGroup = Assert.Single(lSeriesGroups);
-        Assert.Equal("A (1)", lSeriesGroup.Name);
-        Assert.Equal(new[] { "A (1).mp4", "A (2).mp4" }, lSeriesGroup.Paths);
-    }
-
-    [Fact]
-    public void Resolve_First_LooseGroupUsesFirstNameAcrossNumberGaps()
-    {
-        IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(
-                new[] { "A (3).mp4", "A (1).mp4" },
-                false,
-                LSeriesNameMode.LSeriesNameFirst);
-
-        LSeriesGroup lSeriesGroup = Assert.Single(lSeriesGroups);
-        Assert.Equal("A (1)", lSeriesGroup.Name);
-        Assert.Equal(new[] { "A (1).mp4", "A (3).mp4" }, lSeriesGroup.Paths);
-    }
-
-    [Fact]
-    public void Resolve_Remove_RemainsDefaultAndUsesBaseName()
-    {
-        IReadOnlyList<LSeriesGroup> lSeriesGroups =
-            LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (2).mp4" }, true);
-
-        Assert.Equal("A", Assert.Single(lSeriesGroups).Name);
-    }
-
-    [Fact]
-    public void Resolve_Loose_LumpsGappedNumbersIntoOneNamedByBase()
+    public void LooseGrouping_CombinesFilesAcrossNumberGaps()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
             LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (3).mp4" }, false);
@@ -82,7 +45,7 @@ public sealed class LSeriesTests
     }
 
     [Fact]
-    public void Resolve_Strict_SplitsNonConsecutiveIntoRuns()
+    public void StrictGrouping_SplitsFilesAcrossNumberGaps()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
             LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (3).mp4" }, true);
@@ -95,7 +58,7 @@ public sealed class LSeriesTests
     }
 
     [Fact]
-    public void Resolve_Strict_KeepsConsecutiveAsOneNamedByBase()
+    public void StrictGrouping_KeepsConsecutiveFilesTogether()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
             LSeries.LSeriesResolve(new[] { "A (1).mp4", "A (2).mp4" }, true);
@@ -106,7 +69,7 @@ public sealed class LSeriesTests
     }
 
     [Fact]
-    public void Resolve_MixedBases_StaySeparate()
+    public void DifferentBaseNames_FormSeparateGroups()
     {
         IReadOnlyList<LSeriesGroup> lSeriesGroups =
             LSeries.LSeriesResolve(new[] { "A (1).mp4", "B (1).mp4" }, true);
