@@ -13,7 +13,8 @@ internal sealed record TScheduleItem(
     Guid BatchId,
     string Name,
     LWorkPriority Priority,
-    LWorkState State);
+    LWorkState State,
+    string Message);
 
 internal sealed class TScheduleWork
 {
@@ -73,6 +74,55 @@ internal sealed class TSchedule : IDisposable
     internal IReadOnlyList<TScheduleItem> PendingRead() =>
         tSchedule.LSchedulePendingRead().Select(Snapshot).ToArray();
 
+    internal IReadOnlyList<TScheduleItem> RecordsRead() =>
+        tSchedule.LScheduleRecords.Select(Snapshot).ToArray();
+
+    internal TScheduleWork ClaimNext()
+    {
+        LWorkItem workItem = tSchedule.LScheduleClaim(Guid.NewGuid())
+            ?? throw new InvalidOperationException("The schedule had no claimable work.");
+        tSchedule.LScheduleLoad();
+        return new TScheduleWork(workItem);
+    }
+
+    internal TScheduleWork? TryClaimNext()
+    {
+        LWorkItem? workItem = tSchedule.LScheduleClaim(Guid.NewGuid());
+        if (workItem is null)
+        {
+            return null;
+        }
+
+        tSchedule.LScheduleLoad();
+        return new TScheduleWork(workItem);
+    }
+
+    internal void Complete(TScheduleWork work, bool succeeded, string message = "")
+    {
+        tSchedule.LScheduleCommit(work.WorkItem, succeeded, message);
+        tSchedule.LScheduleLoad();
+    }
+
+    internal bool Cancel(TScheduleWork work) =>
+        tSchedule.LScheduleItemCancel(work.WorkItem);
+
+    internal int Cancel(params TScheduleWork[] work) =>
+        work.Count(item => tSchedule.LScheduleItemCancel(item.WorkItem));
+
+    internal bool Reset(TScheduleWork work) =>
+        tSchedule.LScheduleItemReset(work.WorkId);
+
+    internal int RemoveEligible(params TScheduleWork[] work)
+    {
+        IReadOnlyList<Guid> removable = tSchedule.LScheduleRemovableRead(
+            work.Select(item => item.WorkId));
+        return tSchedule.LScheduleBatchRemove(removable);
+    }
+
+    internal int ClearCompleted() => tSchedule.LScheduleDoneClear();
+
+    internal int ClearAll() => tSchedule.LScheduleAllClear();
+
     internal IReadOnlyList<TScheduleItem> ExecutionOrderRead()
     {
         var claimed = new List<TScheduleItem>();
@@ -105,5 +155,6 @@ internal sealed class TSchedule : IDisposable
             workItem.LWorkBatchId,
             workItem.LWorkOutputName,
             workItem.LWorkPriority,
-            workItem.LWorkStateCurrent);
+            workItem.LWorkStateCurrent,
+            workItem.LWorkMessage);
 }
