@@ -1,11 +1,14 @@
 using System;
 
+using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PPanels;
 
 internal sealed class PPlayerMpv : PPlayerEngine
 {
+    private static readonly TimeSpan pPlayerMpvOpenBudget = TimeSpan.FromSeconds(3);
+
     private readonly LMpv pPlayerMpvLibrary;
 
     public PPlayerMpv(nint hostHandle)
@@ -16,7 +19,12 @@ internal sealed class PPlayerMpv : PPlayerEngine
 
     public override void PPlayerOpen(string sourcePath)
     {
-        pPlayerMpvLibrary.LMpvOpen(sourcePath);
+        LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvOpenWait(sourcePath, pPlayerMpvOpenBudget);
+        if (pPlayerMpvLoaded != LMpvProbe.LMpvProbeUsable)
+        {
+            throw new InvalidOperationException(
+                $"mpv did not reach the loaded state for '{sourcePath}' within {pPlayerMpvOpenBudget.TotalSeconds:0.#}s ({pPlayerMpvLoaded}).");
+        }
     }
 
     public override void PPlayerSeek(TimeSpan playbackPosition)

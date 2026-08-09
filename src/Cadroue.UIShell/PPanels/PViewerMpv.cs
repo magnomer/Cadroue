@@ -144,6 +144,12 @@ public sealed partial class PViewer
             return;
         }
 
+        if (pViewerPreviewError is not null)
+        {
+            PViewerMpvFallback(sourcePath, mediaInfo, ffmpegError, loadSerial, pViewerPreviewError);
+            return;
+        }
+
         bool pViewerPreviewOk = pViewerPlayer.PPlayerReady && pViewerPreviewError is null;
         PViewerMpvCommit(new LCargo(
             sourcePath,
@@ -202,6 +208,25 @@ public sealed partial class PViewer
             pViewerPlayer.PPlayerPause();
             PViewerPlaybackUpdate(false, TimeSpan.Zero);
         }
+    }
+
+    private void PViewerMpvFallback(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial, string mpvReason)
+    {
+        string pViewerFallbackName = System.IO.Path.GetFileName(sourcePath);
+        LTraceLog.LTraceErrorRecord(
+            $"mpv could not open '{pViewerFallbackName}': {mpvReason}; falling back to the existing engine for this file [{sourcePath}]");
+
+        PViewerMpvDispose();
+        pViewerHostBuilt = false;
+        PViewerFlyleafBuild();
+        pViewerHostBuilt = true;
+
+        if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
+        {
+            return;
+        }
+
+        PPlayerMediaApply(sourcePath, mediaInfo, ffmpegError, loadSerial);
     }
 
     private void PViewerMpvDispose()

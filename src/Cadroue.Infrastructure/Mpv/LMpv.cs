@@ -135,6 +135,12 @@ public sealed partial class LMpv : IDisposable
         LMpvCommandRun("loadfile", lPath);
     }
 
+    public LMpvProbe LMpvOpenWait(string lPath, TimeSpan lBudget)
+    {
+        LMpvOpen(lPath);
+        return LMpvFileLoadedWait(lBudget);
+    }
+
     public void LMpvSeek(TimeSpan lPosition)
     {
         string lSeconds = lPosition.TotalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
