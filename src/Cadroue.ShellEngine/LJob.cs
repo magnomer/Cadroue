@@ -76,8 +76,8 @@ internal sealed class LJob
         {
             double pTotalSeconds = lJobItem.LWorkKind switch
             {
-                LWorkKind.LWorkKindAudio => LScout.LScoutMediaRead(lJobItem.LWorkSourcePath)?.LWorkMediaDuration.TotalSeconds ?? 0,
-                LWorkKind.LWorkKindMerge => LScout.LScoutMergeRead(lJobItem.LWorkMergeSources),
+                LWorkKind.LWorkKindAudio => LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken)?.LWorkMediaDuration.TotalSeconds ?? 0,
+                LWorkKind.LWorkKindMerge => LScout.LScoutMergeRead(lJobItem.LWorkMergeSources, lJobToken),
                 _ => lJobItem.LWorkDuration.TotalSeconds
             };
 
@@ -145,11 +145,11 @@ internal sealed class LJob
             }
 
             long? pOutputBytes = LScout.LScoutBytesRead(lJobItem.LWorkOutputPath);
-            long? pSourceBytes = LScout.LScoutInputRead(lJobItem);
-            LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath);
-            LWorkMedia? pOutputMedia = LScout.LScoutMediaRead(lJobItem.LWorkOutputPath);
+            long? pSourceBytes = LScout.LScoutInputRead(lJobItem, lJobToken);
+            LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+            LWorkMedia? pOutputMedia = LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken);
             if (pOutputMedia is { LWorkMediaVideo: true }
-                && LScout.LScoutIntervalRead(lJobItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration) is { } pOutputKeyframeInterval)
+                && LScout.LScoutIntervalRead(lJobItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration, lJobToken) is { } pOutputKeyframeInterval)
             {
                 pOutputMedia = pOutputMedia with { LWorkKeyframeInterval = pOutputKeyframeInterval };
             }
