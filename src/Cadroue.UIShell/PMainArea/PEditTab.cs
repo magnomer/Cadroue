@@ -16,7 +16,7 @@ public sealed class PEditTab : PTabSurface
     private const string PEditContrastIcon = "/PAssets/PPanels/PProcessingContrast.svg";
 
     private readonly PFlowControl pFlow = new();
-    private readonly PViewer pViewer = new() { PViewerColorPreview = true };
+    private readonly PViewer pViewer = new() { PViewerColorPreview = true, PViewerEditEligible = true };
     private readonly PInspector pInspector = new();
     private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();

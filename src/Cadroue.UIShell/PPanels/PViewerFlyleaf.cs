@@ -154,6 +154,7 @@ public sealed partial class PViewer
     private void PPlayerVideoLoad(string sourcePath)
     {
         if (!pViewerCommandActive) return;
+        PViewerEngineSelect();
         int loadSerial = ++pViewerLoadSerial;
         pViewerClockTimer.Stop();
         pViewerResumeInactive = false;
@@ -208,6 +209,12 @@ public sealed partial class PViewer
 
     private void PPlayerMediaApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)
     {
+        if (pViewerMpvActive)
+        {
+            PViewerMpvApply(sourcePath, mediaInfo, ffmpegError, loadSerial);
+            return;
+        }
+
         if (mediaInfo is { LMediaAudioOnly: true } && !pViewerAudioAllowed)
         {
             string audioOnlyError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");

@@ -20,6 +20,27 @@ public sealed partial class PViewer
     {
         if (pViewerHostBuilt) return;
 
+        if (PViewerEditEligible && !pViewerEngineSubscribed)
+        {
+            Cadroue.Infrastructure.LRenderer.LRendererEngineChange += PViewerEngineHandle;
+            pViewerEngineSubscribed = true;
+        }
+
+        if (PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv)
+        {
+            PViewerMpvBuild();
+        }
+        else
+        {
+            PViewerFlyleafBuild();
+        }
+
+        pViewerHostBuilt = true;
+    }
+
+    private void PViewerFlyleafBuild()
+    {
+        PViewerOverlayDetach();
         var pViewerOverlayHost = new Grid();
         pViewerOverlayHost.Children.Add(pViewerOverlay);
         pViewerOverlayHost.Children.Add(pViewerCloseButton);
@@ -47,7 +68,6 @@ public sealed partial class PViewer
         };
 
         Content = pViewerSurface;
-        pViewerHostBuilt = true;
         PViewerHostAttach();
     }
 
@@ -96,6 +116,16 @@ public sealed partial class PViewer
 
     private void PViewerHostShow(bool pViewerHostVisible)
     {
+        if (pViewerMpvActive)
+        {
+            if (pViewerMpvHost is null) return;
+
+            Visibility pViewerMpvTarget = pViewerHostVisible ? Visibility.Visible : Visibility.Collapsed;
+            pViewerMpvHost.Visibility = pViewerMpvTarget;
+            pViewerCloseButton.Visibility = pViewerMpvTarget;
+            return;
+        }
+
         if (pViewerFlyleafHost is null) return;
 
         Visibility pViewerHostTarget = pViewerHostVisible ? Visibility.Visible : Visibility.Collapsed;
@@ -153,6 +183,12 @@ public sealed partial class PViewer
         {
             pViewerUnloaded = true;
             pViewerLoadSerial++;
+            if (pViewerEngineSubscribed)
+            {
+                Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineHandle;
+                pViewerEngineSubscribed = false;
+            }
+
             pViewerMediaLoad.LMediaLoadCompleted -= PViewerLoadHandle;
             pViewerMediaLoad.Dispose();
             pViewerClockTimer.Tick -= PViewerClockHandle;
@@ -163,6 +199,7 @@ public sealed partial class PViewer
             PDropHandlersRemove();
             PPlayerStopDispose();
             PViewerFlyleafDispose();
+            PViewerMpvDispose();
         }
         catch
         {
