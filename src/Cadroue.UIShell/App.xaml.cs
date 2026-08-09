@@ -197,6 +197,7 @@ public partial class PProgram : System.Windows.Application
             ? "Local Flyleaf preview engine active"
             : "NuGet Flyleaf preview engine active");
         LDepotRootApply();
+        LRetentionSweepStart();
         LScheduleRecoverRun();
         LRenderer.LRendererFlyleafStart();
         LRelayStore.LRelayStaleClear();
@@ -257,6 +258,21 @@ public partial class PProgram : System.Windows.Application
             lDepotRootApplied = null;
             LTraceLog.LTraceErrorRecord("Workspace folder could not be prepared", lException);
         }
+    }
+
+    private static void LRetentionSweepStart()
+    {
+        if (!LPreference.LPreferenceStateCurrent.LPreferenceRecordCleanupActive)
+        {
+            return;
+        }
+
+        int lRetentionDays = LPreference.LPreferenceStateCurrent.LPreferenceRecordCleanupDays;
+        _ = System.Threading.Tasks.Task.Run(() =>
+        {
+            int lRetentionRemoved = Cadroue.Infrastructure.LRetentionSweep.LRetentionRun(lRetentionDays);
+            LTraceLog.LTraceInfoRecord($"Retention sweep removed {lRetentionRemoved} old records");
+        });
     }
 
     private static void LLibrarianSeamApply()
