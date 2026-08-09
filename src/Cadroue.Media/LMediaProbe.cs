@@ -4,6 +4,13 @@ namespace Cadroue.Media;
 
 public static class LMediaProbe
 {
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> LMediaProbeGenerations =
+        new(StringComparer.OrdinalIgnoreCase);
+    private static long lMediaProbeGeneration;
+
+    internal static Func<string, CancellationToken, LMediaInfo> LMediaProbeReader { get; set; } =
+        LMedia.LMediaFfprobeRead;
+
     public static event Action<LMediaProbeResult>? LMediaProbeReady;
 
     public static event Action<LMediaLoudnessResult>? LMediaLoudnessReady;
@@ -12,13 +19,16 @@ public static class LMediaProbe
 
     public static void LMediaProbeDefer(string sourcePath, CancellationToken lMediaProbeToken = default)
     {
+        long lMediaProbeCurrentGeneration = Interlocked.Increment(ref lMediaProbeGeneration);
+        LMediaProbeGenerations[sourcePath] = lMediaProbeCurrentGeneration;
+
         Task.Run(() =>
         {
             LMediaInfo? lMediaProbeInfo = null;
             string? lMediaProbeError = null;
             try
             {
-                lMediaProbeInfo = LMedia.LMediaFfprobeRead(sourcePath, lMediaProbeToken);
+                lMediaProbeInfo = LMediaProbeReader(sourcePath, lMediaProbeToken);
             }
             catch (OperationCanceledException)
             {
@@ -27,6 +37,13 @@ public static class LMediaProbe
             catch (Exception lMediaProbeException)
             {
                 lMediaProbeError = lMediaProbeException.Message;
+            }
+
+            if (lMediaProbeToken.IsCancellationRequested
+                || !LMediaProbeGenerations.TryGetValue(sourcePath, out long lMediaProbeLatestGeneration)
+                || lMediaProbeLatestGeneration != lMediaProbeCurrentGeneration)
+            {
+                return;
             }
 
             LMediaProbeReady?.Invoke(new LMediaProbeResult(sourcePath, lMediaProbeInfo, lMediaProbeError));

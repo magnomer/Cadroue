@@ -219,7 +219,7 @@ public static class LMedia
         return diagnostic.Length <= 2000 ? diagnostic : diagnostic[..2000];
     }
 
-    private static LMediaInfo LMediaFfprobeParse(string json)
+    internal static LMediaInfo LMediaFfprobeParse(string json)
     {
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
