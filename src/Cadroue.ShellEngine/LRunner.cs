@@ -204,9 +204,13 @@ public sealed partial class LRunner
             {
                 lRunnerProcess.Kill(true);
             }
+
+            lRunnerProcess.WaitForExit(5000);
         }
         catch (Exception lRunnerException)
-            when (lRunnerException is InvalidOperationException or System.ComponentModel.Win32Exception)
+            when (lRunnerException is InvalidOperationException
+                or System.ComponentModel.Win32Exception
+                or SystemException)
         {
         }
     }
@@ -341,18 +345,28 @@ public sealed partial class LRunner
             return;
         }
 
-        try
+        string pPath = pWorkItem.LWorkOutputPath;
+        for (int pAttempt = 0; pAttempt < 5; pAttempt++)
         {
-            if (File.Exists(pWorkItem.LWorkOutputPath))
+            try
             {
-                File.Delete(pWorkItem.LWorkOutputPath);
+                if (!File.Exists(pPath))
+                {
+                    return;
+                }
+
+                File.Delete(pPath);
+                return;
+            }
+            catch (Exception pException)
+                when (pException is IOException or UnauthorizedAccessException)
+            {
+                System.Threading.Thread.Sleep(200);
             }
         }
-        catch (IOException)
-        {
-        }
-        catch (UnauthorizedAccessException)
-        {
-        }
+
+        LRunnerRecord(
+            $"Stop could not delete the partial output '{pPath}'; "
+            + "it may remain on disk and should be removed manually.");
     }
 }

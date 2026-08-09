@@ -450,18 +450,33 @@ internal sealed class LJob
                 continue;
             }
 
-            try
+            string pPath = pStage.LEncodeStagePath;
+            bool pRemoved = false;
+            for (int pAttempt = 0; pAttempt < 5 && !pRemoved; pAttempt++)
             {
-                if (File.Exists(pStage.LEncodeStagePath))
+                try
                 {
-                    File.Delete(pStage.LEncodeStagePath);
+                    if (!File.Exists(pPath))
+                    {
+                        pRemoved = true;
+                        break;
+                    }
+
+                    File.Delete(pPath);
+                    pRemoved = true;
+                }
+                catch (Exception pException)
+                    when (pException is IOException or UnauthorizedAccessException)
+                {
+                    System.Threading.Thread.Sleep(200);
                 }
             }
-            catch (IOException)
+
+            if (!pRemoved)
             {
-            }
-            catch (UnauthorizedAccessException)
-            {
+                LRunner.LRunnerRecord(
+                    $"Could not delete the temporary file '{pPath}'; it may remain on disk.",
+                    null);
             }
         }
     }
