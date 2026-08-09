@@ -2,14 +2,14 @@ using Cadroue.Infrastructure;
 
 using Xunit;
 
+using static Cadroue.Tests.KeyframeData;
+
 namespace Cadroue.Tests;
 
-public sealed class LKeyframeOrchestratorTests
+public sealed class KeyframeNavigationTests
 {
-    private static TimeSpan At(double seconds) => TimeSpan.FromSeconds(seconds);
-
     [Fact]
-    public void PreviousMove_UnscannedGapBeforeCursor_RemainsPending()
+    public void PreviousKeyframe_WithUnscannedGap_RemainsPending()
     {
         var result = LKeyframeOrchestrator.LKeyframeMoveResolve(
             new long[] { 90_000 },
@@ -23,7 +23,7 @@ public sealed class LKeyframeOrchestratorTests
     }
 
     [Fact]
-    public void PreviousMove_ContiguousCoverageToCandidate_ReturnsCandidate()
+    public void PreviousKeyframe_WithContiguousCoverage_ReturnsCandidate()
     {
         var result = LKeyframeOrchestrator.LKeyframeMoveResolve(
             new long[] { 90_000 },
@@ -37,7 +37,7 @@ public sealed class LKeyframeOrchestratorTests
     }
 
     [Fact]
-    public void NextMove_UnscannedGapAfterCursor_RemainsPending()
+    public void NextKeyframe_WithUnscannedGap_RemainsPending()
     {
         var result = LKeyframeOrchestrator.LKeyframeMoveResolve(
             new long[] { 270_000 },
@@ -50,7 +50,7 @@ public sealed class LKeyframeOrchestratorTests
     }
 
     [Fact]
-    public void PreviousMove_FullyScannedWithoutCandidate_IsReadyWithoutTarget()
+    public void PreviousKeyframe_WhenFullyScannedWithoutCandidate_IsReadyWithoutTarget()
     {
         var result = LKeyframeOrchestrator.LKeyframeMoveResolve(
             Array.Empty<long>(),
