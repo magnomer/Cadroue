@@ -20,7 +20,12 @@ public static class LRenderer
 
     private static LPreviewEngine lRendererEnginePreview = LPreviewEngine.LPreviewEngineFlyleaf;
 
+    private static readonly object lRendererCheckGate = new();
+    private static Task<LMpvProbe>? lRendererCheckRun;
+
     public static event Action? LRendererEngineChange;
+
+    public static Action? LRendererFlyleafSeam { get; set; }
 
     public static void LRendererSettingsLoad() =>
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
@@ -29,6 +34,8 @@ public static class LRenderer
 
     public static void LRendererEngineStart()
     {
+        LRendererFlyleafSeam?.Invoke();
+
         LMpvProbe lRendererOutcome = LMpv.LMpvResultRead();
         if (lRendererOutcome != LMpvProbe.LMpvProbeUnknown)
         {
@@ -52,6 +59,37 @@ public static class LRenderer
             LRendererEngineApply(lRendererProbed);
             LRendererEngineChange?.Invoke();
         });
+    }
+
+    public static Task<LMpvProbe> LRendererEngineCheck()
+    {
+        lock (lRendererCheckGate)
+        {
+            if (lRendererCheckRun is { IsCompleted: false })
+            {
+                return lRendererCheckRun;
+            }
+
+            lRendererCheckRun = Task.Run(() =>
+            {
+                LMpvProbe lRendererProbed;
+                try
+                {
+                    lRendererProbed = LMpv.LMpvCheck();
+                }
+                catch
+                {
+                    lRendererProbed = LMpvProbe.LMpvProbeUnusable;
+                }
+
+                LMpv.LMpvResultSave(lRendererProbed);
+                LRendererEngineApply(lRendererProbed);
+                LRendererEngineChange?.Invoke();
+                return lRendererProbed;
+            });
+
+            return lRendererCheckRun;
+        }
     }
 
     private static void LRendererEngineApply(LMpvProbe lRendererOutcome) =>

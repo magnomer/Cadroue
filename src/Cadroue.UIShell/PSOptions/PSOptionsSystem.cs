@@ -74,6 +74,7 @@ internal sealed partial class PSOptions
             PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psSystemFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
             pFfmpegState));
         pPanel.Children.Add(PSSystemFlyleafBuild());
+        pPanel.Children.Add(PSSystemRecheckBuild());
         pPanel.Children.Add(PSSystemRecordBuild());
         return pPanel;
     }
@@ -117,6 +118,43 @@ internal sealed partial class PSOptions
             pState,
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FlyleafNotice")));
     }
+
+    private UIElement PSSystemRecheckBuild()
+    {
+        var pState = new TextBlock
+        {
+            Foreground = PSFieldMuted,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = PSNoticeMargin,
+            Text = PSSystemRecheckFormat(Cadroue.Infrastructure.LRenderer.LRendererEngineRead())
+        };
+
+        Button pRecheck = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.RecheckEngine"), 200, new Thickness(0));
+        pRecheck.Click += async (_, _) =>
+        {
+            pRecheck.IsEnabled = false;
+            pState.Text = LLocalization.LLocalizationTextRead("Mpv.Local.Status.Measuring");
+            LMpvProbe pOutcome = await Cadroue.Infrastructure.LRenderer.LRendererEngineCheck();
+            pState.Text = PSSystemRecheckFormat(
+                pOutcome == LMpvProbe.LMpvProbeUsable
+                    ? LPreviewEngine.LPreviewEngineMpv
+                    : LPreviewEngine.LPreviewEngineFlyleaf);
+            pRecheck.IsEnabled = true;
+        };
+
+        var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pButtons.Children.Add(pRecheck);
+
+        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.LocalMpv"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.PreviewEngine"), pButtons),
+            pState,
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.MpvNotice")));
+    }
+
+    private static string PSSystemRecheckFormat(LPreviewEngine pEngine) =>
+        pEngine == LPreviewEngine.LPreviewEngineMpv
+            ? LLocalization.LLocalizationTextRead("Mpv.Local.Status.Usable")
+            : LLocalization.LLocalizationTextRead("Mpv.Local.Status.Unusable");
 
     private static string PSSystemFlyleafFormat() =>
         LFlyleaf.LFlyleafInstalledCheck()

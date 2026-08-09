@@ -8,9 +8,9 @@ using FlyleafLib;
 
 namespace Cadroue.UIShell;
 
-internal static class LRenderer
+public partial class PProgram
 {
-    internal static void LRendererFlyleafStart()
+    private static void LRendererFlyleafStart()
     {
         try
         {
