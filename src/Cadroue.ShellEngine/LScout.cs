@@ -5,18 +5,18 @@ namespace Cadroue.ShellEngine;
 
 internal static class LScout
 {
-    internal static double LScoutMergeRead(IReadOnlyList<string> lScoutMergeSources)
+    internal static double LScoutMergeRead(IReadOnlyList<string> lScoutMergeSources, CancellationToken lScoutToken = default)
     {
         double lScoutTotalSeconds = 0;
         foreach (string lScoutMergeSource in lScoutMergeSources)
         {
-            lScoutTotalSeconds += LScoutMediaRead(lScoutMergeSource)?.LWorkMediaDuration.TotalSeconds ?? 0;
+            lScoutTotalSeconds += LScoutMediaRead(lScoutMergeSource, lScoutToken)?.LWorkMediaDuration.TotalSeconds ?? 0;
         }
 
         return lScoutTotalSeconds;
     }
 
-    internal static LWorkMedia? LScoutMediaRead(string lScoutMediaPath)
+    internal static LWorkMedia? LScoutMediaRead(string lScoutMediaPath, CancellationToken lScoutToken = default)
     {
         if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath))
         {
@@ -25,7 +25,7 @@ internal static class LScout
 
         try
         {
-            LMediaInfo lScoutMedia = LMedia.LMediaFfprobeRead(lScoutMediaPath);
+            LMediaInfo lScoutMedia = LMedia.LMediaFfprobeRead(lScoutMediaPath, lScoutToken);
             return new LWorkMedia(
                 lScoutMedia.LMediaVideoWidth,
                 lScoutMedia.LMediaVideoHeight,
@@ -38,14 +38,14 @@ internal static class LScout
                 LWorkMediaSamplerate = lScoutMedia.LMediaSampleRate
             };
         }
-        catch (Exception lScoutException)
+        catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
             LRunner.LRunnerRecord($"Media could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
             return null;
         }
     }
 
-    internal static double? LScoutIntervalRead(string lScoutMediaPath, TimeSpan lScoutMediaDuration)
+    internal static double? LScoutIntervalRead(string lScoutMediaPath, TimeSpan lScoutMediaDuration, CancellationToken lScoutToken = default)
     {
         if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath) || lScoutMediaDuration <= TimeSpan.Zero)
         {
@@ -55,7 +55,7 @@ internal static class LScout
         try
         {
             IReadOnlyList<LKeyframeEntry> lScoutKeyframes = LKeyframeSeeker.LKeyframeRangeScan(
-                lScoutMediaPath, TimeSpan.Zero, lScoutMediaDuration);
+                lScoutMediaPath, TimeSpan.Zero, lScoutMediaDuration, lScoutToken);
             if (lScoutKeyframes.Count < 2)
             {
                 return null;
@@ -65,14 +65,14 @@ internal static class LScout
                 (lScoutKeyframes[^1].LKeyframePresentationTime - lScoutKeyframes[0].LKeyframePresentationTime).TotalMilliseconds;
             return lScoutSpanMilliseconds / (lScoutKeyframes.Count - 1);
         }
-        catch (Exception lScoutException)
+        catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
             LRunner.LRunnerRecord($"Keyframe interval could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
             return null;
         }
     }
 
-    internal static long? LScoutInputRead(LWorkItem lScoutWorkItem)
+    internal static long? LScoutInputRead(LWorkItem lScoutWorkItem, CancellationToken lScoutToken = default)
     {
         if (lScoutWorkItem.LWorkMergeSources.Count > 1)
         {
