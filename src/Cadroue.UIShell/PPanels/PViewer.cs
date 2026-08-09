@@ -30,7 +30,7 @@ public sealed partial class PViewer : PPanel
     private readonly DispatcherTimer pViewerClockTimer;
     private volatile bool pPlayerAccurateActive;
     private volatile bool pPlayerRendererPending;
-    private Player? pViewerPlayer;
+    private readonly PPlayer pViewerPlayer = new();
     private LMediaInfo? pViewerMediaInfo;
     private Point? pViewerCropPoint;
     private bool pViewerCropArmed;
@@ -138,7 +138,7 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerPlay()
     {
-        if (!pViewerCommandActive || pViewerPlayer is null)
+        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
         {
             return;
         }
@@ -149,32 +149,32 @@ public sealed partial class PViewer : PPanel
         }
 
         pViewerResumeInactive = false;
-        pViewerPlayer.Play();
-        PViewerPlaybackUpdate(true, PPlayerTimeRead(pViewerPlayer));
+        pViewerPlayer.PPlayerPlay();
+        PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
         pViewerClockTimer.Start();
     }
 
     public void PViewerPause()
     {
-        if (!pViewerCommandActive || pViewerPlayer is null)
+        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
         {
             return;
         }
 
         pViewerResumeInactive = false;
-        pViewerPlayer.Pause();
-        PViewerPlaybackUpdate(false, PPlayerTimeRead(pViewerPlayer));
+        pViewerPlayer.PPlayerPause();
+        PViewerPlaybackUpdate(false, pViewerPlayer.PPlayerTimeRead());
         pViewerClockTimer.Stop();
     }
 
     public void PViewerSeek(TimeSpan playbackPosition)
     {
-        if (!pViewerCommandActive || pViewerPlayer is null)
+        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
         {
             return;
         }
 
-        PPlayerAccurateSeek(pViewerPlayer, playbackPosition);
+        PPlayerAccurateSeek(playbackPosition);
         PViewerPlaybackUpdate(null, playbackPosition);
     }
 
@@ -184,12 +184,12 @@ public sealed partial class PViewer : PPanel
         pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
         if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
             LPreference.LPreferenceVolumeSet(pViewerVolume);
-        if (pViewerPlayer is null)
+        if (!pViewerPlayer.PPlayerReady)
         {
             return;
         }
 
-        pViewerPlayer.Audio.Volume = (int)Math.Round(pViewerVolume);
+        pViewerPlayer.PPlayerVolumeSet(pViewerVolume);
     }
 
     public void PViewerAudioSet(bool pAudioOnlyAllowed)
@@ -302,8 +302,8 @@ public sealed partial class PViewer : PPanel
 
     private void PViewerPreviewApply()
     {
-        LPreview.LPreviewApply(pViewerPlayer, LPreviewStateCurrent);
-        PPlayerColorRecord(pViewerPlayer);
+        LPreview.LPreviewApply(pViewerPlayer.PPlayerFlyleafPlayer, LPreviewStateCurrent);
+        PPlayerColorRecord(pViewerPlayer.PPlayerFlyleafPlayer);
     }
 
     private void PViewerPreviewRestore()
@@ -312,7 +312,7 @@ public sealed partial class PViewer : PPanel
         LTraceLog.LTraceInfoRecord(
             $"Viewer preview restored: rotate {pViewerRotate.LRotateKind}, "
             + $"H {pViewerRotate.LRotateFlipHorizontal}, V {pViewerRotate.LRotateFlipVertical}");
-        LPreview.LPreviewRestore(pViewerPlayer, LPreviewStateCurrent);
+        LPreview.LPreviewRestore(pViewerPlayer.PPlayerFlyleafPlayer, LPreviewStateCurrent);
     }
 
     public TimeSpan PViewerDurationRead() => pViewerMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero;
@@ -324,7 +324,7 @@ public sealed partial class PViewer : PPanel
         LTraceLog.LTraceInfoRecord(
             $"Viewer rotate/flip set: rotate {pRotateFlip.LRotateKind}, "
             + $"H {pRotateFlip.LRotateFlipHorizontal}, V {pRotateFlip.LRotateFlipVertical}, "
-            + $"player {(pViewerPlayer is null ? "none" : "ready")}, "
+            + $"player {(pViewerPlayer.PPlayerReady ? "ready" : "none")}, "
             + $"{(pRotateChanged ? "rotation changed: crop hidden" : "rotation same: overlay kept")}");
         PViewerPreviewApply();
 

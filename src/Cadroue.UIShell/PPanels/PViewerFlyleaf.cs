@@ -21,9 +21,8 @@ public sealed partial class PViewer
 
     public bool PViewerColorPreview { get; set; }
 
-    private void PPlayerAccurateSeek(Player player, TimeSpan playbackPosition)
+    private void PPlayerAccurateSeek(TimeSpan playbackPosition)
     {
-        int pPlayerSeekMilliseconds = (int)playbackPosition.TotalMilliseconds;
         bool pPlayerWasRunning = pPlayerAccurateActive;
         pPlayerAccurateActive = true;
         LTrace.LTraceRecord(
@@ -32,7 +31,7 @@ public sealed partial class PViewer
             pPlayerWasRunning
                 ? "a seek was still running; queued for Flyleaf to conflate"
                 : "no seek was in flight");
-        player.SeekAccurate(pPlayerSeekMilliseconds);
+        pViewerPlayer.PPlayerSeek(playbackPosition);
     }
 
     private void PPlayerSeekHandle(object? sender, int seekMilliseconds)
@@ -158,7 +157,7 @@ public sealed partial class PViewer
         int loadSerial = ++pViewerLoadSerial;
         pViewerClockTimer.Stop();
         pViewerResumeInactive = false;
-        PPlayerPause(pViewerPlayer);
+        pViewerPlayer.PPlayerPause();
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
             return;
@@ -217,7 +216,7 @@ public sealed partial class PViewer
             return;
         }
 
-        Player? player = pViewerPlayer;
+        Player? player = pViewerPlayer.PPlayerFlyleafPlayer;
         bool pPlayerCreated = false;
         string? previewError = null;
         var pPlayerClock = System.Diagnostics.Stopwatch.StartNew();
@@ -245,7 +244,7 @@ public sealed partial class PViewer
 
             player.Audio.Volume = (int)Math.Round(pViewerVolume);
             double pPlayerBeforeOpen = pPlayerClock.Elapsed.TotalMilliseconds;
-            PPlayerOpen(player, sourcePath);
+            PPlayerFlyleafOpen(player, sourcePath);
             pPlayerRendererPending = true;
             LTrace.LTraceRecord(
                 LTraceKind.LTraceUi,
@@ -259,7 +258,7 @@ public sealed partial class PViewer
             previewError = exception.Message;
             if (pPlayerCreated)
             {
-                PPlayerDispose(player);
+                PPlayerFlyleafDispose(player);
             }
 
             player = null;
@@ -267,9 +266,9 @@ public sealed partial class PViewer
 
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
-            if (pPlayerCreated && !ReferenceEquals(player, pViewerPlayer))
+            if (pPlayerCreated && !ReferenceEquals(player, pViewerPlayer.PPlayerFlyleafPlayer))
             {
-                PPlayerDispose(player);
+                PPlayerFlyleafDispose(player);
             }
 
             return;
@@ -285,12 +284,29 @@ public sealed partial class PViewer
         PViewerMediaCommit(mediaStatus, player);
     }
 
-    private static void PPlayerOpen(Player player, string sourcePath)
+    private static void PPlayerFlyleafOpen(Player player, string sourcePath)
     {
         var openResult = player.Open(sourcePath);
         if (!openResult.Success)
         {
             throw new InvalidOperationException(openResult.Error ?? LLocalization.LLocalizationTextRead("Viewer.Error.FlyleafOpen"));
+        }
+    }
+
+    private static void PPlayerFlyleafDispose(Player? player)
+    {
+        if (player is null)
+        {
+            return;
+        }
+
+        try
+        {
+            player.Stop();
+            player.Dispose();
+        }
+        catch
+        {
         }
     }
 
@@ -339,7 +355,7 @@ public sealed partial class PViewer
     {
         PViewerMediaRecord(mediaStatus, player);
 
-        Player? pPlayerPrevious = pViewerPlayer;
+        Player? pPlayerPrevious = pViewerPlayer.PPlayerFlyleafPlayer;
         bool pPlayerReused = ReferenceEquals(pPlayerPrevious, player) && player is not null;
         pPlayerAccurateActive = false;
 
@@ -354,7 +370,6 @@ public sealed partial class PViewer
                 pPlayerPrevious.SeekCompleted -= PPlayerSeekHandle;
             }
 
-            pViewerPlayer = player;
             LTraceLog.LTraceInfoRecord(
                 $"Viewer player swapped: previous {(pPlayerPrevious is null ? "none" : "released")}, "
                 + $"next {(player is null ? "none" : "ready")}, "
@@ -362,7 +377,14 @@ public sealed partial class PViewer
 
             if (pViewerFlyleafHost is not null) pViewerFlyleafHost.Player = player;
             PPlayerHostRecord(player);
-            PPlayerDispose(pPlayerPrevious);
+            if (player is null)
+            {
+                pViewerPlayer.PPlayerDispose();
+            }
+            else
+            {
+                pViewerPlayer.PPlayerFlyleafSet(player);
+            }
         }
 
         PViewerHostShow(player is not null);
@@ -386,9 +408,9 @@ public sealed partial class PViewer
         if (LPreference.LPreferenceStateCurrent.LPreferenceAutoplay)
         {
             pViewerResumeInactive = false;
-            player.Play();
+            pViewerPlayer.PPlayerPlay();
             PViewerPreviewRestore();
-            PViewerPlaybackUpdate(true, PPlayerTimeRead(player));
+            PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
             pViewerClockTimer.Start();
         }
         else
@@ -432,26 +454,10 @@ public sealed partial class PViewer
         player.Seek(0);
     }
 
-    private static void PPlayerPause(Player? player)
-    {
-        if (player is null)
-        {
-            return;
-        }
-
-        try
-        {
-            player.Pause();
-        }
-        catch
-        {
-        }
-    }
-
     private void PPlayerSuspend()
     {
         pViewerClockTimer.Stop();
-        if (pViewerPlayer is null)
+        if (!pViewerPlayer.PPlayerReady)
         {
             pViewerResumeInactive = false;
             return;
@@ -463,12 +469,12 @@ public sealed partial class PViewer
             return;
         }
 
-        pViewerPlayer.Pause();
+        pViewerPlayer.PPlayerPause();
     }
 
     private void PPlayerResume()
     {
-        if (!pViewerResumeInactive || pViewerPlayer is null)
+        if (!pViewerResumeInactive || !pViewerPlayer.PPlayerReady)
         {
             pViewerResumeInactive = false;
             if (LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
@@ -479,8 +485,8 @@ public sealed partial class PViewer
         }
 
         pViewerResumeInactive = false;
-        pViewerPlayer.Play();
-        PViewerPlaybackUpdate(true, PPlayerTimeRead(pViewerPlayer));
+        pViewerPlayer.PPlayerPlay();
+        PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
         pViewerClockTimer.Start();
     }
 
@@ -497,12 +503,12 @@ public sealed partial class PViewer
 
     private void PViewerClockHandle(object? sender, EventArgs eventArgs)
     {
-        if (!pViewerCommandActive || pViewerPlayer is null)
+        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
         {
             return;
         }
 
-        TimeSpan playbackPosition = PPlayerTimeRead(pViewerPlayer);
+        TimeSpan playbackPosition = pViewerPlayer.PPlayerTimeRead();
         PViewerPlaybackUpdate(null, playbackPosition);
         PViewerClockTick?.Invoke(playbackPosition);
     }
@@ -515,43 +521,20 @@ public sealed partial class PViewer
             playbackPosition ?? playbackState.LPlaybackPosition));
     }
 
-    private static TimeSpan PPlayerTimeRead(Player player)
-    {
-        return TimeSpan.FromTicks(player.CurTime);
-    }
-
     private void PPlayerStopDispose()
     {
         pViewerClockTimer.Stop();
         pPlayerAccurateActive = false;
         pViewerResumeInactive = false;
         PViewerPlaybackUpdate(false, null);
-        if (pViewerPlayer is { } pPlayerClosing)
+        Player? pPlayerPrevious = pViewerPlayer.PPlayerFlyleafPlayer;
+        if (pPlayerPrevious is not null)
         {
-            pPlayerClosing.SeekCompleted -= PPlayerSeekHandle;
+            pPlayerPrevious.SeekCompleted -= PPlayerSeekHandle;
         }
 
-        Player? pPlayerPrevious = pViewerPlayer;
         if (pViewerFlyleafHost is not null) pViewerFlyleafHost.Player = null;
         LTraceLog.LTraceInfoRecord($"Viewer host detached: player {(pPlayerPrevious is null ? "none" : "released")}");
-        PPlayerDispose(pPlayerPrevious);
-        pViewerPlayer = null;
-    }
-
-    private static void PPlayerDispose(Player? player)
-    {
-        if (player is null)
-        {
-            return;
-        }
-
-        try
-        {
-            player.Stop();
-            player.Dispose();
-        }
-        catch
-        {
-        }
+        pViewerPlayer.PPlayerDispose();
     }
 }

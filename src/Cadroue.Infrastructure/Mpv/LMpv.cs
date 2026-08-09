@@ -16,6 +16,8 @@ public sealed partial class LMpv : IDisposable
     private const int LMpvEventEndFile = 7;
     private const int LMpvEventFileLoaded = 8;
 
+    private const int LMpvFormatDouble = 5;
+
     private static bool lMpvResolverActive;
     private static readonly object lMpvResolverGate = new();
 
@@ -131,6 +133,44 @@ public sealed partial class LMpv : IDisposable
     public void LMpvOpen(string lPath)
     {
         LMpvCommandRun("loadfile", lPath);
+    }
+
+    public void LMpvSeek(TimeSpan lPosition)
+    {
+        string lSeconds = lPosition.TotalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        LMpvCommandRun("seek", lSeconds, "absolute+exact");
+    }
+
+    public void LMpvStop()
+    {
+        LMpvCommandRun("stop");
+    }
+
+    public void LMpvDecodeInterrupt()
+    {
+        LMpvCommandRun("stop");
+    }
+
+    public void LMpvPlaySet(bool lPlaying)
+    {
+        LMpvPropertySet("pause", lPlaying ? "no" : "yes");
+    }
+
+    public void LMpvVolumeSet(double lVolume)
+    {
+        LMpvPropertySet("volume", lVolume.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    public TimeSpan LMpvTimeRead()
+    {
+        LMpvHandleGuard();
+        int lResult = LMpvNative.mpv_get_property(lMpvHandle, "time-pos", LMpvFormatDouble, out double lSeconds);
+        if (lResult < 0 || double.IsNaN(lSeconds) || lSeconds < 0)
+        {
+            return TimeSpan.Zero;
+        }
+
+        return TimeSpan.FromSeconds(lSeconds);
     }
 
     public static LMpvProbe LMpvCheck()
