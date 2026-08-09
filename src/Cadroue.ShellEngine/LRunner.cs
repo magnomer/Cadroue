@@ -102,17 +102,34 @@ public sealed partial class LRunner
 
             if (!lRunnerSuspended)
             {
-                lRunnerSuspended = true;
+                bool lRunnerLiveExisted = false;
+                bool lRunnerSuspendedAny = false;
                 foreach (KeyValuePair<Guid, Process> lRunnerEntry in lRunnerProcesses)
                 {
                     Process lRunnerProcess = lRunnerEntry.Value;
-                    if (lRunnerProcess.HasExited || !LRunnerProcessSuspend(lRunnerProcess))
+                    if (lRunnerProcess.HasExited)
                     {
                         continue;
                     }
 
+                    lRunnerLiveExisted = true;
+                    if (!LRunnerProcessSuspend(lRunnerProcess))
+                    {
+                        continue;
+                    }
+
+                    lRunnerSuspendedAny = true;
                     lRunnerItems.TryGetValue(lRunnerEntry.Key, out LWorkItem? lRunnerItem);
                     LRunnerMessageSet(lRunnerItem, "Suspended");
+                }
+
+                if (lRunnerSuspendedAny || !lRunnerLiveExisted)
+                {
+                    lRunnerSuspended = true;
+                }
+                else
+                {
+                    LRunnerRecord("Pause failed: no running process could be suspended; the queue keeps encoding");
                 }
             }
         }
