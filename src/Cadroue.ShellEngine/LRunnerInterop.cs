@@ -9,11 +9,18 @@ public sealed partial class LRunner
 {
     private void LRunnerProcessResume()
     {
+        bool lRunnerAllResumed = true;
         foreach (KeyValuePair<Guid, Process> lRunnerEntry in lRunnerProcesses)
         {
             Process pProcess = lRunnerEntry.Value;
-            if (pProcess.HasExited || !LRunnerProcessResume(pProcess))
+            if (pProcess.HasExited)
             {
+                continue;
+            }
+
+            if (!LRunnerProcessResume(pProcess))
+            {
+                lRunnerAllResumed = false;
                 continue;
             }
 
@@ -21,7 +28,14 @@ public sealed partial class LRunner
             LRunnerMessageSet(pWorkItem, string.Empty);
         }
 
-        lRunnerSuspended = false;
+        if (lRunnerAllResumed)
+        {
+            lRunnerSuspended = false;
+        }
+        else
+        {
+            LRunnerRecord("Resume failed: a live process stayed suspended; the paused flag is kept so the next Play retries the resume");
+        }
     }
 
     [DllImport("ntdll.dll", SetLastError = true)]
