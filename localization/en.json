@@ -551,7 +551,7 @@
   "Options.System.Maintenance": "{Terms.Maintenance}",
   "Options.System.AutoDelete": "Automatic cleanup",
   "Options.System.CleanupCheck": "Automatically delete old {Terms.Work} records",
-  "Options.System.CleanupDays": "Delete records older than",
+  "Options.System.CleanupDays": "Older than",
   "Options.System.CleanupUnit": " days",
   "Options.System.CleanupNotice": "Scheduled and running {Terms.Work} is never removed.",
   "Options.System.FFmpeg": "{Terms.FFmpeg}",
