@@ -164,24 +164,46 @@ public sealed partial class PViewer
             return;
         }
 
-        pViewerLoadPath = sourcePath;
-        LMediaProbe.LMediaProbeDefer(sourcePath);
+        try
+        {
+            pViewerLoadPath = System.IO.Path.GetFullPath(sourcePath);
+        }
+        catch (Exception pViewerPathException) when (pViewerPathException is ArgumentException or NotSupportedException)
+        {
+            pViewerLoadPath = sourcePath;
+        }
+        _ = pViewerMediaLoad.LMediaLoadAsync(sourcePath);
     }
 
-    private void PViewerProbeHandle(LMediaProbeResult result)
+    private void PViewerLoadHandle(LMediaLoadOutcome result)
     {
+        int loadSerial = pViewerLoadSerial;
         Dispatcher.BeginInvoke(() =>
         {
-            if (pViewerUnloaded || result.LMediaProbePath != pViewerLoadPath)
+            if (pViewerUnloaded
+                || loadSerial != pViewerLoadSerial
+                || !string.Equals(result.LMediaLoadPath, pViewerLoadPath, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
+            if (result.LMediaLoadKind != LMediaLoadKind.LMediaLoadSuccess)
+            {
+                PViewerMediaRaise(new LCargo(
+                    result.LMediaLoadPath,
+                    null,
+                    false,
+                    false,
+                    result.LMediaLoadError,
+                    null));
+                return;
+            }
+
             PPlayerMediaApply(
-                result.LMediaProbePath,
-                result.LMediaProbeInfo,
-                result.LMediaProbeError,
-                pViewerLoadSerial);
+                result.LMediaLoadPath,
+                result.LMediaLoadInfo,
+                null,
+                loadSerial);
         });
     }
 

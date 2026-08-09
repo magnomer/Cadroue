@@ -153,7 +153,8 @@ public sealed partial class PViewer
         {
             pViewerUnloaded = true;
             pViewerLoadSerial++;
-            LMediaProbe.LMediaProbeReady -= PViewerProbeHandle;
+            pViewerMediaLoad.LMediaLoadCompleted -= PViewerLoadHandle;
+            pViewerMediaLoad.Dispose();
             pViewerClockTimer.Tick -= PViewerClockHandle;
             pViewerOverlay.MouseLeftButtonDown -= PCropPressHandle;
             pViewerOverlay.MouseMove -= PCropMoveHandle;
@@ -175,13 +176,15 @@ public sealed partial class PViewer
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(PViewerSourcePath) && pViewerMediaInfo is null)
+        bool pViewerLoadClosed = pViewerMediaLoad.LMediaUnload();
+        if (!pViewerLoadClosed && string.IsNullOrWhiteSpace(PViewerSourcePath) && pViewerMediaInfo is null)
         {
             return false;
         }
 
         string pViewerClosedPath = PViewerSourcePath ?? string.Empty;
         pViewerLoadSerial++;
+        pViewerLoadPath = null;
         PViewerHostShow(false);
         PPlayerStopDispose();
         PViewerSourcePath = null;

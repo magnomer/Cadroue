@@ -47,6 +47,7 @@ public sealed partial class PViewer : PPanel
     private int pViewerAnchorY = -1;
     private int pViewerLoadSerial;
     private string? pViewerLoadPath;
+    private readonly LMediaLoad pViewerMediaLoad = new();
     private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private bool pViewerAudioAllowed;
     private bool pViewerCommandActive;
@@ -106,7 +107,7 @@ public sealed partial class PViewer : PPanel
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
-        LMediaProbe.LMediaProbeReady += PViewerProbeHandle;
+        pViewerMediaLoad.LMediaLoadCompleted += PViewerLoadHandle;
     }
 
     private Button PViewerCloseBuild()
