@@ -44,6 +44,11 @@ internal sealed class PPlayer
 
     public void PPlayerVolumeSet(double volume) => pPlayerActive?.PPlayerVolumeSet(volume);
 
+    public void PPlayerEqualizerSet(int brightness, int contrast, int saturation, int hue) =>
+        pPlayerActive?.PPlayerEqualizerSet(brightness, contrast, saturation, hue);
+
+    public void PPlayerFilterSet(string filterChain) => pPlayerActive?.PPlayerFilterSet(filterChain);
+
     public void PPlayerDecodeInterrupt() => pPlayerActive?.PPlayerDecodeInterrupt();
 
     public TimeSpan PPlayerTimeRead() => pPlayerActive?.PPlayerTimeRead() ?? TimeSpan.Zero;

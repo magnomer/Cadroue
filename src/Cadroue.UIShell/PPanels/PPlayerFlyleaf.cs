@@ -49,6 +49,14 @@ internal sealed class PPlayerFlyleaf : PPlayerEngine
         PPlayerFlyleafPlayer.Audio.Volume = (int)Math.Round(volume);
     }
 
+    public override void PPlayerEqualizerSet(int brightness, int contrast, int saturation, int hue)
+    {
+    }
+
+    public override void PPlayerFilterSet(string filterChain)
+    {
+    }
+
     public override void PPlayerDecodeInterrupt()
     {
         PPlayerFlyleafPlayer.Stop();

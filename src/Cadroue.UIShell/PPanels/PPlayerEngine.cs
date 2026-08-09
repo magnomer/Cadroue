@@ -16,6 +16,10 @@ internal abstract class PPlayerEngine : IDisposable
 
     public abstract void PPlayerVolumeSet(double volume);
 
+    public abstract void PPlayerEqualizerSet(int brightness, int contrast, int saturation, int hue);
+
+    public abstract void PPlayerFilterSet(string filterChain);
+
     public abstract void PPlayerDecodeInterrupt();
 
     public abstract TimeSpan PPlayerTimeRead();

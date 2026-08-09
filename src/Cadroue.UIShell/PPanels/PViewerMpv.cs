@@ -15,6 +15,46 @@ public sealed partial class PViewer
     private PViewerMpvHost? pViewerMpvHost;
     private bool pViewerMpvActive;
     private bool pViewerEngineSubscribed;
+    private string pViewerMpvFilter = string.Empty;
+
+    private void PViewerMpvPreviewApply()
+    {
+        if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady)
+        {
+            return;
+        }
+
+        LPreviewMpvEqualizer pViewerEqualizer = LPreview.LPreviewMpvEqualizerResolve(LPreviewStateCurrent);
+        pViewerPlayer.PPlayerEqualizerSet(
+            pViewerEqualizer.LPreviewBrightness,
+            pViewerEqualizer.LPreviewContrast,
+            pViewerEqualizer.LPreviewSaturation,
+            pViewerEqualizer.LPreviewHue);
+        PViewerMpvFilterApply(LPreview.LPreviewMpvFilterResolve(LPreviewStateCurrent));
+    }
+
+    private void PViewerMpvCropLive()
+    {
+        if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady)
+        {
+            return;
+        }
+
+        LCropbox? pViewerLive = PViewerCropboxRead(PCropVideoRead());
+        PViewerMpvFilterApply(LPreview.LPreviewMpvFilterResolve(
+            LPreviewStateCurrent.LCropboxChange(pViewerLive)));
+    }
+
+    private void PViewerMpvFilterApply(string pViewerFilter)
+    {
+        if (pViewerFilter == pViewerMpvFilter)
+        {
+            return;
+        }
+
+        pViewerMpvFilter = pViewerFilter;
+        pViewerPlayer.PPlayerFilterSet(pViewerFilter);
+    }
 
     public bool PViewerEditEligible { get; set; }
 
@@ -93,6 +133,7 @@ public sealed partial class PViewer
 
         Content = pViewerSurface;
         pViewerMpvActive = true;
+        pViewerMpvFilter = string.Empty;
     }
 
     private void PViewerOverlayDetach()
@@ -196,6 +237,8 @@ public sealed partial class PViewer
             return;
         }
 
+        PViewerMpvPreviewApply();
+
         if (LPreference.LPreferenceStateCurrent.LPreferenceAutoplay)
         {
             pViewerResumeInactive = false;
@@ -246,5 +289,6 @@ public sealed partial class PViewer
 
         pViewerMpvHost = null;
         pViewerMpvActive = false;
+        pViewerMpvFilter = string.Empty;
     }
 }

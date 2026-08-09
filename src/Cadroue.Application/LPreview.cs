@@ -12,6 +12,12 @@ public sealed record LPreviewApplication(
     bool LPreviewFlipVertical,
     string LPreviewReason);
 
+public sealed record LPreviewMpvEqualizer(
+    int LPreviewBrightness,
+    int LPreviewContrast,
+    int LPreviewSaturation,
+    int LPreviewHue);
+
 public static class LPreview
 {
     public const double LPreviewBrightnessFactor = 2.5;
@@ -49,6 +55,57 @@ public static class LPreview
         }
 
         LPreviewApplySeam?.Invoke(lPreviewTarget, LPreviewApplicationResolve(lPreviewState, "preview restored"));
+    }
+
+    public static LPreviewMpvEqualizer LPreviewMpvEqualizerResolve(LPreviewState lPreviewState)
+    {
+        LColor lColor = lPreviewState.LColor;
+        double lFfmpegBrightness = lColor.LColorBrightness / LPreviewBrightnessFactor;
+        return new LPreviewMpvEqualizer(
+            LPreviewValueClamp(lFfmpegBrightness * 100, -100, 100),
+            LPreviewValueClamp((lColor.LColorContrast - 1) * 100, -100, 100),
+            LPreviewValueClamp((lColor.LColorSaturation - 1) * 100, -100, 100),
+            LPreviewValueClamp(lColor.LColorHue / 180 * 100, -100, 100));
+    }
+
+    public static string LPreviewMpvFilterResolve(LPreviewState lPreviewState)
+    {
+        var lFilters = new List<string>();
+        LRotateFlip lRotateFlip = lPreviewState.LRotateFlip;
+
+        if (lRotateFlip.LRotateFlipHorizontal)
+        {
+            lFilters.Add("hflip");
+        }
+
+        if (lRotateFlip.LRotateFlipVertical)
+        {
+            lFilters.Add("vflip");
+        }
+
+        string? lRotate = lRotateFlip.LRotateKind switch
+        {
+            LRotateKind.LRotate90 => "transpose=1",
+            LRotateKind.LRotate180 => "transpose=1,transpose=1",
+            LRotateKind.LRotate270 => "transpose=2",
+            _ => null
+        };
+
+        if (lRotate is not null)
+        {
+            lFilters.Add(lRotate);
+        }
+
+        if (lPreviewState.LCropbox is { LCropboxWidth: > 0, LCropboxHeight: > 0 } lCropbox)
+        {
+            int lCropWidth = (int)Math.Round(lCropbox.LCropboxWidth);
+            int lCropHeight = (int)Math.Round(lCropbox.LCropboxHeight);
+            int lCropX = (int)Math.Round(lCropbox.LCropboxX);
+            int lCropY = (int)Math.Round(lCropbox.LCropboxY);
+            lFilters.Add($"crop={lCropWidth}:{lCropHeight}:{lCropX}:{lCropY}");
+        }
+
+        return string.Join(',', lFilters);
     }
 
     private static LPreviewApplication LPreviewApplicationResolve(LPreviewState lPreviewState, string lPreviewReason)

@@ -302,6 +302,12 @@ public sealed partial class PViewer : PPanel
 
     private void PViewerPreviewApply()
     {
+        if (pViewerMpvActive)
+        {
+            PViewerMpvPreviewApply();
+            return;
+        }
+
         LPreview.LPreviewApply(pViewerPlayer.PPlayerFlyleafPlayer, LPreviewStateCurrent);
         PPlayerColorRecord(pViewerPlayer.PPlayerFlyleafPlayer);
     }

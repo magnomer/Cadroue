@@ -167,6 +167,19 @@ public sealed partial class LMpv : IDisposable
         LMpvPropertySet("volume", lVolume.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
+    public void LMpvEqualizerSet(int lBrightness, int lContrast, int lSaturation, int lHue)
+    {
+        LMpvPropertySet("brightness", lBrightness.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        LMpvPropertySet("contrast", lContrast.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        LMpvPropertySet("saturation", lSaturation.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        LMpvPropertySet("hue", lHue.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    public void LMpvFilterSet(string lFilterChain)
+    {
+        LMpvPropertySet("vf", lFilterChain ?? string.Empty);
+    }
+
     public TimeSpan LMpvTimeRead()
     {
         LMpvHandleGuard();

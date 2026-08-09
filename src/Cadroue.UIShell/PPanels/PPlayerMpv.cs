@@ -52,6 +52,16 @@ internal sealed class PPlayerMpv : PPlayerEngine
         pPlayerMpvLibrary.LMpvVolumeSet(volume);
     }
 
+    public override void PPlayerEqualizerSet(int brightness, int contrast, int saturation, int hue)
+    {
+        pPlayerMpvLibrary.LMpvEqualizerSet(brightness, contrast, saturation, hue);
+    }
+
+    public override void PPlayerFilterSet(string filterChain)
+    {
+        pPlayerMpvLibrary.LMpvFilterSet(filterChain);
+    }
+
     public override void PPlayerDecodeInterrupt()
     {
         pPlayerMpvLibrary.LMpvDecodeInterrupt();
