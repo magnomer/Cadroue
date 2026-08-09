@@ -93,7 +93,7 @@ public sealed partial class LRunner
 
             if (!lRunnerSuspended)
             {
-                bool lRunnerAnySuspended = false;
+                lRunnerSuspended = true;
                 foreach (KeyValuePair<Guid, Process> lRunnerEntry in lRunnerProcesses)
                 {
                     Process lRunnerProcess = lRunnerEntry.Value;
@@ -102,14 +102,8 @@ public sealed partial class LRunner
                         continue;
                     }
 
-                    lRunnerAnySuspended = true;
                     lRunnerItems.TryGetValue(lRunnerEntry.Key, out LWorkItem? lRunnerItem);
                     LRunnerMessageSet(lRunnerItem, "Suspended");
-                }
-
-                if (lRunnerAnySuspended)
-                {
-                    lRunnerSuspended = true;
                 }
             }
         }
@@ -163,6 +157,11 @@ public sealed partial class LRunner
             if (lRunnerToken.IsCancellationRequested || lRunnerCancelled.ContainsKey(lWorkId))
             {
                 LRunnerProcessKill(lRunnerProcess);
+            }
+            else if (lRunnerSuspended && !lRunnerProcess.HasExited && LRunnerProcessSuspend(lRunnerProcess))
+            {
+                lRunnerItems.TryGetValue(lWorkId, out LWorkItem? lRunnerItem);
+                LRunnerMessageSet(lRunnerItem, "Suspended");
             }
         }
     }
