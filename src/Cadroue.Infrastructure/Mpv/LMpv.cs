@@ -6,7 +6,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed class LMpv : IDisposable
+public sealed partial class LMpv : IDisposable
 {
     private const string LMpvLibraryFile = "libmpv-2.dll";
     private const string LMpvProbeSource = "av://lavfi:testsrc=d=1:s=64x64";
