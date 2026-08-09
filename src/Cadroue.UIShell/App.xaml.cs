@@ -200,6 +200,7 @@ public partial class PProgram : System.Windows.Application
         LRetentionSweepStart();
         LScheduleRecoverRun();
         LRenderer.LRendererFlyleafStart();
+        Cadroue.Infrastructure.LRenderer.LRendererEngineStart();
         LRelayStore.LRelayStaleClear();
         LRelayChannel.LRelayChannelStart();
 
