@@ -14,6 +14,7 @@ public static class LScene
     private const string LSceneFileName = "LScenePresets.json";
     private const string LSceneStateName = "session.json";
     private static readonly List<LSceneRecord> lSceneRecords = LSceneLoad();
+    private static string? lSceneRoot;
 
     public static LSceneRecord LSceneCurrent { get; private set; } = new();
 
@@ -28,12 +29,18 @@ public static class LScene
     public static void LSceneActiveSet(string lSceneActiveName) =>
         LSceneActiveName = lSceneActiveName ?? string.Empty;
 
+    internal static void LSceneRootSet(string? lSceneRootPath)
+    {
+        lSceneRoot = lSceneRootPath;
+        lSceneRecords.Clear();
+        lSceneRecords.AddRange(LSceneLoad());
+        LSceneCurrent = new LSceneRecord();
+        LSceneActiveName = string.Empty;
+    }
+
     public static LSceneRecord LSceneStateLoad()
     {
-        string lScenePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            LSceneFolderName,
-            LSceneStateName);
+        string lScenePath = Path.Combine(LSceneFolderRead(), LSceneStateName);
         if (!File.Exists(lScenePath))
         {
             return new LSceneRecord();
@@ -53,10 +60,7 @@ public static class LScene
     {
         try
         {
-            string lScenePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                LSceneFolderName,
-                LSceneStateName);
+            string lScenePath = Path.Combine(LSceneFolderRead(), LSceneStateName);
             string? lSceneFolder = Path.GetDirectoryName(lScenePath);
             if (!string.IsNullOrWhiteSpace(lSceneFolder))
             {
@@ -183,8 +187,10 @@ public static class LScene
     }
 
     private static string LScenePathCreate() =>
-        Path.Combine(
+        Path.Combine(LSceneFolderRead(), LSceneFileName);
+
+    private static string LSceneFolderRead() =>
+        lSceneRoot ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            LSceneFolderName,
-            LSceneFileName);
+            LSceneFolderName);
 }
