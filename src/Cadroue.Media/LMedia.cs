@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 using Cadroue.Core;
 
@@ -26,8 +27,10 @@ public static class LMedia
             || LMediaAudioExtensions.Contains(lMediaExtension, StringComparer.OrdinalIgnoreCase);
     }
 
-    public static LMediaInfo LMediaFfprobeRead(string sourcePath)
+    public static LMediaInfo LMediaFfprobeRead(string sourcePath, CancellationToken lMediaToken = default)
     {
+        lMediaToken.ThrowIfCancellationRequested();
+
         var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
         {
             RedirectStandardOutput = true,
@@ -51,9 +54,17 @@ public static class LMedia
         using (var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started."))
         {
             LCustody.LCustodyAttach(process);
-            Task<string> jsonTask = process.StandardOutput.ReadToEndAsync();
-            Task<string> errorTask = process.StandardError.ReadToEndAsync();
-            process.WaitForExit();
+            Task<string> jsonTask = process.StandardOutput.ReadToEndAsync(lMediaToken);
+            Task<string> errorTask = process.StandardError.ReadToEndAsync(lMediaToken);
+            try
+            {
+                process.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException)
+            {
+                process.Kill(entireProcessTree: true);
+                throw;
+            }
             json = jsonTask.GetAwaiter().GetResult();
             errorText = errorTask.GetAwaiter().GetResult();
             exitCode = process.ExitCode;
@@ -79,8 +90,10 @@ public static class LMedia
         }
     }
 
-    public static double? LMediaLoudnessRead(string sourcePath)
+    public static double? LMediaLoudnessRead(string sourcePath, CancellationToken lMediaToken = default)
     {
+        lMediaToken.ThrowIfCancellationRequested();
+
         if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
         {
             return null;
@@ -114,9 +127,17 @@ public static class LMedia
             }
 
             LCustody.LCustodyAttach(process);
-            Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
-            Task<string> errorTask = process.StandardError.ReadToEndAsync();
-            process.WaitForExit();
+            Task<string> outputTask = process.StandardOutput.ReadToEndAsync(lMediaToken);
+            Task<string> errorTask = process.StandardError.ReadToEndAsync(lMediaToken);
+            try
+            {
+                process.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException)
+            {
+                process.Kill(entireProcessTree: true);
+                throw;
+            }
             _ = outputTask.GetAwaiter().GetResult();
             return LMediaLoudnessParse(errorTask.GetAwaiter().GetResult());
         }
