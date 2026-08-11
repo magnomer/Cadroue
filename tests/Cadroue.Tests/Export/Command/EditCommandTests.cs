@@ -154,7 +154,7 @@ public sealed class EditCommandTests
     {
         using var environment = new TEncodeCommand();
         LWorkVideo video = TInterface.EditVideoCreate(
-            new[] { TInterface.WorkGammaCreate(true, 50) }, gammaCapable: false);
+            new[] { TInterface.WorkGammaCreate(true, 50) }, mpvOnlyCapable: false);
         LWorkItem work = TEncodeCommand.WorkCreate(
             LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4",
             TEncodeCommand.OutputCreate(videoMode: "Copy", audioMode: "Copy"),
@@ -300,7 +300,7 @@ public sealed class EditCommandTests
         {
             TInterface.WorkWhitebalanceCreate(
                 true, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 175)
-        }, gammaCapable: false);
+        }, mpvOnlyCapable: false);
         LWorkItem work = TEncodeCommand.WorkCreate(
             LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4",
             TEncodeCommand.OutputCreate(videoMode: "Copy", audioMode: "Copy"),

@@ -278,4 +278,94 @@ public sealed class PreviewColorTests
             typeof(LPreviewApplication).GetProperties(),
             property => property.Name.Contains("Gamma", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void ColorResolve_ActiveWhitebalanceCarriesSettingsAndInactiveIsNeutral()
+    {
+        LColor active = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkWhitebalanceCreate(true, LWhitebalanceMethod.LWhitebalanceMethodAverage, 137.5)
+        ]));
+        LColor inactive = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkWhitebalanceCreate(false, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 250)
+        ]));
+
+        Assert.NotNull(active.LColorWhitebalance);
+        Assert.Equal(LWhitebalanceMethod.LWhitebalanceMethodAverage,
+            active.LColorWhitebalance!.LWorkWhitebalanceMethod);
+        Assert.Equal(137.5, active.LColorWhitebalance.LWorkWhitebalanceSaturation);
+        Assert.Null(inactive.LColorWhitebalance);
+    }
+
+    [Theory]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodAverage, "average")]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodMinmax, "minmax")]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodMedian, "median")]
+    public void MpvFilterResolve_WhitebalanceFormatsEveryMethodToken(
+        LWhitebalanceMethod method, string token)
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkWhitebalanceCreate(true, method, 137.5)
+        ]));
+        LPreviewState state = TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color);
+
+        Assert.Equal(
+            $"lavfi=[colorcorrect=analyze={token}:saturation=1.375]",
+            TInterface.PreviewMpvFilterResolve(state));
+    }
+
+    [Theory]
+    [InlineData(0, "0")]
+    [InlineData(100, "1")]
+    [InlineData(123.4567, "1.235")]
+    [InlineData(300, "3")]
+    public void MpvFilterResolve_WhitebalanceUsesCompactInvariantSaturation(
+        double saturation, string expected)
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkWhitebalanceCreate(
+                true, LWhitebalanceMethod.LWhitebalanceMethodMedian, saturation)
+        ]));
+        LPreviewState state = TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color);
+
+        Assert.EndsWith($":saturation={expected}]", TInterface.PreviewMpvFilterResolve(state));
+    }
+
+    [Fact]
+    public void MpvFilterResolve_GeometryGammaWhitebalancePreservesExportOrder()
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkGammaCreate(true, 20, 10, 0, 0, 25),
+            TInterface.WorkWhitebalanceCreate(
+                true, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 125)
+        ]));
+        LPreviewState state = TInterface.PreviewRotateFlipChange(
+            TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color),
+            TInterface.RotateFlipCreate(LRotateKind.LRotate90, true, false));
+        state = TInterface.PreviewCropboxChange(state, TInterface.CropboxCreate(10, 20, 300, 200));
+
+        string filter = TInterface.PreviewMpvFilterResolve(state);
+        Assert.True(filter.IndexOf("crop=", StringComparison.Ordinal) < filter.IndexOf("lutyuv=", StringComparison.Ordinal));
+        Assert.True(filter.IndexOf("lutyuv=", StringComparison.Ordinal) < filter.IndexOf("colorcorrect=", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void WhitebalanceTransition_MpvToFlyleafToMpv_RemovesAndRestoresFilter()
+    {
+        LWorkVideoStep whitebalance = TInterface.WorkWhitebalanceCreate(
+            true, LWhitebalanceMethod.LWhitebalanceMethodAverage, 175);
+        LWorkVideo mpv = TInterface.EditVideoCreate([whitebalance], true);
+        LWorkVideo flyleaf = TInterface.EditVideoCreate([whitebalance], false);
+
+        string firstMpv = TInterface.PreviewMpvFilterResolve(TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(), TInterface.PreviewColorResolve(mpv)));
+        string flyleafFilter = TInterface.PreviewMpvFilterResolve(TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(), TInterface.PreviewColorResolve(flyleaf)));
+        string secondMpv = TInterface.PreviewMpvFilterResolve(TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(), TInterface.PreviewColorResolve(mpv)));
+
+        Assert.Equal("lavfi=[colorcorrect=analyze=average:saturation=1.75]", firstMpv);
+        Assert.Empty(flyleafFilter);
+        Assert.Equal(firstMpv, secondMpv);
+        Assert.Equal(175, TInterface.WorkWhitebalanceRead(whitebalance).LWorkWhitebalanceSaturation);
+    }
 }

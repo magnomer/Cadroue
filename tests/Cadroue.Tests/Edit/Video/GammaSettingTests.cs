@@ -22,17 +22,26 @@ public sealed class GammaSettingTests
     }
 
     [Fact]
-    public void Gamma_Capability_GatesEffectiveWorkWithoutChangingStoredStep()
+    public void MpvOnlyCapability_GatesGammaAndWhitebalanceWithoutChangingStoredSteps()
     {
         LWorkVideoStep gamma = TInterface.WorkGammaCreate(true, 50);
+        LWorkVideoStep whitebalance = TInterface.WorkWhitebalanceCreate(
+            true, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 137.5);
+        LWorkVideoStep brightness = TInterface.WorkBrightnessCreate(true, 25);
+        LWorkVideoStep contrast = TInterface.WorkContrastCreate(true, 125);
+        LWorkVideoStep[] stored = [brightness, gamma, whitebalance, contrast];
 
-        LWorkVideo mpv = TInterface.EditVideoCreate(new[] { gamma }, true);
-        LWorkVideo flyleaf = TInterface.EditVideoCreate(new[] { gamma }, false);
+        LWorkVideo mpv = TInterface.EditVideoCreate(stored, true);
+        LWorkVideo flyleaf = TInterface.EditVideoCreate(stored, false);
 
-        Assert.Same(gamma, Assert.Single(mpv.LWorkVideoSteps));
-        Assert.Empty(flyleaf.LWorkVideoSteps);
+        Assert.Equal(stored, mpv.LWorkVideoSteps);
+        Assert.Equal([brightness, contrast], flyleaf.LWorkVideoSteps);
         Assert.True(gamma.LWorkStepActive);
         Assert.Equal(50, gamma.LWorkStepValue);
+        Assert.True(whitebalance.LWorkStepActive);
+        Assert.Equal(LWhitebalanceMethod.LWhitebalanceMethodMinmax,
+            TInterface.WorkWhitebalanceRead(whitebalance).LWorkWhitebalanceMethod);
+        Assert.Equal(137.5, TInterface.WorkWhitebalanceRead(whitebalance).LWorkWhitebalanceSaturation);
     }
 
     [Fact]

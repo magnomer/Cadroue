@@ -40,13 +40,17 @@ public static class LPreview
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindGamma
                 && lStep.LWorkStepActive);
         LWorkGammaSettings? lGamma = lGammaStep?.LWorkGammaRead();
+        LWorkVideoStep? lWhitebalanceStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindWhitebalance
+                && lStep.LWorkStepActive);
         return new LColor(lBrightness, lContrast, 1, 0)
         {
             LColorGamma = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGlobal),
             LColorGammaRed = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaRed),
             LColorGammaGreen = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGreen),
             LColorGammaBlue = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaBlue),
-            LColorGammaHighlightProtection = lGamma?.LWorkGammaHighlightProtection ?? 0
+            LColorGammaHighlightProtection = lGamma?.LWorkGammaHighlightProtection ?? 0,
+            LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead()
         };
     }
 
@@ -143,6 +147,19 @@ public static class LPreview
                     lGammaWeight));
         }
 
+        if (lColor.LColorWhitebalance is { } lWhitebalance)
+        {
+            string lMethod = lWhitebalance.LWorkWhitebalanceMethod switch
+            {
+                LWhitebalanceMethod.LWhitebalanceMethodAverage => "average",
+                LWhitebalanceMethod.LWhitebalanceMethodMinmax => "minmax",
+                _ => "median"
+            };
+            string lSaturation = (lWhitebalance.LWorkWhitebalanceSaturation / 100d)
+                .ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+            lFilters.Add($"colorcorrect=analyze={lMethod}:saturation={lSaturation}");
+        }
+
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;
     }
 
@@ -183,12 +200,12 @@ public static class LPreview
 
     private static string LPreviewGammaLutExpression(double lGamma, double lGammaWeight)
     {
-        string lLinearWeight = LPreviewGammaFormat(1 - lGammaWeight);
-        string lCurveWeight = LPreviewGammaFormat(lGammaWeight);
-        string lExponent = LPreviewGammaFormat(1 / lGamma);
+        string lLinearWeight = LPreviewNumberFormat(1 - lGammaWeight);
+        string lCurveWeight = LPreviewNumberFormat(lGammaWeight);
+        string lExponent = LPreviewNumberFormat(1 / lGamma);
         return $"'val*{lLinearWeight}+maxval*pow(val/maxval\\,{lExponent})*{lCurveWeight}'";
     }
 
-    private static string LPreviewGammaFormat(double lValue) =>
+    private static string LPreviewNumberFormat(double lValue) =>
         lValue.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture);
 }

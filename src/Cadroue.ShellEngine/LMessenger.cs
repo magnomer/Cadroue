@@ -404,7 +404,7 @@ public static class LMessenger
         Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default,
-        bool lMessengerGammaCapable = true)
+        bool lMessengerMpvOnlyCapable = true)
     {
         if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
         {
@@ -434,7 +434,7 @@ public static class LMessenger
                 lMessengerPlan.LEditSkip
                     ? LWorkVideo.LWorkVideoCreate()
                     : Cadroue.Application.LEdit.LEditVideoCreate(
-                        lMessengerPlan.LEditVideo.LWorkVideoSteps, lMessengerGammaCapable),
+                        lMessengerPlan.LEditVideo.LWorkVideoSteps, lMessengerMpvOnlyCapable),
                 lMessengerOutput,
                 lMessengerBatch));
         }

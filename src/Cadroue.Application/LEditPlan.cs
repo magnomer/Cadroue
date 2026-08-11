@@ -21,8 +21,8 @@ public static partial class LEdit
 {
     public static LWorkVideo LEditVideoCreate(
         IReadOnlyList<LWorkVideoStep> lEditSteps,
-        bool lEditGammaCapable) =>
-        new(lEditGammaCapable
+        bool lEditMpvOnlyCapable) =>
+        new(lEditMpvOnlyCapable
             ? lEditSteps
             : lEditSteps.Where(lStep =>
                 lStep.LWorkStepKind is not (LColorKind.LColorKindGamma or LColorKind.LColorKindWhitebalance)).ToArray());
