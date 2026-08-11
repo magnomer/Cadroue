@@ -166,4 +166,150 @@ public sealed class EditCommandTests
         Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
         Assert.DoesNotContain("-vf", tokens);
     }
+
+    [Theory]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodAverage, 100, "colorcorrect=analyze=average:saturation=1")]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodMinmax, 0, "colorcorrect=analyze=minmax:saturation=0")]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodMedian, 300, "colorcorrect=analyze=median:saturation=3")]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodMedian, 123.75, "colorcorrect=analyze=median:saturation=1.238")]
+    public void ActiveWhitebalance_EmitsExactCompactInvariantFilter(
+        LWhitebalanceMethod method, double saturation, string expected)
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkWhitebalanceCreate(true, method, saturation)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+            end: TimeSpan.FromMinutes(1), video: video);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+        Assert.Equal(1, CommandTokens.Count(tokens, "-vf"));
+        Assert.Equal(expected, CommandTokens.ValueAfter(tokens, "-vf"));
+        Assert.DoesNotContain(',', CommandTokens.ValueAfter(tokens, "-vf"));
+    }
+
+    [Fact]
+    public void Whitebalance_UsesInvariantDecimalFormatting()
+    {
+        using var environment = new TEncodeCommand();
+        System.Globalization.CultureInfo originalCulture =
+            System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture =
+                System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+            LWorkVideo video = TInterface.WorkVideoCreate(new[]
+            {
+                TInterface.WorkWhitebalanceCreate(
+                    true, LWhitebalanceMethod.LWhitebalanceMethodAverage, 125)
+            });
+            LWorkItem work = TEncodeCommand.WorkCreate(
+                LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+                end: TimeSpan.FromMinutes(1), video: video);
+
+            IReadOnlyList<string> tokens = CommandTokens.Read(
+                Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+            Assert.Equal(
+                "colorcorrect=analyze=average:saturation=1.25",
+                CommandTokens.ValueAfter(tokens, "-vf"));
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Fact]
+    public void InactiveWhitebalance_OmitsFilterAndPreservesVideoCopy()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkWhitebalanceCreate(
+                false, LWhitebalanceMethod.LWhitebalanceMethodAverage, 150)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4",
+            TEncodeCommand.OutputCreate(videoMode: "Copy", audioMode: "Copy"),
+            end: TimeSpan.FromMinutes(1), video: video);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.DoesNotContain("-vf", tokens);
+    }
+
+    [Fact]
+    public void NeutralWhitebalance_ForcesEncoding()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkWhitebalanceCreate(
+                true, LWhitebalanceMethod.LWhitebalanceMethodMedian, 100)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4",
+            TEncodeCommand.OutputCreate(videoMode: "Copy", audioMode: "Copy"),
+            end: TimeSpan.FromMinutes(1), video: video);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+        Assert.NotEqual("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.Equal(
+            "colorcorrect=analyze=median:saturation=1",
+            CommandTokens.ValueAfter(tokens, "-vf"));
+    }
+
+    [Fact]
+    public void GammaAndWhitebalance_PreserveOrderInSeparateFilterSegments()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkGammaCreate(true, 50),
+            TInterface.WorkWhitebalanceCreate(
+                true, LWhitebalanceMethod.LWhitebalanceMethodAverage, 125),
+            TInterface.WorkContrastCreate(true, 150)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+            end: TimeSpan.FromMinutes(1), video: video);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+        Assert.Equal(1, CommandTokens.Count(tokens, "-vf"));
+        Assert.Equal(
+            "eq=gamma=3.162,colorcorrect=analyze=average:saturation=1.25,eq=contrast=1.5",
+            CommandTokens.ValueAfter(tokens, "-vf"));
+    }
+
+    [Fact]
+    public void FlyleafGatedWhitebalance_OmitsFilterAndPreservesVideoCopy()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo video = TInterface.EditVideoCreate(new[]
+        {
+            TInterface.WorkWhitebalanceCreate(
+                true, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 175)
+        }, gammaCapable: false);
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4",
+            TEncodeCommand.OutputCreate(videoMode: "Copy", audioMode: "Copy"),
+            end: TimeSpan.FromMinutes(1), video: video);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.DoesNotContain("-vf", tokens);
+    }
 }

@@ -24,7 +24,8 @@ public static partial class LEdit
         bool lEditGammaCapable) =>
         new(lEditGammaCapable
             ? lEditSteps
-            : lEditSteps.Where(lStep => lStep.LWorkStepKind != LColorKind.LColorKindGamma).ToArray());
+            : lEditSteps.Where(lStep =>
+                lStep.LWorkStepKind is not (LColorKind.LColorKindGamma or LColorKind.LColorKindWhitebalance)).ToArray());
 
     public static LEditPlan LEditPlanResolve(LEditPlan? lEditSaved, LEditPlan? lEditPersistent)
     {

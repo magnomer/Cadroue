@@ -238,6 +238,19 @@ internal static class LEncodeVideo
                         lEqParts.Add($"gamma_weight={LEncodeGammaFormat(1d - lGamma.LWorkGammaHighlightProtection / 100d)}");
                     }
                     break;
+                case LColorKind.LColorKindWhitebalance:
+                    lEqFlush();
+                    LWorkWhitebalanceSettings lWhitebalance = lStep.LWorkWhitebalanceRead();
+                    string lAnalyze = lWhitebalance.LWorkWhitebalanceMethod switch
+                    {
+                        LWhitebalanceMethod.LWhitebalanceMethodAverage => "average",
+                        LWhitebalanceMethod.LWhitebalanceMethodMinmax => "minmax",
+                        _ => "median"
+                    };
+                    string lSaturation = (lWhitebalance.LWorkWhitebalanceSaturation / 100d)
+                        .ToString("0.###", CultureInfo.InvariantCulture);
+                    lFilters.Add($"colorcorrect=analyze={lAnalyze}:saturation={lSaturation}");
+                    break;
                 default:
                     lEqFlush();
                     break;
