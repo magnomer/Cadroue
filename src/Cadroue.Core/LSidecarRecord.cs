@@ -43,6 +43,10 @@ public sealed class LSidecarVideoStep
     public double? LSidecarGammaBlue { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? LSidecarGammaHighlightProtection { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public LWhitebalanceMethod? LSidecarWhitebalanceMethod { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? LSidecarWhitebalanceSaturation { get; set; }
 }
 
 public sealed class LSidecarAudioStep

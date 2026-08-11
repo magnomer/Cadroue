@@ -34,6 +34,7 @@ public sealed record LColor(
         "Contrast" => LColorKind.LColorKindContrast,
         "Brightness" => LColorKind.LColorKindBrightness,
         "Gamma" => LColorKind.LColorKindGamma,
+        "Whitebalance" => LColorKind.LColorKindWhitebalance,
         _ => null
     };
 
@@ -41,6 +42,7 @@ public sealed record LColor(
     {
         LColorKind.LColorKindContrast => "Contrast",
         LColorKind.LColorKindGamma => "Gamma",
+        LColorKind.LColorKindWhitebalance => "Whitebalance",
         _ => "Brightness"
     };
 }

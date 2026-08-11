@@ -130,6 +130,8 @@ internal static class TInterface
     internal static LColorKind? ColorKindParse(string token) => LColor.LColorKindParse(token);
     internal static string ColorKindFormat(LColorKind kind) => LColor.LColorKindFormat(kind);
     internal static LEditPlan EditPersistentRead(LSidecarEditRecord record) => LEdit.LEditPersistentRead(record);
+    internal static LEditPlan EditPlanResolve(LEditPlan? saved, LEditPlan? persistent) =>
+        LEdit.LEditPlanResolve(saved, persistent);
     internal static LEditPlan EditPlanCreate(LWorkCrop crop, LWorkVideo video, bool cropApply) =>
         new(crop, video, cropApply);
     internal static LSidecarEditRecord EditPersistentCreate(LEditPlan plan) => LEdit.LEditPersistentCreate(plan);
@@ -194,6 +196,17 @@ internal static class TInterface
     internal static LWorkVideoStep WorkGammaCreate(
         bool active, double global, double red, double green, double blue, double protection) =>
         LWorkVideoStep.LWorkGammaCreate(active, global, red, green, blue, protection);
+    internal static LWorkVideoStep WorkWhitebalanceCreate(
+        bool active, LWhitebalanceMethod method, double saturation) =>
+        LWorkVideoStep.LWorkWhitebalanceCreate(active, method, saturation);
+    internal static LWorkWhitebalanceSettings WorkWhitebalanceRead(LWorkVideoStep step) =>
+        step.LWorkWhitebalanceRead();
+    internal static LWorkVideoStep WorkWhitebalanceMalformedCreate(
+        LWhitebalanceMethod method, double value, double saturation) =>
+        new(LColorKind.LColorKindWhitebalance, true, value)
+        {
+            LWorkStepWhitebalance = new LWorkWhitebalanceSettings(method, saturation)
+        };
     internal static string WorkVideoStepDiagnosticRead(LWorkVideoStep step) => step.LWorkDiagnosticRead();
     internal static LWorkItem? WorkRecordRoundTrip(LWorkItem work)
     {

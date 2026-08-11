@@ -43,7 +43,15 @@ public enum LColorKind
 {
     LColorKindBrightness,
     LColorKindContrast,
-    LColorKindGamma
+    LColorKindGamma,
+    LColorKindWhitebalance
+}
+
+public enum LWhitebalanceMethod
+{
+    LWhitebalanceMethodAverage,
+    LWhitebalanceMethodMinmax,
+    LWhitebalanceMethodMedian
 }
 
 public sealed record LWorkGammaSettings(
@@ -53,12 +61,18 @@ public sealed record LWorkGammaSettings(
     double LWorkGammaBlue,
     double LWorkGammaHighlightProtection);
 
+public sealed record LWorkWhitebalanceSettings(
+    LWhitebalanceMethod LWorkWhitebalanceMethod,
+    double LWorkWhitebalanceSaturation);
+
 public sealed record LWorkVideoStep(
     LColorKind LWorkStepKind,
     bool LWorkStepActive,
     double LWorkStepValue)
 {
     public LWorkGammaSettings? LWorkStepGamma { get; init; }
+
+    public LWorkWhitebalanceSettings? LWorkStepWhitebalance { get; init; }
 
     public static LWorkVideoStep LWorkBrightnessCreate(bool lStepActive, double lStepValue) =>
         new(LColorKind.LColorKindBrightness, lStepActive, lStepValue);
@@ -86,15 +100,60 @@ public sealed record LWorkVideoStep(
         };
     }
 
+    public static LWorkVideoStep LWorkWhitebalanceCreate(
+        bool lStepActive,
+        LWhitebalanceMethod lStepMethod = LWhitebalanceMethod.LWhitebalanceMethodMedian,
+        double lStepSaturation = 100)
+    {
+        LWhitebalanceMethod lMethod = Enum.IsDefined(lStepMethod)
+            ? lStepMethod
+            : LWhitebalanceMethod.LWhitebalanceMethodMedian;
+        double lSaturation = Math.Clamp(lStepSaturation, 0, 300);
+        return new(LColorKind.LColorKindWhitebalance, lStepActive, lSaturation)
+        {
+            LWorkStepWhitebalance = new LWorkWhitebalanceSettings(lMethod, lSaturation)
+        };
+    }
+
     public LWorkGammaSettings LWorkGammaRead() =>
         LWorkStepKind == LColorKind.LColorKindGamma && LWorkStepGamma is { } lGamma
             ? lGamma
             : new LWorkGammaSettings(
                 Math.Clamp(LWorkStepValue, -100, 100), 0, 0, 0, 0);
 
+    public LWorkWhitebalanceSettings LWorkWhitebalanceRead()
+    {
+        LWorkWhitebalanceSettings lWhitebalance =
+            LWorkStepKind == LColorKind.LColorKindWhitebalance && LWorkStepWhitebalance is { } lSettings
+                ? lSettings
+                : new LWorkWhitebalanceSettings(
+                    LWhitebalanceMethod.LWhitebalanceMethodMedian,
+                    LWorkStepKind == LColorKind.LColorKindWhitebalance ? LWorkStepValue : 100);
+        LWhitebalanceMethod lMethod = Enum.IsDefined(lWhitebalance.LWorkWhitebalanceMethod)
+            ? lWhitebalance.LWorkWhitebalanceMethod
+            : LWhitebalanceMethod.LWhitebalanceMethodMedian;
+        return new LWorkWhitebalanceSettings(
+            lMethod,
+            Math.Clamp(lWhitebalance.LWorkWhitebalanceSaturation, 0, 300));
+    }
+
     public string LWorkDiagnosticRead()
     {
         string lSummary = $"{LWorkStepKind} {LWorkStepValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}";
+        if (LWorkStepKind == LColorKind.LColorKindWhitebalance)
+        {
+            LWorkWhitebalanceSettings lWhitebalance = LWorkWhitebalanceRead();
+            string lMethod = lWhitebalance.LWorkWhitebalanceMethod switch
+            {
+                LWhitebalanceMethod.LWhitebalanceMethodAverage => "Average",
+                LWhitebalanceMethod.LWhitebalanceMethodMinmax => "Minmax",
+                _ => "Median"
+            };
+            string lSaturation = lWhitebalance.LWorkWhitebalanceSaturation.ToString(
+                "0.###", System.Globalization.CultureInfo.InvariantCulture);
+            return $"{lSummary} (method {lMethod}, saturation {lSaturation})";
+        }
+
         if (LWorkStepKind != LColorKind.LColorKindGamma)
         {
             return lSummary;

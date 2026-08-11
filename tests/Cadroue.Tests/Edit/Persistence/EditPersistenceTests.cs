@@ -1,6 +1,8 @@
 using Cadroue.Application;
 using Cadroue.Core;
 
+using System.Text.Json;
+
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -13,6 +15,7 @@ public sealed class EditPersistenceTests
         Assert.Equal(LColorKind.LColorKindContrast, TInterface.ColorKindParse("Contrast"));
         Assert.Equal(LColorKind.LColorKindBrightness, TInterface.ColorKindParse("Brightness"));
         Assert.Equal(LColorKind.LColorKindGamma, TInterface.ColorKindParse("Gamma"));
+        Assert.Equal(LColorKind.LColorKindWhitebalance, TInterface.ColorKindParse("Whitebalance"));
     }
 
     [Fact]
@@ -27,9 +30,11 @@ public sealed class EditPersistenceTests
         Assert.Equal("Contrast", TInterface.ColorKindFormat(LColorKind.LColorKindContrast));
         Assert.Equal("Brightness", TInterface.ColorKindFormat(LColorKind.LColorKindBrightness));
         Assert.Equal("Gamma", TInterface.ColorKindFormat(LColorKind.LColorKindGamma));
+        Assert.Equal("Whitebalance", TInterface.ColorKindFormat(LColorKind.LColorKindWhitebalance));
         Assert.Equal(LColorKind.LColorKindContrast, TInterface.ColorKindParse(TInterface.ColorKindFormat(LColorKind.LColorKindContrast)));
         Assert.Equal(LColorKind.LColorKindBrightness, TInterface.ColorKindParse(TInterface.ColorKindFormat(LColorKind.LColorKindBrightness)));
         Assert.Equal(LColorKind.LColorKindGamma, TInterface.ColorKindParse(TInterface.ColorKindFormat(LColorKind.LColorKindGamma)));
+        Assert.Equal(LColorKind.LColorKindWhitebalance, TInterface.ColorKindParse(TInterface.ColorKindFormat(LColorKind.LColorKindWhitebalance)));
     }
 
     [Fact]
@@ -102,6 +107,97 @@ public sealed class EditPersistenceTests
 
         Assert.Equal(LColorKind.LColorKindContrast, restored.LWorkStepKind);
         Assert.Null(restored.LWorkStepGamma);
+    }
+
+    [Theory]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodAverage)]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodMinmax)]
+    [InlineData(LWhitebalanceMethod.LWhitebalanceMethodMedian)]
+    public void Whitebalance_PersistentRecord_RoundTripsCompletePayload(LWhitebalanceMethod method)
+    {
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkWhitebalanceCreate(true, method, 137.625)
+        });
+
+        LSidecarEditRecord record = TInterface.EditPersistentCreate(
+            TInterface.EditPlanCreate(TInterface.WorkCropCreate(), video, false));
+        LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
+        LWorkVideoStep restored = Assert.Single(
+            TInterface.EditPersistentRead(record).LEditVideo.LWorkVideoSteps);
+        LWorkWhitebalanceSettings settings = TInterface.WorkWhitebalanceRead(restored);
+
+        Assert.Equal("Whitebalance", stored.LSidecarKind);
+        Assert.Equal(method, stored.LSidecarWhitebalanceMethod);
+        Assert.Equal(137.625, stored.LSidecarWhitebalanceSaturation);
+        Assert.Equal(method, settings.LWorkWhitebalanceMethod);
+        Assert.Equal(137.625, settings.LWorkWhitebalanceSaturation);
+        Assert.Equal(137.625, restored.LWorkStepValue);
+    }
+
+    [Fact]
+    public void Whitebalance_LegacyRecord_UsesMedianAndOneHundredPercent()
+    {
+        LSidecarEditRecord record = TInterface.SidecarEditRecordCreate("Whitebalance", true, 0);
+
+        LWorkVideoStep restored = Assert.Single(
+            TInterface.EditPersistentRead(record).LEditVideo.LWorkVideoSteps);
+        LWorkWhitebalanceSettings settings = TInterface.WorkWhitebalanceRead(restored);
+
+        Assert.Equal(LWhitebalanceMethod.LWhitebalanceMethodMedian, settings.LWorkWhitebalanceMethod);
+        Assert.Equal(100, settings.LWorkWhitebalanceSaturation);
+        Assert.Equal(100, restored.LWorkStepValue);
+    }
+
+    [Fact]
+    public void NonWhitebalanceStep_OmitsAndIgnoresWhitebalanceFields()
+    {
+        LSidecarEditRecord storedRecord = TInterface.EditPersistentCreate(TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(),
+            TInterface.WorkVideoCreate(new[] { TInterface.WorkContrastCreate(true, 125) }),
+            false));
+        string json = JsonSerializer.Serialize(storedRecord);
+        Assert.DoesNotContain("WhitebalanceMethod", json);
+        Assert.DoesNotContain("WhitebalanceSaturation", json);
+
+        LSidecarVideoStep sidecarStep = Assert.Single(storedRecord.LSidecarSteps);
+        sidecarStep.LSidecarWhitebalanceMethod = LWhitebalanceMethod.LWhitebalanceMethodAverage;
+        sidecarStep.LSidecarWhitebalanceSaturation = 250;
+        LWorkVideoStep restored = Assert.Single(
+            TInterface.EditPersistentRead(storedRecord).LEditVideo.LWorkVideoSteps);
+
+        Assert.Null(restored.LWorkStepWhitebalance);
+    }
+
+    [Fact]
+    public void EditPlanResolve_PersistentWhitebalanceOverridesFileAndKeepsOtherFileSteps()
+    {
+        LEditPlan file = TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(),
+            TInterface.WorkVideoCreate(new[]
+            {
+                TInterface.WorkBrightnessCreate(true, 25),
+                TInterface.WorkWhitebalanceCreate(true, LWhitebalanceMethod.LWhitebalanceMethodAverage, 80)
+            }),
+            false);
+        LEditPlan persistent = TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(),
+            TInterface.WorkVideoCreate(new[]
+            {
+                TInterface.WorkWhitebalanceCreate(false, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 175.25)
+            }),
+            false);
+
+        LEditPlan resolved = TInterface.EditPlanResolve(file, persistent);
+
+        Assert.Contains(resolved.LEditVideo.LWorkVideoSteps,
+            step => step.LWorkStepKind == LColorKind.LColorKindBrightness && step.LWorkStepValue == 25);
+        LWorkVideoStep whitebalance = Assert.Single(resolved.LEditVideo.LWorkVideoSteps,
+            step => step.LWorkStepKind == LColorKind.LColorKindWhitebalance);
+        LWorkWhitebalanceSettings settings = TInterface.WorkWhitebalanceRead(whitebalance);
+        Assert.False(whitebalance.LWorkStepActive);
+        Assert.Equal(LWhitebalanceMethod.LWhitebalanceMethodMinmax, settings.LWorkWhitebalanceMethod);
+        Assert.Equal(175.25, settings.LWorkWhitebalanceSaturation);
     }
 
     [Fact]

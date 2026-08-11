@@ -129,6 +129,11 @@ public static partial class LEdit
                     lEditRecord.LSidecarGammaGreen ?? 0,
                     lEditRecord.LSidecarGammaBlue ?? 0,
                     lEditRecord.LSidecarGammaHighlightProtection ?? 0),
+            LColorKind.LColorKindWhitebalance =>
+                LWorkVideoStep.LWorkWhitebalanceCreate(
+                    lEditRecord.LSidecarActive,
+                    lEditRecord.LSidecarWhitebalanceMethod ?? LWhitebalanceMethod.LWhitebalanceMethodMedian,
+                    lEditRecord.LSidecarWhitebalanceSaturation ?? 100),
             _ => LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
         };
     }
@@ -152,6 +157,12 @@ public static partial class LEdit
             lRecord.LSidecarGammaGreen = lGamma.LWorkGammaGreen;
             lRecord.LSidecarGammaBlue = lGamma.LWorkGammaBlue;
             lRecord.LSidecarGammaHighlightProtection = lGamma.LWorkGammaHighlightProtection;
+        }
+        else if (lEditStep.LWorkStepKind == LColorKind.LColorKindWhitebalance)
+        {
+            LWorkWhitebalanceSettings lWhitebalance = lEditStep.LWorkWhitebalanceRead();
+            lRecord.LSidecarWhitebalanceMethod = lWhitebalance.LWorkWhitebalanceMethod;
+            lRecord.LSidecarWhitebalanceSaturation = lWhitebalance.LWorkWhitebalanceSaturation;
         }
 
         return lRecord;
