@@ -16,24 +16,34 @@
 @alias viewfinder = Cadroue.UIShell.PFlow.PViewfinder
 
 [section-row-render] Sections-panel row rendering <input>
+~ This starts with sections-panel row rendering.
+[Technical explanation]
 - PSectionTextBuild checks whether LPieceName is empty when rendering a non-editing row @ panel.PSectionTextBuild(...)
 > panel-name-check
 
 [viewfinder-render] Viewfinder section rendering <input>
+~ This starts with viewfinder section rendering.
+[Technical explanation]
 - PViewfinderSectionDraw receives the actual stored LPieceName for each section @ viewfinder.PViewfinderSectionDraw(...)
 > viewfinder-name-check
 
 [panel-name-check] Stored main name empty <decision>
+~ The program checks stored main name empty.
+[Technical explanation]
 - An empty LPieceName uses PSectionPlaceholderFormat; a nonempty LPieceName is shown directly @ panel.PSectionTextBuild(...)
 @ panel.PSectionPlaceholderFormat(...)
 ? "LPieceName empty" > placeholder
 ? "LPieceName nonempty" > stored-name
 
 [placeholder] Show localized default-name placeholder <process>
+~ This step handles show localized default-name placeholder.
+[Technical explanation]
 - Render Section.DefaultName for the row index using the muted brush; this placeholder is presentation only and is not written into LPieceName @ panel.PSectionPlaceholderFormat(...)
 > panel-name-join
 
 [stored-name] Show actual stored main name <process>
+~ This step handles show actual stored main name.
+[Technical explanation]
 - Render LPieceName as the row's primary name text @ panel.PSectionTextBuild(...)
 > panel-name-join
 
@@ -41,15 +51,23 @@
 > affixes
 
 [affixes] Append stored affixes when present <output>
+~ This path ends with append stored affixes when present.
+[Technical explanation]
 - PSectionAffixAdd appends each nonempty prefix and suffix after the primary display text, so affixes can therefore be visible even when the main name itself is empty @ panel.PSectionAffixAdd(...)
 
 [viewfinder-name-check] Viewfinder can show main name <decision>
+~ The program checks viewfinder can show main name.
+[Technical explanation]
 - PViewfinderSectionDraw renders a name only when LPieceName is nonempty and sufficient horizontal room remains after the numbered badge @ viewfinder.PViewfinderSectionDraw(...)
 ? "Empty name or insufficient room" > no-viewfinder-name
 ? "Nonempty name with room" > show-viewfinder-name
 
 [no-viewfinder-name] Viewfinder shows no placeholder name <output>
+~ This path ends with viewfinder shows no placeholder name.
+[Technical explanation]
 = The numbered section badge remains, but the localized Sections-panel placeholder is not substituted as a Viewfinder name.
 
 [show-viewfinder-name] Show actual main name <output>
+~ This path ends with show actual main name.
+[Technical explanation]
 = The Viewfinder shows LPieceName only; prefix and suffix are not included in this label.

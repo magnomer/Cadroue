@@ -1,0 +1,31 @@
+@format 1
+@id media-preview.in-split
+@title In Split
+@section Media preview
+@area In Split
+@entry split-path-change
+@summary Show only the Split-specific step that bridges the shared Files current-path event into the shared viewer-preview pipeline.
+@related media-loading.common.files-intake, media-selection.common.files-selection, media-preview.common.viewer-gate
+@tag media
+@tag preview
+@tag split
+
+@alias split = Cadroue.UIShell.PMainArea.PSplitTab
+
+[split-path-change] Split Files current-path event <input>
+~ This starts when the selected file changes in the Split tab.
+[Technical explanation]
+= Shared Files logic published the current path through PListPathChange.
+> split-path-result
+
+[split-path-result] Split selected-path adapter <decision>
+~ The Split tab decides whether the selected file should be opened in the preview.
+[Technical explanation]
+- Ignore a blank path; otherwise request it from the Split viewer @ split.PSplitPathShow(...)
+? "Nonblank current path" > map:media-preview.common.viewer-gate
+? "Blank current path" > split-no-request
+
+[split-no-request] Split viewer request omitted <output>
+~ This path ends with split viewer request omitted.
+[Technical explanation]
+= Split does not call the shared viewer-preview pipeline.

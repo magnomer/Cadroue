@@ -5,6 +5,40 @@ from pathlib import Path
 import generate as subject
 
 
+def complete_card_layers(text: str) -> str:
+    """Complete temporary test fixtures that are not testing card-layer errors."""
+    lines = text.splitlines()
+    out: list[str] = []
+    index = 0
+    declaration = subject.re.compile(r"^\[([^]]+)]\s+(.+?)\s+<([a-z]+)>$")
+    while index < len(lines):
+        match = declaration.fullmatch(lines[index].strip())
+        if not match:
+            out.append(lines[index])
+            index += 1
+            continue
+        out.append(lines[index])
+        kind = match.group(3)
+        index += 1
+        block: list[str] = []
+        while index < len(lines) and not declaration.fullmatch(lines[index].strip()):
+            block.append(lines[index])
+            index += 1
+        if kind != "junction":
+            simple_index = next((i for i, line in enumerate(block) if line.strip().startswith("~")), None)
+            if simple_index is None:
+                block.insert(0, "~ Test fixture explanation.")
+                simple_index = 0
+            technical_index = next((i for i, line in enumerate(block) if line.strip() == "[Technical explanation]"), None)
+            if technical_index is None:
+                block.insert(simple_index + 1, "[Technical explanation]")
+                technical_index = simple_index + 1
+            if not any(line.strip().startswith(("-", "=", "!")) for line in block[technical_index + 1:]):
+                block.insert(technical_index + 1, "= Test fixture technical explanation.")
+        out.extend(block)
+    return "\n".join(out) + ("\n" if text.endswith("\n") else "")
+
+
 class GenerationStabilityTests(unittest.TestCase):
     def test_single_map_tab_change_updates_only_local_page_and_global_indexes(self) -> None:
         reporter = subject.Reporter(strict=True)
@@ -353,7 +387,7 @@ class SourceClassificationTests(unittest.TestCase):
         reporter = subject.Reporter(strict=False)
         for index, text in enumerate(texts):
             path = root / f"source-{index}.lmap"
-            path.write_text(text, encoding="utf-8")
+            path.write_text(complete_card_layers(text), encoding="utf-8")
             items.append(subject.parse_map(path, reporter))
         original_code_root = subject.CODE_ROOT
         original_event_reader = subject.ui_event_references
@@ -589,6 +623,110 @@ class IndexDocumentTests(unittest.TestCase):
             self.assertNotIn('<div class="major-heading"><span>', maps_index)
 
 
+class CardExplanationTests(unittest.TestCase):
+    def test_all_project_cards_have_explicit_simple_and_technical_explanations(self) -> None:
+        reporter = subject.Reporter(strict=True)
+        items = [subject.parse_map(path, reporter) for path in subject.source_paths_read()]
+        subject.validate(items, reporter)
+        self.assertFalse(reporter.errors, "\n".join(reporter.errors))
+        missing = [
+            f"{item.path}:{node.line} [{node.id}]"
+            for item in items
+            for node in item.nodes
+            if node.kind != "junction" and (
+                not node.explanation.strip()
+                or node.technical_label != "Technical explanation"
+                or not (node.actions or node.states or node.notes)
+            )
+        ]
+        self.assertFalse(missing, "Cards missing explicit simple/technical source content:\n" + "\n".join(missing))
+
+    def test_missing_explanation_layer_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "map.lmap"
+            source.write_text(
+                "@format 1\n@id map\n@title Map\n@section Functionality\n@area Area\n"
+                "@entry start\n@summary Summary.\n"
+                "[start] Start <output>\n"
+                "~ Plain explanation.\n"
+                "= Technical state without a block.\n",
+                encoding="utf-8",
+            )
+            reporter = subject.Reporter(strict=False)
+            item = subject.parse_map(source, reporter)
+            original_code_root = subject.CODE_ROOT
+            try:
+                subject.CODE_ROOT = root / "src"
+                subject.CODE_ROOT.mkdir()
+                subject.validate([item], reporter)
+            finally:
+                subject.CODE_ROOT = original_code_root
+            self.assertTrue(any("explicit [Technical explanation] block" in error for error in reporter.errors))
+
+    def test_simple_explanations_do_not_expose_internal_member_names(self) -> None:
+        reporter = subject.Reporter(strict=True)
+        items = [subject.parse_map(path, reporter) for path in subject.source_paths_read()]
+        exposed = []
+        for item in items:
+            for node in item.nodes:
+                if node.kind == "junction":
+                    continue
+                if subject.re.search(r"\b[PL][A-Z][A-Za-z0-9]*\b|\b(?:Flyleaf|mpv|FFprobe|FFmpeg|PreviewTextInput|PreviewKeyDown|PreviewMouseMove|MouseLeftButtonDown|MouseLeftButtonUp|LostMouseCapture|LostFocus)\b", node.explanation):
+                    exposed.append(f"{item.path}:{node.line} [{node.id}] {node.explanation}")
+        self.assertFalse(exposed, "Implementation names leaked into simple explanations:\n" + "\n".join(exposed))
+
+    def test_generated_card_places_simple_text_before_subdued_technical_box(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source_root = root / "source"
+            source_root.mkdir()
+            source = source_root / "map.lmap"
+            source.write_text(
+                "@format 1\n@id map\n@title Map\n@section Functionality\n@area Area\n"
+                "@entry start\n@summary Summary.\n@alias owner = Example.Owner\n"
+                "[start] Internal operation <process>\n"
+                "~ The program prepares the selected item.\n"
+                "[Technical explanation]\n"
+                "- Run the internal operation @ owner.Run(...)\n"
+                "= Internal state is updated.\n",
+                encoding="utf-8",
+            )
+            reporter = subject.Reporter(strict=False)
+            item = subject.parse_map(source, reporter)
+            original_source_root = subject.SOURCE_ROOT
+            original_map_root = subject.MAP_ROOT
+            try:
+                subject.SOURCE_ROOT = source_root
+                subject.MAP_ROOT = root / "docs" / "LogicMaps"
+                subject.generate({"map": item}, {}, reporter)
+            finally:
+                subject.SOURCE_ROOT = original_source_root
+                subject.MAP_ROOT = original_map_root
+            rendered = (root / "docs" / "LogicMaps" / "maps" / "map.html").read_text(encoding="utf-8")
+            simple = rendered.index('<div class="simple-explanation">The program prepares the selected item.</div>')
+            technical = rendered.index('<div class="technical-explanation">')
+            self.assertLess(simple, technical)
+            self.assertIn('<div class="technical-label">Technical explanation</div>', rendered)
+            self.assertIn('Run the internal operation', rendered[technical:])
+            self.assertIn('owner.Run(...)', rendered[technical:])
+
+    def test_generator_does_not_synthesize_explanations_or_linked_map_cards(self) -> None:
+        generator = (Path(subject.__file__).parent / "generate.py").read_text(encoding="utf-8")
+        self.assertNotIn("node.explanation or node.title", generator)
+        self.assertNotIn("The outgoing line labels define this decision", generator)
+        self.assertNotIn("Continue to “", generator)
+        self.assertNotIn('data-virtual="true"', generator)
+        self.assertIn("node.technical_label", generator)
+
+    def test_technical_box_style_is_neutral_and_separate(self) -> None:
+        style = (Path(subject.__file__).parent / "site.css").read_text(encoding="utf-8")
+        self.assertIn(".simple-explanation", style)
+        self.assertIn(".technical-explanation", style)
+        self.assertIn(".technical-label", style)
+        self.assertIn("border:1px solid color-mix(in srgb,var(--border)", style)
+
+
 class GeneratedOutputTopologyTests(unittest.TestCase):
     def test_logicmaps_is_the_single_authoring_and_generated_root(self) -> None:
         logic_root = Path(subject.__file__).resolve().parent.parent
@@ -658,8 +796,8 @@ class MapInteractionAssetTests(unittest.TestCase):
         generator = (root / "generate.py").read_text(encoding="utf-8")
         self.assertNotIn("reduceCrossings();", script)
         self.assertNotIn("adjacentPlan(fromLevel,toLevel)", script)
-        self.assertIn("placeVirtualTargets();", script)
-        self.assertIn('data-virtual="true"', generator)
+        self.assertNotIn("placeVirtualTargets();", script)
+        self.assertNotIn('data-virtual="true"', generator)
         self.assertIn("if(to.level===from.level+1&&edge.marker!=='loop')", script)
         self.assertIn("rowMetrics[from.level].bottom+24", script)
         self.assertIn("rowMetrics[to.level].top-24", script)
@@ -682,7 +820,7 @@ class JunctionTopologyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             source = root / "map.lmap"
-            source.write_text(text, encoding="utf-8")
+            source.write_text(complete_card_layers(text), encoding="utf-8")
             reporter = subject.Reporter(strict=True)
             item = subject.parse_map(source, reporter)
             original_code_root = subject.CODE_ROOT
@@ -729,11 +867,10 @@ class JunctionTopologyTests(unittest.TestCase):
             source_root = root / "source"
             source_root.mkdir()
             source = source_root / "map.lmap"
-            source.write_text(
+            source.write_text(complete_card_layers(
                 "@format 1\n@id x\n@title X\n@section Functionality\n@area Test\n@entry start\n@summary X.\n"
-                "[start] Start <input>\n> join\n\n[join] Join <junction>\n> work\n\n[work] Work <process>\n> again\n\n[again] Again <process>\n> join [loop]\n",
-                encoding="utf-8",
-            )
+                "[start] Start <input>\n> join\n\n[join] Join <junction>\n> work\n\n[work] Work <process>\n> again\n\n[again] Again <process>\n> join [loop]\n"
+            ), encoding="utf-8")
             reporter = subject.Reporter(strict=True)
             item = subject.parse_map(source, reporter)
             original_source_root = subject.SOURCE_ROOT
@@ -760,7 +897,7 @@ class FormatGrammarTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             path = root / "test.lmap"
-            path.write_text(text, encoding="utf-8")
+            path.write_text(complete_card_layers(text), encoding="utf-8")
             reporter = subject.Reporter(strict=strict)
             item = subject.parse_map(path, reporter)
             original_code_root = subject.CODE_ROOT
@@ -838,7 +975,7 @@ class CycleAndRoutingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             path = root / "map.lmap"
-            path.write_text(text, encoding="utf-8")
+            path.write_text(complete_card_layers(text), encoding="utf-8")
             reporter = subject.Reporter(strict=False)
             item = subject.parse_map(path, reporter)
             original_code_root = subject.CODE_ROOT
@@ -921,91 +1058,95 @@ class FragmentRenderingTests(unittest.TestCase):
 
 
 
-class MediaLoadingScenarioSourceTests(unittest.TestCase):
-    def _source_root(self) -> Path:
-        return Path(subject.__file__).parent.parent / "source" / "MediaLoading"
+class MediaTaxonomySourceTests(unittest.TestCase):
+    def _source(self, family: str) -> Path:
+        return Path(subject.__file__).parent.parent / "source" / family
 
-    def test_media_loading_tree_has_one_category_with_common_and_scenarios(self) -> None:
-        root = self._source_root()
-        self.assertTrue(root.is_dir())
-        common = root / "Common"
-        self.assertTrue(common.is_dir())
-        self.assertTrue((common / "Backend-load.lmap").is_file())
-        scenario = {
-            "In-Audio-tab.lmap", "In-Convert-tab.lmap", "In-Edit-tab.lmap", "In-Funnel-tab.lmap",
-            "In-Global-interface.lmap", "In-Merge-tab.lmap", "In-Split-tab.lmap", "In-Worklist.lmap",
-        }
-        self.assertTrue(scenario.issubset({path.name for path in root.glob("*.lmap")}))
-        self.assertGreaterEqual(len(list(common.glob("*.lmap"))), 1)
-        self.assertEqual({"Common"}, {path.name for path in root.iterdir() if path.is_dir()})
-
-    def test_media_loading_metadata_declares_one_major_category(self) -> None:
-        root = self._source_root()
+    def test_media_loading_tree_is_program_intake_only(self) -> None:
+        root = self._source("MediaLoading")
+        self.assertEqual(
+            {"Docket-insertion.lmap", "File-drops.lmap", "File-pickers.lmap", "Files-intake.lmap"},
+            {path.name for path in (root / "Common").glob("*.lmap")},
+        )
+        self.assertEqual(
+            {"In-Audio.lmap", "In-Edit.lmap", "In-Merge.lmap", "In-Worklist.lmap", "In-staged-workspace.lmap"},
+            {path.name for path in root.glob("*.lmap")},
+        )
         reporter = subject.Reporter(strict=True)
         items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
         self.assertFalse(reporter.errors, "\n".join(reporter.errors))
         self.assertEqual({"Media loading"}, {item.headers.get("section") for item in items})
-        for item in items:
-            if "Common" in item.path.parts:
-                self.assertEqual("Common", item.headers.get("area"))
-            else:
-                self.assertEqual(item.headers.get("title"), item.headers.get("area"))
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in root.rglob("*.lmap"))
+        for forbidden in ("PViewerSourceOpen", "LMediaLoadAsync", "PViewerMediaRaise", "PViewerMediaClose", "PPlayerMediaApply"):
+            self.assertNotIn(forbidden, combined)
 
-    def test_media_loading_sources_have_zero_primary_crossings(self) -> None:
-        root = self._source_root()
-        reporter = subject.Reporter(strict=True)
-        items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
-        ids, fragments = subject.validate(items, reporter)
-        self.assertFalse(reporter.errors, "\n".join(reporter.errors))
-        self.assertFalse(fragments)
-        for item in ids.values():
-            entries = subject.map_entries(item)
-            count, examples = subject.source_layout_crossings(item, entries)
-            self.assertEqual(0, count, f"{item.path}: {examples}")
-
-    def test_media_loading_original_trigger_families_remain_assigned(self) -> None:
-        root = self._source_root()
+    def test_media_loading_covers_all_program_intake_boundaries(self) -> None:
+        root = self._source("MediaLoading")
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in root.rglob("*.lmap"))
+        for implementation in ("PListPathsAdd", "PListMediaScan", "LDocketPathsAdd", "LDocketDeliveredAdd"):
+            self.assertIn(implementation, combined)
         entries: set[str] = set()
         for path in root.rglob("*.lmap"):
-            reporter = subject.Reporter(strict=False)
-            item = subject.parse_map(path, reporter)
+            item = subject.parse_map(path, subject.Reporter(strict=False))
             entries.update(subject.map_entries(item))
         expected = {
-            "source-browse", "source-enter", "files-add", "folder-add", "viewer-drop", "window-drop",
-            "merge-group-drop", "worklist-relay", "delivered-output", "remove-selected", "clear-files",
-            "unload-current", "unload-all", "clear-tabs", "relay-source-remove", "batch-evict", "funnel-drain",
-            "row-release", "select-all", "row-press", "merge-group-row", "startup-restore", "relay-source",
+            "files-add", "folder-add", "viewer-drop", "window-drop", "paths-submitted", "docket-request",
+            "audio-items-add", "edit-items-add", "merge-group-drop", "merge-items-add", "worklist-relay",
+            "delivered-output", "tracked-stage-output", "staged-run",
         }
         self.assertTrue(expected.issubset(entries), sorted(expected - entries))
 
-    def test_media_loading_navigation_is_flat_below_one_category(self) -> None:
-        root = self._source_root()
+    def test_preview_removal_and_selection_are_separate_categories(self) -> None:
+        expected = {
+            "MediaPreview": "Media preview",
+            "MediaRemoval": "Media removal",
+            "MediaSelection": "Media selection",
+        }
+        for family, section in expected.items():
+            root = self._source(family)
+            self.assertTrue(root.is_dir())
+            reporter = subject.Reporter(strict=True)
+            items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
+            self.assertFalse(reporter.errors, "\n".join(reporter.errors))
+            self.assertGreater(len(items), 0)
+            self.assertEqual({section}, {item.headers.get("section") for item in items})
+
+    def test_all_media_families_have_zero_primary_crossings(self) -> None:
+        for family in ("MediaLoading", "MediaPreview", "MediaRemoval", "MediaSelection"):
+            root = self._source(family)
+            reporter = subject.Reporter(strict=True)
+            items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
+            ids, fragments = subject.validate(items, reporter)
+            self.assertFalse(reporter.errors, "\n".join(reporter.errors))
+            self.assertFalse(fragments)
+            for item in ids.values():
+                count, examples = subject.source_layout_crossings(item, subject.map_entries(item))
+                self.assertEqual(0, count, f"{item.path}: {examples}")
+
+    def test_navigation_exposes_distinct_media_categories(self) -> None:
         reporter = subject.Reporter(strict=True)
-        items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
-        ids, fragments = subject.validate(items, reporter)
-        catalog = []
-        for item in ids.values():
-            catalog.append({
-                "id": item.headers["id"], "title": item.headers["title"], "section": item.headers["section"],
-                "area": item.headers["area"], "tabs": subject.map_tabs(item), "href": "example.html",
-                "summary": item.headers["summary"], "event_ref": item.headers.get("event-ref"), "search": "example",
-            })
+        roots = [self._source(name) for name in ("MediaLoading", "MediaPreview", "MediaRemoval", "MediaSelection")]
+        items = [subject.parse_map(path, reporter) for root in roots for path in sorted(root.rglob("*.lmap"))]
+        ids, _ = subject.validate(items, reporter)
+        catalog = [{
+            "id": item.headers["id"], "title": item.headers["title"], "section": item.headers["section"],
+            "area": item.headers["area"], "tabs": subject.map_tabs(item), "href": "example.html",
+            "summary": item.headers["summary"], "event_ref": item.headers.get("event-ref"), "search": "example",
+        } for item in ids.values()]
         navigation = subject.navigation_html(catalog, fragment_catalog=[])
-        self.assertEqual(1, navigation.count('<h2 class="nav-major">Media loading</h2>'))
-        self.assertIn('<span class="context-badge context-badge-common">Common</span><span class="context-title">Backend load</span>', navigation)
+        for section in ("Media loading", "Media preview", "Media removal", "Media selection"):
+            self.assertEqual(1, navigation.count(f'<h2 class="nav-major">{section}</h2>'))
+        self.assertIn('<span class="context-badge context-badge-common">Common</span><span class="context-title">Files intake</span>', navigation)
         self.assertIn('<span class="context-badge context-badge-scenario">In Audio</span>', navigation)
-        self.assertNotIn('<div class="nav-group-title">Common</div>', navigation)
 
 
-class MediaLoadingFidelityRegressionTests(unittest.TestCase):
-    def _root(self) -> Path:
-        return Path(subject.__file__).parent.parent / "source" / "MediaLoading"
-
-    def _read(self, relative: str) -> str:
-        return (self._root() / relative).read_text(encoding="utf-8")
+class MediaFidelityRegressionTests(unittest.TestCase):
+    def _read(self, family: str, relative: str) -> str:
+        root = Path(subject.__file__).parent.parent / "source" / family
+        return (root / relative).read_text(encoding="utf-8")
 
     def test_removal_models_replacement_then_clear_change_cleanup(self) -> None:
-        source = self._read("Common/Docket-removal.lmap")
+        source = self._read("MediaRemoval", "Common/Docket-removal.lmap")
         self.assertIn("PListDocketRemoveHandle", source)
         self.assertIn("PListClearChange", source)
         self.assertIn("PViewerMediaClose", source)
@@ -1013,103 +1154,110 @@ class MediaLoadingFidelityRegressionTests(unittest.TestCase):
         self.assertLess(source.index("[replacement-select]"), source.index("[clear-change]"))
         self.assertLess(source.index("[clear-change]"), source.index("[close-viewer]"))
 
-    def test_files_intake_is_only_scan_wrapper_and_docket_insertion_owns_add_notifications(self) -> None:
-        intake = self._read("Common/Files-intake.lmap")
-        insertion = self._read("Common/Docket-insertion.lmap")
+    def test_files_intake_is_scan_wrapper_and_docket_insertion_owns_add_notifications(self) -> None:
+        intake = self._read("MediaLoading", "Common/Files-intake.lmap")
+        insertion = self._read("MediaLoading", "Common/Docket-insertion.lmap")
         self.assertIn("PListPathsAdd", intake)
         self.assertIn("PListMediaScan", intake)
         self.assertIn("map:media-loading.common.docket-insertion", intake)
-        self.assertNotIn("@ docket.LDocketPathsAdd", intake)
         self.assertIn("LDocketPathsAdd", insertion)
         self.assertIn("PListDocketAddHandle", insertion)
         self.assertIn("PListItemsAdd", insertion)
         self.assertLess(insertion.index("[added-notification]"), insertion.index("[items-added]"))
+        self.assertNotIn("PViewerSourceOpen", insertion)
 
-    def test_audio_models_immediate_restore_against_committed_viewer_source(self) -> None:
-        source = self._read("In-Audio-tab.lmap")
+    def test_audio_preview_models_immediate_restore_against_committed_source(self) -> None:
+        source = self._read("MediaPreview", "In-Audio.lmap")
         self.assertIn("PViewerSourceOpen", source)
         self.assertIn("PAudioPlanRestore", source)
         self.assertIn("property viewer.PViewerSourcePath", source)
         self.assertLess(source.index("PViewerSourceOpen"), source.index("PAudioPlanRestore"))
         self.assertIn("previous committed source", source)
         self.assertIn("no PViewerMediaChange subscription", source)
-        self.assertIn("PListItemsAdd", source)
-        self.assertIn("Current Audio plan needs saving", source)
-        self.assertIn("Save skipped", source)
+        self.assertNotIn("PListItemsAdd", source)
 
     def test_preview_commits_publish_before_final_playback_work(self) -> None:
-        flyleaf = self._read("Common/Flyleaf-preview.lmap")
-        mpv = self._read("Common/mpv-preview.lmap")
+        flyleaf = self._read("MediaPreview", "Common/Flyleaf-preview.lmap")
+        mpv = self._read("MediaPreview", "Common/mpv-preview.lmap")
         self.assertLess(flyleaf.index("PViewerMediaRaise"), flyleaf.index("PViewerPreviewRestore"))
         self.assertLess(mpv.index("PViewerMediaRaise"), mpv.index("PViewerMpvPreviewApply"))
 
-    def test_worklist_direct_docket_paths_do_not_claim_plistpathsadd(self) -> None:
-        source = self._read("In-Worklist.lmap")
-        self.assertNotIn("map:media-loading.common.files-intake", source)
+    def test_worklist_loading_covers_direct_insert_and_delivered_tracking(self) -> None:
+        source = self._read("MediaLoading", "In-Worklist.lmap")
         self.assertIn("PListMediaScan", source)
         self.assertIn("LDocketPathsAdd", source)
+        self.assertIn("LDocketDeliveredAdd", source)
+        self.assertIn("PListDeliveredTrack", source)
         self.assertIn("map:media-loading.common.docket-insertion", source)
-        self.assertIn("LDocketPathsRemove", source)
-        self.assertIn("map:media-loading.common.docket-removal", source)
+        self.assertNotIn("PViewerSourceOpen", source)
 
-    def test_funnel_drain_enters_common_docket_removal(self) -> None:
-        source = self._read("In-Funnel-tab.lmap")
-        self.assertIn("funnel-drain", source)
-        self.assertIn("map:media-loading.common.docket-removal", source)
+    def test_funnel_drain_is_media_removal_not_loading(self) -> None:
+        removal = self._read("MediaRemoval", "In-Funnel.lmap")
+        loading = "\n".join(path.read_text(encoding="utf-8") for path in (Path(subject.__file__).parent.parent / "source" / "MediaLoading").rglob("*.lmap"))
+        self.assertIn("funnel-drain", removal)
+        self.assertIn("map:media-removal.common.docket-removal", removal)
+        self.assertNotIn("funnel-drain", loading)
 
-    def test_current_file_drop_map_excludes_unreachable_direct_viewer_load(self) -> None:
-        source = self._read("Common/File-drops.lmap")
+    def test_file_drop_loading_excludes_reachable_direct_preview_branch(self) -> None:
+        source = self._read("MediaLoading", "Common/File-drops.lmap")
         self.assertIn("current workspace constitution", source)
         self.assertIn("PDropPathsChange", source)
-        self.assertNotIn("map:media-loading.common.viewer-gate", source)
+        self.assertNotIn("PViewerSourceOpen", source)
         self.assertIn("AllowedEffects", source)
         self.assertIn("Copy, Move, or Link", source)
 
-    def test_staged_workspace_directly_inserts_and_viewer_rejects_inactive_commands(self) -> None:
-        source = self._read("In-staged-workspace.lmap")
-        self.assertIn("LDocketPathsAdd", source)
-        self.assertIn("no PListMediaScan or PListPathsAdd", source)
-        self.assertIn("PViewerCommandSet", source)
-        self.assertIn("PViewerSourceOpen", source)
-        self.assertIn("not command-active", source)
+    def test_staged_loading_and_preview_rejection_are_separate_maps(self) -> None:
+        loading = self._read("MediaLoading", "In-staged-workspace.lmap")
+        preview = self._read("MediaPreview", "In-staged-workspace.lmap")
+        self.assertIn("LDocketPathsAdd", loading)
+        self.assertIn("PListMediaScan or PListPathsAdd", loading)
+        self.assertNotIn("PViewerSourceOpen", loading)
+        self.assertIn("PViewerCommandSet", preview)
+        self.assertIn("PViewerSourceOpen", preview)
+        self.assertIn("inactive viewer", preview)
 
-    def test_edit_audio_merge_added_item_subscribers_are_represented(self) -> None:
-        edit = self._read("In-Edit-tab.lmap")
-        audio = self._read("In-Audio-tab.lmap")
-        merge = self._read("In-Merge-tab.lmap")
+    def test_added_item_subscribers_remain_in_media_loading(self) -> None:
+        edit = self._read("MediaLoading", "In-Edit.lmap")
+        audio = self._read("MediaLoading", "In-Audio.lmap")
+        merge = self._read("MediaLoading", "In-Merge.lmap")
         self.assertIn("PEditItemsHandle", edit)
         self.assertIn("PAudioItemsHandle", audio)
         self.assertIn("PMergeItemsHandle", merge)
         self.assertIn("PGroupAutoUpdate", merge)
-        self.assertIn("failure cargo", edit)
-        self.assertIn("previously committed source", edit)
+        for source in (edit, audio, merge):
+            self.assertNotIn("PViewerSourceOpen", source)
 
-    def test_mpv_eligibility_is_explicitly_edit_only_in_current_tab_constitution(self) -> None:
-        viewer_gate = self._read("Common/Viewer-gate.lmap")
-        completion = self._read("Common/Completion-routing.lmap")
-        edit = self._read("In-Edit-tab.lmap")
+    def test_edit_preview_retains_failure_cargo_source_distinction(self) -> None:
+        edit = self._read("MediaPreview", "In-Edit.lmap")
+        self.assertIn("failure restoration targets the previously committed source", edit)
+        self.assertIn("PViewerEditEligible=true", edit)
+
+    def test_mpv_eligibility_is_edit_only_in_current_tab_constitution(self) -> None:
+        viewer_gate = self._read("MediaPreview", "Common/Viewer-gate.lmap")
+        completion = self._read("MediaPreview", "Common/Completion-routing.lmap")
+        edit = self._read("MediaPreview", "In-Edit.lmap")
         self.assertIn("PViewerEditEligible", viewer_gate)
         self.assertIn("PViewerEditEligible", completion)
         self.assertIn("PViewerEditEligible=true", edit)
         self.assertIn("only Edit", edit)
 
     def test_backend_failure_models_obsolete_without_completion_raise(self) -> None:
-        source = self._read("Common/Backend-failure.lmap")
+        source = self._read("MediaPreview", "Common/Backend-failure.lmap")
         self.assertIn("LMediaLoadFailCurrent", source)
         self.assertIn("Obsolete", source)
         self.assertIn("does not raise LMediaLoadCompleted", source)
 
     def test_media_publication_does_not_claim_per_subscriber_exception_isolation(self) -> None:
-        source = self._read("Common/Media-publication.lmap")
+        source = self._read("MediaPreview", "Common/Media-publication.lmap")
         self.assertIn("one try/catch", source)
         self.assertIn("not enumerated and isolated individually", source)
         self.assertIn("later in the invocation list do not run", source)
         self.assertIn("Audio intentionally does not attach PWorkspaceMediaHandle", source)
 
-    def test_global_unload_uses_workspace_clear_sequence(self) -> None:
-        global_map = self._read("In-Global-interface.lmap")
-        workspace = self._read("Common/Workspace-media-clear.lmap")
-        self.assertIn("map:media-loading.common.workspace-media-clear", global_map)
+    def test_global_unload_uses_media_removal_workspace_clear_sequence(self) -> None:
+        global_map = self._read("MediaRemoval", "In-Global-interface.lmap")
+        workspace = self._read("MediaRemoval", "Common/Workspace-media-clear.lmap")
+        self.assertIn("map:media-removal.common.workspace-media-clear", global_map)
         order = [workspace.index(token) for token in ("PViewerMediaClose", "PFlowClear", "PListClear", "PGroupClear")]
         self.assertEqual(order, sorted(order))
 

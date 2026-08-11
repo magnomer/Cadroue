@@ -1,0 +1,50 @@
+@format 1
+@id media-preview.common.completion-routing
+@title Completion routing
+@section Media preview
+@area Common
+@entry backend-outcome
+@summary Trace a raised backend completion through viewer staleness/failure filtering and the preview engine that was selected before the request began.
+@related media-preview.common.viewer-gate, media-preview.common.mpv-preview, media-preview.common.flyleaf-preview, media-preview.common.media-publication, media-preview.in-edit
+@tag media
+@tag preview
+@tag common
+@tag completion
+
+@alias media-load = Cadroue.Media.LMediaLoad
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+
+[backend-outcome] Raised backend outcome <input>
+~ This starts when the background media loader reports a result.
+[Technical explanation]
+- LMediaLoadRaise invokes this viewer subscriber independently from other backend subscribers @ media-load.LMediaLoadRaise(...)
+> completion-filter
+
+[completion-filter] Viewer completion acceptance <decision>
+~ The program checks viewer completion acceptance.
+[Technical explanation]
+- Capture the current viewer load serial, marshal the callback onto the viewer dispatcher, then compare lifetime, serial, and expected source path before accepting the outcome @ viewer.PViewerLoadHandle(...)
+? "Viewer request is stale" > stale
+? "Current backend failure or cancellation" > failed-status
+? "Current backend success" > engine-route
+
+[stale] Stale completion ignored <output>
+~ This path ends with stale completion ignored.
+[Technical explanation]
+= The completion cannot replace current viewer state.
+
+[failed-status] Unreadable media cargo publication <process>
+~ The program reports that the selected media could not be read.
+[Technical explanation]
+- Build cargo containing the failed source and backend error, then synchronously raise PViewerMediaChange without committing PViewerSourcePath or media information @ viewer.PViewerLoadHandle(...)
+  @ viewer.PViewerMediaRaise(...)
+> map:media-preview.common.media-publication
+
+[engine-route] Previously selected preview engine <decision>
+~ The program checks previously selected preview engine.
+[Technical explanation]
+- Route successful media information according to pViewerMpvActive, which was set by PViewerEngineSelect before backend loading; PViewerEngineRead can request mpv only for a viewer whose PViewerEditEligible property is true @ viewer.PPlayerMediaApply(...)
+  @ viewer.PViewerEngineRead(...)
+  @ property viewer.PViewerEditEligible
+? "mpv active" > map:media-preview.common.mpv-preview
+? "Flyleaf active" > map:media-preview.common.flyleaf-preview

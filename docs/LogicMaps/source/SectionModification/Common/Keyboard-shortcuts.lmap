@@ -17,10 +17,14 @@
 @alias flow = Cadroue.UIShell.PFlow.PFlow
 
 [window-key] Main-window PreviewKeyDown <input>
+~ This starts when the user presses a relevant shortcut key in the main window.
+[Technical explanation]
 - Forward PreviewKeyDown into the shared shortcut processor @ window.PShortcutKeyHandle(...)
 > keyboard-entry
 
 [viewer-key] Split viewer PreviewKeyDown <input>
+~ This starts when the user presses a relevant shortcut key in the Split preview.
+[Technical explanation]
 - Forward the viewer key event through PViewerKeyDispatch and the window viewer-key adapter into the same shortcut processor @ viewer.PViewerKeyHandle(...)
 @ window.PShortcutViewerHandle(...)
 > keyboard-entry
@@ -29,15 +33,21 @@
 > text-input-check
 
 [text-input-check] Text-entry guard <decision>
+~ The program checks text-entry guard.
+[Technical explanation]
 - PShortcutKeyProcess ignores input originating inside TextBoxBase or PasswordBox; otherwise it resolves the physical key and modifiers @ window.PShortcutKeyProcess(...)
 @ window.PWindowInputFind(...)
 ? "Text-entry source" > shortcut-ignored
 ? "Normal shortcut source" > binding-resolve
 
 [shortcut-ignored] Shortcut ignored <output>
+~ This path ends with shortcut ignored.
+[Technical explanation]
 = No section modification command is dispatched.
 
 [binding-resolve] Resolve configured binding <decision>
+~ The program checks resolve configured binding.
+[Technical explanation]
 - Format the current gesture and ask LBindingTokenFind for the currently configured command token @ window.PShortcutDispatch(...)
 @ binding.LBindingTokenFind(...)
 ? "SectionStart" > start-token
@@ -46,31 +56,45 @@
 ? "Any other or unbound token" > unrelated-token
 
 [unrelated-token] Not a boundary-modification shortcut <output>
+~ This path ends with not a boundary-modification shortcut.
+[Technical explanation]
 = This keyboard event is outside the requested section-modification scope.
 
 [start-token] Translate SectionStart <process>
+~ This step handles translate SectionStart.
+[Technical explanation]
 - PShortcutCodeRead converts SectionStart to setStart, then PShortcutRun delegates it to the active flow @ window.PShortcutCodeRead(...)
 @ window.PShortcutRun(...)
 > start-dispatch
 
 [split-token] Translate SectionSplit <process>
+~ This step handles translate SectionSplit.
+[Technical explanation]
 - PShortcutCodeRead converts SectionSplit to splitSection, then PShortcutRun delegates it to the active flow @ window.PShortcutCodeRead(...)
 @ window.PShortcutRun(...)
 > split-dispatch
 
 [end-token] Translate SectionEnd <process>
+~ This step handles translate SectionEnd.
+[Technical explanation]
 - PShortcutCodeRead converts SectionEnd to setEnd, then PShortcutRun delegates it to the active flow @ window.PShortcutCodeRead(...)
 @ window.PShortcutRun(...)
 > end-dispatch
 
 [start-dispatch] Dispatch setStart <process>
+~ This step handles dispatch setStart.
+[Technical explanation]
 - PFlowShortcutDispatch receives setStart; the linked map follows only its existing-section modification branch @ flow.PFlowShortcutDispatch(...) / setStart
 > map:section-modification.set-start-on-selected-section
 
 [split-dispatch] Dispatch splitSection <process>
+~ This step handles dispatch splitSection.
+[Technical explanation]
 - PFlowShortcutDispatch receives splitSection and enters the existing-section split manipulation @ flow.PFlowShortcutDispatch(...) / splitSection
 > map:section-modification.split-selected-section
 
 [end-dispatch] Dispatch setEnd <process>
+~ This step handles dispatch setEnd.
+[Technical explanation]
 - PFlowShortcutDispatch receives setEnd; the linked map follows only its existing-section modification branch @ flow.PFlowShortcutDispatch(...) / setEnd
 > map:section-modification.set-end-on-selected-section

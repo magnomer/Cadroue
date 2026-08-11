@@ -1,0 +1,39 @@
+@format 1
+@id media-preview.common.backend-failure
+@title Backend current failure
+@section Media preview
+@area Common
+@entry fail-request
+@summary Trace LMediaLoadFailCurrent, including the second generation/disposal check that can turn an apparent current failure into an obsolete result.
+@related media-preview.common.backend-load, media-preview.common.completion-routing
+@tag media
+@tag preview
+@tag common
+@tag failure
+
+@alias media-load = Cadroue.Media.LMediaLoad
+
+[fail-request] Backend failure helper requested <input>
+~ This starts with background loader failure helper requested.
+[Technical explanation]
+= Source validation or a reader exception has reached LMediaLoadFailCurrent with the request generation and path.
+> fail-current
+
+[fail-current] Failure helper ownership recheck <decision>
+~ The program checks again that the failed read still belongs to the current request.
+[Technical explanation]
+- Under the backend gate, recheck disposal and request generation before clearing pending state and constructing the requested failure/cancellation outcome @ media-load.LMediaLoadFailCurrent(...)
+? "Request became obsolete" > obsolete
+? "Request still current" > fail-raised
+
+[obsolete] Failure became obsolete <output>
+~ The failure belongs to an older request, so it is ignored.
+[Technical explanation]
+= LMediaLoadFailCurrent returns LMediaLoadObsolete and does not raise LMediaLoadCompleted.
+
+[fail-raised] Current failure/cancellation raised <process>
+~ This step handles current failure/cancellation raised.
+[Technical explanation]
+- Raise the current failure/cancellation outcome to each LMediaLoadCompleted subscriber individually @ media-load.LMediaLoadFailCurrent(...)
+  @ media-load.LMediaLoadRaise(...)
+> map:media-preview.common.completion-routing

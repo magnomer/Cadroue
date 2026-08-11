@@ -1,0 +1,85 @@
+@format 1
+@id media-removal.in-worklist
+@title In Worklist
+@section Media removal
+@area In Worklist
+@entry clear-tabs, relay-source-remove, batch-evict
+@summary Show Worklist operations that remove program media entries: Clear Tabs, post-delivery source removal, and batch eviction.
+@related media-removal.common.workspace-media-clear, media-removal.common.docket-removal
+@tag media
+@tag removal
+@tag worklist
+
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias strip = Cadroue.UIShell.PControlBar.PStrip
+@alias list = Cadroue.UIShell.PPanels.PList
+@alias docket = Cadroue.Application.LDocket
+@alias cartographer = Cadroue.ShellEngine.LCartographer
+
+[clear-tabs] Worklist Clear Tabs command <input>
+~ This starts with worklist Clear Tabs command.
+[Technical explanation]
+- After destructive confirmation, call PStripContentClear, which invokes PWorkspaceMediaClear for every tab workspace @ console.PConsoleTabsHandle(...)
+  @ strip.PStripContentClear(...)
+> map:media-removal.common.workspace-media-clear
+
+[relay-source-remove] Post-delivery source-removal request <input>
+~ This starts with post-delivery source-removal request.
+[Technical explanation]
+- LCartographerDeliver requests ordinary source removal with force=false after successful delivery, but force=true when the relay target is Finish; PListDeliveredRemove receives that flag @ cartographer.LCartographerDeliver(...)
+  @ list.PListDeliveredRemove(...)
+> source-remove-gate
+
+[batch-evict] Worklist batch eviction <input>
+~ This starts with worklist batch eviction.
+[Technical explanation]
+- Find docket entries whose batches left the Worklist and call LDocketPathsRemove for those paths; matching Merge group paths are removed afterward @ list.PListBatchEvict(...)
+> map:media-removal.common.docket-removal
+
+[source-remove-gate] Source removal policy <decision>
+~ The program checks source removal policy.
+[Technical explanation]
+- Skip only when removal is not forced and Relay Empty is disabled; a forced Finish request bypasses Relay Empty @ list.PListDeliveredRemove(...)
+? "Forced, or Relay Empty enabled" > source-tab-check
+? "Not forced and Relay Empty disabled" > source-kept
+
+[source-tab-check] Source tab still available <decision>
+~ The program checks source tab still available.
+[Technical explanation]
+- Resolve the source tab recorded by the work item; no Files/group removal can occur when that tab is gone @ list.PListDeliveredRemove(...)
+? "Source tab found" > source-paths
+? "Source tab gone" > source-gone
+
+[source-kept] Source media retained by policy <output>
+~ This path ends with source media retained by policy.
+[Technical explanation]
+= Ordinary delivery leaves source and merge-source paths in their source tab when Relay Empty is disabled.
+
+[source-paths] Build delivered source path set <process>
+~ This step handles build delivered source path set.
+[Technical explanation]
+- Build the removal set from the work item's primary source plus all merge-source paths @ list.PListDeliveredRemove(...)
+> source-docket-remove
+
+[source-gone] Source removal unavailable <output>
+~ This path ends with source removal unavailable.
+[Technical explanation]
+= The source tab no longer exists, so PListDeliveredRemove changes no source Files or Merge grouping state.
+
+[source-docket-remove] Remove source Files entries <process>
+~ This step handles remove source Files entries.
+[Technical explanation]
+- Call LDocketPathsRemove on the source tab's Files docket when present @ list.PListDeliveredRemove(...)
+  @ docket.LDocketPathsRemove(...)
+> source-group-remove
+
+[source-group-remove] Remove matching Merge grouping paths <process>
+~ This step handles remove matching Merge grouping paths.
+[Technical explanation]
+- After Files removal, remove the same source/merge-source paths from the source tab's Merge group when that surface exists @ list.PListDeliveredRemove(...)
+> source-removed
+
+[source-removed] Delivered source removal completed <output>
+~ This path ends with delivered source removal completed.
+[Technical explanation]
+= The source Files and applicable Merge grouping paths have been offered for removal; a forced Finish-target drop performs this path even when Relay Empty is disabled.

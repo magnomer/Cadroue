@@ -16,36 +16,52 @@
 @alias piece = Cadroue.Core.LPiece
 
 [split-dispatch] splitSection dispatch request <input>
+~ This starts with splitSection dispatch request.
+[Technical explanation]
 = The request came from the Split Compass Split button or the currently bound SectionSplit shortcut.
 > dispatch-guard
 
 [dispatch-guard] Active Split flow guard <decision>
+~ The program checks active Split flow guard.
+[Technical explanation]
 - PFlowShortcutDispatch requires a command-active flow with a loaded spool and active section UI before invoking PFlowSectionDivide @ flow.PFlowShortcutDispatch(...) / splitSection
 ? "Rejected" > dispatch-rejected
 ? "Accepted" > editable-check
 
 [dispatch-rejected] Split ignored <output>
+~ This path ends with split ignored.
+[Technical explanation]
 = No section operation is called.
 
 [editable-check] Section editing enabled <decision>
+~ The program checks section editing enabled.
+[Technical explanation]
 - PFlowSectionDivide returns when section editing is disabled; otherwise it resets pFlowSegmentFired, chooses the next palette color, and calls LSegmentDivide at the cursor @ flow.PFlowSectionDivide(...)
 @ flow.PFlowColorRead(...)
 ? "Editing disabled" > split-blocked
 ? "Editing enabled" > divide-plan
 
 [split-blocked] Split blocked <output>
+~ This path ends with split blocked.
+[Technical explanation]
 = Existing section state is unchanged.
 
 [divide-plan] Selected section and interior cursor <decision>
+~ The program checks selected section and interior cursor.
+[Technical explanation]
 - LSegmentDivide asks LPieceDivide for a plan; an active section must exist and the cursor must be strictly greater than its start and strictly less than its end @ segment.LSegmentDivide(...)
 @ piece.LPieceDivide(...)
 ? "No selection or cursor not strictly inside" > split-invalid
 ? "Valid interior split" > replace-section
 
 [split-invalid] No split modification <output>
+~ This path ends with no split modification.
+[Technical explanation]
 = Existing section state is unchanged and no split log is written.
 
 [replace-section] Replace selected section with two pieces <process>
+~ This step handles replace selected section with two pieces.
+[Technical explanation]
 - Remove the selected LPiece, insert the original piece with LPieceEnd shortened to cursor as the left half, insert a new unnamed right half from cursor to the original end using the new color, and keep the left-half index active @ piece.LPieceDivide(...)
 = The shortened left half is the modification covered here; creation of the right half is the Section creation aspect of the same atomic plan.
 > map:section-modification.common.apply-modified-state

@@ -16,41 +16,61 @@
 @alias segment = Cadroue.Application.LSegment
 
 [badge-double-click] Color badge MouseLeftButtonDown <input>
+~ This starts when the user clicks the section color badge.
+[Technical explanation]
 - The section color badge reacts only when ClickCount is at least two @ panel.PSectionRowBuild(...) / color badge MouseLeftButtonDown
 > click-check
 
 [click-check] Double-click accepted <decision>
+~ The program checks double-click accepted.
+[Technical explanation]
 = Single-clicks do not toggle the section.
 ? "Single click" > ignored
 ? "Double click" > editor-boundary
 
 [ignored] Toggle not requested <output>
+~ This path ends with toggle not requested.
+[Technical explanation]
 = Section hidden/output state is unchanged.
 
 [editor-boundary] Finish any pending inline editor <process>
+~ This step handles finish any pending inline editor.
+[Technical explanation]
 - Release row-panel mouse capture, clear drag state, and call PSectionEditCommit before toggling. Any naming/renaming performed by that commit is explicitly outside this map @ panel.PSectionEditCommit(...)
 > row-index
 
 [row-index] Resolve current row index <process>
+~ This step handles resolve current row index.
+[Technical explanation]
 - Resolve the clicked row's current index and call PFlowSectionToggle with it @ flow.PFlowSectionToggle(...)
 > editable-check
 
 [editable-check] Section editing enabled <decision>
+~ The program checks section editing enabled.
+[Technical explanation]
 - PFlowSectionToggle returns immediately when section editing is disabled; otherwise it resets pFlowSegmentFired and calls LSegmentToggle @ flow.PFlowSectionToggle(...)
 ? "Editing disabled" > toggle-blocked
 ? "Editing enabled" > index-check
 
 [toggle-blocked] Toggle blocked <output>
+~ This path ends with toggle blocked.
+[Technical explanation]
 = Section hidden/output state is unchanged.
 
 [index-check] Index valid <decision>
+~ The program checks index valid.
+[Technical explanation]
 - LSegmentToggle requires the supplied index to be inside the current section list @ segment.LSegmentToggle(...)
 ? "Index invalid" > invalid-index
 ? "Index valid" > toggle-plan
 
 [invalid-index] Toggle ignored <output>
+~ This path ends with toggle ignored.
+[Technical explanation]
 = No section state change occurs and pFlowSegmentFired remains false, so no toggle log is written.
 
 [toggle-plan] Flip LPieceHidden <process>
+~ The program changes whether the section is hidden.
+[Technical explanation]
 - Copy the section list, replace the indexed piece with LPieceHidden inverted, and keep the existing active selection unchanged @ segment.LSegmentToggle(...)
 > map:section-modification.common.apply-modified-state

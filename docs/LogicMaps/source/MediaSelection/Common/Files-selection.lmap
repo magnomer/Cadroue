@@ -1,0 +1,89 @@
+@format 1
+@id media-selection.common.files-selection
+@title Files selection
+@section Media selection
+@area Common
+@entry row-press, row-release, select-all
+@summary Trace shared Files interactions that change or republish the current program media selection without adding or removing media entries.
+@related media-preview.in-split, media-preview.in-edit, media-preview.in-convert, media-preview.in-audio, media-preview.in-merge, media-preview.in-funnel
+@tag media
+@tag selection
+@tag common
+
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[row-press] Files row mouse press <input>
+~ This starts with files row mouse press.
+[Technical explanation]
+- Apply normal, Control, or Shift selection for the pressed row @ list.PListPressHandle(...)
+> row-press-publish
+
+[row-release] Files row mouse release <input>
+~ This starts with files row mouse release.
+[Technical explanation]
+- Release a captured row interaction and collapse a retained multi-selection only when a collapse path is pending @ list.PListReleaseHandle(...)
+> row-release-result
+
+[select-all] Files Control+A <input>
+~ This starts with files Control+A.
+[Technical explanation]
+- Test Control+A against the current Files selection and docket contents @ list.PListKeyHandle(...)
+> select-all-result
+
+[row-press-publish] Publish current path after press <process>
+~ The Files list announces the media path selected by the mouse press.
+[Technical explanation]
+- Publish the selected current path as part of the row-selection operation @ list.PListCurrentApply(...)
+> row-press-output
+
+[row-release-result] Release outcome <decision>
+~ The program checks whether releasing the mouse changes the selected file.
+[Technical explanation]
+- Republish the collapsed row only when the earlier press left a collapse path pending @ list.PListReleaseHandle(...)
+? "Selection collapsed" > row-release-publish
+? "No collapse pending" > row-release-nochange
+
+[select-all-result] Select-all eligibility <decision>
+~ The program checks select-all eligibility.
+[Technical explanation]
+- Apply the full selection only when Control+A, an existing selection, and at least one docket path are present @ list.PListKeyHandle(...)
+  @ list.PListSelectionApply(...)
+? "Eligible" > select-all-publish
+? "Ineligible" > select-all-nochange
+
+[row-press-output] Current path after press <output>
+~ This path ends with current path after press.
+[Technical explanation]
+= PListPathChange subscribers receive the selected program media path.
+
+[row-release-publish] Publish collapsed current path <process>
+~ The Files list announces the remaining selected media path.
+[Technical explanation]
+- Publish the collapsed current path @ list.PListCurrentApply(...)
+> row-release-output
+
+[row-release-nochange] Release changes nothing <output>
+~ This path ends with release changes nothing.
+[Technical explanation]
+= No current-path publication occurs.
+
+[select-all-publish] Publish Select All current path <process>
+~ The Files list announces the current media path after Select All.
+[Technical explanation]
+- Preserve the current path when possible, otherwise publish the last selected path @ list.PListCurrentApply(...)
+> select-all-output
+
+[select-all-nochange] Select All ignored <output>
+~ This path ends with select All ignored.
+[Technical explanation]
+= No current-path publication occurs.
+
+[row-release-output] Current path after release <output>
+~ This path ends with current path after release.
+[Technical explanation]
+= PListPathChange subscribers receive the republished program media path.
+
+[select-all-output] Current path after Select All <output>
+~ This path ends with current path after Select All.
+[Technical explanation]
+= PListPathChange subscribers receive the published program media path.

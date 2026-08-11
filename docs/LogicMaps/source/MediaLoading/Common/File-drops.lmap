@@ -5,7 +5,7 @@
 @area Common
 @entry viewer-drop, window-drop
 @summary Trace file-system drops through the list-backed paths reachable in Cadroue, including both media/path eligibility and the WPF AllowedEffects gate.
-@related media-loading.common.files-intake, media-loading.in-merge-tab
+@related media-loading.common.files-intake, media-loading.in-merge
 @tag media
 @tag loading
 @tag common
@@ -16,67 +16,99 @@
 @alias workspace = Cadroue.UIShell.PControlBar.PWorkspace
 
 [viewer-drop] Viewer overlay file drop <input>
+~ This starts with viewer overlay file drop.
+[Technical explanation]
 - Receive a file-system drop on a media-tab viewer overlay; every currently constituted media-tab viewer attaches PDropPathsChange to its Files list, so the reachable application path is list-backed @ viewer.PDropHandle(...)
 > viewer-path-check
 
 [window-drop] Window-level file drop <input>
+~ This starts with window-level file drop.
+[Technical explanation]
 - Receive the routed window drop; PDropHandle first checks whether the original source belongs to a Merge PGroup @ window.PDropHandle(...)
 > window-owner-check
 
 [viewer-path-check] Viewer dropped set has an eligible path <decision>
+~ The program checks whether the dropped items include a supported media file or folder.
+[Technical explanation]
 - In the list-backed branch, PDropEffectRead requires at least one dropped directory or supported media path before consulting the drag operation allowed by WPF @ viewer.PDropEffectRead(...)
 ? "At least one eligible path" > viewer-effect-check
 ? "No eligible path" > viewer-no-path
 
 [window-owner-check] Merge group owns routed drop <decision>
+~ The program checks merge group owns routed drop.
+[Technical explanation]
 - PDropGroupCheck walks the original-source ancestry; when it reaches a PGroup, the window handler returns without handling the drop so the Merge group can own it @ window.PDropGroupCheck(...)
 ? "Inside Merge PGroup" > merge-group-owned
 ? "Not inside Merge PGroup" > window-list-check
 
 [viewer-no-path] Viewer path eligibility rejected <output>
+~ This path ends with viewer path eligibility rejected.
+[Technical explanation]
 = No Files intake starts because no dropped directory or supported media path exists.
 
 [viewer-effect-check] Viewer drag operation allowed <decision>
+~ The program checks viewer drag operation allowed.
+[Technical explanation]
 - PDropAllowedRead accepts Copy first, otherwise Move, otherwise Link when that effect is present in DragEventArgs.AllowedEffects; if none is allowed it returns None @ viewer.PDropAllowedRead(...)
 ? "Copy, Move, or Link allowed" > viewer-publish-paths
 ? "No supported effect allowed" > viewer-no-effect
 
 [merge-group-owned] Merge group owns routed drop <output>
+~ This path ends with merge group owns routed drop.
+[Technical explanation]
 = The window handler leaves the event to the Merge PGroup; the Merge scenario map covers that group-specific path.
 
 [window-list-check] Reachable active Files list <decision>
+~ The program checks reachable active Files list.
+[Technical explanation]
 - For the current workspace, the window uses pListActive when present; Worklist has neither Files nor a viewer, and every current workspace that has a viewer also has Files @ window.PDropEffectRead(...)
   @ workspace.PWorkspaceSurfaceCreate(...)
 ? "Active Files list exists" > window-path-check
 ? "No reachable Files drop path" > window-no-list
 
 [viewer-publish-paths] Publish complete viewer drop set <process>
+~ The dropped paths are sent to the active Files list.
+[Technical explanation]
 - PDropHandle marks the routed event handled and invokes PDropPathsChange with the complete dropped path set, not only the path that made the eligibility test succeed @ viewer.PDropHandle(...)
 > map:media-loading.common.files-intake
 
 [viewer-no-effect] Viewer drag effect rejected <output>
+~ This path ends with viewer drag effect rejected.
+[Technical explanation]
 = No Files intake starts because DragEventArgs.AllowedEffects offered none of Copy, Move, or Link.
 
 [window-path-check] Window dropped set has an eligible path <decision>
+~ The program checks whether the dropped items include a supported media file or folder.
+[Technical explanation]
 - In the active-list branch, PDropEffectRead requires at least one dropped directory or supported media path before consulting AllowedEffects @ window.PDropEffectRead(...)
 ? "At least one eligible path" > window-effect-check
 ? "No eligible path" > window-no-path
 
 [window-no-list] Window has no reachable list-backed drop path <output>
+~ This path ends with window has no reachable list-backed drop path.
+[Technical explanation]
 = No media-loading path starts from the window handler.
 
 [window-effect-check] Window drag operation allowed <decision>
+~ The program checks window drag operation allowed.
+[Technical explanation]
 - PDropAllowedRead accepts Copy first, otherwise Move, otherwise Link when present in DragEventArgs.AllowedEffects; if none is allowed it returns None @ window.PDropAllowedRead(...)
 ? "Copy, Move, or Link allowed" > window-add-paths
 ? "No supported effect allowed" > window-no-effect
 
 [window-no-path] Window path eligibility rejected <output>
+~ This path ends with window path eligibility rejected.
+[Technical explanation]
 = No Files intake starts because no dropped directory or supported media path exists.
 
 [window-add-paths] Add complete drop set to active Files <process>
+~ This step handles add complete drop set to active Files.
+[Technical explanation]
 - PDropHandle marks the routed event handled and passes the complete dropped path set to the active Files list @ window.PDropHandle(...)
 > map:media-loading.common.files-intake
 
 [window-no-effect] Window drag effect rejected <output>
+~ This path ends with window drag effect rejected.
+[Technical explanation]
 = No Files intake starts because DragEventArgs.AllowedEffects offered none of Copy, Move, or Link.
 ! Under the current workspace constitution, PViewer and PWindow contain fallback direct-viewer branches for a viewer with no Files path, but no currently constructed Cadroue workspace exposes that combination; those component-only branches are therefore not represented as reachable application flows.

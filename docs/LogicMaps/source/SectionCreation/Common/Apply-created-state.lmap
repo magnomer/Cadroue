@@ -20,34 +20,48 @@
 @alias sidecar = Cadroue.Infrastructure.LSidecarStore
 
 [apply-plan] Accepted section-list plan <input>
+~ This starts with accepted section-list plan.
+[Technical explanation]
 = LSegmentAdd, LSegmentStartSet, LSegmentEndSet, or LSegmentDivide has obtained a replacement list and active index from LPiece planning.
 > replace-state
 
 [replace-state] Replace segment state <process>
+~ This step handles replace segment state.
+[Technical explanation]
 - Clear the current internal pieces, copy the accepted list, set the active index, and synchronously invoke LSegmentChange with a snapshot @ segment.LSegmentApply(...)
 > flow-change
 
 [flow-change] Update Flow section presentation <process>
+~ This step handles update Flow section presentation.
+[Technical explanation]
 - PFlowSegmentHandle marks pFlowSegmentFired, updates the Viewfinder and Map section geometry, and invokes PFlowSectionChange @ flow.PFlowSegmentHandle(...)
 > section-panel
 
 [section-panel] Rebuild the Sections panel <process>
+~ This step handles rebuild the Sections panel.
+[Technical explanation]
 - The Split PSection subscriber receives the changed list; because creation changes the list it rebuilds the count and rows with the new active selection @ panel.PSectionUpdateHandle(...)
 > workspace-history
 
 [workspace-history] Record undo history <process>
+~ This step handles record undo history.
+[Technical explanation]
 - The PWorkspace subscriber snapshots sections, selection, and export state; LHistoryAdd stores the changed state unless history is currently being applied or the state matches the present entry @ workspace.PWorkspaceSectionHandle(...)
 @ workspace.PWorkspaceHistoryAdd(...)
 @ history.LHistoryAdd(...)
 > sidecar-save
 
 [sidecar-save] Persist section records <process>
+~ This step handles persist section records.
+[Technical explanation]
 - After LSegmentChange returns, LSegmentApply calls LSegmentSave; with a source path and outside restore mode, the configured save seam attempts to write the current section records into the media sidecar; the bool returned by LSidecarSectionsSave is not consumed by the Action seam @ segment.LSegmentApply(...) / LSegmentSave after LSegmentChange
 @ segment.LSegmentSave(...)
 @ sidecar.LSidecarSectionsSave(...)
 > caller-log
 
 [caller-log] Resume the creation caller <decision>
+~ The program checks resume the creation caller.
+[Technical explanation]
 = The synchronous LSegmentApply call has completed its UI/history/persistence consequences before control returns to the originating PFlow method.
 ? "Add at cursor" > add-log
 ? "Set Start created" > start-log
@@ -55,17 +69,25 @@
 ? "Split selected section" > split-log
 
 [add-log] Log Add creation <output>
+~ This path ends with log Add creation.
+[Technical explanation]
 - PFlowSectionAdd records added only when the synchronous change set pFlowSegmentFired @ flow.PFlowSectionAdd(...)
 @ flow.PFlowSectionRecord(...)
 
 [start-log] Log Set Start creation <output>
+~ This path ends with log Set Start creation.
+[Technical explanation]
 - PFlowStartSet receives Added=true and records the selected section as added @ flow.PFlowStartSet(...)
 @ flow.PFlowSectionRecord(...)
 
 [end-log] Log Set End creation <output>
+~ This path ends with log Set End creation.
+[Technical explanation]
 - PFlowEndSet receives Added=true and records the selected section as added @ flow.PFlowEndSet(...)
 @ flow.PFlowSectionRecord(...)
 
 [split-log] Log both split halves <output>
+~ This path ends with log both split halves.
+[Technical explanation]
 - PFlowSectionDivide reads the selected left-half index and records the left half followed by the new right half @ flow.PFlowSectionDivide(...)
 @ flow.PFlowSectionRecord(...)

@@ -21,72 +21,106 @@
 @alias sidecar = Cadroue.Infrastructure.LSidecarStore
 
 [name-request] Committed name fields <input>
+~ This starts with current name fields.
+[Technical explanation]
 = A caller supplies a section index plus trimmed main-name, prefix, and suffix values.
 > editable-check
 
 [editable-check] Section editing enabled <decision>
+~ The program checks section editing enabled.
+[Technical explanation]
 - PFlowNameSet returns immediately when pFlowSectionEditable is false @ flow.PFlowNameSet(...)
 ? "Editing disabled" > blocked
 ? "Editing enabled" > index-check
 
 [blocked] Name change blocked <output>
+~ This path ends with name change blocked.
+[Technical explanation]
 = No section state, history, persistence, or naming log changes.
 
 [index-check] Section index valid <decision>
+~ The program checks section index valid.
+[Technical explanation]
 - PFlowNameSet reads the current section list and returns when the supplied index is outside it @ flow.PFlowNameSet(...)
 ? "Index invalid" > invalid
 ? "Index valid" > capture-old-name
 
 [invalid] Name change ignored <output>
+~ This path ends with name change ignored.
+[Technical explanation]
 = No section state changes.
 
 [capture-old-name] Capture previous LPieceName <process>
+~ The program remembers the section’s previous name.
+[Technical explanation]
 - PFlowNameSet saves the previously stored LPieceName for later log wording, resets pFlowSegmentFired, and calls LSegmentNameSet @ flow.PFlowNameSet(...)
 > compare-fields
 
 [compare-fields] Name state differs <decision>
+~ The program checks name state differs.
+[Technical explanation]
 - LSegmentNameSet resolves nullable affix arguments and checks whether all three fields are ordinally unchanged using ordinal equality across LPieceName, LPiecePrefix, and LPieceSuffix; if all three match, it returns without applying state @ segment.LSegmentNameSet(...)
 ? "All three fields unchanged" > unchanged
 ? "At least one field changed" > replace-piece
 
 [unchanged] No naming mutation <output>
+~ This path ends with no naming mutation.
+[Technical explanation]
 = With no state difference there is no publication or history entry, no sidecar save is attempted, and no naming log is written.
 
 [replace-piece] Replace the indexed LPiece <process>
+~ The program replaces the selected section with its renamed version.
+[Technical explanation]
 - Copy the current section list and replace the indexed piece with the requested main name/prefix/suffix while preserving the current active selection @ segment.LSegmentNameSet(...)
 > apply-state
 
 [apply-state] Apply replacement section list <process>
+~ This step handles apply replacement section list.
+[Technical explanation]
 - LSegmentApply replaces the internal pieces and synchronously invokes LSegmentChange before attempting persistence @ segment.LSegmentApply(...)
 > flow-publish
 
 [flow-publish] Publish renamed section state <process>
+~ The section display is updated with the new name.
+[Technical explanation]
 - PFlowSegmentHandle sets pFlowSegmentFired, updates Viewfinder and Map section rendering, and synchronously invokes PFlowSectionChange @ flow.PFlowSegmentHandle(...)
 > panel-update
 
 [panel-update] Sections panel receives new name fields <process>
+~ This step handles sections panel receives new name fields.
+[Technical explanation]
 - PSectionUpdateHandle stores the changed LPiece values/selection and rebuilds the row presentation @ panel.PSectionUpdateHandle(...)
 > history-update
 
 [history-update] Workspace history receives the name change <process>
+~ This step handles workspace history receives the name change.
+[Technical explanation]
 - PWorkspaceSectionHandle asks LHistoryAdd to record the workspace snapshot; history-apply mode and an already-identical current state are suppressed @ workspace.PWorkspaceSectionHandle(...)
 @ workspace.PWorkspaceHistoryAdd(...)
 @ history.LHistoryAdd(...)
 > sidecar-save
 
 [sidecar-save] Persist section name fields <process>
+~ This step handles persist section name fields.
+[Technical explanation]
 - After LSegmentChange returns, LSegmentApply calls LSegmentSave; with a source path and outside restore mode, the configured seam writes section records including name, prefix, and suffix @ segment.LSegmentApply(...) / LSegmentSave after LSegmentChange
 @ segment.LSegmentSave(...)
 @ sidecar.LSidecarSectionsSave(...)
 > log-kind
 
 [log-kind] Name or rename wording <decision>
+~ The program checks name or rename wording.
+[Technical explanation]
 - Back in PFlowNameSet, pFlowSegmentFired is true and the wording depends only on the previous LPieceName: empty means named; non-empty means renamed from 'old' to. This classification does not inspect whether only an affix changed @ flow.PFlowNameSet(...)
 ? "Previous LPieceName empty" > named-log
 ? "Previous LPieceName non-empty" > renamed-log
 
 [named-log] Record section named <output>
+~ This path ends with record section named.
+[Technical explanation]
 - PFlowSectionRecord writes a named information record using the current section state; if only an affix changed while the main name remains empty, the record can still describe the current section itself as unnamed @ flow.PFlowSectionRecord(...)
 
 [renamed-log] Record section renamed <output>
+~ This path ends with record section renamed.
+[Technical explanation]
 - PFlowSectionRecord writes renamed from 'old-name' to; if only an affix changed while the main name stayed the same, the current implementation still uses rename wording @ flow.PFlowSectionRecord(...)

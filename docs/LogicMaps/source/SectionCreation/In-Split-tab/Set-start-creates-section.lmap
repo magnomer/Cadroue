@@ -16,18 +16,26 @@
 @alias piece = Cadroue.Core.LPiece
 
 [start-dispatch] setStart dispatch request <input>
+~ This starts with setStart dispatch request.
+[Technical explanation]
 = The request came from the Split Compass Start button or the currently bound SectionStart shortcut.
 > dispatch-guard
 
 [dispatch-guard] Active Split flow guard <decision>
+~ The program checks active Split flow guard.
+[Technical explanation]
 - PFlowShortcutDispatch requires a command-active flow with a loaded spool and active section UI before invoking PFlowStartSet @ flow.PFlowShortcutDispatch(...) / setStart
 ? "Rejected" > dispatch-rejected
 ? "Accepted" > start-handler
 
 [dispatch-rejected] Set Start command ignored <output>
+~ This path ends with set Start command ignored.
+[Technical explanation]
 = No section operation is called.
 
 [start-handler] Set Start creation preconditions <decision>
+~ The program checks set Start creation preconditions.
+[Technical explanation]
 - PFlowStartSet requires section editing to be enabled plus a spool and nonblank source path, then chooses the color from current section count modulo active palette count and calls LSegmentStartSet with cursor, duration, color, and overlap policy @ flow.PFlowStartSet(...)
 @ flow.PFlowColorRead(...)
 @ property flow.PFlowOverlapAllowed
@@ -35,18 +43,26 @@
 ? "Preconditions accepted" > segment-start
 
 [start-rejected] Set Start creation blocked <output>
+~ This path ends with set Start creation blocked.
+[Technical explanation]
 = No section state changes.
 
 [segment-start] Evaluate selected-section relationship <decision>
+~ The program checks evaluate selected-section relationship.
+[Technical explanation]
 - LSegmentStartSet delegates to LPieceStartSet; creation occurs only when no section is selected or the selected section ends strictly before the current cursor @ segment.LSegmentStartSet(...)
 @ piece.LPieceStartSet(...)
 ? "No selection or selected end before cursor" > forward-create
 ? "Existing-section branch" > existing-start-outside
 
 [existing-start-outside] Existing-section start path excluded <output>
+~ This path ends with existing-section start path excluded.
+[Technical explanation]
 = This branch either rejects the requested start or edits an existing section; both are outside the requested creation-only scope.
 
 [forward-create] Delegate creation to LPieceAdd <process>
+~ The program hands the new-section request to the section planner.
+[Technical explanation]
 - LPieceStartSet uses LPieceAdd to build a new forward-running section and reports Added=true only if that plan succeeds @ piece.LPieceStartSet(...) / LPieceAdd creation branch
 @ piece.LPieceAdd(...)
 > map:section-creation.common.forward-section-plan

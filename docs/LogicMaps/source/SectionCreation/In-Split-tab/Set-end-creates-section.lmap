@@ -16,18 +16,26 @@
 @alias piece = Cadroue.Core.LPiece
 
 [end-dispatch] setEnd dispatch request <input>
+~ This starts with setEnd dispatch request.
+[Technical explanation]
 = The request came from the Split Compass End button or the currently bound SectionEnd shortcut.
 > dispatch-guard
 
 [dispatch-guard] Active Split flow guard <decision>
+~ The program checks active Split flow guard.
+[Technical explanation]
 - PFlowShortcutDispatch requires a command-active flow with a loaded spool and active section UI before invoking PFlowEndSet @ flow.PFlowShortcutDispatch(...) / setEnd
 ? "Rejected" > dispatch-rejected
 ? "Accepted" > end-handler
 
 [dispatch-rejected] Set End command ignored <output>
+~ This path ends with set End command ignored.
+[Technical explanation]
 = No section operation is called.
 
 [end-handler] Set End creation preconditions <decision>
+~ The program checks set End creation preconditions.
+[Technical explanation]
 - PFlowEndSet requires section editing to be enabled plus a spool and nonblank source path, then chooses the color from current section count modulo active palette count and calls LSegmentEndSet with cursor, color, and overlap policy @ flow.PFlowEndSet(...)
 @ flow.PFlowColorRead(...)
 @ property flow.PFlowOverlapAllowed
@@ -35,47 +43,69 @@
 ? "Preconditions accepted" > selection-check
 
 [end-rejected] Set End creation blocked <output>
+~ This path ends with set End creation blocked.
+[Technical explanation]
 = No section state changes.
 
 [selection-check] Is a section already selected? <decision>
+~ Is a section already selected?
+[Technical explanation]
 - LSegmentEndSet delegates to LPieceEndSet; only a null active index enters LPieceEndCreate, while a selected section enters the existing-section end path @ segment.LSegmentEndSet(...)
 @ piece.LPieceEndSet(...)
 ? "Section selected" > existing-end-outside
 ? "No section selected" > cursor-check
 
 [existing-end-outside] Existing-section end path excluded <output>
+~ This path ends with existing-section end path excluded.
+[Technical explanation]
 = Editing or rejecting the selected section's end is outside the requested creation-only scope.
 
 [cursor-check] End cursor after zero <decision>
+~ The program checks end cursor after zero.
+[Technical explanation]
 - LPieceEndCreate rejects a cursor at or before zero @ piece.LPieceEndCreate(...)
 ? "Cursor at or before zero" > zero-rejected
 ? "Cursor after zero" > floor-read
 
 [zero-rejected] No section plan <output>
+~ This path ends with no section plan.
+[Technical explanation]
 = No new section is created.
 
 [floor-read] Determine the new section start <process>
+~ This step handles determine the new section start.
+[Technical explanation]
 - LPieceFloorRead returns zero when overlap is allowed; otherwise it returns the latest existing section end that is not later than the cursor @ piece.LPieceFloorRead(...)
 > floor-check
 
 [floor-check] Positive span from start to cursor <decision>
+~ The program checks positive span from start to cursor.
+[Technical explanation]
 - LPieceEndCreate requires the computed start to be earlier than the cursor @ piece.LPieceEndCreate(...) / start check
 ? "Start is not earlier" > floor-rejected
 ? "Start is earlier" > obstruction-check
 
 [floor-rejected] No section plan because span is empty <output>
+~ This path ends with no section plan because span is empty.
+[Technical explanation]
 = No new section is created.
 
 [obstruction-check] No intervening blocked span <decision>
+~ The program checks no intervening blocked span.
+[Technical explanation]
 - When overlap is disabled, LPieceLimitRead detects a section start between the computed start and cursor; LPieceEndCreate rejects if the cursor passes that limit @ piece.LPieceLimitRead(...)
 @ piece.LPieceEndCreate(...) / limit check
 ? "Blocked before cursor" > obstruction-rejected
 ? "Clear to cursor" > end-plan
 
 [obstruction-rejected] No section plan because another section intervenes <output>
+~ This path ends with no section plan because another section intervenes.
+[Technical explanation]
 = No new section is created.
 
 [end-plan] Append a new unnamed ending section <process>
+~ This step handles append a new unnamed ending section.
+[Technical explanation]
 - Append LPiece(computed start, cursor, color index, empty name), select the new last index, and return Added=true to LSegmentEndSet @ piece.LPieceEndCreate(...)
 @ piece.LPieceEndSet(...) / Added true creation result
 > map:section-creation.common.apply-created-state

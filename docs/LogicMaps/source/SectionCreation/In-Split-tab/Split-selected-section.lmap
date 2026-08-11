@@ -16,35 +16,51 @@
 @alias piece = Cadroue.Core.LPiece
 
 [split-dispatch] splitSection dispatch request <input>
+~ This starts with splitSection dispatch request.
+[Technical explanation]
 = The request came from the Split Compass Split button or the currently bound SectionSplit shortcut.
 > dispatch-guard
 
 [dispatch-guard] Active Split flow guard <decision>
+~ The program checks active Split flow guard.
+[Technical explanation]
 - PFlowShortcutDispatch requires a command-active flow with a loaded spool and active section UI before invoking PFlowSectionDivide @ flow.PFlowShortcutDispatch(...) / splitSection
 ? "Rejected" > dispatch-rejected
 ? "Accepted" > divide-handler
 
 [dispatch-rejected] Split command ignored <output>
+~ This path ends with split command ignored.
+[Technical explanation]
 = No section operation is called.
 
 [divide-handler] Prepare section division <decision>
+~ The program checks prepare section division.
+[Technical explanation]
 - PFlowSectionDivide requires section editing to be enabled, resets pFlowSegmentFired, chooses the color from current section count modulo active palette count, and calls LSegmentDivide at the current cursor @ flow.PFlowSectionDivide(...)
 @ flow.PFlowColorRead(...)
 ? "Editing disabled" > divide-rejected
 ? "Division requested" > segment-divide
 
 [divide-rejected] Split creation blocked <output>
+~ This path ends with split creation blocked.
+[Technical explanation]
 = No section state changes.
 
 [segment-divide] Validate selection and cursor position <decision>
+~ The program checks validate selection and cursor position.
+[Technical explanation]
 - LSegmentDivide asks LPieceDivide for a plan; LPieceDivide requires an active section and a cursor strictly inside its start/end bounds @ segment.LSegmentDivide(...)
 @ piece.LPieceDivide(...)
 ? "No selected section or cursor not strictly inside" > divide-invalid
 ? "Cursor strictly inside selected section" > split-plan
 
 [divide-invalid] No split plan <output>
+~ This path ends with no split plan.
+[Technical explanation]
 = No new section is created.
 
 [split-plan] Replace one section with left and right halves <process>
+~ This step handles replace one section with left and right halves.
+[Technical explanation]
 - Remove the selected piece, insert the original piece shortened to end at the cursor as the left half, insert a new unnamed right half from cursor to the original end using the new color, and keep the left-half index active @ piece.LPieceDivide(...)
 > map:section-creation.common.apply-created-state

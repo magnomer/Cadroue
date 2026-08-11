@@ -1,0 +1,31 @@
+@format 1
+@id media-preview.in-convert
+@title In Convert
+@section Media preview
+@area In Convert
+@entry convert-path-change
+@summary Show only the Convert-specific step that bridges shared Files selection into shared viewer preview loading.
+@related media-loading.common.files-intake, media-selection.common.files-selection, media-preview.common.viewer-gate
+@tag media
+@tag preview
+@tag convert
+
+@alias convert = Cadroue.UIShell.PMainArea.PConvertTab
+
+[convert-path-change] Convert Files current-path event <input>
+~ This starts when the selected file changes in the Convert tab.
+[Technical explanation]
+= Shared Files logic published the current path through PListPathChange.
+> convert-path-result
+
+[convert-path-result] Convert selected-path adapter <decision>
+~ The Convert tab decides what to do with the newly selected media path.
+[Technical explanation]
+- Ignore a blank path; otherwise request it from the Convert viewer @ convert.PConvertPathShow(...)
+? "Nonblank current path" > map:media-preview.common.viewer-gate
+? "Blank current path" > convert-no-request
+
+[convert-no-request] Convert viewer request omitted <output>
+~ This path ends with convert viewer request omitted.
+[Technical explanation]
+= Convert does not call the shared viewer-preview pipeline.

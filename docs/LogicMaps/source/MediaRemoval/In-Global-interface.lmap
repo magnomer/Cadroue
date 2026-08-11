@@ -1,0 +1,29 @@
+@format 1
+@id media-removal.in-global-interface
+@title In Global interface
+@section Media removal
+@area In Global interface
+@entry unload-current, unload-all
+@summary Show global commands that clear media state from one workspace or all tab workspaces.
+@related media-removal.common.workspace-media-clear
+@tag media
+@tag removal
+@tag global
+
+@alias window = Cadroue.UIShell.PMainWindow.PWindow
+@alias workspace = Cadroue.UIShell.PControlBar.PWorkspace
+@alias strip = Cadroue.UIShell.PControlBar.PStrip
+
+[unload-current] Selected-workspace Unload command <input>
+~ This starts with selected-workspace Unload command.
+[Technical explanation]
+- Dispatch Unload to the selected workspace; PWorkspaceMediaClear handles viewer, flow, Files, and grouping cleanup @ window.PShortcutMediaClose(...)
+  @ workspace.PWorkspaceMediaClear(...)
+> map:media-removal.common.workspace-media-clear
+
+[unload-all] Unload All command <input>
+~ This starts with unload All command.
+[Technical explanation]
+- Dispatch Unload All; PStripContentClear calls PWorkspaceMediaClear sequentially for every tab workspace @ window.PShortcutRun(...)
+  @ strip.PStripContentClear(...)
+> map:media-removal.common.workspace-media-clear

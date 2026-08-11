@@ -1,0 +1,105 @@
+@format 1
+@id media-preview.common.backend-load
+@title Backend load
+@section Media preview
+@area Common
+@entry backend-start
+@summary Trace LMediaLoadAsync through normalization, request ownership, source validation, ffprobe execution, successful-read ownership checks, and raised versus obsolete outcomes.
+@related media-preview.common.backend-failure, media-preview.common.completion-routing
+@tag media
+@tag preview
+@tag common
+@tag ffprobe
+
+@alias media-load = Cadroue.Media.LMediaLoad
+@alias media = Cadroue.Media.LMedia
+@alias custody = Cadroue.Core.LCustody
+
+[backend-start] Backend load dispatch <input>
+~ The program starts reading the selected media file in the background.
+[Technical explanation]
+- Start the asynchronous backend media-load operation for the requested source @ media-load.LMediaLoadAsync(...)
+> path-check
+
+[path-check] Backend path normalization <decision>
+~ The program cleans up the media path and checks that it is usable.
+[Technical explanation]
+- Normalize the requested source to a full path; invalid syntax enters LMediaLoadReject, which cancels prior ownership, advances generation, clears pending state, and builds an immediate failure @ media-load.LMediaLoadAsync(...)
+  @ media-load.LMediaLoadReject(...)
+? "Path normalized" > request-owner
+? "Invalid path syntax" > reject-raised
+
+[request-owner] Backend request ownership <process>
+~ The program checks whether this result still belongs to the current media-loading request.
+[Technical explanation]
+- Cancel and dispose the previous request, create a linked cancellation source, advance generation, and mark the new request pending @ media-load.LMediaLoadAsync(...)
+> source-check
+
+[reject-raised] Invalid-path failure raised <process>
+~ The program reports that the selected media path cannot be used.
+[Technical explanation]
+- Raise the immediate rejected outcome to each LMediaLoadCompleted subscriber individually, isolating subscriber exceptions @ media-load.LMediaLoadRaise(...)
+> map:media-preview.common.completion-routing
+
+[source-check] Backend source validation <decision>
+~ The program checks background loader source validation.
+[Technical explanation]
+- Require a nonblank path, an existing file, and a supported media extension @ media-load.LMediaLoadAsync(...)
+  @ media.LMediaCheck(...)
+? "Supported existing media" > ffprobe-read
+? "Blank, missing, or unsupported" > map:media-preview.common.backend-failure
+
+[ffprobe-read] FFprobe media inspection <decision>
+~ The program checks what kind of media the selected file contains.
+[Technical explanation]
+- Run the media reader off the caller thread; LMediaFfprobeRead launches ffprobe, attaches it to custody, kills its process tree on cancellation, parses JSON, and either returns LMediaInfo or throws @ media-load.LMediaLoadAsync(...)
+  @ media.LMediaFfprobeRead(...)
+  @ media.LMediaFfprobeParse(...)
+  @ custody.LCustodyAttach(...)
+? "Parsed media returned" > completion-generation-check
+? "OperationCanceledException" > cancelled-catch
+? "Other reader exception" > map:media-preview.common.backend-failure
+
+[completion-generation-check] Successful-read ownership check <decision>
+~ The program checks whether the successful read still belongs to the current request.
+[Technical explanation]
+- After a successful reader return, recheck disposal and generation; for a current request, distinguish a token that became cancelled from a successful media commit @ media-load.LMediaLoadAsync(...)
+? "Superseded or disposed" > obsolete-success
+? "Current token cancelled" > cancelled-raised
+? "Current parsed media" > success-commit
+
+[cancelled-catch] Cancellation-exception ownership check <decision>
+~ The program checks whether the cancellation still belongs to the current request.
+[Technical explanation]
+- On OperationCanceledException, first test disposal and generation before calling LMediaLoadFailCurrent; if still current, the failure helper performs its own second ownership check @ media-load.LMediaLoadAsync(...)
+? "Already obsolete" > obsolete-catch
+? "Still current at first check" > map:media-preview.common.backend-failure
+
+[obsolete-success] Successful reader became obsolete <output>
+~ The read finished, but a newer request has already replaced it.
+[Technical explanation]
+= LMediaLoadAsync returns LMediaLoadObsolete without raising LMediaLoadCompleted.
+
+[cancelled-raised] Current token-cancelled outcome raised <process>
+~ The background loader reports that the current read was cancelled.
+[Technical explanation]
+- Clear pending state, build the cancelled outcome, and raise it after leaving the backend lock @ media-load.LMediaLoadAsync(...)
+  @ media-load.LMediaLoadRaise(...)
+> map:media-preview.common.completion-routing
+
+[success-commit] Backend media commit <storage>
+~ The background loader stores the successfully read media and its details.
+[Technical explanation]
+- Clear pending state, store current media path and parsed media information, and build the successful outcome @ media-load.LMediaLoadAsync(...)
+> success-raised
+
+[obsolete-catch] Cancelled reader already obsolete <output>
+~ The cancelled read belongs to an older request, so it is ignored.
+[Technical explanation]
+= The caught cancellation returns LMediaLoadObsolete without raising LMediaLoadCompleted.
+
+[success-raised] Successful backend outcome raised <process>
+~ The background loader reports that the media was read successfully.
+[Technical explanation]
+- Raise the successful outcome through isolated per-subscriber invocation @ media-load.LMediaLoadRaise(...)
+> map:media-preview.common.completion-routing

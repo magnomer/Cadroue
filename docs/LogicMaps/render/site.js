@@ -70,31 +70,6 @@
   nodes.forEach(node=>visit(node.dataset.id));
   nodes.forEach(node=>(groups[depth[node.dataset.id]]??=[]).push(node));
 
-  function parentBarycenter(node,previousIndex){
-    const parents=primaryEdges.filter(edge=>edge.to===node.dataset.id&&previousIndex.has(edge.from));
-    if(!parents.length)return Number.POSITIVE_INFINITY;
-    return parents.reduce((sum,edge)=>sum+previousIndex.get(edge.from),0)/parents.length;
-  }
-  function placeVirtualTargets(){
-    const levels=Object.keys(groups).map(Number).sort((a,b)=>a-b);
-    for(const level of levels){
-      if(level===0)continue;
-      const previous=groups[level-1]||[];
-      const previousIndex=new Map(previous.map((node,index)=>[node.dataset.id,index]));
-      const actual=groups[level].filter(node=>node.dataset.virtual!=='true');
-      const virtuals=groups[level].filter(node=>node.dataset.virtual==='true')
-        .sort((a,b)=>parentBarycenter(a,previousIndex)-parentBarycenter(b,previousIndex));
-      const ordered=[...actual];
-      virtuals.forEach(virtual=>{
-        const wanted=parentBarycenter(virtual,previousIndex);
-        let position=ordered.findIndex(node=>parentBarycenter(node,previousIndex)>wanted);
-        if(position<0)position=ordered.length;
-        ordered.splice(position,0,virtual);
-      });
-      groups[level]=ordered;
-    }
-  }
-  placeVirtualTargets();
 
   function isDetour(edge){
     return edge.marker==='loop'||depth[edge.to]!==depth[edge.from]+1;

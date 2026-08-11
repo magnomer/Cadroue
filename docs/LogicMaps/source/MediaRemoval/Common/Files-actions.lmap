@@ -1,0 +1,58 @@
+@format 1
+@id media-removal.common.files-actions
+@title Files removal commands
+@section Media removal
+@area Common
+@entry remove-selected, clear-files
+@summary Trace direct Files commands that remove selected unlocked entries or request removal of all unlocked entries.
+@related media-removal.common.docket-removal, media-removal.common.files-clear
+@tag media
+@tag removal
+@tag common
+@tag files
+
+@alias list = Cadroue.UIShell.PPanels.PList
+@alias docket = Cadroue.Application.LDocket
+
+[remove-selected] Remove selected Files <input>
+~ This starts with remove selected Files.
+[Technical explanation]
+- Resolve selected unlocked paths and remember the first removed index before performing synchronous docket removal @ list.PListRemove(...)
+> remove-result
+
+[clear-files] Remove all Files button <input>
+~ This starts with remove all Files button.
+[Technical explanation]
+- Invoke the registered Remove All callback and enter PListClear @ list.PListButtonBuild(...)
+> map:media-removal.common.files-clear
+
+[remove-result] Remove eligibility <decision>
+~ The program checks remove eligibility.
+[Technical explanation]
+- Continue only when at least one selected path is unlocked and removable @ list.PListRemove(...)
+? "Removal performed" > remove-docket-call
+? "Nothing removable" > remove-nochange
+
+[remove-docket-call] Remove selected paths from docket <process>
+~ This step handles remove selected paths from program file list.
+[Technical explanation]
+- Call LDocketPathsRemove; the common Docket removal sequence runs synchronously before PListRemove resumes @ list.PListRemove(...)
+  @ docket.LDocketPathsRemove(...)
+> remove-final-select
+
+[remove-nochange] Removal ignored <output>
+~ This path ends with removal ignored.
+[Technical explanation]
+= No program media entry is removed.
+
+[remove-final-select] Reselect after direct removal <process>
+~ This step handles reselect after direct removal.
+[Technical explanation]
+- Reread remaining paths and call PListSelectApply with null or the clamped original index; this publishes PListPathChange again after removal has completed @ list.PListRemove(...)
+  @ list.PListSelectApply(...)
+> remove-output
+
+[remove-output] Direct Files removal completed <output>
+~ This path ends with direct Files removal completed.
+[Technical explanation]
+= Selected unlocked entries have been offered for removal and Files selection has been reapplied to the remaining program entries.

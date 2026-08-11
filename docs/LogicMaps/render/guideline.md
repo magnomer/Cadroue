@@ -82,7 +82,7 @@ This repetition is intentional. It reveals actual responsibility without adding 
 
 Every complete map declares its own top-level `@section` and display context through `@area` (or `@tabs`). The generator does not impose numbered category names or assume that another category exists. Maps describing one larger operation should normally share one semantic top-level category instead of creating a separate section for every scenario.
 
-Navigation is flat beneath that category. When the active display context differs from the map title, the context is rendered as a compact box before the title; when they are equal, only the title is shown. For example, Media loading uses `@section Media loading`; common stages use `@area Common` with titles such as `Backend load`, while scenario files use matching area/title values such as `In Audio tab`. This produces `[Common] Backend load` and `In Audio tab` as peers beneath one Media loading category.
+Navigation is flat beneath that category. Every display context is rendered as a compact box: `Common` uses the grey shared style, while scenario contexts use the scenario style. When context and title differ, the title follows the box; when they are identical, the box carries the label by itself. For example, Media loading uses `@section Media loading`; common stages include `[Common] Files intake`, while a scenario file can appear as boxed `In Audio`.
 
 ### 3.5 One map covers one complete operation
 
@@ -180,7 +180,7 @@ The generator uses only Python's standard library. `--strict` is required for a 
 To validate and render an individual map without rewriting existing unrelated content pages or removing unrelated generated pages, use targeted generation:
 
 ```text
-python render/generate.py --strict --map media-loading.in-split-tab
+python render/generate.py --strict --map media-loading.in-audio
 ```
 
 `--map` may be repeated. Targeted generation still validates graph structure and implementation references for the available source set and rebuilds `docs/MapsLogic.html`, `docs/LogicMaps/maps/NavigationLogic.html`, and `docs/LogicMaps/maps/ImplementationIndex.html` from every current `.lmap`. If an indexed content page is missing, it is generated so shared navigation never points at a missing page. Existing unrelated content pages are left untouched.
@@ -191,18 +191,21 @@ The normative language definition is `docs/LogicMaps/SpecificationLmap.md`. This
 
 Logic maps use the line-oriented `.lmap` format. It is deliberately small, dense, readable in a text editor, stable in diffs, and straightforward to parse.
 
-For a scenario family, the source tree should mirror the information architecture. The current Media loading family is organized as:
+For a scenario family, the source tree should mirror the information architecture. Media loading is specifically **program intake**, not preview-panel loading:
 
 ```text
-source/MediaLoading/Common/Backend-load.lmap
-source/MediaLoading/Common/...
-source/MediaLoading/In-Audio-tab.lmap
-source/MediaLoading/In-Convert-tab.lmap
-source/MediaLoading/In-Edit-tab.lmap
-...
+source/MediaLoading/Common/File-pickers.lmap
+source/MediaLoading/Common/File-drops.lmap
+source/MediaLoading/Common/Files-intake.lmap
+source/MediaLoading/Common/Docket-insertion.lmap
+source/MediaLoading/In-Audio.lmap
+source/MediaLoading/In-Edit.lmap
+source/MediaLoading/In-Merge.lmap
+source/MediaLoading/In-Worklist.lmap
+source/MediaLoading/In-staged-workspace.lmap
 ```
 
-Common stages live below `Common/`; scenario maps live directly below `MediaLoading/`.
+`PViewerSourceOpen`, `LMediaLoadAsync`, Flyleaf/mpv opening, and viewer-media publication belong under `source/MediaPreview/`. Removing program media belongs under `source/MediaRemoval/`; selection-only behavior belongs under `source/MediaSelection/`. Common stages live below each family's `Common/`; scenario maps live directly below that family.
 
 ### 5.1 Encoding and general rules
 
@@ -231,7 +234,7 @@ Every complete map begins with section metadata. A code-bound UI event uses:
 @summary Handle the add-button click and follow its registered code path.
 ```
 
-A shared operation may use one semantic category for the entire family and a descriptive context. For Media loading, common stages use `@section Media loading` plus `@area Common`, while scenario maps use the same section and a situation such as `@area In Audio tab`. Category labels are not automatically numbered.
+A shared operation may use one semantic category for the entire family and a descriptive context. For Media loading, common intake stages use `@section Media loading` plus `@area Common`, while scenario maps use the same section and a situation such as `@area In Audio`. Do not place preview loading in this family merely because the implementation class or method also uses the word "load". Category labels are not automatically numbered.
 
 Header fields:
 
@@ -304,7 +307,17 @@ Allowed kinds:
 | `note` | Explanatory context that is not itself an executable step. Use sparingly. |
 | `junction` | A real graph convergence/routing point. It is not a processing card and contains no action, state, or note. It must have exactly one unconditional outgoing connection. |
 
-A normal node may contain actions, states, notes, and outgoing connections. A `junction` is topology only: it cannot contain actions, states, or notes, cannot be an entry node, and must have exactly one unconditional outgoing connection.
+A normal node must contain one simple explanation followed by one explicit `[Technical explanation]` block with at least one action, state, or note; it may then have outgoing connections. A `junction` is topology only: it cannot contain either explanation layer, actions, states, or notes, cannot be an entry node, and must have exactly one unconditional outgoing connection.
+
+Every Cadroue source card explicitly contains both presentation layers:
+
+```text
+~ The program checks whether the selected file can be used.
+[Technical explanation]
+- Validate the selected path against the supported-media rules @ list.PListMediaScan(...)
+```
+
+The `~` line is plain English and avoids C# member names, internal type names, event-class names, renderer names, and other implementation terminology. `[Technical explanation]` is a literal source marker, not a heading invented by the HTML generator. Every action, state, note, and implementation reference belonging to the card follows that marker. Missing either layer is an error.
 
 ### 5.5 Action line
 
@@ -874,7 +887,10 @@ A node is rendered as a modern card:
 - Border: 1 px neutral.
 - Shadow: subtle and diffuse, visible mainly against the page canvas.
 - Internal padding: 14–18 px.
-- Title separated from actions by spacing or a subtle divider.
+- Title followed by the source-provided plain-English explanation.
+- Beneath the plain explanation, render the source-declared `[Technical explanation]` block as one subdued box.
+- The generator must not synthesize explanation prose, use a card-title fallback, or create explanatory linked-map cards that do not exist in the `.lmap` source.
+- The technical box uses a neutral thin border and only a slight surface contrast; it must not compete visually with the plain-English explanation.
 - No large filled header bars.
 - Node kind shown through a small icon, label, and 3–4 px accent strip.
 

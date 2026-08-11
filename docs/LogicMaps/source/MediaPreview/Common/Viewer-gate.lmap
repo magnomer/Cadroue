@@ -1,0 +1,93 @@
+@format 1
+@id media-preview.common.viewer-gate
+@title Viewer gate
+@section Media preview
+@area Common
+@entry viewer-source-request
+@summary Trace PViewerSourceOpen from command gating and sidecar resolution through preview-engine selection and backend request preparation.
+@related media-preview.common.backend-load, media-preview.in-edit
+@tag media
+@tag preview
+@tag common
+@tag viewer
+
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+@alias librarian = Cadroue.Application.LLibrarian
+@alias preference = Cadroue.Application.LPreference
+
+[viewer-source-request] Viewer source request <input>
+~ This starts with viewer source request.
+[Technical explanation]
+= A Source request or tab-specific adapter called PViewerSourceOpen with a candidate path.
+> viewer-gate
+
+[viewer-gate] Viewer source gate <decision>
+~ The program checks viewer source gate.
+[Technical explanation]
+- Reject while viewer commands are inactive or source is blank; otherwise detect whether the source is a Cadroue sidecar @ viewer.PViewerSourceOpen(...)
+  @ librarian.LLibrarianFileCheck(...)
+? "Blank or command-inactive" > viewer-stop
+? "Sidecar source" > sidecar-resolve
+? "Direct media source" > direct-ready
+
+[viewer-stop] Viewer rejects request <output>
+~ This path ends with viewer rejects request.
+[Technical explanation]
+= PViewerSourceOpen returns immediately and no backend request begins.
+
+[sidecar-resolve] Sidecar source resolution <decision>
+~ The program checks saved project data source resolution.
+[Technical explanation]
+- Resolve the recorded source, optionally accept a discovered mismatch, or ask the user to locate and verify the media file @ viewer.PViewerSidecarResolve(...)
+  @ viewer.PViewerSidecarFind(...)
+? "Media source resolved" > source-join
+? "Read failed or source declined" > sidecar-stop
+
+[direct-ready] Direct source accepted <junction>
+> source-join
+
+[sidecar-stop] Sidecar resolution ends <output>
+~ This path ends with saved project data resolution ends.
+[Technical explanation]
+= PViewerSourceOpen returns without changing the last-media preference or starting backend loading.
+
+[source-join] Resolved source convergence <junction>
+> remember-source
+
+[remember-source] Last-media preference <storage>
+~ The program remembers the most recently selected media file.
+[Technical explanation]
+- Store the resolved source as the last-media preference @ preference.LPreferenceMediaSet(...)
+> reset-transform
+
+[reset-transform] Incoming transform reset <process>
+~ This step handles incoming transform reset.
+[Technical explanation]
+- Reset rotation and flip to defaults for the incoming source @ viewer.PViewerSourceOpen(...)
+> select-engine
+
+[select-engine] Preview engine selection <process>
+~ The program chooses which preview engine should open the media.
+[Technical explanation]
+- PPlayerVideoLoad calls PViewerEngineSelect before backend loading; PViewerEngineRead returns the configured renderer engine only when PViewerEditEligible is true, otherwise it forces Flyleaf @ viewer.PViewerEngineSelect(...)
+  @ viewer.PViewerEngineRead(...)
+  @ property viewer.PViewerEditEligible
+> request-ownership
+
+[request-ownership] Viewer request ownership <decision>
+~ The program checks whether this preview request is still the current one.
+[Technical explanation]
+- Advance load serial, stop the viewer clock, clear inactive resume, pause the current player, then recheck lifetime and command activity before preparing the backend request @ viewer.PPlayerVideoLoad(...)
+? "Still command-active/current" > expected-path
+? "Became inactive or superseded" > preparation-stop
+
+[expected-path] Expected completion path <storage>
+~ The program remembers which media file the current preview request is waiting for.
+[Technical explanation]
+- Normalize and store the expected source path, falling back to the original path when normalization throws, then start LMediaLoadAsync without awaiting it @ viewer.PPlayerVideoLoad(...)
+> map:media-preview.common.backend-load
+
+[preparation-stop] Viewer preparation abandoned <output>
+~ This path ends with viewer preparation abandoned.
+[Technical explanation]
+= The load serial was advanced but LMediaLoadAsync was not started because the viewer became inactive/superseded during preparation.

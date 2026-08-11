@@ -65,6 +65,8 @@ class Node:
     title: str
     kind: str
     line: int
+    explanation: str = ""
+    technical_label: str = ""
     actions: list[Action] = field(default_factory=list)
     states: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
@@ -153,7 +155,30 @@ def parse_map(path: Path, reporter: Reporter) -> LogicMap:
         if line.startswith("@") and not line.startswith("@ "):
             reporter.issue("ERROR", path, number, "Directives must appear before the first node declaration.")
             continue
-        if line.startswith("-"):
+        if line == "[Technical explanation]":
+            if current.kind == "junction":
+                reporter.issue("ERROR", path, number, f"Junction '{current.id}' cannot contain a technical explanation block.")
+            elif current.technical_label:
+                reporter.issue("ERROR", path, number, f"Node '{current.id}' has more than one technical explanation block.")
+            elif not current.explanation:
+                reporter.issue("ERROR", path, number, f"Node '{current.id}' must place its simple explanation before [Technical explanation].")
+            else:
+                current.technical_label = "Technical explanation"
+            last_action = None
+        elif line.startswith("~"):
+            explanation = line[1:].strip()
+            if current.technical_label:
+                reporter.issue("ERROR", path, number, "Simple explanation must appear before [Technical explanation].")
+            elif not explanation:
+                reporter.issue("ERROR", path, number, "Simple explanation is empty.")
+            elif current.explanation:
+                reporter.issue("ERROR", path, number, f"Node '{current.id}' has more than one simple explanation.")
+            else:
+                current.explanation = explanation
+            last_action = None
+        elif line.startswith("-"):
+            if not current.technical_label:
+                reporter.issue("ERROR", path, number, "Action must appear inside an explicit [Technical explanation] block.")
             parts = re.split(r"\s+@\s+", line[1:].strip(), maxsplit=1)
             if len(parts) != 2 or not parts[1].strip():
                 reporter.issue("ERROR", path, number, "Action has no implementation reference.")
@@ -166,8 +191,12 @@ def parse_map(path: Path, reporter: Reporter) -> LogicMap:
             else:
                 last_action.references.append(line[2:].strip())
         elif line.startswith("="):
+            if not current.technical_label:
+                reporter.issue("ERROR", path, number, "State must appear inside an explicit [Technical explanation] block.")
             current.states.append(line[1:].strip())
         elif line.startswith("!"):
+            if not current.technical_label:
+                reporter.issue("ERROR", path, number, "Note must appear inside an explicit [Technical explanation] block.")
             current.notes.append(line[1:].strip())
         else:
             conditional = re.fullmatch(r'\?\s+"([^"]+)"\s+>\s+(\S+)(?:\s+\[([a-z-]+)])?', line)
@@ -632,10 +661,17 @@ def validate(all_maps: list[LogicMap], reporter: Reporter) -> tuple[dict[str, Lo
             if node.kind not in KINDS:
                 reporter.issue("ERROR", item.path, node.line, f"Invalid node kind '{node.kind}'.")
             if node.kind == "junction":
-                if node.actions or node.states or node.notes:
-                    reporter.issue("ERROR", item.path, node.line, f"Junction '{node.id}' cannot contain actions, states, or notes.")
+                if node.explanation or node.technical_label or node.actions or node.states or node.notes:
+                    reporter.issue("ERROR", item.path, node.line, f"Junction '{node.id}' cannot contain actions, states, notes, or card explanations.")
                 if len(node.edges) != 1 or node.edges[0].conditional:
                     reporter.issue("ERROR", item.path, node.line, f"Junction '{node.id}' must have exactly one unconditional outgoing edge.")
+            else:
+                if not node.explanation.strip():
+                    reporter.issue("ERROR", item.path, node.line, f"Card '{node.id}' must contain an explicit simple explanation using '~'.")
+                if node.technical_label != "Technical explanation":
+                    reporter.issue("ERROR", item.path, node.line, f"Card '{node.id}' must contain an explicit [Technical explanation] block.")
+                if not (node.actions or node.states or node.notes):
+                    reporter.issue("ERROR", item.path, node.line, f"Card '{node.id}' has an empty [Technical explanation] block.")
             if node.kind == "note" and node.actions:
                 reporter.issue("ERROR", item.path, node.line, f"Note node '{node.id}' cannot contain executable actions.")
             if node.kind == "decision":
@@ -898,19 +934,6 @@ def write_text_if_changed(path: Path, content: str) -> bool:
     return write_bytes_if_changed(path, content.encode("utf-8"))
 
 
-def unique_virtual_id(used: set[str], kind: str, target: str) -> str:
-    """Allocate a DOM/graph ID that cannot collide with real or previously generated nodes."""
-    stem = re.sub(r"[^A-Za-z0-9_-]+", "-", target).strip("-") or "target"
-    base = f"__lmap_{kind}_{stem}"
-    candidate = base
-    ordinal = 2
-    while candidate in used:
-        candidate = f"{base}_{ordinal}"
-        ordinal += 1
-    used.add(candidate)
-    return candidate
-
-
 def stale_outputs_remove(expected: set[Path]) -> int:
     removed = 0
     for root in (MAP_ROOT / "assets", MAP_ROOT / "maps"):
@@ -1009,33 +1032,29 @@ def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter:
         edges: list[dict[str, object]] = []
         entries = map_entries(item)
         entry_set = set(entries)
-        used_node_ids = {node.id for node in item.nodes}
+        def append_local_edge(source_id: str, edge: Edge) -> None:
+            edges.append({"from": source_id, "to": edge.target, "label": edge.label, "conditional": edge.conditional, "marker": edge.marker or ""})
 
-        def append_edge(source_id: str, edge: Edge) -> None:
+        def continuation_html(edge: Edge) -> str:
             if edge.target.startswith("map:"):
                 target_id = edge.target[4:]
                 target = ids[target_id]
-                virtual = unique_virtual_id(used_node_ids, "map", target_id)
-                edges.append({"from": source_id, "to": virtual, "label": edge.label or "continues", "conditional": edge.conditional, "marker": edge.marker or ""})
                 target_output = html_root() / map_output_relative(target)
-                href = os.path.relpath(target_output, output.parent).replace(os.sep, "/")
-                nodes.append(f'<section class="node output" data-id="{h(virtual)}" data-virtual="true" tabindex="0"><div class="nodehead"><div class="kind">Linked map</div><div class="nodetitle"><a href="{h(href)}">{h(target.headers["title"])}</a></div></div><div class="states"><div class="state">{h(target.headers["summary"])}</div></div></section>')
-            elif edge.target.startswith("fragment:"):
+                kind = "Map"
+            else:
                 target_id = edge.target[9:]
                 target = fragments[target_id]
-                virtual = unique_virtual_id(used_node_ids, "fragment", target_id)
-                edges.append({"from": source_id, "to": virtual, "label": edge.label or "shared flow", "conditional": edge.conditional, "marker": edge.marker or ""})
                 target_output = html_root() / fragment_output_relative(target)
-                href = os.path.relpath(target_output, output.parent).replace(os.sep, "/")
-                nodes.append(f'<section class="node note" data-id="{h(virtual)}" data-virtual="true" tabindex="0"><div class="nodehead"><div class="kind">Shared fragment</div><div class="nodetitle"><a href="{h(href)}">{h(target.headers["title"])}</a></div></div><div class="states"><div class="state">{h(target.headers["summary"])}</div></div></section>')
-            else:
-                edges.append({"from": source_id, "to": edge.target, "label": edge.label, "conditional": edge.conditional, "marker": edge.marker or ""})
+                kind = "Fragment"
+            href = os.path.relpath(target_output, output.parent).replace(os.sep, "/")
+            condition = f'<span class="continuation-condition">{h(edge.label)}</span>' if edge.label else ""
+            return f'<a class="continuation-link" href="{h(href)}">{condition}<span class="continuation-kind">{kind}</span><span class="continuation-target">{h(target.headers["title"])}</span></a>'
 
         for node in item.nodes:
             if node.kind == "junction":
                 nodes.append(f'<div class="node junction" data-id="{h(node.id)}" tabindex="0" aria-label="{h(node.title)}" title="{h(node.title)}"></div>')
                 for edge in node.edges:
-                    append_edge(node.id, edge)
+                    append_local_edge(node.id, edge)
                 continue
             actions = []
             for index, action in enumerate(node.actions):
@@ -1043,11 +1062,17 @@ def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter:
                 actions.append(f'<div class="action" tabindex="0" id="action-{h(node.id)}-{index}"><div class="action-text">{h(action.text)}</div>{refs}</div>')
             states = "".join(f'<div class="state">{h(value)}</div>' for value in node.states)
             notes = "".join(f'<div class="note">{h(value)}</div>' for value in node.notes)
+            technical_content = f'<div class="actions">{"".join(actions)}</div><div class="states">{states}</div><div class="notes">{notes}</div>'
+            continuations = []
+            for edge in node.edges:
+                if edge.target.startswith(("map:", "fragment:")):
+                    continuations.append(continuation_html(edge))
+                else:
+                    append_local_edge(node.id, edge)
+            continuation_block = f'<div class="continuations">{"".join(continuations)}</div>' if continuations else ""
             entry_class = " entry" if node.id in entry_set else ""
             entry_attribute = ' data-entry="true"' if node.id in entry_set else ""
-            nodes.append(f'<section class="node {h(node.kind)}{entry_class}" data-id="{h(node.id)}"{entry_attribute} tabindex="0" aria-label="{h(node.title)}"><div class="nodehead"><div class="kind">{h(node.kind)}</div><div class="nodetitle">{h(node.title)}</div></div><div class="actions">{"".join(actions)}</div><div class="states">{states}</div><div class="notes">{notes}</div></section>')
-            for edge in node.edges:
-                append_edge(node.id, edge)
+            nodes.append(f'<section class="node {h(node.kind)}{entry_class}" data-id="{h(node.id)}"{entry_attribute} tabindex="0" aria-label="{h(node.title)}"><div class="nodehead"><div class="kind">{h(node.kind)}</div><div class="nodetitle">{h(node.title)}</div></div><div class="simple-explanation">{h(node.explanation)}</div><div class="technical-explanation"><div class="technical-label">{h(node.technical_label)}</div>{technical_content}</div>{continuation_block}</section>')
 
         digest = hashlib.sha256(item.raw.encode()).hexdigest()[:12]
         related = "".join(f'<span class="pill">{h(value.strip())}</span>' for value in item.headers.get("related", "").split(",") if value.strip())

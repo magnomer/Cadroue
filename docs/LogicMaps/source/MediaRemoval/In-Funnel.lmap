@@ -1,0 +1,39 @@
+@format 1
+@id media-removal.in-funnel
+@title In Funnel
+@section Media removal
+@area In Funnel
+@entry funnel-drain
+@summary Show the conditional post-relay removal of successfully delivered Funnel source media from the current Files docket.
+@related media-removal.common.docket-removal
+@tag media
+@tag removal
+@tag funnel
+
+@alias messenger = Cadroue.ShellEngine.LMessenger
+@alias app = Cadroue.UIShell.PProgram
+
+[funnel-drain] Funnel relay handling <input>
+~ This starts with funnel transfer handling.
+[Technical explanation]
+- Add a source path to the relayed-path set only when a filename rule resolves a target and LMessengerFunnelDeliverSource reports successful delivery @ messenger.LMessengerFunnelDescribe(...)
+> drain-gate
+
+[drain-gate] Post-relay source-removal conditions <decision>
+~ The program checks post-transfer source-removal conditions.
+[Technical explanation]
+- Invoke the Funnel drain seam only when Relay Empty is enabled and at least one source was successfully delivered @ messenger.LMessengerFunnelDescribe(...)
+? "Relay Empty enabled and relayed set nonempty" > drain-source
+? "Relay Empty disabled or no successful relay" > funnel-retained
+
+[drain-source] Remove successfully relayed sources <process>
+~ This step handles remove successfully relayed sources.
+[Technical explanation]
+- Pass only successfully relayed source paths to LMessengerFunnelDrainSource; the startup-configured UI seam removes those paths from the selected tab's Files docket when present @ messenger.LMessengerFunnelDescribe(...)
+  @ app.OnStartup(...)
+> map:media-removal.common.docket-removal
+
+[funnel-retained] Funnel source media retained <output>
+~ This path ends with funnel source media retained.
+[Technical explanation]
+= No program Files removal is requested when Relay Empty is disabled or every Funnel item failed/skipped delivery.

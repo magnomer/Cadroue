@@ -1,0 +1,91 @@
+@format 1
+@id media-removal.common.docket-removal
+@title Docket removal
+@section Media removal
+@area Common
+@entry removal-request
+@summary Trace LDocketPathsRemove through Files rebuilding, optional replacement selection, PListClearChange, and the attached viewer/flow cleanup.
+@related media-selection.common.files-selection, media-removal.common.files-clear, media-preview.common.viewer-close, media-preview.common.media-publication, media-removal.in-global-interface, media-removal.in-worklist, media-removal.in-funnel
+@tag media
+@tag removal
+@tag common
+@tag removal
+
+@alias docket = Cadroue.Application.LDocket
+@alias list = Cadroue.UIShell.PPanels.PList
+@alias surface = Cadroue.UIShell.PMainArea.PTabSurface
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+
+[removal-request] Docket removal request <input>
+~ This starts with program file list removal request.
+[Technical explanation]
+= A caller has resolved one or more candidate paths and calls LDocketPathsRemove.
+> docket-removal
+
+[docket-removal] Docket path removal <decision>
+~ The program checks program file list path removal.
+[Technical explanation]
+- Remove matching entries; only when at least one entry existed, raise LDocketChange first and then LDocketRemoved synchronously @ docket.LDocketPathsRemove(...)
+? "At least one path removed" > docket-change
+? "No matching path removed" > no-removal
+
+[docket-change] Files state rebuilt before removal callback <process>
+~ This step handles files state rebuilt before removal follow-up notice.
+[Technical explanation]
+- LDocketChange invokes PListDocketHandle before LDocketRemoved, rebuilding Files rows, selection visuals, and lock state against the already-modified docket @ docket.LDocketRaise(...)
+  @ list.PListDocketHandle(...)
+> replacement-check
+
+[no-removal] Removal changes nothing <output>
+~ This path ends with removal changes nothing.
+[Technical explanation]
+= LDocketChange and LDocketRemoved are not raised, so Files selection and viewer state do not change through this call.
+
+[replacement-check] Current Files path still present <decision>
+~ The program checks current Files path still present.
+[Technical explanation]
+- In PListDocketRemoveHandle, test whether the current Files path is null or no longer exists in the modified docket @ list.PListDocketRemoveHandle(...)
+? "Current path missing" > replacement-select
+? "Current path still present" > current-kept
+
+[replacement-select] Immediate replacement selection <process>
+~ This step handles immediate replacement selection.
+[Technical explanation]
+- Select the first remaining docket path, or null when empty; this synchronously reaches PListCurrentApply and invokes PListPathChange, so a tab-specific viewer request can start before the removal callback continues @ list.PListDocketRemoveHandle(...)
+  @ list.PListSelectApply(...)
+  @ list.PListCurrentApply(...)
+> after-selection
+
+[current-kept] No replacement selection needed <junction>
+> after-selection
+
+[after-selection] Replacement branch convergence <junction>
+> clear-change
+
+[clear-change] Removed-path notification to tab attachment <decision>
+~ The program checks removed-path notification to tab attachment.
+[Technical explanation]
+- After any replacement PListPathChange returns, PListDocketRemoveHandle invokes PListClearChange; the subscriber installed by PTabViewerAttach compares removed paths with the viewer's currently committed PViewerSourcePath @ list.PListDocketRemoveHandle(...)
+  @ surface.PTabViewerAttach(...)
+? "Committed viewer source was removed" > close-viewer
+? "Committed viewer source was not removed" > removal-finished
+
+[close-viewer] Viewer and flow cleared after removal <process>
+~ This step handles viewer and flow cleared after removal.
+[Technical explanation]
+- Force-close the viewer; the detailed LMediaUnload publication, viewer ownership invalidation, committed-media clearing, and empty viewer cargo sequence is Media preview / Viewer close @ viewer.PViewerMediaClose(...)
+! Media preview / Viewer close shows why the backend Unloaded event queued during LMediaUnload cannot later overwrite the closed viewer.
+- Clear the tab flow immediately after the forced viewer close @ flow.PFlowClear(...)
+! A replacement PListPathChange can have started a new PViewerSourceOpen earlier in the same synchronous removal callback. If the old committed source was removed, this forced close can invalidate that just-started request before the caller resumes.
+> viewer-cleared
+
+[removal-finished] Removal did not close committed viewer <output>
+~ This path ends with removal did not close current viewer.
+[Technical explanation]
+= Files removal completed without force-closing the currently committed viewer source.
+
+[viewer-cleared] Removed current viewer state cleared <output>
+~ This path ends with removed current viewer state cleared.
+[Technical explanation]
+= The viewer is empty and flow is cleared; any later selection performed by the original caller can start another request.

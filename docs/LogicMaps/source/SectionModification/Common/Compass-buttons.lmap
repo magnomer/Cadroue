@@ -15,25 +15,37 @@
 @alias flow = Cadroue.UIShell.PFlow.PFlow
 
 [start-button] Start button Click <input>
+~ This starts with start button Click.
+[Technical explanation]
 - The Split Compass Start button invokes the supplied setStart action, which dispatches the section-start command @ compass.PCompass(...) / Start button Click lambda
 > start-dispatch
 
 [split-button] Split button Click <input>
+~ This starts with split button Click.
+[Technical explanation]
 - The Split Compass Split button invokes the supplied splitSection action, which dispatches the section-division command @ compass.PCompass(...) / Split button Click lambda
 > split-dispatch
 
 [end-button] End button Click <input>
+~ This starts with end button Click.
+[Technical explanation]
 - The Split Compass End button invokes the supplied setEnd action, which dispatches the section-end command @ compass.PCompass(...) / End button Click lambda
 > end-dispatch
 
 [start-dispatch] Submit setStart to the active flow <process>
+~ This step handles submit setStart to the active flow.
+[Technical explanation]
 - Invoke PFlowShortcutDispatch with setStart; the called map follows only the existing-section modification branch @ flow.PFlowShortcutDispatch(...) / setStart
 > map:section-modification.set-start-on-selected-section
 
 [split-dispatch] Submit splitSection to the active flow <process>
+~ This step handles submit splitSection to the active flow.
+[Technical explanation]
 - Invoke PFlowShortcutDispatch with splitSection; the called map follows the existing-section modification inherent in a successful split @ flow.PFlowShortcutDispatch(...) / splitSection
 > map:section-modification.split-selected-section
 
 [end-dispatch] Submit setEnd to the active flow <process>
+~ This step handles submit setEnd to the active flow.
+[Technical explanation]
 - Invoke PFlowShortcutDispatch with setEnd; the called map follows only the existing-section modification branch @ flow.PFlowShortcutDispatch(...) / setEnd
 > map:section-modification.set-end-on-selected-section

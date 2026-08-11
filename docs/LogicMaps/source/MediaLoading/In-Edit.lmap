@@ -1,0 +1,42 @@
+@format 1
+@id media-loading.in-edit
+@title In Edit
+@section Media loading
+@area In Edit
+@entry edit-items-add
+@summary Show the Edit-specific persistent-plan initialization that runs after new media entries have been added to the program Files docket.
+@related media-loading.common.docket-insertion
+@tag media
+@tag loading
+@tag edit
+
+@alias edit = Cadroue.UIShell.PMainArea.PEditTab
+
+[edit-items-add] Newly loaded Edit entries announced <input>
+~ This starts with newly loaded Edit entries announced.
+[Technical explanation]
+= PListItemsAdd synchronously delivers all newly added docket entries after insertion.
+> edit-items-result
+
+[edit-items-result] Carried Edit plan available <decision>
+~ The program checks carried Edit plan available.
+[Technical explanation]
+- PEditItemsHandle returns while plan loading is active or when no carried persistent Edit plan exists @ edit.PEditItemsHandle(...)
+? "Carried plan applies" > edit-items-save
+? "No carried plan" > edit-items-nochange
+
+[edit-items-save] Save carried Edit plan for each new entry <process>
+~ This step handles save carried Edit plan for each new entry.
+[Technical explanation]
+- For every newly loaded entry, read any source-specific Edit plan, resolve it against the carried plan, and save the resolved result @ edit.PEditItemsHandle(...)
+> edit-items-saved
+
+[edit-items-nochange] Loaded entries need no Edit initialization <output>
+~ This path ends with loaded entries need no Edit initialization.
+[Technical explanation]
+= PListItemsAdd causes no Edit plan write when no carried plan applies.
+
+[edit-items-saved] Loaded Edit entries initialized <output>
+~ This path ends with loaded Edit entries initialized.
+[Technical explanation]
+= Carried Edit state has been resolved and saved for every newly loaded media entry.

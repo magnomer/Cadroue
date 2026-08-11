@@ -14,25 +14,37 @@
 @alias list = Cadroue.UIShell.PPanels.PList
 
 [files-add] Add Files button <input>
+~ This starts with add Files button.
+[Technical explanation]
 - Invoke the Add Files command and open the multi-file picker @ list.PListFilesOpen(...)
 > files-result
 
 [folder-add] Add Folder button <input>
+~ This starts with add Folder button.
+[Technical explanation]
 - Invoke the Add Folder command and open the multi-folder picker @ list.PListFolderOpen(...)
 > folder-result
 
 [files-result] Add Files picker outcome <decision>
+~ The program checks whether the file picker returned any paths.
+[Technical explanation]
 - Submit selected files through the shared Files intake when the picker is accepted @ list.PListFilesOpen(...)
 ? "Accepted" > map:media-loading.common.files-intake
 ? "Cancelled" > files-cancelled
 
 [files-cancelled] Add Files cancelled <output>
+~ This path ends with add Files cancelled.
+[Technical explanation]
 = No Files intake or media-load request begins.
 
 [folder-result] Add Folder picker outcome <decision>
+~ The program checks whether the folder picker returned a path.
+[Technical explanation]
 - Submit selected folders through the shared Files intake when the picker is accepted @ list.PListFolderOpen(...)
 ? "Accepted" > map:media-loading.common.files-intake
 ? "Cancelled" > folder-cancelled
 
 [folder-cancelled] Add Folder cancelled <output>
+~ This path ends with add Folder cancelled.
+[Technical explanation]
 = No Files intake or media-load request begins.

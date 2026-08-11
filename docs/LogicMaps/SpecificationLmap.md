@@ -24,7 +24,7 @@ Document IDs use:
 Examples:
 
 ```text
-media-loading.common.backend-load
+media-loading.common.files-intake
 shared.preview-fallback
 ```
 
@@ -205,15 +205,46 @@ Example:
 
 ## 9. Node body syntax
 
-### 9.1 Action
+Every non-junction card has two source-authored layers in this exact order:
+
+```text
+[node] Card title <process>
+~ Plain-English explanation of what this card means.
+[Technical explanation]
+- Implementation-specific action @ owner.Member(...)
+= Implementation-specific resulting state.
+! Optional implementation clarification.
+```
+
+The HTML generator is a renderer only. It must not invent a missing simple explanation, a missing technical explanation, or a synthetic explanatory card.
+
+### 9.1 Simple explanation
+
+```text
+~ Plain-English explanation of what this card means.
+```
+
+Every non-junction Cadroue source card contains exactly one explicit simple explanation. It is written for a reader who does not need to know C# member names, internal type names, event-class names, or renderer details. There is no title fallback: omission is a validation error.
+
+### 9.2 Technical explanation block
+
+```text
+[Technical explanation]
+```
+
+Every non-junction card contains exactly one explicit technical explanation block after its simple explanation. The block must contain at least one action, state, or note. All implementation-specific wording and implementation references belong inside this block. Omission or an empty block is a validation error.
+
+A `junction` is topology-only and contains neither explanation layer.
+
+### 9.3 Action
 
 ```text
 - Action description @ implementation-reference
 ```
 
-An action must have a nonempty implementation reference.
+An action must have a nonempty implementation reference and must appear after `[Technical explanation]`.
 
-### 9.2 Additional implementation owner
+### 9.4 Additional implementation owner
 
 Immediately following an action:
 
@@ -223,13 +254,13 @@ Immediately following an action:
 
 A continuation reference without a preceding action is invalid.
 
-### 9.3 State
+### 9.5 State
 
 ```text
 = Resulting state text.
 ```
 
-### 9.4 Note text
+### 9.6 Note text
 
 ```text
 ! Factual clarification.
@@ -359,20 +390,34 @@ The required correction order is therefore:
 
 Scenario decomposition is part of source correctness. When several maps describe one larger operation, they should share one major `@section` category and be divided by situation rather than inventing a new top-level category for every scenario. Shared behavior belongs in Common maps/stages; scenario maps contain only their differences and reference common documents through `map:` continuations and/or `@related` metadata.
 
-For the Media loading family, the authoritative organization is conceptually:
+The **Media loading** family is reserved for media entering Cadroue's program state: path discovery and insertion/tracking in a Files docket. It does **not** include `PViewerSourceOpen`, `LMediaLoadAsync`, Flyleaf/mpv opening, viewer-media publication, or any other preview-panel loading. Those flows belong to **Media preview**. Selection-only and removal-only operations likewise belong to their own sections.
+
+The authoritative organization is conceptually:
 
 ```text
 Media loading
+  [Common] File pickers
+  [Common] File drops
+  [Common] Files intake
+  [Common] Docket insertion
+  In Audio
+  In Edit
+  In Merge
+  In Worklist
+  In staged workspace
+
+Media preview
+  [Common] Viewer gate
   [Common] Backend load
   [Common] Completion routing
   ...
-  In Audio tab
-  In Convert tab
-  In Edit tab
+  In Audio
+  In Convert
+  In Edit
   ...
 ```
 
-The boxed `[Common]` notation above describes presentation: `Common` is the display context and the following text is the map title. It is not part of the title string itself.
+The boxed `[Common]` notation above describes presentation: `Common` is the display context and the following text is the map title. Scenario contexts such as `In Audio` are also rendered as stylistic boxes.
 
 A true merge at an explicit junction is not a line crossing. Multiple lines may meet at the junction because the graph declares that convergence. Unrelated lines may not intersect.
 
@@ -417,8 +462,8 @@ Complete-map navigation is derived from source metadata:
 - `@tabs`, when present → one or more display contexts;
 - otherwise `@area` → the display context;
 - `@title` → the map/situation title;
-- when the display context equals `@title` (case-insensitively), only the title is shown;
-- when the display context differs from `@title`, the context is shown as a compact stylistic box immediately before the title;
+- every display context is shown as a compact stylistic box; `Common` uses the shared/common style and scenario contexts use the scenario style;
+- when the display context differs from `@title`, the title follows the context box; when they are equal, the box alone carries that label;
 - all map/situation entries are flat beneath their top-level category rather than being wrapped in another textual subgroup heading;
 - `@summary` and `@tag` → search metadata.
 
@@ -427,10 +472,10 @@ For example, this metadata:
 ```text
 @section Media loading
 @area Common
-@title Backend load
+@title Files intake
 ```
 
-is displayed beneath **Media loading** as a boxed **Common** label followed by **Backend load**. A scenario map with both `@area In Audio tab` and `@title In Audio tab` is displayed simply as **In Audio tab**.
+is displayed beneath **Media loading** as a grey boxed **Common** label followed by **Files intake**. A scenario map with both `@area In Audio` and `@title In Audio` is displayed as a scenario-colored boxed **In Audio** label.
 
 Fragments are presented as shared fragments and link to their generated graph pages.
 
