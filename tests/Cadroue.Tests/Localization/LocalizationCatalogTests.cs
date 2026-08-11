@@ -42,6 +42,10 @@ public sealed class LocalizationCatalogTests
         {
             Assert.Contains(lGammaKey, lLocalizationKeys);
         }
+        foreach (string lWhitebalanceKey in WhitebalanceKeys)
+        {
+            Assert.Contains(lWhitebalanceKey, lLocalizationKeys);
+        }
     }
 
     private static readonly string[] GammaKeys =
@@ -60,6 +64,25 @@ public sealed class LocalizationCatalogTests
         "Inspector.Video.GammaReset",
         "Inspector.Video.GammaResetTooltip",
         "Inspector.Video.GammaRequiresMpv"
+    };
+
+    private static readonly string[] WhitebalanceKeys =
+    {
+        "Terms.Whitebalance",
+        "Processing.Step.Whitebalance",
+        "Processing.Step.WhitebalanceRequiresMpv",
+        "Inspector.Step.Whitebalance",
+        "Inspector.Video.ApplyWhitebalance",
+        "Inspector.Video.PersistWhitebalance",
+        "Inspector.Video.WhitebalanceMethod",
+        "Inspector.Video.WhitebalanceMethodAverage",
+        "Inspector.Video.WhitebalanceMethodMinmax",
+        "Inspector.Video.WhitebalanceMethodMedian",
+        "Inspector.Video.WhitebalanceSaturation",
+        "Inspector.Video.WhitebalanceWarning",
+        "Inspector.Video.WhitebalanceReset",
+        "Inspector.Video.WhitebalanceResetTooltip",
+        "Inspector.Video.WhitebalanceRequiresMpv"
     };
 
     private static string RepositoryPathRead()

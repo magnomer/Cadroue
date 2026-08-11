@@ -15,6 +15,7 @@ public sealed class PEditTab : PTabSurface
     private const string PEditBrightnessIcon = "/PAssets/PPanels/PProcessingBrightness.svg";
     private const string PEditContrastIcon = "/PAssets/PPanels/PProcessingContrast.svg";
     private const string PEditGammaIcon = "/PAssets/PPanels/PProcessingGamma.svg";
+    private const string PEditWhitebalanceIcon = "/PAssets/PPanels/PProcessingWhitebalance.svg";
 
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new() { PViewerColorPreview = true, PViewerEditEligible = true };
@@ -80,6 +81,7 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIcon, "Processing.Step.Brightness");
         pProcessing.PProcessingStepAdd("Contrast", PEditContrastIcon, "Processing.Step.Contrast");
         pProcessing.PProcessingStepAdd("Gamma", PEditGammaIcon, "Processing.Step.Gamma");
+        pProcessing.PProcessingStepAdd("Whitebalance", PEditWhitebalanceIcon, "Processing.Step.Whitebalance");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepChange += PEditStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
@@ -245,6 +247,9 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingActiveSet("Gamma",
             PEditMpvOnlyCapableRead()
             && pInspector.PToneStepRead(LColorKind.LColorKindGamma).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Whitebalance",
+            PEditMpvOnlyCapableRead()
+            && pInspector.PToneStepRead(LColorKind.LColorKindWhitebalance).LWorkStepActive);
     }
 
     private void PEditChangeHandle()
@@ -491,7 +496,11 @@ public sealed class PEditTab : PTabSurface
         bool pMpvOnlyCapable = PEditMpvOnlyCapableRead();
         string pGammaTooltip = LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresMpv");
         pProcessing.PProcessingEnabledSet("Gamma", pMpvOnlyCapable, pGammaTooltip);
+        string pWhitebalanceTooltip = LLocalization.LLocalizationTextRead(
+            "Processing.Step.WhitebalanceRequiresMpv");
+        pProcessing.PProcessingEnabledSet("Whitebalance", pMpvOnlyCapable, pWhitebalanceTooltip);
         pInspector.PToneGammaCapabilitySet(pMpvOnlyCapable);
+        pInspector.PToneWhitebalanceCapabilitySet(pMpvOnlyCapable);
         PEditActiveUpdate();
         PEditColorApply();
     }
