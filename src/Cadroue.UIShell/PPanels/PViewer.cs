@@ -216,6 +216,13 @@ public sealed partial class PViewer : PPanel
 
         PViewerHostBuild();
         pViewerCommandActive = true;
+        string? pViewerSourcePath = PViewerSourcePath;
+        if (PViewerEngineSelect() && pViewerSourcePath is not null)
+        {
+            PPlayerVideoLoad(pViewerSourcePath);
+            return;
+        }
+
         PPlayerResume();
     }
 

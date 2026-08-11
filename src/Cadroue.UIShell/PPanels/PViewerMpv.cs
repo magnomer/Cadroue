@@ -24,6 +24,22 @@ public sealed partial class PViewer
             return;
         }
 
+        try
+        {
+            LPreviewMpvEqualizer pViewerEqualizer =
+                LPreview.LPreviewMpvEqualizerResolve(LPreviewStateCurrent);
+            pViewerPlayer.PPlayerEqualizerSet(
+                pViewerEqualizer.LPreviewMpvBrightness,
+                pViewerEqualizer.LPreviewMpvContrast,
+                pViewerEqualizer.LPreviewMpvSaturation,
+                pViewerEqualizer.LPreviewMpvHue);
+        }
+        catch (Exception pViewerEqualizerException)
+        {
+            LTraceLog.LTraceErrorRecord(
+                $"mpv rejected preview equalizer: {pViewerEqualizerException.Message}");
+        }
+
         PViewerMpvFilterApply(LPreview.LPreviewMpvFilterResolve(LPreviewStateCurrent));
     }
 
@@ -46,10 +62,10 @@ public sealed partial class PViewer
             return;
         }
 
-        pViewerMpvFilter = pViewerFilter;
         try
         {
             pViewerPlayer.PPlayerFilterSet(pViewerFilter);
+            pViewerMpvFilter = pViewerFilter;
         }
         catch (Exception pViewerFilterException)
         {
@@ -65,17 +81,17 @@ public sealed partial class PViewer
             ? Cadroue.Infrastructure.LRenderer.LRendererEngineRead()
             : LPreviewEngine.LPreviewEngineFlyleaf;
 
-    private void PViewerEngineSelect()
+    private bool PViewerEngineSelect()
     {
         if (!pViewerHostBuilt)
         {
-            return;
+            return false;
         }
 
         bool pViewerWantMpv = PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv;
         if (pViewerWantMpv == pViewerMpvActive)
         {
-            return;
+            return false;
         }
 
         PPlayerStopDispose();
@@ -91,6 +107,7 @@ public sealed partial class PViewer
 
         pViewerHostBuilt = false;
         PViewerHostBuild();
+        return true;
     }
 
     private void PViewerEngineHandle()
@@ -102,12 +119,18 @@ public sealed partial class PViewer
                 return;
             }
 
-            if (PViewerSourcePath is not null || LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+            if (!pViewerCommandActive)
             {
                 return;
             }
 
-            PViewerEngineSelect();
+            string? pViewerSourcePath = PViewerSourcePath;
+            if (!PViewerEngineSelect() || pViewerSourcePath is null)
+            {
+                return;
+            }
+
+            PPlayerVideoLoad(pViewerSourcePath);
         });
     }
 

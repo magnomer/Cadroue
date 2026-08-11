@@ -79,22 +79,13 @@ internal sealed partial class PSOptions
 
     private UIElement PSSystemFlyleafBuild()
     {
-        var pState = new TextBlock
-        {
-            Foreground = PSFieldMuted,
-            TextWrapping = TextWrapping.Wrap,
-            Margin = PSNoticeMargin,
-            Text = PSSystemFlyleafFormat()
-        };
-
-        Button pInstall = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.InstallFlyleaf"), 160, new Thickness(0, 0, 8, 0));
-        Button pOpen = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
+        Button pInstall = PSInlineButtonBuild(PSSystemFlyleafInstallText(), 160, new Thickness(0, 0, 8, 0));
+        Button pBrowse = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
         pInstall.Click += async (_, _) =>
         {
             pInstall.IsEnabled = false;
-            pState.Text = LLocalization.LLocalizationTextRead("Options.System.FlyleafInstalling");
             LFlyleafInstallResult pResult = await LFlyleaf.LFlyleafInstallStart();
-            pState.Text = PSSystemFlyleafFormat();
+            pInstall.Content = PSSystemFlyleafInstallText();
             pInstall.IsEnabled = true;
             MessageBox.Show(
                 this,
@@ -105,25 +96,20 @@ internal sealed partial class PSOptions
                 MessageBoxButton.OK,
                 pResult.LFlyleafInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
         };
-        pOpen.Click += (_, _) => PSSystemFolderOpen(LFlyleaf.LFlyleafRootRead(), string.Empty);
+        pBrowse.Click += (_, _) => PSSystemFolderOpen(LFlyleaf.LFlyleafRootRead(), string.Empty);
 
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pButtons.Children.Add(pInstall);
-        pButtons.Children.Add(pOpen);
+        pButtons.Children.Add(pBrowse);
 
-        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Setup"), pButtons),
-            pState,
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FlyleafNotice")));
+        return PSFieldBuild(string.Empty, pButtons);
     }
 
-    private static string PSSystemFlyleafFormat() =>
-        LFlyleaf.LFlyleafInstalledCheck()
-            ? LLocalization.LLocalizationFormat(
-                "Flyleaf.Local.Status.Installed",
-                LDepot.LDepotRootRead(),
-                LFlyleaf.LFlyleafFolderRead() ?? string.Empty)
-            : LLocalization.LLocalizationFormat("Flyleaf.Local.Status.NotInstalled", LFlyleaf.LFlyleafRootRead());
+    private static string PSSystemFlyleafInstallText() =>
+        LLocalization.LLocalizationTextRead(
+            LFlyleaf.LFlyleafInstalledCheck()
+                ? "Options.System.ReinstallFlyleaf"
+                : "Options.System.InstallFlyleaf");
 
     private UIElement PSSystemRecordBuild()
     {

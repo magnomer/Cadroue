@@ -33,6 +33,8 @@ internal sealed class PSAbout : Window
     {
         ("FFmpeg", "https://ffmpeg.org"),
         ("FlyleafLib", "https://github.com/SuRGeoNix/Flyleaf"),
+        ("MPV", "https://mpv.io"),
+        ("Phosphor Icons", "https://phosphoricons.com/"),
         ("SharpVectors", "https://github.com/ElinamLLC/SharpVectors")
     };
 

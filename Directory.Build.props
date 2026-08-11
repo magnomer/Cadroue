@@ -9,7 +9,7 @@
   <PropertyGroup>
     <VersionJsonPath>$(MSBuildThisFileDirectory)version.json</VersionJsonPath>
     <VersionJsonContent Condition="Exists('$(VersionJsonPath)')">$([System.IO.File]::ReadAllText('$(VersionJsonPath)'))</VersionJsonContent>
-    <CadroueVersion Condition="'$(VersionJsonContent)' != ''">$([System.Text.RegularExpressions.Regex]::Match($(VersionJsonContent), '"version"\s*:\s*"([^"]+)"').Groups[1].Value)</CadroueVersion>
+    <CadroueVersion Condition="'$(VersionJsonContent)' != ''">$([System.Text.RegularExpressions.Regex]::Match($(VersionJsonContent), '"current-version"\s*:\s*"([^"]+)"').Groups[1].Value)</CadroueVersion>
     <CadroueVersion Condition="'$(CadroueVersion)' == ''">0.0.0</CadroueVersion>
   </PropertyGroup>
 

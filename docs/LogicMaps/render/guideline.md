@@ -2,7 +2,7 @@
 
 ## 1. Status and authority
 
-This document defines the authoritative format, content rules, visual behavior, validation rules, and maintenance procedure for Cadroue logic maps.
+This document provides authoring, visual, and maintenance guidance for Cadroue logic maps. The normative Format 1 syntax and validation contract are defined only by `docs/LogicMaps/SpecificationLmap.md`; if this guideline differs from the specification, the specification governs.
 
 A logic map explains how a program operation proceeds without reproducing its source code. It follows an operation from its initiating event through the methods that govern each step, its decisions, state changes, visible updates, persistence, external processes, and final result.
 
@@ -78,14 +78,11 @@ Do not reorganize a map to resemble a desired architecture. When one method curr
 
 This repetition is intentional. It reveals actual responsibility without adding an evaluation.
 
-### 3.4 Use the mandatory two-part information architecture
+### 3.4 Let the source declare the information architecture
 
-Every complete map belongs to exactly one of these sections:
+Every complete map declares its own top-level `@section` and navigation `@area`. The generator does not impose numbered section names or assume that another section exists. Use concise semantic labels such as `UI`, `Functionality`, `Persistence`, or another label that accurately describes the current source set.
 
-1. **I. UI** — maps initiated by or directly bound to interface events. UI maps are presented under every tab in which that event can occur: Split, Edit, Convert, Audio, Merge, Funnel, Worklist, or Global interface. A shared control is not hidden in a generic bucket; its map appears in each applicable tab collection.
-2. **II. Functionality** — operational logic that is not specific to one tab type. Queue claiming, FFmpeg execution, persistence, media analysis, relay transport, and similar shared operations belong here.
-
-Tab-specific work creation or editing logic must not be placed under Functionality merely because it eventually calls a shared service. The initiating surface determines the UI map; a separate linked Functionality map may document the reusable downstream operation.
+When a map belongs under one or more interface tabs or other named navigation groups, declare them with `@tabs`. When `@tabs` is absent, the map is grouped by its source-declared `@area`. A reusable downstream operation may therefore live under `Functionality`, while an interface-triggered map can use `UI` plus the applicable tab names, without requiring fixed `I.`/`II.` numbering.
 
 ### 3.5 One map covers one complete operation
 
@@ -115,21 +112,11 @@ The generated HTML opens at a readable one-to-one scale. It must not automatical
 
 ### 3.8 Connections must use card-free routing corridors
 
-Connections use orthogonal routes through the vertical gaps between node rows or the outer margins of the map. A connection must not pass behind or through a card. The renderer should order nodes to reduce crossings and allocate separate routing lanes when several connections share a row gap. Crossings between connections are acceptable only when the graph cannot be laid out clearly without them; unconstrained curves across the card field are prohibited.
+Connections use orthogonal routes through the vertical gaps between node rows or the outer margins of the map. A connection must not pass behind or through a card. Crossing prevention begins in the `.lmap`: same-rank source order must not create avoidable primary-lane inversions, and every convergence must be represented by an explicit `junction`. The renderer may still optimize geometry, but it must not invent a logical merge that the source failed to declare. If two unrelated connections still have to cross after source ordering, junctions, and side-routing hints are exhausted, the renderer marks the geometric crossing with a visible bridge/gap so it cannot be mistaken for a merge.
 
-### 3.9 UI-event coverage is code-audited
+### 3.9 Optional UI-event bindings are verified when declared
 
-Every current UI event binding must have a code-bound map. The audited set includes:
-
-- Qualified C# subscriptions such as `button.Click +=`, including Cadroue-defined coordination events such as `PViewerMediaChange`, `PActionRun`, `PFlowSectionChange`, and `LScheduleChange`.
-- Bare framework or application subscriptions on the current control or window, such as `PreviewKeyDown +=`, `Closed +=`, `Loaded +=`, and `DispatcherUnhandledException +=`.
-- Routed-event registrations through `AddHandler(...)`, including window-level drag/drop routes and delegated list-button clicks.
-- XAML event attributes such as `Click="Handler"` or `MouseMove="Handler"`.
-- WPF event and lifecycle overrides such as `OnMouseWheel`, `OnPreviewKeyDown`, and `OnSourceInitialized`.
-
-Each code-bound UI map declares an `@event-ref`. Strict generation compares those references with the current `src/Cadroue.UIShell` source. A newly added event without a map, a duplicated event reference, or a map for an event that no longer exists blocks generation.
-
-Coverage is measured from the code, not from a desired map count. The count may grow or shrink with the interface, but complete coverage must always be 100 percent.
+A map may declare `@event-ref` when it documents one exact UI binding. The generator verifies declared references against the current `src/Cadroue.UIShell` source and rejects duplicate or stale references. It does **not** require every UI event in the application to have a logic map, does not publish a whole-project coverage ratio, and does not use UI-event enumeration as a secondary registry of what maps must exist.
 
 ## 4. Directory structure
 
@@ -137,57 +124,46 @@ Use the following structure:
 
 ```text
 docs/
-└── logic-maps/
-    ├── index.html
-    ├── manifest.json
+├── MapsLogic.html
+└── LogicMaps/
+    ├── SpecificationLmap.md
     ├── source/
     │   ├── ui/
-    │   │   ├── split/
-    │   │   ├── edit/
-    │   │   ├── convert/
-    │   │   ├── audio/
-    │   │   ├── merge/
-    │   │   ├── funnel/
-    │   │   ├── worklist/
-    │   │   ├── global/
-    │   │   └── shared/
     │   └── functionality/
-    │       ├── application-lifecycle/
-    │       ├── media-discovery-and-import/
-    │       ├── keyframes-and-waveform/
-    │       ├── queue-and-scheduling/
-    │       ├── processing-and-ffmpeg/
-    │       ├── relay-and-routing/
-    │       ├── project-persistence/
-    │       ├── preferences-and-tools/
-    │       ├── logging/
-    │       └── shared-synchronization/
-    ├── maps/
+    ├── render/
+    │   ├── generate.py
+    │   ├── generate.ps1
+    │   ├── guideline.md
+    │   ├── site.css
+    │   └── site.js
     ├── assets/
-    └── render/
-        ├── generate.py
-        ├── generate.ps1
-        ├── guideline.md
-        ├── site.css
-        └── site.js
+    │   ├── site.css
+    │   └── site.js
+    └── maps/
+        ├── NavigationLogic.html
+        ├── ImplementationIndex.html
+        ├── fragments/
+        │   └── <fragment-id path>.html
+        └── <source-relative map pages>.html
 ```
 
 Rules:
 
 - `source/` contains authoritative `.lmap` files.
-- The renderer discovers maps recursively only below the authoritative `source/ui/` and `source/functionality/` trees. It does not infer inclusion from map IDs, filenames, implementation symbols, or project-specific source content; obsolete sibling trees are ignored.
+- Every `.lmap` must classify itself as exactly one complete map (`@id`) or one reusable fragment (`@fragment`). Declaring neither or both is a validation error, and map/fragment identifiers must be globally unique within their respective namespaces.
+- The renderer discovers every `.lmap` recursively anywhere below the authoritative `source/` directory. Folder names are organizational only: adding a new source subtree must not require a generator code change, allowlist entry, or hard-coded path.
 - UI source files may live under `ui/shared/` when one implementation is used by several tabs, but `@tabs` must enumerate every applicable tab. The generated index presents that map under each named tab.
 - `functionality/` contains only operations that are not specific to one tab type.
-- `index.html`, `maps/`, `assets/`, and `manifest.json` are generated output.
-- `render/generate.py` validates syntax, implementation ownership, UI-event coverage, and generation in one command.
+- `docs/MapsLogic.html`, `docs/LogicMaps/maps/`, and `docs/LogicMaps/assets/` are generated output. `MapsLogic.html` is the only generated HTML outside `docs/LogicMaps/maps/`.
+- `render/generate.py` validates syntax, implementation ownership, declared UI-event references, and generation in one command. It also supports targeted generation of one or more named maps while rebuilding the shared catalogue documents from the complete current source set.
 - `render/generate.ps1` is an optional Windows launcher for `generate.py`; it is not a second generator.
-- `render/site.css` and `render/site.js` are copied into generated `assets/`; `assets/navigation.js` is generated once as shared count-free navigation data.
+- `render/site.css` and `render/site.js` are copied into `docs/LogicMaps/assets/`; `docs/LogicMaps/maps/NavigationLogic.html` is the shared generated navigation document.
 - Generation uses content-aware writes: unchanged output files retain their bytes and timestamps, while output files with no authoritative source are removed as stale.
-- Per-map pages must not embed global map counts, catalogues, or implementation indexes. Those changing aggregates belong in `index.html`, `manifest.json`, or shared assets so a local map edit stays local.
+- Per-map pages must not embed the global navigation, map catalogue, counts, or implementation index. The map catalogue belongs in `docs/MapsLogic.html`; the implementation catalogue belongs in `docs/LogicMaps/maps/ImplementationIndex.html`; navigation belongs only in `docs/LogicMaps/maps/NavigationLogic.html`, which content pages reference without embedding its entries.
 - `source/` and `render/` must never be removed or rewritten by generation.
 - No generated HTML may contain operational information absent from `.lmap` source or verified source-code metadata.
 
-Generate the site from `docs/logic-maps/` with:
+Generate the site from `docs/LogicMaps/` with:
 
 ```text
 python render/generate.py --strict
@@ -201,7 +177,17 @@ On Windows:
 
 The generator uses only Python's standard library. `--strict` is required for a completed map set.
 
+To validate and render an individual map without rewriting existing unrelated content pages or removing unrelated generated pages, use targeted generation:
+
+```text
+python render/generate.py --strict --map functionality.media-loading
+```
+
+`--map` may be repeated. Targeted generation still validates graph structure and implementation references for the available source set and rebuilds `docs/MapsLogic.html`, `docs/LogicMaps/maps/NavigationLogic.html`, and `docs/LogicMaps/maps/ImplementationIndex.html` from every current `.lmap`. If an indexed content page is missing, it is generated so shared navigation never points at a missing page. Existing unrelated content pages are left untouched.
+
 ## 5. Source format
+
+The normative language definition is `docs/LogicMaps/SpecificationLmap.md`. This guideline explains authoring practice and rendering expectations; when wording differs, the specification governs syntax and validation.
 
 Logic maps use the line-oriented `.lmap` format. It is deliberately small, dense, readable in a text editor, stable in diffs, and straightforward to parse.
 
@@ -224,7 +210,7 @@ Every complete map begins with section metadata. A code-bound UI event uses:
 @format 1
 @id ui-event.example
 @title Add button — click
-@section I. UI
+@section UI
 @area UI event
 @tabs Split, Edit, Convert, Audio, Merge, Funnel
 @event-ref cs|PPanels/PList.cs|PListButtonBuild|pButton|Click|1
@@ -232,7 +218,7 @@ Every complete map begins with section metadata. A code-bound UI event uses:
 @summary Handle the add-button click and follow its registered code path.
 ```
 
-A shared functional operation uses `@section II. Functionality`, a numbered functional `@area`, and no `@tabs`.
+A shared functional operation may use `@section Functionality`, a descriptive `@area`, and no `@tabs`. Section and area labels are not automatically numbered.
 
 Header fields:
 
@@ -241,16 +227,14 @@ Header fields:
 | `@format` | Yes | Logic-map format version. Initially `1`. |
 | `@id` | Yes | Globally unique stable identifier. |
 | `@title` | Yes | Human-readable title. |
-| `@section` | Yes | Exactly `I. UI` or `II. Functionality`. |
-| `@area` | Yes | `UI event`, `UI workflow`, or the numbered Functionality group. |
-| `@tabs` | UI maps | Comma-separated tabs in which the UI event or workflow can occur. |
+| `@section` | Yes | Source-declared top-level navigation section. The generator does not contain a fixed section allowlist. |
+| `@area` | Yes | Source-declared navigation group used when `@tabs` is absent. |
+| `@tabs` | Optional; required with `@event-ref` | Comma-separated navigation groups. When present, the map appears under each declared tab/group regardless of the literal `@section` value. |
 | `@event-ref` | Direct UI-event maps | Stable code binding produced from the current C#, XAML, or override event route. |
-| `@entry` | Yes | Identifier of the first node. |
+| `@entry` | Yes | Comma-separated identifier(s) of the entry node(s). A single entry remains the normal form; use multiple entries only when several independent initiators belong on the same first row. |
 | `@summary` | Yes | One-sentence scope statement. |
-| `@flow` | No | Preferred primary direction: `TB` or `LR`. Default: `TB`. |
 | `@related` | No | Comma-separated related map IDs. |
 | `@tag` | No | Search tags. May appear more than once. |
-| `@allow-cycle` | No | Map-level permission for an intentional cycle. Default: `false`. |
 
 `@event-ref` forms are generated and validated as follows:
 
@@ -305,8 +289,9 @@ Allowed kinds:
 | `output` | Final visible, in-memory, persisted, scheduled, or emitted result. |
 | `error` | Rejection, failure handling, rollback, cleanup after failure, or terminal error. |
 | `note` | Explanatory context that is not itself an executable step. Use sparingly. |
+| `junction` | A real graph convergence/routing point. It is not a processing card and contains no action, state, or note. It must have exactly one unconditional outgoing connection. |
 
-A node may contain actions, states, notes, and outgoing connections.
+A normal node may contain actions, states, notes, and outgoing connections. A `junction` is topology only: it cannot contain actions, states, or notes, cannot be an entry node, and must have exactly one unconditional outgoing connection.
 
 ### 5.5 Action line
 
@@ -383,12 +368,12 @@ Optional direction hints:
 ```text
 > visual [left]
 > storage [right]
-> result [down]
+> result
 ```
 
-Allowed hints are `left`, `right`, `up`, and `down`.
+Format 1 allows only `left`, `right`, and `loop`. `[left]` and `[right]` request real outer-side detours; `[loop]` is reserved for an edge that explicitly closes a cycle. `[up]` and `[down]` are invalid.
 
-Direction hints are preferences, not absolute coordinates. The renderer may adjust them to prevent overlap, but it should preserve the intended branch relationship whenever possible.
+Routing hints do not exempt an edge from source-order crossing validation. For nodes on the same derived rank, declaration order is the authoritative preferred left-to-right order. If adjacent-rank connections invert that ordering, the `.lmap` is invalid even when one of those edges is marked `[left]` or `[right]`. A non-loop edge that skips one or more ranks must use `[left]` or `[right]`.
 
 ### 5.10 Conditional connection
 
@@ -415,35 +400,34 @@ Two or more unconditional connections from the same node represent parallel or i
 > storage [right]
 ```
 
-The branches may rejoin by connecting to the same later node:
+When two or more paths converge, the convergence must be explicit in the `.lmap` rather than leaving several full-length lines to terminate independently on the same card:
 
 ```text
 [visual] Visual update <process>
 - Draw the new section @ shell.DrawSection(...)
-> result
+> result-join
 
 [storage] Data state <storage>
 - Mark the project as modified @ shell.MarkProjectModified(...)
+> result-join
+
+[result-join] Result paths converge <junction>
 > result
 ```
+
+A normal node may not have multiple incoming local paths. Multiple paths first enter a `junction`, and only the junction continues to the shared card. This makes the shared line part of the authoritative graph instead of a renderer invention.
 
 Do not use parallel edges merely to make a map visually symmetrical. They must represent logically separate continuations.
 
 ### 5.12 Cycles and repeated paths
 
-A cycle must be intentional and explicit:
-
-```text
-@allow-cycle true
-```
-
-The returning edge must use the `loop` marker:
+Use the `loop` marker on an edge that intentionally returns against the primary flow:
 
 ```text
 > wait-for-work [loop]
 ```
 
-Without both declarations, generation fails. This prevents accidental cycles from producing unreadable maps.
+`[loop]` is the cycle-closing declaration. Removing all `[loop]` edges must leave an acyclic local graph, and every `[loop]` edge must close an already existing path from its target back to its source. A decorative or meaningless `[loop]` marker is invalid.
 
 ### 5.13 Shared subflows
 
@@ -466,13 +450,14 @@ Shared fragments use the same `.lmap` syntax but begin with:
 @fragment shared.mark-project-modified
 @title Mark project as modified
 @entry mark
+@summary Mark the project as modified through the shared reusable flow.
 ```
 
 Rules:
 
 - Use a complete map link when the referenced operation has its own meaningful entry and result.
 - Use a fragment only for a short reusable sequence.
-- The generated HTML must visually distinguish a local node, an expanded fragment, and a link to another map.
+- Every fragment receives its own generated graph page. A `fragment:` continuation links to that page and must be visually distinguishable from a local node and a complete-map continuation.
 - Do not copy the same shared flow into many files merely to avoid a reference.
 - Do not create fragments for single trivial actions.
 
@@ -561,7 +546,13 @@ A node should normally contain one to six action rows. More than eight action ro
 
 ### 8.1 Entry
 
-The entry node must identify the actual initiating boundary:
+Each entry node must identify an actual initiating boundary. Most maps have one entry. When one operation can begin through several independent triggers that must be shown together, list every root in `@entry`, separated by commas; all declared entries are first-class roots, must have no incoming local edge, are included in reachability validation, and are rendered on the same first graph rank.
+
+```text
+@entry source-browse, source-enter, viewer-drop, startup-restore
+```
+
+An entry node must identify the actual initiating boundary:
 
 - User clicks a control.
 - User changes a field.
@@ -665,7 +656,7 @@ State the initiating event and the final observable or durable result in one sen
 
 ### Step 2 — Classify the map
 
-Place an interface-triggered path in `I. UI` and list every applicable tab in `@tabs`. Place a reusable operation in `II. Functionality` only when it is not specific to one tab type.
+For an interface-triggered path, use a source-declared UI-oriented section label and list every applicable tab in `@tabs`. For a reusable operation, use an appropriate source-declared section such as `Functionality` when it is not specific to one tab type.
 
 For a direct UI binding, copy the exact code-derived `@event-ref`; never invent or approximate it.
 
@@ -699,7 +690,7 @@ Check readability, crossings, branch labels, action–method proximity, scrollin
 
 ### Step 10 — Run strict validation
 
-A map set is complete only when required fields, node references, implementation references, terminal paths, and direct UI-event coverage all pass. The console must report complete coverage, such as `UI event coverage: 492/492`; the exact number is determined from the current code.
+A map set is valid when required fields, node references, implementation references, terminal paths, and any explicitly declared `@event-ref` bindings pass validation.
 
 ## 13. HTML generation contract
 
@@ -708,23 +699,26 @@ The generator must create a static visual site that can be opened directly from 
 Required output:
 
 ```text
-docs/logic-maps/index.html
-docs/logic-maps/maps/<area>/<map-name>.html
-docs/logic-maps/assets/...
+docs/MapsLogic.html
+docs/LogicMaps/maps/NavigationLogic.html
+docs/LogicMaps/maps/ImplementationIndex.html
+docs/LogicMaps/maps/<source-relative map path>.html
+docs/LogicMaps/assets/...
 ```
 
 Generation requirements:
 
 1. Parse every `.lmap` file.
-2. Validate syntax and graph integrity before rendering.
+2. Validate syntax and graph integrity before rendering, including the invariant that every declared `@entry` is a local graph root.
 3. Resolve aliases.
 4. Attempt to verify C# symbols against `src/**/*.cs`.
-5. Scan current C#, XAML, and UI overrides and verify complete `@event-ref` coverage.
-6. Generate `I. UI` in the fixed tab order and `II. Functionality` in numbered functional groups.
+5. Verify each explicitly declared `@event-ref` against current C#, XAML, or UI overrides.
+6. Build navigation entirely from source declarations: sort `@section` and group labels naturally; use every declared `@tabs` value when present, otherwise use `@area`.
 7. Generate one page per unique map, while displaying shared UI maps under every applicable tab.
-8. Generate a searchable implementation index.
+8. Generate the searchable implementation index as the separate `docs/LogicMaps/maps/ImplementationIndex.html` document.
 9. Record a source hash for each generated map.
-10. Report errors, warnings, and UI-event coverage in the console; exit nonzero on any validation error.
+10. Report errors, warnings, and unresolved implementation symbols in the console; exit nonzero on any validation error.
+11. Embed declared entry IDs in each map page so the browser layout uses the `.lmap` entry declaration directly rather than re-inferring entry status from incidental topology.
 
 The generated site must not require a CDN, package installation at viewing time, network access, a local server, or a browser extension. All CSS, JavaScript, icons, and fonts must be local or use system-font fallbacks.
 
@@ -759,9 +753,9 @@ Metadata must remain compact and visually subordinate to the graph.
 
 The sidebar must:
 
-- Show **I. UI** first, with Split, Edit, Convert, Audio, Merge, Funnel, Worklist, and Global interface in that exact order.
-- Show **II. Functionality** second, grouped by numbered `@area`.
-- Present a shared UI map under every tab named by `@tabs` on the index.
+- Derive sections and groups from current `.lmap` headers rather than a generator-side allowlist or fixed taxonomy.
+- Use natural sorting for source-declared section and group labels.
+- Present a map under every group named by `@tabs`; when `@tabs` is absent, group it under `@area`.
 - Link directly to each complete tab or functionality collection without duplicating the full catalogue inside every map page.
 - Keep the current location visible in the top-bar breadcrumb and page metadata.
 - Remain usable with keyboard navigation.
@@ -1018,6 +1012,7 @@ The DOM should preserve a logical reading order independent of the graph coordin
 - Duplicate map ID
 - Duplicate node ID within a map
 - Missing entry node
+- Declared entry node with an incoming local edge
 - Connection to an unknown node, map, or fragment
 - Operational action without an implementation reference
 - Invalid node kind
@@ -1062,8 +1057,9 @@ Fragments: 1 parsed
 Errors: 0
 Warnings: 0
 Unresolved symbols: 0
-UI event coverage: 492/492
-Output: docs/logic-maps/index.html
+Output: docs/MapsLogic.html
+Navigation: docs/LogicMaps/maps/NavigationLogic.html
+Implementation index: docs/LogicMaps/maps/ImplementationIndex.html
 ```
 
 Errors and warnings include the source path and line number.
@@ -1078,7 +1074,7 @@ Node "claim-and-persist" contains 10 action rows.
 
 ## 21. Generated implementation index
 
-The HTML site must include an implementation index that groups verified references by fully qualified symbol.
+The HTML site must include the separate `docs/LogicMaps/maps/ImplementationIndex.html` document, which groups verified references by fully qualified symbol. `docs/MapsLogic.html` may link to it but must not embed the implementation catalogue.
 
 Example:
 
@@ -1101,11 +1097,8 @@ Each generated map stores:
 
 - Logic-map source path
 - Hash of the source content
-- Generation format version
-- Generation time
-- Optional repository commit identifier when available
 
-On generation, the index reports stale or mismatched output. The HTML must display a discreet warning when its embedded source hash does not match a manifest generated from the current source set.
+Generated content pages carry their own source hash. Global navigation and catalogue state are regenerated directly from the current source set rather than from a secondary registry file.
 
 Generated HTML is never the place to correct a title, action, method, branch, or note. Correct the `.lmap` source and regenerate.
 
@@ -1117,12 +1110,11 @@ The following example demonstrates the format. Names are illustrative; productio
 @format 1
 @id split.section-creation
 @title Section creation
-@section I. UI
+@section UI
 @area UI workflow
 @tabs Split
 @entry input
 @summary Create a section at the current timeline position and synchronize model, view, and modified state.
-@flow TB
 @related project.mark-modified
 @tag section
 @tag split

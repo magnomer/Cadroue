@@ -1,5 +1,3 @@
-using System.Globalization;
-
 using Cadroue.Core;
 
 namespace Cadroue.Application;
@@ -13,6 +11,12 @@ public sealed record LPreviewApplication(
     bool LPreviewFlipHorizontal,
     bool LPreviewFlipVertical,
     string LPreviewReason);
+
+public sealed record LPreviewMpvEqualizer(
+    int LPreviewMpvBrightness,
+    int LPreviewMpvContrast,
+    int LPreviewMpvSaturation,
+    int LPreviewMpvHue);
 
 public static class LPreview
 {
@@ -53,34 +57,27 @@ public static class LPreview
         LPreviewApplySeam?.Invoke(lPreviewTarget, LPreviewApplicationResolve(lPreviewState, "preview restored"));
     }
 
-    private static string LPreviewMpvEqFilterResolve(LColor lColor)
+    public static LPreviewMpvEqualizer LPreviewMpvEqualizerResolve(LPreviewState lPreviewState)
     {
-        double lBrightness = lColor.LColorBrightness / LPreviewBrightnessFactor;
+        LColor lColor = lPreviewState.LColor;
         double lContrast = lColor.LColorContrast;
-        var lEqParts = new List<string>();
-
-        if (lBrightness != 0)
-        {
-            lEqParts.Add($"brightness={lBrightness.ToString("0.###", CultureInfo.InvariantCulture)}");
-        }
-
-        if (lContrast != 1)
-        {
-            lEqParts.Add($"contrast={lContrast.ToString("0.###", CultureInfo.InvariantCulture)}");
-        }
-
-        return lEqParts.Count > 0 ? "eq=" + string.Join(':', lEqParts) : string.Empty;
+        // FFmpeg eq pivots luma contrast at 0.5 and leaves chroma unchanged;
+        // MPV applies contrast as a black-anchored gain to both luma and chroma.
+        double lBrightness = lColor.LColorBrightness / LPreviewBrightnessFactor
+            + (1 - lContrast) / 2;
+        double lSaturation = lContrast == 0
+            ? lColor.LColorSaturation
+            : lColor.LColorSaturation / lContrast;
+        return new LPreviewMpvEqualizer(
+            LPreviewValueClamp(lBrightness * 100, -100, 100),
+            LPreviewValueClamp((lContrast - 1) * 100, -100, 100),
+            LPreviewValueClamp((lSaturation - 1) * 100, -100, 100),
+            LPreviewValueClamp(lColor.LColorHue / 180 * 100, -100, 100));
     }
 
     public static string LPreviewMpvFilterResolve(LPreviewState lPreviewState)
     {
         var lFilters = new List<string>();
-
-        string lEq = LPreviewMpvEqFilterResolve(lPreviewState.LColor);
-        if (lEq.Length > 0)
-        {
-            lFilters.Add(lEq);
-        }
 
         LRotateFlip lRotateFlip = lPreviewState.LRotateFlip;
 

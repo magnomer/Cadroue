@@ -107,6 +107,9 @@ internal static class TInterface
     internal static LPreviewState PreviewRotateFlipChange(LPreviewState state, LRotateFlip rotateFlip) =>
         state.LRotateFlipChange(rotateFlip);
     internal static LColor PreviewColorResolve(LWorkVideo video) => LPreview.LPreviewColorResolve(video);
+    internal static LPreviewMpvEqualizer PreviewMpvEqualizerResolve(LPreviewState state) =>
+        LPreview.LPreviewMpvEqualizerResolve(state);
+    internal static string PreviewMpvFilterResolve(LPreviewState state) => LPreview.LPreviewMpvFilterResolve(state);
 
     internal static LColorKind? ColorKindParse(string token) => LColor.LColorKindParse(token);
     internal static string ColorKindFormat(LColorKind kind) => LColor.LColorKindFormat(kind);

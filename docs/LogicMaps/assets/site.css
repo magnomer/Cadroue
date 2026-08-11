@@ -12,3 +12,21 @@
 @media(max-width:800px){.major-heading{padding:17px}.major-heading>span{min-width:44px;height:44px}.major-heading h1{font-size:23px}.coverage-strip{display:grid;grid-template-columns:1fr}}
 
 .nav-section{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:3px 0;padding:8px 10px;border-radius:8px;text-decoration:none;font-size:12px;color:var(--muted)}.nav-section strong{min-width:28px;padding:2px 7px;border-radius:999px;background:var(--surface2);color:var(--text);font-size:11px;text-align:center}.nav-section:hover{background:var(--surface2);color:var(--text)}
+.nav-host{position:sticky;top:58px;height:calc(100vh - 58px);border-right:1px solid var(--border);background:var(--surface);overflow:hidden}.nav-frame{display:block;width:100%;height:100%;border:0;background:var(--surface)}.navigation-page{min-height:100%;background:var(--surface)}.navigation-page .nav-document{position:static;display:block;width:100%;height:auto;min-height:100vh;border-right:0}.nav-group-title{padding:8px 10px 4px;color:var(--muted);font-size:12px;font-weight:650}.navigation-page .maplink{display:block;padding:7px 10px 7px 18px;border-radius:8px;text-decoration:none;font-size:12px;color:var(--muted)}
+@media(max-width:800px){.nav-host{display:none}}
+@media print{.nav-host{display:none}}
+
+/* Map interaction: empty-space drags pan; card drags remain text-selectable. */
+.canvas{user-select:none;cursor:grab}.canvas.is-panning{cursor:grabbing}.node{user-select:text;cursor:auto}
+
+/* Distinguish unavoidable geometric crossings from actual graph merges. */
+.edge-bridge-mask{fill:none;stroke:var(--surface2);stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.edge-bridge{stroke-width:2.2}.merge-junction{fill:var(--surface);stroke:var(--edge);stroke-width:2}
+
+/* Index/navigation affordances shared by the catalogue documents. */
+.nav-secondary{margin-top:2px;color:var(--muted)}
+.hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.button-link{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);text-decoration:none;font-size:12px;font-weight:650}.button-link:hover{border-color:var(--focus)}
+
+/* Source-declared graph junctions: real convergence points, not processing cards. */
+.junction{width:16px!important;height:16px!important;border:2px solid var(--edge);border-radius:50%;background:var(--surface);box-shadow:none;overflow:visible;user-select:none;cursor:default}
+.junction:before{display:none}.junction.focused{box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 24%,transparent)}

@@ -263,8 +263,6 @@ internal sealed partial class PSOptions : Window
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlaybackEngineBuild());
-        pPanel.Children.Add(PSSystemFlyleafBuild());
-        pPanel.Children.Add(PSSystemMpvBuild());
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"), psOptionsAutoplayBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumePlate"),
@@ -285,8 +283,9 @@ internal sealed partial class PSOptions : Window
 
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Preview"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Engine"), pRow),
-            PSSystemRecheckBuild(),
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Playback.EngineNotice")));
+            PSSystemFlyleafBuild(),
+            PSSystemMpvBuild(),
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Playback.MpvEditNotice")));
     }
 
     private UIElement PSWorkBuild()

@@ -11,23 +11,15 @@ internal sealed partial class PSOptions
 {
     private UIElement PSSystemMpvBuild()
     {
-        var pState = new TextBlock
-        {
-            Foreground = PSFieldMuted,
-            TextWrapping = TextWrapping.Wrap,
-            Margin = PSNoticeMargin,
-            Text = PSSystemMpvFormat()
-        };
-
-        Button pDownload = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.DownloadMpv"), 160, new Thickness(0, 0, 8, 0));
-        Button pOpen = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
+        Button pDownload = PSInlineButtonBuild(PSSystemMpvInstallText(), 160, new Thickness(0, 0, 8, 0));
+        Button pBrowse = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
         pDownload.Click += async (_, _) =>
         {
             pDownload.IsEnabled = false;
-            pState.Text = LLocalization.LLocalizationTextRead("Options.System.MpvInstalling");
             LMpvInstallResult pResult = await LMpv.LMpvInstallStart();
-            pState.Text = PSSystemMpvFormat();
+            pDownload.Content = PSSystemMpvInstallText();
             pDownload.IsEnabled = true;
+            psOptionsEngineMpv.IsEnabled = pResult.LMpvInstallSuccess || LMpv.LMpvInstalledCheck();
             MessageBox.Show(
                 this,
                 pResult.LMpvInstallSuccess
@@ -37,57 +29,18 @@ internal sealed partial class PSOptions
                 MessageBoxButton.OK,
                 pResult.LMpvInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
         };
-        pOpen.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty);
+        pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty);
 
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pButtons.Children.Add(pDownload);
-        pButtons.Children.Add(pOpen);
+        pButtons.Children.Add(pBrowse);
 
-        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.LocalMpv"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Setup"), pButtons),
-            pState,
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.MpvInstallNotice")));
+        return PSFieldBuild(string.Empty, pButtons);
     }
 
-    private static string PSSystemMpvFormat() =>
-        LMpv.LMpvInstalledCheck()
-            ? LLocalization.LLocalizationFormat("Mpv.Local.Status.Installed", LMpv.LMpvFolderRead() ?? string.Empty)
-            : LLocalization.LLocalizationFormat("Mpv.Local.Status.NotInstalled", LMpv.LMpvRootRead());
-
-    private UIElement PSSystemRecheckBuild()
-    {
-        var pState = new TextBlock
-        {
-            Foreground = PSFieldMuted,
-            TextWrapping = TextWrapping.Wrap,
-            Margin = PSNoticeMargin,
-            Text = PSSystemRecheckFormat(LRenderer.LRendererEngineRead())
-        };
-
-        Button pRecheck = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.Playback.CheckEngines"), 200, new Thickness(0));
-        pRecheck.Click += async (_, _) =>
-        {
-            pRecheck.IsEnabled = false;
-            pState.Text = LLocalization.LLocalizationTextRead("Mpv.Local.Status.Measuring");
-            LMpvProbe pOutcome = await LRenderer.LRendererEngineCheck();
-            pState.Text = PSSystemRecheckFormat(
-                pOutcome == LMpvProbe.LMpvProbeUsable
-                    ? LPreviewEngine.LPreviewEngineMpv
-                    : LPreviewEngine.LPreviewEngineFlyleaf);
-            pRecheck.IsEnabled = true;
-        };
-
-        var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        pButtons.Children.Add(pRecheck);
-
-        var pPanel = new StackPanel();
-        pPanel.Children.Add(PSFieldBuild(string.Empty, pButtons));
-        pPanel.Children.Add(pState);
-        return pPanel;
-    }
-
-    private static string PSSystemRecheckFormat(LPreviewEngine pEngine) =>
-        pEngine == LPreviewEngine.LPreviewEngineMpv
-            ? LLocalization.LLocalizationTextRead("Mpv.Local.Status.Usable")
-            : LLocalization.LLocalizationTextRead("Mpv.Local.Status.Unusable");
+    private static string PSSystemMpvInstallText() =>
+        LLocalization.LLocalizationTextRead(
+            LMpv.LMpvInstalledCheck()
+                ? "Options.System.ReinstallMpv"
+                : "Options.System.DownloadMpv");
 }

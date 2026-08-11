@@ -72,4 +72,49 @@ public sealed class PreviewColorTests
 
         Assert.Equal(1.5, result.LColorContrast, 10);
     }
+
+    [Fact]
+    public void MpvEqualizerResolve_CompensatesForNativeMpvContrastSemantics()
+    {
+        LPreviewState state = TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(),
+            TInterface.PreviewColorResolve(TInterface.WorkVideoCreate(new[]
+            {
+                TInterface.WorkBrightnessCreate(true, 100),
+                TInterface.WorkContrastCreate(true, 150)
+            })));
+
+        LPreviewMpvEqualizer result = TInterface.PreviewMpvEqualizerResolve(state);
+
+        Assert.Equal(0, result.LPreviewMpvBrightness);
+        Assert.Equal(50, result.LPreviewMpvContrast);
+        Assert.Equal(-33, result.LPreviewMpvSaturation);
+        Assert.Equal(0, result.LPreviewMpvHue);
+    }
+
+    [Fact]
+    public void MpvEqualizerResolve_ContrastOnly_PreservesFfmpegMidpointAndChroma()
+    {
+        LPreviewState state = TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(),
+            TInterface.ColorCreate(0, 1.5, 1, 0));
+
+        LPreviewMpvEqualizer result = TInterface.PreviewMpvEqualizerResolve(state);
+
+        Assert.Equal(-25, result.LPreviewMpvBrightness);
+        Assert.Equal(50, result.LPreviewMpvContrast);
+        Assert.Equal(-33, result.LPreviewMpvSaturation);
+    }
+
+    [Fact]
+    public void MpvFilterResolve_ColorOnly_DoesNotDuplicateNativeEqualizer()
+    {
+        LPreviewState state = TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(),
+            TInterface.ColorCreate(0.5, 1.5, 1, 0));
+
+        string result = TInterface.PreviewMpvFilterResolve(state);
+
+        Assert.Empty(result);
+    }
 }
