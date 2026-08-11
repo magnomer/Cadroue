@@ -181,6 +181,11 @@ public sealed partial class LMpv : IDisposable
         LMpvPropertySet("hue", lHue.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
+    public void LMpvGammaSet(double lGammaFactor)
+    {
+        LMpvPropertySet("gamma-factor", lGammaFactor.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
     public void LMpvFilterSet(string lFilterChain)
     {
         LMpvPropertySet("vf", lFilterChain ?? string.Empty);
@@ -280,7 +285,9 @@ public sealed partial class LMpv : IDisposable
     {
         if (lResult < 0)
         {
-            throw new InvalidOperationException($"{lAction} failed: {LMpvNative.mpv_error_string(lResult)} ({lResult}).");
+            nint lErrorPointer = LMpvNative.mpv_error_string(lResult);
+            string lErrorText = Marshal.PtrToStringUTF8(lErrorPointer) ?? "unknown mpv error";
+            throw new InvalidOperationException($"{lAction} failed: {lErrorText} ({lResult}).");
         }
     }
 

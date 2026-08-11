@@ -1,0 +1,66 @@
+@format 1
+@id media-loading.in-merge-tab
+@title In Merge tab
+@section Media loading
+@area In Merge tab
+@entry merge-path-change, merge-group-row, merge-group-drop, merge-items-add
+@summary Show Merge-specific selected-path/group loading, external group drops, and the PListItemsAdd auto-group update.
+@related media-loading.common.files-intake, media-loading.common.docket-insertion, media-loading.common.files-selection, media-loading.common.viewer-gate, media-loading.common.file-drops
+@tag media
+@tag loading
+@tag merge
+
+@alias merge = Cadroue.UIShell.PMainArea.PMergeTab
+@alias group = Cadroue.UIShell.PPanels.PGroup
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[merge-path-change] Merge Files current-path event <input>
+= PListPathChange delivered the current path to PMergePathShow.
+> merge-path-result
+
+[merge-group-row] Merge grouped-item selection <input>
+- Emit the selected grouped media path and forward it through PMergePathShow @ group.PGroupFileBuild(...)
+  @ merge.PMergePathShow(...)
+> map:media-loading.common.viewer-gate
+
+[merge-group-drop] External file drop on Merge group <input>
+- Receive a file-system drop on the group area or an existing group card; PGroupPathsRead invokes the Merge PGroupFileRequest delegate @ group.PGroupDropHandle(...)
+  @ group.PGroupCardHandle(...)
+  @ group.PGroupPathsRead(...)
+> merge-group-files
+
+[merge-items-add] Merge newly-added-items event <input>
+= PListItemsAdd reached PMergeItemsHandle after first-new-item PListPathChange returned.
+> merge-auto-result
+
+[merge-path-result] Merge selected-path adapter <decision>
+- Ignore blank paths; otherwise request the Merge viewer source @ merge.PMergePathShow(...)
+? "Nonblank current path" > map:media-loading.common.viewer-gate
+? "Blank current path" > merge-no-request
+
+[merge-group-files] Merge group file-request delegate <process>
+- The delegate first calls PListPathsAdd, whose complete Files intake and Docket insertion notifications run synchronously before it returns; it then calls PListMediaScan a second time and returns those scanned paths to PGroupPathsRead for group insertion @ list.PListPathsAdd(...)
+  @ list.PListMediaScan(...)
+! Common / Files intake details the first call. The second scan supplies the paths that PGroupCardHandle or PGroupDropHandle inserts into group state.
+> merge-group-inserted
+
+[merge-auto-result] Auto grouping enabled <decision>
+- PMergeItemsHandle updates group auto-classification only when the Merge group owner currently has auto grouping enabled @ merge.PMergeItemsHandle(...)
+? "Auto grouping enabled" > merge-auto-update
+? "Auto grouping disabled" > merge-auto-nochange
+
+[merge-no-request] Merge viewer request omitted <output>
+= Merge does not call the shared viewer-loading pipeline.
+
+[merge-group-inserted] External paths returned to group handler <output>
+= The group handler inserts the second-scan paths into the target/new group and rebuilds the group UI; any media loading caused by Files insertion occurred earlier during PListPathsAdd.
+
+[merge-auto-update] Recompute automatic groups <process>
+- Rebuild automatic grouping after the new docket entries were announced @ group.PGroupAutoUpdate(...)
+> merge-auto-complete
+
+[merge-auto-nochange] Auto grouping unchanged <output>
+= PListItemsAdd causes no grouping update while auto grouping is disabled.
+
+[merge-auto-complete] Automatic groups updated <output>
+= Merge grouping reflects the newly added Files entries.

@@ -19,9 +19,7 @@
 /* Map interaction: empty-space drags pan; card drags remain text-selectable. */
 .canvas{user-select:none;cursor:grab}.canvas.is-panning{cursor:grabbing}.node{user-select:text;cursor:auto}
 
-/* Distinguish unavoidable geometric crossings from actual graph merges. */
-.edge-bridge-mask{fill:none;stroke:var(--surface2);stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
-.edge-bridge{stroke-width:2.2}.merge-junction{fill:var(--surface);stroke:var(--edge);stroke-width:2}
+.merge-junction{fill:var(--surface);stroke:var(--edge);stroke-width:2}
 
 /* Index/navigation affordances shared by the catalogue documents. */
 .nav-secondary{margin-top:2px;color:var(--muted)}
@@ -30,3 +28,7 @@
 /* Source-declared graph junctions: real convergence points, not processing cards. */
 .junction{width:16px!important;height:16px!important;border:2px solid var(--edge);border-radius:50%;background:var(--surface);box-shadow:none;overflow:visible;user-select:none;cursor:default}
 .junction:before{display:none}.junction.focused{box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 24%,transparent)}
+
+/* Major-category situation labels. Shared contexts and scenario contexts are
+   always boxed, with distinct colors for Common versus In X labels. */
+.nav-situations{display:grid;gap:2px;margin:4px 0 10px}.situation-link{display:flex!important;align-items:center;gap:7px;padding:7px 10px!important}.context-badge{display:inline-flex;align-items:center;flex:0 0 auto;padding:3px 7px;border-radius:6px;font-size:10px;font-weight:800;letter-spacing:.025em;line-height:1.2}.context-badge-common{border:1px solid color-mix(in srgb,var(--muted) 42%,var(--border));background:color-mix(in srgb,var(--muted) 12%,var(--surface));color:color-mix(in srgb,var(--text) 68%,var(--muted))}.context-badge-scenario{border:1px solid color-mix(in srgb,var(--focus) 42%,var(--border));background:color-mix(in srgb,var(--focus) 8%,var(--surface));color:var(--focus)}.context-title{min-width:0}.card-title-row{display:flex;align-items:center;gap:8px;min-height:24px}.card-title-row .context-title{font-size:14px;font-weight:700}.situation-cards{margin-top:18px}

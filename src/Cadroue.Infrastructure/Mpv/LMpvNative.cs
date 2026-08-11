@@ -41,6 +41,5 @@ internal static class LMpvNative
     internal static extern void mpv_terminate_destroy(nint lHandle);
 
     [DllImport(LMpvLibraryName, CallingConvention = CallingConvention.Cdecl)]
-    [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-    internal static extern string mpv_error_string(int lError);
+    internal static extern nint mpv_error_string(int lError);
 }

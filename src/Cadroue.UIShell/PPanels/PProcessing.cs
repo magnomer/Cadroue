@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -37,6 +38,7 @@ public sealed partial class PProcessing : PPanel
     private bool pProcessingMinimized;
     private bool pProcessingOrdered;
     private readonly HashSet<string> pProcessingActiveSteps = new(StringComparer.Ordinal);
+    private readonly HashSet<string> pProcessingDisabledSteps = new(StringComparer.Ordinal);
 
     public void PProcessingOrderedSet(bool pOrderedRequest)
     {
@@ -64,6 +66,41 @@ public sealed partial class PProcessing : PPanel
 
             PProcessingRowApply(pRowContent, pActive);
 
+            return;
+        }
+    }
+
+    public void PProcessingEnabledSet(string pStepName, bool pEnabled, string? pDisabledTooltip = null)
+    {
+        if (pEnabled)
+        {
+            pProcessingDisabledSteps.Remove(pStepName);
+        }
+        else
+        {
+            pProcessingDisabledSteps.Add(pStepName);
+        }
+
+        foreach (UIElement pRow in pProcessingRowPanel.Children)
+        {
+            if (pRow is not Border { Tag: string pRowName } pRowBorder || pRowName != pStepName)
+            {
+                continue;
+            }
+
+            pRowBorder.IsEnabled = pEnabled;
+            pRowBorder.Opacity = pEnabled ? 1 : 0.4;
+            pRowBorder.Cursor = pEnabled ? Cursors.Hand : Cursors.Arrow;
+            pRowBorder.ToolTip = pEnabled ? null : pDisabledTooltip;
+            AutomationProperties.SetHelpText(pRowBorder, pEnabled ? string.Empty : pDisabledTooltip ?? string.Empty);
+            ToolTipService.SetShowOnDisabled(pRowBorder, true);
+            if (!pEnabled && ReferenceEquals(pProcessingRowDragging, pRowBorder))
+            {
+                Mouse.Capture(null);
+                PProcessingDragClear();
+            }
+
+            PProcessingSelectApply();
             return;
         }
     }
@@ -284,7 +321,7 @@ public sealed partial class PProcessing : PPanel
 
     private void PProcessingStepMove(int pStepDelta)
     {
-        if (pProcessingStepCurrent is null)
+        if (pProcessingStepCurrent is null || pProcessingDisabledSteps.Contains(pProcessingStepCurrent))
         {
             return;
         }
@@ -306,6 +343,12 @@ public sealed partial class PProcessing : PPanel
 
         int pTargetIndex = pStepIndex + pStepDelta;
         if (pTargetIndex < 0 || pTargetIndex >= pProcessingRowPanel.Children.Count)
+        {
+            return;
+        }
+
+        if (pProcessingRowPanel.Children[pTargetIndex] is Border { Tag: string pTargetName }
+            && pProcessingDisabledSteps.Contains(pTargetName))
         {
             return;
         }
@@ -369,6 +412,7 @@ public sealed partial class PProcessing : PPanel
 
     private Border PProcessingRowBuild(string pStepName, string pStepIconPath, string pStepLabelKey)
     {
+        string pStepLabel = LLocalization.LLocalizationTextRead(pStepLabelKey);
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         if (pProcessingOrdered)
         {
@@ -387,7 +431,7 @@ public sealed partial class PProcessing : PPanel
         });
         pRowContent.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead(pStepLabelKey),
+            Text = pStepLabel,
             FontSize = 12,
             FontFamily = pProcessingFontFamily,
             Foreground = pProcessingTextBrush,
@@ -402,25 +446,47 @@ public sealed partial class PProcessing : PPanel
             BorderBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Cursor = Cursors.Hand,
+            Focusable = true,
             Child = pRowContent,
             Tag = pStepName
         };
+        AutomationProperties.SetName(pRowBorder, pStepLabel);
         PProcessingRowApply(pRowContent, pProcessingActiveSteps.Contains(pStepName));
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
-            pProcessingStepCurrent = pStepName;
-            PProcessingSelectApply();
-            PProcessingStepChange?.Invoke(pStepName);
+            PProcessingStepActivate(pStepName);
 
             pProcessingRowDragging = pRowBorder;
             pProcessingIndexDragging = pProcessingRowPanel.Children.IndexOf(pRowBorder);
             pProcessingDragOrigin = pRowEvent.GetPosition(pProcessingRowPanel);
             pProcessingDragActive = false;
 
-            PProcessingStepOpen?.Invoke(pStepName);
+            pRowEvent.Handled = true;
+        };
+        pRowBorder.KeyDown += (_, pRowEvent) =>
+        {
+            if (pRowEvent.Key is not (Key.Enter or Key.Space))
+            {
+                return;
+            }
+
+            PProcessingStepActivate(pStepName);
             pRowEvent.Handled = true;
         };
         return pRowBorder;
+    }
+
+    private void PProcessingStepActivate(string pStepName)
+    {
+        if (pProcessingDisabledSteps.Contains(pStepName))
+        {
+            return;
+        }
+
+        pProcessingStepCurrent = pStepName;
+        PProcessingSelectApply();
+        PProcessingStepChange?.Invoke(pStepName);
+        PProcessingStepOpen?.Invoke(pStepName);
     }
 
     private void PProcessingSelectApply()
@@ -430,6 +496,7 @@ public sealed partial class PProcessing : PPanel
             if (pRow is Border { Tag: string pRowName } pRowBorder)
             {
                 pRowBorder.Background = pRowName == pProcessingStepCurrent
+                    && !pProcessingDisabledSteps.Contains(pRowName)
                     ? pProcessingSelectBrush
                     : Brushes.White;
             }

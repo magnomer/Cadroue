@@ -190,6 +190,17 @@ internal static class LEncodeVideo
     private static void LEncodeFiltersAppend(List<string> lFilters, LWorkVideo lWorkVideo)
     {
         var lEqParts = new List<string>();
+        void lEqFlush()
+        {
+            if (lEqParts.Count == 0)
+            {
+                return;
+            }
+
+            lFilters.Add("eq=" + string.Join(':', lEqParts));
+            lEqParts.Clear();
+        }
+
         foreach (LWorkVideoStep lStep in lWorkVideo.LWorkVideoSteps)
         {
             if (!lStep.LWorkStepActive)
@@ -207,14 +218,37 @@ internal static class LEncodeVideo
                     lEqParts.Add(
                         $"contrast={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
                     break;
+                case LColorKind.LColorKindGamma:
+                    LWorkGammaSettings lGamma = lStep.LWorkGammaRead();
+                    lEqParts.Add($"gamma={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGlobal))}");
+                    if (lGamma.LWorkGammaRed != 0)
+                    {
+                        lEqParts.Add($"gamma_r={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaRed))}");
+                    }
+                    if (lGamma.LWorkGammaGreen != 0)
+                    {
+                        lEqParts.Add($"gamma_g={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGreen))}");
+                    }
+                    if (lGamma.LWorkGammaBlue != 0)
+                    {
+                        lEqParts.Add($"gamma_b={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaBlue))}");
+                    }
+                    if (lGamma.LWorkGammaHighlightProtection != 0)
+                    {
+                        lEqParts.Add($"gamma_weight={LEncodeGammaFormat(1d - lGamma.LWorkGammaHighlightProtection / 100d)}");
+                    }
+                    break;
+                default:
+                    lEqFlush();
+                    break;
             }
         }
 
-        if (lEqParts.Count > 0)
-        {
-            lFilters.Add("eq=" + string.Join(':', lEqParts));
-        }
+        lEqFlush();
     }
+
+    private static string LEncodeGammaFormat(double lValue) =>
+        lValue.ToString("0.###", CultureInfo.InvariantCulture);
 
     internal static bool LEncodeVideoCheck(LWorkItem lWorkItem, LEncoding lOutput) =>
         lWorkItem.LWorkCrop.LWorkCropActive

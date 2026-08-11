@@ -1,0 +1,35 @@
+@format 1
+@id functionality.media-loading.funnel
+@title Media loading — Funnel only
+@section Functionality
+@area Media loading — Funnel only
+@entry funnel-path-change, funnel-drain
+@summary Show only Funnel-specific selected-path loading and post-relay source draining.
+@related functionality.media-loading.common.list-selection, functionality.media-loading.common.viewer
+@tag media
+@tag loading
+@tag funnel
+
+@alias funnel = Cadroue.UIShell.PMainArea.PFunnelTab
+@alias messenger = Cadroue.ShellEngine.LMessenger
+@alias app = Cadroue.UIShell.PProgram
+
+[funnel-path-change] Funnel Files current-path event <input>
+= Shared Files logic published the current path through PListPathChange.
+> funnel-path-result
+
+[funnel-path-result] Funnel selected-path adapter <decision>
+- Ignore a blank path; otherwise request it from the Funnel viewer @ funnel.PFunnelPathShow(...)
+? "Nonblank current path" > map:functionality.media-loading.common.viewer
+? "Blank current path" > funnel-no-request
+
+[funnel-no-request] Funnel viewer request omitted <output>
+= Funnel does not call the shared viewer-loading pipeline.
+
+[funnel-drain] Funnel source drain after relay <input>
+- After Funnel relay handling determines which source paths were relayed, invoke the configured Funnel drain seam @ messenger.LMessengerFunnelDescribe(...)
+- Remove those paths from the selected tab's Files docket through the UI seam configured at startup @ app.OnStartup(...)
+> funnel-drain-result
+
+[funnel-drain-result] Funnel drain consequence <output>
+= If draining removes the current file while another file remains, the shared Files-selection/removal logic can publish a replacement path.

@@ -80,9 +80,9 @@ This repetition is intentional. It reveals actual responsibility without adding 
 
 ### 3.4 Let the source declare the information architecture
 
-Every complete map declares its own top-level `@section` and navigation `@area`. The generator does not impose numbered section names or assume that another section exists. Use concise semantic labels such as `UI`, `Functionality`, `Persistence`, or another label that accurately describes the current source set.
+Every complete map declares its own top-level `@section` and display context through `@area` (or `@tabs`). The generator does not impose numbered category names or assume that another category exists. Maps describing one larger operation should normally share one semantic top-level category instead of creating a separate section for every scenario.
 
-When a map belongs under one or more interface tabs or other named navigation groups, declare them with `@tabs`. When `@tabs` is absent, the map is grouped by its source-declared `@area`. A reusable downstream operation may therefore live under `Functionality`, while an interface-triggered map can use `UI` plus the applicable tab names, without requiring fixed `I.`/`II.` numbering.
+Navigation is flat beneath that category. When the active display context differs from the map title, the context is rendered as a compact box before the title; when they are equal, only the title is shown. For example, Media loading uses `@section Media loading`; common stages use `@area Common` with titles such as `Backend load`, while scenario files use matching area/title values such as `In Audio tab`. This produces `[Common] Backend load` and `In Audio tab` as peers beneath one Media loading category.
 
 ### 3.5 One map covers one complete operation
 
@@ -110,9 +110,9 @@ The renderer must show the governing method within the same visual action row as
 
 The generated HTML opens at a readable one-to-one scale. It must not automatically shrink an entire map to the viewport when doing so makes card text or implementation references difficult to read. An explicit overview or fit control may temporarily reduce the scale; it is not the default reading mode. When a map is wider or taller than the viewport, the reader pans through it at readable scale.
 
-### 3.8 Connections must use card-free routing corridors
+### 3.8 Connections must be crossing-free by source organization
 
-Connections use orthogonal routes through the vertical gaps between node rows or the outer margins of the map. A connection must not pass behind or through a card. Crossing prevention begins in the `.lmap`: same-rank source order must not create avoidable primary-lane inversions, and every convergence must be represented by an explicit `junction`. The renderer may still optimize geometry, but it must not invent a logical merge that the source failed to declare. If two unrelated connections still have to cross after source ordering, junctions, and side-routing hints are exhausted, the renderer marks the geometric crossing with a visible bridge/gap so it cannot be mistaken for a merge.
+Connections must be crossing-free by construction. Every ordinary local edge advances exactly one derived rank, same-rank declaration order is the authoritative left-to-right order, and every convergence is represented by an explicit `junction`. The renderer preserves the declared order of real `.lmap` nodes; generated linked-map/fragment terminal cards are inserted beside the branch that owns them rather than being allowed to invert that source order. Ordinary adjacent-rank connections stay inside the gap between their two rows, using separate source/target ports so a short card cannot send a line through a taller sibling. The renderer does not send primary flow around the outside or draw crossing bridges. If the source graph itself cannot satisfy these rules, reorganize the `.lmap`, add explicit topology stages, or split the behavior into Common and scenario-specific maps. A connection must never pass behind or through a card.
 
 ### 3.9 Optional UI-event bindings are verified when declared
 
@@ -180,7 +180,7 @@ The generator uses only Python's standard library. `--strict` is required for a 
 To validate and render an individual map without rewriting existing unrelated content pages or removing unrelated generated pages, use targeted generation:
 
 ```text
-python render/generate.py --strict --map functionality.media-loading
+python render/generate.py --strict --map media-loading.in-split-tab
 ```
 
 `--map` may be repeated. Targeted generation still validates graph structure and implementation references for the available source set and rebuilds `docs/MapsLogic.html`, `docs/LogicMaps/maps/NavigationLogic.html`, and `docs/LogicMaps/maps/ImplementationIndex.html` from every current `.lmap`. If an indexed content page is missing, it is generated so shared navigation never points at a missing page. Existing unrelated content pages are left untouched.
@@ -190,6 +190,19 @@ python render/generate.py --strict --map functionality.media-loading
 The normative language definition is `docs/LogicMaps/SpecificationLmap.md`. This guideline explains authoring practice and rendering expectations; when wording differs, the specification governs syntax and validation.
 
 Logic maps use the line-oriented `.lmap` format. It is deliberately small, dense, readable in a text editor, stable in diffs, and straightforward to parse.
+
+For a scenario family, the source tree should mirror the information architecture. The current Media loading family is organized as:
+
+```text
+source/MediaLoading/Common/Backend-load.lmap
+source/MediaLoading/Common/...
+source/MediaLoading/In-Audio-tab.lmap
+source/MediaLoading/In-Convert-tab.lmap
+source/MediaLoading/In-Edit-tab.lmap
+...
+```
+
+Common stages live below `Common/`; scenario maps live directly below `MediaLoading/`.
 
 ### 5.1 Encoding and general rules
 
@@ -218,7 +231,7 @@ Every complete map begins with section metadata. A code-bound UI event uses:
 @summary Handle the add-button click and follow its registered code path.
 ```
 
-A shared functional operation may use `@section Functionality`, a descriptive `@area`, and no `@tabs`. Section and area labels are not automatically numbered.
+A shared operation may use one semantic category for the entire family and a descriptive context. For Media loading, common stages use `@section Media loading` plus `@area Common`, while scenario maps use the same section and a situation such as `@area In Audio tab`. Category labels are not automatically numbered.
 
 Header fields:
 
@@ -227,9 +240,9 @@ Header fields:
 | `@format` | Yes | Logic-map format version. Initially `1`. |
 | `@id` | Yes | Globally unique stable identifier. |
 | `@title` | Yes | Human-readable title. |
-| `@section` | Yes | Source-declared top-level navigation section. The generator does not contain a fixed section allowlist. |
-| `@area` | Yes | Source-declared navigation group used when `@tabs` is absent. |
-| `@tabs` | Optional; required with `@event-ref` | Comma-separated navigation groups. When present, the map appears under each declared tab/group regardless of the literal `@section` value. |
+| `@section` | Yes | Source-declared top-level navigation category. The generator does not contain a fixed category allowlist. |
+| `@area` | Yes | Default source-declared display context used when `@tabs` is absent. If it differs from `@title`, it is shown as a stylistic box before the title. |
+| `@tabs` | Optional; required with `@event-ref` | Comma-separated display contexts. When present, the map appears once for each context regardless of the literal `@area` value. |
 | `@event-ref` | Direct UI-event maps | Stable code binding produced from the current C#, XAML, or override event route. |
 | `@entry` | Yes | Comma-separated identifier(s) of the entry node(s). A single entry remains the normal form; use multiple entries only when several independent initiators belong on the same first row. |
 | `@summary` | Yes | One-sentence scope statement. |
@@ -363,17 +376,19 @@ Use `>` to connect the current node to another node:
 > validate
 ```
 
-Optional direction hints:
+Ordinary connections have no routing marker. They must connect one derived rank directly to the next:
 
 ```text
-> visual [left]
-> storage [right]
-> result
+> validate
 ```
 
-Format 1 allows only `left`, `right`, and `loop`. `[left]` and `[right]` request real outer-side detours; `[loop]` is reserved for an edge that explicitly closes a cycle. `[up]` and `[down]` are invalid.
+Format 1 has exactly one edge marker, `[loop]`, and it is reserved for the edge that explicitly closes an intentional cycle:
 
-Routing hints do not exempt an edge from source-order crossing validation. For nodes on the same derived rank, declaration order is the authoritative preferred left-to-right order. If adjacent-rank connections invert that ordering, the `.lmap` is invalid even when one of those edges is marked `[left]` or `[right]`. A non-loop edge that skips one or more ranks must use `[left]` or `[right]`.
+```text
+> earlier-stage [loop]
+```
+
+`[left]`, `[right]`, `[up]`, and `[down]` are invalid. A normal flow may not skip ranks or be routed around other graph content. If a direct adjacent-rank connection would cross another unrelated connection, change the source organization instead of adding a routing hint.
 
 ### 5.10 Conditional connection
 
@@ -396,9 +411,11 @@ Rules:
 Two or more unconditional connections from the same node represent parallel or independently required continuations:
 
 ```text
-> visual [left]
-> storage [right]
+> visual
+> storage
 ```
+
+Declare the branch targets in the same left-to-right order in which they should appear. If later stages cannot remain crossing-free, insert an explicit topology stage or split the behavior into smaller scenario maps rather than routing one branch around another.
 
 When two or more paths converge, the convergence must be explicit in the `.lmap` rather than leaving several full-length lines to terminate independently on the same card:
 
@@ -713,7 +730,7 @@ Generation requirements:
 3. Resolve aliases.
 4. Attempt to verify C# symbols against `src/**/*.cs`.
 5. Verify each explicitly declared `@event-ref` against current C#, XAML, or UI overrides.
-6. Build navigation entirely from source declarations: sort `@section` and group labels naturally; use every declared `@tabs` value when present, otherwise use `@area`.
+6. Build navigation entirely from source declarations: sort `@section` categories naturally; list maps flat beneath each category; use every declared `@tabs` value when present, otherwise use `@area`, rendering a differing context as a compact box beside the title.
 7. Generate one page per unique map, while displaying shared UI maps under every applicable tab.
 8. Generate the searchable implementation index as the separate `docs/LogicMaps/maps/ImplementationIndex.html` document.
 9. Record a source hash for each generated map.
@@ -755,7 +772,7 @@ The sidebar must:
 
 - Derive sections and groups from current `.lmap` headers rather than a generator-side allowlist or fixed taxonomy.
 - Use natural sorting for source-declared section and group labels.
-- Present a map under every group named by `@tabs`; when `@tabs` is absent, group it under `@area`.
+- Present a map once for every context named by `@tabs`; when `@tabs` is absent, use `@area` as its context. Keep entries flat beneath `@section`; show the context as a box only when it differs from `@title`.
 - Link directly to each complete tab or functionality collection without duplicating the full catalogue inside every map page.
 - Keep the current location visible in the top-bar breadcrumb and page metadata.
 - Remain usable with keyboard navigation.
@@ -902,17 +919,18 @@ Requirements:
 
 Edges must be clean and readable:
 
-- Prefer orthogonal or gently rounded paths.
+- Draw ordinary adjacent-rank paths through the clear gap between the source and target rows; graph organization, not outside detouring, is responsible for readability.
+- Use separate source and target ports for parallel branches so paths do not overlap while leaving or entering a card.
 - Use consistent 1.5–2 px strokes.
 - Use compact filled arrowheads.
 - Keep sufficient clearance from card borders and text.
-- Route around nodes rather than through them.
-- Minimize crossings through automatic layout and direction hints.
+- No edge may pass through an unrelated node; row-gap routing must prevent differences in sibling card height from creating hidden line-through-card intersections.
+- Preserve the source-declared order of real `.lmap` nodes and require zero unrelated line crossings; generated linked terminals may be positioned beside their owning branch, but real source nodes must never be automatically reordered and crossing bridges are forbidden.
 - Highlight the incoming and outgoing path of the focused node.
 
-Conditional labels appear as compact surface-colored pills placed on the edge. Labels are always visible.
+Conditional labels appear as compact surface-colored pills placed near their edge. Labels are always visible and must be collision-checked against other labels, unrelated routes, and cards before placement.
 
-Parallel branches should leave the source node from distinct ports and rejoin cleanly when they share a later node.
+Parallel branches should leave the source cleanly and must rejoin through an explicit `junction` when they share a later node.
 
 ### 15.7 Decisions
 
@@ -1016,7 +1034,7 @@ The DOM should preserve a logical reading order independent of the graph coordin
 - Connection to an unknown node, map, or fragment
 - Operational action without an implementation reference
 - Invalid node kind
-- Invalid direction hint
+- Invalid edge marker
 - Conditional edge without a label
 - Unmarked cycle
 - Fragment with an invalid entry or terminal path
@@ -1138,16 +1156,19 @@ The following example demonstrates the format. Names are illustrative; productio
 [create] Section creation <process>
 - Create the internal section record @ splitCreate.CreateSection(...)
 - Insert the section into the active tab @ sceneTab.AddSection(...)
-> visual [left]
-> storage [right]
+> visual
+> storage
 
 [visual] Visual synchronization <process>
 - Draw the new section in the split panel @ shell.DrawSection(...)
 - Select the new section @ shell.SelectSection(...)
-> result
+> result-join
 
 [storage] Data state <storage>
 - Mark the active project as modified @ shell.MarkProjectModified(...)
+> result-join
+
+[result-join] Result paths converge <junction>
 > result
 
 [rejected] Rejected request <error>
@@ -1164,7 +1185,7 @@ The corresponding HTML must show:
 
 - Input above validation.
 - Validation with two permanently labeled outgoing branches.
-- Creation followed by left and right branches for visual and data-state synchronization.
+- Creation followed by parallel visual and data-state branches that converge through an explicit junction.
 - Every action immediately paired with its implementation reference.
 - Rejected and successful terminal states visually distinct but structurally consistent.
 
@@ -1205,7 +1226,7 @@ A map is ready only when every answer below is yes.
 - Are action and method visible together inside the same row?
 - Are labels readable at the initial zoom?
 - Are branches and arrow directions immediately understandable?
-- Are crossings minimized?
+- Are there zero unrelated line crossings?
 - Does the page remain straightforward despite its modern presentation?
 - Does it work offline, in light and dark mode, with keyboard navigation, and at narrow widths?
 

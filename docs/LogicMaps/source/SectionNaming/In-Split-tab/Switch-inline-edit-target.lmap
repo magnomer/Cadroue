@@ -1,0 +1,55 @@
+@format 1
+@id section-naming.switch-inline-edit-target
+@title Switch inline rename target
+@section Section naming
+@area In Split tab
+@entry other-row-double-click
+@summary Show how a normal double-click on a different section first commits the currently edited row on the first click's mouse-up, then opens the replacement inline editor on the second click.
+@related section-naming.inline-editor-open, section-naming.inline-editor-input
+@tag section
+@tag split
+@tag naming
+@tag renaming
+@tag inline-editor
+
+@alias panel = Cadroue.UIShell.PPanels.PSection
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+
+[other-row-double-click] Different section row double-clicked <input>
+= A different section row receives a normal double-click while pSectionIndexEditing still identifies the old row and its inline fields may contain uncommitted text.
+> first-click-press
+
+[first-click-press] First click establishes released row <process>
+- The first PreviewMouseLeftButtonDown records the clicked row as pSectionRowDragging and captures the row panel; while inline editing is active PSectionMoveHandle does not start a drag @ panel.PSectionRowBuild(...)
+  @ panel.PSectionMoveHandle(...)
+> first-click-release
+
+[first-click-release] First click mouse-up resolves different row <process>
+- PSectionUpHandle releases capture, resolves the clicked row index, and because it differs from pSectionIndexEditing enters the commit-and-select path @ panel.PSectionUpHandle(...)
+> commit-old
+
+[commit-old] Commit current inline editor <process>
+- PSectionEditCommit trims the old row's current name/prefix/suffix fields, clears the tracked editor references, sends the values to PFlowNameSet, and rebuilds the section panel @ panel.PSectionEditCommit(...)
+  @ flow.PFlowNameSet(...)
+> select-new-row
+
+[select-new-row] Select row from first click <process>
+- After the old editor commit returns, PSectionUpHandle selects the clicked row through PFlowSectionSelect @ panel.PSectionUpHandle(...)
+  @ flow.PFlowSectionSelect(...)
+> second-click
+
+[second-click] Second click opens rename path <process>
+- The second MouseLeftButtonDown has ClickCount at least two, so the row handler releases capture/drag state, resolves and selects that row, assigns pSectionIndexEditing to it, and rebuilds the panel @ panel.PSectionRowBuild(...)
+  @ flow.PFlowSectionSelect(...)
+> build-new-editor
+
+[build-new-editor] Build replacement inline fields <process>
+- During the rebuild, PSectionEditorBuild creates and tracks name/prefix/suffix TextBoxes initialized from the newly selected row's stored LPiece values @ panel.PSectionEditorBuild(...)
+> rebuild-focus-loss
+
+[rebuild-focus-loss] Rebuild-time LostFocus does not queue old close <process>
+- LostFocus raised while PSectionRebuild is actively replacing controls reaches PSectionEditClose, which returns immediately while pSectionRebuilding is true instead of scheduling a deferred commit against replacement editor references @ panel.PSectionEditClose(...)
+> switched
+
+[switched] Inline rename target switched <output>
+= The previous row's buffered text has been committed before the replacement editor opens, and the new inline editor now represents the double-clicked row.

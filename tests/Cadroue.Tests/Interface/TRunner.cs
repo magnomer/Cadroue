@@ -151,7 +151,24 @@ internal sealed class TRunner : IDisposable
     {
         string name = tRunnerNames[workId];
         string path = Path.Combine(tRunnerControlRoot, name + ".executions");
-        return File.Exists(path) ? File.ReadAllLines(path).Length : 0;
+        for (int attempt = 0; attempt < 20; attempt++)
+        {
+            if (!File.Exists(path))
+            {
+                return 0;
+            }
+
+            try
+            {
+                return File.ReadAllLines(path).Length;
+            }
+            catch (IOException) when (attempt < 19)
+            {
+                Thread.Sleep(5);
+            }
+        }
+
+        return File.ReadAllLines(path).Length;
     }
 
     internal TRunnerWork WaitForState(Guid workId, TRunnerWorkState state, int milliseconds = WaitMilliseconds) =>

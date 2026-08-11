@@ -47,6 +47,11 @@ internal sealed class PPlayer
     public void PPlayerEqualizerSet(int brightness, int contrast, int saturation, int hue) =>
         pPlayerActive?.PPlayerEqualizerSet(brightness, contrast, saturation, hue);
 
+    public void PPlayerMpvGammaSet(double gammaFactor) =>
+        (pPlayerActive as PPlayerMpv)?.PPlayerMpvGammaSet(gammaFactor);
+
+    public void PPlayerMpvRefresh() => (pPlayerActive as PPlayerMpv)?.PPlayerMpvRefresh();
+
     public void PPlayerFilterSet(string filterChain) => pPlayerActive?.PPlayerFilterSet(filterChain);
 
     public void PPlayerDecodeInterrupt() => pPlayerActive?.PPlayerDecodeInterrupt();

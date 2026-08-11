@@ -23,6 +23,22 @@ public sealed partial class PInspector
     private StackPanel pInspectorContrastStack = null!;
     private StackPanel pInspectorContrastBody = null!;
 
+    private CheckBox pToneGammaBox = null!;
+    private CheckBox pInspectorGammaPersistent = null!;
+    private Slider pInspectorGammaSlider = null!;
+    private TextBox pInspectorGammaValue = null!;
+    private Slider pInspectorGammaRedSlider = null!;
+    private TextBox pInspectorGammaRedValue = null!;
+    private Slider pInspectorGammaGreenSlider = null!;
+    private TextBox pInspectorGammaGreenValue = null!;
+    private Slider pInspectorGammaBlueSlider = null!;
+    private TextBox pInspectorGammaBlueValue = null!;
+    private Slider pInspectorGammaHighlightSlider = null!;
+    private TextBox pInspectorGammaHighlightValue = null!;
+    private StackPanel pInspectorGammaStack = null!;
+    private StackPanel pInspectorGammaBody = null!;
+    private bool pInspectorGammaCapable;
+
     private bool pInspectorVideoSuppress;
     private const double PToneBrightnessLeast = -100;
     private const double PToneBrightnessMost = 100;
@@ -34,6 +50,13 @@ public sealed partial class PInspector
         LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(
             pToneContrastBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorContrastValue, 100)),
+        LColorKind.LColorKindGamma => LWorkVideoStep.LWorkGammaCreate(
+            pToneGammaBox.IsChecked == true,
+            PInspectorDecimalRead(pInspectorGammaValue, 0),
+            PInspectorDecimalRead(pInspectorGammaRedValue, 0),
+            PInspectorDecimalRead(pInspectorGammaGreenValue, 0),
+            PInspectorDecimalRead(pInspectorGammaBlueValue, 0),
+            PInspectorDecimalRead(pInspectorGammaHighlightValue, 0)),
         _ => LWorkVideoStep.LWorkBrightnessCreate(
             pToneBrightnessBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorBrightnessValue, 0))
@@ -47,12 +70,16 @@ public sealed partial class PInspector
         PToneStepApply(
             pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindContrast)
             ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
+        PToneStepApply(
+            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindGamma)
+            ?? LWorkVideoStep.LWorkGammaCreate(false, 0));
         PInspectorVideoChange?.Invoke();
     }
 
     public bool PTonePersistentCheck() =>
         pInspectorBrightnessPersistent.IsChecked == true
-        || pInspectorContrastPersistent.IsChecked == true;
+        || pInspectorContrastPersistent.IsChecked == true
+        || pInspectorGammaPersistent.IsChecked == true;
 
     public void PTonePersistentApply(LWorkVideo pVideo)
     {
@@ -61,6 +88,10 @@ public sealed partial class PInspector
             if (pStep.LWorkStepKind == LColorKind.LColorKindContrast)
             {
                 pInspectorContrastPersistent.IsChecked = true;
+            }
+            else if (pStep.LWorkStepKind == LColorKind.LColorKindGamma)
+            {
+                pInspectorGammaPersistent.IsChecked = true;
             }
             else
             {
@@ -80,6 +111,11 @@ public sealed partial class PInspector
         if (pInspectorContrastPersistent.IsChecked == true)
         {
             pSteps.Add(PToneStepRead(LColorKind.LColorKindContrast));
+        }
+
+        if (pInspectorGammaPersistent.IsChecked == true)
+        {
+            pSteps.Add(PToneStepRead(LColorKind.LColorKindGamma));
         }
 
         return new LWorkVideo(pSteps);
@@ -146,6 +182,118 @@ public sealed partial class PInspector
         return pInspectorContrastBody;
     }
 
+    private StackPanel PToneGammaBuild()
+    {
+        pToneGammaBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma"));
+        pInspectorGammaPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma"));
+        pInspectorGammaSlider = PToneSliderBuild(-100, 100, 0);
+        pInspectorGammaValue = PInspectorDecimalBuild();
+        pInspectorGammaValue.Text = "0";
+        pInspectorGammaRedSlider = PToneSliderBuild(-100, 100, 0);
+        pInspectorGammaRedValue = PInspectorDecimalBuild();
+        pInspectorGammaRedValue.Text = "0";
+        pInspectorGammaGreenSlider = PToneSliderBuild(-100, 100, 0);
+        pInspectorGammaGreenValue = PInspectorDecimalBuild();
+        pInspectorGammaGreenValue.Text = "0";
+        pInspectorGammaBlueSlider = PToneSliderBuild(-100, 100, 0);
+        pInspectorGammaBlueValue = PInspectorDecimalBuild();
+        pInspectorGammaBlueValue.Text = "0";
+        pInspectorGammaHighlightSlider = PToneSliderBuild(0, 100, 0);
+        pInspectorGammaHighlightValue = PInspectorDecimalBuild();
+        pInspectorGammaHighlightValue.Text = "0";
+        pInspectorGammaStack = new StackPanel();
+        PInspectorVideoAttach(
+            pToneGammaBox,
+            pInspectorGammaStack,
+            pInspectorGammaSlider,
+            pInspectorGammaValue,
+            -100,
+            100,
+            "0.#");
+        PInspectorVideoValueAttach(
+            pInspectorGammaRedSlider, pInspectorGammaRedValue, -100, 100, "0.#");
+        PInspectorVideoValueAttach(
+            pInspectorGammaGreenSlider, pInspectorGammaGreenValue, -100, 100, "0.#");
+        PInspectorVideoValueAttach(
+            pInspectorGammaBlueSlider, pInspectorGammaBlueValue, -100, 100, "0.#");
+        PInspectorVideoValueAttach(
+            pInspectorGammaHighlightSlider, pInspectorGammaHighlightValue, 0, 100, "0.#");
+        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.Midtone"), pInspectorGammaSlider, "", pInspectorGammaValue));
+        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.RedGamma"), pInspectorGammaRedSlider, "", pInspectorGammaRedValue));
+        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.GreenGamma"), pInspectorGammaGreenSlider, "", pInspectorGammaGreenValue));
+        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.BlueGamma"), pInspectorGammaBlueSlider, "", pInspectorGammaBlueValue));
+        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.HighlightProtection"), pInspectorGammaHighlightSlider, "%", pInspectorGammaHighlightValue));
+        var pGammaReset = new Button
+        {
+            Content = LLocalization.LLocalizationTextRead("Inspector.Video.GammaReset"),
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Video.GammaResetTooltip"),
+            Height = 28,
+            MinWidth = 64,
+            Padding = new Thickness(8, 0, 8, 0),
+            FontSize = 11,
+            FontFamily = pInspectorFontFamily,
+            Style = PButton.PButtonPanelCreate(),
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        pGammaReset.Click += (_, _) => PToneGammaReset();
+        pInspectorGammaStack.Children.Add(pGammaReset);
+        pInspectorGammaBody = PToneBodyBuild(pToneGammaBox, pInspectorGammaStack);
+        PToneApplyUpdate(pToneGammaBox, pInspectorGammaStack);
+        return pInspectorGammaBody;
+    }
+
+    public void PToneGammaCapabilitySet(bool pGammaCapable)
+    {
+        pInspectorGammaCapable = pGammaCapable;
+        pToneGammaBox.IsEnabled = pGammaCapable;
+        pInspectorGammaPersistent.IsEnabled = pGammaCapable;
+        pInspectorGammaStack.IsEnabled = pGammaCapable && pToneGammaBox.IsChecked == true;
+        pInspectorGammaStack.Opacity = pGammaCapable && pToneGammaBox.IsChecked == true ? 1 : 0.4;
+        string? pDisabledTooltip = pGammaCapable
+            ? null
+            : LLocalization.LLocalizationTextRead("Inspector.Video.GammaRequiresMpv");
+        pInspectorGammaBody.ToolTip = pDisabledTooltip;
+        pToneGammaBox.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma");
+        pInspectorGammaPersistent.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma");
+        ToolTipService.SetShowOnDisabled(pInspectorGammaBody, true);
+        ToolTipService.SetShowOnDisabled(pToneGammaBox, true);
+        ToolTipService.SetShowOnDisabled(pInspectorGammaPersistent, true);
+    }
+
+    private void PToneGammaReset()
+    {
+        bool pPrevious = pInspectorVideoSuppress;
+        bool pChanged = PInspectorDecimalRead(pInspectorGammaValue, pInspectorGammaSlider.Value) != 0
+            || PInspectorDecimalRead(pInspectorGammaRedValue, pInspectorGammaRedSlider.Value) != 0
+            || PInspectorDecimalRead(pInspectorGammaGreenValue, pInspectorGammaGreenSlider.Value) != 0
+            || PInspectorDecimalRead(pInspectorGammaBlueValue, pInspectorGammaBlueSlider.Value) != 0
+            || PInspectorDecimalRead(pInspectorGammaHighlightValue, pInspectorGammaHighlightSlider.Value) != 0;
+        pInspectorVideoSuppress = true;
+        try
+        {
+            PToneGammaValueSet(pInspectorGammaSlider, pInspectorGammaValue, 0);
+            PToneGammaValueSet(pInspectorGammaRedSlider, pInspectorGammaRedValue, 0);
+            PToneGammaValueSet(pInspectorGammaGreenSlider, pInspectorGammaGreenValue, 0);
+            PToneGammaValueSet(pInspectorGammaBlueSlider, pInspectorGammaBlueValue, 0);
+            PToneGammaValueSet(pInspectorGammaHighlightSlider, pInspectorGammaHighlightValue, 0);
+        }
+        finally
+        {
+            pInspectorVideoSuppress = pPrevious;
+        }
+
+        if (!pPrevious && pChanged)
+        {
+            PInspectorVideoChange?.Invoke();
+        }
+    }
+
+    private static void PToneGammaValueSet(Slider pSlider, TextBox pValue, double pNumber)
+    {
+        pSlider.Value = pNumber;
+        pValue.Text = pNumber.ToString("0.#", CultureInfo.InvariantCulture);
+    }
+
     private static Slider PToneSliderBuild(double pMinimum, double pMaximum, double pValue)
     {
         var pSlider = new Slider
@@ -156,6 +304,7 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center
         };
         PSlider.PSliderApply(pSlider);
+        PSlider.PSliderResetApply(pSlider, () => pValue);
         return pSlider;
     }
 
@@ -183,6 +332,16 @@ public sealed partial class PInspector
     {
         pApply.Checked += (_, _) => PToneApplyUpdate(pApply, pStack);
         pApply.Unchecked += (_, _) => PToneApplyUpdate(pApply, pStack);
+        PInspectorVideoValueAttach(pSlider, pValue, pMinimum, pMaximum, pFormat);
+    }
+
+    private void PInspectorVideoValueAttach(
+        Slider pSlider,
+        TextBox pValue,
+        double? pMinimum,
+        double? pMaximum,
+        string pFormat)
+    {
         pSlider.ValueChanged += (_, _) =>
         {
             if (pInspectorVideoSuppress)
@@ -230,6 +389,23 @@ public sealed partial class PInspector
                 return;
             }
 
+            if (pStep.LWorkStepKind == LColorKind.LColorKindGamma)
+            {
+                LWorkGammaSettings pGamma = pStep.LWorkGammaRead();
+                pToneGammaBox.IsChecked = pStep.LWorkStepActive;
+                PToneGammaValueSet(pInspectorGammaSlider, pInspectorGammaValue, pGamma.LWorkGammaGlobal);
+                PToneGammaValueSet(pInspectorGammaRedSlider, pInspectorGammaRedValue, pGamma.LWorkGammaRed);
+                PToneGammaValueSet(pInspectorGammaGreenSlider, pInspectorGammaGreenValue, pGamma.LWorkGammaGreen);
+                PToneGammaValueSet(pInspectorGammaBlueSlider, pInspectorGammaBlueValue, pGamma.LWorkGammaBlue);
+                PToneGammaValueSet(
+                    pInspectorGammaHighlightSlider,
+                    pInspectorGammaHighlightValue,
+                    pGamma.LWorkGammaHighlightProtection);
+                PToneApplyUpdate(pToneGammaBox, pInspectorGammaStack);
+                PToneGammaCapabilitySet(pInspectorGammaCapable);
+                return;
+            }
+
             pToneBrightnessBox.IsChecked = pStep.LWorkStepActive;
             pInspectorBrightnessValue.Text = pStep.LWorkStepValue.ToString("0.#", CultureInfo.InvariantCulture);
             pInspectorBrightnessSlider.Value = Math.Clamp(
@@ -249,6 +425,9 @@ public sealed partial class PInspector
         bool pActive = pApply.IsChecked == true;
         pStack.IsEnabled = pActive;
         pStack.Opacity = pActive ? 1 : 0.4;
-        PInspectorVideoChange?.Invoke();
+        if (!pInspectorVideoSuppress)
+        {
+            PInspectorVideoChange?.Invoke();
+        }
     }
 }

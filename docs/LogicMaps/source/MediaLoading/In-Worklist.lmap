@@ -1,0 +1,118 @@
+@format 1
+@id media-loading.in-worklist
+@title In Worklist
+@section Media loading
+@area In Worklist
+@entry worklist-relay, delivered-output, clear-tabs, relay-source-remove, batch-evict
+@summary Show Worklist delivery/relay operations with their actual direct LDocketPathsAdd and LDocketPathsRemove calls, including forced source removal at the Finish target.
+@related media-loading.common.docket-insertion, media-loading.common.docket-removal, media-loading.common.workspace-media-clear, media-loading.in-staged-workspace
+@tag media
+@tag loading
+@tag worklist
+
+@alias roster = Cadroue.UIShell.PMainArea.PRoster
+@alias list = Cadroue.UIShell.PPanels.PList
+@alias console = Cadroue.UIShell.PMainArea.PConsole
+@alias strip = Cadroue.UIShell.PControlBar.PStrip
+@alias docket = Cadroue.Application.LDocket
+@alias cartographer = Cadroue.ShellEngine.LCartographer
+
+[worklist-relay] Worklist relay to tab <input>
+- Require a target Files docket, then select the target tab before replacing its unlocked Files paths @ roster.PRosterRelaySend(...)
+> worklist-target
+
+[delivered-output] Delivered processing output <input>
+- Resolve the requested destination/original tab and its Files docket in PListDeliveredAdd or PListDeliveredPlace @ list.PListDeliveredAdd(...)
+  @ list.PListDeliveredPlace(...)
+> delivered-target
+
+[clear-tabs] Worklist Clear Tabs command <input>
+- After destructive confirmation, call PStripContentClear, which invokes PWorkspaceMediaClear for every tab workspace @ console.PConsoleTabsHandle(...)
+  @ strip.PStripContentClear(...)
+> map:media-loading.common.workspace-media-clear
+
+[relay-source-remove] Post-delivery source-drop request <input>
+- LCartographerDeliver requests ordinary source drop with force=false after successful tab/stage delivery, but requests force=true when the relay target is Finish @ cartographer.LCartographerDeliver(...)
+- PListDeliveredRemove receives that force flag with the delivered work item @ list.PListDeliveredRemove(...)
+> source-remove-gate
+
+[batch-evict] Worklist batch eviction <input>
+- Find docket entries whose batches left the Worklist and call LDocketPathsRemove for those paths; matching Merge group paths are removed afterward @ list.PListBatchEvict(...)
+> map:media-loading.common.docket-removal
+
+[worklist-target] Worklist target availability <decision>
+- Continue only when the target exposes a Files docket @ roster.PRosterRelaySend(...)
+? "Target Files docket available" > target-clear-check
+? "Target unavailable" > worklist-rejected
+
+[delivered-target] Delivery target availability <decision>
+- Continue only when the destination/original tab still exposes a Files docket @ list.PListDeliveredAdd(...)
+  @ list.PListDeliveredPlace(...)
+? "Target Files docket available" > delivered-scan
+? "Target unavailable" > delivery-rejected
+
+[source-remove-gate] Source removal policy <decision>
+- PListDeliveredRemove skips only when removal is not forced and Relay Empty is disabled; a forced request bypasses the Relay Empty preference @ list.PListDeliveredRemove(...)
+? "Forced, or Relay Empty enabled" > source-tab-check
+? "Not forced and Relay Empty disabled" > source-kept
+
+[target-clear-check] Existing unlocked target paths <decision>
+- Read all unlocked target entries before the relay insertion @ roster.PRosterRelaySend(...)
+? "Unlocked target paths exist" > target-remove
+? "Nothing to clear" > target-no-remove
+
+[worklist-rejected] Worklist relay rejected <output>
+= No target Files removal or insertion occurs.
+
+[delivered-scan] Scan delivered path directly <process>
+- Scan the single delivered output with PListMediaScan, then pass the result directly to LDocketPathsAdd with the supplied batch and delivered=true; PListPathsAdd is not called @ list.PListMediaScan(...)
+  @ docket.LDocketPathsAdd(...)
+> map:media-loading.common.docket-insertion
+
+[delivery-rejected] Delivered output rejected <output>
+= No target docket insertion occurs.
+
+[source-tab-check] Source tab still available <decision>
+- Resolve the source tab recorded by the work item; no Files/group removal can occur when that tab is gone @ list.PListDeliveredRemove(...)
+? "Source tab found" > source-paths
+? "Source tab gone" > source-gone
+
+[source-kept] Source retained by policy <output>
+= Ordinary delivery leaves the source and merge-source paths in their source tab when Relay Empty is disabled.
+
+[target-remove] Synchronous target docket removal <process>
+- Call LDocketPathsRemove for every unlocked target path; the complete Common / Docket removal callback chain runs synchronously before PRosterRelaySend resumes @ roster.PRosterRelaySend(...)
+  @ docket.LDocketPathsRemove(...)
+! The target tab was selected before removal, so a replacement PListPathChange can reach an active viewer; PListClearChange can then force-close that viewer as shown in Common / Docket removal.
+> target-after-remove
+
+[target-no-remove] Target already clear <junction>
+> target-after-remove
+
+[source-paths] Build delivered source path set <process>
+- Build the removal set from the work item's primary source plus all merge-source paths @ list.PListDeliveredRemove(...)
+> source-docket-remove
+
+[source-gone] Source removal unavailable <output>
+= The source tab no longer exists, so PListDeliveredRemove changes no source Files or Merge grouping state.
+
+[target-after-remove] Relay removal branches converge <junction>
+> relay-scan
+
+[source-docket-remove] Remove source Files entries <process>
+- Call LDocketPathsRemove on the source tab's Files docket when present; its synchronous Files/viewer consequences are the shared Common / Docket removal behavior @ list.PListDeliveredRemove(...)
+  @ docket.LDocketPathsRemove(...)
+! See Common / Docket removal for replacement selection and possible viewer/flow clearing.
+> source-group-remove
+
+[relay-scan] Scan relay paths directly <process>
+- Scan relay paths with PListMediaScan, create a new batch, and pass the scanned paths directly to LDocketPathsAdd; PListPathsAdd is not called @ list.PListMediaScan(...)
+  @ docket.LDocketPathsAdd(...)
+> map:media-loading.common.docket-insertion
+
+[source-group-remove] Remove matching Merge grouping paths <process>
+- After Files removal, remove the same source/merge-source paths from the source tab's Merge group when that surface exists @ list.PListDeliveredRemove(...)
+> source-removed
+
+[source-removed] Delivered source removal completed <output>
+= The source Files and applicable Merge grouping paths have been offered for removal. A forced Finish-target drop performs this path even when Relay Empty is disabled.

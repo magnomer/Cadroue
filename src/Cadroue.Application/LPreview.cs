@@ -16,11 +16,13 @@ public sealed record LPreviewMpvEqualizer(
     int LPreviewMpvBrightness,
     int LPreviewMpvContrast,
     int LPreviewMpvSaturation,
-    int LPreviewMpvHue);
+    int LPreviewMpvHue,
+    double LPreviewMpvGammaFactor);
 
 public static class LPreview
 {
     public const double LPreviewBrightnessFactor = 2.5;
+    public const double LPreviewMpvGammaFactorMaximum = 2;
 
     public static Action<object, LPreviewApplication>? LPreviewApplySeam;
 
@@ -34,7 +36,18 @@ public static class LPreview
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindContrast
                 && lStep.LWorkStepActive)
             ?.LWorkFfmpegValue ?? 1;
-        return new LColor(lBrightness, lContrast, 1, 0);
+        LWorkVideoStep? lGammaStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindGamma
+                && lStep.LWorkStepActive);
+        LWorkGammaSettings? lGamma = lGammaStep?.LWorkGammaRead();
+        return new LColor(lBrightness, lContrast, 1, 0)
+        {
+            LColorGamma = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGlobal),
+            LColorGammaRed = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaRed),
+            LColorGammaGreen = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGreen),
+            LColorGammaBlue = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaBlue),
+            LColorGammaHighlightProtection = lGamma?.LWorkGammaHighlightProtection ?? 0
+        };
     }
 
     public static void LPreviewApply(object? lPreviewTarget, LPreviewState lPreviewState)
@@ -72,7 +85,8 @@ public static class LPreview
             LPreviewValueClamp(lBrightness * 100, -100, 100),
             LPreviewValueClamp((lContrast - 1) * 100, -100, 100),
             LPreviewValueClamp((lSaturation - 1) * 100, -100, 100),
-            LPreviewValueClamp(lColor.LColorHue / 180 * 100, -100, 100));
+            LPreviewValueClamp(lColor.LColorHue / 180 * 100, -100, 100),
+            LPreviewMpvGammaFilterRequired(lColor) ? 1 : lColor.LColorGamma);
     }
 
     public static string LPreviewMpvFilterResolve(LPreviewState lPreviewState)
@@ -113,8 +127,28 @@ public static class LPreview
             lFilters.Add($"crop={lCropWidth}:{lCropHeight}:{lCropX}:{lCropY}");
         }
 
+        LColor lColor = lPreviewState.LColor;
+        if (LPreviewMpvGammaFilterRequired(lColor))
+        {
+            double lGammaWeight = 1 - lColor.LColorGammaHighlightProtection / 100d;
+            lFilters.Add(
+                "lutyuv=y=" + LPreviewGammaLutExpression(
+                    lColor.LColorGamma * lColor.LColorGammaGreen,
+                    lGammaWeight)
+                + ":u=" + LPreviewGammaLutExpression(
+                    Math.Sqrt(lColor.LColorGammaBlue / lColor.LColorGammaGreen),
+                    lGammaWeight)
+                + ":v=" + LPreviewGammaLutExpression(
+                    Math.Sqrt(lColor.LColorGammaRed / lColor.LColorGammaGreen),
+                    lGammaWeight));
+        }
+
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;
     }
+
+    public static bool LPreviewMpvGammaFilterRequired(LColor lColor) =>
+        lColor.LColorGammaAdvanced
+        || lColor.LColorGamma > LPreviewMpvGammaFactorMaximum;
 
     private static LPreviewApplication LPreviewApplicationResolve(LPreviewState lPreviewState, string lPreviewReason)
     {
@@ -146,4 +180,15 @@ public static class LPreview
     {
         return Math.Clamp((int)Math.Round(lPreviewValue), lPreviewMinimum, lPreviewMaximum);
     }
+
+    private static string LPreviewGammaLutExpression(double lGamma, double lGammaWeight)
+    {
+        string lLinearWeight = LPreviewGammaFormat(1 - lGammaWeight);
+        string lCurveWeight = LPreviewGammaFormat(lGammaWeight);
+        string lExponent = LPreviewGammaFormat(1 / lGamma);
+        return $"'val*{lLinearWeight}+maxval*pow(val/maxval\\,{lExponent})*{lCurveWeight}'";
+    }
+
+    private static string LPreviewGammaFormat(double lValue) =>
+        lValue.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture);
 }

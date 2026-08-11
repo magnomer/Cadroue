@@ -1,0 +1,38 @@
+@format 1
+@id functionality.media-loading.common.file-pickers
+@title Media loading — common file pickers
+@section Functionality
+@area Media loading — Common
+@entry files-add, folder-add
+@summary Trace the shared Add Files and Add Folder picker paths until they enter common Files intake or terminate.
+@related functionality.media-loading.common.list-add
+@tag media
+@tag loading
+@tag common
+@tag files
+
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[files-add] Add Files button <input>
+- Invoke the Add Files command and open the multi-file picker @ list.PListFilesOpen(...)
+> files-result
+
+[folder-add] Add Folder button <input>
+- Invoke the Add Folder command and open the multi-folder picker @ list.PListFolderOpen(...)
+> folder-result
+
+[files-result] Add Files picker outcome <decision>
+- Submit selected files through the shared Files intake when the picker is accepted @ list.PListFilesOpen(...)
+? "Accepted" > map:functionality.media-loading.common.list-add
+? "Cancelled" > files-cancelled
+
+[files-cancelled] Add Files cancelled <output>
+= No Files intake or media-load request begins.
+
+[folder-result] Add Folder picker outcome <decision>
+- Submit selected folders through the shared Files intake when the picker is accepted @ list.PListFolderOpen(...)
+? "Accepted" > map:functionality.media-loading.common.list-add
+? "Cancelled" > folder-cancelled
+
+[folder-cancelled] Add Folder cancelled <output>
+= No Files intake or media-load request begins.

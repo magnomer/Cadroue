@@ -1,0 +1,82 @@
+@format 1
+@id section-modification.common.apply-modified-state
+@title Apply modified section state
+@section Section modification
+@area Common
+@entry apply-plan
+@summary Apply an accepted modification, synchronously publish the changed section state, update Split visuals/history, save sidecar records, and then return to the operation-specific UI/logging continuation.
+@related section-modification.set-start-on-selected-section, section-modification.set-end-on-selected-section, section-modification.toggle-section, section-modification.reorder-section-by-drag, section-modification.sort-sections
+@tag section
+@tag split
+@tag modification
+@tag persistence
+@tag history
+
+@alias segment = Cadroue.Application.LSegment
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias panel = Cadroue.UIShell.PPanels.PSection
+@alias workspace = Cadroue.UIShell.PControlBar.PWorkspace
+@alias history = Cadroue.Application.LHistory
+@alias sidecar = Cadroue.Infrastructure.LSidecarStore
+
+[apply-plan] Accepted existing-section modification <input>
+= LSegmentStartSet, LSegmentEndSet, LSegmentDivide, LSegmentToggle, LSegmentMove, or LSegmentSort has produced a replacement section list and selection state.
+> replace-state
+
+[replace-state] Replace segment state <process>
+- LSegmentApply replaces the internal pieces, sets the active index, and synchronously invokes LSegmentChange with a snapshot @ segment.LSegmentApply(...)
+> flow-publish
+
+[flow-publish] Publish the changed sections through Flow <process>
+- PFlowSegmentHandle sets pFlowSegmentFired, updates Viewfinder and Map section geometry, then invokes PFlowSectionChange @ flow.PFlowSegmentHandle(...)
+> panel-update
+
+[panel-update] Sections-panel reaction <process>
+- PSectionUpdateHandle stores the new list and selection; during live drag it intentionally returns without rebuilding, otherwise it rebuilds when section values/order changed or only reapplies selection when the list is unchanged @ panel.PSectionUpdateHandle(...)
+> history-update
+
+[history-update] Workspace undo-history reaction <process>
+- PWorkspaceSectionHandle snapshots the workspace and asks LHistoryAdd to append it unless history is currently being applied or the state is already the current history entry @ workspace.PWorkspaceSectionHandle(...)
+@ workspace.PWorkspaceHistoryAdd(...)
+@ history.LHistoryAdd(...)
+> sidecar-save
+
+[sidecar-save] Save current section records <process>
+- After LSegmentChange returns, LSegmentApply calls LSegmentSave; when a source path exists and restore mode is off, the configured seam attempts to write current section records to the media sidecar @ segment.LSegmentApply(...) / LSegmentSave after LSegmentChange
+@ segment.LSegmentSave(...)
+@ sidecar.LSidecarSectionsSave(...)
+> caller-return
+
+[caller-return] Resume originating modification <decision>
+= Control returns synchronously through the originating LSegment call to its PFlow or panel caller.
+? "Set Start" > start-log
+? "Set End" > end-log
+? "Split" > split-log
+? "Toggle" > toggle-log
+? "Move" > move-log
+? "Sort" > sort-log
+
+[start-log] Record changed start <output>
+- LSegmentStartSet returns Added=false; PFlowStartSet records the selected section as start set @ flow.PFlowStartSet(...)
+@ flow.PFlowSectionRecord(...)
+
+[end-log] Record changed end <output>
+- LSegmentEndSet returns Added=false; PFlowEndSet records the selected section as end set @ flow.PFlowEndSet(...)
+@ flow.PFlowSectionRecord(...)
+
+[split-log] Record split modification and creation <output>
+- PFlowSectionDivide reads the selected left-half index after LSegmentDivide and records the shortened left half, then records the newly created right half; the creation-oriented view of this same operation is documented under Section creation @ flow.PFlowSectionDivide(...)
+@ flow.PFlowSectionRecord(...)
+
+[toggle-log] Record output-state toggle <output>
+- PFlowSectionToggle sees the synchronous change, reads the indexed section's new LPieceHidden value, and records turned off when hidden or turned on when visible @ flow.PFlowSectionToggle(...)
+@ flow.PFlowSectionRecord(...)
+
+[move-log] Record move and update the live row <output>
+- PFlowSectionMove records the final logical insertion and returns true; PSectionLiveMove then moves the dragged row to the same insertion index, updates its tracked drag index, and renumbers visible badges without a full rebuild during the drag @ flow.PFlowSectionMove(...)
+@ flow.PFlowSectionRecord(...)
+@ panel.PSectionLiveMove(...)
+@ panel.PSectionNumberUpdate(...)
+
+[sort-log] Record successful sort <output>
+- PFlowSectionSort sees pFlowSegmentFired=true after the synchronous apply and records one Sections sorted by name information log @ flow.PFlowSectionSort(...)

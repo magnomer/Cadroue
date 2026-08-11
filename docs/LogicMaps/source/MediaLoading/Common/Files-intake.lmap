@@ -1,0 +1,26 @@
+@format 1
+@id media-loading.common.files-intake
+@title Files intake
+@section Media loading
+@area Common
+@entry paths-submitted
+@summary Trace PListPathsAdd through media discovery; successful discovery continues into the separate common Docket insertion map.
+@related media-loading.common.docket-insertion, media-loading.common.file-pickers, media-loading.common.file-drops, media-loading.in-merge-tab
+@tag media
+@tag loading
+@tag common
+@tag files
+
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[paths-submitted] Paths submitted through Files <input>
+- Accept file-system paths through PListPathsAdd and synchronously scan them before any docket call @ list.PListPathsAdd(...)
+> media-scan
+
+[media-scan] Media path discovery <decision>
+- Keep supported existing media files supplied directly, recursively enumerate supplied folders, and skip inaccessible folders after logging the failure @ list.PListMediaScan(...)
+? "Supported media discovered" > map:media-loading.common.docket-insertion
+? "No supported media" > scan-empty
+
+[scan-empty] Nothing discovered <output>
+= PListPathsAdd returns zero without calling LDocketPathsAdd, so no docket, selection, or viewer notification occurs.

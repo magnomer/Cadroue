@@ -1,0 +1,25 @@
+@format 1
+@id functionality.media-loading.split
+@title Media loading — Split only
+@section Functionality
+@area Media loading — Split only
+@entry split-path-change
+@summary Show only the Split-specific step that bridges the shared Files current-path event into the shared viewer-loading pipeline.
+@related functionality.media-loading.common.list-add, functionality.media-loading.common.list-selection, functionality.media-loading.common.viewer
+@tag media
+@tag loading
+@tag split
+
+@alias split = Cadroue.UIShell.PMainArea.PSplitTab
+
+[split-path-change] Split Files current-path event <input>
+= Shared Files logic published the current path through PListPathChange.
+> split-path-result
+
+[split-path-result] Split selected-path adapter <decision>
+- Ignore a blank path; otherwise request it from the Split viewer @ split.PSplitPathShow(...)
+? "Nonblank current path" > map:functionality.media-loading.common.viewer
+? "Blank current path" > split-no-request
+
+[split-no-request] Split viewer request omitted <output>
+= Split does not call the shared viewer-loading pipeline.

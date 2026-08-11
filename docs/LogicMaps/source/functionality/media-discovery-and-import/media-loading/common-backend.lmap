@@ -1,0 +1,73 @@
+@format 1
+@id functionality.media-loading.common.backend
+@title Media loading — common backend load
+@section Functionality
+@area Media loading — Common
+@entry backend-start
+@summary Trace LMediaLoadAsync through path validation, request ownership, ffprobe, generation checks, and backend outcomes.
+@related functionality.media-loading.common.completion
+@tag media
+@tag loading
+@tag common
+@tag ffprobe
+
+@alias media-load = Cadroue.Media.LMediaLoad
+@alias media = Cadroue.Media.LMedia
+@alias custody = Cadroue.Core.LCustody
+
+[backend-start] Backend load dispatch <input>
+- Start the asynchronous backend media-load operation for the requested source @ media-load.LMediaLoadAsync(...)
+> path-check
+
+[path-check] Backend path normalization <decision>
+- Normalize the requested source to a full path and reject invalid path syntax immediately @ media-load.LMediaLoadAsync(...)
+  @ media-load.LMediaLoadReject(...)
+? "Path normalized" > request-owner
+? "Invalid path syntax" > path-failure
+
+[path-failure] Path-normalization failure <error>
+- Create and raise the immediate rejected load outcome @ media-load.LMediaLoadReject(...)
+> map:functionality.media-loading.common.completion
+
+[request-owner] Backend request ownership <process>
+- Cancel and dispose the previous request, create a linked cancellation source, advance the generation, and mark the new request pending @ media-load.LMediaLoadAsync(...)
+> source-check
+
+[source-check] Backend source validation <decision>
+- Require a nonblank path, an existing file, and a supported media extension @ media-load.LMediaLoadAsync(...)
+  @ media.LMediaCheck(...)
+? "Supported existing media" > ffprobe-read
+? "Missing, blank, or unsupported" > source-failure
+
+[source-failure] Source-validation failure <error>
+- Clear pending state and create the current failure outcome @ media-load.LMediaLoadFailCurrent(...)
+> map:functionality.media-loading.common.completion
+
+[ffprobe-read] FFprobe media inspection <external>
+- Run the media reader off the caller thread, launch ffprobe for stream and format JSON, attach the process to custody, and kill its process tree on cancellation @ media-load.LMediaLoadAsync(...)
+  @ media.LMediaFfprobeRead(...)
+  @ custody.LCustodyAttach(...)
+> ffprobe-result
+
+[ffprobe-result] FFprobe result interpretation <process>
+- Reject nonzero exit, empty output, or invalid JSON and otherwise parse duration and first video/audio stream information @ media.LMediaFfprobeRead(...)
+  @ media.LMediaFfprobeParse(...)
+> generation-check
+
+[generation-check] Backend generation check <decision>
+- Suppress results after disposal or supersession and classify current failure/cancellation versus current parsed media @ media-load.LMediaLoadAsync(...)
+  @ media-load.LMediaLoadFailCurrent(...)
+? "Superseded or disposed" > obsolete
+? "Current load failed or cancelled" > current-failure
+? "Current media information" > success-commit
+
+[obsolete] Obsolete backend result <output>
+= The request returns Obsolete without raising LMediaLoadCompleted.
+
+[current-failure] Current backend failure <error>
+- Clear pending state and create the current failure or cancellation outcome @ media-load.LMediaLoadFailCurrent(...)
+> map:functionality.media-loading.common.completion
+
+[success-commit] Backend media commit <storage>
+- Clear pending state, store the current media path and parsed media information, and create the successful load outcome @ media-load.LMediaLoadAsync(...)
+> map:functionality.media-loading.common.completion

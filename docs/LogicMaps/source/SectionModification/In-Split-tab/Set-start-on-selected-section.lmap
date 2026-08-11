@@ -1,0 +1,68 @@
+@format 1
+@id section-modification.set-start-on-selected-section
+@title Set Start on selected section
+@section Section modification
+@area In Split tab
+@entry start-dispatch
+@summary Modify the start boundary of the currently selected Split section; Set Start branches that create a new section are excluded.
+@related section-modification.common.compass-buttons, section-modification.common.keyboard-shortcuts, section-modification.common.apply-modified-state, section-creation.set-start-creates-section
+@tag section
+@tag split
+@tag modification
+@tag start
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Application.LSegment
+@alias piece = Cadroue.Core.LPiece
+
+[start-dispatch] setStart dispatch request <input>
+= The request came from the Split Compass Start button or the currently bound SectionStart shortcut.
+> dispatch-guard
+
+[dispatch-guard] Active Split flow guard <decision>
+- PFlowShortcutDispatch requires a command-active flow with a loaded spool and active section UI before invoking PFlowStartSet @ flow.PFlowShortcutDispatch(...) / setStart
+? "Rejected" > dispatch-rejected
+? "Accepted" > handler-guard
+
+[dispatch-rejected] Set Start ignored <output>
+= No section operation is called.
+
+[handler-guard] Modification preconditions <decision>
+- PFlowStartSet requires section editing enabled, a loaded spool, and a nonblank source path before calling LSegmentStartSet with cursor, duration, color, and overlap policy @ flow.PFlowStartSet(...)
+@ flow.PFlowColorRead(...)
+@ property flow.PFlowOverlapAllowed
+? "Editing disabled or media/source unavailable" > handler-rejected
+? "Preconditions accepted" > branch-check
+
+[handler-rejected] Set Start blocked <output>
+= Existing section state is unchanged.
+
+[branch-check] Existing-section branch <decision>
+- LPieceStartSet creates instead when no section is selected or the selected section ends strictly before the cursor; only the remaining branch can modify the selected section @ segment.LSegmentStartSet(...)
+@ piece.LPieceStartSet(...)
+? "No selection or selected end before cursor" > creation-outside
+? "Selected section reaches cursor" > end-bound-check
+
+[creation-outside] Creation branch excluded <output>
+= This path belongs to Section creation, not Section modification.
+
+[end-bound-check] Cursor must stay before selected end <decision>
+- The existing-section branch rejects a cursor at or after the selected section end @ piece.LPieceStartSet(...) / selected end check
+? "Cursor at or after end" > invalid-start
+? "Cursor before end" > floor-check
+
+[invalid-start] No start modification <output>
+= The selected section is unchanged and no modification log is written.
+
+[floor-check] Respect previous-section floor <decision>
+- When overlap is disabled, LPieceFloorRead finds the latest other section end at or before the selected section's original start; a cursor earlier than that floor is rejected. With overlap allowed the floor is zero @ piece.LPieceFloorRead(...)
+@ piece.LPieceStartSet(...) / floor check
+? "Cursor before allowed floor" > floor-rejected
+? "Cursor allowed" > replace-start
+
+[floor-rejected] Start extension blocked <output>
+= The selected section is unchanged and no modification log is written.
+
+[replace-start] Replace selected start boundary <process>
+- Copy the section list and replace the selected LPiece with the same data except LPieceStart=cursor; even an unchanged start value still produces an apply plan @ piece.LPieceStartSet(...) / existing-section plan
+> map:section-modification.common.apply-modified-state

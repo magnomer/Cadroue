@@ -68,6 +68,7 @@ public sealed partial class PViewer
         };
 
         Content = pViewerSurface;
+        PViewerEngineCurrentSet(LPreviewEngine.LPreviewEngineFlyleaf);
         PViewerHostAttach();
     }
 

@@ -1,0 +1,36 @@
+@format 1
+@id functionality.media-loading.edit
+@title Media loading — Edit only
+@section Functionality
+@area Media loading — Edit only
+@entry edit-path-change, edit-media-change
+@summary Show only Edit-specific behavior around shared Files selection and shared viewer-media publication.
+@related functionality.media-loading.common.list-add, functionality.media-loading.common.list-selection, functionality.media-loading.common.viewer, functionality.media-loading.common.publication
+@tag media
+@tag loading
+@tag edit
+
+@alias edit = Cadroue.UIShell.PMainArea.PEditTab
+
+[edit-path-change] Edit Files current-path event <input>
+= Shared Files logic published the current path through PListPathChange.
+> edit-path-result
+
+[edit-path-result] Edit selected-path adapter <decision>
+- Log the selected file and current crop-persistence state, ignore blank selection, and request a nonblank path from the Edit viewer @ edit.PEditPathShow(...)
+? "Nonblank current path" > map:functionality.media-loading.common.viewer
+? "Blank current path" > edit-no-request
+
+[edit-no-request] Edit viewer request omitted <output>
+= Edit records the empty selection and does not call the shared viewer-loading pipeline.
+
+[edit-media-change] Edit viewer-media event <input>
+= The common publication stage raised PViewerMediaChange for the Edit viewer.
+> edit-restore
+
+[edit-restore] Edit state restoration <process>
+- Restore source-specific crop and edit state against the viewer state produced by the media event @ edit.PEditCropRestore(...)
+> edit-restored
+
+[edit-restored] Edit state synchronized <output>
+= Edit-specific crop/edit state follows the resulting viewer source.

@@ -1,0 +1,42 @@
+@format 1
+@id media-loading.in-staged-workspace
+@title In staged workspace
+@section Media loading
+@area In staged workspace
+@entry staged-run
+@summary Show the temporary workspace path used by staged processing: direct docket insertion selects a source, but the staged viewer is not command-active and rejects viewer loading.
+@related media-loading.common.docket-insertion, media-loading.common.viewer-gate, media-loading.in-edit-tab, media-loading.in-audio-tab, media-loading.in-convert-tab, media-loading.in-merge-tab, media-loading.in-split-tab
+@tag media
+@tag loading
+@tag staging
+
+@alias workspace = Cadroue.UIShell.PControlBar.PWorkspace
+@alias docket = Cadroue.Application.LDocket
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+
+[staged-run] Cartographer staged-workspace execution <input>
+- Construct a temporary PWorkspace for the planned layout and obtain its action/list surfaces @ workspace.PWorkspaceStageRun(...)
+> staged-surface
+
+[staged-surface] Staged Files surface available <decision>
+- Require both an action surface and Files list before proceeding with the staged plan @ workspace.PWorkspaceStageRun(...)
+? "Action and Files available" > staged-add
+? "Required surface missing" > staged-rejected
+
+[staged-add] Direct staged docket insertion <process>
+- Pass the planned paths directly to LDocketPathsAdd with the planned batch and delivered=true; no PListMediaScan or PListPathsAdd occurs in PWorkspaceStageRun @ workspace.PWorkspaceStageRun(...)
+  @ docket.LDocketPathsAdd(...)
+! Common / Docket insertion then synchronously selects the first added path and invokes whichever tab-specific PListPathChange adapter belongs to the staged layout.
+> staged-viewer-result
+
+[staged-rejected] Staged workspace cannot run <output>
+= No docket insertion or media-loading attempt occurs.
+
+[staged-viewer-result] Staged viewer command state <process>
+- The temporary workspace is never attached as the active window workspace, so its viewer is not made command-active through PViewerCommandSet; a tab adapter that calls PViewerSourceOpen therefore returns at the common viewer gate @ viewer.PViewerSourceOpen(...)
+  @ viewer.PViewerCommandSet(...)
+! Audio can still run its local save/restore wrapper around that rejected call; other media-tab adapters simply return after the rejected PViewerSourceOpen. The staged action then proceeds with the planned processing and the temporary workspace is closed.
+> staged-no-load
+
+[staged-no-load] No staged preview load <output>
+= Direct docket insertion occurred, but no backend media load starts from the temporary staged viewer because viewer commands are inactive.

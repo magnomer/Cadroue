@@ -1,0 +1,44 @@
+@format 1
+@id media-loading.in-funnel-tab
+@title In Funnel tab
+@section Media loading
+@area In Funnel tab
+@entry funnel-path-change, funnel-drain
+@summary Show Funnel-specific selected-path loading and the conditional post-relay source drain, which runs only when Relay Empty is enabled and at least one file was successfully relayed.
+@related media-loading.common.files-selection, media-loading.common.viewer-gate, media-loading.common.docket-removal
+@tag media
+@tag loading
+@tag funnel
+
+@alias funnel = Cadroue.UIShell.PMainArea.PFunnelTab
+@alias messenger = Cadroue.ShellEngine.LMessenger
+@alias app = Cadroue.UIShell.PProgram
+
+[funnel-path-change] Funnel Files current-path event <input>
+= PListPathChange delivered the current path to PFunnelPathShow.
+> funnel-path-result
+
+[funnel-drain] Funnel relay handling <input>
+- For each Funnel item, add its source path to the relayed-path set only when a filename rule resolves a nonempty target and LMessengerFunnelDeliverSource reports successful delivery @ messenger.LMessengerFunnelDescribe(...)
+> drain-gate
+
+[funnel-path-result] Funnel selected-path adapter <decision>
+- Ignore a blank path; otherwise request it from the Funnel viewer @ funnel.PFunnelPathShow(...)
+? "Nonblank current path" > map:media-loading.common.viewer-gate
+? "Blank current path" > funnel-no-request
+
+[drain-gate] Post-relay source-drain conditions <decision>
+- Invoke the Funnel drain seam only when Relay Empty is enabled and the relayed-path set contains at least one successfully delivered source @ messenger.LMessengerFunnelDescribe(...)
+? "Relay Empty enabled and relayed set nonempty" > drain-source
+? "Relay Empty disabled or no successful relay" > funnel-retained
+
+[funnel-no-request] Funnel viewer request omitted <output>
+= Funnel does not call the shared viewer-loading pipeline.
+
+[drain-source] Invoke configured Funnel drain <process>
+- Pass only successfully relayed source paths to LMessengerFunnelDrainSource @ messenger.LMessengerFunnelDescribe(...)
+- The startup-configured UI seam removes those paths from the currently selected tab's Files docket when that tab still exposes one @ app.OnStartup(...)
+> map:media-loading.common.docket-removal
+
+[funnel-retained] Funnel source Files retained <output>
+= No source-drain seam is invoked when Relay Empty is disabled or when every Funnel item failed/skipped delivery.

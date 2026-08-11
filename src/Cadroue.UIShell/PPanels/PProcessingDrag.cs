@@ -56,6 +56,12 @@ public sealed partial class PProcessing
         pDragRow.Opacity = 0.72;
 
         int pTargetIndex = PProcessingIndexResolve(pCurrent);
+        if (pProcessingRowPanel.Children[pTargetIndex] is Border { Tag: string pTargetName }
+            && pProcessingDisabledSteps.Contains(pTargetName))
+        {
+            return;
+        }
+
         if (pTargetIndex != pDragIndex)
         {
             pProcessingRowPanel.Children.Remove(pDragRow);

@@ -16,6 +16,18 @@ public sealed partial class PViewer
     private bool pViewerMpvActive;
     private bool pViewerEngineSubscribed;
     private string pViewerMpvFilter = string.Empty;
+    private LColor? pViewerMpvGammaApplied;
+
+    private void PViewerEngineCurrentSet(LPreviewEngine pViewerEngine)
+    {
+        if (PViewerEngineCurrent == pViewerEngine)
+        {
+            return;
+        }
+
+        PViewerEngineCurrent = pViewerEngine;
+        PViewerEngineChange?.Invoke();
+    }
 
     private void PViewerMpvPreviewApply()
     {
@@ -24,23 +36,86 @@ public sealed partial class PViewer
             return;
         }
 
+        LColor pViewerGamma = LPreviewStateCurrent.LColor;
+        bool pViewerGammaFiltered = LPreview.LPreviewMpvGammaFilterRequired(pViewerGamma);
+        LPreviewMpvEqualizer pViewerEqualizer =
+            LPreview.LPreviewMpvEqualizerResolve(LPreviewStateCurrent);
+        string pViewerFilter = LPreview.LPreviewMpvFilterResolve(LPreviewStateCurrent);
+        bool pViewerApplied;
+
+        if (pViewerGammaFiltered)
+        {
+            pViewerApplied = PViewerMpvEqualizerApply(pViewerEqualizer, true);
+            if (pViewerApplied)
+            {
+                pViewerApplied = PViewerMpvFilterApply(pViewerFilter, true);
+            }
+            else
+            {
+                PViewerMpvRejectedFilterClear();
+            }
+        }
+        else
+        {
+            // Remove filtered Gamma before restoring the native factor so the two
+            // corrections can never be visible on the same frame.
+            pViewerApplied = PViewerMpvFilterApply(
+                pViewerFilter,
+                pViewerMpvGammaApplied is { } pViewerPreviousGamma
+                && LPreview.LPreviewMpvGammaFilterRequired(pViewerPreviousGamma));
+            if (pViewerApplied)
+            {
+                pViewerApplied = PViewerMpvEqualizerApply(pViewerEqualizer, false);
+            }
+        }
+
+        if (pViewerApplied && pViewerMpvGammaApplied != pViewerGamma)
+        {
+            pViewerMpvGammaApplied = pViewerGamma;
+            if (!LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+            {
+                try
+                {
+                    pViewerPlayer.PPlayerMpvRefresh();
+                }
+                catch (Exception pViewerRefreshException)
+                {
+                    LTraceLog.LTraceErrorRecord(
+                        $"mpv rejected paused preview refresh: {pViewerRefreshException.Message}");
+                }
+            }
+        }
+    }
+
+    private bool PViewerMpvEqualizerApply(
+        LPreviewMpvEqualizer pViewerEqualizer,
+        bool pViewerGammaFirst)
+    {
         try
         {
-            LPreviewMpvEqualizer pViewerEqualizer =
-                LPreview.LPreviewMpvEqualizerResolve(LPreviewStateCurrent);
+            if (pViewerGammaFirst)
+            {
+                pViewerPlayer.PPlayerMpvGammaSet(pViewerEqualizer.LPreviewMpvGammaFactor);
+            }
+
             pViewerPlayer.PPlayerEqualizerSet(
                 pViewerEqualizer.LPreviewMpvBrightness,
                 pViewerEqualizer.LPreviewMpvContrast,
                 pViewerEqualizer.LPreviewMpvSaturation,
                 pViewerEqualizer.LPreviewMpvHue);
+            if (!pViewerGammaFirst)
+            {
+                pViewerPlayer.PPlayerMpvGammaSet(pViewerEqualizer.LPreviewMpvGammaFactor);
+            }
+
+            return true;
         }
         catch (Exception pViewerEqualizerException)
         {
             LTraceLog.LTraceErrorRecord(
-                $"mpv rejected preview equalizer: {pViewerEqualizerException.Message}");
+                $"mpv rejected preview properties: {pViewerEqualizerException.Message}");
+            return false;
         }
-
-        PViewerMpvFilterApply(LPreview.LPreviewMpvFilterResolve(LPreviewStateCurrent));
     }
 
     private void PViewerMpvCropLive()
@@ -52,25 +127,47 @@ public sealed partial class PViewer
 
         LCropbox? pViewerLive = PViewerCropboxRead(PCropVideoRead());
         PViewerMpvFilterApply(LPreview.LPreviewMpvFilterResolve(
-            LPreviewStateCurrent.LCropboxChange(pViewerLive)));
+            LPreviewStateCurrent.LCropboxChange(pViewerLive)),
+            LPreview.LPreviewMpvGammaFilterRequired(LPreviewStateCurrent.LColor));
     }
 
-    private void PViewerMpvFilterApply(string pViewerFilter)
+    private bool PViewerMpvFilterApply(string pViewerFilter, bool pViewerAdvancedGamma)
     {
         if (pViewerFilter == pViewerMpvFilter)
         {
-            return;
+            return true;
         }
 
         try
         {
             pViewerPlayer.PPlayerFilterSet(pViewerFilter);
             pViewerMpvFilter = pViewerFilter;
+            return true;
         }
         catch (Exception pViewerFilterException)
         {
             LTraceLog.LTraceErrorRecord(
                 $"mpv rejected preview filter '{pViewerFilter}': {pViewerFilterException.Message}");
+            if (pViewerAdvancedGamma)
+            {
+                PViewerMpvRejectedFilterClear();
+            }
+
+            return false;
+        }
+    }
+
+    private void PViewerMpvRejectedFilterClear()
+    {
+        try
+        {
+            pViewerPlayer.PPlayerFilterSet(string.Empty);
+            pViewerMpvFilter = string.Empty;
+        }
+        catch (Exception pViewerClearException)
+        {
+            LTraceLog.LTraceErrorRecord(
+                $"mpv rejected stale preview filter cleanup: {pViewerClearException.Message}");
         }
     }
 
@@ -159,6 +256,8 @@ public sealed partial class PViewer
         Content = pViewerSurface;
         pViewerMpvActive = true;
         pViewerMpvFilter = string.Empty;
+        pViewerMpvGammaApplied = null;
+        PViewerEngineCurrentSet(LPreviewEngine.LPreviewEngineMpv);
     }
 
     private void PViewerOverlayDetach()
@@ -315,5 +414,6 @@ public sealed partial class PViewer
         pViewerMpvHost = null;
         pViewerMpvActive = false;
         pViewerMpvFilter = string.Empty;
+        pViewerMpvGammaApplied = null;
     }
 }

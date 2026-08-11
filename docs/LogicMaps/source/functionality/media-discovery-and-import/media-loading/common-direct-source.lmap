@@ -1,0 +1,38 @@
+@format 1
+@id functionality.media-loading.common.direct-source
+@title Media loading — common Source requests
+@section Functionality
+@area Media loading — Common
+@entry source-browse, source-enter
+@summary Trace Source-bar Browse and Return requests that bypass Files and call the shared viewer pipeline directly.
+@related functionality.media-loading.common.viewer
+@tag media
+@tag loading
+@tag common
+@tag source
+
+@alias source = Cadroue.UIShell.PPanels.PSource
+
+[source-browse] Source Browse button <input>
+- Open the Source picker, reject disallowed audio-only media, and request the selected viewer source when accepted @ source.PSourceOpenHandle(...)
+> source-browse-result
+
+[source-enter] Source path Return key <input>
+- Require Return, an existing typed path, and audio-only policy acceptance before requesting the viewer source @ source.PSourceKeyHandle(...)
+> source-enter-result
+
+[source-browse-result] Browse outcome <decision>
+- A viewer request exists only after picker acceptance and source-policy acceptance @ source.PSourceOpenHandle(...)
+? "Viewer request issued" > map:functionality.media-loading.common.viewer
+? "Cancelled or rejected" > source-browse-stop
+
+[source-enter-result] Typed-source outcome <decision>
+- Continue only when the typed path passed Source validation @ source.PSourceKeyHandle(...)
+? "Viewer request issued" > map:functionality.media-loading.common.viewer
+? "Path rejected" > source-enter-stop
+
+[source-browse-stop] Browse ends without request <output>
+= No shared viewer load begins.
+
+[source-enter-stop] Typed source rejected <output>
+= No shared viewer load begins.

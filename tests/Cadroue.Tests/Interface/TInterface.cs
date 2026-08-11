@@ -101,9 +101,25 @@ internal static class TInterface
     internal static LPreviewState PreviewDefaultCreate() => LPreviewState.LPreviewDefaultCreate();
     internal static LColor ColorCreate(double brightness, double contrast, double saturation, double hue) =>
         new(brightness, contrast, saturation, hue);
+    internal static LColor ColorGammaCreate(double gamma) =>
+        new LColor(0, 1, 1, 0) { LColorGamma = gamma };
+    internal static LColor ColorGammaCreate(
+        double global, double red, double green, double blue, double protection) =>
+        new LColor(0, 1, 1, 0)
+        {
+            LColorGamma = global,
+            LColorGammaRed = red,
+            LColorGammaGreen = green,
+            LColorGammaBlue = blue,
+            LColorGammaHighlightProtection = protection
+        };
     internal static LRotateFlip RotateFlipCreate(LRotateKind rotate, bool horizontal, bool vertical) =>
         new(rotate, horizontal, vertical);
     internal static LPreviewState PreviewColorChange(LPreviewState state, LColor color) => state.LColorChange(color);
+    internal static LCropbox CropboxCreate(double x, double y, double width, double height) =>
+        new(x, y, width, height);
+    internal static LPreviewState PreviewCropboxChange(LPreviewState state, LCropbox? cropbox) =>
+        state.LCropboxChange(cropbox);
     internal static LPreviewState PreviewRotateFlipChange(LPreviewState state, LRotateFlip rotateFlip) =>
         state.LRotateFlipChange(rotateFlip);
     internal static LColor PreviewColorResolve(LWorkVideo video) => LPreview.LPreviewColorResolve(video);
@@ -114,12 +130,35 @@ internal static class TInterface
     internal static LColorKind? ColorKindParse(string token) => LColor.LColorKindParse(token);
     internal static string ColorKindFormat(LColorKind kind) => LColor.LColorKindFormat(kind);
     internal static LEditPlan EditPersistentRead(LSidecarEditRecord record) => LEdit.LEditPersistentRead(record);
+    internal static LEditPlan EditPlanCreate(LWorkCrop crop, LWorkVideo video, bool cropApply) =>
+        new(crop, video, cropApply);
+    internal static LSidecarEditRecord EditPersistentCreate(LEditPlan plan) => LEdit.LEditPersistentCreate(plan);
+    internal static LWorkVideo EditVideoCreate(IReadOnlyList<LWorkVideoStep> steps, bool gammaCapable) =>
+        LEdit.LEditVideoCreate(steps, gammaCapable);
     internal static LSidecarEditRecord SidecarEditRecordCreate(string kind, bool active, double value) =>
         new()
         {
             LSidecarSteps = new List<LSidecarVideoStep>
             {
                 new() { LSidecarKind = kind, LSidecarActive = active, LSidecarValue = value }
+            }
+        };
+    internal static LSidecarEditRecord SidecarEditRecordCreate(
+        string kind, bool active, double value, double? red, double? green, double? blue, double? protection) =>
+        new()
+        {
+            LSidecarSteps = new List<LSidecarVideoStep>
+            {
+                new()
+                {
+                    LSidecarKind = kind,
+                    LSidecarActive = active,
+                    LSidecarValue = value,
+                    LSidecarGammaRed = red,
+                    LSidecarGammaGreen = green,
+                    LSidecarGammaBlue = blue,
+                    LSidecarGammaHighlightProtection = protection
+                }
             }
         };
 
@@ -150,6 +189,17 @@ internal static class TInterface
         LWorkVideoStep.LWorkBrightnessCreate(active, value);
     internal static LWorkVideoStep WorkContrastCreate(bool active, double value) =>
         LWorkVideoStep.LWorkContrastCreate(active, value);
+    internal static LWorkVideoStep WorkGammaCreate(bool active, double value) =>
+        LWorkVideoStep.LWorkGammaCreate(active, value);
+    internal static LWorkVideoStep WorkGammaCreate(
+        bool active, double global, double red, double green, double blue, double protection) =>
+        LWorkVideoStep.LWorkGammaCreate(active, global, red, green, blue, protection);
+    internal static string WorkVideoStepDiagnosticRead(LWorkVideoStep step) => step.LWorkDiagnosticRead();
+    internal static LWorkItem? WorkRecordRoundTrip(LWorkItem work)
+    {
+        string json = LWorkRecord.LWorkRecordCreate(work).LWorkJsonCreate();
+        return LWorkRecord.LWorkRecordParse(json)?.LWorkItemCreate();
+    }
     internal static LWorkAudioStep WorkVolumeCreate(bool active, double gain) =>
         LWorkAudioStep.LWorkVolumeCreate(active, gain);
     internal static LWorkAudioStep WorkNormalizeCreate(

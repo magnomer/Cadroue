@@ -1,0 +1,37 @@
+@format 1
+@id functionality.media-loading.common.completion
+@title Media loading — common completion routing
+@section Functionality
+@area Media loading — Common
+@entry backend-outcome
+@summary Trace the backend completion event through viewer staleness/failure filtering and preview-engine routing.
+@related functionality.media-loading.common.mpv, functionality.media-loading.common.flyleaf, functionality.media-loading.common.publication
+@tag media
+@tag loading
+@tag common
+@tag completion
+
+@alias media-load = Cadroue.Media.LMediaLoad
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+
+[backend-outcome] Current backend outcome <input>
+- Raise LMediaLoadCompleted and isolate subscriber exceptions @ media-load.LMediaLoadRaise(...)
+> completion-filter
+
+[completion-filter] Viewer completion acceptance <decision>
+- Marshal completion onto the viewer dispatcher and compare lifetime, load serial, and expected source path @ viewer.PViewerLoadHandle(...)
+? "Viewer request is stale" > stale
+? "Current backend failure" > failed-status
+? "Current backend success" > engine-route
+
+[stale] Stale completion ignored <output>
+= The completion belongs to an older or inactive viewer request and cannot replace current viewer state.
+
+[failed-status] Unreadable media cargo <process>
+- Build viewer cargo containing the failed source and backend error without media information or preview availability @ viewer.PViewerLoadHandle(...)
+> map:functionality.media-loading.common.publication
+
+[engine-route] Preview engine routing <decision>
+- Route successful media information to mpv when mpv is active, otherwise continue through Flyleaf @ viewer.PPlayerMediaApply(...)
+? "mpv active" > map:functionality.media-loading.common.mpv
+? "Flyleaf active" > map:functionality.media-loading.common.flyleaf

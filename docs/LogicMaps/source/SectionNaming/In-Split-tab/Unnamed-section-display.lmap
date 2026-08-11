@@ -1,0 +1,55 @@
+@format 1
+@id section-naming.unnamed-section-display
+@title Display an unnamed section
+@section Section naming
+@area In Split tab
+@entry section-row-render,viewfinder-render
+@summary Distinguish the localized Sections-panel placeholder for an empty stored main name from the real LPieceName, and show how affixes and Viewfinder labels behave while the section remains unnamed.
+@related section-naming.inline-editor-open, section-naming.common.apply-name-state
+@tag section
+@tag split
+@tag naming
+@tag unnamed
+@tag display
+
+@alias panel = Cadroue.UIShell.PPanels.PSection
+@alias viewfinder = Cadroue.UIShell.PFlow.PViewfinder
+
+[section-row-render] Sections-panel row rendering <input>
+- PSectionTextBuild checks whether LPieceName is empty when rendering a non-editing row @ panel.PSectionTextBuild(...)
+> panel-name-check
+
+[viewfinder-render] Viewfinder section rendering <input>
+- PViewfinderSectionDraw receives the actual stored LPieceName for each section @ viewfinder.PViewfinderSectionDraw(...)
+> viewfinder-name-check
+
+[panel-name-check] Stored main name empty <decision>
+- An empty LPieceName uses PSectionPlaceholderFormat; a nonempty LPieceName is shown directly @ panel.PSectionTextBuild(...)
+@ panel.PSectionPlaceholderFormat(...)
+? "LPieceName empty" > placeholder
+? "LPieceName nonempty" > stored-name
+
+[placeholder] Show localized default-name placeholder <process>
+- Render Section.DefaultName for the row index using the muted brush; this placeholder is presentation only and is not written into LPieceName @ panel.PSectionPlaceholderFormat(...)
+> panel-name-join
+
+[stored-name] Show actual stored main name <process>
+- Render LPieceName as the row's primary name text @ panel.PSectionTextBuild(...)
+> panel-name-join
+
+[panel-name-join] Panel main-name paths converge <junction>
+> affixes
+
+[affixes] Append stored affixes when present <output>
+- PSectionAffixAdd appends each nonempty prefix and suffix after the primary display text, so affixes can therefore be visible even when the main name itself is empty @ panel.PSectionAffixAdd(...)
+
+[viewfinder-name-check] Viewfinder can show main name <decision>
+- PViewfinderSectionDraw renders a name only when LPieceName is nonempty and sufficient horizontal room remains after the numbered badge @ viewfinder.PViewfinderSectionDraw(...)
+? "Empty name or insufficient room" > no-viewfinder-name
+? "Nonempty name with room" > show-viewfinder-name
+
+[no-viewfinder-name] Viewfinder shows no placeholder name <output>
+= The numbered section badge remains, but the localized Sections-panel placeholder is not substituted as a Viewfinder name.
+
+[show-viewfinder-name] Show actual main name <output>
+= The Viewfinder shows LPieceName only; prefix and suffix are not included in this label.

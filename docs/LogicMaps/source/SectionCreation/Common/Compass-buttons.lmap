@@ -1,0 +1,47 @@
+@format 1
+@id section-creation.common.compass-buttons
+@title Compass buttons
+@section Section creation
+@area Common
+@entry add-button,start-button,split-button,end-button
+@summary Map the four Split Compass buttons that can initiate section creation and their direct dispatch into the corresponding creation command.
+@related section-creation.add-at-cursor, section-creation.set-start-creates-section, section-creation.set-end-creates-section, section-creation.split-selected-section
+@tag section
+@tag split
+@tag creation
+@tag compass
+
+@alias compass = Cadroue.UIShell.PMainArea.PCompass
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+
+[add-button] Add button Click <input>
+- The Split Compass creates an Add button whose Click lambda invokes the supplied addSection action @ compass.PCompass(...) / Add button Click lambda
+> add-dispatch
+
+[start-button] Start button Click <input>
+- The Split Compass creates a Start button whose Click lambda invokes the supplied setStart action @ compass.PCompass(...) / Start button Click lambda
+> start-dispatch
+
+[split-button] Split button Click <input>
+- The Split Compass creates a Split button whose Click lambda invokes the supplied splitSection action @ compass.PCompass(...) / Split button Click lambda
+> split-dispatch
+
+[end-button] End button Click <input>
+- The Split Compass creates an End button whose Click lambda invokes the supplied setEnd action @ compass.PCompass(...) / End button Click lambda
+> end-dispatch
+
+[add-dispatch] Submit addSection to the active flow <process>
+- Invoke PFlowShortcutDispatch with addSection; the called map begins at that dispatch request @ flow.PFlowShortcutDispatch(...) / addSection
+> map:section-creation.add-at-cursor
+
+[start-dispatch] Submit setStart to the active flow <process>
+- Invoke PFlowShortcutDispatch with setStart; only its creation branch is followed by the called map @ flow.PFlowShortcutDispatch(...) / setStart
+> map:section-creation.set-start-creates-section
+
+[split-dispatch] Submit splitSection to the active flow <process>
+- Invoke PFlowShortcutDispatch with splitSection; the called map follows only successful section division @ flow.PFlowShortcutDispatch(...) / splitSection
+> map:section-creation.split-selected-section
+
+[end-dispatch] Submit setEnd to the active flow <process>
+- Invoke PFlowShortcutDispatch with setEnd; only its creation branch is followed by the called map @ flow.PFlowShortcutDispatch(...) / setEnd
+> map:section-creation.set-end-creates-section

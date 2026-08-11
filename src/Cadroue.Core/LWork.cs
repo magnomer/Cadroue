@@ -42,25 +42,98 @@ public sealed record LWorkCrop(
 public enum LColorKind
 {
     LColorKindBrightness,
-    LColorKindContrast
+    LColorKindContrast,
+    LColorKindGamma
 }
+
+public sealed record LWorkGammaSettings(
+    double LWorkGammaGlobal,
+    double LWorkGammaRed,
+    double LWorkGammaGreen,
+    double LWorkGammaBlue,
+    double LWorkGammaHighlightProtection);
 
 public sealed record LWorkVideoStep(
     LColorKind LWorkStepKind,
     bool LWorkStepActive,
     double LWorkStepValue)
 {
+    public LWorkGammaSettings? LWorkStepGamma { get; init; }
+
     public static LWorkVideoStep LWorkBrightnessCreate(bool lStepActive, double lStepValue) =>
         new(LColorKind.LColorKindBrightness, lStepActive, lStepValue);
 
     public static LWorkVideoStep LWorkContrastCreate(bool lStepActive, double lStepValue) =>
         new(LColorKind.LColorKindContrast, lStepActive, Math.Clamp(lStepValue, 0, 200));
 
+    public static LWorkVideoStep LWorkGammaCreate(
+        bool lStepActive,
+        double lStepGlobal,
+        double lStepRed = 0,
+        double lStepGreen = 0,
+        double lStepBlue = 0,
+        double lStepHighlightProtection = 0)
+    {
+        double lGlobal = Math.Clamp(lStepGlobal, -100, 100);
+        return new(LColorKind.LColorKindGamma, lStepActive, lGlobal)
+        {
+            LWorkStepGamma = new LWorkGammaSettings(
+                lGlobal,
+                Math.Clamp(lStepRed, -100, 100),
+                Math.Clamp(lStepGreen, -100, 100),
+                Math.Clamp(lStepBlue, -100, 100),
+                Math.Clamp(lStepHighlightProtection, 0, 100))
+        };
+    }
+
+    public LWorkGammaSettings LWorkGammaRead() =>
+        LWorkStepKind == LColorKind.LColorKindGamma && LWorkStepGamma is { } lGamma
+            ? lGamma
+            : new LWorkGammaSettings(
+                Math.Clamp(LWorkStepValue, -100, 100), 0, 0, 0, 0);
+
+    public string LWorkDiagnosticRead()
+    {
+        string lSummary = $"{LWorkStepKind} {LWorkStepValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}";
+        if (LWorkStepKind != LColorKind.LColorKindGamma)
+        {
+            return lSummary;
+        }
+
+        LWorkGammaSettings lGamma = LWorkGammaRead();
+        var lDetails = new List<string>();
+        if (lGamma.LWorkGammaRed != 0)
+        {
+            lDetails.Add($"red {lGamma.LWorkGammaRed.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+
+        if (lGamma.LWorkGammaGreen != 0)
+        {
+            lDetails.Add($"green {lGamma.LWorkGammaGreen.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+
+        if (lGamma.LWorkGammaBlue != 0)
+        {
+            lDetails.Add($"blue {lGamma.LWorkGammaBlue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+
+        if (lGamma.LWorkGammaHighlightProtection != 0)
+        {
+            lDetails.Add($"highlight {lGamma.LWorkGammaHighlightProtection.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+
+        return lDetails.Count == 0 ? lSummary : $"{lSummary} ({string.Join(", ", lDetails)})";
+    }
+
     public double LWorkFfmpegValue => LWorkStepKind switch
     {
-        LColorKind.LColorKindBrightness => Math.Clamp(LWorkStepValue * 0.0025d, -1, 1),
+        LColorKind.LColorKindBrightness => Math.Clamp(LWorkStepValue * 0.005d, -1, 1),
+        LColorKind.LColorKindGamma => LWorkGammaFactorRead(LWorkStepValue),
         _ => LWorkStepValue / 100d
     };
+
+    public static double LWorkGammaFactorRead(double lStepValue) =>
+        Math.Pow(10d, Math.Clamp(lStepValue, -100, 100) / 100d);
 }
 
 public sealed record LWorkVideo(IReadOnlyList<LWorkVideoStep> LWorkVideoSteps)

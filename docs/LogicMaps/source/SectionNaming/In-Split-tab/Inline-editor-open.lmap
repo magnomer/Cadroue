@@ -1,0 +1,64 @@
+@format 1
+@id section-naming.inline-editor-open
+@title Open inline section-name editor
+@section Section naming
+@area In Split tab
+@entry row-double-click
+@summary Select a Split section and replace its row name display with the inline main-name/prefix/suffix editor when the row is double-clicked.
+@related section-naming.inline-editor-input, section-naming.pending-inline-commit, section-naming.switch-inline-edit-target
+@tag section
+@tag split
+@tag name
+@tag rename
+@tag inline-editor
+
+@alias panel = Cadroue.UIShell.PPanels.PSection
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Application.LSegment
+@alias workspace = Cadroue.UIShell.PControlBar.PWorkspace
+@alias history = Cadroue.Application.LHistory
+
+[row-double-click] Section row MouseLeftButtonDown <input>
+- The row's double-click handler is entered only for ClickCount at least two; PreviewMouseLeftButtonDown does not start drag capture for that double-click @ panel.PSectionRowBuild(...) / row MouseLeftButtonDown
+> click-check
+
+[click-check] Double-click accepted <decision>
+? "ClickCount below two" > ignored
+? "Double click" > clear-drag
+
+[ignored] Inline rename not requested <output>
+= Single-click selection/drag handling is outside this map.
+
+[clear-drag] Clear row-drag state <process>
+- Release row-panel mouse capture and clear tracked drag state before resolving the rename target @ panel.PSectionDragClear(...)
+> index-check
+
+[index-check] Current row index valid <decision>
+- Resolve the row's current Children index and return if it is negative @ panel.PSectionRowBuild(...) / rename-index resolution
+? "Index invalid" > gone
+? "Index valid" > select-flow
+
+[gone] Rename target disappeared <output>
+= No editor opens.
+
+[select-flow] Select section before editing <process>
+- PFlowSectionSelect delegates the target index to LSegmentSelect @ flow.PFlowSectionSelect(...)
+> segment-select
+
+[segment-select] Publish selected section <process>
+- LSegmentSelect updates the active index and synchronously invokes LSegmentChange @ segment.LSegmentSelect(...)
+> selection-observers
+
+[selection-observers] Update Split selection observers <process>
+- PFlowSegmentHandle updates Viewfinder/Map selection and invokes PFlowSectionChange, then the Sections panel reacts and Workspace history sees selection change before inline editing is enabled @ flow.PFlowSegmentHandle(...)
+@ workspace.PWorkspaceSectionHandle(...)
+@ history.LHistoryAdd(...)
+> install-editor
+
+[install-editor] Install inline editor for selected row <process>
+- Store pSectionIndexEditing and rebuild the panel; PSectionEditorBuild replaces that row's display name with TextBoxes for LPieceName, LPiecePrefix, and LPieceSuffix @ panel.PSectionRebuild(...)
+@ panel.PSectionEditorBuild(...)
+> focus-name
+
+[focus-name] Focus and select main name <output>
+- On Loaded, the main-name box receives focus and SelectAll; existing non-empty affixes start visible while empty affix fields start collapsed @ panel.PSectionEditorBuild(...)

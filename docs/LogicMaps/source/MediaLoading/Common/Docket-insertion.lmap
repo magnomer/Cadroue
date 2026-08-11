@@ -1,0 +1,45 @@
+@format 1
+@id media-loading.common.docket-insertion
+@title Docket insertion
+@section Media loading
+@area Common
+@entry docket-request
+@summary Trace already-resolved media paths through LDocketPathsAdd, Files rebuilding, first-new-item selection, and the later PListItemsAdd notification.
+@related media-loading.common.files-intake, media-loading.in-edit-tab, media-loading.in-audio-tab, media-loading.in-merge-tab, media-loading.in-worklist, media-loading.in-staged-workspace
+@tag media
+@tag loading
+@tag common
+@tag docket
+
+@alias docket = Cadroue.Application.LDocket
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[docket-request] Resolved media paths submitted to docket <input>
+= A caller already has media paths and calls LDocketPathsAdd, optionally supplying an existing batch and delivered flag.
+> docket-add
+
+[docket-add] Docket add result <decision>
+- Ignore paths already listed, create a batch only when none was supplied, append new entries, and only for new entries raise LDocketChange followed by LDocketAdded @ docket.LDocketPathsAdd(...)
+? "At least one new entry" > docket-change
+? "Nothing new" > no-new-entry
+
+[docket-change] Files rows and lock state refresh <process>
+- Raise LDocketChange first; the Files subscriber rebuilds rows, reapplies selection visuals, and publishes current lock state before LDocketAdded is invoked @ docket.LDocketRaise(...)
+  @ list.PListDocketHandle(...)
+> added-notification
+
+[added-notification] First-new-item selection <process>
+- Handle LDocketAdded by selecting the first newly added entry; PListSelectApply synchronously reaches PListCurrentApply and invokes PListPathChange, so the tab-specific selected-path adapter runs before this handler resumes @ list.PListDocketAddHandle(...)
+  @ list.PListSelectApply(...)
+  @ list.PListCurrentApply(...)
+> items-added
+
+[items-added] Added-items notification <process>
+- After the synchronous PListPathChange invocation returns, invoke PListItemsAdd for the complete set of newly added entries @ list.PListDocketAddHandle(...)
+> notifications-complete
+
+[notifications-complete] Docket insertion notifications complete <output>
+= The scenario's selected-path handler has already run once for the first new path; Edit, Audio, and Merge can then run their PListItemsAdd subscribers for the same addition.
+
+[no-new-entry] No new docket entry <output>
+= LDocketChange, LDocketAdded, PListPathChange, and PListItemsAdd are not raised for paths that were all already listed.

@@ -1,0 +1,41 @@
+@format 1
+@id section-creation.add-at-cursor
+@title Add at cursor
+@section Section creation
+@area In Split tab
+@entry add-dispatch
+@summary Create one new unnamed section from the current cursor forward, covering only creation and excluding later editing, deletion, naming, and renaming.
+@related section-creation.common.compass-buttons, section-creation.common.keyboard-shortcuts, section-creation.common.forward-section-plan, section-creation.common.apply-created-state
+@tag section
+@tag split
+@tag creation
+@tag add
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Application.LSegment
+
+[add-dispatch] addSection dispatch request <input>
+= The request came from the Split Compass Add button or the currently bound SectionAdd shortcut.
+> dispatch-guard
+
+[dispatch-guard] Active Split flow guard <decision>
+- PFlowShortcutDispatch rejects commands unless this flow is command-active with a loaded spool, and the addSection case additionally requires section UI to be active @ flow.PFlowShortcutDispatch(...) / addSection
+? "Rejected" > dispatch-rejected
+? "Accepted" > add-handler
+
+[dispatch-rejected] Add command ignored <output>
+= No section creation method is called.
+
+[add-handler] Prepare Add creation <decision>
+- PFlowSectionAdd requires section editing to be enabled plus a spool and nonblank source path; on acceptance it resets pFlowSegmentFired and chooses the color as current section count modulo the active palette count @ flow.PFlowSectionAdd(...)
+@ flow.PFlowColorRead(...)
+? "Editing disabled or media/source unavailable" > add-rejected
+? "Creation request accepted" > segment-add
+
+[add-rejected] Add creation blocked <output>
+= No section state changes.
+
+[segment-add] Ask LSegment to add at the cursor <process>
+- Pass cursor, media duration, computed color, and the current overlap policy to LSegmentAdd, which asks LPieceAdd for the actual creation plan @ segment.LSegmentAdd(...)
+@ property flow.PFlowOverlapAllowed
+> map:section-creation.common.forward-section-plan

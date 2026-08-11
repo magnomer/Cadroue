@@ -57,6 +57,11 @@ internal sealed class PPlayerMpv : PPlayerEngine
         pPlayerMpvLibrary.LMpvEqualizerSet(brightness, contrast, saturation, hue);
     }
 
+    public void PPlayerMpvGammaSet(double gammaFactor) => pPlayerMpvLibrary.LMpvGammaSet(gammaFactor);
+
+    public void PPlayerMpvRefresh() =>
+        pPlayerMpvLibrary.LMpvSeek(pPlayerMpvLibrary.LMpvTimeRead());
+
     public override void PPlayerFilterSet(string filterChain)
     {
         pPlayerMpvLibrary.LMpvFilterSet(filterChain);

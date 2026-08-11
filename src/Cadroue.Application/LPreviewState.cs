@@ -8,6 +8,22 @@ public sealed record LColor(
     double LColorSaturation,
     double LColorHue)
 {
+    public double LColorGamma { get; init; } = 1;
+
+    public double LColorGammaRed { get; init; } = 1;
+
+    public double LColorGammaGreen { get; init; } = 1;
+
+    public double LColorGammaBlue { get; init; } = 1;
+
+    public double LColorGammaHighlightProtection { get; init; }
+
+    public bool LColorGammaAdvanced =>
+        LColorGammaRed != 1
+        || LColorGammaGreen != 1
+        || LColorGammaBlue != 1
+        || LColorGammaHighlightProtection != 0;
+
     public static LColor LColorDefaultCreate()
     {
         return new LColor(0, 1, 1, 0);
@@ -17,11 +33,16 @@ public sealed record LColor(
     {
         "Contrast" => LColorKind.LColorKindContrast,
         "Brightness" => LColorKind.LColorKindBrightness,
+        "Gamma" => LColorKind.LColorKindGamma,
         _ => null
     };
 
-    public static string LColorKindFormat(LColorKind lKind) =>
-        lKind == LColorKind.LColorKindContrast ? "Contrast" : "Brightness";
+    public static string LColorKindFormat(LColorKind lKind) => lKind switch
+    {
+        LColorKind.LColorKindContrast => "Contrast",
+        LColorKind.LColorKindGamma => "Gamma",
+        _ => "Brightness"
+    };
 }
 
 public enum LRotateKind

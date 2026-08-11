@@ -1,0 +1,100 @@
+@format 1
+@id section-modification.reorder-section-by-drag
+@title Reorder section by drag
+@section Section modification
+@area In Split tab
+@entry row-press, mouse-release, capture-lost
+@summary Reorder existing sections by dragging a row in the Split Sections panel; each live insertion that changes position updates section state immediately, while mouse release and lost capture terminate the drag UI state.
+@related section-modification.common.apply-modified-state
+@tag section
+@tag split
+@tag modification
+@tag reorder
+@tag drag
+
+@alias panel = Cadroue.UIShell.PPanels.PSection
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Application.LSegment
+@alias ghost = Cadroue.UIShell.PMainWindow.PGhost
+
+[row-press] Section row PreviewMouseLeftButtonDown <input>
+- A non-double-click row press stores the row, its current index, drag origin, and grab offset, resets drag-active=false, and captures the row panel mouse @ panel.PSectionRowBuild(...) / row PreviewMouseLeftButtonDown
+> drag-motion
+
+[mouse-release] Row-panel MouseLeftButtonUp after a stored press <input>
+- PSectionUpHandle ignores release when no drag row is stored; otherwise it restores row opacity, clears the ghost, releases mouse capture, and records whether drag mode had become active @ panel.PSectionUpHandle(...)
+? "A drag had become active" > dragged-release
+? "No drag had become active" > click-release
+
+[capture-lost] Row-panel LostMouseCapture <input>
+- PSectionLostHandle restores row opacity when a drag row exists, clears the ghost, and clears all drag fields @ panel.PSectionLostHandle(...)
+  @ panel.PSectionDragClear(...)
+> drag-aborted
+
+[drag-motion] Row-panel PreviewMouseMove <decision>
+- PSectionMoveHandle requires a stored row/index/origin, no active inline editor, and the left button still pressed; movement must also exceed the system drag threshold before drag mode begins @ panel.PSectionMoveHandle(...)
+? "Prerequisites fail or below threshold" > no-live-move
+? "Drag threshold crossed" > drag-start
+
+[dragged-release] Complete moved drag UI <process>
+- Clear all drag fields, rebuild the section rows from current flow state, mark the mouse event handled, and return @ panel.PSectionUpHandle(...)
+  @ panel.PSectionDragClear(...)
+  @ panel.PSectionRebuild(...)
+> drag-finished
+
+[click-release] Treat press/release as row selection <process>
+- Resolve the row's current index and clear drag fields; when the row is valid and is not the active inline-edit target, commit any pending inline editor and select that row through the flow @ panel.PSectionUpHandle(...)
+  @ panel.PSectionEditCommit(...)
+  @ flow.PFlowSectionSelect(...)
+> click-finished
+
+[drag-aborted] Drag interaction cleaned after capture loss <output>
+= Temporary drag opacity/ghost/state is cleared. PSectionLostHandle does not rebuild rows or request another logical move, so any logical moves already applied before capture loss remain in section state.
+
+[no-live-move] No reorder on this mouse move <output>
+= Section order remains unchanged for this PreviewMouseMove; the captured interaction can still receive later movement, release, or lost capture.
+
+[drag-start] Enter live drag mode <process>
+- Mark the drag active, lower the source-row opacity, create a ghost at the stored grab offset, and keep the ghost synchronized to the cursor @ panel.PSectionMoveHandle(...)
+  @ ghost.PGhostShow(...)
+  @ ghost.PGhostCursorSync(...)
+> target-resolve
+
+[drag-finished] Drag reorder interaction finished <output>
+= The panel has rebuilt from the already-applied section state, with drag opacity, ghost, capture, and temporary drag fields cleared.
+
+[click-finished] Row click interaction finished <output>
+= No drag reorder occurred; the release instead performed the normal row-selection path when applicable.
+
+[target-resolve] Resolve insertion target <process>
+- PSectionIndexResolve compares the pointer against each row midpoint and returns a clamped insertion position from zero through row count @ panel.PSectionIndexResolve(...)
+> live-move
+
+[live-move] Request section move <decision>
+- PSectionLiveMove converts the visual target to an insertion index and calls PFlowSectionMove unless the row would remain in the same position @ panel.PSectionLiveMove(...)
+  @ flow.PFlowSectionMove(...)
+? "Same insertion position" > await-more-motion
+? "Different insertion position" > editable-check
+
+[await-more-motion] Keep dragging without state change <output>
+= The current mouse move does not alter section order; subsequent captured mouse events may move again or terminate the interaction.
+
+[editable-check] Section editing enabled <decision>
+- PFlowSectionMove rejects the request when section editing is disabled; otherwise it calls LSegmentMove @ flow.PFlowSectionMove(...)
+? "Editing disabled" > move-rejected
+? "Editing enabled" > move-plan
+
+[move-rejected] Reorder rejected <output>
+= The logical section order and visual row order remain unchanged for this mouse move.
+
+[move-plan] Compute logical insertion <decision>
+- LSegmentMove validates the original source index, adjusts the requested target for removal of the source row, clamps it, and rejects a no-op insertion @ segment.LSegmentMove(...)
+? "Invalid source or computed no-op" > logical-noop
+? "Valid new insertion" > reorder-list
+
+[logical-noop] No logical move <output>
+= PFlowSectionMove returns false and the panel does not move the row for this mouse event.
+
+[reorder-list] Reorder pieces and preserve selection semantics <process>
+- Remove the source LPiece and insert it at the computed index; if that source section was selected, move the active index with it, otherwise keep the existing numeric active index unchanged @ segment.LSegmentMove(...)
+> map:section-modification.common.apply-modified-state

@@ -1,0 +1,39 @@
+@format 1
+@id functionality.media-loading.merge
+@title Media loading — Merge only
+@section Functionality
+@area Media loading — Merge only
+@entry merge-path-change, merge-group-row, merge-group-drop
+@summary Show only Merge-specific media-loading paths: Files selection, grouped-item opening, and external files dropped onto a Merge group.
+@related functionality.media-loading.common.list-add, functionality.media-loading.common.list-selection, functionality.media-loading.common.viewer, functionality.media-loading.common.drops
+@tag media
+@tag loading
+@tag merge
+
+@alias merge = Cadroue.UIShell.PMainArea.PMergeTab
+@alias group = Cadroue.UIShell.PPanels.PGroup
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[merge-path-change] Merge Files current-path event <input>
+= Shared Files logic published the current path through PListPathChange.
+> merge-path-result
+
+[merge-path-result] Merge selected-path adapter <decision>
+- Ignore a blank path; otherwise request it from the Merge viewer @ merge.PMergePathShow(...)
+? "Nonblank current path" > map:functionality.media-loading.common.viewer
+? "Blank current path" > merge-no-request
+
+[merge-no-request] Merge viewer request omitted <output>
+= Merge does not call the shared viewer-loading pipeline.
+
+[merge-group-row] Merge grouped-item selection <input>
+- Emit the selected grouped media path from the group row @ group.PGroupFileBuild(...)
+- Forward the emitted grouped path through the Merge selected-path adapter @ merge.PMergePathShow(...)
+> map:functionality.media-loading.common.viewer
+
+[merge-group-drop] External file drop on Merge group <input>
+- Receive a drop on the Merge group area or an existing group card and resolve its file-system paths @ group.PGroupDropHandle(...)
+  @ group.PGroupCardHandle(...)
+  @ group.PGroupPathsRead(...)
+- Invoke the Merge group's file-request delegate, which submits the paths to the Merge Files list before group insertion @ list.PListPathsAdd(...)
+> map:functionality.media-loading.common.list-add

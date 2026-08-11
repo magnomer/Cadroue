@@ -24,7 +24,7 @@ Document IDs use:
 Examples:
 
 ```text
-functionality.media-loading
+media-loading.common.backend-load
 shared.preview-fallback
 ```
 
@@ -81,8 +81,8 @@ Required complete-map headers:
 | `@format` | Must be `1`. |
 | `@id` | Global LMAP document ID. |
 | `@title` | Human-readable map title. |
-| `@section` | Top-level generated navigation section. |
-| `@area` | Navigation group when `@tabs` is absent. |
+| `@section` | Top-level generated navigation category. |
+| `@area` | Default display context when `@tabs` is absent. If it differs from `@title`, it is rendered as a stylistic context box beside the title. |
 | `@entry` | Comma-separated local root-node IDs. |
 | `@summary` | Concise map scope. |
 
@@ -90,7 +90,7 @@ Optional complete-map headers:
 
 | Header | Meaning |
 |---|---|
-| `@tabs` | Comma-separated navigation groups. If present, the map is listed under each group instead of only `@area`. |
+| `@tabs` | Comma-separated display contexts. If present, the map is listed once for each context instead of only `@area`; a context differing from `@title` is rendered as a stylistic context box. |
 | `@event-ref` | One exact verified UI-event binding. Requires `@tabs`. |
 | `@related` | Comma-separated existing map/fragment document IDs. |
 | `@tag` | Repeatable search metadata. |
@@ -302,23 +302,17 @@ The fragment ID must exist.
 
 Routing markers are valid only on local node edges, never on `map:` or `fragment:` continuations.
 
-## 12. Routing markers
+## 12. Routing marker
 
-Format 1 supports exactly three markers:
+Format 1 supports exactly one routing marker:
 
 ```text
-> target [left]
-> target [right]
 > earlier-step [loop]
 ```
 
-`[left]` and `[right]` request a real outer-side detour in generated layout. They do not remove the edge from source-order crossing validation and cannot be used to legitimize bad same-rank ordering.
+`[loop]` is not a visual crossing-avoidance hint. It declares the one edge that closes an intentional cycle; see §14.
 
-A non-loop local edge that skips one or more derived ranks must declare `[left]` or `[right]`. This makes the bypass explicit in source rather than letting the renderer invent a long route.
-
-`[loop]` has cycle semantics, not merely visual semantics; see §14.
-
-`[up]` and `[down]` are not part of Format 1 and are errors.
+`[left]`, `[right]`, `[up]`, and `[down]` are not part of Format 1 and are errors. A primary-flow edge may not be sent around other graph content to compensate for poor organization. If ordinary flow would need such a detour, the source must be reorganized with explicit topology nodes or split into smaller scenario maps.
 
 ## 13. Entry roots and derived rank
 
@@ -330,39 +324,57 @@ A non-loop local edge that skips one or more derived ranks must declare `[left]`
 
 Every entry must exist, cannot be a junction, and cannot have an incoming local edge.
 
-For layout validation, derived rank is the longest path distance from any entry after `[loop]` edges are removed. Declaration order is the authoritative preferred left-to-right order among nodes of the same derived rank.
+For layout validation, derived rank is the longest path distance from any entry after `[loop]` edges are removed. Declaration order is the authoritative left-to-right order among nodes of the same derived rank. The renderer must preserve this order; it must not reorder nodes to repair a bad source graph.
 
 ## 14. Cycles and `[loop]`
 
 Cycles must be explicit.
 
-The graph obtained by removing every `[loop]` edge must be acyclic. Therefore, an ordinary unmarked/left/right edge may not participate in a remaining directed cycle.
+The graph obtained by removing every `[loop]` edge must be acyclic. Therefore, an ordinary unmarked edge may not participate in a remaining directed cycle.
 
 Every `[loop]` edge must actually close an existing local path: after all `[loop]` edges are removed, there must be a path from the loop edge's target back to its source. A `[loop]` marker on an edge that does not close such a path is invalid.
 
 This makes `[loop]` the declared cycle-closing edge and gives the renderer an unambiguous non-primary route. If a loop returns to a flow point that already has a primary incoming edge, the loop and primary path must converge through a `junction`; the ordinary no-implicit-fan-in rule still applies.
 
-## 15. Crossing and convergence discipline
+## 15. Zero-crossing and convergence discipline
 
-LMAP source must eliminate avoidable crossings before HTML routing.
+A Format-1 LMAP must be organized so its primary flow can be rendered with **zero unrelated line crossings**. Crossing is not a renderer feature and there is no "unavoidable crossing" exception for ordinary flow. If a map would cross, its organization is wrong for one LMAP document and must be reordered, given explicit junctions, or split into smaller scenario documents.
 
-The validator enforces these structural rules:
+The validator enforces the structural contract used by the renderer:
 
-1. shared incoming paths must use an explicit junction;
+1. shared incoming paths must converge through an explicit `junction`;
 2. the non-loop primary graph must be acyclic;
-3. long rank-skipping edges must explicitly detour left or right;
-4. all adjacent-rank edges—including `[left]`/`[right]` edges—are checked against source declaration order for pairwise inversions;
-5. an inversion that can be removed by same-rank ordering is an error and cannot be waived with a routing marker.
+3. every non-loop local edge must connect exactly one derived rank to the next derived rank; rank-skipping primary edges are errors;
+4. every pair of adjacent-rank edges with distinct sources and targets is checked against source declaration order; any inversion is an error;
+5. source declaration order is authoritative and the renderer must not reorder nodes;
+6. the renderer draws ordinary adjacent-rank edges directly between their source and target positions and may not introduce a bridge/gap to excuse a crossing.
 
-Correction priority is:
+The required correction order is therefore:
 
 1. reorder same-rank nodes;
-2. represent genuine convergence with a junction;
-3. represent genuine bypasses with `[left]` or `[right]`;
-4. represent genuine cycles with `[loop]`;
-5. only then may the renderer handle residual geometric conflicts.
+2. replace duplicated convergence with an explicit junction;
+3. insert explicit topology stages when one logical step would otherwise skip ranks;
+4. split a large map by scenario or shared stage when the graph still cannot be represented without a crossing;
+5. use `[loop]` only for a genuine cycle-closing edge.
 
-The validator's source-order check is a layered structural invariant, not a mathematical proof that an arbitrary directed graph is planar. Generated rendering must still minimize residual crossings. If a residual unrelated crossing is unavoidable after the source invariants and available routing alternatives are exhausted, it must be visually distinguished from a true merge; a renderer must never make an unrelated crossing look like a junction.
+Scenario decomposition is part of source correctness. When several maps describe one larger operation, they should share one major `@section` category and be divided by situation rather than inventing a new top-level category for every scenario. Shared behavior belongs in Common maps/stages; scenario maps contain only their differences and reference common documents through `map:` continuations and/or `@related` metadata.
+
+For the Media loading family, the authoritative organization is conceptually:
+
+```text
+Media loading
+  [Common] Backend load
+  [Common] Completion routing
+  ...
+  In Audio tab
+  In Convert tab
+  In Edit tab
+  ...
+```
+
+The boxed `[Common]` notation above describes presentation: `Common` is the display context and the following text is the map title. It is not part of the title string itself.
+
+A true merge at an explicit junction is not a line crossing. Multiple lines may meet at the junction because the graph declares that convergence. Unrelated lines may not intersect.
 
 ## 16. Reachability
 
@@ -401,11 +413,24 @@ The generator recursively discovers every `*.lmap` below `docs/LogicMaps/source/
 
 Complete-map navigation is derived from source metadata:
 
-- `@section` → top-level section;
-- `@tabs`, when present → one or more navigation groups;
-- otherwise `@area` → navigation group;
-- `@title` → displayed title;
+- `@section` → one top-level category heading;
+- `@tabs`, when present → one or more display contexts;
+- otherwise `@area` → the display context;
+- `@title` → the map/situation title;
+- when the display context equals `@title` (case-insensitively), only the title is shown;
+- when the display context differs from `@title`, the context is shown as a compact stylistic box immediately before the title;
+- all map/situation entries are flat beneath their top-level category rather than being wrapped in another textual subgroup heading;
 - `@summary` and `@tag` → search metadata.
+
+For example, this metadata:
+
+```text
+@section Media loading
+@area Common
+@title Backend load
+```
+
+is displayed beneath **Media loading** as a boxed **Common** label followed by **Backend load**. A scenario map with both `@area In Audio tab` and `@title In Audio tab` is displayed simply as **In Audio tab**.
 
 Fragments are presented as shared fragments and link to their generated graph pages.
 
@@ -427,8 +452,8 @@ Generation fails when errors exist. Errors include, among other things:
 - invalid entries;
 - cycles not explicitly closed by `[loop]`;
 - meaningless `[loop]` edges;
-- long unhinted rank-skipping edges;
-- avoidable adjacent-rank crossings;
+- non-loop local edges that skip derived ranks;
+- any adjacent-rank source-order crossing;
 - malformed, duplicate, or stale `@event-ref` values;
 - unresolved implementation ownership in strict mode.
 

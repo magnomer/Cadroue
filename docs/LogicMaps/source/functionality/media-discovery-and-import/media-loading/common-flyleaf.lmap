@@ -1,0 +1,47 @@
+@format 1
+@id functionality.media-loading.common.flyleaf
+@title Media loading — common Flyleaf preview
+@section Functionality
+@area Media loading — Common
+@entry flyleaf-start
+@summary Trace Flyleaf eligibility, opening, stale handling, and viewer commit after successful backend media inspection or mpv fallback.
+@related functionality.media-loading.common.publication
+@tag media
+@tag loading
+@tag common
+@tag flyleaf
+
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+
+[flyleaf-start] Flyleaf preview path <input>
+= The common completion router or mpv fallback selected Flyleaf for the current source.
+> eligibility
+
+[eligibility] Flyleaf media eligibility <decision>
+- Reject audio-only media when the current viewer does not permit audio-only sources @ viewer.PPlayerMediaApply(...)
+? "Audio-only source disallowed" > restricted
+? "Media allowed" > open
+
+[restricted] Flyleaf restricted-source commit <process>
+- Record the restriction and commit the source without usable media information or preview @ viewer.PViewerMediaRecord(...)
+  @ viewer.PViewerMediaCommit(...)
+> map:functionality.media-loading.common.publication
+
+[open] Flyleaf preview opening <external>
+- Create or reuse a Flyleaf player, configure it, apply volume, open the source, pause it, and seek to the start @ viewer.PPlayerMediaApply(...)
+  @ viewer.PPlayerFlyleafOpen(...)
+  @ viewer.PPlayerStartPause(...)
+> open-result
+
+[open-result] Flyleaf opening result <decision>
+- Dispose a newly created unattached player if the viewer request became stale during preview opening @ viewer.PPlayerMediaApply(...)
+? "Viewer request became stale" > stale
+? "Viewer request still current" > commit
+
+[stale] Stale Flyleaf result ignored <output>
+= An obsolete Flyleaf result does not replace current viewer state.
+
+[commit] Flyleaf viewer commit <process>
+- Record parsed media and preview availability, synchronize the host and media identity, reset nonpersistent crop state, and restore autoplay or stopped state @ viewer.PViewerMediaRecord(...)
+  @ viewer.PViewerMediaCommit(...)
+> map:functionality.media-loading.common.publication

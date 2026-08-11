@@ -1,0 +1,57 @@
+@format 1
+@id section-modification.sort-sections
+@title Sort sections
+@section Section modification
+@area In Split tab
+@entry sort-click
+@summary Sort existing Split sections by their current names without changing any name; a pending inline name-editor commit performed before sorting is outside this map.
+@related section-modification.common.apply-modified-state
+@tag section
+@tag split
+@tag modification
+@tag sort
+
+@alias panel = Cadroue.UIShell.PPanels.PSection
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Application.LSegment
+
+[sort-click] Sections-panel Sort button Click <input>
+- PSectionSortHandle is invoked by the Sort button in the Sections-panel action bar @ panel.PSectionSortHandle(...)
+> editor-boundary
+
+[editor-boundary] Finish any pending inline editor <process>
+- PSectionSortHandle calls PSectionEditCommit before sorting. Any naming/renaming performed by that commit is explicitly outside this map @ panel.PSectionEditCommit(...)
+> sort-request
+
+[sort-request] Request section sort <decision>
+- PFlowSectionSort rejects when section editing is disabled; otherwise it resets pFlowSegmentFired and calls LSegmentSort @ flow.PFlowSectionSort(...)
+? "Editing disabled" > sort-blocked
+? "Editing enabled" > count-check
+
+[sort-blocked] Sort blocked <output>
+= Section order is unchanged.
+
+[count-check] At least two sections <decision>
+- LSegmentSort returns immediately when fewer than two pieces exist @ segment.LSegmentSort(...)
+? "Fewer than two" > sort-noop
+? "Two or more" > sorted-copy
+
+[sort-noop] Nothing to sort <output>
+= No state change and no sort log.
+
+[sorted-copy] Build name-sorted copy <process>
+- Capture the currently selected LPiece, then order pieces by LPieceName using CurrentCultureIgnoreCase @ segment.LSegmentSort(...)
+> order-change-check
+
+[order-change-check] Did order actually change? <decision>
+- If SequenceEqual reports the sorted list already matches the current list, LSegmentSort returns without applying @ segment.LSegmentSort(...) / SequenceEqual check
+? "Already in sorted order" > already-sorted
+? "Order changed" > selection-remap
+
+[already-sorted] Sort produces no modification <output>
+= No state change and no sort log.
+
+[selection-remap] Remap selected section by LPiece value <process>
+- When a section was selected, use List.IndexOf on the captured LPiece to locate an equal LPiece in the sorted list and use that index; otherwise retain the nullable selection state @ segment.LSegmentSort(...)
+! LPiece is a record struct, so IndexOf uses LPiece value equality rather than persistent object identity. Under ordinary distinct section values this follows the selected section, but the implementation does not preserve identity independently of value.
+> map:section-modification.common.apply-modified-state

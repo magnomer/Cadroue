@@ -62,6 +62,8 @@ public sealed partial class PViewer : PPanel
     public string? PViewerSourcePath { get; private set; }
     public Rect? PCropVideo { get; private set; }
     public double PViewerVolumeCurrent => pViewerVolume;
+    public LPreviewEngine PViewerEngineCurrent { get; private set; } = LPreviewEngine.LPreviewEngineFlyleaf;
+    public event Action? PViewerEngineChange;
     public LPreviewState LPreviewStateCurrent { get; private set; } = LPreviewState.LPreviewDefaultCreate();
 
     public PViewer() : base("")

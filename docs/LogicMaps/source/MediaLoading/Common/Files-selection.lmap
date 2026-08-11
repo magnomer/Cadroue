@@ -1,0 +1,97 @@
+@format 1
+@id media-loading.common.files-selection
+@title Files selection
+@section Media loading
+@area Common
+@entry row-press, row-release, select-all, remove-selected, clear-files
+@summary Trace shared Files interactions that publish a current path, including the two-stage selection behavior of direct Remove.
+@related media-loading.common.files-clear, media-loading.common.docket-removal, media-loading.in-split-tab, media-loading.in-edit-tab, media-loading.in-convert-tab, media-loading.in-audio-tab, media-loading.in-merge-tab, media-loading.in-funnel-tab
+@tag media
+@tag loading
+@tag common
+@tag selection
+
+@alias list = Cadroue.UIShell.PPanels.PList
+@alias docket = Cadroue.Application.LDocket
+
+[row-press] Files row mouse press <input>
+- Apply normal, Control, or Shift selection for the pressed row @ list.PListPressHandle(...)
+> row-press-publish
+
+[row-release] Files row mouse release <input>
+- Release a captured row interaction and collapse a retained multi-selection only when a collapse path is pending @ list.PListReleaseHandle(...)
+> row-release-result
+
+[select-all] Files Control+A <input>
+- Test Control+A against the current Files selection and docket contents @ list.PListKeyHandle(...)
+> select-all-result
+
+[remove-selected] Remove selected Files <input>
+- Resolve selected unlocked paths and remember the first removed index before performing synchronous docket removal @ list.PListRemove(...)
+> remove-result
+
+[clear-files] Remove all Files button <input>
+- Invoke the registered Remove All callback and enter PListClear @ list.PListButtonBuild(...)
+> map:media-loading.common.files-clear
+
+[row-press-publish] Press selection publication <process>
+- Publish the selected current path as part of the row-selection operation @ list.PListCurrentApply(...)
+> row-press-output
+
+[row-release-result] Release outcome <decision>
+- Republish the collapsed row only when the earlier press left a collapse path pending @ list.PListReleaseHandle(...)
+? "Selection collapsed" > row-release-publish
+? "No collapse pending" > row-release-nochange
+
+[select-all-result] Select-all eligibility <decision>
+- Apply the full selection only when Control+A, an existing selection, and at least one docket path are present @ list.PListKeyHandle(...)
+  @ list.PListSelectionApply(...)
+? "Eligible" > select-all-publish
+? "Ineligible" > select-all-nochange
+
+[remove-result] Remove eligibility <decision>
+- Continue only when at least one selected path is unlocked and removable @ list.PListRemove(...)
+? "Removal performed" > remove-docket-call
+? "Nothing removable" > remove-nochange
+
+[row-press-output] Current path after press <output>
+= The scenario-specific selected-path adapter receives the published path.
+
+[row-release-publish] Release selection publication <process>
+- Publish the collapsed current path @ list.PListCurrentApply(...)
+> row-release-output
+
+[row-release-nochange] Release changes nothing <output>
+= No current-path publication occurs.
+
+[select-all-publish] Select-all current publication <process>
+- Preserve the current path when possible, otherwise publish the last selected path @ list.PListCurrentApply(...)
+> select-all-output
+
+[select-all-nochange] Select All ignored <output>
+= No current-path publication occurs.
+
+[remove-docket-call] Synchronous docket-removal subflow <process>
+- Call LDocketPathsRemove from PListRemove; the complete Common / Docket removal sequence runs synchronously before this call returns, including any first-remaining PListPathChange and PListClearChange viewer cleanup @ list.PListRemove(...)
+  @ docket.LDocketPathsRemove(...)
+! The common Docket removal map is a call-return subflow here, not the end of PListRemove.
+> remove-final-select
+
+[remove-nochange] Removal ignored <output>
+= The Files current path is unchanged.
+
+[row-release-output] Current path after release <output>
+= The scenario-specific selected-path adapter receives the republished path.
+
+[select-all-output] Current path after Select All <output>
+= The scenario-specific selected-path adapter receives the published path.
+
+[remove-final-select] Direct Remove resumes and selects again <process>
+- After LDocketPathsRemove returns, reread remaining paths and call PListSelectApply with null or the clamped original index; this synchronously publishes PListPathChange again @ list.PListRemove(...)
+  @ list.PListSelectApply(...)
+  @ list.PListCurrentApply(...)
+! This second publication occurs after any forced viewer close performed by PListClearChange, so it can start a fresh request and supersede an earlier replacement request from PListDocketRemoveHandle.
+> remove-output
+
+[remove-output] Current path after direct Remove <output>
+= PListRemove has finished its second selection publication; an empty docket publishes null and media-tab adapters ignore it.

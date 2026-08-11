@@ -1,0 +1,69 @@
+@format 1
+@id section-naming.inline-editor-input
+@title Edit inline section name fields
+@section Section naming
+@area In Split tab
+@entry normal-text,comma-input,enter-key,escape-key,field-focus-lost
+@summary Handle buffered text, comma field-stepping, explicit commit/cancel, and deferred focus-loss commit while the Split Sections-panel inline editor is active.
+@related section-naming.inline-editor-open, section-naming.pending-inline-commit, section-naming.switch-inline-edit-target, section-naming.common.apply-name-state
+@tag section
+@tag split
+@tag name
+@tag rename
+@tag inline-editor
+
+@alias panel = Cadroue.UIShell.PPanels.PSection
+
+[normal-text] Ordinary inline text entry <input>
+= Normal text editing changes only the TextBox buffer until a commit-triggering event occurs.
+> buffered
+
+[comma-input] PreviewTextInput comma <input>
+- PSectionStepAttach consumes comma input; the main name steps to prefix and prefix steps to suffix by revealing/focusing/selecting the next field @ panel.PSectionStepAttach(...)
+> comma-check
+
+[enter-key] Name/prefix/suffix Enter <input>
+- Enter in any inline field calls PSectionEditCommit and marks the key handled @ panel.PSectionFieldBuild(...) / KeyDown Enter
+> enter-commit
+
+[escape-key] Name/prefix/suffix Escape <input>
+- Escape calls PSectionEditCancel and marks the key handled @ panel.PSectionFieldBuild(...) / KeyDown Escape
+> cancel
+
+[field-focus-lost] Name/prefix/suffix LostFocus <input>
+- LostFocus calls PSectionEditClose; unless the panel is rebuilding, it schedules the focus decision at DispatcherPriority.Input @ panel.PSectionEditClose(...)
+> deferred-focus-check
+
+[buffered] Pending inline name text <output>
+= Stored LPiece name fields remain unchanged.
+
+[comma-check] Next field exists <decision>
+- PSectionStepAttach always handles the comma; suffix comma is consumed even though there is no next field @ panel.PSectionStepAttach(...)
+? "Next field exists" > stepped
+? "Suffix has no next field" > suffix-comma
+
+[enter-commit] Explicit commit requested <process>
+- PSectionEditCommit trims the three buffers and calls PFlowNameSet @ panel.PSectionEditCommit(...)
+> map:section-naming.common.apply-name-state
+
+[cancel] Discard inline buffers <output>
+- PSectionEditCancel clears the editing index and TextBox references, then rebuilds from stored section state without calling PFlowNameSet @ panel.PSectionEditCancel(...)
+
+[deferred-focus-check] Focus after dispatcher turn <decision>
+- PSectionEditClose returns while rebuilding or while PSectionFocusCheck finds keyboard focus in any of the three editor fields; otherwise it calls PSectionEditCommit @ panel.PSectionEditClose(...)
+@ panel.PSectionFocusCheck(...)
+? "Focus remains inside editor or rebuild active" > keep-editing
+? "Focus left all editor fields" > focus-commit
+
+[stepped] Continue editing next field <output>
+= No commit occurs.
+
+[suffix-comma] Suffix comma consumed <output>
+= The comma is not inserted and no commit occurs.
+
+[keep-editing] Keep inline editor open <output>
+= Moving focus among the three naming fields does not commit.
+
+[focus-commit] Deferred commit requested <process>
+- PSectionEditClose calls PSectionEditCommit after focus has left all editor fields @ panel.PSectionEditCommit(...)
+> map:section-naming.common.apply-name-state

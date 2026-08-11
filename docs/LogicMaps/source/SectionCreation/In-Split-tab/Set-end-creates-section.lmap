@@ -1,0 +1,81 @@
+@format 1
+@id section-creation.set-end-creates-section
+@title Set End creates a section
+@section Section creation
+@area In Split tab
+@entry end-dispatch
+@summary Follow only the Set End branch that creates a new section when no section is selected; changing an existing section end is outside this map.
+@related section-creation.common.compass-buttons, section-creation.common.keyboard-shortcuts, section-creation.common.apply-created-state
+@tag section
+@tag split
+@tag creation
+@tag end
+
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+@alias segment = Cadroue.Application.LSegment
+@alias piece = Cadroue.Core.LPiece
+
+[end-dispatch] setEnd dispatch request <input>
+= The request came from the Split Compass End button or the currently bound SectionEnd shortcut.
+> dispatch-guard
+
+[dispatch-guard] Active Split flow guard <decision>
+- PFlowShortcutDispatch requires a command-active flow with a loaded spool and active section UI before invoking PFlowEndSet @ flow.PFlowShortcutDispatch(...) / setEnd
+? "Rejected" > dispatch-rejected
+? "Accepted" > end-handler
+
+[dispatch-rejected] Set End command ignored <output>
+= No section operation is called.
+
+[end-handler] Set End creation preconditions <decision>
+- PFlowEndSet requires section editing to be enabled plus a spool and nonblank source path, then chooses the color from current section count modulo active palette count and calls LSegmentEndSet with cursor, color, and overlap policy @ flow.PFlowEndSet(...)
+@ flow.PFlowColorRead(...)
+@ property flow.PFlowOverlapAllowed
+? "Editing disabled or media/source unavailable" > end-rejected
+? "Preconditions accepted" > selection-check
+
+[end-rejected] Set End creation blocked <output>
+= No section state changes.
+
+[selection-check] Is a section already selected? <decision>
+- LSegmentEndSet delegates to LPieceEndSet; only a null active index enters LPieceEndCreate, while a selected section enters the existing-section end path @ segment.LSegmentEndSet(...)
+@ piece.LPieceEndSet(...)
+? "Section selected" > existing-end-outside
+? "No section selected" > cursor-check
+
+[existing-end-outside] Existing-section end path excluded <output>
+= Editing or rejecting the selected section's end is outside the requested creation-only scope.
+
+[cursor-check] End cursor after zero <decision>
+- LPieceEndCreate rejects a cursor at or before zero @ piece.LPieceEndCreate(...)
+? "Cursor at or before zero" > zero-rejected
+? "Cursor after zero" > floor-read
+
+[zero-rejected] No section plan <output>
+= No new section is created.
+
+[floor-read] Determine the new section start <process>
+- LPieceFloorRead returns zero when overlap is allowed; otherwise it returns the latest existing section end that is not later than the cursor @ piece.LPieceFloorRead(...)
+> floor-check
+
+[floor-check] Positive span from start to cursor <decision>
+- LPieceEndCreate requires the computed start to be earlier than the cursor @ piece.LPieceEndCreate(...) / start check
+? "Start is not earlier" > floor-rejected
+? "Start is earlier" > obstruction-check
+
+[floor-rejected] No section plan because span is empty <output>
+= No new section is created.
+
+[obstruction-check] No intervening blocked span <decision>
+- When overlap is disabled, LPieceLimitRead detects a section start between the computed start and cursor; LPieceEndCreate rejects if the cursor passes that limit @ piece.LPieceLimitRead(...)
+@ piece.LPieceEndCreate(...) / limit check
+? "Blocked before cursor" > obstruction-rejected
+? "Clear to cursor" > end-plan
+
+[obstruction-rejected] No section plan because another section intervenes <output>
+= No new section is created.
+
+[end-plan] Append a new unnamed ending section <process>
+- Append LPiece(computed start, cursor, color index, empty name), select the new last index, and return Added=true to LSegmentEndSet @ piece.LPieceEndCreate(...)
+@ piece.LPieceEndSet(...) / Added true creation result
+> map:section-creation.common.apply-created-state

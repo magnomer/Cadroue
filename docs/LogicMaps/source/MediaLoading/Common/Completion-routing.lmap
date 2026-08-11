@@ -1,0 +1,40 @@
+@format 1
+@id media-loading.common.completion-routing
+@title Completion routing
+@section Media loading
+@area Common
+@entry backend-outcome
+@summary Trace a raised backend completion through viewer staleness/failure filtering and the preview engine that was selected before the request began.
+@related media-loading.common.viewer-gate, media-loading.common.mpv-preview, media-loading.common.flyleaf-preview, media-loading.common.media-publication, media-loading.in-edit-tab
+@tag media
+@tag loading
+@tag common
+@tag completion
+
+@alias media-load = Cadroue.Media.LMediaLoad
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+
+[backend-outcome] Raised backend outcome <input>
+- LMediaLoadRaise invokes this viewer subscriber independently from other backend subscribers @ media-load.LMediaLoadRaise(...)
+> completion-filter
+
+[completion-filter] Viewer completion acceptance <decision>
+- Capture the current viewer load serial, marshal the callback onto the viewer dispatcher, then compare lifetime, serial, and expected source path before accepting the outcome @ viewer.PViewerLoadHandle(...)
+? "Viewer request is stale" > stale
+? "Current backend failure or cancellation" > failed-status
+? "Current backend success" > engine-route
+
+[stale] Stale completion ignored <output>
+= The completion cannot replace current viewer state.
+
+[failed-status] Unreadable media cargo publication <process>
+- Build cargo containing the failed source and backend error, then synchronously raise PViewerMediaChange without committing PViewerSourcePath or media information @ viewer.PViewerLoadHandle(...)
+  @ viewer.PViewerMediaRaise(...)
+> map:media-loading.common.media-publication
+
+[engine-route] Previously selected preview engine <decision>
+- Route successful media information according to pViewerMpvActive, which was set by PViewerEngineSelect before backend loading; PViewerEngineRead can request mpv only for a viewer whose PViewerEditEligible property is true @ viewer.PPlayerMediaApply(...)
+  @ viewer.PViewerEngineRead(...)
+  @ property viewer.PViewerEditEligible
+? "mpv active" > map:media-loading.common.mpv-preview
+? "Flyleaf active" > map:media-loading.common.flyleaf-preview

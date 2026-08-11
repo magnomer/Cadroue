@@ -25,7 +25,7 @@ DOCS_ROOT = MAP_ROOT.parent
 DEFAULT_MAP_ROOT = MAP_ROOT
 CODE_ROOT = DOCS_ROOT.parent / "src"
 KINDS = {"input", "process", "decision", "storage", "external", "output", "error", "note", "junction"}
-EDGE_MARKERS = {"left", "right", "loop"}
+EDGE_MARKERS = {"loop"}
 FORMAT_VERSION = "1"
 MAP_ID_RE = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*$")
 NODE_ID_RE = re.compile(r"^[a-z][a-z0-9-]*$")
@@ -728,13 +728,13 @@ def validate(all_maps: list[LogicMap], reporter: Reporter) -> tuple[dict[str, Lo
                 if source not in ranks or edge.target not in ranks:
                     continue
                 delta = ranks[edge.target] - ranks[source]
-                if delta > 1 and edge.marker not in {"left", "right"}:
-                    reporter.issue("ERROR", item.path, edge.line, f"Long local edge {source}->{edge.target} bypasses {delta - 1} rank(s) and must declare [left] or [right].")
+                if delta != 1:
+                    reporter.issue("ERROR", item.path, edge.line, f"Primary local edge {source}->{edge.target} spans {delta} rank(s). Crossing-free Format 1 requires every non-loop local edge to connect adjacent ranks; insert explicit topology nodes or split the scenario.")
 
             crossing_count, crossing_examples = source_layout_crossings(item, entries)
             if crossing_count:
                 sample = "; ".join(f"{a}->{b} crosses {c}->{d}" for a, b, c, d in crossing_examples)
-                reporter.issue("ERROR", item.path, 1, f"Source graph contains {crossing_count} avoidable primary-lane crossing(s). Reorder same-rank nodes or restructure the graph; routing hints do not exempt these crossings. {sample}")
+                reporter.issue("ERROR", item.path, 1, f"Source graph contains {crossing_count} crossing(s). Format 1 permits no primary-flow line crossing: reorder same-rank nodes, add explicit junctions, or split the scenario. {sample}")
 
         for related in filter(None, (part.strip() for part in item.headers.get("related", "").split(","))):
             if not MAP_ID_RE.fullmatch(related):
@@ -807,36 +807,64 @@ def natural_key(value: str) -> list[object]:
 
 
 def navigation_groups(entry: dict[str, object]) -> list[str]:
-    """Use source-declared tabs when present; otherwise group by source-declared area."""
+    """Return source-declared display contexts: tabs when present, otherwise area."""
     tabs = [str(tab) for tab in entry.get("tabs", []) if str(tab).strip()]
     return tabs or [str(entry["area"])]
 
 
+def context_badge_parts(context: str, title: str) -> tuple[str, str | None, str]:
+    """Return badge text, optional title text, and a style kind for display contexts."""
+    normalized_context = context.strip()
+    normalized_title = title.strip()
+    if normalized_context.casefold() == "common":
+        return "Common", normalized_title, "common"
+    match = re.fullmatch(r"In\s+(.+?)\s+tab", normalized_context, flags=re.IGNORECASE)
+    if match:
+        return f'In {match.group(1)}', None if normalized_context.casefold() == normalized_title.casefold() else normalized_title, "scenario"
+    if normalized_context.casefold() == normalized_title.casefold():
+        return normalized_context, None, "scenario"
+    return normalized_context, normalized_title, "scenario"
+
+
+def contextual_title_html(entry: dict[str, object], context: str) -> str:
+    """Render context badges for both shared and scenario maps."""
+    title = str(entry["title"])
+    badge_text, title_text, badge_kind = context_badge_parts(context, title)
+    badge = f'<span class="context-badge context-badge-{badge_kind}">{h(badge_text)}</span>'
+    title_html = "" if title_text is None else f'<span class="context-title">{h(title_text)}</span>'
+    return f'{badge}{title_html}'
+
+
+def section_display_entries(entries: list[dict[str, object]]) -> list[tuple[str, dict[str, object]]]:
+    """Flatten a major category into its source-declared situations/contexts."""
+    display: list[tuple[str, dict[str, object]]] = []
+    for entry in entries:
+        for context in navigation_groups(entry):
+            display.append((context, entry))
+    return sorted(display, key=lambda pair: (natural_key(pair[0]), natural_key(str(pair[1]["title"]))))
+
+
 def navigation_html(catalog: list[dict[str, object]], fragment_catalog: list[dict[str, object]] | None = None) -> str:
-    """Build the shared navigation document from authoritative sources."""
+    """Build one flat situation list beneath each authoritative major category."""
     fragment_catalog = fragment_catalog or []
-    sections: dict[str, dict[str, list[dict[str, object]]]] = defaultdict(lambda: defaultdict(list))
+    sections: dict[str, list[dict[str, object]]] = defaultdict(list)
     for entry in catalog:
-        section = str(entry["section"])
-        for group in navigation_groups(entry):
-            sections[section][group].append(entry)
+        sections[str(entry["section"])].append(entry)
 
     body: list[str] = [
         '<a class="nav-home" href="../../MapsLogic.html" target="_top">Logic maps</a>',
         '<a class="nav-home nav-secondary" href="ImplementationIndex.html" target="_top">Implementation index</a>',
     ]
     for section in sorted(sections, key=natural_key):
-        body.append(f'<h2 class="nav-major">{h(section)}</h2>')
-        for group in sorted(sections[section], key=natural_key):
-            entries = sorted(sections[section][group], key=lambda entry: natural_key(str(entry["title"])))
-            body.append(f'<div class="nav-group"><div class="nav-group-title">{h(group)}</div>')
-            for entry in entries:
-                body.append(f'<a class="maplink" href="{h(entry["href"])}" target="_top">{h(entry["title"])}</a>')
-            body.append('</div>')
+        body.append(f'<h2 class="nav-major">{h(section)}</h2><div class="nav-situations">')
+        for context, entry in section_display_entries(sections[section]):
+            label = contextual_title_html(entry, context)
+            body.append(f'<a class="maplink situation-link" href="{h(entry["href"])}" target="_top">{label}</a>')
+        body.append('</div>')
     if fragment_catalog:
-        body.append('<h2 class="nav-major">Shared fragments</h2><div class="nav-group">')
+        body.append('<h2 class="nav-major">Shared fragments</h2><div class="nav-situations">')
         for entry in sorted(fragment_catalog, key=lambda item: natural_key(str(item["title"]))):
-            body.append(f'<a class="maplink" href="{h(entry["href"])}" target="_top">{h(entry["title"])}</a>')
+            body.append(f'<a class="maplink situation-link" href="{h(entry["href"])}" target="_top"><span class="context-title">{h(entry["title"])}</span></a>')
         body.append('</div>')
     content = "".join(body)
     return f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Navigation — Cadroue Logic Maps</title><link rel="stylesheet" href="../assets/site.css"></head><body class="navigation-page"><nav class="nav nav-document" aria-label="Logic map navigation">{content}</nav><script src="../assets/site.js"></script></body></html>'
@@ -991,7 +1019,7 @@ def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter:
                 edges.append({"from": source_id, "to": virtual, "label": edge.label or "continues", "conditional": edge.conditional, "marker": edge.marker or ""})
                 target_output = html_root() / map_output_relative(target)
                 href = os.path.relpath(target_output, output.parent).replace(os.sep, "/")
-                nodes.append(f'<section class="node output" data-id="{h(virtual)}" tabindex="0"><div class="nodehead"><div class="kind">Linked map</div><div class="nodetitle"><a href="{h(href)}">{h(target.headers["title"])}</a></div></div><div class="states"><div class="state">{h(target.headers["summary"])}</div></div></section>')
+                nodes.append(f'<section class="node output" data-id="{h(virtual)}" data-virtual="true" tabindex="0"><div class="nodehead"><div class="kind">Linked map</div><div class="nodetitle"><a href="{h(href)}">{h(target.headers["title"])}</a></div></div><div class="states"><div class="state">{h(target.headers["summary"])}</div></div></section>')
             elif edge.target.startswith("fragment:"):
                 target_id = edge.target[9:]
                 target = fragments[target_id]
@@ -999,7 +1027,7 @@ def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter:
                 edges.append({"from": source_id, "to": virtual, "label": edge.label or "shared flow", "conditional": edge.conditional, "marker": edge.marker or ""})
                 target_output = html_root() / fragment_output_relative(target)
                 href = os.path.relpath(target_output, output.parent).replace(os.sep, "/")
-                nodes.append(f'<section class="node note" data-id="{h(virtual)}" tabindex="0"><div class="nodehead"><div class="kind">Shared fragment</div><div class="nodetitle"><a href="{h(href)}">{h(target.headers["title"])}</a></div></div><div class="states"><div class="state">{h(target.headers["summary"])}</div></div></section>')
+                nodes.append(f'<section class="node note" data-id="{h(virtual)}" data-virtual="true" tabindex="0"><div class="nodehead"><div class="kind">Shared fragment</div><div class="nodetitle"><a href="{h(href)}">{h(target.headers["title"])}</a></div></div><div class="states"><div class="state">{h(target.headers["summary"])}</div></div></section>')
             else:
                 edges.append({"from": source_id, "to": edge.target, "label": edge.label, "conditional": edge.conditional, "marker": edge.marker or ""})
 
@@ -1048,19 +1076,24 @@ def generate(ids: dict[str, LogicMap], fragments: dict[str, LogicMap], reporter:
     emit_text(html_root() / "NavigationLogic.html", navigation_html(catalog, fragment_catalog))
 
     sections: list[str] = []
-    grouped: dict[str, dict[str, list[dict[str, object]]]] = defaultdict(lambda: defaultdict(list))
+    grouped: dict[str, list[dict[str, object]]] = defaultdict(list)
     for entry in catalog:
-        section = str(entry["section"])
-        for group in navigation_groups(entry):
-            grouped[section][group].append(entry)
+        grouped[str(entry["section"])].append(entry)
     for section in sorted(grouped, key=natural_key):
-        sections.append(f'<section class="major-section"><div class="major-heading"><h1>{h(section)}</h1></div>')
-        for group in sorted(grouped[section], key=natural_key):
-            entries = sorted(grouped[section][group], key=lambda entry: natural_key(str(entry["title"])))
-            cards = "".join(f'<a class="mapcard" data-search="{h(entry["search"])}" href="LogicMaps/maps/{h(entry["href"])}"><strong>{h(entry["title"])}</strong><span class="card-kind">{"Code-bound event" if entry["event_ref"] else "Logic map"}</span><p>{h(entry["summary"])}</p></a>' for entry in entries)
-            entry_word = "map" if len(entries) == 1 else "maps"
-            sections.append(f'<section class="area" id="{anchor(section)}-{anchor(group)}"><h2>{h(group)} · {len(entries)} {entry_word}</h2><div class="cards">{cards}</div></section>')
-        sections.append('</section>')
+        cards: list[str] = []
+        for context, entry in section_display_entries(grouped[section]):
+            title_html = contextual_title_html(entry, context)
+            cards.append(
+                f'<a class="mapcard" data-search="{h(entry["search"])}" href="LogicMaps/maps/{h(entry["href"])}">'
+                f'<div class="card-title-row">{title_html}</div>'
+                f'<span class="card-kind">{"Code-bound event" if entry["event_ref"] else "Logic map"}</span>'
+                f'<p>{h(entry["summary"])}</p></a>'
+            )
+        sections.append(
+            f'<section class="major-section" id="{anchor(section)}">'
+            f'<div class="major-heading"><h1>{h(section)}</h1></div>'
+            f'<div class="cards situation-cards">{"".join(cards)}</div></section>'
+        )
 
     fragment_section = ""
     if fragment_catalog:

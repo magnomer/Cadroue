@@ -1,0 +1,34 @@
+@format 1
+@id functionality.media-loading.common.publication
+@title Media loading — common media publication
+@section Functionality
+@area Media loading — Common
+@entry cargo-ready
+@summary Trace publication of the final viewer cargo and the shared subscribers that synchronize visible/common workspace state.
+@related functionality.media-loading.edit
+@tag media
+@tag loading
+@tag common
+@tag publication
+
+@alias viewer = Cadroue.UIShell.PPanels.PViewer
+@alias window = Cadroue.UIShell.PMainWindow.PWindow
+@alias source = Cadroue.UIShell.PPanels.PSource
+@alias info = Cadroue.UIShell.PPanels.PInfo
+@alias workspace = Cadroue.UIShell.PControlBar.PWorkspace
+
+[cargo-ready] Final viewer cargo ready <input>
+= A failure/restriction or successful preview commit has produced the LCargo that represents the current viewer outcome.
+> publish
+
+[publish] Viewer media publication <process>
+- Publish the resulting LCargo to every attached viewer-media subscriber @ viewer.PViewerMediaRaise(...)
+- Attach or clear the active flow according to whether media information is available @ window.PWindowMediaHandle(...)
+- Synchronize an attached Source field with the resulting source path @ source.PSourceMediaHandle(...)
+- Synchronize an attached Info panel with processability, preview availability, parsed media information, or failure status @ info.PInfoMediaHandle(...)
+- For applicable non-audio workspaces, remember the source and schedule or clear LosslessCut discovery @ workspace.PWorkspaceMediaHandle(...)
+- For a relay-load subscription, restore relayed sections after media information becomes available @ workspace.PWorkspaceRelayApply(...)
+> publication-result
+
+[publication-result] Shared media state synchronized <output>
+= Shared subscribers update only where their corresponding viewer, Source/Info panel, flow, or workspace hook is attached; tab-specific subscribers remain in the scenario-specific maps.

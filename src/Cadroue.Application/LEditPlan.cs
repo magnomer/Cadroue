@@ -19,6 +19,13 @@ public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool 
 
 public static partial class LEdit
 {
+    public static LWorkVideo LEditVideoCreate(
+        IReadOnlyList<LWorkVideoStep> lEditSteps,
+        bool lEditGammaCapable) =>
+        new(lEditGammaCapable
+            ? lEditSteps
+            : lEditSteps.Where(lStep => lStep.LWorkStepKind != LColorKind.LColorKindGamma).ToArray());
+
     public static LEditPlan LEditPlanResolve(LEditPlan? lEditSaved, LEditPlan? lEditPersistent)
     {
         if (lEditPersistent is not { } lPersistent)
@@ -110,19 +117,43 @@ public static partial class LEdit
     private static LWorkVideoStep LEditStepCreate(LSidecarVideoStep lEditRecord)
     {
         LColorKind lKind = LColor.LColorKindParse(lEditRecord.LSidecarKind) ?? LColorKind.LColorKindBrightness;
-        return lKind == LColorKind.LColorKindContrast
-            ? LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
-            : LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue);
+        return lKind switch
+        {
+            LColorKind.LColorKindContrast =>
+                LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue),
+            LColorKind.LColorKindGamma =>
+                LWorkVideoStep.LWorkGammaCreate(
+                    lEditRecord.LSidecarActive,
+                    lEditRecord.LSidecarValue,
+                    lEditRecord.LSidecarGammaRed ?? 0,
+                    lEditRecord.LSidecarGammaGreen ?? 0,
+                    lEditRecord.LSidecarGammaBlue ?? 0,
+                    lEditRecord.LSidecarGammaHighlightProtection ?? 0),
+            _ => LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
+        };
     }
 
     public static void LEditPlanSave(
         string lEditSourcePath, LEditPlan lEditPlan, Func<string, LSidecarEditRecord?, bool> lSidecarSave) =>
         lSidecarSave(lEditSourcePath, LEditPersistentCreate(lEditPlan));
 
-    private static LSidecarVideoStep LEditRecordCreate(LWorkVideoStep lEditStep) => new()
+    private static LSidecarVideoStep LEditRecordCreate(LWorkVideoStep lEditStep)
     {
-        LSidecarKind = LColor.LColorKindFormat(lEditStep.LWorkStepKind),
-        LSidecarActive = lEditStep.LWorkStepActive,
-        LSidecarValue = lEditStep.LWorkStepValue
-    };
+        var lRecord = new LSidecarVideoStep
+        {
+            LSidecarKind = LColor.LColorKindFormat(lEditStep.LWorkStepKind),
+            LSidecarActive = lEditStep.LWorkStepActive,
+            LSidecarValue = lEditStep.LWorkStepValue
+        };
+        if (lEditStep.LWorkStepKind == LColorKind.LColorKindGamma)
+        {
+            LWorkGammaSettings lGamma = lEditStep.LWorkGammaRead();
+            lRecord.LSidecarGammaRed = lGamma.LWorkGammaRed;
+            lRecord.LSidecarGammaGreen = lGamma.LWorkGammaGreen;
+            lRecord.LSidecarGammaBlue = lGamma.LWorkGammaBlue;
+            lRecord.LSidecarGammaHighlightProtection = lGamma.LWorkGammaHighlightProtection;
+        }
+
+        return lRecord;
+    }
 }

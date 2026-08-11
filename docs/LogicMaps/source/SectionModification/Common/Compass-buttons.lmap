@@ -1,0 +1,39 @@
+@format 1
+@id section-modification.common.compass-buttons
+@title Compass buttons
+@section Section modification
+@area Common
+@entry start-button,split-button,end-button
+@summary Map the Split Compass Start, Split, and End buttons when they modify an already selected section; the Split operation is included because it necessarily shortens the original section while creating the right half.
+@related section-modification.set-start-on-selected-section, section-modification.split-selected-section, section-modification.set-end-on-selected-section
+@tag section
+@tag split
+@tag modification
+@tag compass
+
+@alias compass = Cadroue.UIShell.PMainArea.PCompass
+@alias flow = Cadroue.UIShell.PFlow.PFlow
+
+[start-button] Start button Click <input>
+- The Split Compass Start button invokes the supplied setStart action, which dispatches the section-start command @ compass.PCompass(...) / Start button Click lambda
+> start-dispatch
+
+[split-button] Split button Click <input>
+- The Split Compass Split button invokes the supplied splitSection action, which dispatches the section-division command @ compass.PCompass(...) / Split button Click lambda
+> split-dispatch
+
+[end-button] End button Click <input>
+- The Split Compass End button invokes the supplied setEnd action, which dispatches the section-end command @ compass.PCompass(...) / End button Click lambda
+> end-dispatch
+
+[start-dispatch] Submit setStart to the active flow <process>
+- Invoke PFlowShortcutDispatch with setStart; the called map follows only the existing-section modification branch @ flow.PFlowShortcutDispatch(...) / setStart
+> map:section-modification.set-start-on-selected-section
+
+[split-dispatch] Submit splitSection to the active flow <process>
+- Invoke PFlowShortcutDispatch with splitSection; the called map follows the existing-section modification inherent in a successful split @ flow.PFlowShortcutDispatch(...) / splitSection
+> map:section-modification.split-selected-section
+
+[end-dispatch] Submit setEnd to the active flow <process>
+- Invoke PFlowShortcutDispatch with setEnd; the called map follows only the existing-section modification branch @ flow.PFlowShortcutDispatch(...) / setEnd
+> map:section-modification.set-end-on-selected-section

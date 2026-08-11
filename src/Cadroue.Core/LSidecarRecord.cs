@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Cadroue.Core;
 
@@ -34,6 +35,14 @@ public sealed class LSidecarVideoStep
     public string LSidecarKind { get; set; } = string.Empty;
     public bool LSidecarActive { get; set; }
     public double LSidecarValue { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? LSidecarGammaRed { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? LSidecarGammaGreen { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? LSidecarGammaBlue { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? LSidecarGammaHighlightProtection { get; set; }
 }
 
 public sealed class LSidecarAudioStep

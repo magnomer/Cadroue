@@ -6,6 +6,18 @@ namespace Cadroue.Tests;
 
 public sealed class LocalizationCatalogTests
 {
+    [Fact]
+    public void EnglishAndKoreanCatalogs_HaveIdenticalKeySets()
+    {
+        string lLocalizationPath = Path.Combine(RepositoryPathRead(), "localization");
+        using JsonDocument lEnglish = JsonDocument.Parse(File.ReadAllText(Path.Combine(lLocalizationPath, "en.json")));
+        using JsonDocument lKorean = JsonDocument.Parse(File.ReadAllText(Path.Combine(lLocalizationPath, "ko.json")));
+        string[] lEnglishKeys = lEnglish.RootElement.EnumerateObject().Select(lProperty => lProperty.Name).Order().ToArray();
+        string[] lKoreanKeys = lKorean.RootElement.EnumerateObject().Select(lProperty => lProperty.Name).Order().ToArray();
+
+        Assert.Equal(lEnglishKeys, lKoreanKeys);
+    }
+
     [Theory]
     [InlineData("en")]
     [InlineData("ko")]
@@ -26,7 +38,29 @@ public sealed class LocalizationCatalogTests
         Assert.Contains("Group.Manual.Label", lLocalizationKeys);
         Assert.Contains("Group.NumberRemove.Label", lLocalizationKeys);
         Assert.Contains("Group.NumberRemove.Tooltip", lLocalizationKeys);
+        foreach (string lGammaKey in GammaKeys)
+        {
+            Assert.Contains(lGammaKey, lLocalizationKeys);
+        }
     }
+
+    private static readonly string[] GammaKeys =
+    {
+        "Terms.Gamma",
+        "Processing.Step.Gamma",
+        "Processing.Step.GammaRequiresMpv",
+        "Inspector.Step.Gamma",
+        "Inspector.Video.ApplyGamma",
+        "Inspector.Video.PersistGamma",
+        "Inspector.Video.Midtone",
+        "Inspector.Video.RedGamma",
+        "Inspector.Video.GreenGamma",
+        "Inspector.Video.BlueGamma",
+        "Inspector.Video.HighlightProtection",
+        "Inspector.Video.GammaReset",
+        "Inspector.Video.GammaResetTooltip",
+        "Inspector.Video.GammaRequiresMpv"
+    };
 
     private static string RepositoryPathRead()
     {

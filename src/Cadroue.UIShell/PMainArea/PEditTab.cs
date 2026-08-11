@@ -14,6 +14,7 @@ public sealed class PEditTab : PTabSurface
     private const string PEditCropIcon = "/PAssets/PPanels/PProcessingCrop.svg";
     private const string PEditBrightnessIcon = "/PAssets/PPanels/PProcessingBrightness.svg";
     private const string PEditContrastIcon = "/PAssets/PPanels/PProcessingContrast.svg";
+    private const string PEditGammaIcon = "/PAssets/PPanels/PProcessingGamma.svg";
 
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new() { PViewerColorPreview = true, PViewerEditEligible = true };
@@ -22,6 +23,10 @@ public sealed class PEditTab : PTabSurface
     private readonly PProcessing pProcessing = new();
     private readonly LCropboxState pCropOwner = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
+    private readonly System.Windows.Threading.DispatcherTimer pEditColorTimer = new()
+    {
+        Interval = TimeSpan.FromMilliseconds(80)
+    };
     private bool pEditPlanLoading;
 
     public PEditTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
@@ -40,7 +45,7 @@ public sealed class PEditTab : PTabSurface
                 pEditSelected.LDocketEntryPath,
                 pViewer.PViewerDurationRead(),
                 pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pCropOwner.LCropboxStateCrop,
-                pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
+                pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(PEditGammaCapableRead()),
                 lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
@@ -54,7 +59,8 @@ public sealed class PEditTab : PTabSurface
                 .ToArray(),
             lPresetOwner,
             pAction.PActionRelayTarget,
-            pAction.PActionSourceTab);
+            pAction.PActionSourceTab,
+            PEditGammaCapableRead());
         pAction.PActionItemsAdd += pEditPaths => _ = LMessenger.LMessengerEditDescribe(
             LWorkPriority.LWorkPriorityNormal,
             pList.PListUnlockedRead()
@@ -63,7 +69,8 @@ public sealed class PEditTab : PTabSurface
                 .ToArray(),
             lPresetOwner,
             pAction.PActionRelayTarget,
-            pAction.PActionSourceTab);
+            pAction.PActionSourceTab,
+            PEditGammaCapableRead());
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
@@ -72,6 +79,7 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingStepAdd("Crop", PEditCropIcon, "Processing.Step.Crop");
         pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIcon, "Processing.Step.Brightness");
         pProcessing.PProcessingStepAdd("Contrast", PEditContrastIcon, "Processing.Step.Contrast");
+        pProcessing.PProcessingStepAdd("Gamma", PEditGammaIcon, "Processing.Step.Gamma");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepChange += PEditStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
@@ -94,6 +102,13 @@ public sealed class PEditTab : PTabSurface
         pInspector.PCropActiveChange += PEditActiveUpdate;
         pInspector.PCropActiveChange += PEditPlanSave;
         pInspector.PInspectorVideoChange += PEditChangeHandle;
+        pEditColorTimer.Tick += (_, _) =>
+        {
+            pEditColorTimer.Stop();
+            PEditColorApply();
+        };
+        PEditGammaCapabilityHandle();
+        pViewer.PViewerEngineChange += PEditGammaCapabilityHandle;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
         pList.PListPathChange += PEditPathShow;
@@ -227,12 +242,16 @@ public sealed class PEditTab : PTabSurface
             pInspector.PToneStepRead(LColorKind.LColorKindBrightness).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Contrast",
             pInspector.PToneStepRead(LColorKind.LColorKindContrast).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Gamma",
+            PEditGammaCapableRead()
+            && pInspector.PToneStepRead(LColorKind.LColorKindGamma).LWorkStepActive);
     }
 
     private void PEditChangeHandle()
     {
         PEditActiveUpdate();
-        PEditColorApply();
+        pEditColorTimer.Stop();
+        pEditColorTimer.Start();
         PEditPlanSave();
     }
 
@@ -418,7 +437,7 @@ public sealed class PEditTab : PTabSurface
 
         return string.Join(", ", pEditVideo.LWorkVideoSteps
             .Where(pStep => pStep.LWorkStepActive)
-            .Select(pStep => $"{pStep.LWorkStepKind} {pStep.LWorkStepValue:0.###}"));
+            .Select(pStep => pStep.LWorkDiagnosticRead()));
     }
 
     private LEditPlan? PEditCarriedRead()
@@ -450,7 +469,7 @@ public sealed class PEditTab : PTabSurface
         };
     }
 
-    private LWorkVideo PEditVideoRead()
+    private LWorkVideo PEditVideoRead(bool pGammaCapable = true)
     {
         var pSteps = new List<LWorkVideoStep>();
         foreach (string pStepName in pProcessing.PProcessingStepsRead())
@@ -461,7 +480,20 @@ public sealed class PEditTab : PTabSurface
             }
         }
 
-        return new LWorkVideo(pSteps);
+        return LEdit.LEditVideoCreate(pSteps, pGammaCapable);
+    }
+
+    private bool PEditGammaCapableRead() =>
+        pViewer.PViewerEngineCurrent == LPreviewEngine.LPreviewEngineMpv;
+
+    private void PEditGammaCapabilityHandle()
+    {
+        bool pGammaCapable = PEditGammaCapableRead();
+        string pGammaTooltip = LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresMpv");
+        pProcessing.PProcessingEnabledSet("Gamma", pGammaCapable, pGammaTooltip);
+        pInspector.PToneGammaCapabilitySet(pGammaCapable);
+        PEditActiveUpdate();
+        PEditColorApply();
     }
 
     private static LRotateFlip PEditRotateResolve(LWorkCrop pEditCrop) => new(
@@ -509,6 +541,13 @@ public sealed class PEditTab : PTabSurface
 
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
+
+    public override void PTabClose()
+    {
+        pEditColorTimer.Stop();
+        pViewer.PViewerEngineChange -= PEditGammaCapabilityHandle;
+        base.PTabClose();
+    }
     public override PList? PTabList => pList;
     public override LSceneTabRecord PTabLayoutRead()
     {

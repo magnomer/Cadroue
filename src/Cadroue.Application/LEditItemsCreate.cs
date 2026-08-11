@@ -76,7 +76,7 @@ public static partial class LEdit
         {
             string lVideoSteps = string.Join(", ", lEditWorkDescription.LEditVideo.LWorkVideoSteps
                 .Where(lStep => lStep.LWorkStepActive)
-                .Select(lStep => $"{lStep.LWorkStepKind} {lStep.LWorkStepValue:0.###}"));
+                .Select(lStep => lStep.LWorkDiagnosticRead()));
             lInfoLog($"Edit job '{lEditOutputName}' video: {lVideoSteps}");
         }
 

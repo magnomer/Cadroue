@@ -642,29 +642,39 @@ class MapInteractionAssetTests(unittest.TestCase):
         self.assertIn(".canvas{user-select:none;cursor:grab}", style)
         self.assertIn(".node{user-select:text;cursor:auto}", style)
 
-    def test_crossings_and_merges_have_distinct_rendering(self) -> None:
+    def test_renderer_has_no_crossing_bridge_fallback(self) -> None:
         root = Path(subject.__file__).parent
         script = (root / "site.js").read_text(encoding="utf-8")
         style = (root / "site.css").read_text(encoding="utf-8")
-        self.assertIn("function crossingBridges(routes)", script)
-        self.assertIn("edge-bridge-mask", script)
+        self.assertNotIn("crossingBridges", script)
+        self.assertNotIn("edge-bridge", script)
+        self.assertNotIn(".edge-bridge", style)
         self.assertIn("merge-junction", script)
-        self.assertIn(".edge-bridge-mask", style)
         self.assertIn(".merge-junction", style)
 
-    def test_layout_uses_local_crossing_optimization_and_shared_target_bundles(self) -> None:
+    def test_renderer_preserves_source_order_and_keeps_primary_edges_between_rows(self) -> None:
         root = Path(subject.__file__).parent
         script = (root / "site.js").read_text(encoding="utf-8")
-        self.assertIn("function adjacentCrossings(level)", script)
-        self.assertIn("function improveLocalOrder(level)", script)
-        self.assertIn("function adjacentPlan(fromLevel,toLevel)", script)
-        self.assertIn("const groupKey=edge.to;", script)
-        self.assertIn("bundle.channel", script)
-        self.assertIn("function markerBias(marker)", script)
-        self.assertIn("edge.marker==='left'||edge.marker==='right'||edge.marker==='loop'", script)
-        self.assertIn("const primaryEdges=localEdges.filter(edge=>edge.marker!=='loop')", script)
-        self.assertIn("if(to.level===from.level+1&&!edge.marker)", script)
-        self.assertIn("for(let sweep=0;sweep<12;sweep++)", script)
+        generator = (root / "generate.py").read_text(encoding="utf-8")
+        self.assertNotIn("reduceCrossings();", script)
+        self.assertNotIn("adjacentPlan(fromLevel,toLevel)", script)
+        self.assertIn("placeVirtualTargets();", script)
+        self.assertIn('data-virtual="true"', generator)
+        self.assertIn("if(to.level===from.level+1&&edge.marker!=='loop')", script)
+        self.assertIn("rowMetrics[from.level].bottom+24", script)
+        self.assertIn("rowMetrics[to.level].top-24", script)
+        self.assertIn("orderedOutgoing(edge)", script)
+        self.assertIn("orderedIncoming(edge)", script)
+        self.assertIn("return edge.marker==='loop'||depth[edge.to]!==depth[edge.from]+1;", script)
+
+    def test_edge_labels_use_collision_aware_placement(self) -> None:
+        root = Path(subject.__file__).parent
+        script = (root / "site.js").read_text(encoding="utf-8")
+        self.assertIn("labelRectClear", script)
+        self.assertIn("rectOverlaps", script)
+        self.assertIn("segmentHitsRect", script)
+        self.assertIn("const placed=[];", script)
+        self.assertIn("addLabel(item,routes,placed)", script)
 
 
 class JunctionTopologyTests(unittest.TestCase):
@@ -711,32 +721,38 @@ class JunctionTopologyTests(unittest.TestCase):
             "@format 1\n@id x\n@title X\n@section Functionality\n@area Test\n@entry a, b\n@summary X.\n"
             "[a] A <input>\n> right\n\n[b] B <input>\n> left\n\n[left] Left <output>\n= Done.\n\n[right] Right <output>\n= Done.\n"
         )
-        self.assertTrue(any("avoidable primary-lane crossing" in error for error in reporter.errors))
+        self.assertTrue(any("primary-flow line crossing" in error for error in reporter.errors))
 
-    def test_direction_hint_is_serialized_for_source_level_routing(self) -> None:
+    def test_loop_marker_is_serialized_for_cycle_routing(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             source_root = root / "source"
             source_root.mkdir()
             source = source_root / "map.lmap"
             source.write_text(
-                "@format 1\n@id x\n@title X\n@section Functionality\n@area Test\n@entry a\n@summary X.\n"
-                "[a] A <input>\n> result [right]\n\n[result] Result <output>\n= Done.\n",
+                "@format 1\n@id x\n@title X\n@section Functionality\n@area Test\n@entry start\n@summary X.\n"
+                "[start] Start <input>\n> join\n\n[join] Join <junction>\n> work\n\n[work] Work <process>\n> again\n\n[again] Again <process>\n> join [loop]\n",
                 encoding="utf-8",
             )
             reporter = subject.Reporter(strict=True)
             item = subject.parse_map(source, reporter)
             original_source_root = subject.SOURCE_ROOT
             original_map_root = subject.MAP_ROOT
+            original_code_root = subject.CODE_ROOT
             try:
                 subject.SOURCE_ROOT = source_root
                 subject.MAP_ROOT = root / "docs" / "LogicMaps"
-                subject.generate({"x": item}, {}, reporter)
+                subject.CODE_ROOT = root / "src"
+                subject.CODE_ROOT.mkdir()
+                ids, fragments = subject.validate([item], reporter)
+                self.assertFalse(reporter.errors)
+                subject.generate(ids, fragments, reporter)
             finally:
                 subject.SOURCE_ROOT = original_source_root
                 subject.MAP_ROOT = original_map_root
+                subject.CODE_ROOT = original_code_root
             rendered = (root / "docs" / "LogicMaps" / "maps" / "map.html").read_text(encoding="utf-8")
-            self.assertIn('&quot;marker&quot;:&quot;right&quot;', rendered)
+            self.assertIn('&quot;marker&quot;:&quot;loop&quot;', rendered)
 
 
 class FormatGrammarTests(unittest.TestCase):
@@ -846,30 +862,10 @@ class CycleAndRoutingTests(unittest.TestCase):
         reporter = self._validate("[start] Start <input>\n> join\n[join] Loop join <junction>\n> work\n[work] Work <process>\n> again\n[again] Again <process>\n> join [loop]\n")
         self.assertFalse(reporter.errors)
 
-    def test_up_and_down_markers_are_rejected(self) -> None:
-        for marker in ("up", "down"):
+    def test_non_loop_markers_are_rejected(self) -> None:
+        for marker in ("left", "right", "up", "down"):
             reporter = self._validate(f"[start] Start <process>\n> done [{marker}]\n[done] Done <output>\n= Done.\n")
             self.assertTrue(any(f"Invalid edge marker '{marker}'" in error for error in reporter.errors))
-
-    def test_hint_does_not_hide_avoidable_crossing(self) -> None:
-        text = (
-            "@format 1\n@id x\n@title X\n@section Functionality\n@area Test\n@entry a, b\n@summary X.\n"
-            "[a] A <input>\n> right [left]\n[b] B <input>\n> left\n[left] Left <output>\n= Done.\n[right] Right <output>\n= Done.\n"
-        )
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            path = root / "map.lmap"
-            path.write_text(text, encoding="utf-8")
-            reporter = subject.Reporter(strict=False)
-            item = subject.parse_map(path, reporter)
-            original_code_root = subject.CODE_ROOT
-            try:
-                subject.CODE_ROOT = root / "src"
-                subject.CODE_ROOT.mkdir()
-                subject.validate([item], reporter)
-            finally:
-                subject.CODE_ROOT = original_code_root
-            self.assertTrue(any("avoidable primary-lane crossing" in error for error in reporter.errors))
 
 
 class EventReferenceGrammarTests(unittest.TestCase):
@@ -922,6 +918,439 @@ class FragmentRenderingTests(unittest.TestCase):
             implementation = (root / "docs" / "LogicMaps" / "maps" / "ImplementationIndex.html").read_text(encoding="utf-8")
             self.assertIn("Shared fragment / Shared example", implementation)
             self.assertIn("Example.Owner.Run", implementation)
+
+
+
+class MediaLoadingScenarioSourceTests(unittest.TestCase):
+    def _source_root(self) -> Path:
+        return Path(subject.__file__).parent.parent / "source" / "MediaLoading"
+
+    def test_media_loading_tree_has_one_category_with_common_and_scenarios(self) -> None:
+        root = self._source_root()
+        self.assertTrue(root.is_dir())
+        common = root / "Common"
+        self.assertTrue(common.is_dir())
+        self.assertTrue((common / "Backend-load.lmap").is_file())
+        scenario = {
+            "In-Audio-tab.lmap", "In-Convert-tab.lmap", "In-Edit-tab.lmap", "In-Funnel-tab.lmap",
+            "In-Global-interface.lmap", "In-Merge-tab.lmap", "In-Split-tab.lmap", "In-Worklist.lmap",
+        }
+        self.assertTrue(scenario.issubset({path.name for path in root.glob("*.lmap")}))
+        self.assertGreaterEqual(len(list(common.glob("*.lmap"))), 1)
+        self.assertEqual({"Common"}, {path.name for path in root.iterdir() if path.is_dir()})
+
+    def test_media_loading_metadata_declares_one_major_category(self) -> None:
+        root = self._source_root()
+        reporter = subject.Reporter(strict=True)
+        items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
+        self.assertFalse(reporter.errors, "\n".join(reporter.errors))
+        self.assertEqual({"Media loading"}, {item.headers.get("section") for item in items})
+        for item in items:
+            if "Common" in item.path.parts:
+                self.assertEqual("Common", item.headers.get("area"))
+            else:
+                self.assertEqual(item.headers.get("title"), item.headers.get("area"))
+
+    def test_media_loading_sources_have_zero_primary_crossings(self) -> None:
+        root = self._source_root()
+        reporter = subject.Reporter(strict=True)
+        items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
+        ids, fragments = subject.validate(items, reporter)
+        self.assertFalse(reporter.errors, "\n".join(reporter.errors))
+        self.assertFalse(fragments)
+        for item in ids.values():
+            entries = subject.map_entries(item)
+            count, examples = subject.source_layout_crossings(item, entries)
+            self.assertEqual(0, count, f"{item.path}: {examples}")
+
+    def test_media_loading_original_trigger_families_remain_assigned(self) -> None:
+        root = self._source_root()
+        entries: set[str] = set()
+        for path in root.rglob("*.lmap"):
+            reporter = subject.Reporter(strict=False)
+            item = subject.parse_map(path, reporter)
+            entries.update(subject.map_entries(item))
+        expected = {
+            "source-browse", "source-enter", "files-add", "folder-add", "viewer-drop", "window-drop",
+            "merge-group-drop", "worklist-relay", "delivered-output", "remove-selected", "clear-files",
+            "unload-current", "unload-all", "clear-tabs", "relay-source-remove", "batch-evict", "funnel-drain",
+            "row-release", "select-all", "row-press", "merge-group-row", "startup-restore", "relay-source",
+        }
+        self.assertTrue(expected.issubset(entries), sorted(expected - entries))
+
+    def test_media_loading_navigation_is_flat_below_one_category(self) -> None:
+        root = self._source_root()
+        reporter = subject.Reporter(strict=True)
+        items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
+        ids, fragments = subject.validate(items, reporter)
+        catalog = []
+        for item in ids.values():
+            catalog.append({
+                "id": item.headers["id"], "title": item.headers["title"], "section": item.headers["section"],
+                "area": item.headers["area"], "tabs": subject.map_tabs(item), "href": "example.html",
+                "summary": item.headers["summary"], "event_ref": item.headers.get("event-ref"), "search": "example",
+            })
+        navigation = subject.navigation_html(catalog, fragment_catalog=[])
+        self.assertEqual(1, navigation.count('<h2 class="nav-major">Media loading</h2>'))
+        self.assertIn('<span class="context-badge context-badge-common">Common</span><span class="context-title">Backend load</span>', navigation)
+        self.assertIn('<span class="context-badge context-badge-scenario">In Audio</span>', navigation)
+        self.assertNotIn('<div class="nav-group-title">Common</div>', navigation)
+
+
+class MediaLoadingFidelityRegressionTests(unittest.TestCase):
+    def _root(self) -> Path:
+        return Path(subject.__file__).parent.parent / "source" / "MediaLoading"
+
+    def _read(self, relative: str) -> str:
+        return (self._root() / relative).read_text(encoding="utf-8")
+
+    def test_removal_models_replacement_then_clear_change_cleanup(self) -> None:
+        source = self._read("Common/Docket-removal.lmap")
+        self.assertIn("PListDocketRemoveHandle", source)
+        self.assertIn("PListClearChange", source)
+        self.assertIn("PViewerMediaClose", source)
+        self.assertIn("PFlowClear", source)
+        self.assertLess(source.index("[replacement-select]"), source.index("[clear-change]"))
+        self.assertLess(source.index("[clear-change]"), source.index("[close-viewer]"))
+
+    def test_files_intake_is_only_scan_wrapper_and_docket_insertion_owns_add_notifications(self) -> None:
+        intake = self._read("Common/Files-intake.lmap")
+        insertion = self._read("Common/Docket-insertion.lmap")
+        self.assertIn("PListPathsAdd", intake)
+        self.assertIn("PListMediaScan", intake)
+        self.assertIn("map:media-loading.common.docket-insertion", intake)
+        self.assertNotIn("@ docket.LDocketPathsAdd", intake)
+        self.assertIn("LDocketPathsAdd", insertion)
+        self.assertIn("PListDocketAddHandle", insertion)
+        self.assertIn("PListItemsAdd", insertion)
+        self.assertLess(insertion.index("[added-notification]"), insertion.index("[items-added]"))
+
+    def test_audio_models_immediate_restore_against_committed_viewer_source(self) -> None:
+        source = self._read("In-Audio-tab.lmap")
+        self.assertIn("PViewerSourceOpen", source)
+        self.assertIn("PAudioPlanRestore", source)
+        self.assertIn("property viewer.PViewerSourcePath", source)
+        self.assertLess(source.index("PViewerSourceOpen"), source.index("PAudioPlanRestore"))
+        self.assertIn("previous committed source", source)
+        self.assertIn("no PViewerMediaChange subscription", source)
+        self.assertIn("PListItemsAdd", source)
+        self.assertIn("Current Audio plan needs saving", source)
+        self.assertIn("Save skipped", source)
+
+    def test_preview_commits_publish_before_final_playback_work(self) -> None:
+        flyleaf = self._read("Common/Flyleaf-preview.lmap")
+        mpv = self._read("Common/mpv-preview.lmap")
+        self.assertLess(flyleaf.index("PViewerMediaRaise"), flyleaf.index("PViewerPreviewRestore"))
+        self.assertLess(mpv.index("PViewerMediaRaise"), mpv.index("PViewerMpvPreviewApply"))
+
+    def test_worklist_direct_docket_paths_do_not_claim_plistpathsadd(self) -> None:
+        source = self._read("In-Worklist.lmap")
+        self.assertNotIn("map:media-loading.common.files-intake", source)
+        self.assertIn("PListMediaScan", source)
+        self.assertIn("LDocketPathsAdd", source)
+        self.assertIn("map:media-loading.common.docket-insertion", source)
+        self.assertIn("LDocketPathsRemove", source)
+        self.assertIn("map:media-loading.common.docket-removal", source)
+
+    def test_funnel_drain_enters_common_docket_removal(self) -> None:
+        source = self._read("In-Funnel-tab.lmap")
+        self.assertIn("funnel-drain", source)
+        self.assertIn("map:media-loading.common.docket-removal", source)
+
+    def test_current_file_drop_map_excludes_unreachable_direct_viewer_load(self) -> None:
+        source = self._read("Common/File-drops.lmap")
+        self.assertIn("current workspace constitution", source)
+        self.assertIn("PDropPathsChange", source)
+        self.assertNotIn("map:media-loading.common.viewer-gate", source)
+        self.assertIn("AllowedEffects", source)
+        self.assertIn("Copy, Move, or Link", source)
+
+    def test_staged_workspace_directly_inserts_and_viewer_rejects_inactive_commands(self) -> None:
+        source = self._read("In-staged-workspace.lmap")
+        self.assertIn("LDocketPathsAdd", source)
+        self.assertIn("no PListMediaScan or PListPathsAdd", source)
+        self.assertIn("PViewerCommandSet", source)
+        self.assertIn("PViewerSourceOpen", source)
+        self.assertIn("not command-active", source)
+
+    def test_edit_audio_merge_added_item_subscribers_are_represented(self) -> None:
+        edit = self._read("In-Edit-tab.lmap")
+        audio = self._read("In-Audio-tab.lmap")
+        merge = self._read("In-Merge-tab.lmap")
+        self.assertIn("PEditItemsHandle", edit)
+        self.assertIn("PAudioItemsHandle", audio)
+        self.assertIn("PMergeItemsHandle", merge)
+        self.assertIn("PGroupAutoUpdate", merge)
+        self.assertIn("failure cargo", edit)
+        self.assertIn("previously committed source", edit)
+
+    def test_mpv_eligibility_is_explicitly_edit_only_in_current_tab_constitution(self) -> None:
+        viewer_gate = self._read("Common/Viewer-gate.lmap")
+        completion = self._read("Common/Completion-routing.lmap")
+        edit = self._read("In-Edit-tab.lmap")
+        self.assertIn("PViewerEditEligible", viewer_gate)
+        self.assertIn("PViewerEditEligible", completion)
+        self.assertIn("PViewerEditEligible=true", edit)
+        self.assertIn("only Edit", edit)
+
+    def test_backend_failure_models_obsolete_without_completion_raise(self) -> None:
+        source = self._read("Common/Backend-failure.lmap")
+        self.assertIn("LMediaLoadFailCurrent", source)
+        self.assertIn("Obsolete", source)
+        self.assertIn("does not raise LMediaLoadCompleted", source)
+
+    def test_media_publication_does_not_claim_per_subscriber_exception_isolation(self) -> None:
+        source = self._read("Common/Media-publication.lmap")
+        self.assertIn("one try/catch", source)
+        self.assertIn("not enumerated and isolated individually", source)
+        self.assertIn("later in the invocation list do not run", source)
+        self.assertIn("Audio intentionally does not attach PWorkspaceMediaHandle", source)
+
+    def test_global_unload_uses_workspace_clear_sequence(self) -> None:
+        global_map = self._read("In-Global-interface.lmap")
+        workspace = self._read("Common/Workspace-media-clear.lmap")
+        self.assertIn("map:media-loading.common.workspace-media-clear", global_map)
+        order = [workspace.index(token) for token in ("PViewerMediaClose", "PFlowClear", "PListClear", "PGroupClear")]
+        self.assertEqual(order, sorted(order))
+
+
+class SectionCreationScenarioSourceTests(unittest.TestCase):
+    def _source_root(self) -> Path:
+        return Path(subject.__file__).parent.parent / "source" / "SectionCreation"
+
+    def test_section_creation_tree_has_common_and_split_creation_maps(self) -> None:
+        root = self._source_root()
+        self.assertTrue((root / "Common" / "Compass-buttons.lmap").is_file())
+        self.assertTrue((root / "Common" / "Keyboard-shortcuts.lmap").is_file())
+        self.assertTrue((root / "Common" / "Forward-section-plan.lmap").is_file())
+        self.assertTrue((root / "Common" / "Apply-created-state.lmap").is_file())
+        split = root / "In-Split-tab"
+        self.assertEqual(
+            {"Add-at-cursor.lmap", "Set-start-creates-section.lmap", "Set-end-creates-section.lmap", "Split-selected-section.lmap"},
+            {path.name for path in split.glob("*.lmap")},
+        )
+
+    def test_section_creation_maps_are_one_category_and_crossing_free(self) -> None:
+        root = self._source_root()
+        reporter = subject.Reporter(strict=True)
+        items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
+        subject.validate(items, reporter)
+        self.assertFalse(reporter.errors, "\n".join(reporter.errors))
+        self.assertEqual({"Section creation"}, {item.headers.get("section") for item in items})
+        for item in items:
+            entries = subject.map_entries(item)
+            count, examples = subject.source_layout_crossings(item, entries)
+            self.assertEqual(0, count, f"{item.path}: {examples}")
+
+    def test_section_creation_scope_does_not_reference_delete_or_name_operations(self) -> None:
+        root = self._source_root()
+        text = "\n".join(path.read_text(encoding="utf-8") for path in sorted(root.rglob("*.lmap")))
+        self.assertNotIn("flow.PFlowSectionDelete", text)
+        self.assertNotIn("flow.PFlowNameSet", text)
+        self.assertNotIn("segment.LSegmentDelete", text)
+        self.assertNotIn("segment.LSegmentNameSet", text)
+
+    def test_section_creation_shared_effects_preserve_runtime_order(self) -> None:
+        path = self._source_root() / "Common" / "Apply-created-state.lmap"
+        text = path.read_text(encoding="utf-8")
+        order = [
+            "[replace-state]",
+            "[flow-change]",
+            "[section-panel]",
+            "[workspace-history]",
+            "[sidecar-save]",
+            "[caller-log]",
+        ]
+        positions = [text.index(marker) for marker in order]
+        self.assertEqual(positions, sorted(positions))
+
+
+class SectionModificationScenarioSourceTests(unittest.TestCase):
+    def _source_root(self) -> Path:
+        return Path(subject.__file__).parent.parent / "source" / "SectionModification"
+
+    def _read(self, relative: str) -> str:
+        return (self._source_root() / relative).read_text(encoding="utf-8")
+
+    def test_section_modification_tree_contains_only_direct_edit_manipulations(self) -> None:
+        root = self._source_root()
+        self.assertEqual(
+            {"Compass-buttons.lmap", "Keyboard-shortcuts.lmap", "Apply-modified-state.lmap"},
+            {path.name for path in (root / "Common").glob("*.lmap")},
+        )
+        self.assertEqual(
+            {
+                "Set-start-on-selected-section.lmap",
+                "Set-end-on-selected-section.lmap",
+                "Split-selected-section.lmap",
+                "Toggle-section.lmap",
+                "Reorder-section-by-drag.lmap",
+                "Sort-sections.lmap",
+            },
+            {path.name for path in (root / "In-Split-tab").glob("*.lmap")},
+        )
+
+    def test_section_modification_maps_are_one_category_and_crossing_free(self) -> None:
+        root = self._source_root()
+        reporter = subject.Reporter(strict=True)
+        items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
+        subject.validate(items, reporter)
+        self.assertFalse(reporter.errors, "\n".join(reporter.errors))
+        self.assertEqual({"Section modification"}, {item.headers.get("section") for item in items})
+        for item in items:
+            entries = subject.map_entries(item)
+            count, examples = subject.source_layout_crossings(item, entries)
+            self.assertEqual(0, count, f"{item.path}: {examples}")
+
+    def test_section_modification_scope_excludes_create_delete_and_name_mutators(self) -> None:
+        root = self._source_root()
+        source = "\n".join(path.read_text(encoding="utf-8") for path in sorted(root.rglob("*.lmap")))
+        self.assertNotIn("flow.PFlowSectionAdd", source)
+        self.assertNotIn("segment.LSegmentAdd", source)
+        self.assertNotIn("flow.PFlowSectionDelete", source)
+        self.assertNotIn("segment.LSegmentDelete", source)
+        self.assertNotIn("flow.PFlowNameSet", source)
+        self.assertNotIn("segment.LSegmentNameSet", source)
+
+    def test_existing_boundary_maps_model_only_non_creation_branches(self) -> None:
+        start = self._read("In-Split-tab/Set-start-on-selected-section.lmap")
+        end = self._read("In-Split-tab/Set-end-on-selected-section.lmap")
+        self.assertIn("LPieceFloorRead", start)
+        self.assertIn("LPieceStartSet", start)
+        self.assertIn("Creation branch excluded", start)
+        self.assertIn("LPieceLimitRead", end)
+        self.assertIn("LPieceEndSet", end)
+        self.assertIn("Creation branch excluded", end)
+        self.assertIn("map:section-modification.common.apply-modified-state", start)
+        self.assertIn("map:section-modification.common.apply-modified-state", end)
+        split = self._read("In-Split-tab/Split-selected-section.lmap")
+        self.assertIn("LPieceDivide", split)
+        self.assertIn("shortened left half", split)
+        self.assertIn("section-creation.split-selected-section", split)
+
+    def test_toggle_drag_and_sort_preserve_their_real_ui_specific_behaviors(self) -> None:
+        toggle = self._read("In-Split-tab/Toggle-section.lmap")
+        drag = self._read("In-Split-tab/Reorder-section-by-drag.lmap")
+        sort = self._read("In-Split-tab/Sort-sections.lmap")
+        self.assertIn("ClickCount is at least two", toggle)
+        self.assertIn("LPieceHidden inverted", toggle)
+        self.assertIn("system drag threshold", drag)
+        self.assertIn("each live insertion", drag)
+        self.assertIn("CurrentCultureIgnoreCase", sort)
+        self.assertIn("LPiece value equality", sort)
+        self.assertIn("MouseLeftButtonUp", drag)
+        self.assertIn("LostMouseCapture", drag)
+
+    def test_shared_apply_orders_publish_panel_history_then_sidecar(self) -> None:
+        source = self._read("Common/Apply-modified-state.lmap")
+        order = ["[replace-state]", "[flow-publish]", "[panel-update]", "[history-update]", "[sidecar-save]", "[caller-return]"]
+        positions = [source.index(marker) for marker in order]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("during live drag it intentionally returns without rebuilding", source)
+
+
+
+
+class SectionNamingScenarioSourceTests(unittest.TestCase):
+    def _source_root(self) -> Path:
+        return Path(subject.__file__).parent.parent / "source" / "SectionNaming"
+
+    def _read(self, relative: str) -> str:
+        return (self._source_root() / relative).read_text(encoding="utf-8")
+
+    def test_section_naming_tree_has_two_common_and_six_split_maps(self) -> None:
+        root = self._source_root()
+        self.assertEqual(
+            {"Keyboard-shortcut.lmap", "Apply-name-state.lmap"},
+            {path.name for path in (root / "Common").glob("*.lmap")},
+        )
+        self.assertEqual(
+            {
+                "Inline-editor-open.lmap",
+                "Inline-editor-input.lmap",
+                "Pending-inline-commit.lmap",
+                "Switch-inline-edit-target.lmap",
+                "Shortcut-popup.lmap",
+                "Unnamed-section-display.lmap",
+            },
+            {path.name for path in (root / "In-Split-tab").glob("*.lmap")},
+        )
+
+    def test_section_naming_maps_are_one_category_and_crossing_free(self) -> None:
+        root = self._source_root()
+        reporter = subject.Reporter(strict=True)
+        items = [subject.parse_map(path, reporter) for path in sorted(root.rglob("*.lmap"))]
+        subject.validate(items, reporter)
+        self.assertFalse(reporter.errors, "\n".join(reporter.errors))
+        self.assertEqual({"Section naming"}, {item.headers.get("section") for item in items})
+        for item in items:
+            count, examples = subject.source_layout_crossings(item, subject.map_entries(item))
+            self.assertEqual(0, count, f"{item.path}: {examples}")
+
+    def test_inline_open_selects_section_before_building_editor(self) -> None:
+        source = self._read("In-Split-tab/Inline-editor-open.lmap")
+        for token in ("PFlowSectionSelect", "LSegmentSelect", "PFlowSegmentHandle", "PSectionEditorBuild"):
+            self.assertIn(token, source)
+        self.assertLess(source.index("PFlowSectionSelect"), source.index("PSectionEditorBuild"))
+        self.assertIn("PWorkspaceSectionHandle", source)
+
+    def test_inline_input_models_buffer_step_commit_cancel_and_deferred_focus(self) -> None:
+        source = self._read("In-Split-tab/Inline-editor-input.lmap")
+        for token in ("PSectionStepAttach", "PSectionEditCommit", "PSectionEditCancel", "PSectionEditClose", "PSectionFocusCheck"):
+            self.assertIn(token, source)
+        self.assertIn("DispatcherPriority.Input", source)
+        self.assertIn("map:section-naming.common.apply-name-state", source)
+
+    def test_pending_non_name_actions_commit_inline_editor_first(self) -> None:
+        source = self._read("In-Split-tab/Pending-inline-commit.lmap")
+        for token in ("PSectionDeleteHandle", "PSectionSortHandle", "PSectionUpHandle", "PSectionEditCommit"):
+            self.assertIn(token, source)
+        self.assertIn("color badge MouseLeftButtonDown", source)
+        self.assertIn("before the non-naming action proceeds", source)
+
+    def test_switching_inline_target_can_discard_old_uncommitted_buffer(self) -> None:
+        source = self._read("In-Split-tab/Switch-inline-edit-target.lmap")
+        self.assertIn("without first committing the old row", source)
+        self.assertIn("does not call PSectionEditCommit", source)
+        self.assertIn("old row", source)
+        self.assertIn("PSectionFocusCheck", source)
+
+    def test_keyboard_shortcut_is_configurable_and_reaches_name_section(self) -> None:
+        source = self._read("Common/Keyboard-shortcut.lmap")
+        self.assertIn("SectionRename", source)
+        self.assertIn("defaults to A", source)
+        self.assertIn("LBindingTokenFind", source)
+        self.assertIn("nameSection", source)
+        self.assertIn("PFlowNameShow", source)
+        self.assertIn("TextBoxBase or PasswordBox", source)
+
+    def test_shortcut_popup_only_commits_on_enter(self) -> None:
+        source = self._read("In-Split-tab/Shortcut-popup.lmap")
+        self.assertIn("commit only on Enter", source)
+        self.assertIn("PFlowNameApply", source)
+        self.assertIn("Escape", source)
+        self.assertIn("without PFlowNameApply", source)
+        self.assertIn("StaysOpen=false", source)
+        self.assertIn("PFlowClose", source)
+        self.assertIn("map:section-naming.common.apply-name-state", source)
+
+    def test_shared_name_apply_orders_publish_history_save_then_log(self) -> None:
+        source = self._read("Common/Apply-name-state.lmap")
+        order = ["[replace-piece]", "[apply-state]", "[flow-publish]", "[panel-update]", "[history-update]", "[sidecar-save]", "[log-kind]"]
+        positions = [source.index(marker) for marker in order]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("ordinal", source)
+        self.assertIn("previous", source)
+        self.assertIn("affix", source)
+        self.assertIn("no naming", source)
+
+    def test_unnamed_placeholder_is_display_only(self) -> None:
+        source = self._read("In-Split-tab/Unnamed-section-display.lmap")
+        self.assertIn("not written into LPieceName", source)
+        self.assertIn("Viewfinder", source)
+        self.assertIn("placeholder", source)
+        self.assertIn("prefix", source)
+        self.assertIn("suffix", source)
 
 
 if __name__ == "__main__":

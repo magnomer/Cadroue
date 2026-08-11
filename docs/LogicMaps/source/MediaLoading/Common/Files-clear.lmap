@@ -1,0 +1,26 @@
+@format 1
+@id media-loading.common.files-clear
+@title Files clear
+@section Media loading
+@area Common
+@entry clear-request
+@summary Trace PListClear from a shared Files-clear request into the common docket-removal stage.
+@related media-loading.common.docket-removal, media-loading.in-global-interface, media-loading.in-worklist
+@tag media
+@tag loading
+@tag common
+@tag removal
+
+@alias list = Cadroue.UIShell.PPanels.PList
+
+[clear-request] Files clear request <input>
+= A Files control or workspace-clear operation has invoked PListClear for one Files panel.
+> clear-eligibility
+
+[clear-eligibility] Unlocked Files availability <decision>
+- Read every unlocked docket path and submit that set for removal only when the set is nonempty @ list.PListClear(...)
+? "Unlocked paths exist" > map:media-loading.common.docket-removal
+? "Nothing unlocked" > clear-nochange
+
+[clear-nochange] Files clear changes nothing <output>
+= PListClear submits no docket-removal request.
