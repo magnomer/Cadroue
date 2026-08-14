@@ -10,8 +10,8 @@ public sealed class RecordCleanupPreferenceTests
     {
         LPreferenceState lPreferenceState = TInterface.PreferenceCreate();
 
-        Assert.False(lPreferenceState.LPreferenceRecordCleanupActive);
-        Assert.Equal(30, lPreferenceState.LPreferenceRecordCleanupDays);
+        Assert.False(lPreferenceState.LPreferenceCleanupActive);
+        Assert.Equal(30, lPreferenceState.LPreferenceCleanupDays);
     }
 
     [Fact]
@@ -19,23 +19,23 @@ public sealed class RecordCleanupPreferenceTests
     {
         LPreferenceState lPreferenceLow = TInterface.PreferenceCreate(0);
         TInterface.PreferenceNormalize(lPreferenceLow);
-        Assert.Equal(1, lPreferenceLow.LPreferenceRecordCleanupDays);
+        Assert.Equal(1, lPreferenceLow.LPreferenceCleanupDays);
 
         LPreferenceState lPreferenceHigh = TInterface.PreferenceCreate(9999);
         TInterface.PreferenceNormalize(lPreferenceHigh);
-        Assert.Equal(365, lPreferenceHigh.LPreferenceRecordCleanupDays);
+        Assert.Equal(365, lPreferenceHigh.LPreferenceCleanupDays);
     }
 
     [Fact]
     public void RecordCleanup_Clone_PreservesSettings()
     {
         LPreferenceState lPreferenceState = TInterface.PreferenceDefaultCreate();
-        lPreferenceState.LPreferenceRecordCleanupActive = true;
-        lPreferenceState.LPreferenceRecordCleanupDays = 90;
+        lPreferenceState.LPreferenceCleanupActive = true;
+        lPreferenceState.LPreferenceCleanupDays = 90;
 
         LPreferenceState lPreferenceClone = TInterface.PreferenceClone(lPreferenceState);
 
-        Assert.True(lPreferenceClone.LPreferenceRecordCleanupActive);
-        Assert.Equal(90, lPreferenceClone.LPreferenceRecordCleanupDays);
+        Assert.True(lPreferenceClone.LPreferenceCleanupActive);
+        Assert.Equal(90, lPreferenceClone.LPreferenceCleanupDays);
     }
 }

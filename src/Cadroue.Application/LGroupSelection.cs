@@ -28,7 +28,7 @@ public sealed class LGroupSelection
     public void LGroupStrictRequest(bool lGroupStrict) =>
         LGroupChangeRequest(LGroupAuto, lGroupStrict, LGroupNameMode);
 
-    public void LGroupNameModeRequest(LSeriesNameMode lGroupNameMode) =>
+    public void LGroupModeRequest(LSeriesNameMode lGroupNameMode) =>
         LGroupChangeRequest(LGroupAuto, LGroupStrict, lGroupNameMode);
 
     public IReadOnlyList<LSeriesGroup> LGroupResolve(

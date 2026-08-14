@@ -186,7 +186,7 @@ internal sealed class TScene : IDisposable
             LSceneInspector = InspectorCreate(marker),
             LSceneGroupAuto = true,
             LSceneGroupStrict = false,
-            LSceneGroupNameMode = LSeriesNameMode.LSeriesNameFirst,
+            LSceneGroupMode = LSeriesNameMode.LSeriesNameFirst,
             LSceneAutoRelay = marker % 2 == 0
         };
     }

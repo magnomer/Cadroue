@@ -70,7 +70,7 @@ public sealed class EditPersistenceTests
         Assert.Equal(-90.5, stored.LSidecarGammaRed);
         Assert.Equal(10.75, stored.LSidecarGammaGreen);
         Assert.Equal(30.125, stored.LSidecarGammaBlue);
-        Assert.Equal(25.5, stored.LSidecarGammaHighlightProtection);
+        Assert.Equal(25.5, stored.LSidecarGammaHighlight);
         Assert.NotNull(restored.LWorkStepGamma);
         Assert.Equal(20.25, restored.LWorkStepGamma.LWorkGammaGlobal);
         Assert.Equal(-90.5, restored.LWorkStepGamma.LWorkGammaRed);

@@ -197,7 +197,7 @@ public sealed partial class LSchedule : LScheduleContract
         return lScheduleAccepted;
     }
 
-    public bool LSchedulePendingOrderSet(Guid lWorkBatchId, IReadOnlyList<Guid> lWorkIds)
+    public bool LScheduleOrderSet(Guid lWorkBatchId, IReadOnlyList<Guid> lWorkIds)
     {
         LWorkItem[] lScheduleBatchItems = lScheduleItems
             .Where(lWorkItem => lWorkItem.LWorkBatchId == lWorkBatchId

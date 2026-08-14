@@ -90,7 +90,7 @@ public sealed class PreviewColorTests
         Assert.Equal(50, result.LPreviewMpvContrast);
         Assert.Equal(-33, result.LPreviewMpvSaturation);
         Assert.Equal(0, result.LPreviewMpvHue);
-        Assert.Equal(1, result.LPreviewMpvGammaFactor);
+        Assert.Equal(1, result.LPreviewMpvGamma);
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public sealed class PreviewColorTests
             TInterface.PreviewDefaultCreate(),
             TInterface.ColorGammaCreate(1.5));
 
-        Assert.Equal(1.5, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGammaFactor);
+        Assert.Equal(1.5, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGamma);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public sealed class PreviewColorTests
         LPreviewState state = TInterface.PreviewColorChange(
             TInterface.PreviewDefaultCreate(), color);
 
-        Assert.Equal(0.1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGammaFactor);
+        Assert.Equal(0.1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGamma);
         Assert.Empty(TInterface.PreviewMpvFilterResolve(state));
     }
 
@@ -154,7 +154,7 @@ public sealed class PreviewColorTests
             TInterface.PreviewDefaultCreate(), color);
 
         Assert.Equal(10, color.LColorGamma);
-        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGammaFactor);
+        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGamma);
         Assert.Contains("lutyuv=y=", TInterface.PreviewMpvFilterResolve(state));
     }
 
@@ -170,7 +170,7 @@ public sealed class PreviewColorTests
         Assert.Equal(Math.Pow(10, -0.5), result.LColorGammaRed);
         Assert.Equal(Math.Pow(10, 0.25), result.LColorGammaGreen);
         Assert.Equal(Math.Pow(10, 0.75), result.LColorGammaBlue);
-        Assert.Equal(25, result.LColorGammaHighlightProtection);
+        Assert.Equal(25, result.LColorHighlightProtection);
     }
 
     [Theory]
@@ -183,7 +183,7 @@ public sealed class PreviewColorTests
             TInterface.PreviewDefaultCreate(),
             TInterface.ColorGammaCreate(global, red, green, blue, protection));
 
-        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGammaFactor);
+        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGamma);
         Assert.Equal(expected, TInterface.PreviewMpvFilterResolve(state));
     }
 
@@ -258,9 +258,9 @@ public sealed class PreviewColorTests
             TInterface.ColorGammaCreate(1.5));
 
         Assert.Contains("lutyuv=", TInterface.PreviewMpvFilterResolve(advanced));
-        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(advanced).LPreviewMpvGammaFactor);
+        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(advanced).LPreviewMpvGamma);
         Assert.Empty(TInterface.PreviewMpvFilterResolve(native));
-        Assert.Equal(1.5, TInterface.PreviewMpvEqualizerResolve(native).LPreviewMpvGammaFactor);
+        Assert.Equal(1.5, TInterface.PreviewMpvEqualizerResolve(native).LPreviewMpvGamma);
     }
 
     [Fact]

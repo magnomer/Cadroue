@@ -17,12 +17,12 @@ public sealed record LPreviewMpvEqualizer(
     int LPreviewMpvContrast,
     int LPreviewMpvSaturation,
     int LPreviewMpvHue,
-    double LPreviewMpvGammaFactor);
+    double LPreviewMpvGamma);
 
 public static class LPreview
 {
     public const double LPreviewBrightnessFactor = 2.5;
-    public const double LPreviewMpvGammaFactorMaximum = 2;
+    public const double LPreviewGammaMaximum = 2;
 
     public static Action<object, LPreviewApplication>? LPreviewApplySeam;
 
@@ -49,7 +49,7 @@ public static class LPreview
             LColorGammaRed = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaRed),
             LColorGammaGreen = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGreen),
             LColorGammaBlue = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaBlue),
-            LColorGammaHighlightProtection = lGamma?.LWorkGammaHighlightProtection ?? 0,
+            LColorHighlightProtection = lGamma?.LWorkGammaHighlightProtection ?? 0,
             LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead()
         };
     }
@@ -74,7 +74,7 @@ public static class LPreview
         LPreviewApplySeam?.Invoke(lPreviewTarget, LPreviewApplicationResolve(lPreviewState, "preview restored"));
     }
 
-    public static LPreviewMpvEqualizer LPreviewMpvEqualizerResolve(LPreviewState lPreviewState)
+    public static LPreviewMpvEqualizer LPreviewEqualizerResolve(LPreviewState lPreviewState)
     {
         LColor lColor = lPreviewState.LColor;
         double lContrast = lColor.LColorContrast;
@@ -90,10 +90,10 @@ public static class LPreview
             LPreviewValueClamp((lContrast - 1) * 100, -100, 100),
             LPreviewValueClamp((lSaturation - 1) * 100, -100, 100),
             LPreviewValueClamp(lColor.LColorHue / 180 * 100, -100, 100),
-            LPreviewMpvGammaFilterRequired(lColor) ? 1 : lColor.LColorGamma);
+            LPreviewGammaCheck(lColor) ? 1 : lColor.LColorGamma);
     }
 
-    public static string LPreviewMpvFilterResolve(LPreviewState lPreviewState)
+    public static string LPreviewFilterResolve(LPreviewState lPreviewState)
     {
         var lFilters = new List<string>();
 
@@ -123,17 +123,17 @@ public static class LPreview
         }
 
         LColor lColor = lPreviewState.LColor;
-        if (LPreviewMpvGammaFilterRequired(lColor))
+        if (LPreviewGammaCheck(lColor))
         {
-            double lGammaWeight = 1 - lColor.LColorGammaHighlightProtection / 100d;
+            double lGammaWeight = 1 - lColor.LColorHighlightProtection / 100d;
             lFilters.Add(
-                "lutyuv=y=" + LPreviewGammaLutExpression(
+                "lutyuv=y=" + LPreviewLutFormat(
                     lColor.LColorGamma * lColor.LColorGammaGreen,
                     lGammaWeight)
-                + ":u=" + LPreviewGammaLutExpression(
+                + ":u=" + LPreviewLutFormat(
                     Math.Sqrt(lColor.LColorGammaBlue / lColor.LColorGammaGreen),
                     lGammaWeight)
-                + ":v=" + LPreviewGammaLutExpression(
+                + ":v=" + LPreviewLutFormat(
                     Math.Sqrt(lColor.LColorGammaRed / lColor.LColorGammaGreen),
                     lGammaWeight));
         }
@@ -146,9 +146,9 @@ public static class LPreview
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;
     }
 
-    public static bool LPreviewMpvGammaFilterRequired(LColor lColor) =>
+    public static bool LPreviewGammaCheck(LColor lColor) =>
         lColor.LColorGammaAdvanced
-        || lColor.LColorGamma > LPreviewMpvGammaFactorMaximum;
+        || lColor.LColorGamma > LPreviewGammaMaximum;
 
     private static LPreviewApplication LPreviewApplicationResolve(LPreviewState lPreviewState, string lPreviewReason)
     {
@@ -181,7 +181,7 @@ public static class LPreview
         return Math.Clamp((int)Math.Round(lPreviewValue), lPreviewMinimum, lPreviewMaximum);
     }
 
-    private static string LPreviewGammaLutExpression(double lGamma, double lGammaWeight)
+    private static string LPreviewLutFormat(double lGamma, double lGammaWeight)
     {
         string lLinearWeight = LPreviewNumberFormat(1 - lGammaWeight);
         string lCurveWeight = LPreviewNumberFormat(lGammaWeight);

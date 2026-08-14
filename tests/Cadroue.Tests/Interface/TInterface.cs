@@ -80,7 +80,7 @@ internal static class TInterface
 
     internal static LPreferenceState PreferenceDefaultCreate() => LPreferenceState.LPreferenceDefaultCreate();
     internal static LPreferenceState PreferenceCreate(int cleanupDays = 30) =>
-        new() { LPreferenceRecordCleanupDays = cleanupDays };
+        new() { LPreferenceCleanupDays = cleanupDays };
     internal static LPreferenceState PreferenceClone(LPreferenceState state) => state.LPreferenceClone();
     internal static void PreferenceNormalize(LPreferenceState state) => state.LPreferenceNormalize();
     internal static IEnumerable<string> PreferenceDifferenceRead(LPreferenceState state, LPreferenceState before) =>
@@ -93,7 +93,7 @@ internal static class TInterface
         new(groupAuto, groupStrict, nameMode);
 
     internal static void GroupNameModeRequest(LGroupSelection selection, LSeriesNameMode mode) =>
-        selection.LGroupNameModeRequest(mode);
+        selection.LGroupModeRequest(mode);
 
     internal static IReadOnlyList<LSeriesGroup> GroupResolve(LGroupSelection selection, IReadOnlyList<string> paths) =>
         selection.LGroupResolve(paths);
@@ -111,7 +111,7 @@ internal static class TInterface
             LColorGammaRed = red,
             LColorGammaGreen = green,
             LColorGammaBlue = blue,
-            LColorGammaHighlightProtection = protection
+            LColorHighlightProtection = protection
         };
     internal static LRotateFlip RotateFlipCreate(LRotateKind rotate, bool horizontal, bool vertical) =>
         new(rotate, horizontal, vertical);
@@ -126,8 +126,8 @@ internal static class TInterface
         state.LRotateFlipChange(rotateFlip);
     internal static LColor PreviewColorResolve(LWorkVideo video) => LPreview.LPreviewColorResolve(video);
     internal static LPreviewMpvEqualizer PreviewMpvEqualizerResolve(LPreviewState state) =>
-        LPreview.LPreviewMpvEqualizerResolve(state);
-    internal static string PreviewMpvFilterResolve(LPreviewState state) => LPreview.LPreviewMpvFilterResolve(state);
+        LPreview.LPreviewEqualizerResolve(state);
+    internal static string PreviewMpvFilterResolve(LPreviewState state) => LPreview.LPreviewFilterResolve(state);
 
     internal static LColorKind? ColorKindParse(string token) => LColor.LColorKindParse(token);
     internal static string ColorKindFormat(LColorKind kind) => LColor.LColorKindFormat(kind);
@@ -161,7 +161,7 @@ internal static class TInterface
                     LSidecarGammaRed = red,
                     LSidecarGammaGreen = green,
                     LSidecarGammaBlue = blue,
-                    LSidecarGammaHighlightProtection = protection
+                    LSidecarGammaHighlight = protection
                 }
             }
         };

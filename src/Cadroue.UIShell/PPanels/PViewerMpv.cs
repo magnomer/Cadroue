@@ -37,10 +37,10 @@ public sealed partial class PViewer
         }
 
         LColor pViewerGamma = LPreviewStateCurrent.LColor;
-        bool pViewerGammaFiltered = LPreview.LPreviewMpvGammaFilterRequired(pViewerGamma);
+        bool pViewerGammaFiltered = LPreview.LPreviewGammaCheck(pViewerGamma);
         LPreviewMpvEqualizer pViewerEqualizer =
-            LPreview.LPreviewMpvEqualizerResolve(LPreviewStateCurrent);
-        string pViewerFilter = LPreview.LPreviewMpvFilterResolve(LPreviewStateCurrent);
+            LPreview.LPreviewEqualizerResolve(LPreviewStateCurrent);
+        string pViewerFilter = LPreview.LPreviewFilterResolve(LPreviewStateCurrent);
         bool pViewerApplied;
 
         if (pViewerGammaFiltered)
@@ -62,7 +62,7 @@ public sealed partial class PViewer
             pViewerApplied = PViewerMpvFilterApply(
                 pViewerFilter,
                 pViewerMpvGammaApplied is { } pViewerPreviousGamma
-                && LPreview.LPreviewMpvGammaFilterRequired(pViewerPreviousGamma));
+                && LPreview.LPreviewGammaCheck(pViewerPreviousGamma));
             if (pViewerApplied)
             {
                 pViewerApplied = PViewerMpvEqualizerApply(pViewerEqualizer, false);
@@ -95,7 +95,7 @@ public sealed partial class PViewer
         {
             if (pViewerGammaFirst)
             {
-                pViewerPlayer.PPlayerMpvGammaSet(pViewerEqualizer.LPreviewMpvGammaFactor);
+                pViewerPlayer.PPlayerMpvGammaSet(pViewerEqualizer.LPreviewMpvGamma);
             }
 
             pViewerPlayer.PPlayerEqualizerSet(
@@ -105,7 +105,7 @@ public sealed partial class PViewer
                 pViewerEqualizer.LPreviewMpvHue);
             if (!pViewerGammaFirst)
             {
-                pViewerPlayer.PPlayerMpvGammaSet(pViewerEqualizer.LPreviewMpvGammaFactor);
+                pViewerPlayer.PPlayerMpvGammaSet(pViewerEqualizer.LPreviewMpvGamma);
             }
 
             return true;

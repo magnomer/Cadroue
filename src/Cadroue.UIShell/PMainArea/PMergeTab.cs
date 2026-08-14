@@ -21,7 +21,7 @@ public sealed class PMergeTab : PTabSurface
         lGroupOwner = new LGroupSelection(
             lPreferenceTabLayout?.LSceneGroupAuto ?? false,
             lPreferenceTabLayout?.LSceneGroupStrict ?? true,
-            lPreferenceTabLayout?.LSceneGroupNameMode ?? LSeriesNameMode.LSeriesNameRemove);
+            lPreferenceTabLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameRemove);
         pGroup = new PGroup(lGroupOwner);
         PTabAction = pAction;
         pAction.PActionRun += pPriority => LMessenger.LMessengerMergeDescribe(
@@ -98,7 +98,7 @@ public sealed class PMergeTab : PTabSurface
         LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
         lPreferenceTabLayout.LSceneGroupAuto = lGroupOwner.LGroupAuto;
         lPreferenceTabLayout.LSceneGroupStrict = lGroupOwner.LGroupStrict;
-        lPreferenceTabLayout.LSceneGroupNameMode = lGroupOwner.LGroupNameMode;
+        lPreferenceTabLayout.LSceneGroupMode = lGroupOwner.LGroupNameMode;
         return lPreferenceTabLayout;
     }
 }

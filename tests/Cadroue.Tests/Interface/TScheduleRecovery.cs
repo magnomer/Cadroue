@@ -66,7 +66,7 @@ internal sealed class TScheduleRecovery : IDisposable
         ScheduleRead().LScheduleAdd(work.Select(item => item.WorkItem).ToArray());
 
     internal bool Reorder(Guid batchId, params TScheduleRecoveryWork[] work) =>
-        ScheduleRead().LSchedulePendingOrderSet(batchId, work.Select(item => item.WorkId).ToArray());
+        ScheduleRead().LScheduleOrderSet(batchId, work.Select(item => item.WorkId).ToArray());
 
     internal TScheduleRecoveryWork ClaimNext()
     {

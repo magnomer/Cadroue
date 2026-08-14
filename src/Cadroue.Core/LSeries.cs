@@ -60,7 +60,7 @@ public static class LSeries
             if (!lSeriesStrict)
             {
                 lSeriesGroups.Add(LSeriesGroupCreate(
-                    LSeriesGroupNameResolve(lSeriesBase, lSeriesSorted, lSeriesNameMode), lSeriesSorted));
+                    LSeriesNameResolve(lSeriesBase, lSeriesSorted, lSeriesNameMode), lSeriesSorted));
                 continue;
             }
 
@@ -69,7 +69,7 @@ public static class LSeries
             foreach (List<LSeriesItem> lSeriesRun in lSeriesRuns)
             {
                 string lSeriesRunName = !lSeriesMultipleRuns
-                    ? LSeriesGroupNameResolve(lSeriesBase, lSeriesRun, lSeriesNameMode)
+                    ? LSeriesNameResolve(lSeriesBase, lSeriesRun, lSeriesNameMode)
                     : lSeriesRun[0].Stem;
                 lSeriesGroups.Add(LSeriesGroupCreate(lSeriesRunName, lSeriesRun));
             }
@@ -101,7 +101,7 @@ public static class LSeries
     private static LSeriesGroup LSeriesGroupCreate(string lSeriesName, IEnumerable<LSeriesItem> lSeriesItems) =>
         new(lSeriesName, lSeriesItems.Select(lSeriesItem => lSeriesItem.Path).ToList());
 
-    private static string LSeriesGroupNameResolve(
+    private static string LSeriesNameResolve(
         string lSeriesBase,
         IReadOnlyList<LSeriesItem> lSeriesItems,
         LSeriesNameMode lSeriesNameMode) =>

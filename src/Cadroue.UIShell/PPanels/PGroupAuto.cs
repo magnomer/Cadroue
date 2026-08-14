@@ -92,11 +92,11 @@ public sealed partial class PGroup
             LLocalization.LLocalizationTextRead("Group.First.Label"),
             LLocalization.LLocalizationTextRead("Group.First.Tooltip"),
             lGroupOwner.LGroupNameMode == LSeriesNameMode.LSeriesNameFirst,
-            () => lGroupOwner.LGroupNameModeRequest(LSeriesNameMode.LSeriesNameFirst),
+            () => lGroupOwner.LGroupModeRequest(LSeriesNameMode.LSeriesNameFirst),
             LLocalization.LLocalizationTextRead("Group.NumberRemove.Label"),
             LLocalization.LLocalizationTextRead("Group.NumberRemove.Tooltip"),
             lGroupOwner.LGroupNameMode == LSeriesNameMode.LSeriesNameRemove,
-            () => lGroupOwner.LGroupNameModeRequest(LSeriesNameMode.LSeriesNameRemove));
+            () => lGroupOwner.LGroupModeRequest(LSeriesNameMode.LSeriesNameRemove));
         pNameToggle.Margin = new Thickness(8, 0, 0, 0);
         pSwitches.Children.Add(pNameToggle);
         return pSwitches;

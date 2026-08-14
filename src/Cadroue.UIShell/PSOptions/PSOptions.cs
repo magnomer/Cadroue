@@ -151,8 +151,8 @@ internal sealed partial class PSOptions : Window
         psOptionsRetryBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Work.RetryCheck"), lsOptionsDraft.LPreferenceRetryAllowed);
         psOptionsRetrySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceRetryMaximum, 0, 10);
 
-        psOptionsCleanupBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupCheck"), lsOptionsDraft.LPreferenceRecordCleanupActive);
-        psOptionsCleanupSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceRecordCleanupDays, 1, 365);
+        psOptionsCleanupBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupCheck"), lsOptionsDraft.LPreferenceCleanupActive);
+        psOptionsCleanupSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceCleanupDays, 1, 365);
 
         psWorkspaceBox = PSEntryBuild(lsOptionsDraft.LPreferenceWorkspaceFolder, 320);
         psSystemFfmpegBox = PSEntryBuild(lsOptionsDraft.LPreferenceFfmpegFolder, 320);
@@ -335,8 +335,8 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceRetryAllowed = psOptionsRetryBox.IsChecked == true;
         lsOptionsDraft.LPreferenceRetryMaximum = psOptionsRetrySlider.Value;
 
-        lsOptionsDraft.LPreferenceRecordCleanupActive = psOptionsCleanupBox.IsChecked == true;
-        lsOptionsDraft.LPreferenceRecordCleanupDays = (int)Math.Round(psOptionsCleanupSlider.Value);
+        lsOptionsDraft.LPreferenceCleanupActive = psOptionsCleanupBox.IsChecked == true;
+        lsOptionsDraft.LPreferenceCleanupDays = (int)Math.Round(psOptionsCleanupSlider.Value);
 
         lsOptionsDraft.LPreferenceWorkspaceFolder = psWorkspaceBox.Text;
         lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;

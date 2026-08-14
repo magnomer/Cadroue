@@ -16,7 +16,7 @@ public sealed record LColor(
 
     public double LColorGammaBlue { get; init; } = 1;
 
-    public double LColorGammaHighlightProtection { get; init; }
+    public double LColorHighlightProtection { get; init; }
 
     public LWorkWhitebalanceSettings? LColorWhitebalance { get; init; }
 
@@ -24,7 +24,7 @@ public sealed record LColor(
         LColorGammaRed != 1
         || LColorGammaGreen != 1
         || LColorGammaBlue != 1
-        || LColorGammaHighlightProtection != 0;
+        || LColorHighlightProtection != 0;
 
     public static LColor LColorDefaultCreate()
     {

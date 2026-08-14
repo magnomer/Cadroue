@@ -69,7 +69,7 @@ internal sealed class TSchedule : IDisposable
         tSchedule.LScheduleAdd(work.Select(item => item.WorkItem).ToArray());
 
     internal bool Reorder(Guid batchId, params TScheduleWork[] work) =>
-        tSchedule.LSchedulePendingOrderSet(batchId, work.Select(item => item.WorkId).ToArray());
+        tSchedule.LScheduleOrderSet(batchId, work.Select(item => item.WorkId).ToArray());
 
     internal IReadOnlyList<TScheduleItem> PendingRead() =>
         tSchedule.LSchedulePendingRead().Select(Snapshot).ToArray();

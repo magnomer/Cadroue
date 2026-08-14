@@ -129,7 +129,7 @@ public static partial class LEdit
                     lEditRecord.LSidecarGammaRed ?? 0,
                     lEditRecord.LSidecarGammaGreen ?? 0,
                     lEditRecord.LSidecarGammaBlue ?? 0,
-                    lEditRecord.LSidecarGammaHighlightProtection ?? 0),
+                    lEditRecord.LSidecarGammaHighlight ?? 0),
             LColorKind.LColorKindWhitebalance =>
                 LWorkVideoStep.LWorkWhitebalanceCreate(
                     lEditRecord.LSidecarActive,
@@ -163,7 +163,7 @@ public static partial class LEdit
             lRecord.LSidecarGammaRed = lGamma.LWorkGammaRed;
             lRecord.LSidecarGammaGreen = lGamma.LWorkGammaGreen;
             lRecord.LSidecarGammaBlue = lGamma.LWorkGammaBlue;
-            lRecord.LSidecarGammaHighlightProtection = lGamma.LWorkGammaHighlightProtection;
+            lRecord.LSidecarGammaHighlight = lGamma.LWorkGammaHighlightProtection;
         }
         else if (lEditStep.LWorkStepKind == LColorKind.LColorKindWhitebalance)
         {

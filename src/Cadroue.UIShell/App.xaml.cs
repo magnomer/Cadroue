@@ -262,12 +262,12 @@ public partial class PProgram : System.Windows.Application
 
     private static void LRetentionSweepStart()
     {
-        if (!LPreference.LPreferenceStateCurrent.LPreferenceRecordCleanupActive)
+        if (!LPreference.LPreferenceStateCurrent.LPreferenceCleanupActive)
         {
             return;
         }
 
-        int lRetentionDays = LPreference.LPreferenceStateCurrent.LPreferenceRecordCleanupDays;
+        int lRetentionDays = LPreference.LPreferenceStateCurrent.LPreferenceCleanupDays;
         _ = System.Threading.Tasks.Task.Run(() =>
         {
             int lRetentionRemoved = Cadroue.Infrastructure.LRetentionSweep.LRetentionRun(lRetentionDays);

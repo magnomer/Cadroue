@@ -36,7 +36,7 @@ public interface LScheduleContract
         Guid lScheduleRelayTarget = default,
         Guid lScheduleRelaySource = default);
 
-    bool LSchedulePendingOrderSet(Guid lWorkBatchId, IReadOnlyList<Guid> lWorkIds);
+    bool LScheduleOrderSet(Guid lWorkBatchId, IReadOnlyList<Guid> lWorkIds);
 
     Guid LScheduleLineageRead(LWorkItem lWorkItem);
 
