@@ -47,6 +47,18 @@ public sealed class LSidecarVideoStep
     public LWhitebalanceMethod? LSidecarWhitebalanceMethod { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? LSidecarWhitebalanceSaturation { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? LSidecarWhitebalanceRed { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? LSidecarWhitebalanceGreen { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? LSidecarWhitebalanceBlue { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? LSidecarSampleRed { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? LSidecarSampleGreen { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? LSidecarSampleBlue { get; set; }
 }
 
 public sealed class LSidecarAudioStep

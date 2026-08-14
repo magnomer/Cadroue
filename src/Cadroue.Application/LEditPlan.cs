@@ -134,7 +134,13 @@ public static partial class LEdit
                 LWorkVideoStep.LWorkWhitebalanceCreate(
                     lEditRecord.LSidecarActive,
                     lEditRecord.LSidecarWhitebalanceMethod ?? LWhitebalanceMethod.LWhitebalanceMethodMedian,
-                    lEditRecord.LSidecarWhitebalanceSaturation ?? 100),
+                    lEditRecord.LSidecarWhitebalanceSaturation ?? 100,
+                    lEditRecord.LSidecarWhitebalanceRed ?? 1,
+                    lEditRecord.LSidecarWhitebalanceGreen ?? 1,
+                    lEditRecord.LSidecarWhitebalanceBlue ?? 1,
+                    lEditRecord.LSidecarSampleRed ?? 0,
+                    lEditRecord.LSidecarSampleGreen ?? 0,
+                    lEditRecord.LSidecarSampleBlue ?? 0),
             _ => LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
         };
     }
@@ -164,6 +170,15 @@ public static partial class LEdit
             LWorkWhitebalanceSettings lWhitebalance = lEditStep.LWorkWhitebalanceRead();
             lRecord.LSidecarWhitebalanceMethod = lWhitebalance.LWorkWhitebalanceMethod;
             lRecord.LSidecarWhitebalanceSaturation = lWhitebalance.LWorkWhitebalanceSaturation;
+            if (lWhitebalance.LWorkWhitebalanceMethod == LWhitebalanceMethod.LWhitebalanceMethodManual)
+            {
+                lRecord.LSidecarWhitebalanceRed = lWhitebalance.LWorkWhitebalanceRed;
+                lRecord.LSidecarWhitebalanceGreen = lWhitebalance.LWorkWhitebalanceGreen;
+                lRecord.LSidecarWhitebalanceBlue = lWhitebalance.LWorkWhitebalanceBlue;
+                lRecord.LSidecarSampleRed = lWhitebalance.LWorkSampleRed;
+                lRecord.LSidecarSampleGreen = lWhitebalance.LWorkSampleGreen;
+                lRecord.LSidecarSampleBlue = lWhitebalance.LWorkSampleBlue;
+            }
         }
 
         return lRecord;

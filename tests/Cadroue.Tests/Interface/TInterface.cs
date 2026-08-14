@@ -199,6 +199,13 @@ internal static class TInterface
     internal static LWorkVideoStep WorkWhitebalanceCreate(
         bool active, LWhitebalanceMethod method, double saturation) =>
         LWorkVideoStep.LWorkWhitebalanceCreate(active, method, saturation);
+    internal static LWorkVideoStep WorkWhitebalanceManualCreate(
+        bool active, double saturation,
+        double red, double green, double blue,
+        int sampleRed, int sampleGreen, int sampleBlue) =>
+        LWorkVideoStep.LWorkWhitebalanceCreate(
+            active, LWhitebalanceMethod.LWhitebalanceMethodManual, saturation,
+            red, green, blue, sampleRed, sampleGreen, sampleBlue);
     internal static LWorkWhitebalanceSettings WorkWhitebalanceRead(LWorkVideoStep step) =>
         step.LWorkWhitebalanceRead();
     internal static LWorkVideoStep WorkWhitebalanceMalformedCreate(
@@ -207,12 +214,41 @@ internal static class TInterface
         {
             LWorkStepWhitebalance = new LWorkWhitebalanceSettings(method, saturation)
         };
+    internal static LWorkVideoStep WorkWhitebalanceManualMalformedCreate(
+        double saturation, double red, double green, double blue,
+        int sampleRed, int sampleGreen, int sampleBlue) =>
+        new(LColorKind.LColorKindWhitebalance, true, saturation)
+        {
+            LWorkStepWhitebalance = new LWorkWhitebalanceSettings(
+                LWhitebalanceMethod.LWhitebalanceMethodManual, saturation)
+            {
+                LWorkWhitebalanceRed = red,
+                LWorkWhitebalanceGreen = green,
+                LWorkWhitebalanceBlue = blue,
+                LWorkSampleRed = sampleRed,
+                LWorkSampleGreen = sampleGreen,
+                LWorkSampleBlue = sampleBlue
+            }
+        };
+    internal static LWorkVideoStep WorkWhitebalanceStrayCreate(
+        LWhitebalanceMethod method, double red, int sampleRed) =>
+        new(LColorKind.LColorKindWhitebalance, true, 100)
+        {
+            LWorkStepWhitebalance = new LWorkWhitebalanceSettings(method, 100)
+            {
+                LWorkWhitebalanceRed = red,
+                LWorkSampleRed = sampleRed
+            }
+        };
     internal static string WorkVideoStepDiagnosticRead(LWorkVideoStep step) => step.LWorkDiagnosticRead();
     internal static LWorkItem? WorkRecordRoundTrip(LWorkItem work)
     {
         string json = LWorkRecord.LWorkRecordCreate(work).LWorkJsonCreate();
         return LWorkRecord.LWorkRecordParse(json)?.LWorkItemCreate();
     }
+    internal static LSidecarEditRecord SidecarEditRecordRoundTrip(LSidecarEditRecord record) =>
+        System.Text.Json.JsonSerializer.Deserialize<LSidecarEditRecord>(
+            System.Text.Json.JsonSerializer.Serialize(record))!;
     internal static LWorkAudioStep WorkVolumeCreate(bool active, double gain) =>
         LWorkAudioStep.LWorkVolumeCreate(active, gain);
     internal static LWorkAudioStep WorkNormalizeCreate(

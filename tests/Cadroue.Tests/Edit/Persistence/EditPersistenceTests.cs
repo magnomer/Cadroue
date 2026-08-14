@@ -150,6 +150,72 @@ public sealed class EditPersistenceTests
     }
 
     [Fact]
+    public void WhitebalanceManual_PersistentRecord_RoundTripsCoefficientsAndSamples()
+    {
+        LSidecarEditRecord record = TInterface.EditPersistentCreate(TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(),
+            TInterface.WorkVideoCreate(new[]
+            {
+                TInterface.WorkWhitebalanceManualCreate(true, 137.5, 1.5, 0.5, 1.1, 200, 150, 100)
+            }),
+            false));
+        LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
+
+        Assert.Equal(LWhitebalanceMethod.LWhitebalanceMethodManual, stored.LSidecarWhitebalanceMethod);
+        Assert.Equal(1.5, stored.LSidecarWhitebalanceRed);
+        Assert.Equal(0.5, stored.LSidecarWhitebalanceGreen);
+        Assert.Equal(1.1, stored.LSidecarWhitebalanceBlue);
+        Assert.Equal(200, stored.LSidecarSampleRed);
+        Assert.Equal(150, stored.LSidecarSampleGreen);
+        Assert.Equal(100, stored.LSidecarSampleBlue);
+
+        LWorkWhitebalanceSettings settings = TInterface.WorkWhitebalanceRead(Assert.Single(
+            TInterface.EditPersistentRead(record).LEditVideo.LWorkVideoSteps));
+        Assert.Equal(1.5, settings.LWorkWhitebalanceRed);
+        Assert.Equal(0.5, settings.LWorkWhitebalanceGreen);
+        Assert.Equal(1.1, settings.LWorkWhitebalanceBlue);
+        Assert.Equal(200, settings.LWorkSampleRed);
+        Assert.Equal(150, settings.LWorkSampleGreen);
+        Assert.Equal(100, settings.LWorkSampleBlue);
+    }
+
+    [Fact]
+    public void WhitebalanceManual_SidecarJson_RoundTripsInvariantNumbers()
+    {
+        LSidecarEditRecord record = TInterface.EditPersistentCreate(TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(),
+            TInterface.WorkVideoCreate(new[]
+            {
+                TInterface.WorkWhitebalanceManualCreate(true, 137.5, 1.25, 0.5, 1.125, 200, 150, 100)
+            }),
+            false));
+        Assert.Contains("1.125", JsonSerializer.Serialize(record));
+
+        LSidecarVideoStep stored = Assert.Single(
+            TInterface.SidecarEditRecordRoundTrip(record).LSidecarSteps);
+        Assert.Equal(1.25, stored.LSidecarWhitebalanceRed);
+        Assert.Equal(1.125, stored.LSidecarWhitebalanceBlue);
+        Assert.Equal(200, stored.LSidecarSampleRed);
+    }
+
+    [Fact]
+    public void WhitebalanceAutomatic_PersistentRecord_OmitsManualFields()
+    {
+        LSidecarEditRecord record = TInterface.EditPersistentCreate(TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(),
+            TInterface.WorkVideoCreate(new[]
+            {
+                TInterface.WorkWhitebalanceCreate(true, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 120)
+            }),
+            false));
+        LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
+
+        Assert.Null(stored.LSidecarWhitebalanceRed);
+        Assert.Null(stored.LSidecarSampleRed);
+        Assert.DoesNotContain("SampleRed", JsonSerializer.Serialize(record));
+    }
+
+    [Fact]
     public void NonWhitebalanceStep_OmitsAndIgnoresWhitebalanceFields()
     {
         LSidecarEditRecord storedRecord = TInterface.EditPersistentCreate(TInterface.EditPlanCreate(
