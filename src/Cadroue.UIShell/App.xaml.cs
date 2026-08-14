@@ -74,7 +74,6 @@ public partial class PProgram : System.Windows.Application
             PPanels.PList.PListDeliveredPlace,
             PPanels.PList.PListDeliveredTrack,
             PPanels.PList.PListDeliveredRemove,
-            PControlBar.PWorkspace.PWorkspaceStageRun,
             PMainArea.PAction.PActionArrive,
             PPanels.PList.PListBatchEvict,
             PPanels.PList.PListSourceUnlock);

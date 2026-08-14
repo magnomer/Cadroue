@@ -29,7 +29,6 @@ public sealed record LCartographerDelivery(
     Action<Guid, string, Guid> LCartographerTabPlace,
     Action<Guid, string, Guid> LCartographerTabTrack,
     Action<LWorkItem, bool> LCartographerSourceDrop,
-    Func<LCartographerStagePlan, bool> LCartographerStageRun,
     Action<Guid, string, Guid> LCartographerTabArrive,
     Action<IReadOnlyList<Guid>> LCartographerBatchEvict,
     Action<IReadOnlyList<(string PListPath, Guid PListBatch)>> LCartographerSourceUnlock);
@@ -361,24 +360,51 @@ public static partial class LCartographer
             return;
         }
 
+        var lCartographerRepresented = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (LWorkItem lCartographerWork in LCartographerScheduleRead())
+        {
+            if (lCartographerWork.LWorkBatchId != lCartographerBatch
+                || lCartographerWork.LWorkRelaySource != lCartographerStage.LCartographerStageId)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(lCartographerWork.LWorkSourcePath))
+            {
+                lCartographerRepresented.Add(lCartographerWork.LWorkSourcePath);
+            }
+            foreach (string lCartographerMergeSource in lCartographerWork.LWorkMergeSources)
+            {
+                lCartographerRepresented.Add(lCartographerMergeSource);
+            }
+        }
+
         string[] lCartographerPaths = lCartographerStage.LCartographerPendingInputs
             .Select(lCartographerInput => lCartographerInput.LCartographerPath)
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Where(lCartographerPath => File.Exists(lCartographerPath) && LMedia.LMediaCheck(lCartographerPath))
+            .Where(lCartographerPath => !lCartographerRepresented.Contains(lCartographerPath)
+                && File.Exists(lCartographerPath) && LMedia.LMediaCheck(lCartographerPath))
             .ToArray();
         LCartographerStageSet(lCartographerStage.LCartographerStageId, lCartographerStage.LCartographerTitle);
-        bool lCartographerRan = lCartographerSeam.LCartographerStageRun(new LCartographerStagePlan(
-            lCartographerStage.LCartographerLayoutKey,
-            lCartographerStage.LCartographerExport,
-            lCartographerStage.LCartographerLayout.LSceneTabClone(),
-            lCartographerStage.LCartographerStageId,
-            lCartographerStage.LCartographerNextStage,
-            lCartographerBatch,
-            lCartographerPaths,
-            lCartographerMerge));
-        if (lCartographerRan)
+
+        IReadOnlyList<string> lCartographerAcknowledged = lCartographerPaths.Length == 0
+            ? Array.Empty<string>()
+            : LCartographerStageExecute(new LCartographerStagePlan(
+                lCartographerStage.LCartographerLayoutKey,
+                lCartographerStage.LCartographerExport,
+                lCartographerStage.LCartographerLayout.LSceneTabClone(),
+                lCartographerStage.LCartographerStageId,
+                lCartographerStage.LCartographerNextStage,
+                lCartographerBatch,
+                lCartographerPaths,
+                lCartographerMerge)).GetAwaiter().GetResult();
+
+        var lCartographerCleared = new HashSet<string>(lCartographerAcknowledged, StringComparer.OrdinalIgnoreCase);
+        lCartographerCleared.UnionWith(lCartographerRepresented);
+        int lCartographerRemoved = lCartographerStage.LCartographerPendingInputs.RemoveAll(
+            lCartographerInput => lCartographerCleared.Contains(lCartographerInput.LCartographerPath));
+        if (lCartographerRemoved > 0)
         {
-            lCartographerStage.LCartographerPendingInputs.Clear();
             LCartographerPlanStore.LCartographerPlanSave(lCartographerPlan);
         }
     }
