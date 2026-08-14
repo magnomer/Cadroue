@@ -351,6 +351,24 @@ public sealed partial class PList : PPanel
         }
     }
 
+    public int PListStaleClear(IReadOnlySet<Guid> pListActiveBatches)
+    {
+        string[] pListRemovedPaths = pListDocket.LDocketStaleRead(pListActiveBatches)
+            .Select(pListItem => pListItem.LDocketEntryPath)
+            .ToArray();
+        if (pListRemovedPaths.Length > 0)
+        {
+            pListDocket.LDocketPathsRemove(pListRemovedPaths);
+        }
+
+        return pListRemovedPaths.Length;
+    }
+
+    public IReadOnlySet<string> PListProtectedRead(IReadOnlySet<Guid> pListActiveBatches) =>
+        pListDocket.LDocketProtectedRead(pListActiveBatches)
+            .Select(pListItem => pListItem.LDocketEntryPath)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
     private void PListRowsRebuild()
     {
         pListRowPanel.Children.Clear();

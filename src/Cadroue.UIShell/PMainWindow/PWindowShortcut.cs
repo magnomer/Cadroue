@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PControlBar;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIShell.PMainWindow;
 
@@ -95,7 +96,7 @@ public partial class PWindow
         PWorkspace? pWorkspace = pStrip.PStripSelected?.PTabWorkspace;
         if (pWorkspace is not null)
         {
-            return pWorkspace.PWorkspaceMediaClear();
+            return pWorkspace.PWorkspaceMediaClear(LBastion.LBastionCohortsRead());
         }
 
         return false;

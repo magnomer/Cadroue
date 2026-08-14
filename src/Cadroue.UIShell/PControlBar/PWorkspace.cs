@@ -68,18 +68,28 @@ public sealed class PWorkspace
 
     public PList? PWorkspaceList { get; }
 
-    public bool PWorkspaceMediaClear()
+    public bool PWorkspaceMediaClear(IReadOnlySet<Guid> pWorkspaceActiveBatches)
     {
-        bool pWorkspaceCleared = PWorkspaceViewer?.PViewerMediaClose(true) == true;
-        pWorkspaceCleared |= PWorkspaceFlow?.PFlowClear() == true;
+        IReadOnlySet<string> pWorkspaceProtectedPaths = PWorkspaceList?.PListProtectedRead(pWorkspaceActiveBatches)
+            ?? (IReadOnlySet<string>)new HashSet<string>();
+
+        bool pWorkspaceViewerProtected =
+            !string.IsNullOrWhiteSpace(PWorkspaceViewer?.PViewerSourcePath)
+            && pWorkspaceProtectedPaths.Contains(PWorkspaceViewer!.PViewerSourcePath!);
+
+        bool pWorkspaceCleared = false;
+        if (!pWorkspaceViewerProtected)
+        {
+            pWorkspaceCleared |= PWorkspaceViewer?.PViewerMediaClose(true) == true;
+            pWorkspaceCleared |= PWorkspaceFlow?.PFlowClear() == true;
+        }
 
         if (PWorkspaceList is { } pList && pList.PListPathsRead().Count > 0)
         {
-            pList.PListClear();
-            pWorkspaceCleared = true;
+            pWorkspaceCleared |= pList.PListStaleClear(pWorkspaceActiveBatches) > 0;
         }
 
-        PWorkspaceSurface.PTabGroup?.PGroupClear();
+        PWorkspaceSurface.PTabGroup?.PGroupClear(pWorkspaceProtectedPaths);
         return pWorkspaceCleared;
     }
 

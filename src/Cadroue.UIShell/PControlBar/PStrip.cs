@@ -335,9 +335,10 @@ public sealed class PStrip
     public bool PStripContentClear()
     {
         bool pStripCleared = false;
+        IReadOnlySet<Guid> pStripActiveBatches = LBastion.LBastionCohortsRead();
         foreach (PTabRecord pTabRecord in PStripRecords)
         {
-            pStripCleared |= pTabRecord.PTabWorkspace.PWorkspaceMediaClear();
+            pStripCleared |= pTabRecord.PTabWorkspace.PWorkspaceMediaClear(pStripActiveBatches);
         }
 
         LTraceLog.LTraceInfoRecord($"Tabs cleared across {PStripRecords.Count} tab(s)");
