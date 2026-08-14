@@ -5,7 +5,15 @@ public enum LNeutralOutcome
     LNeutralOutcomeResolved,
     LNeutralOutcomeOutside,
     LNeutralOutcomeEmpty,
-    LNeutralOutcomeDark
+    LNeutralOutcomeDark,
+    LNeutralOutcomeDecode
+}
+
+public enum LNeutralStatus
+{
+    LNeutralStatusApply,
+    LNeutralStatusInvalid,
+    LNeutralStatusDecode
 }
 
 public sealed record LNeutralPoint(bool LNeutralPointInside, int LNeutralPointX, int LNeutralPointY);
@@ -36,6 +44,13 @@ public static class LNeutral
     private const double LNeutralGainLeast = 0;
     private const double LNeutralGainMost = 2;
     private const double LNeutralEpsilon = 1e-6;
+
+    public static LNeutralStatus LNeutralStatusResolve(LNeutralOutcome lNeutralOutcome) => lNeutralOutcome switch
+    {
+        LNeutralOutcome.LNeutralOutcomeResolved => LNeutralStatus.LNeutralStatusApply,
+        LNeutralOutcome.LNeutralOutcomeDecode => LNeutralStatus.LNeutralStatusDecode,
+        _ => LNeutralStatus.LNeutralStatusInvalid
+    };
 
     public static LNeutralSample LNeutralResolve(
         IReadOnlyList<byte> lNeutralPixels,

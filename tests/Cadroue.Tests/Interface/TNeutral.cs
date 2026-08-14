@@ -8,6 +8,9 @@ internal static class TNeutral
         byte[] pixels, int width, int height, int centerX, int centerY) =>
         LNeutral.LNeutralResolve(pixels, width, height, centerX, centerY);
 
+    internal static LNeutralStatus StatusResolve(LNeutralOutcome outcome) =>
+        LNeutral.LNeutralStatusResolve(outcome);
+
     internal static LNeutralDisplay DisplayResolve(
         bool manual, int red, int green, int blue) =>
         LNeutral.LNeutralDisplayResolve(manual, red, green, blue);

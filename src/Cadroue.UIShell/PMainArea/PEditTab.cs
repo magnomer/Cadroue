@@ -409,13 +409,22 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditNeutralHandle(LNeutralSample pNeutralSample)
     {
-        if (pNeutralSample.LNeutralResolved)
+        switch (LNeutral.LNeutralStatusResolve(pNeutralSample.LNeutralOutcome))
         {
-            pInspector.PToneNeutralApply(pNeutralSample);
-            return;
+            case LNeutralStatus.LNeutralStatusApply:
+                pInspector.PToneNeutralApply(pNeutralSample);
+                return;
+            case LNeutralStatus.LNeutralStatusDecode:
+                pInspector.PInspectorNeutralShow(
+                    LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceDecode"));
+                LTraceLog.LTraceInfoRecord("Whitebalance pick: frame decode failed");
+                return;
+            default:
+                pInspector.PInspectorNeutralShow(
+                    LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceInvalid"));
+                LTraceLog.LTraceInfoRecord($"Whitebalance pick: invalid sample ({pNeutralSample.LNeutralOutcome})");
+                return;
         }
-
-        LTraceLog.LTraceInfoRecord($"Whitebalance pick: no sample ({pNeutralSample.LNeutralOutcome})");
     }
 
     private void PEditColorApply()

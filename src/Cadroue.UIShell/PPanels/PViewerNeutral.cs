@@ -155,7 +155,7 @@ public sealed partial class PViewer
         if (pViewerFrame is null)
         {
             PViewerNeutralChange?.Invoke(
-                new LNeutralSample(LNeutralOutcome.LNeutralOutcomeEmpty, 0, 0, 0, 1, 1, 1));
+                new LNeutralSample(LNeutralOutcome.LNeutralOutcomeDecode, 0, 0, 0, 1, 1, 1));
             return;
         }
 
