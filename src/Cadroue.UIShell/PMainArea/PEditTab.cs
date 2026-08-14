@@ -104,6 +104,9 @@ public sealed class PEditTab : PTabSurface
         pInspector.PCropActiveChange += PEditActiveUpdate;
         pInspector.PCropActiveChange += PEditPlanSave;
         pInspector.PInspectorVideoChange += PEditChangeHandle;
+        pInspector.PInspectorNeutralToolChange += pViewer.PViewerNeutralSet;
+        pViewer.PViewerNeutralActiveChange += pInspector.PInspectorNeutralToolSet;
+        pViewer.PViewerNeutralChange += PEditNeutralHandle;
         pEditColorTimer.Tick += (_, _) =>
         {
             pEditColorTimer.Stop();
@@ -121,7 +124,14 @@ public sealed class PEditTab : PTabSurface
         var pExport = new PExport(lPresetOwner, true);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pList.PListLockChange += pLocked =>
+        {
+            if (pLocked)
+            {
+                pViewer.PViewerNeutralCancel();
+            }
+
             pViewer.PCropToolSet(!pLocked && pInspector.PInspectorToolCheck());
+        };
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         if (lPreferenceTabLayout is null)
         {
@@ -395,6 +405,17 @@ public sealed class PEditTab : PTabSurface
         {
             pInspector.PInspectorSourceSet(pRotatedSource.Width, pRotatedSource.Height);
         }
+    }
+
+    private void PEditNeutralHandle(LNeutralSample pNeutralSample)
+    {
+        if (pNeutralSample.LNeutralResolved)
+        {
+            pInspector.PToneNeutralApply(pNeutralSample);
+            return;
+        }
+
+        LTraceLog.LTraceInfoRecord($"Whitebalance pick: no sample ({pNeutralSample.LNeutralOutcome})");
     }
 
     private void PEditColorApply()

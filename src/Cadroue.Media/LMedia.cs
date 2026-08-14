@@ -9,7 +9,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Media;
 
-public static class LMedia
+public static partial class LMedia
 {
     public static readonly IReadOnlyList<string> LMediaVideoExtensions =
         [".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts", ".mts", ".m2ts"];

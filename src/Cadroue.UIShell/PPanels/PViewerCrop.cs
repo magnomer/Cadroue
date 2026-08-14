@@ -46,7 +46,7 @@ public sealed partial class PViewer
 
     private void PCropGripHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (!pViewerCropArmed || sender is not Rectangle { Tag: int pHandleIndex })
+        if (pViewerTool != PViewerTool.Crop || sender is not Rectangle { Tag: int pHandleIndex })
         {
             return;
         }
@@ -62,7 +62,7 @@ public sealed partial class PViewer
 
     private void PCropBodyHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (!pViewerCropArmed || pViewerCropBox.Visibility != Visibility.Visible)
+        if (pViewerTool != PViewerTool.Crop || pViewerCropBox.Visibility != Visibility.Visible)
         {
             return;
         }
@@ -149,7 +149,7 @@ public sealed partial class PViewer
 
     private void PCropHandlesPlace()
     {
-        bool pHandlesVisible = pViewerCropArmed
+        bool pHandlesVisible = pViewerTool == PViewerTool.Crop
             && pViewerCropBox.Visibility == Visibility.Visible
             && pViewerCropBox.Width > 0
             && pViewerCropBox.Height > 0;
@@ -184,7 +184,14 @@ public sealed partial class PViewer
 
     public void PCropToolSet(bool pCropArmed)
     {
-        pViewerCropArmed = pCropArmed;
+        if (pCropArmed && pViewerTool == PViewerTool.Neutral)
+        {
+            PViewerNeutralCancel();
+        }
+
+        pViewerTool = pCropArmed
+            ? PViewerTool.Crop
+            : pViewerTool == PViewerTool.Crop ? PViewerTool.None : pViewerTool;
         pViewerOverlay.Cursor = pCropArmed ? Cursors.Cross : null;
         pViewerCropBox.Cursor = pCropArmed ? Cursors.SizeAll : null;
         PCropOverlayUpdate();
@@ -250,7 +257,13 @@ public sealed partial class PViewer
 
     private void PCropPressHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (!pViewerCropArmed || pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        if (pViewerTool == PViewerTool.Neutral)
+        {
+            PViewerNeutralPressHandle(mouseEvent);
+            return;
+        }
+
+        if (pViewerTool != PViewerTool.Crop || pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
         {
             return;
         }

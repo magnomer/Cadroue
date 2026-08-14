@@ -69,7 +69,13 @@ public sealed partial class PInspector
         LColorKind.LColorKindWhitebalance => LWorkVideoStep.LWorkWhitebalanceCreate(
             pToneWhitebalanceBox.IsChecked == true,
             PToneWhitebalanceMethodRead(),
-            PInspectorDecimalRead(pInspectorWhitebalanceSaturationValue, 100)),
+            PInspectorDecimalRead(pInspectorWhitebalanceSaturationValue, 100),
+            pInspectorWhitebalanceRedGain,
+            pInspectorWhitebalanceGreenGain,
+            pInspectorWhitebalanceBlueGain,
+            pInspectorWhitebalanceSampleRed,
+            pInspectorWhitebalanceSampleGreen,
+            pInspectorWhitebalanceSampleBlue),
         _ => LWorkVideoStep.LWorkBrightnessCreate(
             pToneBrightnessBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorBrightnessValue, 0))
@@ -291,9 +297,17 @@ public sealed partial class PInspector
             "Minmax", "Inspector.Video.WhitebalanceMethodMinmax"));
         pInspectorWhitebalanceMethod.Items.Add(new LLocalizationChoice(
             "Median", "Inspector.Video.WhitebalanceMethodMedian"));
+        pInspectorWhitebalanceMethod.Items.Add(new LLocalizationChoice(
+            "Manual", "Inspector.Video.WhitebalanceMethodManual"));
         pInspectorWhitebalanceMethod.SelectedIndex = 2;
         pInspectorWhitebalanceMethod.SelectionChanged += (_, _) =>
         {
+            if (PToneWhitebalanceMethodRead() != LWhitebalanceMethod.LWhitebalanceMethodManual)
+            {
+                PToneNeutralClear();
+            }
+
+            PToneNeutralReadoutUpdate();
             if (!pInspectorVideoSuppress)
             {
                 PInspectorVideoChange?.Invoke();
@@ -341,6 +355,7 @@ public sealed partial class PInspector
             HorizontalAlignment = HorizontalAlignment.Right
         };
         pWhitebalanceReset.Click += (_, _) => PToneWhitebalanceReset();
+        pInspectorWhitebalanceStack.Children.Add(PToneNeutralBuild());
         pInspectorWhitebalanceStack.Children.Add(pWhitebalanceReset);
         pInspectorWhitebalanceBody = PToneBodyBuild(pToneWhitebalanceBox, pInspectorWhitebalanceStack);
         PToneApplyUpdate(pToneWhitebalanceBox, pInspectorWhitebalanceStack);
@@ -352,6 +367,7 @@ public sealed partial class PInspector
         {
             0 => LWhitebalanceMethod.LWhitebalanceMethodAverage,
             1 => LWhitebalanceMethod.LWhitebalanceMethodMinmax,
+            3 => LWhitebalanceMethod.LWhitebalanceMethodManual,
             _ => LWhitebalanceMethod.LWhitebalanceMethodMedian
         };
 
@@ -359,6 +375,7 @@ public sealed partial class PInspector
     {
         LWhitebalanceMethod.LWhitebalanceMethodAverage => 0,
         LWhitebalanceMethod.LWhitebalanceMethodMinmax => 1,
+        LWhitebalanceMethod.LWhitebalanceMethodManual => 3,
         _ => 2
     };
 
@@ -579,6 +596,7 @@ public sealed partial class PInspector
             {
                 LWorkWhitebalanceSettings pWhitebalance = pStep.LWorkWhitebalanceRead();
                 pToneWhitebalanceBox.IsChecked = pStep.LWorkStepActive;
+                PToneNeutralRestore(pWhitebalance);
                 pInspectorWhitebalanceMethod.SelectedIndex = PToneWhitebalanceMethodIndexRead(
                     pWhitebalance.LWorkWhitebalanceMethod);
                 PToneGammaValueSet(

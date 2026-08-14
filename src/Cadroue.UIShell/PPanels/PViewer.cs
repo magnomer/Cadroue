@@ -21,6 +21,13 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer : PPanel
 {
+    private enum PViewerTool
+    {
+        None,
+        Crop,
+        Neutral
+    }
+
     private Border? pViewerSurface;
     private readonly Button pViewerCloseButton;
     private FlyleafHost? pViewerFlyleafHost;
@@ -33,7 +40,9 @@ public sealed partial class PViewer : PPanel
     private readonly PPlayer pViewerPlayer = new();
     private LMediaInfo? pViewerMediaInfo;
     private Point? pViewerCropPoint;
-    private bool pViewerCropArmed;
+    private PViewerTool pViewerTool;
+    private int pViewerNeutralSerial;
+    private bool pViewerNeutralResume;
     private Size? pViewerCropRatio;
     private readonly Path pViewerCropShade;
     private readonly Rectangle[] pViewerCropHandles = new Rectangle[8];
@@ -102,6 +111,7 @@ public sealed partial class PViewer : PPanel
         pViewerOverlay.MouseMove += PCropMoveHandle;
         pViewerOverlay.MouseLeftButtonUp += PCropReleaseHandle;
         pViewerOverlay.SizeChanged += PCropSizeHandle;
+        pViewerOverlay.KeyDown += PViewerNeutralKeyHandle;
 
         pViewerCloseButton = PViewerCloseBuild();
 

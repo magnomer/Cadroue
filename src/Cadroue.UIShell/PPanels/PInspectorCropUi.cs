@@ -197,6 +197,10 @@ public sealed partial class PInspector
         };
         pToolButton.Checked += (_, _) =>
         {
+            if (pInspectorNeutralTool is not null)
+            {
+                pInspectorNeutralTool.IsChecked = false;
+            }
             PInspectorToolChange?.Invoke(true);
             PInspectorToolUpdate();
         };

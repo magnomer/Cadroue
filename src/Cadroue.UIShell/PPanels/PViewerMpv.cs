@@ -327,6 +327,7 @@ public sealed partial class PViewer
 
     private void PViewerMpvCommit(LCargo pViewerStatus)
     {
+        PViewerNeutralCancel();
         bool pViewerHasPreview = pViewerPlayer.PPlayerReady && pViewerStatus.LCargoPreviewAvailable;
         string pViewerPath = pViewerStatus.LCargoSourcePath ?? "(no path)";
         string pViewerFileName = System.IO.Path.GetFileName(pViewerPath);
