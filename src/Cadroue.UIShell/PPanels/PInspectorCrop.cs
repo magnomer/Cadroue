@@ -80,13 +80,7 @@ public sealed partial class PInspector
             PInspectorEvenClamp(pInspectorInsetTop),
             PInspectorEvenClamp(pInspectorInsetRight),
             PInspectorEvenClamp(pInspectorInsetBottom),
-            PInspectorKindRead() switch
-            {
-                LRotateKind.LRotate90 => 90,
-                LRotateKind.LRotate180 => 180,
-                LRotateKind.LRotate270 => 270,
-                _ => 0
-            },
+            PInspectorAngleResolve(PInspectorKindRead()),
             pInspectorFlipHorizontal.IsChecked == true,
             pInspectorFlipVertical.IsChecked == true);
     }
@@ -292,6 +286,54 @@ public sealed partial class PInspector
         PInspectorKindRead(),
         pInspectorFlipHorizontal.IsChecked == true,
         pInspectorFlipVertical.IsChecked == true);
+
+    public void PInspectorOrientationApply(LRotateFlip pInspectorOld)
+    {
+        var pInspectorSource = new LWorkCrop(
+            (int)Math.Round(PInspectorNumberRead(pInspectorInsetLeft)),
+            (int)Math.Round(PInspectorNumberRead(pInspectorInsetTop)),
+            (int)Math.Round(PInspectorNumberRead(pInspectorInsetRight)),
+            (int)Math.Round(PInspectorNumberRead(pInspectorInsetBottom)),
+            PInspectorAngleResolve(pInspectorOld.LRotateKind),
+            pInspectorOld.LRotateFlipHorizontal,
+            pInspectorOld.LRotateFlipVertical);
+
+        if (!pInspectorSource.LWorkEdgeActive)
+        {
+            return;
+        }
+
+        LRotateFlip pInspectorNew = PInspectorRotateRead();
+        LWorkCrop pInspectorMapped = LCropbox.LCropboxOrientationResolve(
+            pInspectorSource,
+            PInspectorAngleResolve(pInspectorNew.LRotateKind),
+            pInspectorNew.LRotateFlipHorizontal,
+            pInspectorNew.LRotateFlipVertical);
+
+        bool pCropSuppressPrevious = pInspectorCropSuppress;
+        pInspectorCropSuppress = true;
+        try
+        {
+            pInspectorInsetLeft.Text = pInspectorMapped.LWorkCropLeft.ToString(CultureInfo.InvariantCulture);
+            pInspectorInsetTop.Text = pInspectorMapped.LWorkCropTop.ToString(CultureInfo.InvariantCulture);
+            pInspectorInsetRight.Text = pInspectorMapped.LWorkCropRight.ToString(CultureInfo.InvariantCulture);
+            pInspectorInsetBottom.Text = pInspectorMapped.LWorkCropBottom.ToString(CultureInfo.InvariantCulture);
+        }
+        finally
+        {
+            pInspectorCropSuppress = pCropSuppressPrevious;
+        }
+
+        PInspectorCropRaise();
+    }
+
+    private static int PInspectorAngleResolve(LRotateKind pInspectorKind) => pInspectorKind switch
+    {
+        LRotateKind.LRotate90 => 90,
+        LRotateKind.LRotate180 => 180,
+        LRotateKind.LRotate270 => 270,
+        _ => 0
+    };
 
     public Rect? PInspectorRectRead()
     {

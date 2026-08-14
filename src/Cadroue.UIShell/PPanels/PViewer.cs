@@ -344,21 +344,12 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerRotateSet(LRotateFlip pRotateFlip)
     {
-        bool pRotateChanged = LPreviewStateCurrent.LRotateFlip.LRotateKind != pRotateFlip.LRotateKind;
         LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(pRotateFlip);
         LTraceLog.LTraceInfoRecord(
             $"Viewer rotate/flip set: rotate {pRotateFlip.LRotateKind}, "
             + $"H {pRotateFlip.LRotateFlipHorizontal}, V {pRotateFlip.LRotateFlipVertical}, "
-            + $"player {(pViewerPlayer.PPlayerReady ? "ready" : "none")}, "
-            + $"{(pRotateChanged ? "rotation changed: crop hidden" : "rotation same: overlay kept")}");
+            + $"player {(pViewerPlayer.PPlayerReady ? "ready" : "none")}, overlay remapped");
         PViewerPreviewApply();
-
-        if (pRotateChanged)
-        {
-            PCropHide();
-            return;
-        }
-
         PCropOverlayUpdate();
     }
 

@@ -402,11 +402,14 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditRotateHandle(LRotateFlip pRotateFlip)
     {
+        LRotateFlip pEditOldRotate = pViewer.LPreviewStateCurrent.LRotateFlip;
         pViewer.PViewerRotateSet(pRotateFlip);
         if (pViewer.PCropSourceRead() is { } pRotatedSource)
         {
             pInspector.PInspectorSourceSet(pRotatedSource.Width, pRotatedSource.Height);
         }
+
+        pInspector.PInspectorOrientationApply(pEditOldRotate);
     }
 
     private void PEditNeutralHandle(LNeutralSample pNeutralSample)
