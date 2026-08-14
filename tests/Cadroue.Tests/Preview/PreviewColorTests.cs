@@ -211,11 +211,23 @@ public sealed class PreviewColorTests
                 TInterface.PreviewDefaultCreate(),
                 TInterface.ColorGammaCreate(1.5)),
             TInterface.RotateFlipCreate(LRotateKind.LRotate90, true, false));
-        state = TInterface.PreviewCropboxChange(state, TInterface.CropboxCreate(10, 20, 300, 200));
 
         Assert.Equal(
-            "lavfi=[hflip,transpose=1,crop=300:200:10:20]",
+            "lavfi=[hflip,transpose=1]",
             TInterface.PreviewMpvFilterResolve(state));
+    }
+
+    [Fact]
+    public void MpvFilterResolve_Cropbox_NeverEmitsCropFilter()
+    {
+        LPreviewState state = TInterface.PreviewRotateFlipChange(
+            TInterface.PreviewColorChange(
+                TInterface.PreviewDefaultCreate(),
+                TInterface.ColorGammaCreate(1.5)),
+            TInterface.RotateFlipCreate(LRotateKind.LRotate90, true, false));
+        state = TInterface.PreviewCropboxChange(state, TInterface.CropboxCreate(10, 20, 300, 200));
+
+        Assert.DoesNotContain("crop=", TInterface.PreviewMpvFilterResolve(state));
     }
 
     [Fact]
@@ -226,10 +238,9 @@ public sealed class PreviewColorTests
                 TInterface.PreviewDefaultCreate(),
                 TInterface.ColorGammaCreate(1.2, 0.9, 1.1, 1.3, 25)),
             TInterface.RotateFlipCreate(LRotateKind.LRotate90, true, true));
-        state = TInterface.PreviewCropboxChange(state, TInterface.CropboxCreate(10, 20, 300, 200));
 
         Assert.Equal(
-            "lavfi=[hflip,vflip,transpose=1,crop=300:200:10:20,"
+            "lavfi=[hflip,vflip,transpose=1,"
             + "lutyuv=y='val*0.25+maxval*pow(val/maxval\\,0.757576)*0.75'"
             + ":u='val*0.25+maxval*pow(val/maxval\\,0.919866)*0.75'"
             + ":v='val*0.25+maxval*pow(val/maxval\\,1.105542)*0.75']",
@@ -341,10 +352,9 @@ public sealed class PreviewColorTests
         LPreviewState state = TInterface.PreviewRotateFlipChange(
             TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color),
             TInterface.RotateFlipCreate(LRotateKind.LRotate90, true, false));
-        state = TInterface.PreviewCropboxChange(state, TInterface.CropboxCreate(10, 20, 300, 200));
 
         string filter = TInterface.PreviewMpvFilterResolve(state);
-        Assert.True(filter.IndexOf("crop=", StringComparison.Ordinal) < filter.IndexOf("lutyuv=", StringComparison.Ordinal));
+        Assert.DoesNotContain("crop=", filter);
         Assert.True(filter.IndexOf("lutyuv=", StringComparison.Ordinal) < filter.IndexOf("colorcorrect=", StringComparison.Ordinal));
     }
 
@@ -402,7 +412,7 @@ public sealed class PreviewColorTests
     }
 
     [Fact]
-    public void MpvFilterResolve_CropGammaManualPreservesExportOrder()
+    public void MpvFilterResolve_GammaManualPreservesExportOrder()
     {
         LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
             TInterface.WorkGammaCreate(true, 20, 10, 0, 0, 25),
@@ -413,8 +423,7 @@ public sealed class PreviewColorTests
             TInterface.CropboxCreate(10, 20, 300, 200));
 
         string filter = TInterface.PreviewMpvFilterResolve(state);
-        Assert.True(filter.IndexOf("crop=", StringComparison.Ordinal)
-            < filter.IndexOf("lutyuv=", StringComparison.Ordinal));
+        Assert.DoesNotContain("crop=", filter);
         Assert.True(filter.IndexOf("lutyuv=", StringComparison.Ordinal)
             < filter.IndexOf("colorchannelmixer=", StringComparison.Ordinal));
         Assert.True(filter.IndexOf("colorchannelmixer=", StringComparison.Ordinal)

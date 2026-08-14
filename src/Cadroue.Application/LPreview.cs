@@ -122,15 +122,6 @@ public static class LPreview
             lFilters.Add(lRotate);
         }
 
-        if (lPreviewState.LCropbox is { LCropboxWidth: > 0, LCropboxHeight: > 0 } lCropbox)
-        {
-            int lCropWidth = (int)Math.Round(lCropbox.LCropboxWidth);
-            int lCropHeight = (int)Math.Round(lCropbox.LCropboxHeight);
-            int lCropX = (int)Math.Round(lCropbox.LCropboxX);
-            int lCropY = (int)Math.Round(lCropbox.LCropboxY);
-            lFilters.Add($"crop={lCropWidth}:{lCropHeight}:{lCropX}:{lCropY}");
-        }
-
         LColor lColor = lPreviewState.LColor;
         if (LPreviewMpvGammaFilterRequired(lColor))
         {

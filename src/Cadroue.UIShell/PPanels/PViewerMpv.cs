@@ -118,19 +118,6 @@ public sealed partial class PViewer
         }
     }
 
-    private void PViewerMpvCropLive()
-    {
-        if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady)
-        {
-            return;
-        }
-
-        LCropbox? pViewerLive = PViewerCropboxRead(PCropVideoRead());
-        PViewerMpvFilterApply(LPreview.LPreviewMpvFilterResolve(
-            LPreviewStateCurrent.LCropboxChange(pViewerLive)),
-            LPreview.LPreviewMpvGammaFilterRequired(LPreviewStateCurrent.LColor));
-    }
-
     private bool PViewerMpvFilterApply(string pViewerFilter, bool pViewerAdvancedGamma)
     {
         if (pViewerFilter == pViewerMpvFilter)

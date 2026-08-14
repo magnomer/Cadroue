@@ -288,7 +288,6 @@ public sealed partial class PViewer
         if (pViewerCropDrag)
         {
             PCropDragApply(mouseEvent.GetPosition(pViewerOverlay));
-            PViewerMpvCropLive();
             mouseEvent.Handled = true;
             return;
         }
@@ -299,7 +298,6 @@ public sealed partial class PViewer
         }
 
         PCropBoxPlace(pViewerCropPoint.Value, mouseEvent.GetPosition(pViewerOverlay));
-        PViewerMpvCropLive();
         mouseEvent.Handled = true;
     }
 
