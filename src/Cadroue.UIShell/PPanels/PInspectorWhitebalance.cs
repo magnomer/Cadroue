@@ -14,6 +14,7 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PInspector
 {
     private ToggleButton pInspectorNeutralTool = null!;
+    private StackPanel pInspectorNeutralGroup = null!;
     private Rectangle pInspectorNeutralSwatch = null!;
     private TextBlock pInspectorNeutralReadout = null!;
     private double pInspectorWhitebalanceRedGain = 1;
@@ -86,6 +87,7 @@ public sealed partial class PInspector
         pInspectorNeutralRow.Children.Add(pInspectorNeutralTool);
         pInspectorNeutralRow.Children.Add(pInspectorNeutralSwatch);
         pInspectorNeutralRow.Children.Add(pInspectorNeutralReadout);
+        pInspectorNeutralGroup = pInspectorNeutralRow;
         PToneNeutralReadoutUpdate();
         return pInspectorNeutralRow;
     }
@@ -149,12 +151,6 @@ public sealed partial class PInspector
         PToneNeutralReadoutUpdate();
     }
 
-    private void PToneNeutralClear()
-    {
-        PToneNeutralReset();
-        PToneNeutralReadoutUpdate();
-    }
-
     private void PToneNeutralReset()
     {
         pInspectorWhitebalanceRedGain = 1;
@@ -167,12 +163,17 @@ public sealed partial class PInspector
 
     private void PToneNeutralReadoutUpdate()
     {
-        bool pNeutralActive = pInspectorWhitebalanceMethod.SelectedIndex == 3
-            && (pInspectorWhitebalanceSampleRed
-                | pInspectorWhitebalanceSampleGreen
-                | pInspectorWhitebalanceSampleBlue) != 0;
+        LNeutralDisplay pNeutralDisplay = LNeutral.LNeutralDisplayResolve(
+            pInspectorWhitebalanceMethod.SelectedIndex == 3,
+            pInspectorWhitebalanceSampleRed,
+            pInspectorWhitebalanceSampleGreen,
+            pInspectorWhitebalanceSampleBlue);
 
-        if (!pNeutralActive)
+        pInspectorNeutralGroup.Visibility = pNeutralDisplay.LNeutralDisplayVisible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        if (!pNeutralDisplay.LNeutralDisplaySampled)
         {
             pInspectorNeutralSwatch.Fill = Brushes.Transparent;
             pInspectorNeutralReadout.Text = string.Empty;
@@ -180,14 +181,14 @@ public sealed partial class PInspector
         }
 
         pInspectorNeutralSwatch.Fill = new SolidColorBrush(Color.FromRgb(
-            (byte)pInspectorWhitebalanceSampleRed,
-            (byte)pInspectorWhitebalanceSampleGreen,
-            (byte)pInspectorWhitebalanceSampleBlue));
+            (byte)pNeutralDisplay.LNeutralDisplayRed,
+            (byte)pNeutralDisplay.LNeutralDisplayGreen,
+            (byte)pNeutralDisplay.LNeutralDisplayBlue));
         pInspectorNeutralReadout.Text = string.Format(
             CultureInfo.InvariantCulture,
-            "R {0:0.00}  G {1:0.00}  B {2:0.00}",
-            pInspectorWhitebalanceRedGain,
-            pInspectorWhitebalanceGreenGain,
-            pInspectorWhitebalanceBlueGain);
+            "R {0}  G {1}  B {2}",
+            pNeutralDisplay.LNeutralDisplayRed,
+            pNeutralDisplay.LNeutralDisplayGreen,
+            pNeutralDisplay.LNeutralDisplayBlue);
     }
 }

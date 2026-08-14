@@ -302,11 +302,6 @@ public sealed partial class PInspector
         pInspectorWhitebalanceMethod.SelectedIndex = 2;
         pInspectorWhitebalanceMethod.SelectionChanged += (_, _) =>
         {
-            if (PToneWhitebalanceMethodRead() != LWhitebalanceMethod.LWhitebalanceMethodManual)
-            {
-                PToneNeutralClear();
-            }
-
             PToneNeutralReadoutUpdate();
             if (!pInspectorVideoSuppress)
             {

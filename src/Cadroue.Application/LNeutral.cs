@@ -10,6 +10,13 @@ public enum LNeutralOutcome
 
 public sealed record LNeutralPoint(bool LNeutralPointInside, int LNeutralPointX, int LNeutralPointY);
 
+public sealed record LNeutralDisplay(
+    bool LNeutralDisplayVisible,
+    bool LNeutralDisplaySampled,
+    int LNeutralDisplayRed,
+    int LNeutralDisplayGreen,
+    int LNeutralDisplayBlue);
+
 public sealed record LNeutralSample(
     LNeutralOutcome LNeutralOutcome,
     int LNeutralRed,
@@ -118,6 +125,26 @@ public static class LNeutral
             lNeutralRedGain,
             lNeutralGreenGain,
             lNeutralBlueGain);
+    }
+
+    // The Manual white-balance group shows only for the Manual method, and its swatch
+    // and readout render only when a valid (non-black) sample is present. Automatic
+    // methods collapse the group; kept-in-memory manual values stay off-screen.
+    public static LNeutralDisplay LNeutralDisplayResolve(
+        bool lNeutralManual,
+        int lNeutralRed,
+        int lNeutralGreen,
+        int lNeutralBlue)
+    {
+        int lNeutralClampedRed = Math.Clamp(lNeutralRed, 0, 255);
+        int lNeutralClampedGreen = Math.Clamp(lNeutralGreen, 0, 255);
+        int lNeutralClampedBlue = Math.Clamp(lNeutralBlue, 0, 255);
+        bool lNeutralSampled = lNeutralManual
+            && (lNeutralClampedRed | lNeutralClampedGreen | lNeutralClampedBlue) != 0;
+        return lNeutralSampled
+            ? new LNeutralDisplay(
+                true, true, lNeutralClampedRed, lNeutralClampedGreen, lNeutralClampedBlue)
+            : new LNeutralDisplay(lNeutralManual, false, 0, 0, 0);
     }
 
     private static double LNeutralGainResolve(double lNeutralTarget, double lNeutralChannel)
