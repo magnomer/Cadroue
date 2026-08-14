@@ -126,6 +126,11 @@ public sealed partial class PInspector : PPanel
         }
 
         pInspectorMinimized = pInspectorMinimizeRequest;
+        if (pInspectorMinimized)
+        {
+            PToneNeutralDisarm();
+        }
+
         pInspectorFullBody.Visibility = pInspectorMinimized ? Visibility.Collapsed : Visibility.Visible;
         pInspectorStripBody.Visibility = pInspectorMinimized ? Visibility.Visible : Visibility.Collapsed;
         PInspectorMinimizeChange?.Invoke(pInspectorMinimized);
@@ -226,6 +231,11 @@ public sealed partial class PInspector : PPanel
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)
         {
             PInspectorToolReset();
+        }
+
+        if (!pWhitebalanceSelected)
+        {
+            PToneNeutralDisarm();
         }
     }
 

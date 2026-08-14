@@ -380,15 +380,24 @@ public sealed partial class PInspector
         bool pChanged = PToneWhitebalanceMethodRead() != LWhitebalanceMethod.LWhitebalanceMethodMedian
             || PInspectorDecimalRead(
                 pInspectorWhitebalanceSaturationValue,
-                pInspectorWhitebalanceSaturationSlider.Value) != 100;
+                pInspectorWhitebalanceSaturationSlider.Value) != 100
+            || pInspectorWhitebalanceSampleRed != 0
+            || pInspectorWhitebalanceSampleGreen != 0
+            || pInspectorWhitebalanceSampleBlue != 0
+            || pInspectorWhitebalanceRedGain != 1
+            || pInspectorWhitebalanceGreenGain != 1
+            || pInspectorWhitebalanceBlueGain != 1;
         pInspectorVideoSuppress = true;
         try
         {
+            PToneNeutralDisarm();
             pInspectorWhitebalanceMethod.SelectedIndex = 2;
             PToneGammaValueSet(
                 pInspectorWhitebalanceSaturationSlider,
                 pInspectorWhitebalanceSaturationValue,
                 100);
+            PToneNeutralReset();
+            PToneNeutralReadoutUpdate();
         }
         finally
         {
@@ -436,9 +445,17 @@ public sealed partial class PInspector
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyWhitebalance");
         pInspectorWhitebalancePersistent.ToolTip = pDisabledTooltip
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistWhitebalance");
+        pInspectorNeutralTool.IsEnabled = pWhitebalanceCapable;
+        pInspectorNeutralTool.ToolTip = pDisabledTooltip
+            ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickTooltip");
         ToolTipService.SetShowOnDisabled(pInspectorWhitebalanceBody, true);
         ToolTipService.SetShowOnDisabled(pToneWhitebalanceBox, true);
         ToolTipService.SetShowOnDisabled(pInspectorWhitebalancePersistent, true);
+        ToolTipService.SetShowOnDisabled(pInspectorNeutralTool, true);
+        if (!pWhitebalanceCapable)
+        {
+            PToneNeutralDisarm();
+        }
     }
 
     private void PToneGammaReset()
@@ -622,6 +639,11 @@ public sealed partial class PInspector
         bool pActive = pApply.IsChecked == true;
         pStack.IsEnabled = pActive;
         pStack.Opacity = pActive ? 1 : 0.4;
+        if (!pActive && ReferenceEquals(pApply, pToneWhitebalanceBox))
+        {
+            PToneNeutralDisarm();
+        }
+
         if (!pInspectorVideoSuppress)
         {
             PInspectorVideoChange?.Invoke();

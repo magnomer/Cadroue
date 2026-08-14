@@ -114,6 +114,7 @@ public sealed class PEditTab : PTabSurface
         };
         PEditMpvOnlyCapabilityHandle();
         pViewer.PViewerEngineChange += PEditMpvOnlyCapabilityHandle;
+        pViewer.PViewerEngineChange += pViewer.PViewerNeutralCancel;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
         pList.PListPathChange += PEditPathShow;
@@ -272,6 +273,7 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditPathShow(string? pSourcePath)
     {
+        pViewer.PViewerNeutralCancel();
         if (string.IsNullOrWhiteSpace(pSourcePath))
         {
             LTraceLog.LTraceInfoRecord("Edit click: no file selected");
@@ -585,6 +587,7 @@ public sealed class PEditTab : PTabSurface
     {
         pEditColorTimer.Stop();
         pViewer.PViewerEngineChange -= PEditMpvOnlyCapabilityHandle;
+        pViewer.PViewerEngineChange -= pViewer.PViewerNeutralCancel;
         base.PTabClose();
     }
     public override PList? PTabList => pList;

@@ -130,6 +130,14 @@ public sealed partial class PInspector
         pInspectorNeutralSuppress = pPrevious;
     }
 
+    private void PToneNeutralDisarm()
+    {
+        if (pInspectorNeutralTool.IsChecked == true)
+        {
+            pInspectorNeutralTool.IsChecked = false;
+        }
+    }
+
     public void PToneNeutralApply(LNeutralSample pNeutralSample)
     {
         PInspectorNeutralShow(string.Empty);
