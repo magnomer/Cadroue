@@ -72,6 +72,39 @@ public sealed record LWorkWhitebalanceSettings(
     public int LWorkSampleRed { get; init; }
     public int LWorkSampleGreen { get; init; }
     public int LWorkSampleBlue { get; init; }
+
+    public IReadOnlyList<string> LWorkWhitebalanceFormat()
+    {
+        static string lNumber(double lValue) =>
+            lValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+
+        var lFilters = new List<string>();
+        if (LWorkWhitebalanceMethod == LWhitebalanceMethod.LWhitebalanceMethodManual)
+        {
+            lFilters.Add(
+                "colorchannelmixer=rr=" + lNumber(LWorkWhitebalanceRed)
+                + ":gg=" + lNumber(LWorkWhitebalanceGreen)
+                + ":bb=" + lNumber(LWorkWhitebalanceBlue));
+            double lSaturation = LWorkWhitebalanceSaturation / 100d;
+            if (lSaturation != 1)
+            {
+                lFilters.Add("eq=saturation=" + lNumber(lSaturation));
+            }
+
+            return lFilters;
+        }
+
+        string lAnalyze = LWorkWhitebalanceMethod switch
+        {
+            LWhitebalanceMethod.LWhitebalanceMethodAverage => "average",
+            LWhitebalanceMethod.LWhitebalanceMethodMinmax => "minmax",
+            _ => "median"
+        };
+        lFilters.Add(
+            "colorcorrect=analyze=" + lAnalyze
+            + ":saturation=" + lNumber(LWorkWhitebalanceSaturation / 100d));
+        return lFilters;
+    }
 }
 
 public sealed record LWorkVideoStep(

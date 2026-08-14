@@ -368,4 +368,76 @@ public sealed class PreviewColorTests
         Assert.Equal(firstMpv, secondMpv);
         Assert.Equal(175, TInterface.WorkWhitebalanceRead(whitebalance).LWorkWhitebalanceSaturation);
     }
+
+    [Theory]
+    [InlineData(1, 1, 1, "colorchannelmixer=rr=1:gg=1:bb=1")]
+    [InlineData(1.2, 1, 0.8, "colorchannelmixer=rr=1.2:gg=1:bb=0.8")]
+    [InlineData(0.8, 1, 1.2, "colorchannelmixer=rr=0.8:gg=1:bb=1.2")]
+    [InlineData(5, 1, -1, "colorchannelmixer=rr=2:gg=1:bb=0")]
+    [InlineData(1.3755, 0.66667, 1, "colorchannelmixer=rr=1.376:gg=0.667:bb=1")]
+    public void MpvFilterResolve_ManualWhitebalanceEmitsDiagonalMixer(
+        double red, double green, double blue, string expected)
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkWhitebalanceManualCreate(true, 100, red, green, blue, 0, 0, 0)
+        ]));
+        LPreviewState state = TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color);
+
+        Assert.Equal($"lavfi=[{expected}]", TInterface.PreviewMpvFilterResolve(state));
+    }
+
+    [Theory]
+    [InlineData(0, "colorchannelmixer=rr=1:gg=1:bb=1,eq=saturation=0")]
+    [InlineData(100, "colorchannelmixer=rr=1:gg=1:bb=1")]
+    [InlineData(300, "colorchannelmixer=rr=1:gg=1:bb=1,eq=saturation=3")]
+    public void MpvFilterResolve_ManualWhitebalanceSaturationIsSeparateFilterWhenRequired(
+        double saturation, string expected)
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkWhitebalanceManualCreate(true, saturation, 1, 1, 1, 0, 0, 0)
+        ]));
+        LPreviewState state = TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color);
+
+        Assert.Equal($"lavfi=[{expected}]", TInterface.PreviewMpvFilterResolve(state));
+    }
+
+    [Fact]
+    public void MpvFilterResolve_CropGammaManualPreservesExportOrder()
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkGammaCreate(true, 20, 10, 0, 0, 25),
+            TInterface.WorkWhitebalanceManualCreate(true, 200, 1.2, 1, 0.8, 0, 0, 0)
+        ]));
+        LPreviewState state = TInterface.PreviewCropboxChange(
+            TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color),
+            TInterface.CropboxCreate(10, 20, 300, 200));
+
+        string filter = TInterface.PreviewMpvFilterResolve(state);
+        Assert.True(filter.IndexOf("crop=", StringComparison.Ordinal)
+            < filter.IndexOf("lutyuv=", StringComparison.Ordinal));
+        Assert.True(filter.IndexOf("lutyuv=", StringComparison.Ordinal)
+            < filter.IndexOf("colorchannelmixer=", StringComparison.Ordinal));
+        Assert.True(filter.IndexOf("colorchannelmixer=", StringComparison.Ordinal)
+            < filter.IndexOf("eq=saturation=", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ManualWhitebalanceTransition_MpvToFlyleafToMpv_RemovesAndRestoresFilter()
+    {
+        LWorkVideoStep whitebalance =
+            TInterface.WorkWhitebalanceManualCreate(true, 100, 1.2, 1, 0.8, 12, 34, 56);
+        LWorkVideo mpv = TInterface.EditVideoCreate([whitebalance], true);
+        LWorkVideo flyleaf = TInterface.EditVideoCreate([whitebalance], false);
+
+        string firstMpv = TInterface.PreviewMpvFilterResolve(TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(), TInterface.PreviewColorResolve(mpv)));
+        string flyleafFilter = TInterface.PreviewMpvFilterResolve(TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(), TInterface.PreviewColorResolve(flyleaf)));
+        string secondMpv = TInterface.PreviewMpvFilterResolve(TInterface.PreviewColorChange(
+            TInterface.PreviewDefaultCreate(), TInterface.PreviewColorResolve(mpv)));
+
+        Assert.Equal("lavfi=[colorchannelmixer=rr=1.2:gg=1:bb=0.8]", firstMpv);
+        Assert.Empty(flyleafFilter);
+        Assert.Equal(firstMpv, secondMpv);
+    }
 }

@@ -240,16 +240,7 @@ internal static class LEncodeVideo
                     break;
                 case LColorKind.LColorKindWhitebalance:
                     lEqFlush();
-                    LWorkWhitebalanceSettings lWhitebalance = lStep.LWorkWhitebalanceRead();
-                    string lAnalyze = lWhitebalance.LWorkWhitebalanceMethod switch
-                    {
-                        LWhitebalanceMethod.LWhitebalanceMethodAverage => "average",
-                        LWhitebalanceMethod.LWhitebalanceMethodMinmax => "minmax",
-                        _ => "median"
-                    };
-                    string lSaturation = (lWhitebalance.LWorkWhitebalanceSaturation / 100d)
-                        .ToString("0.###", CultureInfo.InvariantCulture);
-                    lFilters.Add($"colorcorrect=analyze={lAnalyze}:saturation={lSaturation}");
+                    lFilters.AddRange(lStep.LWorkWhitebalanceRead().LWorkWhitebalanceFormat());
                     break;
                 default:
                     lEqFlush();

@@ -149,15 +149,7 @@ public static class LPreview
 
         if (lColor.LColorWhitebalance is { } lWhitebalance)
         {
-            string lMethod = lWhitebalance.LWorkWhitebalanceMethod switch
-            {
-                LWhitebalanceMethod.LWhitebalanceMethodAverage => "average",
-                LWhitebalanceMethod.LWhitebalanceMethodMinmax => "minmax",
-                _ => "median"
-            };
-            string lSaturation = (lWhitebalance.LWorkWhitebalanceSaturation / 100d)
-                .ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
-            lFilters.Add($"colorcorrect=analyze={lMethod}:saturation={lSaturation}");
+            lFilters.AddRange(lWhitebalance.LWorkWhitebalanceFormat());
         }
 
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;

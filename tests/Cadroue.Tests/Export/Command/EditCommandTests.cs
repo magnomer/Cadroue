@@ -268,6 +268,87 @@ public sealed class EditCommandTests
             CommandTokens.ValueAfter(tokens, "-vf"));
     }
 
+    [Theory]
+    [InlineData(1, 1, 1, 100, "colorchannelmixer=rr=1:gg=1:bb=1")]
+    [InlineData(1.2, 1, 0.8, 100, "colorchannelmixer=rr=1.2:gg=1:bb=0.8")]
+    [InlineData(5, 1, -1, 100, "colorchannelmixer=rr=2:gg=1:bb=0")]
+    [InlineData(1.3755, 0.66667, 1, 100, "colorchannelmixer=rr=1.376:gg=0.667:bb=1")]
+    [InlineData(1, 1, 1, 0, "colorchannelmixer=rr=1:gg=1:bb=1,eq=saturation=0")]
+    [InlineData(1.2, 1, 0.8, 300, "colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=3")]
+    public void ManualWhitebalance_EmitsDiagonalMixerAndSeparateSaturation(
+        double red, double green, double blue, double saturation, string expected)
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkWhitebalanceManualCreate(true, saturation, red, green, blue, 0, 0, 0)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4",
+            TEncodeCommand.OutputCreate(videoMode: "Copy", audioMode: "Copy"),
+            end: TimeSpan.FromMinutes(1), video: video);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+        Assert.NotEqual("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.Equal(expected, CommandTokens.ValueAfter(tokens, "-vf"));
+    }
+
+    [Fact]
+    public void ManualWhitebalance_UsesInvariantDecimalFormatting()
+    {
+        using var environment = new TEncodeCommand();
+        System.Globalization.CultureInfo originalCulture =
+            System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture =
+                System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+            LWorkVideo video = TInterface.WorkVideoCreate(new[]
+            {
+                TInterface.WorkWhitebalanceManualCreate(true, 250, 1.2, 1, 0.8, 0, 0, 0)
+            });
+            LWorkItem work = TEncodeCommand.WorkCreate(
+                LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+                end: TimeSpan.FromMinutes(1), video: video);
+
+            IReadOnlyList<string> tokens = CommandTokens.Read(
+                Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+            Assert.Equal(
+                "colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=2.5",
+                CommandTokens.ValueAfter(tokens, "-vf"));
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Fact]
+    public void GammaAndManualWhitebalance_PreserveOrderInSeparateFilterSegments()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkGammaCreate(true, 50),
+            TInterface.WorkWhitebalanceManualCreate(true, 200, 1.2, 1, 0.8, 0, 0, 0),
+            TInterface.WorkContrastCreate(true, 150)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+            end: TimeSpan.FromMinutes(1), video: video);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+        Assert.Equal(1, CommandTokens.Count(tokens, "-vf"));
+        Assert.Equal(
+            "eq=gamma=3.162,colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=2,eq=contrast=1.5",
+            CommandTokens.ValueAfter(tokens, "-vf"));
+    }
+
     [Fact]
     public void GammaAndWhitebalance_PreserveOrderInSeparateFilterSegments()
     {
