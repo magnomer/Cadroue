@@ -197,6 +197,7 @@ public static class LSidecarStore
         try
         {
             return LSidecarCoreRead(lSidecarSourcePath) is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarCore
+                && LSidecarSource.LSidecarVerifyCheck(lSidecarSourcePath, lSidecarCore.LSidecarSource)
                 ? TimeSpan.FromMilliseconds(lSidecarCore.LSidecarSource.LSidecarDurationMilliseconds)
                 : TimeSpan.Zero;
         }
@@ -217,7 +218,8 @@ public static class LSidecarStore
                 lSidecarCore = LSidecarCoreRead(lSidecarSourcePath);
             }
 
-            if (lSidecarCore is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarKnown)
+            if (lSidecarCore is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarKnown
+                && LSidecarSource.LSidecarVerifyCheck(lSidecarSourcePath, lSidecarKnown.LSidecarSource))
             {
                 return TimeSpan.FromMilliseconds(lSidecarKnown.LSidecarSource.LSidecarDurationMilliseconds);
             }
@@ -237,9 +239,20 @@ public static class LSidecarStore
                 return TimeSpan.Zero;
             }
 
-            LSidecarCoreSave(
-                lSidecarSourcePath,
-                lSidecarTarget => lSidecarTarget.LSidecarSource.LSidecarDurationMilliseconds = (long)Math.Round(lSidecarProbed.TotalMilliseconds));
+            LSidecarCoreSave(lSidecarSourcePath, lSidecarTarget =>
+            {
+                try
+                {
+                    lSidecarTarget.LSidecarSource = LSidecarSourceCreate(
+                        LKeyframeSourceIdentity.LKeyframeIdentityCreate(lSidecarSourcePath, lSidecarProbed),
+                        lSidecarPreciousPath);
+                }
+                catch (Exception lSidecarException) when (
+                    lSidecarException is IOException or UnauthorizedAccessException or ArgumentException or FileNotFoundException)
+                {
+                    lSidecarTarget.LSidecarSource.LSidecarDurationMilliseconds = (long)Math.Round(lSidecarProbed.TotalMilliseconds);
+                }
+            });
 
             return lSidecarProbed;
         }
