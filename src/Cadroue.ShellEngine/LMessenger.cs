@@ -186,7 +186,7 @@ public static class LMessenger
         return lMessengerPlans;
     }
 
-    private static IReadOnlyList<LSplitSectionDescription> LMessengerSplitRead(string lMessengerSourcePath)
+    internal static IReadOnlyList<LSplitSectionDescription> LMessengerSplitRead(string lMessengerSourcePath)
     {
         try
         {
