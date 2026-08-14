@@ -397,7 +397,7 @@ public static partial class LCartographer
                 lCartographerStage.LCartographerNextStage,
                 lCartographerBatch,
                 lCartographerPaths,
-                lCartographerMerge)).GetAwaiter().GetResult();
+                lCartographerMerge));
 
         var lCartographerCleared = new HashSet<string>(lCartographerAcknowledged, StringComparer.OrdinalIgnoreCase);
         lCartographerCleared.UnionWith(lCartographerRepresented);

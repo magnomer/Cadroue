@@ -6,7 +6,7 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LCartographer
 {
-    public static async Task<IReadOnlyList<string>> LCartographerStageExecute(LCartographerStagePlan lCartographerPlan)
+    public static IReadOnlyList<string> LCartographerStageExecute(LCartographerStagePlan lCartographerPlan)
     {
         LPreset lCartographerPreset = LPreset.LPresetStateCreate(lCartographerPlan.LCartographerExport);
         var lCartographerOwner = new LPresetSelection(
@@ -18,25 +18,23 @@ public static partial class LCartographer
 
         return lCartographerPlan.LCartographerLayoutKey switch
         {
-            "Convert" => await LCartographerConvertExecute(
-                lCartographerPaths, lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch)
-                .ConfigureAwait(false),
+            "Convert" => LCartographerConvertExecute(
+                lCartographerPaths, lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch),
             "Merge" => LCartographerMergeExecute(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
             "Edit" => LCartographerEditExecute(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
-            "Audio" => await LCartographerAudioExecute(
+            "Audio" => LCartographerAudioExecute(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
-                lCartographerTarget, lCartographerSource, lCartographerBatch)
-                .ConfigureAwait(false),
+                lCartographerTarget, lCartographerSource, lCartographerBatch),
             _ => LCartographerSplitExecute(
                 lCartographerPaths, lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch)
         };
     }
 
-    private static async Task<IReadOnlyList<string>> LCartographerConvertExecute(
+    private static IReadOnlyList<string> LCartographerConvertExecute(
         IReadOnlyList<string> lCartographerPaths,
         LPresetSelection lCartographerOwner,
         Guid lCartographerTarget,
@@ -46,10 +44,10 @@ public static partial class LCartographer
         LWorkSource[] lCartographerSources = lCartographerPaths
             .Select(lCartographerPath => new LWorkSource(lCartographerPath, lCartographerBatch))
             .ToArray();
-        int lCartographerAdded = await LMessenger.LMessengerConvertDescribe(
+        LCartographerDescribeObserve(LMessenger.LMessengerConvertDescribe(
             LWorkPriority.LWorkPriorityNormal, lCartographerSources, lCartographerOwner,
-            lCartographerTarget, lCartographerSource).ConfigureAwait(false);
-        return lCartographerAdded > 0 ? lCartographerPaths.ToArray() : Array.Empty<string>();
+            lCartographerTarget, lCartographerSource));
+        return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
     }
 
     private static IReadOnlyList<string> LCartographerSplitExecute(
@@ -158,7 +156,7 @@ public static partial class LCartographer
         return lCartographerAcknowledged;
     }
 
-    private static async Task<IReadOnlyList<string>> LCartographerAudioExecute(
+    private static IReadOnlyList<string> LCartographerAudioExecute(
         LSceneTabRecord lCartographerLayout,
         IReadOnlyList<string> lCartographerPaths,
         LPresetSelection lCartographerOwner,
@@ -170,19 +168,48 @@ public static partial class LCartographer
             ? LAudio.LAudioPersistentRead(lCartographerRecord)
             : LWorkAudio.LWorkAudioCreate();
 
-        var lCartographerAcknowledged = new List<string>();
         foreach (string lCartographerPath in lCartographerPaths)
         {
-            int lCartographerAdded = await LMessenger.LMessengerAudioDescribe(
+            LCartographerDescribeObserve(LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal, lCartographerPath, lCartographerProcessing,
-                lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch)
-                .ConfigureAwait(false);
-            if (lCartographerAdded > 0)
+                lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch));
+        }
+
+        return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
+    }
+
+    private static IReadOnlyList<string> LCartographerAcknowledgedRead(
+        Guid lCartographerBatch,
+        Guid lCartographerSource,
+        IReadOnlyList<string> lCartographerPaths)
+    {
+        var lCartographerRepresented = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (LWorkItem lCartographerWork in LCartographerScheduleRead())
+        {
+            if (lCartographerWork.LWorkBatchId != lCartographerBatch
+                || lCartographerWork.LWorkRelaySource != lCartographerSource)
             {
-                lCartographerAcknowledged.Add(lCartographerPath);
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(lCartographerWork.LWorkSourcePath))
+            {
+                lCartographerRepresented.Add(lCartographerWork.LWorkSourcePath);
+            }
+            foreach (string lCartographerMergeSource in lCartographerWork.LWorkMergeSources)
+            {
+                lCartographerRepresented.Add(lCartographerMergeSource);
             }
         }
 
-        return lCartographerAcknowledged;
+        return lCartographerPaths
+            .Where(lCartographerPath => lCartographerRepresented.Contains(lCartographerPath))
+            .ToArray();
     }
+
+    private static void LCartographerDescribeObserve(Task<int> lCartographerTask) =>
+        lCartographerTask.ContinueWith(
+            lCartographerFaulted => LTraceLog.LTraceErrorRecord(
+                "Relay stage execution failed", lCartographerFaulted.Exception),
+            TaskContinuationOptions.OnlyOnFaulted);
 }
