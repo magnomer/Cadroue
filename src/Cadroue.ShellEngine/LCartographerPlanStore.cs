@@ -8,16 +8,15 @@ namespace Cadroue.ShellEngine;
 public static class LCartographerPlanStore
 {
     private const string LCartographerPlanFolder = "relayplans";
-    private static readonly object lCartographerPlanGate = new();
     private static readonly JsonSerializerOptions lCartographerPlanJson = new() { WriteIndented = true };
 
     public static bool LCartographerPlanRead(Guid lCartographerPlanId, out LCartographerPlanRecord lCartographerPlan)
     {
-        lock (lCartographerPlanGate)
+        string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
+        try
         {
-            try
+            using (LLatch.LLatchClaim(lCartographerPath))
             {
-                string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
                 LCartographerPlanRecord? lCartographerRead = File.Exists(lCartographerPath)
                     ? JsonSerializer.Deserialize<LCartographerPlanRecord>(File.ReadAllText(lCartographerPath), lCartographerPlanJson)
                     : null;
@@ -40,38 +39,38 @@ public static class LCartographerPlanStore
                 lCartographerPlan = lCartographerRead;
                 return true;
             }
-            catch (Exception lCartographerError) when (lCartographerError is IOException or UnauthorizedAccessException or JsonException)
-            {
-                LTraceLog.LTraceWarningRecord($"Relay plan {lCartographerPlanId:N} could not be read: {lCartographerError.Message}");
-                lCartographerPlan = new LCartographerPlanRecord();
-                return false;
-            }
+        }
+        catch (Exception lCartographerError) when (lCartographerError is IOException or UnauthorizedAccessException or JsonException or TimeoutException)
+        {
+            LTraceLog.LTraceWarningRecord($"Relay plan {lCartographerPlanId:N} could not be read: {lCartographerError.Message}");
+            lCartographerPlan = new LCartographerPlanRecord();
+            return false;
         }
     }
 
     public static bool LCartographerPlanSave(LCartographerPlanRecord lCartographerPlan)
     {
-        lock (lCartographerPlanGate)
+        string lCartographerPath = LCartographerPathRead(lCartographerPlan.LCartographerPlanId);
+        string lCartographerTemporary = lCartographerPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
         {
-            string lCartographerPath = LCartographerPathRead(lCartographerPlan.LCartographerPlanId);
-            string lCartographerTemporary = lCartographerPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            try
+            using (LLatch.LLatchClaim(lCartographerPath))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(lCartographerPath)!);
                 File.WriteAllText(lCartographerTemporary, JsonSerializer.Serialize(lCartographerPlan, lCartographerPlanJson));
                 File.Move(lCartographerTemporary, lCartographerPath, true);
                 return true;
             }
-            catch (Exception lCartographerError) when (lCartographerError is IOException or UnauthorizedAccessException)
+        }
+        catch (Exception lCartographerError) when (lCartographerError is IOException or UnauthorizedAccessException or TimeoutException)
+        {
+            try
             {
-                try
-                {
-                    if (File.Exists(lCartographerTemporary)) File.Delete(lCartographerTemporary);
-                }
-                catch (Exception) { }
-                LTraceLog.LTraceWarningRecord($"Relay plan {lCartographerPlan.LCartographerPlanId:N} could not be saved: {lCartographerError.Message}");
-                return false;
+                if (File.Exists(lCartographerTemporary)) File.Delete(lCartographerTemporary);
             }
+            catch (Exception) { }
+            LTraceLog.LTraceWarningRecord($"Relay plan {lCartographerPlan.LCartographerPlanId:N} could not be saved: {lCartographerError.Message}");
+            return false;
         }
     }
 
