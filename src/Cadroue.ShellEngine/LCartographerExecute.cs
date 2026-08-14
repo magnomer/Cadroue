@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -23,6 +24,13 @@ public static partial class LCartographer
             "Merge" => LCartographerMergeExecute(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
+            "Edit" => LCartographerEditExecute(
+                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
+                lCartographerTarget, lCartographerSource, lCartographerBatch),
+            "Audio" => await LCartographerAudioExecute(
+                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
+                lCartographerTarget, lCartographerSource, lCartographerBatch)
+                .ConfigureAwait(false),
             _ => LCartographerSplitExecute(
                 lCartographerPaths, lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch)
         };
@@ -112,5 +120,69 @@ public static partial class LCartographer
             .SelectMany(lCartographerGroup => lCartographerGroup.LWorkGroupPaths)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    private static IReadOnlyList<string> LCartographerEditExecute(
+        LSceneTabRecord lCartographerLayout,
+        IReadOnlyList<string> lCartographerPaths,
+        LPresetSelection lCartographerOwner,
+        Guid lCartographerTarget,
+        Guid lCartographerSource,
+        Guid lCartographerBatch)
+    {
+        LEditPlan lCartographerPlan = lCartographerLayout.LSceneInspector?.LSceneInspectorEdit is { } lCartographerRecord
+            ? LEdit.LEditPersistentRead(lCartographerRecord)
+            : LEditPlan.LEditEmptyCreate();
+        bool lCartographerMpvOnlyCapable = LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
+        LWorkCrop lCartographerCrop = lCartographerPlan.LEditSkip
+            ? LWorkCrop.LWorkCropCreate()
+            : lCartographerPlan.LEditCrop;
+        LWorkVideo lCartographerVideo = lCartographerPlan.LEditSkip
+            ? LWorkVideo.LWorkVideoCreate()
+            : LEdit.LEditVideoCreate(lCartographerPlan.LEditVideo.LWorkVideoSteps, lCartographerMpvOnlyCapable);
+
+        var lCartographerAcknowledged = new List<string>();
+        foreach (string lCartographerPath in lCartographerPaths)
+        {
+            int lCartographerAdded = LMessenger.LMessengerEditDescribe(
+                LWorkPriority.LWorkPriorityNormal, lCartographerPath,
+                LLibrarian.LLibrarianDurationRead(lCartographerPath),
+                lCartographerCrop, lCartographerVideo, lCartographerOwner,
+                lCartographerTarget, lCartographerSource, lCartographerBatch);
+            if (lCartographerAdded > 0)
+            {
+                lCartographerAcknowledged.Add(lCartographerPath);
+            }
+        }
+
+        return lCartographerAcknowledged;
+    }
+
+    private static async Task<IReadOnlyList<string>> LCartographerAudioExecute(
+        LSceneTabRecord lCartographerLayout,
+        IReadOnlyList<string> lCartographerPaths,
+        LPresetSelection lCartographerOwner,
+        Guid lCartographerTarget,
+        Guid lCartographerSource,
+        Guid lCartographerBatch)
+    {
+        LWorkAudio lCartographerProcessing = lCartographerLayout.LSceneInspector?.LSceneInspectorAudio is { } lCartographerRecord
+            ? LAudio.LAudioPersistentRead(lCartographerRecord)
+            : LWorkAudio.LWorkAudioCreate();
+
+        var lCartographerAcknowledged = new List<string>();
+        foreach (string lCartographerPath in lCartographerPaths)
+        {
+            int lCartographerAdded = await LMessenger.LMessengerAudioDescribe(
+                LWorkPriority.LWorkPriorityNormal, lCartographerPath, lCartographerProcessing,
+                lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch)
+                .ConfigureAwait(false);
+            if (lCartographerAdded > 0)
+            {
+                lCartographerAcknowledged.Add(lCartographerPath);
+            }
+        }
+
+        return lCartographerAcknowledged;
     }
 }
