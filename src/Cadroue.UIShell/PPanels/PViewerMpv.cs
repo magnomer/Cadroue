@@ -20,6 +20,33 @@ public sealed partial class PViewer
     private bool pViewerEngineSubscribed;
     private string pViewerMpvFilter = string.Empty;
     private LColor? pViewerMpvGammaApplied;
+    private string pViewerAudioFilter = string.Empty;
+    private string? pViewerAudioApplied;
+
+    public void PViewerAudioSet(string pViewerGraph)
+    {
+        pViewerAudioFilter = pViewerGraph ?? string.Empty;
+        PViewerAudioApply();
+    }
+
+    private void PViewerAudioApply()
+    {
+        if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady || pViewerAudioFilter == pViewerAudioApplied)
+        {
+            return;
+        }
+
+        try
+        {
+            pViewerPlayer.PPlayerAudioSet(pViewerAudioFilter);
+            pViewerAudioApplied = pViewerAudioFilter;
+        }
+        catch (Exception pViewerAudioException)
+        {
+            LTraceLog.LTraceErrorRecord(
+                $"mpv rejected audio filter '{pViewerAudioFilter}': {pViewerAudioException.Message}");
+        }
+    }
 
     private void PViewerEngineCurrentSet(LPreviewEngine pViewerEngine)
     {
@@ -439,6 +466,7 @@ public sealed partial class PViewer
         }
 
         PViewerMpvPreviewApply();
+        PViewerAudioApply();
 
         if (LPreference.LPreferenceStateCurrent.LPreferenceAutoplay)
         {
@@ -491,6 +519,7 @@ public sealed partial class PViewer
             pViewerMpvActive = false;
             pViewerMpvFilter = string.Empty;
             pViewerMpvGammaApplied = null;
+            pViewerAudioApplied = null;
             return;
         }
 
@@ -508,5 +537,6 @@ public sealed partial class PViewer
         pViewerMpvActive = false;
         pViewerMpvFilter = string.Empty;
         pViewerMpvGammaApplied = null;
+        pViewerAudioApplied = null;
     }
 }

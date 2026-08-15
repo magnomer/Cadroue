@@ -25,6 +25,7 @@ public sealed class PAudioTab : PTabSurface
     private readonly LSMonitor pAudioMonitor = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pAudioPlanLoading;
+    private System.Windows.Threading.DispatcherTimer? pAudioViewerTimer;
 
     public PAudioTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -217,6 +218,34 @@ public sealed class PAudioTab : PTabSurface
         PAudioActiveUpdate();
         PAudioPlanSave();
         pAudioMonitor.LSMonitorPlanApply(PAudioProcessingRead());
+        PAudioViewerDefer();
+    }
+
+    private void PAudioViewerDefer()
+    {
+        if (pAudioViewerTimer is null)
+        {
+            pAudioViewerTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(150)
+            };
+            pAudioViewerTimer.Tick += PAudioViewerHandle;
+        }
+
+        pAudioViewerTimer.Stop();
+        pAudioViewerTimer.Start();
+    }
+
+    private void PAudioViewerHandle(object? pSender, EventArgs pArgs)
+    {
+        pAudioViewerTimer?.Stop();
+        PAudioViewerApply();
+    }
+
+    private void PAudioViewerApply()
+    {
+        LWorkAudio pAudioPlan = PAudioProcessingRead();
+        pViewer.PViewerAudioSet(pAudioPlan.LWorkAudioSkip ? string.Empty : pAudioPlan.LWorkAudioFormat());
     }
 
     private void PAudioMonitorShow() =>
@@ -281,6 +310,7 @@ public sealed class PAudioTab : PTabSurface
         PAudioActiveUpdate();
         pAudioMonitor.LSMonitorSourceOpen(pViewer.PViewerSourcePath, pViewer.PViewerDurationRead());
         pAudioMonitor.LSMonitorPlanApply(PAudioProcessingRead());
+        PAudioViewerApply();
     }
 
     private void PAudioPlanSave()
