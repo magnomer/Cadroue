@@ -36,6 +36,10 @@ public static class LPreview
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindContrast
                 && lStep.LWorkStepActive)
             ?.LWorkFfmpegValue ?? 1;
+        double lSaturation = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindSaturation
+                && lStep.LWorkStepActive)
+            ?.LWorkFfmpegValue ?? 1;
         LWorkVideoStep? lGammaStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindGamma
                 && lStep.LWorkStepActive);
@@ -43,7 +47,7 @@ public static class LPreview
         LWorkVideoStep? lWhitebalanceStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindWhitebalance
                 && lStep.LWorkStepActive);
-        return new LColor(lBrightness, lContrast, 1, 0)
+        return new LColor(lBrightness, lContrast, lSaturation, 0)
         {
             LColorGamma = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal),
             LColorGammaRed = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaRed),

@@ -74,6 +74,32 @@ public sealed class PreviewColorTests
     }
 
     [Fact]
+    public void ColorResolve_ActiveSaturation_PassesFfmpegValueThrough()
+    {
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkSaturationCreate(true, 150)
+        });
+
+        var result = TInterface.PreviewColorResolve(video);
+
+        Assert.Equal(1.5, result.LColorSaturation, 10);
+    }
+
+    [Fact]
+    public void ColorResolve_InactiveSaturation_ResolvesToNeutral()
+    {
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkSaturationCreate(false, 150)
+        });
+
+        var result = TInterface.PreviewColorResolve(video);
+
+        Assert.Equal(1, result.LColorSaturation, 10);
+    }
+
+    [Fact]
     public void MpvEqualizerResolve_CompensatesForNativeMpvContrastSemantics()
     {
         LPreviewState state = TInterface.PreviewColorChange(

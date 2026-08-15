@@ -218,6 +218,10 @@ internal static class LEncodeVideo
                     lEqParts.Add(
                         $"contrast={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
                     break;
+                case LColorKind.LColorKindSaturation:
+                    lEqParts.Add(
+                        $"saturation={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
+                    break;
                 case LColorKind.LColorKindGamma:
                     LWorkGammaSettings lGamma = lStep.LWorkGammaRead();
                     lEqParts.Add($"gamma={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal))}");

@@ -48,6 +48,36 @@ public sealed class EditCommandTests
         Assert.Equal("eq=brightness=-0.4:contrast=1.25", CommandTokens.ValueAfter(tokens, "-vf"));
     }
 
+    [Fact]
+    public void ActiveSaturation_IsEmittedWhileInactiveSaturationIsOmitted()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo active = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkSaturationCreate(true, 150)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+            end: TimeSpan.FromMinutes(1), video: active);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+        Assert.Equal("eq=saturation=1.5", CommandTokens.ValueAfter(tokens, "-vf"));
+
+        LWorkVideo inactive = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkSaturationCreate(false, 150)
+        });
+        LWorkItem inactiveWork = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+            end: TimeSpan.FromMinutes(1), video: inactive);
+
+        Assert.DoesNotContain(
+            "saturation=",
+            Assert.Single(TEncodeCommand.StagesBuild(inactiveWork)).LEncodeStageArguments,
+            StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(-100, "eq=gamma=0.1")]
     [InlineData(-50, "eq=gamma=0.316")]
