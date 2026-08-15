@@ -109,7 +109,7 @@ public static partial class LAudio
     {
         var lAudioRecord = new LSidecarAudioStep
         {
-            LSidecarKind = lAudioStep.LWorkStepKind.ToString().Replace("LAudioKind", string.Empty),
+            LSidecarKind = LAudioKindFormat(lAudioStep.LWorkStepKind),
             LSidecarActive = lAudioStep.LWorkStepActive
         };
 
@@ -157,6 +157,16 @@ public static partial class LAudio
 
         return lAudioRecord;
     }
+
+    private static string LAudioKindFormat(LAudioKind lAudioKind) => lAudioKind switch
+    {
+        LAudioKind.LAudioKindLeveling => "Normalize",
+        LAudioKind.LAudioKindDenoise => "NoiseReduction",
+        LAudioKind.LAudioKindHighpass => "HighPass",
+        LAudioKind.LAudioKindLowpass => "LowPass",
+        LAudioKind.LAudioKindEqualizer => "Equalizer",
+        _ => "Volume"
+    };
 
     private static LAudioKind LAudioKindCreate(string lAudioKind) => lAudioKind switch
     {
