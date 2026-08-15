@@ -135,11 +135,12 @@ public sealed partial class PViewer
             return;
         }
 
-        LColor pViewerGamma = LPreviewStateCurrent.LColor;
+        LPreviewState pViewerRender = PViewerRenderRead();
+        LColor pViewerGamma = pViewerRender.LColor;
         bool pViewerGammaFiltered = LPreview.LPreviewGammaCheck(pViewerGamma);
         LPreviewMpvEqualizer pViewerEqualizer =
-            LPreview.LPreviewEqualizerResolve(LPreviewStateCurrent);
-        string pViewerFilter = LPreview.LPreviewFilterResolve(LPreviewStateCurrent);
+            LPreview.LPreviewEqualizerResolve(pViewerRender);
+        string pViewerFilter = LPreview.LPreviewFilterResolve(pViewerRender);
         bool pViewerApplied;
 
         if (pViewerGammaFiltered)

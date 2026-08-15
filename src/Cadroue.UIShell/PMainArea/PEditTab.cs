@@ -166,6 +166,7 @@ public sealed class PEditTab : PTabSurface
         Content = pTabGrid;
         PEditPersistentRestore(lPreferenceTabLayout);
         PEditActiveUpdate();
+        pViewer.PCropActiveSet(pInspector.PCropActiveCheck());
     }
 
     private void PEditPersistentRestore(LSceneTabRecord? lPreferenceTabLayout)
@@ -270,7 +271,11 @@ public sealed class PEditTab : PTabSurface
         pCropOwner.LCropboxRatioSet(pRatioFixed, pRatioLenient, pRatioWidth, pRatioHeight);
     }
 
-    private void PEditActiveWrite() => pCropOwner.LCropboxApplySet(pInspector.PCropActiveCheck());
+    private void PEditActiveWrite()
+    {
+        pCropOwner.LCropboxApplySet(pInspector.PCropActiveCheck());
+        pViewer.PCropActiveSet(pInspector.PCropActiveCheck());
+    }
 
     private void PEditActiveUpdate()
     {

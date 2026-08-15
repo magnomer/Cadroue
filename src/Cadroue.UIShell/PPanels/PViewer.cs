@@ -349,9 +349,14 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
-        LPreview.LPreviewApply(pViewerPlayer.PPlayerFlyleafPlayer, LPreviewStateCurrent);
+        LPreview.LPreviewApply(pViewerPlayer.PPlayerFlyleafPlayer, PViewerRenderRead());
         PPlayerColorRecord(pViewerPlayer.PPlayerFlyleafPlayer);
     }
+
+    private LPreviewState PViewerRenderRead() =>
+        PCropActive
+            ? LPreviewStateCurrent
+            : LPreviewStateCurrent.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate());
 
     private void PViewerPreviewRestore()
     {

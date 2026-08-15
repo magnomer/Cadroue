@@ -182,6 +182,19 @@ public sealed partial class PViewer
 
     public bool PCropPersistent { get; set; }
 
+    public bool PCropActive { get; private set; } = true;
+
+    public void PCropActiveSet(bool pCropActive)
+    {
+        if (PCropActive == pCropActive)
+        {
+            return;
+        }
+
+        PCropActive = pCropActive;
+        PViewerPreviewApply();
+    }
+
     public void PCropToolSet(bool pCropArmed)
     {
         if (pCropArmed && pViewerTool == PViewerTool.Neutral)
