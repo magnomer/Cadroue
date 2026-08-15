@@ -57,6 +57,10 @@ internal sealed class PPlayerFlyleaf : PPlayerEngine
     {
     }
 
+    public override void PPlayerAudioSet(string filterChain)
+    {
+    }
+
     public override void PPlayerDecodeInterrupt()
     {
         PPlayerFlyleafPlayer.Stop();

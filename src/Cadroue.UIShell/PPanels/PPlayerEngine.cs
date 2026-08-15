@@ -20,6 +20,8 @@ internal abstract class PPlayerEngine : IDisposable
 
     public abstract void PPlayerFilterSet(string filterChain);
 
+    public abstract void PPlayerAudioSet(string filterChain);
+
     public abstract void PPlayerDecodeInterrupt();
 
     public abstract TimeSpan PPlayerTimeRead();

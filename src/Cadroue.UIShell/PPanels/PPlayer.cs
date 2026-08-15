@@ -54,6 +54,8 @@ internal sealed class PPlayer
 
     public void PPlayerFilterSet(string filterChain) => pPlayerActive?.PPlayerFilterSet(filterChain);
 
+    public void PPlayerAudioSet(string filterChain) => pPlayerActive?.PPlayerAudioSet(filterChain);
+
     public void PPlayerDecodeInterrupt() => pPlayerActive?.PPlayerDecodeInterrupt();
 
     public TimeSpan PPlayerTimeRead() => pPlayerActive?.PPlayerTimeRead() ?? TimeSpan.Zero;

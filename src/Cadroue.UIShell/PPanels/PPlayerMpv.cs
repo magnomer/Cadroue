@@ -67,6 +67,11 @@ internal sealed class PPlayerMpv : PPlayerEngine
         pPlayerMpvLibrary.LMpvFilterSet(filterChain);
     }
 
+    public override void PPlayerAudioSet(string filterChain)
+    {
+        pPlayerMpvLibrary.LMpvAudioSet(filterChain);
+    }
+
     public override void PPlayerDecodeInterrupt()
     {
         pPlayerMpvLibrary.LMpvDecodeInterrupt();
