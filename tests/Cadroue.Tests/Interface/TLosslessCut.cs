@@ -67,7 +67,7 @@ internal sealed class TLosslessCut : IDisposable
         new(
             result.LLosslesscutResultVersion,
             result.LLosslesscutResultMedia,
-            result.LLosslesscutResultMatch,
+            result.LLosslesscutResultAgreement,
             result.LLosslesscutResultSections
                 .Select(section => new TSection(
                     section.LSidecarStartMilliseconds,

@@ -76,7 +76,7 @@ internal static class LSidecarParse
         }
     }
 
-    internal static LSidecar LSidecarCompose(LSidecarCoreRecord lSidecarCore, LSidecarCacheRecord? lSidecarCache)
+    internal static LSidecar LSidecarCreate(LSidecarCoreRecord lSidecarCore, LSidecarCacheRecord? lSidecarCache)
     {
         LSidecarCacheRecord? lSidecarValid = LSidecarCacheValidate(lSidecarCache);
         return new LSidecar

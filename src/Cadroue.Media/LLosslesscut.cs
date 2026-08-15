@@ -24,7 +24,7 @@ public sealed record LLosslesscutIssue(int LLosslesscutIssueIndex, string LLossl
 public sealed record LLosslesscutResult(
     int? LLosslesscutResultVersion,
     string LLosslesscutResultMedia,
-    bool LLosslesscutResultMatch,
+    bool LLosslesscutResultAgreement,
     IReadOnlyList<LSidecarSectionRecord> LLosslesscutResultSections,
     IReadOnlyList<LLosslesscutIssue> LLosslesscutResultIssues);
 

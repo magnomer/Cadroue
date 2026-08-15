@@ -29,8 +29,8 @@ public sealed class LMediaLoad : IDisposable
     private long lMediaLoadGeneration;
     private bool lMediaLoadDisposed;
     private bool lMediaLoadPending;
-    private string? lMediaLoadCurrentPath;
-    private LMediaInfo? lMediaLoadCurrentInfo;
+    private string? lMediaCurrentPath;
+    private LMediaInfo? lMediaCurrentInfo;
 
     public LMediaLoad()
         : this((lMediaLoadPath, lMediaLoadToken) =>
@@ -45,29 +45,29 @@ public sealed class LMediaLoad : IDisposable
 
     public event Action<LMediaLoadOutcome>? LMediaLoadCompleted;
 
-    public string? LMediaLoadCurrentPath
+    public string? LMediaCurrentPath
     {
         get
         {
             lock (lMediaLoadGate)
             {
-                return lMediaLoadCurrentPath;
+                return lMediaCurrentPath;
             }
         }
     }
 
-    public LMediaInfo? LMediaLoadCurrentInfo
+    public LMediaInfo? LMediaCurrentInfo
     {
         get
         {
             lock (lMediaLoadGate)
             {
-                return lMediaLoadCurrentInfo;
+                return lMediaCurrentInfo;
             }
         }
     }
 
-    public async Task<LMediaLoadOutcome> LMediaLoadAsync(
+    public async Task<LMediaLoadOutcome> LMediaLoadStart(
         string lMediaLoadPath,
         CancellationToken lMediaLoadToken = default)
     {
@@ -80,7 +80,7 @@ public sealed class LMediaLoad : IDisposable
         }
         catch (Exception lMediaLoadException) when (lMediaLoadException is ArgumentException or NotSupportedException)
         {
-            return LMediaLoadReject(lMediaLoadPath ?? string.Empty, "The media path is invalid.");
+            return LMediaLoadCancel(lMediaLoadPath ?? string.Empty, "The media path is invalid.");
         }
 
         CancellationTokenSource lMediaLoadRequest;
@@ -98,17 +98,17 @@ public sealed class LMediaLoad : IDisposable
 
         if (string.IsNullOrWhiteSpace(lMediaLoadResolvedPath))
         {
-            return LMediaLoadFailCurrent(lMediaLoadRequestGeneration, lMediaLoadResolvedPath, "A media path is required.");
+            return LMediaLoadResolve(lMediaLoadRequestGeneration, lMediaLoadResolvedPath, "A media path is required.");
         }
 
         if (!File.Exists(lMediaLoadResolvedPath))
         {
-            return LMediaLoadFailCurrent(lMediaLoadRequestGeneration, lMediaLoadResolvedPath, "The media source does not exist.");
+            return LMediaLoadResolve(lMediaLoadRequestGeneration, lMediaLoadResolvedPath, "The media source does not exist.");
         }
 
         if (!LMedia.LMediaCheck(lMediaLoadResolvedPath))
         {
-            return LMediaLoadFailCurrent(lMediaLoadRequestGeneration, lMediaLoadResolvedPath, "The media source type is not supported.");
+            return LMediaLoadResolve(lMediaLoadRequestGeneration, lMediaLoadResolvedPath, "The media source type is not supported.");
         }
 
         try
@@ -141,8 +141,8 @@ public sealed class LMediaLoad : IDisposable
                 else
                 {
                     lMediaLoadPending = false;
-                    lMediaLoadCurrentPath = lMediaLoadResolvedPath;
-                    lMediaLoadCurrentInfo = lMediaLoadInfo;
+                    lMediaCurrentPath = lMediaLoadResolvedPath;
+                    lMediaCurrentInfo = lMediaLoadInfo;
                     lMediaLoadOutcome = new LMediaLoadOutcome(
                         LMediaLoadKind.LMediaLoadSuccess,
                         lMediaLoadResolvedPath,
@@ -168,7 +168,7 @@ public sealed class LMediaLoad : IDisposable
                 }
             }
 
-            return LMediaLoadFailCurrent(
+            return LMediaLoadResolve(
                 lMediaLoadRequestGeneration,
                 lMediaLoadResolvedPath,
                 "The media load was cancelled.",
@@ -176,14 +176,14 @@ public sealed class LMediaLoad : IDisposable
         }
         catch (Exception lMediaLoadException)
         {
-            return LMediaLoadFailCurrent(
+            return LMediaLoadResolve(
                 lMediaLoadRequestGeneration,
                 lMediaLoadResolvedPath,
                 lMediaLoadException.Message);
         }
     }
 
-    public bool LMediaUnload()
+    public bool LMediaLoadClose()
     {
         LMediaLoadOutcome? lMediaLoadOutcome = null;
         lock (lMediaLoadGate)
@@ -194,8 +194,8 @@ public sealed class LMediaLoad : IDisposable
             }
 
             bool lMediaLoadChanged = lMediaLoadPending
-                || lMediaLoadCurrentPath is not null
-                || lMediaLoadCurrentInfo is not null;
+                || lMediaCurrentPath is not null
+                || lMediaCurrentInfo is not null;
             if (!lMediaLoadChanged)
             {
                 return false;
@@ -204,8 +204,8 @@ public sealed class LMediaLoad : IDisposable
             lMediaLoadCancellation?.Cancel();
             lMediaLoadGeneration++;
             lMediaLoadPending = false;
-            lMediaLoadCurrentPath = null;
-            lMediaLoadCurrentInfo = null;
+            lMediaCurrentPath = null;
+            lMediaCurrentInfo = null;
             lMediaLoadOutcome = new LMediaLoadOutcome(
                 LMediaLoadKind.LMediaLoadUnloaded,
                 string.Empty,
@@ -217,7 +217,7 @@ public sealed class LMediaLoad : IDisposable
         return true;
     }
 
-    private LMediaLoadOutcome LMediaLoadReject(string lMediaLoadPath, string lMediaLoadError)
+    private LMediaLoadOutcome LMediaLoadCancel(string lMediaLoadPath, string lMediaLoadError)
     {
         lock (lMediaLoadGate)
         {
@@ -236,7 +236,7 @@ public sealed class LMediaLoad : IDisposable
         return lMediaLoadOutcome;
     }
 
-    private LMediaLoadOutcome LMediaLoadFailCurrent(
+    private LMediaLoadOutcome LMediaLoadResolve(
         long lMediaLoadRequestGeneration,
         string lMediaLoadPath,
         string lMediaLoadError,
@@ -292,8 +292,8 @@ public sealed class LMediaLoad : IDisposable
             lMediaLoadDisposed = true;
             lMediaLoadGeneration++;
             lMediaLoadPending = false;
-            lMediaLoadCurrentPath = null;
-            lMediaLoadCurrentInfo = null;
+            lMediaCurrentPath = null;
+            lMediaCurrentInfo = null;
             lMediaLoadCancellation?.Cancel();
             lMediaLoadCancellation?.Dispose();
             lMediaLoadCancellation = null;

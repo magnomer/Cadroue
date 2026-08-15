@@ -13,7 +13,7 @@ public static class LBastion
         var lBastionCohorts = new HashSet<Guid>();
         foreach (LWorkItem lBastionItem in lBastionRecords)
         {
-            if (lBastionItem.LWorkBatchId != Guid.Empty && LBastionItemActive(lBastionItem))
+            if (lBastionItem.LWorkBatchId != Guid.Empty && LBastionItemCheck(lBastionItem))
             {
                 lBastionCohorts.Add(lBastionItem.LWorkBatchId);
             }
@@ -22,7 +22,7 @@ public static class LBastion
         return lBastionCohorts;
     }
 
-    private static bool LBastionItemActive(LWorkItem lBastionItem) => lBastionItem.LWorkStateCurrent switch
+    private static bool LBastionItemCheck(LWorkItem lBastionItem) => lBastionItem.LWorkStateCurrent switch
     {
         LWorkState.LWorkStateRunning => true,
         LWorkState.LWorkStateDone =>

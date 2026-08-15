@@ -18,7 +18,7 @@ internal enum LEncodeChainMode
 {
     LEncodeChainPlain,
     LEncodeChainAnalyze,
-    LEncodeChainApply
+    LEncodeChainCorrection
 }
 
 public static class LEncode
@@ -117,7 +117,7 @@ public static class LEncode
 
             string? lChain = LEncodeChain.LEncodeChainBuild(
                 lWorkItem.LWorkAudio,
-                lTwoPassIndex >= 0 ? LEncodeChainMode.LEncodeChainApply : LEncodeChainMode.LEncodeChainPlain,
+                lTwoPassIndex >= 0 ? LEncodeChainMode.LEncodeChainCorrection : LEncodeChainMode.LEncodeChainPlain,
                 lTwoPassIndex);
             if (lChain is not null)
             {

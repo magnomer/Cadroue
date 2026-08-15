@@ -87,14 +87,14 @@ internal sealed class TMediaLoad : IDisposable
     internal async Task<TMediaLoadOutcome> LoadAsync(
         string path,
         CancellationToken cancellationToken = default) =>
-        OutcomeCreate(await tMediaLoad.LMediaLoadAsync(path, cancellationToken));
+        OutcomeCreate(await tMediaLoad.LMediaLoadStart(path, cancellationToken));
 
-    internal bool Unload() => tMediaLoad.LMediaUnload();
+    internal bool Unload() => tMediaLoad.LMediaLoadClose();
 
-    internal string? CurrentPath => tMediaLoad.LMediaLoadCurrentPath;
+    internal string? CurrentPath => tMediaLoad.LMediaCurrentPath;
 
     internal long? CurrentDurationMilliseconds =>
-        (long?)tMediaLoad.LMediaLoadCurrentInfo?.LMediaInfoDuration.TotalMilliseconds;
+        (long?)tMediaLoad.LMediaCurrentInfo?.LMediaInfoDuration.TotalMilliseconds;
 
     internal IReadOnlyList<TMediaLoadOutcome> Events => tMediaLoadEvents.ToArray();
 

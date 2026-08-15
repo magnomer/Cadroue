@@ -41,7 +41,7 @@ internal static class LEncodeChain
         string lToken = lChainMode switch
         {
             LEncodeChainMode.LEncodeChainAnalyze => ":print_format=json",
-            LEncodeChainMode.LEncodeChainApply => LEncode.LEncodeMeasureToken,
+            LEncodeChainMode.LEncodeChainCorrection => LEncode.LEncodeMeasureToken,
             _ => string.Empty
         };
 

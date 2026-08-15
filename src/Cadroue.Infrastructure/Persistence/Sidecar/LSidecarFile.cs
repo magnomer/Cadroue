@@ -34,7 +34,7 @@ internal static class LSidecarFile
         return true;
     }
 
-    internal static string? LSidecarFileReadText(string lSidecarPath)
+    internal static string? LSidecarFileRead(string lSidecarPath)
     {
         if (!File.Exists(lSidecarPath))
         {

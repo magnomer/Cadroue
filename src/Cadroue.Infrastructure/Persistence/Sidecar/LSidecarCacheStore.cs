@@ -10,13 +10,13 @@ internal static class LSidecarCacheStore
     internal static LSidecarCacheRecord? LSidecarCacheLoad(string lSidecarPreciousPath, string? lSidecarPreciousJson)
     {
         string lSidecarCachePath = LSidecarStore.LSidecarCacheResolve(lSidecarPreciousPath);
-        string? lSidecarCacheJson = LSidecarFile.LSidecarFileReadText(lSidecarCachePath);
+        string? lSidecarCacheJson = LSidecarFile.LSidecarFileRead(lSidecarCachePath);
         if (lSidecarCacheJson is not null)
         {
             return LSidecarParse.LSidecarCacheParse(lSidecarCacheJson);
         }
 
-        string? lSidecarLegacyJson = lSidecarPreciousJson ?? LSidecarFile.LSidecarFileReadText(lSidecarPreciousPath);
+        string? lSidecarLegacyJson = lSidecarPreciousJson ?? LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
         return lSidecarLegacyJson is null ? null : LSidecarParse.LSidecarCacheParse(lSidecarLegacyJson);
     }
 
@@ -113,13 +113,13 @@ internal static class LSidecarCacheStore
 
     private static LSidecarCacheRecord LSidecarBaseRead(string lSidecarCachePath, string lSidecarPreciousPath)
     {
-        string? lSidecarCacheJson = LSidecarFile.LSidecarFileReadText(lSidecarCachePath);
+        string? lSidecarCacheJson = LSidecarFile.LSidecarFileRead(lSidecarCachePath);
         if (lSidecarCacheJson is not null && LSidecarParse.LSidecarCacheParse(lSidecarCacheJson) is { } lSidecarCache)
         {
             return lSidecarCache;
         }
 
-        string? lSidecarLegacyJson = LSidecarFile.LSidecarFileReadText(lSidecarPreciousPath);
+        string? lSidecarLegacyJson = LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
         if (lSidecarLegacyJson is not null && LSidecarParse.LSidecarCacheParse(lSidecarLegacyJson) is { } lSidecarLegacy
             && (lSidecarLegacy.LSidecarKeyframeDeltas.Count > 0 || lSidecarLegacy.LSidecarWaveform is not null))
         {

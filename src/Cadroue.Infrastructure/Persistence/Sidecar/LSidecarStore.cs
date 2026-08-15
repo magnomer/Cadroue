@@ -73,14 +73,14 @@ public static class LSidecarStore
 
     public static LSidecar? LSidecarRead(string lSidecarPreciousPath)
     {
-        string? lSidecarCoreJson = LSidecarFile.LSidecarFileReadText(lSidecarPreciousPath);
+        string? lSidecarCoreJson = LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
         if (lSidecarCoreJson is null || LSidecarParse.LSidecarCoreParse(lSidecarCoreJson) is not { } lSidecarCore)
         {
             return null;
         }
 
         LSidecarCacheRecord? lSidecarCache = LSidecarCacheStore.LSidecarCacheLoad(lSidecarPreciousPath, lSidecarCoreJson);
-        return LSidecarParse.LSidecarCompose(lSidecarCore, lSidecarCache);
+        return LSidecarParse.LSidecarCreate(lSidecarCore, lSidecarCache);
     }
 
     public static LSidecar? LSidecarLoad(LKeyframeSourceIdentity lSidecarIdentity)
@@ -104,7 +104,7 @@ public static class LSidecarStore
         {
             using (LLatch.LLatchClaim(lSidecarPreciousPath))
             {
-                string? lSidecarExistingJson = LSidecarFile.LSidecarFileReadText(lSidecarPreciousPath);
+                string? lSidecarExistingJson = LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
                 LSidecarCacheStore.LSidecarCacheMove(lSidecarPreciousPath, lSidecarExistingJson);
 
                 LSidecarCoreRecord lSidecarCore = lSidecarExistingJson is not null
@@ -264,7 +264,7 @@ public static class LSidecarStore
 
     public static LSidecarCoreRecord? LSidecarCoreRead(string lSidecarSourcePath)
     {
-        string? lSidecarJson = LSidecarFile.LSidecarFileReadText(LSidecarPathRead(lSidecarSourcePath));
+        string? lSidecarJson = LSidecarFile.LSidecarFileRead(LSidecarPathRead(lSidecarSourcePath));
         return lSidecarJson is null ? null : LSidecarParse.LSidecarCoreParse(lSidecarJson);
     }
 
@@ -278,7 +278,7 @@ public static class LSidecarStore
             string lSidecarPreciousPath = LSidecarPathRead(lSidecarSourcePath);
             using (LLatch.LLatchClaim(lSidecarPreciousPath))
             {
-                string? lSidecarExistingJson = LSidecarFile.LSidecarFileReadText(lSidecarPreciousPath);
+                string? lSidecarExistingJson = LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
                 LSidecarCacheStore.LSidecarCacheMove(lSidecarPreciousPath, lSidecarExistingJson);
 
                 LSidecarCoreRecord lSidecarCore = lSidecarExistingJson is not null

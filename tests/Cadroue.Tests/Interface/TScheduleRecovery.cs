@@ -116,7 +116,7 @@ internal sealed class TScheduleRecovery : IDisposable
     {
         string persistedPath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, work.WorkId);
         File.WriteAllText(persistedPath, "this is not a schedule record");
-        LDepotIndex.LDepotIndexDirtySet();
+        LDepotIndex.LDepotDirtySet();
     }
 
     public void Dispose()

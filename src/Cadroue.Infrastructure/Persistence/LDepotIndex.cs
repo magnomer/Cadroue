@@ -19,9 +19,9 @@ public static class LDepotIndex
 
     private static bool lDepotSchemaChecked;
 
-    public static bool LDepotIndexDirty { get; private set; } = true;
+    public static bool LDepotDirty { get; private set; } = true;
 
-    public static void LDepotIndexDirtySet() => LDepotIndexDirty = true;
+    public static void LDepotDirtySet() => LDepotDirty = true;
 
     public static void LDepotIndexCreate()
     {
@@ -65,7 +65,7 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexDirtySet();
+            LDepotDirtySet();
             LDepotIndexRecord("could not be opened", lDepotException);
         }
     }
@@ -95,7 +95,7 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexDirtySet();
+            LDepotDirtySet();
             LDepotIndexRecord($"update failed for '{lWorkRecord.LWorkOutputName}'", lDepotException);
         }
     }
@@ -112,7 +112,7 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexDirtySet();
+            LDepotDirtySet();
             LDepotIndexRecord("removal failed", lDepotException);
         }
     }
@@ -132,7 +132,7 @@ public static class LDepotIndex
                 string lDepotRecord = lDepotReader.GetString(1);
                 if (string.IsNullOrEmpty(lDepotRecord))
                 {
-                    LDepotIndexDirtySet();
+                    LDepotDirtySet();
                     continue;
                 }
 
@@ -141,7 +141,7 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexDirtySet();
+            LDepotDirtySet();
             LDepotIndexRecord("could not be read", lDepotException);
         }
 
@@ -225,11 +225,11 @@ public static class LDepotIndex
             }
 
             lDepotTransaction.Commit();
-            LDepotIndexDirty = false;
+            LDepotDirty = false;
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexDirtySet();
+            LDepotDirtySet();
             LDepotIndexRecord("rebuild failed", lDepotException);
         }
     }

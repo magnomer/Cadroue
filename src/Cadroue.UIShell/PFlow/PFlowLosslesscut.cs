@@ -118,7 +118,7 @@ public sealed partial class PFlow
             lSourcePath,
             lSpool.LSpoolDuration);
 
-        if (!pLosslesscutResult.LLosslesscutResultMatch
+        if (!pLosslesscutResult.LLosslesscutResultAgreement
             && MessageBox.Show(
                 LLocalization.LLocalizationFormat(
                     "Flow.LosslessCut.Import.MediaMismatch",

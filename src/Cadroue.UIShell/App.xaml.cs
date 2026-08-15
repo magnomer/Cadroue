@@ -81,7 +81,7 @@ public partial class PProgram : System.Windows.Application
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 Cadroue.ShellEngine.LCartographer.LCartographerAccept(
                     lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
-        Cadroue.ShellEngine.LMessenger.LMessengerFunnelDeliverSource = (pFunnelTarget, pFunnelPath, pFunnelCohort) =>
+        Cadroue.ShellEngine.LMessenger.LMessengerDeliverSource = (pFunnelTarget, pFunnelPath, pFunnelCohort) =>
         {
             if (!PPanels.PList.PListDeliveredAdd(pFunnelTarget, pFunnelPath, pFunnelCohort))
             {
@@ -91,7 +91,7 @@ public partial class PProgram : System.Windows.Application
             PMainArea.PAction.PActionArrive(pFunnelTarget, pFunnelPath, pFunnelCohort);
             return true;
         };
-        Cadroue.ShellEngine.LMessenger.LMessengerFunnelDrainSource = pFunnelDrainPaths =>
+        Cadroue.ShellEngine.LMessenger.LMessengerDrainSource = pFunnelDrainPaths =>
         {
             PControlBar.PStrip.PStripCurrent?.PStripSelected?.PTabWorkspace.PWorkspaceSurface
                 .PTabList?.PListDocketRead()?.LDocketPathsRemove(pFunnelDrainPaths);
@@ -186,7 +186,7 @@ public partial class PProgram : System.Windows.Application
         LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
         LPreset.LPresetPrepare();
         LStationSeamApply();
-        _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryWarm);
+        _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryPrepare);
         PPanels.PSEncoder.PSCodecProbeStart();
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;

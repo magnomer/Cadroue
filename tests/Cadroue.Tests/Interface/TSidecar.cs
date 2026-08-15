@@ -43,7 +43,7 @@ internal sealed class TSidecar : IDisposable
     internal static TSidecarData? CoreParse(string json)
     {
         LSidecarCoreRecord? core = LSidecarParse.LSidecarCoreParse(json);
-        return core is null ? null : DataCreate(LSidecarParse.LSidecarCompose(core, null));
+        return core is null ? null : DataCreate(LSidecarParse.LSidecarCreate(core, null));
     }
 
     internal string SourceCreate(string name, string content)

@@ -25,8 +25,8 @@ public sealed record LCartographerStagePlan(
     bool LCartographerMerge);
 
 public sealed record LCartographerDelivery(
-    Func<Guid, string, Guid, bool> LCartographerTabAdd,
-    Action<Guid, string, Guid> LCartographerTabPlace,
+    Func<Guid, string, Guid, bool> LCartographerTabIntake,
+    Action<Guid, string, Guid> LCartographerTabHold,
     Action<Guid, string, Guid> LCartographerTabTrack,
     Action<LWorkItem, bool> LCartographerSourceDrop,
     Action<Guid, string, Guid> LCartographerTabArrive,
@@ -210,7 +210,7 @@ public static partial class LCartographer
                     lCartographerDelivered.Add(lCartographerItem.LWorkId);
                     try
                     {
-                        if (!LCartographerDeliver(lCartographerItem, lCartographerSchedule))
+                        if (!LCartographerItemDispatch(lCartographerItem, lCartographerSchedule))
                         {
                             lCartographerDelivered.Remove(lCartographerItem.LWorkId);
                         }
@@ -249,14 +249,14 @@ public static partial class LCartographer
 
     public static LCartographerDelivery? LCartographerDeliverySeam { get; set; }
 
-    public static bool LCartographerDeliver(LWorkItem lCartographerItem, IReadOnlyList<LWorkItem> lCartographerSchedule)
+    public static bool LCartographerItemDispatch(LWorkItem lCartographerItem, IReadOnlyList<LWorkItem> lCartographerSchedule)
     {
         if (LCartographerDeliverySeam is not { } lCartographerSeam)
         {
             return false;
         }
 
-        bool lCartographerRetain = LCartographerSourceRetain(lCartographerItem, lCartographerSchedule);
+        bool lCartographerRetain = LCartographerRetainCheck(lCartographerItem, lCartographerSchedule);
 
         if (lCartographerItem.LWorkRelayTarget == LCartographerFinishTarget)
         {
@@ -280,7 +280,7 @@ public static partial class LCartographer
             && lCartographerPlan.LCartographerStages.FirstOrDefault(
                 lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelayTarget) is { } lCartographerStage)
         {
-            if (!LCartographerStageDeliver(lCartographerItem, lCartographerPlan, lCartographerStage, lCartographerSeam))
+            if (!LCartographerStageDispatch(lCartographerItem, lCartographerPlan, lCartographerStage, lCartographerSeam))
             {
                 return false;
             }
@@ -293,7 +293,7 @@ public static partial class LCartographer
             return true;
         }
 
-        if (!lCartographerSeam.LCartographerTabAdd(
+        if (!lCartographerSeam.LCartographerTabIntake(
             lCartographerItem.LWorkRelayTarget, lCartographerItem.LWorkOutputPath, lCartographerItem.LWorkBatchId))
         {
             return false;
@@ -309,10 +309,10 @@ public static partial class LCartographer
         return true;
     }
 
-    private static bool LCartographerSourceRetain(
+    private static bool LCartographerRetainCheck(
         LWorkItem lCartographerItem, IReadOnlyList<LWorkItem> lCartographerSchedule)
     {
-        HashSet<string> lCartographerSources = LCartographerSourcePaths(lCartographerItem);
+        HashSet<string> lCartographerSources = LCartographerSourceRead(lCartographerItem);
         foreach (LWorkItem lCartographerOther in lCartographerSchedule)
         {
             if (lCartographerOther.LWorkId == lCartographerItem.LWorkId
@@ -322,7 +322,7 @@ public static partial class LCartographer
                 continue;
             }
 
-            if (LCartographerSourcePaths(lCartographerOther).Any(lCartographerSources.Contains))
+            if (LCartographerSourceRead(lCartographerOther).Any(lCartographerSources.Contains))
             {
                 return true;
             }
@@ -331,7 +331,7 @@ public static partial class LCartographer
         return false;
     }
 
-    private static HashSet<string> LCartographerSourcePaths(LWorkItem lCartographerItem)
+    private static HashSet<string> LCartographerSourceRead(LWorkItem lCartographerItem)
     {
         var lCartographerPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -345,7 +345,7 @@ public static partial class LCartographer
         return lCartographerPaths;
     }
 
-    private static bool LCartographerStageDeliver(
+    private static bool LCartographerStageDispatch(
         LWorkItem lCartographerItem,
         LCartographerPlanRecord lCartographerPlan,
         LCartographerStageRecord lCartographerStage,
@@ -356,14 +356,14 @@ public static partial class LCartographer
             return true;
         }
 
-        LCartographerStageArrive(
+        LCartographerStageAccept(
             lCartographerPlan, lCartographerStage, lCartographerItem.LWorkOutputPath,
             lCartographerItem.LWorkRelaySource, lCartographerItem.LWorkBatchId, lCartographerSeam);
         lCartographerPlan.LCartographerDeliveredWork.Add(lCartographerItem.LWorkId);
         return LCartographerPlanStore.LCartographerPlanSave(lCartographerPlan);
     }
 
-    private static void LCartographerStageArrive(
+    private static void LCartographerStageAccept(
         LCartographerPlanRecord lCartographerPlan,
         LCartographerStageRecord lCartographerStage,
         string lCartographerPath,
@@ -380,7 +380,7 @@ public static partial class LCartographer
 
         if (!lCartographerStage.LCartographerLayout.LSceneAutoRelay)
         {
-            lCartographerSeam.LCartographerTabPlace(lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
+            lCartographerSeam.LCartographerTabHold(lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
             LTraceLog.LTraceInfoRecord(
                 $"Relay plan {lCartographerPlan.LCartographerPlanId:N} paused at stage '{lCartographerStage.LCartographerTitle}'");
             return;
@@ -392,7 +392,7 @@ public static partial class LCartographer
             if (lCartographerPlan.LCartographerStages.FirstOrDefault(
                 lCartographerCandidate => lCartographerCandidate.LCartographerStageId == lCartographerTargetId) is { } lCartographerTarget)
             {
-                LCartographerStageArrive(
+                LCartographerStageAccept(
                     lCartographerPlan, lCartographerTarget, lCartographerPath,
                     lCartographerStage.LCartographerStageId, lCartographerBatch, lCartographerSeam);
             }
@@ -439,7 +439,7 @@ public static partial class LCartographer
 
         IReadOnlyList<string> lCartographerAcknowledged = lCartographerPaths.Length == 0
             ? Array.Empty<string>()
-            : LCartographerStageExecute(new LCartographerStagePlan(
+            : LCartographerStageRun(new LCartographerStagePlan(
                 lCartographerStage.LCartographerLayoutKey,
                 lCartographerStage.LCartographerExport,
                 lCartographerStage.LCartographerLayout.LSceneTabClone(),

@@ -191,7 +191,7 @@ public sealed partial class PViewer
             return false;
         }
 
-        bool pViewerLoadClosed = pViewerMediaLoad.LMediaUnload();
+        bool pViewerLoadClosed = pViewerMediaLoad.LMediaLoadClose();
         if (!pViewerLoadClosed && string.IsNullOrWhiteSpace(PViewerSourcePath) && pViewerMediaInfo is null)
         {
             return false;

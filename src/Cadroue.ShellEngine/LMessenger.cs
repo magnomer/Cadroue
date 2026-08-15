@@ -11,14 +11,14 @@ public static class LMessenger
 
     public static Func<LScheduleContract?>? LMessengerScheduleSource { get; set; }
 
-    public static Func<Guid, string, Guid, bool>? LMessengerFunnelDeliverSource { get; set; }
+    public static Func<Guid, string, Guid, bool>? LMessengerDeliverSource { get; set; }
 
-    public static Action<IReadOnlyList<string>>? LMessengerFunnelDrainSource { get; set; }
+    public static Action<IReadOnlyList<string>>? LMessengerDrainSource { get; set; }
 
     private static string LMessengerTitleRead(Guid lMessengerRelaySource) =>
         LMessengerTitleSource?.Invoke(lMessengerRelaySource) ?? string.Empty;
 
-    private static int LMessengerRoute(
+    private static int LMessengerDispatch(
         IReadOnlyList<LWorkItem> lMessengerItems,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
@@ -51,7 +51,7 @@ public static class LMessenger
             return 0;
         }
 
-        int lMessengerAdded = LMessengerRoute(new[] { lMessengerItem }, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded = LMessengerDispatch(new[] { lMessengerItem }, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Audio queued {lMessengerAdded} job at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
@@ -87,7 +87,7 @@ public static class LMessenger
         }
 
         LCartographerPlanRecord? lMessengerPlan = LCartographer.LCartographerPlanPrepare(lMessengerRelayTarget);
-        int lMessengerAdded = LMessengerRoute(
+        int lMessengerAdded = LMessengerDispatch(
             lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan);
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lMessengerAdded} of {lMessengerItems.Count} job(s) at {lMessengerPriority} " +
@@ -134,7 +134,7 @@ public static class LMessenger
             }
         }
 
-        int lMessengerAdded = LMessengerRoute(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         await LMessengerDurationResolve(lMessengerItems).ConfigureAwait(false);
         return lMessengerAdded;
     }
@@ -159,7 +159,7 @@ public static class LMessenger
             await Task.Run(() => LMessengerSplitCreate(lMessengerSourcePaths)).ConfigureAwait(false);
 
         int lMessengerAdded = 0;
-        LMessengerPost(() =>
+        LMessengerDefer(() =>
         {
             foreach (LSplitPlanRecord lMessengerPlan in lMessengerPlans)
             {
@@ -242,7 +242,7 @@ public static class LMessenger
             return 0;
         }
 
-        int lMessengerAdded = LMessengerRoute(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Edit queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
@@ -273,7 +273,7 @@ public static class LMessenger
             return 0;
         }
 
-        int lMessengerAdded = LMessengerRoute(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord($"Merge queued {lMessengerAdded} group(s) at {lMessengerPriority}");
         return lMessengerAdded;
     }
@@ -309,7 +309,7 @@ public static class LMessenger
                 lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
                 Cadroue.Application.LLibrarian.LLibrarianDurationRead);
 
-        int lMessengerAdded = LMessengerRoute(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Convert queued {lMessengerAdded} job(s) at {lMessengerPriority} from {lMessengerSourcePaths.Length} listed file(s)");
 
@@ -341,7 +341,7 @@ public static class LMessenger
             return;
         }
 
-        LMessengerPost(() =>
+        LMessengerDefer(() =>
         {
             for (int lMessengerIndex = 0; lMessengerIndex < lMessengerUnknown.Length; lMessengerIndex++)
             {
@@ -351,7 +351,7 @@ public static class LMessenger
         });
     }
 
-    private static void LMessengerPost(Action lMessengerAction)
+    private static void LMessengerDefer(Action lMessengerAction)
     {
         if (Cadroue.ShellEngine.LStation.LStationPost is { } lMessengerPost)
         {
@@ -379,7 +379,7 @@ public static class LMessenger
                 continue;
             }
 
-            if (LMessengerFunnelDeliverSource?.Invoke(
+            if (LMessengerDeliverSource?.Invoke(
                     lMessengerTargets[lMessengerMatch], lMessengerPath, lMessengerCohort) == true)
             {
                 lMessengerRelayed.Add(lMessengerPath);
@@ -389,7 +389,7 @@ public static class LMessenger
         if (Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty
             && lMessengerRelayed.Count > 0)
         {
-            LMessengerFunnelDrainSource?.Invoke(lMessengerRelayed);
+            LMessengerDrainSource?.Invoke(lMessengerRelayed);
         }
 
         LSeal.LSealSweep();
@@ -446,7 +446,7 @@ public static class LMessenger
             lMessengerItem.LWorkTab = lMessengerTab;
         }
 
-        int lMessengerAdded = LMessengerRoute(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Edit Add All: {lMessengerSources.Count} listed, {lMessengerAdded} queued from saved plans");
 

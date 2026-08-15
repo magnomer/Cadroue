@@ -33,7 +33,7 @@ internal static class LScheduleStore
         string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkRecord.LWorkId);
         if (!LScheduleFileSave(lDepotFilePath, lWorkRecord.LWorkJsonCreate()))
         {
-            LDepotIndex.LDepotIndexDirtySet();
+            LDepotIndex.LDepotDirtySet();
             return false;
         }
 

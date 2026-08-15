@@ -32,12 +32,12 @@ public sealed partial class LSchedule : LScheduleContract
     {
         LDepotIndex.LDepotIndexCreate();
         LScheduleStaleClaim();
-        if (LDepotIndex.LDepotIndexDirty)
+        if (LDepotIndex.LDepotDirty)
         {
             LDepotIndex.LDepotIndexRebuild();
         }
 
-        LScheduleItemsBuild(LDepotIndex.LDepotIndexDirty
+        LScheduleItemsBuild(LDepotIndex.LDepotDirty
             ? LScheduleFolderRead()
             : LScheduleIndexRead());
     }

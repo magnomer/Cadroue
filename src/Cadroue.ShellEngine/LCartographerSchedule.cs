@@ -74,12 +74,12 @@ public static partial class LCartographer
         LScheduleContract lCartographerSchedule,
         IReadOnlyCollection<Guid> lCartographerLiveBatches)
     {
-        LCartographerSourcesUnlock(lCartographerSchedule);
-        LCartographerBatchesClean(lCartographerSchedule, lCartographerLiveBatches);
+        LCartographerSourcesRelease(lCartographerSchedule);
+        LCartographerBatchesUpdate(lCartographerSchedule, lCartographerLiveBatches);
         LCartographerDispatch(lCartographerSchedule.LScheduleRecords);
     }
 
-    private static void LCartographerSourcesUnlock(LScheduleContract lCartographerSchedule)
+    private static void LCartographerSourcesRelease(LScheduleContract lCartographerSchedule)
     {
         if (LCartographerDeliverySeam is not { } lCartographerSeam)
         {
@@ -106,7 +106,7 @@ public static partial class LCartographer
         }
     }
 
-    private static void LCartographerBatchesClean(
+    private static void LCartographerBatchesUpdate(
         LScheduleContract lCartographerSchedule,
         IReadOnlyCollection<Guid> lCartographerLiveBatches)
     {

@@ -26,7 +26,7 @@ public static class LInventory
     private static IReadOnlyCollection<string>? lInventoryInstalledNames;
     private static IReadOnlyCollection<string>? lInventoryFilterNames;
 
-    public static void LInventoryWarm()
+    public static void LInventoryPrepare()
     {
         LInventoryInstalledRead();
         LInventoryFilterRead();
@@ -159,7 +159,7 @@ public static class LInventory
                 .Split((char[]?)null, 4, StringSplitOptions.RemoveEmptyEntries);
             if (lInventoryParts.Length < 3
                 || lInventoryParts[0].Length is < 1 or > 3
-                || !LInventoryFilterFlagsCheck(lInventoryParts[0])
+                || !LInventoryFilterCheck(lInventoryParts[0])
                 || !lInventoryParts[2].Contains("->", StringComparison.Ordinal))
             {
                 continue;
@@ -171,7 +171,7 @@ public static class LInventory
         return lInventoryList;
     }
 
-    private static bool LInventoryFilterFlagsCheck(string lInventoryFlags)
+    private static bool LInventoryFilterCheck(string lInventoryFlags)
     {
         foreach (char lInventoryChar in lInventoryFlags)
         {

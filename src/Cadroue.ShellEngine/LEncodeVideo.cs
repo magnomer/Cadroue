@@ -191,7 +191,7 @@ internal static class LEncodeVideo
     private static void LEncodeFiltersAppend(List<string> lFilters, LWorkVideo lWorkVideo)
     {
         var lEqParts = new List<string>();
-        void lEqFlush()
+        void LEncodeEqAppend()
         {
             if (lEqParts.Count == 0)
             {
@@ -244,20 +244,20 @@ internal static class LEncodeVideo
                     }
                     break;
                 case LColorKind.LColorKindWhitebalance:
-                    lEqFlush();
+                    LEncodeEqAppend();
                     lFilters.AddRange(lStep.LWorkWhitebalanceRead().LWorkWhitebalanceFormat());
                     break;
                 case LColorKind.LColorKindExposure:
-                    lEqFlush();
+                    LEncodeEqAppend();
                     lFilters.Add($"exposure=exposure={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
                     break;
                 default:
-                    lEqFlush();
+                    LEncodeEqAppend();
                     break;
             }
         }
 
-        lEqFlush();
+        LEncodeEqAppend();
     }
 
     private static string LEncodeGammaFormat(double lValue) =>
