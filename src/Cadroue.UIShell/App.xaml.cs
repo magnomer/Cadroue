@@ -184,7 +184,7 @@ public partial class PProgram : System.Windows.Application
         LPresetSelectionAttach();
         LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;
         LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
-        LPreset.LPresetInitialize();
+        LPreset.LPresetPrepare();
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
         PPanels.PSEncoder.PSCodecProbeStart();
@@ -291,7 +291,7 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LLibrarian.LLibrarianWaveformWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformSave;
         Cadroue.Application.LLibrarian.LLibrarianFileChecker = Cadroue.Infrastructure.LSidecarStore.LSidecarFileCheck;
         Cadroue.Application.LLibrarian.LLibrarianSourceResolver = LSidecarSourceResolve;
-        Cadroue.Application.LLibrarian.LLibrarianSourceVerifier = LSidecarSourceVerify;
+        Cadroue.Application.LLibrarian.LLibrarianSourceMatcher = LSidecarStoreMatch;
     }
 
     private static Cadroue.Core.LSidecarSourceResult? LSidecarSourceResolve(string lSidecarPath) =>
@@ -299,9 +299,9 @@ public partial class PProgram : System.Windows.Application
             ? Cadroue.Media.LSidecarSource.LSidecarSourceResolve(lSidecarPath, lSidecar)
             : null;
 
-    private static bool LSidecarSourceVerify(string lSidecarMediaPath, string lSidecarPath) =>
+    private static bool LSidecarStoreMatch(string lSidecarMediaPath, string lSidecarPath) =>
         Cadroue.Infrastructure.LSidecarStore.LSidecarRead(lSidecarPath) is { } lSidecar
-        && Cadroue.Media.LSidecarSource.LSidecarVerifyCheck(lSidecarMediaPath, lSidecar.LSidecarSource);
+        && Cadroue.Media.LSidecarSource.LSidecarSourceMatch(lSidecarMediaPath, lSidecar.LSidecarSource);
 
     private static IReadOnlyList<Cadroue.Core.LSidecarSectionRecord> LSidecarSectionsRead(string lSidecarSourcePath)
     {

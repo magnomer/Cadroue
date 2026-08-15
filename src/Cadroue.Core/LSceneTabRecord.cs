@@ -19,7 +19,7 @@ public sealed class LSceneTabRecord
 
     public bool LSceneGroupStrict { get; set; } = true;
 
-    public LSeriesNameMode LSceneGroupMode { get; set; } = LSeriesNameMode.LSeriesNameRemove;
+    public LSeriesNameMode LSceneGroupMode { get; set; } = LSeriesNameMode.LSeriesNameBase;
 
     public bool LSceneAutoRelay { get; set; }
 
@@ -66,7 +66,7 @@ public sealed class LSceneFunnelRule
 {
     public LSceneFunnelMatch LSceneFunnelContains { get; set; } = new();
 
-    public LSceneFunnelMatch LSceneFunnelStart { get; set; } = new();
+    public LSceneFunnelMatch LSceneFunnelPrefix { get; set; } = new();
 
     public LSceneFunnelMatch LSceneFunnelEnd { get; set; } = new();
 
@@ -85,7 +85,7 @@ public sealed class LSceneFunnelRule
         return new LSceneFunnelRule
         {
             LSceneFunnelContains = LSceneFunnelContains.LSceneFunnelClone(),
-            LSceneFunnelStart = LSceneFunnelStart.LSceneFunnelClone(),
+            LSceneFunnelPrefix = LSceneFunnelPrefix.LSceneFunnelClone(),
             LSceneFunnelEnd = LSceneFunnelEnd.LSceneFunnelClone(),
             LSceneFunnelExtension = LSceneFunnelExtension.LSceneFunnelClone(),
             LSceneFunnelType = LSceneFunnelType,

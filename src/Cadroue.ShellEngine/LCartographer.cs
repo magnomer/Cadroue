@@ -210,7 +210,7 @@ public static partial class LCartographer
                     lCartographerDelivered.Add(lCartographerItem.LWorkId);
                     try
                     {
-                        if (!LCartographerDeliver(lCartographerItem))
+                        if (!LCartographerDeliver(lCartographerItem, lCartographerSchedule))
                         {
                             lCartographerDelivered.Remove(lCartographerItem.LWorkId);
                         }
@@ -249,18 +249,24 @@ public static partial class LCartographer
 
     public static LCartographerDelivery? LCartographerDeliverySeam { get; set; }
 
-    public static bool LCartographerDeliver(LWorkItem lCartographerItem)
+    public static bool LCartographerDeliver(LWorkItem lCartographerItem, IReadOnlyList<LWorkItem> lCartographerSchedule)
     {
         if (LCartographerDeliverySeam is not { } lCartographerSeam)
         {
             return false;
         }
 
+        bool lCartographerRetain = LCartographerSourceRetain(lCartographerItem, lCartographerSchedule);
+
         if (lCartographerItem.LWorkRelayTarget == LCartographerFinishTarget)
         {
             LTraceLog.LTraceInfoRecord(
                 $"Relay finished '{lCartographerItem.LWorkOutputName}': removed at source, delivered to no tab");
-            lCartographerSeam.LCartographerSourceDrop(lCartographerItem, true);
+            if (!lCartographerRetain)
+            {
+                lCartographerSeam.LCartographerSourceDrop(lCartographerItem, true);
+            }
+
             return true;
         }
 
@@ -279,7 +285,11 @@ public static partial class LCartographer
                 return false;
             }
 
-            lCartographerSeam.LCartographerSourceDrop(lCartographerItem, false);
+            if (!lCartographerRetain)
+            {
+                lCartographerSeam.LCartographerSourceDrop(lCartographerItem, false);
+            }
+
             return true;
         }
 
@@ -289,10 +299,50 @@ public static partial class LCartographer
             return false;
         }
 
-        lCartographerSeam.LCartographerSourceDrop(lCartographerItem, false);
+        if (!lCartographerRetain)
+        {
+            lCartographerSeam.LCartographerSourceDrop(lCartographerItem, false);
+        }
+
         lCartographerSeam.LCartographerTabArrive(
             lCartographerItem.LWorkRelayTarget, lCartographerItem.LWorkOutputPath, lCartographerItem.LWorkBatchId);
         return true;
+    }
+
+    private static bool LCartographerSourceRetain(
+        LWorkItem lCartographerItem, IReadOnlyList<LWorkItem> lCartographerSchedule)
+    {
+        HashSet<string> lCartographerSources = LCartographerSourcePaths(lCartographerItem);
+        foreach (LWorkItem lCartographerOther in lCartographerSchedule)
+        {
+            if (lCartographerOther.LWorkId == lCartographerItem.LWorkId
+                || lCartographerOther.LWorkBatchId != lCartographerItem.LWorkBatchId
+                || lCartographerDelivered.Contains(lCartographerOther.LWorkId))
+            {
+                continue;
+            }
+
+            if (LCartographerSourcePaths(lCartographerOther).Any(lCartographerSources.Contains))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static HashSet<string> LCartographerSourcePaths(LWorkItem lCartographerItem)
+    {
+        var lCartographerPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            lCartographerItem.LWorkSourcePath
+        };
+        foreach (string lCartographerMerge in lCartographerItem.LWorkMergeSources)
+        {
+            lCartographerPaths.Add(lCartographerMerge);
+        }
+
+        return lCartographerPaths;
     }
 
     private static bool LCartographerStageDeliver(

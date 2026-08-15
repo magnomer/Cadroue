@@ -220,7 +220,7 @@ public sealed class PAudioTab : PTabSurface
     private static LAudioKind? PAudioKindRead(string pStepName) => pStepName switch
     {
         "Volume" => LAudioKind.LAudioKindVolume,
-        "Normalize" => LAudioKind.LAudioKindNormalize,
+        "Normalize" => LAudioKind.LAudioKindLeveling,
         "Noise Reduction" => LAudioKind.LAudioKindDenoise,
         "High Pass" => LAudioKind.LAudioKindHighpass,
         "Low Pass" => LAudioKind.LAudioKindLowpass,

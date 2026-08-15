@@ -164,7 +164,7 @@ public sealed partial class PViewfinder : FrameworkElement
         }
 
         LPiece pSection = lSectionList[pSectionIndex];
-        TimeSpan pStart = pSection.LPieceStart < pRangeStart ? pRangeStart : pSection.LPieceStart;
+        TimeSpan pStart = pSection.LPieceOrigin < pRangeStart ? pRangeStart : pSection.LPieceOrigin;
         TimeSpan pEnd = pSection.LPieceEnd > pRangeEnd ? pRangeEnd : pSection.LPieceEnd;
         if (pEnd <= pStart)
         {

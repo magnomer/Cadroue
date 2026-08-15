@@ -69,7 +69,7 @@ public sealed class LPresetSelection
         return true;
     }
 
-    public bool LPresetSelectionRename(string lOldName, string lNewName)
+    public bool LPresetSelectionCommit(string lOldName, string lNewName)
     {
         string lName = lNewName.Trim();
         if (string.IsNullOrWhiteSpace(lName)

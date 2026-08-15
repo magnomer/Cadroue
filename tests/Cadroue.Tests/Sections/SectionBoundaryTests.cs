@@ -16,7 +16,7 @@ public sealed class SectionBoundaryTests
         var sections = new[] { Seg(2, 8) };
         var plan = TInterface.PieceStartSet(sections, 0, At(4), At(10), 0, OverlapOff);
         Assert.NotNull(plan);
-        Assert.Equal(At(4), plan!.Value.Sections[0].LPieceStart);
+        Assert.Equal(At(4), plan!.Value.Sections[0].LPieceOrigin);
         Assert.Equal(At(8), plan.Value.Sections[0].LPieceEnd);
         Assert.False(plan.Value.Added);
     }
@@ -65,7 +65,7 @@ public sealed class SectionBoundaryTests
         var sections = new[] { Seg(5, 8) };
         var plan = TInterface.PieceEndSet(sections, null, At(5), 0, OverlapOff);
         Assert.NotNull(plan);
-        Assert.Contains(plan!.Value.Sections, section => section.LPieceStart == TimeSpan.Zero && section.LPieceEnd == At(5));
+        Assert.Contains(plan!.Value.Sections, section => section.LPieceOrigin == TimeSpan.Zero && section.LPieceEnd == At(5));
     }
 
     [Fact]

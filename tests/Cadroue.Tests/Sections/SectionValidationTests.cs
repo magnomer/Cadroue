@@ -26,7 +26,7 @@ public sealed class SectionValidationTests
         var sections = new[] { Seg(3, 3), Seg(6, 4), Seg(1, 2) };
         var valid = TInterface.PieceValidSelect(sections, At(10));
         Assert.Single(valid);
-        Assert.Equal(At(1), valid[0].LPieceStart);
+        Assert.Equal(At(1), valid[0].LPieceOrigin);
         Assert.Equal(At(2), valid[0].LPieceEnd);
     }
 
@@ -36,9 +36,9 @@ public sealed class SectionValidationTests
         var sections = new[] { Seg(0, 3), Seg(4, 6), Seg(7, 10) };
         var valid = TInterface.PieceValidSelect(sections, At(10));
         Assert.Equal(3, valid.Count);
-        Assert.Equal(At(0), valid[0].LPieceStart);
-        Assert.Equal(At(4), valid[1].LPieceStart);
-        Assert.Equal(At(7), valid[2].LPieceStart);
+        Assert.Equal(At(0), valid[0].LPieceOrigin);
+        Assert.Equal(At(4), valid[1].LPieceOrigin);
+        Assert.Equal(At(7), valid[2].LPieceOrigin);
     }
 
     [Fact]

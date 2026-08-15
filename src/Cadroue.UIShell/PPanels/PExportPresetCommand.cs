@@ -199,7 +199,7 @@ public sealed partial class PExport
 
         pPresetNameEditing = null;
         pExportBoxCurrent = null;
-        lPresetOwner.LPresetSelectionRename(lOldPresetName, lNewPresetName);
+        lPresetOwner.LPresetSelectionCommit(lOldPresetName, lNewPresetName);
         PExportPresetRebuild();
     }
 

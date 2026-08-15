@@ -1,6 +1,6 @@
 namespace Cadroue.Core;
 
-public readonly partial record struct LPiece(TimeSpan LPieceStart, TimeSpan LPieceEnd, int LPieceColorIndex, string LPieceName)
+public readonly partial record struct LPiece(TimeSpan LPieceOrigin, TimeSpan LPieceEnd, int LPieceColorIndex, string LPieceName)
 {
     private readonly string? lPiecePrefix;
     private readonly string? lPieceSuffix;

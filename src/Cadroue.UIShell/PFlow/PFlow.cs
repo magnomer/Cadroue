@@ -73,7 +73,7 @@ public sealed partial class PFlow : UserControl
         pMap.PMapCursorChange += PFlowMapSeek;
         pMap.PMapSpoolChange += PFlowSpoolHandle;
         pMap.PMapDragChange += PFlowDragSet;
-        lSegment.LSegmentChange += PFlowSegmentHandle;
+        lSegment.LSegmentNotice += PFlowSegmentHandle;
         lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
         lWaveformOrchestrator.LWaveformReady += PFlowWaveformHandle;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };

@@ -146,7 +146,7 @@ public sealed class EditCommandTests
         Assert.Equal(-90.25, gamma.LWorkStepGamma.LWorkGammaRed);
         Assert.Equal(10.375, gamma.LWorkStepGamma.LWorkGammaGreen);
         Assert.Equal(30.5, gamma.LWorkStepGamma.LWorkGammaBlue);
-        Assert.Equal(25.625, gamma.LWorkStepGamma.LWorkGammaHighlightProtection);
+        Assert.Equal(25.625, gamma.LWorkStepGamma.LWorkGammaHighlight);
     }
 
     [Fact]

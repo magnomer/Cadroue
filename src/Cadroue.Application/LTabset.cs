@@ -30,7 +30,7 @@ public static class LTabset
         return lTabsetOrdinal;
     }
 
-    public static IReadOnlyList<LTabsetTitlePlan> LTabsetTitlePlan(IReadOnlyList<LTabsetSlot> lTabsetSlots)
+    public static IReadOnlyList<LTabsetTitlePlan> LTabsetTitleResolve(IReadOnlyList<LTabsetSlot> lTabsetSlots)
     {
         var lTabsetPlans = new List<LTabsetTitlePlan>(lTabsetSlots.Count);
 
@@ -59,7 +59,7 @@ public static class LTabset
         return lTabsetPlans;
     }
 
-    public static string LTabsetNameDedup(
+    public static string LTabsetNameResolve(
         IReadOnlyCollection<string> lTabsetTakenTitles,
         string lTabsetCandidate,
         Func<string, int, string> lTabsetNumberFormat)

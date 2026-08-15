@@ -89,7 +89,7 @@ public sealed partial class PViewfinder
         for (int index = 0; index < lSectionList.Count; index++)
         {
             LPiece section = lSectionList[index];
-            TimeSpan sectionStart = section.LPieceStart < rangeStart ? rangeStart : section.LPieceStart;
+            TimeSpan sectionStart = section.LPieceOrigin < rangeStart ? rangeStart : section.LPieceOrigin;
             TimeSpan sectionEnd = section.LPieceEnd > rangeEnd ? rangeEnd : section.LPieceEnd;
             if (sectionEnd <= sectionStart)
             {

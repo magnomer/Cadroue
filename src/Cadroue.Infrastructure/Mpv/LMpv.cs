@@ -13,15 +13,15 @@ public sealed partial class LMpv : IDisposable
     private static readonly TimeSpan LMpvProbeBudget = TimeSpan.FromSeconds(4);
 
     private const int LMpvEventShutdown = 1;
-    private const int LMpvEventEndFile = 7;
-    private const int LMpvEventFileLoaded = 8;
+    private const int LMpvEventEnd = 7;
+    private const int LMpvEventLoaded = 8;
 
     private const int LMpvFormatDouble = 5;
 
     private static bool lMpvResolverActive;
     private static readonly object lMpvResolverGate = new();
 
-    private nint lMpvHandle;
+    private nint lMpvContext;
 
     public LMpv()
     {
@@ -30,7 +30,7 @@ public sealed partial class LMpv : IDisposable
 
     public string LMpvLibraryPath { get; } = LMpvLibraryRead();
 
-    public bool LMpvHandleActive => lMpvHandle != nint.Zero;
+    public bool LMpvContextActive => lMpvContext != nint.Zero;
 
     public static string LMpvLibraryRead()
     {
@@ -53,9 +53,9 @@ public sealed partial class LMpv : IDisposable
         return LMpvLibraryFile;
     }
 
-    public void LMpvHandleCreate(nint lWindowHandle)
+    public void LMpvContextCreate(nint lWindowHandle)
     {
-        if (lMpvHandle != nint.Zero)
+        if (lMpvContext != nint.Zero)
         {
             throw new InvalidOperationException("mpv handle already created.");
         }
@@ -66,7 +66,7 @@ public sealed partial class LMpv : IDisposable
             throw new InvalidOperationException($"mpv_create failed (libmpv path: {LMpvLibraryPath}).");
         }
 
-        lMpvHandle = lHandle;
+        lMpvContext = lHandle;
         if (lWindowHandle != nint.Zero)
         {
             LMpvOptionSet("wid", lWindowHandle.ToString());
@@ -77,27 +77,27 @@ public sealed partial class LMpv : IDisposable
             LMpvOptionSet("ao", "null");
         }
 
-        int lResult = LMpvNative.mpv_initialize(lMpvHandle);
+        int lResult = LMpvNative.mpv_initialize(lMpvContext);
         LMpvResultCheck(lResult, "mpv_initialize");
     }
 
     public void LMpvOptionSet(string lName, string lData)
     {
-        LMpvHandleGuard();
-        int lResult = LMpvNative.mpv_set_option_string(lMpvHandle, lName, lData);
+        LMpvContextValidate();
+        int lResult = LMpvNative.mpv_set_option_string(lMpvContext, lName, lData);
         LMpvResultCheck(lResult, $"mpv_set_option_string {lName}={lData}");
     }
 
     public void LMpvPropertySet(string lName, string lData)
     {
-        LMpvHandleGuard();
-        int lResult = LMpvNative.mpv_set_property_string(lMpvHandle, lName, lData);
+        LMpvContextValidate();
+        int lResult = LMpvNative.mpv_set_property_string(lMpvContext, lName, lData);
         LMpvResultCheck(lResult, $"mpv_set_property_string {lName}={lData}");
     }
 
     public void LMpvCommandRun(params string[] lArguments)
     {
-        LMpvHandleGuard();
+        LMpvContextValidate();
         if (lArguments.Length == 0)
         {
             throw new ArgumentException("mpv_command needs at least one argument.", nameof(lArguments));
@@ -109,14 +109,14 @@ public sealed partial class LMpv : IDisposable
         {
             for (int lIndex = 0; lIndex < lArguments.Length; lIndex++)
             {
-                lPointers[lIndex] = LMpvUtf8Create(lArguments[lIndex]);
+                lPointers[lIndex] = LMpvStringCreate(lArguments[lIndex]);
             }
 
             lPointers[lArguments.Length] = nint.Zero;
             lArray = Marshal.AllocHGlobal(nint.Size * lPointers.Length);
             Marshal.Copy(lPointers, 0, lArray, lPointers.Length);
 
-            int lResult = LMpvNative.mpv_command(lMpvHandle, lArray);
+            int lResult = LMpvNative.mpv_command(lMpvContext, lArray);
             LMpvResultCheck(lResult, $"mpv_command {string.Join(' ', lArguments)}");
         }
         finally
@@ -141,10 +141,10 @@ public sealed partial class LMpv : IDisposable
         LMpvCommandRun("loadfile", lPath);
     }
 
-    public LMpvProbe LMpvOpenWait(string lPath, TimeSpan lBudget)
+    public LMpvProbe LMpvMediaCheck(string lPath, TimeSpan lBudget)
     {
         LMpvOpen(lPath);
-        return LMpvFileLoadedWait(lBudget);
+        return LMpvLoadedScan(lBudget);
     }
 
     public void LMpvSeek(TimeSpan lPosition)
@@ -193,8 +193,8 @@ public sealed partial class LMpv : IDisposable
 
     public TimeSpan LMpvTimeRead()
     {
-        LMpvHandleGuard();
-        int lResult = LMpvNative.mpv_get_property(lMpvHandle, "time-pos", LMpvFormatDouble, out double lSeconds);
+        LMpvContextValidate();
+        int lResult = LMpvNative.mpv_get_property(lMpvContext, "time-pos", LMpvFormatDouble, out double lSeconds);
         if (lResult < 0 || double.IsNaN(lSeconds) || lSeconds < 0)
         {
             return TimeSpan.Zero;
@@ -208,9 +208,9 @@ public sealed partial class LMpv : IDisposable
         try
         {
             using LMpv lMpv = new();
-            lMpv.LMpvHandleCreate(nint.Zero);
+            lMpv.LMpvContextCreate(nint.Zero);
             lMpv.LMpvOpen(LMpvProbeSource);
-            return lMpv.LMpvFileLoadedWait(LMpvProbeBudget);
+            return lMpv.LMpvLoadedScan(LMpvProbeBudget);
         }
         catch (DllNotFoundException)
         {
@@ -226,9 +226,9 @@ public sealed partial class LMpv : IDisposable
         }
     }
 
-    public LMpvProbe LMpvFileLoadedWait(TimeSpan lBudget)
+    public LMpvProbe LMpvLoadedScan(TimeSpan lBudget)
     {
-        LMpvHandleGuard();
+        LMpvContextValidate();
         DateTime lDeadline = DateTime.UtcNow + lBudget;
         while (true)
         {
@@ -238,19 +238,19 @@ public sealed partial class LMpv : IDisposable
                 return LMpvProbe.LMpvProbeUnusable;
             }
 
-            nint lEvent = LMpvNative.mpv_wait_event(lMpvHandle, Math.Min(0.1, lRemaining));
+            nint lEvent = LMpvNative.mpv_wait_event(lMpvContext, Math.Min(0.1, lRemaining));
             if (lEvent == nint.Zero)
             {
                 continue;
             }
 
             int lEventId = Marshal.ReadInt32(lEvent);
-            if (lEventId == LMpvEventFileLoaded)
+            if (lEventId == LMpvEventLoaded)
             {
                 return LMpvProbe.LMpvProbeUsable;
             }
 
-            if (lEventId == LMpvEventEndFile || lEventId == LMpvEventShutdown)
+            if (lEventId == LMpvEventEnd || lEventId == LMpvEventShutdown)
             {
                 return LMpvProbe.LMpvProbeUnusable;
             }
@@ -259,13 +259,13 @@ public sealed partial class LMpv : IDisposable
 
     public void LMpvDispose()
     {
-        if (lMpvHandle == nint.Zero)
+        if (lMpvContext == nint.Zero)
         {
             return;
         }
 
-        LMpvNative.mpv_terminate_destroy(lMpvHandle);
-        lMpvHandle = nint.Zero;
+        LMpvNative.mpv_terminate_destroy(lMpvContext);
+        lMpvContext = nint.Zero;
     }
 
     public void Dispose()
@@ -273,9 +273,9 @@ public sealed partial class LMpv : IDisposable
         LMpvDispose();
     }
 
-    private void LMpvHandleGuard()
+    private void LMpvContextValidate()
     {
-        if (lMpvHandle == nint.Zero)
+        if (lMpvContext == nint.Zero)
         {
             throw new InvalidOperationException("mpv handle is not created.");
         }
@@ -291,7 +291,7 @@ public sealed partial class LMpv : IDisposable
         }
     }
 
-    private static nint LMpvUtf8Create(string lValue)
+    private static nint LMpvStringCreate(string lValue)
     {
         byte[] lBytes = Encoding.UTF8.GetBytes(lValue);
         nint lPointer = Marshal.AllocHGlobal(lBytes.Length + 1);

@@ -11,7 +11,7 @@ public sealed record LWorkNormalizeStep(
     double LWorkNormalizeGauss,
     double LWorkNormalizeGain,
     double LWorkNormalizeCompress)
-    : LWorkAudioStep(LAudioKind.LAudioKindNormalize, LWorkStepActive)
+    : LWorkAudioStep(LAudioKind.LAudioKindLeveling, LWorkStepActive)
 {
     public override bool LWorkStepLoudness =>
         LWorkStepActive

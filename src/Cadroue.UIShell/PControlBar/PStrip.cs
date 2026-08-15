@@ -180,7 +180,7 @@ public sealed class PStrip
             return;
         }
 
-        IReadOnlyList<LTabsetTitlePlan> pStripPlans = LTabset.LTabsetTitlePlan(PStripSlotsRead());
+        IReadOnlyList<LTabsetTitlePlan> pStripPlans = LTabset.LTabsetTitleResolve(PStripSlotsRead());
         Dictionary<Guid, PTabRecord> pStripById = PStripRecords.ToDictionary(pTabItem => pTabItem.PTabId);
         foreach (LTabsetTitlePlan pStripPlan in pStripPlans)
         {
@@ -283,7 +283,7 @@ public sealed class PStrip
             .Where(pTabItem => !ReferenceEquals(pTabItem, pTabRecord))
             .Select(pTabItem => pTabItem.PTabTitle)
             .ToList();
-        pTabRecord.PTabNameCustom = LTabset.LTabsetNameDedup(
+        pTabRecord.PTabNameCustom = LTabset.LTabsetNameResolve(
             pStripTaken,
             pTabTrimmed,
             (pStripName, pStripAttempt) => LLocalization.LLocalizationFormat("Tab.Numbered", pStripName, pStripAttempt));

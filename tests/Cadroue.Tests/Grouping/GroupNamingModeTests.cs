@@ -27,7 +27,7 @@ public sealed class GroupNamingModeTests
         int lGroupChanges = 0;
         lGroupSelection.LGroupSelectionChange += () => lGroupChanges++;
 
-        TInterface.GroupNameModeRequest(lGroupSelection, LSeriesNameMode.LSeriesNameRemove);
+        TInterface.GroupNameModeRequest(lGroupSelection, LSeriesNameMode.LSeriesNameBase);
 
         Assert.Equal(0, lGroupChanges);
     }

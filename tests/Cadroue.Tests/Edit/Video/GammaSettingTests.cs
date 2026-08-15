@@ -55,7 +55,7 @@ public sealed class GammaSettingTests
         Assert.Equal(-100, step.LWorkStepGamma.LWorkGammaRed);
         Assert.Equal(25.5, step.LWorkStepGamma.LWorkGammaGreen);
         Assert.Equal(100, step.LWorkStepGamma.LWorkGammaBlue);
-        Assert.Equal(100, step.LWorkStepGamma.LWorkGammaHighlightProtection);
+        Assert.Equal(100, step.LWorkStepGamma.LWorkGammaHighlight);
     }
 
     [Fact]

@@ -7,7 +7,7 @@ public sealed class LGroupSelection
     public LGroupSelection(
         bool lGroupAuto = false,
         bool lGroupStrict = true,
-        LSeriesNameMode lGroupNameMode = LSeriesNameMode.LSeriesNameRemove)
+        LSeriesNameMode lGroupNameMode = LSeriesNameMode.LSeriesNameBase)
     {
         LGroupAuto = lGroupAuto;
         LGroupStrict = lGroupStrict;
@@ -22,21 +22,21 @@ public sealed class LGroupSelection
 
     public LSeriesNameMode LGroupNameMode { get; private set; }
 
-    public void LGroupAutoRequest(bool lGroupAuto) =>
-        LGroupChangeRequest(lGroupAuto, LGroupStrict, LGroupNameMode);
+    public void LGroupAutoChange(bool lGroupAuto) =>
+        LGroupChange(lGroupAuto, LGroupStrict, LGroupNameMode);
 
-    public void LGroupStrictRequest(bool lGroupStrict) =>
-        LGroupChangeRequest(LGroupAuto, lGroupStrict, LGroupNameMode);
+    public void LGroupStrictChange(bool lGroupStrict) =>
+        LGroupChange(LGroupAuto, lGroupStrict, LGroupNameMode);
 
-    public void LGroupModeRequest(LSeriesNameMode lGroupNameMode) =>
-        LGroupChangeRequest(LGroupAuto, LGroupStrict, lGroupNameMode);
+    public void LGroupModeChange(LSeriesNameMode lGroupNameMode) =>
+        LGroupChange(LGroupAuto, LGroupStrict, lGroupNameMode);
 
     public IReadOnlyList<LSeriesGroup> LGroupResolve(
         IReadOnlyList<string> lGroupPaths,
         bool? lGroupStrict = null) =>
         LSeries.LSeriesResolve(lGroupPaths, lGroupStrict ?? LGroupStrict, LGroupNameMode);
 
-    private void LGroupChangeRequest(
+    private void LGroupChange(
         bool lGroupAuto,
         bool lGroupStrict,
         LSeriesNameMode lGroupNameMode)

@@ -36,10 +36,10 @@ public sealed class FilenameRuleTests
     {
         LSceneFunnelRule rule = Filename();
         rule.LSceneFunnelContains = Cond("clip");
-        rule.LSceneFunnelStart = Cond("cl", join: true);
+        rule.LSceneFunnelPrefix = Cond("cl", join: true);
         Assert.True(TInterface.ClassifierMatch(rule, "clip.mp4"));
 
-        rule.LSceneFunnelStart = Cond("zz", join: true);
+        rule.LSceneFunnelPrefix = Cond("zz", join: true);
         Assert.False(TInterface.ClassifierMatch(rule, "clip.mp4"));
     }
 
@@ -48,7 +48,7 @@ public sealed class FilenameRuleTests
     {
         LSceneFunnelRule rule = Filename();
         rule.LSceneFunnelContains = Cond("zzz");
-        rule.LSceneFunnelStart = Cond("cl", join: false);
+        rule.LSceneFunnelPrefix = Cond("cl", join: false);
         Assert.True(TInterface.ClassifierMatch(rule, "clip.mp4"));
     }
 
@@ -57,7 +57,7 @@ public sealed class FilenameRuleTests
     {
         LSceneFunnelRule rule = Filename();
         rule.LSceneFunnelContains = Cond("zzz");
-        rule.LSceneFunnelStart = Cond("cl", join: false);
+        rule.LSceneFunnelPrefix = Cond("cl", join: false);
         rule.LSceneFunnelEnd = Cond("mp4", join: true);
         Assert.True(TInterface.ClassifierMatch(rule, "clip.mp4"));
 

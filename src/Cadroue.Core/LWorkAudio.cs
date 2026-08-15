@@ -5,7 +5,7 @@ namespace Cadroue.Core;
 public enum LAudioKind
 {
     LAudioKindVolume,
-    LAudioKindNormalize,
+    LAudioKindLeveling,
     LAudioKindDenoise,
     LAudioKindHighpass,
     LAudioKindLowpass,
@@ -25,7 +25,7 @@ public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepAc
 
     public static LWorkAudioStep LWorkVolumeCreate(bool lStepActive, double lStepGain) =>
         new LWorkVolumeStep(lStepActive,
-            Math.Clamp(lStepGain, LWorkAudio.LWorkVolumeGainLeast, LWorkAudio.LWorkVolumeGainMost));
+            Math.Clamp(lStepGain, LWorkAudio.LWorkGainLeast, LWorkAudio.LWorkGainMost));
 
     public static LWorkAudioStep LWorkNormalizeCreate(
         bool lStepActive,
@@ -101,8 +101,8 @@ public abstract record LWorkAudioStep(LAudioKind LWorkStepKind, bool LWorkStepAc
 
 public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
 {
-    public const double LWorkVolumeGainLeast = -24;
-    public const double LWorkVolumeGainMost = 24;
+    public const double LWorkGainLeast = -24;
+    public const double LWorkGainMost = 24;
 
     public bool LWorkAudioSkip { get; init; }
 

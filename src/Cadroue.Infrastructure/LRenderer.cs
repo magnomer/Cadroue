@@ -21,7 +21,7 @@ public static class LRenderer
     private static LPreviewEngine lRendererEnginePreview = LPreviewEngine.LPreviewEngineFlyleaf;
 
     private static readonly object lRendererCheckGate = new();
-    private static Task<LMpvProbe>? lRendererCheckRun;
+    private static Task<LMpvProbe>? lRendererCheckTask;
 
     public static event Action? LRendererEngineChange;
 
@@ -30,8 +30,8 @@ public static class LRenderer
     public static void LRendererSettingsLoad() =>
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
 
-    public const string LRendererEngineFlyleafToken = "Flyleaf";
-    public const string LRendererEngineMpvToken = "Mpv";
+    public const string LRendererFlyleafToken = "Flyleaf";
+    public const string LRendererMpvToken = "Mpv";
 
     public static LPreviewEngine LRendererEngineRead() => lRendererEnginePreview;
 
@@ -59,7 +59,7 @@ public static class LRenderer
     private static LPreviewEngine LRendererPreferenceRead() =>
         string.Equals(
             LPreference.LPreferenceStateCurrent.LPreferencePreviewEngine,
-            LRendererEngineMpvToken,
+            LRendererMpvToken,
             StringComparison.Ordinal)
             ? LPreviewEngine.LPreviewEngineMpv
             : LPreviewEngine.LPreviewEngineFlyleaf;
@@ -68,12 +68,12 @@ public static class LRenderer
     {
         lock (lRendererCheckGate)
         {
-            if (lRendererCheckRun is { IsCompleted: false })
+            if (lRendererCheckTask is { IsCompleted: false })
             {
-                return lRendererCheckRun;
+                return lRendererCheckTask;
             }
 
-            lRendererCheckRun = Task.Run(() =>
+            lRendererCheckTask = Task.Run(() =>
             {
                 LMpvProbe lRendererProbed;
                 try
@@ -89,7 +89,7 @@ public static class LRenderer
                 return lRendererProbed;
             });
 
-            return lRendererCheckRun;
+            return lRendererCheckTask;
         }
     }
 }

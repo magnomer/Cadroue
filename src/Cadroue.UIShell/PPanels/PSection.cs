@@ -268,7 +268,7 @@ public sealed partial class PSection : UserControl
 
         var pTimeLabel = new TextBlock
         {
-            Text = $"{PSectionTimeFormat(pSectionEntry.LPieceStart)} → {PSectionTimeFormat(pSectionEntry.LPieceEnd)}"
+            Text = $"{PSectionTimeFormat(pSectionEntry.LPieceOrigin)} → {PSectionTimeFormat(pSectionEntry.LPieceEnd)}"
                 + $"  ({PSectionTimeFormat(PSectionSpanRead(pSectionEntry))})",
             FontSize = 11,
             FontFamily = pSectionFontFamily,
@@ -380,7 +380,7 @@ public sealed partial class PSection : UserControl
 
     private static TimeSpan PSectionSpanRead(LPiece pSectionEntry)
     {
-        TimeSpan pSectionSpan = pSectionEntry.LPieceEnd - pSectionEntry.LPieceStart;
+        TimeSpan pSectionSpan = pSectionEntry.LPieceEnd - pSectionEntry.LPieceOrigin;
         return pSectionSpan < TimeSpan.Zero ? TimeSpan.Zero : pSectionSpan;
     }
 

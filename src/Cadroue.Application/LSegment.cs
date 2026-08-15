@@ -9,7 +9,7 @@ public sealed class LSegment
     private string? lSegmentSourcePath;
     private bool lSegmentRestoring;
 
-    public Action<IReadOnlyList<LPiece>, int?>? LSegmentChange;
+    public Action<IReadOnlyList<LPiece>, int?>? LSegmentNotice;
 
     public static Func<string, IReadOnlyList<LSidecarSectionRecord>>? LSegmentLoadSeam;
     public static Action<string, IReadOnlyList<LSidecarSectionRecord>>? LSegmentSaveSeam;
@@ -56,7 +56,7 @@ public sealed class LSegment
 
     private static LSidecarSectionRecord LSegmentRecordCreate(LPiece lSegmentPiece) => new()
     {
-        LSidecarStartMilliseconds = (long)lSegmentPiece.LPieceStart.TotalMilliseconds,
+        LSidecarStartMilliseconds = (long)lSegmentPiece.LPieceOrigin.TotalMilliseconds,
         LSidecarEndMilliseconds = (long)lSegmentPiece.LPieceEnd.TotalMilliseconds,
         LSidecarColorIndex = lSegmentPiece.LPieceColorIndex,
         LSidecarName = lSegmentPiece.LPieceName,
@@ -138,7 +138,7 @@ public sealed class LSegment
 
     public bool? LSegmentStartSet(TimeSpan lSegmentCursor, TimeSpan lSegmentDuration, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
     {
-        if (LPiece.LPieceStartSet(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentDuration, lSegmentColorIndex, lSegmentOverlapAllowed)
+        if (LPiece.LPieceOriginSet(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentDuration, lSegmentColorIndex, lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return null;
         LSegmentApply(lSegmentPlan.Sections, lSegmentPlan.Active);
         return lSegmentPlan.Added;
@@ -247,7 +247,7 @@ public sealed class LSegment
     {
         if (lSegmentIndex < 0 || lSegmentIndex >= lSegmentPieces.Count) return;
         lSegmentIndexActive = lSegmentIndex;
-        LSegmentChange?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
+        LSegmentNotice?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
     }
 
     private void LSegmentApply(List<LPiece> lSegmentSections, int? lSegmentSelect)
@@ -255,7 +255,7 @@ public sealed class LSegment
         lSegmentPieces.Clear();
         lSegmentPieces.AddRange(lSegmentSections);
         lSegmentIndexActive = lSegmentSelect;
-        LSegmentChange?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
+        LSegmentNotice?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
         LSegmentSave();
     }
 }

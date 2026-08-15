@@ -141,10 +141,10 @@ internal static class LEncodeVideo
             lArguments.Append(CultureInfo.InvariantCulture, $" -r {lFps.ToString(CultureInfo.InvariantCulture)}");
         }
 
-        if (!string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingPixelFormat)
-            && !string.Equals(lOutput.LEncodingVideo.LEncodingPixelFormat, "Auto", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingPixel)
+            && !string.Equals(lOutput.LEncodingVideo.LEncodingPixel, "Auto", StringComparison.OrdinalIgnoreCase))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lOutput.LEncodingVideo.LEncodingPixelFormat}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lOutput.LEncodingVideo.LEncodingPixel}");
         }
     }
 
@@ -220,22 +220,22 @@ internal static class LEncodeVideo
                     break;
                 case LColorKind.LColorKindGamma:
                     LWorkGammaSettings lGamma = lStep.LWorkGammaRead();
-                    lEqParts.Add($"gamma={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGlobal))}");
+                    lEqParts.Add($"gamma={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal))}");
                     if (lGamma.LWorkGammaRed != 0)
                     {
-                        lEqParts.Add($"gamma_r={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaRed))}");
+                        lEqParts.Add($"gamma_r={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaRed))}");
                     }
                     if (lGamma.LWorkGammaGreen != 0)
                     {
-                        lEqParts.Add($"gamma_g={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGreen))}");
+                        lEqParts.Add($"gamma_g={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGreen))}");
                     }
                     if (lGamma.LWorkGammaBlue != 0)
                     {
-                        lEqParts.Add($"gamma_b={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaBlue))}");
+                        lEqParts.Add($"gamma_b={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaBlue))}");
                     }
-                    if (lGamma.LWorkGammaHighlightProtection != 0)
+                    if (lGamma.LWorkGammaHighlight != 0)
                     {
-                        lEqParts.Add($"gamma_weight={LEncodeGammaFormat(1d - lGamma.LWorkGammaHighlightProtection / 100d)}");
+                        lEqParts.Add($"gamma_weight={LEncodeGammaFormat(1d - lGamma.LWorkGammaHighlight / 100d)}");
                     }
                     break;
                 case LColorKind.LColorKindWhitebalance:

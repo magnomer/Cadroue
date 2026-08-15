@@ -7,7 +7,7 @@ public readonly partial record struct LPiece
         List<LPiece> lPieceValid = new();
         foreach (LPiece lPieceSection in lPieceSections)
         {
-            if (lPieceSection.LPieceEnd <= lPieceDuration && lPieceSection.LPieceStart < lPieceSection.LPieceEnd)
+            if (lPieceSection.LPieceEnd <= lPieceDuration && lPieceSection.LPieceOrigin < lPieceSection.LPieceEnd)
             {
                 lPieceValid.Add(lPieceSection);
             }
@@ -35,7 +35,7 @@ public readonly partial record struct LPiece
             }
 
             LPiece lPiece = lPieces[lPieceIndex];
-            if (lPieceTime >= lPiece.LPieceStart && lPieceTime < lPiece.LPieceEnd)
+            if (lPieceTime >= lPiece.LPieceOrigin && lPieceTime < lPiece.LPieceEnd)
             {
                 return true;
             }
@@ -64,10 +64,10 @@ public readonly partial record struct LPiece
                 continue;
             }
 
-            TimeSpan lPieceStart = lPieces[lPieceIndex].LPieceStart;
-            if (lPieceStart > lPieceFrom && lPieceStart < lPieceLimit)
+            TimeSpan lPieceOrigin = lPieces[lPieceIndex].LPieceOrigin;
+            if (lPieceOrigin > lPieceFrom && lPieceOrigin < lPieceLimit)
             {
-                lPieceLimit = lPieceStart;
+                lPieceLimit = lPieceOrigin;
             }
         }
 
@@ -142,23 +142,23 @@ public readonly partial record struct LPiece
             return null;
         }
 
-        TimeSpan lPieceStart = LPieceFloorRead(lPieces, lPieceCursor, -1, lPieceOverlapAllowed);
-        if (lPieceStart >= lPieceCursor)
+        TimeSpan lPieceOrigin = LPieceFloorRead(lPieces, lPieceCursor, -1, lPieceOverlapAllowed);
+        if (lPieceOrigin >= lPieceCursor)
         {
             return null;
         }
 
-        if (lPieceCursor > LPieceLimitRead(lPieces, lPieceStart, lPieceCursor, -1, lPieceOverlapAllowed))
+        if (lPieceCursor > LPieceLimitRead(lPieces, lPieceOrigin, lPieceCursor, -1, lPieceOverlapAllowed))
         {
             return null;
         }
 
         List<LPiece> lPieceList = lPieces.ToList();
-        lPieceList.Add(new LPiece(lPieceStart, lPieceCursor, lPieceColorIndex, string.Empty));
+        lPieceList.Add(new LPiece(lPieceOrigin, lPieceCursor, lPieceColorIndex, string.Empty));
         return (lPieceList, lPieceList.Count - 1);
     }
 
-    public static (List<LPiece> Sections, int? Active, bool Added)? LPieceStartSet(
+    public static (List<LPiece> Sections, int? Active, bool Added)? LPieceOriginSet(
         IReadOnlyList<LPiece> lPieces,
         int? lPieceActiveIndex,
         TimeSpan lPieceCursor,
@@ -181,13 +181,13 @@ public readonly partial record struct LPiece
             return null;
         }
 
-        if (lPieceCursor < LPieceFloorRead(lPieces, lPiece.LPieceStart, lPieceActiveIndex.Value, lPieceOverlapAllowed))
+        if (lPieceCursor < LPieceFloorRead(lPieces, lPiece.LPieceOrigin, lPieceActiveIndex.Value, lPieceOverlapAllowed))
         {
             return null;
         }
 
         List<LPiece> lPieceList = lPieces.ToList();
-        lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceStart = lPieceCursor };
+        lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceOrigin = lPieceCursor };
         return (lPieceList, lPieceActiveIndex, false);
     }
 
@@ -207,7 +207,7 @@ public readonly partial record struct LPiece
         }
 
         LPiece lPiece = lPieces[lPieceActiveIndex.Value];
-        if (lPieceCursor <= lPiece.LPieceStart)
+        if (lPieceCursor <= lPiece.LPieceOrigin)
         {
             return null;
         }
@@ -234,7 +234,7 @@ public readonly partial record struct LPiece
         }
 
         LPiece lPiece = lPieces[lPieceActiveIndex.Value];
-        if (lPieceCursor <= lPiece.LPieceStart || lPieceCursor >= lPiece.LPieceEnd)
+        if (lPieceCursor <= lPiece.LPieceOrigin || lPieceCursor >= lPiece.LPieceEnd)
         {
             return null;
         }

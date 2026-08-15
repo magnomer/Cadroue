@@ -33,7 +33,7 @@ public sealed class TPresets : IDisposable
     public (bool Ok, string SelectionName) RenameSelection(string current, string old, string renamed)
     {
         LPresetSelection selection = new(current);
-        bool ok = selection.LPresetSelectionRename(old, renamed);
+        bool ok = selection.LPresetSelectionCommit(old, renamed);
         return (ok, selection.LPresetSelectionName);
     }
 

@@ -37,7 +37,7 @@ public static class LRelayPayload
         lRelaySegments
             .Select(lRelaySegment => new LRelaySectionRecord
             {
-                LRelayStartTicks = lRelaySegment.LPieceStart.Ticks,
+                LRelayStartTicks = lRelaySegment.LPieceOrigin.Ticks,
                 LRelayEndTicks = lRelaySegment.LPieceEnd.Ticks,
                 LRelayColorIndex = lRelaySegment.LPieceColorIndex,
                 LRelayName = lRelaySegment.LPieceName,

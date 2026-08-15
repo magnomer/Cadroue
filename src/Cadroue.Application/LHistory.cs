@@ -4,7 +4,7 @@ namespace Cadroue.Application;
 
 public sealed record LHistoryEntry(
     IReadOnlyList<LPiece> LHistorySections,
-    int? LHistorySectionSelect,
+    int? LHistorySectionIndex,
     LPresetRecord LHistoryExport);
 
 public sealed class LHistory
@@ -83,7 +83,7 @@ public sealed class LHistory
 
     private static bool LHistoryMatch(LHistoryEntry lHistoryFirst, LHistoryEntry lHistorySecond)
     {
-        if (lHistoryFirst.LHistorySectionSelect != lHistorySecond.LHistorySectionSelect
+        if (lHistoryFirst.LHistorySectionIndex != lHistorySecond.LHistorySectionIndex
             || lHistoryFirst.LHistorySections.Count != lHistorySecond.LHistorySections.Count
             || !lHistoryFirst.LHistoryExport.Equals(lHistorySecond.LHistoryExport))
         {

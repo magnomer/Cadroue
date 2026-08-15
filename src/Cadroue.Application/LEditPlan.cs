@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Application;
 
-public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropApply)
+public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool LEditCropActive)
 {
     public bool LEditSkip { get; init; }
     public bool LEditRatioFixed { get; init; }
@@ -14,7 +14,7 @@ public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool 
         new(LWorkCrop.LWorkCropCreate(), LWorkVideo.LWorkVideoCreate(), false);
 
     public bool LEditPlanActive =>
-        LEditSkip || LEditCropApply || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive || LEditRatioFixed;
+        LEditSkip || LEditCropActive || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive || LEditRatioFixed;
 }
 
 public static partial class LEdit
@@ -36,10 +36,10 @@ public static partial class LEdit
 
         bool lEditSkip = lPersistent.LEditSkip || (lEditSaved?.LEditSkip ?? false);
 
-        LWorkCrop lCrop = lPersistent.LEditCropApply
+        LWorkCrop lCrop = lPersistent.LEditCropActive
             ? lPersistent.LEditCrop
             : lEditSaved?.LEditCrop ?? LWorkCrop.LWorkCropCreate();
-        bool lCropApply = lPersistent.LEditCropApply || (lEditSaved?.LEditCropApply ?? false);
+        bool lCropApply = lPersistent.LEditCropActive || (lEditSaved?.LEditCropActive ?? false);
         var lSteps = new List<LWorkVideoStep>();
         foreach (LColorKind lKind in Enum.GetValues<LColorKind>())
         {
@@ -57,10 +57,10 @@ public static partial class LEdit
             }
         }
 
-        bool lRatioFixed = lPersistent.LEditCropApply ? lPersistent.LEditRatioFixed : lEditSaved?.LEditRatioFixed ?? false;
-        bool lRatioLenient = lPersistent.LEditCropApply ? lPersistent.LEditRatioLenient : lEditSaved?.LEditRatioLenient ?? false;
-        int lRatioWidth = lPersistent.LEditCropApply ? lPersistent.LEditRatioWidth : lEditSaved?.LEditRatioWidth ?? 0;
-        int lRatioHeight = lPersistent.LEditCropApply ? lPersistent.LEditRatioHeight : lEditSaved?.LEditRatioHeight ?? 0;
+        bool lRatioFixed = lPersistent.LEditCropActive ? lPersistent.LEditRatioFixed : lEditSaved?.LEditRatioFixed ?? false;
+        bool lRatioLenient = lPersistent.LEditCropActive ? lPersistent.LEditRatioLenient : lEditSaved?.LEditRatioLenient ?? false;
+        int lRatioWidth = lPersistent.LEditCropActive ? lPersistent.LEditRatioWidth : lEditSaved?.LEditRatioWidth ?? 0;
+        int lRatioHeight = lPersistent.LEditCropActive ? lPersistent.LEditRatioHeight : lEditSaved?.LEditRatioHeight ?? 0;
 
         return new LEditPlan(lCrop, new LWorkVideo(lSteps), lCropApply)
         {
@@ -81,7 +81,7 @@ public static partial class LEdit
         LSidecarRotation = lEditPlan.LEditCrop.LWorkCropRotation,
         LSidecarFlipHorizontal = lEditPlan.LEditCrop.LWorkFlipHorizontal,
         LSidecarFlipVertical = lEditPlan.LEditCrop.LWorkFlipVertical,
-        LSidecarCropActive = lEditPlan.LEditCropApply,
+        LSidecarCropActive = lEditPlan.LEditCropActive,
         LSidecarRatioFixed = lEditPlan.LEditRatioFixed,
         LSidecarRatioLenient = lEditPlan.LEditRatioLenient,
         LSidecarRatioWidth = lEditPlan.LEditRatioWidth,
@@ -163,7 +163,7 @@ public static partial class LEdit
             lRecord.LSidecarGammaRed = lGamma.LWorkGammaRed;
             lRecord.LSidecarGammaGreen = lGamma.LWorkGammaGreen;
             lRecord.LSidecarGammaBlue = lGamma.LWorkGammaBlue;
-            lRecord.LSidecarGammaHighlight = lGamma.LWorkGammaHighlightProtection;
+            lRecord.LSidecarGammaHighlight = lGamma.LWorkGammaHighlight;
         }
         else if (lEditStep.LWorkStepKind == LColorKind.LColorKindWhitebalance)
         {

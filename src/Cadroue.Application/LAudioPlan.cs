@@ -45,7 +45,7 @@ public static partial class LAudio
         LAudioKind.LAudioKindDenoise,
         LAudioKind.LAudioKindEqualizer,
         LAudioKind.LAudioKindVolume,
-        LAudioKind.LAudioKindNormalize
+        LAudioKind.LAudioKindLeveling
     };
 
     public static LWorkAudioStep LAudioNormalizeCreate()
@@ -58,7 +58,7 @@ public static partial class LAudio
 
     private static LWorkAudioStep LAudioDefaultCreate(LAudioKind lAudioKind) => lAudioKind switch
     {
-        LAudioKind.LAudioKindNormalize => LAudioNormalizeCreate(),
+        LAudioKind.LAudioKindLeveling => LAudioNormalizeCreate(),
         LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38),
         LAudioKind.LAudioKindHighpass => LPassband.LPassbandStepCreate(true, false),
         LAudioKind.LAudioKindLowpass => LPassband.LPassbandStepCreate(false, false),
@@ -69,7 +69,7 @@ public static partial class LAudio
     private static LWorkAudioStep LAudioStepCreate(LSidecarAudioStep lAudioRecord) =>
         LAudioKindCreate(lAudioRecord.LSidecarKind) switch
         {
-            LAudioKind.LAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(
+            LAudioKind.LAudioKindLeveling => LWorkAudioStep.LWorkNormalizeCreate(
                 lAudioRecord.LSidecarActive,
                 string.Equals(lAudioRecord.LSidecarMode, "Dynamic", StringComparison.Ordinal)
                     ? LLeveling.LLevelingDynamic
@@ -160,7 +160,7 @@ public static partial class LAudio
 
     private static LAudioKind LAudioKindCreate(string lAudioKind) => lAudioKind switch
     {
-        "Normalize" => LAudioKind.LAudioKindNormalize,
+        "Normalize" => LAudioKind.LAudioKindLeveling,
         "NoiseReduction" => LAudioKind.LAudioKindDenoise,
         "HighPass" => LAudioKind.LAudioKindHighpass,
         "LowPass" => LAudioKind.LAudioKindLowpass,

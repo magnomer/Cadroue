@@ -46,7 +46,7 @@ public static partial class LSplit
                 continue;
             }
 
-            if (lSplitSection.LSplitSectionEnd <= lSplitSection.LSplitSectionStart)
+            if (lSplitSection.LSplitSectionEnd <= lSplitSection.LSplitSectionOrigin)
             {
                 continue;
             }
@@ -65,7 +65,7 @@ public static partial class LSplit
                 LWorkKind.LWorkKindSplit,
                 lWorkPriority,
                 lSplitSourcePath,
-                lSplitSection.LSplitSectionStart,
+                lSplitSection.LSplitSectionOrigin,
                 lSplitSection.LSplitSectionEnd,
                 lSplitOutputName,
                 Path.Combine(lSplitFolder, lSplitOutputName),

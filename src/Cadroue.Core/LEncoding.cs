@@ -186,7 +186,7 @@ public sealed record LEncodingVideo(
     string LEncodingSize,
     bool LEncodingSizeReactive,
     string LEncodingFps,
-    string LEncodingPixelFormat,
+    string LEncodingPixel,
     IReadOnlyDictionary<string, string> LEncodingExtras);
 
 public sealed record LEncodingAudio(

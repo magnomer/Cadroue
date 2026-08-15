@@ -20,7 +20,7 @@ internal static class TInterface
     internal static IReadOnlyList<LSeriesGroup> SeriesResolve(
         IReadOnlyList<string> paths,
         bool strict,
-        LSeriesNameMode nameMode = LSeriesNameMode.LSeriesNameRemove) =>
+        LSeriesNameMode nameMode = LSeriesNameMode.LSeriesNameBase) =>
         LSeries.LSeriesResolve(paths, strict, nameMode);
 
     internal static IReadOnlyList<LPiece> PieceValidSelect(IReadOnlyList<LPiece> sections, TimeSpan duration) =>
@@ -49,7 +49,7 @@ internal static class TInterface
     internal static (List<LPiece> Sections, int? Active, bool Added)? PieceStartSet(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, TimeSpan duration,
         int colorIndex, bool overlapAllowed) =>
-        LPiece.LPieceStartSet(sections, activeIndex, cursor, duration, colorIndex, overlapAllowed);
+        LPiece.LPieceOriginSet(sections, activeIndex, cursor, duration, colorIndex, overlapAllowed);
 
     internal static (List<LPiece> Sections, int? Active, bool Added)? PieceEndSet(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex, bool overlapAllowed) =>
@@ -89,11 +89,11 @@ internal static class TInterface
     internal static LGroupSelection GroupSelectionCreate(
         bool groupAuto = false,
         bool groupStrict = true,
-        LSeriesNameMode nameMode = LSeriesNameMode.LSeriesNameRemove) =>
+        LSeriesNameMode nameMode = LSeriesNameMode.LSeriesNameBase) =>
         new(groupAuto, groupStrict, nameMode);
 
     internal static void GroupNameModeRequest(LGroupSelection selection, LSeriesNameMode mode) =>
-        selection.LGroupModeRequest(mode);
+        selection.LGroupModeChange(mode);
 
     internal static IReadOnlyList<LSeriesGroup> GroupResolve(LGroupSelection selection, IReadOnlyList<string> paths) =>
         selection.LGroupResolve(paths);

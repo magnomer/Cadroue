@@ -11,7 +11,7 @@ public readonly record struct LSeriesGroup(string Name, IReadOnlyList<string> Pa
 
 public enum LSeriesNameMode
 {
-    LSeriesNameRemove,
+    LSeriesNameBase,
     LSeriesNameFirst
 }
 
@@ -23,7 +23,7 @@ public static class LSeries
     public static IReadOnlyList<LSeriesGroup> LSeriesResolve(
         IReadOnlyList<string> lSeriesPaths,
         bool lSeriesStrict,
-        LSeriesNameMode lSeriesNameMode = LSeriesNameMode.LSeriesNameRemove)
+        LSeriesNameMode lSeriesNameMode = LSeriesNameMode.LSeriesNameBase)
     {
         var lSeriesBuckets = new List<(string? Base, List<LSeriesItem> Items)>();
         var lSeriesBaseIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -105,7 +105,7 @@ public static class LSeries
         string lSeriesBase,
         IReadOnlyList<LSeriesItem> lSeriesItems,
         LSeriesNameMode lSeriesNameMode) =>
-        lSeriesItems.Count > 1 && lSeriesNameMode == LSeriesNameMode.LSeriesNameRemove
+        lSeriesItems.Count > 1 && lSeriesNameMode == LSeriesNameMode.LSeriesNameBase
             ? lSeriesBase
             : lSeriesItems[0].Stem;
 

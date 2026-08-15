@@ -83,7 +83,7 @@ public sealed partial class PFlow
             : $"'{pFlowSection.LPieceName}'";
         LTraceLog.LTraceInfoRecord(
             $"Section {pFlowAction} #{pFlowIndex + 1} of {pFlowSections.Count} in '{pFlowSource}': {pFlowName} " +
-            $"{pFlowSection.LPieceStart:hh\\:mm\\:ss\\.fff}-{pFlowSection.LPieceEnd:hh\\:mm\\:ss\\.fff}");
+            $"{pFlowSection.LPieceOrigin:hh\\:mm\\:ss\\.fff}-{pFlowSection.LPieceEnd:hh\\:mm\\:ss\\.fff}");
     }
 
     public void PFlowSectionSelect(int pSectionIndex)
@@ -103,7 +103,7 @@ public sealed partial class PFlow
         }
 
         lSegment.LSegmentSelect(pSectionIndex);
-        PFlowCursorPropagate(pFlowSections[pSectionIndex].LPieceStart, true, true);
+        PFlowCursorPropagate(pFlowSections[pSectionIndex].LPieceOrigin, true, true);
     }
 
     public void PFlowSectionToggle(int pSectionIndex)
@@ -121,7 +121,7 @@ public sealed partial class PFlow
     public IReadOnlyList<LSplitSectionDescription> PFlowSplitRead() =>
         lSegment.LSegmentListRead()
             .Select(lSection => new LSplitSectionDescription(
-                lSection.LPieceStart,
+                lSection.LPieceOrigin,
                 lSection.LPieceEnd,
                 lSection.LPieceName,
                 lSection.LPiecePrefix,

@@ -19,7 +19,7 @@ public static class LSidecarSource
                 continue;
             }
 
-            if (LSidecarVerifyCheck(lCandidatePath, lSidecar.LSidecarSource))
+            if (LSidecarSourceMatch(lCandidatePath, lSidecar.LSidecarSource))
             {
                 return new LSidecarSourceResult(Path.GetFullPath(lCandidatePath), lCandidateKind, true, lSidecar.LSidecarSource.LSidecarFileName);
             }
@@ -36,7 +36,7 @@ public static class LSidecarSource
         return new LSidecarSourceResult(string.Empty, LSidecarSourceKind.LSidecarSourceMissing, false, lSidecar.LSidecarSource.LSidecarFileName);
     }
 
-    public static bool LSidecarVerifyCheck(string lSidecarMediaPath, LSidecarSourceRecord lSidecarSource)
+    public static bool LSidecarSourceMatch(string lSidecarMediaPath, LSidecarSourceRecord lSidecarSource)
     {
         try
         {

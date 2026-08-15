@@ -105,7 +105,7 @@ public static class LSidecarStore
             using (LLatch.LLatchClaim(lSidecarPreciousPath))
             {
                 string? lSidecarExistingJson = LSidecarFile.LSidecarFileReadText(lSidecarPreciousPath);
-                LSidecarCacheStore.LSidecarCacheMigrate(lSidecarPreciousPath, lSidecarExistingJson);
+                LSidecarCacheStore.LSidecarCacheMove(lSidecarPreciousPath, lSidecarExistingJson);
 
                 LSidecarCoreRecord lSidecarCore = lSidecarExistingJson is not null
                     && LSidecarParse.LSidecarCoreParse(lSidecarExistingJson) is { } lSidecarParsed
@@ -175,7 +175,7 @@ public static class LSidecarStore
     }
 
     public static bool LSidecarWaveformSave(string lSidecarSourcePath, LSidecarWaveformRecord? lSidecarWaveform) =>
-        LSidecarCacheStore.LSidecarCacheMutate(lSidecarSourcePath, lSidecarCache => lSidecarCache.LSidecarWaveform = lSidecarWaveform);
+        LSidecarCacheStore.LSidecarCacheChange(lSidecarSourcePath, lSidecarCache => lSidecarCache.LSidecarWaveform = lSidecarWaveform);
 
     public static double LSidecarLoudnessRead(string lSidecarSourcePath)
     {
@@ -197,7 +197,7 @@ public static class LSidecarStore
         try
         {
             return LSidecarCoreRead(lSidecarSourcePath) is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarCore
-                && LSidecarSource.LSidecarVerifyCheck(lSidecarSourcePath, lSidecarCore.LSidecarSource)
+                && LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecarCore.LSidecarSource)
                 ? TimeSpan.FromMilliseconds(lSidecarCore.LSidecarSource.LSidecarDurationMilliseconds)
                 : TimeSpan.Zero;
         }
@@ -219,7 +219,7 @@ public static class LSidecarStore
             }
 
             if (lSidecarCore is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarKnown
-                && LSidecarSource.LSidecarVerifyCheck(lSidecarSourcePath, lSidecarKnown.LSidecarSource))
+                && LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecarKnown.LSidecarSource))
             {
                 return TimeSpan.FromMilliseconds(lSidecarKnown.LSidecarSource.LSidecarDurationMilliseconds);
             }
@@ -279,7 +279,7 @@ public static class LSidecarStore
             using (LLatch.LLatchClaim(lSidecarPreciousPath))
             {
                 string? lSidecarExistingJson = LSidecarFile.LSidecarFileReadText(lSidecarPreciousPath);
-                LSidecarCacheStore.LSidecarCacheMigrate(lSidecarPreciousPath, lSidecarExistingJson);
+                LSidecarCacheStore.LSidecarCacheMove(lSidecarPreciousPath, lSidecarExistingJson);
 
                 LSidecarCoreRecord lSidecarCore = lSidecarExistingJson is not null
                     && LSidecarParse.LSidecarCoreParse(lSidecarExistingJson) is { } lSidecarParsed

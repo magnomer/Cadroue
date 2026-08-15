@@ -20,7 +20,7 @@ internal static class LSidecarCacheStore
         return lSidecarLegacyJson is null ? null : LSidecarParse.LSidecarCacheParse(lSidecarLegacyJson);
     }
 
-    internal static void LSidecarCacheMigrate(string lSidecarPreciousPath, string? lSidecarLegacyJson)
+    internal static void LSidecarCacheMove(string lSidecarPreciousPath, string? lSidecarLegacyJson)
     {
         if (lSidecarLegacyJson is null)
         {
@@ -92,7 +92,7 @@ internal static class LSidecarCacheStore
         }
     }
 
-    internal static bool LSidecarCacheMutate(string lSidecarSourcePath, Action<LSidecarCacheRecord> lSidecarMutate)
+    internal static bool LSidecarCacheChange(string lSidecarSourcePath, Action<LSidecarCacheRecord> lSidecarChange)
     {
         try
         {
@@ -101,7 +101,7 @@ internal static class LSidecarCacheStore
             using (LLatch.LLatchClaim(lSidecarCachePath))
             {
                 LSidecarCacheRecord lSidecarCache = LSidecarBaseRead(lSidecarCachePath, lSidecarPreciousPath);
-                lSidecarMutate(lSidecarCache);
+                lSidecarChange(lSidecarCache);
                 return LSidecarFile.LSidecarFileSave(lSidecarCachePath, LSidecarParse.LSidecarCacheFormat(lSidecarCache));
             }
         }

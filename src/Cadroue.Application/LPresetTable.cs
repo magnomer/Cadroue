@@ -11,15 +11,15 @@ public sealed partial class LPreset
     public static Func<IReadOnlyList<LPresetRecord>?>? LPresetLoadSeam;
     public static Action<IReadOnlyList<LPresetRecord>>? LPresetSaveSeam;
 
-    private static bool LPresetInitialized;
+    private static bool LPresetPrepared;
 
-    public static void LPresetInitialize()
+    public static void LPresetPrepare()
     {
-        if (LPresetInitialized)
+        if (LPresetPrepared)
         {
             return;
         }
-        LPresetInitialized = true;
+        LPresetPrepared = true;
 
         LPresetNativeAdd(LPresetAudioCreate());
         LPresetNativeAdd(LPresetSplitCreate());

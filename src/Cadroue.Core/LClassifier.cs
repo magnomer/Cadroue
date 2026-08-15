@@ -45,7 +45,7 @@ public static class LClassifier
         (LSceneFunnelMatch lClassifierMatch, int lClassifierKind)[] lClassifierParts =
         {
             (lClassifierRule.LSceneFunnelContains, 0),
-            (lClassifierRule.LSceneFunnelStart, 1),
+            (lClassifierRule.LSceneFunnelPrefix, 1),
             (lClassifierRule.LSceneFunnelEnd, 2),
             (lClassifierRule.LSceneFunnelExtension, 3)
         };

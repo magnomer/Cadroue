@@ -11,7 +11,7 @@ public enum LNeutralOutcome
 
 public enum LNeutralStatus
 {
-    LNeutralStatusApply,
+    LNeutralStatusValid,
     LNeutralStatusInvalid,
     LNeutralStatusDecode
 }
@@ -47,7 +47,7 @@ public static class LNeutral
 
     public static LNeutralStatus LNeutralStatusResolve(LNeutralOutcome lNeutralOutcome) => lNeutralOutcome switch
     {
-        LNeutralOutcome.LNeutralOutcomeResolved => LNeutralStatus.LNeutralStatusApply,
+        LNeutralOutcome.LNeutralOutcomeResolved => LNeutralStatus.LNeutralStatusValid,
         LNeutralOutcome.LNeutralOutcomeDecode => LNeutralStatus.LNeutralStatusDecode,
         _ => LNeutralStatus.LNeutralStatusInvalid
     };

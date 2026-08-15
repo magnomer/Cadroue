@@ -88,12 +88,12 @@ public sealed partial class PMap
         for (int index = 0; index < lSectionList.Count; index++)
         {
             LPiece section = lSectionList[index];
-            if (section.LPieceEnd <= section.LPieceStart)
+            if (section.LPieceEnd <= section.LPieceOrigin)
             {
                 continue;
             }
 
-            double sectionStartX = Math.Clamp(section.LPieceStart.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double sectionStartX = Math.Clamp(section.LPieceOrigin.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
             double sectionEndX = Math.Clamp(section.LPieceEnd.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
             Pen? sectionPen = index == lSectionIndexActive ? pMapSectionPen : null;

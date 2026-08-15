@@ -21,7 +21,7 @@ public static class LDepotIndex
 
     public static bool LDepotIndexDirty { get; private set; } = true;
 
-    public static void LDepotIndexInvalidate() => LDepotIndexDirty = true;
+    public static void LDepotIndexDirtySet() => LDepotIndexDirty = true;
 
     public static void LDepotIndexCreate()
     {
@@ -65,8 +65,8 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexInvalidate();
-            LDepotIndexReport("could not be opened", lDepotException);
+            LDepotIndexDirtySet();
+            LDepotIndexRecord("could not be opened", lDepotException);
         }
     }
 
@@ -95,8 +95,8 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexInvalidate();
-            LDepotIndexReport($"update failed for '{lWorkRecord.LWorkOutputName}'", lDepotException);
+            LDepotIndexDirtySet();
+            LDepotIndexRecord($"update failed for '{lWorkRecord.LWorkOutputName}'", lDepotException);
         }
     }
 
@@ -112,8 +112,8 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexInvalidate();
-            LDepotIndexReport("removal failed", lDepotException);
+            LDepotIndexDirtySet();
+            LDepotIndexRecord("removal failed", lDepotException);
         }
     }
 
@@ -132,7 +132,7 @@ public static class LDepotIndex
                 string lDepotRecord = lDepotReader.GetString(1);
                 if (string.IsNullOrEmpty(lDepotRecord))
                 {
-                    LDepotIndexInvalidate();
+                    LDepotIndexDirtySet();
                     continue;
                 }
 
@@ -141,14 +141,14 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexInvalidate();
-            LDepotIndexReport("could not be read", lDepotException);
+            LDepotIndexDirtySet();
+            LDepotIndexRecord("could not be read", lDepotException);
         }
 
         return lDepotRecords;
     }
 
-    private static void LDepotIndexReport(string lDepotDetail, Exception lDepotException)
+    private static void LDepotIndexRecord(string lDepotDetail, Exception lDepotException)
         => LTraceLog.LTraceWarningRecord(
             $"Queue index {lDepotDetail} (the index rebuilds from the work folders): {lDepotException.Message}");
 
@@ -229,8 +229,8 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexInvalidate();
-            LDepotIndexReport("rebuild failed", lDepotException);
+            LDepotIndexDirtySet();
+            LDepotIndexRecord("rebuild failed", lDepotException);
         }
     }
 
@@ -247,7 +247,7 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexReport("could not be flushed before the move", lDepotException);
+            LDepotIndexRecord("could not be flushed before the move", lDepotException);
         }
 
         SqliteConnection.ClearAllPools();
@@ -264,7 +264,7 @@ public static class LDepotIndex
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
-            LDepotIndexReport("compaction failed", lDepotException);
+            LDepotIndexRecord("compaction failed", lDepotException);
         }
     }
 

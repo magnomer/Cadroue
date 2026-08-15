@@ -196,7 +196,7 @@ internal sealed class TScene : IDisposable
         return new LSceneFunnelRule
         {
             LSceneFunnelContains = FunnelMatchCreate("contains", marker),
-            LSceneFunnelStart = FunnelMatchCreate("start", marker),
+            LSceneFunnelPrefix = FunnelMatchCreate("start", marker),
             LSceneFunnelEnd = FunnelMatchCreate("end", marker),
             LSceneFunnelExtension = FunnelMatchCreate("extension", marker),
             LSceneFunnelType = marker,

@@ -37,7 +37,7 @@ public sealed partial class LMpv
             LMpvStamp = lStamp
         };
 
-        string lPath = LMpvResultPathCreate();
+        string lPath = LMpvPathResolve();
         string lTempPath = lPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
@@ -68,7 +68,7 @@ public sealed partial class LMpv
 
     public static LMpvResultRecord? LMpvResultLoad()
     {
-        string lPath = LMpvResultPathCreate();
+        string lPath = LMpvPathResolve();
         if (!File.Exists(lPath))
         {
             return null;
@@ -85,14 +85,14 @@ public sealed partial class LMpv
         }
     }
 
-    public static string LMpvStampRead() => LMpvStampCreate(LMpvAppVersionRead(), LMpvLibraryRead());
+    public static string LMpvStampRead() => LMpvStampCreate(LMpvVersionRead(), LMpvLibraryRead());
 
     public static string LMpvStampCreate(string lAppVersion, string lLibraryPath)
     {
-        return lAppVersion + "|" + LMpvLibraryStampRead(lLibraryPath);
+        return lAppVersion + "|" + LMpvLibraryFormat(lLibraryPath);
     }
 
-    private static string LMpvLibraryStampRead(string lLibraryPath)
+    private static string LMpvLibraryFormat(string lLibraryPath)
     {
         try
         {
@@ -116,7 +116,7 @@ public sealed partial class LMpv
         }
     }
 
-    private static string LMpvAppVersionRead()
+    private static string LMpvVersionRead()
     {
         Assembly lAssembly = Assembly.GetEntryAssembly() ?? typeof(LMpv).Assembly;
         string? lInformational = lAssembly
@@ -126,7 +126,7 @@ public sealed partial class LMpv
             : lInformational;
     }
 
-    private static string LMpvResultPathCreate()
+    private static string LMpvPathResolve()
     {
         string lAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(lAppData, LMpvResultFolder, LMpvResultFile);

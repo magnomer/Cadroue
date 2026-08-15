@@ -10,7 +10,7 @@ public sealed class NeutralStatusTests
     public void Resolved_MapsToApply()
     {
         Assert.Equal(
-            LNeutralStatus.LNeutralStatusApply,
+            LNeutralStatus.LNeutralStatusValid,
             TNeutral.StatusResolve(LNeutralOutcome.LNeutralOutcomeResolved));
     }
 

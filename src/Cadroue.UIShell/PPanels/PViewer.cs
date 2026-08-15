@@ -305,7 +305,7 @@ public sealed partial class PViewer : PPanel
             return null;
         }
 
-        if (LLibrarian.LLibrarianSourceVerify(pDialog.FileName, pSidecarPath))
+        if (LLibrarian.LLibrarianSourceMatch(pDialog.FileName, pSidecarPath))
         {
             return pDialog.FileName;
         }

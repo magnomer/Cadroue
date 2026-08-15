@@ -14,12 +14,12 @@ internal sealed class PPlayerMpv : PPlayerEngine
     public PPlayerMpv(nint hostHandle)
     {
         pPlayerMpvLibrary = new LMpv();
-        pPlayerMpvLibrary.LMpvHandleCreate(hostHandle);
+        pPlayerMpvLibrary.LMpvContextCreate(hostHandle);
     }
 
     public override void PPlayerOpen(string sourcePath)
     {
-        LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvOpenWait(sourcePath, pPlayerMpvOpenBudget);
+        LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvMediaCheck(sourcePath, pPlayerMpvOpenBudget);
         if (pPlayerMpvLoaded != LMpvProbe.LMpvProbeUsable)
         {
             throw new InvalidOperationException(

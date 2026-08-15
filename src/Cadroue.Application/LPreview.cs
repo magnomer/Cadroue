@@ -45,11 +45,11 @@ public static class LPreview
                 && lStep.LWorkStepActive);
         return new LColor(lBrightness, lContrast, 1, 0)
         {
-            LColorGamma = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGlobal),
-            LColorGammaRed = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaRed),
-            LColorGammaGreen = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaGreen),
-            LColorGammaBlue = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaFactorRead(lGamma.LWorkGammaBlue),
-            LColorHighlightProtection = lGamma?.LWorkGammaHighlightProtection ?? 0,
+            LColorGamma = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal),
+            LColorGammaRed = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaRed),
+            LColorGammaGreen = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGreen),
+            LColorGammaBlue = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaBlue),
+            LColorHighlightProtection = lGamma?.LWorkGammaHighlight ?? 0,
             LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead()
         };
     }

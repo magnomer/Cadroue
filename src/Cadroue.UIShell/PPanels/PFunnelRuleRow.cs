@@ -121,7 +121,7 @@ public sealed class PFunnelRuleRow : Border
         else
         {
             PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRestore(pRecord.LSceneFunnelContains);
-            PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRestore(pRecord.LSceneFunnelStart);
+            PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRestore(pRecord.LSceneFunnelPrefix);
             PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRestore(pRecord.LSceneFunnelEnd);
             PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRestore(pRecord.LSceneFunnelExtension);
         }
@@ -145,7 +145,7 @@ public sealed class PFunnelRuleRow : Border
         {
             LSceneFunnelType = (int)PFunnelForm.Filename,
             LSceneFunnelContains = PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRead(),
-            LSceneFunnelStart = PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRead(),
+            LSceneFunnelPrefix = PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRead(),
             LSceneFunnelEnd = PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRead(),
             LSceneFunnelExtension = PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRead()
         };

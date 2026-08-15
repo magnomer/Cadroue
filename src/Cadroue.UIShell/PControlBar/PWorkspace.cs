@@ -172,7 +172,7 @@ public sealed class PWorkspace
         lWorkspaceHistory.LHistoryApplying = true;
         try
         {
-            PWorkspaceFlow?.PFlowSectionsSet(lHistoryEntry.LHistorySections, lHistoryEntry.LHistorySectionSelect);
+            PWorkspaceFlow?.PFlowSectionsSet(lHistoryEntry.LHistorySections, lHistoryEntry.LHistorySectionIndex);
             PWorkspacePresetOwner.LPresetSelectionValue = lHistoryEntry.LHistoryExport;
         }
         finally

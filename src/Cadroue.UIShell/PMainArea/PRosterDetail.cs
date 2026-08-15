@@ -138,7 +138,7 @@ public sealed partial class PRoster
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.RateControl"), pOutput.LEncodingVideo.LEncodingRateControl);
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Quality"), pOutput.LEncodingVideo.LEncodingQuality);
             PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"), pOutput.LEncodingVideo.LEncodingSpeedPreset);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.PixelFormat"), pOutput.LEncodingVideo.LEncodingPixelFormat);
+            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.PixelFormat"), pOutput.LEncodingVideo.LEncodingPixel);
 
             if (pOutput.LEncodingVideo.LEncodingExtras.Count > 0)
             {

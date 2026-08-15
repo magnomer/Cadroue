@@ -104,8 +104,8 @@ public sealed class PEditTab : PTabSurface
         pInspector.PCropActiveChange += PEditActiveUpdate;
         pInspector.PCropActiveChange += PEditPlanSave;
         pInspector.PInspectorVideoChange += PEditChangeHandle;
-        pInspector.PInspectorNeutralToolChange += pViewer.PViewerNeutralSet;
-        pViewer.PViewerNeutralActiveChange += pInspector.PInspectorNeutralToolSet;
+        pInspector.PWhitebalanceToolChange += pViewer.PViewerNeutralSet;
+        pViewer.PViewerNeutralActiveChange += pInspector.PWhitebalanceToolSet;
         pViewer.PViewerNeutralChange += PEditNeutralHandle;
         pEditColorTimer.Tick += (_, _) =>
         {
@@ -157,12 +157,12 @@ public sealed class PEditTab : PTabSurface
             LEditPlan pEditPlan = LEdit.LEditPersistentRead(pEditRecord);
             if (pEditPersistent.LSceneInspectorCrop)
             {
-                pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropApply);
+                pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropActive);
                 pInspector.PInspectorRatioApply(pEditPlan.LEditRatioFixed, pEditPlan.LEditRatioLenient, pEditPlan.LEditRatioWidth, pEditPlan.LEditRatioHeight);
                 pInspector.PCropPersistentApply(true);
                 pCropOwner.LCropboxStateSet(
                     pEditPlan.LEditCrop,
-                    pEditPlan.LEditCropApply,
+                    pEditPlan.LEditCropActive,
                     pEditPlan.LEditRatioFixed,
                     pEditPlan.LEditRatioLenient,
                     pEditPlan.LEditRatioWidth,
@@ -250,7 +250,7 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditActiveUpdate()
     {
-        pProcessing.PProcessingActiveSet("Crop", pCropOwner.LCropboxStateApply);
+        pProcessing.PProcessingActiveSet("Crop", pCropOwner.LCropboxStateActive);
         pProcessing.PProcessingActiveSet("Brightness",
             pInspector.PToneStepRead(LColorKind.LColorKindBrightness).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Contrast",
@@ -352,13 +352,13 @@ public sealed class PEditTab : PTabSurface
                     pInspector.PInspectorSourceSet(pEditRotatedSource.Width, pEditRotatedSource.Height);
                 }
 
-                pInspector.PCropPlanApply(pEditApply.LEditCrop, pEditApply.LEditCropApply);
+                pInspector.PCropPlanApply(pEditApply.LEditCrop, pEditApply.LEditCropActive);
                 pInspector.PInspectorRatioApply(pEditApply.LEditRatioFixed, pEditApply.LEditRatioLenient, pEditApply.LEditRatioWidth, pEditApply.LEditRatioHeight);
                 pInspector.PTonePlanApply(pEditApply.LEditVideo);
                 pInspector.PSkipApply(pEditApply.LEditSkip);
                 pCropOwner.LCropboxStateSet(
                     pEditApply.LEditCrop,
-                    pEditApply.LEditCropApply,
+                    pEditApply.LEditCropActive,
                     pEditApply.LEditRatioFixed,
                     pEditApply.LEditRatioLenient,
                     pEditApply.LEditRatioWidth,
@@ -416,7 +416,7 @@ public sealed class PEditTab : PTabSurface
     {
         switch (LNeutral.LNeutralStatusResolve(pNeutralSample.LNeutralOutcome))
         {
-            case LNeutralStatus.LNeutralStatusApply:
+            case LNeutralStatus.LNeutralStatusValid:
                 pInspector.PToneNeutralApply(pNeutralSample);
                 return;
             case LNeutralStatus.LNeutralStatusDecode:
@@ -490,7 +490,7 @@ public sealed class PEditTab : PTabSurface
             return null;
         }
 
-        bool pCropApply = pCropPersistent && pCropOwner.LCropboxStateApply;
+        bool pCropApply = pCropPersistent && pCropOwner.LCropboxStateActive;
         LWorkCrop pCrop = pCropPersistent
             ? pCropOwner.LCropboxStateCrop
             : LWorkCrop.LWorkCropCreate();
@@ -534,8 +534,8 @@ public sealed class PEditTab : PTabSurface
         string pWhitebalanceTooltip = LLocalization.LLocalizationTextRead(
             "Processing.Step.WhitebalanceRequiresMpv");
         pProcessing.PProcessingEnabledSet("Whitebalance", pMpvOnlyCapable, pWhitebalanceTooltip);
-        pInspector.PToneGammaCapabilitySet(pMpvOnlyCapable);
-        pInspector.PToneWhitebalanceCapabilitySet(pMpvOnlyCapable);
+        pInspector.PGammaCapabilitySet(pMpvOnlyCapable);
+        pInspector.PWhitebalanceCapabilitySet(pMpvOnlyCapable);
         PEditActiveUpdate();
         PEditColorApply();
     }
@@ -564,7 +564,7 @@ public sealed class PEditTab : PTabSurface
         var pEditPlan = new LEditPlan(
             pCropOwner.LCropboxStateCrop,
             PEditVideoRead(),
-            pCropOwner.LCropboxStateApply)
+            pCropOwner.LCropboxStateActive)
         {
             LEditSkip = pInspector.PSkipActiveCheck(),
             LEditRatioFixed = pRatioFixed,
@@ -606,7 +606,7 @@ public sealed class PEditTab : PTabSurface
             var pEditCarried = new LEditPlan(
                 pCropPersistent ? pCropOwner.LCropboxStateCrop : LWorkCrop.LWorkCropCreate(),
                 pInspector.PTonePersistentRead(),
-                pCropPersistent && pCropOwner.LCropboxStateApply)
+                pCropPersistent && pCropOwner.LCropboxStateActive)
             {
                 LEditSkip = pSkipPersistent && pInspector.PSkipActiveCheck(),
                 LEditRatioFixed = pCropPersistent && pRatioFixed,

@@ -4,5 +4,5 @@ public readonly record struct LKeyframeMoveResult(bool LKeyframeReady, TimeSpan?
 {
     public static LKeyframeMoveResult LKeyframePending => new(false, null);
 
-    public static LKeyframeMoveResult LKeyframeReadyResult(TimeSpan? target) => new(true, target);
+    public static LKeyframeMoveResult LKeyframeReadyCreate(TimeSpan? target) => new(true, target);
 }

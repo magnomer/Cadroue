@@ -23,30 +23,33 @@ public sealed partial class PInspector
     private StackPanel pInspectorContrastStack = null!;
     private StackPanel pInspectorContrastBody = null!;
 
-    private CheckBox pToneGammaBox = null!;
-    private CheckBox pInspectorGammaPersistent = null!;
-    private Slider pInspectorGammaSlider = null!;
-    private TextBox pInspectorGammaValue = null!;
-    private Slider pInspectorGammaRedSlider = null!;
-    private TextBox pInspectorGammaRedValue = null!;
-    private Slider pInspectorGammaGreenSlider = null!;
-    private TextBox pInspectorGammaGreenValue = null!;
-    private Slider pInspectorGammaBlueSlider = null!;
-    private TextBox pInspectorGammaBlueValue = null!;
-    private Slider pInspectorGammaHighlightSlider = null!;
-    private TextBox pInspectorGammaHighlightValue = null!;
-    private StackPanel pInspectorGammaStack = null!;
-    private StackPanel pInspectorGammaBody = null!;
-    private bool pInspectorGammaCapable;
+    private CheckBox pGammaBox = null!;
+    private CheckBox pGammaPersistent = null!;
+    private Slider pGammaSlider = null!;
+    private TextBox pGammaValue = null!;
+    private Slider pGammaRedSlider = null!;
+    private TextBox pGammaRedValue = null!;
+    private Slider pGammaGreenSlider = null!;
+    private TextBox pGammaGreenValue = null!;
+    private Slider pGammaBlueSlider = null!;
+    private TextBox pGammaBlueValue = null!;
+    private Slider pGammaHighlightSlider = null!;
+    private TextBox pGammaHighlightValue = null!;
+    private StackPanel pGammaStack = null!;
+    private StackPanel pGammaBody = null!;
+    private bool pGammaCapable;
 
-    private CheckBox pToneWhitebalanceBox = null!;
-    private CheckBox pInspectorWhitebalancePersistent = null!;
-    private ComboBox pInspectorWhitebalanceMethod = null!;
-    private Slider pInspectorWhitebalanceSaturationSlider = null!;
-    private TextBox pInspectorWhitebalanceSaturationValue = null!;
-    private StackPanel pInspectorWhitebalanceStack = null!;
-    private StackPanel pInspectorWhitebalanceBody = null!;
-    private bool pInspectorWhitebalanceCapable;
+    private CheckBox pWhitebalanceBox = null!;
+    private CheckBox pWhitebalancePersistent = null!;
+    private ComboBox pWhitebalanceMethod = null!;
+    private Slider pWhitebalanceSaturationSlider = null!;
+    private TextBox pWhitebalanceSaturationValue = null!;
+    private StackPanel pWhitebalanceStack = null!;
+    private StackPanel pWhitebalanceBody = null!;
+    private UIElement pWhitebalanceMethodField = null!;
+    private UIElement pWhitebalanceSaturationField = null!;
+    private bool pWhitebalanceCapable;
+    private bool pWhitebalanceManual;
 
     private bool pInspectorVideoSuppress;
     private const double PToneBrightnessLeast = -100;
@@ -60,22 +63,22 @@ public sealed partial class PInspector
             pToneContrastBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorContrastValue, 100)),
         LColorKind.LColorKindGamma => LWorkVideoStep.LWorkGammaCreate(
-            pToneGammaBox.IsChecked == true,
-            PInspectorDecimalRead(pInspectorGammaValue, 0),
-            PInspectorDecimalRead(pInspectorGammaRedValue, 0),
-            PInspectorDecimalRead(pInspectorGammaGreenValue, 0),
-            PInspectorDecimalRead(pInspectorGammaBlueValue, 0),
-            PInspectorDecimalRead(pInspectorGammaHighlightValue, 0)),
+            pGammaBox.IsChecked == true,
+            PInspectorDecimalRead(pGammaValue, 0),
+            PInspectorDecimalRead(pGammaRedValue, 0),
+            PInspectorDecimalRead(pGammaGreenValue, 0),
+            PInspectorDecimalRead(pGammaBlueValue, 0),
+            PInspectorDecimalRead(pGammaHighlightValue, 0)),
         LColorKind.LColorKindWhitebalance => LWorkVideoStep.LWorkWhitebalanceCreate(
-            pToneWhitebalanceBox.IsChecked == true,
-            PToneWhitebalanceMethodRead(),
-            PInspectorDecimalRead(pInspectorWhitebalanceSaturationValue, 100),
-            pInspectorWhitebalanceRedGain,
-            pInspectorWhitebalanceGreenGain,
-            pInspectorWhitebalanceBlueGain,
-            pInspectorWhitebalanceSampleRed,
-            pInspectorWhitebalanceSampleGreen,
-            pInspectorWhitebalanceSampleBlue),
+            pWhitebalanceBox.IsChecked == true,
+            PWhitebalanceMethodRead(),
+            PInspectorDecimalRead(pWhitebalanceSaturationValue, 100),
+            pWhitebalanceRedGain,
+            pWhitebalanceGreenGain,
+            pWhitebalanceBlueGain,
+            pWhitebalanceSampleRed,
+            pWhitebalanceSampleGreen,
+            pWhitebalanceSampleBlue),
         _ => LWorkVideoStep.LWorkBrightnessCreate(
             pToneBrightnessBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorBrightnessValue, 0))
@@ -101,8 +104,8 @@ public sealed partial class PInspector
     public bool PTonePersistentCheck() =>
         pInspectorBrightnessPersistent.IsChecked == true
         || pInspectorContrastPersistent.IsChecked == true
-        || pInspectorGammaPersistent.IsChecked == true
-        || pInspectorWhitebalancePersistent.IsChecked == true;
+        || pGammaPersistent.IsChecked == true
+        || pWhitebalancePersistent.IsChecked == true;
 
     public void PTonePersistentApply(LWorkVideo pVideo)
     {
@@ -114,11 +117,11 @@ public sealed partial class PInspector
             }
             else if (pStep.LWorkStepKind == LColorKind.LColorKindGamma)
             {
-                pInspectorGammaPersistent.IsChecked = true;
+                pGammaPersistent.IsChecked = true;
             }
             else if (pStep.LWorkStepKind == LColorKind.LColorKindWhitebalance)
             {
-                pInspectorWhitebalancePersistent.IsChecked = true;
+                pWhitebalancePersistent.IsChecked = true;
             }
             else
             {
@@ -140,12 +143,12 @@ public sealed partial class PInspector
             pSteps.Add(PToneStepRead(LColorKind.LColorKindContrast));
         }
 
-        if (pInspectorGammaPersistent.IsChecked == true)
+        if (pGammaPersistent.IsChecked == true)
         {
             pSteps.Add(PToneStepRead(LColorKind.LColorKindGamma));
         }
 
-        if (pInspectorWhitebalancePersistent.IsChecked == true)
+        if (pWhitebalancePersistent.IsChecked == true)
         {
             pSteps.Add(PToneStepRead(LColorKind.LColorKindWhitebalance));
         }
@@ -214,47 +217,47 @@ public sealed partial class PInspector
         return pInspectorContrastBody;
     }
 
-    private StackPanel PToneGammaBuild()
+    private StackPanel PGammaBuild()
     {
-        pToneGammaBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma"));
-        pInspectorGammaPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma"));
-        pInspectorGammaSlider = PToneSliderBuild(-100, 100, 0);
-        pInspectorGammaValue = PInspectorDecimalBuild();
-        pInspectorGammaValue.Text = "0";
-        pInspectorGammaRedSlider = PToneSliderBuild(-100, 100, 0);
-        pInspectorGammaRedValue = PInspectorDecimalBuild();
-        pInspectorGammaRedValue.Text = "0";
-        pInspectorGammaGreenSlider = PToneSliderBuild(-100, 100, 0);
-        pInspectorGammaGreenValue = PInspectorDecimalBuild();
-        pInspectorGammaGreenValue.Text = "0";
-        pInspectorGammaBlueSlider = PToneSliderBuild(-100, 100, 0);
-        pInspectorGammaBlueValue = PInspectorDecimalBuild();
-        pInspectorGammaBlueValue.Text = "0";
-        pInspectorGammaHighlightSlider = PToneSliderBuild(0, 100, 0);
-        pInspectorGammaHighlightValue = PInspectorDecimalBuild();
-        pInspectorGammaHighlightValue.Text = "0";
-        pInspectorGammaStack = new StackPanel();
+        pGammaBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma"));
+        pGammaPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma"));
+        pGammaSlider = PToneSliderBuild(-100, 100, 0);
+        pGammaValue = PInspectorDecimalBuild();
+        pGammaValue.Text = "0";
+        pGammaRedSlider = PToneSliderBuild(-100, 100, 0);
+        pGammaRedValue = PInspectorDecimalBuild();
+        pGammaRedValue.Text = "0";
+        pGammaGreenSlider = PToneSliderBuild(-100, 100, 0);
+        pGammaGreenValue = PInspectorDecimalBuild();
+        pGammaGreenValue.Text = "0";
+        pGammaBlueSlider = PToneSliderBuild(-100, 100, 0);
+        pGammaBlueValue = PInspectorDecimalBuild();
+        pGammaBlueValue.Text = "0";
+        pGammaHighlightSlider = PToneSliderBuild(0, 100, 0);
+        pGammaHighlightValue = PInspectorDecimalBuild();
+        pGammaHighlightValue.Text = "0";
+        pGammaStack = new StackPanel();
         PInspectorVideoAttach(
-            pToneGammaBox,
-            pInspectorGammaStack,
-            pInspectorGammaSlider,
-            pInspectorGammaValue,
+            pGammaBox,
+            pGammaStack,
+            pGammaSlider,
+            pGammaValue,
             -100,
             100,
             "0.#");
-        PInspectorVideoValueAttach(
-            pInspectorGammaRedSlider, pInspectorGammaRedValue, -100, 100, "0.#");
-        PInspectorVideoValueAttach(
-            pInspectorGammaGreenSlider, pInspectorGammaGreenValue, -100, 100, "0.#");
-        PInspectorVideoValueAttach(
-            pInspectorGammaBlueSlider, pInspectorGammaBlueValue, -100, 100, "0.#");
-        PInspectorVideoValueAttach(
-            pInspectorGammaHighlightSlider, pInspectorGammaHighlightValue, 0, 100, "0.#");
-        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.Midtone"), pInspectorGammaSlider, "", pInspectorGammaValue));
-        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.RedGamma"), pInspectorGammaRedSlider, "", pInspectorGammaRedValue));
-        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.GreenGamma"), pInspectorGammaGreenSlider, "", pInspectorGammaGreenValue));
-        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.BlueGamma"), pInspectorGammaBlueSlider, "", pInspectorGammaBlueValue));
-        pInspectorGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.HighlightProtection"), pInspectorGammaHighlightSlider, "%", pInspectorGammaHighlightValue));
+        PInspectorValueAttach(
+            pGammaRedSlider, pGammaRedValue, -100, 100, "0.#");
+        PInspectorValueAttach(
+            pGammaGreenSlider, pGammaGreenValue, -100, 100, "0.#");
+        PInspectorValueAttach(
+            pGammaBlueSlider, pGammaBlueValue, -100, 100, "0.#");
+        PInspectorValueAttach(
+            pGammaHighlightSlider, pGammaHighlightValue, 0, 100, "0.#");
+        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.Midtone"), pGammaSlider, "", pGammaValue));
+        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.RedGamma"), pGammaRedSlider, "", pGammaRedValue));
+        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.GreenGamma"), pGammaGreenSlider, "", pGammaGreenValue));
+        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.BlueGamma"), pGammaBlueSlider, "", pGammaBlueValue));
+        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.HighlightProtection"), pGammaHighlightSlider, "%", pGammaHighlightValue));
         var pGammaReset = new Button
         {
             Content = LLocalization.LLocalizationTextRead("Inspector.Video.GammaReset"),
@@ -267,22 +270,22 @@ public sealed partial class PInspector
             Style = PButton.PButtonPanelCreate(),
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pGammaReset.Click += (_, _) => PToneGammaReset();
-        pInspectorGammaStack.Children.Add(pGammaReset);
-        pInspectorGammaBody = PToneBodyBuild(pToneGammaBox, pInspectorGammaStack);
-        PToneApplyUpdate(pToneGammaBox, pInspectorGammaStack);
-        return pInspectorGammaBody;
+        pGammaReset.Click += (_, _) => PGammaReset();
+        pGammaStack.Children.Add(pGammaReset);
+        pGammaBody = PToneBodyBuild(pGammaBox, pGammaStack);
+        PToneApplyUpdate(pGammaBox, pGammaStack);
+        return pGammaBody;
     }
 
-    private StackPanel PToneWhitebalanceBuild()
+    private StackPanel PWhitebalanceBuild()
     {
-        pToneWhitebalanceBox = PInspectorSwitchBuild(
+        pWhitebalanceBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Video.ApplyWhitebalance"));
-        pInspectorWhitebalancePersistent = PInspectorSwitchBuild(
+        pWhitebalancePersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Video.PersistWhitebalance"));
-        pInspectorWhitebalanceMethod = new ComboBox
+        pWhitebalanceMethod = new ComboBox
         {
             Height = PInspectorFieldHeight,
             Width = 140,
@@ -290,46 +293,47 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PDropdown.PDropdownApply(pInspectorWhitebalanceMethod);
-        pInspectorWhitebalanceMethod.Items.Add(new LLocalizationChoice(
+        PDropdown.PDropdownApply(pWhitebalanceMethod);
+        pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
             "Average", "Inspector.Video.WhitebalanceMethodAverage"));
-        pInspectorWhitebalanceMethod.Items.Add(new LLocalizationChoice(
+        pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
             "Minmax", "Inspector.Video.WhitebalanceMethodMinmax"));
-        pInspectorWhitebalanceMethod.Items.Add(new LLocalizationChoice(
+        pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
             "Median", "Inspector.Video.WhitebalanceMethodMedian"));
-        pInspectorWhitebalanceMethod.Items.Add(new LLocalizationChoice(
-            "Manual", "Inspector.Video.WhitebalanceMethodManual"));
-        pInspectorWhitebalanceMethod.SelectedIndex = 2;
-        pInspectorWhitebalanceMethod.SelectionChanged += (_, _) =>
+        pWhitebalanceMethod.SelectedIndex = 2;
+        pWhitebalanceMethod.SelectionChanged += (_, _) =>
         {
-            PToneNeutralReadoutUpdate();
+            PWhitebalanceReadoutUpdate();
             if (!pInspectorVideoSuppress)
             {
                 PInspectorVideoChange?.Invoke();
             }
         };
 
-        pInspectorWhitebalanceSaturationSlider = PToneSliderBuild(0, 300, 100);
-        pInspectorWhitebalanceSaturationValue = PInspectorDecimalBuild();
-        pInspectorWhitebalanceSaturationValue.Text = "100";
-        pInspectorWhitebalanceStack = new StackPanel();
+        pWhitebalanceSaturationSlider = PToneSliderBuild(0, 300, 100);
+        pWhitebalanceSaturationValue = PInspectorDecimalBuild();
+        pWhitebalanceSaturationValue.Text = "100";
+        pWhitebalanceStack = new StackPanel();
         PInspectorVideoAttach(
-            pToneWhitebalanceBox,
-            pInspectorWhitebalanceStack,
-            pInspectorWhitebalanceSaturationSlider,
-            pInspectorWhitebalanceSaturationValue,
+            pWhitebalanceBox,
+            pWhitebalanceStack,
+            pWhitebalanceSaturationSlider,
+            pWhitebalanceSaturationValue,
             0,
             300,
             "0.#");
-        pInspectorWhitebalanceStack.Children.Add(PInspectorFieldBuild(
+        pWhitebalanceMethodField = PInspectorFieldBuild(
             LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
-            pInspectorWhitebalanceMethod));
-        pInspectorWhitebalanceStack.Children.Add(PFilterSliderBuild(
+            pWhitebalanceMethod);
+        pWhitebalanceSaturationField = PFilterSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceSaturation"),
-            pInspectorWhitebalanceSaturationSlider,
+            pWhitebalanceSaturationSlider,
             "%",
-            pInspectorWhitebalanceSaturationValue));
-        pInspectorWhitebalanceStack.Children.Add(new TextBlock
+            pWhitebalanceSaturationValue);
+        pWhitebalanceStack.Children.Add(PToneNeutralBuild());
+        pWhitebalanceStack.Children.Add(pWhitebalanceMethodField);
+        pWhitebalanceStack.Children.Add(pWhitebalanceSaturationField);
+        pWhitebalanceStack.Children.Add(new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceWarning"),
             Foreground = new System.Windows.Media.SolidColorBrush(
@@ -349,55 +353,66 @@ public sealed partial class PInspector
             Style = PButton.PButtonPanelCreate(),
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pWhitebalanceReset.Click += (_, _) => PToneWhitebalanceReset();
-        pInspectorWhitebalanceStack.Children.Add(PToneNeutralBuild());
-        pInspectorWhitebalanceStack.Children.Add(pWhitebalanceReset);
-        pInspectorWhitebalanceBody = PToneBodyBuild(pToneWhitebalanceBox, pInspectorWhitebalanceStack);
-        PToneApplyUpdate(pToneWhitebalanceBox, pInspectorWhitebalanceStack);
-        return pInspectorWhitebalanceBody;
+        pWhitebalanceReset.Click += (_, _) => PWhitebalanceReset();
+        pWhitebalanceStack.Children.Add(pWhitebalanceReset);
+        pWhitebalanceBody = PToneBodyBuild(pWhitebalanceBox, pWhitebalanceStack);
+        PToneApplyUpdate(pWhitebalanceBox, pWhitebalanceStack);
+        PWhitebalanceManualUpdate();
+        return pWhitebalanceBody;
     }
 
-    private LWhitebalanceMethod PToneWhitebalanceMethodRead() =>
-        pInspectorWhitebalanceMethod.SelectedIndex switch
-        {
-            0 => LWhitebalanceMethod.LWhitebalanceMethodAverage,
-            1 => LWhitebalanceMethod.LWhitebalanceMethodMinmax,
-            3 => LWhitebalanceMethod.LWhitebalanceMethodManual,
-            _ => LWhitebalanceMethod.LWhitebalanceMethodMedian
-        };
+    private LWhitebalanceMethod PWhitebalanceMethodRead() =>
+        pWhitebalanceManual
+            ? LWhitebalanceMethod.LWhitebalanceMethodManual
+            : pWhitebalanceMethod.SelectedIndex switch
+            {
+                0 => LWhitebalanceMethod.LWhitebalanceMethodAverage,
+                1 => LWhitebalanceMethod.LWhitebalanceMethodMinmax,
+                _ => LWhitebalanceMethod.LWhitebalanceMethodMedian
+            };
 
-    private static int PToneWhitebalanceMethodIndexRead(LWhitebalanceMethod pMethod) => pMethod switch
+    private static int PWhitebalanceIndexRead(LWhitebalanceMethod pMethod) => pMethod switch
     {
         LWhitebalanceMethod.LWhitebalanceMethodAverage => 0,
         LWhitebalanceMethod.LWhitebalanceMethodMinmax => 1,
-        LWhitebalanceMethod.LWhitebalanceMethodManual => 3,
         _ => 2
     };
 
-    private void PToneWhitebalanceReset()
+    private void PWhitebalanceManualUpdate()
+    {
+        bool pEnabled = !pWhitebalanceManual;
+        pWhitebalanceMethodField.IsEnabled = pEnabled;
+        pWhitebalanceMethodField.Opacity = pEnabled ? 1 : 0.4;
+        pWhitebalanceSaturationField.IsEnabled = pEnabled;
+        pWhitebalanceSaturationField.Opacity = pEnabled ? 1 : 0.4;
+    }
+
+    private void PWhitebalanceReset()
     {
         bool pPrevious = pInspectorVideoSuppress;
-        bool pChanged = PToneWhitebalanceMethodRead() != LWhitebalanceMethod.LWhitebalanceMethodMedian
+        bool pChanged = PWhitebalanceMethodRead() != LWhitebalanceMethod.LWhitebalanceMethodMedian
             || PInspectorDecimalRead(
-                pInspectorWhitebalanceSaturationValue,
-                pInspectorWhitebalanceSaturationSlider.Value) != 100
-            || pInspectorWhitebalanceSampleRed != 0
-            || pInspectorWhitebalanceSampleGreen != 0
-            || pInspectorWhitebalanceSampleBlue != 0
-            || pInspectorWhitebalanceRedGain != 1
-            || pInspectorWhitebalanceGreenGain != 1
-            || pInspectorWhitebalanceBlueGain != 1;
+                pWhitebalanceSaturationValue,
+                pWhitebalanceSaturationSlider.Value) != 100
+            || pWhitebalanceSampleRed != 0
+            || pWhitebalanceSampleGreen != 0
+            || pWhitebalanceSampleBlue != 0
+            || pWhitebalanceRedGain != 1
+            || pWhitebalanceGreenGain != 1
+            || pWhitebalanceBlueGain != 1;
         pInspectorVideoSuppress = true;
         try
         {
-            PToneNeutralDisarm();
-            pInspectorWhitebalanceMethod.SelectedIndex = 2;
-            PToneGammaValueSet(
-                pInspectorWhitebalanceSaturationSlider,
-                pInspectorWhitebalanceSaturationValue,
+            PWhitebalanceToolReset();
+            pWhitebalanceManual = false;
+            pWhitebalanceMethod.SelectedIndex = 2;
+            PInspectorValueSet(
+                pWhitebalanceSaturationSlider,
+                pWhitebalanceSaturationValue,
                 100);
             PToneNeutralReset();
-            PToneNeutralReadoutUpdate();
+            PWhitebalanceReadoutUpdate();
+            PWhitebalanceManualUpdate();
         }
         finally
         {
@@ -410,70 +425,70 @@ public sealed partial class PInspector
         }
     }
 
-    public void PToneGammaCapabilitySet(bool pGammaCapable)
+    public void PGammaCapabilitySet(bool pGammaCapable)
     {
-        pInspectorGammaCapable = pGammaCapable;
-        pToneGammaBox.IsEnabled = pGammaCapable;
-        pInspectorGammaPersistent.IsEnabled = pGammaCapable;
-        pInspectorGammaStack.IsEnabled = pGammaCapable && pToneGammaBox.IsChecked == true;
-        pInspectorGammaStack.Opacity = pGammaCapable && pToneGammaBox.IsChecked == true ? 1 : 0.4;
+        this.pGammaCapable = pGammaCapable;
+        pGammaBox.IsEnabled = pGammaCapable;
+        pGammaPersistent.IsEnabled = pGammaCapable;
+        pGammaStack.IsEnabled = pGammaCapable && pGammaBox.IsChecked == true;
+        pGammaStack.Opacity = pGammaCapable && pGammaBox.IsChecked == true ? 1 : 0.4;
         string? pDisabledTooltip = pGammaCapable
             ? null
             : LLocalization.LLocalizationTextRead("Inspector.Video.GammaRequiresMpv");
-        pInspectorGammaBody.ToolTip = pDisabledTooltip;
-        pToneGammaBox.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma");
-        pInspectorGammaPersistent.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma");
-        ToolTipService.SetShowOnDisabled(pInspectorGammaBody, true);
-        ToolTipService.SetShowOnDisabled(pToneGammaBox, true);
-        ToolTipService.SetShowOnDisabled(pInspectorGammaPersistent, true);
+        pGammaBody.ToolTip = pDisabledTooltip;
+        pGammaBox.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma");
+        pGammaPersistent.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma");
+        ToolTipService.SetShowOnDisabled(pGammaBody, true);
+        ToolTipService.SetShowOnDisabled(pGammaBox, true);
+        ToolTipService.SetShowOnDisabled(pGammaPersistent, true);
     }
 
-    public void PToneWhitebalanceCapabilitySet(bool pWhitebalanceCapable)
+    public void PWhitebalanceCapabilitySet(bool pWhitebalanceCapable)
     {
-        pInspectorWhitebalanceCapable = pWhitebalanceCapable;
-        pToneWhitebalanceBox.IsEnabled = pWhitebalanceCapable;
-        pInspectorWhitebalancePersistent.IsEnabled = pWhitebalanceCapable;
-        pInspectorWhitebalanceStack.IsEnabled =
-            pWhitebalanceCapable && pToneWhitebalanceBox.IsChecked == true;
-        pInspectorWhitebalanceStack.Opacity =
-            pWhitebalanceCapable && pToneWhitebalanceBox.IsChecked == true ? 1 : 0.4;
+        this.pWhitebalanceCapable = pWhitebalanceCapable;
+        pWhitebalanceBox.IsEnabled = pWhitebalanceCapable;
+        pWhitebalancePersistent.IsEnabled = pWhitebalanceCapable;
+        pWhitebalanceStack.IsEnabled =
+            pWhitebalanceCapable && pWhitebalanceBox.IsChecked == true;
+        pWhitebalanceStack.Opacity =
+            pWhitebalanceCapable && pWhitebalanceBox.IsChecked == true ? 1 : 0.4;
         string? pDisabledTooltip = pWhitebalanceCapable
             ? null
             : LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceRequiresMpv");
-        pInspectorWhitebalanceBody.ToolTip = pDisabledTooltip;
-        pToneWhitebalanceBox.ToolTip = pDisabledTooltip
+        pWhitebalanceBody.ToolTip = pDisabledTooltip;
+        pWhitebalanceBox.ToolTip = pDisabledTooltip
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyWhitebalance");
-        pInspectorWhitebalancePersistent.ToolTip = pDisabledTooltip
+        pWhitebalancePersistent.ToolTip = pDisabledTooltip
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistWhitebalance");
         pInspectorNeutralTool.IsEnabled = pWhitebalanceCapable;
         pInspectorNeutralTool.ToolTip = pDisabledTooltip
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickTooltip");
-        ToolTipService.SetShowOnDisabled(pInspectorWhitebalanceBody, true);
-        ToolTipService.SetShowOnDisabled(pToneWhitebalanceBox, true);
-        ToolTipService.SetShowOnDisabled(pInspectorWhitebalancePersistent, true);
+        ToolTipService.SetShowOnDisabled(pWhitebalanceBody, true);
+        ToolTipService.SetShowOnDisabled(pWhitebalanceBox, true);
+        ToolTipService.SetShowOnDisabled(pWhitebalancePersistent, true);
         ToolTipService.SetShowOnDisabled(pInspectorNeutralTool, true);
         if (!pWhitebalanceCapable)
         {
-            PToneNeutralDisarm();
+            PWhitebalanceToolReset();
         }
     }
 
-    private void PToneGammaReset()
+    private void PGammaReset()
     {
         bool pPrevious = pInspectorVideoSuppress;
-        bool pChanged = PInspectorDecimalRead(pInspectorGammaValue, pInspectorGammaSlider.Value) != 0
-            || PInspectorDecimalRead(pInspectorGammaRedValue, pInspectorGammaRedSlider.Value) != 0
-            || PInspectorDecimalRead(pInspectorGammaGreenValue, pInspectorGammaGreenSlider.Value) != 0
-            || PInspectorDecimalRead(pInspectorGammaBlueValue, pInspectorGammaBlueSlider.Value) != 0
-            || PInspectorDecimalRead(pInspectorGammaHighlightValue, pInspectorGammaHighlightSlider.Value) != 0;
+        bool pChanged = PInspectorDecimalRead(pGammaValue, pGammaSlider.Value) != 0
+            || PInspectorDecimalRead(pGammaRedValue, pGammaRedSlider.Value) != 0
+            || PInspectorDecimalRead(pGammaGreenValue, pGammaGreenSlider.Value) != 0
+            || PInspectorDecimalRead(pGammaBlueValue, pGammaBlueSlider.Value) != 0
+            || PInspectorDecimalRead(pGammaHighlightValue, pGammaHighlightSlider.Value) != 0;
         pInspectorVideoSuppress = true;
         try
         {
-            PToneGammaValueSet(pInspectorGammaSlider, pInspectorGammaValue, 0);
-            PToneGammaValueSet(pInspectorGammaRedSlider, pInspectorGammaRedValue, 0);
-            PToneGammaValueSet(pInspectorGammaGreenSlider, pInspectorGammaGreenValue, 0);
-            PToneGammaValueSet(pInspectorGammaBlueSlider, pInspectorGammaBlueValue, 0);
-            PToneGammaValueSet(pInspectorGammaHighlightSlider, pInspectorGammaHighlightValue, 0);
+            PInspectorValueSet(pGammaSlider, pGammaValue, 0);
+            PInspectorValueSet(pGammaRedSlider, pGammaRedValue, 0);
+            PInspectorValueSet(pGammaGreenSlider, pGammaGreenValue, 0);
+            PInspectorValueSet(pGammaBlueSlider, pGammaBlueValue, 0);
+            PInspectorValueSet(pGammaHighlightSlider, pGammaHighlightValue, 0);
         }
         finally
         {
@@ -486,7 +501,7 @@ public sealed partial class PInspector
         }
     }
 
-    private static void PToneGammaValueSet(Slider pSlider, TextBox pValue, double pNumber)
+    private static void PInspectorValueSet(Slider pSlider, TextBox pValue, double pNumber)
     {
         pSlider.Value = pNumber;
         pValue.Text = pNumber.ToString("0.#", CultureInfo.InvariantCulture);
@@ -530,10 +545,10 @@ public sealed partial class PInspector
     {
         pApply.Checked += (_, _) => PToneApplyUpdate(pApply, pStack);
         pApply.Unchecked += (_, _) => PToneApplyUpdate(pApply, pStack);
-        PInspectorVideoValueAttach(pSlider, pValue, pMinimum, pMaximum, pFormat);
+        PInspectorValueAttach(pSlider, pValue, pMinimum, pMaximum, pFormat);
     }
 
-    private void PInspectorVideoValueAttach(
+    private void PInspectorValueAttach(
         Slider pSlider,
         TextBox pValue,
         double? pMinimum,
@@ -590,33 +605,36 @@ public sealed partial class PInspector
             if (pStep.LWorkStepKind == LColorKind.LColorKindGamma)
             {
                 LWorkGammaSettings pGamma = pStep.LWorkGammaRead();
-                pToneGammaBox.IsChecked = pStep.LWorkStepActive;
-                PToneGammaValueSet(pInspectorGammaSlider, pInspectorGammaValue, pGamma.LWorkGammaGlobal);
-                PToneGammaValueSet(pInspectorGammaRedSlider, pInspectorGammaRedValue, pGamma.LWorkGammaRed);
-                PToneGammaValueSet(pInspectorGammaGreenSlider, pInspectorGammaGreenValue, pGamma.LWorkGammaGreen);
-                PToneGammaValueSet(pInspectorGammaBlueSlider, pInspectorGammaBlueValue, pGamma.LWorkGammaBlue);
-                PToneGammaValueSet(
-                    pInspectorGammaHighlightSlider,
-                    pInspectorGammaHighlightValue,
-                    pGamma.LWorkGammaHighlightProtection);
-                PToneApplyUpdate(pToneGammaBox, pInspectorGammaStack);
-                PToneGammaCapabilitySet(pInspectorGammaCapable);
+                pGammaBox.IsChecked = pStep.LWorkStepActive;
+                PInspectorValueSet(pGammaSlider, pGammaValue, pGamma.LWorkGammaGlobal);
+                PInspectorValueSet(pGammaRedSlider, pGammaRedValue, pGamma.LWorkGammaRed);
+                PInspectorValueSet(pGammaGreenSlider, pGammaGreenValue, pGamma.LWorkGammaGreen);
+                PInspectorValueSet(pGammaBlueSlider, pGammaBlueValue, pGamma.LWorkGammaBlue);
+                PInspectorValueSet(
+                    pGammaHighlightSlider,
+                    pGammaHighlightValue,
+                    pGamma.LWorkGammaHighlight);
+                PToneApplyUpdate(pGammaBox, pGammaStack);
+                PGammaCapabilitySet(pGammaCapable);
                 return;
             }
 
             if (pStep.LWorkStepKind == LColorKind.LColorKindWhitebalance)
             {
                 LWorkWhitebalanceSettings pWhitebalance = pStep.LWorkWhitebalanceRead();
-                pToneWhitebalanceBox.IsChecked = pStep.LWorkStepActive;
+                pWhitebalanceBox.IsChecked = pStep.LWorkStepActive;
+                pWhitebalanceManual =
+                    pWhitebalance.LWorkWhitebalanceMethod == LWhitebalanceMethod.LWhitebalanceMethodManual;
                 PToneNeutralRestore(pWhitebalance);
-                pInspectorWhitebalanceMethod.SelectedIndex = PToneWhitebalanceMethodIndexRead(
+                pWhitebalanceMethod.SelectedIndex = PWhitebalanceIndexRead(
                     pWhitebalance.LWorkWhitebalanceMethod);
-                PToneGammaValueSet(
-                    pInspectorWhitebalanceSaturationSlider,
-                    pInspectorWhitebalanceSaturationValue,
+                PWhitebalanceManualUpdate();
+                PInspectorValueSet(
+                    pWhitebalanceSaturationSlider,
+                    pWhitebalanceSaturationValue,
                     pWhitebalance.LWorkWhitebalanceSaturation);
-                PToneApplyUpdate(pToneWhitebalanceBox, pInspectorWhitebalanceStack);
-                PToneWhitebalanceCapabilitySet(pInspectorWhitebalanceCapable);
+                PToneApplyUpdate(pWhitebalanceBox, pWhitebalanceStack);
+                PWhitebalanceCapabilitySet(pWhitebalanceCapable);
                 return;
             }
 
@@ -639,9 +657,9 @@ public sealed partial class PInspector
         bool pActive = pApply.IsChecked == true;
         pStack.IsEnabled = pActive;
         pStack.Opacity = pActive ? 1 : 0.4;
-        if (!pActive && ReferenceEquals(pApply, pToneWhitebalanceBox))
+        if (!pActive && ReferenceEquals(pApply, pWhitebalanceBox))
         {
-            PToneNeutralDisarm();
+            PWhitebalanceToolReset();
         }
 
         if (!pInspectorVideoSuppress)

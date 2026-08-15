@@ -70,11 +70,11 @@ public sealed partial class LMpv
         try
         {
             Directory.CreateDirectory(lInstallFolder);
-            string lUrl = await LMpvArchiveUrlResolve();
-            lArchivePath = Path.Combine(lRoot, LMpvArchiveNameRead(lUrl));
+            string lUrl = await LMpvUrlResolve();
+            lArchivePath = Path.Combine(lRoot, LMpvNameResolve(lUrl));
             LTraceLog.LTraceInfoRecord($"Local mpv download: {lUrl}");
-            await LMpvArchiveDownload(lUrl, lArchivePath);
-            await LMpvArchiveExtract(lArchivePath, lInstallFolder);
+            await LMpvArchiveSave(lUrl, lArchivePath);
+            await LMpvArchiveRead(lArchivePath, lInstallFolder);
 
             string lDll = Path.Combine(lInstallFolder, LMpvLibraryFile);
             if (!File.Exists(lDll))
@@ -104,7 +104,7 @@ public sealed partial class LMpv
         }
     }
 
-    private static async Task<string> LMpvArchiveUrlResolve()
+    private static async Task<string> LMpvUrlResolve()
     {
         using HttpClient lClient = LMpvClientCreate();
         string lJson = await lClient.GetStringAsync(LMpvReleaseUrl);
@@ -138,13 +138,13 @@ public sealed partial class LMpv
         throw new InvalidOperationException("No LGPL x86_64 libmpv asset was found in the latest mpv-winbuild release.");
     }
 
-    private static string LMpvArchiveNameRead(string lUrl)
+    private static string LMpvNameResolve(string lUrl)
     {
         string lName = Path.GetFileName(new Uri(lUrl).AbsolutePath);
         return string.IsNullOrWhiteSpace(lName) ? "mpv-dev.archive" : lName;
     }
 
-    private static async Task LMpvArchiveDownload(string lUrl, string lArchivePath)
+    private static async Task LMpvArchiveSave(string lUrl, string lArchivePath)
     {
         using HttpClient lClient = LMpvClientCreate();
         using HttpResponseMessage lResponse =
@@ -162,18 +162,18 @@ public sealed partial class LMpv
         return lClient;
     }
 
-    private static async Task LMpvArchiveExtract(string lArchivePath, string lInstallFolder)
+    private static async Task LMpvArchiveRead(string lArchivePath, string lInstallFolder)
     {
         if (lArchivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
         {
-            LMpvZipExtract(lArchivePath, lInstallFolder);
+            LMpvZipRead(lArchivePath, lInstallFolder);
             return;
         }
 
         await LMpvExtractRun("tar", $"-xf \"{lArchivePath}\" -C \"{lInstallFolder}\" {LMpvLibraryFile}", lInstallFolder);
     }
 
-    private static void LMpvZipExtract(string lArchivePath, string lInstallFolder)
+    private static void LMpvZipRead(string lArchivePath, string lInstallFolder)
     {
         using ZipArchive lArchive = ZipFile.OpenRead(lArchivePath);
         ZipArchiveEntry? lEntry = lArchive.Entries

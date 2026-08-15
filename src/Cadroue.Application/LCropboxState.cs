@@ -5,7 +5,7 @@ namespace Cadroue.Application;
 public sealed class LCropboxState
 {
     private LWorkCrop lCropboxStateCrop = LWorkCrop.LWorkCropCreate();
-    private bool lCropboxStateApply;
+    private bool lCropboxStateActive;
     private bool lCropboxStatePersistent;
     private bool lCropboxRatioFixed;
     private bool lCropboxRatioLenient;
@@ -15,9 +15,9 @@ public sealed class LCropboxState
     public event Action? LCropboxStateChange;
 
     public LWorkCrop LCropboxStateCrop =>
-        lCropboxStateApply ? lCropboxStateCrop : LWorkCrop.LWorkCropCreate();
+        lCropboxStateActive ? lCropboxStateCrop : LWorkCrop.LWorkCropCreate();
 
-    public bool LCropboxStateApply => lCropboxStateApply;
+    public bool LCropboxStateActive => lCropboxStateActive;
 
     public bool LCropboxStatePersistent => lCropboxStatePersistent;
 
@@ -32,7 +32,7 @@ public sealed class LCropboxState
 
     public void LCropboxApplySet(bool lApply)
     {
-        lCropboxStateApply = lApply;
+        lCropboxStateActive = lApply;
         LCropboxStateRaise();
     }
 
@@ -54,7 +54,7 @@ public sealed class LCropboxState
     public void LCropboxStateSet(LWorkCrop lCrop, bool lApply, bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
     {
         lCropboxStateCrop = lCrop;
-        lCropboxStateApply = lApply;
+        lCropboxStateActive = lApply;
         lCropboxRatioFixed = lRatioFixed;
         lCropboxRatioLenient = lRatioLenient;
         lCropboxRatioWidth = lRatioWidth;
@@ -65,7 +65,7 @@ public sealed class LCropboxState
     public void LCropboxStateReset()
     {
         lCropboxStateCrop = LWorkCrop.LWorkCropCreate();
-        lCropboxStateApply = false;
+        lCropboxStateActive = false;
         lCropboxRatioFixed = false;
         lCropboxRatioLenient = false;
         lCropboxRatioWidth = 0;

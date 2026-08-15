@@ -76,7 +76,7 @@ public sealed class EditPersistenceTests
         Assert.Equal(-90.5, restored.LWorkStepGamma.LWorkGammaRed);
         Assert.Equal(10.75, restored.LWorkStepGamma.LWorkGammaGreen);
         Assert.Equal(30.125, restored.LWorkStepGamma.LWorkGammaBlue);
-        Assert.Equal(25.5, restored.LWorkStepGamma.LWorkGammaHighlightProtection);
+        Assert.Equal(25.5, restored.LWorkStepGamma.LWorkGammaHighlight);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class EditPersistenceTests
         Assert.Equal(0, restored.LWorkStepGamma.LWorkGammaRed);
         Assert.Equal(0, restored.LWorkStepGamma.LWorkGammaGreen);
         Assert.Equal(0, restored.LWorkStepGamma.LWorkGammaBlue);
-        Assert.Equal(0, restored.LWorkStepGamma.LWorkGammaHighlightProtection);
+        Assert.Equal(0, restored.LWorkStepGamma.LWorkGammaHighlight);
     }
 
     [Fact]

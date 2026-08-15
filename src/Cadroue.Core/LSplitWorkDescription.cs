@@ -1,7 +1,7 @@
 namespace Cadroue.Core;
 
 public sealed record LSplitSectionDescription(
-    TimeSpan LSplitSectionStart,
+    TimeSpan LSplitSectionOrigin,
     TimeSpan LSplitSectionEnd,
     string LSplitSectionName,
     string LSplitSectionPrefix = "",

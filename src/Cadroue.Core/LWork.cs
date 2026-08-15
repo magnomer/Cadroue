@@ -60,7 +60,7 @@ public sealed record LWorkGammaSettings(
     double LWorkGammaRed,
     double LWorkGammaGreen,
     double LWorkGammaBlue,
-    double LWorkGammaHighlightProtection);
+    double LWorkGammaHighlight);
 
 public sealed record LWorkWhitebalanceSettings(
     LWhitebalanceMethod LWorkWhitebalanceMethod,
@@ -75,20 +75,20 @@ public sealed record LWorkWhitebalanceSettings(
 
     public IReadOnlyList<string> LWorkWhitebalanceFormat()
     {
-        static string lNumber(double lValue) =>
+        static string LWorkNumberFormat(double lValue) =>
             lValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
 
         var lFilters = new List<string>();
         if (LWorkWhitebalanceMethod == LWhitebalanceMethod.LWhitebalanceMethodManual)
         {
             lFilters.Add(
-                "colorchannelmixer=rr=" + lNumber(LWorkWhitebalanceRed)
-                + ":gg=" + lNumber(LWorkWhitebalanceGreen)
-                + ":bb=" + lNumber(LWorkWhitebalanceBlue));
+                "colorchannelmixer=rr=" + LWorkNumberFormat(LWorkWhitebalanceRed)
+                + ":gg=" + LWorkNumberFormat(LWorkWhitebalanceGreen)
+                + ":bb=" + LWorkNumberFormat(LWorkWhitebalanceBlue));
             double lSaturation = LWorkWhitebalanceSaturation / 100d;
             if (lSaturation != 1)
             {
-                lFilters.Add("eq=saturation=" + lNumber(lSaturation));
+                lFilters.Add("eq=saturation=" + LWorkNumberFormat(lSaturation));
             }
 
             return lFilters;
@@ -102,7 +102,7 @@ public sealed record LWorkWhitebalanceSettings(
         };
         lFilters.Add(
             "colorcorrect=analyze=" + lAnalyze
-            + ":saturation=" + lNumber(LWorkWhitebalanceSaturation / 100d));
+            + ":saturation=" + LWorkNumberFormat(LWorkWhitebalanceSaturation / 100d));
         return lFilters;
     }
 }
@@ -269,9 +269,9 @@ public sealed record LWorkVideoStep(
             lDetails.Add($"blue {lGamma.LWorkGammaBlue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
         }
 
-        if (lGamma.LWorkGammaHighlightProtection != 0)
+        if (lGamma.LWorkGammaHighlight != 0)
         {
-            lDetails.Add($"highlight {lGamma.LWorkGammaHighlightProtection.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+            lDetails.Add($"highlight {lGamma.LWorkGammaHighlight.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
         }
 
         return lDetails.Count == 0 ? lSummary : $"{lSummary} ({string.Join(", ", lDetails)})";
@@ -280,11 +280,11 @@ public sealed record LWorkVideoStep(
     public double LWorkFfmpegValue => LWorkStepKind switch
     {
         LColorKind.LColorKindBrightness => Math.Clamp(LWorkStepValue * 0.005d, -1, 1),
-        LColorKind.LColorKindGamma => LWorkGammaFactorRead(LWorkStepValue),
+        LColorKind.LColorKindGamma => LWorkGammaResolve(LWorkStepValue),
         _ => LWorkStepValue / 100d
     };
 
-    public static double LWorkGammaFactorRead(double lStepValue) =>
+    public static double LWorkGammaResolve(double lStepValue) =>
         Math.Pow(10d, Math.Clamp(lStepValue, -100, 100) / 100d);
 }
 

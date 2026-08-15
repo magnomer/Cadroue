@@ -25,7 +25,7 @@ public sealed partial class PInspector
 
     public LWorkAudioStep PInspectorStepRead(LAudioKind pStepKind) => pStepKind switch
     {
-        LAudioKind.LAudioKindNormalize => LWorkAudioStep.LWorkNormalizeCreate(
+        LAudioKind.LAudioKindLeveling => LWorkAudioStep.LWorkNormalizeCreate(
             pLoudnessApplyBox.IsChecked == true,
             PLoudnessModeRead(),
             PInspectorDecimalRead(pLoudnessTarget, -16),
@@ -60,7 +60,7 @@ public sealed partial class PInspector
         LAudioKind.LAudioKindEqualizer => PEqualizerStepRead(),
         _ => LWorkAudioStep.LWorkVolumeCreate(
             pVolumeApplyBox.IsChecked == true,
-            Math.Clamp(PInspectorDecimalRead(pInspectorVolumeValue, 0), LWorkAudio.LWorkVolumeGainLeast, LWorkAudio.LWorkVolumeGainMost))
+            Math.Clamp(PInspectorDecimalRead(pInspectorVolumeValue, 0), LWorkAudio.LWorkGainLeast, LWorkAudio.LWorkGainMost))
     };
 
     public void PInspectorPlanApply(LWorkAudio pInspectorPlan)
@@ -81,7 +81,7 @@ public sealed partial class PInspector
             pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindVolume)
                 ?? LWorkAudioStep.LWorkVolumeCreate(false, 0));
         PInspectorStepApply(
-            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindNormalize)
+            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindLeveling)
                 ?? LAudio.LAudioNormalizeCreate());
         PInspectorActiveRaise();
     }
@@ -119,7 +119,7 @@ public sealed partial class PInspector
                 case LAudioKind.LAudioKindVolume:
                     pInspectorVolumePersistent.IsChecked = true;
                     break;
-                case LAudioKind.LAudioKindNormalize:
+                case LAudioKind.LAudioKindLeveling:
                     pLoudnessPersistent.IsChecked = true;
                     break;
                 case LAudioKind.LAudioKindEqualizer:
@@ -156,7 +156,7 @@ public sealed partial class PInspector
 
         if (pLoudnessPersistent.IsChecked == true)
         {
-            pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindNormalize));
+            pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindLeveling));
         }
 
         if (pEqualizerPersistent.IsChecked == true)
@@ -202,7 +202,7 @@ public sealed partial class PInspector
             case LWorkVolumeStep pVolume:
                 pVolumeApplyBox.IsChecked = pVolume.LWorkStepActive;
                 pInspectorVolumeValue.Text = pVolume.LWorkVolumeGain.ToString("0.#", CultureInfo.InvariantCulture);
-                pInspectorVolumeSlider.Value = Math.Clamp(pVolume.LWorkVolumeGain, LWorkAudio.LWorkVolumeGainLeast, LWorkAudio.LWorkVolumeGainMost);
+                pInspectorVolumeSlider.Value = Math.Clamp(pVolume.LWorkVolumeGain, LWorkAudio.LWorkGainLeast, LWorkAudio.LWorkGainMost);
                 PVolumeWarnUpdate();
                 PVolumeApplyUpdate();
                 break;
@@ -221,8 +221,8 @@ public sealed partial class PInspector
 
         pInspectorVolumeSlider = new Slider
         {
-            Minimum = LWorkAudio.LWorkVolumeGainLeast,
-            Maximum = LWorkAudio.LWorkVolumeGainMost,
+            Minimum = LWorkAudio.LWorkGainLeast,
+            Maximum = LWorkAudio.LWorkGainMost,
             Value = 0,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -253,7 +253,7 @@ public sealed partial class PInspector
 
             pInspectorVolumeSuppress = true;
             pInspectorVolumeSlider.Value = Math.Clamp(
-                PInspectorDecimalRead(pInspectorVolumeValue, 0), LWorkAudio.LWorkVolumeGainLeast, LWorkAudio.LWorkVolumeGainMost);
+                PInspectorDecimalRead(pInspectorVolumeValue, 0), LWorkAudio.LWorkGainLeast, LWorkAudio.LWorkGainMost);
             pInspectorVolumeSuppress = false;
             PVolumeWarnUpdate();
         };

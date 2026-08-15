@@ -53,11 +53,11 @@ public sealed partial class PGroup
             LLocalization.LLocalizationTextRead("Group.Manual.Label"),
             LLocalization.LLocalizationTextRead("Group.Manual.Tooltip"),
             !lGroupOwner.LGroupAuto,
-            () => lGroupOwner.LGroupAutoRequest(false),
+            () => lGroupOwner.LGroupAutoChange(false),
             LLocalization.LLocalizationTextRead("Group.Auto.Label"),
             LLocalization.LLocalizationTextRead("Group.Auto.Tooltip"),
             lGroupOwner.LGroupAuto,
-            () => lGroupOwner.LGroupAutoRequest(true));
+            () => lGroupOwner.LGroupAutoChange(true));
         pModeToggle.HorizontalAlignment = HorizontalAlignment.Left;
         Grid.SetColumn(pModeToggle, 0);
         pActionGrid.Children.Add(pModeToggle);
@@ -80,11 +80,11 @@ public sealed partial class PGroup
             LLocalization.LLocalizationTextRead("Group.Strict.Label"),
             LLocalization.LLocalizationTextRead("Group.Strict.Tooltip"),
             lGroupOwner.LGroupStrict,
-            () => lGroupOwner.LGroupStrictRequest(true),
+            () => lGroupOwner.LGroupStrictChange(true),
             LLocalization.LLocalizationTextRead("Group.Loose.Label"),
             LLocalization.LLocalizationTextRead("Group.Loose.Tooltip"),
             !lGroupOwner.LGroupStrict,
-            () => lGroupOwner.LGroupStrictRequest(false));
+            () => lGroupOwner.LGroupStrictChange(false));
         pStrictToggle.Margin = new Thickness(8, 0, 0, 0);
         pSwitches.Children.Add(pStrictToggle);
 
@@ -92,11 +92,11 @@ public sealed partial class PGroup
             LLocalization.LLocalizationTextRead("Group.First.Label"),
             LLocalization.LLocalizationTextRead("Group.First.Tooltip"),
             lGroupOwner.LGroupNameMode == LSeriesNameMode.LSeriesNameFirst,
-            () => lGroupOwner.LGroupModeRequest(LSeriesNameMode.LSeriesNameFirst),
+            () => lGroupOwner.LGroupModeChange(LSeriesNameMode.LSeriesNameFirst),
             LLocalization.LLocalizationTextRead("Group.NumberRemove.Label"),
             LLocalization.LLocalizationTextRead("Group.NumberRemove.Tooltip"),
-            lGroupOwner.LGroupNameMode == LSeriesNameMode.LSeriesNameRemove,
-            () => lGroupOwner.LGroupModeRequest(LSeriesNameMode.LSeriesNameRemove));
+            lGroupOwner.LGroupNameMode == LSeriesNameMode.LSeriesNameBase,
+            () => lGroupOwner.LGroupModeChange(LSeriesNameMode.LSeriesNameBase));
         pNameToggle.Margin = new Thickness(8, 0, 0, 0);
         pSwitches.Children.Add(pNameToggle);
         return pSwitches;

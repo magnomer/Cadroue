@@ -210,7 +210,7 @@ public sealed class LWorkOutputRecord
             LWorkSize = lEncoding.LEncodingVideo.LEncodingSize,
             LWorkSizeReactive = lEncoding.LEncodingVideo.LEncodingSizeReactive,
             LWorkFps = lEncoding.LEncodingVideo.LEncodingFps,
-            LWorkPixelLayout = lEncoding.LEncodingVideo.LEncodingPixelFormat,
+            LWorkPixelLayout = lEncoding.LEncodingVideo.LEncodingPixel,
             LWorkExtras = new Dictionary<string, string>(lEncoding.LEncodingVideo.LEncodingExtras, StringComparer.Ordinal)
         },
         LWorkOutputAudio = new LWorkAudioRecord

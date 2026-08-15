@@ -32,19 +32,19 @@ public sealed partial record LCropbox
         double lCropboxHeight = lCropboxScale * lCropboxUnitHeight;
         double lCropboxMinimumX = Math.Ceiling(lCropboxBounds.LCropboxX / 2) * 2;
         double lCropboxMinimumY = Math.Ceiling(lCropboxBounds.LCropboxY / 2) * 2;
-        double lCropboxMaximumX = LCropboxEvenNormalize(lCropboxBounds.LCropboxRight - lCropboxWidth);
-        double lCropboxMaximumY = LCropboxEvenNormalize(lCropboxBounds.LCropboxBottom - lCropboxHeight);
+        double lCropboxMaximumX = LCropboxFloorNormalize(lCropboxBounds.LCropboxRight - lCropboxWidth);
+        double lCropboxMaximumY = LCropboxFloorNormalize(lCropboxBounds.LCropboxBottom - lCropboxHeight);
         if (lCropboxMaximumX < lCropboxMinimumX || lCropboxMaximumY < lCropboxMinimumY)
         {
             return null;
         }
 
         double lCropboxX = Math.Clamp(
-            LCropboxEvenNormalize(lCropboxBounds.LCropboxX + ((lCropboxBounds.LCropboxWidth - lCropboxWidth) / 2)),
+            LCropboxFloorNormalize(lCropboxBounds.LCropboxX + ((lCropboxBounds.LCropboxWidth - lCropboxWidth) / 2)),
             lCropboxMinimumX,
             lCropboxMaximumX);
         double lCropboxY = Math.Clamp(
-            LCropboxEvenNormalize(lCropboxBounds.LCropboxY + ((lCropboxBounds.LCropboxHeight - lCropboxHeight) / 2)),
+            LCropboxFloorNormalize(lCropboxBounds.LCropboxY + ((lCropboxBounds.LCropboxHeight - lCropboxHeight) / 2)),
             lCropboxMinimumY,
             lCropboxMaximumY);
         return new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight);
@@ -90,8 +90,8 @@ public sealed partial record LCropbox
                 continue;
             }
 
-            double lCropboxMaximumX = LCropboxEvenNormalize(lCropboxBounds.LCropboxWidth - lCropboxWidth);
-            double lCropboxMaximumY = LCropboxEvenNormalize(lCropboxBounds.LCropboxHeight - lCropboxHeight);
+            double lCropboxMaximumX = LCropboxFloorNormalize(lCropboxBounds.LCropboxWidth - lCropboxWidth);
+            double lCropboxMaximumY = LCropboxFloorNormalize(lCropboxBounds.LCropboxHeight - lCropboxHeight);
             if (lCropboxMaximumX < 0 || lCropboxMaximumY < 0)
             {
                 lCropboxScale--;
@@ -99,11 +99,11 @@ public sealed partial record LCropbox
             }
 
             double lCropboxX = Math.Clamp(
-                LCropboxEvenNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxX, lCropboxDesired.LCropboxWidth, lCropboxWidth, lCropboxAnchorX)),
+                LCropboxFloorNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxX, lCropboxDesired.LCropboxWidth, lCropboxWidth, lCropboxAnchorX)),
                 0,
                 lCropboxMaximumX);
             double lCropboxY = Math.Clamp(
-                LCropboxEvenNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxY, lCropboxDesired.LCropboxHeight, lCropboxHeight, lCropboxAnchorY)),
+                LCropboxFloorNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxY, lCropboxDesired.LCropboxHeight, lCropboxHeight, lCropboxAnchorY)),
                 0,
                 lCropboxMaximumY);
             return new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight);
@@ -134,8 +134,8 @@ public sealed partial record LCropbox
         double lCropboxUnitHeight = lCropboxRatioHeight / lCropboxDivisor;
         double lCropboxRatio = lCropboxUnitWidth / lCropboxUnitHeight;
 
-        double lCropboxMaximumWidth = LCropboxEvenNormalize(lCropboxBounds.LCropboxWidth);
-        double lCropboxMaximumHeight = LCropboxEvenNormalize(lCropboxBounds.LCropboxHeight);
+        double lCropboxMaximumWidth = LCropboxFloorNormalize(lCropboxBounds.LCropboxWidth);
+        double lCropboxMaximumHeight = LCropboxFloorNormalize(lCropboxBounds.LCropboxHeight);
         if (lCropboxMaximumWidth < 2 || lCropboxMaximumHeight < 2)
         {
             return null;
@@ -152,13 +152,13 @@ public sealed partial record LCropbox
         double lCropboxHeight;
         if (lCropboxWidthDrive)
         {
-            lCropboxWidth = Math.Clamp(LCropboxEvenRound(lCropboxDesired.LCropboxWidth), 2, lCropboxMaximumWidth);
-            lCropboxHeight = Math.Clamp(LCropboxEvenRound(lCropboxWidth / lCropboxRatio), 2, lCropboxMaximumHeight);
+            lCropboxWidth = Math.Clamp(LCropboxNearNormalize(lCropboxDesired.LCropboxWidth), 2, lCropboxMaximumWidth);
+            lCropboxHeight = Math.Clamp(LCropboxNearNormalize(lCropboxWidth / lCropboxRatio), 2, lCropboxMaximumHeight);
         }
         else
         {
-            lCropboxHeight = Math.Clamp(LCropboxEvenRound(lCropboxDesired.LCropboxHeight), 2, lCropboxMaximumHeight);
-            lCropboxWidth = Math.Clamp(LCropboxEvenRound(lCropboxHeight * lCropboxRatio), 2, lCropboxMaximumWidth);
+            lCropboxHeight = Math.Clamp(LCropboxNearNormalize(lCropboxDesired.LCropboxHeight), 2, lCropboxMaximumHeight);
+            lCropboxWidth = Math.Clamp(LCropboxNearNormalize(lCropboxHeight * lCropboxRatio), 2, lCropboxMaximumWidth);
         }
 
         if (LCropboxErrorResolve(lCropboxWidth, lCropboxHeight, lCropboxUnitWidth, lCropboxUnitHeight) > lCropboxTolerance)
@@ -166,19 +166,19 @@ public sealed partial record LCropbox
             return null;
         }
 
-        double lCropboxMaximumX = LCropboxEvenNormalize(lCropboxBounds.LCropboxWidth - lCropboxWidth);
-        double lCropboxMaximumY = LCropboxEvenNormalize(lCropboxBounds.LCropboxHeight - lCropboxHeight);
+        double lCropboxMaximumX = LCropboxFloorNormalize(lCropboxBounds.LCropboxWidth - lCropboxWidth);
+        double lCropboxMaximumY = LCropboxFloorNormalize(lCropboxBounds.LCropboxHeight - lCropboxHeight);
         if (lCropboxMaximumX < 0 || lCropboxMaximumY < 0)
         {
             return null;
         }
 
         double lCropboxX = Math.Clamp(
-            LCropboxEvenNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxX, lCropboxDesired.LCropboxWidth, lCropboxWidth, lCropboxAnchorX)),
+            LCropboxFloorNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxX, lCropboxDesired.LCropboxWidth, lCropboxWidth, lCropboxAnchorX)),
             0,
             lCropboxMaximumX);
         double lCropboxY = Math.Clamp(
-            LCropboxEvenNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxY, lCropboxDesired.LCropboxHeight, lCropboxHeight, lCropboxAnchorY)),
+            LCropboxFloorNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxY, lCropboxDesired.LCropboxHeight, lCropboxHeight, lCropboxAnchorY)),
             0,
             lCropboxMaximumY);
         return new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight);
@@ -206,7 +206,7 @@ public sealed partial record LCropbox
         double lCropboxTargetEven = Math.Round(lCropboxTargetExact / 2, MidpointRounding.AwayFromZero) * 2;
         if (lCropboxTargetEven > lCropboxCurrent)
         {
-            lCropboxTargetEven = LCropboxEvenNormalize(lCropboxCurrent);
+            lCropboxTargetEven = LCropboxFloorNormalize(lCropboxCurrent);
         }
 
         int lCropboxExcess = (int)Math.Round(lCropboxCurrent - lCropboxTargetEven, MidpointRounding.AwayFromZero);
@@ -260,7 +260,7 @@ public sealed partial record LCropbox
                 return null;
             }
 
-            double lCropboxTargetHeight = LCropboxEvenNormalize(lCropboxWidth * lCropboxRatioHeight / lCropboxRatioWidth);
+            double lCropboxTargetHeight = LCropboxFloorNormalize(lCropboxWidth * lCropboxRatioHeight / lCropboxRatioWidth);
             if (lCropboxTargetHeight <= 0 || lCropboxTargetHeight > lCropboxSourceHeight)
             {
                 return null;
@@ -285,7 +285,7 @@ public sealed partial record LCropbox
             return null;
         }
 
-        double lCropboxTargetWidth = LCropboxEvenNormalize(lCropboxHeight * lCropboxRatioWidth / lCropboxRatioHeight);
+        double lCropboxTargetWidth = LCropboxFloorNormalize(lCropboxHeight * lCropboxRatioWidth / lCropboxRatioHeight);
         if (lCropboxTargetWidth <= 0 || lCropboxTargetWidth > lCropboxSourceWidth)
         {
             return null;
@@ -305,13 +305,13 @@ public sealed partial record LCropbox
         return (lCropboxNewLeft, lCropboxTop, lCropboxNewRight, lCropboxBottom);
     }
 
-    public static double LCropboxEvenNormalize(double lCropboxValue)
+    public static double LCropboxFloorNormalize(double lCropboxValue)
     {
         int lCropboxWhole = (int)Math.Floor(lCropboxValue);
         return lCropboxWhole <= 0 ? 0 : lCropboxWhole - (lCropboxWhole % 2);
     }
 
-    public static double LCropboxEvenRound(double lCropboxValue) =>
+    public static double LCropboxNearNormalize(double lCropboxValue) =>
         lCropboxValue <= 0 ? 0 : Math.Round(lCropboxValue / 2, MidpointRounding.AwayFromZero) * 2;
 
     public static int LCropboxDivisorResolve(int lCropboxFirst, int lCropboxSecond)

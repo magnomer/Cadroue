@@ -18,7 +18,7 @@ public static class LLibrarian
 
     public static Func<string, bool>? LLibrarianFileChecker;
     public static Func<string, LSidecarSourceResult?>? LLibrarianSourceResolver;
-    public static Func<string, string, bool>? LLibrarianSourceVerifier;
+    public static Func<string, string, bool>? LLibrarianSourceMatcher;
 
     public static Func<string, LSidecarEditRecord?, bool>? LLibrarianEditWriter;
     public static Func<string, LSidecarAudioRecord?, bool>? LLibrarianAudioWriter;
@@ -55,8 +55,8 @@ public static class LLibrarian
     public static LSidecarSourceResult? LLibrarianSourceResolve(string lLibrarianSidecarPath) =>
         LLibrarianSourceResolver?.Invoke(lLibrarianSidecarPath);
 
-    public static bool LLibrarianSourceVerify(string lLibrarianMediaPath, string lLibrarianSidecarPath) =>
-        LLibrarianSourceVerifier?.Invoke(lLibrarianMediaPath, lLibrarianSidecarPath) ?? false;
+    public static bool LLibrarianSourceMatch(string lLibrarianMediaPath, string lLibrarianSidecarPath) =>
+        LLibrarianSourceMatcher?.Invoke(lLibrarianMediaPath, lLibrarianSidecarPath) ?? false;
 
     public static bool LLibrarianEditSave(string lLibrarianSourcePath, LSidecarEditRecord? lLibrarianEdit) =>
         LLibrarianEditWriter?.Invoke(lLibrarianSourcePath, lLibrarianEdit) ?? false;

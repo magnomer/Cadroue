@@ -151,7 +151,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
         if (rangeEndMs <= rangeStartMs)
         {
-            return LKeyframeMoveResult.LKeyframeReadyResult(null);
+            return LKeyframeMoveResult.LKeyframeReadyCreate(null);
         }
 
         long? target = direction < 0
@@ -170,7 +170,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
             }
         }
 
-        return LKeyframeMoveResult.LKeyframeReadyResult(
+        return LKeyframeMoveResult.LKeyframeReadyCreate(
             target is null ? null : TimeSpan.FromMilliseconds(target.Value));
     }
 

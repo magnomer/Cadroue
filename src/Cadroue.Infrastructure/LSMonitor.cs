@@ -67,7 +67,7 @@ public sealed class LSMonitor : IDisposable
     {
         foreach (LWorkAudioStep lStep in lMonitorPlan.LWorkAudioSteps)
         {
-            if (lStep.LWorkStepKind == LAudioKind.LAudioKindNormalize)
+            if (lStep.LWorkStepKind == LAudioKind.LAudioKindLeveling)
             {
                 break;
             }

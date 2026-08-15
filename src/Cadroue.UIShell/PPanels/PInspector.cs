@@ -77,8 +77,8 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PCropBodyBuild());
         pBody.Children.Add(PToneBrightnessBuild());
         pBody.Children.Add(PToneContrastBuild());
-        pBody.Children.Add(PToneGammaBuild());
-        pBody.Children.Add(PToneWhitebalanceBuild());
+        pBody.Children.Add(PGammaBuild());
+        pBody.Children.Add(PWhitebalanceBuild());
         pBody.Children.Add(PVolumeBodyBuild());
         pBody.Children.Add(PLoudnessBodyBuild());
         pBody.Children.Add(PNoiseBodyBuild());
@@ -128,7 +128,7 @@ public sealed partial class PInspector : PPanel
         pInspectorMinimized = pInspectorMinimizeRequest;
         if (pInspectorMinimized)
         {
-            PToneNeutralDisarm();
+            PWhitebalanceToolReset();
         }
 
         pInspectorFullBody.Visibility = pInspectorMinimized ? Visibility.Collapsed : Visibility.Visible;
@@ -204,8 +204,8 @@ public sealed partial class PInspector : PPanel
         pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorBrightnessBody.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorContrastBody.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorGammaBody.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorWhitebalanceBody.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
+        pGammaBody.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
+        pWhitebalanceBody.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumeBody.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
         pLoudnessBody.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
         pNoiseBody.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -217,8 +217,8 @@ public sealed partial class PInspector : PPanel
         pInspectorPersistentBox.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorBrightnessPersistent.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorContrastPersistent.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorGammaPersistent.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorWhitebalancePersistent.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
+        pGammaPersistent.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
+        pWhitebalancePersistent.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumePersistent.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
         pLoudnessPersistent.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
         pNoisePersistent.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -235,7 +235,7 @@ public sealed partial class PInspector : PPanel
 
         if (!pWhitebalanceSelected)
         {
-            PToneNeutralDisarm();
+            PWhitebalanceToolReset();
         }
     }
 
