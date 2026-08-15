@@ -198,5 +198,6 @@ public sealed partial class LKeyframeOrchestrator
         lKeyframeDisposed = true;
         lKeyframeCancelSource?.Cancel();
         lKeyframeCancelSource?.Dispose();
+        lKeyframeCancelSource = null;
     }
 }

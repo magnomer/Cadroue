@@ -95,6 +95,11 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         CancellationTokenSource? lKeyframeCancelPrevious;
         lock (lKeyframeLock)
         {
+            if (lKeyframeDisposed)
+            {
+                return;
+            }
+
             lKeyframeCancelPrevious = lKeyframeCancelSource;
             lKeyframeCancelSource = null;
         }
