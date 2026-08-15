@@ -43,6 +43,7 @@ public enum LColorKind
 {
     LColorKindBrightness,
     LColorKindContrast,
+    LColorKindSaturation,
     LColorKindGamma,
     LColorKindWhitebalance
 }
@@ -121,6 +122,9 @@ public sealed record LWorkVideoStep(
 
     public static LWorkVideoStep LWorkContrastCreate(bool lStepActive, double lStepValue) =>
         new(LColorKind.LColorKindContrast, lStepActive, Math.Clamp(lStepValue, 0, 200));
+
+    public static LWorkVideoStep LWorkSaturationCreate(bool lStepActive, double lStepValue) =>
+        new(LColorKind.LColorKindSaturation, lStepActive, Math.Clamp(lStepValue, 0, 200));
 
     public static LWorkVideoStep LWorkGammaCreate(
         bool lStepActive,

@@ -193,6 +193,8 @@ internal static class TInterface
         LWorkVideoStep.LWorkBrightnessCreate(active, value);
     internal static LWorkVideoStep WorkContrastCreate(bool active, double value) =>
         LWorkVideoStep.LWorkContrastCreate(active, value);
+    internal static LWorkVideoStep WorkSaturationCreate(bool active, double value) =>
+        LWorkVideoStep.LWorkSaturationCreate(active, value);
     internal static LWorkVideoStep WorkGammaCreate(bool active, double value) =>
         LWorkVideoStep.LWorkGammaCreate(active, value);
     internal static LWorkVideoStep WorkGammaCreate(
