@@ -13,6 +13,7 @@ internal sealed partial class PSOptions
 {
     private const string PSOptionsBrowseIcon = "/PAssets/PPanels/PBrowse.svg";
     private const string PSOptionsOpenIcon = "/PAssets/PPanels/POpen.svg";
+    private const string PSOptionsDiagnosisIcon = "/PAssets/PPanels/PDiagnosis.svg";
 
     private readonly TextBox psWorkspaceBox;
     private readonly TextBox psSystemFfmpegBox;
@@ -44,8 +45,10 @@ internal sealed partial class PSOptions
 
         Button pFfmpegBrowse = PSInlineIconBuild(PSOptionsBrowseIcon, LLocalization.LLocalizationTextRead("Options.System.Browse"), new Thickness(8, 0, 0, 0));
         Button pFfmpegOpen = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(6, 0, 0, 0));
+        Button pFfmpegDiagnosis = PSInlineIconBuild(PSOptionsDiagnosisIcon, LLocalization.LLocalizationTextRead("Options.System.Diagnosis"), new Thickness(6, 0, 0, 0));
         pFfmpegBrowse.Click += (_, _) => PSSystemFolderRead(psSystemFfmpegBox, LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"), psSystemFfmpegBox.Text);
         pFfmpegOpen.Click += (_, _) => PSSystemFolderOpen(psSystemFfmpegBox.Text, string.Empty);
+        pFfmpegDiagnosis.Click += (_, _) => PSDiagnosis.PSDiagnosisShow(this);
 
         Button pDoneClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearDone"), 190, new Thickness(0));
         Button pWorkspaceClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearWorkspace"), 190, new Thickness(0));
@@ -69,7 +72,7 @@ internal sealed partial class PSOptions
 
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FFmpeg"),
-            PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psSystemFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
+            PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psSystemFfmpegBox, pFfmpegBrowse, pFfmpegOpen, pFfmpegDiagnosis),
             pFfmpegState));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.Workspace"),
             PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psWorkspaceBox, pWorkspaceBrowse, pWorkspaceOpen),
@@ -257,12 +260,7 @@ internal sealed partial class PSOptions
             return;
         }
 
-        LDepot.LDepotFolderClear(
-            LDepotFolder.LDepotFolderScheduled,
-            LDepotFolder.LDepotFolderDone,
-            LDepotFolder.LDepotFolderFailed,
-            LDepotFolder.LDepotFolderCancelled);
-        LSidecarStore.LSidecarFolderClear();
+        LDepot.LDepotWorkspaceReset();
         LDepotIndex.LDepotIndexRebuild();
         LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();

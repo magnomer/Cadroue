@@ -144,6 +144,68 @@ public static class LDepot
         return lDepotRemoved;
     }
 
+    public static void LDepotWorkspaceReset()
+    {
+        string lDepotRoot = LDepotRootRead();
+        if (!Directory.Exists(lDepotRoot))
+        {
+            return;
+        }
+
+        var lDepotRootInfo = new DirectoryInfo(lDepotRoot);
+        foreach (DirectoryInfo lDepotChild in lDepotRootInfo.GetDirectories())
+        {
+            if (LDepotSpareCheck(lDepotChild.Name))
+            {
+                continue;
+            }
+
+            LDepotContentClear(lDepotChild);
+        }
+
+        foreach (FileInfo lDepotFile in lDepotRootInfo.GetFiles())
+        {
+            if (LDepotSpareCheck(lDepotFile.Name))
+            {
+                continue;
+            }
+
+            LDepotFileDelete(lDepotFile);
+        }
+    }
+
+    private static bool LDepotSpareCheck(string lDepotName) =>
+        string.Equals(lDepotName, LDepotPaletteFolder, StringComparison.OrdinalIgnoreCase)
+        || lDepotName.StartsWith(LDepotIndexFile, StringComparison.OrdinalIgnoreCase);
+
+    private static void LDepotContentClear(DirectoryInfo lDepotFolder)
+    {
+        foreach (FileInfo lDepotFile in lDepotFolder.GetFiles())
+        {
+            LDepotFileDelete(lDepotFile);
+        }
+
+        foreach (DirectoryInfo lDepotChild in lDepotFolder.GetDirectories())
+        {
+            LDepotContentClear(lDepotChild);
+            LDepotFolderDelete(lDepotChild);
+        }
+    }
+
+    private static void LDepotFileDelete(FileInfo lDepotFile)
+    {
+        try
+        {
+            lDepotFile.Delete();
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
     public static bool LDepotRunningCheck(string lDepotRoot)
     {
         string lDepotRunning = Path.Combine(lDepotRoot, LDepotNameRead(LDepotFolder.LDepotFolderRunning));

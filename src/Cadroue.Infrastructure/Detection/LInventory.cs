@@ -88,6 +88,32 @@ public static class LInventory
     public static IReadOnlyList<LInventoryEncoder> LInventoryEncodersRead() =>
         LInventoryEncodersParse(LInventoryProcessRead("-encoders"));
 
+    public static string LInventoryVersionRead() =>
+        LInventoryVersionParse(LInventoryProcessRead("-version"));
+
+    private static string LInventoryVersionParse(string lInventoryText)
+    {
+        if (string.IsNullOrWhiteSpace(lInventoryText))
+        {
+            return string.Empty;
+        }
+
+        string lInventoryFirst = lInventoryText
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault(string.Empty)
+            .Trim();
+        const string lInventoryMark = "ffmpeg version ";
+        int lInventoryStart = lInventoryFirst.IndexOf(lInventoryMark, StringComparison.OrdinalIgnoreCase);
+        if (lInventoryStart < 0)
+        {
+            return lInventoryFirst;
+        }
+
+        string lInventoryRest = lInventoryFirst[(lInventoryStart + lInventoryMark.Length)..];
+        int lInventorySpace = lInventoryRest.IndexOf(' ');
+        return lInventorySpace < 0 ? lInventoryRest : lInventoryRest[..lInventorySpace];
+    }
+
     private static string LInventoryProcessRead(string lInventoryArgument)
     {
         try
