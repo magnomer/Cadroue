@@ -114,6 +114,7 @@ public sealed class PAudioTab : PTabSurface
         pList.PListPathChange += PAudioPathShow;
         pList.PListItemsAdd += PAudioItemsHandle;
         PTabViewerAttach(pList, pViewer, pFlow);
+        pViewer.PViewerMediaChange += PAudioMediaHandle;
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
@@ -249,7 +250,7 @@ public sealed class PAudioTab : PTabSurface
     }
 
     private void PAudioMonitorShow() =>
-        PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), pAudioMonitor);
+        PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), pAudioMonitor, pFlow, pViewer);
 
     private LWorkAudio PAudioProcessingRead()
     {
@@ -282,18 +283,24 @@ public sealed class PAudioTab : PTabSurface
         {
             PAudioPlanSave();
             pViewer.PViewerSourceOpen(pSourcePath);
-            PAudioPlanRestore();
+            PAudioPlanRestore(pSourcePath);
         }
     }
 
-    private void PAudioPlanRestore()
+    private void PAudioMediaHandle(LCargo pMediaStatus)
+    {
+        pAudioMonitor.LSMonitorSourceOpen(
+            pMediaStatus.LCargoSourcePath,
+            pMediaStatus.LCargoMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero);
+        pAudioMonitor.LSMonitorPlanApply(PAudioProcessingRead());
+    }
+
+    private void PAudioPlanRestore(string pSourcePath)
     {
         pAudioPlanLoading = true;
         try
         {
-            LWorkAudio? pSaved = pViewer.PViewerSourcePath is { } pSourcePath
-                ? LAudio.LAudioPlanRead(pSourcePath, LLibrarian.LLibrarianAudioLoad)
-                : null;
+            LWorkAudio? pSaved = LAudio.LAudioPlanRead(pSourcePath, LLibrarian.LLibrarianAudioLoad);
             LWorkAudio? pPersistent = pInspector.PInspectorPersistentCheck()
                 ? pInspector.PInspectorPersistentRead()
                 : null;
@@ -308,8 +315,6 @@ public sealed class PAudioTab : PTabSurface
 
         pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
         PAudioActiveUpdate();
-        pAudioMonitor.LSMonitorSourceOpen(pViewer.PViewerSourcePath, pViewer.PViewerDurationRead());
-        pAudioMonitor.LSMonitorPlanApply(PAudioProcessingRead());
         PAudioViewerApply();
     }
 

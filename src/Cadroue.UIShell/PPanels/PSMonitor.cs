@@ -1,11 +1,13 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Cadroue.Infrastructure;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;
+using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 using static Cadroue.UIShell.PSShared.PSField;
 
@@ -33,28 +35,39 @@ internal sealed class PSMonitor : Window
     private readonly string psMonitorTitle;
     private readonly PSGrabber psMonitorGrabber;
     private readonly LSMonitor psMonitorSource;
+    private readonly PFlowControl psMonitorFlow;
+    private readonly PViewer psMonitorViewer;
     private readonly DispatcherTimer psMonitorTimer;
 
     private Canvas psMonitorBeforeCanvas = null!;
     private Canvas psMonitorAfterCanvas = null!;
     private TextBlock psMonitorBeforeStatus = null!;
     private TextBlock psMonitorAfterStatus = null!;
+    private RadioButton psMonitorBeforeRadio = null!;
+    private RadioButton psMonitorAfterRadio = null!;
+    private Border psMonitorBeforeHead = null!;
+    private Border psMonitorAfterHead = null!;
     private LSMonitorEstimate psMonitorEstimate;
     private ScrollBar psMonitorScrollbar = null!;
+    private TimeSpan psMonitorCursor;
+    private bool psMonitorRadioProgram;
     private double psMonitorZoom = 1;
     private double psMonitorOffset;
 
-    internal static void PSMonitorShow(Window? pOwner, LSMonitor pSource)
+    internal static void PSMonitorShow(Window? pOwner, LSMonitor pSource, PFlowControl pFlow, PViewer pViewer)
     {
         psMonitorCurrent?.Close();
-        var psMonitor = new PSMonitor(pOwner, pSource);
+        var psMonitor = new PSMonitor(pOwner, pSource, pFlow, pViewer);
         psMonitorCurrent = psMonitor;
         psMonitor.Show();
     }
 
-    private PSMonitor(Window? pOwner, LSMonitor pSource)
+    private PSMonitor(Window? pOwner, LSMonitor pSource, PFlowControl pFlow, PViewer pViewer)
     {
         psMonitorSource = pSource;
+        psMonitorFlow = pFlow;
+        psMonitorViewer = pViewer;
+        psMonitorCursor = pFlow.PFlowCursorRead();
         psMonitorTitle = LLocalization.LLocalizationTextRead("NormalizePreview.Window.Title");
         Title = psMonitorTitle;
         Owner = pOwner?.Owner ?? pOwner;
@@ -80,7 +93,11 @@ internal sealed class PSMonitor : Window
         psMonitorGrabber = new PSGrabber(this);
         psMonitorGrabber.PSGrabberAttach();
         psMonitorSource.LSMonitorReady += PSMonitorReadyHandle;
+        psMonitorViewer.PViewerClockTick += PSMonitorCursorHandle;
+        psMonitorViewer.PViewerBypassChange += PSMonitorBypassHandle;
+        psMonitorFlow.PFlowCursorChange += PSMonitorCursorHandle;
         Closed += PSMonitorCloseHandle;
+        PSMonitorBypassHandle(psMonitorViewer.PViewerBypassRead());
         psMonitorSource.LSMonitorUpdate();
     }
 
@@ -106,9 +123,27 @@ internal sealed class PSMonitor : Window
         UIElement psZoomBar = PSMonitorZoomBuild();
         DockPanel.SetDock(psZoomBar, Dock.Top);
         psContent.Children.Add(psZoomBar);
+        UIElement psTransport = PSMonitorTransportBuild();
+        DockPanel.SetDock(psTransport, Dock.Bottom);
+        psContent.Children.Add(psTransport);
         psContent.Children.Add(PSMonitorContentBuild());
         psMonitor.Children.Add(psContent);
         return psMonitor;
+    }
+
+    private UIElement PSMonitorTransportBuild()
+    {
+        var psTransport = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 12, 0, 0)
+        };
+        psTransport.Children.Add(PSMonitorButtonBuild(
+            "/PAssets/PCompass/PCompassPlay.svg", "NormalizePreview.PlayTooltip", psMonitorFlow.PFlowPlayRaise));
+        psTransport.Children.Add(PSMonitorButtonBuild(
+            "/PAssets/PCompass/PCompassPause.svg", "NormalizePreview.PauseTooltip", psMonitorFlow.PFlowPauseRaise));
+        return psTransport;
     }
 
     private UIElement PSMonitorZoomBuild()
@@ -175,6 +210,7 @@ internal sealed class PSMonitor : Window
     {
         PSMonitorEnvelopeDraw(psMonitorBeforeCanvas);
         PSMonitorEnvelopeDraw(psMonitorAfterCanvas);
+        PSMonitorHeadPlace();
     }
 
     private UIElement PSMonitorContentBuild()
@@ -185,7 +221,10 @@ internal sealed class PSMonitor : Window
         psMonitor.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = PSMonitorRailMinimum });
         psMonitor.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        Grid psBefore = PSMonitorRailBuild("NormalizePreview.Before", psMonitorBeforeFill, out psMonitorBeforeCanvas, out psMonitorBeforeStatus);
+        psMonitorBeforeRadio = PSMonitorRadioBuild("NormalizePreview.Before", "NormalizePreview.BeforeSelect", true);
+        psMonitorAfterRadio = PSMonitorRadioBuild("NormalizePreview.After", "NormalizePreview.AfterSelect", false);
+
+        Grid psBefore = PSMonitorRailBuild(psMonitorBeforeFill, psMonitorBeforeRadio, out psMonitorBeforeCanvas, out psMonitorBeforeStatus, out psMonitorBeforeHead);
         Grid.SetRow(psBefore, 0);
         psMonitor.Children.Add(psBefore);
 
@@ -193,7 +232,7 @@ internal sealed class PSMonitor : Window
         Grid.SetRow(psDivider, 1);
         psMonitor.Children.Add(psDivider);
 
-        Grid psAfter = PSMonitorRailBuild("NormalizePreview.After", psMonitorAfterFill, out psMonitorAfterCanvas, out psMonitorAfterStatus);
+        Grid psAfter = PSMonitorRailBuild(psMonitorAfterFill, psMonitorAfterRadio, out psMonitorAfterCanvas, out psMonitorAfterStatus, out psMonitorAfterHead);
         Grid.SetRow(psAfter, 2);
         psMonitor.Children.Add(psAfter);
 
@@ -217,14 +256,59 @@ internal sealed class PSMonitor : Window
         return psMonitor;
     }
 
-    private Grid PSMonitorRailBuild(string pLabelKey, Brush pFill, out Canvas pCanvas, out TextBlock pStatus)
+    private RadioButton PSMonitorRadioBuild(string pLabelKey, string pTooltipKey, bool pBypass)
+    {
+        var psRadio = new RadioButton
+        {
+            Content = LLocalization.LLocalizationTextRead(pLabelKey),
+            GroupName = "PSMonitorAudio",
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = PSFieldMuted,
+            Cursor = Cursors.Hand,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey),
+            Margin = new Thickness(PSMonitorGutter + 8, 8, 12, 0),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+        psRadio.Checked += (_, _) =>
+        {
+            if (!psMonitorRadioProgram)
+            {
+                psMonitorViewer.PViewerBypassSet(pBypass);
+            }
+        };
+        return psRadio;
+    }
+
+    private Grid PSMonitorRailBuild(Brush pFill, RadioButton pRadio, out Canvas pCanvas, out TextBlock pStatus, out Border pHead)
     {
         var psRail = new Grid { Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC)), ClipToBounds = true };
 
-        var psCanvas = new Canvas { Tag = pFill };
-        psCanvas.SizeChanged += (_, _) => PSMonitorEnvelopeDraw(psCanvas);
+        var psCanvas = new Canvas { Tag = pFill, Background = Brushes.Transparent };
+        psCanvas.SizeChanged += (_, _) =>
+        {
+            PSMonitorEnvelopeDraw(psCanvas);
+            PSMonitorHeadPlace();
+        };
+        psCanvas.MouseLeftButtonDown += (_, pEvent) => PSMonitorSeekStart(psCanvas, pEvent);
+        psCanvas.MouseMove += (_, pEvent) => PSMonitorSeekMove(psCanvas, pEvent);
+        psCanvas.MouseLeftButtonUp += (_, _) => psCanvas.ReleaseMouseCapture();
         psRail.Children.Add(psCanvas);
         pCanvas = psCanvas;
+
+        var psHead = new Border
+        {
+            Width = 1.5,
+            Background = new SolidColorBrush(Color.FromRgb(0x1F, 0x27, 0x33)),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            IsHitTestVisible = false,
+            Visibility = Visibility.Collapsed
+        };
+        psRail.Children.Add(psHead);
+        pHead = psHead;
 
         var psStatus = new TextBlock
         {
@@ -237,17 +321,84 @@ internal sealed class PSMonitor : Window
         psRail.Children.Add(psStatus);
         pStatus = psStatus;
 
-        psRail.Children.Add(new TextBlock
-        {
-            Text = LLocalization.LLocalizationTextRead(pLabelKey),
-            FontSize = 12,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = PSFieldMuted,
-            Margin = new Thickness(PSMonitorGutter + 8, 8, 12, 0),
-            VerticalAlignment = VerticalAlignment.Top,
-            IsHitTestVisible = false
-        });
+        psRail.Children.Add(pRadio);
         return psRail;
+    }
+
+    private void PSMonitorSeekStart(Canvas pCanvas, MouseButtonEventArgs pEvent)
+    {
+        pCanvas.CaptureMouse();
+        PSMonitorSeekApply(pCanvas, pEvent.GetPosition(pCanvas).X);
+    }
+
+    private void PSMonitorSeekMove(Canvas pCanvas, MouseEventArgs pEvent)
+    {
+        if (pCanvas.IsMouseCaptured)
+        {
+            PSMonitorSeekApply(pCanvas, pEvent.GetPosition(pCanvas).X);
+        }
+    }
+
+    private void PSMonitorSeekApply(Canvas pCanvas, double pX)
+    {
+        double pPlot = pCanvas.ActualWidth - PSMonitorGutter;
+        double pDuration = psMonitorViewer.PViewerDurationRead().TotalSeconds;
+        if (pPlot <= 1 || pDuration <= 0)
+        {
+            return;
+        }
+
+        double pLocal = Math.Clamp((pX - PSMonitorGutter) / pPlot, 0, 1);
+        double pFraction = Math.Clamp(psMonitorOffset + pLocal / psMonitorZoom, 0, 1);
+        psMonitorFlow.PFlowCursorSeek(TimeSpan.FromSeconds(pFraction * pDuration));
+    }
+
+    private void PSMonitorCursorHandle(TimeSpan pCursor)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => PSMonitorCursorHandle(pCursor));
+            return;
+        }
+
+        psMonitorCursor = pCursor;
+        PSMonitorHeadPlace();
+    }
+
+    private void PSMonitorBypassHandle(bool pBypass)
+    {
+        psMonitorRadioProgram = true;
+        psMonitorBeforeRadio.IsChecked = pBypass;
+        psMonitorAfterRadio.IsChecked = !pBypass;
+        psMonitorRadioProgram = false;
+    }
+
+    private void PSMonitorHeadPlace()
+    {
+        PSMonitorHeadApply(psMonitorBeforeCanvas, psMonitorBeforeHead);
+        PSMonitorHeadApply(psMonitorAfterCanvas, psMonitorAfterHead);
+    }
+
+    private void PSMonitorHeadApply(Canvas pCanvas, Border pHead)
+    {
+        double pPlot = pCanvas.ActualWidth - PSMonitorGutter;
+        double pDuration = psMonitorViewer.PViewerDurationRead().TotalSeconds;
+        if (pPlot <= 1 || pDuration <= 0)
+        {
+            pHead.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        double pFraction = Math.Clamp(psMonitorCursor.TotalSeconds / pDuration, 0, 1);
+        double pLocal = (pFraction - psMonitorOffset) * psMonitorZoom;
+        if (pLocal < 0 || pLocal > 1)
+        {
+            pHead.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        pHead.Visibility = Visibility.Visible;
+        pHead.Margin = new Thickness(PSMonitorGutter + pLocal * pPlot, 0, 0, 0);
     }
 
     private void PSMonitorReadyHandle(LSMonitorEstimate pEstimate)
@@ -266,13 +417,13 @@ internal sealed class PSMonitor : Window
     private void PSMonitorTickHandle(object? pSender, EventArgs pEvent)
     {
         psMonitorTimer.Stop();
-        PSMonitorRailApply(psMonitorBeforeCanvas, psMonitorBeforeStatus, psMonitorEstimate.LSMonitorBefore);
-        PSMonitorRailApply(psMonitorAfterCanvas, psMonitorAfterStatus, psMonitorEstimate.LSMonitorAfter);
+        PSMonitorRailApply(psMonitorBeforeCanvas, psMonitorBeforeStatus, psMonitorEstimate.LSMonitorBefore, false);
+        PSMonitorRailApply(psMonitorAfterCanvas, psMonitorAfterStatus, psMonitorEstimate.LSMonitorAfter, psMonitorSource.LSMonitorScanning);
     }
 
     private static double PSMonitorLevelRead(double pPeak) => Math.Clamp(pPeak, 0, 1);
 
-    private void PSMonitorRailApply(Canvas pCanvas, TextBlock pStatus, double[] pEnvelope)
+    private void PSMonitorRailApply(Canvas pCanvas, TextBlock pStatus, double[] pEnvelope, bool pScanning)
     {
         if (pEnvelope.Length == 0)
         {
@@ -283,7 +434,7 @@ internal sealed class PSMonitor : Window
             return;
         }
 
-        pStatus.Text = string.Empty;
+        pStatus.Text = pScanning ? LLocalization.LLocalizationTextRead("NormalizePreview.Updating") : string.Empty;
         pCanvas.DataContext = pEnvelope;
         PSMonitorEnvelopeDraw(pCanvas);
     }
@@ -395,6 +546,9 @@ internal sealed class PSMonitor : Window
     private void PSMonitorCloseHandle(object? pSender, EventArgs pEvent)
     {
         psMonitorSource.LSMonitorReady -= PSMonitorReadyHandle;
+        psMonitorViewer.PViewerClockTick -= PSMonitorCursorHandle;
+        psMonitorViewer.PViewerBypassChange -= PSMonitorBypassHandle;
+        psMonitorFlow.PFlowCursorChange -= PSMonitorCursorHandle;
         psMonitorTimer.Stop();
         psMonitorTimer.Tick -= PSMonitorTickHandle;
         PSGrabber.PSGrabberPlacementSave(this, PSMonitorPlacementKey);

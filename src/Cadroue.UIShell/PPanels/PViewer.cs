@@ -30,6 +30,7 @@ public sealed partial class PViewer : PPanel
 
     private Border? pViewerSurface;
     private readonly Button pViewerCloseButton;
+    private readonly Button pViewerAudioSwitch;
     private FlyleafHost? pViewerFlyleafHost;
     private bool pViewerHostBuilt;
     private readonly Canvas pViewerOverlay;
@@ -114,6 +115,7 @@ public sealed partial class PViewer : PPanel
         pViewerOverlay.KeyDown += PViewerNeutralKeyHandle;
 
         pViewerCloseButton = PViewerCloseBuild();
+        pViewerAudioSwitch = PViewerAudioBuild();
 
         PDropHandlersAdd();
 

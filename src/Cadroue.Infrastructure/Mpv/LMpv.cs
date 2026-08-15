@@ -193,7 +193,9 @@ public sealed partial class LMpv : IDisposable
 
     public void LMpvAudioSet(string lFilterChain)
     {
-        LMpvPropertySet("af", lFilterChain ?? string.Empty);
+        LMpvPropertySet("af", string.IsNullOrEmpty(lFilterChain)
+            ? string.Empty
+            : "lavfi=[" + lFilterChain + "]");
     }
 
     public TimeSpan LMpvTimeRead()

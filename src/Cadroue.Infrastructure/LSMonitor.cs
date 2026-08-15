@@ -104,6 +104,7 @@ public sealed class LSMonitor : IDisposable
         }
 
         lMonitorScanning = true;
+        LSMonitorPublish();
         LSMonitorAfterScan(lPath, lDuration, lGraph, lToken.Token);
     }
 

@@ -243,6 +243,7 @@ public sealed partial class PInspector
             pInspectorVolumeValue.Text = pInspectorVolumeSlider.Value.ToString("0.#", CultureInfo.InvariantCulture);
             pInspectorVolumeSuppress = false;
             PVolumeWarnUpdate();
+            PInspectorActiveRaise();
         };
         pInspectorVolumeValue.TextChanged += (_, _) =>
         {
@@ -256,6 +257,7 @@ public sealed partial class PInspector
                 PInspectorDecimalRead(pInspectorVolumeValue, 0), LWorkAudio.LWorkGainLeast, LWorkAudio.LWorkGainMost);
             pInspectorVolumeSuppress = false;
             PVolumeWarnUpdate();
+            PInspectorActiveRaise();
         };
 
         var pGainRow = new Grid();

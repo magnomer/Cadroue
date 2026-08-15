@@ -44,6 +44,7 @@ public sealed partial class PViewer
         var pViewerOverlayHost = new Grid();
         pViewerOverlayHost.Children.Add(pViewerOverlay);
         pViewerOverlayHost.Children.Add(pViewerCloseButton);
+        pViewerOverlayHost.Children.Add(pViewerAudioSwitch);
 
         pViewerFlyleafHost = new FlyleafHost
         {
@@ -124,11 +125,14 @@ public sealed partial class PViewer
             Visibility pViewerMpvTarget = pViewerHostVisible ? Visibility.Visible : Visibility.Collapsed;
             pViewerMpvHost.Visibility = pViewerMpvTarget;
             pViewerCloseButton.Visibility = pViewerMpvTarget;
+            PViewerAudioShow(pViewerHostVisible);
             PViewerOverlayPlace();
             return;
         }
 
         if (pViewerFlyleafHost is null) return;
+
+        PViewerAudioShow(pViewerHostVisible);
 
         Visibility pViewerHostTarget = pViewerHostVisible ? Visibility.Visible : Visibility.Collapsed;
         if (pViewerFlyleafHost.Visibility == pViewerHostTarget)

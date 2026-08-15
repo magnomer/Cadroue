@@ -312,7 +312,9 @@ public sealed partial class PFlow : UserControl
     private void PFlowViewfinderSeek(TimeSpan cursorTime) => PFlowCursorSeek(cursorTime);
     private void PFlowMapSeek(TimeSpan cursorTime) => PFlowCursorSeek(cursorTime);
 
-    private void PFlowCursorSeek(TimeSpan cursorTime)
+    public TimeSpan PFlowCursorRead() => lCursor;
+
+    public void PFlowCursorSeek(TimeSpan cursorTime)
     {
         if (!pFlowCommandActive) return;
         PFlowKeyframeSuspend();

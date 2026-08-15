@@ -274,6 +274,7 @@ public sealed partial class PInspector
         }
 
         pNoisePresetSuppress = false;
+        PInspectorActiveRaise();
     }
 
     private void PNoiseCustomSet(string pBase)

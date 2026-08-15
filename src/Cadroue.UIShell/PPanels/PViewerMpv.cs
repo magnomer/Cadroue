@@ -22,6 +22,9 @@ public sealed partial class PViewer
     private LColor? pViewerMpvGammaApplied;
     private string pViewerAudioFilter = string.Empty;
     private string? pViewerAudioApplied;
+    private bool pViewerBypass;
+
+    public event Action<bool>? PViewerBypassChange;
 
     public void PViewerAudioSet(string pViewerGraph)
     {
@@ -29,22 +32,87 @@ public sealed partial class PViewer
         PViewerAudioApply();
     }
 
+    public bool PViewerBypassRead() => pViewerBypass;
+
+    public void PViewerBypassSet(bool pBypass)
+    {
+        if (pViewerBypass == pBypass)
+        {
+            return;
+        }
+
+        pViewerBypass = pBypass;
+        PViewerAudioUpdate();
+        PViewerAudioApply();
+        PViewerBypassChange?.Invoke(pViewerBypass);
+    }
+
+    private string PViewerAudioResolve() =>
+        pViewerBypass ? string.Empty : pViewerAudioFilter;
+
+    private void PViewerAudioToggle() => PViewerBypassSet(!pViewerBypass);
+
     private void PViewerAudioApply()
     {
-        if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady || pViewerAudioFilter == pViewerAudioApplied)
+        if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady)
+        {
+            return;
+        }
+
+        string pViewerEffective = PViewerAudioResolve();
+        if (pViewerEffective == pViewerAudioApplied)
         {
             return;
         }
 
         try
         {
-            pViewerPlayer.PPlayerAudioSet(pViewerAudioFilter);
-            pViewerAudioApplied = pViewerAudioFilter;
+            pViewerPlayer.PPlayerAudioSet(pViewerEffective);
+            pViewerAudioApplied = pViewerEffective;
         }
         catch (Exception pViewerAudioException)
         {
             LTraceLog.LTraceErrorRecord(
-                $"mpv rejected audio filter '{pViewerAudioFilter}': {pViewerAudioException.Message}");
+                $"mpv rejected audio filter '{pViewerEffective}': {pViewerAudioException.Message}");
+        }
+    }
+
+    private Button PViewerAudioBuild()
+    {
+        var pButton = new Button
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(16, 16, 0, 0),
+            MinWidth = 84,
+            Height = 24,
+            Padding = new Thickness(12, 0, 12, 0),
+            FontSize = 11,
+            Visibility = Visibility.Collapsed,
+            Style = Cadroue.UIShell.PMainWindow.PButton.PButtonPanelCreate()
+        };
+        pButton.Click += (_, _) => PViewerAudioToggle();
+        return pButton;
+    }
+
+    private void PViewerAudioUpdate()
+    {
+        bool pViewerAudioCapable = PViewerEngineCurrent == LPreviewEngine.LPreviewEngineMpv;
+        pViewerAudioSwitch.IsEnabled = pViewerAudioCapable;
+        pViewerAudioSwitch.Content = LLocalization.LLocalizationTextRead(
+            pViewerBypass ? "Viewer.Audio.Original" : "Viewer.Audio.Filtered");
+        pViewerAudioSwitch.ToolTip = LLocalization.LLocalizationTextRead(
+            pViewerAudioCapable ? "Viewer.Audio.SwitchTooltip" : "Viewer.Audio.MpvRequired");
+    }
+
+    private void PViewerAudioShow(bool pViewerAudioVisible)
+    {
+        pViewerAudioSwitch.Visibility = pViewerAudioVisible && PViewerAudioEligible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        if (pViewerAudioVisible && PViewerAudioEligible)
+        {
+            PViewerAudioUpdate();
         }
     }
 
@@ -56,6 +124,7 @@ public sealed partial class PViewer
         }
 
         PViewerEngineCurrent = pViewerEngine;
+        PViewerAudioUpdate();
         PViewerEngineChange?.Invoke();
     }
 
@@ -262,6 +331,7 @@ public sealed partial class PViewer
         var pViewerOverlayHost = new Grid();
         pViewerOverlayHost.Children.Add(pViewerOverlay);
         pViewerOverlayHost.Children.Add(pViewerCloseButton);
+        pViewerOverlayHost.Children.Add(pViewerAudioSwitch);
         pViewerMpvOverlay = new Popup
         {
             Child = pViewerOverlayHost,
@@ -367,6 +437,7 @@ public sealed partial class PViewer
     {
         (pViewerOverlay.Parent as Panel)?.Children.Remove(pViewerOverlay);
         (pViewerCloseButton.Parent as Panel)?.Children.Remove(pViewerCloseButton);
+        (pViewerAudioSwitch.Parent as Panel)?.Children.Remove(pViewerAudioSwitch);
     }
 
     private async void PViewerMpvApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)

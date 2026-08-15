@@ -329,6 +329,7 @@ public sealed partial class PInspector
         }
 
         pPass.PInspectorPresetSuppress = false;
+        PInspectorActiveRaise();
     }
 
     private static void PFilterCustomSet(PInspectorPass pPass, string pToken)
