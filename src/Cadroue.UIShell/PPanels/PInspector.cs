@@ -174,6 +174,7 @@ public sealed partial class PInspector : PPanel
         bool pCropSelected = pStepName == "Crop";
         bool pBrightnessSelected = pStepName == "Brightness";
         bool pContrastSelected = pStepName == "Contrast";
+        bool pSaturationSelected = pStepName == "Saturation";
         bool pGammaSelected = pStepName == "Gamma";
         bool pWhitebalanceSelected = pStepName == "Whitebalance";
         bool pVolumeSelected = pStepName == "Volume";
@@ -183,7 +184,7 @@ public sealed partial class PInspector : PPanel
         bool pLowPassSelected = pStepName == "Low Pass";
         bool pEqualizerSelected = pStepName == "Equalizer";
         bool pSkipSelected = pStepName == "No Processing";
-        bool pKnownSelected = pCropSelected || pBrightnessSelected || pContrastSelected || pGammaSelected || pWhitebalanceSelected || pVolumeSelected || pNormalizeSelected
+        bool pKnownSelected = pCropSelected || pBrightnessSelected || pContrastSelected || pSaturationSelected || pGammaSelected || pWhitebalanceSelected || pVolumeSelected || pNormalizeSelected
             || pNoiseSelected || pHighPassSelected || pLowPassSelected || pEqualizerSelected || pSkipSelected;
 
         pInspectorTitleLabel.Text = pStepName switch
@@ -191,6 +192,7 @@ public sealed partial class PInspector : PPanel
             "Crop" => LLocalization.LLocalizationTextRead("Inspector.Step.Crop"),
             "Brightness" => LLocalization.LLocalizationTextRead("Inspector.Step.Brightness"),
             "Contrast" => LLocalization.LLocalizationTextRead("Inspector.Step.Contrast"),
+            "Saturation" => LLocalization.LLocalizationTextRead("Inspector.Step.Saturation"),
             "Gamma" => LLocalization.LLocalizationTextRead("Inspector.Step.Gamma"),
             "Whitebalance" => LLocalization.LLocalizationTextRead("Inspector.Step.Whitebalance"),
             "Volume" => LLocalization.LLocalizationTextRead("Inspector.Step.Volume"),
@@ -205,6 +207,7 @@ public sealed partial class PInspector : PPanel
         pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorBrightnessBody.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorContrastBody.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorSaturationBody.Visibility = pSaturationSelected ? Visibility.Visible : Visibility.Collapsed;
         pGammaBody.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
         pWhitebalanceBody.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumeBody.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -218,6 +221,7 @@ public sealed partial class PInspector : PPanel
         pInspectorPersistentBox.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorBrightnessPersistent.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorContrastPersistent.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorSaturationPersistent.Visibility = pSaturationSelected ? Visibility.Visible : Visibility.Collapsed;
         pGammaPersistent.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
         pWhitebalancePersistent.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumePersistent.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;

@@ -898,6 +898,7 @@
   "Inspector.Step.Crop": "{Terms.Crop}",
   "Inspector.Step.Brightness": "{Terms.Brightness}",
   "Inspector.Step.Contrast": "{Terms.Contrast}",
+  "Inspector.Step.Saturation": "{Terms.Saturation}",
   "Inspector.Step.Gamma": "{Terms.Gamma}",
   "Inspector.Step.Whitebalance": "{Terms.Whitebalance}",
   "Inspector.Step.Volume": "{Terms.Volume}",
