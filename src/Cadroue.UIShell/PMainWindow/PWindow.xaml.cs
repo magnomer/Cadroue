@@ -115,6 +115,7 @@ public partial class PWindow : Window
         }
         pTabset.PStripUpdateResume();
         PWindowRelayApply(pTabset.PStripRecords, lScene.LSceneTabRelays);
+        pTabset.PStripTitleUpdate();
         foreach (PTabRecord pTabRecord in pTabset.PStripRecords)
         {
             if (pTabRecord.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab pFunnelSurface)
@@ -123,7 +124,6 @@ public partial class PWindow : Window
             }
         }
         int pSelectIndex = Math.Clamp(lScene.LSceneTabIndex, 0, pTabset.PStripRecords.Count - 1);
-        pTabset.PStripTitleUpdate();
         pTabset.PStripSelect(pTabset.PStripRecords[pSelectIndex]);
     }
     private void PWindowMediaRestore(LPreferenceState lPreferenceState)
