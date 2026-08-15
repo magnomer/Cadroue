@@ -137,6 +137,9 @@ internal static class TInterface
     internal static LSidecarEditRecord EditPersistentCreate(LEditPlan plan) => LEdit.LEditPersistentCreate(plan);
     internal static LWorkVideo EditVideoCreate(IReadOnlyList<LWorkVideoStep> steps, bool mpvOnlyCapable) =>
         LEdit.LEditVideoCreate(steps, mpvOnlyCapable);
+    internal static LWorkVideo EditVideoCreate(
+        IReadOnlyList<LWorkVideoStep> steps, bool mpvOnlyCapable, bool eqCapable) =>
+        LEdit.LEditVideoCreate(steps, mpvOnlyCapable, eqCapable);
     internal static LSidecarEditRecord SidecarEditRecordCreate(string kind, bool active, double value) =>
         new()
         {

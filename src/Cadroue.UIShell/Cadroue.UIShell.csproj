@@ -18,6 +18,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\LICENSE" Link="LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="PAssets\PTabs\*.svg" />
     <Resource Include="PAssets\PCompass\*.svg" />
     <Resource Include="PAssets\PPanels\*.svg" />

@@ -45,6 +45,27 @@ public sealed class GammaSettingTests
     }
 
     [Fact]
+    public void EqCapability_DropsBrightnessContrastGammaSaturationWhenExportLacksEq()
+    {
+        LWorkVideoStep brightness = TInterface.WorkBrightnessCreate(true, 25);
+        LWorkVideoStep contrast = TInterface.WorkContrastCreate(true, 125);
+        LWorkVideoStep gamma = TInterface.WorkGammaCreate(true, 50);
+        LWorkVideoStep saturation = TInterface.WorkSaturationCreate(true, 130);
+        LWorkVideoStep exposure = TInterface.WorkExposureCreate(true, 1);
+        LWorkVideoStep whitebalance = TInterface.WorkWhitebalanceCreate(
+            true, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 137.5);
+        LWorkVideoStep[] stored = [brightness, contrast, gamma, saturation, exposure, whitebalance];
+
+        LWorkVideo eqPresent = TInterface.EditVideoCreate(stored, true, true);
+        LWorkVideo eqMissing = TInterface.EditVideoCreate(stored, true, false);
+
+        Assert.Equal(stored, eqPresent.LWorkVideoSteps);
+        Assert.Equal([exposure, whitebalance], eqMissing.LWorkVideoSteps);
+        Assert.True(brightness.LWorkStepActive);
+        Assert.Equal(25, brightness.LWorkStepValue);
+    }
+
+    [Fact]
     public void Gamma_Factory_ClampsCompletePayloadAndKeepsGlobalCompatibilityValue()
     {
         LWorkVideoStep step = TInterface.WorkGammaCreate(true, -150, -120, 25.5, 150, 120);

@@ -413,6 +413,7 @@ public static class LMessenger
 
         var lMessengerItems = new List<LWorkItem>();
         Guid lMessengerLooseBatch = Cadroue.Application.LGate.LGateBatchCreate();
+        bool lMessengerEqCapable = Cadroue.Infrastructure.LInventory.LInventoryFilterExist("eq");
 
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
@@ -434,7 +435,7 @@ public static class LMessenger
                 lMessengerPlan.LEditSkip
                     ? LWorkVideo.LWorkVideoCreate()
                     : Cadroue.Application.LEdit.LEditVideoCreate(
-                        lMessengerPlan.LEditVideo.LWorkVideoSteps, lMessengerMpvOnlyCapable),
+                        lMessengerPlan.LEditVideo.LWorkVideoSteps, lMessengerMpvOnlyCapable, lMessengerEqCapable),
                 lMessengerOutput,
                 lMessengerBatch));
         }

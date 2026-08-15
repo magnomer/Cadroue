@@ -21,6 +21,7 @@ internal sealed class PSAbout : Window
     internal const string PSAboutPlacementKey = "About";
 
     private const string PSAboutProjectUrl = "https://github.com/magnomer/Cadroue";
+    private const string PSAboutNoticeName = "THIRD-PARTY-NOTICES.md";
     private const string PSAboutLogoPath = "/PAssets/PProgram/PProgramIcon.png";
 
     private const double PSAboutWidthDefault = 460;
@@ -162,12 +163,13 @@ internal sealed class PSAbout : Window
 
     private static UIElement PSAboutCreditBuild()
     {
-        var pRows = new List<UIElement>(PSAboutCredits.Length);
+        var pRows = new List<UIElement>(PSAboutCredits.Length + 1);
         foreach ((string pName, string pUrl) in PSAboutCredits)
         {
             pRows.Add(PSAboutRowBuild(pName, pUrl));
         }
 
+        pRows.Add(PSAboutLicenseBuild());
         return PSPlateBuild(LLocalization.LLocalizationTextRead("About.Credits.Title"), pRows.ToArray());
     }
 
@@ -182,6 +184,42 @@ internal sealed class PSAbout : Window
         Grid.SetColumn(pLink, 1);
         pRow.Children.Add(pLink);
         return pRow;
+    }
+
+    private static UIElement PSAboutLicenseBuild()
+    {
+        var pRow = new Grid { Margin = new Thickness(0, 0, 0, PSAboutRowGap) };
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pRow.Children.Add(PSFieldLabelBuild(LLocalization.LLocalizationTextRead("About.Licenses.Label")));
+
+        var pLink = new Hyperlink(new Run(LLocalization.LLocalizationTextRead("About.Licenses.Link")));
+        pLink.Click += PSAboutNoticeHandle;
+
+        var pText = new TextBlock
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextWrapping = TextWrapping.Wrap
+        };
+        pText.Inlines.Add(pLink);
+        Grid.SetColumn(pText, 1);
+        pRow.Children.Add(pText);
+        return pRow;
+    }
+
+    private static void PSAboutNoticeHandle(object pSender, RoutedEventArgs pEvent)
+    {
+        pEvent.Handled = true;
+        string pPath = System.IO.Path.Combine(AppContext.BaseDirectory, PSAboutNoticeName);
+        try
+        {
+            Process.Start(new ProcessStartInfo(pPath) { UseShellExecute = true });
+        }
+        catch (Exception pException)
+        {
+            LTraceLog.LTraceErrorRecord($"Notice could not be opened: {pPath}", pException);
+        }
     }
 
     private static TextBlock PSAboutLinkBuild(string pUrl, HorizontalAlignment pAlignment)

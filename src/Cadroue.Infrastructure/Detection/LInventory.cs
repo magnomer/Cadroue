@@ -24,6 +24,36 @@ public sealed record LInventoryEncoder(
 public static class LInventory
 {
     private static IReadOnlyCollection<string>? lInventoryInstalledNames;
+    private static IReadOnlyCollection<string>? lInventoryFilterNames;
+
+    public static void LInventoryWarm()
+    {
+        LInventoryInstalledRead();
+        LInventoryFilterRead();
+    }
+
+    public static bool LInventoryFilterExist(string lInventoryFilter)
+    {
+        IReadOnlyCollection<string> lInventoryFilters = LInventoryFilterRead();
+        return lInventoryFilters.Count == 0 || lInventoryFilters.Contains(lInventoryFilter);
+    }
+
+    public static IReadOnlyCollection<string> LInventoryFilterRead()
+    {
+        if (lInventoryFilterNames is { Count: > 0 })
+        {
+            return lInventoryFilterNames;
+        }
+
+        var lInventoryNames = LInventoryFiltersParse(LInventoryProcessRead("-filters"))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (lInventoryNames.Count > 0)
+        {
+            lInventoryFilterNames = lInventoryNames;
+        }
+
+        return lInventoryNames;
+    }
 
     public static IReadOnlyCollection<string> LInventoryInstalledRead()
     {
@@ -49,9 +79,16 @@ public static class LInventory
         return lInventoryNames.Count == 0 || lInventoryNames.Contains(lInventoryName);
     }
 
-    public static void LInventoryReset() => lInventoryInstalledNames = null;
+    public static void LInventoryReset()
+    {
+        lInventoryInstalledNames = null;
+        lInventoryFilterNames = null;
+    }
 
-    public static IReadOnlyList<LInventoryEncoder> LInventoryEncodersRead()
+    public static IReadOnlyList<LInventoryEncoder> LInventoryEncodersRead() =>
+        LInventoryEncodersParse(LInventoryProcessRead("-encoders"));
+
+    private static string LInventoryProcessRead(string lInventoryArgument)
     {
         try
         {
@@ -63,12 +100,12 @@ public static class LInventory
                 CreateNoWindow = true
             };
             lInventoryStart.ArgumentList.Add("-hide_banner");
-            lInventoryStart.ArgumentList.Add("-encoders");
+            lInventoryStart.ArgumentList.Add(lInventoryArgument);
 
             using var lInventoryProcess = Process.Start(lInventoryStart);
             if (lInventoryProcess is null)
             {
-                return Array.Empty<LInventoryEncoder>();
+                return string.Empty;
             }
 
             LCustody.LCustodyAttach(lInventoryProcess);
@@ -76,13 +113,49 @@ public static class LInventory
             Task<string> lInventoryErrorTask = lInventoryProcess.StandardError.ReadToEndAsync();
             lInventoryProcess.WaitForExit();
             _ = lInventoryErrorTask.GetAwaiter().GetResult();
-            return LInventoryEncodersParse(lInventoryOutputTask.GetAwaiter().GetResult());
+            return lInventoryOutputTask.GetAwaiter().GetResult();
         }
         catch (Exception lInventoryException)
             when (lInventoryException is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
         {
-            return Array.Empty<LInventoryEncoder>();
+            return string.Empty;
         }
+    }
+
+    private static IReadOnlyList<string> LInventoryFiltersParse(string lInventoryText)
+    {
+        var lInventoryList = new List<string>();
+        foreach (string lInventoryRawLine in lInventoryText.Split('\n'))
+        {
+            string[] lInventoryParts = lInventoryRawLine
+                .TrimEnd('\r')
+                .TrimStart()
+                .Split((char[]?)null, 4, StringSplitOptions.RemoveEmptyEntries);
+            if (lInventoryParts.Length < 3
+                || lInventoryParts[0].Length is < 1 or > 3
+                || !LInventoryFilterFlagsCheck(lInventoryParts[0])
+                || !lInventoryParts[2].Contains("->", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            lInventoryList.Add(lInventoryParts[1]);
+        }
+
+        return lInventoryList;
+    }
+
+    private static bool LInventoryFilterFlagsCheck(string lInventoryFlags)
+    {
+        foreach (char lInventoryChar in lInventoryFlags)
+        {
+            if (lInventoryChar is not ('.' or 'T' or 'S' or 'C'))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public static IReadOnlyList<LInventoryEncoder> LInventoryAudioRead() =>

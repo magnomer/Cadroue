@@ -558,25 +558,42 @@ public sealed class PEditTab : PTabSurface
             }
         }
 
-        return LEdit.LEditVideoCreate(pSteps, pMpvOnlyCapable);
+        return LEdit.LEditVideoCreate(pSteps, pMpvOnlyCapable, PEditEqCapableRead());
     }
 
     private bool PEditMpvOnlyCapableRead() =>
         pViewer.PViewerEngineCurrent == LPreviewEngine.LPreviewEngineMpv;
 
+    private static bool PEditEqCapableRead() =>
+        Cadroue.Infrastructure.LInventory.LInventoryFilterExist("eq");
+
     private void PEditMpvOnlyCapabilityHandle()
     {
         bool pMpvOnlyCapable = PEditMpvOnlyCapableRead();
-        string pGammaTooltip = LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresMpv");
-        pProcessing.PProcessingEnabledSet("Gamma", pMpvOnlyCapable, pGammaTooltip);
+        bool pEqCapable = PEditEqCapableRead();
+
+        string pEqTooltip = LLocalization.LLocalizationTextRead("Processing.Step.RequiresEq");
+        pProcessing.PProcessingEnabledSet("Brightness", pEqCapable, pEqTooltip);
+        pProcessing.PProcessingEnabledSet("Contrast", pEqCapable, pEqTooltip);
+        pProcessing.PProcessingEnabledSet("Saturation", pEqCapable, pEqTooltip);
+        pInspector.PToneEqCapabilitySet(pEqCapable);
+
         string pExposureTooltip = LLocalization.LLocalizationTextRead("Processing.Step.ExposureRequiresMpv");
         pProcessing.PProcessingEnabledSet("Exposure", pMpvOnlyCapable, pExposureTooltip);
         pInspector.PExposureCapabilitySet(pMpvOnlyCapable);
         string pWhitebalanceTooltip = LLocalization.LLocalizationTextRead(
             "Processing.Step.WhitebalanceRequiresMpv");
         pProcessing.PProcessingEnabledSet("Whitebalance", pMpvOnlyCapable, pWhitebalanceTooltip);
-        pInspector.PGammaCapabilitySet(pMpvOnlyCapable);
         pInspector.PWhitebalanceCapabilitySet(pMpvOnlyCapable);
+
+        bool pGammaCapable = pMpvOnlyCapable && pEqCapable;
+        string pGammaTooltip = LLocalization.LLocalizationTextRead(
+            !pEqCapable ? "Processing.Step.GammaRequiresEq" : "Processing.Step.GammaRequiresMpv");
+        pProcessing.PProcessingEnabledSet("Gamma", pGammaCapable, pGammaTooltip);
+        pInspector.PGammaCapabilitySet(
+            pGammaCapable,
+            !pEqCapable ? "Inspector.Video.GammaRequiresEq" : "Inspector.Video.GammaRequiresMpv");
+
         PEditActiveUpdate();
         PEditColorApply();
     }

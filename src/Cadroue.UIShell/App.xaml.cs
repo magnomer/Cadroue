@@ -186,7 +186,7 @@ public partial class PProgram : System.Windows.Application
         LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
         LPreset.LPresetPrepare();
         LStationSeamApply();
-        _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryInstalledRead);
+        _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryWarm);
         PPanels.PSEncoder.PSCodecProbeStart();
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;

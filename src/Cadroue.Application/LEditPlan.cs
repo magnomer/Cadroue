@@ -21,13 +21,29 @@ public static partial class LEdit
 {
     public static LWorkVideo LEditVideoCreate(
         IReadOnlyList<LWorkVideoStep> lEditSteps,
-        bool lEditMpvOnlyCapable) =>
-        new(lEditMpvOnlyCapable
-            ? lEditSteps
-            : lEditSteps.Where(lStep =>
+        bool lEditMpvOnlyCapable,
+        bool lEditEqCapable = true)
+    {
+        IEnumerable<LWorkVideoStep> lEditKept = lEditSteps;
+        if (!lEditMpvOnlyCapable)
+        {
+            lEditKept = lEditKept.Where(lStep =>
                 lStep.LWorkStepKind is not (LColorKind.LColorKindGamma
                     or LColorKind.LColorKindWhitebalance
-                    or LColorKind.LColorKindExposure)).ToArray());
+                    or LColorKind.LColorKindExposure));
+        }
+
+        if (!lEditEqCapable)
+        {
+            lEditKept = lEditKept.Where(lStep =>
+                lStep.LWorkStepKind is not (LColorKind.LColorKindBrightness
+                    or LColorKind.LColorKindContrast
+                    or LColorKind.LColorKindGamma
+                    or LColorKind.LColorKindSaturation));
+        }
+
+        return new LWorkVideo(lEditKept.ToArray());
+    }
 
     public static LEditPlan LEditPlanResolve(LEditPlan? lEditSaved, LEditPlan? lEditPersistent)
     {

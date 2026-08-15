@@ -28,7 +28,7 @@ public sealed partial class LMpv
 
     private const string LMpvReleaseUrl =
         "https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest";
-    private const string LMpvAssetPrefix = "mpv-dev-lgpl-x86_64-";
+    private const string LMpvAssetPrefix = "mpv-dev-x86_64-";
     private const string LMpvAssetVariant = "-v3-";
     private const string LMpvAssetSuffix = ".7z";
 
@@ -135,7 +135,7 @@ public sealed partial class LMpv
             }
         }
 
-        throw new InvalidOperationException("No LGPL x86_64 libmpv asset was found in the latest mpv-winbuild release.");
+        throw new InvalidOperationException("No x86_64 libmpv asset was found in the latest mpv-winbuild release.");
     }
 
     private static string LMpvNameResolve(string lUrl)

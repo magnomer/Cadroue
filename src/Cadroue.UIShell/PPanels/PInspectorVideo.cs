@@ -45,6 +45,8 @@ public sealed partial class PInspector
     private StackPanel pGammaStack = null!;
     private StackPanel pGammaBody = null!;
     private bool pGammaCapable;
+    private bool pEqCapable = true;
+    private string pGammaDisabledKey = "Inspector.Video.GammaRequiresMpv";
 
     private CheckBox pWhitebalanceBox = null!;
     private CheckBox pWhitebalancePersistent = null!;
@@ -486,22 +488,56 @@ public sealed partial class PInspector
         }
     }
 
-    public void PGammaCapabilitySet(bool pGammaCapable)
+    private static void PInspectorSectionGrey(
+        CheckBox pBox,
+        CheckBox pPersistent,
+        StackPanel pStack,
+        StackPanel pBody,
+        bool pCapable,
+        string pDisabledKey,
+        string pApplyKey,
+        string pPersistKey)
+    {
+        pBox.IsEnabled = pCapable;
+        pPersistent.IsEnabled = pCapable;
+        pStack.IsEnabled = pCapable && pBox.IsChecked == true;
+        pStack.Opacity = pCapable && pBox.IsChecked == true ? 1 : 0.4;
+        string? pDisabledTooltip = pCapable
+            ? null
+            : LLocalization.LLocalizationTextRead(pDisabledKey);
+        pBody.ToolTip = pDisabledTooltip;
+        pBox.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead(pApplyKey);
+        pPersistent.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead(pPersistKey);
+        ToolTipService.SetShowOnDisabled(pBody, true);
+        ToolTipService.SetShowOnDisabled(pBox, true);
+        ToolTipService.SetShowOnDisabled(pPersistent, true);
+    }
+
+    public void PToneEqCapabilitySet(bool pEqCapable)
+    {
+        this.pEqCapable = pEqCapable;
+        PInspectorSectionGrey(
+            pToneBrightnessBox, pInspectorBrightnessPersistent, pInspectorBrightnessStack, pInspectorBrightnessBody,
+            pEqCapable, "Inspector.Video.BrightnessRequiresEq",
+            "Inspector.Video.ApplyBrightness", "Inspector.Video.PersistBrightness");
+        PInspectorSectionGrey(
+            pToneContrastBox, pInspectorContrastPersistent, pInspectorContrastStack, pInspectorContrastBody,
+            pEqCapable, "Inspector.Video.ContrastRequiresEq",
+            "Inspector.Video.ApplyContrast", "Inspector.Video.PersistContrast");
+        PInspectorSectionGrey(
+            pToneSaturationBox, pInspectorSaturationPersistent, pInspectorSaturationStack, pInspectorSaturationBody,
+            pEqCapable, "Inspector.Video.SaturationRequiresEq",
+            "Inspector.Video.ApplySaturation", "Inspector.Video.PersistSaturation");
+    }
+
+    public void PGammaCapabilitySet(bool pGammaCapable, string pGammaDisabledKey)
     {
         this.pGammaCapable = pGammaCapable;
-        pGammaBox.IsEnabled = pGammaCapable;
-        pGammaPersistent.IsEnabled = pGammaCapable;
-        pGammaStack.IsEnabled = pGammaCapable && pGammaBox.IsChecked == true;
-        pGammaStack.Opacity = pGammaCapable && pGammaBox.IsChecked == true ? 1 : 0.4;
-        string? pDisabledTooltip = pGammaCapable
-            ? null
-            : LLocalization.LLocalizationTextRead("Inspector.Video.GammaRequiresMpv");
-        pGammaBody.ToolTip = pDisabledTooltip;
-        pGammaBox.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma");
-        pGammaPersistent.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma");
-        ToolTipService.SetShowOnDisabled(pGammaBody, true);
-        ToolTipService.SetShowOnDisabled(pGammaBox, true);
-        ToolTipService.SetShowOnDisabled(pGammaPersistent, true);
+        this.pGammaDisabledKey = pGammaDisabledKey;
+        PInspectorSectionGrey(
+            pGammaBox, pGammaPersistent, pGammaStack, pGammaBody,
+            pGammaCapable, pGammaDisabledKey,
+            "Inspector.Video.ApplyGamma", "Inspector.Video.PersistGamma");
     }
 
     public void PWhitebalanceCapabilitySet(bool pWhitebalanceCapable)
@@ -685,7 +721,7 @@ public sealed partial class PInspector
                     pGammaHighlightValue,
                     pGamma.LWorkGammaHighlight);
                 PToneApplyUpdate(pGammaBox, pGammaStack);
-                PGammaCapabilitySet(pGammaCapable);
+                PGammaCapabilitySet(pGammaCapable, pGammaDisabledKey);
                 return;
             }
 

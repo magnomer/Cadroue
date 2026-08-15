@@ -172,7 +172,9 @@ public sealed partial class PViewer
         catch (Exception pViewerFilterException)
         {
             LTraceLog.LTraceErrorRecord(
-                $"mpv rejected preview filter '{pViewerFilter}': {pViewerFilterException.Message}");
+                "mpv rejected the preview filter (likely an LGPL libmpv without the GPL eq filter); "
+                + "the queued export is unaffected. "
+                + $"Filter '{pViewerFilter}': {pViewerFilterException.Message}");
             PViewerMpvRejectedFilterClear();
             return false;
         }
