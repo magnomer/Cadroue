@@ -7,7 +7,7 @@ namespace Cadroue.UIShell.PPanels;
 
 internal sealed class PPlayerMpv : PPlayerEngine
 {
-    private static readonly TimeSpan pPlayerMpvOpenBudget = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan pPlayerMpvOpenBudget = TimeSpan.FromSeconds(15);
 
     private readonly LMpv pPlayerMpvLibrary;
 

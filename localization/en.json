@@ -273,6 +273,8 @@
   "Processing.Step.Saturation": "{Terms.Saturation}",
   "Processing.Step.Gamma": "{Terms.Gamma}",
   "Processing.Step.GammaRequiresMpv": "{Terms.Gamma} requires MPV.",
+  "Processing.Step.Exposure": "{Terms.Exposure}",
+  "Processing.Step.ExposureRequiresMpv": "{Terms.Exposure} requires MPV.",
   "Processing.Step.Whitebalance": "{Terms.Whitebalance}",
   "Processing.Step.WhitebalanceRequiresMpv": "{Terms.Whitebalance} requires MPV.",
   "Processing.Step.HighPass": "High Pass",

@@ -16,6 +16,7 @@ public sealed class PEditTab : PTabSurface
     private const string PEditContrastIcon = "/PAssets/PPanels/PProcessingContrast.svg";
     private const string PEditSaturationIcon = "/PAssets/PPanels/PProcessingSaturation.svg";
     private const string PEditGammaIcon = "/PAssets/PPanels/PProcessingGamma.svg";
+    private const string PEditExposureIcon = "/PAssets/PPanels/PProcessingExposure.svg";
     private const string PEditWhitebalanceIcon = "/PAssets/PPanels/PProcessingWhitebalance.svg";
 
     private readonly PFlowControl pFlow = new();
@@ -107,6 +108,7 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingStepAdd("Contrast", PEditContrastIcon, "Processing.Step.Contrast");
         pProcessing.PProcessingStepAdd("Saturation", PEditSaturationIcon, "Processing.Step.Saturation");
         pProcessing.PProcessingStepAdd("Gamma", PEditGammaIcon, "Processing.Step.Gamma");
+        pProcessing.PProcessingStepAdd("Exposure", PEditExposureIcon, "Processing.Step.Exposure");
         pProcessing.PProcessingStepAdd("Whitebalance", PEditWhitebalanceIcon, "Processing.Step.Whitebalance");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepChange += PEditStepHandle;
@@ -286,9 +288,14 @@ public sealed class PEditTab : PTabSurface
             pInspector.PToneStepRead(LColorKind.LColorKindBrightness).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Contrast",
             pInspector.PToneStepRead(LColorKind.LColorKindContrast).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Saturation",
+            pInspector.PToneStepRead(LColorKind.LColorKindSaturation).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Gamma",
             PEditMpvOnlyCapableRead()
             && pInspector.PToneStepRead(LColorKind.LColorKindGamma).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Exposure",
+            PEditMpvOnlyCapableRead()
+            && pInspector.PToneStepRead(LColorKind.LColorKindExposure).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Whitebalance",
             PEditMpvOnlyCapableRead()
             && pInspector.PToneStepRead(LColorKind.LColorKindWhitebalance).LWorkStepActive);
@@ -562,6 +569,9 @@ public sealed class PEditTab : PTabSurface
         bool pMpvOnlyCapable = PEditMpvOnlyCapableRead();
         string pGammaTooltip = LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresMpv");
         pProcessing.PProcessingEnabledSet("Gamma", pMpvOnlyCapable, pGammaTooltip);
+        string pExposureTooltip = LLocalization.LLocalizationTextRead("Processing.Step.ExposureRequiresMpv");
+        pProcessing.PProcessingEnabledSet("Exposure", pMpvOnlyCapable, pExposureTooltip);
+        pInspector.PExposureCapabilitySet(pMpvOnlyCapable);
         string pWhitebalanceTooltip = LLocalization.LLocalizationTextRead(
             "Processing.Step.WhitebalanceRequiresMpv");
         pProcessing.PProcessingEnabledSet("Whitebalance", pMpvOnlyCapable, pWhitebalanceTooltip);

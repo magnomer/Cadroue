@@ -273,6 +273,8 @@
   "Processing.Step.Saturation": "{Terms.Saturation}",
   "Processing.Step.Gamma": "{Terms.Gamma}",
   "Processing.Step.GammaRequiresMpv": "{Terms.Gamma} 조정에는 MPV가 필요합니다.",
+  "Processing.Step.Exposure": "{Terms.Exposure}",
+  "Processing.Step.ExposureRequiresMpv": "{Terms.Exposure} 조정에는 MPV가 필요합니다.",
   "Processing.Step.Whitebalance": "{Terms.Whitebalance}",
   "Processing.Step.WhitebalanceRequiresMpv": "{Terms.Whitebalance} 조정에는 MPV가 필요합니다.",
   "Processing.Step.HighPass": "하이패스",
