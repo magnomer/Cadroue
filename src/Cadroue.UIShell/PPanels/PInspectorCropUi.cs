@@ -207,7 +207,6 @@ public sealed partial class PInspector
         pToolButton.Unchecked += (_, _) =>
         {
             PInspectorToolChange?.Invoke(false);
-            PInspectorCropClear();
             PInspectorToolUpdate();
         };
         return pToolButton;
