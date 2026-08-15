@@ -47,32 +47,40 @@ internal sealed partial class PSOptions
         pFfmpegBrowse.Click += (_, _) => PSSystemFolderRead(psSystemFfmpegBox, LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"), psSystemFfmpegBox.Text);
         pFfmpegOpen.Click += (_, _) => PSSystemFolderOpen(psSystemFfmpegBox.Text, string.Empty);
 
-        Button pDoneClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearDone"), 210, new Thickness(0, 0, 8, 0));
-        Button pWorkspaceClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearWorkspace"), 140, new Thickness(0));
+        Button pDoneClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearDone"), 190, new Thickness(0));
+        Button pWorkspaceClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearWorkspace"), 190, new Thickness(0));
         pDoneClear.Click += (_, _) => PSSystemDoneClear();
         pWorkspaceClear.Click += (_, _) => PSWorkspaceClear();
 
-        var pClearRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        pClearRow.Children.Add(pDoneClear);
-        pClearRow.Children.Add(pWorkspaceClear);
+        var pWorkspaceClearRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pWorkspaceClearRow.Children.Add(pWorkspaceClear);
+
+        var pDoneClearRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pDoneClearRow.Children.Add(pDoneClear);
 
         UIElement pCleanupRow = PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupDays"), psOptionsCleanupSlider, LLocalization.LLocalizationTextRead("Options.System.CleanupUnit"));
-        pCleanupRow.IsEnabled = psOptionsCleanupBox.IsChecked == true;
-        psOptionsCleanupBox.Checked += (_, _) => pCleanupRow.IsEnabled = true;
-        psOptionsCleanupBox.Unchecked += (_, _) => pCleanupRow.IsEnabled = false;
+        pCleanupRow.Visibility = psOptionsCleanupBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        psOptionsCleanupBox.Checked += (_, _) => pCleanupRow.Visibility = Visibility.Visible;
+        psOptionsCleanupBox.Unchecked += (_, _) => pCleanupRow.Visibility = Visibility.Collapsed;
+
+        UIElement pWorkspaceDefault = PSNoticeBuild(LLocalization.LLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRead()));
+        pWorkspaceDefault.Visibility = string.IsNullOrWhiteSpace(psWorkspaceBox.Text) ? Visibility.Visible : Visibility.Collapsed;
+        psWorkspaceBox.TextChanged += (_, _) => pWorkspaceDefault.Visibility = string.IsNullOrWhiteSpace(psWorkspaceBox.Text) ? Visibility.Visible : Visibility.Collapsed;
 
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.Workspace"),
-            PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psWorkspaceBox, pWorkspaceBrowse, pWorkspaceOpen),
-            PSNoticeBuild(LLocalization.LLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRead())),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CurrentSize"), psWorkspaceSize),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pClearRow),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.AutoDelete"), psOptionsCleanupBox),
-            pCleanupRow,
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FFmpeg"),
             PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psSystemFfmpegBox, pFfmpegBrowse, pFfmpegOpen),
             pFfmpegState));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.Workspace"),
+            PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psWorkspaceBox, pWorkspaceBrowse, pWorkspaceOpen),
+            pWorkspaceDefault,
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CurrentSize"), psWorkspaceSize),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pWorkspaceClearRow)));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.WorkRecord"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pDoneClearRow),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.AutoDelete"), psOptionsCleanupBox),
+            pCleanupRow,
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupNotice"))));
         pPanel.Children.Add(PSSystemRecordBuild());
         return pPanel;
     }
@@ -123,11 +131,23 @@ internal sealed partial class PSOptions
         var pRecordButtonRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pRecordButtonRow.Children.Add(pRecordClear);
 
+        string pRecordWorkspacePath = System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder);
+        var pRecordBesideNotice = (TextBlock)PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside"));
+        void PSSystemRecordNoticeUpdate()
+        {
+            bool pWorkspace = psOptionsRecordWorkspace.IsChecked == true;
+            pRecordBesideNotice.Text = pWorkspace
+                ? LLocalization.LLocalizationFormat("Options.System.FileRecordWorkspace", pRecordWorkspacePath)
+                : LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside");
+        }
+        PSSystemRecordNoticeUpdate();
+        psOptionsRecordBeside.Checked += (_, _) => PSSystemRecordNoticeUpdate();
+        psOptionsRecordWorkspace.Checked += (_, _) => PSSystemRecordNoticeUpdate();
+
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecord"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), pRecordRow),
-            PSNoticeBuild(LLocalization.LLocalizationFormat(
-                "Options.System.FileRecordNotice",
-                System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder))),
+            pRecordBesideNotice,
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecordScope")),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pRecordButtonRow));
     }
 
@@ -207,7 +227,11 @@ internal sealed partial class PSOptions
             return;
         }
 
-        int pRemoved = LDepot.LDepotFolderClear(LDepotFolder.LDepotFolderDone, LDepotFolder.LDepotFolderFailed);
+        int pRemoved = LDepot.LDepotFolderClear(
+            LDepotFolder.LDepotFolderScheduled,
+            LDepotFolder.LDepotFolderDone,
+            LDepotFolder.LDepotFolderFailed,
+            LDepotFolder.LDepotFolderCancelled);
         LDepotIndex.LDepotIndexRebuild();
         LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();
@@ -233,15 +257,16 @@ internal sealed partial class PSOptions
             return;
         }
 
-        int pRemoved = LDepot.LDepotFolderClear(
+        LDepot.LDepotFolderClear(
             LDepotFolder.LDepotFolderScheduled,
             LDepotFolder.LDepotFolderDone,
             LDepotFolder.LDepotFolderFailed,
             LDepotFolder.LDepotFolderCancelled);
+        LSidecarStore.LSidecarFolderClear();
         LDepotIndex.LDepotIndexRebuild();
         LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();
-        MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.System.WorkspaceReset"), LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private static string PSSystemSizeFormat(long pBytes)
