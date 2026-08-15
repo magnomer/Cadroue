@@ -83,9 +83,11 @@ public sealed class PFunnelRules : PPanel
     {
         foreach (LSceneFunnelRule pRecord in pRuleRecords)
         {
-            PFunnelForm pForm = pRecord.LSceneFunnelType == (int)PFunnelForm.Regex
-                ? PFunnelForm.Regex
-                : PFunnelForm.Filename;
+            PFunnelForm pForm = pRecord.LSceneFunnelRemainder
+                ? PFunnelForm.Remainder
+                : pRecord.LSceneFunnelType == (int)PFunnelForm.Regex
+                    ? PFunnelForm.Regex
+                    : PFunnelForm.Filename;
             PFunnelRuleRow pRow = PFunnelRuleAdd(pForm);
             pRow.PFunnelRowRestore(pRecord);
         }
@@ -347,12 +349,18 @@ public sealed class PFunnelRules : PPanel
             LLocalization.LLocalizationTextRead("Inspector.Funnel.Regex"), null);
         pRegexItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.Regex);
 
+        MenuItem pRemainderItem = PMenu.PMenuItemCreate(
+            LLocalization.LLocalizationTextRead("Inspector.Funnel.Remainder"), null);
+        pRemainderItem.IsEnabled = pFunnelRows.All(pRow => !pRow.PFunnelRemainder);
+        pRemainderItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.Remainder);
+
         var pAddMenu = PMenu.PMenuContextCreate();
         pAddMenu.PlacementTarget = pTarget;
         pAddMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
         pAddMenu.VerticalOffset = -4;
         pAddMenu.Items.Add(pFilenameItem);
         pAddMenu.Items.Add(pRegexItem);
+        pAddMenu.Items.Add(pRemainderItem);
         pAddMenu.IsOpen = true;
     }
 }

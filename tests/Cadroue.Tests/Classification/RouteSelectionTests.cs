@@ -36,4 +36,30 @@ public sealed class RouteSelectionTests
     {
         Assert.Equal(-1, TInterface.ClassifierRouteRead(Array.Empty<LSceneFunnelRule>(), "clip.mp4"));
     }
+
+    [Fact]
+    public void UnmatchedInput_RoutesToRemainder()
+    {
+        LSceneFunnelRule rule = Filename();
+        rule.LSceneFunnelContains = Cond("zzz");
+        LSceneFunnelRule remainder = Remainder();
+
+        Assert.Equal(1, TInterface.ClassifierRouteRead(new[] { rule, remainder }, "clip.mp4"));
+    }
+
+    [Fact]
+    public void MatchingRule_WinsOverRemainder()
+    {
+        LSceneFunnelRule remainder = Remainder();
+        LSceneFunnelRule rule = Filename();
+        rule.LSceneFunnelContains = Cond("clip");
+
+        Assert.Equal(1, TInterface.ClassifierRouteRead(new[] { remainder, rule }, "clip.mp4"));
+    }
+
+    [Fact]
+    public void RemainderCard_NeverMatchedByConditions()
+    {
+        Assert.False(TInterface.ClassifierMatch(Remainder(), "clip.mp4"));
+    }
 }

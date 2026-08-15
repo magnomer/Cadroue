@@ -152,6 +152,7 @@
   "Inspector.Funnel.Add": "Add filename rule",
   "Inspector.Funnel.Filename": "Filename",
   "Inspector.Funnel.Regex": "Filename Regex",
+  "Inspector.Funnel.Remainder": "Remainder",
   "Inspector.Funnel.Whole": "Including extension",
   "Inspector.Funnel.Minimize": "Fold rule",
   "Inspector.Funnel.Maximize": "Unfold rule",

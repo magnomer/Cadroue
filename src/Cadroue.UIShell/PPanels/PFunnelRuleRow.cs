@@ -9,7 +9,7 @@ using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
-public enum PFunnelForm { Filename, Regex }
+public enum PFunnelForm { Filename, Regex, Remainder }
 
 public sealed class PFunnelRuleRow : Border
 {
@@ -53,7 +53,7 @@ public sealed class PFunnelRuleRow : Border
         {
             pBody.Children.Add(PFunnelRegexBuild());
         }
-        else
+        else if (pForm == PFunnelForm.Filename)
         {
             foreach ((PFunnelKind pKind, string pLabelKey, bool pHasJoin) in pFunnelSpecs)
             {
@@ -66,9 +66,12 @@ public sealed class PFunnelRuleRow : Border
 
         pBody.Children.Add(PFunnelTargetBuild());
 
-        string pTitleKey = pForm == PFunnelForm.Regex
-            ? "Inspector.Funnel.Regex"
-            : "Inspector.Funnel.Filename";
+        string pTitleKey = pForm switch
+        {
+            PFunnelForm.Regex => "Inspector.Funnel.Regex",
+            PFunnelForm.Remainder => "Inspector.Funnel.Remainder",
+            _ => "Inspector.Funnel.Filename"
+        };
         pFunnelFrame = new PFunnelRuleFrame(pBody, pTitleKey, () => PFunnelRowRemove?.Invoke(this));
 
         var pCard = new DockPanel { LastChildFill = true };
@@ -89,6 +92,8 @@ public sealed class PFunnelRuleRow : Border
 
     public Border PFunnelHeader => pFunnelFrame.PFunnelHeader;
 
+    public bool PFunnelRemainder => pFunnelForm == PFunnelForm.Remainder;
+
     public Guid PFunnelTargetId => pFunnelTargetId;
 
     public int PFunnelTargetPending => pFunnelTargetPending;
@@ -106,6 +111,12 @@ public sealed class PFunnelRuleRow : Border
 
     public void PFunnelRowRestore(LSceneFunnelRule pRecord)
     {
+        if (pFunnelForm == PFunnelForm.Remainder)
+        {
+            pFunnelTargetPending = pRecord.LSceneFunnelTarget;
+            return;
+        }
+
         if (pFunnelForm == PFunnelForm.Regex)
         {
             if (pFunnelRegexField is not null)
@@ -131,6 +142,15 @@ public sealed class PFunnelRuleRow : Border
 
     public LSceneFunnelRule PFunnelRecordCreate()
     {
+        if (pFunnelForm == PFunnelForm.Remainder)
+        {
+            return new LSceneFunnelRule
+            {
+                LSceneFunnelType = (int)PFunnelForm.Filename,
+                LSceneFunnelRemainder = true
+            };
+        }
+
         if (pFunnelForm == PFunnelForm.Regex)
         {
             return new LSceneFunnelRule

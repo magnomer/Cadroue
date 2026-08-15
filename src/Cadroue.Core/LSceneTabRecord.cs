@@ -78,6 +78,8 @@ public sealed class LSceneFunnelRule
 
     public bool LSceneFunnelWhole { get; set; }
 
+    public bool LSceneFunnelRemainder { get; set; }
+
     public int LSceneFunnelTarget { get; set; } = -1;
 
     public LSceneFunnelRule LSceneFunnelClone()
@@ -91,6 +93,7 @@ public sealed class LSceneFunnelRule
             LSceneFunnelType = LSceneFunnelType,
             LSceneFunnelRegex = LSceneFunnelRegex,
             LSceneFunnelWhole = LSceneFunnelWhole,
+            LSceneFunnelRemainder = LSceneFunnelRemainder,
             LSceneFunnelTarget = LSceneFunnelTarget
         };
     }

@@ -17,4 +17,7 @@ internal static class ClassificationData
 
     internal static LSceneFunnelRule Filename() =>
         new() { LSceneFunnelType = (int)LSceneFunnelForm.LSceneFunnelFilename };
+
+    internal static LSceneFunnelRule Remainder() =>
+        new() { LSceneFunnelType = (int)LSceneFunnelForm.LSceneFunnelFilename, LSceneFunnelRemainder = true };
 }

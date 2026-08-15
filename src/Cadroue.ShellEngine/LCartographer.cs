@@ -130,15 +130,28 @@ public static partial class LCartographer
     public static Guid LCartographerRouteRead(LCartographerStageRecord lCartographerStage, string lCartographerPath)
     {
         string lCartographerName = Path.GetFileName(lCartographerPath);
+        Guid lCartographerRemainder = Guid.Empty;
+        bool lCartographerHasRemainder = false;
         foreach (LCartographerFunnelRule lCartographerRule in lCartographerStage.LCartographerFunnelRules)
         {
+            if (lCartographerRule.LCartographerRule.LSceneFunnelRemainder)
+            {
+                if (!lCartographerHasRemainder)
+                {
+                    lCartographerRemainder = lCartographerRule.LCartographerTargetStage;
+                    lCartographerHasRemainder = true;
+                }
+
+                continue;
+            }
+
             if (LClassifier.LClassifierMatch(lCartographerRule.LCartographerRule, lCartographerName))
             {
                 return lCartographerRule.LCartographerTargetStage;
             }
         }
 
-        return Guid.Empty;
+        return lCartographerRemainder;
     }
 
     private static readonly Dictionary<Guid, Guid> lCartographerTargets = new();

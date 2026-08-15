@@ -9,15 +9,26 @@ public static class LClassifier
 {
     public static int LClassifierRouteRead(IReadOnlyList<LSceneFunnelRule> lClassifierRules, string lClassifierName)
     {
+        int lClassifierRemainder = -1;
         for (int lClassifierIndex = 0; lClassifierIndex < lClassifierRules.Count; lClassifierIndex++)
         {
+            if (lClassifierRules[lClassifierIndex].LSceneFunnelRemainder)
+            {
+                if (lClassifierRemainder < 0)
+                {
+                    lClassifierRemainder = lClassifierIndex;
+                }
+
+                continue;
+            }
+
             if (LClassifierMatch(lClassifierRules[lClassifierIndex], lClassifierName))
             {
                 return lClassifierIndex;
             }
         }
 
-        return -1;
+        return lClassifierRemainder;
     }
 
     public static bool LClassifierMatch(LSceneFunnelRule lClassifierRule, string lClassifierName)
