@@ -18,7 +18,7 @@ public sealed class PAudioTab : PTabSurface
     private const string PAudioEqualizerIcon = "/PAssets/PPanels/PProcessingEqualizer.svg";
 
     private readonly PFlowControl pFlow = new();
-    private readonly PViewer pViewer = new();
+    private readonly PViewer pViewer = new() { PViewerAudioEligible = true };
     private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();

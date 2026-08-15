@@ -163,8 +163,12 @@ public sealed partial class PViewer
 
     public bool PViewerEditEligible { get; set; }
 
+    public bool PViewerAudioEligible { get; set; }
+
+    private bool PViewerMpvEligible => PViewerEditEligible || PViewerAudioEligible;
+
     private LPreviewEngine PViewerEngineRead() =>
-        PViewerEditEligible
+        PViewerMpvEligible
             ? Cadroue.Infrastructure.LRenderer.LRendererEngineRead()
             : LPreviewEngine.LPreviewEngineFlyleaf;
 
@@ -201,7 +205,7 @@ public sealed partial class PViewer
     {
         Dispatcher.BeginInvoke(() =>
         {
-            if (pViewerUnloaded || !PViewerEditEligible)
+            if (pViewerUnloaded || !PViewerMpvEligible)
             {
                 return;
             }

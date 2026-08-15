@@ -20,7 +20,7 @@ public sealed partial class PViewer
     {
         if (pViewerHostBuilt) return;
 
-        if (PViewerEditEligible && !pViewerEngineSubscribed)
+        if (PViewerMpvEligible && !pViewerEngineSubscribed)
         {
             Cadroue.Infrastructure.LRenderer.LRendererEngineChange += PViewerEngineHandle;
             pViewerEngineSubscribed = true;
