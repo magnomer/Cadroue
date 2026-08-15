@@ -15,7 +15,8 @@ public static class LWaveformScanner
     public static LWaveformScanResult LWaveformScan(
         string lWaveformSourcePath,
         TimeSpan lWaveformDuration,
-        CancellationToken lWaveformCancelSource = default)
+        CancellationToken lWaveformCancelSource = default,
+        string? lWaveformFilterGraph = null)
     {
         if (string.IsNullOrWhiteSpace(lWaveformSourcePath)
             || !File.Exists(lWaveformSourcePath)
@@ -39,6 +40,9 @@ public static class LWaveformScanner
             Arguments =
                 "-v quiet -nostdin -i \"" + lWaveformSourcePath + "\""
                 + " -vn -ac 1 -ar " + LWaveform.LWaveformSampleRate
+                + (string.IsNullOrWhiteSpace(lWaveformFilterGraph)
+                    ? string.Empty
+                    : " -af \"" + lWaveformFilterGraph + "\"")
                 + " -f s16le -",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
