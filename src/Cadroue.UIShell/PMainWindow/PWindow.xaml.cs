@@ -2,6 +2,7 @@ using Cadroue.Infrastructure;
 using System;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using Cadroue.Media;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PPanels;
@@ -66,7 +67,6 @@ public partial class PWindow : Window
         LRelayChannel.LRelayTabReceive += PWindowRelayHandle;
         PDropHandlersAdd();
         PResizeHandlersAdd();
-        PreviewKeyDown += PShortcutKeyHandle;
         Closed += PWindowCloseHandle;
     }
     private static void PWindowTabsRestore(PStrip pTabset, LPreferenceState lPreferenceState, LSceneRecord lScene)
@@ -272,7 +272,6 @@ public partial class PWindow : Window
         pViewerActive.PViewerCommandSet(true);
         pViewerActive.PViewerMediaChange += PWindowMediaHandle;
         pViewerActive.PViewerClockTick += PWindowClockHandle;
-        pViewerActive.PViewerKeyDispatch += PShortcutViewerHandle;
         pFlowActive.PFlowCursorChange += pViewerActive.PViewerSeek;
         pFlowActive.PFlowPlay += pViewerActive.PViewerPlay;
         pFlowActive.PFlowPause += pViewerActive.PViewerPause;
@@ -285,7 +284,6 @@ public partial class PWindow : Window
         {
             pViewerActive.PViewerMediaChange -= PWindowMediaHandle;
             pViewerActive.PViewerClockTick -= PWindowClockHandle;
-            pViewerActive.PViewerKeyDispatch -= PShortcutViewerHandle;
             pFlowActive.PFlowCursorChange -= pViewerActive.PViewerSeek;
             pFlowActive.PFlowPlay -= pViewerActive.PViewerPlay;
             pFlowActive.PFlowPause -= pViewerActive.PViewerPause;
@@ -376,7 +374,7 @@ public partial class PWindow : Window
         LRelayChannel.LRelayTabReceive -= PWindowRelayHandle;
         pStrip.PStripSelectChange -= PWindowTabHandle;
         pControlBar.PToolbarOptionsApply -= PWindowOptionsHandle;
-        PreviewKeyDown -= PShortcutKeyHandle;
+        ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageFilter;
         PDropHandlersRemove();
         PResizeHandlersRemove();
         PWindowWidthDetach();

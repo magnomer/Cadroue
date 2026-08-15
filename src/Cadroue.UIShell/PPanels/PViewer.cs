@@ -67,7 +67,27 @@ public sealed partial class PViewer : PPanel
     public event Action<LCargo>? PViewerMediaChange;
     public event Action<TimeSpan>? PViewerClockTick;
     public event Action<Rect?>? PCropVideoChange;
-    public event Action<KeyEventArgs>? PViewerKeyDispatch;
+
+    internal bool PViewerSurfaceWindow(nint pViewerHandle)
+    {
+        if (pViewerHandle == nint.Zero || pViewerFlyleafHost is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            return pViewerHandle == PViewerWindowHandle(pViewerFlyleafHost.Surface)
+                || pViewerHandle == PViewerWindowHandle(pViewerFlyleafHost.Overlay);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static nint PViewerWindowHandle(Window? pViewerWindow) =>
+        pViewerWindow is null ? nint.Zero : new System.Windows.Interop.WindowInteropHelper(pViewerWindow).Handle;
 
     public string? PViewerSourcePath { get; private set; }
     public Rect? PCropVideo { get; private set; }

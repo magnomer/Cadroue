@@ -1,7 +1,10 @@
+using System;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.ShellEngine;
@@ -10,29 +13,94 @@ namespace Cadroue.UIShell.PMainWindow;
 
 public partial class PWindow
 {
-    private void PShortcutKeyHandle(object sender, KeyEventArgs e)
-    {
-        PShortcutKeyProcess(e);
-    }
+    private const int PShortcutMessageKeyDown = 0x0100;
+    private const int PShortcutMessageSysKeyDown = 0x0104;
+    private const int PShortcutVirtualShift = 0x10;
+    private const int PShortcutVirtualControl = 0x11;
+    private const int PShortcutVirtualAlt = 0x12;
+    private const int PShortcutVirtualWinLeft = 0x5B;
+    private const int PShortcutVirtualWinRight = 0x5C;
 
-    private void PShortcutViewerHandle(KeyEventArgs e)
-    {
-        PShortcutKeyProcess(e);
-    }
+    [DllImport("user32.dll")]
+    private static extern nint GetForegroundWindow();
 
-    private void PShortcutKeyProcess(KeyEventArgs e)
+    [DllImport("user32.dll")]
+    private static extern short GetKeyState(int virtualKey);
+
+    private void PShortcutMessageFilter(ref MSG pShortcutMessage, ref bool pShortcutHandled)
     {
-        if (PWindowInputFind(e.OriginalSource as DependencyObject))
+        if (pShortcutHandled)
         {
             return;
         }
 
-        bool pHandled = PShortcutDispatch(e.Key == Key.System ? e.SystemKey : e.Key, Keyboard.Modifiers);
-        if (pHandled)
+        if (pShortcutMessage.message != PShortcutMessageKeyDown
+            && pShortcutMessage.message != PShortcutMessageSysKeyDown)
         {
-            e.Handled = true;
+            return;
+        }
+
+        if (ComponentDispatcher.IsThreadModal || !PShortcutSurfaceFind())
+        {
+            return;
+        }
+
+        if (PWindowInputFind(Keyboard.FocusedElement as DependencyObject))
+        {
+            return;
+        }
+
+        Key pShortcutKey = KeyInterop.KeyFromVirtualKey((int)pShortcutMessage.wParam);
+        if (PShortcutDispatch(pShortcutKey, PShortcutModifierRead()))
+        {
+            pShortcutHandled = true;
         }
     }
+
+    private bool PShortcutSurfaceFind()
+    {
+        nint pShortcutForeground = GetForegroundWindow();
+        if (pShortcutForeground == nint.Zero)
+        {
+            return false;
+        }
+
+        if (pShortcutForeground == new WindowInteropHelper(this).Handle)
+        {
+            return true;
+        }
+
+        return pViewerActive?.PViewerSurfaceWindow(pShortcutForeground) == true;
+    }
+
+    private static ModifierKeys PShortcutModifierRead()
+    {
+        ModifierKeys pShortcutModifiers = ModifierKeys.None;
+        if (PShortcutVirtualCheck(PShortcutVirtualControl))
+        {
+            pShortcutModifiers |= ModifierKeys.Control;
+        }
+
+        if (PShortcutVirtualCheck(PShortcutVirtualAlt))
+        {
+            pShortcutModifiers |= ModifierKeys.Alt;
+        }
+
+        if (PShortcutVirtualCheck(PShortcutVirtualShift))
+        {
+            pShortcutModifiers |= ModifierKeys.Shift;
+        }
+
+        if (PShortcutVirtualCheck(PShortcutVirtualWinLeft) || PShortcutVirtualCheck(PShortcutVirtualWinRight))
+        {
+            pShortcutModifiers |= ModifierKeys.Windows;
+        }
+
+        return pShortcutModifiers;
+    }
+
+    private static bool PShortcutVirtualCheck(int pShortcutVirtualKey) =>
+        (GetKeyState(pShortcutVirtualKey) & 0x8000) != 0;
 
     private bool PShortcutDispatch(Key pKey, ModifierKeys pModifiers)
     {
