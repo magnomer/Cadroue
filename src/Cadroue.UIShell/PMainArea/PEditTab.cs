@@ -14,6 +14,7 @@ public sealed class PEditTab : PTabSurface
     private const string PEditCropIcon = "/PAssets/PPanels/PProcessingCrop.svg";
     private const string PEditBrightnessIcon = "/PAssets/PPanels/PProcessingBrightness.svg";
     private const string PEditContrastIcon = "/PAssets/PPanels/PProcessingContrast.svg";
+    private const string PEditSaturationIcon = "/PAssets/PPanels/PProcessingSaturation.svg";
     private const string PEditGammaIcon = "/PAssets/PPanels/PProcessingGamma.svg";
     private const string PEditWhitebalanceIcon = "/PAssets/PPanels/PProcessingWhitebalance.svg";
 
@@ -104,6 +105,7 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingStepAdd("Crop", PEditCropIcon, "Processing.Step.Crop");
         pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIcon, "Processing.Step.Brightness");
         pProcessing.PProcessingStepAdd("Contrast", PEditContrastIcon, "Processing.Step.Contrast");
+        pProcessing.PProcessingStepAdd("Saturation", PEditSaturationIcon, "Processing.Step.Saturation");
         pProcessing.PProcessingStepAdd("Gamma", PEditGammaIcon, "Processing.Step.Gamma");
         pProcessing.PProcessingStepAdd("Whitebalance", PEditWhitebalanceIcon, "Processing.Step.Whitebalance");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;

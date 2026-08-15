@@ -269,6 +269,7 @@
   "Processing.Step.Crop": "{Terms.Crop}",
   "Processing.Step.Brightness": "{Terms.Brightness}",
   "Processing.Step.Contrast": "{Terms.Contrast}",
+  "Processing.Step.Saturation": "{Terms.Saturation}",
   "Processing.Step.Gamma": "{Terms.Gamma}",
   "Processing.Step.GammaRequiresMpv": "{Terms.Gamma} 조정에는 MPV가 필요합니다.",
   "Processing.Step.Whitebalance": "{Terms.Whitebalance}",
