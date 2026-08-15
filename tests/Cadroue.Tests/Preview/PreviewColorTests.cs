@@ -368,7 +368,7 @@ public sealed class PreviewColorTests
     }
 
     [Fact]
-    public void MpvFilterResolve_GeometryGammaWhitebalancePreservesExportOrder()
+    public void MpvFilterResolve_GeometryWhitebalanceGammaCanonicalOrder()
     {
         LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
             TInterface.WorkGammaCreate(true, 20, 10, 0, 0, 25),
@@ -381,7 +381,7 @@ public sealed class PreviewColorTests
 
         string filter = TInterface.PreviewMpvFilterResolve(state);
         Assert.DoesNotContain("crop=", filter);
-        Assert.True(filter.IndexOf("lutyuv=", StringComparison.Ordinal) < filter.IndexOf("colorcorrect=", StringComparison.Ordinal));
+        Assert.True(filter.IndexOf("colorcorrect=", StringComparison.Ordinal) < filter.IndexOf("lutyuv=", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -480,7 +480,7 @@ public sealed class PreviewColorTests
     }
 
     [Fact]
-    public void MpvFilterResolve_GammaManualPreservesExportOrder()
+    public void MpvFilterResolve_ManualWhitebalanceGammaCanonicalOrder()
     {
         LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
             TInterface.WorkGammaCreate(true, 20, 10, 0, 0, 25),
@@ -492,10 +492,10 @@ public sealed class PreviewColorTests
 
         string filter = TInterface.PreviewMpvFilterResolve(state);
         Assert.DoesNotContain("crop=", filter);
-        Assert.True(filter.IndexOf("lutyuv=", StringComparison.Ordinal)
-            < filter.IndexOf("colorchannelmixer=", StringComparison.Ordinal));
         Assert.True(filter.IndexOf("colorchannelmixer=", StringComparison.Ordinal)
             < filter.IndexOf("eq=saturation=", StringComparison.Ordinal));
+        Assert.True(filter.IndexOf("eq=saturation=", StringComparison.Ordinal)
+            < filter.IndexOf("lutyuv=", StringComparison.Ordinal));
     }
 
     [Fact]

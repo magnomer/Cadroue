@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 using Cadroue.Core;
@@ -201,7 +202,7 @@ internal static class LEncodeVideo
             lEqParts.Clear();
         }
 
-        foreach (LWorkVideoStep lStep in lWorkVideo.LWorkVideoSteps)
+        foreach (LWorkVideoStep lStep in lWorkVideo.LWorkVideoSteps.OrderBy(lStep => lStep.LWorkStepKind))
         {
             if (!lStep.LWorkStepActive)
             {

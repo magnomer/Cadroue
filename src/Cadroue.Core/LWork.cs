@@ -41,12 +41,12 @@ public sealed record LWorkCrop(
 
 public enum LColorKind
 {
+    LColorKindWhitebalance,
+    LColorKindExposure,
     LColorKindBrightness,
     LColorKindContrast,
-    LColorKindSaturation,
-    LColorKindExposure,
     LColorKindGamma,
-    LColorKindWhitebalance
+    LColorKindSaturation
 }
 
 public enum LWhitebalanceMethod

@@ -132,6 +132,16 @@ public static class LPreview
         }
 
         LColor lColor = lPreviewState.LColor;
+        if (lColor.LColorWhitebalance is { } lWhitebalance)
+        {
+            lFilters.AddRange(lWhitebalance.LWorkWhitebalanceFormat());
+        }
+
+        if (lColor.LColorExposure != 0)
+        {
+            lFilters.Add("exposure=exposure=" + LPreviewNumberFormat(lColor.LColorExposure));
+        }
+
         if (LPreviewGammaCheck(lColor))
         {
             double lGammaWeight = 1 - lColor.LColorHighlightProtection / 100d;
@@ -145,16 +155,6 @@ public static class LPreview
                 + ":v=" + LPreviewLutFormat(
                     Math.Sqrt(lColor.LColorGammaRed / lColor.LColorGammaGreen),
                     lGammaWeight));
-        }
-
-        if (lColor.LColorWhitebalance is { } lWhitebalance)
-        {
-            lFilters.AddRange(lWhitebalance.LWorkWhitebalanceFormat());
-        }
-
-        if (lColor.LColorExposure != 0)
-        {
-            lFilters.Add("exposure=exposure=" + LPreviewNumberFormat(lColor.LColorExposure));
         }
 
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;

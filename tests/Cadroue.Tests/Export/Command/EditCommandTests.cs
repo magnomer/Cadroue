@@ -108,6 +108,29 @@ public sealed class EditCommandTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void WhitebalanceExposureContrast_EmitInCanonicalOrder()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo video = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkContrastCreate(true, 150),
+            TInterface.WorkExposureCreate(true, 1.5),
+            TInterface.WorkWhitebalanceCreate(
+                true, LWhitebalanceMethod.LWhitebalanceMethodAverage, 125)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+            end: TimeSpan.FromMinutes(1), video: video);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+
+        Assert.Equal(
+            "colorcorrect=analyze=average:saturation=1.25,exposure=exposure=1.5,eq=contrast=1.5",
+            CommandTokens.ValueAfter(tokens, "-vf"));
+    }
+
     [Theory]
     [InlineData(-100, "eq=gamma=0.1")]
     [InlineData(-50, "eq=gamma=0.316")]
@@ -387,7 +410,7 @@ public sealed class EditCommandTests
     }
 
     [Fact]
-    public void GammaAndManualWhitebalance_PreserveOrderInSeparateFilterSegments()
+    public void ManualWhitebalanceAndGamma_EmitInCanonicalOrderAsSeparateSegments()
     {
         using var environment = new TEncodeCommand();
         LWorkVideo video = TInterface.WorkVideoCreate(new[]
@@ -405,12 +428,12 @@ public sealed class EditCommandTests
 
         Assert.Equal(1, CommandTokens.Count(tokens, "-vf"));
         Assert.Equal(
-            "eq=gamma=3.162,colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=2,eq=contrast=1.5",
+            "colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=2,eq=contrast=1.5:gamma=3.162",
             CommandTokens.ValueAfter(tokens, "-vf"));
     }
 
     [Fact]
-    public void GammaAndWhitebalance_PreserveOrderInSeparateFilterSegments()
+    public void WhitebalanceAndGamma_EmitInCanonicalOrderAsSeparateSegments()
     {
         using var environment = new TEncodeCommand();
         LWorkVideo video = TInterface.WorkVideoCreate(new[]
@@ -429,7 +452,7 @@ public sealed class EditCommandTests
 
         Assert.Equal(1, CommandTokens.Count(tokens, "-vf"));
         Assert.Equal(
-            "eq=gamma=3.162,colorcorrect=analyze=average:saturation=1.25,eq=contrast=1.5",
+            "colorcorrect=analyze=average:saturation=1.25,eq=contrast=1.5:gamma=3.162",
             CommandTokens.ValueAfter(tokens, "-vf"));
     }
 

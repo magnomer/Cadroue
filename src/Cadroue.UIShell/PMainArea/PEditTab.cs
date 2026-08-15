@@ -104,12 +104,12 @@ public sealed class PEditTab : PTabSurface
 
         pProcessing.PProcessingOrderedSet(false);
         pProcessing.PProcessingStepAdd("Crop", PEditCropIcon, "Processing.Step.Crop");
+        pProcessing.PProcessingStepAdd("Whitebalance", PEditWhitebalanceIcon, "Processing.Step.Whitebalance");
+        pProcessing.PProcessingStepAdd("Exposure", PEditExposureIcon, "Processing.Step.Exposure");
         pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIcon, "Processing.Step.Brightness");
         pProcessing.PProcessingStepAdd("Contrast", PEditContrastIcon, "Processing.Step.Contrast");
-        pProcessing.PProcessingStepAdd("Saturation", PEditSaturationIcon, "Processing.Step.Saturation");
         pProcessing.PProcessingStepAdd("Gamma", PEditGammaIcon, "Processing.Step.Gamma");
-        pProcessing.PProcessingStepAdd("Exposure", PEditExposureIcon, "Processing.Step.Exposure");
-        pProcessing.PProcessingStepAdd("Whitebalance", PEditWhitebalanceIcon, "Processing.Step.Whitebalance");
+        pProcessing.PProcessingStepAdd("Saturation", PEditSaturationIcon, "Processing.Step.Saturation");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepChange += PEditStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
