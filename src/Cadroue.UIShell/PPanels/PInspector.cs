@@ -79,6 +79,7 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PToneContrastBuild());
         pBody.Children.Add(PToneSaturationBuild());
         pBody.Children.Add(PGammaBuild());
+        pBody.Children.Add(PExposureBuild());
         pBody.Children.Add(PWhitebalanceBuild());
         pBody.Children.Add(PVolumeBodyBuild());
         pBody.Children.Add(PLoudnessBodyBuild());
@@ -176,6 +177,7 @@ public sealed partial class PInspector : PPanel
         bool pContrastSelected = pStepName == "Contrast";
         bool pSaturationSelected = pStepName == "Saturation";
         bool pGammaSelected = pStepName == "Gamma";
+        bool pExposureSelected = pStepName == "Exposure";
         bool pWhitebalanceSelected = pStepName == "Whitebalance";
         bool pVolumeSelected = pStepName == "Volume";
         bool pNormalizeSelected = pStepName == "Normalize";
@@ -184,7 +186,7 @@ public sealed partial class PInspector : PPanel
         bool pLowPassSelected = pStepName == "Low Pass";
         bool pEqualizerSelected = pStepName == "Equalizer";
         bool pSkipSelected = pStepName == "No Processing";
-        bool pKnownSelected = pCropSelected || pBrightnessSelected || pContrastSelected || pSaturationSelected || pGammaSelected || pWhitebalanceSelected || pVolumeSelected || pNormalizeSelected
+        bool pKnownSelected = pCropSelected || pBrightnessSelected || pContrastSelected || pSaturationSelected || pGammaSelected || pExposureSelected || pWhitebalanceSelected || pVolumeSelected || pNormalizeSelected
             || pNoiseSelected || pHighPassSelected || pLowPassSelected || pEqualizerSelected || pSkipSelected;
 
         pInspectorTitleLabel.Text = pStepName switch
@@ -194,6 +196,7 @@ public sealed partial class PInspector : PPanel
             "Contrast" => LLocalization.LLocalizationTextRead("Inspector.Step.Contrast"),
             "Saturation" => LLocalization.LLocalizationTextRead("Inspector.Step.Saturation"),
             "Gamma" => LLocalization.LLocalizationTextRead("Inspector.Step.Gamma"),
+            "Exposure" => LLocalization.LLocalizationTextRead("Inspector.Step.Exposure"),
             "Whitebalance" => LLocalization.LLocalizationTextRead("Inspector.Step.Whitebalance"),
             "Volume" => LLocalization.LLocalizationTextRead("Inspector.Step.Volume"),
             "Normalize" => LLocalization.LLocalizationTextRead("Inspector.Step.Normalize"),
@@ -209,6 +212,7 @@ public sealed partial class PInspector : PPanel
         pInspectorContrastBody.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorSaturationBody.Visibility = pSaturationSelected ? Visibility.Visible : Visibility.Collapsed;
         pGammaBody.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
+        pExposureBody.Visibility = pExposureSelected ? Visibility.Visible : Visibility.Collapsed;
         pWhitebalanceBody.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumeBody.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
         pLoudnessBody.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -223,6 +227,7 @@ public sealed partial class PInspector : PPanel
         pInspectorContrastPersistent.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorSaturationPersistent.Visibility = pSaturationSelected ? Visibility.Visible : Visibility.Collapsed;
         pGammaPersistent.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
+        pExposurePersistent.Visibility = pExposureSelected ? Visibility.Visible : Visibility.Collapsed;
         pWhitebalancePersistent.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
         pInspectorVolumePersistent.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
         pLoudnessPersistent.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;

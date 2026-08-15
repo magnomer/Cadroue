@@ -89,6 +89,9 @@ public sealed partial class PInspector
             pWhitebalanceSampleRed,
             pWhitebalanceSampleGreen,
             pWhitebalanceSampleBlue),
+        LColorKind.LColorKindExposure => LWorkVideoStep.LWorkExposureCreate(
+            pExposureBox.IsChecked == true,
+            PInspectorDecimalRead(pExposureValue, 0)),
         _ => LWorkVideoStep.LWorkBrightnessCreate(
             pToneBrightnessBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorBrightnessValue, 0))
@@ -111,6 +114,9 @@ public sealed partial class PInspector
         PToneStepApply(
             pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindWhitebalance)
             ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
+        PToneStepApply(
+            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindExposure)
+            ?? LWorkVideoStep.LWorkExposureCreate(false, 0));
         PInspectorVideoChange?.Invoke();
     }
 
@@ -119,7 +125,8 @@ public sealed partial class PInspector
         || pInspectorContrastPersistent.IsChecked == true
         || pInspectorSaturationPersistent.IsChecked == true
         || pGammaPersistent.IsChecked == true
-        || pWhitebalancePersistent.IsChecked == true;
+        || pWhitebalancePersistent.IsChecked == true
+        || pExposurePersistent.IsChecked == true;
 
     public void PTonePersistentApply(LWorkVideo pVideo)
     {
@@ -140,6 +147,10 @@ public sealed partial class PInspector
             else if (pStep.LWorkStepKind == LColorKind.LColorKindWhitebalance)
             {
                 pWhitebalancePersistent.IsChecked = true;
+            }
+            else if (pStep.LWorkStepKind == LColorKind.LColorKindExposure)
+            {
+                pExposurePersistent.IsChecked = true;
             }
             else
             {
@@ -174,6 +185,11 @@ public sealed partial class PInspector
         if (pWhitebalancePersistent.IsChecked == true)
         {
             pSteps.Add(PToneStepRead(LColorKind.LColorKindWhitebalance));
+        }
+
+        if (pExposurePersistent.IsChecked == true)
+        {
+            pSteps.Add(PToneStepRead(LColorKind.LColorKindExposure));
         }
 
         return new LWorkVideo(pSteps);
@@ -689,6 +705,16 @@ public sealed partial class PInspector
                     pWhitebalance.LWorkWhitebalanceSaturation);
                 PToneApplyUpdate(pWhitebalanceBox, pWhitebalanceStack);
                 PWhitebalanceCapabilitySet(pWhitebalanceCapable);
+                return;
+            }
+
+            if (pStep.LWorkStepKind == LColorKind.LColorKindExposure)
+            {
+                pExposureBox.IsChecked = pStep.LWorkStepActive;
+                pExposureValue.Text = pStep.LWorkStepValue.ToString("0.#", CultureInfo.InvariantCulture);
+                pExposureSlider.Value = Math.Clamp(pStep.LWorkStepValue, -3, 3);
+                PToneApplyUpdate(pExposureBox, pExposureStack);
+                PExposureCapabilitySet(pExposureCapable);
                 return;
             }
 
