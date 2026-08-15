@@ -10,6 +10,12 @@ public sealed partial class PExport
 {
     private static Style? pExportButtonStyle;
 
+    public static void PExportMissingShow() => MessageBox.Show(
+        LLocalization.LLocalizationTextRead("ExportPreset.Missing.Body"),
+        LLocalization.LLocalizationTextRead("ExportPreset.Missing.Title"),
+        MessageBoxButton.OK,
+        MessageBoxImage.Information);
+
     private UIElement PExportActionBuild()
     {
         var pGrid = new Grid { Margin = new Thickness(10, 4, 10, 0) };

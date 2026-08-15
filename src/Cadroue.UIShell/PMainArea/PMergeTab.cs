@@ -24,14 +24,32 @@ public sealed class PMergeTab : PTabSurface
             lPreferenceTabLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameBase);
         pGroup = new PGroup(lGroupOwner);
         PTabAction = pAction;
-        pAction.PActionRun += pPriority => LMessenger.LMessengerMergeDescribe(
-            pPriority, PMergeGroupsRead(), lPresetOwner,
-            pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
-        pAction.PActionAllAdd += () => LMessenger.LMessengerMergeDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            PMergeGroupsRead(),
-            lPresetOwner,
-            pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
+        pAction.PActionRun += pPriority =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            LMessenger.LMessengerMergeDescribe(
+                pPriority, PMergeGroupsRead(), lPresetOwner,
+                pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
+        };
+        pAction.PActionAllAdd += () =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            LMessenger.LMessengerMergeDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                PMergeGroupsRead(),
+                lPresetOwner,
+                pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
+        };
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
         pGroup.PGroupSourceFiles = () => pList.PListUnlockedRead()

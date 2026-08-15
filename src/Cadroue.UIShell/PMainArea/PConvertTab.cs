@@ -17,31 +17,58 @@ public sealed class PConvertTab : PTabSurface
     {
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += lPriority => _ = LMessenger.LMessengerConvertDescribe(
-            lPriority,
-            pList.PListEditableRead() is { } pConvertSelected
-                ? new[] { new LWorkSource(pConvertSelected.LDocketEntryPath, pConvertSelected.LDocketEntryBatch) }
-                : Array.Empty<LWorkSource>(),
-            lPresetOwner,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab);
-        pAction.PActionAllAdd += () => _ = LMessenger.LMessengerConvertDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedRead()
-                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                .ToArray(),
-            lPresetOwner,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab);
-        pAction.PActionItemsAdd += pConvertPaths => _ = LMessenger.LMessengerConvertDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedRead()
-                .Where(pItem => pConvertPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                .ToArray(),
-            lPresetOwner,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab);
+        pAction.PActionRun += lPriority =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            _ = LMessenger.LMessengerConvertDescribe(
+                lPriority,
+                pList.PListEditableRead() is { } pConvertSelected
+                    ? new[] { new LWorkSource(pConvertSelected.LDocketEntryPath, pConvertSelected.LDocketEntryBatch) }
+                    : Array.Empty<LWorkSource>(),
+                lPresetOwner,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab);
+        };
+        pAction.PActionAllAdd += () =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            _ = LMessenger.LMessengerConvertDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                pList.PListUnlockedRead()
+                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
+                    .ToArray(),
+                lPresetOwner,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab);
+        };
+        pAction.PActionItemsAdd += pConvertPaths =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            _ = LMessenger.LMessengerConvertDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                pList.PListUnlockedRead()
+                    .Where(pItem => pConvertPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
+                    .ToArray(),
+                lPresetOwner,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab);
+        };
         pList.PListPathChange += PConvertPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);

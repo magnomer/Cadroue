@@ -35,6 +35,9 @@ public sealed partial class PExport : UserControl
 
     private bool pPresetRebuilding;
 
+    private bool pExportNativeCollapsed;
+    private bool pExportUserCollapsed;
+
     private TextBox? pExportBoxCurrent;
 
     private bool pExportPresetBusy;

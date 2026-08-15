@@ -20,6 +20,12 @@ public sealed class PSplitTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority =>
         {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
             if (pList.PListEditableRead() is not { } pSplitSelected)
             {
                 return;
@@ -34,23 +40,41 @@ public sealed class PSplitTab : PTabSurface
                 pAction.PActionSourceTab,
                 pSplitSelected.LDocketEntryBatch);
         };
-        pAction.PActionAllAdd += () => _ = LMessenger.LMessengerSplitDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedRead()
-                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                .ToArray(),
-            lPresetOwner,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab);
-        pAction.PActionItemsAdd += pSplitPaths => _ = LMessenger.LMessengerSplitDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedRead()
-                .Where(pItem => pSplitPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                .ToArray(),
-            lPresetOwner,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab);
+        pAction.PActionAllAdd += () =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            _ = LMessenger.LMessengerSplitDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                pList.PListUnlockedRead()
+                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
+                    .ToArray(),
+                lPresetOwner,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab);
+        };
+        pAction.PActionItemsAdd += pSplitPaths =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            _ = LMessenger.LMessengerSplitDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                pList.PListUnlockedRead()
+                    .Where(pItem => pSplitPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
+                    .ToArray(),
+                lPresetOwner,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab);
+        };
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);

@@ -39,7 +39,12 @@ public sealed class LPresetSelection
         }
     }
 
-    public LEncoding? LPresetSelectionEncoding => LPresetOutputSeam?.Invoke(lPresetSelectionValue);
+    public bool LPresetSelectionValid =>
+        LPreset.LPresetNames.Any(lName =>
+            string.Equals(lName, LPresetSelectionName, StringComparison.OrdinalIgnoreCase));
+
+    public LEncoding? LPresetSelectionEncoding =>
+        LPresetSelectionValid ? LPresetOutputSeam?.Invoke(lPresetSelectionValue) : null;
 
     public void LPresetSelectionSelect(string lPresetName)
     {

@@ -17,6 +17,8 @@ public sealed partial class PExport
     private const string PExportExportIcon = "/PAssets/PPanels/PExportExport.svg";
     private const string PExportCheckIcon = "/PAssets/PPanels/PExportCheck.svg";
     private const string PExportCancelIcon = "/PAssets/PPanels/PExportCancel.svg";
+    private const string PExportCollapseIcon = "/PAssets/PPanels/PExportCollapse.svg";
+    private const string PExportExpandIcon = "/PAssets/PPanels/PExportExpand.svg";
     private static readonly Brush PExportApplyBrush = new SolidColorBrush(Color.FromRgb(0x2E, 0xA3, 0x66));
     private static readonly Brush PExportCancelBrush = new SolidColorBrush(Color.FromRgb(0xD1, 0x43, 0x43));
 
@@ -42,18 +44,32 @@ public sealed partial class PExport
         try
         {
             pPresetRowPanel.Children.Clear();
-            bool pUserDividerAdded = false;
+            bool pNativeHeaderAdded = false;
+            bool pUserHeaderAdded = false;
             foreach (string lPresetName in LPreset.LPresetNames)
             {
-                if (!LPreset.LPresetNativeCheck(lPresetName)
-                    && pPresetRowPanel.Children.Count > 0
-                    && !pUserDividerAdded)
+                bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
+                if (pPresetNative && !pNativeHeaderAdded)
                 {
-                    pPresetRowPanel.Children.Add(PExportDividerBuild());
-                    pUserDividerAdded = true;
+                    pPresetRowPanel.Children.Add(PExportGroupBuild(
+                        LLocalization.LLocalizationTextRead("ExportPreset.Group.Native"),
+                        pExportNativeCollapsed,
+                        PExportNativeToggle));
+                    pNativeHeaderAdded = true;
+                }
+                else if (!pPresetNative && !pUserHeaderAdded)
+                {
+                    pPresetRowPanel.Children.Add(PExportGroupBuild(
+                        LLocalization.LLocalizationTextRead("ExportPreset.Group.User"),
+                        pExportUserCollapsed,
+                        PExportUserToggle));
+                    pUserHeaderAdded = true;
                 }
 
-                pPresetRowPanel.Children.Add(PExportRowBuild(lPresetName, lWorking));
+                Border pRow = PExportRowBuild(lPresetName, lWorking);
+                bool pCollapsed = pPresetNative ? pExportNativeCollapsed : pExportUserCollapsed;
+                pRow.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
+                pPresetRowPanel.Children.Add(pRow);
             }
         }
         finally
@@ -145,13 +161,63 @@ public sealed partial class PExport
         && (!string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase)
             || string.Equals(lWorking.LPresetVideo.LPresetMode, "Copy", StringComparison.OrdinalIgnoreCase));
 
-    private static Border PExportDividerBuild() => new()
+    private Border PExportGroupBuild(string pLabel, bool pCollapsed, Action pToggle)
     {
-        Tag = "Divider",
-        Height = 1,
-        Background = PLineBrush,
-        Margin = new Thickness(12, 6, 12, 6)
-    };
+        var pGrid = new Grid();
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        pGrid.Children.Add(new TextBlock
+        {
+            Text = pLabel,
+            FontSize = 11,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = PExportMutedBrush,
+            VerticalAlignment = VerticalAlignment.Center
+        });
+
+        var pToggleButton = new Button
+        {
+            Content = new Image
+            {
+                Width = 12,
+                Height = 12,
+                Source = PIcon.PIconRead(pCollapsed ? PExportExpandIcon : PExportCollapseIcon, PExportMutedBrush),
+                Stretch = Stretch.Uniform
+            },
+            ToolTip = LLocalization.LLocalizationTextRead(pCollapsed
+                ? "ExportPreset.Group.Expand"
+                : "ExportPreset.Group.Collapse"),
+            Width = 22,
+            Height = 20,
+            Style = PExportStyleRead()
+        };
+        pToggleButton.Click += (_, _) => pToggle();
+        Grid.SetColumn(pToggleButton, 1);
+        pGrid.Children.Add(pToggleButton);
+
+        return new Border
+        {
+            Tag = "Header",
+            Padding = new Thickness(12, 5, 8, 5),
+            Background = Brushes.White,
+            BorderBrush = PLineBrush,
+            BorderThickness = new Thickness(0, 0, 0, 1),
+            Child = pGrid
+        };
+    }
+
+    private void PExportNativeToggle()
+    {
+        pExportNativeCollapsed = !pExportNativeCollapsed;
+        PExportPresetRebuild();
+    }
+
+    private void PExportUserToggle()
+    {
+        pExportUserCollapsed = !pExportUserCollapsed;
+        PExportPresetRebuild();
+    }
 
     private void PExportEditCommit()
     {

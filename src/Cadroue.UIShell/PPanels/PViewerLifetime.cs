@@ -124,6 +124,7 @@ public sealed partial class PViewer
             Visibility pViewerMpvTarget = pViewerHostVisible ? Visibility.Visible : Visibility.Collapsed;
             pViewerMpvHost.Visibility = pViewerMpvTarget;
             pViewerCloseButton.Visibility = pViewerMpvTarget;
+            PViewerOverlayPlace();
             return;
         }
 

@@ -48,6 +48,12 @@ public sealed class PAudioTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority =>
         {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
             if (pList.PListEditableRead() is not { } pAudioSelected)
             {
                 return;
@@ -65,6 +71,12 @@ public sealed class PAudioTab : PTabSurface
         };
         pAction.PActionAllAdd += () =>
         {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
             PAudioPlanSave();
             _ = LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal,
@@ -77,6 +89,12 @@ public sealed class PAudioTab : PTabSurface
         };
         pAction.PActionItemsAdd += pAudioPaths =>
         {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
             PAudioPlanSave();
             _ = LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal,

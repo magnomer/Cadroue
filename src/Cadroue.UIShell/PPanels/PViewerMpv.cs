@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 using Cadroue.Core;
@@ -13,6 +14,8 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PViewer
 {
     private PViewerMpvHost? pViewerMpvHost;
+    private Popup? pViewerMpvOverlay;
+    private Window? pViewerMpvWindow;
     private bool pViewerMpvActive;
     private bool pViewerEngineSubscribed;
     private string pViewerMpvFilter = string.Empty;
@@ -224,8 +227,20 @@ public sealed partial class PViewer
         var pViewerMpvSurface = new Grid();
         pViewerMpvHost = new PViewerMpvHost { Visibility = Visibility.Collapsed };
         pViewerMpvSurface.Children.Add(pViewerMpvHost);
-        pViewerMpvSurface.Children.Add(pViewerOverlay);
-        pViewerMpvSurface.Children.Add(pViewerCloseButton);
+
+        var pViewerOverlayHost = new Grid();
+        pViewerOverlayHost.Children.Add(pViewerOverlay);
+        pViewerOverlayHost.Children.Add(pViewerCloseButton);
+        pViewerMpvOverlay = new Popup
+        {
+            Child = pViewerOverlayHost,
+            PlacementTarget = pViewerMpvHost,
+            Placement = PlacementMode.Relative,
+            AllowsTransparency = true,
+            StaysOpen = true,
+            IsOpen = false
+        };
+        pViewerMpvHost.SizeChanged += PViewerOverlayHandle;
 
         pViewerSurface = new Border
         {
@@ -245,6 +260,76 @@ public sealed partial class PViewer
         pViewerMpvFilter = string.Empty;
         pViewerMpvGammaApplied = null;
         PViewerEngineCurrentSet(LPreviewEngine.LPreviewEngineMpv);
+    }
+
+    private void PViewerOverlayHandle(object? sender, EventArgs eventArgs) => PViewerOverlayPlace();
+
+    private void PViewerOverlayPlace()
+    {
+        if (pViewerMpvOverlay is null || pViewerMpvHost is null)
+        {
+            return;
+        }
+
+        PViewerWindowAttach();
+
+        bool pViewerOverlayShow = pViewerMpvHost.Visibility == Visibility.Visible
+            && pViewerMpvHost.IsVisible
+            && pViewerMpvHost.ActualWidth > 0
+            && pViewerMpvHost.ActualHeight > 0
+            && (pViewerMpvWindow?.IsActive ?? true);
+
+        if (!pViewerOverlayShow)
+        {
+            pViewerMpvOverlay.IsOpen = false;
+            return;
+        }
+
+        if (pViewerMpvOverlay.Child is FrameworkElement pViewerOverlayChild)
+        {
+            pViewerOverlayChild.Width = pViewerMpvHost.ActualWidth;
+            pViewerOverlayChild.Height = pViewerMpvHost.ActualHeight;
+        }
+
+        pViewerMpvOverlay.IsOpen = true;
+        double pViewerOverlayOffset = pViewerMpvOverlay.HorizontalOffset;
+        pViewerMpvOverlay.HorizontalOffset = pViewerOverlayOffset + 0.5;
+        pViewerMpvOverlay.HorizontalOffset = pViewerOverlayOffset;
+    }
+
+    private void PViewerWindowAttach()
+    {
+        Window? pViewerMpvHostWindow = Window.GetWindow(this);
+        if (ReferenceEquals(pViewerMpvHostWindow, pViewerMpvWindow))
+        {
+            return;
+        }
+
+        PViewerWindowDetach();
+        pViewerMpvWindow = pViewerMpvHostWindow;
+        if (pViewerMpvWindow is null)
+        {
+            return;
+        }
+
+        pViewerMpvWindow.LocationChanged += PViewerOverlayHandle;
+        pViewerMpvWindow.SizeChanged += PViewerOverlayHandle;
+        pViewerMpvWindow.Activated += PViewerOverlayHandle;
+        pViewerMpvWindow.Deactivated += PViewerOverlayHandle;
+    }
+
+    private void PViewerWindowDetach()
+    {
+        if (pViewerMpvWindow is null)
+        {
+            return;
+        }
+
+        pViewerMpvWindow.LocationChanged -= PViewerOverlayHandle;
+        pViewerMpvWindow.SizeChanged -= PViewerOverlayHandle;
+        pViewerMpvWindow.Activated -= PViewerOverlayHandle;
+        pViewerMpvWindow.Deactivated -= PViewerOverlayHandle;
+        pViewerMpvWindow = null;
     }
 
     private void PViewerOverlayDetach()
@@ -386,10 +471,26 @@ public sealed partial class PViewer
 
     private void PViewerMpvDispose()
     {
+        PViewerWindowDetach();
+
+        if (pViewerMpvOverlay is not null)
+        {
+            pViewerMpvOverlay.IsOpen = false;
+            pViewerMpvOverlay.Child = null;
+            pViewerMpvOverlay = null;
+        }
+
+        PViewerOverlayDetach();
+
         if (pViewerMpvHost is null)
         {
+            pViewerMpvActive = false;
+            pViewerMpvFilter = string.Empty;
+            pViewerMpvGammaApplied = null;
             return;
         }
+
+        pViewerMpvHost.SizeChanged -= PViewerOverlayHandle;
 
         try
         {

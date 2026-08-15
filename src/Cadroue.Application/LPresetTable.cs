@@ -82,6 +82,7 @@ public sealed partial class LPreset
             return lPresetState;
         }
 
+        lPresetState.LPresetName = string.Empty;
         return lPresetState;
     }
 
@@ -362,7 +363,7 @@ public sealed partial class LPreset
 
     public static string LPresetDisplayRead(string lPresetName) => lPresetName switch
     {
-        LPresetAudioDefault => "Audio Processing",
+        LPresetAudioDefault => "Audio",
         LPresetSplitDefault => "Split",
         LPresetMergeDefault => "Merge",
         _ => lPresetName

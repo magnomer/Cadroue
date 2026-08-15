@@ -36,6 +36,12 @@ public sealed class PEditTab : PTabSurface
         PTabAction = pAction;
         pAction.PActionRun += lPriority =>
         {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
             if (pList.PListEditableRead() is not { } pEditSelected)
             {
                 return;
@@ -53,25 +59,43 @@ public sealed class PEditTab : PTabSurface
                 pEditSelected.LDocketEntryBatch);
         };
 
-        pAction.PActionAllAdd += () => _ = LMessenger.LMessengerEditDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedRead()
-                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                .ToArray(),
-            lPresetOwner,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab,
-            PEditMpvOnlyCapableRead());
-        pAction.PActionItemsAdd += pEditPaths => _ = LMessenger.LMessengerEditDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            pList.PListUnlockedRead()
-                .Where(pItem => pEditPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                .ToArray(),
-            lPresetOwner,
-            pAction.PActionRelayTarget,
-            pAction.PActionSourceTab,
-            PEditMpvOnlyCapableRead());
+        pAction.PActionAllAdd += () =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            _ = LMessenger.LMessengerEditDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                pList.PListUnlockedRead()
+                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
+                    .ToArray(),
+                lPresetOwner,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab,
+                PEditMpvOnlyCapableRead());
+        };
+        pAction.PActionItemsAdd += pEditPaths =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                PExport.PExportMissingShow();
+                return;
+            }
+
+            _ = LMessenger.LMessengerEditDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                pList.PListUnlockedRead()
+                    .Where(pItem => pEditPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
+                    .ToArray(),
+                lPresetOwner,
+                pAction.PActionRelayTarget,
+                pAction.PActionSourceTab,
+                PEditMpvOnlyCapableRead());
+        };
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));

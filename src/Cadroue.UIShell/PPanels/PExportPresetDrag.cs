@@ -114,7 +114,7 @@ public sealed partial class PExport
             return false;
         }
 
-        int lDataTargetIndex = lTargetIndex - PExportDividerRead(lTargetIndex);
+        int lDataTargetIndex = lTargetIndex - PExportHeaderRead(lTargetIndex);
         if (!LPreset.LPresetMove(lPresetName, lDataTargetIndex))
         {
             return false;
@@ -125,19 +125,19 @@ public sealed partial class PExport
         return true;
     }
 
-    private int PExportDividerRead(int lChildIndex)
+    private int PExportHeaderRead(int lChildIndex)
     {
-        int lDividerCount = 0;
+        int lHeaderCount = 0;
         int lLimit = Math.Min(lChildIndex, pPresetRowPanel.Children.Count);
         for (int lIndex = 0; lIndex < lLimit; lIndex++)
         {
-            if (pPresetRowPanel.Children[lIndex] is Border { Tag: "Divider" })
+            if (pPresetRowPanel.Children[lIndex] is Border { Tag: "Header" })
             {
-                lDividerCount++;
+                lHeaderCount++;
             }
         }
 
-        return lDividerCount;
+        return lHeaderCount;
     }
 
     private static bool PExportInsideCheck(DependencyObject? pSource, DependencyObject pTarget)
