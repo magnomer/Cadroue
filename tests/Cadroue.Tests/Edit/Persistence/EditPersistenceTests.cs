@@ -55,6 +55,32 @@ public sealed class EditPersistenceTests
     }
 
     [Fact]
+    public void Exposure_PersistentRecord_RoundTripsActiveValueAndToken()
+    {
+        LWorkVideo video = TInterface.WorkVideoCreate(new[] { TInterface.WorkExposureCreate(true, 1.2) });
+        LEditPlan source = TInterface.EditPlanCreate(TInterface.WorkCropCreate(), video, false);
+
+        LSidecarEditRecord record = TInterface.EditPersistentCreate(source);
+        LEditPlan restored = TInterface.EditPersistentRead(record);
+
+        LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
+        Assert.Equal("Exposure", stored.LSidecarKind);
+        LWorkVideoStep step = Assert.Single(restored.LEditVideo.LWorkVideoSteps);
+        Assert.Equal(LColorKind.LColorKindExposure, step.LWorkStepKind);
+        Assert.True(step.LWorkStepActive);
+        Assert.Equal(1.2, step.LWorkStepValue);
+    }
+
+    [Fact]
+    public void Exposure_EditVideoCreate_DroppedWhenNotMpvCapableKeptWhenMpv()
+    {
+        var steps = new[] { TInterface.WorkExposureCreate(true, 1.2) };
+
+        Assert.Empty(TInterface.EditVideoCreate(steps, false).LWorkVideoSteps);
+        Assert.Single(TInterface.EditVideoCreate(steps, true).LWorkVideoSteps);
+    }
+
+    [Fact]
     public void Gamma_PersistentRecord_RoundTripsValueAndToken()
     {
         LWorkVideo video = TInterface.WorkVideoCreate(new[] { TInterface.WorkGammaCreate(true, 75) });

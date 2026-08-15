@@ -25,7 +25,9 @@ public static partial class LEdit
         new(lEditMpvOnlyCapable
             ? lEditSteps
             : lEditSteps.Where(lStep =>
-                lStep.LWorkStepKind is not (LColorKind.LColorKindGamma or LColorKind.LColorKindWhitebalance)).ToArray());
+                lStep.LWorkStepKind is not (LColorKind.LColorKindGamma
+                    or LColorKind.LColorKindWhitebalance
+                    or LColorKind.LColorKindExposure)).ToArray());
 
     public static LEditPlan LEditPlanResolve(LEditPlan? lEditSaved, LEditPlan? lEditPersistent)
     {
@@ -124,6 +126,8 @@ public static partial class LEdit
                 LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue),
             LColorKind.LColorKindSaturation =>
                 LWorkVideoStep.LWorkSaturationCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue),
+            LColorKind.LColorKindExposure =>
+                LWorkVideoStep.LWorkExposureCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue),
             LColorKind.LColorKindGamma =>
                 LWorkVideoStep.LWorkGammaCreate(
                     lEditRecord.LSidecarActive,
