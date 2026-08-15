@@ -13,10 +13,23 @@ internal sealed partial class PSOptions
     {
         Button pDownload = PSInlineButtonBuild(PSSystemMpvInstallText(), 160, new Thickness(0, 0, 8, 0));
         Button pBrowse = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
+        ProgressBar pProgress = PSSystemInstallProgressBuild();
+        var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
         pDownload.Click += async (_, _) =>
         {
             pDownload.IsEnabled = false;
-            LMpvInstallResult pResult = await LMpv.LMpvInstallStart();
+            pProgress.Value = 0;
+            pProgress.Visibility = Visibility.Visible;
+            LMpvInstallResult pResult;
+            try
+            {
+                pResult = await LMpv.LMpvInstallStart(pFeed);
+            }
+            finally
+            {
+                pProgress.Visibility = Visibility.Collapsed;
+            }
+
             pDownload.Content = PSSystemMpvInstallText();
             pDownload.IsEnabled = true;
             psOptionsEngineMpv.IsEnabled = pResult.LMpvInstallSuccess || LMpv.LMpvInstalledCheck();
@@ -34,6 +47,7 @@ internal sealed partial class PSOptions
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pButtons.Children.Add(pDownload);
         pButtons.Children.Add(pBrowse);
+        pButtons.Children.Add(pProgress);
 
         return PSFieldBuild(string.Empty, pButtons);
     }

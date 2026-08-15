@@ -14,7 +14,7 @@ public static partial class LFlyleaf
 {
     private const string LFlyleafRepositoryUrl = "https://github.com/SuRGeoNix/Flyleaf.git";
 
-    public static async Task<LFlyleafInstallResult> LFlyleafInstallStart()
+    public static async Task<LFlyleafInstallResult> LFlyleafInstallStart(IProgress<double>? lProgress = null)
     {
         string lRoot = LFlyleafRootRead();
         string lSource = Path.Combine(lRoot, LFlyleafSourceName);
@@ -22,27 +22,27 @@ public static partial class LFlyleaf
 
         try
         {
-            if (!Directory.Exists(Path.Combine(lSource, ".git")))
-            {
-                if (Directory.Exists(lSource))
-                {
-                    Directory.Delete(lSource, true);
-                }
-
-                await LFlyleafCommandRun("git", $"clone --depth 1 {LFlyleafRepositoryUrl} \"{lSource}\"", lRoot);
-            }
-            else
+            lProgress?.Report(0);
+            if (LFlyleafRepositoryCheck(lSource))
             {
                 await LFlyleafCommandRun("git", "reset --hard", lSource);
                 await LFlyleafCommandRun("git", "pull --ff-only", lSource);
             }
+            else
+            {
+                LFlyleafDirectoryRemove(lSource);
+                await LFlyleafCommandRun("git", $"clone --depth 1 {LFlyleafRepositoryUrl} \"{lSource}\"", lRoot);
+            }
 
+            lProgress?.Report(0.2);
             string lShaderFile = LFlyleafShaderFind(lSource);
             LTraceLog.LTraceInfoRecord($"Local Flyleaf shader patch target: {lShaderFile}");
             LFlyleafShaderApply(lShaderFile);
             string lProjectFile = LFlyleafProjectFind(lSource, "FlyleafLib.csproj");
+            lProgress?.Report(0.25);
             await LFlyleafCommandRun("dotnet", $"build \"{lProjectFile}\" -c Release", lSource);
 
+            lProgress?.Report(0.95);
             string lAssemblyFolder = LFlyleafRuntimeCreate(lSource);
             LFlyleafRecordSave(new LFlyleafRecord
             {
@@ -50,6 +50,7 @@ public static partial class LFlyleaf
                 LFlyleafSourceFolder = lSource
             });
 
+            lProgress?.Report(1);
             return new LFlyleafInstallResult
             {
                 LFlyleafInstallSuccess = true,
@@ -64,6 +65,54 @@ public static partial class LFlyleaf
                 LFlyleafInstallSuccess = false,
                 LFlyleafInstallMessage = lException.Message
             };
+        }
+    }
+
+    private static void LFlyleafDirectoryRemove(string lFolder)
+    {
+        if (!Directory.Exists(lFolder))
+        {
+            return;
+        }
+
+        foreach (string lFile in Directory.EnumerateFiles(lFolder, "*", SearchOption.AllDirectories))
+        {
+            File.SetAttributes(lFile, FileAttributes.Normal);
+        }
+
+        Directory.Delete(lFolder, true);
+    }
+
+    private static bool LFlyleafRepositoryCheck(string lSource)
+    {
+        if (!Directory.Exists(Path.Combine(lSource, ".git")))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var lProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo("git", "rev-parse --is-inside-work-tree")
+                {
+                    WorkingDirectory = lSource,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                }
+            };
+
+            lProcess.Start();
+            lProcess.StandardOutput.ReadToEnd();
+            lProcess.StandardError.ReadToEnd();
+            lProcess.WaitForExit();
+            return lProcess.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
         }
     }
 

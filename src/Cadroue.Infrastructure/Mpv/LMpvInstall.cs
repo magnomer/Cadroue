@@ -61,7 +61,7 @@ public sealed partial class LMpv
         }
     }
 
-    public static async Task<LMpvInstallResult> LMpvInstallStart()
+    public static async Task<LMpvInstallResult> LMpvInstallStart(IProgress<double>? lProgress = null)
     {
         string lRoot = LMpvRootRead();
         string lInstallFolder = Path.Combine(lRoot, LMpvInstallName);
@@ -69,13 +69,17 @@ public sealed partial class LMpv
 
         try
         {
+            lProgress?.Report(0);
             Directory.CreateDirectory(lInstallFolder);
             string lUrl = await LMpvUrlResolve();
             lArchivePath = Path.Combine(lRoot, LMpvNameResolve(lUrl));
             LTraceLog.LTraceInfoRecord($"Local mpv download: {lUrl}");
-            await LMpvArchiveSave(lUrl, lArchivePath);
+            lProgress?.Report(0.05);
+            await LMpvArchiveSave(lUrl, lArchivePath, lProgress, 0.05, 0.85);
+            lProgress?.Report(0.85);
             await LMpvArchiveRead(lArchivePath, lInstallFolder);
 
+            lProgress?.Report(0.95);
             string lDll = Path.Combine(lInstallFolder, LMpvLibraryFile);
             if (!File.Exists(lDll))
             {
@@ -85,6 +89,7 @@ public sealed partial class LMpv
             LMpvRecordSave(new LMpvInstallRecord { LMpvInstallFolder = lInstallFolder });
             LMpvArchiveDelete(lArchivePath);
             LTraceLog.LTraceInfoRecord($"Local mpv installed: {lDll}");
+            lProgress?.Report(1);
 
             return new LMpvInstallResult
             {
@@ -144,15 +149,29 @@ public sealed partial class LMpv
         return string.IsNullOrWhiteSpace(lName) ? "mpv-dev.archive" : lName;
     }
 
-    private static async Task LMpvArchiveSave(string lUrl, string lArchivePath)
+    private static async Task LMpvArchiveSave(string lUrl, string lArchivePath, IProgress<double>? lProgress, double lStart, double lEnd)
     {
         using HttpClient lClient = LMpvClientCreate();
         using HttpResponseMessage lResponse =
             await lClient.GetAsync(lUrl, HttpCompletionOption.ResponseHeadersRead);
         lResponse.EnsureSuccessStatusCode();
 
+        long? lTotal = lResponse.Content.Headers.ContentLength;
+        using Stream lNetwork = await lResponse.Content.ReadAsStreamAsync();
         using FileStream lFile = File.Create(lArchivePath);
-        await lResponse.Content.CopyToAsync(lFile);
+
+        byte[] lBuffer = new byte[81920];
+        long lReceived = 0;
+        int lCount;
+        while ((lCount = await lNetwork.ReadAsync(lBuffer)) > 0)
+        {
+            await lFile.WriteAsync(lBuffer.AsMemory(0, lCount));
+            lReceived += lCount;
+            if (lProgress is not null && lTotal is > 0)
+            {
+                lProgress.Report(lStart + ((lEnd - lStart) * lReceived / lTotal.Value));
+            }
+        }
     }
 
     private static HttpClient LMpvClientCreate()

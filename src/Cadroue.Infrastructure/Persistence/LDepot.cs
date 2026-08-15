@@ -176,6 +176,8 @@ public static class LDepot
 
     private static bool LDepotSpareCheck(string lDepotName) =>
         string.Equals(lDepotName, LDepotPaletteFolder, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(lDepotName, Path.GetFileName(LMpv.LMpvRootRead()), StringComparison.OrdinalIgnoreCase)
+        || string.Equals(lDepotName, Path.GetFileName(LFlyleaf.LFlyleafRootRead()), StringComparison.OrdinalIgnoreCase)
         || lDepotName.StartsWith(LDepotIndexFile, StringComparison.OrdinalIgnoreCase);
 
     private static void LDepotContentClear(DirectoryInfo lDepotFolder)

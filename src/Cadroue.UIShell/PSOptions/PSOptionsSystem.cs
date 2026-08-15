@@ -92,10 +92,23 @@ internal sealed partial class PSOptions
     {
         Button pInstall = PSInlineButtonBuild(PSSystemFlyleafInstallText(), 160, new Thickness(0, 0, 8, 0));
         Button pBrowse = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
+        ProgressBar pProgress = PSSystemInstallProgressBuild();
+        var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
         pInstall.Click += async (_, _) =>
         {
             pInstall.IsEnabled = false;
-            LFlyleafInstallResult pResult = await LFlyleaf.LFlyleafInstallStart();
+            pProgress.Value = 0;
+            pProgress.Visibility = Visibility.Visible;
+            LFlyleafInstallResult pResult;
+            try
+            {
+                pResult = await LFlyleaf.LFlyleafInstallStart(pFeed);
+            }
+            finally
+            {
+                pProgress.Visibility = Visibility.Collapsed;
+            }
+
             pInstall.Content = PSSystemFlyleafInstallText();
             pInstall.IsEnabled = true;
             MessageBox.Show(
@@ -112,8 +125,44 @@ internal sealed partial class PSOptions
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pButtons.Children.Add(pInstall);
         pButtons.Children.Add(pBrowse);
+        pButtons.Children.Add(pProgress);
 
         return PSFieldBuild(string.Empty, pButtons);
+    }
+
+    private static ProgressBar PSSystemInstallProgressBuild() =>
+        new()
+        {
+            Minimum = 0,
+            Maximum = 1,
+            Width = 220,
+            Height = 8,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(16, 0, 0, 0),
+            Foreground = null,
+            Background = null,
+            BorderThickness = new Thickness(0),
+            Template = PSSystemInstallProgressTemplateBuild(),
+            Visibility = Visibility.Collapsed
+        };
+
+    private static System.Windows.Controls.ControlTemplate PSSystemInstallProgressTemplateBuild()
+    {
+        const string pXaml = @"
+<ControlTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+                 xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""
+                 TargetType=""{x:Type ProgressBar}"">
+    <Border CornerRadius=""4"" Background=""#E4E9F0"" ClipToBounds=""True"">
+        <Grid>
+            <Rectangle x:Name=""PART_Track"" />
+            <Border x:Name=""PART_Indicator""
+                    HorizontalAlignment=""Left""
+                    CornerRadius=""4""
+                    Background=""#4C86F7"" />
+        </Grid>
+    </Border>
+</ControlTemplate>";
+        return (System.Windows.Controls.ControlTemplate)System.Windows.Markup.XamlReader.Parse(pXaml);
     }
 
     private static string PSSystemFlyleafInstallText() =>
