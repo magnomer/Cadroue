@@ -38,6 +38,23 @@ public sealed class EditPersistenceTests
     }
 
     [Fact]
+    public void Saturation_PersistentRecord_RoundTripsActiveValueAndToken()
+    {
+        LWorkVideo video = TInterface.WorkVideoCreate(new[] { TInterface.WorkSaturationCreate(true, 130) });
+        LEditPlan source = TInterface.EditPlanCreate(TInterface.WorkCropCreate(), video, false);
+
+        LSidecarEditRecord record = TInterface.EditPersistentCreate(source);
+        LEditPlan restored = TInterface.EditPersistentRead(record);
+
+        LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
+        Assert.Equal("Saturation", stored.LSidecarKind);
+        LWorkVideoStep step = Assert.Single(restored.LEditVideo.LWorkVideoSteps);
+        Assert.Equal(LColorKind.LColorKindSaturation, step.LWorkStepKind);
+        Assert.True(step.LWorkStepActive);
+        Assert.Equal(130, step.LWorkStepValue);
+    }
+
+    [Fact]
     public void Gamma_PersistentRecord_RoundTripsValueAndToken()
     {
         LWorkVideo video = TInterface.WorkVideoCreate(new[] { TInterface.WorkGammaCreate(true, 75) });

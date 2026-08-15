@@ -122,6 +122,8 @@ public static partial class LEdit
         {
             LColorKind.LColorKindContrast =>
                 LWorkVideoStep.LWorkContrastCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue),
+            LColorKind.LColorKindSaturation =>
+                LWorkVideoStep.LWorkSaturationCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue),
             LColorKind.LColorKindGamma =>
                 LWorkVideoStep.LWorkGammaCreate(
                     lEditRecord.LSidecarActive,
