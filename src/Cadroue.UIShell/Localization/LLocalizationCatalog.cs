@@ -131,13 +131,17 @@ internal sealed partial class LLocalizationCatalog
             lLocalizationRaw,
             lLocalizationMatch =>
             {
-                string lLocalizationTermKey = lLocalizationMatch.Groups[1].Value;
-                return LLocalizationTermResolve(
+                bool lLocalizationLower = lLocalizationMatch.Groups[1].Value == "t";
+                string lLocalizationTermKey = "Terms." + lLocalizationMatch.Groups[2].Value;
+                string lLocalizationTermValue = LLocalizationTermResolve(
                     lLocalizationTermKey,
                     lLocalizationRawValues,
                     lLocalizationResolvedValues,
                     lLocalizationPath,
                     lLocalizationFilePath);
+                return lLocalizationLower
+                    ? LLocalizationFirstLower(lLocalizationTermValue)
+                    : lLocalizationTermValue;
             });
 
         lLocalizationPath.Remove(lLocalizationKey);
@@ -159,7 +163,12 @@ internal sealed partial class LLocalizationCatalog
     [GeneratedRegex(@"^(?:Terms|[A-Z][A-Za-z0-9]*)(?:\.[A-Z][A-Za-z0-9]*)+$", RegexOptions.CultureInvariant)]
     private static partial Regex LLocalizationKeyCreate();
 
-    [GeneratedRegex(@"\{(Terms\.[A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)*)\}", RegexOptions.CultureInvariant)]
+    private static string LLocalizationFirstLower(string lLocalizationText) =>
+        string.IsNullOrEmpty(lLocalizationText) || char.IsLower(lLocalizationText[0])
+            ? lLocalizationText
+            : char.ToLowerInvariant(lLocalizationText[0]) + lLocalizationText[1..];
+
+    [GeneratedRegex(@"\{([Tt])erms\.([A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)*)\}", RegexOptions.CultureInvariant)]
     private static partial Regex LLocalizationTermCreate();
 
     [GeneratedRegex(@"(?:^|\.)(?:Key|Text|Value|Label|Item|Thing)\d+(?:\.|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
