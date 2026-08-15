@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 
 using Cadroue.Core;
@@ -5,6 +6,8 @@ using Cadroue.Infrastructure;
 using Cadroue.Media;
 
 namespace Cadroue.Tests;
+
+internal sealed record TWaveformScanData(byte[] Peaks, byte[] Rms);
 
 internal sealed record TWaveformRecord(
     int BucketMilliseconds,
@@ -100,6 +103,39 @@ internal sealed class TWaveform : IDisposable
             sidecar.LSidecarSource.LSidecarPartialHash,
             LWaveform.LWaveformPeaksRead(waveform),
             LWaveform.LWaveformRmsRead(waveform));
+    }
+
+    internal string? MediaCreate(string name, string lavfi)
+    {
+        string path = Path.Combine(tWaveformRoot, name);
+        var start = new ProcessStartInfo(LTool.LToolFfmpegRead())
+        {
+            Arguments = "-v quiet -nostdin -f lavfi -i \"" + lavfi + "\" -y \"" + path + "\"",
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        try
+        {
+            using Process? process = Process.Start(start);
+            if (process is null)
+            {
+                return null;
+            }
+
+            process.WaitForExit();
+            return process.ExitCode == 0 && File.Exists(path) ? path : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    internal static TWaveformScanData Scan(string sourcePath, TimeSpan duration, string? filterGraph = null)
+    {
+        LWaveformScanResult result = LWaveformScanner.LWaveformScan(sourcePath, duration, default, filterGraph);
+        return new TWaveformScanData(result.LWaveformPeaks, result.LWaveformRms);
     }
 
     internal void SourceReplace(string sourcePath, string content) =>

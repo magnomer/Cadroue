@@ -7,11 +7,19 @@ public readonly record struct LSMonitorEstimate(double[] LSMonitorBefore, double
 
 public sealed class LSMonitor : IDisposable
 {
+    private const int LSMonitorDebounceMs = 150;
+
     private readonly LWaveformOrchestrator lMonitorOrchestrator = new();
+    private readonly object lMonitorLock = new();
     private byte[] lMonitorPeaks = Array.Empty<byte>();
-    private byte[] lMonitorRms = Array.Empty<byte>();
+    private string? lMonitorSourcePath;
+    private TimeSpan lMonitorDuration;
     private LWorkAudio lMonitorPlan = LWorkAudio.LWorkAudioCreate();
+    private double[] lMonitorBefore = Array.Empty<double>();
+    private double[] lMonitorAfter = Array.Empty<double>();
+    private CancellationTokenSource? lMonitorCancelSource;
     private bool lMonitorScanning;
+    private bool lMonitorDisposed;
 
     public event Action<LSMonitorEstimate>? LSMonitorReady;
 
@@ -26,6 +34,8 @@ public sealed class LSMonitor : IDisposable
 
     public void LSMonitorSourceOpen(string? lPath, TimeSpan lDuration)
     {
+        lMonitorSourcePath = lPath;
+        lMonitorDuration = lDuration;
         lMonitorScanning = !string.IsNullOrWhiteSpace(lPath) && lDuration > TimeSpan.Zero;
         lMonitorOrchestrator.LWaveformStart(lPath, lDuration);
     }
@@ -33,86 +43,118 @@ public sealed class LSMonitor : IDisposable
     public void LSMonitorPlanApply(LWorkAudio lPlan)
     {
         lMonitorPlan = lPlan;
-        LSMonitorUpdate();
+        LSMonitorAfterStart();
+    }
+
+    public void LSMonitorUpdate()
+    {
+        LSMonitorPublish();
     }
 
     private void LSMonitorPeaksHandle(byte[] lPeaks)
     {
         lMonitorPeaks = lPeaks;
-        lMonitorRms = lMonitorOrchestrator.LWaveformRmsCurrent;
+        lMonitorBefore = LWaveformEstimate.LWaveformEnvelopeRead(lPeaks);
+        lMonitorAfter = lMonitorBefore;
         if (lPeaks.Length > 0)
         {
             lMonitorScanning = false;
         }
 
-        LSMonitorUpdate();
+        LSMonitorPublish();
+        if (lPeaks.Length > 0)
+        {
+            LSMonitorAfterStart();
+        }
     }
 
-    public void LSMonitorUpdate()
+    private void LSMonitorAfterStart()
     {
-        double[] lBeforePeak = LWaveformEstimate.LWaveformEnvelopeRead(lMonitorPeaks);
-        if (lBeforePeak.Length == 0)
+        if (lMonitorDisposed)
         {
-            LSMonitorReady?.Invoke(new LSMonitorEstimate(Array.Empty<double>(), Array.Empty<double>()));
             return;
         }
 
-        double[] lBeforeRms = LWaveformEstimate.LWaveformEnvelopeRead(lMonitorRms);
-        LSMonitorChainApply(ref lBeforePeak, ref lBeforeRms);
-        double[] lAfter = LSMonitorNormalizeApply(lBeforePeak, lBeforeRms);
-        LSMonitorReady?.Invoke(new LSMonitorEstimate(lBeforePeak, lAfter));
+        CancellationTokenSource lToken;
+        lock (lMonitorLock)
+        {
+            lMonitorCancelSource?.Cancel();
+            lMonitorCancelSource?.Dispose();
+            lMonitorCancelSource = new CancellationTokenSource();
+            lToken = lMonitorCancelSource;
+        }
+
+        if (lMonitorPeaks.Length == 0)
+        {
+            return;
+        }
+
+        string? lPath = lMonitorSourcePath;
+        TimeSpan lDuration = lMonitorDuration;
+        string lGraph = lMonitorPlan.LWorkAudioFormat();
+
+        if (string.IsNullOrEmpty(lGraph)
+            || string.IsNullOrWhiteSpace(lPath)
+            || lDuration <= TimeSpan.Zero)
+        {
+            lMonitorAfter = lMonitorBefore;
+            lMonitorScanning = false;
+            LSMonitorPublish();
+            return;
+        }
+
+        lMonitorScanning = true;
+        LSMonitorAfterScan(lPath, lDuration, lGraph, lToken.Token);
     }
 
-    private void LSMonitorChainApply(ref double[] lPeak, ref double[] lRms)
+    private void LSMonitorAfterScan(string lPath, TimeSpan lDuration, string lGraph, CancellationToken lToken)
     {
-        foreach (LWorkAudioStep lStep in lMonitorPlan.LWorkAudioSteps)
+        _ = Task.Run(async () =>
         {
-            if (lStep.LWorkStepKind == LAudioKind.LAudioKindLeveling)
+            try
             {
-                break;
-            }
-
-            if (lStep is LWorkVolumeStep { LWorkStepActive: true } lVolume)
-            {
-                double lFactor = Math.Pow(10.0, lVolume.LWorkVolumeGain / 20.0);
-                lPeak = LWaveformEstimate.LWaveformGainApply(lPeak, lFactor);
-                if (lRms.Length > 0)
+                await Task.Delay(LSMonitorDebounceMs, lToken).ConfigureAwait(false);
+                LWaveformScanResult lScanned = LWaveformScanner.LWaveformScan(lPath, lDuration, lToken, lGraph);
+                if (lToken.IsCancellationRequested)
                 {
-                    lRms = LWaveformEstimate.LWaveformGainApply(lRms, lFactor);
+                    return;
                 }
+
+                double[] lAfter = LWaveformEstimate.LWaveformEnvelopeRead(lScanned.LWaveformPeaks);
+                lMonitorAfter = lAfter.Length > 0 ? lAfter : lMonitorBefore;
+                lMonitorScanning = false;
+                LSMonitorPublish();
             }
-        }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception lException)
+            {
+                LTraceLog.LTraceErrorRecord("Monitor after-scan could not be generated", lException);
+            }
+        }, CancellationToken.None);
     }
 
-    private double[] LSMonitorNormalizeApply(double[] lPeak, double[] lRms)
+    private void LSMonitorPublish()
     {
-        LWorkNormalizeStep? lStep = null;
-        foreach (LWorkAudioStep lCandidate in lMonitorPlan.LWorkAudioSteps)
-        {
-            if (lCandidate is LWorkNormalizeStep { LWorkStepActive: true } lNormalize)
-            {
-                lStep = lNormalize;
-                break;
-            }
-        }
-
-        if (lStep is null)
-        {
-            return lPeak;
-        }
-
-        return lStep.LWorkNormalizeMode == LLeveling.LLevelingDynamic
-            ? LWaveformEstimate.LWaveformDynamicApply(
-                lPeak, lStep.LWorkNormalizeFrame, lStep.LWorkNormalizeGauss,
-                lStep.LWorkNormalizeGain, lStep.LWorkNormalizeCompress)
-            : LWaveformEstimate.LWaveformLoudnessApply(
-                lPeak, lRms, lStep.LWorkNormalizeTarget, lStep.LWorkNormalizePeak,
-                lStep.LWorkNormalizeRange, lStep.LWorkTwoPass);
+        LSMonitorReady?.Invoke(new LSMonitorEstimate(lMonitorBefore, lMonitorAfter));
     }
 
     public void Dispose()
     {
+        if (lMonitorDisposed)
+        {
+            return;
+        }
+
+        lMonitorDisposed = true;
         lMonitorOrchestrator.LWaveformReady -= LSMonitorPeaksHandle;
         lMonitorOrchestrator.Dispose();
+        lock (lMonitorLock)
+        {
+            lMonitorCancelSource?.Cancel();
+            lMonitorCancelSource?.Dispose();
+            lMonitorCancelSource = null;
+        }
     }
 }

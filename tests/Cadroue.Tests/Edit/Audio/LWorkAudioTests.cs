@@ -27,7 +27,7 @@ public sealed class LWorkAudioTests
             "equalizer=f=1000:t=q:w=1:g=3," +
             "equalizer=f=4000:t=q:w=1:g=-2," +
             "loudnorm=I=-16:TP=-1.5:LRA=8",
-            audio.LWorkAudioFormat());
+            TInterface.WorkAudioFormat(audio));
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public sealed class LWorkAudioTests
             TInterface.WorkLowCreate(true, 8000, 1, 1, 0.5)
         });
 
-        Assert.Equal("lowpass=f=8000:poles=1:width_type=q:width=0.5", audio.LWorkAudioFormat());
+        Assert.Equal("lowpass=f=8000:poles=1:width_type=q:width=0.5", TInterface.WorkAudioFormat(audio));
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public sealed class LWorkAudioTests
         Assert.Equal(
             "highpass=f=120:poles=2:width_type=q:width=0.7," +
             "highpass=f=120:poles=2:width_type=q:width=0.7",
-            audio.LWorkAudioFormat());
+            TInterface.WorkAudioFormat(audio));
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public sealed class LWorkAudioTests
 
         Assert.Equal(
             "equalizer=f=1000:t=q:w=1:g=3,equalizer=f=4000:t=q:w=1:g=-2",
-            audio.LWorkAudioFormat());
+            TInterface.WorkAudioFormat(audio));
     }
 
     [Fact]
@@ -83,6 +83,6 @@ public sealed class LWorkAudioTests
             TInterface.WorkLowCreate(false, 8000, 1, 1, 0.5)
         });
 
-        Assert.Equal(string.Empty, audio.LWorkAudioFormat());
+        Assert.Equal(string.Empty, TInterface.WorkAudioFormat(audio));
     }
 }

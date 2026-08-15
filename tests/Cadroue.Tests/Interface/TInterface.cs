@@ -269,6 +269,7 @@ internal static class TInterface
         LWorkAudioStep.LWorkLowCreate(active, frequency, stages, poles, resonance);
     internal static LWorkAudioStep WorkEqualizerCreate(bool active, IReadOnlyList<LWorkBand> bands) =>
         LWorkAudioStep.LWorkEqualizerCreate(active, bands);
+    internal static string WorkAudioFormat(LWorkAudio audio) => audio.LWorkAudioFormat();
 
     internal static IReadOnlyList<string> ContourTokensRead() => LContourCatalog.LContourTokensRead();
     internal static double[]? ContourGainsRead(string token) => LContourCatalog.LContourGainsRead(token);
