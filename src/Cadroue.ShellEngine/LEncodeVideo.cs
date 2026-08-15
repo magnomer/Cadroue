@@ -246,6 +246,10 @@ internal static class LEncodeVideo
                     lEqFlush();
                     lFilters.AddRange(lStep.LWorkWhitebalanceRead().LWorkWhitebalanceFormat());
                     break;
+                case LColorKind.LColorKindExposure:
+                    lEqFlush();
+                    lFilters.Add($"exposure=exposure={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
+                    break;
                 default:
                     lEqFlush();
                     break;

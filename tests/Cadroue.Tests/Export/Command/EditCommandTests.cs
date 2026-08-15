@@ -78,6 +78,36 @@ public sealed class EditCommandTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ActiveExposure_IsEmittedAsStandaloneFilterWhileInactiveIsOmitted()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkVideo active = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkExposureCreate(true, 1.5)
+        });
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+            end: TimeSpan.FromMinutes(1), video: active);
+
+        IReadOnlyList<string> tokens = CommandTokens.Read(
+            Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
+        Assert.Equal("exposure=exposure=1.5", CommandTokens.ValueAfter(tokens, "-vf"));
+
+        LWorkVideo inactive = TInterface.WorkVideoCreate(new[]
+        {
+            TInterface.WorkExposureCreate(false, 1.5)
+        });
+        LWorkItem inactiveWork = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindEdit, "source.mov", "edited.mp4", TEncodeCommand.OutputCreate(),
+            end: TimeSpan.FromMinutes(1), video: inactive);
+
+        Assert.DoesNotContain(
+            "exposure=",
+            Assert.Single(TEncodeCommand.StagesBuild(inactiveWork)).LEncodeStageArguments,
+            StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(-100, "eq=gamma=0.1")]
     [InlineData(-50, "eq=gamma=0.316")]

@@ -18,6 +18,8 @@ public sealed record LColor(
 
     public double LColorHighlightProtection { get; init; }
 
+    public double LColorExposure { get; init; }
+
     public LWorkWhitebalanceSettings? LColorWhitebalance { get; init; }
 
     public bool LColorGammaAdvanced =>

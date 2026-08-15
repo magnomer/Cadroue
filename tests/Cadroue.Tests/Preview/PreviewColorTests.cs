@@ -437,6 +437,48 @@ public sealed class PreviewColorTests
         Assert.Equal($"lavfi=[{expected}]", TInterface.PreviewMpvFilterResolve(state));
     }
 
+    [Theory]
+    [InlineData(true, 1.5, 1.5)]
+    [InlineData(false, 1.5, 0)]
+    public void PreviewColorResolve_CarriesActiveExposure(bool active, double value, double expected)
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkExposureCreate(active, value)
+        ]));
+
+        Assert.Equal(expected, color.LColorExposure);
+    }
+
+    [Fact]
+    public void PreviewColorResolve_AbsentExposureIsZero()
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([]));
+
+        Assert.Equal(0, color.LColorExposure);
+    }
+
+    [Fact]
+    public void MpvFilterResolve_ActiveExposureEmitsStandaloneFilter()
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkExposureCreate(true, 1.5)
+        ]));
+        LPreviewState state = TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color);
+
+        Assert.Equal("lavfi=[exposure=exposure=1.5]", TInterface.PreviewMpvFilterResolve(state));
+    }
+
+    [Fact]
+    public void MpvFilterResolve_InactiveExposureEmitsNoFilter()
+    {
+        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate([
+            TInterface.WorkExposureCreate(false, 1.5)
+        ]));
+        LPreviewState state = TInterface.PreviewColorChange(TInterface.PreviewDefaultCreate(), color);
+
+        Assert.Empty(TInterface.PreviewMpvFilterResolve(state));
+    }
+
     [Fact]
     public void MpvFilterResolve_GammaManualPreservesExportOrder()
     {

@@ -47,6 +47,10 @@ public static class LPreview
         LWorkVideoStep? lWhitebalanceStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindWhitebalance
                 && lStep.LWorkStepActive);
+        double lExposure = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindExposure
+                && lStep.LWorkStepActive)
+            ?.LWorkFfmpegValue ?? 0;
         return new LColor(lBrightness, lContrast, lSaturation, 0)
         {
             LColorGamma = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal),
@@ -54,6 +58,7 @@ public static class LPreview
             LColorGammaGreen = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGreen),
             LColorGammaBlue = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaBlue),
             LColorHighlightProtection = lGamma?.LWorkGammaHighlight ?? 0,
+            LColorExposure = lExposure,
             LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead()
         };
     }
@@ -145,6 +150,11 @@ public static class LPreview
         if (lColor.LColorWhitebalance is { } lWhitebalance)
         {
             lFilters.AddRange(lWhitebalance.LWorkWhitebalanceFormat());
+        }
+
+        if (lColor.LColorExposure != 0)
+        {
+            lFilters.Add("exposure=exposure=" + LPreviewNumberFormat(lColor.LColorExposure));
         }
 
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;
