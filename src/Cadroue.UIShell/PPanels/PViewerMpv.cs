@@ -19,7 +19,6 @@ public sealed partial class PViewer
     private bool pViewerMpvActive;
     private bool pViewerEngineSubscribed;
     private string pViewerMpvFilter = string.Empty;
-    private LColor? pViewerMpvGammaApplied;
     private string pViewerAudioFilter = string.Empty;
     private string? pViewerAudioApplied;
     private bool pViewerBypass;
@@ -136,89 +135,28 @@ public sealed partial class PViewer
         }
 
         LPreviewState pViewerRender = PViewerRenderRead();
-        LColor pViewerGamma = pViewerRender.LColor;
-        bool pViewerGammaFiltered = LPreview.LPreviewGammaCheck(pViewerGamma);
-        LPreviewMpvEqualizer pViewerEqualizer =
-            LPreview.LPreviewEqualizerResolve(pViewerRender);
         string pViewerFilter = LPreview.LPreviewFilterResolve(pViewerRender);
-        bool pViewerApplied;
-
-        if (pViewerGammaFiltered)
+        bool pViewerChanged = pViewerFilter != pViewerMpvFilter;
+        if (!PViewerMpvFilterApply(pViewerFilter) || !pViewerChanged)
         {
-            pViewerApplied = PViewerMpvEqualizerApply(pViewerEqualizer, true);
-            if (pViewerApplied)
-            {
-                pViewerApplied = PViewerMpvFilterApply(pViewerFilter, true);
-            }
-            else
-            {
-                PViewerMpvRejectedFilterClear();
-            }
-        }
-        else
-        {
-            // Remove filtered Gamma before restoring the native factor so the two
-            // corrections can never be visible on the same frame.
-            pViewerApplied = PViewerMpvFilterApply(
-                pViewerFilter,
-                pViewerMpvGammaApplied is { } pViewerPreviousGamma
-                && LPreview.LPreviewGammaCheck(pViewerPreviousGamma));
-            if (pViewerApplied)
-            {
-                pViewerApplied = PViewerMpvEqualizerApply(pViewerEqualizer, false);
-            }
+            return;
         }
 
-        if (pViewerApplied && pViewerMpvGammaApplied != pViewerGamma)
+        if (!LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
         {
-            pViewerMpvGammaApplied = pViewerGamma;
-            if (!LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+            try
             {
-                try
-                {
-                    pViewerPlayer.PPlayerMpvRefresh();
-                }
-                catch (Exception pViewerRefreshException)
-                {
-                    LTraceLog.LTraceErrorRecord(
-                        $"mpv rejected paused preview refresh: {pViewerRefreshException.Message}");
-                }
+                pViewerPlayer.PPlayerMpvRefresh();
+            }
+            catch (Exception pViewerRefreshException)
+            {
+                LTraceLog.LTraceErrorRecord(
+                    $"mpv rejected paused preview refresh: {pViewerRefreshException.Message}");
             }
         }
     }
 
-    private bool PViewerMpvEqualizerApply(
-        LPreviewMpvEqualizer pViewerEqualizer,
-        bool pViewerGammaFirst)
-    {
-        try
-        {
-            if (pViewerGammaFirst)
-            {
-                pViewerPlayer.PPlayerMpvGammaSet(pViewerEqualizer.LPreviewMpvGamma);
-            }
-
-            pViewerPlayer.PPlayerEqualizerSet(
-                pViewerEqualizer.LPreviewMpvBrightness,
-                pViewerEqualizer.LPreviewMpvContrast,
-                pViewerEqualizer.LPreviewMpvSaturation,
-                pViewerEqualizer.LPreviewMpvHue);
-            if (!pViewerGammaFirst)
-            {
-                pViewerPlayer.PPlayerMpvGammaSet(pViewerEqualizer.LPreviewMpvGamma);
-            }
-
-            return true;
-        }
-        catch (Exception pViewerEqualizerException)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"mpv rejected preview properties: {pViewerEqualizerException.Message}");
-            return false;
-        }
-    }
-
-    private bool PViewerMpvFilterApply(string pViewerFilter, bool pViewerAdvancedGamma)
+    private bool PViewerMpvFilterApply(string pViewerFilter)
     {
         if (pViewerFilter == pViewerMpvFilter)
         {
@@ -235,11 +173,7 @@ public sealed partial class PViewer
         {
             LTraceLog.LTraceErrorRecord(
                 $"mpv rejected preview filter '{pViewerFilter}': {pViewerFilterException.Message}");
-            if (pViewerAdvancedGamma)
-            {
-                PViewerMpvRejectedFilterClear();
-            }
-
+            PViewerMpvRejectedFilterClear();
             return false;
         }
     }
@@ -360,7 +294,6 @@ public sealed partial class PViewer
         Content = pViewerSurface;
         pViewerMpvActive = true;
         pViewerMpvFilter = string.Empty;
-        pViewerMpvGammaApplied = null;
         PViewerEngineCurrentSet(LPreviewEngine.LPreviewEngineMpv);
     }
 
@@ -590,7 +523,6 @@ public sealed partial class PViewer
         {
             pViewerMpvActive = false;
             pViewerMpvFilter = string.Empty;
-            pViewerMpvGammaApplied = null;
             pViewerAudioApplied = null;
             return;
         }
@@ -608,7 +540,6 @@ public sealed partial class PViewer
         pViewerMpvHost = null;
         pViewerMpvActive = false;
         pViewerMpvFilter = string.Empty;
-        pViewerMpvGammaApplied = null;
         pViewerAudioApplied = null;
     }
 }

@@ -12,17 +12,9 @@ public sealed record LPreviewApplication(
     bool LPreviewFlipVertical,
     string LPreviewReason);
 
-public sealed record LPreviewMpvEqualizer(
-    int LPreviewMpvBrightness,
-    int LPreviewMpvContrast,
-    int LPreviewMpvSaturation,
-    int LPreviewMpvHue,
-    double LPreviewMpvGamma);
-
 public static class LPreview
 {
     public const double LPreviewBrightnessFactor = 2.5;
-    public const double LPreviewGammaMaximum = 2;
 
     public static Action<object, LPreviewApplication>? LPreviewApplySeam;
 
@@ -83,25 +75,6 @@ public static class LPreview
         LPreviewApplySeam?.Invoke(lPreviewTarget, LPreviewApplicationResolve(lPreviewState, "preview restored"));
     }
 
-    public static LPreviewMpvEqualizer LPreviewEqualizerResolve(LPreviewState lPreviewState)
-    {
-        LColor lColor = lPreviewState.LColor;
-        double lContrast = lColor.LColorContrast;
-        // FFmpeg eq pivots luma contrast at 0.5 and leaves chroma unchanged;
-        // MPV applies contrast as a black-anchored gain to both luma and chroma.
-        double lBrightness = lColor.LColorBrightness / LPreviewBrightnessFactor
-            + (1 - lContrast) / 2;
-        double lSaturation = lContrast == 0
-            ? lColor.LColorSaturation
-            : lColor.LColorSaturation / lContrast;
-        return new LPreviewMpvEqualizer(
-            LPreviewValueClamp(lBrightness * 100, -100, 100),
-            LPreviewValueClamp((lContrast - 1) * 100, -100, 100),
-            LPreviewValueClamp((lSaturation - 1) * 100, -100, 100),
-            LPreviewValueClamp(lColor.LColorHue / 180 * 100, -100, 100),
-            LPreviewGammaCheck(lColor) ? 1 : lColor.LColorGamma);
-    }
-
     public static string LPreviewFilterResolve(LPreviewState lPreviewState)
     {
         var lFilters = new List<string>();
@@ -131,6 +104,10 @@ public static class LPreview
             lFilters.Add(lRotate);
         }
 
+        // The whole colour pipeline runs through this one lavfi graph so the live
+        // preview applies the adjustments in the exact order and form the export
+        // filter graph (LEncodeVideo) uses: white balance, exposure, then the batched
+        // eq for brightness/contrast/gamma/saturation.
         LColor lColor = lPreviewState.LColor;
         if (lColor.LColorWhitebalance is { } lWhitebalance)
         {
@@ -139,30 +116,58 @@ public static class LPreview
 
         if (lColor.LColorExposure != 0)
         {
-            lFilters.Add("exposure=exposure=" + LPreviewNumberFormat(lColor.LColorExposure));
+            lFilters.Add("exposure=exposure=" + LPreviewFfmpegFormat(lColor.LColorExposure));
         }
 
-        if (LPreviewGammaCheck(lColor))
+        var lEq = new List<string>();
+        double lBrightness = lColor.LColorBrightness / LPreviewBrightnessFactor;
+        if (lBrightness != 0)
         {
-            double lGammaWeight = 1 - lColor.LColorHighlightProtection / 100d;
-            lFilters.Add(
-                "lutyuv=y=" + LPreviewLutFormat(
-                    lColor.LColorGamma * lColor.LColorGammaGreen,
-                    lGammaWeight)
-                + ":u=" + LPreviewLutFormat(
-                    Math.Sqrt(lColor.LColorGammaBlue / lColor.LColorGammaGreen),
-                    lGammaWeight)
-                + ":v=" + LPreviewLutFormat(
-                    Math.Sqrt(lColor.LColorGammaRed / lColor.LColorGammaGreen),
-                    lGammaWeight));
+            lEq.Add("brightness=" + LPreviewFfmpegFormat(lBrightness));
+        }
+
+        if (lColor.LColorContrast != 1)
+        {
+            lEq.Add("contrast=" + LPreviewFfmpegFormat(lColor.LColorContrast));
+        }
+
+        if (lColor.LColorGamma != 1)
+        {
+            lEq.Add("gamma=" + LPreviewFfmpegFormat(lColor.LColorGamma));
+        }
+
+        if (lColor.LColorGammaRed != 1)
+        {
+            lEq.Add("gamma_r=" + LPreviewFfmpegFormat(lColor.LColorGammaRed));
+        }
+
+        if (lColor.LColorGammaGreen != 1)
+        {
+            lEq.Add("gamma_g=" + LPreviewFfmpegFormat(lColor.LColorGammaGreen));
+        }
+
+        if (lColor.LColorGammaBlue != 1)
+        {
+            lEq.Add("gamma_b=" + LPreviewFfmpegFormat(lColor.LColorGammaBlue));
+        }
+
+        if (lColor.LColorHighlightProtection != 0)
+        {
+            lEq.Add("gamma_weight=" + LPreviewFfmpegFormat(1 - lColor.LColorHighlightProtection / 100d));
+        }
+
+        if (lColor.LColorSaturation != 1)
+        {
+            lEq.Add("saturation=" + LPreviewFfmpegFormat(lColor.LColorSaturation));
+        }
+
+        if (lEq.Count > 0)
+        {
+            lFilters.Add("eq=" + string.Join(':', lEq));
         }
 
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;
     }
-
-    public static bool LPreviewGammaCheck(LColor lColor) =>
-        lColor.LColorGammaAdvanced
-        || lColor.LColorGamma > LPreviewGammaMaximum;
 
     private static LPreviewApplication LPreviewApplicationResolve(LPreviewState lPreviewState, string lPreviewReason)
     {
@@ -195,14 +200,6 @@ public static class LPreview
         return Math.Clamp((int)Math.Round(lPreviewValue), lPreviewMinimum, lPreviewMaximum);
     }
 
-    private static string LPreviewLutFormat(double lGamma, double lGammaWeight)
-    {
-        string lLinearWeight = LPreviewNumberFormat(1 - lGammaWeight);
-        string lCurveWeight = LPreviewNumberFormat(lGammaWeight);
-        string lExponent = LPreviewNumberFormat(1 / lGamma);
-        return $"'val*{lLinearWeight}+maxval*pow(val/maxval\\,{lExponent})*{lCurveWeight}'";
-    }
-
-    private static string LPreviewNumberFormat(double lValue) =>
-        lValue.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture);
+    private static string LPreviewFfmpegFormat(double lValue) =>
+        lValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
 }

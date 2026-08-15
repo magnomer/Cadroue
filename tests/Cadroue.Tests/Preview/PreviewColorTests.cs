@@ -100,77 +100,19 @@ public sealed class PreviewColorTests
     }
 
     [Fact]
-    public void MpvEqualizerResolve_CompensatesForNativeMpvContrastSemantics()
-    {
-        LPreviewState state = TInterface.PreviewColorChange(
-            TInterface.PreviewDefaultCreate(),
-            TInterface.PreviewColorResolve(TInterface.WorkVideoCreate(new[]
-            {
-                TInterface.WorkBrightnessCreate(true, 100),
-                TInterface.WorkContrastCreate(true, 150)
-            })));
-
-        LPreviewMpvEqualizer result = TInterface.PreviewMpvEqualizerResolve(state);
-
-        Assert.Equal(25, result.LPreviewMpvBrightness);
-        Assert.Equal(50, result.LPreviewMpvContrast);
-        Assert.Equal(-33, result.LPreviewMpvSaturation);
-        Assert.Equal(0, result.LPreviewMpvHue);
-        Assert.Equal(1, result.LPreviewMpvGamma);
-    }
-
-    [Fact]
-    public void MpvEqualizerResolve_ContrastOnly_PreservesFfmpegMidpointAndChroma()
-    {
-        LPreviewState state = TInterface.PreviewColorChange(
-            TInterface.PreviewDefaultCreate(),
-            TInterface.ColorCreate(0, 1.5, 1, 0));
-
-        LPreviewMpvEqualizer result = TInterface.PreviewMpvEqualizerResolve(state);
-
-        Assert.Equal(-25, result.LPreviewMpvBrightness);
-        Assert.Equal(50, result.LPreviewMpvContrast);
-        Assert.Equal(-33, result.LPreviewMpvSaturation);
-    }
-
-    [Fact]
-    public void MpvFilterResolve_ColorOnly_DoesNotDuplicateNativeEqualizer()
+    public void MpvFilterResolve_BrightnessContrast_EmitEqInGraph()
     {
         LPreviewState state = TInterface.PreviewColorChange(
             TInterface.PreviewDefaultCreate(),
             TInterface.ColorCreate(0.5, 1.5, 1, 0));
 
-        string result = TInterface.PreviewMpvFilterResolve(state);
-
-        Assert.Empty(result);
+        Assert.Equal(
+            "lavfi=[eq=brightness=0.2:contrast=1.5]",
+            TInterface.PreviewMpvFilterResolve(state));
     }
 
     [Fact]
-    public void MpvEqualizerResolve_Gamma_UsesNativeGammaFactor()
-    {
-        LPreviewState state = TInterface.PreviewColorChange(
-            TInterface.PreviewDefaultCreate(),
-            TInterface.ColorGammaCreate(1.5));
-
-        Assert.Equal(1.5, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGamma);
-    }
-
-    [Fact]
-    public void MpvEqualizerResolve_ActiveGammaWithinNativeRange_UsesFfmpegFactor()
-    {
-        LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate(new[]
-        {
-            TInterface.WorkGammaCreate(true, -100)
-        }));
-        LPreviewState state = TInterface.PreviewColorChange(
-            TInterface.PreviewDefaultCreate(), color);
-
-        Assert.Equal(0.1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGamma);
-        Assert.Empty(TInterface.PreviewMpvFilterResolve(state));
-    }
-
-    [Fact]
-    public void MpvEqualizerResolve_ActiveGammaAboveNativeRange_UsesLutFilter()
+    public void MpvFilterResolve_ActiveGamma_EmitsEqGamma()
     {
         LColor color = TInterface.PreviewColorResolve(TInterface.WorkVideoCreate(new[]
         {
@@ -180,8 +122,7 @@ public sealed class PreviewColorTests
             TInterface.PreviewDefaultCreate(), color);
 
         Assert.Equal(10, color.LColorGamma);
-        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGamma);
-        Assert.Contains("lutyuv=y=", TInterface.PreviewMpvFilterResolve(state));
+        Assert.Equal("lavfi=[eq=gamma=10]", TInterface.PreviewMpvFilterResolve(state));
     }
 
     [Fact]
@@ -200,37 +141,35 @@ public sealed class PreviewColorTests
     }
 
     [Theory]
-    [InlineData(0.5, 0.5, 0.5, 0.5, 0, "lavfi=[lutyuv=y='val*0+maxval*pow(val/maxval\\,4)*1':u='val*0+maxval*pow(val/maxval\\,1)*1':v='val*0+maxval*pow(val/maxval\\,1)*1']")]
-    [InlineData(2, 2, 2, 2, 100, "lavfi=[lutyuv=y='val*1+maxval*pow(val/maxval\\,0.25)*0':u='val*1+maxval*pow(val/maxval\\,1)*0':v='val*1+maxval*pow(val/maxval\\,1)*0']")]
-    public void MpvFilterResolve_AdvancedGamma_UsesCompactInvariantBounds(
+    [InlineData(0.5, 0.5, 0.5, 0.5, 0, "lavfi=[eq=gamma=0.5:gamma_r=0.5:gamma_g=0.5:gamma_b=0.5]")]
+    [InlineData(2, 2, 2, 2, 100, "lavfi=[eq=gamma=2:gamma_r=2:gamma_g=2:gamma_b=2:gamma_weight=0]")]
+    public void MpvFilterResolve_AdvancedGamma_EmitsEqChannels(
         double global, double red, double green, double blue, double protection, string expected)
     {
         LPreviewState state = TInterface.PreviewColorChange(
             TInterface.PreviewDefaultCreate(),
             TInterface.ColorGammaCreate(global, red, green, blue, protection));
 
-        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(state).LPreviewMpvGamma);
         Assert.Equal(expected, TInterface.PreviewMpvFilterResolve(state));
     }
 
     [Theory]
-    [InlineData(25, 0.75)]
-    [InlineData(75, 0.25)]
-    public void MpvFilterResolve_HighlightProtection_InvertsGammaWeight(
-        double protection, double expectedWeight)
+    [InlineData(25, "0.75")]
+    [InlineData(75, "0.25")]
+    public void MpvFilterResolve_HighlightProtection_EmitsEqGammaWeight(
+        double protection, string expectedWeight)
     {
         LPreviewState state = TInterface.PreviewColorChange(
             TInterface.PreviewDefaultCreate(),
             TInterface.ColorGammaCreate(1.2, 1, 1, 1, protection));
 
-        string expectedLinearWeight = (1 - expectedWeight)
-            .ToString(System.Globalization.CultureInfo.InvariantCulture);
-        Assert.Contains($"val*{expectedLinearWeight}+", TInterface.PreviewMpvFilterResolve(state));
-        Assert.Contains($"*{expectedWeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}'", TInterface.PreviewMpvFilterResolve(state));
+        Assert.Equal(
+            $"lavfi=[eq=gamma=1.2:gamma_weight={expectedWeight}]",
+            TInterface.PreviewMpvFilterResolve(state));
     }
 
     [Fact]
-    public void MpvFilterResolve_GammaWithGeometry_PreservesExportOrder()
+    public void MpvFilterResolve_GammaWithGeometry_EmitsEqAfterGeometry()
     {
         LPreviewState state = TInterface.PreviewRotateFlipChange(
             TInterface.PreviewColorChange(
@@ -239,7 +178,7 @@ public sealed class PreviewColorTests
             TInterface.RotateFlipCreate(LRotateKind.LRotate90, true, false));
 
         Assert.Equal(
-            "lavfi=[hflip,transpose=1]",
+            "lavfi=[hflip,transpose=1,eq=gamma=1.5]",
             TInterface.PreviewMpvFilterResolve(state));
     }
 
@@ -257,7 +196,7 @@ public sealed class PreviewColorTests
     }
 
     [Fact]
-    public void MpvFilterResolve_AdvancedGammaWithGeometry_AppendsLutLast()
+    public void MpvFilterResolve_AdvancedGammaWithGeometry_AppendsEqLast()
     {
         LPreviewState state = TInterface.PreviewRotateFlipChange(
             TInterface.PreviewColorChange(
@@ -267,26 +206,8 @@ public sealed class PreviewColorTests
 
         Assert.Equal(
             "lavfi=[hflip,vflip,transpose=1,"
-            + "lutyuv=y='val*0.25+maxval*pow(val/maxval\\,0.757576)*0.75'"
-            + ":u='val*0.25+maxval*pow(val/maxval\\,0.919866)*0.75'"
-            + ":v='val*0.25+maxval*pow(val/maxval\\,1.105542)*0.75']",
+            + "eq=gamma=1.2:gamma_r=0.9:gamma_g=1.1:gamma_b=1.3:gamma_weight=0.75]",
             TInterface.PreviewMpvFilterResolve(state));
-    }
-
-    [Fact]
-    public void MpvGammaTransition_AdvancedToNative_RemovesLutAndRestoresGlobalFactor()
-    {
-        LPreviewState advanced = TInterface.PreviewColorChange(
-            TInterface.PreviewDefaultCreate(),
-            TInterface.ColorGammaCreate(1.5, 1.1, 1, 1, 0));
-        LPreviewState native = TInterface.PreviewColorChange(
-            TInterface.PreviewDefaultCreate(),
-            TInterface.ColorGammaCreate(1.5));
-
-        Assert.Contains("lutyuv=", TInterface.PreviewMpvFilterResolve(advanced));
-        Assert.Equal(1, TInterface.PreviewMpvEqualizerResolve(advanced).LPreviewMpvGamma);
-        Assert.Empty(TInterface.PreviewMpvFilterResolve(native));
-        Assert.Equal(1.5, TInterface.PreviewMpvEqualizerResolve(native).LPreviewMpvGamma);
     }
 
     [Fact]
@@ -381,7 +302,7 @@ public sealed class PreviewColorTests
 
         string filter = TInterface.PreviewMpvFilterResolve(state);
         Assert.DoesNotContain("crop=", filter);
-        Assert.True(filter.IndexOf("colorcorrect=", StringComparison.Ordinal) < filter.IndexOf("lutyuv=", StringComparison.Ordinal));
+        Assert.True(filter.IndexOf("colorcorrect=", StringComparison.Ordinal) < filter.IndexOf("eq=", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -495,7 +416,7 @@ public sealed class PreviewColorTests
         Assert.True(filter.IndexOf("colorchannelmixer=", StringComparison.Ordinal)
             < filter.IndexOf("eq=saturation=", StringComparison.Ordinal));
         Assert.True(filter.IndexOf("eq=saturation=", StringComparison.Ordinal)
-            < filter.IndexOf("lutyuv=", StringComparison.Ordinal));
+            < filter.IndexOf("eq=gamma=", StringComparison.Ordinal));
     }
 
     [Fact]
