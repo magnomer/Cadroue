@@ -77,6 +77,7 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PCropBodyBuild());
         pBody.Children.Add(PToneBrightnessBuild());
         pBody.Children.Add(PToneContrastBuild());
+        pBody.Children.Add(PToneSaturationBuild());
         pBody.Children.Add(PGammaBuild());
         pBody.Children.Add(PWhitebalanceBuild());
         pBody.Children.Add(PVolumeBodyBuild());

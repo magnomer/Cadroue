@@ -23,6 +23,13 @@ public sealed partial class PInspector
     private StackPanel pInspectorContrastStack = null!;
     private StackPanel pInspectorContrastBody = null!;
 
+    private CheckBox pToneSaturationBox = null!;
+    private CheckBox pInspectorSaturationPersistent = null!;
+    private Slider pInspectorSaturationSlider = null!;
+    private TextBox pInspectorSaturationValue = null!;
+    private StackPanel pInspectorSaturationStack = null!;
+    private StackPanel pInspectorSaturationBody = null!;
+
     private CheckBox pGammaBox = null!;
     private CheckBox pGammaPersistent = null!;
     private Slider pGammaSlider = null!;
@@ -62,6 +69,9 @@ public sealed partial class PInspector
         LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(
             pToneContrastBox.IsChecked == true,
             PInspectorDecimalRead(pInspectorContrastValue, 100)),
+        LColorKind.LColorKindSaturation => LWorkVideoStep.LWorkSaturationCreate(
+            pToneSaturationBox.IsChecked == true,
+            PInspectorDecimalRead(pInspectorSaturationValue, 100)),
         LColorKind.LColorKindGamma => LWorkVideoStep.LWorkGammaCreate(
             pGammaBox.IsChecked == true,
             PInspectorDecimalRead(pGammaValue, 0),
@@ -93,6 +103,9 @@ public sealed partial class PInspector
             pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindContrast)
             ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
         PToneStepApply(
+            pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindSaturation)
+            ?? LWorkVideoStep.LWorkSaturationCreate(false, 100));
+        PToneStepApply(
             pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LColorKind.LColorKindGamma)
             ?? LWorkVideoStep.LWorkGammaCreate(false, 0));
         PToneStepApply(
@@ -104,6 +117,7 @@ public sealed partial class PInspector
     public bool PTonePersistentCheck() =>
         pInspectorBrightnessPersistent.IsChecked == true
         || pInspectorContrastPersistent.IsChecked == true
+        || pInspectorSaturationPersistent.IsChecked == true
         || pGammaPersistent.IsChecked == true
         || pWhitebalancePersistent.IsChecked == true;
 
@@ -114,6 +128,10 @@ public sealed partial class PInspector
             if (pStep.LWorkStepKind == LColorKind.LColorKindContrast)
             {
                 pInspectorContrastPersistent.IsChecked = true;
+            }
+            else if (pStep.LWorkStepKind == LColorKind.LColorKindSaturation)
+            {
+                pInspectorSaturationPersistent.IsChecked = true;
             }
             else if (pStep.LWorkStepKind == LColorKind.LColorKindGamma)
             {
@@ -141,6 +159,11 @@ public sealed partial class PInspector
         if (pInspectorContrastPersistent.IsChecked == true)
         {
             pSteps.Add(PToneStepRead(LColorKind.LColorKindContrast));
+        }
+
+        if (pInspectorSaturationPersistent.IsChecked == true)
+        {
+            pSteps.Add(PToneStepRead(LColorKind.LColorKindSaturation));
         }
 
         if (pGammaPersistent.IsChecked == true)
@@ -215,6 +238,28 @@ public sealed partial class PInspector
         pInspectorContrastBody = PToneBodyBuild(pToneContrastBox, pInspectorContrastStack);
         PToneApplyUpdate(pToneContrastBox, pInspectorContrastStack);
         return pInspectorContrastBody;
+    }
+
+    private StackPanel PToneSaturationBuild()
+    {
+        pToneSaturationBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplySaturation"));
+        pInspectorSaturationPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistSaturation"));
+        pInspectorSaturationSlider = PToneSliderBuild(0, 200, 100);
+        pInspectorSaturationValue = PInspectorDecimalBuild();
+        pInspectorSaturationValue.Text = "100";
+        pInspectorSaturationStack = new StackPanel();
+        PInspectorVideoAttach(
+            pToneSaturationBox,
+            pInspectorSaturationStack,
+            pInspectorSaturationSlider,
+            pInspectorSaturationValue,
+            0,
+            200,
+            "0.#");
+        pInspectorSaturationStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorSaturationSlider, "%", pInspectorSaturationValue));
+        pInspectorSaturationBody = PToneBodyBuild(pToneSaturationBox, pInspectorSaturationStack);
+        PToneApplyUpdate(pToneSaturationBox, pInspectorSaturationStack);
+        return pInspectorSaturationBody;
     }
 
     private StackPanel PGammaBuild()
@@ -599,6 +644,15 @@ public sealed partial class PInspector
                 pInspectorContrastValue.Text = pStep.LWorkStepValue.ToString("0.#", CultureInfo.InvariantCulture);
                 pInspectorContrastSlider.Value = Math.Clamp(pStep.LWorkStepValue, 0, 200);
                 PToneApplyUpdate(pToneContrastBox, pInspectorContrastStack);
+                return;
+            }
+
+            if (pStep.LWorkStepKind == LColorKind.LColorKindSaturation)
+            {
+                pToneSaturationBox.IsChecked = pStep.LWorkStepActive;
+                pInspectorSaturationValue.Text = pStep.LWorkStepValue.ToString("0.#", CultureInfo.InvariantCulture);
+                pInspectorSaturationSlider.Value = Math.Clamp(pStep.LWorkStepValue, 0, 200);
+                PToneApplyUpdate(pToneSaturationBox, pInspectorSaturationStack);
                 return;
             }
 
