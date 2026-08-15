@@ -39,10 +39,11 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingStepChange += PAudioStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pProcessing.PProcessingOrderChange += PAudioPlanSave;
+        pProcessing.PProcessingMonitorShow += PAudioMonitorShow;
+        pProcessing.PProcessingMonitorEnable();
         pInspector.PSkipActiveChange += PAudioSkipHandle;
         pInspector.PInspectorPlanChange += PAudioPersistentWrite;
         pInspector.PInspectorAudioChange += PAudioChangeHandle;
-        pInspector.PInspectorMonitorShow += PAudioMonitorShow;
 
         var pAction = new PAction();
         PTabAction = pAction;

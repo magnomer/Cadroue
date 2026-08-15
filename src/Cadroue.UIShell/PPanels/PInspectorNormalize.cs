@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
-using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
@@ -29,8 +28,6 @@ public sealed partial class PInspector
     private string? pLoudnessBaseToken;
     private bool pLoudnessPresetSuppress;
 
-    public event Action? PInspectorMonitorShow;
-
     private LLeveling PLoudnessModeRead() =>
         pLoudnessMode.SelectedIndex == 1
             ? LLeveling.LLevelingDynamic
@@ -42,23 +39,6 @@ public sealed partial class PInspector
         pLoudnessApplyBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
         pLoudnessApplyBox.Checked += (_, _) => PLoudnessApplyUpdate();
         pLoudnessApplyBox.Unchecked += (_, _) => PLoudnessApplyUpdate();
-
-        var pViewerButton = new Button
-        {
-            ToolTip = LLocalization.LLocalizationTextRead("NormalizePreview.Button.Tooltip"),
-            Width = 32,
-            Height = 32,
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PInspectorToolCreate(typeof(Button)),
-            Content = new Image
-            {
-                Width = 18,
-                Height = 18,
-                Stretch = Stretch.Uniform,
-                Source = PIcon.PIconRead("/PAssets/PPanels/PProcessingNormalize.svg", pInspectorIconBrush)
-            }
-        };
-        pViewerButton.Click += (_, _) => PInspectorMonitorShow?.Invoke();
 
         pLoudnessPersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
@@ -165,7 +145,6 @@ public sealed partial class PInspector
         };
 
         pLoudnessPanel = new StackPanel();
-        pLoudnessPanel.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("NormalizePreview.Button.Label"), pViewerButton));
         pLoudnessPanel.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Mode"), pLoudnessMode));
         pLoudnessPanel.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pLoudnessPreset));
         pLoudnessPanel.Children.Add(pLoudnessStack);

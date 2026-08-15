@@ -18,6 +18,7 @@ public sealed partial class PProcessing : PPanel
 
     private const string PProcessingUpIcon = "/PAssets/PPanels/PProcessingUp.svg";
     private const string PProcessingDownIcon = "/PAssets/PPanels/PProcessingDown.svg";
+    private const string PProcessingMonitorIcon = "/PAssets/PPanels/PProcessingViewer.svg";
     private const string PProcessingSkipIcon = "/PAssets/PPanels/PProcessingSkip.svg";
     private const string PProcessingSkipStep = "No Processing";
 
@@ -27,12 +28,14 @@ public sealed partial class PProcessing : PPanel
     public event Action<string>? PProcessingStepOpen;
     public event Action<bool>? PProcessingMinimizeChange;
     public event Action? PProcessingOrderChange;
+    public event Action? PProcessingMonitorShow;
 
     private readonly StackPanel pProcessingRowPanel;
     private readonly UIElement pProcessingFullBody;
     private readonly UIElement pProcessingStripBody;
     private readonly UIElement pProcessingActionBar;
     private readonly Border pProcessingSkipRow;
+    private Button? pProcessingMonitorButton;
     private bool pProcessingSkipActive;
     private string? pProcessingStepCurrent;
     private bool pProcessingMinimized;
@@ -44,6 +47,14 @@ public sealed partial class PProcessing : PPanel
     {
         pProcessingOrdered = pOrderedRequest;
         pProcessingActionBar.Visibility = pOrderedRequest ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public void PProcessingMonitorEnable()
+    {
+        if (pProcessingMonitorButton is not null)
+        {
+            pProcessingMonitorButton.Visibility = Visibility.Visible;
+        }
     }
 
     public void PProcessingActiveSet(string pStepName, bool pActive)
@@ -307,8 +318,15 @@ public sealed partial class PProcessing : PPanel
         pLeftPanel.Children.Add(pUpButton);
         pLeftPanel.Children.Add(pDownButton);
 
+        Button pMonitorButton = PProcessingButtonBuild(
+            PProcessingMonitorIcon, LLocalization.LLocalizationTextRead("NormalizePreview.Button.Tooltip"), () => PProcessingMonitorShow?.Invoke());
+        pMonitorButton.HorizontalAlignment = HorizontalAlignment.Right;
+        pMonitorButton.Visibility = Visibility.Collapsed;
+        pProcessingMonitorButton = pMonitorButton;
+
         var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6) };
         pActionGrid.Children.Add(pLeftPanel);
+        pActionGrid.Children.Add(pMonitorButton);
 
         return new Border
         {
