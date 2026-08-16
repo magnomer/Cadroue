@@ -298,13 +298,27 @@ public sealed partial class LMpv : IDisposable
 
     public void LMpvDispose()
     {
-        if (lMpvContext == nint.Zero)
+        nint lContext = Interlocked.Exchange(ref lMpvContext, nint.Zero);
+        if (lContext == nint.Zero)
         {
             return;
         }
 
-        LMpvNative.mpv_terminate_destroy(lMpvContext);
-        lMpvContext = nint.Zero;
+        var lTeardown = new Thread(() =>
+        {
+            try
+            {
+                LMpvNative.mpv_terminate_destroy(lContext);
+            }
+            catch
+            {
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "LMpvTeardown"
+        };
+        lTeardown.Start();
     }
 
     public void Dispose()

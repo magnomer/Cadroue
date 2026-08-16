@@ -279,6 +279,7 @@ public sealed partial class PViewer
             IsOpen = false
         };
         pViewerMpvHost.SizeChanged += PViewerOverlayHandle;
+        pViewerMpvHost.IsVisibleChanged += PViewerOverlayVisibleHandle;
 
         pViewerSurface = new Border
         {
@@ -301,6 +302,9 @@ public sealed partial class PViewer
 
     private void PViewerOverlayHandle(object? sender, EventArgs eventArgs) => PViewerOverlayPlace();
 
+    private void PViewerOverlayVisibleHandle(object sender, DependencyPropertyChangedEventArgs eventArgs) =>
+        PViewerOverlayPlace();
+
     private void PViewerOverlayPlace()
     {
         if (pViewerMpvOverlay is null || pViewerMpvHost is null)
@@ -318,6 +322,14 @@ public sealed partial class PViewer
 
         if (!pViewerOverlayShow)
         {
+            if (pViewerMpvOverlay.IsOpen)
+            {
+                LTraceLog.LTraceInfoRecord(
+                    $"mpv overlay closed (host {(pViewerMpvHost.IsVisible ? "visible" : "hidden")}, "
+                    + $"vis={pViewerMpvHost.Visibility}, size {pViewerMpvHost.ActualWidth:0}x{pViewerMpvHost.ActualHeight:0}, "
+                    + $"windowActive={(pViewerMpvWindow?.IsActive.ToString() ?? "no-window")})");
+            }
+
             pViewerMpvOverlay.IsOpen = false;
             return;
         }
@@ -326,6 +338,13 @@ public sealed partial class PViewer
         {
             pViewerOverlayChild.Width = pViewerMpvHost.ActualWidth;
             pViewerOverlayChild.Height = pViewerMpvHost.ActualHeight;
+        }
+
+        if (!pViewerMpvOverlay.IsOpen)
+        {
+            LTraceLog.LTraceInfoRecord(
+                $"mpv overlay opened (top-level transparent window over {pViewerMpvHost.ActualWidth:0}x{pViewerMpvHost.ActualHeight:0}); "
+                + "note: this window captures pointer/drag events in its bounds");
         }
 
         pViewerMpvOverlay.IsOpen = true;
@@ -546,6 +565,7 @@ public sealed partial class PViewer
         }
 
         pViewerMpvHost.SizeChanged -= PViewerOverlayHandle;
+        pViewerMpvHost.IsVisibleChanged -= PViewerOverlayVisibleHandle;
 
         try
         {

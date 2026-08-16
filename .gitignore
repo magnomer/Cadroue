@@ -94,3 +94,5 @@ $RECYCLE.BIN/
 # Build-lifecycle helper scripts
 /*.ps1
 
+# Temporary gitignore
+/docs/

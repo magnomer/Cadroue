@@ -262,8 +262,15 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerSourceOpen(string sourcePath)
     {
+        LTraceLog.LTraceInfoRecord(
+            $"Viewer source open requested '{System.IO.Path.GetFileName(sourcePath)}'",
+            $"command={(pViewerCommandActive ? "active" : "INACTIVE")}, unloaded={pViewerUnloaded}, "
+            + $"engine={PViewerEngineCurrent}, path={sourcePath}");
+
         if (!pViewerCommandActive || string.IsNullOrWhiteSpace(sourcePath))
         {
+            LTraceLog.LTraceWarningRecord(
+                $"Viewer source open refused: {(pViewerCommandActive ? "empty path" : "viewer command inactive (tab not the front workspace)")}");
             return;
         }
 
@@ -271,6 +278,7 @@ public sealed partial class PViewer : PPanel
         {
             if (PViewerSidecarResolve(sourcePath) is not { } pResolvedPath)
             {
+                LTraceLog.LTraceWarningRecord("Viewer source open refused: sidecar (.cad) source could not be resolved");
                 return;
             }
 

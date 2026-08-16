@@ -1,34 +1,59 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PPanels;
 
 namespace Cadroue.UIShell.PMainWindow;
 
 public partial class PWindow
 {
+    private DragDropEffects? pDropLastEffect;
     private void PDropHandlersAdd()
     {
-        AddHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropAccept), true);
+        AddHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnter), true);
         AddHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropAccept), true);
         AddHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PDropHandle), true);
     }
 
     private void PDropHandlersRemove()
     {
-        RemoveHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropAccept));
+        RemoveHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnter));
         RemoveHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropAccept));
         RemoveHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PDropHandle));
+    }
+
+    private void PDropEnter(object sender, DragEventArgs dragEvent)
+    {
+        bool pDropGroup = PDropGroupCheck(dragEvent);
+        DragDropEffects pDropEffect = pDropGroup ? DragDropEffects.None : PDropEffectRead(dragEvent, out _);
+        LTraceLog.LTraceInfoRecord(
+            $"Drag entered window: {(pDropGroup ? "handed to PGroup (window ignores)" : pDropEffect == DragDropEffects.None ? "will REFUSE (forbidden cursor)" : $"will accept ({pDropEffect})")}",
+            $"originalSource={dragEvent.OriginalSource?.GetType().Name ?? "null"}, "
+            + $"list={(pListActive is null ? "NULL" : "present")}, viewer={(pViewerActive is null ? "NULL" : "present")}, "
+            + $"audioTab={pWindowAudioAllowed}, groupAncestor={pDropGroup}");
+
+        PDropAccept(sender, dragEvent);
     }
 
     private void PDropAccept(object sender, DragEventArgs dragEvent)
     {
         if (PDropGroupCheck(dragEvent))
         {
+            pDropLastEffect = null;
             return;
         }
 
-        dragEvent.Effects = PDropEffectRead(dragEvent);
+        DragDropEffects dropEffect = PDropEffectRead(dragEvent, out string dropReason);
+        if (dropEffect != pDropLastEffect)
+        {
+            pDropLastEffect = dropEffect;
+            LTraceLog.LTraceInfoRecord(
+                $"Drag over: {(dropEffect == DragDropEffects.None ? "REFUSED (forbidden cursor)" : dropEffect.ToString())}",
+                dropReason);
+        }
+
+        dragEvent.Effects = dropEffect;
         dragEvent.Handled = true;
     }
 
@@ -39,9 +64,16 @@ public partial class PWindow
             return;
         }
 
-        DragDropEffects dropEffect = PDropEffectRead(dragEvent);
+        pDropLastEffect = null;
+        DragDropEffects dropEffect = PDropEffectRead(dragEvent, out string dropReason);
         dragEvent.Effects = dropEffect;
         dragEvent.Handled = true;
+
+        string dropTarget = pListActive is not null ? "list" : pViewerActive is not null ? "viewer" : "none";
+        LTraceLog.LTraceInfoRecord(
+            $"Drop released: {(dropEffect == DragDropEffects.None ? "REFUSED" : "accepted")} onto {dropTarget}",
+            dropReason);
+
         if (dropEffect == DragDropEffects.None)
         {
             return;
@@ -49,7 +81,9 @@ public partial class PWindow
 
         if (pListActive is not null)
         {
-            pListActive.PListPathsAdd(PDropPathsRead(dragEvent));
+            IReadOnlyList<string> dropPaths = PDropPathsRead(dragEvent);
+            int dropAdded = pListActive.PListPathsAdd(dropPaths);
+            LTraceLog.LTraceInfoRecord($"Drop into list: {dropAdded} of {dropPaths.Count} path(s) added");
             return;
         }
 
@@ -62,6 +96,7 @@ public partial class PWindow
         if (sourcePath is null)
         {
             dragEvent.Effects = DragDropEffects.None;
+            LTraceLog.LTraceWarningRecord("Drop into viewer refused: no existing file in payload");
             return;
         }
 
@@ -84,27 +119,43 @@ public partial class PWindow
         return false;
     }
 
-    private DragDropEffects PDropEffectRead(DragEventArgs dragEvent)
+    private DragDropEffects PDropEffectRead(DragEventArgs dragEvent, out string pDropReason)
     {
+        IReadOnlyList<string> pDropPaths = PDropPathsRead(dragEvent);
+        string pDropPayload = pDropPaths.Count == 0
+            ? "no FileDrop payload"
+            : $"{pDropPaths.Count} path(s): {string.Join(", ", pDropPaths.Select(System.IO.Path.GetFileName))}";
+
         if (pListActive is not null)
         {
-            return PDropPathsRead(dragEvent)
-                .Any(pDropPath => Directory.Exists(pDropPath) || PList.PListMediaCheck(pDropPath))
-                ? PDropAllowedRead(dragEvent)
-                : DragDropEffects.None;
+            bool pDropListMatch = pDropPaths
+                .Any(pDropPath => Directory.Exists(pDropPath) || PList.PListMediaCheck(pDropPath));
+            pDropReason = pDropListMatch
+                ? $"target=list, {pDropPayload}"
+                : $"target=list, none are media/folders — {pDropPayload}";
+            return pDropListMatch ? PDropAllowedRead(dragEvent) : DragDropEffects.None;
         }
 
         if (pViewerActive is null)
         {
+            pDropReason = $"no active list or viewer (active tab has no drop target); {pDropPayload}";
             return DragDropEffects.None;
         }
 
         string? pSourcePath = PDropPathRead(dragEvent);
-        if (pSourcePath is null || Cadroue.Media.LMedia.LMediaAudioCheck(pSourcePath) && !pWindowAudioAllowed)
+        if (pSourcePath is null)
         {
+            pDropReason = $"target=viewer, no existing file in payload — {pDropPayload}";
             return DragDropEffects.None;
         }
 
+        if (Cadroue.Media.LMedia.LMediaAudioCheck(pSourcePath) && !pWindowAudioAllowed)
+        {
+            pDropReason = $"target=viewer, audio-only file on a video-only tab — {System.IO.Path.GetFileName(pSourcePath)}";
+            return DragDropEffects.None;
+        }
+
+        pDropReason = $"target=viewer, {System.IO.Path.GetFileName(pSourcePath)}";
         return PDropAllowedRead(dragEvent);
     }
 

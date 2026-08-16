@@ -109,8 +109,11 @@ public sealed partial class PList : PPanel
 
     private void PListAddHandle(IReadOnlyList<LDocketEntry> pListAdded)
     {
+        LTraceLog.LTraceInfoRecord(
+            $"List add handled: {pListAdded.Count} entry(ies), selecting '{System.IO.Path.GetFileName(pListAdded[0].LDocketEntryPath)}' and notifying subscribers");
         PListSelectApply(pListAdded[0].LDocketEntryPath);
         PListItemsAdd?.Invoke(pListAdded);
+        LTraceLog.LTraceInfoRecord("List add subscribers notified");
     }
 
     private void PListRemoveHandle(IReadOnlyList<string> pListRemoved)
@@ -172,8 +175,23 @@ public sealed partial class PList : PPanel
 
     public int PListPathsAdd(IEnumerable<string> pAddPaths)
     {
-        IReadOnlyList<string> pScannedPaths = PListMediaScan(pAddPaths);
-        return pScannedPaths.Count == 0 ? 0 : pListDocket.LDocketPathsAdd(pScannedPaths);
+        IReadOnlyList<string> pRequested = pAddPaths as IReadOnlyList<string> ?? pAddPaths.ToArray();
+        LTraceLog.LTraceInfoRecord(
+            $"List add requested: {pRequested.Count} path(s)",
+            string.Join(", ", pRequested.Select(System.IO.Path.GetFileName)));
+        try
+        {
+            IReadOnlyList<string> pScannedPaths = PListMediaScan(pRequested);
+            LTraceLog.LTraceInfoRecord($"List scan resolved {pScannedPaths.Count} media path(s); adding to docket");
+            int pAdded = pScannedPaths.Count == 0 ? 0 : pListDocket.LDocketPathsAdd(pScannedPaths);
+            LTraceLog.LTraceInfoRecord($"List add committed: {pAdded} entry(ies)");
+            return pAdded;
+        }
+        catch (Exception pAddException)
+        {
+            LTraceLog.LTraceErrorRecord("List add failed", pAddException);
+            throw;
+        }
     }
 
     public static bool PListMediaCheck(string pMediaPath) =>
@@ -309,6 +327,7 @@ public sealed partial class PList : PPanel
 
         if (pDialog.ShowDialog() == true)
         {
+            LTraceLog.LTraceInfoRecord($"List manual file dialog confirmed: {pDialog.FileNames.Length} file(s)");
             PListPathsAdd(pDialog.FileNames);
         }
     }
@@ -318,6 +337,7 @@ public sealed partial class PList : PPanel
         var pDialog = new OpenFolderDialog { Title = LLocalization.LLocalizationTextRead("List.Dialog.AddFolder"), Multiselect = true };
         if (pDialog.ShowDialog() == true)
         {
+            LTraceLog.LTraceInfoRecord($"List manual folder dialog confirmed: {pDialog.FolderNames.Length} folder(s)");
             PListPathsAdd(pDialog.FolderNames);
         }
     }

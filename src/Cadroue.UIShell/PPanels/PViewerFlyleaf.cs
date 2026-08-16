@@ -172,18 +172,27 @@ public sealed partial class PViewer
         {
             pViewerLoadPath = sourcePath;
         }
+
+        LTraceLog.LTraceInfoRecord(
+            $"Video load start serial={loadSerial} '{System.IO.Path.GetFileName(sourcePath)}'",
+            $"engine={PViewerEngineCurrent}, probing (ffprobe)…");
         _ = pViewerMediaProbe.LMediaLoadStart(sourcePath);
     }
 
     private void PViewerLoadHandle(LMediaLoadOutcome result)
     {
         int loadSerial = pViewerLoadSerial;
+        LTraceLog.LTraceInfoRecord(
+            $"Video probe outcome {result.LMediaLoadKind} '{System.IO.Path.GetFileName(result.LMediaLoadPath)}'",
+            result.LMediaLoadError);
         Dispatcher.BeginInvoke(() =>
         {
             if (pViewerUnloaded
                 || loadSerial != pViewerLoadSerial
                 || !string.Equals(result.LMediaLoadPath, pViewerLoadPath, StringComparison.OrdinalIgnoreCase))
             {
+                LTraceLog.LTraceInfoRecord(
+                    $"Video probe outcome discarded (stale/superseded): serial got={loadSerial} now={pViewerLoadSerial}, unloaded={pViewerUnloaded}");
                 return;
             }
 
