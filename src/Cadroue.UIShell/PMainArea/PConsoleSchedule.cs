@@ -186,8 +186,9 @@ public sealed partial class PConsole
                     : LLocalization.LLocalizationFormat(
                         "Console.Status.Running",
                         pRunning.LWorkOutputName,
-                        pRunning.LWorkProgress,
-                        pDoneText);
+                        pDoneText,
+                        PConsoleStageFormat(pRunning.LWorkStageCurrent),
+                        pRunning.LWorkProgress);
 
         string pStationLabel = string.Equals(pStation.LStationLabel, "Background worklist", StringComparison.Ordinal)
             ? LLocalization.LLocalizationTextRead("Console.Station.Background")
@@ -200,6 +201,15 @@ public sealed partial class PConsole
                 pBoard.Length)
             : pStationLabel;
     }
+
+    private static string PConsoleStageFormat(LWorkStage pWorkStage) => LLocalization.LLocalizationTextRead(pWorkStage switch
+    {
+        LWorkStage.LWorkStageExtract => "Console.Stage.Extract",
+        LWorkStage.LWorkStageAnalyze => "Console.Stage.Analyze",
+        LWorkStage.LWorkStageProcess => "Console.Stage.Process",
+        LWorkStage.LWorkStageMux => "Console.Stage.Mux",
+        _ => "Console.Stage.Encode"
+    });
 
     private void PConsoleStartHandle(object pSender, RoutedEventArgs pArguments)
     {

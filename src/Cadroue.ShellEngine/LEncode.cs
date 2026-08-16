@@ -9,6 +9,7 @@ namespace Cadroue.ShellEngine;
 
 public sealed record LEncodeStage(
     string LEncodeStageArguments,
+    LWorkStage LEncodeStageKind,
     string LEncodeStageLabel,
     string LEncodeStagePath,
     bool LEncodeStageTemporary,
@@ -36,7 +37,7 @@ public static class LEncode
 
         return new[]
         {
-            new LEncodeStage(LEncodeArgumentBuild(lWorkItem), "Encoding", lWorkItem.LWorkOutputPath, false)
+            new LEncodeStage(LEncodeArgumentBuild(lWorkItem), LWorkStage.LWorkStageEncode, "Encoding", lWorkItem.LWorkOutputPath, false)
         };
     }
 
@@ -96,7 +97,7 @@ public static class LEncode
         lExtract.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lExtract.Append(" -vn -c:a pcm_s16le");
         lExtract.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lRawWav)}");
-        lStages.Add(new LEncodeStage(lExtract.ToString(), "Extracting audio", lRawWav, true));
+        lStages.Add(new LEncodeStage(lExtract.ToString(), LWorkStage.LWorkStageExtract, "Extracting audio", lRawWav, true));
 
         string lAudioInputWav = lRawWav;
         int lTwoPassIndex = LEncodeChain.LEncodePassRead(lWorkItem.LWorkAudio);
@@ -112,7 +113,7 @@ public static class LEncode
                 lAnalyze.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lRawWav)}");
                 lAnalyze.Append(CultureInfo.InvariantCulture, $" -af {LEncodeFormat(lAnalyzeChain!)}");
                 lAnalyze.Append(" -f null -");
-                lStages.Add(new LEncodeStage(lAnalyze.ToString(), "Analyzing audio", string.Empty, false, true));
+                lStages.Add(new LEncodeStage(lAnalyze.ToString(), LWorkStage.LWorkStageAnalyze, "Analyzing audio", string.Empty, false, true));
             }
 
             string? lChain = LEncodeChain.LEncodeChainBuild(
@@ -127,7 +128,7 @@ public static class LEncode
                 lProcess.Append(CultureInfo.InvariantCulture, $" -af {LEncodeFormat(lChain)}");
                 lProcess.Append(" -c:a pcm_s16le");
                 lProcess.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lProcessedWav)}");
-                lStages.Add(new LEncodeStage(lProcess.ToString(), "Processing audio", lProcessedWav, true));
+                lStages.Add(new LEncodeStage(lProcess.ToString(), LWorkStage.LWorkStageProcess, "Processing audio", lProcessedWav, true));
                 lAudioInputWav = lProcessedWav;
             }
         }
@@ -160,7 +161,7 @@ public static class LEncode
 
         LEncodeAudio.LEncodeMuxAppend(lMux, lOutput);
         lMux.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
-        lStages.Add(new LEncodeStage(lMux.ToString(), "Encoding output", lWorkItem.LWorkOutputPath, false));
+        lStages.Add(new LEncodeStage(lMux.ToString(), LWorkStage.LWorkStageMux, "Encoding output", lWorkItem.LWorkOutputPath, false));
 
         return lStages;
     }

@@ -6,3 +6,13 @@ public enum LWorkPhase
     LWorkPhaseStarted,
     LWorkPhaseEncoding
 }
+
+public enum LWorkStage
+{
+    LWorkStageNone,
+    LWorkStageEncode,
+    LWorkStageExtract,
+    LWorkStageAnalyze,
+    LWorkStageProcess,
+    LWorkStageMux
+}

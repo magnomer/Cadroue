@@ -269,6 +269,7 @@ internal sealed class LJob
         lJobOwner.LRunnerDispatch(() =>
         {
             lJobItem.LWorkProgress = 0;
+            lJobItem.LWorkStageCurrent = pStage.LEncodeStageKind;
             lJobItem.LWorkMessage = pStageCount > 1
                 ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
                 : string.Empty;

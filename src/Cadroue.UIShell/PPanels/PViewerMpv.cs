@@ -492,6 +492,16 @@ public sealed partial class PViewer
     private void PViewerMpvRebuild(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial, string mpvReason)
     {
         string pViewerRebuildName = System.IO.Path.GetFileName(sourcePath);
+
+        if (PViewerEditEligible)
+        {
+            LTraceLog.LTraceErrorRecord(
+                $"mpv could not open '{pViewerRebuildName}': {mpvReason}; preview unavailable (mpv is the Edit preview engine, no Flyleaf fallback) [{sourcePath}]");
+            PViewerMpvCommit(new LCargo(
+                sourcePath, mediaInfo, mediaInfo is not null, false, ffmpegError, mpvReason));
+            return;
+        }
+
         LTraceLog.LTraceErrorRecord(
             $"mpv could not open '{pViewerRebuildName}': {mpvReason}; falling back to the existing engine for this file [{sourcePath}]");
 

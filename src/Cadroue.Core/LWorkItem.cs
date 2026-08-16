@@ -104,6 +104,8 @@ public sealed class LWorkItem
 
     public LWorkPhase LWorkPhaseCurrent { get; set; }
 
+    public LWorkStage LWorkStageCurrent { get; set; }
+
     public int LWorkAttemptCount { get; set; }
 
     public int LWorkRecoverCount { get; set; }
