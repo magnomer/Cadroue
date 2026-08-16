@@ -2,6 +2,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -12,7 +13,9 @@ public sealed partial class LMpv : IDisposable
     private const string LMpvProbeSource = "av://lavfi:testsrc=d=1:s=64x64";
     private static readonly TimeSpan LMpvProbeBudget = TimeSpan.FromSeconds(4);
 
+    private const int LMpvEventNone = 0;
     private const int LMpvEventShutdown = 1;
+    private const int LMpvEventStart = 6;
     private const int LMpvEventEnd = 7;
     private const int LMpvEventLoaded = 8;
 
@@ -67,6 +70,7 @@ public sealed partial class LMpv : IDisposable
         }
 
         lMpvContext = lHandle;
+        LMpvOptionSet("sub-auto", "no");
         if (lWindowHandle != nint.Zero)
         {
             LMpvOptionSet("wid", lWindowHandle.ToString());
@@ -141,10 +145,11 @@ public sealed partial class LMpv : IDisposable
         LMpvCommandRun("loadfile", lPath);
     }
 
-    public LMpvProbe LMpvMediaCheck(string lPath, TimeSpan lBudget)
+    public LMpvProbe LMpvMediaCheck(string lPath, TimeSpan lBudget, CancellationToken lToken)
     {
+        LMpvEventsDrain();
         LMpvOpen(lPath);
-        return LMpvLoadedScan(lBudget);
+        return LMpvLoadedScan(lBudget, lToken);
     }
 
     public void LMpvSeek(TimeSpan lPosition)
@@ -204,7 +209,7 @@ public sealed partial class LMpv : IDisposable
             using LMpv lMpv = new();
             lMpv.LMpvContextCreate(nint.Zero);
             lMpv.LMpvOpen(LMpvProbeSource);
-            return lMpv.LMpvLoadedScan(LMpvProbeBudget);
+            return lMpv.LMpvLoadedScan(LMpvProbeBudget, CancellationToken.None);
         }
         catch (DllNotFoundException)
         {
@@ -220,12 +225,36 @@ public sealed partial class LMpv : IDisposable
         }
     }
 
-    public LMpvProbe LMpvLoadedScan(TimeSpan lBudget)
+    public void LMpvEventsDrain()
+    {
+        LMpvContextValidate();
+        while (true)
+        {
+            nint lEvent = LMpvNative.mpv_wait_event(lMpvContext, 0);
+            if (lEvent == nint.Zero)
+            {
+                return;
+            }
+
+            if (Marshal.ReadInt32(lEvent) == LMpvEventNone)
+            {
+                return;
+            }
+        }
+    }
+
+    public LMpvProbe LMpvLoadedScan(TimeSpan lBudget, CancellationToken lToken)
     {
         LMpvContextValidate();
         DateTime lDeadline = DateTime.UtcNow + lBudget;
+        bool lStarted = false;
         while (true)
         {
+            if (lToken.IsCancellationRequested)
+            {
+                return LMpvProbe.LMpvProbeUnusable;
+            }
+
             double lRemaining = (lDeadline - DateTime.UtcNow).TotalSeconds;
             if (lRemaining <= 0)
             {
@@ -239,12 +268,23 @@ public sealed partial class LMpv : IDisposable
             }
 
             int lEventId = Marshal.ReadInt32(lEvent);
+            if (lEventId == LMpvEventStart)
+            {
+                lStarted = true;
+                continue;
+            }
+
             if (lEventId == LMpvEventLoaded)
             {
                 return LMpvProbe.LMpvProbeUsable;
             }
 
-            if (lEventId == LMpvEventEnd || lEventId == LMpvEventShutdown)
+            if (lEventId == LMpvEventShutdown)
+            {
+                return LMpvProbe.LMpvProbeUnusable;
+            }
+
+            if (lEventId == LMpvEventEnd && lStarted)
             {
                 return LMpvProbe.LMpvProbeUnusable;
             }

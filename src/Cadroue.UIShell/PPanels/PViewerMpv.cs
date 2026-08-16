@@ -406,12 +406,17 @@ public sealed partial class PViewer
             }
 
             pViewerPlayer.PPlayerVolumeSet(pViewerVolume);
+            if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
+            {
+                return;
+            }
+
+            pViewerPlayer.PPlayerMpvCancel();
             await System.Threading.Tasks.Task.Run(() => pViewerPlayer.PPlayerOpen(sourcePath));
         }
         catch (Exception pViewerException)
         {
             pViewerPreviewError = pViewerException.Message;
-            pViewerPlayer.PPlayerDispose();
         }
 
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
@@ -421,6 +426,7 @@ public sealed partial class PViewer
 
         if (pViewerPreviewError is not null)
         {
+            pViewerPlayer.PPlayerDispose();
             PViewerMpvRebuild(sourcePath, mediaInfo, ffmpegError, loadSerial, pViewerPreviewError);
             return;
         }
