@@ -115,7 +115,7 @@ public sealed partial class PViewer
         }
     }
 
-    private void PViewerEngineCurrentSet(LPreviewEngine pViewerEngine)
+    private void PViewerEngineSet(LPreviewEngine pViewerEngine)
     {
         if (PViewerEngineCurrent == pViewerEngine)
         {
@@ -127,7 +127,7 @@ public sealed partial class PViewer
         PViewerEngineChange?.Invoke();
     }
 
-    private void PViewerMpvPreviewApply()
+    private void PViewerMpvUpdate()
     {
         if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady)
         {
@@ -137,7 +137,7 @@ public sealed partial class PViewer
         LPreviewState pViewerRender = PViewerRenderRead();
         string pViewerFilter = LPreview.LPreviewFilterResolve(pViewerRender);
         bool pViewerChanged = pViewerFilter != pViewerMpvFilter;
-        if (!PViewerMpvFilterApply(pViewerFilter) || !pViewerChanged)
+        if (!PViewerFilterSet(pViewerFilter) || !pViewerChanged)
         {
             return;
         }
@@ -146,7 +146,7 @@ public sealed partial class PViewer
         {
             try
             {
-                pViewerPlayer.PPlayerMpvRefresh();
+                pViewerPlayer.PPlayerMpvUpdate();
             }
             catch (Exception pViewerRefreshException)
             {
@@ -156,7 +156,7 @@ public sealed partial class PViewer
         }
     }
 
-    private bool PViewerMpvFilterApply(string pViewerFilter)
+    private bool PViewerFilterSet(string pViewerFilter)
     {
         if (pViewerFilter == pViewerMpvFilter)
         {
@@ -175,12 +175,12 @@ public sealed partial class PViewer
                 "mpv rejected the preview filter (likely an LGPL libmpv without the GPL eq filter); "
                 + "the queued export is unaffected. "
                 + $"Filter '{pViewerFilter}': {pViewerFilterException.Message}");
-            PViewerMpvRejectedFilterClear();
+            PViewerFilterClear();
             return false;
         }
     }
 
-    private void PViewerMpvRejectedFilterClear()
+    private void PViewerFilterClear()
     {
         try
         {
@@ -296,7 +296,7 @@ public sealed partial class PViewer
         Content = pViewerSurface;
         pViewerMpvActive = true;
         pViewerMpvFilter = string.Empty;
-        PViewerEngineCurrentSet(LPreviewEngine.LPreviewEngineMpv);
+        PViewerEngineSet(LPreviewEngine.LPreviewEngineMpv);
     }
 
     private void PViewerOverlayHandle(object? sender, EventArgs eventArgs) => PViewerOverlayPlace();
@@ -393,13 +393,13 @@ public sealed partial class PViewer
                 nint pViewerHandle = nint.Zero;
                 if (pViewerMpvHost is not null)
                 {
-                    if (pViewerMpvHost.PViewerMpvHandle == nint.Zero)
+                    if (pViewerMpvHost.PViewerMpvHwnd == nint.Zero)
                     {
                         pViewerMpvHost.Visibility = Visibility.Visible;
                         pViewerMpvHost.UpdateLayout();
                     }
 
-                    pViewerHandle = pViewerMpvHost.PViewerMpvHandle;
+                    pViewerHandle = pViewerMpvHost.PViewerMpvHwnd;
                 }
 
                 pViewerPlayer.PPlayerMpvSet(pViewerHandle);
@@ -421,7 +421,7 @@ public sealed partial class PViewer
 
         if (pViewerPreviewError is not null)
         {
-            PViewerMpvFallback(sourcePath, mediaInfo, ffmpegError, loadSerial, pViewerPreviewError);
+            PViewerMpvRebuild(sourcePath, mediaInfo, ffmpegError, loadSerial, pViewerPreviewError);
             return;
         }
 
@@ -472,7 +472,7 @@ public sealed partial class PViewer
             return;
         }
 
-        PViewerMpvPreviewApply();
+        PViewerMpvUpdate();
         PViewerAudioApply();
 
         if (LPreference.LPreferenceStateCurrent.LPreferenceAutoplay)
@@ -489,11 +489,11 @@ public sealed partial class PViewer
         }
     }
 
-    private void PViewerMpvFallback(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial, string mpvReason)
+    private void PViewerMpvRebuild(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial, string mpvReason)
     {
-        string pViewerFallbackName = System.IO.Path.GetFileName(sourcePath);
+        string pViewerRebuildName = System.IO.Path.GetFileName(sourcePath);
         LTraceLog.LTraceErrorRecord(
-            $"mpv could not open '{pViewerFallbackName}': {mpvReason}; falling back to the existing engine for this file [{sourcePath}]");
+            $"mpv could not open '{pViewerRebuildName}': {mpvReason}; falling back to the existing engine for this file [{sourcePath}]");
 
         PViewerMpvDispose();
         pViewerHostBuilt = false;

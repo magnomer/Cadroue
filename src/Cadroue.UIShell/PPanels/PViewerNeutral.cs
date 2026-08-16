@@ -11,7 +11,7 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PViewer
 {
     public event Action<LNeutralSample>? PViewerNeutralChange;
-    public event Action<bool>? PViewerNeutralActiveChange;
+    public event Action<bool>? PViewerToolChange;
 
     public void PViewerNeutralSet(bool pNeutralArmed)
     {
@@ -23,8 +23,8 @@ public sealed partial class PViewer
             }
 
             pViewerNeutralSerial++;
-            pViewerNeutralResume = LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
-            if (pViewerNeutralResume)
+            pViewerNeutralPlaying = LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
+            if (pViewerNeutralPlaying)
             {
                 PViewerPause();
             }
@@ -34,7 +34,7 @@ public sealed partial class PViewer
             pViewerCropBox.Cursor = null;
             pViewerOverlay.Focus();
             PCropOverlayUpdate();
-            PViewerNeutralActiveChange?.Invoke(true);
+            PViewerToolChange?.Invoke(true);
             return;
         }
 
@@ -58,18 +58,18 @@ public sealed partial class PViewer
             pViewerOverlay.ReleaseMouseCapture();
         }
 
-        bool pViewerResume = pViewerNeutralResume;
-        pViewerNeutralResume = false;
+        bool pViewerResume = pViewerNeutralPlaying;
+        pViewerNeutralPlaying = false;
         if (pViewerResume)
         {
             PViewerPlay();
         }
 
         PCropOverlayUpdate();
-        PViewerNeutralActiveChange?.Invoke(false);
+        PViewerToolChange?.Invoke(false);
     }
 
-    private void PViewerNeutralKeyHandle(object sender, KeyEventArgs keyEvent)
+    private void PViewerKeyHandle(object sender, KeyEventArgs keyEvent)
     {
         if (pViewerTool == PViewerTool.Neutral && keyEvent.Key == Key.Escape)
         {
@@ -78,7 +78,7 @@ public sealed partial class PViewer
         }
     }
 
-    private void PViewerNeutralPressHandle(MouseButtonEventArgs mouseEvent)
+    private void PViewerPressHandle(MouseButtonEventArgs mouseEvent)
     {
         mouseEvent.Handled = true;
         if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
@@ -94,7 +94,7 @@ public sealed partial class PViewer
         }
 
         Point pViewerClick = mouseEvent.GetPosition(pViewerOverlay);
-        (Rect pViewerDisplay, Rect pViewerShown) = PViewerNeutralGeometryRead();
+        (Rect pViewerDisplay, Rect pViewerShown) = PViewerGeometryRead();
         LRotateFlip pViewerRotate = LPreviewStateCurrent.LRotateFlip;
         LNeutralPoint pViewerPoint = LNeutral.LNeutralPointResolve(
             pViewerClick.X, pViewerClick.Y,
@@ -167,7 +167,7 @@ public sealed partial class PViewer
         PViewerNeutralChange?.Invoke(pViewerSample);
     }
 
-    private (Rect Display, Rect Shown) PViewerNeutralGeometryRead()
+    private (Rect Display, Rect Shown) PViewerGeometryRead()
     {
         double pViewerOverlayWidth = Math.Max(0, pViewerOverlay.ActualWidth);
         double pViewerOverlayHeight = Math.Max(0, pViewerOverlay.ActualHeight);

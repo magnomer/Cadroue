@@ -172,7 +172,7 @@ public sealed partial class PViewer
         {
             pViewerLoadPath = sourcePath;
         }
-        _ = pViewerMediaLoad.LMediaLoadStart(sourcePath);
+        _ = pViewerMediaProbe.LMediaLoadStart(sourcePath);
     }
 
     private void PViewerLoadHandle(LMediaLoadOutcome result)

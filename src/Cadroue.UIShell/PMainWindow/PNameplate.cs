@@ -22,7 +22,7 @@ internal static class PNameplate
         EventManager.RegisterClassHandler(
             typeof(FrameworkElement),
             ToolTipService.ToolTipOpeningEvent,
-            new ToolTipEventHandler(PNameplateToolTipHandle));
+            new ToolTipEventHandler(PNameplateTipHandle));
     }
 
     private static void PNameplateEnterHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent)
@@ -46,7 +46,7 @@ internal static class PNameplate
         pElement.ToolTip = PNameplateResolve(pElement);
     }
 
-    internal static void PNameplateToolTipHandle(object pSender, ToolTipEventArgs pEvent)
+    internal static void PNameplateTipHandle(object pSender, ToolTipEventArgs pEvent)
     {
         if (pSender is not FrameworkElement pElement || !(bool)pElement.GetValue(PNameplateOwnedProperty))
         {
@@ -79,7 +79,7 @@ internal static class PNameplate
                 return pFramework.Name + " › " + pType;
             }
 
-            if (PNameplateOwnedTypeCheck(pElement))
+            if (PNameplateOwnedCheck(pElement))
             {
                 return pElement.GetType().Name + " › " + pType;
             }
@@ -90,7 +90,7 @@ internal static class PNameplate
         return pType;
     }
 
-    private static bool PNameplateOwnedTypeCheck(DependencyObject pElement)
+    private static bool PNameplateOwnedCheck(DependencyObject pElement)
     {
         string? pNamespace = pElement.GetType().Namespace;
         return pNamespace is not null && pNamespace.StartsWith("Cadroue", System.StringComparison.Ordinal);

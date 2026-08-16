@@ -26,7 +26,7 @@ internal static class PSlider
         {
             if (pEvent.ClickCount < 2
                 || pEvent.OriginalSource is not DependencyObject pSource
-                || !PSliderThumbHit(pSource))
+                || !PSliderThumbCheck(pSource))
             {
                 return;
             }
@@ -36,7 +36,7 @@ internal static class PSlider
         };
     }
 
-    private static bool PSliderThumbHit(DependencyObject pSource)
+    private static bool PSliderThumbCheck(DependencyObject pSource)
     {
         for (DependencyObject? pNode = pSource; pNode is not null; pNode = VisualTreeHelper.GetParent(pNode))
         {

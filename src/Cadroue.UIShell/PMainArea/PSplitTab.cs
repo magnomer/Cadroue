@@ -100,6 +100,6 @@ public sealed class PSplitTab : PTabSurface
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override bool PTabSectionShow => true;
+    public override bool PTabSectionVisible => true;
     public override LSceneTabRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
 }

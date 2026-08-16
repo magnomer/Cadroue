@@ -80,7 +80,7 @@ internal sealed partial class PSEncoder
         }
     }
 
-    private void PSCodecRefreshArrange()
+    private void PSCodecProbeDefer()
     {
         if (psCodecProbeTask is { IsCompleted: false } pTask)
         {

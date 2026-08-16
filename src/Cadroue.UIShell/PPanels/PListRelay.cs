@@ -42,7 +42,7 @@ public sealed partial class PList
         }
     }
 
-    public static void PListDeliveredTrack(Guid pListOriginalTab, string pListPath, Guid pListBatch)
+    public static void PListDeliveredCommit(Guid pListOriginalTab, string pListPath, Guid pListBatch)
     {
         if (PStrip.PStripTabFind(pListOriginalTab)?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
         {
@@ -80,7 +80,7 @@ public sealed partial class PList
         }
     }
 
-    public static void PListBatchEvict(IReadOnlyList<Guid> pListRemovedBatches)
+    public static void PListBatchRemove(IReadOnlyList<Guid> pListRemovedBatches)
     {
         if (PStrip.PStripCurrent is not { } pListTabset)
         {
@@ -112,7 +112,7 @@ public sealed partial class PList
         }
     }
 
-    public static void PListSourceUnlock(IReadOnlyList<(string PListPath, Guid PListBatch)> pListUnlocks)
+    public static void PListSourceRelease(IReadOnlyList<(string PListPath, Guid PListBatch)> pListUnlocks)
     {
         if (pListUnlocks.Count == 0 || PStrip.PStripCurrent is not { } pListTabset)
         {
@@ -128,7 +128,7 @@ public sealed partial class PList
         }
     }
 
-    public static void PListSourceLock(IReadOnlyList<LWorkItem> pListAccepted, Guid pListSourceTab)
+    public static void PListSourceClaim(IReadOnlyList<LWorkItem> pListAccepted, Guid pListSourceTab)
     {
         if (pListAccepted.Count == 0
             || PStrip.PStripTabFind(pListSourceTab)?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)

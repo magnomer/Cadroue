@@ -11,9 +11,9 @@ internal sealed partial class PSOptions
 {
     private UIElement PSSystemMpvBuild()
     {
-        Button pDownload = PSInlineButtonBuild(PSSystemMpvInstallText(), 160, new Thickness(0, 0, 8, 0));
+        Button pDownload = PSInlineButtonBuild(PSSystemMpvFormat(), 160, new Thickness(0, 0, 8, 0));
         Button pBrowse = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
-        ProgressBar pProgress = PSSystemInstallProgressBuild();
+        ProgressBar pProgress = PSSystemProgressBuild();
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
         pDownload.Click += async (_, _) =>
         {
@@ -30,7 +30,7 @@ internal sealed partial class PSOptions
                 pProgress.Visibility = Visibility.Collapsed;
             }
 
-            pDownload.Content = PSSystemMpvInstallText();
+            pDownload.Content = PSSystemMpvFormat();
             pDownload.IsEnabled = true;
             psOptionsEngineMpv.IsEnabled = pResult.LMpvInstallSuccess || LMpv.LMpvInstalledCheck();
             MessageBox.Show(
@@ -52,7 +52,7 @@ internal sealed partial class PSOptions
         return PSFieldBuild(string.Empty, pButtons);
     }
 
-    private static string PSSystemMpvInstallText() =>
+    private static string PSSystemMpvFormat() =>
         LLocalization.LLocalizationTextRead(
             LMpv.LMpvInstalledCheck()
                 ? "Options.System.ReinstallMpv"

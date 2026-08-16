@@ -58,7 +58,7 @@ public static class LSeal
     public static int LSealPendingRead(Guid lSealCohort) =>
         lSealPending.TryGetValue(lSealCohort, out int lSealCount) ? lSealCount : 0;
 
-    public static void LSealSweep()
+    public static void LSealRun()
     {
         if (lSealSweeping || LSealNodesSource?.Invoke() is not { } lSealNodes)
         {
@@ -102,8 +102,8 @@ public static class LSeal
             }
             while (lSealFiredAny);
 
-            LSealActiveRefresh(lSealItems, lSealNodes);
-            LSealClean(lSealItems, lSealNodes);
+            LSealActiveUpdate(lSealItems, lSealNodes);
+            LSealStaleRemove(lSealItems, lSealNodes);
         }
         finally
         {
@@ -136,7 +136,7 @@ public static class LSeal
         return lSealOldestOther is null || lSealSelf <= lSealOldestOther;
     }
 
-    private static void LSealActiveRefresh(IReadOnlyList<LWorkItem> lSealItems, IReadOnlyList<LSealNode> lSealNodes)
+    private static void LSealActiveUpdate(IReadOnlyList<LWorkItem> lSealItems, IReadOnlyList<LSealNode> lSealNodes)
     {
         var lSealBirths = new Dictionary<Guid, DateTimeOffset>();
         var lSealActiveSet = new HashSet<Guid>();
@@ -153,7 +153,7 @@ public static class LSeal
                 lSealBirths[lSealItem.LWorkBatchId] = lSealItem.LWorkCreateTime;
             }
 
-            if (LSealItemActive(lSealItem))
+            if (LSealItemCheck(lSealItem))
             {
                 lSealActiveSet.Add(lSealItem.LWorkBatchId);
             }
@@ -188,7 +188,7 @@ public static class LSeal
             .ToArray();
     }
 
-    private static bool LSealItemActive(LWorkItem lSealItem) => lSealItem.LWorkStateCurrent switch
+    private static bool LSealItemCheck(LWorkItem lSealItem) => lSealItem.LWorkStateCurrent switch
     {
         LWorkState.LWorkStatePending => true,
         LWorkState.LWorkStateRunning => true,
@@ -222,7 +222,7 @@ public static class LSeal
             bool lSealUndelivered = lSealItem.LWorkStateCurrent == LWorkState.LWorkStateDone
                 && lSealItem.LWorkOwnerProcess == Environment.ProcessId
                 && !LSealDeliveredCheck(lSealItem.LWorkId);
-            if ((lSealProducing || lSealUndelivered) && LSealReach(lSealItem.LWorkRelayTarget, lSealNode))
+            if ((lSealProducing || lSealUndelivered) && LSealReachCheck(lSealItem.LWorkRelayTarget, lSealNode))
             {
                 return false;
             }
@@ -238,7 +238,7 @@ public static class LSeal
                 continue;
             }
 
-            if (LSealReach(lSealOther.LSealNodeId, lSealNode))
+            if (LSealReachCheck(lSealOther.LSealNodeId, lSealNode))
             {
                 return false;
             }
@@ -247,7 +247,7 @@ public static class LSeal
         return true;
     }
 
-    private static bool LSealReach(Guid lSealFrom, Guid lSealTarget)
+    private static bool LSealReachCheck(Guid lSealFrom, Guid lSealTarget)
     {
         var lSealSeen = new HashSet<Guid>();
         Guid lSealCurrent = lSealFrom;
@@ -266,7 +266,7 @@ public static class LSeal
         return false;
     }
 
-    private static void LSealClean(IReadOnlyList<LWorkItem> lSealItems, IReadOnlyList<LSealNode> lSealNodes)
+    private static void LSealStaleRemove(IReadOnlyList<LWorkItem> lSealItems, IReadOnlyList<LSealNode> lSealNodes)
     {
         var lSealLive = lSealItems.Select(lSealItem => lSealItem.LWorkBatchId).ToHashSet();
         foreach (LSealNode lSealNode in lSealNodes)

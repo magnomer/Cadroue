@@ -30,10 +30,10 @@ public sealed class PFunnelRuleRow : Border
     private readonly PFunnelForm pFunnelForm;
     private readonly List<PFunnelCondition> pFunnelConditions = new();
     private readonly ComboBox pFunnelRelayCombo;
-    private readonly Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsRead;
+    private readonly Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsSource;
     private readonly PFunnelRuleFrame pFunnelFrame;
     private TextBox? pFunnelRegexField;
-    private CheckBox? pFunnelWholeCheck;
+    private CheckBox? pFunnelWholeBox;
 
     private bool pFunnelRelayBusy;
     private Guid pFunnelTargetId;
@@ -45,7 +45,7 @@ public sealed class PFunnelRuleRow : Border
     public PFunnelRuleRow(Func<IReadOnlyList<PActionRelayOption>> pOptionsRead, PFunnelForm pForm = PFunnelForm.Filename)
     {
         pFunnelForm = pForm;
-        pFunnelOptionsRead = pOptionsRead;
+        pFunnelOptionsSource = pOptionsRead;
         pFunnelRelayCombo = PFunnelRelayBuild();
 
         var pBody = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
@@ -124,9 +124,9 @@ public sealed class PFunnelRuleRow : Border
                 pFunnelRegexField.Text = pRecord.LSceneFunnelRegex;
             }
 
-            if (pFunnelWholeCheck is not null)
+            if (pFunnelWholeBox is not null)
             {
-                pFunnelWholeCheck.IsChecked = pRecord.LSceneFunnelWhole;
+                pFunnelWholeBox.IsChecked = pRecord.LSceneFunnelWhole;
             }
         }
         else
@@ -157,7 +157,7 @@ public sealed class PFunnelRuleRow : Border
             {
                 LSceneFunnelType = (int)PFunnelForm.Regex,
                 LSceneFunnelRegex = pFunnelRegexField?.Text.Trim() ?? string.Empty,
-                LSceneFunnelWhole = pFunnelWholeCheck?.IsChecked == true
+                LSceneFunnelWhole = pFunnelWholeBox?.IsChecked == true
             };
         }
 
@@ -188,7 +188,7 @@ public sealed class PFunnelRuleRow : Border
         PTextbox.PTextboxApply(pFunnelRegexField);
         pFunnelRegexField.TextChanged += (_, _) => PFunnelRowChange?.Invoke();
 
-        pFunnelWholeCheck = new CheckBox
+        pFunnelWholeBox = new CheckBox
         {
             Content = LLocalization.LLocalizationTextRead("Inspector.Funnel.Whole"),
             FontSize = 12,
@@ -196,12 +196,12 @@ public sealed class PFunnelRuleRow : Border
             Foreground = pFunnelTitleBrush,
             Margin = new Thickness(2, 0, 0, 0)
         };
-        PCheckbox.PCheckboxApply(pFunnelWholeCheck);
-        pFunnelWholeCheck.Checked += (_, _) => PFunnelRowChange?.Invoke();
-        pFunnelWholeCheck.Unchecked += (_, _) => PFunnelRowChange?.Invoke();
+        PCheckbox.PCheckboxApply(pFunnelWholeBox);
+        pFunnelWholeBox.Checked += (_, _) => PFunnelRowChange?.Invoke();
+        pFunnelWholeBox.Unchecked += (_, _) => PFunnelRowChange?.Invoke();
 
         pStack.Children.Add(pFunnelRegexField);
-        pStack.Children.Add(pFunnelWholeCheck);
+        pStack.Children.Add(pFunnelWholeBox);
         return pStack;
     }
 
@@ -232,7 +232,7 @@ public sealed class PFunnelRuleRow : Border
         {
             new(Guid.Empty, LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone"), null)
         };
-        pOptions.AddRange(pFunnelOptionsRead());
+        pOptions.AddRange(pFunnelOptionsSource());
         if (pFunnelTargetId != Guid.Empty && pOptions.All(pOption => pOption.PActionRelayId != pFunnelTargetId))
         {
             pFunnelTargetId = Guid.Empty;

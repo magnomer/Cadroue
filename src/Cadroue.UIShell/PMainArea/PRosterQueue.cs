@@ -51,7 +51,7 @@ public sealed partial class PRoster
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pColumnHeader, Dock.Top);
         pRoot.Children.Add(pColumnHeader);
-        pRoot.Children.Add(pRosterQueueScroll);
+        pRoot.Children.Add(pRosterQueueScroller);
 
         return PPanel.PPanelBorderBuild(pRoot);
     }

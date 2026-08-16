@@ -62,17 +62,17 @@ public sealed partial class PMap
         pMapPreviousX = mouseX;
         if (leftHandleRect.Contains(mousePoint))
         {
-            pMapDragMode = PMapDragMode.PMapResizeStart;
+            pMapDragMode = PMapDragMode.PMapResizeOrigin;
             lMapDragTime = lSpool.LSpoolRangeOrigin;
         }
         else if (rightHandleRect.Contains(mousePoint))
         {
-            pMapDragMode = PMapDragMode.PMapResizeEnd;
+            pMapDragMode = PMapDragMode.PMapResizeLimit;
             lMapDragTime = lSpool.LSpoolRangeLimit;
         }
         else if (moveHandleRect.Contains(mousePoint))
         {
-            pMapDragMode = PMapDragMode.PMapDragMove;
+            pMapDragMode = PMapDragMode.PMapDragBody;
         }
         else
         {
@@ -102,17 +102,17 @@ public sealed partial class PMap
 
         switch (pMapDragMode)
         {
-            case PMapDragMode.PMapResizeStart:
+            case PMapDragMode.PMapResizeOrigin:
                 lSpool.LSpoolStartSet(lMapDragTime + dragDeltaTime);
                 PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;
-            case PMapDragMode.PMapResizeEnd:
+            case PMapDragMode.PMapResizeLimit:
                 lSpool.LSpoolEndSet(lMapDragTime + dragDeltaTime);
                 PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;
-            case PMapDragMode.PMapDragMove:
+            case PMapDragMode.PMapDragBody:
                 double moveDeltaRatio = (mouseX - pMapPreviousX) / actualWidth;
                 lSpool.LSpoolMove(lSpool.LSpoolTimeResolve(moveDeltaRatio));
                 pMapPreviousX = mouseX;

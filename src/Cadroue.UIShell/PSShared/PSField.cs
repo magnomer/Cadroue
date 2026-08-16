@@ -248,7 +248,7 @@ internal static class PSField
             }
         };
         pReadout.LostKeyboardFocus += (_, _) => PSFieldQualityCommit();
-        return PSFieldSliderCompose(pSlider, pReadout);
+        return PSFieldRowBuild(pSlider, pReadout);
     }
 
     internal static UIElement PSFieldBitrateBuild(double pMinimumKbps, double pMaximumKbps, string pValue, TextBox pReadout)
@@ -291,10 +291,10 @@ internal static class PSField
             pSlider.Value = PSFieldPositionResolve(Math.Clamp(pKbps, pMinimumKbps, pMaximumKbps), pMinimumKbps, pMaximumKbps);
             pSync = false;
         };
-        return PSFieldSliderCompose(pSlider, pReadout);
+        return PSFieldRowBuild(pSlider, pReadout);
     }
 
-    private static UIElement PSFieldSliderCompose(Slider pSlider, TextBox pReadout)
+    private static UIElement PSFieldRowBuild(Slider pSlider, TextBox pReadout)
     {
         pReadout.Width = 88;
         pReadout.Margin = new Thickness(12, 0, 0, 0);

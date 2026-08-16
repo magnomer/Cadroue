@@ -6,7 +6,7 @@ namespace Cadroue.UIShell.PPanels;
 
 internal sealed class PViewerMpvHost : HwndHost
 {
-    private const int PViewerMpvChildStyle = 0x40000000 | 0x10000000;
+    private const int PViewerMpvStyle = 0x40000000 | 0x10000000;
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern nint CreateWindowExW(
@@ -27,15 +27,15 @@ internal sealed class PViewerMpvHost : HwndHost
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DestroyWindow(nint lWindow);
 
-    public nint PViewerMpvHandle { get; private set; }
+    public nint PViewerMpvHwnd { get; private set; }
 
     protected override HandleRef BuildWindowCore(HandleRef lParent)
     {
-        PViewerMpvHandle = CreateWindowExW(
+        PViewerMpvHwnd = CreateWindowExW(
             0,
             "static",
             null,
-            PViewerMpvChildStyle,
+            PViewerMpvStyle,
             0,
             0,
             0,
@@ -44,7 +44,7 @@ internal sealed class PViewerMpvHost : HwndHost
             nint.Zero,
             nint.Zero,
             nint.Zero);
-        return new HandleRef(this, PViewerMpvHandle);
+        return new HandleRef(this, PViewerMpvHwnd);
     }
 
     protected override void DestroyWindowCore(HandleRef lWindow)
@@ -54,6 +54,6 @@ internal sealed class PViewerMpvHost : HwndHost
             DestroyWindow(lWindow.Handle);
         }
 
-        PViewerMpvHandle = nint.Zero;
+        PViewerMpvHwnd = nint.Zero;
     }
 }

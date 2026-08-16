@@ -206,7 +206,7 @@ internal sealed class PSVerdict : Window
         {
             bool pShown = pDetail.Visibility == Visibility.Visible;
             pDetail.Visibility = pShown ? Visibility.Collapsed : Visibility.Visible;
-            pChip.Content = PSVerdictChipText(!pShown);
+            pChip.Content = PSVerdictChipFormat(!pShown);
         };
 
         PSVerdictCellAdd(pRowGrid, 3, pChip);
@@ -260,7 +260,7 @@ internal sealed class PSVerdict : Window
 
     private static Button PSVerdictChipBuild(bool pShown) => new()
     {
-        Content = PSVerdictChipText(pShown),
+        Content = PSVerdictChipFormat(pShown),
         Height = PSFieldChipHeight,
         Padding = new Thickness(10, 0, 10, 0),
         VerticalAlignment = VerticalAlignment.Center,
@@ -268,7 +268,7 @@ internal sealed class PSVerdict : Window
         Style = PButton.PButtonWhiteCreate()
     };
 
-    private static string PSVerdictChipText(bool pShown) =>
+    private static string PSVerdictChipFormat(bool pShown) =>
         LLocalization.LLocalizationTextRead("Encoder.Verification.Details") + (pShown ? "  ▴" : "  ▾");
 
     private static Brush PSVerdictBrushCreate(byte pRed, byte pGreen, byte pBlue)

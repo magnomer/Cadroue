@@ -45,7 +45,7 @@ public sealed partial class PInspector
     private StackPanel pGammaStack = null!;
     private StackPanel pGammaBody = null!;
     private bool pGammaCapable;
-    private bool pEqCapable = true;
+    private bool pToneCapable = true;
     private string pGammaDisabledKey = "Inspector.Video.GammaRequiresMpv";
 
     private CheckBox pWhitebalanceBox = null!;
@@ -488,7 +488,7 @@ public sealed partial class PInspector
         }
     }
 
-    private static void PInspectorSectionGrey(
+    private static void PInspectorSectionApply(
         CheckBox pBox,
         CheckBox pPersistent,
         StackPanel pStack,
@@ -513,20 +513,20 @@ public sealed partial class PInspector
         ToolTipService.SetShowOnDisabled(pPersistent, true);
     }
 
-    public void PToneEqCapabilitySet(bool pEqCapable)
+    public void PToneCapabilitySet(bool pCapable)
     {
-        this.pEqCapable = pEqCapable;
-        PInspectorSectionGrey(
+        this.pToneCapable = pCapable;
+        PInspectorSectionApply(
             pToneBrightnessBox, pInspectorBrightnessPersistent, pInspectorBrightnessStack, pInspectorBrightnessBody,
-            pEqCapable, "Inspector.Video.BrightnessRequiresEq",
+            pToneCapable, "Inspector.Video.BrightnessRequiresEq",
             "Inspector.Video.ApplyBrightness", "Inspector.Video.PersistBrightness");
-        PInspectorSectionGrey(
+        PInspectorSectionApply(
             pToneContrastBox, pInspectorContrastPersistent, pInspectorContrastStack, pInspectorContrastBody,
-            pEqCapable, "Inspector.Video.ContrastRequiresEq",
+            pToneCapable, "Inspector.Video.ContrastRequiresEq",
             "Inspector.Video.ApplyContrast", "Inspector.Video.PersistContrast");
-        PInspectorSectionGrey(
+        PInspectorSectionApply(
             pToneSaturationBox, pInspectorSaturationPersistent, pInspectorSaturationStack, pInspectorSaturationBody,
-            pEqCapable, "Inspector.Video.SaturationRequiresEq",
+            pToneCapable, "Inspector.Video.SaturationRequiresEq",
             "Inspector.Video.ApplySaturation", "Inspector.Video.PersistSaturation");
     }
 
@@ -534,7 +534,7 @@ public sealed partial class PInspector
     {
         this.pGammaCapable = pGammaCapable;
         this.pGammaDisabledKey = pGammaDisabledKey;
-        PInspectorSectionGrey(
+        PInspectorSectionApply(
             pGammaBox, pGammaPersistent, pGammaStack, pGammaBody,
             pGammaCapable, pGammaDisabledKey,
             "Inspector.Video.ApplyGamma", "Inspector.Video.PersistGamma");

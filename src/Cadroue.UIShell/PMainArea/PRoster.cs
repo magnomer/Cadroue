@@ -14,7 +14,7 @@ public sealed partial class PRoster : UserControl
     private readonly LStation pRosterStation = LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist"));
     private readonly Grid pRosterBody;
     private readonly StackPanel pRosterQueuePanel = new();
-    private readonly ScrollViewer pRosterQueueScroll;
+    private readonly ScrollViewer pRosterQueueScroller;
     private readonly StackPanel pRosterDetailPanel;
     private readonly TextBlock pRosterDetailTitle;
     private bool pRosterClosed;
@@ -24,7 +24,7 @@ public sealed partial class PRoster : UserControl
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         pRosterDetailTitle = PRosterTitleBuild(LLocalization.LLocalizationTextRead("Roster.Title.JobDetail"));
-        pRosterQueueScroll = PRosterQueueBuild();
+        pRosterQueueScroller = PRosterQueueBuild();
         pRosterDetailPanel = new StackPanel();
 
         pRosterBody = new Grid();

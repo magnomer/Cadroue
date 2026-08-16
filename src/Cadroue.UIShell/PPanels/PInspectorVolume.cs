@@ -351,7 +351,7 @@ public sealed partial class PInspector
             ? pValue
             : pFallback;
 
-    private static Slider PInspectorSliderBind(
+    private static Slider PInspectorSliderBuild(
         TextBox pValueBox,
         double pMin,
         double pMax,

@@ -69,7 +69,7 @@ public sealed partial class PViewer
         };
 
         Content = pViewerSurface;
-        PViewerEngineCurrentSet(LPreviewEngine.LPreviewEngineFlyleaf);
+        PViewerEngineSet(LPreviewEngine.LPreviewEngineFlyleaf);
         PViewerHostAttach();
     }
 
@@ -167,8 +167,8 @@ public sealed partial class PViewer
                 pViewerEngineSubscribed = false;
             }
 
-            pViewerMediaLoad.LMediaLoadCompleted -= PViewerLoadHandle;
-            pViewerMediaLoad.Dispose();
+            pViewerMediaProbe.LMediaLoadCompleted -= PViewerLoadHandle;
+            pViewerMediaProbe.Dispose();
             pViewerClockTimer.Tick -= PViewerClockHandle;
             pViewerOverlay.MouseLeftButtonDown -= PCropPressHandle;
             pViewerOverlay.MouseMove -= PCropMoveHandle;
@@ -191,7 +191,7 @@ public sealed partial class PViewer
             return false;
         }
 
-        bool pViewerLoadClosed = pViewerMediaLoad.LMediaLoadClose();
+        bool pViewerLoadClosed = pViewerMediaProbe.LMediaLoadClose();
         if (!pViewerLoadClosed && string.IsNullOrWhiteSpace(PViewerSourcePath) && pViewerMediaInfo is null)
         {
             return false;

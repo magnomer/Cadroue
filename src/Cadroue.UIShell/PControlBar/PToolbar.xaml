@@ -15,7 +15,7 @@
                 <Image Source="/PAssets/PProgram/PProgramIcon.png" Width="34" Height="34" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,13,0,0" RenderOptions.BitmapScalingMode="HighQuality" IsHitTestVisible="False" />
             </Grid>
             <Border Grid.Column="1" Background="#EAF2FC" />
-            <Grid x:Name="pTitleCenter" Grid.Column="2">
+            <Grid x:Name="pToolbarCenter" Grid.Column="2">
                 <ContentControl x:Name="pTabHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
                 <ContentControl x:Name="pSceneHost" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" />
             </Grid>

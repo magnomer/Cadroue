@@ -31,7 +31,7 @@ public partial class PToolbar : UserControl
     public void PToolbarVerticalSet(bool pVertical)
     {
         pRailHeaderColumn.Width = new GridLength(pVertical ? PRail.PRailWidth - 56 : 0);
-        pTitleCenter.Background = pVertical ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Transparent;
+        pToolbarCenter.Background = pVertical ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Transparent;
         pChromeHost.Background = pVertical ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Transparent;
         pRailHeaderDivider.Visibility = pVertical ? Visibility.Visible : Visibility.Collapsed;
         pTabHost.Visibility = pVertical ? Visibility.Collapsed : Visibility.Visible;

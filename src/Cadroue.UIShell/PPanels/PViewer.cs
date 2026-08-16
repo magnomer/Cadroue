@@ -43,7 +43,7 @@ public sealed partial class PViewer : PPanel
     private Point? pViewerCropPoint;
     private PViewerTool pViewerTool;
     private int pViewerNeutralSerial;
-    private bool pViewerNeutralResume;
+    private bool pViewerNeutralPlaying;
     private Size? pViewerCropRatio;
     private readonly Path pViewerCropShade;
     private readonly Rectangle[] pViewerCropHandles = new Rectangle[8];
@@ -57,7 +57,7 @@ public sealed partial class PViewer : PPanel
     private int pViewerAnchorY = -1;
     private int pViewerLoadSerial;
     private string? pViewerLoadPath;
-    private readonly LMediaLoad pViewerMediaLoad = new();
+    private readonly LMediaLoad pViewerMediaProbe = new();
     private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private bool pViewerAudioAllowed;
     private bool pViewerCommandActive;
@@ -68,7 +68,7 @@ public sealed partial class PViewer : PPanel
     public event Action<TimeSpan>? PViewerClockTick;
     public event Action<Rect?>? PCropVideoChange;
 
-    internal bool PViewerSurfaceWindow(nint pViewerHandle)
+    internal bool PViewerSurfaceMatch(nint pViewerHandle)
     {
         if (pViewerHandle == nint.Zero || pViewerFlyleafHost is null)
         {
@@ -132,7 +132,7 @@ public sealed partial class PViewer : PPanel
         pViewerOverlay.MouseMove += PCropMoveHandle;
         pViewerOverlay.MouseLeftButtonUp += PCropReleaseHandle;
         pViewerOverlay.SizeChanged += PCropSizeHandle;
-        pViewerOverlay.KeyDown += PViewerNeutralKeyHandle;
+        pViewerOverlay.KeyDown += PViewerKeyHandle;
 
         pViewerCloseButton = PViewerCloseBuild();
         pViewerAudioSwitch = PViewerAudioBuild();
@@ -141,7 +141,7 @@ public sealed partial class PViewer : PPanel
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
-        pViewerMediaLoad.LMediaLoadCompleted += PViewerLoadHandle;
+        pViewerMediaProbe.LMediaLoadCompleted += PViewerLoadHandle;
     }
 
     private Button PViewerCloseBuild()
@@ -345,7 +345,7 @@ public sealed partial class PViewer : PPanel
     {
         if (pViewerMpvActive)
         {
-            PViewerMpvPreviewApply();
+            PViewerMpvUpdate();
             return;
         }
 

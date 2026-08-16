@@ -26,7 +26,7 @@ internal sealed partial class PSDiagnosis
         PSDiagnosisMoodReady,
         PSDiagnosisMoodWarning,
         PSDiagnosisMoodMissing,
-        PSDiagnosisMoodNoProgram
+        PSDiagnosisMoodAbsent
     }
 
     private static readonly (string PSDiagnosisLabel, string PSDiagnosisFilter)[] PSDiagnosisVideoItems =
@@ -271,7 +271,7 @@ internal sealed partial class PSDiagnosis
 
         if (!pReady)
         {
-            PSDiagnosisSummaryApply(PSDiagnosisMood.PSDiagnosisMoodNoProgram, 0);
+            PSDiagnosisSummaryApply(PSDiagnosisMood.PSDiagnosisMoodAbsent, 0);
             return;
         }
 
@@ -281,14 +281,14 @@ internal sealed partial class PSDiagnosis
             return;
         }
 
-        bool pVideoAny = PSDiagnosisGroupAny(PSDiagnosisVideoItems, pMap);
-        bool pAudioAny = PSDiagnosisGroupAny(PSDiagnosisAudioItems, pMap);
+        bool pVideoAny = PSDiagnosisGroupCheck(PSDiagnosisVideoItems, pMap);
+        bool pAudioAny = PSDiagnosisGroupCheck(PSDiagnosisAudioItems, pMap);
         PSDiagnosisSummaryApply(
             pVideoAny && pAudioAny ? PSDiagnosisMood.PSDiagnosisMoodWarning : PSDiagnosisMood.PSDiagnosisMoodMissing,
             pMissing);
     }
 
-    private static bool PSDiagnosisGroupAny(
+    private static bool PSDiagnosisGroupCheck(
         (string PSDiagnosisLabel, string PSDiagnosisFilter)[] pItems,
         Dictionary<string, bool> pMap) =>
         pItems.Any(pItem => !pMap.TryGetValue(pItem.PSDiagnosisFilter, out bool pValue) || pValue);
@@ -309,7 +309,7 @@ internal sealed partial class PSDiagnosis
                 psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationFormat("Diagnosis.Summary.Missing", pMissing);
                 break;
-            case PSDiagnosisMood.PSDiagnosisMoodNoProgram:
+            case PSDiagnosisMood.PSDiagnosisMoodAbsent:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.NoProgram");
                 break;

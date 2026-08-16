@@ -13,7 +13,7 @@ public abstract class PTabSurface : UserControl
     public abstract PViewer? PTabViewer { get; }
     public virtual PList? PTabList => null;
     public virtual PGroup? PTabGroup => null;
-    public virtual bool PTabSectionShow => false;
+    public virtual bool PTabSectionVisible => false;
     public PAction? PTabAction { get; protected set; }
     public virtual bool PTabBusyCheck() => false;
     public virtual void PTabClose() { }
@@ -52,7 +52,7 @@ public abstract class PTabSurface : UserControl
 
     protected static void PTabLockAttach(PList pList, params UIElement[] pEditors)
     {
-        void pLockApply(bool pLocked)
+        void pTabLockApply(bool pLocked)
         {
             foreach (UIElement pEditor in pEditors)
             {
@@ -60,8 +60,8 @@ public abstract class PTabSurface : UserControl
             }
         }
 
-        pList.PListLockChange += pLockApply;
-        pLockApply(pList.PListLockCheck());
+        pList.PListLockChange += pTabLockApply;
+        pTabLockApply(pList.PListLockCheck());
     }
 
     protected Grid PTabGridBuild(
@@ -380,7 +380,7 @@ public abstract class PTabSurface : UserControl
             return;
         }
 
-        void pCollapseApply(bool pCollapsed)
+        void pTabCollapseApply(bool pCollapsed)
         {
             pPanelLayout.PColumnWidthSet(pPanelIndex, pCollapsed ? pStripWidth : 0);
             pCollapseNotify();
@@ -388,10 +388,10 @@ public abstract class PTabSurface : UserControl
 
         switch (pPanel)
         {
-            case PList pListPanel: pListPanel.PListMinimizeChange += pCollapseApply; break;
-            case PProcessing pProcessingPanel: pProcessingPanel.PProcessingMinimizeChange += pCollapseApply; break;
-            case PInspector pInspectorPanel: pInspectorPanel.PInspectorMinimizeChange += pCollapseApply; break;
-            case PSection pSectionPanel: pSectionPanel.PSectionMinimizeChange += pCollapseApply; break;
+            case PList pListPanel: pListPanel.PListMinimizeChange += pTabCollapseApply; break;
+            case PProcessing pProcessingPanel: pProcessingPanel.PProcessingMinimizeChange += pTabCollapseApply; break;
+            case PInspector pInspectorPanel: pInspectorPanel.PInspectorMinimizeChange += pTabCollapseApply; break;
+            case PSection pSectionPanel: pSectionPanel.PSectionMinimizeChange += pTabCollapseApply; break;
         }
     }
 

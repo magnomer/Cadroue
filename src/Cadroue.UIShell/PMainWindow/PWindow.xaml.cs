@@ -47,8 +47,8 @@ public partial class PWindow : Window
             PWindowTabsRestore(pStrip, LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
         }
 
-        pControlBar.PToolbarTabSet(pRail);
-        pControlBar.PToolbarOptionsApply += PWindowOptionsHandle;
+        pToolbar.PToolbarTabSet(pRail);
+        pToolbar.PToolbarOptionsApply += PWindowOptionsHandle;
         PWindowOptionsHandle(LPreference.LPreferenceStateCurrent);
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
         pDeck.PDeckTabsetSet(pStrip);
@@ -265,7 +265,7 @@ public partial class PWindow : Window
             return;
         }
         pFlowActive.PFlowCommandSet(true);
-        pFlowActive.PFlowSectionShow(pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabSectionShow);
+        pFlowActive.PFlowSectionShow(pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabSectionVisible);
         pFlowActive.Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
         pFlowActive.PFlowOrderApply();
         pFlowActive.PFlowPlayingSource = pViewerActive.PViewerPlayingRead;
@@ -327,22 +327,22 @@ public partial class PWindow : Window
     private void PWindowLayoutApply(bool pVertical)
     {
         UIElement pSceneControls = pConsole.PConsoleSceneRead();
-        pControlBar.PToolbarTabSet(null);
+        pToolbar.PToolbarTabSet(null);
         pTabRailHost.Content = null;
         pConsole.PConsoleSceneSet(null);
-        pControlBar.PToolbarSceneSet(null);
+        pToolbar.PToolbarSceneSet(null);
 
         pRail.PRailApply(pVertical);
-        pControlBar.PToolbarVerticalSet(pVertical);
+        pToolbar.PToolbarVerticalSet(pVertical);
         pTabRailColumn.Width = new GridLength(pVertical ? PRail.PRailWidth : 0);
         if (pVertical)
         {
             pTabRailHost.Content = pRail;
-            pControlBar.PToolbarSceneSet(pSceneControls);
+            pToolbar.PToolbarSceneSet(pSceneControls);
         }
         else
         {
-            pControlBar.PToolbarTabSet(pRail);
+            pToolbar.PToolbarTabSet(pRail);
             pConsole.PConsoleSceneSet(pSceneControls);
         }
 
@@ -373,8 +373,8 @@ public partial class PWindow : Window
         LScene.LSceneStateSave(PWindowSceneRead(LScene.LSceneActiveName));
         LRelayChannel.LRelayTabReceive -= PWindowRelayHandle;
         pStrip.PStripSelectChange -= PWindowTabHandle;
-        pControlBar.PToolbarOptionsApply -= PWindowOptionsHandle;
-        ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageFilter;
+        pToolbar.PToolbarOptionsApply -= PWindowOptionsHandle;
+        ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
         PDropHandlersRemove();
         PResizeHandlersRemove();
         PWindowWidthDetach();

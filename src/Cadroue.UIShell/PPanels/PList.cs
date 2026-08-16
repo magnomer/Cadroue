@@ -95,8 +95,8 @@ public sealed partial class PList : PPanel
         KeyDown += PListKeyHandle;
         Content = PPanelBorderBuild(pBodyHost);
         pListDocket.LDocketChange += PListDocketHandle;
-        pListDocket.LDocketAdded += PListDocketAddHandle;
-        pListDocket.LDocketRemoved += PListDocketRemoveHandle;
+        pListDocket.LDocketAdded += PListAddHandle;
+        pListDocket.LDocketRemoved += PListRemoveHandle;
         PListEmptyUpdate();
     }
 
@@ -107,13 +107,13 @@ public sealed partial class PList : PPanel
         PListLockChange?.Invoke(PListLockCheck());
     }
 
-    private void PListDocketAddHandle(IReadOnlyList<LDocketEntry> pListAdded)
+    private void PListAddHandle(IReadOnlyList<LDocketEntry> pListAdded)
     {
         PListSelectApply(pListAdded[0].LDocketEntryPath);
         PListItemsAdd?.Invoke(pListAdded);
     }
 
-    private void PListDocketRemoveHandle(IReadOnlyList<string> pListRemoved)
+    private void PListRemoveHandle(IReadOnlyList<string> pListRemoved)
     {
         if (pListPathCurrent is null || pListDocket.LDocketItemFind(pListPathCurrent) is null)
         {

@@ -41,9 +41,9 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pProcessing.PProcessingOrderChange += PAudioPlanSave;
         pProcessing.PProcessingMonitorShow += PAudioMonitorShow;
-        pProcessing.PProcessingMonitorEnable();
+        pProcessing.PProcessingMonitorSet();
         pInspector.PSkipActiveChange += PAudioSkipHandle;
-        pInspector.PInspectorPlanChange += PAudioPersistentWrite;
+        pInspector.PInspectorPlanChange += PAudioPersistentSave;
         pInspector.PInspectorAudioChange += PAudioChangeHandle;
 
         var pAction = new PAction();
@@ -150,7 +150,7 @@ public sealed class PAudioTab : PTabSurface
         PAudioPlanSave();
     }
 
-    private void PAudioPersistentWrite()
+    private void PAudioPersistentSave()
     {
         if (pAudioPlanLoading || !pInspector.PInspectorPersistentCheck())
         {
@@ -334,7 +334,7 @@ public sealed class PAudioTab : PTabSurface
         }
 
         LAudio.LAudioPlanSave(pSourcePath, pAudioPlan, LLibrarian.LLibrarianAudioSave);
-        PAudioPersistentWrite();
+        PAudioPersistentSave();
     }
 
     public override void PTabClose()

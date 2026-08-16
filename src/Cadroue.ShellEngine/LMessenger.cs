@@ -392,7 +392,7 @@ public static class LMessenger
             LMessengerDrainSource?.Invoke(lMessengerRelayed);
         }
 
-        LSeal.LSealSweep();
+        LSeal.LSealRun();
         LTraceLog.LTraceInfoRecord(
             $"Funnel relayed {lMessengerRelayed.Count} of {lMessengerItems.Count} file(s) by filename rule");
         return lMessengerRelayed.Count;

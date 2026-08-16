@@ -41,8 +41,8 @@ internal sealed class PSAbout : Window
 
     private readonly PSGrabber psAboutGrabber;
 
-    private int psAboutLogoTapCount;
-    private DateTime psAboutLogoTapLast;
+    private int psAboutTapCount;
+    private DateTime psAboutTapLast;
 
     private TextBlock? psAboutDeveloper;
 
@@ -126,7 +126,7 @@ internal sealed class PSAbout : Window
             Stretch = Stretch.Uniform,
             Margin = new Thickness(0, 0, 0, 12)
         };
-        pLogo.MouseLeftButtonUp += PSAboutLogoTapHandle;
+        pLogo.MouseLeftButtonUp += PSAboutTapHandle;
         pHeader.Children.Add(pLogo);
 
         psAboutDeveloper = new TextBlock
@@ -237,14 +237,14 @@ internal sealed class PSAbout : Window
         return pText;
     }
 
-    private void PSAboutLogoTapHandle(object pSender, MouseButtonEventArgs pEvent)
+    private void PSAboutTapHandle(object pSender, MouseButtonEventArgs pEvent)
     {
         DateTime pNow = DateTime.UtcNow;
-        psAboutLogoTapCount = (pNow - psAboutLogoTapLast).TotalSeconds > 1.5 ? 1 : psAboutLogoTapCount + 1;
-        psAboutLogoTapLast = pNow;
-        if (psAboutLogoTapCount >= 10)
+        psAboutTapCount = (pNow - psAboutTapLast).TotalSeconds > 1.5 ? 1 : psAboutTapCount + 1;
+        psAboutTapLast = pNow;
+        if (psAboutTapCount >= 10)
         {
-            psAboutLogoTapCount = 0;
+            psAboutTapCount = 0;
             bool psAboutDeveloperNext = !Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceDeveloperActive;
             Cadroue.Application.LPreference.LPreferenceDeveloperSet(psAboutDeveloperNext);
             if (psAboutDeveloper is not null)

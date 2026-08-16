@@ -34,28 +34,28 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"), psOutputContainerCombo));
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Extension"), psOutputExtensionCombo));
 
-        psCollisionSuffixRow = PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"), psCollisionSuffixBox);
-        psCollisionCombo.SelectionChanged += (_, _) => PSCollisionSuffixUpdate();
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Collision"), psCollisionCombo));
-        pPanel.Children.Add(psCollisionSuffixRow);
-        PSCollisionSuffixUpdate();
+        psOutputSuffixRow = PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"), psOutputSuffixBox);
+        psOutputCollisionCombo.SelectionChanged += (_, _) => PSOutputSuffixUpdate();
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Collision"), psOutputCollisionCombo));
+        pPanel.Children.Add(psOutputSuffixRow);
+        PSOutputSuffixUpdate();
 
         PSLocationFolderUpdate();
         return PSPlateBuild(pPanel);
     }
 
-    private static bool PSCollisionSuffixCheck(string pPolicy) =>
+    private static bool PSOutputSuffixCheck(string pPolicy) =>
         string.Equals(pPolicy, "Rename output", StringComparison.Ordinal)
         || string.Equals(pPolicy, "Rename existing", StringComparison.Ordinal);
 
-    private void PSCollisionSuffixUpdate()
+    private void PSOutputSuffixUpdate()
     {
-        if (psCollisionSuffixRow is null)
+        if (psOutputSuffixRow is null)
         {
             return;
         }
 
-        psCollisionSuffixRow.Visibility = PSCollisionSuffixCheck(PSComboTextRead(psCollisionCombo))
+        psOutputSuffixRow.Visibility = PSOutputSuffixCheck(PSComboTextRead(psOutputCollisionCombo))
             ? Visibility.Visible
             : Visibility.Collapsed;
     }
@@ -224,7 +224,7 @@ internal sealed partial class PSEncoder
             Child = pContent
         };
 
-        string PSNameOperatorToken() => $"{{{pKind}:{PSNameCountRead(psNumberBox.Text)}}}";
+        string PSNameOperatorFormat() => $"{{{pKind}:{PSNameCountRead(psNumberBox.Text)}}}";
 
         Point? pDragStart = null;
         Point psOperatorGrabOffset = default;
@@ -261,7 +261,7 @@ internal sealed partial class PSEncoder
 
             if (!psNumberBox.IsMouseOver)
             {
-                PSNameTokenInsert(PSNameOperatorToken());
+                PSNameTokenInsert(PSNameOperatorFormat());
             }
         };
         pBorder.PreviewMouseMove += (_, e) =>
@@ -278,7 +278,7 @@ internal sealed partial class PSEncoder
             }
 
             pDragStarted = true;
-            PSNameDragRun(pBorder, PSNameOperatorToken(), psOperatorGrabOffset);
+            PSNameDragRun(pBorder, PSNameOperatorFormat(), psOperatorGrabOffset);
             pBorder.Background = Brushes.White;
         };
         return pBorder;

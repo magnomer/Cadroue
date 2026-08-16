@@ -140,7 +140,7 @@ internal sealed partial class LLocalizationCatalog
                     lLocalizationPath,
                     lLocalizationFilePath);
                 return lLocalizationLower
-                    ? LLocalizationFirstLower(lLocalizationTermValue)
+                    ? LLocalizationFirstNormalize(lLocalizationTermValue)
                     : lLocalizationTermValue;
             });
 
@@ -163,7 +163,7 @@ internal sealed partial class LLocalizationCatalog
     [GeneratedRegex(@"^(?:Terms|[A-Z][A-Za-z0-9]*)(?:\.[A-Z][A-Za-z0-9]*)+$", RegexOptions.CultureInvariant)]
     private static partial Regex LLocalizationKeyCreate();
 
-    private static string LLocalizationFirstLower(string lLocalizationText) =>
+    private static string LLocalizationFirstNormalize(string lLocalizationText) =>
         string.IsNullOrEmpty(lLocalizationText) || char.IsLower(lLocalizationText[0])
             ? lLocalizationText
             : char.ToLowerInvariant(lLocalizationText[0]) + lLocalizationText[1..];

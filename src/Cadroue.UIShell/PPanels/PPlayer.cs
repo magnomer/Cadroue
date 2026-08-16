@@ -44,7 +44,7 @@ internal sealed class PPlayer
 
     public void PPlayerVolumeSet(double volume) => pPlayerActive?.PPlayerVolumeSet(volume);
 
-    public void PPlayerMpvRefresh() => (pPlayerActive as PPlayerMpv)?.PPlayerMpvRefresh();
+    public void PPlayerMpvUpdate() => (pPlayerActive as PPlayerMpv)?.PPlayerMpvUpdate();
 
     public void PPlayerFilterSet(string filterChain) => pPlayerActive?.PPlayerFilterSet(filterChain);
 

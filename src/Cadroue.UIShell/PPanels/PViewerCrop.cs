@@ -265,14 +265,14 @@ public sealed partial class PViewer
         LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(PViewerCropboxRead(PCropVideo));
         pViewerCropBox.Visibility = Visibility.Visible;
         PCropBoxRestore();
-        PViewerMpvPreviewApply();
+        PViewerMpvUpdate();
     }
 
     private void PCropPressHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
         if (pViewerTool == PViewerTool.Neutral)
         {
-            PViewerNeutralPressHandle(mouseEvent);
+            PViewerPressHandle(mouseEvent);
             return;
         }
 
@@ -323,7 +323,7 @@ public sealed partial class PViewer
             pViewerOverlay.ReleaseMouseCapture();
             PCropVideo = PCropVideoRead();
             LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(PViewerCropboxRead(PCropVideo));
-            PViewerMpvPreviewApply();
+            PViewerMpvUpdate();
             PCropVideoChange?.Invoke(PCropVideo);
             mouseEvent.Handled = true;
             return;
@@ -340,7 +340,7 @@ public sealed partial class PViewer
         PCropOverlayUpdate();
         PCropVideo = PCropVideoRead();
         LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(PViewerCropboxRead(PCropVideo));
-        PViewerMpvPreviewApply();
+        PViewerMpvUpdate();
         PCropVideoChange?.Invoke(PCropVideo);
         mouseEvent.Handled = true;
     }
@@ -451,7 +451,7 @@ public sealed partial class PViewer
         PCropVideo = null;
         LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(null);
         PCropOverlayUpdate();
-        PViewerMpvPreviewApply();
+        PViewerMpvUpdate();
         PCropVideoChange?.Invoke(null);
     }
 }

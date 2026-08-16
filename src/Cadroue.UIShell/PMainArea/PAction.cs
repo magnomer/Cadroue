@@ -79,7 +79,7 @@ public sealed class PAction : UserControl
         PActionRelayApply(LCartographer.LCartographerTargetRead(pActionSourceTab));
     }
 
-    public static void PActionArrive(Guid pActionTargetTab, string pActionPath, Guid pActionCohort)
+    public static void PActionAccept(Guid pActionTargetTab, string pActionPath, Guid pActionCohort)
     {
         if (PStrip.PStripTabFind(pActionTargetTab) is not { } pActionTarget
             || pActionTarget.PTabWorkspace.PWorkspaceSurface is PMergeTab
@@ -89,7 +89,7 @@ public sealed class PAction : UserControl
         }
 
         LSeal.LSealPendingAdd(pActionCohort);
-        void PActionArriveRun()
+        void PActionAcceptRun()
         {
             try
             {
@@ -98,17 +98,17 @@ public sealed class PAction : UserControl
             finally
             {
                 LSeal.LSealPendingRemove(pActionCohort);
-                LSeal.LSealSweep();
+                LSeal.LSealRun();
             }
         }
 
         if (System.Windows.Application.Current?.Dispatcher is { } pActionDispatcher)
         {
-            pActionDispatcher.BeginInvoke(new Action(PActionArriveRun));
+            pActionDispatcher.BeginInvoke(new Action(PActionAcceptRun));
         }
         else
         {
-            PActionArriveRun();
+            PActionAcceptRun();
         }
     }
 

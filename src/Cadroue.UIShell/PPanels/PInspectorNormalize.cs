@@ -53,8 +53,8 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pLoudnessPreset);
-        PNormalizePresetBuild(true);
-        pLoudnessPreset.SelectionChanged += (_, _) => PNormalizePresetApply();
+        PLoudnessComboBuild(true);
+        pLoudnessPreset.SelectionChanged += (_, _) => PLoudnessComboApply();
 
         pLoudnessMode = new ComboBox
         {
@@ -72,40 +72,40 @@ public sealed partial class PInspector
 
         pLoudnessTarget = PInspectorDecimalBuild();
         pLoudnessTarget.Text = pDefault.Target.ToString("0.###", CultureInfo.InvariantCulture);
-        Slider pTargetSlider = PInspectorSliderBind(
+        Slider pTargetSlider = PInspectorSliderBuild(
             pLoudnessTarget, LLevelingCatalog.LLevelingTargetLeast, LLevelingCatalog.LLevelingTargetMost, pDefault.Target, "0.#",
-            () => PLoudnessPresetCurrent()?.Target ?? pDefault.Target, PLoudnessValueUpdate);
+            () => PLoudnessPresetRead()?.Target ?? pDefault.Target, PLoudnessValueUpdate);
         pLoudnessPeak = PInspectorDecimalBuild();
         pLoudnessPeak.Text = pDefault.Peak.ToString("0.###", CultureInfo.InvariantCulture);
-        Slider pPeakSlider = PInspectorSliderBind(
+        Slider pPeakSlider = PInspectorSliderBuild(
             pLoudnessPeak, LLevelingCatalog.LLevelingPeakLeast, LLevelingCatalog.LLevelingPeakMost, pDefault.Peak, "0.#",
-            () => PLoudnessPresetCurrent()?.Peak ?? pDefault.Peak, PLoudnessValueUpdate);
+            () => PLoudnessPresetRead()?.Peak ?? pDefault.Peak, PLoudnessValueUpdate);
         pLoudnessRange = PInspectorDecimalBuild();
         pLoudnessRange.Text = pDefault.Range.ToString("0.###", CultureInfo.InvariantCulture);
-        Slider pRangeSlider = PInspectorSliderBind(
+        Slider pRangeSlider = PInspectorSliderBuild(
             pLoudnessRange, LLevelingCatalog.LLevelingRangeLeast, LLevelingCatalog.LLevelingRangeMost, pDefault.Range, "0.#",
-            () => PLoudnessPresetCurrent()?.Range ?? pDefault.Range, PLoudnessValueUpdate);
+            () => PLoudnessPresetRead()?.Range ?? pDefault.Range, PLoudnessValueUpdate);
 
         pDynamicFrame = PInspectorDecimalBuild();
         pDynamicFrame.Text = pDefault.Frame.ToString("0.###", CultureInfo.InvariantCulture);
-        Slider pFrameSlider = PInspectorSliderBind(
+        Slider pFrameSlider = PInspectorSliderBuild(
             pDynamicFrame, LLevelingCatalog.LLevelingFrameLeast, LLevelingCatalog.LLevelingFrameMost, pDefault.Frame, "0",
-            () => PDynamicPresetCurrent()?.Frame ?? pDefault.Frame, PDynamicValueUpdate);
+            () => PDynamicPresetRead()?.Frame ?? pDefault.Frame, PDynamicValueUpdate);
         pDynamicGauss = PInspectorDecimalBuild();
         pDynamicGauss.Text = pDefault.Gauss.ToString("0.###", CultureInfo.InvariantCulture);
-        Slider pGaussSlider = PInspectorSliderBind(
+        Slider pGaussSlider = PInspectorSliderBuild(
             pDynamicGauss, LLevelingCatalog.LLevelingGaussLeast, LLevelingCatalog.LLevelingGaussMost, pDefault.Gauss, "0",
-            () => PDynamicPresetCurrent()?.Gauss ?? pDefault.Gauss, PDynamicValueUpdate);
+            () => PDynamicPresetRead()?.Gauss ?? pDefault.Gauss, PDynamicValueUpdate);
         pDynamicMaxGain = PInspectorDecimalBuild();
         pDynamicMaxGain.Text = pDefault.MaxGain.ToString("0.###", CultureInfo.InvariantCulture);
-        Slider pMaxGainSlider = PInspectorSliderBind(
+        Slider pMaxGainSlider = PInspectorSliderBuild(
             pDynamicMaxGain, LLevelingCatalog.LLevelingGainLeast, LLevelingCatalog.LLevelingGainMost, pDefault.MaxGain, "0.#",
-            () => PDynamicPresetCurrent()?.MaxGain ?? pDefault.MaxGain, PDynamicValueUpdate);
+            () => PDynamicPresetRead()?.MaxGain ?? pDefault.MaxGain, PDynamicValueUpdate);
         pDynamicCompress = PInspectorDecimalBuild();
         pDynamicCompress.Text = pDefault.Compress.ToString("0.###", CultureInfo.InvariantCulture);
-        Slider pCompressSlider = PInspectorSliderBind(
+        Slider pCompressSlider = PInspectorSliderBuild(
             pDynamicCompress, LLevelingCatalog.LLevelingCompressLeast, LLevelingCatalog.LLevelingCompressMost, pDefault.Compress, "0.#",
-            () => PDynamicPresetCurrent()?.Compress ?? pDefault.Compress, PDynamicValueUpdate);
+            () => PDynamicPresetRead()?.Compress ?? pDefault.Compress, PDynamicValueUpdate);
 
         pLoudnessTwoPass = new CheckBox
         {
@@ -166,7 +166,7 @@ public sealed partial class PInspector
         return pLoudnessBody;
     }
 
-    private (double Target, double Peak, double Range)? PLoudnessPresetCurrent() =>
+    private (double Target, double Peak, double Range)? PLoudnessPresetRead() =>
         pLoudnessBaseToken is { } pBase ? LLevelingCatalog.LLevelingLoudnessRead(pBase) : null;
 
     private static string PLoudnessKeyRead(string pToken) => pToken switch
@@ -273,7 +273,7 @@ public sealed partial class PInspector
         }
     }
 
-    private void PNormalizePresetUpdate(string? pMatch)
+    private void PLoudnessComboUpdate(string? pMatch)
     {
         pLoudnessPresetSuppress = true;
         if (pMatch is not null)
@@ -307,15 +307,15 @@ public sealed partial class PInspector
         pDynamicStack.Visibility = pLoudness ? Visibility.Collapsed : Visibility.Visible;
 
         pLoudnessPresetSuppress = true;
-        PNormalizePresetBuild(pLoudness);
+        PLoudnessComboBuild(pLoudness);
         pLoudnessPresetSuppress = false;
 
-        PNormalizePresetUpdate(pLoudness ? PLoudnessValuesMatch() : PDynamicValuesMatch());
+        PLoudnessComboUpdate(pLoudness ? PLoudnessValuesMatch() : PDynamicValuesMatch());
 
         PInspectorActiveRaise();
     }
 
-    private void PNormalizePresetBuild(bool pLoudness)
+    private void PLoudnessComboBuild(bool pLoudness)
     {
         pLoudnessPreset.Items.Clear();
         if (pLoudness)
@@ -336,7 +336,7 @@ public sealed partial class PInspector
         pLoudnessPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
     }
 
-    private void PNormalizePresetApply()
+    private void PLoudnessComboApply()
     {
         if (PLoudnessModeRead() == LLeveling.LLevelingLoudness)
         {
@@ -348,7 +348,7 @@ public sealed partial class PInspector
         }
     }
 
-    private (double Frame, double Gauss, double MaxGain, double Compress)? PDynamicPresetCurrent() =>
+    private (double Frame, double Gauss, double MaxGain, double Compress)? PDynamicPresetRead() =>
         pLoudnessBaseToken is { } pBase ? LLevelingCatalog.LLevelingDynamicRead(pBase) : null;
 
     private static string PDynamicKeyRead(string pToken) => pToken switch

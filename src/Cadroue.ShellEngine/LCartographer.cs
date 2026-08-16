@@ -242,7 +242,7 @@ public static partial class LCartographer
             lCartographerDispatching = false;
         }
 
-        LSeal.LSealSweep();
+        LSeal.LSealRun();
     }
 
     public static bool LCartographerDeliverableCheck(LWorkItem lCartographerItem)

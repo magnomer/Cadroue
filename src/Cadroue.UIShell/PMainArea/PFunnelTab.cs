@@ -21,7 +21,7 @@ public sealed class PFunnelTab : PTabSurface
         pFunnelRules.PFunnelOptionsSet(PFunnelTargetsRead);
         if (lPreferenceTabLayout?.LSceneFunnelRules is { Count: > 0 } pRuleRecords)
         {
-            pFunnelRules.PFunnelRulesSeed(pRuleRecords);
+            pFunnelRules.PFunnelRulesRestore(pRuleRecords);
         }
 
         var pAction = new PAction();

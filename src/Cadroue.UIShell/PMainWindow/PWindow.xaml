@@ -27,7 +27,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <pControlBar:PToolbar x:Name="pControlBar" Grid.Row="0" Grid.ColumnSpan="2" />
+        <pControlBar:PToolbar x:Name="pToolbar" Grid.Row="0" Grid.ColumnSpan="2" />
         <ContentControl x:Name="pTabRailHost" Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Background="#EAF2FC"
                         HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
         <pMainArea:PConsole x:Name="pConsole" Grid.Row="1" Grid.Column="1" Margin="0,-1,0,0" />

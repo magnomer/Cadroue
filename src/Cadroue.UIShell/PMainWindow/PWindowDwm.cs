@@ -11,7 +11,7 @@ public partial class PWindow
         base.OnSourceInitialized(e);
         HwndSource? pWindowSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
         pWindowSource?.AddHook(PWindowMessageHook);
-        ComponentDispatcher.ThreadPreprocessMessage += PShortcutMessageFilter;
+        ComponentDispatcher.ThreadPreprocessMessage += PShortcutMessageHandle;
         PWindowDwmApply();
     }
 

@@ -68,15 +68,15 @@ public partial class PProgram : System.Windows.Application
         Cadroue.ShellEngine.LMessenger.LMessengerTitleSource = PControlBar.PStrip.PStripTitleRead;
         Cadroue.ShellEngine.LCartographer.LCartographerTitleSource = PControlBar.PStrip.PStripTitleRead;
         Cadroue.ShellEngine.LCartographer.LCartographerScheduleContract = LScheduleCurrent;
-        Cadroue.ShellEngine.LCartographer.LCartographerLockSeam = PPanels.PList.PListSourceLock;
+        Cadroue.ShellEngine.LCartographer.LCartographerLockSeam = PPanels.PList.PListSourceClaim;
         Cadroue.ShellEngine.LCartographer.LCartographerDeliverySeam = new Cadroue.ShellEngine.LCartographerDelivery(
             PPanels.PList.PListDeliveredAdd,
             PPanels.PList.PListDeliveredPlace,
-            PPanels.PList.PListDeliveredTrack,
+            PPanels.PList.PListDeliveredCommit,
             PPanels.PList.PListDeliveredRemove,
-            PMainArea.PAction.PActionArrive,
-            PPanels.PList.PListBatchEvict,
-            PPanels.PList.PListSourceUnlock);
+            PMainArea.PAction.PActionAccept,
+            PPanels.PList.PListBatchRemove,
+            PPanels.PList.PListSourceRelease);
         Cadroue.ShellEngine.LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 Cadroue.ShellEngine.LCartographer.LCartographerAccept(
@@ -88,7 +88,7 @@ public partial class PProgram : System.Windows.Application
                 return false;
             }
 
-            PMainArea.PAction.PActionArrive(pFunnelTarget, pFunnelPath, pFunnelCohort);
+            PMainArea.PAction.PActionAccept(pFunnelTarget, pFunnelPath, pFunnelCohort);
             return true;
         };
         Cadroue.ShellEngine.LMessenger.LMessengerDrainSource = pFunnelDrainPaths =>

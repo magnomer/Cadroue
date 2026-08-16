@@ -175,8 +175,8 @@ public sealed partial class PInspector
             PInspectorPassDefault = pDefault
         };
 
-        PSlider.PSliderResetApply(pFrequency, () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.LPassbandCutoff : pDefault);
-        PSlider.PSliderResetApply(pStages, () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.LPassbandStages : 1);
+        PSlider.PSliderResetApply(pFrequency, () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandCutoff : pDefault);
+        PSlider.PSliderResetApply(pStages, () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandStages : 1);
 
         pApply.Checked += (_, _) => PFilterApplyUpdate(pPass);
         pApply.Unchecked += (_, _) => PFilterApplyUpdate(pPass);
@@ -215,9 +215,9 @@ public sealed partial class PInspector
             PFilterDeviationCheck(pPass);
         };
         pPoles.SelectionChanged += (_, _) => PFilterDeviationCheck(pPass);
-        Slider pResonanceSlider = PInspectorSliderBind(
+        Slider pResonanceSlider = PInspectorSliderBuild(
             pResonance, LPassband.LPassbandResonanceLeast, LPassband.LPassbandResonanceMost, 0.707, "0.###",
-            () => PFilterPresetCurrent(pPass) is { } pEntry ? pEntry.LPassbandResonance : 0.707,
+            () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandResonance : 0.707,
             () => PFilterDeviationCheck(pPass));
 
         pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pPreset));
@@ -227,15 +227,15 @@ public sealed partial class PInspector
         pStack.Children.Add(pResonanceRow);
         pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Poles"), pPoles));
 
-        void pPolesReflect()
+        void PFilterResonanceUpdate()
         {
             bool pResonanceOn = PFilterPolesRead(pPass) == 2;
             pResonanceRow.IsEnabled = pResonanceOn;
             pResonanceRow.Opacity = pResonanceOn ? 1 : 0.4;
         }
 
-        pPoles.SelectionChanged += (_, _) => pPolesReflect();
-        pPolesReflect();
+        pPoles.SelectionChanged += (_, _) => PFilterResonanceUpdate();
+        PFilterResonanceUpdate();
 
         pBody.Children.Add(pApply);
         pBody.Children.Add(PInspectorSeparatorBuild());
@@ -259,7 +259,7 @@ public sealed partial class PInspector
         return string.Empty;
     }
 
-    private static Cadroue.Core.LPassbandPreset? PFilterPresetCurrent(PInspectorPass pPass) =>
+    private static Cadroue.Core.LPassbandPreset? PFilterPresetRead(PInspectorPass pPass) =>
         pPass.PInspectorPassBase is { } pBase
             ? Cadroue.Core.LPassband.LPassbandRead(pPass.PInspectorPassHigh, pBase)
             : null;

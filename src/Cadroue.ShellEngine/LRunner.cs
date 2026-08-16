@@ -36,9 +36,9 @@ public sealed partial class LRunner
 
     public string LRunnerProgramPath { get; set; } = "ffmpeg";
 
-    public string LRunnerProgramArgumentPrefix { get; set; } = string.Empty;
+    public string LRunnerArgumentPrefix { get; set; } = string.Empty;
 
-    public Func<string, string>? LRunnerProgramArgumentsTransform { get; set; }
+    public Func<string, string>? LRunnerArgumentTransform { get; set; }
 
     public int LRunnerParallelMaximum { get; set; } = 1;
 
@@ -64,7 +64,7 @@ public sealed partial class LRunner
 
     public bool LRunnerSuspended => lRunnerSuspended;
 
-    internal async Task LRunnerResumeAwait(CancellationToken lRunnerToken)
+    internal async Task LRunnerResume(CancellationToken lRunnerToken)
     {
         while (lRunnerSuspended)
         {
@@ -161,7 +161,7 @@ public sealed partial class LRunner
 
             foreach (Process lRunnerProcess in lRunnerProcesses.Values)
             {
-                LRunnerProcessKill(lRunnerProcess);
+                LRunnerProcessInterrupt(lRunnerProcess);
             }
 
             lRunnerSuspended = false;
@@ -180,7 +180,7 @@ public sealed partial class LRunner
         lRunnerCancelled[lWorkId] = 0;
         if (lRunnerProcesses.TryGetValue(lWorkId, out Process? lRunnerProcess))
         {
-            LRunnerProcessKill(lRunnerProcess);
+            LRunnerProcessInterrupt(lRunnerProcess);
         }
     }
 
@@ -191,7 +191,7 @@ public sealed partial class LRunner
             lRunnerProcesses[lWorkId] = lRunnerProcess;
             if (lRunnerToken.IsCancellationRequested || lRunnerCancelled.ContainsKey(lWorkId))
             {
-                LRunnerProcessKill(lRunnerProcess);
+                LRunnerProcessInterrupt(lRunnerProcess);
             }
             else if (lRunnerSuspended && !lRunnerProcess.HasExited && LRunnerProcessSuspend(lRunnerProcess))
             {
@@ -201,7 +201,7 @@ public sealed partial class LRunner
         }
     }
 
-    private static void LRunnerProcessKill(Process lRunnerProcess)
+    private static void LRunnerProcessInterrupt(Process lRunnerProcess)
     {
         try
         {

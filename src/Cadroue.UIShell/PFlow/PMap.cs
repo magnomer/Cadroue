@@ -15,9 +15,9 @@ public sealed partial class PMap : FrameworkElement
     private enum PMapDragMode
     {
         PMapDragNone,
-        PMapResizeStart,
-        PMapResizeEnd,
-        PMapDragMove,
+        PMapResizeOrigin,
+        PMapResizeLimit,
+        PMapDragBody,
         PMapDragCursor,
     }
 

@@ -86,7 +86,7 @@ internal sealed class LJob
             string? pMeasureStderr = null;
             for (int pStageIndex = 0; pStageIndex < pStages.Count; pStageIndex++)
             {
-                await lJobOwner.LRunnerResumeAwait(lJobToken).ConfigureAwait(false);
+                await lJobOwner.LRunnerResume(lJobToken).ConfigureAwait(false);
 
                 LEncodeStage pStage = pStages[pStageIndex];
                 string pStageArguments = pStage.LEncodeStageArguments;
@@ -264,7 +264,7 @@ internal sealed class LJob
         Stopwatch pJobClock,
         string pDirectory)
     {
-        string pExecutableArguments = lJobOwner.LRunnerProgramArgumentsTransform?.Invoke(pStageArguments)
+        string pExecutableArguments = lJobOwner.LRunnerArgumentTransform?.Invoke(pStageArguments)
             ?? pStageArguments;
         lJobOwner.LRunnerDispatch(() =>
         {
@@ -288,7 +288,7 @@ internal sealed class LJob
 
         var pJobEmployer = new LEmployer(
             lJobOwner.LRunnerProgramPath,
-            lJobOwner.LRunnerProgramArgumentPrefix);
+            lJobOwner.LRunnerArgumentPrefix);
         LEmployerResult pJobResult = await pJobEmployer.LEmployerRun(
             pExecutableArguments,
             lJobToken,

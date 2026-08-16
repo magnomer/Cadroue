@@ -49,7 +49,7 @@ public sealed partial class PProcessing : PPanel
         pProcessingActionBar.Visibility = pOrderedRequest ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    public void PProcessingMonitorEnable()
+    public void PProcessingMonitorSet()
     {
         if (pProcessingMonitorButton is not null)
         {
@@ -472,7 +472,7 @@ public sealed partial class PProcessing : PPanel
         PProcessingRowApply(pRowContent, pProcessingActiveSteps.Contains(pStepName));
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
-            PProcessingStepActivate(pStepName);
+            PProcessingStepSelect(pStepName);
 
             pProcessingRowDragging = pRowBorder;
             pProcessingIndexDragging = pProcessingRowPanel.Children.IndexOf(pRowBorder);
@@ -488,13 +488,13 @@ public sealed partial class PProcessing : PPanel
                 return;
             }
 
-            PProcessingStepActivate(pStepName);
+            PProcessingStepSelect(pStepName);
             pRowEvent.Handled = true;
         };
         return pRowBorder;
     }
 
-    private void PProcessingStepActivate(string pStepName)
+    private void PProcessingStepSelect(string pStepName)
     {
         if (pProcessingDisabledSteps.Contains(pStepName))
         {

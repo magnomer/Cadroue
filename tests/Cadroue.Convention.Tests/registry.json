@@ -1,0 +1,37 @@
+{
+  "note": "Machine registry for Cadroue.Convention.Tests. Secondary storage owned by this test project; not parsed from docs-internal. Keep bases/verbs/exempt/xinstance in sync with the naming registries by hand.",
+  "bases": [
+    "Program", "Window", "Chrome", "Shortcut", "Toolbar", "Tab", "Strip", "Rail", "Menu", "Workspace",
+    "Surface", "Deck", "Column", "Compass", "Action", "Log", "Nameplate",
+    "Flow", "Reel", "Resize", "Cursor", "Section", "Map", "Viewfinder", "Navigator", "Timecode", "Grip", "Divider",
+    "Viewer", "Crop", "Player", "Drop",
+    "Panel", "Info", "Source", "Inspector", "Group", "Funnel", "List", "Processing", "Console", "Roster", "Worklist",
+    "Lineage", "Summary", "Tone", "Gamma", "Exposure", "Whitebalance", "Noise", "Loudness", "Dynamic", "Filter", "Volume",
+    "Equalizer", "Skip", "Export",
+    "Button", "Textbox", "Checkbox", "Radio", "Picker", "Scrollbar", "Slider", "Dropdown", "Ghost", "Token",
+    "Logo", "Icon", "Card", "Line", "Rect", "Circle", "Separator", "Header",
+    "Tabset", "Scene", "Keyframe", "Media", "Spool", "Segment", "Piece", "Preference", "Localization", "Renderer",
+    "Flyleaf", "Mpv", "Preset", "Preview", "Cargo", "Docket", "Cropbox", "Color", "Neutral", "Rotate", "Playback",
+    "Split", "Edit", "Audio", "Convert", "Merge", "Grain", "Leveling", "Passband", "Contour", "Encoding", "Work",
+    "Schedule", "History", "Losslesscut", "Clip", "Sidecar", "Librarian", "Depot", "Ledger", "Placement", "Frame",
+    "Runner", "Station", "Encode", "Job", "Scout", "Employer", "Relay", "Trace", "Courier", "Messenger", "Gate",
+    "Binding", "Waveform", "Tool", "Capability", "Inventory", "Trial", "Latch", "Custody", "Sentinel", "Seal",
+    "Bastion", "Cartographer", "Classifier", "Series", "Retention",
+    "Casement", "Sheet", "Grabber", "Field", "Plate", "Rule", "Crest", "Entry", "Combo", "Notice", "Footer", "Inline",
+    "Encoder", "Codec", "Name", "Location", "Output", "Video", "Mode", "Options", "System", "General", "Timeline",
+    "Spectrum", "Swatch", "About", "Keymap", "Chord", "Verdict", "Monitor", "Diagnosis"
+  ],
+  "verbs": [
+    "Create", "Build", "Load", "Save", "Import", "Open", "Close", "Delete", "Persist", "Commit", "Publish", "Send",
+    "Copy", "Claim", "Release", "Compact", "Read", "Find", "Resolve", "Parse", "Format", "Match", "Check", "Exist",
+    "Validate", "Scan", "Set", "Apply", "Select", "Change", "Update", "Clamp", "Normalize", "Adjust", "Clone", "Add",
+    "Insert", "Append", "Remove", "Move", "Clear", "Sort", "Attach", "Detach", "Dispose", "Reset", "Restore", "Undo",
+    "Redo", "Rebuild", "Suspend", "Resume", "Hook", "Record", "Show", "Hide", "Handle", "Raise", "Confirm", "Interrupt",
+    "Cancel", "Dispatch", "Defer", "Propagate", "Run", "Start", "Prepare", "Describe", "Play", "Pause", "Stop", "Seek",
+    "Sync", "Draw", "Place", "Tick", "Zoom", "Scroll", "Divide", "Shorten", "Toggle", "Accept"
+  ],
+  "exempt": [
+    "PMainWindow"
+  ],
+  "xinstance": []
+}

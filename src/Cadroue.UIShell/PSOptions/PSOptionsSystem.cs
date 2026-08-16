@@ -90,9 +90,9 @@ internal sealed partial class PSOptions
 
     private UIElement PSSystemFlyleafBuild()
     {
-        Button pInstall = PSInlineButtonBuild(PSSystemFlyleafInstallText(), 160, new Thickness(0, 0, 8, 0));
+        Button pInstall = PSInlineButtonBuild(PSSystemFlyleafFormat(), 160, new Thickness(0, 0, 8, 0));
         Button pBrowse = PSInlineIconBuild(PSOptionsOpenIcon, LLocalization.LLocalizationTextRead("Options.System.Open"), new Thickness(0));
-        ProgressBar pProgress = PSSystemInstallProgressBuild();
+        ProgressBar pProgress = PSSystemProgressBuild();
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
         pInstall.Click += async (_, _) =>
         {
@@ -109,7 +109,7 @@ internal sealed partial class PSOptions
                 pProgress.Visibility = Visibility.Collapsed;
             }
 
-            pInstall.Content = PSSystemFlyleafInstallText();
+            pInstall.Content = PSSystemFlyleafFormat();
             pInstall.IsEnabled = true;
             MessageBox.Show(
                 this,
@@ -130,7 +130,7 @@ internal sealed partial class PSOptions
         return PSFieldBuild(string.Empty, pButtons);
     }
 
-    private static ProgressBar PSSystemInstallProgressBuild() =>
+    private static ProgressBar PSSystemProgressBuild() =>
         new()
         {
             Minimum = 0,
@@ -142,11 +142,11 @@ internal sealed partial class PSOptions
             Foreground = null,
             Background = null,
             BorderThickness = new Thickness(0),
-            Template = PSSystemInstallProgressTemplateBuild(),
+            Template = PSSystemTemplateBuild(),
             Visibility = Visibility.Collapsed
         };
 
-    private static System.Windows.Controls.ControlTemplate PSSystemInstallProgressTemplateBuild()
+    private static System.Windows.Controls.ControlTemplate PSSystemTemplateBuild()
     {
         const string pXaml = @"
 <ControlTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
@@ -165,7 +165,7 @@ internal sealed partial class PSOptions
         return (System.Windows.Controls.ControlTemplate)System.Windows.Markup.XamlReader.Parse(pXaml);
     }
 
-    private static string PSSystemFlyleafInstallText() =>
+    private static string PSSystemFlyleafFormat() =>
         LLocalization.LLocalizationTextRead(
             LFlyleaf.LFlyleafInstalledCheck()
                 ? "Options.System.ReinstallFlyleaf"
@@ -185,16 +185,16 @@ internal sealed partial class PSOptions
 
         string pRecordWorkspacePath = System.IO.Path.Combine(LDepot.LDepotRootRead(), Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder);
         var pRecordBesideNotice = (TextBlock)PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside"));
-        void PSSystemRecordNoticeUpdate()
+        void PSSystemNoticeUpdate()
         {
             bool pWorkspace = psOptionsRecordWorkspace.IsChecked == true;
             pRecordBesideNotice.Text = pWorkspace
                 ? LLocalization.LLocalizationFormat("Options.System.FileRecordWorkspace", pRecordWorkspacePath)
                 : LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside");
         }
-        PSSystemRecordNoticeUpdate();
-        psOptionsRecordBeside.Checked += (_, _) => PSSystemRecordNoticeUpdate();
-        psOptionsRecordWorkspace.Checked += (_, _) => PSSystemRecordNoticeUpdate();
+        PSSystemNoticeUpdate();
+        psOptionsRecordBeside.Checked += (_, _) => PSSystemNoticeUpdate();
+        psOptionsRecordWorkspace.Checked += (_, _) => PSSystemNoticeUpdate();
 
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecord"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), pRecordRow),

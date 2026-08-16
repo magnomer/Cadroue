@@ -13,13 +13,13 @@ namespace Cadroue.UIShell.PMainWindow;
 
 public partial class PWindow
 {
-    private const int PShortcutMessageKeyDown = 0x0100;
-    private const int PShortcutMessageSysKeyDown = 0x0104;
+    private const int PShortcutKeydownMessage = 0x0100;
+    private const int PShortcutSyskeydownMessage = 0x0104;
     private const int PShortcutVirtualShift = 0x10;
     private const int PShortcutVirtualControl = 0x11;
     private const int PShortcutVirtualAlt = 0x12;
-    private const int PShortcutVirtualWinLeft = 0x5B;
-    private const int PShortcutVirtualWinRight = 0x5C;
+    private const int PShortcutVirtualLwin = 0x5B;
+    private const int PShortcutVirtualRwin = 0x5C;
 
     [DllImport("user32.dll")]
     private static extern nint GetForegroundWindow();
@@ -27,15 +27,15 @@ public partial class PWindow
     [DllImport("user32.dll")]
     private static extern short GetKeyState(int virtualKey);
 
-    private void PShortcutMessageFilter(ref MSG pShortcutMessage, ref bool pShortcutHandled)
+    private void PShortcutMessageHandle(ref MSG pShortcutMessage, ref bool pShortcutHandled)
     {
         if (pShortcutHandled)
         {
             return;
         }
 
-        if (pShortcutMessage.message != PShortcutMessageKeyDown
-            && pShortcutMessage.message != PShortcutMessageSysKeyDown)
+        if (pShortcutMessage.message != PShortcutKeydownMessage
+            && pShortcutMessage.message != PShortcutSyskeydownMessage)
         {
             return;
         }
@@ -70,7 +70,7 @@ public partial class PWindow
             return true;
         }
 
-        return pViewerActive?.PViewerSurfaceWindow(pShortcutForeground) == true;
+        return pViewerActive?.PViewerSurfaceMatch(pShortcutForeground) == true;
     }
 
     private static ModifierKeys PShortcutModifierRead()
@@ -91,7 +91,7 @@ public partial class PWindow
             pShortcutModifiers |= ModifierKeys.Shift;
         }
 
-        if (PShortcutVirtualCheck(PShortcutVirtualWinLeft) || PShortcutVirtualCheck(PShortcutVirtualWinRight))
+        if (PShortcutVirtualCheck(PShortcutVirtualLwin) || PShortcutVirtualCheck(PShortcutVirtualRwin))
         {
             pShortcutModifiers |= ModifierKeys.Windows;
         }
@@ -115,7 +115,7 @@ public partial class PWindow
         switch (pShortcutToken)
         {
             case "Show":
-                pControlBar.PToolbarShortcutShow();
+                pToolbar.PToolbarShortcutShow();
                 return true;
             case "Undo":
                 return PShortcutHistoryRun(false);

@@ -21,7 +21,7 @@ public sealed class PFunnelRules : PPanel
     private readonly StackPanel pFunnelRowPanel;
     private readonly TextBlock pFunnelEmptyNotice;
     private readonly List<PFunnelRuleRow> pFunnelRows = new();
-    private Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsRead = static () => Array.Empty<PActionRelayOption>();
+    private Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsSource = static () => Array.Empty<PActionRelayOption>();
     private PFunnelRuleRow? pFunnelRowDragging;
     private PFunnelRuleRow? pFunnelRowSelected;
     private Point? pFunnelDragOrigin;
@@ -74,12 +74,12 @@ public sealed class PFunnelRules : PPanel
 
     public void PFunnelOptionsSet(Func<IReadOnlyList<PActionRelayOption>> pOptionsRead)
     {
-        pFunnelOptionsRead = pOptionsRead;
+        pFunnelOptionsSource = pOptionsRead;
     }
 
     public IReadOnlyList<PFunnelRuleRow> PFunnelRulesRead() => pFunnelRows;
 
-    public void PFunnelRulesSeed(IReadOnlyList<LSceneFunnelRule> pRuleRecords)
+    public void PFunnelRulesRestore(IReadOnlyList<LSceneFunnelRule> pRuleRecords)
     {
         foreach (LSceneFunnelRule pRecord in pRuleRecords)
         {
@@ -111,7 +111,7 @@ public sealed class PFunnelRules : PPanel
 
     public PFunnelRuleRow PFunnelRuleAdd(PFunnelForm pForm = PFunnelForm.Filename)
     {
-        var pRow = new PFunnelRuleRow(pFunnelOptionsRead, pForm);
+        var pRow = new PFunnelRuleRow(pFunnelOptionsSource, pForm);
         pRow.PFunnelRowRemove += PFunnelRuleRemove;
         pRow.PFunnelHeader.MouseLeftButtonDown += (_, pEvent) => PFunnelPressHandle(pRow, pEvent);
         pRow.PFunnelHeader.MouseMove += (_, pEvent) => PFunnelMoveHandle(pRow, pEvent);

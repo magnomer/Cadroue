@@ -7,7 +7,7 @@ namespace Cadroue.UIShell.PPanels;
 
 internal sealed class PPlayerMpv : PPlayerEngine
 {
-    private static readonly TimeSpan pPlayerMpvOpenBudget = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan pPlayerMpvBudget = TimeSpan.FromSeconds(15);
 
     private readonly LMpv pPlayerMpvLibrary;
 
@@ -19,11 +19,11 @@ internal sealed class PPlayerMpv : PPlayerEngine
 
     public override void PPlayerOpen(string sourcePath)
     {
-        LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvMediaCheck(sourcePath, pPlayerMpvOpenBudget);
+        LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvMediaCheck(sourcePath, pPlayerMpvBudget);
         if (pPlayerMpvLoaded != LMpvProbe.LMpvProbeUsable)
         {
             throw new InvalidOperationException(
-                $"mpv did not reach the loaded state for '{sourcePath}' within {pPlayerMpvOpenBudget.TotalSeconds:0.#}s ({pPlayerMpvLoaded}).");
+                $"mpv did not reach the loaded state for '{sourcePath}' within {pPlayerMpvBudget.TotalSeconds:0.#}s ({pPlayerMpvLoaded}).");
         }
     }
 
@@ -52,7 +52,7 @@ internal sealed class PPlayerMpv : PPlayerEngine
         pPlayerMpvLibrary.LMpvVolumeSet(volume);
     }
 
-    public void PPlayerMpvRefresh() =>
+    public void PPlayerMpvUpdate() =>
         pPlayerMpvLibrary.LMpvSeek(pPlayerMpvLibrary.LMpvTimeRead());
 
     public override void PPlayerFilterSet(string filterChain)

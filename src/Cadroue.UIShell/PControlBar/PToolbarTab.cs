@@ -45,7 +45,7 @@ public partial class PRail : UserControl
             ? new SolidColorBrush(Color.FromRgb(0xEA, 0xF2, 0xFC))
             : Brushes.Transparent;
         pTabRoot.BorderThickness = pVertical ? new Thickness(0, 0, 1, 0) : new Thickness(0);
-        pTabScroll.VerticalScrollBarVisibility = pVertical ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
+        pTabViewport.VerticalScrollBarVisibility = pVertical ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
         pTabStack.Orientation = pVertical ? Orientation.Vertical : Orientation.Horizontal;
         pTabItemsControl.ItemsPanel = (ItemsPanelTemplate)FindResource(
             pVertical ? "pVerticalItemsPanel" : "pHorizontalItemsPanel");
@@ -55,7 +55,7 @@ public partial class PRail : UserControl
             pVertical ? "pTabAddVerticalStyle" : "pTabAddHorizontalStyle");
     }
 
-    private void PTabHoverEnterHandle(object sender, MouseEventArgs e)
+    private void PTabEnterHandle(object sender, MouseEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: PTabRecord pTabRecord })
         {
@@ -63,7 +63,7 @@ public partial class PRail : UserControl
         }
     }
 
-    private void PTabHoverLeaveHandle(object sender, MouseEventArgs e)
+    private void PTabLeaveHandle(object sender, MouseEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: PTabRecord pTabRecord })
         {

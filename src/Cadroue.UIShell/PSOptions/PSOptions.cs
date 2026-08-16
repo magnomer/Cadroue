@@ -77,7 +77,7 @@ internal sealed partial class PSOptions : Window
     private readonly CheckBox psMediaBox;
     private readonly CheckBox psOptionsConfirmBox;
     private readonly CheckBox psRelayClearBox;
-    private readonly CheckBox psVerticalTabsBox;
+    private readonly CheckBox psOptionsVerticalBox;
     private readonly ComboBox psOptionsLanguageCombo;
 
     private readonly RadioButton psOptionsEngineFlyleaf;
@@ -125,7 +125,7 @@ internal sealed partial class PSOptions : Window
         psMediaBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Startup.OpenLastMedia"), lsOptionsDraft.LPreferenceMediaAutomatic);
         psOptionsConfirmBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Confirm.Ask"), lsOptionsDraft.LPreferenceConfirmDestructive);
         psRelayClearBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Relay.ClearCheck"), lsOptionsDraft.LPreferenceRelayEmpty);
-        psVerticalTabsBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Layout.VerticalTabs"), lsOptionsDraft.LPreferenceVerticalTabs);
+        psOptionsVerticalBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Layout.VerticalTabs"), lsOptionsDraft.LPreferenceVerticalTabs);
         psOptionsLanguageCombo = PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguagesRead());
 
         bool psEngineMpvInstalled = Cadroue.Infrastructure.LMpv.LMpvInstalledCheck();
@@ -224,7 +224,7 @@ internal sealed partial class PSOptions : Window
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClear"), psRelayClearBox),
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClearNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Layout"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Tabs"), psVerticalTabsBox)));
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Tabs"), psOptionsVerticalBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Language"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Language"), psOptionsLanguageCombo)));
         return pPanel;
@@ -313,7 +313,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceMediaAutomatic = psMediaBox.IsChecked == true;
         lsOptionsDraft.LPreferenceConfirmDestructive = psOptionsConfirmBox.IsChecked == true;
         lsOptionsDraft.LPreferenceRelayEmpty = psRelayClearBox.IsChecked == true;
-        lsOptionsDraft.LPreferenceVerticalTabs = psVerticalTabsBox.IsChecked == true;
+        lsOptionsDraft.LPreferenceVerticalTabs = psOptionsVerticalBox.IsChecked == true;
         lsOptionsDraft.LPreferenceLanguage = PSComboTextRead(psOptionsLanguageCombo);
 
         lsOptionsDraft.LPreferenceAutoplay = psOptionsAutoplayBox.IsChecked == true;

@@ -54,7 +54,7 @@ public sealed class PEditTab : PTabSurface
                 pEditSelected.LDocketEntryPath,
                 pViewer.PViewerDurationRead(),
                 pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pCropOwner.LCropboxStateCrop,
-                pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(PEditMpvOnlyCapableRead()),
+                pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(PEditMpvCheck()),
                 lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
@@ -77,7 +77,7 @@ public sealed class PEditTab : PTabSurface
                 lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
-                PEditMpvOnlyCapableRead());
+                PEditMpvCheck());
         };
         pAction.PActionItemsAdd += pEditPaths =>
         {
@@ -96,7 +96,7 @@ public sealed class PEditTab : PTabSurface
                 lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
-                PEditMpvOnlyCapableRead());
+                PEditMpvCheck());
         };
         pAction.PActionAllSet(
             true,
@@ -114,34 +114,34 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingStepChange += PEditStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pInspector.PSkipActiveChange += PEditSkipHandle;
-        pInspector.PInspectorPlanChange += PEditPersistentWrite;
+        pInspector.PInspectorPlanChange += PEditPersistentSave;
 
         pInspector.PInspectorToolChange += pViewer.PCropToolSet;
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
-        pInspector.PInspectorRatioChange += _ => PEditRatioWrite();
+        pInspector.PInspectorRatioChange += _ => PEditRatioSet();
         pInspector.PInspectorRatioChange += _ => PEditPlanSave();
         pInspector.PInspectorCropChange += pViewer.PCropVideoSet;
-        pInspector.PInspectorCropChange += _ => PEditCropWrite();
+        pInspector.PInspectorCropChange += _ => PEditCropSet();
         pInspector.PInspectorRotateChange += PEditRotateHandle;
         pInspector.PInspectorCropChange += _ => PEditPlanSave();
-        pInspector.PInspectorRotateChange += _ => PEditCropWrite();
+        pInspector.PInspectorRotateChange += _ => PEditCropSet();
         pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
         pInspector.PInspectorPersistentChange += pCropOwner.LCropboxPersistentSet;
-        pInspector.PCropActiveChange += PEditActiveWrite;
+        pInspector.PCropActiveChange += PEditActiveSet;
         pInspector.PCropActiveChange += PEditActiveUpdate;
         pInspector.PCropActiveChange += PEditPlanSave;
         pInspector.PInspectorVideoChange += PEditChangeHandle;
         pInspector.PWhitebalanceToolChange += pViewer.PViewerNeutralSet;
-        pViewer.PViewerNeutralActiveChange += pInspector.PWhitebalanceToolSet;
+        pViewer.PViewerToolChange += pInspector.PWhitebalanceToolSet;
         pViewer.PViewerNeutralChange += PEditNeutralHandle;
         pEditColorTimer.Tick += (_, _) =>
         {
             pEditColorTimer.Stop();
             PEditColorApply();
         };
-        PEditMpvOnlyCapabilityHandle();
-        pViewer.PViewerEngineChange += PEditMpvOnlyCapabilityHandle;
+        PEditCapabilityHandle();
+        pViewer.PViewerEngineChange += PEditCapabilityHandle;
         pViewer.PViewerEngineChange += pViewer.PViewerNeutralCancel;
         pViewer.PCropVideoChange += PEditCropShow;
         pViewer.PViewerMediaChange += _ => PEditCropRestore();
@@ -216,7 +216,7 @@ public sealed class PEditTab : PTabSurface
         PEditPlanSave();
     }
 
-    private void PEditPersistentWrite()
+    private void PEditPersistentSave()
     {
         if (pEditPlanLoading || PEditCarriedRead() is not { } pEditCarried)
         {
@@ -267,15 +267,15 @@ public sealed class PEditTab : PTabSurface
         }
     }
 
-    private void PEditCropWrite() => pCropOwner.LCropboxCropSet(pInspector.PInspectorCropRead());
+    private void PEditCropSet() => pCropOwner.LCropboxCropSet(pInspector.PInspectorCropRead());
 
-    private void PEditRatioWrite()
+    private void PEditRatioSet()
     {
         (bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
         pCropOwner.LCropboxRatioSet(pRatioFixed, pRatioLenient, pRatioWidth, pRatioHeight);
     }
 
-    private void PEditActiveWrite()
+    private void PEditActiveSet()
     {
         pCropOwner.LCropboxApplySet(pInspector.PCropActiveCheck());
         pViewer.PCropActiveSet(pInspector.PCropActiveCheck());
@@ -291,13 +291,13 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingActiveSet("Saturation",
             pInspector.PToneStepRead(LColorKind.LColorKindSaturation).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Gamma",
-            PEditMpvOnlyCapableRead()
+            PEditMpvCheck()
             && pInspector.PToneStepRead(LColorKind.LColorKindGamma).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Exposure",
-            PEditMpvOnlyCapableRead()
+            PEditMpvCheck()
             && pInspector.PToneStepRead(LColorKind.LColorKindExposure).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Whitebalance",
-            PEditMpvOnlyCapableRead()
+            PEditMpvCheck()
             && pInspector.PToneStepRead(LColorKind.LColorKindWhitebalance).LWorkStepActive);
     }
 
@@ -472,7 +472,7 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditColorApply()
     {
-        pViewer.PViewerColorSet(LPreview.LPreviewColorResolve(PEditVideoRead(PEditMpvOnlyCapableRead())));
+        pViewer.PViewerColorSet(LPreview.LPreviewColorResolve(PEditVideoRead(PEditMpvCheck())));
     }
 
     private static string PEditRectFormat(System.Windows.Rect? pEditRect) =>
@@ -558,25 +558,25 @@ public sealed class PEditTab : PTabSurface
             }
         }
 
-        return LEdit.LEditVideoCreate(pSteps, pMpvOnlyCapable, PEditEqCapableRead());
+        return LEdit.LEditVideoCreate(pSteps, pMpvOnlyCapable, PEditEqCheck());
     }
 
-    private bool PEditMpvOnlyCapableRead() =>
+    private bool PEditMpvCheck() =>
         pViewer.PViewerEngineCurrent == LPreviewEngine.LPreviewEngineMpv;
 
-    private static bool PEditEqCapableRead() =>
+    private static bool PEditEqCheck() =>
         Cadroue.Infrastructure.LInventory.LInventoryFilterExist("eq");
 
-    private void PEditMpvOnlyCapabilityHandle()
+    private void PEditCapabilityHandle()
     {
-        bool pMpvOnlyCapable = PEditMpvOnlyCapableRead();
-        bool pEqCapable = PEditEqCapableRead();
+        bool pMpvOnlyCapable = PEditMpvCheck();
+        bool pEqCapable = PEditEqCheck();
 
         string pEqTooltip = LLocalization.LLocalizationTextRead("Processing.Step.RequiresEq");
         pProcessing.PProcessingEnabledSet("Brightness", pEqCapable, pEqTooltip);
         pProcessing.PProcessingEnabledSet("Contrast", pEqCapable, pEqTooltip);
         pProcessing.PProcessingEnabledSet("Saturation", pEqCapable, pEqTooltip);
-        pInspector.PToneEqCapabilitySet(pEqCapable);
+        pInspector.PToneCapabilitySet(pEqCapable);
 
         string pExposureTooltip = LLocalization.LLocalizationTextRead("Processing.Step.ExposureRequiresMpv");
         pProcessing.PProcessingEnabledSet("Exposure", pMpvOnlyCapable, pExposureTooltip);
@@ -638,7 +638,7 @@ public sealed class PEditTab : PTabSurface
         LTraceLog.LTraceInfoRecord(
             $"Edit plan saved for '{System.IO.Path.GetFileName(pEditSourcePath)}': {PEditPlanFormat(pEditPlan)}");
         LEdit.LEditPlanSave(pEditSourcePath, pEditPlan, LLibrarian.LLibrarianEditSave);
-        PEditPersistentWrite();
+        PEditPersistentSave();
     }
 
     public override PFlowControl PTabFlow => pFlow;
@@ -647,7 +647,7 @@ public sealed class PEditTab : PTabSurface
     public override void PTabClose()
     {
         pEditColorTimer.Stop();
-        pViewer.PViewerEngineChange -= PEditMpvOnlyCapabilityHandle;
+        pViewer.PViewerEngineChange -= PEditCapabilityHandle;
         pViewer.PViewerEngineChange -= pViewer.PViewerNeutralCancel;
         base.PTabClose();
     }

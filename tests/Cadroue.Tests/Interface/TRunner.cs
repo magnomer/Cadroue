@@ -64,8 +64,8 @@ internal sealed class TRunner : IDisposable
             LRunnerProgramPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.System),
                 "WindowsPowerShell", "v1.0", "powershell.exe"),
-            LRunnerProgramArgumentPrefix = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass",
-            LRunnerProgramArgumentsTransform = arguments =>
+            LRunnerArgumentPrefix = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass",
+            LRunnerArgumentTransform = arguments =>
             {
                 string outputPath = tRunnerOutputPaths.Single(path =>
                     arguments.Contains(path, StringComparison.OrdinalIgnoreCase));

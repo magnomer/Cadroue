@@ -51,7 +51,7 @@ internal sealed class PSMonitor : Window
     private ScrollBar psMonitorScrollbar = null!;
     private TimeSpan psMonitorCursor;
     private bool psMonitorRadioProgram;
-    private double psMonitorZoom = 1;
+    private double psMonitorScale = 1;
     private double psMonitorOffset;
 
     internal static void PSMonitorShow(Window? pOwner, LSMonitor pSource, PFlowControl pFlow, PViewer pViewer)
@@ -182,9 +182,9 @@ internal sealed class PSMonitor : Window
 
     private void PSMonitorZoomApply(double pFactor)
     {
-        double pCenter = psMonitorOffset + 1.0 / psMonitorZoom / 2;
-        psMonitorZoom = Math.Clamp(psMonitorZoom * pFactor, 1, PSMonitorZoomMost);
-        double pViewport = 1.0 / psMonitorZoom;
+        double pCenter = psMonitorOffset + 1.0 / psMonitorScale / 2;
+        psMonitorScale = Math.Clamp(psMonitorScale * pFactor, 1, PSMonitorZoomMost);
+        double pViewport = 1.0 / psMonitorScale;
         psMonitorOffset = Math.Clamp(pCenter - pViewport / 2, 0, 1 - pViewport);
         PSMonitorScrollbarApply();
         PSMonitorUpdate();
@@ -192,12 +192,12 @@ internal sealed class PSMonitor : Window
 
     private void PSMonitorScrollbarApply()
     {
-        double pViewport = 1.0 / psMonitorZoom;
+        double pViewport = 1.0 / psMonitorScale;
         psMonitorScrollbar.ViewportSize = pViewport;
         psMonitorScrollbar.Maximum = 1 - pViewport;
         psMonitorScrollbar.Value = psMonitorOffset;
-        psMonitorScrollbar.IsEnabled = psMonitorZoom > 1;
-        psMonitorScrollbar.Opacity = psMonitorZoom > 1 ? 1 : 0.35;
+        psMonitorScrollbar.IsEnabled = psMonitorScale > 1;
+        psMonitorScrollbar.Opacity = psMonitorScale > 1 ? 1 : 0.35;
     }
 
     private void PSMonitorScrollbarHandle(object pSender, System.Windows.RoutedPropertyChangedEventArgs<double> pEvent)
@@ -349,7 +349,7 @@ internal sealed class PSMonitor : Window
         }
 
         double pLocal = Math.Clamp((pX - PSMonitorGutter) / pPlot, 0, 1);
-        double pFraction = Math.Clamp(psMonitorOffset + pLocal / psMonitorZoom, 0, 1);
+        double pFraction = Math.Clamp(psMonitorOffset + pLocal / psMonitorScale, 0, 1);
         psMonitorFlow.PFlowCursorSeek(TimeSpan.FromSeconds(pFraction * pDuration));
     }
 
@@ -390,7 +390,7 @@ internal sealed class PSMonitor : Window
         }
 
         double pFraction = Math.Clamp(psMonitorCursor.TotalSeconds / pDuration, 0, 1);
-        double pLocal = (pFraction - psMonitorOffset) * psMonitorZoom;
+        double pLocal = (pFraction - psMonitorOffset) * psMonitorScale;
         if (pLocal < 0 || pLocal > 1)
         {
             pHead.Visibility = Visibility.Collapsed;
@@ -524,7 +524,7 @@ internal sealed class PSMonitor : Window
 
     private double PSMonitorColumnRead(double[] pEnvelope, int pColumn, int pColumns)
     {
-        double pViewport = 1.0 / psMonitorZoom;
+        double pViewport = 1.0 / psMonitorScale;
         int pLength = pEnvelope.Length;
         double pFromF = (psMonitorOffset + (double)pColumn / pColumns * pViewport) * pLength;
         double pToF = (psMonitorOffset + (double)(pColumn + 1) / pColumns * pViewport) * pLength;
