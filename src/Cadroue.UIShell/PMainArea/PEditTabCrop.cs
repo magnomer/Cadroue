@@ -111,7 +111,11 @@ public sealed partial class PEditTab
             pInspector.PCropMediaReset();
 
             bool pEditCarryWins = pEditPersistent is not null;
-            LEditPlan pEditPlan = LEdit.LEditPlanResolve(pEditSaved, pEditPersistent);
+            LEditPlan pEditPlan = LEdit.LEditPlanResolve(
+                pEditSaved,
+                pEditPersistent,
+                pCropOwner.LCropboxStatePersistent,
+                pInspector.PSkipPersistentCheck());
 
             if (pEditPlan is { LEditPlanActive: true } pEditApply)
             {

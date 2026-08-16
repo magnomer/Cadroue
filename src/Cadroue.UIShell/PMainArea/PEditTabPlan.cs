@@ -53,11 +53,15 @@ public sealed partial class PEditTab
             return;
         }
 
+        bool pEditCropPersistent = pCropOwner.LCropboxStatePersistent;
+        bool pEditSkipPersistent = pInspector.PSkipPersistentCheck();
         foreach (string pEditPath in pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath))
         {
             LEdit.LEditPlanSave(
                 pEditPath,
-                LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad), pEditCarried),
+                LEdit.LEditPlanResolve(
+                    LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad),
+                    pEditCarried, pEditCropPersistent, pEditSkipPersistent),
                 LLibrarian.LLibrarianEditSave);
         }
     }
@@ -69,12 +73,16 @@ public sealed partial class PEditTab
             return;
         }
 
+        bool pEditCropPersistent = pCropOwner.LCropboxStatePersistent;
+        bool pEditSkipPersistent = pInspector.PSkipPersistentCheck();
         foreach (LDocketEntry pEditAddedItem in pEditAddedItems)
         {
             string pEditPath = pEditAddedItem.LDocketEntryPath;
             LEdit.LEditPlanSave(
                 pEditPath,
-                LEdit.LEditPlanResolve(LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad), pEditCarried),
+                LEdit.LEditPlanResolve(
+                    LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad),
+                    pEditCarried, pEditCropPersistent, pEditSkipPersistent),
                 LLibrarian.LLibrarianEditSave);
         }
     }

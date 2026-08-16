@@ -158,11 +158,15 @@ public sealed class PAudioTab : PTabSurface
         }
 
         LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
+        bool pAudioSkipPersistent = pInspector.PSkipPersistentCheck();
+        bool pAudioSkipApply = pInspector.PSkipActiveCheck();
         foreach (string pAudioPath in pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath))
         {
             LAudio.LAudioPlanSave(
                 pAudioPath,
-                LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad), pAudioPersistent),
+                LAudio.LAudioPlanResolve(
+                    LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad),
+                    pAudioPersistent, pAudioSkipPersistent, pAudioSkipApply),
                 LLibrarian.LLibrarianAudioSave);
         }
     }
@@ -175,12 +179,16 @@ public sealed class PAudioTab : PTabSurface
         }
 
         LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
+        bool pAudioSkipPersistent = pInspector.PSkipPersistentCheck();
+        bool pAudioSkipApply = pInspector.PSkipActiveCheck();
         foreach (LDocketEntry pAudioAddedItem in pAudioAddedItems)
         {
             string pAudioPath = pAudioAddedItem.LDocketEntryPath;
             LAudio.LAudioPlanSave(
                 pAudioPath,
-                LAudio.LAudioPlanResolve(LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad), pAudioPersistent),
+                LAudio.LAudioPlanResolve(
+                    LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad),
+                    pAudioPersistent, pAudioSkipPersistent, pAudioSkipApply),
                 LLibrarian.LLibrarianAudioSave);
         }
     }
@@ -304,7 +312,8 @@ public sealed class PAudioTab : PTabSurface
             LWorkAudio? pPersistent = pInspector.PInspectorPersistentCheck()
                 ? pInspector.PInspectorPersistentRead()
                 : null;
-            LWorkAudio pResolved = LAudio.LAudioPlanResolve(pSaved, pPersistent);
+            LWorkAudio pResolved = LAudio.LAudioPlanResolve(
+                pSaved, pPersistent, pInspector.PSkipPersistentCheck(), pInspector.PSkipActiveCheck());
             pInspector.PInspectorPlanApply(pResolved);
             pInspector.PSkipApply(pResolved.LWorkAudioSkip);
         }

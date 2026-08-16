@@ -310,6 +310,50 @@ public sealed class EditPersistenceTests
     }
 
     [Fact]
+    public void EditPlanResolve_PersistentCropApplyOff_OverridesFileCropApplyOn()
+    {
+        LEditPlan file = TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(10, 10, 10, 10, 0, false, false),
+            TInterface.WorkVideoCreate(),
+            true);
+        LEditPlan persistent = TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(20, 20, 20, 20, 0, false, false),
+            TInterface.WorkVideoCreate(),
+            false);
+
+        LEditPlan resolved = TInterface.EditPlanResolve(file, persistent, cropPersistent: true, skipPersistent: false);
+
+        Assert.False(resolved.LEditCropActive);
+        Assert.Equal(20, resolved.LEditCrop.LWorkCropLeft);
+    }
+
+    [Fact]
+    public void EditPlanResolve_PersistentSkipOff_OverridesFileSkipOn()
+    {
+        LEditPlan file = TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(), TInterface.WorkVideoCreate(), false) with { LEditSkip = true };
+        LEditPlan persistent = TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(), TInterface.WorkVideoCreate(), false) with { LEditSkip = false };
+
+        LEditPlan resolved = TInterface.EditPlanResolve(file, persistent, cropPersistent: false, skipPersistent: true);
+
+        Assert.False(resolved.LEditSkip);
+    }
+
+    [Fact]
+    public void EditPlanResolve_SkipNotPersistent_KeepsFileSkip()
+    {
+        LEditPlan file = TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(), TInterface.WorkVideoCreate(), false) with { LEditSkip = true };
+        LEditPlan persistent = TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(), TInterface.WorkVideoCreate(), false) with { LEditSkip = false };
+
+        LEditPlan resolved = TInterface.EditPlanResolve(file, persistent, cropPersistent: false, skipPersistent: false);
+
+        Assert.True(resolved.LEditSkip);
+    }
+
+    [Fact]
     public void EditPersistentRead_UnknownStepToken_CreatesBrightnessStep()
     {
         LSidecarEditRecord record = TInterface.SidecarEditRecordCreate("Rubbish", true, 40);

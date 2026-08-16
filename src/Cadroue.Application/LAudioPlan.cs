@@ -22,9 +22,13 @@ public static partial class LAudio
         string lAudioSourcePath, LWorkAudio lAudioPlan, Func<string, LSidecarAudioRecord?, bool> lSidecarSave) =>
         lSidecarSave(lAudioSourcePath, LAudioPersistentCreate(lAudioPlan));
 
-    public static LWorkAudio LAudioPlanResolve(LWorkAudio? lAudioSaved, LWorkAudio? lAudioPersistent)
+    public static LWorkAudio LAudioPlanResolve(
+        LWorkAudio? lAudioSaved,
+        LWorkAudio? lAudioPersistent,
+        bool lAudioSkipPersistent,
+        bool lAudioSkipApply)
     {
-        bool lAudioSkip = (lAudioPersistent?.LWorkAudioSkip ?? false) || (lAudioSaved?.LWorkAudioSkip ?? false);
+        bool lAudioSkip = lAudioSkipPersistent ? lAudioSkipApply : (lAudioSaved?.LWorkAudioSkip ?? false);
         var lAudioSteps = new List<LWorkAudioStep>();
         foreach (LAudioKind lAudioKind in LAudioKindsRead())
         {

@@ -45,19 +45,23 @@ public static partial class LEdit
         return new LWorkVideo(lEditKept.ToArray());
     }
 
-    public static LEditPlan LEditPlanResolve(LEditPlan? lEditSaved, LEditPlan? lEditPersistent)
+    public static LEditPlan LEditPlanResolve(
+        LEditPlan? lEditSaved,
+        LEditPlan? lEditPersistent,
+        bool lEditCropPersistent,
+        bool lEditSkipPersistent)
     {
         if (lEditPersistent is not { } lPersistent)
         {
             return lEditSaved ?? LEditPlan.LEditEmptyCreate();
         }
 
-        bool lEditSkip = lPersistent.LEditSkip || (lEditSaved?.LEditSkip ?? false);
+        bool lEditSkip = lEditSkipPersistent ? lPersistent.LEditSkip : (lEditSaved?.LEditSkip ?? false);
 
-        LWorkCrop lCrop = lPersistent.LEditCropActive
+        LWorkCrop lCrop = lEditCropPersistent
             ? lPersistent.LEditCrop
             : lEditSaved?.LEditCrop ?? LWorkCrop.LWorkCropCreate();
-        bool lCropApply = lPersistent.LEditCropActive || (lEditSaved?.LEditCropActive ?? false);
+        bool lCropApply = lEditCropPersistent ? lPersistent.LEditCropActive : (lEditSaved?.LEditCropActive ?? false);
         var lSteps = new List<LWorkVideoStep>();
         foreach (LColorKind lKind in Enum.GetValues<LColorKind>())
         {
@@ -75,10 +79,10 @@ public static partial class LEdit
             }
         }
 
-        bool lRatioFixed = lPersistent.LEditCropActive ? lPersistent.LEditRatioFixed : lEditSaved?.LEditRatioFixed ?? false;
-        bool lRatioLenient = lPersistent.LEditCropActive ? lPersistent.LEditRatioLenient : lEditSaved?.LEditRatioLenient ?? false;
-        int lRatioWidth = lPersistent.LEditCropActive ? lPersistent.LEditRatioWidth : lEditSaved?.LEditRatioWidth ?? 0;
-        int lRatioHeight = lPersistent.LEditCropActive ? lPersistent.LEditRatioHeight : lEditSaved?.LEditRatioHeight ?? 0;
+        bool lRatioFixed = lEditCropPersistent ? lPersistent.LEditRatioFixed : lEditSaved?.LEditRatioFixed ?? false;
+        bool lRatioLenient = lEditCropPersistent ? lPersistent.LEditRatioLenient : lEditSaved?.LEditRatioLenient ?? false;
+        int lRatioWidth = lEditCropPersistent ? lPersistent.LEditRatioWidth : lEditSaved?.LEditRatioWidth ?? 0;
+        int lRatioHeight = lEditCropPersistent ? lPersistent.LEditRatioHeight : lEditSaved?.LEditRatioHeight ?? 0;
 
         return new LEditPlan(lCrop, new LWorkVideo(lSteps), lCropApply)
         {

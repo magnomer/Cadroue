@@ -31,6 +31,28 @@ public sealed class LWorkAudioTests
     }
 
     [Fact]
+    public void AudioPlanResolve_PersistentSkipOff_OverridesFileSkipOn()
+    {
+        LWorkAudio file = TInterface.WorkAudioCreate(new List<LWorkAudioStep>(), true);
+        LWorkAudio persistent = TInterface.WorkAudioCreate(new List<LWorkAudioStep>(), true);
+
+        LWorkAudio resolved = TInterface.AudioPlanResolve(file, persistent, skipPersistent: true, skipApply: false);
+
+        Assert.False(resolved.LWorkAudioSkip);
+    }
+
+    [Fact]
+    public void AudioPlanResolve_SkipNotPersistent_KeepsFileSkip()
+    {
+        LWorkAudio file = TInterface.WorkAudioCreate(new List<LWorkAudioStep>(), true);
+        LWorkAudio persistent = TInterface.WorkAudioCreate(new List<LWorkAudioStep>(), false);
+
+        LWorkAudio resolved = TInterface.AudioPlanResolve(file, persistent, skipPersistent: false, skipApply: false);
+
+        Assert.True(resolved.LWorkAudioSkip);
+    }
+
+    [Fact]
     public void Format_InactiveSteps_AreOmitted()
     {
         LWorkAudio audio = TInterface.WorkAudioCreate(new[]

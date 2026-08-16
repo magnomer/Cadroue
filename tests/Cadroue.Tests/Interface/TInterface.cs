@@ -130,8 +130,14 @@ internal static class TInterface
     internal static LColorKind? ColorKindParse(string token) => LColor.LColorKindParse(token);
     internal static string ColorKindFormat(LColorKind kind) => LColor.LColorKindFormat(kind);
     internal static LEditPlan EditPersistentRead(LSidecarEditRecord record) => LEdit.LEditPersistentRead(record);
-    internal static LEditPlan EditPlanResolve(LEditPlan? saved, LEditPlan? persistent) =>
-        LEdit.LEditPlanResolve(saved, persistent);
+    internal static LEditPlan EditPlanResolve(
+        LEditPlan? saved, LEditPlan? persistent, bool cropPersistent = false, bool skipPersistent = false) =>
+        LEdit.LEditPlanResolve(saved, persistent, cropPersistent, skipPersistent);
+    internal static LWorkAudio AudioPlanResolve(
+        LWorkAudio? saved, LWorkAudio? persistent, bool skipPersistent, bool skipApply) =>
+        LAudio.LAudioPlanResolve(saved, persistent, skipPersistent, skipApply);
+    internal static LWorkAudio WorkAudioCreate(IReadOnlyList<LWorkAudioStep> steps, bool skip) =>
+        new(steps) { LWorkAudioSkip = skip };
     internal static LEditPlan EditPlanCreate(LWorkCrop crop, LWorkVideo video, bool cropApply) =>
         new(crop, video, cropApply);
     internal static LSidecarEditRecord EditPersistentCreate(LEditPlan plan) => LEdit.LEditPersistentCreate(plan);
