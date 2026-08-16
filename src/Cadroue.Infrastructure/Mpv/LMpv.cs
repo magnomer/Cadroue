@@ -15,7 +15,7 @@ public sealed partial class LMpv : IDisposable
 
     private const int LMpvEventNone = 0;
     private const int LMpvEventShutdown = 1;
-    private const int LMpvEventStart = 6;
+    private const int LMpvEventStarted = 6;
     private const int LMpvEventEnd = 7;
     private const int LMpvEventLoaded = 8;
 
@@ -147,7 +147,7 @@ public sealed partial class LMpv : IDisposable
 
     public LMpvProbe LMpvMediaCheck(string lPath, TimeSpan lBudget, CancellationToken lToken)
     {
-        LMpvEventsDrain();
+        LMpvEventClear();
         LMpvOpen(lPath);
         return LMpvLoadedScan(lBudget, lToken);
     }
@@ -225,7 +225,7 @@ public sealed partial class LMpv : IDisposable
         }
     }
 
-    public void LMpvEventsDrain()
+    public void LMpvEventClear()
     {
         LMpvContextValidate();
         while (true)
@@ -268,7 +268,7 @@ public sealed partial class LMpv : IDisposable
             }
 
             int lEventId = Marshal.ReadInt32(lEvent);
-            if (lEventId == LMpvEventStart)
+            if (lEventId == LMpvEventStarted)
             {
                 lStarted = true;
                 continue;

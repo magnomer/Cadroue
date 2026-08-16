@@ -24,7 +24,7 @@ public partial class PWindow
             new Action(PWindowIconApply));
     }
 
-    private const int PWindowMessageSetIcon = 0x0080;
+    private const int PWindowMessageIcon = 0x0080;
     private const int PWindowIconSmall = 0;
     private const int PWindowIconBig = 1;
 
@@ -49,12 +49,12 @@ public partial class PWindow
 
         if (pIconSmall != IntPtr.Zero)
         {
-            _ = SendMessage(pWindowHandle, PWindowMessageSetIcon, new IntPtr(PWindowIconSmall), pIconSmall);
+            _ = SendMessage(pWindowHandle, PWindowMessageIcon, new IntPtr(PWindowIconSmall), pIconSmall);
         }
 
         if (pIconLarge != IntPtr.Zero)
         {
-            _ = SendMessage(pWindowHandle, PWindowMessageSetIcon, new IntPtr(PWindowIconBig), pIconLarge);
+            _ = SendMessage(pWindowHandle, PWindowMessageIcon, new IntPtr(PWindowIconBig), pIconLarge);
         }
     }
 

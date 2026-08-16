@@ -17,6 +17,7 @@ public sealed partial class PRoster
     private readonly List<Guid> pRosterOrderedIds = new();
     private readonly Dictionary<Guid, Border> pRosterCardHeaders = new();
     private readonly HashSet<Guid> pRosterStageIds = new();
+    private readonly HashSet<Guid> pRosterCollapsedIds = new();
     private readonly HashSet<Guid> pRosterSelectedIds = new();
     private Guid pRosterCurrentId;
     private Guid pRosterCardId;
@@ -153,6 +154,9 @@ public sealed partial class PRoster
         {
             pRosterCardId = Guid.Empty;
         }
+
+        var pBatchPresent = pBatchOrder.ToHashSet();
+        pRosterCollapsedIds.RemoveWhere(pBatchId => !pBatchPresent.Contains(pBatchId));
     }
 
     private Border PRosterBatchBuild(IReadOnlyList<PRosterLineageEntry> pLineages)
@@ -160,7 +164,12 @@ public sealed partial class PRoster
         var pStack = new StackPanel();
 
         LWorkItem[] pBatchItems = pLineages.SelectMany(pLineage => pLineage.PRosterLineageItems).ToArray();
-        pStack.Children.Add(PRosterCardBuild(pBatchItems));
+        Guid pBatchId = pBatchItems[0].LWorkBatchId;
+        var pDetail = new StackPanel
+        {
+            Visibility = pRosterCollapsedIds.Contains(pBatchId) ? Visibility.Collapsed : Visibility.Visible
+        };
+        pStack.Children.Add(PRosterCardBuild(pBatchItems, pDetail));
 
         HashSet<string> pConsumed = PRosterConsumedRead(pBatchItems);
         HashSet<string> pProduced = PRosterProducedRead(pBatchItems);
@@ -176,7 +185,7 @@ public sealed partial class PRoster
         {
             List<LWorkItem> pStepItems = pLineage.PRosterLineageItems;
             bool pLineageStage = pStepItems.Count > 0 && pRosterStageIds.Contains(pStepItems[^1].LWorkId);
-            pStack.Children.Add(PRosterFileBuild(pLineage, pLineageStage));
+            pDetail.Children.Add(PRosterFileBuild(pLineage, pLineageStage));
 
             for (int pItemIndex = 0; pItemIndex < pStepItems.Count; pItemIndex++)
             {
@@ -189,9 +198,11 @@ public sealed partial class PRoster
                     pLast);
 
                 pRosterOrderedIds.Add(pWorkItem.LWorkId);
-                pStack.Children.Add(PRosterRowBuild(pWorkItem));
+                pDetail.Children.Add(PRosterRowBuild(pWorkItem));
             }
         }
+
+        pStack.Children.Add(pDetail);
 
         return new Border
         {

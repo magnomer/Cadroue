@@ -10,7 +10,7 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
-    private UIElement PRosterCardBuild(IReadOnlyList<LWorkItem> pBatchItems)
+    private UIElement PRosterCardBuild(IReadOnlyList<LWorkItem> pBatchItems, StackPanel pDetail)
     {
         DateTimeOffset pCreateTime = pBatchItems.Min(pWorkItem => pWorkItem.LWorkCreateTime);
         int pInitialCount = PRosterInitialRead(pBatchItems);
@@ -38,9 +38,11 @@ public sealed partial class PRoster
         Grid.SetColumn(pTitleCell, 0);
         pGrid.Children.Add(pTitleCell);
 
-        UIElement pClose = PRosterCloseBuild(pBatchItems);
-        Grid.SetColumn(pClose, 1);
-        pGrid.Children.Add(pClose);
+        var pControls = new StackPanel { Orientation = Orientation.Horizontal };
+        pControls.Children.Add(PRosterMinimizeBuild(pBatchId, pDetail));
+        pControls.Children.Add(PRosterCloseBuild(pBatchItems));
+        Grid.SetColumn(pControls, 1);
+        pGrid.Children.Add(pControls);
 
         var pHeader = new Border
         {
@@ -101,6 +103,63 @@ public sealed partial class PRoster
         pButton.MouseLeftButtonUp += (_, _) => PRosterCardRemove(pBatchItems);
 
         return pButton;
+    }
+
+    private UIElement PRosterMinimizeBuild(Guid pBatchId, StackPanel pDetail)
+    {
+        bool pCollapsed = pRosterCollapsedIds.Contains(pBatchId);
+        var pGlyph = new TextBlock
+        {
+            Text = pCollapsed ? "▸" : "▾",
+            FontSize = PRosterTheme.PRosterRowSize,
+            Foreground = PRosterTheme.PRosterMutedBrush,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        var pButton = new Border
+        {
+            Width = 20,
+            Height = 20,
+            Margin = new Thickness(0, 0, 2, 0),
+            CornerRadius = new CornerRadius(4),
+            Background = Brushes.Transparent,
+            Cursor = Cursors.Hand,
+            ToolTip = LLocalization.LLocalizationTextRead(pCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse"),
+            Child = pGlyph
+        };
+
+        pButton.MouseEnter += (_, _) =>
+        {
+            pButton.Background = PRosterTheme.PRosterHeaderBrush;
+            pGlyph.Foreground = PRosterTheme.PRosterTextBrush;
+        };
+        pButton.MouseLeave += (_, _) =>
+        {
+            pButton.Background = Brushes.Transparent;
+            pGlyph.Foreground = PRosterTheme.PRosterMutedBrush;
+        };
+        pButton.MouseLeftButtonDown += (_, pArgs) => pArgs.Handled = true;
+        pButton.MouseLeftButtonUp += (_, _) => PRosterMinimizeToggle(pBatchId, pDetail, pButton, pGlyph);
+
+        return pButton;
+    }
+
+    private void PRosterMinimizeToggle(Guid pBatchId, StackPanel pDetail, Border pButton, TextBlock pGlyph)
+    {
+        bool pCollapsed = !pRosterCollapsedIds.Contains(pBatchId);
+        if (pCollapsed)
+        {
+            pRosterCollapsedIds.Add(pBatchId);
+        }
+        else
+        {
+            pRosterCollapsedIds.Remove(pBatchId);
+        }
+
+        pDetail.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        pGlyph.Text = pCollapsed ? "▸" : "▾";
+        pButton.ToolTip = LLocalization.LLocalizationTextRead(pCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse");
     }
 
     private void PSummaryAdd(IReadOnlyList<LWorkItem> pBatchItems)

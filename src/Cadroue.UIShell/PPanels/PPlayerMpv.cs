@@ -12,7 +12,7 @@ internal sealed class PPlayerMpv : PPlayerEngine
 
     private readonly LMpv pPlayerMpvLibrary;
 
-    private CancellationTokenSource? pPlayerMpvOpenCancel;
+    private CancellationTokenSource? pPlayerMpvCancellation;
 
     public PPlayerMpv(nint hostHandle)
     {
@@ -22,13 +22,13 @@ internal sealed class PPlayerMpv : PPlayerEngine
 
     public void PPlayerMpvCancel()
     {
-        pPlayerMpvOpenCancel?.Cancel();
+        pPlayerMpvCancellation?.Cancel();
     }
 
     public override void PPlayerOpen(string sourcePath)
     {
         CancellationTokenSource pPlayerMpvCancel = new();
-        CancellationTokenSource? pPlayerMpvPrevious = Interlocked.Exchange(ref pPlayerMpvOpenCancel, pPlayerMpvCancel);
+        CancellationTokenSource? pPlayerMpvPrevious = Interlocked.Exchange(ref pPlayerMpvCancellation, pPlayerMpvCancel);
         pPlayerMpvPrevious?.Cancel();
         pPlayerMpvPrevious?.Dispose();
 
@@ -43,7 +43,7 @@ internal sealed class PPlayerMpv : PPlayerEngine
         }
         finally
         {
-            if (Interlocked.CompareExchange(ref pPlayerMpvOpenCancel, null, pPlayerMpvCancel) == pPlayerMpvCancel)
+            if (Interlocked.CompareExchange(ref pPlayerMpvCancellation, null, pPlayerMpvCancel) == pPlayerMpvCancel)
             {
                 pPlayerMpvCancel.Dispose();
             }
@@ -102,7 +102,7 @@ internal sealed class PPlayerMpv : PPlayerEngine
     {
         try
         {
-            pPlayerMpvOpenCancel?.Cancel();
+            pPlayerMpvCancellation?.Cancel();
             pPlayerMpvLibrary.LMpvDispose();
         }
         catch

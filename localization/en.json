@@ -731,6 +731,8 @@
   "Roster.Card.One": "{0} — 1 {Terms.File}",
   "Roster.Card.Many": "{0} — {1} {Terms.Files}",
   "Roster.Card.Remove": "Remove these {Terms.Jobs}",
+  "Roster.Card.Collapse": "Collapse",
+  "Roster.Card.Expand": "Expand",
   "Roster.Card.Confirm": "Remove {0} {Terms.Jobs} in this card?",
   "Roster.Card.OverviewSubtitle": "Overview of the entire batch",
   "Roster.Summary.FileOne": "1 {Terms.File}",

@@ -731,6 +731,8 @@
   "Roster.Card.One": "{0} — {Terms.File} 1개",
   "Roster.Card.Many": "{0} — {Terms.Files} {1}개",
   "Roster.Card.Remove": "이 {Terms.Jobs} 제거",
+  "Roster.Card.Collapse": "접기",
+  "Roster.Card.Expand": "펼치기",
   "Roster.Card.Confirm": "이 카드의 {Terms.Jobs} {0}개를 제거하시겠습니까?",
   "Roster.Card.OverviewSubtitle": "전체 배치 요약",
   "Roster.Summary.FileOne": "{Terms.File} 1개",
