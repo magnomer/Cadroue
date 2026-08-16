@@ -88,4 +88,8 @@ public sealed record LMediaInfo
     public int LMediaAudioChannels { get; }
 
     public int LMediaAudioBitrate { get; init; }
+
+    public string LMediaVideoPixel { get; init; } = "";
+
+    public string LMediaVideoRange { get; init; } = "";
 }

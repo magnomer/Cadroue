@@ -58,6 +58,8 @@ internal sealed class LJob
 
         LJobCollisionApply();
 
+        lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+
         IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);
         if (pStages.Count == 0)
         {

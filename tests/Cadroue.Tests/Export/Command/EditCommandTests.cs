@@ -8,6 +8,8 @@ namespace Cadroue.Tests;
 [Collection("EncodeCommand")]
 public sealed class EditCommandTests
 {
+    private const string VideoNormalize = ",scale=in_range=full:out_range=tv,format=yuv420p";
+
     [Fact]
     public void ActiveVideoAdjustment_IsEmittedWhileInactiveAdjustmentIsOmitted()
     {
@@ -92,7 +94,7 @@ public sealed class EditCommandTests
 
         IReadOnlyList<string> tokens = CommandTokens.Read(
             Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
-        Assert.Equal("exposure=exposure=1.5", CommandTokens.ValueAfter(tokens, "-vf"));
+        Assert.Equal("exposure=exposure=1.5" + VideoNormalize, CommandTokens.ValueAfter(tokens, "-vf"));
 
         LWorkVideo inactive = TInterface.WorkVideoCreate(new[]
         {
@@ -127,7 +129,7 @@ public sealed class EditCommandTests
             Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
 
         Assert.Equal(
-            "colorcorrect=analyze=average:saturation=1.25,exposure=exposure=1.5,eq=contrast=1.5",
+            "colorcorrect=analyze=average:saturation=1.25,exposure=exposure=1.5,eq=contrast=1.5" + VideoNormalize,
             CommandTokens.ValueAfter(tokens, "-vf"));
     }
 
@@ -271,8 +273,8 @@ public sealed class EditCommandTests
             Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
 
         Assert.Equal(1, CommandTokens.Count(tokens, "-vf"));
-        Assert.Equal(expected, CommandTokens.ValueAfter(tokens, "-vf"));
-        Assert.DoesNotContain(',', CommandTokens.ValueAfter(tokens, "-vf"));
+        Assert.Equal(expected + VideoNormalize, CommandTokens.ValueAfter(tokens, "-vf"));
+        Assert.DoesNotContain(',', expected);
     }
 
     [Fact]
@@ -298,7 +300,7 @@ public sealed class EditCommandTests
                 Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
 
             Assert.Equal(
-                "colorcorrect=analyze=average:saturation=1.25",
+                "colorcorrect=analyze=average:saturation=1.25" + VideoNormalize,
                 CommandTokens.ValueAfter(tokens, "-vf"));
         }
         finally
@@ -347,7 +349,7 @@ public sealed class EditCommandTests
 
         Assert.NotEqual("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
         Assert.Equal(
-            "colorcorrect=analyze=median:saturation=1",
+            "colorcorrect=analyze=median:saturation=1" + VideoNormalize,
             CommandTokens.ValueAfter(tokens, "-vf"));
     }
 
@@ -375,7 +377,7 @@ public sealed class EditCommandTests
             Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
 
         Assert.NotEqual("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
-        Assert.Equal(expected, CommandTokens.ValueAfter(tokens, "-vf"));
+        Assert.Equal(expected + VideoNormalize, CommandTokens.ValueAfter(tokens, "-vf"));
     }
 
     [Fact]
@@ -400,7 +402,7 @@ public sealed class EditCommandTests
                 Assert.Single(TEncodeCommand.StagesBuild(work)).LEncodeStageArguments);
 
             Assert.Equal(
-                "colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=2.5",
+                "colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=2.5" + VideoNormalize,
                 CommandTokens.ValueAfter(tokens, "-vf"));
         }
         finally
@@ -428,7 +430,7 @@ public sealed class EditCommandTests
 
         Assert.Equal(1, CommandTokens.Count(tokens, "-vf"));
         Assert.Equal(
-            "colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=2,eq=contrast=1.5:gamma=3.162",
+            "colorchannelmixer=rr=1.2:gg=1:bb=0.8,eq=saturation=2,eq=contrast=1.5:gamma=3.162" + VideoNormalize,
             CommandTokens.ValueAfter(tokens, "-vf"));
     }
 
@@ -452,7 +454,7 @@ public sealed class EditCommandTests
 
         Assert.Equal(1, CommandTokens.Count(tokens, "-vf"));
         Assert.Equal(
-            "colorcorrect=analyze=average:saturation=1.25,eq=contrast=1.5:gamma=3.162",
+            "colorcorrect=analyze=average:saturation=1.25,eq=contrast=1.5:gamma=3.162" + VideoNormalize,
             CommandTokens.ValueAfter(tokens, "-vf"));
     }
 

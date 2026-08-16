@@ -122,13 +122,18 @@ internal static class LEncodeVideo
     {
         var lFilters = new List<string>(LEncodeGeometryRead(lWorkItem.LWorkCrop));
 
-        LEncodeFiltersAppend(lFilters, lWorkItem.LWorkVideo);
+        bool lRgbDomain = LEncodeFiltersAppend(lFilters, lWorkItem.LWorkVideo);
 
         string? lSize = LEncodeSizeRead(lOutput.LEncodingVideo.LEncodingSize);
         if (lSize is not null)
         {
             lFilters.Add(LEncodeScaleResolve(lSize, lOutput.LEncodingVideo.LEncodingSizeReactive));
             lFilters.Add("setsar=1");
+        }
+
+        if (lRgbDomain)
+        {
+            lFilters.AddRange(LEncodeColorNormalize(lWorkItem, lOutput));
         }
 
         if (lFilters.Count > 0)
@@ -188,8 +193,30 @@ internal static class LEncodeVideo
         return lFilters;
     }
 
-    private static void LEncodeFiltersAppend(List<string> lFilters, LWorkVideo lWorkVideo)
+    private static IReadOnlyList<string> LEncodeColorNormalize(LWorkItem lWorkItem, LEncoding lOutput)
     {
+        LWorkMedia? lMedia = lWorkItem.LWorkSourceMedia;
+        string lSourcePixel = lMedia?.LWorkMediaPixel ?? string.Empty;
+        string lSourceRange = lMedia?.LWorkMediaRange ?? string.Empty;
+        bool lFullRange = string.Equals(lSourceRange, "pc", StringComparison.OrdinalIgnoreCase)
+            || lSourcePixel.StartsWith("yuvj", StringComparison.OrdinalIgnoreCase);
+
+        string lPixel = lOutput.LEncodingVideo.LEncodingPixel;
+        string lTargetPixel = !string.IsNullOrWhiteSpace(lPixel)
+            && !string.Equals(lPixel, "Auto", StringComparison.OrdinalIgnoreCase)
+                ? lPixel
+                : string.IsNullOrWhiteSpace(lSourcePixel) ? "yuv420p" : lSourcePixel;
+
+        return new[]
+        {
+            "scale=in_range=full:out_range=" + (lFullRange ? "pc" : "tv"),
+            "format=" + lTargetPixel
+        };
+    }
+
+    private static bool LEncodeFiltersAppend(List<string> lFilters, LWorkVideo lWorkVideo)
+    {
+        bool lRgbDomain = false;
         var lEqParts = new List<string>();
         void LEncodeEqAppend()
         {
@@ -246,10 +273,12 @@ internal static class LEncodeVideo
                 case LColorKind.LColorKindWhitebalance:
                     LEncodeEqAppend();
                     lFilters.AddRange(lStep.LWorkWhitebalanceRead().LWorkWhitebalanceFormat());
+                    lRgbDomain = true;
                     break;
                 case LColorKind.LColorKindExposure:
                     LEncodeEqAppend();
                     lFilters.Add($"exposure=exposure={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
+                    lRgbDomain = true;
                     break;
                 default:
                     LEncodeEqAppend();
@@ -258,6 +287,7 @@ internal static class LEncodeVideo
         }
 
         LEncodeEqAppend();
+        return lRgbDomain;
     }
 
     private static string LEncodeGammaFormat(double lValue) =>

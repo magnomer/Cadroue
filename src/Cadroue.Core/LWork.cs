@@ -16,6 +16,10 @@ public sealed record LWorkMedia(
     public int LWorkMediaBitrate { get; init; }
 
     public int LWorkMediaSamplerate { get; init; }
+
+    public string LWorkMediaPixel { get; init; } = "";
+
+    public string LWorkMediaRange { get; init; } = "";
 }
 
 public sealed record LWorkCrop(

@@ -71,6 +71,9 @@ public sealed partial class LMpv : IDisposable
 
         lMpvContext = lHandle;
         LMpvOptionSet("sub-auto", "no");
+        LMpvOptionSet("input-default-bindings", "no");
+        LMpvOptionSet("input-vo-keyboard", "no");
+        LMpvOptionSet("osc", "no");
         if (lWindowHandle != nint.Zero)
         {
             LMpvOptionSet("wid", lWindowHandle.ToString());
@@ -175,7 +178,9 @@ public sealed partial class LMpv : IDisposable
 
     public void LMpvVolumeSet(double lVolume)
     {
-        LMpvPropertySet("volume", lVolume.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        double lLinear = Math.Clamp(lVolume, 0, 100) / 100.0;
+        double lCurved = 100.0 * Math.Cbrt(lLinear);
+        LMpvPropertySet("volume", lCurved.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     public void LMpvFilterSet(string lFilterChain)

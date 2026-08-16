@@ -232,6 +232,7 @@ public sealed partial class PViewer
             if (player is null)
             {
                 player = new Player(new Config());
+                player.Config.Player.KeyBindings.Keys.Clear();
                 if (PViewerColorPreview && LFlyleaf.LFlyleafActive)
                 {
                     player.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;

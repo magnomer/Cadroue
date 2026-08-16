@@ -235,6 +235,8 @@ public static partial class LMedia
         int videoWidth = 0, videoHeight = 0;
         double fps = 0d;
         string videoCodec = "unknown";
+        string videoPixel = "";
+        string videoRange = "";
         bool audioPresent = false;
         string audioCodec = "";
         int sampleRate = 0, channels = 0, audioBitrate = 0;
@@ -249,6 +251,8 @@ public static partial class LMedia
                     videoWidth = stream.TryGetProperty("width", out JsonElement w) ? w.GetInt32() : 0;
                     videoHeight = stream.TryGetProperty("height", out JsonElement h) ? h.GetInt32() : 0;
                     videoCodec = stream.TryGetProperty("codec_name", out JsonElement cn) ? cn.GetString() ?? "unknown" : "unknown";
+                    videoPixel = stream.TryGetProperty("pix_fmt", out JsonElement pf) ? pf.GetString() ?? "" : "";
+                    videoRange = stream.TryGetProperty("color_range", out JsonElement cr) ? cr.GetString() ?? "" : "";
                     fps = LMediaFpsResolve(stream);
                 }
                 else if (codecType == "audio" && !audioPresent)
@@ -266,7 +270,9 @@ public static partial class LMedia
 
         return new LMediaInfo(duration, videoWidth, videoHeight, fps, videoCodec, audioPresent, audioCodec, sampleRate, channels)
         {
-            LMediaAudioBitrate = audioPresent ? audioBitrate : 0
+            LMediaAudioBitrate = audioPresent ? audioBitrate : 0,
+            LMediaVideoPixel = videoPixel,
+            LMediaVideoRange = videoRange
         };
     }
 

@@ -35,7 +35,9 @@ internal static class LScout
             {
                 LWorkMediaCodec = lScoutMedia.LMediaAudioCodec,
                 LWorkMediaBitrate = lScoutMedia.LMediaAudioBitrate,
-                LWorkMediaSamplerate = lScoutMedia.LMediaSampleRate
+                LWorkMediaSamplerate = lScoutMedia.LMediaSampleRate,
+                LWorkMediaPixel = lScoutMedia.LMediaVideoPixel,
+                LWorkMediaRange = lScoutMedia.LMediaVideoRange
             };
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)

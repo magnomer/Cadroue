@@ -111,10 +111,14 @@ public sealed partial class PFlow : UserControl
         if (!pFlowCommandActive) return;
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
-        lSourcePath = string.IsNullOrWhiteSpace(sourcePath) ? null : sourcePath;
+        string? pFlowNextSource = string.IsNullOrWhiteSpace(sourcePath) ? null : sourcePath;
+        bool pFlowSameSource = pFlowNextSource is not null
+            && string.Equals(lSourcePath, pFlowNextSource, StringComparison.OrdinalIgnoreCase);
+        TimeSpan pFlowResumeAt = pFlowSameSource ? lCursor : cursorTime;
+        lSourcePath = pFlowNextSource;
         lSpool = new LSpool(mediaInfo.LMediaInfoDuration);
         pFlowKeyframeDirection = null;
-        lCursor = PFlowCursorClamp(cursorTime);
+        lCursor = PFlowCursorClamp(pFlowResumeAt);
         lSegment.LSegmentSourceSet(lSourcePath);
         lSegment.LSegmentReset();
         pViewfinder.PViewfinderAttach(lSpool, lCursor);
@@ -131,6 +135,10 @@ public sealed partial class PFlow : UserControl
         PFlowSectionChange?.Invoke(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
         PFlowKeyframeRun();
         PFlowWaveformStart();
+        if (pFlowSameSource && lCursor > TimeSpan.Zero)
+        {
+            PFlowCursorChange?.Invoke(lCursor);
+        }
     }
 
     public void PFlowCursorUpdate(TimeSpan cursorTime)
