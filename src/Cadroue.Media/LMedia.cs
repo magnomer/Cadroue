@@ -225,6 +225,7 @@ public static partial class LMedia
         JsonElement root = doc.RootElement;
 
         TimeSpan duration = TimeSpan.Zero;
+        TimeSpan start = TimeSpan.Zero;
         if (root.TryGetProperty("format", out JsonElement fmt)
             && fmt.TryGetProperty("duration", out JsonElement durEl)
             && double.TryParse(durEl.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out double durSeconds))
@@ -232,11 +233,19 @@ public static partial class LMedia
             duration = TimeSpan.FromSeconds(durSeconds);
         }
 
+        if (fmt.ValueKind != JsonValueKind.Undefined
+            && fmt.TryGetProperty("start_time", out JsonElement startEl)
+            && double.TryParse(startEl.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out double startSeconds))
+        {
+            start = TimeSpan.FromSeconds(startSeconds);
+        }
+
         int videoWidth = 0, videoHeight = 0;
         double fps = 0d;
         string videoCodec = "unknown";
         string videoPixel = "";
         string videoRange = "";
+        TimeSpan videoDuration = TimeSpan.Zero;
         bool audioPresent = false;
         string audioCodec = "";
         int sampleRate = 0, channels = 0, audioBitrate = 0;
@@ -254,6 +263,15 @@ public static partial class LMedia
                     videoPixel = stream.TryGetProperty("pix_fmt", out JsonElement pf) ? pf.GetString() ?? "" : "";
                     videoRange = stream.TryGetProperty("color_range", out JsonElement cr) ? cr.GetString() ?? "" : "";
                     fps = LMediaFpsResolve(stream);
+                    if (stream.TryGetProperty("duration", out JsonElement videoDurationElement)
+                        && double.TryParse(
+                            videoDurationElement.GetString(),
+                            NumberStyles.Float,
+                            CultureInfo.InvariantCulture,
+                            out double videoDurationSeconds))
+                    {
+                        videoDuration = TimeSpan.FromSeconds(videoDurationSeconds);
+                    }
                 }
                 else if (codecType == "audio" && !audioPresent)
                 {
@@ -271,6 +289,8 @@ public static partial class LMedia
         return new LMediaInfo(duration, videoWidth, videoHeight, fps, videoCodec, audioPresent, audioCodec, sampleRate, channels)
         {
             LMediaAudioBitrate = audioPresent ? audioBitrate : 0,
+            LMediaStartTime = start,
+            LMediaVideoDuration = videoDuration,
             LMediaVideoPixel = videoPixel,
             LMediaVideoRange = videoRange
         };

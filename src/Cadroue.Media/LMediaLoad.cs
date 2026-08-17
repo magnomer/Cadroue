@@ -34,7 +34,7 @@ public sealed class LMediaLoad : IDisposable
 
     public LMediaLoad()
         : this((lMediaLoadPath, lMediaLoadToken) =>
-            Task.Run(() => LMedia.LMediaFfprobeRead(lMediaLoadPath, lMediaLoadToken), lMediaLoadToken))
+            Task.Run(() => LMedia.LMediaPreviewRead(lMediaLoadPath, lMediaLoadToken), lMediaLoadToken))
     {
     }
 

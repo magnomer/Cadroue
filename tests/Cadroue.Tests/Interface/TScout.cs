@@ -23,6 +23,8 @@ internal sealed class TScout : IDisposable
 
     internal static LMediaInfo ProbeParse(string output) => LMedia.LMediaFfprobeParse(output);
 
+    internal static TimeSpan? ProbeEndParse(string output, TimeSpan start) => LMedia.LMediaEndParse(output, start);
+
     internal LWorkMedia? MediaRead(string path, CancellationToken cancellationToken = default) =>
         LScout.LScoutMediaRead(path, cancellationToken);
 

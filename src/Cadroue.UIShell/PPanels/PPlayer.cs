@@ -38,6 +38,8 @@ internal sealed class PPlayer
 
     public void PPlayerSeek(TimeSpan playbackPosition) => pPlayerActive?.PPlayerSeek(playbackPosition);
 
+    public void PPlayerEndSet(TimeSpan? videoEnd) => (pPlayerActive as PPlayerFlyleaf)?.PPlayerEndSet(videoEnd);
+
     public void PPlayerStop() => pPlayerActive?.PPlayerStop();
 
     public void PPlayerPlay() => pPlayerActive?.PPlayerPlay();

@@ -7,6 +7,8 @@ namespace Cadroue.UIShell.PPanels;
 
 internal sealed class PPlayerFlyleaf : PPlayerEngine
 {
+    private TimeSpan? pPlayerVideoEnd;
+
     public PPlayerFlyleaf(Player player)
     {
         PPlayerFlyleafPlayer = player;
@@ -26,8 +28,11 @@ internal sealed class PPlayerFlyleaf : PPlayerEngine
 
     public override void PPlayerSeek(TimeSpan playbackPosition)
     {
+        playbackPosition = LPreview.LPreviewPositionResolve(playbackPosition, pPlayerVideoEnd);
         PPlayerFlyleafPlayer.SeekAccurate((int)playbackPosition.TotalMilliseconds);
     }
+
+    public void PPlayerEndSet(TimeSpan? pVideoEnd) => pPlayerVideoEnd = pVideoEnd;
 
     public override void PPlayerStop()
     {

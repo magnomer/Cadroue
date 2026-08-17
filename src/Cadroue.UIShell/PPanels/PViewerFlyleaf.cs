@@ -406,6 +406,7 @@ public sealed partial class PViewer
 
         PViewerHostShow(player is not null);
         pViewerMediaInfo = mediaStatus.LCargoMediaInfo;
+        pViewerPlayer.PPlayerEndSet(pViewerMediaInfo?.LMediaVideoEnd);
         PViewerSourcePath = mediaStatus.LCargoSourcePath;
         LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
         if (!PCropPersistent)

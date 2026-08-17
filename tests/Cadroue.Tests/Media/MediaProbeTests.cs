@@ -10,10 +10,11 @@ public sealed class MediaProbeTests
     {
         var info = TScout.ProbeParse(ProbeOutput(
             "12.5",
-            """{"codec_type":"video","codec_name":"h264","width":1920,"height":1080,"r_frame_rate":"30000/1001"}""",
+            """{"codec_type":"video","codec_name":"h264","width":1920,"height":1080,"r_frame_rate":"30000/1001","duration":"12.4"}""",
             """{"codec_type":"audio","codec_name":"aac","sample_rate":"48000","channels":2,"bit_rate":"192000"}"""));
 
         Assert.Equal(TimeSpan.FromSeconds(12.5), info.LMediaInfoDuration);
+        Assert.Equal(TimeSpan.FromSeconds(12.4), info.LMediaVideoDuration);
         Assert.True(info.LMediaVideoPresent);
         Assert.True(info.LMediaAudioPresent);
         Assert.Equal(1920, info.LMediaVideoWidth);
@@ -63,6 +64,22 @@ public sealed class MediaProbeTests
         Assert.Equal(0, info.LMediaVideoRate);
         Assert.Equal(0, info.LMediaAudioBitrate);
         Assert.False(info.LMediaAudioPresent);
+    }
+
+    [Fact]
+    public void PacketOutput_ResolvesLastPresentationTimestamp()
+    {
+        TimeSpan? end = TScout.ProbeEndParse(
+            "9600.000000\n9599.933267\n9600.033367\nN/A\n",
+            TimeSpan.FromMilliseconds(33.367));
+
+        Assert.Equal(TimeSpan.FromSeconds(9600), end);
+    }
+
+    [Fact]
+    public void PacketOutput_WithoutTimestampsHasNoEnd()
+    {
+        Assert.Null(TScout.ProbeEndParse("N/A\n\n", TimeSpan.Zero));
     }
 
     [Theory]

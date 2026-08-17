@@ -18,6 +18,18 @@ public static class LPreview
 
     public static Action<object, LPreviewApplication>? LPreviewApplySeam;
 
+    public static TimeSpan LPreviewPositionResolve(
+        TimeSpan lPreviewPosition,
+        TimeSpan? lPreviewVideoEnd)
+    {
+        if (lPreviewVideoEnd is not { } lPreviewLimit || lPreviewLimit <= TimeSpan.Zero)
+        {
+            return lPreviewPosition;
+        }
+
+        return lPreviewPosition > lPreviewLimit ? lPreviewLimit : lPreviewPosition;
+    }
+
     public static LColor LPreviewColorResolve(LWorkVideo lVideo)
     {
         double lBrightness = (lVideo.LWorkVideoSteps

@@ -67,6 +67,8 @@ public sealed record LMediaInfo
 
     public TimeSpan LMediaInfoDuration { get; }
 
+    public TimeSpan LMediaStartTime { get; init; }
+
     public bool LMediaVideoPresent { get; }
 
     public bool LMediaAudioOnly => !LMediaVideoPresent && LMediaAudioPresent;
@@ -76,6 +78,10 @@ public sealed record LMediaInfo
     public int LMediaVideoHeight { get; }
 
     public double LMediaVideoRate { get; }
+
+    public TimeSpan LMediaVideoDuration { get; init; }
+
+    public TimeSpan? LMediaVideoEnd { get; init; }
 
     public string LMediaVideoCodec { get; }
 
