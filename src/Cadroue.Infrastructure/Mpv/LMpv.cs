@@ -70,6 +70,7 @@ public sealed partial class LMpv : IDisposable
         }
 
         lMpvContext = lHandle;
+        LMpvOptionSet("background-color", "#FFFFFF");
         LMpvOptionSet("sub-auto", "no");
         LMpvOptionSet("input-default-bindings", "no");
         LMpvOptionSet("input-vo-keyboard", "no");

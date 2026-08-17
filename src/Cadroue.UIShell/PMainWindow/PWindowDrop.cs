@@ -11,19 +11,19 @@ public partial class PWindow
     private DragDropEffects? pDropLastEffect;
     private void PDropHandlersAdd()
     {
-        AddHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnter), true);
+        AddHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnterHandle), true);
         AddHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropAccept), true);
         AddHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PDropHandle), true);
     }
 
     private void PDropHandlersRemove()
     {
-        RemoveHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnter));
+        RemoveHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnterHandle));
         RemoveHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropAccept));
         RemoveHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PDropHandle));
     }
 
-    private void PDropEnter(object sender, DragEventArgs dragEvent)
+    private void PDropEnterHandle(object sender, DragEventArgs dragEvent)
     {
         bool pDropGroup = PDropGroupCheck(dragEvent);
         DragDropEffects pDropEffect = pDropGroup ? DragDropEffects.None : PDropEffectRead(dragEvent, out _);

@@ -279,7 +279,7 @@ public sealed partial class PViewer
             IsOpen = false
         };
         pViewerMpvHost.SizeChanged += PViewerOverlayHandle;
-        pViewerMpvHost.IsVisibleChanged += PViewerOverlayVisibleHandle;
+        pViewerMpvHost.IsVisibleChanged += PViewerVisibleHandle;
 
         pViewerSurface = new Border
         {
@@ -302,7 +302,7 @@ public sealed partial class PViewer
 
     private void PViewerOverlayHandle(object? sender, EventArgs eventArgs) => PViewerOverlayPlace();
 
-    private void PViewerOverlayVisibleHandle(object sender, DependencyPropertyChangedEventArgs eventArgs) =>
+    private void PViewerVisibleHandle(object sender, DependencyPropertyChangedEventArgs eventArgs) =>
         PViewerOverlayPlace();
 
     private void PViewerOverlayPlace()
@@ -565,7 +565,7 @@ public sealed partial class PViewer
         }
 
         pViewerMpvHost.SizeChanged -= PViewerOverlayHandle;
-        pViewerMpvHost.IsVisibleChanged -= PViewerOverlayVisibleHandle;
+        pViewerMpvHost.IsVisibleChanged -= PViewerVisibleHandle;
 
         try
         {
