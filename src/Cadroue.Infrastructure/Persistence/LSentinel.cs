@@ -21,6 +21,11 @@ public static class LSentinel
             ? lOwnerStamp == 0 || lOwnerStamp == lSentinelStamp
             : LSentinelProcessCheck(lProcessId, lOwnerStamp);
 
+    public static bool LSentinelOwnerCheck(int lProcessId, long lOwnerStamp, Guid lRunnerId) =>
+        lProcessId == Environment.ProcessId
+            ? LSentinelRunnerCheck(lRunnerId)
+            : LSentinelProcessCheck(lProcessId, lOwnerStamp);
+
     private static long LSentinelStampResolve()
     {
         try
@@ -60,9 +65,8 @@ public static class LSentinel
 
     internal static bool LSentinelStaleCheck(LWorkRecord lWorkRecord)
     {
-        bool lSentinelOwnerAlive = lWorkRecord.LWorkOwnerProcess == Environment.ProcessId
-            ? LSentinelRunnerCheck(lWorkRecord.LWorkOwnerRunner)
-            : LSentinelProcessCheck(lWorkRecord.LWorkOwnerProcess, lWorkRecord.LWorkOwnerStamp);
+        bool lSentinelOwnerAlive = LSentinelOwnerCheck(
+            lWorkRecord.LWorkOwnerProcess, lWorkRecord.LWorkOwnerStamp, lWorkRecord.LWorkOwnerRunner);
 
         bool lSentinelLeaseStale = DateTimeOffset.Now - lWorkRecord.LWorkLeaseTime > LSentinelLeaseExpiry;
         return !lSentinelOwnerAlive && lSentinelLeaseStale;

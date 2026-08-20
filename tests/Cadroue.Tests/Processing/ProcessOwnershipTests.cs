@@ -17,4 +17,18 @@ public sealed class ProcessOwnershipTests
         TProcessing processing = new();
         Assert.True(processing.MissingOwnerDetected());
     }
+
+    [Fact]
+    public void LiveRunnerOwnerRecognised()
+    {
+        TProcessing processing = new();
+        Assert.True(processing.LiveRunnerOwnerLives());
+    }
+
+    [Fact]
+    public void DeadRunnerOwnerRejected()
+    {
+        TProcessing processing = new();
+        Assert.True(processing.DeadRunnerOwnerDetected());
+    }
 }

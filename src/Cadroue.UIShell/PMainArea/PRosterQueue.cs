@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PControlBar;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PPanels;
@@ -112,7 +113,7 @@ public sealed partial class PRoster
 
     private void PRosterQueueRebuild()
     {
-        LWorkItem[] pItems = pRosterSchedule.LScheduleRecords.ToArray();
+        LWorkItem[] pItems = pRosterSchedule.LScheduleRecords.Where(PRosterVisibleCheck).ToArray();
         IReadOnlyList<PRosterLineageEntry> pLineages = PRosterLineageRead(pItems);
 
         var pBatchOrder = new List<Guid>();
@@ -485,6 +486,19 @@ public sealed partial class PRoster
             : LLocalization.LLocalizationTextRead("Roster.Priority.Normal");
 
     private static string PRosterSpanFormat(TimeSpan pSpan) => $"{pSpan:hh\\:mm\\:ss}";
+
+    private bool PRosterVisibleCheck(LWorkItem pWorkItem)
+    {
+        if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning
+            || pWorkItem.LWorkOwnerRunner == Guid.Empty
+            || pRosterStation.LStationRunner.LRunnerOwnerCheck(pWorkItem))
+        {
+            return true;
+        }
+
+        return !LSentinel.LSentinelOwnerCheck(
+            pWorkItem.LWorkOwnerProcess, pWorkItem.LWorkOwnerStamp, pWorkItem.LWorkOwnerRunner);
+    }
 
     private LWorkItem? PRosterSelectRead() =>
         pRosterCurrentId == Guid.Empty
