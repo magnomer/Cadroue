@@ -112,6 +112,42 @@ internal sealed partial class PSEncoder
     private static bool PSCodecAvailableCheck((string PSCodecText, string[] PSCodecValues) pCandidate) =>
         psCodecAvailable is not { } pSet || pCandidate.PSCodecValues.Any(pSet.Contains);
 
+    private static bool PSCodecAvailableCheck(string pText)
+    {
+        foreach (var pCandidate in PSCodecCandidates)
+        {
+            if (string.Equals(pCandidate.PSCodecText, pText, StringComparison.Ordinal))
+            {
+                return PSCodecAvailableCheck(pCandidate);
+            }
+        }
+
+        return true;
+    }
+
+    private static string[] PSCodecItemsRead(string pContainer, string pKeep)
+    {
+        string[] pItems = PSCodecItemsRead(pContainer);
+        if (string.IsNullOrEmpty(pKeep) || pItems.Contains(pKeep))
+        {
+            return pItems;
+        }
+
+        bool pFits = PSCodecCandidates.Any(pCandidate => string.Equals(pCandidate.PSCodecText, pKeep, StringComparison.Ordinal))
+                     && (!PSCodecContainerNames.Contains(pContainer) || PSCodecContainerCheck(pKeep, pContainer));
+        return pFits ? [pKeep, .. pItems] : pItems;
+    }
+
+    private void PSVideoEncoderUpdate()
+    {
+        bool pAvailable = PSCodecAvailableCheck(PSComboTextRead(psVideoEncoderCombo));
+        psVideoEncoderNotice.Visibility = pAvailable ? Visibility.Collapsed : Visibility.Visible;
+        if (!pAvailable)
+        {
+            psVideoEncoderNotice.Text = LLocalization.LLocalizationTextRead("Encoder.Video.Notice.Unavailable");
+        }
+    }
+
     private static bool PSCodecContainerCheck(string pText, string pContainer) =>
         PSCodecContainerTable.TryGetValue(pText.Split(',')[0].Trim(), out string[]? pContainers)
         && pContainers.Contains(pContainer);
@@ -120,9 +156,10 @@ internal sealed partial class PSEncoder
     {
         string pContainer = PSComboTextRead(psOutputContainerCombo);
         string pCurrent = psVideoEncoderCombo.SelectedItem as string ?? string.Empty;
-        string[] pItems = PSCodecItemsRead(pContainer);
+        string[] pItems = PSCodecItemsRead(pContainer, pCurrent);
         psVideoEncoderCombo.ItemsSource = pItems;
         psVideoEncoderCombo.SelectedItem = pItems.Contains(pCurrent) ? pCurrent : pItems.FirstOrDefault();
+        PSVideoEncoderUpdate();
     }
 
     private static string PSCodecValueRead(string pText)
@@ -168,8 +205,15 @@ internal sealed partial class PSEncoder
         }
 
         psCodecAvailable = pAvailableNames.Count > 0 ? pAvailableNames : psCodecAvailable;
+        if (!pAvailable.Contains(pSelected)
+            && PSCodecCandidates.Any(pCandidate => string.Equals(pCandidate.PSCodecText, pSelected, StringComparison.Ordinal)))
+        {
+            pAvailable.Insert(0, pSelected);
+        }
+
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
+        PSVideoEncoderUpdate();
         psCodecResults = pRows;
         PSVerdictLogRecord("video", pRows);
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Button.Verify");

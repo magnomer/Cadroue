@@ -181,13 +181,51 @@ internal sealed partial class PSEncoder
             .ToArray();
     }
 
+    private static string[] PSAudioItemsRead(string pContainer, string pKeep)
+    {
+        string[] pItems = PSAudioItemsRead(pContainer);
+        if (string.IsNullOrEmpty(pKeep) || pItems.Contains(pKeep))
+        {
+            return pItems;
+        }
+
+        var pCandidate = PSAudioCandidates.FirstOrDefault(pEntry => string.Equals(pEntry.PSAudioText, pKeep, StringComparison.Ordinal));
+        bool pFits = pCandidate.PSAudioName is not null
+                     && (!PSCodecContainerNames.Contains(pContainer) || PSAudioContainerCheck(pCandidate.PSAudioName, pContainer));
+        return pFits ? [pKeep, .. pItems] : pItems;
+    }
+
+    private static bool PSAudioAvailableCheck(string pText)
+    {
+        foreach (var pCandidate in PSAudioCandidates)
+        {
+            if (string.Equals(pCandidate.PSAudioText, pText, StringComparison.Ordinal))
+            {
+                return LInventory.LInventoryInstalledCheck(pCandidate.PSAudioName);
+            }
+        }
+
+        return true;
+    }
+
+    private void PSAudioEncoderUpdate()
+    {
+        bool pAvailable = PSAudioAvailableCheck(PSComboTextRead(psAudioEncoderCombo));
+        psAudioEncoderNotice.Visibility = pAvailable ? Visibility.Collapsed : Visibility.Visible;
+        if (!pAvailable)
+        {
+            psAudioEncoderNotice.Text = LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.Unavailable");
+        }
+    }
+
     private void PSAudioContainerHandle()
     {
         string pContainer = PSComboTextRead(psOutputContainerCombo);
         string pCurrent = psAudioEncoderCombo.SelectedItem as string ?? string.Empty;
-        string[] pItems = PSAudioItemsRead(pContainer);
+        string[] pItems = PSAudioItemsRead(pContainer, pCurrent);
         psAudioEncoderCombo.ItemsSource = pItems;
         psAudioEncoderCombo.SelectedItem = pItems.Contains(pCurrent) ? pCurrent : pItems.FirstOrDefault();
+        PSAudioEncoderUpdate();
     }
 
     private async Task PSAudioVerifyHandle(ComboBox pCombo, Button pButton)
@@ -208,8 +246,15 @@ internal sealed partial class PSEncoder
             }
         }
 
+        if (!pAvailable.Contains(pSelected)
+            && PSAudioCandidates.Any(pCandidate => string.Equals(pCandidate.PSAudioText, pSelected, StringComparison.Ordinal)))
+        {
+            pAvailable.Insert(0, pSelected);
+        }
+
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
+        PSAudioEncoderUpdate();
         psAudioResults = pRows;
         PSVerdictLogRecord("audio", pRows);
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Button.Verify");
@@ -228,6 +273,7 @@ internal sealed partial class PSEncoder
         psAudioRateCombo.SelectionChanged += (_, _) => PSAudioRowsRebuild();
 
         psAudioEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Encoder"), psAudioEncoderCombo, pVerify, pLog));
+        psAudioEncodePanel.Children.Add(psAudioEncoderNotice);
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.RateControl"), psAudioRateCombo));
         psAudioEncodePanel.Children.Add(psAudioRowsPanel);
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"), psAudioSampleCombo));
@@ -251,6 +297,7 @@ internal sealed partial class PSEncoder
 
         PSAudioRowsRebuild();
         PSAudioScopeUpdate();
+        PSAudioEncoderUpdate();
         return PSPlateBuild(pPanel);
     }
 
@@ -270,6 +317,7 @@ internal sealed partial class PSEncoder
         psAudioRowsBusy = false;
 
         PSAudioRowsRebuild();
+        PSAudioEncoderUpdate();
     }
 
     private void PSAudioRowsRebuild()

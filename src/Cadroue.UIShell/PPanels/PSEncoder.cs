@@ -70,6 +70,8 @@ internal sealed partial class PSEncoder : Window
     private readonly StackPanel psAudioEncodePanel;
     private readonly TextBlock psVideoNotice;
     private readonly TextBlock psAudioNotice;
+    private readonly TextBlock psVideoEncoderNotice;
+    private readonly TextBlock psAudioEncoderNotice;
     private readonly Dictionary<string, ComboBox> psVideoExtraCombos;
     private readonly Dictionary<string, ComboBox> psAudioExtraCombos;
     private TextBox? psVideoQualityBox;
@@ -86,6 +88,13 @@ internal sealed partial class PSEncoder : Window
     private static readonly Brush PLineBrush = PSField.PSFieldLine;
     private static readonly Brush PSEncoderTextBrush = PSField.PSFieldText;
     private static readonly Brush PSEncoderMutedBrush = PSField.PSFieldMuted;
+    private static TextBlock PSEncoderErrorBuild() => new()
+    {
+        Foreground = new SolidColorBrush(Color.FromRgb(0xC0, 0x2A, 0x2A)),
+        TextWrapping = TextWrapping.Wrap,
+        Margin = PSNoticeMargin,
+        Visibility = Visibility.Collapsed
+    };
 
     private static readonly string[] psVideoFpsTokens = ["Same as source", "60", "50", "30", "25", "24"];
     private static readonly string[] psAudioSampleTokens = ["Same as source", "44100", "48000", "88200", "96000"];
@@ -145,7 +154,7 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Encode", "Encoder.Codec.Encode"),
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
 
-        psVideoEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetEncoder, PSCodecItemsRead(lsExportSpecificEdit.LPresetContainer));
+        psVideoEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetEncoder, PSCodecItemsRead(lsExportSpecificEdit.LPresetContainer, lsExportSpecificEdit.LPresetVideo.LPresetEncoder));
         LCapabilityCodec pVideoCodec = LCapability.LCapabilityRead(PSCodecValueRead(PSComboTextRead(psVideoEncoderCombo)));
         psVideoRateCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetRateControl, pVideoCodec.LCapabilityModeLabels);
         psVideoRowsPanel = new StackPanel();
@@ -154,6 +163,8 @@ internal sealed partial class PSEncoder : Window
         psAudioEncodePanel = new StackPanel();
         psVideoNotice = PSAudioNoticeBuild();
         psAudioNotice = PSAudioNoticeBuild();
+        psVideoEncoderNotice = PSEncoderErrorBuild();
+        psAudioEncoderNotice = PSEncoderErrorBuild();
         psVideoExtraCombos = new Dictionary<string, ComboBox>(StringComparer.Ordinal);
         psAudioExtraCombos = new Dictionary<string, ComboBox>(StringComparer.Ordinal);
 
@@ -192,7 +203,7 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("yuv420p10le", "Encoder.Pixel.Yuv420Ten"),
             new LLocalizationChoice("yuv422p10le", "Encoder.Pixel.Yuv422Ten"),
             new LLocalizationChoice("yuv444p10le", "Encoder.Pixel.Yuv444Ten"));
-        psAudioEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetEncoder, PSAudioItemsRead(lsExportSpecificEdit.LPresetContainer));
+        psAudioEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetEncoder, PSAudioItemsRead(lsExportSpecificEdit.LPresetContainer, lsExportSpecificEdit.LPresetAudio.LPresetEncoder));
         LCapabilityCodec pAudioCodec = LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(PSComboTextRead(psAudioEncoderCombo)));
         psAudioRateCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetRateControl, pAudioCodec.LCapabilityModeLabels);
         psAudioSampleCombo = PSComboBuild(PSFieldCustomResolve(lsExportSpecificEdit.LPresetAudio.LPresetSampleRate, psAudioSampleTokens),

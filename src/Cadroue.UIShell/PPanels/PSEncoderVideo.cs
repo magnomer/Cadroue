@@ -21,6 +21,7 @@ internal sealed partial class PSEncoder
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoRowsRebuild();
 
         psVideoEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Encoder"), psVideoEncoderCombo, pVerify, pLog));
+        psVideoEncodePanel.Children.Add(psVideoEncoderNotice);
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.RateControl"), psVideoRateCombo));
         psVideoEncodePanel.Children.Add(psVideoRowsPanel);
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Size"), psVideoSizeCombo));
@@ -49,6 +50,7 @@ internal sealed partial class PSEncoder
 
         PSVideoRowsRebuild();
         PSVideoScopeUpdate();
+        PSVideoEncoderUpdate();
         return PSPlateBuild(pPanel);
     }
 
@@ -193,6 +195,7 @@ internal sealed partial class PSEncoder
         psVideoRowsBusy = false;
 
         PSVideoRowsRebuild();
+        PSVideoEncoderUpdate();
     }
 
     private void PSVideoRowsRebuild()
