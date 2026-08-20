@@ -27,10 +27,70 @@ public static partial class LMedia
             || LMediaAudioExtensions.Contains(lMediaExtension, StringComparer.OrdinalIgnoreCase);
     }
 
+    private const int LMediaProbeAttempts = 3;
+    private const int LMediaRetryMs = 120;
+
     public static LMediaInfo LMediaFfprobeRead(string sourcePath, CancellationToken lMediaToken = default)
     {
-        lMediaToken.ThrowIfCancellationRequested();
+        for (int lMediaAttempt = 1; ; lMediaAttempt++)
+        {
+            lMediaToken.ThrowIfCancellationRequested();
 
+            string json;
+            string errorText;
+            int exitCode;
+            LMediaFfprobeRun(sourcePath, lMediaToken, out json, out errorText, out exitCode);
+
+            if (exitCode != 0)
+            {
+                throw new InvalidOperationException(LMediaFailureFormat(exitCode, errorText));
+            }
+
+            bool lMediaLastAttempt = lMediaAttempt >= LMediaProbeAttempts;
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                if (!lMediaLastAttempt)
+                {
+                    if (lMediaToken.WaitHandle.WaitOne(LMediaRetryMs))
+                    {
+                        lMediaToken.ThrowIfCancellationRequested();
+                    }
+
+                    continue;
+                }
+
+                throw new InvalidOperationException(LMediaEmptyFormat(errorText));
+            }
+
+            try
+            {
+                return LMediaFfprobeParse(json);
+            }
+            catch (JsonException ex)
+            {
+                if (!lMediaLastAttempt)
+                {
+                    if (lMediaToken.WaitHandle.WaitOne(LMediaRetryMs))
+                    {
+                        lMediaToken.ThrowIfCancellationRequested();
+                    }
+
+                    continue;
+                }
+
+                throw new InvalidOperationException(LMediaInvalidFormat(errorText), ex);
+            }
+        }
+    }
+
+    private static void LMediaFfprobeRun(
+        string sourcePath,
+        CancellationToken lMediaToken,
+        out string json,
+        out string errorText,
+        out int exitCode)
+    {
         var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
         {
             RedirectStandardOutput = true,
@@ -48,46 +108,22 @@ public static partial class LMedia
         psi.ArgumentList.Add("-i");
         psi.ArgumentList.Add(sourcePath);
 
-        string json;
-        string errorText;
-        int exitCode;
-        using (var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started."))
-        {
-            LCustody.LCustodyAttach(process);
-            Task<string> jsonTask = process.StandardOutput.ReadToEndAsync(lMediaToken);
-            Task<string> errorTask = process.StandardError.ReadToEndAsync(lMediaToken);
-            try
-            {
-                process.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
-            }
-            catch (OperationCanceledException)
-            {
-                process.Kill(entireProcessTree: true);
-                throw;
-            }
-            json = jsonTask.GetAwaiter().GetResult();
-            errorText = errorTask.GetAwaiter().GetResult();
-            exitCode = process.ExitCode;
-        }
-
-        if (exitCode != 0)
-        {
-            throw new InvalidOperationException(LMediaFailureFormat(exitCode, errorText));
-        }
-
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            throw new InvalidOperationException(LMediaEmptyFormat(errorText));
-        }
-
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started.");
+        LCustody.LCustodyAttach(process);
+        Task<string> jsonTask = process.StandardOutput.ReadToEndAsync(lMediaToken);
+        Task<string> errorTask = process.StandardError.ReadToEndAsync(lMediaToken);
         try
         {
-            return LMediaFfprobeParse(json);
+            process.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
         }
-        catch (JsonException ex)
+        catch (OperationCanceledException)
         {
-            throw new InvalidOperationException(LMediaInvalidFormat(errorText), ex);
+            process.Kill(entireProcessTree: true);
+            throw;
         }
+        json = jsonTask.GetAwaiter().GetResult();
+        errorText = errorTask.GetAwaiter().GetResult();
+        exitCode = process.ExitCode;
     }
 
     public static double? LMediaLoudnessRead(string sourcePath, CancellationToken lMediaToken = default)

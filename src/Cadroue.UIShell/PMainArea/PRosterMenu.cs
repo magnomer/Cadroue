@@ -130,14 +130,6 @@ public sealed partial class PRoster
         }
 
         PStrip.PStripCurrent?.PStripSelect(pTargetRecord);
-        string[] pClearPaths = pTargetOwner.LDocketUnlockedRead()
-            .Select(pEntry => pEntry.LDocketEntryPath)
-            .ToArray();
-        if (pClearPaths.Length > 0)
-        {
-            pTargetOwner.LDocketPathsRemove(pClearPaths);
-        }
-
         pTargetOwner.LDocketPathsAdd(
             PList.PListMediaScan(pRelayPaths), Cadroue.Application.LGate.LGateBatchCreate());
     }
