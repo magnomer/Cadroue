@@ -108,6 +108,7 @@ public sealed class PAudioTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
+        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));

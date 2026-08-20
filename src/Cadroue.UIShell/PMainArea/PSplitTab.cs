@@ -75,6 +75,7 @@ public sealed class PSplitTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
+        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);

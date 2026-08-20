@@ -98,6 +98,7 @@ public sealed partial class PEditTab : PTabSurface
                 pAction.PActionSourceTab,
                 PEditMpvCheck());
         };
+        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));

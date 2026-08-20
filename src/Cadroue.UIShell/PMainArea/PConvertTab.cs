@@ -69,6 +69,7 @@ public sealed class PConvertTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
+        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
         pList.PListPathChange += PConvertPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);

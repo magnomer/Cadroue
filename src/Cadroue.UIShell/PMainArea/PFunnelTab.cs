@@ -30,6 +30,11 @@ public sealed class PFunnelTab : PTabSurface
             ? new[] { pSelected }
             : Array.Empty<LDocketEntry>());
         pAction.PActionAllAdd += () => PFunnelDispatch(pList.PListItemsRead());
+        pAction.PActionItemsAdd += pFunnelPaths => PFunnelDispatch(
+            pList.PListItemsRead()
+                .Where(pItem => pFunnelPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+                .ToArray());
+        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
 

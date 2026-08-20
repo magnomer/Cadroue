@@ -40,7 +40,7 @@ public sealed class PAction : UserControl
         Button pAddListButton = PActionButtonBuild("AddList", "PActionAddList.svg", "Action.AddList");
         pActionAllButton = PActionButtonBuild("AddAll", "PActionAddAll.svg", "Action.AddAll");
         Button pExecuteButton = PActionButtonBuild("Execute", "PActionExecute.svg", "Action.Execute");
-        pAddListButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityNormal);
+        pAddListButton.Click += (_, _) => PActionListAdd();
         pActionAllButton.Click += (_, _) => PActionAllAdd?.Invoke();
         pExecuteButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
         pActionAllButton.ToolTip = LLocalization.LLocalizationTextRead("Action.AddAll.Tooltip");
@@ -65,6 +65,8 @@ public sealed class PAction : UserControl
     public Guid PActionSourceTab { get; set; }
 
     public Func<IReadOnlyList<PActionRelayOption>>? PActionRelaySource { get; set; }
+
+    public Func<IReadOnlyList<string>>? PActionSelectionSource { get; set; }
 
     public void PActionRelayAttach(Guid pActionSourceTab)
     {
@@ -127,6 +129,17 @@ public sealed class PAction : UserControl
     public void PActionAllRun() => PActionAllAdd?.Invoke();
 
     public void PActionItemsRun(IReadOnlyList<string> pActionPaths) => PActionItemsAdd?.Invoke(pActionPaths);
+
+    private void PActionListAdd()
+    {
+        if (PActionSelectionSource?.Invoke() is { Count: > 0 } pActionSelected)
+        {
+            PActionItemsAdd?.Invoke(pActionSelected);
+            return;
+        }
+
+        PActionRun?.Invoke(LWorkPriority.LWorkPriorityNormal);
+    }
 
     private CheckBox PActionAutoBuild()
     {
