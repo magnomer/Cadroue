@@ -422,6 +422,8 @@ public sealed partial class PViewer
                 }
 
                 pViewerPlayer.PPlayerMpvSet(pViewerHandle);
+                pViewerMpvFilter = string.Empty;
+                pViewerAudioApplied = null;
             }
 
             pViewerPlayer.PPlayerVolumeSet(pViewerVolume);
