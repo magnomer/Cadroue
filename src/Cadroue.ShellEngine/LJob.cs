@@ -83,6 +83,13 @@ internal sealed class LJob
                 _ => lJobItem.LWorkDuration.TotalSeconds
             };
 
+            if (pTotalSeconds <= 0 && lJobItem.LWorkKind != LWorkKind.LWorkKindMerge)
+            {
+                pTotalSeconds = (lJobItem.LWorkSourceMedia
+                    ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken))
+                    ?.LWorkMediaDuration.TotalSeconds ?? 0;
+            }
+
             int pExitCode = 0;
             string pJobError = string.Empty;
             string? pMeasureStderr = null;
