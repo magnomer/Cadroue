@@ -63,13 +63,15 @@ public sealed class LPresetSelection
             return false;
         }
 
+        lPresetSelectionValue.LPresetName = lName;
+        LPresetSelectionName = lName;
         if (LPresetRenameSeam is null || !LPresetRenameSeam(lOldName, lName, lPresetSelectionValue))
         {
+            lPresetSelectionValue.LPresetName = lOldName;
+            LPresetSelectionName = lOldName;
             return false;
         }
 
-        lPresetSelectionValue.LPresetName = lName;
-        LPresetSelectionName = lName;
         LPresetSelectionRaise();
         return true;
     }

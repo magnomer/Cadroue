@@ -56,4 +56,12 @@ public sealed class PresetRenameTests
         Assert.True(ok);
         Assert.Equal("Current", selectionName);
     }
+
+    [Fact]
+    public void CurrentPreset_SelectionNameNewBeforeRenameSeam()
+    {
+        using TPresets presets = new();
+        presets.SeedNames("Current");
+        Assert.Equal("Renamed", presets.RenameSelectionNameDuringSeam("Current", "Current", "Renamed"));
+    }
 }

@@ -91,6 +91,11 @@ public sealed partial class PGroup
 
     private void PGroupCardHandle(int pTargetIndex, StackPanel pFileRows, DragEventArgs pEvent)
     {
+        if (PGroupExternalAccept(pEvent))
+        {
+            return;
+        }
+
         int pInsertAt = PGroupInsertResolve(pFileRows, pEvent);
         List<string> pTargetPaths = pGroupRecords[pTargetIndex].PGroupRecordPaths;
 
@@ -141,6 +146,11 @@ public sealed partial class PGroup
             return;
         }
 
+        if (PGroupExternalAccept(pEvent))
+        {
+            return;
+        }
+
         var pNewPaths = new List<string>();
         if (pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
             && pMove.PGroupMoveIndex >= 0
@@ -178,20 +188,22 @@ public sealed partial class PGroup
         PGroupRebuild();
     }
 
-    private IReadOnlyList<string> PGroupPathsRead(DragEventArgs pEvent)
+    private bool PGroupExternalAccept(DragEventArgs pEvent)
     {
-        if (pEvent.Data.GetData(PList.PListDragKind) is string[] pListPaths)
+        if (pEvent.Data.GetData(DataFormats.FileDrop) is not string[] pFilePaths)
         {
-            return pListPaths;
+            return false;
         }
 
-        if (pEvent.Data.GetData(DataFormats.FileDrop) is string[] pFilePaths)
-        {
-            return PGroupFileRequest?.Invoke(pFilePaths) ?? PList.PListMediaScan(pFilePaths);
-        }
-
-        return Array.Empty<string>();
+        PGroupFileRequest?.Invoke(pFilePaths);
+        pEvent.Handled = true;
+        return true;
     }
+
+    private static IReadOnlyList<string> PGroupPathsRead(DragEventArgs pEvent) =>
+        pEvent.Data.GetData(PList.PListDragKind) is string[] pListPaths
+            ? pListPaths
+            : Array.Empty<string>();
 
     private static void PGroupPathInsert(List<string> pPaths, string pPath, int pInsertAt)
     {

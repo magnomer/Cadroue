@@ -114,7 +114,11 @@ public sealed partial class PExport
             {
                 PExportDragClear();
                 pPresetRowPanel.ReleaseMouseCapture();
-                PExportPresetSelect(lPresetName);
+                if (!string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase))
+                {
+                    PExportPresetSelect(lPresetName);
+                }
+
                 pPresetNameEditing = lPresetName;
                 PExportPresetRebuild();
                 pEvent.Handled = true;

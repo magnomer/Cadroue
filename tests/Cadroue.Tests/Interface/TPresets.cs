@@ -37,6 +37,19 @@ public sealed class TPresets : IDisposable
         return (ok, selection.LPresetSelectionName);
     }
 
+    public string RenameSelectionNameDuringSeam(string current, string old, string renamed)
+    {
+        LPresetSelection selection = new(current);
+        string nameDuringSeam = string.Empty;
+        LPresetSelection.LPresetRenameSeam = (_, _, _) =>
+        {
+            nameDuringSeam = selection.LPresetSelectionName;
+            return true;
+        };
+        selection.LPresetSelectionCommit(old, renamed);
+        return nameDuringSeam;
+    }
+
     public void Dispose()
     {
         LPreset.LPresetNames.Clear();
