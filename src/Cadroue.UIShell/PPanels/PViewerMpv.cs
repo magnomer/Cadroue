@@ -430,6 +430,11 @@ public sealed partial class PViewer
                 return;
             }
 
+            if (PCropPersistent)
+            {
+                PViewerFilterSet(LPreview.LPreviewFilterResolve(PViewerRenderRead()));
+            }
+
             pViewerPlayer.PPlayerMpvCancel();
             await System.Threading.Tasks.Task.Run(() => pViewerPlayer.PPlayerOpen(sourcePath));
         }
