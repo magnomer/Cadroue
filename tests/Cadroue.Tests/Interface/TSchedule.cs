@@ -65,6 +65,32 @@ internal sealed class TSchedule : IDisposable
             lWorkCreateTime: created));
     }
 
+    internal TScheduleWork WorkCreateOpen(Guid batchId, string name)
+    {
+        DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
+        return new TScheduleWork(new LWorkItem(
+            batchId,
+            LWorkKind.LWorkKindEdit,
+            LWorkPriority.LWorkPriorityNormal,
+            Path.Combine(tScheduleRoot, name + ".source"),
+            TimeSpan.Zero,
+            TimeSpan.Zero,
+            name,
+            Path.Combine(tScheduleRoot, name + ".output"),
+            WorkCreationOutput.Create(),
+            lWorkCreateTime: created));
+    }
+
+    internal void DurationSet(Guid workId, TimeSpan duration) =>
+        tSchedule.LScheduleDurationSet(workId, duration);
+
+    internal TimeSpan ReloadedDurationRead(Guid workId)
+    {
+        var reloaded = new LSchedule();
+        reloaded.LScheduleLoad();
+        return reloaded.LScheduleRecords.First(workItem => workItem.LWorkId == workId).LWorkEnd;
+    }
+
     internal int Submit(params TScheduleWork[] work) =>
         tSchedule.LScheduleAdd(work.Select(item => item.WorkItem).ToArray());
 

@@ -103,11 +103,23 @@ public sealed partial class LSchedule : LScheduleContract
         }
     }
 
+    private static readonly LDepotFolder[] lScheduleDurationFolders =
+    {
+        LDepotFolder.LDepotFolderScheduled,
+        LDepotFolder.LDepotFolderRunning,
+        LDepotFolder.LDepotFolderCancelled
+    };
+
     public void LScheduleDurationSet(Guid lWorkId, TimeSpan lWorkDuration)
     {
         if (lWorkDuration <= TimeSpan.Zero)
         {
             return;
+        }
+
+        if (lScheduleLiveItems.TryGetValue(lWorkId, out LWorkItem? lWorkClaimed) && lWorkClaimed.LWorkEnd <= TimeSpan.Zero)
+        {
+            lWorkClaimed.LWorkEnd = lWorkDuration;
         }
 
         foreach (LWorkItem lWorkItem in lScheduleItems)
@@ -122,14 +134,28 @@ public sealed partial class LSchedule : LScheduleContract
             break;
         }
 
-        string lDepotFilePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, lWorkId);
-        if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+        LScheduleDurationPersist(lWorkId, lWorkDuration);
+    }
+
+    private static void LScheduleDurationPersist(Guid lWorkId, TimeSpan lWorkDuration)
+    {
+        foreach (LDepotFolder lDepotFolder in lScheduleDurationFolders)
         {
+            string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
+            if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+            {
+                continue;
+            }
+
+            if (lWorkRecord.LWorkEndTicks > 0)
+            {
+                return;
+            }
+
+            lWorkRecord.LWorkEndTicks = lWorkDuration.Ticks;
+            LScheduleStore.LScheduleRecordSave(lWorkRecord, lDepotFolder);
             return;
         }
-
-        lWorkRecord.LWorkEndTicks = lWorkDuration.Ticks;
-        LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
     }
 
     public int LScheduleAdd(
