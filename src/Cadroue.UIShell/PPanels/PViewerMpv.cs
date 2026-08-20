@@ -198,12 +198,10 @@ public sealed partial class PViewer
 
     public bool PViewerAudioEligible { get; set; }
 
-    private bool PViewerMpvEligible => PViewerEditEligible || PViewerAudioEligible;
+    private bool PViewerMpvEligible => true;
 
     private LPreviewEngine PViewerEngineRead() =>
-        PViewerMpvEligible
-            ? Cadroue.Infrastructure.LRenderer.LRendererEngineRead()
-            : LPreviewEngine.LPreviewEngineFlyleaf;
+        Cadroue.Infrastructure.LRenderer.LRendererEngineRead();
 
     private bool PViewerEngineSelect()
     {

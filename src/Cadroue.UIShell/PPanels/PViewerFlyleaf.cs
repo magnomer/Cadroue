@@ -173,6 +173,7 @@ public sealed partial class PViewer
             pViewerLoadPath = sourcePath;
         }
 
+        pViewerMediaProbe.LMediaLoadTail = PViewerEngineRead() != LPreviewEngine.LPreviewEngineMpv;
         LTraceLog.LTraceInfoRecord(
             $"Video load start serial={loadSerial} '{System.IO.Path.GetFileName(sourcePath)}'",
             $"engine={PViewerEngineCurrent}, probing (ffprobe)…");

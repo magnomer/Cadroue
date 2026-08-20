@@ -33,10 +33,14 @@ public sealed class LMediaLoad : IDisposable
     private LMediaInfo? lMediaCurrentInfo;
 
     public LMediaLoad()
-        : this((lMediaLoadPath, lMediaLoadToken) =>
-            Task.Run(() => LMedia.LMediaPreviewRead(lMediaLoadPath, lMediaLoadToken), lMediaLoadToken))
     {
+        lMediaLoadReader = (lMediaLoadPath, lMediaLoadToken) =>
+            Task.Run(
+                () => LMedia.LMediaPreviewRead(lMediaLoadPath, lMediaLoadToken, LMediaLoadTail),
+                lMediaLoadToken);
     }
+
+    public bool LMediaLoadTail { get; set; } = true;
 
     internal LMediaLoad(Func<string, CancellationToken, Task<LMediaInfo>> lMediaLoadReader)
     {

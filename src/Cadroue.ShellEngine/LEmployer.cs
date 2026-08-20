@@ -41,6 +41,7 @@ internal sealed class LEmployer
         lEmployerToken.ThrowIfCancellationRequested();
         lEmployerProcess.Start();
         LCustody.LCustodyAttach(lEmployerProcess);
+        LEmployerPrioritySet(lEmployerProcess);
         lEmployerAttach(lEmployerProcess);
 
         Task<string> lEmployerErrorTask = LEmployerErrorRead(lEmployerProcess, lEmployerToken, lEmployerErrorRead);
@@ -48,6 +49,18 @@ internal sealed class LEmployer
         await lEmployerProcess.WaitForExitAsync(lEmployerToken).ConfigureAwait(false);
         string lEmployerError = await lEmployerErrorTask.ConfigureAwait(false);
         return new LEmployerResult(lEmployerProcess.ExitCode, lEmployerError);
+    }
+
+    private static void LEmployerPrioritySet(Process lEmployerProcess)
+    {
+        try
+        {
+            lEmployerProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+        }
+        catch (Exception lEmployerException)
+            when (lEmployerException is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+        }
     }
 
     private static async Task LEmployerOutputRead(
