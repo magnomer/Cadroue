@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -9,46 +7,26 @@ public static class LPreferenceStateStore
     private const string LPreferenceFolderName = "Cadroue";
     private const string LPreferenceFileName = "LPreferenceState.json";
 
+    private static LVaultOutcome lPreferenceOutcome = LVaultOutcome.LVaultMissing;
+
     public static LPreferenceState LPreferenceStateLoad()
     {
-        string lPreferencePath = LPreferencePathCreate();
-        if (!File.Exists(lPreferencePath))
-        {
-            return LPreferenceState.LPreferenceDefaultCreate();
-        }
-
-        try
-        {
-            string lPreferenceJson = File.ReadAllText(lPreferencePath);
-            LPreferenceState lPreferenceState = JsonSerializer.Deserialize<LPreferenceState>(lPreferenceJson)
-                ?? LPreferenceState.LPreferenceDefaultCreate();
-            lPreferenceState.LPreferenceNormalize();
-            return lPreferenceState;
-        }
-        catch
-        {
-            return LPreferenceState.LPreferenceDefaultCreate();
-        }
+        LVaultResult<LPreferenceState> lPreferenceResult = LVault.LVaultRead<LPreferenceState>(LPreferencePathCreate());
+        lPreferenceOutcome = lPreferenceResult.LVaultOutcome;
+        LPreferenceState lPreferenceState = lPreferenceResult.LVaultValue ?? LPreferenceState.LPreferenceDefaultCreate();
+        lPreferenceState.LPreferenceNormalize();
+        return lPreferenceState;
     }
 
-    public static void LPreferenceStateSave(LPreferenceState lPreferenceState)
+    public static bool LPreferenceStateSave(LPreferenceState lPreferenceState)
     {
-        try
+        if (lPreferenceOutcome == LVaultOutcome.LVaultUnreadable)
         {
-            string lPreferencePath = LPreferencePathCreate();
-            string? lPreferenceFolder = Path.GetDirectoryName(lPreferencePath);
-            if (!string.IsNullOrWhiteSpace(lPreferenceFolder))
-            {
-                Directory.CreateDirectory(lPreferenceFolder);
-            }
+            return false;
+        }
 
-            lPreferenceState.LPreferenceNormalize();
-            string lPreferenceJson = JsonSerializer.Serialize(lPreferenceState, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(lPreferencePath, lPreferenceJson);
-        }
-        catch
-        {
-        }
+        lPreferenceState.LPreferenceNormalize();
+        return LVault.LVaultSave(LPreferencePathCreate(), lPreferenceState);
     }
 
     public static string LPreferencePathRead() => LPreferencePathCreate();

@@ -337,12 +337,23 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;
 
         string psLanguagePrevious = LPreference.LPreferenceStateCurrent.LPreferenceLanguage;
-        LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
+        bool psOptionsSaved = LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
         Cadroue.Infrastructure.LRenderer.LRendererEngineSet(
             psOptionsEngineMpv.IsChecked == true
                 ? LPreviewEngine.LPreviewEngineMpv
                 : LPreviewEngine.LPreviewEngineFlyleaf);
         psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
+        if (!psOptionsSaved)
+        {
+            MessageBox.Show(
+                this,
+                LLocalization.LLocalizationTextRead("Options.Save.FailedMessage"),
+                LLocalization.LLocalizationTextRead("Options.Save.FailedTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+        }
+
         if (!string.Equals(psLanguagePrevious, LPreference.LPreferenceStateCurrent.LPreferenceLanguage, StringComparison.Ordinal))
         {
             MessageBox.Show(

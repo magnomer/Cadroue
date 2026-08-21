@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -9,55 +7,29 @@ public static class LFrameStore
     private const string LFrameFolderName = "Cadroue";
     private const string LFrameFileName = "frame.json";
 
+    private static bool lFrameReadable = true;
+
     public static LFrameState LFrameStateCurrent { get; private set; } = LFrameState.LFrameDefaultCreate();
 
     public static LFrameState LFrameLoad()
     {
-        LFrameStateCurrent = LFrameRead();
+        LVaultResult<LFrameState> lFrameResult = LVault.LVaultRead<LFrameState>(LFramePathCreate());
+        lFrameReadable = lFrameResult.LVaultOutcome != LVaultOutcome.LVaultUnreadable;
+        LFrameStateCurrent = lFrameResult.LVaultValue ?? LFrameState.LFrameDefaultCreate();
+        LFrameStateCurrent.LFrameNormalize();
         return LFrameStateCurrent;
     }
 
-    private static LFrameState LFrameRead()
-    {
-        string lFramePath = LFramePathCreate();
-        if (!File.Exists(lFramePath))
-        {
-            return LFrameState.LFrameDefaultCreate();
-        }
-
-        try
-        {
-            LFrameState lFrameState = JsonSerializer.Deserialize<LFrameState>(File.ReadAllText(lFramePath))
-                ?? LFrameState.LFrameDefaultCreate();
-            lFrameState.LFrameNormalize();
-            return lFrameState;
-        }
-        catch
-        {
-            return LFrameState.LFrameDefaultCreate();
-        }
-    }
-
-    public static void LFrameSave(LFrameState lFrameState)
+    public static bool LFrameSave(LFrameState lFrameState)
     {
         LFrameStateCurrent = lFrameState;
-        try
+        if (!lFrameReadable)
         {
-            string lFramePath = LFramePathCreate();
-            string? lFrameFolder = Path.GetDirectoryName(lFramePath);
-            if (!string.IsNullOrWhiteSpace(lFrameFolder))
-            {
-                Directory.CreateDirectory(lFrameFolder);
-            }
+            return false;
+        }
 
-            lFrameState.LFrameNormalize();
-            File.WriteAllText(
-                lFramePath,
-                JsonSerializer.Serialize(lFrameState, new JsonSerializerOptions { WriteIndented = true }));
-        }
-        catch
-        {
-        }
+        lFrameState.LFrameNormalize();
+        return LVault.LVaultSave(LFramePathCreate(), lFrameState);
     }
 
     private static string LFramePathCreate()

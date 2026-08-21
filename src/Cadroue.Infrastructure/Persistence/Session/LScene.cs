@@ -13,6 +13,8 @@ public static class LScene
     private const string LSceneFolderName = "Cadroue";
     private const string LSceneFileName = "LScenePresets.json";
     private const string LSceneStateName = "session.json";
+    private static LVaultOutcome lSceneCatalogueOutcome;
+    private static bool lSceneStateReadable = true;
     private static readonly List<LSceneRecord> lSceneRecords = LSceneLoad();
     private static string? lSceneRoot;
 
@@ -40,40 +42,20 @@ public static class LScene
 
     public static LSceneRecord LSceneStateLoad()
     {
-        string lScenePath = Path.Combine(LSceneFolderRead(), LSceneStateName);
-        if (!File.Exists(lScenePath))
-        {
-            return new LSceneRecord();
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<LSceneRecord>(File.ReadAllText(lScenePath)) ?? new LSceneRecord();
-        }
-        catch
-        {
-            return new LSceneRecord();
-        }
+        LVaultResult<LSceneRecord> lSceneResult =
+            LVault.LVaultRead<LSceneRecord>(Path.Combine(LSceneFolderRead(), LSceneStateName));
+        lSceneStateReadable = lSceneResult.LVaultOutcome != LVaultOutcome.LVaultUnreadable;
+        return lSceneResult.LVaultValue ?? new LSceneRecord();
     }
 
-    public static void LSceneStateSave(LSceneRecord lScene)
+    public static bool LSceneStateSave(LSceneRecord lScene)
     {
-        try
+        if (!lSceneStateReadable)
         {
-            string lScenePath = Path.Combine(LSceneFolderRead(), LSceneStateName);
-            string? lSceneFolder = Path.GetDirectoryName(lScenePath);
-            if (!string.IsNullOrWhiteSpace(lSceneFolder))
-            {
-                Directory.CreateDirectory(lSceneFolder);
-            }
+            return false;
+        }
 
-            File.WriteAllText(
-                lScenePath,
-                JsonSerializer.Serialize(lScene, new JsonSerializerOptions { WriteIndented = true }));
-        }
-        catch
-        {
-        }
+        return LVault.LVaultSave(Path.Combine(LSceneFolderRead(), LSceneStateName), lScene);
     }
 
     public static IReadOnlyList<string> LSceneNames =>
@@ -83,33 +65,58 @@ public static class LScene
         lSceneRecords.FirstOrDefault(lSceneRecord =>
             string.Equals(lSceneRecord.LSceneName, lSceneName, StringComparison.OrdinalIgnoreCase));
 
-    public static void LSceneSave(LSceneRecord lScene)
+    public static bool LSceneSave(LSceneRecord lScene)
     {
-        int lSceneIndex = lSceneRecords.FindIndex(lSceneRecord =>
+        if (lSceneCatalogueOutcome == LVaultOutcome.LVaultUnreadable)
+        {
+            return false;
+        }
+
+        List<LSceneRecord> lSceneNext = new(lSceneRecords);
+        int lSceneIndex = lSceneNext.FindIndex(lSceneRecord =>
             string.Equals(lSceneRecord.LSceneName, lScene.LSceneName, StringComparison.OrdinalIgnoreCase));
         if (lSceneIndex >= 0)
         {
-            lSceneRecords[lSceneIndex] = lScene;
+            lSceneNext[lSceneIndex] = lScene;
         }
         else
         {
-            lSceneRecords.Add(lScene);
+            lSceneNext.Add(lScene);
         }
 
-        LScenePersist();
+        if (!LScenePersist(lSceneNext))
+        {
+            return false;
+        }
+
+        lSceneRecords.Clear();
+        lSceneRecords.AddRange(lSceneNext);
+        return true;
     }
 
     public static bool LSceneDelete(string lSceneName)
     {
-        int lSceneIndex = lSceneRecords.FindIndex(lSceneRecord =>
+        if (lSceneCatalogueOutcome == LVaultOutcome.LVaultUnreadable)
+        {
+            return false;
+        }
+
+        List<LSceneRecord> lSceneNext = new(lSceneRecords);
+        int lSceneIndex = lSceneNext.FindIndex(lSceneRecord =>
             string.Equals(lSceneRecord.LSceneName, lSceneName, StringComparison.OrdinalIgnoreCase));
         if (lSceneIndex < 0)
         {
             return false;
         }
 
-        lSceneRecords.RemoveAt(lSceneIndex);
-        LScenePersist();
+        lSceneNext.RemoveAt(lSceneIndex);
+        if (!LScenePersist(lSceneNext))
+        {
+            return false;
+        }
+
+        lSceneRecords.Clear();
+        lSceneRecords.AddRange(lSceneNext);
         return true;
     }
 
@@ -155,36 +162,14 @@ public static class LScene
 
     private static List<LSceneRecord> LSceneLoad()
     {
-        string lScenePath = LScenePathCreate();
-        if (!File.Exists(lScenePath))
-        {
-            return new List<LSceneRecord>();
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<List<LSceneRecord>>(File.ReadAllText(lScenePath))
-                ?? new List<LSceneRecord>();
-        }
-        catch
-        {
-            return new List<LSceneRecord>();
-        }
+        LVaultResult<List<LSceneRecord>> lSceneResult =
+            LVault.LVaultRead<List<LSceneRecord>>(LScenePathCreate());
+        lSceneCatalogueOutcome = lSceneResult.LVaultOutcome;
+        return lSceneResult.LVaultValue ?? new List<LSceneRecord>();
     }
 
-    private static void LScenePersist()
-    {
-        string lScenePath = LScenePathCreate();
-        string? lSceneFolder = Path.GetDirectoryName(lScenePath);
-        if (!string.IsNullOrWhiteSpace(lSceneFolder))
-        {
-            Directory.CreateDirectory(lSceneFolder);
-        }
-
-        File.WriteAllText(
-            lScenePath,
-            JsonSerializer.Serialize(lSceneRecords, new JsonSerializerOptions { WriteIndented = true }));
-    }
+    private static bool LScenePersist(List<LSceneRecord> lSceneCatalogue) =>
+        LVault.LVaultSave(LScenePathCreate(), lSceneCatalogue);
 
     private static string LScenePathCreate() =>
         Path.Combine(LSceneFolderRead(), LSceneFileName);

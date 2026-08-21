@@ -16,7 +16,7 @@ public static class LPreference
 
     public static Func<LPreferenceState>? LPreferenceLoadSeam { get; set; }
 
-    public static Action<LPreferenceState>? LPreferenceSaveSeam { get; set; }
+    public static Func<LPreferenceState, bool>? LPreferenceSaveSeam { get; set; }
 
     public static Action<string>? LPreferenceTraceSeam { get; set; }
 
@@ -29,7 +29,7 @@ public static class LPreference
             LPreferenceLanguageNormalize(LPreferenceStateCurrent.LPreferenceLanguage);
     }
 
-    public static void LPreferenceStateSet(LPreferenceState lPreferenceState)
+    public static bool LPreferenceStateSet(LPreferenceState lPreferenceState)
     {
         lPreferenceState.LPreferenceNormalize();
         lPreferenceState.LPreferenceLanguage = LPreferenceLanguageNormalize(lPreferenceState.LPreferenceLanguage);
@@ -39,8 +39,9 @@ public static class LPreference
         }
 
         LPreferenceStateCurrent = lPreferenceState;
-        LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent);
+        bool lPreferenceSaved = LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent) ?? false;
         LPreferenceDepotCallback?.Invoke();
+        return lPreferenceSaved;
     }
 
     public static void LPreferenceVolumeSet(double lPreferenceVolume)

@@ -90,6 +90,7 @@ $RECYCLE.BIN/
 /docs-internal/
 /docs-work/
 /snapshots/
+/import/
 
 # Build-lifecycle helper scripts
 /*.ps1

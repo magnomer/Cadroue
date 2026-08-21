@@ -627,6 +627,8 @@
   "Options.Work.Retry": "{Terms.Retry}",
   "Options.Language.RestartTitle": "Restart required",
   "Options.Language.RestartMessage": "Restart {Terms.Cadroue} to apply the selected {Terms.Language} throughout the interface.",
+  "Options.Save.FailedTitle": "Settings not saved",
+  "Options.Save.FailedMessage": "{Terms.Cadroue} could not write your settings to disk, so the change may be lost when you close the program. Check that the settings file is not read-only or open in another program.",
   "Options.System.Browse": "{Terms.Browse}",
   "Options.System.Open": "{Terms.Open}",
   "Options.System.Diagnosis": "{Terms.Diagnosis}",
