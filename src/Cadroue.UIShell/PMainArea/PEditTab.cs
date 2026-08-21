@@ -114,9 +114,6 @@ public sealed partial class PEditTab : PTabSurface
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepChange += PEditStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
-        PEditEngineShow();
-        pProcessing.PProcessingEngineChange += PEditEngineHandle;
-        Cadroue.Infrastructure.LRenderer.LRendererEngineChange += PEditEngineShow;
         pInspector.PSkipActiveChange += PEditSkipHandle;
         pInspector.PInspectorPlanChange += PEditPersistentSave;
 
@@ -185,7 +182,6 @@ public sealed partial class PEditTab : PTabSurface
         pEditColorTimer.Stop();
         pViewer.PViewerEngineChange -= PEditCapabilityHandle;
         pViewer.PViewerEngineChange -= pViewer.PViewerNeutralCancel;
-        Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PEditEngineShow;
         base.PTabClose();
     }
     public override PList? PTabList => pList;
@@ -218,19 +214,5 @@ public sealed partial class PEditTab : PTabSurface
         }
 
         return lPreferenceTabLayout;
-    }
-
-    private void PEditEngineShow() =>
-        pProcessing.PProcessingEngineSet(
-            Cadroue.Infrastructure.LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv,
-            Cadroue.Infrastructure.LMpv.LMpvInstalledCheck());
-
-    private void PEditEngineHandle(bool pEditMpv)
-    {
-        LPreferenceState pEditPreference = LPreference.LPreferenceStateCurrent.LPreferenceClone();
-        pEditPreference.LPreferencePreviewEngine = pEditMpv ? "Mpv" : "Flyleaf";
-        LPreference.LPreferenceStateSet(pEditPreference);
-        Cadroue.Infrastructure.LRenderer.LRendererEngineSet(
-            pEditMpv ? LPreviewEngine.LPreviewEngineMpv : LPreviewEngine.LPreviewEngineFlyleaf);
     }
 }

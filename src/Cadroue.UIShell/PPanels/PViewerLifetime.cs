@@ -45,6 +45,7 @@ public sealed partial class PViewer
         pViewerOverlayHost.Children.Add(pViewerOverlay);
         pViewerOverlayHost.Children.Add(pViewerCloseButton);
         pViewerOverlayHost.Children.Add(pViewerAudioSwitch);
+        pViewerOverlayHost.Children.Add(pViewerEngineOverlay);
 
         pViewerFlyleafHost = new FlyleafHost
         {
@@ -55,6 +56,10 @@ public sealed partial class PViewer
             Visibility = Visibility.Collapsed
         };
 
+        var pViewerFrame = new Grid();
+        pViewerFrame.Children.Add(pViewerFlyleafHost);
+        pViewerFrame.Children.Add(pViewerEngineSurface);
+
         pViewerSurface = new Border
         {
             Margin = PPanelOuterMargin,
@@ -62,7 +67,7 @@ public sealed partial class PViewer
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
             CornerRadius = new CornerRadius(0),
-            Child = pViewerFlyleafHost,
+            Child = pViewerFrame,
             AllowDrop = true,
             ClipToBounds = true,
             SnapsToDevicePixels = true
@@ -161,6 +166,7 @@ public sealed partial class PViewer
         {
             pViewerUnloaded = true;
             pViewerLoadSerial++;
+            Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineShow;
             if (pViewerEngineSubscribed)
             {
                 Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineHandle;

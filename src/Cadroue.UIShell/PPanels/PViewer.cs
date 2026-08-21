@@ -31,6 +31,8 @@ public sealed partial class PViewer : PPanel
     private Border? pViewerSurface;
     private readonly Button pViewerCloseButton;
     private readonly Button pViewerAudioSwitch;
+    private readonly Border pViewerEngineSurface;
+    private readonly Border pViewerEngineOverlay;
     private FlyleafHost? pViewerFlyleafHost;
     private bool pViewerHostBuilt;
     private readonly Canvas pViewerOverlay;
@@ -136,6 +138,20 @@ public sealed partial class PViewer : PPanel
 
         pViewerCloseButton = PViewerCloseBuild();
         pViewerAudioSwitch = PViewerAudioBuild();
+        pViewerEngineSurface = new Border
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(16, 16, 0, 0)
+        };
+        pViewerEngineOverlay = new Border
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(16, 16, 0, 0)
+        };
+        PViewerEngineShow();
+        Cadroue.Infrastructure.LRenderer.LRendererEngineChange += PViewerEngineShow;
 
         PDropHandlersAdd();
 

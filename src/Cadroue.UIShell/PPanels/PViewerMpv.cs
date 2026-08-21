@@ -82,7 +82,7 @@ public sealed partial class PViewer
         {
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(16, 16, 0, 0),
+            Margin = new Thickness(16, 52, 0, 0),
             MinWidth = 84,
             Height = 24,
             Padding = new Thickness(12, 0, 12, 0),
@@ -262,11 +262,13 @@ public sealed partial class PViewer
         var pViewerMpvSurface = new Grid();
         pViewerMpvHost = new PViewerMpvHost { Visibility = Visibility.Collapsed };
         pViewerMpvSurface.Children.Add(pViewerMpvHost);
+        pViewerMpvSurface.Children.Add(pViewerEngineSurface);
 
         var pViewerOverlayHost = new Grid();
         pViewerOverlayHost.Children.Add(pViewerOverlay);
         pViewerOverlayHost.Children.Add(pViewerCloseButton);
         pViewerOverlayHost.Children.Add(pViewerAudioSwitch);
+        pViewerOverlayHost.Children.Add(pViewerEngineOverlay);
         pViewerMpvOverlay = new Popup
         {
             Child = pViewerOverlayHost,
@@ -391,6 +393,7 @@ public sealed partial class PViewer
         (pViewerOverlay.Parent as Panel)?.Children.Remove(pViewerOverlay);
         (pViewerCloseButton.Parent as Panel)?.Children.Remove(pViewerCloseButton);
         (pViewerAudioSwitch.Parent as Panel)?.Children.Remove(pViewerAudioSwitch);
+        PViewerEngineDetach();
     }
 
     private async void PViewerMpvApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)
