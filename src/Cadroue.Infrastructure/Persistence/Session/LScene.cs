@@ -65,60 +65,49 @@ public static class LScene
         lSceneRecords.FirstOrDefault(lSceneRecord =>
             string.Equals(lSceneRecord.LSceneName, lSceneName, StringComparison.OrdinalIgnoreCase));
 
-    public static bool LSceneSave(LSceneRecord lScene)
+    public static void LSceneCatalogueLoad()
     {
-        if (lSceneCatalogueOutcome == LVaultOutcome.LVaultUnreadable)
+        string lScenePath = LScenePathCreate();
+        using LLatchScope lSceneLatch = LLatch.LLatchClaim(lScenePath);
+        LVaultResult<List<LSceneRecord>> lSceneDisk = LVault.LVaultRead<List<LSceneRecord>>(lScenePath);
+        lSceneCatalogueOutcome = lSceneDisk.LVaultOutcome;
+        if (lSceneDisk.LVaultOutcome != LVaultOutcome.LVaultUnreadable)
         {
-            return false;
+            lSceneRecords.Clear();
+            lSceneRecords.AddRange(lSceneDisk.LVaultValue ?? new List<LSceneRecord>());
         }
-
-        List<LSceneRecord> lSceneNext = new(lSceneRecords);
-        int lSceneIndex = lSceneNext.FindIndex(lSceneRecord =>
-            string.Equals(lSceneRecord.LSceneName, lScene.LSceneName, StringComparison.OrdinalIgnoreCase));
-        if (lSceneIndex >= 0)
-        {
-            lSceneNext[lSceneIndex] = lScene;
-        }
-        else
-        {
-            lSceneNext.Add(lScene);
-        }
-
-        if (!LScenePersist(lSceneNext))
-        {
-            return false;
-        }
-
-        lSceneRecords.Clear();
-        lSceneRecords.AddRange(lSceneNext);
-        return true;
     }
 
-    public static bool LSceneDelete(string lSceneName)
-    {
-        if (lSceneCatalogueOutcome == LVaultOutcome.LVaultUnreadable)
+    public static bool LSceneSave(LSceneRecord lScene) =>
+        LSceneChange(lSceneNext =>
         {
-            return false;
-        }
+            int lSceneIndex = lSceneNext.FindIndex(lSceneRecord =>
+                string.Equals(lSceneRecord.LSceneName, lScene.LSceneName, StringComparison.OrdinalIgnoreCase));
+            if (lSceneIndex >= 0)
+            {
+                lSceneNext[lSceneIndex] = lScene;
+            }
+            else
+            {
+                lSceneNext.Add(lScene);
+            }
 
-        List<LSceneRecord> lSceneNext = new(lSceneRecords);
-        int lSceneIndex = lSceneNext.FindIndex(lSceneRecord =>
-            string.Equals(lSceneRecord.LSceneName, lSceneName, StringComparison.OrdinalIgnoreCase));
-        if (lSceneIndex < 0)
+            return true;
+        });
+
+    public static bool LSceneDelete(string lSceneName) =>
+        LSceneChange(lSceneNext =>
         {
-            return false;
-        }
+            int lSceneIndex = lSceneNext.FindIndex(lSceneRecord =>
+                string.Equals(lSceneRecord.LSceneName, lSceneName, StringComparison.OrdinalIgnoreCase));
+            if (lSceneIndex < 0)
+            {
+                return false;
+            }
 
-        lSceneNext.RemoveAt(lSceneIndex);
-        if (!LScenePersist(lSceneNext))
-        {
-            return false;
-        }
-
-        lSceneRecords.Clear();
-        lSceneRecords.AddRange(lSceneNext);
-        return true;
-    }
+            lSceneNext.RemoveAt(lSceneIndex);
+            return true;
+        });
 
     public static void LSceneFileSave(LSceneRecord lScene, string lScenePath)
     {
@@ -168,8 +157,39 @@ public static class LScene
         return lSceneResult.LVaultValue ?? new List<LSceneRecord>();
     }
 
-    private static bool LScenePersist(List<LSceneRecord> lSceneCatalogue) =>
-        LVault.LVaultSave(LScenePathCreate(), lSceneCatalogue);
+    private static bool LSceneChange(Func<List<LSceneRecord>, bool> lSceneApply)
+    {
+        string lScenePath = LScenePathCreate();
+        using LLatchScope lSceneLatch = LLatch.LLatchClaim(lScenePath);
+        LVaultResult<List<LSceneRecord>> lSceneDisk = LVault.LVaultRead<List<LSceneRecord>>(lScenePath);
+        if (lSceneDisk.LVaultOutcome == LVaultOutcome.LVaultUnreadable)
+        {
+            lSceneCatalogueOutcome = LVaultOutcome.LVaultUnreadable;
+            return false;
+        }
+
+        List<LSceneRecord> lSceneNext = lSceneDisk.LVaultValue ?? new List<LSceneRecord>();
+        if (!lSceneApply(lSceneNext))
+        {
+            LSceneMirrorSet(lSceneNext);
+            return false;
+        }
+
+        if (!LVault.LVaultSave(lScenePath, lSceneNext))
+        {
+            return false;
+        }
+
+        LSceneMirrorSet(lSceneNext);
+        return true;
+    }
+
+    private static void LSceneMirrorSet(List<LSceneRecord> lSceneCatalogue)
+    {
+        lSceneRecords.Clear();
+        lSceneRecords.AddRange(lSceneCatalogue);
+        lSceneCatalogueOutcome = LVaultOutcome.LVaultLoaded;
+    }
 
     private static string LScenePathCreate() =>
         Path.Combine(LSceneFolderRead(), LSceneFileName);

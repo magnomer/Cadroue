@@ -187,6 +187,7 @@ public sealed partial class PConsole
 
     private void PConsoleSceneRebuild()
     {
+        LScene.LSceneCatalogueLoad();
         pConsoleSceneApplying = true;
         pConsoleRelayCombo.ItemsSource = LScene.LSceneNames;
         pConsoleSceneApplying = false;
