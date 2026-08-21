@@ -61,6 +61,16 @@ public sealed partial class PEditTab
         }
     }
 
+    private void PEditEstimateHandle(LWhitebalanceMethod pMethod)
+    {
+        if (pMethod == LWhitebalanceMethod.LWhitebalanceMethodManual)
+        {
+            return;
+        }
+
+        pViewer.PViewerEstimateRead(pMethod, pInspector.PWhitebalanceEstimateApply);
+    }
+
     private void PEditColorApply()
     {
         pViewer.PViewerColorSet(LPreview.LPreviewColorResolve(PEditVideoRead(PEditMpvCheck())));

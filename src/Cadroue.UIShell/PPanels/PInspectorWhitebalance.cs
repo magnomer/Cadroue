@@ -1,9 +1,6 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Media;
-using System.Windows.Shapes;
 
 using Cadroue.Application;
 using Cadroue.Core;
@@ -14,235 +11,6 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private const string PPickerIcon = "/PAssets/PPanels/PProcessingPicker.svg";
-
-    private ToggleButton pInspectorNeutralTool = null!;
-    private Image pInspectorNeutralIcon = null!;
-    private StackPanel pInspectorNeutralGroup = null!;
-    private Rectangle pInspectorNeutralSwatch = null!;
-    private TextBlock pInspectorNeutralReadout = null!;
-    private TextBlock pInspectorNeutralStatus = null!;
-    private double pWhitebalanceRedGain = 1;
-    private double pWhitebalanceGreenGain = 1;
-    private double pWhitebalanceBlueGain = 1;
-    private int pWhitebalanceSampleRed;
-    private int pWhitebalanceSampleGreen;
-    private int pWhitebalanceSampleBlue;
-    private bool pInspectorNeutralSuppress;
-
-    public event Action<bool>? PWhitebalanceToolChange;
-
-    private UIElement PToneNeutralBuild()
-    {
-        pInspectorNeutralIcon = new Image
-        {
-            Width = 18,
-            Height = 18,
-            Source = PIcon.PIconRead(PPickerIcon, pInspectorIconBrush),
-            Stretch = Stretch.Uniform
-        };
-        pInspectorNeutralTool = new ToggleButton
-        {
-            Content = pInspectorNeutralIcon,
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickTooltip"),
-            Width = 32,
-            Height = 32,
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PInspectorToolCreate(typeof(ToggleButton))
-        };
-        pInspectorNeutralTool.Checked += (_, _) =>
-        {
-            pInspectorNeutralIcon.Source = PIcon.PIconRead(PPickerIcon, pInspectorAccentBrush);
-            if (pInspectorNeutralSuppress)
-            {
-                return;
-            }
-
-            pInspectorCropTool.IsChecked = false;
-            PInspectorNeutralShow(LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceGuide"));
-            PWhitebalanceToolChange?.Invoke(true);
-        };
-        pInspectorNeutralTool.Unchecked += (_, _) =>
-        {
-            pInspectorNeutralIcon.Source = PIcon.PIconRead(PPickerIcon, pInspectorIconBrush);
-            if (pInspectorNeutralSuppress)
-            {
-                return;
-            }
-
-            PInspectorNeutralShow(string.Empty);
-            PWhitebalanceToolChange?.Invoke(false);
-        };
-
-        pInspectorNeutralSwatch = new Rectangle
-        {
-            Width = 20,
-            Height = 20,
-            RadiusX = 3,
-            RadiusY = 3,
-            Stroke = new SolidColorBrush(Color.FromRgb(0x9A, 0xA6, 0xB8)),
-            StrokeThickness = 1,
-            Fill = Brushes.Transparent,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(8, 0, 6, 0)
-        };
-        pInspectorNeutralReadout = new TextBlock
-        {
-            FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x64, 0x70, 0x82)),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-
-        pInspectorNeutralStatus = new TextBlock
-        {
-            FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x64, 0x70, 0x82)),
-            TextWrapping = TextWrapping.Wrap,
-            Visibility = Visibility.Collapsed,
-            Margin = new Thickness(0, 0, 0, 4)
-        };
-
-        UIElement pInspectorNeutralField = PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePicker"),
-            pInspectorNeutralTool);
-
-        var pInspectorNeutralRow = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(0, 2, 0, 0)
-        };
-        pInspectorNeutralRow.Children.Add(pInspectorNeutralSwatch);
-        pInspectorNeutralRow.Children.Add(pInspectorNeutralReadout);
-
-        var pInspectorNeutralColumn = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
-        pInspectorNeutralColumn.Children.Add(pInspectorNeutralField);
-        pInspectorNeutralColumn.Children.Add(pInspectorNeutralRow);
-        pInspectorNeutralColumn.Children.Add(pInspectorNeutralStatus);
-        pInspectorNeutralGroup = pInspectorNeutralRow;
-        PWhitebalanceReadoutUpdate();
-        return pInspectorNeutralColumn;
-    }
-
-    public void PInspectorNeutralShow(string pNeutralStatus)
-    {
-        pInspectorNeutralStatus.Text = pNeutralStatus;
-        pInspectorNeutralStatus.Visibility = string.IsNullOrEmpty(pNeutralStatus)
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-    }
-
-    public void PWhitebalanceToolSet(bool pNeutralArmed)
-    {
-        if (pInspectorNeutralTool.IsChecked == pNeutralArmed)
-        {
-            return;
-        }
-
-        bool pPrevious = pInspectorNeutralSuppress;
-        pInspectorNeutralSuppress = true;
-        pInspectorNeutralTool.IsChecked = pNeutralArmed;
-        pInspectorNeutralSuppress = pPrevious;
-    }
-
-    private void PWhitebalanceToolReset()
-    {
-        if (pInspectorNeutralTool.IsChecked == true)
-        {
-            pInspectorNeutralTool.IsChecked = false;
-        }
-    }
-
-    public void PToneNeutralApply(LNeutralSample pNeutralSample)
-    {
-        PInspectorNeutralShow(string.Empty);
-        pWhitebalanceRedGain = pNeutralSample.LNeutralRedGain;
-        pWhitebalanceGreenGain = pNeutralSample.LNeutralGreenGain;
-        pWhitebalanceBlueGain = pNeutralSample.LNeutralBlueGain;
-        pWhitebalanceSampleRed = pNeutralSample.LNeutralRed;
-        pWhitebalanceSampleGreen = pNeutralSample.LNeutralGreen;
-        pWhitebalanceSampleBlue = pNeutralSample.LNeutralBlue;
-
-        bool pPrevious = pInspectorVideoSuppress;
-        pInspectorVideoSuppress = true;
-        try
-        {
-            pWhitebalanceBox.IsChecked = true;
-            pWhitebalanceManual = true;
-            PWhitebalanceManualUpdate();
-            PToneApplyUpdate(pWhitebalanceBox, pWhitebalanceStack);
-        }
-        finally
-        {
-            pInspectorVideoSuppress = pPrevious;
-        }
-
-        PWhitebalanceReadoutUpdate();
-        PWhitebalanceToolSet(false);
-        PInspectorVideoChange?.Invoke();
-    }
-
-    private void PToneNeutralRestore(LWorkWhitebalanceSettings pNeutralWhitebalance)
-    {
-        if (pNeutralWhitebalance.LWorkWhitebalanceMethod == LWhitebalanceMethod.LWhitebalanceMethodManual)
-        {
-            pWhitebalanceRedGain = pNeutralWhitebalance.LWorkWhitebalanceRed;
-            pWhitebalanceGreenGain = pNeutralWhitebalance.LWorkWhitebalanceGreen;
-            pWhitebalanceBlueGain = pNeutralWhitebalance.LWorkWhitebalanceBlue;
-            pWhitebalanceSampleRed = pNeutralWhitebalance.LWorkSampleRed;
-            pWhitebalanceSampleGreen = pNeutralWhitebalance.LWorkSampleGreen;
-            pWhitebalanceSampleBlue = pNeutralWhitebalance.LWorkSampleBlue;
-        }
-        else
-        {
-            PToneNeutralReset();
-        }
-
-        PWhitebalanceReadoutUpdate();
-    }
-
-    private void PToneNeutralReset()
-    {
-        pWhitebalanceRedGain = 1;
-        pWhitebalanceGreenGain = 1;
-        pWhitebalanceBlueGain = 1;
-        pWhitebalanceSampleRed = 0;
-        pWhitebalanceSampleGreen = 0;
-        pWhitebalanceSampleBlue = 0;
-    }
-
-    private void PWhitebalanceReadoutUpdate()
-    {
-        LNeutralDisplay pNeutralDisplay = LNeutral.LNeutralDisplayResolve(
-            pWhitebalanceManual,
-            pWhitebalanceSampleRed,
-            pWhitebalanceSampleGreen,
-            pWhitebalanceSampleBlue);
-
-        pInspectorNeutralGroup.Visibility = pNeutralDisplay.LNeutralDisplaySampled
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-
-        if (!pNeutralDisplay.LNeutralDisplaySampled)
-        {
-            pInspectorNeutralSwatch.Fill = Brushes.Transparent;
-            pInspectorNeutralReadout.Text = string.Empty;
-            return;
-        }
-
-        pInspectorNeutralSwatch.Fill = new SolidColorBrush(Color.FromRgb(
-            (byte)pNeutralDisplay.LNeutralDisplayRed,
-            (byte)pNeutralDisplay.LNeutralDisplayGreen,
-            (byte)pNeutralDisplay.LNeutralDisplayBlue));
-        pInspectorNeutralReadout.Text = string.Format(
-            CultureInfo.InvariantCulture,
-            LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceSample"),
-            pNeutralDisplay.LNeutralDisplayRed,
-            pNeutralDisplay.LNeutralDisplayGreen,
-            pNeutralDisplay.LNeutralDisplayBlue);
-    }
-
     private CheckBox pWhitebalanceBox = null!;
     private CheckBox pWhitebalancePersistent = null!;
     private ComboBox pWhitebalanceMethod = null!;
@@ -278,14 +46,27 @@ public sealed partial class PInspector
             "Minmax", "Inspector.Video.WhitebalanceMethodMinmax"));
         pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
             "Median", "Inspector.Video.WhitebalanceMethodMedian"));
+        pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
+            "Custom", "Inspector.Video.WhitebalanceMethodCustom"));
         pWhitebalanceMethod.SelectedIndex = 2;
         pWhitebalanceMethod.SelectionChanged += (_, _) =>
         {
+            pWhitebalanceManual = pWhitebalanceMethod.SelectedIndex == 3;
             PWhitebalanceReadoutUpdate();
-            if (!pInspectorVideoSuppress)
+            PWhitebalanceWheelUpdate();
+            if (pInspectorVideoSuppress)
             {
-                PInspectorVideoChange?.Invoke();
+                return;
             }
+
+            if (!pWhitebalanceManual)
+            {
+                pWhitebalanceWheelPresent = false;
+                PWhitebalanceWheelPlace();
+                PWhitebalanceEstimateRaise();
+            }
+
+            PInspectorVideoChange?.Invoke();
         };
 
         pWhitebalanceSaturationSlider = PToneSliderBuild(0, 300, 100);
@@ -309,6 +90,7 @@ public sealed partial class PInspector
             "%",
             pWhitebalanceSaturationValue);
         pWhitebalanceStack.Children.Add(PToneNeutralBuild());
+        pWhitebalanceStack.Children.Add(PWhitebalanceWheelBuild());
         pWhitebalanceStack.Children.Add(pWhitebalanceMethodField);
         pWhitebalanceStack.Children.Add(pWhitebalanceSaturationField);
         pWhitebalanceStack.Children.Add(new TextBlock
@@ -339,30 +121,32 @@ public sealed partial class PInspector
         return pWhitebalanceBody;
     }
 
-    private LWhitebalanceMethod PWhitebalanceMethodRead() =>
-        pWhitebalanceManual
-            ? LWhitebalanceMethod.LWhitebalanceMethodManual
-            : pWhitebalanceMethod.SelectedIndex switch
-            {
-                0 => LWhitebalanceMethod.LWhitebalanceMethodAverage,
-                1 => LWhitebalanceMethod.LWhitebalanceMethodMinmax,
-                _ => LWhitebalanceMethod.LWhitebalanceMethodMedian
-            };
+    public LWhitebalanceMethod PWhitebalanceMethodRead() =>
+        pWhitebalanceMethod.SelectedIndex switch
+        {
+            0 => LWhitebalanceMethod.LWhitebalanceMethodAverage,
+            1 => LWhitebalanceMethod.LWhitebalanceMethodMinmax,
+            3 => LWhitebalanceMethod.LWhitebalanceMethodManual,
+            _ => LWhitebalanceMethod.LWhitebalanceMethodMedian
+        };
 
     private static int PWhitebalanceIndexRead(LWhitebalanceMethod pMethod) => pMethod switch
     {
         LWhitebalanceMethod.LWhitebalanceMethodAverage => 0,
         LWhitebalanceMethod.LWhitebalanceMethodMinmax => 1,
+        LWhitebalanceMethod.LWhitebalanceMethodManual => 3,
         _ => 2
     };
 
+    // Method and Saturation stay live in every mode; Custom is just the combo's face
+    // for a manual pick, so this only keeps the combo selection and manual flag aligned.
     private void PWhitebalanceManualUpdate()
     {
-        bool pEnabled = !pWhitebalanceManual;
-        pWhitebalanceMethodField.IsEnabled = pEnabled;
-        pWhitebalanceMethodField.Opacity = pEnabled ? 1 : 0.4;
-        pWhitebalanceSaturationField.IsEnabled = pEnabled;
-        pWhitebalanceSaturationField.Opacity = pEnabled ? 1 : 0.4;
+        int pWhitebalanceTarget = pWhitebalanceManual ? 3 : pWhitebalanceMethod.SelectedIndex;
+        if (pWhitebalanceTarget == 3 && pWhitebalanceMethod.SelectedIndex != 3)
+        {
+            pWhitebalanceMethod.SelectedIndex = 3;
+        }
     }
 
     private void PWhitebalanceReset()
@@ -391,10 +175,17 @@ public sealed partial class PInspector
             PToneNeutralReset();
             PWhitebalanceReadoutUpdate();
             PWhitebalanceManualUpdate();
+            pWhitebalanceWheelPresent = false;
+            PWhitebalanceWheelPlace();
         }
         finally
         {
             pInspectorVideoSuppress = pPrevious;
+        }
+
+        if (!pPrevious)
+        {
+            PWhitebalanceEstimateRaise();
         }
 
         if (!pPrevious && pChanged)
@@ -423,10 +214,14 @@ public sealed partial class PInspector
         pInspectorNeutralTool.IsEnabled = pWhitebalanceCapable;
         pInspectorNeutralTool.ToolTip = pDisabledTooltip
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickTooltip");
+        pInspectorWhiteTool.IsEnabled = pWhitebalanceCapable;
+        pInspectorWhiteTool.ToolTip = pDisabledTooltip
+            ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickWhiteTooltip");
         ToolTipService.SetShowOnDisabled(pWhitebalanceBody, true);
         ToolTipService.SetShowOnDisabled(pWhitebalanceBox, true);
         ToolTipService.SetShowOnDisabled(pWhitebalancePersistent, true);
         ToolTipService.SetShowOnDisabled(pInspectorNeutralTool, true);
+        ToolTipService.SetShowOnDisabled(pInspectorWhiteTool, true);
         if (!pWhitebalanceCapable)
         {
             PWhitebalanceToolReset();

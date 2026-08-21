@@ -136,6 +136,9 @@ public sealed partial class PEditTab : PTabSurface
         pInspector.PWhitebalanceToolChange += pViewer.PViewerNeutralSet;
         pViewer.PViewerToolChange += pInspector.PWhitebalanceToolSet;
         pViewer.PViewerNeutralChange += PEditNeutralHandle;
+        pInspector.PWhitebalanceEstimateChange += PEditEstimateHandle;
+        pViewer.PViewerMediaChange += _ =>
+            PEditEstimateHandle(pInspector.PWhitebalanceMethodRead());
         pEditColorTimer.Tick += (_, _) =>
         {
             pEditColorTimer.Stop();

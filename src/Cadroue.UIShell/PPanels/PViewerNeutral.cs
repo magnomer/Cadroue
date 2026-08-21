@@ -11,18 +11,21 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PViewer
 {
     public event Action<LNeutralSample>? PViewerNeutralChange;
-    public event Action<bool>? PViewerToolChange;
+    public event Action<bool, LNeutralTarget>? PViewerToolChange;
 
-    public void PViewerNeutralSet(bool pNeutralArmed)
+    public void PViewerNeutralSet(bool pNeutralArmed, LNeutralTarget pNeutralTarget)
     {
         if (pNeutralArmed)
         {
             if (pViewerTool == PViewerTool.Neutral)
             {
+                // Already armed: switch the sampler in place without re-pausing.
+                pViewerNeutralTarget = pNeutralTarget;
                 return;
             }
 
             pViewerNeutralSerial++;
+            pViewerNeutralTarget = pNeutralTarget;
             pViewerNeutralPlaying = LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
             if (pViewerNeutralPlaying)
             {
@@ -34,7 +37,7 @@ public sealed partial class PViewer
             pViewerCropBox.Cursor = null;
             pViewerOverlay.Focus();
             PCropOverlayUpdate();
-            PViewerToolChange?.Invoke(true);
+            PViewerToolChange?.Invoke(true, pNeutralTarget);
             return;
         }
 
@@ -47,7 +50,7 @@ public sealed partial class PViewer
         PViewerNeutralReset();
     }
 
-    public void PViewerNeutralCancel() => PViewerNeutralSet(false);
+    public void PViewerNeutralCancel() => PViewerNeutralSet(false, pViewerNeutralTarget);
 
     private void PViewerNeutralReset()
     {
@@ -66,14 +69,14 @@ public sealed partial class PViewer
         }
 
         PCropOverlayUpdate();
-        PViewerToolChange?.Invoke(false);
+        PViewerToolChange?.Invoke(false, pViewerNeutralTarget);
     }
 
     private void PViewerKeyHandle(object sender, KeyEventArgs keyEvent)
     {
         if (pViewerTool == PViewerTool.Neutral && keyEvent.Key == Key.Escape)
         {
-            PViewerNeutralSet(false);
+            PViewerNeutralSet(false, pViewerNeutralTarget);
             keyEvent.Handled = true;
         }
     }
@@ -124,12 +127,13 @@ public sealed partial class PViewer
         int pViewerNeutralClaim = pViewerNeutralSerial;
         int pViewerPixelX = pViewerPoint.LNeutralPointX;
         int pViewerPixelY = pViewerPoint.LNeutralPointY;
+        LNeutralTarget pViewerTarget = pViewerNeutralTarget;
 
         // A valid click ends the tool immediately; the decode runs in the background.
         PViewerNeutralReset();
         PViewerNeutralRead(
             pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight,
-            pViewerPixelX, pViewerPixelY, pViewerLoadClaim, pViewerNeutralClaim);
+            pViewerPixelX, pViewerPixelY, pViewerLoadClaim, pViewerNeutralClaim, pViewerTarget);
     }
 
     private async void PViewerNeutralRead(
@@ -140,7 +144,8 @@ public sealed partial class PViewer
         int pixelX,
         int pixelY,
         int loadSerial,
-        int neutralSerial)
+        int neutralSerial,
+        LNeutralTarget target)
     {
         LMediaFrame? pViewerFrame = await Task.Run(
             () => LMedia.LMediaFrameRead(sourcePath, position, width, height));
@@ -163,8 +168,50 @@ public sealed partial class PViewer
             pViewerFrame.LMediaFramePixels,
             pViewerFrame.LMediaFrameWidth,
             pViewerFrame.LMediaFrameHeight,
-            pixelX, pixelY);
+            pixelX, pixelY, target);
         PViewerNeutralChange?.Invoke(pViewerSample);
+    }
+
+    // Decode the current frame and report where the given automatic method's neutral
+    // point falls, for the inspector's display-only colour-wheel estimate. The export
+    // correction itself is computed later by ffmpeg's colorcorrect.
+    public async void PViewerEstimateRead(LWhitebalanceMethod pMethod, Action<LNeutralWheel> pEstimate)
+    {
+        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        {
+            pEstimate(new LNeutralWheel(0, 0, false));
+            return;
+        }
+
+        int pViewerSourceWidth = pViewerMediaInfo.LMediaVideoWidth;
+        int pViewerSourceHeight = pViewerMediaInfo.LMediaVideoHeight;
+        string? pViewerPath = PViewerSourcePath;
+        if (pViewerSourceWidth <= 0 || pViewerSourceHeight <= 0 || string.IsNullOrWhiteSpace(pViewerPath))
+        {
+            pEstimate(new LNeutralWheel(0, 0, false));
+            return;
+        }
+
+        TimeSpan pViewerTime = pViewerPlayer.PPlayerReady
+            ? pViewerPlayer.PPlayerTimeRead()
+            : LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
+        int pViewerLoadClaim = pViewerLoadSerial;
+
+        LMediaFrame? pViewerFrame = await Task.Run(
+            () => LMedia.LMediaFrameRead(pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight));
+
+        if (pViewerUnloaded || pViewerLoadClaim != pViewerLoadSerial)
+        {
+            return;
+        }
+
+        pEstimate(pViewerFrame is null
+            ? new LNeutralWheel(0, 0, false)
+            : LNeutral.LNeutralAnalyzeResolve(
+                pViewerFrame.LMediaFramePixels,
+                pViewerFrame.LMediaFrameWidth,
+                pViewerFrame.LMediaFrameHeight,
+                pMethod));
     }
 
     private (Rect Display, Rect Shown) PViewerGeometryRead()

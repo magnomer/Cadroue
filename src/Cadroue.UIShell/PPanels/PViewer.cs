@@ -44,6 +44,7 @@ public sealed partial class PViewer : PPanel
     private LMediaInfo? pViewerMediaInfo;
     private Point? pViewerCropPoint;
     private PViewerTool pViewerTool;
+    private LNeutralTarget pViewerNeutralTarget;
     private int pViewerNeutralSerial;
     private bool pViewerNeutralPlaying;
     private Size? pViewerCropRatio;

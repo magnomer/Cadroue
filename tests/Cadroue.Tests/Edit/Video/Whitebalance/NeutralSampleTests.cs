@@ -147,6 +147,51 @@ public sealed class NeutralSampleTests
         Assert.Equal(first, second);
     }
 
+    [Fact]
+    public void WhiteResolve_NeutralGray_YieldsUnityGains()
+    {
+        byte[] pixels = FrameFill(128, 128, 128, 255);
+
+        LNeutralSample sample = TNeutral.WhiteResolve(pixels, Width, Height, 16, 12);
+
+        Assert.True(sample.LNeutralResolved);
+        Assert.Equal(1, sample.LNeutralRedGain, 3);
+        Assert.Equal(1, sample.LNeutralGreenGain, 3);
+        Assert.Equal(1, sample.LNeutralBlueGain, 3);
+    }
+
+    [Fact]
+    public void WhiteResolve_WarmCast_LiftsToMaxChannelAndNeutralizes()
+    {
+        // Mild cast so no channel needs more than the 2x lift cap; full neutralization.
+        byte[] pixels = FrameFill(170, 160, 150, 255);
+
+        LNeutralSample sample = TNeutral.WhiteResolve(pixels, Width, Height, 16, 12);
+
+        Assert.True(sample.LNeutralResolved);
+        // White target = brightest channel (red here): red stays put, deficient
+        // channels are only lifted, never pushed down.
+        Assert.Equal(1, sample.LNeutralRedGain, 3);
+        Assert.True(sample.LNeutralGreenGain >= 1);
+        Assert.True(sample.LNeutralBlueGain >= 1);
+        Assert.True(sample.LNeutralRedGain < sample.LNeutralBlueGain);
+        AssertNeutralized(sample);
+    }
+
+    [Fact]
+    public void WhiteResolve_BrightNeutral_StaysUnity()
+    {
+        // A near-white neutral pick: lenient picker must not blow it up, gains ~1.
+        byte[] pixels = FrameFill(240, 240, 240, 255);
+
+        LNeutralSample sample = TNeutral.WhiteResolve(pixels, Width, Height, 16, 12);
+
+        Assert.True(sample.LNeutralResolved);
+        Assert.Equal(1, sample.LNeutralRedGain, 3);
+        Assert.Equal(1, sample.LNeutralGreenGain, 3);
+        Assert.Equal(1, sample.LNeutralBlueGain, 3);
+    }
+
     private static void AssertNeutralized(LNeutralSample sample)
     {
         AssertGainBounds(sample);
