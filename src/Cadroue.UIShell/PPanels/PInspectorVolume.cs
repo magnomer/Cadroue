@@ -101,7 +101,7 @@ public sealed partial class PInspector
         || pEqualizerPersistent.IsChecked == true
         || pSkipPersistentBox.IsChecked == true;
 
-    public void PInspectorPersistentApply(LWorkAudio pInspectorPlan)
+    public void PInspectorPersistentApply(LWorkAudio pInspectorPlan, bool pSkipPersistent)
     {
         foreach (LWorkAudioStep pStep in pInspectorPlan.LWorkAudioSteps)
         {
@@ -128,7 +128,7 @@ public sealed partial class PInspector
             }
         }
 
-        pSkipPersistentBox.IsChecked = pInspectorPlan.LWorkAudioSkip;
+        pSkipPersistentBox.IsChecked = pSkipPersistent;
     }
 
     public LWorkAudio PInspectorPersistentRead()
@@ -164,7 +164,10 @@ public sealed partial class PInspector
             pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindEqualizer));
         }
 
-        return new LWorkAudio(pSteps) { LWorkAudioSkip = pSkipPersistentBox.IsChecked == true };
+        return new LWorkAudio(pSteps)
+        {
+            LWorkAudioSkip = pSkipPersistentBox.IsChecked == true && pSkipApplyBox.IsChecked == true
+        };
     }
 
     private void PInspectorStepApply(LWorkAudioStep pStep)

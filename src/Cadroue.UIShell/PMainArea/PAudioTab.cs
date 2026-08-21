@@ -127,7 +127,7 @@ public sealed class PAudioTab : PTabSurface
 
     private void PAudioPersistentRestore(LSceneTabRecord? lPreferenceTabLayout)
     {
-        if (lPreferenceTabLayout?.LSceneInspector?.LSceneInspectorAudio is not { } pAudioPersistentRecord)
+        if (lPreferenceTabLayout?.LSceneInspector is not { LSceneInspectorAudio: { } pAudioPersistentRecord } pAudioInspector)
         {
             return;
         }
@@ -137,7 +137,8 @@ public sealed class PAudioTab : PTabSurface
         {
             LWorkAudio pAudioPersistentPlan = LAudio.LAudioPersistentRead(pAudioPersistentRecord);
             pInspector.PInspectorPlanApply(pAudioPersistentPlan);
-            pInspector.PInspectorPersistentApply(pAudioPersistentPlan);
+            pInspector.PInspectorPersistentApply(pAudioPersistentPlan, pAudioInspector.LSceneInspectorSkip);
+            pInspector.PSkipApply(pAudioPersistentPlan.LWorkAudioSkip);
         }
         finally
         {
@@ -363,7 +364,8 @@ public sealed class PAudioTab : PTabSurface
         {
             lPreferenceTabLayout.LSceneInspector = new LSceneInspectorRecord
             {
-                LSceneInspectorAudio = LAudio.LAudioPersistentCreate(pInspector.PInspectorPersistentRead())
+                LSceneInspectorAudio = LAudio.LAudioPersistentCreate(pInspector.PInspectorPersistentRead()),
+                LSceneInspectorSkip = pInspector.PSkipPersistentCheck()
             };
         }
 

@@ -117,38 +117,26 @@ public sealed partial class PEditTab
                 pCropOwner.LCropboxStatePersistent,
                 pInspector.PSkipPersistentCheck());
 
-            if (pEditPlan is { LEditPlanActive: true } pEditApply)
+            LTraceLog.LTraceInfoRecord(
+                $"Edit applying {(pEditCarryWins ? "persistent" : "sidecar")} plan to '{pEditName}': "
+                + $"{PEditPlanFormat(pEditPlan)}");
+            pViewer.PViewerRotateSet(PEditRotateResolve(pEditPlan.LEditCrop));
+            if (pViewer.PCropSourceRead() is { } pEditRotatedSource)
             {
-                LTraceLog.LTraceInfoRecord(
-                    $"Edit applying {(pEditCarryWins ? "persistent" : "sidecar")} plan to '{pEditName}': "
-                    + $"{PEditPlanFormat(pEditApply)}");
-                pViewer.PViewerRotateSet(PEditRotateResolve(pEditApply.LEditCrop));
-                if (pViewer.PCropSourceRead() is { } pEditRotatedSource)
-                {
-                    pInspector.PInspectorSourceSet(pEditRotatedSource.Width, pEditRotatedSource.Height);
-                }
+                pInspector.PInspectorSourceSet(pEditRotatedSource.Width, pEditRotatedSource.Height);
+            }
 
-                pInspector.PCropPlanApply(pEditApply.LEditCrop, pEditApply.LEditCropActive);
-                pInspector.PInspectorRatioApply(pEditApply.LEditRatioFixed, pEditApply.LEditRatioLenient, pEditApply.LEditRatioWidth, pEditApply.LEditRatioHeight);
-                pInspector.PTonePlanApply(pEditApply.LEditVideo);
-                pInspector.PSkipApply(pEditApply.LEditSkip);
-                pCropOwner.LCropboxStateSet(
-                    pEditApply.LEditCrop,
-                    pEditApply.LEditCropActive,
-                    pEditApply.LEditRatioFixed,
-                    pEditApply.LEditRatioLenient,
-                    pEditApply.LEditRatioWidth,
-                    pEditApply.LEditRatioHeight);
-            }
-            else
-            {
-                LTraceLog.LTraceInfoRecord($"Edit applying no plan to '{pEditName}': inspector left cleared");
-                pViewer.PViewerRotateSet(LRotateFlip.LRotateDefaultCreate());
-                pInspector.PInspectorRatioReset();
-                pInspector.PTonePlanApply(LWorkVideo.LWorkVideoCreate());
-                pInspector.PSkipApply(false);
-                pCropOwner.LCropboxStateReset();
-            }
+            pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropActive);
+            pInspector.PInspectorRatioApply(pEditPlan.LEditRatioFixed, pEditPlan.LEditRatioLenient, pEditPlan.LEditRatioWidth, pEditPlan.LEditRatioHeight);
+            pInspector.PTonePlanApply(pEditPlan.LEditVideo);
+            pInspector.PSkipApply(pEditPlan.LEditSkip);
+            pCropOwner.LCropboxStateSet(
+                pEditPlan.LEditCrop,
+                pEditPlan.LEditCropActive,
+                pEditPlan.LEditRatioFixed,
+                pEditPlan.LEditRatioLenient,
+                pEditPlan.LEditRatioWidth,
+                pEditPlan.LEditRatioHeight);
         }
         finally
         {
