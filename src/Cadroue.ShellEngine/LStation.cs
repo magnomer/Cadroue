@@ -144,7 +144,6 @@ public sealed class LStation
 
         LPreferenceState lPreferenceState = LStationPreferenceSource!();
         LStationRunner.LRunnerProgramPath = LStationProgramSource!();
-        LStationRunner.LRunnerParallelMaximum = (int)lPreferenceState.LPreferenceParallelMaximum;
         LStationRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
         LStationRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;
         LStationRunner.LRunnerRetryMaximum = (int)lPreferenceState.LPreferenceRetryMaximum;

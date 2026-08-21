@@ -40,8 +40,6 @@ public sealed partial class LRunner
 
     public Func<string, string>? LRunnerArgumentTransform { get; set; }
 
-    public int LRunnerParallelMaximum { get; set; } = 1;
-
     public bool LRunnerFailurePaused { get; set; }
 
     public bool LRunnerRetryAllowed { get; set; }
@@ -225,7 +223,7 @@ public sealed partial class LRunner
         lRunnerBatch ??= new LRunnerBatch();
         LRunnerBatch lRunnerActive = lRunnerBatch;
         CancellationToken lRunnerToken = lRunnerActive.LRunnerBatchSource.Token;
-        int lRunnerWanted = Math.Max(1, LRunnerParallelMaximum);
+        const int lRunnerWanted = 1;
 
         while (lRunnerActive.LRunnerBatchActive < lRunnerWanted)
         {

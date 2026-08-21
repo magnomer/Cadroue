@@ -94,7 +94,6 @@ internal sealed partial class PSOptions : Window
     private readonly CheckBox psOptionsOverlapBox;
     private readonly CheckBox psWaveformBox;
 
-    private readonly Slider psOptionsParallelSlider;
     private readonly CheckBox psOptionsFailureBox;
     private readonly CheckBox psOptionsRetryBox;
     private readonly Slider psOptionsRetrySlider;
@@ -146,7 +145,6 @@ internal sealed partial class PSOptions : Window
         psOptionsOverlapBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlapCheck"), lsOptionsDraft.LPreferenceOverlapAllowed);
         psWaveformBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformCheck"), lsOptionsDraft.LPreferenceWaveform);
 
-        psOptionsParallelSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceParallelMaximum, 1, 8);
         psOptionsFailureBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Work.FailurePause"), lsOptionsDraft.LPreferenceFailurePaused);
         psOptionsRetryBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Work.RetryCheck"), lsOptionsDraft.LPreferenceRetryAllowed);
         psOptionsRetrySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceRetryMaximum, 0, 10);
@@ -296,8 +294,6 @@ internal sealed partial class PSOptions : Window
         psOptionsRetryBox.Unchecked += (_, _) => pRetryRow.IsEnabled = false;
 
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Work.MaxParallel"),
-            PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.JobsAtOnce"), psOptionsParallelSlider, string.Empty)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Work.Failure"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.OnFailure"), psOptionsFailureBox),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.Retry"), psOptionsRetryBox),
@@ -330,7 +326,6 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceOverlapAllowed = psOptionsOverlapBox.IsChecked == true;
         lsOptionsDraft.LPreferenceWaveform = psWaveformBox.IsChecked == true;
 
-        lsOptionsDraft.LPreferenceParallelMaximum = psOptionsParallelSlider.Value;
         lsOptionsDraft.LPreferenceFailurePaused = psOptionsFailureBox.IsChecked == true;
         lsOptionsDraft.LPreferenceRetryAllowed = psOptionsRetryBox.IsChecked == true;
         lsOptionsDraft.LPreferenceRetryMaximum = psOptionsRetrySlider.Value;

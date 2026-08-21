@@ -7,8 +7,6 @@ public sealed partial class LSchedule
     public const int LScheduleLeaseSeconds = 10;
     public const int LScheduleAttemptLimit = 3;
 
-    public static Func<Guid, bool>? LScheduleCohortGate { get; set; }
-
     internal static string LScheduleIdShorten(Guid lWorkId) => lWorkId.ToString("N")[..8];
 
     public LWorkItem? LScheduleClaim(Guid lRunnerId)
@@ -30,11 +28,6 @@ public sealed partial class LSchedule
 
         foreach (LWorkRecord lWorkRecord in lScheduleOrdered)
         {
-            if (LScheduleCohortGate is { } lScheduleGate && !lScheduleGate(lWorkRecord.LWorkBatchId))
-            {
-                continue;
-            }
-
             if (!LScheduleStore.LScheduleMove(lWorkRecord.LWorkId, LDepotFolder.LDepotFolderScheduled, LDepotFolder.LDepotFolderRunning))
             {
                 continue;

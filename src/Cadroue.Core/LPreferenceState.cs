@@ -33,7 +33,6 @@ public sealed class LPreferenceState
     public bool LPreferenceOverlapAllowed { get; set; } = true;
     public bool LPreferenceWaveform { get; set; } = true;
 
-    public double LPreferenceParallelMaximum { get; set; }
     public bool LPreferenceFailurePaused { get; set; }
     public bool LPreferenceRetryAllowed { get; set; }
     public double LPreferenceRetryMaximum { get; set; }
@@ -72,7 +71,6 @@ public sealed class LPreferenceState
             LPreferenceSectionPalette = LPreferencePaletteDefault,
             LPreferenceOverlapAllowed = true,
             LPreferenceWaveform = true,
-            LPreferenceParallelMaximum = 1,
             LPreferenceFailurePaused = false,
             LPreferenceRetryAllowed = false,
             LPreferenceRetryMaximum = 3,
@@ -118,7 +116,6 @@ public sealed class LPreferenceState
             LPreferenceSectionPalette = LPreferenceSectionPalette,
             LPreferenceOverlapAllowed = LPreferenceOverlapAllowed,
             LPreferenceWaveform = LPreferenceWaveform,
-            LPreferenceParallelMaximum = LPreferenceParallelMaximum,
             LPreferenceFailurePaused = LPreferenceFailurePaused,
             LPreferenceRetryAllowed = LPreferenceRetryAllowed,
             LPreferenceRetryMaximum = LPreferenceRetryMaximum,
@@ -157,7 +154,6 @@ public sealed class LPreferenceState
             ("Section colour palette", lPreferenceOther.LPreferenceSectionPalette, LPreferenceSectionPalette),
             ("Allow overlapping sections", lPreferenceOther.LPreferenceOverlapAllowed, LPreferenceOverlapAllowed),
             ("Show waveforms", lPreferenceOther.LPreferenceWaveform, LPreferenceWaveform),
-            ("Maximum parallel jobs", lPreferenceOther.LPreferenceParallelMaximum, LPreferenceParallelMaximum),
             ("Pause queue on failure", lPreferenceOther.LPreferenceFailurePaused, LPreferenceFailurePaused),
             ("Retry", lPreferenceOther.LPreferenceRetryAllowed, LPreferenceRetryAllowed),
             ("Retry limit", lPreferenceOther.LPreferenceRetryMaximum, LPreferenceRetryMaximum),
@@ -193,7 +189,6 @@ public sealed class LPreferenceState
         LPreferenceVolume = LPreferenceVolumeClamp(LPreferenceVolume);
         LPreferenceKeyframePixels = LPreferenceNumberClamp(LPreferenceKeyframePixels, 1, 50, 5);
         LPreferenceKeyframeDelay = LPreferenceNumberClamp(LPreferenceKeyframeDelay, 0, 5000, 1000);
-        LPreferenceParallelMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceParallelMaximum, 1, 8, 1));
         LPreferenceRetryMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceRetryMaximum, 0, 10, 3));
         LPreferenceCleanupDays = (int)Math.Round(LPreferenceNumberClamp(LPreferenceCleanupDays, 1, 365, 30));
 

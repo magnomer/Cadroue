@@ -619,8 +619,6 @@
   "Options.Playback.MpvEditNotice": "MPV is used only in Edit tabs.",
   "Options.Playback.EngineNotice": "The chosen {Terms.Preview} engine takes effect immediately. mpv previews only Edit tabs and is disabled until it is installed below.",
   "Options.Work.RetryLimit": "{Terms.Retry} limit",
-  "Options.Work.MaxParallel": "Max parallel {terms.Jobs}",
-  "Options.Work.JobsAtOnce": "{Terms.Jobs} at once",
   "Options.Work.Failure": "Failure",
   "Options.Work.OnFailure": "On failure",
   "Options.Work.Retry": "{Terms.Retry}",

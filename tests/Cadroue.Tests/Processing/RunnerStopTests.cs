@@ -61,7 +61,7 @@ public sealed class RunnerStopTests
     [Fact]
     public void PerWorkCancellation_DoesNotCancelUnrelatedWork()
     {
-        using var runner = new TRunner(parallelMaximum: 2);
+        using var runner = new TRunner(workerCount: 2);
         Guid cancelledId = runner.WorkAdd("cancel-one", steps: 100);
         Guid unrelatedId = runner.WorkAdd("keep-one", steps: 12);
         runner.Start();

@@ -52,7 +52,6 @@ public partial class PProgram : System.Windows.Application
         LStation.LStationPost = LStationDispatch;
         LStation.LStationProgramSource = () => Cadroue.Infrastructure.LRenderer.LRendererProgramCurrent;
         LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
-        LSchedule.LScheduleCohortGate = Cadroue.ShellEngine.LSeal.LSealClaimCheck;
 
         Cadroue.ShellEngine.LMessenger.LMessengerScheduleSource = () => LScheduleCurrent;
         Cadroue.ShellEngine.LCartographer.LCartographerTabsSource = () =>

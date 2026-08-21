@@ -619,8 +619,6 @@
   "Options.Playback.MpvEditNotice": "MPV는 Edit 탭에서만 사용됩니다.",
   "Options.Playback.EngineNotice": "선택한 {Terms.Preview} 엔진이 즉시 적용됩니다. mpv는 Edit 탭만 미리 보기하며 아래에서 설치하기 전까지 비활성화됩니다.",
   "Options.Work.RetryLimit": "{Terms.Retry} 한도",
-  "Options.Work.MaxParallel": "최대 병렬 {Terms.Jobs}",
-  "Options.Work.JobsAtOnce": "동시 {Terms.Jobs}",
   "Options.Work.Failure": "실패",
   "Options.Work.OnFailure": "실패 시",
   "Options.Work.Retry": "{Terms.Retry}",

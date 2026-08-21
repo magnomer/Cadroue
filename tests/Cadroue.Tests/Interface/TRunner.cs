@@ -32,14 +32,14 @@ internal sealed class TRunner : IDisposable
     private readonly string tRunnerRoot;
     private readonly string tRunnerControlRoot;
     private readonly LSchedule tRunnerSchedule;
-    private readonly LRunner tRunner;
+    private readonly List<LRunner> tRunners = new();
     private readonly Dictionary<Guid, string> tRunnerNames = new();
     private readonly HashSet<string> tRunnerOutputPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentQueue<string> tRunnerDiagnostics = new();
     private int tRunnerSequence;
     private bool tRunnerDisposed;
 
-    internal TRunner(int parallelMaximum = 1)
+    internal TRunner(int workerCount = 1)
     {
         tRunnerRoot = Path.Combine(Path.GetTempPath(), "cadroue-runner-" + Guid.NewGuid().ToString("N"));
         tRunnerControlRoot = Path.Combine(tRunnerRoot, "control");
@@ -52,26 +52,28 @@ internal sealed class TRunner : IDisposable
         LDepot.LDepotRootSet(tRunnerRoot);
         tRunnerSchedule = new LSchedule();
         tRunnerSchedule.LScheduleLoad();
-        tRunner = new LRunner(tRunnerSchedule, action =>
+        for (int worker = 0; worker < Math.Max(1, workerCount); worker++)
         {
-            lock (tRunnerScheduleGate)
+            tRunners.Add(new LRunner(tRunnerSchedule, action =>
             {
-                action();
-            }
-        })
-        {
-            LRunnerParallelMaximum = parallelMaximum,
-            LRunnerProgramPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.System),
-                "WindowsPowerShell", "v1.0", "powershell.exe"),
-            LRunnerArgumentPrefix = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass",
-            LRunnerArgumentTransform = arguments =>
+                lock (tRunnerScheduleGate)
+                {
+                    action();
+                }
+            })
             {
-                string outputPath = tRunnerOutputPaths.Single(path =>
-                    arguments.Contains(path, StringComparison.OrdinalIgnoreCase));
-                return $"-File \"{scriptPath}\" \"{tRunnerControlRoot}\" \"{outputPath}\"";
-            }
-        };
+                LRunnerProgramPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.System),
+                    "WindowsPowerShell", "v1.0", "powershell.exe"),
+                LRunnerArgumentPrefix = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass",
+                LRunnerArgumentTransform = arguments =>
+                {
+                    string outputPath = tRunnerOutputPaths.Single(path =>
+                        arguments.Contains(path, StringComparison.OrdinalIgnoreCase));
+                    return $"-File \"{scriptPath}\" \"{tRunnerControlRoot}\" \"{outputPath}\"";
+                }
+            });
+        }
         LRunner.LRunnerVerboseSource = () => true;
         LRunner.LRunnerReport = (message, exception) =>
             tRunnerDiagnostics.Enqueue(exception is null ? message : message + ": " + exception.Message);
@@ -118,17 +120,17 @@ internal sealed class TRunner : IDisposable
         return workItem.LWorkId;
     }
 
-    internal void Start() => tRunner.LRunnerStart();
+    internal void Start() => tRunners.ForEach(runner => runner.LRunnerStart());
 
-    internal void Pause() => tRunner.LRunnerPause();
+    internal void Pause() => tRunners.ForEach(runner => runner.LRunnerPause());
 
-    internal void Stop() => tRunner.LRunnerCancel();
+    internal void Stop() => tRunners.ForEach(runner => runner.LRunnerCancel());
 
-    internal void CancelWork(Guid workId) => tRunner.LRunnerJobCancel(workId);
+    internal void CancelWork(Guid workId) => tRunners.ForEach(runner => runner.LRunnerJobCancel(workId));
 
-    internal bool Suspended => tRunner.LRunnerSuspended;
+    internal bool Suspended => tRunners.All(runner => runner.LRunnerSuspended);
 
-    internal bool Running => tRunner.LRunnerRunning;
+    internal bool Running => tRunners.Any(runner => runner.LRunnerRunning);
 
     internal bool Remove(Guid workId)
     {
@@ -233,8 +235,11 @@ internal sealed class TRunner : IDisposable
         }
 
         tRunnerDisposed = true;
-        tRunner.LRunnerCancel();
-        tRunner.LRunnerDispose();
+        foreach (LRunner runner in tRunners)
+        {
+            runner.LRunnerCancel();
+            runner.LRunnerDispose();
+        }
         LRunner.LRunnerVerboseSource = null;
         LRunner.LRunnerReport = null;
         LRunner.LRunnerFfmpegReport = null;
