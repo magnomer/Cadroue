@@ -101,19 +101,25 @@ public partial class PWindow : Window
         IReadOnlyList<LPresetRecord> pTabExports = lScene.LSceneTabExports;
         IReadOnlyList<LSceneTabRecord> pTabLayouts = lScene.LSceneTabLayouts;
         pTabset.PStripUpdateSuspend();
-        for (int pTabIndex = 0; pTabIndex < pTabKeys.Count; pTabIndex++)
+        try
         {
-            LPreset? pTabExportState = pTabIndex < pTabExports.Count
-                ? LPreset.LPresetStateCreate(pTabExports[pTabIndex])
-                : null;
-            LSceneTabRecord? pTabLayout = pTabIndex < pTabLayouts.Count ? pTabLayouts[pTabIndex] : null;
-            PTabRecord pTabRestored = pTabset.PStripAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
-            if (pTabIndex < lScene.LSceneTabNames.Count)
+            for (int pTabIndex = 0; pTabIndex < pTabKeys.Count; pTabIndex++)
             {
-                pTabset.PStripNameSet(pTabRestored, lScene.LSceneTabNames[pTabIndex]);
+                LPreset? pTabExportState = pTabIndex < pTabExports.Count
+                    ? LPreset.LPresetStateCreate(pTabExports[pTabIndex])
+                    : null;
+                LSceneTabRecord? pTabLayout = pTabIndex < pTabLayouts.Count ? pTabLayouts[pTabIndex] : null;
+                PTabRecord pTabRestored = pTabset.PStripAdd(pTabKeys[pTabIndex], pTabExportState, pTabLayout);
+                if (pTabIndex < lScene.LSceneTabNames.Count)
+                {
+                    pTabset.PStripNameSet(pTabRestored, lScene.LSceneTabNames[pTabIndex]);
+                }
             }
         }
-        pTabset.PStripUpdateResume();
+        finally
+        {
+            pTabset.PStripUpdateResume();
+        }
         PWindowRelayApply(pTabset.PStripRecords, lScene.LSceneTabRelays);
         pTabset.PStripTitleUpdate();
         foreach (PTabRecord pTabRecord in pTabset.PStripRecords)

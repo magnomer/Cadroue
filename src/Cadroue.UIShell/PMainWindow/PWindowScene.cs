@@ -33,12 +33,28 @@ public partial class PWindow
 
     public void PWindowSceneApply(LSceneRecord lScene)
     {
+        LSceneRecord pWindowSceneBackup = PWindowSceneRead(LScene.LSceneActiveName);
         pStrip.PStripAllClose();
 
         LTrace.LTraceLoadingSet(true);
         try
         {
             PWindowSceneRestore(pStrip, lScene);
+        }
+        catch (Exception pWindowSceneError)
+        {
+            LTraceLog.LTraceInfoRecord(
+                $"[SUSPICION] scene apply failed, restoring previous window: {pWindowSceneError}");
+            try
+            {
+                pStrip.PStripAllClose();
+                PWindowSceneRestore(pStrip, pWindowSceneBackup);
+            }
+            catch
+            {
+                pStrip.PStripAllClose();
+                PWindowSceneRestore(pStrip, new LSceneRecord());
+            }
         }
         finally
         {
