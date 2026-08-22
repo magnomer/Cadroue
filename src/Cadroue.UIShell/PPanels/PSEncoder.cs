@@ -47,6 +47,7 @@ internal sealed partial class PSEncoder : Window
     private string? psLocationModeShown;
     private UIElement? psLocationFolderRow;
     private TextBlock? psLocationFolderLabel;
+    private Button? psLocationBrowse;
     private TextBlock? psLocationStatus;
     private readonly ComboBox psVideoSizeCombo;
     private readonly CheckBox psVideoReactiveBox;

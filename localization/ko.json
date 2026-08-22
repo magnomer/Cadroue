@@ -531,6 +531,8 @@
   "Encoder.Location.SourceFolder": "{Terms.Source} {Terms.Folder}",
   "Encoder.Location.Custom": "사용자 지정",
   "Encoder.Location.CustomStatus": "직접 선택한 전체 경로",
+  "Encoder.Location.Browse": "{Terms.Browse}",
+  "Encoder.Location.Choose": "{Terms.Folder} 선택",
   "Encoder.Location.Subfolder": "하위 폴더",
   "Encoder.Location.SubfolderStatus": "각 {Terms.Source} {Terms.File} 옆의 하위 폴더",
   "Encoder.Location.Sibling": "형제 폴더",

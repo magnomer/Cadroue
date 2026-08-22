@@ -531,6 +531,8 @@
   "Encoder.Location.SourceFolder": "{Terms.Source} {Terms.Folder}",
   "Encoder.Location.Custom": "Custom",
   "Encoder.Location.CustomStatus": "A full path you choose",
+  "Encoder.Location.Browse": "{Terms.Browse}",
+  "Encoder.Location.Choose": "Choose {Terms.Folder}",
   "Encoder.Location.Subfolder": "Subfolder",
   "Encoder.Location.SubfolderStatus": "A subfolder beside each {Terms.Source} {Terms.File}",
   "Encoder.Location.Sibling": "Sibling folder",

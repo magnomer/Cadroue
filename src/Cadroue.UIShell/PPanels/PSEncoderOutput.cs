@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -24,7 +25,9 @@ internal sealed partial class PSEncoder
         };
         PSNameBoxPrepare();
         psLocationFolderLabel = PSFieldLabelBuild(string.Empty);
-        psLocationFolderRow = PSFieldLabelledBuild(psLocationFolderLabel, psLocationFolderBox);
+        psLocationBrowse = PSInlineIconBuild(PSLocationBrowseIcon, LLocalization.LLocalizationTextRead("Encoder.Location.Browse"), new Thickness(8, 0, 0, 0));
+        psLocationBrowse.Click += (_, _) => PSLocationCustomRead();
+        psLocationFolderRow = PSFieldLabelledBuild(psLocationFolderLabel, psLocationFolderBox, psLocationBrowse);
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
@@ -330,16 +333,37 @@ internal sealed partial class PSEncoder
         return pGrid;
     }
 
-    private static UIElement PSFieldLabelledBuild(TextBlock pLabel, TextBox pBox)
+    private const string PSLocationBrowseIcon = "/PAssets/PPanels/POpen.svg";
+
+    private static UIElement PSFieldLabelledBuild(TextBlock pLabel, TextBox pBox, Button pBrowse)
     {
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(pLabel);
+
+        var pValueRow = new StackPanel { Orientation = Orientation.Horizontal };
         pBox.MinHeight = PSFieldControlHeight;
-        Grid.SetColumn(pBox, 1);
-        pGrid.Children.Add(pBox);
+        pValueRow.Children.Add(pBox);
+        pValueRow.Children.Add(pBrowse);
+
+        Grid.SetColumn(pValueRow, 1);
+        pGrid.Children.Add(pValueRow);
         return pGrid;
+    }
+
+    private void PSLocationCustomRead()
+    {
+        string pCurrent = psLocationFolderBox.Text.Trim();
+        var pDialog = new Microsoft.Win32.OpenFolderDialog
+        {
+            Title = LLocalization.LLocalizationTextRead("Encoder.Location.Choose"),
+            InitialDirectory = Directory.Exists(pCurrent) ? pCurrent : string.Empty
+        };
+        if (pDialog.ShowDialog() == true)
+        {
+            psLocationFolderBox.Text = pDialog.FolderName;
+        }
     }
 
     private void PSLocationModeUpdate()
@@ -362,6 +386,13 @@ internal sealed partial class PSEncoder
         if (psLocationFolderRow is not null)
         {
             psLocationFolderRow.Visibility = pFolder ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        if (psLocationBrowse is not null)
+        {
+            psLocationBrowse.Visibility = string.Equals(pMode, "Custom location", StringComparison.Ordinal)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         if (psLocationFolderLabel is not null)
