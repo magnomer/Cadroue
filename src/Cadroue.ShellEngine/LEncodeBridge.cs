@@ -10,15 +10,54 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LEncode
 {
+    public static IReadOnlyList<LEncodeStage> LEncodeSmartResolve(
+        LWorkItem lWorkItem,
+        LBridgePlan lBridgePlan,
+        LBridgeCompatibility lBridgeCompatibility)
+    {
+        if (LEncodeSmartCheck(lWorkItem))
+        {
+            LRunner.LRunnerRecord(
+                $"Smart Cut deferred for '{lWorkItem.LWorkOutputName}': the item requires a full re-encode; encoding the requested interval directly");
+            return LEncodeWholeBuild(lWorkItem);
+        }
+
+        if (lBridgePlan.LBridgeOutcome == LBridgeOutcome.LBridgeOutcomeSmart
+            && !lBridgeCompatibility.LBridgeCompatible)
+        {
+            LRunner.LRunnerRecord(
+                $"Smart Cut fallback for '{lWorkItem.LWorkOutputName}': the bridge cannot join the copied continuation ({lBridgeCompatibility.LBridgeReason}); encoding the requested interval");
+            return LEncodeWholeBuild(lWorkItem);
+        }
+
+        LRunner.LRunnerRecord(lBridgePlan.LBridgeOutcome == LBridgeOutcome.LBridgeOutcomeSmart
+            ? $"Smart Cut applied for '{lWorkItem.LWorkOutputName}': lossless bridges with a copied middle"
+            : $"Smart Cut not usable for '{lWorkItem.LWorkOutputName}': encoding the requested interval");
+
+        return LEncodeSmartBuild(lWorkItem, lBridgePlan);
+    }
+
+    internal static bool LEncodeSmartCheck(LWorkItem lWorkItem)
+    {
+        LEncoding lOutput = lWorkItem.LWorkOutput;
+        LEncodingVideo lVideo = lOutput.LEncodingVideo;
+        return !string.Equals(lVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+            || LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput)
+            || !LEncodeSourceCheck(lVideo.LEncodingFps);
+    }
+
+    private static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(LWorkItem lWorkItem) =>
+        new[]
+        {
+            new LEncodeStage(LEncodeArgumentBuild(lWorkItem), LWorkStage.LWorkStageEncode, "Encoding", lWorkItem.LWorkOutputPath, false)
+        };
+
     public static IReadOnlyList<LEncodeStage> LEncodeSmartBuild(LWorkItem lWorkItem, LBridgePlan lBridgePlan)
     {
         if (lBridgePlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart
             || lBridgePlan.LBridgeMiddle is not { } lBridgeMiddle)
         {
-            return new[]
-            {
-                new LEncodeStage(LEncodeArgumentBuild(lWorkItem), LWorkStage.LWorkStageEncode, "Encoding", lWorkItem.LWorkOutputPath, false)
-            };
+            return LEncodeWholeBuild(lWorkItem);
         }
 
         string lBridgeFolder = LDepot.LDepotBridgeRead();

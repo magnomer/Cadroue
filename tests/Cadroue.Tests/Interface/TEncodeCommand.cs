@@ -105,6 +105,36 @@ internal sealed class TEncodeCommand : IDisposable
             middle is { } tMiddle ? SpanCreate(tMiddle) : null,
             tail is { } tTail ? SpanCreate(tTail) : null));
 
+    internal static IReadOnlyList<LEncodeStage> SmartResolveBuild(
+        LWorkItem work,
+        LBridgeOutcome outcome,
+        (double origin, double end) interval,
+        (double origin, double end)? head,
+        (double origin, double end)? middle,
+        (double origin, double end)? tail,
+        bool compatible = true,
+        LBridgeReason reason = LBridgeReason.LBridgeReasonCompatible) =>
+        LEncode.LEncodeSmartResolve(
+            work,
+            new LBridgePlan(
+                outcome,
+                SpanCreate(interval),
+                head is { } tHead ? SpanCreate(tHead) : null,
+                middle is { } tMiddle ? SpanCreate(tMiddle) : null,
+                tail is { } tTail ? SpanCreate(tTail) : null),
+            new LBridgeCompatibility(compatible, reason));
+
+    internal static LWorkItem SmartCropWorkCreate(string source, string output)
+    {
+        LWorkItem work = WorkCreate(
+            LWorkKind.LWorkKindSplit, source, output,
+            OutputCreate(videoMode: "Copy", audioMode: "Copy"),
+            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30),
+            crop: new LWorkCrop(20, 0, 0, 0, 0, false, false));
+        work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 30_000, true) { LWorkMediaCodec = "h264" };
+        return work;
+    }
+
     private static LBridgeSpan SpanCreate((double origin, double end) span) =>
         new(TimeSpan.FromSeconds(span.origin), TimeSpan.FromSeconds(span.end));
 

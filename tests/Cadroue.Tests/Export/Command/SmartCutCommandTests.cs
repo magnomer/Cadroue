@@ -115,4 +115,51 @@ public sealed class SmartCutCommandTests
         Assert.Single(TEncodeCommand.SmartStagesBuild(
             work, LBridgeOutcome.LBridgeOutcomeInvalid, (30, 10), null, null, null));
     }
+
+    [Fact]
+    public void ProcessingPresent_DefersToWholeIntervalEncode()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartCropWorkCreate(SmartSource, SmartOutput);
+
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartResolveBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30)));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+
+        Assert.False(stage.LEncodeStageTemporary);
+        Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
+        Assert.DoesNotContain("concat", tokens);
+        Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
+    }
+
+    [Fact]
+    public void IncompatibleBridge_FallsBackToWholeIntervalEncode()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
+
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartResolveBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30),
+            compatible: false, reason: LBridgeReason.LBridgeReasonPixel));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+
+        Assert.False(stage.LEncodeStageTemporary);
+        Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
+        Assert.DoesNotContain("concat", tokens);
+        Assert.NotEqual("copy", CommandTokens.ValueAfter(tokens, "-c"));
+    }
+
+    [Fact]
+    public void CleanCopyableCut_UsesHybridSmartPlan()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
+
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartResolveBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+
+        Assert.Equal(4, stages.Count);
+        Assert.True(stages[0].LEncodeStageTemporary);
+        Assert.Contains("concat", CommandTokens.Read(stages[^1].LEncodeStageArguments));
+    }
 }
