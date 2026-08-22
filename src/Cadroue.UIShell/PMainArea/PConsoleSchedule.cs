@@ -159,6 +159,12 @@ public sealed partial class PConsole
         pConsolePreviousButton.Visibility = pSwitchVisibility;
         pConsoleNextButton.Visibility = pSwitchVisibility;
 
+        bool pRunningState = pRunner.LRunnerRunning;
+        bool pIndicatorShown = pTotal > 0;
+        pConsoleSpinner.Visibility = pIndicatorShown && pRunningState ? Visibility.Visible : Visibility.Collapsed;
+        pConsoleRestIcon.Visibility = pIndicatorShown && !pRunningState ? Visibility.Visible : Visibility.Collapsed;
+        PConsoleSpinnerSet(pIndicatorShown && pRunningState);
+
         pConsoleAutoApplying = true;
         pConsoleAutoBox.IsChecked = pStation.LStationAutoActive;
         pConsoleAutoApplying = false;
