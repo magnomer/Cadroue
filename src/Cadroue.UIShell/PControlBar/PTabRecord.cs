@@ -36,7 +36,7 @@ public sealed class PTabRecord : INotifyPropertyChanged
         PTabTitle = pTabTitle;
         PTabLayoutKey = pTabLayoutKey;
         PTabIconSource = PIcon.PIconRead(pTabIconPath);
-        PTabIconActiveSource = PIcon.PIconRead(pTabIconPath, pTabActiveBrush);
+        PTabIconActive = PIcon.PIconRead(pTabIconPath, pTabActiveBrush);
         PTabWorkspace = new PWorkspace(pTabLayoutKey, lExportSpecificState, lPreferenceTabLayout);
         if (PTabWorkspace.PWorkspaceSurface.PTabAction is { } pTabAction)
         {
@@ -98,7 +98,7 @@ public sealed class PTabRecord : INotifyPropertyChanged
 
     public ImageSource PTabIconSource { get; }
 
-    public ImageSource PTabIconActiveSource { get; }
+    public ImageSource PTabIconActive { get; }
 
     public PWorkspace PTabWorkspace { get; }
 

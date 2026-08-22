@@ -187,7 +187,7 @@ public readonly partial record struct LPiece
         }
 
         List<LPiece> lPieceList = lPieces.ToList();
-        lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceOrigin = lPieceCursor };
+        lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceOrigin = lPieceCursor, LPieceDetected = false };
         return (lPieceList, lPieceActiveIndex, false);
     }
 
@@ -218,7 +218,7 @@ public readonly partial record struct LPiece
         }
 
         List<LPiece> lPieceList = lPieces.ToList();
-        lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceEnd = lPieceCursor };
+        lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceEnd = lPieceCursor, LPieceDetected = false };
         return (lPieceList, lPieceActiveIndex, false);
     }
 
@@ -243,7 +243,7 @@ public readonly partial record struct LPiece
         List<LPiece> lPieceList = lPieces.ToList();
         lPieceList.RemoveAt(lPieceIndex);
         lPieceList.Insert(lPieceIndex, new LPiece(lPieceCursor, lPiece.LPieceEnd, lPieceColorIndex, string.Empty));
-        lPieceList.Insert(lPieceIndex, lPiece with { LPieceEnd = lPieceCursor });
+        lPieceList.Insert(lPieceIndex, lPiece with { LPieceEnd = lPieceCursor, LPieceDetected = false });
         return (lPieceList, lPieceIndex, lPieceIndex + 1);
     }
 }

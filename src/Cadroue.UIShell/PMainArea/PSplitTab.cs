@@ -103,6 +103,14 @@ public sealed class PSplitTab : PTabSurface
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pInspector.PSensorChange += PSplitActiveUpdate;
 
+        pInspector.PSensorRunShow();
+        pInspector.PSensorRun += PSplitSweepRun;
+        pInspector.PSensorPersistentChange += PSplitPersistentHandle;
+        pInspector.PBlankPickChange += pArmed =>
+            pViewer.PViewerNeutralSet(pArmed, LNeutralTarget.LNeutralTargetGrey);
+        pViewer.PViewerNeutralChange += pSample =>
+            pInspector.PBlankSampleApply(pSample.LNeutralRed, pSample.LNeutralGreen, pSample.LNeutralBlue);
+
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
         pList.PListPathChange += PSplitPathShow;
@@ -133,6 +141,41 @@ public sealed class PSplitTab : PTabSurface
         }
     }
 
+    private async void PSplitSweepRun()
+    {
+        if (pList.PListEditableRead() is not { } pSplitSelected || !pFlow.PFlowSweepReady)
+        {
+            return;
+        }
+
+        LDetectorBlank pSplitBlank = pInspector.PBlankRead();
+        if (!pSplitBlank.LDetectorBlankEnabled)
+        {
+            return;
+        }
+
+        try
+        {
+            IReadOnlyList<(TimeSpan Start, TimeSpan End)> pSplitBlanks =
+                await LSweep.LSweepScan(pSplitSelected.LDocketEntryPath, pSplitBlank, System.Threading.CancellationToken.None);
+            pFlow.PFlowSweepApply(pSplitBlanks);
+        }
+        catch (Exception pSplitException) when (pSplitException is System.ComponentModel.Win32Exception
+            or System.IO.IOException
+            or InvalidOperationException
+            or OperationCanceledException)
+        {
+        }
+    }
+
+    private void PSplitPersistentHandle(bool pSplitPersistent)
+    {
+        if (pSplitPersistent)
+        {
+            PSplitSweepRun();
+        }
+    }
+
     private void PSplitActiveUpdate()
     {
         foreach (LDetectorKind pDetectorKind in LDetector.LDetectorKinds)
@@ -148,6 +191,24 @@ public sealed class PSplitTab : PTabSurface
         var pDetectors = new List<LSceneDetector>();
         foreach (LDetectorKind pDetectorKind in LDetector.LDetectorKinds)
         {
+            if (pDetectorKind == LDetectorKind.LDetectorKindBlank)
+            {
+                LDetectorBlank pBlank = pInspector.PBlankRead();
+                pDetectors.Add(new LSceneDetector
+                {
+                    LSceneDetectorKind = (int)pDetectorKind,
+                    LSceneDetectorEnabled = pBlank.LDetectorBlankEnabled,
+                    LSceneDetectorType = (int)pBlank.LDetectorBlankType,
+                    LSceneDetectorHue = pBlank.LDetectorBlankHue,
+                    LSceneDetectorSaturation = pBlank.LDetectorBlankSaturation,
+                    LSceneDetectorBrightness = pBlank.LDetectorBlankBrightness,
+                    LSceneDetectorTolerance = pBlank.LDetectorBlankTolerance,
+                    LSceneDetectorCoverage = pBlank.LDetectorBlankCoverage,
+                    LSceneDetectorMinimum = pBlank.LDetectorBlankMinimum
+                });
+                continue;
+            }
+
             LDetectorStep pStep = pInspector.PSensorStepRead(pDetectorKind);
             pDetectors.Add(new LSceneDetector
             {
@@ -176,6 +237,22 @@ public sealed class PSplitTab : PTabSurface
             }
 
             var pDetectorKind = (LDetectorKind)pDetector.LSceneDetectorKind;
+            if (pDetectorKind == LDetectorKind.LDetectorKindBlank)
+            {
+                pInspector.PBlankApply(new LDetectorBlank(
+                    pDetector.LSceneDetectorEnabled,
+                    Enum.IsDefined(typeof(LDetectorType), pDetector.LSceneDetectorType)
+                        ? (LDetectorType)pDetector.LSceneDetectorType
+                        : LDetectorType.LDetectorTypeBlack,
+                    pDetector.LSceneDetectorHue,
+                    pDetector.LSceneDetectorSaturation,
+                    pDetector.LSceneDetectorBrightness,
+                    pDetector.LSceneDetectorTolerance,
+                    pDetector.LSceneDetectorCoverage,
+                    pDetector.LSceneDetectorMinimum));
+                continue;
+            }
+
             pInspector.PSensorApply(new LDetectorStep(
                 pDetectorKind,
                 pDetector.LSceneDetectorEnabled,
@@ -183,6 +260,7 @@ public sealed class PSplitTab : PTabSurface
                 pDetector.LSceneDetectorMinimum));
         }
 
+        pInspector.PSensorPersistentApply(lPreferenceTabLayout.LSceneDetectPersistent);
         PSplitActiveUpdate();
     }
 
@@ -194,6 +272,7 @@ public sealed class PSplitTab : PTabSurface
     {
         LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
         lPreferenceTabLayout.LSceneDetectors = PSplitDetectorRead();
+        lPreferenceTabLayout.LSceneDetectPersistent = pInspector.PSensorPersistentCheck();
         return lPreferenceTabLayout;
     }
 }

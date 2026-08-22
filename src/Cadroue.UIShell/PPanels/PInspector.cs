@@ -105,9 +105,13 @@ public sealed partial class PInspector : PPanel
 
         pInspectorPersistentRow = PInspectorPersistentBuild();
 
+        UIElement pRunRow = PSensorRunBuild();
+
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
+        DockPanel.SetDock(pRunRow, Dock.Bottom);
+        pRoot.Children.Add(pRunRow);
         DockPanel.SetDock(pInspectorPersistentRow, Dock.Bottom);
         pRoot.Children.Add(pInspectorPersistentRow);
         pRoot.Children.Add(pScroll);

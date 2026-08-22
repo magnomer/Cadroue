@@ -87,7 +87,7 @@ internal sealed partial class PSEncoder
             return "Encoder.Video.Notice.Copied";
         }
 
-        return psSmartAllowed ? "Encoder.Video.Notice.Smart" : "Encoder.Video.Notice.SmartFull";
+        return psEncoderSmart ? "Encoder.Video.Notice.Smart" : "Encoder.Video.Notice.SmartFull";
     }
 
     private LCapabilityCodec PSVideoCapabilityRead() =>

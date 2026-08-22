@@ -7,6 +7,8 @@ public readonly partial record struct LPiece(TimeSpan LPieceOrigin, TimeSpan LPi
 
     public bool LPieceHidden { get; init; }
 
+    public bool LPieceDetected { get; init; }
+
     public string LPiecePrefix
     {
         get => lPiecePrefix ?? string.Empty;

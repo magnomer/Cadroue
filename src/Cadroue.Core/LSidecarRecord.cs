@@ -112,6 +112,7 @@ public sealed class LSidecarSectionRecord
     public string LSidecarPrefix { get; set; } = string.Empty;
     public string LSidecarSuffix { get; set; } = string.Empty;
     public bool LSidecarHidden { get; set; }
+    public bool LSidecarDetected { get; set; }
 }
 
 public sealed class LSidecarWaveformRecord

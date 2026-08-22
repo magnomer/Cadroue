@@ -113,11 +113,11 @@ internal static class PSField
             Foreground = null,
             Background = null,
             BorderThickness = new Thickness(0),
-            Template = PSFieldProgressTemplateBuild(),
+            Template = PSFieldTemplateBuild(),
             Visibility = Visibility.Collapsed
         };
 
-    private static ControlTemplate PSFieldProgressTemplateBuild()
+    private static ControlTemplate PSFieldTemplateBuild()
     {
         const string pXaml = @"
 <ControlTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""

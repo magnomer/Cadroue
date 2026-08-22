@@ -28,7 +28,7 @@
             <Setter Property="Source" Value="{Binding PTabIconSource}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding PTabSelectState}" Value="True">
-                    <Setter Property="Source" Value="{Binding PTabIconActiveSource}" />
+                    <Setter Property="Source" Value="{Binding PTabIconActive}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>

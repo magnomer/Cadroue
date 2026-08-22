@@ -45,8 +45,8 @@ internal sealed partial class PSEncoder
         psVideoResolutionSlider.Loaded += (_, _) => PSVideoKnobApply();
         psVideoWidthSlider.Loaded += (_, _) => PSVideoKnobApply();
         psVideoHeightSlider.Loaded += (_, _) => PSVideoKnobApply();
-        psVideoWidthSlider.ValueChanged += (_, _) => PSVideoDimensionSliderChange(psVideoWidthSlider, psVideoWidthBox);
-        psVideoHeightSlider.ValueChanged += (_, _) => PSVideoDimensionSliderChange(psVideoHeightSlider, psVideoHeightBox);
+        psVideoWidthSlider.ValueChanged += (_, _) => PSVideoDimensionChange(psVideoWidthSlider, psVideoWidthBox);
+        psVideoHeightSlider.ValueChanged += (_, _) => PSVideoDimensionChange(psVideoHeightSlider, psVideoHeightBox);
         psVideoWidthBox.TextChanged += (_, _) => PSVideoDimensionChange();
         psVideoHeightBox.TextChanged += (_, _) => PSVideoDimensionChange();
 
@@ -65,7 +65,7 @@ internal sealed partial class PSEncoder
         return pGrid;
     }
 
-    private void PSVideoDimensionSliderChange(Slider? pSlider, TextBox? pBox)
+    private void PSVideoDimensionChange(Slider? pSlider, TextBox? pBox)
     {
         if (psVideoSizeBusy || pSlider is null || pBox is null)
         {
@@ -227,11 +227,11 @@ internal sealed partial class PSEncoder
             psVideoHeightBox.Foreground = pForeground;
         }
 
-        PSVideoDimensionSliderSync();
+        PSVideoDimensionSync();
         PSVideoKnobApply();
     }
 
-    private void PSVideoDimensionSliderSync()
+    private void PSVideoDimensionSync()
     {
         if (psVideoSizeBusy || psVideoWidthSlider is null || psVideoHeightSlider is null)
         {

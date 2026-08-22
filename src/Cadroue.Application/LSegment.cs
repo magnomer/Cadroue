@@ -62,7 +62,8 @@ public sealed class LSegment
         LSidecarName = lSegmentPiece.LPieceName,
         LSidecarPrefix = lSegmentPiece.LPiecePrefix,
         LSidecarSuffix = lSegmentPiece.LPieceSuffix,
-        LSidecarHidden = lSegmentPiece.LPieceHidden
+        LSidecarHidden = lSegmentPiece.LPieceHidden,
+        LSidecarDetected = lSegmentPiece.LPieceDetected
     };
 
     private static LPiece LSegmentPieceCreate(LSidecarSectionRecord lSegmentRecord) =>
@@ -74,7 +75,8 @@ public sealed class LSegment
         {
             LPiecePrefix = lSegmentRecord.LSidecarPrefix ?? string.Empty,
             LPieceSuffix = lSegmentRecord.LSidecarSuffix ?? string.Empty,
-            LPieceHidden = lSegmentRecord.LSidecarHidden
+            LPieceHidden = lSegmentRecord.LSidecarHidden,
+            LPieceDetected = lSegmentRecord.LSidecarDetected
         };
 
     private void LSegmentSave()
@@ -173,7 +175,7 @@ public sealed class LSegment
         if (lSegmentIndex < 0 || lSegmentIndex >= lSegmentPieces.Count) return;
         List<LPiece> lSegmentList = lSegmentPieces.ToList();
         LPiece lSegmentPiece = lSegmentList[lSegmentIndex];
-        lSegmentList[lSegmentIndex] = lSegmentPiece with { LPieceHidden = !lSegmentPiece.LPieceHidden };
+        lSegmentList[lSegmentIndex] = lSegmentPiece with { LPieceHidden = !lSegmentPiece.LPieceHidden, LPieceDetected = false };
         LSegmentApply(lSegmentList, lSegmentIndexActive);
     }
 
@@ -238,7 +240,8 @@ public sealed class LSegment
         {
             LPieceName = lSegmentName,
             LPiecePrefix = lSegmentPrefixNew,
-            LPieceSuffix = lSegmentSuffixNew
+            LPieceSuffix = lSegmentSuffixNew,
+            LPieceDetected = false
         };
         LSegmentApply(lSegmentList, lSegmentIndexActive);
     }

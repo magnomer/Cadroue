@@ -25,6 +25,8 @@ public sealed class LSceneTabRecord
 
     public bool LSceneAutoRelay { get; set; }
 
+    public bool LSceneDetectPersistent { get; set; }
+
     public LSceneTabRecord LSceneTabClone()
     {
         return new LSceneTabRecord
@@ -38,7 +40,8 @@ public sealed class LSceneTabRecord
             LSceneGroupAuto = LSceneGroupAuto,
             LSceneGroupStrict = LSceneGroupStrict,
             LSceneGroupMode = LSceneGroupMode,
-            LSceneAutoRelay = LSceneAutoRelay
+            LSceneAutoRelay = LSceneAutoRelay,
+            LSceneDetectPersistent = LSceneDetectPersistent
         };
     }
 }
@@ -75,6 +78,18 @@ public sealed class LSceneDetector
 
     public double LSceneDetectorMinimum { get; set; }
 
+    public int LSceneDetectorType { get; set; }
+
+    public double LSceneDetectorHue { get; set; }
+
+    public double LSceneDetectorSaturation { get; set; }
+
+    public double LSceneDetectorBrightness { get; set; }
+
+    public double LSceneDetectorTolerance { get; set; } = LDetector.LDetectorToleranceRead().LDetectorBoundDefault;
+
+    public double LSceneDetectorCoverage { get; set; } = LDetector.LDetectorCoverageRead().LDetectorBoundDefault;
+
     public LSceneDetector LSceneDetectorClone()
     {
         return new LSceneDetector
@@ -82,7 +97,13 @@ public sealed class LSceneDetector
             LSceneDetectorKind = LSceneDetectorKind,
             LSceneDetectorEnabled = LSceneDetectorEnabled,
             LSceneDetectorThreshold = LSceneDetectorThreshold,
-            LSceneDetectorMinimum = LSceneDetectorMinimum
+            LSceneDetectorMinimum = LSceneDetectorMinimum,
+            LSceneDetectorType = LSceneDetectorType,
+            LSceneDetectorHue = LSceneDetectorHue,
+            LSceneDetectorSaturation = LSceneDetectorSaturation,
+            LSceneDetectorBrightness = LSceneDetectorBrightness,
+            LSceneDetectorTolerance = LSceneDetectorTolerance,
+            LSceneDetectorCoverage = LSceneDetectorCoverage
         };
     }
 }

@@ -77,8 +77,13 @@ public sealed partial class PInspector
 
     private StackPanel PSensorBuild(LDetectorKind pDetectorKind)
     {
+        if (pDetectorKind == LDetectorKind.LDetectorKindBlank)
+        {
+            return PBlankBuild();
+        }
+
         PSensorSection pSection = null!;
-        void pSensorEdit()
+        void pSensorRaise()
         {
             if (!pSection.PSensorSuppress)
             {
@@ -110,11 +115,11 @@ public sealed partial class PInspector
             Slider pThresholdSlider = PInspectorSliderBuild(
                 pThresholdValue, pThresholdBound.LDetectorBoundLeast, pThresholdBound.LDetectorBoundMost,
                 pThresholdBound.LDetectorBoundDefault, pFormat,
-                () => pThresholdBound.LDetectorBoundDefault, pSensorEdit);
+                () => pThresholdBound.LDetectorBoundDefault, pSensorRaise);
             Slider pMinimumSlider = PInspectorSliderBuild(
                 pMinimumValue, pMinimumBound.LDetectorBoundLeast, pMinimumBound.LDetectorBoundMost,
                 pMinimumBound.LDetectorBoundDefault, "0.0",
-                () => pMinimumBound.LDetectorBoundDefault, pSensorEdit);
+                () => pMinimumBound.LDetectorBoundDefault, pSensorRaise);
 
             pStack.Children.Add(PFilterSliderBuild(
                 LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));

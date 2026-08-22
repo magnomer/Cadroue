@@ -49,6 +49,12 @@ public static class LDetector
         _ => new LDetectorBound(0, 60, 2.0)
     };
 
+    public static LDetectorBound LDetectorToleranceRead() => new(0, 0.5, 0.05);
+
+    public static LDetectorBound LDetectorCoverageRead() => new(0.5, 1.0, 0.98);
+
+    public static LDetectorBound LDetectorBrightnessRead() => new(0, 1.0, 0);
+
     public static LDetectorStep LDetectorCreate(LDetectorKind lDetectorKind) => new(
         lDetectorKind,
         false,
