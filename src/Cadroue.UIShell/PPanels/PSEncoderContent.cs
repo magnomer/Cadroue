@@ -40,7 +40,6 @@ internal sealed partial class PSEncoder
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSOutputPlateBuild());
-        pPanel.Children.Add(PSModePlateBuild());
         return pPanel;
     }
 

@@ -120,7 +120,6 @@ public sealed partial class LPreset
             && string.Equals(lPreset.LPresetExtension, lSource.LPresetExtension, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetCollision, lSource.LPresetCollision, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetCollisionSuffix, lSource.LPresetCollisionSuffix, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetExportMode, lSource.LPresetExportMode, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetVideo.LPresetStream, lSource.LPresetVideo.LPresetStream, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetAudio.LPresetStream, lSource.LPresetAudio.LPresetStream, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetVideo.LPresetMode, lSource.LPresetVideo.LPresetMode, StringComparison.Ordinal)

@@ -17,7 +17,6 @@ public sealed partial class PExport : UserControl
 
     private readonly LPresetSelection lPresetOwner;
     private readonly TextBlock pExportSummaryBox;
-    private readonly TextBlock pExportSummaryMode;
     private readonly TextBlock pExportSummaryVideo;
     private readonly TextBlock pExportSummaryAudio;
     private readonly TextBlock pExportSummaryOutput;
@@ -84,7 +83,6 @@ public sealed partial class PExport : UserControl
 
         UIElement pSummary = PExportSummaryBuild(
             PExportLineBuild(LLocalization.LLocalizationTextRead("Roster.Field.Container"), out pExportSummaryBox),
-            PExportLineBuild(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), out pExportSummaryMode),
             PExportLineBuild(LLocalization.LLocalizationTextRead("ExportSummary.Video"), out pExportSummaryVideo),
             PExportLineBuild(LLocalization.LLocalizationTextRead("ExportSummary.Audio"), out pExportSummaryAudio),
             PExportLineBuild(LLocalization.LLocalizationTextRead("Roster.Section.Output"), out pExportSummaryOutput));
@@ -163,7 +161,6 @@ public sealed partial class PExport : UserControl
         pExportPresetBusy = false;
 
         pExportSummaryBox.Text = lWorking.LPresetContainer;
-        pExportSummaryMode.Text = lWorking.LPresetExportMode;
         pExportSummaryVideo.Text = lWorking.LPresetVideoSummary;
         pExportSummaryAudio.Text = lWorking.LPresetAudioSummary;
         pExportSummaryOutput.Text = lWorking.LPresetOutputSummary;

@@ -113,7 +113,6 @@ public sealed partial class PRoster
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Owner"), PRosterOwnerFormat(pWorkItem));
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.State"), PRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Priority"), PRosterPriorityFormat(pWorkItem.LWorkPriority));
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), pWorkItem.LWorkOutput.LEncodingExportMode);
 
         if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateFailed
             && !string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))

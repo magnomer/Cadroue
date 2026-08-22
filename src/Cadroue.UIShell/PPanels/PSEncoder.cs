@@ -37,7 +37,6 @@ internal sealed partial class PSEncoder : Window
     private readonly ComboBox psOutputCollisionCombo;
     private readonly TextBox psOutputSuffixBox;
     private UIElement? psOutputSuffixRow;
-    private readonly ComboBox psModeCombo;
     private readonly ComboBox psVideoStreamCombo;
     private readonly ComboBox psAudioStreamCombo;
     private readonly ComboBox psVideoModeCombo;
@@ -132,10 +131,6 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Rename output", "Encoder.Collision.RenameOutput"),
             new LLocalizationChoice("Rename existing", "Encoder.Collision.RenameExisting"));
         psOutputSuffixBox = PSEntryBuild(lsExportSpecificEdit.LPresetCollisionSuffix, 220);
-        psModeCombo = PSComboBuild(lsExportSpecificEdit.LPresetExportMode,
-            new LLocalizationChoice("Smart export", "Encoder.Mode.Smart"),
-            new LLocalizationChoice("Remux only", "Encoder.Mode.Remux"),
-            new LLocalizationChoice("Re-encode", "Encoder.Mode.Encode"));
         psVideoStreamCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetStream,
             new LLocalizationChoice("Include", "Encoder.Stream.Include"),
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
@@ -258,7 +253,6 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.LPresetExtension = PSComboTextRead(psOutputExtensionCombo);
         lsExportSpecificEdit.LPresetCollision = PSComboTextRead(psOutputCollisionCombo);
         lsExportSpecificEdit.LPresetCollisionSuffix = psOutputSuffixBox.Text.Trim();
-        lsExportSpecificEdit.LPresetExportMode = PSComboTextRead(psModeCombo);
         lsExportSpecificEdit.LPresetVideo.LPresetStream = PSComboTextRead(psVideoStreamCombo);
         lsExportSpecificEdit.LPresetAudio.LPresetStream = PSComboTextRead(psAudioStreamCombo);
         lsExportSpecificEdit.LPresetVideo.LPresetMode = PSComboTextRead(psVideoModeCombo);

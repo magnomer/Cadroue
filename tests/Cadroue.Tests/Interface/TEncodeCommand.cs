@@ -48,7 +48,7 @@ internal sealed class TEncodeCommand : IDisposable
         string audioSampleRate = "Same as source",
         string audioChannels = "Same as source") =>
         new(
-            "{OriginalName}", container, extension, "Same as source", string.Empty, "Transcode",
+            "{OriginalName}", container, extension, "Same as source", string.Empty,
             new LEncodingVideo(
                 videoStream, videoMode, videoEncoder, videoRateControl, videoQuality, videoSpeed,
                 videoSize, videoSizeReactive, videoFps, videoPixelFormat,

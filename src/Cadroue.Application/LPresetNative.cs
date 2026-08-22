@@ -12,7 +12,6 @@ public sealed partial class LPreset
         LPresetDisplay = "{OriginalName}",
         LPresetContainer = "Same as source",
         LPresetExtension = "",
-        LPresetExportMode = "Smart export",
         LPresetLocation = "Subfolder",
         LPresetLocationFolder = "Audio",
         LPresetVideo = new LPresetVideo
@@ -50,7 +49,6 @@ public sealed partial class LPreset
         LPresetDisplay = "{OriginalName} ({SectionNumber}) {Prefix}{SectionName}{Suffix}",
         LPresetContainer = "Same as source",
         LPresetExtension = "",
-        LPresetExportMode = "Smart export",
         LPresetLocation = "Same as source",
         LPresetLocationFolder = string.Empty,
         LPresetVideo = new LPresetVideo
@@ -88,7 +86,6 @@ public sealed partial class LPreset
         LPresetDisplay = "{OriginalName}",
         LPresetContainer = "Same as source",
         LPresetExtension = "",
-        LPresetExportMode = "Smart export",
         LPresetLocation = "Same as source",
         LPresetLocationFolder = string.Empty,
         LPresetVideo = new LPresetVideo

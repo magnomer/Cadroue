@@ -53,8 +53,6 @@ internal sealed partial class PSEncoder
         ["APV"] = ["MP4", "Matroska"]
     };
 
-    private UIElement PSModePlateBuild() => PSPlateBuild(PSFieldBuild(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), psModeCombo));
-
     private static HashSet<string>? psCodecAvailable;
     private static Task? psCodecProbeTask;
 

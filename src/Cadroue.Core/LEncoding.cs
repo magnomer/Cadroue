@@ -8,7 +8,6 @@ public sealed record LEncoding(
     string LEncodingExtension,
     string LEncodingLocation,
     string LEncodingLocationFolder,
-    string LEncodingExportMode,
     LEncodingVideo LEncodingVideo,
     LEncodingAudio LEncodingAudio,
     string LEncodingPresetName,

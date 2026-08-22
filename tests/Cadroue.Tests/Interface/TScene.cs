@@ -161,7 +161,6 @@ internal sealed class TScene : IDisposable
             LPresetExtension = $".x{marker}",
             LPresetCollision = $"collision-{marker}",
             LPresetCollisionSuffix = $"-{marker}",
-            LPresetExportMode = $"mode-{marker}",
             LPresetLocation = $"location-{marker}",
             LPresetLocationFolder = $"folder-{marker}",
             LPresetVideo = new LPresetVideoRecord

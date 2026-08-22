@@ -13,7 +13,6 @@ internal static class WorkCreationOutput
         extension,
         folder is null ? "Same as source" : "Custom location",
         folder ?? string.Empty,
-        "Transcode",
         new LEncodingVideo(
             "Include", "Encode", "libx264", "Constant quality", "19", "slow",
             "1920x1080", true, "24", "yuv420p",
@@ -31,7 +30,6 @@ internal static class WorkCreationOutput
         extension,
         folder is null ? "Same as source" : "Custom location",
         folder ?? string.Empty,
-        "Smart export",
         new LEncodingVideo(
             "Include", "Copy", string.Empty, string.Empty, string.Empty, string.Empty,
             "Same as source", false, "Same as source", "Auto", new Dictionary<string, string>()),

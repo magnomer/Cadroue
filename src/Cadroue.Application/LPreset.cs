@@ -10,7 +10,6 @@ public sealed partial class LPreset
     public string LPresetExtension { get; set; } = "mp4";
     public string LPresetCollision { get; set; } = "Overwrite";
     public string LPresetCollisionSuffix { get; set; } = "_1";
-    public string LPresetExportMode { get; set; } = "Smart export";
     public string LPresetLocation { get; set; } = "Same as source";
     public string LPresetLocationFolder { get; set; } = string.Empty;
 
@@ -27,7 +26,6 @@ public sealed partial class LPreset
         LPresetExtension,
         LPresetLocation,
         LPresetLocationFolder,
-        LPresetExportMode,
         new LEncodingVideo(
             LPresetVideo.LPresetStream,
             LPresetVideo.LPresetMode,
@@ -62,7 +60,6 @@ public sealed partial class LPreset
         LPresetExtension = LPresetExtension,
         LPresetCollision = LPresetCollision,
         LPresetCollisionSuffix = LPresetCollisionSuffix,
-        LPresetExportMode = LPresetExportMode,
         LPresetLocation = LPresetLocation,
         LPresetLocationFolder = LPresetLocationFolder,
         LPresetVideo = LPresetVideo.LPresetVideoClone(),
@@ -79,7 +76,6 @@ public sealed partial class LPreset
         LPresetExtension = lSource.LPresetExtension;
         LPresetCollision = lSource.LPresetCollision;
         LPresetCollisionSuffix = lSource.LPresetCollisionSuffix;
-        LPresetExportMode = lSource.LPresetExportMode;
         LPresetLocation = lSource.LPresetLocation;
         LPresetLocationFolder = lSource.LPresetLocationFolder;
         LPresetVideo = lSource.LPresetVideo.LPresetVideoClone();
@@ -95,7 +91,6 @@ public sealed partial class LPreset
         LPresetExtension = LPresetExtension,
         LPresetCollision = LPresetCollision,
         LPresetCollisionSuffix = LPresetCollisionSuffix,
-        LPresetExportMode = LPresetExportMode,
         LPresetLocation = LPresetLocation,
         LPresetLocationFolder = LPresetLocationFolder,
         LPresetVideo = new LPresetVideoRecord
@@ -136,7 +131,6 @@ public sealed partial class LPreset
             : lRecord.LPresetExtension,
         LPresetCollision = lRecord.LPresetCollision,
         LPresetCollisionSuffix = lRecord.LPresetCollisionSuffix,
-        LPresetExportMode = lRecord.LPresetExportMode,
         LPresetLocation = string.Equals(lRecord.LPresetLocation, "Custom folder", StringComparison.Ordinal) ? "Custom location" : lRecord.LPresetLocation,
         LPresetLocationFolder = lRecord.LPresetLocationFolder,
         LPresetVideo = new LPresetVideo

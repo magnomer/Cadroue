@@ -184,7 +184,6 @@ public sealed class LWorkOutputRecord
     public string LWorkExtension { get; set; } = ".mp4";
     public string LWorkLocation { get; set; } = "Same as source";
     public string LWorkLocationFolder { get; set; } = string.Empty;
-    public string LWorkExportMode { get; set; } = "Smart export";
     public LWorkVideoRecord LWorkOutputVideo { get; set; } = new();
     public LWorkAudioRecord LWorkOutputAudio { get; set; } = new();
     public string LWorkPresetName { get; set; } = string.Empty;
@@ -198,7 +197,6 @@ public sealed class LWorkOutputRecord
         LWorkExtension = lEncoding.LEncodingExtension,
         LWorkLocation = lEncoding.LEncodingLocation,
         LWorkLocationFolder = lEncoding.LEncodingLocationFolder,
-        LWorkExportMode = lEncoding.LEncodingExportMode,
         LWorkOutputVideo = new LWorkVideoRecord
         {
             LWorkStream = lEncoding.LEncodingVideo.LEncodingStream,
@@ -237,7 +235,6 @@ public sealed class LWorkOutputRecord
         LWorkExtension ??= ".mp4";
         LWorkLocation ??= "Same as source";
         LWorkLocationFolder ??= string.Empty;
-        LWorkExportMode ??= "Smart export";
         (LWorkOutputVideo ??= new()).LWorkVideoNormalize();
         (LWorkOutputAudio ??= new()).LWorkAudioNormalize();
         LWorkPresetName ??= string.Empty;
@@ -251,7 +248,6 @@ public sealed class LWorkOutputRecord
         LWorkExtension,
         LWorkLocation,
         LWorkLocationFolder,
-        LWorkExportMode,
         new LEncodingVideo(
             LWorkOutputVideo.LWorkStream,
             LWorkOutputVideo.LWorkMode,

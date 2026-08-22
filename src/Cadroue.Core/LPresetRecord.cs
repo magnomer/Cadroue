@@ -10,7 +10,6 @@ public sealed class LPresetRecord
     public string LPresetExtension { get; set; } = string.Empty;
     public string LPresetCollision { get; set; } = "Overwrite";
     public string LPresetCollisionSuffix { get; set; } = "_1";
-    public string LPresetExportMode { get; set; } = "Smart export";
     public string LPresetLocation { get; set; } = "Same as source";
     public string LPresetLocationFolder { get; set; } = string.Empty;
     public LPresetVideoRecord LPresetVideo { get; set; } = new();
