@@ -13,6 +13,8 @@ public sealed class LSceneTabRecord
 
     public List<LSceneFunnelRule> LSceneFunnelRules { get; set; } = new();
 
+    public List<LSceneDetector> LSceneDetectors { get; set; } = new();
+
     public LSceneInspectorRecord? LSceneInspector { get; set; }
 
     public bool LSceneGroupAuto { get; set; }
@@ -31,6 +33,7 @@ public sealed class LSceneTabRecord
             LSceneExportHidden = LSceneExportHidden,
             LScenePanelsCollapsed = new List<int>(LScenePanelsCollapsed),
             LSceneFunnelRules = LSceneFunnelRules.Select(pRule => pRule.LSceneFunnelClone()).ToList(),
+            LSceneDetectors = LSceneDetectors.Select(pDetector => pDetector.LSceneDetectorClone()).ToList(),
             LSceneInspector = LSceneInspector?.LSceneInspectorClone(),
             LSceneGroupAuto = LSceneGroupAuto,
             LSceneGroupStrict = LSceneGroupStrict,
@@ -58,6 +61,28 @@ public sealed class LSceneInspectorRecord
             LSceneInspectorEdit = LSceneInspectorEdit,
             LSceneInspectorCrop = LSceneInspectorCrop,
             LSceneInspectorSkip = LSceneInspectorSkip
+        };
+    }
+}
+
+public sealed class LSceneDetector
+{
+    public int LSceneDetectorKind { get; set; }
+
+    public bool LSceneDetectorEnabled { get; set; }
+
+    public double LSceneDetectorThreshold { get; set; }
+
+    public double LSceneDetectorMinimum { get; set; }
+
+    public LSceneDetector LSceneDetectorClone()
+    {
+        return new LSceneDetector
+        {
+            LSceneDetectorKind = LSceneDetectorKind,
+            LSceneDetectorEnabled = LSceneDetectorEnabled,
+            LSceneDetectorThreshold = LSceneDetectorThreshold,
+            LSceneDetectorMinimum = LSceneDetectorMinimum
         };
     }
 }

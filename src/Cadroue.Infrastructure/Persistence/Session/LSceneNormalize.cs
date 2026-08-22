@@ -64,6 +64,7 @@ public static partial class LScene
         lSceneTab.LScenePanelWidths = LSceneListRead(lSceneTab.LScenePanelWidths);
         lSceneTab.LScenePanelsCollapsed = LSceneListRead(lSceneTab.LScenePanelsCollapsed);
         lSceneTab.LSceneFunnelRules = LSceneListRead(lSceneTab.LSceneFunnelRules);
+        lSceneTab.LSceneDetectors = LSceneListRead(lSceneTab.LSceneDetectors);
         LSceneInspectorNormalize(lSceneTab.LSceneInspector);
     }
 

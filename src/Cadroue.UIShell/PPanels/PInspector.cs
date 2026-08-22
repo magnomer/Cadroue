@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.Core;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 
@@ -88,6 +89,11 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PFilterLowBuild());
         pBody.Children.Add(PEqualizerBodyBuild());
         pBody.Children.Add(PSkipBodyBuild());
+        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindBlank));
+        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindScene));
+        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindStill));
+        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindSilence));
+        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindVolume));
 
         var pScroll = new ScrollViewer
         {
@@ -172,6 +178,15 @@ public sealed partial class PInspector : PPanel
 
     public void PInspectorStepShow(string? pStepName)
     {
+        LDetectorKind? pDetectorKind = PSensorKindRead(pStepName);
+        foreach (KeyValuePair<LDetectorKind, PSensorSection> pSensorEntry in pSensorSections)
+        {
+            pSensorEntry.Value.PSensorBody.Visibility =
+                pSensorEntry.Key == pDetectorKind ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        bool pDetectorSelected = pDetectorKind is not null;
+        bool pDetectorBodied = pDetectorKind is { } pDetectorBodyKind && pSensorSections.ContainsKey(pDetectorBodyKind);
         bool pCropSelected = pStepName == "Crop";
         bool pBrightnessSelected = pStepName == "Brightness";
         bool pContrastSelected = pStepName == "Contrast";
@@ -179,7 +194,7 @@ public sealed partial class PInspector : PPanel
         bool pGammaSelected = pStepName == "Gamma";
         bool pExposureSelected = pStepName == "Exposure";
         bool pWhitebalanceSelected = pStepName == "Whitebalance";
-        bool pVolumeSelected = pStepName == "Volume";
+        bool pVolumeSelected = pStepName == "Volume" && !pDetectorSelected;
         bool pNormalizeSelected = pStepName == "Normalize";
         bool pNoiseSelected = pStepName == "Noise Reduction";
         bool pHighPassSelected = pStepName == "High Pass";
@@ -189,7 +204,9 @@ public sealed partial class PInspector : PPanel
         bool pKnownSelected = pCropSelected || pBrightnessSelected || pContrastSelected || pSaturationSelected || pGammaSelected || pExposureSelected || pWhitebalanceSelected || pVolumeSelected || pNormalizeSelected
             || pNoiseSelected || pHighPassSelected || pLowPassSelected || pEqualizerSelected || pSkipSelected;
 
-        pInspectorTitleLabel.Text = pStepName switch
+        pInspectorTitleLabel.Text = pDetectorKind is { } pDetectorTitleKind
+            ? LLocalization.LLocalizationTextRead(PSensorTitleRead(pDetectorTitleKind))
+            : pStepName switch
         {
             "Crop" => LLocalization.LLocalizationTextRead("Inspector.Step.Crop"),
             "Brightness" => LLocalization.LLocalizationTextRead("Inspector.Step.Brightness"),
@@ -236,7 +253,7 @@ public sealed partial class PInspector : PPanel
         pInspectorLowPass.PInspectorPassPersistent.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pEqualizerPersistent.Visibility = pEqualizerSelected ? Visibility.Visible : Visibility.Collapsed;
         pSkipPersistentBox.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorEmptyNotice.Visibility = pKnownSelected ? Visibility.Collapsed : Visibility.Visible;
+        pInspectorEmptyNotice.Visibility = pKnownSelected || pDetectorBodied ? Visibility.Collapsed : Visibility.Visible;
 
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)
         {
