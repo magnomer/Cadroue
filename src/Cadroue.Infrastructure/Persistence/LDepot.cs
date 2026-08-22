@@ -22,6 +22,8 @@ public static class LDepot
 
     private const string LDepotMergeFolder = "mergework";
 
+    private const string LDepotBridgeFolder = "bridgework";
+
     public const string LDepotIndexFile = "work.db";
 
     private static string? lDepotRootOverride;
@@ -69,6 +71,13 @@ public static class LDepot
         string lDepotMerge = Path.Combine(LDepotRootRead(), LDepotMergeFolder);
         Directory.CreateDirectory(lDepotMerge);
         return lDepotMerge;
+    }
+
+    public static string LDepotBridgeRead()
+    {
+        string lDepotBridge = Path.Combine(LDepotRootRead(), LDepotBridgeFolder);
+        Directory.CreateDirectory(lDepotBridge);
+        return lDepotBridge;
     }
 
     public static string LDepotFolderRead(LDepotFolder lDepotFolder) =>

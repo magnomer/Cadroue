@@ -22,7 +22,7 @@ internal enum LEncodeChainMode
     LEncodeChainCorrection
 }
 
-public static class LEncode
+public static partial class LEncode
 {
     public const string LEncodeMeasureToken = "@@MEASURED@@";
 

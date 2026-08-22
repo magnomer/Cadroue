@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
@@ -76,6 +77,36 @@ internal sealed class TEncodeCommand : IDisposable
 
     internal static IReadOnlyList<LEncodeStage> StagesBuild(LWorkItem work) =>
         LEncode.LEncodeStagesBuild(work);
+
+    internal static LWorkItem SmartWorkCreate(
+        string source, string output, string codec = "h264", bool copyMode = true)
+    {
+        LEncoding encoding = copyMode
+            ? OutputCreate(videoMode: "Copy", audioMode: "Copy")
+            : OutputCreate();
+        LWorkItem work = WorkCreate(
+            LWorkKind.LWorkKindSplit, source, output, encoding,
+            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
+        work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 30_000, true) { LWorkMediaCodec = codec };
+        return work;
+    }
+
+    internal static IReadOnlyList<LEncodeStage> SmartStagesBuild(
+        LWorkItem work,
+        LBridgeOutcome outcome,
+        (double origin, double end) interval,
+        (double origin, double end)? head,
+        (double origin, double end)? middle,
+        (double origin, double end)? tail) =>
+        LEncode.LEncodeSmartBuild(work, new LBridgePlan(
+            outcome,
+            SpanCreate(interval),
+            head is { } tHead ? SpanCreate(tHead) : null,
+            middle is { } tMiddle ? SpanCreate(tMiddle) : null,
+            tail is { } tTail ? SpanCreate(tTail) : null));
+
+    private static LBridgeSpan SpanCreate((double origin, double end) span) =>
+        new(TimeSpan.FromSeconds(span.origin), TimeSpan.FromSeconds(span.end));
 
     public void Dispose()
     {
