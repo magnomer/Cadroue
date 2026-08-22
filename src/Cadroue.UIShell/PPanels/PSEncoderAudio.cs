@@ -276,15 +276,12 @@ internal sealed partial class PSEncoder
         psAudioEncodePanel.Children.Add(psAudioEncoderNotice);
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.RateControl"), psAudioRateCombo));
         psAudioEncodePanel.Children.Add(psAudioRowsPanel);
-        psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"), psAudioSampleCombo));
-        psAudioSampleRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.CustomSampleRate"), psAudioSampleCustom);
-        psAudioEncodePanel.Children.Add(psAudioSampleRow);
-        psAudioSampleCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psAudioSampleCombo, psAudioSampleRow);
+        psAudioEncodePanel.Children.Add(psAudioSamplePanel);
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Channels"), psAudioChannelCombo));
         psAudioChannelRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.CustomChannels"), psAudioChannelCustom);
         psAudioEncodePanel.Children.Add(psAudioChannelRow);
         psAudioChannelCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelRow);
-        PSFieldCustomToggle(psAudioSampleCombo, psAudioSampleRow);
+        PSAudioSampleRebuild();
         PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelRow);
 
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Stream"), psAudioStreamCombo));
@@ -316,7 +313,42 @@ internal sealed partial class PSEncoder
         psAudioRowsBusy = false;
 
         PSAudioRowsRebuild();
+        PSAudioSampleRebuild();
         PSAudioEncoderUpdate();
+    }
+
+    private static readonly int[] psAudioSampleStandard =
+        [8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000, 88200, 96000, 176400, 192000];
+
+    private void PSAudioSampleRebuild()
+    {
+        string pStored = psAudioSampleReadout is null
+            ? lsExportSpecificEdit.LPresetAudio.LPresetSampleRate
+            : PSAudioSampleRead();
+        string pEncoder = LCapability.LCapabilityNameRead(PSComboTextRead(psAudioEncoderCombo));
+        IReadOnlyList<int> pRates = LInventory.LInventorySampleRead(pEncoder);
+        bool pDiscrete = pRates.Count > 0;
+        IReadOnlyList<int> pTicks = pDiscrete ? pRates : psAudioSampleStandard;
+        double pMaximum = pTicks.Count > 0 ? pTicks[^1] : 48000;
+
+        psAudioSampleReadout = PSEntryBuild(string.Empty, 96);
+        UIElement pRow = PSFieldDetentBuild(
+            pTicks, pDiscrete, pMaximum,
+            LLocalization.LLocalizationTextRead("Encoder.Sample.Source"),
+            pStored, psAudioSampleReadout);
+
+        psAudioSamplePanel.Children.Clear();
+        psAudioSamplePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"), pRow));
+        psAudioSamplePanel.Children.Add(PSNoticeBuild(LLocalization.LLocalizationTextRead(
+            pDiscrete ? "Encoder.Audio.Notice.SampleFixed" : "Encoder.Audio.Notice.SampleFree")));
+    }
+
+    private string PSAudioSampleRead()
+    {
+        string pText = psAudioSampleReadout?.Text.Trim() ?? string.Empty;
+        return int.TryParse(pText, out int pHz) && pHz > 0
+            ? pHz.ToString()
+            : "Same as source";
     }
 
     private void PSAudioRowsRebuild()

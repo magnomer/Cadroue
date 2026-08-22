@@ -62,9 +62,8 @@ internal sealed partial class PSEncoder : Window
     private readonly ComboBox psVideoPixelCombo;
     private readonly ComboBox psAudioEncoderCombo;
     private readonly ComboBox psAudioRateCombo;
-    private readonly ComboBox psAudioSampleCombo;
-    private readonly TextBox psAudioSampleCustom;
-    private UIElement? psAudioSampleRow;
+    private readonly StackPanel psAudioSamplePanel = new();
+    private TextBox? psAudioSampleReadout;
     private readonly ComboBox psAudioChannelCombo;
     private readonly TextBox psAudioChannelCustom;
     private UIElement? psAudioChannelRow;
@@ -100,7 +99,6 @@ internal sealed partial class PSEncoder : Window
         Visibility = Visibility.Collapsed
     };
 
-    private static readonly string[] psAudioSampleTokens = ["Same as source", "44100", "48000", "88200", "96000"];
     private static readonly string[] psAudioChannelTokens = ["Same as source", "Mono", "Stereo", "5.1"];
 
     private static LLocalizationChoice[] PSEncoderChoicesRead(IReadOnlyList<LCapabilityChoice> pChoices) =>
@@ -190,14 +188,6 @@ internal sealed partial class PSEncoder : Window
         psAudioEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetEncoder, PSAudioItemsRead(lsExportSpecificEdit.LPresetContainer, lsExportSpecificEdit.LPresetAudio.LPresetEncoder));
         LCapabilityCodec pAudioCodec = LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(PSComboTextRead(psAudioEncoderCombo)));
         psAudioRateCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetRateControl, pAudioCodec.LCapabilityModeLabels);
-        psAudioSampleCombo = PSComboBuild(PSFieldCustomResolve(lsExportSpecificEdit.LPresetAudio.LPresetSampleRate, psAudioSampleTokens),
-            new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
-            new LLocalizationChoice("44100", "Encoder.Sample.Hertz44100"),
-            new LLocalizationChoice("48000", "Encoder.Sample.Hertz48000"),
-            new LLocalizationChoice("88200", "Encoder.Sample.Hertz88200"),
-            new LLocalizationChoice("96000", "Encoder.Sample.Hertz96000"),
-            new LLocalizationChoice("Custom", "Encoder.Value.Custom"));
-        psAudioSampleCustom = PSEntryBuild(PSEncoderCustomResolve(lsExportSpecificEdit.LPresetAudio.LPresetSampleRate, psAudioSampleTokens), 120);
         psAudioChannelCombo = PSComboBuild(PSFieldCustomResolve(lsExportSpecificEdit.LPresetAudio.LPresetChannels, psAudioChannelTokens),
             new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
             new LLocalizationChoice("Mono", "Encoder.Value.Mono"),
@@ -264,7 +254,7 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.LPresetAudio.LPresetSpeed = psAudioSpeedCombo is null ? string.Empty : PSComboTextRead(psAudioSpeedCombo);
         lsExportSpecificEdit.LPresetAudio.LPresetExtras = psAudioExtraCombos.ToDictionary(
             pExtra => pExtra.Key, pExtra => PSComboTextRead(pExtra.Value), StringComparer.Ordinal);
-        lsExportSpecificEdit.LPresetAudio.LPresetSampleRate = PSFieldCustomRead(psAudioSampleCombo, psAudioSampleCustom, "Same as source");
+        lsExportSpecificEdit.LPresetAudio.LPresetSampleRate = PSAudioSampleRead();
         lsExportSpecificEdit.LPresetAudio.LPresetChannels = PSFieldCustomRead(psAudioChannelCombo, psAudioChannelCustom, "Same as source");
         lsExportSpecificSource.LPresetCopy(lsExportSpecificEdit);
         psEncoderSummary();

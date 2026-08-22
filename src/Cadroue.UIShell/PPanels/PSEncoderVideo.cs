@@ -248,8 +248,8 @@ internal sealed partial class PSEncoder
             : LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOptionRange", pQuality.CapabilityQualityOption, pRange)));
     }
 
-    // Speed values are registered faster -> slower, so slider left is the fastest encode
-    // and right the slowest / best compression, consistent across every encoder.
+    // Speed values are registered faster -> slower, but the slider reads slowest on the
+    // left and fastest on the right, so slider position mirrors the choice index.
     private void PSVideoSpeedBuild(LCapabilityCodec pCodec, bool pModeStored)
     {
         if (pCodec.CapabilitySpeed is not LCapabilitySpeed pSpeed)
@@ -264,6 +264,7 @@ internal sealed partial class PSEncoder
 
         IReadOnlyList<LCapabilityChoice> pChoices = pSpeed.CapabilitySpeedValues;
         psVideoSpeedChoices = pChoices;
+        int pLast = pChoices.Count - 1;
 
         int pIndex = 0;
         for (int pAt = 0; pAt < pChoices.Count; pAt++)
@@ -275,7 +276,7 @@ internal sealed partial class PSEncoder
             }
         }
 
-        Slider pSlider = PSFieldSliderCreate(0, pChoices.Count - 1, pIndex);
+        Slider pSlider = PSFieldSliderCreate(0, pLast, pLast - pIndex);
         psVideoSpeedSlider = pSlider;
 
         var pText = new TextBlock
@@ -286,7 +287,7 @@ internal sealed partial class PSEncoder
         };
         pSlider.ValueChanged += (_, _) =>
         {
-            int pAt = Math.Clamp((int)Math.Round(pSlider.Value), 0, pChoices.Count - 1);
+            int pAt = pLast - Math.Clamp((int)Math.Round(pSlider.Value), 0, pLast);
             pText.Text = pChoices[pAt].CapabilityChoiceLabel;
         };
 
@@ -300,7 +301,8 @@ internal sealed partial class PSEncoder
             return string.Empty;
         }
 
-        int pAt = Math.Clamp((int)Math.Round(psVideoSpeedSlider.Value), 0, psVideoSpeedChoices.Count - 1);
+        int pLast = psVideoSpeedChoices.Count - 1;
+        int pAt = pLast - Math.Clamp((int)Math.Round(psVideoSpeedSlider.Value), 0, pLast);
         return psVideoSpeedChoices[pAt].CapabilityChoiceValue;
     }
 

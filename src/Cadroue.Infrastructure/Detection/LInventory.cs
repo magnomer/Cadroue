@@ -37,6 +37,7 @@ public static class LInventory
     private static IReadOnlyCollection<string>? lInventoryFilterNames;
     private static LInventoryStatus lInventoryInstalledStatus;
     private static LInventoryStatus lInventoryFilterStatus;
+    private static readonly Dictionary<string, IReadOnlyList<int>> lInventorySampleCache = new(StringComparer.OrdinalIgnoreCase);
 
     public static void LInventoryPrepare()
     {
@@ -126,6 +127,56 @@ public static class LInventory
         lInventoryFilterNames = null;
         lInventoryInstalledStatus = LInventoryStatus.LInventoryStatusPending;
         lInventoryFilterStatus = LInventoryStatus.LInventoryStatusPending;
+        lInventorySampleCache.Clear();
+    }
+
+    public static IReadOnlyList<int> LInventorySampleRead(string lInventoryEncoder)
+    {
+        if (string.IsNullOrWhiteSpace(lInventoryEncoder))
+        {
+            return Array.Empty<int>();
+        }
+
+        if (lInventorySampleCache.TryGetValue(lInventoryEncoder, out IReadOnlyList<int>? lInventoryCached))
+        {
+            return lInventoryCached;
+        }
+
+        LInventoryProcess lInventoryProcess = LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder);
+        IReadOnlyList<int> lInventoryRates = lInventoryProcess.LInventoryProcessSuccess
+            ? LInventorySampleParse(lInventoryProcess.LInventoryProcessOut)
+            : Array.Empty<int>();
+        lInventorySampleCache[lInventoryEncoder] = lInventoryRates;
+        return lInventoryRates;
+    }
+
+    private static IReadOnlyList<int> LInventorySampleParse(string lInventoryText)
+    {
+        const string lInventoryMark = "Supported sample rates:";
+        foreach (string lInventoryRawLine in lInventoryText.Split('\n'))
+        {
+            string lInventoryLine = lInventoryRawLine.TrimEnd('\r').Trim();
+            int lInventoryStart = lInventoryLine.IndexOf(lInventoryMark, StringComparison.Ordinal);
+            if (lInventoryStart < 0)
+            {
+                continue;
+            }
+
+            var lInventoryRates = new List<int>();
+            foreach (string lInventoryToken in lInventoryLine[(lInventoryStart + lInventoryMark.Length)..]
+                         .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(lInventoryToken, out int lInventoryRate) && lInventoryRate > 0)
+                {
+                    lInventoryRates.Add(lInventoryRate);
+                }
+            }
+
+            lInventoryRates.Sort();
+            return lInventoryRates;
+        }
+
+        return Array.Empty<int>();
     }
 
     public static IReadOnlyList<LInventoryEncoder> LInventoryEncodersRead()
@@ -167,7 +218,7 @@ public static class LInventory
         return lInventorySpace < 0 ? lInventoryRest : lInventoryRest[..lInventorySpace];
     }
 
-    private static LInventoryProcess LInventoryProcessRead(string lInventoryArgument)
+    private static LInventoryProcess LInventoryProcessRead(params string[] lInventoryArguments)
     {
         try
         {
@@ -179,7 +230,10 @@ public static class LInventory
                 CreateNoWindow = true
             };
             lInventoryStart.ArgumentList.Add("-hide_banner");
-            lInventoryStart.ArgumentList.Add(lInventoryArgument);
+            foreach (string lInventoryArgument in lInventoryArguments)
+            {
+                lInventoryStart.ArgumentList.Add(lInventoryArgument);
+            }
 
             using var lInventoryProcess = Process.Start(lInventoryStart);
             if (lInventoryProcess is null)
