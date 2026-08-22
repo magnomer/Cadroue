@@ -342,6 +342,18 @@ internal sealed partial class PSEncoder
     private void PSLocationModeUpdate()
     {
         string pMode = PSModeTextRead(psLocationMode);
+
+        if (psLocationFolderBox is not null)
+        {
+            if (psLocationModeShown is not null && !string.Equals(psLocationModeShown, pMode, StringComparison.Ordinal))
+            {
+                lsExportSpecificEdit.LPresetLocationSet(psLocationModeShown, psLocationFolderBox.Text.Trim());
+                psLocationFolderBox.Text = lsExportSpecificEdit.LPresetLocationRead(pMode);
+            }
+
+            psLocationModeShown = pMode;
+        }
+
         bool pFolder = !string.Equals(pMode, "Same as source", StringComparison.Ordinal);
 
         if (psLocationFolderRow is not null)

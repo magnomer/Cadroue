@@ -12,6 +12,9 @@ public sealed class LPresetRecord
     public string LPresetCollisionSuffix { get; set; } = "_1";
     public string LPresetLocation { get; set; } = "Same as source";
     public string LPresetLocationFolder { get; set; } = string.Empty;
+    public string LPresetLocationSubfolder { get; set; } = string.Empty;
+    public string LPresetLocationSibling { get; set; } = string.Empty;
+    public string LPresetLocationCustom { get; set; } = string.Empty;
     public LPresetVideoRecord LPresetVideo { get; set; } = new();
     public LPresetAudioRecord LPresetAudio { get; set; } = new();
 }

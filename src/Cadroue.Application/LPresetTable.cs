@@ -129,7 +129,9 @@ public sealed partial class LPreset
             && string.Equals(lPreset.LPresetVideo.LPresetQuality, lSource.LPresetVideo.LPresetQuality, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetVideo.LPresetSpeedPreset, lSource.LPresetVideo.LPresetSpeedPreset, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetLocation, lSource.LPresetLocation, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetLocationFolder, lSource.LPresetLocationFolder, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetLocationSubfolder, lSource.LPresetLocationSubfolder, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetLocationSibling, lSource.LPresetLocationSibling, StringComparison.Ordinal)
+            && string.Equals(lPreset.LPresetLocationCustom, lSource.LPresetLocationCustom, StringComparison.Ordinal)
             && string.Equals(lPreset.LPresetVideo.LPresetSize, lSource.LPresetVideo.LPresetSize, StringComparison.Ordinal)
             && lPreset.LPresetVideo.LPresetSizeReactive == lSource.LPresetVideo.LPresetSizeReactive
             && string.Equals(lPreset.LPresetVideo.LPresetFps, lSource.LPresetVideo.LPresetFps, StringComparison.Ordinal)

@@ -44,6 +44,7 @@ internal sealed partial class PSEncoder : Window
     private readonly ComboBox psVideoRateCombo;
     private readonly Border psLocationMode;
     private readonly TextBox psLocationFolderBox;
+    private string? psLocationModeShown;
     private UIElement? psLocationFolderRow;
     private TextBlock? psLocationFolderLabel;
     private TextBlock? psLocationStatus;
@@ -163,7 +164,7 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Subfolder", "Encoder.Location.Subfolder"),
             new LLocalizationChoice("Sibling", "Encoder.Location.Sibling"),
             new LLocalizationChoice("Custom location", "Encoder.Location.Custom"));
-        psLocationFolderBox = PSEntryBuild(lsExportSpecificEdit.LPresetLocationFolder, 220);
+        psLocationFolderBox = PSEntryBuild(lsExportSpecificEdit.LPresetLocationRead(lsExportSpecificEdit.LPresetLocation), 220);
         psVideoSizeCombo = PSComboBuild(
             PSVideoLabelRead(lsExportSpecificEdit.LPresetVideo.LPresetSize, lsExportSpecificEdit.LPresetVideo.LPresetSizeReactive),
             PSVideoChoicesRead(lsExportSpecificEdit.LPresetVideo.LPresetSizeReactive));
@@ -253,9 +254,7 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.LPresetVideo.LPresetQuality = psVideoQualityBox?.Text.Trim() ?? string.Empty;
         lsExportSpecificEdit.LPresetVideo.LPresetSpeedPreset = psVideoSpeedCombo is null ? string.Empty : PSComboTextRead(psVideoSpeedCombo);
         lsExportSpecificEdit.LPresetLocation = PSModeTextRead(psLocationMode);
-        lsExportSpecificEdit.LPresetLocationFolder = string.Equals(PSModeTextRead(psLocationMode), "Same as source", StringComparison.Ordinal)
-            ? string.Empty
-            : psLocationFolderBox.Text.Trim();
+        lsExportSpecificEdit.LPresetLocationSet(lsExportSpecificEdit.LPresetLocation, psLocationFolderBox.Text.Trim());
         lsExportSpecificEdit.LPresetVideo.LPresetSize = PSVideoSizeRead(PSComboTextRead(psVideoSizeCombo));
         lsExportSpecificEdit.LPresetVideo.LPresetSizeReactive = psVideoReactiveBox.IsChecked == true;
         lsExportSpecificEdit.LPresetVideo.LPresetFps = PSFieldCustomRead(psVideoFpsCombo, psVideoFpsCustom, "Same as source");

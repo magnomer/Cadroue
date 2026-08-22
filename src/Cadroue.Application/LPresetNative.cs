@@ -13,7 +13,7 @@ public sealed partial class LPreset
         LPresetContainer = "Same as source",
         LPresetExtension = "",
         LPresetLocation = "Subfolder",
-        LPresetLocationFolder = "Audio",
+        LPresetLocationSubfolder = "Audio",
         LPresetVideo = new LPresetVideo
         {
             LPresetStream = "Include",
@@ -50,7 +50,6 @@ public sealed partial class LPreset
         LPresetContainer = "Same as source",
         LPresetExtension = "",
         LPresetLocation = "Same as source",
-        LPresetLocationFolder = string.Empty,
         LPresetVideo = new LPresetVideo
         {
             LPresetStream = "Include",
@@ -87,7 +86,6 @@ public sealed partial class LPreset
         LPresetContainer = "Same as source",
         LPresetExtension = "",
         LPresetLocation = "Same as source",
-        LPresetLocationFolder = string.Empty,
         LPresetVideo = new LPresetVideo
         {
             LPresetStream = "Include",

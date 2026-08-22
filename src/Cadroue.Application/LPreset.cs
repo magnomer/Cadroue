@@ -11,7 +11,9 @@ public sealed partial class LPreset
     public string LPresetCollision { get; set; } = "Overwrite";
     public string LPresetCollisionSuffix { get; set; } = "_1";
     public string LPresetLocation { get; set; } = "Same as source";
-    public string LPresetLocationFolder { get; set; } = string.Empty;
+    public string LPresetLocationSubfolder { get; set; } = string.Empty;
+    public string LPresetLocationSibling { get; set; } = string.Empty;
+    public string LPresetLocationCustom { get; set; } = string.Empty;
 
     public LPresetVideo LPresetVideo { get; set; } = new();
     public LPresetAudio LPresetAudio { get; set; } = new();
@@ -20,12 +22,37 @@ public sealed partial class LPreset
     public string LPresetAudioSummary => $"{LPresetAudio.LPresetMode} ({LAudioStreamSummary})";
     public string LPresetOutputSummary => string.IsNullOrWhiteSpace(LPresetExtension) ? LPresetDisplay : $"{LPresetDisplay}.{LPresetExtension}";
 
+    public string LPresetLocationRead(string lMode) => lMode switch
+    {
+        "Sibling" => LPresetLocationSibling,
+        "Custom location" or "Custom folder" => LPresetLocationCustom,
+        "Subfolder" => LPresetLocationSubfolder,
+        _ => string.Empty
+    };
+
+    public void LPresetLocationSet(string lMode, string lFolder)
+    {
+        switch (lMode)
+        {
+            case "Sibling":
+                LPresetLocationSibling = lFolder;
+                break;
+            case "Custom location":
+            case "Custom folder":
+                LPresetLocationCustom = lFolder;
+                break;
+            case "Subfolder":
+                LPresetLocationSubfolder = lFolder;
+                break;
+        }
+    }
+
     public LEncoding LPresetOutputCreate() => new(
         LPresetDisplay,
         LPresetContainer,
         LPresetExtension,
         LPresetLocation,
-        LPresetLocationFolder,
+        LPresetLocationRead(LPresetLocation),
         new LEncodingVideo(
             LPresetVideo.LPresetStream,
             LPresetVideo.LPresetMode,
@@ -61,7 +88,9 @@ public sealed partial class LPreset
         LPresetCollision = LPresetCollision,
         LPresetCollisionSuffix = LPresetCollisionSuffix,
         LPresetLocation = LPresetLocation,
-        LPresetLocationFolder = LPresetLocationFolder,
+        LPresetLocationSubfolder = LPresetLocationSubfolder,
+        LPresetLocationSibling = LPresetLocationSibling,
+        LPresetLocationCustom = LPresetLocationCustom,
         LPresetVideo = LPresetVideo.LPresetVideoClone(),
         LPresetAudio = LPresetAudio.LPresetAudioClone()
     };
@@ -77,7 +106,9 @@ public sealed partial class LPreset
         LPresetCollision = lSource.LPresetCollision;
         LPresetCollisionSuffix = lSource.LPresetCollisionSuffix;
         LPresetLocation = lSource.LPresetLocation;
-        LPresetLocationFolder = lSource.LPresetLocationFolder;
+        LPresetLocationSubfolder = lSource.LPresetLocationSubfolder;
+        LPresetLocationSibling = lSource.LPresetLocationSibling;
+        LPresetLocationCustom = lSource.LPresetLocationCustom;
         LPresetVideo = lSource.LPresetVideo.LPresetVideoClone();
         LPresetAudio = lSource.LPresetAudio.LPresetAudioClone();
         LPresetChange?.Invoke();
@@ -92,7 +123,9 @@ public sealed partial class LPreset
         LPresetCollision = LPresetCollision,
         LPresetCollisionSuffix = LPresetCollisionSuffix,
         LPresetLocation = LPresetLocation,
-        LPresetLocationFolder = LPresetLocationFolder,
+        LPresetLocationSubfolder = LPresetLocationSubfolder,
+        LPresetLocationSibling = LPresetLocationSibling,
+        LPresetLocationCustom = LPresetLocationCustom,
         LPresetVideo = new LPresetVideoRecord
         {
             LPresetStream = LPresetVideo.LPresetStream,
@@ -121,19 +154,24 @@ public sealed partial class LPreset
         }
     };
 
-    public static LPreset LPresetStateCreate(LPresetRecord lRecord) => new()
+    public static LPreset LPresetStateCreate(LPresetRecord lRecord)
     {
-        LPresetName = lRecord.LPresetName,
-        LPresetDisplay = lRecord.LPresetDisplay,
-        LPresetContainer = lRecord.LPresetContainer,
-        LPresetExtension = string.IsNullOrEmpty(lRecord.LPresetExtension)
-            ? LPresetExtensionsRead(lRecord.LPresetContainer).FirstOrDefault() ?? string.Empty
-            : lRecord.LPresetExtension,
-        LPresetCollision = lRecord.LPresetCollision,
-        LPresetCollisionSuffix = lRecord.LPresetCollisionSuffix,
-        LPresetLocation = string.Equals(lRecord.LPresetLocation, "Custom folder", StringComparison.Ordinal) ? "Custom location" : lRecord.LPresetLocation,
-        LPresetLocationFolder = lRecord.LPresetLocationFolder,
-        LPresetVideo = new LPresetVideo
+        string lLocation = string.Equals(lRecord.LPresetLocation, "Custom folder", StringComparison.Ordinal) ? "Custom location" : lRecord.LPresetLocation;
+        var lPreset = new LPreset
+        {
+            LPresetLocation = lLocation,
+            LPresetLocationSubfolder = lRecord.LPresetLocationSubfolder,
+            LPresetLocationSibling = lRecord.LPresetLocationSibling,
+            LPresetLocationCustom = lRecord.LPresetLocationCustom,
+            LPresetName = lRecord.LPresetName,
+            LPresetDisplay = lRecord.LPresetDisplay,
+            LPresetContainer = lRecord.LPresetContainer,
+            LPresetExtension = string.IsNullOrEmpty(lRecord.LPresetExtension)
+                ? LPresetExtensionsRead(lRecord.LPresetContainer).FirstOrDefault() ?? string.Empty
+                : lRecord.LPresetExtension,
+            LPresetCollision = lRecord.LPresetCollision,
+            LPresetCollisionSuffix = lRecord.LPresetCollisionSuffix,
+            LPresetVideo = new LPresetVideo
         {
             LPresetStream = lRecord.LPresetVideo.LPresetStream,
             LPresetMode = LPresetVideoNormalize(lRecord.LPresetVideo.LPresetMode),
@@ -159,7 +197,18 @@ public sealed partial class LPreset
             LPresetSampleRate = lRecord.LPresetAudio.LPresetSampleRate,
             LPresetChannels = lRecord.LPresetAudio.LPresetChannels
         }
-    };
+        };
+
+        if (string.IsNullOrEmpty(lPreset.LPresetLocationSubfolder)
+            && string.IsNullOrEmpty(lPreset.LPresetLocationSibling)
+            && string.IsNullOrEmpty(lPreset.LPresetLocationCustom)
+            && !string.IsNullOrEmpty(lRecord.LPresetLocationFolder))
+        {
+            lPreset.LPresetLocationSet(lLocation, lRecord.LPresetLocationFolder);
+        }
+
+        return lPreset;
+    }
 
     private static string LPresetVideoNormalize(string lMode) => lMode switch
     {
