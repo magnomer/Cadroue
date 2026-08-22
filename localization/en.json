@@ -653,6 +653,7 @@
   "Diagnosis.Feature.WhitebalanceManual": "{Terms.Whitebalance} (manual)",
   "Diagnosis.Feature.Crop": "{Terms.Crop}",
   "Diagnosis.Feature.Rotate": "Rotate / flip",
+  "Diagnosis.Feature.Resize": "Resize",
   "Diagnosis.Feature.Volume": "{Terms.Volume}",
   "Diagnosis.Feature.Loudness": "Loudness normalize",
   "Diagnosis.Feature.Dynamic": "Dynamic normalize",

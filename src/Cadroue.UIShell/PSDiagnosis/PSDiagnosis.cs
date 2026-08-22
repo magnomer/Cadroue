@@ -121,6 +121,7 @@ internal sealed partial class PSDiagnosis : Window
 
     private void PSDiagnosisCloseHandle(object? pSender, EventArgs pEvent)
     {
+        psDiagnosisGeneration++;
         PSGrabber.PSGrabberPlacementSave(this, PSDiagnosisPlacementKey);
         psDiagnosisGrabber.PSGrabberDetach();
         Closed -= PSDiagnosisCloseHandle;

@@ -653,6 +653,7 @@
   "Diagnosis.Feature.WhitebalanceManual": "{Terms.Whitebalance} (수동)",
   "Diagnosis.Feature.Crop": "{Terms.Crop}",
   "Diagnosis.Feature.Rotate": "회전 / 반전",
+  "Diagnosis.Feature.Resize": "크기 조정",
   "Diagnosis.Feature.Volume": "{Terms.Volume}",
   "Diagnosis.Feature.Loudness": "라우드니스 정규화",
   "Diagnosis.Feature.Dynamic": "다이내믹 정규화",

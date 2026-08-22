@@ -105,12 +105,15 @@ internal sealed class TKeyframes : IDisposable
     internal void Suspend() => tKeyframeOrchestrator.LKeyframeSuspend();
 
     internal async Task WaitForScanCountAsync(int count) =>
-        await WaitUntilAsync(() => ScanCount >= count, $"Expected at least {count} scan(s).");
+        await WaitUntilAsync(() => ScanCount >= count, () => $"Expected at least {count} scan(s). scans={ScanCount}");
 
     internal async Task WaitForCoverageCountAsync(int count) =>
         await WaitUntilAsync(
             () => Latest is { } latest && latest.Coverage.Count >= count,
-            $"Expected at least {count} covered span(s).");
+            () => $"Expected at least {count} covered span(s). "
+                + $"scans={ScanCount} notices={tKeyframeNotices.Count} "
+                + $"latestCoverage={Latest?.Coverage.Count ?? -1} "
+                + $"scanRanges=[{string.Join(";", Scans.Select(s => $"{s.StartMilliseconds}-{s.EndMilliseconds}"))}]");
 
     internal static async Task SettleAsync() => await Task.Delay(150);
 
@@ -193,14 +196,14 @@ internal sealed class TKeyframes : IDisposable
                     (long)range.LKeyframeRangeLimit.TotalMilliseconds))
                 .ToArray()));
 
-    private static async Task WaitUntilAsync(Func<bool> condition, string failure)
+    private static async Task WaitUntilAsync(Func<bool> condition, Func<string> failure)
     {
         DateTime deadline = DateTime.UtcNow.AddSeconds(5);
         while (!condition())
         {
             if (DateTime.UtcNow >= deadline)
             {
-                throw new TimeoutException(failure);
+                throw new TimeoutException(failure());
             }
 
             await Task.Delay(10);

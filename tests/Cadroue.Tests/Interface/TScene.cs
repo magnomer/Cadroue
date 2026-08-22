@@ -61,6 +61,23 @@ internal sealed class TScene : IDisposable
             ?? throw new InvalidDataException("Production returned no scene for a scene file it saved."));
     }
 
+    internal static LSceneRecord RawCreate() => new();
+
+    internal static LSceneTabRecord RawTabCreate() => new();
+
+    internal static LSceneInspectorRecord RawInspectorCreate() => new();
+
+    internal static LSidecarEditRecord RawEditCreate() => new();
+
+    internal static LSidecarAudioRecord RawAudioCreate() => new();
+
+    internal static LSceneRecord Normalize(LSceneRecord? raw) => LScene.LSceneNormalize(raw);
+
+    internal static int VersionCurrent => LScene.LSceneVersionCurrent;
+
+    internal static IReadOnlyList<LSceneRecord> CatalogueNormalize(List<LSceneRecord>? raw) =>
+        LScene.LSceneCatalogueNormalize(raw);
+
     internal void MalformStorage()
     {
         File.WriteAllText(Path.Combine(tSceneRoot, SceneStoreName), "{ definitely-not-a-scene");
@@ -123,6 +140,7 @@ internal sealed class TScene : IDisposable
     {
         return new LSceneRecord
         {
+            LSceneVersion = LScene.LSceneVersionCurrent,
             LSceneName = name,
             LSceneLayoutKeys = new() { $"layout-{marker}", $"layout-{marker + 1}" },
             LSceneTabNames = new() { $"tab-{marker}", $"tab-{marker + 1}" },

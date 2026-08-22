@@ -10,6 +10,7 @@ public sealed partial class LKeyframeOrchestrator
     private void LKeyframeNoticePublish(int serial)
     {
         LKeyframeNotice notice;
+        long lKeyframeStamp;
         lock (lKeyframeLock)
         {
             if (serial != lKeyframeRequestSerial)
@@ -29,8 +30,9 @@ public sealed partial class LKeyframeOrchestrator
                         (index + 1) * LKeyframeGridMilliseconds))))
                 .ToArray();
             notice = new LKeyframeNotice(serial, keyframes, scanned);
+            lKeyframeStamp = ++lKeyframeNoticeSerial;
         }
-        LKeyframeNoticeDispatch(notice);
+        LKeyframeNoticeDispatch(notice, lKeyframeStamp);
     }
 
     private bool LKeyframeRetryCheck(int spanIndex)
@@ -167,23 +169,33 @@ public sealed partial class LKeyframeOrchestrator
         }
     }
 
-    private void LKeyframeNoticeDispatch(LKeyframeNotice notice)
+    private void LKeyframeNoticeDispatch(LKeyframeNotice notice, long stamp)
     {
-        var noticeReady = LKeyframeNoticeReady;
-        if (noticeReady is null)
+        lock (lKeyframeDispatchGate)
         {
-            return;
-        }
-
-        foreach (var handler in noticeReady.GetInvocationList())
-        {
-            try
+            if (stamp <= lKeyframeNoticeCeiling)
             {
-                ((Action<LKeyframeNotice>)handler)(notice);
+                return;
             }
-            catch (Exception ex)
+
+            lKeyframeNoticeCeiling = stamp;
+
+            var noticeReady = LKeyframeNoticeReady;
+            if (noticeReady is null)
             {
-                System.Diagnostics.Debug.WriteLine(ex);
+                return;
+            }
+
+            foreach (var handler in noticeReady.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<LKeyframeNotice>)handler)(notice);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex);
+                }
             }
         }
     }

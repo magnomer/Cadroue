@@ -8,6 +8,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 {
     private const int LKeyframeGridMilliseconds = 20000;
     private readonly object lKeyframeLock = new();
+    private readonly object lKeyframeDispatchGate = new();
     private readonly SortedSet<long> lKeyframeStorage = new();
     private readonly HashSet<int> lKeyframeScannedSpans = new();
     private const int LKeyframeRetryLimit = 3;
@@ -22,6 +23,8 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private string? lKeyframeSourcePath;
     private TimeSpan lKeyframeDuration;
     private int lKeyframeRequestSerial;
+    private long lKeyframeNoticeSerial;
+    private long lKeyframeNoticeCeiling = -1;
     private bool lKeyframeDisposed;
     private readonly Func<string, TimeSpan, TimeSpan, CancellationToken, IReadOnlyList<LKeyframeEntry>> lKeyframeScanner;
 

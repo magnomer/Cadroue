@@ -29,33 +29,36 @@ internal sealed partial class PSDiagnosis
         PSDiagnosisMoodAbsent
     }
 
-    private static readonly (string PSDiagnosisLabel, string PSDiagnosisFilter)[] PSDiagnosisVideoItems =
+    private static readonly (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] PSDiagnosisVideoItems =
     {
-        ("Diagnosis.Feature.Brightness", "eq"),
-        ("Diagnosis.Feature.Contrast", "eq"),
-        ("Diagnosis.Feature.Gamma", "eq"),
-        ("Diagnosis.Feature.Saturation", "eq"),
-        ("Diagnosis.Feature.Exposure", "exposure"),
-        ("Diagnosis.Feature.Whitebalance", "colorcorrect"),
-        ("Diagnosis.Feature.WhitebalanceManual", "colorchannelmixer"),
-        ("Diagnosis.Feature.Crop", "crop"),
-        ("Diagnosis.Feature.Rotate", "transpose")
+        ("Diagnosis.Feature.Brightness", new[] { "eq" }),
+        ("Diagnosis.Feature.Contrast", new[] { "eq" }),
+        ("Diagnosis.Feature.Gamma", new[] { "eq" }),
+        ("Diagnosis.Feature.Saturation", new[] { "eq" }),
+        ("Diagnosis.Feature.Exposure", new[] { "exposure", "scale", "format" }),
+        ("Diagnosis.Feature.Whitebalance", new[] { "colorcorrect", "scale", "format" }),
+        ("Diagnosis.Feature.WhitebalanceManual", new[] { "colorchannelmixer", "eq", "scale", "format" }),
+        ("Diagnosis.Feature.Crop", new[] { "crop" }),
+        ("Diagnosis.Feature.Rotate", new[] { "transpose", "hflip", "vflip" }),
+        ("Diagnosis.Feature.Resize", new[] { "scale" })
     };
 
-    private static readonly (string PSDiagnosisLabel, string PSDiagnosisFilter)[] PSDiagnosisAudioItems =
+    private static readonly (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] PSDiagnosisAudioItems =
     {
-        ("Diagnosis.Feature.Volume", "volume"),
-        ("Diagnosis.Feature.Loudness", "loudnorm"),
-        ("Diagnosis.Feature.Dynamic", "dynaudnorm"),
-        ("Diagnosis.Feature.Equalizer", "equalizer"),
-        ("Diagnosis.Feature.Highpass", "highpass"),
-        ("Diagnosis.Feature.Lowpass", "lowpass"),
-        ("Diagnosis.Feature.Noise", "afftdn")
+        ("Diagnosis.Feature.Volume", new[] { "volume" }),
+        ("Diagnosis.Feature.Loudness", new[] { "loudnorm" }),
+        ("Diagnosis.Feature.Dynamic", new[] { "dynaudnorm" }),
+        ("Diagnosis.Feature.Equalizer", new[] { "equalizer" }),
+        ("Diagnosis.Feature.Highpass", new[] { "highpass" }),
+        ("Diagnosis.Feature.Lowpass", new[] { "lowpass" }),
+        ("Diagnosis.Feature.Noise", new[] { "afftdn" })
     };
 
     private const double PSDiagnosisLabelWidth = 170;
 
-    private readonly List<(string PSDiagnosisFilter, Border PSDiagnosisBadge, TextBlock PSDiagnosisText)> psDiagnosisChecks = new();
+    private readonly List<(string[] PSDiagnosisFilters, Border PSDiagnosisBadge, TextBlock PSDiagnosisText)> psDiagnosisChecks = new();
+
+    private int psDiagnosisGeneration;
 
     private Ellipse psDiagnosisSummaryDot = null!;
     private TextBlock psDiagnosisSummaryText = null!;
@@ -123,17 +126,17 @@ internal sealed partial class PSDiagnosis
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Diagnosis.Group.Program"), pVersion, pLocation);
     }
 
-    private UIElement PSDiagnosisGroupBuild(string pTitleKey, (string PSDiagnosisLabel, string PSDiagnosisFilter)[] pItems)
+    private UIElement PSDiagnosisGroupBuild(string pTitleKey, (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] pItems)
     {
-        UIElement[] pRows = pItems.Select(pItem => PSDiagnosisFeatureBuild(pItem.PSDiagnosisLabel, pItem.PSDiagnosisFilter)).ToArray();
+        UIElement[] pRows = pItems.Select(pItem => PSDiagnosisFeatureBuild(pItem.PSDiagnosisLabel, pItem.PSDiagnosisFilters)).ToArray();
         return PSPlateBuild(LLocalization.LLocalizationTextRead(pTitleKey), pRows);
     }
 
-    private UIElement PSDiagnosisFeatureBuild(string pLabelKey, string pFilter)
+    private UIElement PSDiagnosisFeatureBuild(string pLabelKey, string[] pFilters)
     {
-        Border pChip = PSDiagnosisChipBuild(pFilter);
+        Border pChip = PSDiagnosisChipBuild(string.Join(", ", pFilters));
         (Border pBadge, TextBlock pText) = PSDiagnosisBadgeBuild();
-        psDiagnosisChecks.Add((pFilter, pBadge, pText));
+        psDiagnosisChecks.Add((pFilters, pBadge, pText));
         return PSDiagnosisLineBuild(pLabelKey, pChip, pBadge);
     }
 
@@ -234,7 +237,11 @@ internal sealed partial class PSDiagnosis
             PSDiagnosisBadgeApply(pBadge, pText, PSDiagnosisState.PSDiagnosisStateChecking);
         }
 
-        string[] pFilters = psDiagnosisChecks.Select(pCheck => pCheck.PSDiagnosisFilter).Distinct().ToArray();
+        int pGeneration = ++psDiagnosisGeneration;
+        string[] pFilters = psDiagnosisChecks
+            .SelectMany(pCheck => pCheck.PSDiagnosisFilters)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
         Task.Run(() =>
         {
             string pVersion = LInventory.LInventoryVersionRead();
@@ -242,10 +249,16 @@ internal sealed partial class PSDiagnosis
             var pMap = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
             foreach (string pFilter in pFilters)
             {
-                pMap[pFilter] = LInventory.LInventoryFilterExist(pFilter);
+                pMap[pFilter] = LInventory.LInventoryFilterConfirm(pFilter);
             }
 
-            Dispatcher.BeginInvoke(() => PSDiagnosisResultApply(pVersion, pLocation, pMap));
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (pGeneration == psDiagnosisGeneration)
+                {
+                    PSDiagnosisResultApply(pVersion, pLocation, pMap);
+                }
+            });
         });
     }
 
@@ -258,9 +271,9 @@ internal sealed partial class PSDiagnosis
             pReady ? PSDiagnosisState.PSDiagnosisStateReady : PSDiagnosisState.PSDiagnosisStateMissing);
 
         int pMissing = 0;
-        foreach ((string pFilter, Border pBadge, TextBlock pText) in psDiagnosisChecks)
+        foreach ((string[] pFilters, Border pBadge, TextBlock pText) in psDiagnosisChecks)
         {
-            bool pOk = pReady && (!pMap.TryGetValue(pFilter, out bool pValue) || pValue);
+            bool pOk = pReady && PSDiagnosisFiltersCheck(pFilters, pMap);
             PSDiagnosisBadgeApply(pBadge, pText,
                 pOk ? PSDiagnosisState.PSDiagnosisStateReady : PSDiagnosisState.PSDiagnosisStateMissing);
             if (!pOk)
@@ -289,9 +302,12 @@ internal sealed partial class PSDiagnosis
     }
 
     private static bool PSDiagnosisGroupCheck(
-        (string PSDiagnosisLabel, string PSDiagnosisFilter)[] pItems,
+        (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] pItems,
         Dictionary<string, bool> pMap) =>
-        pItems.Any(pItem => !pMap.TryGetValue(pItem.PSDiagnosisFilter, out bool pValue) || pValue);
+        pItems.Any(pItem => PSDiagnosisFiltersCheck(pItem.PSDiagnosisFilters, pMap));
+
+    private static bool PSDiagnosisFiltersCheck(string[] pFilters, Dictionary<string, bool> pMap) =>
+        pFilters.All(pFilter => pMap.TryGetValue(pFilter, out bool pValue) && pValue);
 
     private void PSDiagnosisSummaryApply(PSDiagnosisMood pMood, int pMissing)
     {

@@ -8,8 +8,10 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public static class LScene
+public static partial class LScene
 {
+    public const int LSceneVersionCurrent = 1;
+
     private const string LSceneFolderName = "Cadroue";
     private const string LSceneFileName = "LScenePresets.json";
     private const string LSceneStateName = "session.json";
@@ -45,7 +47,7 @@ public static class LScene
         LVaultResult<LSceneRecord> lSceneResult =
             LVault.LVaultRead<LSceneRecord>(Path.Combine(LSceneFolderRead(), LSceneStateName));
         lSceneStateReadable = lSceneResult.LVaultOutcome != LVaultOutcome.LVaultUnreadable;
-        return lSceneResult.LVaultValue ?? new LSceneRecord();
+        return LSceneNormalize(lSceneResult.LVaultValue);
     }
 
     public static bool LSceneStateSave(LSceneRecord lScene)
@@ -74,7 +76,7 @@ public static class LScene
         if (lSceneDisk.LVaultOutcome != LVaultOutcome.LVaultUnreadable)
         {
             lSceneRecords.Clear();
-            lSceneRecords.AddRange(lSceneDisk.LVaultValue ?? new List<LSceneRecord>());
+            lSceneRecords.AddRange(LSceneCatalogueNormalize(lSceneDisk.LVaultValue));
         }
     }
 
@@ -118,7 +120,7 @@ public static class LScene
     public static LSceneRecord? LSceneFileLoad(string lScenePath)
     {
         string lSceneJson = File.ReadAllText(lScenePath);
-        return JsonSerializer.Deserialize<LSceneRecord>(lSceneJson);
+        return LSceneNormalize(JsonSerializer.Deserialize<LSceneRecord>(lSceneJson));
     }
 
     public static bool LSceneMatch(LSceneRecord lSceneLeft, LSceneRecord lSceneRight) =>
@@ -154,7 +156,7 @@ public static class LScene
         LVaultResult<List<LSceneRecord>> lSceneResult =
             LVault.LVaultRead<List<LSceneRecord>>(LScenePathCreate());
         lSceneCatalogueOutcome = lSceneResult.LVaultOutcome;
-        return lSceneResult.LVaultValue ?? new List<LSceneRecord>();
+        return LSceneCatalogueNormalize(lSceneResult.LVaultValue);
     }
 
     private static bool LSceneChange(Func<List<LSceneRecord>, bool> lSceneApply)
