@@ -340,7 +340,7 @@ public sealed partial class PConsole : UserControl
 
     private static Image PConsoleRestBuild() => new()
     {
-        Source = PIcon.PIconRead("/PAssets/PPanels/PConsoleRest.svg", PRosterTheme.PRosterTextBrush),
+        Source = PIcon.PIconRead("/PAssets/PPanels/PConsoleRest.svg", PRosterTheme.PRosterMutedBrush),
         Width = PConsoleIndicatorSize,
         Height = PConsoleIndicatorSize,
         Stretch = Stretch.Uniform,

@@ -2,6 +2,7 @@ using Cadroue.Core;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PPanels;
 using Cadroue.Application;
 
@@ -9,6 +10,15 @@ namespace Cadroue.UIShell.PControlBar;
 
 public sealed class PTabRecord : INotifyPropertyChanged
 {
+    private static readonly Brush pTabActiveBrush = PTabActiveCreate();
+
+    private static Brush PTabActiveCreate()
+    {
+        var pBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
+        pBrush.Freeze();
+        return pBrush;
+    }
+
     private string pTabTitle = string.Empty;
     private string pTabNameCustom = string.Empty;
     private bool pTabSelectState;
@@ -18,14 +28,15 @@ public sealed class PTabRecord : INotifyPropertyChanged
     public PTabRecord(
         string pTabTitle,
         string pTabLayoutKey,
-        ImageSource pTabIconSource,
+        string pTabIconPath,
         LPreset? lExportSpecificState = null,
         LSceneTabRecord? lPreferenceTabLayout = null)
     {
         PTabId = Guid.NewGuid();
         PTabTitle = pTabTitle;
         PTabLayoutKey = pTabLayoutKey;
-        PTabIconSource = pTabIconSource;
+        PTabIconSource = PIcon.PIconRead(pTabIconPath);
+        PTabIconActiveSource = PIcon.PIconRead(pTabIconPath, pTabActiveBrush);
         PTabWorkspace = new PWorkspace(pTabLayoutKey, lExportSpecificState, lPreferenceTabLayout);
         if (PTabWorkspace.PWorkspaceSurface.PTabAction is { } pTabAction)
         {
@@ -86,6 +97,8 @@ public sealed class PTabRecord : INotifyPropertyChanged
     public int PTabOrdinal { get; set; } = 1;
 
     public ImageSource PTabIconSource { get; }
+
+    public ImageSource PTabIconActiveSource { get; }
 
     public PWorkspace PTabWorkspace { get; }
 
