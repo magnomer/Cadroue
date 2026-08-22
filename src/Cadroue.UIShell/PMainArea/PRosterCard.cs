@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIShell.PAssets;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -47,14 +48,21 @@ public sealed partial class PRoster
         var pHeader = new Border
         {
             Padding = new Thickness(12, 6, 6, 6),
-            CornerRadius = new CornerRadius(PRosterTheme.PRosterCorner, PRosterTheme.PRosterCorner, 0, 0),
             Background = pBatchId == pRosterCardId ? PRosterTheme.PRosterSelectBrush : Brushes.Transparent,
             BorderBrush = PRosterTheme.PRosterLineBrush,
-            BorderThickness = new Thickness(0, 0, 0, 1),
             Child = pGrid
         };
         pRosterCardHeaders[pBatchId] = pHeader;
+        PRosterCollapseApply(pHeader, pRosterCollapsedIds.Contains(pBatchId));
         return pHeader;
+    }
+
+    private static void PRosterCollapseApply(Border pHeader, bool pCollapsed)
+    {
+        pHeader.BorderThickness = pCollapsed ? new Thickness(0) : new Thickness(0, 0, 0, 1);
+        pHeader.CornerRadius = pCollapsed
+            ? new CornerRadius(PRosterTheme.PRosterCorner)
+            : new CornerRadius(PRosterTheme.PRosterCorner, PRosterTheme.PRosterCorner, 0, 0);
     }
 
     private void PRosterCardApply()
@@ -105,14 +113,21 @@ public sealed partial class PRoster
         return pButton;
     }
 
+    private const string pRosterMaximizeIcon = "/PAssets/PPanels/PRosterBatchMaximize.svg";
+    private const string pRosterMinimizeIcon = "/PAssets/PPanels/PRosterBatchMinimize.svg";
+
+    private static ImageSource PRosterMinimizeRead(bool pCollapsed, Brush pTint) =>
+        PIcon.PIconRead(pCollapsed ? pRosterMaximizeIcon : pRosterMinimizeIcon, pTint);
+
     private UIElement PRosterMinimizeBuild(Guid pBatchId, StackPanel pDetail)
     {
         bool pCollapsed = pRosterCollapsedIds.Contains(pBatchId);
-        var pGlyph = new TextBlock
+        var pIcon = new Image
         {
-            Text = pCollapsed ? "▸" : "▾",
-            FontSize = PRosterTheme.PRosterRowSize,
-            Foreground = PRosterTheme.PRosterMutedBrush,
+            Source = PRosterMinimizeRead(pCollapsed, PRosterTheme.PRosterMutedBrush),
+            Width = 14,
+            Height = 14,
+            Stretch = Stretch.Uniform,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -126,26 +141,26 @@ public sealed partial class PRoster
             Background = Brushes.Transparent,
             Cursor = Cursors.Hand,
             ToolTip = LLocalization.LLocalizationTextRead(pCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse"),
-            Child = pGlyph
+            Child = pIcon
         };
 
         pButton.MouseEnter += (_, _) =>
         {
             pButton.Background = PRosterTheme.PRosterHeaderBrush;
-            pGlyph.Foreground = PRosterTheme.PRosterTextBrush;
+            pIcon.Source = PRosterMinimizeRead(pRosterCollapsedIds.Contains(pBatchId), PRosterTheme.PRosterTextBrush);
         };
         pButton.MouseLeave += (_, _) =>
         {
             pButton.Background = Brushes.Transparent;
-            pGlyph.Foreground = PRosterTheme.PRosterMutedBrush;
+            pIcon.Source = PRosterMinimizeRead(pRosterCollapsedIds.Contains(pBatchId), PRosterTheme.PRosterMutedBrush);
         };
         pButton.MouseLeftButtonDown += (_, pArgs) => pArgs.Handled = true;
-        pButton.MouseLeftButtonUp += (_, _) => PRosterMinimizeToggle(pBatchId, pDetail, pButton, pGlyph);
+        pButton.MouseLeftButtonUp += (_, _) => PRosterMinimizeToggle(pBatchId, pDetail, pButton, pIcon);
 
         return pButton;
     }
 
-    private void PRosterMinimizeToggle(Guid pBatchId, StackPanel pDetail, Border pButton, TextBlock pGlyph)
+    private void PRosterMinimizeToggle(Guid pBatchId, StackPanel pDetail, Border pButton, Image pIcon)
     {
         bool pCollapsed = !pRosterCollapsedIds.Contains(pBatchId);
         if (pCollapsed)
@@ -158,7 +173,12 @@ public sealed partial class PRoster
         }
 
         pDetail.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
-        pGlyph.Text = pCollapsed ? "▸" : "▾";
+        if (pRosterCardHeaders.TryGetValue(pBatchId, out Border? pHeader))
+        {
+            PRosterCollapseApply(pHeader, pCollapsed);
+        }
+
+        pIcon.Source = PRosterMinimizeRead(pCollapsed, PRosterTheme.PRosterTextBrush);
         pButton.ToolTip = LLocalization.LLocalizationTextRead(pCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse");
     }
 
