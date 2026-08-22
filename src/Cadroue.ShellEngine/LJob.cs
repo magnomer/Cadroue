@@ -200,7 +200,9 @@ internal sealed partial class LJob
         if (string.Equals(lJobItem.LWorkOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase))
         {
             LRunner.LRunnerRecord(
-                $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': the item has edits or an fps change; encoding the full requested interval");
+                lJobItem.LWorkKind != LWorkKind.LWorkKindSplit
+                    ? $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': smart encoding applies to split tabs only; encoding the full requested interval"
+                    : $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': the item has edits or an fps change; encoding the full requested interval");
         }
 
         IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);

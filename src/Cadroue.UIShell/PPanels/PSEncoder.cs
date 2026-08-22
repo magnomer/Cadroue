@@ -31,6 +31,7 @@ internal sealed partial class PSEncoder : Window
     private readonly LPreset lsExportSpecificSource;
     private readonly LPreset lsExportSpecificEdit;
     private readonly System.Action psEncoderSummary;
+    private readonly bool psSmartAllowed;
     private readonly PToken psNameBox;
     private readonly ComboBox psOutputContainerCombo;
     private readonly ComboBox psOutputExtensionCombo;
@@ -109,11 +110,12 @@ internal sealed partial class PSEncoder : Window
             .Select(pChoice => new LLocalizationChoice(pChoice.CapabilityChoiceValue, string.Empty, pChoice.CapabilityChoiceLabel))
             .ToArray();
 
-    public PSEncoder(LPreset lsExportSpecificState, System.Action pRefresh)
+    public PSEncoder(LPreset lsExportSpecificState, System.Action pRefresh, bool psSmartAllowed = false)
     {
         lsExportSpecificSource = lsExportSpecificState;
         lsExportSpecificEdit = lsExportSpecificState.LPresetClone();
         psEncoderSummary = pRefresh;
+        this.psSmartAllowed = psSmartAllowed;
         psNameBox = new PToken { PTokenText = lsExportSpecificEdit.LPresetDisplay, MinWidth = 320 };
         psOutputContainerCombo = PSComboBuild(lsExportSpecificEdit.LPresetContainer,
             new LLocalizationChoice("Same as source", "Encoder.Location.Source"),

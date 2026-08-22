@@ -949,6 +949,7 @@
   "Encoder.Video.Notice.Excluded": "{Terms.Video} {Terms.Stream}을 기록하지 않으므로 {Terms.Video} {Terms.Settings}이 적용되지 않습니다.",
   "Encoder.Video.Notice.Copied": "{Terms.Video} {Terms.Stream}을 그대로 복사하므로 {Terms.Encoder} {Terms.Settings}이 적용되지 않습니다.",
   "Encoder.Video.Notice.Smart": "{Terms.Video} {Terms.Stream}을 가능한 곳은 복사하고 잘린 경계만 다시 인코딩하므로 {Terms.Encoder} {Terms.Settings}이 적용되지 않습니다.",
+  "Encoder.Video.Notice.SmartFull": "스마트 인코딩은 분할 탭에서만 적용됩니다. 이 탭에서는 {Terms.Video} {Terms.Stream}을 전체 다시 인코딩하며, 프리셋의 스마트 설정은 분할 탭을 위해 그대로 유지됩니다.",
   "Encoder.Audio.Notice.Excluded": "{Terms.Audio} {Terms.Stream}을 기록하지 않으므로 {Terms.Audio} {Terms.Settings}이 적용되지 않습니다.",
   "Encoder.Audio.Notice.Copied": "{Terms.Audio} {Terms.Stream}을 그대로 복사하므로 코덱 {Terms.Settings}이 적용되지 않습니다.",
   "Encoder.Audio.Notice.SampleSource": "{Terms.Source}는 각 입력의 원래 샘플레이트를 유지합니다.",

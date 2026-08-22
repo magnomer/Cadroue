@@ -65,8 +65,17 @@ internal sealed partial class PSEncoder
 
         psVideoEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
         psVideoNotice.Visibility = pEncoded ? Visibility.Collapsed : Visibility.Visible;
-        psVideoNotice.Text = LLocalization.LLocalizationTextRead(
-            pMode == "Smart" ? "Encoder.Video.Notice.Smart" : "Encoder.Video.Notice.Copied");
+        psVideoNotice.Text = LLocalization.LLocalizationTextRead(PSVideoNoticeRead(pMode));
+    }
+
+    private string PSVideoNoticeRead(string pMode)
+    {
+        if (pMode != "Smart")
+        {
+            return "Encoder.Video.Notice.Copied";
+        }
+
+        return psSmartAllowed ? "Encoder.Video.Notice.Smart" : "Encoder.Video.Notice.SmartFull";
     }
 
     private LCapabilityCodec PSVideoCapabilityRead() =>

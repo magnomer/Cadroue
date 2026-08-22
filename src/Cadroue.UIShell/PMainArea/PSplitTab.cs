@@ -82,7 +82,7 @@ public sealed class PSplitTab : PTabSurface
         pList.PListPathChange += PSplitPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        var pExport = new PExport(lPresetOwner);
+        var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pSection, pExport);
         pList.PListLockChange += pLocked => pFlow.PFlowEditSet(!pLocked);
         pFlow.PFlowEditSet(!pList.PListLockCheck());

@@ -22,6 +22,7 @@ public sealed partial class PExport : UserControl
     private readonly TextBlock pExportSummaryOutput;
     private readonly StackPanel pPresetRowPanel;
     private readonly bool pExportCopyDisabled;
+    private readonly bool pExportSmartAllowed;
     private string? pPresetNameSelected;
     private string? pPresetNameEditing;
     private string? pPresetNameDragging;
@@ -43,10 +44,11 @@ public sealed partial class PExport : UserControl
 
     private bool pExportPresetClean = true;
 
-    public PExport(LPresetSelection lPresetOwner, bool pExportCopyDisabled = false)
+    public PExport(LPresetSelection lPresetOwner, bool pExportCopyDisabled = false, bool pExportSmartAllowed = false)
     {
         this.lPresetOwner = lPresetOwner;
         this.pExportCopyDisabled = pExportCopyDisabled;
+        this.pExportSmartAllowed = pExportSmartAllowed;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         pPresetRowPanel = new StackPanel();

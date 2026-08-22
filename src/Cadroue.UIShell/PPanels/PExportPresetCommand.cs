@@ -207,7 +207,7 @@ public sealed partial class PExport
     {
         var pButton = (Button)sender;
         LPreset pWorking = PExportWorkingRead();
-        var psEncoder = new PSEncoder(pWorking, () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate())
+        var psEncoder = new PSEncoder(pWorking, () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate(), pExportSmartAllowed)
         {
             Owner = Window.GetWindow(pButton)
         };

@@ -949,6 +949,7 @@
   "Encoder.Video.Notice.Excluded": "No {Terms.Video} {Terms.Stream} is written, so no {Terms.Video} settings apply.",
   "Encoder.Video.Notice.Copied": "The {Terms.Video} {Terms.Stream} is copied as-is, so {Terms.Encoder} settings do not apply.",
   "Encoder.Video.Notice.Smart": "The {Terms.Video} {Terms.Stream} is copied where possible and only the cut boundaries are re-encoded, so {Terms.Encoder} settings do not apply.",
+  "Encoder.Video.Notice.SmartFull": "Smart encoding applies to split tabs only. This tab will fully re-encode the {Terms.Video} {Terms.Stream}; the preset keeps its Smart choice for split tabs.",
   "Encoder.Audio.Notice.Excluded": "No {Terms.Audio} {Terms.Stream} is written, so no {Terms.Audio} settings apply.",
   "Encoder.Audio.Notice.Copied": "The {Terms.Audio} {Terms.Stream} is copied as-is, so codec settings do not apply.",
   "Encoder.Audio.Notice.SampleSource": "{Terms.Source} keeps each input's original sample rate.",
