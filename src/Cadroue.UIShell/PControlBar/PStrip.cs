@@ -144,7 +144,7 @@ public sealed class PStrip
         var pTabRecord = new PTabRecord(
             PStripTitleRead(pTabLayoutKey),
             pTabLayoutKey,
-            PIcon.PIconRead(pTabIconPath),
+            pTabIconPath,
             lExportSpecificState,
             lPreferenceTabLayout)
         {
