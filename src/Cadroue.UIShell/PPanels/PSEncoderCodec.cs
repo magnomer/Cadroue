@@ -129,7 +129,7 @@ internal sealed partial class PSEncoder
         return string.Empty;
     }
 
-    private async Task PSCodecVerifyHandle(ComboBox pCombo, Button pButton)
+    private async Task PSCodecVerifyHandle(ComboBox pCombo, Button pButton, IProgress<double> pFeed)
     {
         string pSelected = pCombo.SelectedItem as string ?? string.Empty;
         pButton.IsEnabled = false;
@@ -137,6 +137,8 @@ internal sealed partial class PSEncoder
         var pAvailable = new List<string>();
         var pAvailableNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var pRows = new List<PSVerdictRow>();
+        int pTotal = LRepertoireCatalog.LRepertoireEncodersRead().Sum(pCandidate => pCandidate.LRepertoireTokens.Count);
+        int pDone = 0;
         foreach (var pCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
         {
             bool pCandidateAvailable = false;
@@ -150,6 +152,8 @@ internal sealed partial class PSEncoder
                 }
 
                 pRows.Add(new PSVerdictRow(pCandidate.LRepertoireText, pEncoder, pResult.LTrialSuccess, pResult.LTrialMessage));
+                pDone++;
+                pFeed.Report(pTotal == 0 ? 1 : (double)pDone / pTotal);
             }
 
             if (pCandidateAvailable)

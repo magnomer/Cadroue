@@ -228,7 +228,7 @@ internal sealed partial class PSEncoder
         PSAudioEncoderUpdate();
     }
 
-    private async Task PSAudioVerifyHandle(ComboBox pCombo, Button pButton)
+    private async Task PSAudioVerifyHandle(ComboBox pCombo, Button pButton, IProgress<double> pFeed)
     {
         string pSelected = pCombo.SelectedItem as string ?? string.Empty;
         pButton.IsEnabled = false;
@@ -236,6 +236,8 @@ internal sealed partial class PSEncoder
         LInventory.LInventoryReset();
         var pAvailable = new List<string>();
         var pRows = new List<PSVerdictRow>();
+        int pTotal = PSAudioCandidates.Length;
+        int pDone = 0;
         foreach (var pCandidate in PSAudioCandidates)
         {
             LTrialResult pResult = await LTrial.LTrialRun(pCandidate.PSAudioName, LTrialKind.LTrialKindAudio);
@@ -244,6 +246,9 @@ internal sealed partial class PSEncoder
             {
                 pAvailable.Add(pCandidate.PSAudioText);
             }
+
+            pDone++;
+            pFeed.Report(pTotal == 0 ? 1 : (double)pDone / pTotal);
         }
 
         if (!pAvailable.Contains(pSelected)
@@ -266,13 +271,30 @@ internal sealed partial class PSEncoder
         var pPanel = new StackPanel();
 
         var pVerify = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Verify"), 84, new Thickness(8, 0, 0, 0));
-        var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Log"), 64, new Thickness(6, 0, 0, 0));
-        pVerify.Click += async (_, _) => await PSAudioVerifyHandle(psAudioEncoderCombo, pVerify);
+        var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Result"), 64, new Thickness(6, 0, 0, 0));
+        pLog.IsEnabled = psAudioResults.Count > 0;
+        ProgressBar pProgress = PSFieldProgressBuild();
+        var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
+        pVerify.Click += async (_, _) =>
+        {
+            pProgress.Value = 0;
+            pProgress.Visibility = Visibility.Visible;
+            try
+            {
+                await PSAudioVerifyHandle(psAudioEncoderCombo, pVerify, pFeed);
+            }
+            finally
+            {
+                pProgress.Visibility = Visibility.Collapsed;
+            }
+
+            pLog.IsEnabled = psAudioResults.Count > 0;
+        };
         pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, LLocalization.LLocalizationTextRead("Encoder.Verification.AudioTitle"), psAudioResults);
         psAudioEncoderCombo.SelectionChanged += (_, _) => PSAudioChangeHandle();
         psAudioRateCombo.SelectionChanged += (_, _) => PSAudioRowsRebuild();
 
-        psAudioEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Encoder"), psAudioEncoderCombo, pVerify, pLog));
+        psAudioEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Encoder"), psAudioEncoderCombo, pVerify, pLog, pProgress));
         psAudioEncodePanel.Children.Add(psAudioEncoderNotice);
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.RateControl"), psAudioRateCombo));
         psAudioEncodePanel.Children.Add(psAudioRowsPanel);

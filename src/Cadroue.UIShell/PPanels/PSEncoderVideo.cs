@@ -14,13 +14,30 @@ internal sealed partial class PSEncoder
     {
         var pPanel = new StackPanel();
         var pVerify = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Verify"), 84, new Thickness(8, 0, 0, 0));
-        var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Log"), 64, new Thickness(6, 0, 0, 0));
-        pVerify.Click += async (_, _) => await PSCodecVerifyHandle(psVideoEncoderCombo, pVerify);
+        var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Result"), 64, new Thickness(6, 0, 0, 0));
+        pLog.IsEnabled = psCodecResults.Count > 0;
+        ProgressBar pProgress = PSFieldProgressBuild();
+        var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
+        pVerify.Click += async (_, _) =>
+        {
+            pProgress.Value = 0;
+            pProgress.Visibility = Visibility.Visible;
+            try
+            {
+                await PSCodecVerifyHandle(psVideoEncoderCombo, pVerify, pFeed);
+            }
+            finally
+            {
+                pProgress.Visibility = Visibility.Collapsed;
+            }
+
+            pLog.IsEnabled = psCodecResults.Count > 0;
+        };
         pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, LLocalization.LLocalizationTextRead("Encoder.Verification.VideoTitle"), psCodecResults);
         psVideoEncoderCombo.SelectionChanged += (_, _) => PSVideoChangeHandle();
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoRowsRebuild();
 
-        psVideoEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Encoder"), psVideoEncoderCombo, pVerify, pLog));
+        psVideoEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Encoder"), psVideoEncoderCombo, pVerify, pLog, pProgress));
         psVideoEncodePanel.Children.Add(psVideoEncoderNotice);
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.RateControl"), psVideoRateCombo));
         psVideoEncodePanel.Children.Add(psVideoRowsPanel);
