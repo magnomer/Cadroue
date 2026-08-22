@@ -16,7 +16,7 @@ public sealed record LBridgePlan(
     LBridgeSpan? LBridgeMiddle,
     LBridgeSpan? LBridgeTail);
 
-public static class LBridge
+public static partial class LBridge
 {
     public static LBridgePlan LBridgeRegionResolve(
         IReadOnlyList<TimeSpan> lBridgeKeyframes,

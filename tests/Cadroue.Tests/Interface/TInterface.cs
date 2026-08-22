@@ -302,6 +302,9 @@ internal static class TInterface
     internal static LBridgePlan BridgeResolve(IReadOnlyList<TimeSpan> keyframes, TimeSpan origin, TimeSpan end) =>
         LBridge.LBridgeRegionResolve(keyframes, origin, end);
 
+    internal static LBridgeCompatibility BridgeValidate(LBridgeStream generated, LBridgeStream source) =>
+        LBridge.LBridgeValidate(generated, source);
+
     internal static LPassbandPreset? PassbandRead(bool high, string token) => LPassband.LPassbandRead(high, token);
     internal static string? PassbandMatch(bool high, double frequency, int stages, int poles, double resonance) =>
         LPassband.LPassbandMatch(high, frequency, stages, poles, resonance);
