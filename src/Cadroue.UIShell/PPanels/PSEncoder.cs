@@ -56,7 +56,7 @@ internal sealed partial class PSEncoder : Window
     private readonly TextBox psVideoCustomWidth;
     private readonly TextBox psVideoCustomHeight;
     private UIElement? psVideoCustomRow;
-    private readonly ComboBox psVideoFpsCombo;
+    private readonly CheckBox psVideoFpsSource;
     private readonly TextBox psVideoFpsCustom;
     private UIElement? psVideoFpsRow;
     private readonly ComboBox psVideoPixelCombo;
@@ -79,7 +79,8 @@ internal sealed partial class PSEncoder : Window
     private readonly Dictionary<string, ComboBox> psVideoExtraCombos;
     private readonly Dictionary<string, ComboBox> psAudioExtraCombos;
     private TextBox? psVideoQualityBox;
-    private ComboBox? psVideoSpeedCombo;
+    private Slider? psVideoSpeedSlider;
+    private IReadOnlyList<LCapabilityChoice>? psVideoSpeedChoices;
     private bool psVideoRowsBusy;
     private TextBox? psAudioQualityBox;
     private ComboBox? psAudioSpeedCombo;
@@ -99,7 +100,6 @@ internal sealed partial class PSEncoder : Window
         Visibility = Visibility.Collapsed
     };
 
-    private static readonly string[] psVideoFpsTokens = ["Same as source", "60", "50", "30", "25", "24"];
     private static readonly string[] psAudioSampleTokens = ["Same as source", "44100", "48000", "88200", "96000"];
     private static readonly string[] psAudioChannelTokens = ["Same as source", "Mono", "Stereo", "5.1"];
 
@@ -176,15 +176,9 @@ internal sealed partial class PSEncoder : Window
             ['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         psVideoCustomWidth = PSEntryBuild(psCustomParts.Length == 2 ? psCustomParts[0] : string.Empty, 110);
         psVideoCustomHeight = PSEntryBuild(psCustomParts.Length == 2 ? psCustomParts[1] : string.Empty, 110);
-        psVideoFpsCombo = PSComboBuild(PSFieldCustomResolve(lsExportSpecificEdit.LPresetVideo.LPresetFps, psVideoFpsTokens),
-            new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
-            new LLocalizationChoice("60", "Encoder.FPS.Frames60"),
-            new LLocalizationChoice("50", "Encoder.FPS.Frames50"),
-            new LLocalizationChoice("30", "Encoder.FPS.Frames30"),
-            new LLocalizationChoice("25", "Encoder.FPS.Frames25"),
-            new LLocalizationChoice("24", "Encoder.FPS.Frames24"),
-            new LLocalizationChoice("Custom", "Encoder.Value.Custom"));
-        psVideoFpsCustom = PSEntryBuild(PSEncoderCustomResolve(lsExportSpecificEdit.LPresetVideo.LPresetFps, psVideoFpsTokens), 120);
+        bool psFpsIsSource = PSVideoSourceCheck(lsExportSpecificEdit.LPresetVideo.LPresetFps);
+        psVideoFpsSource = PSVideoSourceBuild(psFpsIsSource);
+        psVideoFpsCustom = PSEntryBuild(psFpsIsSource ? string.Empty : lsExportSpecificEdit.LPresetVideo.LPresetFps.Trim(), 120);
         psVideoPixelCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetPixelLayout,
             new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
             new LLocalizationChoice("yuv420p", "Encoder.Pixel.Yuv420"),
@@ -255,12 +249,12 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.LPresetVideo.LPresetEncoder = PSComboTextRead(psVideoEncoderCombo);
         lsExportSpecificEdit.LPresetVideo.LPresetRateControl = PSComboTextRead(psVideoRateCombo);
         lsExportSpecificEdit.LPresetVideo.LPresetQuality = psVideoQualityBox?.Text.Trim() ?? string.Empty;
-        lsExportSpecificEdit.LPresetVideo.LPresetSpeedPreset = psVideoSpeedCombo is null ? string.Empty : PSComboTextRead(psVideoSpeedCombo);
+        lsExportSpecificEdit.LPresetVideo.LPresetSpeedPreset = PSVideoSpeedRead();
         lsExportSpecificEdit.LPresetLocation = PSModeTextRead(psLocationMode);
         lsExportSpecificEdit.LPresetLocationSet(lsExportSpecificEdit.LPresetLocation, psLocationFolderBox.Text.Trim());
         lsExportSpecificEdit.LPresetVideo.LPresetSize = PSVideoSizeRead(PSComboTextRead(psVideoSizeCombo));
         lsExportSpecificEdit.LPresetVideo.LPresetSizeReactive = psVideoReactiveBox.IsChecked == true;
-        lsExportSpecificEdit.LPresetVideo.LPresetFps = PSFieldCustomRead(psVideoFpsCombo, psVideoFpsCustom, "Same as source");
+        lsExportSpecificEdit.LPresetVideo.LPresetFps = PSVideoFpsRead();
         lsExportSpecificEdit.LPresetVideo.LPresetPixelLayout = PSComboTextRead(psVideoPixelCombo);
         lsExportSpecificEdit.LPresetVideo.LPresetExtras = psVideoExtraCombos.ToDictionary(
             pExtra => pExtra.Key, pExtra => PSComboTextRead(pExtra.Value), StringComparer.Ordinal);

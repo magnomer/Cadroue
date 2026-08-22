@@ -49,7 +49,7 @@ public static partial class LCapabilityTable
                 new("Two-pass bitrate", LCapabilityBitrateCreate("4M")),
                 new("Lossless")
             ],
-            new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 8)),
+            new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 8, true)),
             [
                 new LCapabilityExtra("Usage", "-usage", "good",
                     [new("good", "Good"), new("realtime", "Real-time"), new("allintra", "All-intra")]),
@@ -64,7 +64,7 @@ public static partial class LCapabilityTable
                 new("Target bitrate", LCapabilityBitrateCreate("4M")),
                 new("CBR", LCapabilityBitrateCreate("4M"))
             ],
-            new LCapabilitySpeed("Speed preset", "-preset", "8", LCapabilityNumbersCreate(0, 13)),
+            new LCapabilitySpeed("Speed preset", "-preset", "8", LCapabilityNumbersCreate(0, 13, true)),
             null,
             "SVT-AV1 preset is numeric 0-13, where 0 is slowest and 13 fastest - not an x264 word."));
         yield return new("librav1e", new(
@@ -73,7 +73,7 @@ public static partial class LCapabilityTable
                 new("Constant quantizer", new("Quantizer", "-qp", "100", 0, 255)),
                 new("Target bitrate", LCapabilityBitrateCreate("4M"))
             ],
-            new LCapabilitySpeed("Speed", "-speed", "6", LCapabilityNumbersCreate(0, 10)),
+            new LCapabilitySpeed("Speed", "-speed", "6", LCapabilityNumbersCreate(0, 10, true)),
             null,
             "rav1e quantizer runs 0-255, not 0-51 or 0-63. There is no CRF and no preset."));
         yield return new("av1_qsv", LCapabilityQsvCreate("av1_qsv"));
@@ -89,7 +89,7 @@ public static partial class LCapabilityTable
                 new("High-quality CBR", LCapabilityBitrateCreate())
             ],
             new LCapabilitySpeed("Quality preset", "-quality", "balanced",
-                [new("high_quality", "High quality"), new("quality", "Quality"), new("balanced", "Balanced"), new("speed", "Speed")]),
+                [new("speed", "Speed"), new("balanced", "Balanced"), new("quality", "Quality"), new("high_quality", "High quality")]),
             [
                 new LCapabilityExtra("Usage", "-usage", "transcoding",
                     [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"), new("lowlatency", "Low latency"),

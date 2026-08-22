@@ -385,6 +385,39 @@ internal static class PSField
         return pRow;
     }
 
+    internal static Slider PSFieldSliderCreate(double pMinimum, double pMaximum, double pValue)
+    {
+        var pSlider = new Slider
+        {
+            Minimum = pMinimum,
+            Maximum = Math.Max(pMaximum, pMinimum),
+            SmallChange = 1,
+            LargeChange = 1,
+            TickFrequency = 1,
+            IsSnapToTickEnabled = true,
+            Value = Math.Clamp(pValue, pMinimum, Math.Max(pMaximum, pMinimum)),
+            Width = PSFieldSliderWidth,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pSlider);
+        return pSlider;
+    }
+
+    internal static UIElement PSFieldRowBuild(Slider pSlider, FrameworkElement pTrailing)
+    {
+        pTrailing.Margin = new Thickness(12, 0, 0, 0);
+        pTrailing.VerticalAlignment = VerticalAlignment.Center;
+        var pRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            MinHeight = PSFieldControlHeight
+        };
+        pRow.Children.Add(pSlider);
+        pRow.Children.Add(pTrailing);
+        return pRow;
+    }
+
     private static double PSFieldPositionResolve(double pKbps, double pMinimum, double pMaximum) =>
         Math.Log(pKbps / pMinimum) / Math.Log(pMaximum / pMinimum) * PSFieldBitrateTicks;
 

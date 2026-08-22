@@ -134,10 +134,10 @@ internal static class LEncodeVideo
             lArguments.Append(CultureInfo.InvariantCulture, $" -vf {LEncode.LEncodeFormat(string.Join(',', lFilters))}");
         }
 
-        if (!LEncode.LEncodeSourceCheck(lOutput.LEncodingVideo.LEncodingFps)
-            && double.TryParse(lOutput.LEncodingVideo.LEncodingFps, NumberStyles.Float, CultureInfo.InvariantCulture, out double lFps))
+        string lFps = lOutput.LEncodingVideo.LEncodingFps?.Trim() ?? string.Empty;
+        if (!LEncode.LEncodeSourceCheck(lFps) && LEncodeFpsCheck(lFps))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -r {lFps.ToString(CultureInfo.InvariantCulture)}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" -r {lFps}");
         }
 
         if (!string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingPixel)
@@ -145,6 +145,25 @@ internal static class LEncodeVideo
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lOutput.LEncodingVideo.LEncodingPixel}");
         }
+    }
+
+    private static bool LEncodeFpsCheck(string lFps)
+    {
+        if (lFps.Length == 0)
+        {
+            return false;
+        }
+
+        if (double.TryParse(lFps, NumberStyles.Float, CultureInfo.InvariantCulture, out double lRate))
+        {
+            return double.IsFinite(lRate) && lRate > 0;
+        }
+
+        string[] lParts = lFps.Split('/');
+        return lParts.Length == 2
+            && int.TryParse(lParts[0].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int lNumerator)
+            && int.TryParse(lParts[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int lDenominator)
+            && lNumerator > 0 && lDenominator > 0;
     }
 
     internal static IReadOnlyList<string> LEncodeGeometryRead(LWorkCrop lCrop)

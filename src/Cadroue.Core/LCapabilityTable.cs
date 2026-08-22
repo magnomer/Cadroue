@@ -11,6 +11,17 @@ public static partial class LCapabilityTable
     private static LCapabilityChoice[] LCapabilityNumbersCreate(int lFrom, int lTo) =>
         Enumerable.Range(lFrom, lTo - lFrom + 1).Select(lValue => (LCapabilityChoice)lValue.ToString()).ToArray();
 
+    private static LCapabilityChoice[] LCapabilityNumbersCreate(int lFrom, int lTo, bool lHigherFaster)
+    {
+        LCapabilityChoice[] lNumbers = LCapabilityNumbersCreate(lFrom, lTo);
+        if (lHigherFaster)
+        {
+            Array.Reverse(lNumbers);
+        }
+
+        return lNumbers;
+    }
+
     private static readonly LCapabilityChoice[] LCapabilityLibxPresets =
     [
         new("ultrafast", "Ultrafast"), new("superfast", "Superfast"), new("veryfast", "Very fast"),
@@ -87,7 +98,7 @@ public static partial class LCapabilityTable
             new("High-quality CBR", LCapabilityBitrateCreate())
         ],
         new LCapabilitySpeed("Quality preset", "-quality", "balanced",
-            [new("balanced", "Balanced"), new("speed", "Speed"), new("quality", "Quality")]),
+            [new("speed", "Speed"), new("balanced", "Balanced"), new("quality", "Quality")]),
         [new LCapabilityExtra("Usage", "-usage", "transcoding",
             [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"), new("lowlatency", "Low latency"),
              new("webcam", "Webcam"), new("high_quality", "High quality"), new("lowlatency_high_quality", "Low latency, high quality")])],

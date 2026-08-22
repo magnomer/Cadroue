@@ -32,11 +32,12 @@ internal sealed partial class PSEncoder
         psVideoCustomRow = PSVideoCustomBuild();
         psVideoEncodePanel.Children.Add(psVideoCustomRow);
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"), psVideoReactiveBox));
-        psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"), psVideoFpsCombo));
-        psVideoFpsRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.CustomFps"), psVideoFpsCustom);
+        psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"), psVideoFpsSource));
+        psVideoFpsRow = PSVideoFpsBuild();
         psVideoEncodePanel.Children.Add(psVideoFpsRow);
-        psVideoFpsCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psVideoFpsCombo, psVideoFpsRow);
-        PSFieldCustomToggle(psVideoFpsCombo, psVideoFpsRow);
+        psVideoFpsSource.Checked += (_, _) => PSVideoFpsUpdate();
+        psVideoFpsSource.Unchecked += (_, _) => PSVideoFpsUpdate();
+        PSVideoFpsUpdate();
         PSVideoCustomUpdate();
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psVideoPixelCombo));
 
@@ -198,7 +199,8 @@ internal sealed partial class PSEncoder
 
         psVideoRowsPanel.Children.Clear();
         psVideoQualityBox = null;
-        psVideoSpeedCombo = null;
+        psVideoSpeedSlider = null;
+        psVideoSpeedChoices = null;
         psVideoExtraCombos.Clear();
 
         LCapabilityCodec pCodec = PSVideoCapabilityRead();
@@ -246,6 +248,8 @@ internal sealed partial class PSEncoder
             : LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOptionRange", pQuality.CapabilityQualityOption, pRange)));
     }
 
+    // Speed values are registered faster -> slower, so slider left is the fastest encode
+    // and right the slowest / best compression, consistent across every encoder.
     private void PSVideoSpeedBuild(LCapabilityCodec pCodec, bool pModeStored)
     {
         if (pCodec.CapabilitySpeed is not LCapabilitySpeed pSpeed)
@@ -258,8 +262,171 @@ internal sealed partial class PSEncoder
             ? pStored
             : pSpeed.CapabilitySpeedDefault;
 
-        psVideoSpeedCombo = PSComboBuild(pSelected, PSEncoderChoicesRead(pSpeed.CapabilitySpeedValues));
-        psVideoRowsPanel.Children.Add(PSFieldBuild(pSpeed.CapabilitySpeedLabel, psVideoSpeedCombo));
+        IReadOnlyList<LCapabilityChoice> pChoices = pSpeed.CapabilitySpeedValues;
+        psVideoSpeedChoices = pChoices;
+
+        int pIndex = 0;
+        for (int pAt = 0; pAt < pChoices.Count; pAt++)
+        {
+            if (string.Equals(pChoices[pAt].CapabilityChoiceValue, pSelected, StringComparison.Ordinal))
+            {
+                pIndex = pAt;
+                break;
+            }
+        }
+
+        Slider pSlider = PSFieldSliderCreate(0, pChoices.Count - 1, pIndex);
+        psVideoSpeedSlider = pSlider;
+
+        var pText = new TextBlock
+        {
+            Text = pChoices[pIndex].CapabilityChoiceLabel,
+            Foreground = PSFieldText,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pSlider.ValueChanged += (_, _) =>
+        {
+            int pAt = Math.Clamp((int)Math.Round(pSlider.Value), 0, pChoices.Count - 1);
+            pText.Text = pChoices[pAt].CapabilityChoiceLabel;
+        };
+
+        psVideoRowsPanel.Children.Add(PSFieldBuild(pSpeed.CapabilitySpeedLabel, PSFieldRowBuild(pSlider, pText)));
+    }
+
+    private string PSVideoSpeedRead()
+    {
+        if (psVideoSpeedSlider is null || psVideoSpeedChoices is null || psVideoSpeedChoices.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        int pAt = Math.Clamp((int)Math.Round(psVideoSpeedSlider.Value), 0, psVideoSpeedChoices.Count - 1);
+        return psVideoSpeedChoices[pAt].CapabilityChoiceValue;
+    }
+
+    private static readonly (double Rate, string Value)[] psVideoFpsScale = PSVideoScaleCreate();
+    private static readonly int psVideoFpsDefault = PSVideoScaleFind(30);
+
+    private static (double Rate, string Value)[] PSVideoScaleCreate()
+    {
+        var pList = new List<(double Rate, string Value)>();
+        for (int pAt = 1; pAt <= 240; pAt++)
+        {
+            pList.Add((pAt, pAt.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        foreach (double pRate in new[] { 23.976, 29.97, 59.94, 119.88 })
+        {
+            pList.Add((pRate, pRate.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        return pList.OrderBy(pEntry => pEntry.Rate).ToArray();
+    }
+
+    private static int PSVideoScaleFind(double pRate)
+    {
+        for (int pAt = 0; pAt < psVideoFpsScale.Length; pAt++)
+        {
+            if (psVideoFpsScale[pAt].Rate == pRate)
+            {
+                return pAt;
+            }
+        }
+
+        return 0;
+    }
+
+    private static bool PSVideoSourceCheck(string pFps) =>
+        string.IsNullOrWhiteSpace(pFps) || string.Equals(pFps.Trim(), "Same as source", StringComparison.Ordinal);
+
+    private static CheckBox PSVideoSourceBuild(bool pSource)
+    {
+        var pBox = new CheckBox
+        {
+            Content = LLocalization.LLocalizationTextRead("Encoder.Location.Source"),
+            IsChecked = pSource,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PCheckbox.PCheckboxApply(pBox);
+        return pBox;
+    }
+
+    private static int PSVideoFpsResolve(string pText)
+    {
+        if (!double.TryParse(pText.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double pRate)
+            || !double.IsFinite(pRate))
+        {
+            return psVideoFpsDefault;
+        }
+
+        int pBest = 0;
+        double pBestDiff = double.MaxValue;
+        for (int pAt = 0; pAt < psVideoFpsScale.Length; pAt++)
+        {
+            double pDiff = Math.Abs(psVideoFpsScale[pAt].Rate - pRate);
+            if (pDiff < pBestDiff)
+            {
+                pBestDiff = pDiff;
+                pBest = pAt;
+            }
+        }
+
+        return pBest;
+    }
+
+    // The editable field is authoritative and accepts any FFmpeg rate expression; the
+    // slider only offers the ordered scale and writes its pick into the field.
+    private UIElement PSVideoFpsBuild()
+    {
+        Slider pSlider = PSFieldSliderCreate(0, psVideoFpsScale.Length - 1, PSVideoFpsResolve(psVideoFpsCustom.Text));
+
+        bool pSync = false;
+        pSlider.ValueChanged += (_, _) =>
+        {
+            if (pSync)
+            {
+                return;
+            }
+
+            int pAt = Math.Clamp((int)Math.Round(pSlider.Value), 0, psVideoFpsScale.Length - 1);
+            pSync = true;
+            psVideoFpsCustom.Text = psVideoFpsScale[pAt].Value;
+            psVideoFpsCustom.CaretIndex = psVideoFpsCustom.Text.Length;
+            pSync = false;
+        };
+        psVideoFpsCustom.TextChanged += (_, _) =>
+        {
+            if (pSync)
+            {
+                return;
+            }
+
+            pSync = true;
+            pSlider.Value = PSVideoFpsResolve(psVideoFpsCustom.Text);
+            pSync = false;
+        };
+
+        return PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.CustomFps"),
+            PSFieldRowBuild(pSlider, psVideoFpsCustom));
+    }
+
+    private void PSVideoFpsUpdate()
+    {
+        if (psVideoFpsRow is not null)
+        {
+            psVideoFpsRow.Visibility = psVideoFpsSource.IsChecked == true ? Visibility.Collapsed : Visibility.Visible;
+        }
+    }
+
+    private string PSVideoFpsRead()
+    {
+        if (psVideoFpsSource.IsChecked == true)
+        {
+            return "Same as source";
+        }
+
+        string pValue = psVideoFpsCustom.Text.Trim();
+        return pValue.Length == 0 ? "Same as source" : pValue;
     }
 
     private void PSVideoExtraBuild(LCapabilityCodec pCodec)

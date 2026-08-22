@@ -12,7 +12,7 @@ public static partial class LCapabilityTable
                 new("Target bitrate", LCapabilityBitrateCreate("2M")),
                 new("CBR", LCapabilityBitrateCreate("2M"))
             ],
-            new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 16)),
+            new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 16, true)),
             [new LCapabilityExtra("Deadline", "-deadline", "good",
                 [new("best", "Best"), new("good", "Good"), new("realtime", "Real-time")])],
             "VP8 constant quality requires -b:v 0 alongside -crf. Speed is -cpu-used, not a preset."));
@@ -25,7 +25,7 @@ public static partial class LCapabilityTable
                 new("CBR", LCapabilityBitrateCreate("2M")),
                 new("Lossless")
             ],
-            new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 8)),
+            new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 8, true)),
             [new LCapabilityExtra("Deadline", "-deadline", "good",
                 [new("best", "Best"), new("good", "Good"), new("realtime", "Real-time")])],
             "VP9 constant quality requires -b:v 0 alongside -crf. Lossless is -lossless 1."));
@@ -42,7 +42,7 @@ public static partial class LCapabilityTable
                 new("Constant quality (qscale)", new("qscale", "-q:v", "7", 0, 10, true)),
                 new("Target bitrate", LCapabilityBitrateCreate("2M"))
             ],
-            new LCapabilitySpeed("Speed level", "-speed_level", "1", LCapabilityNumbersCreate(0, 3)),
+            new LCapabilitySpeed("Speed level", "-speed_level", "1", LCapabilityNumbersCreate(0, 3, true)),
             null,
             "Theora quality is 0-10 and HIGHER is better - the opposite of CRF."));
 
