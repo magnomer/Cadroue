@@ -954,6 +954,8 @@
   "Encoder.Audio.Notice.Copied": "The {Terms.Audio} {Terms.Stream} is copied as-is, so codec settings do not apply.",
   "Encoder.Audio.Notice.SampleSource": "{Terms.Source} keeps each input's original sample rate.",
   "Encoder.Audio.Notice.ChannelSource": "{Terms.Source} keeps each input's original channel layout.",
+  "Encoder.Video.Notice.FpsSource": "{Terms.Source} keeps each input's original frame rate.",
+  "Encoder.Video.Notice.SizeSource": "{Terms.Source} keeps each input's original resolution.",
   "Encoder.Video.Notice.Unavailable": "This {Terms.Encoder} is not available on this system. The saved selection is kept; choose a replacement before exporting.",
   "Encoder.Audio.Notice.Unavailable": "This {Terms.Encoder} is not available on this system. The saved selection is kept; choose a replacement before exporting.",
   "Encoder.Video.FFmpegOption": "{Terms.FFmpeg} option: {0}",

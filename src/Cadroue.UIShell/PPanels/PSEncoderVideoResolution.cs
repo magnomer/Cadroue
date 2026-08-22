@@ -38,6 +38,8 @@ internal sealed partial class PSEncoder
             PSFieldRowBuild(psVideoResolutionSlider, psVideoResolutionValue)));
         pHost.Children.Add(PSVideoDimensionBuild(psVideoWidthLabel, PSFieldRowBuild(psVideoWidthSlider, psVideoWidthBox)));
         pHost.Children.Add(PSVideoDimensionBuild(psVideoHeightLabel, PSFieldRowBuild(psVideoHeightSlider, psVideoHeightBox)));
+        psVideoSizeNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Notice.SizeSource"));
+        pHost.Children.Add(psVideoSizeNotice);
 
         psVideoResolutionSlider.ValueChanged += (_, _) => PSVideoTierSelect();
         psVideoResolutionSlider.Loaded += (_, _) => PSVideoKnobApply();
@@ -93,7 +95,24 @@ internal sealed partial class PSEncoder
         }
         else
         {
+            psVideoSizeBusy = true;
+            PSVideoDimensionApply();
+            psVideoSizeBusy = false;
             PSVideoStateApply(0);
+        }
+    }
+
+    private void PSVideoDimensionApply()
+    {
+        string pText = LLocalization.LLocalizationTextRead("Encoder.Sample.Source");
+        if (psVideoWidthBox is not null)
+        {
+            psVideoWidthBox.Text = pText;
+        }
+
+        if (psVideoHeightBox is not null)
+        {
+            psVideoHeightBox.Text = pText;
         }
     }
 
@@ -109,8 +128,7 @@ internal sealed partial class PSEncoder
         psVideoSizeBusy = true;
         if (pTier == 0)
         {
-            psVideoWidthBox!.Text = string.Empty;
-            psVideoHeightBox!.Text = string.Empty;
+            PSVideoDimensionApply();
         }
         else
         {
@@ -185,12 +203,17 @@ internal sealed partial class PSEncoder
             }
             else if (pSource)
             {
-                psVideoResolutionValue.Text = LLocalization.LLocalizationTextRead("Encoder.Location.Source");
+                psVideoResolutionValue.Text = LLocalization.LLocalizationTextRead("Encoder.Sample.Source");
             }
             else
             {
                 psVideoResolutionValue.Text = psVideoSizeTiers[pTier].Label;
             }
+        }
+
+        if (psVideoSizeNotice is not null)
+        {
+            psVideoSizeNotice.Visibility = pSource ? Visibility.Visible : Visibility.Collapsed;
         }
 
         Brush pForeground = pSource ? PSFieldMuted : PSFieldText;

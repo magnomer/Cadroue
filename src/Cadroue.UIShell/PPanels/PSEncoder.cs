@@ -24,7 +24,7 @@ internal sealed partial class PSEncoder : Window
     internal const string PSEncoderPlacementKey = "Encoder";
 
     internal const double PSEncoderWidthDefault = 820;
-    internal const double PSEncoderHeightDefault = 700;
+    internal const double PSEncoderHeightDefault = 760;
     internal const double PSEncoderWidthMinimum = 680;
     internal const double PSEncoderHeightMinimum = 520;
 
@@ -63,9 +63,9 @@ internal sealed partial class PSEncoder : Window
     private TextBlock? psVideoHeightLabel;
     private int psVideoSizeTier;
     private bool psVideoSizeBusy;
-    private readonly CheckBox psVideoFpsSource;
     private readonly TextBox psVideoFpsCustom;
-    private UIElement? psVideoFpsRow;
+    private UIElement? psVideoFpsNotice;
+    private UIElement? psVideoSizeNotice;
     private readonly ComboBox psVideoPixelCombo;
     private readonly ComboBox psAudioEncoderCombo;
     private readonly ComboBox psAudioRateCombo;
@@ -170,7 +170,6 @@ internal sealed partial class PSEncoder : Window
         psLocationFolderBox = PSEntryBuild(lsExportSpecificEdit.LPresetLocationRead(lsExportSpecificEdit.LPresetLocation), 220);
         psVideoReactiveBox = PSVideoReactiveBuild(lsExportSpecificEdit.LPresetVideo.LPresetSizeReactive);
         bool psFpsIsSource = PSVideoSourceCheck(lsExportSpecificEdit.LPresetVideo.LPresetFps);
-        psVideoFpsSource = PSVideoSourceBuild(psFpsIsSource);
         psVideoFpsCustom = PSEntryBuild(psFpsIsSource ? string.Empty : lsExportSpecificEdit.LPresetVideo.LPresetFps.Trim(), 120);
         psVideoPixelCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetPixelLayout,
             new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
