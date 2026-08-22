@@ -277,12 +277,9 @@ internal sealed partial class PSEncoder
         psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.RateControl"), psAudioRateCombo));
         psAudioEncodePanel.Children.Add(psAudioRowsPanel);
         psAudioEncodePanel.Children.Add(psAudioSamplePanel);
-        psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Channels"), psAudioChannelCombo));
-        psAudioChannelRow = PSFieldCustomBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.CustomChannels"), psAudioChannelCustom);
-        psAudioEncodePanel.Children.Add(psAudioChannelRow);
-        psAudioChannelCombo.SelectionChanged += (_, _) => PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelRow);
+        psAudioEncodePanel.Children.Add(psAudioChannelPanel);
         PSAudioSampleRebuild();
-        PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelRow);
+        PSAudioChannelRebuild();
 
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Stream"), psAudioStreamCombo));
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Mode"), psAudioMode));
@@ -314,6 +311,7 @@ internal sealed partial class PSEncoder
 
         PSAudioRowsRebuild();
         PSAudioSampleRebuild();
+        PSAudioChannelRebuild();
         PSAudioEncoderUpdate();
     }
 
@@ -332,15 +330,15 @@ internal sealed partial class PSEncoder
         double pMaximum = pTicks.Count > 0 ? pTicks[^1] : 48000;
 
         psAudioSampleReadout = PSEntryBuild(string.Empty, 96);
+        UIElement pNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
         UIElement pRow = PSFieldDetentBuild(
             pTicks, pDiscrete, pMaximum,
             LLocalization.LLocalizationTextRead("Encoder.Sample.Source"),
-            pStored, psAudioSampleReadout);
+            pStored, psAudioSampleReadout, pNotice);
 
         psAudioSamplePanel.Children.Clear();
         psAudioSamplePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"), pRow));
-        psAudioSamplePanel.Children.Add(PSNoticeBuild(LLocalization.LLocalizationTextRead(
-            pDiscrete ? "Encoder.Audio.Notice.SampleFixed" : "Encoder.Audio.Notice.SampleFree")));
+        psAudioSamplePanel.Children.Add(pNotice);
     }
 
     private string PSAudioSampleRead()
@@ -349,6 +347,61 @@ internal sealed partial class PSEncoder
         return int.TryParse(pText, out int pHz) && pHz > 0
             ? pHz.ToString()
             : "Same as source";
+    }
+
+    private static readonly string[] psAudioChannelStandard =
+        ["mono", "stereo", "2.1", "3.0", "4.0", "5.0", "5.1", "6.1", "7.1"];
+
+    private void PSAudioChannelRebuild()
+    {
+        string pStored = psAudioChannelReadout is null
+            ? lsExportSpecificEdit.LPresetAudio.LPresetChannels
+            : PSAudioChannelRead();
+        string pEncoder = LCapability.LCapabilityNameRead(PSComboTextRead(psAudioEncoderCombo));
+        IReadOnlyList<string> pLayouts = LInventory.LInventoryLayoutRead(pEncoder);
+        if (pLayouts.Count == 0)
+        {
+            pLayouts = psAudioChannelStandard;
+        }
+
+        psAudioChannelLayouts = pLayouts;
+
+        var pLabels = new List<string>(pLayouts.Count + 1)
+        {
+            LLocalization.LLocalizationTextRead("Encoder.Sample.Source")
+        };
+        pLabels.AddRange(pLayouts);
+
+        int pIndex = 0;
+        for (int pAt = 0; pAt < pLayouts.Count; pAt++)
+        {
+            if (string.Equals(pLayouts[pAt], pStored, StringComparison.OrdinalIgnoreCase))
+            {
+                pIndex = pAt + 1;
+                break;
+            }
+        }
+
+        psAudioChannelSlider = new Slider();
+        psAudioChannelReadout = PSEntryBuild(string.Empty, 96);
+        UIElement pNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.ChannelSource"));
+        UIElement pRow = PSFieldLayoutBuild(psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout, pNotice);
+
+        psAudioChannelPanel.Children.Clear();
+        psAudioChannelPanel.Children.Add(PSFieldBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Channels"), pRow));
+        psAudioChannelPanel.Children.Add(pNotice);
+    }
+
+    private string PSAudioChannelRead()
+    {
+        if (psAudioChannelSlider is null)
+        {
+            return "Same as source";
+        }
+
+        int pIndex = Math.Clamp((int)Math.Round(psAudioChannelSlider.Value), 0, psAudioChannelLayouts.Count);
+        return pIndex <= 0 ? "Same as source" : psAudioChannelLayouts[pIndex - 1];
     }
 
     private void PSAudioRowsRebuild()

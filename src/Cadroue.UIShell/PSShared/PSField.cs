@@ -369,7 +369,7 @@ internal static class PSField
         return PSFieldRowBuild(pSlider, pReadout);
     }
 
-    internal static UIElement PSFieldDetentBuild(IReadOnlyList<int> pRates, bool pSnap, double pMaximum, string pZeroLabel, string pValue, TextBox pReadout)
+    internal static UIElement PSFieldDetentBuild(IReadOnlyList<int> pRates, bool pSnap, double pMaximum, string pZeroLabel, string pValue, TextBox pReadout, UIElement? pNotice = null)
     {
         double pMax = Math.Max(pMaximum, 1);
         double pStart = int.TryParse(pValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pParsed) && pParsed > 0
@@ -400,6 +400,16 @@ internal static class PSField
         pReadout.IsReadOnly = pSnap;
         pReadout.Text = PSFieldDetentFormat(pStart, pZeroLabel);
 
+        void PSFieldDetentNotice(double pAt)
+        {
+            if (pNotice is not null)
+            {
+                pNotice.Visibility = pAt <= 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        PSFieldDetentNotice(pStart);
+
         bool pSync = false;
         void PSFieldDetentCommit()
         {
@@ -423,6 +433,7 @@ internal static class PSField
             pReadout.Text = PSFieldDetentFormat(pResolved, pZeroLabel);
             pReadout.CaretIndex = pReadout.Text.Length;
             pSync = false;
+            PSFieldDetentNotice(pResolved);
         }
 
         pSlider.ValueChanged += (_, _) =>
@@ -431,6 +442,8 @@ internal static class PSField
             {
                 pReadout.Text = PSFieldDetentFormat(pSlider.Value, pZeroLabel);
             }
+
+            PSFieldDetentNotice(pSlider.Value);
         };
         pReadout.KeyDown += (_, pEvent) =>
         {
@@ -441,6 +454,51 @@ internal static class PSField
             }
         };
         pReadout.LostKeyboardFocus += (_, _) => PSFieldDetentCommit();
+        return PSFieldRowBuild(pSlider, pReadout);
+    }
+
+    internal static UIElement PSFieldLayoutBuild(Slider pSlider, IReadOnlyList<string> pLabels, int pIndex, TextBox pReadout, UIElement? pNotice = null)
+    {
+        int pLast = Math.Max(pLabels.Count - 1, 0);
+        int pStart = Math.Clamp(pIndex, 0, pLast);
+
+        var pTicks = new DoubleCollection();
+        for (int pTick = 0; pTick <= pLast; pTick++)
+        {
+            pTicks.Add(pTick);
+        }
+
+        pSlider.Minimum = 0;
+        pSlider.Maximum = pLast;
+        pSlider.SmallChange = 1;
+        pSlider.LargeChange = 1;
+        pSlider.Ticks = pTicks;
+        pSlider.TickPlacement = System.Windows.Controls.Primitives.TickPlacement.BottomRight;
+        pSlider.IsSnapToTickEnabled = true;
+        pSlider.Value = pStart;
+        pSlider.Width = PSFieldSliderWidth;
+        pSlider.VerticalAlignment = VerticalAlignment.Center;
+        PSlider.PSliderApply(pSlider);
+        pSlider.IsSnapToTickEnabled = true;
+
+        pReadout.IsReadOnly = true;
+        pReadout.Text = pLabels.Count > 0 ? pLabels[pStart] : string.Empty;
+
+        if (pNotice is not null)
+        {
+            pNotice.Visibility = pStart <= 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        pSlider.ValueChanged += (_, _) =>
+        {
+            int pAt = Math.Clamp((int)Math.Round(pSlider.Value), 0, pLast);
+            pReadout.Text = pLabels.Count > 0 ? pLabels[pAt] : string.Empty;
+            if (pNotice is not null)
+            {
+                pNotice.Visibility = pAt <= 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+        };
+
         return PSFieldRowBuild(pSlider, pReadout);
     }
 

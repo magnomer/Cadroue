@@ -38,6 +38,7 @@ public static class LInventory
     private static LInventoryStatus lInventoryInstalledStatus;
     private static LInventoryStatus lInventoryFilterStatus;
     private static readonly Dictionary<string, IReadOnlyList<int>> lInventorySampleCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, IReadOnlyList<string>> lInventoryLayoutCache = new(StringComparer.OrdinalIgnoreCase);
 
     public static void LInventoryPrepare()
     {
@@ -128,6 +129,76 @@ public static class LInventory
         lInventoryInstalledStatus = LInventoryStatus.LInventoryStatusPending;
         lInventoryFilterStatus = LInventoryStatus.LInventoryStatusPending;
         lInventorySampleCache.Clear();
+        lInventoryLayoutCache.Clear();
+    }
+
+    public static IReadOnlyList<string> LInventoryLayoutRead(string lInventoryEncoder)
+    {
+        if (string.IsNullOrWhiteSpace(lInventoryEncoder))
+        {
+            return Array.Empty<string>();
+        }
+
+        if (lInventoryLayoutCache.TryGetValue(lInventoryEncoder, out IReadOnlyList<string>? lInventoryCached))
+        {
+            return lInventoryCached;
+        }
+
+        LInventoryProcess lInventoryProcess = LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder);
+        IReadOnlyList<string> lInventoryLayouts = lInventoryProcess.LInventoryProcessSuccess
+            ? LInventoryLayoutParse(lInventoryProcess.LInventoryProcessOut)
+            : Array.Empty<string>();
+        lInventoryLayoutCache[lInventoryEncoder] = lInventoryLayouts;
+        return lInventoryLayouts;
+    }
+
+    private static IReadOnlyList<string> LInventoryLayoutParse(string lInventoryText)
+    {
+        const string lInventoryMark = "Supported channel layouts:";
+        foreach (string lInventoryRawLine in lInventoryText.Split('\n'))
+        {
+            string lInventoryLine = lInventoryRawLine.TrimEnd('\r').Trim();
+            int lInventoryStart = lInventoryLine.IndexOf(lInventoryMark, StringComparison.Ordinal);
+            if (lInventoryStart < 0)
+            {
+                continue;
+            }
+
+            var lInventoryLayouts = new List<string>();
+            foreach (string lInventoryToken in lInventoryLine[(lInventoryStart + lInventoryMark.Length)..]
+                         .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (LInventoryLayoutCheck(lInventoryToken) && !lInventoryLayouts.Contains(lInventoryToken))
+                {
+                    lInventoryLayouts.Add(lInventoryToken);
+                }
+            }
+
+            return lInventoryLayouts;
+        }
+
+        return Array.Empty<string>();
+    }
+
+    private static bool LInventoryLayoutCheck(string lInventoryToken)
+    {
+        if (lInventoryToken.Length == 0
+            || string.Equals(lInventoryToken, "channels", StringComparison.Ordinal)
+            || !char.IsLetterOrDigit(lInventoryToken[0])
+            || lInventoryToken.All(char.IsDigit))
+        {
+            return false;
+        }
+
+        foreach (char lInventoryChar in lInventoryToken)
+        {
+            if (!char.IsLetterOrDigit(lInventoryChar) && lInventoryChar is not ('.' or '(' or ')' or '-' or '+'))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public static IReadOnlyList<int> LInventorySampleRead(string lInventoryEncoder)

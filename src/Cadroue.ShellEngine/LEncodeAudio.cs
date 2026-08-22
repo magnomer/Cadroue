@@ -83,11 +83,29 @@ internal static class LEncodeAudio
             lArguments.Append(CultureInfo.InvariantCulture, $" -ar {lSampleRate}");
         }
 
-        int? lChannels = LEncodeChannelRead(lOutput.LEncodingAudio.LEncodingChannels);
-        if (lChannels is int lChannelCount)
+        LEncodeChannelAppend(lArguments, lOutput.LEncodingAudio.LEncodingChannels);
+    }
+
+    private static void LEncodeChannelAppend(StringBuilder lArguments, string lChannels)
+    {
+        if (LEncode.LEncodeSourceCheck(lChannels) || string.IsNullOrWhiteSpace(lChannels))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -ac {lChannelCount}");
+            return;
         }
+
+        if (int.TryParse(lChannels, NumberStyles.Integer, CultureInfo.InvariantCulture, out int lCount) && lCount > 0)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -ac {lCount}");
+            return;
+        }
+
+        string lLayout = lChannels switch
+        {
+            "Mono" => "mono",
+            "Stereo" => "stereo",
+            _ => lChannels
+        };
+        lArguments.Append(CultureInfo.InvariantCulture, $" -channel_layout {lLayout}");
     }
 
     private static string LEncodeTrackRead(string lAudioEncoder) => lAudioEncoder switch
@@ -95,13 +113,5 @@ internal static class LEncodeAudio
         "AAC" => "aac",
         "FLAC" => "flac",
         _ => LCapability.LCapabilityNameRead(lAudioEncoder)
-    };
-
-    private static int? LEncodeChannelRead(string lChannels) => lChannels switch
-    {
-        "Mono" => 1,
-        "Stereo" => 2,
-        "5.1" => 6,
-        _ => int.TryParse(lChannels, out int lCount) && lCount > 0 ? lCount : null
     };
 }
