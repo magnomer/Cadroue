@@ -299,6 +299,9 @@ internal static class TInterface
         double reduction, double floor, double smooth, double adaptivity, double residual, LGrain grain) =>
         LGrainCatalog.LGrainMatch(reduction, floor, smooth, adaptivity, residual, grain);
 
+    internal static LBridgePlan BridgeResolve(IReadOnlyList<TimeSpan> keyframes, TimeSpan origin, TimeSpan end) =>
+        LBridge.LBridgeRegionResolve(keyframes, origin, end);
+
     internal static LPassbandPreset? PassbandRead(bool high, string token) => LPassband.LPassbandRead(high, token);
     internal static string? PassbandMatch(bool high, double frequency, int stages, int poles, double resonance) =>
         LPassband.LPassbandMatch(high, frequency, stages, poles, resonance);
