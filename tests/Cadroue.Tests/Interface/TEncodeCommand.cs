@@ -130,6 +130,11 @@ internal sealed class TEncodeCommand : IDisposable
                 tail is { } tTail ? SpanCreate(tTail) : null),
             new LBridgeCompatibility(compatible, reason));
 
+    internal static IReadOnlyList<LEncodeStage> SmartBridgeResolve(
+        LWorkItem work, params double[] keyframes) =>
+        LEncode.LEncodeBridgeResolve(
+            work, keyframes.Select(TimeSpan.FromSeconds).ToArray());
+
     internal static LWorkItem SmartCropWorkCreate(string source, string output)
     {
         LWorkItem work = WorkCreate(

@@ -10,6 +10,15 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LEncode
 {
+    public static IReadOnlyList<LEncodeStage> LEncodeBridgeResolve(
+        LWorkItem lWorkItem, IReadOnlyList<TimeSpan> lBridgeKeyframes)
+    {
+        LBridgePlan lBridgePlan = LBridge.LBridgeRegionResolve(
+            lBridgeKeyframes, lWorkItem.LWorkOrigin, lWorkItem.LWorkEnd);
+        return LEncodeSmartResolve(
+            lWorkItem, lBridgePlan, new LBridgeCompatibility(true, LBridgeReason.LBridgeReasonCompatible));
+    }
+
     public static IReadOnlyList<LEncodeStage> LEncodeSmartResolve(
         LWorkItem lWorkItem,
         LBridgePlan lBridgePlan,
@@ -31,13 +40,37 @@ public static partial class LEncode
         }
 
         LRunner.LRunnerRecord(lBridgePlan.LBridgeOutcome == LBridgeOutcome.LBridgeOutcomeSmart
-            ? $"Smart Cut applied for '{lWorkItem.LWorkOutputName}': lossless bridges with a copied middle"
+            ? $"Smart Cut applied for '{lWorkItem.LWorkOutputName}': {LEncodeRegionFormat(lBridgePlan)}"
             : $"Smart Cut not usable for '{lWorkItem.LWorkOutputName}': encoding the requested interval");
 
         return LEncodeSmartBuild(lWorkItem, lBridgePlan);
     }
 
-    internal static bool LEncodeSmartCheck(LWorkItem lWorkItem)
+    private static string LEncodeRegionFormat(LBridgePlan lBridgePlan)
+    {
+        var lRegions = new List<string>();
+        if (lBridgePlan.LBridgeHead is { } lHead)
+        {
+            lRegions.Add($"head bridge {LEncodeSpanFormat(lHead)}");
+        }
+
+        if (lBridgePlan.LBridgeMiddle is { } lMiddle)
+        {
+            lRegions.Add($"copied middle {LEncodeSpanFormat(lMiddle)}");
+        }
+
+        if (lBridgePlan.LBridgeTail is { } lTail)
+        {
+            lRegions.Add($"tail bridge {LEncodeSpanFormat(lTail)}");
+        }
+
+        return string.Join(", ", lRegions);
+    }
+
+    private static string LEncodeSpanFormat(LBridgeSpan lBridgeSpan) =>
+        $"{LEncodeTimeFormat(lBridgeSpan.LBridgeSpanOrigin)}-{LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd)}s";
+
+    public static bool LEncodeSmartCheck(LWorkItem lWorkItem)
     {
         LEncoding lOutput = lWorkItem.LWorkOutput;
         LEncodingVideo lVideo = lOutput.LEncodingVideo;

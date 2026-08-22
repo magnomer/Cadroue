@@ -231,6 +231,44 @@ public sealed class SmartCutCommandTests
     }
 
     [Fact]
+    public void NonKeyframeBoundsSplit_ProducesHybridStageList()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
+
+        // Interval is [10, 30]; interior keyframes at 12 and 28 align with neither bound.
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartBridgeResolve(work, 12, 28);
+
+        Assert.Equal(4, stages.Count);
+        Assert.Equal("Encoding head bridge", stages[0].LEncodeStageLabel);
+        Assert.Equal("Copying middle", stages[1].LEncodeStageLabel);
+        Assert.Equal("Encoding tail bridge", stages[2].LEncodeStageLabel);
+
+        IReadOnlyList<string> middleTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
+        Assert.Equal("copy", CommandTokens.ValueAfter(middleTokens, "-c:v"));
+        Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
+        Assert.Equal("16", CommandTokens.ValueAfter(middleTokens, "-t"));
+
+        IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[^1].LEncodeStageArguments);
+        Assert.Equal(LWorkStage.LWorkStageMux, stages[^1].LEncodeStageKind);
+        Assert.Contains("concat", muxTokens);
+    }
+
+    [Fact]
+    public void KeyframeStarvedSplit_FallsBackToWholeIntervalEncode()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
+
+        // No usable interior keyframe within [10, 30]: whole-interval fallback.
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartBridgeResolve(work));
+
+        Assert.False(stage.LEncodeStageTemporary);
+        Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
+        Assert.DoesNotContain("concat", CommandTokens.Read(stage.LEncodeStageArguments));
+    }
+
+    [Fact]
     public void CleanCopyableCut_UsesHybridSmartPlan()
     {
         using var environment = new TEncodeCommand();

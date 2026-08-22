@@ -60,7 +60,7 @@ internal sealed class LJob
 
         lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
 
-        IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);
+        IReadOnlyList<LEncodeStage> pStages = LJobStagesBuild();
         if (pStages.Count == 0)
         {
             throw new InvalidOperationException("the stored job produced no encode steps (incomplete or corrupt)");
@@ -215,6 +215,18 @@ internal sealed class LJob
             lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
             LJobTempClear(pStages);
         }
+    }
+
+    private IReadOnlyList<LEncodeStage> LJobStagesBuild()
+    {
+        if (lJobItem.LWorkKind == LWorkKind.LWorkKindSplit && !LEncode.LEncodeSmartCheck(lJobItem))
+        {
+            IReadOnlyList<TimeSpan> pKeyframes = LScout.LScoutBridgeRead(
+                lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken);
+            return LEncode.LEncodeBridgeResolve(lJobItem, pKeyframes);
+        }
+
+        return LEncode.LEncodeStagesBuild(lJobItem);
     }
 
     private string LJobValidate()
