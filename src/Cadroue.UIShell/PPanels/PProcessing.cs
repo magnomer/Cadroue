@@ -29,7 +29,6 @@ public sealed partial class PProcessing : PPanel
     public event Action<bool>? PProcessingMinimizeChange;
     public event Action? PProcessingOrderChange;
     public event Action? PProcessingMonitorShow;
-    public event Action<string, bool>? PProcessingActiveChange;
 
     private readonly StackPanel pProcessingRowPanel;
     private readonly UIElement pProcessingFullBody;
@@ -41,8 +40,6 @@ public sealed partial class PProcessing : PPanel
     private string? pProcessingStepCurrent;
     private bool pProcessingMinimized;
     private bool pProcessingOrdered;
-    private bool pProcessingCheckable;
-    private bool pProcessingCheckSuppress;
     private readonly HashSet<string> pProcessingActiveSteps = new(StringComparer.Ordinal);
     private readonly HashSet<string> pProcessingDisabledSteps = new(StringComparer.Ordinal);
 
@@ -51,8 +48,6 @@ public sealed partial class PProcessing : PPanel
         pProcessingOrdered = pOrderedRequest;
         pProcessingActionBar.Visibility = pOrderedRequest ? Visibility.Visible : Visibility.Collapsed;
     }
-
-    public void PProcessingCheckableSet(bool pCheckableRequest) => pProcessingCheckable = pCheckableRequest;
 
     public void PProcessingMonitorSet()
     {
@@ -81,17 +76,6 @@ public sealed partial class PProcessing : PPanel
             }
 
             PProcessingRowApply(pRowContent, pActive);
-            pProcessingCheckSuppress = true;
-            foreach (UIElement pPiece in pRowContent.Children)
-            {
-                if (pPiece is CheckBox pCheckPiece)
-                {
-                    pCheckPiece.IsChecked = pActive;
-                    break;
-                }
-            }
-
-            pProcessingCheckSuppress = false;
 
             return;
         }
@@ -420,34 +404,6 @@ public sealed partial class PProcessing : PPanel
         PProcessingNumbersUpdate();
     }
 
-    private CheckBox PProcessingCheckBuild(string pStepName)
-    {
-        var pCheck = new CheckBox
-        {
-            IsChecked = pProcessingActiveSteps.Contains(pStepName),
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0),
-            Focusable = false
-        };
-        PCheckbox.PCheckboxApply(pCheck);
-
-        void pProcessingCheckHandle()
-        {
-            if (pProcessingCheckSuppress)
-            {
-                return;
-            }
-
-            bool pActive = pCheck.IsChecked == true;
-            PProcessingActiveSet(pStepName, pActive);
-            PProcessingActiveChange?.Invoke(pStepName, pActive);
-        }
-
-        pCheck.Checked += (_, _) => pProcessingCheckHandle();
-        pCheck.Unchecked += (_, _) => pProcessingCheckHandle();
-        return pCheck;
-    }
-
     private static Border PProcessingBadgeBuild()
     {
         var pNumber = new TextBlock
@@ -476,11 +432,6 @@ public sealed partial class PProcessing : PPanel
     {
         string pStepLabel = LLocalization.LLocalizationTextRead(pStepLabelKey);
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
-        if (pProcessingCheckable)
-        {
-            pRowContent.Children.Add(PProcessingCheckBuild(pStepName));
-        }
-
         if (pProcessingOrdered)
         {
             pRowContent.Children.Add(PProcessingBadgeBuild());

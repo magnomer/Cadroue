@@ -92,6 +92,7 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindBlank));
         pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindScene));
         pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindStill));
+        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindLuminance));
         pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindSilence));
         pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindVolume));
 
@@ -186,7 +187,6 @@ public sealed partial class PInspector : PPanel
         }
 
         bool pDetectorSelected = pDetectorKind is not null;
-        bool pDetectorBodied = pDetectorKind is { } pDetectorBodyKind && pSensorSections.ContainsKey(pDetectorBodyKind);
         bool pCropSelected = pStepName == "Crop";
         bool pBrightnessSelected = pStepName == "Brightness";
         bool pContrastSelected = pStepName == "Contrast";
@@ -253,7 +253,7 @@ public sealed partial class PInspector : PPanel
         pInspectorLowPass.PInspectorPassPersistent.Visibility = pLowPassSelected ? Visibility.Visible : Visibility.Collapsed;
         pEqualizerPersistent.Visibility = pEqualizerSelected ? Visibility.Visible : Visibility.Collapsed;
         pSkipPersistentBox.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorEmptyNotice.Visibility = pKnownSelected || pDetectorBodied ? Visibility.Collapsed : Visibility.Visible;
+        pInspectorEmptyNotice.Visibility = pKnownSelected || pDetectorSelected ? Visibility.Collapsed : Visibility.Visible;
 
         if (!pCropSelected && pInspectorCropTool.IsChecked == true)
         {

@@ -22,9 +22,11 @@ public sealed partial class PInspector
     private sealed class PSensorSection
     {
         public required LDetectorKind PSensorKind { get; init; }
-        public required TextBox PSensorThreshold { get; init; }
-        public required TextBox PSensorMinimum { get; init; }
+        public required CheckBox PSensorApplyBox { get; init; }
+        public required StackPanel PSensorStack { get; init; }
         public required StackPanel PSensorBody { get; init; }
+        public TextBox? PSensorThreshold { get; init; }
+        public TextBox? PSensorMinimum { get; init; }
         public bool PSensorSuppress { get; set; }
     }
 
@@ -75,59 +77,87 @@ public sealed partial class PInspector
 
     private StackPanel PSensorBuild(LDetectorKind pDetectorKind)
     {
-        LDetectorBound pThresholdBound = LDetector.LDetectorThresholdRead(pDetectorKind);
-        LDetectorBound pMinimumBound = LDetector.LDetectorMinimumRead(pDetectorKind);
-        (string pLabelKey, string pUnit, string pFormat) = PSensorShapeRead(pDetectorKind);
-
-        TextBox pThresholdValue = PSensorDecimalBuild(pThresholdBound.LDetectorBoundDefault, pFormat);
-        TextBox pMinimumValue = PSensorDecimalBuild(pMinimumBound.LDetectorBoundDefault, "0.0");
-
-        var pSection = new PSensorSection
+        PSensorSection pSection = null!;
+        void pSensorEdit()
         {
-            PSensorKind = pDetectorKind,
-            PSensorThreshold = pThresholdValue,
-            PSensorMinimum = pMinimumValue,
-            PSensorBody = new StackPanel
+            if (!pSection.PSensorSuppress)
             {
-                Margin = new Thickness(12, 12, 12, 12),
-                Visibility = Visibility.Collapsed
+                PSensorRaise();
             }
-        };
-
-        Slider pThresholdSlider = PInspectorSliderBuild(
-            pThresholdValue,
-            pThresholdBound.LDetectorBoundLeast,
-            pThresholdBound.LDetectorBoundMost,
-            pThresholdBound.LDetectorBoundDefault,
-            pFormat,
-            () => pThresholdBound.LDetectorBoundDefault,
-            () => PSensorChangeHandle(pSection));
-        Slider pMinimumSlider = PInspectorSliderBuild(
-            pMinimumValue,
-            pMinimumBound.LDetectorBoundLeast,
-            pMinimumBound.LDetectorBoundMost,
-            pMinimumBound.LDetectorBoundDefault,
-            "0.0",
-            () => pMinimumBound.LDetectorBoundDefault,
-            () => PSensorChangeHandle(pSection));
-
-        pSection.PSensorBody.Children.Add(PFilterSliderBuild(
-            LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
-        pSection.PSensorBody.Children.Add(PFilterSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Detector.Minimum"), pMinimumSlider, "s", pMinimumValue));
-
-        pSensorSections[pDetectorKind] = pSection;
-        return pSection.PSensorBody;
-    }
-
-    private void PSensorChangeHandle(PSensorSection pSection)
-    {
-        if (pSection.PSensorSuppress)
-        {
-            return;
         }
 
-        PSensorRaise();
+        CheckBox pApply = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Detector.ApplyTooltip"));
+        var pStack = new StackPanel();
+        var pBody = new StackPanel
+        {
+            Margin = new Thickness(12, 12, 12, 12),
+            Visibility = Visibility.Collapsed
+        };
+
+        TextBox? pThresholdValue = null;
+        TextBox? pMinimumValue = null;
+        if (pDetectorKind != LDetectorKind.LDetectorKindLuminance)
+        {
+            LDetectorBound pThresholdBound = LDetector.LDetectorThresholdRead(pDetectorKind);
+            LDetectorBound pMinimumBound = LDetector.LDetectorMinimumRead(pDetectorKind);
+            (string pLabelKey, string pUnit, string pFormat) = PSensorShapeRead(pDetectorKind);
+
+            pThresholdValue = PSensorDecimalBuild(pThresholdBound.LDetectorBoundDefault, pFormat);
+            pMinimumValue = PSensorDecimalBuild(pMinimumBound.LDetectorBoundDefault, "0.0");
+
+            Slider pThresholdSlider = PInspectorSliderBuild(
+                pThresholdValue, pThresholdBound.LDetectorBoundLeast, pThresholdBound.LDetectorBoundMost,
+                pThresholdBound.LDetectorBoundDefault, pFormat,
+                () => pThresholdBound.LDetectorBoundDefault, pSensorEdit);
+            Slider pMinimumSlider = PInspectorSliderBuild(
+                pMinimumValue, pMinimumBound.LDetectorBoundLeast, pMinimumBound.LDetectorBoundMost,
+                pMinimumBound.LDetectorBoundDefault, "0.0",
+                () => pMinimumBound.LDetectorBoundDefault, pSensorEdit);
+
+            pStack.Children.Add(PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
+            pStack.Children.Add(PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Detector.Minimum"), pMinimumSlider, "s", pMinimumValue));
+        }
+
+        pSection = new PSensorSection
+        {
+            PSensorKind = pDetectorKind,
+            PSensorApplyBox = pApply,
+            PSensorStack = pStack,
+            PSensorBody = pBody,
+            PSensorThreshold = pThresholdValue,
+            PSensorMinimum = pMinimumValue
+        };
+
+        pApply.Checked += (_, _) => PSensorApplyHandle(pSection);
+        pApply.Unchecked += (_, _) => PSensorApplyHandle(pSection);
+
+        pBody.Children.Add(pApply);
+        pBody.Children.Add(PInspectorSeparatorBuild());
+        pBody.Children.Add(pStack);
+        PSensorStackUpdate(pSection);
+
+        pSensorSections[pDetectorKind] = pSection;
+        return pBody;
+    }
+
+    private void PSensorApplyHandle(PSensorSection pSection)
+    {
+        PSensorStackUpdate(pSection);
+        if (!pSection.PSensorSuppress)
+        {
+            PSensorRaise();
+        }
+    }
+
+    private static void PSensorStackUpdate(PSensorSection pSection)
+    {
+        bool pActive = pSection.PSensorApplyBox.IsChecked == true;
+        pSection.PSensorStack.IsEnabled = pActive;
+        pSection.PSensorStack.Opacity = pActive ? 1 : 0.4;
     }
 
     private static TextBox PSensorDecimalBuild(double pDefault, string pFormat)
@@ -137,19 +167,23 @@ public sealed partial class PInspector
         return pDecimalBox;
     }
 
-    public LDetectorStep PSensorStepRead(LDetectorKind pDetectorKind, bool pEnabled)
+    public LDetectorStep PSensorStepRead(LDetectorKind pDetectorKind)
     {
         if (!pSensorSections.TryGetValue(pDetectorKind, out PSensorSection? pSection))
         {
-            LDetectorStep pDefault = LDetector.LDetectorCreate(pDetectorKind);
-            return pDefault with { LDetectorStepEnabled = pEnabled };
+            return LDetector.LDetectorCreate(pDetectorKind);
         }
 
+        LDetectorStep pDefault = LDetector.LDetectorCreate(pDetectorKind);
         return new LDetectorStep(
             pDetectorKind,
-            pEnabled,
-            LDetector.LDetectorThresholdClamp(pDetectorKind, PInspectorDecimalRead(pSection.PSensorThreshold, 0)),
-            LDetector.LDetectorMinimumClamp(pDetectorKind, PInspectorDecimalRead(pSection.PSensorMinimum, 0)));
+            pSection.PSensorApplyBox.IsChecked == true,
+            pSection.PSensorThreshold is { } pThreshold
+                ? LDetector.LDetectorThresholdClamp(pDetectorKind, PInspectorDecimalRead(pThreshold, pDefault.LDetectorStepThreshold))
+                : pDefault.LDetectorStepThreshold,
+            pSection.PSensorMinimum is { } pMinimum
+                ? LDetector.LDetectorMinimumClamp(pDetectorKind, PInspectorDecimalRead(pMinimum, pDefault.LDetectorStepMinimum))
+                : pDefault.LDetectorStepMinimum);
     }
 
     public void PSensorApply(LDetectorStep pDetectorStep)
@@ -160,12 +194,22 @@ public sealed partial class PInspector
         }
 
         pSection.PSensorSuppress = true;
-        pSection.PSensorThreshold.Text = LDetector
-            .LDetectorThresholdClamp(pDetectorStep.LDetectorStepKind, pDetectorStep.LDetectorStepThreshold)
-            .ToString(PSensorShapeRead(pDetectorStep.LDetectorStepKind).Format, CultureInfo.InvariantCulture);
-        pSection.PSensorMinimum.Text = LDetector
-            .LDetectorMinimumClamp(pDetectorStep.LDetectorStepKind, pDetectorStep.LDetectorStepMinimum)
-            .ToString("0.0", CultureInfo.InvariantCulture);
+        pSection.PSensorApplyBox.IsChecked = pDetectorStep.LDetectorStepEnabled;
+        if (pSection.PSensorThreshold is { } pThreshold)
+        {
+            pThreshold.Text = LDetector
+                .LDetectorThresholdClamp(pDetectorStep.LDetectorStepKind, pDetectorStep.LDetectorStepThreshold)
+                .ToString(PSensorShapeRead(pDetectorStep.LDetectorStepKind).Format, CultureInfo.InvariantCulture);
+        }
+
+        if (pSection.PSensorMinimum is { } pMinimum)
+        {
+            pMinimum.Text = LDetector
+                .LDetectorMinimumClamp(pDetectorStep.LDetectorStepKind, pDetectorStep.LDetectorStepMinimum)
+                .ToString("0.0", CultureInfo.InvariantCulture);
+        }
+
         pSection.PSensorSuppress = false;
+        PSensorStackUpdate(pSection);
     }
 }

@@ -998,6 +998,7 @@
   "Inspector.Step.Still": "정지 화면",
   "Inspector.Step.Luminance": "휘도",
   "Inspector.Step.Silence": "무음",
+  "Inspector.Detector.ApplyTooltip": "분할 시 이 감지 방법 사용",
   "Inspector.Detector.Threshold": "임계값",
   "Inspector.Detector.BlackRatio": "검은 비율",
   "Inspector.Detector.Sensitivity": "민감도",

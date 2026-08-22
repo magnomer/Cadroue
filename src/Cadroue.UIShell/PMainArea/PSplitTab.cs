@@ -21,7 +21,6 @@ public sealed class PSplitTab : PTabSurface
     private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
-    private readonly HashSet<LDetectorKind> pSplitEnabled = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PSplitTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
@@ -88,7 +87,6 @@ public sealed class PSplitTab : PTabSurface
         pAction.PActionSelectionSource = () => pList.PListSelectionRead();
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
 
-        pProcessing.PProcessingCheckableSet(true);
         pProcessing.PProcessingStepAdd(
             PInspector.PSensorNameRead(LDetectorKind.LDetectorKindBlank), PSplitBlankIcon, "Processing.Step.Blank");
         pProcessing.PProcessingStepAdd(
@@ -103,7 +101,7 @@ public sealed class PSplitTab : PTabSurface
             PInspector.PSensorNameRead(LDetectorKind.LDetectorKindVolume), PSplitVolumeIcon, "Processing.Step.Volume");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
-        pProcessing.PProcessingActiveChange += PSplitMethodHandle;
+        pInspector.PSensorChange += PSplitActiveUpdate;
 
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
@@ -135,25 +133,13 @@ public sealed class PSplitTab : PTabSurface
         }
     }
 
-    private void PSplitMethodHandle(string pStepName, bool pActive)
+    private void PSplitActiveUpdate()
     {
         foreach (LDetectorKind pDetectorKind in LDetector.LDetectorKinds)
         {
-            if (PInspector.PSensorNameRead(pDetectorKind) != pStepName)
-            {
-                continue;
-            }
-
-            if (pActive)
-            {
-                pSplitEnabled.Add(pDetectorKind);
-            }
-            else
-            {
-                pSplitEnabled.Remove(pDetectorKind);
-            }
-
-            break;
+            pProcessing.PProcessingActiveSet(
+                PInspector.PSensorNameRead(pDetectorKind),
+                pInspector.PSensorStepRead(pDetectorKind).LDetectorStepEnabled);
         }
     }
 
@@ -162,7 +148,7 @@ public sealed class PSplitTab : PTabSurface
         var pDetectors = new List<LSceneDetector>();
         foreach (LDetectorKind pDetectorKind in LDetector.LDetectorKinds)
         {
-            LDetectorStep pStep = pInspector.PSensorStepRead(pDetectorKind, pSplitEnabled.Contains(pDetectorKind));
+            LDetectorStep pStep = pInspector.PSensorStepRead(pDetectorKind);
             pDetectors.Add(new LSceneDetector
             {
                 LSceneDetectorKind = (int)pDetectorKind,
@@ -195,12 +181,9 @@ public sealed class PSplitTab : PTabSurface
                 pDetector.LSceneDetectorEnabled,
                 pDetector.LSceneDetectorThreshold,
                 pDetector.LSceneDetectorMinimum));
-            if (pDetector.LSceneDetectorEnabled)
-            {
-                pSplitEnabled.Add(pDetectorKind);
-                pProcessing.PProcessingActiveSet(PInspector.PSensorNameRead(pDetectorKind), true);
-            }
         }
+
+        PSplitActiveUpdate();
     }
 
     public override PFlowControl PTabFlow => pFlow;

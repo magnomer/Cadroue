@@ -998,6 +998,7 @@
   "Inspector.Step.Still": "Still Image",
   "Inspector.Step.Luminance": "Luminance",
   "Inspector.Step.Silence": "Silence",
+  "Inspector.Detector.ApplyTooltip": "Use this detection method when splitting",
   "Inspector.Detector.Threshold": "Threshold",
   "Inspector.Detector.BlackRatio": "Black ratio",
   "Inspector.Detector.Sensitivity": "Sensitivity",
