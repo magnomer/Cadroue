@@ -940,6 +940,7 @@
   "Encoder.Channel.Surround": "5.1",
   "Encoder.Video.Notice.Excluded": "{Terms.Video} {Terms.Stream}을 기록하지 않으므로 {Terms.Video} {Terms.Settings}이 적용되지 않습니다.",
   "Encoder.Video.Notice.Copied": "{Terms.Video} {Terms.Stream}을 그대로 복사하므로 {Terms.Encoder} {Terms.Settings}이 적용되지 않습니다.",
+  "Encoder.Video.Notice.Smart": "{Terms.Video} {Terms.Stream}을 가능한 곳은 복사하고 잘린 경계만 다시 인코딩하므로 {Terms.Encoder} {Terms.Settings}이 적용되지 않습니다.",
   "Encoder.Audio.Notice.Excluded": "{Terms.Audio} {Terms.Stream}을 기록하지 않으므로 {Terms.Audio} {Terms.Settings}이 적용되지 않습니다.",
   "Encoder.Audio.Notice.Copied": "{Terms.Audio} {Terms.Stream}을 그대로 복사하므로 코덱 {Terms.Settings}이 적용되지 않습니다.",
   "Encoder.Video.Notice.Unavailable": "이 {Terms.Encoder}는 현재 시스템에서 사용할 수 없습니다. 저장된 선택은 유지되며, 내보내기 전에 다른 항목을 선택하세요.",

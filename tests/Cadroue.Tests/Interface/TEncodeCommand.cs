@@ -80,10 +80,10 @@ internal sealed class TEncodeCommand : IDisposable
 
     internal static LWorkItem SmartWorkCreate(
         string source, string output, string codec = "h264", bool copyMode = true,
-        string audioCodec = "aac", int sampleRate = 48000)
+        string audioCodec = "aac", int sampleRate = 48000, string audioMode = "Copy")
     {
         LEncoding encoding = copyMode
-            ? OutputCreate(videoMode: "Smart", audioMode: "Copy")
+            ? OutputCreate(videoMode: "Smart", audioMode: audioMode)
             : OutputCreate();
         LWorkItem work = WorkCreate(
             LWorkKind.LWorkKindSplit, source, output, encoding,

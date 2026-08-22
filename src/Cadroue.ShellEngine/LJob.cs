@@ -4,7 +4,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal sealed class LJob
+internal sealed partial class LJob
 {
     private readonly LRunner lJobOwner;
     private readonly LWorkItem lJobItem;
@@ -13,6 +13,11 @@ internal sealed class LJob
     private double lJobTotalSeconds;
     private long lJobBlockMicroseconds = -1;
     private System.Text.StringBuilder? lJobProgressBlock;
+
+    private readonly List<LEncodeStage> lJobStagesDone = new();
+    private Stopwatch lJobClock = null!;
+    private string lJobDirectory = string.Empty;
+    private double lJobRunSeconds;
 
     internal LJob(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobCancelToken)
     {
@@ -60,19 +65,15 @@ internal sealed class LJob
 
         lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
 
-        IReadOnlyList<LEncodeStage> pStages = LJobStagesBuild();
-        if (pStages.Count == 0)
-        {
-            throw new InvalidOperationException("the stored job produced no encode steps (incomplete or corrupt)");
-        }
-
         var pJobClock = Stopwatch.StartNew();
+        lJobClock = pJobClock;
+        lJobDirectory = pDirectory;
         lJobItem.LWorkStartTime = DateTimeOffset.Now;
         lJobItem.LWorkFinishTime = null;
         LRunner.LRunnerRecord(
             $"Encode started '{lJobItem.LWorkOutputName}': {lJobItem.LWorkKind} at {lJobItem.LWorkPriority}, " +
             $"{lJobItem.LWorkOrigin:hh\\:mm\\:ss\\.fff}-{lJobItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
-            $"from '{Path.GetFileName(lJobItem.LWorkSourcePath)}' to '{lJobItem.LWorkOutputPath}' in {pStages.Count} stage(s)");
+            $"from '{Path.GetFileName(lJobItem.LWorkSourcePath)}' to '{lJobItem.LWorkOutputPath}'");
 
         try
         {
@@ -90,37 +91,8 @@ internal sealed class LJob
                     ?.LWorkMediaDuration.TotalSeconds ?? 0;
             }
 
-            int pExitCode = 0;
-            string pJobError = string.Empty;
-            string? pMeasureStderr = null;
-            for (int pStageIndex = 0; pStageIndex < pStages.Count; pStageIndex++)
-            {
-                await lJobOwner.LRunnerResume(lJobToken).ConfigureAwait(false);
-
-                LEncodeStage pStage = pStages[pStageIndex];
-                string pStageArguments = pStage.LEncodeStageArguments;
-                if (pStageArguments.Contains(LEncode.LEncodeMeasureToken, StringComparison.Ordinal))
-                {
-                    string pMeasured = pMeasureStderr is null
-                        ? string.Empty
-                        : LEncodeLoudnorm.LEncodeLoudnormRead(pMeasureStderr);
-                    pStageArguments = pStageArguments.Replace(LEncode.LEncodeMeasureToken, pMeasured, StringComparison.Ordinal);
-                }
-
-                (pExitCode, pJobError) = await LJobStageRun(
-                    pStage, pStageArguments, pStageIndex + 1, pStages.Count, pTotalSeconds,
-                    pJobClock, pDirectory).ConfigureAwait(false);
-
-                if (pStage.LEncodeStageMeasure)
-                {
-                    pMeasureStderr = pJobError;
-                }
-
-                if (pExitCode != 0)
-                {
-                    break;
-                }
-            }
+            lJobRunSeconds = pTotalSeconds;
+            (int pExitCode, string pJobError) = await LJobStagesRun().ConfigureAwait(false);
 
             bool pJobCancelled = lJobOwner.lRunnerCancelled.TryRemove(lJobItem.LWorkId, out _);
             if (pJobCancelled && pExitCode != 0)
@@ -213,26 +185,69 @@ internal sealed class LJob
             lJobOwner.lRunnerProcesses.TryRemove(lJobItem.LWorkId, out _);
             lJobOwner.lRunnerItems.TryRemove(lJobItem.LWorkId, out _);
             lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
-            LJobTempClear(pStages);
+            LJobTempClear(lJobStagesDone);
+            LEncode.LEncodeBridgeClear(lJobItem.LWorkId);
         }
     }
 
-    private IReadOnlyList<LEncodeStage> LJobStagesBuild()
+    private async Task<(int, string)> LJobStagesRun()
     {
         if (!LEncode.LEncodeSmartCheck(lJobItem))
         {
-            IReadOnlyList<TimeSpan> pKeyframes = LScout.LScoutBridgeRead(
-                lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken);
-            return LEncode.LEncodeBridgeResolve(lJobItem, pKeyframes);
+            return await LJobSmartRun().ConfigureAwait(false);
         }
 
         if (string.Equals(lJobItem.LWorkOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase))
         {
             LRunner.LRunnerRecord(
-                $"Smart Cut fallback for '{lJobItem.LWorkOutputName}': the item has edits or an fps change; encoding the full requested interval");
+                $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': the item has edits or an fps change; encoding the full requested interval");
         }
 
-        return LEncode.LEncodeStagesBuild(lJobItem);
+        IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);
+        if (pStages.Count == 0)
+        {
+            throw new InvalidOperationException("the stored job produced no encode steps (incomplete or corrupt)");
+        }
+
+        return await LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
+    }
+
+    private async Task<(int, string)> LJobBatchRun(IReadOnlyList<LEncodeStage> pStages, int pBaseNumber, int pTotalCount)
+    {
+        int pExitCode = 0;
+        string pJobError = string.Empty;
+        string? pMeasureStderr = null;
+        for (int pStageIndex = 0; pStageIndex < pStages.Count; pStageIndex++)
+        {
+            await lJobOwner.LRunnerResume(lJobToken).ConfigureAwait(false);
+
+            LEncodeStage pStage = pStages[pStageIndex];
+            lJobStagesDone.Add(pStage);
+            string pStageArguments = pStage.LEncodeStageArguments;
+            if (pStageArguments.Contains(LEncode.LEncodeMeasureToken, StringComparison.Ordinal))
+            {
+                string pMeasured = pMeasureStderr is null
+                    ? string.Empty
+                    : LEncodeLoudnorm.LEncodeLoudnormRead(pMeasureStderr);
+                pStageArguments = pStageArguments.Replace(LEncode.LEncodeMeasureToken, pMeasured, StringComparison.Ordinal);
+            }
+
+            (pExitCode, pJobError) = await LJobStageRun(
+                pStage, pStageArguments, pBaseNumber + pStageIndex + 1, pTotalCount, lJobRunSeconds,
+                lJobClock, lJobDirectory).ConfigureAwait(false);
+
+            if (pStage.LEncodeStageMeasure)
+            {
+                pMeasureStderr = pJobError;
+            }
+
+            if (pExitCode != 0)
+            {
+                break;
+            }
+        }
+
+        return (pExitCode, pJobError);
     }
 
     private string LJobValidate()
@@ -451,77 +466,5 @@ internal sealed class LJob
                 LRunner.LRunnerRecord($"Could not rename existing file '{Path.GetFileName(pTarget)}'; it will be overwritten", pException);
             }
         }
-    }
-
-    private static string LJobPathResolve(string pPath, string pSuffix)
-    {
-        string pFolder = Path.GetDirectoryName(pPath) ?? string.Empty;
-        string pStem = Path.GetFileNameWithoutExtension(pPath);
-        string pExtension = Path.GetExtension(pPath);
-        string pSuffixText = string.IsNullOrEmpty(pSuffix) ? "_1" : pSuffix;
-
-        for (int pIndex = 0; ; pIndex++)
-        {
-            string pName = pIndex == 0
-                ? $"{pStem}{pSuffixText}{pExtension}"
-                : $"{pStem}{pSuffixText} ({pIndex + 1}){pExtension}";
-            string pCandidate = Path.Combine(pFolder, pName);
-            if (!File.Exists(pCandidate))
-            {
-                return pCandidate;
-            }
-        }
-    }
-
-    private static void LJobTempClear(IReadOnlyList<LEncodeStage> pStages)
-    {
-        foreach (LEncodeStage pStage in pStages)
-        {
-            if (!pStage.LEncodeStageTemporary || string.IsNullOrWhiteSpace(pStage.LEncodeStagePath))
-            {
-                continue;
-            }
-
-            string pPath = pStage.LEncodeStagePath;
-            bool pRemoved = false;
-            for (int pAttempt = 0; pAttempt < 5 && !pRemoved; pAttempt++)
-            {
-                try
-                {
-                    if (!File.Exists(pPath))
-                    {
-                        pRemoved = true;
-                        break;
-                    }
-
-                    File.Delete(pPath);
-                    pRemoved = true;
-                }
-                catch (Exception pException)
-                    when (pException is IOException or UnauthorizedAccessException)
-                {
-                    System.Threading.Thread.Sleep(200);
-                }
-            }
-
-            if (!pRemoved)
-            {
-                LRunner.LRunnerRecord(
-                    $"Could not delete the temporary file '{pPath}'; it may remain on disk.",
-                    null);
-            }
-        }
-    }
-
-    private static string LJobTailRead(string pJobError)
-    {
-        if (string.IsNullOrWhiteSpace(pJobError))
-        {
-            return "FFmpeg reported nothing.";
-        }
-
-        string[] pJobLines = pJobError
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return string.Join(" | ", pJobLines[^Math.Min(3, pJobLines.Length)..]);
     }
 }

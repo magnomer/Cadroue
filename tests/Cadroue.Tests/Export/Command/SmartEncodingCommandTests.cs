@@ -7,7 +7,7 @@ using Xunit;
 namespace Cadroue.Tests;
 
 [Collection("EncodeCommand")]
-public sealed class SmartCutCommandTests
+public sealed class SmartEncodingCommandTests
 {
     private static readonly string SmartSource = Path.Combine("input media", "source clip.mov");
     private static readonly string SmartOutput = Path.Combine("output media", "smart clip.mp4");
@@ -122,11 +122,11 @@ public sealed class SmartCutCommandTests
     }
 
     [Fact]
-    public void LossyAudio_ReEncodesTheContinuousIntervalInsteadOfCopying()
+    public void EncodeAudioMode_ReEncodesTheContinuousIntervalInsteadOfCopying()
     {
         using var environment = new TEncodeCommand();
         LWorkItem work = TEncodeCommand.SmartWorkCreate(
-            SmartSource, SmartOutput, audioCodec: "aac");
+            SmartSource, SmartOutput, audioCodec: "aac", audioMode: "Encode");
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));

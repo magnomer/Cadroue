@@ -163,11 +163,13 @@ internal sealed partial class PSEncoder
 
     private void PSVideoScopeUpdate()
     {
-        bool pEncoded = PSComboTextRead(psVideoModeCombo) == "Encode";
+        string pMode = PSComboTextRead(psVideoModeCombo);
+        bool pEncoded = pMode == "Encode";
 
         psVideoEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
         psVideoNotice.Visibility = pEncoded ? Visibility.Collapsed : Visibility.Visible;
-        psVideoNotice.Text = LLocalization.LLocalizationTextRead("Encoder.Video.Notice.Copied");
+        psVideoNotice.Text = LLocalization.LLocalizationTextRead(
+            pMode == "Smart" ? "Encoder.Video.Notice.Smart" : "Encoder.Video.Notice.Copied");
     }
 
     private LCapabilityCodec PSVideoCapabilityRead() =>

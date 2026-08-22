@@ -8,6 +8,12 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
+internal sealed record LEncodeSmartProduction(
+    IReadOnlyList<LEncodeStage> LEncodeStages,
+    IReadOnlyList<string> LEncodeParts,
+    string? LEncodeProbeTarget,
+    string LEncodeMiddlePath);
+
 public static partial class LEncode
 {
     public static IReadOnlyList<LEncodeStage> LEncodeBridgeResolve(
@@ -27,7 +33,7 @@ public static partial class LEncode
         if (LEncodeSmartCheck(lWorkItem))
         {
             LRunner.LRunnerRecord(
-                $"Smart Cut deferred for '{lWorkItem.LWorkOutputName}': the item requires a full re-encode; encoding the requested interval directly");
+                $"Smart encoding deferred for '{lWorkItem.LWorkOutputName}': the item requires a full re-encode; encoding the requested interval directly");
             return LEncodeWholeBuild(lWorkItem);
         }
 
@@ -35,13 +41,13 @@ public static partial class LEncode
             && !lBridgeCompatibility.LBridgeCompatible)
         {
             LRunner.LRunnerRecord(
-                $"Smart Cut fallback for '{lWorkItem.LWorkOutputName}': the bridge cannot join the copied continuation ({lBridgeCompatibility.LBridgeReason}); encoding the requested interval");
+                $"Smart encoding fallback for '{lWorkItem.LWorkOutputName}': the bridge cannot join the copied continuation ({lBridgeCompatibility.LBridgeReason}); encoding the requested interval");
             return LEncodeWholeBuild(lWorkItem);
         }
 
         LRunner.LRunnerRecord(lBridgePlan.LBridgeOutcome == LBridgeOutcome.LBridgeOutcomeSmart
-            ? $"Smart Cut applied for '{lWorkItem.LWorkOutputName}': {LEncodeRegionFormat(lBridgePlan)}"
-            : $"Smart Cut not usable for '{lWorkItem.LWorkOutputName}': encoding the requested interval");
+            ? $"Smart encoding applied for '{lWorkItem.LWorkOutputName}': {LEncodeRegionFormat(lBridgePlan)}"
+            : $"Smart encoding not usable for '{lWorkItem.LWorkOutputName}': encoding the requested interval");
 
         return LEncodeSmartBuild(lWorkItem, lBridgePlan);
     }
@@ -79,7 +85,7 @@ public static partial class LEncode
             || !LEncodeSourceCheck(lVideo.LEncodingFps);
     }
 
-    private static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(LWorkItem lWorkItem) =>
+    internal static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(LWorkItem lWorkItem) =>
         new[]
         {
             new LEncodeStage(LEncodeArgumentBuild(lWorkItem), LWorkStage.LWorkStageEncode, "Encoding", lWorkItem.LWorkOutputPath, false)
@@ -88,39 +94,51 @@ public static partial class LEncode
     public static IReadOnlyList<LEncodeStage> LEncodeSmartBuild(LWorkItem lWorkItem, LBridgePlan lBridgePlan)
     {
         if (lBridgePlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart
-            || lBridgePlan.LBridgeMiddle is not { } lBridgeMiddle)
+            || lBridgePlan.LBridgeMiddle is null)
         {
             return LEncodeWholeBuild(lWorkItem);
         }
 
+        LEncodeSmartProduction lProduction = LEncodeBridgeBuild(lWorkItem, lBridgePlan);
+        var lStages = new List<LEncodeStage>(lProduction.LEncodeStages)
+        {
+            LEncodeConcatBuild(lWorkItem, lProduction.LEncodeParts, lBridgePlan.LBridgeInterval)
+        };
+        return lStages;
+    }
+
+    internal static LEncodeSmartProduction LEncodeBridgeBuild(LWorkItem lWorkItem, LBridgePlan lBridgePlan)
+    {
         string lBridgeFolder = LDepot.LDepotBridgeRead();
-        string lBridgeExtension = LEncodeExtensionResolve(lWorkItem.LWorkOutputPath);
+        const string lBridgeExtension = ".mkv";
         var lStages = new List<LEncodeStage>();
         var lConcatParts = new List<string>();
+        string? lProbeTarget = null;
 
         if (lBridgePlan.LBridgeHead is { } lBridgeHead)
         {
             string lHeadPath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.head{lBridgeExtension}");
-            lStages.Add(LEncodeBridgeBuild(lWorkItem, lBridgeHead, lHeadPath, "Encoding head bridge"));
+            lStages.Add(LEncodeSpanBuild(lWorkItem, lBridgeHead, lHeadPath, "Encoding head bridge"));
             lConcatParts.Add(lHeadPath);
+            lProbeTarget = lHeadPath;
         }
 
         string lMiddlePath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.middle{lBridgeExtension}");
-        lStages.Add(LEncodeMiddleBuild(lWorkItem, lBridgeMiddle, lMiddlePath));
+        lStages.Add(LEncodeMiddleBuild(lWorkItem, lBridgePlan.LBridgeMiddle!, lMiddlePath));
         lConcatParts.Add(lMiddlePath);
 
         if (lBridgePlan.LBridgeTail is { } lBridgeTail)
         {
             string lTailPath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.tail{lBridgeExtension}");
-            lStages.Add(LEncodeBridgeBuild(lWorkItem, lBridgeTail, lTailPath, "Encoding tail bridge"));
+            lStages.Add(LEncodeSpanBuild(lWorkItem, lBridgeTail, lTailPath, "Encoding tail bridge"));
             lConcatParts.Add(lTailPath);
+            lProbeTarget ??= lTailPath;
         }
 
-        lStages.Add(LEncodeConcatBuild(lWorkItem, lConcatParts, lBridgePlan.LBridgeInterval));
-        return lStages;
+        return new LEncodeSmartProduction(lStages, lConcatParts, lProbeTarget, lMiddlePath);
     }
 
-    private static LEncodeStage LEncodeBridgeBuild(
+    private static LEncodeStage LEncodeSpanBuild(
         LWorkItem lWorkItem, LBridgeSpan lBridgeSpan, string lBridgePath, string lBridgeLabel)
     {
         var lArguments = new StringBuilder();
@@ -146,15 +164,21 @@ public static partial class LEncode
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
     }
 
-    private static LEncodeStage LEncodeConcatBuild(
+    internal static LEncodeStage LEncodeConcatBuild(
         LWorkItem lWorkItem, IReadOnlyList<string> lBridgeParts, LBridgeSpan lBridgeInterval)
     {
+        LEncoding lOutput = lWorkItem.LWorkOutput;
         string lJoinPath = LEncodeJoinSave(lWorkItem, lBridgeParts);
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
         lArguments.Append(CultureInfo.InvariantCulture, $" -f concat -safe 0 -i {LEncodeFormat(lJoinPath)}");
 
-        if ((lWorkItem.LWorkSourceMedia?.LWorkMediaSamplerate ?? 0) <= 0)
+        bool lAudioExcluded =
+            string.Equals(lOutput.LEncodingAudio.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
+        bool lAudioPresent = !string.IsNullOrWhiteSpace(lWorkItem.LWorkSourceMedia?.LWorkAudioCodec);
+
+        if (lAudioExcluded || !lAudioPresent)
         {
             lArguments.Append(" -map 0:v:0 -c copy -an");
             lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
@@ -167,13 +191,13 @@ public static partial class LEncode
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lBridgeInterval.LBridgeSpanEnd - lBridgeInterval.LBridgeSpanOrigin)}");
         lArguments.Append(" -c:v copy");
 
-        if (LBridge.LBridgeAudioCheck(lWorkItem.LWorkSourceMedia?.LWorkAudioCodec ?? string.Empty))
+        if (string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase))
         {
             lArguments.Append(" -c:a copy");
         }
         else
         {
-            LEncodeAudio.LEncodeMuxAppend(lArguments, lWorkItem.LWorkOutput);
+            LEncodeAudio.LEncodeMuxAppend(lArguments, lOutput);
         }
 
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
@@ -194,6 +218,21 @@ public static partial class LEncode
         return lJoinPath;
     }
 
+    internal static void LEncodeBridgeClear(Guid lWorkId)
+    {
+        string lJoinPath = Path.Combine(LDepot.LDepotBridgeRead(), $"{lWorkId:N}.concat.txt");
+        try
+        {
+            if (File.Exists(lJoinPath))
+            {
+                File.Delete(lJoinPath);
+            }
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
+        {
+        }
+    }
+
     private static string LEncodeLosslessResolve(LWorkItem lWorkItem)
     {
         string lCodec = lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty;
@@ -205,11 +244,5 @@ public static partial class LEncode
             "ffv1" => "-c:v ffv1",
             _ => "-c:v libx264 -qp 0"
         };
-    }
-
-    private static string LEncodeExtensionResolve(string lOutputPath)
-    {
-        string lExtension = Path.GetExtension(lOutputPath);
-        return string.IsNullOrEmpty(lExtension) ? ".mkv" : lExtension;
     }
 }

@@ -19,7 +19,8 @@ public enum LBridgeReason
     LBridgeReasonMatrix,
     LBridgeReasonRange,
     LBridgeReasonExtradata,
-    LBridgeReasonContainer
+    LBridgeReasonContainer,
+    LBridgeReasonUnverified
 }
 
 public sealed record LBridgeStream(

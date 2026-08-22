@@ -83,25 +83,4 @@ public sealed class BridgeValidateTests
         Assert.True(result.LBridgeCompatible);
         Assert.Equal(LBridgeReason.LBridgeReasonCompatible, result.LBridgeReason);
     }
-
-    [Theory]
-    [InlineData("pcm_s16le")]
-    [InlineData("pcm_s24le")]
-    [InlineData("PCM_F32LE")]
-    public void SampleAddressableAudio_CopyIsAccurate(string codec)
-    {
-        Assert.True(TInterface.BridgeAudioCheck(codec));
-    }
-
-    [Theory]
-    [InlineData("aac")]
-    [InlineData("mp3")]
-    [InlineData("ac3")]
-    [InlineData("opus")]
-    [InlineData("flac")]
-    [InlineData("")]
-    public void FrameBasedOrUnknownAudio_CopyNotAccurate(string codec)
-    {
-        Assert.False(TInterface.BridgeAudioCheck(codec));
-    }
 }
