@@ -83,7 +83,7 @@ internal sealed class TEncodeCommand : IDisposable
         string audioCodec = "aac", int sampleRate = 48000)
     {
         LEncoding encoding = copyMode
-            ? OutputCreate(videoMode: "Copy", audioMode: "Copy")
+            ? OutputCreate(videoMode: "Smart", audioMode: "Copy")
             : OutputCreate();
         LWorkItem work = WorkCreate(
             LWorkKind.LWorkKindSplit, source, output, encoding,
@@ -139,7 +139,7 @@ internal sealed class TEncodeCommand : IDisposable
     {
         LWorkItem work = WorkCreate(
             LWorkKind.LWorkKindSplit, source, output,
-            OutputCreate(videoMode: "Copy", audioMode: "Copy"),
+            OutputCreate(videoMode: "Smart", audioMode: "Copy"),
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30),
             crop: new LWorkCrop(20, 0, 0, 0, 0, false, false));
         work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 30_000, true) { LWorkMediaCodec = "h264" };
@@ -169,5 +169,103 @@ internal sealed class TEncodeCommand : IDisposable
         }
 
         tDisposed = true;
+    }
+}
+
+/// <summary>
+/// Locks the three video modes (Copy / Smart / Encode) and the legacy Auto normalization
+/// through the production stage builder.
+/// </summary>
+[Collection("EncodeCommand")]
+public sealed class ModeCommandTests
+{
+    private static readonly string ModeSource = Path.Combine("input media", "mode clip.mov");
+    private static readonly string ModeOutput = Path.Combine("output media", "mode clip.mp4");
+
+    [Fact]
+    public void CopyMode_CleanCut_StreamCopiesToTheRequestedEnd()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindSplit, ModeSource, ModeOutput,
+            TEncodeCommand.OutputCreate(videoMode: "Copy", audioMode: "Copy"),
+            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
+
+        LEncodeStage stage = Assert.Single(TEncodeCommand.StagesBuild(work));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.Equal("10", CommandTokens.ValueAfter(tokens, "-ss"));
+        Assert.Equal("20", CommandTokens.ValueAfter(tokens, "-t"));
+        Assert.Equal("make_zero", CommandTokens.ValueAfter(tokens, "-avoid_negative_ts"));
+        Assert.DoesNotContain("concat", tokens);
+        Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
+    }
+
+    [Fact]
+    public void SmartMode_CleanCutWithInteriorKeyframes_EmitsBridgeStages()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(ModeSource, ModeOutput);
+
+        // Interval is [10, 30]; interior keyframes at 12 and 28 align with neither bound.
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartBridgeResolve(work, 12, 28);
+
+        Assert.Equal(4, stages.Count);
+        Assert.Equal("Encoding head bridge", stages[0].LEncodeStageLabel);
+        Assert.Equal("Copying middle", stages[1].LEncodeStageLabel);
+        Assert.Equal("Encoding tail bridge", stages[2].LEncodeStageLabel);
+        Assert.Equal(LWorkStage.LWorkStageMux, stages[^1].LEncodeStageKind);
+        Assert.Contains("concat", CommandTokens.Read(stages[^1].LEncodeStageArguments));
+    }
+
+    [Fact]
+    public void SmartMode_ItemWithEdit_FallsBackToSingleFullEncode()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartCropWorkCreate(ModeSource, ModeOutput);
+
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartResolveBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30)));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+
+        Assert.False(stage.LEncodeStageTemporary);
+        Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
+        Assert.DoesNotContain("concat", tokens);
+        Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
+    }
+
+    [Fact]
+    public void EncodeMode_EmitsSingleStageCarryingTheVideoEncoder()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindSplit, ModeSource, ModeOutput,
+            TEncodeCommand.OutputCreate(videoMode: "Encode"),
+            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
+
+        LEncodeStage stage = Assert.Single(TEncodeCommand.StagesBuild(work));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+
+        Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.DoesNotContain("concat", tokens);
+        Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
+    }
+
+    [Fact]
+    public void LegacyAutoMode_NormalizesToEncode()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.WorkCreate(
+            LWorkKind.LWorkKindSplit, ModeSource, ModeOutput,
+            TEncodeCommand.OutputCreate(videoMode: "Auto"),
+            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
+
+        LEncodeStage stage = Assert.Single(TEncodeCommand.StagesBuild(work));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+
+        Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.NotEqual("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.DoesNotContain("concat", tokens);
     }
 }

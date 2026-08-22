@@ -15,7 +15,7 @@ internal static class LEncodeVideo
         if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             && !LEncodeVideoCheck(lWorkItem, lOutput))
         {
-            lArguments.Append(" -c:v copy");
+            lArguments.Append(" -c:v copy -avoid_negative_ts make_zero");
             return;
         }
 

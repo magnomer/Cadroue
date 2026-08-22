@@ -144,7 +144,7 @@ public static partial class LEncode
         if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput))
         {
-            lMux.Append(" -c:v copy");
+            lMux.Append(" -c:v copy -avoid_negative_ts make_zero");
         }
         else
         {
