@@ -168,6 +168,7 @@ public sealed partial class PRoster
         Guid pBatchId = pBatchItems[0].LWorkBatchId;
         var pDetail = new StackPanel
         {
+            Margin = new Thickness(0, 0, 0, 6),
             Visibility = pRosterCollapsedIds.Contains(pBatchId) ? Visibility.Collapsed : Visibility.Visible
         };
         pStack.Children.Add(PRosterCardBuild(pBatchItems, pDetail));
@@ -211,7 +212,6 @@ public sealed partial class PRoster
             Background = Brushes.White,
             BorderBrush = PRosterTheme.PRosterLineBrush,
             BorderThickness = new Thickness(1),
-            Padding = new Thickness(0, 0, 0, 6),
             Margin = new Thickness(0, 0, 0, 8),
             Child = pStack
         };
