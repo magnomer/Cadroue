@@ -136,7 +136,7 @@ public sealed partial class LPreset
         LPresetVideo = new LPresetVideo
         {
             LPresetStream = lRecord.LPresetVideo.LPresetStream,
-            LPresetMode = lRecord.LPresetVideo.LPresetMode,
+            LPresetMode = LPresetVideoNormalize(lRecord.LPresetVideo.LPresetMode),
             LPresetEncoder = lRecord.LPresetVideo.LPresetEncoder,
             LPresetRateControl = lRecord.LPresetVideo.LPresetRateControl,
             LPresetQuality = lRecord.LPresetVideo.LPresetQuality,
@@ -161,6 +161,12 @@ public sealed partial class LPreset
         }
     };
 
+    private static string LPresetVideoNormalize(string lMode) => lMode switch
+    {
+        "Copy" or "Smart" or "Encode" => lMode,
+        _ => "Encode"
+    };
+
     private string LAudioStreamSummary => LPresetAudio.LPresetStream switch
     {
         "Include first audio track" => "Include the first track",
@@ -172,7 +178,7 @@ public sealed partial class LPreset
 public sealed class LPresetVideo
 {
     public string LPresetStream { get; set; } = "Include";
-    public string LPresetMode { get; set; } = "Auto";
+    public string LPresetMode { get; set; } = "Encode";
     public string LPresetEncoder { get; set; } = "H.264, x264 / libx264";
     public string LPresetRateControl { get; set; } = "CRF (constant quality)";
     public string LPresetQuality { get; set; } = "23";

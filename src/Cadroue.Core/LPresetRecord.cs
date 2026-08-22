@@ -19,7 +19,7 @@ public sealed class LPresetRecord
 public sealed class LPresetVideoRecord
 {
     public string LPresetStream { get; set; } = "Include";
-    public string LPresetMode { get; set; } = "Auto";
+    public string LPresetMode { get; set; } = "Encode";
     public string LPresetEncoder { get; set; } = "H.264, x264 / libx264";
     public string LPresetRateControl { get; set; } = "CRF (constant quality)";
     public string LPresetQuality { get; set; } = "23";

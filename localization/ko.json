@@ -537,6 +537,7 @@
   "Encoder.Stream.AllAudio": "모든 {Terms.Audio} 트랙 포함",
   "Encoder.Codec.Auto": "자동",
   "Encoder.Codec.Copy": "{Terms.Copy}",
+  "Encoder.Codec.Smart": "스마트 컷",
   "Encoder.Codec.Encode": "인코딩",
   "Encoder.Value.Custom": "{Terms.Custom}",
   "Encoder.Value.Mono": "모노",

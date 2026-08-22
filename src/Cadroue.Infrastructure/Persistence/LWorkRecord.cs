@@ -292,7 +292,11 @@ public sealed class LWorkVideoRecord
     public void LWorkVideoNormalize()
     {
         LWorkStream ??= "Include";
-        LWorkMode ??= "Auto";
+        LWorkMode = LWorkMode switch
+        {
+            "Copy" or "Smart" or "Encode" => LWorkMode,
+            _ => "Encode"
+        };
         LWorkEncoder ??= string.Empty;
         LWorkRateControl ??= string.Empty;
         LWorkQuality ??= string.Empty;
