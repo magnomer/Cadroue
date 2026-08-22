@@ -25,18 +25,9 @@ internal sealed partial class LJob
             return await LJobBatchRun(LEncode.LEncodeWholeBuild(lJobItem), 0, 1).ConfigureAwait(false);
         }
 
-        LEncodeSmartProduction pProduction = LEncode.LEncodeBridgeBuild(lJobItem, pPlan, pSource);
-        int pTotal = pProduction.LEncodeStages.Count + 1;
-
-        (int pExit, string pError) = await LJobBatchRun(pProduction.LEncodeStages, 0, pTotal).ConfigureAwait(false);
-        if (pExit != 0)
-        {
-            return (pExit, pError);
-        }
-
+        IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeSmartBuild(lJobItem, pPlan, pSource);
         LRunner.LRunnerRecord(
-            $"Smart encoding applied for '{lJobItem.LWorkOutputName}': joining {pProduction.LEncodeStages.Count} region(s)");
-        LEncodeStage pFinal = LEncode.LEncodeConcatBuild(lJobItem, pProduction.LEncodeParts, pPlan.LBridgeInterval);
-        return await LJobBatchRun(new[] { pFinal }, pProduction.LEncodeStages.Count, pTotal).ConfigureAwait(false);
+            $"Smart encoding applied for '{lJobItem.LWorkOutputName}': {pStages.Count} stage(s)");
+        return await LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
     }
 }

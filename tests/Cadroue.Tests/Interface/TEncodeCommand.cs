@@ -80,10 +80,11 @@ internal sealed class TEncodeCommand : IDisposable
 
     internal static LWorkItem SmartWorkCreate(
         string source, string output, string codec = "h264", bool copyMode = true,
-        string audioCodec = "aac", int sampleRate = 48000, string audioMode = "Copy")
+        string audioCodec = "aac", int sampleRate = 48000, string audioMode = "Copy",
+        string audioStream = "Include")
     {
         LEncoding encoding = copyMode
-            ? OutputCreate(videoMode: "Smart", audioMode: audioMode)
+            ? OutputCreate(videoMode: "Smart", audioStream: audioStream, audioMode: audioMode)
             : OutputCreate();
         LWorkItem work = WorkCreate(
             LWorkKind.LWorkKindSplit, source, output, encoding,
@@ -221,7 +222,7 @@ public sealed class ModeCommandTests
         // Interval is [10, 30]; interior keyframes at 12 and 28 align with neither bound.
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartBridgeResolve(work, 12, 28);
 
-        Assert.Equal(4, stages.Count);
+        Assert.Equal(5, stages.Count);
         Assert.Equal("Encoding head bridge", stages[0].LEncodeStageLabel);
         Assert.Equal("Copying middle", stages[1].LEncodeStageLabel);
         Assert.Equal("Encoding tail bridge", stages[2].LEncodeStageLabel);

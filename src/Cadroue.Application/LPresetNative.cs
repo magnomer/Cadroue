@@ -34,7 +34,7 @@ public sealed partial class LPreset
         LPresetAudio = new LPresetAudio
         {
             LPresetStream = "Include first audio track",
-            LPresetMode = "Auto",
+            LPresetMode = "Copy",
             LPresetEncoder = "AAC, native / aac",
             LPresetRateControl = "Target bitrate",
             LPresetQuality = "320k",

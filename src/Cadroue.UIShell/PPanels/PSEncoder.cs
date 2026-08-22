@@ -139,7 +139,6 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Smart", "Encoder.Codec.Smart"),
             new LLocalizationChoice("Encode", "Encoder.Codec.Encode"));
         psAudioModeCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetMode,
-            new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
             new LLocalizationChoice("Copy", "Encoder.Codec.Copy"),
             new LLocalizationChoice("Encode", "Encoder.Codec.Encode"),
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));

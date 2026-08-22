@@ -150,7 +150,7 @@ public sealed partial class LPreset
         LPresetAudio = new LPresetAudio
         {
             LPresetStream = lRecord.LPresetAudio.LPresetStream,
-            LPresetMode = lRecord.LPresetAudio.LPresetMode,
+            LPresetMode = LPresetAudioNormalize(lRecord.LPresetAudio.LPresetMode),
             LPresetEncoder = lRecord.LPresetAudio.LPresetEncoder,
             LPresetRateControl = lRecord.LPresetAudio.LPresetRateControl,
             LPresetQuality = lRecord.LPresetAudio.LPresetQuality,
@@ -165,6 +165,12 @@ public sealed partial class LPreset
     {
         "Copy" or "Smart" or "Encode" => lMode,
         _ => "Encode"
+    };
+
+    private static string LPresetAudioNormalize(string lMode) => lMode switch
+    {
+        "Copy" or "Encode" or "Exclude" => lMode,
+        _ => "Copy"
     };
 
     private string LAudioStreamSummary => LPresetAudio.LPresetStream switch
@@ -208,7 +214,7 @@ public sealed class LPresetVideo
 public sealed class LPresetAudio
 {
     public string LPresetStream { get; set; } = "Include first audio track";
-    public string LPresetMode { get; set; } = "Auto";
+    public string LPresetMode { get; set; } = "Copy";
     public string LPresetEncoder { get; set; } = "AAC, native / aac";
     public string LPresetRateControl { get; set; } = "Target bitrate";
     public string LPresetQuality { get; set; } = "192k";

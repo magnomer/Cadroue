@@ -34,7 +34,7 @@ public sealed class LPresetVideoRecord
 public sealed class LPresetAudioRecord
 {
     public string LPresetStream { get; set; } = "Include first audio track";
-    public string LPresetMode { get; set; } = "Auto";
+    public string LPresetMode { get; set; } = "Copy";
     public string LPresetEncoder { get; set; } = "AAC";
     public string LPresetRateControl { get; set; } = "Target bitrate";
     public string LPresetQuality { get; set; } = "192k";

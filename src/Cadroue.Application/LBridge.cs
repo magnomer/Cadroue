@@ -29,6 +29,8 @@ public sealed record LBridgeStream(
 
 public static partial class LBridge
 {
+    private static readonly TimeSpan LBridgeTolerance = TimeSpan.FromMilliseconds(1);
+
     public static LBridgePlan LBridgeRegionResolve(
         IReadOnlyList<TimeSpan> lBridgeKeyframes,
         TimeSpan lBridgeOrigin,
@@ -47,17 +49,16 @@ public static partial class LBridge
 
         foreach (TimeSpan lBridgeKeyframe in lBridgeKeyframes)
         {
-            if (lBridgeKeyframe == lBridgeOrigin)
+            if (LBridgeMatch(lBridgeKeyframe, lBridgeOrigin))
             {
                 lBridgeOriginKeyed = true;
             }
-
-            if (lBridgeKeyframe > lBridgeOrigin && lBridgeFirstAfter is null)
+            else if (lBridgeKeyframe > lBridgeOrigin && lBridgeFirstAfter is null)
             {
                 lBridgeFirstAfter = lBridgeKeyframe;
             }
 
-            if (lBridgeKeyframe <= lBridgeEnd)
+            if (lBridgeKeyframe <= lBridgeEnd + LBridgeTolerance)
             {
                 lBridgeLastWithin = lBridgeKeyframe;
             }
@@ -85,10 +86,13 @@ public static partial class LBridge
 
         LBridgeSpan lBridgeCopy = new(lBridgeCopyStart, lBridgeCopyStop);
 
-        LBridgeSpan? lBridgeTail = lBridgeCopyStop < lBridgeEnd
+        LBridgeSpan? lBridgeTail = lBridgeCopyStop < lBridgeEnd - LBridgeTolerance
             ? new LBridgeSpan(lBridgeCopyStop, lBridgeEnd)
             : null;
 
         return new LBridgePlan(LBridgeOutcome.LBridgeOutcomeSmart, lBridgeInterval, lBridgeHead, lBridgeCopy, lBridgeTail);
     }
+
+    private static bool LBridgeMatch(TimeSpan lBridgeLeft, TimeSpan lBridgeRight) =>
+        (lBridgeLeft - lBridgeRight).Duration() <= LBridgeTolerance;
 }
