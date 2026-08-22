@@ -242,6 +242,7 @@ public static class PButton
     {
         var pStyle = new Style(typeof(Button));
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
+        pStyle.Setters.Add(new Setter(UIElement.FocusableProperty, false));
         pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));
         return pStyle;
     }
