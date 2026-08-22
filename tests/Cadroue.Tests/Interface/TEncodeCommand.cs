@@ -79,7 +79,8 @@ internal sealed class TEncodeCommand : IDisposable
         LEncode.LEncodeStagesBuild(work);
 
     internal static LWorkItem SmartWorkCreate(
-        string source, string output, string codec = "h264", bool copyMode = true)
+        string source, string output, string codec = "h264", bool copyMode = true,
+        string audioCodec = "aac", int sampleRate = 48000)
     {
         LEncoding encoding = copyMode
             ? OutputCreate(videoMode: "Copy", audioMode: "Copy")
@@ -87,7 +88,12 @@ internal sealed class TEncodeCommand : IDisposable
         LWorkItem work = WorkCreate(
             LWorkKind.LWorkKindSplit, source, output, encoding,
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
-        work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 30_000, true) { LWorkMediaCodec = codec };
+        work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 30_000, true)
+        {
+            LWorkMediaCodec = codec,
+            LWorkAudioCodec = audioCodec,
+            LWorkMediaSamplerate = sampleRate
+        };
         return work;
     }
 

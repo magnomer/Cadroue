@@ -33,7 +33,8 @@ internal static class LScout
                 (long)Math.Round(lScoutMedia.LMediaInfoDuration.TotalMilliseconds),
                 lScoutMedia.LMediaVideoPresent)
             {
-                LWorkMediaCodec = lScoutMedia.LMediaAudioCodec,
+                LWorkMediaCodec = lScoutMedia.LMediaVideoCodec,
+                LWorkAudioCodec = lScoutMedia.LMediaAudioCodec,
                 LWorkMediaBitrate = lScoutMedia.LMediaAudioBitrate,
                 LWorkMediaSamplerate = lScoutMedia.LMediaSampleRate,
                 LWorkMediaPixel = lScoutMedia.LMediaVideoPixel,

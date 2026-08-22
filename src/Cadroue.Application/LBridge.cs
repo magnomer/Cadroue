@@ -80,4 +80,10 @@ public static partial class LBridge
 
         return new LBridgePlan(LBridgeOutcome.LBridgeOutcomeSmart, lBridgeInterval, lBridgeHead, lBridgeCopy, lBridgeTail);
     }
+
+    public static bool LBridgeAudioCheck(string lBridgeAudioCodec)
+    {
+        string lBridgeCodec = (lBridgeAudioCodec ?? string.Empty).Trim().ToLowerInvariant();
+        return lBridgeCodec.StartsWith("pcm", StringComparison.Ordinal);
+    }
 }

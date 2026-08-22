@@ -13,6 +13,8 @@ public sealed record LWorkMedia(
 
     public string LWorkMediaCodec { get; init; } = "";
 
+    public string LWorkAudioCodec { get; init; } = "";
+
     public int LWorkMediaBitrate { get; init; }
 
     public int LWorkMediaSamplerate { get; init; }
