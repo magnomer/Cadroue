@@ -1,6 +1,7 @@
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 using static Cadroue.UIShell.PSShared.PSField;
@@ -9,50 +10,6 @@ namespace Cadroue.UIShell.PPanels;
 
 internal sealed partial class PSEncoder
 {
-    private static readonly (string PSCodecText, string[] PSCodecValues)[] PSCodecCandidates =
-    [
-        ("H.264, x264 / libx264", ["libx264"]), ("H.264, Media Foundation / h264_mf", ["h264_mf"]),
-        ("H.264, OpenH264 / libopenh264", ["libopenh264"]), ("H.264, Intel QSV / h264_qsv", ["h264_qsv"]),
-        ("H.264, AMD AMF / h264_amf", ["h264_amf"]), ("H.264, NVIDIA NVENC / h264_nvenc", ["h264_nvenc"]),
-        ("H.265, x265 / libx265", ["libx265"]), ("H.265, Intel QSV / hevc_qsv", ["hevc_qsv"]),
-        ("H.265, AMD AMF / hevc_amf", ["hevc_amf"]), ("H.265, Media Foundation / hevc_mf", ["hevc_mf"]),
-        ("H.265, NVIDIA NVENC / hevc_nvenc", ["hevc_nvenc"]), ("H.266/VVC, vvenc / libvvenc", ["libvvenc"]),
-        ("AV1, AOM / libaom-av1", ["libaom-av1"]), ("AV1, SVT-AV1 / libsvtav1", ["libsvtav1"]),
-        ("AV1, rav1e / librav1e", ["librav1e"]), ("AV1, Intel QSV / av1_qsv", ["av1_qsv"]),
-        ("AV1, AMD AMF / av1_amf", ["av1_amf"]), ("AV1, NVIDIA NVENC / av1_nvenc", ["av1_nvenc"]),
-        ("VP8, libvpx / libvpx / libvpx-vp8", ["libvpx", "libvpx-vp8"]), ("VP9, libvpx / libvpx-vp9", ["libvpx-vp9"]),
-        ("VP9, Intel QSV / vp9_qsv", ["vp9_qsv"]), ("MPEG-4 Part 2, Xvid / libxvid", ["libxvid"]),
-        ("MPEG-4 Part 2, native / mpeg4", ["mpeg4"]), ("Theora, libtheora / libtheora", ["libtheora"]),
-        ("ProRes, native / prores", ["prores"]), ("ProRes, Anatoliy / prores_aw", ["prores_aw"]),
-        ("ProRes, Kostya / prores_ks", ["prores_ks"]), ("FFV1, native / ffv1", ["ffv1"]),
-        ("MJPEG, native / mjpeg", ["mjpeg"]), ("JPEG 2000, native / jpeg2000", ["jpeg2000"]),
-        ("JPEG 2000, OpenJPEG / libopenjpeg", ["libopenjpeg"]), ("WebP, libwebp / libwebp", ["libwebp"]),
-        ("WebP, animated libwebp / libwebp_anim", ["libwebp_anim"]), ("EVC, XEVE / libxeve", ["libxeve"]),
-        ("AVS2, xavs2 / libxavs2", ["libxavs2"]), ("APV, OpenAPV / liboapv", ["liboapv"])
-    ];
-
-    private static readonly string[] PSCodecContainerNames =
-        ["MP4", "Matroska", "MOV", "WebM", "AVI", "MPEG-TS", "FLV", "Ogg"];
-
-    private static readonly Dictionary<string, string[]> PSCodecContainerTable = new(StringComparer.Ordinal)
-    {
-        ["H.264"] = ["MP4", "Matroska", "MOV", "AVI", "MPEG-TS", "FLV"],
-        ["H.265"] = ["MP4", "Matroska", "MOV", "MPEG-TS"],
-        ["H.266/VVC"] = ["Matroska", "MPEG-TS"],
-        ["AV1"] = ["MP4", "Matroska", "MOV", "WebM"],
-        ["VP8"] = ["Matroska", "WebM"],
-        ["VP9"] = ["MP4", "Matroska", "WebM"],
-        ["MPEG-4 Part 2"] = ["MP4", "Matroska", "MOV", "AVI"],
-        ["Theora"] = ["Matroska", "Ogg"],
-        ["ProRes"] = ["Matroska", "MOV"],
-        ["FFV1"] = ["Matroska", "AVI"],
-        ["MJPEG"] = ["MP4", "Matroska", "MOV", "AVI"],
-        ["JPEG 2000"] = ["Matroska", "MOV", "AVI"],
-        ["EVC"] = ["MP4", "Matroska"],
-        ["AVS2"] = ["Matroska"],
-        ["APV"] = ["MP4", "Matroska"]
-    };
-
     private static HashSet<string>? psCodecAvailable;
     private static Task? psCodecProbeTask;
 
@@ -61,9 +18,9 @@ internal sealed partial class PSEncoder
     private static async Task PSCodecProbeRun()
     {
         var pAvailable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var pCandidate in PSCodecCandidates)
+        foreach (var pCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
         {
-            foreach (string pEncoder in pCandidate.PSCodecValues)
+            foreach (string pEncoder in pCandidate.LRepertoireTokens)
             {
                 if ((await LTrial.LTrialRun(pEncoder, LTrialKind.LTrialKindVideo)).LTrialSuccess)
                 {
@@ -89,32 +46,32 @@ internal sealed partial class PSEncoder
     }
 
     private static string[] PSCodecItemsRead() =>
-        PSCodecCandidates
+        LRepertoireCatalog.LRepertoireEncodersRead()
             .Where(PSCodecAvailableCheck)
-            .Select(pCandidate => pCandidate.PSCodecText)
+            .Select(pCandidate => pCandidate.LRepertoireText)
             .ToArray();
 
     private static string[] PSCodecItemsRead(string pContainer)
     {
-        if (!PSCodecContainerNames.Contains(pContainer))
+        if (!LRepertoireCatalog.LRepertoireContainerNames.Contains(pContainer))
         {
             return PSCodecItemsRead();
         }
 
-        return PSCodecCandidates
-            .Where(pCandidate => PSCodecContainerCheck(pCandidate.PSCodecText, pContainer) && PSCodecAvailableCheck(pCandidate))
-            .Select(pCandidate => pCandidate.PSCodecText)
+        return LRepertoireCatalog.LRepertoireEncodersRead()
+            .Where(pCandidate => PSCodecContainerCheck(pCandidate.LRepertoireText, pContainer) && PSCodecAvailableCheck(pCandidate))
+            .Select(pCandidate => pCandidate.LRepertoireText)
             .ToArray();
     }
 
-    private static bool PSCodecAvailableCheck((string PSCodecText, string[] PSCodecValues) pCandidate) =>
-        psCodecAvailable is not { } pSet || pCandidate.PSCodecValues.Any(pSet.Contains);
+    private static bool PSCodecAvailableCheck(LRepertoireEncoder pCandidate) =>
+        psCodecAvailable is not { } pSet || pCandidate.LRepertoireTokens.Any(pSet.Contains);
 
     private static bool PSCodecAvailableCheck(string pText)
     {
-        foreach (var pCandidate in PSCodecCandidates)
+        foreach (var pCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
         {
-            if (string.Equals(pCandidate.PSCodecText, pText, StringComparison.Ordinal))
+            if (string.Equals(pCandidate.LRepertoireText, pText, StringComparison.Ordinal))
             {
                 return PSCodecAvailableCheck(pCandidate);
             }
@@ -131,8 +88,8 @@ internal sealed partial class PSEncoder
             return pItems;
         }
 
-        bool pFits = PSCodecCandidates.Any(pCandidate => string.Equals(pCandidate.PSCodecText, pKeep, StringComparison.Ordinal))
-                     && (!PSCodecContainerNames.Contains(pContainer) || PSCodecContainerCheck(pKeep, pContainer));
+        bool pFits = LRepertoireCatalog.LRepertoireEncodersRead().Any(pCandidate => string.Equals(pCandidate.LRepertoireText, pKeep, StringComparison.Ordinal))
+                     && (!LRepertoireCatalog.LRepertoireContainerNames.Contains(pContainer) || PSCodecContainerCheck(pKeep, pContainer));
         return pFits ? [pKeep, .. pItems] : pItems;
     }
 
@@ -147,8 +104,7 @@ internal sealed partial class PSEncoder
     }
 
     private static bool PSCodecContainerCheck(string pText, string pContainer) =>
-        PSCodecContainerTable.TryGetValue(pText.Split(',')[0].Trim(), out string[]? pContainers)
-        && pContainers.Contains(pContainer);
+        LRepertoireCatalog.LRepertoireContainerCheck(pText, pContainer);
 
     private void PSCodecContainerHandle()
     {
@@ -162,11 +118,11 @@ internal sealed partial class PSEncoder
 
     private static string PSCodecValueRead(string pText)
     {
-        foreach (var pCandidate in PSCodecCandidates)
+        foreach (var pCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
         {
-            if (string.Equals(pCandidate.PSCodecText, pText, StringComparison.Ordinal))
+            if (string.Equals(pCandidate.LRepertoireText, pText, StringComparison.Ordinal))
             {
-                return pCandidate.PSCodecValues.FirstOrDefault() ?? string.Empty;
+                return pCandidate.LRepertoireTokens.FirstOrDefault() ?? string.Empty;
             }
         }
 
@@ -181,10 +137,10 @@ internal sealed partial class PSEncoder
         var pAvailable = new List<string>();
         var pAvailableNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var pRows = new List<PSVerdictRow>();
-        foreach (var pCandidate in PSCodecCandidates)
+        foreach (var pCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
         {
             bool pCandidateAvailable = false;
-            foreach (string pEncoder in pCandidate.PSCodecValues)
+            foreach (string pEncoder in pCandidate.LRepertoireTokens)
             {
                 LTrialResult pResult = await LTrial.LTrialRun(pEncoder, LTrialKind.LTrialKindVideo);
                 pCandidateAvailable |= pResult.LTrialSuccess;
@@ -193,18 +149,18 @@ internal sealed partial class PSEncoder
                     pAvailableNames.Add(pEncoder);
                 }
 
-                pRows.Add(new PSVerdictRow(pCandidate.PSCodecText, pEncoder, pResult.LTrialSuccess, pResult.LTrialMessage));
+                pRows.Add(new PSVerdictRow(pCandidate.LRepertoireText, pEncoder, pResult.LTrialSuccess, pResult.LTrialMessage));
             }
 
             if (pCandidateAvailable)
             {
-                pAvailable.Add(pCandidate.PSCodecText);
+                pAvailable.Add(pCandidate.LRepertoireText);
             }
         }
 
         psCodecAvailable = pAvailableNames.Count > 0 ? pAvailableNames : psCodecAvailable;
         if (!pAvailable.Contains(pSelected)
-            && PSCodecCandidates.Any(pCandidate => string.Equals(pCandidate.PSCodecText, pSelected, StringComparison.Ordinal)))
+            && LRepertoireCatalog.LRepertoireEncodersRead().Any(pCandidate => string.Equals(pCandidate.LRepertoireText, pSelected, StringComparison.Ordinal)))
         {
             pAvailable.Insert(0, pSelected);
         }

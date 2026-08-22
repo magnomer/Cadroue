@@ -106,6 +106,15 @@ public static partial class LEncode
             return new[] { LEncodeDirectBuild(lWorkItem, lAudioActive) };
         }
 
+        bool lBridgeReencode = lBridgePlan.LBridgeHead is not null || lBridgePlan.LBridgeTail is not null;
+        string? lBridgeCodec = lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec;
+        if (lBridgeReencode && LRepertoireCatalog.LRepertoireEncoderResolve(lBridgeCodec) is null)
+        {
+            LRunner.LRunnerRecord(
+                $"Smart encoding failed for '{lWorkItem.LWorkOutputName}': the source video codec '{lBridgeCodec ?? "unknown"}' has no matching encoder for the boundary re-encode; nothing was produced");
+            return Array.Empty<LEncodeStage>();
+        }
+
         LEncodeSmartProduction lProduction = LEncodeBridgeBuild(lWorkItem, lBridgePlan, lBridgeSource);
         var lStages = new List<LEncodeStage>(lProduction.LEncodeStages);
 
@@ -286,14 +295,9 @@ public static partial class LEncode
     {
         string lCodec = (lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty)
             .ToLowerInvariant();
-        string lEncoder = lCodec switch
-        {
-            "hevc" or "h265" => "libx265",
-            "vp9" => "libvpx-vp9",
-            "av1" => "libaom-av1",
-            "ffv1" => "ffv1",
-            _ => "libx264"
-        };
+        string lEncoder = LRepertoireCatalog.LRepertoireEncoderResolve(lCodec)
+            ?? throw new InvalidOperationException(
+                $"no smart-encoding boundary encoder maps to source codec '{lCodec}'");
 
         var lArguments = new StringBuilder();
         lArguments.Append(CultureInfo.InvariantCulture, $"-c:v {lEncoder}");

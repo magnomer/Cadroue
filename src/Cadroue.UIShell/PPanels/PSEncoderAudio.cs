@@ -169,7 +169,7 @@ internal sealed partial class PSEncoder
 
     private static string[] PSAudioItemsRead(string pContainer)
     {
-        if (!PSCodecContainerNames.Contains(pContainer))
+        if (!LRepertoireCatalog.LRepertoireContainerNames.Contains(pContainer))
         {
             return PSAudioItemsRead();
         }
@@ -191,7 +191,7 @@ internal sealed partial class PSEncoder
 
         var pCandidate = PSAudioCandidates.FirstOrDefault(pEntry => string.Equals(pEntry.PSAudioText, pKeep, StringComparison.Ordinal));
         bool pFits = pCandidate.PSAudioName is not null
-                     && (!PSCodecContainerNames.Contains(pContainer) || PSAudioContainerCheck(pCandidate.PSAudioName, pContainer));
+                     && (!LRepertoireCatalog.LRepertoireContainerNames.Contains(pContainer) || PSAudioContainerCheck(pCandidate.PSAudioName, pContainer));
         return pFits ? [pKeep, .. pItems] : pItems;
     }
 

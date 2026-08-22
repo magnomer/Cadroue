@@ -58,7 +58,7 @@ internal sealed partial class PSEncoder : Window
     private TextBox? psVideoHeightBox;
     private TextBlock? psVideoWidthLabel;
     private TextBlock? psVideoHeightLabel;
-    private int psVideoSizeStop;
+    private int psVideoSizeTier;
     private bool psVideoSizeBusy;
     private readonly CheckBox psVideoFpsSource;
     private readonly TextBox psVideoFpsCustom;

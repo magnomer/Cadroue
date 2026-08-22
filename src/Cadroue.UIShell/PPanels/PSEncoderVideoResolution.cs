@@ -9,7 +9,7 @@ namespace Cadroue.UIShell.PPanels;
 
 internal sealed partial class PSEncoder
 {
-    private static readonly (string Label, int Width, int Height)[] psVideoSizeStops =
+    private static readonly (string Label, int Width, int Height)[] psVideoSizeTiers =
     [
         ("Source", 0, 0),
         ("480p", 854, 480),
@@ -23,7 +23,7 @@ internal sealed partial class PSEncoder
     private void PSVideoResolutionBuild(Panel pHost)
     {
         psVideoResolutionValue = new TextBlock { Foreground = PSFieldText, VerticalAlignment = VerticalAlignment.Center };
-        psVideoResolutionSlider = PSFieldSliderCreate(0, psVideoSizeStops.Length - 1, 0);
+        psVideoResolutionSlider = PSFieldSliderCreate(0, psVideoSizeTiers.Length - 1, 0);
         psVideoWidthBox = PSEntryBuild(string.Empty, 110);
         psVideoHeightBox = PSEntryBuild(string.Empty, 110);
         psVideoWidthLabel = PSFieldLabelBuild(string.Empty);
@@ -32,19 +32,19 @@ internal sealed partial class PSEncoder
         pHost.Children.Add(PSFieldBuild(
             LLocalization.LLocalizationTextRead("Encoder.Video.Field.Size"),
             PSFieldRowBuild(psVideoResolutionSlider, psVideoResolutionValue)));
-        pHost.Children.Add(PSVideoDimensionRow(psVideoWidthLabel, psVideoWidthBox));
-        pHost.Children.Add(PSVideoDimensionRow(psVideoHeightLabel, psVideoHeightBox));
+        pHost.Children.Add(PSVideoDimensionBuild(psVideoWidthLabel, psVideoWidthBox));
+        pHost.Children.Add(PSVideoDimensionBuild(psVideoHeightLabel, psVideoHeightBox));
 
-        psVideoResolutionSlider.ValueChanged += (_, _) => PSVideoStopSelect();
+        psVideoResolutionSlider.ValueChanged += (_, _) => PSVideoTierSelect();
         psVideoResolutionSlider.Loaded += (_, _) => PSVideoKnobApply();
         psVideoWidthBox.TextChanged += (_, _) => PSVideoDimensionChange();
         psVideoHeightBox.TextChanged += (_, _) => PSVideoDimensionChange();
 
-        PSVideoSizeSeed();
+        PSVideoSizePrepare();
         PSVideoReactiveApply();
     }
 
-    private static UIElement PSVideoDimensionRow(TextBlock pLabel, TextBox pBox)
+    private static UIElement PSVideoDimensionBuild(TextBlock pLabel, TextBox pBox)
     {
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
@@ -56,7 +56,7 @@ internal sealed partial class PSEncoder
         return pGrid;
     }
 
-    private void PSVideoSizeSeed()
+    private void PSVideoSizePrepare()
     {
         string[] pParts = lsExportSpecificEdit.LPresetVideo.LPresetSize.Split(
             ['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -76,29 +76,29 @@ internal sealed partial class PSEncoder
         }
     }
 
-    private void PSVideoStopSelect()
+    private void PSVideoTierSelect()
     {
         if (psVideoSizeBusy || psVideoResolutionSlider is null)
         {
             return;
         }
 
-        int pStop = Math.Clamp((int)Math.Round(psVideoResolutionSlider.Value), 0, psVideoSizeStops.Length - 1);
+        int pTier = Math.Clamp((int)Math.Round(psVideoResolutionSlider.Value), 0, psVideoSizeTiers.Length - 1);
 
         psVideoSizeBusy = true;
-        if (pStop == 0)
+        if (pTier == 0)
         {
             psVideoWidthBox!.Text = string.Empty;
             psVideoHeightBox!.Text = string.Empty;
         }
         else
         {
-            psVideoWidthBox!.Text = psVideoSizeStops[pStop].Width.ToString(CultureInfo.InvariantCulture);
-            psVideoHeightBox!.Text = psVideoSizeStops[pStop].Height.ToString(CultureInfo.InvariantCulture);
+            psVideoWidthBox!.Text = psVideoSizeTiers[pTier].Width.ToString(CultureInfo.InvariantCulture);
+            psVideoHeightBox!.Text = psVideoSizeTiers[pTier].Height.ToString(CultureInfo.InvariantCulture);
         }
         psVideoSizeBusy = false;
 
-        PSVideoStateApply(pStop);
+        PSVideoStateApply(pTier);
     }
 
     private void PSVideoDimensionChange()
@@ -111,35 +111,35 @@ internal sealed partial class PSEncoder
         bool pWidthOk = int.TryParse(psVideoWidthBox.Text.Trim(), out int pWidth) && pWidth > 0;
         bool pHeightOk = int.TryParse(psVideoHeightBox.Text.Trim(), out int pHeight) && pHeight > 0;
 
-        int pStop;
+        int pTier;
         if (!pWidthOk && !pHeightOk)
         {
-            pStop = 0;
+            pTier = 0;
         }
         else if (pWidthOk && pHeightOk)
         {
-            pStop = PSVideoStopMatch(pWidth, pHeight);
+            pTier = PSVideoTierMatch(pWidth, pHeight);
         }
         else
         {
-            pStop = -1;
+            pTier = -1;
         }
 
-        if (pStop >= 0 && psVideoResolutionSlider is not null)
+        if (pTier >= 0 && psVideoResolutionSlider is not null)
         {
             psVideoSizeBusy = true;
-            psVideoResolutionSlider.Value = pStop;
+            psVideoResolutionSlider.Value = pTier;
             psVideoSizeBusy = false;
         }
 
-        PSVideoStateApply(pStop);
+        PSVideoStateApply(pTier);
     }
 
-    private static int PSVideoStopMatch(int pWidth, int pHeight)
+    private static int PSVideoTierMatch(int pWidth, int pHeight)
     {
-        for (int pAt = 1; pAt < psVideoSizeStops.Length; pAt++)
+        for (int pAt = 1; pAt < psVideoSizeTiers.Length; pAt++)
         {
-            if (psVideoSizeStops[pAt].Width == pWidth && psVideoSizeStops[pAt].Height == pHeight)
+            if (psVideoSizeTiers[pAt].Width == pWidth && psVideoSizeTiers[pAt].Height == pHeight)
             {
                 return pAt;
             }
@@ -148,11 +148,11 @@ internal sealed partial class PSEncoder
         return -1;
     }
 
-    private void PSVideoStateApply(int pStop)
+    private void PSVideoStateApply(int pTier)
     {
-        psVideoSizeStop = pStop;
-        bool pSource = pStop == 0;
-        bool pCustom = pStop < 0;
+        psVideoSizeTier = pTier;
+        bool pSource = pTier == 0;
+        bool pCustom = pTier < 0;
 
         if (psVideoResolutionValue is not null)
         {
@@ -166,7 +166,7 @@ internal sealed partial class PSEncoder
             }
             else
             {
-                psVideoResolutionValue.Text = psVideoSizeStops[pStop].Label;
+                psVideoResolutionValue.Text = psVideoSizeTiers[pTier].Label;
             }
         }
 
@@ -194,7 +194,7 @@ internal sealed partial class PSEncoder
         psVideoResolutionSlider.ApplyTemplate();
         if (psVideoResolutionSlider.Template?.FindName("pSliderThumb", psVideoResolutionSlider) is FrameworkElement pThumb)
         {
-            pThumb.Visibility = psVideoSizeStop < 0 ? Visibility.Collapsed : Visibility.Visible;
+            pThumb.Visibility = psVideoSizeTier < 0 ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 
@@ -212,7 +212,7 @@ internal sealed partial class PSEncoder
 
     private string PSVideoSizeRead()
     {
-        if (psVideoSizeStop == 0 || psVideoWidthBox is null || psVideoHeightBox is null)
+        if (psVideoSizeTier == 0 || psVideoWidthBox is null || psVideoHeightBox is null)
         {
             return "Same as source";
         }

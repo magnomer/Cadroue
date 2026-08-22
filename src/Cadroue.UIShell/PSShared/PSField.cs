@@ -400,7 +400,7 @@ internal static class PSField
         pReadout.IsReadOnly = pSnap;
         pReadout.Text = PSFieldDetentFormat(pStart, pZeroLabel);
 
-        void PSFieldDetentNotice(double pAt)
+        void PSFieldDetentApply(double pAt)
         {
             if (pNotice is not null)
             {
@@ -408,7 +408,7 @@ internal static class PSField
             }
         }
 
-        PSFieldDetentNotice(pStart);
+        PSFieldDetentApply(pStart);
 
         bool pSync = false;
         void PSFieldDetentCommit()
@@ -433,7 +433,7 @@ internal static class PSField
             pReadout.Text = PSFieldDetentFormat(pResolved, pZeroLabel);
             pReadout.CaretIndex = pReadout.Text.Length;
             pSync = false;
-            PSFieldDetentNotice(pResolved);
+            PSFieldDetentApply(pResolved);
         }
 
         pSlider.ValueChanged += (_, _) =>
@@ -443,7 +443,7 @@ internal static class PSField
                 pReadout.Text = PSFieldDetentFormat(pSlider.Value, pZeroLabel);
             }
 
-            PSFieldDetentNotice(pSlider.Value);
+            PSFieldDetentApply(pSlider.Value);
         };
         pReadout.KeyDown += (_, pEvent) =>
         {

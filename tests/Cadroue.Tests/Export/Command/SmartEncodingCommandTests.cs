@@ -165,6 +165,65 @@ public sealed class SmartEncodingCommandTests
     }
 
     [Fact]
+    public void Vp9Source_UsesMatchedLibvpxBridge()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "vp9");
+
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 30), null,
+            TEncodeCommand.SourceStreamCreate("vp9", profile: "Profile 0"));
+
+        IReadOnlyList<string> headTokens = CommandTokens.Read(stages[0].LEncodeStageArguments);
+        Assert.Equal("libvpx-vp9", CommandTokens.ValueAfter(headTokens, "-c:v"));
+    }
+
+    [Fact]
+    public void ProresSource_UsesMatchedProresBridge()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "prores");
+
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 30), null,
+            TEncodeCommand.SourceStreamCreate("prores", profile: "Standard"));
+
+        IReadOnlyList<string> headTokens = CommandTokens.Read(stages[0].LEncodeStageArguments);
+        Assert.Equal("prores_ks", CommandTokens.ValueAfter(headTokens, "-c:v"));
+    }
+
+    [Fact]
+    public void UnsupportedCodecWithBridges_ProducesNoStages()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "mpeg2video");
+
+        // A boundary re-encode is required (head + tail) but no encoder maps to mpeg2video:
+        // smart encoding fails outright rather than mismatching the copied middle.
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30),
+            TEncodeCommand.SourceStreamCreate("mpeg2video", profile: "Main"));
+
+        Assert.Empty(stages);
+    }
+
+    [Fact]
+    public void UnsupportedCodecWholeCopyable_StillCopiesWithoutAnEncoder()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "mpeg2video");
+
+        // No head/tail: the whole video is stream-copied, so the unmapped codec never matters.
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null,
+            TEncodeCommand.SourceStreamCreate("mpeg2video", profile: "Main")));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+
+        Assert.Equal("Copying", stage.LEncodeStageLabel);
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c"));
+    }
+
+    [Fact]
     public void CopyableAudio_StaysSingleCopyRegionInItsOwnStage()
     {
         using var environment = new TEncodeCommand();

@@ -26,6 +26,11 @@ internal sealed partial class LJob
         }
 
         IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeSmartBuild(lJobItem, pPlan, pSource);
+        if (pStages.Count == 0)
+        {
+            return (1, $"smart encoding unsupported for source codec '{pSource.LBridgeCodec}'");
+        }
+
         LRunner.LRunnerRecord(
             $"Smart encoding applied for '{lJobItem.LWorkOutputName}': {pStages.Count} stage(s)");
         return await LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
