@@ -57,6 +57,8 @@ internal sealed partial class PSEncoder : Window
     private TextBlock? psVideoResolutionValue;
     private TextBox? psVideoWidthBox;
     private TextBox? psVideoHeightBox;
+    private Slider? psVideoWidthSlider;
+    private Slider? psVideoHeightSlider;
     private TextBlock? psVideoWidthLabel;
     private TextBlock? psVideoHeightLabel;
     private int psVideoSizeTier;
