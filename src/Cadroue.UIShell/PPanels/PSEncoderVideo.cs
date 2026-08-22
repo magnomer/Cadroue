@@ -24,13 +24,9 @@ internal sealed partial class PSEncoder
         psVideoEncodePanel.Children.Add(psVideoEncoderNotice);
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.RateControl"), psVideoRateCombo));
         psVideoEncodePanel.Children.Add(psVideoRowsPanel);
-        psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Size"), psVideoSizeCombo));
-        psVideoReactiveBox.Checked += (_, _) => PSVideoSizeUpdate();
-        psVideoReactiveBox.Unchecked += (_, _) => PSVideoSizeUpdate();
-        psVideoSizeCombo.SelectionChanged += (_, _) => PSVideoCustomUpdate();
-
-        psVideoCustomRow = PSVideoCustomBuild();
-        psVideoEncodePanel.Children.Add(psVideoCustomRow);
+        PSVideoResolutionBuild(psVideoEncodePanel);
+        psVideoReactiveBox.Checked += (_, _) => PSVideoReactiveApply();
+        psVideoReactiveBox.Unchecked += (_, _) => PSVideoReactiveApply();
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"), psVideoReactiveBox));
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"), psVideoFpsSource));
         psVideoFpsRow = PSVideoFpsBuild();
@@ -38,7 +34,6 @@ internal sealed partial class PSEncoder
         psVideoFpsSource.Checked += (_, _) => PSVideoFpsUpdate();
         psVideoFpsSource.Unchecked += (_, _) => PSVideoFpsUpdate();
         PSVideoFpsUpdate();
-        PSVideoCustomUpdate();
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psVideoPixelCombo));
 
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoMode));
@@ -51,23 +46,6 @@ internal sealed partial class PSEncoder
         return PSPlateBuild(pPanel);
     }
 
-    private static readonly string[] psVideoSizeItems =
-        ["Same as source", "3840 × 2160", "2560 × 1440", "1920 × 1080", "1280 × 720", "854 × 480", "Custom"];
-
-    private static readonly string[] psVideoReactiveItems =
-        ["Same as source", "2160p", "1440p", "1080p", "720p", "480p", "Custom"];
-
-    private static LLocalizationChoice[] PSVideoChoicesRead(bool pReactive)
-    {
-        string[] pTokens = pReactive ? psVideoReactiveItems : psVideoSizeItems;
-        return pTokens.Select(pToken => pToken switch
-        {
-            "Same as source" => new LLocalizationChoice(pToken, "Encoder.Location.Source"),
-            "Custom" => new LLocalizationChoice(pToken, "Encoder.Value.Custom"),
-            _ => new LLocalizationChoice(pToken)
-        }).ToArray();
-    }
-
     private static CheckBox PSVideoReactiveBuild(bool pReactive)
     {
         var pReactiveBox = new CheckBox
@@ -78,86 +56,6 @@ internal sealed partial class PSEncoder
         };
         PCheckbox.PCheckboxApply(pReactiveBox);
         return pReactiveBox;
-    }
-
-    private string PSVideoSizeRead(string pLabel)
-    {
-        if (string.Equals(pLabel, "Custom", StringComparison.Ordinal))
-        {
-            return PSVideoCustomRead();
-        }
-
-        int pIndex = Array.IndexOf(psVideoReactiveItems, pLabel);
-        return pIndex < 0 ? pLabel : psVideoSizeItems[pIndex];
-    }
-
-    private static string PSVideoLabelRead(string pSize, bool pReactive)
-    {
-        int pIndex = Array.IndexOf(psVideoSizeItems, pSize);
-        if (pIndex < 0)
-        {
-            return "Custom";
-        }
-
-        return pReactive ? psVideoReactiveItems[pIndex] : psVideoSizeItems[pIndex];
-    }
-
-    private string PSVideoCustomRead()
-    {
-        if (int.TryParse(psVideoCustomWidth.Text.Trim(), out int pWidth) && pWidth > 0
-            && int.TryParse(psVideoCustomHeight.Text.Trim(), out int pHeight) && pHeight > 0)
-        {
-            return string.Create(CultureInfo.InvariantCulture, $"{pWidth} × {pHeight}");
-        }
-
-        return "Same as source";
-    }
-
-    private UIElement PSVideoCustomBuild()
-    {
-        psVideoCustomWidth.MinHeight = PSFieldControlHeight;
-        psVideoCustomHeight.MinHeight = PSFieldControlHeight;
-
-        var pPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left };
-        pPanel.Children.Add(psVideoCustomWidth);
-
-        TextBlock pSeparator = PSFieldLabelBuild("×");
-        pSeparator.Margin = new Thickness(8, 0, 8, 0);
-        pPanel.Children.Add(pSeparator);
-        pPanel.Children.Add(psVideoCustomHeight);
-
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.CustomSize")));
-        Grid.SetColumn(pPanel, 1);
-        pGrid.Children.Add(pPanel);
-        return pGrid;
-    }
-
-    private void PSVideoCustomUpdate()
-    {
-        if (psVideoCustomRow is null)
-        {
-            return;
-        }
-
-        psVideoCustomRow.Visibility = string.Equals(PSComboTextRead(psVideoSizeCombo), "Custom", StringComparison.Ordinal)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-    }
-
-    private void PSVideoSizeUpdate()
-    {
-        bool pReactive = psVideoReactiveBox.IsChecked == true;
-        string pSize = PSVideoSizeRead(PSComboTextRead(psVideoSizeCombo));
-
-        LLocalizationChoice[] pChoices = PSVideoChoicesRead(pReactive);
-        string pSelected = PSVideoLabelRead(pSize, pReactive);
-        psVideoSizeCombo.ItemsSource = pChoices;
-        psVideoSizeCombo.SelectedItem = pChoices.FirstOrDefault(
-            pChoice => string.Equals(pChoice.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal));
-        PSVideoCustomUpdate();
     }
 
     private void PSVideoScopeUpdate()
