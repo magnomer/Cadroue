@@ -17,6 +17,17 @@ public sealed class SceneMatchingTests
     }
 
     [Fact]
+    public void SceneVersionDifference_DoesNotAffectMatch()
+    {
+        using var scenes = new TScene();
+        TSceneValue stored = scenes.Create("stored", marker: 3);
+        TSceneValue live = scenes.Create("live", marker: 3);
+        scenes.ChangeMatchIgnoredVersion(live);
+
+        Assert.True(scenes.Match(stored, live));
+    }
+
+    [Fact]
     public void MeaningfulPersistedFieldChange_DoesNotMatch()
     {
         using var scenes = new TScene();

@@ -103,6 +103,9 @@ internal sealed class TScene : IDisposable
         }
     }
 
+    internal void ChangeMatchIgnoredVersion(TSceneValue scene) =>
+        scene.Scene.LSceneVersion = 0;
+
     internal void ReverseMeaningfulCollection(TSceneValue scene) =>
         scene.Scene.LSceneTabNames.Reverse();
 
