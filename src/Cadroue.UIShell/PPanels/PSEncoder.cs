@@ -37,6 +37,8 @@ internal sealed partial class PSEncoder : Window
     private readonly ComboBox psOutputCollisionCombo;
     private readonly TextBox psOutputSuffixBox;
     private UIElement? psOutputSuffixRow;
+    private TextBlock? psOutputSuffixLabel;
+    private string? psOutputSuffixMode;
     private readonly ComboBox psAudioStreamCombo;
     private readonly Border psVideoMode;
     private readonly Border psAudioMode;
@@ -132,7 +134,7 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Overwrite", "Encoder.Collision.Overwrite"),
             new LLocalizationChoice("Rename output", "Encoder.Collision.RenameOutput"),
             new LLocalizationChoice("Rename existing", "Encoder.Collision.RenameExisting"));
-        psOutputSuffixBox = PSEntryBuild(lsExportSpecificEdit.LPresetCollisionSuffix, 220);
+        psOutputSuffixBox = PSEntryBuild(lsExportSpecificEdit.LPresetSuffixRead(lsExportSpecificEdit.LPresetCollision), 220);
         psAudioStreamCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetStream,
             new LLocalizationChoice("Include first audio track", "Encoder.Stream.FirstAudio"),
             new LLocalizationChoice("Include all audio tracks", "Encoder.Stream.AllAudio"),
@@ -245,7 +247,7 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.LPresetContainer = PSComboTextRead(psOutputContainerCombo);
         lsExportSpecificEdit.LPresetExtension = PSComboTextRead(psOutputExtensionCombo);
         lsExportSpecificEdit.LPresetCollision = PSComboTextRead(psOutputCollisionCombo);
-        lsExportSpecificEdit.LPresetCollisionSuffix = psOutputSuffixBox.Text.Trim();
+        lsExportSpecificEdit.LPresetSuffixSet(lsExportSpecificEdit.LPresetCollision, psOutputSuffixBox.Text.Trim());
         lsExportSpecificEdit.LPresetVideo.LPresetStream = "Include";
         lsExportSpecificEdit.LPresetAudio.LPresetStream = PSComboTextRead(psAudioStreamCombo);
         lsExportSpecificEdit.LPresetVideo.LPresetMode = PSModeTextRead(psVideoMode);

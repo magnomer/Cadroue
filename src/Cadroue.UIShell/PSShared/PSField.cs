@@ -208,9 +208,13 @@ internal static class PSField
 
         void PSModeStyleApply()
         {
-            foreach ((string pToken, Border pSegment, TextBlock pText) in pSegments)
+            for (int pStyleIndex = 0; pStyleIndex < pSegments.Count; pStyleIndex++)
             {
+                (string pToken, Border pSegment, TextBlock pText) = pSegments[pStyleIndex];
                 bool pActive = string.Equals(pToken, (string)pHost.Tag, StringComparison.Ordinal);
+                bool pFirst = pStyleIndex == 0;
+                bool pLast = pStyleIndex == pSegments.Count - 1;
+                pSegment.CornerRadius = new CornerRadius(pFirst ? 5 : 0, pLast ? 5 : 0, pLast ? 5 : 0, pFirst ? 5 : 0);
                 pSegment.Background = pActive ? PSFieldAccent : Brushes.Transparent;
                 pText.Foreground = pActive ? Brushes.White : PSFieldText;
             }

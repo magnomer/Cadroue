@@ -9,7 +9,9 @@ public sealed class LPresetRecord
     public string LPresetContainer { get; set; } = "MP4";
     public string LPresetExtension { get; set; } = string.Empty;
     public string LPresetCollision { get; set; } = "Overwrite";
-    public string LPresetCollisionSuffix { get; set; } = "_1";
+    public string LPresetCollisionSuffix { get; set; } = string.Empty;
+    public string LPresetOutputSuffix { get; set; } = string.Empty;
+    public string LPresetSourceSuffix { get; set; } = string.Empty;
     public string LPresetLocation { get; set; } = "Same as source";
     public string LPresetLocationFolder { get; set; } = string.Empty;
     public string LPresetLocationSubfolder { get; set; } = string.Empty;

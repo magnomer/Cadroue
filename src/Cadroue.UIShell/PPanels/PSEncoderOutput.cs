@@ -36,7 +36,9 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"), psOutputContainerCombo));
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Extension"), psOutputExtensionCombo));
 
-        psOutputSuffixRow = PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"), psOutputSuffixBox);
+        psOutputSuffixLabel = PSFieldLabelBuild(string.Empty);
+        psOutputSuffixRow = PSOutputSuffixBuild(psOutputSuffixLabel, psOutputSuffixBox);
+        psOutputSuffixBox.LostFocus += (_, _) => PSOutputSuffixNormalize();
         psOutputCollisionCombo.SelectionChanged += (_, _) => PSOutputSuffixUpdate();
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Collision"), psOutputCollisionCombo));
         pPanel.Children.Add(psOutputSuffixRow);
@@ -46,20 +48,65 @@ internal sealed partial class PSEncoder
         return PSPlateBuild(pPanel);
     }
 
+    private static UIElement PSOutputSuffixBuild(TextBlock pLabel, TextBox pBox)
+    {
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.Children.Add(pLabel);
+        pBox.MinHeight = PSFieldControlHeight;
+        Grid.SetColumn(pBox, 1);
+        pGrid.Children.Add(pBox);
+        return pGrid;
+    }
+
+    private void PSOutputSuffixNormalize()
+    {
+        if (!string.IsNullOrEmpty(psOutputSuffixBox.Text.Trim()))
+        {
+            return;
+        }
+
+        string pMode = PSComboTextRead(psOutputCollisionCombo);
+        lsExportSpecificEdit.LPresetSuffixSet(pMode, string.Empty);
+        psOutputSuffixBox.Text = lsExportSpecificEdit.LPresetSuffixRead(pMode);
+    }
+
     private static bool PSOutputSuffixCheck(string pPolicy) =>
         string.Equals(pPolicy, "Rename output", StringComparison.Ordinal)
         || string.Equals(pPolicy, "Rename existing", StringComparison.Ordinal);
 
     private void PSOutputSuffixUpdate()
     {
-        if (psOutputSuffixRow is null)
+        string pMode = PSComboTextRead(psOutputCollisionCombo);
+
+        if (psOutputSuffixMode is not null
+            && PSOutputSuffixCheck(psOutputSuffixMode)
+            && !string.Equals(psOutputSuffixMode, pMode, StringComparison.Ordinal))
         {
-            return;
+            lsExportSpecificEdit.LPresetSuffixSet(psOutputSuffixMode, psOutputSuffixBox.Text.Trim());
         }
 
-        psOutputSuffixRow.Visibility = PSOutputSuffixCheck(PSComboTextRead(psOutputCollisionCombo))
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        if (PSOutputSuffixCheck(pMode))
+        {
+            psOutputSuffixBox.Text = lsExportSpecificEdit.LPresetSuffixRead(pMode);
+            if (psOutputSuffixLabel is not null)
+            {
+                psOutputSuffixLabel.Text = LLocalization.LLocalizationTextRead(
+                    string.Equals(pMode, "Rename existing", StringComparison.Ordinal)
+                        ? "Encoder.Field.Output.SuffixSource"
+                        : "Encoder.Field.Output.SuffixOutput");
+            }
+        }
+
+        psOutputSuffixMode = pMode;
+
+        if (psOutputSuffixRow is not null)
+        {
+            psOutputSuffixRow.Visibility = PSOutputSuffixCheck(pMode)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
     }
 
     private static LLocalizationChoice[] PSOutputExtensionRead(string pContainer)

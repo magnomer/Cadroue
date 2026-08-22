@@ -525,6 +525,8 @@
   "Encoder.Field.Output.Date": "{Terms.Date}",
   "Encoder.Field.Output.Time": "{Terms.Time}",
   "Encoder.Field.Output.Suffix": "접미사",
+  "Encoder.Field.Output.SuffixOutput": "출력 접미사",
+  "Encoder.Field.Output.SuffixSource": "원본 접미사",
   "Encoder.Field.Output.Backspace": "백스페이스",
   "Encoder.Field.Output.Delete": "삭제",
   "Encoder.Location.Source": "{Terms.Source}와 동일",

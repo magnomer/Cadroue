@@ -525,6 +525,8 @@
   "Encoder.Field.Output.Date": "{Terms.Date}",
   "Encoder.Field.Output.Time": "{Terms.Time}",
   "Encoder.Field.Output.Suffix": "Suffix",
+  "Encoder.Field.Output.SuffixOutput": "Output suffix",
+  "Encoder.Field.Output.SuffixSource": "Source suffix",
   "Encoder.Field.Output.Backspace": "Backspace",
   "Encoder.Field.Output.Delete": "Delete",
   "Encoder.Location.Source": "Same as {Terms.Source}",

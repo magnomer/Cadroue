@@ -9,7 +9,8 @@ public sealed partial class LPreset
     public string LPresetContainer { get; set; } = "MP4";
     public string LPresetExtension { get; set; } = "mp4";
     public string LPresetCollision { get; set; } = "Overwrite";
-    public string LPresetCollisionSuffix { get; set; } = "_1";
+    public string LPresetOutputSuffix { get; set; } = "(output)";
+    public string LPresetSourceSuffix { get; set; } = "(original)";
     public string LPresetLocation { get; set; } = "Same as source";
     public string LPresetLocationSubfolder { get; set; } = string.Empty;
     public string LPresetLocationSibling { get; set; } = string.Empty;
@@ -47,6 +48,25 @@ public sealed partial class LPreset
         }
     }
 
+    public string LPresetSuffixRead(string lMode) => lMode switch
+    {
+        "Rename existing" => LPresetSourceSuffix,
+        _ => LPresetOutputSuffix
+    };
+
+    public void LPresetSuffixSet(string lMode, string lSuffix)
+    {
+        switch (lMode)
+        {
+            case "Rename output":
+                LPresetOutputSuffix = string.IsNullOrEmpty(lSuffix) ? "(output)" : lSuffix;
+                break;
+            case "Rename existing":
+                LPresetSourceSuffix = string.IsNullOrEmpty(lSuffix) ? "(original)" : lSuffix;
+                break;
+        }
+    }
+
     public LEncoding LPresetOutputCreate() => new(
         LPresetDisplay,
         LPresetContainer,
@@ -77,7 +97,7 @@ public sealed partial class LPreset
             LPresetAudio.LPresetChannels),
         LPresetName,
         LPresetCollision,
-        LPresetCollisionSuffix);
+        LPresetSuffixRead(LPresetCollision));
 
     public LPreset LPresetClone() => new()
     {
@@ -86,7 +106,8 @@ public sealed partial class LPreset
         LPresetContainer = LPresetContainer,
         LPresetExtension = LPresetExtension,
         LPresetCollision = LPresetCollision,
-        LPresetCollisionSuffix = LPresetCollisionSuffix,
+        LPresetOutputSuffix = LPresetOutputSuffix,
+        LPresetSourceSuffix = LPresetSourceSuffix,
         LPresetLocation = LPresetLocation,
         LPresetLocationSubfolder = LPresetLocationSubfolder,
         LPresetLocationSibling = LPresetLocationSibling,
@@ -104,7 +125,8 @@ public sealed partial class LPreset
         LPresetContainer = lSource.LPresetContainer;
         LPresetExtension = lSource.LPresetExtension;
         LPresetCollision = lSource.LPresetCollision;
-        LPresetCollisionSuffix = lSource.LPresetCollisionSuffix;
+        LPresetOutputSuffix = lSource.LPresetOutputSuffix;
+        LPresetSourceSuffix = lSource.LPresetSourceSuffix;
         LPresetLocation = lSource.LPresetLocation;
         LPresetLocationSubfolder = lSource.LPresetLocationSubfolder;
         LPresetLocationSibling = lSource.LPresetLocationSibling;
@@ -121,7 +143,8 @@ public sealed partial class LPreset
         LPresetContainer = LPresetContainer,
         LPresetExtension = LPresetExtension,
         LPresetCollision = LPresetCollision,
-        LPresetCollisionSuffix = LPresetCollisionSuffix,
+        LPresetOutputSuffix = LPresetOutputSuffix,
+        LPresetSourceSuffix = LPresetSourceSuffix,
         LPresetLocation = LPresetLocation,
         LPresetLocationSubfolder = LPresetLocationSubfolder,
         LPresetLocationSibling = LPresetLocationSibling,
@@ -170,7 +193,8 @@ public sealed partial class LPreset
                 ? LPresetExtensionsRead(lRecord.LPresetContainer).FirstOrDefault() ?? string.Empty
                 : lRecord.LPresetExtension,
             LPresetCollision = lRecord.LPresetCollision,
-            LPresetCollisionSuffix = lRecord.LPresetCollisionSuffix,
+            LPresetOutputSuffix = LPresetSuffixResolve(lRecord.LPresetOutputSuffix, lRecord.LPresetCollisionSuffix, "(output)"),
+            LPresetSourceSuffix = LPresetSuffixResolve(lRecord.LPresetSourceSuffix, lRecord.LPresetCollisionSuffix, "(original)"),
             LPresetVideo = new LPresetVideo
         {
             LPresetStream = lRecord.LPresetVideo.LPresetStream,
@@ -209,6 +233,9 @@ public sealed partial class LPreset
 
         return lPreset;
     }
+
+    private static string LPresetSuffixResolve(string lSlot, string lLegacy, string lDefault) =>
+        !string.IsNullOrEmpty(lSlot) ? lSlot : !string.IsNullOrEmpty(lLegacy) ? lLegacy : lDefault;
 
     private static string LPresetVideoNormalize(string lMode) => lMode switch
     {
