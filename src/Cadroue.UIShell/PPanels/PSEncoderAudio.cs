@@ -288,12 +288,11 @@ internal sealed partial class PSEncoder
         PSFieldCustomToggle(psAudioChannelCombo, psAudioChannelRow);
 
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Stream"), psAudioStreamCombo));
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Mode"), psAudioModeCombo));
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Mode"), psAudioMode));
         pPanel.Children.Add(psAudioEncodePanel);
         pPanel.Children.Add(psAudioNotice);
 
         psAudioStreamCombo.SelectionChanged += (_, _) => PSAudioScopeUpdate();
-        psAudioModeCombo.SelectionChanged += (_, _) => PSAudioScopeUpdate();
 
         PSAudioRowsRebuild();
         PSAudioScopeUpdate();
@@ -411,7 +410,7 @@ internal sealed partial class PSEncoder
     private void PSAudioScopeUpdate()
     {
         string pStream = PSComboTextRead(psAudioStreamCombo);
-        string pMode = PSComboTextRead(psAudioModeCombo);
+        string pMode = PSModeTextRead(psAudioMode);
 
         bool pExcluded = pStream == "Exclude" || pMode == "Exclude";
         bool pCopied = pMode == "Copy";

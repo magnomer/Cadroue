@@ -183,6 +183,77 @@ internal static class PSField
     internal static string PSComboTextRead(ComboBox pCombo) =>
         LLocalizationChoice.LLocalizationChoiceRead(pCombo.SelectedItem);
 
+    internal static readonly Brush PSFieldAccent = PSFieldBrushCreate(0x4C, 0x86, 0xF7);
+
+    internal static string PSModeTextRead(Border pMode) => (string)(pMode.Tag ?? string.Empty);
+
+    internal static Border PSModeBuild(string pSelected, Action pChange, params LLocalizationChoice[] pChoices)
+    {
+        var pStrip = new StackPanel { Orientation = Orientation.Horizontal };
+        var pHost = new Border
+        {
+            BorderBrush = PSFieldLine,
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Background = Brushes.White,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Height = PSFieldControlHeight,
+            Child = pStrip
+        };
+        pHost.Tag = pChoices.Any(pChoice => string.Equals(pChoice.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal))
+            ? pSelected
+            : pChoices.FirstOrDefault()?.LLocalizationChoiceToken ?? string.Empty;
+
+        var pSegments = new List<(string Token, Border Segment, TextBlock Text)>();
+
+        void PSModeStyle()
+        {
+            foreach ((string pToken, Border pSegment, TextBlock pText) in pSegments)
+            {
+                bool pActive = string.Equals(pToken, (string)pHost.Tag, StringComparison.Ordinal);
+                pSegment.Background = pActive ? PSFieldAccent : Brushes.Transparent;
+                pText.Foreground = pActive ? Brushes.White : PSFieldText;
+            }
+        }
+
+        for (int pIndex = 0; pIndex < pChoices.Length; pIndex++)
+        {
+            LLocalizationChoice pChoice = pChoices[pIndex];
+            string pToken = pChoice.LLocalizationChoiceToken;
+            var pText = new TextBlock
+            {
+                Text = pChoice.ToString(),
+                FontSize = PSFieldFontSize,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            var pSegment = new Border
+            {
+                Child = pText,
+                Padding = new Thickness(16, 0, 16, 0),
+                Cursor = Cursors.Hand,
+                BorderBrush = PSFieldLine,
+                BorderThickness = new Thickness(pIndex == 0 ? 0 : 1, 0, 0, 0)
+            };
+            pSegment.MouseLeftButtonUp += (_, _) =>
+            {
+                if (string.Equals((string)pHost.Tag, pToken, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                pHost.Tag = pToken;
+                PSModeStyle();
+                pChange();
+            };
+            pSegments.Add((pToken, pSegment, pText));
+            pStrip.Children.Add(pSegment);
+        }
+
+        PSModeStyle();
+        return pHost;
+    }
+
     private const double PSFieldSliderWidth = 220;
     private const double PSFieldBitrateTicks = 1000;
 

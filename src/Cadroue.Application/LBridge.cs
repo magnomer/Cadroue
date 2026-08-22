@@ -78,7 +78,7 @@ public static partial class LBridge
         }
 
         TimeSpan lBridgeCopyStart = lBridgeCopyOrigin!.Value;
-        TimeSpan lBridgeCopyStop = lBridgeCopyEnd!.Value;
+        TimeSpan lBridgeCopyStop = lBridgeCopyEnd!.Value > lBridgeEnd ? lBridgeEnd : lBridgeCopyEnd!.Value;
 
         LBridgeSpan? lBridgeHead = lBridgeOriginKeyed
             ? null

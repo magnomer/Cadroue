@@ -40,11 +40,9 @@ internal sealed partial class PSEncoder
         PSVideoCustomUpdate();
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psVideoPixelCombo));
 
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoModeCombo));
+        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoMode));
         pPanel.Children.Add(psVideoEncodePanel);
         pPanel.Children.Add(psVideoNotice);
-
-        psVideoModeCombo.SelectionChanged += (_, _) => PSVideoScopeUpdate();
 
         PSVideoRowsRebuild();
         PSVideoScopeUpdate();
@@ -163,7 +161,7 @@ internal sealed partial class PSEncoder
 
     private void PSVideoScopeUpdate()
     {
-        string pMode = PSComboTextRead(psVideoModeCombo);
+        string pMode = PSModeTextRead(psVideoMode);
         bool pEncoded = pMode == "Encode";
 
         psVideoEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;

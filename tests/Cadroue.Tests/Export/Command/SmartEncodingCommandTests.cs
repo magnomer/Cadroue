@@ -45,7 +45,7 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("copy", CommandTokens.ValueAfter(middleTokens, "-c:v"));
         Assert.Contains("-an", middleTokens);
         Assert.DoesNotContain("-c:a", middleTokens);
-        Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
+        Assert.Equal("12.002", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("16", CommandTokens.ValueAfter(middleTokens, "-t"));
 
         LEncodeStage tail = stages[2];
@@ -119,7 +119,7 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal(2, CommandTokens.Count(tokens, "-map"));
         Assert.Equal(1, CommandTokens.Count(tokens, "0:v:0"));
         Assert.Equal(1, CommandTokens.Count(tokens, "0:a:0"));
-        Assert.Equal("10", CommandTokens.ValueAfter(tokens, "-ss"));
+        Assert.Equal("10.002", CommandTokens.ValueAfter(tokens, "-ss"));
         Assert.Equal("20", CommandTokens.ValueAfter(tokens, "-t"));
         Assert.Equal("make_zero", CommandTokens.ValueAfter(tokens, "-avoid_negative_ts"));
     }
@@ -320,7 +320,7 @@ public sealed class SmartEncodingCommandTests
 
         IReadOnlyList<string> middleTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
         Assert.Equal("copy", CommandTokens.ValueAfter(middleTokens, "-c:v"));
-        Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
+        Assert.Equal("12.002", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("16", CommandTokens.ValueAfter(middleTokens, "-t"));
 
         IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[^1].LEncodeStageArguments);

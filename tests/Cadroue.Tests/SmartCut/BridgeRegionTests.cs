@@ -80,6 +80,20 @@ public sealed class BridgeRegionTests
     }
 
     [Fact]
+    public void KeyframeJustBeyondEnd_CopyClampedToRequestedEnd()
+    {
+        IReadOnlyList<TimeSpan> grid =
+            new[] { S(0), S(2), S(4), S(6), S(8) + TimeSpan.FromTicks(5_000) };
+
+        LBridgePlan plan = TInterface.BridgeResolve(grid, S(2), S(8));
+
+        Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
+        Assert.NotNull(plan.LBridgeMiddle);
+        Assert.Equal(S(8), plan.LBridgeMiddle!.LBridgeSpanEnd);
+        Assert.Null(plan.LBridgeTail);
+    }
+
+    [Fact]
     public void ReversedInterval_ReportsInvalid()
     {
         LBridgePlan plan = TInterface.BridgeResolve(Grid, S(7), S(3));

@@ -175,8 +175,10 @@ internal static class LScout
             using CancellationTokenRegistration lScoutKill = lScoutToken.Register(
                 static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess);
 
+            Task<string> lScoutError = lScoutProcess.StandardError.ReadToEndAsync();
             string lScoutJson = lScoutProcess.StandardOutput.ReadToEnd();
             lScoutProcess.WaitForExit();
+            lScoutError.Wait(CancellationToken.None);
             lScoutToken.ThrowIfCancellationRequested();
             return LScoutStreamParse(lScoutJson);
         }

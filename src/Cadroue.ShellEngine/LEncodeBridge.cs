@@ -14,6 +14,8 @@ internal sealed record LEncodeSmartProduction(
 
 public static partial class LEncode
 {
+    private static readonly TimeSpan LEncodeCopyBias = TimeSpan.FromMilliseconds(2);
+
     public static IReadOnlyList<LEncodeStage> LEncodeBridgeResolve(
         LWorkItem lWorkItem, IReadOnlyList<TimeSpan> lBridgeKeyframes)
     {
@@ -165,7 +167,7 @@ public static partial class LEncode
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanOrigin)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanOrigin + LEncodeCopyBias)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin)}");
         lArguments.Append(" -c:v copy -an");
@@ -177,7 +179,7 @@ public static partial class LEncode
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin + LEncodeCopyBias)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lWorkItem.LWorkDuration)}");
         lArguments.Append(" -map 0:v:0");

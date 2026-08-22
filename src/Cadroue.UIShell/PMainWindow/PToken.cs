@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIShell.PAssets;
 
 namespace Cadroue.UIShell.PMainWindow;
 
@@ -10,11 +11,15 @@ internal sealed class PToken : RichTextBox
 {
     internal const string PTokenDataKind = "Cadroue.ExportNameToken";
 
+    private const string PTokenBackspaceIcon = "/PAssets/PPanels/PTokenBackspace.svg";
+    private const string PTokenDeleteIcon = "/PAssets/PPanels/PTokenDelete.svg";
+
     private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush PTokenTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
     private static readonly Brush PTokenAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
     private static readonly Brush PTokenHoverBrush = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
     private static readonly Brush PTokenPressedBrush = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
+    private static readonly Brush PTokenOperatorBrush = new SolidColorBrush(Color.FromRgb(0xD1, 0x3B, 0x3B));
 
     private readonly Paragraph pTokenParagraph = new();
     private bool pTokenRenderActive;
@@ -196,19 +201,48 @@ internal sealed class PToken : RichTextBox
         return pInline;
     }
 
+    private static bool PTokenIconRead(string pToken, out string pIconPath, out string pCount)
+    {
+        pIconPath = string.Empty;
+        pCount = "1";
+        string pInner = pToken.Trim('{', '}');
+        int pColon = pInner.IndexOf(':');
+        string pName = pColon < 0 ? pInner : pInner[..pColon];
+        pCount = pColon < 0 ? "1" : pInner[(pColon + 1)..];
+        if (pName.Equals("Backspace", StringComparison.OrdinalIgnoreCase))
+        {
+            pIconPath = PTokenBackspaceIcon;
+            return true;
+        }
+
+        if (pName.Equals("Delete", StringComparison.OrdinalIgnoreCase))
+        {
+            pIconPath = PTokenDeleteIcon;
+            return true;
+        }
+
+        return false;
+    }
+
     private static Border PTokenChipBuild(string pLabel, string pToken)
     {
-        var pText = new TextBlock
-        {
-            Text = pLabel,
-            Foreground = PTokenTextBrush,
-            LineHeight = 14,
-            LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
         var pTextHost = new Grid();
-        pTextHost.Children.Add(pText);
+        if (PTokenIconRead(pToken, out string pIconPath, out string pCount))
+        {
+            pTextHost.Children.Add(PTokenOperatorBuild(pIconPath, pCount));
+        }
+        else
+        {
+            pTextHost.Children.Add(new TextBlock
+            {
+                Text = pLabel,
+                Foreground = PTokenTextBrush,
+                LineHeight = 14,
+                LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+        }
 
         var pChip = new Border
         {
@@ -228,6 +262,34 @@ internal sealed class PToken : RichTextBox
         pChip.PreviewMouseLeftButtonDown += (_, _) => pChip.Background = PTokenPressedBrush;
         pChip.PreviewMouseLeftButtonUp += (_, _) => pChip.Background = PTokenHoverBrush;
         return pChip;
+    }
+
+    private static UIElement PTokenOperatorBuild(string pIconPath, string pCount)
+    {
+        var pContent = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pContent.Children.Add(new Image
+        {
+            Source = PIcon.PIconRead(pIconPath, PTokenOperatorBrush),
+            Width = 14,
+            Height = 14,
+            Stretch = Stretch.Uniform,
+            VerticalAlignment = VerticalAlignment.Center
+        });
+        pContent.Children.Add(new TextBlock
+        {
+            Text = pCount,
+            Foreground = PTokenOperatorBrush,
+            LineHeight = 14,
+            LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(2, 0, 0, 0)
+        });
+        return pContent;
     }
 
     private void PTokenDragHandle(object sender, DragEventArgs e)

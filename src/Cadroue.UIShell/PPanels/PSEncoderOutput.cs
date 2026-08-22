@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -16,16 +15,16 @@ internal sealed partial class PSEncoder
     private UIElement PSOutputPlateBuild()
     {
         var pPanel = new StackPanel();
-        var psLocationStatus = new TextBlock
+        psLocationStatus = new TextBlock
         {
-            Text = PSLocationStatusRead(),
             Foreground = PSEncoderMutedBrush,
             Margin = new Thickness(12, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
         };
         PSNameBoxPrepare();
-        psLocationFolderRow = PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Subfolder"), psLocationFolderBox);
+        psLocationFolderLabel = PSFieldLabelBuild(string.Empty);
+        psLocationFolderRow = PSFieldLabelledBuild(psLocationFolderLabel, psLocationFolderBox);
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
@@ -40,7 +39,7 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(psOutputSuffixRow);
         PSOutputSuffixUpdate();
 
-        PSLocationFolderUpdate();
+        PSLocationModeUpdate();
         return PSPlateBuild(pPanel);
     }
 
@@ -318,10 +317,9 @@ internal sealed partial class PSEncoder
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        psLocationCombo.SelectionChanged += (_, _) => PSLocationChangeHandle(psLocationCombo, psLocationStatus);
-        Grid.SetColumn(psLocationCombo, 0);
+        Grid.SetColumn(psLocationMode, 0);
         Grid.SetColumn(psLocationStatus, 1);
-        pValueGrid.Children.Add(psLocationCombo);
+        pValueGrid.Children.Add(psLocationMode);
         pValueGrid.Children.Add(psLocationStatus);
 
         Grid.SetColumn(pValueGrid, 1);
@@ -329,90 +327,51 @@ internal sealed partial class PSEncoder
         return pGrid;
     }
 
-    private static bool PSLocationNamedCheck(string psLocation) =>
-        string.Equals(psLocation, "Subfolder", StringComparison.Ordinal)
-        || string.Equals(psLocation, "Sibling", StringComparison.Ordinal);
-
-    private string PSLocationStatusRead()
+    private static UIElement PSFieldLabelledBuild(TextBlock pLabel, TextBox pBox)
     {
-        string psLocation = PSComboTextRead(psLocationCombo);
-        if (string.Equals(psLocation, "Subfolder", StringComparison.Ordinal))
-        {
-            return LLocalization.LLocalizationTextRead("Encoder.Location.SubfolderStatus");
-        }
-
-        if (string.Equals(psLocation, "Sibling", StringComparison.Ordinal))
-        {
-            return LLocalization.LLocalizationTextRead("Encoder.Location.SiblingStatus");
-        }
-
-        return string.IsNullOrWhiteSpace(psEncoderFolderPath)
-            ? LLocalization.LLocalizationTextRead("Encoder.Location.Source")
-            : psEncoderFolderPath;
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.Children.Add(pLabel);
+        pBox.MinHeight = PSFieldControlHeight;
+        Grid.SetColumn(pBox, 1);
+        pGrid.Children.Add(pBox);
+        return pGrid;
     }
 
-    private void PSLocationFolderUpdate()
+    private void PSLocationModeUpdate()
     {
-        if (psLocationFolderRow is null)
+        string pMode = PSModeTextRead(psLocationMode);
+        bool pFolder = !string.Equals(pMode, "Same as source", StringComparison.Ordinal);
+
+        if (psLocationFolderRow is not null)
         {
-            return;
+            psLocationFolderRow.Visibility = pFolder ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        psLocationFolderRow.Visibility = PSLocationNamedCheck(PSComboTextRead(psLocationCombo))
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        if (psLocationFolderLabel is not null)
+        {
+            psLocationFolderLabel.Text = LLocalization.LLocalizationTextRead(PSLocationFolderKeyRead(pMode));
+        }
+
+        if (psLocationStatus is not null)
+        {
+            psLocationStatus.Text = LLocalization.LLocalizationTextRead(PSLocationStatusKeyRead(pMode));
+        }
     }
 
-    private void PSLocationChangeHandle(ComboBox psLocationCombo, TextBlock psLocationStatus)
+    private static string PSLocationFolderKeyRead(string pMode) => pMode switch
     {
-        PSLocationFolderUpdate();
+        "Sibling" => "Encoder.Location.Sibling",
+        "Custom location" => "Encoder.Location.Custom",
+        _ => "Encoder.Location.Subfolder"
+    };
 
-        if (PSComboTextRead(psLocationCombo) == "Subfolder")
-        {
-            psEncoderFolderPath = null;
-            psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.SubfolderStatus");
-            return;
-        }
-
-        if (PSComboTextRead(psLocationCombo) == "Sibling")
-        {
-            psEncoderFolderPath = null;
-            psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.SiblingStatus");
-            return;
-        }
-
-        if (PSComboTextRead(psLocationCombo) != "Custom location")
-        {
-            psEncoderFolderPath = null;
-            psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.Source");
-            return;
-        }
-
-        var psFolderDialog = new OpenFolderDialog
-        {
-            Title = LLocalization.LLocalizationTextRead("Encoder.Location.ChooseFolder"),
-            Multiselect = false
-        };
-        if (!string.IsNullOrWhiteSpace(psEncoderFolderPath))
-        {
-            psFolderDialog.InitialDirectory = psEncoderFolderPath;
-        }
-
-        bool? psFolderResult = psFolderDialog.ShowDialog(this);
-        if (psFolderResult == true && !string.IsNullOrWhiteSpace(psFolderDialog.FolderName))
-        {
-            psEncoderFolderPath = psFolderDialog.FolderName;
-            psLocationStatus.Text = psEncoderFolderPath;
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(psEncoderFolderPath))
-        {
-            psLocationCombo.SelectedIndex = 0;
-            psLocationStatus.Text = LLocalization.LLocalizationTextRead("Encoder.Location.Source");
-            return;
-        }
-
-        psLocationStatus.Text = psEncoderFolderPath;
-    }
+    private static string PSLocationStatusKeyRead(string pMode) => pMode switch
+    {
+        "Subfolder" => "Encoder.Location.SubfolderStatus",
+        "Sibling" => "Encoder.Location.SiblingStatus",
+        "Custom location" => "Encoder.Location.CustomStatus",
+        _ => "Encoder.Location.Source"
+    };
 }
