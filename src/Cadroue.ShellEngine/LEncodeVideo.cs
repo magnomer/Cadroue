@@ -12,13 +12,6 @@ internal static class LEncodeVideo
 
     internal static void LEncodeVideoAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
     {
-        if (string.Equals(lOutput.LEncodingVideo.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase))
-        {
-            lArguments.Append(" -vn");
-            return;
-        }
-
         if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             && !LEncodeVideoCheck(lWorkItem, lOutput))
         {

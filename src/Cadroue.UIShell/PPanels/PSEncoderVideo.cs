@@ -40,12 +40,10 @@ internal sealed partial class PSEncoder
         PSVideoCustomUpdate();
         psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psVideoPixelCombo));
 
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Stream"), psVideoStreamCombo));
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoModeCombo));
         pPanel.Children.Add(psVideoEncodePanel);
         pPanel.Children.Add(psVideoNotice);
 
-        psVideoStreamCombo.SelectionChanged += (_, _) => PSVideoScopeUpdate();
         psVideoModeCombo.SelectionChanged += (_, _) => PSVideoScopeUpdate();
 
         PSVideoRowsRebuild();
@@ -165,18 +163,11 @@ internal sealed partial class PSEncoder
 
     private void PSVideoScopeUpdate()
     {
-        string pStream = PSComboTextRead(psVideoStreamCombo);
-        string pMode = PSComboTextRead(psVideoModeCombo);
+        bool pCopied = PSComboTextRead(psVideoModeCombo) == "Copy";
 
-        bool pExcluded = pStream == "Exclude" || pMode == "Exclude";
-        bool pCopied = pMode == "Copy";
-        bool pEncoded = !pExcluded && !pCopied;
-
-        psVideoEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
-        psVideoNotice.Visibility = pEncoded ? Visibility.Collapsed : Visibility.Visible;
-        psVideoNotice.Text = pExcluded
-            ? LLocalization.LLocalizationTextRead("Encoder.Video.Notice.Excluded")
-            : LLocalization.LLocalizationTextRead("Encoder.Video.Notice.Copied");
+        psVideoEncodePanel.Visibility = pCopied ? Visibility.Collapsed : Visibility.Visible;
+        psVideoNotice.Visibility = pCopied ? Visibility.Visible : Visibility.Collapsed;
+        psVideoNotice.Text = LLocalization.LLocalizationTextRead("Encoder.Video.Notice.Copied");
     }
 
     private LCapabilityCodec PSVideoCapabilityRead() =>

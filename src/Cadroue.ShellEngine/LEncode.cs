@@ -138,25 +138,17 @@ public static partial class LEncode
         lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioInputWav)}");
 
-        bool lVideoExcluded = string.Equals(lOutput.LEncodingVideo.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
-        if (!lVideoExcluded)
-        {
-            lMux.Append(" -map 0:v:0?");
-        }
+        lMux.Append(" -map 0:v:0?");
         lMux.Append(" -map 1:a:0");
 
-        if (!lVideoExcluded)
+        if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+            && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput))
         {
-            if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
-                && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput))
-            {
-                lMux.Append(" -c:v copy");
-            }
-            else
-            {
-                LEncodeVideo.LEncodeEncoderAppend(lMux, lWorkItem, lOutput);
-            }
+            lMux.Append(" -c:v copy");
+        }
+        else
+        {
+            LEncodeVideo.LEncodeEncoderAppend(lMux, lWorkItem, lOutput);
         }
 
         LEncodeAudio.LEncodeMuxAppend(lMux, lOutput);

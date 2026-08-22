@@ -37,7 +37,6 @@ internal sealed partial class PSEncoder : Window
     private readonly ComboBox psOutputCollisionCombo;
     private readonly TextBox psOutputSuffixBox;
     private UIElement? psOutputSuffixRow;
-    private readonly ComboBox psVideoStreamCombo;
     private readonly ComboBox psAudioStreamCombo;
     private readonly ComboBox psVideoModeCombo;
     private readonly ComboBox psAudioModeCombo;
@@ -131,9 +130,6 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Rename output", "Encoder.Collision.RenameOutput"),
             new LLocalizationChoice("Rename existing", "Encoder.Collision.RenameExisting"));
         psOutputSuffixBox = PSEntryBuild(lsExportSpecificEdit.LPresetCollisionSuffix, 220);
-        psVideoStreamCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetStream,
-            new LLocalizationChoice("Include", "Encoder.Stream.Include"),
-            new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
         psAudioStreamCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetStream,
             new LLocalizationChoice("Include first audio track", "Encoder.Stream.FirstAudio"),
             new LLocalizationChoice("Include all audio tracks", "Encoder.Stream.AllAudio"),
@@ -141,8 +137,7 @@ internal sealed partial class PSEncoder : Window
         psVideoModeCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetMode,
             new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
             new LLocalizationChoice("Copy", "Encoder.Codec.Copy"),
-            new LLocalizationChoice("Encode", "Encoder.Codec.Encode"),
-            new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
+            new LLocalizationChoice("Encode", "Encoder.Codec.Encode"));
         psAudioModeCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetMode,
             new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
             new LLocalizationChoice("Copy", "Encoder.Codec.Copy"),
@@ -253,7 +248,7 @@ internal sealed partial class PSEncoder : Window
         lsExportSpecificEdit.LPresetExtension = PSComboTextRead(psOutputExtensionCombo);
         lsExportSpecificEdit.LPresetCollision = PSComboTextRead(psOutputCollisionCombo);
         lsExportSpecificEdit.LPresetCollisionSuffix = psOutputSuffixBox.Text.Trim();
-        lsExportSpecificEdit.LPresetVideo.LPresetStream = PSComboTextRead(psVideoStreamCombo);
+        lsExportSpecificEdit.LPresetVideo.LPresetStream = "Include";
         lsExportSpecificEdit.LPresetAudio.LPresetStream = PSComboTextRead(psAudioStreamCombo);
         lsExportSpecificEdit.LPresetVideo.LPresetMode = PSComboTextRead(psVideoModeCombo);
         lsExportSpecificEdit.LPresetAudio.LPresetMode = PSComboTextRead(psAudioModeCombo);
