@@ -74,7 +74,7 @@ public static partial class LEncode
     {
         LEncoding lOutput = lWorkItem.LWorkOutput;
         LEncodingVideo lVideo = lOutput.LEncodingVideo;
-        return !string.Equals(lVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+        return !string.Equals(lVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase)
             || LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput)
             || !LEncodeSourceCheck(lVideo.LEncodingFps);
     }

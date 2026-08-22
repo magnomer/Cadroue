@@ -219,11 +219,17 @@ internal sealed class LJob
 
     private IReadOnlyList<LEncodeStage> LJobStagesBuild()
     {
-        if (lJobItem.LWorkKind == LWorkKind.LWorkKindSplit && !LEncode.LEncodeSmartCheck(lJobItem))
+        if (!LEncode.LEncodeSmartCheck(lJobItem))
         {
             IReadOnlyList<TimeSpan> pKeyframes = LScout.LScoutBridgeRead(
                 lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken);
             return LEncode.LEncodeBridgeResolve(lJobItem, pKeyframes);
+        }
+
+        if (string.Equals(lJobItem.LWorkOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase))
+        {
+            LRunner.LRunnerRecord(
+                $"Smart Cut fallback for '{lJobItem.LWorkOutputName}': the item has edits or an fps change; encoding the full requested interval");
         }
 
         return LEncode.LEncodeStagesBuild(lJobItem);
