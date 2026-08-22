@@ -97,19 +97,30 @@ internal sealed class TEncodeCommand : IDisposable
         return work;
     }
 
+    internal static LBridgeStream SourceStreamCreate(
+        string codec = "h264",
+        string profile = "High",
+        string pixel = "yuv420p",
+        long bitrate = 5_000_000) =>
+        new(codec, profile, pixel, "bt709", "bt709", "bt709", "tv", "30000/1001", bitrate);
+
     internal static IReadOnlyList<LEncodeStage> SmartStagesBuild(
         LWorkItem work,
         LBridgeOutcome outcome,
         (double origin, double end) interval,
         (double origin, double end)? head,
         (double origin, double end)? middle,
-        (double origin, double end)? tail) =>
-        LEncode.LEncodeSmartBuild(work, new LBridgePlan(
-            outcome,
-            SpanCreate(interval),
-            head is { } tHead ? SpanCreate(tHead) : null,
-            middle is { } tMiddle ? SpanCreate(tMiddle) : null,
-            tail is { } tTail ? SpanCreate(tTail) : null));
+        (double origin, double end)? tail,
+        LBridgeStream? source = null) =>
+        LEncode.LEncodeSmartBuild(
+            work,
+            new LBridgePlan(
+                outcome,
+                SpanCreate(interval),
+                head is { } tHead ? SpanCreate(tHead) : null,
+                middle is { } tMiddle ? SpanCreate(tMiddle) : null,
+                tail is { } tTail ? SpanCreate(tTail) : null),
+            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
 
     internal static IReadOnlyList<LEncodeStage> SmartResolveBuild(
         LWorkItem work,
@@ -118,8 +129,7 @@ internal sealed class TEncodeCommand : IDisposable
         (double origin, double end)? head,
         (double origin, double end)? middle,
         (double origin, double end)? tail,
-        bool compatible = true,
-        LBridgeReason reason = LBridgeReason.LBridgeReasonCompatible) =>
+        LBridgeStream? source = null) =>
         LEncode.LEncodeSmartResolve(
             work,
             new LBridgePlan(
@@ -128,7 +138,7 @@ internal sealed class TEncodeCommand : IDisposable
                 head is { } tHead ? SpanCreate(tHead) : null,
                 middle is { } tMiddle ? SpanCreate(tMiddle) : null,
                 tail is { } tTail ? SpanCreate(tTail) : null),
-            new LBridgeCompatibility(compatible, reason));
+            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
 
     internal static IReadOnlyList<LEncodeStage> SmartBridgeResolve(
         LWorkItem work, params double[] keyframes) =>

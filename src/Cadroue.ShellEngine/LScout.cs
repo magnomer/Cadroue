@@ -213,28 +213,17 @@ internal static class LScout
         }
 
         JsonElement lScoutStream = lScoutStreams[0];
-        string lScoutContainer = lScoutDocument.RootElement.TryGetProperty("format", out JsonElement lScoutFormat)
-            ? LScoutTextRead(lScoutFormat, "format_name")
-            : string.Empty;
 
         return new LBridgeStream(
             LScoutTextRead(lScoutStream, "codec_name"),
             LScoutTextRead(lScoutStream, "profile"),
-            LScoutNumberRead(lScoutStream, "level"),
-            LScoutNumberRead(lScoutStream, "width"),
-            LScoutNumberRead(lScoutStream, "height"),
             LScoutTextRead(lScoutStream, "pix_fmt"),
-            LScoutTextRead(lScoutStream, "r_frame_rate"),
-            LScoutTextRead(lScoutStream, "time_base"),
-            LScoutTextRead(lScoutStream, "sample_aspect_ratio"),
-            LScoutTextRead(lScoutStream, "display_aspect_ratio"),
-            LScoutTextRead(lScoutStream, "field_order"),
+            LScoutTextRead(lScoutStream, "color_space"),
             LScoutTextRead(lScoutStream, "color_primaries"),
             LScoutTextRead(lScoutStream, "color_transfer"),
-            LScoutTextRead(lScoutStream, "color_space"),
             LScoutTextRead(lScoutStream, "color_range"),
-            Array.Empty<byte>(),
-            lScoutContainer);
+            LScoutTextRead(lScoutStream, "r_frame_rate"),
+            LScoutLongRead(lScoutStream, "bit_rate"));
     }
 
     private static string LScoutTextRead(JsonElement lScoutElement, string lScoutName) =>
@@ -242,20 +231,20 @@ internal static class LScout
             ? lScoutValue.GetString() ?? string.Empty
             : string.Empty;
 
-    private static int LScoutNumberRead(JsonElement lScoutElement, string lScoutName)
+    private static long LScoutLongRead(JsonElement lScoutElement, string lScoutName)
     {
         if (!lScoutElement.TryGetProperty(lScoutName, out JsonElement lScoutValue))
         {
             return 0;
         }
 
-        if (lScoutValue.ValueKind == JsonValueKind.Number && lScoutValue.TryGetInt32(out int lScoutInteger))
+        if (lScoutValue.ValueKind == JsonValueKind.Number && lScoutValue.TryGetInt64(out long lScoutInteger))
         {
             return lScoutInteger;
         }
 
         return lScoutValue.ValueKind == JsonValueKind.String
-            && int.TryParse(lScoutValue.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int lScoutParsed)
+            && long.TryParse(lScoutValue.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long lScoutParsed)
             ? lScoutParsed
             : 0;
     }

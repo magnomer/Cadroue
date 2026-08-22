@@ -10,9 +10,7 @@ namespace Cadroue.ShellEngine;
 
 internal sealed record LEncodeSmartProduction(
     IReadOnlyList<LEncodeStage> LEncodeStages,
-    IReadOnlyList<string> LEncodeParts,
-    string? LEncodeProbeTarget,
-    string LEncodeMiddlePath);
+    IReadOnlyList<string> LEncodeParts);
 
 public static partial class LEncode
 {
@@ -21,14 +19,14 @@ public static partial class LEncode
     {
         LBridgePlan lBridgePlan = LBridge.LBridgeRegionResolve(
             lBridgeKeyframes, lWorkItem.LWorkOrigin, lWorkItem.LWorkEnd);
-        return LEncodeSmartResolve(
-            lWorkItem, lBridgePlan, new LBridgeCompatibility(true, LBridgeReason.LBridgeReasonCompatible));
+        LBridgeStream? lBridgeSource = LScout.LScoutStreamRead(lWorkItem.LWorkSourcePath);
+        return LEncodeSmartResolve(lWorkItem, lBridgePlan, lBridgeSource);
     }
 
     public static IReadOnlyList<LEncodeStage> LEncodeSmartResolve(
         LWorkItem lWorkItem,
         LBridgePlan lBridgePlan,
-        LBridgeCompatibility lBridgeCompatibility)
+        LBridgeStream? lBridgeSource)
     {
         if (LEncodeSmartCheck(lWorkItem))
         {
@@ -37,19 +35,11 @@ public static partial class LEncode
             return LEncodeWholeBuild(lWorkItem);
         }
 
-        if (lBridgePlan.LBridgeOutcome == LBridgeOutcome.LBridgeOutcomeSmart
-            && !lBridgeCompatibility.LBridgeCompatible)
-        {
-            LRunner.LRunnerRecord(
-                $"Smart encoding fallback for '{lWorkItem.LWorkOutputName}': the bridge cannot join the copied continuation ({lBridgeCompatibility.LBridgeReason}); encoding the requested interval");
-            return LEncodeWholeBuild(lWorkItem);
-        }
-
         LRunner.LRunnerRecord(lBridgePlan.LBridgeOutcome == LBridgeOutcome.LBridgeOutcomeSmart
             ? $"Smart encoding applied for '{lWorkItem.LWorkOutputName}': {LEncodeRegionFormat(lBridgePlan)}"
             : $"Smart encoding not usable for '{lWorkItem.LWorkOutputName}': encoding the requested interval");
 
-        return LEncodeSmartBuild(lWorkItem, lBridgePlan);
+        return LEncodeSmartBuild(lWorkItem, lBridgePlan, lBridgeSource);
     }
 
     private static string LEncodeRegionFormat(LBridgePlan lBridgePlan)
@@ -91,7 +81,8 @@ public static partial class LEncode
             new LEncodeStage(LEncodeArgumentBuild(lWorkItem), LWorkStage.LWorkStageEncode, "Encoding", lWorkItem.LWorkOutputPath, false)
         };
 
-    public static IReadOnlyList<LEncodeStage> LEncodeSmartBuild(LWorkItem lWorkItem, LBridgePlan lBridgePlan)
+    public static IReadOnlyList<LEncodeStage> LEncodeSmartBuild(
+        LWorkItem lWorkItem, LBridgePlan lBridgePlan, LBridgeStream? lBridgeSource)
     {
         if (lBridgePlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart
             || lBridgePlan.LBridgeMiddle is null)
@@ -99,7 +90,7 @@ public static partial class LEncode
             return LEncodeWholeBuild(lWorkItem);
         }
 
-        LEncodeSmartProduction lProduction = LEncodeBridgeBuild(lWorkItem, lBridgePlan);
+        LEncodeSmartProduction lProduction = LEncodeBridgeBuild(lWorkItem, lBridgePlan, lBridgeSource);
         var lStages = new List<LEncodeStage>(lProduction.LEncodeStages)
         {
             LEncodeConcatBuild(lWorkItem, lProduction.LEncodeParts, lBridgePlan.LBridgeInterval)
@@ -107,20 +98,19 @@ public static partial class LEncode
         return lStages;
     }
 
-    internal static LEncodeSmartProduction LEncodeBridgeBuild(LWorkItem lWorkItem, LBridgePlan lBridgePlan)
+    internal static LEncodeSmartProduction LEncodeBridgeBuild(
+        LWorkItem lWorkItem, LBridgePlan lBridgePlan, LBridgeStream? lBridgeSource)
     {
         string lBridgeFolder = LDepot.LDepotBridgeRead();
         const string lBridgeExtension = ".mkv";
         var lStages = new List<LEncodeStage>();
         var lConcatParts = new List<string>();
-        string? lProbeTarget = null;
 
         if (lBridgePlan.LBridgeHead is { } lBridgeHead)
         {
             string lHeadPath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.head{lBridgeExtension}");
-            lStages.Add(LEncodeSpanBuild(lWorkItem, lBridgeHead, lHeadPath, "Encoding head bridge"));
+            lStages.Add(LEncodeSpanBuild(lWorkItem, lBridgeHead, lHeadPath, "Encoding head bridge", lBridgeSource));
             lConcatParts.Add(lHeadPath);
-            lProbeTarget = lHeadPath;
         }
 
         string lMiddlePath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.middle{lBridgeExtension}");
@@ -130,23 +120,22 @@ public static partial class LEncode
         if (lBridgePlan.LBridgeTail is { } lBridgeTail)
         {
             string lTailPath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.tail{lBridgeExtension}");
-            lStages.Add(LEncodeSpanBuild(lWorkItem, lBridgeTail, lTailPath, "Encoding tail bridge"));
+            lStages.Add(LEncodeSpanBuild(lWorkItem, lBridgeTail, lTailPath, "Encoding tail bridge", lBridgeSource));
             lConcatParts.Add(lTailPath);
-            lProbeTarget ??= lTailPath;
         }
 
-        return new LEncodeSmartProduction(lStages, lConcatParts, lProbeTarget, lMiddlePath);
+        return new LEncodeSmartProduction(lStages, lConcatParts);
     }
 
     private static LEncodeStage LEncodeSpanBuild(
-        LWorkItem lWorkItem, LBridgeSpan lBridgeSpan, string lBridgePath, string lBridgeLabel)
+        LWorkItem lWorkItem, LBridgeSpan lBridgeSpan, string lBridgePath, string lBridgeLabel, LBridgeStream? lBridgeSource)
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeLosslessResolve(lWorkItem)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeMatchResolve(lWorkItem, lBridgeSource)}");
         lArguments.Append(" -an");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, lBridgeLabel, lBridgePath, true);
@@ -233,16 +222,110 @@ public static partial class LEncode
         }
     }
 
-    private static string LEncodeLosslessResolve(LWorkItem lWorkItem)
+    private static string LEncodeMatchResolve(LWorkItem lWorkItem, LBridgeStream? lBridgeSource)
     {
-        string lCodec = lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty;
-        return lCodec.ToLowerInvariant() switch
+        string lCodec = (lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty)
+            .ToLowerInvariant();
+        string lEncoder = lCodec switch
         {
-            "hevc" or "h265" => "-c:v libx265 -x265-params lossless=1",
-            "vp9" => "-c:v libvpx-vp9 -lossless 1",
-            "av1" => "-c:v libaom-av1 -aom-params lossless=1",
-            "ffv1" => "-c:v ffv1",
-            _ => "-c:v libx264 -qp 0"
+            "hevc" or "h265" => "libx265",
+            "vp9" => "libvpx-vp9",
+            "av1" => "libaom-av1",
+            "ffv1" => "ffv1",
+            _ => "libx264"
+        };
+
+        var lArguments = new StringBuilder();
+        lArguments.Append(CultureInfo.InvariantCulture, $"-c:v {lEncoder}");
+
+        if (LEncodeProfileResolve(lEncoder, lBridgeSource?.LBridgeProfile) is { } lProfile)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -profile:v {lProfile}");
+        }
+
+        string lPixel = lBridgeSource?.LBridgePixel ?? string.Empty;
+        if (LEncodeValueCheck(lPixel))
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lPixel}");
+        }
+
+        long lBitrate = lBridgeSource?.LBridgeBitrate ?? 0;
+        if (lBitrate > 0)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -b:v {lBitrate}");
+        }
+        else
+        {
+            string lQuality = LEncodeQualityResolve(lEncoder);
+            if (lQuality.Length > 0)
+            {
+                lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality}");
+            }
+        }
+
+        LEncodeColorAppend(lArguments, "-colorspace", lBridgeSource?.LBridgeColorSpace);
+        LEncodeColorAppend(lArguments, "-color_primaries", lBridgeSource?.LBridgeColorPrimaries);
+        LEncodeColorAppend(lArguments, "-color_trc", lBridgeSource?.LBridgeColorTransfer);
+        LEncodeColorAppend(lArguments, "-color_range", lBridgeSource?.LBridgeColorRange);
+
+        string lFramerate = lBridgeSource?.LBridgeFramerate ?? string.Empty;
+        if (LEncodeValueCheck(lFramerate) && !string.Equals(lFramerate, "0/0", StringComparison.Ordinal))
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -r {lFramerate}");
+        }
+
+        return lArguments.ToString();
+    }
+
+    private static string? LEncodeProfileResolve(string lEncoder, string? lProfile)
+    {
+        if (!LEncodeValueCheck(lProfile ?? string.Empty))
+        {
+            return null;
+        }
+
+        string lNormalized = lProfile!.ToLowerInvariant();
+        return lEncoder switch
+        {
+            "libx264" => lNormalized switch
+            {
+                "baseline" or "constrained baseline" => "baseline",
+                "main" => "main",
+                "high" => "high",
+                "high 10" => "high10",
+                "high 4:2:2" => "high422",
+                "high 4:4:4 predictive" or "high 4:4:4" => "high444",
+                _ => null
+            },
+            "libx265" => lNormalized switch
+            {
+                "main" => "main",
+                "main 10" => "main10",
+                _ => null
+            },
+            _ => null
         };
     }
+
+    private static string LEncodeQualityResolve(string lEncoder) => lEncoder switch
+    {
+        "libx265" => "-crf 18",
+        "libvpx-vp9" => "-b:v 0 -crf 24",
+        "libaom-av1" => "-crf 24",
+        "ffv1" => string.Empty,
+        _ => "-crf 18"
+    };
+
+    private static void LEncodeColorAppend(StringBuilder lArguments, string lFlag, string? lValue)
+    {
+        if (LEncodeValueCheck(lValue ?? string.Empty))
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lFlag} {lValue}");
+        }
+    }
+
+    private static bool LEncodeValueCheck(string lValue) =>
+        !string.IsNullOrWhiteSpace(lValue)
+        && !string.Equals(lValue, "unknown", StringComparison.OrdinalIgnoreCase)
+        && !string.Equals(lValue, "N/A", StringComparison.OrdinalIgnoreCase);
 }

@@ -27,7 +27,10 @@ public sealed class SmartEncodingCommandTests
         IReadOnlyList<string> headTokens = CommandTokens.Read(head.LEncodeStageArguments);
         Assert.True(head.LEncodeStageTemporary);
         Assert.Equal("libx264", CommandTokens.ValueAfter(headTokens, "-c:v"));
-        Assert.Equal("0", CommandTokens.ValueAfter(headTokens, "-qp"));
+        Assert.DoesNotContain("-qp", headTokens);
+        Assert.Equal("high", CommandTokens.ValueAfter(headTokens, "-profile:v"));
+        Assert.Equal("yuv420p", CommandTokens.ValueAfter(headTokens, "-pix_fmt"));
+        Assert.Equal("5000000", CommandTokens.ValueAfter(headTokens, "-b:v"));
         Assert.Contains("-an", headTokens);
         Assert.DoesNotContain("-c:a", headTokens);
         Assert.Equal("10", CommandTokens.ValueAfter(headTokens, "-ss"));
@@ -46,7 +49,9 @@ public sealed class SmartEncodingCommandTests
         IReadOnlyList<string> tailTokens = CommandTokens.Read(tail.LEncodeStageArguments);
         Assert.True(tail.LEncodeStageTemporary);
         Assert.Equal("libx264", CommandTokens.ValueAfter(tailTokens, "-c:v"));
-        Assert.Equal("0", CommandTokens.ValueAfter(tailTokens, "-qp"));
+        Assert.Equal("high", CommandTokens.ValueAfter(tailTokens, "-profile:v"));
+        Assert.Equal("yuv420p", CommandTokens.ValueAfter(tailTokens, "-pix_fmt"));
+        Assert.DoesNotContain("-qp", tailTokens);
         Assert.Contains("-an", tailTokens);
 
         LEncodeStage mux = stages[3];
@@ -81,17 +86,19 @@ public sealed class SmartEncodingCommandTests
     }
 
     [Fact]
-    public void HevcSource_UsesLibx265LosslessBridge()
+    public void HevcSource_UsesMatchedLibx265Bridge()
     {
         using var environment = new TEncodeCommand();
         LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "hevc");
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 30), null);
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 30), null,
+            TEncodeCommand.SourceStreamCreate("hevc", profile: "Main"));
 
         IReadOnlyList<string> headTokens = CommandTokens.Read(stages[0].LEncodeStageArguments);
         Assert.Equal("libx265", CommandTokens.ValueAfter(headTokens, "-c:v"));
-        Assert.Contains("lossless=1", stages[0].LEncodeStageArguments);
+        Assert.Equal("main", CommandTokens.ValueAfter(headTokens, "-profile:v"));
+        Assert.DoesNotContain("lossless=1", stages[0].LEncodeStageArguments);
     }
 
     [Fact]
@@ -211,23 +218,6 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
         Assert.DoesNotContain("concat", tokens);
         Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
-    }
-
-    [Fact]
-    public void IncompatibleBridge_FallsBackToWholeIntervalEncode()
-    {
-        using var environment = new TEncodeCommand();
-        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
-
-        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartResolveBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30),
-            compatible: false, reason: LBridgeReason.LBridgeReasonPixel));
-        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
-
-        Assert.False(stage.LEncodeStageTemporary);
-        Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
-        Assert.DoesNotContain("concat", tokens);
-        Assert.NotEqual("copy", CommandTokens.ValueAfter(tokens, "-c"));
     }
 
     [Fact]

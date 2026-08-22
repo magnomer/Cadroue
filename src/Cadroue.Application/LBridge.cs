@@ -16,6 +16,17 @@ public sealed record LBridgePlan(
     LBridgeSpan? LBridgeMiddle,
     LBridgeSpan? LBridgeTail);
 
+public sealed record LBridgeStream(
+    string LBridgeCodec,
+    string LBridgeProfile,
+    string LBridgePixel,
+    string LBridgeColorSpace,
+    string LBridgeColorPrimaries,
+    string LBridgeColorTransfer,
+    string LBridgeColorRange,
+    string LBridgeFramerate,
+    long LBridgeBitrate);
+
 public static partial class LBridge
 {
     public static LBridgePlan LBridgeRegionResolve(
