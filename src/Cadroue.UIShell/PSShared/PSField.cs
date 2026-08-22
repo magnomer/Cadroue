@@ -192,6 +192,58 @@ internal static class PSField
         return pCombo;
     }
 
+    internal const double PSFieldListHeight = 176;
+
+    internal static ListBox PSListBuild(string pSelected, params LLocalizationChoice[] pItems)
+    {
+        var pList = new ListBox
+        {
+            ItemsSource = pItems,
+            MinWidth = 260,
+            Height = PSFieldListHeight,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            BorderBrush = PSFieldLine,
+            BorderThickness = new Thickness(1),
+            Background = Brushes.White,
+            Padding = new Thickness(3),
+            ItemContainerStyle = PSListStyleCreate()
+        };
+        PScrollbar.PScrollbarApply(pList);
+        pList.SelectedItem = pItems.FirstOrDefault(
+            pItem => string.Equals(pItem.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal))
+            ?? pItems.FirstOrDefault();
+        return pList;
+    }
+
+    private static readonly Brush PSFieldSoft = PSFieldBrushCreate(0xF7, 0xF9, 0xFC);
+
+    private static Style PSListStyleCreate()
+    {
+        var pBorder = new FrameworkElementFactory(typeof(Border));
+        pBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
+        pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(6));
+        pBorder.SetValue(Border.PaddingProperty, new Thickness(10, 6, 10, 6));
+        pBorder.AppendChild(new FrameworkElementFactory(typeof(ContentPresenter)));
+
+        var pStyle = new Style(typeof(ListBoxItem));
+        pStyle.Setters.Add(new Setter(Control.TemplateProperty, new ControlTemplate(typeof(ListBoxItem)) { VisualTree = pBorder }));
+        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
+        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PSFieldText));
+        pStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(1)));
+        pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Left));
+
+        var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+        pHover.Setters.Add(new Setter(Control.BackgroundProperty, PSFieldSoft));
+        pStyle.Triggers.Add(pHover);
+
+        var pSelected = new Trigger { Property = ListBoxItem.IsSelectedProperty, Value = true };
+        pSelected.Setters.Add(new Setter(Control.BackgroundProperty, PSFieldAccent));
+        pSelected.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.White));
+        pStyle.Triggers.Add(pSelected);
+
+        return pStyle;
+    }
+
     internal static TextBox PSEntryBuild(string pText, double pWidth)
     {
         var pTextBox = new TextBox
@@ -215,7 +267,7 @@ internal static class PSField
         Style = PButton.PButtonWhiteCreate()
     };
 
-    internal static string PSComboTextRead(ComboBox pCombo) =>
+    internal static string PSComboTextRead(System.Windows.Controls.Primitives.Selector pCombo) =>
         LLocalizationChoice.LLocalizationChoiceRead(pCombo.SelectedItem);
 
     internal static readonly Brush PSFieldAccent = PSFieldBrushCreate(0x4C, 0x86, 0xF7);

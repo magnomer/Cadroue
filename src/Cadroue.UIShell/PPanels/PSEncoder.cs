@@ -33,7 +33,7 @@ internal sealed partial class PSEncoder : Window
     private readonly System.Action psEncoderSummary;
     private readonly bool psSmartAllowed;
     private readonly PToken psNameBox;
-    private readonly ComboBox psOutputContainerCombo;
+    private readonly ListBox psOutputContainerCombo;
     private readonly ComboBox psOutputExtensionCombo;
     private readonly ComboBox psOutputCollisionCombo;
     private readonly TextBox psOutputSuffixBox;
@@ -119,7 +119,7 @@ internal sealed partial class PSEncoder : Window
         psEncoderSummary = pRefresh;
         this.psSmartAllowed = psSmartAllowed;
         psNameBox = new PToken { PTokenText = lsExportSpecificEdit.LPresetDisplay, MinWidth = 320 };
-        psOutputContainerCombo = PSComboBuild(lsExportSpecificEdit.LPresetContainer,
+        psOutputContainerCombo = PSListBuild(lsExportSpecificEdit.LPresetContainer,
             new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
             new LLocalizationChoice("MP4", "Encoder.Container.MP4"),
             new LLocalizationChoice("Matroska", "Encoder.Container.Matroska"),
@@ -149,6 +149,8 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
 
         psVideoEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetEncoder, PSCodecItemsRead(lsExportSpecificEdit.LPresetContainer, lsExportSpecificEdit.LPresetVideo.LPresetEncoder));
+        psVideoEncoderCombo.ItemTemplate = psEncoderChipTemplate;
+        psVideoEncoderCombo.HorizontalContentAlignment = HorizontalAlignment.Stretch;
         LCapabilityCodec pVideoCodec = LCapability.LCapabilityRead(PSCodecValueRead(PSComboTextRead(psVideoEncoderCombo)));
         psVideoRateCombo = PSComboBuild(lsExportSpecificEdit.LPresetVideo.LPresetRateControl, pVideoCodec.LCapabilityModeLabels);
         psVideoRowsPanel = new StackPanel();
@@ -180,6 +182,8 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("yuv422p10le", "Encoder.Pixel.Yuv422Ten"),
             new LLocalizationChoice("yuv444p10le", "Encoder.Pixel.Yuv444Ten"));
         psAudioEncoderCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetEncoder, PSAudioItemsRead(lsExportSpecificEdit.LPresetContainer, lsExportSpecificEdit.LPresetAudio.LPresetEncoder));
+        psAudioEncoderCombo.ItemTemplate = psEncoderChipTemplate;
+        psAudioEncoderCombo.HorizontalContentAlignment = HorizontalAlignment.Stretch;
         LCapabilityCodec pAudioCodec = LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(PSComboTextRead(psAudioEncoderCombo)));
         psAudioRateCombo = PSComboBuild(lsExportSpecificEdit.LPresetAudio.LPresetRateControl, pAudioCodec.LCapabilityModeLabels);
         Title = LLocalization.LLocalizationTextRead("Encoder.Window.Title");
