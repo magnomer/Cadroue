@@ -110,13 +110,14 @@ internal sealed partial class PSEncoder
         bool pModeStored = string.Equals(pMode.CapabilityModeLabel, lsExportSpecificEdit.LPresetVideo.LPresetRateControl, StringComparison.Ordinal);
 
         PSVideoQualityBuild(pMode, pModeStored);
-        PSVideoSpeedBuild(pCodec, pModeStored);
-        PSVideoExtraBuild(pCodec);
 
         if (!string.IsNullOrWhiteSpace(pCodec.CapabilityNotice))
         {
             psVideoRowsPanel.Children.Add(PSNoticeBuild(pCodec.CapabilityNotice));
         }
+
+        PSVideoSpeedBuild(pCodec, pModeStored);
+        PSVideoExtraBuild(pCodec);
     }
 
     private void PSVideoQualityBuild(LCapabilityMode pMode, bool pModeStored)
