@@ -41,7 +41,7 @@ public static partial class LConvert
                 ?? lDurationRead(lConvertSourcePath);
 
             string lConvertFolder = lConvertOutput.LEncodingFolderRead(lConvertSourcePath);
-            string lConvertOutputName = LConvertNameCreate(lConvertOutput, lConvertSourcePath, lConvertFolder);
+            string lConvertOutputName = LConvertNameCreate(lConvertOutput, lConvertSourcePath, lConvertFolder, lConvertDuration);
 
             lConvertWorkItems.Add(new LWorkItem(
                 lConvertBatch,
@@ -62,7 +62,7 @@ public static partial class LConvert
         return lConvertWorkItems;
     }
 
-    private static string LConvertNameCreate(LEncoding lConvertOutput, string lConvertSourcePath, string lConvertFolder)
+    private static string LConvertNameCreate(LEncoding lConvertOutput, string lConvertSourcePath, string lConvertFolder, TimeSpan lConvertDuration)
     {
         string lConvertSourceStem = Path.GetFileNameWithoutExtension(lConvertSourcePath);
         string lConvertPattern = string.IsNullOrWhiteSpace(lConvertOutput.LEncodingNamePattern)
@@ -76,6 +76,9 @@ public static partial class LConvert
             .Replace("{OriginalName}", lConvertSourceStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", "01", StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", "Convert", StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(TimeSpan.Zero), StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lConvertDuration), StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionDuration}", LEncoding.LEncodingTimeFormat(lConvertDuration), StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lConvertStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lConvertStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 

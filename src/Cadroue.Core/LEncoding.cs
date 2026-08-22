@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 
 namespace Cadroue.Core;
@@ -59,6 +60,20 @@ public sealed record LEncoding(
         }
 
         return LEncodingExtension.TrimStart('.');
+    }
+
+    public static string LEncodingTimeFormat(TimeSpan lEncodingSpan)
+    {
+        TimeSpan lEncodingClamped = lEncodingSpan < TimeSpan.Zero ? TimeSpan.Zero : lEncodingSpan;
+        int lEncodingHours = (int)lEncodingClamped.TotalHours;
+        return string.Concat(
+            lEncodingHours.ToString("D2", CultureInfo.InvariantCulture),
+            "-",
+            lEncodingClamped.Minutes.ToString("D2", CultureInfo.InvariantCulture),
+            "-",
+            lEncodingClamped.Seconds.ToString("D2", CultureInfo.InvariantCulture),
+            ".",
+            lEncodingClamped.Milliseconds.ToString("D3", CultureInfo.InvariantCulture));
     }
 
     public static string LEncodingShorten(string lEncodingStem)

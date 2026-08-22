@@ -97,6 +97,9 @@ public static partial class LMerge
             .Replace("{OriginalName}", lMergeGroupName, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionStart}", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionEnd}", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionDuration}", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lMergeStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lMergeStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 

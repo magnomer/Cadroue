@@ -206,7 +206,7 @@ internal static class PSField
 
         var pSegments = new List<(string Token, Border Segment, TextBlock Text)>();
 
-        void PSModeStyle()
+        void PSModeStyleApply()
         {
             foreach ((string pToken, Border pSegment, TextBlock pText) in pSegments)
             {
@@ -243,14 +243,14 @@ internal static class PSField
                 }
 
                 pHost.Tag = pToken;
-                PSModeStyle();
+                PSModeStyleApply();
                 pChange();
             };
             pSegments.Add((pToken, pSegment, pText));
             pStrip.Children.Add(pSegment);
         }
 
-        PSModeStyle();
+        PSModeStyleApply();
         return pHost;
     }
 

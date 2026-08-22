@@ -121,7 +121,6 @@ internal static class PSSheet
     <Setter Property=""Height"" Value=""42"" />
     <Setter Property=""MinWidth"" Value=""$TabWidth$"" />
     <Setter Property=""Padding"" Value=""11,0,8,0"" />
-    <Setter Property=""Cursor"" Value=""Hand"" />
     <Setter Property=""FocusVisualStyle"" Value=""{x:Null}"" />
     <Setter Property=""Template"">
         <Setter.Value>
@@ -131,6 +130,7 @@ internal static class PSSheet
                             Height=""42""
                             MinWidth=""$TabWidth$""
                             Padding=""11,0,8,0""
+                            Cursor=""Hand""
                             Background=""Transparent""
                             BorderBrush=""Transparent""
                             BorderThickness=""1""

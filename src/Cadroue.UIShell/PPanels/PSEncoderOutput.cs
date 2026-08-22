@@ -103,6 +103,9 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.OriginalName"), "{OriginalName}"));
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionNumber"), "{SectionNumber}"));
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionName"), "{SectionName}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionStart"), "{SectionStart}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionEnd"), "{SectionEnd}"));
+        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionDuration"), "{SectionDuration}"));
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Date"), "{Date}"));
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Time"), "{Time}"));
         pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"), "{Suffix}"));
@@ -363,23 +366,23 @@ internal sealed partial class PSEncoder
 
         if (psLocationFolderLabel is not null)
         {
-            psLocationFolderLabel.Text = LLocalization.LLocalizationTextRead(PSLocationFolderKeyRead(pMode));
+            psLocationFolderLabel.Text = LLocalization.LLocalizationTextRead(PSLocationFolderRead(pMode));
         }
 
         if (psLocationStatus is not null)
         {
-            psLocationStatus.Text = LLocalization.LLocalizationTextRead(PSLocationStatusKeyRead(pMode));
+            psLocationStatus.Text = LLocalization.LLocalizationTextRead(PSLocationStatusRead(pMode));
         }
     }
 
-    private static string PSLocationFolderKeyRead(string pMode) => pMode switch
+    private static string PSLocationFolderRead(string pMode) => pMode switch
     {
         "Sibling" => "Encoder.Location.Sibling",
         "Custom location" => "Encoder.Location.Custom",
         _ => "Encoder.Location.Subfolder"
     };
 
-    private static string PSLocationStatusKeyRead(string pMode) => pMode switch
+    private static string PSLocationStatusRead(string pMode) => pMode switch
     {
         "Subfolder" => "Encoder.Location.SubfolderStatus",
         "Sibling" => "Encoder.Location.SiblingStatus",

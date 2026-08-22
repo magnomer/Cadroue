@@ -130,6 +130,9 @@ public static partial class LSplit
             .Replace("{OriginalName}", lSplitSourceStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", (lSplitIndex + 1).ToString("D2"), StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", lSplitResolvedSectionName, StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionOrigin), StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionEnd), StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionDuration}", LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionEnd - lSplitSection.LSplitSectionOrigin), StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lSplitStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lSplitStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 

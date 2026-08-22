@@ -15,7 +15,7 @@ public static partial class LEdit
         Guid lEditBatchId)
     {
         string lEditFolder = lEditOutput.LEncodingFolderRead(lEditSourcePath);
-        string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath, lEditFolder);
+        string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath, lEditFolder, lEditDuration);
 
         return new LWorkItem(
             lEditBatchId,
@@ -84,7 +84,7 @@ public static partial class LEdit
     }
 
 
-    private static string LEditNameCreate(LEncoding lEditOutput, string lEditSourcePath, string lEditFolder)
+    private static string LEditNameCreate(LEncoding lEditOutput, string lEditSourcePath, string lEditFolder, TimeSpan lEditDuration)
     {
         string lEditSourceStem = Path.GetFileNameWithoutExtension(lEditSourcePath);
         string lEditPattern = string.IsNullOrWhiteSpace(lEditOutput.LEncodingNamePattern)
@@ -98,6 +98,9 @@ public static partial class LEdit
             .Replace("{OriginalName}", lEditSourceStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", "01", StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", "Edit", StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(TimeSpan.Zero), StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lEditDuration), StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionDuration}", LEncoding.LEncodingTimeFormat(lEditDuration), StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lEditStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lEditStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
