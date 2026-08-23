@@ -127,8 +127,6 @@ public sealed partial class PInspector
             IsChecked = true,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
-            Margin = new Thickness(0, 0, 16, 0),
             VerticalContentAlignment = VerticalAlignment.Center
         };
         pBlankColor = new RadioButton
@@ -137,7 +135,6 @@ public sealed partial class PInspector
             GroupName = "PBlankType",
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center
         };
         pBlankBlack.Checked += (_, _) =>
@@ -151,12 +148,9 @@ public sealed partial class PInspector
             PBlankRaise();
         };
 
-        return new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(0, 0, 0, 10),
-            Children = { pBlankBlack, pBlankColor }
-        };
+        Border pBlankType = PRadio.PRadioSegmentBuild(pBlankBlack, pBlankColor);
+        pBlankType.Margin = new Thickness(0, 0, 0, 10);
+        return pBlankType;
     }
 
     private UIElement PBlankPickerBuild()

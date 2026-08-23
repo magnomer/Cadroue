@@ -123,7 +123,7 @@ public sealed partial class PInspector
                 pMinimumBound.LDetectorBoundDefault, "0.0",
                 () => pMinimumBound.LDetectorBoundDefault, pSensorRaise);
 
-            string pMinimumKey = pDetectorKind == LDetectorKind.LDetectorKindScene
+            string pMinimumKey = pDetectorKind is LDetectorKind.LDetectorKindScene or LDetectorKind.LDetectorKindStill
                 ? "Inspector.Detector.Minimal"
                 : "Inspector.Detector.Minimum";
             pStack.Children.Add(PFilterSliderBuild(
@@ -191,8 +191,6 @@ public sealed partial class PInspector
             IsChecked = true,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
-            Margin = new Thickness(0, 0, 16, 0),
             VerticalContentAlignment = VerticalAlignment.Center
         };
         var pModeTreat = new RadioButton
@@ -201,19 +199,14 @@ public sealed partial class PInspector
             GroupName = pModeGroup,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center
         };
         pModeDiscard.Checked += (_, _) => pSensorRaise();
         pModeTreat.Checked += (_, _) => pSensorRaise();
 
-        var pModeRow = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Children = { pModeDiscard, pModeTreat }
-        };
+        Border pModeRow = PRadio.PRadioSegmentBuild(pModeDiscard, pModeTreat);
         pStack.Children.Add(PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode"), pModeRow));
+            LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode"), pModeRow, true));
         return pModeTreat;
     }
 

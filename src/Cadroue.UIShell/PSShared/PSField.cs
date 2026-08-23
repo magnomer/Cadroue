@@ -271,6 +271,7 @@ internal static class PSField
         LLocalizationChoice.LLocalizationChoiceRead(pCombo.SelectedItem);
 
     internal static readonly Brush PSFieldAccent = PSFieldBrushCreate(0x4C, 0x86, 0xF7);
+    internal static readonly Brush PSFieldInactive = PSFieldBrushCreate(0xF0, 0xF3, 0xFA);
 
     internal static string PSModeTextRead(Border pMode) => (string)(pMode.Tag ?? string.Empty);
 
@@ -302,7 +303,7 @@ internal static class PSField
                 bool pFirst = pStyleIndex == 0;
                 bool pLast = pStyleIndex == pSegments.Count - 1;
                 pSegment.CornerRadius = new CornerRadius(pFirst ? 5 : 0, pLast ? 5 : 0, pLast ? 5 : 0, pFirst ? 5 : 0);
-                pSegment.Background = pActive ? PSFieldAccent : Brushes.Transparent;
+                pSegment.Background = pActive ? PSFieldAccent : PSFieldInactive;
                 pText.Foreground = pActive ? Brushes.White : PSFieldText;
             }
         }

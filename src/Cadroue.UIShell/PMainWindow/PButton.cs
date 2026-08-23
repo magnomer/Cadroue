@@ -199,45 +199,6 @@ public static class PButton
         return pTemplate;
     }
 
-    public static Style PButtonToggleCreate()
-    {
-        var pStyle = new Style(typeof(ToggleButton));
-        pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
-        pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));
-        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
-        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonPanelText));
-        pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Transparent));
-        pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonToggleBuild()));
-        return pStyle;
-    }
-
-    private static ControlTemplate PButtonToggleBuild()
-    {
-        var pTemplate = new ControlTemplate(typeof(ToggleButton));
-        var pBorder = new FrameworkElementFactory(typeof(Border));
-        pBorder.Name = "ToggleBorder";
-        pBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
-        pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
-        pBorder.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
-
-        var pContent = new FrameworkElementFactory(typeof(ContentPresenter));
-        pContent.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-        pContent.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-        pBorder.AppendChild(pContent);
-        pTemplate.VisualTree = pBorder;
-
-        var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PButtonGreyHover, "ToggleBorder"));
-        pTemplate.Triggers.Add(pHover);
-
-        var pChecked = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
-        pChecked.Setters.Add(new Setter(Border.BackgroundProperty, PButtonCommandPressed, "ToggleBorder"));
-        pTemplate.Triggers.Add(pChecked);
-        return pTemplate;
-    }
-
     private static Style PButtonBaseCreate()
     {
         var pStyle = new Style(typeof(Button));
