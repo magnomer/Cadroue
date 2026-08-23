@@ -44,7 +44,7 @@ internal static class PRadio
             pRadio.Cursor = System.Windows.Input.Cursors.Hand;
             pRadio.FocusVisualStyle = null;
             pRadio.Margin = new Thickness(0);
-            pRadio.Template = PRadioSegmentTemplateBuild(
+            pRadio.Template = PRadioBandBuild(
                 pIndex == 0, pIndex == pRadios.Length - 1, pIndex != 0);
             pStrip.Children.Add(pRadio);
         }
@@ -52,7 +52,7 @@ internal static class PRadio
         return pHost;
     }
 
-    private static ControlTemplate PRadioSegmentTemplateBuild(bool pFirst, bool pLast, bool pDivider)
+    private static ControlTemplate PRadioBandBuild(bool pFirst, bool pLast, bool pDivider)
     {
         var pTemplate = new ControlTemplate(typeof(RadioButton));
 

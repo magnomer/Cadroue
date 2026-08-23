@@ -8,7 +8,7 @@ public static partial class LSweep
 {
     public static string LSweepLuminanceFormat(string lSweepSource)
     {
-        const string lSweepFilter = "signalstats,metadata=print:key=lavfi.signalstats.YAVG";
+        const string lSweepFilter = "format=yuv420p,signalstats,metadata=print:key=lavfi.signalstats.YAVG";
         return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
     }
 
@@ -50,13 +50,23 @@ public static partial class LSweep
 
         double lSweepSpan = lSweepWindow > 0 ? lSweepWindow : double.Epsilon;
         double lSweepThresholdUnits = lSweepThreshold / 100.0 * 255.0;
+        const double lSweepFloor = 1e-6;
 
-        var lSweepDiffs = new double?[lSweepSamples.Count];
-        for (int lSweepIndex = 0; lSweepIndex < lSweepSamples.Count; lSweepIndex++)
+        int lSweepTotal = lSweepSamples.Count;
+        var lSweepTimes = new double[lSweepTotal];
+        var lSweepPrefix = new double[lSweepTotal + 1];
+        for (int lSweepIndex = 0; lSweepIndex < lSweepTotal; lSweepIndex++)
         {
-            double lSweepAt = lSweepSamples[lSweepIndex].LSweepSampleTime.TotalSeconds;
-            double? lSweepBefore = LSweepMeanResolve(lSweepSamples, lSweepAt - lSweepSpan, lSweepAt);
-            double? lSweepAfter = LSweepMeanResolve(lSweepSamples, lSweepAt, lSweepAt + lSweepSpan);
+            lSweepTimes[lSweepIndex] = lSweepSamples[lSweepIndex].LSweepSampleTime.TotalSeconds;
+            lSweepPrefix[lSweepIndex + 1] = lSweepPrefix[lSweepIndex] + lSweepSamples[lSweepIndex].LSweepSampleLuma;
+        }
+
+        var lSweepDiffs = new double?[lSweepTotal];
+        for (int lSweepIndex = 0; lSweepIndex < lSweepTotal; lSweepIndex++)
+        {
+            double lSweepAt = lSweepTimes[lSweepIndex];
+            double? lSweepBefore = LSweepMeanResolve(lSweepTimes, lSweepPrefix, lSweepAt - lSweepSpan, lSweepAt);
+            double? lSweepAfter = LSweepMeanResolve(lSweepTimes, lSweepPrefix, lSweepAt, lSweepAt + lSweepSpan);
             if (lSweepBefore is { } lSweepLeft && lSweepAfter is { } lSweepRight)
             {
                 lSweepDiffs[lSweepIndex] = Math.Abs(lSweepRight - lSweepLeft);
@@ -66,7 +76,7 @@ public static partial class LSweep
         int lSweepBest = -1;
         for (int lSweepIndex = 0; lSweepIndex < lSweepSamples.Count; lSweepIndex++)
         {
-            bool lSweepQualify = lSweepDiffs[lSweepIndex] is { } lSweepDiff && lSweepDiff >= lSweepThresholdUnits;
+            bool lSweepQualify = lSweepDiffs[lSweepIndex] is { } lSweepDiff && lSweepDiff > lSweepFloor && lSweepDiff >= lSweepThresholdUnits;
             if (lSweepQualify)
             {
                 if (lSweepBest < 0 || lSweepDiffs[lSweepIndex] > lSweepDiffs[lSweepBest])
@@ -91,20 +101,37 @@ public static partial class LSweep
         return lSweepBoundaries;
     }
 
-    private static double? LSweepMeanResolve(IReadOnlyList<LSweepSample> lSweepSamples, double lSweepLow, double lSweepHigh)
+    private static double? LSweepMeanResolve(double[] lSweepTimes, double[] lSweepPrefix, double lSweepLow, double lSweepHigh)
     {
-        double lSweepSum = 0;
-        int lSweepCount = 0;
-        foreach (LSweepSample lSweepSample in lSweepSamples)
+        int lSweepFrom = LSweepBoundFind(lSweepTimes, lSweepLow);
+        int lSweepTo = LSweepBoundFind(lSweepTimes, lSweepHigh);
+        int lSweepCount = lSweepTo - lSweepFrom;
+        if (lSweepCount <= 0)
         {
-            double lSweepAt = lSweepSample.LSweepSampleTime.TotalSeconds;
-            if (lSweepAt >= lSweepLow && lSweepAt < lSweepHigh)
+            return null;
+        }
+
+        double lSweepSum = lSweepPrefix[lSweepTo] - lSweepPrefix[lSweepFrom];
+        return lSweepSum / lSweepCount;
+    }
+
+    private static int LSweepBoundFind(double[] lSweepTimes, double lSweepValue)
+    {
+        int lSweepLow = 0;
+        int lSweepHigh = lSweepTimes.Length;
+        while (lSweepLow < lSweepHigh)
+        {
+            int lSweepMid = lSweepLow + (lSweepHigh - lSweepLow) / 2;
+            if (lSweepTimes[lSweepMid] < lSweepValue)
             {
-                lSweepSum += lSweepSample.LSweepSampleLuma;
-                lSweepCount++;
+                lSweepLow = lSweepMid + 1;
+            }
+            else
+            {
+                lSweepHigh = lSweepMid;
             }
         }
 
-        return lSweepCount > 0 ? lSweepSum / lSweepCount : null;
+        return lSweepLow;
     }
 }
