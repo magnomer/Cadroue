@@ -106,41 +106,6 @@ public static partial class LSweep
             : null;
     }
 
-    public static IReadOnlyList<LPiece> LSweepSectionResolve(
-        IReadOnlyList<LPiece> lSweepExisting,
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepBlanks,
-        TimeSpan lSweepDuration,
-        int lSweepColorCount)
-    {
-        var lSweepKept = new List<LPiece>();
-        foreach (LPiece lSweepPiece in lSweepExisting)
-        {
-            if (!lSweepPiece.LPieceDetected)
-            {
-                lSweepKept.Add(lSweepPiece);
-            }
-        }
-
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepMerged = LSweepIntervalNormalize(lSweepBlanks, lSweepDuration);
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepContent = LSweepComplementResolve(lSweepMerged, lSweepDuration);
-
-        int lSweepColorIndex = 0;
-        int lSweepPalette = Math.Max(lSweepColorCount, 1);
-        var lSweepResult = new List<LPiece>(lSweepKept);
-        foreach ((TimeSpan lSweepFrom, TimeSpan lSweepTo) in lSweepContent)
-        {
-            lSweepResult.Add(new LPiece(lSweepFrom, lSweepTo, lSweepColorIndex % lSweepPalette, string.Empty)
-            {
-                LPieceDetected = true
-            });
-            lSweepColorIndex++;
-        }
-
-        return lSweepResult.Count > LPiece.LPieceCeiling
-            ? lSweepResult.GetRange(0, LPiece.LPieceCeiling)
-            : lSweepResult;
-    }
-
     private static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepIntervalNormalize(
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepBlanks, TimeSpan lSweepDuration)
     {

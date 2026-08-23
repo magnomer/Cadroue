@@ -104,138 +104,6 @@ public sealed class TSweep
     }
 
     [Fact]
-    public void LSweepSectionResolve_InvertsBlanksIntoDetectedContent()
-    {
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepSectionResolve(
-            Array.Empty<LPiece>(),
-            new[] { (TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2)) },
-            TimeSpan.FromSeconds(5),
-            4);
-
-        Assert.Equal(2, lSections.Count);
-        Assert.All(lSections, lSection => Assert.True(lSection.LPieceDetected));
-        Assert.Equal(TimeSpan.Zero, lSections[0].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(1), lSections[0].LPieceEnd);
-        Assert.Equal(TimeSpan.FromSeconds(2), lSections[1].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(5), lSections[1].LPieceEnd);
-    }
-
-    [Fact]
-    public void LSweepSectionResolve_KeepsUserSectionsAndOverlaysDetected()
-    {
-        var lUser = new LPiece(TimeSpan.Zero, TimeSpan.FromSeconds(5), 0, "keep") { LPieceDetected = false };
-
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepSectionResolve(
-            new[] { lUser },
-            new[] { (TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2)) },
-            TimeSpan.FromSeconds(5),
-            4);
-
-        Assert.Equal(3, lSections.Count);
-
-        LPiece lKept = Assert.Single(lSections, lSection => lSection.LPieceName == "keep");
-        Assert.False(lKept.LPieceDetected);
-        Assert.Equal(TimeSpan.Zero, lKept.LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(5), lKept.LPieceEnd);
-
-        IReadOnlyList<LPiece> lDetected = lSections.Where(lSection => lSection.LPieceDetected).ToList();
-        Assert.Equal(2, lDetected.Count);
-        Assert.Equal(TimeSpan.Zero, lDetected[0].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(1), lDetected[0].LPieceEnd);
-        Assert.Equal(TimeSpan.FromSeconds(2), lDetected[1].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(5), lDetected[1].LPieceEnd);
-    }
-
-    [Fact]
-    public void LSweepSectionResolve_ReplacesUntouchedDetectedSections()
-    {
-        var lStale = new LPiece(TimeSpan.Zero, TimeSpan.FromSeconds(5), 0, "old") { LPieceDetected = true };
-
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepSectionResolve(
-            new[] { lStale },
-            new[] { (TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2)) },
-            TimeSpan.FromSeconds(5),
-            4);
-
-        Assert.Equal(2, lSections.Count);
-        Assert.DoesNotContain(lSections, lSection => lSection.LPieceName == "old");
-        Assert.All(lSections, lSection => Assert.True(lSection.LPieceDetected));
-    }
-
-    [Fact]
-    public void LSweepSectionResolve_TruncatesToCeiling()
-    {
-        var lBlanks = new List<(TimeSpan Start, TimeSpan End)>();
-        for (int lIndex = 0; lIndex < 6000; lIndex++)
-        {
-            lBlanks.Add((TimeSpan.FromSeconds(2 * lIndex + 1), TimeSpan.FromSeconds(2 * lIndex + 2)));
-        }
-
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepSectionResolve(
-            Array.Empty<LPiece>(),
-            lBlanks,
-            TimeSpan.FromSeconds(2 * 6000 + 2),
-            4);
-
-        Assert.Equal(LPiece.LPieceCeiling, lSections.Count);
-    }
-
-    [Fact]
-    public void LSweepStillResolve_DiscardYieldsTwoContentSections()
-    {
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepStillResolve(
-            Array.Empty<LPiece>(),
-            new[] { (TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
-            TimeSpan.FromSeconds(5),
-            4,
-            LDetectorStillMode.LDetectorStillDiscard);
-
-        Assert.Equal(2, lSections.Count);
-        Assert.All(lSections, lSection => Assert.True(lSection.LPieceDetected));
-        Assert.Equal(TimeSpan.Zero, lSections[0].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(2), lSections[0].LPieceEnd);
-        Assert.Equal(TimeSpan.FromSeconds(3), lSections[1].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(5), lSections[1].LPieceEnd);
-    }
-
-    [Fact]
-    public void LSweepStillResolve_TreatPartitionsContentStillContent()
-    {
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepStillResolve(
-            Array.Empty<LPiece>(),
-            new[] { (TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
-            TimeSpan.FromSeconds(5),
-            4,
-            LDetectorStillMode.LDetectorStillTreat);
-
-        Assert.Equal(3, lSections.Count);
-        Assert.All(lSections, lSection => Assert.True(lSection.LPieceDetected));
-        Assert.Equal(TimeSpan.Zero, lSections[0].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(2), lSections[0].LPieceEnd);
-        Assert.Equal(TimeSpan.FromSeconds(2), lSections[1].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(3), lSections[1].LPieceEnd);
-        Assert.Equal(TimeSpan.FromSeconds(3), lSections[2].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(5), lSections[2].LPieceEnd);
-    }
-
-    [Fact]
-    public void LSweepStillResolve_TreatStillToEofClosesOnDuration()
-    {
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepStillResolve(
-            Array.Empty<LPiece>(),
-            new[] { (TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5)) },
-            TimeSpan.FromSeconds(5),
-            4,
-            LDetectorStillMode.LDetectorStillTreat);
-
-        Assert.Equal(2, lSections.Count);
-        Assert.Equal(TimeSpan.Zero, lSections[0].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(3), lSections[0].LPieceEnd);
-        Assert.Equal(TimeSpan.FromSeconds(3), lSections[1].LPieceOrigin);
-        Assert.Equal(TimeSpan.FromSeconds(5), lSections[1].LPieceEnd);
-    }
-
-    [Fact]
     public void LSweepLuminanceParse_PairsTimeWithFollowingLuma()
     {
         string[] lLines =
@@ -325,7 +193,7 @@ public sealed class TSweep
             new[] { lUser },
             new[] { (TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
             new[] { (TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(7)) },
-            new[] { TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(8) },
+            new[] { (TimeSpan.FromSeconds(4), TimeSpan.Zero), (TimeSpan.FromSeconds(8), TimeSpan.Zero) },
             TimeSpan.FromSeconds(10),
             4);
 
@@ -353,6 +221,30 @@ public sealed class TSweep
             lSection.LPieceOrigin == TimeSpan.FromSeconds(7) && lSection.LPieceEnd == TimeSpan.FromSeconds(8));
         Assert.Contains(lDetected, lSection =>
             lSection.LPieceOrigin == TimeSpan.FromSeconds(8) && lSection.LPieceEnd == TimeSpan.FromSeconds(10));
+    }
+
+    [Fact]
+    public void LSweepCombineResolve_DropsSceneCutBelowMinimumButKeepsZeroMinimum()
+    {
+        IReadOnlyList<LPiece> lResult = LSweep.LSweepCombineResolve(
+            Array.Empty<LPiece>(),
+            Array.Empty<(TimeSpan Start, TimeSpan End)>(),
+            Array.Empty<(TimeSpan Start, TimeSpan End)>(),
+            new[]
+            {
+                (TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3)),
+                (TimeSpan.FromSeconds(5), TimeSpan.Zero)
+            },
+            TimeSpan.FromSeconds(10),
+            4);
+
+        Assert.All(lResult, lSection => Assert.True(lSection.LPieceDetected));
+
+        Assert.DoesNotContain(lResult, lSection => lSection.LPieceEnd == TimeSpan.FromSeconds(1));
+        Assert.Contains(lResult, lSection =>
+            lSection.LPieceOrigin == TimeSpan.Zero && lSection.LPieceEnd == TimeSpan.FromSeconds(5));
+        Assert.Contains(lResult, lSection =>
+            lSection.LPieceOrigin == TimeSpan.FromSeconds(5) && lSection.LPieceEnd == TimeSpan.FromSeconds(10));
     }
 
     [Fact]

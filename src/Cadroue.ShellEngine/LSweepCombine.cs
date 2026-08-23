@@ -8,7 +8,7 @@ public static partial class LSweep
         IReadOnlyList<LPiece> lSweepExisting,
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepExcluded,
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepKept,
-        IReadOnlyList<TimeSpan> lSweepBoundaries,
+        IReadOnlyList<(TimeSpan Time, TimeSpan Minimum)> lSweepBoundaries,
         TimeSpan lSweepDuration,
         int lSweepColorCount)
     {
@@ -24,44 +24,68 @@ public static partial class LSweep
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepHoles = LSweepIntervalNormalize(lSweepExcluded, lSweepDuration);
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepContent = LSweepComplementResolve(lSweepHoles, lSweepDuration);
 
-        var lSweepCuts = new SortedSet<TimeSpan>();
-        foreach (TimeSpan lSweepBoundary in lSweepBoundaries)
-        {
-            lSweepCuts.Add(LSweepClamp(lSweepBoundary, lSweepDuration));
-        }
-
+        var lSweepHard = new SortedSet<TimeSpan>();
         foreach ((TimeSpan lSweepFrom, TimeSpan lSweepTo) in lSweepKept)
         {
-            lSweepCuts.Add(LSweepClamp(lSweepFrom, lSweepDuration));
-            lSweepCuts.Add(LSweepClamp(lSweepTo, lSweepDuration));
+            lSweepHard.Add(LSweepClamp(lSweepFrom, lSweepDuration));
+            lSweepHard.Add(LSweepClamp(lSweepTo, lSweepDuration));
         }
+
+        var lSweepSoft = new List<(TimeSpan Time, TimeSpan Minimum)>();
+        foreach ((TimeSpan lSweepTime, TimeSpan lSweepMinimum) in lSweepBoundaries)
+        {
+            lSweepSoft.Add((LSweepClamp(lSweepTime, lSweepDuration), lSweepMinimum));
+        }
+
+        lSweepSoft.Sort((lSweepLeft, lSweepRight) => lSweepLeft.Time.CompareTo(lSweepRight.Time));
 
         int lSweepColorIndex = 0;
         int lSweepPalette = Math.Max(lSweepColorCount, 1);
         var lSweepResult = new List<LPiece>();
         foreach ((TimeSpan lSweepStart, TimeSpan lSweepEnd) in lSweepContent)
         {
-            TimeSpan lSweepCursor = lSweepStart;
-            foreach (TimeSpan lSweepCut in lSweepCuts)
+            var lSweepStops = new List<TimeSpan>();
+            foreach (TimeSpan lSweepHardCut in lSweepHard)
             {
-                if (lSweepCut <= lSweepCursor || lSweepCut >= lSweepEnd)
+                if (lSweepHardCut > lSweepStart && lSweepHardCut < lSweepEnd)
                 {
-                    continue;
+                    lSweepStops.Add(lSweepHardCut);
+                }
+            }
+
+            lSweepStops.Add(lSweepEnd);
+
+            TimeSpan lSweepSubStart = lSweepStart;
+            foreach (TimeSpan lSweepSubEnd in lSweepStops)
+            {
+                TimeSpan lSweepCursor = lSweepSubStart;
+                foreach ((TimeSpan lSweepTime, TimeSpan lSweepMinimum) in lSweepSoft)
+                {
+                    if (lSweepTime <= lSweepCursor || lSweepTime >= lSweepSubEnd)
+                    {
+                        continue;
+                    }
+
+                    if (lSweepTime - lSweepCursor < lSweepMinimum || lSweepSubEnd - lSweepTime < lSweepMinimum)
+                    {
+                        continue;
+                    }
+
+                    lSweepResult.Add(new LPiece(lSweepCursor, lSweepTime, lSweepColorIndex % lSweepPalette, string.Empty)
+                    {
+                        LPieceDetected = true
+                    });
+                    lSweepColorIndex++;
+                    lSweepCursor = lSweepTime;
                 }
 
-                lSweepResult.Add(new LPiece(lSweepCursor, lSweepCut, lSweepColorIndex % lSweepPalette, string.Empty)
+                lSweepResult.Add(new LPiece(lSweepCursor, lSweepSubEnd, lSweepColorIndex % lSweepPalette, string.Empty)
                 {
                     LPieceDetected = true
                 });
                 lSweepColorIndex++;
-                lSweepCursor = lSweepCut;
+                lSweepSubStart = lSweepSubEnd;
             }
-
-            lSweepResult.Add(new LPiece(lSweepCursor, lSweepEnd, lSweepColorIndex % lSweepPalette, string.Empty)
-            {
-                LPieceDetected = true
-            });
-            lSweepColorIndex++;
         }
 
         lSweepResult.AddRange(lSweepUser);

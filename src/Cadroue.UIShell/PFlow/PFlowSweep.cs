@@ -15,7 +15,7 @@ public sealed partial class PFlow
     public void PFlowCombineApply(
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowExcluded,
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowKept,
-        IReadOnlyList<TimeSpan> pFlowBoundaries)
+        IReadOnlyList<(TimeSpan Time, TimeSpan Minimum)> pFlowBoundaries)
     {
         if (lSpool is not { } pFlowSpool)
         {

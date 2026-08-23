@@ -180,7 +180,7 @@ public sealed class PSplitTab : PTabSurface
         var pSplitProgress = new Progress<double>(pValue => pInspector.PSensorProgressApply(pValue));
         var pSplitExcluded = new List<(TimeSpan Start, TimeSpan End)>();
         var pSplitKept = new List<(TimeSpan Start, TimeSpan End)>();
-        var pSplitBoundaries = new List<TimeSpan>();
+        var pSplitBoundaries = new List<(TimeSpan Time, TimeSpan Minimum)>();
         try
         {
             if (pSplitBlank.LDetectorBlankEnabled)
@@ -204,7 +204,8 @@ public sealed class PSplitTab : PTabSurface
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                pSplitBoundaries.AddRange(pSplitScenes);
+                TimeSpan pSplitSceneMinimum = TimeSpan.FromSeconds(pSplitScene.LDetectorStepMinimum);
+                pSplitBoundaries.AddRange(pSplitScenes.Select(pSplitTime => (pSplitTime, pSplitSceneMinimum)));
             }
 
             if (pSplitStill.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
@@ -237,7 +238,7 @@ public sealed class PSplitTab : PTabSurface
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                pSplitBoundaries.AddRange(pSplitLuminances);
+                pSplitBoundaries.AddRange(pSplitLuminances.Select(pSplitTime => (pSplitTime, TimeSpan.Zero)));
             }
 
             if (!pSplitSource.IsCancellationRequested)

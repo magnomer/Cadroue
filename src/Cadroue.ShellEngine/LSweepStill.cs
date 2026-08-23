@@ -6,46 +6,6 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LSweep
 {
-    public static IReadOnlyList<LPiece> LSweepStillResolve(
-        IReadOnlyList<LPiece> lSweepExisting,
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepStills,
-        TimeSpan lSweepDuration,
-        int lSweepColorCount,
-        LDetectorStillMode lSweepMode)
-    {
-        var lSweepKept = new List<LPiece>();
-        foreach (LPiece lSweepPiece in lSweepExisting)
-        {
-            if (!lSweepPiece.LPieceDetected)
-            {
-                lSweepKept.Add(lSweepPiece);
-            }
-        }
-
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepMerged = LSweepIntervalNormalize(lSweepStills, lSweepDuration);
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepContent = LSweepComplementResolve(lSweepMerged, lSweepDuration);
-
-        List<(TimeSpan Start, TimeSpan End)> lSweepSpans = lSweepMode == LDetectorStillMode.LDetectorStillTreat
-            ? lSweepContent.Concat(lSweepMerged).OrderBy(lSweepSpan => lSweepSpan.Start).ToList()
-            : lSweepContent.ToList();
-
-        int lSweepColorIndex = 0;
-        int lSweepPalette = Math.Max(lSweepColorCount, 1);
-        var lSweepResult = new List<LPiece>(lSweepKept);
-        foreach ((TimeSpan lSweepFrom, TimeSpan lSweepTo) in lSweepSpans)
-        {
-            lSweepResult.Add(new LPiece(lSweepFrom, lSweepTo, lSweepColorIndex % lSweepPalette, string.Empty)
-            {
-                LPieceDetected = true
-            });
-            lSweepColorIndex++;
-        }
-
-        return lSweepResult.Count > LPiece.LPieceCeiling
-            ? lSweepResult.GetRange(0, LPiece.LPieceCeiling)
-            : lSweepResult;
-    }
-
     public static string LSweepStillFormat(string lSweepSource, double lSweepTolerance, double lSweepMinimum)
     {
         string lSweepFilter = string.Create(CultureInfo.InvariantCulture,

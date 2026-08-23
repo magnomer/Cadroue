@@ -222,56 +222,6 @@ public readonly partial record struct LPiece
         return (lPieceList, lPieceActiveIndex, false);
     }
 
-    public static IReadOnlyList<LPiece> LPieceSceneResolve(
-        IReadOnlyList<LPiece> lPieces,
-        IReadOnlyList<TimeSpan> lPieceBoundaries,
-        TimeSpan lPieceDuration,
-        int lPieceColorCount,
-        TimeSpan lPieceMinimum)
-    {
-        int lPiecePalette = Math.Max(lPieceColorCount, 1);
-        int lPieceColorIndex = 0;
-        var lPieceResult = new List<LPiece>();
-        IReadOnlyList<LPiece> lPieceSource = lPieces.Count == 0
-            ? new[] { new LPiece(TimeSpan.Zero, lPieceDuration, 0, string.Empty) }
-            : lPieces;
-        foreach (LPiece lPiece in lPieceSource)
-        {
-            TimeSpan lPieceCursor = lPiece.LPieceOrigin;
-            foreach (TimeSpan lPieceBoundary in lPieceBoundaries)
-            {
-                if (lPieceBoundary <= lPieceCursor
-                    || lPieceBoundary >= lPiece.LPieceEnd
-                    || lPieceBoundary < TimeSpan.Zero
-                    || lPieceBoundary > lPieceDuration
-                    || lPieceBoundary - lPieceCursor < lPieceMinimum
-                    || lPiece.LPieceEnd - lPieceBoundary < lPieceMinimum)
-                {
-                    continue;
-                }
-
-                lPieceResult.Add((lPieceCursor == lPiece.LPieceOrigin
-                    ? lPiece with { LPieceEnd = lPieceBoundary }
-                    : new LPiece(lPieceCursor, lPieceBoundary, lPieceColorIndex++ % lPiecePalette, string.Empty)
-                    {
-                        LPieceDetected = true
-                    }));
-                lPieceCursor = lPieceBoundary;
-            }
-
-            lPieceResult.Add(lPieceCursor == lPiece.LPieceOrigin
-                ? lPiece
-                : new LPiece(lPieceCursor, lPiece.LPieceEnd, lPieceColorIndex++ % lPiecePalette, string.Empty)
-                {
-                    LPieceDetected = true
-                });
-        }
-
-        return lPieceResult.Count > LPieceCeiling
-            ? lPieceResult.GetRange(0, LPieceCeiling)
-            : lPieceResult;
-    }
-
     public static (List<LPiece> Sections, int First, int Second)? LPieceDivide(
         IReadOnlyList<LPiece> lPieces,
         int? lPieceActiveIndex,
