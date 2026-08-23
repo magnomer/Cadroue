@@ -3,8 +3,7 @@ namespace Cadroue.Application;
 public sealed record LTabsetSlot(
     Guid LTabsetId,
     string LTabsetLayoutKey,
-    string LTabsetNameCustom,
-    int LTabsetOrdinal);
+    string LTabsetNameCustom);
 
 public sealed record LTabsetTitlePlan(
     Guid LTabsetId,
@@ -14,29 +13,13 @@ public sealed record LTabsetTitlePlan(
 
 public static class LTabset
 {
-    public static int LTabsetOrdinalRead(IReadOnlyList<LTabsetSlot> lTabsetSlots, string lTabsetLayoutKey)
-    {
-        HashSet<int> lTabsetTaken = lTabsetSlots
-            .Where(lTabsetSlot => string.Equals(lTabsetSlot.LTabsetLayoutKey, lTabsetLayoutKey, StringComparison.Ordinal))
-            .Select(lTabsetSlot => lTabsetSlot.LTabsetOrdinal)
-            .ToHashSet();
-
-        int lTabsetOrdinal = 1;
-        while (lTabsetTaken.Contains(lTabsetOrdinal))
-        {
-            lTabsetOrdinal++;
-        }
-
-        return lTabsetOrdinal;
-    }
-
     public static IReadOnlyList<LTabsetTitlePlan> LTabsetTitleResolve(IReadOnlyList<LTabsetSlot> lTabsetSlots)
     {
         var lTabsetPlans = new List<LTabsetTitlePlan>(lTabsetSlots.Count);
 
         foreach (LTabsetSlot lTabsetSlot in lTabsetSlots.Where(lTabsetSlot => lTabsetSlot.LTabsetNameCustom.Length > 0))
         {
-            lTabsetPlans.Add(new LTabsetTitlePlan(lTabsetSlot.LTabsetId, true, lTabsetSlot.LTabsetOrdinal, false));
+            lTabsetPlans.Add(new LTabsetTitlePlan(lTabsetSlot.LTabsetId, true, 0, false));
         }
 
         foreach (IGrouping<string, LTabsetSlot> lTabsetGroup in lTabsetSlots
@@ -50,9 +33,10 @@ public static class LTabset
                 continue;
             }
 
-            foreach (LTabsetSlot lTabsetSlot in lTabsetKindSlots)
+            for (int lTabsetPosition = 0; lTabsetPosition < lTabsetKindSlots.Count; lTabsetPosition++)
             {
-                lTabsetPlans.Add(new LTabsetTitlePlan(lTabsetSlot.LTabsetId, false, lTabsetSlot.LTabsetOrdinal, true));
+                lTabsetPlans.Add(new LTabsetTitlePlan(
+                    lTabsetKindSlots[lTabsetPosition].LTabsetId, false, lTabsetPosition + 1, true));
             }
         }
 

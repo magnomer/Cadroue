@@ -94,8 +94,6 @@ public sealed class PTabRecord : INotifyPropertyChanged
 
     public string PTabLayoutKey { get; }
 
-    public int PTabOrdinal { get; set; } = 1;
-
     public ImageSource PTabIconSource { get; }
 
     public ImageSource PTabIconActive { get; }

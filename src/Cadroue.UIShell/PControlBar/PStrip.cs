@@ -62,7 +62,7 @@ public sealed class PStrip
     private IReadOnlyList<LTabsetSlot> PStripSlotsRead() =>
         PStripRecords
             .Select(pTabItem => new LTabsetSlot(
-                pTabItem.PTabId, pTabItem.PTabLayoutKey, pTabItem.PTabNameCustom, pTabItem.PTabOrdinal))
+                pTabItem.PTabId, pTabItem.PTabLayoutKey, pTabItem.PTabNameCustom))
             .ToList();
 
     private void PStripSeparatorUpdate()
@@ -146,10 +146,7 @@ public sealed class PStrip
             pTabLayoutKey,
             pTabIconPath,
             lExportSpecificState,
-            lPreferenceTabLayout)
-        {
-            PTabOrdinal = LTabset.LTabsetOrdinalRead(PStripSlotsRead(), pTabLayoutKey)
-        };
+            lPreferenceTabLayout);
         PStripRecords.Add(pTabRecord);
         LTraceLog.LTraceInfoRecord(
             $"Tab opened '{pTabRecord.PTabTitle}' ({pTabLayoutKey}): {PStripRecords.Count} tab(s) open");
@@ -195,7 +192,6 @@ public sealed class PStrip
                 continue;
             }
 
-            pTabRecord.PTabOrdinal = pStripPlan.LTabsetOrdinal;
             pTabRecord.PTabTitle = pStripPlan.LTabsetNumbered
                 ? LLocalization.LLocalizationFormat(
                     "Tab.Numbered", PStripTitleRead(pTabRecord.PTabLayoutKey), pStripPlan.LTabsetOrdinal)
