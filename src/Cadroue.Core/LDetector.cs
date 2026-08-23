@@ -64,6 +64,7 @@ public static class LDetector
         LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 30, 0.5),
         LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 60, 0.5),
         LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0, 10, 0.5),
+        LDetectorKind.LDetectorKindSilence => new LDetectorBound(0, 60, 0.5),
         _ => new LDetectorBound(0, 60, 2.0)
     };
 
