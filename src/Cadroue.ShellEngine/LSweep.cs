@@ -34,6 +34,33 @@ public static partial class LSweep
             $"format=gbrp,geq=r='{lSweepExpr}':g='{lSweepExpr}':b='{lSweepExpr}',format=gray,blackdetect=d={lSweepSpec.LDetectorBlankMinimum:0.###}:pic_th={lSweepSpec.LDetectorBlankCoverage:0.###}:pix_th=0.1");
     }
 
+    public static string LSweepSceneFormat(string lSweepSource, double lSweepThreshold)
+    {
+        string lSweepFilter = string.Create(CultureInfo.InvariantCulture,
+            $"scdet=threshold={lSweepThreshold:0.###},metadata=print");
+        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
+    }
+
+    public static IReadOnlyList<TimeSpan> LSweepSceneParse(IEnumerable<string> lSweepLines)
+    {
+        var lSweepSeen = new SortedSet<double>();
+        foreach (string lSweepLine in lSweepLines)
+        {
+            if (lSweepLine is null)
+            {
+                continue;
+            }
+
+            double? lSweepTime = LSweepFieldRead(lSweepLine, "lavfi.scd.time=");
+            if (lSweepTime is { } lSweepAt)
+            {
+                lSweepSeen.Add(lSweepAt);
+            }
+        }
+
+        return lSweepSeen.Select(TimeSpan.FromSeconds).ToList();
+    }
+
     public static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepOutputParse(IEnumerable<string> lSweepLines)
     {
         var lSweepIntervals = new List<(TimeSpan, TimeSpan)>();

@@ -54,6 +54,52 @@ public static partial class LSweep
         return LSweepOutputParse(lSweepLines);
     }
 
+    public static async Task<IReadOnlyList<TimeSpan>> LSweepSceneScan(
+        string lSweepSource,
+        double lSweepThreshold,
+        TimeSpan lSweepDuration,
+        CancellationToken lSweepToken,
+        IProgress<double>? lSweepProgress = null)
+    {
+        if (string.IsNullOrWhiteSpace(lSweepSource))
+        {
+            return Array.Empty<TimeSpan>();
+        }
+
+        var lSweepLines = new List<string>();
+        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead());
+        Process? lSweepProcess = null;
+        using CancellationTokenRegistration lSweepKill = lSweepToken.Register(() =>
+        {
+            try
+            {
+                lSweepProcess?.Kill(true);
+            }
+            catch (Exception lSweepException)
+                when (lSweepException is System.ComponentModel.Win32Exception or InvalidOperationException or NotSupportedException)
+            {
+            }
+        });
+        await lSweepEmployer.LEmployerRun(
+            LSweepSceneFormat(lSweepSource, lSweepThreshold),
+            lSweepToken,
+            lSweepAttach => lSweepProcess = lSweepAttach,
+            _ => { },
+            lSweepLine =>
+            {
+                lSweepLines.Add(lSweepLine);
+                if (lSweepProgress is not null
+                    && lSweepDuration > TimeSpan.Zero
+                    && LSweepTimeRead(lSweepLine) is { } lSweepElapsed)
+                {
+                    lSweepProgress.Report(Math.Clamp(lSweepElapsed / lSweepDuration.TotalSeconds, 0, 1));
+                }
+            }).ConfigureAwait(false);
+
+        lSweepProgress?.Report(1);
+        return LSweepSceneParse(lSweepLines);
+    }
+
     private static double? LSweepTimeRead(string lSweepLine)
     {
         const string lSweepKey = "time=";

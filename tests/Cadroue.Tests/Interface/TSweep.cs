@@ -29,6 +29,25 @@ public sealed class TSweep
     }
 
     [Fact]
+    public void LSweepSceneParse_ReadsAscendingUniqueTimesAndIgnoresOtherLines()
+    {
+        string[] lLines =
+        {
+            "[Parsed_metadata_1 @ 0x1] lavfi.scd.time=3.5",
+            "frame= 10 fps=0.0 time=00:00:03.50",
+            "[Parsed_metadata_1 @ 0x1] lavfi.scd.time=1.25",
+            "[Parsed_metadata_1 @ 0x1] lavfi.scd.time=3.5",
+            "[Parsed_metadata_1 @ 0x1] lavfi.scd.score=0.42"
+        };
+
+        IReadOnlyList<TimeSpan> lTimes = LSweep.LSweepSceneParse(lLines);
+
+        Assert.Equal(2, lTimes.Count);
+        Assert.Equal(TimeSpan.FromSeconds(1.25), lTimes[0]);
+        Assert.Equal(TimeSpan.FromSeconds(3.5), lTimes[1]);
+    }
+
+    [Fact]
     public void LSweepSectionResolve_InvertsBlanksIntoDetectedContent()
     {
         IReadOnlyList<LPiece> lSections = LSweep.LSweepSectionResolve(
