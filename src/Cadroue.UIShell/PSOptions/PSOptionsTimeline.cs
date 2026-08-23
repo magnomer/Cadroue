@@ -31,7 +31,7 @@ internal sealed partial class PSOptions
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Order"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"), psOptionsOrderCombo)));
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"), psOptionsOrderMode)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
             PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"), psKeyframeSlider, " px")));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelay"),

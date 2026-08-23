@@ -48,8 +48,8 @@ internal sealed partial class PSOptions : Window
 
     private static readonly LLocalizationChoice[] PSOptionsVolumeItems =
     {
-        new("PerTab", "Options.Playback.PerTabVolume"),
-        new("Unified", "Options.Playback.UnifiedVolume")
+        new("Unified", "Options.Playback.VolumeUnified"),
+        new("PerTab", "Options.Playback.VolumePerTab")
     };
 
     private static readonly LLocalizationChoice[] PSOptionsWheelItems =
@@ -83,12 +83,12 @@ internal sealed partial class PSOptions : Window
     private readonly RadioButton psOptionsEngineFlyleaf;
     private readonly RadioButton psOptionsEngineMpv;
     private readonly CheckBox psOptionsAutoplayBox;
-    private readonly ComboBox psOptionsVolumeCombo;
+    private readonly Border psOptionsVolumeMode;
     private readonly Slider psOptionsVolumeSlider;
-    private readonly ComboBox psOptionsWheelCombo;
+    private readonly Border psOptionsWheelMode;
     private readonly CheckBox psOptionsDragBox;
 
-    private readonly ComboBox psOptionsOrderCombo;
+    private readonly Border psOptionsOrderMode;
     private readonly Slider psKeyframeSlider;
     private readonly Slider psKeyframeDelaySlider;
     private readonly CheckBox psOptionsOverlapBox;
@@ -134,12 +134,12 @@ internal sealed partial class PSOptions : Window
         psOptionsEngineMpv.IsEnabled = psEngineMpvInstalled;
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"), lsOptionsDraft.LPreferenceAutoplay);
-        psOptionsVolumeCombo = PSComboBuild(lsOptionsDraft.LPreferenceVolumeMode, PSOptionsVolumeItems);
+        psOptionsVolumeMode = PSModeBuild(lsOptionsDraft.LPreferenceVolumeMode, () => { }, PSOptionsVolumeItems);
         psOptionsVolumeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceVolume, 0, 100);
-        psOptionsWheelCombo = PSComboBuild(lsOptionsDraft.LPreferenceWheelAction, PSOptionsWheelItems);
+        psOptionsWheelMode = PSModeBuild(lsOptionsDraft.LPreferenceWheelAction, () => { }, PSOptionsWheelItems);
         psOptionsDragBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Playback.DragPause"), lsOptionsDraft.LPreferenceDragPaused);
 
-        psOptionsOrderCombo = PSComboBuild(lsOptionsDraft.LPreferenceTimelineOrder, PSOptionsOrderItems);
+        psOptionsOrderMode = PSModeBuild(lsOptionsDraft.LPreferenceTimelineOrder, () => { }, PSOptionsOrderItems);
         psKeyframeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframePixels, 1, 50);
         psKeyframeDelaySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframeDelay, 0, 5000);
         psOptionsOverlapBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlapCheck"), lsOptionsDraft.LPreferenceOverlapAllowed);
@@ -264,10 +264,10 @@ internal sealed partial class PSOptions : Window
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"), psOptionsAutoplayBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumePlate"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumeMode"), psOptionsVolumeCombo),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumeMode"), psOptionsVolumeMode),
             PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.DefaultVolume"), psOptionsVolumeSlider, "%")));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Mousewheel"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.OverTimeline"), psOptionsWheelCombo)));
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.OverTimeline"), psOptionsWheelMode)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Dragging"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.WhileDragging"), psOptionsDragBox)));
         return pPanel;
@@ -313,13 +313,13 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceLanguage = PSComboTextRead(psOptionsLanguageCombo);
 
         lsOptionsDraft.LPreferenceAutoplay = psOptionsAutoplayBox.IsChecked == true;
-        lsOptionsDraft.LPreferenceVolumeMode = PSComboTextRead(psOptionsVolumeCombo);
+        lsOptionsDraft.LPreferenceVolumeMode = PSModeTextRead(psOptionsVolumeMode);
         lsOptionsDraft.LPreferenceVolume = psOptionsVolumeSlider.Value;
-        lsOptionsDraft.LPreferenceWheelAction = PSComboTextRead(psOptionsWheelCombo);
+        lsOptionsDraft.LPreferenceWheelAction = PSModeTextRead(psOptionsWheelMode);
         lsOptionsDraft.LPreferenceDragPaused = psOptionsDragBox.IsChecked == true;
         lsOptionsDraft.LPreferencePreviewEngine = psOptionsEngineMpv.IsChecked == true ? "Mpv" : "Flyleaf";
 
-        lsOptionsDraft.LPreferenceTimelineOrder = PSComboTextRead(psOptionsOrderCombo);
+        lsOptionsDraft.LPreferenceTimelineOrder = PSModeTextRead(psOptionsOrderMode);
         lsOptionsDraft.LPreferenceKeyframePixels = psKeyframeSlider.Value;
         lsOptionsDraft.LPreferenceKeyframeDelay = psKeyframeDelaySlider.Value;
         lsOptionsDraft.LPreferenceSectionPalette = psSpectrumName;

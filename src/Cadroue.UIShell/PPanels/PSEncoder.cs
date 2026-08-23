@@ -24,9 +24,9 @@ internal sealed partial class PSEncoder : Window
     internal const string PSEncoderPlacementKey = "Encoder";
 
     internal const double PSEncoderWidthDefault = 820;
-    internal const double PSEncoderHeightDefault = 760;
+    internal const double PSEncoderHeightDefault = 770;
     internal const double PSEncoderWidthMinimum = 680;
-    internal const double PSEncoderHeightMinimum = 520;
+    internal const double PSEncoderHeightMinimum = 770;
 
     private readonly LPreset lsExportSpecificSource;
     private readonly LPreset lsExportSpecificEdit;

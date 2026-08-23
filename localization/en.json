@@ -598,6 +598,8 @@
   "Options.Playback.AutoplayCheck": "Start playing as soon as a {terms.Media} {terms.File} loads",
   "Options.Playback.PerTabVolume": "Per-tab {Terms.Volume}",
   "Options.Playback.UnifiedVolume": "Unified {Terms.Volume}",
+  "Options.Playback.VolumeUnified": "Unified",
+  "Options.Playback.VolumePerTab": "Per-tab",
   "Options.Playback.Seek": "Seek",
   "Options.Playback.Zoom": "Zoom",
   "Options.Playback.Volume": "{Terms.Volume}",

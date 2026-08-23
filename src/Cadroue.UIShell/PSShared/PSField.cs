@@ -192,7 +192,7 @@ internal static class PSField
         return pCombo;
     }
 
-    internal const double PSFieldListHeight = 176;
+    internal const double PSFieldListHeight = 300;
 
     internal static ListBox PSListBuild(string pSelected, params LLocalizationChoice[] pItems)
     {

@@ -598,6 +598,8 @@
   "Options.Playback.AutoplayCheck": "{Terms.Media}를 불러오면 바로 재생",
   "Options.Playback.PerTabVolume": "탭별 {Terms.Volume}",
   "Options.Playback.UnifiedVolume": "통합 {Terms.Volume}",
+  "Options.Playback.VolumeUnified": "통합",
+  "Options.Playback.VolumePerTab": "탭별",
   "Options.Playback.Seek": "탐색",
   "Options.Playback.Zoom": "확대/축소",
   "Options.Playback.Volume": "{Terms.Volume}",
