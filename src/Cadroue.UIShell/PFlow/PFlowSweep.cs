@@ -28,6 +28,23 @@ public sealed partial class PFlow
         lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
     }
 
+    public void PFlowStillApply(IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowStills, LDetectorStillMode pFlowMode)
+    {
+        if (lSpool is not { } pFlowSpool)
+        {
+            return;
+        }
+
+        IReadOnlyList<LPiece> pFlowSections = LSweep.LSweepStillResolve(
+            lSegment.LSegmentListRead(),
+            pFlowStills,
+            pFlowSpool.LSpoolDuration,
+            Math.Max(1, PSectionPalette.PSectionActiveCount),
+            pFlowMode);
+        int? pFlowSelect = pFlowSections.Count > 0 ? 0 : null;
+        lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
+    }
+
     public void PFlowSceneApply(IReadOnlyList<TimeSpan> pFlowBoundaries, TimeSpan pFlowMinimum)
     {
         if (lSpool is not { } pFlowSpool)
