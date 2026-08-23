@@ -133,7 +133,7 @@ public sealed partial class PInspector
         string pMinimumKey = pDetectorKind switch
         {
             LDetectorKind.LDetectorKindScene or LDetectorKind.LDetectorKindStill
-                or LDetectorKind.LDetectorKindLuminance => "Inspector.Detector.Minimal",
+                or LDetectorKind.LDetectorKindLuminance or LDetectorKind.LDetectorKindSilence => "Inspector.Detector.Minimal",
             _ => "Inspector.Detector.Minimum"
         };
         pStack.Children.Add(PFilterSliderBuild(

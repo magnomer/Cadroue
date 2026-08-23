@@ -51,6 +51,11 @@ public static partial class LSweep
 
     public static IReadOnlyList<TimeSpan> LSweepLuminanceResolve(IReadOnlyList<LSweepSample> lSweepSamples, double lSweepWindow, double lSweepThreshold)
     {
+        return LSweepBoundaryResolve(lSweepSamples, lSweepWindow, lSweepThreshold / 100.0 * 255.0);
+    }
+
+    public static IReadOnlyList<TimeSpan> LSweepBoundaryResolve(IReadOnlyList<LSweepSample> lSweepSamples, double lSweepWindow, double lSweepThresholdUnits)
+    {
         var lSweepBoundaries = new List<TimeSpan>();
         if (lSweepSamples is null || lSweepSamples.Count < 2)
         {
@@ -58,7 +63,6 @@ public static partial class LSweep
         }
 
         double lSweepSpan = lSweepWindow > 0 ? lSweepWindow : double.Epsilon;
-        double lSweepThresholdUnits = lSweepThreshold / 100.0 * 255.0;
         const double lSweepFloor = 1e-6;
 
         int lSweepTotal = lSweepSamples.Count;

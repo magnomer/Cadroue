@@ -66,6 +66,48 @@ public sealed class TDetector
         Assert.Equal(-30, lBound.LDetectorBoundDefault);
     }
 
+    [Fact]
+    public void LDetectorThresholdRead_VolumeUsesDeltaDomain()
+    {
+        LDetectorBound lBound = LDetector.LDetectorThresholdRead(LDetectorKind.LDetectorKindVolume);
+
+        Assert.Equal(0, lBound.LDetectorBoundLeast);
+        Assert.Equal(30, lBound.LDetectorBoundMost);
+        Assert.Equal(6, lBound.LDetectorBoundDefault);
+    }
+
+    [Fact]
+    public void LDetectorWindowRead_VolumeUsesSecondsWindow()
+    {
+        LDetectorBound lBound = LDetector.LDetectorWindowRead(LDetectorKind.LDetectorKindVolume);
+
+        Assert.Equal(0.1, lBound.LDetectorBoundLeast);
+        Assert.Equal(5, lBound.LDetectorBoundMost);
+        Assert.Equal(0.5, lBound.LDetectorBoundDefault);
+    }
+
+    [Fact]
+    public void LDetectorMinimumRead_VolumeUsesSecondsDuration()
+    {
+        LDetectorBound lBound = LDetector.LDetectorMinimumRead(LDetectorKind.LDetectorKindVolume);
+
+        Assert.Equal(0, lBound.LDetectorBoundLeast);
+        Assert.Equal(60, lBound.LDetectorBoundMost);
+        Assert.Equal(0.5, lBound.LDetectorBoundDefault);
+    }
+
+    [Fact]
+    public void LDetectorCreate_VolumeSeedsDefaults()
+    {
+        LDetectorStep lStep = LDetector.LDetectorCreate(LDetectorKind.LDetectorKindVolume);
+
+        Assert.Equal(LDetectorKind.LDetectorKindVolume, lStep.LDetectorStepKind);
+        Assert.False(lStep.LDetectorStepEnabled);
+        Assert.Equal(6, lStep.LDetectorStepThreshold);
+        Assert.Equal(0.5, lStep.LDetectorStepMinimum);
+        Assert.Equal(0.5, lStep.LDetectorStepWindow);
+    }
+
     [Theory]
     [InlineData(-5, 0)]
     [InlineData(50, 50)]

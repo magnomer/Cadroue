@@ -23,6 +23,12 @@ public enum LDetectorLuminanceMode
     LDetectorLuminanceFull
 }
 
+public enum LDetectorMetricMode
+{
+    LDetectorMetricLufs,
+    LDetectorMetricRms
+}
+
 public readonly record struct LDetectorStep(
     LDetectorKind LDetectorStepKind,
     bool LDetectorStepEnabled,
@@ -54,7 +60,7 @@ public static class LDetector
         LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 5, 0.1),
         LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0, 50, 10),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(-80, 0, -30),
-        LDetectorKind.LDetectorKindVolume => new LDetectorBound(-60, 0, -20),
+        LDetectorKind.LDetectorKindVolume => new LDetectorBound(0, 30, 6),
         _ => new LDetectorBound(0, 1, 0)
     };
 
@@ -65,12 +71,14 @@ public static class LDetector
         LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 60, 0.5),
         LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0, 10, 0.5),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(0, 60, 0.5),
+        LDetectorKind.LDetectorKindVolume => new LDetectorBound(0, 60, 0.5),
         _ => new LDetectorBound(0, 60, 2.0)
     };
 
     public static LDetectorBound LDetectorWindowRead(LDetectorKind lDetectorKind) => lDetectorKind switch
     {
         LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0.1, 5, 0.5),
+        LDetectorKind.LDetectorKindVolume => new LDetectorBound(0.1, 5, 0.5),
         _ => new LDetectorBound(0, 0, 0)
     };
 
