@@ -200,7 +200,7 @@ public sealed class PSplitTab : PTabSurface
                         pSplitProgress);
                 if (!pSplitSource.IsCancellationRequested)
                 {
-                    pFlow.PFlowSceneApply(pSplitBoundaries);
+                    pFlow.PFlowSceneApply(pSplitBoundaries, TimeSpan.FromSeconds(pSplitScene.LDetectorStepMinimum));
                 }
             }
         }

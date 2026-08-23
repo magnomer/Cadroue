@@ -23,6 +23,16 @@ public sealed partial class PViewer
 
     private void PPlayerAccurateSeek(TimeSpan playbackPosition)
     {
+        if (pViewerMpvActive)
+        {
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceUi,
+                $"Seek accurate to {playbackPosition:hh\\:mm\\:ss\\.fff}",
+                "mpv engine seeks directly");
+            pViewerPlayer.PPlayerSeek(playbackPosition);
+            return;
+        }
+
         bool pPlayerWasRunning = pPlayerAccurateActive;
         pPlayerAccurateActive = true;
         LTrace.LTraceRecord(

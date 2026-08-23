@@ -36,7 +36,7 @@ public static class LDetector
     public static LDetectorBound LDetectorThresholdRead(LDetectorKind lDetectorKind) => lDetectorKind switch
     {
         LDetectorKind.LDetectorKindBlank => new LDetectorBound(0.80, 1.00, 0.98),
-        LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 100, 10),
+        LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 100, 40),
         LDetectorKind.LDetectorKindStill => new LDetectorBound(-80, 0, -60),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(-80, 0, -30),
         LDetectorKind.LDetectorKindVolume => new LDetectorBound(-60, 0, -20),

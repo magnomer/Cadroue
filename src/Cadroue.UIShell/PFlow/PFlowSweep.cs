@@ -28,7 +28,7 @@ public sealed partial class PFlow
         lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
     }
 
-    public void PFlowSceneApply(IReadOnlyList<TimeSpan> pFlowBoundaries)
+    public void PFlowSceneApply(IReadOnlyList<TimeSpan> pFlowBoundaries, TimeSpan pFlowMinimum)
     {
         if (lSpool is not { } pFlowSpool)
         {
@@ -39,7 +39,8 @@ public sealed partial class PFlow
             lSegment.LSegmentListRead(),
             pFlowBoundaries,
             pFlowSpool.LSpoolDuration,
-            Math.Max(1, PSectionPalette.PSectionActiveCount));
+            Math.Max(1, PSectionPalette.PSectionActiveCount),
+            pFlowMinimum);
         int? pFlowSelect = pFlowSections.Count > 0 ? 0 : null;
         lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
     }

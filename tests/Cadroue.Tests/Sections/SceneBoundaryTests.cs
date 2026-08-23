@@ -110,4 +110,54 @@ public sealed class SceneBoundaryTests
         Assert.Equal(At(0), result[0].LPieceOrigin);
         Assert.Equal(At(8), result[1].LPieceOrigin);
     }
+
+    [Fact]
+    public void BoundariesWithinMinimumGap_AreMerged()
+    {
+        var sections = new[] { Seg(0, 12) };
+        var result = TInterface.PieceSceneResolve(sections, new[] { At(4), At(4.3), At(4.6), At(5) }, At(12), 4, At(0.5));
+        Assert.Equal(3, result.Count);
+        Assert.Equal(At(0), result[0].LPieceOrigin);
+        Assert.Equal(At(4), result[0].LPieceEnd);
+        Assert.Equal(At(4), result[1].LPieceOrigin);
+        Assert.Equal(At(4.6), result[1].LPieceEnd);
+        Assert.Equal(At(4.6), result[2].LPieceOrigin);
+        Assert.Equal(At(12), result[2].LPieceEnd);
+    }
+
+    [Fact]
+    public void TrailingSubMinimumSection_IsMergedIntoPrior()
+    {
+        var sections = new[] { Seg(0, 10) };
+        var result = TInterface.PieceSceneResolve(sections, new[] { At(4), At(9.8) }, At(10), 4, At(0.5));
+        Assert.Equal(2, result.Count);
+        Assert.Equal(At(0), result[0].LPieceOrigin);
+        Assert.Equal(At(4), result[0].LPieceEnd);
+        Assert.Equal(At(4), result[1].LPieceOrigin);
+        Assert.Equal(At(10), result[1].LPieceEnd);
+    }
+
+    [Fact]
+    public void HeadSubMinimumBoundary_IsDropped()
+    {
+        var sections = new[] { Seg(0, 10) };
+        var result = TInterface.PieceSceneResolve(sections, new[] { At(0.2), At(5) }, At(10), 4, At(0.5));
+        Assert.Equal(2, result.Count);
+        Assert.Equal(At(0), result[0].LPieceOrigin);
+        Assert.Equal(At(5), result[0].LPieceEnd);
+        Assert.Equal(At(5), result[1].LPieceOrigin);
+        Assert.Equal(At(10), result[1].LPieceEnd);
+    }
+
+    [Fact]
+    public void NoSectionShorterThanMinimum()
+    {
+        var sections = new[] { Seg(0, 20) };
+        var boundaries = new[] { At(1), At(1.2), At(1.3), At(5), At(5.1), At(9), At(19.9) };
+        var result = TInterface.PieceSceneResolve(sections, boundaries, At(20), 4, At(0.5));
+        foreach (var piece in result)
+        {
+            Assert.True(piece.LPieceEnd - piece.LPieceOrigin >= At(0.5));
+        }
+    }
 }

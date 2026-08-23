@@ -226,7 +226,8 @@ public readonly partial record struct LPiece
         IReadOnlyList<LPiece> lPieces,
         IReadOnlyList<TimeSpan> lPieceBoundaries,
         TimeSpan lPieceDuration,
-        int lPieceColorCount)
+        int lPieceColorCount,
+        TimeSpan lPieceMinimum)
     {
         int lPiecePalette = Math.Max(lPieceColorCount, 1);
         int lPieceColorIndex = 0;
@@ -242,7 +243,9 @@ public readonly partial record struct LPiece
                 if (lPieceBoundary <= lPieceCursor
                     || lPieceBoundary >= lPiece.LPieceEnd
                     || lPieceBoundary < TimeSpan.Zero
-                    || lPieceBoundary > lPieceDuration)
+                    || lPieceBoundary > lPieceDuration
+                    || lPieceBoundary - lPieceCursor < lPieceMinimum
+                    || lPiece.LPieceEnd - lPieceBoundary < lPieceMinimum)
                 {
                     continue;
                 }

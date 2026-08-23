@@ -13,7 +13,7 @@ public sealed class TDetector
 
         Assert.Equal(0, lBound.LDetectorBoundLeast);
         Assert.Equal(100, lBound.LDetectorBoundMost);
-        Assert.Equal(10, lBound.LDetectorBoundDefault);
+        Assert.Equal(40, lBound.LDetectorBoundDefault);
     }
 
     [Theory]

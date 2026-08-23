@@ -61,7 +61,11 @@ internal static class TInterface
 
     internal static IReadOnlyList<LPiece> PieceSceneResolve(
         IReadOnlyList<LPiece> sections, IReadOnlyList<TimeSpan> boundaries, TimeSpan duration, int colorCount) =>
-        LPiece.LPieceSceneResolve(sections, boundaries, duration, colorCount);
+        LPiece.LPieceSceneResolve(sections, boundaries, duration, colorCount, TimeSpan.Zero);
+
+    internal static IReadOnlyList<LPiece> PieceSceneResolve(
+        IReadOnlyList<LPiece> sections, IReadOnlyList<TimeSpan> boundaries, TimeSpan duration, int colorCount, TimeSpan minimum) =>
+        LPiece.LPieceSceneResolve(sections, boundaries, duration, colorCount, minimum);
 
     internal static LSpool SpoolCreate(TimeSpan duration) => new(duration);
     internal static TimeSpan SpoolStepResolve(LSpool spool, int count) => spool.LSpoolStepResolve(count);
