@@ -27,6 +27,7 @@ public sealed partial class PInspector
         public required StackPanel PSensorBody { get; init; }
         public TextBox? PSensorThreshold { get; init; }
         public TextBox? PSensorMinimum { get; init; }
+        public RadioButton? PSensorMode { get; init; }
         public bool PSensorSuppress { get; set; }
     }
 
@@ -69,7 +70,7 @@ public sealed partial class PInspector
     {
         LDetectorKind.LDetectorKindBlank => ("Inspector.Detector.BlackRatio", string.Empty, "0.00"),
         LDetectorKind.LDetectorKindScene => ("Inspector.Detector.Sensitivity", string.Empty, "0"),
-        LDetectorKind.LDetectorKindStill => ("Inspector.Detector.Noise", "dB", "0"),
+        LDetectorKind.LDetectorKindStill => ("Inspector.Detector.Tolerance", "%", "0.00"),
         LDetectorKind.LDetectorKindSilence => ("Inspector.Detector.Threshold", "dB", "0"),
         LDetectorKind.LDetectorKindVolume => ("Inspector.Detector.Threshold", "dB", "0"),
         _ => ("Inspector.Detector.Threshold", string.Empty, "0")
@@ -103,6 +104,7 @@ public sealed partial class PInspector
 
         TextBox? pThresholdValue = null;
         TextBox? pMinimumValue = null;
+        RadioButton? pModeTreat = null;
         if (pDetectorKind != LDetectorKind.LDetectorKindLuminance)
         {
             LDetectorBound pThresholdBound = LDetector.LDetectorThresholdRead(pDetectorKind);
@@ -128,6 +130,11 @@ public sealed partial class PInspector
                 LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
             pStack.Children.Add(PFilterSliderBuild(
                 LLocalization.LLocalizationTextRead(pMinimumKey), pMinimumSlider, "s", pMinimumValue));
+
+            if (pDetectorKind == LDetectorKind.LDetectorKindStill)
+            {
+                pModeTreat = PSensorModeBuild(pStack, pSensorRaise);
+            }
         }
 
         pSection = new PSensorSection
@@ -137,7 +144,8 @@ public sealed partial class PInspector
             PSensorStack = pStack,
             PSensorBody = pBody,
             PSensorThreshold = pThresholdValue,
-            PSensorMinimum = pMinimumValue
+            PSensorMinimum = pMinimumValue,
+            PSensorMode = pModeTreat
         };
 
         pApply.Checked += (_, _) => PSensorApplyHandle(pSection);
@@ -172,6 +180,73 @@ public sealed partial class PInspector
         pDetectorKind == LDetectorKind.LDetectorKindScene
             ? LDetector.LDetectorSensitivityClamp(pValue)
             : LDetector.LDetectorThresholdClamp(pDetectorKind, pValue);
+
+    private RadioButton PSensorModeBuild(StackPanel pStack, Action pSensorRaise)
+    {
+        var pModeDiscard = new RadioButton
+        {
+            Content = LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode.Discard"),
+            GroupName = "PSensorStillMode",
+            IsChecked = true,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily,
+            Foreground = PPanelTextBrush,
+            Margin = new Thickness(0, 0, 16, 0),
+            VerticalContentAlignment = VerticalAlignment.Center
+        };
+        var pModeTreat = new RadioButton
+        {
+            Content = LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode.Treat"),
+            GroupName = "PSensorStillMode",
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily,
+            Foreground = PPanelTextBrush,
+            VerticalContentAlignment = VerticalAlignment.Center
+        };
+        pModeDiscard.Checked += (_, _) => pSensorRaise();
+        pModeTreat.Checked += (_, _) => pSensorRaise();
+
+        var pModeRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Children = { pModeDiscard, pModeTreat }
+        };
+        pStack.Children.Add(PInspectorFieldBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode"), pModeRow));
+        return pModeTreat;
+    }
+
+    public LDetectorStillMode PSensorModeRead(LDetectorKind pDetectorKind)
+    {
+        if (pSensorSections.TryGetValue(pDetectorKind, out PSensorSection? pSection)
+            && pSection.PSensorMode is { IsChecked: true })
+        {
+            return LDetectorStillMode.LDetectorStillTreat;
+        }
+
+        return LDetectorStillMode.LDetectorStillDiscard;
+    }
+
+    public void PSensorModeApply(LDetectorKind pDetectorKind, LDetectorStillMode pDetectorMode)
+    {
+        if (!pSensorSections.TryGetValue(pDetectorKind, out PSensorSection? pSection)
+            || pSection.PSensorMode is not { } pModeTreat)
+        {
+            return;
+        }
+
+        pSection.PSensorSuppress = true;
+        if (pDetectorMode == LDetectorStillMode.LDetectorStillTreat)
+        {
+            pModeTreat.IsChecked = true;
+        }
+        else if (pModeTreat.Parent is Panel pModeRow && pModeRow.Children[0] is RadioButton pModeDiscard)
+        {
+            pModeDiscard.IsChecked = true;
+        }
+
+        pSection.PSensorSuppress = false;
+    }
 
     private static TextBox PSensorDecimalBuild(double pDefault, string pFormat)
     {
