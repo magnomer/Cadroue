@@ -32,7 +32,7 @@ internal sealed partial class PSOptions
 
             pDownload.Content = PSSystemMpvFormat();
             pDownload.IsEnabled = true;
-            psOptionsEngineMpv.IsEnabled = pResult.LMpvInstallSuccess || LMpv.LMpvInstalledCheck();
+            psOptionsEngineEnable("Mpv", pResult.LMpvInstallSuccess || LMpv.LMpvInstalledCheck());
             MessageBox.Show(
                 this,
                 pResult.LMpvInstallSuccess

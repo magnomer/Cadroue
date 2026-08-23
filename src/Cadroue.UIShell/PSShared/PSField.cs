@@ -275,8 +275,12 @@ internal static class PSField
 
     internal static string PSModeTextRead(Border pMode) => (string)(pMode.Tag ?? string.Empty);
 
-    internal static Border PSModeBuild(string pSelected, Action pChange, params LLocalizationChoice[] pChoices)
+    internal static Border PSModeBuild(string pSelected, Action pChange, params LLocalizationChoice[] pChoices) =>
+        PSModeBuild(pSelected, pChange, out _, pChoices);
+
+    internal static Border PSModeBuild(string pSelected, Action pChange, out Action<string, bool> pEnableSet, params LLocalizationChoice[] pChoices)
     {
+        var pDisabled = new HashSet<string>(StringComparer.Ordinal);
         var pStrip = new StackPanel { Orientation = Orientation.Horizontal };
         var pHost = new Border
         {
@@ -300,10 +304,14 @@ internal static class PSField
             {
                 (string pToken, Border pSegment, TextBlock pText) = pSegments[pStyleIndex];
                 bool pActive = string.Equals(pToken, (string)pHost.Tag, StringComparison.Ordinal);
+                bool pOff = pDisabled.Contains(pToken);
                 bool pFirst = pStyleIndex == 0;
                 bool pLast = pStyleIndex == pSegments.Count - 1;
                 pSegment.CornerRadius = new CornerRadius(pFirst ? 5 : 0, pLast ? 5 : 0, pLast ? 5 : 0, pFirst ? 5 : 0);
                 pSegment.Background = pActive ? PSFieldAccent : PSFieldInactive;
+                pSegment.IsHitTestVisible = !pOff;
+                pSegment.Cursor = pOff ? Cursors.Arrow : Cursors.Hand;
+                pSegment.Opacity = pOff ? 0.45 : 1;
                 pText.Foreground = pActive ? Brushes.White : PSFieldText;
             }
         }
@@ -341,6 +349,26 @@ internal static class PSField
             pSegments.Add((pToken, pSegment, pText));
             pStrip.Children.Add(pSegment);
         }
+
+        pEnableSet = (pToken, pEnabled) =>
+        {
+            if (pEnabled)
+            {
+                pDisabled.Remove(pToken);
+            }
+            else
+            {
+                pDisabled.Add(pToken);
+                if (string.Equals((string)pHost.Tag, pToken, StringComparison.Ordinal))
+                {
+                    pHost.Tag = pSegments
+                        .Select(pEntry => pEntry.Token)
+                        .FirstOrDefault(pOther => !pDisabled.Contains(pOther)) ?? pToken;
+                }
+            }
+
+            PSModeStyleApply();
+        };
 
         PSModeStyleApply();
         return pHost;

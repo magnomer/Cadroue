@@ -176,10 +176,6 @@ internal sealed partial class PSOptions
         Button pRecordClear = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), 190, new Thickness(0));
         pRecordClear.Click += (_, _) => PSSystemRecordClear();
 
-        var pRecordRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        pRecordRow.Children.Add(psOptionsRecordBeside);
-        pRecordRow.Children.Add(psOptionsRecordWorkspace);
-
         var pRecordButtonRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         pRecordButtonRow.Children.Add(pRecordClear);
 
@@ -187,17 +183,16 @@ internal sealed partial class PSOptions
         var pRecordBesideNotice = (TextBlock)PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside"));
         void PSSystemNoticeUpdate()
         {
-            bool pWorkspace = psOptionsRecordWorkspace.IsChecked == true;
+            bool pWorkspace = string.Equals(PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
             pRecordBesideNotice.Text = pWorkspace
                 ? LLocalization.LLocalizationFormat("Options.System.FileRecordWorkspace", pRecordWorkspacePath)
                 : LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside");
         }
         PSSystemNoticeUpdate();
-        psOptionsRecordBeside.Checked += (_, _) => PSSystemNoticeUpdate();
-        psOptionsRecordWorkspace.Checked += (_, _) => PSSystemNoticeUpdate();
+        psOptionsRecordNotice = PSSystemNoticeUpdate;
 
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecord"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), pRecordRow),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psOptionsRecordMode),
             pRecordBesideNotice,
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecordScope")),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pRecordButtonRow));

@@ -621,6 +621,8 @@
   "Options.General.Layout": "레이아웃",
   "Options.General.Tabs": "탭",
   "Options.Layout.VerticalTabs": "탭을 세로로 표시",
+  "Options.Layout.TabsHorizontal": "{Terms.Horizontal}",
+  "Options.Layout.TabsVertical": "{Terms.Vertical}",
   "Options.General.Language": "{Terms.Language}",
   "Options.General.OpenWith": "시작 시 열기",
   "Options.Playback.Autoplay": "자동 재생",

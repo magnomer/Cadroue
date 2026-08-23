@@ -65,23 +65,47 @@ internal sealed partial class PSOptions : Window
         new("ViewfinderFirst", "Options.Timeline.ViewfinderTop")
     };
 
+    private static readonly LLocalizationChoice[] PSOptionsStartupItems =
+    {
+        new("LastSession", "Options.Startup.LastSession"),
+        new("DefaultTab", "Options.Startup.DefaultTab")
+    };
+
+    private static readonly LLocalizationChoice[] PSOptionsRecordItems =
+    {
+        new("FileLocation", "Options.Record.FileLocation"),
+        new("Workspace", "Options.Record.Workspace")
+    };
+
+    private static readonly LLocalizationChoice[] PSOptionsTabsItems =
+    {
+        new("Horizontal", "Options.Layout.TabsHorizontal"),
+        new("Vertical", "Options.Layout.TabsVertical")
+    };
+
+    private static readonly LLocalizationChoice[] PSOptionsEngineItems =
+    {
+        new("Flyleaf", "Options.Playback.EngineFlyleaf"),
+        new("Mpv", "Options.Playback.EngineMpv")
+    };
+
     private readonly LPreferenceState lsOptionsDraft;
     private readonly Action<LPreferenceState>? psOptionsCallback;
     private readonly PSGrabber psOptionsGrabber;
 
-    private readonly RadioButton psOptionsStartupSession;
-    private readonly RadioButton psOptionsStartupDefault;
-    private readonly RadioButton psOptionsRecordBeside;
-    private readonly RadioButton psOptionsRecordWorkspace;
+    private readonly Border psOptionsStartupMode;
+    private readonly Border psOptionsRecordMode;
+    private Action? psOptionsRecordNotice;
+    private Action? psOptionsStartupPicker;
     private readonly PPicker psOptionsTabPicker;
     private readonly CheckBox psMediaBox;
     private readonly CheckBox psOptionsConfirmBox;
     private readonly CheckBox psRelayClearBox;
-    private readonly CheckBox psOptionsVerticalBox;
+    private readonly Border psOptionsTabsMode;
     private readonly ComboBox psOptionsLanguageCombo;
 
-    private readonly RadioButton psOptionsEngineFlyleaf;
-    private readonly RadioButton psOptionsEngineMpv;
+    private readonly Border psOptionsEngineMode;
+    private readonly Action<string, bool> psOptionsEngineEnable;
     private readonly CheckBox psOptionsAutoplayBox;
     private readonly Border psOptionsVolumeMode;
     private readonly Slider psOptionsVolumeSlider;
@@ -111,10 +135,8 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         psOptionsCallback = pApplyCallback;
 
-        psOptionsStartupSession = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Startup.LastSession"), lsOptionsDraft.LPreferenceStartupMode == "LastSession");
-        psOptionsStartupDefault = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Startup.DefaultTab"), lsOptionsDraft.LPreferenceStartupMode == "DefaultTab");
-        psOptionsRecordBeside = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Record.FileLocation"), !lsOptionsDraft.LPreferenceRecordWorkspace, "PSOptionsRecord");
-        psOptionsRecordWorkspace = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Record.Workspace"), lsOptionsDraft.LPreferenceRecordWorkspace, "PSOptionsRecord");
+        psOptionsStartupMode = PSModeBuild(lsOptionsDraft.LPreferenceStartupMode, () => psOptionsStartupPicker?.Invoke(), PSOptionsStartupItems);
+        psOptionsRecordMode = PSModeBuild(lsOptionsDraft.LPreferenceRecordWorkspace ? "Workspace" : "FileLocation", () => psOptionsRecordNotice?.Invoke(), PSOptionsRecordItems);
         psOptionsTabPicker = new PPicker(PSOptionsTabItems, lsOptionsDraft.LPreferenceStartupTabs, LLocalization.LLocalizationTextRead("Options.Startup.NoTab"))
         {
             MinWidth = 260,
@@ -124,14 +146,13 @@ internal sealed partial class PSOptions : Window
         psMediaBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Startup.OpenLastMedia"), lsOptionsDraft.LPreferenceMediaAutomatic);
         psOptionsConfirmBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Confirm.Ask"), lsOptionsDraft.LPreferenceConfirmDestructive);
         psRelayClearBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Relay.ClearCheck"), lsOptionsDraft.LPreferenceRelayEmpty);
-        psOptionsVerticalBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Layout.VerticalTabs"), lsOptionsDraft.LPreferenceVerticalTabs);
+        psOptionsTabsMode = PSModeBuild(lsOptionsDraft.LPreferenceVerticalTabs ? "Vertical" : "Horizontal", () => { }, PSOptionsTabsItems);
         psOptionsLanguageCombo = PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguagesRead());
 
         bool psEngineMpvInstalled = Cadroue.Infrastructure.LMpv.LMpvInstalledCheck();
         bool psEngineMpv = psEngineMpvInstalled && string.Equals(lsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal);
-        psOptionsEngineFlyleaf = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Playback.EngineFlyleaf"), !psEngineMpv, "PSOptionsEngine");
-        psOptionsEngineMpv = PSOptionsRadioBuild(LLocalization.LLocalizationTextRead("Options.Playback.EngineMpv"), psEngineMpv, "PSOptionsEngine");
-        psOptionsEngineMpv.IsEnabled = psEngineMpvInstalled;
+        psOptionsEngineMode = PSModeBuild(psEngineMpv ? "Mpv" : "Flyleaf", () => { }, out psOptionsEngineEnable, PSOptionsEngineItems);
+        psOptionsEngineEnable("Mpv", psEngineMpvInstalled);
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"), lsOptionsDraft.LPreferenceAutoplay);
         psOptionsVolumeMode = PSModeBuild(lsOptionsDraft.LPreferenceVolumeMode, () => { }, PSOptionsVolumeItems);
@@ -222,7 +243,7 @@ internal sealed partial class PSOptions : Window
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClear"), psRelayClearBox),
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClearNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Layout"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Tabs"), psOptionsVerticalBox)));
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Tabs"), psOptionsTabsMode)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Language"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Language"), psOptionsLanguageCombo)));
         return pPanel;
@@ -230,31 +251,21 @@ internal sealed partial class PSOptions : Window
 
     private UIElement PSOptionsStartupBuild()
     {
-        psOptionsTabPicker.Margin = new Thickness(0, 9, 0, 0);
+        psOptionsTabPicker.Margin = new Thickness(12, 0, 0, 0);
+        psOptionsTabPicker.VerticalAlignment = VerticalAlignment.Center;
 
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto, MinHeight = PSFieldControlHeight });
-        pGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        var pRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pRow.Children.Add(psOptionsStartupMode);
+        pRow.Children.Add(psOptionsTabPicker);
 
-        TextBlock pLabel = PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Options.General.OpenWith"));
-        Grid.SetRow(pLabel, 0);
-        pGrid.Children.Add(pLabel);
+        void PSOptionsPickerUpdate() =>
+            psOptionsTabPicker.Visibility = string.Equals(PSModeTextRead(psOptionsStartupMode), "DefaultTab", StringComparison.Ordinal)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        PSOptionsPickerUpdate();
+        psOptionsStartupPicker = PSOptionsPickerUpdate;
 
-        Grid.SetRow(psOptionsStartupSession, 0);
-        Grid.SetColumn(psOptionsStartupSession, 1);
-        pGrid.Children.Add(psOptionsStartupSession);
-
-        Grid.SetRow(psOptionsStartupDefault, 0);
-        Grid.SetColumn(psOptionsStartupDefault, 2);
-        pGrid.Children.Add(psOptionsStartupDefault);
-
-        Grid.SetRow(psOptionsTabPicker, 1);
-        Grid.SetColumn(psOptionsTabPicker, 2);
-        pGrid.Children.Add(psOptionsTabPicker);
-        return pGrid;
+        return PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.OpenWith"), pRow);
     }
 
     private UIElement PSPlaybackBuild()
@@ -275,12 +286,8 @@ internal sealed partial class PSOptions : Window
 
     private UIElement PSPlaybackEngineBuild()
     {
-        var pRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        pRow.Children.Add(psOptionsEngineFlyleaf);
-        pRow.Children.Add(psOptionsEngineMpv);
-
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Preview"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Engine"), pRow),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Engine"), psOptionsEngineMode),
             PSSystemFlyleafBuild(),
             PSSystemMpvBuild(),
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Playback.MpvEditNotice")));
@@ -303,13 +310,13 @@ internal sealed partial class PSOptions : Window
 
     private void PSOptionsApply()
     {
-        lsOptionsDraft.LPreferenceStartupMode = psOptionsStartupDefault.IsChecked == true ? "DefaultTab" : "LastSession";
-        lsOptionsDraft.LPreferenceRecordWorkspace = psOptionsRecordWorkspace.IsChecked == true;
+        lsOptionsDraft.LPreferenceStartupMode = PSModeTextRead(psOptionsStartupMode);
+        lsOptionsDraft.LPreferenceRecordWorkspace = string.Equals(PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
         lsOptionsDraft.LPreferenceStartupTabs = psOptionsTabPicker.PPickerSelectionRead().ToList();
         lsOptionsDraft.LPreferenceMediaAutomatic = psMediaBox.IsChecked == true;
         lsOptionsDraft.LPreferenceConfirmDestructive = psOptionsConfirmBox.IsChecked == true;
         lsOptionsDraft.LPreferenceRelayEmpty = psRelayClearBox.IsChecked == true;
-        lsOptionsDraft.LPreferenceVerticalTabs = psOptionsVerticalBox.IsChecked == true;
+        lsOptionsDraft.LPreferenceVerticalTabs = string.Equals(PSModeTextRead(psOptionsTabsMode), "Vertical", StringComparison.Ordinal);
         lsOptionsDraft.LPreferenceLanguage = PSComboTextRead(psOptionsLanguageCombo);
 
         lsOptionsDraft.LPreferenceAutoplay = psOptionsAutoplayBox.IsChecked == true;
@@ -317,7 +324,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceVolume = psOptionsVolumeSlider.Value;
         lsOptionsDraft.LPreferenceWheelAction = PSModeTextRead(psOptionsWheelMode);
         lsOptionsDraft.LPreferenceDragPaused = psOptionsDragBox.IsChecked == true;
-        lsOptionsDraft.LPreferencePreviewEngine = psOptionsEngineMpv.IsChecked == true ? "Mpv" : "Flyleaf";
+        lsOptionsDraft.LPreferencePreviewEngine = PSModeTextRead(psOptionsEngineMode);
 
         lsOptionsDraft.LPreferenceTimelineOrder = PSModeTextRead(psOptionsOrderMode);
         lsOptionsDraft.LPreferenceKeyframePixels = psKeyframeSlider.Value;
@@ -339,7 +346,7 @@ internal sealed partial class PSOptions : Window
         string psLanguagePrevious = LPreference.LPreferenceStateCurrent.LPreferenceLanguage;
         bool psOptionsSaved = LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
         Cadroue.Infrastructure.LRenderer.LRendererEngineSet(
-            psOptionsEngineMpv.IsChecked == true
+            string.Equals(PSModeTextRead(psOptionsEngineMode), "Mpv", StringComparison.Ordinal)
                 ? LPreviewEngine.LPreviewEngineMpv
                 : LPreviewEngine.LPreviewEngineFlyleaf);
         psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
@@ -372,20 +379,6 @@ internal sealed partial class PSOptions : Window
                 "Localization.Language.Name",
                 pLanguage.Value))
             .ToArray();
-
-    private static RadioButton PSOptionsRadioBuild(string pLabel, bool pChecked, string pGroupName = "PSOptionsStartup")
-    {
-        var pRadio = new RadioButton
-        {
-            GroupName = pGroupName,
-            Content = pLabel,
-            IsChecked = pChecked,
-            Margin = new Thickness(0, 0, 24, 0),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        PRadio.PRadioApply(pRadio);
-        return pRadio;
-    }
 
     private static CheckBox PSOptionsCheckBuild(string pLabel, bool pChecked)
     {

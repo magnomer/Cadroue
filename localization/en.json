@@ -621,6 +621,8 @@
   "Options.General.Layout": "Layout",
   "Options.General.Tabs": "Tabs",
   "Options.Layout.VerticalTabs": "Show tabs vertically",
+  "Options.Layout.TabsHorizontal": "{Terms.Horizontal}",
+  "Options.Layout.TabsVertical": "{Terms.Vertical}",
   "Options.General.Language": "{Terms.Language}",
   "Options.General.OpenWith": "Open with",
   "Options.Playback.Autoplay": "Autoplay",
