@@ -181,4 +181,49 @@ public static class LDetector
 
         return null;
     }
+
+    public static readonly IReadOnlyList<string> LDetectorScenePresets = new[]
+    {
+        "Conservative",
+        "Normal",
+        "Sensitive"
+    };
+
+    public static double? LDetectorSceneResolve(string lDetectorToken) => lDetectorToken switch
+    {
+        "Conservative" => 25.0,
+        "Normal" => 50.0,
+        "Sensitive" => 75.0,
+        _ => null
+    };
+
+    public static readonly IReadOnlyList<string> LDetectorStillPresets = new[]
+    {
+        "Conservative",
+        "Normal",
+        "Sensitive"
+    };
+
+    public static (double Tolerance, double Minimum)? LDetectorStillResolve(string lDetectorToken) => lDetectorToken switch
+    {
+        "Conservative" => (0.05, 2.0),
+        "Normal" => (0.10, 1.0),
+        "Sensitive" => (0.50, 0.5),
+        _ => null
+    };
+
+    public static string? LDetectorStillMatch(double lDetectorTolerance, double lDetectorMinimum)
+    {
+        foreach (string lDetectorToken in LDetectorStillPresets)
+        {
+            if (LDetectorStillResolve(lDetectorToken) is { } lDetectorStill
+                && Math.Abs(lDetectorTolerance - lDetectorStill.Tolerance) < 0.05
+                && Math.Abs(lDetectorMinimum - lDetectorStill.Minimum) < 0.05)
+            {
+                return lDetectorToken;
+            }
+        }
+
+        return null;
+    }
 }

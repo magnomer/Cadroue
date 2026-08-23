@@ -128,6 +128,7 @@ public sealed class LSidecarDetectorRecord
     public double LSidecarDetectorBrightness { get; set; } = LDetectorBlank.LDetectorBlankValue;
     public double LSidecarDetectorTolerance { get; set; } = LDetector.LDetectorToleranceRead().LDetectorBoundDefault;
     public double LSidecarDetectorCoverage { get; set; } = LDetector.LDetectorCoverageRead().LDetectorBoundDefault;
+    public string LSidecarDetectorPreset { get; set; } = "Normal";
 }
 
 public sealed class LSidecarSplitRecord

@@ -97,9 +97,11 @@ public sealed partial class PInspector
                 return;
             }
 
-            if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
+            if (pDetectorKind is LDetectorKind.LDetectorKindVolume
+                or LDetectorKind.LDetectorKindScene
+                or LDetectorKind.LDetectorKindStill)
             {
-                PSensorPresetCheck();
+                PSensorPresetCheck(pDetectorKind);
             }
 
             PSensorRaise();
@@ -180,10 +182,15 @@ public sealed partial class PInspector
                 PSensorSpeedBuild(pStack, pSensorRaise);
         }
 
+        if (pDetectorKind is LDetectorKind.LDetectorKindScene or LDetectorKind.LDetectorKindStill)
+        {
+            PSensorPresetBuild(pStack, pDetectorKind, 0);
+        }
+
         if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
         {
             pMetricRms = PSensorMetricBuild(pStack, pSensorRaise, pThresholdUnit);
-            PSensorPresetBuild(pStack);
+            PSensorPresetBuild(pStack, pDetectorKind, 1);
         }
 
         pSection = new PSensorSection
@@ -211,11 +218,6 @@ public sealed partial class PInspector
         PSensorStackUpdate(pSection);
 
         pSensorSections[pDetectorKind] = pSection;
-        if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
-        {
-            PSensorPresetUpdate();
-        }
-
         return pBody;
     }
 
@@ -433,9 +435,5 @@ public sealed partial class PInspector
 
         pSection.PSensorSuppress = false;
         PSensorStackUpdate(pSection);
-        if (pDetectorStep.LDetectorStepKind == LDetectorKind.LDetectorKindVolume)
-        {
-            PSensorPresetUpdate();
-        }
     }
 }

@@ -8,15 +8,13 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PInspector
 {
-    private ComboBox pSensorPreset = null!;
-    private string? pSensorPresetToken;
+    private readonly Dictionary<LDetectorKind, ComboBox> pSensorPresetBoxes = new();
+    private readonly Dictionary<LDetectorKind, string?> pSensorPresetTokens = new();
     private bool pSensorPresetSuppress;
 
-    private const LDetectorKind PSensorPresetKind = LDetectorKind.LDetectorKindVolume;
-
-    private void PSensorPresetBuild(StackPanel pStack)
+    private void PSensorPresetBuild(StackPanel pStack, LDetectorKind pDetectorKind, int pIndex)
     {
-        pSensorPreset = new ComboBox
+        var pBox = new ComboBox
         {
             Height = PInspectorFieldHeight,
             Width = 140,
@@ -24,55 +22,131 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PDropdown.PDropdownApply(pSensorPreset);
-        pSensorPreset.Items.Add(new LLocalizationChoice("Conservative", "Inspector.Detector.Conservative"));
-        pSensorPreset.Items.Add(new LLocalizationChoice("Normal", "Inspector.Detector.Normal"));
-        pSensorPreset.Items.Add(new LLocalizationChoice("Sensitive", "Inspector.Detector.Sensitive"));
-        pSensorPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
-        pSensorPreset.SelectedIndex = 1;
-        pSensorPreset.SelectionChanged += (_, _) => PSensorPresetHandle();
+        PDropdown.PDropdownApply(pBox);
+        pBox.Items.Add(new LLocalizationChoice("Conservative", "Inspector.Detector.Conservative"));
+        pBox.Items.Add(new LLocalizationChoice("Normal", "Inspector.Detector.Normal"));
+        pBox.Items.Add(new LLocalizationChoice("Sensitive", "Inspector.Detector.Sensitive"));
+        pBox.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
+        pBox.SelectedIndex = 1;
+        pBox.SelectionChanged += (_, _) => PSensorPresetHandle(pDetectorKind);
 
-        pStack.Children.Insert(1, PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pSensorPreset));
+        pSensorPresetBoxes[pDetectorKind] = pBox;
+        pSensorPresetTokens[pDetectorKind] = "Normal";
+
+        pStack.Children.Insert(pIndex, PInspectorFieldBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pBox));
     }
 
-    private PSensorSection? PSensorSectionRead() =>
-        pSensorSections.TryGetValue(PSensorPresetKind, out PSensorSection? pSection) ? pSection : null;
+    private PSensorSection? PSensorSectionRead(LDetectorKind pDetectorKind) =>
+        pSensorSections.TryGetValue(pDetectorKind, out PSensorSection? pSection) ? pSection : null;
 
-    private void PSensorPresetHandle()
+    public string PSensorPresetRead(LDetectorKind pDetectorKind)
     {
-        if (pSensorPresetSuppress)
+        if (!pSensorPresetBoxes.TryGetValue(pDetectorKind, out ComboBox? pBox))
+        {
+            return string.Empty;
+        }
+
+        string pName = LLocalizationChoice.LLocalizationChoiceRead(pBox.SelectedItem);
+        return pName is "Conservative" or "Normal" or "Sensitive" ? pName : string.Empty;
+    }
+
+    public void PSensorPresetApply(LDetectorKind pDetectorKind, string pToken)
+    {
+        if (!pSensorPresetBoxes.TryGetValue(pDetectorKind, out ComboBox? pBox))
         {
             return;
         }
 
-        string pName = LLocalizationChoice.LLocalizationChoiceRead(pSensorPreset.SelectedItem);
-        if (string.IsNullOrEmpty(pName) || pName == "Custom"
-            || LDetector.LDetectorPresetRead(pName) is not { } pPreset)
+        pSensorPresetSuppress = true;
+        if (pToken is "Conservative" or "Normal" or "Sensitive")
         {
-            pSensorPresetToken = null;
+            pSensorPresetTokens[pDetectorKind] = pToken;
+            PSensorCustomReset(pDetectorKind);
+            PSensorPresetSelect(pDetectorKind, pToken);
+        }
+        else
+        {
+            pSensorPresetTokens[pDetectorKind] = null;
+            PSensorCustomReset(pDetectorKind);
+            pBox.SelectedIndex = pBox.Items.Count - 1;
+        }
+
+        pSensorPresetSuppress = false;
+    }
+
+    private void PSensorPresetHandle(LDetectorKind pDetectorKind)
+    {
+        if (pSensorPresetSuppress || !pSensorPresetBoxes.TryGetValue(pDetectorKind, out ComboBox? pBox))
+        {
             return;
         }
 
-        pSensorPresetToken = pName;
-        PSensorPresetApply(pPreset);
-        PSensorCustomReset();
+        string pName = LLocalizationChoice.LLocalizationChoiceRead(pBox.SelectedItem);
+        if (pName is not ("Conservative" or "Normal" or "Sensitive"))
+        {
+            pSensorPresetTokens[pDetectorKind] = null;
+            return;
+        }
+
+        pSensorPresetTokens[pDetectorKind] = pName;
+        PSensorPresetSet(pDetectorKind, pName);
+        PSensorCustomReset(pDetectorKind);
         PSensorRaise();
     }
 
-    private void PSensorPresetApply(LDetectorPreset pPreset)
+    private void PSensorPresetSet(LDetectorKind pDetectorKind, string pToken)
     {
-        if (PSensorSectionRead() is not { } pSection)
+        if (PSensorSectionRead(pDetectorKind) is not { } pSection)
         {
             return;
         }
 
         pSection.PSensorSuppress = true;
-        double pThreshold = LDetector.LDetectorPresetResolve(pPreset, PSensorMetricRead(PSensorPresetKind));
+        if (pDetectorKind == LDetectorKind.LDetectorKindScene)
+        {
+            if (LDetector.LDetectorSceneResolve(pToken) is { } pSensitivity
+                && pSection.PSensorThreshold is { } pSceneThreshold)
+            {
+                pSceneThreshold.Text = pSensitivity.ToString(
+                    PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
+            }
+
+            pSection.PSensorSuppress = false;
+            return;
+        }
+
+        if (pDetectorKind == LDetectorKind.LDetectorKindStill)
+        {
+            if (LDetector.LDetectorStillResolve(pToken) is { } pStill)
+            {
+                if (pSection.PSensorThreshold is { } pStillThreshold)
+                {
+                    pStillThreshold.Text = pStill.Tolerance.ToString(
+                        PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
+                }
+
+                if (pSection.PSensorMinimum is { } pStillMinimum)
+                {
+                    pStillMinimum.Text = pStill.Minimum.ToString("0.0", CultureInfo.InvariantCulture);
+                }
+            }
+
+            pSection.PSensorSuppress = false;
+            return;
+        }
+
+        if (LDetector.LDetectorPresetRead(pToken) is not { } pPreset)
+        {
+            pSection.PSensorSuppress = false;
+            return;
+        }
+
+        double pThreshold = LDetector.LDetectorPresetResolve(pPreset, PSensorMetricRead(pDetectorKind));
         if (pSection.PSensorThreshold is { } pThresholdBox)
         {
             pThresholdBox.Text = pThreshold.ToString(
-                PSensorShapeRead(PSensorPresetKind).Format, CultureInfo.InvariantCulture);
+                PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
         }
 
         if (pSection.PSensorWindow is { } pWindowBox)
@@ -88,16 +162,36 @@ public sealed partial class PInspector
         pSection.PSensorSuppress = false;
     }
 
-    private string? PSensorPresetMatch()
+    private bool PSensorPresetMatch(LDetectorKind pDetectorKind, string pBase)
     {
-        if (PSensorSectionRead() is not { } pSection)
+        if (PSensorSectionRead(pDetectorKind) is not { } pSection)
         {
-            return null;
+            return false;
         }
 
-        LDetectorStep pDefault = LDetector.LDetectorCreate(PSensorPresetKind);
-        return LDetector.LDetectorPresetMatch(
-            PSensorMetricRead(PSensorPresetKind),
+        LDetectorStep pDefault = LDetector.LDetectorCreate(pDetectorKind);
+        if (pDetectorKind == LDetectorKind.LDetectorKindScene)
+        {
+            double pSensitivity = pSection.PSensorThreshold is { } pSceneThreshold
+                ? PInspectorDecimalRead(pSceneThreshold, pDefault.LDetectorStepThreshold)
+                : pDefault.LDetectorStepThreshold;
+            return LDetector.LDetectorSceneResolve(pBase) is { } pTarget
+                && Math.Abs(pSensitivity - pTarget) < 0.5;
+        }
+
+        if (pDetectorKind == LDetectorKind.LDetectorKindStill)
+        {
+            double pStillTolerance = pSection.PSensorThreshold is { } pStillThreshold
+                ? PInspectorDecimalRead(pStillThreshold, pDefault.LDetectorStepThreshold)
+                : pDefault.LDetectorStepThreshold;
+            double pStillMinimum = pSection.PSensorMinimum is { } pStillMinimumBox
+                ? PInspectorDecimalRead(pStillMinimumBox, pDefault.LDetectorStepMinimum)
+                : pDefault.LDetectorStepMinimum;
+            return LDetector.LDetectorStillMatch(pStillTolerance, pStillMinimum) == pBase;
+        }
+
+        string? pMatch = LDetector.LDetectorPresetMatch(
+            PSensorMetricRead(pDetectorKind),
             pSection.PSensorThreshold is { } pThreshold
                 ? PInspectorDecimalRead(pThreshold, pDefault.LDetectorStepThreshold)
                 : pDefault.LDetectorStepThreshold,
@@ -107,35 +201,36 @@ public sealed partial class PInspector
             pSection.PSensorMinimum is { } pMinimum
                 ? PInspectorDecimalRead(pMinimum, pDefault.LDetectorStepMinimum)
                 : pDefault.LDetectorStepMinimum);
+        return pMatch == pBase;
     }
 
-    private void PSensorPresetCheck()
+    private void PSensorPresetCheck(LDetectorKind pDetectorKind)
     {
-        if (pSensorPresetSuppress || pSensorPresetToken is not { } pBase
-            || LDetector.LDetectorPresetRead(pBase) is null)
+        if (pSensorPresetSuppress
+            || pSensorPresetTokens.GetValueOrDefault(pDetectorKind) is not { } pBase)
         {
             return;
         }
 
         pSensorPresetSuppress = true;
-        if (PSensorPresetMatch() == pBase)
+        if (PSensorPresetMatch(pDetectorKind, pBase))
         {
-            PSensorCustomReset();
-            PSensorPresetSelect(pBase);
+            PSensorCustomReset(pDetectorKind);
+            PSensorPresetSelect(pDetectorKind, pBase);
         }
         else
         {
-            PSensorCustomSet(pBase);
+            PSensorCustomSet(pDetectorKind, pBase);
         }
 
         pSensorPresetSuppress = false;
     }
 
-    private void PSensorPresetSync()
+    private void PSensorPresetSync(LDetectorKind pDetectorKind)
     {
-        if (pSensorPresetToken is not { } pBase
+        if (pSensorPresetTokens.GetValueOrDefault(pDetectorKind) is not { } pBase
             || LDetector.LDetectorPresetRead(pBase) is not { } pPreset
-            || PSensorSectionRead() is not { PSensorThreshold: { } pThreshold } pSection)
+            || PSensorSectionRead(pDetectorKind) is not { PSensorThreshold: { } pThreshold } pSection)
         {
             return;
         }
@@ -143,55 +238,50 @@ public sealed partial class PInspector
         pSensorPresetSuppress = true;
         pSection.PSensorSuppress = true;
         pThreshold.Text = LDetector
-            .LDetectorPresetResolve(pPreset, PSensorMetricRead(PSensorPresetKind))
-            .ToString(PSensorShapeRead(PSensorPresetKind).Format, CultureInfo.InvariantCulture);
+            .LDetectorPresetResolve(pPreset, PSensorMetricRead(pDetectorKind))
+            .ToString(PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
         pSection.PSensorSuppress = false;
         pSensorPresetSuppress = false;
     }
 
-    private void PSensorPresetUpdate()
+    private void PSensorCustomSet(LDetectorKind pDetectorKind, string pBase)
     {
-        pSensorPresetSuppress = true;
-        string? pMatch = PSensorPresetMatch();
-        if (pMatch is not null)
+        if (!pSensorPresetBoxes.TryGetValue(pDetectorKind, out ComboBox? pBox))
         {
-            pSensorPresetToken = pMatch;
-            PSensorCustomReset();
-            PSensorPresetSelect(pMatch);
-        }
-        else
-        {
-            pSensorPresetToken = null;
-            PSensorCustomReset();
-            pSensorPreset.SelectedIndex = pSensorPreset.Items.Count - 1;
+            return;
         }
 
-        pSensorPresetSuppress = false;
-    }
-
-    private void PSensorCustomSet(string pBase)
-    {
-        int pLast = pSensorPreset.Items.Count - 1;
+        int pLast = pBox.Items.Count - 1;
         string pText = LLocalization.LLocalizationFormat(
             "Inspector.Common.PresetCustom",
             LLocalization.LLocalizationTextRead(PSensorKeyRead(pBase)));
-        pSensorPreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
-        pSensorPreset.SelectedIndex = pLast;
+        pBox.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
+        pBox.SelectedIndex = pLast;
     }
 
-    private void PSensorCustomReset()
+    private void PSensorCustomReset(LDetectorKind pDetectorKind)
     {
-        int pLast = pSensorPreset.Items.Count - 1;
-        pSensorPreset.Items[pLast] = new LLocalizationChoice("Custom", "Inspector.Common.Custom");
-    }
-
-    private void PSensorPresetSelect(string pToken)
-    {
-        for (int pIndex = 0; pIndex < pSensorPreset.Items.Count; pIndex++)
+        if (!pSensorPresetBoxes.TryGetValue(pDetectorKind, out ComboBox? pBox))
         {
-            if (LLocalizationChoice.LLocalizationChoiceRead(pSensorPreset.Items[pIndex]) == pToken)
+            return;
+        }
+
+        int pLast = pBox.Items.Count - 1;
+        pBox.Items[pLast] = new LLocalizationChoice("Custom", "Inspector.Common.Custom");
+    }
+
+    private void PSensorPresetSelect(LDetectorKind pDetectorKind, string pToken)
+    {
+        if (!pSensorPresetBoxes.TryGetValue(pDetectorKind, out ComboBox? pBox))
+        {
+            return;
+        }
+
+        for (int pIndex = 0; pIndex < pBox.Items.Count; pIndex++)
+        {
+            if (LLocalizationChoice.LLocalizationChoiceRead(pBox.Items[pIndex]) == pToken)
             {
-                pSensorPreset.SelectedIndex = pIndex;
+                pBox.SelectedIndex = pIndex;
                 return;
             }
         }

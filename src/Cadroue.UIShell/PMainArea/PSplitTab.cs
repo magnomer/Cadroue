@@ -338,7 +338,8 @@ public sealed class PSplitTab : PTabSurface
                 LSidecarDetectorThreshold = pStep.LDetectorStepThreshold,
                 LSidecarDetectorMinimum = pStep.LDetectorStepMinimum,
                 LSidecarDetectorWindow = pStep.LDetectorStepWindow,
-                LSidecarDetectorType = PSplitModeRead(pDetectorKind)
+                LSidecarDetectorType = PSplitModeRead(pDetectorKind),
+                LSidecarDetectorPreset = pInspector.PSensorPresetRead(pDetectorKind)
             });
         }
 
@@ -430,6 +431,13 @@ public sealed class PSplitTab : PTabSurface
                             ? (LDetectorMetricMode)pDetector.LSidecarDetectorType
                             : LDetectorMetricMode.LDetectorMetricLufs);
                 }
+
+                if (pDetectorKind is LDetectorKind.LDetectorKindVolume
+                    or LDetectorKind.LDetectorKindScene
+                    or LDetectorKind.LDetectorKindStill)
+                {
+                    pInspector.PSensorPresetApply(pDetectorKind, pDetector.LSidecarDetectorPreset);
+                }
             }
 
             PSplitActiveUpdate();
@@ -481,7 +489,8 @@ public sealed class PSplitTab : PTabSurface
                 LSceneDetectorThreshold = pStep.LDetectorStepThreshold,
                 LSceneDetectorMinimum = pStep.LDetectorStepMinimum,
                 LSceneDetectorWindow = pStep.LDetectorStepWindow,
-                LSceneDetectorType = PSplitModeRead(pDetectorKind)
+                LSceneDetectorType = PSplitModeRead(pDetectorKind),
+                LSceneDetectorPreset = pInspector.PSensorPresetRead(pDetectorKind)
             });
         }
 
@@ -554,6 +563,13 @@ public sealed class PSplitTab : PTabSurface
                     Enum.IsDefined(typeof(LDetectorMetricMode), pDetector.LSceneDetectorType)
                         ? (LDetectorMetricMode)pDetector.LSceneDetectorType
                         : LDetectorMetricMode.LDetectorMetricLufs);
+            }
+
+            if (pDetectorKind is LDetectorKind.LDetectorKindVolume
+                or LDetectorKind.LDetectorKindScene
+                or LDetectorKind.LDetectorKindStill)
+            {
+                pInspector.PSensorPresetApply(pDetectorKind, pDetector.LSceneDetectorPreset);
             }
         }
 

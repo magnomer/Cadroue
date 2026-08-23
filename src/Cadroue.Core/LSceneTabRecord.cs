@@ -92,6 +92,8 @@ public sealed class LSceneDetector
 
     public double LSceneDetectorCoverage { get; set; } = LDetector.LDetectorCoverageRead().LDetectorBoundDefault;
 
+    public string LSceneDetectorPreset { get; set; } = "Normal";
+
     public LSceneDetector LSceneDetectorClone()
     {
         return new LSceneDetector
@@ -106,7 +108,8 @@ public sealed class LSceneDetector
             LSceneDetectorSaturation = LSceneDetectorSaturation,
             LSceneDetectorBrightness = LSceneDetectorBrightness,
             LSceneDetectorTolerance = LSceneDetectorTolerance,
-            LSceneDetectorCoverage = LSceneDetectorCoverage
+            LSceneDetectorCoverage = LSceneDetectorCoverage,
+            LSceneDetectorPreset = LSceneDetectorPreset
         };
     }
 }

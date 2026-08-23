@@ -34,7 +34,7 @@ public sealed partial class PInspector
                 pThresholdUnit.Text = "LU";
             }
 
-            PSensorPresetSync();
+            PSensorPresetSync(LDetectorKind.LDetectorKindVolume);
             pSensorRaise();
         };
         pMetricRms.Checked += (_, _) =>
@@ -44,7 +44,7 @@ public sealed partial class PInspector
                 pThresholdUnit.Text = "dB";
             }
 
-            PSensorPresetSync();
+            PSensorPresetSync(LDetectorKind.LDetectorKindVolume);
             pSensorRaise();
         };
 
