@@ -1004,6 +1004,7 @@
   "Inspector.Detector.Sensitivity": "민감도",
   "Inspector.Detector.Noise": "노이즈",
   "Inspector.Detector.Minimum": "최소 지속 시간",
+  "Inspector.Detector.Minimal": "최소",
   "Inspector.Blank.Black": "검정",
   "Inspector.Blank.Color": "색상",
   "Inspector.Blank.Tolerance": "허용 오차",

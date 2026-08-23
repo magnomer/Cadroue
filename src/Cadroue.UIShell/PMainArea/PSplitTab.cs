@@ -194,7 +194,7 @@ public sealed class PSplitTab : PTabSurface
                 IReadOnlyList<TimeSpan> pSplitBoundaries =
                     await LSweep.LSweepSceneScan(
                         pSplitSelected.LDocketEntryPath,
-                        pSplitScene.LDetectorStepThreshold,
+                        LDetector.LDetectorThresholdResolve(pSplitScene.LDetectorStepThreshold),
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);

@@ -36,7 +36,7 @@ public static class LDetector
     public static LDetectorBound LDetectorThresholdRead(LDetectorKind lDetectorKind) => lDetectorKind switch
     {
         LDetectorKind.LDetectorKindBlank => new LDetectorBound(0.80, 1.00, 0.98),
-        LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 100, 40),
+        LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 100, 50),
         LDetectorKind.LDetectorKindStill => new LDetectorBound(-80, 0, -60),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(-80, 0, -30),
         LDetectorKind.LDetectorKindVolume => new LDetectorBound(-60, 0, -20),
@@ -62,18 +62,22 @@ public static class LDetector
         LDetectorThresholdRead(lDetectorKind).LDetectorBoundDefault,
         LDetectorMinimumRead(lDetectorKind).LDetectorBoundDefault);
 
-    private const double LDetectorSceneCurve = 3.0;
+    private const double LDetectorSceneCeiling = 12.0;
+    private const double LDetectorSceneFloor = 3.0;
+    private const double LDetectorSceneLimit = 100.0;
 
-    public static double LDetectorPositionResolve(double lDetectorPosition)
+    public static double LDetectorThresholdResolve(double lDetectorSensitivity)
     {
-        double lDetectorNormal = Math.Clamp(lDetectorPosition, 0.0, 1.0);
-        return Math.Pow(lDetectorNormal, LDetectorSceneCurve) * 100.0;
+        double lDetectorThreshold = LDetectorSceneCeiling
+            - (LDetectorSceneCeiling - LDetectorSceneFloor) * lDetectorSensitivity / 100.0;
+        return Math.Clamp(lDetectorThreshold, 0.0, LDetectorSceneLimit);
     }
 
-    public static double LDetectorThresholdResolve(double lDetectorThreshold)
+    public static double LDetectorSensitivityClamp(double lDetectorSensitivity)
     {
-        double lDetectorNormal = Math.Clamp(lDetectorThreshold, 0.0, 100.0) / 100.0;
-        return Math.Pow(lDetectorNormal, 1.0 / LDetectorSceneCurve);
+        double lDetectorThreshold = LDetectorThresholdResolve(lDetectorSensitivity);
+        return (LDetectorSceneCeiling - lDetectorThreshold) * 100.0
+            / (LDetectorSceneCeiling - LDetectorSceneFloor);
     }
 
     public static double LDetectorThresholdClamp(LDetectorKind lDetectorKind, double lDetectorValue)
