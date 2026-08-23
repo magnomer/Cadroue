@@ -279,7 +279,10 @@ public sealed class PSplitTab : PTabSurface
                 LSidecarDetectorKind = (int)pDetectorKind,
                 LSidecarDetectorEnabled = pStep.LDetectorStepEnabled,
                 LSidecarDetectorThreshold = pStep.LDetectorStepThreshold,
-                LSidecarDetectorMinimum = pStep.LDetectorStepMinimum
+                LSidecarDetectorMinimum = pStep.LDetectorStepMinimum,
+                LSidecarDetectorType = pDetectorKind == LDetectorKind.LDetectorKindStill
+                    ? (int)pInspector.PSensorModeRead(pDetectorKind)
+                    : 0
             });
         }
 
@@ -348,6 +351,14 @@ public sealed class PSplitTab : PTabSurface
                     pDetector.LSidecarDetectorEnabled,
                     pDetector.LSidecarDetectorThreshold,
                     pDetector.LSidecarDetectorMinimum));
+
+                if (pDetectorKind == LDetectorKind.LDetectorKindStill)
+                {
+                    pInspector.PSensorModeApply(pDetectorKind,
+                        Enum.IsDefined(typeof(LDetectorStillMode), pDetector.LSidecarDetectorType)
+                            ? (LDetectorStillMode)pDetector.LSidecarDetectorType
+                            : LDetectorStillMode.LDetectorStillDiscard);
+                }
             }
 
             PSplitActiveUpdate();
@@ -397,7 +408,10 @@ public sealed class PSplitTab : PTabSurface
                 LSceneDetectorKind = (int)pDetectorKind,
                 LSceneDetectorEnabled = pStep.LDetectorStepEnabled,
                 LSceneDetectorThreshold = pStep.LDetectorStepThreshold,
-                LSceneDetectorMinimum = pStep.LDetectorStepMinimum
+                LSceneDetectorMinimum = pStep.LDetectorStepMinimum,
+                LSceneDetectorType = pDetectorKind == LDetectorKind.LDetectorKindStill
+                    ? (int)pInspector.PSensorModeRead(pDetectorKind)
+                    : 0
             });
         }
 
@@ -440,6 +454,14 @@ public sealed class PSplitTab : PTabSurface
                 pDetector.LSceneDetectorEnabled,
                 pDetector.LSceneDetectorThreshold,
                 pDetector.LSceneDetectorMinimum));
+
+            if (pDetectorKind == LDetectorKind.LDetectorKindStill)
+            {
+                pInspector.PSensorModeApply(pDetectorKind,
+                    Enum.IsDefined(typeof(LDetectorStillMode), pDetector.LSceneDetectorType)
+                        ? (LDetectorStillMode)pDetector.LSceneDetectorType
+                        : LDetectorStillMode.LDetectorStillDiscard);
+            }
         }
 
         pInspector.PSensorPersistentApply(lPreferenceTabLayout.LSceneDetectPersistent);
