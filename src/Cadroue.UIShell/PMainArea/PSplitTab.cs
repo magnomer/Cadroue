@@ -178,6 +178,9 @@ public sealed class PSplitTab : PTabSurface
         pProcessing.IsEnabled = false;
         pInspector.PSensorProgressShow();
         var pSplitProgress = new Progress<double>(pValue => pInspector.PSensorProgressApply(pValue));
+        var pSplitExcluded = new List<(TimeSpan Start, TimeSpan End)>();
+        var pSplitKept = new List<(TimeSpan Start, TimeSpan End)>();
+        var pSplitBoundaries = new List<TimeSpan>();
         try
         {
             if (pSplitBlank.LDetectorBlankEnabled)
@@ -189,25 +192,19 @@ public sealed class PSplitTab : PTabSurface
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                if (!pSplitSource.IsCancellationRequested)
-                {
-                    pFlow.PFlowSweepApply(pSplitBlanks);
-                }
+                pSplitExcluded.AddRange(pSplitBlanks);
             }
 
             if (pSplitScene.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
             {
-                IReadOnlyList<TimeSpan> pSplitBoundaries =
+                IReadOnlyList<TimeSpan> pSplitScenes =
                     await LSweep.LSweepSceneScan(
                         pSplitSelected.LDocketEntryPath,
                         LDetector.LDetectorThresholdResolve(pSplitScene.LDetectorStepThreshold),
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                if (!pSplitSource.IsCancellationRequested)
-                {
-                    pFlow.PFlowSceneApply(pSplitBoundaries, TimeSpan.FromSeconds(pSplitScene.LDetectorStepMinimum));
-                }
+                pSplitBoundaries.AddRange(pSplitScenes);
             }
 
             if (pSplitStill.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
@@ -220,15 +217,19 @@ public sealed class PSplitTab : PTabSurface
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                if (!pSplitSource.IsCancellationRequested)
+                if (pSplitMode == LDetectorStillMode.LDetectorStillTreat)
                 {
-                    pFlow.PFlowStillApply(pSplitStills, pSplitMode);
+                    pSplitKept.AddRange(pSplitStills);
+                }
+                else
+                {
+                    pSplitExcluded.AddRange(pSplitStills);
                 }
             }
 
             if (pSplitLuminance.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
             {
-                IReadOnlyList<TimeSpan> pSplitBoundaries =
+                IReadOnlyList<TimeSpan> pSplitLuminances =
                     await LSweep.LSweepLuminanceScan(
                         pSplitSelected.LDocketEntryPath,
                         pSplitLuminance.LDetectorStepMinimum,
@@ -236,10 +237,12 @@ public sealed class PSplitTab : PTabSurface
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                if (!pSplitSource.IsCancellationRequested)
-                {
-                    pFlow.PFlowSceneApply(pSplitBoundaries, TimeSpan.Zero);
-                }
+                pSplitBoundaries.AddRange(pSplitLuminances);
+            }
+
+            if (!pSplitSource.IsCancellationRequested)
+            {
+                pFlow.PFlowCombineApply(pSplitExcluded, pSplitKept, pSplitBoundaries);
             }
         }
         catch (Exception pSplitException) when (pSplitException is System.ComponentModel.Win32Exception

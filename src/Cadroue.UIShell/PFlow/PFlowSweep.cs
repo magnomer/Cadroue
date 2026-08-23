@@ -12,52 +12,23 @@ public sealed partial class PFlow
 
     public TimeSpan PFlowSweepDuration => lSpool?.LSpoolDuration ?? TimeSpan.Zero;
 
-    public void PFlowSweepApply(IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowBlanks)
+    public void PFlowCombineApply(
+        IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowExcluded,
+        IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowKept,
+        IReadOnlyList<TimeSpan> pFlowBoundaries)
     {
         if (lSpool is not { } pFlowSpool)
         {
             return;
         }
 
-        IReadOnlyList<LPiece> pFlowSections = LSweep.LSweepSectionResolve(
+        IReadOnlyList<LPiece> pFlowSections = LSweep.LSweepCombineResolve(
             lSegment.LSegmentListRead(),
-            pFlowBlanks,
-            pFlowSpool.LSpoolDuration,
-            Math.Max(1, PSectionPalette.PSectionActiveCount));
-        int? pFlowSelect = pFlowSections.Count > 0 ? 0 : null;
-        lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
-    }
-
-    public void PFlowStillApply(IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowStills, LDetectorStillMode pFlowMode)
-    {
-        if (lSpool is not { } pFlowSpool)
-        {
-            return;
-        }
-
-        IReadOnlyList<LPiece> pFlowSections = LSweep.LSweepStillResolve(
-            lSegment.LSegmentListRead(),
-            pFlowStills,
-            pFlowSpool.LSpoolDuration,
-            Math.Max(1, PSectionPalette.PSectionActiveCount),
-            pFlowMode);
-        int? pFlowSelect = pFlowSections.Count > 0 ? 0 : null;
-        lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
-    }
-
-    public void PFlowSceneApply(IReadOnlyList<TimeSpan> pFlowBoundaries, TimeSpan pFlowMinimum)
-    {
-        if (lSpool is not { } pFlowSpool)
-        {
-            return;
-        }
-
-        IReadOnlyList<LPiece> pFlowSections = LPiece.LPieceSceneResolve(
-            lSegment.LSegmentListRead(),
+            pFlowExcluded,
+            pFlowKept,
             pFlowBoundaries,
             pFlowSpool.LSpoolDuration,
-            Math.Max(1, PSectionPalette.PSectionActiveCount),
-            pFlowMinimum);
+            Math.Max(1, PSectionPalette.PSectionActiveCount));
         int? pFlowSelect = pFlowSections.Count > 0 ? 0 : null;
         lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
     }
