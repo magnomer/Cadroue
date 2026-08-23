@@ -36,7 +36,7 @@ public static class LDetector
     public static LDetectorBound LDetectorThresholdRead(LDetectorKind lDetectorKind) => lDetectorKind switch
     {
         LDetectorKind.LDetectorKindBlank => new LDetectorBound(0.80, 1.00, 0.98),
-        LDetectorKind.LDetectorKindScene => new LDetectorBound(0.05, 1.00, 0.40),
+        LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 100, 10),
         LDetectorKind.LDetectorKindStill => new LDetectorBound(-80, 0, -60),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(-80, 0, -30),
         LDetectorKind.LDetectorKindVolume => new LDetectorBound(-60, 0, -20),
@@ -61,6 +61,20 @@ public static class LDetector
         false,
         LDetectorThresholdRead(lDetectorKind).LDetectorBoundDefault,
         LDetectorMinimumRead(lDetectorKind).LDetectorBoundDefault);
+
+    private const double LDetectorSceneCurve = 3.0;
+
+    public static double LDetectorPositionResolve(double lDetectorPosition)
+    {
+        double lDetectorNormal = Math.Clamp(lDetectorPosition, 0.0, 1.0);
+        return Math.Pow(lDetectorNormal, LDetectorSceneCurve) * 100.0;
+    }
+
+    public static double LDetectorThresholdResolve(double lDetectorThreshold)
+    {
+        double lDetectorNormal = Math.Clamp(lDetectorThreshold, 0.0, 100.0) / 100.0;
+        return Math.Pow(lDetectorNormal, 1.0 / LDetectorSceneCurve);
+    }
 
     public static double LDetectorThresholdClamp(LDetectorKind lDetectorKind, double lDetectorValue)
     {
