@@ -1,3 +1,5 @@
+using System.Linq;
+
 using Cadroue.Core;
 using Cadroue.ShellEngine;
 
@@ -44,7 +46,7 @@ public sealed class TSweep
     }
 
     [Fact]
-    public void LSweepSectionResolve_KeepsUserSectionsAndCarvesAroundThem()
+    public void LSweepSectionResolve_KeepsUserSectionsAndOverlaysDetected()
     {
         var lUser = new LPiece(TimeSpan.Zero, TimeSpan.FromSeconds(5), 0, "keep") { LPieceDetected = false };
 
@@ -54,9 +56,19 @@ public sealed class TSweep
             TimeSpan.FromSeconds(5),
             4);
 
-        Assert.Single(lSections);
-        Assert.Equal("keep", lSections[0].LPieceName);
-        Assert.False(lSections[0].LPieceDetected);
+        Assert.Equal(3, lSections.Count);
+
+        LPiece lKept = Assert.Single(lSections, lSection => lSection.LPieceName == "keep");
+        Assert.False(lKept.LPieceDetected);
+        Assert.Equal(TimeSpan.Zero, lKept.LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(5), lKept.LPieceEnd);
+
+        IReadOnlyList<LPiece> lDetected = lSections.Where(lSection => lSection.LPieceDetected).ToList();
+        Assert.Equal(2, lDetected.Count);
+        Assert.Equal(TimeSpan.Zero, lDetected[0].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(1), lDetected[0].LPieceEnd);
+        Assert.Equal(TimeSpan.FromSeconds(2), lDetected[1].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(5), lDetected[1].LPieceEnd);
     }
 
     [Fact]

@@ -12,6 +12,7 @@ public static class LLibrarian
     public static Func<string, LSidecarWaveformRecord?>? LLibrarianWaveformReader;
     public static Func<string, LSidecarEditRecord?>? LLibrarianEditReader;
     public static Func<string, LSidecarAudioRecord?>? LLibrarianAudioReader;
+    public static Func<string, LSidecarSplitRecord?>? LLibrarianSplitReader;
     public static Func<string, double>? LLibrarianLoudnessReader;
     public static Func<string, TimeSpan>? LLibrarianDurationReader;
     public static Func<string, TimeSpan>? LLibrarianDurationResolver;
@@ -22,6 +23,7 @@ public static class LLibrarian
 
     public static Func<string, LSidecarEditRecord?, bool>? LLibrarianEditWriter;
     public static Func<string, LSidecarAudioRecord?, bool>? LLibrarianAudioWriter;
+    public static Func<string, LSidecarSplitRecord?, bool>? LLibrarianSplitWriter;
     public static Func<string, double, bool>? LLibrarianLoudnessWriter;
     public static Func<string, LSidecarWaveformRecord?, bool>? LLibrarianWaveformWriter;
 
@@ -39,6 +41,9 @@ public static class LLibrarian
 
     public static LSidecarAudioRecord? LLibrarianAudioLoad(string lLibrarianSourcePath) =>
         LLibrarianAudioReader?.Invoke(lLibrarianSourcePath);
+
+    public static LSidecarSplitRecord? LLibrarianSplitLoad(string lLibrarianSourcePath) =>
+        LLibrarianSplitReader?.Invoke(lLibrarianSourcePath);
 
     public static double LLibrarianLoudnessRead(string lLibrarianSourcePath) =>
         LLibrarianLoudnessReader?.Invoke(lLibrarianSourcePath) ?? 0;
@@ -63,6 +68,9 @@ public static class LLibrarian
 
     public static bool LLibrarianAudioSave(string lLibrarianSourcePath, LSidecarAudioRecord? lLibrarianAudio) =>
         LLibrarianAudioWriter?.Invoke(lLibrarianSourcePath, lLibrarianAudio) ?? false;
+
+    public static bool LLibrarianSplitSave(string lLibrarianSourcePath, LSidecarSplitRecord? lLibrarianSplit) =>
+        LLibrarianSplitWriter?.Invoke(lLibrarianSourcePath, lLibrarianSplit) ?? false;
 
     public static bool LLibrarianLoudnessSave(string lLibrarianSourcePath, double lLibrarianLoudness) =>
         LLibrarianLoudnessWriter?.Invoke(lLibrarianSourcePath, lLibrarianLoudness) ?? false;

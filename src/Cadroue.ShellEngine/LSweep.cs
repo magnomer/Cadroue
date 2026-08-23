@@ -13,7 +13,7 @@ public static partial class LSweep
         string lSweepFilter = lSweepSpec.LDetectorBlankType == LDetectorType.LDetectorTypeColor
             ? LSweepColorFormat(lSweepSpec)
             : LSweepBlackFormat(lSweepSpec);
-        return $"-hide_banner -nostats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
+        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
     }
 
     private static string LSweepBlackFormat(LDetectorBlank lSweepSpec) =>
@@ -96,26 +96,19 @@ public static partial class LSweep
 
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepMerged = LSweepIntervalNormalize(lSweepBlanks, lSweepDuration);
         IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepContent = LSweepComplementResolve(lSweepMerged, lSweepDuration);
-        var lSweepReserved = lSweepKept
-            .Select(lSweepPiece => (lSweepPiece.LPieceOrigin, lSweepPiece.LPieceEnd))
-            .ToList();
 
         int lSweepColorIndex = 0;
         int lSweepPalette = Math.Max(lSweepColorCount, 1);
         var lSweepResult = new List<LPiece>(lSweepKept);
         foreach ((TimeSpan lSweepFrom, TimeSpan lSweepTo) in lSweepContent)
         {
-            foreach ((TimeSpan lSweepFree, TimeSpan lSweepFreeEnd) in LSweepFreeResolve(lSweepFrom, lSweepTo, lSweepReserved))
+            lSweepResult.Add(new LPiece(lSweepFrom, lSweepTo, lSweepColorIndex % lSweepPalette, string.Empty)
             {
-                lSweepResult.Add(new LPiece(lSweepFree, lSweepFreeEnd, lSweepColorIndex % lSweepPalette, string.Empty)
-                {
-                    LPieceDetected = true
-                });
-                lSweepColorIndex++;
-            }
+                LPieceDetected = true
+            });
+            lSweepColorIndex++;
         }
 
-        lSweepResult.Sort((lSweepLeft, lSweepRight) => lSweepLeft.LPieceOrigin.CompareTo(lSweepRight.LPieceOrigin));
         return lSweepResult;
     }
 
@@ -173,34 +166,6 @@ public static partial class LSweep
         }
 
         return lSweepContent;
-    }
-
-    private static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepFreeResolve(
-        TimeSpan lSweepFrom, TimeSpan lSweepTo, IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepReserved)
-    {
-        var lSweepFree = new List<(TimeSpan Start, TimeSpan End)>();
-        TimeSpan lSweepCursor = lSweepFrom;
-        foreach ((TimeSpan lSweepStart, TimeSpan lSweepEnd) in lSweepReserved
-            .Where(lSweepRange => lSweepRange.End > lSweepFrom && lSweepRange.Start < lSweepTo)
-            .OrderBy(lSweepRange => lSweepRange.Start))
-        {
-            if (lSweepStart > lSweepCursor)
-            {
-                lSweepFree.Add((lSweepCursor, lSweepStart));
-            }
-
-            if (lSweepEnd > lSweepCursor)
-            {
-                lSweepCursor = lSweepEnd;
-            }
-        }
-
-        if (lSweepTo > lSweepCursor)
-        {
-            lSweepFree.Add((lSweepCursor, lSweepTo));
-        }
-
-        return lSweepFree;
     }
 
     private static TimeSpan LSweepClamp(TimeSpan lSweepValue, TimeSpan lSweepDuration)

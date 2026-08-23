@@ -17,13 +17,14 @@ public sealed partial class PSection : UserControl
 
     internal const double PSectionNameSize = 12;
 
+    private const double PSectionActionGap = 16;
     private const double PSectionBadgeSize = 18;
     private const double PSectionBadgePadding = 6;
     private const double PSectionDisabledOpacity = 0.4;
 
     private PFlowControl? pFlowAttached;
     private IReadOnlyList<LPiece> pSectionListCurrent = Array.Empty<LPiece>();
-    private int? pSectionIndexCurrent;
+    private HashSet<int> pSectionSelectedCurrent = new();
     private readonly TextBlock pSectionCountLabel;
     private readonly StackPanel pSectionRowPanel;
     private bool pSectionRebuilding;
@@ -79,21 +80,25 @@ public sealed partial class PSection : UserControl
     {
         var pActionLeft = new StackPanel { Orientation = Orientation.Horizontal };
         pActionLeft.Children.Add(PSectionButtonBuild(
-            "/PAssets/PPanels/PExportMinus.svg",
-            LLocalization.LLocalizationTextRead("Section.Delete.Tooltip"),
-            PSectionDeleteHandle));
+            "/PAssets/PPanels/PSort.svg",
+            LLocalization.LLocalizationTextRead("Section.Sort.Tooltip"),
+            PSectionSortHandle));
 
+        Button pSectionRemoveAllButton = PSectionButtonBuild(
+            "/PAssets/PPanels/PListRemoveAll.svg",
+            LLocalization.LLocalizationTextRead("Section.RemoveAll.Tooltip"),
+            PSectionClearHandle);
+        pSectionRemoveAllButton.Margin = new Thickness(PSectionActionGap, 0, 0, 0);
         var pActionRight = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        Button pSectionSortButton = PSectionButtonBuild(
-            "/PAssets/PPanels/PSort.svg",
-            LLocalization.LLocalizationTextRead("Section.Sort.Tooltip"),
-            PSectionSortHandle);
-        pSectionSortButton.Margin = new Thickness(0);
-        pActionRight.Children.Add(pSectionSortButton);
+        pActionRight.Children.Add(PSectionButtonBuild(
+            "/PAssets/PPanels/PExportMinus.svg",
+            LLocalization.LLocalizationTextRead("Section.Delete.Tooltip"),
+            PSectionDeleteHandle));
+        pActionRight.Children.Add(pSectionRemoveAllButton);
 
         var pActionPanel = new Grid { Margin = new Thickness(10, 4, 10, 4) };
         pActionPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -144,6 +149,12 @@ public sealed partial class PSection : UserControl
         pFlowAttached?.PFlowSectionSort();
     }
 
+    private void PSectionClearHandle(object pSender, RoutedEventArgs pEvent)
+    {
+        PSectionEditCommit();
+        pFlowAttached?.PFlowSectionClear();
+    }
+
     public void PSectionAttach(PFlowControl pFlow)
     {
         PSectionDetach();
@@ -165,7 +176,9 @@ public sealed partial class PSection : UserControl
         bool pSectionListSame = pSectionListCurrent.SequenceEqual(pSectionListNext)
             && pSectionRowPanel.Children.Count == pSectionListNext.Length;
         pSectionListCurrent = pSectionListNext;
-        pSectionIndexCurrent = pSectionIndexSelect;
+        pSectionSelectedCurrent = pFlowAttached is null
+            ? new HashSet<int>()
+            : new HashSet<int>(pFlowAttached.PFlowSelectedRead());
 
         if (pSectionDragActive)
         {
@@ -187,7 +200,7 @@ public sealed partial class PSection : UserControl
         {
             if (pSectionRowPanel.Children[pIndex] is Border pRow)
             {
-                pRow.Background = pIndex == pSectionIndexCurrent
+                pRow.Background = pSectionSelectedCurrent.Contains(pIndex)
                     ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB))
                     : Brushes.White;
             }
@@ -204,7 +217,7 @@ public sealed partial class PSection : UserControl
             pSectionCountLabel.Text = pCount == 0 ? LLocalization.LLocalizationTextRead("Section.Header.Title") : LLocalization.LLocalizationFormat("Section.Header.Count", pCount);
             for (int i = 0; i < pCount; i++)
             {
-                pSectionRowPanel.Children.Add(PSectionRowBuild(i, pSectionListCurrent[i], i == pSectionIndexCurrent));
+                pSectionRowPanel.Children.Add(PSectionRowBuild(i, pSectionListCurrent[i], pSectionSelectedCurrent.Contains(i)));
             }
         }
         finally

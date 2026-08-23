@@ -27,6 +27,7 @@ public sealed partial class PInspector : PPanel
     private readonly UIElement pInspectorPersistentRow;
     private readonly UIElement pInspectorFullBody;
     private readonly UIElement pInspectorStripBody;
+    private readonly ScrollViewer pInspectorSectionsHost;
     private bool pInspectorMinimized;
 
     public PInspector() : base("")
@@ -102,6 +103,7 @@ public sealed partial class PInspector : PPanel
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
+        pInspectorSectionsHost = pScroll;
 
         pInspectorPersistentRow = PInspectorPersistentBuild();
 
@@ -281,6 +283,25 @@ public sealed partial class PInspector : PPanel
         pFieldPanel.Children.Add(PInspectorLabelBuild(pFieldLabel));
         pFieldPanel.Children.Add(pFieldContent);
         return pFieldPanel;
+    }
+
+    // Label pinned left, content centered across the full row width (overlapping cell).
+    private static UIElement PInspectorFieldBuild(
+        string pFieldLabel, FrameworkElement pFieldContent, bool pFieldCenter)
+    {
+        var pFieldGrid = new Grid
+        {
+            Height = PInspectorRowHeight,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        TextBlock pFieldTag = PInspectorLabelBuild(pFieldLabel);
+        pFieldTag.HorizontalAlignment = HorizontalAlignment.Left;
+        pFieldContent.HorizontalAlignment = pFieldCenter
+            ? HorizontalAlignment.Center
+            : HorizontalAlignment.Left;
+        pFieldGrid.Children.Add(pFieldTag);
+        pFieldGrid.Children.Add(pFieldContent);
+        return pFieldGrid;
     }
 
     private static TextBlock PInspectorLabelBuild(string pFieldLabel) => new()

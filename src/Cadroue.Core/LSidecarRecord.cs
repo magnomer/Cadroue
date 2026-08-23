@@ -115,6 +115,29 @@ public sealed class LSidecarSectionRecord
     public bool LSidecarDetected { get; set; }
 }
 
+public sealed class LSidecarDetectorRecord
+{
+    public int LSidecarDetectorKind { get; set; }
+    public bool LSidecarDetectorEnabled { get; set; }
+    public double LSidecarDetectorThreshold { get; set; }
+    public double LSidecarDetectorMinimum { get; set; }
+    public int LSidecarDetectorType { get; set; }
+    public double LSidecarDetectorHue { get; set; }
+    public double LSidecarDetectorSaturation { get; set; }
+    public double LSidecarDetectorBrightness { get; set; } = LDetectorBlank.LDetectorBlankValue;
+    public double LSidecarDetectorTolerance { get; set; } = LDetector.LDetectorToleranceRead().LDetectorBoundDefault;
+    public double LSidecarDetectorCoverage { get; set; } = LDetector.LDetectorCoverageRead().LDetectorBoundDefault;
+}
+
+public sealed class LSidecarSplitRecord
+{
+    public bool LSidecarSplitPersistent { get; set; }
+    public List<LSidecarDetectorRecord> LSidecarSplitDetectors { get; set; } = new();
+
+    public bool LSidecarSplitActive =>
+        LSidecarSplitPersistent || LSidecarSplitDetectors.Any(lDetector => lDetector.LSidecarDetectorEnabled);
+}
+
 public sealed class LSidecarWaveformRecord
 {
     public int LSidecarBucketMilliseconds { get; set; }

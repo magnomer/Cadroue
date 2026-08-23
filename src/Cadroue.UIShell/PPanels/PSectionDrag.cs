@@ -90,7 +90,19 @@ public sealed partial class PSection
         if (pRowIndex >= 0 && pSectionIndexEditing != pRowIndex)
         {
             PSectionEditCommit();
-            pFlowAttached?.PFlowSectionSelect(pRowIndex);
+            ModifierKeys pSectionModifiers = Keyboard.Modifiers;
+            if (pSectionModifiers.HasFlag(ModifierKeys.Shift))
+            {
+                pFlowAttached?.PFlowRangeSelect(pRowIndex);
+            }
+            else if (pSectionModifiers.HasFlag(ModifierKeys.Control))
+            {
+                pFlowAttached?.PFlowSelectToggle(pRowIndex);
+            }
+            else
+            {
+                pFlowAttached?.PFlowSectionSelect(pRowIndex);
+            }
         }
 
         pEvent.Handled = true;

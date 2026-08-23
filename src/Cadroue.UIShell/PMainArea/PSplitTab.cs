@@ -22,6 +22,8 @@ public sealed class PSplitTab : PTabSurface
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
+    private System.Threading.CancellationTokenSource? pSplitSweepSource;
+    private bool pSplitDetectorLoading;
 
     public PSplitTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -102,9 +104,11 @@ public sealed class PSplitTab : PTabSurface
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pInspector.PSensorChange += PSplitActiveUpdate;
+        pInspector.PSensorChange += PSplitDetectorSave;
 
         pInspector.PSensorRunShow();
         pInspector.PSensorRun += PSplitSweepRun;
+        pInspector.PSensorStop += () => pSplitSweepSource?.Cancel();
         pInspector.PSensorPersistentChange += PSplitPersistentHandle;
         pInspector.PBlankPickChange += pArmed =>
             pViewer.PViewerNeutralSet(pArmed, LNeutralTarget.LNeutralTargetGrey);
@@ -138,11 +142,17 @@ public sealed class PSplitTab : PTabSurface
         if (!string.IsNullOrWhiteSpace(pSourcePath))
         {
             pViewer.PViewerSourceOpen(pSourcePath);
+            PSplitDetectorLoad(pSourcePath);
         }
     }
 
     private async void PSplitSweepRun()
     {
+        if (pSplitSweepSource is not null)
+        {
+            return;
+        }
+
         if (pList.PListEditableRead() is not { } pSplitSelected || !pFlow.PFlowSweepReady)
         {
             return;
@@ -154,11 +164,26 @@ public sealed class PSplitTab : PTabSurface
             return;
         }
 
+        var pSplitSource = new System.Threading.CancellationTokenSource();
+        pSplitSweepSource = pSplitSource;
+        pInspector.PSensorRunningSet(true);
+        pInspector.PSensorLockSet(true);
+        pProcessing.IsEnabled = false;
+        pInspector.PSensorProgressShow();
+        var pSplitProgress = new Progress<double>(pValue => pInspector.PSensorProgressApply(pValue));
         try
         {
             IReadOnlyList<(TimeSpan Start, TimeSpan End)> pSplitBlanks =
-                await LSweep.LSweepScan(pSplitSelected.LDocketEntryPath, pSplitBlank, System.Threading.CancellationToken.None);
-            pFlow.PFlowSweepApply(pSplitBlanks);
+                await LSweep.LSweepScan(
+                    pSplitSelected.LDocketEntryPath,
+                    pSplitBlank,
+                    pFlow.PFlowSweepDuration,
+                    pSplitSource.Token,
+                    pSplitProgress);
+            if (!pSplitSource.IsCancellationRequested)
+            {
+                pFlow.PFlowSweepApply(pSplitBlanks);
+            }
         }
         catch (Exception pSplitException) when (pSplitException is System.ComponentModel.Win32Exception
             or System.IO.IOException
@@ -166,13 +191,131 @@ public sealed class PSplitTab : PTabSurface
             or OperationCanceledException)
         {
         }
+        finally
+        {
+            pInspector.PSensorProgressHide();
+            pInspector.PSensorLockSet(false);
+            pInspector.PSensorRunningSet(false);
+            pProcessing.IsEnabled = true;
+            pSplitSweepSource = null;
+            pSplitSource.Dispose();
+        }
     }
 
     private void PSplitPersistentHandle(bool pSplitPersistent)
     {
+        PSplitDetectorSave();
         if (pSplitPersistent)
         {
             PSplitSweepRun();
+        }
+    }
+
+    private LSidecarSplitRecord PSplitSidecarRead()
+    {
+        var pSplitDetectors = new List<LSidecarDetectorRecord>();
+        foreach (LDetectorKind pDetectorKind in LDetector.LDetectorKinds)
+        {
+            if (pDetectorKind == LDetectorKind.LDetectorKindBlank)
+            {
+                LDetectorBlank pBlank = pInspector.PBlankRead();
+                pSplitDetectors.Add(new LSidecarDetectorRecord
+                {
+                    LSidecarDetectorKind = (int)pDetectorKind,
+                    LSidecarDetectorEnabled = pBlank.LDetectorBlankEnabled,
+                    LSidecarDetectorType = (int)pBlank.LDetectorBlankType,
+                    LSidecarDetectorHue = pBlank.LDetectorBlankHue,
+                    LSidecarDetectorSaturation = pBlank.LDetectorBlankSaturation,
+                    LSidecarDetectorBrightness = pBlank.LDetectorBlankBrightness,
+                    LSidecarDetectorTolerance = pBlank.LDetectorBlankTolerance,
+                    LSidecarDetectorCoverage = pBlank.LDetectorBlankCoverage,
+                    LSidecarDetectorMinimum = pBlank.LDetectorBlankMinimum
+                });
+                continue;
+            }
+
+            LDetectorStep pStep = pInspector.PSensorStepRead(pDetectorKind);
+            pSplitDetectors.Add(new LSidecarDetectorRecord
+            {
+                LSidecarDetectorKind = (int)pDetectorKind,
+                LSidecarDetectorEnabled = pStep.LDetectorStepEnabled,
+                LSidecarDetectorThreshold = pStep.LDetectorStepThreshold,
+                LSidecarDetectorMinimum = pStep.LDetectorStepMinimum
+            });
+        }
+
+        return new LSidecarSplitRecord
+        {
+            LSidecarSplitPersistent = pInspector.PSensorPersistentCheck(),
+            LSidecarSplitDetectors = pSplitDetectors
+        };
+    }
+
+    private void PSplitDetectorSave()
+    {
+        if (pSplitDetectorLoading
+            || pViewer.PViewerSourcePath is not { } pSplitSourcePath
+            || pList.PListLockCheck(pSplitSourcePath))
+        {
+            return;
+        }
+
+        LSidecarSplitRecord pSplitRecord = PSplitSidecarRead();
+        if (!pSplitRecord.LSidecarSplitActive && LLibrarian.LLibrarianSplitLoad(pSplitSourcePath) is null)
+        {
+            return;
+        }
+
+        LLibrarian.LLibrarianSplitSave(pSplitSourcePath, pSplitRecord);
+    }
+
+    private void PSplitDetectorLoad(string pSplitSourcePath)
+    {
+        if (LLibrarian.LLibrarianSplitLoad(pSplitSourcePath) is not { } pSplitRecord)
+        {
+            return;
+        }
+
+        pSplitDetectorLoading = true;
+        try
+        {
+            pInspector.PSensorPersistentApply(pSplitRecord.LSidecarSplitPersistent);
+            foreach (LSidecarDetectorRecord pDetector in pSplitRecord.LSidecarSplitDetectors)
+            {
+                if (!Enum.IsDefined(typeof(LDetectorKind), pDetector.LSidecarDetectorKind))
+                {
+                    continue;
+                }
+
+                var pDetectorKind = (LDetectorKind)pDetector.LSidecarDetectorKind;
+                if (pDetectorKind == LDetectorKind.LDetectorKindBlank)
+                {
+                    pInspector.PBlankApply(new LDetectorBlank(
+                        pDetector.LSidecarDetectorEnabled,
+                        Enum.IsDefined(typeof(LDetectorType), pDetector.LSidecarDetectorType)
+                            ? (LDetectorType)pDetector.LSidecarDetectorType
+                            : LDetectorType.LDetectorTypeBlack,
+                        pDetector.LSidecarDetectorHue,
+                        pDetector.LSidecarDetectorSaturation,
+                        pDetector.LSidecarDetectorBrightness,
+                        pDetector.LSidecarDetectorTolerance,
+                        pDetector.LSidecarDetectorCoverage,
+                        pDetector.LSidecarDetectorMinimum));
+                    continue;
+                }
+
+                pInspector.PSensorApply(new LDetectorStep(
+                    pDetectorKind,
+                    pDetector.LSidecarDetectorEnabled,
+                    pDetector.LSidecarDetectorThreshold,
+                    pDetector.LSidecarDetectorMinimum));
+            }
+
+            PSplitActiveUpdate();
+        }
+        finally
+        {
+            pSplitDetectorLoading = false;
         }
     }
 

@@ -162,6 +162,21 @@ public static class LSidecarStore
     public static bool LSidecarAudioSave(string lSidecarSourcePath, LSidecarAudioRecord? lSidecarAudio) =>
         LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarAudio = lSidecarAudio);
 
+    public static LSidecarSplitRecord? LSidecarSplitRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            return LSidecarCoreRead(lSidecarSourcePath)?.LSidecarSplit;
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    public static bool LSidecarSplitSave(string lSidecarSourcePath, LSidecarSplitRecord? lSidecarSplit) =>
+        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSplit = lSidecarSplit);
+
     public static LSidecarWaveformRecord? LSidecarWaveformRead(string lSidecarSourcePath)
     {
         try

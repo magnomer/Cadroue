@@ -5,6 +5,7 @@ namespace Cadroue.Application;
 public sealed class LSegment
 {
     private readonly List<LPiece> lSegmentPieces = new();
+    private readonly SortedSet<int> lSegmentIndexSelected = new();
     private int? lSegmentIndexActive;
     private string? lSegmentSourcePath;
     private bool lSegmentRestoring;
@@ -18,6 +19,8 @@ public sealed class LSegment
 
     public int? LSegmentSelectionRead() => lSegmentIndexActive;
 
+    public IReadOnlyList<int> LSegmentSelectedRead() => lSegmentIndexSelected.ToArray();
+
     public string? LSegmentSourceRead() => lSegmentSourcePath;
 
     public void LSegmentSourceSet(string? lSegmentSource) => lSegmentSourcePath = lSegmentSource;
@@ -25,6 +28,7 @@ public sealed class LSegment
     public void LSegmentReset()
     {
         lSegmentPieces.Clear();
+        lSegmentIndexSelected.Clear();
         lSegmentIndexActive = null;
     }
 
@@ -163,11 +167,19 @@ public sealed class LSegment
 
     public void LSegmentDelete()
     {
-        if (lSegmentIndexActive is not int lSegmentIndex) return;
-        List<LPiece> lSegmentList = lSegmentPieces.ToList();
-        lSegmentList.RemoveAt(lSegmentIndex);
-        int? lSegmentSelect = lSegmentList.Count == 0 ? null : Math.Min(lSegmentIndex, lSegmentList.Count - 1);
+        if (lSegmentIndexSelected.Count == 0) return;
+        int lSegmentFirst = lSegmentIndexSelected.Min;
+        List<LPiece> lSegmentList = lSegmentPieces
+            .Where((_, lSegmentIndex) => !lSegmentIndexSelected.Contains(lSegmentIndex))
+            .ToList();
+        int? lSegmentSelect = lSegmentList.Count == 0 ? null : Math.Min(lSegmentFirst, lSegmentList.Count - 1);
         LSegmentApply(lSegmentList, lSegmentSelect);
+    }
+
+    public void LSegmentClear()
+    {
+        if (lSegmentPieces.Count == 0) return;
+        LSegmentApply(new List<LPiece>(), null);
     }
 
     public void LSegmentToggle(int lSegmentIndex)
@@ -250,6 +262,39 @@ public sealed class LSegment
     {
         if (lSegmentIndex < 0 || lSegmentIndex >= lSegmentPieces.Count) return;
         lSegmentIndexActive = lSegmentIndex;
+        lSegmentIndexSelected.Clear();
+        lSegmentIndexSelected.Add(lSegmentIndex);
+        LSegmentNotice?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
+    }
+
+    public void LSegmentSelectToggle(int lSegmentIndex)
+    {
+        if (lSegmentIndex < 0 || lSegmentIndex >= lSegmentPieces.Count) return;
+        if (!lSegmentIndexSelected.Remove(lSegmentIndex))
+        {
+            lSegmentIndexSelected.Add(lSegmentIndex);
+            lSegmentIndexActive = lSegmentIndex;
+        }
+        else if (lSegmentIndexActive == lSegmentIndex)
+        {
+            lSegmentIndexActive = lSegmentIndexSelected.Count == 0 ? null : lSegmentIndexSelected.Max;
+        }
+
+        LSegmentNotice?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
+    }
+
+    public void LSegmentRangeSelect(int lSegmentIndex)
+    {
+        if (lSegmentIndex < 0 || lSegmentIndex >= lSegmentPieces.Count) return;
+        int lSegmentAnchor = lSegmentIndexActive ?? lSegmentIndex;
+        int lSegmentLow = Math.Min(lSegmentAnchor, lSegmentIndex);
+        int lSegmentHigh = Math.Max(lSegmentAnchor, lSegmentIndex);
+        lSegmentIndexSelected.Clear();
+        for (int lSegmentStep = lSegmentLow; lSegmentStep <= lSegmentHigh; lSegmentStep++)
+        {
+            lSegmentIndexSelected.Add(lSegmentStep);
+        }
+
         LSegmentNotice?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
     }
 
@@ -258,6 +303,12 @@ public sealed class LSegment
         lSegmentPieces.Clear();
         lSegmentPieces.AddRange(lSegmentSections);
         lSegmentIndexActive = lSegmentSelect;
+        lSegmentIndexSelected.Clear();
+        if (lSegmentSelect is int lSegmentActive)
+        {
+            lSegmentIndexSelected.Add(lSegmentActive);
+        }
+
         LSegmentNotice?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
         LSegmentSave();
     }

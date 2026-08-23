@@ -84,7 +84,7 @@ public sealed class LSceneDetector
 
     public double LSceneDetectorSaturation { get; set; }
 
-    public double LSceneDetectorBrightness { get; set; }
+    public double LSceneDetectorBrightness { get; set; } = LDetectorBlank.LDetectorBlankValue;
 
     public double LSceneDetectorTolerance { get; set; } = LDetector.LDetectorToleranceRead().LDetectorBoundDefault;
 

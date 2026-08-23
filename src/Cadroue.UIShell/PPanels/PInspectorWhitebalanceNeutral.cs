@@ -84,7 +84,8 @@ public sealed partial class PInspector
 
         UIElement pInspectorNeutralField = PInspectorFieldBuild(
             LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePicker"),
-            pInspectorNeutralTools);
+            pInspectorNeutralTools,
+            true);
 
         var pInspectorNeutralRow = new StackPanel
         {

@@ -18,9 +18,12 @@ public sealed partial class PInspector
 {
     private RadioButton pBlankBlack = null!;
     private RadioButton pBlankColor = null!;
+    private StackPanel pBlankColorArea = null!;
     private ToggleButton pBlankPicker = null!;
     private Canvas pBlankWheelCanvas = null!;
+    private Image pBlankWheelImage = null!;
     private Ellipse pBlankWheelDot = null!;
+    private Slider pBlankBrightnessSlider = null!;
     private double pBlankWheelX;
     private double pBlankWheelY;
     private bool pBlankWheelPresent;
@@ -46,19 +49,24 @@ public sealed partial class PInspector
             Visibility = Visibility.Collapsed
         };
 
-        pStack.Children.Add(PBlankTypeBuild());
-        pStack.Children.Add(PBlankPickerBuild());
-        pStack.Children.Add(PBlankWheelBuild());
-
         LDetectorBound pBlankBrightnessBound = LDetector.LDetectorBrightnessRead();
-        pBlankBrightnessValue = PSensorDecimalBuild(0, "0.00");
-        Slider pBrightnessSlider = PInspectorSliderBuild(
+        pBlankBrightnessValue = PSensorDecimalBuild(1, "0.00");
+        pBlankBrightnessSlider = PInspectorSliderBuild(
             pBlankBrightnessValue,
             pBlankBrightnessBound.LDetectorBoundLeast,
             pBlankBrightnessBound.LDetectorBoundMost,
-            0, "0.00", null, PBlankRaise);
-        pStack.Children.Add(PFilterSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Brightness"), pBrightnessSlider, string.Empty, pBlankBrightnessValue));
+            1, "0.00", null, PBlankBrightnessChange);
+        pBlankBrightnessSlider.Width = PWhitebalanceWheelSize;
+        pBlankBrightnessSlider.HorizontalAlignment = HorizontalAlignment.Center;
+        pBlankBrightnessSlider.Margin = new Thickness(0, 6, 0, 0);
+
+        pBlankColorArea = new StackPanel
+        {
+            Children = { PBlankPickerBuild(), PBlankWheelBuild() }
+        };
+        pStack.Children.Add(PBlankTypeBuild());
+        pStack.Children.Add(pBlankColorArea);
+        PBlankTypeApply();
 
         LDetectorBound pBlankToleranceBound = LDetector.LDetectorToleranceRead();
         pBlankToleranceValue = PSensorDecimalBuild(pBlankToleranceBound.LDetectorBoundDefault, "0.00");
@@ -88,7 +96,7 @@ public sealed partial class PInspector
             pBlankMinimumBound.LDetectorBoundMost,
             LDetectorBlank.LDetectorBlankGap, "0.0", null, PBlankRaise);
         pStack.Children.Add(PFilterSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Detector.Minimum"), pMinimumSlider, "s", pBlankMinimumValue));
+            LLocalization.LLocalizationTextRead("Inspector.Blank.Minimum"), pMinimumSlider, "s", pBlankMinimumValue));
 
         pSection = new PSensorSection
         {
@@ -132,8 +140,16 @@ public sealed partial class PInspector
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center
         };
-        pBlankBlack.Checked += (_, _) => PBlankRaise();
-        pBlankColor.Checked += (_, _) => PBlankRaise();
+        pBlankBlack.Checked += (_, _) =>
+        {
+            PBlankTypeApply();
+            PBlankRaise();
+        };
+        pBlankColor.Checked += (_, _) =>
+        {
+            PBlankTypeApply();
+            PBlankRaise();
+        };
 
         return new StackPanel
         {
@@ -145,24 +161,37 @@ public sealed partial class PInspector
 
     private UIElement PBlankPickerBuild()
     {
+        var pBlankPickerIcon = new Image
+        {
+            Width = 18,
+            Height = 18,
+            Source = PIcon.PIconRead(PPickerIcon, pInspectorIconBrush),
+            Stretch = Stretch.Uniform
+        };
         pBlankPicker = new ToggleButton
         {
-            Content = new Image
-            {
-                Width = 16,
-                Height = 16,
-                Source = PIcon.PIconRead(PPickerIcon, pInspectorIconBrush),
-                Stretch = Stretch.Uniform
-            },
+            Content = pBlankPickerIcon,
             ToolTip = LLocalization.LLocalizationTextRead("Inspector.Blank.PickerTooltip"),
             Width = 32,
-            Height = 30,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Margin = new Thickness(0, 0, 0, 10)
+            Height = 32,
+            VerticalAlignment = VerticalAlignment.Center,
+            Style = PInspectorToolCreate(typeof(ToggleButton))
         };
-        pBlankPicker.Checked += (_, _) => PBlankPickChange?.Invoke(true);
-        pBlankPicker.Unchecked += (_, _) => PBlankPickChange?.Invoke(false);
-        return pBlankPicker;
+        pBlankPicker.Checked += (_, _) =>
+        {
+            pBlankPickerIcon.Source = PIcon.PIconRead(PPickerIcon, pInspectorAccentBrush);
+            PBlankPickChange?.Invoke(true);
+        };
+        pBlankPicker.Unchecked += (_, _) =>
+        {
+            pBlankPickerIcon.Source = PIcon.PIconRead(PPickerIcon, pInspectorIconBrush);
+            PBlankPickChange?.Invoke(false);
+        };
+
+        return PInspectorFieldBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Blank.Picker"),
+            pBlankPicker,
+            true);
     }
 
     private UIElement PBlankWheelBuild()
@@ -174,13 +203,14 @@ public sealed partial class PInspector
             Background = Brushes.Transparent,
             Cursor = Cursors.Cross
         };
-        pBlankWheelCanvas.Children.Add(new Image
+        pBlankWheelImage = new Image
         {
             Width = PWhitebalanceWheelSize,
             Height = PWhitebalanceWheelSize,
-            Source = PWhitebalanceWheelDraw(),
             IsHitTestVisible = false
-        });
+        };
+        pBlankWheelCanvas.Children.Add(pBlankWheelImage);
+        PBlankWheelUpdate();
         pBlankWheelDot = new Ellipse
         {
             Width = 11,
@@ -205,10 +235,39 @@ public sealed partial class PInspector
 
         return new StackPanel
         {
-            HorizontalAlignment = HorizontalAlignment.Left,
+            HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 10),
-            Children = { pBlankWheelCanvas }
+            Children = { pBlankWheelCanvas, pBlankBrightnessSlider }
         };
+    }
+
+    private void PBlankTypeApply()
+    {
+        if (pBlankColorArea is null)
+        {
+            return;
+        }
+
+        pBlankColorArea.Visibility = pBlankColor.IsChecked == true
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void PBlankBrightnessChange()
+    {
+        PBlankWheelUpdate();
+        PBlankRaise();
+    }
+
+    private void PBlankWheelUpdate()
+    {
+        if (pBlankWheelImage is null)
+        {
+            return;
+        }
+
+        double pBlankValue = Math.Clamp(PInspectorDecimalRead(pBlankBrightnessValue, 1), 0, 1);
+        pBlankWheelImage.Source = PWhitebalanceWheelDraw(pBlankValue);
     }
 
     private void PBlankWheelHandle(object sender, MouseEventArgs pBlankMouse)
@@ -237,6 +296,11 @@ public sealed partial class PInspector
         pBlankWheelY = pBlankY;
         pBlankWheelPresent = true;
         pBlankColor.IsChecked = true;
+        if (Math.Clamp(PInspectorDecimalRead(pBlankBrightnessValue, LDetectorBlank.LDetectorBlankValue), 0, 1) <= 0.0001)
+        {
+            pBlankBrightnessValue.Text = LDetectorBlank.LDetectorBlankValue.ToString("0.00", CultureInfo.InvariantCulture);
+        }
+
         PBlankWheelPlace();
         PBlankRaise();
     }
@@ -291,7 +355,7 @@ public sealed partial class PInspector
             pBlankColor.IsChecked == true ? LDetectorType.LDetectorTypeColor : LDetectorType.LDetectorTypeBlack,
             pBlankHue,
             pBlankSaturation,
-            PInspectorDecimalRead(pBlankBrightnessValue, 0),
+            PInspectorDecimalRead(pBlankBrightnessValue, LDetectorBlank.LDetectorBlankValue),
             PInspectorDecimalRead(pBlankToleranceValue, LDetector.LDetectorToleranceRead().LDetectorBoundDefault),
             PInspectorDecimalRead(pBlankCoverageValue, LDetector.LDetectorCoverageRead().LDetectorBoundDefault),
             PInspectorDecimalRead(pBlankMinimumValue, LDetectorBlank.LDetectorBlankGap)));

@@ -10,6 +10,8 @@ public sealed partial class PFlow
 {
     public bool PFlowSweepReady => lSpool is not null;
 
+    public TimeSpan PFlowSweepDuration => lSpool?.LSpoolDuration ?? TimeSpan.Zero;
+
     public void PFlowSweepApply(IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowBlanks)
     {
         if (lSpool is not { } pFlowSpool)

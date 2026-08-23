@@ -18,12 +18,14 @@ public readonly record struct LDetectorBlank(
 {
     public const double LDetectorBlankGap = 0.5;
 
+    public const double LDetectorBlankValue = 1.0;
+
     public static LDetectorBlank LDetectorBlankCreate() => new(
         false,
         LDetectorType.LDetectorTypeBlack,
         0,
         0,
-        0,
+        LDetectorBlankValue,
         LDetector.LDetectorToleranceRead().LDetectorBoundDefault,
         LDetector.LDetectorCoverageRead().LDetectorBoundDefault,
         LDetectorBlankGap);

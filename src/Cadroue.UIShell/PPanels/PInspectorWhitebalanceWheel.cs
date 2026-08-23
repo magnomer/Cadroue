@@ -7,6 +7,7 @@ using System.Windows.Shapes;
 
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -17,6 +18,8 @@ public sealed partial class PInspector
     private const double PWhitebalanceWheelValue = 0.9;
 
     private Canvas pWhitebalanceWheelCanvas = null!;
+    private Image pWhitebalanceWheelImage = null!;
+    private Slider pWhitebalanceWheelBrightness = null!;
     private Ellipse pWhitebalanceWheelDot = null!;
     private double pWhitebalanceWheelX;
     private double pWhitebalanceWheelY;
@@ -34,14 +37,14 @@ public sealed partial class PInspector
             Cursor = Cursors.Cross
         };
 
-        var pWhitebalanceWheelFace = new Image
+        pWhitebalanceWheelImage = new Image
         {
             Width = PWhitebalanceWheelSize,
             Height = PWhitebalanceWheelSize,
             Source = PWhitebalanceWheelDraw(),
             IsHitTestVisible = false
         };
-        pWhitebalanceWheelCanvas.Children.Add(pWhitebalanceWheelFace);
+        pWhitebalanceWheelCanvas.Children.Add(pWhitebalanceWheelImage);
 
         pWhitebalanceWheelDot = new Ellipse
         {
@@ -72,12 +75,26 @@ public sealed partial class PInspector
             }
         };
 
+        pWhitebalanceWheelBrightness = new Slider
+        {
+            Minimum = 0,
+            Maximum = 1,
+            Value = PWhitebalanceWheelValue,
+            Width = PWhitebalanceWheelSize,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 6, 0, 0)
+        };
+        PSlider.PSliderApply(pWhitebalanceWheelBrightness);
+        pWhitebalanceWheelBrightness.ValueChanged += (_, _) =>
+            pWhitebalanceWheelImage.Source = PWhitebalanceWheelDraw(pWhitebalanceWheelBrightness.Value);
+
         PWhitebalanceWheelPlace();
         return new StackPanel
         {
-            HorizontalAlignment = HorizontalAlignment.Left,
+            HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 8),
-            Children = { pWhitebalanceWheelCanvas }
+            Children = { pWhitebalanceWheelCanvas, pWhitebalanceWheelBrightness }
         };
     }
 
@@ -166,7 +183,10 @@ public sealed partial class PInspector
         PWhitebalanceWheelPlace();
     }
 
-    private static ImageSource PWhitebalanceWheelDraw()
+    private static ImageSource PWhitebalanceWheelDraw() =>
+        PWhitebalanceWheelDraw(PWhitebalanceWheelValue);
+
+    private static ImageSource PWhitebalanceWheelDraw(double pWheelValue)
     {
         int pWheelSize = PWhitebalanceWheelSize;
         double pWheelCenter = pWheelSize / 2.0;
@@ -190,7 +210,7 @@ public sealed partial class PInspector
                 }
 
                 (int pWheelRed, int pWheelGreen, int pWheelBlue) =
-                    LNeutral.LNeutralRgbResolve(pWheelHue, pWheelReach, PWhitebalanceWheelValue);
+                    LNeutral.LNeutralRgbResolve(pWheelHue, pWheelReach, pWheelValue);
                 double pWheelEdge = Math.Clamp((1 - pWheelReach) * PWhitebalanceWheelRadius, 0, 1);
                 int pWheelOffset = ((pWheelRow * pWheelSize) + pWheelColumn) * 4;
                 pWheelPixels[pWheelOffset] = (byte)pWheelBlue;

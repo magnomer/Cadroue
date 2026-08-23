@@ -16,6 +16,8 @@ public sealed partial class PList : PPanel
 {
     private static readonly FontFamily pListFontFamily = new("Segoe UI");
     private static readonly Brush pListSelectBrush = new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB));
+    private const double PListActionGap = 16;
+
     private static readonly Brush pListIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
     private static readonly Brush pListLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush pListTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
@@ -265,17 +267,21 @@ public sealed partial class PList : PPanel
 
     private UIElement PListActionBuild()
     {
+        Button pAddFolderButton = PListButtonBuild("/PAssets/PPanels/PFolder.svg", LLocalization.LLocalizationTextRead("List.Button.AddFolder"), PListFolderOpen);
+        pAddFolderButton.Margin = new Thickness(PListActionGap, 0, 2, 0);
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pLeftPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportPlus.svg", LLocalization.LLocalizationTextRead("List.Button.AddFiles"), PListFilesOpen));
-        pLeftPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportMinus.svg", LLocalization.LLocalizationTextRead("List.Button.RemoveFile"), PListRemove));
+        pLeftPanel.Children.Add(pAddFolderButton);
 
+        Button pRemoveAllButton = PListButtonBuild("/PAssets/PPanels/PListRemoveAll.svg", LLocalization.LLocalizationTextRead("List.Button.RemoveAll"), PListClear);
+        pRemoveAllButton.Margin = new Thickness(PListActionGap, 0, 2, 0);
         var pRightPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PFolder.svg", LLocalization.LLocalizationTextRead("List.Button.AddFolder"), PListFolderOpen));
-        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PListRemoveAll.svg", LLocalization.LLocalizationTextRead("List.Button.RemoveAll"), PListClear));
+        pRightPanel.Children.Add(PListButtonBuild("/PAssets/PPanels/PExportMinus.svg", LLocalization.LLocalizationTextRead("List.Button.RemoveFile"), PListRemove));
+        pRightPanel.Children.Add(pRemoveAllButton);
 
         var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6) };
         pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
