@@ -65,6 +65,43 @@ public sealed class SceneBoundaryTests
     }
 
     [Fact]
+    public void EmptySection_BoundariesInRange_SplitsFullDurationContiguously()
+    {
+        var sections = System.Array.Empty<LPiece>();
+        var result = TInterface.PieceSceneResolve(sections, new[] { At(3), At(7) }, At(10), 4);
+        Assert.Equal(3, result.Count);
+        Assert.Equal(At(0), result[0].LPieceOrigin);
+        Assert.Equal(At(3), result[0].LPieceEnd);
+        Assert.Equal(At(3), result[1].LPieceOrigin);
+        Assert.Equal(At(7), result[1].LPieceEnd);
+        Assert.Equal(At(7), result[2].LPieceOrigin);
+        Assert.Equal(At(10), result[2].LPieceEnd);
+        Assert.False(result[0].LPieceDetected);
+        Assert.True(result[1].LPieceDetected);
+        Assert.True(result[2].LPieceDetected);
+    }
+
+    [Fact]
+    public void EmptySection_NoBoundariesInRange_YieldsOneFullDurationSection()
+    {
+        var sections = System.Array.Empty<LPiece>();
+        var result = TInterface.PieceSceneResolve(sections, new[] { At(-1), At(12) }, At(10), 4);
+        Assert.Single(result);
+        Assert.Equal(At(0), result[0].LPieceOrigin);
+        Assert.Equal(At(10), result[0].LPieceEnd);
+    }
+
+    [Fact]
+    public void EmptySection_NoBoundaries_YieldsOneFullDurationSection()
+    {
+        var sections = System.Array.Empty<LPiece>();
+        var result = TInterface.PieceSceneResolve(sections, System.Array.Empty<TimeSpan>(), At(10), 4);
+        Assert.Single(result);
+        Assert.Equal(At(0), result[0].LPieceOrigin);
+        Assert.Equal(At(10), result[0].LPieceEnd);
+    }
+
+    [Fact]
     public void BoundaryOutsideAnySection_LeavesGapUntouched()
     {
         var sections = new[] { Seg(0, 4), Seg(8, 12) };

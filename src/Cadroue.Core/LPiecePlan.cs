@@ -231,7 +231,10 @@ public readonly partial record struct LPiece
         int lPiecePalette = Math.Max(lPieceColorCount, 1);
         int lPieceColorIndex = 0;
         var lPieceResult = new List<LPiece>();
-        foreach (LPiece lPiece in lPieces)
+        IReadOnlyList<LPiece> lPieceSource = lPieces.Count == 0
+            ? new[] { new LPiece(TimeSpan.Zero, lPieceDuration, 0, string.Empty) }
+            : lPieces;
+        foreach (LPiece lPiece in lPieceSource)
         {
             TimeSpan lPieceCursor = lPiece.LPieceOrigin;
             foreach (TimeSpan lPieceBoundary in lPieceBoundaries)
