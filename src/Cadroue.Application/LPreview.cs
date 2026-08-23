@@ -55,6 +55,9 @@ public static class LPreview
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindExposure
                 && lStep.LWorkStepActive)
             ?.LWorkFfmpegValue ?? 0;
+        LWorkVideoStep? lCurveStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindCurve
+                && lStep.LWorkStepActive);
         return new LColor(lBrightness, lContrast, lSaturation, 0)
         {
             LColorGamma = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal),
@@ -63,7 +66,8 @@ public static class LPreview
             LColorGammaBlue = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaBlue),
             LColorHighlightProtection = lGamma?.LWorkGammaHighlight ?? 0,
             LColorExposure = lExposure,
-            LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead()
+            LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead(),
+            LColorCurve = lCurveStep?.LWorkCurveRead()
         };
     }
 
@@ -176,6 +180,15 @@ public static class LPreview
         if (lEq.Count > 0)
         {
             lFilters.Add("eq=" + string.Join(':', lEq));
+        }
+
+        if (lColor.LColorCurve is { } lCurve)
+        {
+            string lCurveFilter = lCurve.LWorkCurveFormat();
+            if (lCurveFilter.Length > 0)
+            {
+                lFilters.Add(lCurveFilter);
+            }
         }
 
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;

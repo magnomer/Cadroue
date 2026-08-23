@@ -52,7 +52,8 @@ public enum LColorKind
     LColorKindBrightness,
     LColorKindContrast,
     LColorKindGamma,
-    LColorKindSaturation
+    LColorKindSaturation,
+    LColorKindCurve
 }
 
 public enum LWhitebalanceMethod
@@ -115,14 +116,73 @@ public sealed record LWorkWhitebalanceSettings(
     }
 }
 
+public sealed record LWorkCurvePoint(double LWorkCurveInput, double LWorkCurveOutput);
+
+public sealed record LWorkCurveSettings(
+    IReadOnlyList<LWorkCurvePoint> LWorkCurveMaster,
+    IReadOnlyList<LWorkCurvePoint> LWorkCurveRed,
+    IReadOnlyList<LWorkCurvePoint> LWorkCurveGreen,
+    IReadOnlyList<LWorkCurvePoint> LWorkCurveBlue)
+{
+    public static bool LWorkIdentityCheck(IReadOnlyList<LWorkCurvePoint> lPoints) =>
+        lPoints.Count == 2
+        && lPoints[0].LWorkCurveInput == 0 && lPoints[0].LWorkCurveOutput == 0
+        && lPoints[1].LWorkCurveInput == 1 && lPoints[1].LWorkCurveOutput == 1;
+
+    public string LWorkCurveFormat()
+    {
+        static string LWorkNumberFormat(double lValue) =>
+            lValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+
+        static string LWorkChannelFormat(IReadOnlyList<LWorkCurvePoint> lPoints) =>
+            string.Join(" ", lPoints.Select(lPoint =>
+                LWorkNumberFormat(lPoint.LWorkCurveInput)
+                + "/" + LWorkNumberFormat(lPoint.LWorkCurveOutput)));
+
+        var lParts = new List<string>();
+        if (!LWorkIdentityCheck(LWorkCurveMaster))
+        {
+            lParts.Add("master='" + LWorkChannelFormat(LWorkCurveMaster) + "'");
+        }
+
+        if (!LWorkIdentityCheck(LWorkCurveRed))
+        {
+            lParts.Add("red='" + LWorkChannelFormat(LWorkCurveRed) + "'");
+        }
+
+        if (!LWorkIdentityCheck(LWorkCurveGreen))
+        {
+            lParts.Add("green='" + LWorkChannelFormat(LWorkCurveGreen) + "'");
+        }
+
+        if (!LWorkIdentityCheck(LWorkCurveBlue))
+        {
+            lParts.Add("blue='" + LWorkChannelFormat(LWorkCurveBlue) + "'");
+        }
+
+        if (lParts.Count == 0)
+        {
+            return "";
+        }
+
+        lParts.Add("interp=pchip");
+        return "curves=" + string.Join(":", lParts);
+    }
+}
+
 public sealed record LWorkVideoStep(
     LColorKind LWorkStepKind,
     bool LWorkStepActive,
     double LWorkStepValue)
 {
+    private static readonly IReadOnlyList<LWorkCurvePoint> LWorkCurveIdentity =
+        new[] { new LWorkCurvePoint(0, 0), new LWorkCurvePoint(1, 1) };
+
     public LWorkGammaSettings? LWorkStepGamma { get; init; }
 
     public LWorkWhitebalanceSettings? LWorkStepWhitebalance { get; init; }
+
+    public LWorkCurveSettings? LWorkStepCurve { get; init; }
 
     public static LWorkVideoStep LWorkBrightnessCreate(bool lStepActive, double lStepValue) =>
         new(LColorKind.LColorKindBrightness, lStepActive, lStepValue);
@@ -188,6 +248,57 @@ public sealed record LWorkVideoStep(
 
     private static double LWorkCoefficientNormalize(double lValue) =>
         double.IsFinite(lValue) ? Math.Clamp(lValue, 0, 2) : 1;
+
+    public static LWorkVideoStep LWorkCurveCreate(
+        bool lStepActive,
+        IReadOnlyList<LWorkCurvePoint>? lStepMaster = null,
+        IReadOnlyList<LWorkCurvePoint>? lStepRed = null,
+        IReadOnlyList<LWorkCurvePoint>? lStepGreen = null,
+        IReadOnlyList<LWorkCurvePoint>? lStepBlue = null) =>
+        new(LColorKind.LColorKindCurve, lStepActive, 0)
+        {
+            LWorkStepCurve = new LWorkCurveSettings(
+                LWorkCurveNormalize(lStepMaster),
+                LWorkCurveNormalize(lStepRed),
+                LWorkCurveNormalize(lStepGreen),
+                LWorkCurveNormalize(lStepBlue))
+        };
+
+    private static IReadOnlyList<LWorkCurvePoint> LWorkCurveNormalize(
+        IReadOnlyList<LWorkCurvePoint>? lPoints)
+    {
+        if (lPoints is null || lPoints.Count == 0)
+        {
+            return LWorkCurveIdentity;
+        }
+
+        var lResult = new List<LWorkCurvePoint>();
+        foreach (LWorkCurvePoint lPoint in lPoints
+            .Where(lEntry => double.IsFinite(lEntry.LWorkCurveInput)
+                && double.IsFinite(lEntry.LWorkCurveOutput))
+            .Select(lEntry => new LWorkCurvePoint(
+                Math.Clamp(lEntry.LWorkCurveInput, 0, 1),
+                Math.Clamp(lEntry.LWorkCurveOutput, 0, 1)))
+            .OrderBy(lEntry => lEntry.LWorkCurveInput))
+        {
+            if (lResult.Count > 0 && lResult[^1].LWorkCurveInput == lPoint.LWorkCurveInput)
+            {
+                continue;
+            }
+
+            lResult.Add(lPoint);
+        }
+
+        return lResult.Count == 0 ? LWorkCurveIdentity : lResult;
+    }
+
+    public LWorkCurveSettings LWorkCurveRead() =>
+        LWorkStepKind == LColorKind.LColorKindCurve && LWorkStepCurve is { } lCurve
+            ? lCurve
+            : new LWorkCurveSettings(
+                LWorkCurveIdentity, LWorkCurveIdentity, LWorkCurveIdentity, LWorkCurveIdentity);
+
+    public string LWorkCurveFormat() => LWorkCurveRead().LWorkCurveFormat();
 
     public LWorkGammaSettings LWorkGammaRead() =>
         LWorkStepKind == LColorKind.LColorKindGamma && LWorkStepGamma is { } lGamma
@@ -261,6 +372,35 @@ public sealed record LWorkVideoStep(
             return $"{lSummary} (method {lMethod}, saturation {lSaturation})";
         }
 
+        if (LWorkStepKind == LColorKind.LColorKindCurve)
+        {
+            LWorkCurveSettings lCurve = LWorkCurveRead();
+            var lChannels = new List<string>();
+            if (!LWorkCurveSettings.LWorkIdentityCheck(lCurve.LWorkCurveMaster))
+            {
+                lChannels.Add($"master {lCurve.LWorkCurveMaster.Count}");
+            }
+
+            if (!LWorkCurveSettings.LWorkIdentityCheck(lCurve.LWorkCurveRed))
+            {
+                lChannels.Add($"red {lCurve.LWorkCurveRed.Count}");
+            }
+
+            if (!LWorkCurveSettings.LWorkIdentityCheck(lCurve.LWorkCurveGreen))
+            {
+                lChannels.Add($"green {lCurve.LWorkCurveGreen.Count}");
+            }
+
+            if (!LWorkCurveSettings.LWorkIdentityCheck(lCurve.LWorkCurveBlue))
+            {
+                lChannels.Add($"blue {lCurve.LWorkCurveBlue.Count}");
+            }
+
+            return lChannels.Count == 0
+                ? "LColorKindCurve"
+                : $"LColorKindCurve ({string.Join(", ", lChannels)})";
+        }
+
         if (LWorkStepKind != LColorKind.LColorKindGamma)
         {
             return lSummary;
@@ -307,5 +447,8 @@ public sealed record LWorkVideo(IReadOnlyList<LWorkVideoStep> LWorkVideoSteps)
 {
     public static LWorkVideo LWorkVideoCreate() => new(Array.Empty<LWorkVideoStep>());
 
-    public bool LWorkVideoActive => LWorkVideoSteps.Any(lStep => lStep.LWorkStepActive);
+    public bool LWorkVideoActive => LWorkVideoSteps.Any(lStep =>
+        lStep.LWorkStepActive
+        && (lStep.LWorkStepKind != LColorKind.LColorKindCurve
+            || lStep.LWorkCurveFormat().Length > 0));
 }

@@ -292,6 +292,15 @@ internal static class LEncodeVideo
                     lFilters.Add($"exposure=exposure={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
                     lRgbDomain = true;
                     break;
+                case LColorKind.LColorKindCurve:
+                    LEncodeEqAppend();
+                    string lCurve = lStep.LWorkCurveRead().LWorkCurveFormat();
+                    if (lCurve.Length > 0)
+                    {
+                        lFilters.Add(lCurve);
+                        lRgbDomain = true;
+                    }
+                    break;
                 default:
                     LEncodeEqAppend();
                     break;

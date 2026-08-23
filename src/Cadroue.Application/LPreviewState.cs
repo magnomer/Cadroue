@@ -22,6 +22,8 @@ public sealed record LColor(
 
     public LWorkWhitebalanceSettings? LColorWhitebalance { get; init; }
 
+    public LWorkCurveSettings? LColorCurve { get; init; }
+
     public static LColor LColorDefaultCreate()
     {
         return new LColor(0, 1, 1, 0);

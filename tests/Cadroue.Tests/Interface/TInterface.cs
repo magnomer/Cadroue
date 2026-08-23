@@ -223,6 +223,17 @@ internal static class TInterface
             red, green, blue, sampleRed, sampleGreen, sampleBlue);
     internal static LWorkWhitebalanceSettings WorkWhitebalanceRead(LWorkVideoStep step) =>
         step.LWorkWhitebalanceRead();
+    internal static LWorkVideoStep WorkCurveCreate(
+        bool active,
+        IReadOnlyList<LWorkCurvePoint>? master = null,
+        IReadOnlyList<LWorkCurvePoint>? red = null,
+        IReadOnlyList<LWorkCurvePoint>? green = null,
+        IReadOnlyList<LWorkCurvePoint>? blue = null) =>
+        LWorkVideoStep.LWorkCurveCreate(active, master, red, green, blue);
+    internal static LWorkCurvePoint WorkCurvePointCreate(double input, double output) =>
+        new(input, output);
+    internal static LWorkCurveSettings WorkCurveRead(LWorkVideoStep step) => step.LWorkCurveRead();
+    internal static string WorkCurveFormat(LWorkVideoStep step) => step.LWorkCurveFormat();
     internal static LWorkVideoStep WorkWhitebalanceMalformedCreate(
         LWhitebalanceMethod method, double value, double saturation) =>
         new(LColorKind.LColorKindWhitebalance, true, value)
