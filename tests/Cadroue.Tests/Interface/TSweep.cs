@@ -166,6 +166,61 @@ public sealed class TSweep
     }
 
     [Fact]
+    public void LSweepStillResolve_DiscardYieldsTwoContentSections()
+    {
+        IReadOnlyList<LPiece> lSections = LSweep.LSweepStillResolve(
+            Array.Empty<LPiece>(),
+            new[] { (TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
+            TimeSpan.FromSeconds(5),
+            4,
+            LDetectorStillMode.LDetectorStillDiscard);
+
+        Assert.Equal(2, lSections.Count);
+        Assert.All(lSections, lSection => Assert.True(lSection.LPieceDetected));
+        Assert.Equal(TimeSpan.Zero, lSections[0].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(2), lSections[0].LPieceEnd);
+        Assert.Equal(TimeSpan.FromSeconds(3), lSections[1].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(5), lSections[1].LPieceEnd);
+    }
+
+    [Fact]
+    public void LSweepStillResolve_TreatPartitionsContentStillContent()
+    {
+        IReadOnlyList<LPiece> lSections = LSweep.LSweepStillResolve(
+            Array.Empty<LPiece>(),
+            new[] { (TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
+            TimeSpan.FromSeconds(5),
+            4,
+            LDetectorStillMode.LDetectorStillTreat);
+
+        Assert.Equal(3, lSections.Count);
+        Assert.All(lSections, lSection => Assert.True(lSection.LPieceDetected));
+        Assert.Equal(TimeSpan.Zero, lSections[0].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(2), lSections[0].LPieceEnd);
+        Assert.Equal(TimeSpan.FromSeconds(2), lSections[1].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(3), lSections[1].LPieceEnd);
+        Assert.Equal(TimeSpan.FromSeconds(3), lSections[2].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(5), lSections[2].LPieceEnd);
+    }
+
+    [Fact]
+    public void LSweepStillResolve_TreatStillToEofClosesOnDuration()
+    {
+        IReadOnlyList<LPiece> lSections = LSweep.LSweepStillResolve(
+            Array.Empty<LPiece>(),
+            new[] { (TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5)) },
+            TimeSpan.FromSeconds(5),
+            4,
+            LDetectorStillMode.LDetectorStillTreat);
+
+        Assert.Equal(2, lSections.Count);
+        Assert.Equal(TimeSpan.Zero, lSections[0].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(3), lSections[0].LPieceEnd);
+        Assert.Equal(TimeSpan.FromSeconds(3), lSections[1].LPieceOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(5), lSections[1].LPieceEnd);
+    }
+
+    [Fact]
     public void LDetectorBlankClamp_BoundsEveryAxis()
     {
         LDetectorBlank lClamped = LDetectorBlank.LDetectorBlankClamp(new LDetectorBlank(

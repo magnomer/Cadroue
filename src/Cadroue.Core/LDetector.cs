@@ -10,6 +10,12 @@ public enum LDetectorKind
     LDetectorKindVolume
 }
 
+public enum LDetectorStillMode
+{
+    LDetectorStillDiscard,
+    LDetectorStillTreat
+}
+
 public readonly record struct LDetectorStep(
     LDetectorKind LDetectorStepKind,
     bool LDetectorStepEnabled,
@@ -37,7 +43,7 @@ public static class LDetector
     {
         LDetectorKind.LDetectorKindBlank => new LDetectorBound(0.80, 1.00, 0.98),
         LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 100, 50),
-        LDetectorKind.LDetectorKindStill => new LDetectorBound(-80, 0, -60),
+        LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 5, 0.1),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(-80, 0, -30),
         LDetectorKind.LDetectorKindVolume => new LDetectorBound(-60, 0, -20),
         _ => new LDetectorBound(0, 1, 0)
@@ -47,6 +53,7 @@ public static class LDetector
     {
         LDetectorKind.LDetectorKindBlank => new LDetectorBound(0, 60, LDetectorBlank.LDetectorBlankGap),
         LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 30, 0.5),
+        LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 60, 0.5),
         _ => new LDetectorBound(0, 60, 2.0)
     };
 
