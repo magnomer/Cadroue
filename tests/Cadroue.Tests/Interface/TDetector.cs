@@ -46,6 +46,26 @@ public sealed class TDetector
         Assert.Equal(0.5, lBound.LDetectorBoundDefault);
     }
 
+    [Fact]
+    public void LDetectorMinimumRead_SilenceUsesSecondsDuration()
+    {
+        LDetectorBound lBound = LDetector.LDetectorMinimumRead(LDetectorKind.LDetectorKindSilence);
+
+        Assert.Equal(0, lBound.LDetectorBoundLeast);
+        Assert.Equal(60, lBound.LDetectorBoundMost);
+        Assert.Equal(0.5, lBound.LDetectorBoundDefault);
+    }
+
+    [Fact]
+    public void LDetectorThresholdRead_SilenceUsesDecibelDomain()
+    {
+        LDetectorBound lBound = LDetector.LDetectorThresholdRead(LDetectorKind.LDetectorKindSilence);
+
+        Assert.Equal(-80, lBound.LDetectorBoundLeast);
+        Assert.Equal(0, lBound.LDetectorBoundMost);
+        Assert.Equal(-30, lBound.LDetectorBoundDefault);
+    }
+
     [Theory]
     [InlineData(-5, 0)]
     [InlineData(50, 50)]
