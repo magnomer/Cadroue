@@ -37,7 +37,7 @@ public static partial class LSweep
     public static string LSweepSceneFormat(string lSweepSource, double lSweepThreshold)
     {
         string lSweepFilter = string.Create(CultureInfo.InvariantCulture,
-            $"scdet=threshold={lSweepThreshold:0.###},metadata=print");
+            $"scdet=threshold={lSweepThreshold:0.###},metadata=print:key=lavfi.scd.time");
         return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
     }
 
