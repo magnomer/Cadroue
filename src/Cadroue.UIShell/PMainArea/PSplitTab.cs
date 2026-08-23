@@ -159,7 +159,8 @@ public sealed class PSplitTab : PTabSurface
         }
 
         LDetectorBlank pSplitBlank = pInspector.PBlankRead();
-        if (!pSplitBlank.LDetectorBlankEnabled)
+        LDetectorStep pSplitScene = pInspector.PSensorStepRead(LDetectorKind.LDetectorKindScene);
+        if (!pSplitBlank.LDetectorBlankEnabled && !pSplitScene.LDetectorStepEnabled)
         {
             return;
         }
@@ -173,16 +174,34 @@ public sealed class PSplitTab : PTabSurface
         var pSplitProgress = new Progress<double>(pValue => pInspector.PSensorProgressApply(pValue));
         try
         {
-            IReadOnlyList<(TimeSpan Start, TimeSpan End)> pSplitBlanks =
-                await LSweep.LSweepScan(
-                    pSplitSelected.LDocketEntryPath,
-                    pSplitBlank,
-                    pFlow.PFlowSweepDuration,
-                    pSplitSource.Token,
-                    pSplitProgress);
-            if (!pSplitSource.IsCancellationRequested)
+            if (pSplitBlank.LDetectorBlankEnabled)
             {
-                pFlow.PFlowSweepApply(pSplitBlanks);
+                IReadOnlyList<(TimeSpan Start, TimeSpan End)> pSplitBlanks =
+                    await LSweep.LSweepScan(
+                        pSplitSelected.LDocketEntryPath,
+                        pSplitBlank,
+                        pFlow.PFlowSweepDuration,
+                        pSplitSource.Token,
+                        pSplitProgress);
+                if (!pSplitSource.IsCancellationRequested)
+                {
+                    pFlow.PFlowSweepApply(pSplitBlanks);
+                }
+            }
+
+            if (pSplitScene.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
+            {
+                IReadOnlyList<TimeSpan> pSplitBoundaries =
+                    await LSweep.LSweepSceneScan(
+                        pSplitSelected.LDocketEntryPath,
+                        pSplitScene.LDetectorStepThreshold,
+                        pFlow.PFlowSweepDuration,
+                        pSplitSource.Token,
+                        pSplitProgress);
+                if (!pSplitSource.IsCancellationRequested)
+                {
+                    pFlow.PFlowSceneApply(pSplitBoundaries);
+                }
             }
         }
         catch (Exception pSplitException) when (pSplitException is System.ComponentModel.Win32Exception

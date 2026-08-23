@@ -68,7 +68,7 @@ public sealed partial class PInspector
     private static (string LabelKey, string Unit, string Format) PSensorShapeRead(LDetectorKind pDetectorKind) => pDetectorKind switch
     {
         LDetectorKind.LDetectorKindBlank => ("Inspector.Detector.BlackRatio", string.Empty, "0.00"),
-        LDetectorKind.LDetectorKindScene => ("Inspector.Detector.Sensitivity", string.Empty, "0.00"),
+        LDetectorKind.LDetectorKindScene => ("Inspector.Detector.Threshold", "%", "0.0"),
         LDetectorKind.LDetectorKindStill => ("Inspector.Detector.Noise", "dB", "0"),
         LDetectorKind.LDetectorKindSilence => ("Inspector.Detector.Threshold", "dB", "0"),
         LDetectorKind.LDetectorKindVolume => ("Inspector.Detector.Threshold", "dB", "0"),
@@ -106,25 +106,35 @@ public sealed partial class PInspector
         if (pDetectorKind != LDetectorKind.LDetectorKindLuminance)
         {
             LDetectorBound pThresholdBound = LDetector.LDetectorThresholdRead(pDetectorKind);
-            LDetectorBound pMinimumBound = LDetector.LDetectorMinimumRead(pDetectorKind);
             (string pLabelKey, string pUnit, string pFormat) = PSensorShapeRead(pDetectorKind);
-
             pThresholdValue = PSensorDecimalBuild(pThresholdBound.LDetectorBoundDefault, pFormat);
-            pMinimumValue = PSensorDecimalBuild(pMinimumBound.LDetectorBoundDefault, "0.0");
 
-            Slider pThresholdSlider = PInspectorSliderBuild(
-                pThresholdValue, pThresholdBound.LDetectorBoundLeast, pThresholdBound.LDetectorBoundMost,
-                pThresholdBound.LDetectorBoundDefault, pFormat,
-                () => pThresholdBound.LDetectorBoundDefault, pSensorRaise);
-            Slider pMinimumSlider = PInspectorSliderBuild(
-                pMinimumValue, pMinimumBound.LDetectorBoundLeast, pMinimumBound.LDetectorBoundMost,
-                pMinimumBound.LDetectorBoundDefault, "0.0",
-                () => pMinimumBound.LDetectorBoundDefault, pSensorRaise);
+            if (pDetectorKind == LDetectorKind.LDetectorKindScene)
+            {
+                Slider pSceneSlider = PSensorSceneBuild(
+                    pThresholdValue, pThresholdBound.LDetectorBoundDefault, pSensorRaise);
+                pStack.Children.Add(PFilterSliderBuild(
+                    LLocalization.LLocalizationTextRead(pLabelKey), pSceneSlider, pUnit, pThresholdValue));
+            }
+            else
+            {
+                LDetectorBound pMinimumBound = LDetector.LDetectorMinimumRead(pDetectorKind);
+                pMinimumValue = PSensorDecimalBuild(pMinimumBound.LDetectorBoundDefault, "0.0");
 
-            pStack.Children.Add(PFilterSliderBuild(
-                LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
-            pStack.Children.Add(PFilterSliderBuild(
-                LLocalization.LLocalizationTextRead("Inspector.Detector.Minimum"), pMinimumSlider, "s", pMinimumValue));
+                Slider pThresholdSlider = PInspectorSliderBuild(
+                    pThresholdValue, pThresholdBound.LDetectorBoundLeast, pThresholdBound.LDetectorBoundMost,
+                    pThresholdBound.LDetectorBoundDefault, pFormat,
+                    () => pThresholdBound.LDetectorBoundDefault, pSensorRaise);
+                Slider pMinimumSlider = PInspectorSliderBuild(
+                    pMinimumValue, pMinimumBound.LDetectorBoundLeast, pMinimumBound.LDetectorBoundMost,
+                    pMinimumBound.LDetectorBoundDefault, "0.0",
+                    () => pMinimumBound.LDetectorBoundDefault, pSensorRaise);
+
+                pStack.Children.Add(PFilterSliderBuild(
+                    LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
+                pStack.Children.Add(PFilterSliderBuild(
+                    LLocalization.LLocalizationTextRead("Inspector.Detector.Minimum"), pMinimumSlider, "s", pMinimumValue));
+            }
         }
 
         pSection = new PSensorSection
@@ -170,6 +180,38 @@ public sealed partial class PInspector
         TextBox pDecimalBox = PInspectorDecimalBuild();
         pDecimalBox.Text = pDefault.ToString(pFormat, CultureInfo.InvariantCulture);
         return pDecimalBox;
+    }
+
+    private static Slider PSensorSceneBuild(TextBox pValueBox, double pDefault, Action pChanged)
+    {
+        var pSlider = new Slider
+        {
+            Minimum = 0,
+            Maximum = 1,
+            Value = LDetector.LDetectorThresholdResolve(PInspectorDecimalRead(pValueBox, pDefault)),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pSlider);
+        PSlider.PSliderResetApply(pSlider, () => LDetector.LDetectorThresholdResolve(pDefault));
+
+        bool[] pSuppress = { false };
+        pSlider.ValueChanged += (_, _) =>
+        {
+            if (pSuppress[0]) { return; }
+            pSuppress[0] = true;
+            pValueBox.Text = LDetector.LDetectorPositionResolve(pSlider.Value).ToString("0.0", CultureInfo.InvariantCulture);
+            pSuppress[0] = false;
+            pChanged();
+        };
+        pValueBox.TextChanged += (_, _) =>
+        {
+            if (pSuppress[0]) { return; }
+            pSuppress[0] = true;
+            pSlider.Value = LDetector.LDetectorThresholdResolve(PInspectorDecimalRead(pValueBox, pDefault));
+            pSuppress[0] = false;
+            pChanged();
+        };
+        return pSlider;
     }
 
     public LDetectorStep PSensorStepRead(LDetectorKind pDetectorKind)
