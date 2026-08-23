@@ -138,6 +138,7 @@ public sealed partial class PInspector
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pGammaPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pWhitebalancePersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pExposurePersistent));
+        pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pCurvePersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorHighPass.PInspectorPassPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pInspectorLowPass.PInspectorPassPersistent));
         pPersistentPanel.Children.Add(PInspectorPersistentPrepare(pNoisePersistent));

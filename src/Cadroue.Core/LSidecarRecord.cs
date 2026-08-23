@@ -59,6 +59,20 @@ public sealed class LSidecarVideoStep
     public int? LSidecarSampleGreen { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? LSidecarSampleBlue { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<LSidecarCurveChannel>? LSidecarCurveChannels { get; set; }
+}
+
+public sealed class LSidecarCurveChannel
+{
+    public string LSidecarCurveName { get; set; } = string.Empty;
+    public List<LSidecarCurvePoint> LSidecarCurvePoints { get; set; } = new();
+}
+
+public sealed class LSidecarCurvePoint
+{
+    public double LSidecarCurveInput { get; set; }
+    public double LSidecarCurveOutput { get; set; }
 }
 
 public sealed class LSidecarAudioStep

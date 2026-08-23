@@ -110,6 +110,10 @@ public sealed partial class PEditTab
         string pExposureTooltip = LLocalization.LLocalizationTextRead("Processing.Step.ExposureRequiresMpv");
         pProcessing.PProcessingEnabledSet("Exposure", pMpvOnlyCapable, pExposureTooltip);
         pInspector.PExposureCapabilitySet(pMpvOnlyCapable);
+
+        string pCurveTooltip = LLocalization.LLocalizationTextRead("Processing.Step.CurveRequiresMpv");
+        pProcessing.PProcessingEnabledSet("Curve", pMpvOnlyCapable, pCurveTooltip);
+        pInspector.PCurveCapabilitySet(pMpvOnlyCapable, "Inspector.Video.CurveRequiresMpv");
         string pWhitebalanceTooltip = LLocalization.LLocalizationTextRead(
             "Processing.Step.WhitebalanceRequiresMpv");
         pProcessing.PProcessingEnabledSet("Whitebalance", pMpvOnlyCapable, pWhitebalanceTooltip);

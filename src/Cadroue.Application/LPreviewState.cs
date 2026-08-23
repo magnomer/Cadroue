@@ -37,6 +37,7 @@ public sealed record LColor(
         "Whitebalance" => LColorKind.LColorKindWhitebalance,
         "Saturation" => LColorKind.LColorKindSaturation,
         "Exposure" => LColorKind.LColorKindExposure,
+        "Curve" => LColorKind.LColorKindCurve,
         _ => null
     };
 
@@ -47,6 +48,7 @@ public sealed record LColor(
         LColorKind.LColorKindWhitebalance => "Whitebalance",
         LColorKind.LColorKindSaturation => "Saturation",
         LColorKind.LColorKindExposure => "Exposure",
+        LColorKind.LColorKindCurve => "Curve",
         _ => "Brightness"
     };
 }

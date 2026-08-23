@@ -167,8 +167,27 @@ public static partial class LEdit
                     lEditRecord.LSidecarSampleRed ?? 0,
                     lEditRecord.LSidecarSampleGreen ?? 0,
                     lEditRecord.LSidecarSampleBlue ?? 0),
+            LColorKind.LColorKindCurve =>
+                LWorkVideoStep.LWorkCurveCreate(
+                    lEditRecord.LSidecarActive,
+                    LEditCurveRead(lEditRecord, "Master"),
+                    LEditCurveRead(lEditRecord, "Red"),
+                    LEditCurveRead(lEditRecord, "Green"),
+                    LEditCurveRead(lEditRecord, "Blue")),
             _ => LWorkVideoStep.LWorkBrightnessCreate(lEditRecord.LSidecarActive, lEditRecord.LSidecarValue)
         };
+    }
+
+    private static IReadOnlyList<LWorkCurvePoint>? LEditCurveRead(
+        LSidecarVideoStep lEditRecord, string lChannelName)
+    {
+        LSidecarCurveChannel? lChannel = lEditRecord.LSidecarCurveChannels?
+            .FirstOrDefault(lEntry => lEntry.LSidecarCurveName == lChannelName);
+        return lChannel is null
+            ? null
+            : lChannel.LSidecarCurvePoints
+                .Select(lPoint => new LWorkCurvePoint(lPoint.LSidecarCurveInput, lPoint.LSidecarCurveOutput))
+                .ToList();
     }
 
     public static void LEditPlanSave(
@@ -206,7 +225,41 @@ public static partial class LEdit
                 lRecord.LSidecarSampleBlue = lWhitebalance.LWorkSampleBlue;
             }
         }
+        else if (lEditStep.LWorkStepKind == LColorKind.LColorKindCurve)
+        {
+            LWorkCurveSettings lCurve = lEditStep.LWorkCurveRead();
+            var lChannels = new List<LSidecarCurveChannel>();
+            LEditCurveAdd(lChannels, "Master", lCurve.LWorkCurveMaster);
+            LEditCurveAdd(lChannels, "Red", lCurve.LWorkCurveRed);
+            LEditCurveAdd(lChannels, "Green", lCurve.LWorkCurveGreen);
+            LEditCurveAdd(lChannels, "Blue", lCurve.LWorkCurveBlue);
+            if (lChannels.Count > 0)
+            {
+                lRecord.LSidecarCurveChannels = lChannels;
+            }
+        }
 
         return lRecord;
+    }
+
+    private static void LEditCurveAdd(
+        List<LSidecarCurveChannel> lChannels, string lChannelName, IReadOnlyList<LWorkCurvePoint> lPoints)
+    {
+        if (LWorkCurveSettings.LWorkIdentityCheck(lPoints))
+        {
+            return;
+        }
+
+        lChannels.Add(new LSidecarCurveChannel
+        {
+            LSidecarCurveName = lChannelName,
+            LSidecarCurvePoints = lPoints
+                .Select(lPoint => new LSidecarCurvePoint
+                {
+                    LSidecarCurveInput = lPoint.LWorkCurveInput,
+                    LSidecarCurveOutput = lPoint.LWorkCurveOutput
+                })
+                .ToList()
+        });
     }
 }

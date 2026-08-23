@@ -354,6 +354,37 @@ public sealed class EditPersistenceTests
     }
 
     [Fact]
+    public void Curve_PersistentRecord_RoundTripsChannelsAndOmitsIdentity()
+    {
+        LWorkVideoStep source = TInterface.WorkCurveCreate(
+            true,
+            master: new[] { TInterface.WorkCurvePointCreate(0, 0.1), TInterface.WorkCurvePointCreate(1, 0.9) },
+            red: new[]
+            {
+                TInterface.WorkCurvePointCreate(0, 0),
+                TInterface.WorkCurvePointCreate(0.5, 0.75),
+                TInterface.WorkCurvePointCreate(1, 1)
+            });
+
+        LSidecarEditRecord record = TInterface.EditPersistentCreate(TInterface.EditPlanCreate(
+            TInterface.WorkCropCreate(), TInterface.WorkVideoCreate(new[] { source }), false));
+        LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
+
+        Assert.Equal("Curve", stored.LSidecarKind);
+        Assert.NotNull(stored.LSidecarCurveChannels);
+        Assert.Equal(2, stored.LSidecarCurveChannels.Count);
+        Assert.DoesNotContain(stored.LSidecarCurveChannels, channel => channel.LSidecarCurveName == "Green");
+        Assert.DoesNotContain(stored.LSidecarCurveChannels, channel => channel.LSidecarCurveName == "Blue");
+
+        LWorkVideoStep restored = Assert.Single(
+            TInterface.EditPersistentRead(TInterface.SidecarEditRecordRoundTrip(record))
+                .LEditVideo.LWorkVideoSteps);
+        Assert.Equal(LColorKind.LColorKindCurve, restored.LWorkStepKind);
+        Assert.True(restored.LWorkStepActive);
+        Assert.Equal(TInterface.WorkCurveFormat(source), TInterface.WorkCurveFormat(restored));
+    }
+
+    [Fact]
     public void EditPersistentRead_UnknownStepToken_CreatesBrightnessStep()
     {
         LSidecarEditRecord record = TInterface.SidecarEditRecordCreate("Rubbish", true, 40);
