@@ -59,6 +59,10 @@ internal static class TInterface
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex) =>
         LPiece.LPieceDivide(sections, activeIndex, cursor, colorIndex);
 
+    internal static IReadOnlyList<LPiece> PieceSceneResolve(
+        IReadOnlyList<LPiece> sections, IReadOnlyList<TimeSpan> boundaries, TimeSpan duration, int colorCount) =>
+        LPiece.LPieceSceneResolve(sections, boundaries, duration, colorCount);
+
     internal static LSpool SpoolCreate(TimeSpan duration) => new(duration);
     internal static TimeSpan SpoolStepResolve(LSpool spool, int count) => spool.LSpoolStepResolve(count);
     internal static void SpoolZoom(LSpool spool, TimeSpan cursor, int steps) => spool.LSpoolZoom(cursor, steps);

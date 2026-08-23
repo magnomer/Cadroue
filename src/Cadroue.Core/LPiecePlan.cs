@@ -222,6 +222,48 @@ public readonly partial record struct LPiece
         return (lPieceList, lPieceActiveIndex, false);
     }
 
+    public static IReadOnlyList<LPiece> LPieceSceneResolve(
+        IReadOnlyList<LPiece> lPieces,
+        IReadOnlyList<TimeSpan> lPieceBoundaries,
+        TimeSpan lPieceDuration,
+        int lPieceColorCount)
+    {
+        int lPiecePalette = Math.Max(lPieceColorCount, 1);
+        int lPieceColorIndex = 0;
+        var lPieceResult = new List<LPiece>();
+        foreach (LPiece lPiece in lPieces)
+        {
+            TimeSpan lPieceCursor = lPiece.LPieceOrigin;
+            foreach (TimeSpan lPieceBoundary in lPieceBoundaries)
+            {
+                if (lPieceBoundary <= lPieceCursor
+                    || lPieceBoundary >= lPiece.LPieceEnd
+                    || lPieceBoundary < TimeSpan.Zero
+                    || lPieceBoundary > lPieceDuration)
+                {
+                    continue;
+                }
+
+                lPieceResult.Add((lPieceCursor == lPiece.LPieceOrigin
+                    ? lPiece with { LPieceEnd = lPieceBoundary }
+                    : new LPiece(lPieceCursor, lPieceBoundary, lPieceColorIndex++ % lPiecePalette, string.Empty)
+                    {
+                        LPieceDetected = true
+                    }));
+                lPieceCursor = lPieceBoundary;
+            }
+
+            lPieceResult.Add(lPieceCursor == lPiece.LPieceOrigin
+                ? lPiece
+                : new LPiece(lPieceCursor, lPiece.LPieceEnd, lPieceColorIndex++ % lPiecePalette, string.Empty)
+                {
+                    LPieceDetected = true
+                });
+        }
+
+        return lPieceResult;
+    }
+
     public static (List<LPiece> Sections, int First, int Second)? LPieceDivide(
         IReadOnlyList<LPiece> lPieces,
         int? lPieceActiveIndex,
