@@ -78,6 +78,8 @@ public sealed class LSceneDetector
 
     public double LSceneDetectorMinimum { get; set; }
 
+    public double LSceneDetectorWindow { get; set; } = LDetector.LDetectorWindowRead(LDetectorKind.LDetectorKindLuminance).LDetectorBoundDefault;
+
     public int LSceneDetectorType { get; set; }
 
     public double LSceneDetectorHue { get; set; }
@@ -98,6 +100,7 @@ public sealed class LSceneDetector
             LSceneDetectorEnabled = LSceneDetectorEnabled,
             LSceneDetectorThreshold = LSceneDetectorThreshold,
             LSceneDetectorMinimum = LSceneDetectorMinimum,
+            LSceneDetectorWindow = LSceneDetectorWindow,
             LSceneDetectorType = LSceneDetectorType,
             LSceneDetectorHue = LSceneDetectorHue,
             LSceneDetectorSaturation = LSceneDetectorSaturation,

@@ -233,8 +233,10 @@ public sealed class PSplitTab : PTabSurface
                 IReadOnlyList<TimeSpan> pSplitLuminances =
                     await LSweep.LSweepLuminanceScan(
                         pSplitSelected.LDocketEntryPath,
-                        pSplitLuminance.LDetectorStepMinimum,
+                        pSplitLuminance.LDetectorStepWindow,
                         pSplitLuminance.LDetectorStepThreshold,
+                        pSplitLuminance.LDetectorStepMinimum,
+                        pInspector.PSensorSpeedRead(LDetectorKind.LDetectorKindLuminance),
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
@@ -302,9 +304,8 @@ public sealed class PSplitTab : PTabSurface
                 LSidecarDetectorEnabled = pStep.LDetectorStepEnabled,
                 LSidecarDetectorThreshold = pStep.LDetectorStepThreshold,
                 LSidecarDetectorMinimum = pStep.LDetectorStepMinimum,
-                LSidecarDetectorType = pDetectorKind == LDetectorKind.LDetectorKindStill
-                    ? (int)pInspector.PSensorModeRead(pDetectorKind)
-                    : 0
+                LSidecarDetectorWindow = pStep.LDetectorStepWindow,
+                LSidecarDetectorType = PSplitModeRead(pDetectorKind)
             });
         }
 
@@ -372,7 +373,8 @@ public sealed class PSplitTab : PTabSurface
                     pDetectorKind,
                     pDetector.LSidecarDetectorEnabled,
                     pDetector.LSidecarDetectorThreshold,
-                    pDetector.LSidecarDetectorMinimum));
+                    pDetector.LSidecarDetectorMinimum,
+                    pDetector.LSidecarDetectorWindow));
 
                 if (pDetectorKind == LDetectorKind.LDetectorKindStill)
                 {
@@ -380,6 +382,13 @@ public sealed class PSplitTab : PTabSurface
                         Enum.IsDefined(typeof(LDetectorStillMode), pDetector.LSidecarDetectorType)
                             ? (LDetectorStillMode)pDetector.LSidecarDetectorType
                             : LDetectorStillMode.LDetectorStillDiscard);
+                }
+                else if (pDetectorKind == LDetectorKind.LDetectorKindLuminance)
+                {
+                    pInspector.PSensorSpeedApply(pDetectorKind,
+                        Enum.IsDefined(typeof(LDetectorLuminanceMode), pDetector.LSidecarDetectorType)
+                            ? (LDetectorLuminanceMode)pDetector.LSidecarDetectorType
+                            : LDetectorLuminanceMode.LDetectorLuminanceNormal);
                 }
             }
 
@@ -431,14 +440,20 @@ public sealed class PSplitTab : PTabSurface
                 LSceneDetectorEnabled = pStep.LDetectorStepEnabled,
                 LSceneDetectorThreshold = pStep.LDetectorStepThreshold,
                 LSceneDetectorMinimum = pStep.LDetectorStepMinimum,
-                LSceneDetectorType = pDetectorKind == LDetectorKind.LDetectorKindStill
-                    ? (int)pInspector.PSensorModeRead(pDetectorKind)
-                    : 0
+                LSceneDetectorWindow = pStep.LDetectorStepWindow,
+                LSceneDetectorType = PSplitModeRead(pDetectorKind)
             });
         }
 
         return pDetectors;
     }
+
+    private int PSplitModeRead(LDetectorKind pDetectorKind) => pDetectorKind switch
+    {
+        LDetectorKind.LDetectorKindStill => (int)pInspector.PSensorModeRead(pDetectorKind),
+        LDetectorKind.LDetectorKindLuminance => (int)pInspector.PSensorSpeedRead(pDetectorKind),
+        _ => 0
+    };
 
     private void PSplitDetectorRestore(LSceneTabRecord? lPreferenceTabLayout)
     {
@@ -475,7 +490,8 @@ public sealed class PSplitTab : PTabSurface
                 pDetectorKind,
                 pDetector.LSceneDetectorEnabled,
                 pDetector.LSceneDetectorThreshold,
-                pDetector.LSceneDetectorMinimum));
+                pDetector.LSceneDetectorMinimum,
+                pDetector.LSceneDetectorWindow));
 
             if (pDetectorKind == LDetectorKind.LDetectorKindStill)
             {
@@ -483,6 +499,13 @@ public sealed class PSplitTab : PTabSurface
                     Enum.IsDefined(typeof(LDetectorStillMode), pDetector.LSceneDetectorType)
                         ? (LDetectorStillMode)pDetector.LSceneDetectorType
                         : LDetectorStillMode.LDetectorStillDiscard);
+            }
+            else if (pDetectorKind == LDetectorKind.LDetectorKindLuminance)
+            {
+                pInspector.PSensorSpeedApply(pDetectorKind,
+                    Enum.IsDefined(typeof(LDetectorLuminanceMode), pDetector.LSceneDetectorType)
+                        ? (LDetectorLuminanceMode)pDetector.LSceneDetectorType
+                        : LDetectorLuminanceMode.LDetectorLuminanceNormal);
             }
         }
 

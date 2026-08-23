@@ -27,12 +27,22 @@ public sealed class TDetector
     }
 
     [Fact]
-    public void LDetectorMinimumRead_LuminanceUsesSecondsWindow()
+    public void LDetectorWindowRead_LuminanceUsesSecondsWindow()
     {
-        LDetectorBound lBound = LDetector.LDetectorMinimumRead(LDetectorKind.LDetectorKindLuminance);
+        LDetectorBound lBound = LDetector.LDetectorWindowRead(LDetectorKind.LDetectorKindLuminance);
 
         Assert.Equal(0.1, lBound.LDetectorBoundLeast);
         Assert.Equal(5, lBound.LDetectorBoundMost);
+        Assert.Equal(0.5, lBound.LDetectorBoundDefault);
+    }
+
+    [Fact]
+    public void LDetectorMinimumRead_LuminanceUsesSecondsDuration()
+    {
+        LDetectorBound lBound = LDetector.LDetectorMinimumRead(LDetectorKind.LDetectorKindLuminance);
+
+        Assert.Equal(0, lBound.LDetectorBoundLeast);
+        Assert.Equal(10, lBound.LDetectorBoundMost);
         Assert.Equal(0.5, lBound.LDetectorBoundDefault);
     }
 

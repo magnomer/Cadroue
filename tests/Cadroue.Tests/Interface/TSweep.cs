@@ -104,6 +104,34 @@ public sealed class TSweep
     }
 
     [Fact]
+    public void LSweepLuminanceFormat_FullKeepsEveryFrameFullResolution()
+    {
+        string lArgs = LSweep.LSweepLuminanceFormat("clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceFull);
+
+        Assert.DoesNotContain("scale=", lArgs);
+        Assert.DoesNotContain("-skip_frame", lArgs);
+        Assert.Contains("signalstats", lArgs);
+    }
+
+    [Fact]
+    public void LSweepLuminanceFormat_NormalDownscalesButDecodesEveryFrame()
+    {
+        string lArgs = LSweep.LSweepLuminanceFormat("clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceNormal);
+
+        Assert.Contains("scale=", lArgs);
+        Assert.DoesNotContain("-skip_frame", lArgs);
+    }
+
+    [Fact]
+    public void LSweepLuminanceFormat_FastDownscalesAndSkipsToKeyframes()
+    {
+        string lArgs = LSweep.LSweepLuminanceFormat("clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceFast);
+
+        Assert.Contains("scale=", lArgs);
+        Assert.Contains("-skip_frame nokey", lArgs);
+    }
+
+    [Fact]
     public void LSweepLuminanceParse_PairsTimeWithFollowingLuma()
     {
         string[] lLines =
@@ -182,6 +210,30 @@ public sealed class TSweep
 
         TimeSpan lBoundary = Assert.Single(lBoundaries);
         Assert.Equal(lSamples[lHalf].LSweepSampleTime, lBoundary);
+    }
+
+    [Fact]
+    public void LSweepMinimumResolve_DropsBoundariesUnderGap()
+    {
+        var lBoundaries = new[]
+        {
+            TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(1.4),
+            TimeSpan.FromSeconds(3),
+            TimeSpan.FromSeconds(3.2)
+        };
+
+        IReadOnlyList<TimeSpan> lKept = LSweep.LSweepMinimumResolve(lBoundaries, 0.5);
+
+        Assert.Equal(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3) }, lKept);
+    }
+
+    [Fact]
+    public void LSweepMinimumResolve_ZeroGapKeepsAll()
+    {
+        var lBoundaries = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1.1) };
+
+        Assert.Equal(lBoundaries, LSweep.LSweepMinimumResolve(lBoundaries, 0));
     }
 
     [Fact]

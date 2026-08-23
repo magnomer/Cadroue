@@ -121,6 +121,7 @@ public sealed class LSidecarDetectorRecord
     public bool LSidecarDetectorEnabled { get; set; }
     public double LSidecarDetectorThreshold { get; set; }
     public double LSidecarDetectorMinimum { get; set; }
+    public double LSidecarDetectorWindow { get; set; } = LDetector.LDetectorWindowRead(LDetectorKind.LDetectorKindLuminance).LDetectorBoundDefault;
     public int LSidecarDetectorType { get; set; }
     public double LSidecarDetectorHue { get; set; }
     public double LSidecarDetectorSaturation { get; set; }

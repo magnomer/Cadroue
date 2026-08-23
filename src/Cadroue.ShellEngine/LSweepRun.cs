@@ -151,6 +151,8 @@ public static partial class LSweep
         string lSweepSource,
         double lSweepWindow,
         double lSweepThreshold,
+        double lSweepMinimum,
+        LDetectorLuminanceMode lSweepMode,
         TimeSpan lSweepDuration,
         CancellationToken lSweepToken,
         IProgress<double>? lSweepProgress = null)
@@ -175,7 +177,7 @@ public static partial class LSweep
             }
         });
         await lSweepEmployer.LEmployerRun(
-            LSweepLuminanceFormat(lSweepSource),
+            LSweepLuminanceFormat(lSweepSource, lSweepMode),
             lSweepToken,
             lSweepAttach => lSweepProcess = lSweepAttach,
             _ => { },
@@ -192,7 +194,8 @@ public static partial class LSweep
 
         IReadOnlyList<LSweepSample> lSweepSamples = LSweepLuminanceParse(lSweepLines);
         lSweepProgress?.Report(1);
-        return LSweepLuminanceResolve(lSweepSamples, lSweepWindow, lSweepThreshold);
+        return LSweepMinimumResolve(
+            LSweepLuminanceResolve(lSweepSamples, lSweepWindow, lSweepThreshold), lSweepMinimum);
     }
 
     private static double? LSweepTimeRead(string lSweepLine)

@@ -16,11 +16,19 @@ public enum LDetectorStillMode
     LDetectorStillTreat
 }
 
+public enum LDetectorLuminanceMode
+{
+    LDetectorLuminanceNormal,
+    LDetectorLuminanceFast,
+    LDetectorLuminanceFull
+}
+
 public readonly record struct LDetectorStep(
     LDetectorKind LDetectorStepKind,
     bool LDetectorStepEnabled,
     double LDetectorStepThreshold,
-    double LDetectorStepMinimum);
+    double LDetectorStepMinimum,
+    double LDetectorStepWindow);
 
 public readonly record struct LDetectorBound(
     double LDetectorBoundLeast,
@@ -55,8 +63,14 @@ public static class LDetector
         LDetectorKind.LDetectorKindBlank => new LDetectorBound(0, 60, LDetectorBlank.LDetectorBlankGap),
         LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 30, 0.5),
         LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 60, 0.5),
-        LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0.1, 5, 0.5),
+        LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0, 10, 0.5),
         _ => new LDetectorBound(0, 60, 2.0)
+    };
+
+    public static LDetectorBound LDetectorWindowRead(LDetectorKind lDetectorKind) => lDetectorKind switch
+    {
+        LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0.1, 5, 0.5),
+        _ => new LDetectorBound(0, 0, 0)
     };
 
     public static LDetectorBound LDetectorToleranceRead() => new(0, 0.5, 0.05);
@@ -69,7 +83,8 @@ public static class LDetector
         lDetectorKind,
         false,
         LDetectorThresholdRead(lDetectorKind).LDetectorBoundDefault,
-        LDetectorMinimumRead(lDetectorKind).LDetectorBoundDefault);
+        LDetectorMinimumRead(lDetectorKind).LDetectorBoundDefault,
+        LDetectorWindowRead(lDetectorKind).LDetectorBoundDefault);
 
     private const double LDetectorSceneCeiling = 12.0;
     private const double LDetectorSceneFloor = 3.0;
@@ -98,6 +113,12 @@ public static class LDetector
     public static double LDetectorMinimumClamp(LDetectorKind lDetectorKind, double lDetectorValue)
     {
         LDetectorBound lDetectorBound = LDetectorMinimumRead(lDetectorKind);
+        return Math.Clamp(lDetectorValue, lDetectorBound.LDetectorBoundLeast, lDetectorBound.LDetectorBoundMost);
+    }
+
+    public static double LDetectorWindowClamp(LDetectorKind lDetectorKind, double lDetectorValue)
+    {
+        LDetectorBound lDetectorBound = LDetectorWindowRead(lDetectorKind);
         return Math.Clamp(lDetectorValue, lDetectorBound.LDetectorBoundLeast, lDetectorBound.LDetectorBoundMost);
     }
 }
