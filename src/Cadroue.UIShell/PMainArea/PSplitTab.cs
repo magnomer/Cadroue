@@ -163,10 +163,12 @@ public sealed class PSplitTab : PTabSurface
         LDetectorStep pSplitStill = pInspector.PSensorStepRead(LDetectorKind.LDetectorKindStill);
         LDetectorStillMode pSplitMode = pInspector.PSensorModeRead(LDetectorKind.LDetectorKindStill);
         LDetectorStep pSplitLuminance = pInspector.PSensorStepRead(LDetectorKind.LDetectorKindLuminance);
+        LDetectorStep pSplitSilence = pInspector.PSensorStepRead(LDetectorKind.LDetectorKindSilence);
         if (!pSplitBlank.LDetectorBlankEnabled
             && !pSplitScene.LDetectorStepEnabled
             && !pSplitStill.LDetectorStepEnabled
-            && !pSplitLuminance.LDetectorStepEnabled)
+            && !pSplitLuminance.LDetectorStepEnabled
+            && !pSplitSilence.LDetectorStepEnabled)
         {
             return;
         }
@@ -241,6 +243,19 @@ public sealed class PSplitTab : PTabSurface
                         pSplitSource.Token,
                         pSplitProgress);
                 pSplitBoundaries.AddRange(pSplitLuminances.Select(pSplitTime => (pSplitTime, TimeSpan.Zero)));
+            }
+
+            if (pSplitSilence.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
+            {
+                IReadOnlyList<(TimeSpan Start, TimeSpan End)> pSplitSilences =
+                    await LSweep.LSweepSilenceScan(
+                        pSplitSelected.LDocketEntryPath,
+                        pSplitSilence.LDetectorStepThreshold,
+                        pSplitSilence.LDetectorStepMinimum,
+                        pFlow.PFlowSweepDuration,
+                        pSplitSource.Token,
+                        pSplitProgress);
+                pSplitExcluded.AddRange(pSplitSilences);
             }
 
             if (!pSplitSource.IsCancellationRequested)
