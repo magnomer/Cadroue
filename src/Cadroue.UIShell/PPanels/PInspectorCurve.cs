@@ -70,7 +70,8 @@ public sealed partial class PInspector
             Margin = new Thickness(0, 0, 0, 8),
             BorderBrush = PPanelLineBrush,
             BorderThickness = new Thickness(1),
-            Background = new SolidColorBrush(Color.FromRgb(0xF6, 0xF8, 0xFA))
+            Background = new SolidColorBrush(Color.FromRgb(0xF6, 0xF8, 0xFA)),
+            Child = PCurveCanvasBuild()
         };
 
         pCurveInputValue = PInspectorDecimalBuild();
@@ -154,6 +155,7 @@ public sealed partial class PInspector
         pCurveInputValue.Text = (pPoint.LWorkCurveInput * 100).ToString("0.#", CultureInfo.InvariantCulture);
         pCurveOutputValue.Text = (pPoint.LWorkCurveOutput * 100).ToString("0.#", CultureInfo.InvariantCulture);
         pInspectorVideoSuppress = pPrevious;
+        PCurveRebuild();
     }
 
     private void PCurveInputCommit()
@@ -195,6 +197,7 @@ public sealed partial class PInspector
         double pOutput = Math.Clamp(
             PInspectorDecimalRead(pCurveOutputValue, pPoints[pCurveSelected].LWorkCurveOutput * 100) / 100, 0, 1);
         pPoints[pCurveSelected] = new LWorkCurvePoint(pPoints[pCurveSelected].LWorkCurveInput, pOutput);
+        PCurveRebuild();
         PInspectorVideoChange?.Invoke();
     }
 

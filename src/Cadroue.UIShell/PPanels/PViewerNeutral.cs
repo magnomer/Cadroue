@@ -214,6 +214,42 @@ public sealed partial class PViewer
                 pMethod));
     }
 
+    // Decode the current frame and hand the raw RGBA pixels back, for the inspector's
+    // curve histogram guide. Reuses the eyedropper's decode seam; a null result means
+    // no media, no video, or a failed decode.
+    public async void PViewerFrameRead(Action<LMediaFrame?> pFrameReady)
+    {
+        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        {
+            pFrameReady(null);
+            return;
+        }
+
+        int pViewerSourceWidth = pViewerMediaInfo.LMediaVideoWidth;
+        int pViewerSourceHeight = pViewerMediaInfo.LMediaVideoHeight;
+        string? pViewerPath = PViewerSourcePath;
+        if (pViewerSourceWidth <= 0 || pViewerSourceHeight <= 0 || string.IsNullOrWhiteSpace(pViewerPath))
+        {
+            pFrameReady(null);
+            return;
+        }
+
+        TimeSpan pViewerTime = pViewerPlayer.PPlayerReady
+            ? pViewerPlayer.PPlayerTimeRead()
+            : LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
+        int pViewerLoadClaim = pViewerLoadSerial;
+
+        LMediaFrame? pViewerFrame = await Task.Run(
+            () => LMedia.LMediaFrameRead(pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight));
+
+        if (pViewerUnloaded || pViewerLoadClaim != pViewerLoadSerial)
+        {
+            return;
+        }
+
+        pFrameReady(pViewerFrame);
+    }
+
     private (Rect Display, Rect Shown) PViewerGeometryRead()
     {
         double pViewerOverlayWidth = Math.Max(0, pViewerOverlay.ActualWidth);

@@ -31,6 +31,10 @@ public sealed partial class PEditTab : PTabSurface
     {
         Interval = TimeSpan.FromMilliseconds(80)
     };
+    private readonly System.Windows.Threading.DispatcherTimer pEditHistogramTimer = new()
+    {
+        Interval = TimeSpan.FromMilliseconds(220)
+    };
     private bool pEditPlanLoading;
 
     public PEditTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
@@ -116,6 +120,13 @@ public sealed partial class PEditTab : PTabSurface
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepChange += PEditStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
+        pProcessing.PProcessingStepOpen += pStep =>
+        {
+            if (pStep == "Curve")
+            {
+                PEditHistogramDefer();
+            }
+        };
         pInspector.PSkipActiveChange += PEditSkipHandle;
         pInspector.PInspectorPlanChange += PEditPersistentSave;
 
@@ -141,10 +152,17 @@ public sealed partial class PEditTab : PTabSurface
         pInspector.PWhitebalanceEstimateChange += PEditEstimateHandle;
         pViewer.PViewerMediaChange += _ =>
             PEditEstimateHandle(pInspector.PWhitebalanceMethodRead());
+        pViewer.PViewerMediaChange += _ => PEditHistogramDefer();
+        pViewer.PViewerClockTick += _ => PEditHistogramDefer();
         pEditColorTimer.Tick += (_, _) =>
         {
             pEditColorTimer.Stop();
             PEditColorApply();
+        };
+        pEditHistogramTimer.Tick += (_, _) =>
+        {
+            pEditHistogramTimer.Stop();
+            PEditHistogramHandle();
         };
         PEditCapabilityHandle();
         pViewer.PViewerEngineChange += PEditCapabilityHandle;
@@ -185,6 +203,7 @@ public sealed partial class PEditTab : PTabSurface
     public override void PTabClose()
     {
         pEditColorTimer.Stop();
+        pEditHistogramTimer.Stop();
         pViewer.PViewerEngineChange -= PEditCapabilityHandle;
         pViewer.PViewerEngineChange -= pViewer.PViewerNeutralCancel;
         base.PTabClose();

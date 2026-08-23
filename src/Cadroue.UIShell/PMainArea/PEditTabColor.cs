@@ -71,6 +71,21 @@ public sealed partial class PEditTab
         pViewer.PViewerEstimateRead(pMethod, pInspector.PWhitebalanceEstimateApply);
     }
 
+    private void PEditHistogramDefer()
+    {
+        pEditHistogramTimer.Stop();
+        pEditHistogramTimer.Start();
+    }
+
+    private void PEditHistogramHandle()
+    {
+        pViewer.PViewerFrameRead(pFrame => pInspector.PCurveHistogramApply(
+            pFrame is null
+                ? null
+                : LHistogram.LHistogramCreate(
+                    pFrame.LMediaFramePixels, pFrame.LMediaFrameWidth, pFrame.LMediaFrameHeight)));
+    }
+
     private void PEditColorApply()
     {
         pViewer.PViewerColorSet(LPreview.LPreviewColorResolve(PEditVideoRead(PEditMpvCheck())));
