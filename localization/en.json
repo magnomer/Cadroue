@@ -1012,6 +1012,8 @@
   "Inspector.Detector.StillMode.Discard": "Discard",
   "Inspector.Detector.Minimum": "Minimum duration",
   "Inspector.Detector.Minimal": "Minimum",
+  "Inspector.Detector.LuminanceChange": "Change threshold",
+  "Inspector.Detector.ComparisonWindow": "Comparison window",
   "Inspector.Blank.Black": "Black",
   "Inspector.Blank.Color": "Color",
   "Inspector.Blank.Tolerance": "Tolerance",

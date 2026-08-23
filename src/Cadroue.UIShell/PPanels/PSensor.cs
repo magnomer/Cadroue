@@ -71,6 +71,7 @@ public sealed partial class PInspector
         LDetectorKind.LDetectorKindBlank => ("Inspector.Detector.BlackRatio", string.Empty, "0.00"),
         LDetectorKind.LDetectorKindScene => ("Inspector.Detector.Sensitivity", string.Empty, "0"),
         LDetectorKind.LDetectorKindStill => ("Inspector.Detector.Tolerance", "%", "0.00"),
+        LDetectorKind.LDetectorKindLuminance => ("Inspector.Detector.LuminanceChange", "%", "0"),
         LDetectorKind.LDetectorKindSilence => ("Inspector.Detector.Threshold", "dB", "0"),
         LDetectorKind.LDetectorKindVolume => ("Inspector.Detector.Threshold", "dB", "0"),
         _ => ("Inspector.Detector.Threshold", string.Empty, "0")
@@ -105,36 +106,36 @@ public sealed partial class PInspector
         TextBox? pThresholdValue = null;
         TextBox? pMinimumValue = null;
         RadioButton? pModeTreat = null;
-        if (pDetectorKind != LDetectorKind.LDetectorKindLuminance)
+        LDetectorBound pThresholdBound = LDetector.LDetectorThresholdRead(pDetectorKind);
+        (string pLabelKey, string pUnit, string pFormat) = PSensorShapeRead(pDetectorKind);
+        pThresholdValue = PSensorDecimalBuild(pThresholdBound.LDetectorBoundDefault, pFormat);
+
+        LDetectorBound pMinimumBound = LDetector.LDetectorMinimumRead(pDetectorKind);
+        pMinimumValue = PSensorDecimalBuild(pMinimumBound.LDetectorBoundDefault, "0.0");
+
+        Slider pThresholdSlider = PInspectorSliderBuild(
+            pThresholdValue, pThresholdBound.LDetectorBoundLeast, pThresholdBound.LDetectorBoundMost,
+            pThresholdBound.LDetectorBoundDefault, pFormat,
+            () => pThresholdBound.LDetectorBoundDefault, pSensorRaise);
+        Slider pMinimumSlider = PInspectorSliderBuild(
+            pMinimumValue, pMinimumBound.LDetectorBoundLeast, pMinimumBound.LDetectorBoundMost,
+            pMinimumBound.LDetectorBoundDefault, "0.0",
+            () => pMinimumBound.LDetectorBoundDefault, pSensorRaise);
+
+        string pMinimumKey = pDetectorKind switch
         {
-            LDetectorBound pThresholdBound = LDetector.LDetectorThresholdRead(pDetectorKind);
-            (string pLabelKey, string pUnit, string pFormat) = PSensorShapeRead(pDetectorKind);
-            pThresholdValue = PSensorDecimalBuild(pThresholdBound.LDetectorBoundDefault, pFormat);
+            LDetectorKind.LDetectorKindScene or LDetectorKind.LDetectorKindStill => "Inspector.Detector.Minimal",
+            LDetectorKind.LDetectorKindLuminance => "Inspector.Detector.ComparisonWindow",
+            _ => "Inspector.Detector.Minimum"
+        };
+        pStack.Children.Add(PFilterSliderBuild(
+            LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
+        pStack.Children.Add(PFilterSliderBuild(
+            LLocalization.LLocalizationTextRead(pMinimumKey), pMinimumSlider, "s", pMinimumValue));
 
-            LDetectorBound pMinimumBound = LDetector.LDetectorMinimumRead(pDetectorKind);
-            pMinimumValue = PSensorDecimalBuild(pMinimumBound.LDetectorBoundDefault, "0.0");
-
-            Slider pThresholdSlider = PInspectorSliderBuild(
-                pThresholdValue, pThresholdBound.LDetectorBoundLeast, pThresholdBound.LDetectorBoundMost,
-                pThresholdBound.LDetectorBoundDefault, pFormat,
-                () => pThresholdBound.LDetectorBoundDefault, pSensorRaise);
-            Slider pMinimumSlider = PInspectorSliderBuild(
-                pMinimumValue, pMinimumBound.LDetectorBoundLeast, pMinimumBound.LDetectorBoundMost,
-                pMinimumBound.LDetectorBoundDefault, "0.0",
-                () => pMinimumBound.LDetectorBoundDefault, pSensorRaise);
-
-            string pMinimumKey = pDetectorKind is LDetectorKind.LDetectorKindScene or LDetectorKind.LDetectorKindStill
-                ? "Inspector.Detector.Minimal"
-                : "Inspector.Detector.Minimum";
-            pStack.Children.Add(PFilterSliderBuild(
-                LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
-            pStack.Children.Add(PFilterSliderBuild(
-                LLocalization.LLocalizationTextRead(pMinimumKey), pMinimumSlider, "s", pMinimumValue));
-
-            if (pDetectorKind == LDetectorKind.LDetectorKindStill)
-            {
-                pModeTreat = PSensorModeBuild(pStack, pSensorRaise);
-            }
+        if (pDetectorKind == LDetectorKind.LDetectorKindStill)
+        {
+            pModeTreat = PSensorModeBuild(pStack, pSensorRaise);
         }
 
         pSection = new PSensorSection
