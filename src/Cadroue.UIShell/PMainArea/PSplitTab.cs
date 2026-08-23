@@ -164,11 +164,14 @@ public sealed class PSplitTab : PTabSurface
         LDetectorStillMode pSplitMode = pInspector.PSensorModeRead(LDetectorKind.LDetectorKindStill);
         LDetectorStep pSplitLuminance = pInspector.PSensorStepRead(LDetectorKind.LDetectorKindLuminance);
         LDetectorStep pSplitSilence = pInspector.PSensorStepRead(LDetectorKind.LDetectorKindSilence);
+        LDetectorStep pSplitVolume = pInspector.PSensorStepRead(LDetectorKind.LDetectorKindVolume);
+        LDetectorMetricMode pSplitMetric = pInspector.PSensorMetricRead(LDetectorKind.LDetectorKindVolume);
         if (!pSplitBlank.LDetectorBlankEnabled
             && !pSplitScene.LDetectorStepEnabled
             && !pSplitStill.LDetectorStepEnabled
             && !pSplitLuminance.LDetectorStepEnabled
-            && !pSplitSilence.LDetectorStepEnabled)
+            && !pSplitSilence.LDetectorStepEnabled
+            && !pSplitVolume.LDetectorStepEnabled)
         {
             return;
         }
@@ -256,6 +259,21 @@ public sealed class PSplitTab : PTabSurface
                         pSplitSource.Token,
                         pSplitProgress);
                 pSplitExcluded.AddRange(pSplitSilences);
+            }
+
+            if (pSplitVolume.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
+            {
+                IReadOnlyList<TimeSpan> pSplitVolumes =
+                    await LSweep.LSweepVolumeScan(
+                        pSplitSelected.LDocketEntryPath,
+                        pSplitVolume.LDetectorStepWindow,
+                        pSplitVolume.LDetectorStepThreshold,
+                        pSplitVolume.LDetectorStepMinimum,
+                        pSplitMetric,
+                        pFlow.PFlowSweepDuration,
+                        pSplitSource.Token,
+                        pSplitProgress);
+                pSplitBoundaries.AddRange(pSplitVolumes.Select(pSplitTime => (pSplitTime, TimeSpan.Zero)));
             }
 
             if (!pSplitSource.IsCancellationRequested)
@@ -405,6 +423,13 @@ public sealed class PSplitTab : PTabSurface
                             ? (LDetectorLuminanceMode)pDetector.LSidecarDetectorType
                             : LDetectorLuminanceMode.LDetectorLuminanceNormal);
                 }
+                else if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
+                {
+                    pInspector.PSensorMetricApply(pDetectorKind,
+                        Enum.IsDefined(typeof(LDetectorMetricMode), pDetector.LSidecarDetectorType)
+                            ? (LDetectorMetricMode)pDetector.LSidecarDetectorType
+                            : LDetectorMetricMode.LDetectorMetricLufs);
+                }
             }
 
             PSplitActiveUpdate();
@@ -467,6 +492,7 @@ public sealed class PSplitTab : PTabSurface
     {
         LDetectorKind.LDetectorKindStill => (int)pInspector.PSensorModeRead(pDetectorKind),
         LDetectorKind.LDetectorKindLuminance => (int)pInspector.PSensorSpeedRead(pDetectorKind),
+        LDetectorKind.LDetectorKindVolume => (int)pInspector.PSensorMetricRead(pDetectorKind),
         _ => 0
     };
 
@@ -521,6 +547,13 @@ public sealed class PSplitTab : PTabSurface
                     Enum.IsDefined(typeof(LDetectorLuminanceMode), pDetector.LSceneDetectorType)
                         ? (LDetectorLuminanceMode)pDetector.LSceneDetectorType
                         : LDetectorLuminanceMode.LDetectorLuminanceNormal);
+            }
+            else if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
+            {
+                pInspector.PSensorMetricApply(pDetectorKind,
+                    Enum.IsDefined(typeof(LDetectorMetricMode), pDetector.LSceneDetectorType)
+                        ? (LDetectorMetricMode)pDetector.LSceneDetectorType
+                        : LDetectorMetricMode.LDetectorMetricLufs);
             }
         }
 

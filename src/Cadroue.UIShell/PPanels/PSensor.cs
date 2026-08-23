@@ -32,6 +32,7 @@ public sealed partial class PInspector
         public RadioButton? PSensorFast { get; init; }
         public RadioButton? PSensorNormal { get; init; }
         public RadioButton? PSensorFull { get; init; }
+        public RadioButton? PSensorMetric { get; init; }
         public bool PSensorSuppress { get; set; }
     }
 
@@ -114,6 +115,7 @@ public sealed partial class PInspector
         RadioButton? pLuminanceFast = null;
         RadioButton? pLuminanceNormal = null;
         RadioButton? pLuminanceFull = null;
+        RadioButton? pMetricRms = null;
         LDetectorBound pThresholdBound = LDetector.LDetectorThresholdRead(pDetectorKind);
         (string pLabelKey, string pUnit, string pFormat) = PSensorShapeRead(pDetectorKind);
         pThresholdValue = PSensorDecimalBuild(pThresholdBound.LDetectorBoundDefault, pFormat);
@@ -139,7 +141,8 @@ public sealed partial class PInspector
         pStack.Children.Add(PFilterSliderBuild(
             LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
 
-        if (pDetectorKind == LDetectorKind.LDetectorKindLuminance)
+        if (pDetectorKind == LDetectorKind.LDetectorKindLuminance
+            || pDetectorKind == LDetectorKind.LDetectorKindVolume)
         {
             LDetectorBound pWindowBound = LDetector.LDetectorWindowRead(pDetectorKind);
             pWindowValue = PSensorDecimalBuild(pWindowBound.LDetectorBoundDefault, "0.0");
@@ -148,7 +151,7 @@ public sealed partial class PInspector
                 pWindowBound.LDetectorBoundDefault, "0.0",
                 () => pWindowBound.LDetectorBoundDefault, pSensorRaise);
             pStack.Children.Add(PFilterSliderBuild(
-                LLocalization.LLocalizationTextRead("Inspector.Detector.ComparisonWindow"), pWindowSlider, "s", pWindowValue));
+                LLocalization.LLocalizationTextRead("Inspector.Detector.Window"), pWindowSlider, "s", pWindowValue));
         }
 
         pStack.Children.Add(PFilterSliderBuild(
@@ -165,6 +168,11 @@ public sealed partial class PInspector
                 PSensorSpeedBuild(pStack, pSensorRaise);
         }
 
+        if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
+        {
+            pMetricRms = PSensorMetricBuild(pStack, pSensorRaise);
+        }
+
         pSection = new PSensorSection
         {
             PSensorKind = pDetectorKind,
@@ -177,7 +185,8 @@ public sealed partial class PInspector
             PSensorMode = pModeTreat,
             PSensorFast = pLuminanceFast,
             PSensorNormal = pLuminanceNormal,
-            PSensorFull = pLuminanceFull
+            PSensorFull = pLuminanceFull,
+            PSensorMetric = pMetricRms
         };
 
         pApply.Checked += (_, _) => PSensorApplyHandle(pSection);
@@ -340,6 +349,67 @@ public sealed partial class PInspector
             default:
                 pNormal.IsChecked = true;
                 break;
+        }
+
+        pSection.PSensorSuppress = false;
+    }
+
+    private RadioButton PSensorMetricBuild(StackPanel pStack, Action pSensorRaise)
+    {
+        string pMetricGroup = "PSensorVolumeMetric_" + System.Guid.NewGuid().ToString("N");
+        var pMetricLufs = new RadioButton
+        {
+            Content = LLocalization.LLocalizationTextRead("Inspector.Metric.Lufs"),
+            GroupName = pMetricGroup,
+            IsChecked = true,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily,
+            VerticalContentAlignment = VerticalAlignment.Center
+        };
+        var pMetricRms = new RadioButton
+        {
+            Content = LLocalization.LLocalizationTextRead("Inspector.Metric.Rms"),
+            GroupName = pMetricGroup,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily,
+            VerticalContentAlignment = VerticalAlignment.Center
+        };
+        pMetricLufs.Checked += (_, _) => pSensorRaise();
+        pMetricRms.Checked += (_, _) => pSensorRaise();
+
+        Border pMetricRow = PRadio.PRadioSegmentBuild(pMetricLufs, pMetricRms);
+        pStack.Children.Add(PInspectorFieldBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Detector.Metric"), pMetricRow, true));
+        return pMetricRms;
+    }
+
+    public LDetectorMetricMode PSensorMetricRead(LDetectorKind pDetectorKind)
+    {
+        if (pSensorSections.TryGetValue(pDetectorKind, out PSensorSection? pSection)
+            && pSection.PSensorMetric is { IsChecked: true })
+        {
+            return LDetectorMetricMode.LDetectorMetricRms;
+        }
+
+        return LDetectorMetricMode.LDetectorMetricLufs;
+    }
+
+    public void PSensorMetricApply(LDetectorKind pDetectorKind, LDetectorMetricMode pDetectorMode)
+    {
+        if (!pSensorSections.TryGetValue(pDetectorKind, out PSensorSection? pSection)
+            || pSection.PSensorMetric is not { } pMetricRms)
+        {
+            return;
+        }
+
+        pSection.PSensorSuppress = true;
+        if (pDetectorMode == LDetectorMetricMode.LDetectorMetricRms)
+        {
+            pMetricRms.IsChecked = true;
+        }
+        else if (pMetricRms.Parent is Panel pMetricRow && pMetricRow.Children[0] is RadioButton pMetricLufs)
+        {
+            pMetricLufs.IsChecked = true;
         }
 
         pSection.PSensorSuppress = false;
