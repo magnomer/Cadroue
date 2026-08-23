@@ -23,7 +23,7 @@ public sealed class TDetector
 
         Assert.Equal(0, lBound.LDetectorBoundLeast);
         Assert.Equal(50, lBound.LDetectorBoundMost);
-        Assert.Equal(10, lBound.LDetectorBoundDefault);
+        Assert.Equal(8, lBound.LDetectorBoundDefault);
     }
 
     [Fact]
@@ -175,5 +175,42 @@ public sealed class TDetector
     {
         Assert.Null(LDetector.LDetectorPresetMatch(
             LDetectorMetricMode.LDetectorMetricRms, 24, 2, 0.5));
+    }
+
+    [Theory]
+    [InlineData("Conservative", 14, 1.0, 1.5)]
+    [InlineData("Normal", 8, 0.5, 0.5)]
+    [InlineData("Sensitive", 4, 0.3, 0.3)]
+    public void LDetectorLuminanceResolve_TokenYieldsTuning(
+        string lToken, double lThreshold, double lWindow, double lMinimum)
+    {
+        (double Threshold, double Window, double Minimum)? lTuning = LDetector.LDetectorLuminanceResolve(lToken);
+
+        Assert.NotNull(lTuning);
+        Assert.Equal(lThreshold, lTuning.Value.Threshold);
+        Assert.Equal(lWindow, lTuning.Value.Window);
+        Assert.Equal(lMinimum, lTuning.Value.Minimum);
+    }
+
+    [Fact]
+    public void LDetectorLuminanceResolve_UnknownTokenReturnsNull()
+    {
+        Assert.Null(LDetector.LDetectorLuminanceResolve("Custom"));
+    }
+
+    [Theory]
+    [InlineData(14, 1.0, 1.5, "Conservative")]
+    [InlineData(8, 0.5, 0.5, "Normal")]
+    [InlineData(4, 0.3, 0.3, "Sensitive")]
+    public void LDetectorLuminanceMatch_TuningPicksPreset(
+        double lThreshold, double lWindow, double lMinimum, string lExpected)
+    {
+        Assert.Equal(lExpected, LDetector.LDetectorLuminanceMatch(lThreshold, lWindow, lMinimum));
+    }
+
+    [Fact]
+    public void LDetectorLuminanceMatch_TweakYieldsCustom()
+    {
+        Assert.Null(LDetector.LDetectorLuminanceMatch(10, 0.5, 0.5));
     }
 }

@@ -65,7 +65,7 @@ public static class LDetector
         LDetectorKind.LDetectorKindBlank => new LDetectorBound(0.80, 1.00, 0.98),
         LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 100, 50),
         LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 5, 0.1),
-        LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0, 50, 10),
+        LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0, 50, 8),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(-80, 0, -30),
         LDetectorKind.LDetectorKindVolume => new LDetectorBound(0, 30, 20),
         _ => new LDetectorBound(0, 1, 0)
@@ -219,6 +219,37 @@ public static class LDetector
             if (LDetectorStillResolve(lDetectorToken) is { } lDetectorStill
                 && Math.Abs(lDetectorTolerance - lDetectorStill.Tolerance) < 0.05
                 && Math.Abs(lDetectorMinimum - lDetectorStill.Minimum) < 0.05)
+            {
+                return lDetectorToken;
+            }
+        }
+
+        return null;
+    }
+
+    public static readonly IReadOnlyList<string> LDetectorLuminancePresets = new[]
+    {
+        "Conservative",
+        "Normal",
+        "Sensitive"
+    };
+
+    public static (double Threshold, double Window, double Minimum)? LDetectorLuminanceResolve(string lDetectorToken) => lDetectorToken switch
+    {
+        "Conservative" => (14.0, 1.0, 1.5),
+        "Normal" => (8.0, 0.5, 0.5),
+        "Sensitive" => (4.0, 0.3, 0.3),
+        _ => null
+    };
+
+    public static string? LDetectorLuminanceMatch(double lDetectorThreshold, double lDetectorWindow, double lDetectorMinimum)
+    {
+        foreach (string lDetectorToken in LDetectorLuminancePresets)
+        {
+            if (LDetectorLuminanceResolve(lDetectorToken) is { } lDetectorLuminance
+                && Math.Abs(lDetectorThreshold - lDetectorLuminance.Threshold) < 0.05
+                && Math.Abs(lDetectorWindow - lDetectorLuminance.Window) < 0.05
+                && Math.Abs(lDetectorMinimum - lDetectorLuminance.Minimum) < 0.05)
             {
                 return lDetectorToken;
             }

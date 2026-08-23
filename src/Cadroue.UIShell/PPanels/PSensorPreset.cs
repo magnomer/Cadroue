@@ -136,6 +136,31 @@ public sealed partial class PInspector
             return;
         }
 
+        if (pDetectorKind == LDetectorKind.LDetectorKindLuminance)
+        {
+            if (LDetector.LDetectorLuminanceResolve(pToken) is { } pLuminance)
+            {
+                if (pSection.PSensorThreshold is { } pLuminanceThreshold)
+                {
+                    pLuminanceThreshold.Text = pLuminance.Threshold.ToString(
+                        PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
+                }
+
+                if (pSection.PSensorWindow is { } pLuminanceWindow)
+                {
+                    pLuminanceWindow.Text = pLuminance.Window.ToString("0.0", CultureInfo.InvariantCulture);
+                }
+
+                if (pSection.PSensorMinimum is { } pLuminanceMinimum)
+                {
+                    pLuminanceMinimum.Text = pLuminance.Minimum.ToString("0.0", CultureInfo.InvariantCulture);
+                }
+            }
+
+            pSection.PSensorSuppress = false;
+            return;
+        }
+
         if (LDetector.LDetectorPresetRead(pToken) is not { } pPreset)
         {
             pSection.PSensorSuppress = false;
@@ -188,6 +213,20 @@ public sealed partial class PInspector
                 ? PInspectorDecimalRead(pStillMinimumBox, pDefault.LDetectorStepMinimum)
                 : pDefault.LDetectorStepMinimum;
             return LDetector.LDetectorStillMatch(pStillTolerance, pStillMinimum) == pBase;
+        }
+
+        if (pDetectorKind == LDetectorKind.LDetectorKindLuminance)
+        {
+            double pLuminanceThreshold = pSection.PSensorThreshold is { } pLuminanceThresholdBox
+                ? PInspectorDecimalRead(pLuminanceThresholdBox, pDefault.LDetectorStepThreshold)
+                : pDefault.LDetectorStepThreshold;
+            double pLuminanceWindow = pSection.PSensorWindow is { } pLuminanceWindowBox
+                ? PInspectorDecimalRead(pLuminanceWindowBox, pDefault.LDetectorStepWindow)
+                : pDefault.LDetectorStepWindow;
+            double pLuminanceMinimum = pSection.PSensorMinimum is { } pLuminanceMinimumBox
+                ? PInspectorDecimalRead(pLuminanceMinimumBox, pDefault.LDetectorStepMinimum)
+                : pDefault.LDetectorStepMinimum;
+            return LDetector.LDetectorLuminanceMatch(pLuminanceThreshold, pLuminanceWindow, pLuminanceMinimum) == pBase;
         }
 
         string? pMatch = LDetector.LDetectorPresetMatch(

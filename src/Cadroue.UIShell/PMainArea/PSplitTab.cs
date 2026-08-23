@@ -434,7 +434,8 @@ public sealed class PSplitTab : PTabSurface
 
                 if (pDetectorKind is LDetectorKind.LDetectorKindVolume
                     or LDetectorKind.LDetectorKindScene
-                    or LDetectorKind.LDetectorKindStill)
+                    or LDetectorKind.LDetectorKindStill
+                    or LDetectorKind.LDetectorKindLuminance)
                 {
                     pInspector.PSensorPresetApply(pDetectorKind, pDetector.LSidecarDetectorPreset);
                 }
@@ -567,7 +568,8 @@ public sealed class PSplitTab : PTabSurface
 
             if (pDetectorKind is LDetectorKind.LDetectorKindVolume
                 or LDetectorKind.LDetectorKindScene
-                or LDetectorKind.LDetectorKindStill)
+                or LDetectorKind.LDetectorKindStill
+                or LDetectorKind.LDetectorKindLuminance)
             {
                 pInspector.PSensorPresetApply(pDetectorKind, pDetector.LSceneDetectorPreset);
             }

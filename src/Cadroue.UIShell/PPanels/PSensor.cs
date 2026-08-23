@@ -99,7 +99,8 @@ public sealed partial class PInspector
 
             if (pDetectorKind is LDetectorKind.LDetectorKindVolume
                 or LDetectorKind.LDetectorKindScene
-                or LDetectorKind.LDetectorKindStill)
+                or LDetectorKind.LDetectorKindStill
+                or LDetectorKind.LDetectorKindLuminance)
             {
                 PSensorPresetCheck(pDetectorKind);
             }
@@ -182,7 +183,9 @@ public sealed partial class PInspector
                 PSensorSpeedBuild(pStack, pSensorRaise);
         }
 
-        if (pDetectorKind is LDetectorKind.LDetectorKindScene or LDetectorKind.LDetectorKindStill)
+        if (pDetectorKind is LDetectorKind.LDetectorKindScene
+            or LDetectorKind.LDetectorKindStill
+            or LDetectorKind.LDetectorKindLuminance)
         {
             PSensorPresetBuild(pStack, pDetectorKind, 0);
         }
