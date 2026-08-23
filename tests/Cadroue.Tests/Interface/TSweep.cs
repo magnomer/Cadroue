@@ -29,6 +29,47 @@ public sealed class TSweep
     }
 
     [Fact]
+    public void LSweepStillParse_ReadsOneFreezeIntervalFromPair()
+    {
+        string[] lLines =
+        {
+            "[freezedetect @ 0x1] lavfi.freezedetect.freeze_start: 2.5",
+            "[freezedetect @ 0x1] lavfi.freezedetect.freeze_duration: 1.5",
+            "[freezedetect @ 0x1] lavfi.freezedetect.freeze_end: 4.0"
+        };
+
+        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lIntervals = LSweep.LSweepStillParse(lLines);
+
+        (TimeSpan Start, TimeSpan End) lInterval = Assert.Single(lIntervals);
+        Assert.Equal(TimeSpan.FromSeconds(2.5), lInterval.Start);
+        Assert.Equal(TimeSpan.FromSeconds(4.0), lInterval.End);
+    }
+
+    [Fact]
+    public void LSweepStillParse_IgnoresUnterminatedStart()
+    {
+        string[] lLines =
+        {
+            "[freezedetect @ 0x1] lavfi.freezedetect.freeze_start: 2.5",
+            "frame= 10 fps=0.0"
+        };
+
+        Assert.Empty(LSweep.LSweepStillParse(lLines));
+    }
+
+    [Fact]
+    public void LSweepStillParse_ReturnsEmptyWithoutFreezeKeys()
+    {
+        string[] lLines =
+        {
+            "frame= 10 fps=0.0 time=00:00:03.50",
+            "[blackdetect @ 0x1] black_start:1.5 black_end:3.0"
+        };
+
+        Assert.Empty(LSweep.LSweepStillParse(lLines));
+    }
+
+    [Fact]
     public void LSweepSceneParse_ReadsAscendingUniqueTimesAndIgnoresOtherLines()
     {
         string[] lLines =
