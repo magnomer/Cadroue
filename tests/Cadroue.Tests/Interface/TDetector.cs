@@ -73,7 +73,7 @@ public sealed class TDetector
 
         Assert.Equal(0, lBound.LDetectorBoundLeast);
         Assert.Equal(30, lBound.LDetectorBoundMost);
-        Assert.Equal(6, lBound.LDetectorBoundDefault);
+        Assert.Equal(20, lBound.LDetectorBoundDefault);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class TDetector
 
         Assert.Equal(0.1, lBound.LDetectorBoundLeast);
         Assert.Equal(5, lBound.LDetectorBoundMost);
-        Assert.Equal(0.5, lBound.LDetectorBoundDefault);
+        Assert.Equal(2, lBound.LDetectorBoundDefault);
     }
 
     [Fact]
@@ -103,9 +103,9 @@ public sealed class TDetector
 
         Assert.Equal(LDetectorKind.LDetectorKindVolume, lStep.LDetectorStepKind);
         Assert.False(lStep.LDetectorStepEnabled);
-        Assert.Equal(6, lStep.LDetectorStepThreshold);
+        Assert.Equal(20, lStep.LDetectorStepThreshold);
         Assert.Equal(0.5, lStep.LDetectorStepMinimum);
-        Assert.Equal(0.5, lStep.LDetectorStepWindow);
+        Assert.Equal(2, lStep.LDetectorStepWindow);
     }
 
     [Theory]
@@ -141,5 +141,39 @@ public sealed class TDetector
     public void LDetectorSensitivityClamp_HoldsPlausibleBand(double lSensitivity, double lExpected)
     {
         Assert.Equal(lExpected, LDetector.LDetectorSensitivityClamp(lSensitivity), 9);
+    }
+
+    [Theory]
+    [InlineData(24, "Conservative")]
+    [InlineData(20, "Normal")]
+    [InlineData(16, "Sensitive")]
+    public void LDetectorPresetMatch_LufsThresholdPicksPreset(double lThreshold, string lExpected)
+    {
+        Assert.Equal(lExpected, LDetector.LDetectorPresetMatch(
+            LDetectorMetricMode.LDetectorMetricLufs, lThreshold, 2, 0.5));
+    }
+
+    [Theory]
+    [InlineData(21, "Conservative")]
+    [InlineData(19, "Normal")]
+    [InlineData(16, "Sensitive")]
+    public void LDetectorPresetMatch_DecibelThresholdPicksPreset(double lThreshold, string lExpected)
+    {
+        Assert.Equal(lExpected, LDetector.LDetectorPresetMatch(
+            LDetectorMetricMode.LDetectorMetricRms, lThreshold, 2, 0.5));
+    }
+
+    [Fact]
+    public void LDetectorPresetMatch_TweakYieldsCustom()
+    {
+        Assert.Null(LDetector.LDetectorPresetMatch(
+            LDetectorMetricMode.LDetectorMetricLufs, 22, 2, 0.5));
+    }
+
+    [Fact]
+    public void LDetectorPresetMatch_MetricMismatchYieldsCustom()
+    {
+        Assert.Null(LDetector.LDetectorPresetMatch(
+            LDetectorMetricMode.LDetectorMetricRms, 24, 2, 0.5));
     }
 }

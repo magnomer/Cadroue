@@ -8,7 +8,7 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LSweep
 {
-    private const double LSweepVolumeFloor = -120.0;
+    private const double LSweepVolumeFloor = -70.0;
 
     public static string LSweepVolumeFormat(string lSweepSource, LDetectorMetricMode lSweepMode)
     {
@@ -38,7 +38,7 @@ public static partial class LSweep
 
             double? lSweepLoudness = LSweepLoudnessRead(lSweepLine, "lavfi.r128.M=")
                 ?? LSweepLoudnessRead(lSweepLine, "lavfi.astats.Overall.RMS_level=");
-            if (lSweepLoudness is { } lSweepValue && lSweepTime is { } lSweepStamp)
+            if (lSweepLoudness is { } lSweepValue && lSweepValue > LSweepVolumeFloor && lSweepTime is { } lSweepStamp)
             {
                 lSweepSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lSweepStamp), lSweepValue));
             }
@@ -68,7 +68,7 @@ public static partial class LSweep
             return lSweepValue;
         }
 
-        return lSweepToken.Contains("inf", StringComparison.OrdinalIgnoreCase) ? LSweepVolumeFloor : null;
+        return null;
     }
 
     public static async Task<IReadOnlyList<TimeSpan>> LSweepVolumeScan(

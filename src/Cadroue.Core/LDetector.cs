@@ -41,6 +41,13 @@ public readonly record struct LDetectorBound(
     double LDetectorBoundMost,
     double LDetectorBoundDefault);
 
+public readonly record struct LDetectorPreset(
+    string LDetectorPresetToken,
+    double LDetectorPresetLufs,
+    double LDetectorPresetDecibel,
+    double LDetectorPresetWindow,
+    double LDetectorPresetMinimum);
+
 public static class LDetector
 {
     public static readonly IReadOnlyList<LDetectorKind> LDetectorKinds = new[]
@@ -60,7 +67,7 @@ public static class LDetector
         LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 5, 0.1),
         LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0, 50, 10),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(-80, 0, -30),
-        LDetectorKind.LDetectorKindVolume => new LDetectorBound(0, 30, 6),
+        LDetectorKind.LDetectorKindVolume => new LDetectorBound(0, 30, 20),
         _ => new LDetectorBound(0, 1, 0)
     };
 
@@ -78,7 +85,7 @@ public static class LDetector
     public static LDetectorBound LDetectorWindowRead(LDetectorKind lDetectorKind) => lDetectorKind switch
     {
         LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0.1, 5, 0.5),
-        LDetectorKind.LDetectorKindVolume => new LDetectorBound(0.1, 5, 0.5),
+        LDetectorKind.LDetectorKindVolume => new LDetectorBound(0.1, 5, 2),
         _ => new LDetectorBound(0, 0, 0)
     };
 
@@ -129,5 +136,49 @@ public static class LDetector
     {
         LDetectorBound lDetectorBound = LDetectorWindowRead(lDetectorKind);
         return Math.Clamp(lDetectorValue, lDetectorBound.LDetectorBoundLeast, lDetectorBound.LDetectorBoundMost);
+    }
+
+    public static readonly IReadOnlyList<LDetectorPreset> LDetectorPresets = new[]
+    {
+        new LDetectorPreset("Conservative", 24, 21, 2, 0.5),
+        new LDetectorPreset("Normal", 20, 19, 2, 0.5),
+        new LDetectorPreset("Sensitive", 16, 16, 2, 0.5)
+    };
+
+    public static LDetectorPreset? LDetectorPresetRead(string lDetectorToken)
+    {
+        foreach (LDetectorPreset lDetectorPreset in LDetectorPresets)
+        {
+            if (lDetectorPreset.LDetectorPresetToken == lDetectorToken)
+            {
+                return lDetectorPreset;
+            }
+        }
+
+        return null;
+    }
+
+    public static double LDetectorPresetResolve(LDetectorPreset lDetectorPreset, LDetectorMetricMode lDetectorMetric) =>
+        lDetectorMetric == LDetectorMetricMode.LDetectorMetricRms
+            ? lDetectorPreset.LDetectorPresetDecibel
+            : lDetectorPreset.LDetectorPresetLufs;
+
+    public static string? LDetectorPresetMatch(
+        LDetectorMetricMode lDetectorMetric,
+        double lDetectorThreshold,
+        double lDetectorWindow,
+        double lDetectorMinimum)
+    {
+        foreach (LDetectorPreset lDetectorPreset in LDetectorPresets)
+        {
+            if (Math.Abs(lDetectorThreshold - LDetectorPresetResolve(lDetectorPreset, lDetectorMetric)) < 0.05
+                && Math.Abs(lDetectorWindow - lDetectorPreset.LDetectorPresetWindow) < 0.05
+                && Math.Abs(lDetectorMinimum - lDetectorPreset.LDetectorPresetMinimum) < 0.05)
+            {
+                return lDetectorPreset.LDetectorPresetToken;
+            }
+        }
+
+        return null;
     }
 }

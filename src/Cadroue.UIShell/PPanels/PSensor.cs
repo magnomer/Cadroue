@@ -92,10 +92,17 @@ public sealed partial class PInspector
         PSensorSection pSection = null!;
         void pSensorRaise()
         {
-            if (!pSection.PSensorSuppress)
+            if (pSection.PSensorSuppress)
             {
-                PSensorRaise();
+                return;
             }
+
+            if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
+            {
+                PSensorPresetCheck();
+            }
+
+            PSensorRaise();
         }
 
         CheckBox pApply = PInspectorSwitchBuild(
@@ -176,6 +183,7 @@ public sealed partial class PInspector
         if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
         {
             pMetricRms = PSensorMetricBuild(pStack, pSensorRaise, pThresholdUnit);
+            PSensorPresetBuild(pStack);
         }
 
         pSection = new PSensorSection
@@ -203,6 +211,11 @@ public sealed partial class PInspector
         PSensorStackUpdate(pSection);
 
         pSensorSections[pDetectorKind] = pSection;
+        if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
+        {
+            PSensorPresetUpdate();
+        }
+
         return pBody;
     }
 
@@ -359,83 +372,6 @@ public sealed partial class PInspector
         pSection.PSensorSuppress = false;
     }
 
-    private RadioButton PSensorMetricBuild(StackPanel pStack, Action pSensorRaise, TextBlock? pThresholdUnit)
-    {
-        string pMetricGroup = "PSensorVolumeMetric_" + System.Guid.NewGuid().ToString("N");
-        var pMetricLufs = new RadioButton
-        {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Metric.Lufs"),
-            GroupName = pMetricGroup,
-            IsChecked = true,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily,
-            VerticalContentAlignment = VerticalAlignment.Center
-        };
-        var pMetricRms = new RadioButton
-        {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Metric.Rms"),
-            GroupName = pMetricGroup,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily,
-            VerticalContentAlignment = VerticalAlignment.Center
-        };
-        pMetricLufs.Checked += (_, _) =>
-        {
-            if (pThresholdUnit is not null)
-            {
-                pThresholdUnit.Text = "LU";
-            }
-
-            pSensorRaise();
-        };
-        pMetricRms.Checked += (_, _) =>
-        {
-            if (pThresholdUnit is not null)
-            {
-                pThresholdUnit.Text = "dB";
-            }
-
-            pSensorRaise();
-        };
-
-        Border pMetricRow = PRadio.PRadioSegmentBuild(pMetricLufs, pMetricRms);
-        pStack.Children.Insert(0, PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Detector.Metric"), pMetricRow, true));
-        return pMetricRms;
-    }
-
-    public LDetectorMetricMode PSensorMetricRead(LDetectorKind pDetectorKind)
-    {
-        if (pSensorSections.TryGetValue(pDetectorKind, out PSensorSection? pSection)
-            && pSection.PSensorMetric is { IsChecked: true })
-        {
-            return LDetectorMetricMode.LDetectorMetricRms;
-        }
-
-        return LDetectorMetricMode.LDetectorMetricLufs;
-    }
-
-    public void PSensorMetricApply(LDetectorKind pDetectorKind, LDetectorMetricMode pDetectorMode)
-    {
-        if (!pSensorSections.TryGetValue(pDetectorKind, out PSensorSection? pSection)
-            || pSection.PSensorMetric is not { } pMetricRms)
-        {
-            return;
-        }
-
-        pSection.PSensorSuppress = true;
-        if (pDetectorMode == LDetectorMetricMode.LDetectorMetricRms)
-        {
-            pMetricRms.IsChecked = true;
-        }
-        else if (pMetricRms.Parent is Panel pMetricRow && pMetricRow.Children[0] is RadioButton pMetricLufs)
-        {
-            pMetricLufs.IsChecked = true;
-        }
-
-        pSection.PSensorSuppress = false;
-    }
-
     private static TextBox PSensorDecimalBuild(double pDefault, string pFormat)
     {
         TextBox pDecimalBox = PInspectorDecimalBuild();
@@ -497,5 +433,9 @@ public sealed partial class PInspector
 
         pSection.PSensorSuppress = false;
         PSensorStackUpdate(pSection);
+        if (pDetectorStep.LDetectorStepKind == LDetectorKind.LDetectorKindVolume)
+        {
+            PSensorPresetUpdate();
+        }
     }
 }

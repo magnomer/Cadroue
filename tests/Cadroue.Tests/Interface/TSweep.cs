@@ -392,7 +392,7 @@ public sealed class TSweep
     }
 
     [Fact]
-    public void LSweepVolumeParse_FloorsSilentRmsInfinity()
+    public void LSweepVolumeParse_SkipsSilentGateInfinity()
     {
         string[] lLines =
         {
@@ -404,9 +404,27 @@ public sealed class TSweep
 
         IReadOnlyList<LSweepSample> lSamples = LSweep.LSweepVolumeParse(lLines);
 
-        Assert.Equal(2, lSamples.Count);
-        Assert.Equal(-120.0, lSamples[0].LSweepSampleLuma);
-        Assert.Equal(-20.0, lSamples[1].LSweepSampleLuma);
+        LSweepSample lSample = Assert.Single(lSamples);
+        Assert.Equal(TimeSpan.FromSeconds(0.5), lSample.LSweepSampleTime);
+        Assert.Equal(-20.0, lSample.LSweepSampleLuma);
+    }
+
+    [Fact]
+    public void LSweepVolumeParse_SkipsNumericGateFloorBelowSilence()
+    {
+        string[] lLines =
+        {
+            "frame:0    pts_time:0.000000",
+            "lavfi.r128.M=-120.691000",
+            "frame:1    pts_time:0.100000",
+            "lavfi.r128.M=-18.000000"
+        };
+
+        IReadOnlyList<LSweepSample> lSamples = LSweep.LSweepVolumeParse(lLines);
+
+        LSweepSample lSample = Assert.Single(lSamples);
+        Assert.Equal(TimeSpan.FromSeconds(0.1), lSample.LSweepSampleTime);
+        Assert.Equal(-18.0, lSample.LSweepSampleLuma);
     }
 
     [Fact]
