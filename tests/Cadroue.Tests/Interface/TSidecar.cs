@@ -46,6 +46,9 @@ internal sealed class TSidecar : IDisposable
         return core is null ? null : DataCreate(LSidecarParse.LSidecarCreate(core, null));
     }
 
+    internal static int SectionCountParse(string json) =>
+        LSidecarParse.LSidecarCoreParse(json)?.LSidecarSections.Count ?? 0;
+
     internal string SourceCreate(string name, string content)
     {
         string path = Path.Combine(tSidecarRoot, name);

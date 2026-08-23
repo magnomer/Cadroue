@@ -107,6 +107,24 @@ public sealed class TSweep
     }
 
     [Fact]
+    public void LSweepSectionResolve_TruncatesToCeiling()
+    {
+        var lBlanks = new List<(TimeSpan Start, TimeSpan End)>();
+        for (int lIndex = 0; lIndex < 6000; lIndex++)
+        {
+            lBlanks.Add((TimeSpan.FromSeconds(2 * lIndex + 1), TimeSpan.FromSeconds(2 * lIndex + 2)));
+        }
+
+        IReadOnlyList<LPiece> lSections = LSweep.LSweepSectionResolve(
+            Array.Empty<LPiece>(),
+            lBlanks,
+            TimeSpan.FromSeconds(2 * 6000 + 2),
+            4);
+
+        Assert.Equal(LPiece.LPieceCeiling, lSections.Count);
+    }
+
+    [Fact]
     public void LDetectorBlankClamp_BoundsEveryAxis()
     {
         LDetectorBlank lClamped = LDetectorBlank.LDetectorBlankClamp(new LDetectorBlank(

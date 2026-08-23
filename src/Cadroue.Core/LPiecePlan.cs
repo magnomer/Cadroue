@@ -267,7 +267,9 @@ public readonly partial record struct LPiece
                 });
         }
 
-        return lPieceResult;
+        return lPieceResult.Count > LPieceCeiling
+            ? lPieceResult.GetRange(0, LPieceCeiling)
+            : lPieceResult;
     }
 
     public static (List<LPiece> Sections, int First, int Second)? LPieceDivide(

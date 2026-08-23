@@ -136,7 +136,9 @@ public static partial class LSweep
             lSweepColorIndex++;
         }
 
-        return lSweepResult;
+        return lSweepResult.Count > LPiece.LPieceCeiling
+            ? lSweepResult.GetRange(0, LPiece.LPieceCeiling)
+            : lSweepResult;
     }
 
     private static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepIntervalNormalize(

@@ -1,3 +1,5 @@
+using System.Linq;
+
 using Cadroue.Core;
 
 using Xunit;
@@ -159,5 +161,13 @@ public sealed class SceneBoundaryTests
         {
             Assert.True(piece.LPieceEnd - piece.LPieceOrigin >= At(0.5));
         }
+    }
+
+    [Fact]
+    public void RunawayBoundaries_TruncateToCeiling()
+    {
+        TimeSpan[] boundaries = Enumerable.Range(1, 6000).Select(second => At(second)).ToArray();
+        var result = TInterface.PieceSceneResolve(System.Array.Empty<LPiece>(), boundaries, At(7000), 4);
+        Assert.Equal(LPiece.LPieceCeiling, result.Count);
     }
 }

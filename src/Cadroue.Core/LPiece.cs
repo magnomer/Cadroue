@@ -2,6 +2,8 @@ namespace Cadroue.Core;
 
 public readonly partial record struct LPiece(TimeSpan LPieceOrigin, TimeSpan LPieceEnd, int LPieceColorIndex, string LPieceName)
 {
+    public const int LPieceCeiling = 5000;
+
     private readonly string? lPiecePrefix;
     private readonly string? lPieceSuffix;
 

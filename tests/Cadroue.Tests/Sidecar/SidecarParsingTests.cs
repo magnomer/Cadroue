@@ -1,3 +1,7 @@
+using System.Linq;
+
+using Cadroue.Core;
+
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -49,5 +53,14 @@ public sealed class SidecarParsingTests
         Assert.Empty(parsed.Keyframes);
         Assert.Empty(parsed.ScannedSpans);
         Assert.Null(parsed.Waveform);
+    }
+
+    [Fact]
+    public void OverfilledSections_ClampToCeiling()
+    {
+        string sections = string.Join(",", Enumerable.Repeat("{}", 6000));
+        int count = TSidecar.SectionCountParse($$"""{"LSidecarSections":[{{sections}}]}""");
+
+        Assert.Equal(LPiece.LPieceCeiling, count);
     }
 }

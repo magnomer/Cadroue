@@ -171,6 +171,10 @@ internal static class LSidecarParse
         lSidecarCore.LSidecarSource.LSidecarAbsolutePath ??= string.Empty;
         lSidecarCore.LSidecarSource.LSidecarPartialHash ??= string.Empty;
         lSidecarCore.LSidecarSections ??= new();
+        if (lSidecarCore.LSidecarSections.Count > LPiece.LPieceCeiling)
+        {
+            lSidecarCore.LSidecarSections = lSidecarCore.LSidecarSections.GetRange(0, LPiece.LPieceCeiling);
+        }
 
         if (lSidecarCore.LSidecarEdit is { } lSidecarEdit)
         {
