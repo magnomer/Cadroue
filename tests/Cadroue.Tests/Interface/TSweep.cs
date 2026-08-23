@@ -392,6 +392,24 @@ public sealed class TSweep
     }
 
     [Fact]
+    public void LSweepVolumeParse_FloorsSilentRmsInfinity()
+    {
+        string[] lLines =
+        {
+            "frame:0    pts_time:0.000000",
+            "lavfi.astats.Overall.RMS_level=-inf",
+            "frame:1    pts_time:0.500000",
+            "lavfi.astats.Overall.RMS_level=-20.000000"
+        };
+
+        IReadOnlyList<LSweepSample> lSamples = LSweep.LSweepVolumeParse(lLines);
+
+        Assert.Equal(2, lSamples.Count);
+        Assert.Equal(-120.0, lSamples[0].LSweepSampleLuma);
+        Assert.Equal(-20.0, lSamples[1].LSweepSampleLuma);
+    }
+
+    [Fact]
     public void LSweepBoundaryResolve_LevelJumpYieldsOneBoundaryOnRawDelta()
     {
         var lSamples = new List<LSweepSample>();

@@ -78,7 +78,7 @@ public sealed partial class PInspector
         LDetectorKind.LDetectorKindStill => ("Inspector.Detector.Tolerance", "%", "0.00"),
         LDetectorKind.LDetectorKindLuminance => ("Inspector.Detector.LuminanceChange", "%", "0"),
         LDetectorKind.LDetectorKindSilence => ("Inspector.Detector.Threshold", "dB", "0"),
-        LDetectorKind.LDetectorKindVolume => ("Inspector.Detector.Threshold", "dB", "0"),
+        LDetectorKind.LDetectorKindVolume => ("Inspector.Detector.Threshold", "LU", "0"),
         _ => ("Inspector.Detector.Threshold", string.Empty, "0")
     };
 
@@ -135,11 +135,16 @@ public sealed partial class PInspector
         string pMinimumKey = pDetectorKind switch
         {
             LDetectorKind.LDetectorKindScene or LDetectorKind.LDetectorKindStill
-                or LDetectorKind.LDetectorKindLuminance or LDetectorKind.LDetectorKindSilence => "Inspector.Detector.Minimal",
+                or LDetectorKind.LDetectorKindLuminance or LDetectorKind.LDetectorKindSilence
+                or LDetectorKind.LDetectorKindVolume => "Inspector.Detector.Minimal",
             _ => "Inspector.Detector.Minimum"
         };
-        pStack.Children.Add(PFilterSliderBuild(
-            LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue));
+        Grid pThresholdRow = PFilterSliderBuild(
+            LLocalization.LLocalizationTextRead(pLabelKey), pThresholdSlider, pUnit, pThresholdValue);
+        pStack.Children.Add(pThresholdRow);
+        TextBlock? pThresholdUnit = pThresholdRow.Children.Count > 2
+            ? pThresholdRow.Children[2] as TextBlock
+            : null;
 
         if (pDetectorKind == LDetectorKind.LDetectorKindLuminance
             || pDetectorKind == LDetectorKind.LDetectorKindVolume)
@@ -170,7 +175,7 @@ public sealed partial class PInspector
 
         if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
         {
-            pMetricRms = PSensorMetricBuild(pStack, pSensorRaise);
+            pMetricRms = PSensorMetricBuild(pStack, pSensorRaise, pThresholdUnit);
         }
 
         pSection = new PSensorSection
@@ -354,7 +359,7 @@ public sealed partial class PInspector
         pSection.PSensorSuppress = false;
     }
 
-    private RadioButton PSensorMetricBuild(StackPanel pStack, Action pSensorRaise)
+    private RadioButton PSensorMetricBuild(StackPanel pStack, Action pSensorRaise, TextBlock? pThresholdUnit)
     {
         string pMetricGroup = "PSensorVolumeMetric_" + System.Guid.NewGuid().ToString("N");
         var pMetricLufs = new RadioButton
@@ -374,11 +379,27 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily,
             VerticalContentAlignment = VerticalAlignment.Center
         };
-        pMetricLufs.Checked += (_, _) => pSensorRaise();
-        pMetricRms.Checked += (_, _) => pSensorRaise();
+        pMetricLufs.Checked += (_, _) =>
+        {
+            if (pThresholdUnit is not null)
+            {
+                pThresholdUnit.Text = "LU";
+            }
+
+            pSensorRaise();
+        };
+        pMetricRms.Checked += (_, _) =>
+        {
+            if (pThresholdUnit is not null)
+            {
+                pThresholdUnit.Text = "dB";
+            }
+
+            pSensorRaise();
+        };
 
         Border pMetricRow = PRadio.PRadioSegmentBuild(pMetricLufs, pMetricRms);
-        pStack.Children.Add(PInspectorFieldBuild(
+        pStack.Children.Insert(0, PInspectorFieldBuild(
             LLocalization.LLocalizationTextRead("Inspector.Detector.Metric"), pMetricRow, true));
         return pMetricRms;
     }

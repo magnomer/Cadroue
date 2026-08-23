@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 
 using Cadroue.Core;
 using Cadroue.Media;
@@ -7,6 +8,8 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LSweep
 {
+    private const double LSweepVolumeFloor = -120.0;
+
     public static string LSweepVolumeFormat(string lSweepSource, LDetectorMetricMode lSweepMode)
     {
         string lSweepFilter = lSweepMode == LDetectorMetricMode.LDetectorMetricLufs
@@ -33,8 +36,8 @@ public static partial class LSweep
                 continue;
             }
 
-            double? lSweepLoudness = LSweepFieldRead(lSweepLine, "lavfi.r128.M=")
-                ?? LSweepFieldRead(lSweepLine, "lavfi.astats.Overall.RMS_level=");
+            double? lSweepLoudness = LSweepLoudnessRead(lSweepLine, "lavfi.r128.M=")
+                ?? LSweepLoudnessRead(lSweepLine, "lavfi.astats.Overall.RMS_level=");
             if (lSweepLoudness is { } lSweepValue && lSweepTime is { } lSweepStamp)
             {
                 lSweepSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lSweepStamp), lSweepValue));
@@ -42,6 +45,30 @@ public static partial class LSweep
         }
 
         return lSweepSamples;
+    }
+
+    private static double? LSweepLoudnessRead(string lSweepLine, string lSweepKey)
+    {
+        int lSweepAt = lSweepLine.IndexOf(lSweepKey, StringComparison.Ordinal);
+        if (lSweepAt < 0)
+        {
+            return null;
+        }
+
+        int lSweepFrom = lSweepAt + lSweepKey.Length;
+        int lSweepTo = lSweepFrom;
+        while (lSweepTo < lSweepLine.Length && !char.IsWhiteSpace(lSweepLine[lSweepTo]))
+        {
+            lSweepTo++;
+        }
+
+        ReadOnlySpan<char> lSweepToken = lSweepLine.AsSpan(lSweepFrom, lSweepTo - lSweepFrom);
+        if (double.TryParse(lSweepToken, NumberStyles.Float, CultureInfo.InvariantCulture, out double lSweepValue))
+        {
+            return lSweepValue;
+        }
+
+        return lSweepToken.Contains("inf", StringComparison.OrdinalIgnoreCase) ? LSweepVolumeFloor : null;
     }
 
     public static async Task<IReadOnlyList<TimeSpan>> LSweepVolumeScan(
