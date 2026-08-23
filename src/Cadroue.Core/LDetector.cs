@@ -45,6 +45,7 @@ public static class LDetector
 
     public static LDetectorBound LDetectorMinimumRead(LDetectorKind lDetectorKind) => lDetectorKind switch
     {
+        LDetectorKind.LDetectorKindBlank => new LDetectorBound(0, 60, LDetectorBlank.LDetectorBlankGap),
         LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 30, 0.5),
         _ => new LDetectorBound(0, 60, 2.0)
     };
