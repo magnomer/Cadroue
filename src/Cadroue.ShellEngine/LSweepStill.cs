@@ -53,7 +53,11 @@ public static partial class LSweep
         return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
     }
 
-    public static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepStillParse(IEnumerable<string> lSweepLines)
+    public static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepStillParse(IEnumerable<string> lSweepLines) =>
+        LSweepStillParse(lSweepLines, TimeSpan.Zero);
+
+    public static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepStillParse(
+        IEnumerable<string> lSweepLines, TimeSpan lSweepDuration)
     {
         var lSweepIntervals = new List<(TimeSpan, TimeSpan)>();
         double? lSweepPending = null;
@@ -77,6 +81,11 @@ public static partial class LSweep
                 lSweepIntervals.Add((TimeSpan.FromSeconds(lSweepOpen), TimeSpan.FromSeconds(lSweepTo)));
                 lSweepPending = null;
             }
+        }
+
+        if (lSweepPending is { } lSweepTail && lSweepDuration > TimeSpan.FromSeconds(lSweepTail))
+        {
+            lSweepIntervals.Add((TimeSpan.FromSeconds(lSweepTail), lSweepDuration));
         }
 
         return lSweepIntervals;

@@ -144,7 +144,7 @@ public static partial class LSweep
             }).ConfigureAwait(false);
 
         lSweepProgress?.Report(1);
-        return LSweepStillParse(lSweepLines);
+        return LSweepStillParse(lSweepLines, lSweepDuration);
     }
 
     private static double? LSweepTimeRead(string lSweepLine)

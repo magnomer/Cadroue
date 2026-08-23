@@ -58,6 +58,21 @@ public sealed class TSweep
     }
 
     [Fact]
+    public void LSweepStillParse_ClosesFreezeToEofOnDuration()
+    {
+        string[] lLines =
+        {
+            "[freezedetect @ 0x1] lavfi.freezedetect.freeze_start: 8.0",
+            "frame= 10 fps=0.0"
+        };
+
+        (TimeSpan Start, TimeSpan End) lInterval =
+            Assert.Single(LSweep.LSweepStillParse(lLines, TimeSpan.FromSeconds(12)));
+        Assert.Equal(TimeSpan.FromSeconds(8), lInterval.Start);
+        Assert.Equal(TimeSpan.FromSeconds(12), lInterval.End);
+    }
+
+    [Fact]
     public void LSweepStillParse_ReturnsEmptyWithoutFreezeKeys()
     {
         string[] lLines =

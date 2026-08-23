@@ -183,10 +183,11 @@ public sealed partial class PInspector
 
     private RadioButton PSensorModeBuild(StackPanel pStack, Action pSensorRaise)
     {
+        string pModeGroup = "PSensorStillMode_" + System.Guid.NewGuid().ToString("N");
         var pModeDiscard = new RadioButton
         {
             Content = LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode.Discard"),
-            GroupName = "PSensorStillMode",
+            GroupName = pModeGroup,
             IsChecked = true,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
@@ -197,7 +198,7 @@ public sealed partial class PInspector
         var pModeTreat = new RadioButton
         {
             Content = LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode.Treat"),
-            GroupName = "PSensorStillMode",
+            GroupName = pModeGroup,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
