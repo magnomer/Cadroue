@@ -1,8 +1,12 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 namespace Cadroue.UIShell.PSShared;
 
@@ -10,6 +14,30 @@ internal static class PSWindowManagement
 {
     private const int PSWindowLimitMessage = 0x0024;
     private const uint PSMonitorDefaultNearest = 0x00000002;
+
+    internal static bool PSWindowInteractiveCheck(DependencyObject? pSource)
+    {
+        while (pSource is not null)
+        {
+            if (pSource is ButtonBase
+                or TextBoxBase
+                or PasswordBox
+                or Selector
+                or RangeBase
+                or Thumb
+                or MenuItem
+                or Hyperlink)
+            {
+                return true;
+            }
+
+            pSource = pSource is Visual or Visual3D
+                ? VisualTreeHelper.GetParent(pSource)
+                : LogicalTreeHelper.GetParent(pSource);
+        }
+
+        return false;
+    }
 
     internal static void PSWindowAttach(Window pWindow)
     {

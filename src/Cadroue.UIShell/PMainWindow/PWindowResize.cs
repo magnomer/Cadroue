@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using Cadroue.UIShell.PSShared;
 
 namespace Cadroue.UIShell.PMainWindow;
 
@@ -29,7 +30,9 @@ public partial class PWindow
     private void PResizePressHandle(object sender, MouseButtonEventArgs e)
     {
         int pDirection = PResizeDirectionRead(e.GetPosition(this));
-        if (WindowState != WindowState.Normal || pDirection == 0)
+        if (WindowState != WindowState.Normal
+            || pDirection == 0
+            || PSWindowManagement.PSWindowInteractiveCheck(e.OriginalSource as DependencyObject))
         {
             return;
         }
@@ -52,7 +55,10 @@ public partial class PWindow
             return;
         }
 
-        int pDirection = WindowState == WindowState.Normal ? PResizeDirectionRead(e.GetPosition(this)) : 0;
+        int pDirection = WindowState == WindowState.Normal
+            && !PSWindowManagement.PSWindowInteractiveCheck(e.OriginalSource as DependencyObject)
+                ? PResizeDirectionRead(e.GetPosition(this))
+                : 0;
         Mouse.OverrideCursor = pDirection == 0 ? null : PResizeCursorRead(pDirection);
     }
 

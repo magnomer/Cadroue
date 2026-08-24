@@ -2,7 +2,6 @@ using System;
 using System.Windows;
 using Cadroue.UIShell;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIShell.PSShared;
@@ -129,14 +128,14 @@ public partial class PToolbar
 
     private bool PChromeCaptionCheck(DependencyObject? pChromeSource)
     {
+        if (PSWindowManagement.PSWindowInteractiveCheck(pChromeSource))
+        {
+            return false;
+        }
+
         while (pChromeSource is not null)
         {
-            if (pChromeSource is FrameworkElement { DataContext: PTabRecord }
-                or TextBoxBase
-                or Selector
-                or RangeBase
-                or Thumb
-                or ScrollBar)
+            if (pChromeSource is FrameworkElement { DataContext: PTabRecord })
             {
                 return false;
             }

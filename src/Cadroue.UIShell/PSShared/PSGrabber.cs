@@ -63,7 +63,9 @@ internal sealed class PSGrabber
     private void PSGrabberPressHandle(object sender, MouseButtonEventArgs e)
     {
         int pDirection = PSGrabberDirectionRead(e.GetPosition(psGrabberWindow));
-        if (psGrabberWindow.WindowState != WindowState.Normal || pDirection == 0)
+        if (psGrabberWindow.WindowState != WindowState.Normal
+            || pDirection == 0
+            || PSWindowManagement.PSWindowInteractiveCheck(e.OriginalSource as DependencyObject))
         {
             return;
         }
@@ -91,6 +93,7 @@ internal sealed class PSGrabber
         }
 
         int pDirection = psGrabberWindow.WindowState == WindowState.Normal
+            && !PSWindowManagement.PSWindowInteractiveCheck(e.OriginalSource as DependencyObject)
             ? PSGrabberDirectionRead(e.GetPosition(psGrabberWindow))
             : 0;
         PSGrabberCursorApply(pDirection);
