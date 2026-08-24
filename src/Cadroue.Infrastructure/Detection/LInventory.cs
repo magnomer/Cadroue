@@ -266,7 +266,7 @@ public static class LInventory
             : string.Empty;
     }
 
-    private static string LInventoryVersionParse(string lInventoryText)
+    internal static string LInventoryVersionParse(string lInventoryText)
     {
         if (string.IsNullOrWhiteSpace(lInventoryText))
         {
@@ -274,17 +274,16 @@ public static class LInventory
         }
 
         string lInventoryFirst = lInventoryText
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .FirstOrDefault(string.Empty)
-            .Trim();
+            .Split('\n')
+            .Select(lInventoryLine => lInventoryLine.Trim())
+            .FirstOrDefault(lInventoryLine => lInventoryLine.Length > 0) ?? string.Empty;
         const string lInventoryMark = "ffmpeg version ";
-        int lInventoryStart = lInventoryFirst.IndexOf(lInventoryMark, StringComparison.OrdinalIgnoreCase);
-        if (lInventoryStart < 0)
+        if (!lInventoryFirst.StartsWith(lInventoryMark, StringComparison.OrdinalIgnoreCase))
         {
-            return lInventoryFirst;
+            return string.Empty;
         }
 
-        string lInventoryRest = lInventoryFirst[(lInventoryStart + lInventoryMark.Length)..];
+        string lInventoryRest = lInventoryFirst[lInventoryMark.Length..];
         int lInventorySpace = lInventoryRest.IndexOf(' ');
         return lInventorySpace < 0 ? lInventoryRest : lInventoryRest[..lInventorySpace];
     }
