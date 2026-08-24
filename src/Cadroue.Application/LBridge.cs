@@ -41,7 +41,9 @@ public static partial class LBridge
         TimeSpan lBridgeOrigin,
         TimeSpan lBridgeEnd)
         => LBridgeRegionResolve(
-            lBridgeKeyframes.Select(lTime => new LKeyframeEntry(lTime)).ToArray(),
+            // Callers that only have presentation timestamps describe a decode-order
+            // stream with no reordering. Packet-based callers must supply real DTS.
+            lBridgeKeyframes.Select(lTime => new LKeyframeEntry(lTime, lTime)).ToArray(),
             lBridgeOrigin,
             lBridgeEnd);
 
@@ -102,6 +104,14 @@ public static partial class LBridge
             : new LBridgeSpan(lBridgeOrigin, lBridgeCopyStart);
 
         TimeSpan? lBridgeDecodeEnd = lBridgeLastWithin?.LKeyframeDecodeTime;
+        if (lBridgeDecodeEnd is TimeSpan lBridgeDecodeStop
+            && lBridgeDecodeStop <= lBridgeCopyStart + LBridgeTolerance)
+        {
+            // DTS is an optional precision hint for stopping before the tail GOP.
+            // A missing or malformed hint must not erase a presentation-time middle.
+            lBridgeDecodeEnd = null;
+        }
+
         LBridgeSpan lBridgeCopy = new(lBridgeCopyStart, lBridgeCopyStop, lBridgeDecodeEnd);
 
         LBridgeSpan? lBridgeTail = lBridgeCopyStop < lBridgeEnd - LBridgeTolerance

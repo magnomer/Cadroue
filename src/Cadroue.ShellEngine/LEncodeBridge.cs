@@ -14,8 +14,6 @@ internal sealed record LEncodeSmartProduction(
 
 public static partial class LEncode
 {
-    private static readonly TimeSpan LEncodeCopyBias = TimeSpan.FromMilliseconds(2);
-
     public static IReadOnlyList<LEncodeStage> LEncodeBridgeResolve(
         LWorkItem lWorkItem, IReadOnlyList<TimeSpan> lBridgeKeyframes)
     {
@@ -90,6 +88,9 @@ public static partial class LEncode
         if (lBridgePlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart
             || lBridgePlan.LBridgeMiddle is null)
         {
+            // STRICT SMART CONTRACT: full encoding is allowed only when planning
+            // found no copyable middle. Once a middle exists, later uncertainty
+            // must never silently replace Smart with a full re-encode.
             return LEncodeWholeBuild(lWorkItem);
         }
 
@@ -99,6 +100,35 @@ public static partial class LEncode
             || string.Equals(lAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
         bool lAudioPresent = !string.IsNullOrWhiteSpace(lWorkItem.LWorkSourceMedia?.LWorkAudioCodec);
         bool lAudioActive = !lAudioExcluded && lAudioPresent;
+        TimeSpan lAudioOffset = TimeSpan.Zero;
+        if (lAudioActive
+            && File.Exists(lWorkItem.LWorkSourcePath))
+        {
+            bool lAudioAllTracks = string.Equals(
+                lAudio.LEncodingStream,
+                "Include all audio tracks",
+                StringComparison.OrdinalIgnoreCase);
+            LScoutAudioInterval? lAudioInterval = LScout.LScoutAudioResolve(
+                lWorkItem.LWorkSourcePath,
+                lWorkItem.LWorkOrigin,
+                lWorkItem.LWorkEnd,
+                lAudioAllTracks);
+            if (lAudioInterval is null)
+            {
+                LRunner.LRunnerRecord(
+                    $"Smart encoding audio timing could not be verified for '{lWorkItem.LWorkOutputName}': preserving the audio stream with zero additional offset");
+            }
+            else if (!lAudioInterval.LScoutAudioPresent)
+            {
+                lAudioActive = false;
+                LRunner.LRunnerRecord(
+                    $"Smart encoding omitted audio for '{lWorkItem.LWorkOutputName}': no audio packets overlap the requested interval");
+            }
+            else
+            {
+                lAudioOffset = lAudioInterval.LScoutAudioOffset;
+            }
+        }
         bool lBridgeReencode = lBridgePlan.LBridgeHead is not null || lBridgePlan.LBridgeTail is not null;
         string? lBridgeCodec = lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec;
         if (lBridgeReencode && LRepertoireCatalog.LRepertoireEncoderResolve(lBridgeCodec) is null)
@@ -118,7 +148,7 @@ public static partial class LEncode
             lStages.Add(LEncodeAudioBuild(lWorkItem, lAudioPath));
         }
 
-        lStages.Add(LEncodeConcatBuild(lWorkItem, lProduction.LEncodeParts, lAudioPath));
+        lStages.Add(LEncodeConcatBuild(lWorkItem, lProduction.LEncodeParts, lAudioPath, lAudioOffset));
         return lStages;
     }
 
@@ -169,14 +199,14 @@ public static partial class LEncode
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
-        TimeSpan lCopyOrigin = lBridgeSpan.LBridgeSpanOrigin + LEncodeCopyBias;
+        TimeSpan lCopyOrigin = lBridgeSpan.LBridgeSpanOrigin;
         TimeSpan lCopyDuration = lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin;
         if (lBridgeSpan.LBridgeDecodeEnd is TimeSpan lDecodeEnd)
         {
             // A copied GOP must stop before the following keyframe's DTS. Stopping at
             // its PTS also copies that keyframe and its reordered frames into the
             // encoded tail, producing duplicate preroll and an inflated timeline.
-            TimeSpan lDecodeDuration = lDecodeEnd - lCopyOrigin - LEncodeCopyBias;
+            TimeSpan lDecodeDuration = lDecodeEnd - lCopyOrigin;
             if (lDecodeDuration > TimeSpan.Zero)
             {
                 lCopyDuration = lDecodeDuration;
@@ -186,7 +216,9 @@ public static partial class LEncode
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lCopyOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lCopyDuration)}");
-        lArguments.Append(" -c:v copy -an");
+        // Do not seek past the boundary packet: with reordered video its DTS can
+        // precede its PTS, and dropping it leaves the copied GOP undecodable.
+        lArguments.Append(" -copypriorss 1 -c:v copy -an");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
     }
@@ -214,7 +246,6 @@ public static partial class LEncode
             lLabel = "Encoding audio";
         }
 
-        lArguments.Append(" -avoid_negative_ts make_zero");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lAudioPath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, lLabel, lAudioPath, true);
     }
@@ -228,7 +259,10 @@ public static partial class LEncode
             : "0:a:0";
 
     internal static LEncodeStage LEncodeConcatBuild(
-        LWorkItem lWorkItem, IReadOnlyList<string> lBridgeParts, string? lAudioPath)
+        LWorkItem lWorkItem,
+        IReadOnlyList<string> lBridgeParts,
+        string? lAudioPath,
+        TimeSpan lAudioOffset = default)
     {
         string lJoinPath = LEncodeJoinSave(lWorkItem, lBridgeParts);
         var lArguments = new StringBuilder();
@@ -240,6 +274,11 @@ public static partial class LEncode
             lArguments.Append(" -map 0:v:0 -c copy -an");
             lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
             return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
+        }
+
+        if (lAudioOffset > TimeSpan.Zero)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -itsoffset {LEncodeTimeFormat(lAudioOffset)}");
         }
 
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioPath)}");

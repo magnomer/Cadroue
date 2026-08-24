@@ -95,6 +95,42 @@ public sealed class BridgeRegionTests
     }
 
     [Fact]
+    public void PacketKeyframes_MissingDecodeCutoff_DoesNotEraseCopyableMiddle()
+    {
+        var keyframes = new[]
+        {
+            KeyframeData.Entry(2),
+            KeyframeData.Entry(4),
+            KeyframeData.Entry(6)
+        };
+
+        LBridgePlan plan = TInterface.BridgeResolve(keyframes, S(3), S(7));
+
+        Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
+        Assert.NotNull(plan.LBridgeMiddle);
+        Assert.Equal(S(4), plan.LBridgeMiddle!.LBridgeSpanOrigin);
+        Assert.Equal(S(6), plan.LBridgeMiddle.LBridgeSpanEnd);
+    }
+
+    [Fact]
+    public void PacketKeyframes_UnusableDecodeCutoff_DoesNotEraseCopyableMiddle()
+    {
+        var keyframes = new[]
+        {
+            KeyframeData.Entry(2, 1.9),
+            KeyframeData.Entry(4, 3.9),
+            KeyframeData.Entry(6, 3.0)
+        };
+
+        LBridgePlan plan = TInterface.BridgeResolve(keyframes, S(3), S(7));
+
+        Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
+        Assert.NotNull(plan.LBridgeMiddle);
+        Assert.Equal(S(4), plan.LBridgeMiddle!.LBridgeSpanOrigin);
+        Assert.Equal(S(6), plan.LBridgeMiddle.LBridgeSpanEnd);
+    }
+
+    [Fact]
     public void KeyframeJustBeyondEnd_CopyClampedToRequestedEnd()
     {
         IReadOnlyList<TimeSpan> grid =

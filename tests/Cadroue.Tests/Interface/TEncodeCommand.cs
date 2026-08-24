@@ -1,6 +1,7 @@
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Media;
 using Cadroue.ShellEngine;
 
 using Xunit;
@@ -173,6 +174,89 @@ internal sealed class TEncodeCommand : IDisposable
         LEncode.LEncodeBridgeResolve(
             work, keyframes.Select(TimeSpan.FromSeconds).ToArray());
 
+    internal static bool? AudioIntervalRead(string source, double origin, double end) =>
+        LScout.LScoutAudioRead(
+            source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end));
+
+    internal static string FfmpegRead() => LTool.LToolFfmpegRead();
+
+    internal static string FfprobeRead() => LTool.LToolFfprobeRead();
+
+    internal static LWorkItem SmartIntervalWorkCreate(
+        string source,
+        string output,
+        double origin,
+        double end,
+        string audioStream)
+    {
+        LWorkItem work = WorkCreate(
+            LWorkKind.LWorkKindSplit,
+            source,
+            output,
+            OutputCreate(
+                container: "matroska",
+                extension: "mkv",
+                videoMode: "Smart",
+                audioStream: audioStream,
+                audioMode: "Copy"),
+            TimeSpan.FromSeconds(origin),
+            TimeSpan.FromSeconds(end));
+        work.LWorkSourceMedia = new LWorkMedia(160, 90, 30, 8_000, true)
+        {
+            LWorkMediaCodec = "h264",
+            LWorkAudioCodec = "aac",
+            LWorkMediaSamplerate = 48_000
+        };
+        return work;
+    }
+
+    internal static LWorkItem VideoIntervalWorkCreate(
+        string source,
+        string output,
+        double origin,
+        double end,
+        string videoMode)
+    {
+        LWorkItem work = WorkCreate(
+            LWorkKind.LWorkKindSplit,
+            source,
+            output,
+            OutputCreate(
+                container: "matroska",
+                extension: "mkv",
+                videoMode: videoMode,
+                audioStream: "Exclude",
+                audioMode: "Exclude"),
+            TimeSpan.FromSeconds(origin),
+            TimeSpan.FromSeconds(end));
+        work.LWorkSourceMedia = new LWorkMedia(
+            160, 90, 30, Math.Max(12_000, (long)Math.Ceiling(end * 1_000)), false)
+        {
+            LWorkMediaCodec = "h264",
+            LWorkAudioCodec = string.Empty
+        };
+        return work;
+    }
+
+    internal static IReadOnlyList<LEncodeStage> SmartSourceStagesBuild(LWorkItem work)
+    {
+        IReadOnlyList<LKeyframeEntry> keyframes = LScout.LScoutBridgeRead(
+            work.LWorkSourcePath, work.LWorkOrigin, work.LWorkEnd);
+        LBridgePlan plan = LBridge.LBridgeRegionResolve(keyframes, work.LWorkOrigin, work.LWorkEnd);
+        return LEncode.LEncodeSmartBuild(work, plan, LScout.LScoutStreamRead(work.LWorkSourcePath));
+    }
+
+    internal static IReadOnlyList<LEncodeStage> SmartMissingDecodeBuild(LWorkItem work) =>
+        LEncode.LEncodeSmartBuild(
+            work,
+            new LBridgePlan(
+                LBridgeOutcome.LBridgeOutcomeSmart,
+                new LBridgeSpan(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5)),
+                null,
+                new LBridgeSpan(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5)),
+                null),
+            SourceStreamCreate("h264"));
+
     internal static LWorkItem SmartCropWorkCreate(string source, string output)
     {
         LWorkItem work = WorkCreate(
@@ -185,7 +269,10 @@ internal sealed class TEncodeCommand : IDisposable
     }
 
     private static LBridgeSpan SpanCreate((double origin, double end) span) =>
-        new(TimeSpan.FromSeconds(span.origin), TimeSpan.FromSeconds(span.end));
+        new(
+            TimeSpan.FromSeconds(span.origin),
+            TimeSpan.FromSeconds(span.end),
+            TimeSpan.FromSeconds(span.end));
 
     public void Dispose()
     {

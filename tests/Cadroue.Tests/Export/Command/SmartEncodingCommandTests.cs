@@ -45,8 +45,9 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("copy", CommandTokens.ValueAfter(middleTokens, "-c:v"));
         Assert.Contains("-an", middleTokens);
         Assert.DoesNotContain("-c:a", middleTokens);
-        Assert.Equal("12.002", CommandTokens.ValueAfter(middleTokens, "-ss"));
+        Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("16", CommandTokens.ValueAfter(middleTokens, "-t"));
+        Assert.Equal("1", CommandTokens.ValueAfter(middleTokens, "-copypriorss"));
 
         LEncodeStage tail = stages[2];
         IReadOnlyList<string> tailTokens = CommandTokens.Read(tail.LEncodeStageArguments);
@@ -115,8 +116,9 @@ public sealed class SmartEncodingCommandTests
             TEncodeCommand.SourceStreamCreate("h264"));
         IReadOnlyList<string> middleTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
 
-        Assert.Equal("12.002", CommandTokens.ValueAfter(middleTokens, "-ss"));
-        Assert.Equal("15.929", CommandTokens.ValueAfter(middleTokens, "-t"));
+        Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
+        Assert.Equal("15.933", CommandTokens.ValueAfter(middleTokens, "-t"));
+        Assert.Equal("1", CommandTokens.ValueAfter(middleTokens, "-copypriorss"));
     }
 
     [Fact]
@@ -136,7 +138,7 @@ public sealed class SmartEncodingCommandTests
 
         IReadOnlyList<string> audioTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
         Assert.Equal(2, CommandTokens.Count(audioTokens, "-ss"));
-        Assert.Equal("make_zero", CommandTokens.ValueAfter(audioTokens, "-avoid_negative_ts"));
+        Assert.DoesNotContain("-avoid_negative_ts", audioTokens);
 
         IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[2].LEncodeStageArguments);
         Assert.Contains("concat", muxTokens);
@@ -261,12 +263,13 @@ public sealed class SmartEncodingCommandTests
             Assert.DoesNotContain("-c:a", videoTokens);
         }
 
-        // Audio is one continuous stream-copy region cut over the whole requested interval,
-        // in its own stage, not folded into the join.
+        // Audio is one continuous stream-copy region cut over the whole requested interval.
+        // It retains source-relative packet timestamps so delayed tracks stay delayed.
         IReadOnlyList<string> audioTokens = CommandTokens.Read(stages[^2].LEncodeStageArguments);
         Assert.Equal("copy", CommandTokens.ValueAfter(audioTokens, "-c:a"));
         Assert.Equal("10", CommandTokens.ValueAfter(audioTokens, "-ss"));
         Assert.Equal("20", CommandTokens.ValueAfter(audioTokens, "-t"));
+        Assert.DoesNotContain("-avoid_negative_ts", audioTokens);
 
         IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[^1].LEncodeStageArguments);
         Assert.DoesNotContain("-c:a", muxTokens);
@@ -399,7 +402,7 @@ public sealed class SmartEncodingCommandTests
 
         IReadOnlyList<string> middleTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
         Assert.Equal("copy", CommandTokens.ValueAfter(middleTokens, "-c:v"));
-        Assert.Equal("12.002", CommandTokens.ValueAfter(middleTokens, "-ss"));
+        Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("16", CommandTokens.ValueAfter(middleTokens, "-t"));
 
         IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[^1].LEncodeStageArguments);

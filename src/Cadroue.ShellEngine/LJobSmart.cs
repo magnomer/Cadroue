@@ -21,6 +21,8 @@ internal sealed partial class LJob
 
         if (pPlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart)
         {
+            // STRICT SMART CONTRACT: this is the only full-encode path in a Smart
+            // job. It is legal only because planning found no copyable middle.
             LRunner.LRunnerRecord(
                 $"Smart encoding not usable for '{lJobItem.LWorkOutputName}': encoding the requested interval");
             return await LJobBatchRun(LEncode.LEncodeWholeBuild(lJobItem), 0, 1).ConfigureAwait(false);
