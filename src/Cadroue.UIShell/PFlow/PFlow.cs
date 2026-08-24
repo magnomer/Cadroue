@@ -62,6 +62,7 @@ public sealed partial class PFlow : UserControl
     public event Action<double>? PFlowVolumeChange;
     public event Action<double>? PFlowVolumeValue;
     public event Action<IReadOnlyList<LPiece>, int?>? PFlowSectionChange;
+    public event Action<bool>? PFlowDragChange;
 
     public PFlow()
     {
@@ -284,6 +285,7 @@ public sealed partial class PFlow : UserControl
 
     internal void PFlowDragSet(bool pFlowDragging)
     {
+        PFlowDragChange?.Invoke(pFlowDragging);
         if (!pFlowCommandActive || !LPreference.LPreferenceStateCurrent.LPreferenceDragPaused) return;
 
         if (pFlowDragging)

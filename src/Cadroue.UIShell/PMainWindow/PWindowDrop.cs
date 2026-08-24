@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -9,6 +10,8 @@ namespace Cadroue.UIShell.PMainWindow;
 public partial class PWindow
 {
     private DragDropEffects? pDropLastEffect;
+    private object? pDropTraceData;
+    private readonly List<string> pDropTrace = [];
     private void PDropHandlersAdd()
     {
         AddHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnterHandle), true);
@@ -27,11 +30,15 @@ public partial class PWindow
     {
         bool pDropGroup = PDropGroupCheck(dragEvent);
         DragDropEffects pDropEffect = pDropGroup ? DragDropEffects.None : PDropEffectRead(dragEvent, out _);
-        LTraceLog.LTraceInfoRecord(
-            $"Drag entered window: {(pDropGroup ? "handed to PGroup (window ignores)" : pDropEffect == DragDropEffects.None ? "will REFUSE (forbidden cursor)" : $"will accept ({pDropEffect})")}",
-            $"originalSource={dragEvent.OriginalSource?.GetType().Name ?? "null"}, "
-            + $"list={(pListActive is null ? "NULL" : "present")}, viewer={(pViewerActive is null ? "NULL" : "present")}, "
-            + $"audioTab={pWindowAudioAllowed}, groupAncestor={pDropGroup}");
+        if (!pDropGroup)
+        {
+            PDropTraceAppend(
+                dragEvent,
+                $"Drag entered window: {(pDropEffect == DragDropEffects.None ? "will REFUSE (forbidden cursor)" : $"will accept ({pDropEffect})")}",
+                $"originalSource={dragEvent.OriginalSource?.GetType().Name ?? "null"}, "
+                + $"list={(pListActive is null ? "NULL" : "present")}, viewer={(pViewerActive is null ? "NULL" : "present")}, "
+                + $"audioTab={pWindowAudioAllowed}, groupAncestor={pDropGroup}");
+        }
 
         PDropAccept(sender, dragEvent);
     }
@@ -44,11 +51,13 @@ public partial class PWindow
             return;
         }
 
+        PDropTraceStart(dragEvent);
         DragDropEffects dropEffect = PDropEffectRead(dragEvent, out string dropReason);
         if (dropEffect != pDropLastEffect)
         {
             pDropLastEffect = dropEffect;
-            LTraceLog.LTraceInfoRecord(
+            PDropTraceAppend(
+                dragEvent,
                 $"Drag over: {(dropEffect == DragDropEffects.None ? "REFUSED (forbidden cursor)" : dropEffect.ToString())}",
                 dropReason);
         }
@@ -70,12 +79,14 @@ public partial class PWindow
         dragEvent.Handled = true;
 
         string dropTarget = pListActive is not null ? "list" : pViewerActive is not null ? "viewer" : "none";
-        LTraceLog.LTraceInfoRecord(
+        PDropTraceAppend(
+            dragEvent,
             $"Drop released: {(dropEffect == DragDropEffects.None ? "REFUSED" : "accepted")} onto {dropTarget}",
             dropReason);
 
         if (dropEffect == DragDropEffects.None)
         {
+            PDropTraceRecord($"File drag refused onto {dropTarget}");
             return;
         }
 
@@ -83,12 +94,16 @@ public partial class PWindow
         {
             IReadOnlyList<string> dropPaths = PDropPathsRead(dragEvent);
             int dropAdded = pListActive.PListPathsAdd(dropPaths);
-            LTraceLog.LTraceInfoRecord($"Drop into list: {dropAdded} of {dropPaths.Count} path(s) added");
+            PDropTraceAppend(
+                dragEvent,
+                $"Drop into list: {dropAdded} of {dropPaths.Count} path(s) added");
+            PDropTraceRecord($"File drag accepted onto list ({dropEffect})");
             return;
         }
 
         if (pViewerActive is null)
         {
+            PDropTraceRecord($"File drag accepted onto {dropTarget} ({dropEffect})");
             return;
         }
 
@@ -96,11 +111,55 @@ public partial class PWindow
         if (sourcePath is null)
         {
             dragEvent.Effects = DragDropEffects.None;
-            LTraceLog.LTraceWarningRecord("Drop into viewer refused: no existing file in payload");
+            PDropTraceAppend(dragEvent, "Drop into viewer refused: no existing file in payload");
+            PDropTraceRecord("File drag refused onto viewer", warning: true);
             return;
         }
 
         pViewerActive.PViewerSourceOpen(sourcePath);
+        PDropTraceAppend(dragEvent, $"Drop into viewer: opened {System.IO.Path.GetFileName(sourcePath)}");
+        PDropTraceRecord($"File drag accepted onto viewer ({dropEffect})");
+    }
+
+    private void PDropTraceAppend(DragEventArgs dragEvent, string pDropSummary, string? pDropDetail = null)
+    {
+        PDropTraceStart(dragEvent);
+
+        string pDropTime = DateTimeOffset.Now.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
+        pDropTrace.Add($"{pDropTime}  {pDropSummary}");
+        if (!string.IsNullOrWhiteSpace(pDropDetail))
+        {
+            pDropTrace.Add($"{new string(' ', 14)}{pDropDetail}");
+        }
+    }
+
+    private void PDropTraceStart(DragEventArgs dragEvent)
+    {
+        if (!ReferenceEquals(pDropTraceData, dragEvent.Data))
+        {
+            pDropTraceData = dragEvent.Data;
+            pDropTrace.Clear();
+            pDropLastEffect = null;
+        }
+    }
+
+    private void PDropTraceRecord(string pDropSummary, bool warning = false)
+    {
+        string? pDropDetail = pDropTrace.Count == 0
+            ? null
+            : string.Join(Environment.NewLine, pDropTrace);
+        if (warning)
+        {
+            LTraceLog.LTraceWarningRecord(pDropSummary, pDropDetail);
+        }
+        else
+        {
+            LTraceLog.LTraceInfoRecord(pDropSummary, pDropDetail);
+        }
+
+        pDropTraceData = null;
+        pDropTrace.Clear();
+        pDropLastEffect = null;
     }
 
     private static bool PDropGroupCheck(DragEventArgs dragEvent)

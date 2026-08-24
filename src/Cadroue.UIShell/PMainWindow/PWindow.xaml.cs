@@ -330,6 +330,7 @@ public partial class PWindow : Window
         pViewerActive.PViewerMediaChange += PWindowMediaHandle;
         pViewerActive.PViewerClockTick += PWindowClockHandle;
         pFlowActive.PFlowCursorChange += pViewerActive.PViewerSeek;
+        pFlowActive.PFlowDragChange += pViewerActive.PViewerDragSet;
         pFlowActive.PFlowPlay += pViewerActive.PViewerPlay;
         pFlowActive.PFlowPause += pViewerActive.PViewerPause;
         pFlowActive.PFlowVolumeChange += pViewerActive.PViewerVolumeSet;
@@ -342,6 +343,8 @@ public partial class PWindow : Window
             pViewerActive.PViewerMediaChange -= PWindowMediaHandle;
             pViewerActive.PViewerClockTick -= PWindowClockHandle;
             pFlowActive.PFlowCursorChange -= pViewerActive.PViewerSeek;
+            pFlowActive.PFlowDragChange -= pViewerActive.PViewerDragSet;
+            pViewerActive.PViewerDragSet(false);
             pFlowActive.PFlowPlay -= pViewerActive.PViewerPlay;
             pFlowActive.PFlowPause -= pViewerActive.PViewerPause;
             pFlowActive.PFlowVolumeChange -= pViewerActive.PViewerVolumeSet;

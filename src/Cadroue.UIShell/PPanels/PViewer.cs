@@ -66,6 +66,10 @@ public sealed partial class PViewer : PPanel
     private bool pViewerCommandActive;
     private bool pViewerResumeInactive;
     private bool pViewerUnloaded;
+    private bool pViewerDragActive;
+    private readonly List<string> pViewerSeekTrace = [];
+    private int pViewerTraceCount;
+    private TimeSpan pViewerTraceFinal;
 
     public event Action<LCargo>? PViewerMediaChange;
     public event Action<TimeSpan>? PViewerClockTick;
@@ -227,6 +231,60 @@ public sealed partial class PViewer : PPanel
 
         PPlayerAccurateSeek(playbackPosition);
         PViewerPlaybackUpdate(null, playbackPosition);
+    }
+
+    public void PViewerDragSet(bool pViewerDragging)
+    {
+        if (pViewerDragging)
+        {
+            if (!pViewerDragActive)
+            {
+                pViewerSeekTrace.Clear();
+                pViewerTraceCount = 0;
+            }
+
+            pViewerDragActive = true;
+            return;
+        }
+
+        pViewerDragActive = false;
+        if (pViewerTraceCount == 0)
+        {
+            return;
+        }
+
+        string pViewerSummary = pViewerTraceCount == 1
+            ? $"Seek accurate to {pViewerTraceFinal:hh\\:mm\\:ss\\.fff}"
+            : $"Seek accurate while dragging to {pViewerTraceFinal:hh\\:mm\\:ss\\.fff} ({pViewerTraceCount} requests)";
+        LTrace.LTraceRecord(
+            LTraceKind.LTraceUi,
+            pViewerSummary,
+            string.Join(Environment.NewLine, pViewerSeekTrace));
+        pViewerSeekTrace.Clear();
+        pViewerTraceCount = 0;
+    }
+
+    private void PViewerSeekRecord(TimeSpan pViewerPosition, string pViewerDetail)
+    {
+        string pViewerSummary = $"Seek accurate to {pViewerPosition:hh\\:mm\\:ss\\.fff}";
+        if (!pViewerDragActive)
+        {
+            LTrace.LTraceRecord(LTraceKind.LTraceUi, pViewerSummary, pViewerDetail);
+            return;
+        }
+
+        if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
+        {
+            return;
+        }
+
+        string pViewerTime = DateTimeOffset.Now.ToString(
+            "HH:mm:ss.fff",
+            System.Globalization.CultureInfo.InvariantCulture);
+        pViewerSeekTrace.Add($"{pViewerTime}  {pViewerSummary}");
+        pViewerSeekTrace.Add($"{new string(' ', 14)}{pViewerDetail}");
+        pViewerTraceCount++;
+        pViewerTraceFinal = pViewerPosition;
     }
 
     public void PViewerVolumeSet(double volume)

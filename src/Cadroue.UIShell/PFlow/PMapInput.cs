@@ -77,10 +77,14 @@ public sealed partial class PMap
         else
         {
             pMapDragMode = PMapDragMode.PMapDragCursor;
-            PMapCursorChange?.Invoke(PMapRatioResolve(Math.Clamp(mouseX / actualWidth, 0, 1)));
         }
 
         PMapDragChange?.Invoke(true);
+        if (pMapDragMode == PMapDragMode.PMapDragCursor)
+        {
+            PMapCursorChange?.Invoke(PMapRatioResolve(Math.Clamp(mouseX / actualWidth, 0, 1)));
+        }
+
         CaptureMouse();
         e.Handled = true;
     }
