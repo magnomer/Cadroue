@@ -43,8 +43,9 @@ public partial class PWindow
         }
         catch (Exception pWindowSceneError)
         {
-            LTraceLog.LTraceInfoRecord(
-                $"[SUSPICION] scene apply failed, restoring previous window: {pWindowSceneError}");
+            LTraceLog.LTraceWarningRecord(
+                "Scene apply failed; restoring the previous window",
+                pWindowSceneError.ToString());
             try
             {
                 pStrip.PStripAllClose();

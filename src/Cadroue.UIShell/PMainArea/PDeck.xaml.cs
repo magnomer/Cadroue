@@ -51,10 +51,6 @@ public partial class PDeck : UserControl
 
     private void PDeckLayoutApply(PTabRecord? pTabRecord)
     {
-        LTraceLog.LTraceInfoRecord(
-            $"[SUSPICION] PDeckLayoutApply arg={(pTabRecord is null ? "NULL" : pTabRecord.PTabTitle)}, "
-            + $"strip records={(pStrip?.PStripRecords.Count.ToString() ?? "no-strip")}, grid children={pDeckGrid.Children.Count}");
-
         foreach (UIElement pChild in pDeckGrid.Children)
         {
             pChild.Visibility = Visibility.Collapsed;
@@ -113,9 +109,6 @@ public partial class PDeck : UserControl
         {
             if (pDeckGrid.Children[index] is FrameworkElement pGrid && !pOpenRoots.Contains(pGrid))
             {
-                LTraceLog.LTraceInfoRecord(
-                    $"[SUSPICION] PDeckClosedRemove removes child idx={index}, "
-                    + $"strip records={pStrip.PStripRecords.Count}");
                 pDeckGrid.Children.RemoveAt(index);
             }
         }

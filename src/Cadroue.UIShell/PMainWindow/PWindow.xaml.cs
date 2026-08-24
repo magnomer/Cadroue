@@ -142,10 +142,7 @@ public partial class PWindow : Window
         }
 
         int pSelectIndex = Math.Clamp(lScene.LSceneTabIndex, 0, pTabset.PStripRecords.Count - 1);
-        LTraceLog.LTraceInfoRecord(
-            $"[SUSPICION] PWindowSceneRestore final select idx={pSelectIndex}, records={pTabset.PStripRecords.Count}");
         pTabset.PStripSelect(pTabset.PStripRecords[pSelectIndex]);
-        LTraceLog.LTraceInfoRecord("[SUSPICION] PWindowSceneRestore final select DONE");
     }
     private void PWindowMediaRestore(LPreferenceState lPreferenceState)
     {

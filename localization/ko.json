@@ -169,7 +169,7 @@
   "About.Window.Title": "{Terms.Cadroue} {Terms.About}",
   "About.Version.Format": "{Terms.Version} {0}",
   "About.Developer.Active": "개발자 모드 켜짐",
-  "About.Credits.Title": "사용된 프로그램 및 라이브러리",
+  "About.Credits.Title": "주요 프로그램 및 라이브러리",
   "About.Licenses.Label": "라이선스",
   "About.Licenses.Link": "제3자 라이선스",
   "About.Error.Open": "리소스를 열 수 없습니다.\n\n{0}\n\n{1}",

@@ -301,11 +301,6 @@ public sealed class PStrip
 
     public void PStripSelect(PTabRecord? pTabRecord)
     {
-        LTraceLog.LTraceInfoRecord(
-            $"[SUSPICION] PStripSelect arg={(pTabRecord is null ? "NULL" : pTabRecord.PTabTitle)}, "
-            + $"prior selected={(pStripSelected is null ? "NULL" : pStripSelected.PTabTitle)}, "
-            + $"guard-swallows={ReferenceEquals(pStripSelected, pTabRecord)}");
-
         foreach (var pTabItem in PStripRecords)
         {
             pTabItem.PTabSelectState = ReferenceEquals(pTabItem, pTabRecord);
@@ -385,13 +380,11 @@ public sealed class PStrip
 
     public void PStripAllClose()
     {
-        LTraceLog.LTraceInfoRecord($"[SUSPICION] PStripAllClose enter, records={PStripRecords.Count}");
         foreach (PTabRecord pTabRecord in PStripRecords)
         {
             pTabRecord.PTabWorkspace.PWorkspaceClose();
             LCartographer.LCartographerTabRemove(pTabRecord.PTabId);
         }
-        LTraceLog.LTraceInfoRecord("[SUSPICION] PStripAllClose workspaces closed (dispose pump done)");
 
         pStripHovered = null;
         PStripRecords.Clear();

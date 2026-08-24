@@ -169,7 +169,7 @@
   "About.Window.Title": "{Terms.About} {Terms.Cadroue}",
   "About.Version.Format": "{Terms.Version} {0}",
   "About.Developer.Active": "Developer Mode is ON",
-  "About.Credits.Title": "Programs and libraries used",
+  "About.Credits.Title": "Highlighted programs and libraries",
   "About.Licenses.Label": "Licenses",
   "About.Licenses.Link": "Third-party licenses",
   "About.Error.Open": "The resource could not be opened.\n\n{0}\n\n{1}",
