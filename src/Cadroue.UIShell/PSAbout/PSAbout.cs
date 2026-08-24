@@ -68,11 +68,20 @@ internal sealed class PSAbout : Window
         SnapsToDevicePixels = true;
         PScrollbar.PScrollbarApply(this);
         Content = PSAboutBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSAboutPlacementKey);
         SizeToContent = SizeToContent.Height;
+        Loaded += PSAboutLoadedHandle;
         psAboutGrabber = new PSGrabber(this);
         psAboutGrabber.PSGrabberAttach();
         Closed += PSAboutCloseHandle;
+    }
+
+    private void PSAboutLoadedHandle(object pSender, RoutedEventArgs pEvent)
+    {
+        Loaded -= PSAboutLoadedHandle;
+        double pContentHeight = ActualHeight;
+        SizeToContent = SizeToContent.Manual;
+        Height = Math.Max(pContentHeight, MinHeight);
+        PSGrabber.PSGrabberPlacementRestore(this, PSAboutPlacementKey);
     }
 
     private UIElement PSAboutBuild()
@@ -279,6 +288,7 @@ internal sealed class PSAbout : Window
 
     private void PSAboutCloseHandle(object? pSender, EventArgs pEvent)
     {
+        Loaded -= PSAboutLoadedHandle;
         PSGrabber.PSGrabberPlacementSave(this, PSAboutPlacementKey);
         psAboutGrabber.PSGrabberDetach();
         Closed -= PSAboutCloseHandle;

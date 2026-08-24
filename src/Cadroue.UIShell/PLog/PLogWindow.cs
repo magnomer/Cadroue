@@ -81,6 +81,11 @@ public sealed partial class PLogWindow : Window
     {
         if (pLogWindowCurrent is not null)
         {
+            if (pLogWindowCurrent.WindowState == WindowState.Minimized)
+            {
+                pLogWindowCurrent.WindowState = WindowState.Normal;
+            }
+
             pLogWindowCurrent.Activate();
             return;
         }
