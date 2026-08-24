@@ -36,6 +36,7 @@ public sealed partial class PLogWindow : Window
     private Window? pLogOwnerWindow;
     private string pLogFilePath = string.Empty;
     private bool pLogFileLive = true;
+    private bool pLogFollowTail = true;
     private long pLogSnapshotSequence;
 
     private PLogWindow()

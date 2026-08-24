@@ -97,6 +97,9 @@ public sealed partial class PLogWindow
         VirtualizingPanel.SetIsVirtualizing(pLogFeedList, true);
         VirtualizingPanel.SetVirtualizationMode(pLogFeedList, VirtualizationMode.Recycling);
         PScrollbar.PScrollbarApply(pLogFeedList);
+        pLogFeedList.AddHandler(
+            ScrollViewer.ScrollChangedEvent,
+            new ScrollChangedEventHandler(PLogScrollHandle));
         pLogFeedList.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(PLogDetailToggle));
         return pLogFeedList;
     }

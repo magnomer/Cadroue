@@ -174,16 +174,42 @@ public sealed partial class PLogWindow
         int pLogExcess = pLogRowsAll.Count - PLogRowMaximum;
         if (pLogExcess > 0)
         {
+            var pLogRemoved = new HashSet<PLogRow>(pLogRowsAll.Take(pLogExcess));
             pLogRowsAll.RemoveRange(0, pLogExcess);
+            for (int pLogIndex = pLogRowsShown.Count - 1; pLogIndex >= 0; pLogIndex--)
+            {
+                if (pLogRemoved.Contains(pLogRowsShown[pLogIndex]))
+                {
+                    pLogRowsShown.RemoveAt(pLogIndex);
+                }
+            }
         }
     }
 
     private void PLogFeedScroll()
     {
-        if (pLogRowsShown.Count > 0)
+        if (pLogFollowTail && pLogRowsShown.Count > 0)
         {
             pLogFeed.ScrollIntoView(pLogRowsShown[^1]);
         }
+    }
+
+    private void PLogScrollHandle(object sender, ScrollChangedEventArgs e)
+    {
+        if (e.OriginalSource is not ScrollViewer pLogViewer
+            || !ReferenceEquals(pLogViewer.TemplatedParent, pLogFeed))
+        {
+            return;
+        }
+
+        // Adding rows increases the extent before ScrollIntoView reaches the new tail.
+        // Preserve the prior follow state during that intermediate layout event.
+        if (e.ExtentHeightChange != 0)
+        {
+            return;
+        }
+
+        pLogFollowTail = pLogViewer.ScrollableHeight - pLogViewer.VerticalOffset <= PLogRow.PLogRowHeight;
     }
 
     private void PLogAppendHandle(long pLogSequence, LTraceEntry pLogEntry)
@@ -236,8 +262,6 @@ public sealed partial class PLogWindow
         if (pLogRowsAll.Count > PLogRowMaximum)
         {
             PLogRowsRemove();
-            PLogRowsApply();
-            return;
         }
 
         PLogFeedScroll();
