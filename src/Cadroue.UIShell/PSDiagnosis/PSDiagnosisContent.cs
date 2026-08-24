@@ -247,9 +247,12 @@ internal sealed partial class PSDiagnosis
             string pVersion = LInventory.LInventoryVersionRead();
             string pLocation = PSDiagnosisLocationResolve();
             var pMap = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-            foreach (string pFilter in pFilters)
+            if (!string.IsNullOrWhiteSpace(pVersion))
             {
-                pMap[pFilter] = LInventory.LInventoryFilterConfirm(pFilter);
+                foreach (string pFilter in pFilters)
+                {
+                    pMap[pFilter] = LInventory.LInventoryFilterConfirm(pFilter);
+                }
             }
 
             Dispatcher.BeginInvoke(() =>
