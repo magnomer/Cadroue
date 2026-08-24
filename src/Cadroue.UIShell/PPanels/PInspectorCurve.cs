@@ -171,12 +171,26 @@ public sealed partial class PInspector
             return;
         }
 
-        double pInput = Math.Clamp(
+        double pTyped = Math.Clamp(
             PInspectorDecimalRead(pCurveInputValue, pPoints[pCurveSelected].LWorkCurveInput * 100) / 100, 0, 1);
-        var pPoint = new LWorkCurvePoint(pInput, pPoints[pCurveSelected].LWorkCurveOutput);
-        pPoints[pCurveSelected] = pPoint;
-        pPoints.Sort((pLeft, pRight) => pLeft.LWorkCurveInput.CompareTo(pRight.LWorkCurveInput));
-        pCurveSelected = pPoints.IndexOf(pPoint);
+        double pInput;
+        if (pCurveSelected == 0)
+        {
+            pInput = 0;
+        }
+        else if (pCurveSelected == pPoints.Count - 1)
+        {
+            pInput = 1;
+        }
+        else
+        {
+            pInput = Math.Clamp(
+                pTyped,
+                pPoints[pCurveSelected - 1].LWorkCurveInput + PCurveMinGap,
+                pPoints[pCurveSelected + 1].LWorkCurveInput - PCurveMinGap);
+        }
+
+        pPoints[pCurveSelected] = new LWorkCurvePoint(pInput, pPoints[pCurveSelected].LWorkCurveOutput);
         PCurveBoxesUpdate();
         PInspectorVideoChange?.Invoke();
     }
