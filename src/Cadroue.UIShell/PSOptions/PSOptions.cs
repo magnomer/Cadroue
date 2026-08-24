@@ -343,7 +343,6 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceWorkspaceFolder = psWorkspaceBox.Text;
         lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;
 
-        string psLanguagePrevious = LPreference.LPreferenceStateCurrent.LPreferenceLanguage;
         bool psOptionsSaved = LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
         Cadroue.Infrastructure.LRenderer.LRendererEngineSet(
             string.Equals(PSModeTextRead(psOptionsEngineMode), "Mpv", StringComparison.Ordinal)
@@ -361,7 +360,12 @@ internal sealed partial class PSOptions : Window
             return;
         }
 
-        if (!string.Equals(psLanguagePrevious, LPreference.LPreferenceStateCurrent.LPreferenceLanguage, StringComparison.Ordinal))
+        string psLanguageSelected = LLocalization.LLocalizationLanguageNormalize(
+            LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
+        if (!string.Equals(
+                psLanguageSelected,
+                LLocalization.LLocalizationLanguageRead(),
+                StringComparison.OrdinalIgnoreCase))
         {
             MessageBox.Show(
                 this,
