@@ -88,15 +88,37 @@ public partial class PWindow : Window
                 {
                     pTabset.PStripSelect(pTabset.PStripRecords[0]);
                 }
+
+                PWindowLoadingRecord(pTabset);
                 return;
             }
 
             PWindowSceneRestore(pTabset, lScene);
+            PWindowLoadingRecord(pTabset, lScene.LSceneName);
         }
         finally
         {
             LTrace.LTraceLoadingSet(false);
         }
+    }
+
+    private static void PWindowLoadingRecord(PStrip pTabset, string? pSceneName = null)
+    {
+        if (!string.IsNullOrWhiteSpace(pSceneName))
+        {
+            LTraceLog.LTraceLoadingRecord($"Scene \"{pSceneName}\" loaded");
+        }
+
+        int pTabCount = pTabset.PStripRecords.Count;
+        string? pTabDetail = pTabCount == 0
+            ? null
+            : string.Join(
+                Environment.NewLine,
+                pTabset.PStripRecords.Select(
+                    pTabRecord => $"Tab '{pTabRecord.PTabTitle}' ({pTabRecord.PTabLayoutKey}) opened"));
+        LTraceLog.LTraceLoadingRecord(
+            $"{pTabCount} {(pTabCount == 1 ? "tab" : "tabs")} opened",
+            pTabDetail);
     }
 
     private static void PWindowSceneRestore(PStrip pTabset, LSceneRecord lScene)

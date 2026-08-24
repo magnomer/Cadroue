@@ -82,8 +82,7 @@ public static class LTrace
 
     public static bool LTraceCheck(LTraceKind lTraceKind) =>
         lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceLoading or LTraceKind.LTraceWarning or LTraceKind.LTraceError
-            || Volatile.Read(ref lTraceVerbose)
-            || (Volatile.Read(ref lTraceLoading) && lTraceKind is LTraceKind.LTraceUi);
+            || Volatile.Read(ref lTraceVerbose);
 
     public static void LTraceRecord(
         LTraceKind lTraceKind,
@@ -101,6 +100,12 @@ public static class LTrace
         int lTraceLossWeight,
         bool lTraceAlreadyAccepted = false)
     {
+        if (Volatile.Read(ref lTraceLoading)
+            && lTraceKind is not (LTraceKind.LTraceLoading or LTraceKind.LTraceWarning or LTraceKind.LTraceError))
+        {
+            return;
+        }
+
         if (!lTraceLossReport && LTraceWriter.LTraceLossRead() is int lTraceLost && lTraceLost > 0)
         {
             LTraceRecord(
@@ -110,12 +115,6 @@ public static class LTrace
                 null,
                 true,
                 lTraceLost);
-        }
-
-        if (Volatile.Read(ref lTraceLoading)
-            && lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceUi)
-        {
-            lTraceKind = LTraceKind.LTraceLoading;
         }
 
         if (!lTraceAlreadyAccepted && !LTraceCheck(lTraceKind))

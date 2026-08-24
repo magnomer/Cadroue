@@ -38,7 +38,6 @@ public partial class PProgram
                 }
             }
 
-            LTraceLog.LTraceInfoRecord(LFlyleaf.LFlyleafReportRead(typeof(Engine).Assembly));
             Engine.Start(lRendererEngineConfig);
             LTrace.LTraceVerboseCallback = LRendererVerboseApply;
         }

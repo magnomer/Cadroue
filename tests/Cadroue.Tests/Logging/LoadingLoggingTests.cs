@@ -6,19 +6,22 @@ namespace Cadroue.Tests;
 public sealed class LoadingLoggingTests
 {
     [Fact]
-    public void LoadingMode_ClassifiesInfoAndUiAsLoading()
+    public void LoadingMode_RecordsOnlyIntentionalLoadingEntriesAndFailures()
     {
         using var logging = new TLogging();
         logging.LoadingSet(true);
+        logging.VerboseSet(true);
 
         logging.Info("load information");
         logging.Ui("load ui");
+        logging.Work("load work");
+        logging.Ffmpeg("load ffmpeg");
+        logging.Loading("scene loaded", "load detail");
         logging.Warning("load warning");
 
         Assert.Collection(
             logging.Entries,
-            entry => Assert.Equal(("Loading", "load information"), (entry.Kind, entry.Summary)),
-            entry => Assert.Equal(("Loading", "load ui"), (entry.Kind, entry.Summary)),
+            entry => Assert.Equal(("Loading", "scene loaded", "load detail"), (entry.Kind, entry.Summary, entry.Detail)),
             entry => Assert.Equal(("Warning", "load warning"), (entry.Kind, entry.Summary)));
     }
 
@@ -31,8 +34,8 @@ public sealed class LoadingLoggingTests
         logging.LoadingSet(false);
         logging.Info("after loading");
 
-        Assert.Equal("Loading", logging.Entries[0].Kind);
-        Assert.Equal("Info", logging.Entries[1].Kind);
-        Assert.Equal("after loading", logging.Entries[1].Summary);
+        Assert.Single(logging.Entries);
+        Assert.Equal("Info", logging.Entries[0].Kind);
+        Assert.Equal("after loading", logging.Entries[0].Summary);
     }
 }

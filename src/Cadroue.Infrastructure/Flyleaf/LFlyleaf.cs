@@ -58,28 +58,6 @@ public static partial class LFlyleaf
         return lLoadedPath.StartsWith(lLocalFolder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool LFlyleafAssemblyCheck(Assembly lAssembly)
-    {
-        if (lAssembly.GetName().Name is not { } lAssemblyName)
-        {
-            return false;
-        }
-
-        return LFlyleafLoadedCheck(lAssemblyName);
-    }
-
-    public static string LFlyleafReportRead(Assembly lAssembly)
-    {
-        string lAssemblyName = lAssembly.GetName().Name ?? "(unknown)";
-        string lLocation = lFlyleafLoadedPaths.TryGetValue(lAssemblyName, out string? lLoadedPath)
-            ? lLoadedPath
-            : "(unknown)";
-        string lLocal = lFlyleafAssemblyFolder ?? "(none)";
-        return LFlyleafAssemblyCheck(lAssembly)
-            ? $"Local Flyleaf loaded: {lLocation}"
-            : $"NuGet Flyleaf loaded: {lLocation}; local target: {lLocal}";
-    }
-
     public static string LFlyleafRootRead() => Path.Combine(LDepot.LDepotRootRead(), LFlyleafRootFolder);
 
     public static void LFlyleafResolverAttach()
@@ -124,7 +102,9 @@ public static partial class LFlyleaf
                     }
 
                     File.Move(lBaseFlyleaf, lShadowed);
-                    LTraceLog.LTraceInfoRecord($"NuGet FlyleafLib shadowed off the probe path: {lShadowed}");
+                    LTraceLog.LTraceLoadingRecord(
+                        "NuGet FlyleafLib disabled",
+                        $"NuGet FlyleafLib shadowed off the probe path: {lShadowed}");
                 }
             }
             else if (File.Exists(lShadowed) && !File.Exists(lBaseFlyleaf))
@@ -166,7 +146,9 @@ public static partial class LFlyleaf
                 lFlyleafLoadedPaths[lAssemblyName] = lAssemblyPath;
             }
 
-            LTraceLog.LTraceInfoRecord($"Local Flyleaf assembly loaded: {lAssemblyPath}");
+            LTraceLog.LTraceLoadingRecord(
+                "Local Flyleaf loaded",
+                $"Local Flyleaf assembly loaded: {lAssemblyPath}");
             return lAssembly;
         }
         catch (Exception lException)
@@ -189,7 +171,8 @@ public static partial class LFlyleaf
                         lAssemblyName.Name,
                         StringComparison.OrdinalIgnoreCase))
                     .Select(lAssembly => $"{lAssembly.GetName().Name} {lAssembly.GetName().Version}"));
-            LTraceLog.LTraceInfoRecord(
+            LTraceLog.LTraceLoadingRecord(
+                "Local Flyleaf probed",
                 $"Local Flyleaf load probe: {lAssemblyName.Name} {lAssemblyName.Version}; "
                 + $"already loaded [{(string.IsNullOrWhiteSpace(lLoaded) ? "none" : lLoaded)}]");
         }

@@ -56,6 +56,9 @@ internal sealed class TLogging : IDisposable
     internal void Info(string summary, string? detail = null) =>
         LTraceLog.LTraceInfoRecord(summary, detail);
 
+    internal void Loading(string summary, string? detail = null) =>
+        LTraceLog.LTraceLoadingRecord(summary, detail);
+
     internal void Warning(string summary, string? detail = null) =>
         LTraceLog.LTraceWarningRecord(summary, detail);
 

@@ -182,7 +182,6 @@ public sealed partial class PConsole
 
         pWindow.PWindowSceneApply(lScene);
         PConsoleSceneSet(lSceneName);
-        LTraceLog.LTraceLoadingRecord($"Scene loaded '{lSceneName}'");
     }
 
     private void PConsoleSceneRebuild()

@@ -34,12 +34,13 @@ public partial class PWindow
     public void PWindowSceneApply(LSceneRecord lScene)
     {
         LSceneRecord pWindowSceneBackup = PWindowSceneRead(LScene.LSceneActiveName);
-        pStrip.PStripAllClose();
 
         LTrace.LTraceLoadingSet(true);
         try
         {
+            pStrip.PStripAllClose();
             PWindowSceneRestore(pStrip, lScene);
+            PWindowLoadingRecord(pStrip, lScene.LSceneName);
         }
         catch (Exception pWindowSceneError)
         {
