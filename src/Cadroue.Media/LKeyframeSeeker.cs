@@ -38,7 +38,7 @@ public static class LKeyframeSeeker
             CreateNoWindow = true
         };
 
-        var keyframeTimes = new SortedSet<long>();
+        var keyframeTimes = new SortedDictionary<long, long?>();
         double scanStartSeconds = normalizedStart.TotalSeconds;
         double scanEndSeconds = scanEndTime.TotalSeconds;
         Process? process = null;
@@ -79,7 +79,9 @@ public static class LKeyframeSeeker
 
         cancellationToken.ThrowIfCancellationRequested();
         return keyframeTimes
-            .Select(ms => new LKeyframeEntry(TimeSpan.FromMilliseconds(ms)))
+            .Select(pair => new LKeyframeEntry(
+                TimeSpan.FromMilliseconds(pair.Key),
+                pair.Value is long decodeMilliseconds ? TimeSpan.FromMilliseconds(decodeMilliseconds) : null))
             .ToArray();
     }
 
@@ -87,7 +89,7 @@ public static class LKeyframeSeeker
         string line,
         double scanStartSeconds,
         double scanEndSeconds,
-        SortedSet<long> result)
+        SortedDictionary<long, long?> result)
     {
         string[] parts = line.Split(',');
         if (parts.Length < 4) return;
@@ -102,6 +104,11 @@ public static class LKeyframeSeeker
         if (timeSeconds - LKeyframeRangeTolerance > scanEndSeconds) return;
 
         long ms = (long)Math.Round(timeSeconds * 1000d);
-        if (ms >= 0) result.Add(ms);
+        if (ms < 0) return;
+
+        long? decodeMilliseconds = hasDts
+            ? (long)Math.Round(dtsSeconds * 1000d)
+            : null;
+        result[ms] = decodeMilliseconds;
     }
 }

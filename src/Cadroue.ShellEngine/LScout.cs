@@ -80,26 +80,24 @@ internal static class LScout
         }
     }
 
-    internal static IReadOnlyList<TimeSpan> LScoutBridgeRead(
+    internal static IReadOnlyList<LKeyframeEntry> LScoutBridgeRead(
         string lScoutSourcePath, TimeSpan lScoutOrigin, TimeSpan lScoutEnd, CancellationToken lScoutToken = default)
     {
         if (string.IsNullOrWhiteSpace(lScoutSourcePath) || !File.Exists(lScoutSourcePath) || lScoutEnd <= lScoutOrigin)
         {
-            return Array.Empty<TimeSpan>();
+            return Array.Empty<LKeyframeEntry>();
         }
 
         try
         {
             IReadOnlyList<LKeyframeEntry> lScoutKeyframes = LKeyframeSeeker.LKeyframeRangeScan(
                 lScoutSourcePath, lScoutOrigin, lScoutEnd, lScoutToken);
-            return lScoutKeyframes
-                .Select(lScoutEntry => lScoutEntry.LKeyframePresentationTime)
-                .ToArray();
+            return lScoutKeyframes;
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
             LRunner.LRunnerRecord($"Keyframes could not be read '{Path.GetFileName(lScoutSourcePath)}'", lScoutException);
-            return Array.Empty<TimeSpan>();
+            return Array.Empty<LKeyframeEntry>();
         }
     }
 

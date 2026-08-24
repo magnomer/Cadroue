@@ -141,6 +141,33 @@ internal sealed class TEncodeCommand : IDisposable
                 tail is { } tTail ? SpanCreate(tTail) : null),
             source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
 
+    internal static IReadOnlyList<LEncodeStage> SmartPlanBuild(
+        LWorkItem work, LBridgePlan plan, LBridgeStream? source = null) =>
+        LEncode.LEncodeSmartBuild(
+            work,
+            plan,
+            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
+
+    internal static IReadOnlyList<LEncodeStage> SmartDecodedStagesBuild(
+        LWorkItem work,
+        (double origin, double end) interval,
+        (double origin, double end)? head,
+        (double origin, double end, double decodeEnd) middle,
+        (double origin, double end)? tail,
+        LBridgeStream? source = null) =>
+        SmartPlanBuild(
+            work,
+            new LBridgePlan(
+                LBridgeOutcome.LBridgeOutcomeSmart,
+                SpanCreate(interval),
+                head is { } tHead ? SpanCreate(tHead) : null,
+                new LBridgeSpan(
+                    TimeSpan.FromSeconds(middle.origin),
+                    TimeSpan.FromSeconds(middle.end),
+                    TimeSpan.FromSeconds(middle.decodeEnd)),
+                tail is { } tTail ? SpanCreate(tTail) : null),
+            source);
+
     internal static IReadOnlyList<LEncodeStage> SmartBridgeResolve(
         LWorkItem work, params double[] keyframes) =>
         LEncode.LEncodeBridgeResolve(
@@ -259,6 +286,7 @@ public sealed class ModeCommandTests
         IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
 
         Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.Equal(2, CommandTokens.Count(tokens, "-ss"));
         Assert.DoesNotContain("concat", tokens);
         Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
     }

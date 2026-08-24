@@ -6,6 +6,8 @@ internal static class KeyframeData
 {
     internal static TimeSpan At(double seconds) => TimeSpan.FromSeconds(seconds);
     internal static LKeyframeEntry Entry(double seconds) => new(At(seconds));
+    internal static LKeyframeEntry Entry(double seconds, double decodeSeconds) =>
+        new(At(seconds), At(decodeSeconds));
 
     internal static LSpool Spool(double origin, double limit)
     {

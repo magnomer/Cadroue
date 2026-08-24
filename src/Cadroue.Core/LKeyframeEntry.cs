@@ -2,7 +2,7 @@ namespace Cadroue.Core;
 
 public sealed record LKeyframeEntry
 {
-    public LKeyframeEntry(TimeSpan presentationTime)
+    public LKeyframeEntry(TimeSpan presentationTime, TimeSpan? decodeTime = null)
     {
         if (presentationTime < TimeSpan.Zero)
         {
@@ -10,7 +10,10 @@ public sealed record LKeyframeEntry
         }
 
         LKeyframePresentationTime = presentationTime;
+        LKeyframeDecodeTime = decodeTime;
     }
 
     public TimeSpan LKeyframePresentationTime { get; }
+
+    public TimeSpan? LKeyframeDecodeTime { get; }
 }

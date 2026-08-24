@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
@@ -14,7 +15,7 @@ internal sealed partial class LJob
             return (1, "source stream unreadable");
         }
 
-        IReadOnlyList<TimeSpan> pKeyframes = LScout.LScoutBridgeRead(
+        IReadOnlyList<LKeyframeEntry> pKeyframes = LScout.LScoutBridgeRead(
             lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken);
         LBridgePlan pPlan = LBridge.LBridgeRegionResolve(pKeyframes, lJobItem.LWorkOrigin, lJobItem.LWorkEnd);
 

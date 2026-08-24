@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.Application;
 
 public enum LBridgeOutcome
@@ -7,7 +9,10 @@ public enum LBridgeOutcome
     LBridgeOutcomeInvalid
 }
 
-public sealed record LBridgeSpan(TimeSpan LBridgeSpanOrigin, TimeSpan LBridgeSpanEnd);
+public sealed record LBridgeSpan(
+    TimeSpan LBridgeSpanOrigin,
+    TimeSpan LBridgeSpanEnd,
+    TimeSpan? LBridgeDecodeEnd = null);
 
 public sealed record LBridgePlan(
     LBridgeOutcome LBridgeOutcome,
@@ -35,6 +40,15 @@ public static partial class LBridge
         IReadOnlyList<TimeSpan> lBridgeKeyframes,
         TimeSpan lBridgeOrigin,
         TimeSpan lBridgeEnd)
+        => LBridgeRegionResolve(
+            lBridgeKeyframes.Select(lTime => new LKeyframeEntry(lTime)).ToArray(),
+            lBridgeOrigin,
+            lBridgeEnd);
+
+    public static LBridgePlan LBridgeRegionResolve(
+        IReadOnlyList<LKeyframeEntry> lBridgeKeyframes,
+        TimeSpan lBridgeOrigin,
+        TimeSpan lBridgeEnd)
     {
         LBridgeSpan lBridgeInterval = new(lBridgeOrigin, lBridgeEnd);
 
@@ -44,28 +58,31 @@ public static partial class LBridge
         }
 
         bool lBridgeOriginKeyed = false;
-        TimeSpan? lBridgeFirstAfter = null;
-        TimeSpan? lBridgeLastWithin = null;
+        LKeyframeEntry? lBridgeFirstAfter = null;
+        LKeyframeEntry? lBridgeLastWithin = null;
 
-        foreach (TimeSpan lBridgeKeyframe in lBridgeKeyframes)
+        foreach (LKeyframeEntry lBridgeKeyframe in lBridgeKeyframes)
         {
-            if (LBridgeMatch(lBridgeKeyframe, lBridgeOrigin))
+            TimeSpan lBridgePresentation = lBridgeKeyframe.LKeyframePresentationTime;
+            if (LBridgeMatch(lBridgePresentation, lBridgeOrigin))
             {
                 lBridgeOriginKeyed = true;
             }
-            else if (lBridgeKeyframe > lBridgeOrigin && lBridgeFirstAfter is null)
+            else if (lBridgePresentation > lBridgeOrigin && lBridgeFirstAfter is null)
             {
                 lBridgeFirstAfter = lBridgeKeyframe;
             }
 
-            if (lBridgeKeyframe <= lBridgeEnd + LBridgeTolerance)
+            if (lBridgePresentation <= lBridgeEnd + LBridgeTolerance)
             {
                 lBridgeLastWithin = lBridgeKeyframe;
             }
         }
 
-        TimeSpan? lBridgeCopyOrigin = lBridgeOriginKeyed ? lBridgeOrigin : lBridgeFirstAfter;
-        TimeSpan? lBridgeCopyEnd = lBridgeLastWithin;
+        TimeSpan? lBridgeCopyOrigin = lBridgeOriginKeyed
+            ? lBridgeOrigin
+            : lBridgeFirstAfter?.LKeyframePresentationTime;
+        TimeSpan? lBridgeCopyEnd = lBridgeLastWithin?.LKeyframePresentationTime;
 
         bool lBridgeCopyUsable =
             lBridgeCopyOrigin is TimeSpan lBridgeStart &&
@@ -84,7 +101,8 @@ public static partial class LBridge
             ? null
             : new LBridgeSpan(lBridgeOrigin, lBridgeCopyStart);
 
-        LBridgeSpan lBridgeCopy = new(lBridgeCopyStart, lBridgeCopyStop);
+        TimeSpan? lBridgeDecodeEnd = lBridgeLastWithin?.LKeyframeDecodeTime;
+        LBridgeSpan lBridgeCopy = new(lBridgeCopyStart, lBridgeCopyStop, lBridgeDecodeEnd);
 
         LBridgeSpan? lBridgeTail = lBridgeCopyStop < lBridgeEnd - LBridgeTolerance
             ? new LBridgeSpan(lBridgeCopyStop, lBridgeEnd)

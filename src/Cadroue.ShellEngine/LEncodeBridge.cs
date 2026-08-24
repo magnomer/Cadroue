@@ -99,14 +99,6 @@ public static partial class LEncode
             || string.Equals(lAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
         bool lAudioPresent = !string.IsNullOrWhiteSpace(lWorkItem.LWorkSourceMedia?.LWorkAudioCodec);
         bool lAudioActive = !lAudioExcluded && lAudioPresent;
-        bool lAudioCopy = string.Equals(lAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase);
-        bool lVideoWholeCopyable = lBridgePlan.LBridgeHead is null && lBridgePlan.LBridgeTail is null;
-
-        if (lVideoWholeCopyable && (!lAudioActive || lAudioCopy))
-        {
-            return new[] { LEncodeDirectBuild(lWorkItem, lAudioActive) };
-        }
-
         bool lBridgeReencode = lBridgePlan.LBridgeHead is not null || lBridgePlan.LBridgeTail is not null;
         string? lBridgeCodec = lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec;
         if (lBridgeReencode && LRepertoireCatalog.LRepertoireEncoderResolve(lBridgeCodec) is null)
@@ -177,34 +169,26 @@ public static partial class LEncode
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanOrigin + LEncodeCopyBias)}");
+        TimeSpan lCopyOrigin = lBridgeSpan.LBridgeSpanOrigin + LEncodeCopyBias;
+        TimeSpan lCopyDuration = lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin;
+        if (lBridgeSpan.LBridgeDecodeEnd is TimeSpan lDecodeEnd)
+        {
+            // A copied GOP must stop before the following keyframe's DTS. Stopping at
+            // its PTS also copies that keyframe and its reordered frames into the
+            // encoded tail, producing duplicate preroll and an inflated timeline.
+            TimeSpan lDecodeDuration = lDecodeEnd - lCopyOrigin - LEncodeCopyBias;
+            if (lDecodeDuration > TimeSpan.Zero)
+            {
+                lCopyDuration = lDecodeDuration;
+            }
+        }
+
+        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lCopyOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lCopyDuration)}");
         lArguments.Append(" -c:v copy -an");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
-    }
-
-    private static LEncodeStage LEncodeDirectBuild(LWorkItem lWorkItem, bool lAudioActive)
-    {
-        var lArguments = new StringBuilder();
-        LEncodeHeaderAppend(lArguments);
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin + LEncodeCopyBias)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lWorkItem.LWorkDuration)}");
-        lArguments.Append(" -map 0:v:0");
-        if (lAudioActive)
-        {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -map {LEncodeMapRead(lWorkItem)} -c copy");
-        }
-        else
-        {
-            lArguments.Append(" -c copy -an");
-        }
-
-        lArguments.Append(" -avoid_negative_ts make_zero");
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
-        return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying", lWorkItem.LWorkOutputPath, false);
     }
 
     private static LEncodeStage LEncodeAudioBuild(LWorkItem lWorkItem, string lAudioPath)
@@ -214,6 +198,7 @@ public static partial class LEncode
         LEncodeHeaderAppend(lArguments);
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+        lArguments.Append(" -ss 0");
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lWorkItem.LWorkDuration)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -vn -map {LEncodeMapRead(lWorkItem)}");
 
@@ -252,13 +237,13 @@ public static partial class LEncode
 
         if (lAudioPath is null)
         {
-            lArguments.Append(" -map 0:v:0 -c copy -an -avoid_negative_ts make_zero");
+            lArguments.Append(" -map 0:v:0 -c copy -an");
             lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
             return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
         }
 
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioPath)}");
-        lArguments.Append(" -map 0:v:0 -map 1:a -c copy -avoid_negative_ts make_zero");
+        lArguments.Append(" -map 0:v:0 -map 1:a -c copy");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
     }

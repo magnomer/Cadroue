@@ -74,7 +74,7 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal(LWorkStage.LWorkStageMux, mux.LEncodeStageKind);
         Assert.Contains("concat", muxTokens);
         Assert.Equal("copy", CommandTokens.ValueAfter(muxTokens, "-c"));
-        Assert.Equal("make_zero", CommandTokens.ValueAfter(muxTokens, "-avoid_negative_ts"));
+        Assert.DoesNotContain("-avoid_negative_ts", muxTokens);
         Assert.Equal(1, CommandTokens.Count(muxTokens, "1:a"));
         Assert.Equal(work.LWorkOutputPath, muxTokens[^1]);
 
@@ -102,26 +102,45 @@ public sealed class SmartEncodingCommandTests
     }
 
     [Fact]
-    public void WholeCopyableVideoWithCopyAudio_UsesSingleSimultaneousCopyPass()
+    public void CopiedMiddle_StopsBeforeFollowingKeyframeDecodeTimestamp()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartDecodedStagesBuild(
+            work,
+            (10, 30),
+            (10, 12),
+            (12, 28, 27.933),
+            (28, 30),
+            TEncodeCommand.SourceStreamCreate("h264"));
+        IReadOnlyList<string> middleTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
+
+        Assert.Equal("12.002", CommandTokens.ValueAfter(middleTokens, "-ss"));
+        Assert.Equal("15.929", CommandTokens.ValueAfter(middleTokens, "-t"));
+    }
+
+    [Fact]
+    public void WholeCopyableVideoWithCopyAudio_UsesIndependentTrimmedStreams()
     {
         using var environment = new TEncodeCommand();
         LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
 
-        // Origin and end both land on keyframes: no head/tail, video copyable as one, audio copy.
-        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null));
-        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+        // Keep copied audio preroll from shifting copied video by trimming each stream
+        // independently before the final mux.
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null);
 
-        Assert.False(stage.LEncodeStageTemporary);
-        Assert.Equal("Copying", stage.LEncodeStageLabel);
-        Assert.DoesNotContain("concat", tokens);
-        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c"));
-        Assert.Equal(2, CommandTokens.Count(tokens, "-map"));
-        Assert.Equal(1, CommandTokens.Count(tokens, "0:v:0"));
-        Assert.Equal(1, CommandTokens.Count(tokens, "0:a:0"));
-        Assert.Equal("10.002", CommandTokens.ValueAfter(tokens, "-ss"));
-        Assert.Equal("20", CommandTokens.ValueAfter(tokens, "-t"));
-        Assert.Equal("make_zero", CommandTokens.ValueAfter(tokens, "-avoid_negative_ts"));
+        Assert.Equal(3, stages.Count);
+        Assert.Equal("Copying middle", stages[0].LEncodeStageLabel);
+        Assert.Equal("Copying audio", stages[1].LEncodeStageLabel);
+
+        IReadOnlyList<string> audioTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
+        Assert.Equal(2, CommandTokens.Count(audioTokens, "-ss"));
+        Assert.Equal("make_zero", CommandTokens.ValueAfter(audioTokens, "-avoid_negative_ts"));
+
+        IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[2].LEncodeStageArguments);
+        Assert.Contains("concat", muxTokens);
+        Assert.DoesNotContain("-avoid_negative_ts", muxTokens);
     }
 
     [Fact]
@@ -214,13 +233,14 @@ public sealed class SmartEncodingCommandTests
         LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "mpeg2video");
 
         // No head/tail: the whole video is stream-copied, so the unmapped codec never matters.
-        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartStagesBuild(
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null,
-            TEncodeCommand.SourceStreamCreate("mpeg2video", profile: "Main")));
-        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+            TEncodeCommand.SourceStreamCreate("mpeg2video", profile: "Main"));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stages[0].LEncodeStageArguments);
 
-        Assert.Equal("Copying", stage.LEncodeStageLabel);
-        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c"));
+        Assert.Equal(3, stages.Count);
+        Assert.Equal("Copying middle", stages[0].LEncodeStageLabel);
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
     }
 
     [Fact]

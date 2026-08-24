@@ -56,6 +56,17 @@ public static partial class LEncode
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin)}");
             lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+            bool lVideoCopy = string.Equals(
+                    lOutput.LEncodingVideo.LEncodingMode,
+                    "Copy",
+                    StringComparison.OrdinalIgnoreCase)
+                && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput);
+            if (!lVideoCopy && lWorkItem.LWorkOrigin > TimeSpan.Zero)
+            {
+                // Fast input seeking can expose preroll packets from copied companion
+                // streams. Discard them at the output boundary when video is decoded.
+                lArguments.Append(" -ss 0");
+            }
             if (lWorkItem.LWorkEnd > lWorkItem.LWorkOrigin)
             {
                 lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lWorkItem.LWorkDuration)}");

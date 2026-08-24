@@ -1,5 +1,4 @@
 using Cadroue.Application;
-
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -77,6 +76,22 @@ public sealed class BridgeRegionTests
         Assert.NotNull(plan.LBridgeMiddle);
         Assert.Null(plan.LBridgeTail);
         Assert.Equal(S(6), plan.LBridgeMiddle!.LBridgeSpanEnd);
+    }
+
+    [Fact]
+    public void PacketKeyframes_CarryDecodeCutoffIntoCopiedMiddle()
+    {
+        var keyframes = new[]
+        {
+            KeyframeData.Entry(2, 1.9),
+            KeyframeData.Entry(4, 3.9),
+            KeyframeData.Entry(6, 5.9)
+        };
+
+        LBridgePlan plan = TInterface.BridgeResolve(keyframes, S(3), S(7));
+
+        Assert.NotNull(plan.LBridgeMiddle);
+        Assert.Equal(S(5.9), plan.LBridgeMiddle!.LBridgeDecodeEnd);
     }
 
     [Fact]
