@@ -1,7 +1,9 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Interop;
 using System.Windows.Media;
 
 using Cadroue.Core;
@@ -13,6 +15,10 @@ namespace Cadroue.UIShell.PPanels;
 
 public sealed partial class PViewer
 {
+    private const int PViewerOwnerIndex = -8;
+    private const uint PViewerPositionFlags = 0x0001 | 0x0002 | 0x0010;
+    private static readonly nint pViewerNotTopmost = new(-2);
+
     private PViewerMpvHost? pViewerMpvHost;
     private Popup? pViewerMpvOverlay;
     private Window? pViewerMpvWindow;
@@ -22,6 +28,23 @@ public sealed partial class PViewer
     private string pViewerAudioFilter = string.Empty;
     private string? pViewerAudioApplied;
     private bool pViewerBypass;
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongW", SetLastError = true)]
+    private static extern int PViewerWindowLongSet(nint pWindow, int pIndex, int pValue);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+    private static extern nint PViewerWindowLongPtrSet(nint pWindow, int pIndex, nint pValue);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowPos(
+        nint pWindow,
+        nint pInsertAfter,
+        int pX,
+        int pY,
+        int pWidth,
+        int pHeight,
+        uint pFlags);
 
     public event Action<bool>? PViewerBypassChange;
 
@@ -341,14 +364,54 @@ public sealed partial class PViewer
         if (!pViewerMpvOverlay.IsOpen)
         {
             LTraceLog.LTraceInfoRecord(
-                $"mpv overlay opened (top-level transparent window over {pViewerMpvHost.ActualWidth:0}x{pViewerMpvHost.ActualHeight:0}); "
-                + "note: this window captures pointer/drag events in its bounds");
+                "mpv overlay opened",
+                $"top-level transparent window over {pViewerMpvHost.ActualWidth:0}x{pViewerMpvHost.ActualHeight:0}");
         }
 
         pViewerMpvOverlay.IsOpen = true;
         double pViewerOverlayOffset = pViewerMpvOverlay.HorizontalOffset;
         pViewerMpvOverlay.HorizontalOffset = pViewerOverlayOffset + 0.5;
         pViewerMpvOverlay.HorizontalOffset = pViewerOverlayOffset;
+        PViewerOrderApply();
+    }
+
+    private void PViewerOrderApply()
+    {
+        if (pViewerMpvOverlay?.Child is not Visual pViewerOverlayChild
+            || PresentationSource.FromVisual(pViewerOverlayChild) is not HwndSource pViewerOverlaySource)
+        {
+            return;
+        }
+
+        nint pViewerOwnerHandle = PViewerWindowHandle(pViewerMpvWindow);
+        if (pViewerOwnerHandle == nint.Zero)
+        {
+            return;
+        }
+
+        if (Environment.Is64BitProcess)
+        {
+            _ = PViewerWindowLongPtrSet(
+                pViewerOverlaySource.Handle,
+                PViewerOwnerIndex,
+                pViewerOwnerHandle);
+        }
+        else
+        {
+            _ = PViewerWindowLongSet(
+                pViewerOverlaySource.Handle,
+                PViewerOwnerIndex,
+                pViewerOwnerHandle.ToInt32());
+        }
+
+        _ = SetWindowPos(
+            pViewerOverlaySource.Handle,
+            pViewerNotTopmost,
+            0,
+            0,
+            0,
+            0,
+            PViewerPositionFlags);
     }
 
     private void PViewerWindowAttach()
