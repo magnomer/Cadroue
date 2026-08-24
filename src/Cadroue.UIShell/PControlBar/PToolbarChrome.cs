@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIShell.PSShared;
 
 namespace Cadroue.UIShell.PControlBar;
 
@@ -106,7 +107,10 @@ public partial class PToolbar
             Mouse.Capture(null);
         }
 
-        Window.GetWindow(this)?.DragMove();
+        if (Window.GetWindow(this) is { } pWindow)
+        {
+            PSWindowManagement.PSWindowDragMove(pWindow, e);
+        }
         pChromePressArmed = false;
         pChromeDragActive = false;
     }

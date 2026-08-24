@@ -24,29 +24,15 @@ internal sealed class PSGrabber
 
     internal static void PSGrabberPlacementRestore(Window pWindow, string pPlacementKey)
     {
-        if (Cadroue.Infrastructure.LPlacement.LPlacementRead(pPlacementKey) is not { } pPlacement)
-        {
-            return;
-        }
-
-        double pWidth = Math.Max(pPlacement.LPlacementWidth, pWindow.MinWidth);
-        double pHeight = Math.Max(pPlacement.LPlacementHeight, pWindow.MinHeight);
-        double pScreenRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
-        double pScreenBottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
-
-        pWindow.Width = pWidth;
-        pWindow.Height = pHeight;
-        if (pPlacement.LPlacementLeft < SystemParameters.VirtualScreenLeft
-            || pPlacement.LPlacementTop < SystemParameters.VirtualScreenTop
-            || pPlacement.LPlacementLeft + 100 > pScreenRight
-            || pPlacement.LPlacementTop + 40 > pScreenBottom)
-        {
-            return;
-        }
-
-        pWindow.WindowStartupLocation = WindowStartupLocation.Manual;
-        pWindow.Left = pPlacement.LPlacementLeft;
-        pWindow.Top = pPlacement.LPlacementTop;
+        Cadroue.Infrastructure.LPlacementRecord? pPlacement = Cadroue.Infrastructure.LPlacement.LPlacementRead(pPlacementKey);
+        double pWidth = Math.Max(pPlacement?.LPlacementWidth ?? pWindow.Width, pWindow.MinWidth);
+        double pHeight = Math.Max(pPlacement?.LPlacementHeight ?? pWindow.Height, pWindow.MinHeight);
+        PSWindowManagement.PSWindowPlacementRestore(
+            pWindow,
+            pPlacement?.LPlacementLeft,
+            pPlacement?.LPlacementTop,
+            pWidth,
+            pHeight);
     }
 
     internal static void PSGrabberPlacementSave(Window pWindow, string pPlacementKey)

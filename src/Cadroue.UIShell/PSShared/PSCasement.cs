@@ -163,7 +163,7 @@ internal static class PSCasement
             return;
         }
 
-        pWindow.DragMove();
+        PSWindowManagement.PSWindowDragMove(pWindow, e);
     }
 
     internal static void PSCasementMaximizeToggle(Window pWindow) =>

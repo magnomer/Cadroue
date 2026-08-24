@@ -41,6 +41,8 @@ public partial class PWindow : Window
         pStrip = new PStrip();
         pRail = new PRail();
         pRail.PRailAttach(pStrip);
+        Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
+        Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         LRelay? lRelayStartup = LRelayChannel.LRelayPayloadRead();
         if (lRelayStartup is null)
         {
@@ -202,17 +204,12 @@ public partial class PWindow : Window
 
     private void PWindowPositionRestore(LFrameState lFrame)
     {
-        if (lFrame.LFrameLeft is not double pLeft || lFrame.LFrameTop is not double pTop)
-            return;
-        double pVRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
-        double pVBottom = SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight;
-        if (pLeft >= SystemParameters.VirtualScreenLeft && pTop >= SystemParameters.VirtualScreenTop
-            && pLeft + 100 <= pVRight && pTop + 40 <= pVBottom)
-        {
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = pLeft;
-            Top = pTop;
-        }
+        PSShared.PSWindowManagement.PSWindowPlacementRestore(
+            this,
+            lFrame.LFrameLeft,
+            lFrame.LFrameTop,
+            lFrame.LFrameWidth,
+            lFrame.LFrameHeight);
     }
     private void PWindowTabHandle(PTabRecord? pTabRecord)
     {
@@ -326,8 +323,6 @@ public partial class PWindow : Window
     }
     private void PWindowOptionsHandle(LPreferenceState lPreferenceState)
     {
-        Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
-        Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         FontSize = PWindowFontSize;
         PWindowLayoutApply(lPreferenceState.LPreferenceVerticalTabs);
         if (pFlowActive is not null)
