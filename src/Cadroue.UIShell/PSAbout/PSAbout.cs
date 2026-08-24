@@ -170,7 +170,7 @@ internal sealed class PSAbout : Window
         return pHeader;
     }
 
-    private static UIElement PSAboutCreditBuild()
+    private UIElement PSAboutCreditBuild()
     {
         var pRows = new List<UIElement>(PSAboutCredits.Length + 1);
         foreach ((string pName, string pUrl) in PSAboutCredits)
@@ -182,7 +182,7 @@ internal sealed class PSAbout : Window
         return PSPlateBuild(LLocalization.LLocalizationTextRead("About.Credits.Title"), pRows.ToArray());
     }
 
-    private static UIElement PSAboutRowBuild(string pName, string pUrl)
+    private UIElement PSAboutRowBuild(string pName, string pUrl)
     {
         var pRow = new Grid { Margin = new Thickness(0, 0, 0, PSAboutRowGap) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
@@ -195,7 +195,7 @@ internal sealed class PSAbout : Window
         return pRow;
     }
 
-    private static UIElement PSAboutLicenseBuild()
+    private UIElement PSAboutLicenseBuild()
     {
         var pRow = new Grid { Margin = new Thickness(0, 0, 0, PSAboutRowGap) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
@@ -217,7 +217,7 @@ internal sealed class PSAbout : Window
         return pRow;
     }
 
-    private static void PSAboutNoticeHandle(object pSender, RoutedEventArgs pEvent)
+    private void PSAboutNoticeHandle(object pSender, RoutedEventArgs pEvent)
     {
         pEvent.Handled = true;
         string pPath = System.IO.Path.Combine(AppContext.BaseDirectory, PSAboutNoticeName);
@@ -228,10 +228,11 @@ internal sealed class PSAbout : Window
         catch (Exception pException)
         {
             LTraceLog.LTraceErrorRecord($"Notice could not be opened: {pPath}", pException);
+            PSAboutErrorShow(pPath, pException.Message);
         }
     }
 
-    private static TextBlock PSAboutLinkBuild(string pUrl, HorizontalAlignment pAlignment)
+    private TextBlock PSAboutLinkBuild(string pUrl, HorizontalAlignment pAlignment)
     {
         var pLink = new Hyperlink(new Run(pUrl)) { NavigateUri = new Uri(pUrl) };
         pLink.RequestNavigate += PSAboutLinkHandle;
@@ -263,7 +264,7 @@ internal sealed class PSAbout : Window
         }
     }
 
-    private static void PSAboutLinkHandle(object pSender, RequestNavigateEventArgs pEvent)
+    private void PSAboutLinkHandle(object pSender, RequestNavigateEventArgs pEvent)
     {
         pEvent.Handled = true;
         try
@@ -273,8 +274,17 @@ internal sealed class PSAbout : Window
         catch (Exception pException)
         {
             LTraceLog.LTraceErrorRecord($"Link could not be opened: {pEvent.Uri.AbsoluteUri}", pException);
+            PSAboutErrorShow(pEvent.Uri.AbsoluteUri, pException.Message);
         }
     }
+
+    private void PSAboutErrorShow(string pResource, string pDetail) =>
+        MessageBox.Show(
+            this,
+            LLocalization.LLocalizationFormat("About.Error.Open", pResource, pDetail),
+            LLocalization.LLocalizationTextRead("About.Window.Title"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
 
     private static string PSAboutVersionRead()
     {

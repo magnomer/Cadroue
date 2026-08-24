@@ -172,6 +172,7 @@
   "About.Credits.Title": "사용된 프로그램 및 라이브러리",
   "About.Licenses.Label": "라이선스",
   "About.Licenses.Link": "제3자 라이선스",
+  "About.Error.Open": "리소스를 열 수 없습니다.\n\n{0}\n\n{1}",
   "About.Button.Close": "{Terms.Close}",
   "Chrome.Shortcuts.Title": "{Terms.Shortcuts}",
   "Chrome.Shortcuts.Show": "{Terms.Shortcuts} 표시",
