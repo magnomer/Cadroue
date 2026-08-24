@@ -35,9 +35,9 @@
 > **Development status**  
 > Cadroue is under active development. Common workflows and operation combinations have been tested, but unusual inputs or complex processing chains may still expose bugs.
 
-> **Documentation version:** 2.9.10600
+> **Documentation version:** 2.11.14410
 
-### Screenshots
+### Screenshots (2.9.10600)
 
 <img width="1588" height="1087" alt="Screenshot1" src="https://github.com/user-attachments/assets/161a22da-9b89-4b41-b987-3253671d2723" />
 <img width="1588" height="1087" alt="Screenshot2" src="https://github.com/user-attachments/assets/d7b5eda2-762e-4c8b-b25e-66291dab7dd9" />
@@ -57,6 +57,8 @@ Each processing tab prepares a particular kind of job. The Worklist executes tho
 
 - Create multiple named sections from one media file.
 - Set, split, rename, enable, disable, reorder, and delete sections.
+- Scan a source for blank frames, scene changes, still images, luminance changes, silence, and reduced-volume regions.
+- Tune detection with conservative, normal, sensitive, or custom thresholds, then review and combine the detected boundaries before applying them as sections.
 - Navigate to the previous, nearest, or next keyframe.
 - Zoom and seek on the timeline, optionally display an audio waveform, and choose whether sections may overlap.
 - Save section plans and scanned keyframe data in the file's `.cad` record.
@@ -69,7 +71,9 @@ Each processing tab prepares a particular kind of job. The Worklist executes tho
 - Match a fixed aspect ratio.
 - Rotate by 90°, 180°, or 270°.
 - Flip horizontally or vertically.
-- Adjust brightness and contrast.
+- Build an ordered color pipeline from white balance, exposure, brightness, contrast, gamma, saturation, and RGB/master curves.
+- Pick a neutral color from the preview or use automatic and manual white-balance methods.
+- Edit curves by channel with a live histogram overlay.
 - Save a separate edit plan for each source file or keep selected settings persistent while loading other files.
 
 #### Audio
@@ -88,8 +92,8 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. A norm
 
 #### Convert and export
 
-- Smart export, remux-only, and re-encode modes.
-- Independent video and audio inclusion, exclusion, stream-copy, and encoding choices.
+- Smart, stream-copy, and re-encode modes for video, with independent copy, encode, and exclude choices for audio.
+- Keyframe-aware Smart cuts on Split jobs: compatible middle regions are copied while short boundary bridges are encoded and joined; edits, frame-rate changes, unsupported layouts, and unsuitable keyframe ranges safely fall back to a full encode.
 - Built-in container choices for MP4, Matroska, MOV, WebM, M4A, MP3, WAV, FLAC, and OGG, together with access to formats supported by the selected FFmpeg build.
 - Video size, frame rate, pixel format, rate control, quality, and encoder-specific controls.
 - Output placement beside the source, in a subfolder or sibling folder, or in a custom location.
@@ -156,7 +160,7 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. A norm
 
 Cadroue separates **preview availability** from **FFmpeg processability**. A file may still be processable even when the preview engine cannot display it, and the interface reports these states separately.
 
-The standard preview uses Flyleaf. A locally built Flyleaf variant can optionally be installed from **Options → System** to add contrast preview. FFmpeg remains authoritative for exported output, so a preview may differ slightly from the final encode.
+Flyleaf is the default preview engine. A local mpv runtime can be installed and selected under **Options → System**; mpv supports the Edit filter preview and processed/original audio switching. A locally built Flyleaf variant can also be installed to add contrast preview to Flyleaf. FFmpeg remains authoritative for exported output, so a preview may differ slightly from the final encode.
 
 Enabled edit and audio steps are compiled into ordered FFmpeg filter chains. Ordinary combinations are processed in a single FFmpeg export operation rather than being repeatedly rendered through separate intermediate files. Two-pass loudness normalization is the intentional exception because it performs an analysis pass before the final encode.
 
@@ -194,19 +198,26 @@ Audio-only files can be opened only in an Audio tab. A Funnel tab routes files b
 
 ### Building
 
-From the repository root, create a self-contained Windows build with:
+From the repository root, restore and build the solution with:
+
+```shell
+dotnet build .\Cadroue.sln --configuration Release
+```
+
+Run the application or test suite with:
+
+```shell
+dotnet run --project .\src\Cadroue.UIShell\Cadroue.UIShell.csproj
+dotnet test .\Cadroue.sln
+```
+
+Create a self-contained Windows publish with:
 
 ```shell
 dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
-To run the development version directly:
-
-```shell
-dotnet run --project .\src\Cadroue.UIShell\Cadroue.UIShell.csproj
-```
-
-For another Windows architecture, replace `win-x64` in the publish command with the required runtime identifier, such as `win-arm64`.
+For another supported Windows architecture, replace `win-x64` with `win-arm64`.
 
 ### Repository structure
 
@@ -224,7 +235,8 @@ localization/
 └─ ko.json
 
 tests/
-└─ Cadroue.Tests/           Automated unit and integration tests
+├─ Cadroue.Tests/           Unit and integration tests
+└─ Cadroue.Convention.Tests/ Roslyn-based source and naming convention tests
 
 docs/                       Generated logic maps
 ```
@@ -233,8 +245,8 @@ docs/                       Generated logic maps
 
 - Cadroue currently targets Windows and has no general command-line interface.
 - FFmpeg and FFprobe are not bundled with the normal application build.
-- Preview support depends on the media format and the available Flyleaf and FFmpeg libraries.
-- Contrast preview requires the optional local Flyleaf build, although exported output still receives the configured contrast adjustment.
+- Preview support depends on the media format and the available Flyleaf, mpv, and FFmpeg libraries.
+- mpv preview requires the local x64 mpv runtime. Flyleaf contrast preview requires the optional local Flyleaf build, although exported output still receives the configured contrast adjustment.
 - Stream preservation is focused on video and audio; subtitle, attachment, chapter, and complete metadata workflows are not yet the application's primary use case.
 - A relay destination is prepared rather than executed unless automatic relay is enabled for that destination.
 
@@ -260,6 +272,7 @@ Cadroue is built with:
 - WPF
 - FFmpeg and FFprobe
 - Flyleaf
+- mpv
 - SQLite
 - SharpVectors
 
@@ -278,7 +291,7 @@ Licenses and attribution for bundled libraries and assets, including Flyleaf and
 > **개발 상태**  
 > Cadroue는 현재도 기능 개선 중입니다. 대체적인 작업 및 기능은 확인되었으나, 문제나 버그가 있을 수 있습니다.
 >
-> 이 문서는 **2.9.10600** 버전을 기준으로 작성했습니다.
+> 이 문서는 **2.11.14410** 버전을 기준으로 작성했습니다.
 
 ### 스크린샷
 
@@ -301,6 +314,8 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 
 - 하나의 미디어를 여러 구간으로 나누고 각 구간에 이름을 붙일 수 있습니다.
 - 구간을 새로 만들거나 다시 나누고, 순서를 바꾸고, 필요 없는 구간을 끄거나 삭제할 수 있습니다.
+- 빈 화면, 장면 전환, 정지 화면, 휘도 변화, 무음, 작은 음량 구간을 FFmpeg로 탐지할 수 있습니다.
+- 보수적·보통·민감 프리셋이나 사용자 지정 임계값으로 탐지를 조정하고, 탐지 경계를 검토·결합한 뒤 분할 구간으로 적용할 수 있습니다.
 - 이전 키프레임, 현재 위치에서 가장 가까운 키프레임, 다음 키프레임으로 이동할 수 있습니다.
 - 타임라인을 확대해 세밀하게 탐색할 수 있으며, 오디오 파형 표시와 구간 겹침 허용 여부를 상황에 맞게 바꿀 수 있습니다.
 - 찾아낸 키프레임과 분할 계획을 `.cad` 기록에 저장합니다.
@@ -312,7 +327,9 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 - 미리보기 화면에서 직접 크롭 영역을 그려 조절할 수 있습니다.
 - 지정한 화면비에 맞춰 크롭 영역을 고정할 수 있습니다.
 - 90°, 180°, 270° 회전과 가로·세로 뒤집기를 지원합니다.
-- 밝기와 대비를 조정할 수 있습니다.
+- 화이트 밸런스, 노출, 밝기, 대비, 감마, 채도, RGB·마스터 커브를 원하는 순서로 구성할 수 있습니다.
+- 미리보기에서 중성색을 직접 고르거나 자동·수동 화이트 밸런스 방식을 사용할 수 있습니다.
+- 채널별 커브를 라이브 히스토그램과 함께 편집할 수 있습니다.
 - 파일마다 별도의 편집 계획을 저장할 수도 있고, 선택한 값을 유지한 채 다른 파일을 불러와 같은 설정을 연속해서 적용할 수도 있습니다.
 
 #### 오디오
@@ -333,8 +350,8 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 
 #### 변환과 출력
 
-- 스마트 내보내기, 리먹스 전용, 재인코딩 모드를 제공합니다.
-- 비디오와 오디오를 각각 제외하거나 포함할 수 있고, 스트림 복사와 인코딩 여부도 따로 선택할 수 있습니다.
+- 비디오는 스마트·스트림 복사·재인코딩 모드를, 오디오는 별도의 복사·인코딩·제외 선택을 제공합니다.
+- 분할 작업의 스마트 모드는 키프레임에 맞는 중간 구간을 복사하고 짧은 경계 구간만 인코딩해 결합합니다. 편집이나 프레임 레이트 변경이 있거나 스트림·키프레임 조건이 맞지 않으면 전체 구간 인코딩으로 안전하게 전환합니다.
 - MP4, Matroska, MOV, WebM, M4A, MP3, WAV, FLAC, OGG를 기본 선택지로 제공하며, 사용 중인 FFmpeg가 지원하는 다른 형식도 선택할 수 있습니다.
 - 해상도, 프레임 레이트, 픽셀 형식, 비트레이트·품질 제어 방식과 인코더별 옵션을 설정할 수 있습니다.
 - 오디오 샘플 레이트와 채널 수를 지정할 수 있으며, 세로·가로 영상 방향에 맞춰 해상도가 반응하도록 설정할 수 있습니다.
@@ -398,7 +415,7 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 미리보기가 되지 않는 파일이라고 해서 반드시 FFmpeg 처리까지 불가능한 것은 아닙니다. Cadroue는 **화면에서 재생할 수 있는지**와 **FFmpeg로 작업할 수 있는지**를 별개의 상태로 판단해 표시합니다.
 
-기본 미리보기 엔진은 Flyleaf입니다. **옵션 → 시스템**에서 로컬 Flyleaf 빌드를 설치하면 대비 조정 미리보기를 추가로 사용할 수 있습니다. 다만 최종 출력은 항상 FFmpeg의 처리 결과를 기준으로 하므로, 미리보기와 완성 파일 사이에는 약간의 차이가 생길 수 있습니다.
+기본 미리보기 엔진은 Flyleaf입니다. **옵션 → 시스템**에서 로컬 mpv 런타임을 설치해 두 번째 미리보기 엔진으로 선택할 수 있으며, mpv에서는 편집 필터 미리보기와 처리 전·후 오디오 전환을 지원합니다. 로컬 Flyleaf 빌드를 설치하면 Flyleaf에서도 대비 조정 미리보기를 추가로 사용할 수 있습니다. 다만 최종 출력은 항상 FFmpeg의 처리 결과를 기준으로 하므로, 미리보기와 완성 파일 사이에는 약간의 차이가 생길 수 있습니다.
 
 활성화된 편집 단계와 오디오 단계는 적용 순서에 맞춰 하나의 FFmpeg 필터 체인으로 구성됩니다. 보통의 조합은 중간 파일을 단계마다 다시 만드는 대신 한 번의 FFmpeg 출력 과정에서 함께 처리합니다. 2패스 라우드니스 정규화만은 먼저 분석한 뒤 최종 출력을 만들어야 하므로 의도적으로 두 번의 패스를 사용합니다.
 
@@ -436,19 +453,26 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 ### 빌드
 
-저장소 루트에서 다음 명령을 실행하면 자체 포함 Windows 빌드를 만들 수 있습니다.
+저장소 루트에서 다음 명령으로 솔루션을 복원하고 빌드할 수 있습니다.
+
+```shell
+dotnet build .\Cadroue.sln --configuration Release
+```
+
+애플리케이션 실행과 테스트에는 다음 명령을 사용합니다.
+
+```shell
+dotnet run --project .\src\Cadroue.UIShell\Cadroue.UIShell.csproj
+dotnet test .\Cadroue.sln
+```
+
+자체 포함 Windows 배포본은 다음 명령으로 만들 수 있습니다.
 
 ```shell
 dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
-개발 버전을 바로 실행하려면 다음 명령을 사용합니다.
-
-```shell
-dotnet run --project .\src\Cadroue.UIShell\Cadroue.UIShell.csproj
-```
-
-다른 Windows 아키텍처를 대상으로 하려면 명령의 `win-x64`를 `win-arm64`와 같은 알맞은 런타임 식별자로 바꾸면 됩니다.
+다른 지원 Windows 아키텍처를 대상으로 하려면 `win-x64`를 `win-arm64`로 바꾸면 됩니다.
 
 ### 저장소 구성
 
@@ -466,7 +490,8 @@ localization/
 └─ ko.json
 
 tests/
-└─ Cadroue.Tests/           단위 테스트와 통합 테스트
+├─ Cadroue.Tests/           단위 테스트와 통합 테스트
+└─ Cadroue.Convention.Tests/ Roslyn 기반 소스·명명 규칙 테스트
 
 docs/                       생성된 로직 맵
 ```
@@ -475,8 +500,8 @@ docs/                       생성된 로직 맵
 
 - 현재는 Windows만 지원하며, 일반 사용자를 위한 명령줄 인터페이스는 제공하지 않습니다.
 - FFmpeg와 FFprobe는 기본 애플리케이션 빌드에 포함되지 않습니다.
-- 미리보기 가능 범위는 파일 형식과 사용할 수 있는 Flyleaf·FFmpeg 라이브러리에 따라 달라집니다.
-- 대비 값은 최종 출력에 적용되지만, 화면에서 대비 변화를 미리 보려면 선택적으로 설치하는 로컬 Flyleaf 빌드가 필요합니다.
+- 미리보기 가능 범위는 파일 형식과 사용할 수 있는 Flyleaf·mpv·FFmpeg 라이브러리에 따라 달라집니다.
+- mpv 미리보기에는 로컬 x64 mpv 런타임이 필요합니다. 대비 값은 최종 출력에 적용되지만 Flyleaf에서 대비 변화를 미리 보려면 로컬 Flyleaf 빌드가 필요합니다.
 - 스트림 보존 기능은 비디오와 오디오를 중심으로 설계되어 있습니다. 자막, 첨부 파일, 챕터, 전체 메타데이터를 완전하게 유지하는 작업은 아직 주된 사용 범위가 아닙니다.
 - 일반 릴레이는 대상 탭에 파일을 전달하는 데까지만 수행합니다. 자동 릴레이를 켜 둔 대상에서만 전달된 입력이 작업 목록에 바로 등록됩니다.
 
@@ -502,6 +527,7 @@ Cadroue는 다음 기술을 사용합니다.
 - WPF
 - FFmpeg 및 FFprobe
 - Flyleaf
+- mpv
 - SQLite
 - SharpVectors
 
