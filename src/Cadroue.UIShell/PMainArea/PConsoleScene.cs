@@ -260,10 +260,19 @@ public sealed partial class PConsole
 
     private void PConsoleSelectHandle(object pSender, SelectionChangedEventArgs pArguments)
     {
-        if (!pConsoleSceneApplying && pConsoleRelayCombo.SelectedItem is string lSceneName)
+        if (pConsoleSceneApplying || pConsoleRelayCombo.SelectedItem is not string lSceneName)
+        {
+            return;
+        }
+
+        if (pConsoleRelayCombo.IsDropDownOpen)
         {
             pConsoleReloadName = lSceneName;
+            return;
         }
+
+        pConsoleReloadName = null;
+        PConsoleSceneLoad(lSceneName);
     }
 
     private void PConsoleExportHandle(object pSender, RoutedEventArgs pArguments)

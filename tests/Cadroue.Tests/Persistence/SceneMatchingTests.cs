@@ -11,7 +11,7 @@ public sealed class SceneMatchingTests
         using var scenes = new TScene();
         TSceneValue left = scenes.Create("left", marker: 6);
         TSceneValue right = scenes.Create("right", marker: 6);
-        scenes.ChangeMatchIgnoredState(right, "different-identity");
+        scenes.ChangeMatchIgnoredName(right, "different-identity");
 
         Assert.True(scenes.Match(left, right));
     }
@@ -39,17 +39,39 @@ public sealed class SceneMatchingTests
     }
 
     [Fact]
-    public void CollectionOrder_MattersOnlyForMeaningfulCollections()
+    public void SelectedTabDifference_DoesNotMatch()
+    {
+        using var scenes = new TScene();
+        TSceneValue stored = scenes.Create("stored", marker: 10);
+        TSceneValue live = scenes.Create("live", marker: 10);
+        scenes.ChangeTabIndex(live);
+
+        Assert.False(scenes.Match(stored, live));
+    }
+
+    [Fact]
+    public void PanelWidthDifference_DoesNotMatch()
+    {
+        using var scenes = new TScene();
+        TSceneValue stored = scenes.Create("stored", marker: 11);
+        TSceneValue live = scenes.Create("live", marker: 11);
+        scenes.ChangePanelWidths(live);
+
+        Assert.False(scenes.Match(stored, live));
+    }
+
+    [Fact]
+    public void PersistedCollectionOrder_AffectsMatch()
     {
         using var scenes = new TScene();
         TSceneValue baseline = scenes.Create("baseline", marker: 12);
-        TSceneValue meaningfulOrderChanged = scenes.Create("meaningful", marker: 12);
-        TSceneValue ignoredOrderChanged = scenes.Create("ignored", marker: 12);
+        TSceneValue tabOrderChanged = scenes.Create("tab-order", marker: 12);
+        TSceneValue widthOrderChanged = scenes.Create("width-order", marker: 12);
 
-        scenes.ReverseMeaningfulCollection(meaningfulOrderChanged);
-        scenes.ReverseIgnoredCollection(ignoredOrderChanged);
+        scenes.ReverseMeaningfulCollection(tabOrderChanged);
+        scenes.ReversePanelWidths(widthOrderChanged);
 
-        Assert.False(scenes.Match(baseline, meaningfulOrderChanged));
-        Assert.True(scenes.Match(baseline, ignoredOrderChanged));
+        Assert.False(scenes.Match(baseline, tabOrderChanged));
+        Assert.False(scenes.Match(baseline, widthOrderChanged));
     }
 }

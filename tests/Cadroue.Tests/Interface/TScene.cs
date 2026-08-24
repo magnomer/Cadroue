@@ -92,16 +92,15 @@ internal sealed class TScene : IDisposable
             !scene.Scene.LSceneTabLayouts[0].LSceneAutoRelay;
     }
 
-    internal void ChangeMatchIgnoredState(TSceneValue scene, string name)
+    internal void ChangeMatchIgnoredName(TSceneValue scene, string name)
     {
         scene.Scene.LSceneName = name;
-        scene.Scene.LSceneTabIndex++;
-        foreach (LSceneTabRecord layout in scene.Scene.LSceneTabLayouts)
-        {
-            layout.LScenePanelWidths.Reverse();
-            layout.LScenePanelWidths.Add(999);
-        }
     }
+
+    internal void ChangeTabIndex(TSceneValue scene) => scene.Scene.LSceneTabIndex = 0;
+
+    internal void ChangePanelWidths(TSceneValue scene) =>
+        scene.Scene.LSceneTabLayouts[0].LScenePanelWidths.Add(999);
 
     internal void ChangeMatchIgnoredVersion(TSceneValue scene) =>
         scene.Scene.LSceneVersion = 0;
@@ -109,7 +108,7 @@ internal sealed class TScene : IDisposable
     internal void ReverseMeaningfulCollection(TSceneValue scene) =>
         scene.Scene.LSceneTabNames.Reverse();
 
-    internal void ReverseIgnoredCollection(TSceneValue scene)
+    internal void ReversePanelWidths(TSceneValue scene)
     {
         foreach (LSceneTabRecord layout in scene.Scene.LSceneTabLayouts)
         {
