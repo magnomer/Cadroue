@@ -20,27 +20,36 @@ public static class LPlacement
     private const string LPlacementFileName = "placement.json";
 
     private static readonly object lPlacementLock = new();
+    private static readonly HashSet<string> lPlacementUnreadable = new(StringComparer.OrdinalIgnoreCase);
 
     public static LPlacementRecord? LPlacementRead(string lPlacementKey)
     {
         lock (lPlacementLock)
         {
-            return LPlacementAllRead().TryGetValue(lPlacementKey, out LPlacementRecord? lPlacement)
+            return LPlacementAllRead().LVaultValue?.TryGetValue(lPlacementKey, out LPlacementRecord? lPlacement) == true
                 ? lPlacement
                 : null;
         }
     }
 
-    public static void LPlacementSave(string lPlacementKey, double lLeft, double lTop, double lWidth, double lHeight)
+    public static bool LPlacementSave(string lPlacementKey, double lLeft, double lTop, double lWidth, double lHeight)
     {
         if (double.IsNaN(lLeft) || double.IsNaN(lTop) || lWidth <= 0 || lHeight <= 0)
         {
-            return;
+            return false;
         }
 
         lock (lPlacementLock)
         {
-            Dictionary<string, LPlacementRecord> lPlacements = LPlacementAllRead();
+            LVaultResult<Dictionary<string, LPlacementRecord>> lPlacementResult = LPlacementAllRead();
+            if (lPlacementResult.LVaultOutcome == LVaultOutcome.LVaultUnreadable)
+            {
+                LTraceLog.LTraceErrorRecord($"Subwindow placement not saved because its catalogue is unreadable: {lPlacementKey}");
+                return false;
+            }
+
+            Dictionary<string, LPlacementRecord> lPlacements = lPlacementResult.LVaultValue
+                ?? new Dictionary<string, LPlacementRecord>(StringComparer.Ordinal);
             lPlacements[lPlacementKey] = new LPlacementRecord
             {
                 LPlacementLeft = lLeft,
@@ -49,15 +58,13 @@ public static class LPlacement
                 LPlacementHeight = lHeight
             };
 
-            try
+            if (!LVault.LVaultSave(LPlacementPathRead(), lPlacements))
             {
-                File.WriteAllText(
-                    LPlacementPathRead(),
-                    JsonSerializer.Serialize(lPlacements, new JsonSerializerOptions { WriteIndented = true }));
+                LTraceLog.LTraceErrorRecord($"Subwindow placement could not be saved: {lPlacementKey}");
+                return false;
             }
-            catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
-            {
-            }
+
+            return true;
         }
     }
 
@@ -100,28 +107,30 @@ public static class LPlacement
             return;
         }
 
-        LPlacementSave(lPlacementKey, lLeft.GetDouble(), lTop.GetDouble(), lWidth.GetDouble(), lHeight.GetDouble());
-        LTraceLog.LTraceInfoRecord($"Subwindow placement carried from preferences: {lPlacementKey}");
+        if (LPlacementSave(lPlacementKey, lLeft.GetDouble(), lTop.GetDouble(), lWidth.GetDouble(), lHeight.GetDouble()))
+        {
+            LTraceLog.LTraceInfoRecord($"Subwindow placement carried from preferences: {lPlacementKey}");
+        }
     }
 
     private static string LPlacementPathRead() => Path.Combine(LDepot.LDepotRootRead(), LPlacementFileName);
 
-    private static Dictionary<string, LPlacementRecord> LPlacementAllRead()
+    private static LVaultResult<Dictionary<string, LPlacementRecord>> LPlacementAllRead()
     {
-        try
+        string lPlacementPath = LPlacementPathRead();
+        if (lPlacementUnreadable.Contains(lPlacementPath))
         {
-            string lPlacementPath = LPlacementPathRead();
-            if (!File.Exists(lPlacementPath))
-            {
-                return new Dictionary<string, LPlacementRecord>(StringComparer.Ordinal);
-            }
+            return new LVaultResult<Dictionary<string, LPlacementRecord>>(LVaultOutcome.LVaultUnreadable, null);
+        }
 
-            return JsonSerializer.Deserialize<Dictionary<string, LPlacementRecord>>(File.ReadAllText(lPlacementPath))
-                ?? new Dictionary<string, LPlacementRecord>(StringComparer.Ordinal);
-        }
-        catch (Exception)
+        LVaultResult<Dictionary<string, LPlacementRecord>> lPlacementResult =
+            LVault.LVaultRead<Dictionary<string, LPlacementRecord>>(lPlacementPath);
+        if (lPlacementResult.LVaultOutcome == LVaultOutcome.LVaultUnreadable)
         {
-            return new Dictionary<string, LPlacementRecord>(StringComparer.Ordinal);
+            lPlacementUnreadable.Add(lPlacementPath);
+            LTraceLog.LTraceErrorRecord($"Subwindow placement catalogue is unreadable: {lPlacementPath}");
         }
+
+        return lPlacementResult;
     }
 }
