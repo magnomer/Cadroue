@@ -27,6 +27,7 @@ public partial class PWindow : Window
     private const double PWindowWidthFloor = 900;
     private readonly PStrip pStrip;
     private readonly PRail pRail;
+    private string? pWindowRestorePath;
     private bool pResizeActive;
     private int pResizeDirection;
     private Point pResizeStartPointer;
@@ -155,10 +156,34 @@ public partial class PWindow : Window
             return;
         }
 
-        string pMediaPath = lPreferenceState.LPreferenceMediaPath;
+        pWindowRestorePath = lPreferenceState.LPreferenceMediaPath;
         Dispatcher.BeginInvoke(
             System.Windows.Threading.DispatcherPriority.Loaded,
-            new Action(() => pViewerActive?.PViewerSourceOpen(pMediaPath)));
+            new Action(() =>
+            {
+                if (pViewerActive is null)
+                {
+                    PTabRecord? pMediaTab = pStrip.PStripRecords.FirstOrDefault(
+                        pTabRecord => pTabRecord.PTabWorkspace.PWorkspaceViewer is not null);
+                    if (pMediaTab is not null)
+                    {
+                        pStrip.PStripSelect(pMediaTab);
+                    }
+                }
+
+                PWindowMediaOpen();
+            }));
+    }
+
+    private void PWindowMediaOpen()
+    {
+        if (pViewerActive is null || pWindowRestorePath is not { } pMediaPath)
+        {
+            return;
+        }
+
+        pWindowRestorePath = null;
+        pViewerActive.PViewerSourceOpen(pMediaPath);
     }
 
     private void PWindowRelayPlace(LRelay lRelay)
@@ -225,6 +250,7 @@ public partial class PWindow : Window
         pWindowAudioAllowed = pTabRecord.PTabLayoutKey == "Audio";
         PWindowWorkspaceAttach(pTabRecord);
         PWindowWidthAttach(pTabRecord.PTabWorkspace.PWorkspaceSurface);
+        PWindowMediaOpen();
     }
 
     private void PWindowWidthAttach(PMainArea.PTabSurface pWindowSurface)
