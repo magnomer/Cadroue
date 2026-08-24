@@ -56,7 +56,7 @@ public sealed partial class PLogWindow
         PLogFileLoad();
     }
 
-    private void PLogFilesUpdate()
+    private void PLogFilesUpdate(bool pLogFollowCurrent = false)
     {
         string pLogCurrentPath = LTraceWriter.LTracePathRead();
         LTraceReadResult<List<string>> pLogFilesResult = LTraceWriter.LTraceFilesRead();
@@ -71,7 +71,8 @@ public sealed partial class PLogWindow
             pLogFiles.Insert(0, pLogCurrentPath);
         }
 
-        string pLogSelectedPath = pLogFileCombo.SelectedItem is ComboBoxItem pLogSelectedItem
+        string pLogSelectedPath = !pLogFollowCurrent
+            && pLogFileCombo.SelectedItem is ComboBoxItem pLogSelectedItem
             && pLogSelectedItem.Tag is string pLogSelected
                 ? pLogSelected
                 : pLogCurrentPath;
@@ -224,6 +225,17 @@ public sealed partial class PLogWindow
 
     private void PLogFlushHandle(object? sender, EventArgs e)
     {
+        string pLogCurrentPath = LTraceWriter.LTracePathRead();
+        if (pLogFileLive
+            && !string.Equals(pLogFilePath, pLogCurrentPath, StringComparison.OrdinalIgnoreCase))
+        {
+            PLogFilesUpdate(pLogFollowCurrent: true);
+            if (!string.Equals(pLogFilePath, pLogCurrentPath, StringComparison.OrdinalIgnoreCase))
+            {
+                PLogFileLoad();
+            }
+        }
+
         List<(long Sequence, LTraceEntry Entry)> pLogBatch;
         lock (pLogPendingLock)
         {

@@ -20,7 +20,6 @@ public static class LPlacement
     private const string LPlacementFileName = "placement.json";
 
     private static readonly object lPlacementLock = new();
-    private static readonly HashSet<string> lPlacementUnreadable = new(StringComparer.OrdinalIgnoreCase);
 
     public static LPlacementRecord? LPlacementRead(string lPlacementKey)
     {
@@ -118,16 +117,10 @@ public static class LPlacement
     private static LVaultResult<Dictionary<string, LPlacementRecord>> LPlacementAllRead()
     {
         string lPlacementPath = LPlacementPathRead();
-        if (lPlacementUnreadable.Contains(lPlacementPath))
-        {
-            return new LVaultResult<Dictionary<string, LPlacementRecord>>(LVaultOutcome.LVaultUnreadable, null);
-        }
-
         LVaultResult<Dictionary<string, LPlacementRecord>> lPlacementResult =
             LVault.LVaultRead<Dictionary<string, LPlacementRecord>>(lPlacementPath);
         if (lPlacementResult.LVaultOutcome == LVaultOutcome.LVaultUnreadable)
         {
-            lPlacementUnreadable.Add(lPlacementPath);
             LTraceLog.LTraceErrorRecord($"Subwindow placement catalogue is unreadable: {lPlacementPath}");
         }
 

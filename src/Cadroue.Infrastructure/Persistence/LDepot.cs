@@ -236,12 +236,18 @@ public static class LDepot
                 return false;
             }
 
-            LTraceWriter.LTraceRootMove(() =>
+            if (!LTraceWriter.LTraceRootMove(() =>
+                {
+                    LDepotIndex.LDepotIndexRelease();
+                    LDepotMove(lDepotPrevious, lDepotNext);
+                    LDepotRootSet(lDepotNext);
+                }))
             {
-                LDepotIndex.LDepotIndexRelease();
-                LDepotMove(lDepotPrevious, lDepotNext);
-                LDepotRootSet(lDepotNext);
-            });
+                LTraceLog.LTraceErrorRecord(
+                    $"Workspace kept at {lDepotPrevious}: pending log entries could not be saved");
+                return false;
+            }
+
             LTraceLog.LTraceInfoRecord($"Workspace moved from {lDepotPrevious}");
             return true;
         }

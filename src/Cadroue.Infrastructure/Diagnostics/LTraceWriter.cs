@@ -20,6 +20,7 @@ public static class LTraceWriter
     private const int LTraceWriterIdle = 250;
     private const int LTraceWriterBatch = 256;
     private const int LTraceWriterRetry = 8;
+    private const int LTracePersistTimeout = 5000;
 
     public const string LTraceFolderName = "log";
     public const string LTraceArchiveSuffix = ".gz";
@@ -40,6 +41,7 @@ public static class LTraceWriter
     private static readonly ManualResetEventSlim lTraceWriterIdle = new(true);
     private static readonly object lTraceWriterLock = new();
     private static readonly object lTraceStateLock = new();
+    private static readonly ReaderWriterLockSlim lTraceRootLock = new();
 
     private static readonly string lTraceFileName =
         $"Cadroue-{DateTimeOffset.Now:yyyyMMdd-HHmmss}-{Environment.ProcessId}.log";
@@ -71,29 +73,53 @@ public static class LTraceWriter
 
         ArgumentNullException.ThrowIfNull(lTraceCommit);
         LTraceWriterStart();
-        lock (lTraceStateLock)
+        int lTraceLossReady = Math.Max(1, lTraceLoss);
+        if (lTraceRootLock.IsWriteLockHeld || !lTraceRootLock.TryEnterReadLock(0))
         {
-            long lTraceSequence = lTraceWriterAccepted + 1;
-            lTraceWriterQueue.Add(new LTraceWrite(
-                lTraceSequence,
-                LTracePathRead(),
-                lTraceEntry,
-                lTraceCommit,
-                Math.Max(1, lTraceLoss)));
-            lTraceWriterAccepted = lTraceSequence;
-            lTraceWriterIdle.Reset();
+            Interlocked.Add(ref lTraceWriterLoss, lTraceLossReady);
+            return;
+        }
+
+        try
+        {
+            lock (lTraceStateLock)
+            {
+                long lTraceSequence = lTraceWriterAccepted + 1;
+                if (!lTraceWriterQueue.TryAdd(new LTraceWrite(
+                        lTraceSequence,
+                        LTracePathRead(),
+                        lTraceEntry,
+                        lTraceCommit,
+                        lTraceLossReady)))
+                {
+                    Interlocked.Add(ref lTraceWriterLoss, lTraceLossReady);
+                    return;
+                }
+
+                lTraceWriterAccepted = lTraceSequence;
+                lTraceWriterIdle.Reset();
+            }
+        }
+        finally
+        {
+            lTraceRootLock.ExitReadLock();
         }
     }
 
     internal static int LTraceLossRead() => Interlocked.Exchange(ref lTraceWriterLoss, 0);
 
-    public static void LTraceWriterPersist()
+    public static void LTraceWriterPersist() =>
+        _ = LTraceWriterPersist(LTracePersistTimeout);
+
+    internal static bool LTraceWriterPersist(int lTraceTimeoutMilliseconds)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(lTraceTimeoutMilliseconds);
         if (Volatile.Read(ref lTraceWriterStarted) == 0)
         {
-            return;
+            return true;
         }
 
+        long lTraceWaitStarted = Environment.TickCount64;
         long lTraceTarget;
         lock (lTraceStateLock)
         {
@@ -106,11 +132,16 @@ public static class LTraceWriter
             {
                 if (lTraceWriterDelivered >= lTraceTarget)
                 {
-                    return;
+                    return true;
                 }
             }
 
-            lTraceWriterIdle.Wait();
+            long lTraceElapsed = Environment.TickCount64 - lTraceWaitStarted;
+            int lTraceRemaining = (int)Math.Max(0, lTraceTimeoutMilliseconds - lTraceElapsed);
+            if (lTraceRemaining == 0 || !lTraceWriterIdle.Wait(lTraceRemaining))
+            {
+                return false;
+            }
         }
     }
 
@@ -219,13 +250,25 @@ public static class LTraceWriter
     internal static bool LTraceRootMove(Action lTraceMove)
     {
         ArgumentNullException.ThrowIfNull(lTraceMove);
-        LTraceWriterPersist();
-        lock (lTraceWriterLock)
+        lTraceRootLock.EnterWriteLock();
+        try
         {
-            LTraceWriterClose();
-            lTraceMove();
-            LTraceArchiveUpdate();
-            return true;
+            if (!LTraceWriterPersist(LTracePersistTimeout))
+            {
+                return false;
+            }
+
+            lock (lTraceWriterLock)
+            {
+                LTraceWriterClose();
+                lTraceMove();
+                LTraceArchiveUpdate();
+                return true;
+            }
+        }
+        finally
+        {
+            lTraceRootLock.ExitWriteLock();
         }
     }
 
@@ -292,16 +335,6 @@ public static class LTraceWriter
                 if (lTraceSaved)
                 {
                     Volatile.Write(ref lTraceWriterCommitted, lTraceBatch[^1].LTraceWriteSequence);
-                    foreach (LTraceWrite lTraceWrite in lTraceBatch)
-                    {
-                        try
-                        {
-                            lTraceWrite.LTraceWriteAction(lTraceWrite.LTraceWriteSequence);
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
                 }
                 else
                 {
@@ -314,6 +347,20 @@ public static class LTraceWriter
                     if (lTraceWriterDelivered >= lTraceWriterAccepted)
                     {
                         lTraceWriterIdle.Set();
+                    }
+                }
+
+                if (lTraceSaved)
+                {
+                    foreach (LTraceWrite lTraceWrite in lTraceBatch)
+                    {
+                        try
+                        {
+                            lTraceWrite.LTraceWriteAction(lTraceWrite.LTraceWriteSequence);
+                        }
+                        catch (Exception)
+                        {
+                        }
                     }
                 }
             }

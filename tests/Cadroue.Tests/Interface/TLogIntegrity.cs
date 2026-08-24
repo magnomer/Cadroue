@@ -6,7 +6,9 @@ using Cadroue.Infrastructure;
 namespace Cadroue.Tests;
 
 internal sealed record TLogCommitResult(bool Observed, string? Text);
+internal sealed record TLogCallbackResult(bool Observed, bool Persisted);
 internal sealed record TLogMoveResult(bool Moved, string Root, bool SourceExists, string Text);
+internal sealed record TLogPersistResult(bool Persisted, TimeSpan Elapsed);
 internal sealed record TLogArchiveResult(bool ArchiveExists, string Text, int TemporaryCount);
 internal sealed record TLogLossResult(string Text, string[] Summaries);
 internal sealed record TLogReadResult(
@@ -81,6 +83,36 @@ internal static class TLogIntegrity
         }
     }
 
+    internal static TLogCallbackResult CommitCallbackPersist()
+    {
+        string previousRoot = LDepot.LDepotRootRead();
+        string root = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-callback", Guid.NewGuid().ToString("N"));
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void Capture(LTraceEntry entry) =>
+            completion.TrySetResult(LTraceWriter.LTraceWriterPersist(250));
+
+        try
+        {
+            LTraceWriter.LTraceWriterPersist();
+            LDepot.LDepotRootSet(root);
+            LTrace.LTraceAppend += Capture;
+            LTraceLog.LTraceInfoRecord("callback persistence");
+            bool observed = completion.Task.Wait(TimeSpan.FromSeconds(5));
+            return new TLogCallbackResult(observed, observed && completion.Task.Result);
+        }
+        finally
+        {
+            LTrace.LTraceAppend -= Capture;
+            LTraceWriter.LTraceWriterPersist();
+            LDepot.LDepotRootSet(previousRoot);
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
     internal static TLogMoveResult WorkspaceMove()
     {
         string previousRoot = LDepot.LDepotRootRead();
@@ -98,6 +130,87 @@ internal static class TLogIntegrity
             LTraceLog.LTraceInfoRecord("after workspace move");
             string text = LTraceWriter.LTraceWriterRead();
             return new TLogMoveResult(moved, LDepot.LDepotRootRead(), Directory.Exists(source), text);
+        }
+        finally
+        {
+            LTraceWriter.LTraceWriterPersist();
+            LDepot.LDepotRootSet(previousRoot);
+            if (Directory.Exists(parent))
+            {
+                Directory.Delete(parent, recursive: true);
+            }
+        }
+    }
+
+    internal static TLogMoveResult WorkspaceMoveConcurrent()
+    {
+        string previousRoot = LDepot.LDepotRootRead();
+        string parent = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-move-race", Guid.NewGuid().ToString("N"));
+        string source = Path.Combine(parent, "source");
+        string target = Path.Combine(parent, "target");
+        using var moveEntered = new ManualResetEventSlim();
+        using var moveContinue = new ManualResetEventSlim();
+
+        try
+        {
+            LTraceWriter.LTraceWriterPersist();
+            LDepot.LDepotRootSet(source);
+            LTraceLog.LTraceInfoRecord("before concurrent workspace move");
+            LTraceWriter.LTraceWriterPersist();
+
+            Task<bool> move = Task.Run(() => LTraceWriter.LTraceRootMove(() =>
+            {
+                moveEntered.Set();
+                if (!moveContinue.Wait(TimeSpan.FromSeconds(5)))
+                {
+                    throw new TimeoutException("Concurrent workspace move test did not continue.");
+                }
+
+                LDepot.LDepotMove(source, target);
+                LDepot.LDepotRootSet(target);
+            }));
+
+            if (!moveEntered.Wait(TimeSpan.FromSeconds(5)))
+            {
+                throw new TimeoutException("Concurrent workspace move test did not start.");
+            }
+
+            LTraceLog.LTraceInfoRecord("during concurrent workspace move");
+            moveContinue.Set();
+            bool moved = move.GetAwaiter().GetResult();
+            LTraceLog.LTraceInfoRecord("after concurrent workspace move");
+            string text = LTraceWriter.LTraceWriterRead();
+            return new TLogMoveResult(moved, LDepot.LDepotRootRead(), Directory.Exists(source), text);
+        }
+        finally
+        {
+            moveContinue.Set();
+            LTraceWriter.LTraceWriterPersist();
+            LDepot.LDepotRootSet(previousRoot);
+            if (Directory.Exists(parent))
+            {
+                Directory.Delete(parent, recursive: true);
+            }
+        }
+    }
+
+    internal static TLogPersistResult PersistTimeout()
+    {
+        string previousRoot = LDepot.LDepotRootRead();
+        string parent = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-timeout", Guid.NewGuid().ToString("N"));
+        string blockedRoot = Path.Combine(parent, "blocked");
+        Directory.CreateDirectory(parent);
+        File.WriteAllText(blockedRoot, "not a directory", Encoding.UTF8);
+
+        try
+        {
+            LTraceWriter.LTraceWriterPersist();
+            LDepot.LDepotRootSet(blockedRoot);
+            LTraceLog.LTraceInfoRecord("entry awaiting unavailable storage");
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            bool persisted = LTraceWriter.LTraceWriterPersist(25);
+            stopwatch.Stop();
+            return new TLogPersistResult(persisted, stopwatch.Elapsed);
         }
         finally
         {

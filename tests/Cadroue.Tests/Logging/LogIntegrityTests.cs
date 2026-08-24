@@ -15,6 +15,15 @@ public sealed class LogIntegrityTests
     }
 
     [Fact]
+    public void CommittedNotification_CanPersistWithoutDeadlock()
+    {
+        TLogCallbackResult result = TLogIntegrity.CommitCallbackPersist();
+
+        Assert.True(result.Observed);
+        Assert.True(result.Persisted);
+    }
+
+    [Fact]
     public void WorkspaceMove_ClosesAndRebindsCurrentLog()
     {
         TLogMoveResult result = TLogIntegrity.WorkspaceMove();
@@ -24,6 +33,28 @@ public sealed class LogIntegrityTests
         Assert.False(result.SourceExists);
         Assert.Contains("before workspace move", result.Text);
         Assert.Contains("after workspace move", result.Text);
+    }
+
+    [Fact]
+    public void ConcurrentWorkspaceLog_DoesNotRecreateSourceWorkspace()
+    {
+        TLogMoveResult result = TLogIntegrity.WorkspaceMoveConcurrent();
+
+        Assert.True(result.Moved);
+        Assert.False(result.SourceExists);
+        Assert.Contains("before concurrent workspace move", result.Text);
+        Assert.DoesNotContain("during concurrent workspace move", result.Text);
+        Assert.Contains("Trace entries lost", result.Text);
+        Assert.Contains("after concurrent workspace move", result.Text);
+    }
+
+    [Fact]
+    public void PersistTimeout_DoesNotBlockIndefinitely()
+    {
+        TLogPersistResult result = TLogIntegrity.PersistTimeout();
+
+        Assert.False(result.Persisted);
+        Assert.True(result.Elapsed < TimeSpan.FromSeconds(1));
     }
 
     [Fact]

@@ -31,6 +31,19 @@ public sealed class PlacementPersistenceTests
     }
 
     [Fact]
+    public void SavingAfterQuarantine_RecoversOnNextAttempt()
+    {
+        using var placement = new TPlacement();
+        placement.Malform();
+
+        Assert.False(placement.Save("FirstClose", 10));
+        Assert.True(placement.Save("SecondClose", 20));
+
+        Assert.Equal(20, placement.Read("SecondClose")!.LPlacementLeft);
+        Assert.Equal("{ invalid placement json", File.ReadAllText(placement.PathCurrent + ".corrupt"));
+    }
+
+    [Fact]
     public void FailedWrite_IsReported()
     {
         using var placement = new TPlacement();
