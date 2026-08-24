@@ -9,9 +9,45 @@ internal sealed record TLogCommitResult(bool Observed, string? Text);
 internal sealed record TLogMoveResult(bool Moved, string Root, bool SourceExists, string Text);
 internal sealed record TLogArchiveResult(bool ArchiveExists, string Text, int TemporaryCount);
 internal sealed record TLogLossResult(string Text, string[] Summaries);
+internal sealed record TLogReadResult(
+    bool EmptySuccess,
+    string EmptyText,
+    bool CorruptSuccess,
+    string CorruptError,
+    bool MissingSuccess,
+    string MissingError);
 
 internal static class TLogIntegrity
 {
+    internal static TLogReadResult ReadDistinguish()
+    {
+        string folder = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-read", Guid.NewGuid().ToString("N"));
+        string emptyPath = Path.Combine(folder, "Cadroue-empty.log");
+        string corruptPath = Path.Combine(folder, "Cadroue-corrupt.log.gz");
+        string missingPath = Path.Combine(folder, "Cadroue-missing.log");
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(emptyPath, string.Empty);
+        File.WriteAllText(corruptPath, "not gzip content");
+
+        try
+        {
+            LTraceReadResult<string> empty = LTraceWriter.LTraceFileRead(emptyPath);
+            LTraceReadResult<string> corrupt = LTraceWriter.LTraceFileRead(corruptPath);
+            LTraceReadResult<string> missing = LTraceWriter.LTraceFileRead(missingPath);
+            return new TLogReadResult(
+                empty.LTraceReadSuccess,
+                empty.LTraceReadValue,
+                corrupt.LTraceReadSuccess,
+                corrupt.LTraceReadError,
+                missing.LTraceReadSuccess,
+                missing.LTraceReadError);
+        }
+        finally
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+    }
+
     internal static TLogCommitResult CommitObserve()
     {
         string previousRoot = LDepot.LDepotRootRead();

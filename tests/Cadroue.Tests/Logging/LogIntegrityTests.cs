@@ -46,4 +46,17 @@ public sealed class LogIntegrityTests
         Assert.Contains("entry after recovery", result.Text);
         Assert.Equal(new[] { "Trace entries lost", "entry after recovery" }, result.Summaries);
     }
+
+    [Fact]
+    public void FileReadResult_DistinguishesEmptyContentFromReadFailures()
+    {
+        TLogReadResult result = TLogIntegrity.ReadDistinguish();
+
+        Assert.True(result.EmptySuccess);
+        Assert.Equal(string.Empty, result.EmptyText);
+        Assert.False(result.CorruptSuccess);
+        Assert.NotEmpty(result.CorruptError);
+        Assert.False(result.MissingSuccess);
+        Assert.NotEmpty(result.MissingError);
+    }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -68,7 +69,13 @@ public sealed partial class PLogWindow
     private void PLogFilesUpdate()
     {
         string pLogCurrentPath = LTraceWriter.LTracePathRead();
-        List<string> pLogFiles = LTraceWriter.LTraceFilesRead();
+        LTraceReadResult<List<string>> pLogFilesResult = LTraceWriter.LTraceFilesRead();
+        List<string> pLogFiles = pLogFilesResult.LTraceReadValue;
+        if (!pLogFilesResult.LTraceReadSuccess)
+        {
+            PLogErrorShow("Log.Error.List", pLogFilesResult.LTraceReadError);
+        }
+
         if (!pLogFiles.Contains(pLogCurrentPath, StringComparer.OrdinalIgnoreCase))
         {
             pLogFiles.Insert(0, pLogCurrentPath);
@@ -123,23 +130,34 @@ public sealed partial class PLogWindow
 
         pLogFilePath = pLogPath;
         pLogFileLive = string.Equals(pLogPath, LTraceWriter.LTracePathRead(), StringComparison.OrdinalIgnoreCase);
-        string pLogText;
+        LTraceReadResult<string> pLogRead;
+        long pLogCommitted = pLogSnapshotSequence;
         if (pLogFileLive)
         {
-            pLogText = LTraceWriter.LTraceWriterRead(out long pLogCommitted);
+            pLogRead = LTraceWriter.LTraceWriterRead(out pLogCommitted);
+        }
+        else
+        {
+            pLogRead = LTraceWriter.LTraceFileRead(pLogPath);
+        }
+
+        if (!pLogRead.LTraceReadSuccess)
+        {
+            PLogErrorShow("Log.Error.Read", pLogRead.LTraceReadError);
+            return;
+        }
+
+        if (pLogFileLive)
+        {
             pLogSnapshotSequence = pLogCommitted;
             lock (pLogPendingLock)
             {
                 pLogPending.RemoveAll(pLogItem => pLogItem.Sequence <= pLogSnapshotSequence);
             }
         }
-        else
-        {
-            pLogText = LTraceWriter.LTraceFileRead(pLogPath);
-        }
 
         pLogRowsAll.Clear();
-        foreach (LTraceEntry pLogEntry in LTraceEntry.LTraceEntryParse(pLogText))
+        foreach (LTraceEntry pLogEntry in LTraceEntry.LTraceEntryParse(pLogRead.LTraceReadValue))
         {
             pLogRowsAll.Add(new PLogRow(pLogEntry));
         }
@@ -248,13 +266,20 @@ public sealed partial class PLogWindow
 
     private void PLogTextCopy()
     {
+        LTraceReadResult<string> pLogRead = LTraceWriter.LTraceFileRead(pLogFilePath);
+        if (!pLogRead.LTraceReadSuccess)
+        {
+            PLogErrorShow("Log.Error.Read", pLogRead.LTraceReadError);
+            return;
+        }
+
         try
         {
-            Clipboard.SetText(LTraceWriter.LTraceFileRead(pLogFilePath));
+            Clipboard.SetText(pLogRead.LTraceReadValue);
         }
-        catch (COMException lLogException)
+        catch (COMException pLogException)
         {
-            LTraceLog.LTraceErrorRecord("Log copy failed", lLogException);
+            PLogErrorShow("Log.Error.Copy", pLogException.Message);
         }
     }
 
@@ -271,8 +296,21 @@ public sealed partial class PLogWindow
                 UseShellExecute = true
             });
         }
-        catch (Exception pLogException) when (pLogException is IOException or UnauthorizedAccessException)
+        catch (Exception pLogException)
+            when (pLogException is IOException or UnauthorizedAccessException or Win32Exception)
         {
+            PLogErrorShow("Log.Error.Open", pLogException.Message);
         }
+    }
+
+    private void PLogErrorShow(string pLogMessageKey, string pLogDetail)
+    {
+        Debug.WriteLine($"{pLogMessageKey}: {pLogDetail}");
+        MessageBox.Show(
+            this,
+            LLocalization.LLocalizationFormat(pLogMessageKey, pLogDetail),
+            LLocalization.LLocalizationTextRead("Log.Window.Title"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
     }
 }

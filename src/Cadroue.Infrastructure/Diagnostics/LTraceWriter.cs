@@ -9,6 +9,11 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
+public sealed record LTraceReadResult<T>(
+    bool LTraceReadSuccess,
+    T LTraceReadValue,
+    string LTraceReadError);
+
 public static class LTraceWriter
 {
     private const int LTraceWriterCapacity = 20000;
@@ -109,9 +114,9 @@ public static class LTraceWriter
         }
     }
 
-    public static string LTraceWriterRead() => LTraceWriterRead(out _);
+    public static string LTraceWriterRead() => LTraceWriterRead(out _).LTraceReadValue;
 
-    internal static string LTraceWriterRead(out long lTraceCommitted)
+    internal static LTraceReadResult<string> LTraceWriterRead(out long lTraceCommitted)
     {
         LTraceWriterPersist();
         lock (lTraceWriterLock)
@@ -119,69 +124,58 @@ public static class LTraceWriter
             try
             {
                 string lTracePath = LTracePathRead();
-                if (!File.Exists(lTracePath))
-                {
-                    lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
-                    return string.Empty;
-                }
-
                 using var lTraceStream = new FileStream(
                     lTracePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using var lTraceReader = new StreamReader(lTraceStream, Encoding.UTF8);
                 string lTraceText = lTraceReader.ReadToEnd();
                 lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
-                return lTraceText;
+                return new LTraceReadResult<string>(true, lTraceText, string.Empty);
             }
-            catch (IOException)
+            catch (Exception lTraceException) when (lTraceException is FileNotFoundException or DirectoryNotFoundException)
             {
                 lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
-                return string.Empty;
+                return new LTraceReadResult<string>(true, string.Empty, string.Empty);
             }
-            catch (UnauthorizedAccessException)
+            catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
             {
                 lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
-                return string.Empty;
+                return new LTraceReadResult<string>(false, string.Empty, lTraceException.Message);
             }
         }
     }
 
-    public static List<string> LTraceFilesRead()
+    public static LTraceReadResult<List<string>> LTraceFilesRead()
     {
         try
         {
             string lTraceFolder = LTraceFolderRead();
-            if (!Directory.Exists(lTraceFolder))
-            {
-                return new List<string>();
-            }
-
-            return Directory.GetFiles(lTraceFolder, "Cadroue-*")
+            List<string> lTraceFiles = Directory.GetFiles(lTraceFolder, "Cadroue-*")
                 .Where(LTraceFileCheck)
                 .OrderByDescending(lTraceFile => lTraceFile, StringComparer.OrdinalIgnoreCase)
                 .ToList();
+            return new LTraceReadResult<List<string>>(true, lTraceFiles, string.Empty);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return new LTraceReadResult<List<string>>(true, new List<string>(), string.Empty);
         }
         catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
         {
-            return new List<string>();
+            return new LTraceReadResult<List<string>>(false, new List<string>(), lTraceException.Message);
         }
     }
 
-    public static string LTraceFileRead(string lTracePath)
+    public static LTraceReadResult<string> LTraceFileRead(string lTracePath)
     {
         if (string.Equals(lTracePath, LTracePathRead(), StringComparison.OrdinalIgnoreCase))
         {
-            return LTraceWriterRead();
+            return LTraceWriterRead(out _);
         }
 
         lock (lTraceWriterLock)
         {
             try
             {
-                if (!File.Exists(lTracePath))
-                {
-                    return string.Empty;
-                }
-
                 using var lTraceStream = new FileStream(
                     lTracePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 Stream lTraceContent = lTracePath.EndsWith(LTraceArchiveSuffix, StringComparison.OrdinalIgnoreCase)
@@ -190,13 +184,13 @@ public static class LTraceWriter
                 using (lTraceContent)
                 using (var lTraceReader = new StreamReader(lTraceContent, Encoding.UTF8))
                 {
-                    return lTraceReader.ReadToEnd();
+                    return new LTraceReadResult<string>(true, lTraceReader.ReadToEnd(), string.Empty);
                 }
             }
             catch (Exception lTraceException)
                 when (lTraceException is IOException or UnauthorizedAccessException or InvalidDataException)
             {
-                return string.Empty;
+                return new LTraceReadResult<string>(false, string.Empty, lTraceException.Message);
             }
         }
     }
