@@ -81,6 +81,15 @@ internal sealed class TLogging : IDisposable
     internal void Draw(string surface, string trigger, double milliseconds, int glyphCount = 0) =>
         LTrace.LTraceDrawAdd(surface, trigger, milliseconds, glyphCount);
 
+    internal void TimelineDraw(
+        string surface,
+        TimeSpan cursor,
+        string? sourcePath,
+        string trigger,
+        double milliseconds,
+        int glyphCount = 0) =>
+        LTrace.LTraceTimelineAdd(surface, cursor, sourcePath, trigger, milliseconds, glyphCount);
+
     internal void DrawFlush() => LTrace.LTraceDrawTick();
 
     internal void Reset()

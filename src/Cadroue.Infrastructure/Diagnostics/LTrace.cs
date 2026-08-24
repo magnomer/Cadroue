@@ -27,6 +27,7 @@ public static class LTrace
 
     private static long lTracePreviousStamp = -1;
     private static Timer? lTraceDrawTimer;
+    private static LTraceTimelineTally? lTraceTimelineTally;
     private static bool lTraceVerbose;
     private static bool lTraceLoading;
 
@@ -169,12 +170,44 @@ public static class LTrace
         }
     }
 
+    public static void LTraceTimelineAdd(
+        string lTraceSurface,
+        TimeSpan lTraceCursor,
+        string? lTraceSourcePath,
+        string lTraceTrigger,
+        double lTraceMilliseconds,
+        int lTraceGlyphCount = 0)
+    {
+        if (!Volatile.Read(ref lTraceVerbose))
+        {
+            return;
+        }
+
+        lock (lTraceDrawLock)
+        {
+            if (!Volatile.Read(ref lTraceVerbose))
+            {
+                return;
+            }
+
+            lTraceTimelineTally ??= new LTraceTimelineTally();
+            lTraceTimelineTally.LTraceDrawAdd(
+                lTraceSurface,
+                lTraceCursor,
+                lTraceSourcePath,
+                lTraceTrigger,
+                lTraceMilliseconds,
+                lTraceGlyphCount);
+        }
+    }
+
     public static void LTraceDrawTick()
     {
         List<(string Surface, LTraceDrawTally Tally)> lTraceReady;
+        LTraceTimelineTally? lTraceTimelineReady;
         lock (lTraceDrawLock)
         {
-            if (lTraceDrawTable.Count == 0)
+            if (lTraceDrawTable.Count == 0 && lTraceTimelineTally is null)
             {
                 return;
             }
@@ -186,6 +219,8 @@ public static class LTrace
             }
 
             lTraceDrawTable.Clear();
+            lTraceTimelineReady = lTraceTimelineTally;
+            lTraceTimelineTally = null;
         }
 
         foreach ((string lTraceSurface, LTraceDrawTally lTraceTally) in lTraceReady)
@@ -199,6 +234,18 @@ public static class LTrace
                 1,
                 true);
         }
+
+        if (lTraceTimelineReady is not null)
+        {
+            LTraceRecord(
+                LTraceKind.LTraceUi,
+                lTraceTimelineReady.LTraceSummaryRead(),
+                lTraceTimelineReady.LTraceDetailRead(),
+                null,
+                false,
+                1,
+                true);
+        }
     }
 
     public static void LTraceReset()
@@ -206,6 +253,7 @@ public static class LTrace
         lock (lTraceDrawLock)
         {
             lTraceDrawTable.Clear();
+            lTraceTimelineTally = null;
         }
 
         lock (lTraceStampLock)
@@ -311,6 +359,65 @@ public static class LTrace
                     lTraceBuilder.Append(CultureInfo.InvariantCulture, $"{lTraceTrigger.Key} {lTraceTrigger.Value}");
                     lTraceFirst = false;
                 }
+            }
+
+            return lTraceBuilder.ToString();
+        }
+
+        internal string LTimelineDetailRead(string lTraceSurface)
+        {
+            string lTraceDrawLabel = lTraceRenderCount == 1 ? "redraw" : "redraws";
+            return string.Create(
+                CultureInfo.InvariantCulture,
+                $"{lTraceSurface}: {lTraceRenderCount} {lTraceDrawLabel}\n  {LTraceDetailRead().Replace("\n", "\n  ", StringComparison.Ordinal)}");
+        }
+    }
+
+    private sealed class LTraceTimelineTally
+    {
+        private readonly Dictionary<string, LTraceDrawTally> lTraceSurfaceTable = new(StringComparer.Ordinal);
+        private readonly List<string> lTraceSurfaceOrder = [];
+        private TimeSpan lTraceCursor;
+        private string? lTraceSourcePath;
+
+        internal void LTraceDrawAdd(
+            string lTraceSurface,
+            TimeSpan lTraceDrawCursor,
+            string? lTraceDrawSourcePath,
+            string lTraceTrigger,
+            double lTraceMilliseconds,
+            int lTraceGlyphCount)
+        {
+            if (!lTraceSurfaceTable.TryGetValue(lTraceSurface, out LTraceDrawTally? lTraceTally))
+            {
+                lTraceTally = new LTraceDrawTally();
+                lTraceSurfaceTable[lTraceSurface] = lTraceTally;
+                lTraceSurfaceOrder.Add(lTraceSurface);
+            }
+
+            lTraceCursor = lTraceDrawCursor;
+            lTraceSourcePath = string.IsNullOrWhiteSpace(lTraceDrawSourcePath) ? null : lTraceDrawSourcePath;
+            lTraceTally.LTraceDrawAdd(lTraceTrigger, lTraceMilliseconds, lTraceGlyphCount);
+        }
+
+        internal string LTraceSummaryRead()
+        {
+            string lTraceCursorText = lTraceCursor.ToString(@"hh\:mm\:ss\.fff", CultureInfo.InvariantCulture);
+            string lTraceSourceText = lTraceSourcePath ?? "(no media)";
+            return $"Timeline redrawn for {lTraceCursorText}; {lTraceSourceText}";
+        }
+
+        internal string LTraceDetailRead()
+        {
+            var lTraceBuilder = new StringBuilder();
+            foreach (string lTraceSurface in lTraceSurfaceOrder)
+            {
+                if (lTraceBuilder.Length > 0)
+                {
+                    lTraceBuilder.Append('\n');
+                }
+
+                lTraceBuilder.Append(lTraceSurfaceTable[lTraceSurface].LTimelineDetailRead(lTraceSurface));
             }
 
             return lTraceBuilder.ToString();

@@ -26,6 +26,31 @@ public sealed class DrawAggregationTests
     }
 
     [Fact]
+    public void TimelineDraws_CombineSurfacesWithCursorAndSourceContext()
+    {
+        using var logging = new TLogging();
+        logging.VerboseSet(true);
+        logging.Reset();
+        const string sourcePath = @"D:\Media\clip.mp4";
+
+        logging.TimelineDraw("Map", TimeSpan.FromSeconds(12.345), sourcePath, "cursor", 0.8);
+        logging.TimelineDraw("Viewfinder", TimeSpan.FromSeconds(12.345), sourcePath, "cursor", 1.2, 1);
+        logging.TimelineDraw("Map", TimeSpan.FromSeconds(13.5), sourcePath, "keyframes", 1.0);
+        logging.TimelineDraw("Viewfinder", TimeSpan.FromSeconds(13.5), sourcePath, "keyframes", 1.4, 1);
+        logging.DrawFlush();
+
+        TLoggingEntry entry = Assert.Single(logging.Entries);
+        Assert.Equal("UI", entry.Kind);
+        Assert.Equal($"Timeline redrawn for 00:00:13.500; {sourcePath}", entry.Summary);
+        Assert.Contains("Map: 2 redraws", entry.Detail);
+        Assert.Contains("avg 0.90ms, peak 1.00ms, total 1.8ms", entry.Detail);
+        Assert.Contains("Viewfinder: 2 redraws", entry.Detail);
+        Assert.Contains("2 FormattedText built (1/draw)", entry.Detail);
+        Assert.DoesNotContain("PMap", entry.Detail);
+        Assert.DoesNotContain("PViewfinder", entry.Detail);
+    }
+
+    [Fact]
     public void Reset_PreventsEarlierDrawsFromContaminatingLaterReport()
     {
         using var logging = new TLogging();

@@ -71,6 +71,7 @@ public sealed partial class PViewfinder : FrameworkElement
 
     private LSpool? lSpool;
     private TimeSpan lCursor;
+    private string? lSourcePath;
     private IReadOnlyList<LKeyframeEntry> lKeyframeList = Array.Empty<LKeyframeEntry>();
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
     private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
@@ -92,10 +93,11 @@ public sealed partial class PViewfinder : FrameworkElement
         InvalidateVisual();
     }
 
-    public void PViewfinderAttach(LSpool spool, TimeSpan cursor)
+    public void PViewfinderAttach(LSpool spool, TimeSpan cursor, string? sourcePath)
     {
         lSpool = spool ?? throw new ArgumentNullException(nameof(spool));
         lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
+        lSourcePath = sourcePath;
         PViewfinderDrawDefer("attach");
     }
 
@@ -109,6 +111,7 @@ public sealed partial class PViewfinder : FrameworkElement
     {
         lSpool = null;
         lCursor = TimeSpan.Zero;
+        lSourcePath = null;
         lKeyframeList = Array.Empty<LKeyframeEntry>();
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LPiece>();
@@ -197,7 +200,8 @@ public sealed partial class PViewfinder : FrameworkElement
         double pViewfinderMilliseconds =
             (System.Diagnostics.Stopwatch.GetTimestamp() - pViewfinderStamp) * 1000d
             / System.Diagnostics.Stopwatch.Frequency;
-        LTrace.LTraceDrawAdd("PViewfinder", pViewfinderDrawTrigger, pViewfinderMilliseconds, pViewfinderGlyphCount);
+        LTrace.LTraceTimelineAdd(
+            "Viewfinder", lCursor, lSourcePath, pViewfinderDrawTrigger, pViewfinderMilliseconds, pViewfinderGlyphCount);
     }
 
     private void PViewfinderContentDraw(DrawingContext drawingContext)

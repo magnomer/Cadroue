@@ -88,6 +88,7 @@ public sealed partial class PMap : FrameworkElement
 
     private LSpool? lSpool;
     private TimeSpan lCursor;
+    private string? lSourcePath;
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
     private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
     private byte[] lWaveformPeaks = Array.Empty<byte>();
@@ -111,10 +112,11 @@ public sealed partial class PMap : FrameworkElement
         InvalidateVisual();
     }
 
-    public void PMapAttach(LSpool spool, TimeSpan cursor)
+    public void PMapAttach(LSpool spool, TimeSpan cursor, string? sourcePath)
     {
         lSpool = spool;
         lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
+        lSourcePath = sourcePath;
         PMapDrawDefer("attach");
     }
 
@@ -128,6 +130,7 @@ public sealed partial class PMap : FrameworkElement
     {
         lSpool = null;
         lCursor = TimeSpan.Zero;
+        lSourcePath = null;
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LPiece>();
         lWaveformPeaks = Array.Empty<byte>();
@@ -170,7 +173,8 @@ public sealed partial class PMap : FrameworkElement
         double pMapMilliseconds =
             (System.Diagnostics.Stopwatch.GetTimestamp() - pMapStamp) * 1000d
             / System.Diagnostics.Stopwatch.Frequency;
-        LTrace.LTraceDrawAdd("PMap", pMapDrawTrigger, pMapMilliseconds, pMapGlyphCount);
+        LTrace.LTraceTimelineAdd(
+            "Map", lCursor, lSourcePath, pMapDrawTrigger, pMapMilliseconds, pMapGlyphCount);
     }
 
     private void PMapContentDraw(DrawingContext drawingContext)

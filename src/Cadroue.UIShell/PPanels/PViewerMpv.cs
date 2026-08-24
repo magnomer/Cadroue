@@ -317,8 +317,7 @@ public sealed partial class PViewer
         bool pViewerOverlayShow = pViewerMpvHost.Visibility == Visibility.Visible
             && pViewerMpvHost.IsVisible
             && pViewerMpvHost.ActualWidth > 0
-            && pViewerMpvHost.ActualHeight > 0
-            && (pViewerMpvWindow?.IsActive ?? true);
+            && pViewerMpvHost.ActualHeight > 0;
 
         if (!pViewerOverlayShow)
         {
@@ -326,8 +325,7 @@ public sealed partial class PViewer
             {
                 LTraceLog.LTraceInfoRecord(
                     $"mpv overlay closed (host {(pViewerMpvHost.IsVisible ? "visible" : "hidden")}, "
-                    + $"vis={pViewerMpvHost.Visibility}, size {pViewerMpvHost.ActualWidth:0}x{pViewerMpvHost.ActualHeight:0}, "
-                    + $"windowActive={(pViewerMpvWindow?.IsActive.ToString() ?? "no-window")})");
+                    + $"vis={pViewerMpvHost.Visibility}, size {pViewerMpvHost.ActualWidth:0}x{pViewerMpvHost.ActualHeight:0})");
             }
 
             pViewerMpvOverlay.IsOpen = false;
@@ -370,8 +368,6 @@ public sealed partial class PViewer
 
         pViewerMpvWindow.LocationChanged += PViewerOverlayHandle;
         pViewerMpvWindow.SizeChanged += PViewerOverlayHandle;
-        pViewerMpvWindow.Activated += PViewerOverlayHandle;
-        pViewerMpvWindow.Deactivated += PViewerOverlayHandle;
     }
 
     private void PViewerWindowDetach()
@@ -383,8 +379,6 @@ public sealed partial class PViewer
 
         pViewerMpvWindow.LocationChanged -= PViewerOverlayHandle;
         pViewerMpvWindow.SizeChanged -= PViewerOverlayHandle;
-        pViewerMpvWindow.Activated -= PViewerOverlayHandle;
-        pViewerMpvWindow.Deactivated -= PViewerOverlayHandle;
         pViewerMpvWindow = null;
     }
 

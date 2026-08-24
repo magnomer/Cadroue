@@ -122,8 +122,8 @@ public sealed partial class PFlow : UserControl
         lCursor = PFlowCursorClamp(pFlowResumeAt);
         lSegment.LSegmentSourceSet(lSourcePath);
         lSegment.LSegmentReset();
-        pViewfinder.PViewfinderAttach(lSpool, lCursor);
-        pMap.PMapAttach(lSpool, lCursor);
+        pViewfinder.PViewfinderAttach(lSpool, lCursor, lSourcePath);
+        pMap.PMapAttach(lSpool, lCursor, lSourcePath);
         pViewfinder.PViewfinderSectionsUpdate(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
         pMap.PMapSectionsUpdate(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
         pViewfinderLabelLeft.Text = PFlowTimeFormat(lSpool.LSpoolRangeOrigin);
