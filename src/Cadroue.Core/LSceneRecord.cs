@@ -1,9 +1,13 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Cadroue.Core;
 
 public sealed class LSceneRecord
 {
+    [JsonIgnore]
+    public bool LSceneDefaultTabs { get; set; }
+
     public int LSceneVersion { get; set; }
     public string LSceneName { get; set; } = string.Empty;
     public List<string> LSceneLayoutKeys { get; set; } = new();

@@ -209,6 +209,7 @@ public partial class PProgram : System.Windows.Application
     protected override void OnExit(ExitEventArgs e)
     {
         LTraceLog.LTraceInfoRecord($"Application exiting with code {e.ApplicationExitCode}");
+        LPreference.LPreferenceSaveCommit();
         LRelayChannel.LRelayChannelStop();
         LTraceWriter.LTraceWriterPersist();
         base.OnExit(e);

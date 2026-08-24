@@ -6,6 +6,28 @@ namespace Cadroue.Tests;
 public sealed class TabPreferenceTests
 {
     [Fact]
+    public void EmptyDefaultTabs_ArePreserved()
+    {
+        LPreferenceState lPreferenceState = TInterface.PreferenceDefaultCreate();
+        lPreferenceState.LPreferenceStartupTabs.Clear();
+
+        TInterface.PreferenceNormalize(lPreferenceState);
+
+        Assert.Empty(lPreferenceState.LPreferenceStartupTabs);
+    }
+
+    [Fact]
+    public void MissingDefaultTabs_UseSplitFallback()
+    {
+        LPreferenceState lPreferenceState = TInterface.PreferenceDefaultCreate();
+        lPreferenceState.LPreferenceStartupTabs = null!;
+
+        TInterface.PreferenceNormalize(lPreferenceState);
+
+        Assert.Equal(new[] { "Split" }, lPreferenceState.LPreferenceStartupTabs);
+    }
+
+    [Fact]
     public void VerticalTabs_DefaultToHorizontal()
     {
         Assert.False(TInterface.PreferenceDefaultCreate().LPreferenceVerticalTabs);

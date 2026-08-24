@@ -14,8 +14,20 @@ public sealed class SceneNormalizeTests
         LSceneRecord scene = TScene.Normalize(null);
 
         Assert.Equal(TScene.VersionCurrent, scene.LSceneVersion);
+        Assert.True(scene.LSceneDefaultTabs);
         Assert.Empty(scene.LSceneLayoutKeys);
         Assert.Equal(0, scene.LSceneTabIndex);
+    }
+
+    [Fact]
+    public void NormalizingExplicitEmptyScene_PreservesZeroTabs()
+    {
+        LSceneRecord scene = TScene.RawCreate();
+
+        TScene.Normalize(scene);
+
+        Assert.False(scene.LSceneDefaultTabs);
+        Assert.Empty(scene.LSceneLayoutKeys);
     }
 
     [Fact]

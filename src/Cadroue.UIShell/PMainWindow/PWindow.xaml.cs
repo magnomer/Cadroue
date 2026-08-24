@@ -81,7 +81,10 @@ public partial class PWindow : Window
                     pTabset.PStripAdd(pStartupKey);
                 }
 
-                pTabset.PStripSelect(pTabset.PStripRecords[0]);
+                if (pTabset.PStripRecords.Count > 0)
+                {
+                    pTabset.PStripSelect(pTabset.PStripRecords[0]);
+                }
                 return;
             }
 
@@ -95,9 +98,9 @@ public partial class PWindow : Window
 
     private static void PWindowSceneRestore(PStrip pTabset, LSceneRecord lScene)
     {
-        IReadOnlyList<string> pTabKeys = lScene.LSceneLayoutKeys.Count > 0
-            ? lScene.LSceneLayoutKeys
-            : new[] { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" };
+        IReadOnlyList<string> pTabKeys = lScene.LSceneDefaultTabs
+            ? new[] { "Split", "Edit", "Audio", "Convert", "Merge", "Worklist" }
+            : lScene.LSceneLayoutKeys;
         IReadOnlyList<LPresetRecord> pTabExports = lScene.LSceneTabExports;
         IReadOnlyList<LSceneTabRecord> pTabLayouts = lScene.LSceneTabLayouts;
         pTabset.PStripUpdateSuspend();
@@ -129,6 +132,12 @@ public partial class PWindow : Window
                 pFunnelSurface.PFunnelTargetsResolve(pTabset.PStripRecords);
             }
         }
+        if (pTabset.PStripRecords.Count == 0)
+        {
+            pTabset.PStripSelect(null);
+            return;
+        }
+
         int pSelectIndex = Math.Clamp(lScene.LSceneTabIndex, 0, pTabset.PStripRecords.Count - 1);
         LTraceLog.LTraceInfoRecord(
             $"[SUSPICION] PWindowSceneRestore final select idx={pSelectIndex}, records={pTabset.PStripRecords.Count}");

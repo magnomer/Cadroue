@@ -12,7 +12,11 @@ public static partial class LScene
     {
         if (lScene is null)
         {
-            return new LSceneRecord { LSceneVersion = LSceneVersionCurrent };
+            return new LSceneRecord
+            {
+                LSceneVersion = LSceneVersionCurrent,
+                LSceneDefaultTabs = true
+            };
         }
 
         lScene.LSceneName = (lScene.LSceneName ?? string.Empty).Trim();

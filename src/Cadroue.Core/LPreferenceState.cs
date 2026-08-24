@@ -177,7 +177,7 @@ public sealed class LPreferenceState
     public void LPreferenceNormalize()
     {
         if (LPreferenceStartupMode is not "LastSession" and not "DefaultTab") LPreferenceStartupMode = "LastSession";
-        if (LPreferenceStartupTabs is null || LPreferenceStartupTabs.Count == 0)
+        if (LPreferenceStartupTabs is null)
             LPreferenceStartupTabs = new List<string> { "Split" };
         if (LPreferenceVolumeMode is not "Unified" and not "PerTab") LPreferenceVolumeMode = "Unified";
         if (LPreferenceWheelAction is not "Seek" and not "Zoom" and not "Volume") LPreferenceWheelAction = "Seek";

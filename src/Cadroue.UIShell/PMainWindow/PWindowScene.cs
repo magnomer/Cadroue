@@ -53,7 +53,7 @@ public partial class PWindow
             catch
             {
                 pStrip.PStripAllClose();
-                PWindowSceneRestore(pStrip, new LSceneRecord());
+                PWindowSceneRestore(pStrip, LScene.LSceneNormalize(null));
             }
         }
         finally
