@@ -17,12 +17,14 @@ public sealed partial class PLogWindow
 {
     private PPicker PLogCategoryBuild()
     {
-        string[] pLogTokens = Enum.GetValues<LTraceKind>()
-            .Select(LTraceEntry.LTraceKindRead)
+        LLocalizationChoice[] pLogCategories = Enum.GetValues<LTraceKind>()
+            .Select(pLogKind => new LLocalizationChoice(
+                LTraceEntry.LTraceKindRead(pLogKind),
+                PLogRow.PLogKeyRead(pLogKind)))
             .ToArray();
 
         var pLogPicker = new PPicker(
-            pLogTokens,
+            pLogCategories,
             Array.Empty<string>(),
             LLocalization.LLocalizationTextRead("Log.Category.All"))
         {

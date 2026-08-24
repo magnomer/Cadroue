@@ -22,7 +22,8 @@ internal sealed class PLogRow : INotifyPropertyChanged
     internal PLogRow(LTraceEntry pLogEntry)
     {
         PLogRowTime = pLogEntry.LTraceEntryTime;
-        PLogRowKind = LTraceEntry.LTraceKindRead(pLogEntry.LTraceEntryKind);
+        PLogRowKind = LLocalization.LLocalizationTextRead(
+            PLogKeyRead(pLogEntry.LTraceEntryKind));
         PLogRowSummary = pLogEntry.LTraceEntrySummary;
         PLogRowDetail = pLogEntry.LTraceEntryDetail ?? string.Empty;
         PLogRowDetailed = pLogEntry.LTraceEntryDetailed;
@@ -96,6 +97,17 @@ internal sealed class PLogRow : INotifyPropertyChanged
         LTraceKind.LTraceWork => (PLogBrushCreate(0xE3, 0xF0, 0xFB), PLogBrushCreate(0x14, 0x52, 0x7E)),
         LTraceKind.LTraceFfmpeg => (PLogBrushCreate(0xFD, 0xF0, 0xE1), PLogBrushCreate(0x8A, 0x4B, 0x0A)),
         _ => (PLogBrushCreate(0xE7, 0xEE, 0xF9), PLogBrushCreate(0x2B, 0x34, 0x43))
+    };
+
+    internal static string PLogKeyRead(LTraceKind pLogKind) => pLogKind switch
+    {
+        LTraceKind.LTraceLoading => "Log.Category.Loading",
+        LTraceKind.LTraceWarning => "Log.Category.Warning",
+        LTraceKind.LTraceError => "Log.Category.Error",
+        LTraceKind.LTraceUi => "Log.Category.Interface",
+        LTraceKind.LTraceWork => "Log.Category.Work",
+        LTraceKind.LTraceFfmpeg => "Log.Category.Ffmpeg",
+        _ => "Log.Category.Info"
     };
 
     private static Style PLogChipBuild()

@@ -16,7 +16,7 @@ public sealed partial class PRoster
         DateTimeOffset pCreateTime = pBatchItems.Min(pWorkItem => pWorkItem.LWorkCreateTime);
         int pInitialCount = PRosterInitialRead(pBatchItems);
         string pTitle = pCreateTime.LocalDateTime.ToString(
-            "yyyy-MM-dd tt h:mm", CultureInfo.InvariantCulture);
+            "yyyy-MM-dd tt h:mm", CultureInfo.CurrentUICulture);
 
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });

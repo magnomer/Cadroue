@@ -13,6 +13,22 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PCompass : UserControl
 {
+    private enum PCompassAction
+    {
+        ZoomIn,
+        ZoomOut,
+        Play,
+        Pause,
+        SectionAdd,
+        SectionDelete,
+        SectionStart,
+        SectionSplit,
+        SectionEnd,
+        KeyframePrevious,
+        KeyframeNearest,
+        KeyframeNext
+    }
+
     private static readonly Brush pCompassPositiveBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
     private static readonly Brush pCompassNegativeBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45));
     private static readonly Brush pCompassAccentBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x80, 0xED));
@@ -31,31 +47,31 @@ public sealed class PCompass : UserControl
     {
         pCompassLinePanel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
 
-        (string Icon, string Label, string Tooltip, Action Click, bool GroupEnd, bool Section)[] pButtons =
+        (PCompassAction Action, string Icon, string LabelKey, string TooltipKey, Action Click, bool GroupEnd, bool Section)[] pButtons =
         {
-            ("PCompassZoomIncrease.svg", "In", "Zoom into the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomIn"), false, false),
-            ("PCompassZoomDecrease.svg", "Out", "Zoom out of the timeline view.", () => pFlow.PFlowShortcutDispatch("zoomOut"), true, false),
-            ("PCompassPlay.svg", "Play", "Play the current media from the cursor.", pFlow.PFlowPlayRaise, false, false),
-            ("PCompassPause.svg", "Pause", "Pause playback at the current position.", pFlow.PFlowPauseRaise, true, false),
-            ("PCompassSectionAdd.svg", "Add", "Add a new section at the current cursor position.", () => pFlow.PFlowShortcutDispatch("addSection"), false, true),
-            ("PCompassRemove.svg", "Delete", "Delete the selected section.", () => pFlow.PFlowShortcutDispatch("deleteSection"), true, true),
-            ("PCompassStart.svg", "Start", "Set the selected section's start point to the cursor.", () => pFlow.PFlowShortcutDispatch("setStart"), false, true),
-            ("PCompassSplit.svg", "Split", "Split the selected section at the cursor.", () => pFlow.PFlowShortcutDispatch("splitSection"), false, true),
-            ("PCompassEnd.svg", "End", "Set the selected section's end point to the cursor.", () => pFlow.PFlowShortcutDispatch("setEnd"), true, true),
-            ("PCompassKeyframePrevious.svg", "Previous", "Move to the previous visible keyframe.", () => pFlow.PFlowShortcutDispatch("previousKey"), false, false),
-            ("PCompassKeyframeNear.svg", "Nearest", "Move to the nearest visible keyframe.", () => pFlow.PFlowShortcutDispatch("nearestKey"), false, false),
-            ("PCompassKeyframeNext.svg", "Next", "Move to the next visible keyframe.", () => pFlow.PFlowShortcutDispatch("nextKey"), true, false)
+            (PCompassAction.ZoomIn, "PCompassZoomIncrease.svg", "Compass.ZoomIn.Label", "Compass.ZoomIn.Tooltip", () => pFlow.PFlowShortcutDispatch("zoomIn"), false, false),
+            (PCompassAction.ZoomOut, "PCompassZoomDecrease.svg", "Compass.ZoomOut.Label", "Compass.ZoomOut.Tooltip", () => pFlow.PFlowShortcutDispatch("zoomOut"), true, false),
+            (PCompassAction.Play, "PCompassPlay.svg", "Compass.Play.Label", "Compass.Play.Tooltip", pFlow.PFlowPlayRaise, false, false),
+            (PCompassAction.Pause, "PCompassPause.svg", "Compass.Pause.Label", "Compass.Pause.Tooltip", pFlow.PFlowPauseRaise, true, false),
+            (PCompassAction.SectionAdd, "PCompassSectionAdd.svg", "Compass.SectionAdd.Label", "Compass.SectionAdd.Tooltip", () => pFlow.PFlowShortcutDispatch("addSection"), false, true),
+            (PCompassAction.SectionDelete, "PCompassRemove.svg", "Compass.SectionDelete.Label", "Compass.SectionDelete.Tooltip", () => pFlow.PFlowShortcutDispatch("deleteSection"), true, true),
+            (PCompassAction.SectionStart, "PCompassStart.svg", "Compass.SectionStart.Label", "Compass.SectionStart.Tooltip", () => pFlow.PFlowShortcutDispatch("setStart"), false, true),
+            (PCompassAction.SectionSplit, "PCompassSplit.svg", "Compass.SectionSplit.Label", "Compass.SectionSplit.Tooltip", () => pFlow.PFlowShortcutDispatch("splitSection"), false, true),
+            (PCompassAction.SectionEnd, "PCompassEnd.svg", "Compass.SectionEnd.Label", "Compass.SectionEnd.Tooltip", () => pFlow.PFlowShortcutDispatch("setEnd"), true, true),
+            (PCompassAction.KeyframePrevious, "PCompassKeyframePrevious.svg", "Compass.KeyframePrevious.Label", "Compass.KeyframePrevious.Tooltip", () => pFlow.PFlowShortcutDispatch("previousKey"), false, false),
+            (PCompassAction.KeyframeNearest, "PCompassKeyframeNear.svg", "Compass.KeyframeNearest.Label", "Compass.KeyframeNearest.Tooltip", () => pFlow.PFlowShortcutDispatch("nearestKey"), false, false),
+            (PCompassAction.KeyframeNext, "PCompassKeyframeNext.svg", "Compass.KeyframeNext.Label", "Compass.KeyframeNext.Tooltip", () => pFlow.PFlowShortcutDispatch("nextKey"), true, false)
         };
 
         StackPanel pGroup = PCompassGroupBuild();
-        foreach ((string pIcon, string pLabel, string pTooltip, Action pClick, bool pGroupEnd, bool pSection) in pButtons)
+        foreach ((PCompassAction pAction, string pIcon, string pLabelKey, string pTooltipKey, Action pClick, bool pGroupEnd, bool pSection) in pButtons)
         {
             if (pSection && !pCompassSectionShow)
             {
                 continue;
             }
 
-            Button pButton = PCompassButtonBuild(pIcon, pLabel, pTooltip);
+            Button pButton = PCompassButtonBuild(pAction, pIcon, pLabelKey, pTooltipKey);
             pButton.Click += (_, _) => pClick();
             pGroup.Children.Add(pButton);
             if (pGroupEnd)
@@ -320,12 +336,17 @@ public sealed class PCompass : UserControl
         return (Style)XamlReader.Parse(pXaml);
     }
 
-    private static Button PCompassButtonBuild(string pIconAssetName, string pLabelText, string pTooltipText)
+    private static Button PCompassButtonBuild(
+        PCompassAction pAction,
+        string pIconAssetName,
+        string pLabelKey,
+        string pTooltipKey)
     {
+        string pLabelText = LLocalization.LLocalizationTextRead(pLabelKey);
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PCompassAccentRead(pLabelText)),
+            Source = PIcon.PIconRead($"/PAssets/PCompass/{pIconAssetName}", PCompassAccentRead(pAction)),
             Width = 24,
             Height = 24,
             Stretch = Stretch.Uniform,
@@ -339,16 +360,16 @@ public sealed class PCompass : UserControl
             Height = 58,
             Content = pStack,
             Style = PMainWindow.PButton.PButtonCommandCreate(),
-            ToolTip = pTooltipText
+            ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey)
         };
     }
 
     private static Border PCompassSeparatorBuild() => new() { Width = 1, Margin = new Thickness(1, 14, 1, 12), Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC)) };
 
-    private static Brush? PCompassAccentRead(string pLabelText) => pLabelText switch
+    private static Brush? PCompassAccentRead(PCompassAction pAction) => pAction switch
     {
-        "Play" => pCompassPositiveBrush,
-        "Delete" => pCompassNegativeBrush,
+        PCompassAction.Play => pCompassPositiveBrush,
+        PCompassAction.SectionDelete => pCompassNegativeBrush,
         _ => null
     };
 }
