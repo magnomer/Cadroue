@@ -209,6 +209,7 @@
   "Log.Category.Loading": "불러오기",
   "Log.Category.Warning": "경고",
   "Log.Category.Error": "오류",
+  "Log.Category.Interaction": "상호 작용",
   "Log.Category.Interface": "UI",
   "Log.Category.Work": "작업",
   "Log.Category.Ffmpeg": "FFmpeg",

@@ -33,6 +33,11 @@ public static class LTraceLog
         LTrace.LTraceRecord(LTraceKind.LTraceError, lMessage, lException?.ToString());
     }
 
+    public static void LTraceInteractionRecord(string lMessage, string? lDetail = null)
+    {
+        LTrace.LTraceRecord(LTraceKind.LTraceInteraction, lMessage, lDetail);
+    }
+
     public static string LTraceTextRead() => LTraceWriter.LTraceWriterRead();
 
     public static void LTraceClear()

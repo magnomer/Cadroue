@@ -13,10 +13,10 @@ public sealed partial record LTraceEntry(
     string? LTraceEntryDetail,
     double? LTraceEntrySpan)
 {
-    internal const int LTraceIndentWidth = 30;
+    internal const int LTraceIndentWidth = 34;
 
     private const int LTraceDeltaWidth = 7;
-    private const int LTraceKindWidth = 7;
+    private const int LTraceKindWidth = 11;
 
     public bool LTraceEntryDetailed => !string.IsNullOrWhiteSpace(LTraceEntryDetail);
 
@@ -25,6 +25,7 @@ public sealed partial record LTraceEntry(
         LTraceKind.LTraceLoading => "Loading",
         LTraceKind.LTraceWarning => "Warning",
         LTraceKind.LTraceError => "Error",
+        LTraceKind.LTraceInteraction => "Interaction",
         LTraceKind.LTraceUi => "UI",
         LTraceKind.LTraceWork => "Work",
         LTraceKind.LTraceFfmpeg => "Ffmpeg",
@@ -36,6 +37,7 @@ public sealed partial record LTraceEntry(
         "Loading" => LTraceKind.LTraceLoading,
         "Warning" => LTraceKind.LTraceWarning,
         "Error" => LTraceKind.LTraceError,
+        "Interaction" => LTraceKind.LTraceInteraction,
         "UI" => LTraceKind.LTraceUi,
         "Draw" => LTraceKind.LTraceUi,
         "View" => LTraceKind.LTraceUi,
@@ -179,7 +181,7 @@ public sealed partial record LTraceEntry(
         }
     }
 
-    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+(Info|Loading|Warning|Error|UI|Draw|View|Work|Ffmpeg)\s+(.*)$")]
+    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+(Info|Loading|Warning|Error|Interaction|UI|Draw|View|Work|Ffmpeg)\s+(.*)$")]
     private static partial Regex LTraceHeaderRead();
 
     [GeneratedRegex(@"^(\d+(?:\.\d+)?)(ms|s)$")]

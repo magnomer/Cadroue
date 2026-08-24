@@ -11,6 +11,7 @@ public enum LTraceKind
     LTraceLoading,
     LTraceWarning,
     LTraceError,
+    LTraceInteraction,
     LTraceUi,
     LTraceWork,
     LTraceFfmpeg
@@ -82,7 +83,11 @@ public static class LTrace
         Volatile.Write(ref lTraceLoading, lTraceLoadingActive);
 
     public static bool LTraceCheck(LTraceKind lTraceKind) =>
-        lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceLoading or LTraceKind.LTraceWarning or LTraceKind.LTraceError
+        lTraceKind is LTraceKind.LTraceInfo
+            or LTraceKind.LTraceLoading
+            or LTraceKind.LTraceWarning
+            or LTraceKind.LTraceError
+            or LTraceKind.LTraceInteraction
             || Volatile.Read(ref lTraceVerbose);
 
     public static void LTraceRecord(

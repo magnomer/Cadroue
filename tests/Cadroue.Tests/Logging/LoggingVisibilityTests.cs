@@ -13,6 +13,7 @@ public sealed class LoggingVisibilityTests
         logging.Info("ordinary information");
         logging.Warning("ordinary warning");
         logging.Error("ordinary error");
+        logging.Interaction("button activated", "Button: Render");
 
         Assert.Collection(
             logging.Entries,
@@ -31,6 +32,12 @@ public sealed class LoggingVisibilityTests
                 Assert.Equal("Error", entry.Kind);
                 Assert.Equal("ordinary error", entry.Summary);
                 Assert.Contains("test error detail", entry.Detail);
+            },
+            entry =>
+            {
+                Assert.Equal("Interaction", entry.Kind);
+                Assert.Equal("button activated", entry.Summary);
+                Assert.Equal("Button: Render", entry.Detail);
             });
 
         Assert.True(logging.IsolatedLogExists());

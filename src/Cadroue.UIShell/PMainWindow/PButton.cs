@@ -202,6 +202,12 @@ public static class PButton
     private static Style PButtonBaseCreate()
     {
         var pStyle = new Style(typeof(Button));
+        pStyle.Setters.Add(new EventSetter(
+            ButtonBase.ClickEvent,
+            new RoutedEventHandler(PInteraction.PInteractionButtonHandle))
+        {
+            HandledEventsToo = true
+        });
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
         pStyle.Setters.Add(new Setter(UIElement.FocusableProperty, false));
         pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));

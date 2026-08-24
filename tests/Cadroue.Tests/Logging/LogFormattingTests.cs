@@ -38,4 +38,17 @@ public sealed class LogFormattingTests
         Assert.Equal(("Info", "information text", "information detail"),
             (logging.Entries[1].Kind, logging.Entries[1].Summary, logging.Entries[1].Detail));
     }
+
+    [Fact]
+    public void InteractionEntry_RoundTripsThroughTextFormat()
+    {
+        using var logging = new TLogging();
+        logging.Interaction("Button activated: Render", "Control: RenderButton");
+
+        TLoggingEntry actual = Assert.Single(logging.PersistedEntriesRead());
+
+        Assert.Equal("Interaction", actual.Kind);
+        Assert.Equal("Button activated: Render", actual.Summary);
+        Assert.Equal("Control: RenderButton", actual.Detail);
+    }
 }

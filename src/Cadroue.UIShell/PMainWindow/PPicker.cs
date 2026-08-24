@@ -106,6 +106,7 @@ internal sealed class PPicker : UserControl
             Cursor = Cursors.Hand,
             Template = PPickerTemplateBuild()
         };
+        PInteraction.PInteractionButtonAttach(pArrow);
         pArrow.Checked += (_, _) => PPickerOpenSet(true);
         pArrow.Unchecked += (_, _) => PPickerOpenSet(false);
         return pArrow;

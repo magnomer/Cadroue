@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PControlBar;
 
@@ -84,6 +85,12 @@ internal static class PMenu
     private static Style PMenuStyleCreate()
     {
         var pStyle = new Style(typeof(MenuItem));
+        pStyle.Setters.Add(new EventSetter(
+            MenuItem.ClickEvent,
+            new RoutedEventHandler(PInteraction.PInteractionMenuHandle))
+        {
+            HandledEventsToo = true
+        });
         pStyle.Setters.Add(new Setter(FrameworkElement.FocusVisualStyleProperty, null));
         pStyle.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));
         pStyle.Setters.Add(new Setter(Control.ForegroundProperty, pMenuTextBrush));

@@ -209,6 +209,7 @@
   "Log.Category.Loading": "Loading",
   "Log.Category.Warning": "Warning",
   "Log.Category.Error": "Error",
+  "Log.Category.Interaction": "Interaction",
   "Log.Category.Interface": "UI",
   "Log.Category.Work": "Work",
   "Log.Category.Ffmpeg": "FFmpeg",

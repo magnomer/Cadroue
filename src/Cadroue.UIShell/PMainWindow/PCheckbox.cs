@@ -22,6 +22,7 @@ internal static class PCheckbox
 
     internal static void PCheckboxApply(CheckBox pCheckBox)
     {
+        PInteraction.PInteractionButtonAttach(pCheckBox);
         pCheckBox.Foreground = PCheckboxTextBrush;
         pCheckBox.Background = Brushes.White;
         pCheckBox.BorderBrush = PLineBrush;

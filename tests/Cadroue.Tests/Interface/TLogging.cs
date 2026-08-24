@@ -53,6 +53,14 @@ internal sealed class TLogging : IDisposable
 
     internal string IsolatedRoot => tRoot;
 
+    internal IReadOnlyList<TLoggingEntry> PersistedEntriesRead()
+    {
+        LTraceWriter.LTraceWriterPersist();
+        return LTraceEntry.LTraceEntryParse(LTraceLog.LTraceTextRead())
+            .Select(TEntryCreate)
+            .ToArray();
+    }
+
     internal void Info(string summary, string? detail = null) =>
         LTraceLog.LTraceInfoRecord(summary, detail);
 
@@ -64,6 +72,9 @@ internal sealed class TLogging : IDisposable
 
     internal void Error(string summary) =>
         LTraceLog.LTraceErrorRecord(summary, new InvalidOperationException("test error detail"));
+
+    internal void Interaction(string summary, string? detail = null) =>
+        LTraceLog.LTraceInteractionRecord(summary, detail);
 
     internal void Ui(string summary, string? detail = null) =>
         LTrace.LTraceRecord(LTraceKind.LTraceUi, summary, detail);
@@ -137,12 +148,15 @@ internal sealed class TLogging : IDisposable
 
     private void TEntryCapture(LTraceEntry entry)
     {
-        tEntries.Add(new TLoggingEntry(
+        tEntries.Add(TEntryCreate(entry));
+    }
+
+    private static TLoggingEntry TEntryCreate(LTraceEntry entry) =>
+        new(
             entry.LTraceEntryTime,
             entry.LTraceEntryDelta,
             LTraceEntry.LTraceKindRead(entry.LTraceEntryKind),
             entry.LTraceEntrySummary,
             entry.LTraceEntryDetail,
-            entry.LTraceEntrySpan));
-    }
+            entry.LTraceEntrySpan);
 }
