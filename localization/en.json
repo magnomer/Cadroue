@@ -204,7 +204,6 @@
   "Log.Button.Open": "Open folder",
   "Log.Button.Details": "Details",
   "Log.Category.All": "All categories",
-  "Log.Category.VerboseNotice": "Only recorded while Verbose is on.",
   "Log.File.Current": "Current session",
   "Log.Verbose.Label": "Verbose",
   "Log.Verbose.Tooltip": "Record every drawing, viewer, backend and {Terms.FFmpeg} step. Slows the program down; use it to diagnose, not day to day.",

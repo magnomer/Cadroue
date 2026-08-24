@@ -22,6 +22,7 @@ public static class LTrace
 
     private static readonly object lTraceStampLock = new();
     private static readonly object lTraceDrawLock = new();
+    private static readonly object lTraceVerboseLock = new();
     private static readonly Dictionary<string, LTraceDrawTally> lTraceDrawTable = new(StringComparer.Ordinal);
 
     private static long lTracePreviousStamp = -1;
@@ -39,20 +40,35 @@ public static class LTrace
         get => Volatile.Read(ref lTraceVerbose);
         set
         {
-            if (Volatile.Read(ref lTraceVerbose) == value)
+            lock (lTraceVerboseLock)
             {
-                return;
-            }
+                if (Volatile.Read(ref lTraceVerbose) == value)
+                {
+                    return;
+                }
 
-            Volatile.Write(ref lTraceVerbose, value);
-            LTraceTimerSet(value);
-            LTraceVerboseCallback?.Invoke(value);
-            LTraceRecord(
-                LTraceKind.LTraceInfo,
-                value ? "Verbose logging on" : "Verbose logging off",
-                value
-                    ? "UI, Work and Ffmpeg entries are now recorded.\nUI draw entries are aggregated once per second per surface."
-                    : null);
+                if (value)
+                {
+                    Volatile.Write(ref lTraceVerbose, true);
+                    LTraceTimerSet(true);
+                }
+                else
+                {
+                    lock (lTraceDrawLock)
+                    {
+                        LTraceTimerSet(false);
+                        Volatile.Write(ref lTraceVerbose, false);
+                    }
+                }
+
+                LTraceVerboseCallback?.Invoke(value);
+                LTraceRecord(
+                    LTraceKind.LTraceInfo,
+                    value ? "Verbose logging on" : "Verbose logging off",
+                    value
+                        ? "UI, Work and Ffmpeg entries are now recorded.\nUI draw entries are aggregated once per second per surface."
+                        : null);
+            }
         }
     }
 
@@ -82,7 +98,8 @@ public static class LTrace
         string? lTraceDetail,
         double? lTraceMilliseconds,
         bool lTraceLossReport,
-        int lTraceLossWeight)
+        int lTraceLossWeight,
+        bool lTraceAlreadyAccepted = false)
     {
         if (!lTraceLossReport && LTraceWriter.LTraceLossRead() is int lTraceLost && lTraceLost > 0)
         {
@@ -101,7 +118,7 @@ public static class LTrace
             lTraceKind = LTraceKind.LTraceLoading;
         }
 
-        if (!LTraceCheck(lTraceKind))
+        if (!lTraceAlreadyAccepted && !LTraceCheck(lTraceKind))
         {
             return;
         }
@@ -138,6 +155,11 @@ public static class LTrace
 
         lock (lTraceDrawLock)
         {
+            if (!Volatile.Read(ref lTraceVerbose))
+            {
+                return;
+            }
+
             if (!lTraceDrawTable.TryGetValue(lTraceSurface, out LTraceDrawTally? lTraceTally))
             {
                 lTraceTally = new LTraceDrawTally();
@@ -172,7 +194,11 @@ public static class LTrace
             LTraceRecord(
                 LTraceKind.LTraceUi,
                 lTraceTally.LTraceSummaryRead(lTraceSurface),
-                lTraceTally.LTraceDetailRead());
+                lTraceTally.LTraceDetailRead(),
+                null,
+                false,
+                1,
+                true);
         }
     }
 

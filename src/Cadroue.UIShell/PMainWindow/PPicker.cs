@@ -94,15 +94,6 @@ internal sealed class PPicker : UserControl
     internal IReadOnlyList<string> PPickerSelectionRead() =>
         pPickerItems.Where(pItem => pPickerBoxes[pItem].IsChecked == true).ToArray();
 
-    internal void PPickerEnableSet(string pToken, bool pEnabled, string? pTooltip)
-    {
-        if (pPickerBoxes.TryGetValue(pToken, out CheckBox? pBox))
-        {
-            pBox.IsEnabled = pEnabled;
-            pBox.ToolTip = pTooltip;
-        }
-    }
-
     private ToggleButton PPickerArrowBuild()
     {
         var pArrow = new ToggleButton

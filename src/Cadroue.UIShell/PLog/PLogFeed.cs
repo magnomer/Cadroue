@@ -35,18 +35,6 @@ public sealed partial class PLogWindow
         return pLogPicker;
     }
 
-    private void PLogCategoryApply()
-    {
-        foreach (LTraceKind pLogKind in Enum.GetValues<LTraceKind>())
-        {
-            bool pLogAllowed = LTrace.LTraceCheck(pLogKind);
-            pLogCategoryPicker.PPickerEnableSet(
-                LTraceEntry.LTraceKindRead(pLogKind),
-                pLogAllowed,
-                pLogAllowed ? null : LLocalization.LLocalizationTextRead("Log.Category.VerboseNotice"));
-        }
-    }
-
     private HashSet<LTraceKind> PLogCategoryRead()
     {
         var pLogKinds = new HashSet<LTraceKind>();

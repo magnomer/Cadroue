@@ -60,7 +60,6 @@ public sealed partial class PLogWindow : Window
         PScrollbar.PScrollbarApply(this);
         Content = PLogContentBuild();
 
-        PLogCategoryApply();
         LTrace.LTraceCommittedAppend += PLogAppendHandle;
         PLogFilesBuild();
 
@@ -113,7 +112,6 @@ public sealed partial class PLogWindow : Window
 
     private void PLogVerboseSet(bool pLogVerboseOn)
     {
-        PLogCategoryApply();
         if (LTrace.LTraceVerbose == pLogVerboseOn)
         {
             return;

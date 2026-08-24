@@ -44,4 +44,25 @@ public sealed class DrawAggregationTests
         Assert.DoesNotContain("old", entry.Detail);
         Assert.DoesNotContain("99", entry.Detail);
     }
+
+    [Fact]
+    public void DisablingVerbose_FlushesDrawsAcceptedBeforeTheTransition()
+    {
+        using var logging = new TLogging();
+        logging.VerboseSet(true);
+        logging.Reset();
+        logging.Draw("Timeline", "shutdown", 7, 4);
+
+        logging.VerboseSet(false);
+
+        Assert.Collection(
+            logging.Entries,
+            entry =>
+            {
+                Assert.Equal("UI", entry.Kind);
+                Assert.Equal("Timeline drew 1x in the last second", entry.Summary);
+                Assert.Contains("triggers: shutdown 1", entry.Detail);
+            },
+            entry => Assert.Equal(("Info", "Verbose logging off"), (entry.Kind, entry.Summary)));
+    }
 }
