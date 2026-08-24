@@ -150,7 +150,6 @@ public partial class PProgram : System.Windows.Application
         LRelayChannel.LRelayStartupRead(e.Args);
         Cadroue.Infrastructure.LRenderer.LRendererSettingsLoad();
 
-        LPreference.LPreferenceDepotCallback = LPreferenceDepotHandle;
         LPreference.LPreferenceLanguageSeam = LLocalization.LLocalizationLanguageNormalize;
         LPreference.LPreferenceLoadSeam = LPreferenceStateStore.LPreferenceStateLoad;
         LPreference.LPreferenceSaveSeam = LPreferenceStateStore.LPreferenceStateSave;
@@ -162,6 +161,18 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Infrastructure.LBinding.LBindingLoad();
         LScene.LSceneCurrentLoad();
         LLocalization.LLocalizationLoad(LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
+        string lLocalizationLanguage = LLocalization.LLocalizationLanguageRead();
+        if (!string.Equals(
+                lLocalizationLanguage,
+                LPreference.LPreferenceStateCurrent.LPreferenceLanguage,
+                StringComparison.Ordinal))
+        {
+            LPreferenceState lLocalizationPreference = LPreference.LPreferenceStateCurrent.LPreferenceClone();
+            lLocalizationPreference.LPreferenceLanguage = lLocalizationLanguage;
+            LPreference.LPreferenceStateSet(lLocalizationPreference);
+        }
+
+        LPreference.LPreferenceDepotCallback = LPreferenceDepotHandle;
         Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
         LTrace.LTraceVerbose = LPreference.LPreferenceStateCurrent.LPreferenceLogVerbose;
         LFlyleaf.LFlyleafResolverAttach();

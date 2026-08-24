@@ -75,13 +75,49 @@ internal static class LLocalization
 
     internal static string LLocalizationFormat(string lLocalizationKey, params object?[] lLocalizationArguments)
     {
-        string lLocalizationTemplate = LLocalizationTextRead(lLocalizationKey);
+        string? lLocalizationSelectedTemplate;
+        string? lLocalizationFallbackTemplate;
+        lock (lLocalizationGate)
+        {
+            lLocalizationSelectedTemplate = lLocalizationCurrentCatalog?.LLocalizationCatalogRead(lLocalizationKey);
+            lLocalizationFallbackTemplate = lLocalizationFallbackCatalog?.LLocalizationCatalogRead(lLocalizationKey);
+        }
+
+        string lLocalizationTemplate = lLocalizationSelectedTemplate
+            ?? lLocalizationFallbackTemplate
+            ?? lLocalizationKey;
         try
         {
             return string.Format(CultureInfo.CurrentUICulture, lLocalizationTemplate, lLocalizationArguments);
         }
         catch (FormatException lLocalizationException)
         {
+            if (lLocalizationSelectedTemplate is not null
+                && lLocalizationFallbackTemplate is not null
+                && !string.Equals(
+                    lLocalizationSelectedTemplate,
+                    lLocalizationFallbackTemplate,
+                    StringComparison.Ordinal))
+            {
+                try
+                {
+                    string lLocalizationFallback = string.Format(
+                        CultureInfo.CurrentUICulture,
+                        lLocalizationFallbackTemplate,
+                        lLocalizationArguments);
+                    LTraceLog.LTraceErrorRecord(
+                        $"Localization format failed for key '{lLocalizationKey}'; using the English template.",
+                        lLocalizationException);
+                    return lLocalizationFallback;
+                }
+                catch (FormatException lLocalizationFallbackException)
+                {
+                    LTraceLog.LTraceErrorRecord(
+                        $"English localization format also failed for key '{lLocalizationKey}'.",
+                        lLocalizationFallbackException);
+                }
+            }
+
             LTraceLog.LTraceErrorRecord(
                 $"Localization format failed for key '{lLocalizationKey}'; showing the raw template.",
                 lLocalizationException);
