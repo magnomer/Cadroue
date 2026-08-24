@@ -23,7 +23,7 @@ public sealed partial class PLogWindow : Window
 
     private readonly ObservableCollection<PLogRow> pLogRowsShown = new();
     private readonly List<PLogRow> pLogRowsAll = new();
-    private readonly List<LTraceEntry> pLogPending = new();
+    private readonly List<(long Sequence, LTraceEntry Entry)> pLogPending = new();
     private readonly object pLogPendingLock = new();
 
     private readonly ListBox pLogFeed;
@@ -36,6 +36,7 @@ public sealed partial class PLogWindow : Window
     private Window? pLogOwnerWindow;
     private string pLogFilePath = string.Empty;
     private bool pLogFileLive = true;
+    private long pLogSnapshotSequence;
 
     private PLogWindow()
     {
@@ -60,6 +61,7 @@ public sealed partial class PLogWindow : Window
         Content = PLogContentBuild();
 
         PLogCategoryApply();
+        LTrace.LTraceCommittedAppend += PLogAppendHandle;
         PLogFilesBuild();
 
         pLogFlushTimer = new DispatcherTimer(DispatcherPriority.Background)
@@ -72,7 +74,6 @@ public sealed partial class PLogWindow : Window
         PSGrabber.PSGrabberPlacementRestore(this, PLogPlacementKey);
         pLogGrabber = new PSGrabber(this);
         pLogGrabber.PSGrabberAttach();
-        LTrace.LTraceAppend += PLogAppendHandle;
         Closed += PLogCloseHandle;
     }
 
@@ -130,7 +131,7 @@ public sealed partial class PLogWindow : Window
         pLogFlushTimer.Tick -= PLogFlushHandle;
         PSGrabber.PSGrabberPlacementSave(this, PLogPlacementKey);
         pLogGrabber.PSGrabberDetach();
-        LTrace.LTraceAppend -= PLogAppendHandle;
+        LTrace.LTraceCommittedAppend -= PLogAppendHandle;
         Closed -= PLogCloseHandle;
         if (pLogOwnerWindow is not null)
         {

@@ -32,8 +32,8 @@ public static partial class LFlyleaf
         try
         {
             LPreferenceState lPreferenceState = LPreferenceStateStore.LPreferenceStateLoad();
-            LTrace.LTraceVerbose = lPreferenceState.LPreferenceLogVerbose;
             LDepot.LDepotRootSet(lPreferenceState.LPreferenceWorkspaceFolder);
+            LTrace.LTraceVerbose = lPreferenceState.LPreferenceLogVerbose;
             LFlyleafResolverAttach();
         }
         catch (Exception lException)

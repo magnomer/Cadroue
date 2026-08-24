@@ -59,6 +59,14 @@ public sealed partial class PLogWindow
 
     private void PLogFilesBuild()
     {
+        PLogFilesUpdate();
+        pLogFileCombo.SelectionChanged += (_, _) => PLogFileLoad();
+        pLogFileCombo.DropDownOpened += (_, _) => PLogFilesUpdate();
+        PLogFileLoad();
+    }
+
+    private void PLogFilesUpdate()
+    {
         string pLogCurrentPath = LTraceWriter.LTracePathRead();
         List<string> pLogFiles = LTraceWriter.LTraceFilesRead();
         if (!pLogFiles.Contains(pLogCurrentPath, StringComparer.OrdinalIgnoreCase))
@@ -66,13 +74,32 @@ public sealed partial class PLogWindow
             pLogFiles.Insert(0, pLogCurrentPath);
         }
 
-        int pLogCurrentIndex = 0;
+        string pLogSelectedPath = pLogFileCombo.SelectedItem is ComboBoxItem pLogSelectedItem
+            && pLogSelectedItem.Tag is string pLogSelected
+                ? pLogSelected
+                : pLogCurrentPath;
+        if (!pLogFiles.Contains(pLogSelectedPath, StringComparer.OrdinalIgnoreCase))
+        {
+            pLogSelectedPath = pLogCurrentPath;
+        }
+
+        string[] pLogExisting = pLogFileCombo.Items
+            .OfType<ComboBoxItem>()
+            .Select(pLogItem => pLogItem.Tag as string ?? string.Empty)
+            .ToArray();
+        if (pLogExisting.SequenceEqual(pLogFiles, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        pLogFileCombo.Items.Clear();
+        int pLogSelectedIndex = 0;
         foreach (string pLogFile in pLogFiles)
         {
             bool pLogCurrent = string.Equals(pLogFile, pLogCurrentPath, StringComparison.OrdinalIgnoreCase);
-            if (pLogCurrent)
+            if (string.Equals(pLogFile, pLogSelectedPath, StringComparison.OrdinalIgnoreCase))
             {
-                pLogCurrentIndex = pLogFileCombo.Items.Count;
+                pLogSelectedIndex = pLogFileCombo.Items.Count;
             }
 
             pLogFileCombo.Items.Add(new ComboBoxItem
@@ -84,9 +111,7 @@ public sealed partial class PLogWindow
             });
         }
 
-        pLogFileCombo.SelectedIndex = pLogCurrentIndex;
-        pLogFileCombo.SelectionChanged += (_, _) => PLogFileLoad();
-        PLogFileLoad();
+        pLogFileCombo.SelectedIndex = pLogSelectedIndex;
     }
 
     private void PLogFileLoad()
@@ -98,7 +123,20 @@ public sealed partial class PLogWindow
 
         pLogFilePath = pLogPath;
         pLogFileLive = string.Equals(pLogPath, LTraceWriter.LTracePathRead(), StringComparison.OrdinalIgnoreCase);
-        string pLogText = LTraceWriter.LTraceFileRead(pLogPath);
+        string pLogText;
+        if (pLogFileLive)
+        {
+            pLogText = LTraceWriter.LTraceWriterRead(out long pLogCommitted);
+            pLogSnapshotSequence = pLogCommitted;
+            lock (pLogPendingLock)
+            {
+                pLogPending.RemoveAll(pLogItem => pLogItem.Sequence <= pLogSnapshotSequence);
+            }
+        }
+        else
+        {
+            pLogText = LTraceWriter.LTraceFileRead(pLogPath);
+        }
 
         pLogRowsAll.Clear();
         foreach (LTraceEntry pLogEntry in LTraceEntry.LTraceEntryParse(pLogText))
@@ -142,17 +180,17 @@ public sealed partial class PLogWindow
         }
     }
 
-    private void PLogAppendHandle(LTraceEntry pLogEntry)
+    private void PLogAppendHandle(long pLogSequence, LTraceEntry pLogEntry)
     {
         lock (pLogPendingLock)
         {
-            pLogPending.Add(pLogEntry);
+            pLogPending.Add((pLogSequence, pLogEntry));
         }
     }
 
     private void PLogFlushHandle(object? sender, EventArgs e)
     {
-        List<LTraceEntry> pLogBatch;
+        List<(long Sequence, LTraceEntry Entry)> pLogBatch;
         lock (pLogPendingLock)
         {
             if (pLogPending.Count == 0)
@@ -160,18 +198,27 @@ public sealed partial class PLogWindow
                 return;
             }
 
-            pLogBatch = new List<LTraceEntry>(pLogPending);
+            pLogBatch = new List<(long Sequence, LTraceEntry Entry)>(pLogPending);
             pLogPending.Clear();
         }
 
+        pLogFileLive = string.Equals(
+            pLogFilePath,
+            LTraceWriter.LTracePathRead(),
+            StringComparison.OrdinalIgnoreCase);
         if (!pLogFileLive)
         {
             return;
         }
 
         HashSet<LTraceKind> pLogCategories = PLogCategoryRead();
-        foreach (LTraceEntry pLogEntry in pLogBatch)
+        foreach ((long pLogSequence, LTraceEntry pLogEntry) in pLogBatch)
         {
+            if (pLogSequence <= pLogSnapshotSequence)
+            {
+                continue;
+            }
+
             var pLogRow = new PLogRow(pLogEntry);
             pLogRowsAll.Add(pLogRow);
             if (pLogCategories.Count == 0 || pLogCategories.Contains(pLogRow.PLogRowCategory))

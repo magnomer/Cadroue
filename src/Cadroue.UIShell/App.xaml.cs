@@ -162,8 +162,8 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Infrastructure.LBinding.LBindingLoad();
         LScene.LSceneCurrentLoad();
         LLocalization.LLocalizationLoad(LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
-        LTrace.LTraceVerbose = LPreference.LPreferenceStateCurrent.LPreferenceLogVerbose;
         Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
+        LTrace.LTraceVerbose = LPreference.LPreferenceStateCurrent.LPreferenceLogVerbose;
         LFlyleaf.LFlyleafResolverAttach();
         base.OnStartup(e);
         PFlow.PSectionPalette.PSectionPaletteLoad();
@@ -233,8 +233,8 @@ public partial class PProgram : System.Windows.Application
     {
         try
         {
-            Cadroue.Infrastructure.LDepot.LDepotRootSet(LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
-            string lDepotRoot = Cadroue.Infrastructure.LDepot.LDepotRootRead();
+            string lDepotRoot = Cadroue.Infrastructure.LDepot.LDepotRootResolve(
+                LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
             if (string.Equals(lDepotRoot, lDepotRootApplied, StringComparison.OrdinalIgnoreCase))
             {
                 return;
@@ -243,8 +243,12 @@ public partial class PProgram : System.Windows.Application
             if (lDepotRootApplied is string lDepotPrevious
                 && !Cadroue.Infrastructure.LDepot.LDepotFolderMove(lDepotPrevious, lDepotRoot))
             {
-                Cadroue.Infrastructure.LDepot.LDepotRootSet(lDepotPrevious);
                 return;
+            }
+
+            if (lDepotRootApplied is null)
+            {
+                Cadroue.Infrastructure.LDepot.LDepotRootSet(lDepotRoot);
             }
 
             Cadroue.Infrastructure.LDepotIndex.LDepotIndexCreate();

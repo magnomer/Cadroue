@@ -14,6 +14,7 @@ public static class LTraceWriter
     private const int LTraceWriterCapacity = 20000;
     private const int LTraceWriterIdle = 250;
     private const int LTraceWriterBatch = 256;
+    private const int LTraceWriterRetry = 8;
 
     public const string LTraceFolderName = "log";
     public const string LTraceArchiveSuffix = ".gz";
@@ -21,38 +22,65 @@ public static class LTraceWriter
     private const int LTraceArchiveKeep = 20;
     private const int LTraceArchiveDays = 14;
 
-    private static readonly BlockingCollection<string> lTraceWriterQueue =
-        new(new ConcurrentQueue<string>(), LTraceWriterCapacity);
+    private sealed record LTraceWrite(
+        long LTraceWriteSequence,
+        string LTraceWritePath,
+        string LTraceWriteText,
+        Action<long> LTraceWriteAction,
+        int LTraceWriteLoss);
+
+    private static readonly BlockingCollection<LTraceWrite> lTraceWriterQueue =
+        new(new ConcurrentQueue<LTraceWrite>(), LTraceWriterCapacity);
 
     private static readonly ManualResetEventSlim lTraceWriterIdle = new(true);
     private static readonly object lTraceWriterLock = new();
+    private static readonly object lTraceStateLock = new();
 
     private static readonly string lTraceFileName =
         $"Cadroue-{DateTimeOffset.Now:yyyyMMdd-HHmmss}-{Environment.ProcessId}.log";
 
-    private static StreamWriter? lTraceWriterStream;
+    private static FileStream? lTraceWriterStream;
     private static string? lTraceWriterPath;
-    private static int lTraceWriterDrop;
     private static int lTraceWriterStarted;
+    private static long lTraceWriterAccepted;
+    private static long lTraceWriterCommitted;
+    private static long lTraceWriterDelivered;
+    private static int lTraceWriterLoss;
 
     public static string LTraceFolderRead() => Path.Combine(LDepot.LDepotRootRead(), LTraceFolderName);
 
     public static string LTracePathRead() => Path.Combine(LTraceFolderRead(), lTraceFileName);
 
-    public static void LTraceWriterRecord(string lTraceEntry)
+    public static void LTraceWriterRecord(string lTraceEntry) =>
+        LTraceWriterRecord(lTraceEntry, _ => { });
+
+    internal static void LTraceWriterRecord(
+        string lTraceEntry,
+        Action<long> lTraceCommit,
+        int lTraceLoss = 1)
     {
         if (string.IsNullOrEmpty(lTraceEntry))
         {
             return;
         }
 
+        ArgumentNullException.ThrowIfNull(lTraceCommit);
         LTraceWriterStart();
-        lTraceWriterIdle.Reset();
-        if (!lTraceWriterQueue.TryAdd(lTraceEntry))
+        lock (lTraceStateLock)
         {
-            Interlocked.Increment(ref lTraceWriterDrop);
+            long lTraceSequence = lTraceWriterAccepted + 1;
+            lTraceWriterQueue.Add(new LTraceWrite(
+                lTraceSequence,
+                LTracePathRead(),
+                lTraceEntry,
+                lTraceCommit,
+                Math.Max(1, lTraceLoss)));
+            lTraceWriterAccepted = lTraceSequence;
+            lTraceWriterIdle.Reset();
         }
     }
+
+    internal static int LTraceLossRead() => Interlocked.Exchange(ref lTraceWriterLoss, 0);
 
     public static void LTraceWriterPersist()
     {
@@ -61,10 +89,29 @@ public static class LTraceWriter
             return;
         }
 
-        lTraceWriterIdle.Wait(2000);
+        long lTraceTarget;
+        lock (lTraceStateLock)
+        {
+            lTraceTarget = lTraceWriterAccepted;
+        }
+
+        while (true)
+        {
+            lock (lTraceStateLock)
+            {
+                if (lTraceWriterDelivered >= lTraceTarget)
+                {
+                    return;
+                }
+            }
+
+            lTraceWriterIdle.Wait();
+        }
     }
 
-    public static string LTraceWriterRead()
+    public static string LTraceWriterRead() => LTraceWriterRead(out _);
+
+    internal static string LTraceWriterRead(out long lTraceCommitted)
     {
         LTraceWriterPersist();
         lock (lTraceWriterLock)
@@ -74,20 +121,25 @@ public static class LTraceWriter
                 string lTracePath = LTracePathRead();
                 if (!File.Exists(lTracePath))
                 {
+                    lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
                     return string.Empty;
                 }
 
                 using var lTraceStream = new FileStream(
                     lTracePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using var lTraceReader = new StreamReader(lTraceStream, Encoding.UTF8);
-                return lTraceReader.ReadToEnd();
+                string lTraceText = lTraceReader.ReadToEnd();
+                lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
+                return lTraceText;
             }
             catch (IOException)
             {
+                lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
                 return string.Empty;
             }
             catch (UnauthorizedAccessException)
             {
+                lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
                 return string.Empty;
             }
         }
@@ -170,6 +222,19 @@ public static class LTraceWriter
         }
     }
 
+    internal static bool LTraceRootMove(Action lTraceMove)
+    {
+        ArgumentNullException.ThrowIfNull(lTraceMove);
+        LTraceWriterPersist();
+        lock (lTraceWriterLock)
+        {
+            LTraceWriterClose();
+            lTraceMove();
+            LTraceArchiveUpdate();
+            return true;
+        }
+    }
+
     private static void LTraceWriterStart()
     {
         if (Interlocked.CompareExchange(ref lTraceWriterStarted, 1, 0) != 0)
@@ -189,39 +254,72 @@ public static class LTraceWriter
     private static void LTraceWriterRun()
     {
         LTraceArchiveRun();
+        LTraceWrite? lTraceWaiting = null;
         while (true)
         {
             try
             {
-                if (!lTraceWriterQueue.TryTake(out string? lTraceEntry, LTraceWriterIdle))
+                LTraceWrite? lTraceEntry = lTraceWaiting;
+                lTraceWaiting = null;
+                if (lTraceEntry is null
+                    && !lTraceWriterQueue.TryTake(out lTraceEntry, LTraceWriterIdle))
                 {
-                    LTracePersistRun();
-                    lTraceWriterIdle.Set();
                     continue;
                 }
 
-                lock (lTraceWriterLock)
+                var lTraceBatch = new List<LTraceWrite>(LTraceWriterBatch) { lTraceEntry };
+                while (lTraceBatch.Count < LTraceWriterBatch
+                    && lTraceWriterQueue.TryTake(out LTraceWrite? lTraceNext, 0))
                 {
-                    StreamWriter? lTraceStream = LTraceWriterOpen();
-                    if (lTraceStream is null)
+                    if (!string.Equals(
+                        lTraceNext.LTraceWritePath,
+                        lTraceEntry.LTraceWritePath,
+                        StringComparison.OrdinalIgnoreCase))
                     {
-                        continue;
+                        lTraceWaiting = lTraceNext;
+                        break;
                     }
 
-                    int lTraceBatch = 0;
-                    do
-                    {
-                        lTraceStream.Write(lTraceEntry);
-                        lTraceBatch++;
-                    }
-                    while (lTraceBatch < LTraceWriterBatch
-                        && lTraceWriterQueue.TryTake(out lTraceEntry, 0));
+                    lTraceBatch.Add(lTraceNext);
+                }
 
-                    int lTraceDropped = Interlocked.Exchange(ref lTraceWriterDrop, 0);
-                    if (lTraceDropped > 0)
+                bool lTraceSaved = false;
+                for (int lTraceAttempt = 0; lTraceAttempt < LTraceWriterRetry; lTraceAttempt++)
+                {
+                    if (LTraceBatchPersist(lTraceBatch))
                     {
-                        lTraceStream.Write(
-                            $"{new string(' ', 30)}[{lTraceDropped} entries dropped: the trace queue was full]{Environment.NewLine}");
+                        lTraceSaved = true;
+                        break;
+                    }
+
+                    Thread.Sleep(LTraceWriterIdle);
+                }
+
+                if (lTraceSaved)
+                {
+                    Volatile.Write(ref lTraceWriterCommitted, lTraceBatch[^1].LTraceWriteSequence);
+                    foreach (LTraceWrite lTraceWrite in lTraceBatch)
+                    {
+                        try
+                        {
+                            lTraceWrite.LTraceWriteAction(lTraceWrite.LTraceWriteSequence);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+                else
+                {
+                    Interlocked.Add(ref lTraceWriterLoss, lTraceBatch.Sum(lTraceWrite => lTraceWrite.LTraceWriteLoss));
+                }
+
+                lock (lTraceStateLock)
+                {
+                    lTraceWriterDelivered = lTraceBatch[^1].LTraceWriteSequence;
+                    if (lTraceWriterDelivered >= lTraceWriterAccepted)
+                    {
+                        lTraceWriterIdle.Set();
                     }
                 }
             }
@@ -232,24 +330,52 @@ public static class LTraceWriter
         }
     }
 
-    private static void LTracePersistRun()
+    private static bool LTraceBatchPersist(List<LTraceWrite> lTraceBatch)
     {
         lock (lTraceWriterLock)
         {
+            long lTraceLength = -1;
             try
             {
-                lTraceWriterStream?.Flush();
+                FileStream? lTraceStream = LTraceWriterOpen(lTraceBatch[0].LTraceWritePath);
+                if (lTraceStream is null)
+                {
+                    return false;
+                }
+
+                lTraceLength = lTraceStream.Length;
+                if (lTraceLength == 0)
+                {
+                    lTraceStream.Write(Encoding.UTF8.Preamble);
+                }
+
+                string lTraceText = string.Concat(lTraceBatch.Select(lTraceEntry => lTraceEntry.LTraceWriteText));
+                lTraceStream.Write(Encoding.UTF8.GetBytes(lTraceText));
+                lTraceStream.Flush(flushToDisk: true);
+                return true;
             }
-            catch (IOException)
+            catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
             {
+                if (lTraceWriterStream is not null && lTraceLength >= 0)
+                {
+                    try
+                    {
+                        lTraceWriterStream.SetLength(lTraceLength);
+                        lTraceWriterStream.Flush(flushToDisk: true);
+                    }
+                    catch (Exception lTraceRollback) when (lTraceRollback is IOException or UnauthorizedAccessException)
+                    {
+                    }
+                }
+
                 LTraceWriterClose();
+                return false;
             }
         }
     }
 
-    private static StreamWriter? LTraceWriterOpen()
+    private static FileStream? LTraceWriterOpen(string lTracePath)
     {
-        string lTracePath = LTracePathRead();
         if (lTraceWriterStream is not null
             && string.Equals(lTraceWriterPath, lTracePath, StringComparison.OrdinalIgnoreCase))
         {
@@ -259,13 +385,11 @@ public static class LTraceWriter
         LTraceWriterClose();
         try
         {
-            Directory.CreateDirectory(LTraceFolderRead());
+            Directory.CreateDirectory(Path.GetDirectoryName(lTracePath)!);
             var lTraceStream = new FileStream(
-                lTracePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            lTraceWriterStream = new StreamWriter(lTraceStream, new UTF8Encoding(true))
-            {
-                AutoFlush = false
-            };
+                lTracePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete);
+            lTraceStream.Seek(0, SeekOrigin.End);
+            lTraceWriterStream = lTraceStream;
             lTraceWriterPath = lTracePath;
             return lTraceWriterStream;
         }
@@ -281,7 +405,7 @@ public static class LTraceWriter
     {
         try
         {
-            lTraceWriterStream?.Flush();
+            lTraceWriterStream?.Flush(flushToDisk: true);
             lTraceWriterStream?.Dispose();
         }
         catch (IOException)
@@ -296,44 +420,59 @@ public static class LTraceWriter
     {
         lock (lTraceWriterLock)
         {
-            try
-            {
-                string lTraceFolder = LTraceFolderRead();
-                if (!Directory.Exists(lTraceFolder))
-                {
-                    return;
-                }
-
-                string lTraceCurrent = LTracePathRead();
-                foreach (string lTraceStale in Directory.GetFiles(lTraceFolder, "Cadroue-*"))
-                {
-                    if (!lTraceStale.EndsWith(".log", StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(lTraceStale, lTraceCurrent, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    LTraceArchiveSave(lTraceStale);
-                }
-
-                LTraceStaleRemove(lTraceFolder);
-            }
-            catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
-            {
-            }
+            LTraceArchiveUpdate();
         }
     }
 
-    private static void LTraceArchiveSave(string lTracePath)
+    private static void LTraceArchiveUpdate()
     {
-        string lTraceTarget = lTracePath + LTraceArchiveSuffix;
         try
         {
-            using (var lTraceSource = new FileStream(lTracePath, FileMode.Open, FileAccess.Read, FileShare.None))
-            using (var lTraceTargetStream = new FileStream(lTraceTarget, FileMode.Create, FileAccess.Write, FileShare.None))
+            string lTraceFolder = LTraceFolderRead();
+            if (!Directory.Exists(lTraceFolder))
+            {
+                return;
+            }
+
+            string lTraceCurrent = LTracePathRead();
+            foreach (string lTraceStale in Directory.GetFiles(lTraceFolder, "Cadroue-*"))
+            {
+                if (!lTraceStale.EndsWith(".log", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(lTraceStale, lTraceCurrent, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                LTraceArchiveSave(lTraceStale);
+            }
+
+            LTraceStaleRemove(lTraceFolder);
+        }
+        catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
+        {
+        }
+    }
+
+    internal static void LTraceArchiveSave(string lTracePath)
+    {
+        string lTraceTarget = lTracePath + LTraceArchiveSuffix;
+        string lTraceTemporary = $"{lTraceTarget}.{Environment.ProcessId}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            using (var lTraceSource = new FileStream(lTracePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var lTraceTargetStream = new FileStream(lTraceTemporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             using (var lTraceGzip = new GZipStream(lTraceTargetStream, CompressionLevel.SmallestSize))
             {
                 lTraceSource.CopyTo(lTraceGzip);
+            }
+
+            try
+            {
+                File.Move(lTraceTemporary, lTraceTarget);
+            }
+            catch (IOException) when (File.Exists(lTraceTarget))
+            {
+                File.Delete(lTraceTemporary);
             }
 
             File.Delete(lTracePath);
@@ -342,9 +481,9 @@ public static class LTraceWriter
         {
             try
             {
-                if (File.Exists(lTraceTarget))
+                if (File.Exists(lTraceTemporary))
                 {
-                    File.Delete(lTraceTarget);
+                    File.Delete(lTraceTemporary);
                 }
             }
             catch (Exception lTraceCleanup) when (lTraceCleanup is IOException or UnauthorizedAccessException)

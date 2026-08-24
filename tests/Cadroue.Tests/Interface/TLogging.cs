@@ -42,7 +42,14 @@ internal sealed class TLogging : IDisposable
         tEntries.Clear();
     }
 
-    internal IReadOnlyList<TLoggingEntry> Entries => tEntries.ToArray();
+    internal IReadOnlyList<TLoggingEntry> Entries
+    {
+        get
+        {
+            LTraceWriter.LTraceWriterPersist();
+            return tEntries.ToArray();
+        }
+    }
 
     internal string IsolatedRoot => tRoot;
 
@@ -75,6 +82,7 @@ internal sealed class TLogging : IDisposable
 
     internal void Reset()
     {
+        LTraceWriter.LTraceWriterPersist();
         LTrace.LTraceReset();
         tEntries.Clear();
     }

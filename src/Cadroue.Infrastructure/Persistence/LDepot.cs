@@ -33,6 +33,9 @@ public static class LDepot
         lDepotRootOverride = string.IsNullOrWhiteSpace(lDepotRoot) ? null : lDepotRoot.Trim();
     }
 
+    public static string LDepotRootResolve(string? lDepotRoot) =>
+        string.IsNullOrWhiteSpace(lDepotRoot) ? LDepotDefaultRead() : lDepotRoot.Trim();
+
     public static string LDepotRootRead()
     {
         if (lDepotRootOverride is { } lDepotRoot)
@@ -233,8 +236,12 @@ public static class LDepot
                 return false;
             }
 
-            LDepotIndex.LDepotIndexRelease();
-            LDepotMove(lDepotPrevious, lDepotNext);
+            LTraceWriter.LTraceRootMove(() =>
+            {
+                LDepotIndex.LDepotIndexRelease();
+                LDepotMove(lDepotPrevious, lDepotNext);
+                LDepotRootSet(lDepotNext);
+            });
             LTraceLog.LTraceInfoRecord($"Workspace moved from {lDepotPrevious}");
             return true;
         }

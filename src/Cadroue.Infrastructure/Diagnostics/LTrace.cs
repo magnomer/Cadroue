@@ -30,6 +30,7 @@ public static class LTrace
     private static bool lTraceLoading;
 
     public static event Action<LTraceEntry>? LTraceAppend;
+    internal static event Action<long, LTraceEntry>? LTraceCommittedAppend;
 
     public static Action<bool>? LTraceVerboseCallback;
 
@@ -72,8 +73,28 @@ public static class LTrace
         LTraceKind lTraceKind,
         string lTraceSummary,
         string? lTraceDetail = null,
-        double? lTraceMilliseconds = null)
+        double? lTraceMilliseconds = null) =>
+        LTraceRecord(lTraceKind, lTraceSummary, lTraceDetail, lTraceMilliseconds, false, 1);
+
+    private static void LTraceRecord(
+        LTraceKind lTraceKind,
+        string lTraceSummary,
+        string? lTraceDetail,
+        double? lTraceMilliseconds,
+        bool lTraceLossReport,
+        int lTraceLossWeight)
     {
+        if (!lTraceLossReport && LTraceWriter.LTraceLossRead() is int lTraceLost && lTraceLost > 0)
+        {
+            LTraceRecord(
+                LTraceKind.LTraceWarning,
+                "Trace entries lost",
+                $"{lTraceLost} accepted entries could not be saved after repeated storage failures.",
+                null,
+                true,
+                lTraceLost);
+        }
+
         if (Volatile.Read(ref lTraceLoading)
             && lTraceKind is LTraceKind.LTraceInfo or LTraceKind.LTraceUi)
         {
@@ -94,8 +115,14 @@ public static class LTrace
             lTraceDetail,
             lTraceMilliseconds);
 
-        LTraceWriter.LTraceWriterRecord(LTraceEntry.LTraceEntryFormat(lTraceEntry));
-        LTraceAppend?.Invoke(lTraceEntry);
+        LTraceWriter.LTraceWriterRecord(
+            LTraceEntry.LTraceEntryFormat(lTraceEntry),
+            lTraceSequence =>
+            {
+                LTraceCommittedAppend?.Invoke(lTraceSequence, lTraceEntry);
+                LTraceAppend?.Invoke(lTraceEntry);
+            },
+            lTraceLossWeight);
     }
 
     public static void LTraceDrawAdd(
