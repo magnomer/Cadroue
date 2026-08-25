@@ -328,6 +328,7 @@ public sealed class ModeCommandTests
 
         Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
         Assert.Equal("10", CommandTokens.ValueAfter(tokens, "-ss"));
+        Assert.Equal("0", CommandTokens.ValueAfter(tokens, "-copypriorss"));
         Assert.Equal("20", CommandTokens.ValueAfter(tokens, "-t"));
         Assert.Equal("make_zero", CommandTokens.ValueAfter(tokens, "-avoid_negative_ts"));
         Assert.DoesNotContain("concat", tokens);

@@ -54,13 +54,20 @@ public static partial class LEncode
         }
         else
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin)}");
-            lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
             bool lVideoCopy = string.Equals(
                     lOutput.LEncodingVideo.LEncodingMode,
                     "Copy",
                     StringComparison.OrdinalIgnoreCase)
                 && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput);
+            lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin)}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+            if (lVideoCopy && lWorkItem.LWorkOrigin > TimeSpan.Zero)
+            {
+                // Stream-copy seeking otherwise retains packets before the requested
+                // boundary. At a keyframe cut that exposes the preceding section in
+                // the output even though the user selected an exact interval.
+                lArguments.Append(" -copypriorss 0");
+            }
             if (!lVideoCopy && lWorkItem.LWorkOrigin > TimeSpan.Zero)
             {
                 // Fast input seeking can expose preroll packets from copied companion

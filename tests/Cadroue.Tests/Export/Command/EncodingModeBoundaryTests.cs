@@ -55,6 +55,25 @@ public sealed class EncodingModeBoundaryTests : IDisposable
     }
 
     [Fact]
+    public void Copy_KeyframeAlignedBoundary_StartsAtRequestedSection()
+    {
+        string source = IndependentRefreshSourceCreate();
+        string output = Path.Combine(tRoot, "copy-keyframe-aligned.mkv");
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.VideoIntervalWorkCreate(source, output, 20, 40, "Copy");
+
+        LEncodeStage stage = Assert.Single(TEncodeCommand.StagesBuild(work));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+        Assert.Equal("0", CommandTokens.ValueAfter(tokens, "-copypriorss"));
+        Run(TEncodeCommand.FfmpegRead(), stage.LEncodeStageArguments);
+
+        (byte red, byte green, byte blue) = FirstPixelRead(output);
+        Assert.True(
+            green > red + 32 && green > blue + 32,
+            $"first visible frame is not the requested green section: rgb({red},{green},{blue})");
+    }
+
+    [Fact]
     public void Smart_OpenGopSourceWithIndependentRefreshes_KeepsCopiedMiddle()
     {
         string source = IndependentRefreshSourceCreate();
