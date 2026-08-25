@@ -103,8 +103,9 @@ internal sealed class TEncodeCommand : IDisposable
         string codec = "h264",
         string profile = "High",
         string pixel = "yuv420p",
-        long bitrate = 5_000_000) =>
-        new(codec, profile, pixel, "bt709", "bt709", "bt709", "tv", "30000/1001", bitrate);
+        long bitrate = 5_000_000,
+        string timeBase = "1/30000") =>
+        new(codec, profile, pixel, "bt709", "bt709", "bt709", "tv", "30000/1001", bitrate, timeBase);
 
     internal static IReadOnlyList<LEncodeStage> SmartStagesBuild(
         LWorkItem work,

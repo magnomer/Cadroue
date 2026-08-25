@@ -41,7 +41,7 @@ public static partial class LEncode
         };
     }
 
-    internal static string LEncodeArgumentBuild(LWorkItem lWorkItem)
+    internal static string LEncodeArgumentBuild(LWorkItem lWorkItem, string? lOutputArguments = null)
     {
         LEncoding lOutput = lWorkItem.LWorkOutput;
         var lArguments = new StringBuilder();
@@ -75,6 +75,11 @@ public static partial class LEncode
 
         LEncodeVideo.LEncodeVideoAppend(lArguments, lWorkItem, lOutput);
         LEncodeAudio.LEncodeAudioAppend(lArguments, lOutput);
+
+        if (!string.IsNullOrWhiteSpace(lOutputArguments))
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lOutputArguments}");
+        }
 
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return lArguments.ToString();

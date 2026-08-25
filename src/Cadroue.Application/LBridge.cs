@@ -30,7 +30,8 @@ public sealed record LBridgeStream(
     string LBridgeColorTransfer,
     string LBridgeColorRange,
     string LBridgeFramerate,
-    long LBridgeBitrate);
+    long LBridgeBitrate,
+    string LBridgeTimeBase = "");
 
 public static partial class LBridge
 {

@@ -164,6 +164,66 @@ public sealed class SmartEncodingResilienceTests : IDisposable
         Assert.InRange(keyframes[^1].LKeyframePresentationTime.TotalSeconds, 20, 20.1);
     }
 
+    [Theory]
+    [InlineData(16_000)]
+    [InlineData(24_000)]
+    public void Mp4SmartRoutes_PreserveSourceVideoTimeBaseAndRemainMergeable(int sourceTimescale)
+    {
+        string source = ReorderedSourceCreate(
+            $"mixed-smart-routes-{sourceTimescale}.mp4",
+            12,
+            48,
+            48_000,
+            sourceTimescale);
+        using var environment = new TEncodeCommand();
+        LWorkItem shortEncoded = TEncodeCommand.SmartIntervalWorkCreate(
+            source,
+            Path.Combine(tRoot, $"short-smart-{sourceTimescale}.mp4"),
+            0.1,
+            1.8,
+            "Include",
+            "mp4",
+            "mp4");
+        LWorkItem hybrid = TEncodeCommand.SmartIntervalWorkCreate(
+            source,
+            Path.Combine(tRoot, $"hybrid-smart-{sourceTimescale}.mp4"),
+            2.1,
+            10.5,
+            "Include",
+            "mp4",
+            "mp4");
+
+        IReadOnlyList<LEncodeStage> shortStages = TEncodeCommand.SmartSourceStagesBuild(shortEncoded);
+        IReadOnlyList<LEncodeStage> hybridStages = TEncodeCommand.SmartSourceStagesBuild(hybrid);
+        Assert.Single(shortStages);
+        Assert.Contains(hybridStages, stage => stage.LEncodeStageLabel == "Copying middle");
+
+        foreach (LEncodeStage stage in shortStages.Concat(hybridStages))
+        {
+            Run(TEncodeCommand.FfmpegRead(), stage.LEncodeStageArguments);
+        }
+
+        string sourceTimeBase = VideoTimeBaseRead(source);
+        Assert.Equal($"1/{sourceTimescale}", sourceTimeBase);
+        Assert.Equal(sourceTimeBase, VideoTimeBaseRead(shortEncoded.LWorkOutputPath));
+        Assert.Equal(sourceTimeBase, VideoTimeBaseRead(hybrid.LWorkOutputPath));
+
+        string mergeList = Path.Combine(tRoot, $"smart-merge-{sourceTimescale}.txt");
+        string merged = Path.Combine(tRoot, $"smart-merged-{sourceTimescale}.mp4");
+        File.WriteAllLines(mergeList,
+        [
+            $"file '{shortEncoded.LWorkOutputPath.Replace("'", "'\\''", StringComparison.Ordinal)}'",
+            $"file '{hybrid.LWorkOutputPath.Replace("'", "'\\''", StringComparison.Ordinal)}'"
+        ]);
+        Run(
+            TEncodeCommand.FfmpegRead(),
+            $"-hide_banner -loglevel error -f concat -safe 0 -i {Quote(mergeList)} -c copy -y {Quote(merged)}");
+
+        double mergedVideoDuration = StreamDurationRead(merged, "v:0");
+        double mergedAudioDuration = StreamDurationRead(merged, "a:0");
+        Assert.InRange(Math.Abs(mergedVideoDuration - mergedAudioDuration), 0, 0.12);
+    }
+
     [Fact]
     public void AudioOutsideCut_OmitsInvalidIntermediateAndStillBuildsVideoMux()
     {
@@ -250,9 +310,15 @@ public sealed class SmartEncodingResilienceTests : IDisposable
         return path;
     }
 
-    private string ReorderedSourceCreate(string name, double duration, int keyframeInterval, int sampleRate = 48_000)
+    private string ReorderedSourceCreate(
+        string name,
+        double duration,
+        int keyframeInterval,
+        int sampleRate = 48_000,
+        int videoTimescale = 0)
     {
         string path = Path.Combine(tRoot, name);
+        string timescale = videoTimescale > 0 ? $" -video_track_timescale {videoTimescale}" : string.Empty;
         Run(
             TEncodeCommand.FfmpegRead(),
             "-hide_banner -loglevel error "
@@ -260,7 +326,7 @@ public sealed class SmartEncodingResilienceTests : IDisposable
             + $"-f lavfi -i sine=frequency=440:sample_rate={sampleRate}:duration={duration.ToString(CultureInfo.InvariantCulture)} "
             + "-map 0:v:0 -map 1:a:0 -c:v libx264 -preset medium -bf 3 "
             + $"-g {keyframeInterval} -keyint_min {keyframeInterval} -sc_threshold 0 "
-            + $"-c:a aac -y {Quote(path)}");
+            + $"-c:a aac{timescale} -y {Quote(path)}");
         return path;
     }
 
@@ -339,6 +405,19 @@ public sealed class SmartEncodingResilienceTests : IDisposable
             $"-v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets -of default=nw=1:nk=1 {Quote(path)}");
         Assert.True(int.TryParse(output.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int count));
         return count;
+    }
+
+    private static string VideoTimeBaseRead(string path) => Run(
+        TEncodeCommand.FfprobeRead(),
+        $"-v error -select_streams v:0 -show_entries stream=time_base -of default=nw=1:nk=1 {Quote(path)}").Trim();
+
+    private static double StreamDurationRead(string path, string stream)
+    {
+        string output = Run(
+            TEncodeCommand.FfprobeRead(),
+            $"-v error -select_streams {stream} -show_entries stream=duration -of default=nw=1:nk=1 {Quote(path)}");
+        Assert.True(double.TryParse(output.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double duration));
+        return duration;
     }
 
     private double DecodedAudioDurationRead(string path, string outputName, int sampleRate, int channels)

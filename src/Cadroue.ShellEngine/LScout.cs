@@ -484,7 +484,8 @@ internal static class LScout
             LScoutTextRead(lScoutStream, "color_transfer"),
             LScoutTextRead(lScoutStream, "color_range"),
             LScoutTextRead(lScoutStream, "r_frame_rate"),
-            LScoutLongRead(lScoutStream, "bit_rate"));
+            LScoutLongRead(lScoutStream, "bit_rate"),
+            LScoutTextRead(lScoutStream, "time_base"));
     }
 
     private static string LScoutTextRead(JsonElement lScoutElement, string lScoutName) =>

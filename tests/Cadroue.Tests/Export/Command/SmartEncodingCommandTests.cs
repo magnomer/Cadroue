@@ -75,6 +75,7 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal(LWorkStage.LWorkStageMux, mux.LEncodeStageKind);
         Assert.Contains("concat", muxTokens);
         Assert.Equal("copy", CommandTokens.ValueAfter(muxTokens, "-c"));
+        Assert.Equal("30000", CommandTokens.ValueAfter(muxTokens, "-video_track_timescale"));
         Assert.DoesNotContain("-avoid_negative_ts", muxTokens);
         Assert.Equal(1, CommandTokens.Count(muxTokens, "1:a"));
         Assert.Equal(work.LWorkOutputPath, muxTokens[^1]);
@@ -141,6 +142,22 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
         Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:a"));
         Assert.Equal("make_zero", CommandTokens.ValueAfter(tokens, "-avoid_negative_ts"));
+        Assert.Equal("30000", CommandTokens.ValueAfter(tokens, "-video_track_timescale"));
+    }
+
+    [Fact]
+    public void NoCopyableMiddle_UsesSameMp4TimescaleAsHybridAndDirectSmart()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
+
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeWhole, (10, 11), null, null, null));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+
+        Assert.Equal("Encoding", stage.LEncodeStageLabel);
+        Assert.Equal("30000", CommandTokens.ValueAfter(tokens, "-video_track_timescale"));
+        Assert.Equal(work.LWorkOutputPath, tokens[^1]);
     }
 
     [Fact]

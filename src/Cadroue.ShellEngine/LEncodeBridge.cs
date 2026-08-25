@@ -32,7 +32,7 @@ public static partial class LEncode
         {
             LRunner.LRunnerRecord(
                 $"Smart encoding deferred for '{lWorkItem.LWorkOutputName}': the item requires a full re-encode; encoding the requested interval directly");
-            return LEncodeWholeBuild(lWorkItem);
+            return LEncodeWholeBuild(lWorkItem, lBridgeSource);
         }
 
         LRunner.LRunnerRecord(lBridgePlan.LBridgeOutcome == LBridgeOutcome.LBridgeOutcomeSmart
@@ -76,10 +76,17 @@ public static partial class LEncode
             || !LEncodeSourceCheck(lVideo.LEncodingFps);
     }
 
-    internal static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(LWorkItem lWorkItem) =>
+    internal static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(
+        LWorkItem lWorkItem,
+        LBridgeStream? lBridgeSource = null) =>
         new[]
         {
-            new LEncodeStage(LEncodeArgumentBuild(lWorkItem), LWorkStage.LWorkStageEncode, "Encoding", lWorkItem.LWorkOutputPath, false)
+            new LEncodeStage(
+                LEncodeArgumentBuild(lWorkItem, LEncodeTimescaleRead(lWorkItem, lBridgeSource)),
+                LWorkStage.LWorkStageEncode,
+                "Encoding",
+                lWorkItem.LWorkOutputPath,
+                false)
         };
 
     public static IReadOnlyList<LEncodeStage> LEncodeSmartBuild(
@@ -91,7 +98,7 @@ public static partial class LEncode
             // STRICT SMART CONTRACT: full encoding is allowed only when planning
             // found no copyable middle. Once a middle exists, later uncertainty
             // must never silently replace Smart with a full re-encode.
-            return LEncodeWholeBuild(lWorkItem);
+            return LEncodeWholeBuild(lWorkItem, lBridgeSource);
         }
 
         LEncodingAudio lAudio = lWorkItem.LWorkOutput.LEncodingAudio;
@@ -107,7 +114,7 @@ public static partial class LEncode
             // streams in one input timeline; splitting them through independent MKV
             // intermediates can preserve different timestamp origins that only become
             // visible when the result is decoded by a later Edit/Convert operation.
-            return new[] { LEncodeDirectCopyBuild(lWorkItem, lBridgePlan.LBridgeMiddle, lAudioActive) };
+            return new[] { LEncodeDirectCopyBuild(lWorkItem, lBridgePlan.LBridgeMiddle, lAudioActive, lBridgeSource) };
         }
 
         TimeSpan lAudioOffset = TimeSpan.Zero;
@@ -158,7 +165,12 @@ public static partial class LEncode
             lStages.Add(LEncodeAudioBuild(lWorkItem, lAudioPath));
         }
 
-        lStages.Add(LEncodeConcatBuild(lWorkItem, lProduction.LEncodeParts, lAudioPath, lAudioOffset));
+        lStages.Add(LEncodeConcatBuild(
+            lWorkItem,
+            lProduction.LEncodeParts,
+            lAudioPath,
+            lAudioOffset,
+            lBridgeSource));
         return lStages;
     }
 
@@ -237,7 +249,8 @@ public static partial class LEncode
     private static LEncodeStage LEncodeDirectCopyBuild(
         LWorkItem lWorkItem,
         LBridgeSpan lCopySpan,
-        bool lAudioActive)
+        bool lAudioActive,
+        LBridgeStream? lBridgeSource)
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
@@ -267,6 +280,7 @@ public static partial class LEncode
             lArguments.Append(" -an");
         }
 
+        LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return new LEncodeStage(
             lArguments.ToString(),
@@ -315,7 +329,8 @@ public static partial class LEncode
         LWorkItem lWorkItem,
         IReadOnlyList<string> lBridgeParts,
         string? lAudioPath,
-        TimeSpan lAudioOffset = default)
+        TimeSpan lAudioOffset = default,
+        LBridgeStream? lBridgeSource = null)
     {
         string lJoinPath = LEncodeJoinSave(lWorkItem, lBridgeParts);
         var lArguments = new StringBuilder();
@@ -325,6 +340,7 @@ public static partial class LEncode
         if (lAudioPath is null)
         {
             lArguments.Append(" -map 0:v:0 -c copy -an");
+            LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
             lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
             return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
         }
@@ -336,8 +352,56 @@ public static partial class LEncode
 
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioPath)}");
         lArguments.Append(" -map 0:v:0 -map 1:a -c copy");
+        LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
+    }
+
+    private static void LEncodeTimescaleAppend(
+        StringBuilder lArguments,
+        LWorkItem lWorkItem,
+        LBridgeStream? lBridgeSource)
+    {
+        string lTimescale = LEncodeTimescaleRead(lWorkItem, lBridgeSource);
+        if (lTimescale.Length > 0)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lTimescale}");
+        }
+    }
+
+    private static string LEncodeTimescaleRead(
+        LWorkItem lWorkItem,
+        LBridgeStream? lBridgeSource)
+    {
+        string lContainer = lWorkItem.LWorkOutput.LEncodingContainer;
+        string lExtension = Path.GetExtension(lWorkItem.LWorkOutputPath);
+        bool lMovFamily = string.Equals(lContainer, "MP4", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lContainer, "MOV", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lExtension, ".mp4", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lExtension, ".m4v", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lExtension, ".mov", StringComparison.OrdinalIgnoreCase);
+        if (!lMovFamily || string.IsNullOrWhiteSpace(lBridgeSource?.LBridgeTimeBase))
+        {
+            return string.Empty;
+        }
+
+        string[] lTimeBase = lBridgeSource.LBridgeTimeBase.Split('/');
+        if (lTimeBase.Length != 2
+            || !long.TryParse(lTimeBase[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out long lNumerator)
+            || !long.TryParse(lTimeBase[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out long lDenominator)
+            || lNumerator != 1
+            || lDenominator <= 0
+            || lDenominator > int.MaxValue)
+        {
+            return string.Empty;
+        }
+
+        // Hybrid Smart joins video-only Matroska pieces. Without an explicit MOV/MP4
+        // track timescale, that remux can choose a different unit from a neighboring
+        // Smart section that took the full-encode or direct-copy route. Such files are
+        // individually valid but concat later interprets their packet timestamps using
+        // one time base, shortening or lengthening video while audio stays correct.
+        return $"-video_track_timescale {lDenominator.ToString(CultureInfo.InvariantCulture)}";
     }
 
     private static string LEncodeJoinSave(LWorkItem lWorkItem, IReadOnlyList<string> lBridgeParts)
