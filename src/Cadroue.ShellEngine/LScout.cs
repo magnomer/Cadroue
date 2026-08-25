@@ -100,19 +100,39 @@ internal static class LScout
                 return lScoutKeyframes;
             }
 
-            // Container key flags include open-GOP recovery pictures. Those are
-            // valid random-access hints, but not safe splice points: their leading
-            // pictures can still reference the preceding GOP. Keep independently
-            // decodable refreshes as Smart copy boundaries. If inspection itself
-            // fails, retain the boundary; uncertainty must not erase a planned
-            // middle and silently turn Smart into full encoding.
-            return lScoutKeyframes
-                .Where(lScoutKeyframe => LScoutRefreshRead(
+            // Only splice boundaries must be independent. Internal keyframes stay in
+            // one continuous copied stream and inspecting every one adds seconds of
+            // trace_headers work without changing decodability. Reject unsafe leading
+            // candidates until a usable copy start is found. When the requested end
+            // is not itself keyed, do the same backwards for the tail bridge start.
+            // Probe uncertainty retains a candidate so it cannot silently turn Smart
+            // into a full encode.
+            var lScoutCandidates = lScoutKeyframes.ToList();
+            while (lScoutCandidates.Count > 0
+                && LScoutRefreshRead(
                     lScoutSourcePath,
                     lScoutStream.LBridgeCodec,
-                    lScoutKeyframe.LKeyframePresentationTime,
-                    lScoutToken) != false)
-                .ToArray();
+                    lScoutCandidates[0].LKeyframePresentationTime,
+                    lScoutToken) == false)
+            {
+                lScoutCandidates.RemoveAt(0);
+            }
+
+            bool lScoutEndKeyed = lScoutCandidates.Count > 0
+                && (lScoutCandidates[^1].LKeyframePresentationTime - lScoutEnd).Duration()
+                    <= TimeSpan.FromMilliseconds(1);
+            while (!lScoutEndKeyed
+                && lScoutCandidates.Count > 1
+                && LScoutRefreshRead(
+                    lScoutSourcePath,
+                    lScoutStream.LBridgeCodec,
+                    lScoutCandidates[^1].LKeyframePresentationTime,
+                    lScoutToken) == false)
+            {
+                lScoutCandidates.RemoveAt(lScoutCandidates.Count - 1);
+            }
+
+            return lScoutCandidates;
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
@@ -148,8 +168,8 @@ internal static class LScout
             $"{lScoutOrigin.TotalSeconds:F6}%+{lScoutDuration:F6}");
         var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfprobeRead())
         {
-            Arguments = $"-v quiet -select_streams {(lScoutAllTracks ? "a" : "a:0")} -show_packets -read_intervals \"{lScoutInterval}\" "
-                + $"-show_entries packet=pts_time,dts_time,duration_time -of csv=p=0 -i {LEncode.LEncodeFormat(lScoutSourcePath)}",
+            Arguments = $"-v quiet -select_streams {(lScoutAllTracks ? "a" : "a:0")} -show_packets -show_format -read_intervals \"+{lScoutInterval}\" "
+                + $"-show_entries packet=pts_time,dts_time,duration_time:format=start_time -of csv -i {LEncode.LEncodeFormat(lScoutSourcePath)}",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -170,14 +190,18 @@ internal static class LScout
                 static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess);
             Task<string> lScoutError = lScoutProcess.StandardError.ReadToEndAsync();
 
-            double? lScoutFirstPacket = null;
+            var lScoutPackets = new List<(double Start, double Duration)>();
+            double lScoutTimelineStart = 0;
             string? lScoutLine;
             while ((lScoutLine = lScoutProcess.StandardOutput.ReadLine()) is not null)
             {
-                if (LScoutPacketRead(lScoutLine, lScoutOrigin, lScoutEnd, out double lScoutPacketStart)
-                    && (lScoutFirstPacket is null || lScoutPacketStart < lScoutFirstPacket.Value))
+                if (LScoutFormatStartRead(lScoutLine, out double lScoutFormatStart))
                 {
-                    lScoutFirstPacket = lScoutPacketStart;
+                    lScoutTimelineStart = lScoutFormatStart;
+                }
+                else if (LScoutPacketRead(lScoutLine, out double lScoutPacketStart, out double lScoutPacketDuration))
+                {
+                    lScoutPackets.Add((lScoutPacketStart, lScoutPacketDuration));
                 }
             }
 
@@ -189,10 +213,18 @@ internal static class LScout
                 return null;
             }
 
+            double lScoutOriginAbsolute = lScoutTimelineStart + lScoutOrigin.TotalSeconds;
+            double lScoutEndAbsolute = lScoutTimelineStart + lScoutEnd.TotalSeconds;
+            double? lScoutFirstPacket = lScoutPackets
+                .Where(lScoutPacket => lScoutPacket.Start < lScoutEndAbsolute
+                    && lScoutPacket.Start + lScoutPacket.Duration > lScoutOriginAbsolute)
+                .Select(lScoutPacket => (double?)lScoutPacket.Start)
+                .Min();
+
             return lScoutFirstPacket is double lScoutFirst
                 ? new LScoutAudioInterval(
                     true,
-                    TimeSpan.FromSeconds(Math.Max(0, lScoutFirst - lScoutOrigin.TotalSeconds)))
+                    TimeSpan.FromSeconds(Math.Max(0, lScoutFirst - lScoutOriginAbsolute)))
                 : new LScoutAudioInterval(false, TimeSpan.Zero);
         }
         catch (OperationCanceledException)
@@ -462,33 +494,42 @@ internal static class LScout
 
     private static bool LScoutPacketRead(
         string lScoutLine,
-        TimeSpan lScoutOrigin,
-        TimeSpan lScoutEnd,
-        out double lScoutStart)
+        out double lScoutStart,
+        out double lScoutDuration)
     {
         lScoutStart = 0;
+        lScoutDuration = 0;
         string[] lScoutParts = lScoutLine.Split(',');
-        if (lScoutParts.Length < 2)
+        if (lScoutParts.Length < 3
+            || !string.Equals(lScoutParts[0], "packet", StringComparison.Ordinal))
         {
             return false;
         }
 
         bool lScoutPts = double.TryParse(
-            lScoutParts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double lScoutPtsSeconds);
+            lScoutParts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double lScoutPtsSeconds);
         bool lScoutDts = double.TryParse(
-            lScoutParts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double lScoutDtsSeconds);
+            lScoutParts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double lScoutDtsSeconds);
         if (!lScoutPts && !lScoutDts)
         {
             return false;
         }
 
         lScoutStart = lScoutPts ? lScoutPtsSeconds : lScoutDtsSeconds;
-        double lScoutPacketDuration = lScoutParts.Length > 2
-            && double.TryParse(lScoutParts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double lScoutDuration)
-                ? Math.Max(0, lScoutDuration)
+        lScoutDuration = lScoutParts.Length > 3
+            && double.TryParse(lScoutParts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out double lScoutParsedDuration)
+                ? Math.Max(0, lScoutParsedDuration)
                 : 0;
-        return lScoutStart < lScoutEnd.TotalSeconds
-            && lScoutStart + lScoutPacketDuration > lScoutOrigin.TotalSeconds;
+        return true;
+    }
+
+    private static bool LScoutFormatStartRead(string lScoutLine, out double lScoutStart)
+    {
+        lScoutStart = 0;
+        string[] lScoutParts = lScoutLine.Split(',');
+        return lScoutParts.Length >= 2
+            && string.Equals(lScoutParts[0], "format", StringComparison.Ordinal)
+            && double.TryParse(lScoutParts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out lScoutStart);
     }
 
     private static bool LScoutNalRead(string lScoutLine, out int lScoutNalType)

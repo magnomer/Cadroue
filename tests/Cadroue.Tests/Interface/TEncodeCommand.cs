@@ -178,6 +178,10 @@ internal sealed class TEncodeCommand : IDisposable
         LScout.LScoutAudioRead(
             source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end));
 
+    internal static IReadOnlyList<LKeyframeEntry> KeyframesRead(string source, double origin, double end) =>
+        LKeyframeSeeker.LKeyframeRangeScan(
+            source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end));
+
     internal static string FfmpegRead() => LTool.LToolFfmpegRead();
 
     internal static string FfprobeRead() => LTool.LToolFfprobeRead();
@@ -187,15 +191,17 @@ internal sealed class TEncodeCommand : IDisposable
         string output,
         double origin,
         double end,
-        string audioStream)
+        string audioStream,
+        string container = "matroska",
+        string extension = "mkv")
     {
         LWorkItem work = WorkCreate(
             LWorkKind.LWorkKindSplit,
             source,
             output,
             OutputCreate(
-                container: "matroska",
-                extension: "mkv",
+                container: container,
+                extension: extension,
                 videoMode: "Smart",
                 audioStream: audioStream,
                 audioMode: "Copy"),

@@ -100,6 +100,16 @@ public static partial class LEncode
             || string.Equals(lAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
         bool lAudioPresent = !string.IsNullOrWhiteSpace(lWorkItem.LWorkSourceMedia?.LWorkAudioCodec);
         bool lAudioActive = !lAudioExcluded && lAudioPresent;
+        bool lVideoWholeCopyable = lBridgePlan.LBridgeHead is null && lBridgePlan.LBridgeTail is null;
+        if (lVideoWholeCopyable)
+        {
+            // A keyframe-to-keyframe Smart interval is ordinary stream copy. Keep the
+            // streams in one input timeline; splitting them through independent MKV
+            // intermediates can preserve different timestamp origins that only become
+            // visible when the result is decoded by a later Edit/Convert operation.
+            return new[] { LEncodeDirectCopyBuild(lWorkItem, lBridgePlan.LBridgeMiddle, lAudioActive) };
+        }
+
         TimeSpan lAudioOffset = TimeSpan.Zero;
         if (lAudioActive
             && File.Exists(lWorkItem.LWorkSourcePath))
@@ -216,11 +226,54 @@ public static partial class LEncode
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lCopyOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lCopyDuration)}");
-        // Do not seek past the boundary packet: with reordered video its DTS can
-        // precede its PTS, and dropping it leaves the copied GOP undecodable.
-        lArguments.Append(" -copypriorss 1 -c:v copy -an");
+        // The keyframe timestamps retain probe precision, so packets before the
+        // selected presentation boundary belong to the preceding GOP. Keeping
+        // them can lengthen container timelines by a complete GOP.
+        lArguments.Append(" -copypriorss 0 -c:v copy -an");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
+    }
+
+    private static LEncodeStage LEncodeDirectCopyBuild(
+        LWorkItem lWorkItem,
+        LBridgeSpan lCopySpan,
+        bool lAudioActive)
+    {
+        var lArguments = new StringBuilder();
+        LEncodeHeaderAppend(lArguments);
+        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lCopySpan.LBridgeSpanOrigin)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+        lArguments.Append(CultureInfo.InvariantCulture,
+            $" -t {LEncodeTimeFormat(lCopySpan.LBridgeSpanEnd - lCopySpan.LBridgeSpanOrigin)}");
+        lArguments.Append(" -map 0:v:0 -c:v copy -avoid_negative_ts make_zero");
+
+        if (lAudioActive)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -map {LEncodeMapRead(lWorkItem)}");
+            if (string.Equals(
+                lWorkItem.LWorkOutput.LEncodingAudio.LEncodingMode,
+                "Copy",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                lArguments.Append(" -c:a copy");
+            }
+            else
+            {
+                LEncodeAudio.LEncodeMuxAppend(lArguments, lWorkItem.LWorkOutput);
+            }
+        }
+        else
+        {
+            lArguments.Append(" -an");
+        }
+
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
+        return new LEncodeStage(
+            lArguments.ToString(),
+            LWorkStage.LWorkStageEncode,
+            "Copying",
+            lWorkItem.LWorkOutputPath,
+            false);
     }
 
     private static LEncodeStage LEncodeAudioBuild(LWorkItem lWorkItem, string lAudioPath)

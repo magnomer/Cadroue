@@ -59,7 +59,7 @@ public static partial class LBridge
             return new LBridgePlan(LBridgeOutcome.LBridgeOutcomeInvalid, lBridgeInterval, null, null, null);
         }
 
-        bool lBridgeOriginKeyed = false;
+        LKeyframeEntry? lBridgeOriginKeyframe = null;
         LKeyframeEntry? lBridgeFirstAfter = null;
         LKeyframeEntry? lBridgeLastWithin = null;
 
@@ -68,7 +68,12 @@ public static partial class LBridge
             TimeSpan lBridgePresentation = lBridgeKeyframe.LKeyframePresentationTime;
             if (LBridgeMatch(lBridgePresentation, lBridgeOrigin))
             {
-                lBridgeOriginKeyed = true;
+                if (lBridgeOriginKeyframe is null
+                    || (lBridgePresentation - lBridgeOrigin).Duration()
+                        < (lBridgeOriginKeyframe.LKeyframePresentationTime - lBridgeOrigin).Duration())
+                {
+                    lBridgeOriginKeyframe = lBridgeKeyframe;
+                }
             }
             else if (lBridgePresentation > lBridgeOrigin && lBridgeFirstAfter is null)
             {
@@ -81,8 +86,13 @@ public static partial class LBridge
             }
         }
 
-        TimeSpan? lBridgeCopyOrigin = lBridgeOriginKeyed
-            ? lBridgeOrigin
+        bool lBridgeOriginKeyed = lBridgeOriginKeyframe is not null;
+        TimeSpan? lBridgeCopyOrigin = lBridgeOriginKeyframe is { } lBridgeMatchedOrigin
+            // UI and sidecar boundaries are millisecond-based. Seeking to that
+            // rounded value can land just after the packet and, with
+            // -copypriorss 0, discard the complete first GOP. Use the precise
+            // packet PTS that established the keyframe match.
+            ? lBridgeMatchedOrigin.LKeyframePresentationTime
             : lBridgeFirstAfter?.LKeyframePresentationTime;
         TimeSpan? lBridgeCopyEnd = lBridgeLastWithin?.LKeyframePresentationTime;
 

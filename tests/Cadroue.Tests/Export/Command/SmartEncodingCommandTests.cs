@@ -47,7 +47,7 @@ public sealed class SmartEncodingCommandTests
         Assert.DoesNotContain("-c:a", middleTokens);
         Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("16", CommandTokens.ValueAfter(middleTokens, "-t"));
-        Assert.Equal("1", CommandTokens.ValueAfter(middleTokens, "-copypriorss"));
+        Assert.Equal("0", CommandTokens.ValueAfter(middleTokens, "-copypriorss"));
 
         LEncodeStage tail = stages[2];
         IReadOnlyList<string> tailTokens = CommandTokens.Read(tail.LEncodeStageArguments);
@@ -118,55 +118,46 @@ public sealed class SmartEncodingCommandTests
 
         Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("15.933", CommandTokens.ValueAfter(middleTokens, "-t"));
-        Assert.Equal("1", CommandTokens.ValueAfter(middleTokens, "-copypriorss"));
+        Assert.Equal("0", CommandTokens.ValueAfter(middleTokens, "-copypriorss"));
     }
 
     [Fact]
-    public void WholeCopyableVideoWithCopyAudio_UsesIndependentTrimmedStreams()
+    public void WholeCopyableVideoWithCopyAudio_UsesOrdinarySinglePassCopy()
     {
         using var environment = new TEncodeCommand();
         LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
 
-        // Keep copied audio preroll from shifting copied video by trimming each stream
-        // independently before the final mux.
-        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null);
+        // Both boundaries are keyframes. Smart must use the same simultaneous stream
+        // copy timing as Copy instead of manufacturing separate Matroska timelines.
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
 
-        Assert.Equal(3, stages.Count);
-        Assert.Equal("Copying middle", stages[0].LEncodeStageLabel);
-        Assert.Equal("Copying audio", stages[1].LEncodeStageLabel);
-
-        IReadOnlyList<string> audioTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
-        Assert.Equal(2, CommandTokens.Count(audioTokens, "-ss"));
-        Assert.DoesNotContain("-avoid_negative_ts", audioTokens);
-
-        IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[2].LEncodeStageArguments);
-        Assert.Contains("concat", muxTokens);
-        Assert.DoesNotContain("-avoid_negative_ts", muxTokens);
+        Assert.False(stage.LEncodeStageTemporary);
+        Assert.Equal("Copying", stage.LEncodeStageLabel);
+        Assert.DoesNotContain("concat", tokens);
+        Assert.Equal("10", CommandTokens.ValueAfter(tokens, "-ss"));
+        Assert.Equal("20", CommandTokens.ValueAfter(tokens, "-t"));
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:a"));
+        Assert.Equal("make_zero", CommandTokens.ValueAfter(tokens, "-avoid_negative_ts"));
     }
 
     [Fact]
-    public void WholeCopyableVideoWithEncodeAudio_SplitsVideoCopyAudioEncodeThenJoins()
+    public void WholeCopyableVideoWithEncodeAudio_UsesSinglePassVideoCopyAndAudioEncode()
     {
         using var environment = new TEncodeCommand();
         LWorkItem work = TEncodeCommand.SmartWorkCreate(
             SmartSource, SmartOutput, audioCodec: "aac", audioMode: "Encode");
 
-        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null);
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
 
-        // middle copy, audio encode, join. No single simultaneous pass because audio is processed.
-        Assert.Equal(3, stages.Count);
-        Assert.Equal("Copying middle", stages[0].LEncodeStageLabel);
-
-        IReadOnlyList<string> audioTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
-        Assert.Equal("Encoding audio", stages[1].LEncodeStageLabel);
-        Assert.Equal("aac", CommandTokens.ValueAfter(audioTokens, "-c:a"));
-
-        IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[2].LEncodeStageArguments);
-        Assert.Equal(LWorkStage.LWorkStageMux, stages[2].LEncodeStageKind);
-        Assert.Contains("concat", muxTokens);
-        Assert.Equal("copy", CommandTokens.ValueAfter(muxTokens, "-c"));
+        Assert.Equal("Copying", stage.LEncodeStageLabel);
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.Equal("aac", CommandTokens.ValueAfter(tokens, "-c:a"));
+        Assert.DoesNotContain("concat", tokens);
     }
 
     [Fact]
@@ -235,13 +226,12 @@ public sealed class SmartEncodingCommandTests
         LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "mpeg2video");
 
         // No head/tail: the whole video is stream-copied, so the unmapped codec never matters.
-        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartStagesBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null,
-            TEncodeCommand.SourceStreamCreate("mpeg2video", profile: "Main"));
-        IReadOnlyList<string> tokens = CommandTokens.Read(stages[0].LEncodeStageArguments);
+            TEncodeCommand.SourceStreamCreate("mpeg2video", profile: "Main")));
+        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
 
-        Assert.Equal(3, stages.Count);
-        Assert.Equal("Copying middle", stages[0].LEncodeStageLabel);
+        Assert.Equal("Copying", stage.LEncodeStageLabel);
         Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
     }
 

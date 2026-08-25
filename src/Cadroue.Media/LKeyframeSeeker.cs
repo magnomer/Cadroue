@@ -25,20 +25,39 @@ public static class LKeyframeSeeker
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        double startSeconds = normalizedStart.TotalSeconds;
-        double scanDuration = (scanEndTime - normalizedStart).TotalSeconds + LKeyframeScanTolerance;
-        string readIntervals = FormattableString.Invariant($"{startSeconds:F3}%+{scanDuration:F3}");
+        double timelineStartSeconds;
+        try
+        {
+            timelineStartSeconds = LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).LMediaStartTime.TotalSeconds;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            timelineStartSeconds = 0;
+        }
+
+        double intervalStartSeconds = timelineStartSeconds + normalizedStart.TotalSeconds;
+        double intervalEndSeconds = timelineStartSeconds + scanEndTime.TotalSeconds + LKeyframeScanTolerance;
+        string intervalStart = intervalStartSeconds > 0
+            ? intervalStartSeconds.ToString("0.#######", CultureInfo.InvariantCulture)
+            : string.Empty;
+        string readIntervals = FormattableString.Invariant(
+            $"{intervalStart}%{intervalEndSeconds.ToString("0.#######", CultureInfo.InvariantCulture)}");
 
         var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
         {
-            Arguments = $"-v quiet -select_streams v:0 -show_packets -read_intervals \"{readIntervals}\" -print_format csv -show_entries packet=pts_time,dts_time,flags -i \"{sourcePath}\"",
+            Arguments = $"-v quiet -select_streams v:0 -show_packets -read_intervals \"{readIntervals}\" "
+                + $"-print_format csv -show_entries packet=pts_time,dts_time,flags -i \"{sourcePath}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
 
-        var keyframeTimes = new SortedDictionary<long, long?>();
+        var keyframePackets = new List<(double Presentation, double? Decode)>();
         double scanStartSeconds = normalizedStart.TotalSeconds;
         double scanEndSeconds = scanEndTime.TotalSeconds;
         Process? process = null;
@@ -56,7 +75,7 @@ public static class LKeyframeSeeker
             string? line;
             while ((line = process.StandardOutput.ReadLine()) is not null)
             {
-                LKeyframeLineParse(line, scanStartSeconds, scanEndSeconds, keyframeTimes);
+                LKeyframeLineParse(line, keyframePackets);
             }
 
             process.WaitForExit();
@@ -78,37 +97,42 @@ public static class LKeyframeSeeker
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+        var keyframeTimes = new SortedDictionary<long, long?>();
+        foreach ((double presentationAbsolute, double? decodeAbsolute) in keyframePackets)
+        {
+            double presentationSeconds = presentationAbsolute - timelineStartSeconds;
+            if (presentationSeconds + LKeyframeRangeTolerance < scanStartSeconds) continue;
+            if (presentationSeconds - LKeyframeRangeTolerance > scanEndSeconds) continue;
+
+            long ticks = TimeSpan.FromSeconds(presentationSeconds).Ticks;
+            if (ticks < 0) continue;
+
+            long? decodeTicks = decodeAbsolute is double decodeSeconds
+                ? TimeSpan.FromSeconds(decodeSeconds - timelineStartSeconds).Ticks
+                : null;
+            keyframeTimes[ticks] = decodeTicks;
+        }
+
         return keyframeTimes
             .Select(pair => new LKeyframeEntry(
-                TimeSpan.FromMilliseconds(pair.Key),
-                pair.Value is long decodeMilliseconds ? TimeSpan.FromMilliseconds(decodeMilliseconds) : null))
+                TimeSpan.FromTicks(pair.Key),
+                pair.Value is long decodeTicks ? TimeSpan.FromTicks(decodeTicks) : null))
             .ToArray();
     }
 
     private static void LKeyframeLineParse(
         string line,
-        double scanStartSeconds,
-        double scanEndSeconds,
-        SortedDictionary<long, long?> result)
+        List<(double Presentation, double? Decode)> result)
     {
         string[] parts = line.Split(',');
         if (parts.Length < 4) return;
+        if (!string.Equals(parts[0], "packet", StringComparison.Ordinal)) return;
         if (!parts[3].Contains('K')) return;
 
         bool hasPts = double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double ptsSeconds);
         bool hasDts = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double dtsSeconds);
         if (!hasPts && !hasDts) return;
-        double timeSeconds = hasPts ? ptsSeconds : dtsSeconds;
-
-        if (timeSeconds + LKeyframeRangeTolerance < scanStartSeconds) return;
-        if (timeSeconds - LKeyframeRangeTolerance > scanEndSeconds) return;
-
-        long ms = (long)Math.Round(timeSeconds * 1000d);
-        if (ms < 0) return;
-
-        long? decodeMilliseconds = hasDts
-            ? (long)Math.Round(dtsSeconds * 1000d)
-            : null;
-        result[ms] = decodeMilliseconds;
+        result.Add((hasPts ? ptsSeconds : dtsSeconds, hasDts ? dtsSeconds : null));
     }
+
 }

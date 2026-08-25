@@ -181,7 +181,7 @@ public static partial class LEncode
         string.IsNullOrWhiteSpace(lValue) || string.Equals(lValue, "Same as source", StringComparison.OrdinalIgnoreCase);
 
     private static string LEncodeTimeFormat(TimeSpan lTime) =>
-        lTime.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
+        lTime.TotalSeconds.ToString("0.#######", CultureInfo.InvariantCulture);
 
     internal static string LEncodeFormat(string lPath) => $"\"{lPath}\"";
 }

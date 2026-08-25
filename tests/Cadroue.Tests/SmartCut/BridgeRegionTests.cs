@@ -24,6 +24,24 @@ public sealed class BridgeRegionTests
     }
 
     [Fact]
+    public void RoundedOriginOnPacketKeyframe_UsesExactPacketBoundary()
+    {
+        var keyframes = new[]
+        {
+            KeyframeData.Entry(2.043708, 1.960292),
+            KeyframeData.Entry(18.393375, 18.309958)
+        };
+
+        LBridgePlan plan = TInterface.BridgeResolve(keyframes, S(2.044), S(18.393));
+
+        Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
+        Assert.Null(plan.LBridgeHead);
+        Assert.Null(plan.LBridgeTail);
+        Assert.NotNull(plan.LBridgeMiddle);
+        Assert.Equal(S(2.043708), plan.LBridgeMiddle!.LBridgeSpanOrigin);
+    }
+
+    [Fact]
     public void BoundaryBetweenKeyframes_AllThreeRegions()
     {
         LBridgePlan plan = TInterface.BridgeResolve(Grid, S(3), S(7));

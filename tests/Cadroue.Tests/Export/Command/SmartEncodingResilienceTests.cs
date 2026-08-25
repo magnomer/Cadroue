@@ -62,6 +62,109 @@ public sealed class SmartEncodingResilienceTests : IDisposable
     }
 
     [Fact]
+    public void MatroskaBFramesWithFourSecondGops_DoNotLengthenVideoPastAudio()
+    {
+        string source = ReorderedSourceCreate("four-second-gops.mkv", 24, 96);
+        using var environment = new TEncodeCommand();
+        LWorkItem work = SmartWorkCreate(source, 1.1, 22.5, "Include");
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartSourceStagesBuild(work);
+
+        foreach (LEncodeStage stage in stages)
+        {
+            Run(TEncodeCommand.FfmpegRead(), stage.LEncodeStageArguments);
+        }
+
+        Assert.InRange(FormatDurationRead(work.LWorkOutputPath), 21.35, 21.47);
+        Assert.InRange(VideoPacketCountRead(work.LWorkOutputPath), 510, 516);
+    }
+
+    [Fact]
+    public void SubMillisecondMp4Keyframe_PreservesFirstCopiedGop()
+    {
+        string source = ReorderedSourceCreate("submillisecond-keyframes.mp4", 20, 49);
+        using var environment = new TEncodeCommand();
+        LWorkItem work = SmartWorkCreate(source, 1, 18, "Include");
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartSourceStagesBuild(work);
+
+        foreach (LEncodeStage stage in stages)
+        {
+            Run(TEncodeCommand.FfmpegRead(), stage.LEncodeStageArguments);
+        }
+
+        Assert.InRange(FormatDurationRead(work.LWorkOutputPath), 16.95, 17.07);
+        Assert.InRange(VideoPacketCountRead(work.LWorkOutputPath), 405, 411);
+        Assert.True(string.IsNullOrWhiteSpace(DecodeErrorsRead(work.LWorkOutputPath)));
+    }
+
+    [Fact]
+    public void RoundedKeyframeAlignedMp4Cut_UsesOnePassAndSurvivesFullTranscode()
+    {
+        string source = ReorderedSourceCreate("rounded-keyframe-aligned.mp4", 20, 49, 44_100);
+        using var environment = new TEncodeCommand();
+        // The actual packet boundaries are 2.043708s and 18.393375s. UI and
+        // sidecar times are millisecond-based, so both ends arrive rounded.
+        LWorkItem work = SmartWorkCreate(source, 2.044, 18.393, "Include", true);
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartSourceStagesBuild(work);
+        Assert.Single(stages);
+        Assert.Equal("Copying", stages[0].LEncodeStageLabel);
+
+        foreach (LEncodeStage stage in stages)
+        {
+            Run(TEncodeCommand.FfmpegRead(), stage.LEncodeStageArguments);
+        }
+
+        double videoStart = FirstPacketStartRead(work.LWorkOutputPath, "v:0");
+        double audioStart = FirstPacketStartRead(work.LWorkOutputPath, "a:0");
+        Assert.InRange(Math.Abs(videoStart - audioStart), 0, 0.11);
+        // Simultaneous stream copy retains codec preroll just like ordinary Copy;
+        // the later decode must preserve it instead of silently dropping audio.
+        Assert.InRange(FormatDurationRead(work.LWorkOutputPath), 16.45, 16.60);
+        Assert.InRange(VideoPacketCountRead(work.LWorkOutputPath), 388, 395);
+        Assert.True(string.IsNullOrWhiteSpace(DecodeErrorsRead(work.LWorkOutputPath)));
+
+        string converted = Path.Combine(tRoot, "smart-output-converted.mp4");
+        Run(
+            TEncodeCommand.FfmpegRead(),
+            $"-hide_banner -loglevel error -i {Quote(work.LWorkOutputPath)} "
+            + $"-map 0:v:0 -map 0:a:0 -c:v libx264 -preset ultrafast -c:a aac -y {Quote(converted)}");
+        double smartAudioDuration = DecodedAudioDurationRead(work.LWorkOutputPath, "smart-decoded.pcm", 44_100, 1);
+        double convertedAudioDuration = DecodedAudioDurationRead(converted, "converted-decoded.pcm", 44_100, 1);
+        Assert.InRange(Math.Abs(smartAudioDuration - convertedAudioDuration), 0, 0.05);
+    }
+
+    [Fact]
+    public void Mp4NonZeroTimeline_KeepsAudioAndVideoAtRequestedDuration()
+    {
+        string source = OffsetMp4SourceCreate();
+        using var environment = new TEncodeCommand();
+        LWorkItem work = SmartWorkCreate(source, 10.1, 22.5, "Include", true);
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartSourceStagesBuild(work);
+
+        foreach (LEncodeStage stage in stages)
+        {
+            Run(TEncodeCommand.FfmpegRead(), stage.LEncodeStageArguments);
+        }
+
+        Assert.InRange(FormatDurationRead(work.LWorkOutputPath), 12.35, 12.47);
+        Assert.InRange(VideoPacketCountRead(work.LWorkOutputPath), 294, 301);
+        Assert.InRange(FirstPacketStartRead(work.LWorkOutputPath, "v:0"), -0.05, 0.05);
+        Assert.InRange(FirstPacketStartRead(work.LWorkOutputPath, "a:0"), -0.05, 0.05);
+        Assert.True(string.IsNullOrWhiteSpace(DecodeErrorsRead(work.LWorkOutputPath)));
+    }
+
+    [Fact]
+    public void Mp4NonZeroTimeline_KeyframeScanCoversRequestedEnd()
+    {
+        string source = OffsetMp4SourceCreate();
+
+        IReadOnlyList<LKeyframeEntry> keyframes = TEncodeCommand.KeyframesRead(source, 7.9, 20.1);
+
+        Assert.Equal(4, keyframes.Count);
+        Assert.InRange(keyframes[0].LKeyframePresentationTime.TotalSeconds, 8, 8.1);
+        Assert.InRange(keyframes[^1].LKeyframePresentationTime.TotalSeconds, 20, 20.1);
+    }
+
+    [Fact]
     public void AudioOutsideCut_OmitsInvalidIntermediateAndStillBuildsVideoMux()
     {
         string source = DelayedAudioSourceCreate();
@@ -71,11 +174,9 @@ public sealed class SmartEncodingResilienceTests : IDisposable
             work, (0, 0.5), null, (0, 0.5, 0.5), null);
 
         Assert.False(TEncodeCommand.AudioIntervalRead(source, 0, 0.5));
-        Assert.DoesNotContain(stages, stage => stage.LEncodeStageLabel.Contains("audio", StringComparison.OrdinalIgnoreCase));
-        Assert.Equal(2, stages.Count);
-        IReadOnlyList<string> mux = CommandTokens.Read(stages[^1].LEncodeStageArguments);
-        Assert.Contains("-an", mux);
-        Assert.Equal(1, CommandTokens.Count(mux, "-i"));
+        LEncodeStage copy = Assert.Single(stages);
+        Assert.Equal("Copying", copy.LEncodeStageLabel);
+        Assert.Equal(1, CommandTokens.Count(CommandTokens.Read(copy.LEncodeStageArguments), "-i"));
 
         foreach (LEncodeStage stage in stages)
         {
@@ -93,7 +194,11 @@ public sealed class SmartEncodingResilienceTests : IDisposable
         LWorkItem work = SmartWorkCreate("missing-source.mp4", 1, 5, "Include");
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartMissingDecodeBuild(work);
 
-        SmartMiddleAssert(stages);
+        LEncodeStage copy = Assert.Single(stages);
+        Assert.Equal("Copying", copy.LEncodeStageLabel);
+        Assert.Equal(
+            "copy",
+            CommandTokens.ValueAfter(CommandTokens.Read(copy.LEncodeStageArguments), "-c:v"));
     }
 
     [Fact]
@@ -145,10 +250,47 @@ public sealed class SmartEncodingResilienceTests : IDisposable
         return path;
     }
 
-    private static LWorkItem SmartWorkCreate(string source, double origin, double end, string audioStream)
+    private string ReorderedSourceCreate(string name, double duration, int keyframeInterval, int sampleRate = 48_000)
     {
-        string output = Path.Combine(Path.GetDirectoryName(source) ?? string.Empty, "smart-output.mkv");
-        return TEncodeCommand.SmartIntervalWorkCreate(source, output, origin, end, audioStream);
+        string path = Path.Combine(tRoot, name);
+        Run(
+            TEncodeCommand.FfmpegRead(),
+            "-hide_banner -loglevel error "
+            + $"-f lavfi -i testsrc2=size=160x90:rate=24000/1001:duration={duration.ToString(CultureInfo.InvariantCulture)} "
+            + $"-f lavfi -i sine=frequency=440:sample_rate={sampleRate}:duration={duration.ToString(CultureInfo.InvariantCulture)} "
+            + "-map 0:v:0 -map 1:a:0 -c:v libx264 -preset medium -bf 3 "
+            + $"-g {keyframeInterval} -keyint_min {keyframeInterval} -sc_threshold 0 "
+            + $"-c:a aac -y {Quote(path)}");
+        return path;
+    }
+
+    private string OffsetMp4SourceCreate()
+    {
+        string source = ReorderedSourceCreate("offset-base.mp4", 24, 96, 44_100);
+        string offset = Path.Combine(tRoot, "offset-source.mp4");
+        Run(
+            TEncodeCommand.FfmpegRead(),
+            $"-hide_banner -loglevel error -itsoffset 3.4 -i {Quote(source)} -map 0 -c copy -y {Quote(offset)}");
+        return offset;
+    }
+
+    private static LWorkItem SmartWorkCreate(
+        string source,
+        double origin,
+        double end,
+        string audioStream,
+        bool mp4Output = false)
+    {
+        string extension = mp4Output ? "mp4" : "mkv";
+        string output = Path.Combine(Path.GetDirectoryName(source) ?? string.Empty, $"smart-output.{extension}");
+        return TEncodeCommand.SmartIntervalWorkCreate(
+            source,
+            output,
+            origin,
+            end,
+            audioStream,
+            mp4Output ? "mp4" : "matroska",
+            extension);
     }
 
     private static IReadOnlyDictionary<int, double> AudioPacketStartsRead(string path)
@@ -188,6 +330,44 @@ public sealed class SmartEncodingResilienceTests : IDisposable
             $"-v error -show_entries format=duration -of default=nw=1:nk=1 {Quote(path)}");
         Assert.True(double.TryParse(output.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double duration));
         return duration;
+    }
+
+    private static int VideoPacketCountRead(string path)
+    {
+        string output = Run(
+            TEncodeCommand.FfprobeRead(),
+            $"-v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets -of default=nw=1:nk=1 {Quote(path)}");
+        Assert.True(int.TryParse(output.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int count));
+        return count;
+    }
+
+    private double DecodedAudioDurationRead(string path, string outputName, int sampleRate, int channels)
+    {
+        string decoded = Path.Combine(tRoot, outputName);
+        Run(
+            TEncodeCommand.FfmpegRead(),
+            $"-hide_banner -loglevel error -i {Quote(path)} -map 0:a:0 "
+            + $"-c:a pcm_s16le -f s16le -y {Quote(decoded)}");
+        return new FileInfo(decoded).Length / (double)(sizeof(short) * sampleRate * channels);
+    }
+
+    private static string DecodeErrorsRead(string path)
+    {
+        var start = new ProcessStartInfo(TEncodeCommand.FfmpegRead())
+        {
+            Arguments = $"-hide_banner -loglevel error -i {Quote(path)} -map 0:v:0 -f null -",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        using Process process = Process.Start(start)
+            ?? throw new InvalidOperationException("Could not start FFmpeg");
+        Task<string> output = process.StandardOutput.ReadToEndAsync();
+        string error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        output.GetAwaiter().GetResult();
+        return error;
     }
 
     private static string Run(string program, string arguments)
