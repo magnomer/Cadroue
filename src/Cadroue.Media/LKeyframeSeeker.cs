@@ -69,6 +69,7 @@ public static class LKeyframeSeeker
                 return Array.Empty<LKeyframeEntry>();
 
             LCustody.LCustodyAttach(process);
+            LKeyframePrioritySet(process);
             using var killOnCancel = cancellationToken.Register(
                 static p => { try { ((Process)p!).Kill(); } catch { } }, process);
 
@@ -118,6 +119,18 @@ public static class LKeyframeSeeker
                 TimeSpan.FromTicks(pair.Key),
                 pair.Value is long decodeTicks ? TimeSpan.FromTicks(decodeTicks) : null))
             .ToArray();
+    }
+
+    private static void LKeyframePrioritySet(Process process)
+    {
+        try
+        {
+            process.PriorityClass = ProcessPriorityClass.BelowNormal;
+        }
+        catch (Exception exception)
+            when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+        }
     }
 
     private static void LKeyframeLineParse(

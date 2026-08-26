@@ -1,3 +1,4 @@
+using Cadroue.Media;
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -25,6 +26,7 @@ public sealed class ScoutTests
         probe.WaitForIdle();
 
         Assert.Empty(probe.ResultsRead());
+        Assert.Equal(0, LMediaProbe.LMediaProbeCount);
     }
 
     [Fact]
@@ -54,6 +56,7 @@ public sealed class ScoutTests
 
         var result = Assert.Single(probe.ResultsRead());
         Assert.Equal(TimeSpan.FromSeconds(2), result.LMediaProbeInfo!.LMediaInfoDuration);
+        Assert.Equal(0, LMediaProbe.LMediaProbeCount);
     }
 
     [Fact]
@@ -86,6 +89,7 @@ public sealed class ScoutTests
         Assert.Equal(TimeSpan.FromSeconds(3), results[0].LMediaProbeInfo!.LMediaInfoDuration);
         Assert.Equal("second.mp4", results[1].LMediaProbePath);
         Assert.Equal(TimeSpan.FromSeconds(4), results[1].LMediaProbeInfo!.LMediaInfoDuration);
+        Assert.Equal(0, LMediaProbe.LMediaProbeCount);
     }
 
     private static string VideoOutput(string duration) => MediaProbeTests.ProbeOutput(

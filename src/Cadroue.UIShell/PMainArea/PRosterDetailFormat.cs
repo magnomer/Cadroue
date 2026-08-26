@@ -77,7 +77,7 @@ public sealed partial class PRoster
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 pRosterKeyframePending.Remove(pSourcePath);
-                pRosterKeyframeCache[pSourcePath] = pInterval;
+                PRosterCacheSet(pRosterKeyframeCache, pSourcePath, pInterval);
                 if (PRosterSelectRead()?.LWorkId == pRosterProbeId)
                 {
                     PRosterDetailUpdate();

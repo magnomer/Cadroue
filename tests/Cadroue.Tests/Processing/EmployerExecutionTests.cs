@@ -64,7 +64,8 @@ public sealed class EmployerExecutionTests
 
         Assert.Equal(TEmployerStatus.Succeeded, result.Status);
         Assert.Equal(4096, result.ErrorOutput.Count);
-        Assert.True(result.Error.Length >= 4096 * 512);
+        Assert.StartsWith("[Earlier FFmpeg stderr was truncated.]", result.Error);
+        Assert.InRange(result.Error.Length, 1, 257 * 1024);
     }
 
     [Fact]

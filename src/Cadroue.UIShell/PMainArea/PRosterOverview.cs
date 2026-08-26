@@ -308,7 +308,7 @@ public sealed partial class PRoster
             double pStored = Cadroue.Application.LLibrarian.LLibrarianLoudnessRead(pMediaPath);
             if (pStored != 0)
             {
-                pRosterLoudnessCache[pMediaPath] = pStored;
+                PRosterCacheSet(pRosterLoudnessCache, pMediaPath, pStored);
                 return pStored;
             }
         }
@@ -348,7 +348,7 @@ public sealed partial class PRoster
                 Cadroue.Application.LLibrarian.LLibrarianLoudnessSave(pMediaPath, pLoudness);
             }
 
-            pRosterLoudnessCache[pMediaPath] = pResult.LMediaLoudnessValue;
+            PRosterCacheSet(pRosterLoudnessCache, pMediaPath, pResult.LMediaLoudnessValue);
 
             if (PRosterSelectRead() is { } pSelected
                 && (string.Equals(pSelected.LWorkSourcePath, pMediaPath, StringComparison.OrdinalIgnoreCase)

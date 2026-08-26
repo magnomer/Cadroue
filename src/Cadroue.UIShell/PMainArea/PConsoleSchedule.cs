@@ -115,6 +115,16 @@ public sealed partial class PConsole
 
     private void PConsoleItemHandle(LWorkItem pWorkItem, LScheduleNotice pNotice)
     {
+        if (pNotice == LScheduleNotice.LScheduleNoticeProgress)
+        {
+            if (PConsoleStationRead().LStationRunner.LRunnerOwnerCheck(pWorkItem))
+            {
+                PConsoleProgressSet(pWorkItem.LWorkProgress);
+            }
+
+            return;
+        }
+
         PConsoleProgressDefer();
     }
 

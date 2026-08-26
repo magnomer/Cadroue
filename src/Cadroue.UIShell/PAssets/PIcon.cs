@@ -3,6 +3,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
 using System.IO;
+using System.Collections.Concurrent;
 using SharpVectors.Converters;
 using SharpVectors.Renderers.Wpf;
 
@@ -10,6 +11,9 @@ namespace Cadroue.UIShell.PAssets;
 
 public static class PIcon
 {
+    private static readonly ConcurrentDictionary<string, ImageSource> pIconCache =
+        new(StringComparer.Ordinal);
+
     private static readonly WpfDrawingSettings pIconSettings = new()
     {
         IncludeRuntime = false,
@@ -27,6 +31,12 @@ public static class PIcon
     public static ImageSource PIconRead(string pIconPath, Brush? pTintBrush)
     {
         Uri pIconUri = PIconUriCreate(pIconPath);
+        string pIconCacheKey = $"{pIconUri.AbsoluteUri}|{pTintBrush}";
+        return pIconCache.GetOrAdd(pIconCacheKey, _ => PIconCreate(pIconPath, pIconUri, pTintBrush));
+    }
+
+    private static ImageSource PIconCreate(string pIconPath, Uri pIconUri, Brush? pTintBrush)
+    {
         if (pIconPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
         {
             return PIconSvgRead(pIconUri, pTintBrush);

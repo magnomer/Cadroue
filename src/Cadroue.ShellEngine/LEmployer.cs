@@ -9,6 +9,7 @@ internal readonly record struct LEmployerResult(int LEmployerExit, string LEmplo
 
 internal sealed class LEmployer
 {
+    private const int LEmployerErrorLimit = 256 * 1024;
     private readonly string lEmployerProgramPath;
     private readonly string lEmployerArgumentPrefix;
 
@@ -76,12 +77,27 @@ internal sealed class LEmployer
         Process lEmployerProcess, CancellationToken lEmployerToken, Action<string> lEmployerLine)
     {
         var lEmployerBuilder = new StringBuilder();
+        bool lEmployerTruncated = false;
         while (await lEmployerProcess.StandardError.ReadLineAsync(lEmployerToken).ConfigureAwait(false) is string lEmployerText)
         {
             lEmployerBuilder.AppendLine(lEmployerText);
+            if (lEmployerBuilder.Length > LEmployerErrorLimit * 2)
+            {
+                lEmployerBuilder.Remove(0, lEmployerBuilder.Length - LEmployerErrorLimit);
+                lEmployerTruncated = true;
+            }
+
             lEmployerLine(lEmployerText);
         }
 
-        return lEmployerBuilder.ToString();
+        if (lEmployerBuilder.Length > LEmployerErrorLimit)
+        {
+            lEmployerBuilder.Remove(0, lEmployerBuilder.Length - LEmployerErrorLimit);
+            lEmployerTruncated = true;
+        }
+
+        return lEmployerTruncated
+            ? "[Earlier FFmpeg stderr was truncated.]\n" + lEmployerBuilder
+            : lEmployerBuilder.ToString();
     }
 }

@@ -179,6 +179,7 @@ public static partial class LCartographer
     public static void LCartographerTabRemove(Guid lCartographerTabId)
     {
         lCartographerTargets.Remove(lCartographerTabId);
+        lCartographerStageTitles.Remove(lCartographerTabId);
         foreach (Guid lCartographerSourceTab in lCartographerTargets
             .Where(lCartographerEntry => lCartographerEntry.Value == lCartographerTabId)
             .Select(lCartographerEntry => lCartographerEntry.Key)

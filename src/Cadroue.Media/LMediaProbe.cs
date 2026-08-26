@@ -11,6 +11,8 @@ public static class LMediaProbe
     internal static Func<string, CancellationToken, LMediaInfo> LMediaProbeReader { get; set; } =
         LMedia.LMediaFfprobeRead;
 
+    internal static int LMediaProbeCount => LMediaProbeGenerations.Count;
+
     public static event Action<LMediaProbeResult>? LMediaProbeReady;
 
     public static event Action<LMediaLoudnessResult>? LMediaLoudnessReady;
@@ -24,30 +26,38 @@ public static class LMediaProbe
 
         Task.Run(() =>
         {
-            LMediaInfo? lMediaProbeInfo = null;
-            string? lMediaProbeError = null;
             try
             {
-                lMediaProbeInfo = LMediaProbeReader(sourcePath, lMediaProbeToken);
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-            catch (Exception lMediaProbeException)
-            {
-                lMediaProbeError = lMediaProbeException.Message;
-            }
+                LMediaInfo? lMediaProbeInfo = null;
+                string? lMediaProbeError = null;
+                try
+                {
+                    lMediaProbeInfo = LMediaProbeReader(sourcePath, lMediaProbeToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (Exception lMediaProbeException)
+                {
+                    lMediaProbeError = lMediaProbeException.Message;
+                }
 
-            if (lMediaProbeToken.IsCancellationRequested
-                || !LMediaProbeGenerations.TryGetValue(sourcePath, out long lMediaProbeLatestGeneration)
-                || lMediaProbeLatestGeneration != lMediaProbeCurrentGeneration)
-            {
-                return;
-            }
+                if (lMediaProbeToken.IsCancellationRequested
+                    || !LMediaProbeGenerations.TryGetValue(sourcePath, out long lMediaProbeLatestGeneration)
+                    || lMediaProbeLatestGeneration != lMediaProbeCurrentGeneration)
+                {
+                    return;
+                }
 
-            LMediaProbeReady?.Invoke(new LMediaProbeResult(sourcePath, lMediaProbeInfo, lMediaProbeError));
-        }, lMediaProbeToken);
+                LMediaProbeReady?.Invoke(new LMediaProbeResult(sourcePath, lMediaProbeInfo, lMediaProbeError));
+            }
+            finally
+            {
+                LMediaProbeGenerations.TryRemove(
+                    new KeyValuePair<string, long>(sourcePath, lMediaProbeCurrentGeneration));
+            }
+        }, CancellationToken.None);
     }
 
     public static void LMediaLoudnessDefer(string sourcePath, CancellationToken lMediaProbeToken = default)

@@ -16,12 +16,23 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed partial class PRoster
 {
     private const string PRosterOpenIcon = "/PAssets/PPanels/PRosterOpen.svg";
+    private const int PRosterCacheLimit = 512;
 
     private static readonly Dictionary<string, LWorkMedia?> pRosterMediaCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> pRosterMediaPending = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly Dictionary<string, double?> pRosterLoudnessCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, bool> pRosterLoudnessPending = new(StringComparer.OrdinalIgnoreCase);
+
+    private static void PRosterCacheSet<T>(Dictionary<string, T> pCache, string pPath, T pValue)
+    {
+        if (!pCache.ContainsKey(pPath) && pCache.Count >= PRosterCacheLimit)
+        {
+            pCache.Remove(pCache.Keys.First());
+        }
+
+        pCache[pPath] = pValue;
+    }
 
     private StackPanel pRosterRowTarget = null!;
 
@@ -272,7 +283,7 @@ public sealed partial class PRoster
                 return;
             }
 
-            pRosterMediaCache[pMediaPath] = new LWorkMedia(
+            PRosterCacheSet(pRosterMediaCache, pMediaPath, new LWorkMedia(
                 pProbedInfo.LMediaVideoWidth,
                 pProbedInfo.LMediaVideoHeight,
                 pProbedInfo.LMediaVideoRate,
@@ -282,7 +293,7 @@ public sealed partial class PRoster
                 LWorkMediaCodec = pProbedInfo.LMediaAudioCodec,
                 LWorkMediaBitrate = pProbedInfo.LMediaAudioBitrate,
                 LWorkMediaSamplerate = pProbedInfo.LMediaSampleRate
-            };
+            });
 
             if (PRosterSelectRead() is { } pSelected
                 && (string.Equals(pSelected.LWorkSourcePath, pMediaPath, StringComparison.OrdinalIgnoreCase)

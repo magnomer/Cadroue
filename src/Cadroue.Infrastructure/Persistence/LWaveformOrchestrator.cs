@@ -5,6 +5,7 @@ namespace Cadroue.Infrastructure;
 
 public sealed class LWaveformOrchestrator : IDisposable
 {
+    private static readonly SemaphoreSlim lWaveformScanSlot = new(1, 1);
     private readonly object lWaveformLock = new();
     private CancellationTokenSource? lWaveformCancelSource;
     private string? lWaveformSourcePath;
@@ -91,8 +92,11 @@ public sealed class LWaveformOrchestrator : IDisposable
         _ = Task.Run(() =>
         {
             var lWaveformClock = System.Diagnostics.Stopwatch.StartNew();
+            bool lWaveformSlotClaimed = false;
             try
             {
+                lWaveformScanSlot.Wait(lWaveformToken);
+                lWaveformSlotClaimed = true;
                 LWaveformScanResult lWaveformScanned = LWaveformScanner.LWaveformScan(lWaveformPath, lWaveformDuration, lWaveformToken);
                 if (lWaveformScanned.LWaveformPeaks.Length == 0 || lWaveformToken.IsCancellationRequested)
                 {
@@ -115,6 +119,13 @@ public sealed class LWaveformOrchestrator : IDisposable
             catch (Exception lWaveformException)
             {
                 LTraceLog.LTraceErrorRecord("Waveform could not be generated", lWaveformException);
+            }
+            finally
+            {
+                if (lWaveformSlotClaimed)
+                {
+                    lWaveformScanSlot.Release();
+                }
             }
         }, CancellationToken.None);
     }

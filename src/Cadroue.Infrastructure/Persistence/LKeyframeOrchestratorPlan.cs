@@ -39,21 +39,14 @@ public sealed partial class LKeyframeOrchestrator
         try
         {
             (int first, int center, int last) = LKeyframeBoundsCreate(duration, cursor);
-            var tasks = new List<Task>();
             if (center >= first && center <= last)
             {
-                tasks.Add(Task.Run(
-                    () => LKeyframeSpanRun(sourcePath, duration, center, serial, cancellationToken),
-                    CancellationToken.None));
+                LKeyframeSpanRun(sourcePath, duration, center, serial, cancellationToken);
             }
 
-            tasks.Add(Task.Run(
-                () => LKeyframeDirectionRun(sourcePath, duration, center - 1, first, -1, serial, cancellationToken),
-                CancellationToken.None));
-            tasks.Add(Task.Run(
-                () => LKeyframeDirectionRun(sourcePath, duration, center + 1, last, 1, serial, cancellationToken),
-                CancellationToken.None));
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            LKeyframeDirectionRun(sourcePath, duration, center - 1, first, -1, serial, cancellationToken);
+            LKeyframeDirectionRun(sourcePath, duration, center + 1, last, 1, serial, cancellationToken);
+            await Task.CompletedTask.ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

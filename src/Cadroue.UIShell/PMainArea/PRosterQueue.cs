@@ -115,6 +115,33 @@ public sealed partial class PRoster
     {
         LWorkItem[] pItems = pRosterSchedule.LScheduleRecords.Where(PRosterVisibleCheck).ToArray();
         IReadOnlyList<PRosterLineageEntry> pLineages = PRosterLineageRead(pItems);
+        Guid[] pNextIds = pLineages
+            .SelectMany(pLineage => pLineage.PRosterLineageItems)
+            .Select(pWorkItem => pWorkItem.LWorkId)
+            .ToArray();
+        if (pRosterOrderedIds.SequenceEqual(pNextIds))
+        {
+            foreach (PRosterLineageEntry pLineage in pLineages)
+            {
+                for (int pItemIndex = 0; pItemIndex < pLineage.PRosterLineageItems.Count; pItemIndex++)
+                {
+                    LWorkItem pWorkItem = pLineage.PRosterLineageItems[pItemIndex];
+                    pRosterRowPlaces[pWorkItem.LWorkId] = new PRosterRowPlace(
+                        pLineage.PRosterLineageSubject,
+                        pLineage.PLineageOriginBytes,
+                        PLineageStepRead(pWorkItem, pLineage.PRosterLineageSubject),
+                        pItemIndex == pLineage.PRosterLineageItems.Count - 1);
+                    if (pRosterStepRows.TryGetValue(pWorkItem.LWorkId, out Border? pRow))
+                    {
+                        pRow.Tag = pWorkItem;
+                    }
+
+                    PRosterRowUpdate(pWorkItem);
+                }
+            }
+
+            return;
+        }
 
         var pBatchOrder = new List<Guid>();
         var pBatchMap = new Dictionary<Guid, List<PRosterLineageEntry>>();

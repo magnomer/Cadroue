@@ -63,6 +63,7 @@ public static class LWaveformScanner
             }
 
             LCustody.LCustodyAttach(lWaveformProcess);
+            LWaveformPrioritySet(lWaveformProcess);
             using var lWaveformKill = lWaveformCancelSource.Register(
                 static lProcess => { try { ((Process)lProcess!).Kill(); } catch { } }, lWaveformProcess);
 
@@ -97,6 +98,18 @@ public static class LWaveformScanner
         return lWaveformPeaks.Count == 0
             ? new LWaveformScanResult(Array.Empty<byte>(), Array.Empty<byte>())
             : new LWaveformScanResult(lWaveformPeaks.ToArray(), lWaveformRms.ToArray());
+    }
+
+    private static void LWaveformPrioritySet(Process lWaveformProcess)
+    {
+        try
+        {
+            lWaveformProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+        }
+        catch (Exception lWaveformException)
+            when (lWaveformException is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+        }
     }
 
     private static void LWaveformStreamRead(

@@ -66,12 +66,35 @@ public static partial class LMedia
             }
 
             LCustody.LCustodyAttach(process);
-            using var lMediaBuffer = new MemoryStream();
-            Task lMediaCopy = process.StandardOutput.BaseStream.CopyToAsync(lMediaBuffer, lMediaToken);
+            LFramePrioritySet(process);
+            long lMediaExpectedLong = (long)width * height * 4;
+            if (lMediaExpectedLong > int.MaxValue)
+            {
+                process.Kill(entireProcessTree: true);
+                return null;
+            }
+
+            int lMediaExpected = (int)lMediaExpectedLong;
+            byte[] lMediaPixels = new byte[lMediaExpected];
+            int lMediaRead = 0;
             Task<string> lMediaError = process.StandardError.ReadToEndAsync(lMediaToken);
             try
             {
-                lMediaCopy.GetAwaiter().GetResult();
+                while (lMediaRead < lMediaExpected)
+                {
+                    int lMediaChunk = process.StandardOutput.BaseStream
+                        .ReadAsync(lMediaPixels.AsMemory(lMediaRead), lMediaToken)
+                        .AsTask()
+                        .GetAwaiter()
+                        .GetResult();
+                    if (lMediaChunk == 0)
+                    {
+                        break;
+                    }
+
+                    lMediaRead += lMediaChunk;
+                }
+
                 process.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
             }
             catch (OperationCanceledException)
@@ -86,16 +109,9 @@ public static partial class LMedia
                 return null;
             }
 
-            byte[] lMediaPixels = lMediaBuffer.ToArray();
-            long lMediaExpected = (long)width * height * 4;
-            if (lMediaPixels.LongLength < lMediaExpected)
+            if (lMediaRead < lMediaExpected)
             {
                 return null;
-            }
-
-            if (lMediaPixels.LongLength > lMediaExpected)
-            {
-                Array.Resize(ref lMediaPixels, (int)lMediaExpected);
             }
 
             return new LMediaFrame(width, height, lMediaPixels);
@@ -104,6 +120,18 @@ public static partial class LMedia
             lMediaException is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
         {
             return null;
+        }
+    }
+
+    private static void LFramePrioritySet(Process process)
+    {
+        try
+        {
+            process.PriorityClass = ProcessPriorityClass.BelowNormal;
+        }
+        catch (Exception exception)
+            when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
         }
     }
 }

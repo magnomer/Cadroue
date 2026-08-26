@@ -4,14 +4,23 @@ using System.Text;
 
 namespace Cadroue.Core;
 
+internal sealed class LLatchGate
+{
+    internal readonly object LLatchResourceLock = new();
+    internal readonly object LLatchLifetimeLock = new();
+    internal int LLatchUsers;
+}
+
 public sealed class LLatchScope : IDisposable
 {
-    private readonly object lLatchGate;
+    private readonly string lLatchKey;
+    private readonly LLatchGate lLatchGate;
     private readonly Mutex? lLatchMutex;
     private bool lLatchDisposed;
 
-    internal LLatchScope(object lLatchGate, Mutex? lLatchMutex)
+    internal LLatchScope(string lLatchKey, LLatchGate lLatchGate, Mutex? lLatchMutex)
     {
+        this.lLatchKey = lLatchKey;
         this.lLatchGate = lLatchGate;
         this.lLatchMutex = lLatchMutex;
     }
@@ -34,14 +43,15 @@ public sealed class LLatchScope : IDisposable
         finally
         {
             lLatchMutex?.Dispose();
-            Monitor.Exit(lLatchGate);
+            Monitor.Exit(lLatchGate.LLatchResourceLock);
+            LLatch.LLatchRelease(lLatchKey, lLatchGate);
         }
     }
 }
 
 public static class LLatch
 {
-    private static readonly ConcurrentDictionary<string, object> lLatchGates =
+    private static readonly ConcurrentDictionary<string, LLatchGate> lLatchGates =
         new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly TimeSpan lLatchWaitLimit = TimeSpan.FromSeconds(5);
@@ -49,8 +59,8 @@ public static class LLatch
     public static LLatchScope LLatchClaim(string lLatchResourcePath)
     {
         string lLatchKey = Path.GetFullPath(lLatchResourcePath);
-        object lLatchGate = lLatchGates.GetOrAdd(lLatchKey, _ => new object());
-        Monitor.Enter(lLatchGate);
+        LLatchGate lLatchGate = LLatchGateClaim(lLatchKey);
+        Monitor.Enter(lLatchGate.LLatchResourceLock);
 
         Mutex? lLatchMutex = null;
         try
@@ -67,13 +77,44 @@ public static class LLatch
             {
             }
 
-            return new LLatchScope(lLatchGate, lLatchMutex);
+            return new LLatchScope(lLatchKey, lLatchGate, lLatchMutex);
         }
         catch
         {
             lLatchMutex?.Dispose();
-            Monitor.Exit(lLatchGate);
+            Monitor.Exit(lLatchGate.LLatchResourceLock);
+            LLatchRelease(lLatchKey, lLatchGate);
             throw;
+        }
+    }
+
+    private static LLatchGate LLatchGateClaim(string lLatchKey)
+    {
+        while (true)
+        {
+            LLatchGate lLatchGate = lLatchGates.GetOrAdd(lLatchKey, _ => new LLatchGate());
+            lock (lLatchGate.LLatchLifetimeLock)
+            {
+                if (!lLatchGates.TryGetValue(lLatchKey, out LLatchGate? lLatchCurrent)
+                    || !ReferenceEquals(lLatchCurrent, lLatchGate))
+                {
+                    continue;
+                }
+
+                lLatchGate.LLatchUsers++;
+                return lLatchGate;
+            }
+        }
+    }
+
+    internal static void LLatchRelease(string lLatchKey, LLatchGate lLatchGate)
+    {
+        lock (lLatchGate.LLatchLifetimeLock)
+        {
+            if (--lLatchGate.LLatchUsers == 0)
+            {
+                lLatchGates.TryRemove(new KeyValuePair<string, LLatchGate>(lLatchKey, lLatchGate));
+            }
         }
     }
 
