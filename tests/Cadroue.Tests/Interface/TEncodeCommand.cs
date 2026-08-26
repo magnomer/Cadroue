@@ -79,6 +79,19 @@ internal sealed class TEncodeCommand : IDisposable
     internal static IReadOnlyList<LEncodeStage> StagesBuild(LWorkItem work) =>
         LEncode.LEncodeStagesBuild(work);
 
+    internal static void SourcePixelApply(LWorkItem work, string pixel) =>
+        work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 120_000, true)
+        {
+            LWorkMediaPixel = pixel
+        };
+
+    internal static IReadOnlyList<string> VideoEncodersRead() =>
+        LRepertoireCatalog.LRepertoireEncodersRead()
+            .Select(encoder => encoder.LRepertoireTokens[0])
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(encoder => encoder, StringComparer.Ordinal)
+            .ToArray();
+
     internal static LWorkItem SmartWorkCreate(
         string source, string output, string codec = "h264", bool copyMode = true,
         string audioCodec = "aac", int sampleRate = 48000, string audioMode = "Copy",

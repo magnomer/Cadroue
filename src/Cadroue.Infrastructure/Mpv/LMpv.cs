@@ -75,6 +75,7 @@ public sealed partial class LMpv : IDisposable
         LMpvOptionSet("input-default-bindings", "no");
         LMpvOptionSet("input-vo-keyboard", "no");
         LMpvOptionSet("osc", "no");
+        LMpvOptionSet("keep-open", "yes");
         if (lWindowHandle != nint.Zero)
         {
             LMpvOptionSet("wid", lWindowHandle.ToString());

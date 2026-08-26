@@ -229,7 +229,17 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
-        PPlayerAccurateSeek(playbackPosition);
+        try
+        {
+            PPlayerAccurateSeek(playbackPosition);
+        }
+        catch (Exception pViewerSeekException)
+        {
+            LTraceLog.LTraceErrorRecord(
+                $"Preview seek to {playbackPosition:hh\\:mm\\:ss\\.fff} was rejected: {pViewerSeekException.Message}");
+            return;
+        }
+
         PViewerPlaybackUpdate(null, playbackPosition);
     }
 
