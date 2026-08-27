@@ -1,3 +1,5 @@
+using System.IO;
+
 using Cadroue.Application;
 using Cadroue.Core;
 
@@ -5,6 +7,28 @@ namespace Cadroue.ShellEngine;
 
 internal sealed partial class LJob
 {
+    private (int, string) LJobLeadingRun(LEncodeStage pStage)
+    {
+        try
+        {
+            byte[] pBytes = File.ReadAllBytes(pStage.LEncodeStagePath);
+            if (LBridge.LBridgeLeadingNormalize(pBytes))
+            {
+                File.WriteAllBytes(pStage.LEncodeStagePath, pBytes);
+                LRunner.LRunnerRecord(
+                    $"Smart encoding neutralized the copied middle's leading keyframe for '{lJobItem.LWorkOutputName}'");
+            }
+
+            return (0, string.Empty);
+        }
+        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+        {
+            LRunner.LRunnerRecord(
+                $"Smart encoding could not adjust the copied middle for '{lJobItem.LWorkOutputName}'", pException);
+            return (1, "copied middle could not be adjusted");
+        }
+    }
+
     private async Task<(int, string)> LJobSmartRun()
     {
         LBridgeStream? pSource = LScout.LScoutStreamRead(lJobItem.LWorkSourcePath, lJobToken);

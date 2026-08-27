@@ -90,7 +90,10 @@ public static partial class LEncode
         };
 
     public static IReadOnlyList<LEncodeStage> LEncodeSmartBuild(
-        LWorkItem lWorkItem, LBridgePlan lBridgePlan, LBridgeStream? lBridgeSource)
+        LWorkItem lWorkItem,
+        LBridgePlan lBridgePlan,
+        LBridgeStream? lBridgeSource,
+        string? lIntermediateExtension = null)
     {
         if (lBridgePlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart
             || lBridgePlan.LBridgeMiddle is null)
@@ -155,13 +158,20 @@ public static partial class LEncode
             return Array.Empty<LEncodeStage>();
         }
 
-        LEncodeSmartProduction lProduction = LEncodeBridgeBuild(lWorkItem, lBridgePlan, lBridgeSource);
+        string lResolvedExtension = LEncodeExtensionResolve(lIntermediateExtension);
+        LEncodeSmartProduction lProduction = LEncodeBridgeBuild(
+            lWorkItem,
+            lBridgePlan,
+            lBridgeSource,
+            lResolvedExtension);
         var lStages = new List<LEncodeStage>(lProduction.LEncodeStages);
 
         string? lAudioPath = null;
         if (lAudioActive)
         {
-            lAudioPath = Path.Combine(LDepot.LDepotBridgeRead(), $"{lWorkItem.LWorkId:N}.audio.mkv");
+            lAudioPath = Path.Combine(
+                LDepot.LDepotBridgeRead(),
+                $"{lWorkItem.LWorkId:N}.audio{lResolvedExtension}");
             lStages.Add(LEncodeAudioBuild(lWorkItem, lAudioPath));
         }
 
@@ -175,10 +185,12 @@ public static partial class LEncode
     }
 
     internal static LEncodeSmartProduction LEncodeBridgeBuild(
-        LWorkItem lWorkItem, LBridgePlan lBridgePlan, LBridgeStream? lBridgeSource)
+        LWorkItem lWorkItem,
+        LBridgePlan lBridgePlan,
+        LBridgeStream? lBridgeSource,
+        string lBridgeExtension)
     {
         string lBridgeFolder = LDepot.LDepotBridgeRead();
-        const string lBridgeExtension = ".mkv";
         var lStages = new List<LEncodeStage>();
         var lConcatParts = new List<string>();
 
@@ -190,8 +202,19 @@ public static partial class LEncode
         }
 
         string lMiddlePath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.middle{lBridgeExtension}");
-        lStages.Add(LEncodeMiddleBuild(lWorkItem, lBridgePlan.LBridgeMiddle!, lMiddlePath));
+        lStages.Add(LEncodeMiddleBuild(lWorkItem, lBridgePlan.LBridgeMiddle!, lMiddlePath, lBridgeSource));
         lConcatParts.Add(lMiddlePath);
+
+        string lLeadingCodec = (lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty)
+            .ToLowerInvariant();
+        if (lBridgePlan.LBridgeHead is not null && lLeadingCodec is "hevc" or "h265")
+        {
+            // The copied middle follows the head, so its open-GOP first keyframe must
+            // be neutralized before the join (see LBridgeLeadingNormalize). A head-less
+            // plan starts on the middle, where a decoder discards leading pictures itself.
+            lStages.Add(new LEncodeStage(
+                string.Empty, LWorkStage.LWorkStageAdjust, "Normalizing splice", lMiddlePath, true));
+        }
 
         if (lBridgePlan.LBridgeTail is { } lBridgeTail)
         {
@@ -201,6 +224,22 @@ public static partial class LEncode
         }
 
         return new LEncodeSmartProduction(lStages, lConcatParts);
+    }
+
+    private static string LEncodeExtensionResolve(string? lIntermediateExtension)
+    {
+        // Bridge pieces default to an ISO-BMFF container: it preserves the copied
+        // middle's source timestamps and its mdat carries plain length-prefixed NAL
+        // units, so the leading-keyframe neutralization is a direct byte rewrite.
+        string lExtension = lIntermediateExtension ?? ".mov";
+        if (string.IsNullOrWhiteSpace(lExtension))
+        {
+            return string.Empty;
+        }
+
+        return lExtension.StartsWith(".", StringComparison.Ordinal)
+            ? lExtension
+            : "." + lExtension;
     }
 
     private static LEncodeStage LEncodeSpanBuild(
@@ -213,11 +252,16 @@ public static partial class LEncode
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeMatchResolve(lWorkItem, lBridgeSource)}");
         lArguments.Append(" -an");
+        LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource, lBridgePath);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, lBridgeLabel, lBridgePath, true);
     }
 
-    private static LEncodeStage LEncodeMiddleBuild(LWorkItem lWorkItem, LBridgeSpan lBridgeSpan, string lBridgePath)
+    private static LEncodeStage LEncodeMiddleBuild(
+        LWorkItem lWorkItem,
+        LBridgeSpan lBridgeSpan,
+        string lBridgePath,
+        LBridgeStream? lBridgeSource)
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
@@ -242,6 +286,7 @@ public static partial class LEncode
         // selected presentation boundary belong to the preceding GOP. Keeping
         // them can lengthen container timelines by a complete GOP.
         lArguments.Append(" -copypriorss 0 -c:v copy -an");
+        LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource, lBridgePath);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
     }
@@ -360,9 +405,10 @@ public static partial class LEncode
     private static void LEncodeTimescaleAppend(
         StringBuilder lArguments,
         LWorkItem lWorkItem,
-        LBridgeStream? lBridgeSource)
+        LBridgeStream? lBridgeSource,
+        string? lTargetPath = null)
     {
-        string lTimescale = LEncodeTimescaleRead(lWorkItem, lBridgeSource);
+        string lTimescale = LEncodeTimescaleRead(lWorkItem, lBridgeSource, lTargetPath);
         if (lTimescale.Length > 0)
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" {lTimescale}");
@@ -371,12 +417,13 @@ public static partial class LEncode
 
     private static string LEncodeTimescaleRead(
         LWorkItem lWorkItem,
-        LBridgeStream? lBridgeSource)
+        LBridgeStream? lBridgeSource,
+        string? lTargetPath = null)
     {
-        string lContainer = lWorkItem.LWorkOutput.LEncodingContainer;
-        string lExtension = Path.GetExtension(lWorkItem.LWorkOutputPath);
-        bool lMovFamily = string.Equals(lContainer, "MP4", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lContainer, "MOV", StringComparison.OrdinalIgnoreCase)
+        string lExtension = Path.GetExtension(lTargetPath ?? lWorkItem.LWorkOutputPath);
+        bool lMovFamily = (lTargetPath is null
+                && (string.Equals(lWorkItem.LWorkOutput.LEncodingContainer, "MP4", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(lWorkItem.LWorkOutput.LEncodingContainer, "MOV", StringComparison.OrdinalIgnoreCase)))
             || string.Equals(lExtension, ".mp4", StringComparison.OrdinalIgnoreCase)
             || string.Equals(lExtension, ".m4v", StringComparison.OrdinalIgnoreCase)
             || string.Equals(lExtension, ".mov", StringComparison.OrdinalIgnoreCase);
@@ -396,11 +443,12 @@ public static partial class LEncode
             return string.Empty;
         }
 
-        // Hybrid Smart joins video-only Matroska pieces. Without an explicit MOV/MP4
-        // track timescale, that remux can choose a different unit from a neighboring
+        // Smart may join independently muxed video pieces. Without an explicit MOV/MP4
+        // track timescale, the final remux can choose a different unit from a neighboring
         // Smart section that took the full-encode or direct-copy route. Such files are
         // individually valid but concat later interprets their packet timestamps using
-        // one time base, shortening or lengthening video while audio stays correct.
+        // one time base, shortening or lengthening video and corrupting the joined
+        // audio/video presentation timeline.
         return $"-video_track_timescale {lDenominator.ToString(CultureInfo.InvariantCulture)}";
     }
 

@@ -164,6 +164,35 @@ public sealed class SmartEncodingResilienceTests : IDisposable
         Assert.InRange(keyframes[^1].LKeyframePresentationTime.TotalSeconds, 20, 20.1);
     }
 
+    [Fact]
+    public void ThirtyFpsMp4Hybrid_PreservesFrameRateAndAudioTimeline()
+    {
+        string source = ReorderedSourceCreate(
+            "thirty-fps-hybrid.mp4",
+            12,
+            60,
+            videoTimescale: 90_000,
+            videoRate: "30");
+        using var environment = new TEncodeCommand();
+        LWorkItem work = SmartWorkCreate(source, 1.1, 10.5, "Include", true);
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartSourceStagesBuild(work);
+
+        Assert.Contains(stages, stage => stage.LEncodeStageLabel == "Copying middle");
+        foreach (LEncodeStage stage in stages)
+        {
+            Run(TEncodeCommand.FfmpegRead(), stage.LEncodeStageArguments);
+        }
+
+        Assert.Equal("30/1", VideoFrameRateRead(work.LWorkOutputPath));
+        Assert.Equal("1/90000", VideoTimeBaseRead(work.LWorkOutputPath));
+        Assert.InRange(FormatDurationRead(work.LWorkOutputPath), 9.35, 9.47);
+        Assert.InRange(StreamDurationRead(work.LWorkOutputPath, "v:0"), 9.35, 9.47);
+        Assert.InRange(StreamDurationRead(work.LWorkOutputPath, "a:0"), 9.35, 9.47);
+        Assert.InRange(FirstPacketStartRead(work.LWorkOutputPath, "v:0"), -0.05, 0.05);
+        Assert.InRange(FirstPacketStartRead(work.LWorkOutputPath, "a:0"), -0.05, 0.05);
+        Assert.True(string.IsNullOrWhiteSpace(DecodeErrorsRead(work.LWorkOutputPath)));
+    }
+
     [Theory]
     [InlineData(16_000)]
     [InlineData(24_000)]
@@ -315,14 +344,15 @@ public sealed class SmartEncodingResilienceTests : IDisposable
         double duration,
         int keyframeInterval,
         int sampleRate = 48_000,
-        int videoTimescale = 0)
+        int videoTimescale = 0,
+        string videoRate = "24000/1001")
     {
         string path = Path.Combine(tRoot, name);
         string timescale = videoTimescale > 0 ? $" -video_track_timescale {videoTimescale}" : string.Empty;
         Run(
             TEncodeCommand.FfmpegRead(),
             "-hide_banner -loglevel error "
-            + $"-f lavfi -i testsrc2=size=160x90:rate=24000/1001:duration={duration.ToString(CultureInfo.InvariantCulture)} "
+            + $"-f lavfi -i testsrc2=size=160x90:rate={videoRate}:duration={duration.ToString(CultureInfo.InvariantCulture)} "
             + $"-f lavfi -i sine=frequency=440:sample_rate={sampleRate}:duration={duration.ToString(CultureInfo.InvariantCulture)} "
             + "-map 0:v:0 -map 1:a:0 -c:v libx264 -preset medium -bf 3 "
             + $"-g {keyframeInterval} -keyint_min {keyframeInterval} -sc_threshold 0 "
@@ -410,6 +440,10 @@ public sealed class SmartEncodingResilienceTests : IDisposable
     private static string VideoTimeBaseRead(string path) => Run(
         TEncodeCommand.FfprobeRead(),
         $"-v error -select_streams v:0 -show_entries stream=time_base -of default=nw=1:nk=1 {Quote(path)}").Trim();
+
+    private static string VideoFrameRateRead(string path) => Run(
+        TEncodeCommand.FfprobeRead(),
+        $"-v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=nw=1:nk=1 {Quote(path)}").Trim();
 
     private static double StreamDurationRead(string path, string stream)
     {

@@ -36,8 +36,10 @@ public sealed class SmartEncodingCommandTests
         Assert.DoesNotContain("-c:a", headTokens);
         Assert.Equal("passthrough", CommandTokens.ValueAfter(headTokens, "-fps_mode"));
         Assert.DoesNotContain("-r", headTokens);
+        Assert.Equal("30000", CommandTokens.ValueAfter(headTokens, "-video_track_timescale"));
         Assert.Equal("10", CommandTokens.ValueAfter(headTokens, "-ss"));
         Assert.Equal("2", CommandTokens.ValueAfter(headTokens, "-t"));
+        Assert.Equal(".mov", Path.GetExtension(head.LEncodeStagePath));
 
         LEncodeStage middle = stages[1];
         IReadOnlyList<string> middleTokens = CommandTokens.Read(middle.LEncodeStageArguments);
@@ -48,6 +50,8 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("16", CommandTokens.ValueAfter(middleTokens, "-t"));
         Assert.Equal("0", CommandTokens.ValueAfter(middleTokens, "-copypriorss"));
+        Assert.Equal("30000", CommandTokens.ValueAfter(middleTokens, "-video_track_timescale"));
+        Assert.Equal(".mov", Path.GetExtension(middle.LEncodeStagePath));
 
         LEncodeStage tail = stages[2];
         IReadOnlyList<string> tailTokens = CommandTokens.Read(tail.LEncodeStageArguments);
@@ -57,6 +61,8 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("yuv420p", CommandTokens.ValueAfter(tailTokens, "-pix_fmt"));
         Assert.DoesNotContain("-qp", tailTokens);
         Assert.Contains("-an", tailTokens);
+        Assert.Equal("30000", CommandTokens.ValueAfter(tailTokens, "-video_track_timescale"));
+        Assert.Equal(".mov", Path.GetExtension(tail.LEncodeStagePath));
 
         LEncodeStage audio = stages[3];
         IReadOnlyList<string> audioTokens = CommandTokens.Read(audio.LEncodeStageArguments);
@@ -67,6 +73,8 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("copy", CommandTokens.ValueAfter(audioTokens, "-c:a"));
         Assert.Equal("10", CommandTokens.ValueAfter(audioTokens, "-ss"));
         Assert.Equal("20", CommandTokens.ValueAfter(audioTokens, "-t"));
+        Assert.Equal(".mov", Path.GetExtension(audio.LEncodeStagePath));
+        Assert.DoesNotContain("-video_track_timescale", audioTokens);
 
         LEncodeStage mux = stages[4];
         IReadOnlyList<string> muxTokens = CommandTokens.Read(mux.LEncodeStageArguments);
@@ -86,6 +94,35 @@ public sealed class SmartEncodingCommandTests
         int middleOrder = joinList.IndexOf(".middle", StringComparison.Ordinal);
         int tailOrder = joinList.IndexOf(".tail", StringComparison.Ordinal);
         Assert.True(headOrder >= 0 && headOrder < middleOrder && middleOrder < tailOrder);
+    }
+
+    [Fact]
+    public void MatroskaFallback_UsesMatroskaForEveryTemporaryStage()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+            work,
+            LBridgeOutcome.LBridgeOutcomeSmart,
+            (10, 30),
+            (10, 12),
+            (12, 28),
+            (28, 30),
+            intermediateExtension: ".mkv");
+
+        IReadOnlyList<LEncodeStage> temporaryStages = stages
+            .Where(stage => stage.LEncodeStageTemporary)
+            .ToArray();
+        Assert.Equal(4, temporaryStages.Count);
+        Assert.Single(temporaryStages, stage => stage.LEncodeStageLabel == "Copying audio");
+        Assert.All(
+            temporaryStages,
+            stage => Assert.Equal(".mkv", Path.GetExtension(stage.LEncodeStagePath)));
+        Assert.All(
+            temporaryStages,
+            stage => Assert.DoesNotContain(
+                "-video_track_timescale",
+                CommandTokens.Read(stage.LEncodeStageArguments)));
     }
 
     [Fact]
@@ -191,6 +228,68 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("libx265", CommandTokens.ValueAfter(headTokens, "-c:v"));
         Assert.Equal("main", CommandTokens.ValueAfter(headTokens, "-profile:v"));
         Assert.DoesNotContain("lossless=1", stages[0].LEncodeStageArguments);
+    }
+
+    [Fact]
+    public void HevcSourceWithHead_InsertsLeadingNormalizeBetweenMiddleAndJoin()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "hevc");
+
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30),
+            TEncodeCommand.SourceStreamCreate("hevc", profile: "Main"));
+
+        int middleOrder = IndexOfLabel(stages, "Copying middle");
+        int adjustOrder = IndexOfLabel(stages, "Normalizing splice");
+        int joinOrder = IndexOfLabel(stages, "Joining bridges");
+        Assert.True(middleOrder >= 0 && adjustOrder == middleOrder + 1 && adjustOrder < joinOrder);
+
+        LEncodeStage adjust = stages[adjustOrder];
+        Assert.Equal(LWorkStage.LWorkStageAdjust, adjust.LEncodeStageKind);
+        Assert.True(adjust.LEncodeStageTemporary);
+        Assert.EndsWith(".middle.mov", adjust.LEncodeStagePath, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, adjust.LEncodeStageArguments);
+    }
+
+    [Fact]
+    public void H264Source_HasNoLeadingNormalizeStage()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput);
+
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+
+        Assert.DoesNotContain(stages, stage => stage.LEncodeStageKind == LWorkStage.LWorkStageAdjust);
+    }
+
+    [Fact]
+    public void HevcHeadlessPlan_HasNoLeadingNormalizeStage()
+    {
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartWorkCreate(SmartSource, SmartOutput, "hevc");
+
+        // No head bridge: the copied middle is first, so a decoder discards its leading
+        // pictures at the stream start and no neutralization is required.
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
+            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 28), (28, 30),
+            TEncodeCommand.SourceStreamCreate("hevc", profile: "Main"));
+
+        Assert.DoesNotContain(stages, stage => stage.LEncodeStageKind == LWorkStage.LWorkStageAdjust);
+    }
+
+    private static int IndexOfLabel(IReadOnlyList<LEncodeStage> stages, string label)
+    {
+        for (int index = 0; index < stages.Count; index++)
+        {
+            if (stages[index].LEncodeStageLabel == label)
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     [Fact]

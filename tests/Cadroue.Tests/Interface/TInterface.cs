@@ -314,6 +314,7 @@ internal static class TInterface
         LBridge.LBridgeRegionResolve(keyframes, origin, end);
     internal static LBridgePlan BridgeResolve(IReadOnlyList<LKeyframeEntry> keyframes, TimeSpan origin, TimeSpan end) =>
         LBridge.LBridgeRegionResolve(keyframes, origin, end);
+    internal static bool BridgeLeadingNormalize(byte[] bytes) => LBridge.LBridgeLeadingNormalize(bytes);
 
     internal static LPassbandPreset? PassbandRead(bool high, string token) => LPassband.LPassbandRead(high, token);
     internal static string? PassbandMatch(bool high, double frequency, int stages, int poles, double resonance) =>

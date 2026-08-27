@@ -127,7 +127,8 @@ internal sealed class TEncodeCommand : IDisposable
         (double origin, double end)? head,
         (double origin, double end)? middle,
         (double origin, double end)? tail,
-        LBridgeStream? source = null) =>
+        LBridgeStream? source = null,
+        string? intermediateExtension = null) =>
         LEncode.LEncodeSmartBuild(
             work,
             new LBridgePlan(
@@ -136,7 +137,8 @@ internal sealed class TEncodeCommand : IDisposable
                 head is { } tHead ? SpanCreate(tHead) : null,
                 middle is { } tMiddle ? SpanCreate(tMiddle) : null,
                 tail is { } tTail ? SpanCreate(tTail) : null),
-            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
+            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"),
+            intermediateExtension);
 
     internal static IReadOnlyList<LEncodeStage> SmartResolveBuild(
         LWorkItem work,
@@ -157,11 +159,15 @@ internal sealed class TEncodeCommand : IDisposable
             source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
 
     internal static IReadOnlyList<LEncodeStage> SmartPlanBuild(
-        LWorkItem work, LBridgePlan plan, LBridgeStream? source = null) =>
+        LWorkItem work,
+        LBridgePlan plan,
+        LBridgeStream? source = null,
+        string? intermediateExtension = null) =>
         LEncode.LEncodeSmartBuild(
             work,
             plan,
-            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
+            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"),
+            intermediateExtension);
 
     internal static IReadOnlyList<LEncodeStage> SmartDecodedStagesBuild(
         LWorkItem work,

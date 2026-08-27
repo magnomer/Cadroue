@@ -225,6 +225,18 @@ internal sealed partial class LJob
 
             LEncodeStage pStage = pStages[pStageIndex];
             lJobStagesDone.Add(pStage);
+
+            if (pStage.LEncodeStageKind == LWorkStage.LWorkStageAdjust)
+            {
+                (pExitCode, pJobError) = LJobLeadingRun(pStage);
+                if (pExitCode != 0)
+                {
+                    break;
+                }
+
+                continue;
+            }
+
             string pStageArguments = pStage.LEncodeStageArguments;
             if (pStageArguments.Contains(LEncode.LEncodeMeasureToken, StringComparison.Ordinal))
             {
