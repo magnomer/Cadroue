@@ -143,7 +143,7 @@ public sealed partial class PEditTab : PTabSurface
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
         pInspector.PInspectorPersistentChange += pCropOwner.LCropboxPersistentSet;
         pInspector.PCropActiveChange += PEditActiveSet;
-        pInspector.PCropActiveChange += PEditActiveUpdate;
+        pInspector.PCropActiveChange += PEditCropActiveUpdate;
         pInspector.PCropActiveChange += PEditPlanSave;
         pInspector.PInspectorVideoChange += PEditChangeHandle;
         pInspector.PWhitebalanceToolChange += pViewer.PViewerNeutralSet;
@@ -193,7 +193,8 @@ public sealed partial class PEditTab : PTabSurface
 
         Content = pTabGrid;
         PEditPersistentRestore(lPreferenceTabLayout);
-        PEditActiveUpdate();
+        PEditCropActiveUpdate();
+        PEditColorActiveUpdate();
         pViewer.PCropActiveSet(pInspector.PCropActiveCheck());
     }
 

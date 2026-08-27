@@ -23,25 +23,8 @@ public sealed partial class PEditTab
         pViewer.PCropActiveSet(pInspector.PCropActiveCheck());
     }
 
-    private void PEditActiveUpdate()
-    {
+    private void PEditCropActiveUpdate() =>
         pProcessing.PProcessingActiveSet("Crop", pCropOwner.LCropboxStateActive);
-        pProcessing.PProcessingActiveSet("Brightness",
-            pInspector.PToneStepRead(LColorKind.LColorKindBrightness).LWorkStepActive);
-        pProcessing.PProcessingActiveSet("Contrast",
-            pInspector.PToneStepRead(LColorKind.LColorKindContrast).LWorkStepActive);
-        pProcessing.PProcessingActiveSet("Saturation",
-            pInspector.PToneStepRead(LColorKind.LColorKindSaturation).LWorkStepActive);
-        pProcessing.PProcessingActiveSet("Gamma",
-            PEditMpvCheck()
-            && pInspector.PToneStepRead(LColorKind.LColorKindGamma).LWorkStepActive);
-        pProcessing.PProcessingActiveSet("Exposure",
-            PEditMpvCheck()
-            && pInspector.PToneStepRead(LColorKind.LColorKindExposure).LWorkStepActive);
-        pProcessing.PProcessingActiveSet("Whitebalance",
-            PEditMpvCheck()
-            && pInspector.PToneStepRead(LColorKind.LColorKindWhitebalance).LWorkStepActive);
-    }
 
     private void PEditPathShow(string? pSourcePath)
     {

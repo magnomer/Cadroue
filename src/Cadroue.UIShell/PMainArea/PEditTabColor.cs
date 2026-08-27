@@ -35,10 +35,32 @@ public sealed partial class PEditTab
 
     private void PEditChangeHandle()
     {
-        PEditActiveUpdate();
+        PEditColorActiveUpdate();
         pEditColorTimer.Stop();
         pEditColorTimer.Start();
         PEditPlanSave();
+    }
+
+    private void PEditColorActiveUpdate()
+    {
+        pProcessing.PProcessingActiveSet("Brightness",
+            pInspector.PToneStepRead(LColorKind.LColorKindBrightness).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Contrast",
+            pInspector.PToneStepRead(LColorKind.LColorKindContrast).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Saturation",
+            pInspector.PToneStepRead(LColorKind.LColorKindSaturation).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Gamma",
+            PEditMpvCheck()
+            && pInspector.PToneStepRead(LColorKind.LColorKindGamma).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Exposure",
+            PEditMpvCheck()
+            && pInspector.PToneStepRead(LColorKind.LColorKindExposure).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Curve",
+            PEditMpvCheck()
+            && pInspector.PToneStepRead(LColorKind.LColorKindCurve).LWorkStepActive);
+        pProcessing.PProcessingActiveSet("Whitebalance",
+            PEditMpvCheck()
+            && pInspector.PToneStepRead(LColorKind.LColorKindWhitebalance).LWorkStepActive);
     }
 
     private void PEditNeutralHandle(LNeutralSample pNeutralSample)
@@ -142,7 +164,7 @@ public sealed partial class PEditTab
             pGammaCapable,
             !pEqCapable ? "Inspector.Video.GammaRequiresEq" : "Inspector.Video.GammaRequiresMpv");
 
-        PEditActiveUpdate();
+        PEditColorActiveUpdate();
         PEditColorApply();
     }
 }
