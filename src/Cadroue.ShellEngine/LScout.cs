@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 
 using Cadroue.Application;
@@ -412,14 +413,7 @@ internal static class LScout
             return null;
         }
 
-        var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfprobeRead())
-        {
-            Arguments = $"-v quiet -select_streams v:0 -show_streams -show_format -print_format json -i {LEncode.LEncodeFormat(lScoutMediaPath)}",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        ProcessStartInfo lScoutStartInfo = LScoutStreamStart(lScoutMediaPath);
 
         Process? lScoutProcess = null;
         try
@@ -456,6 +450,31 @@ internal static class LScout
                 try { lScoutProcess.Kill(); } catch { }
             lScoutProcess?.Dispose();
         }
+    }
+
+    internal static ProcessStartInfo LScoutStreamStart(string lScoutMediaPath)
+    {
+        var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfprobeRead())
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        lScoutStartInfo.ArgumentList.Add("-v");
+        lScoutStartInfo.ArgumentList.Add("quiet");
+        lScoutStartInfo.ArgumentList.Add("-select_streams");
+        lScoutStartInfo.ArgumentList.Add("v:0");
+        lScoutStartInfo.ArgumentList.Add("-show_entries");
+        lScoutStartInfo.ArgumentList.Add(
+            "stream=codec_name,profile,pix_fmt,color_space,color_primaries,color_transfer,color_range,r_frame_rate,bit_rate,time_base");
+        lScoutStartInfo.ArgumentList.Add("-print_format");
+        lScoutStartInfo.ArgumentList.Add("json");
+        lScoutStartInfo.ArgumentList.Add("-i");
+        lScoutStartInfo.ArgumentList.Add(lScoutMediaPath);
+        return lScoutStartInfo;
     }
 
     private static LBridgeStream? LScoutStreamParse(string lScoutJson)

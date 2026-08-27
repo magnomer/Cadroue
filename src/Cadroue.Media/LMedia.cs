@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -91,22 +92,7 @@ public static partial class LMedia
         out string errorText,
         out int exitCode)
     {
-        var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        psi.ArgumentList.Add("-v");
-        psi.ArgumentList.Add("error");
-        psi.ArgumentList.Add("-print_format");
-        psi.ArgumentList.Add("json");
-        psi.ArgumentList.Add("-show_streams");
-        psi.ArgumentList.Add("-show_format");
-        psi.ArgumentList.Add("-i");
-        psi.ArgumentList.Add(sourcePath);
+        ProcessStartInfo psi = LMediaFfprobeStart(sourcePath);
 
         using var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started.");
         LCustody.LCustodyAttach(process);
@@ -124,6 +110,31 @@ public static partial class LMedia
         json = jsonTask.GetAwaiter().GetResult();
         errorText = errorTask.GetAwaiter().GetResult();
         exitCode = process.ExitCode;
+    }
+
+    internal static ProcessStartInfo LMediaFfprobeStart(string sourcePath)
+    {
+        var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        psi.ArgumentList.Add("-v");
+        psi.ArgumentList.Add("error");
+        psi.ArgumentList.Add("-print_format");
+        psi.ArgumentList.Add("json");
+        psi.ArgumentList.Add("-show_entries");
+        psi.ArgumentList.Add(
+            "stream=codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate,duration,pix_fmt,color_range,sample_rate,channels,bit_rate"
+            + ":format=duration,start_time");
+        psi.ArgumentList.Add("-i");
+        psi.ArgumentList.Add(sourcePath);
+        return psi;
     }
 
     public static double? LMediaLoudnessRead(string sourcePath, CancellationToken lMediaToken = default)

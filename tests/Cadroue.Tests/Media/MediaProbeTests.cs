@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Text;
+
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -5,6 +8,32 @@ namespace Cadroue.Tests;
 [Collection("MediaProbe")]
 public sealed class MediaProbeTests
 {
+    [Fact]
+    public void ProbeProcess_UsesUtf8AndOmitsUnneededMetadata()
+    {
+        ProcessStartInfo startInfo = TScout.ProbeStartInfo("한글 제목.mp4");
+
+        Assert.Equal(Encoding.UTF8.WebName, startInfo.StandardOutputEncoding?.WebName);
+        Assert.Equal(Encoding.UTF8.WebName, startInfo.StandardErrorEncoding?.WebName);
+        Assert.Contains("-show_entries", startInfo.ArgumentList);
+        Assert.DoesNotContain("-show_streams", startInfo.ArgumentList);
+        Assert.DoesNotContain("-show_format", startInfo.ArgumentList);
+        Assert.Contains("한글 제목.mp4", startInfo.ArgumentList);
+    }
+
+    [Fact]
+    public void StreamProcess_UsesUtf8AndOmitsUnneededMetadata()
+    {
+        ProcessStartInfo startInfo = TScout.StreamStartInfo("한글 제목.mp4");
+
+        Assert.Equal(Encoding.UTF8.WebName, startInfo.StandardOutputEncoding?.WebName);
+        Assert.Equal(Encoding.UTF8.WebName, startInfo.StandardErrorEncoding?.WebName);
+        Assert.Contains("-show_entries", startInfo.ArgumentList);
+        Assert.DoesNotContain("-show_streams", startInfo.ArgumentList);
+        Assert.DoesNotContain("-show_format", startInfo.ArgumentList);
+        Assert.Contains("한글 제목.mp4", startInfo.ArgumentList);
+    }
+
     [Fact]
     public void VideoAndAudioOutput_ProducesDurationAndBothStreams()
     {
