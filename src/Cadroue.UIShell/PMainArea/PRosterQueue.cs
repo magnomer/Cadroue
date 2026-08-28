@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIShell.PControlBar;
@@ -22,6 +23,7 @@ public sealed partial class PRoster
     private readonly HashSet<Guid> pRosterSelectedIds = new();
     private Guid pRosterCurrentId;
     private Guid pRosterCardId;
+    private CheckBox? pRosterSharedBox;
 
     private sealed class PRosterRowCell
     {
@@ -41,6 +43,7 @@ public sealed partial class PRoster
 
     private UIElement PRosterPanelBuild()
     {
+        UIElement pShared = PRosterSharedBuild();
         var pColumnHeader = new Border
         {
             Padding = PRosterTheme.PRosterHeaderPadding,
@@ -51,11 +54,49 @@ public sealed partial class PRoster
         };
 
         var pRoot = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(pShared, Dock.Top);
         DockPanel.SetDock(pColumnHeader, Dock.Top);
+        pRoot.Children.Add(pShared);
         pRoot.Children.Add(pColumnHeader);
         pRoot.Children.Add(pRosterQueueScroller);
 
         return PPanel.PPanelBorderBuild(pRoot);
+    }
+
+    private UIElement PRosterSharedBuild()
+    {
+        var pToggle = new CheckBox
+        {
+            Content = LLocalization.LLocalizationTextRead("Roster.Queue.Shared"),
+            FontSize = PRosterTheme.PRosterRowSize,
+            IsChecked = LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared
+        };
+        PCheckbox.PCheckboxApply(pToggle);
+        pToggle.Checked += (_, _) => PRosterSharedApply(true);
+        pToggle.Unchecked += (_, _) => PRosterSharedApply(false);
+        pRosterSharedBox = pToggle;
+
+        return new Border
+        {
+            Padding = PRosterTheme.PRosterHeaderPadding,
+            Background = PRosterTheme.PRosterHeaderBrush,
+            BorderBrush = PRosterTheme.PRosterLineBrush,
+            BorderThickness = new Thickness(0, 0, 0, 1),
+            Child = pToggle
+        };
+    }
+
+    private void PRosterSharedApply(bool pShared)
+    {
+        if (pShared == LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared)
+        {
+            return;
+        }
+
+        LPreferenceState pNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
+        pNext.LPreferenceWorklistShared = pShared;
+        LPreference.LPreferenceStateSet(pNext);
+        pRosterSchedule.LScheduleLoad();
     }
 
     private static Grid PRosterHeaderBuild()

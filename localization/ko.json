@@ -870,6 +870,7 @@
   "Roster.Queue.Percentage": "{Terms.Percentage}",
   "Roster.Queue.State": "{Terms.State}",
   "Roster.Queue.Owner": "{Terms.Owner}",
+  "Roster.Queue.Shared": "다른 작업 목록 표시",
   "Roster.AudioOnly": "{Terms.Audio} 전용",
   "Options.System.ChooseWorkspace": "{Terms.Workspace} {Terms.Folder} 선택",
   "Options.System.ChooseFFmpeg": "{Terms.FFmpeg} {Terms.Folder} 선택",

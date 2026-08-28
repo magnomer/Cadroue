@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -48,6 +49,10 @@ public sealed partial class PRoster : UserControl
         if (IsVisible)
         {
             PConsole.PConsoleCurrent?.PConsoleStationSet(pRosterStation);
+            if (pRosterSharedBox is { } pToggle)
+            {
+                pToggle.IsChecked = LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
+            }
         }
     }
 
