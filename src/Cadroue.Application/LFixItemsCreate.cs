@@ -5,82 +5,60 @@ namespace Cadroue.Application;
 
 public static partial class LFix
 {
-    public static LWorkItem LFixWorkCreate(
-        LWorkPriority lWorkPriority,
-        string lFixSourcePath,
-        TimeSpan lFixDuration,
-        LWorkCrop lFixCrop,
-        LWorkVideo lFixVideo,
-        LEncoding lFixOutput,
-        Guid lFixBatchId)
-    {
-        string lFixFolder = lFixOutput.LEncodingFolderRead(lFixSourcePath);
-        string lFixOutputName = LFixNameCreate(lFixOutput, lFixSourcePath, lFixFolder, lFixDuration);
-
-        return new LWorkItem(
-            lFixBatchId,
-            LWorkKind.LWorkKindFix,
-            lWorkPriority,
-            lFixSourcePath,
-            TimeSpan.Zero,
-            lFixDuration,
-            lFixOutputName,
-            Path.Combine(lFixFolder, lFixOutputName),
-            lFixOutput,
-            lWorkCrop: lFixCrop,
-            lWorkVideo: lFixVideo);
-    }
-
     public static IReadOnlyList<LWorkItem> LFixItemsCreate(
         LWorkPriority lWorkPriority,
         LFixWorkDescription lFixWorkDescription,
         string lFixTab,
-        Action<string> lInfoLog,
         Action<string> lErrorLog,
-        Guid lFixBatchId = default)
+        Func<string, TimeSpan> lDurationRead)
     {
-        LWorkCrop lFixCrop = lFixWorkDescription.LFixCrop;
-        if (string.IsNullOrWhiteSpace(lFixWorkDescription.LFixSourcePath))
+        IReadOnlyList<string> lFixSourcePaths = lFixWorkDescription.LFixSourcePaths;
+        if (lFixSourcePaths.Count == 0)
         {
-            lErrorLog("Fix not queued: no source file is open");
+            lErrorLog("Fix not queued: the file list is empty");
             return Array.Empty<LWorkItem>();
         }
 
-        LWorkItem lFixWorkItem = LFixWorkCreate(
-            lWorkPriority,
-            lFixWorkDescription.LFixSourcePath,
-            lFixWorkDescription.LFixDuration,
-            lFixCrop,
-            lFixWorkDescription.LFixVideo,
-            lFixWorkDescription.LFixOutput,
-            lFixBatchId == Guid.Empty ? Guid.NewGuid() : lFixBatchId);
+        LEncoding lFixOutput = lFixWorkDescription.LFixOutput;
+        var lFixWorkItems = new List<LWorkItem>();
+        Guid lFixLooseBatch = Guid.NewGuid();
 
-        lFixWorkItem.LWorkTab = lFixTab;
-        string lFixOutputName = lFixWorkItem.LWorkOutputName;
-        lInfoLog(
-            $"Fix built job '{lFixOutputName}' at {lWorkPriority} from " +
-            $"'{Path.GetFileName(lFixWorkItem.LWorkSourcePath)}' " +
-            $"into '{Path.GetDirectoryName(lFixWorkItem.LWorkOutputPath)}'");
-
-        if (lFixCrop.LWorkCropActive)
+        foreach (string lFixSourcePath in lFixSourcePaths)
         {
-            lInfoLog(
-                $"Fix job '{lFixOutputName}' crop: " +
-                $"left {lFixCrop.LWorkCropLeft}, top {lFixCrop.LWorkCropTop}, " +
-                $"right {lFixCrop.LWorkCropRight}, bottom {lFixCrop.LWorkCropBottom}, " +
-                $"rotate {lFixCrop.LWorkCropRotation}, " +
-                $"hflip {lFixCrop.LWorkFlipHorizontal}, vflip {lFixCrop.LWorkFlipVertical}");
+            Guid lFixBatch = lFixWorkDescription.LFixRelays is { } lFixRelayMap
+                && lFixRelayMap.TryGetValue(lFixSourcePath, out Guid lFixRelay)
+                && lFixRelay != Guid.Empty
+                ? lFixRelay
+                : lFixLooseBatch;
+
+            LWorkMedia? lFixMedia = null;
+            if (lFixWorkDescription.LFixMedia is { } lFixMap)
+            {
+                lFixMap.TryGetValue(lFixSourcePath, out lFixMedia);
+            }
+
+            TimeSpan lFixDuration = lFixMedia?.LWorkMediaDuration ?? lDurationRead(lFixSourcePath);
+
+            string lFixFolder = lFixOutput.LEncodingFolderRead(lFixSourcePath);
+            string lFixOutputName = LFixNameCreate(lFixOutput, lFixSourcePath, lFixFolder, lFixDuration);
+
+            lFixWorkItems.Add(new LWorkItem(
+                lFixBatch,
+                LWorkKind.LWorkKindFix,
+                lWorkPriority,
+                lFixSourcePath,
+                TimeSpan.Zero,
+                lFixDuration,
+                lFixOutputName,
+                Path.Combine(lFixFolder, lFixOutputName),
+                lFixOutput)
+            {
+                LWorkSourceMedia = lFixMedia,
+                LWorkTab = lFixTab
+            });
         }
 
-        if (lFixWorkDescription.LFixVideo.LWorkVideoActive)
-        {
-            string lVideoSteps = string.Join(", ", lFixWorkDescription.LFixVideo.LWorkVideoSteps
-                .Where(lStep => lStep.LWorkStepActive)
-                .Select(lStep => lStep.LWorkDiagnosticRead()));
-            lInfoLog($"Fix job '{lFixOutputName}' video: {lVideoSteps}");
-        }
-
-        return new[] { lFixWorkItem };
+        return lFixWorkItems;
     }
 
 

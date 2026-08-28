@@ -8,83 +8,59 @@ namespace Cadroue.Tests;
 public sealed class FixWorkCreationTests
 {
     [Fact]
-    public void MissingSource_ProducesNoWork()
+    public void EmptyList_ProducesNoWork()
     {
-        IReadOnlyList<LWorkItem> work = Create(null, TInterface.WorkCropCreate(), TInterface.WorkVideoCreate(), Output());
+        IReadOnlyList<LWorkItem> work = Create(Array.Empty<string>(), Output());
 
         Assert.Empty(work);
     }
 
     [Fact]
-    public void ValidFixSettings_SurviveIntoWorkRequest()
+    public void EverySelectedSource_ProducesOneFixWorkItem()
     {
-        LWorkCrop crop = TInterface.WorkCropCreate(11, 12, 13, 14, 90, true, false);
-        LWorkVideo video = TInterface.WorkVideoCreate(new[]
-        {
-            TInterface.WorkBrightnessCreate(true, 37),
-            TInterface.WorkContrastCreate(true, 125)
-        });
+        string first = Path.Combine("media", "first.mov");
+        string second = Path.Combine("media", "second.mov");
 
-        LWorkItem item = Assert.Single(Create("media/source.mov", crop, video, Output()));
+        IReadOnlyList<LWorkItem> work = Create(new[] { first, second }, Output());
 
-        Assert.Equal(LWorkKind.LWorkKindFix, item.LWorkKind);
-        Assert.Same(crop, item.LWorkCrop);
-        Assert.Same(video, item.LWorkVideo);
+        Assert.Equal(2, work.Count);
+        Assert.All(work, item => Assert.Equal(LWorkKind.LWorkKindFix, item.LWorkKind));
     }
 
     [Fact]
     public void CopyModePreset_IsAccepted()
     {
-        LWorkItem item = Assert.Single(Create(
-            "media/source.mov",
-            TInterface.WorkCropCreate(),
-            TInterface.WorkVideoCreate(),
-            WorkCreationOutput.SplitCreate()));
+        LWorkItem item = Assert.Single(Create(new[] { "media/source.mov" }, WorkCreationOutput.SplitCreate()));
 
         Assert.Equal(LWorkKind.LWorkKindFix, item.LWorkKind);
     }
 
     [Fact]
-    public void OutputAndRequestIdentity_ArePreserved()
+    public void OutputAndSourceIdentity_ArePreserved()
     {
         string source = Path.Combine("incoming", "scene.mov");
         string folder = Path.Combine("exports", "approved");
-        Guid batchId = Guid.NewGuid();
-        LEncoding output = Output("{OriginalName}_graded", "mkv", folder);
+        LEncoding output = Output("{OriginalName}_fixed", "mkv", folder);
 
-        LWorkItem item = Assert.Single(Create(
-            source,
-            TInterface.WorkCropCreate(),
-            TInterface.WorkVideoCreate(),
-            output,
-            LWorkPriority.LWorkPriorityHigh,
-            "fix-tab",
-            batchId));
+        LWorkItem item = Assert.Single(Create(new[] { source }, output, "fix-tab"));
 
         Assert.Equal(source, item.LWorkSourcePath);
-        Assert.Equal("scene_graded.mkv", item.LWorkOutputName);
-        Assert.Equal(Path.Combine(folder, "scene_graded.mkv"), item.LWorkOutputPath);
-        Assert.Equal(LWorkPriority.LWorkPriorityHigh, item.LWorkPriority);
+        Assert.Equal("scene_fixed.mkv", item.LWorkOutputName);
+        Assert.Equal(Path.Combine(folder, "scene_fixed.mkv"), item.LWorkOutputPath);
         Assert.Equal("fix-tab", item.LWorkTab);
-        Assert.Equal(batchId, item.LWorkBatchId);
         Assert.Same(output, item.LWorkOutput);
     }
 
     private static IReadOnlyList<LWorkItem> Create(
-        string? source,
-        LWorkCrop crop,
-        LWorkVideo video,
+        IReadOnlyList<string> sources,
         LEncoding output,
-        LWorkPriority priority = LWorkPriority.LWorkPriorityNormal,
-        string tab = "test-tab",
-        Guid batchId = default) =>
+        string tab = "test-tab") =>
         TInterface.FixItemsCreate(
-            priority,
-            TInterface.FixDescriptionCreate(source, TimeSpan.FromMinutes(3), crop, video, output),
+            LWorkPriority.LWorkPriorityNormal,
+            TInterface.FixDescriptionCreate(sources, output),
             tab,
             _ => { },
-            _ => { },
-            batchId);
+            _ => TimeSpan.FromMinutes(3));
 
     private static LEncoding Output(
         string pattern = "{OriginalName}_fix",

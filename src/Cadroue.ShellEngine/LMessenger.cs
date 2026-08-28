@@ -249,43 +249,6 @@ public static class LMessenger
         return lMessengerAdded;
     }
 
-    public static int LMessengerFixDescribe(
-        LWorkPriority lMessengerPriority,
-        string? lMessengerSourcePath,
-        TimeSpan lMessengerDuration,
-        LWorkCrop lMessengerCrop,
-        LWorkVideo lMessengerVideo,
-        Cadroue.Application.LPresetSelection lMessengerOwner,
-        Guid lMessengerRelayTarget,
-        Guid lMessengerRelaySource,
-        Guid lMessengerBatchId)
-    {
-        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
-        {
-            return 0;
-        }
-
-        LFixWorkDescription lMessengerDescription = new(
-            lMessengerSourcePath, lMessengerDuration, lMessengerCrop, lMessengerVideo,
-            lMessengerOutput);
-        string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
-        IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LFix.LFixItemsCreate(
-            lMessengerPriority, lMessengerDescription, lMessengerTab,
-            lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
-            lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
-            lMessengerBatchId);
-        if (lMessengerItems.Count == 0)
-        {
-            return 0;
-        }
-
-        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-        LTraceLog.LTraceInfoRecord(
-            $"Fix queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
-            $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        return lMessengerAdded;
-    }
-
     public static int LMessengerMergeDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkGroup> lMessengerGroups,
@@ -496,52 +459,35 @@ public static class LMessenger
         IReadOnlyList<LWorkSource> lMessengerSources,
         Cadroue.Application.LPresetSelection lMessengerOwner,
         Guid lMessengerRelayTarget = default,
-        Guid lMessengerRelaySource = default,
-        bool lMessengerMpvOnlyCapable = true)
+        Guid lMessengerRelaySource = default)
     {
         if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
         {
             return 0;
         }
 
-        var lMessengerItems = new List<LWorkItem>();
-        Guid lMessengerLooseBatch = Cadroue.Application.LGate.LGateBatchCreate();
-        bool lMessengerEqCapable = Cadroue.Infrastructure.LInventory.LInventoryFilterExist("eq");
-
+        string[] lMessengerSourcePaths = lMessengerSources
+            .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
+            .ToArray();
+        var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
-            string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (Cadroue.Application.LFix.LFixPlanRead(lMessengerSourcePath, Cadroue.Application.LLibrarian.LLibrarianFixLoad)
-                is not { LFixPlanActive: true } lMessengerPlan)
-            {
-                continue;
-            }
-
-            Guid lMessengerBatch = lMessengerSource.LWorkSourceBatch != Guid.Empty
-                ? lMessengerSource.LWorkSourceBatch
-                : lMessengerLooseBatch;
-            lMessengerItems.Add(Cadroue.Application.LFix.LFixWorkCreate(
-                lMessengerPriority,
-                lMessengerSourcePath,
-                Cadroue.Application.LLibrarian.LLibrarianDurationRead(lMessengerSourcePath),
-                lMessengerPlan.LFixSkip ? LWorkCrop.LWorkCropCreate() : lMessengerPlan.LFixCrop,
-                lMessengerPlan.LFixSkip
-                    ? LWorkVideo.LWorkVideoCreate()
-                    : Cadroue.Application.LFix.LFixVideoCreate(
-                        lMessengerPlan.LFixVideo.LWorkVideoSteps, lMessengerMpvOnlyCapable, lMessengerEqCapable),
-                lMessengerOutput,
-                lMessengerBatch));
+            lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
         }
+
+        LFixWorkDescription lMessengerDescription =
+            new(lMessengerSourcePaths, lMessengerOutput, null, lMessengerRelays);
 
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
-        foreach (LWorkItem lMessengerItem in lMessengerItems)
-        {
-            lMessengerItem.LWorkTab = lMessengerTab;
-        }
+        IReadOnlyList<LWorkItem> lMessengerItems =
+            Cadroue.Application.LFix.LFixItemsCreate(
+                lMessengerPriority, lMessengerDescription, lMessengerTab,
+                lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+                Cadroue.Application.LLibrarian.LLibrarianDurationRead);
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
-            $"Fix Add All: {lMessengerSources.Count} listed, {lMessengerAdded} queued from saved plans");
+            $"Fix queued {lMessengerAdded} job(s) at {lMessengerPriority} from {lMessengerSourcePaths.Length} listed file(s)");
 
         await LMessengerDurationResolve(lMessengerItems).ConfigureAwait(false);
         return lMessengerAdded;

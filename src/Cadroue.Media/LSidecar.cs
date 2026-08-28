@@ -18,8 +18,6 @@ public sealed class LSidecar
 
     public LSidecarEditRecord? LSidecarEdit { get; set; }
 
-    public LSidecarFixRecord? LSidecarFix { get; set; }
-
     public LSidecarAudioRecord? LSidecarAudio { get; set; }
 
     public LSidecarWaveformRecord? LSidecarWaveform { get; set; }

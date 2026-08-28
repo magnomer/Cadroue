@@ -84,11 +84,6 @@ public static partial class LScene
             lSceneEdit.LSidecarSteps = LSceneListRead(lSceneEdit.LSidecarSteps);
         }
 
-        if (lSceneInspector.LSceneInspectorFix is { } lSceneFix)
-        {
-            lSceneFix.LSidecarSteps = LSceneListRead(lSceneFix.LSidecarSteps);
-        }
-
         if (lSceneInspector.LSceneInspectorAudio is { } lSceneAudio)
         {
             lSceneAudio.LSidecarSteps = LSceneListRead(lSceneAudio.LSidecarSteps);

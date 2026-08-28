@@ -198,8 +198,8 @@ internal static class TInterface
         string? source, TimeSpan duration, LWorkCrop crop, LWorkVideo video, LEncoding output) =>
         new(source, duration, crop, video, output);
     internal static LFixWorkDescription FixDescriptionCreate(
-        string? source, TimeSpan duration, LWorkCrop crop, LWorkVideo video, LEncoding output) =>
-        new(source, duration, crop, video, output);
+        IReadOnlyList<string> sources, LEncoding output, IReadOnlyDictionary<string, LWorkMedia>? media = null) =>
+        new(sources, output, media);
     internal static LWorkGroup WorkGroupCreate(string name, IReadOnlyList<string> sources) => new(name, sources);
     internal static LWorkVideoStep WorkBrightnessCreate(bool active, double value) =>
         LWorkVideoStep.LWorkBrightnessCreate(active, value);
@@ -367,8 +367,8 @@ internal static class TInterface
 
     internal static IReadOnlyList<LWorkItem> FixItemsCreate(
         LWorkPriority priority, LFixWorkDescription description, string tab,
-        Action<string> infoLog, Action<string> errorLog, Guid batchId = default) =>
-        LFix.LFixItemsCreate(priority, description, tab, infoLog, errorLog, batchId);
+        Action<string> errorLog, Func<string, TimeSpan> durationRead) =>
+        LFix.LFixItemsCreate(priority, description, tab, errorLog, durationRead);
 
     internal static IReadOnlyList<LWorkItem> MergeItemsCreate(
         LWorkPriority priority, IReadOnlyList<LWorkGroup> groups, LEncoding output, string tab,

@@ -11,7 +11,6 @@ public static class LLibrarian
     public static Func<string, IReadOnlyList<long>>? LLibrarianKeyframesSeam;
     public static Func<string, LSidecarWaveformRecord?>? LLibrarianWaveformReader;
     public static Func<string, LSidecarEditRecord?>? LLibrarianEditReader;
-    public static Func<string, LSidecarFixRecord?>? LLibrarianFixReader;
     public static Func<string, LSidecarAudioRecord?>? LLibrarianAudioReader;
     public static Func<string, LSidecarSplitRecord?>? LLibrarianSplitReader;
     public static Func<string, double>? LLibrarianLoudnessReader;
@@ -23,7 +22,6 @@ public static class LLibrarian
     public static Func<string, string, bool>? LLibrarianSourceMatcher;
 
     public static Func<string, LSidecarEditRecord?, bool>? LLibrarianEditWriter;
-    public static Func<string, LSidecarFixRecord?, bool>? LLibrarianFixWriter;
     public static Func<string, LSidecarAudioRecord?, bool>? LLibrarianAudioWriter;
     public static Func<string, LSidecarSplitRecord?, bool>? LLibrarianSplitWriter;
     public static Func<string, double, bool>? LLibrarianLoudnessWriter;
@@ -40,9 +38,6 @@ public static class LLibrarian
 
     public static LSidecarEditRecord? LLibrarianEditLoad(string lLibrarianSourcePath) =>
         LLibrarianEditReader?.Invoke(lLibrarianSourcePath);
-
-    public static LSidecarFixRecord? LLibrarianFixLoad(string lLibrarianSourcePath) =>
-        LLibrarianFixReader?.Invoke(lLibrarianSourcePath);
 
     public static LSidecarAudioRecord? LLibrarianAudioLoad(string lLibrarianSourcePath) =>
         LLibrarianAudioReader?.Invoke(lLibrarianSourcePath);
@@ -70,9 +65,6 @@ public static class LLibrarian
 
     public static bool LLibrarianEditSave(string lLibrarianSourcePath, LSidecarEditRecord? lLibrarianEdit) =>
         LLibrarianEditWriter?.Invoke(lLibrarianSourcePath, lLibrarianEdit) ?? false;
-
-    public static bool LLibrarianFixSave(string lLibrarianSourcePath, LSidecarFixRecord? lLibrarianFix) =>
-        LLibrarianFixWriter?.Invoke(lLibrarianSourcePath, lLibrarianFix) ?? false;
 
     public static bool LLibrarianAudioSave(string lLibrarianSourcePath, LSidecarAudioRecord? lLibrarianAudio) =>
         LLibrarianAudioWriter?.Invoke(lLibrarianSourcePath, lLibrarianAudio) ?? false;

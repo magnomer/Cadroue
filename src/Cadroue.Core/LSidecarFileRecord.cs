@@ -8,7 +8,6 @@ public sealed class LSidecarCoreRecord
     public LSidecarSourceRecord LSidecarSource { get; set; } = new();
     public List<LSidecarSectionRecord> LSidecarSections { get; set; } = new();
     public LSidecarEditRecord? LSidecarEdit { get; set; }
-    public LSidecarFixRecord? LSidecarFix { get; set; }
     public LSidecarAudioRecord? LSidecarAudio { get; set; }
     public LSidecarSplitRecord? LSidecarSplit { get; set; }
     public double LSidecarLoudness { get; set; }
