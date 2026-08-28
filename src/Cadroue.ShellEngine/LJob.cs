@@ -239,6 +239,17 @@ internal sealed partial class LJob
                 continue;
             }
 
+            if (pStage.LEncodeStageKind == LWorkStage.LWorkStageCopy)
+            {
+                (pExitCode, pJobError) = LJobCopyRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount);
+                if (pExitCode != 0)
+                {
+                    break;
+                }
+
+                continue;
+            }
+
             string pStageArguments = pStage.LEncodeStageArguments;
             if (pStageArguments.Contains(LEncode.LEncodeMeasureToken, StringComparison.Ordinal))
             {

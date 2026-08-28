@@ -1,9 +1,47 @@
 using System.IO;
 
+using Cadroue.Core;
+
 namespace Cadroue.ShellEngine;
 
 internal sealed partial class LJob
 {
+    private (int, string) LJobCopyRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
+    {
+        string pSource = pStage.LEncodeStageArguments;
+        string pOutput = pStage.LEncodeStagePath;
+        lJobOwner.LRunnerDispatch(() =>
+        {
+            lJobItem.LWorkProgress = 0;
+            lJobItem.LWorkStageCurrent = pStage.LEncodeStageKind;
+            lJobItem.LWorkMessage = pStageCount > 1
+                ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
+                : string.Empty;
+            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
+        });
+
+        try
+        {
+            long pSourceBytes = new FileInfo(pSource).Length;
+            File.Copy(pSource, pOutput, true);
+            long pOutputBytes = new FileInfo(pOutput).Length;
+            LRunner.LRunnerRecord(
+                $"Copying '{lJobItem.LWorkOutputName}': copied {pSourceBytes:N0} bytes from " +
+                $"'{Path.GetFileName(pSource)}' to '{pOutput}' ({pOutputBytes:N0} bytes)");
+            lJobOwner.LRunnerDispatch(() =>
+            {
+                lJobItem.LWorkProgress = 1;
+                lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
+            });
+            return (0, string.Empty);
+        }
+        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+        {
+            LRunner.LRunnerRecord($"Copy failed for '{lJobItem.LWorkOutputName}'", pException);
+            return (1, pException.Message);
+        }
+    }
+
     private static string LJobPathResolve(string pPath, string pSuffix)
     {
         string pFolder = Path.GetDirectoryName(pPath) ?? string.Empty;

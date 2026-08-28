@@ -30,6 +30,14 @@ public static partial class LEncode
 
     public static IReadOnlyList<LEncodeStage> LEncodeStagesBuild(LWorkItem lWorkItem)
     {
+        if (lWorkItem.LWorkKind == LWorkKind.LWorkKindFix)
+        {
+            return new[]
+            {
+                new LEncodeStage(lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageCopy, "Copying", lWorkItem.LWorkOutputPath, false)
+            };
+        }
+
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindAudio)
         {
             return LEncodeStepsBuild(lWorkItem);

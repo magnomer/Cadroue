@@ -12,6 +12,9 @@ public sealed class PRosterStateLabel : IValueConverter
         LWorkState.LWorkStateRunning => LLocalization.LLocalizationTextRead("Roster.State.Running"),
         LWorkState.LWorkStateDone => LLocalization.LLocalizationTextRead("Roster.State.Done"),
         LWorkState.LWorkStateFailed => LLocalization.LLocalizationTextRead("Roster.State.Failed"),
+        LWorkState.LWorkStateUnresolved => LLocalization.LLocalizationTextRead("Roster.State.Unresolved"),
+        LWorkState.LWorkStatePartial => LLocalization.LLocalizationTextRead("Roster.State.Partial"),
+        LWorkState.LWorkStateBlocked => LLocalization.LLocalizationTextRead("Roster.State.Blocked"),
         LWorkState.LWorkStateCancelled => LLocalization.LLocalizationTextRead("Roster.State.Cancelled"),
         _ => pWorkState.ToString()
     };

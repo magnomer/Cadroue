@@ -6,5 +6,8 @@ public enum LWorkState
     LWorkStateRunning,
     LWorkStateDone,
     LWorkStateFailed,
+    LWorkStateUnresolved,
+    LWorkStatePartial,
+    LWorkStateBlocked,
     LWorkStateCancelled
 }

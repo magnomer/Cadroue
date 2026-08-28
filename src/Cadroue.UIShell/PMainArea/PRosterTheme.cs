@@ -33,12 +33,18 @@ internal static class PRosterTheme
     public static readonly Brush PRosterRunBrush = PRosterBrushCreate(0x3A, 0x8B, 0xE0);
     public static readonly Brush PRosterDoneBrush = PRosterBrushCreate(0x2F, 0x9E, 0x64);
     public static readonly Brush PRosterFailBrush = PRosterBrushCreate(0xD6, 0x45, 0x45);
+    public static readonly Brush PRosterUnresolvedBrush = PRosterBrushCreate(0xE0, 0x8A, 0x2E);
+    public static readonly Brush PRosterPartialBrush = PRosterBrushCreate(0xC7, 0x9A, 0x22);
+    public static readonly Brush PRosterBlockedBrush = PRosterBrushCreate(0x7A, 0x5A, 0x9E);
 
     public static Brush PRosterStateRead(LWorkState pWorkState) => pWorkState switch
     {
         LWorkState.LWorkStateRunning => PRosterRunBrush,
         LWorkState.LWorkStateDone => PRosterDoneBrush,
         LWorkState.LWorkStateFailed => PRosterFailBrush,
+        LWorkState.LWorkStateUnresolved => PRosterUnresolvedBrush,
+        LWorkState.LWorkStatePartial => PRosterPartialBrush,
+        LWorkState.LWorkStateBlocked => PRosterBlockedBrush,
         _ => PRosterMutedBrush
     };
 
