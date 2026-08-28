@@ -85,15 +85,18 @@ public static partial class LFix
         lFixStem = LEncoding.LEncodingShorten(lFixStem);
 
         string lFixBaseName = LFixNameNormalize(lFixStem);
-        string lFixFileName = LFixNameFormat(lFixOutput, lFixBaseName, lFixSourcePath);
+        string lFixFileName = LFixNameFormat(lFixBaseName, lFixSourcePath);
         return LFixSourceMatch(Path.Combine(lFixFolder, lFixFileName), lFixSourcePath)
-            ? LFixNameFormat(lFixOutput, $"{lFixBaseName}_fix", lFixSourcePath)
+            ? LFixNameFormat($"{lFixBaseName}_fix", lFixSourcePath)
             : lFixFileName;
     }
 
-    private static string LFixNameFormat(LEncoding lFixOutput, string lFixBaseName, string lFixSourcePath)
+    private static string LFixNameFormat(string lFixBaseName, string lFixSourcePath)
     {
-        string lFixExtension = lFixOutput.LEncodingExtensionResolve(lFixSourcePath);
+        // Fix is a source-representation pass-through: the copy stage keeps the source
+        // container and stream layout, so the destination extension must mirror the
+        // source, never the export preset's container.
+        string lFixExtension = Path.GetExtension(lFixSourcePath).TrimStart('.');
         return string.IsNullOrWhiteSpace(lFixExtension)
             ? lFixBaseName
             : $"{lFixBaseName}.{lFixExtension}";

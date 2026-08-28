@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -32,11 +33,21 @@ public static partial class LEncode
     {
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindFix)
         {
-            return new[]
+            LRemedyPlan lFixPlan = LRemedy.LRemedyPlanCreate(lWorkItem.LWorkDossiers);
+            var lFixStages = new List<LEncodeStage>
             {
-                new LEncodeStage(lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageDuplicate, "Copying", lWorkItem.LWorkOutputPath, false),
-                new LEncodeStage(lWorkItem.LWorkOutputPath, LWorkStage.LWorkStageVerify, "Validating", lWorkItem.LWorkOutputPath, false)
+                new(lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageDuplicate, "Copying", lWorkItem.LWorkOutputPath, false)
             };
+
+            foreach (LRemedyAction _ in lFixPlan.LRemedyActions)
+            {
+                lFixStages.Add(new LEncodeStage(
+                    string.Empty, LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false));
+            }
+
+            lFixStages.Add(new LEncodeStage(
+                lWorkItem.LWorkOutputPath, LWorkStage.LWorkStageVerify, "Validating", lWorkItem.LWorkOutputPath, false));
+            return lFixStages;
         }
 
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindAudio)

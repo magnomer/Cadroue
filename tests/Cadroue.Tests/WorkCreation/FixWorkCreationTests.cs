@@ -45,8 +45,8 @@ public sealed class FixWorkCreationTests
         LWorkItem item = Assert.Single(Create(new[] { source }, output, "fix-tab"));
 
         Assert.Equal(source, item.LWorkSourcePath);
-        Assert.Equal("scene_fixed.mkv", item.LWorkOutputName);
-        Assert.Equal(Path.Combine(folder, "scene_fixed.mkv"), item.LWorkOutputPath);
+        Assert.Equal("scene_fixed.mov", item.LWorkOutputName);
+        Assert.Equal(Path.Combine(folder, "scene_fixed.mov"), item.LWorkOutputPath);
         Assert.Equal("fix-tab", item.LWorkTab);
         Assert.Same(output, item.LWorkOutput);
     }

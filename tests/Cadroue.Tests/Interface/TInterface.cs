@@ -14,6 +14,18 @@ internal static class TInterface
     internal static bool ClassifierMatch(LSceneFunnelRule rule, string name) =>
         LClassifier.LClassifierMatch(rule, name);
 
+    internal static LRemedyPlan RemedyPlanCreate(IReadOnlyList<LDossier> dossiers) =>
+        LRemedy.LRemedyPlanCreate(dossiers);
+
+    internal static LDossier DossierDefectCreate(
+        string defect,
+        LDossierCategory category,
+        LDossierPreservation preservation = LDossierPreservation.LDossierPreservationLossless) =>
+        new(
+            defect, 1.0, string.Empty, string.Empty, string.Empty, string.Empty,
+            string.Empty, string.Empty, preservation, string.Empty, string.Empty,
+            string.Empty, LDossierValidation.LDossierValidationPassed, category);
+
     internal static int ClassifierRouteRead(IReadOnlyList<LSceneFunnelRule> rules, string name) =>
         LClassifier.LClassifierRouteRead(rules, name);
 

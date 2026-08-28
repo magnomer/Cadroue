@@ -74,6 +74,8 @@ public sealed class LWorkItem
 
     public IReadOnlyList<string> LWorkMergeSources { get; }
 
+    public IReadOnlyList<LDossier> LWorkDossiers { get; set; } = Array.Empty<LDossier>();
+
     public Guid LWorkRelayTarget { get; set; }
 
     public Guid LWorkRelaySource { get; set; }
