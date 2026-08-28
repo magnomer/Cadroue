@@ -117,9 +117,6 @@ public static partial class LSplit
             ? "{OriginalName}"
             : lSplitOutput.LEncodingNamePattern;
 
-        bool lSplitHasNumber = lSplitPattern.Contains("{SectionNumber}", StringComparison.OrdinalIgnoreCase);
-        bool lSplitHasSectionName = lSplitPattern.Contains("{SectionName}", StringComparison.OrdinalIgnoreCase);
-
         string lSplitResolvedSectionName = string.IsNullOrWhiteSpace(lSplitSectionName)
             ? $"Section {lSplitIndex + 1}"
             : lSplitSectionName;
@@ -137,11 +134,6 @@ public static partial class LSplit
             .Replace("{Time}", lSplitStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
         lSplitStem = LEncoding.LEncodingShorten(lSplitStem);
-
-        if (!lSplitHasNumber && !lSplitHasSectionName)
-        {
-            lSplitStem = $"{lSplitStem}_{lSplitResolvedSectionName}";
-        }
 
         string lSplitBaseName = LSplitNameNormalize(lSplitStem);
         string lSplitUniqueName = lSplitBaseName;
