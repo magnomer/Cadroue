@@ -43,6 +43,8 @@ public sealed class LWorkRecord
 
     public Guid LWorkOwnerRunner { get; set; }
 
+    public Guid LWorkSignet { get; set; }
+
     public DateTimeOffset LWorkLeaseTime { get; set; }
 
     public string LWorkPhaseName { get; set; } = nameof(LWorkPhase.LWorkPhaseNone);
@@ -88,6 +90,7 @@ public sealed class LWorkRecord
         LWorkOwnerProcess = lWorkItem.LWorkOwnerProcess,
         LWorkOwnerStamp = lWorkItem.LWorkOwnerStamp,
         LWorkOwnerRunner = lWorkItem.LWorkOwnerRunner,
+        LWorkSignet = lWorkItem.LWorkSignet,
         LWorkPhaseName = lWorkItem.LWorkPhaseCurrent.ToString(),
         LWorkAttemptCount = lWorkItem.LWorkAttemptCount,
         LWorkRecoverCount = lWorkItem.LWorkRecoverCount,
@@ -126,6 +129,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkOwnerProcess = LWorkOwnerProcess;
         lWorkItem.LWorkOwnerStamp = LWorkOwnerStamp;
         lWorkItem.LWorkOwnerRunner = LWorkOwnerRunner;
+        lWorkItem.LWorkSignet = LWorkSignet;
         lWorkItem.LWorkPhaseCurrent = LWorkEnumRead(LWorkPhaseName, LWorkPhase.LWorkPhaseNone);
         lWorkItem.LWorkAttemptCount = LWorkAttemptCount;
         lWorkItem.LWorkRecoverCount = LWorkRecoverCount;

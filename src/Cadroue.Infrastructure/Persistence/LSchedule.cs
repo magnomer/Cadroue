@@ -196,6 +196,8 @@ public sealed partial class LSchedule : LScheduleContract
                 lWorkItem.LWorkRelaySource = lScheduleRelaySource;
             }
 
+            lWorkItem.LWorkSignet = LSignet.LSignetCurrent;
+
             if (lWorkItem.LWorkLineage == Guid.Empty)
             {
                 lWorkItem.LWorkLineage = LScheduleLineage.LScheduleLineageResolve(lWorkItem, lScheduleItems);

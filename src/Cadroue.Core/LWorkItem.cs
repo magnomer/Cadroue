@@ -102,6 +102,8 @@ public sealed class LWorkItem
 
     public Guid LWorkOwnerRunner { get; set; }
 
+    public Guid LWorkSignet { get; set; }
+
     public LWorkPhase LWorkPhaseCurrent { get; set; }
 
     public LWorkStage LWorkStageCurrent { get; set; }
