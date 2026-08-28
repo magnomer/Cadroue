@@ -53,7 +53,7 @@ public sealed class RemedyTests
         LDossier lossy = TInterface.DossierDefectCreate(
             "b", LDossierCategory.LDossierCategoryPacket, LDossierPreservation.LDossierPreservationLossy);
         LDossier lossless = TInterface.DossierDefectCreate(
-            "a", LDossierCategory.LDossierCategoryPacket, LDossierPreservation.LDossierPreservationLossless);
+            "a", LDossierCategory.LDossierCategoryPacket, LDossierPreservation.LDossierPreservationExact);
 
         LRemedyPlan plan = TInterface.RemedyPlanCreate(new[] { lossy, lossless });
 

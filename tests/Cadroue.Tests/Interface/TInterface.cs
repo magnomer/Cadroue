@@ -17,10 +17,13 @@ internal static class TInterface
     internal static LRemedyPlan RemedyPlanCreate(IReadOnlyList<LDossier> dossiers) =>
         LRemedy.LRemedyPlanCreate(dossiers);
 
+    internal static LDossier? FlawContainerResolve(string probeError, string copyError) =>
+        LFlaw.LFlawContainerResolve(probeError, copyError);
+
     internal static LDossier DossierDefectCreate(
         string defect,
         LDossierCategory category,
-        LDossierPreservation preservation = LDossierPreservation.LDossierPreservationLossless) =>
+        LDossierPreservation preservation = LDossierPreservation.LDossierPreservationExact) =>
         new(
             defect, 1.0, string.Empty, string.Empty, string.Empty, string.Empty,
             string.Empty, string.Empty, preservation, string.Empty, string.Empty,

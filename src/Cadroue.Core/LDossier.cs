@@ -2,9 +2,12 @@ namespace Cadroue.Core;
 
 public enum LDossierPreservation
 {
-    LDossierPreservationLossless,
-    LDossierPreservationTransparent,
+    LDossierPreservationExact,
+    LDossierPreservationPacket,
+    LDossierPreservationCoded,
+    LDossierPreservationDecoded,
     LDossierPreservationLossy,
+    LDossierPreservationApproximate,
     LDossierPreservationUnknown
 }
 

@@ -42,7 +42,7 @@ public static partial class LEncode
             foreach (LRemedyAction lFixAction in lFixPlan.LRemedyActions)
             {
                 lFixStages.Add(new LEncodeStage(
-                    LEncodeRemedyBuild(lFixAction.LRemedyCategory), LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false));
+                    LEncodeRemedyBuild(lFixAction.LRemedyCategory, lWorkItem.LWorkOutputPath), LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false));
             }
 
             lFixStages.Add(new LEncodeStage(
@@ -112,10 +112,19 @@ public static partial class LEncode
         return lArguments.ToString();
     }
 
-    internal static string LEncodeRemedyBuild(LDossierCategory lRemedyCategory) =>
-        lRemedyCategory == LDossierCategory.LDossierCategoryReencode
-            ? "-map 0"
+    internal static string LEncodeRemedyBuild(LDossierCategory lRemedyCategory, string lRemedyOutputPath)
+    {
+        if (lRemedyCategory == LDossierCategory.LDossierCategoryReencode)
+        {
+            return "-map 0";
+        }
+
+        string lRemedyExtension = Path.GetExtension(lRemedyOutputPath).TrimStart('.').ToLowerInvariant();
+        bool lRemedyFaststart = lRemedyExtension is "mp4" or "m4v" or "m4a" or "mov";
+        return lRemedyFaststart
+            ? "-map 0 -c copy -movflags +faststart"
             : "-map 0 -c copy";
+    }
 
     internal static string LEncodeRepairBuild(string lInputPath, string lRemedy, string lOutputPath)
     {

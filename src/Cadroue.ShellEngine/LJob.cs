@@ -215,6 +215,11 @@ internal sealed partial class LJob
                     : $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': the item has edits or an fps change; encoding the full requested interval");
         }
 
+        if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix && lJobItem.LWorkDossiers.Count == 0)
+        {
+            lJobItem.LWorkDossiers = LFlawScan.LFlawScanRun(lJobItem, lJobToken);
+        }
+
         IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);
         if (pStages.Count == 0)
         {
