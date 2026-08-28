@@ -24,6 +24,7 @@ public enum LDossierCategory
     LDossierCategoryExact,
     LDossierCategoryContainer,
     LDossierCategoryMetadata,
+    LDossierCategoryIndex,
     LDossierCategoryPacket,
     LDossierCategoryTimeline,
     LDossierCategorySelective,

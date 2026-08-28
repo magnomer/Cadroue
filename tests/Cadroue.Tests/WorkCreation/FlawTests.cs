@@ -94,4 +94,55 @@ public sealed class FlawTests
         Assert.NotNull(dossier);
         Assert.Contains("stream count", dossier.Value.LDossierEvidenceSource, System.StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void CleanTraversal_ProducesNoIndexDossier()
+    {
+        Assert.Null(TInterface.FlawIndexResolve(string.Empty, string.Empty, string.Empty));
+    }
+
+    [Fact]
+    public void IndexDisagreement_ProducesIndexDossier()
+    {
+        LDossier? dossier = TInterface.FlawIndexResolve(
+            "[mov,mp4 @ 0x1] Invalid sample offset in stts at pos: 51200",
+            string.Empty,
+            string.Empty);
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryIndex, dossier.Value.LDossierCategory);
+        Assert.Equal(LDossierPreservation.LDossierPreservationPacket, dossier.Value.LDossierPreservation);
+        Assert.Equal(LDossierValidation.LDossierValidationUntested, dossier.Value.LDossierValidation);
+        Assert.Contains("51200", dossier.Value.LDossierScope, System.StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SeekFailure_ProducesIndexDossier()
+    {
+        LDossier? dossier = TInterface.FlawIndexResolve(
+            string.Empty,
+            string.Empty,
+            "[mov,mp4 @ 0x1] Could not seek to timestamp 27.000000");
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryIndex, dossier.Value.LDossierCategory);
+    }
+
+    [Fact]
+    public void UnreliableBoundaries_ProduceNoIndexDossier()
+    {
+        Assert.Null(TInterface.FlawIndexResolve(
+            "[mov,mp4 @ 0x1] Invalid sample offset at pos: 51200",
+            "[h264 @ 0x1] Invalid NAL unit size",
+            string.Empty));
+    }
+
+    [Fact]
+    public void MissingOptionalIndex_IsNotAnIndexDefect()
+    {
+        Assert.Null(TInterface.FlawIndexResolve(
+            "[matroska @ 0x1] Could not find Cues element; seeking will be slow",
+            string.Empty,
+            string.Empty));
+    }
 }
