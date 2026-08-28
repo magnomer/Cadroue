@@ -1,0 +1,43 @@
+{
+  "LPresetName": "Preservation - FFV1 FLAC",
+  "LPresetDisplay": "{OriginalName}_export",
+  "LPresetContainer": "Matroska",
+  "LPresetExtension": "mkv",
+  "LPresetCollision": "Overwrite",
+  "LPresetCollisionSuffix": "",
+  "LPresetOutputSuffix": "(output)",
+  "LPresetSourceSuffix": "(original)",
+  "LPresetLocation": "Same as source",
+  "LPresetLocationFolder": "",
+  "LPresetLocationSubfolder": "",
+  "LPresetLocationSibling": "",
+  "LPresetLocationCustom": "",
+  "LPresetVideo": {
+    "LPresetStream": "Include",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "FFV1, native / ffv1",
+    "LPresetRateControl": "Lossless (only mode)",
+    "LPresetQuality": "",
+    "LPresetSpeedPreset": "",
+    "LPresetSize": "Same as source",
+    "LPresetSizeReactive": false,
+    "LPresetFps": "Same as source",
+    "LPresetPixelLayout": "Auto",
+    "LPresetExtras": {
+      "-coder": "rice",
+      "-context": "0",
+      "-slicecrc": "1"
+    }
+  },
+  "LPresetAudio": {
+    "LPresetStream": "Include all audio tracks",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "FLAC, native / flac",
+    "LPresetRateControl": "Lossless compression",
+    "LPresetQuality": "",
+    "LPresetSpeed": "8",
+    "LPresetExtras": {},
+    "LPresetSampleRate": "Same as source",
+    "LPresetChannels": "Same as source"
+  }
+}

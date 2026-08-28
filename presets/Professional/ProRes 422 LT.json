@@ -1,0 +1,41 @@
+{
+  "LPresetName": "Professional - ProRes 422 LT",
+  "LPresetDisplay": "{OriginalName}_export",
+  "LPresetContainer": "MOV",
+  "LPresetExtension": "mov",
+  "LPresetCollision": "Overwrite",
+  "LPresetCollisionSuffix": "",
+  "LPresetOutputSuffix": "(output)",
+  "LPresetSourceSuffix": "(original)",
+  "LPresetLocation": "Same as source",
+  "LPresetLocationFolder": "",
+  "LPresetLocationSubfolder": "",
+  "LPresetLocationSibling": "",
+  "LPresetLocationCustom": "",
+  "LPresetVideo": {
+    "LPresetStream": "Include",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "ProRes, Kostya / prores_ks",
+    "LPresetRateControl": "Constant quantizer (qscale)",
+    "LPresetQuality": "11",
+    "LPresetSpeedPreset": "",
+    "LPresetSize": "Same as source",
+    "LPresetSizeReactive": false,
+    "LPresetFps": "Same as source",
+    "LPresetPixelLayout": "Auto",
+    "LPresetExtras": {
+      "-profile:v": "lt"
+    }
+  },
+  "LPresetAudio": {
+    "LPresetStream": "Include first audio track",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "PCM signed 24-bit LE / pcm_s24le",
+    "LPresetRateControl": "Uncompressed",
+    "LPresetQuality": "",
+    "LPresetSpeed": "",
+    "LPresetExtras": {},
+    "LPresetSampleRate": "Same as source",
+    "LPresetChannels": "Same as source"
+  }
+}

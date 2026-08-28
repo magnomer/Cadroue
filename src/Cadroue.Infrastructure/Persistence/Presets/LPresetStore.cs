@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 
 using Cadroue.Core;
@@ -9,6 +10,74 @@ public static class LPresetStore
 {
     private const string LPresetFolderName = "Cadroue";
     private const string LPresetFileName = "LExportSpecificPresets.json";
+    private const string LPresetResourcePrefix = "presets/";
+
+    public static IReadOnlyList<LPresetGroup> LPresetNativeLoad()
+    {
+        Assembly lAssembly = typeof(LPresetStore).Assembly;
+        IEnumerable<string> lResourceNames = lAssembly.GetManifestResourceNames()
+            .Where(lName => lName.StartsWith(LPresetResourcePrefix, StringComparison.Ordinal)
+                && lName.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
+
+        return LPresetGroupsLoad(
+            lResourceNames,
+            lResourceName => lResourceName[LPresetResourcePrefix.Length..],
+            lResourceName =>
+            {
+                using Stream lStream = lAssembly.GetManifestResourceStream(lResourceName)
+                    ?? throw new InvalidDataException($"Native preset resource is unavailable: {lResourceName}");
+                return JsonSerializer.Deserialize<LPresetRecord>(lStream);
+            });
+    }
+
+    public static IReadOnlyList<LPresetGroup> LPresetNativeLoad(string lPresetFolderPath)
+    {
+        IEnumerable<string> lFilePaths = Directory.EnumerateFiles(
+            lPresetFolderPath,
+            "*.json",
+            SearchOption.AllDirectories);
+        return LPresetGroupsLoad(
+            lFilePaths,
+            lFilePath => Path.GetRelativePath(lPresetFolderPath, lFilePath).Replace('\\', '/'),
+            LPresetFileLoad);
+    }
+
+    private static IReadOnlyList<LPresetGroup> LPresetGroupsLoad(
+        IEnumerable<string> lSources,
+        Func<string, string> lRelativeRead,
+        Func<string, LPresetRecord?> lPresetRead)
+    {
+        var lGroups = new SortedDictionary<string, List<(string Path, LPresetRecord Record)>>(StringComparer.OrdinalIgnoreCase);
+        foreach (string lSource in lSources)
+        {
+            string lRelativePath = lRelativeRead(lSource).Replace('\\', '/');
+            int lSeparatorIndex = lRelativePath.IndexOf('/');
+            if (lSeparatorIndex <= 0)
+            {
+                continue;
+            }
+
+            string lGroupName = lRelativePath[..lSeparatorIndex];
+            LPresetRecord lRecord = lPresetRead(lSource)
+                ?? throw new InvalidDataException($"Native preset is invalid: {lSource}");
+            if (!lGroups.TryGetValue(lGroupName, out List<(string Path, LPresetRecord Record)>? lGroupRecords))
+            {
+                lGroupRecords = [];
+                lGroups.Add(lGroupName, lGroupRecords);
+            }
+
+            lGroupRecords.Add((lRelativePath, lRecord));
+        }
+
+        return lGroups
+            .Select(lGroup => new LPresetGroup(
+                lGroup.Key,
+                lGroup.Value
+                    .OrderBy(lEntry => lEntry.Path, StringComparer.OrdinalIgnoreCase)
+                    .Select(lEntry => lEntry.Record)
+                    .ToArray()))
+            .ToArray();
+    }
 
     public static IReadOnlyList<LPresetRecord>? LPresetLoad()
     {

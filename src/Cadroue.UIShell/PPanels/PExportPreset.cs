@@ -15,6 +15,7 @@ public sealed partial class PExport
     private const string PExportSettingIcon = "/PAssets/PPanels/PExportSetting.svg";
     private const string PExportImportIcon = "/PAssets/PPanels/PExportImport.svg";
     private const string PExportExportIcon = "/PAssets/PPanels/PExportExport.svg";
+    private const string PExportUserGroupPreference = "$User";
     private const string PExportCheckIcon = "/PAssets/PPanels/PExportCheck.svg";
     private const string PExportCancelIcon = "/PAssets/PPanels/PExportCancel.svg";
     private const string PExportCollapseIcon = "/PAssets/PPanels/PExportCollapse.svg";
@@ -44,30 +45,39 @@ public sealed partial class PExport
         try
         {
             pPresetRowPanel.Children.Clear();
-            bool pNativeHeaderAdded = false;
+            string? pNativeGroupCurrent = null;
             bool pUserHeaderAdded = false;
             foreach (string lPresetName in LPreset.LPresetNames)
             {
                 bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
-                if (pPresetNative && !pNativeHeaderAdded)
+                string? pGroupName = pPresetNative ? LPreset.LPresetGroupRead(lPresetName) : null;
+                if (pPresetNative
+                    && pGroupName is not null
+                    && !string.Equals(pNativeGroupCurrent, pGroupName, StringComparison.OrdinalIgnoreCase))
                 {
                     pPresetRowPanel.Children.Add(PExportGroupBuild(
-                        LLocalization.LLocalizationTextRead("ExportPreset.Group.Native"),
-                        pExportNativeCollapsed,
-                        PExportNativeToggle));
-                    pNativeHeaderAdded = true;
+                        pGroupName,
+                        LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(pGroupName),
+                        () => PExportGroupToggle(pGroupName)));
+                    pNativeGroupCurrent = pGroupName;
                 }
                 else if (!pPresetNative && !pUserHeaderAdded)
                 {
                     pPresetRowPanel.Children.Add(PExportGroupBuild(
                         LLocalization.LLocalizationTextRead("ExportPreset.Group.User"),
-                        pExportUserCollapsed,
+                        LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(
+                            PExportUserGroupPreference,
+                            false),
                         PExportUserToggle));
                     pUserHeaderAdded = true;
                 }
 
                 Border pRow = PExportRowBuild(lPresetName, lWorking);
-                bool pCollapsed = pPresetNative ? pExportNativeCollapsed : pExportUserCollapsed;
+                bool pCollapsed = pPresetNative && pGroupName is not null
+                    ? LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(pGroupName)
+                    : LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(
+                        PExportUserGroupPreference,
+                        false);
                 pRow.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
                 pPresetRowPanel.Children.Add(pRow);
             }
@@ -211,15 +221,19 @@ public sealed partial class PExport
         };
     }
 
-    private void PExportNativeToggle()
+    private void PExportGroupToggle(string pGroupName)
     {
-        pExportNativeCollapsed = !pExportNativeCollapsed;
+        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(pGroupName);
+        LPreference.LPreferencePresetGroupFoldedSet(pGroupName, !pCollapsed);
         PExportPresetRebuild();
     }
 
     private void PExportUserToggle()
     {
-        pExportUserCollapsed = !pExportUserCollapsed;
+        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(
+            PExportUserGroupPreference,
+            false);
+        LPreference.LPreferencePresetGroupFoldedSet(PExportUserGroupPreference, !pCollapsed, false);
         PExportPresetRebuild();
     }
 

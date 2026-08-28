@@ -8,6 +8,7 @@ public sealed class LPresetSelection
     public static Action<string, LPresetRecord>? LPresetSaveSeam;
     public static Func<string, string, LPresetRecord, bool>? LPresetRenameSeam;
     public static Func<LPresetRecord, LEncoding>? LPresetOutputSeam;
+    public static Func<string, bool>? LPresetNativeSeam;
 
     private LPresetRecord lPresetSelectionValue;
 
@@ -81,7 +82,7 @@ public sealed class LPresetSelection
         string lName = lNewName.Trim();
         if (string.IsNullOrWhiteSpace(lName)
             || string.Equals(lOldName, lName, StringComparison.OrdinalIgnoreCase)
-            || LPreset.LPresetNativeCheck(lOldName)
+            || (LPresetNativeSeam?.Invoke(lOldName) ?? LPreset.LPresetNativeCheck(lOldName))
             || LPreset.LPresetNames.Any(lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
         {
             return false;

@@ -1,0 +1,41 @@
+{
+  "LPresetName": "Matroska - H.265",
+  "LPresetDisplay": "{OriginalName}_export",
+  "LPresetContainer": "Matroska",
+  "LPresetExtension": "mkv",
+  "LPresetCollision": "Overwrite",
+  "LPresetCollisionSuffix": "",
+  "LPresetOutputSuffix": "(output)",
+  "LPresetSourceSuffix": "(original)",
+  "LPresetLocation": "Same as source",
+  "LPresetLocationFolder": "",
+  "LPresetLocationSubfolder": "",
+  "LPresetLocationSibling": "",
+  "LPresetLocationCustom": "",
+  "LPresetVideo": {
+    "LPresetStream": "Include",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "H.265, x265 / libx265",
+    "LPresetRateControl": "CRF (constant quality)",
+    "LPresetQuality": "25",
+    "LPresetSpeedPreset": "medium",
+    "LPresetSize": "Same as source",
+    "LPresetSizeReactive": false,
+    "LPresetFps": "Same as source",
+    "LPresetPixelLayout": "Auto",
+    "LPresetExtras": {
+      "-tune": "none"
+    }
+  },
+  "LPresetAudio": {
+    "LPresetStream": "Include first audio track",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "AAC, native / aac",
+    "LPresetRateControl": "Target bitrate",
+    "LPresetQuality": "192k",
+    "LPresetSpeed": "",
+    "LPresetExtras": {},
+    "LPresetSampleRate": "Same as source",
+    "LPresetChannels": "stereo"
+  }
+}

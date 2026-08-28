@@ -1,0 +1,41 @@
+{
+  "LPresetName": "Hardware - AV1 NVENC",
+  "LPresetDisplay": "{OriginalName}_export",
+  "LPresetContainer": "MP4",
+  "LPresetExtension": "mp4",
+  "LPresetCollision": "Overwrite",
+  "LPresetCollisionSuffix": "",
+  "LPresetOutputSuffix": "(output)",
+  "LPresetSourceSuffix": "(original)",
+  "LPresetLocation": "Same as source",
+  "LPresetLocationFolder": "",
+  "LPresetLocationSubfolder": "",
+  "LPresetLocationSibling": "",
+  "LPresetLocationCustom": "",
+  "LPresetVideo": {
+    "LPresetStream": "Include",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "AV1, NVIDIA NVENC / av1_nvenc",
+    "LPresetRateControl": "Constant quality (VBR + CQ)",
+    "LPresetQuality": "23",
+    "LPresetSpeedPreset": "p5",
+    "LPresetSize": "Same as source",
+    "LPresetSizeReactive": false,
+    "LPresetFps": "Same as source",
+    "LPresetPixelLayout": "Auto",
+    "LPresetExtras": {
+      "-tune": "hq"
+    }
+  },
+  "LPresetAudio": {
+    "LPresetStream": "Include first audio track",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "AAC, native / aac",
+    "LPresetRateControl": "Target bitrate",
+    "LPresetQuality": "192k",
+    "LPresetSpeed": "",
+    "LPresetExtras": {},
+    "LPresetSampleRate": "Same as source",
+    "LPresetChannels": "stereo"
+  }
+}

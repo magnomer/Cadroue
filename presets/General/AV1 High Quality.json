@@ -1,0 +1,39 @@
+{
+  "LPresetName": "General - AV1 High Quality",
+  "LPresetDisplay": "{OriginalName}_export",
+  "LPresetContainer": "MP4",
+  "LPresetExtension": "mp4",
+  "LPresetCollision": "Overwrite",
+  "LPresetCollisionSuffix": "",
+  "LPresetOutputSuffix": "(output)",
+  "LPresetSourceSuffix": "(original)",
+  "LPresetLocation": "Same as source",
+  "LPresetLocationFolder": "",
+  "LPresetLocationSubfolder": "",
+  "LPresetLocationSibling": "",
+  "LPresetLocationCustom": "",
+  "LPresetVideo": {
+    "LPresetStream": "Include",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "AV1, SVT-AV1 / libsvtav1",
+    "LPresetRateControl": "CRF (constant rate factor)",
+    "LPresetQuality": "30",
+    "LPresetSpeedPreset": "6",
+    "LPresetSize": "Same as source",
+    "LPresetSizeReactive": false,
+    "LPresetFps": "Same as source",
+    "LPresetPixelLayout": "Auto",
+    "LPresetExtras": {}
+  },
+  "LPresetAudio": {
+    "LPresetStream": "Include first audio track",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "AAC, native / aac",
+    "LPresetRateControl": "Target bitrate",
+    "LPresetQuality": "256k",
+    "LPresetSpeed": "",
+    "LPresetExtras": {},
+    "LPresetSampleRate": "Same as source",
+    "LPresetChannels": "stereo"
+  }
+}

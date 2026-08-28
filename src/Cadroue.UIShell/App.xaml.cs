@@ -192,6 +192,7 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LSegment.LSegmentSaveSeam = (lSidecarSourcePath, lSidecarSections) =>
             Cadroue.Infrastructure.LSidecarStore.LSidecarSectionsSave(lSidecarSourcePath, lSidecarSections);
         LPresetSelectionAttach();
+        LPreset.LPresetNativeSeam = LPresetStore.LPresetNativeLoad;
         LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;
         LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
         LPreset.LPresetPrepare();

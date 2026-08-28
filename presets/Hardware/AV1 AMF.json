@@ -1,0 +1,42 @@
+{
+  "LPresetName": "Hardware - AV1 AMF",
+  "LPresetDisplay": "{OriginalName}_export",
+  "LPresetContainer": "MP4",
+  "LPresetExtension": "mp4",
+  "LPresetCollision": "Overwrite",
+  "LPresetCollisionSuffix": "",
+  "LPresetOutputSuffix": "(output)",
+  "LPresetSourceSuffix": "(original)",
+  "LPresetLocation": "Same as source",
+  "LPresetLocationFolder": "",
+  "LPresetLocationSubfolder": "",
+  "LPresetLocationSibling": "",
+  "LPresetLocationCustom": "",
+  "LPresetVideo": {
+    "LPresetStream": "Include",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "AV1, AMD AMF / av1_amf",
+    "LPresetRateControl": "QVBR (quality VBR)",
+    "LPresetQuality": "23",
+    "LPresetSpeedPreset": "quality",
+    "LPresetSize": "Same as source",
+    "LPresetSizeReactive": false,
+    "LPresetFps": "Same as source",
+    "LPresetPixelLayout": "Auto",
+    "LPresetExtras": {
+      "-usage": "transcoding",
+      "-latency": "none"
+    }
+  },
+  "LPresetAudio": {
+    "LPresetStream": "Include first audio track",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "AAC, native / aac",
+    "LPresetRateControl": "Target bitrate",
+    "LPresetQuality": "192k",
+    "LPresetSpeed": "",
+    "LPresetExtras": {},
+    "LPresetSampleRate": "Same as source",
+    "LPresetChannels": "stereo"
+  }
+}

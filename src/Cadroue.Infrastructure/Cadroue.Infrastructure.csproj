@@ -12,6 +12,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="..\..\presets\**\*.json"
+                      Link="presets\%(RecursiveDir)%(Filename)%(Extension)"
+                      LogicalName="presets/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!--
       Backs work.db. Carries a native e_sqlite3 per runtime identifier, so the shell must
       set IncludeNativeLibrariesForSelfExtract for the single-file publish to unpack it.

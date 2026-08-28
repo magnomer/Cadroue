@@ -98,6 +98,23 @@ public static class LPreference
         LPreferenceStateSet(lPreferenceNext);
     }
 
+    public static void LPreferencePresetGroupFoldedSet(
+        string lPreferenceGroupName,
+        bool lPreferenceGroupFolded,
+        bool lPreferenceFallback = true)
+    {
+        string lGroupName = (lPreferenceGroupName ?? string.Empty).Trim();
+        if (string.IsNullOrEmpty(lGroupName)
+            || LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(lGroupName, lPreferenceFallback) == lPreferenceGroupFolded)
+        {
+            return;
+        }
+
+        LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
+        lPreferenceNext.LPreferencePresetGroupFolded[lGroupName] = lPreferenceGroupFolded;
+        LPreferenceStateSet(lPreferenceNext);
+    }
+
     public static void LPreferenceSaveCommit()
     {
         LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent);

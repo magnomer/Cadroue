@@ -1,0 +1,41 @@
+{
+  "LPresetName": "Merge (default)",
+  "LPresetDisplay": "{OriginalName}",
+  "LPresetContainer": "Same as source",
+  "LPresetExtension": "",
+  "LPresetCollision": "Overwrite",
+  "LPresetCollisionSuffix": "",
+  "LPresetOutputSuffix": "(output)",
+  "LPresetSourceSuffix": "(original)",
+  "LPresetLocation": "Same as source",
+  "LPresetLocationFolder": "",
+  "LPresetLocationSubfolder": "",
+  "LPresetLocationSibling": "",
+  "LPresetLocationCustom": "",
+  "LPresetVideo": {
+    "LPresetStream": "Include",
+    "LPresetMode": "Copy",
+    "LPresetEncoder": "H.264, x264 / libx264",
+    "LPresetRateControl": "CRF (constant quality)",
+    "LPresetQuality": "28",
+    "LPresetSpeedPreset": "medium",
+    "LPresetSize": "Same as source",
+    "LPresetSizeReactive": false,
+    "LPresetFps": "Same as source",
+    "LPresetPixelLayout": "Auto",
+    "LPresetExtras": {
+      "-tune": "none"
+    }
+  },
+  "LPresetAudio": {
+    "LPresetStream": "Include first audio track",
+    "LPresetMode": "Copy",
+    "LPresetEncoder": "AAC, native / aac",
+    "LPresetRateControl": "Target bitrate",
+    "LPresetQuality": "192k",
+    "LPresetSpeed": "",
+    "LPresetExtras": {},
+    "LPresetSampleRate": "Same as source",
+    "LPresetChannels": "Same as source"
+  }
+}

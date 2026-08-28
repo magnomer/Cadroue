@@ -112,6 +112,16 @@ internal static class TInterface
     internal static void PreferenceNormalize(LPreferenceState state) => state.LPreferenceNormalize();
     internal static IEnumerable<string> PreferenceDifferenceRead(LPreferenceState state, LPreferenceState before) =>
         state.LPreferenceDifferenceRead(before);
+    internal static bool PreferencePresetGroupFoldedRead(
+        LPreferenceState state,
+        string groupName,
+        bool fallback = true) =>
+        state.LPreferencePresetGroupFoldedRead(groupName, fallback);
+    internal static void PreferencePresetGroupFoldedSet(
+        LPreferenceState state,
+        string groupName,
+        bool folded) =>
+        state.LPreferencePresetGroupFolded[groupName] = folded;
 
     internal static LGroupSelection GroupSelectionCreate(
         bool groupAuto = false,

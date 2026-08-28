@@ -1,0 +1,44 @@
+{
+  "LPresetName": "Matroska - AV1",
+  "LPresetDisplay": "{OriginalName}_export",
+  "LPresetContainer": "Matroska",
+  "LPresetExtension": "mkv",
+  "LPresetCollision": "Overwrite",
+  "LPresetCollisionSuffix": "",
+  "LPresetOutputSuffix": "(output)",
+  "LPresetSourceSuffix": "(original)",
+  "LPresetLocation": "Same as source",
+  "LPresetLocationFolder": "",
+  "LPresetLocationSubfolder": "",
+  "LPresetLocationSibling": "",
+  "LPresetLocationCustom": "",
+  "LPresetVideo": {
+    "LPresetStream": "Include",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "AV1, SVT-AV1 / libsvtav1",
+    "LPresetRateControl": "CRF (constant rate factor)",
+    "LPresetQuality": "35",
+    "LPresetSpeedPreset": "8",
+    "LPresetSize": "Same as source",
+    "LPresetSizeReactive": false,
+    "LPresetFps": "Same as source",
+    "LPresetPixelLayout": "Auto",
+    "LPresetExtras": {}
+  },
+  "LPresetAudio": {
+    "LPresetStream": "Include first audio track",
+    "LPresetMode": "Encode",
+    "LPresetEncoder": "Opus, libopus / libopus",
+    "LPresetRateControl": "Target bitrate",
+    "LPresetQuality": "160k",
+    "LPresetSpeed": "10",
+    "LPresetExtras": {
+      "-vbr": "on",
+      "-application": "audio",
+      "-frame_duration": "20",
+      "-fec": "0"
+    },
+    "LPresetSampleRate": "Same as source",
+    "LPresetChannels": "stereo"
+  }
+}

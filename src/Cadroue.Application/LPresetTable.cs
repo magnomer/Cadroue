@@ -7,8 +7,11 @@ namespace Cadroue.Application;
 public sealed partial class LPreset
 {
     private static readonly Dictionary<string, LPreset> LPresetMap = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> LPresetNativeNames = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string> LPresetGroupMap = new(StringComparer.OrdinalIgnoreCase);
 
     public static Func<IReadOnlyList<LPresetRecord>?>? LPresetLoadSeam;
+    public static Func<IReadOnlyList<LPresetGroup>>? LPresetNativeSeam;
     public static Action<IReadOnlyList<LPresetRecord>>? LPresetSaveSeam;
 
     private static bool LPresetPrepared;
@@ -21,9 +24,14 @@ public sealed partial class LPreset
         }
         LPresetPrepared = true;
 
-        LPresetNativeAdd(LPresetAudioCreate());
-        LPresetNativeAdd(LPresetSplitCreate());
-        LPresetNativeAdd(LPresetMergeCreate());
+        IReadOnlyList<LPresetGroup> lNativeGroups = LPresetNativeSeam?.Invoke() ?? [];
+        foreach (LPresetGroup lGroup in lNativeGroups)
+        {
+            foreach (LPresetRecord lRecord in lGroup.LPresetGroupPresets)
+            {
+                LPresetNativeAdd(lRecord, lGroup.LPresetGroupName);
+            }
+        }
         IReadOnlyList<LPresetRecord>? lStoredPresets = LPresetLoadSeam?.Invoke();
         if (lStoredPresets is null)
         {
@@ -38,9 +46,18 @@ public sealed partial class LPreset
         }
     }
 
-    private static void LPresetNativeAdd(LPreset lPreset)
+    private static void LPresetNativeAdd(LPresetRecord lRecord, string lGroupName)
     {
+        LPreset lPreset = LPresetStateCreate(lRecord);
+        if (string.IsNullOrWhiteSpace(lPreset.LPresetName))
+        {
+            return;
+        }
+
+        lPreset.LPresetName = lPreset.LPresetName.Trim();
         LPresetMap[lPreset.LPresetName] = lPreset.LPresetClone();
+        LPresetNativeNames.Add(lPreset.LPresetName);
+        LPresetGroupMap[lPreset.LPresetName] = lGroupName;
         LPresetNames.Add(lPreset.LPresetName);
     }
 
@@ -71,7 +88,6 @@ public sealed partial class LPreset
         var lPresetState = new LPreset();
         string? lPresetName = lPresetTabKey switch
         {
-            "Audio" => LPresetAudioDefault,
             "Split" => LPresetSplitDefault,
             "Merge" => LPresetMergeDefault,
             _ => null
@@ -359,13 +375,13 @@ public sealed partial class LPreset
     }
 
     public static bool LPresetNativeCheck(string lPresetName) =>
-        string.Equals(lPresetName, LPresetAudioDefault, StringComparison.OrdinalIgnoreCase)
-        || string.Equals(lPresetName, LPresetSplitDefault, StringComparison.OrdinalIgnoreCase)
-        || string.Equals(lPresetName, LPresetMergeDefault, StringComparison.OrdinalIgnoreCase);
+        LPresetNativeNames.Contains(lPresetName);
+
+    public static string? LPresetGroupRead(string lPresetName) =>
+        LPresetGroupMap.TryGetValue(lPresetName, out string? lGroupName) ? lGroupName : null;
 
     public static string LPresetDisplayRead(string lPresetName) => lPresetName switch
     {
-        LPresetAudioDefault => "Audio",
         LPresetSplitDefault => "Split",
         LPresetMergeDefault => "Merge",
         _ => lPresetName

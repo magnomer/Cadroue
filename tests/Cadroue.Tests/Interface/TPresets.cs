@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 using Xunit;
 
@@ -10,7 +11,7 @@ public sealed class LPresetCollection { }
 
 public sealed class TPresets : IDisposable
 {
-    public string NativeDefaultName => LPreset.LPresetAudioDefault;
+    public string NativeDefaultName => LPreset.LPresetSplitDefault;
 
     public void SeedNames(params string[] names)
     {
@@ -22,6 +23,8 @@ public sealed class TPresets : IDisposable
 
         LPresetSelection.LPresetLoadSeam = name => new LPresetRecord { LPresetName = name };
         LPresetSelection.LPresetRenameSeam = (old, renamed, record) => true;
+        LPresetSelection.LPresetNativeSeam = name =>
+            string.Equals(name, NativeDefaultName, StringComparison.OrdinalIgnoreCase);
     }
 
     public string CreateUniqueName(string baseName) => LPreset.LPresetNameCreate(baseName);
@@ -29,6 +32,29 @@ public sealed class TPresets : IDisposable
     public string FileName(string raw) => LPreset.LPresetFileFormat(raw);
 
     public string ImportName(string stored, string path) => LPreset.LPresetNameResolve(stored, path);
+
+    public IReadOnlyList<(string Name, IReadOnlyList<string> Presets)> NativeLoad() =>
+        LPresetStore.LPresetNativeLoad()
+            .Select(group => (
+                group.LPresetGroupName,
+                (IReadOnlyList<string>)group.LPresetGroupPresets.Select(record => record.LPresetName).ToArray()))
+            .ToArray();
+
+    public IReadOnlyList<(string Name, IReadOnlyList<string> Presets)> NativeLoad(string folderPath) =>
+        LPresetStore.LPresetNativeLoad(folderPath)
+            .Select(group => (
+                group.LPresetGroupName,
+                (IReadOnlyList<string>)group.LPresetGroupPresets.Select(record => record.LPresetName).ToArray()))
+            .ToArray();
+
+    public bool NativeFormatValid() => LPresetStore.LPresetNativeLoad()
+        .SelectMany(group => group.LPresetGroupPresets)
+        .All(record => record.LPresetVideo is not null
+            && record.LPresetAudio is not null
+            && !string.IsNullOrWhiteSpace(record.LPresetDisplay));
+
+    public void NativeSave(string name, string path) =>
+        LPresetStore.LPresetFileSave(new LPresetRecord { LPresetName = name }, path);
 
     public (bool Ok, string SelectionName) RenameSelection(string current, string old, string renamed)
     {
@@ -55,5 +81,6 @@ public sealed class TPresets : IDisposable
         LPreset.LPresetNames.Clear();
         LPresetSelection.LPresetLoadSeam = null;
         LPresetSelection.LPresetRenameSeam = null;
+        LPresetSelection.LPresetNativeSeam = null;
     }
 }
