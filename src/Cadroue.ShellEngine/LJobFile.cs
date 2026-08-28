@@ -42,6 +42,46 @@ internal sealed partial class LJob
         }
     }
 
+    private (int, string) LJobValidateRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
+    {
+        string pOutput = pStage.LEncodeStagePath;
+        lJobOwner.LRunnerDispatch(() =>
+        {
+            lJobItem.LWorkProgress = 0;
+            lJobItem.LWorkStageCurrent = pStage.LEncodeStageKind;
+            lJobItem.LWorkMessage = pStageCount > 1
+                ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
+                : string.Empty;
+            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
+        });
+
+        LWorkMedia? pOutputMedia = LScout.LScoutMediaRead(pOutput, lJobToken);
+        if (pOutputMedia is null)
+        {
+            lJobValidateState = LWorkState.LWorkStateUnresolved;
+            lJobValidateMessage = "Validation: the repaired output could not be re-probed; the defect is still present.";
+        }
+        else if (!LScout.LScoutDecodeCheck(pOutput, lJobToken))
+        {
+            lJobValidateState = LWorkState.LWorkStatePartial;
+            lJobValidateMessage = "Validation: the output re-probes but still reports decode errors; damage was reduced, not resolved.";
+        }
+        else
+        {
+            lJobValidateState = LWorkState.LWorkStateDone;
+            lJobValidateMessage = string.Empty;
+        }
+
+        LRunner.LRunnerRecord(
+            $"Validating '{lJobItem.LWorkOutputName}': re-probed '{Path.GetFileName(pOutput)}' → {lJobValidateState}");
+        lJobOwner.LRunnerDispatch(() =>
+        {
+            lJobItem.LWorkProgress = 1;
+            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
+        });
+        return (0, string.Empty);
+    }
+
     private static string LJobPathResolve(string pPath, string pSuffix)
     {
         string pFolder = Path.GetDirectoryName(pPath) ?? string.Empty;

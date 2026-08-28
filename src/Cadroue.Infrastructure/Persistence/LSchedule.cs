@@ -281,9 +281,8 @@ public sealed partial class LSchedule : LScheduleContract
     public void LScheduleCommit(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage)
     {
         lScheduleLiveItems.Remove(lWorkItem.LWorkId);
-        LDepotFolder lScheduleTarget = lScheduleSucceeded
-            ? LDepotFolder.LDepotFolderDone
-            : LDepotFolder.LDepotFolderFailed;
+        LWorkState lScheduleState = lWorkItem.LWorkStateCurrent;
+        LDepotFolder lScheduleTarget = LScheduleFolderResolve(lScheduleState, lScheduleSucceeded);
 
         if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, lScheduleTarget))
         {
@@ -293,12 +292,10 @@ public sealed partial class LSchedule : LScheduleContract
         }
 
         LTraceLog.LTraceInfoRecord(
-            $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] committed as {(lScheduleSucceeded ? "done" : "failed")}");
+            $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] committed as {lScheduleState}");
 
         var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
-        lWorkRecord.LWorkStateName = lScheduleSucceeded
-            ? nameof(LWorkState.LWorkStateDone)
-            : nameof(LWorkState.LWorkStateFailed);
+        lWorkRecord.LWorkStateName = lScheduleState.ToString();
         lWorkRecord.LWorkMessage = lScheduleMessage;
         lWorkRecord.LWorkProgress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
         if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, lScheduleTarget))
@@ -538,13 +535,29 @@ public sealed partial class LSchedule : LScheduleContract
             .Select(LScheduleStore.LScheduleRecordRead)
             .Any(lWorkRecord => lWorkRecord is { } lScheduleRecord && LScheduleSignetMatch(lScheduleRecord));
 
+    private static LDepotFolder LScheduleFolderResolve(LWorkState lWorkState, bool lScheduleSucceeded) =>
+        lWorkState switch
+        {
+            LWorkState.LWorkStatePartial => LDepotFolder.LDepotFolderDone,
+            LWorkState.LWorkStateUnresolved => LDepotFolder.LDepotFolderFailed,
+            LWorkState.LWorkStateBlocked => LDepotFolder.LDepotFolderFailed,
+            _ => lScheduleSucceeded ? LDepotFolder.LDepotFolderDone : LDepotFolder.LDepotFolderFailed
+        };
+
     private static LWorkState LScheduleStateRead(LDepotFolder lDepotFolder, LWorkState lScheduleFileState) =>
         lDepotFolder switch
         {
             LDepotFolder.LDepotFolderRunning => LWorkState.LWorkStateRunning,
-            LDepotFolder.LDepotFolderDone => LWorkState.LWorkStateDone,
-            LDepotFolder.LDepotFolderFailed => LWorkState.LWorkStateFailed,
+            LDepotFolder.LDepotFolderDone => LScheduleTerminalRead(lScheduleFileState, LWorkState.LWorkStateDone),
+            LDepotFolder.LDepotFolderFailed => LScheduleTerminalRead(lScheduleFileState, LWorkState.LWorkStateFailed),
             LDepotFolder.LDepotFolderCancelled => LWorkState.LWorkStateCancelled,
             _ => lScheduleFileState == LWorkState.LWorkStateRunning ? LWorkState.LWorkStatePending : lScheduleFileState
         };
+
+    private static LWorkState LScheduleTerminalRead(LWorkState lScheduleFileState, LWorkState lScheduleFolderState) =>
+        lScheduleFileState is LWorkState.LWorkStatePartial
+            or LWorkState.LWorkStateUnresolved
+            or LWorkState.LWorkStateBlocked
+            ? lScheduleFileState
+            : lScheduleFolderState;
 }

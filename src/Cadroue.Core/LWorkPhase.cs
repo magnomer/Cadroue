@@ -16,6 +16,6 @@ public enum LWorkStage
     LWorkStageProcess,
     LWorkStageSplice,
     LWorkStageMux,
-    LWorkStageCopy,
-    LWorkStageValidate
+    LWorkStageDuplicate,
+    LWorkStageVerify
 }

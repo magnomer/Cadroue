@@ -375,6 +375,61 @@ internal static class LScout
         }
     }
 
+    internal static bool LScoutDecodeCheck(string lScoutOutputPath, CancellationToken lScoutToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(lScoutOutputPath) || !File.Exists(lScoutOutputPath))
+        {
+            return false;
+        }
+
+        // Read-only decode-to-null. Never writes the output; only re-runs the
+        // affected operation to confirm the repaired stream decodes cleanly.
+        var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfmpegRead())
+        {
+            Arguments = "-hide_banner -nostdin -v error -xerror "
+                + $"-i {LEncode.LEncodeFormat(lScoutOutputPath)} -f null -",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        Process? lScoutProcess = null;
+        try
+        {
+            lScoutProcess = Process.Start(lScoutStartInfo);
+            if (lScoutProcess is null)
+            {
+                return false;
+            }
+
+            LCustody.LCustodyAttach(lScoutProcess);
+            using CancellationTokenRegistration lScoutKill = lScoutToken.Register(
+                static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess);
+            Task<string> lScoutError = lScoutProcess.StandardError.ReadToEndAsync();
+            lScoutProcess.StandardOutput.ReadToEnd();
+            lScoutProcess.WaitForExit();
+            string lScoutMessages = lScoutError.Result;
+            lScoutToken.ThrowIfCancellationRequested();
+            return lScoutProcess.ExitCode == 0 && string.IsNullOrWhiteSpace(lScoutMessages);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            lScoutToken.ThrowIfCancellationRequested();
+            return false;
+        }
+        finally
+        {
+            if (lScoutProcess is not null && !lScoutProcess.HasExited)
+                try { lScoutProcess.Kill(); } catch { }
+            lScoutProcess?.Dispose();
+        }
+    }
+
     internal static long? LScoutInputRead(LWorkItem lScoutWorkItem, CancellationToken lScoutToken = default)
     {
         if (lScoutWorkItem.LWorkMergeSources.Count > 1)

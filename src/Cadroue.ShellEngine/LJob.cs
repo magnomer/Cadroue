@@ -19,6 +19,8 @@ internal sealed partial class LJob
     private string lJobDirectory = string.Empty;
     private double lJobRunSeconds;
     private string lJobFinalPath = string.Empty;
+    private LWorkState? lJobValidateState;
+    private string lJobValidateMessage = string.Empty;
 
     internal LJob(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobCancelToken)
     {
@@ -145,8 +147,12 @@ internal sealed partial class LJob
                 lJobItem.LWorkSourceMedia = pSourceMedia;
                 lJobItem.LWorkOutputMedia = pOutputMedia;
                 lJobItem.LWorkProgress = pSucceeded ? 1 : lJobItem.LWorkProgress;
-                lJobItem.LWorkStateCurrent = pSucceeded ? LWorkState.LWorkStateDone : LWorkState.LWorkStateFailed;
-                lJobItem.LWorkMessage = pSucceeded ? string.Empty : $"FFmpeg exited with code {pExitCode}.";
+                lJobItem.LWorkStateCurrent = pSucceeded
+                    ? lJobValidateState ?? LWorkState.LWorkStateDone
+                    : LWorkState.LWorkStateFailed;
+                lJobItem.LWorkMessage = pSucceeded
+                    ? lJobValidateState is null ? string.Empty : lJobValidateMessage
+                    : $"FFmpeg exited with code {pExitCode}.";
 
                 lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, pSucceeded, lJobItem.LWorkMessage);
                 lJobOwner.lRunnerSchedule.LScheduleLoad();
@@ -239,9 +245,20 @@ internal sealed partial class LJob
                 continue;
             }
 
-            if (pStage.LEncodeStageKind == LWorkStage.LWorkStageCopy)
+            if (pStage.LEncodeStageKind == LWorkStage.LWorkStageDuplicate)
             {
                 (pExitCode, pJobError) = LJobCopyRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount);
+                if (pExitCode != 0)
+                {
+                    break;
+                }
+
+                continue;
+            }
+
+            if (pStage.LEncodeStageKind == LWorkStage.LWorkStageVerify)
+            {
+                (pExitCode, pJobError) = LJobValidateRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount);
                 if (pExitCode != 0)
                 {
                     break;

@@ -34,7 +34,8 @@ public static partial class LEncode
         {
             return new[]
             {
-                new LEncodeStage(lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageCopy, "Copying", lWorkItem.LWorkOutputPath, false)
+                new LEncodeStage(lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageDuplicate, "Copying", lWorkItem.LWorkOutputPath, false),
+                new LEncodeStage(lWorkItem.LWorkOutputPath, LWorkStage.LWorkStageVerify, "Validating", lWorkItem.LWorkOutputPath, false)
             };
         }
 
