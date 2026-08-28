@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -46,8 +47,16 @@ public sealed partial class LSchedule : LScheduleContract
     {
         var lScheduleLoaded = new List<LWorkItem>();
         var lScheduleRunningIds = new HashSet<Guid>();
+        bool lScheduleShared = LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
         foreach ((LDepotFolder lDepotFolder, LWorkRecord lWorkRecord) in lSchedulePairs)
         {
+            if (!lScheduleShared
+                && lWorkRecord.LWorkSignet != Guid.Empty
+                && lWorkRecord.LWorkSignet != LSignet.LSignetCurrent)
+            {
+                continue;
+            }
+
             if (lDepotFolder == LDepotFolder.LDepotFolderRunning
                 && lScheduleLiveItems.TryGetValue(lWorkRecord.LWorkId, out LWorkItem? lWorkLive))
             {

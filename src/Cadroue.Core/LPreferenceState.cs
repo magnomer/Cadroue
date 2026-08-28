@@ -37,6 +37,7 @@ public sealed class LPreferenceState
     public bool LPreferenceRetryAllowed { get; set; }
     public double LPreferenceRetryMaximum { get; set; }
     public bool LPreferenceAutoActive { get; set; }
+    public bool LPreferenceWorklistShared { get; set; }
 
     public bool LPreferenceCleanupActive { get; set; }
     public int LPreferenceCleanupDays { get; set; } = 30;
@@ -75,6 +76,7 @@ public sealed class LPreferenceState
             LPreferenceRetryAllowed = false,
             LPreferenceRetryMaximum = 3,
             LPreferenceAutoActive = false,
+            LPreferenceWorklistShared = false,
             LPreferenceCleanupActive = false,
             LPreferenceCleanupDays = 30,
             LPreferenceWorkspaceFolder = string.Empty,
@@ -120,6 +122,7 @@ public sealed class LPreferenceState
             LPreferenceRetryAllowed = LPreferenceRetryAllowed,
             LPreferenceRetryMaximum = LPreferenceRetryMaximum,
             LPreferenceAutoActive = LPreferenceAutoActive,
+            LPreferenceWorklistShared = LPreferenceWorklistShared,
             LPreferenceCleanupActive = LPreferenceCleanupActive,
             LPreferenceCleanupDays = LPreferenceCleanupDays,
             LPreferenceWorkspaceFolder = LPreferenceWorkspaceFolder,
@@ -160,6 +163,7 @@ public sealed class LPreferenceState
             ("Workspace folder", lPreferenceOther.LPreferenceWorkspaceFolder, LPreferenceWorkspaceFolder),
             ("FFmpeg folder", lPreferenceOther.LPreferenceFfmpegFolder, LPreferenceFfmpegFolder),
             ("Resume queue at launch", lPreferenceOther.LPreferenceAutoActive, LPreferenceAutoActive),
+            ("Show other worklists", lPreferenceOther.LPreferenceWorklistShared, LPreferenceWorklistShared),
             ("Delete old records", lPreferenceOther.LPreferenceCleanupActive, LPreferenceCleanupActive),
             ("Record retention days", lPreferenceOther.LPreferenceCleanupDays, LPreferenceCleanupDays),
             ("Last media", lPreferenceOther.LPreferenceMediaPath, LPreferenceMediaPath)

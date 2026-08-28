@@ -23,6 +23,9 @@ public sealed partial class LSchedule
         }
 
         IEnumerable<LWorkRecord> lScheduleOrdered = lScheduleCandidates
+            .Where(lWorkRecord =>
+                lWorkRecord.LWorkSignet == Guid.Empty
+                || lWorkRecord.LWorkSignet == LSignet.LSignetCurrent)
             .OrderByDescending(lWorkRecord => lWorkRecord.LWorkPriorityName == nameof(LWorkPriority.LWorkPriorityHigh))
             .ThenBy(lWorkRecord => lWorkRecord.LWorkCreateTime);
 
