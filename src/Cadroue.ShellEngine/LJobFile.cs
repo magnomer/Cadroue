@@ -71,7 +71,7 @@ internal sealed partial class LJob
         }
     }
 
-    private (int, string) LJobValidateRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
+    private async Task<(int, string)> LJobValidateRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
     {
         string pOutput = pStage.LEncodeStagePath;
         lJobOwner.LRunnerDispatch(() =>
@@ -90,7 +90,7 @@ internal sealed partial class LJob
             lJobValidateState = LWorkState.LWorkStateUnresolved;
             lJobValidateMessage = "Validation: the repaired output could not be re-probed; the defect is still present.";
         }
-        else if (!LScout.LScoutDecodeCheck(pOutput, lJobToken))
+        else if (!await LScout.LScoutDecodeCheck(lJobOwner, pOutput, lJobToken).ConfigureAwait(false))
         {
             lJobValidateState = LWorkState.LWorkStatePartial;
             lJobValidateMessage = "Validation: the output re-probes but still reports decode errors; damage was reduced, not resolved.";

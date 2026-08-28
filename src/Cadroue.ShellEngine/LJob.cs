@@ -140,17 +140,19 @@ internal sealed partial class LJob
             }
             lJobOwner.LRunnerDispatch(() =>
             {
-                bool pSucceeded = pExitCode == 0;
+                bool pExitClean = pExitCode == 0;
+                LWorkState pTerminalState = pExitClean
+                    ? lJobValidateState ?? LWorkState.LWorkStateDone
+                    : LWorkState.LWorkStateFailed;
+                bool pSucceeded = pTerminalState == LWorkState.LWorkStateDone;
                 lJobItem.LWorkFinishTime = DateTimeOffset.Now;
                 lJobItem.LWorkOutputBytes = pOutputBytes;
                 lJobItem.LWorkSourceBytes = pSourceBytes;
                 lJobItem.LWorkSourceMedia = pSourceMedia;
                 lJobItem.LWorkOutputMedia = pOutputMedia;
                 lJobItem.LWorkProgress = pSucceeded ? 1 : lJobItem.LWorkProgress;
-                lJobItem.LWorkStateCurrent = pSucceeded
-                    ? lJobValidateState ?? LWorkState.LWorkStateDone
-                    : LWorkState.LWorkStateFailed;
-                lJobItem.LWorkMessage = pSucceeded
+                lJobItem.LWorkStateCurrent = pTerminalState;
+                lJobItem.LWorkMessage = pExitClean
                     ? lJobValidateState is null ? string.Empty : lJobValidateMessage
                     : $"FFmpeg exited with code {pExitCode}.";
 
@@ -258,7 +260,7 @@ internal sealed partial class LJob
 
             if (pStage.LEncodeStageKind == LWorkStage.LWorkStageVerify)
             {
-                (pExitCode, pJobError) = LJobValidateRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount);
+                (pExitCode, pJobError) = await LJobValidateRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount).ConfigureAwait(false);
                 if (pExitCode != 0)
                 {
                     break;

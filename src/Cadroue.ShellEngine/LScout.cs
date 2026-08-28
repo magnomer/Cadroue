@@ -375,7 +375,8 @@ internal static class LScout
         }
     }
 
-    internal static bool LScoutDecodeCheck(string lScoutOutputPath, CancellationToken lScoutToken = default)
+    internal static async Task<bool> LScoutDecodeCheck(
+        LRunner lScoutRunner, string lScoutOutputPath, CancellationToken lScoutToken = default)
     {
         if (string.IsNullOrWhiteSpace(lScoutOutputPath) || !File.Exists(lScoutOutputPath))
         {
@@ -384,34 +385,27 @@ internal static class LScout
 
         // Read-only decode-to-null. Never writes the output; only re-runs the
         // affected operation to confirm the repaired stream decodes cleanly.
-        var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfmpegRead())
-        {
-            Arguments = "-hide_banner -nostdin -v error -xerror "
-                + $"-i {LEncode.LEncodeFormat(lScoutOutputPath)} -f null -",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        // Routed through the runner's configured program path, argument prefix,
+        // and argument transform so validation and repair use the identical ffmpeg.
+        string lScoutBaseArguments = "-hide_banner -nostdin -v error -xerror "
+            + $"-i {LEncode.LEncodeFormat(lScoutOutputPath)} -f null -";
+        string lScoutArguments = lScoutRunner.LRunnerArgumentTransform?.Invoke(lScoutBaseArguments)
+            ?? lScoutBaseArguments;
 
-        Process? lScoutProcess = null;
         try
         {
-            lScoutProcess = Process.Start(lScoutStartInfo);
-            if (lScoutProcess is null)
-            {
-                return false;
-            }
-
-            LCustody.LCustodyAttach(lScoutProcess);
-            using CancellationTokenRegistration lScoutKill = lScoutToken.Register(
-                static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess);
-            Task<string> lScoutError = lScoutProcess.StandardError.ReadToEndAsync();
-            lScoutProcess.StandardOutput.ReadToEnd();
-            lScoutProcess.WaitForExit();
-            string lScoutMessages = lScoutError.Result;
+            var lScoutEmployer = new LEmployer(
+                lScoutRunner.LRunnerProgramPath, lScoutRunner.LRunnerArgumentPrefix);
+            LEmployerResult lScoutResult = await lScoutEmployer.LEmployerRun(
+                lScoutArguments,
+                lScoutToken,
+                lScoutProcess => lScoutToken.Register(
+                    static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess),
+                static _ => { },
+                static _ => { }).ConfigureAwait(false);
             lScoutToken.ThrowIfCancellationRequested();
-            return lScoutProcess.ExitCode == 0 && string.IsNullOrWhiteSpace(lScoutMessages);
+            return lScoutResult.LEmployerExit == 0
+                && string.IsNullOrWhiteSpace(lScoutResult.LEmployerError);
         }
         catch (OperationCanceledException)
         {
@@ -421,12 +415,6 @@ internal static class LScout
         {
             lScoutToken.ThrowIfCancellationRequested();
             return false;
-        }
-        finally
-        {
-            if (lScoutProcess is not null && !lScoutProcess.HasExited)
-                try { lScoutProcess.Kill(); } catch { }
-            lScoutProcess?.Dispose();
         }
     }
 
