@@ -49,4 +49,49 @@ public sealed class FlawTests
         Assert.NotNull(dossier);
         Assert.Contains("40928", dossier.Value.LDossierScope, System.StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void ConsistentMetadata_ProducesNoDossier()
+    {
+        Assert.Null(TInterface.FlawMetadataResolve(
+            "[STREAM]\nindex=0\ncodec_name=h264\nduration=10.000000\n[/STREAM]\n"
+            + "[STREAM]\nindex=1\ncodec_name=aac\nduration=10.000000\n[/STREAM]\n"
+            + "[FORMAT]\nnb_streams=2\nduration=10.000000\n[/FORMAT]\n"));
+    }
+
+    [Fact]
+    public void MissingDeclaredDuration_ProducesMetadataDossier()
+    {
+        LDossier? dossier = TInterface.FlawMetadataResolve(
+            "[STREAM]\nindex=0\ncodec_name=h264\nduration=12.500000\n[/STREAM]\n"
+            + "[FORMAT]\nnb_streams=1\nduration=N/A\n[/FORMAT]\n");
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryMetadata, dossier.Value.LDossierCategory);
+        Assert.Equal(LDossierPreservation.LDossierPreservationPacket, dossier.Value.LDossierPreservation);
+        Assert.Equal(LDossierValidation.LDossierValidationUntested, dossier.Value.LDossierValidation);
+        Assert.Contains("duration", dossier.Value.LDossierEvidenceSource, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ContradictoryDuration_ProducesMetadataDossier()
+    {
+        LDossier? dossier = TInterface.FlawMetadataResolve(
+            "[STREAM]\nindex=0\ncodec_name=h264\nduration=60.000000\n[/STREAM]\n"
+            + "[FORMAT]\nnb_streams=1\nduration=10.000000\n[/FORMAT]\n");
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryMetadata, dossier.Value.LDossierCategory);
+    }
+
+    [Fact]
+    public void DeclaredStreamCountMismatch_ProducesMetadataDossier()
+    {
+        LDossier? dossier = TInterface.FlawMetadataResolve(
+            "[STREAM]\nindex=0\ncodec_name=h264\nduration=10.000000\n[/STREAM]\n"
+            + "[FORMAT]\nnb_streams=3\nduration=10.000000\n[/FORMAT]\n");
+
+        Assert.NotNull(dossier);
+        Assert.Contains("stream count", dossier.Value.LDossierEvidenceSource, System.StringComparison.OrdinalIgnoreCase);
+    }
 }

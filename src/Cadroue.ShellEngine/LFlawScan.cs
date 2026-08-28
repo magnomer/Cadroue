@@ -18,18 +18,31 @@ internal static class LFlawScan
 
         try
         {
-            string lFlawProbeError = LFlawErrorRead(
+            (_, string lFlawProbeError) = LFlawRunRead(
                 LTool.LToolFfprobeRead(),
                 $"-hide_banner -v error -show_error -show_format -i {LEncode.LEncodeFormat(lFlawSource)}",
                 lFlawToken);
-            string lFlawCopyError = LFlawErrorRead(
+            (_, string lFlawCopyError) = LFlawRunRead(
                 LTool.LToolFfmpegRead(),
                 $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -",
                 lFlawToken);
+            (string lFlawMetaReport, _) = LFlawRunRead(
+                LTool.LToolFfprobeRead(),
+                $"-hide_banner -v error -show_streams -show_format -count_packets -i {LEncode.LEncodeFormat(lFlawSource)}",
+                lFlawToken);
 
-            return LFlaw.LFlawContainerResolve(lFlawProbeError, lFlawCopyError) is { } lFlawDossier
-                ? new[] { lFlawDossier }
-                : Array.Empty<LDossier>();
+            var lFlawDossiers = new List<LDossier>();
+            if (LFlaw.LFlawContainerResolve(lFlawProbeError, lFlawCopyError) is { } lFlawContainer)
+            {
+                lFlawDossiers.Add(lFlawContainer);
+            }
+
+            if (LFlaw.LFlawMetadataResolve(lFlawMetaReport) is { } lFlawMetadata)
+            {
+                lFlawDossiers.Add(lFlawMetadata);
+            }
+
+            return lFlawDossiers;
         }
         catch (OperationCanceledException)
         {
@@ -42,7 +55,7 @@ internal static class LFlawScan
         }
     }
 
-    private static string LFlawErrorRead(string lFlawProgram, string lFlawArguments, CancellationToken lFlawToken)
+    private static (string Output, string Error) LFlawRunRead(string lFlawProgram, string lFlawArguments, CancellationToken lFlawToken)
     {
         var lFlawStartInfo = new ProcessStartInfo(lFlawProgram)
         {
@@ -60,7 +73,7 @@ internal static class LFlawScan
             lFlawProcess = Process.Start(lFlawStartInfo);
             if (lFlawProcess is null)
             {
-                return string.Empty;
+                return (string.Empty, string.Empty);
             }
 
             LCustody.LCustodyAttach(lFlawProcess);
@@ -72,7 +85,7 @@ internal static class LFlawScan
             lFlawProcess.WaitForExit();
             lFlawOutput.Wait(CancellationToken.None);
             lFlawToken.ThrowIfCancellationRequested();
-            return lFlawError;
+            return (lFlawOutput.Result, lFlawError);
         }
         finally
         {

@@ -5,7 +5,8 @@ namespace Cadroue.Core;
 
 public enum LFlawKind
 {
-    LFlawKindContainer
+    LFlawKindContainer,
+    LFlawKindMetadata
 }
 
 public static class LFlaw
@@ -61,5 +62,116 @@ public static class LFlaw
             && long.TryParse(lFlawMatch.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long lFlawByte)
                 ? FormattableString.Invariant($"Byte offset {lFlawByte}")
                 : "Container structure";
+    }
+
+    public static LDossier? LFlawMetadataResolve(string lFlawProbeReport)
+    {
+        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams = LFlawSectionRead(lFlawProbeReport, "STREAM");
+        IReadOnlyDictionary<string, string>? lFlawFormat = LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
+        if (lFlawFormat is null)
+        {
+            return null;
+        }
+
+        var lFlawFindings = new List<string>();
+
+        if (lFlawFormat.TryGetValue("nb_streams", out string? lFlawDeclaredCount)
+            && int.TryParse(lFlawDeclaredCount, NumberStyles.Integer, CultureInfo.InvariantCulture, out int lFlawCount)
+            && lFlawCount != lFlawStreams.Count)
+        {
+            lFlawFindings.Add(FormattableString.Invariant(
+                $"Declared stream count {lFlawCount} contradicts {lFlawStreams.Count} present"));
+        }
+
+        double lFlawObserved = LFlawDurationResolve(lFlawStreams);
+        double lFlawDeclared = LFlawDurationRead(lFlawFormat);
+        if (lFlawObserved > 0)
+        {
+            if (lFlawDeclared <= 0)
+            {
+                lFlawFindings.Add("Declared duration missing; establishable from stream timing");
+            }
+            else if (Math.Abs(lFlawDeclared - lFlawObserved) > 1.0
+                && Math.Abs(lFlawDeclared - lFlawObserved) / lFlawObserved > 0.05)
+            {
+                lFlawFindings.Add(FormattableString.Invariant(
+                    $"Declared duration {lFlawDeclared:0.###}s contradicts stream timing {lFlawObserved:0.###}s"));
+            }
+        }
+
+        if (lFlawFindings.Count == 0)
+        {
+            return null;
+        }
+
+        return new LDossier(
+            "Technical metadata",
+            1.0,
+            "ffprobe -show_streams -show_format -count_packets",
+            string.Join(" | ", lFlawFindings),
+            "All streams probed",
+            "Container technical metadata",
+            "Remux -map 0 -c copy regenerating the corrected technical field",
+            "Technical interpretation metadata",
+            LDossierPreservation.LDossierPreservationPacket,
+            "Coded packets copied unchanged; technical metadata rewritten",
+            "Preserved",
+            "None",
+            LDossierValidation.LDossierValidationUntested,
+            LDossierCategory.LDossierCategoryMetadata);
+    }
+
+    private static double LFlawDurationRead(IReadOnlyDictionary<string, string> lFlawSection) =>
+        lFlawSection.TryGetValue("duration", out string? lFlawText)
+        && double.TryParse(lFlawText, NumberStyles.Float, CultureInfo.InvariantCulture, out double lFlawValue)
+            ? lFlawValue
+            : 0;
+
+    private static double LFlawDurationResolve(IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams)
+    {
+        double lFlawMax = 0;
+        foreach (IReadOnlyDictionary<string, string> lFlawStream in lFlawStreams)
+        {
+            double lFlawValue = LFlawDurationRead(lFlawStream);
+            if (lFlawValue > lFlawMax)
+            {
+                lFlawMax = lFlawValue;
+            }
+        }
+
+        return lFlawMax;
+    }
+
+    private static IReadOnlyList<IReadOnlyDictionary<string, string>> LFlawSectionRead(
+        string lFlawReport, string lFlawSection)
+    {
+        var lFlawSections = new List<IReadOnlyDictionary<string, string>>();
+        Dictionary<string, string>? lFlawCurrent = null;
+        foreach (string lFlawRaw in lFlawReport.Split('\n'))
+        {
+            string lFlawLine = lFlawRaw.Trim();
+            if (lFlawLine.Equals($"[{lFlawSection}]", StringComparison.Ordinal))
+            {
+                lFlawCurrent = new Dictionary<string, string>(StringComparer.Ordinal);
+            }
+            else if (lFlawLine.Equals($"[/{lFlawSection}]", StringComparison.Ordinal))
+            {
+                if (lFlawCurrent is not null)
+                {
+                    lFlawSections.Add(lFlawCurrent);
+                    lFlawCurrent = null;
+                }
+            }
+            else if (lFlawCurrent is not null)
+            {
+                int lFlawEquals = lFlawLine.IndexOf('=', StringComparison.Ordinal);
+                if (lFlawEquals > 0)
+                {
+                    lFlawCurrent[lFlawLine[..lFlawEquals]] = lFlawLine[(lFlawEquals + 1)..];
+                }
+            }
+        }
+
+        return lFlawSections;
     }
 }

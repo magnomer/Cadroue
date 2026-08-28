@@ -20,6 +20,9 @@ internal static class TInterface
     internal static LDossier? FlawContainerResolve(string probeError, string copyError) =>
         LFlaw.LFlawContainerResolve(probeError, copyError);
 
+    internal static LDossier? FlawMetadataResolve(string probeReport) =>
+        LFlaw.LFlawMetadataResolve(probeReport);
+
     internal static LDossier DossierDefectCreate(
         string defect,
         LDossierCategory category,
