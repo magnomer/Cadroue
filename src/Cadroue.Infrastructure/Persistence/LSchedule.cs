@@ -50,9 +50,7 @@ public sealed partial class LSchedule : LScheduleContract
         bool lScheduleShared = LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
         foreach ((LDepotFolder lDepotFolder, LWorkRecord lWorkRecord) in lSchedulePairs)
         {
-            if (!lScheduleShared
-                && lWorkRecord.LWorkSignet != Guid.Empty
-                && lWorkRecord.LWorkSignet != LSignet.LSignetCurrent)
+            if (!lScheduleShared && !LScheduleSignetOwn(lWorkRecord))
             {
                 continue;
             }
@@ -482,7 +480,7 @@ public sealed partial class LSchedule : LScheduleContract
         foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderRunning).ToArray())
         {
             LWorkRecord? lWorkRecord = LScheduleStore.LScheduleRecordRead(lDepotFilePath);
-            if (lWorkRecord is null || !LSentinel.LSentinelStaleCheck(lWorkRecord))
+            if (lWorkRecord is null || !LScheduleSignetOwn(lWorkRecord) || !LSentinel.LSentinelStaleCheck(lWorkRecord))
             {
                 continue;
             }
@@ -507,6 +505,12 @@ public sealed partial class LSchedule : LScheduleContract
         {
             foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder).ToArray())
             {
+                if (LScheduleStore.LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord
+                    && !LScheduleSignetOwn(lWorkRecord))
+                {
+                    continue;
+                }
+
                 try
                 {
                     File.Delete(lDepotFilePath);
@@ -530,7 +534,9 @@ public sealed partial class LSchedule : LScheduleContract
             .ToArray();
 
     public bool LSchedulePendingExist() =>
-        LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled).Any();
+        LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled)
+            .Select(LScheduleStore.LScheduleRecordRead)
+            .Any(lWorkRecord => lWorkRecord is { } lScheduleRecord && LScheduleSignetOwn(lScheduleRecord));
 
     private static LWorkState LScheduleStateRead(LDepotFolder lDepotFolder, LWorkState lScheduleFileState) =>
         lDepotFolder switch
