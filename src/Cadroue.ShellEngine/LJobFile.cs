@@ -42,6 +42,35 @@ internal sealed partial class LJob
         }
     }
 
+    private async Task<(int, string)> LJobRepairRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
+    {
+        string pOutput = pStage.LEncodeStagePath;
+        string pTemp = LJobPathResolve(pOutput, ".cadfix");
+        string pArguments = LEncode.LEncodeRepairBuild(pOutput, pStage.LEncodeStageArguments, pTemp);
+        LEncodeStage pRepairStage = pStage with { LEncodeStagePath = pTemp };
+
+        (int pExit, string pError) = await LJobStageRun(
+            pRepairStage, pArguments, pStageNumber, pStageCount, lJobRunSeconds,
+            lJobClock, lJobDirectory).ConfigureAwait(false);
+        if (pExit != 0)
+        {
+            return (pExit, pError);
+        }
+
+        try
+        {
+            File.Move(pTemp, pOutput, true);
+            LRunner.LRunnerRecord(
+                $"Repairing '{lJobItem.LWorkOutputName}': applied '{pStage.LEncodeStageArguments}' to '{Path.GetFileName(pOutput)}'");
+            return (0, string.Empty);
+        }
+        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+        {
+            LRunner.LRunnerRecord($"Repair could not replace the output for '{lJobItem.LWorkOutputName}'", pException);
+            return (1, pException.Message);
+        }
+    }
+
     private (int, string) LJobValidateRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
     {
         string pOutput = pStage.LEncodeStagePath;

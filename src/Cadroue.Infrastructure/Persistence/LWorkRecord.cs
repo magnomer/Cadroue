@@ -61,6 +61,8 @@ public sealed class LWorkRecord
 
     public LWorkAudio LWorkAudio { get; set; } = LWorkAudio.LWorkAudioCreate();
 
+    public List<LDossier> LWorkDossiers { get; set; } = [];
+
     public static LWorkRecord LWorkRecordCreate(LWorkItem lWorkItem) => new()
     {
         LWorkId = lWorkItem.LWorkId,
@@ -97,7 +99,8 @@ public sealed class LWorkRecord
         LWorkOutputSnapshot = LWorkOutputRecord.LWorkSnapshotCreate(lWorkItem.LWorkOutput),
         LWorkCrop = lWorkItem.LWorkCrop,
         LWorkVideo = lWorkItem.LWorkVideo,
-        LWorkAudio = lWorkItem.LWorkAudio
+        LWorkAudio = lWorkItem.LWorkAudio,
+        LWorkDossiers = lWorkItem.LWorkDossiers.ToList()
     };
 
     public LWorkItem LWorkItemCreate()
@@ -139,6 +142,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkSourceBytes = LWorkSourceBytes;
         lWorkItem.LWorkSourceMedia = LWorkSourceMedia;
         lWorkItem.LWorkOutputMedia = LWorkOutputMedia;
+        lWorkItem.LWorkDossiers = LWorkDossiers.ToArray();
         return lWorkItem;
     }
 
@@ -174,6 +178,7 @@ public sealed class LWorkRecord
         LWorkCrop ??= LWorkCrop.LWorkCropCreate();
         LWorkVideo ??= LWorkVideo.LWorkVideoCreate();
         LWorkAudio ??= LWorkAudio.LWorkAudioCreate();
+        LWorkDossiers ??= [];
         (LWorkOutputSnapshot ??= new()).LWorkOutputNormalize();
     }
 

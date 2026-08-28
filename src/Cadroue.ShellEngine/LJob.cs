@@ -267,6 +267,17 @@ internal sealed partial class LJob
                 continue;
             }
 
+            if (pStage.LEncodeStageKind == LWorkStage.LWorkStageRepair)
+            {
+                (pExitCode, pJobError) = await LJobRepairRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount).ConfigureAwait(false);
+                if (pExitCode != 0)
+                {
+                    break;
+                }
+
+                continue;
+            }
+
             string pStageArguments = pStage.LEncodeStageArguments;
             if (pStageArguments.Contains(LEncode.LEncodeMeasureToken, StringComparison.Ordinal))
             {

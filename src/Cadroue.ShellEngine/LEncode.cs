@@ -39,10 +39,10 @@ public static partial class LEncode
                 new(lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageDuplicate, "Copying", lWorkItem.LWorkOutputPath, false)
             };
 
-            foreach (LRemedyAction _ in lFixPlan.LRemedyActions)
+            foreach (LRemedyAction lFixAction in lFixPlan.LRemedyActions)
             {
                 lFixStages.Add(new LEncodeStage(
-                    string.Empty, LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false));
+                    LEncodeRemedyBuild(lFixAction.LRemedyCategory), LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false));
             }
 
             lFixStages.Add(new LEncodeStage(
@@ -109,6 +109,21 @@ public static partial class LEncode
         }
 
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
+        return lArguments.ToString();
+    }
+
+    internal static string LEncodeRemedyBuild(LDossierCategory lRemedyCategory) =>
+        lRemedyCategory == LDossierCategory.LDossierCategoryReencode
+            ? "-map 0"
+            : "-map 0 -c copy";
+
+    internal static string LEncodeRepairBuild(string lInputPath, string lRemedy, string lOutputPath)
+    {
+        var lArguments = new StringBuilder();
+        LEncodeHeaderAppend(lArguments);
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lInputPath)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {lRemedy}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lOutputPath)}");
         return lArguments.ToString();
     }
 
