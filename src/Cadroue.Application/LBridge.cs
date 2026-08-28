@@ -40,18 +40,21 @@ public static partial class LBridge
     public static LBridgePlan LBridgeRegionResolve(
         IReadOnlyList<TimeSpan> lBridgeKeyframes,
         TimeSpan lBridgeOrigin,
-        TimeSpan lBridgeEnd)
+        TimeSpan lBridgeEnd,
+        bool lBridgeOpenEnd = false)
         => LBridgeRegionResolve(
             // Callers that only have presentation timestamps describe a decode-order
             // stream with no reordering. Packet-based callers must supply real DTS.
             lBridgeKeyframes.Select(lTime => new LKeyframeEntry(lTime, lTime)).ToArray(),
             lBridgeOrigin,
-            lBridgeEnd);
+            lBridgeEnd,
+            lBridgeOpenEnd);
 
     public static LBridgePlan LBridgeRegionResolve(
         IReadOnlyList<LKeyframeEntry> lBridgeKeyframes,
         TimeSpan lBridgeOrigin,
-        TimeSpan lBridgeEnd)
+        TimeSpan lBridgeEnd,
+        bool lBridgeOpenEnd = false)
     {
         LBridgeSpan lBridgeInterval = new(lBridgeOrigin, lBridgeEnd);
 
@@ -97,10 +100,20 @@ public static partial class LBridge
             : lBridgeFirstAfter?.LKeyframePresentationTime;
         TimeSpan? lBridgeCopyEnd = lBridgeLastWithin?.LKeyframePresentationTime;
 
-        bool lBridgeCopyUsable =
-            lBridgeCopyOrigin is TimeSpan lBridgeStart &&
-            lBridgeCopyEnd is TimeSpan lBridgeStop &&
-            lBridgeStart < lBridgeStop;
+        // When the requested end reaches the source end, the region from the copy
+        // start through EOF is one or more whole GOPs and is fully copyable: the final
+        // GOP ends at a natural boundary, so it needs no re-encoded tail. Copy straight
+        // through to the end. Only a genuine mid-stream end requires a tail bridge, and
+        // reaching-the-end alone makes a lone-keyframe interval copyable, not a whole
+        // re-encode.
+        bool lBridgeCopyToEnd = lBridgeOpenEnd
+            && lBridgeCopyOrigin is TimeSpan lBridgeOpenStart
+            && lBridgeOpenStart < lBridgeEnd;
+
+        bool lBridgeCopyUsable = lBridgeCopyToEnd ||
+            (lBridgeCopyOrigin is TimeSpan lBridgeStart &&
+             lBridgeCopyEnd is TimeSpan lBridgeStop &&
+             lBridgeStart < lBridgeStop);
 
         if (!lBridgeCopyUsable)
         {
@@ -108,13 +121,17 @@ public static partial class LBridge
         }
 
         TimeSpan lBridgeCopyStart = lBridgeCopyOrigin!.Value;
-        TimeSpan lBridgeCopyStop = lBridgeCopyEnd!.Value > lBridgeEnd ? lBridgeEnd : lBridgeCopyEnd!.Value;
+        TimeSpan lBridgeCopyStop = lBridgeCopyToEnd
+            ? lBridgeEnd
+            : lBridgeCopyEnd!.Value > lBridgeEnd ? lBridgeEnd : lBridgeCopyEnd!.Value;
 
         LBridgeSpan? lBridgeHead = lBridgeOriginKeyed
             ? null
             : new LBridgeSpan(lBridgeOrigin, lBridgeCopyStart);
 
-        TimeSpan? lBridgeDecodeEnd = lBridgeLastWithin?.LKeyframeDecodeTime;
+        // A copy that runs to EOF has no following keyframe to stop before, so it needs
+        // no decode-time cutoff.
+        TimeSpan? lBridgeDecodeEnd = lBridgeCopyToEnd ? null : lBridgeLastWithin?.LKeyframeDecodeTime;
         if (lBridgeDecodeEnd is TimeSpan lBridgeDecodeStop
             && lBridgeDecodeStop <= lBridgeCopyStart + LBridgeTolerance)
         {
@@ -125,11 +142,27 @@ public static partial class LBridge
 
         LBridgeSpan lBridgeCopy = new(lBridgeCopyStart, lBridgeCopyStop, lBridgeDecodeEnd);
 
-        LBridgeSpan? lBridgeTail = lBridgeCopyStop < lBridgeEnd - LBridgeTolerance
+        LBridgeSpan? lBridgeTail = !lBridgeCopyToEnd && lBridgeCopyStop < lBridgeEnd - LBridgeTolerance
             ? new LBridgeSpan(lBridgeCopyStop, lBridgeEnd)
             : null;
 
         return new LBridgePlan(LBridgeOutcome.LBridgeOutcomeSmart, lBridgeInterval, lBridgeHead, lBridgeCopy, lBridgeTail);
+    }
+
+    public static bool LBridgeEndCheck(TimeSpan lBridgeEnd, TimeSpan lBridgeDuration, double lBridgeFramerate)
+    {
+        if (lBridgeDuration <= TimeSpan.Zero)
+        {
+            return false;
+        }
+
+        // A cut that stops within one frame of the source end reaches it: the requested
+        // and source ends arrive rounded to milliseconds, and a trim of a genuine frame
+        // or more stays a real mid-stream end.
+        TimeSpan lBridgeFrame = lBridgeFramerate > 0
+            ? TimeSpan.FromSeconds(1 / lBridgeFramerate)
+            : LBridgeTolerance;
+        return lBridgeEnd >= lBridgeDuration - lBridgeFrame;
     }
 
     private static bool LBridgeMatch(TimeSpan lBridgeLeft, TimeSpan lBridgeRight) =>

@@ -188,4 +188,71 @@ public sealed class BridgeRegionTests
 
         Assert.Equal(LBridgeOutcome.LBridgeOutcomeWhole, plan.LBridgeOutcome);
     }
+
+    [Fact]
+    public void WholeSource_EndReachesEof_CopiesThroughWithNoBridges()
+    {
+        LBridgePlan plan = TInterface.BridgeResolve(Grid, S(0), S(11), openEnd: true);
+
+        Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
+        Assert.Null(plan.LBridgeHead);
+        Assert.Null(plan.LBridgeTail);
+        Assert.NotNull(plan.LBridgeMiddle);
+        Assert.Equal(S(0), plan.LBridgeMiddle!.LBridgeSpanOrigin);
+        Assert.Equal(S(11), plan.LBridgeMiddle.LBridgeSpanEnd);
+        Assert.Null(plan.LBridgeMiddle.LBridgeDecodeEnd);
+    }
+
+    [Fact]
+    public void OriginBetweenKeyframes_EndReachesEof_HeadAndCopyThroughNoTail()
+    {
+        LBridgePlan plan = TInterface.BridgeResolve(Grid, S(3), S(11), openEnd: true);
+
+        Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
+        Assert.NotNull(plan.LBridgeHead);
+        Assert.Equal(S(3), plan.LBridgeHead!.LBridgeSpanOrigin);
+        Assert.Equal(S(4), plan.LBridgeHead.LBridgeSpanEnd);
+        Assert.NotNull(plan.LBridgeMiddle);
+        Assert.Equal(S(4), plan.LBridgeMiddle!.LBridgeSpanOrigin);
+        Assert.Equal(S(11), plan.LBridgeMiddle.LBridgeSpanEnd);
+        Assert.Null(plan.LBridgeTail);
+    }
+
+    [Fact]
+    public void SameIntervalPastLastKeyframe_TailOnlyWhenEndIsMidStream()
+    {
+        LBridgePlan closed = TInterface.BridgeResolve(Grid, S(2), S(11), openEnd: false);
+        Assert.NotNull(closed.LBridgeTail);
+        Assert.Equal(S(10), closed.LBridgeMiddle!.LBridgeSpanEnd);
+
+        LBridgePlan open = TInterface.BridgeResolve(Grid, S(2), S(11), openEnd: true);
+        Assert.Null(open.LBridgeTail);
+        Assert.Equal(S(11), open.LBridgeMiddle!.LBridgeSpanEnd);
+    }
+
+    [Fact]
+    public void LoneKeyframe_EndReachesEof_CopiesInsteadOfWholeEncode()
+    {
+        IReadOnlyList<TimeSpan> sparse = new[] { S(0) };
+
+        LBridgePlan plan = TInterface.BridgeResolve(sparse, S(0), S(11), openEnd: true);
+
+        Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
+        Assert.Null(plan.LBridgeHead);
+        Assert.Null(plan.LBridgeTail);
+        Assert.NotNull(plan.LBridgeMiddle);
+        Assert.Equal(S(0), plan.LBridgeMiddle!.LBridgeSpanOrigin);
+        Assert.Equal(S(11), plan.LBridgeMiddle.LBridgeSpanEnd);
+    }
+
+    [Theory]
+    [InlineData(12.0, 12.0, 30.0, true)]
+    [InlineData(11.99, 12.0, 30.0, true)]
+    [InlineData(11.0, 12.0, 30.0, false)]
+    [InlineData(12.0, 0.0, 30.0, false)]
+    public void EndCheck_ReachesSourceEndWithinOneFrame(
+        double end, double duration, double framerate, bool expected)
+    {
+        Assert.Equal(expected, TInterface.BridgeEndCheck(S(end), S(duration), framerate));
+    }
 }

@@ -268,7 +268,12 @@ internal sealed class TEncodeCommand : IDisposable
     {
         IReadOnlyList<LKeyframeEntry> keyframes = LScout.LScoutBridgeRead(
             work.LWorkSourcePath, work.LWorkOrigin, work.LWorkEnd);
-        LBridgePlan plan = LBridge.LBridgeRegionResolve(keyframes, work.LWorkOrigin, work.LWorkEnd);
+        LWorkMedia? media = LScout.LScoutMediaRead(work.LWorkSourcePath);
+        bool openEnd = LBridge.LBridgeEndCheck(
+            work.LWorkEnd,
+            media?.LWorkMediaDuration ?? TimeSpan.Zero,
+            media?.LWorkMediaFramerate ?? 0);
+        LBridgePlan plan = LBridge.LBridgeRegionResolve(keyframes, work.LWorkOrigin, work.LWorkEnd, openEnd);
         return LEncode.LEncodeSmartBuild(work, plan, LScout.LScoutStreamRead(work.LWorkSourcePath));
     }
 

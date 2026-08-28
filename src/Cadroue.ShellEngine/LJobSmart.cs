@@ -41,7 +41,14 @@ internal sealed partial class LJob
 
         IReadOnlyList<LKeyframeEntry> pKeyframes = LScout.LScoutBridgeRead(
             lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken);
-        LBridgePlan pPlan = LBridge.LBridgeRegionResolve(pKeyframes, lJobItem.LWorkOrigin, lJobItem.LWorkEnd);
+        LWorkMedia? pMedia = lJobItem.LWorkSourceMedia
+            ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+        bool pOpenEnd = LBridge.LBridgeEndCheck(
+            lJobItem.LWorkEnd,
+            pMedia?.LWorkMediaDuration ?? TimeSpan.Zero,
+            pMedia?.LWorkMediaFramerate ?? 0);
+        LBridgePlan pPlan = LBridge.LBridgeRegionResolve(
+            pKeyframes, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, pOpenEnd);
 
         if (pPlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart)
         {

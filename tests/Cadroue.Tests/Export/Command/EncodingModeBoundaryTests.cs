@@ -94,6 +94,43 @@ public sealed class EncodingModeBoundaryTests : IDisposable
         Assert.True(string.IsNullOrWhiteSpace(DecodeErrorsRead(output)));
     }
 
+    [Fact]
+    public void Smart_WholeSourceInterval_CopiesWithoutTailReencode()
+    {
+        string source = ClosedGopSourceCreate();
+        double duration = DurationRead(source);
+        string output = Path.Combine(tRoot, "smart-whole.mp4");
+        using var environment = new TEncodeCommand();
+        LWorkItem work = TEncodeCommand.SmartIntervalWorkCreate(
+            source, output, 0, duration, "Include", "mp4", "mp4");
+
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartSourceStagesBuild(work);
+
+        // The whole source is copyable end to end: one stream copy, no tail bridge,
+        // no concat, and no re-encode that could reject the source profile/pixel format.
+        LEncodeStage copy = Assert.Single(stages);
+        Assert.Equal("Copying", copy.LEncodeStageLabel);
+        IReadOnlyList<string> tokens = CommandTokens.Read(copy.LEncodeStageArguments);
+        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.DoesNotContain("concat", tokens);
+
+        Run(TEncodeCommand.FfmpegRead(), copy.LEncodeStageArguments);
+        Assert.InRange(DurationRead(output), duration - 0.15, duration + 0.15);
+        Assert.True(string.IsNullOrWhiteSpace(DecodeErrorsRead(output)));
+    }
+
+    private string ClosedGopSourceCreate()
+    {
+        string path = Path.Combine(tRoot, "closed-gop-whole.mp4");
+        Run(
+            TEncodeCommand.FfmpegRead(),
+            "-hide_banner -loglevel error -f lavfi -i testsrc=s=160x90:r=30:d=12 "
+            + "-f lavfi -i sine=frequency=440:duration=12 "
+            + "-c:v libx264 -preset ultrafast -g 60 -keyint_min 60 -x264-params scenecut=0 "
+            + $"-pix_fmt yuv420p -c:a aac -movflags +faststart -y {Quote(path)}");
+        return path;
+    }
+
     private string ModeRun(string mode)
     {
         string source = SourceCreate();

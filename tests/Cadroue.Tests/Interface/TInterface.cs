@@ -310,10 +310,14 @@ internal static class TInterface
         double reduction, double floor, double smooth, double adaptivity, double residual, LGrain grain) =>
         LGrainCatalog.LGrainMatch(reduction, floor, smooth, adaptivity, residual, grain);
 
-    internal static LBridgePlan BridgeResolve(IReadOnlyList<TimeSpan> keyframes, TimeSpan origin, TimeSpan end) =>
-        LBridge.LBridgeRegionResolve(keyframes, origin, end);
-    internal static LBridgePlan BridgeResolve(IReadOnlyList<LKeyframeEntry> keyframes, TimeSpan origin, TimeSpan end) =>
-        LBridge.LBridgeRegionResolve(keyframes, origin, end);
+    internal static LBridgePlan BridgeResolve(
+        IReadOnlyList<TimeSpan> keyframes, TimeSpan origin, TimeSpan end, bool openEnd = false) =>
+        LBridge.LBridgeRegionResolve(keyframes, origin, end, openEnd);
+    internal static LBridgePlan BridgeResolve(
+        IReadOnlyList<LKeyframeEntry> keyframes, TimeSpan origin, TimeSpan end, bool openEnd = false) =>
+        LBridge.LBridgeRegionResolve(keyframes, origin, end, openEnd);
+    internal static bool BridgeEndCheck(TimeSpan end, TimeSpan duration, double framerate) =>
+        LBridge.LBridgeEndCheck(end, duration, framerate);
     internal static bool BridgeLeadingNormalize(byte[] bytes) => LBridge.LBridgeLeadingNormalize(bytes);
 
     internal static LPassbandPreset? PassbandRead(bool high, string token) => LPassband.LPassbandRead(high, token);
