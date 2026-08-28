@@ -246,7 +246,7 @@ public sealed class SmartEncodingCommandTests
         Assert.True(middleOrder >= 0 && adjustOrder == middleOrder + 1 && adjustOrder < joinOrder);
 
         LEncodeStage adjust = stages[adjustOrder];
-        Assert.Equal(LWorkStage.LWorkStageAdjust, adjust.LEncodeStageKind);
+        Assert.Equal(LWorkStage.LWorkStageSplice, adjust.LEncodeStageKind);
         Assert.True(adjust.LEncodeStageTemporary);
         Assert.EndsWith(".middle.mov", adjust.LEncodeStagePath, StringComparison.Ordinal);
         Assert.Equal(string.Empty, adjust.LEncodeStageArguments);
@@ -261,7 +261,7 @@ public sealed class SmartEncodingCommandTests
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
 
-        Assert.DoesNotContain(stages, stage => stage.LEncodeStageKind == LWorkStage.LWorkStageAdjust);
+        Assert.DoesNotContain(stages, stage => stage.LEncodeStageKind == LWorkStage.LWorkStageSplice);
     }
 
     [Fact]
@@ -276,7 +276,7 @@ public sealed class SmartEncodingCommandTests
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 28), (28, 30),
             TEncodeCommand.SourceStreamCreate("hevc", profile: "Main"));
 
-        Assert.DoesNotContain(stages, stage => stage.LEncodeStageKind == LWorkStage.LWorkStageAdjust);
+        Assert.DoesNotContain(stages, stage => stage.LEncodeStageKind == LWorkStage.LWorkStageSplice);
     }
 
     private static int IndexOfLabel(IReadOnlyList<LEncodeStage> stages, string label)

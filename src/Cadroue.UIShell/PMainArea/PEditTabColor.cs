@@ -35,13 +35,13 @@ public sealed partial class PEditTab
 
     private void PEditChangeHandle()
     {
-        PEditColorActiveUpdate();
+        PEditColorUpdate();
         pEditColorTimer.Stop();
         pEditColorTimer.Start();
         PEditPlanSave();
     }
 
-    private void PEditColorActiveUpdate()
+    private void PEditColorUpdate()
     {
         pProcessing.PProcessingActiveSet("Brightness",
             pInspector.PToneStepRead(LColorKind.LColorKindBrightness).LWorkStepActive);
@@ -164,7 +164,7 @@ public sealed partial class PEditTab
             pGammaCapable,
             !pEqCapable ? "Inspector.Video.GammaRequiresEq" : "Inspector.Video.GammaRequiresMpv");
 
-        PEditColorActiveUpdate();
+        PEditColorUpdate();
         PEditColorApply();
     }
 }

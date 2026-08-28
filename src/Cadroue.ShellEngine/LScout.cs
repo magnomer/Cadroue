@@ -106,15 +106,15 @@ internal static class LScout
             // trace_headers work without changing decodability. Reject unsafe leading
             // candidates until a usable copy start is found. When the requested end
             // is not itself keyed, do the same backwards for the tail bridge start.
-            // Probe uncertainty retains a candidate so it cannot silently turn Smart
-            // into a full encode.
+            bool lScoutHevc = lScoutStream.LBridgeCodec.ToLowerInvariant() is "hevc" or "h265";
             var lScoutCandidates = lScoutKeyframes.ToList();
             while (lScoutCandidates.Count > 0
-                && LScoutRefreshRead(
+                && !LScoutBoundaryCheck(
                     lScoutSourcePath,
                     lScoutStream.LBridgeCodec,
+                    lScoutHevc,
                     lScoutCandidates[0].LKeyframePresentationTime,
-                    lScoutToken) == false)
+                    lScoutToken))
             {
                 lScoutCandidates.RemoveAt(0);
             }
@@ -124,11 +124,12 @@ internal static class LScout
                     <= TimeSpan.FromMilliseconds(1);
             while (!lScoutEndKeyed
                 && lScoutCandidates.Count > 1
-                && LScoutRefreshRead(
+                && !LScoutBoundaryCheck(
                     lScoutSourcePath,
                     lScoutStream.LBridgeCodec,
+                    lScoutHevc,
                     lScoutCandidates[^1].LKeyframePresentationTime,
-                    lScoutToken) == false)
+                    lScoutToken))
             {
                 lScoutCandidates.RemoveAt(lScoutCandidates.Count - 1);
             }
@@ -196,7 +197,7 @@ internal static class LScout
             string? lScoutLine;
             while ((lScoutLine = lScoutProcess.StandardOutput.ReadLine()) is not null)
             {
-                if (LScoutFormatStartRead(lScoutLine, out double lScoutFormatStart))
+                if (LScoutFormatRead(lScoutLine, out double lScoutFormatStart))
                 {
                     lScoutTimelineStart = lScoutFormatStart;
                 }
@@ -243,6 +244,17 @@ internal static class LScout
                 try { lScoutProcess.Kill(); } catch { }
             lScoutProcess?.Dispose();
         }
+    }
+
+    private static bool LScoutBoundaryCheck(
+        string lScoutSourcePath,
+        string lScoutCodec,
+        bool lScoutHevc,
+        TimeSpan lScoutKeyframe,
+        CancellationToken lScoutToken)
+    {
+        bool? lScoutRefresh = LScoutRefreshRead(lScoutSourcePath, lScoutCodec, lScoutKeyframe, lScoutToken);
+        return lScoutHevc ? lScoutRefresh != false : lScoutRefresh == true;
     }
 
     internal static bool? LScoutRefreshRead(
@@ -543,7 +555,7 @@ internal static class LScout
         return true;
     }
 
-    private static bool LScoutFormatStartRead(string lScoutLine, out double lScoutStart)
+    private static bool LScoutFormatRead(string lScoutLine, out double lScoutStart)
     {
         lScoutStart = 0;
         string[] lScoutParts = lScoutLine.Split(',');

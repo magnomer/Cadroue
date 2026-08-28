@@ -117,7 +117,7 @@ public static partial class LEncode
             // streams in one input timeline; splitting them through independent MKV
             // intermediates can preserve different timestamp origins that only become
             // visible when the result is decoded by a later Edit/Convert operation.
-            return new[] { LEncodeDirectCopyBuild(lWorkItem, lBridgePlan.LBridgeMiddle, lAudioActive, lBridgeSource) };
+            return new[] { LEncodeDirectBuild(lWorkItem, lBridgePlan.LBridgeMiddle, lAudioActive, lBridgeSource) };
         }
 
         TimeSpan lAudioOffset = TimeSpan.Zero;
@@ -213,7 +213,7 @@ public static partial class LEncode
             // be neutralized before the join (see LBridgeLeadingNormalize). A head-less
             // plan starts on the middle, where a decoder discards leading pictures itself.
             lStages.Add(new LEncodeStage(
-                string.Empty, LWorkStage.LWorkStageAdjust, "Normalizing splice", lMiddlePath, true));
+                string.Empty, LWorkStage.LWorkStageSplice, "Normalizing splice", lMiddlePath, true));
         }
 
         if (lBridgePlan.LBridgeTail is { } lBridgeTail)
@@ -291,7 +291,7 @@ public static partial class LEncode
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
     }
 
-    private static LEncodeStage LEncodeDirectCopyBuild(
+    private static LEncodeStage LEncodeDirectBuild(
         LWorkItem lWorkItem,
         LBridgeSpan lCopySpan,
         bool lAudioActive,

@@ -50,7 +50,7 @@ internal static class PInteraction
             return PInteractionTextNormalize(pAutomationName);
         }
 
-        string? pContentText = PInteractionContentTextRead(pContent);
+        string? pContentText = PInteractionContentRead(pContent);
         if (!string.IsNullOrWhiteSpace(pContentText))
         {
             return PInteractionTextNormalize(pContentText);
@@ -64,7 +64,7 @@ internal static class PInteraction
         return pElement.Name;
     }
 
-    private static string? PInteractionContentTextRead(object? pContent)
+    private static string? PInteractionContentRead(object? pContent)
     {
         switch (pContent)
         {
@@ -75,13 +75,13 @@ internal static class PInteraction
             case AccessText pAccessText:
                 return pAccessText.Text.Replace("_", string.Empty, StringComparison.Ordinal);
             case ContentControl pContentControl:
-                return PInteractionContentTextRead(pContentControl.Content);
+                return PInteractionContentRead(pContentControl.Content);
             case Decorator pDecorator:
-                return PInteractionContentTextRead(pDecorator.Child);
+                return PInteractionContentRead(pDecorator.Child);
             case Panel pPanel:
                 foreach (UIElement pChild in pPanel.Children)
                 {
-                    string? pChildText = PInteractionContentTextRead(pChild);
+                    string? pChildText = PInteractionContentRead(pChild);
                     if (!string.IsNullOrWhiteSpace(pChildText))
                     {
                         return pChildText;

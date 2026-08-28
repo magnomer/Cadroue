@@ -23,7 +23,7 @@ public sealed partial class PEditTab
         pViewer.PCropActiveSet(pInspector.PCropActiveCheck());
     }
 
-    private void PEditCropActiveUpdate() =>
+    private void PEditCropUpdate() =>
         pProcessing.PProcessingActiveSet("Crop", pCropOwner.LCropboxStateActive);
 
     private void PEditPathShow(string? pSourcePath)

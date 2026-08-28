@@ -226,7 +226,7 @@ internal sealed partial class LJob
             LEncodeStage pStage = pStages[pStageIndex];
             lJobStagesDone.Add(pStage);
 
-            if (pStage.LEncodeStageKind == LWorkStage.LWorkStageAdjust)
+            if (pStage.LEncodeStageKind == LWorkStage.LWorkStageSplice)
             {
                 (pExitCode, pJobError) = LJobLeadingRun(pStage);
                 if (pExitCode != 0)
