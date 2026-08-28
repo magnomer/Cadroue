@@ -114,6 +114,7 @@ public sealed partial class PRoster
         LLocalization.LLocalizationTextRead(pWorkKind switch
         {
             LWorkKind.LWorkKindEdit => "Roster.Kind.Edit",
+            LWorkKind.LWorkKindFix => "Roster.Kind.Fix",
             LWorkKind.LWorkKindAudio => "Roster.Kind.Audio",
             LWorkKind.LWorkKindConvert => "Roster.Kind.Convert",
             LWorkKind.LWorkKindMerge => "Roster.Kind.Merge",

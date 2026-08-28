@@ -26,6 +26,9 @@ public static partial class LCartographer
             "Edit" => LCartographerEditRun(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
+            "Fix" => LCartographerFixRun(
+                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
+                lCartographerTarget, lCartographerSource, lCartographerBatch),
             "Audio" => LCartographerAudioRun(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
@@ -145,6 +148,44 @@ public static partial class LCartographer
         foreach (string lCartographerPath in lCartographerPaths)
         {
             int lCartographerAdded = LMessenger.LMessengerEditDescribe(
+                LWorkPriority.LWorkPriorityNormal, lCartographerPath,
+                LLibrarian.LLibrarianDurationRead(lCartographerPath),
+                lCartographerCrop, lCartographerVideo, lCartographerOwner,
+                lCartographerTarget, lCartographerSource, lCartographerBatch);
+            if (lCartographerAdded > 0)
+            {
+                lCartographerAcknowledged.Add(lCartographerPath);
+            }
+        }
+
+        return lCartographerAcknowledged;
+    }
+
+    private static IReadOnlyList<string> LCartographerFixRun(
+        LSceneTabRecord lCartographerLayout,
+        IReadOnlyList<string> lCartographerPaths,
+        LPresetSelection lCartographerOwner,
+        Guid lCartographerTarget,
+        Guid lCartographerSource,
+        Guid lCartographerBatch)
+    {
+        LFixPlan lCartographerPlan = lCartographerLayout.LSceneInspector?.LSceneInspectorFix is { } lCartographerRecord
+            ? LFix.LFixPersistentRead(lCartographerRecord)
+            : LFixPlan.LFixEmptyCreate();
+        bool lCartographerMpvOnlyCapable = LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
+        bool lCartographerEqCapable = LInventory.LInventoryFilterExist("eq");
+        LWorkCrop lCartographerCrop = lCartographerPlan.LFixSkip
+            ? LWorkCrop.LWorkCropCreate()
+            : lCartographerPlan.LFixCrop;
+        LWorkVideo lCartographerVideo = lCartographerPlan.LFixSkip
+            ? LWorkVideo.LWorkVideoCreate()
+            : LFix.LFixVideoCreate(
+                lCartographerPlan.LFixVideo.LWorkVideoSteps, lCartographerMpvOnlyCapable, lCartographerEqCapable);
+
+        var lCartographerAcknowledged = new List<string>();
+        foreach (string lCartographerPath in lCartographerPaths)
+        {
+            int lCartographerAdded = LMessenger.LMessengerFixDescribe(
                 LWorkPriority.LWorkPriorityNormal, lCartographerPath,
                 LLibrarian.LLibrarianDurationRead(lCartographerPath),
                 lCartographerCrop, lCartographerVideo, lCartographerOwner,

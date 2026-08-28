@@ -300,6 +300,7 @@ public sealed class PWorkspace
         return pTabLayoutKey switch
         {
             "Edit" => new PEditTab(lPresetOwner, lPreferenceTabLayout),
+            "Fix" => new PFixTab(lPresetOwner, lPreferenceTabLayout),
             "Audio" => new PAudioTab(lPresetOwner, lPreferenceTabLayout),
             "Convert" => new PConvertTab(lPresetOwner, lPreferenceTabLayout),
             "Merge" => new PMergeTab(lPresetOwner, lPreferenceTabLayout),

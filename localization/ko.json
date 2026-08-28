@@ -961,6 +961,7 @@
   "Roster.Phase.NotStarted": "시작하지 않음",
   "Roster.Kind.Split": "분할",
   "Roster.Kind.Edit": "{Terms.Edit}",
+  "Roster.Kind.Fix": "Fix",
   "Roster.Kind.Audio": "{Terms.Audio}",
   "Roster.Kind.Convert": "변환",
   "Roster.Kind.Merge": "병합",

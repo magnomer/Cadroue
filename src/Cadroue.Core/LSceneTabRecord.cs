@@ -52,6 +52,8 @@ public sealed class LSceneInspectorRecord
 
     public Cadroue.Core.LSidecarEditRecord? LSceneInspectorEdit { get; set; }
 
+    public Cadroue.Core.LSidecarFixRecord? LSceneInspectorFix { get; set; }
+
     public bool LSceneInspectorCrop { get; set; }
 
     public bool LSceneInspectorSkip { get; set; }
@@ -62,6 +64,7 @@ public sealed class LSceneInspectorRecord
         {
             LSceneInspectorAudio = LSceneInspectorAudio,
             LSceneInspectorEdit = LSceneInspectorEdit,
+            LSceneInspectorFix = LSceneInspectorFix,
             LSceneInspectorCrop = LSceneInspectorCrop,
             LSceneInspectorSkip = LSceneInspectorSkip
         };

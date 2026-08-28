@@ -30,6 +30,32 @@ public sealed class LSidecarEditRecord
         || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }
 
+public sealed class LSidecarFixRecord
+{
+    public int LSidecarCropLeft { get; set; }
+    public int LSidecarCropTop { get; set; }
+    public int LSidecarCropRight { get; set; }
+    public int LSidecarCropBottom { get; set; }
+    public int LSidecarRotation { get; set; }
+    public bool LSidecarFlipHorizontal { get; set; }
+    public bool LSidecarFlipVertical { get; set; }
+    public bool LSidecarCropActive { get; set; }
+    public bool LSidecarRatioFixed { get; set; }
+    public bool LSidecarRatioLenient { get; set; }
+    public int LSidecarRatioWidth { get; set; }
+    public int LSidecarRatioHeight { get; set; }
+    public bool LSidecarSkip { get; set; }
+    public List<LSidecarVideoStep> LSidecarSteps { get; set; } = new();
+
+    public bool LSidecarFixActive =>
+        LSidecarCropActive
+        || LSidecarSkip
+        || LSidecarCropLeft > 0 || LSidecarCropTop > 0 || LSidecarCropRight > 0 || LSidecarCropBottom > 0
+        || LSidecarRotation != 0 || LSidecarFlipHorizontal || LSidecarFlipVertical
+        || LSidecarRatioFixed
+        || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
+}
+
 public sealed class LSidecarVideoStep
 {
     public string LSidecarKind { get; set; } = string.Empty;

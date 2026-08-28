@@ -126,6 +126,7 @@ public sealed class PStrip
         return pTabLayoutKey switch
         {
             "Edit" => PStripTypedAdd("Edit", pStripEditIcon, lExportSpecificState, lPreferenceTabLayout),
+            "Fix" => PStripTypedAdd("Fix", pStripEditIcon, lExportSpecificState, lPreferenceTabLayout),
             "Audio" => PStripTypedAdd("Audio", pStripAudioIcon, lExportSpecificState, lPreferenceTabLayout),
             "Convert" => PStripTypedAdd("Convert", pStripConvertIcon, lExportSpecificState, lPreferenceTabLayout),
             "Merge" => PStripTypedAdd("Merge", pStripMergeIcon, lExportSpecificState, lPreferenceTabLayout),

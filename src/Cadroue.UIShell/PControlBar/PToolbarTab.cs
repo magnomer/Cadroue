@@ -344,6 +344,7 @@ public partial class PRail : UserControl
 
         PTabMenuAppend(pTabAddMenu, "Split", "Tab.Split", PIcon.PIconRead("/PAssets/PTabs/PSplitButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Edit", "Tab.Edit", PIcon.PIconRead("/PAssets/PTabs/PEditButton.svg"));
+        PTabMenuAppend(pTabAddMenu, "Fix", "Tab.Fix", PIcon.PIconRead("/PAssets/PTabs/PEditButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Audio", "Tab.Audio", PIcon.PIconRead("/PAssets/PTabs/PAudioButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Convert", "Tab.Convert", PIcon.PIconRead("/PAssets/PTabs/PConvertButton.svg"));
         PTabMenuAppend(pTabAddMenu, "Merge", "Tab.Merge", PIcon.PIconRead("/PAssets/PTabs/PMergeButton.svg"));

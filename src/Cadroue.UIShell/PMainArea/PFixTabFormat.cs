@@ -31,10 +31,10 @@ public sealed partial class PFixTab
         return $"{pEdges}, rotate {pCrop.LWorkCropRotation}, {pFlip}";
     }
 
-    private static string PFixPlanFormat(LEditPlan? pFixPlan) =>
+    private static string PFixPlanFormat(LFixPlan? pFixPlan) =>
         pFixPlan is null
             ? "none"
-            : $"{PFixCropFormat(pFixPlan.LEditCrop)}, {PFixVideoFormat(pFixPlan.LEditVideo)}";
+            : $"{PFixCropFormat(pFixPlan.LFixCrop)}, {PFixVideoFormat(pFixPlan.LFixVideo)}";
 
     private static string PFixVideoFormat(LWorkVideo pFixVideo)
     {

@@ -961,6 +961,7 @@
   "Roster.Phase.NotStarted": "Not started",
   "Roster.Kind.Split": "Split",
   "Roster.Kind.Edit": "{Terms.Edit}",
+  "Roster.Kind.Fix": "Fix",
   "Roster.Kind.Audio": "{Terms.Audio}",
   "Roster.Kind.Convert": "Convert",
   "Roster.Kind.Merge": "Merge",

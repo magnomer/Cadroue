@@ -31,12 +31,12 @@ public sealed partial class PFixTab
         pViewer.PViewerNeutralCancel();
         if (string.IsNullOrWhiteSpace(pSourcePath))
         {
-            LTraceLog.LTraceInfoRecord("Edit click: no file selected");
+            LTraceLog.LTraceInfoRecord("Fix click: no file selected");
             return;
         }
 
         LTraceLog.LTraceInfoRecord(
-            $"Edit click '{System.IO.Path.GetFileName(pSourcePath)}': "
+            $"Fix click '{System.IO.Path.GetFileName(pSourcePath)}': "
             + $"persistent {(pInspector.PCropPersistentCheck() ? "on" : "off")}, "
             + $"inspector now {PFixCropFormat(pInspector.PInspectorCropRead())}");
         pViewer.PViewerSourceOpen(pSourcePath);
@@ -53,7 +53,7 @@ public sealed partial class PFixTab
             pInspector.PInspectorSourceSet(0, 0);
         }
 
-        LTraceLog.LTraceInfoRecord($"Edit crop from viewer: {PFixRectFormat(pCropVideo)}");
+        LTraceLog.LTraceInfoRecord($"Fix crop from viewer: {PFixRectFormat(pCropVideo)}");
         (int pCropDrive, int pCropAnchorX, int pCropAnchorY) = pViewer.PCropAnchorRead();
         pInspector.PInspectorCropSet(pCropVideo, pCropDrive, pCropAnchorX, pCropAnchorY);
     }
@@ -79,13 +79,13 @@ public sealed partial class PFixTab
                 pInspector.PInspectorSourceSet(0, 0);
             }
 
-            LEditPlan? pFixPersistent = PFixCarriedRead();
-            LEditPlan? pFixSaved = pViewer.PViewerSourcePath is { } pFixSourcePath
-                ? LEdit.LEditPlanRead(pFixSourcePath, LLibrarian.LLibrarianEditLoad)
+            LFixPlan? pFixPersistent = PFixCarriedRead();
+            LFixPlan? pFixSaved = pViewer.PViewerSourcePath is { } pFixSourcePath
+                ? LFix.LFixPlanRead(pFixSourcePath, LLibrarian.LLibrarianFixLoad)
                 : null;
 
             LTraceLog.LTraceInfoRecord(
-                $"Edit media ready '{pFixName}': "
+                $"Fix media ready '{pFixName}': "
                 + $"display {(pCropSource is { } pLogSize ? $"{pLogSize.Width:0}x{pLogSize.Height:0}" : "unknown")}, "
                 + $"persistent {(pFixPersistent is null ? "off" : "on")}, "
                 + $"carried {PFixPlanFormat(pFixPersistent)}, "
@@ -94,32 +94,32 @@ public sealed partial class PFixTab
             pInspector.PCropMediaReset();
 
             bool pFixCarryWins = pFixPersistent is not null;
-            LEditPlan pFixPlan = LEdit.LEditPlanResolve(
+            LFixPlan pFixPlan = LFix.LFixPlanResolve(
                 pFixSaved,
                 pFixPersistent,
                 pCropOwner.LCropboxStatePersistent,
                 pInspector.PSkipPersistentCheck());
 
             LTraceLog.LTraceInfoRecord(
-                $"Edit applying {(pFixCarryWins ? "persistent" : "sidecar")} plan to '{pFixName}': "
+                $"Fix applying {(pFixCarryWins ? "persistent" : "sidecar")} plan to '{pFixName}': "
                 + $"{PFixPlanFormat(pFixPlan)}");
-            pViewer.PViewerRotateSet(PFixRotateResolve(pFixPlan.LEditCrop));
+            pViewer.PViewerRotateSet(PFixRotateResolve(pFixPlan.LFixCrop));
             if (pViewer.PCropSourceRead() is { } pFixRotatedSource)
             {
                 pInspector.PInspectorSourceSet(pFixRotatedSource.Width, pFixRotatedSource.Height);
             }
 
-            pInspector.PCropPlanApply(pFixPlan.LEditCrop, pFixPlan.LEditCropActive);
-            pInspector.PInspectorRatioApply(pFixPlan.LEditRatioFixed, pFixPlan.LEditRatioLenient, pFixPlan.LEditRatioWidth, pFixPlan.LEditRatioHeight);
-            pInspector.PTonePlanApply(pFixPlan.LEditVideo);
-            pInspector.PSkipApply(pFixPlan.LEditSkip);
+            pInspector.PCropPlanApply(pFixPlan.LFixCrop, pFixPlan.LFixCropActive);
+            pInspector.PInspectorRatioApply(pFixPlan.LFixRatioFixed, pFixPlan.LFixRatioLenient, pFixPlan.LFixRatioWidth, pFixPlan.LFixRatioHeight);
+            pInspector.PTonePlanApply(pFixPlan.LFixVideo);
+            pInspector.PSkipApply(pFixPlan.LFixSkip);
             pCropOwner.LCropboxStateSet(
-                pFixPlan.LEditCrop,
-                pFixPlan.LEditCropActive,
-                pFixPlan.LEditRatioFixed,
-                pFixPlan.LEditRatioLenient,
-                pFixPlan.LEditRatioWidth,
-                pFixPlan.LEditRatioHeight);
+                pFixPlan.LFixCrop,
+                pFixPlan.LFixCropActive,
+                pFixPlan.LFixRatioFixed,
+                pFixPlan.LFixRatioLenient,
+                pFixPlan.LFixRatioWidth,
+                pFixPlan.LFixRatioHeight);
         }
         finally
         {
@@ -138,7 +138,7 @@ public sealed partial class PFixTab
         LRotateFlip pFixRotate = pInspector.PInspectorRotateRead();
         System.Windows.Rect? pFixRect = pInspector.PInspectorRectRead();
         LTraceLog.LTraceInfoRecord(
-            $"Edit viewer push: rotate {pFixRotate.LRotateKind}, "
+            $"Fix viewer push: rotate {pFixRotate.LRotateKind}, "
             + $"H {pFixRotate.LRotateFlipHorizontal}, V {pFixRotate.LRotateFlipVertical}, "
             + $"{PFixRectFormat(pFixRect)}");
 

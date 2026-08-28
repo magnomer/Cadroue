@@ -9,7 +9,7 @@ public sealed partial class LSchedule
 
     internal static string LScheduleIdShorten(Guid lWorkId) => lWorkId.ToString("N")[..8];
 
-    internal static bool LScheduleSignetOwn(LWorkRecord lWorkRecord) =>
+    internal static bool LScheduleSignetMatch(LWorkRecord lWorkRecord) =>
         lWorkRecord.LWorkSignet == Guid.Empty
         || lWorkRecord.LWorkSignet == LSignet.LSignetCurrent;
 
@@ -27,7 +27,7 @@ public sealed partial class LSchedule
         }
 
         IEnumerable<LWorkRecord> lScheduleOrdered = lScheduleCandidates
-            .Where(LScheduleSignetOwn)
+            .Where(LScheduleSignetMatch)
             .OrderByDescending(lWorkRecord => lWorkRecord.LWorkPriorityName == nameof(LWorkPriority.LWorkPriorityHigh))
             .ThenBy(lWorkRecord => lWorkRecord.LWorkCreateTime);
 

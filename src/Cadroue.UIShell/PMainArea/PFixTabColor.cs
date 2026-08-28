@@ -124,7 +124,7 @@ public sealed partial class PFixTab
             }
         }
 
-        return LEdit.LEditVideoCreate(pSteps, pMpvOnlyCapable, PFixEqCheck());
+        return LFix.LFixVideoCreate(pSteps, pMpvOnlyCapable, PFixEqCheck());
     }
 
     private bool PFixMpvCheck() =>

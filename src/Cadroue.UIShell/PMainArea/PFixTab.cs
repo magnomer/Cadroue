@@ -54,7 +54,7 @@ public sealed partial class PFixTab : PTabSurface
                 return;
             }
 
-            LMessenger.LMessengerEditDescribe(
+            LMessenger.LMessengerFixDescribe(
                 lPriority,
                 pFixSelected.LDocketEntryPath,
                 pViewer.PViewerDurationRead(),
@@ -74,7 +74,7 @@ public sealed partial class PFixTab : PTabSurface
                 return;
             }
 
-            _ = LMessenger.LMessengerEditDescribe(
+            _ = LMessenger.LMessengerFixDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
@@ -92,7 +92,7 @@ public sealed partial class PFixTab : PTabSurface
                 return;
             }
 
-            _ = LMessenger.LMessengerEditDescribe(
+            _ = LMessenger.LMessengerFixDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Where(pItem => pFixPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
@@ -211,20 +211,20 @@ public sealed partial class PFixTab : PTabSurface
         if (pCropPersistent || pVideoPersistent || pSkipPersistent)
         {
             (bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
-            var pFixCarried = new LEditPlan(
+            var pFixCarried = new LFixPlan(
                 pCropPersistent ? pCropOwner.LCropboxStateCrop : LWorkCrop.LWorkCropCreate(),
                 pInspector.PTonePersistentRead(),
                 pCropPersistent && pCropOwner.LCropboxStateActive)
             {
-                LEditSkip = pSkipPersistent && pInspector.PSkipActiveCheck(),
-                LEditRatioFixed = pCropPersistent && pRatioFixed,
-                LEditRatioLenient = pCropPersistent && pRatioLenient,
-                LEditRatioWidth = pCropPersistent ? pRatioWidth : 0,
-                LEditRatioHeight = pCropPersistent ? pRatioHeight : 0
+                LFixSkip = pSkipPersistent && pInspector.PSkipActiveCheck(),
+                LFixRatioFixed = pCropPersistent && pRatioFixed,
+                LFixRatioLenient = pCropPersistent && pRatioLenient,
+                LFixRatioWidth = pCropPersistent ? pRatioWidth : 0,
+                LFixRatioHeight = pCropPersistent ? pRatioHeight : 0
             };
             lPreferenceTabLayout.LSceneInspector = new LSceneInspectorRecord
             {
-                LSceneInspectorEdit = LEdit.LEditPersistentCreate(pFixCarried),
+                LSceneInspectorFix = LFix.LFixPersistentCreate(pFixCarried),
                 LSceneInspectorCrop = pCropPersistent,
                 LSceneInspectorSkip = pSkipPersistent
             };

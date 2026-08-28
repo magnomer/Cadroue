@@ -11,7 +11,7 @@ public sealed partial class PFixTab
 {
     private void PFixPersistentRestore(LSceneTabRecord? lPreferenceTabLayout)
     {
-        if (lPreferenceTabLayout?.LSceneInspector is not { LSceneInspectorEdit: { } pFixRecord } pFixPersistent)
+        if (lPreferenceTabLayout?.LSceneInspector is not { LSceneInspectorFix: { } pFixRecord } pFixPersistent)
         {
             return;
         }
@@ -19,25 +19,25 @@ public sealed partial class PFixTab
         pFixPlanLoading = true;
         try
         {
-            LEditPlan pFixPlan = LEdit.LEditPersistentRead(pFixRecord);
+            LFixPlan pFixPlan = LFix.LFixPersistentRead(pFixRecord);
             if (pFixPersistent.LSceneInspectorCrop)
             {
-                pInspector.PCropPlanApply(pFixPlan.LEditCrop, pFixPlan.LEditCropActive);
-                pInspector.PInspectorRatioApply(pFixPlan.LEditRatioFixed, pFixPlan.LEditRatioLenient, pFixPlan.LEditRatioWidth, pFixPlan.LEditRatioHeight);
+                pInspector.PCropPlanApply(pFixPlan.LFixCrop, pFixPlan.LFixCropActive);
+                pInspector.PInspectorRatioApply(pFixPlan.LFixRatioFixed, pFixPlan.LFixRatioLenient, pFixPlan.LFixRatioWidth, pFixPlan.LFixRatioHeight);
                 pInspector.PCropPersistentApply(true);
                 pCropOwner.LCropboxStateSet(
-                    pFixPlan.LEditCrop,
-                    pFixPlan.LEditCropActive,
-                    pFixPlan.LEditRatioFixed,
-                    pFixPlan.LEditRatioLenient,
-                    pFixPlan.LEditRatioWidth,
-                    pFixPlan.LEditRatioHeight);
+                    pFixPlan.LFixCrop,
+                    pFixPlan.LFixCropActive,
+                    pFixPlan.LFixRatioFixed,
+                    pFixPlan.LFixRatioLenient,
+                    pFixPlan.LFixRatioWidth,
+                    pFixPlan.LFixRatioHeight);
                 pCropOwner.LCropboxPersistentSet(true);
             }
 
-            pInspector.PTonePlanApply(pFixPlan.LEditVideo);
-            pInspector.PTonePersistentApply(pFixPlan.LEditVideo);
-            pInspector.PSkipApply(pFixPlan.LEditSkip);
+            pInspector.PTonePlanApply(pFixPlan.LFixVideo);
+            pInspector.PTonePersistentApply(pFixPlan.LFixVideo);
+            pInspector.PSkipApply(pFixPlan.LFixSkip);
             pInspector.PSkipPersistentApply(pFixPersistent.LSceneInspectorSkip);
         }
         finally
@@ -57,12 +57,12 @@ public sealed partial class PFixTab
         bool pFixSkipPersistent = pInspector.PSkipPersistentCheck();
         foreach (string pFixPath in pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath))
         {
-            LEdit.LEditPlanSave(
+            LFix.LFixPlanSave(
                 pFixPath,
-                LEdit.LEditPlanResolve(
-                    LEdit.LEditPlanRead(pFixPath, LLibrarian.LLibrarianEditLoad),
+                LFix.LFixPlanResolve(
+                    LFix.LFixPlanRead(pFixPath, LLibrarian.LLibrarianFixLoad),
                     pFixCarried, pFixCropPersistent, pFixSkipPersistent),
-                LLibrarian.LLibrarianEditSave);
+                LLibrarian.LLibrarianFixSave);
         }
     }
 
@@ -78,16 +78,16 @@ public sealed partial class PFixTab
         foreach (LDocketEntry pFixAddedItem in pFixAddedItems)
         {
             string pFixPath = pFixAddedItem.LDocketEntryPath;
-            LEdit.LEditPlanSave(
+            LFix.LFixPlanSave(
                 pFixPath,
-                LEdit.LEditPlanResolve(
-                    LEdit.LEditPlanRead(pFixPath, LLibrarian.LLibrarianEditLoad),
+                LFix.LFixPlanResolve(
+                    LFix.LFixPlanRead(pFixPath, LLibrarian.LLibrarianFixLoad),
                     pFixCarried, pFixCropPersistent, pFixSkipPersistent),
-                LLibrarian.LLibrarianEditSave);
+                LLibrarian.LLibrarianFixSave);
         }
     }
 
-    private LEditPlan? PFixCarriedRead()
+    private LFixPlan? PFixCarriedRead()
     {
         bool pCropPersistent = pCropOwner.LCropboxStatePersistent;
         bool pVideoPersistent = pInspector.PTonePersistentCheck();
@@ -106,13 +106,13 @@ public sealed partial class PFixTab
             : LWorkVideo.LWorkVideoCreate();
         bool pSkip = pSkipPersistent && pInspector.PSkipActiveCheck();
         (bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
-        return new LEditPlan(pCrop, pVideo, pCropApply)
+        return new LFixPlan(pCrop, pVideo, pCropApply)
         {
-            LEditSkip = pSkip,
-            LEditRatioFixed = pCropPersistent && pRatioFixed,
-            LEditRatioLenient = pCropPersistent && pRatioLenient,
-            LEditRatioWidth = pCropPersistent ? pRatioWidth : 0,
-            LEditRatioHeight = pCropPersistent ? pRatioHeight : 0
+            LFixSkip = pSkip,
+            LFixRatioFixed = pCropPersistent && pRatioFixed,
+            LFixRatioLenient = pCropPersistent && pRatioLenient,
+            LFixRatioWidth = pCropPersistent ? pRatioWidth : 0,
+            LFixRatioHeight = pCropPersistent ? pRatioHeight : 0
         };
     }
 
@@ -126,25 +126,25 @@ public sealed partial class PFixTab
         }
 
         (bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
-        var pFixPlan = new LEditPlan(
+        var pFixPlan = new LFixPlan(
             pCropOwner.LCropboxStateCrop,
             PFixVideoRead(),
             pCropOwner.LCropboxStateActive)
         {
-            LEditSkip = pInspector.PSkipActiveCheck(),
-            LEditRatioFixed = pRatioFixed,
-            LEditRatioLenient = pRatioLenient,
-            LEditRatioWidth = pRatioWidth,
-            LEditRatioHeight = pRatioHeight
+            LFixSkip = pInspector.PSkipActiveCheck(),
+            LFixRatioFixed = pRatioFixed,
+            LFixRatioLenient = pRatioLenient,
+            LFixRatioWidth = pRatioWidth,
+            LFixRatioHeight = pRatioHeight
         };
-        if (!pFixPlan.LEditPlanActive && LEdit.LEditPlanRead(pFixSourcePath, LLibrarian.LLibrarianEditLoad) is null)
+        if (!pFixPlan.LFixPlanActive && LFix.LFixPlanRead(pFixSourcePath, LLibrarian.LLibrarianFixLoad) is null)
         {
             return;
         }
 
         LTraceLog.LTraceInfoRecord(
-            $"Edit plan saved for '{System.IO.Path.GetFileName(pFixSourcePath)}': {PFixPlanFormat(pFixPlan)}");
-        LEdit.LEditPlanSave(pFixSourcePath, pFixPlan, LLibrarian.LLibrarianEditSave);
+            $"Fix plan saved for '{System.IO.Path.GetFileName(pFixSourcePath)}': {PFixPlanFormat(pFixPlan)}");
+        LFix.LFixPlanSave(pFixSourcePath, pFixPlan, LLibrarian.LLibrarianFixSave);
         PFixPersistentSave();
     }
 }
