@@ -368,10 +368,11 @@ public sealed class ModeCommandTests
         // Interval is [10, 30]; interior keyframes at 12 and 28 align with neither bound.
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartBridgeResolve(work, 12, 28);
 
-        Assert.Equal(5, stages.Count);
+        // head, middle, tail — each followed by its MPEG-TS join piece — plus the join.
+        Assert.Equal(8, stages.Count);
         Assert.Equal("Encoding head bridge", stages[0].LEncodeStageLabel);
-        Assert.Equal("Copying middle", stages[1].LEncodeStageLabel);
-        Assert.Equal("Encoding tail bridge", stages[2].LEncodeStageLabel);
+        Assert.Contains(stages, stage => stage.LEncodeStageLabel == "Copying middle");
+        Assert.Contains(stages, stage => stage.LEncodeStageLabel == "Encoding tail bridge");
         Assert.Equal(LWorkStage.LWorkStageMux, stages[^1].LEncodeStageKind);
         Assert.Contains("concat", CommandTokens.Read(stages[^1].LEncodeStageArguments));
     }

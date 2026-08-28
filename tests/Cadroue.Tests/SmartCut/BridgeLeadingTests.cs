@@ -5,7 +5,7 @@ namespace Cadroue.Tests;
 public sealed class BridgeLeadingTests
 {
     private const byte CraHeader = (21 << 1) | 0x01;
-    private const byte BlaHeader = (18 << 1) | 0x01;
+    private const byte BlaHeader = (16 << 1) | 0x01;
     private const byte IdrHeader = (20 << 1) | 0x01;
     private const byte VpsHeader = (32 << 1) | 0x01;
 

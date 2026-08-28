@@ -198,12 +198,11 @@ public static partial class LEncode
         {
             string lHeadPath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.head{lBridgeExtension}");
             lStages.Add(LEncodeSpanBuild(lWorkItem, lBridgeHead, lHeadPath, "Encoding head bridge", lBridgeSource));
-            lConcatParts.Add(lHeadPath);
+            lConcatParts.Add(LEncodePieceBuild(lStages, lHeadPath));
         }
 
         string lMiddlePath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.middle{lBridgeExtension}");
         lStages.Add(LEncodeMiddleBuild(lWorkItem, lBridgePlan.LBridgeMiddle!, lMiddlePath, lBridgeSource));
-        lConcatParts.Add(lMiddlePath);
 
         string lLeadingCodec = (lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty)
             .ToLowerInvariant();
@@ -212,18 +211,42 @@ public static partial class LEncode
             // The copied middle follows the head, so its open-GOP first keyframe must
             // be neutralized before the join (see LBridgeLeadingNormalize). A head-less
             // plan starts on the middle, where a decoder discards leading pictures itself.
+            // The splice edits the ISO-BMFF middle in place, so it must run before that
+            // middle is remuxed into its join piece.
             lStages.Add(new LEncodeStage(
                 string.Empty, LWorkStage.LWorkStageSplice, "Normalizing splice", lMiddlePath, true));
         }
+
+        lConcatParts.Add(LEncodePieceBuild(lStages, lMiddlePath));
 
         if (lBridgePlan.LBridgeTail is { } lBridgeTail)
         {
             string lTailPath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.tail{lBridgeExtension}");
             lStages.Add(LEncodeSpanBuild(lWorkItem, lBridgeTail, lTailPath, "Encoding tail bridge", lBridgeSource));
-            lConcatParts.Add(lTailPath);
+            lConcatParts.Add(LEncodePieceBuild(lStages, lTailPath));
         }
 
         return new LEncodeSmartProduction(lStages, lConcatParts);
+    }
+
+    private static string LEncodePieceBuild(List<LEncodeStage> lStages, string lPartPath)
+    {
+        // The concat demuxer carries only the first segment's parameter sets, and the
+        // ISO-BMFF pieces store SPS/PPS out-of-band in their sample-description box. A
+        // copied middle whose parameter sets differ from the re-encoded head (weighted
+        // prediction, QP range, VUI) is then decoded against the head's sets and every
+        // slice desyncs. Remuxing each piece to MPEG-TS emits its parameter sets in-band
+        // per packet, so each segment stays self-describing across the join while the
+        // concat demuxer still stitches the piece timelines in order.
+        string lPiecePath = Path.ChangeExtension(lPartPath, ".ts");
+        var lArguments = new StringBuilder();
+        LEncodeHeaderAppend(lArguments);
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lPartPath)}");
+        lArguments.Append(" -map 0:v:0 -c copy -f mpegts");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lPiecePath)}");
+        lStages.Add(new LEncodeStage(
+            lArguments.ToString(), LWorkStage.LWorkStageExtract, "Preparing bridge piece", lPiecePath, true));
+        return lPiecePath;
     }
 
     private static string LEncodeExtensionResolve(string? lIntermediateExtension)

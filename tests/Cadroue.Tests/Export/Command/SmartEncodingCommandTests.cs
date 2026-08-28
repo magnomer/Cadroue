@@ -21,10 +21,10 @@ public sealed class SmartEncodingCommandTests
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
 
-        // head, middle, tail (video only) + audio + join.
-        Assert.Equal(5, stages.Count);
+        // head, middle, tail (each followed by its MPEG-TS join piece) + audio + join.
+        Assert.Equal(8, stages.Count);
 
-        LEncodeStage head = stages[0];
+        LEncodeStage head = stages[IndexOfLabel(stages, "Encoding head bridge")];
         IReadOnlyList<string> headTokens = CommandTokens.Read(head.LEncodeStageArguments);
         Assert.True(head.LEncodeStageTemporary);
         Assert.Equal("libx264", CommandTokens.ValueAfter(headTokens, "-c:v"));
@@ -41,7 +41,7 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("2", CommandTokens.ValueAfter(headTokens, "-t"));
         Assert.Equal(".mov", Path.GetExtension(head.LEncodeStagePath));
 
-        LEncodeStage middle = stages[1];
+        LEncodeStage middle = stages[IndexOfLabel(stages, "Copying middle")];
         IReadOnlyList<string> middleTokens = CommandTokens.Read(middle.LEncodeStageArguments);
         Assert.True(middle.LEncodeStageTemporary);
         Assert.Equal("copy", CommandTokens.ValueAfter(middleTokens, "-c:v"));
@@ -53,7 +53,7 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("30000", CommandTokens.ValueAfter(middleTokens, "-video_track_timescale"));
         Assert.Equal(".mov", Path.GetExtension(middle.LEncodeStagePath));
 
-        LEncodeStage tail = stages[2];
+        LEncodeStage tail = stages[IndexOfLabel(stages, "Encoding tail bridge")];
         IReadOnlyList<string> tailTokens = CommandTokens.Read(tail.LEncodeStageArguments);
         Assert.True(tail.LEncodeStageTemporary);
         Assert.Equal("libx264", CommandTokens.ValueAfter(tailTokens, "-c:v"));
@@ -64,7 +64,7 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal("30000", CommandTokens.ValueAfter(tailTokens, "-video_track_timescale"));
         Assert.Equal(".mov", Path.GetExtension(tail.LEncodeStagePath));
 
-        LEncodeStage audio = stages[3];
+        LEncodeStage audio = stages[IndexOfLabel(stages, "Copying audio")];
         IReadOnlyList<string> audioTokens = CommandTokens.Read(audio.LEncodeStageArguments);
         Assert.True(audio.LEncodeStageTemporary);
         Assert.Equal("Copying audio", audio.LEncodeStageLabel);
@@ -76,7 +76,7 @@ public sealed class SmartEncodingCommandTests
         Assert.Equal(".mov", Path.GetExtension(audio.LEncodeStagePath));
         Assert.DoesNotContain("-video_track_timescale", audioTokens);
 
-        LEncodeStage mux = stages[4];
+        LEncodeStage mux = stages[^1];
         IReadOnlyList<string> muxTokens = CommandTokens.Read(mux.LEncodeStageArguments);
         Assert.False(mux.LEncodeStageTemporary);
         Assert.Equal(work.LWorkOutputPath, mux.LEncodeStagePath);
@@ -110,19 +110,30 @@ public sealed class SmartEncodingCommandTests
             (28, 30),
             intermediateExtension: ".mkv");
 
-        IReadOnlyList<LEncodeStage> temporaryStages = stages
-            .Where(stage => stage.LEncodeStageTemporary)
+        // The head/middle/tail spans and the audio stage keep the requested Matroska
+        // container; the per-piece MPEG-TS remux is a separate join requirement.
+        IReadOnlyList<LEncodeStage> matroskaStages = stages
+            .Where(stage => stage.LEncodeStageTemporary
+                && stage.LEncodeStageLabel != "Preparing bridge piece")
             .ToArray();
-        Assert.Equal(4, temporaryStages.Count);
-        Assert.Single(temporaryStages, stage => stage.LEncodeStageLabel == "Copying audio");
+        Assert.Equal(4, matroskaStages.Count);
+        Assert.Single(matroskaStages, stage => stage.LEncodeStageLabel == "Copying audio");
         Assert.All(
-            temporaryStages,
+            matroskaStages,
             stage => Assert.Equal(".mkv", Path.GetExtension(stage.LEncodeStagePath)));
         Assert.All(
-            temporaryStages,
+            matroskaStages,
             stage => Assert.DoesNotContain(
                 "-video_track_timescale",
                 CommandTokens.Read(stage.LEncodeStageArguments)));
+
+        IReadOnlyList<LEncodeStage> pieceStages = stages
+            .Where(stage => stage.LEncodeStageLabel == "Preparing bridge piece")
+            .ToArray();
+        Assert.Equal(3, pieceStages.Count);
+        Assert.All(
+            pieceStages,
+            stage => Assert.Equal(".ts", Path.GetExtension(stage.LEncodeStagePath)));
     }
 
     [Fact]
@@ -134,8 +145,8 @@ public sealed class SmartEncodingCommandTests
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 28), (28, 30));
 
-        // middle, tail, audio, join (no head).
-        Assert.Equal(4, stages.Count);
+        // middle, middle piece, tail, tail piece, audio, join (no head).
+        Assert.Equal(6, stages.Count);
         Assert.Equal("Copying middle", stages[0].LEncodeStageLabel);
         Assert.Equal(LWorkStage.LWorkStageMux, stages[^1].LEncodeStageKind);
     }
@@ -152,7 +163,8 @@ public sealed class SmartEncodingCommandTests
             (12, 28, 27.933),
             (28, 30),
             TEncodeCommand.SourceStreamCreate("h264"));
-        IReadOnlyList<string> middleTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
+        IReadOnlyList<string> middleTokens = CommandTokens.Read(
+            stages[IndexOfLabel(stages, "Copying middle")].LEncodeStageArguments);
 
         Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("15.933", CommandTokens.ValueAfter(middleTokens, "-t"));
@@ -362,8 +374,10 @@ public sealed class SmartEncodingCommandTests
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
 
         // Video is split into head/middle/tail; none of them touch audio.
-        foreach (LEncodeStage videoStage in stages.Take(3))
+        string[] videoLabels = { "Encoding head bridge", "Copying middle", "Encoding tail bridge" };
+        foreach (string videoLabel in videoLabels)
         {
+            LEncodeStage videoStage = stages[IndexOfLabel(stages, videoLabel)];
             IReadOnlyList<string> videoTokens = CommandTokens.Read(videoStage.LEncodeStageArguments);
             Assert.Contains("-an", videoTokens);
             Assert.DoesNotContain("-c:a", videoTokens);
@@ -441,8 +455,8 @@ public sealed class SmartEncodingCommandTests
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartStagesBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
 
-        // head, middle, tail, join — no audio stage.
-        Assert.Equal(4, stages.Count);
+        // head, middle, tail (each with its join piece), join — no audio stage.
+        Assert.Equal(7, stages.Count);
         IReadOnlyList<string> muxTokens = CommandTokens.Read(stages[^1].LEncodeStageArguments);
         Assert.Contains("-an", muxTokens);
         Assert.Equal(0, CommandTokens.Count(muxTokens, "1:a"));
@@ -501,12 +515,13 @@ public sealed class SmartEncodingCommandTests
         // Interval is [10, 30]; interior keyframes at 12 and 28 align with neither bound.
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartBridgeResolve(work, 12, 28);
 
-        Assert.Equal(5, stages.Count);
+        Assert.Equal(8, stages.Count);
         Assert.Equal("Encoding head bridge", stages[0].LEncodeStageLabel);
-        Assert.Equal("Copying middle", stages[1].LEncodeStageLabel);
-        Assert.Equal("Encoding tail bridge", stages[2].LEncodeStageLabel);
+        Assert.True(IndexOfLabel(stages, "Copying middle") >= 0);
+        Assert.True(IndexOfLabel(stages, "Encoding tail bridge") >= 0);
 
-        IReadOnlyList<string> middleTokens = CommandTokens.Read(stages[1].LEncodeStageArguments);
+        IReadOnlyList<string> middleTokens = CommandTokens.Read(
+            stages[IndexOfLabel(stages, "Copying middle")].LEncodeStageArguments);
         Assert.Equal("copy", CommandTokens.ValueAfter(middleTokens, "-c:v"));
         Assert.Equal("12", CommandTokens.ValueAfter(middleTokens, "-ss"));
         Assert.Equal("16", CommandTokens.ValueAfter(middleTokens, "-t"));
@@ -539,7 +554,7 @@ public sealed class SmartEncodingCommandTests
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartResolveBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
 
-        Assert.Equal(5, stages.Count);
+        Assert.Equal(8, stages.Count);
         Assert.True(stages[0].LEncodeStageTemporary);
         Assert.Contains("concat", CommandTokens.Read(stages[^1].LEncodeStageArguments));
     }

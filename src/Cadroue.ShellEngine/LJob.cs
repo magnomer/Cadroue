@@ -18,6 +18,7 @@ internal sealed partial class LJob
     private Stopwatch lJobClock = null!;
     private string lJobDirectory = string.Empty;
     private double lJobRunSeconds;
+    private string lJobFinalPath = string.Empty;
 
     internal LJob(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobCancelToken)
     {
@@ -109,6 +110,7 @@ internal sealed partial class LJob
 
             if (pExitCode == 0)
             {
+                LJobStageCommit();
                 LRunner.LRunnerRecord(
                     $"Encode finished '{lJobItem.LWorkOutputName}' in {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff} " +
                     $"[{lJobItem.LWorkOutputPath}]");
@@ -291,16 +293,21 @@ internal sealed partial class LJob
             return "the output path is empty (the stored job is incomplete or corrupt)";
         }
 
-        IEnumerable<string> pJobInputs = lJobItem.LWorkKind == LWorkKind.LWorkKindMerge
-            ? lJobItem.LWorkMergeSources
-            : new[] { lJobItem.LWorkSourcePath };
-        if (LJobCollisionCheck(lJobItem.LWorkOutputPath, pJobInputs))
+        string pPolicy = lJobItem.LWorkOutput.LEncodingCollision;
+        bool pPreserved = string.Equals(pPolicy, "Rename existing", StringComparison.Ordinal)
+            || string.Equals(pPolicy, "Rename output", StringComparison.Ordinal);
+        if (LJobCollisionCheck(lJobItem.LWorkOutputPath, LJobInputsRead()) && !pPreserved)
         {
             return "the output path is the same as an input file; the source will not be overwritten";
         }
 
         return string.Empty;
     }
+
+    private IEnumerable<string> LJobInputsRead() =>
+        lJobItem.LWorkKind == LWorkKind.LWorkKindMerge
+            ? lJobItem.LWorkMergeSources
+            : new[] { lJobItem.LWorkSourcePath };
 
     internal static bool LJobCollisionCheck(string pOutputPath, IEnumerable<string> pInputPaths)
     {
@@ -469,6 +476,16 @@ internal sealed partial class LJob
 
         if (string.Equals(pOutput.LEncodingCollision, "Rename existing", StringComparison.Ordinal))
         {
+            if (LJobCollisionCheck(pTarget, LJobInputsRead()))
+            {
+                string pStagePath = LJobPathResolve(pTarget, ".cadstage");
+                lJobFinalPath = pTarget;
+                lJobItem.LWorkOutputSet(pStagePath, Path.GetFileName(pTarget));
+                LRunner.LRunnerRecord(
+                    $"Output is the source; encoding to '{Path.GetFileName(pStagePath)}' and renaming the source once finished");
+                return;
+            }
+
             string pFreePath = LJobPathResolve(pTarget, pOutput.LEncodingCollisionSuffix);
             try
             {
@@ -480,5 +497,28 @@ internal sealed partial class LJob
                 LRunner.LRunnerRecord($"Could not rename existing file '{Path.GetFileName(pTarget)}'; it will be overwritten", pException);
             }
         }
+    }
+
+    private void LJobStageCommit()
+    {
+        if (lJobFinalPath.Length == 0)
+        {
+            return;
+        }
+
+        string pStagePath = lJobItem.LWorkOutputPath;
+        string pFinalPath = lJobFinalPath;
+        lJobFinalPath = string.Empty;
+
+        if (File.Exists(pFinalPath))
+        {
+            string pKeepPath = LJobPathResolve(pFinalPath, lJobItem.LWorkOutput.LEncodingCollisionSuffix);
+            File.Move(pFinalPath, pKeepPath);
+            LRunner.LRunnerRecord($"Renamed the existing source to '{Path.GetFileName(pKeepPath)}'");
+        }
+
+        File.Move(pStagePath, pFinalPath);
+        lJobItem.LWorkOutputSet(pFinalPath, Path.GetFileName(pFinalPath));
+        LRunner.LRunnerRecord($"Moved the encoded output into place at '{Path.GetFileName(pFinalPath)}'");
     }
 }
