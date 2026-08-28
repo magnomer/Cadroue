@@ -55,6 +55,11 @@ internal static class LFlawScan
                 lFlawDossiers.Add(lFlawIndex);
             }
 
+            if (LFlaw.LFlawFramingResolve(lFlawCopyError, lFlawMetaReport) is { } lFlawFraming)
+            {
+                lFlawDossiers.Add(lFlawFraming);
+            }
+
             return lFlawDossiers;
         }
         catch (OperationCanceledException)

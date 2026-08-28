@@ -45,4 +45,5 @@ public readonly record struct LDossier(
     string LDossierTiming,
     string LDossierLoss,
     LDossierValidation LDossierValidation,
-    LDossierCategory LDossierCategory);
+    LDossierCategory LDossierCategory,
+    string LDossierRepairArgument = "");

@@ -7,7 +7,8 @@ public enum LFlawKind
 {
     LFlawKindContainer,
     LFlawKindMetadata,
-    LFlawKindIndex
+    LFlawKindIndex,
+    LFlawKindFraming
 }
 
 public static class LFlaw
@@ -28,6 +29,18 @@ public static class LFlaw
     private static readonly string[] lFlawIndexAbsence =
     {
         "cues", "cue point", "idx1", "could not find", "will be slow", "creation"
+    };
+
+    private static readonly string[] lFlawFramingFault =
+    {
+        "invalid nal unit size", "nal unit size", "annexb", "annex b", "mp4toannexb",
+        "error splitting the input into nal units", "missing picture in access unit"
+    };
+
+    private static readonly string[] lFlawFramingDamage =
+    {
+        "error while decoding", "concealing", "corrupt", "damaged", "decode_slice",
+        "invalid data found", "out of range"
     };
 
     public static LDossier? LFlawContainerResolve(string lFlawProbeError, string lFlawCopyError)
@@ -61,6 +74,8 @@ public static class LFlaw
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(lFlawLine => lFlawLine.Length > 0)
             .Where(lFlawLine => !lFlawBenign.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => !lFlawFramingFault.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
 
         return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
@@ -161,6 +176,93 @@ public static class LFlaw
             "None",
             LDossierValidation.LDossierValidationUntested,
             LDossierCategory.LDossierCategoryIndex);
+    }
+
+    public static LDossier? LFlawFramingResolve(string lFlawCopyError, string lFlawProbeReport)
+    {
+        string lFlawEvidence = LFlawFramingRead(lFlawCopyError);
+        if (lFlawEvidence.Length == 0)
+        {
+            return null;
+        }
+
+        string? lFlawFilter = LFlawFramingFilterResolve(lFlawProbeReport);
+        if (lFlawFilter is null)
+        {
+            return null;
+        }
+
+        return new LDossier(
+            "Packetization and framing",
+            1.0,
+            "ffmpeg -c copy -f null; codec bitstream parse",
+            lFlawEvidence,
+            "Full stream copy over the coded units",
+            "Coded unit framing",
+            $"Reframe with the {lFlawFilter} bitstream filter, no decode",
+            "Coded unit boundaries and carriage form",
+            LDossierPreservation.LDossierPreservationCoded,
+            "Coded units unchanged; framing representation converted",
+            "Preserved",
+            "None",
+            LDossierValidation.LDossierValidationUntested,
+            LDossierCategory.LDossierCategoryPacket,
+            $"-bsf:v {lFlawFilter}");
+    }
+
+    private static string LFlawFramingRead(string lFlawCopyError)
+    {
+        IEnumerable<string> lFlawLines = lFlawCopyError
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(lFlawLine => lFlawLine.Length > 0)
+            .Where(lFlawLine => !lFlawFramingDamage.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => lFlawFramingFault.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
+
+        return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
+    }
+
+    private static string? LFlawFramingFilterResolve(string lFlawProbeReport)
+    {
+        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams = LFlawSectionRead(lFlawProbeReport, "STREAM");
+        IReadOnlyDictionary<string, string>? lFlawVideo = lFlawStreams.FirstOrDefault(
+            lFlawStream => lFlawStream.TryGetValue("codec_type", out string? lFlawType)
+                && string.Equals(lFlawType, "video", StringComparison.OrdinalIgnoreCase));
+        if (lFlawVideo is null || !lFlawVideo.TryGetValue("codec_name", out string? lFlawCodec))
+        {
+            return null;
+        }
+
+        string? lFlawPrefix = lFlawCodec.ToLowerInvariant() switch
+        {
+            "h264" or "avc" => "h264",
+            "hevc" or "h265" => "hevc",
+            _ => null
+        };
+        if (lFlawPrefix is null)
+        {
+            return null;
+        }
+
+        IReadOnlyDictionary<string, string>? lFlawFormat = LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
+        string lFlawContainer = lFlawFormat is not null
+            && lFlawFormat.TryGetValue("format_name", out string? lFlawName)
+                ? lFlawName.ToLowerInvariant()
+                : string.Empty;
+
+        // An Annex-B-native container (MPEG-TS, raw elementary stream) must carry
+        // start-code framing, so length-prefixed units there are converted with
+        // mp4toannexb. Any other container (ISO-BMFF, Matroska) stores length-prefixed
+        // units with out-of-band parameter sets, so the framing fault is normalized by
+        // lifting the in-band parameter sets to extradata for the muxer to reframe.
+        bool lFlawAnnexb = lFlawContainer.Contains("mpegts", StringComparison.Ordinal)
+            || lFlawContainer.Contains("mpeg", StringComparison.Ordinal)
+            || lFlawContainer.Contains("h264", StringComparison.Ordinal)
+            || lFlawContainer.Contains("hevc", StringComparison.Ordinal)
+            || lFlawContainer.Contains("rawvideo", StringComparison.Ordinal);
+
+        return lFlawAnnexb ? $"{lFlawPrefix}_mp4toannexb" : "extract_extradata";
     }
 
     private static string LFlawAddressingRead(string lFlawText)
