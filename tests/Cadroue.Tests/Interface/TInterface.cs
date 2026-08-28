@@ -29,6 +29,9 @@ internal static class TInterface
     internal static LDossier? FlawFramingResolve(string copyError, string probeReport) =>
         LFlaw.LFlawFramingResolve(copyError, probeReport);
 
+    internal static LDossier? FlawConfigResolve(string probeReport, string decodeError) =>
+        LFlaw.LFlawConfigResolve(probeReport, decodeError);
+
     internal static LDossier DossierDefectCreate(
         string defect,
         LDossierCategory category,

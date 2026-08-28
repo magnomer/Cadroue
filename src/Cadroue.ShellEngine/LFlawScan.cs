@@ -38,6 +38,10 @@ internal static class LFlawScan
                 LTool.LToolFfmpegRead(),
                 $"-hide_banner -nostdin -v error -sseof -3 -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -",
                 lFlawToken);
+            (_, string lFlawDecodeError) = LFlawRunRead(
+                LTool.LToolFfmpegRead(),
+                $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} -an -map 0:v? -f null -",
+                lFlawToken);
 
             var lFlawDossiers = new List<LDossier>();
             if (LFlaw.LFlawContainerResolve(lFlawProbeError, lFlawCopyError) is { } lFlawContainer)
@@ -58,6 +62,11 @@ internal static class LFlawScan
             if (LFlaw.LFlawFramingResolve(lFlawCopyError, lFlawMetaReport) is { } lFlawFraming)
             {
                 lFlawDossiers.Add(lFlawFraming);
+            }
+
+            if (LFlaw.LFlawConfigResolve(lFlawMetaReport, lFlawDecodeError) is { } lFlawConfig)
+            {
+                lFlawDossiers.Add(lFlawConfig);
             }
 
             return lFlawDossiers;

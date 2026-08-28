@@ -8,7 +8,8 @@ public enum LFlawKind
     LFlawKindContainer,
     LFlawKindMetadata,
     LFlawKindIndex,
-    LFlawKindFraming
+    LFlawKindFraming,
+    LFlawKindConfig
 }
 
 public static class LFlaw
@@ -41,6 +42,13 @@ public static class LFlaw
     {
         "error while decoding", "concealing", "corrupt", "damaged", "decode_slice",
         "invalid data found", "out of range"
+    };
+
+    private static readonly string[] lFlawConfigFault =
+    {
+        "non-existing pps", "non-existing sps", "non-existing vps",
+        "sps unavailable", "pps unavailable", "vps unavailable",
+        "missing sps", "missing pps", "no frame!", "could not find codec parameters"
     };
 
     public static LDossier? LFlawContainerResolve(string lFlawProbeError, string lFlawCopyError)
@@ -186,7 +194,7 @@ public static class LFlaw
             return null;
         }
 
-        string? lFlawFilter = LFlawFramingFilterResolve(lFlawProbeReport);
+        string? lFlawFilter = LFlawFilterResolve(lFlawProbeReport);
         if (lFlawFilter is null)
         {
             return null;
@@ -223,7 +231,7 @@ public static class LFlaw
         return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
     }
 
-    private static string? LFlawFramingFilterResolve(string lFlawProbeReport)
+    private static string? LFlawFilterResolve(string lFlawProbeReport)
     {
         IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams = LFlawSectionRead(lFlawProbeReport, "STREAM");
         IReadOnlyDictionary<string, string>? lFlawVideo = lFlawStreams.FirstOrDefault(
@@ -263,6 +271,82 @@ public static class LFlaw
             || lFlawContainer.Contains("rawvideo", StringComparison.Ordinal);
 
         return lFlawAnnexb ? $"{lFlawPrefix}_mp4toannexb" : "extract_extradata";
+    }
+
+    public static LDossier? LFlawConfigResolve(string lFlawProbeReport, string lFlawDecodeError)
+    {
+        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams = LFlawSectionRead(lFlawProbeReport, "STREAM");
+        IReadOnlyDictionary<string, string>? lFlawVideo = lFlawStreams.FirstOrDefault(
+            lFlawStream => lFlawStream.TryGetValue("codec_type", out string? lFlawType)
+                && string.Equals(lFlawType, "video", StringComparison.OrdinalIgnoreCase));
+        if (lFlawVideo is null || !lFlawVideo.TryGetValue("codec_name", out string? lFlawCodec))
+        {
+            return null;
+        }
+
+        string? lFlawPrefix = lFlawCodec.ToLowerInvariant() switch
+        {
+            "h264" or "avc" => "h264",
+            "hevc" or "h265" => "hevc",
+            _ => null
+        };
+        if (lFlawPrefix is null)
+        {
+            return null;
+        }
+
+        string lFlawEvidence = LFlawConfigRead(lFlawDecodeError);
+        if (lFlawEvidence.Length == 0)
+        {
+            return null;
+        }
+
+        bool lFlawExtradata = lFlawVideo.TryGetValue("extradata_size", out string? lFlawSize)
+            && int.TryParse(lFlawSize, NumberStyles.Integer, CultureInfo.InvariantCulture, out int lFlawBytes)
+            && lFlawBytes > 0;
+
+        // No out-of-band extradata: derive it from the valid in-band long-term headers,
+        // changing only container-side configuration and leaving the packets exact.
+        // Extradata present but inconsistent with the samples: reinsert the stored
+        // configuration into the packets, an in-place coded-carriage change. Never
+        // synthesize an unknown parameter set — that would cause silent misdecode.
+        string lFlawFilter = lFlawExtradata ? "dump_extra" : "extract_extradata";
+        LDossierPreservation lFlawPreservation = lFlawExtradata
+            ? LDossierPreservation.LDossierPreservationCoded
+            : LDossierPreservation.LDossierPreservationPacket;
+        string lFlawEquivalence = lFlawExtradata
+            ? "Coded units unchanged; stored configuration reinserted into packets"
+            : "Coded packets copied unchanged; configuration derived to extradata";
+
+        return new LDossier(
+            "Codec configuration",
+            1.0,
+            "ffprobe -show_streams; diagnostic decode pass",
+            lFlawEvidence,
+            "Full configuration context and diagnostic decode",
+            "Decoder parameter sets and extradata",
+            $"Reconstruct configuration with the {lFlawFilter} bitstream filter, no payload re-encode",
+            "Parameter sets and codec extradata",
+            lFlawPreservation,
+            lFlawEquivalence,
+            "Preserved",
+            "None",
+            LDossierValidation.LDossierValidationUntested,
+            LDossierCategory.LDossierCategoryConfig,
+            $"-bsf:v {lFlawFilter}");
+    }
+
+    private static string LFlawConfigRead(string lFlawDecodeError)
+    {
+        IEnumerable<string> lFlawLines = lFlawDecodeError
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(lFlawLine => lFlawLine.Length > 0)
+            .Where(lFlawLine => !lFlawFramingDamage.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => lFlawConfigFault.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
+
+        return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
     }
 
     private static string LFlawAddressingRead(string lFlawText)
