@@ -177,6 +177,21 @@ public static class LSidecarStore
     public static bool LSidecarSplitSave(string lSidecarSourcePath, LSidecarSplitRecord? lSidecarSplit) =>
         LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSplit = lSidecarSplit);
 
+    public static LSidecarFixRecord? LSidecarFixRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            return LSidecarCoreRead(lSidecarSourcePath)?.LSidecarFix;
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    public static bool LSidecarFixSave(string lSidecarSourcePath, LSidecarFixRecord? lSidecarFix) =>
+        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarFix = lSidecarFix);
+
     public static LSidecarWaveformRecord? LSidecarWaveformRead(string lSidecarSourcePath)
     {
         try

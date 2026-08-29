@@ -92,6 +92,11 @@ public static partial class LScene
                 lSceneStep.LSidecarEqualizerBands = LSceneListRead(lSceneStep.LSidecarEqualizerBands);
             }
         }
+
+        if (lSceneInspector.LSceneInspectorFix is { } lSceneFix)
+        {
+            lSceneFix.LSidecarSteps = LSceneListRead(lSceneFix.LSidecarSteps);
+        }
     }
 
     private static List<T> LSceneListRead<T>(List<T>? lSceneList) => lSceneList ?? new List<T>();

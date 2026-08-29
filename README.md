@@ -10,7 +10,7 @@
 
 <br>
 
-**KO** · FFmpeg 작업을 계획하고 실행하는 것을 도와주는 Windows 데스크톱 프로그램입니다.
+**KO** · 미디어 작업을 설계하고 검증 가능한 FFmpeg 처리 흐름으로 실행하는 Windows 데스크톱 애플리케이션입니다.
 
 <br>
 
@@ -35,7 +35,7 @@
 > **Development status**  
 > Cadroue is under active development. Common workflows and operation combinations have been tested, but unusual inputs or complex processing chains may still expose bugs.
 
-> **Documentation version:** 2.11.14410
+> **Documentation version:** 2.12.14900
 
 ### Screenshots (2.9.10600)
 
@@ -47,7 +47,7 @@
 
 ### What Cadroue is
 
-Cadroue is a Windows desktop application for planning, routing, queuing, and processing FFmpeg media workflows. Work is organized into separate **Split**, **Edit**, **Audio**, **Convert**, **Merge**, **Funnel**, and **Worklist** tabs. You can open several tabs of the same type and give each one a workflow-specific name.
+Cadroue is a Windows desktop application for planning, routing, queuing, and processing FFmpeg media workflows. Work is organized into separate **Split**, **Edit**, **Fix**, **Audio**, **Convert**, **Merge**, **Funnel**, and **Worklist** tabs. You can open several tabs of the same type and give each one a workflow-specific name.
 
 Each processing tab prepares a particular kind of job. The Worklist executes those jobs through FFmpeg while preserving their relationship to the original media and to earlier or later Cadroue jobs. Resizable and collapsible panels let each tab adapt to the task at hand.
 
@@ -76,6 +76,15 @@ Each processing tab prepares a particular kind of job. The Worklist executes tho
 - Edit curves by channel with a live histogram overlay.
 - Save a separate edit plan for each source file or keep selected settings persistent while loading other files.
 
+#### Fix
+
+- Inspect media for container damage, truncation, transport-stream faults, malformed metadata, broken indexes, packet framing, codec configuration, timestamp problems, damaged secondary data, coded-media decode errors, and FFV1 integrity failures.
+- Select repair and diagnosis intent independently for each defect class, with a technical description of what each check covers.
+- Save the plan per source in its `.cad` record or keep selected choices persistent across files and sessions.
+- Preserve the source container and stream layout when possible: each job begins from a duplicate, applies only remedies supported by the detected defect, and validates the result by probing and decoding it again.
+- Report repaired output as done, partial, blocked, or unresolved according to validation. FFV1 slice-CRC damage is detection-only and remains unresolved rather than being silently re-encoded.
+- Queue one file, selected files, or all eligible files and relay completed outputs into the next tab like other processing workflows.
+
 #### Audio
 
 Audio processing is represented as an ordered list, so the processing sequence remains explicit. Available steps include:
@@ -94,13 +103,13 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. A norm
 
 - Smart, stream-copy, and re-encode modes for video, with independent copy, encode, and exclude choices for audio.
 - Keyframe-aware Smart cuts on Split jobs: compatible middle regions are copied while short boundary bridges are encoded and joined; edits, frame-rate changes, unsupported layouts, and unsuitable keyframe ranges safely fall back to a full encode.
-- Built-in container choices for MP4, Matroska, MOV, WebM, M4A, MP3, WAV, FLAC, and OGG, together with access to formats supported by the selected FFmpeg build.
+- Built-in container choices for MP4, Matroska, MOV, WebM, AVI, MPEG-TS, FLV, and Ogg, with codec choices constrained to compatible containers.
 - Video size, frame rate, pixel format, rate control, quality, and encoder-specific controls.
 - Output placement beside the source, in a subfolder or sibling folder, or in a custom location.
 - Audio sample-rate and channel controls, plus reactive video sizing that follows clip orientation.
 - Software and hardware encoder definitions, used only when the selected FFmpeg build supports them.
 - First-audio-track or all-audio-track selection.
-- Importable and exportable Cadroue encoding presets.
+- A bundled preset catalog for general H.264/H.265/AV1 delivery, hardware encoding, Matroska, FFV1 preservation, and ProRes, plus importable and exportable custom presets.
 - Encoder verification before work is added to the queue.
 - Configurable behavior when an output path already exists.
 
@@ -164,6 +173,8 @@ Flyleaf is the default preview engine. A local mpv runtime can be installed and 
 
 Enabled edit and audio steps are compiled into ordered FFmpeg filter chains. Ordinary combinations are processed in a single FFmpeg export operation rather than being repeatedly rendered through separate intermediate files. Two-pass loudness normalization is the intentional exception because it performs an analysis pass before the final encode.
 
+Fix jobs use a different pipeline: Cadroue collects evidence with FFprobe and guarded FFmpeg reads, creates a defect dossier, applies only the selected remedies that match detected faults, and validates the produced file. The original source is not modified in place.
+
 ### Requirements
 
 #### Running Cadroue
@@ -184,7 +195,7 @@ Published builds are self-contained and do not require a separately installed .N
 
 1. Launch Cadroue.
 2. Open **Options → System** and confirm the workspace and FFmpeg configuration.
-3. Create or select a Split, Edit, Audio, Convert, Merge, Funnel, or Worklist tab.
+3. Create or select a Split, Edit, Fix, Audio, Convert, Merge, Funnel, or Worklist tab.
 4. Drop media files or folders into a tab's Files panel.
 5. Select a file to preview and configure the operation.
 6. Choose export settings or a saved preset where applicable.
@@ -223,11 +234,11 @@ For another supported Windows architecture, replace `win-x64` with `win-arm64`.
 
 ```text
 src/
-├─ Cadroue.Core/            Work records, scheduling contracts, priorities, presets, and shared state models
-├─ Cadroue.Application/     Application services and work-item planning
+├─ Cadroue.Core/            Work records, media capabilities, defect models, presets, and shared contracts
+├─ Cadroue.Application/     Work-item planning, persistent plans, and repair selection
 ├─ Cadroue.Media/           Media inspection, keyframes, .cad sidecars, and LosslessCut import
-├─ Cadroue.Infrastructure/  Persistence, queue storage, detection, interprocess relay, and diagnostics
-├─ Cadroue.ShellEngine/     FFmpeg command construction and process execution
+├─ Cadroue.Infrastructure/  Persistence, queue storage, interprocess relay, and diagnostics
+├─ Cadroue.ShellEngine/     FFmpeg command construction, defect scanning, recovery, and process execution
 └─ Cadroue.UIShell/         WPF application, tabs, panels, preview, options, and localization
 
 localization/
@@ -237,8 +248,6 @@ localization/
 tests/
 ├─ Cadroue.Tests/           Unit and integration tests
 └─ Cadroue.Convention.Tests/ Roslyn-based source and naming convention tests
-
-docs/                       Generated logic maps
 ```
 
 ### Current limitations
@@ -248,6 +257,7 @@ docs/                       Generated logic maps
 - Preview support depends on the media format and the available Flyleaf, mpv, and FFmpeg libraries.
 - mpv preview requires the local x64 mpv runtime. Flyleaf contrast preview requires the optional local Flyleaf build, although exported output still receives the configured contrast adjustment.
 - Stream preservation is focused on video and audio; subtitle, attachment, chapter, and complete metadata workflows are not yet the application's primary use case.
+- Fix recovery is evidence-driven and format-dependent. Some defects can only be reported, and severe coded-media damage may require re-encoding or may remain partial, blocked, or unresolved.
 - A relay destination is prepared rather than executed unless automatic relay is enabled for that destination.
 
 ### Reporting problems
@@ -291,7 +301,7 @@ Licenses and attribution for bundled libraries and assets, including Flyleaf and
 > **개발 상태**  
 > Cadroue는 현재도 기능 개선 중입니다. 대체적인 작업 및 기능은 확인되었으나, 문제나 버그가 있을 수 있습니다.
 >
-> 이 문서는 **2.11.14410** 버전을 기준으로 작성했습니다.
+> 이 문서는 **2.12.14900** 버전을 기준으로 작성했습니다.
 
 ### 스크린샷
 
@@ -300,17 +310,19 @@ Licenses and attribution for bundled libraries and assets, including Flyleaf and
 <img width="1588" height="1087" alt="Screenshot3" src="https://github.com/user-attachments/assets/d0f1a3d8-4655-47bb-a802-761c40e9c781" />
 <img width="1588" height="1087" alt="Screenshot4" src="https://github.com/user-attachments/assets/f64069b3-3b33-4930-8e49-54a08049901d" />
 
-### 소개
+### 작업 모델
 
-Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작업 환경을 제공합니다. 파일 별로 분할·편집·오디오 처리 계획을 미리 설정한 다음, 원하는 작업을 실행할 수 있습니다. 급한 작업을 먼저 처리하거나, 앞 단계에서 만든 결과물을 다른 탭으로 전달하는 것도 가능합니다.
+Cadroue는 반복되는 미디어 작업을 파일 단위의 계획으로 관리하고, 그 계획을 FFmpeg 작업으로 안전하게 실행하기 위한 Windows 애플리케이션입니다. 단순히 인코딩 옵션을 고르는 도구가 아니라 분할 지점, 화면 보정, 음향 처리, 손상 복구, 출력 규격과 후속 작업의 연결 관계까지 한 작업 환경에서 다룹니다.
 
-이 프로그램은 **분할(Split)**, **편집(Edit)**, **오디오(Audio)**, **변환(Convert)**, **병합(Merge)**, **퍼널(Funnel)**, **작업 목록(Worklist)** 등의 탭으로 구성되어 있습니다. 작업을 준비하는 탭에서 작업 계획을 준비 한 다음, 작업 목록 탭에서 FFmpeg 처리를 실행합니다. 파일 이름 규칙에 따라 알맞은 탭으로 분배하는 기능도 있으며, 같은 종류의 탭을 여러 개 열어 각기 다른 용도로 사용할 수도 있습니다.
+기능은 **분할(Split)**, **편집(Edit)**, **복구(Fix)**, **오디오(Audio)**, **변환(Convert)**, **병합(Merge)**, **퍼널(Funnel)**, **작업 목록(Worklist)** 탭으로 나뉩니다. 각 탭은 작업을 설계하는 독립된 스테이션이며, 실제 실행은 공유 대기열에서 맡습니다. 같은 종류의 탭을 여러 개 만든 뒤 이름을 붙여 입고·정리·보정·납품 같은 공정으로 운용할 수도 있습니다.
 
-파일별 설정은 `.cad` 파일의 형태로 보관되며, 원본 미디어와 동일한 위치에 보관할 지, 혹은 전용 작업 공간에 보관할 지 선택할 수 있습니다. 분석된 키프레임, 분할 구간, 편집 값, 오디오 처리 순서등이 기록되기 때문에 처리 계획을 미리 설정한 후에 나중에 실제 인코딩을 진행할 수도 있습니다.
+키프레임 분석 결과와 분할 구간, 편집 값, 오디오 체인, 복구 선택은 파일별 `.cad` 기록에 저장됩니다. 기록 위치는 원본 옆과 중앙 작업 공간 중에서 선택할 수 있습니다. 계획 작성과 실행 시점을 분리할 수 있어, 먼저 여러 파일을 검수하고 나중에 일괄 처리하는 방식에도 잘 맞습니다.
 
-### 탭별 기능
+Cadroue의 핵심 단위는 파일이 아니라 **파일에 연결된 작업 계획**입니다. UI에서 고른 값은 즉시 원본에 반영되지 않고, 먼저 계획과 대기열 항목으로 정규화됩니다. 덕분에 파일을 검수하는 사람과 실제 처리를 실행하는 사람이 같지 않아도 작업 의도를 추적할 수 있고, 실패한 작업도 원본 설정부터 다시 만들 필요 없이 재시도할 수 있습니다.
 
-#### 분할
+### 작업 설계
+
+#### 구간 추출 — Split
 
 - 하나의 미디어를 여러 구간으로 나누고 각 구간에 이름을 붙일 수 있습니다.
 - 구간을 새로 만들거나 다시 나누고, 순서를 바꾸고, 필요 없는 구간을 끄거나 삭제할 수 있습니다.
@@ -322,7 +334,7 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 - LosslessCut의 `.llc` 프로젝트에 들어 있는 구간을 가져올 수 있습니다.
 - 원본 이름, 구간 번호, 구간 이름, 날짜, 시간, 접두사, 접미사 등을 조합해 출력 파일 이름을 만들 수 있습니다.
 
-#### 편집
+#### 화면 보정 — Edit
 
 - 미리보기 화면에서 직접 크롭 영역을 그려 조절할 수 있습니다.
 - 지정한 화면비에 맞춰 크롭 영역을 고정할 수 있습니다.
@@ -332,7 +344,17 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 - 채널별 커브를 라이브 히스토그램과 함께 편집할 수 있습니다.
 - 파일마다 별도의 편집 계획을 저장할 수도 있고, 선택한 값을 유지한 채 다른 파일을 불러와 같은 설정을 연속해서 적용할 수도 있습니다.
 
-#### 오디오
+#### 손상 진단과 복구 — Fix
+
+Fix 탭은 재생 실패를 무조건 재인코딩으로 덮는 기능이 아닙니다. 먼저 FFprobe와 FFmpeg로 파일을 읽어 결함 근거를 수집하고, 사용자가 선택한 범위 안에서만 복구 단계를 구성합니다. 대상은 컨테이너 구조, 파일 잘림, MPEG 전송 스트림, 메타데이터, 탐색 인덱스, 프레임 경계, 코덱 초기화 정보, PTS/DTS, 자막·챕터·첨부 데이터, 디코딩 오류, FFV1 CRC입니다.
+
+- 결함 종류별로 적용 여부와 진단 의도를 따로 기록할 수 있으며, 각 항목의 검사 범위와 기술적 처리 내용을 화면에서 확인할 수 있습니다.
+- 설정은 현재 파일의 `.cad` 기록에 남기거나 여러 파일과 다음 세션에 이어 쓰도록 유지할 수 있습니다.
+- 실행 시 원본을 새 출력으로 복제한 뒤 탐지 결과와 일치하는 복구만 순서대로 적용합니다. 원본 파일을 제자리에서 덮어쓰지 않습니다.
+- 처리 후에는 다시 프로브하고 디코딩해 결과를 검증합니다. 결과 상태는 완료뿐 아니라 부분 복구, 차단, 미해결로도 구분됩니다.
+- FFV1 슬라이스 CRC 오류는 검출과 보고만 지원합니다. 수정할 수 없는 손상을 성공으로 표시하거나 임의 재인코딩하지 않습니다.
+
+#### 음향 체인 — Audio
 
 오디오 처리는 적용 순서가 보이는 단계 목록으로 구성됩니다. 각 단계는 켜고 끌 수 있으며, 순서를 바꾸거나 설정을 확인한 뒤 파일별 계획으로 저장할 수 있습니다.
 
@@ -348,21 +370,21 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 
 정규화 뷰어를 열면 처리 전후의 예상 파형을 확대해 비교할 수 있습니다. 자주 쓰는 설정은 새로 불러오는 파일에도 계속 적용되도록 고정할 수 있습니다. 오디오만 손보는 작업에서는 출력 설정이 허용하는 한 비디오 스트림을 다시 인코딩하지 않고 그대로 복사합니다.
 
-#### 변환과 출력
+#### 출력 규격 — Convert와 Export
 
 - 비디오는 스마트·스트림 복사·재인코딩 모드를, 오디오는 별도의 복사·인코딩·제외 선택을 제공합니다.
 - 분할 작업의 스마트 모드는 키프레임에 맞는 중간 구간을 복사하고 짧은 경계 구간만 인코딩해 결합합니다. 편집이나 프레임 레이트 변경이 있거나 스트림·키프레임 조건이 맞지 않으면 전체 구간 인코딩으로 안전하게 전환합니다.
-- MP4, Matroska, MOV, WebM, M4A, MP3, WAV, FLAC, OGG를 기본 선택지로 제공하며, 사용 중인 FFmpeg가 지원하는 다른 형식도 선택할 수 있습니다.
+- MP4, Matroska, MOV, WebM, AVI, MPEG-TS, FLV, Ogg 컨테이너를 기본으로 제공하고, 컨테이너와 호환되는 코덱만 선택할 수 있도록 제한합니다.
 - 해상도, 프레임 레이트, 픽셀 형식, 비트레이트·품질 제어 방식과 인코더별 옵션을 설정할 수 있습니다.
 - 오디오 샘플 레이트와 채널 수를 지정할 수 있으며, 세로·가로 영상 방향에 맞춰 해상도가 반응하도록 설정할 수 있습니다.
 - 결과물은 원본과 같은 위치, 하위 폴더, 원본 폴더 옆의 별도 폴더 또는 사용자가 고른 경로에 저장할 수 있습니다.
 - 소프트웨어 인코더와 하드웨어 인코더는 현재 선택된 FFmpeg 빌드가 실제로 지원할 때만 사용됩니다.
 - 첫 번째 오디오 트랙만 넣거나 모든 오디오 트랙을 포함할 수 있습니다.
-- Cadroue 인코딩 프리셋을 파일로 내보내거나 다시 가져올 수 있습니다.
+- H.264·H.265·AV1 일반 출력, 하드웨어 인코딩, Matroska, FFV1 보존, ProRes 용도의 기본 프리셋을 제공하며 사용자 프리셋도 가져오거나 내보낼 수 있습니다.
 - 작업을 대기열에 넣기 전에 선택한 인코더를 사용할 수 있는지 확인합니다.
 - 같은 경로에 출력 파일이 이미 있을 때 어떻게 처리할지도 설정할 수 있습니다.
 
-#### 병합
+#### 묶음 병합 — Merge
 
 - 서로 독립된 병합 그룹을 여러 개 만들고 이름을 붙일 수 있습니다.
 - 그룹 안에서 파일 순서를 바꾸거나 항목을 제거할 수 있습니다.
@@ -371,7 +393,7 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 - **느슨한 그룹화**에서는 번호가 건너뛰어도 같은 묶음으로 봅니다.
 - 각 그룹은 서로 독립된 출력 작업으로 작업 목록에 들어갑니다.
 
-#### 퍼널
+#### 입력 분배 — Funnel
 
 퍼널은 파일을 직접 처리하지 않고, 파일 이름을 기준으로 다른 탭에 분배합니다.
 
@@ -381,7 +403,7 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 - 파일은 위에서부터 처음 일치한 규칙의 대상 탭으로 전달됩니다.
 - 규칙은 현재 세션과 창 프리셋에 함께 저장됩니다.
 
-#### 작업 목록
+### 대기열 운용
 
 - 대기열은 파일에 저장되므로 프로그램을 닫았다가 다시 열어도 남아 있습니다.
 - 일반 우선순위와 높은 우선순위를 구분합니다.
@@ -393,7 +415,7 @@ Cadroue는 FFmpeg를 사용하여 여러 파일을 단계별로 처리하는 작
 - 분할 결과와 릴레이로 이어진 후속 작업을 같은 원본 기준으로 묶어 보여 줍니다.
 - 작업 목록 탭을 여러 개 열 수 있으며, 각 탭은 같은 대기열을 대상으로 별도의 처리 창구처럼 사용할 수 있습니다.
 
-### 작업 이어가기와 창 구성
+### 파이프라인과 창 구성
 
 Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일로 바로 보낼 수 있습니다. 예를 들어 분할된 파일을 오디오 탭으로 넘긴 뒤, 오디오 처리가 끝난 결과를 병합 탭으로 이어 보낼 수 있습니다.
 
@@ -405,13 +427,13 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 작업 화면의 패널 너비는 직접 조절할 수 있고, 당장 쓰지 않는 패널은 접어 둘 수 있습니다. 출력 패널만 따로 숨기는 것도 가능합니다. 탭 목록은 가로와 세로 배치 중에서 선택할 수 있으며, 전역·현재 탭·타임라인·분할 탭에 쓰는 키보드 단축키도 사용 습관에 맞게 다시 지정할 수 있습니다.
 
-### 타임라인과 작업 공간 관리
+### 검수 화면과 작업 데이터
 
 타임라인은 단순한 재생 막대에 그치지 않습니다. 패널별로 오디오 파형을 켜거나 끌 수 있고, 새 패널의 기본 표시 여부도 지정할 수 있습니다. 맵과 뷰파인더의 배치 순서, 키프레임 간격과 검색 지연 시간, 구간 겹침 허용 여부를 옵션에서 조정할 수 있습니다. 분할 구간의 색상 팔레트는 JSON 파일로 내보내거나 가져와 다른 환경에서도 재사용할 수 있습니다.
 
 작업 공간에는 대기열 기록과 파일별 `.cad` 기록이 쌓입니다. 옵션 화면에서 사용량을 확인하고, 완료·실패 기록만 골라 정리하거나 작업 공간 기록을 비울 수 있습니다. 오래된 기록을 자동으로 삭제하도록 설정해 두어도 예약되었거나 실행 중인 작업은 정리 대상에서 제외됩니다.
 
-### 미리보기와 실제 출력
+### 미리보기의 책임 범위
 
 미리보기가 되지 않는 파일이라고 해서 반드시 FFmpeg 처리까지 불가능한 것은 아닙니다. Cadroue는 **화면에서 재생할 수 있는지**와 **FFmpeg로 작업할 수 있는지**를 별개의 상태로 판단해 표시합니다.
 
@@ -419,9 +441,11 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 활성화된 편집 단계와 오디오 단계는 적용 순서에 맞춰 하나의 FFmpeg 필터 체인으로 구성됩니다. 보통의 조합은 중간 파일을 단계마다 다시 만드는 대신 한 번의 FFmpeg 출력 과정에서 함께 처리합니다. 2패스 라우드니스 정규화만은 먼저 분석한 뒤 최종 출력을 만들어야 하므로 의도적으로 두 번의 패스를 사용합니다.
 
-### 실행 환경
+복구 작업은 이 필터 체인과 별도로 동작합니다. 입력 파일에서 결함 보고서를 만든 뒤 필요한 복구만 출력 사본에 적용하고, 마지막에 재검증하는 단계형 파이프라인을 사용합니다. 따라서 복구 대상이 아닌 스트림을 최대한 보존하면서도 결과가 실제로 열리고 디코딩되는지 확인할 수 있습니다.
 
-#### Cadroue 실행
+### 지원 환경
+
+#### 배포본 실행
 
 - Windows 10 버전 2004 / 빌드 19041 이상
 - `PATH`에서 찾을 수 있는 FFmpeg와 FFprobe
@@ -429,17 +453,17 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 배포용 빌드는 자체 포함 방식이므로 .NET 런타임을 따로 설치할 필요가 없습니다. FFmpeg와 FFprobe는 Cadroue에 포함되어 있지 않습니다.
 
-#### 소스에서 빌드
+#### 개발 환경
 
 - Windows
 - .NET 10 SDK
 - 미디어 분석과 처리를 위한 FFmpeg 및 FFprobe
 
-### 처음 사용하기
+### 권장 시작 순서
 
 1. Cadroue를 실행합니다.
 2. **옵션 → 시스템**에서 작업 공간과 FFmpeg 위치를 확인합니다.
-3. 필요한 분할, 편집, 오디오, 변환, 병합, 퍼널 또는 작업 목록 탭을 만들거나 선택합니다.
+3. 필요한 분할, 편집, 복구, 오디오, 변환, 병합, 퍼널 또는 작업 목록 탭을 만들거나 선택합니다.
 4. 파일 패널에 미디어 파일이나 폴더를 끌어 놓습니다.
 5. 파일을 선택해 미리 본 뒤 필요한 작업을 설정합니다.
 6. 필요한 경우 출력 설정이나 저장된 프리셋을 선택합니다.
@@ -451,7 +475,7 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 오디오만 들어 있는 파일은 오디오 탭에서만 열 수 있습니다. 퍼널 탭은 파일을 분류해 다른 탭으로 보낼 뿐, 자체적으로 인코딩이나 변환을 실행하지 않습니다.
 
-### 빌드
+### 개발 및 검증
 
 저장소 루트에서 다음 명령으로 솔루션을 복원하고 빌드할 수 있습니다.
 
@@ -474,16 +498,16 @@ dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Rele
 
 다른 지원 Windows 아키텍처를 대상으로 하려면 `win-x64`를 `win-arm64`로 바꾸면 됩니다.
 
-### 저장소 구성
+### 코드베이스 구성
 
 ```text
 src/
-├─ Cadroue.Core/            작업 기록, 예약 규칙, 우선순위, 프리셋, 공유 상태 모델
-├─ Cadroue.Application/     애플리케이션 서비스와 작업 항목 계획
+├─ Cadroue.Core/            작업·미디어 규격·결함·프리셋 모델과 공용 계약
+├─ Cadroue.Application/     작업 계획, 파일별 설정, 복구 선택 로직
 ├─ Cadroue.Media/           미디어 분석, 키프레임, .cad 기록, LosslessCut 가져오기
-├─ Cadroue.Infrastructure/  영속화, 대기열 저장, 환경 감지, 프로세스 간 전달, 진단
-├─ Cadroue.ShellEngine/     FFmpeg 명령 구성과 프로세스 실행
-└─ Cadroue.UIShell/         WPF 애플리케이션, 탭, 패널, 미리보기, 옵션, 현지화
+├─ Cadroue.Infrastructure/  영속화, 대기열 저장, 프로세스 간 전달, 진단
+├─ Cadroue.ShellEngine/     FFmpeg 명령, 결함 검사, 복구, 프로세스 실행
+└─ Cadroue.UIShell/         WPF 화면, 탭과 패널, 미리보기, 옵션, 현지화
 
 localization/
 ├─ en.json
@@ -492,20 +516,19 @@ localization/
 tests/
 ├─ Cadroue.Tests/           단위 테스트와 통합 테스트
 └─ Cadroue.Convention.Tests/ Roslyn 기반 소스·명명 규칙 테스트
-
-docs/                       생성된 로직 맵
 ```
 
-### 현재 제한 사항
+### 운영 전에 알아둘 점
 
 - 현재는 Windows만 지원하며, 일반 사용자를 위한 명령줄 인터페이스는 제공하지 않습니다.
 - FFmpeg와 FFprobe는 기본 애플리케이션 빌드에 포함되지 않습니다.
 - 미리보기 가능 범위는 파일 형식과 사용할 수 있는 Flyleaf·mpv·FFmpeg 라이브러리에 따라 달라집니다.
 - mpv 미리보기에는 로컬 x64 mpv 런타임이 필요합니다. 대비 값은 최종 출력에 적용되지만 Flyleaf에서 대비 변화를 미리 보려면 로컬 Flyleaf 빌드가 필요합니다.
 - 스트림 보존 기능은 비디오와 오디오를 중심으로 설계되어 있습니다. 자막, 첨부 파일, 챕터, 전체 메타데이터를 완전하게 유지하는 작업은 아직 주된 사용 범위가 아닙니다.
+- 복구 가능 범위는 컨테이너와 코덱, 손상 형태에 따라 달라집니다. 일부 결함은 보고만 가능하며, 코딩 데이터가 크게 손상된 경우 재인코딩이 필요하거나 부분 복구·차단·미해결 상태로 끝날 수 있습니다.
 - 일반 릴레이는 대상 탭에 파일을 전달하는 데까지만 수행합니다. 자동 릴레이를 켜 둔 대상에서만 전달된 입력이 작업 목록에 바로 등록됩니다.
 
-### 문제 보고
+### 재현 가능한 문제 보고
 
 문제를 제보할 때 다음 내용을 함께 적어 주시면 원인을 찾는 데 도움이 됩니다.
 
@@ -519,7 +542,7 @@ docs/                       생성된 로직 맵
 
 특정 파일이나 작업 순서에서만 문제가 생긴다면, 재현 가능한 작은 미디어 파일이나 개인 정보를 제거한 `.cad` 기록을 함께 제공하는 것이 가장 유용합니다.
 
-### 사용 기술
+### 기술 구성
 
 Cadroue는 다음 기술을 사용합니다.
 

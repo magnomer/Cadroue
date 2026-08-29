@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
@@ -110,8 +111,12 @@ internal sealed partial class LJob
 
         // A report-only defect (FFV1 slice-CRC mismatch) cannot be corrected: the
         // output is a faithful copy, not a repair. Never let it read as resolved.
+        // Only defects the plan asked to repair gate the outcome; a detected defect
+        // the user left unselected is out of this job's scope.
+        IReadOnlyList<LDossier> pRepairable =
+            LFix.LFixRepairResolve(lJobItem.LWorkDossiers, lJobItem.LWorkFixPlan);
         if (lJobValidateState == LWorkState.LWorkStateDone
-            && lJobItem.LWorkDossiers.Any(pDossier => pDossier.LDossierRepair == LFlawFfvone.LFlawReport))
+            && pRepairable.Any(pDossier => pDossier.LDossierRepair == LFlawFfvone.LFlawReport))
         {
             lJobValidateState = LWorkState.LWorkStateUnresolved;
             lJobValidateMessage = "Validation: FFV1 slice-CRC mismatch confirmed; the defect is detected but cannot be corrected. The file was copied unchanged.";
@@ -145,6 +150,36 @@ internal sealed partial class LJob
                 return pCandidate;
             }
         }
+    }
+
+    private void LJobOutputClear()
+    {
+        string pOutput = lJobItem.LWorkOutputPath;
+        if (string.IsNullOrWhiteSpace(pOutput))
+        {
+            return;
+        }
+
+        for (int pAttempt = 0; pAttempt < 5; pAttempt++)
+        {
+            try
+            {
+                if (!File.Exists(pOutput))
+                {
+                    return;
+                }
+
+                File.Delete(pOutput);
+                LRunner.LRunnerRecord($"Discarded the unresolved Fix output '{Path.GetFileName(pOutput)}'");
+                return;
+            }
+            catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+            {
+                System.Threading.Thread.Sleep(200);
+            }
+        }
+
+        LRunner.LRunnerRecord($"Could not delete the unresolved Fix output '{pOutput}'; it may remain on disk.", null);
     }
 
     private static void LJobTempClear(IReadOnlyList<LEncodeStage> pStages)

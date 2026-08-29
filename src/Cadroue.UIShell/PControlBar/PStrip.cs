@@ -14,6 +14,7 @@ public sealed class PStrip
 {
     private const string pStripSplitIcon = "/PAssets/PTabs/PSplitButton.svg";
     private const string pStripEditIcon = "/PAssets/PTabs/PEditButton.svg";
+    private const string pStripFixIcon = "/PAssets/PTabs/PFixButton.svg";
     private const string pStripAudioIcon = "/PAssets/PTabs/PAudioButton.svg";
     private const string pStripConvertIcon = "/PAssets/PTabs/PConvertButton.svg";
     private const string pStripMergeIcon = "/PAssets/PTabs/PMergeButton.svg";
@@ -126,7 +127,7 @@ public sealed class PStrip
         return pTabLayoutKey switch
         {
             "Edit" => PStripTypedAdd("Edit", pStripEditIcon, lExportSpecificState, lPreferenceTabLayout),
-            "Fix" => PStripTypedAdd("Fix", pStripEditIcon, lExportSpecificState, lPreferenceTabLayout),
+            "Fix" => PStripTypedAdd("Fix", pStripFixIcon, lExportSpecificState, lPreferenceTabLayout),
             "Audio" => PStripTypedAdd("Audio", pStripAudioIcon, lExportSpecificState, lPreferenceTabLayout),
             "Convert" => PStripTypedAdd("Convert", pStripConvertIcon, lExportSpecificState, lPreferenceTabLayout),
             "Merge" => PStripTypedAdd("Merge", pStripMergeIcon, lExportSpecificState, lPreferenceTabLayout),
@@ -292,6 +293,7 @@ public sealed class PStrip
         LLocalization.LLocalizationTextRead(pTabLayoutKey switch
         {
             "Edit" => "Tab.Edit",
+            "Fix" => "Tab.Fix",
             "Audio" => "Tab.Audio",
             "Convert" => "Tab.Convert",
             "Merge" => "Tab.Merge",

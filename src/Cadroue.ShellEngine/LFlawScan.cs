@@ -70,57 +70,57 @@ internal static class LFlawScan
             var lFlawDossiers = new List<LDossier>();
             if (LFlawMux.LFlawContainerResolve(lFlawProbeError, lFlawCopyError) is { } lFlawContainer)
             {
-                lFlawDossiers.Add(lFlawContainer);
+                lFlawDossiers.Add(lFlawContainer with { LDossierKind = LFlawKind.LFlawKindContainer });
             }
 
             if (LFlawMux.LFlawTruncationResolve(lFlawProbeError, lFlawCopyError) is { } lFlawTruncation)
             {
-                lFlawDossiers.Add(lFlawTruncation);
+                lFlawDossiers.Add(lFlawTruncation with { LDossierKind = LFlawKind.LFlawKindTruncation });
             }
 
             if (LFlawMux.LFlawTransportResolve(lFlawMetaReport, lFlawCopyError) is { } lFlawTransport)
             {
-                lFlawDossiers.Add(lFlawTransport);
+                lFlawDossiers.Add(lFlawTransport with { LDossierKind = LFlawKind.LFlawKindTransport });
             }
 
             if (LFlawMux.LFlawMetadataResolve(lFlawMetaReport) is { } lFlawMetadata)
             {
-                lFlawDossiers.Add(lFlawMetadata);
+                lFlawDossiers.Add(lFlawMetadata with { LDossierKind = LFlawKind.LFlawKindMetadata });
             }
 
             if (LFlawMux.LFlawIndexResolve(lFlawCopyError, lFlawIgnidxError, lFlawSeekError) is { } lFlawIndex)
             {
-                lFlawDossiers.Add(lFlawIndex);
+                lFlawDossiers.Add(lFlawIndex with { LDossierKind = LFlawKind.LFlawKindIndex });
             }
 
             if (LFlawStream.LFlawFramingResolve(lFlawCopyError, lFlawMetaReport) is { } lFlawFraming)
             {
-                lFlawDossiers.Add(lFlawFraming);
+                lFlawDossiers.Add(lFlawFraming with { LDossierKind = LFlawKind.LFlawKindFraming });
             }
 
             if (LFlawStream.LFlawConfigResolve(lFlawMetaReport, lFlawDecodeError) is { } lFlawConfig)
             {
-                lFlawDossiers.Add(lFlawConfig);
+                lFlawDossiers.Add(lFlawConfig with { LDossierKind = LFlawKind.LFlawKindConfig });
             }
 
             if (LFlawStream.LFlawTimingResolve(lFlawPacketReport) is { } lFlawTiming)
             {
-                lFlawDossiers.Add(lFlawTiming);
+                lFlawDossiers.Add(lFlawTiming with { LDossierKind = LFlawKind.LFlawKindTiming });
             }
 
             if (LFlawSecondary.LFlawSecondaryResolve(lFlawMetaReport, lFlawChapterReport, lFlawSecondaryError) is { } lFlawSecondary)
             {
-                lFlawDossiers.Add(lFlawSecondary);
+                lFlawDossiers.Add(lFlawSecondary with { LDossierKind = LFlawKind.LFlawKindSecondary });
             }
 
             if (LFlawCoded.LFlawCodedResolve(lFlawCodedError) is { } lFlawCoded)
             {
-                lFlawDossiers.Add(lFlawCoded);
+                lFlawDossiers.Add(lFlawCoded with { LDossierKind = LFlawKind.LFlawKindCoded });
             }
 
             if (LFlawFfvone.LFlawFfvoneResolve(lFlawMetaReport, lFlawCrcError) is { } lFlawFfvone)
             {
-                lFlawDossiers.Add(lFlawFfvone);
+                lFlawDossiers.Add(lFlawFfvone with { LDossierKind = LFlawKind.LFlawKindFfvone });
             }
 
             return lFlawDossiers;

@@ -102,7 +102,7 @@ public abstract class PTabSurface : UserControl
             };
             pPanelGrid.ColumnDefinitions.Add(pPanelDefinition);
             pColumnItems.Add(pPanelDefinition);
-            pColumnCompactFlags.Add(pPanels[index] is PList or PExport or PProcessing or PInspector or PSection);
+            pColumnCompactFlags.Add(pPanels[index] is PList or PExport or PProcessing or PInspector or PClinic or PSection);
             Grid.SetColumn(pPanels[index], pPanelColumn);
             pPanelGrid.Children.Add(pPanels[index]);
             if (index >= pPanels.Count - 1)
@@ -344,6 +344,7 @@ public abstract class PTabSurface : UserControl
         PList pListPanel => pListPanel.PListMinimizedCheck(),
         PProcessing pProcessingPanel => pProcessingPanel.PProcessingMinimizedCheck(),
         PInspector pInspectorPanel => pInspectorPanel.PInspectorMinimizedCheck(),
+        PClinic pClinicPanel => pClinicPanel.PClinicMinimizedCheck(),
         PSection pSectionPanel => pSectionPanel.PSectionMinimizedCheck(),
         _ => false
     };
@@ -355,6 +356,7 @@ public abstract class PTabSurface : UserControl
             case PList pListPanel: pListPanel.PListMinimizeSet(pCollapsed); break;
             case PProcessing pProcessingPanel: pProcessingPanel.PProcessingMinimizeSet(pCollapsed); break;
             case PInspector pInspectorPanel: pInspectorPanel.PInspectorMinimizeSet(pCollapsed); break;
+            case PClinic pClinicPanel: pClinicPanel.PClinicMinimizeSet(pCollapsed); break;
             case PSection pSectionPanel: pSectionPanel.PSectionMinimizeSet(pCollapsed); break;
         }
     }
@@ -364,6 +366,7 @@ public abstract class PTabSurface : UserControl
         PList => PList.PListStripWidth,
         PProcessing => PProcessing.PProcessingStripWidth,
         PInspector => PInspector.PInspectorStripWidth,
+        PClinic => PClinic.PClinicStripWidth,
         PSection => PSection.PSectionStripWidth,
         _ => 0
     };
@@ -391,6 +394,7 @@ public abstract class PTabSurface : UserControl
             case PList pListPanel: pListPanel.PListMinimizeChange += pTabCollapseApply; break;
             case PProcessing pProcessingPanel: pProcessingPanel.PProcessingMinimizeChange += pTabCollapseApply; break;
             case PInspector pInspectorPanel: pInspectorPanel.PInspectorMinimizeChange += pTabCollapseApply; break;
+            case PClinic pClinicPanel: pClinicPanel.PClinicMinimizeChange += pTabCollapseApply; break;
             case PSection pSectionPanel: pSectionPanel.PSectionMinimizeChange += pTabCollapseApply; break;
         }
     }
@@ -405,6 +409,7 @@ public abstract class PTabSurface : UserControl
         PList => 300,
         PProcessing => 184,
         PInspector => 360,
+        PClinic => 300,
         _ => 180
     };
 }

@@ -117,6 +117,21 @@ public sealed class LSidecarAudioRecord
     public bool LSidecarAudioActive => LSidecarSkip || LSidecarSteps.Any(lStep => lStep.LSidecarActive);
 }
 
+public sealed class LSidecarFixStep
+{
+    public string LSidecarKind { get; set; } = string.Empty;
+    public bool LSidecarRepair { get; set; }
+    public bool LSidecarDiagnosis { get; set; }
+    public bool LSidecarPersistent { get; set; }
+}
+
+public sealed class LSidecarFixRecord
+{
+    public List<LSidecarFixStep> LSidecarSteps { get; set; } = new();
+
+    public bool LSidecarFixActive => LSidecarSteps.Any(lStep => lStep.LSidecarRepair || lStep.LSidecarDiagnosis);
+}
+
 public sealed class LSidecarSectionRecord
 {
     public long LSidecarStartMilliseconds { get; set; }

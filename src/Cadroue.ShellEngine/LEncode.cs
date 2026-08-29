@@ -34,7 +34,9 @@ public static partial class LEncode
     {
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindFix)
         {
-            LRemedyPlan lFixPlan = LRemedy.LRemedyPlanCreate(lWorkItem.LWorkDossiers);
+            IReadOnlyList<LDossier> lFixRepairable =
+                LFix.LFixRepairResolve(lWorkItem.LWorkDossiers, lWorkItem.LWorkFixPlan);
+            LRemedyPlan lFixPlan = LRemedy.LRemedyPlanCreate(lFixRepairable);
             var lFixStages = new List<LEncodeStage>
             {
                 new(lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageDuplicate, "Copying", lWorkItem.LWorkOutputPath, false)

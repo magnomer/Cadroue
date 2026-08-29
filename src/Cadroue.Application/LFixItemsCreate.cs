@@ -42,6 +42,14 @@ public static partial class LFix
             string lFixFolder = lFixOutput.LEncodingFolderRead(lFixSourcePath);
             string lFixOutputName = LFixNameCreate(lFixOutput, lFixSourcePath, lFixFolder, lFixDuration);
 
+            LWorkFix lFixPlanCurrent = LWorkFix.LWorkFixCreate();
+            if (lFixWorkDescription.LFixPlans is { } lFixPlanMap
+                && lFixPlanMap.TryGetValue(lFixSourcePath, out LWorkFix? lFixPlan)
+                && lFixPlan is not null)
+            {
+                lFixPlanCurrent = lFixPlan;
+            }
+
             lFixWorkItems.Add(new LWorkItem(
                 lFixBatch,
                 LWorkKind.LWorkKindFix,
@@ -54,7 +62,8 @@ public static partial class LFix
                 lFixOutput)
             {
                 LWorkSourceMedia = lFixMedia,
-                LWorkTab = lFixTab
+                LWorkTab = lFixTab,
+                LWorkFixPlan = lFixPlanCurrent
             });
         }
 

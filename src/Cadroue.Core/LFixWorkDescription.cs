@@ -4,4 +4,5 @@ public sealed record LFixWorkDescription(
     IReadOnlyList<string> LFixSourcePaths,
     LEncoding LFixOutput,
     IReadOnlyDictionary<string, LWorkMedia>? LFixMedia = null,
-    IReadOnlyDictionary<string, Guid>? LFixRelays = null);
+    IReadOnlyDictionary<string, Guid>? LFixRelays = null,
+    IReadOnlyDictionary<string, LWorkFix>? LFixPlans = null);

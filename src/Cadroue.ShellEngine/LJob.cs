@@ -129,6 +129,20 @@ internal sealed partial class LJob
                 }
             }
 
+            bool pExitClean = pExitCode == 0;
+            LWorkState pTerminalState = pExitClean
+                ? lJobValidateState ?? LWorkState.LWorkStateDone
+                : LWorkState.LWorkStateFailed;
+            bool pSucceeded = pTerminalState == LWorkState.LWorkStateDone;
+
+            // A Fix that does not end resolved must leave nothing behind: the copied
+            // (and any partially repaired) output is discarded so an unrepaired file
+            // never persists as if it were a valid result.
+            if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix && !pSucceeded)
+            {
+                LJobOutputClear();
+            }
+
             long? pOutputBytes = LScout.LScoutBytesRead(lJobItem.LWorkOutputPath);
             long? pSourceBytes = LScout.LScoutInputRead(lJobItem, lJobToken);
             LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
@@ -140,11 +154,6 @@ internal sealed partial class LJob
             }
             lJobOwner.LRunnerDispatch(() =>
             {
-                bool pExitClean = pExitCode == 0;
-                LWorkState pTerminalState = pExitClean
-                    ? lJobValidateState ?? LWorkState.LWorkStateDone
-                    : LWorkState.LWorkStateFailed;
-                bool pSucceeded = pTerminalState == LWorkState.LWorkStateDone;
                 lJobItem.LWorkFinishTime = DateTimeOffset.Now;
                 lJobItem.LWorkOutputBytes = pOutputBytes;
                 lJobItem.LWorkSourceBytes = pSourceBytes;
@@ -176,6 +185,11 @@ internal sealed partial class LJob
             if (LJobRetryStart(pException.Message))
             {
                 return;
+            }
+
+            if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix)
+            {
+                LJobOutputClear();
             }
 
             lJobOwner.LRunnerDispatch(() =>

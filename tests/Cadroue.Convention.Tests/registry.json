@@ -3,7 +3,7 @@
   "bases": [
     "About", "Action", "Apply", "Audio", "Bastion", "Binding", "Blank", "Bridge", "Button", "Cadroue",
     "Capability", "Card", "Cargo", "Cartographer", "Casement", "Checkbox", "Chord", "Chrome", "Circle", "Classifier",
-    "Clip", "Codec", "Color", "Column", "Combo", "Compass", "Console", "Contour", "Convert", "Courier",
+    "Clinic", "Clip", "Codec", "Color", "Column", "Combo", "Compass", "Console", "Contour", "Convert", "Courier",
     "Crest", "Crop", "Cropbox", "Cursor", "Curve", "Custody", "Deck", "Depot", "Detector", "Diagnosis",
     "Divider", "Docket", "Dossier", "Drop", "Dropdown", "Dynamic", "Edit", "Employer", "Encode", "Encoder",
     "Encoding", "Entry", "Equalizer", "Export", "Exposure", "Field", "Filter", "Fix", "Flaw", "Flow", "Flyleaf",

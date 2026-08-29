@@ -37,6 +37,7 @@ internal static class LSidecarParse
                 LSidecarSections = LSidecarMemberRead<List<LSidecarSectionRecord>>(lSidecarRoot, "LSidecarSections") ?? new(),
                 LSidecarEdit = LSidecarMemberRead<LSidecarEditRecord>(lSidecarRoot, "LSidecarEdit"),
                 LSidecarAudio = LSidecarMemberRead<LSidecarAudioRecord>(lSidecarRoot, "LSidecarAudio"),
+                LSidecarFix = LSidecarMemberRead<LSidecarFixRecord>(lSidecarRoot, "LSidecarFix"),
                 LSidecarLoudness = LSidecarDoubleRead(lSidecarRoot, "LSidecarLoudness")
             };
             LSidecarCoreNormalize(lSidecarCore);
@@ -184,6 +185,11 @@ internal static class LSidecarParse
         if (lSidecarCore.LSidecarAudio is { } lSidecarAudio)
         {
             lSidecarAudio.LSidecarSteps ??= new();
+        }
+
+        if (lSidecarCore.LSidecarFix is { } lSidecarFix)
+        {
+            lSidecarFix.LSidecarSteps ??= new();
         }
     }
 

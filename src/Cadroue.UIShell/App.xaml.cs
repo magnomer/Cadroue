@@ -299,12 +299,14 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LLibrarian.LLibrarianEditReader = Cadroue.Infrastructure.LSidecarStore.LSidecarEditRead;
         Cadroue.Application.LLibrarian.LLibrarianAudioReader = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioRead;
         Cadroue.Application.LLibrarian.LLibrarianSplitReader = Cadroue.Infrastructure.LSidecarStore.LSidecarSplitRead;
+        Cadroue.Application.LLibrarian.LLibrarianFixReader = Cadroue.Infrastructure.LSidecarStore.LSidecarFixRead;
         Cadroue.Application.LLibrarian.LLibrarianLoudnessReader = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessRead;
         Cadroue.Application.LLibrarian.LLibrarianDurationReader = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead;
         Cadroue.Application.LLibrarian.LLibrarianDurationResolver = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationResolve;
         Cadroue.Application.LLibrarian.LLibrarianEditWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarEditSave;
         Cadroue.Application.LLibrarian.LLibrarianAudioWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioSave;
         Cadroue.Application.LLibrarian.LLibrarianSplitWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarSplitSave;
+        Cadroue.Application.LLibrarian.LLibrarianFixWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarFixSave;
         Cadroue.Application.LLibrarian.LLibrarianLoudnessWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessSave;
         Cadroue.Application.LLibrarian.LLibrarianWaveformWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformSave;
         Cadroue.Application.LLibrarian.LLibrarianFileChecker = Cadroue.Infrastructure.LSidecarStore.LSidecarFileCheck;

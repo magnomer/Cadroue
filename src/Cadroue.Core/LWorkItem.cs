@@ -76,6 +76,8 @@ public sealed class LWorkItem
 
     public IReadOnlyList<LDossier> LWorkDossiers { get; set; } = Array.Empty<LDossier>();
 
+    public LWorkFix LWorkFixPlan { get; set; } = LWorkFix.LWorkFixCreate();
+
     public Guid LWorkRelayTarget { get; set; }
 
     public Guid LWorkRelaySource { get; set; }

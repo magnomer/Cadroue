@@ -10,6 +10,7 @@ public sealed class LSidecarCoreRecord
     public LSidecarEditRecord? LSidecarEdit { get; set; }
     public LSidecarAudioRecord? LSidecarAudio { get; set; }
     public LSidecarSplitRecord? LSidecarSplit { get; set; }
+    public LSidecarFixRecord? LSidecarFix { get; set; }
     public double LSidecarLoudness { get; set; }
 }
 

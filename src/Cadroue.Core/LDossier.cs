@@ -51,4 +51,5 @@ public readonly record struct LDossier(
     LDossierValidation LDossierValidation,
     LDossierCategory LDossierCategory,
     string LDossierRepairArgument = "",
-    string LDossierRepairInput = "");
+    string LDossierRepairInput = "",
+    LFlawKind LDossierKind = default);

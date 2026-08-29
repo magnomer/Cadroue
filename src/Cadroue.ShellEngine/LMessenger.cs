@@ -470,13 +470,20 @@ public static class LMessenger
             .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
             .ToArray();
         var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        var lMessengerPlans = new Dictionary<string, LWorkFix>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
+            if (Cadroue.Application.LFix.LFixPlanRead(
+                    lMessengerSource.LWorkSourcePath,
+                    Cadroue.Application.LLibrarian.LLibrarianFixLoad) is { } lMessengerPlan)
+            {
+                lMessengerPlans[lMessengerSource.LWorkSourcePath] = lMessengerPlan;
+            }
         }
 
         LFixWorkDescription lMessengerDescription =
-            new(lMessengerSourcePaths, lMessengerOutput, null, lMessengerRelays);
+            new(lMessengerSourcePaths, lMessengerOutput, null, lMessengerRelays, lMessengerPlans);
 
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems =
