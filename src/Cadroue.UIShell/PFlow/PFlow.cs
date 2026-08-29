@@ -59,6 +59,7 @@ public sealed partial class PFlow : UserControl
     public event Action<TimeSpan>? PFlowCursorChange;
     public event Action? PFlowPlay;
     public event Action? PFlowPause;
+    public event Action<bool>? PFlowPlayingChange;
     public event Action<double>? PFlowVolumeChange;
     public event Action<double>? PFlowVolumeValue;
     public event Action<IReadOnlyList<LPiece>, int?>? PFlowSectionChange;
@@ -310,6 +311,8 @@ public sealed partial class PFlow : UserControl
     {
         if (pFlowCommandActive) PFlowPause?.Invoke();
     }
+
+    public void PFlowPlayingRaise(bool pFlowPlaying) => PFlowPlayingChange?.Invoke(pFlowPlaying);
 
     public void PFlowVolumeRaise(double pFlowVolume)
     {

@@ -204,7 +204,10 @@ public readonly partial record struct LPiece
         LPiece lPiece = lPieces[lPieceActiveIndex.Value];
         if (lPieceCursor <= lPiece.LPieceOrigin)
         {
-            return null;
+            return LPieceEndCreate(lPieces, lPieceCursor, lPieceColorIndex, lPieceOverlapAllowed)
+                is { } lPieceEndPlan
+                ? (lPieceEndPlan.Sections, lPieceEndPlan.Active, true)
+                : null;
         }
 
         if (lPieceCursor > LPieceLimitRead(lPieces, lPiece.LPieceEnd, lPieceCursor, lPieceActiveIndex.Value, lPieceOverlapAllowed))

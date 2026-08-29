@@ -259,11 +259,6 @@ public sealed partial class PSection : UserControl
         };
         pColorDot.MouseLeftButtonDown += (_, pEvent) =>
         {
-            if (pEvent.ClickCount < 2)
-            {
-                return;
-            }
-
             pSectionRowPanel.ReleaseMouseCapture();
             PSectionDragClear();
             PSectionEditCommit();
@@ -275,20 +270,86 @@ public sealed partial class PSection : UserControl
             pEvent.Handled = true;
         };
 
-        UIElement pNameHost = pSectionIndex == pSectionIndexEditing
-            ? PSectionEditorBuild(pSectionEntry)
-            : PSectionTextBuild(pSectionIndex, pSectionEntry);
-
-        var pTimeLabel = new TextBlock
+        void PSectionSeekFire(bool pSeekEnd, MouseButtonEventArgs pEvent)
         {
-            Text = $"{PSectionTimeFormat(pSectionEntry.LPieceOrigin)} → {PSectionTimeFormat(pSectionEntry.LPieceEnd)}"
-                + $"  ({PSectionTimeFormat(PSectionSpanRead(pSectionEntry))})",
-            FontSize = 11,
-            FontFamily = pSectionFontFamily,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x56, 0x62, 0x73)),
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(8, 0, 0, 0)
+            if (pEvent.ClickCount < 2)
+            {
+                return;
+            }
+
+            pSectionRowPanel.ReleaseMouseCapture();
+            PSectionDragClear();
+            if (pRowBorderHost is not { } pSeekRow)
+            {
+                return;
+            }
+
+            int pSeekIndex = pSectionRowPanel.Children.IndexOf(pSeekRow);
+            if (pSeekIndex < 0)
+            {
+                return;
+            }
+
+            PSectionEditCommit();
+            pFlowAttached?.PFlowSectionSeek(pSeekIndex, pSeekEnd);
+            pEvent.Handled = true;
+        }
+
+        UIElement pNameHost;
+        if (pSectionIndex == pSectionIndexEditing)
+        {
+            pNameHost = PSectionEditorBuild(pSectionEntry);
+        }
+        else
+        {
+            TextBlock pNameText = PSectionTextBuild(pSectionIndex, pSectionEntry);
+            pNameText.MouseLeftButtonDown += (_, pEvent) =>
+            {
+                if (pEvent.ClickCount < 2)
+                {
+                    return;
+                }
+
+                pSectionRowPanel.ReleaseMouseCapture();
+                PSectionDragClear();
+                if (pRowBorderHost is not { } pRenameRow)
+                {
+                    return;
+                }
+
+                int pRenameIndex = pSectionRowPanel.Children.IndexOf(pRenameRow);
+                if (pRenameIndex < 0)
+                {
+                    return;
+                }
+
+                pFlowAttached?.PFlowSectionSelect(pRenameIndex);
+                pSectionIndexEditing = pRenameIndex;
+                PSectionRebuild();
+                pEvent.Handled = true;
+            };
+            pNameHost = pNameText;
+        }
+
+        var pBeginLabel = PSectionTimeBuild(PSectionTimeFormat(pSectionEntry.LPieceOrigin));
+        pBeginLabel.Margin = new Thickness(8, 0, 0, 0);
+        pBeginLabel.MouseLeftButtonDown += (_, pEvent) => PSectionSeekFire(false, pEvent);
+
+        var pArrowLabel = PSectionTimeBuild(" → ");
+        var pEndLabel = PSectionTimeBuild(PSectionTimeFormat(pSectionEntry.LPieceEnd));
+        pEndLabel.MouseLeftButtonDown += (_, pEvent) => PSectionSeekFire(true, pEvent);
+
+        var pSpanLabel = PSectionTimeBuild($"  ({PSectionTimeFormat(PSectionSpanRead(pSectionEntry))})");
+
+        var pTimeLabel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
         };
+        pTimeLabel.Children.Add(pBeginLabel);
+        pTimeLabel.Children.Add(pArrowLabel);
+        pTimeLabel.Children.Add(pEndLabel);
+        pTimeLabel.Children.Add(pSpanLabel);
 
         var pRowContent = new Grid
         {
@@ -331,26 +392,7 @@ public sealed partial class PSection : UserControl
             pSectionDragActive = false;
             pSectionRowPanel.CaptureMouse();
         };
-        pRowBorder.MouseLeftButtonDown += (_, pEvent) =>
-        {
-            if (pEvent.ClickCount < 2)
-            {
-                return;
-            }
-
-            pSectionRowPanel.ReleaseMouseCapture();
-            PSectionDragClear();
-            int pRenameIndex = pSectionRowPanel.Children.IndexOf(pRowBorder);
-            if (pRenameIndex < 0)
-            {
-                return;
-            }
-
-            pFlowAttached?.PFlowSectionSelect(pRenameIndex);
-            pSectionIndexEditing = pRenameIndex;
-            PSectionRebuild();
-            pEvent.Handled = true;
-        };
+        pRowBorder.MouseLeftButtonDown += (_, pEvent) => PSectionSeekFire(false, pEvent);
         return pRowBorder;
     }
 
@@ -396,6 +438,16 @@ public sealed partial class PSection : UserControl
         TimeSpan pSectionSpan = pSectionEntry.LPieceEnd - pSectionEntry.LPieceOrigin;
         return pSectionSpan < TimeSpan.Zero ? TimeSpan.Zero : pSectionSpan;
     }
+
+    private static TextBlock PSectionTimeBuild(string pTimeText) => new()
+    {
+        Text = pTimeText,
+        FontSize = 11,
+        FontFamily = pSectionFontFamily,
+        Foreground = new SolidColorBrush(Color.FromRgb(0x56, 0x62, 0x73)),
+        Background = Brushes.Transparent,
+        VerticalAlignment = VerticalAlignment.Center
+    };
 
     private static string PSectionTimeFormat(TimeSpan pTime) =>
         pTime.TotalHours >= 1

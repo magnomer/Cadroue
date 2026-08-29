@@ -72,6 +72,11 @@ internal sealed class PPlayerFlyleaf : PPlayerEngine
         return TimeSpan.FromTicks(PPlayerFlyleafPlayer.CurTime);
     }
 
+    public override bool PPlayerEndedRead()
+    {
+        return PPlayerFlyleafPlayer.Status == Status.Ended;
+    }
+
     public override void Dispose()
     {
         try

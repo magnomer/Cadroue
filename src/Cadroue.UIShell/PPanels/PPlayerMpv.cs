@@ -98,6 +98,11 @@ internal sealed class PPlayerMpv : PPlayerEngine
         return pPlayerMpvLibrary.LMpvTimeRead();
     }
 
+    public override bool PPlayerEndedRead()
+    {
+        return pPlayerMpvLibrary.LMpvEndedRead();
+    }
+
     public override void Dispose()
     {
         try

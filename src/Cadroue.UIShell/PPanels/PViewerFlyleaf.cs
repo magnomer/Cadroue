@@ -417,6 +417,7 @@ public sealed partial class PViewer
         pViewerPlayer.PPlayerEndSet(pViewerMediaInfo?.LMediaVideoEnd);
         PViewerSourcePath = mediaStatus.LCargoSourcePath;
         LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+        pViewerEndReached = false;
         if (!PCropPersistent)
         {
             PCropVideo = null;
@@ -560,17 +561,37 @@ public sealed partial class PViewer
             return;
         }
 
+        if (LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying && pViewerPlayer.PPlayerEndedRead())
+        {
+            PViewerEndStop();
+            return;
+        }
+
         TimeSpan playbackPosition = pViewerPlayer.PPlayerTimeRead();
         PViewerPlaybackUpdate(null, playbackPosition);
         PViewerClockTick?.Invoke(playbackPosition);
     }
 
+    private void PViewerEndStop()
+    {
+        pViewerResumeInactive = false;
+        pViewerEndReached = true;
+        pViewerClockTimer.Stop();
+        pViewerPlayer.PPlayerPause();
+        PViewerPlaybackUpdate(false, null);
+    }
+
     private void PViewerPlaybackUpdate(bool? playing, TimeSpan? playbackPosition)
     {
         LPlaybackState playbackState = LPreviewStateCurrent.LPlaybackState;
+        bool pViewerPlayingNow = playing ?? playbackState.LPlaybackStatePlaying;
         LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(new LPlaybackState(
-            playing ?? playbackState.LPlaybackStatePlaying,
+            pViewerPlayingNow,
             playbackPosition ?? playbackState.LPlaybackPosition));
+        if (pViewerPlayingNow != playbackState.LPlaybackStatePlaying)
+        {
+            PViewerPlayingChange?.Invoke(pViewerPlayingNow);
+        }
     }
 
     private void PPlayerStopDispose()

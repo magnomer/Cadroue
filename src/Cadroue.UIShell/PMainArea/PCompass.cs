@@ -43,16 +43,22 @@ public sealed class PCompass : UserControl
     private Grid pCompassSliderHost = null!;
     private bool pCompassProgramValue;
 
+    private readonly PFlowControl pCompassFlow;
+    private Image pCompassPlayImage = null!;
+    private TextBlock pCompassPlayLabel = null!;
+    private Button pCompassPlayButton = null!;
+    private bool pCompassPlaying;
+
     public PCompass(PFlowControl pFlow, bool pCompassSectionShow = false)
     {
+        pCompassFlow = pFlow;
         pCompassLinePanel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
 
         (PCompassAction Action, string Icon, string LabelKey, string TooltipKey, Action Click, bool GroupEnd, bool Section)[] pButtons =
         {
             (PCompassAction.ZoomIn, "PCompassZoomIncrease.svg", "Compass.ZoomIn.Label", "Compass.ZoomIn.Tooltip", () => pFlow.PFlowShortcutDispatch("zoomIn"), false, false),
             (PCompassAction.ZoomOut, "PCompassZoomDecrease.svg", "Compass.ZoomOut.Label", "Compass.ZoomOut.Tooltip", () => pFlow.PFlowShortcutDispatch("zoomOut"), true, false),
-            (PCompassAction.Play, "PCompassPlay.svg", "Compass.Play.Label", "Compass.Play.Tooltip", pFlow.PFlowPlayRaise, false, false),
-            (PCompassAction.Pause, "PCompassPause.svg", "Compass.Pause.Label", "Compass.Pause.Tooltip", pFlow.PFlowPauseRaise, true, false),
+            (PCompassAction.Play, "PCompassPlay.svg", "Compass.Play.Label", "Compass.Play.Tooltip", PCompassPlayToggle, true, false),
             (PCompassAction.SectionAdd, "PCompassSectionAdd.svg", "Compass.SectionAdd.Label", "Compass.SectionAdd.Tooltip", () => pFlow.PFlowShortcutDispatch("addSection"), false, true),
             (PCompassAction.SectionDelete, "PCompassRemove.svg", "Compass.SectionDelete.Label", "Compass.SectionDelete.Tooltip", () => pFlow.PFlowShortcutDispatch("deleteSection"), true, true),
             (PCompassAction.SectionStart, "PCompassStart.svg", "Compass.SectionStart.Label", "Compass.SectionStart.Tooltip", () => pFlow.PFlowShortcutDispatch("setStart"), false, true),
@@ -71,7 +77,9 @@ public sealed class PCompass : UserControl
                 continue;
             }
 
-            Button pButton = PCompassButtonBuild(pAction, pIcon, pLabelKey, pTooltipKey);
+            Button pButton = pAction == PCompassAction.Play
+                ? PCompassToggleBuild()
+                : PCompassButtonBuild(pAction, pIcon, pLabelKey, pTooltipKey);
             pButton.Click += (_, _) => pClick();
             pGroup.Children.Add(pButton);
             if (pGroupEnd)
@@ -94,6 +102,7 @@ public sealed class PCompass : UserControl
         };
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle(pFlow);
         pFlow.PFlowVolumeValue += PCompassValueHandle;
+        pFlow.PFlowPlayingChange += PCompassPlayingApply;
 
         StackPanel pVolumeGroup = PCompassGroupBuild();
         pVolumeGroup.Children.Add(PCompassVolumeBuild());
@@ -362,6 +371,55 @@ public sealed class PCompass : UserControl
             Style = PMainWindow.PButton.PButtonCommandCreate(),
             ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey)
         };
+    }
+
+    private Button PCompassToggleBuild()
+    {
+        pCompassPlayImage = new Image
+        {
+            Width = 24,
+            Height = 24,
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        pCompassPlayLabel = new TextBlock { FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center };
+        var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        pStack.Children.Add(pCompassPlayImage);
+        pStack.Children.Add(new Border { Height = 1 });
+        pStack.Children.Add(pCompassPlayLabel);
+        pCompassPlayButton = new Button
+        {
+            Width = 58,
+            Height = 58,
+            Content = pStack,
+            Style = PMainWindow.PButton.PButtonCommandCreate()
+        };
+        PCompassPlayingApply(false);
+        return pCompassPlayButton;
+    }
+
+    private void PCompassPlayingApply(bool pCompassPlayingNow)
+    {
+        pCompassPlaying = pCompassPlayingNow;
+        PCompassAction pAction = pCompassPlayingNow ? PCompassAction.Pause : PCompassAction.Play;
+        string pIcon = pCompassPlayingNow ? "PCompassPause.svg" : "PCompassPlay.svg";
+        string pLabelKey = pCompassPlayingNow ? "Compass.Pause.Label" : "Compass.Play.Label";
+        string pTooltipKey = pCompassPlayingNow ? "Compass.Pause.Tooltip" : "Compass.Play.Tooltip";
+        pCompassPlayImage.Source = PIcon.PIconRead($"/PAssets/PCompass/{pIcon}", PCompassAccentRead(pAction));
+        pCompassPlayLabel.Text = LLocalization.LLocalizationTextRead(pLabelKey);
+        pCompassPlayButton.ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey);
+    }
+
+    private void PCompassPlayToggle()
+    {
+        if (pCompassPlaying)
+        {
+            pCompassFlow.PFlowPauseRaise();
+        }
+        else
+        {
+            pCompassFlow.PFlowPlayRaise();
+        }
     }
 
     private static Border PCompassSeparatorBuild() => new() { Width = 1, Margin = new Thickness(1, 14, 1, 12), Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC)) };

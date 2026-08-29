@@ -65,6 +65,7 @@ public sealed partial class PViewer : PPanel
     private bool pViewerAudioAllowed;
     private bool pViewerCommandActive;
     private bool pViewerResumeInactive;
+    private bool pViewerEndReached;
     private bool pViewerUnloaded;
     private bool pViewerDragActive;
     private readonly List<string> pViewerSeekTrace = [];
@@ -101,6 +102,7 @@ public sealed partial class PViewer : PPanel
     public double PViewerVolumeCurrent => pViewerVolume;
     public LPreviewEngine PViewerEngineCurrent { get; private set; } = LPreviewEngine.LPreviewEngineFlyleaf;
     public event Action? PViewerEngineChange;
+    public event Action<bool>? PViewerPlayingChange;
     public LPreviewState LPreviewStateCurrent { get; private set; } = LPreviewState.LPreviewDefaultCreate();
 
     public PViewer() : base("")
@@ -203,6 +205,12 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
+        if (pViewerEndReached)
+        {
+            pViewerEndReached = false;
+            pViewerPlayer.PPlayerSeek(TimeSpan.Zero);
+        }
+
         pViewerResumeInactive = false;
         pViewerPlayer.PPlayerPlay();
         PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
@@ -229,6 +237,7 @@ public sealed partial class PViewer : PPanel
             return;
         }
 
+        pViewerEndReached = false;
         try
         {
             PPlayerAccurateSeek(playbackPosition);

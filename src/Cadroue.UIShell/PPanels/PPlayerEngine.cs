@@ -24,5 +24,7 @@ internal abstract class PPlayerEngine : IDisposable
 
     public abstract TimeSpan PPlayerTimeRead();
 
+    public abstract bool PPlayerEndedRead();
+
     public abstract void Dispose();
 }

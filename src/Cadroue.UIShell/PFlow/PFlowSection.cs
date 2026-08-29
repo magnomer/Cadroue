@@ -118,7 +118,9 @@ public sealed partial class PFlow
 
     public IReadOnlyList<int> PFlowSelectedRead() => lSegment.LSegmentSelectedRead();
 
-    public void PFlowSectionSeek(int pSectionIndex)
+    public void PFlowSectionSeek(int pSectionIndex) => PFlowSectionSeek(pSectionIndex, false);
+
+    public void PFlowSectionSeek(int pSectionIndex, bool pSectionEnd)
     {
         IReadOnlyList<LPiece> pFlowSections = lSegment.LSegmentListRead();
         if (!pFlowCommandActive
@@ -130,7 +132,8 @@ public sealed partial class PFlow
         }
 
         lSegment.LSegmentSelect(pSectionIndex);
-        PFlowCursorPropagate(pFlowSections[pSectionIndex].LPieceOrigin, true, true);
+        LPiece pSectionTarget = pFlowSections[pSectionIndex];
+        PFlowCursorPropagate(pSectionEnd ? pSectionTarget.LPieceEnd : pSectionTarget.LPieceOrigin, true, true);
     }
 
     public void PFlowSectionToggle(int pSectionIndex)

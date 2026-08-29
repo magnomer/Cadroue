@@ -58,5 +58,7 @@ internal sealed class PPlayer
 
     public TimeSpan PPlayerTimeRead() => pPlayerActive?.PPlayerTimeRead() ?? TimeSpan.Zero;
 
+    public bool PPlayerEndedRead() => pPlayerActive?.PPlayerEndedRead() ?? false;
+
     public void PPlayerDispose() => PPlayerEngineSet(null);
 }

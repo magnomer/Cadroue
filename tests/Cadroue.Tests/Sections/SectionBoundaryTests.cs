@@ -49,10 +49,13 @@ public sealed class SectionBoundaryTests
     }
 
     [Fact]
-    public void CursorBeforeActiveStart_SettingEndIsRejected()
+    public void CursorBeforeActiveStart_SettingEndCreatesLeadingSection()
     {
         var sections = new[] { Seg(4, 8) };
-        Assert.Null(TInterface.PieceEndSet(sections, 0, At(2), 0, OverlapOff));
+        var plan = TInterface.PieceEndSet(sections, 0, At(2), 0, OverlapOff);
+        Assert.NotNull(plan);
+        Assert.True(plan!.Value.Added);
+        Assert.Contains(plan.Value.Sections, section => section.LPieceOrigin == TimeSpan.Zero && section.LPieceEnd == At(2));
     }
 
     [Fact]

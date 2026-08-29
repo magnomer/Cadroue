@@ -48,6 +48,9 @@ internal sealed class PSMonitor : Window
     private Border psMonitorBeforeHead = null!;
     private Border psMonitorAfterHead = null!;
     private LSMonitorEstimate psMonitorEstimate;
+    private Image psMonitorPlayImage = null!;
+    private Button psMonitorPlayButton = null!;
+    private bool psMonitorPlaying;
     private ScrollBar psMonitorScrollbar = null!;
     private TimeSpan psMonitorCursor;
     private bool psMonitorRadioProgram;
@@ -95,9 +98,11 @@ internal sealed class PSMonitor : Window
         psMonitorSource.LSMonitorReady += PSMonitorReadyHandle;
         psMonitorViewer.PViewerClockTick += PSMonitorCursorHandle;
         psMonitorViewer.PViewerBypassChange += PSMonitorBypassHandle;
+        psMonitorViewer.PViewerPlayingChange += PSMonitorPlayingHandle;
         psMonitorFlow.PFlowCursorChange += PSMonitorCursorHandle;
         Closed += PSMonitorCloseHandle;
         PSMonitorBypassHandle(psMonitorViewer.PViewerBypassRead());
+        PSMonitorPlayingApply(psMonitorViewer.PViewerPlayingRead());
         psMonitorSource.LSMonitorUpdate();
     }
 
@@ -139,11 +144,59 @@ internal sealed class PSMonitor : Window
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 12, 0, 0)
         };
-        psTransport.Children.Add(PSMonitorButtonBuild(
-            "/PAssets/PCompass/PCompassPlay.svg", "NormalizePreview.PlayTooltip", psMonitorFlow.PFlowPlayRaise));
-        psTransport.Children.Add(PSMonitorButtonBuild(
-            "/PAssets/PCompass/PCompassPause.svg", "NormalizePreview.PauseTooltip", psMonitorFlow.PFlowPauseRaise));
+        psTransport.Children.Add(PSMonitorPlayBuild());
         return psTransport;
+    }
+
+    private Button PSMonitorPlayBuild()
+    {
+        psMonitorPlayImage = new Image { Width = 18, Height = 18, Stretch = Stretch.Uniform };
+        psMonitorPlayButton = new Button
+        {
+            Width = 34,
+            Height = 34,
+            Margin = new Thickness(0, 0, 8, 0),
+            Background = Brushes.White,
+            BorderBrush = psMonitorGridFill,
+            BorderThickness = new Thickness(1),
+            Cursor = Cursors.Hand,
+            Content = psMonitorPlayImage
+        };
+        psMonitorPlayButton.Click += (_, _) => PSMonitorPlayToggle();
+        PSMonitorPlayingApply(false);
+        return psMonitorPlayButton;
+    }
+
+    private void PSMonitorPlayingApply(bool pPlaying)
+    {
+        psMonitorPlaying = pPlaying;
+        string pIcon = pPlaying ? "PCompassPause.svg" : "PCompassPlay.svg";
+        string pTooltip = pPlaying ? "NormalizePreview.PauseTooltip" : "NormalizePreview.PlayTooltip";
+        psMonitorPlayImage.Source = PAssets.PIcon.PIconRead($"/PAssets/PCompass/{pIcon}", psMonitorAxisFill);
+        psMonitorPlayButton.ToolTip = LLocalization.LLocalizationTextRead(pTooltip);
+    }
+
+    private void PSMonitorPlayToggle()
+    {
+        if (psMonitorPlaying)
+        {
+            psMonitorFlow.PFlowPauseRaise();
+        }
+        else
+        {
+            psMonitorFlow.PFlowPlayRaise();
+        }
+    }
+
+    private void PSMonitorPlayingHandle(bool pPlaying)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => PSMonitorPlayingHandle(pPlaying));
+            return;
+        }
+
+        PSMonitorPlayingApply(pPlaying);
     }
 
     private UIElement PSMonitorZoomBuild()
@@ -548,6 +601,7 @@ internal sealed class PSMonitor : Window
         psMonitorSource.LSMonitorReady -= PSMonitorReadyHandle;
         psMonitorViewer.PViewerClockTick -= PSMonitorCursorHandle;
         psMonitorViewer.PViewerBypassChange -= PSMonitorBypassHandle;
+        psMonitorViewer.PViewerPlayingChange -= PSMonitorPlayingHandle;
         psMonitorFlow.PFlowCursorChange -= PSMonitorCursorHandle;
         psMonitorTimer.Stop();
         psMonitorTimer.Tick -= PSMonitorTickHandle;

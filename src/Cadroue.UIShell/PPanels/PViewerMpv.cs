@@ -586,6 +586,7 @@ public sealed partial class PViewer
         pViewerMediaInfo = pViewerStatus.LCargoMediaInfo;
         PViewerSourcePath = pViewerStatus.LCargoSourcePath;
         LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+        pViewerEndReached = false;
         if (!PCropPersistent)
         {
             PCropVideo = null;

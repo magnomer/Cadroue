@@ -333,6 +333,7 @@ public partial class PWindow : Window
         pFlowActive.PFlowDragChange += pViewerActive.PViewerDragSet;
         pFlowActive.PFlowPlay += pViewerActive.PViewerPlay;
         pFlowActive.PFlowPause += pViewerActive.PViewerPause;
+        pViewerActive.PViewerPlayingChange += pFlowActive.PFlowPlayingRaise;
         pFlowActive.PFlowVolumeChange += pViewerActive.PViewerVolumeSet;
         PWindowVolumeSync(LPreference.LPreferenceStateCurrent);
     }
@@ -347,6 +348,7 @@ public partial class PWindow : Window
             pViewerActive.PViewerDragSet(false);
             pFlowActive.PFlowPlay -= pViewerActive.PViewerPlay;
             pFlowActive.PFlowPause -= pViewerActive.PViewerPause;
+            pViewerActive.PViewerPlayingChange -= pFlowActive.PFlowPlayingRaise;
             pFlowActive.PFlowVolumeChange -= pViewerActive.PViewerVolumeSet;
             pFlowActive.PFlowPlayingSource = null;
             pFlowActive.PFlowSectionShow(false);

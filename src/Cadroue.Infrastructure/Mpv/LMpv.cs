@@ -20,6 +20,7 @@ public sealed partial class LMpv : IDisposable
     private const int LMpvEventLoaded = 8;
 
     private const int LMpvFormatDouble = 5;
+    private const int LMpvFormatFlag = 3;
 
     private static bool lMpvResolverActive;
     private static readonly object lMpvResolverGate = new();
@@ -207,6 +208,13 @@ public sealed partial class LMpv : IDisposable
         }
 
         return TimeSpan.FromSeconds(lSeconds);
+    }
+
+    public bool LMpvEndedRead()
+    {
+        LMpvContextValidate();
+        int lResult = LMpvNative.mpv_get_property_flag(lMpvContext, "eof-reached", LMpvFormatFlag, out int lFlag);
+        return lResult >= 0 && lFlag != 0;
     }
 
     public static LMpvProbe LMpvCheck()
