@@ -60,6 +60,7 @@ public sealed partial class PViewer
     {
         pViewerAudioFilter = pViewerGraph ?? string.Empty;
         PViewerAudioApply();
+        PViewerPreviewChange?.Invoke();
     }
 
     public bool PViewerBypassRead() => pViewerBypass;
@@ -75,6 +76,7 @@ public sealed partial class PViewer
         PViewerAudioUpdate();
         PViewerAudioApply();
         PViewerBypassChange?.Invoke(pViewerBypass);
+        PViewerPreviewChange?.Invoke();
     }
 
     private string PViewerAudioResolve() =>
@@ -298,6 +300,7 @@ public sealed partial class PViewer
         var pViewerOverlayHost = new Grid();
         pViewerOverlayHost.Children.Add(pViewerOverlay);
         pViewerOverlayHost.Children.Add(pViewerCloseButton);
+        pViewerOverlayHost.Children.Add(pViewerPreviewButton);
         pViewerOverlayHost.Children.Add(pViewerAudioSwitch);
         pViewerOverlayHost.Children.Add(pViewerEngineOverlay);
         pViewerMpvOverlay = new Popup
@@ -488,6 +491,7 @@ public sealed partial class PViewer
     {
         (pViewerOverlay.Parent as Panel)?.Children.Remove(pViewerOverlay);
         (pViewerCloseButton.Parent as Panel)?.Children.Remove(pViewerCloseButton);
+        (pViewerPreviewButton.Parent as Panel)?.Children.Remove(pViewerPreviewButton);
         (pViewerAudioSwitch.Parent as Panel)?.Children.Remove(pViewerAudioSwitch);
         PViewerEngineDetach();
     }

@@ -26,6 +26,7 @@ public sealed class LPreferenceState
     public string LPreferenceWheelAction { get; set; } = "Seek";
     public bool LPreferenceDragPaused { get; set; } = true;
     public string LPreferencePreviewEngine { get; set; } = "Flyleaf";
+    public string LPreferenceLoupeFloat { get; set; } = "Owner";
 
     public string LPreferenceTimelineOrder { get; set; } = "MapFirst";
     public double LPreferenceKeyframePixels { get; set; }
@@ -69,6 +70,7 @@ public sealed class LPreferenceState
             LPreferenceWheelAction = "Seek",
             LPreferenceDragPaused = true,
             LPreferencePreviewEngine = "Flyleaf",
+            LPreferenceLoupeFloat = "Owner",
             LPreferenceTimelineOrder = "MapFirst",
             LPreferenceKeyframePixels = 5,
             LPreferenceKeyframeDelay = 1000,
@@ -119,6 +121,7 @@ public sealed class LPreferenceState
             LPreferenceWheelAction = LPreferenceWheelAction,
             LPreferenceDragPaused = LPreferenceDragPaused,
             LPreferencePreviewEngine = LPreferencePreviewEngine,
+            LPreferenceLoupeFloat = LPreferenceLoupeFloat,
             LPreferenceTimelineOrder = LPreferenceTimelineOrder,
             LPreferenceKeyframePixels = LPreferenceKeyframePixels,
             LPreferenceKeyframeDelay = LPreferenceKeyframeDelay,
@@ -196,6 +199,7 @@ public sealed class LPreferenceState
         if (LPreferenceVolumeMode is not "Unified" and not "PerTab") LPreferenceVolumeMode = "Unified";
         if (LPreferenceWheelAction is not "Seek" and not "Zoom" and not "Volume") LPreferenceWheelAction = "Seek";
         if (LPreferencePreviewEngine is not "Flyleaf" and not "Mpv") LPreferencePreviewEngine = "Flyleaf";
+        if (LPreferenceLoupeFloat is not "Off" and not "Owner" and not "Top") LPreferenceLoupeFloat = "Owner";
         if (LPreferenceTimelineOrder is not "MapFirst" and not "ViewfinderFirst") LPreferenceTimelineOrder = "MapFirst";
         if (string.IsNullOrWhiteSpace(LPreferenceSectionPalette))
             LPreferenceSectionPalette = LPreferencePaletteDefault;

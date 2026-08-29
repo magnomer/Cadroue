@@ -30,6 +30,8 @@ public sealed partial class PViewer : PPanel
 
     private Border? pViewerSurface;
     private readonly Button pViewerCloseButton;
+    private readonly Button pViewerPreviewButton;
+    private PSLoupe? pViewerLoupe;
     private readonly Button pViewerAudioSwitch;
     private readonly Border pViewerEngineSurface;
     private readonly Border pViewerEngineOverlay;
@@ -103,6 +105,7 @@ public sealed partial class PViewer : PPanel
     public LPreviewEngine PViewerEngineCurrent { get; private set; } = LPreviewEngine.LPreviewEngineFlyleaf;
     public event Action? PViewerEngineChange;
     public event Action<bool>? PViewerPlayingChange;
+    public event Action? PViewerPreviewChange;
     public LPreviewState LPreviewStateCurrent { get; private set; } = LPreviewState.LPreviewDefaultCreate();
 
     public PViewer() : base("")
@@ -144,6 +147,7 @@ public sealed partial class PViewer : PPanel
         pViewerOverlay.KeyDown += PViewerKeyHandle;
 
         pViewerCloseButton = PViewerCloseBuild();
+        pViewerPreviewButton = PViewerPreviewBuild();
         pViewerAudioSwitch = PViewerAudioBuild();
         pViewerEngineSurface = new Border
         {
@@ -191,10 +195,64 @@ public sealed partial class PViewer : PPanel
         return pButton;
     }
 
+    private Button PViewerPreviewBuild()
+    {
+        var pButton = new Button
+        {
+            Content = new Image
+            {
+                Width = 12,
+                Height = 12,
+                Source = PIcon.PIconRead("/PAssets/PPanels/PViewerPreview.svg", new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
+                Stretch = Stretch.Uniform
+            },
+            Width = 24,
+            Height = 24,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(0, 16, 44, 0),
+            ToolTip = LLocalization.LLocalizationTextRead("Viewer.Preview.Tooltip"),
+            Visibility = Visibility.Collapsed,
+            Style = PButton.PButtonPanelCreate()
+        };
+        pButton.Click += (_, _) => PLoupeShow();
+        return pButton;
+    }
+
+    private void PLoupeShow()
+    {
+        if (pViewerLoupe is not null)
+        {
+            pViewerLoupe.Activate();
+            return;
+        }
+
+        if (Window.GetWindow(this) is not { } pViewerOwner)
+        {
+            return;
+        }
+
+        PSLoupe.PSLoupeShow(pViewerOwner, this);
+    }
+
+    internal void PViewerLoupeSync(TimeSpan pViewerPosition, bool pViewerPlaying)
+    {
+        PViewerPlaybackUpdate(pViewerPlaying, pViewerPosition);
+        PViewerClockTick?.Invoke(pViewerPosition);
+    }
+
     public bool PViewerPlayingRead() => LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
+
+    public TimeSpan PViewerPositionRead() => LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
 
     public void PViewerPlay()
     {
+        if (pViewerLoupe is not null)
+        {
+            pViewerLoupe.PSLoupePlay();
+            return;
+        }
+
         if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
         {
             return;
@@ -219,6 +277,12 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerPause()
     {
+        if (pViewerLoupe is not null)
+        {
+            pViewerLoupe.PSLoupePause();
+            return;
+        }
+
         if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
         {
             return;
@@ -232,6 +296,13 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerSeek(TimeSpan playbackPosition)
     {
+        if (pViewerLoupe is not null)
+        {
+            pViewerLoupe.PSLoupeSeek(playbackPosition);
+            PViewerLoupeSync(playbackPosition, LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying);
+            return;
+        }
+
         if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
         {
             return;
@@ -308,6 +379,15 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerVolumeSet(double volume)
     {
+        if (pViewerLoupe is not null)
+        {
+            pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
+            if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
+                LPreference.LPreferenceVolumeSet(pViewerVolume);
+            pViewerLoupe.PSLoupeVolumeSet(pViewerVolume);
+            return;
+        }
+
         if (!pViewerCommandActive) return;
         pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
         if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
@@ -327,7 +407,7 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerCommandSet(bool pCommandActive)
     {
-        if (pViewerCommandActive == pCommandActive)
+        if (pViewerUnloaded || pViewerCommandActive == pCommandActive)
         {
             return;
         }
@@ -452,17 +532,21 @@ public sealed partial class PViewer : PPanel
         if (pViewerMpvActive)
         {
             PViewerMpvUpdate();
+            PViewerPreviewChange?.Invoke();
             return;
         }
 
         LPreview.LPreviewApply(pViewerPlayer.PPlayerFlyleafPlayer, PViewerRenderRead());
         PPlayerColorRecord(pViewerPlayer.PPlayerFlyleafPlayer);
+        PViewerPreviewChange?.Invoke();
     }
 
-    private LPreviewState PViewerRenderRead() =>
+    public LPreviewState PViewerRenderRead() =>
         PCropActive
             ? LPreviewStateCurrent
             : LPreviewStateCurrent.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate());
+
+    public string PViewerAudioRead() => PViewerAudioResolve();
 
     private void PViewerPreviewRestore()
     {

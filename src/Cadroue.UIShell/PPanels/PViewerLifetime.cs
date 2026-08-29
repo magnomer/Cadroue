@@ -16,6 +16,30 @@ public sealed partial class PViewer
 {
     private int pViewerHostStamp;
 
+    internal void PViewerLoupeAttach(PSLoupe pViewerLoupeWindow)
+    {
+        pViewerLoupe = pViewerLoupeWindow;
+        PViewerHostShow(false);
+        PViewerCommandSet(false);
+    }
+
+    internal void PViewerLoupeDetach(TimeSpan pViewerPosition, bool pViewerPlaying)
+    {
+        pViewerLoupe = null;
+        pViewerResumeInactive = pViewerPlaying;
+        PViewerCommandSet(true);
+        PViewerHostShow(true);
+        PViewerSeek(pViewerPosition);
+        if (pViewerPlaying)
+        {
+            PViewerPlay();
+        }
+        else
+        {
+            PViewerPause();
+        }
+    }
+
     private void PViewerHostBuild()
     {
         if (pViewerHostBuilt) return;
@@ -44,6 +68,7 @@ public sealed partial class PViewer
         var pViewerOverlayHost = new Grid();
         pViewerOverlayHost.Children.Add(pViewerOverlay);
         pViewerOverlayHost.Children.Add(pViewerCloseButton);
+        pViewerOverlayHost.Children.Add(pViewerPreviewButton);
         pViewerOverlayHost.Children.Add(pViewerAudioSwitch);
         pViewerOverlayHost.Children.Add(pViewerEngineOverlay);
 
@@ -102,6 +127,7 @@ public sealed partial class PViewer
             Visibility pViewerMpvTarget = pViewerHostVisible ? Visibility.Visible : Visibility.Collapsed;
             pViewerMpvHost.Visibility = pViewerMpvTarget;
             pViewerCloseButton.Visibility = pViewerMpvTarget;
+            pViewerPreviewButton.Visibility = pViewerMpvTarget;
             PViewerAudioShow(pViewerHostVisible);
             PViewerOverlayPlace();
             return;
@@ -119,6 +145,7 @@ public sealed partial class PViewer
 
         pViewerFlyleafHost.Visibility = pViewerHostTarget;
         pViewerCloseButton.Visibility = pViewerHostTarget;
+        pViewerPreviewButton.Visibility = pViewerHostTarget;
         PViewerHostRecord($"host {(pViewerHostVisible ? "shown" : "hidden")}");
     }
 
@@ -195,6 +222,11 @@ public sealed partial class PViewer
         if (pViewerUnloaded || (!pViewerForce && !pViewerCommandActive))
         {
             return false;
+        }
+
+        if (pViewerLoupe is { } pViewerLoupeWindow)
+        {
+            pViewerLoupeWindow.Close();
         }
 
         bool pViewerLoadClosed = pViewerMediaProbe.LMediaLoadClose();

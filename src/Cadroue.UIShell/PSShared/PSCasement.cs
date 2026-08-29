@@ -85,10 +85,21 @@ internal static class PSCasement
         Window pWindow,
         double pStripWidth,
         string? pTitle,
-        bool pCloseOnly)
+        bool pCloseOnly) =>
+        PSCasementOverlayBuild(pWindow, pStripWidth, pTitle, pCloseOnly, PSCasementBandHeight);
+
+    internal static UIElement PSCasementOverlayBuild(
+        Window pWindow,
+        double pStripWidth,
+        string? pTitle,
+        bool pCloseOnly,
+        double pBandHeight)
     {
         PSCasementEscapeAttach(pWindow);
-        var pGrid = new Grid { Height = PSCasementBandHeight, VerticalAlignment = VerticalAlignment.Top };
+        double pScale = pBandHeight / PSCasementBandHeight;
+        double pButtonHeight = pBandHeight - PSCasementContentOverlap;
+        double pButtonWidth = PSCasementButtonWidth * pScale;
+        var pGrid = new Grid { Height = pBandHeight, VerticalAlignment = VerticalAlignment.Top };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSCasementLeadColumn) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -108,7 +119,7 @@ internal static class PSCasement
             pDragArea.Child = new TextBlock
             {
                 Text = pTitle,
-                FontSize = 14,
+                FontSize = 14 * pScale,
                 FontWeight = FontWeights.SemiBold,
                 Foreground = new SolidColorBrush(Color.FromRgb(0x2B, 0x34, 0x43)),
                 VerticalAlignment = VerticalAlignment.Center,
@@ -130,15 +141,18 @@ internal static class PSCasement
         {
             pButtons.Children.Add(PSCasementButtonBuild(
                 PSCasementMinimizeBuild(),
-                (_, _) => pWindow.WindowState = WindowState.Minimized));
+                (_, _) => pWindow.WindowState = WindowState.Minimized,
+                pButtonWidth, pButtonHeight, pScale));
             pButtons.Children.Add(PSCasementButtonBuild(
                 PSCasementMaximizeBuild(),
-                (_, _) => PSCasementMaximizeToggle(pWindow)));
+                (_, _) => PSCasementMaximizeToggle(pWindow),
+                pButtonWidth, pButtonHeight, pScale));
         }
 
         pButtons.Children.Add(PSCasementButtonBuild(
             PSCasementCloseBuild(),
             (_, _) => pWindow.Close(),
+            pButtonWidth, pButtonHeight, pScale,
             pClose: true));
         Grid.SetColumn(pButtons, 2);
         pGrid.Children.Add(pButtons);
@@ -171,12 +185,23 @@ internal static class PSCasement
             ? WindowState.Normal
             : WindowState.Maximized;
 
-    private static Button PSCasementButtonBuild(UIElement pIcon, RoutedEventHandler pClick, bool pClose = false)
+    private static Button PSCasementButtonBuild(
+        UIElement pIcon,
+        RoutedEventHandler pClick,
+        double pWidth,
+        double pHeight,
+        double pScale,
+        bool pClose = false)
     {
+        if (pScale != 1 && pIcon is FrameworkElement pGlyph)
+        {
+            pGlyph.LayoutTransform = new ScaleTransform(pScale, pScale);
+        }
+
         var pButton = new Button
         {
-            Width = PSCasementButtonWidth,
-            Height = PSCasementButtonHeight,
+            Width = pWidth,
+            Height = pHeight,
             Content = pIcon,
             Style = PButton.PButtonChromeCreate(pClose)
         };
