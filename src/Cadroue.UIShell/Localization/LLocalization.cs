@@ -188,6 +188,7 @@ internal static class LLocalization
                 && lLocalizationName.EndsWith(LLocalizationResourceSuffix, StringComparison.Ordinal))
             .Select(lLocalizationName => lLocalizationName[
                 LLocalizationResourcePrefix.Length..^LLocalizationResourceSuffix.Length])
+            .Where(lLocalizationCode => !lLocalizationCode.Contains('.'))
             .OrderBy(lLocalizationCode => lLocalizationCode, StringComparer.OrdinalIgnoreCase);
 
     private static LLocalizationCatalog? LLocalizationCatalogRead(string lLocalizationCode)

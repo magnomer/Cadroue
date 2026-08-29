@@ -1,0 +1,1719 @@
+{
+ "normalize": "n &= 0xFFFFFFFF; if (n >= 0x80000000) n -= 0x100000000",
+ "errors": {
+  "0": {
+   "symbol": null,
+   "category": "success",
+   "severity": "ok",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "process_exit_status"
+  },
+  "1": {
+   "symbol": null,
+   "category": "configuration",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "process_exit_status"
+  },
+  "69": {
+   "symbol": null,
+   "category": "input_media",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "process_exit_status"
+  },
+  "123": {
+   "symbol": null,
+   "category": "interrupted",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "process_exit_status"
+  },
+  "255": {
+   "symbol": null,
+   "category": "interrupted",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "process_exit_status"
+  },
+  "-1179861752": {
+   "symbol": "AVERROR_BSF_NOT_FOUND",
+   "category": "codec_support",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-558323010": {
+   "symbol": "AVERROR_BUG",
+   "category": "internal",
+   "severity": "fatal",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "public_averror"
+  },
+  "-541545794": {
+   "symbol": "AVERROR_BUG2",
+   "category": "internal",
+   "severity": "fatal",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "public_averror"
+  },
+  "-1397118274": {
+   "symbol": "AVERROR_BUFFER_TOO_SMALL",
+   "category": "internal",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "maybe",
+   "code_class": "public_averror"
+  },
+  "-1128613112": {
+   "symbol": "AVERROR_DECODER_NOT_FOUND",
+   "category": "codec_support",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1296385272": {
+   "symbol": "AVERROR_DEMUXER_NOT_FOUND",
+   "category": "codec_support",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1129203192": {
+   "symbol": "AVERROR_ENCODER_NOT_FOUND",
+   "category": "codec_support",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1279870712": {
+   "symbol": "AVERROR_FILTER_NOT_FOUND",
+   "category": "codec_support",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1481985528": {
+   "symbol": "AVERROR_MUXER_NOT_FOUND",
+   "category": "codec_support",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1414549496": {
+   "symbol": "AVERROR_OPTION_NOT_FOUND",
+   "category": "configuration",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1163346256": {
+   "symbol": "AVERROR_PATCHWELCOME",
+   "category": "codec_support",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1330794744": {
+   "symbol": "AVERROR_PROTOCOL_NOT_FOUND",
+   "category": "configuration",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1381258232": {
+   "symbol": "AVERROR_STREAM_NOT_FOUND",
+   "category": "configuration",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-733130664": {
+   "symbol": "AVERROR_EXPERIMENTAL",
+   "category": "configuration",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1668179713": {
+   "symbol": "AVERROR_INPUT_CHANGED",
+   "category": "control_flow",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1668179714": {
+   "symbol": "AVERROR_OUTPUT_CHANGED",
+   "category": "control_flow",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1313558101": {
+   "symbol": "AVERROR_UNKNOWN",
+   "category": "unknown",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "public_averror"
+  },
+  "-542398533": {
+   "symbol": "AVERROR_EXTERNAL",
+   "category": "external",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "public_averror"
+  },
+  "-541478725": {
+   "symbol": "AVERROR_EOF",
+   "category": "control_flow",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1414092869": {
+   "symbol": "AVERROR_EXIT",
+   "category": "interrupted",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1094995529": {
+   "symbol": "AVERROR_INVALIDDATA",
+   "category": "input_media",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-808465656": {
+   "symbol": "AVERROR_HTTP_BAD_REQUEST",
+   "category": "http",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-825242872": {
+   "symbol": "AVERROR_HTTP_UNAUTHORIZED",
+   "category": "http",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-858797304": {
+   "symbol": "AVERROR_HTTP_FORBIDDEN",
+   "category": "http",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-875574520": {
+   "symbol": "AVERROR_HTTP_NOT_FOUND",
+   "category": "http",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-959591672": {
+   "symbol": "AVERROR_HTTP_TOO_MANY_REQUESTS",
+   "category": "http",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "public_averror"
+  },
+  "-1482175736": {
+   "symbol": "AVERROR_HTTP_OTHER_4XX",
+   "category": "http",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "public_averror"
+  },
+  "-1482175992": {
+   "symbol": "AVERROR_HTTP_SERVER_ERROR",
+   "category": "http",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "public_averror"
+  },
+  "-1": {
+   "symbol": null,
+   "category": "unknown",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "numeric_collision"
+  },
+  "-2": {
+   "symbol": "ENOENT",
+   "category": "input_missing",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-3": {
+   "symbol": "ESRCH",
+   "category": "internal",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-4": {
+   "symbol": null,
+   "category": "interrupted",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "yes",
+   "code_class": "crt_errno_or_normalized_winsock"
+  },
+  "-5": {
+   "symbol": "EIO",
+   "category": "io",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-6": {
+   "symbol": null,
+   "category": "unknown",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "numeric_collision"
+  },
+  "-7": {
+   "symbol": "E2BIG",
+   "category": "configuration",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-8": {
+   "symbol": null,
+   "category": "unknown",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "numeric_collision"
+  },
+  "-9": {
+   "symbol": "EBADF",
+   "category": "internal",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-10": {
+   "symbol": "ECHILD",
+   "category": "internal",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-11": {
+   "symbol": null,
+   "category": "control_flow",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "yes",
+   "code_class": "crt_errno_or_normalized_winsock"
+  },
+  "-12": {
+   "symbol": "ENOMEM",
+   "category": "resources",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-13": {
+   "symbol": "EACCES",
+   "category": "permissions",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-14": {
+   "symbol": "EFAULT",
+   "category": "internal",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-16": {
+   "symbol": "EBUSY",
+   "category": "resources",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-17": {
+   "symbol": "EEXIST",
+   "category": "output_write",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-18": {
+   "symbol": "EXDEV",
+   "category": "storage",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-19": {
+   "symbol": "ENODEV",
+   "category": "hardware",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-20": {
+   "symbol": "ENOTDIR",
+   "category": "input_missing",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-21": {
+   "symbol": "EISDIR",
+   "category": "input_missing",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-22": {
+   "symbol": "EINVAL",
+   "category": "configuration",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-23": {
+   "symbol": "ENFILE",
+   "category": "resources",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-24": {
+   "symbol": "EMFILE",
+   "category": "resources",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-25": {
+   "symbol": "ENOTTY",
+   "category": "io",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-27": {
+   "symbol": "EFBIG",
+   "category": "storage",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-28": {
+   "symbol": "ENOSPC",
+   "category": "storage",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-29": {
+   "symbol": "ESPIPE",
+   "category": "output_write",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-30": {
+   "symbol": "EROFS",
+   "category": "storage",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-31": {
+   "symbol": "EMLINK",
+   "category": "storage",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-32": {
+   "symbol": "EPIPE",
+   "category": "output_write",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-33": {
+   "symbol": "EDOM",
+   "category": "internal",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-34": {
+   "symbol": "ERANGE",
+   "category": "configuration",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-36": {
+   "symbol": "EDEADLK",
+   "category": "internal",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-38": {
+   "symbol": "ENAMETOOLONG",
+   "category": "storage",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-39": {
+   "symbol": "ENOLCK",
+   "category": "storage",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-40": {
+   "symbol": "ENOSYS",
+   "category": "codec_support",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-41": {
+   "symbol": "ENOTEMPTY",
+   "category": "storage",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-42": {
+   "symbol": "EILSEQ",
+   "category": "input_media",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-80": {
+   "symbol": "STRUNCATE",
+   "category": "internal",
+   "severity": "error",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-100": {
+   "symbol": "EADDRINUSE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-101": {
+   "symbol": "EADDRNOTAVAIL",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-102": {
+   "symbol": "EAFNOSUPPORT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-103": {
+   "symbol": "EALREADY",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-104": {
+   "symbol": "EBADMSG",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-105": {
+   "symbol": "ECANCELED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-106": {
+   "symbol": "ECONNABORTED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-107": {
+   "symbol": null,
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno_or_normalized_winsock"
+  },
+  "-108": {
+   "symbol": "ECONNRESET",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-109": {
+   "symbol": "EDESTADDRREQ",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-110": {
+   "symbol": "EHOSTUNREACH",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-111": {
+   "symbol": "EIDRM",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-112": {
+   "symbol": null,
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno_or_normalized_winsock"
+  },
+  "-113": {
+   "symbol": "EISCONN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-114": {
+   "symbol": "ELOOP",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-115": {
+   "symbol": "EMSGSIZE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-116": {
+   "symbol": "ENETDOWN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-117": {
+   "symbol": "ENETRESET",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-118": {
+   "symbol": "ENETUNREACH",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-119": {
+   "symbol": "ENOBUFS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-120": {
+   "symbol": "ENODATA",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-121": {
+   "symbol": "ENOLINK",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-122": {
+   "symbol": "ENOMSG",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-123": {
+   "symbol": "ENOPROTOOPT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-124": {
+   "symbol": "ENOSR",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-125": {
+   "symbol": "ENOSTR",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-126": {
+   "symbol": "ENOTCONN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-127": {
+   "symbol": "ENOTRECOVERABLE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-128": {
+   "symbol": "ENOTSOCK",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-129": {
+   "symbol": "ENOTSUP",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-130": {
+   "symbol": "EOPNOTSUPP",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-131": {
+   "symbol": "EOTHER",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-132": {
+   "symbol": "EOVERFLOW",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-133": {
+   "symbol": "EOWNERDEAD",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-134": {
+   "symbol": "EPROTO",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-135": {
+   "symbol": null,
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno_or_normalized_winsock"
+  },
+  "-136": {
+   "symbol": "EPROTOTYPE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "crt_errno"
+  },
+  "-137": {
+   "symbol": "ETIME",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-138": {
+   "symbol": null,
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno_or_normalized_winsock"
+  },
+  "-139": {
+   "symbol": "ETXTBSY",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "crt_errno"
+  },
+  "-140": {
+   "symbol": "EWOULDBLOCK",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "crt_errno"
+  },
+  "-87": {
+   "symbol": "WSA_INVALID_PARAMETER",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-995": {
+   "symbol": "WSA_OPERATION_ABORTED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-996": {
+   "symbol": "WSA_IO_INCOMPLETE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-997": {
+   "symbol": "WSA_IO_PENDING",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10009": {
+   "symbol": "WSAEBADF",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10013": {
+   "symbol": "WSAEACCES",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10014": {
+   "symbol": "WSAEFAULT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10022": {
+   "symbol": "WSAEINVAL",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10024": {
+   "symbol": "WSAEMFILE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10037": {
+   "symbol": "WSAEALREADY",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10038": {
+   "symbol": "WSAENOTSOCK",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10039": {
+   "symbol": "WSAEDESTADDRREQ",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10040": {
+   "symbol": "WSAEMSGSIZE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10041": {
+   "symbol": "WSAEPROTOTYPE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10042": {
+   "symbol": "WSAENOPROTOOPT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10044": {
+   "symbol": "WSAESOCKTNOSUPPORT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10045": {
+   "symbol": "WSAEOPNOTSUPP",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10046": {
+   "symbol": "WSAEPFNOSUPPORT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10047": {
+   "symbol": "WSAEAFNOSUPPORT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10048": {
+   "symbol": "WSAEADDRINUSE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10049": {
+   "symbol": "WSAEADDRNOTAVAIL",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10050": {
+   "symbol": "WSAENETDOWN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10051": {
+   "symbol": "WSAENETUNREACH",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10052": {
+   "symbol": "WSAENETRESET",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10053": {
+   "symbol": "WSAECONNABORTED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10054": {
+   "symbol": "WSAECONNRESET",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10055": {
+   "symbol": "WSAENOBUFS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10056": {
+   "symbol": "WSAEISCONN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10057": {
+   "symbol": "WSAENOTCONN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10058": {
+   "symbol": "WSAESHUTDOWN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10059": {
+   "symbol": "WSAETOOMANYREFS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10062": {
+   "symbol": "WSAELOOP",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10063": {
+   "symbol": "WSAENAMETOOLONG",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10064": {
+   "symbol": "WSAEHOSTDOWN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10065": {
+   "symbol": "WSAEHOSTUNREACH",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10066": {
+   "symbol": "WSAENOTEMPTY",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10067": {
+   "symbol": "WSAEPROCLIM",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10068": {
+   "symbol": "WSAEUSERS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10069": {
+   "symbol": "WSAEDQUOT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10070": {
+   "symbol": "WSAESTALE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10071": {
+   "symbol": "WSAEREMOTE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10091": {
+   "symbol": "WSASYSNOTREADY",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10092": {
+   "symbol": "WSAVERNOTSUPPORTED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10093": {
+   "symbol": "WSANOTINITIALISED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10101": {
+   "symbol": "WSAEDISCON",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10102": {
+   "symbol": "WSAENOMORE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10103": {
+   "symbol": "WSAECANCELLED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10104": {
+   "symbol": "WSAEINVALIDPROCTABLE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10105": {
+   "symbol": "WSAEINVALIDPROVIDER",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10106": {
+   "symbol": "WSAEPROVIDERFAILEDINIT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10107": {
+   "symbol": "WSASYSCALLFAILURE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10108": {
+   "symbol": "WSASERVICE_NOT_FOUND",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10109": {
+   "symbol": "WSATYPE_NOT_FOUND",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10110": {
+   "symbol": "WSA_E_NO_MORE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10111": {
+   "symbol": "WSA_E_CANCELLED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-10112": {
+   "symbol": "WSAEREFUSED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11001": {
+   "symbol": "WSAHOST_NOT_FOUND",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11002": {
+   "symbol": "WSATRY_AGAIN",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11003": {
+   "symbol": "WSANO_RECOVERY",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11004": {
+   "symbol": "WSANO_DATA",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11005": {
+   "symbol": "WSA_QOS_RECEIVERS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11006": {
+   "symbol": "WSA_QOS_SENDERS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11007": {
+   "symbol": "WSA_QOS_NO_SENDERS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11008": {
+   "symbol": "WSA_QOS_NO_RECEIVERS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11009": {
+   "symbol": "WSA_QOS_REQUEST_CONFIRMED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11010": {
+   "symbol": "WSA_QOS_ADMISSION_FAILURE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11011": {
+   "symbol": "WSA_QOS_POLICY_FAILURE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11012": {
+   "symbol": "WSA_QOS_BAD_STYLE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11013": {
+   "symbol": "WSA_QOS_BAD_OBJECT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11014": {
+   "symbol": "WSA_QOS_TRAFFIC_CTRL_ERROR",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11015": {
+   "symbol": "WSA_QOS_GENERIC_ERROR",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11016": {
+   "symbol": "WSA_QOS_ESERVICETYPE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11017": {
+   "symbol": "WSA_QOS_EFLOWSPEC",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11018": {
+   "symbol": "WSA_QOS_EPROVSPECBUF",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11019": {
+   "symbol": "WSA_QOS_EFILTERSTYLE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11020": {
+   "symbol": "WSA_QOS_EFILTERTYPE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11021": {
+   "symbol": "WSA_QOS_EFILTERCOUNT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11022": {
+   "symbol": "WSA_QOS_EOBJLENGTH",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11023": {
+   "symbol": "WSA_QOS_EFLOWCOUNT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11024": {
+   "symbol": "WSA_QOS_EUNKOWNPSOBJ",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11025": {
+   "symbol": "WSA_QOS_EPOLICYOBJ",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11026": {
+   "symbol": "WSA_QOS_EFLOWDESC",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11027": {
+   "symbol": "WSA_QOS_EPSFLOWSPEC",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11028": {
+   "symbol": "WSA_QOS_EPSFILTERSPEC",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11029": {
+   "symbol": "WSA_QOS_ESDMODEOBJ",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11030": {
+   "symbol": "WSA_QOS_ESHAPERATEOBJ",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-11031": {
+   "symbol": "WSA_QOS_RESERVED_PETYPE",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "winsock_raw"
+  },
+  "-1329874258": {
+   "symbol": "FFERROR_REDO",
+   "category": "control_flow",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "private_ffmpeg_status"
+  },
+  "-1497649742": {
+   "symbol": "FFERROR_NOT_READY",
+   "category": "control_flow",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "private_ffmpeg_status"
+  },
+  "-1498697805": {
+   "symbol": "FFERROR_BUFFERSRC_EMPTY",
+   "category": "control_flow",
+   "severity": "control",
+   "user_visible": false,
+   "retryable": "no",
+   "code_class": "private_ffmpeg_status"
+  },
+  "-558779972": {
+   "symbol": "DNN_GENERIC_ERROR",
+   "category": "external",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "private_ffmpeg_status"
+  },
+  "-1397768184": {
+   "symbol": "AVERROR_PS_NOT_FOUND",
+   "category": "input_media",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "private_ffmpeg_status"
+  },
+  "-1145393733": {
+   "symbol": "FFMPEG_ERROR_RATE_EXCEEDED",
+   "category": "input_media",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "private_ffmpeg_status"
+  },
+  "-10004": {
+   "symbol": "WSAEINTR",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10035": {
+   "symbol": "WSAEWOULDBLOCK",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10036": {
+   "symbol": "WSAEINPROGRESS",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10043": {
+   "symbol": "WSAEPROTONOSUPPORT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "no",
+   "code_class": "winsock_raw"
+  },
+  "-10060": {
+   "symbol": "WSAETIMEDOUT",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  },
+  "-10061": {
+   "symbol": "WSAECONNREFUSED",
+   "category": "network",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "yes",
+   "code_class": "winsock_raw"
+  }
+ },
+ "fallbacks": {
+  "unknown_negative": {
+   "symbol": null,
+   "category": "unknown",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "fallback"
+  },
+  "unexpected_positive": {
+   "symbol": null,
+   "category": "unknown",
+   "severity": "error",
+   "user_visible": true,
+   "retryable": "maybe",
+   "code_class": "fallback"
+  }
+ }
+}

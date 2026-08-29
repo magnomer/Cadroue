@@ -41,6 +41,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="..\..\localization\*.json" Link="localization\%(Filename)%(Extension)" LogicalName="localization.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\localization\FFmpeg-error\*.json" Link="localization\FFmpeg-error\%(Filename)%(Extension)" LogicalName="localization.ffmpeg-error.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

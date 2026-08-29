@@ -1,0 +1,68 @@
+namespace Cadroue.ShellEngine;
+
+internal delegate bool LAutopsyProseReader(string lAutopsyProseKey, out string lAutopsyProseValue);
+
+internal static class LAutopsy
+{
+    private const long LAutopsyDwordMask = 0xFFFFFFFFL;
+    private const long LAutopsySignBoundary = 0x80000000L;
+    private const long LAutopsyWraparound = 0x100000000L;
+
+    private const string LAutopsyFallbackNegativeProse = "fallback.unknownNegative";
+    private const string LAutopsyFallbackPositiveProse = "fallback.unexpectedPositive";
+
+    internal static LAutopsyProseReader? LAutopsyProse { get; set; }
+
+    internal static LAutopsyResult LAutopsyResolve(int lAutopsyExitCode, string lAutopsyStderrTail)
+    {
+        _ = lAutopsyStderrTail;
+
+        long lAutopsyNormalized = lAutopsyExitCode & LAutopsyDwordMask;
+        if (lAutopsyNormalized >= LAutopsySignBoundary)
+        {
+            lAutopsyNormalized -= LAutopsyWraparound;
+        }
+
+        int lAutopsyCode = (int)lAutopsyNormalized;
+        bool lAutopsyMatched = LAutopsySpine.LAutopsySpineRead(
+            lAutopsyCode.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            out LAutopsySpine lAutopsyEntry);
+
+        string lAutopsyProseRoot;
+        if (lAutopsyMatched)
+        {
+            lAutopsyProseRoot = lAutopsyCode.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            bool lAutopsyNegative = lAutopsyCode < 0;
+            lAutopsyEntry = LAutopsySpine.LAutopsySpineFallbackRead(lAutopsyNegative);
+            lAutopsyProseRoot = lAutopsyNegative
+                ? LAutopsyFallbackNegativeProse
+                : LAutopsyFallbackPositiveProse;
+        }
+
+        return new LAutopsyResult(
+            lAutopsyCode,
+            LAutopsyProseRead(lAutopsyProseRoot + ".simple") ?? string.Empty,
+            LAutopsyProseRead(lAutopsyProseRoot + ".technical") ?? string.Empty,
+            LAutopsyProseRead(lAutopsyProseRoot + ".action"),
+            lAutopsyEntry.LAutopsySpineCategory,
+            lAutopsyEntry.LAutopsySpineSeverity,
+            lAutopsyEntry.LAutopsySpineUserVisible,
+            lAutopsyEntry.LAutopsySpineRetryable,
+            lAutopsyEntry.LAutopsySpineSymbol,
+            lAutopsyMatched);
+    }
+
+    private static string? LAutopsyProseRead(string lAutopsyKey)
+    {
+        LAutopsyProseReader? lAutopsyReader = LAutopsyProse;
+        if (lAutopsyReader is not null && lAutopsyReader(lAutopsyKey, out string lAutopsyValue))
+        {
+            return lAutopsyValue;
+        }
+
+        return null;
+    }
+}
