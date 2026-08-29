@@ -207,6 +207,24 @@ public static class LSidecarStore
     public static bool LSidecarWaveformSave(string lSidecarSourcePath, LSidecarWaveformRecord? lSidecarWaveform) =>
         LSidecarCacheStore.LSidecarCacheChange(lSidecarSourcePath, lSidecarCache => lSidecarCache.LSidecarWaveform = lSidecarWaveform);
 
+    public static IReadOnlyList<LSidecarDossier>? LSidecarDiagnosisRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            return LSidecarCacheStore.LSidecarDiagnosisRead(lSidecarSourcePath);
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    public static bool LSidecarDiagnosisSave(
+        string lSidecarSourcePath,
+        LKeyframeSourceIdentity lSidecarIdentity,
+        IReadOnlyCollection<LSidecarDossier> lSidecarDossiers) =>
+        LSidecarCacheStore.LSidecarDiagnosisSave(lSidecarSourcePath, lSidecarIdentity, lSidecarDossiers);
+
     public static double LSidecarLoudnessRead(string lSidecarSourcePath)
     {
         try

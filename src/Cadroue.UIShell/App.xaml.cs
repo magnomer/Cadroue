@@ -300,6 +300,7 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LLibrarian.LLibrarianAudioReader = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioRead;
         Cadroue.Application.LLibrarian.LLibrarianSplitReader = Cadroue.Infrastructure.LSidecarStore.LSidecarSplitRead;
         Cadroue.Application.LLibrarian.LLibrarianFixReader = Cadroue.Infrastructure.LSidecarStore.LSidecarFixRead;
+        Cadroue.Application.LLibrarian.LLibrarianDiagnosisReader = Cadroue.Infrastructure.LSidecarStore.LSidecarDiagnosisRead;
         Cadroue.Application.LLibrarian.LLibrarianLoudnessReader = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessRead;
         Cadroue.Application.LLibrarian.LLibrarianDurationReader = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationRead;
         Cadroue.Application.LLibrarian.LLibrarianDurationResolver = Cadroue.Infrastructure.LSidecarStore.LSidecarDurationResolve;
@@ -307,11 +308,13 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Application.LLibrarian.LLibrarianAudioWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarAudioSave;
         Cadroue.Application.LLibrarian.LLibrarianSplitWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarSplitSave;
         Cadroue.Application.LLibrarian.LLibrarianFixWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarFixSave;
+        Cadroue.Application.LLibrarian.LLibrarianDiagnosisWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarDiagnosisSave;
         Cadroue.Application.LLibrarian.LLibrarianLoudnessWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarLoudnessSave;
         Cadroue.Application.LLibrarian.LLibrarianWaveformWriter = Cadroue.Infrastructure.LSidecarStore.LSidecarWaveformSave;
         Cadroue.Application.LLibrarian.LLibrarianFileChecker = Cadroue.Infrastructure.LSidecarStore.LSidecarFileCheck;
         Cadroue.Application.LLibrarian.LLibrarianSourceResolver = LSidecarSourceResolve;
         Cadroue.Application.LLibrarian.LLibrarianSourceMatcher = LSidecarStoreMatch;
+        Cadroue.Infrastructure.LCheckup.LCheckupScannerSeam = Cadroue.ShellEngine.LFlawScan.LFlawScanRun;
     }
 
     private static Cadroue.Core.LSidecarSourceResult? LSidecarSourceResolve(string lSidecarPath) =>

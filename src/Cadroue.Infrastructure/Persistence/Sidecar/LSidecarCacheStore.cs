@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
 
@@ -6,6 +7,34 @@ internal static class LSidecarCacheStore
 {
     internal static LSidecarCacheRecord? LSidecarCacheRead(string lSidecarSourcePath) =>
         LSidecarCacheLoad(LSidecarStore.LSidecarPathRead(lSidecarSourcePath), null);
+
+    internal static bool LSidecarDiagnosisSave(
+        string lSidecarSourcePath,
+        LKeyframeSourceIdentity lSidecarIdentity,
+        IReadOnlyCollection<LSidecarDossier> lSidecarDossiers) =>
+        LSidecarCacheChange(lSidecarSourcePath, lSidecarCache =>
+        {
+            lSidecarCache.LSidecarLength = lSidecarIdentity.LKeyframeSourceLength;
+            lSidecarCache.LSidecarPartialHash = lSidecarIdentity.LKeyframePartialHash;
+            lSidecarCache.LSidecarDiagnosis = lSidecarDossiers.ToList();
+        });
+
+    internal static IReadOnlyList<LSidecarDossier>? LSidecarDiagnosisRead(string lSidecarSourcePath)
+    {
+        if (LSidecarCacheRead(lSidecarSourcePath) is not { } lSidecarCache)
+        {
+            return null;
+        }
+
+        var lSidecarFingerprint = new LSidecarSourceRecord
+        {
+            LSidecarLength = lSidecarCache.LSidecarLength,
+            LSidecarPartialHash = lSidecarCache.LSidecarPartialHash
+        };
+        return LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecarFingerprint)
+            ? lSidecarCache.LSidecarDiagnosis
+            : null;
+    }
 
     internal static LSidecarCacheRecord? LSidecarCacheLoad(string lSidecarPreciousPath, string? lSidecarPreciousJson)
     {

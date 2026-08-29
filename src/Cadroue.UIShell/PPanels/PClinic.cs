@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
@@ -33,6 +34,7 @@ public sealed class PClinic : PPanel
 
     public event Action<bool>? PClinicMinimizeChange;
     public event Action? PClinicPlanChange;
+    public event Action<LFlawKind>? PClinicDiagnosisRequest;
 
     private readonly UIElement pClinicFullBody;
     private readonly UIElement pClinicStripBody;
@@ -48,6 +50,8 @@ public sealed class PClinic : PPanel
     private readonly CheckBox pClinicDiagnosisBox;
     private readonly CheckBox pClinicPersistentBox;
     private readonly Dictionary<LFlawKind, (bool Apply, bool Diagnosis, bool Persistent)> pClinicStates = new();
+    private readonly Dictionary<(string Path, LFlawKind Kind), LCheckupResult> pClinicResults = new();
+    private string? pClinicSource;
     private LFlawKind? pClinicCurrentKind;
     private bool pClinicSuppress;
     private bool pClinicMinimized;
@@ -234,6 +238,21 @@ public sealed class PClinic : PPanel
         PClinicMinimizeChange?.Invoke(pClinicMinimized);
     }
 
+    public void PClinicSourceSet(string? pClinicSourcePath)
+    {
+        pClinicSource = string.IsNullOrWhiteSpace(pClinicSourcePath) ? null : pClinicSourcePath;
+        PClinicResultApply();
+    }
+
+    public void PClinicResultShow(string pClinicResultPath, LFlawKind pClinicResultKind, LCheckupResult pClinicResult)
+    {
+        pClinicResults[(pClinicResultPath, pClinicResultKind)] = pClinicResult;
+        if (pClinicResultPath == pClinicSource && pClinicCurrentKind == pClinicResultKind)
+        {
+            PClinicResultApply();
+        }
+    }
+
     public void PClinicStepShow(string? pStepName)
     {
         LFlawKind? pKind = pClinicKinds
@@ -316,12 +335,19 @@ public sealed class PClinic : PPanel
             return;
         }
 
+        bool pWasDiagnosis = pClinicStates.TryGetValue(pKind, out (bool Apply, bool Diagnosis, bool Persistent) pPrior)
+            && pPrior.Diagnosis;
+        bool pNowDiagnosis = pClinicDiagnosisBox.IsChecked == true;
         pClinicStates[pKind] = (
             pClinicApplyBox.IsChecked == true,
-            pClinicDiagnosisBox.IsChecked == true,
+            pNowDiagnosis,
             pClinicPersistentBox.IsChecked == true);
         PClinicResultApply();
         PClinicPlanChange?.Invoke();
+        if (!pWasDiagnosis && pNowDiagnosis)
+        {
+            PClinicDiagnosisRequest?.Invoke(pKind);
+        }
     }
 
     private void PClinicPersistentHandle()
@@ -338,11 +364,38 @@ public sealed class PClinic : PPanel
         PClinicPlanChange?.Invoke();
     }
 
-    private void PClinicResultApply() =>
-        pClinicResultBody.Visibility =
-            pClinicDiagnosisBox.IsChecked == true && pClinicItemBody.Visibility == Visibility.Visible
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+    private void PClinicResultApply()
+    {
+        bool pVisible = pClinicDiagnosisBox.IsChecked == true && pClinicItemBody.Visibility == Visibility.Visible;
+        pClinicResultBody.Visibility = pVisible ? Visibility.Visible : Visibility.Collapsed;
+        if (pVisible)
+        {
+            pClinicResultText.Text = PClinicResultResolve();
+        }
+    }
+
+    private string PClinicResultResolve()
+    {
+        if (pClinicCurrentKind is not { } pKind)
+        {
+            return LLocalization.LLocalizationTextRead("Clinic.Result.Empty");
+        }
+
+        LCheckupResult pResult = pClinicSource is { } pSource
+            && pClinicResults.TryGetValue((pSource, pKind), out LCheckupResult pStored)
+            ? pStored
+            : new LCheckupResult(pClinicSource ?? string.Empty, pKind, LCheckupOutcome.LCheckupOutcomeUntested);
+        return LCheckupFormat.LCheckupBodyFormat(pResult, PClinicStringsRead());
+    }
+
+    private static LCheckupStrings PClinicStringsRead() => new(
+        LLocalization.LLocalizationTextRead("Clinic.Result.Empty"),
+        LLocalization.LLocalizationTextRead("Clinic.Result.Scanning"),
+        LLocalization.LLocalizationTextRead("Clinic.Result.Clean"),
+        LLocalization.LLocalizationTextRead("Clinic.Result.Failed"),
+        LLocalization.LLocalizationTextRead("Clinic.Result.Defect"),
+        LLocalization.LLocalizationTextRead("Clinic.Result.Evidence"),
+        LLocalization.LLocalizationTextRead("Clinic.Result.Repair"));
 
     private UIElement PClinicStripBuild()
     {

@@ -6,14 +6,14 @@ using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
-internal static class LFlawScan
+public static class LFlawScan
 {
     internal static IReadOnlyList<LDossier> LFlawScanRun(LWorkItem lFlawItem, CancellationToken lFlawToken = default)
     {
         return LFlawScanRun(lFlawItem.LWorkSourcePath, Array.Empty<LFlawKind>(), lFlawToken);
     }
 
-    internal static IReadOnlyList<LDossier> LFlawScanRun(string lFlawSource, IReadOnlyCollection<LFlawKind> lFlawKinds, CancellationToken lFlawToken = default)
+    public static IReadOnlyList<LDossier> LFlawScanRun(string lFlawSource, IReadOnlyCollection<LFlawKind> lFlawKinds, CancellationToken lFlawToken = default)
     {
         if (string.IsNullOrWhiteSpace(lFlawSource) || !File.Exists(lFlawSource))
         {
