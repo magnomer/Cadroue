@@ -49,6 +49,9 @@ public sealed class PClinic : PPanel
     private readonly CheckBox pClinicApplyBox;
     private readonly CheckBox pClinicDiagnosisBox;
     private readonly CheckBox pClinicPersistentBox;
+    private readonly PClinicSalvage pClinicSalvage = new();
+    private readonly Border pClinicPersistentRow;
+    private bool pClinicSalvageShown;
     private readonly Dictionary<LFlawKind, (bool Apply, bool Diagnosis, bool Persistent)> pClinicStates = new();
     private readonly Dictionary<(string Path, LFlawKind Kind), LCheckupResult> pClinicResults = new();
     private string? pClinicSource;
@@ -181,6 +184,8 @@ public sealed class PClinic : PPanel
         pBody.Children.Add(pClinicEmptyNotice);
         pBody.Children.Add(pClinicItemBody);
         pBody.Children.Add(pClinicResultBody);
+        pBody.Children.Add(pClinicSalvage);
+        pClinicSalvage.PClinicSalvageChange += () => PClinicPlanChange?.Invoke();
 
         var pScroll = new ScrollViewer
         {
@@ -195,7 +200,7 @@ public sealed class PClinic : PPanel
         pClinicPersistentBox.IsEnabled = false;
         pClinicPersistentBox.Checked += (_, _) => PClinicPersistentHandle();
         pClinicPersistentBox.Unchecked += (_, _) => PClinicPersistentHandle();
-        var pPersistentRow = new Border
+        pClinicPersistentRow = new Border
         {
             Padding = new Thickness(12, 8, 12, 8),
             BorderBrush = PPanelLineBrush,
@@ -207,8 +212,8 @@ public sealed class PClinic : PPanel
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
-        DockPanel.SetDock(pPersistentRow, Dock.Bottom);
-        pRoot.Children.Add(pPersistentRow);
+        DockPanel.SetDock(pClinicPersistentRow, Dock.Bottom);
+        pRoot.Children.Add(pClinicPersistentRow);
         pRoot.Children.Add(pScroll);
 
         pClinicFullBody = pRoot;
@@ -266,6 +271,22 @@ public sealed class PClinic : PPanel
 
     public void PClinicStepShow(string? pStepName)
     {
+        pClinicSalvageShown = pStepName == "Salvage";
+        pClinicSalvage.PClinicSalvageShow(pClinicSalvageShown);
+        pClinicPersistentRow.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
+        if (pClinicSalvageShown)
+        {
+            pClinicCurrentKind = null;
+            pClinicToggleRow.IsEnabled = false;
+            pClinicToggleRow.Visibility = Visibility.Collapsed;
+            pClinicEmptyNotice.Visibility = Visibility.Collapsed;
+            pClinicItemBody.Visibility = Visibility.Collapsed;
+            pClinicResultBody.Visibility = Visibility.Collapsed;
+            pClinicTitleLabel.Text = LLocalization.LLocalizationTextRead("Processing.Step.Salvage");
+            return;
+        }
+
+        pClinicToggleRow.Visibility = Visibility.Visible;
         LFlawKind? pKind = pClinicKinds
             .Where(pEntry => pEntry.Name == pStepName)
             .Select(pEntry => (LFlawKind?)pEntry.Kind)
@@ -316,11 +337,12 @@ public sealed class PClinic : PPanel
             pSteps.Add(new LWorkFixStep(pKind, pApply, pDiagnosis, pPersistent));
         }
 
-        return new LWorkFix(pSteps);
+        return new LWorkFix(pSteps) { LWorkFixSalvage = pClinicSalvage.PClinicSalvageRead() };
     }
 
     public void PClinicPlanApply(LWorkFix pClinicPlan)
     {
+        pClinicSalvage.PClinicSalvageApply(pClinicPlan.LWorkFixSalvage);
         foreach (LWorkFixStep pStep in pClinicPlan.LWorkFixSteps)
         {
             pClinicStates[pStep.LWorkFixKind] =
@@ -422,7 +444,7 @@ public sealed class PClinic : PPanel
         return pStrip;
     }
 
-    private static CheckBox PClinicSwitchBuild(string pSwitchLabel, string pSwitchTip)
+    internal static CheckBox PClinicSwitchBuild(string pSwitchLabel, string pSwitchTip)
     {
         var pSwitch = new CheckBox
         {

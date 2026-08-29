@@ -104,6 +104,9 @@ public sealed class PFixTab : PTabSurface
             pProcessing.PProcessingStepAdd(pFixName, pFixIcon, pFixLabelKey);
         }
 
+        pProcessing.PProcessingStepAdd(
+            "Salvage", "/PAssets/PPanels/PProcessingFixSalvage.svg", "Processing.Step.Salvage");
+
         pProcessing.PProcessingStepChange += pClinic.PClinicStepShow;
         pClinic.PClinicPlanChange += PFixPlanSave;
         pClinic.PClinicDiagnosisRequest += PFixDiagnosisHandle;
@@ -314,5 +317,7 @@ public sealed class PFixTab : PTabSurface
                 pStep => pStep.LWorkFixKind == pFixKind && (pStep.LWorkFixRepair || pStep.LWorkFixDiagnosis));
             pProcessing.PProcessingActiveSet(pFixName, pFixActive);
         }
+
+        pProcessing.PProcessingActiveSet("Salvage", pFixPlan.LWorkFixSalvage.LWorkSalvageActive);
     }
 }
