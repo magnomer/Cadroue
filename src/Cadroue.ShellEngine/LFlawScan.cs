@@ -10,7 +10,11 @@ internal static class LFlawScan
 {
     internal static IReadOnlyList<LDossier> LFlawScanRun(LWorkItem lFlawItem, CancellationToken lFlawToken = default)
     {
-        string lFlawSource = lFlawItem.LWorkSourcePath;
+        return LFlawScanRun(lFlawItem.LWorkSourcePath, Array.Empty<LFlawKind>(), lFlawToken);
+    }
+
+    internal static IReadOnlyList<LDossier> LFlawScanRun(string lFlawSource, IReadOnlyCollection<LFlawKind> lFlawKinds, CancellationToken lFlawToken = default)
+    {
         if (string.IsNullOrWhiteSpace(lFlawSource) || !File.Exists(lFlawSource))
         {
             return Array.Empty<LDossier>();
@@ -123,7 +127,12 @@ internal static class LFlawScan
                 lFlawDossiers.Add(lFlawFfvone with { LDossierKind = LFlawKind.LFlawKindFfvone });
             }
 
-            return lFlawDossiers;
+            if (lFlawKinds.Count == 0)
+            {
+                return lFlawDossiers;
+            }
+
+            return lFlawDossiers.FindAll(lFlawDossier => lFlawKinds.Contains(lFlawDossier.LDossierKind));
         }
         catch (OperationCanceledException)
         {

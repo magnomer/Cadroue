@@ -39,4 +39,26 @@ public sealed class LSidecarCacheRecord
     public List<int> LSidecarScannedSpans { get; set; } = new();
     public List<long> LSidecarKeyframeDeltas { get; set; } = new();
     public LSidecarWaveformRecord? LSidecarWaveform { get; set; }
+    public List<LSidecarDossier> LSidecarDiagnosis { get; set; } = new();
+}
+
+public sealed class LSidecarDossier
+{
+    public string LSidecarDefect { get; set; } = string.Empty;
+    public double LSidecarConfidence { get; set; }
+    public string LSidecarEvidenceMechanism { get; set; } = string.Empty;
+    public string LSidecarEvidenceSource { get; set; } = string.Empty;
+    public string LSidecarEvidenceCoverage { get; set; } = string.Empty;
+    public string LSidecarScope { get; set; } = string.Empty;
+    public string LSidecarRepair { get; set; } = string.Empty;
+    public string LSidecarRepairCoverage { get; set; } = string.Empty;
+    public LDossierPreservation LSidecarPreservation { get; set; }
+    public string LSidecarEquivalence { get; set; } = string.Empty;
+    public string LSidecarTiming { get; set; } = string.Empty;
+    public string LSidecarLoss { get; set; } = string.Empty;
+    public LDossierValidation LSidecarValidation { get; set; }
+    public LDossierCategory LSidecarCategory { get; set; }
+    public string LSidecarRepairArgument { get; set; } = string.Empty;
+    public string LSidecarRepairInput { get; set; } = string.Empty;
+    public LFlawKind LSidecarKind { get; set; }
 }
