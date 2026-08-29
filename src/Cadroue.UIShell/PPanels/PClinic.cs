@@ -244,6 +244,17 @@ public sealed class PClinic : PPanel
         PClinicResultApply();
     }
 
+    public void PClinicResultsRemove(IReadOnlyList<string> pClinicPaths)
+    {
+        foreach (string pClinicPath in pClinicPaths)
+        {
+            foreach ((LFlawKind pKind, string _) in pClinicKinds)
+            {
+                pClinicResults.Remove((pClinicPath, pKind));
+            }
+        }
+    }
+
     public void PClinicResultShow(string pClinicResultPath, LFlawKind pClinicResultKind, LCheckupResult pClinicResult)
     {
         pClinicResults[(pClinicResultPath, pClinicResultKind)] = pClinicResult;

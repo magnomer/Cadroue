@@ -13,26 +13,27 @@ internal static class LSidecarCacheStore
         LKeyframeSourceIdentity lSidecarIdentity,
         IReadOnlyCollection<LSidecarDossier> lSidecarDossiers) =>
         LSidecarCacheChange(lSidecarSourcePath, lSidecarCache =>
-        {
-            lSidecarCache.LSidecarLength = lSidecarIdentity.LKeyframeSourceLength;
-            lSidecarCache.LSidecarPartialHash = lSidecarIdentity.LKeyframePartialHash;
-            lSidecarCache.LSidecarDiagnosis = lSidecarDossiers.ToList();
-        });
+            lSidecarCache.LSidecarDiagnosis = new LSidecarDiagnosisRecord
+            {
+                LSidecarLength = lSidecarIdentity.LKeyframeSourceLength,
+                LSidecarPartialHash = lSidecarIdentity.LKeyframePartialHash,
+                LSidecarDossiers = lSidecarDossiers.ToList()
+            });
 
     internal static IReadOnlyList<LSidecarDossier>? LSidecarDiagnosisRead(string lSidecarSourcePath)
     {
-        if (LSidecarCacheRead(lSidecarSourcePath) is not { } lSidecarCache)
+        if (LSidecarCacheRead(lSidecarSourcePath) is not { LSidecarDiagnosis: { } lSidecarDiagnosis })
         {
             return null;
         }
 
         var lSidecarFingerprint = new LSidecarSourceRecord
         {
-            LSidecarLength = lSidecarCache.LSidecarLength,
-            LSidecarPartialHash = lSidecarCache.LSidecarPartialHash
+            LSidecarLength = lSidecarDiagnosis.LSidecarLength,
+            LSidecarPartialHash = lSidecarDiagnosis.LSidecarPartialHash
         };
         return LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecarFingerprint)
-            ? lSidecarCache.LSidecarDiagnosis
+            ? lSidecarDiagnosis.LSidecarDossiers
             : null;
     }
 

@@ -39,7 +39,14 @@ public sealed class LSidecarCacheRecord
     public List<int> LSidecarScannedSpans { get; set; } = new();
     public List<long> LSidecarKeyframeDeltas { get; set; } = new();
     public LSidecarWaveformRecord? LSidecarWaveform { get; set; }
-    public List<LSidecarDossier> LSidecarDiagnosis { get; set; } = new();
+    public LSidecarDiagnosisRecord? LSidecarDiagnosis { get; set; }
+}
+
+public sealed class LSidecarDiagnosisRecord
+{
+    public long LSidecarLength { get; set; }
+    public string LSidecarPartialHash { get; set; } = string.Empty;
+    public List<LSidecarDossier> LSidecarDossiers { get; set; } = new();
 }
 
 public sealed class LSidecarDossier

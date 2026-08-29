@@ -40,4 +40,44 @@ public sealed class SidecarDiagnosisTests
 
         Assert.Null(sidecar.DiagnosisRead(source));
     }
+
+    [Fact]
+    public void DiagnosisRead_ReturnsNull_OnNeverDiagnosedFile()
+    {
+        using var sidecar = new TSidecar();
+        string source = sidecar.SourceCreate("diagnosis-never.mp4", "never diagnosed content");
+        Assert.True(sidecar.Save(source, TimeSpan.FromSeconds(3), new long[] { 0, 1_000 }));
+
+        Assert.Null(sidecar.DiagnosisRead(source));
+    }
+
+    [Fact]
+    public void DiagnosisRead_ReturnsEmpty_OnCleanFile()
+    {
+        using var sidecar = new TSidecar();
+        string source = sidecar.SourceCreate("diagnosis-clean.mp4", "clean content");
+        Assert.True(sidecar.DiagnosisSave(source, TimeSpan.FromSeconds(3), Array.Empty<TSidecar.TSidecarDossier>()));
+
+        IReadOnlyList<TSidecar.TSidecarDossier>? read = sidecar.DiagnosisRead(source);
+
+        Assert.NotNull(read);
+        Assert.Empty(read);
+    }
+
+    [Fact]
+    public void DiagnosisRead_ReturnsNull_AfterKeyframeResaveOnChangedFile()
+    {
+        using var sidecar = new TSidecar();
+        string source = sidecar.SourceCreate("diagnosis-restamp.mp4", "original content");
+        var dossiers = new[]
+        {
+            new TSidecar.TSidecarDossier("Container damage", "LFlawKindContainer")
+        };
+        Assert.True(sidecar.DiagnosisSave(source, TimeSpan.FromSeconds(3), dossiers));
+
+        sidecar.SourceReplace(source, "original content grown to a different length and different bytes");
+        Assert.True(sidecar.Save(source, TimeSpan.FromSeconds(3), new long[] { 0, 1_000 }));
+
+        Assert.Null(sidecar.DiagnosisRead(source));
+    }
 }

@@ -107,6 +107,7 @@ public sealed class PFixTab : PTabSurface
 
         pList.PListPathChange += PFixPathShow;
         pList.PListItemsAdd += PFixItemsHandle;
+        pList.PListClearChange += pClinic.PClinicResultsRemove;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
@@ -161,15 +162,32 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixDiagnosisHandle(LFlawKind pFixKind)
     {
-        string[] pFixSources = pList.PListEditableRead() is { } pFixSelected
-            ? new[] { pFixSelected.LDocketEntryPath }
-            : pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath).ToArray();
+        if (pList.PListEditableRead() is not { } pFixSelected)
+        {
+            return;
+        }
+
+        pFixCheckup.LCheckupStart(new[] { pFixSelected.LDocketEntryPath }, new[] { pFixKind });
+    }
+
+    private void PFixPersistentStart(IEnumerable<string> pFixPaths)
+    {
+        LFlawKind[] pFixKinds = LFix.LFixPersistentResolve(pClinic.PClinicPlanRead()).LWorkFixSteps
+            .Where(pStep => pStep.LWorkFixDiagnosis)
+            .Select(pStep => pStep.LWorkFixKind)
+            .ToArray();
+        if (pFixKinds.Length == 0)
+        {
+            return;
+        }
+
+        string[] pFixSources = pFixPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         if (pFixSources.Length == 0)
         {
             return;
         }
 
-        pFixCheckup.LCheckupStart(pFixSources, new[] { pFixKind });
+        pFixCheckup.LCheckupStart(pFixSources, pFixKinds);
     }
 
     private void PFixCheckupHandle(LCheckupResult pFixResult)
@@ -235,6 +253,8 @@ public sealed class PFixTab : PTabSurface
             LWorkFix pFixMerged = LFix.LFixPlanResolve(pFixFileSaved, pFixPersistent);
             LFix.LFixPlanSave(pFixPath, pFixMerged, LLibrarian.LLibrarianFixSave);
         }
+
+        PFixPersistentStart(pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath));
     }
 
     private void PFixItemsHandle(IReadOnlyList<LDocketEntry> pFixAddedItems)
@@ -256,6 +276,8 @@ public sealed class PFixTab : PTabSurface
             LWorkFix pFixMerged = LFix.LFixPlanResolve(pFixFileSaved, pFixPersistent);
             LFix.LFixPlanSave(pFixAddedItem.LDocketEntryPath, pFixMerged, LLibrarian.LLibrarianFixSave);
         }
+
+        PFixPersistentStart(pFixAddedItems.Select(pItem => pItem.LDocketEntryPath));
     }
 
     private void PFixPersistentRestore(LSceneTabRecord? lPreferenceTabLayout)
@@ -275,6 +297,8 @@ public sealed class PFixTab : PTabSurface
         {
             pFixPlanLoading = false;
         }
+
+        PFixPersistentStart(pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath));
     }
 
     private void PFixActiveUpdate()

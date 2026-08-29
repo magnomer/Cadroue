@@ -37,6 +37,7 @@ internal static class LSidecarParse
                 LSidecarSections = LSidecarMemberRead<List<LSidecarSectionRecord>>(lSidecarRoot, "LSidecarSections") ?? new(),
                 LSidecarEdit = LSidecarMemberRead<LSidecarEditRecord>(lSidecarRoot, "LSidecarEdit"),
                 LSidecarAudio = LSidecarMemberRead<LSidecarAudioRecord>(lSidecarRoot, "LSidecarAudio"),
+                LSidecarSplit = LSidecarMemberRead<LSidecarSplitRecord>(lSidecarRoot, "LSidecarSplit"),
                 LSidecarFix = LSidecarMemberRead<LSidecarFixRecord>(lSidecarRoot, "LSidecarFix"),
                 LSidecarLoudness = LSidecarDoubleRead(lSidecarRoot, "LSidecarLoudness")
             };
@@ -71,7 +72,7 @@ internal static class LSidecarParse
                 LSidecarScannedSpans = LSidecarMemberRead<List<int>>(lSidecarRoot, "LSidecarScannedSpans") ?? new(),
                 LSidecarKeyframeDeltas = LSidecarMemberRead<List<long>>(lSidecarRoot, "LSidecarKeyframeDeltas") ?? new(),
                 LSidecarWaveform = LSidecarMemberRead<LSidecarWaveformRecord>(lSidecarRoot, "LSidecarWaveform"),
-                LSidecarDiagnosis = LSidecarMemberRead<List<LSidecarDossier>>(lSidecarRoot, "LSidecarDiagnosis") ?? new()
+                LSidecarDiagnosis = LSidecarMemberRead<LSidecarDiagnosisRecord>(lSidecarRoot, "LSidecarDiagnosis")
             };
             LSidecarCacheNormalize(lSidecarCache);
             return lSidecarCache;
@@ -188,6 +189,11 @@ internal static class LSidecarParse
             lSidecarAudio.LSidecarSteps ??= new();
         }
 
+        if (lSidecarCore.LSidecarSplit is { } lSidecarSplit)
+        {
+            lSidecarSplit.LSidecarSplitDetectors ??= new();
+        }
+
         if (lSidecarCore.LSidecarFix is { } lSidecarFix)
         {
             lSidecarFix.LSidecarSteps ??= new();
@@ -199,7 +205,12 @@ internal static class LSidecarParse
         lSidecarCache.LSidecarPartialHash ??= string.Empty;
         lSidecarCache.LSidecarKeyframeDeltas ??= new();
         lSidecarCache.LSidecarScannedSpans ??= new();
-        lSidecarCache.LSidecarDiagnosis ??= new();
+
+        if (lSidecarCache.LSidecarDiagnosis is { } lSidecarDiagnosis)
+        {
+            lSidecarDiagnosis.LSidecarPartialHash ??= string.Empty;
+            lSidecarDiagnosis.LSidecarDossiers ??= new();
+        }
 
         if (lSidecarCache.LSidecarWaveform is { } lSidecarWaveform)
         {
