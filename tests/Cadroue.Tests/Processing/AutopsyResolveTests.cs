@@ -1,9 +1,58 @@
+using Cadroue.ShellEngine;
+
 using Xunit;
 
 namespace Cadroue.Tests;
 
 public sealed class AutopsyResolveTests
 {
+    [Fact]
+    public void Resolve_WiredProse_FlowsSimpleTechnicalAction()
+    {
+        var lProse = new Dictionary<string, string>
+        {
+            ["-22.simple"] = "One of the settings for this job is invalid.",
+            ["-22.technical"] = "AVERROR(EINVAL). Configuration error.",
+            ["-22.action"] = "Review the encoding settings for this job.",
+        };
+
+        LAutopsyProseReader? lPrevious = LAutopsy.LAutopsyProse;
+        try
+        {
+            LAutopsy.LAutopsyProse = (string lKey, out string lValue) => lProse.TryGetValue(lKey, out lValue!);
+
+            LAutopsyResult lResult = LAutopsy.LAutopsyResolve(-22, string.Empty);
+
+            Assert.Equal("One of the settings for this job is invalid.", lResult.LAutopsyResultSimple);
+            Assert.Equal("AVERROR(EINVAL). Configuration error.", lResult.LAutopsyResultTechnical);
+            Assert.Equal("Review the encoding settings for this job.", lResult.LAutopsyResultAction);
+        }
+        finally
+        {
+            LAutopsy.LAutopsyProse = lPrevious;
+        }
+    }
+
+    [Fact]
+    public void Resolve_NoProseReader_YieldsEmptyProse()
+    {
+        LAutopsyProseReader? lPrevious = LAutopsy.LAutopsyProse;
+        try
+        {
+            LAutopsy.LAutopsyProse = null;
+
+            LAutopsyResult lResult = LAutopsy.LAutopsyResolve(-22, string.Empty);
+
+            Assert.Equal(string.Empty, lResult.LAutopsyResultSimple);
+            Assert.Equal(string.Empty, lResult.LAutopsyResultTechnical);
+            Assert.Null(lResult.LAutopsyResultAction);
+        }
+        finally
+        {
+            LAutopsy.LAutopsyProse = lPrevious;
+        }
+    }
+
     [Fact]
     public void Resolve_SignedKnownCode_MatchesSpineEntry()
     {

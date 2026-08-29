@@ -1,8 +1,8 @@
 namespace Cadroue.ShellEngine;
 
-internal delegate bool LAutopsyProseReader(string lAutopsyProseKey, out string lAutopsyProseValue);
+public delegate bool LAutopsyProseReader(string lAutopsyProseKey, out string lAutopsyProseValue);
 
-internal static class LAutopsy
+public static class LAutopsy
 {
     private const long LAutopsyDwordMask = 0xFFFFFFFFL;
     private const long LAutopsySignBoundary = 0x80000000L;
@@ -11,7 +11,7 @@ internal static class LAutopsy
     private const string LAutopsyNegativeProse = "fallback.unknownNegative";
     private const string LAutopsyPositiveProse = "fallback.unexpectedPositive";
 
-    internal static LAutopsyProseReader? LAutopsyProse { get; set; }
+    public static LAutopsyProseReader? LAutopsyProse { get; set; }
 
     internal static LAutopsyResult LAutopsyResolve(int lAutopsyExitCode, string lAutopsyStderrTail)
     {

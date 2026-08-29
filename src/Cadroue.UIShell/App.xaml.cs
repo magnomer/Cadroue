@@ -119,6 +119,8 @@ public partial class PProgram : System.Windows.Application
                 ?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionAllRun();
 
         Cadroue.Application.LPreview.LPreviewApplySeam = PPanels.PViewer.PViewerPlayerApply;
+
+        Cadroue.ShellEngine.LAutopsy.LAutopsyProse = LLocalizationAutopsy.LLocalizationAutopsyRead;
     }
 
     private static void LStationDispatch(Action lStationAction)
