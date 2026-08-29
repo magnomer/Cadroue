@@ -39,14 +39,14 @@ public sealed class SceneMatchingTests
     }
 
     [Fact]
-    public void SelectedTabDifference_DoesNotMatch()
+    public void SelectedTabDifference_DoesNotAffectMatch()
     {
         using var scenes = new TScene();
         TSceneValue stored = scenes.Create("stored", marker: 10);
         TSceneValue live = scenes.Create("live", marker: 10);
         scenes.ChangeTabIndex(live);
 
-        Assert.False(scenes.Match(stored, live));
+        Assert.True(scenes.Match(stored, live));
     }
 
     [Fact]
@@ -58,6 +58,17 @@ public sealed class SceneMatchingTests
         scenes.ChangePanelWidths(live);
 
         Assert.False(scenes.Match(stored, live));
+    }
+
+    [Fact]
+    public void ProportionallyEquivalentPanelWidths_Match()
+    {
+        using var scenes = new TScene();
+        TSceneValue stored = scenes.Create("stored", marker: 11);
+        TSceneValue restored = scenes.Create("restored", marker: 11);
+        scenes.ScalePanelWidths(restored, 0.9248028709630333);
+
+        Assert.True(scenes.Match(stored, restored));
     }
 
     [Fact]

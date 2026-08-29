@@ -53,6 +53,11 @@ public sealed partial class PRoster : UserControl
             {
                 pToggle.IsChecked = LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
             }
+
+            if (pRosterCompletedBox is { } pCollapseToggle)
+            {
+                pCollapseToggle.IsChecked = LPreference.LPreferenceStateCurrent.LPreferenceCollapseDone;
+            }
         }
     }
 

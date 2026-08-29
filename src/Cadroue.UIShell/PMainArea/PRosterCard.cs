@@ -155,12 +155,13 @@ public sealed partial class PRoster
             pIcon.Source = PRosterMinimizeRead(pRosterCollapsedIds.Contains(pBatchId), PRosterTheme.PRosterMutedBrush);
         };
         pButton.MouseLeftButtonDown += (_, pArgs) => pArgs.Handled = true;
-        pButton.MouseLeftButtonUp += (_, _) => PRosterMinimizeToggle(pBatchId, pDetail, pButton, pIcon);
+        pButton.MouseLeftButtonUp += (_, _) => PRosterMinimizeToggle(pBatchId);
+        pRosterBatchControls[pBatchId] = new PRosterBatchControl(pDetail, pButton, pIcon);
 
         return pButton;
     }
 
-    private void PRosterMinimizeToggle(Guid pBatchId, StackPanel pDetail, Border pButton, Image pIcon)
+    private void PRosterMinimizeToggle(Guid pBatchId)
     {
         bool pCollapsed = !pRosterCollapsedIds.Contains(pBatchId);
         if (pCollapsed)
@@ -172,14 +173,23 @@ public sealed partial class PRoster
             pRosterCollapsedIds.Remove(pBatchId);
         }
 
-        pDetail.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        PRosterBatchApply(pBatchId, pCollapsed);
+    }
+
+    private void PRosterBatchApply(Guid pBatchId, bool pCollapsed)
+    {
         if (pRosterCardHeaders.TryGetValue(pBatchId, out Border? pHeader))
         {
             PRosterCollapseApply(pHeader, pCollapsed);
         }
 
-        pIcon.Source = PRosterMinimizeRead(pCollapsed, PRosterTheme.PRosterTextBrush);
-        pButton.ToolTip = LLocalization.LLocalizationTextRead(pCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse");
+        if (pRosterBatchControls.TryGetValue(pBatchId, out PRosterBatchControl? pControl))
+        {
+            pControl.PRosterBatchDetail.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
+            pControl.PRosterBatchIcon.Source = PRosterMinimizeRead(pCollapsed, PRosterTheme.PRosterMutedBrush);
+            pControl.PRosterBatchButton.ToolTip = LLocalization.LLocalizationTextRead(
+                pCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse");
+        }
     }
 
     private void PSummaryAdd(IReadOnlyList<LWorkItem> pBatchItems)

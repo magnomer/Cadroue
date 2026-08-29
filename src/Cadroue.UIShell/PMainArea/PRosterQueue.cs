@@ -18,12 +18,14 @@ public sealed partial class PRoster
     private readonly Dictionary<Guid, PRosterRowPlace> pRosterRowPlaces = new();
     private readonly List<Guid> pRosterOrderedIds = new();
     private readonly Dictionary<Guid, Border> pRosterCardHeaders = new();
+    private readonly Dictionary<Guid, PRosterBatchControl> pRosterBatchControls = new();
     private readonly HashSet<Guid> pRosterStageIds = new();
     private readonly HashSet<Guid> pRosterCollapsedIds = new();
     private readonly HashSet<Guid> pRosterSelectedIds = new();
     private Guid pRosterCurrentId;
     private Guid pRosterCardId;
     private CheckBox? pRosterSharedBox;
+    private CheckBox? pRosterCompletedBox;
 
     private sealed class PRosterRowCell
     {
@@ -41,9 +43,11 @@ public sealed partial class PRoster
         string PRosterPlaceStep,
         bool PRosterPlaceLast);
 
+    private sealed record PRosterBatchControl(StackPanel PRosterBatchDetail, Border PRosterBatchButton, Image PRosterBatchIcon);
+
     private UIElement PRosterPanelBuild()
     {
-        UIElement pShared = PRosterSharedBuild();
+        UIElement pOptions = PRosterOptionsBuild();
         var pColumnHeader = new Border
         {
             Padding = PRosterTheme.PRosterHeaderPadding,
@@ -54,27 +58,43 @@ public sealed partial class PRoster
         };
 
         var pRoot = new DockPanel { LastChildFill = true };
-        DockPanel.SetDock(pShared, Dock.Top);
+        DockPanel.SetDock(pOptions, Dock.Top);
         DockPanel.SetDock(pColumnHeader, Dock.Top);
-        pRoot.Children.Add(pShared);
+        pRoot.Children.Add(pOptions);
         pRoot.Children.Add(pColumnHeader);
         pRoot.Children.Add(pRosterQueueScroller);
 
         return PPanel.PPanelBorderBuild(pRoot);
     }
 
-    private UIElement PRosterSharedBuild()
+    private UIElement PRosterOptionsBuild()
     {
-        var pToggle = new CheckBox
+        var pSharedToggle = new CheckBox
         {
             Content = LLocalization.LLocalizationTextRead("Roster.Queue.Shared"),
             FontSize = PRosterTheme.PRosterRowSize,
             IsChecked = LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared
         };
-        PCheckbox.PCheckboxApply(pToggle);
-        pToggle.Checked += (_, _) => PRosterSharedApply(true);
-        pToggle.Unchecked += (_, _) => PRosterSharedApply(false);
-        pRosterSharedBox = pToggle;
+        PCheckbox.PCheckboxApply(pSharedToggle);
+        pSharedToggle.Checked += (_, _) => PRosterSharedApply(true);
+        pSharedToggle.Unchecked += (_, _) => PRosterSharedApply(false);
+        pRosterSharedBox = pSharedToggle;
+
+        var pCollapseToggle = new CheckBox
+        {
+            Content = LLocalization.LLocalizationTextRead("Roster.Queue.CollapseCompleted"),
+            FontSize = PRosterTheme.PRosterRowSize,
+            IsChecked = LPreference.LPreferenceStateCurrent.LPreferenceCollapseDone,
+            Margin = new Thickness(18, 0, 0, 0)
+        };
+        PCheckbox.PCheckboxApply(pCollapseToggle);
+        pCollapseToggle.Checked += (_, _) => PRosterCompletedApply(true);
+        pCollapseToggle.Unchecked += (_, _) => PRosterCompletedApply(false);
+        pRosterCompletedBox = pCollapseToggle;
+
+        var pOptions = new StackPanel { Orientation = Orientation.Horizontal };
+        pOptions.Children.Add(pSharedToggle);
+        pOptions.Children.Add(pCollapseToggle);
 
         return new Border
         {
@@ -82,7 +102,7 @@ public sealed partial class PRoster
             Background = PRosterTheme.PRosterHeaderBrush,
             BorderBrush = PRosterTheme.PRosterLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
-            Child = pToggle
+            Child = pOptions
         };
     }
 
@@ -97,6 +117,22 @@ public sealed partial class PRoster
         pNext.LPreferenceWorklistShared = pShared;
         LPreference.LPreferenceStateSet(pNext);
         pRosterSchedule.LScheduleLoad();
+    }
+
+    private void PRosterCompletedApply(bool pCollapseCompleted)
+    {
+        if (pCollapseCompleted == LPreference.LPreferenceStateCurrent.LPreferenceCollapseDone)
+        {
+            return;
+        }
+
+        LPreferenceState pNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
+        pNext.LPreferenceCollapseDone = pCollapseCompleted;
+        LPreference.LPreferenceStateSet(pNext);
+        if (pCollapseCompleted)
+        {
+            PRosterCompletedSync(pRosterSchedule.LScheduleRecords.Where(PRosterVisibleCheck));
+        }
     }
 
     private static Grid PRosterHeaderBuild()
@@ -155,6 +191,7 @@ public sealed partial class PRoster
     private void PRosterQueueRebuild()
     {
         LWorkItem[] pItems = pRosterSchedule.LScheduleRecords.Where(PRosterVisibleCheck).ToArray();
+        PRosterCompletedSync(pItems);
         IReadOnlyList<PRosterLineageEntry> pLineages = PRosterLineageRead(pItems);
         Guid[] pNextIds = pLineages
             .SelectMany(pLineage => pLineage.PRosterLineageItems)
@@ -204,6 +241,7 @@ public sealed partial class PRoster
         pRosterStepRows.Clear();
         pRosterOrderedIds.Clear();
         pRosterCardHeaders.Clear();
+        pRosterBatchControls.Clear();
         pRosterStageIds.Clear();
         pRosterQueuePanel.Children.Clear();
 
@@ -226,6 +264,30 @@ public sealed partial class PRoster
 
         var pBatchPresent = pBatchOrder.ToHashSet();
         pRosterCollapsedIds.RemoveWhere(pBatchId => !pBatchPresent.Contains(pBatchId));
+    }
+
+    private void PRosterCompletedSync(IEnumerable<LWorkItem> pItems)
+    {
+        if (!LPreference.LPreferenceStateCurrent.LPreferenceCollapseDone)
+        {
+            return;
+        }
+
+        foreach (IGrouping<Guid, LWorkItem> pBatch in pItems.GroupBy(pWorkItem => pWorkItem.LWorkBatchId))
+        {
+            bool pCompleted = pBatch.All(pWorkItem => pWorkItem.LWorkStateCurrent is not
+                (LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning));
+            if (pCompleted)
+            {
+                pRosterCollapsedIds.Add(pBatch.Key);
+            }
+            else
+            {
+                pRosterCollapsedIds.Remove(pBatch.Key);
+            }
+
+            PRosterBatchApply(pBatch.Key, pCompleted);
+        }
     }
 
     private Border PRosterBatchBuild(IReadOnlyList<PRosterLineageEntry> pLineages)

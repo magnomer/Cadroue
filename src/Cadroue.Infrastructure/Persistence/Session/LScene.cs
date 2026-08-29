@@ -128,16 +128,37 @@ public static partial class LScene
 
     private static string LSceneCanonicalRead(LSceneRecord lScene)
     {
-        string lSceneNameHeld = lScene.LSceneName;
-        int lSceneVersionHeld = lScene.LSceneVersion;
-        lScene.LSceneName = string.Empty;
-        lScene.LSceneVersion = 0;
+        var lSceneCanonical = new LSceneRecord
+        {
+            LSceneLayoutKeys = lScene.LSceneLayoutKeys,
+            LSceneTabNames = lScene.LSceneTabNames,
+            LSceneTabExports = lScene.LSceneTabExports,
+            LSceneTabLayouts = lScene.LSceneTabLayouts
+                .Select(lSceneTab =>
+                {
+                    LSceneTabRecord lSceneTabCanonical = lSceneTab.LSceneTabClone();
+                    lSceneTabCanonical.LScenePanelWidths =
+                        LSceneWidthsRead(lSceneTabCanonical.LScenePanelWidths);
+                    return lSceneTabCanonical;
+                })
+                .ToList(),
+            LSceneTabRelays = lScene.LSceneTabRelays
+        };
 
-        string lSceneJson = JsonSerializer.Serialize(lScene);
-        lScene.LSceneName = lSceneNameHeld;
-        lScene.LSceneVersion = lSceneVersionHeld;
+        return JsonSerializer.Serialize(lSceneCanonical);
+    }
 
-        return lSceneJson;
+    private static List<double> LSceneWidthsRead(IReadOnlyList<double> lScenePanelWidths)
+    {
+        double lSceneWidthTotal = lScenePanelWidths.Sum(lSceneWidth => Math.Max(0, lSceneWidth));
+        if (lSceneWidthTotal <= 0)
+        {
+            return lScenePanelWidths.ToList();
+        }
+
+        return lScenePanelWidths
+            .Select(lSceneWidth => Math.Round(Math.Max(0, lSceneWidth) / lSceneWidthTotal, 12))
+            .ToList();
     }
 
     private static List<LSceneRecord> LSceneLoad()

@@ -116,6 +116,8 @@ public sealed class PClinic : PPanel
             Margin = new Thickness(0, 0, 0, 4),
             IsEnabled = false
         };
+        pClinicSalvage.PClinicSalvageActive.Visibility = Visibility.Collapsed;
+        pClinicToggleRow.Children.Add(pClinicSalvage.PClinicSalvageActive);
         pClinicToggleRow.Children.Add(pClinicApplyBox);
         pClinicToggleRow.Children.Add(pClinicDiagnosisBox);
 
@@ -200,13 +202,17 @@ public sealed class PClinic : PPanel
         pClinicPersistentBox.IsEnabled = false;
         pClinicPersistentBox.Checked += (_, _) => PClinicPersistentHandle();
         pClinicPersistentBox.Unchecked += (_, _) => PClinicPersistentHandle();
+        pClinicSalvage.PClinicSalvagePersistent.Visibility = Visibility.Collapsed;
+        var pPersistentStack = new Grid();
+        pPersistentStack.Children.Add(pClinicPersistentBox);
+        pPersistentStack.Children.Add(pClinicSalvage.PClinicSalvagePersistent);
         pClinicPersistentRow = new Border
         {
             Padding = new Thickness(12, 8, 12, 8),
             BorderBrush = PPanelLineBrush,
             BorderThickness = new Thickness(0, 1, 0, 0),
             Background = Brushes.White,
-            Child = pClinicPersistentBox
+            Child = pPersistentStack
         };
 
         var pRoot = new DockPanel { LastChildFill = true };
@@ -278,12 +284,16 @@ public sealed class PClinic : PPanel
             pClinicSalvage.PClinicSalvageUpdate(
                 pClinicStates.Values.Any(pState => pState.Apply));
         }
-        pClinicPersistentRow.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
+        pClinicApplyBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
+        pClinicDiagnosisBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
+        pClinicPersistentBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
+        pClinicSalvage.PClinicSalvageActive.Visibility = pClinicSalvageShown ? Visibility.Visible : Visibility.Collapsed;
+        pClinicSalvage.PClinicSalvagePersistent.Visibility = pClinicSalvageShown ? Visibility.Visible : Visibility.Collapsed;
         if (pClinicSalvageShown)
         {
             pClinicCurrentKind = null;
-            pClinicToggleRow.IsEnabled = false;
-            pClinicToggleRow.Visibility = Visibility.Collapsed;
+            pClinicToggleRow.IsEnabled = true;
+            pClinicToggleRow.Visibility = Visibility.Visible;
             pClinicEmptyNotice.Visibility = Visibility.Collapsed;
             pClinicItemSimple.Text = LLocalization.LLocalizationTextRead("Clinic.Step.Salvage.Simple");
             pClinicItemTechnical.Text = LLocalization.LLocalizationTextRead("Clinic.Step.Salvage.Technical");
@@ -354,6 +364,12 @@ public sealed class PClinic : PPanel
         {
             pClinicStates[pStep.LWorkFixKind] =
                 (pStep.LWorkFixRepair, pStep.LWorkFixDiagnosis, pStep.LWorkFixPersistent);
+        }
+
+        if (pClinicSalvageShown)
+        {
+            pClinicSalvage.PClinicSalvageUpdate(
+                pClinicStates.Values.Any(pState => pState.Apply));
         }
 
         if (pClinicCurrentKind is { } pKind

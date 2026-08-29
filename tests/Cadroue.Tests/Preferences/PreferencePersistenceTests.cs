@@ -7,6 +7,12 @@ namespace Cadroue.Tests;
 public sealed class PreferencePersistenceTests
 {
     [Fact]
+    public void CollapseCompletedBatch_DefaultsToDisabled()
+    {
+        Assert.False(TInterface.PreferenceDefaultCreate().LPreferenceCollapseDone);
+    }
+
+    [Fact]
     public void LegacyJson_WithoutVerticalTabs_DefaultsToHorizontal()
     {
         LPreferenceState lPreferenceState = JsonSerializer.Deserialize<LPreferenceState>("{\"LPreferenceLanguage\":\"en\"}")!;
@@ -25,6 +31,33 @@ public sealed class PreferencePersistenceTests
         LPreferenceState lPreferenceRestored = JsonSerializer.Deserialize<LPreferenceState>(lPreferenceJson)!;
 
         Assert.True(lPreferenceRestored.LPreferenceVerticalTabs);
+    }
+
+    [Fact]
+    public void JsonRoundTrip_PreservesCollapseCompletedBatch()
+    {
+        LPreferenceState lPreferenceState = TInterface.PreferenceDefaultCreate();
+        lPreferenceState.LPreferenceCollapseDone = true;
+
+        string lPreferenceJson = JsonSerializer.Serialize(lPreferenceState);
+        LPreferenceState lPreferenceRestored = JsonSerializer.Deserialize<LPreferenceState>(lPreferenceJson)!;
+
+        Assert.True(lPreferenceRestored.LPreferenceCollapseDone);
+    }
+
+    [Fact]
+    public void CloneAndDifference_PreserveCollapseCompletedBatch()
+    {
+        LPreferenceState lPreferenceBefore = TInterface.PreferenceDefaultCreate();
+        LPreferenceState lPreferenceAfter = TInterface.PreferenceClone(lPreferenceBefore);
+        lPreferenceAfter.LPreferenceCollapseDone = true;
+
+        LPreferenceState lPreferenceClone = TInterface.PreferenceClone(lPreferenceAfter);
+
+        Assert.True(lPreferenceClone.LPreferenceCollapseDone);
+        Assert.Contains(
+            "Collapse completed batch: False -> True",
+            TInterface.PreferenceDifferenceRead(lPreferenceAfter, lPreferenceBefore));
     }
 
     [Fact]

@@ -104,31 +104,41 @@ public sealed class PClinicSalvage : StackPanel
         pClinicSalvagePersistent = PClinic.PClinicSwitchBuild(
             LLocalization.LLocalizationTextRead("Clinic.Salvage.Persistent"),
             LLocalization.LLocalizationTextRead("Clinic.Salvage.Persistent.Tooltip"));
-        pClinicSalvagePersistent.Margin = new Thickness(0, 14, 0, 0);
         pClinicSalvagePersistent.Checked += (_, _) => PClinicSalvageHandle();
         pClinicSalvagePersistent.Unchecked += (_, _) => PClinicSalvageHandle();
 
-        Children.Add(pClinicSalvageActive);
         Children.Add(pModeLabel);
         Children.Add(pModeSegment);
         Children.Add(pClinicSalvageHeading);
         Children.Add(pClinicSalvageBasis);
         Children.Add(pClinicSalvageDescription);
-        Children.Add(pClinicSalvagePersistent);
     }
+
+    public CheckBox PClinicSalvageActive => pClinicSalvageActive;
+
+    public CheckBox PClinicSalvagePersistent => pClinicSalvagePersistent;
 
     public void PClinicSalvageShow(bool pClinicSalvageVisible) =>
         Visibility = pClinicSalvageVisible ? Visibility.Visible : Visibility.Collapsed;
 
-    // The From-source/From-fixed choice only has meaning when at least one repair step is
-    // selected; with none, salvage runs from the source alone, so the segment is hidden and
-    // the description states the source-only behaviour.
+    // The source choice is always available. The repaired-result choice only has meaning
+    // when at least one repair step is selected, so disable that option alone when none is.
     public void PClinicSalvageUpdate(bool pClinicSalvageHasRepair)
     {
         pClinicSalvageRepair = pClinicSalvageHasRepair;
-        Visibility pVisible = pClinicSalvageHasRepair ? Visibility.Visible : Visibility.Collapsed;
-        pClinicSalvageHeading.Visibility = pVisible;
-        pClinicSalvageBasis.Visibility = pVisible;
+        pClinicSalvageHeading.Visibility = Visibility.Visible;
+        pClinicSalvageBasis.Visibility = Visibility.Visible;
+        pClinicSalvageBasis.IsEnabled = true;
+        pClinicSalvageSource.IsEnabled = true;
+        pClinicSalvageFixed.IsEnabled = pClinicSalvageHasRepair;
+        if (!pClinicSalvageHasRepair)
+        {
+            pClinicSalvageSuppress = true;
+            pClinicSalvageFixed.IsChecked = false;
+            pClinicSalvageSource.IsChecked = true;
+            pClinicSalvageSuppress = false;
+        }
+
         PClinicSalvageDescribe(false);
     }
 

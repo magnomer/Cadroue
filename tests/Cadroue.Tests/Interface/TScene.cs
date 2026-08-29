@@ -102,6 +102,17 @@ internal sealed class TScene : IDisposable
     internal void ChangePanelWidths(TSceneValue scene) =>
         scene.Scene.LSceneTabLayouts[0].LScenePanelWidths.Add(999);
 
+    internal void ScalePanelWidths(TSceneValue scene, double scale)
+    {
+        foreach (LSceneTabRecord layout in scene.Scene.LSceneTabLayouts)
+        {
+            for (int index = 0; index < layout.LScenePanelWidths.Count; index++)
+            {
+                layout.LScenePanelWidths[index] *= scale;
+            }
+        }
+    }
+
     internal void ChangeMatchIgnoredVersion(TSceneValue scene) =>
         scene.Scene.LSceneVersion = 0;
 

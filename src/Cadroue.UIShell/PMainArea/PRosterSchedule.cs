@@ -15,7 +15,14 @@ public sealed partial class PRoster
 
     private void PRosterItemHandle(LWorkItem pWorkItem, LScheduleNotice pNotice)
     {
-        PRosterRowUpdate(pWorkItem);
+        if (pNotice == LScheduleNotice.LScheduleNoticeStatus)
+        {
+            PRosterQueueRebuild();
+        }
+        else
+        {
+            PRosterRowUpdate(pWorkItem);
+        }
 
         if (pNotice != LScheduleNotice.LScheduleNoticeProgress
             && ReferenceEquals(pWorkItem, PRosterSelectRead()))

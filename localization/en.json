@@ -941,6 +941,7 @@
   "Roster.Queue.State": "{Terms.State}",
   "Roster.Queue.Owner": "{Terms.Owner}",
   "Roster.Queue.Shared": "Show other worklists",
+  "Roster.Queue.CollapseCompleted": "Collapse the completed batch",
   "Roster.AudioOnly": "{Terms.Audio} only",
   "Options.System.ChooseWorkspace": "Choose {Terms.Workspace} {Terms.Folder}",
   "Options.System.ChooseFFmpeg": "Choose {Terms.FFmpeg} {Terms.Folder}",

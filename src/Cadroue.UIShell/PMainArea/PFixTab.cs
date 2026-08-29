@@ -108,7 +108,7 @@ public sealed class PFixTab : PTabSurface
             "Salvage", "/PAssets/PPanels/PProcessingFixSalvage.svg", "Processing.Step.Salvage");
 
         pProcessing.PProcessingStepChange += pClinic.PClinicStepShow;
-        pClinic.PClinicPlanChange += PFixPlanSave;
+        pClinic.PClinicPlanChange += PFixChangeHandle;
         pClinic.PClinicDiagnosisRequest += PFixDiagnosisHandle;
         pFixCheckup.LCheckupReady += PFixCheckupHandle;
 
@@ -238,7 +238,14 @@ public sealed class PFixTab : PTabSurface
 
         LFix.LFixPlanSave(pSourcePath, pFixPlan, LLibrarian.LLibrarianFixSave);
         PFixPersistentSave();
+    }
+
+    private void PFixChangeHandle()
+    {
+        // Processing-row color represents Apply only. Refresh it from the in-memory plan
+        // independently of whether the current plan can or should be persisted.
         PFixActiveUpdate();
+        PFixPlanSave();
     }
 
     private void PFixPersistentSave()
@@ -314,7 +321,7 @@ public sealed class PFixTab : PTabSurface
         foreach ((LFlawKind pFixKind, string pFixName, string _, string _) in pFixSteps)
         {
             bool pFixActive = pFixPlan.LWorkFixSteps.Any(
-                pStep => pStep.LWorkFixKind == pFixKind && (pStep.LWorkFixRepair || pStep.LWorkFixDiagnosis));
+                pStep => pStep.LWorkFixKind == pFixKind && pStep.LWorkFixRepair);
             pProcessing.PProcessingActiveSet(pFixName, pFixActive);
         }
 
