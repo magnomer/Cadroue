@@ -167,7 +167,7 @@ public readonly partial record struct LPiece
         bool lPieceOverlapAllowed)
     {
         if (lPieceActiveIndex is null
-            || lPieces[lPieceActiveIndex.Value].LPieceEnd < lPieceCursor)
+            || lPieceCursor >= lPieces[lPieceActiveIndex.Value].LPieceEnd)
         {
             return LPieceAdd(lPieces, lPieceCursor, lPieceDuration, lPieceColorIndex, lPieceOverlapAllowed)
                 is { } lPieceAddPlan
@@ -176,11 +176,6 @@ public readonly partial record struct LPiece
         }
 
         LPiece lPiece = lPieces[lPieceActiveIndex.Value];
-        if (lPieceCursor >= lPiece.LPieceEnd)
-        {
-            return null;
-        }
-
         if (lPieceCursor < LPieceFloorRead(lPieces, lPiece.LPieceOrigin, lPieceActiveIndex.Value, lPieceOverlapAllowed))
         {
             return null;

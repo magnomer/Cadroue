@@ -22,10 +22,13 @@ public sealed class SectionBoundaryTests
     }
 
     [Fact]
-    public void CursorAtActiveEnd_SettingStartIsRejected()
+    public void CursorAtActiveEnd_SettingStartAddsForward()
     {
         var sections = new[] { Seg(2, 8) };
-        Assert.Null(TInterface.PieceStartSet(sections, 0, At(8), At(10), 0, OverlapOff));
+        var plan = TInterface.PieceStartSet(sections, 0, At(8), At(10), 0, OverlapOff);
+        Assert.NotNull(plan);
+        Assert.True(plan!.Value.Added);
+        Assert.Contains(plan.Value.Sections, section => section.LPieceOrigin == At(8) && section.LPieceEnd == At(10));
     }
 
     [Fact]

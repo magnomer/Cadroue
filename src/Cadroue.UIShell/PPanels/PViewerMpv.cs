@@ -16,6 +16,8 @@ namespace Cadroue.UIShell.PPanels;
 public sealed partial class PViewer
 {
     private const int PViewerOwnerIndex = -8;
+    private const int PViewerStyleIndex = -20;
+    private const int PViewerInertStyle = 0x08000000;
     private const uint PViewerPositionFlags = 0x0001 | 0x0002 | 0x0010;
     private static readonly nint pViewerNotTopmost = new(-2);
 
@@ -34,6 +36,12 @@ public sealed partial class PViewer
 
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
     private static extern nint PViewerWindowLongPtrSet(nint pWindow, int pIndex, nint pValue);
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongW", SetLastError = true)]
+    private static extern int PViewerWindowLongRead(nint pWindow, int pIndex);
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW", SetLastError = true)]
+    private static extern nint PViewerWindowLongPtrRead(nint pWindow, int pIndex);
 
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -369,10 +377,10 @@ public sealed partial class PViewer
         }
 
         pViewerMpvOverlay.IsOpen = true;
+        PViewerOrderApply();
         double pViewerOverlayOffset = pViewerMpvOverlay.HorizontalOffset;
         pViewerMpvOverlay.HorizontalOffset = pViewerOverlayOffset + 0.5;
         pViewerMpvOverlay.HorizontalOffset = pViewerOverlayOffset;
-        PViewerOrderApply();
     }
 
     private void PViewerOrderApply()
@@ -388,6 +396,8 @@ public sealed partial class PViewer
         {
             return;
         }
+
+        PViewerInertApply(pViewerOverlaySource.Handle);
 
         if (Environment.Is64BitProcess)
         {
@@ -412,6 +422,35 @@ public sealed partial class PViewer
             0,
             0,
             PViewerPositionFlags);
+    }
+
+    private static void PViewerInertApply(nint pViewerOverlayHandle)
+    {
+        if (Environment.Is64BitProcess)
+        {
+            nint pViewerExStyle = PViewerWindowLongPtrRead(pViewerOverlayHandle, PViewerStyleIndex);
+            if ((pViewerExStyle & PViewerInertStyle) == PViewerInertStyle)
+            {
+                return;
+            }
+
+            _ = PViewerWindowLongPtrSet(
+                pViewerOverlayHandle,
+                PViewerStyleIndex,
+                pViewerExStyle | PViewerInertStyle);
+            return;
+        }
+
+        int pViewerExStyleValue = PViewerWindowLongRead(pViewerOverlayHandle, PViewerStyleIndex);
+        if ((pViewerExStyleValue & PViewerInertStyle) == PViewerInertStyle)
+        {
+            return;
+        }
+
+        _ = PViewerWindowLongSet(
+            pViewerOverlayHandle,
+            PViewerStyleIndex,
+            pViewerExStyleValue | PViewerInertStyle);
     }
 
     private void PViewerWindowAttach()

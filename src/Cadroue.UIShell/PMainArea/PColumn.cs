@@ -80,25 +80,6 @@ internal sealed class PColumn
 
     public IReadOnlyList<double> PColumnWeightsRead()
     {
-        if (PColumnFlexCheck() && pColumnPixelsReady)
-        {
-            double[] pActualWidths = pColumnItems.Select(pColumn => pColumn.ActualWidth).ToArray();
-            double pActualTotal = pActualWidths.Sum();
-            if (pActualTotal > 0)
-            {
-                var pFlexWeights = new double[pColumnItems.Count];
-                for (int index = 0; index < pFlexWeights.Length; index++)
-                {
-                    double pFlexWeight = pColumnHiddenFlags[index] || pColumnFixedWidths[index] > 0
-                        ? pColumnStoredWeights[index]
-                        : pActualWidths[index] / pActualTotal;
-                    pFlexWeights[index] = pFlexWeight > 0 ? pFlexWeight : 1;
-                }
-
-                return pFlexWeights;
-            }
-        }
-
         var pWeights = new double[pColumnItems.Count];
         for (int index = 0; index < pWeights.Length; index++)
         {

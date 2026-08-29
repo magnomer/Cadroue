@@ -412,6 +412,7 @@ public sealed partial class PViewer
         }
 
         PViewerHostShow(player is not null);
+        PViewerFlyleafApply();
         pViewerMediaInfo = mediaStatus.LCargoMediaInfo;
         pViewerPlayer.PPlayerEndSet(pViewerMediaInfo?.LMediaVideoEnd);
         PViewerSourcePath = mediaStatus.LCargoSourcePath;
@@ -477,6 +478,32 @@ public sealed partial class PViewer
     {
         player.Pause();
         player.Seek(0);
+    }
+
+    private void PViewerFlyleafApply()
+    {
+        if (pViewerFlyleafHost is null)
+        {
+            return;
+        }
+
+        try
+        {
+            nint pViewerSurfaceHandle = PViewerWindowHandle(pViewerFlyleafHost.Surface);
+            if (pViewerSurfaceHandle != nint.Zero)
+            {
+                PViewerInertApply(pViewerSurfaceHandle);
+            }
+
+            nint pViewerOverlayHandle = PViewerWindowHandle(pViewerFlyleafHost.Overlay);
+            if (pViewerOverlayHandle != nint.Zero)
+            {
+                PViewerInertApply(pViewerOverlayHandle);
+            }
+        }
+        catch
+        {
+        }
     }
 
     private void PPlayerSuspend()
