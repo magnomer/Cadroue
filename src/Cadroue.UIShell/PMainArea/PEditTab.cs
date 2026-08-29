@@ -59,7 +59,7 @@ public sealed partial class PEditTab : PTabSurface
                 pEditSelected.LDocketEntryPath,
                 pViewer.PViewerDurationRead(),
                 pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pCropOwner.LCropboxStateCrop,
-                pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(PEditMpvCheck()),
+                pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
                 lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
@@ -81,8 +81,7 @@ public sealed partial class PEditTab : PTabSurface
                     .ToArray(),
                 lPresetOwner,
                 pAction.PActionRelayTarget,
-                pAction.PActionSourceTab,
-                PEditMpvCheck());
+                pAction.PActionSourceTab);
         };
         pAction.PActionItemsAdd += pEditPaths =>
         {
@@ -100,8 +99,7 @@ public sealed partial class PEditTab : PTabSurface
                     .ToArray(),
                 lPresetOwner,
                 pAction.PActionRelayTarget,
-                pAction.PActionSourceTab,
-                PEditMpvCheck());
+                pAction.PActionSourceTab);
         };
         pAction.PActionSelectionSource = () => pList.PListSelectionRead();
         pAction.PActionAllSet(

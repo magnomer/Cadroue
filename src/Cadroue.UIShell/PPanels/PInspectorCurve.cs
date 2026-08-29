@@ -18,7 +18,8 @@ public sealed partial class PInspector
     private StackPanel pCurveStack = null!;
     private StackPanel pCurveBody = null!;
     private bool pCurveCapable;
-    private string pCurveDisabledKey = "Inspector.Video.CurveRequiresMpv";
+    private bool pCurvePreview;
+    private string pCurvePreviewKey = "Inspector.Video.CurvePreviewMpv";
     private int pCurveSelected = 1;
     private readonly List<LWorkCurvePoint>[] pCurveChannels =
     {
@@ -132,13 +133,14 @@ public sealed partial class PInspector
         return pButton;
     }
 
-    public void PCurveCapabilitySet(bool pCurveCapable, string pCurveDisabledKey)
+    public void PCurveCapabilitySet(bool pCurveCapable, bool pCurvePreview, string pCurvePreviewKey)
     {
         this.pCurveCapable = pCurveCapable;
-        this.pCurveDisabledKey = pCurveDisabledKey;
+        this.pCurvePreview = pCurvePreview;
+        this.pCurvePreviewKey = pCurvePreviewKey;
         PInspectorSectionApply(
             pCurveBox, pCurvePersistent, pCurveStack, pCurveBody,
-            pCurveCapable, pCurveDisabledKey,
+            pCurveCapable, pCurvePreview, "Inspector.Video.CurveRequiresEq", pCurvePreviewKey,
             "Inspector.Video.ApplyCurve", "Inspector.Video.PersistCurve");
     }
 

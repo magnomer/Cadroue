@@ -21,6 +21,7 @@ public sealed partial class PInspector
     private UIElement pWhitebalanceMethodField = null!;
     private UIElement pWhitebalanceSaturationField = null!;
     private bool pWhitebalanceCapable;
+    private bool pWhitebalancePreview;
     private bool pWhitebalanceManual;
 
     private StackPanel PWhitebalanceBuild()
@@ -194,28 +195,31 @@ public sealed partial class PInspector
         }
     }
 
-    public void PWhitebalanceCapabilitySet(bool pWhitebalanceCapable)
+    public void PWhitebalanceCapabilitySet(bool pWhitebalanceCapable, bool pWhitebalancePreview)
     {
         this.pWhitebalanceCapable = pWhitebalanceCapable;
+        this.pWhitebalancePreview = pWhitebalancePreview;
         pWhitebalanceBox.IsEnabled = pWhitebalanceCapable;
         pWhitebalancePersistent.IsEnabled = pWhitebalanceCapable;
         pWhitebalanceStack.IsEnabled =
             pWhitebalanceCapable && pWhitebalanceBox.IsChecked == true;
         pWhitebalanceStack.Opacity =
             pWhitebalanceCapable && pWhitebalanceBox.IsChecked == true ? 1 : 0.4;
-        string? pDisabledTooltip = pWhitebalanceCapable
-            ? null
-            : LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceRequiresMpv");
-        pWhitebalanceBody.ToolTip = pDisabledTooltip;
-        pWhitebalanceBox.ToolTip = pDisabledTooltip
+        string? pNotice = !pWhitebalanceCapable
+            ? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceRequiresEq")
+            : !pWhitebalancePreview
+                ? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePreviewMpv")
+                : null;
+        pWhitebalanceBody.ToolTip = pNotice;
+        pWhitebalanceBox.ToolTip = pNotice
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyWhitebalance");
-        pWhitebalancePersistent.ToolTip = pDisabledTooltip
+        pWhitebalancePersistent.ToolTip = pNotice
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistWhitebalance");
         pInspectorNeutralTool.IsEnabled = pWhitebalanceCapable;
-        pInspectorNeutralTool.ToolTip = pDisabledTooltip
+        pInspectorNeutralTool.ToolTip = pNotice
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickTooltip");
         pInspectorWhiteTool.IsEnabled = pWhitebalanceCapable;
-        pInspectorWhiteTool.ToolTip = pDisabledTooltip
+        pInspectorWhiteTool.ToolTip = pNotice
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickWhiteTooltip");
         ToolTipService.SetShowOnDisabled(pWhitebalanceBody, true);
         ToolTipService.SetShowOnDisabled(pWhitebalanceBox, true);

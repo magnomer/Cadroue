@@ -134,7 +134,6 @@ public static partial class LCartographer
         LEditPlan lCartographerPlan = lCartographerLayout.LSceneInspector?.LSceneInspectorEdit is { } lCartographerRecord
             ? LEdit.LEditPersistentRead(lCartographerRecord)
             : LEditPlan.LEditEmptyCreate();
-        bool lCartographerMpvOnlyCapable = LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
         bool lCartographerEqCapable = LInventory.LInventoryFilterExist("eq");
         LWorkCrop lCartographerCrop = lCartographerPlan.LEditSkip
             ? LWorkCrop.LWorkCropCreate()
@@ -142,7 +141,7 @@ public static partial class LCartographer
         LWorkVideo lCartographerVideo = lCartographerPlan.LEditSkip
             ? LWorkVideo.LWorkVideoCreate()
             : LEdit.LEditVideoCreate(
-                lCartographerPlan.LEditVideo.LWorkVideoSteps, lCartographerMpvOnlyCapable, lCartographerEqCapable);
+                lCartographerPlan.LEditVideo.LWorkVideoSteps, true, lCartographerEqCapable);
 
         var lCartographerAcknowledged = new List<string>();
         foreach (string lCartographerPath in lCartographerPaths)

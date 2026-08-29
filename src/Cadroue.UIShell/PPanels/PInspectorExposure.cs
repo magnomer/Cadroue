@@ -13,6 +13,7 @@ public sealed partial class PInspector
     private StackPanel pExposureStack = null!;
     private StackPanel pExposureBody = null!;
     private bool pExposureCapable;
+    private bool pExposurePreview;
 
     private StackPanel PExposureBuild()
     {
@@ -44,19 +45,22 @@ public sealed partial class PInspector
         return pExposureBody;
     }
 
-    public void PExposureCapabilitySet(bool pExposureCapable)
+    public void PExposureCapabilitySet(bool pExposureCapable, bool pExposurePreview)
     {
         this.pExposureCapable = pExposureCapable;
+        this.pExposurePreview = pExposurePreview;
         pExposureBox.IsEnabled = pExposureCapable;
         pExposurePersistent.IsEnabled = pExposureCapable;
         pExposureStack.IsEnabled = pExposureCapable && pExposureBox.IsChecked == true;
         pExposureStack.Opacity = pExposureCapable && pExposureBox.IsChecked == true ? 1 : 0.4;
-        string? pDisabledTooltip = pExposureCapable
-            ? null
-            : LLocalization.LLocalizationTextRead("Inspector.Video.ExposureRequiresMpv");
-        pExposureBody.ToolTip = pDisabledTooltip;
-        pExposureBox.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyExposure");
-        pExposurePersistent.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistExposure");
+        string? pNotice = !pExposureCapable
+            ? LLocalization.LLocalizationTextRead("Inspector.Video.ExposureRequiresEq")
+            : !pExposurePreview
+                ? LLocalization.LLocalizationTextRead("Inspector.Video.ExposurePreviewMpv")
+                : null;
+        pExposureBody.ToolTip = pNotice;
+        pExposureBox.ToolTip = pNotice ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyExposure");
+        pExposurePersistent.ToolTip = pNotice ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistExposure");
         ToolTipService.SetShowOnDisabled(pExposureBody, true);
         ToolTipService.SetShowOnDisabled(pExposureBox, true);
         ToolTipService.SetShowOnDisabled(pExposurePersistent, true);

@@ -21,7 +21,8 @@ public sealed partial class PInspector
     private StackPanel pGammaStack = null!;
     private StackPanel pGammaBody = null!;
     private bool pGammaCapable;
-    private string pGammaDisabledKey = "Inspector.Video.GammaRequiresMpv";
+    private bool pGammaPreview;
+    private string pGammaDisabledKey = "Inspector.Video.GammaRequiresEq";
 
     private StackPanel PGammaBuild()
     {
@@ -83,13 +84,14 @@ public sealed partial class PInspector
         return pGammaBody;
     }
 
-    public void PGammaCapabilitySet(bool pGammaCapable, string pGammaDisabledKey)
+    public void PGammaCapabilitySet(bool pGammaCapable, bool pGammaPreview, string pGammaDisabledKey)
     {
         this.pGammaCapable = pGammaCapable;
+        this.pGammaPreview = pGammaPreview;
         this.pGammaDisabledKey = pGammaDisabledKey;
         PInspectorSectionApply(
             pGammaBox, pGammaPersistent, pGammaStack, pGammaBody,
-            pGammaCapable, pGammaDisabledKey,
+            pGammaCapable, pGammaPreview, pGammaDisabledKey, "Inspector.Video.GammaPreviewMpv",
             "Inspector.Video.ApplyGamma", "Inspector.Video.PersistGamma");
     }
 

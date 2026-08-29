@@ -50,17 +50,13 @@ public sealed partial class PEditTab
         pProcessing.PProcessingActiveSet("Saturation",
             pInspector.PToneStepRead(LColorKind.LColorKindSaturation).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Gamma",
-            PEditMpvCheck()
-            && pInspector.PToneStepRead(LColorKind.LColorKindGamma).LWorkStepActive);
+            pInspector.PToneStepRead(LColorKind.LColorKindGamma).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Exposure",
-            PEditMpvCheck()
-            && pInspector.PToneStepRead(LColorKind.LColorKindExposure).LWorkStepActive);
+            pInspector.PToneStepRead(LColorKind.LColorKindExposure).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Curve",
-            PEditMpvCheck()
-            && pInspector.PToneStepRead(LColorKind.LColorKindCurve).LWorkStepActive);
+            pInspector.PToneStepRead(LColorKind.LColorKindCurve).LWorkStepActive);
         pProcessing.PProcessingActiveSet("Whitebalance",
-            PEditMpvCheck()
-            && pInspector.PToneStepRead(LColorKind.LColorKindWhitebalance).LWorkStepActive);
+            pInspector.PToneStepRead(LColorKind.LColorKindWhitebalance).LWorkStepActive);
     }
 
     private void PEditNeutralHandle(LNeutralSample pNeutralSample)
@@ -135,7 +131,7 @@ public sealed partial class PEditTab
 
     private void PEditCapabilityHandle()
     {
-        bool pMpvOnlyCapable = PEditMpvCheck();
+        bool pPreviewMpv = PEditMpvCheck();
         bool pEqCapable = PEditEqCheck();
 
         string pEqTooltip = LLocalization.LLocalizationTextRead("Processing.Step.RequiresEq");
@@ -144,25 +140,18 @@ public sealed partial class PEditTab
         pProcessing.PProcessingEnabledSet("Saturation", pEqCapable, pEqTooltip);
         pInspector.PToneCapabilitySet(pEqCapable);
 
-        string pExposureTooltip = LLocalization.LLocalizationTextRead("Processing.Step.ExposureRequiresMpv");
-        pProcessing.PProcessingEnabledSet("Exposure", pMpvOnlyCapable, pExposureTooltip);
-        pInspector.PExposureCapabilitySet(pMpvOnlyCapable);
+        pProcessing.PProcessingEnabledSet("Exposure", true, string.Empty);
+        pInspector.PExposureCapabilitySet(true, pPreviewMpv);
 
-        string pCurveTooltip = LLocalization.LLocalizationTextRead("Processing.Step.CurveRequiresMpv");
-        pProcessing.PProcessingEnabledSet("Curve", pMpvOnlyCapable, pCurveTooltip);
-        pInspector.PCurveCapabilitySet(pMpvOnlyCapable, "Inspector.Video.CurveRequiresMpv");
-        string pWhitebalanceTooltip = LLocalization.LLocalizationTextRead(
-            "Processing.Step.WhitebalanceRequiresMpv");
-        pProcessing.PProcessingEnabledSet("Whitebalance", pMpvOnlyCapable, pWhitebalanceTooltip);
-        pInspector.PWhitebalanceCapabilitySet(pMpvOnlyCapable);
+        pProcessing.PProcessingEnabledSet("Curve", true, string.Empty);
+        pInspector.PCurveCapabilitySet(true, pPreviewMpv, "Inspector.Video.CurvePreviewMpv");
 
-        bool pGammaCapable = pMpvOnlyCapable && pEqCapable;
-        string pGammaTooltip = LLocalization.LLocalizationTextRead(
-            !pEqCapable ? "Processing.Step.GammaRequiresEq" : "Processing.Step.GammaRequiresMpv");
-        pProcessing.PProcessingEnabledSet("Gamma", pGammaCapable, pGammaTooltip);
-        pInspector.PGammaCapabilitySet(
-            pGammaCapable,
-            !pEqCapable ? "Inspector.Video.GammaRequiresEq" : "Inspector.Video.GammaRequiresMpv");
+        pProcessing.PProcessingEnabledSet("Whitebalance", true, string.Empty);
+        pInspector.PWhitebalanceCapabilitySet(true, pPreviewMpv);
+
+        string pGammaTooltip = LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresEq");
+        pProcessing.PProcessingEnabledSet("Gamma", pEqCapable, pGammaTooltip);
+        pInspector.PGammaCapabilitySet(pEqCapable, pEqCapable && pPreviewMpv, "Inspector.Video.GammaRequiresEq");
 
         PEditColorUpdate();
         PEditColorApply();

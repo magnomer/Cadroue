@@ -277,7 +277,9 @@ public sealed partial class PInspector
         StackPanel pStack,
         StackPanel pBody,
         bool pCapable,
+        bool pPreviewAvailable,
         string pDisabledKey,
+        string pPreviewKey,
         string pApplyKey,
         string pPersistKey)
     {
@@ -285,12 +287,14 @@ public sealed partial class PInspector
         pPersistent.IsEnabled = pCapable;
         pStack.IsEnabled = pCapable && pBox.IsChecked == true;
         pStack.Opacity = pCapable && pBox.IsChecked == true ? 1 : 0.4;
-        string? pDisabledTooltip = pCapable
-            ? null
-            : LLocalization.LLocalizationTextRead(pDisabledKey);
-        pBody.ToolTip = pDisabledTooltip;
-        pBox.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead(pApplyKey);
-        pPersistent.ToolTip = pDisabledTooltip ?? LLocalization.LLocalizationTextRead(pPersistKey);
+        string? pNotice = !pCapable
+            ? LLocalization.LLocalizationTextRead(pDisabledKey)
+            : !pPreviewAvailable
+                ? LLocalization.LLocalizationTextRead(pPreviewKey)
+                : null;
+        pBody.ToolTip = pNotice;
+        pBox.ToolTip = pNotice ?? LLocalization.LLocalizationTextRead(pApplyKey);
+        pPersistent.ToolTip = pNotice ?? LLocalization.LLocalizationTextRead(pPersistKey);
         ToolTipService.SetShowOnDisabled(pBody, true);
         ToolTipService.SetShowOnDisabled(pBox, true);
         ToolTipService.SetShowOnDisabled(pPersistent, true);
@@ -301,15 +305,15 @@ public sealed partial class PInspector
         this.pToneCapable = pCapable;
         PInspectorSectionApply(
             pToneBrightnessBox, pInspectorBrightnessPersistent, pInspectorBrightnessStack, pInspectorBrightnessBody,
-            pToneCapable, "Inspector.Video.BrightnessRequiresEq",
+            pToneCapable, true, "Inspector.Video.BrightnessRequiresEq", string.Empty,
             "Inspector.Video.ApplyBrightness", "Inspector.Video.PersistBrightness");
         PInspectorSectionApply(
             pToneContrastBox, pInspectorContrastPersistent, pInspectorContrastStack, pInspectorContrastBody,
-            pToneCapable, "Inspector.Video.ContrastRequiresEq",
+            pToneCapable, true, "Inspector.Video.ContrastRequiresEq", string.Empty,
             "Inspector.Video.ApplyContrast", "Inspector.Video.PersistContrast");
         PInspectorSectionApply(
             pToneSaturationBox, pInspectorSaturationPersistent, pInspectorSaturationStack, pInspectorSaturationBody,
-            pToneCapable, "Inspector.Video.SaturationRequiresEq",
+            pToneCapable, true, "Inspector.Video.SaturationRequiresEq", string.Empty,
             "Inspector.Video.ApplySaturation", "Inspector.Video.PersistSaturation");
     }
 
@@ -436,7 +440,7 @@ public sealed partial class PInspector
                     pGammaHighlightValue,
                     pGamma.LWorkGammaHighlight);
                 PToneApplyUpdate(pGammaBox, pGammaStack);
-                PGammaCapabilitySet(pGammaCapable, pGammaDisabledKey);
+                PGammaCapabilitySet(pGammaCapable, pGammaPreview, pGammaDisabledKey);
                 return;
             }
 
@@ -455,7 +459,7 @@ public sealed partial class PInspector
                     pWhitebalanceSaturationValue,
                     pWhitebalance.LWorkWhitebalanceSaturation);
                 PToneApplyUpdate(pWhitebalanceBox, pWhitebalanceStack);
-                PWhitebalanceCapabilitySet(pWhitebalanceCapable);
+                PWhitebalanceCapabilitySet(pWhitebalanceCapable, pWhitebalancePreview);
                 return;
             }
 
@@ -465,7 +469,7 @@ public sealed partial class PInspector
                 pExposureValue.Text = pStep.LWorkStepValue.ToString("0.#", CultureInfo.InvariantCulture);
                 pExposureSlider.Value = Math.Clamp(pStep.LWorkStepValue, -3, 3);
                 PToneApplyUpdate(pExposureBox, pExposureStack);
-                PExposureCapabilitySet(pExposureCapable);
+                PExposureCapabilitySet(pExposureCapable, pExposurePreview);
                 return;
             }
 
@@ -480,7 +484,7 @@ public sealed partial class PInspector
                 pCurveSelected = PCurveActiveRead().Count - 1;
                 PCurveBoxesUpdate();
                 PToneApplyUpdate(pCurveBox, pCurveStack);
-                PCurveCapabilitySet(pCurveCapable, pCurveDisabledKey);
+                PCurveCapabilitySet(pCurveCapable, pCurvePreview, pCurvePreviewKey);
                 return;
             }
 

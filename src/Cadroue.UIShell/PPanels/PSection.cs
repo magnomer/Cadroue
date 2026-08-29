@@ -270,7 +270,7 @@ public sealed partial class PSection : UserControl
             pEvent.Handled = true;
         };
 
-        void PSectionSeekFire(bool pSeekEnd, MouseButtonEventArgs pEvent)
+        void PSectionSeekHandle(bool pSeekEnd, MouseButtonEventArgs pEvent)
         {
             if (pEvent.ClickCount < 2)
             {
@@ -333,11 +333,11 @@ public sealed partial class PSection : UserControl
 
         var pBeginLabel = PSectionTimeBuild(PSectionTimeFormat(pSectionEntry.LPieceOrigin));
         pBeginLabel.Margin = new Thickness(8, 0, 0, 0);
-        pBeginLabel.MouseLeftButtonDown += (_, pEvent) => PSectionSeekFire(false, pEvent);
+        pBeginLabel.MouseLeftButtonDown += (_, pEvent) => PSectionSeekHandle(false, pEvent);
 
         var pArrowLabel = PSectionTimeBuild(" → ");
         var pEndLabel = PSectionTimeBuild(PSectionTimeFormat(pSectionEntry.LPieceEnd));
-        pEndLabel.MouseLeftButtonDown += (_, pEvent) => PSectionSeekFire(true, pEvent);
+        pEndLabel.MouseLeftButtonDown += (_, pEvent) => PSectionSeekHandle(true, pEvent);
 
         var pSpanLabel = PSectionTimeBuild($"  ({PSectionTimeFormat(PSectionSpanRead(pSectionEntry))})");
 
@@ -392,7 +392,7 @@ public sealed partial class PSection : UserControl
             pSectionDragActive = false;
             pSectionRowPanel.CaptureMouse();
         };
-        pRowBorder.MouseLeftButtonDown += (_, pEvent) => PSectionSeekFire(false, pEvent);
+        pRowBorder.MouseLeftButtonDown += (_, pEvent) => PSectionSeekHandle(false, pEvent);
         return pRowBorder;
     }
 
