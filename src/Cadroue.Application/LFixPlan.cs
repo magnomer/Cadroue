@@ -9,16 +9,23 @@ public static partial class LFix
 {
     public static LSidecarFixRecord LFixPersistentCreate(LWorkFix lFixPlan) => new()
     {
-        LSidecarSteps = lFixPlan.LWorkFixSteps.Select(LFixRecordCreate).ToList()
+        LSidecarSteps = lFixPlan.LWorkFixSteps.Select(LFixRecordCreate).ToList(),
+        LSidecarSalvageActive = lFixPlan.LWorkFixSalvage.LWorkSalvageActive,
+        LSidecarSalvageMode = LFixSalvageFormat(lFixPlan.LWorkFixSalvage.LWorkSalvageMode),
+        LSidecarSalvagePersistent = lFixPlan.LWorkFixSalvage.LWorkSalvagePersistent
     };
 
     public static LWorkFix LFixPersistentRead(LSidecarFixRecord lFixRecord) =>
-        new(lFixRecord.LSidecarSteps.Select(LFixStepCreate).ToArray());
+        new(lFixRecord.LSidecarSteps.Select(LFixStepCreate).ToArray())
+        {
+            LWorkFixSalvage = new LWorkFixSalvage(
+                lFixRecord.LSidecarSalvageActive,
+                LFixSalvageCreate(lFixRecord.LSidecarSalvageMode),
+                lFixRecord.LSidecarSalvagePersistent)
+        };
 
     public static LWorkFix? LFixPlanRead(string lFixSourcePath, Func<string, LSidecarFixRecord?> lSidecarRead) =>
-        lSidecarRead(lFixSourcePath) is { } lFixRecord
-            ? new LWorkFix(lFixRecord.LSidecarSteps.Select(LFixStepCreate).ToArray())
-            : null;
+        lSidecarRead(lFixSourcePath) is { } lFixRecord ? LFixPersistentRead(lFixRecord) : null;
 
     public static void LFixPlanSave(
         string lFixSourcePath, LWorkFix lFixPlan, Func<string, LSidecarFixRecord?, bool> lSidecarSave) =>
@@ -49,11 +56,21 @@ public static partial class LFix
             lFixSteps.Add(lFixPersistentStep ?? lFixSavedStep ?? new LWorkFixStep(lFixKind, false, false, false));
         }
 
-        return new LWorkFix(lFixSteps);
+        LWorkFixSalvage lFixSalvage =
+            lFixPersistent?.LWorkFixSalvage is { LWorkSalvagePersistent: true } lFixPersistentSalvage
+                ? lFixPersistentSalvage
+                : lFixSaved?.LWorkFixSalvage ?? LWorkFixSalvage.LWorkSalvageCreate();
+
+        return new LWorkFix(lFixSteps) { LWorkFixSalvage = lFixSalvage };
     }
 
     public static LWorkFix LFixPersistentResolve(LWorkFix lFixPlan) =>
-        new(lFixPlan.LWorkFixSteps.Where(lStep => lStep.LWorkFixPersistent).ToArray());
+        new(lFixPlan.LWorkFixSteps.Where(lStep => lStep.LWorkFixPersistent).ToArray())
+        {
+            LWorkFixSalvage = lFixPlan.LWorkFixSalvage.LWorkSalvagePersistent
+                ? lFixPlan.LWorkFixSalvage
+                : LWorkFixSalvage.LWorkSalvageCreate()
+        };
 
     private static IReadOnlyList<LFlawKind> LFixKindsRead() => new[]
     {
@@ -99,6 +116,12 @@ public static partial class LFix
         LFlawKind.LFlawKindCoded => "Coded",
         _ => "Ffvone"
     };
+
+    private static string LFixSalvageFormat(LSalvageMode lFixMode) =>
+        lFixMode == LSalvageMode.LSalvageModeSeparate ? "Separate" : "Rejoin";
+
+    private static LSalvageMode LFixSalvageCreate(string lFixMode) =>
+        lFixMode == "Separate" ? LSalvageMode.LSalvageModeSeparate : LSalvageMode.LSalvageModeRejoin;
 
     private static LFlawKind LFixKindCreate(string lFixKind) => lFixKind switch
     {

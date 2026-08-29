@@ -9,18 +9,22 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed class PFixTab : PTabSurface
 {
+    // Presentation order is by real-world defect frequency (most common first) so the
+    // defect a user most likely faces is nearest the top. It deliberately differs from the
+    // actual repair order, which LRemedy fixes by safety and dependency (lossless carriage
+    // repairs first, lossy decode-reencode last); list position never decides repair semantics.
     private static readonly (LFlawKind Kind, string Name, string Icon, string LabelKey)[] pFixSteps =
     {
-        (LFlawKind.LFlawKindContainer, "Container", "/PAssets/PPanels/PProcessingFixContainer.svg", "Processing.Step.Container"),
         (LFlawKind.LFlawKindTruncation, "Truncation", "/PAssets/PPanels/PProcessingFixTruncation.svg", "Processing.Step.Truncation"),
-        (LFlawKind.LFlawKindTransport, "Transport", "/PAssets/PPanels/PProcessingFixTransport.svg", "Processing.Step.Transport"),
-        (LFlawKind.LFlawKindMetadata, "Metadata", "/PAssets/PPanels/PProcessingFixMetadata.svg", "Processing.Step.Metadata"),
         (LFlawKind.LFlawKindIndex, "Index", "/PAssets/PPanels/PProcessingFixIndex.svg", "Processing.Step.Index"),
+        (LFlawKind.LFlawKindContainer, "Container", "/PAssets/PPanels/PProcessingFixContainer.svg", "Processing.Step.Container"),
+        (LFlawKind.LFlawKindTiming, "Timing", "/PAssets/PPanels/PProcessingFixTiming.svg", "Processing.Step.Timing"),
+        (LFlawKind.LFlawKindMetadata, "Metadata", "/PAssets/PPanels/PProcessingFixMetadata.svg", "Processing.Step.Metadata"),
+        (LFlawKind.LFlawKindCoded, "Coded", "/PAssets/PPanels/PProcessingFixCoded.svg", "Processing.Step.Coded"),
         (LFlawKind.LFlawKindFraming, "Framing", "/PAssets/PPanels/PProcessingFixFraming.svg", "Processing.Step.Framing"),
         (LFlawKind.LFlawKindConfig, "Config", "/PAssets/PPanels/PProcessingFixConfiguration.svg", "Processing.Step.Config"),
-        (LFlawKind.LFlawKindTiming, "Timing", "/PAssets/PPanels/PProcessingFixTiming.svg", "Processing.Step.Timing"),
+        (LFlawKind.LFlawKindTransport, "Transport", "/PAssets/PPanels/PProcessingFixTransport.svg", "Processing.Step.Transport"),
         (LFlawKind.LFlawKindSecondary, "Secondary", "/PAssets/PPanels/PProcessingFixSecondary.svg", "Processing.Step.Secondary"),
-        (LFlawKind.LFlawKindCoded, "Coded", "/PAssets/PPanels/PProcessingFixCoded.svg", "Processing.Step.Coded"),
         (LFlawKind.LFlawKindFfvone, "Ffvone", "/PAssets/PPanels/PProcessingFixFfvone.svg", "Processing.Step.Ffvone")
     };
 

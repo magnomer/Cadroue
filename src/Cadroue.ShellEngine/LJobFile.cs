@@ -14,12 +14,38 @@ internal sealed partial class LJob
     // or expose one the first scan could not see past the first defect. So after each
     // pass the output is re-scanned and the still-warranted repairs are recomposed and
     // run again — bounded here so a defect that never clears cannot loop forever.
-    private const int LJobFixPassMax = 2;
+    private const int LJobPassMax = 2;
 
     private async Task<(int, string)> LJobFixRun()
     {
-        LJobFixDossiersEnsure();
+        LJobDossiersCreate();
 
+        (int pFixExit, string pFixError) = await LJobPassRun().ConfigureAwait(false);
+
+        // Salvage is the last pass, run from the original source regardless of the
+        // in-place repair's outcome: it harvests the readable spans and extracts each
+        // as a valid standalone file. Reporting the recovered outputs is wired later;
+        // this pass only produces them, failing safe so nothing partial is left behind.
+        LWorkFixSalvage pSalvage = lJobItem.LWorkFixPlan.LWorkFixSalvage;
+        if (pSalvage.LWorkSalvageActive)
+        {
+            lJobToken.ThrowIfCancellationRequested();
+            IReadOnlyList<LSalvageSpan> pSpans =
+                await LSalvageScan.LSalvageScanRun(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
+            IReadOnlyList<string> pSalvaged =
+                await LSalvageExtract.LSalvageExtractRun(lJobItem, pSpans, lJobToken).ConfigureAwait(false);
+            if (pSalvaged.Count > 0)
+            {
+                LRunner.LRunnerRecord(
+                    $"Salvage recovered {pSalvaged.Count} output(s) for '{lJobItem.LWorkOutputName}' from the original source");
+            }
+        }
+
+        return (pFixExit, pFixError);
+    }
+
+    private async Task<(int, string)> LJobPassRun()
+    {
         IReadOnlyList<LDossier> pRepairable =
             LFix.LFixRepairResolve(lJobItem.LWorkDossiers, lJobItem.LWorkFixPlan);
         int pExit = 0;
@@ -29,7 +55,7 @@ internal sealed partial class LJob
         for (int pPass = 0; ; pPass++)
         {
             IReadOnlyList<LEncodeStage> pStages =
-                LEncode.LEncodeFixStagesBuild(lJobItem, pRepairable, pPass == 0);
+                LEncode.LEncodeFixBuild(lJobItem, pRepairable, pPass == 0);
             (pExit, pError) = await LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
             if (pExit != 0)
             {
@@ -38,7 +64,7 @@ internal sealed partial class LJob
 
             // Validation cleared the file, or the pass budget is spent: stop here and let
             // the final validation state stand as this job's outcome.
-            if (lJobValidateState == LWorkState.LWorkStateDone || pPass + 1 >= LJobFixPassMax)
+            if (lJobValidateState == LWorkState.LWorkStateDone || pPass + 1 >= LJobPassMax)
             {
                 break;
             }
@@ -73,7 +99,7 @@ internal sealed partial class LJob
         return (pExit, pError);
     }
 
-    private void LJobFixDossiersEnsure()
+    private void LJobDossiersCreate()
     {
         if (lJobItem.LWorkDossiers.Count > 0)
         {

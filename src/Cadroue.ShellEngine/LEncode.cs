@@ -36,7 +36,7 @@ public static partial class LEncode
         {
             IReadOnlyList<LDossier> lFixRepairable =
                 LFix.LFixRepairResolve(lWorkItem.LWorkDossiers, lWorkItem.LWorkFixPlan);
-            return LEncodeFixStagesBuild(lWorkItem, lFixRepairable, true);
+            return LEncodeFixBuild(lWorkItem, lFixRepairable, true);
         }
 
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindAudio)
@@ -55,7 +55,7 @@ public static partial class LEncode
     // stages for the given correctable dossiers, and the closing validation. The
     // dossier set is supplied so a recompose pass can rebuild over only what a fresh
     // scan of the output found still warranted.
-    public static IReadOnlyList<LEncodeStage> LEncodeFixStagesBuild(
+    public static IReadOnlyList<LEncodeStage> LEncodeFixBuild(
         LWorkItem lWorkItem, IReadOnlyList<LDossier> lFixRepairable, bool lFixCopy)
     {
         var lFixStages = new List<LEncodeStage>();

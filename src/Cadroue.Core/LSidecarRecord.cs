@@ -128,8 +128,12 @@ public sealed class LSidecarFixStep
 public sealed class LSidecarFixRecord
 {
     public List<LSidecarFixStep> LSidecarSteps { get; set; } = new();
+    public bool LSidecarSalvageActive { get; set; }
+    public string LSidecarSalvageMode { get; set; } = "Rejoin";
+    public bool LSidecarSalvagePersistent { get; set; }
 
-    public bool LSidecarFixActive => LSidecarSteps.Any(lStep => lStep.LSidecarRepair || lStep.LSidecarDiagnosis);
+    public bool LSidecarFixActive =>
+        LSidecarSalvageActive || LSidecarSteps.Any(lStep => lStep.LSidecarRepair || lStep.LSidecarDiagnosis);
 }
 
 public sealed class LSidecarSectionRecord
