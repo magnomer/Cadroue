@@ -7,7 +7,7 @@ internal readonly record struct LAutopsyResult(
     string? LAutopsyResultAction,
     string LAutopsyResultCategory,
     string LAutopsyResultSeverity,
-    bool LAutopsyResultUserVisible,
+    bool LAutopsyResultVisible,
     string LAutopsyResultRetryable,
     string? LAutopsyResultSymbol,
     bool LAutopsyResultMatched);

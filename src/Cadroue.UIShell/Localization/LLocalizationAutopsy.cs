@@ -8,14 +8,14 @@ namespace Cadroue.UIShell;
 
 internal sealed class LLocalizationAutopsy
 {
-    private const string LLocalizationAutopsyResourcePrefix = "localization.ffmpeg-error.";
-    private const string LLocalizationAutopsyResourceSuffix = ".json";
-    private const string LLocalizationAutopsyFallbackCode = "en";
+    private const string LLocalizationAutopsyPrefix = "localization.ffmpeg-error.";
+    private const string LLocalizationAutopsySuffix = ".json";
+    private const string LLocalizationAutopsyDefault = "en";
 
     private static readonly object lLocalizationAutopsyGate = new();
-    private static LLocalizationAutopsy? lLocalizationAutopsyFallbackMap;
-    private static LLocalizationAutopsy? lLocalizationAutopsyCurrentMap;
-    private static string? lLocalizationAutopsyCurrentCode;
+    private static LLocalizationAutopsy? lLocalizationAutopsyFallback;
+    private static LLocalizationAutopsy? lLocalizationAutopsyCurrent;
+    private static string? lLocalizationAutopsyCode;
 
     private readonly IReadOnlyDictionary<string, string> lLocalizationAutopsyValues;
 
@@ -26,31 +26,31 @@ internal sealed class LLocalizationAutopsy
     {
         lock (lLocalizationAutopsyGate)
         {
-            string lLocalizationAutopsyCode = LLocalization.LLocalizationLanguageRead();
+            string lLocalizationAutopsyLanguage = LLocalization.LLocalizationLanguageRead();
             if (!string.Equals(
+                    lLocalizationAutopsyLanguage,
                     lLocalizationAutopsyCode,
-                    lLocalizationAutopsyCurrentCode,
                     StringComparison.OrdinalIgnoreCase))
             {
-                lLocalizationAutopsyCurrentMap = LLocalizationAutopsyLoad(lLocalizationAutopsyCode);
-                lLocalizationAutopsyCurrentCode = lLocalizationAutopsyCode;
+                lLocalizationAutopsyCurrent = LLocalizationAutopsyLoad(lLocalizationAutopsyLanguage);
+                lLocalizationAutopsyCode = lLocalizationAutopsyLanguage;
             }
 
-            lLocalizationAutopsyFallbackMap ??= LLocalizationAutopsyLoad(LLocalizationAutopsyFallbackCode);
+            lLocalizationAutopsyFallback ??= LLocalizationAutopsyLoad(LLocalizationAutopsyDefault);
 
-            if (lLocalizationAutopsyCurrentMap is not null
-                && lLocalizationAutopsyCurrentMap.lLocalizationAutopsyValues.TryGetValue(
+            if (lLocalizationAutopsyCurrent is not null
+                && lLocalizationAutopsyCurrent.lLocalizationAutopsyValues.TryGetValue(
                     lLocalizationAutopsyKey, out string? lLocalizationAutopsySelected))
             {
                 lLocalizationAutopsyValue = lLocalizationAutopsySelected;
                 return true;
             }
 
-            if (lLocalizationAutopsyFallbackMap is not null
-                && lLocalizationAutopsyFallbackMap.lLocalizationAutopsyValues.TryGetValue(
-                    lLocalizationAutopsyKey, out string? lLocalizationAutopsyFallback))
+            if (lLocalizationAutopsyFallback is not null
+                && lLocalizationAutopsyFallback.lLocalizationAutopsyValues.TryGetValue(
+                    lLocalizationAutopsyKey, out string? lLocalizationAutopsyBackup))
             {
-                lLocalizationAutopsyValue = lLocalizationAutopsyFallback;
+                lLocalizationAutopsyValue = lLocalizationAutopsyBackup;
                 return true;
             }
 
@@ -64,7 +64,7 @@ internal sealed class LLocalizationAutopsy
         try
         {
             using Stream? lLocalizationAutopsyStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-                LLocalizationAutopsyResourcePrefix + lLocalizationAutopsyCode + LLocalizationAutopsyResourceSuffix);
+                LLocalizationAutopsyPrefix + lLocalizationAutopsyCode + LLocalizationAutopsySuffix);
             if (lLocalizationAutopsyStream is null)
             {
                 return null;

@@ -8,18 +8,18 @@ internal readonly record struct LAutopsySpine(
     string? LAutopsySpineSymbol,
     string LAutopsySpineCategory,
     string LAutopsySpineSeverity,
-    bool LAutopsySpineUserVisible,
+    bool LAutopsySpineVisible,
     string LAutopsySpineRetryable,
-    string LAutopsySpineCodeClass)
+    string LAutopsySpineClass)
 {
-    private const string LAutopsySpineResourceName = "autopsy.ffmpeg-error-spine.json";
-    private const string LAutopsySpineFallbackNegativeKey = "unknown_negative";
-    private const string LAutopsySpineFallbackPositiveKey = "unexpected_positive";
+    private const string LAutopsySpineResource = "autopsy.ffmpeg-error-spine.json";
+    private const string LAutopsySpineUnknown = "unknown_negative";
+    private const string LAutopsySpineUnexpected = "unexpected_positive";
 
     private static readonly object lAutopsySpineGate = new();
     private static IReadOnlyDictionary<string, LAutopsySpine>? lAutopsySpineErrors;
-    private static LAutopsySpine lAutopsySpineFallbackNegative;
-    private static LAutopsySpine lAutopsySpineFallbackPositive;
+    private static LAutopsySpine lAutopsySpineNegative;
+    private static LAutopsySpine lAutopsySpinePositive;
 
     internal static bool LAutopsySpineRead(string lAutopsySpineCode, out LAutopsySpine lAutopsySpineEntry)
     {
@@ -27,10 +27,10 @@ internal readonly record struct LAutopsySpine(
         return lAutopsySpineErrors!.TryGetValue(lAutopsySpineCode, out lAutopsySpineEntry);
     }
 
-    internal static LAutopsySpine LAutopsySpineFallbackRead(bool lAutopsySpineNegative)
+    internal static LAutopsySpine LAutopsySpineResolve(bool lAutopsySpineSign)
     {
         LAutopsySpineLoad();
-        return lAutopsySpineNegative ? lAutopsySpineFallbackNegative : lAutopsySpineFallbackPositive;
+        return lAutopsySpineSign ? lAutopsySpineNegative : lAutopsySpinePositive;
     }
 
     private static void LAutopsySpineLoad()
@@ -48,10 +48,10 @@ internal readonly record struct LAutopsySpine(
             }
 
             using Stream? lAutopsySpineStream = Assembly.GetExecutingAssembly()
-                .GetManifestResourceStream(LAutopsySpineResourceName);
+                .GetManifestResourceStream(LAutopsySpineResource);
             if (lAutopsySpineStream is null)
             {
-                throw new InvalidDataException($"FFmpeg-error spine resource missing: {LAutopsySpineResourceName}.");
+                throw new InvalidDataException($"FFmpeg-error spine resource missing: {LAutopsySpineResource}.");
             }
 
             using JsonDocument lAutopsySpineDocument = JsonDocument.Parse(lAutopsySpineStream);
@@ -64,10 +64,10 @@ internal readonly record struct LAutopsySpine(
             }
 
             JsonElement lAutopsySpineFallbacks = lAutopsySpineRoot.GetProperty("fallbacks");
-            lAutopsySpineFallbackNegative = LAutopsySpineParse(
-                lAutopsySpineFallbacks.GetProperty(LAutopsySpineFallbackNegativeKey));
-            lAutopsySpineFallbackPositive = LAutopsySpineParse(
-                lAutopsySpineFallbacks.GetProperty(LAutopsySpineFallbackPositiveKey));
+            lAutopsySpineNegative = LAutopsySpineParse(
+                lAutopsySpineFallbacks.GetProperty(LAutopsySpineUnknown));
+            lAutopsySpinePositive = LAutopsySpineParse(
+                lAutopsySpineFallbacks.GetProperty(LAutopsySpineUnexpected));
 
             lAutopsySpineErrors = lAutopsySpineErrorMap;
         }

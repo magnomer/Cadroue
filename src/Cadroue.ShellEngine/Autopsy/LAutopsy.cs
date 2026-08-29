@@ -8,8 +8,8 @@ internal static class LAutopsy
     private const long LAutopsySignBoundary = 0x80000000L;
     private const long LAutopsyWraparound = 0x100000000L;
 
-    private const string LAutopsyFallbackNegativeProse = "fallback.unknownNegative";
-    private const string LAutopsyFallbackPositiveProse = "fallback.unexpectedPositive";
+    private const string LAutopsyNegativeProse = "fallback.unknownNegative";
+    private const string LAutopsyPositiveProse = "fallback.unexpectedPositive";
 
     internal static LAutopsyProseReader? LAutopsyProse { get; set; }
 
@@ -36,10 +36,10 @@ internal static class LAutopsy
         else
         {
             bool lAutopsyNegative = lAutopsyCode < 0;
-            lAutopsyEntry = LAutopsySpine.LAutopsySpineFallbackRead(lAutopsyNegative);
+            lAutopsyEntry = LAutopsySpine.LAutopsySpineResolve(lAutopsyNegative);
             lAutopsyProseRoot = lAutopsyNegative
-                ? LAutopsyFallbackNegativeProse
-                : LAutopsyFallbackPositiveProse;
+                ? LAutopsyNegativeProse
+                : LAutopsyPositiveProse;
         }
 
         return new LAutopsyResult(
@@ -49,7 +49,7 @@ internal static class LAutopsy
             LAutopsyProseRead(lAutopsyProseRoot + ".action"),
             lAutopsyEntry.LAutopsySpineCategory,
             lAutopsyEntry.LAutopsySpineSeverity,
-            lAutopsyEntry.LAutopsySpineUserVisible,
+            lAutopsyEntry.LAutopsySpineVisible,
             lAutopsyEntry.LAutopsySpineRetryable,
             lAutopsyEntry.LAutopsySpineSymbol,
             lAutopsyMatched);

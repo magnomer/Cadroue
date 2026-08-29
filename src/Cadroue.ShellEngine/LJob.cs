@@ -111,6 +111,7 @@ internal sealed partial class LJob
                 return;
             }
 
+            string pFailureMessage = string.Empty;
             if (pExitCode == 0)
             {
                 LJobStageCommit();
@@ -120,11 +121,24 @@ internal sealed partial class LJob
             }
             else
             {
-                LRunner.LRunnerRecord(
-                    $"Encode failed '{lJobItem.LWorkOutputName}': FFmpeg exit code {pExitCode} " +
-                    $"after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}. {LJobTailRead(pJobError)}");
+                string pTail = LJobTailRead(pJobError);
+                LAutopsyResult pAutopsy = LAutopsy.LAutopsyResolve(pExitCode, pTail);
+                string pSymbol = pAutopsy.LAutopsyResultSymbol is { Length: > 0 } pAutopsySymbol
+                    ? $" {pAutopsySymbol}"
+                    : string.Empty;
 
-                if (LJobRetryStart($"FFmpeg exited with code {pExitCode}."))
+                LRunner.LRunnerRecord(
+                    $"Encode failed '{lJobItem.LWorkOutputName}': {pAutopsy.LAutopsyResultTechnical} " +
+                    $"(exit {pAutopsy.LAutopsyResultCode}{pSymbol}) " +
+                    $"after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}. {pTail}");
+
+                pFailureMessage = pAutopsy.LAutopsyResultVisible
+                    ? pAutopsy.LAutopsyResultAction is { Length: > 0 } pAutopsyAction
+                        ? $"{pAutopsy.LAutopsyResultSimple} {pAutopsyAction}"
+                        : pAutopsy.LAutopsyResultSimple
+                    : $"FFmpeg exited with code {pExitCode}.";
+
+                if (LJobRetryStart(pFailureMessage))
                 {
                     return;
                 }
@@ -164,7 +178,7 @@ internal sealed partial class LJob
                 lJobItem.LWorkStateCurrent = pTerminalState;
                 lJobItem.LWorkMessage = pExitClean
                     ? lJobValidateState is null ? string.Empty : lJobValidateMessage
-                    : $"FFmpeg exited with code {pExitCode}.";
+                    : pFailureMessage;
 
                 lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, pSucceeded, lJobItem.LWorkMessage);
                 lJobOwner.lRunnerSchedule.LScheduleLoad();
