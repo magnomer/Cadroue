@@ -113,6 +113,28 @@ internal sealed class TSidecar : IDisposable
         }
     }
 
+    internal sealed record TSidecarDossier(string Defect, string Kind);
+
+    internal bool DiagnosisSave(
+        string sourcePath,
+        TimeSpan duration,
+        IReadOnlyCollection<TSidecarDossier> dossiers) =>
+        LSidecarCacheStore.LSidecarDiagnosisSave(
+            sourcePath,
+            LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration),
+            dossiers
+                .Select(dossier => new LSidecarDossier
+                {
+                    LSidecarDefect = dossier.Defect,
+                    LSidecarKind = Enum.Parse<LFlawKind>(dossier.Kind)
+                })
+                .ToList());
+
+    internal IReadOnlyList<TSidecarDossier>? DiagnosisRead(string sourcePath) =>
+        LSidecarCacheStore.LSidecarDiagnosisRead(sourcePath)
+            ?.Select(dossier => new TSidecarDossier(dossier.LSidecarDefect, dossier.LSidecarKind.ToString()))
+            .ToList();
+
     internal void SourceReplace(string sourcePath, string content) =>
         File.WriteAllText(sourcePath, content, Encoding.UTF8);
 

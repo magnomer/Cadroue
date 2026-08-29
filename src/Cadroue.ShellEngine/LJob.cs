@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -231,7 +232,17 @@ internal sealed partial class LJob
 
         if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix && lJobItem.LWorkDossiers.Count == 0)
         {
-            lJobItem.LWorkDossiers = LFlawScan.LFlawScanRun(lJobItem, lJobToken);
+            IReadOnlyList<LDossier>? lJobCached = LCheckup.LCheckupCachedRead(lJobItem.LWorkSourcePath);
+            if (lJobCached is not null)
+            {
+                lJobItem.LWorkDossiers = lJobCached;
+            }
+            else
+            {
+                IReadOnlyList<LDossier> lJobScanned = LFlawScan.LFlawScanRun(lJobItem, lJobToken);
+                LCheckup.LCheckupCachedSave(lJobItem.LWorkSourcePath, lJobScanned);
+                lJobItem.LWorkDossiers = lJobScanned;
+            }
         }
 
         IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);

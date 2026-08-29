@@ -70,7 +70,8 @@ internal static class LSidecarParse
                 LSidecarKeyframeLast = LSidecarLongRead(lSidecarRoot, "LSidecarKeyframeLast"),
                 LSidecarScannedSpans = LSidecarMemberRead<List<int>>(lSidecarRoot, "LSidecarScannedSpans") ?? new(),
                 LSidecarKeyframeDeltas = LSidecarMemberRead<List<long>>(lSidecarRoot, "LSidecarKeyframeDeltas") ?? new(),
-                LSidecarWaveform = LSidecarMemberRead<LSidecarWaveformRecord>(lSidecarRoot, "LSidecarWaveform")
+                LSidecarWaveform = LSidecarMemberRead<LSidecarWaveformRecord>(lSidecarRoot, "LSidecarWaveform"),
+                LSidecarDiagnosis = LSidecarMemberRead<List<LSidecarDossier>>(lSidecarRoot, "LSidecarDiagnosis") ?? new()
             };
             LSidecarCacheNormalize(lSidecarCache);
             return lSidecarCache;
@@ -198,6 +199,7 @@ internal static class LSidecarParse
         lSidecarCache.LSidecarPartialHash ??= string.Empty;
         lSidecarCache.LSidecarKeyframeDeltas ??= new();
         lSidecarCache.LSidecarScannedSpans ??= new();
+        lSidecarCache.LSidecarDiagnosis ??= new();
 
         if (lSidecarCache.LSidecarWaveform is { } lSidecarWaveform)
         {

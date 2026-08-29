@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 using Cadroue.ShellEngine;
@@ -28,6 +29,7 @@ public sealed class PFixTab : PTabSurface
     private readonly PClinic pClinic = new();
     private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
+    private readonly LCheckup pFixCheckup = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pFixPlanLoading;
 
@@ -100,6 +102,8 @@ public sealed class PFixTab : PTabSurface
 
         pProcessing.PProcessingStepChange += pClinic.PClinicStepShow;
         pClinic.PClinicPlanChange += PFixPlanSave;
+        pClinic.PClinicDiagnosisRequest += PFixDiagnosisHandle;
+        pFixCheckup.LCheckupReady += PFixCheckupHandle;
 
         pList.PListPathChange += PFixPathShow;
         pList.PListItemsAdd += PFixItemsHandle;
@@ -117,6 +121,13 @@ public sealed class PFixTab : PTabSurface
         Content = pTabGrid;
         PFixPersistentRestore(lPreferenceTabLayout);
         PFixActiveUpdate();
+    }
+
+    public override void PTabClose()
+    {
+        base.PTabClose();
+        pFixCheckup.LCheckupReady -= PFixCheckupHandle;
+        pFixCheckup.Dispose();
     }
 
     public override PFlowControl PTabFlow => pFlow;
@@ -142,9 +153,29 @@ public sealed class PFixTab : PTabSurface
         if (!string.IsNullOrWhiteSpace(pSourcePath))
         {
             PFixPlanSave();
+            pClinic.PClinicSourceSet(pSourcePath);
             pViewer.PViewerSourceOpen(pSourcePath);
             PFixPlanRestore(pSourcePath);
         }
+    }
+
+    private void PFixDiagnosisHandle(LFlawKind pFixKind)
+    {
+        string[] pFixSources = pList.PListEditableRead() is { } pFixSelected
+            ? new[] { pFixSelected.LDocketEntryPath }
+            : pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath).ToArray();
+        if (pFixSources.Length == 0)
+        {
+            return;
+        }
+
+        pFixCheckup.LCheckupStart(pFixSources, new[] { pFixKind });
+    }
+
+    private void PFixCheckupHandle(LCheckupResult pFixResult)
+    {
+        Dispatcher.BeginInvoke(() =>
+            pClinic.PClinicResultShow(pFixResult.LCheckupSource, pFixResult.LCheckupKind, pFixResult));
     }
 
     private void PFixPlanRestore(string pSourcePath)

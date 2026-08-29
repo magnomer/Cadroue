@@ -13,7 +13,7 @@ public sealed class LCheckup : IDisposable
 
     public event Action<LCheckupResult>? LCheckupReady;
 
-    public void LCheckupRequest(IReadOnlyList<string> lCheckupSources, IReadOnlyCollection<LFlawKind> lCheckupKinds)
+    public void LCheckupStart(IReadOnlyList<string> lCheckupSources, IReadOnlyCollection<LFlawKind> lCheckupKinds)
     {
         if (lCheckupDisposed)
         {
@@ -93,7 +93,7 @@ public sealed class LCheckup : IDisposable
         }
     }
 
-    private static IReadOnlyList<LDossier>? LCheckupCachedRead(string lCheckupPath)
+    public static IReadOnlyList<LDossier>? LCheckupCachedRead(string lCheckupPath)
     {
         IReadOnlyList<LSidecarDossier>? lCheckupStored = LLibrarian.LLibrarianDiagnosisLoad(lCheckupPath);
         if (lCheckupStored is null)
@@ -110,7 +110,7 @@ public sealed class LCheckup : IDisposable
         return lCheckupDossiers;
     }
 
-    private static void LCheckupCachedSave(string lCheckupPath, IReadOnlyList<LDossier> lCheckupDossiers)
+    public static void LCheckupCachedSave(string lCheckupPath, IReadOnlyList<LDossier> lCheckupDossiers)
     {
         TimeSpan lCheckupDuration = LLibrarian.LLibrarianDurationResolve(lCheckupPath);
         LKeyframeSourceIdentity lCheckupIdentity;

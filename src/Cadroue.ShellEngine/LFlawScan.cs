@@ -127,12 +127,7 @@ public static class LFlawScan
                 lFlawDossiers.Add(lFlawFfvone with { LDossierKind = LFlawKind.LFlawKindFfvone });
             }
 
-            if (lFlawKinds.Count == 0)
-            {
-                return lFlawDossiers;
-            }
-
-            return lFlawDossiers.FindAll(lFlawDossier => lFlawKinds.Contains(lFlawDossier.LDossierKind));
+            return LFlawKindsResolve(lFlawDossiers, lFlawKinds);
         }
         catch (OperationCanceledException)
         {
@@ -143,6 +138,27 @@ public static class LFlawScan
             LRunner.LRunnerRecord($"Container structure could not be examined '{Path.GetFileName(lFlawSource)}'", lFlawException);
             return Array.Empty<LDossier>();
         }
+    }
+
+    internal static IReadOnlyList<LDossier> LFlawKindsResolve(
+        IReadOnlyList<LDossier> lFlawDossiers,
+        IReadOnlyCollection<LFlawKind> lFlawKinds)
+    {
+        if (lFlawKinds.Count == 0)
+        {
+            return lFlawDossiers;
+        }
+
+        var lFlawFiltered = new List<LDossier>(lFlawDossiers.Count);
+        foreach (LDossier lFlawDossier in lFlawDossiers)
+        {
+            if (lFlawKinds.Contains(lFlawDossier.LDossierKind))
+            {
+                lFlawFiltered.Add(lFlawDossier);
+            }
+        }
+
+        return lFlawFiltered;
     }
 
     private static (string Output, string Error) LFlawRunRead(string lFlawProgram, string lFlawArguments, CancellationToken lFlawToken)
