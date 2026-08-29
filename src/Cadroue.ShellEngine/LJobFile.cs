@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 
 using Cadroue.Core;
 
@@ -105,6 +106,15 @@ internal sealed partial class LJob
         {
             lJobValidateState = LWorkState.LWorkStateDone;
             lJobValidateMessage = string.Empty;
+        }
+
+        // A report-only defect (FFV1 slice-CRC mismatch) cannot be corrected: the
+        // output is a faithful copy, not a repair. Never let it read as resolved.
+        if (lJobValidateState == LWorkState.LWorkStateDone
+            && lJobItem.LWorkDossiers.Any(pDossier => pDossier.LDossierRepair == LFlawFfvone.LFlawReport))
+        {
+            lJobValidateState = LWorkState.LWorkStateUnresolved;
+            lJobValidateMessage = "Validation: FFV1 slice-CRC mismatch confirmed; the defect is detected but cannot be corrected. The file was copied unchanged.";
         }
 
         LRunner.LRunnerRecord(

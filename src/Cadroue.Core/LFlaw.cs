@@ -11,7 +11,8 @@ public enum LFlawKind
     LFlawKindConfig,
     LFlawKindTiming,
     LFlawKindSecondary,
-    LFlawKindCoded
+    LFlawKindCoded,
+    LFlawKindFfvone
 }
 
 internal static class LFlaw

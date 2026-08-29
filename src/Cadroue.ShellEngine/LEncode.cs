@@ -42,6 +42,14 @@ public static partial class LEncode
 
             foreach (LRemedyAction lFixAction in lFixPlan.LRemedyActions)
             {
+                // A report-only dossier (FFV1 integrity) is detection-only: no ffmpeg
+                // stage can correct a slice-CRC mismatch. It is copied unchanged and
+                // surfaced as Unresolved at validation, never re-encoded here.
+                if (lFixAction.LRemedyDossier.LDossierRepair == LFlawFfvone.LFlawReport)
+                {
+                    continue;
+                }
+
                 string lFixArguments = lFixAction.LRemedyCategory == LDossierCategory.LDossierCategoryReencode
                     ? LEncodeRecoverBuild(lWorkItem)
                     : LEncodeRemedyBuild(

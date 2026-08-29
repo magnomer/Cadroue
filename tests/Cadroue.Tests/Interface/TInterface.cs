@@ -47,6 +47,9 @@ internal static class TInterface
     internal static LDossier? FlawCodedResolve(string decodeError) =>
         LFlawCoded.LFlawCodedResolve(decodeError);
 
+    internal static LDossier? FlawFfvoneResolve(string probeReport, string crcError) =>
+        LFlawFfvone.LFlawFfvoneResolve(probeReport, crcError);
+
     internal static LDossier DossierDefectCreate(
         string defect,
         LDossierCategory category,
