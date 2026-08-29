@@ -14,7 +14,8 @@ public sealed record LEncodeStage(
     string LEncodeStageLabel,
     string LEncodeStagePath,
     bool LEncodeStageTemporary,
-    bool LEncodeStageMeasure = false);
+    bool LEncodeStageMeasure = false,
+    string LEncodeStageInput = "");
 
 internal enum LEncodeChainMode
 {
@@ -46,7 +47,8 @@ public static partial class LEncode
                         lFixAction.LRemedyCategory,
                         lWorkItem.LWorkOutputPath,
                         lFixAction.LRemedyDossier.LDossierRepairArgument),
-                    LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false));
+                    LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false,
+                    LEncodeStageInput: lFixAction.LRemedyDossier.LDossierRepairInput));
             }
 
             lFixStages.Add(new LEncodeStage(
@@ -124,6 +126,11 @@ public static partial class LEncode
             return "-map 0";
         }
 
+        if (lRemedyCategory == LDossierCategory.LDossierCategoryTransport)
+        {
+            return "-map 0 -c copy -f mpegts";
+        }
+
         string lRemedyExtension = Path.GetExtension(lRemedyOutputPath).TrimStart('.').ToLowerInvariant();
         bool lRemedyFaststart = lRemedyExtension is "mp4" or "m4v" or "m4a" or "mov";
         string lRemedyBitstream = string.IsNullOrWhiteSpace(lRemedyArgument)
@@ -134,10 +141,15 @@ public static partial class LEncode
             : $"-map 0 -c copy{lRemedyBitstream}";
     }
 
-    internal static string LEncodeRepairBuild(string lInputPath, string lRemedy, string lOutputPath)
+    internal static string LEncodeRepairBuild(string lInputPath, string lInput, string lRemedy, string lOutputPath)
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
+        if (!string.IsNullOrWhiteSpace(lInput))
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lInput.Trim()}");
+        }
+
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lInputPath)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" {lRemedy}");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lOutputPath)}");

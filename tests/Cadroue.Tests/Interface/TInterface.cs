@@ -20,6 +20,9 @@ internal static class TInterface
     internal static LDossier? FlawContainerResolve(string probeError, string copyError) =>
         LFlaw.LFlawContainerResolve(probeError, copyError);
 
+    internal static LDossier? FlawTransportResolve(string probeReport, string copyError) =>
+        LFlaw.LFlawTransportResolve(probeReport, copyError);
+
     internal static LDossier? FlawMetadataResolve(string probeReport) =>
         LFlaw.LFlawMetadataResolve(probeReport);
 
@@ -31,6 +34,9 @@ internal static class TInterface
 
     internal static LDossier? FlawConfigResolve(string probeReport, string decodeError) =>
         LFlaw.LFlawConfigResolve(probeReport, decodeError);
+
+    internal static LDossier? FlawTimingResolve(string packetReport) =>
+        LFlaw.LFlawTimingResolve(packetReport);
 
     internal static LDossier DossierDefectCreate(
         string defect,
@@ -116,12 +122,12 @@ internal static class TInterface
         LPreferenceState state,
         string groupName,
         bool fallback = true) =>
-        state.LPreferencePresetGroupFoldedRead(groupName, fallback);
+        state.LPreferenceFoldRead(groupName, fallback);
     internal static void PreferencePresetGroupFoldedSet(
         LPreferenceState state,
         string groupName,
         bool folded) =>
-        state.LPreferencePresetGroupFolded[groupName] = folded;
+        state.LPreferenceFold[groupName] = folded;
 
     internal static LGroupSelection GroupSelectionCreate(
         bool groupAuto = false,

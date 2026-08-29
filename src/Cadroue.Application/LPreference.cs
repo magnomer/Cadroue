@@ -98,20 +98,20 @@ public static class LPreference
         LPreferenceStateSet(lPreferenceNext);
     }
 
-    public static void LPreferencePresetGroupFoldedSet(
+    public static void LPreferenceFoldSet(
         string lPreferenceGroupName,
         bool lPreferenceGroupFolded,
         bool lPreferenceFallback = true)
     {
         string lGroupName = (lPreferenceGroupName ?? string.Empty).Trim();
         if (string.IsNullOrEmpty(lGroupName)
-            || LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(lGroupName, lPreferenceFallback) == lPreferenceGroupFolded)
+            || LPreferenceStateCurrent.LPreferenceFoldRead(lGroupName, lPreferenceFallback) == lPreferenceGroupFolded)
         {
             return;
         }
 
         LPreferenceState lPreferenceNext = LPreferenceStateCurrent.LPreferenceClone();
-        lPreferenceNext.LPreferencePresetGroupFolded[lGroupName] = lPreferenceGroupFolded;
+        lPreferenceNext.LPreferenceFold[lGroupName] = lPreferenceGroupFolded;
         LPreferenceStateSet(lPreferenceNext);
     }
 

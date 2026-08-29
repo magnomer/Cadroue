@@ -6,10 +6,12 @@ namespace Cadroue.Core;
 public enum LFlawKind
 {
     LFlawKindContainer,
+    LFlawKindTransport,
     LFlawKindMetadata,
     LFlawKindIndex,
     LFlawKindFraming,
-    LFlawKindConfig
+    LFlawKindConfig,
+    LFlawKindTiming
 }
 
 public static class LFlaw
@@ -21,6 +23,12 @@ public static class LFlaw
 
     private static readonly Regex lFlawOffset = new(
         @"(?:pos|offset|at)[:=]?\s*(\d{2,})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly string[] lFlawTransportFault =
+    {
+        "continuity", "pes packet", "pes header", "sync byte", "pcr",
+        "invalid packet size", "program map", "program association", "invalid ts packet"
+    };
 
     private static readonly string[] lFlawIndexFault =
     {
@@ -84,6 +92,8 @@ public static class LFlaw
             .Where(lFlawLine => !lFlawBenign.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
             .Where(lFlawLine => !lFlawFramingFault.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => !lFlawTransportFault.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
 
         return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
@@ -96,6 +106,56 @@ public static class LFlaw
             && long.TryParse(lFlawMatch.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long lFlawByte)
                 ? FormattableString.Invariant($"Byte offset {lFlawByte}")
                 : "Container structure";
+    }
+
+    public static LDossier? LFlawTransportResolve(string lFlawProbeReport, string lFlawCopyError)
+    {
+        // Transport-layer repair is meaningful only for MPEG-TS/M2TS carriage; any other
+        // container is NotApplicable and produces no dossier.
+        IReadOnlyDictionary<string, string>? lFlawFormat = LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
+        string lFlawContainer = lFlawFormat is not null
+            && lFlawFormat.TryGetValue("format_name", out string? lFlawName)
+                ? lFlawName.ToLowerInvariant()
+                : string.Empty;
+        if (!lFlawContainer.Contains("mpegts", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        string lFlawEvidence = LFlawTransportRead(lFlawCopyError);
+        if (lFlawEvidence.Length == 0)
+        {
+            return null;
+        }
+
+        return new LDossier(
+            "MPEG-TS transport",
+            1.0,
+            "ffmpeg -c copy -f null; transport sync and per-PID continuity analysis",
+            lFlawEvidence,
+            "Full transport-stream traversal",
+            LFlawScopeResolve(lFlawEvidence),
+            "Remux -map 0 -c copy -f mpegts regenerating PAT/PMT, continuity counters and CRCs",
+            "Transport tables, continuity counters and CRCs",
+            LDossierPreservation.LDossierPreservationPacket,
+            "Coded essence retained; transport representation regenerated, not byte-exact",
+            "Preserved",
+            "None",
+            LDossierValidation.LDossierValidationUntested,
+            LDossierCategory.LDossierCategoryTransport);
+    }
+
+    private static string LFlawTransportRead(string lFlawCopyError)
+    {
+        IEnumerable<string> lFlawLines = lFlawCopyError
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(lFlawLine => lFlawLine.Length > 0)
+            .Where(lFlawLine => !lFlawFramingDamage.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => lFlawTransportFault.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
+
+        return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
     }
 
     public static LDossier? LFlawMetadataResolve(string lFlawProbeReport)
@@ -348,6 +408,118 @@ public static class LFlaw
 
         return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
     }
+
+    // MPEG-TS 33-bit 90 kHz timestamps wrap at 2^33. A decode-timestamp step that
+    // falls back from above this guard is a legal wraparound, not a defect.
+    private const long LFlawWrapGuard = 8_000_000_000L;
+
+    public static LDossier? LFlawTimingResolve(string lFlawPacketReport)
+    {
+        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawPackets =
+            LFlawSectionRead(lFlawPacketReport, "PACKET");
+        if (lFlawPackets.Count == 0)
+        {
+            return null;
+        }
+
+        var lFlawLastDts = new Dictionary<string, long>(StringComparer.Ordinal);
+        bool lFlawMissingPts = false;
+        bool lFlawMissingDts = false;
+        bool lFlawDisorderDts = false;
+
+        foreach (IReadOnlyDictionary<string, string> lFlawPacket in lFlawPackets)
+        {
+            string lFlawStream = lFlawPacket.TryGetValue("stream_index", out string? lFlawIndex)
+                ? lFlawIndex
+                : "0";
+            long? lFlawPts = LFlawTicksRead(lFlawPacket, "pts");
+            long? lFlawDts = LFlawTicksRead(lFlawPacket, "dts");
+
+            // A packet with neither timestamp is not reconstructable from timing alone;
+            // it is a decode-recovery case, so it does not raise a timeline defect here.
+            if (lFlawPts is null && lFlawDts is not null)
+            {
+                lFlawMissingPts = true;
+            }
+            else if (lFlawDts is null && lFlawPts is not null)
+            {
+                lFlawMissingDts = true;
+            }
+
+            if (lFlawDts is { } lFlawCurrent)
+            {
+                if (lFlawLastDts.TryGetValue(lFlawStream, out long lFlawPrevious)
+                    && lFlawCurrent < lFlawPrevious
+                    && lFlawPrevious < LFlawWrapGuard)
+                {
+                    lFlawDisorderDts = true;
+                }
+
+                lFlawLastDts[lFlawStream] = lFlawCurrent;
+            }
+        }
+
+        var lFlawFindings = new List<string>();
+        if (lFlawMissingPts)
+        {
+            lFlawFindings.Add("Missing presentation timestamps recoverable from decode timestamps");
+        }
+
+        if (lFlawMissingDts)
+        {
+            lFlawFindings.Add("Missing decode timestamps with authoritative presentation timestamps");
+        }
+
+        if (lFlawDisorderDts)
+        {
+            lFlawFindings.Add("Non-monotonic decode timestamps");
+        }
+
+        if (lFlawFindings.Count == 0)
+        {
+            return null;
+        }
+
+        // genpts regenerates presentation timestamps from decode order; igndts drops the
+        // unreliable decode timestamps so the muxer re-derives them from the authoritative
+        // presentation timing. Both are demuxer flags placed before -i; packets stay exact
+        // and no start offset is normalized to zero.
+        var lFlawFlags = new List<string>();
+        if (lFlawMissingPts)
+        {
+            lFlawFlags.Add("+genpts");
+        }
+
+        if (lFlawMissingDts || lFlawDisorderDts)
+        {
+            lFlawFlags.Add("+igndts");
+        }
+
+        string lFlawInput = $"-fflags {string.Concat(lFlawFlags)}";
+
+        return new LDossier(
+            "Timeline and timestamps",
+            1.0,
+            "ffprobe -show_packets reading pts/dts/duration",
+            string.Join(" | ", lFlawFindings),
+            "Full packet traversal across all streams",
+            "Packet presentation and decode timing",
+            "Regenerate container timing with demuxer flags, packets copied unchanged, no decode",
+            "Presentation and decode timestamps",
+            LDossierPreservation.LDossierPreservationPacket,
+            "Coded packets copied unchanged; container timestamps regenerated",
+            "Reconstructed",
+            "None",
+            LDossierValidation.LDossierValidationUntested,
+            LDossierCategory.LDossierCategoryTimeline,
+            LDossierRepairInput: lFlawInput);
+    }
+
+    private static long? LFlawTicksRead(IReadOnlyDictionary<string, string> lFlawPacket, string lFlawKey) =>
+        lFlawPacket.TryGetValue(lFlawKey, out string? lFlawText)
+        && long.TryParse(lFlawText, NumberStyles.Integer, CultureInfo.InvariantCulture, out long lFlawValue)
+            ? lFlawValue
+            : null;
 
     private static string LFlawAddressingRead(string lFlawText)
     {

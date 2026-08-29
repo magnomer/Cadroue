@@ -46,7 +46,8 @@ internal sealed partial class LJob
     {
         string pOutput = pStage.LEncodeStagePath;
         string pTemp = LJobPathResolve(pOutput, ".cadfix");
-        string pArguments = LEncode.LEncodeRepairBuild(pOutput, pStage.LEncodeStageArguments, pTemp);
+        string pArguments = LEncode.LEncodeRepairBuild(
+            pOutput, pStage.LEncodeStageInput, pStage.LEncodeStageArguments, pTemp);
         LEncodeStage pRepairStage = pStage with { LEncodeStagePath = pTemp };
 
         (int pExit, string pError) = await LJobStageRun(

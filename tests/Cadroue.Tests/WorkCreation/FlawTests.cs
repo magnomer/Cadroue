@@ -50,6 +50,58 @@ public sealed class FlawTests
         Assert.Contains("40928", dossier.Value.LDossierScope, System.StringComparison.Ordinal);
     }
 
+    private const string TransportFormatTs =
+        "[STREAM]\ncodec_type=video\ncodec_name=h264\n[/STREAM]\n"
+        + "[FORMAT]\nformat_name=mpegts\n[/FORMAT]\n";
+
+    private const string TransportFormatMp4 =
+        "[STREAM]\ncodec_type=video\ncodec_name=h264\n[/STREAM]\n"
+        + "[FORMAT]\nformat_name=mov,mp4,m4a,3gp,3g2,mj2\n[/FORMAT]\n";
+
+    [Fact]
+    public void NonTransportInput_ProducesNoTransportDossier()
+    {
+        Assert.Null(TInterface.FlawTransportResolve(
+            TransportFormatMp4,
+            "[mpegts @ 0x1] Continuity check failed for pid 256 expected 3 got 5"));
+    }
+
+    [Fact]
+    public void CleanTransportStream_ProducesNoTransportDossier()
+    {
+        Assert.Null(TInterface.FlawTransportResolve(TransportFormatTs, string.Empty));
+    }
+
+    [Fact]
+    public void ContinuityFault_ProducesTransportDossier()
+    {
+        LDossier? dossier = TInterface.FlawTransportResolve(
+            TransportFormatTs,
+            "[mpegts @ 0x1] Continuity check failed for pid 256 expected 3 got 5");
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryTransport, dossier.Value.LDossierCategory);
+        Assert.Equal(LDossierPreservation.LDossierPreservationPacket, dossier.Value.LDossierPreservation);
+        Assert.Equal(LDossierValidation.LDossierValidationUntested, dossier.Value.LDossierValidation);
+        Assert.Contains("Continuity", dossier.Value.LDossierEvidenceSource, System.StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DecodeDamageOnTransport_IsNotATransportDefect()
+    {
+        Assert.Null(TInterface.FlawTransportResolve(
+            TransportFormatTs,
+            "[h264 @ 0x1] error while decoding MB 12 34, bytestream -5"));
+    }
+
+    [Fact]
+    public void TransportFault_IsNotReportedAsContainerDefect()
+    {
+        Assert.Null(TInterface.FlawContainerResolve(
+            string.Empty,
+            "[mpegts @ 0x1] Continuity check failed for pid 256 expected 3 got 5"));
+    }
+
     [Fact]
     public void ConsistentMetadata_ProducesNoDossier()
     {
@@ -252,5 +304,83 @@ public sealed class FlawTests
         Assert.Null(TInterface.FlawConfigResolve(
             "[STREAM]\ncodec_type=video\ncodec_name=vp9\nextradata_size=0\n[/STREAM]\n",
             "[vp9 @ 0x1] non-existing PPS 0 referenced"));
+    }
+
+    private static string Packet(int stream, string pts, string dts) =>
+        $"[PACKET]\nstream_index={stream}\npts={pts}\ndts={dts}\nduration=512\n[/PACKET]\n";
+
+    [Fact]
+    public void EmptyPacketReport_ProducesNoTimingDossier()
+    {
+        Assert.Null(TInterface.FlawTimingResolve(string.Empty));
+    }
+
+    [Fact]
+    public void MonotonicTimeline_ProducesNoTimingDossier()
+    {
+        Assert.Null(TInterface.FlawTimingResolve(
+            Packet(0, "0", "0") + Packet(0, "512", "512") + Packet(0, "1024", "1024")));
+    }
+
+    [Fact]
+    public void ReorderedPresentation_IsNotATimingDefect()
+    {
+        // B-frame reorder: PTS differs from DTS but DTS stays monotonic; legal.
+        Assert.Null(TInterface.FlawTimingResolve(
+            Packet(0, "1024", "0") + Packet(0, "512", "512") + Packet(0, "2048", "1024")));
+    }
+
+    [Fact]
+    public void MissingPresentation_RegeneratesWithGenpts()
+    {
+        LDossier? dossier = TInterface.FlawTimingResolve(
+            Packet(0, "N/A", "0") + Packet(0, "N/A", "512"));
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryTimeline, dossier.Value.LDossierCategory);
+        Assert.Equal(LDossierPreservation.LDossierPreservationPacket, dossier.Value.LDossierPreservation);
+        Assert.Equal(LDossierValidation.LDossierValidationUntested, dossier.Value.LDossierValidation);
+        Assert.Equal("-fflags +genpts", dossier.Value.LDossierRepairInput);
+        Assert.Equal(string.Empty, dossier.Value.LDossierRepairArgument);
+    }
+
+    [Fact]
+    public void MissingDecode_IgnoresDtsWithIgndts()
+    {
+        LDossier? dossier = TInterface.FlawTimingResolve(
+            Packet(0, "0", "N/A") + Packet(0, "512", "N/A"));
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryTimeline, dossier.Value.LDossierCategory);
+        Assert.Equal("-fflags +igndts", dossier.Value.LDossierRepairInput);
+    }
+
+    [Fact]
+    public void NonMonotonicDecode_IgnoresDtsWithIgndts()
+    {
+        LDossier? dossier = TInterface.FlawTimingResolve(
+            Packet(0, "0", "0") + Packet(0, "512", "512") + Packet(0, "256", "256"));
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryTimeline, dossier.Value.LDossierCategory);
+        Assert.Equal("-fflags +igndts", dossier.Value.LDossierRepairInput);
+    }
+
+    [Fact]
+    public void WraparoundDecode_IsNotATimingDefect()
+    {
+        // MPEG-TS 33-bit wraparound: DTS falls back from near 2^33 to zero; legal.
+        Assert.Null(TInterface.FlawTimingResolve(
+            Packet(0, "8589933000", "8589933000") + Packet(0, "512", "512")));
+    }
+
+    [Fact]
+    public void PerStreamOrdering_IgnoresCrossStreamInterleave()
+    {
+        // Two streams interleaved: each stream's own DTS is monotonic though the
+        // report alternates between them. No defect.
+        Assert.Null(TInterface.FlawTimingResolve(
+            Packet(0, "0", "0") + Packet(1, "0", "0")
+            + Packet(0, "512", "512") + Packet(1, "512", "512")));
     }
 }

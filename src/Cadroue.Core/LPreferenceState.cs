@@ -18,7 +18,7 @@ public sealed class LPreferenceState
     public bool LPreferenceRecordWorkspace { get; set; }
     public bool LPreferenceVerticalTabs { get; set; }
     public bool LPreferenceDeveloperActive { get; set; }
-    public Dictionary<string, bool> LPreferencePresetGroupFolded { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, bool> LPreferenceFold { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public double LPreferenceVolume { get; set; }
     public string LPreferenceVolumeMode { get; set; } = "Unified";
@@ -61,7 +61,7 @@ public sealed class LPreferenceState
             LPreferenceRecordWorkspace = false,
             LPreferenceVerticalTabs = false,
             LPreferenceDeveloperActive = false,
-            LPreferencePresetGroupFolded = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
+            LPreferenceFold = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
             LPreferenceVolume = 100,
             LPreferenceVolumeMode = "Unified",
             LPreferenceAutoplay = false,
@@ -108,8 +108,8 @@ public sealed class LPreferenceState
             LPreferenceRecordWorkspace = LPreferenceRecordWorkspace,
             LPreferenceVerticalTabs = LPreferenceVerticalTabs,
             LPreferenceDeveloperActive = LPreferenceDeveloperActive,
-            LPreferencePresetGroupFolded = new Dictionary<string, bool>(
-                LPreferencePresetGroupFolded ?? new Dictionary<string, bool>(),
+            LPreferenceFold = new Dictionary<string, bool>(
+                LPreferenceFold ?? new Dictionary<string, bool>(),
                 StringComparer.OrdinalIgnoreCase),
             LPreferenceVolume = LPreferenceVolume,
             LPreferenceVolumeMode = LPreferenceVolumeMode,
@@ -150,7 +150,7 @@ public sealed class LPreferenceState
             ("File record location", lPreferenceOther.LPreferenceRecordWorkspace, LPreferenceRecordWorkspace),
             ("Vertical tabs", lPreferenceOther.LPreferenceVerticalTabs, LPreferenceVerticalTabs),
             ("Developer mode", lPreferenceOther.LPreferenceDeveloperActive, LPreferenceDeveloperActive),
-            ("Preset groups", LPreferencePresetGroupsFormat(lPreferenceOther.LPreferencePresetGroupFolded), LPreferencePresetGroupsFormat(LPreferencePresetGroupFolded)),
+            ("Preset groups", LPreferenceFoldFormat(lPreferenceOther.LPreferenceFold), LPreferenceFoldFormat(LPreferenceFold)),
             ("Volume mode", lPreferenceOther.LPreferenceVolumeMode, LPreferenceVolumeMode),
             ("Default volume", lPreferenceOther.LPreferenceVolume, LPreferenceVolume),
             ("Autoplay on load", lPreferenceOther.LPreferenceAutoplay, LPreferenceAutoplay),
@@ -197,9 +197,9 @@ public sealed class LPreferenceState
             LPreferenceSectionPalette = LPreferencePaletteDefault;
 
         var lPreferencePresetGroups = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-        if (LPreferencePresetGroupFolded is not null)
+        if (LPreferenceFold is not null)
         {
-            foreach ((string lGroupName, bool lGroupFolded) in LPreferencePresetGroupFolded)
+            foreach ((string lGroupName, bool lGroupFolded) in LPreferenceFold)
             {
                 string lGroup = (lGroupName ?? string.Empty).Trim();
                 if (!string.IsNullOrEmpty(lGroup))
@@ -209,7 +209,7 @@ public sealed class LPreferenceState
             }
         }
 
-        LPreferencePresetGroupFolded = lPreferencePresetGroups;
+        LPreferenceFold = lPreferencePresetGroups;
 
         LPreferenceVolume = LPreferenceVolumeClamp(LPreferenceVolume);
         LPreferenceKeyframePixels = LPreferenceNumberClamp(LPreferenceKeyframePixels, 1, 50, 5);
@@ -225,17 +225,17 @@ public sealed class LPreferenceState
     [JsonIgnore]
     public bool LPreferenceVolumeUnified => LPreferenceVolumeMode == "Unified";
 
-    public bool LPreferencePresetGroupFoldedRead(string lPreferenceGroupName, bool lPreferenceFallback = true)
+    public bool LPreferenceFoldRead(string lPreferenceGroupName, bool lPreferenceFallback = true)
     {
         string lGroupName = (lPreferenceGroupName ?? string.Empty).Trim();
         return !string.IsNullOrEmpty(lGroupName)
-            && LPreferencePresetGroupFolded is not null
-            && LPreferencePresetGroupFolded.TryGetValue(lGroupName, out bool lGroupFolded)
+            && LPreferenceFold is not null
+            && LPreferenceFold.TryGetValue(lGroupName, out bool lGroupFolded)
                 ? lGroupFolded
                 : lPreferenceFallback;
     }
 
-    private static string LPreferencePresetGroupsFormat(Dictionary<string, bool>? lPreferenceGroups) =>
+    private static string LPreferenceFoldFormat(Dictionary<string, bool>? lPreferenceGroups) =>
         lPreferenceGroups is null
             ? string.Empty
             : string.Join(", ", lPreferenceGroups

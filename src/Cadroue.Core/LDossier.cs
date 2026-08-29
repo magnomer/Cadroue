@@ -23,6 +23,7 @@ public enum LDossierCategory
 {
     LDossierCategoryExact,
     LDossierCategoryContainer,
+    LDossierCategoryTransport,
     LDossierCategoryMetadata,
     LDossierCategoryIndex,
     LDossierCategoryPacket,
@@ -47,4 +48,5 @@ public readonly record struct LDossier(
     string LDossierLoss,
     LDossierValidation LDossierValidation,
     LDossierCategory LDossierCategory,
-    string LDossierRepairArgument = "");
+    string LDossierRepairArgument = "",
+    string LDossierRepairInput = "");

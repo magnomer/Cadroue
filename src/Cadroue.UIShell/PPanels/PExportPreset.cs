@@ -15,7 +15,7 @@ public sealed partial class PExport
     private const string PExportSettingIcon = "/PAssets/PPanels/PExportSetting.svg";
     private const string PExportImportIcon = "/PAssets/PPanels/PExportImport.svg";
     private const string PExportExportIcon = "/PAssets/PPanels/PExportExport.svg";
-    private const string PExportUserGroupPreference = "$User";
+    private const string PExportUserGroup = "$User";
     private const string PExportCheckIcon = "/PAssets/PPanels/PExportCheck.svg";
     private const string PExportCancelIcon = "/PAssets/PPanels/PExportCancel.svg";
     private const string PExportCollapseIcon = "/PAssets/PPanels/PExportCollapse.svg";
@@ -57,7 +57,7 @@ public sealed partial class PExport
                 {
                     pPresetRowPanel.Children.Add(PExportGroupBuild(
                         pGroupName,
-                        LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(pGroupName),
+                        LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName),
                         () => PExportGroupToggle(pGroupName)));
                     pNativeGroupCurrent = pGroupName;
                 }
@@ -65,8 +65,8 @@ public sealed partial class PExport
                 {
                     pPresetRowPanel.Children.Add(PExportGroupBuild(
                         LLocalization.LLocalizationTextRead("ExportPreset.Group.User"),
-                        LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(
-                            PExportUserGroupPreference,
+                        LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
+                            PExportUserGroup,
                             false),
                         PExportUserToggle));
                     pUserHeaderAdded = true;
@@ -74,9 +74,9 @@ public sealed partial class PExport
 
                 Border pRow = PExportRowBuild(lPresetName, lWorking);
                 bool pCollapsed = pPresetNative && pGroupName is not null
-                    ? LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(pGroupName)
-                    : LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(
-                        PExportUserGroupPreference,
+                    ? LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName)
+                    : LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
+                        PExportUserGroup,
                         false);
                 pRow.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
                 pPresetRowPanel.Children.Add(pRow);
@@ -223,17 +223,17 @@ public sealed partial class PExport
 
     private void PExportGroupToggle(string pGroupName)
     {
-        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(pGroupName);
-        LPreference.LPreferencePresetGroupFoldedSet(pGroupName, !pCollapsed);
+        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName);
+        LPreference.LPreferenceFoldSet(pGroupName, !pCollapsed);
         PExportPresetRebuild();
     }
 
     private void PExportUserToggle()
     {
-        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferencePresetGroupFoldedRead(
-            PExportUserGroupPreference,
+        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
+            PExportUserGroup,
             false);
-        LPreference.LPreferencePresetGroupFoldedSet(PExportUserGroupPreference, !pCollapsed, false);
+        LPreference.LPreferenceFoldSet(PExportUserGroup, !pCollapsed, false);
         PExportPresetRebuild();
     }
 
