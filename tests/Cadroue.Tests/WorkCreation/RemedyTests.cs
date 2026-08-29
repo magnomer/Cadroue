@@ -48,6 +48,22 @@ public sealed class RemedyTests
     }
 
     [Fact]
+    public void SecondaryComposes_AfterTimeline_BeforeReencode()
+    {
+        LDossier reencode = TInterface.DossierDefectCreate("bitstream", LDossierCategory.LDossierCategoryReencode);
+        LDossier secondary = TInterface.DossierDefectCreate("subtitle", LDossierCategory.LDossierCategorySecondary);
+        LDossier timeline = TInterface.DossierDefectCreate("timing", LDossierCategory.LDossierCategoryTimeline);
+
+        LRemedyPlan plan = TInterface.RemedyPlanCreate(new[] { reencode, secondary, timeline });
+
+        Assert.Collection(
+            plan.LRemedyActions,
+            first => Assert.Equal(LDossierCategory.LDossierCategoryTimeline, first.LRemedyCategory),
+            second => Assert.Equal(LDossierCategory.LDossierCategorySecondary, second.LRemedyCategory),
+            third => Assert.Equal(LDossierCategory.LDossierCategoryReencode, third.LRemedyCategory));
+    }
+
+    [Fact]
     public void SameCategory_OrdersByPreservationThenDefect()
     {
         LDossier lossy = TInterface.DossierDefectCreate(

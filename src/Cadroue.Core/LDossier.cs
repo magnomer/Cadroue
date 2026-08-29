@@ -30,6 +30,7 @@ public enum LDossierCategory
     LDossierCategoryPacket,
     LDossierCategoryConfig,
     LDossierCategoryTimeline,
+    LDossierCategorySecondary,
     LDossierCategorySelective,
     LDossierCategoryReencode
 }
