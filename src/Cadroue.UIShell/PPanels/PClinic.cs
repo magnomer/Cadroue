@@ -273,6 +273,11 @@ public sealed class PClinic : PPanel
     {
         pClinicSalvageShown = pStepName == "Salvage";
         pClinicSalvage.PClinicSalvageShow(pClinicSalvageShown);
+        if (pClinicSalvageShown)
+        {
+            pClinicSalvage.PClinicSalvageUpdate(
+                pClinicStates.Values.Any(pState => pState.Apply));
+        }
         pClinicPersistentRow.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
         if (pClinicSalvageShown)
         {

@@ -18,7 +18,7 @@ public sealed class SalvagePlanTests
     [Fact]
     public void EmptySpans_ProduceEmptyPlan()
     {
-        IReadOnlyList<LSalvageOutput> plan = LSalvage.LSalvagePlanCreate(
+        IReadOnlyList<LSalvageOutput> plan = TSalvage.PlanOutputs(
             Array.Empty<LSalvageSpan>(), LSalvageMode.LSalvageModeSeparate, SourcePath,
             WorkCreationOutput.Create(folder: @"C:\out"));
 
@@ -30,7 +30,7 @@ public sealed class SalvagePlanTests
     {
         var spans = new[] { Span(0, 10), Span(20, 30), Span(40, 55) };
 
-        IReadOnlyList<LSalvageOutput> plan = LSalvage.LSalvagePlanCreate(
+        IReadOnlyList<LSalvageOutput> plan = TSalvage.PlanOutputs(
             spans, LSalvageMode.LSalvageModeRejoin, SourcePath,
             WorkCreationOutput.Create(folder: @"C:\out"));
 
@@ -45,7 +45,7 @@ public sealed class SalvagePlanTests
     {
         var spans = new[] { Span(5, 25) };
 
-        IReadOnlyList<LSalvageOutput> plan = LSalvage.LSalvagePlanCreate(
+        IReadOnlyList<LSalvageOutput> plan = TSalvage.PlanOutputs(
             spans, LSalvageMode.LSalvageModeSeparate, SourcePath,
             WorkCreationOutput.Create(folder: @"C:\out"));
 
@@ -59,7 +59,7 @@ public sealed class SalvagePlanTests
     {
         var spans = new[] { Span(0, 10), Span(20, 30), Span(40, 50) };
 
-        IReadOnlyList<LSalvageOutput> plan = LSalvage.LSalvagePlanCreate(
+        IReadOnlyList<LSalvageOutput> plan = TSalvage.PlanOutputs(
             spans, LSalvageMode.LSalvageModeSeparate, SourcePath,
             WorkCreationOutput.Create(pattern: "{OriginalName}", folder: @"C:\out"));
 
@@ -75,7 +75,7 @@ public sealed class SalvagePlanTests
     {
         var spans = new[] { Span(0, 10), Span(20, 30) };
 
-        IReadOnlyList<LSalvageOutput> plan = LSalvage.LSalvagePlanCreate(
+        IReadOnlyList<LSalvageOutput> plan = TSalvage.PlanOutputs(
             spans, LSalvageMode.LSalvageModeSeparate, SourcePath,
             WorkCreationOutput.Create(pattern: "{OriginalName}-{SectionNumber}", folder: @"C:\out"));
 
@@ -89,7 +89,7 @@ public sealed class SalvagePlanTests
     {
         var spans = new[] { Span(0, 10), Span(20, 30) };
 
-        IReadOnlyList<LSalvageOutput> plan = LSalvage.LSalvagePlanCreate(
+        IReadOnlyList<LSalvageOutput> plan = TSalvage.PlanOutputs(
             spans, LSalvageMode.LSalvageModeSeparate, SourcePath,
             WorkCreationOutput.Create(pattern: "{SectionName}", folder: @"C:\out"));
 
@@ -102,7 +102,7 @@ public sealed class SalvagePlanTests
     {
         var spans = new[] { Span(0, 30) };
 
-        IReadOnlyList<LSalvageOutput> plan = LSalvage.LSalvagePlanCreate(
+        IReadOnlyList<LSalvageOutput> plan = TSalvage.PlanOutputs(
             spans, LSalvageMode.LSalvageModeRejoin, SourcePath,
             WorkCreationOutput.Create(pattern: "{OriginalName}"));
 

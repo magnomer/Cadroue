@@ -9,12 +9,14 @@ public sealed class FixSalvageTests
     [Fact]
     public void Salvage_RoundTripsThroughSidecarRecord()
     {
-        LWorkFix plan = TSalvage.PlanCreate(true, LSalvageMode.LSalvageModeSeparate, true);
+        LWorkFix plan = TSalvage.PlanCreate(
+            true, LSalvageMode.LSalvageModeSeparate, true, LSalvageBasis.LSalvageBasisFixed);
 
         LWorkFix restored = TSalvage.PersistentRoundTrip(plan);
 
         Assert.True(restored.LWorkFixSalvage.LWorkSalvageActive);
         Assert.Equal(LSalvageMode.LSalvageModeSeparate, restored.LWorkFixSalvage.LWorkSalvageMode);
+        Assert.Equal(LSalvageBasis.LSalvageBasisFixed, restored.LWorkFixSalvage.LWorkSalvageBasis);
         Assert.True(restored.LWorkFixSalvage.LWorkSalvagePersistent);
     }
 
@@ -25,6 +27,7 @@ public sealed class FixSalvageTests
 
         Assert.False(plan.LWorkFixSalvage.LWorkSalvageActive);
         Assert.Equal(LSalvageMode.LSalvageModeRejoin, plan.LWorkFixSalvage.LWorkSalvageMode);
+        Assert.Equal(LSalvageBasis.LSalvageBasisSource, plan.LWorkFixSalvage.LWorkSalvageBasis);
         Assert.False(plan.LWorkFixActive);
     }
 

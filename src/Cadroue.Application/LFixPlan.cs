@@ -12,6 +12,7 @@ public static partial class LFix
         LSidecarSteps = lFixPlan.LWorkFixSteps.Select(LFixRecordCreate).ToList(),
         LSidecarSalvageActive = lFixPlan.LWorkFixSalvage.LWorkSalvageActive,
         LSidecarSalvageMode = LFixSalvageFormat(lFixPlan.LWorkFixSalvage.LWorkSalvageMode),
+        LSidecarSalvageBasis = LFixBasisFormat(lFixPlan.LWorkFixSalvage.LWorkSalvageBasis),
         LSidecarSalvagePersistent = lFixPlan.LWorkFixSalvage.LWorkSalvagePersistent
     };
 
@@ -21,6 +22,7 @@ public static partial class LFix
             LWorkFixSalvage = new LWorkFixSalvage(
                 lFixRecord.LSidecarSalvageActive,
                 LFixSalvageCreate(lFixRecord.LSidecarSalvageMode),
+                LFixBasisCreate(lFixRecord.LSidecarSalvageBasis),
                 lFixRecord.LSidecarSalvagePersistent)
         };
 
@@ -122,6 +124,12 @@ public static partial class LFix
 
     private static LSalvageMode LFixSalvageCreate(string lFixMode) =>
         lFixMode == "Separate" ? LSalvageMode.LSalvageModeSeparate : LSalvageMode.LSalvageModeRejoin;
+
+    private static string LFixBasisFormat(LSalvageBasis lFixBasis) =>
+        lFixBasis == LSalvageBasis.LSalvageBasisFixed ? "Fixed" : "Source";
+
+    private static LSalvageBasis LFixBasisCreate(string lFixBasis) =>
+        lFixBasis == "Fixed" ? LSalvageBasis.LSalvageBasisFixed : LSalvageBasis.LSalvageBasisSource;
 
     private static LFlawKind LFixKindCreate(string lFixKind) => lFixKind switch
     {

@@ -8,6 +8,12 @@ public enum LSalvageMode
     LSalvageModeSeparate
 }
 
+public enum LSalvageBasis
+{
+    LSalvageBasisSource,
+    LSalvageBasisFixed
+}
+
 public readonly record struct LSalvageSpan(TimeSpan LSalvageSpanOrigin, TimeSpan LSalvageSpanLimit);
 
 public sealed record LSalvageOutput(string LSalvageOutputName, LSalvageSpan LSalvageOutputSpan);

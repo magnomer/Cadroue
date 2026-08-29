@@ -22,24 +22,41 @@ internal sealed partial class LJob
 
         (int pFixExit, string pFixError) = await LJobPassRun().ConfigureAwait(false);
 
-        // Salvage is the last pass, run from the original source regardless of the
-        // in-place repair's outcome: it harvests the readable spans and extracts each
-        // as a valid standalone file, failing safe so nothing partial is left behind.
-        // The recovered paths are held for the terminal outcome to record as delivered
-        // derived outputs (LJobSalvageRecord).
+        // Salvage is the last pass: it harvests the readable spans and extracts each as a
+        // valid standalone file, failing safe so nothing partial is left behind. The
+        // recovered paths are held for the terminal outcome to record as delivered derived
+        // outputs (LJobSalvageRecord). What it reads and whether it runs depend on the plan:
+        //   - No repair step selected: salvage is the only work, always run from the source.
+        //   - From source: recover from the original source, but only when the repair did not
+        //     fully succeed (any state other than Done counts as failed).
+        //   - From fixed result: always recover, reading the repaired output (falling back to
+        //     the source when the repair produced no output).
         LWorkFixSalvage pSalvage = lJobItem.LWorkFixPlan.LWorkFixSalvage;
         if (pSalvage.LWorkSalvageActive)
         {
             lJobToken.ThrowIfCancellationRequested();
-            IReadOnlyList<LSalvageSpan> pSpans =
-                await LSalvageScan.LSalvageScanRun(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
-            IReadOnlyList<string> pSalvaged =
-                await LSalvageExtract.LSalvageExtractRun(lJobItem, pSpans, lJobToken).ConfigureAwait(false);
-            if (pSalvaged.Count > 0)
+            bool pHasRepair = lJobItem.LWorkFixPlan.LWorkFixSteps.Any(pStep => pStep.LWorkFixRepair);
+            LSalvageBasis pBasis = pHasRepair
+                ? pSalvage.LWorkSalvageBasis
+                : LSalvageBasis.LSalvageBasisSource;
+            bool pFromFixed = pBasis == LSalvageBasis.LSalvageBasisFixed;
+            bool pRun = !pHasRepair || pFromFixed || lJobValidateState != LWorkState.LWorkStateDone;
+            if (pRun)
             {
-                lJobSalvaged = pSalvaged;
-                LRunner.LRunnerRecord(
-                    $"Salvage recovered {pSalvaged.Count} output(s) for '{lJobItem.LWorkOutputName}' from the original source");
+                string pInput = pFromFixed && File.Exists(lJobItem.LWorkOutputPath)
+                    ? lJobItem.LWorkOutputPath
+                    : lJobItem.LWorkSourcePath;
+                IReadOnlyList<LSalvageSpan> pSpans =
+                    await LSalvageScan.LSalvageScanRun(pInput, lJobToken).ConfigureAwait(false);
+                IReadOnlyList<string> pSalvaged =
+                    await LSalvageExtract.LSalvageExtractRun(lJobItem, pInput, pSpans, lJobToken).ConfigureAwait(false);
+                if (pSalvaged.Count > 0)
+                {
+                    lJobSalvaged = pSalvaged;
+                    string pFrom = pInput == lJobItem.LWorkOutputPath ? "repaired result" : "original source";
+                    LRunner.LRunnerRecord(
+                        $"Salvage recovered {pSalvaged.Count} output(s) for '{lJobItem.LWorkOutputName}' from the {pFrom}");
+                }
             }
         }
 

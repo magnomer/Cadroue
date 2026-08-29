@@ -11,6 +11,7 @@ internal static class LSalvageExtract
 {
     internal static async Task<IReadOnlyList<string>> LSalvageExtractRun(
         LWorkItem lSalvageItem,
+        string lSalvageInputPath,
         IReadOnlyList<LSalvageSpan> lSalvageSpans,
         CancellationToken lSalvageToken)
     {
@@ -36,7 +37,7 @@ internal static class LSalvageExtract
             lSalvageToken.ThrowIfCancellationRequested();
             string lSalvagePath = Path.Combine(lSalvageFolder, lSalvageOutput.LSalvageOutputName);
             if (await LSalvageEntryRun(
-                lSalvageItem.LWorkSourcePath, lSalvagePath, lSalvageOutput.LSalvageOutputSpan, lSalvageToken)
+                lSalvageInputPath, lSalvagePath, lSalvageOutput.LSalvageOutputSpan, lSalvageToken)
                 .ConfigureAwait(false))
             {
                 lSalvageDelivered.Add(lSalvagePath);

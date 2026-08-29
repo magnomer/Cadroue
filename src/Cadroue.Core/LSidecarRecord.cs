@@ -130,6 +130,7 @@ public sealed class LSidecarFixRecord
     public List<LSidecarFixStep> LSidecarSteps { get; set; } = new();
     public bool LSidecarSalvageActive { get; set; }
     public string LSidecarSalvageMode { get; set; } = "Rejoin";
+    public string LSidecarSalvageBasis { get; set; } = "Source";
     public bool LSidecarSalvagePersistent { get; set; }
 
     public bool LSidecarFixActive =>

@@ -8,10 +8,13 @@ public sealed record LWorkFixStep(
     LFlawKind LWorkFixKind, bool LWorkFixRepair, bool LWorkFixDiagnosis, bool LWorkFixPersistent);
 
 public sealed record LWorkFixSalvage(
-    bool LWorkSalvageActive, LSalvageMode LWorkSalvageMode, bool LWorkSalvagePersistent)
+    bool LWorkSalvageActive,
+    LSalvageMode LWorkSalvageMode,
+    LSalvageBasis LWorkSalvageBasis,
+    bool LWorkSalvagePersistent)
 {
     public static LWorkFixSalvage LWorkSalvageCreate() =>
-        new(false, LSalvageMode.LSalvageModeRejoin, false);
+        new(false, LSalvageMode.LSalvageModeRejoin, LSalvageBasis.LSalvageBasisSource, false);
 }
 
 public sealed record LWorkFix(IReadOnlyList<LWorkFixStep> LWorkFixSteps)

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Cadroue.Application;
 using Cadroue.Core;
 
@@ -5,10 +7,18 @@ namespace Cadroue.Tests;
 
 internal static class TSalvage
 {
-    internal static LWorkFix PlanCreate(bool active, LSalvageMode mode, bool persistent) =>
+    internal static IReadOnlyList<LSalvageOutput> PlanOutputs(
+        IReadOnlyList<LSalvageSpan> spans, LSalvageMode mode, string source, LEncoding output) =>
+        LSalvage.LSalvagePlanCreate(spans, mode, source, output);
+
+    internal static LWorkFix PlanCreate(
+        bool active,
+        LSalvageMode mode,
+        bool persistent,
+        LSalvageBasis basis = LSalvageBasis.LSalvageBasisSource) =>
         new(Array.Empty<LWorkFixStep>())
         {
-            LWorkFixSalvage = new LWorkFixSalvage(active, mode, persistent)
+            LWorkFixSalvage = new LWorkFixSalvage(active, mode, basis, persistent)
         };
 
     internal static LWorkFix DefaultCreate() => LWorkFix.LWorkFixCreate();
