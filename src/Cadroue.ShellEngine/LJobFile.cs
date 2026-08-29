@@ -91,6 +91,11 @@ internal sealed partial class LJob
             lJobValidateState = LWorkState.LWorkStateUnresolved;
             lJobValidateMessage = "Validation: the repaired output could not be re-probed; the defect is still present.";
         }
+        else if (lJobItem.LWorkSourceMedia is { LWorkMediaVideo: true } && !pOutputMedia.LWorkMediaVideo)
+        {
+            lJobValidateState = LWorkState.LWorkStateBlocked;
+            lJobValidateMessage = "Validation: the repaired output has no principal video content; recovery is blocked.";
+        }
         else if (!await LScout.LScoutDecodeCheck(lJobOwner, pOutput, lJobToken).ConfigureAwait(false))
         {
             lJobValidateState = LWorkState.LWorkStatePartial;

@@ -44,6 +44,9 @@ internal static class TInterface
     internal static LDossier? FlawSecondaryResolve(string streamReport, string chapterReport, string secondaryError) =>
         LFlawSecondary.LFlawSecondaryResolve(streamReport, chapterReport, secondaryError);
 
+    internal static LDossier? FlawCodedResolve(string decodeError) =>
+        LFlawCoded.LFlawCodedResolve(decodeError);
+
     internal static LDossier DossierDefectCreate(
         string defect,
         LDossierCategory category,

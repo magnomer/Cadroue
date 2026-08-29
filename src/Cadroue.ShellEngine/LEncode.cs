@@ -42,11 +42,14 @@ public static partial class LEncode
 
             foreach (LRemedyAction lFixAction in lFixPlan.LRemedyActions)
             {
-                lFixStages.Add(new LEncodeStage(
-                    LEncodeRemedyBuild(
+                string lFixArguments = lFixAction.LRemedyCategory == LDossierCategory.LDossierCategoryReencode
+                    ? LEncodeRecoverBuild(lWorkItem)
+                    : LEncodeRemedyBuild(
                         lFixAction.LRemedyCategory,
                         lWorkItem.LWorkOutputPath,
-                        lFixAction.LRemedyDossier.LDossierRepairArgument),
+                        lFixAction.LRemedyDossier.LDossierRepairArgument);
+                lFixStages.Add(new LEncodeStage(
+                    lFixArguments,
                     LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false,
                     LEncodeStageInput: lFixAction.LRemedyDossier.LDossierRepairInput));
             }
@@ -118,14 +121,25 @@ public static partial class LEncode
         return lArguments.ToString();
     }
 
+    internal static string LEncodeRecoverBuild(LWorkItem lWorkItem)
+    {
+        // Last-resort coded recovery: decode the damaged principal video and
+        // re-encode it in its own source codec family, keeping the output close
+        // to the original. Healthy companion streams are copied, never re-encoded.
+        // The demuxer-side discard/genpts flags travel through LDossierRepairInput.
+        string lRecoverEncoder =
+            LRepertoireCatalog.LRepertoireEncoderResolve(lWorkItem.LWorkSourceMedia?.LWorkMediaCodec)
+            ?? "libx264";
+        string lRecoverExtension = Path.GetExtension(lWorkItem.LWorkOutputPath).TrimStart('.').ToLowerInvariant();
+        string lRecoverFlags = lRecoverExtension is "mp4" or "m4v" or "m4a" or "mov"
+            ? " -movflags +faststart"
+            : string.Empty;
+        return $"-map 0 -c copy -c:v {lRecoverEncoder} -fps_mode passthrough{lRecoverFlags}";
+    }
+
     internal static string LEncodeRemedyBuild(
         LDossierCategory lRemedyCategory, string lRemedyOutputPath, string? lRemedyArgument = null)
     {
-        if (lRemedyCategory == LDossierCategory.LDossierCategoryReencode)
-        {
-            return "-map 0";
-        }
-
         if (lRemedyCategory == LDossierCategory.LDossierCategoryTransport)
         {
             return "-map 0 -c copy -f mpegts";
