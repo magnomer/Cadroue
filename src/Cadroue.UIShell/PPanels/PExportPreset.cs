@@ -250,7 +250,33 @@ public sealed partial class PExport
     private void PExportPresetSelect(string lPresetName)
     {
         pPresetNameSelected = lPresetName;
+        PExportGroupExpand(lPresetName);
         lPresetOwner.LPresetSelectionSelect(lPresetName);
+    }
+
+    private void PExportGroupExpand(string lPresetName)
+    {
+        if (LPreset.LPresetNativeCheck(lPresetName))
+        {
+            if (LPreset.LPresetGroupRead(lPresetName) is not string pGroupName
+                || !LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName))
+            {
+                return;
+            }
+
+            LPreference.LPreferenceFoldSet(pGroupName, false);
+        }
+        else
+        {
+            if (!LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(PExportUserGroup, false))
+            {
+                return;
+            }
+
+            LPreference.LPreferenceFoldSet(PExportUserGroup, false, false);
+        }
+
+        PExportPresetRebuild();
     }
 
     private UIElement PExportDisplayBuild(string lPresetName, bool pPresetModified)
