@@ -48,37 +48,42 @@ internal static class LFlawScan
                 lFlawToken);
 
             var lFlawDossiers = new List<LDossier>();
-            if (LFlaw.LFlawContainerResolve(lFlawProbeError, lFlawCopyError) is { } lFlawContainer)
+            if (LFlawMux.LFlawContainerResolve(lFlawProbeError, lFlawCopyError) is { } lFlawContainer)
             {
                 lFlawDossiers.Add(lFlawContainer);
             }
 
-            if (LFlaw.LFlawTransportResolve(lFlawMetaReport, lFlawCopyError) is { } lFlawTransport)
+            if (LFlawMux.LFlawTruncationResolve(lFlawProbeError, lFlawCopyError) is { } lFlawTruncation)
+            {
+                lFlawDossiers.Add(lFlawTruncation);
+            }
+
+            if (LFlawMux.LFlawTransportResolve(lFlawMetaReport, lFlawCopyError) is { } lFlawTransport)
             {
                 lFlawDossiers.Add(lFlawTransport);
             }
 
-            if (LFlaw.LFlawMetadataResolve(lFlawMetaReport) is { } lFlawMetadata)
+            if (LFlawMux.LFlawMetadataResolve(lFlawMetaReport) is { } lFlawMetadata)
             {
                 lFlawDossiers.Add(lFlawMetadata);
             }
 
-            if (LFlaw.LFlawIndexResolve(lFlawCopyError, lFlawIgnidxError, lFlawSeekError) is { } lFlawIndex)
+            if (LFlawMux.LFlawIndexResolve(lFlawCopyError, lFlawIgnidxError, lFlawSeekError) is { } lFlawIndex)
             {
                 lFlawDossiers.Add(lFlawIndex);
             }
 
-            if (LFlaw.LFlawFramingResolve(lFlawCopyError, lFlawMetaReport) is { } lFlawFraming)
+            if (LFlawStream.LFlawFramingResolve(lFlawCopyError, lFlawMetaReport) is { } lFlawFraming)
             {
                 lFlawDossiers.Add(lFlawFraming);
             }
 
-            if (LFlaw.LFlawConfigResolve(lFlawMetaReport, lFlawDecodeError) is { } lFlawConfig)
+            if (LFlawStream.LFlawConfigResolve(lFlawMetaReport, lFlawDecodeError) is { } lFlawConfig)
             {
                 lFlawDossiers.Add(lFlawConfig);
             }
 
-            if (LFlaw.LFlawTimingResolve(lFlawPacketReport) is { } lFlawTiming)
+            if (LFlawStream.LFlawTimingResolve(lFlawPacketReport) is { } lFlawTiming)
             {
                 lFlawDossiers.Add(lFlawTiming);
             }

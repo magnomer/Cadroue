@@ -23,6 +23,7 @@ public enum LDossierCategory
 {
     LDossierCategoryExact,
     LDossierCategoryContainer,
+    LDossierCategoryTruncation,
     LDossierCategoryTransport,
     LDossierCategoryMetadata,
     LDossierCategoryIndex,

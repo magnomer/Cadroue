@@ -18,25 +18,28 @@ internal static class TInterface
         LRemedy.LRemedyPlanCreate(dossiers);
 
     internal static LDossier? FlawContainerResolve(string probeError, string copyError) =>
-        LFlaw.LFlawContainerResolve(probeError, copyError);
+        LFlawMux.LFlawContainerResolve(probeError, copyError);
 
     internal static LDossier? FlawTransportResolve(string probeReport, string copyError) =>
-        LFlaw.LFlawTransportResolve(probeReport, copyError);
+        LFlawMux.LFlawTransportResolve(probeReport, copyError);
+
+    internal static LDossier? FlawTruncationResolve(string probeError, string copyError) =>
+        LFlawMux.LFlawTruncationResolve(probeError, copyError);
 
     internal static LDossier? FlawMetadataResolve(string probeReport) =>
-        LFlaw.LFlawMetadataResolve(probeReport);
+        LFlawMux.LFlawMetadataResolve(probeReport);
 
     internal static LDossier? FlawIndexResolve(string indexedError, string ignidxError, string seekError) =>
-        LFlaw.LFlawIndexResolve(indexedError, ignidxError, seekError);
+        LFlawMux.LFlawIndexResolve(indexedError, ignidxError, seekError);
 
     internal static LDossier? FlawFramingResolve(string copyError, string probeReport) =>
-        LFlaw.LFlawFramingResolve(copyError, probeReport);
+        LFlawStream.LFlawFramingResolve(copyError, probeReport);
 
     internal static LDossier? FlawConfigResolve(string probeReport, string decodeError) =>
-        LFlaw.LFlawConfigResolve(probeReport, decodeError);
+        LFlawStream.LFlawConfigResolve(probeReport, decodeError);
 
     internal static LDossier? FlawTimingResolve(string packetReport) =>
-        LFlaw.LFlawTimingResolve(packetReport);
+        LFlawStream.LFlawTimingResolve(packetReport);
 
     internal static LDossier DossierDefectCreate(
         string defect,
