@@ -1,5 +1,3 @@
-using Cadroue.ShellEngine;
-
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -16,41 +14,21 @@ public sealed class AutopsyResolveTests
             ["-22.action"] = "Review the encoding settings for this job.",
         };
 
-        LAutopsyProseReader? lPrevious = LAutopsy.LAutopsyProse;
-        try
-        {
-            LAutopsy.LAutopsyProse = (string lKey, out string lValue) => lProse.TryGetValue(lKey, out lValue!);
+        (string Simple, string Technical, string? Action) lResult = TAutopsy.ResolveWithProse(-22, lProse);
 
-            LAutopsyResult lResult = LAutopsy.LAutopsyResolve(-22, string.Empty);
-
-            Assert.Equal("One of the settings for this job is invalid.", lResult.LAutopsyResultSimple);
-            Assert.Equal("AVERROR(EINVAL). Configuration error.", lResult.LAutopsyResultTechnical);
-            Assert.Equal("Review the encoding settings for this job.", lResult.LAutopsyResultAction);
-        }
-        finally
-        {
-            LAutopsy.LAutopsyProse = lPrevious;
-        }
+        Assert.Equal("One of the settings for this job is invalid.", lResult.Simple);
+        Assert.Equal("AVERROR(EINVAL). Configuration error.", lResult.Technical);
+        Assert.Equal("Review the encoding settings for this job.", lResult.Action);
     }
 
     [Fact]
     public void Resolve_NoProseReader_YieldsEmptyProse()
     {
-        LAutopsyProseReader? lPrevious = LAutopsy.LAutopsyProse;
-        try
-        {
-            LAutopsy.LAutopsyProse = null;
+        (string Simple, string Technical, string? Action) lResult = TAutopsy.ResolveWithoutProse(-22);
 
-            LAutopsyResult lResult = LAutopsy.LAutopsyResolve(-22, string.Empty);
-
-            Assert.Equal(string.Empty, lResult.LAutopsyResultSimple);
-            Assert.Equal(string.Empty, lResult.LAutopsyResultTechnical);
-            Assert.Null(lResult.LAutopsyResultAction);
-        }
-        finally
-        {
-            LAutopsy.LAutopsyProse = lPrevious;
-        }
+        Assert.Equal(string.Empty, lResult.Simple);
+        Assert.Equal(string.Empty, lResult.Technical);
+        Assert.Null(lResult.Action);
     }
 
     [Fact]

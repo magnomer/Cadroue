@@ -244,19 +244,9 @@ internal sealed partial class LJob
                     : $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': the item has edits or an fps change; encoding the full requested interval");
         }
 
-        if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix && lJobItem.LWorkDossiers.Count == 0)
+        if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix)
         {
-            IReadOnlyList<LDossier>? lJobCached = LCheckup.LCheckupCachedRead(lJobItem.LWorkSourcePath);
-            if (lJobCached is not null)
-            {
-                lJobItem.LWorkDossiers = lJobCached;
-            }
-            else
-            {
-                IReadOnlyList<LDossier> lJobScanned = LFlawScan.LFlawScanRun(lJobItem, lJobToken);
-                LCheckup.LCheckupCachedSave(lJobItem.LWorkSourcePath, lJobScanned);
-                lJobItem.LWorkDossiers = lJobScanned;
-            }
+            return await LJobFixRun().ConfigureAwait(false);
         }
 
         IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);

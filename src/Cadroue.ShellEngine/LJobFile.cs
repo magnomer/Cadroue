@@ -3,11 +3,95 @@ using System.Linq;
 
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
 internal sealed partial class LJob
 {
+    // Total Fix repair passes over one source: the initial pass plus recompose passes.
+    // A repair can resolve a defect a lower-precedence repair was also going to address,
+    // or expose one the first scan could not see past the first defect. So after each
+    // pass the output is re-scanned and the still-warranted repairs are recomposed and
+    // run again — bounded here so a defect that never clears cannot loop forever.
+    private const int LJobFixPassMax = 2;
+
+    private async Task<(int, string)> LJobFixRun()
+    {
+        LJobFixDossiersEnsure();
+
+        IReadOnlyList<LDossier> pRepairable =
+            LFix.LFixRepairResolve(lJobItem.LWorkDossiers, lJobItem.LWorkFixPlan);
+        int pExit = 0;
+        string pError = string.Empty;
+        HashSet<LFlawKind>? pPrevRemaining = null;
+
+        for (int pPass = 0; ; pPass++)
+        {
+            IReadOnlyList<LEncodeStage> pStages =
+                LEncode.LEncodeFixStagesBuild(lJobItem, pRepairable, pPass == 0);
+            (pExit, pError) = await LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
+            if (pExit != 0)
+            {
+                return (pExit, pError);
+            }
+
+            // Validation cleared the file, or the pass budget is spent: stop here and let
+            // the final validation state stand as this job's outcome.
+            if (lJobValidateState == LWorkState.LWorkStateDone || pPass + 1 >= LJobFixPassMax)
+            {
+                break;
+            }
+
+            // Re-scan the repaired output and keep only the correctable repairs the user
+            // asked for; a report-only FFV1 dossier is never re-run.
+            IReadOnlyList<LDossier> pRescan =
+                LFlawScan.LFlawScanRun(lJobItem.LWorkOutputPath, Array.Empty<LFlawKind>(), lJobToken);
+            var pRemaining = LFix.LFixRepairResolve(pRescan, lJobItem.LWorkFixPlan)
+                .Where(pDossier => pDossier.LDossierRepair != LFlawFfvone.LFlawReport)
+                .ToList();
+            if (pRemaining.Count == 0)
+            {
+                break;
+            }
+
+            // Only recompose when the correctable set actually changed; an unchanged set
+            // would repeat the same repairs to the same effect and never converge.
+            var pRemainingKinds = pRemaining.Select(pDossier => pDossier.LDossierKind).ToHashSet();
+            if (pPrevRemaining is not null && pRemainingKinds.SetEquals(pPrevRemaining))
+            {
+                break;
+            }
+
+            LRunner.LRunnerRecord(
+                $"Fix recompose for '{lJobItem.LWorkOutputName}': " +
+                $"{pRemaining.Count} defect(s) still present after pass {pPass + 1}; repairing again");
+            pPrevRemaining = pRemainingKinds;
+            pRepairable = pRemaining;
+        }
+
+        return (pExit, pError);
+    }
+
+    private void LJobFixDossiersEnsure()
+    {
+        if (lJobItem.LWorkDossiers.Count > 0)
+        {
+            return;
+        }
+
+        IReadOnlyList<LDossier>? pCached = LCheckup.LCheckupCachedRead(lJobItem.LWorkSourcePath);
+        if (pCached is not null)
+        {
+            lJobItem.LWorkDossiers = pCached;
+            return;
+        }
+
+        IReadOnlyList<LDossier> pScanned = LFlawScan.LFlawScanRun(lJobItem, lJobToken);
+        LCheckup.LCheckupCachedSave(lJobItem.LWorkSourcePath, pScanned);
+        lJobItem.LWorkDossiers = pScanned;
+    }
+
     private (int, string) LJobCopyRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
     {
         string pSource = pStage.LEncodeStageArguments;

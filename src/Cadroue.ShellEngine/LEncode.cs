@@ -36,37 +36,7 @@ public static partial class LEncode
         {
             IReadOnlyList<LDossier> lFixRepairable =
                 LFix.LFixRepairResolve(lWorkItem.LWorkDossiers, lWorkItem.LWorkFixPlan);
-            LRemedyPlan lFixPlan = LRemedy.LRemedyPlanCreate(lFixRepairable);
-            var lFixStages = new List<LEncodeStage>
-            {
-                new(lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageDuplicate, "Copying", lWorkItem.LWorkOutputPath, false)
-            };
-
-            foreach (LRemedyAction lFixAction in lFixPlan.LRemedyActions)
-            {
-                // A report-only dossier (FFV1 integrity) is detection-only: no ffmpeg
-                // stage can correct a slice-CRC mismatch. It is copied unchanged and
-                // surfaced as Unresolved at validation, never re-encoded here.
-                if (lFixAction.LRemedyDossier.LDossierRepair == LFlawFfvone.LFlawReport)
-                {
-                    continue;
-                }
-
-                string lFixArguments = lFixAction.LRemedyCategory == LDossierCategory.LDossierCategoryReencode
-                    ? LEncodeRecoverBuild(lWorkItem)
-                    : LEncodeRemedyBuild(
-                        lFixAction.LRemedyCategory,
-                        lWorkItem.LWorkOutputPath,
-                        lFixAction.LRemedyDossier.LDossierRepairArgument);
-                lFixStages.Add(new LEncodeStage(
-                    lFixArguments,
-                    LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false,
-                    LEncodeStageInput: lFixAction.LRemedyDossier.LDossierRepairInput));
-            }
-
-            lFixStages.Add(new LEncodeStage(
-                lWorkItem.LWorkOutputPath, LWorkStage.LWorkStageVerify, "Validating", lWorkItem.LWorkOutputPath, false));
-            return lFixStages;
+            return LEncodeFixStagesBuild(lWorkItem, lFixRepairable, true);
         }
 
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindAudio)
@@ -78,6 +48,49 @@ public static partial class LEncode
         {
             new LEncodeStage(LEncodeArgumentBuild(lWorkItem), LWorkStage.LWorkStageEncode, "Encoding", lWorkItem.LWorkOutputPath, false)
         };
+    }
+
+    // One Fix repair pass: an optional source-to-output copy (first pass only; later
+    // recompose passes repair the output in place), the precedence-ordered repair
+    // stages for the given correctable dossiers, and the closing validation. The
+    // dossier set is supplied so a recompose pass can rebuild over only what a fresh
+    // scan of the output found still warranted.
+    public static IReadOnlyList<LEncodeStage> LEncodeFixStagesBuild(
+        LWorkItem lWorkItem, IReadOnlyList<LDossier> lFixRepairable, bool lFixCopy)
+    {
+        var lFixStages = new List<LEncodeStage>();
+        if (lFixCopy)
+        {
+            lFixStages.Add(new LEncodeStage(
+                lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageDuplicate, "Copying", lWorkItem.LWorkOutputPath, false));
+        }
+
+        LRemedyPlan lFixPlan = LRemedy.LRemedyPlanCreate(lFixRepairable);
+        foreach (LRemedyAction lFixAction in lFixPlan.LRemedyActions)
+        {
+            // A report-only dossier (FFV1 integrity) is detection-only: no ffmpeg
+            // stage can correct a slice-CRC mismatch. It is copied unchanged and
+            // surfaced as Unresolved at validation, never re-encoded here.
+            if (lFixAction.LRemedyDossier.LDossierRepair == LFlawFfvone.LFlawReport)
+            {
+                continue;
+            }
+
+            string lFixArguments = lFixAction.LRemedyCategory == LDossierCategory.LDossierCategoryReencode
+                ? LEncodeRecoverBuild(lWorkItem)
+                : LEncodeRemedyBuild(
+                    lFixAction.LRemedyCategory,
+                    lWorkItem.LWorkOutputPath,
+                    lFixAction.LRemedyDossier.LDossierRepairArgument);
+            lFixStages.Add(new LEncodeStage(
+                lFixArguments,
+                LWorkStage.LWorkStageRepair, "Repairing", lWorkItem.LWorkOutputPath, false,
+                LEncodeStageInput: lFixAction.LRemedyDossier.LDossierRepairInput));
+        }
+
+        lFixStages.Add(new LEncodeStage(
+            lWorkItem.LWorkOutputPath, LWorkStage.LWorkStageVerify, "Validating", lWorkItem.LWorkOutputPath, false));
+        return lFixStages;
     }
 
     internal static string LEncodeArgumentBuild(LWorkItem lWorkItem, string? lOutputArguments = null)
