@@ -181,6 +181,7 @@ internal sealed partial class LJob
                     : pFailureMessage;
 
                 lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, pSucceeded, lJobItem.LWorkMessage);
+                LJobSalvageRecord();
                 lJobOwner.lRunnerSchedule.LScheduleLoad();
             });
 

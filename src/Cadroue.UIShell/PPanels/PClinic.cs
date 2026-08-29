@@ -280,7 +280,9 @@ public sealed class PClinic : PPanel
             pClinicToggleRow.IsEnabled = false;
             pClinicToggleRow.Visibility = Visibility.Collapsed;
             pClinicEmptyNotice.Visibility = Visibility.Collapsed;
-            pClinicItemBody.Visibility = Visibility.Collapsed;
+            pClinicItemSimple.Text = LLocalization.LLocalizationTextRead("Clinic.Step.Salvage.Simple");
+            pClinicItemTechnical.Text = LLocalization.LLocalizationTextRead("Clinic.Step.Salvage.Technical");
+            pClinicItemBody.Visibility = Visibility.Visible;
             pClinicResultBody.Visibility = Visibility.Collapsed;
             pClinicTitleLabel.Text = LLocalization.LLocalizationTextRead("Processing.Step.Salvage");
             return;

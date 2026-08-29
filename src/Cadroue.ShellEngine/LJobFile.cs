@@ -24,8 +24,9 @@ internal sealed partial class LJob
 
         // Salvage is the last pass, run from the original source regardless of the
         // in-place repair's outcome: it harvests the readable spans and extracts each
-        // as a valid standalone file. Reporting the recovered outputs is wired later;
-        // this pass only produces them, failing safe so nothing partial is left behind.
+        // as a valid standalone file, failing safe so nothing partial is left behind.
+        // The recovered paths are held for the terminal outcome to record as delivered
+        // derived outputs (LJobSalvageRecord).
         LWorkFixSalvage pSalvage = lJobItem.LWorkFixPlan.LWorkFixSalvage;
         if (pSalvage.LWorkSalvageActive)
         {
@@ -36,6 +37,7 @@ internal sealed partial class LJob
                 await LSalvageExtract.LSalvageExtractRun(lJobItem, pSpans, lJobToken).ConfigureAwait(false);
             if (pSalvaged.Count > 0)
             {
+                lJobSalvaged = pSalvaged;
                 LRunner.LRunnerRecord(
                     $"Salvage recovered {pSalvaged.Count} output(s) for '{lJobItem.LWorkOutputName}' from the original source");
             }

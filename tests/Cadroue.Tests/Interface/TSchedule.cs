@@ -94,6 +94,34 @@ internal sealed class TSchedule : IDisposable
     internal int Submit(params TScheduleWork[] work) =>
         tSchedule.LScheduleAdd(work.Select(item => item.WorkItem).ToArray());
 
+    internal TScheduleWork WorkCreateDerived(TScheduleWork origin, string name)
+    {
+        DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
+        var derived = new LWorkItem(
+            origin.BatchId,
+            LWorkKind.LWorkKindFix,
+            LWorkPriority.LWorkPriorityNormal,
+            origin.WorkItem.LWorkSourcePath,
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(1),
+            name,
+            Path.Combine(tScheduleRoot, name + ".output"),
+            WorkCreationOutput.Create(),
+            lWorkCreateTime: created)
+        {
+            LWorkStateCurrent = LWorkState.LWorkStateDone,
+            LWorkOutputBytes = 123
+        };
+        return new TScheduleWork(derived);
+    }
+
+    internal int DeliveredAdd(params TScheduleWork[] work) =>
+        tSchedule.LScheduleDeliveredAdd(work.Select(item => item.WorkItem).ToArray()).Count;
+
+    internal Guid LineageRead(TScheduleWork work) => tSchedule.LScheduleLineageRead(work.WorkItem);
+
+    internal void Reload() => tSchedule.LScheduleLoad();
+
     internal bool Reorder(Guid batchId, params TScheduleWork[] work) =>
         tSchedule.LScheduleOrderSet(batchId, work.Select(item => item.WorkId).ToArray());
 
