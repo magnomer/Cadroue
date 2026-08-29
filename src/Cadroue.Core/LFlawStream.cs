@@ -1,16 +1,10 @@
 using System.Globalization;
+using System.Linq;
 
 namespace Cadroue.Core;
 
 public static class LFlawStream
 {
-    private static readonly string[] lFlawConfigFault =
-    {
-        "non-existing pps", "non-existing sps", "non-existing vps",
-        "sps unavailable", "pps unavailable", "vps unavailable",
-        "missing sps", "missing pps", "no frame!", "could not find codec parameters"
-    };
-
     // MPEG-TS 33-bit 90 kHz timestamps wrap at 2^33. A decode-timestamp step that
     // falls back from above this guard is a legal wraparound, not a defect.
     private const long LFlawWrapGuard = 8_000_000_000L;
@@ -172,7 +166,7 @@ public static class LFlawStream
             .Where(lFlawLine => lFlawLine.Length > 0)
             .Where(lFlawLine => !LFlaw.lFlawFramingDamage.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
-            .Where(lFlawLine => lFlawConfigFault.Any(
+            .Where(lFlawLine => LFlaw.lFlawConfigFault.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
 
         return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
@@ -188,7 +182,8 @@ public static class LFlawStream
         }
 
         var lFlawLastDts = new Dictionary<string, long>(StringComparer.Ordinal);
-        bool lFlawMissingPts = false;
+        var lFlawPresentPts = new Dictionary<string, int>(StringComparer.Ordinal);
+        var lFlawMissingPtsCount = new Dictionary<string, int>(StringComparer.Ordinal);
         bool lFlawMissingDts = false;
         bool lFlawDisorderDts = false;
 
@@ -200,11 +195,16 @@ public static class LFlawStream
             long? lFlawPts = LFlawTicksRead(lFlawPacket, "pts");
             long? lFlawDts = LFlawTicksRead(lFlawPacket, "dts");
 
+            if (lFlawPts is not null)
+            {
+                lFlawPresentPts[lFlawStream] = lFlawPresentPts.GetValueOrDefault(lFlawStream) + 1;
+            }
+
             // A packet with neither timestamp is not reconstructable from timing alone;
             // it is a decode-recovery case, so it does not raise a timeline defect here.
             if (lFlawPts is null && lFlawDts is not null)
             {
-                lFlawMissingPts = true;
+                lFlawMissingPtsCount[lFlawStream] = lFlawMissingPtsCount.GetValueOrDefault(lFlawStream) + 1;
             }
             else if (lFlawDts is null && lFlawPts is not null)
             {
@@ -223,6 +223,15 @@ public static class LFlawStream
                 lFlawLastDts[lFlawStream] = lFlawCurrent;
             }
         }
+
+        // A stream that carries presentation timestamps on most of its packets yet drops
+        // them on a minority has a reconstructable gap worth regenerating (B-frame reorder).
+        // A stream with no PTS, or only a stray one among packets that overwhelmingly lack
+        // it, is following a container convention (AVI stores presentation order as decode
+        // order); its presentation timing is not a defect to rebuild.
+        bool lFlawMissingPts = lFlawMissingPtsCount.Any(lFlawEntry =>
+            lFlawEntry.Value > 0
+            && lFlawPresentPts.GetValueOrDefault(lFlawEntry.Key) > lFlawEntry.Value);
 
         var lFlawFindings = new List<string>();
         if (lFlawMissingPts)

@@ -23,10 +23,18 @@ internal static class LFlaw
         "error splitting the input into nal units", "missing picture in access unit"
     };
 
+    internal static readonly string[] lFlawConfigFault =
+    {
+        "non-existing pps", "non-existing sps", "non-existing vps",
+        "sps unavailable", "pps unavailable", "vps unavailable",
+        "missing sps", "missing pps", "no frame!", "could not find codec parameters"
+    };
+
     internal static readonly string[] lFlawFramingDamage =
     {
         "error while decoding", "concealing", "corrupt", "damaged", "decode_slice",
-        "invalid data found", "out of range"
+        "invalid data found", "out of range", "slice below image", "slice mismatch",
+        "slice end mismatch", "mb incr damaged", "ac-tex damaged"
     };
 
     internal static IReadOnlyList<IReadOnlyDictionary<string, string>> LFlawSectionRead(

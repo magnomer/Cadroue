@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 using Cadroue.Core;
@@ -30,17 +31,28 @@ public static class LFlawScan
                 LTool.LToolFfmpegRead(),
                 $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -",
                 lFlawToken);
+            // Transport-stream continuity and PES faults are logged at warning level, not
+            // error, so the transport probe reads one verbosity higher than the shared copy
+            // pass; it feeds only the MPEG-TS-gated transport detector, never the others.
+            (_, string lFlawTransportError) = LFlawRunRead(
+                LTool.LToolFfmpegRead(),
+                $"-hide_banner -nostdin -v warning -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -",
+                lFlawToken);
             (string lFlawMetaReport, _) = LFlawRunRead(
                 LTool.LToolFfprobeRead(),
                 $"-hide_banner -v error -show_streams -show_format -count_packets -i {LEncode.LEncodeFormat(lFlawSource)}",
                 lFlawToken);
             (_, string lFlawIgnidxError) = LFlawRunRead(
                 LTool.LToolFfmpegRead(),
-                $"-hide_banner -nostdin -v error -ignidx -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -",
+                $"-hide_banner -nostdin -v error -fflags +ignidx -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -",
                 lFlawToken);
+            // Seek to one second before end: a late target forces the demuxer to consult the
+            // index, so broken random-access addressing surfaces here while a healthy file
+            // stays silent. A near-start seek (a large -sseof on a short clip) would read
+            // linearly and never touch the index.
             (_, string lFlawSeekError) = LFlawRunRead(
                 LTool.LToolFfmpegRead(),
-                $"-hide_banner -nostdin -v error -sseof -3 -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -",
+                $"-hide_banner -nostdin -v error -sseof -1 -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -",
                 lFlawToken);
             (_, string lFlawDecodeError) = LFlawRunRead(
                 LTool.LToolFfmpegRead(),
@@ -71,6 +83,28 @@ public static class LFlawScan
                     lFlawToken);
             }
 
+            // A container the probe could open reports at least a format or one stream.
+            // When it reports neither, the file never opened, and every structural and
+            // per-stream probe below only echoes that one open failure. Emitting the
+            // finalization defect alone keeps the diagnosis honest instead of scattering
+            // the same failure across the container, coded and timing detectors.
+            bool lFlawOpened = lFlawMetaReport.Contains("[FORMAT]", StringComparison.Ordinal)
+                || lFlawMetaReport.Contains("[STREAM]", StringComparison.Ordinal);
+            if (!lFlawOpened)
+            {
+                var lFlawUnopened = new List<LDossier>();
+                if (LFlawMux.LFlawTruncationResolve(lFlawProbeError, lFlawCopyError) is { } lFlawFinal)
+                {
+                    lFlawUnopened.Add(lFlawFinal with { LDossierKind = LFlawKind.LFlawKindTruncation });
+                }
+                else if (LFlawMux.LFlawContainerResolve(lFlawProbeError, lFlawCopyError) is { } lFlawOpen)
+                {
+                    lFlawUnopened.Add(lFlawOpen with { LDossierKind = LFlawKind.LFlawKindContainer });
+                }
+
+                return LFlawKindsResolve(lFlawUnopened, lFlawKinds);
+            }
+
             var lFlawDossiers = new List<LDossier>();
             if (LFlawMux.LFlawContainerResolve(lFlawProbeError, lFlawCopyError) is { } lFlawContainer)
             {
@@ -82,7 +116,7 @@ public static class LFlawScan
                 lFlawDossiers.Add(lFlawTruncation with { LDossierKind = LFlawKind.LFlawKindTruncation });
             }
 
-            if (LFlawMux.LFlawTransportResolve(lFlawMetaReport, lFlawCopyError) is { } lFlawTransport)
+            if (LFlawMux.LFlawTransportResolve(lFlawMetaReport, lFlawTransportError) is { } lFlawTransport)
             {
                 lFlawDossiers.Add(lFlawTransport with { LDossierKind = LFlawKind.LFlawKindTransport });
             }
@@ -117,14 +151,22 @@ public static class LFlawScan
                 lFlawDossiers.Add(lFlawSecondary with { LDossierKind = LFlawKind.LFlawKindSecondary });
             }
 
-            if (LFlawCoded.LFlawCodedResolve(lFlawCodedError) is { } lFlawCoded)
-            {
-                lFlawDossiers.Add(lFlawCoded with { LDossierKind = LFlawKind.LFlawKindCoded });
-            }
-
             if (LFlawFfvone.LFlawFfvoneResolve(lFlawMetaReport, lFlawCrcError) is { } lFlawFfvone)
             {
                 lFlawDossiers.Add(lFlawFfvone with { LDossierKind = LFlawKind.LFlawKindFfvone });
+            }
+
+            // Coded media is the last-resort, lossy re-encode item. The diagnostic decode
+            // also fails whenever an upstream carriage defect — broken container, missing
+            // finalization, transport faults, framing, codec configuration or an FFV1
+            // integrity mismatch — corrupts the bitstream it reads, so that decode failure
+            // is already explained by a losslessly repairable defect and must not escalate
+            // this file to re-encode. Only decode damage that survives every carriage
+            // diagnosis is a genuine coded defect.
+            if (!lFlawDossiers.Any(lFlawDossier => LFlawCarriageCheck(lFlawDossier.LDossierKind))
+                && LFlawCoded.LFlawCodedResolve(lFlawCodedError) is { } lFlawCoded)
+            {
+                lFlawDossiers.Add(lFlawCoded with { LDossierKind = LFlawKind.LFlawKindCoded });
             }
 
             return LFlawKindsResolve(lFlawDossiers, lFlawKinds);
@@ -139,6 +181,17 @@ public static class LFlawScan
             return Array.Empty<LDossier>();
         }
     }
+
+    private static bool LFlawCarriageCheck(LFlawKind lFlawKind) => lFlawKind switch
+    {
+        LFlawKind.LFlawKindContainer => true,
+        LFlawKind.LFlawKindTruncation => true,
+        LFlawKind.LFlawKindTransport => true,
+        LFlawKind.LFlawKindFraming => true,
+        LFlawKind.LFlawKindConfig => true,
+        LFlawKind.LFlawKindFfvone => true,
+        _ => false
+    };
 
     internal static IReadOnlyList<LDossier> LFlawKindsResolve(
         IReadOnlyList<LDossier> lFlawDossiers,

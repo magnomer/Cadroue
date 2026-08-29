@@ -40,6 +40,16 @@ public sealed class FlawTests
     }
 
     [Fact]
+    public void DecodeDamage_IsNotReportedAsContainerDefect()
+    {
+        // A decoder complaint the container probe surfaces belongs to the coded detector,
+        // not to container structure.
+        Assert.Null(TInterface.FlawContainerResolve(
+            "[mpeg2video @ 0x1] slice below image (55 >= 6)",
+            "[mpeg2video @ 0x1] slice below image (55 >= 6)"));
+    }
+
+    [Fact]
     public void TruncationSymptom_IsNotReportedAsContainerDefect()
     {
         Assert.Null(TInterface.FlawContainerResolve(
@@ -193,6 +203,32 @@ public sealed class FlawTests
     }
 
     [Fact]
+    public void DisagreeingTrackTimelines_ProduceMetadataDossier()
+    {
+        // Video declares a 20s timeline over the same essence the 4s audio track spans,
+        // and the format duration agrees with the longest track — the inflated per-track
+        // timescale is still a metadata defect.
+        LDossier? dossier = TInterface.FlawMetadataResolve(
+            "[STREAM]\nindex=0\ncodec_name=h264\nduration=20.000000\n[/STREAM]\n"
+            + "[STREAM]\nindex=1\ncodec_name=aac\nduration=4.000000\n[/STREAM]\n"
+            + "[FORMAT]\nnb_streams=2\nduration=20.000000\n[/FORMAT]\n");
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryMetadata, dossier.Value.LDossierCategory);
+        Assert.Contains("timelines disagree", dossier.Value.LDossierEvidenceSource, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void CloseTrackTimelines_ProduceNoMetadataDossier()
+    {
+        // Audio a hair longer than video is normal interleaving, not a defect.
+        Assert.Null(TInterface.FlawMetadataResolve(
+            "[STREAM]\nindex=0\ncodec_name=h264\nduration=10.000000\n[/STREAM]\n"
+            + "[STREAM]\nindex=1\ncodec_name=aac\nduration=10.020000\n[/STREAM]\n"
+            + "[FORMAT]\nnb_streams=2\nduration=10.020000\n[/FORMAT]\n"));
+    }
+
+    [Fact]
     public void DeclaredStreamCountMismatch_ProducesMetadataDossier()
     {
         LDossier? dossier = TInterface.FlawMetadataResolve(
@@ -252,6 +288,32 @@ public sealed class FlawTests
             "[matroska @ 0x1] Could not find Cues element; seeking will be slow",
             string.Empty,
             string.Empty));
+    }
+
+    [Fact]
+    public void SeekOnlyFailureOverCleanRead_ProducesIndexDossier()
+    {
+        // Sequential read is clean with and without the index, yet a boundary seek
+        // fails with a message that never says "index": the addressing is broken.
+        LDossier? dossier = TInterface.FlawIndexResolve(
+            string.Empty,
+            string.Empty,
+            "[matroska,webm @ 0x1] Length 8 indicated by an EBML number's first byte 0x01 "
+            + "at pos 33763 exceeds max length 4.");
+
+        Assert.NotNull(dossier);
+        Assert.Equal(LDossierCategory.LDossierCategoryIndex, dossier.Value.LDossierCategory);
+    }
+
+    [Fact]
+    public void SeekFailureOverDamagedRead_IsNotAnIndexDefect()
+    {
+        // The sequential read already errors, so the fault belongs to the container or
+        // coded detector that owns that error, not to addressing.
+        Assert.Null(TInterface.FlawIndexResolve(
+            "[matroska @ 0x1] 0x00 at pos 536 invalid as first byte of an EBML number",
+            string.Empty,
+            "[matroska @ 0x1] 0x00 at pos 536 invalid as first byte of an EBML number"));
     }
 
     private const string FramingH264Mp4 =
@@ -389,8 +451,10 @@ public sealed class FlawTests
     [Fact]
     public void MissingPresentation_RegeneratesWithGenpts()
     {
+        // A stream that presents some timestamps yet drops others has a reconstructable
+        // gap; genpts fills it from decode order.
         LDossier? dossier = TInterface.FlawTimingResolve(
-            Packet(0, "N/A", "0") + Packet(0, "N/A", "512"));
+            Packet(0, "0", "0") + Packet(0, "N/A", "512") + Packet(0, "1024", "1024"));
 
         Assert.NotNull(dossier);
         Assert.Equal(LDossierCategory.LDossierCategoryTimeline, dossier.Value.LDossierCategory);
@@ -398,6 +462,25 @@ public sealed class FlawTests
         Assert.Equal(LDossierValidation.LDossierValidationUntested, dossier.Value.LDossierValidation);
         Assert.Equal("-fflags +genpts", dossier.Value.LDossierRepairInput);
         Assert.Equal(string.Empty, dossier.Value.LDossierRepairArgument);
+    }
+
+    [Fact]
+    public void UniformlyAbsentPresentation_IsContainerConvention()
+    {
+        // Every packet lacks a PTS (AVI without reordering): presentation order equals
+        // decode order, a container convention rather than a defect to regenerate.
+        Assert.Null(TInterface.FlawTimingResolve(
+            Packet(0, "N/A", "0") + Packet(0, "N/A", "512") + Packet(0, "N/A", "1024")));
+    }
+
+    [Fact]
+    public void StrayPresentationAmongAbsent_IsContainerConvention()
+    {
+        // One packet out of many carries a PTS while the rest do not: presentation timing is
+        // not the stream's norm, so the lone stamp is a container artifact, not a fillable gap.
+        Assert.Null(TInterface.FlawTimingResolve(
+            Packet(0, "N/A", "0") + Packet(0, "N/A", "512") + Packet(0, "N/A", "1024")
+            + Packet(0, "N/A", "1536") + Packet(0, "2048", "2048")));
     }
 
     [Fact]

@@ -10,6 +10,15 @@ public static class LFlawMux
         "cues", "cue point", "idx1", "index"
     };
 
+    // Complaints the throwaway null muxer of the -c copy -f null probe raises about its
+    // own output stage. They describe our pipeline, not the input container, and follow
+    // from a codec-configuration defect the config detector already owns.
+    private static readonly string[] lFlawPipeline =
+    {
+        "dimensions not set", "could not write header", "incorrect codec parameters",
+        "does not contain any stream", "last message repeated"
+    };
+
     private static readonly Regex lFlawOffset = new(
         @"(?:pos|offset|at)[:=]?\s*(\d{2,})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
@@ -72,7 +81,13 @@ public static class LFlawMux
             .Where(lFlawLine => lFlawLine.Length > 0)
             .Where(lFlawLine => !lFlawBenign.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => !lFlawPipeline.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
             .Where(lFlawLine => !LFlaw.lFlawFramingFault.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => !LFlaw.lFlawFramingDamage.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => !LFlaw.lFlawConfigFault.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
             .Where(lFlawLine => !lFlawTransportFault.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
@@ -245,6 +260,19 @@ public static class LFlawMux
             }
         }
 
+        // Two tracks whose own declared timelines disagree by more than a rounding
+        // margin is a container-metadata defect even when the format duration matches
+        // the longest track: the shorter essence has been stretched by an inflated
+        // per-track timescale or sample delta, not by real content.
+        (double lFlawLow, double lFlawHigh) = LFlawSpanResolve(lFlawStreams);
+        if (lFlawLow > 0
+            && lFlawHigh - lFlawLow > 1.0
+            && (lFlawHigh - lFlawLow) / lFlawLow > 0.05)
+        {
+            lFlawFindings.Add(FormattableString.Invariant(
+                $"Track timelines disagree: {lFlawHigh:0.###}s against {lFlawLow:0.###}s"));
+        }
+
         if (lFlawFindings.Count == 0)
         {
             return null;
@@ -273,7 +301,20 @@ public static class LFlawMux
         string lFlawFaults = LFlawAddressingRead($"{lFlawIndexedError}\n{lFlawSeekError}");
         if (lFlawFaults.Length == 0)
         {
-            return null;
+            // No demuxer line names the index, yet a boundary seek can still fail on a
+            // file that reads cleanly front to back. Random access failing over a clean
+            // sequential read is itself the addressing defect, whatever words the
+            // demuxer chose; a file whose sequential read already errors belongs to
+            // whichever container or coded detector owns that error, not here.
+            if (LFlawSequentialCheck(lFlawIndexedError))
+            {
+                lFlawFaults = LFlawSeekRead(lFlawSeekError);
+            }
+
+            if (lFlawFaults.Length == 0)
+            {
+                return null;
+            }
         }
 
         if (!LFlawBoundaryCheck(lFlawIgnidxError))
@@ -318,11 +359,53 @@ public static class LFlawMux
             .Any(lFlawLine => !lFlawIndexAbsence.Any(
                 lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
 
+    private static bool LFlawSequentialCheck(string lFlawCopyError) =>
+        !lFlawCopyError
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(lFlawLine => lFlawLine.Length > 0)
+            .Any(lFlawLine => !lFlawIndexAbsence.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
+
+    private static string LFlawSeekRead(string lFlawSeekError)
+    {
+        IEnumerable<string> lFlawLines = lFlawSeekError
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(lFlawLine => lFlawLine.Length > 0)
+            .Where(lFlawLine => !lFlawIndexAbsence.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)))
+            .Where(lFlawLine => !LFlaw.lFlawFramingDamage.Any(
+                lFlawTerm => lFlawLine.Contains(lFlawTerm, StringComparison.OrdinalIgnoreCase)));
+
+        return string.Join(" | ", lFlawLines.Distinct(StringComparer.Ordinal).Take(3));
+    }
+
     private static double LFlawDurationRead(IReadOnlyDictionary<string, string> lFlawSection) =>
         lFlawSection.TryGetValue("duration", out string? lFlawText)
         && double.TryParse(lFlawText, NumberStyles.Float, CultureInfo.InvariantCulture, out double lFlawValue)
             ? lFlawValue
             : 0;
+
+    private static (double Low, double High) LFlawSpanResolve(
+        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams)
+    {
+        double lFlawLow = double.MaxValue;
+        double lFlawHigh = 0;
+        int lFlawTimed = 0;
+        foreach (IReadOnlyDictionary<string, string> lFlawStream in lFlawStreams)
+        {
+            double lFlawValue = LFlawDurationRead(lFlawStream);
+            if (lFlawValue <= 0)
+            {
+                continue;
+            }
+
+            lFlawTimed++;
+            lFlawLow = Math.Min(lFlawLow, lFlawValue);
+            lFlawHigh = Math.Max(lFlawHigh, lFlawValue);
+        }
+
+        return lFlawTimed >= 2 ? (lFlawLow, lFlawHigh) : (0, 0);
+    }
 
     private static double LFlawDurationResolve(IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams)
     {
