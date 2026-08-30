@@ -33,6 +33,37 @@ internal static class PSDialog
         pWindow.SourceInitialized += (_, _) => PSCasement.PSCasementDwmApply(pWindow, pCaption);
     }
 
+    private const string PSDialogPlacementKey = "PSDialog";
+
+    internal static void PSDialogLocationAttach(Window pWindow)
+    {
+        PSDialogLocationRestore(pWindow);
+        pWindow.Closed += (_, _) => PSDialogLocationSave(pWindow);
+    }
+
+    private static void PSDialogLocationRestore(Window pWindow)
+    {
+        Cadroue.Infrastructure.LPlacementRecord? pPlacement =
+            Cadroue.Infrastructure.LPlacement.LPlacementRead(PSDialogPlacementKey);
+        if (pPlacement is null)
+        {
+            return;
+        }
+
+        pWindow.WindowStartupLocation = WindowStartupLocation.Manual;
+        pWindow.Left = pPlacement.LPlacementLeft;
+        pWindow.Top = pPlacement.LPlacementTop;
+    }
+
+    private static void PSDialogLocationSave(Window pWindow)
+    {
+        Rect pBounds = pWindow.WindowState == WindowState.Normal
+            ? new Rect(pWindow.Left, pWindow.Top, pWindow.ActualWidth, pWindow.ActualHeight)
+            : pWindow.RestoreBounds;
+        Cadroue.Infrastructure.LPlacement.LPlacementSave(
+            PSDialogPlacementKey, pBounds.Left, pBounds.Top, pBounds.Width, pBounds.Height);
+    }
+
     internal static Grid PSDialogBuild(Window pWindow, string? pTitle, FrameworkElement pBody) =>
         PSDialogBuild(pWindow, pTitle, pBody, PSHeadline.PSHeadlineBandBlue);
 

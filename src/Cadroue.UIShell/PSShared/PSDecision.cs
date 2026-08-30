@@ -34,6 +34,7 @@ internal sealed class PSDecision : Window
         {
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
+        PSDialog.PSDialogLocationAttach(this);
         Content = PSDecisionBuild(pTitle, pMessage, pPrimary, pAlternate, pCancel);
     }
 

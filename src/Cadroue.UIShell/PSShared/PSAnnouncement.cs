@@ -25,6 +25,7 @@ internal sealed class PSAnnouncement : Window
         {
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
+        PSDialog.PSDialogLocationAttach(this);
         Content = PSAnnouncementBuild(pTitle, pMessage);
     }
 

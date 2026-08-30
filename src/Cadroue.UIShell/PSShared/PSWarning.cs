@@ -25,6 +25,7 @@ internal sealed class PSWarning : Window
         {
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
+        PSDialog.PSDialogLocationAttach(this);
         Content = PSWarningBuild(pTitle, pMessage);
     }
 

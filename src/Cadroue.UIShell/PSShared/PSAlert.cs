@@ -26,6 +26,7 @@ internal sealed class PSAlert : Window
         {
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
+        PSDialog.PSDialogLocationAttach(this);
         Content = PSAlertBuild(pTitle, pQuestion, pAction, pCancel);
     }
 
