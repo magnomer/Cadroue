@@ -110,7 +110,9 @@ public sealed class PFixTab : PTabSurface
         pProcessing.PProcessingStepChange += pClinic.PClinicStepShow;
         pClinic.PClinicPlanChange += PFixChangeHandle;
         pClinic.PClinicDiagnosisRequest += PFixDiagnosisHandle;
+        pClinic.PClinicDiagnosisCancel += PFixDiagnosisCancel;
         pFixCheckup.LCheckupReady += PFixCheckupHandle;
+        pFixCheckup.LCheckupProgress += PFixProgressHandle;
 
         pList.PListPathChange += PFixPathShow;
         pList.PListItemsAdd += PFixItemsHandle;
@@ -135,6 +137,7 @@ public sealed class PFixTab : PTabSurface
     {
         base.PTabClose();
         pFixCheckup.LCheckupReady -= PFixCheckupHandle;
+        pFixCheckup.LCheckupProgress -= PFixProgressHandle;
         pFixCheckup.Dispose();
     }
 
@@ -177,6 +180,16 @@ public sealed class PFixTab : PTabSurface
         pFixCheckup.LCheckupStart(new[] { pFixSelected.LDocketEntryPath }, new[] { pFixKind });
     }
 
+    private void PFixDiagnosisCancel(LFlawKind pFixKind)
+    {
+        if (pList.PListEditableRead() is not { } pFixSelected)
+        {
+            return;
+        }
+
+        pFixCheckup.LCheckupCancel(pFixSelected.LDocketEntryPath, pFixKind);
+    }
+
     private void PFixPersistentStart(IEnumerable<string> pFixPaths)
     {
         LFlawKind[] pFixKinds = LFix.LFixPersistentResolve(pClinic.PClinicPlanRead()).LWorkFixSteps
@@ -201,6 +214,11 @@ public sealed class PFixTab : PTabSurface
     {
         Dispatcher.BeginInvoke(() =>
             pClinic.PClinicResultShow(pFixResult.LCheckupSource, pFixResult.LCheckupKind, pFixResult));
+    }
+
+    private void PFixProgressHandle(string pFixPath, double pFixProgress)
+    {
+        Dispatcher.BeginInvoke(() => pClinic.PClinicProgressShow(pFixPath, pFixProgress));
     }
 
     private void PFixPlanRestore(string pSourcePath)

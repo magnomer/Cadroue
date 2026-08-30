@@ -104,7 +104,7 @@ public sealed partial class PInspector
 
     public void PSensorProgressHide() => pSensorProgress.Visibility = Visibility.Collapsed;
 
-    private static ProgressBar PSensorProgressBuild() =>
+    internal static ProgressBar PSensorProgressBuild() =>
         new()
         {
             Minimum = 0,

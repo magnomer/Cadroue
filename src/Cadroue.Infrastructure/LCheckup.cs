@@ -5,17 +5,24 @@ namespace Cadroue.Infrastructure;
 
 public sealed class LCheckup : IDisposable
 {
-    private readonly record struct LCheckupRequest(string[] LCheckupPaths, LFlawKind[] LCheckupTargets);
+    private readonly record struct LCheckupRequest(string LCheckupPath, LFlawKind[] LCheckupTargets);
+
+    private sealed class LCheckupFeed(Action<double> lCheckupReport) : IProgress<double>
+    {
+        public void Report(double lCheckupValue) => lCheckupReport(lCheckupValue);
+    }
 
     private readonly object lCheckupLock = new();
     private readonly Queue<LCheckupRequest> lCheckupQueue = new();
-    private CancellationTokenSource? lCheckupCancelSource;
+    private LCheckupRequest? lCheckupActive;
+    private CancellationTokenSource? lCheckupCancellationSource;
     private bool lCheckupRunning;
     private bool lCheckupDisposed;
 
-    public static Func<string, IReadOnlyCollection<LFlawKind>, CancellationToken, IReadOnlyList<LDossier>>? LCheckupScannerSeam;
+    public static Func<string, IReadOnlyCollection<LFlawKind>, CancellationToken, IProgress<double>?, IReadOnlyList<LDossier>>? LCheckupScannerSeam;
 
     public event Action<LCheckupResult>? LCheckupReady;
+    public event Action<string, double>? LCheckupProgress;
 
     public void LCheckupStart(IReadOnlyList<string> lCheckupSources, IReadOnlyCollection<LFlawKind> lCheckupKinds)
     {
@@ -24,7 +31,6 @@ public sealed class LCheckup : IDisposable
             ? lCheckupKinds.ToArray()
             : Enum.GetValues<LFlawKind>();
 
-        CancellationToken lCheckupToken;
         lock (lCheckupLock)
         {
             if (lCheckupDisposed)
@@ -32,25 +38,90 @@ public sealed class LCheckup : IDisposable
                 return;
             }
 
-            lCheckupQueue.Enqueue(new LCheckupRequest(lCheckupPaths, lCheckupTargets));
+            foreach (string lCheckupPath in lCheckupPaths)
+            {
+                lCheckupQueue.Enqueue(new LCheckupRequest(lCheckupPath, lCheckupTargets));
+            }
+
             if (lCheckupRunning)
             {
                 return;
             }
 
-            lCheckupCancelSource ??= new CancellationTokenSource();
-            lCheckupToken = lCheckupCancelSource.Token;
             lCheckupRunning = true;
         }
 
-        _ = Task.Run(() => LCheckupQueueRun(lCheckupToken), CancellationToken.None);
+        _ = Task.Run(LCheckupQueueRun, CancellationToken.None);
     }
 
-    private void LCheckupQueueRun(CancellationToken lCheckupToken)
+    public void LCheckupCancel(string lCheckupSource, LFlawKind lCheckupKind)
+    {
+        lock (lCheckupLock)
+        {
+            if (lCheckupDisposed)
+            {
+                return;
+            }
+
+            var lCheckupRetained = new Queue<LCheckupRequest>();
+            while (lCheckupQueue.TryDequeue(out LCheckupRequest lCheckupQueued))
+            {
+                if (!string.Equals(lCheckupQueued.LCheckupPath, lCheckupSource, StringComparison.OrdinalIgnoreCase))
+                {
+                    lCheckupRetained.Enqueue(lCheckupQueued);
+                    continue;
+                }
+
+                LFlawKind[] lCheckupTargets = lCheckupQueued.LCheckupTargets
+                    .Where(lCheckupTarget => lCheckupTarget != lCheckupKind)
+                    .ToArray();
+                if (lCheckupTargets.Length > 0)
+                {
+                    lCheckupRetained.Enqueue(new LCheckupRequest(lCheckupQueued.LCheckupPath, lCheckupTargets));
+                }
+            }
+
+            while (lCheckupRetained.TryDequeue(out LCheckupRequest lCheckupQueued))
+            {
+                lCheckupQueue.Enqueue(lCheckupQueued);
+            }
+
+            if (lCheckupActive is not { } lCheckupActiveRequest
+                || !string.Equals(lCheckupActiveRequest.LCheckupPath, lCheckupSource, StringComparison.OrdinalIgnoreCase)
+                || !lCheckupActiveRequest.LCheckupTargets.Contains(lCheckupKind))
+            {
+                return;
+            }
+
+            LFlawKind[] lCheckupRemaining = lCheckupActiveRequest.LCheckupTargets
+                .Where(lCheckupTarget => lCheckupTarget != lCheckupKind)
+                .ToArray();
+            if (lCheckupRemaining.Length > 0)
+            {
+                var lCheckupRestart = new Queue<LCheckupRequest>();
+                lCheckupRestart.Enqueue(new LCheckupRequest(lCheckupActiveRequest.LCheckupPath, lCheckupRemaining));
+                while (lCheckupQueue.TryDequeue(out LCheckupRequest lCheckupQueued))
+                {
+                    lCheckupRestart.Enqueue(lCheckupQueued);
+                }
+
+                while (lCheckupRestart.TryDequeue(out LCheckupRequest lCheckupQueued))
+                {
+                    lCheckupQueue.Enqueue(lCheckupQueued);
+                }
+            }
+
+            lCheckupActive = null;
+            lCheckupCancellationSource?.Cancel();
+        }
+    }
+
+    private void LCheckupQueueRun()
     {
         while (true)
         {
             LCheckupRequest lCheckupRequest;
+            CancellationToken lCheckupToken;
             lock (lCheckupLock)
             {
                 if (lCheckupDisposed || lCheckupQueue.Count == 0)
@@ -60,22 +131,18 @@ public sealed class LCheckup : IDisposable
                 }
 
                 lCheckupRequest = lCheckupQueue.Dequeue();
+                lCheckupCancellationSource = new CancellationTokenSource();
+                lCheckupToken = lCheckupCancellationSource.Token;
+                lCheckupActive = lCheckupRequest;
             }
 
-            LCheckupRun(lCheckupRequest.LCheckupPaths, lCheckupRequest.LCheckupTargets, lCheckupToken);
-        }
-    }
-
-    private void LCheckupRun(IReadOnlyList<string> lCheckupPaths, IReadOnlyList<LFlawKind> lCheckupTargets, CancellationToken lCheckupToken)
-    {
-        foreach (string lCheckupPath in lCheckupPaths)
-        {
-            if (lCheckupToken.IsCancellationRequested)
+            LCheckupSourceRun(lCheckupRequest.LCheckupPath, lCheckupRequest.LCheckupTargets, lCheckupToken);
+            lock (lCheckupLock)
             {
-                return;
+                lCheckupActive = null;
+                lCheckupCancellationSource?.Dispose();
+                lCheckupCancellationSource = null;
             }
-
-            LCheckupSourceRun(lCheckupPath, lCheckupTargets, lCheckupToken);
         }
     }
 
@@ -83,20 +150,29 @@ public sealed class LCheckup : IDisposable
     {
         foreach (LFlawKind lCheckupKind in lCheckupTargets)
         {
+            if (lCheckupToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             LCheckupPublish(new LCheckupResult(lCheckupPath, lCheckupKind, LCheckupOutcome.LCheckupOutcomeScanning));
         }
 
         IReadOnlyList<LDossier>? lCheckupCached = LCheckupCachedRead(lCheckupPath);
         if (lCheckupCached is not null)
         {
-            LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupCached);
+            LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupCached, lCheckupToken);
             return;
         }
 
         try
         {
             IReadOnlyList<LDossier> lCheckupScanned =
-                LCheckupScannerSeam?.Invoke(lCheckupPath, Array.Empty<LFlawKind>(), lCheckupToken)
+                LCheckupScannerSeam?.Invoke(
+                    lCheckupPath,
+                    Array.Empty<LFlawKind>(),
+                    lCheckupToken,
+                    new LCheckupFeed(lCheckupValue => LCheckupProgress?.Invoke(lCheckupPath, lCheckupValue)))
                 ?? Array.Empty<LDossier>();
             if (lCheckupToken.IsCancellationRequested)
             {
@@ -104,13 +180,18 @@ public sealed class LCheckup : IDisposable
             }
 
             LCheckupCachedSave(lCheckupPath, lCheckupScanned);
-            LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupScanned);
+            LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupScanned, lCheckupToken);
         }
         catch (OperationCanceledException)
         {
         }
         catch (Exception lCheckupException)
         {
+            if (lCheckupToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             LTraceLog.LTraceErrorRecord($"Diagnosis could not be completed '{Path.GetFileName(lCheckupPath)}'", lCheckupException);
             foreach (LFlawKind lCheckupKind in lCheckupTargets)
             {
@@ -159,10 +240,19 @@ public sealed class LCheckup : IDisposable
         LLibrarian.LLibrarianDiagnosisSave(lCheckupPath, lCheckupIdentity, lCheckupDtos);
     }
 
-    private void LCheckupResultsPublish(string lCheckupPath, IReadOnlyList<LFlawKind> lCheckupTargets, IReadOnlyList<LDossier> lCheckupDossiers)
+    private void LCheckupResultsPublish(
+        string lCheckupPath,
+        IReadOnlyList<LFlawKind> lCheckupTargets,
+        IReadOnlyList<LDossier> lCheckupDossiers,
+        CancellationToken lCheckupToken)
     {
         foreach (LFlawKind lCheckupKind in lCheckupTargets)
         {
+            if (lCheckupToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             LDossier? lCheckupMatch = null;
             foreach (LDossier lCheckupDossier in lCheckupDossiers)
             {
@@ -195,9 +285,7 @@ public sealed class LCheckup : IDisposable
 
             lCheckupDisposed = true;
             lCheckupQueue.Clear();
-            lCheckupCancelSource?.Cancel();
-            lCheckupCancelSource?.Dispose();
-            lCheckupCancelSource = null;
+            lCheckupCancellationSource?.Cancel();
         }
     }
 }

@@ -35,6 +35,7 @@ public sealed class PClinic : PPanel
     public event Action<bool>? PClinicMinimizeChange;
     public event Action? PClinicPlanChange;
     public event Action<LFlawKind>? PClinicDiagnosisRequest;
+    public event Action<LFlawKind>? PClinicDiagnosisCancel;
 
     private readonly UIElement pClinicFullBody;
     private readonly UIElement pClinicStripBody;
@@ -46,6 +47,7 @@ public sealed class PClinic : PPanel
     private readonly TextBlock pClinicItemTechnical;
     private readonly UIElement pClinicResultBody;
     private readonly TextBlock pClinicResultText;
+    private readonly ProgressBar pClinicDiagnosisProgress;
     private readonly CheckBox pClinicApplyBox;
     private readonly CheckBox pClinicDiagnosisBox;
     private readonly CheckBox pClinicPersistentBox;
@@ -54,6 +56,7 @@ public sealed class PClinic : PPanel
     private bool pClinicSalvageShown;
     private readonly Dictionary<LFlawKind, (bool Apply, bool Diagnosis, bool Persistent)> pClinicStates = new();
     private readonly Dictionary<(string Path, LFlawKind Kind), LCheckupResult> pClinicResults = new();
+    private readonly Dictionary<string, double> pClinicProgress = new(StringComparer.OrdinalIgnoreCase);
     private string? pClinicSource;
     private LFlawKind? pClinicCurrentKind;
     private bool pClinicSuppress;
@@ -172,10 +175,12 @@ public sealed class PClinic : PPanel
             Foreground = pClinicMutedBrush,
             TextWrapping = TextWrapping.Wrap
         };
+        pClinicDiagnosisProgress = PInspector.PSensorProgressBuild();
 
         var pResultStack = new StackPanel();
         pResultStack.Children.Add(PClinicSeparatorBuild());
         pResultStack.Children.Add(pResultHeader);
+        pResultStack.Children.Add(pClinicDiagnosisProgress);
         pResultStack.Children.Add(pClinicResultText);
         pClinicResultBody = pResultStack;
         pClinicResultBody.Visibility = Visibility.Collapsed;
@@ -269,9 +274,29 @@ public sealed class PClinic : PPanel
     public void PClinicResultShow(string pClinicResultPath, LFlawKind pClinicResultKind, LCheckupResult pClinicResult)
     {
         pClinicResults[(pClinicResultPath, pClinicResultKind)] = pClinicResult;
+        if (pClinicResult.LCheckupOutcome == LCheckupOutcome.LCheckupOutcomeScanning)
+        {
+            pClinicProgress[pClinicResultPath] = 0;
+        }
+        else
+        {
+            pClinicProgress.Remove(pClinicResultPath);
+        }
+
         if (pClinicResultPath == pClinicSource && pClinicCurrentKind == pClinicResultKind)
         {
             PClinicResultApply();
+        }
+    }
+
+    public void PClinicProgressShow(string pClinicProgressPath, double pClinicProgressValue)
+    {
+        double pClinicValue = Math.Clamp(pClinicProgressValue, 0, 1);
+        pClinicProgress[pClinicProgressPath] = pClinicValue;
+        if (string.Equals(pClinicProgressPath, pClinicSource, StringComparison.OrdinalIgnoreCase)
+            && pClinicDiagnosisProgress.Visibility == Visibility.Visible)
+        {
+            pClinicDiagnosisProgress.Value = pClinicValue;
         }
     }
 
@@ -299,6 +324,7 @@ public sealed class PClinic : PPanel
             pClinicItemTechnical.Text = LLocalization.LLocalizationTextRead("Clinic.Step.Salvage.Technical");
             pClinicItemBody.Visibility = Visibility.Visible;
             pClinicResultBody.Visibility = Visibility.Collapsed;
+            PClinicProgressSet(false);
             pClinicTitleLabel.Text = LLocalization.LLocalizationTextRead("Processing.Step.Salvage");
             return;
         }
@@ -404,6 +430,10 @@ public sealed class PClinic : PPanel
         {
             PClinicDiagnosisRequest?.Invoke(pKind);
         }
+        else if (pWasDiagnosis && !pNowDiagnosis)
+        {
+            PClinicDiagnosisCancel?.Invoke(pKind);
+        }
     }
 
     private void PClinicPersistentHandle()
@@ -424,10 +454,29 @@ public sealed class PClinic : PPanel
     {
         bool pVisible = pClinicDiagnosisBox.IsChecked == true && pClinicItemBody.Visibility == Visibility.Visible;
         pClinicResultBody.Visibility = pVisible ? Visibility.Visible : Visibility.Collapsed;
+        bool pScanning = pVisible
+            && pClinicSource is { } pSource
+            && pClinicCurrentKind is { } pKind
+            && pClinicResults.TryGetValue((pSource, pKind), out LCheckupResult pResult)
+            && pResult.LCheckupOutcome == LCheckupOutcome.LCheckupOutcomeScanning;
+        double pProgress = pScanning
+            && pClinicSource is { } pProgressSource
+            && pClinicProgress.TryGetValue(pProgressSource, out double pStoredProgress)
+                ? pStoredProgress
+                : 0;
+        PClinicProgressSet(pScanning, pProgress);
         if (pVisible)
         {
             pClinicResultText.Text = PClinicResultResolve();
         }
+    }
+
+    private void PClinicProgressSet(bool pClinicDiagnosisRunning, double pClinicProgressValue = 0)
+    {
+        pClinicDiagnosisProgress.Value = Math.Clamp(pClinicProgressValue, 0, 1);
+        pClinicDiagnosisProgress.Visibility = pClinicDiagnosisRunning
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private string PClinicResultResolve()
