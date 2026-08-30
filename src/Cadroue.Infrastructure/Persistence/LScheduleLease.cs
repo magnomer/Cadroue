@@ -21,6 +21,11 @@ public sealed partial class LSchedule
     {
         LDepotIndex.LDepotIndexCreate();
 
+        if (Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared)
+        {
+            LScheduleStaleClaim();
+        }
+
         var lScheduleCandidates = new List<LWorkRecord>();
         foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled))
         {
@@ -31,7 +36,7 @@ public sealed partial class LSchedule
         }
 
         IEnumerable<LWorkRecord> lScheduleOrdered = lScheduleCandidates
-            .Where(LScheduleSignetMatch)
+            .Where(LScheduleScopeMatch)
             .OrderByDescending(lWorkRecord => lWorkRecord.LWorkPriorityName == nameof(LWorkPriority.LWorkPriorityHigh))
             .ThenBy(lWorkRecord => Cadroue.Application.LGate.LGateTimeRead(lWorkRecord.LWorkBatchId))
             .ThenBy(lWorkRecord => lWorkRecord.LWorkCreateTime);
