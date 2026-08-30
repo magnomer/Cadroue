@@ -1003,6 +1003,7 @@
   "Console.Status.MultipleRunning": "{0} {Terms.Jobs} running  •  {2}\n{1:P0}",
   "Console.Status.Running": "{0}  •  {1}\n{2}  •  {3:P0}",
   "Console.Stage.Encode": "Encoding",
+  "Console.Stage.Copy": "Copying",
   "Console.Stage.Extract": "Extracting audio",
   "Console.Stage.Analyze": "First pass · loudness analysis",
   "Console.Stage.Process": "Second pass · audio filters",

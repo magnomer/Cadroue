@@ -18,5 +18,6 @@ public enum LWorkStage
     LWorkStageMux,
     LWorkStageDuplicate,
     LWorkStageVerify,
-    LWorkStageRepair
+    LWorkStageRepair,
+    LWorkStageCopy
 }

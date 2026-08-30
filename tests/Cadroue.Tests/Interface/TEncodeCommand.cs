@@ -356,7 +356,8 @@ public sealed class ModeCommandTests
         Assert.Equal("20", CommandTokens.ValueAfter(tokens, "-t"));
         Assert.Equal("make_zero", CommandTokens.ValueAfter(tokens, "-avoid_negative_ts"));
         Assert.DoesNotContain("concat", tokens);
-        Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
+        Assert.Equal(LWorkStage.LWorkStageCopy, stage.LEncodeStageKind);
+        Assert.Equal("Copying", stage.LEncodeStageLabel);
     }
 
     [Fact]

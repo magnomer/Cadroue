@@ -1003,6 +1003,7 @@
   "Console.Status.MultipleRunning": "{0}개 작업 실행 중  •  {2}\n{1:P0}",
   "Console.Status.Running": "{0}  •  {1}\n{2}  •  {3:P0}",
   "Console.Stage.Encode": "인코딩",
+  "Console.Stage.Copy": "복사 중",
   "Console.Stage.Extract": "오디오 추출",
   "Console.Stage.Analyze": "1차 패스 · 음량 분석",
   "Console.Stage.Process": "2차 패스 · 오디오 필터",

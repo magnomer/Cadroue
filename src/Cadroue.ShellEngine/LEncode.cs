@@ -44,10 +44,28 @@ public static partial class LEncode
             return LEncodeStepsBuild(lWorkItem);
         }
 
+        bool lWholeCopy = LEncodeCopyCheck(lWorkItem, lWorkItem.LWorkOutput);
         return new[]
         {
-            new LEncodeStage(LEncodeArgumentBuild(lWorkItem), LWorkStage.LWorkStageEncode, "Encoding", lWorkItem.LWorkOutputPath, false)
+            new LEncodeStage(
+                LEncodeArgumentBuild(lWorkItem),
+                lWholeCopy ? LWorkStage.LWorkStageCopy : LWorkStage.LWorkStageEncode,
+                lWholeCopy ? "Copying" : "Encoding",
+                lWorkItem.LWorkOutputPath,
+                false)
         };
+    }
+
+    // Whether the whole-file command re-encodes nothing: video is stream-copied
+    // (mode Copy and no forced re-encode) and audio is copied or excluded. Such a
+    // run is surfaced as "Copying", not "Encoding".
+    private static bool LEncodeCopyCheck(LWorkItem lWorkItem, LEncoding lOutput)
+    {
+        bool lVideoCopy = string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+            && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput);
+        bool lAudioCopy = string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
+        return lVideoCopy && lAudioCopy;
     }
 
     // One Fix repair pass: an optional source-to-output copy (first pass only; later
