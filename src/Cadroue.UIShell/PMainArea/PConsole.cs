@@ -31,7 +31,7 @@ public sealed partial class PConsole : UserControl
     private readonly TextBlock pConsoleStationLabel;
     private readonly ProgressBar pConsoleProgress;
     private readonly TextBlock pConsoleStatus;
-    private readonly Image pConsoleRestIcon;
+    private readonly Grid pConsoleRestIcon;
     private readonly Path pConsoleSpinner;
     private readonly RotateTransform pConsoleSpinnerRotate = new(0);
     private bool pConsoleSpinning;
@@ -338,16 +338,30 @@ public sealed partial class PConsole : UserControl
 
     private const double PConsoleIndicatorSize = PRosterTheme.PRosterIconSize;
 
-    private static Image PConsoleRestBuild() => new()
+    private static Grid PConsoleRestBuild()
     {
-        Source = PIcon.PIconRead("/PAssets/PPanels/PConsoleRest.svg", PRosterTheme.PRosterMutedBrush),
-        Width = PConsoleIndicatorSize,
-        Height = PConsoleIndicatorSize,
-        Stretch = Stretch.Uniform,
-        VerticalAlignment = VerticalAlignment.Center,
-        Margin = new Thickness(0, 0, 10, 0),
-        Visibility = Visibility.Collapsed
-    };
+        var pRest = new Grid
+        {
+            Width = PConsoleIndicatorSize,
+            Height = PConsoleIndicatorSize,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 10, 0),
+            Visibility = Visibility.Collapsed
+        };
+        pRest.Children.Add(new Ellipse
+        {
+            Stroke = PRosterTheme.PRosterDoneBrush,
+            StrokeThickness = 1
+        });
+        pRest.Children.Add(new Image
+        {
+            Source = PIcon.PIconRead("/PAssets/PPanels/PConsoleRest.svg", PRosterTheme.PRosterDoneBrush),
+            Width = 18.2,
+            Height = 18.2,
+            Stretch = Stretch.Uniform
+        });
+        return pRest;
+    }
 
     private static readonly Brush pConsoleSpinnerBrush = PConsoleSpinnerCreate();
 

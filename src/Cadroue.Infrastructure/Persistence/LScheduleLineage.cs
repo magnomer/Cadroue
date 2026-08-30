@@ -16,7 +16,8 @@ public static class LScheduleLineage
             return Guid.NewGuid();
         }
 
-        LWorkItem? lScheduleParent = LScheduleParentFind(lWorkItem.LWorkSourcePath, lScheduleItems);
+        LWorkItem? lScheduleParent = LScheduleParentFind(
+            lWorkItem.LWorkSourcePath, lWorkItem.LWorkBatchId, lScheduleItems);
         return lScheduleParent is not null && lScheduleParent.LWorkKind != LWorkKind.LWorkKindSplit
             ? LScheduleLineageRead(lScheduleParent)
             : LScheduleRootRead(lWorkItem);
@@ -40,7 +41,10 @@ public static class LScheduleLineage
         return new Guid(lScheduleHash.AsSpan(0, 16));
     }
 
-    private static LWorkItem? LScheduleParentFind(string lWorkSourcePath, IEnumerable<LWorkItem> lScheduleItems)
+    private static LWorkItem? LScheduleParentFind(
+        string lWorkSourcePath,
+        Guid lWorkBatchId,
+        IEnumerable<LWorkItem> lScheduleItems)
     {
         if (string.IsNullOrWhiteSpace(lWorkSourcePath))
         {
@@ -50,7 +54,8 @@ public static class LScheduleLineage
         LWorkItem? lScheduleParent = null;
         foreach (LWorkItem lScheduleItem in lScheduleItems)
         {
-            if (!LSchedulePathMatch(lScheduleItem.LWorkOutputPath, lWorkSourcePath))
+            if (lScheduleItem.LWorkBatchId != lWorkBatchId
+                || !LSchedulePathMatch(lScheduleItem.LWorkOutputPath, lWorkSourcePath))
             {
                 continue;
             }

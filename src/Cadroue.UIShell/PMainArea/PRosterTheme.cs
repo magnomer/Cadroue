@@ -28,6 +28,21 @@ internal static class PRosterTheme
     public static readonly Brush PRosterStageBrush = PRosterBrushCreate(0xF7, 0xF8, 0xFA);
     public static readonly Brush PRosterTrunkBrush = PRosterBrushCreate(0xB4, 0xBF, 0xCE);
 
+    public static readonly Brush PRosterCardBrush = PRosterBrushCreate(0xEA, 0xF2, 0xFC);
+    public static readonly Brush PRosterHoverBrush = PRosterBrushCreate(0xDF, 0xEB, 0xFA);
+    public static readonly Brush PRosterControlHover = PRosterBrushCreate(0xDC, 0xE9, 0xF9);
+    public static readonly Brush PRosterSelectCard = PRosterBrushCreate(0x4C, 0x86, 0xF7);
+    public static readonly Brush PRosterSelectText = Brushes.White;
+    public static readonly Brush PRosterBodyBrush = Brushes.White;
+    public static readonly Brush PRosterSelectBody = PRosterBrushCreate(0xF4, 0xF8, 0xFE);
+    public static readonly Brush PRosterCardLine = PRosterBrushCreate(0xCA, 0xD9, 0xEB);
+    public static readonly Brush PRosterSelectLine = PRosterBrushCreate(0x3F, 0x73, 0xD8);
+    public static readonly Brush PRosterOuterLine = PRosterBrushCreate(0x9F, 0xBE, 0xF2);
+    public static readonly Brush PRosterDoneCard = PRosterBrushCreate(0xE7, 0xEB, 0xF0);
+    public static readonly Brush PRosterDoneHover = PRosterBrushCreate(0xDD, 0xE2, 0xE8);
+    public static readonly Brush PRosterDoneBody = PRosterBrushCreate(0xF5, 0xF6, 0xF8);
+    public static readonly Brush PRosterDoneLine = PRosterBrushCreate(0xCD, 0xD3, 0xDC);
+
     public static readonly Brush PRosterAccentBrush = PRosterBrushCreate(0x4C, 0x86, 0xF7);
 
     public static readonly Brush PRosterRunBrush = PRosterBrushCreate(0x3A, 0x8B, 0xE0);

@@ -17,10 +17,14 @@ public sealed partial class PRoster
     private readonly Dictionary<Guid, Border> pRosterStepRows = new();
     private readonly Dictionary<Guid, PRosterRowPlace> pRosterRowPlaces = new();
     private readonly List<Guid> pRosterOrderedIds = new();
+    private readonly Dictionary<Guid, Border> pRosterCards = new();
     private readonly Dictionary<Guid, Border> pRosterCardHeaders = new();
+    private readonly Dictionary<Guid, TextBlock> pRosterCardTitles = new();
+    private readonly Dictionary<Guid, TextBlock> pRosterCloseGlyphs = new();
     private readonly Dictionary<Guid, PRosterBatchControl> pRosterBatchControls = new();
     private readonly HashSet<Guid> pRosterStageIds = new();
     private readonly HashSet<Guid> pRosterCollapsedIds = new();
+    private readonly HashSet<Guid> pRosterCompletedIds = new();
     private readonly HashSet<Guid> pRosterSelectedIds = new();
     private Guid pRosterCurrentId;
     private Guid pRosterCardId;
@@ -240,7 +244,10 @@ public sealed partial class PRoster
         pRosterRowPlaces.Clear();
         pRosterStepRows.Clear();
         pRosterOrderedIds.Clear();
+        pRosterCards.Clear();
         pRosterCardHeaders.Clear();
+        pRosterCardTitles.Clear();
+        pRosterCloseGlyphs.Clear();
         pRosterBatchControls.Clear();
         pRosterStageIds.Clear();
         pRosterQueuePanel.Children.Clear();
@@ -268,25 +275,39 @@ public sealed partial class PRoster
 
     private void PRosterCompletedSync(IEnumerable<LWorkItem> pItems)
     {
-        if (!LPreference.LPreferenceStateCurrent.LPreferenceCollapseDone)
-        {
-            return;
-        }
+        IGrouping<Guid, LWorkItem>[] pBatches = pItems
+            .GroupBy(pWorkItem => pWorkItem.LWorkBatchId)
+            .ToArray();
+        HashSet<Guid> pPresentBatchIds = pBatches.Select(pBatch => pBatch.Key).ToHashSet();
+        pRosterCompletedIds.RemoveWhere(pBatchId => !pPresentBatchIds.Contains(pBatchId));
 
-        foreach (IGrouping<Guid, LWorkItem> pBatch in pItems.GroupBy(pWorkItem => pWorkItem.LWorkBatchId))
+        bool pCollapseCompleted = LPreference.LPreferenceStateCurrent.LPreferenceCollapseDone;
+        foreach (IGrouping<Guid, LWorkItem> pBatch in pBatches)
         {
             bool pCompleted = pBatch.All(pWorkItem => pWorkItem.LWorkStateCurrent is not
                 (LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning));
             if (pCompleted)
             {
-                pRosterCollapsedIds.Add(pBatch.Key);
+                pRosterCompletedIds.Add(pBatch.Key);
             }
             else
             {
-                pRosterCollapsedIds.Remove(pBatch.Key);
+                pRosterCompletedIds.Remove(pBatch.Key);
             }
 
-            PRosterBatchApply(pBatch.Key, pCompleted);
+            if (pCollapseCompleted)
+            {
+                if (pCompleted)
+                {
+                    pRosterCollapsedIds.Add(pBatch.Key);
+                }
+                else
+                {
+                    pRosterCollapsedIds.Remove(pBatch.Key);
+                }
+            }
+
+            PRosterBatchApply(pBatch.Key, pRosterCollapsedIds.Contains(pBatch.Key));
         }
     }
 
@@ -336,15 +357,25 @@ public sealed partial class PRoster
 
         pStack.Children.Add(pDetail);
 
-        return new Border
+        var pCard = new Border
         {
             CornerRadius = new CornerRadius(PRosterTheme.PRosterCorner),
-            Background = Brushes.White,
-            BorderBrush = PRosterTheme.PRosterLineBrush,
+            Background = pRosterCompletedIds.Contains(pBatchId)
+                ? PRosterTheme.PRosterDoneBody
+                : pBatchId == pRosterCardId
+                    ? PRosterTheme.PRosterSelectBody
+                    : PRosterTheme.PRosterBodyBrush,
+            BorderBrush = pRosterCompletedIds.Contains(pBatchId)
+                ? PRosterTheme.PRosterDoneLine
+                : pBatchId == pRosterCardId
+                    ? PRosterTheme.PRosterOuterLine
+                    : PRosterTheme.PRosterCardLine,
             BorderThickness = new Thickness(1),
             Margin = new Thickness(0, 0, 0, 8),
             Child = pStack
         };
+        pRosterCards[pBatchId] = pCard;
+        return pCard;
     }
 
     private void PRosterStepSelect(LWorkItem pWorkItem)

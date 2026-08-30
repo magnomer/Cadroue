@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Media.Animation;
 using Cadroue.Core;
 using Cadroue.Application;
@@ -178,13 +179,14 @@ public sealed partial class PConsole
         pConsoleAutoBox.IsChecked = pStation.LStationAutoActive;
         pConsoleAutoApplying = false;
 
+        bool pPausedState = !pRunner.LRunnerRunning && !pRunner.LRunnerSuspended;
         string pRunState = LLocalization.LLocalizationTextRead(
             pRunner.LRunnerSuspended
                 ? "Console.State.Suspended"
                 : pRunner.LRunnerRunning ? "Console.State.Running" : "Console.State.Paused");
         string pDoneText = LLocalization.LLocalizationFormat("Console.Done.Format", pDone, pTotal);
 
-        pConsoleStatus.Text = pTotal == 0
+        string pStatusText = pTotal == 0
             ? LLocalization.LLocalizationTextRead("Console.Status.Empty")
             : pRunning is null
                 ? LLocalization.LLocalizationFormat(
@@ -204,6 +206,7 @@ public sealed partial class PConsole
                         pDoneText,
                         PConsoleStageFormat(pRunning.LWorkStageCurrent),
                         pRunning.LWorkProgress);
+        PConsoleStatusSet(pStatusText, pTotal > 0 && pPausedState ? pRunState : null);
 
         string pStationLabel = string.Equals(pStation.LStationLabel, "Background worklist", StringComparison.Ordinal)
             ? LLocalization.LLocalizationTextRead("Console.Station.Background")
@@ -215,6 +218,35 @@ public sealed partial class PConsole
                 Array.IndexOf(pBoard, pStation) + 1,
                 pBoard.Length)
             : pStationLabel;
+    }
+
+    private void PConsoleStatusSet(string pStatusText, string? pAccentText)
+    {
+        pConsoleStatus.Inlines.Clear();
+        int pAccentIndex = string.IsNullOrEmpty(pAccentText)
+            ? -1
+            : pStatusText.IndexOf(pAccentText, StringComparison.Ordinal);
+        if (pAccentIndex < 0)
+        {
+            pConsoleStatus.Inlines.Add(new Run(pStatusText));
+            return;
+        }
+
+        if (pAccentIndex > 0)
+        {
+            pConsoleStatus.Inlines.Add(new Run(pStatusText[..pAccentIndex]));
+        }
+
+        pConsoleStatus.Inlines.Add(new Run(pAccentText!)
+        {
+            Foreground = PRosterTheme.PRosterDoneBrush,
+            FontWeight = FontWeights.Bold
+        });
+        int pAccentEnd = pAccentIndex + pAccentText!.Length;
+        if (pAccentEnd < pStatusText.Length)
+        {
+            pConsoleStatus.Inlines.Add(new Run(pStatusText[pAccentEnd..]));
+        }
     }
 
     private static string PConsoleStageFormat(LWorkStage pWorkStage) => LLocalization.LLocalizationTextRead(pWorkStage switch

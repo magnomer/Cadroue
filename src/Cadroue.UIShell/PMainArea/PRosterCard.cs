@@ -17,6 +17,7 @@ public sealed partial class PRoster
         int pInitialCount = PRosterInitialRead(pBatchItems);
         string pTitle = pCreateTime.LocalDateTime.ToString(
             "yyyy-MM-dd tt h:mm", CultureInfo.CurrentUICulture);
+        Guid pBatchId = pBatchItems[0].LWorkBatchId;
 
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -29,12 +30,16 @@ public sealed partial class PRoster
                 : LLocalization.LLocalizationFormat("Roster.Card.Many", pTitle, pInitialCount),
             FontSize = PRosterTheme.PRosterRowSize,
             FontWeight = FontWeights.SemiBold,
-            Foreground = PRosterTheme.PRosterMutedBrush,
+            Foreground = pBatchId == pRosterCardId
+                ? PRosterTheme.PRosterSelectText
+                : pRosterCompletedIds.Contains(pBatchId)
+                    ? PRosterTheme.PRosterMutedBrush
+                    : PRosterTheme.PRosterTitleBrush,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
             Cursor = Cursors.Hand
         };
-        Guid pBatchId = pBatchItems[0].LWorkBatchId;
+        pRosterCardTitles[pBatchId] = pTitleCell;
         pTitleCell.MouseLeftButtonUp += (_, _) => PRosterCardSelect(pBatchId);
         Grid.SetColumn(pTitleCell, 0);
         pGrid.Children.Add(pTitleCell);
@@ -48,10 +53,28 @@ public sealed partial class PRoster
         var pHeader = new Border
         {
             Padding = new Thickness(12, 6, 6, 6),
-            Background = pBatchId == pRosterCardId ? PRosterTheme.PRosterSelectBrush : Brushes.Transparent,
-            BorderBrush = PRosterTheme.PRosterLineBrush,
+            Background = pBatchId == pRosterCardId
+                ? PRosterTheme.PRosterSelectCard
+                : pRosterCompletedIds.Contains(pBatchId)
+                    ? PRosterTheme.PRosterDoneCard
+                    : PRosterTheme.PRosterCardBrush,
+            BorderBrush = pBatchId == pRosterCardId
+                ? PRosterTheme.PRosterSelectLine
+                : pRosterCompletedIds.Contains(pBatchId)
+                    ? PRosterTheme.PRosterDoneLine
+                    : PRosterTheme.PRosterCardLine,
             Child = pGrid
         };
+        pHeader.MouseEnter += (_, _) =>
+        {
+            if (pBatchId != pRosterCardId)
+            {
+                pHeader.Background = pRosterCompletedIds.Contains(pBatchId)
+                    ? PRosterTheme.PRosterDoneHover
+                    : PRosterTheme.PRosterHoverBrush;
+            }
+        };
+        pHeader.MouseLeave += (_, _) => PRosterVisualApply(pBatchId, pHeader);
         pRosterCardHeaders[pBatchId] = pHeader;
         PRosterCollapseApply(pHeader, pRosterCollapsedIds.Contains(pBatchId));
         return pHeader;
@@ -69,19 +92,83 @@ public sealed partial class PRoster
     {
         foreach ((Guid pBatchId, Border pHeader) in pRosterCardHeaders)
         {
-            pHeader.Background = pBatchId == pRosterCardId
-                ? PRosterTheme.PRosterSelectBrush
-                : Brushes.Transparent;
+            PRosterVisualApply(pBatchId, pHeader);
         }
     }
 
+    private void PRosterVisualApply(Guid pBatchId, Border pHeader)
+    {
+        bool pSelected = pBatchId == pRosterCardId;
+        bool pCompleted = pRosterCompletedIds.Contains(pBatchId);
+        pHeader.Background = pSelected
+            ? PRosterTheme.PRosterSelectCard
+            : pCompleted
+                ? PRosterTheme.PRosterDoneCard
+                : PRosterTheme.PRosterCardBrush;
+        pHeader.BorderBrush = pSelected
+            ? PRosterTheme.PRosterSelectLine
+            : pCompleted
+                ? PRosterTheme.PRosterDoneLine
+                : PRosterTheme.PRosterCardLine;
+
+        if (pRosterCards.TryGetValue(pBatchId, out Border? pCard))
+        {
+            pCard.Background = pCompleted
+                ? PRosterTheme.PRosterDoneBody
+                : pSelected
+                    ? PRosterTheme.PRosterSelectBody
+                    : PRosterTheme.PRosterBodyBrush;
+            pCard.BorderBrush = pCompleted
+                ? PRosterTheme.PRosterDoneLine
+                : pSelected
+                    ? PRosterTheme.PRosterOuterLine
+                    : PRosterTheme.PRosterCardLine;
+        }
+
+        if (pRosterCardTitles.TryGetValue(pBatchId, out TextBlock? pTitle))
+        {
+            pTitle.Foreground = pSelected
+                ? PRosterTheme.PRosterSelectText
+                : pCompleted
+                    ? PRosterTheme.PRosterMutedBrush
+                    : PRosterTheme.PRosterTitleBrush;
+        }
+
+        Brush pControlBrush = pSelected
+            ? PRosterTheme.PRosterSelectText
+            : PRosterTheme.PRosterMutedBrush;
+        if (pRosterBatchControls.TryGetValue(pBatchId, out PRosterBatchControl? pControl))
+        {
+            pControl.PRosterBatchIcon.Source = PRosterMinimizeRead(
+                pRosterCollapsedIds.Contains(pBatchId), pControlBrush);
+        }
+
+        if (pRosterCloseGlyphs.TryGetValue(pBatchId, out TextBlock? pCloseGlyph))
+        {
+            pCloseGlyph.Foreground = pControlBrush;
+        }
+    }
+
+    private Brush PRosterHoverRead(Guid pBatchId) =>
+        pBatchId == pRosterCardId
+            ? PRosterTheme.PRosterCardBrush
+            : pRosterCompletedIds.Contains(pBatchId)
+                ? PRosterTheme.PRosterDoneHover
+                : PRosterTheme.PRosterControlHover;
+
+    private Brush PRosterControlRead(Guid pBatchId) =>
+        pBatchId == pRosterCardId
+            ? PRosterTheme.PRosterSelectText
+            : PRosterTheme.PRosterMutedBrush;
+
     private UIElement PRosterCloseBuild(IReadOnlyList<LWorkItem> pBatchItems)
     {
+        Guid pBatchId = pBatchItems[0].LWorkBatchId;
         var pGlyph = new TextBlock
         {
             Text = "✕",
             FontSize = PRosterTheme.PRosterRowSize,
-            Foreground = PRosterTheme.PRosterMutedBrush,
+            Foreground = PRosterControlRead(pBatchId),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -99,16 +186,17 @@ public sealed partial class PRoster
 
         pButton.MouseEnter += (_, _) =>
         {
-            pButton.Background = PRosterTheme.PRosterHeaderBrush;
+            pButton.Background = PRosterHoverRead(pBatchId);
             pGlyph.Foreground = PRosterTheme.PRosterFailBrush;
         };
         pButton.MouseLeave += (_, _) =>
         {
             pButton.Background = Brushes.Transparent;
-            pGlyph.Foreground = PRosterTheme.PRosterMutedBrush;
+            pGlyph.Foreground = PRosterControlRead(pBatchId);
         };
         pButton.MouseLeftButtonDown += (_, pArgs) => pArgs.Handled = true;
         pButton.MouseLeftButtonUp += (_, _) => PRosterCardRemove(pBatchItems);
+        pRosterCloseGlyphs[pBatchId] = pGlyph;
 
         return pButton;
     }
@@ -124,7 +212,7 @@ public sealed partial class PRoster
         bool pCollapsed = pRosterCollapsedIds.Contains(pBatchId);
         var pIcon = new Image
         {
-            Source = PRosterMinimizeRead(pCollapsed, PRosterTheme.PRosterMutedBrush),
+            Source = PRosterMinimizeRead(pCollapsed, PRosterControlRead(pBatchId)),
             Width = 14,
             Height = 14,
             Stretch = Stretch.Uniform,
@@ -146,13 +234,15 @@ public sealed partial class PRoster
 
         pButton.MouseEnter += (_, _) =>
         {
-            pButton.Background = PRosterTheme.PRosterHeaderBrush;
-            pIcon.Source = PRosterMinimizeRead(pRosterCollapsedIds.Contains(pBatchId), PRosterTheme.PRosterTextBrush);
+            pButton.Background = PRosterHoverRead(pBatchId);
+            pIcon.Source = PRosterMinimizeRead(
+                pRosterCollapsedIds.Contains(pBatchId), PRosterTheme.PRosterTextBrush);
         };
         pButton.MouseLeave += (_, _) =>
         {
             pButton.Background = Brushes.Transparent;
-            pIcon.Source = PRosterMinimizeRead(pRosterCollapsedIds.Contains(pBatchId), PRosterTheme.PRosterMutedBrush);
+            pIcon.Source = PRosterMinimizeRead(
+                pRosterCollapsedIds.Contains(pBatchId), PRosterControlRead(pBatchId));
         };
         pButton.MouseLeftButtonDown += (_, pArgs) => pArgs.Handled = true;
         pButton.MouseLeftButtonUp += (_, _) => PRosterMinimizeToggle(pBatchId);
@@ -181,12 +271,14 @@ public sealed partial class PRoster
         if (pRosterCardHeaders.TryGetValue(pBatchId, out Border? pHeader))
         {
             PRosterCollapseApply(pHeader, pCollapsed);
+            PRosterVisualApply(pBatchId, pHeader);
         }
 
         if (pRosterBatchControls.TryGetValue(pBatchId, out PRosterBatchControl? pControl))
         {
             pControl.PRosterBatchDetail.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
-            pControl.PRosterBatchIcon.Source = PRosterMinimizeRead(pCollapsed, PRosterTheme.PRosterMutedBrush);
+            pControl.PRosterBatchIcon.Source = PRosterMinimizeRead(
+                pCollapsed, PRosterControlRead(pBatchId));
             pControl.PRosterBatchButton.ToolTip = LLocalization.LLocalizationTextRead(
                 pCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse");
         }

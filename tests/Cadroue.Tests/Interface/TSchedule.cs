@@ -49,14 +49,15 @@ internal sealed class TSchedule : IDisposable
     internal TScheduleWork WorkCreate(
         Guid batchId,
         string name,
-        LWorkPriority priority = LWorkPriority.LWorkPriorityNormal)
+        LWorkPriority priority = LWorkPriority.LWorkPriorityNormal,
+        TScheduleWork? parent = null)
     {
         DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
         return new TScheduleWork(new LWorkItem(
             batchId,
             LWorkKind.LWorkKindEdit,
             priority,
-            Path.Combine(tScheduleRoot, name + ".source"),
+            parent?.WorkItem.LWorkOutputPath ?? Path.Combine(tScheduleRoot, name + ".source"),
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             name,

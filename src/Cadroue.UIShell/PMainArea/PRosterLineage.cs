@@ -9,6 +9,7 @@ public sealed partial class PRoster
 {
     private sealed class PRosterLineageEntry
     {
+        public required Guid PRosterLineageBatch { get; init; }
         public required Guid PRosterLineageId { get; init; }
         public required string PRosterLineageSubject { get; init; }
         public required List<LWorkItem> PRosterLineageItems { get; init; }
@@ -18,20 +19,22 @@ public sealed partial class PRoster
     private IReadOnlyList<PRosterLineageEntry> PRosterLineageRead(IReadOnlyList<LWorkItem> pWorkItems)
     {
         var pLineageOrder = new List<PRosterLineageEntry>();
-        var pLineageIndex = new Dictionary<Guid, PRosterLineageEntry>();
+        var pLineageIndex = new Dictionary<(Guid Batch, Guid Lineage), PRosterLineageEntry>();
 
         foreach (LWorkItem pWorkItem in pWorkItems)
         {
             Guid pLineageId = pRosterSchedule.LScheduleLineageRead(pWorkItem);
-            if (!pLineageIndex.TryGetValue(pLineageId, out PRosterLineageEntry? pLineageEntry))
+            var pLineageKey = (pWorkItem.LWorkBatchId, pLineageId);
+            if (!pLineageIndex.TryGetValue(pLineageKey, out PRosterLineageEntry? pLineageEntry))
             {
                 pLineageEntry = new PRosterLineageEntry
                 {
+                    PRosterLineageBatch = pWorkItem.LWorkBatchId,
                     PRosterLineageId = pLineageId,
                     PRosterLineageSubject = PLineageSubjectRead(pWorkItem, pLineageId),
                     PRosterLineageItems = new List<LWorkItem>()
                 };
-                pLineageIndex[pLineageId] = pLineageEntry;
+                pLineageIndex[pLineageKey] = pLineageEntry;
                 pLineageOrder.Add(pLineageEntry);
             }
 
@@ -64,6 +67,11 @@ public sealed partial class PRoster
         string pSubject = pLineageEntry.PRosterLineageSubject;
         foreach (LWorkItem pWorkItem in pWorkItems)
         {
+            if (pWorkItem.LWorkBatchId != pLineageEntry.PRosterLineageBatch)
+            {
+                continue;
+            }
+
             if (PRosterLineageMatch(pWorkItem.LWorkOutputPath, pSubject) && pWorkItem.LWorkOutputBytes is { } pOutput)
             {
                 return pOutput;
