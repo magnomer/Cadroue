@@ -1,4 +1,5 @@
 using System.IO;
+using Cadroue.UIShell.PSShared;
 using System.Windows;
 using Cadroue.Core;
 using Cadroue.Media;
@@ -42,12 +43,10 @@ public sealed partial class PFlow
                 continue;
             }
 
-            bool pLosslesscutHasNext = pLosslesscutIndex + 1 < pLosslesscutPaths.Count;
-            string pLosslesscutChoiceMeaning = pLosslesscutHasNext
-                ? LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.NextChoice")
-                : LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.StopChoice");
             string pLosslesscutUnspecified = LLocalization.LLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
-            MessageBoxResult pLosslesscutChoice = MessageBox.Show(
+            bool pLosslesscutChoice = PSDecision.PSDecisionConfirm(
+                Window.GetWindow(this),
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.Title"),
                 LLocalization.LLocalizationFormat(
                     "Flow.LosslessCut.Detect.Message",
                     pLosslesscutIndex + 1,
@@ -56,12 +55,10 @@ public sealed partial class PFlow
                     File.GetLastWriteTime(pLosslesscutPath),
                     pLosslesscutProject.LLosslesscutProjectVersion?.ToString() ?? pLosslesscutUnspecified,
                     pLosslesscutProject.LLosslesscutProjectSegments.Count,
-                    pLosslesscutProject.LLosslesscutProjectMedia.PFlowFallbackRead(pLosslesscutUnspecified),
-                    pLosslesscutChoiceMeaning),
-                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.Title"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-            if (pLosslesscutChoice == MessageBoxResult.Yes)
+                    pLosslesscutProject.LLosslesscutProjectMedia.PFlowFallbackRead(pLosslesscutUnspecified)),
+                LLocalization.LLocalizationTextRead("Terms.Import"),
+                LLocalization.LLocalizationTextRead("Terms.Skip"));
+            if (pLosslesscutChoice)
             {
                 PFlowLosslesscutImport(pLosslesscutPath);
                 return;
@@ -73,11 +70,10 @@ public sealed partial class PFlow
     {
         if (!pFlowCommandActive || lSourcePath is null || lSpool is null)
         {
-            MessageBox.Show(
-                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.NoMedia"),
+            PSAnnouncement.PSAnnouncementShow(
+                Window.GetWindow(this),
                 LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.Title"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.NoMedia"));
             return;
         }
 
@@ -93,22 +89,22 @@ public sealed partial class PFlow
                 or ArgumentException)
         {
             LTraceLog.LTraceErrorRecord("LosslessCut project could not be read", pLosslesscutException);
-            MessageBox.Show(
-                LLocalization.LLocalizationFormat("Flow.LosslessCut.Import.ReadError", pLosslesscutException.Message),
+            PSWarning.PSWarningShow(
+                Window.GetWindow(this),
                 LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.Title"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                LLocalization.LLocalizationFormat("Flow.LosslessCut.Import.ReadError", pLosslesscutException.Message));
             return;
         }
 
         if (!LLosslesscut.LLosslesscutVersionCheck(pLosslesscutProject.LLosslesscutProjectVersion)
-            && MessageBox.Show(
+            && !PSDecision.PSDecisionConfirm(
+                Window.GetWindow(this),
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.VersionTitle"),
                 LLocalization.LLocalizationFormat(
                     "Flow.LosslessCut.Import.VersionWarning",
                     pLosslesscutProject.LLosslesscutProjectVersion),
-                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.VersionTitle"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                LLocalization.LLocalizationTextRead("Terms.Continue"),
+                LLocalization.LLocalizationTextRead("Terms.Cancel")))
         {
             return;
         }
@@ -119,45 +115,47 @@ public sealed partial class PFlow
             lSpool.LSpoolDuration);
 
         if (!pLosslesscutResult.LLosslesscutResultAgreement
-            && MessageBox.Show(
+            && !PSDecision.PSDecisionConfirm(
+                Window.GetWindow(this),
+                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.MediaMismatchTitle"),
                 LLocalization.LLocalizationFormat(
                     "Flow.LosslessCut.Import.MediaMismatch",
                     pLosslesscutResult.LLosslesscutResultMedia,
                     Path.GetFileName(lSourcePath)),
-                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.MediaMismatchTitle"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                LLocalization.LLocalizationTextRead("Terms.Import"),
+                LLocalization.LLocalizationTextRead("Terms.Cancel")))
         {
             return;
         }
 
         if (pLosslesscutResult.LLosslesscutResultSections.Count == 0)
         {
-            MessageBox.Show(
-                PFlowLosslesscutFormat(pLosslesscutPath, pLosslesscutResult, false),
+            PSAnnouncement.PSAnnouncementShow(
+                Window.GetWindow(this),
                 LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.EmptyTitle"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+                PFlowLosslesscutFormat(pLosslesscutPath, pLosslesscutResult, false));
             return;
         }
 
         string pLosslesscutSummary = PFlowLosslesscutFormat(pLosslesscutPath, pLosslesscutResult, true);
-        MessageBoxResult pLosslesscutMode = MessageBox.Show(
+        PSDecisionChoice pLosslesscutMode = PSDecision.PSDecisionSelect(
+            Window.GetWindow(this),
+            LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.PreviewTitle"),
             pLosslesscutSummary
             + Environment.NewLine
             + Environment.NewLine
             + LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.ModeChoices"),
-            LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.PreviewTitle"),
-            MessageBoxButton.YesNoCancel,
-            MessageBoxImage.Question);
+            LLocalization.LLocalizationTextRead("Terms.Replace"),
+            LLocalization.LLocalizationTextRead("Terms.Append"),
+            LLocalization.LLocalizationTextRead("Terms.Cancel"));
 
-        if (pLosslesscutMode == MessageBoxResult.Cancel)
+        if (pLosslesscutMode == PSDecisionChoice.PSDecisionDismiss)
         {
             return;
         }
 
         int pLosslesscutPalette = Math.Max(1, PSectionPalette.PSectionActiveCount);
-        if (pLosslesscutMode == MessageBoxResult.Yes)
+        if (pLosslesscutMode == PSDecisionChoice.PSDecisionPrimary)
         {
             lSegment.LSegmentLosslesscutSet(pLosslesscutResult.LLosslesscutResultSections, pLosslesscutPalette);
         }

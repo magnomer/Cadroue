@@ -1,4 +1,5 @@
 using System.Windows;
+using Cadroue.UIShell.PSShared;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -34,14 +35,15 @@ internal sealed partial class PSOptions
             pDownload.Content = PSSystemMpvFormat();
             pDownload.IsEnabled = true;
             psOptionsEngineEnable("Mpv", pResult.LMpvInstallSuccess || LMpv.LMpvInstalledCheck());
-            MessageBox.Show(
-                this,
-                pResult.LMpvInstallSuccess
-                    ? LLocalization.LLocalizationTextRead("Mpv.Local.Install.Completed")
-                    : LLocalization.LLocalizationFormat("Mpv.Local.Install.Failed", pResult.LMpvInstallMessage),
-                LLocalization.LLocalizationTextRead("Options.System.LocalMpv"),
-                MessageBoxButton.OK,
-                pResult.LMpvInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
+            string pMpvTitle = LLocalization.LLocalizationTextRead("Options.System.LocalMpv");
+            if (pResult.LMpvInstallSuccess)
+            {
+                PSAnnouncement.PSAnnouncementShow(this, pMpvTitle, LLocalization.LLocalizationTextRead("Mpv.Local.Install.Completed"));
+            }
+            else
+            {
+                PSWarning.PSWarningShow(this, pMpvTitle, LLocalization.LLocalizationFormat("Mpv.Local.Install.Failed", pResult.LMpvInstallMessage));
+            }
         };
         pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty);
 

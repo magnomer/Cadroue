@@ -356,12 +356,10 @@ internal sealed partial class PSOptions : Window
         psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
         if (!psOptionsSaved)
         {
-            MessageBox.Show(
+            PSWarning.PSWarningShow(
                 this,
-                LLocalization.LLocalizationTextRead("Options.Save.FailedMessage"),
                 LLocalization.LLocalizationTextRead("Options.Save.FailedTitle"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                LLocalization.LLocalizationTextRead("Options.Save.FailedMessage"));
             return;
         }
 
@@ -372,12 +370,10 @@ internal sealed partial class PSOptions : Window
                 LLocalization.LLocalizationLanguageRead(),
                 StringComparison.OrdinalIgnoreCase))
         {
-            MessageBox.Show(
+            PSAnnouncement.PSAnnouncementShow(
                 this,
-                LLocalization.LLocalizationTextRead("Options.Language.RestartMessage"),
                 LLocalization.LLocalizationTextRead("Options.Language.RestartTitle"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+                LLocalization.LLocalizationTextRead("Options.Language.RestartMessage"));
         }
     }
 

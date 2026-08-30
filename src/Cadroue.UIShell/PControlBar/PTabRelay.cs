@@ -1,4 +1,5 @@
 using System.Windows;
+using Cadroue.UIShell.PSShared;
 
 using Cadroue.Infrastructure;
 
@@ -53,12 +54,10 @@ public partial class PRail
     private static void PTabBusyShow(Window pRelayWindow, PTabRecord pTabRecord)
     {
         LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' kept: the worklist is still working");
-        MessageBox.Show(
+        PSAnnouncement.PSAnnouncementShow(
             pRelayWindow,
-            LLocalization.LLocalizationTextRead("Tab.Relay.BusyMessage"),
             LLocalization.LLocalizationTextRead("Tab.Relay.BusyTitle"),
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+            LLocalization.LLocalizationTextRead("Tab.Relay.BusyMessage"));
     }
 
     private static Point PTabDipRead(Window pRelayWindow, Point pDevicePoint)

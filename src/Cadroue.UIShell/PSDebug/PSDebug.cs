@@ -119,18 +119,15 @@ internal sealed class PSDebug : Window
         PSDebugButtonAdd(pWindows, "Loupe", () => PSLoupe.PSLoupeShow(this, new PViewer()));
         PSDebugButtonAdd(pWindows, "Monitor", PSDebugMonitorShow);
         PSDebugButtonAdd(pWindows, "Destructive alert", () => PSAlert.PSAlertConfirm(this, "Debug alert", "Exercise the custom destructive confirmation window?", "Confirm"));
+        PSDebugButtonAdd(pWindows, "Decision", () => PSDecision.PSDecisionSelect(this, "Debug decision", "Exercise the neutral multi-choice decision window?", "Primary", "Alternate", "Cancel"));
         pRoot.Children.Add(pWindows);
 
         pRoot.Children.Add(PSDebugHeadingBuild("Message boxes"));
         var pMessages = PSDebugWrapBuild();
         foreach (PSDebugMessage pMessage in PSDebugMessages)
         {
-            PSDebugButtonAdd(pMessages, pMessage.PSDebugName, () => MessageBox.Show(
-                this,
-                pMessage.PSDebugMessageText,
-                pMessage.PSDebugName,
-                pMessage.PSDebugButtons,
-                pMessage.PSDebugImage));
+            PSDebugMessage pCurrent = pMessage;
+            PSDebugButtonAdd(pMessages, pCurrent.PSDebugName, () => PSDebugMessageShow(pCurrent));
         }
         pRoot.Children.Add(pMessages);
 
@@ -140,6 +137,29 @@ internal sealed class PSDebug : Window
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
+    }
+
+    private void PSDebugMessageShow(PSDebugMessage pMessage)
+    {
+        if (pMessage.PSDebugButtons == MessageBoxButton.OK)
+        {
+            if (pMessage.PSDebugImage == MessageBoxImage.Warning)
+            {
+                PSWarning.PSWarningShow(this, pMessage.PSDebugName, pMessage.PSDebugMessageText);
+            }
+            else
+            {
+                PSAnnouncement.PSAnnouncementShow(this, pMessage.PSDebugName, pMessage.PSDebugMessageText);
+            }
+            return;
+        }
+
+        MessageBox.Show(
+            this,
+            pMessage.PSDebugMessageText,
+            pMessage.PSDebugName,
+            pMessage.PSDebugButtons,
+            pMessage.PSDebugImage);
     }
 
     private void PSDebugEncoderShow()

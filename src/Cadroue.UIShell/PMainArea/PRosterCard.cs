@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows;
+using Cadroue.UIShell.PSShared;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -361,12 +362,11 @@ public sealed partial class PRoster
             return true;
         }
 
-        return MessageBox.Show(
-            LLocalization.LLocalizationFormat("Roster.Card.Confirm", pRemovableCount),
+        return PSAlert.PSAlertConfirm(
+            null,
             LLocalization.LLocalizationTextRead("Console.Confirm.Title"),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning,
-            MessageBoxResult.No) == MessageBoxResult.Yes;
+            LLocalization.LLocalizationFormat("Roster.Card.Confirm", pRemovableCount),
+            LLocalization.LLocalizationTextRead("Terms.Remove"));
     }
 
     private static int PRosterInitialRead(IReadOnlyList<LWorkItem> pBatchItems)

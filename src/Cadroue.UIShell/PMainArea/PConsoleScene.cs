@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.UIShell.PSShared;
 using System;
 using System.IO;
 using System.Linq;
@@ -238,11 +239,10 @@ public sealed partial class PConsole
         string lSceneName = (pConsoleRelayCombo.Text ?? string.Empty).Trim();
         if (lSceneName.Length == 0)
         {
-            MessageBox.Show(
-                LLocalization.LLocalizationTextRead("Console.Scene.NameRequired"),
+            PSAnnouncement.PSAnnouncementShow(
+                PConsoleWindowRead(),
                 LLocalization.LLocalizationTextRead("Console.Scene.SaveTitle"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+                LLocalization.LLocalizationTextRead("Console.Scene.NameRequired"));
             return;
         }
 
@@ -359,21 +359,19 @@ public sealed partial class PConsole
     }
 
     private static bool PConsoleSceneConfirm(string lSceneName) =>
-        MessageBox.Show(
-            LLocalization.LLocalizationFormat("Console.Scene.LoadConfirm", lSceneName),
+        PSAlert.PSAlertConfirm(
+            null,
             LLocalization.LLocalizationTextRead("Console.Scene.LoadTitle"),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning,
-            MessageBoxResult.No) == MessageBoxResult.Yes;
+            LLocalization.LLocalizationFormat("Console.Scene.LoadConfirm", lSceneName),
+            LLocalization.LLocalizationTextRead("Terms.Load"));
 
     private static void PConsoleErrorShow(string lSceneMessageKey, string lSceneDetail, string lSceneTitleKey) =>
-        MessageBox.Show(
+        PSWarning.PSWarningShow(
+            null,
+            LLocalization.LLocalizationTextRead(lSceneTitleKey),
             lSceneDetail.Length > 0
                 ? LLocalization.LLocalizationFormat(lSceneMessageKey, lSceneDetail)
-                : LLocalization.LLocalizationTextRead(lSceneMessageKey),
-            LLocalization.LLocalizationTextRead(lSceneTitleKey),
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+                : LLocalization.LLocalizationTextRead(lSceneMessageKey));
 
     private PWindow? PConsoleWindowRead() => Window.GetWindow(this) as PWindow;
 

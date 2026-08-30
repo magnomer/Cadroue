@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using Cadroue.UIShell.PSShared;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -131,7 +132,7 @@ internal sealed partial class PSOptions
         string? pLoadedName = PSectionPalette.PSectionPaletteImport(pDialog.FileName);
         if (pLoadedName is null)
         {
-            MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.Timeline.InvalidPalette"), LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
+            PSWarning.PSWarningShow(this, LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"), LLocalization.LLocalizationTextRead("Options.Timeline.InvalidPalette"));
             return;
         }
 
@@ -235,15 +236,14 @@ internal sealed partial class PSOptions
 
     private void PSSpectrumRemove(string pName)
     {
-        MessageBoxResult pAnswer = MessageBox.Show(
+        bool pConfirmed = PSAlert.PSAlertConfirm(
             this,
+            LLocalization.LLocalizationTextRead("Options.Timeline.RemoveTitle"),
             PSectionPalette.PSectionNativeCheck(pName)
                 ? LLocalization.LLocalizationFormat("Options.Timeline.RemoveBuiltInConfirm", pName)
                 : LLocalization.LLocalizationFormat("Options.Timeline.RemoveWorkspaceConfirm", pName),
-            LLocalization.LLocalizationTextRead("Options.Timeline.RemoveTitle"),
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Warning);
-        if (pAnswer != MessageBoxResult.OK || !PSectionPalette.PSectionPaletteRemove(pName))
+            LLocalization.LLocalizationTextRead("Terms.Remove"));
+        if (!pConfirmed || !PSectionPalette.PSectionPaletteRemove(pName))
         {
             return;
         }

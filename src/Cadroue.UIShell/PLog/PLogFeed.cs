@@ -332,11 +332,9 @@ public sealed partial class PLogWindow
     private void PLogErrorShow(string pLogMessageKey, string pLogDetail)
     {
         Debug.WriteLine($"{pLogMessageKey}: {pLogDetail}");
-        MessageBox.Show(
+        PSWarning.PSWarningShow(
             this,
-            LLocalization.LLocalizationFormat(pLogMessageKey, pLogDetail),
             LLocalization.LLocalizationTextRead("Log.Window.Title"),
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+            LLocalization.LLocalizationFormat(pLogMessageKey, pLogDetail));
     }
 }

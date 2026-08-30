@@ -270,12 +270,10 @@ internal sealed class PSAbout : Window
     }
 
     private void PSAboutErrorShow(string pResource, string pDetail) =>
-        MessageBox.Show(
+        PSWarning.PSWarningShow(
             this,
-            LLocalization.LLocalizationFormat("About.Error.Open", pResource, pDetail),
             LLocalization.LLocalizationTextRead("About.Window.Title"),
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+            LLocalization.LLocalizationFormat("About.Error.Open", pResource, pDetail));
 
     private static string PSAboutVersionRead()
     {

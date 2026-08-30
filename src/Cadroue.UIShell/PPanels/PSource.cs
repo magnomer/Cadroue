@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.UIShell.PSShared;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PAssets;
 using Cadroue.Media;
@@ -124,8 +125,8 @@ public sealed class PSource : UserControl
         if (pDialog.ShowDialog() != true) return;
         if (Cadroue.Media.LMedia.LMediaAudioCheck(pDialog.FileName) && !pSourceAudioAllowed)
         {
-            MessageBox.Show(LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this),
+                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
             return;
         }
 
@@ -152,8 +153,8 @@ public sealed class PSource : UserControl
         if (!File.Exists(pPath)) return;
         if (Cadroue.Media.LMedia.LMediaAudioCheck(pPath) && !pSourceAudioAllowed)
         {
-            MessageBox.Show(LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this),
+                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
             return;
         }
 

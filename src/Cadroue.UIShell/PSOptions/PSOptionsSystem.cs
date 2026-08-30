@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Cadroue.UIShell.PSShared;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -114,14 +115,15 @@ internal sealed partial class PSOptions
 
             pInstall.Content = PSSystemFlyleafFormat();
             pInstall.IsEnabled = true;
-            MessageBox.Show(
-                this,
-                pResult.LFlyleafInstallSuccess
-                    ? LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed")
-                    : LLocalization.LLocalizationFormat("Flyleaf.Local.Install.Failed", pResult.LFlyleafInstallMessage),
-                LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf"),
-                MessageBoxButton.OK,
-                pResult.LFlyleafInstallSuccess ? MessageBoxImage.Information : MessageBoxImage.Warning);
+            string pFlyleafTitle = LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf");
+            if (pResult.LFlyleafInstallSuccess)
+            {
+                PSAnnouncement.PSAnnouncementShow(this, pFlyleafTitle, LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed"));
+            }
+            else
+            {
+                PSWarning.PSWarningShow(this, pFlyleafTitle, LLocalization.LLocalizationFormat("Flyleaf.Local.Install.Failed", pResult.LFlyleafInstallMessage));
+            }
         };
         pBrowse.Click += (_, _) => PSSystemFolderOpen(LFlyleaf.LFlyleafRootRead(), string.Empty);
 
@@ -206,24 +208,22 @@ internal sealed partial class PSOptions
         string pRecordFolder = Cadroue.Infrastructure.LSidecarStore.LSidecarFolderRead();
         if (string.IsNullOrWhiteSpace(pRecordFolder) || !Directory.Exists(pRecordFolder))
         {
-            MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.System.NoFileRecord"), LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), MessageBoxButton.OK, MessageBoxImage.Information);
+            PSAnnouncement.PSAnnouncementShow(this, LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), LLocalization.LLocalizationTextRead("Options.System.NoFileRecord"));
             return;
         }
 
-        MessageBoxResult pAnswer = MessageBox.Show(
-            this,
-            LLocalization.LLocalizationFormat("Options.System.ClearFileRecordConfirm", pRecordFolder),
-            LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"),
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Warning);
-        if (pAnswer != MessageBoxResult.OK)
+        if (!PSAlert.PSAlertConfirm(
+                this,
+                LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"),
+                LLocalization.LLocalizationFormat("Options.System.ClearFileRecordConfirm", pRecordFolder),
+                LLocalization.LLocalizationTextRead("Terms.Delete")))
         {
             return;
         }
 
         int pRemoved = Cadroue.Infrastructure.LSidecarStore.LSidecarFolderClear();
         PSWorkspaceSizeUpdate();
-        MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.FileRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), MessageBoxButton.OK, MessageBoxImage.Information);
+        PSAnnouncement.PSAnnouncementShow(this, LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"), LLocalization.LLocalizationFormat("Options.System.FileRecordsRemoved", pRemoved));
     }
 
     private void PSWorkspaceSizeUpdate()
@@ -266,13 +266,11 @@ internal sealed partial class PSOptions
 
     private void PSSystemDoneClear()
     {
-        MessageBoxResult pAnswer = MessageBox.Show(
-            this,
-            LLocalization.LLocalizationTextRead("Options.System.ClearDoneConfirm"),
-            LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"),
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Warning);
-        if (pAnswer != MessageBoxResult.OK)
+        if (!PSAlert.PSAlertConfirm(
+                this,
+                LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"),
+                LLocalization.LLocalizationTextRead("Options.System.ClearDoneConfirm"),
+                LLocalization.LLocalizationTextRead("Terms.Delete")))
         {
             return;
         }
@@ -285,24 +283,22 @@ internal sealed partial class PSOptions
         LDepotIndex.LDepotIndexRebuild();
         LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();
-        MessageBox.Show(this, LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved), LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+        PSAnnouncement.PSAnnouncementShow(this, LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"), LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved));
     }
 
     private void PSWorkspaceClear()
     {
         if (LDepot.LDepotRunningCheck(LDepot.LDepotRootRead()))
         {
-            MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.System.WorkspaceRunning"), LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
+            PSWarning.PSWarningShow(this, LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), LLocalization.LLocalizationTextRead("Options.System.WorkspaceRunning"));
             return;
         }
 
-        MessageBoxResult pAnswer = MessageBox.Show(
-            this,
-            LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceConfirm"),
-            LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Warning);
-        if (pAnswer != MessageBoxResult.OK)
+        if (!PSAlert.PSAlertConfirm(
+                this,
+                LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
+                LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceConfirm"),
+                LLocalization.LLocalizationTextRead("Terms.Reset")))
         {
             return;
         }
@@ -311,7 +307,7 @@ internal sealed partial class PSOptions
         LDepotIndex.LDepotIndexRebuild();
         LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();
-        MessageBox.Show(this, LLocalization.LLocalizationTextRead("Options.System.WorkspaceReset"), LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+        PSAnnouncement.PSAnnouncementShow(this, LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"), LLocalization.LLocalizationTextRead("Options.System.WorkspaceReset"));
     }
 
     private static string PSSystemSizeFormat(long pBytes)

@@ -1,4 +1,5 @@
 using Cadroue.Infrastructure;
+using Cadroue.UIShell.PSShared;
 using Cadroue.Core;
 using Microsoft.Win32;
 using System.Windows;
@@ -103,11 +104,10 @@ public sealed partial class PExport
         }
         catch (Exception pError)
         {
-            MessageBox.Show(
-                LLocalization.LLocalizationFormat("ExportPreset.Error.Write", pError.Message),
+            PSWarning.PSWarningShow(
+                Window.GetWindow(this),
                 LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Export"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                LLocalization.LLocalizationFormat("ExportPreset.Error.Write", pError.Message));
         }
     }
 
@@ -133,21 +133,19 @@ public sealed partial class PExport
         }
         catch (Exception pError)
         {
-            MessageBox.Show(
-                LLocalization.LLocalizationFormat("ExportPreset.Error.Read", pError.Message),
+            PSWarning.PSWarningShow(
+                Window.GetWindow(this),
                 LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Import"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                LLocalization.LLocalizationFormat("ExportPreset.Error.Read", pError.Message));
             return;
         }
 
         if (lImportedRecord is null)
         {
-            MessageBox.Show(
-                LLocalization.LLocalizationTextRead("ExportPreset.Error.Invalid"),
+            PSWarning.PSWarningShow(
+                Window.GetWindow(this),
                 LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Import"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                LLocalization.LLocalizationTextRead("ExportPreset.Error.Invalid"));
             return;
         }
 

@@ -1,4 +1,5 @@
 using System.Windows;
+using Cadroue.UIShell.PSShared;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIShell.PAssets;
@@ -10,11 +11,10 @@ public sealed partial class PExport
 {
     private static Style? pExportButtonStyle;
 
-    public static void PExportMissingShow() => MessageBox.Show(
-        LLocalization.LLocalizationTextRead("ExportPreset.Missing.Body"),
+    public static void PExportMissingShow() => PSAnnouncement.PSAnnouncementShow(
+        null,
         LLocalization.LLocalizationTextRead("ExportPreset.Missing.Title"),
-        MessageBoxButton.OK,
-        MessageBoxImage.Information);
+        LLocalization.LLocalizationTextRead("ExportPreset.Missing.Body"));
 
     private UIElement PExportActionBuild()
     {

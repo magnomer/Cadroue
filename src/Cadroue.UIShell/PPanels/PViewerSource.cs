@@ -1,4 +1,5 @@
 using System;
+using Cadroue.UIShell.PSShared;
 using System.Windows;
 using Cadroue.Media;
 using Cadroue.Core;
@@ -48,11 +49,10 @@ public sealed partial class PViewer
         LSidecarSourceResult? pResult = LLibrarian.LLibrarianSourceResolve(pSidecarPath);
         if (pResult is null)
         {
-            MessageBox.Show(
-                LLocalization.LLocalizationTextRead("Viewer.Sidecar.ReadError"),
+            PSWarning.PSWarningShow(
+                Window.GetWindow(this),
                 LLocalization.LLocalizationTextRead("Viewer.Dialog.OpenTitle"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                LLocalization.LLocalizationTextRead("Viewer.Sidecar.ReadError"));
             return null;
         }
 
@@ -62,11 +62,12 @@ public sealed partial class PViewer
         }
 
         if (pResult.LSidecarResultKind != LSidecarSourceKind.LSidecarSourceMissing
-            && MessageBox.Show(
-                LLocalization.LLocalizationFormat("Viewer.Sidecar.MismatchFound", pResult.LSidecarResultPath),
+            && PSDecision.PSDecisionConfirm(
+                Window.GetWindow(this),
                 LLocalization.LLocalizationTextRead("Viewer.Dialog.OpenTitle"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question) == MessageBoxResult.Yes)
+                LLocalization.LLocalizationFormat("Viewer.Sidecar.MismatchFound", pResult.LSidecarResultPath),
+                LLocalization.LLocalizationTextRead("Terms.Open"),
+                LLocalization.LLocalizationTextRead("Terms.Cancel")))
         {
             return pResult.LSidecarResultPath;
         }
@@ -93,11 +94,12 @@ public sealed partial class PViewer
             return pDialog.FileName;
         }
 
-        return MessageBox.Show(
-            LLocalization.LLocalizationTextRead("Viewer.Sidecar.MismatchSelected"),
+        return PSDecision.PSDecisionConfirm(
+            Window.GetWindow(this),
             LLocalization.LLocalizationTextRead("Viewer.Dialog.OpenTitle"),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question) == MessageBoxResult.Yes
+            LLocalization.LLocalizationTextRead("Viewer.Sidecar.MismatchSelected"),
+            LLocalization.LLocalizationTextRead("Terms.Open"),
+            LLocalization.LLocalizationTextRead("Terms.Cancel"))
             ? pDialog.FileName
             : null;
     }

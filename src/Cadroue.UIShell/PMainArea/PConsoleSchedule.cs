@@ -1,4 +1,5 @@
 using System.Windows;
+using Cadroue.UIShell.PSShared;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media.Animation;
@@ -282,14 +283,14 @@ public sealed partial class PConsole
         string pCancelSubject = pRunningItems.Length > 1
             ? LLocalization.LLocalizationFormat("Console.Cancel.MultipleSubject", pRunningItems.Length)
             : LLocalization.LLocalizationFormat("Console.Cancel.SingleSubject", pRunningItems[0].LWorkOutputName);
-        MessageBoxResult pAnswer = MessageBox.Show(
-            LLocalization.LLocalizationFormat("Console.Cancel.Confirm", pCancelSubject),
+        bool pAnswer = PSAlert.PSAlertConfirm(
+            Window.GetWindow(this),
             LLocalization.LLocalizationTextRead("Console.Cancel.Title"),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning,
-            MessageBoxResult.No);
+            LLocalization.LLocalizationFormat("Console.Cancel.Confirm", pCancelSubject),
+            LLocalization.LLocalizationTextRead("Terms.Stop"),
+            LLocalization.LLocalizationTextRead("Console.Cancel.Keep"));
 
-        if (pAnswer == MessageBoxResult.Yes)
+        if (pAnswer)
         {
             LStation pCancelStation = PConsoleStationRead();
             pCancelStation.LStationAutoActive = false;
@@ -345,12 +346,11 @@ public sealed partial class PConsole
             return true;
         }
 
-        return MessageBox.Show(
-            pConsoleQuestion,
+        return PSAlert.PSAlertConfirm(
+            Window.GetWindow(this),
             LLocalization.LLocalizationTextRead("Console.Confirm.Title"),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning,
-            MessageBoxResult.No) == MessageBoxResult.Yes;
+            pConsoleQuestion,
+            LLocalization.LLocalizationTextRead("Terms.Remove"));
     }
 
     private static void PConsoleRunnerApply(LRunner pRunner)
