@@ -19,7 +19,7 @@ public static partial class LEncode
     {
         LBridgePlan lBridgePlan = LBridge.LBridgeRegionResolve(
             lBridgeKeyframes, lWorkItem.LWorkOrigin, lWorkItem.LWorkEnd);
-        LBridgeStream? lBridgeSource = LScout.LScoutStreamRead(lWorkItem.LWorkSourcePath);
+        LBridgeStream? lBridgeSource = LScoutStream.LScoutStreamRead(lWorkItem.LWorkSourcePath);
         return LEncodeSmartResolve(lWorkItem, lBridgePlan, lBridgeSource);
     }
 
@@ -128,7 +128,7 @@ public static partial class LEncode
                 lAudio.LEncodingStream,
                 "Include all audio tracks",
                 StringComparison.OrdinalIgnoreCase);
-            LScoutAudioInterval? lAudioInterval = LScout.LScoutAudioResolve(
+            LScoutAudioInterval? lAudioInterval = LScoutAudio.LScoutAudioResolve(
                 lWorkItem.LWorkSourcePath,
                 lWorkItem.LWorkOrigin,
                 lWorkItem.LWorkEnd,

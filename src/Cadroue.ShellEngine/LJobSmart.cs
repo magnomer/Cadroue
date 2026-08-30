@@ -31,7 +31,7 @@ internal sealed partial class LJob
 
     private async Task<(int, string)> LJobSmartRun()
     {
-        LBridgeStream? pSource = LScout.LScoutStreamRead(lJobItem.LWorkSourcePath, lJobToken);
+        LBridgeStream? pSource = LScoutStream.LScoutStreamRead(lJobItem.LWorkSourcePath, lJobToken);
         if (pSource is null)
         {
             LRunner.LRunnerRecord(
@@ -39,7 +39,7 @@ internal sealed partial class LJob
             return (1, "source stream unreadable");
         }
 
-        IReadOnlyList<LKeyframeEntry> pKeyframes = LScout.LScoutBridgeRead(
+        IReadOnlyList<LKeyframeEntry> pKeyframes = LScoutBridge.LScoutBridgeRead(
             lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken);
         LWorkMedia? pMedia = lJobItem.LWorkSourceMedia
             ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
