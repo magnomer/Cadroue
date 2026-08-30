@@ -1,0 +1,162 @@
+name: Detailed bug report
+description: Provide reproduction steps, media details, logs, and technical information.
+labels:
+- 'type: bug'
+- 'status: needs-triage'
+body:
+- type: markdown
+  attributes:
+    value: 'Use this form when you can provide detailed reproduction or technical information.
+
+
+      **Before posting:** GitHub Issues are public. Do not include personal, personally identifiable, private, confidential, or sensitive information. Read the [Issue Reporting Information Policy](https://github.com/magnomer/Cadroue/blob/main/.github/ISSUE_REPORTING_POLICY.md).
+
+
+      **Security-related symptoms may be reported here only when the report contains no sensitive vulnerability details, exploit instructions, secrets, or other information whose public disclosure would create additional risk.**
+
+
+      Report observed facts rather than assigning severity or guessing the root cause. Severity and root-cause classification are maintainer triage decisions.'
+- type: checkboxes
+  id: duplicate-check
+  attributes:
+    label: Existing issue check
+    description: Check open and closed issues before submitting a detailed report.
+    options:
+    - label: I searched the existing issues and did not find the same or substantially similar reported behavior.
+      required: true
+- type: dropdown
+  id: area
+  attributes:
+    label: Where did you notice the problem?
+    description: Choose the Cadroue area where you noticed the problem. You do not need to know which internal component caused it.
+    options:
+    - Files
+    - Sections
+    - Timeline
+    - Split
+    - Edit
+    - Fix
+    - Audio
+    - Convert
+    - Merge
+    - Funnel
+    - Worklist
+    - Viewer / Preview
+    - Export
+    - Relay
+    - Settings
+    - Project
+    - Localization
+    - General
+    - Other / Not sure
+  validations:
+    required: true
+- type: textarea
+  id: observed
+  attributes:
+    label: Observed behavior
+    description: Describe what Cadroue actually did.
+  validations:
+    required: true
+- type: textarea
+  id: expected
+  attributes:
+    label: Expected behavior
+    description: Describe what Cadroue should have done instead.
+  validations:
+    required: true
+- type: textarea
+  id: reproduction
+  attributes:
+    label: Steps to reproduce
+    description: Give the shortest sequence that reproduces the problem. If it is not reliably reproducible, describe the sequence that led to it.
+    placeholder: '1. Open ...
+
+      2. Select ...
+
+      3. Set ...
+
+      4. Run ...
+
+      5. Observe ...'
+  validations:
+    required: true
+- type: dropdown
+  id: reproducibility
+  attributes:
+    label: Reproducibility
+    options:
+    - Always
+    - Usually
+    - Sometimes
+    - Happened once
+    - Not yet reproduced
+    - Unknown
+  validations:
+    required: true
+- type: textarea
+  id: impact
+  attributes:
+    label: Practical impact
+    description: Optional. Explain what the problem prevents, damages, misrepresents, or makes difficult. Do not choose a severity level.
+  validations:
+    required: false
+- type: textarea
+  id: media-conditions
+  attributes:
+    label: Input and media conditions
+    description: Optional. Add only permitted technical details such as container, codec, stream layout, duration, resolution, frame rate, or corruption characteristics.
+    placeholder: 'Container:
+
+      Video codec:
+
+      Audio codec:
+
+      Resolution / frame rate:
+
+      Other relevant properties:'
+  validations:
+    required: false
+- type: input
+  id: cadroue-version
+  attributes:
+    label: Cadroue version or commit
+    description: Give the version number or commit SHA used when the problem occurred. Enter Unknown if it cannot be determined.
+    placeholder: 'Example: 2.13.15190, da4949e, or Unknown'
+  validations:
+    required: true
+- type: input
+  id: ffmpeg-version
+  attributes:
+    label: FFmpeg version or build
+    description: Optional. Especially useful for processing, probing, codec, container, or export problems.
+  validations:
+    required: false
+- type: input
+  id: windows-version
+  attributes:
+    label: Windows version
+    description: Optional.
+  validations:
+    required: false
+- type: textarea
+  id: environment-details
+  attributes:
+    label: Other environment details
+    description: Optional. Add any other technical conditions that seem relevant, such as GPU/driver, Windows regional settings, storage conditions, network location, display setup, permissions, or sleep/resume conditions.
+  validations:
+    required: false
+- type: textarea
+  id: logs
+  attributes:
+    label: Sanitized logs, error text, or diagnostic output
+    description: Optional. Provide only permitted technical information. Remove personal, personally identifiable, private, confidential, or sensitive information before posting.
+  validations:
+    required: false
+- type: textarea
+  id: additional
+  attributes:
+    label: Additional technical information
+    description: Optional. Add other permitted technical information that may help distinguish this report from similar manifestations.
+  validations:
+    required: false

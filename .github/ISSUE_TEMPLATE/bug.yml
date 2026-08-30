@@ -1,0 +1,61 @@
+name: Quick bug report
+description: Report the symptoms when something went wrong.
+labels:
+- 'type: bug'
+- 'status: needs-triage'
+body:
+- type: markdown
+  attributes:
+    value: 'Use this form when something went wrong and you want to report it without providing a technical diagnosis.
+
+
+      **Before posting:** GitHub Issues are public. Do not include personal, personally identifiable, private, confidential, or sensitive information. Read the [Issue Reporting Information Policy](https://github.com/magnomer/Cadroue/blob/main/.github/ISSUE_REPORTING_POLICY.md).
+
+
+      **Security-related symptoms may be reported here only when the report contains no sensitive vulnerability details, exploit instructions, secrets, or other information whose public disclosure would create additional risk.**
+
+
+      Give the issue a short title describing the symptom. You do not need to know the cause, affected subsystem, or technical media details.'
+- type: textarea
+  id: symptoms
+  attributes:
+    label: What happened?
+    description: Describe the symptom in your own words. What did you see, hear, or receive as output?
+    placeholder: 'Example: The export completed, but the resulting video freezes after 03:12.'
+  validations:
+    required: true
+- type: input
+  id: cadroue-version
+  attributes:
+    label: Cadroue version
+    description: Enter the Cadroue version used when the problem occurred. If you genuinely cannot determine it, enter Unknown.
+    placeholder: 'Example: 2.13.15190 or Unknown'
+  validations:
+    required: true
+- type: textarea
+  id: activity
+  attributes:
+    label: What were you doing when it happened?
+    description: Optional. Briefly describe the operation or sequence that led to the problem.
+    placeholder: 'Example: I opened an HEVC MP4, created two sections, selected Smart export, and started the job.'
+  validations:
+    required: false
+- type: dropdown
+  id: frequency
+  attributes:
+    label: How often has it happened?
+    description: Optional.
+    options:
+    - Every time
+    - More than once
+    - Once
+    - I do not know
+  validations:
+    required: false
+- type: textarea
+  id: extra
+  attributes:
+    label: Anything else that may help
+    description: Optional. Add permitted technical information such as an error message, sanitized log excerpt, screenshot, or media characteristics. Do not include protected information.
+  validations:
+    required: false
