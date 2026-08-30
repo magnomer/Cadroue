@@ -155,8 +155,11 @@ public sealed partial class PConsole
         LWorkItem? pRunning = pRunningItems.FirstOrDefault();
 
         PConsoleProgressSet(pRunningItems.Length == 0 ? 0 : pRunningItems.Average(pWorkItem => pWorkItem.LWorkProgress));
-        pConsoleStartButton.IsEnabled = !pRunner.LRunnerRunning && pTotal > 0;
-        pConsolePauseButton.IsEnabled = pRunner.LRunnerRunning;
+        bool pRunnerActive = pRunner.LRunnerRunning;
+        pConsoleStartButton.Visibility = pRunnerActive ? Visibility.Collapsed : Visibility.Visible;
+        pConsoleStartButton.IsEnabled = pTotal > 0;
+        pConsolePauseButton.Visibility = pRunnerActive ? Visibility.Visible : Visibility.Collapsed;
+        pConsolePauseButton.IsEnabled = true;
         pConsoleCancelButton.IsEnabled = pRunning is not null;
         pConsoleStopButton.IsEnabled = pRunner.LRunnerRunning || pRunner.LRunnerSuspended;
 
