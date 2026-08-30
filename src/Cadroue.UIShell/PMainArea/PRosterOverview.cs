@@ -1,14 +1,10 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
-using Cadroue.Media;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.ShellEngine;
-
-using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -127,13 +123,13 @@ public sealed partial class PRoster
     private UIElement PRosterComparisonBuild(LWorkItem pWorkItem, LWorkMedia? pSourceInfo, long? pSourceBytes, long? pOutputBytes)
     {
         LEncoding pOutput = pWorkItem.LWorkOutput;
-        LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia ?? PRosterMediaRead(pWorkItem.LWorkOutputPath);
+        LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia;
 
         bool pSourceAudio = (pSourceInfo?.LWorkMediaSamplerate ?? 0) > 0;
         bool pOutputAudio = (pOutputInfo?.LWorkMediaSamplerate ?? 0) > 0;
-        double? pSourceLoudness = pSourceAudio ? PRosterLoudnessRead(pWorkItem.LWorkSourcePath, true) : null;
+        double? pSourceLoudness = pSourceAudio ? pSourceInfo?.LWorkMediaLoudness : null;
         double? pOutputLoudness = pWorkItem.LWorkAudio.LWorkAudioActive
-            ? (pOutputAudio ? PRosterLoudnessRead(pWorkItem.LWorkOutputPath, false) : null)
+            ? (pOutputAudio ? pOutputInfo?.LWorkMediaLoudness : null)
             : pSourceLoudness;
 
         var pSourceStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -163,15 +159,15 @@ public sealed partial class PRoster
                 ? $"{pOutputInfo.LWorkMediaFramerate:0.###} fps"
                 : PRosterFpsFormat(pOutput.LEncodingVideo.LEncodingFps), false);
         PairAdd(
-            PRosterRateFormat(PRosterKeyframeRead(pWorkItem.LWorkSourcePath, pSourceInfo?.LWorkMediaDuration ?? TimeSpan.Zero) is { } pSourceInterval && pSourceInterval > 0
-                ? pSourceInterval
+            PRosterRateFormat(pSourceInfo?.LWorkKeyframeInterval is { } pSourceInterval && pSourceInterval > 0
+                ? pSourceInterval / 1000d
                 : null),
             PRosterRateFormat(pOutputInfo?.LWorkKeyframeInterval is { } pOutputInterval && pOutputInterval > 0
                 ? pOutputInterval / 1000d
                 : null), false);
         PairAdd(
             pSourceInfo is null
-                ? PRosterPendingFormat(pWorkItem.LWorkSourcePath)
+                ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown")
                 : PRosterClockFormat(pSourceInfo.LWorkMediaDuration),
             PRosterClockFormat(pOutputInfo?.LWorkMediaDuration ?? pWorkItem.LWorkDuration), false);
         PairAdd(
@@ -291,74 +287,6 @@ public sealed partial class PRoster
     private static string PRosterLoudnessFormat(double? pLoudness) =>
         pLoudness is { } pLufs ? $"{pLufs:0.#} LUFS" : "-";
 
-    private double? PRosterLoudnessRead(string pMediaPath, bool pFromSidecar)
-    {
-        if (string.IsNullOrWhiteSpace(pMediaPath))
-        {
-            return null;
-        }
-
-        if (pRosterLoudnessCache.TryGetValue(pMediaPath, out double? pCached))
-        {
-            return pCached;
-        }
-
-        if (pFromSidecar)
-        {
-            double pStored = Cadroue.Application.LLibrarian.LLibrarianLoudnessRead(pMediaPath);
-            if (pStored != 0)
-            {
-                PRosterCacheSet(pRosterLoudnessCache, pMediaPath, pStored);
-                return pStored;
-            }
-        }
-
-        PRosterLoudnessDefer(pMediaPath, pFromSidecar);
-        return null;
-    }
-
-    private void PRosterLoudnessDefer(string pMediaPath, bool pFromSidecar)
-    {
-        if (!File.Exists(pMediaPath) || pRosterLoudnessPending.ContainsKey(pMediaPath))
-        {
-            return;
-        }
-
-        pRosterLoudnessPending[pMediaPath] = pFromSidecar;
-        LMediaProbe.LMediaLoudnessDefer(pMediaPath);
-    }
-
-    private void PRosterLoudnessHandle(LMediaLoudnessResult pResult)
-    {
-        Dispatcher.BeginInvoke(new Action(() =>
-        {
-            string pMediaPath = pResult.LMediaLoudnessPath;
-            if (!pRosterLoudnessPending.Remove(pMediaPath, out bool pFromSidecar))
-            {
-                return;
-            }
-
-            if (pResult.LMediaLoudnessError is { } pError)
-            {
-                LTraceLog.LTraceErrorRecord($"Job detail could not measure loudness '{Path.GetFileName(pMediaPath)}': {pError}");
-            }
-
-            if (pResult.LMediaLoudnessValue is { } pLoudness && pFromSidecar)
-            {
-                Cadroue.Application.LLibrarian.LLibrarianLoudnessSave(pMediaPath, pLoudness);
-            }
-
-            PRosterCacheSet(pRosterLoudnessCache, pMediaPath, pResult.LMediaLoudnessValue);
-
-            if (PRosterSelectRead() is { } pSelected
-                && (string.Equals(pSelected.LWorkSourcePath, pMediaPath, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(pSelected.LWorkOutputPath, pMediaPath, StringComparison.OrdinalIgnoreCase)))
-            {
-                PRosterDetailUpdate();
-            }
-        }));
-    }
-
     private static Button PRosterOpenBuild(string pPath)
     {
         var pButton = new Button
@@ -401,7 +329,7 @@ public sealed partial class PRoster
         pMediaInfo is { LWorkMediaVideo: true }
             ? $"{pMediaInfo.LWorkMediaWidth} x {pMediaInfo.LWorkMediaHeight}"
             : pMediaInfo is null
-                ? PRosterPendingFormat(pMediaPath)
+                ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown")
                 : LLocalization.LLocalizationTextRead("Roster.AudioOnly");
 
     private static string PRosterDimensionFormat(string pVideoSize) =>
@@ -413,7 +341,7 @@ public sealed partial class PRoster
         pMediaInfo is { LWorkMediaVideo: true }
             ? $"{pMediaInfo.LWorkMediaFramerate:0.###} fps"
             : pMediaInfo is null
-                ? PRosterPendingFormat(pMediaPath)
+                ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown")
                 : LLocalization.LLocalizationTextRead("Roster.AudioOnly");
 
     private static string PRosterFpsFormat(string pVideoFps) =>

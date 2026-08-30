@@ -209,9 +209,12 @@ public sealed partial class PRoster
         foreach (LWorkItem pWorkItem in pBatchItems)
         {
             bool pMerge = pWorkItem.LWorkKind == LWorkKind.LWorkKindMerge;
-            IEnumerable<string> pInputs = pMerge ? pWorkItem.LWorkMergeSources : new[] { pWorkItem.LWorkSourcePath };
-            foreach (string pInput in pInputs)
+            IReadOnlyList<string> pInputs = pMerge
+                ? pWorkItem.LWorkMergeSources
+                : new[] { pWorkItem.LWorkSourcePath };
+            for (int pIndex = 0; pIndex < pInputs.Count; pIndex++)
             {
+                string pInput = pInputs[pIndex];
                 if (PLineagePathRead(pInput) is not { } pInputKey)
                 {
                     continue;
@@ -220,7 +223,12 @@ public sealed partial class PRoster
                 pConsumed.Add(pInputKey);
                 if (!pInputBytes.ContainsKey(pInputKey))
                 {
-                    pInputBytes[pInputKey] = (pMerge ? null : pWorkItem.LWorkSourceBytes) ?? PRosterSizeRead(pInput);
+                    pInputBytes[pInputKey] = pMerge
+                        ? pIndex < pWorkItem.LWorkMergeBytes.Count
+                            && pWorkItem.LWorkMergeBytes[pIndex] > 0
+                                ? pWorkItem.LWorkMergeBytes[pIndex]
+                                : null
+                        : pWorkItem.LWorkSourceBytes;
                 }
             }
         }

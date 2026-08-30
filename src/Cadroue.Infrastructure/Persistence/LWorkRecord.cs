@@ -33,6 +33,8 @@ public sealed class LWorkRecord
 
     public long? LWorkSourceBytes { get; set; }
 
+    public List<long> LWorkMergeBytes { get; set; } = [];
+
     public LWorkMedia? LWorkSourceMedia { get; set; }
 
     public LWorkMedia? LWorkOutputMedia { get; set; }
@@ -89,6 +91,7 @@ public sealed class LWorkRecord
         LWorkFinishTime = lWorkItem.LWorkFinishTime,
         LWorkOutputBytes = lWorkItem.LWorkOutputBytes,
         LWorkSourceBytes = lWorkItem.LWorkSourceBytes,
+        LWorkMergeBytes = lWorkItem.LWorkMergeBytes.ToList(),
         LWorkSourceMedia = lWorkItem.LWorkSourceMedia,
         LWorkOutputMedia = lWorkItem.LWorkOutputMedia,
         LWorkOwnerProcess = lWorkItem.LWorkOwnerProcess,
@@ -143,6 +146,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkFinishTime = LWorkFinishTime;
         lWorkItem.LWorkOutputBytes = LWorkOutputBytes;
         lWorkItem.LWorkSourceBytes = LWorkSourceBytes;
+        lWorkItem.LWorkMergeBytes = LWorkMergeBytes.ToArray();
         lWorkItem.LWorkSourceMedia = LWorkSourceMedia;
         lWorkItem.LWorkOutputMedia = LWorkOutputMedia;
         lWorkItem.LWorkDossiers = LWorkDossiers.ToArray();
@@ -179,6 +183,7 @@ public sealed class LWorkRecord
         LWorkMessage ??= string.Empty;
         LWorkPhaseName ??= nameof(LWorkPhase.LWorkPhaseNone);
         LWorkMergeSources ??= [];
+        LWorkMergeBytes ??= [];
         LWorkCrop ??= LWorkCrop.LWorkCropCreate();
         LWorkVideo ??= LWorkVideo.LWorkVideoCreate();
         LWorkAudio ??= LWorkAudio.LWorkAudioCreate();

@@ -1,91 +1,9 @@
-using System.IO;
 using Cadroue.Core;
-using Cadroue.Media;
-
-using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
-    private static double? PRosterIntervalRead(string? pSourcePath)
-    {
-        if (string.IsNullOrWhiteSpace(pSourcePath))
-        {
-            return null;
-        }
-
-        IReadOnlyList<long> pKeyframes = Cadroue.Application.LLibrarian.LLibrarianKeyframesLoad(pSourcePath);
-        if (pKeyframes.Count <= 1)
-        {
-            return null;
-        }
-
-        return (pKeyframes[^1] - pKeyframes[0]) / 1000d / (pKeyframes.Count - 1);
-    }
-
-    private static readonly Dictionary<string, double?> pRosterKeyframeCache = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly HashSet<string> pRosterKeyframePending = new(StringComparer.OrdinalIgnoreCase);
-
-    private double? PRosterKeyframeRead(string? pSourcePath, TimeSpan pDuration)
-    {
-        if (PRosterIntervalRead(pSourcePath) is { } pSidecarInterval)
-        {
-            return pSidecarInterval;
-        }
-
-        if (string.IsNullOrWhiteSpace(pSourcePath) || !File.Exists(pSourcePath) || pDuration <= TimeSpan.Zero)
-        {
-            return null;
-        }
-
-        if (pRosterKeyframeCache.TryGetValue(pSourcePath, out double? pCached))
-        {
-            return pCached;
-        }
-
-        PRosterKeyframeDefer(pSourcePath, pDuration);
-        return null;
-    }
-
-    private void PRosterKeyframeDefer(string pSourcePath, TimeSpan pDuration)
-    {
-        if (!pRosterKeyframePending.Add(pSourcePath))
-        {
-            return;
-        }
-
-        Guid pRosterProbeId = PRosterSelectRead()?.LWorkId ?? Guid.Empty;
-        _ = Task.Run(() =>
-        {
-            double? pInterval = null;
-            try
-            {
-                IReadOnlyList<LKeyframeEntry> pKeyframes = LKeyframeSeeker.LKeyframeRangeScan(pSourcePath, TimeSpan.Zero, pDuration);
-                if (pKeyframes.Count >= 2)
-                {
-                    double pSpanMilliseconds =
-                        (pKeyframes[^1].LKeyframePresentationTime - pKeyframes[0].LKeyframePresentationTime).TotalMilliseconds;
-                    pInterval = pSpanMilliseconds / 1000d / (pKeyframes.Count - 1);
-                }
-            }
-            catch (Exception pScanError)
-            {
-                LTraceLog.LTraceErrorRecord($"Job detail could not scan keyframes '{Path.GetFileName(pSourcePath)}': {pScanError.Message}");
-            }
-
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                pRosterKeyframePending.Remove(pSourcePath);
-                PRosterCacheSet(pRosterKeyframeCache, pSourcePath, pInterval);
-                if (PRosterSelectRead()?.LWorkId == pRosterProbeId)
-                {
-                    PRosterDetailUpdate();
-                }
-            }));
-        });
-    }
-
     private static string PRosterRateFormat(double? pRatePerSecond) =>
         pRatePerSecond is { } pRate && pRate > 0
             ? LLocalization.LLocalizationFormat("Roster.Field.KeyframeRate", pRate)
@@ -168,19 +86,16 @@ public sealed partial class PRoster
             : $"{pSpan.Minutes}:{pSpan.Seconds:00}";
     }
 
+    // Source size is read only from the record measured while the job ran; a merge item
+    // stores one byte total per input. Nothing is measured from disk here, so a deleted
+    // source still shows its recorded size.
     internal static long? PRosterSourceRead(LWorkItem pWorkItem)
     {
-        if (pWorkItem.LWorkMergeSources.Count > 1)
+        if (pWorkItem.LWorkMergeSources.Count > 1 && pWorkItem.LWorkMergeBytes.Count > 0)
         {
             long pMergeTotal = 0;
-            foreach (string pMergeSource in pWorkItem.LWorkMergeSources)
+            foreach (long pMergeBytes in pWorkItem.LWorkMergeBytes)
             {
-                if (PRosterSizeRead(pMergeSource) is not { } pMergeBytes)
-                {
-                    pMergeTotal = 0;
-                    break;
-                }
-
                 pMergeTotal += pMergeBytes;
             }
 
@@ -190,49 +105,10 @@ public sealed partial class PRoster
             }
         }
 
-        return pWorkItem.LWorkSourceBytes ?? PRosterSizeRead(pWorkItem.LWorkSourcePath);
+        return pWorkItem.LWorkSourceBytes;
     }
 
-    private static long? PRosterSizeRead(string? pFilePath)
-    {
-        if (string.IsNullOrWhiteSpace(pFilePath))
-        {
-            return null;
-        }
-
-        try
-        {
-            var pSizeFile = new FileInfo(pFilePath);
-            return pSizeFile.Exists ? pSizeFile.Length : null;
-        }
-        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return null;
-        }
-    }
-
-    private static long? PRosterBytesRead(LWorkItem pWorkItem)
-    {
-        if (pWorkItem.LWorkOutputBytes is { } pRecordedBytes)
-        {
-            return pRecordedBytes;
-        }
-
-        if (string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath))
-        {
-            return null;
-        }
-
-        try
-        {
-            var pOutputFile = new FileInfo(pWorkItem.LWorkOutputPath);
-            return pOutputFile.Exists ? pOutputFile.Length : null;
-        }
-        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return null;
-        }
-    }
+    private static long? PRosterBytesRead(LWorkItem pWorkItem) => pWorkItem.LWorkOutputBytes;
 
     private static TimeSpan? PRosterSpentRead(LWorkItem pWorkItem)
     {

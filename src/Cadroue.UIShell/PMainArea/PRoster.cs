@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Media;
 using Cadroue.ShellEngine;
 using Cadroue.UIShell.PMainWindow;
 
@@ -19,6 +18,7 @@ public sealed partial class PRoster : UserControl
     private readonly StackPanel pRosterDetailPanel;
     private readonly TextBlock pRosterDetailTitle;
     private bool pRosterClosed;
+    private bool pRosterDetailPending;
 
     public PRoster(LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -33,8 +33,6 @@ public sealed partial class PRoster : UserControl
 
         pRosterSchedule.LScheduleChange += PRosterScheduleHandle;
         pRosterSchedule.LScheduleItemChange += PRosterItemHandle;
-        LMediaProbe.LMediaProbeReady += PRosterMediaHandle;
-        LMediaProbe.LMediaLoudnessReady += PRosterLoudnessHandle;
         PRosterConsoleAttach();
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;

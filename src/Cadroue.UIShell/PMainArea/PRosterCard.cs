@@ -337,6 +337,7 @@ public sealed partial class PRoster
         pRosterSelectedIds.Clear();
         pRosterCurrentId = Guid.Empty;
         PRosterSelectApply();
+        PRosterShadeApply();
         PRosterCardApply();
         PRosterSelectHandle();
     }

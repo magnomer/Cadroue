@@ -69,7 +69,7 @@ internal sealed partial class LJob
 
         // Claim the intended name atomically. Success means it was free and is now ours,
         // so no second instance can pick the same "free" name and clobber this output.
-        if (LJobReserve(pTarget))
+        if (LJobClaim(pTarget))
         {
             return string.Empty;
         }
@@ -113,7 +113,7 @@ internal sealed partial class LJob
 
             // The existing file has moved aside; reclaim the now-free target so no other
             // instance grabs it before the encode writes.
-            LJobReserve(pTarget);
+            LJobClaim(pTarget);
         }
 
         return string.Empty;

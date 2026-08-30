@@ -9,6 +9,9 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
+    private readonly Dictionary<Guid, Guid> pRosterRowBatch = new();
+    private readonly List<(Border Border, Guid Batch, bool Stage)> pRosterFileShades = new();
+
     private static Border PRosterFileBuild(PRosterLineageEntry pLineage, bool pStage) => new()
     {
         Background = pStage ? PRosterTheme.PRosterStageBrush : Brushes.Transparent,
@@ -24,7 +27,23 @@ public sealed partial class PRoster
     };
 
     private Brush PRosterShadeRead(Guid pRowId) =>
-        pRosterStageIds.Contains(pRowId) ? PRosterTheme.PRosterStageBrush : Brushes.Transparent;
+        pRosterRowBatch.TryGetValue(pRowId, out Guid pBatch) && pBatch == pRosterCardId
+            ? Brushes.Transparent
+            : pRosterStageIds.Contains(pRowId)
+                ? PRosterTheme.PRosterStageBrush
+                : Brushes.Transparent;
+
+    private void PRosterShadeApply()
+    {
+        foreach ((Border pRow, Guid pBatch, bool pStage) in pRosterFileShades)
+        {
+            pRow.Background = pBatch == pRosterCardId
+                ? Brushes.Transparent
+                : pStage
+                    ? PRosterTheme.PRosterStageBrush
+                    : Brushes.Transparent;
+        }
+    }
 
     private Border PRosterRowBuild(LWorkItem pWorkItem)
     {

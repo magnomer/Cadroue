@@ -1,7 +1,6 @@
 using System.Windows;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Media;
 
 namespace Cadroue.UIShell.PMainArea;
 
@@ -24,11 +23,37 @@ public sealed partial class PRoster
             PRosterRowUpdate(pWorkItem);
         }
 
-        if (pNotice != LScheduleNotice.LScheduleNoticeProgress
-            && ReferenceEquals(pWorkItem, PRosterSelectRead()))
+        if (!ReferenceEquals(pWorkItem, PRosterSelectRead()))
+        {
+            return;
+        }
+
+        if (pNotice == LScheduleNotice.LScheduleNoticeProgress)
+        {
+            PRosterDetailDefer();
+        }
+        else
         {
             PRosterDetailUpdate();
         }
+    }
+
+    private void PRosterDetailDefer()
+    {
+        if (pRosterDetailPending)
+        {
+            return;
+        }
+
+        pRosterDetailPending = true;
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
+        {
+            pRosterDetailPending = false;
+            if (!pRosterClosed)
+            {
+                PRosterDetailUpdate();
+            }
+        }));
     }
 
     private void PRosterSelectHandle()
@@ -49,8 +74,6 @@ public sealed partial class PRoster
         pRosterClosed = true;
         pRosterSchedule.LScheduleChange -= PRosterScheduleHandle;
         pRosterSchedule.LScheduleItemChange -= PRosterItemHandle;
-        LMediaProbe.LMediaProbeReady -= PRosterMediaHandle;
-        LMediaProbe.LMediaLoudnessReady -= PRosterLoudnessHandle;
         IsVisibleChanged -= PRosterVisibleHandle;
         Unloaded -= PRosterUnloadHandle;
         pRosterStation.LStationClose();

@@ -246,6 +246,7 @@ public static class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Edit queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
+        _ = LMessengerDurationResolve(lMessengerItems);
         return lMessengerAdded;
     }
 
@@ -275,6 +276,7 @@ public static class LMessenger
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord($"Merge queued {lMessengerAdded} group(s) at {lMessengerPriority}");
+        _ = LMessengerDurationResolve(lMessengerItems);
         return lMessengerAdded;
     }
 
@@ -333,7 +335,7 @@ public static class LMessenger
             lMessengerUnknown.Length,
             new ParallelOptions { MaxDegreeOfParallelism = LMessengerParallelRead() },
             lMessengerIndex => lMessengerResolved[lMessengerIndex] =
-                Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerUnknown[lMessengerIndex].LWorkSourcePath)))
+                LMessengerItemResolve(lMessengerUnknown[lMessengerIndex])))
             .ConfigureAwait(false);
 
         if (LMessengerScheduleSource?.Invoke() is not { } lMessengerSchedule)
@@ -349,6 +351,22 @@ public static class LMessenger
                     lMessengerUnknown[lMessengerIndex].LWorkId, lMessengerResolved[lMessengerIndex]);
             }
         });
+    }
+
+    private static TimeSpan LMessengerItemResolve(LWorkItem lMessengerItem)
+    {
+        if (lMessengerItem.LWorkMergeSources.Count > 1)
+        {
+            TimeSpan lMessengerTotal = TimeSpan.Zero;
+            foreach (string lMessengerSource in lMessengerItem.LWorkMergeSources)
+            {
+                lMessengerTotal += Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerSource);
+            }
+
+            return lMessengerTotal;
+        }
+
+        return Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerItem.LWorkSourcePath);
     }
 
     private static void LMessengerDefer(Action lMessengerAction)

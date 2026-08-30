@@ -96,6 +96,8 @@ public sealed class LWorkItem
 
     public long? LWorkSourceBytes { get; set; }
 
+    public IReadOnlyList<long> LWorkMergeBytes { get; set; } = Array.Empty<long>();
+
     public LWorkMedia? LWorkSourceMedia { get; set; }
 
     public LWorkMedia? LWorkOutputMedia { get; set; }

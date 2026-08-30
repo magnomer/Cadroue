@@ -83,18 +83,7 @@ public sealed partial class PRoster
             }
         }
 
-        try
-        {
-            return File.Exists(pSubject) ? new FileInfo(pSubject).Length : null;
-        }
-        catch (IOException)
-        {
-            return null;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return null;
-        }
+        return null;
     }
 
     private static string PLineageStepRead(LWorkItem pWorkItem, string pSubject)

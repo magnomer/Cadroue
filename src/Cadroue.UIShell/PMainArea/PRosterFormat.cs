@@ -5,9 +5,6 @@ namespace Cadroue.UIShell.PMainArea;
 
 public sealed partial class PRoster
 {
-    private static string PRosterPendingFormat(string pMediaPath) =>
-        pRosterMediaPending.Contains(pMediaPath) ? LLocalization.LLocalizationTextRead("Roster.Value.Reading") : LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
-
     private static string PRosterContainerFormat(string pMediaPath)
     {
         string pExtension = Path.GetExtension(pMediaPath).TrimStart('.');

@@ -146,6 +146,24 @@ internal static class LScout
         return lScoutWorkItem.LWorkSourceBytes ?? LScoutBytesRead(lScoutWorkItem.LWorkSourcePath);
     }
 
+    internal static double? LScoutLoudnessRead(string lScoutMediaPath, CancellationToken lScoutToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            return LMedia.LMediaLoudnessRead(lScoutMediaPath, lScoutToken);
+        }
+        catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
+        {
+            LRunner.LRunnerRecord($"Loudness could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
+            return null;
+        }
+    }
+
     internal static long? LScoutBytesRead(string lScoutOutputPath)
     {
         if (string.IsNullOrWhiteSpace(lScoutOutputPath))

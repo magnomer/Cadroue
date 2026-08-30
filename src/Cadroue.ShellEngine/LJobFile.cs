@@ -274,7 +274,7 @@ internal sealed partial class LJob
                 ? $"{pStem}{pSuffixText}{pExtension}"
                 : $"{pStem}{pSuffixText} ({pIndex + 1}){pExtension}";
             string pCandidate = Path.Combine(pFolder, pName);
-            if (LJobReserve(pCandidate))
+            if (LJobClaim(pCandidate))
             {
                 return pCandidate;
             }
@@ -286,7 +286,7 @@ internal sealed partial class LJob
     // write race. The 0-byte placeholder is the reservation; the encode overwrites it
     // (ffmpeg runs with -y -nostdin), and any placeholder never written over is removed
     // by LJobReservedClear once the job ends.
-    private bool LJobReserve(string pPath)
+    private bool LJobClaim(string pPath)
     {
         try
         {

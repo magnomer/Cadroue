@@ -185,18 +185,19 @@ internal sealed partial class LJob
 
             long? pOutputBytes = LScout.LScoutBytesRead(lJobItem.LWorkOutputPath);
             long? pSourceBytes = LScout.LScoutInputRead(lJobItem, lJobToken);
-            LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
-            LWorkMedia? pOutputMedia = LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken);
-            if (pOutputMedia is { LWorkMediaVideo: true }
-                && LScout.LScoutIntervalRead(lJobItem.LWorkOutputPath, pOutputMedia.LWorkMediaDuration, lJobToken) is { } pOutputKeyframeInterval)
-            {
-                pOutputMedia = pOutputMedia with { LWorkKeyframeInterval = pOutputKeyframeInterval };
-            }
+            IReadOnlyList<long> pMergeBytes = LJobMergeRead();
+            LWorkMedia? pSourceMedia = LJobMediaResolve(
+                lJobItem.LWorkSourceMedia ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken),
+                lJobItem.LWorkSourcePath);
+            LWorkMedia? pOutputMedia = LJobMediaResolve(
+                LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken),
+                lJobItem.LWorkOutputPath);
             lJobOwner.LRunnerDispatch(() =>
             {
                 lJobItem.LWorkFinishTime = DateTimeOffset.Now;
                 lJobItem.LWorkOutputBytes = pOutputBytes;
                 lJobItem.LWorkSourceBytes = pSourceBytes;
+                lJobItem.LWorkMergeBytes = pMergeBytes;
                 lJobItem.LWorkSourceMedia = pSourceMedia;
                 lJobItem.LWorkOutputMedia = pOutputMedia;
                 lJobItem.LWorkProgress = pSucceeded ? 1 : lJobItem.LWorkProgress;
@@ -254,6 +255,54 @@ internal sealed partial class LJob
             LJobReservedClear();
             LEncode.LEncodeBridgeClear(lJobItem.LWorkId);
         }
+    }
+
+    // The worklist never re-measures a source or output when a row is selected: every
+    // figure it shows is measured here, once, while the job is in hand, and stored on the
+    // item so the record survives the file being deleted. This enriches the probed media
+    // snapshot with the keyframe interval (video) and integrated loudness (audio) that the
+    // base probe does not carry.
+    // Per-input byte sizes for a merge, measured once here so the worklist's batch summary
+    // can total sources without touching disk when a row is selected.
+    private IReadOnlyList<long> LJobMergeRead()
+    {
+        if (lJobItem.LWorkMergeSources.Count <= 1)
+        {
+            return Array.Empty<long>();
+        }
+
+        var pMergeBytes = new List<long>(lJobItem.LWorkMergeSources.Count);
+        foreach (string pMergeSource in lJobItem.LWorkMergeSources)
+        {
+            pMergeBytes.Add(LScout.LScoutBytesRead(pMergeSource) ?? 0);
+        }
+
+        return pMergeBytes;
+    }
+
+    private LWorkMedia? LJobMediaResolve(LWorkMedia? pMedia, string pPath)
+    {
+        if (pMedia is null)
+        {
+            return null;
+        }
+
+        LWorkMedia pMeasured = pMedia;
+        if (pMeasured.LWorkMediaVideo
+            && pMeasured.LWorkKeyframeInterval is null
+            && LScout.LScoutIntervalRead(pPath, pMeasured.LWorkMediaDuration, lJobToken) is { } pInterval)
+        {
+            pMeasured = pMeasured with { LWorkKeyframeInterval = pInterval };
+        }
+
+        if (pMeasured.LWorkMediaSamplerate > 0
+            && pMeasured.LWorkMediaLoudness is null
+            && LScout.LScoutLoudnessRead(pPath, lJobToken) is { } pLoudness)
+        {
+            pMeasured = pMeasured with { LWorkMediaLoudness = pLoudness };
+        }
+
+        return pMeasured;
     }
 
     private async Task<(int, string)> LJobStagesRun()

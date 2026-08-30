@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
-using Cadroue.Media;
 using Cadroue.UIShell.PAssets;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PPanels;
@@ -16,23 +15,6 @@ namespace Cadroue.UIShell.PMainArea;
 public sealed partial class PRoster
 {
     private const string PRosterOpenIcon = "/PAssets/PPanels/PRosterOpen.svg";
-    private const int PRosterCacheLimit = 512;
-
-    private static readonly Dictionary<string, LWorkMedia?> pRosterMediaCache = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly HashSet<string> pRosterMediaPending = new(StringComparer.OrdinalIgnoreCase);
-
-    private static readonly Dictionary<string, double?> pRosterLoudnessCache = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly Dictionary<string, bool> pRosterLoudnessPending = new(StringComparer.OrdinalIgnoreCase);
-
-    private static void PRosterCacheSet<T>(Dictionary<string, T> pCache, string pPath, T pValue)
-    {
-        if (!pCache.ContainsKey(pPath) && pCache.Count >= PRosterCacheLimit)
-        {
-            pCache.Remove(pCache.Keys.First());
-        }
-
-        pCache[pPath] = pValue;
-    }
 
     private StackPanel pRosterRowTarget = null!;
 
@@ -100,8 +82,7 @@ public sealed partial class PRoster
                 pValueBrush: PRosterTheme.PRosterFailBrush);
         }
 
-        LWorkMedia? pSourceInfo = pWorkItem.LWorkSourceMedia
-            ?? PRosterMediaRead(pWorkItem.LWorkSourcePath);
+        LWorkMedia? pSourceInfo = pWorkItem.LWorkSourceMedia;
         PRosterOverviewAdd(pWorkItem, pSourceInfo);
         PRosterRecordAdd(pWorkItem);
 
@@ -239,69 +220,6 @@ public sealed partial class PRoster
         Grid.SetColumn(pValueBlock, 1);
         pGrid.Children.Add(pValueBlock);
         pRosterRowTarget.Children.Add(pGrid);
-    }
-
-    private LWorkMedia? PRosterMediaRead(string pMediaPath)
-    {
-        if (string.IsNullOrWhiteSpace(pMediaPath) || !File.Exists(pMediaPath))
-        {
-            return null;
-        }
-
-        if (pRosterMediaCache.TryGetValue(pMediaPath, out LWorkMedia? pCached))
-        {
-            return pCached;
-        }
-
-        PRosterMediaDefer(pMediaPath);
-        return null;
-    }
-
-    private void PRosterMediaDefer(string pMediaPath)
-    {
-        if (!pRosterMediaPending.Add(pMediaPath))
-        {
-            return;
-        }
-
-        LMediaProbe.LMediaProbeDefer(pMediaPath);
-    }
-
-    private void PRosterMediaHandle(LMediaProbeResult pResult)
-    {
-        Dispatcher.BeginInvoke(new Action(() =>
-        {
-            string pMediaPath = pResult.LMediaProbePath;
-            if (!pRosterMediaPending.Remove(pMediaPath))
-            {
-                return;
-            }
-
-            if (pResult.LMediaProbeInfo is not { } pProbedInfo)
-            {
-                LTraceLog.LTraceErrorRecord($"Job detail could not read '{Path.GetFileName(pMediaPath)}': {pResult.LMediaProbeError}");
-                return;
-            }
-
-            PRosterCacheSet(pRosterMediaCache, pMediaPath, new LWorkMedia(
-                pProbedInfo.LMediaVideoWidth,
-                pProbedInfo.LMediaVideoHeight,
-                pProbedInfo.LMediaVideoRate,
-                (long)Math.Round(pProbedInfo.LMediaInfoDuration.TotalMilliseconds),
-                pProbedInfo.LMediaVideoPresent)
-            {
-                LWorkMediaCodec = pProbedInfo.LMediaAudioCodec,
-                LWorkMediaBitrate = pProbedInfo.LMediaAudioBitrate,
-                LWorkMediaSamplerate = pProbedInfo.LMediaSampleRate
-            });
-
-            if (PRosterSelectRead() is { } pSelected
-                && (string.Equals(pSelected.LWorkSourcePath, pMediaPath, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(pSelected.LWorkOutputPath, pMediaPath, StringComparison.OrdinalIgnoreCase)))
-            {
-                PRosterDetailUpdate();
-            }
-        }));
     }
 
     private static void PRosterPathOpen(string pPath)

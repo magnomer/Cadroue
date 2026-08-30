@@ -243,6 +243,8 @@ public sealed partial class PRoster
         pRosterRowCells.Clear();
         pRosterRowPlaces.Clear();
         pRosterStepRows.Clear();
+        pRosterRowBatch.Clear();
+        pRosterFileShades.Clear();
         pRosterOrderedIds.Clear();
         pRosterCards.Clear();
         pRosterCardHeaders.Clear();
@@ -271,6 +273,7 @@ public sealed partial class PRoster
 
         var pBatchPresent = pBatchOrder.ToHashSet();
         pRosterCollapsedIds.RemoveWhere(pBatchId => !pBatchPresent.Contains(pBatchId));
+        PRosterShadeApply();
     }
 
     private void PRosterCompletedSync(IEnumerable<LWorkItem> pItems)
@@ -338,7 +341,9 @@ public sealed partial class PRoster
         {
             List<LWorkItem> pStepItems = pLineage.PRosterLineageItems;
             bool pLineageStage = pStepItems.Count > 0 && pRosterStageIds.Contains(pStepItems[^1].LWorkId);
-            pDetail.Children.Add(PRosterFileBuild(pLineage, pLineageStage));
+            Border pFileRow = PRosterFileBuild(pLineage, pLineageStage);
+            pRosterFileShades.Add((pFileRow, pBatchId, pLineageStage));
+            pDetail.Children.Add(pFileRow);
 
             for (int pItemIndex = 0; pItemIndex < pStepItems.Count; pItemIndex++)
             {
@@ -350,6 +355,7 @@ public sealed partial class PRoster
                     PLineageStepRead(pWorkItem, pLineage.PRosterLineageSubject),
                     pLast);
 
+                pRosterRowBatch[pWorkItem.LWorkId] = pBatchId;
                 pRosterOrderedIds.Add(pWorkItem.LWorkId);
                 pDetail.Children.Add(PRosterRowBuild(pWorkItem));
             }
@@ -415,6 +421,7 @@ public sealed partial class PRoster
         }
 
         PRosterSelectApply();
+        PRosterShadeApply();
         PRosterSelectHandle();
     }
 

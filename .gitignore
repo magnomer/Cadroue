@@ -91,6 +91,7 @@ $RECYCLE.BIN/
 /docs-work/
 /snapshots/
 /import/
+/gitdownload.json
 
 # Build-lifecycle helper scripts
 /*.ps1

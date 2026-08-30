@@ -11,6 +11,8 @@ public sealed record LWorkMedia(
 
     public double? LWorkKeyframeInterval { get; init; }
 
+    public double? LWorkMediaLoudness { get; init; }
+
     public string LWorkMediaCodec { get; init; } = "";
 
     public string LWorkAudioCodec { get; init; } = "";
