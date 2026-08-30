@@ -59,13 +59,8 @@ internal sealed partial class PSDiagnosis : Window
         Height = PSDiagnosisHeightDefault;
         MinWidth = PSDiagnosisWidthMinimum;
         MinHeight = PSDiagnosisHeightMinimum;
-        WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
-        Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSFieldFontSize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        UseLayoutRounding = true;
-        SnapsToDevicePixels = true;
+        PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
         PScrollbar.PScrollbarApply(this);
         Content = PSDiagnosisBuild();
         PSGrabber.PSGrabberPlacementRestore(this, PSDiagnosisPlacementKey);
@@ -75,20 +70,14 @@ internal sealed partial class PSDiagnosis : Window
         PSDiagnosisProbeStart();
     }
 
-    private UIElement PSDiagnosisBuild()
-    {
-        var pRoot = new Grid { Background = PSCasement.PSCasementBandFill };
-        pRoot.Children.Add(PSDiagnosisRootBuild());
-        pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, 0, psDiagnosisTitle, pCloseOnly: true));
-        return pRoot;
-    }
+    private UIElement PSDiagnosisBuild() =>
+        PSDialog.PSDialogBuild(this, psDiagnosisTitle, PSDiagnosisRootBuild());
 
-    private UIElement PSDiagnosisRootBuild()
+    private DockPanel PSDiagnosisRootBuild()
     {
         var pRoot = new DockPanel
         {
-            Background = Brushes.White,
-            Margin = new Thickness(0, PSCasement.PSCasementBandHeight, 0, 0)
+            Background = Brushes.White
         };
 
         var pFooter = new StackPanel
@@ -130,11 +119,5 @@ internal sealed partial class PSDiagnosis : Window
         {
             psDiagnosisCurrent = null;
         }
-    }
-
-    protected override void OnSourceInitialized(EventArgs pEvent)
-    {
-        base.OnSourceInitialized(pEvent);
-        PSCasement.PSCasementDwmApply(this);
     }
 }

@@ -51,13 +51,8 @@ public sealed partial class PLogWindow : Window
         Height = 560;
         MinWidth = 640;
         MinHeight = 380;
-        WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
-        Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSField.PSFieldFontSize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        UseLayoutRounding = true;
-        SnapsToDevicePixels = true;
+        PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
         PScrollbar.PScrollbarApply(this);
         Content = PLogContentBuild();
 
@@ -144,11 +139,5 @@ public sealed partial class PLogWindow : Window
         }
 
         pLogWindowCurrent = null;
-    }
-
-    protected override void OnSourceInitialized(EventArgs e)
-    {
-        base.OnSourceInitialized(e);
-        PSCasement.PSCasementDwmApply(this);
     }
 }

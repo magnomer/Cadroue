@@ -15,12 +15,9 @@ public sealed partial class PLogWindow
 
     private UIElement PLogContentBuild()
     {
-        var pLogRoot = new Grid { Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)) };
-
         var pLogBody = new DockPanel
         {
-            Background = Brushes.White,
-            Margin = new Thickness(0, PSCasement.PSCasementBandHeight, 0, 0)
+            Background = Brushes.White
         };
 
         DockPanel pLogFileRow = PLogFileBuild();
@@ -40,13 +37,10 @@ public sealed partial class PLogWindow
             Child = pLogFeed
         });
 
-        pLogRoot.Children.Add(PSCasement.PSCasementBandBuild());
-        pLogRoot.Children.Add(pLogBody);
-        pLogRoot.Children.Add(PSCasement.PSCasementOverlayBuild(
+        return PSDialog.PSDialogBuild(
             this,
-            0,
-            LLocalization.LLocalizationTextRead("Log.Window.Title")));
-        return pLogRoot;
+            LLocalization.LLocalizationTextRead("Log.Window.Title"),
+            pLogBody);
     }
 
     private DockPanel PLogFileBuild()

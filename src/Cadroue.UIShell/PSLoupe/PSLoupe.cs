@@ -21,7 +21,6 @@ internal sealed partial class PSLoupe : Window
     private const double PSLoupeHeightDefault = 480;
     private const double PSLoupeWidthMinimum = 360;
     private const double PSLoupeHeightMinimum = 240;
-    private const double PSLoupeBandHeight = PSCasement.PSCasementBandHeight * 3 / 4;
     private const double PSLoupeBarHeight = 48;
     private const double PSLoupeIconSize = 22;
     private const double PSLoupeButtonSize = 36;
@@ -70,13 +69,8 @@ internal sealed partial class PSLoupe : Window
         Height = PSLoupeHeightDefault;
         MinWidth = PSLoupeWidthMinimum;
         MinHeight = PSLoupeHeightMinimum;
-        WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
-        Background = PSCasement.PSCasementBandFill;
-        FontSize = PSFieldFontSize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        UseLayoutRounding = true;
-        SnapsToDevicePixels = true;
+        PSDialog.PSDialogApply(this, PSCasement.PSCasementBandFill);
         PScrollbar.PScrollbarApply(this);
         Content = PSLoupeBuild();
         psLoupeClock.Tick += PSLoupeClockHandle;
@@ -95,20 +89,14 @@ internal sealed partial class PSLoupe : Window
         PSLoupePlaybackStart();
     }
 
-    private UIElement PSLoupeBuild()
-    {
-        var pRoot = new Grid { Background = PSCasement.PSCasementBandFill };
-        pRoot.Children.Add(PSLoupeBodyBuild());
-        pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, 0, Title, pCloseOnly: false, PSLoupeBandHeight));
-        return pRoot;
-    }
+    private UIElement PSLoupeBuild() =>
+        PSDialog.PSDialogBuild(this, Title, PSLoupeBodyBuild());
 
-    private UIElement PSLoupeBodyBuild()
+    private DockPanel PSLoupeBodyBuild()
     {
         var pBody = new DockPanel
         {
-            Background = Brushes.Black,
-            Margin = new Thickness(0, PSLoupeBandHeight, 0, 0)
+            Background = Brushes.Black
         };
 
         UIElement pBar = PSLoupeBarBuild();
@@ -166,9 +154,4 @@ internal sealed partial class PSLoupe : Window
         Closed -= PSLoupeCloseHandle;
     }
 
-    protected override void OnSourceInitialized(EventArgs pEvent)
-    {
-        base.OnSourceInitialized(pEvent);
-        PSCasement.PSCasementDwmApply(this);
-    }
 }

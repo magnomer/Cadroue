@@ -1,6 +1,7 @@
 using Cadroue.Core;
 using Cadroue.Application;
 using System.Windows;
+using Cadroue.UIShell.PSShared;
 
 namespace Cadroue.UIShell.PFlow;
 
@@ -8,20 +9,18 @@ public sealed partial class PFlow
 {
     private static bool PFlowOverlapAllowed => LPreference.LPreferenceStateCurrent.LPreferenceOverlapAllowed;
 
-    private bool PFlowDestructiveConfirm(string pFlowQuestion)
+    private bool PFlowDestructiveConfirm(string pFlowQuestion, string pFlowAction)
     {
         if (!LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive)
         {
             return true;
         }
 
-        return MessageBox.Show(
+        return PSAlert.PSAlertConfirm(
             Window.GetWindow(this)!,
-            pFlowQuestion,
             LLocalization.LLocalizationTextRead("Flow.Confirm.Title"),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning,
-            MessageBoxResult.No) == MessageBoxResult.Yes;
+            pFlowQuestion,
+            pFlowAction);
     }
 
     private bool PFlowInsideCheck(TimeSpan pFlowTime, int pFlowSkipIndex)

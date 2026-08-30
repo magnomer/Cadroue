@@ -60,7 +60,9 @@ public sealed partial class PFlow
         if (!pFlowSectionEditable) return;
         IReadOnlyList<int> pFlowSelected = lSegment.LSegmentSelectedRead();
         if (pFlowSelected.Count == 0) return;
-        if (!PFlowDestructiveConfirm(LLocalization.LLocalizationTextRead("Flow.Section.DeleteConfirm"))) return;
+        if (!PFlowDestructiveConfirm(
+            LLocalization.LLocalizationTextRead("Flow.Section.DeleteConfirm"),
+            LLocalization.LLocalizationTextRead("Terms.Delete"))) return;
         foreach (int pFlowIndex in pFlowSelected)
         {
             PFlowSectionRecord("deleted", pFlowIndex);
@@ -73,7 +75,9 @@ public sealed partial class PFlow
     {
         if (!pFlowSectionEditable) return;
         if (lSegment.LSegmentListRead().Count == 0) return;
-        if (!PFlowDestructiveConfirm(LLocalization.LLocalizationTextRead("Flow.Section.ClearConfirm"))) return;
+        if (!PFlowDestructiveConfirm(
+            LLocalization.LLocalizationTextRead("Flow.Section.ClearConfirm"),
+            LLocalization.LLocalizationTextRead("Terms.Remove"))) return;
         int pFlowCount = lSegment.LSegmentListRead().Count;
         lSegment.LSegmentClear();
         LTraceLog.LTraceInfoRecord($"Sections cleared: {pFlowCount} section(s) removed");

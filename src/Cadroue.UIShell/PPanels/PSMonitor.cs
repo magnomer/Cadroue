@@ -58,12 +58,13 @@ internal sealed partial class PSMonitor : Window
     private double psMonitorScale = 1;
     private double psMonitorOffset;
 
-    internal static void PSMonitorShow(Window? pOwner, LSMonitor pSource, PFlowControl pFlow, PViewer pViewer)
+    internal static PSMonitor PSMonitorShow(Window? pOwner, LSMonitor pSource, PFlowControl pFlow, PViewer pViewer)
     {
         psMonitorCurrent?.Close();
         var psMonitor = new PSMonitor(pOwner, pSource, pFlow, pViewer);
         psMonitorCurrent = psMonitor;
         psMonitor.Show();
+        return psMonitor;
     }
 
     private PSMonitor(Window? pOwner, LSMonitor pSource, PFlowControl pFlow, PViewer pViewer)
@@ -80,13 +81,8 @@ internal sealed partial class PSMonitor : Window
         Height = PSMonitorHeightDefault;
         MinWidth = PSMonitorWidthMinimum;
         MinHeight = PSMonitorHeightMinimum;
-        WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
-        Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSFieldFontSize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        UseLayoutRounding = true;
-        SnapsToDevicePixels = true;
+        PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
         PScrollbar.PScrollbarApply(this);
 
         psMonitorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
@@ -107,17 +103,12 @@ internal sealed partial class PSMonitor : Window
         psMonitorSource.LSMonitorUpdate();
     }
 
-    private UIElement PSMonitorBuild()
-    {
-        var psMonitor = new Grid { Background = PSCasement.PSCasementBandFill };
-        psMonitor.Children.Add(PSMonitorRootBuild());
-        psMonitor.Children.Add(PSCasement.PSCasementOverlayBuild(this, 0, psMonitorTitle, pCloseOnly: true));
-        return psMonitor;
-    }
+    private UIElement PSMonitorBuild() =>
+        PSDialog.PSDialogBuild(this, psMonitorTitle, PSMonitorRootBuild());
 
-    private UIElement PSMonitorRootBuild()
+    private DockPanel PSMonitorRootBuild()
     {
-        var psMonitor = new DockPanel { Background = Brushes.White, Margin = new Thickness(0, PSCasement.PSCasementBandHeight, 0, 0) };
+        var psMonitor = new DockPanel { Background = Brushes.White };
         var psFooter = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(12) };
         Button psClose = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("NormalizePreview.Close"));
         psClose.Click += (_, _) => Close();
@@ -235,11 +226,5 @@ internal sealed partial class PSMonitor : Window
         PSGrabber.PSGrabberPlacementSave(this, PSMonitorPlacementKey);
         psMonitorGrabber.PSGrabberDetach();
         psMonitorCurrent = null;
-    }
-
-    protected override void OnSourceInitialized(EventArgs pEvent)
-    {
-        base.OnSourceInitialized(pEvent);
-        PSCasement.PSCasementDwmApply(this);
     }
 }

@@ -15,6 +15,12 @@ public partial class PToolbar
         PLogoItemAppend(pLogoMenu, "Shortcuts", "Chrome.Menu.Shortcuts", "/PAssets/PMenus/PMenuShortcuts.svg");
         PLogoItemAppend(pLogoMenu, "Log", "Chrome.Menu.Log", "/PAssets/PMenus/PMenuLog.svg");
         PLogoItemAppend(pLogoMenu, "About", "Chrome.Menu.About", "/PAssets/PMenus/PMenuAbout.svg");
+        if (Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceDeveloperActive)
+        {
+            MenuItem pDebugItem = PMenu.PMenuItemCreate("Debug", null);
+            pDebugItem.Click += (_, _) => PSDebug.PSDebugShow(Window.GetWindow(this)!);
+            pLogoMenu.Items.Add(pDebugItem);
+        }
         PLogoItemAppend(pLogoMenu, "Exit", "Chrome.Menu.Exit", "/PAssets/PMenus/PMenuExit.svg");
 
         pLogoMenu.IsOpen = true;

@@ -61,13 +61,8 @@ internal sealed class PSAbout : Window
         Width = PSAboutWidthDefault;
         MinWidth = PSAboutWidthMinimum;
         MinHeight = PSAboutHeightMinimum;
-        WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
-        Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSFieldFontSize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        UseLayoutRounding = true;
-        SnapsToDevicePixels = true;
+        PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
         PScrollbar.PScrollbarApply(this);
         Content = PSAboutBuild();
         SizeToContent = SizeToContent.Height;
@@ -86,20 +81,14 @@ internal sealed class PSAbout : Window
         PSGrabber.PSGrabberPlacementRestore(this, PSAboutPlacementKey);
     }
 
-    private UIElement PSAboutBuild()
-    {
-        var pRoot = new Grid { Background = PSCasement.PSCasementBandFill };
-        pRoot.Children.Add(PSAboutRootBuild());
-        pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, 0, null, pCloseOnly: true));
-        return pRoot;
-    }
+    private UIElement PSAboutBuild() =>
+        PSDialog.PSDialogBuild(this, null, PSAboutRootBuild());
 
-    private UIElement PSAboutRootBuild()
+    private DockPanel PSAboutRootBuild()
     {
         var pRoot = new DockPanel
         {
-            Background = Brushes.White,
-            Margin = new Thickness(0, PSCasement.PSCasementBandHeight, 0, 0)
+            Background = Brushes.White
         };
 
         var pFooter = new StackPanel
@@ -306,9 +295,4 @@ internal sealed class PSAbout : Window
         Closed -= PSAboutCloseHandle;
     }
 
-    protected override void OnSourceInitialized(EventArgs pEvent)
-    {
-        base.OnSourceInitialized(pEvent);
-        PSCasement.PSCasementDwmApply(this);
-    }
 }

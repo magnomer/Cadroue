@@ -54,13 +54,6 @@ internal static class PSCasement
         return pCasementBrush;
     }
 
-    internal static UIElement PSCasementBandBuild() => new Border
-    {
-        Height = PSCasementBandHeight,
-        VerticalAlignment = VerticalAlignment.Top,
-        Background = PSCasementBandFill
-    };
-
     internal static void PSCasementEscapeAttach(Window pWindow)
     {
         pWindow.KeyDown += (_, e) =>
@@ -93,7 +86,17 @@ internal static class PSCasement
         double pStripWidth,
         string? pTitle,
         bool pCloseOnly,
-        double pBandHeight)
+        double pBandHeight) =>
+        PSCasementOverlayBuild(
+            pWindow, pStripWidth, pTitle, pCloseOnly, pBandHeight, 14 * (pBandHeight / PSCasementBandHeight));
+
+    internal static UIElement PSCasementOverlayBuild(
+        Window pWindow,
+        double pStripWidth,
+        string? pTitle,
+        bool pCloseOnly,
+        double pBandHeight,
+        double pTitleFont)
     {
         PSCasementEscapeAttach(pWindow);
         double pScale = pBandHeight / PSCasementBandHeight;
@@ -119,7 +122,7 @@ internal static class PSCasement
             pDragArea.Child = new TextBlock
             {
                 Text = pTitle,
-                FontSize = 14 * pScale,
+                FontSize = pTitleFont,
                 FontWeight = FontWeights.SemiBold,
                 Foreground = new SolidColorBrush(Color.FromRgb(0x2B, 0x34, 0x43)),
                 VerticalAlignment = VerticalAlignment.Center,
