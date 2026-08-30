@@ -195,7 +195,7 @@ internal sealed class TEncodeCommand : IDisposable
             work, keyframes.Select(TimeSpan.FromSeconds).ToArray());
 
     internal static bool? AudioIntervalRead(string source, double origin, double end) =>
-        LScout.LScoutAudioRead(
+        LScoutAudio.LScoutAudioRead(
             source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end));
 
     internal static IReadOnlyList<LKeyframeEntry> KeyframesRead(string source, double origin, double end) =>
@@ -266,7 +266,7 @@ internal sealed class TEncodeCommand : IDisposable
 
     internal static IReadOnlyList<LEncodeStage> SmartSourceStagesBuild(LWorkItem work)
     {
-        IReadOnlyList<LKeyframeEntry> keyframes = LScout.LScoutBridgeRead(
+        IReadOnlyList<LKeyframeEntry> keyframes = LScoutBridge.LScoutBridgeRead(
             work.LWorkSourcePath, work.LWorkOrigin, work.LWorkEnd);
         LWorkMedia? media = LScout.LScoutMediaRead(work.LWorkSourcePath);
         bool openEnd = LBridge.LBridgeEndCheck(
@@ -274,7 +274,7 @@ internal sealed class TEncodeCommand : IDisposable
             media?.LWorkMediaDuration ?? TimeSpan.Zero,
             media?.LWorkMediaFramerate ?? 0);
         LBridgePlan plan = LBridge.LBridgeRegionResolve(keyframes, work.LWorkOrigin, work.LWorkEnd, openEnd);
-        return LEncode.LEncodeSmartBuild(work, plan, LScout.LScoutStreamRead(work.LWorkSourcePath));
+        return LEncode.LEncodeSmartBuild(work, plan, LScoutStream.LScoutStreamRead(work.LWorkSourcePath));
     }
 
     internal static IReadOnlyList<LEncodeStage> SmartMissingDecodeBuild(LWorkItem work) =>

@@ -25,7 +25,7 @@ GitHub may separately process or display account, profile, activity, timestamp, 
 
 A reporter's GitHub identity or other platform-associated personal information is protected information under this policy and must not be used for Cadroue bug fixing.
 
-## Reporter burden
+## 2. Reporter burden
 
 The information categories in this policy govern how Cadroue handles report information. They do not require reporters to understand internal code structure or classify the technical cause of a bug.
 

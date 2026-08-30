@@ -13,8 +13,17 @@ public static partial class LCartographer
         string lCartographerPath,
         Guid lCartographerSourceStage,
         Guid lCartographerBatch,
-        LCartographerDelivery lCartographerSeam)
+        LCartographerDelivery lCartographerSeam,
+        HashSet<Guid>? lCartographerVisited = null)
     {
+        lCartographerVisited ??= new HashSet<Guid>();
+        if (!lCartographerVisited.Add(lCartographerStage.LCartographerStageId))
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Relay cycle terminated at stage '{lCartographerStage.LCartographerTitle}': already visited this delivery");
+            return;
+        }
+
         lCartographerStage.LCartographerPendingInputs.Add(new LCartographerInputRecord
         {
             LCartographerPath = lCartographerPath,
@@ -38,7 +47,7 @@ public static partial class LCartographer
             {
                 LCartographerStageAccept(
                     lCartographerPlan, lCartographerTarget, lCartographerPath,
-                    lCartographerStage.LCartographerStageId, lCartographerBatch, lCartographerSeam);
+                    lCartographerStage.LCartographerStageId, lCartographerBatch, lCartographerSeam, lCartographerVisited);
             }
             lCartographerStage.LCartographerPendingInputs.Clear();
             return;

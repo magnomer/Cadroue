@@ -27,7 +27,7 @@ internal sealed class TScout : IDisposable
         LMedia.LMediaFfprobeStart(sourcePath);
 
     internal static ProcessStartInfo StreamStartInfo(string sourcePath) =>
-        LScout.LScoutStreamStart(sourcePath);
+        LScoutStream.LScoutStreamStart(sourcePath);
 
     internal static TimeSpan? ProbeEndParse(string output, TimeSpan start) => LMedia.LMediaEndParse(output, start);
 

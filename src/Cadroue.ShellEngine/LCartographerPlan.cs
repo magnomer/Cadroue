@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -18,12 +19,20 @@ public static partial class LCartographer
 
         var lCartographerPlan = new LCartographerPlanRecord { LCartographerPlanId = lCartographerPlanId };
         var lCartographerStages = new Dictionary<Guid, LCartographerStageRecord>();
+        var lCartographerActive = new HashSet<Guid>();
 
         Guid LCartographerStageCreate(Guid lCartographerTabId)
         {
             if (lCartographerTabId == Guid.Empty || lCartographerTabId == LCartographerFinishTarget)
             {
                 return lCartographerTabId;
+            }
+
+            if (lCartographerActive.Contains(lCartographerTabId))
+            {
+                LTraceLog.LTraceWarningRecord(
+                    "Relay cycle refused: a stage relays back into an ancestor; the loop is terminated");
+                return LCartographerFinishTarget;
             }
 
             if (lCartographerStages.TryGetValue(lCartographerTabId, out LCartographerStageRecord? lCartographerExisting))
@@ -48,6 +57,7 @@ public static partial class LCartographer
                 LCartographerLayout = lCartographerTab.LCartographerLayout
             };
             lCartographerStages.Add(lCartographerTabId, lCartographerStage);
+            lCartographerActive.Add(lCartographerTabId);
 
             if (lCartographerTab.LCartographerFunnel)
             {
@@ -69,6 +79,7 @@ public static partial class LCartographer
                 lCartographerStage.LCartographerNextStage = LCartographerStageCreate(LCartographerTargetRead(lCartographerTabId));
             }
 
+            lCartographerActive.Remove(lCartographerTabId);
             return lCartographerStage.LCartographerStageId;
         }
 
