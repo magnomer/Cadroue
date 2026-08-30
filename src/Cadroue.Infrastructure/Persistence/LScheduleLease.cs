@@ -91,6 +91,22 @@ public sealed partial class LSchedule
         LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning);
     }
 
+    public void LScheduleOutputCommit(Guid lWorkId, Guid lRunnerId, string lWorkOutputPath, string lWorkOutputName)
+    {
+        string lDepotFilePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderRunning, lWorkId);
+        if (!File.Exists(lDepotFilePath)
+            || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord
+            || lWorkRecord.LWorkOwnerRunner != lRunnerId)
+        {
+            return;
+        }
+
+        lWorkRecord.LWorkOutputPath = lWorkOutputPath;
+        lWorkRecord.LWorkOutputName = lWorkOutputName;
+        lWorkRecord.LWorkLeaseTime = DateTimeOffset.Now;
+        LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning);
+    }
+
     public int LScheduleRelease(Guid lRunnerId)
     {
         LDepotIndex.LDepotIndexCreate();

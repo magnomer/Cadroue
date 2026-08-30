@@ -16,6 +16,7 @@ internal sealed partial class LJob
     private System.Text.StringBuilder? lJobProgressBlock;
 
     private readonly List<LEncodeStage> lJobStagesDone = new();
+    private readonly List<string> lJobReserved = new();
     private Stopwatch lJobClock = null!;
     private string lJobDirectory = string.Empty;
     private double lJobRunSeconds;
@@ -65,7 +66,32 @@ internal sealed partial class LJob
             Directory.CreateDirectory(pDirectory);
         }
 
-        LJobCollisionApply();
+        string pJobCollision = LJobCollisionApply();
+        if (pJobCollision.Length > 0)
+        {
+            LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobCollision}");
+            lJobOwner.LRunnerDispatch(() =>
+            {
+                lJobItem.LWorkFinishTime = DateTimeOffset.Now;
+                lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+                lJobItem.LWorkMessage = pJobCollision;
+                lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobCollision);
+                lJobOwner.lRunnerSchedule.LScheduleLoad();
+            });
+            lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
+            lJobOwner.lRunnerItems.TryRemove(lJobItem.LWorkId, out _);
+            lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
+            LJobReservedClear();
+            lJobOwner.LRunnerFailureApply();
+            return;
+        }
+
+        // Persist the resolved output path before the encode runs, synchronously so the
+        // stored record is durable first. A retry or stale-job recovery then acts on the
+        // reserved name, never the original pre-existing file. The record is this job's own
+        // running entry (owner-guarded, atomic replace), safe to write off the post thread.
+        lJobOwner.lRunnerSchedule.LScheduleOutputCommit(
+            lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobItem.LWorkOutputPath, lJobItem.LWorkOutputName);
 
         lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
 
@@ -226,6 +252,7 @@ internal sealed partial class LJob
             lJobOwner.lRunnerItems.TryRemove(lJobItem.LWorkId, out _);
             lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
             LJobTempClear(lJobStagesDone);
+            LJobReservedClear();
             LEncode.LEncodeBridgeClear(lJobItem.LWorkId);
         }
     }
@@ -533,21 +560,29 @@ internal sealed partial class LJob
         return true;
     }
 
-    private void LJobCollisionApply()
+    private string LJobCollisionApply()
     {
         LEncoding pOutput = lJobItem.LWorkOutput;
         string pTarget = lJobItem.LWorkOutputPath;
-        if (string.IsNullOrWhiteSpace(pTarget) || !File.Exists(pTarget))
+        if (string.IsNullOrWhiteSpace(pTarget))
         {
-            return;
+            return string.Empty;
         }
 
+        // Claim the intended name atomically. Success means it was free and is now ours,
+        // so no second instance can pick the same "free" name and clobber this output.
+        if (LJobReserve(pTarget))
+        {
+            return string.Empty;
+        }
+
+        // The name is taken — a pre-existing file or another instance. Apply the policy.
         if (string.Equals(pOutput.LEncodingCollision, "Rename output", StringComparison.Ordinal))
         {
             string pFreePath = LJobPathResolve(pTarget, pOutput.LEncodingCollisionSuffix);
             lJobItem.LWorkOutputSet(pFreePath, Path.GetFileName(pFreePath));
             LRunner.LRunnerRecord($"Output exists; renaming output to '{Path.GetFileName(pFreePath)}'");
-            return;
+            return string.Empty;
         }
 
         if (string.Equals(pOutput.LEncodingCollision, "Rename existing", StringComparison.Ordinal))
@@ -559,20 +594,31 @@ internal sealed partial class LJob
                 lJobItem.LWorkOutputSet(pStagePath, Path.GetFileName(pTarget));
                 LRunner.LRunnerRecord(
                     $"Output is the source; encoding to '{Path.GetFileName(pStagePath)}' and renaming the source once finished");
-                return;
+                return string.Empty;
             }
 
             string pFreePath = LJobPathResolve(pTarget, pOutput.LEncodingCollisionSuffix);
             try
             {
-                File.Move(pTarget, pFreePath);
+                // pFreePath is our own reservation placeholder; overwriting it with the
+                // existing file is intended. A genuine failure (locked/denied) must abort
+                // so the pre-existing file is never destroyed by the encode that follows.
+                File.Move(pTarget, pFreePath, true);
                 LRunner.LRunnerRecord($"Output exists; renaming existing file to '{Path.GetFileName(pFreePath)}'");
             }
             catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
             {
-                LRunner.LRunnerRecord($"Could not rename existing file '{Path.GetFileName(pTarget)}'; it will be overwritten", pException);
+                string pJobFailure = $"Could not rename the existing file '{Path.GetFileName(pTarget)}'; leaving it untouched";
+                LRunner.LRunnerRecord(pJobFailure, pException);
+                return pJobFailure;
             }
+
+            // The existing file has moved aside; reclaim the now-free target so no other
+            // instance grabs it before the encode writes.
+            LJobReserve(pTarget);
         }
+
+        return string.Empty;
     }
 
     private void LJobStageCommit()
@@ -589,11 +635,11 @@ internal sealed partial class LJob
         if (File.Exists(pFinalPath))
         {
             string pKeepPath = LJobPathResolve(pFinalPath, lJobItem.LWorkOutput.LEncodingCollisionSuffix);
-            File.Move(pFinalPath, pKeepPath);
+            File.Move(pFinalPath, pKeepPath, true);
             LRunner.LRunnerRecord($"Renamed the existing source to '{Path.GetFileName(pKeepPath)}'");
         }
 
-        File.Move(pStagePath, pFinalPath);
+        File.Move(pStagePath, pFinalPath, true);
         lJobItem.LWorkOutputSet(pFinalPath, Path.GetFileName(pFinalPath));
         LRunner.LRunnerRecord($"Moved the encoded output into place at '{Path.GetFileName(pFinalPath)}'");
     }

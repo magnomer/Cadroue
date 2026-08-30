@@ -44,6 +44,8 @@ public interface LScheduleContract
 
     void LScheduleCommit(LWorkItem lWorkItem, bool lScheduleSucceeded, string lScheduleMessage);
 
+    void LScheduleOutputCommit(Guid lWorkId, Guid lRunnerId, string lWorkOutputPath, string lWorkOutputName);
+
     bool LScheduleItemCancel(LWorkItem lWorkItem);
 
     bool LScheduleItemReset(Guid lWorkId);

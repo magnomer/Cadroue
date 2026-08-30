@@ -261,7 +261,7 @@ internal sealed partial class LJob
         return (0, string.Empty);
     }
 
-    private static string LJobPathResolve(string pPath, string pSuffix)
+    private string LJobPathResolve(string pPath, string pSuffix)
     {
         string pFolder = Path.GetDirectoryName(pPath) ?? string.Empty;
         string pStem = Path.GetFileNameWithoutExtension(pPath);
@@ -274,11 +274,55 @@ internal sealed partial class LJob
                 ? $"{pStem}{pSuffixText}{pExtension}"
                 : $"{pStem}{pSuffixText} ({pIndex + 1}){pExtension}";
             string pCandidate = Path.Combine(pFolder, pName);
-            if (!File.Exists(pCandidate))
+            if (LJobReserve(pCandidate))
             {
                 return pCandidate;
             }
         }
+    }
+
+    // Atomically claim a path so no other process (or job) can take the same name:
+    // an exclusive create is the OS-level compare-and-swap that closes the choose-then-
+    // write race. The 0-byte placeholder is the reservation; the encode overwrites it
+    // (ffmpeg runs with -y -nostdin), and any placeholder never written over is removed
+    // by LJobReservedClear once the job ends.
+    private bool LJobReserve(string pPath)
+    {
+        try
+        {
+            using (new FileStream(pPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+            }
+
+            lJobReserved.Add(pPath);
+            return true;
+        }
+        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    // Remove reservation placeholders the encode never wrote into: a real output has
+    // bytes, so an empty reserved file is a placeholder left behind by a failed, cancelled
+    // or skipped job. Never touches a file that received content.
+    private void LJobReservedClear()
+    {
+        foreach (string pPath in lJobReserved)
+        {
+            try
+            {
+                if (File.Exists(pPath) && new FileInfo(pPath).Length == 0)
+                {
+                    File.Delete(pPath);
+                }
+            }
+            catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+            {
+            }
+        }
+
+        lJobReserved.Clear();
     }
 
     private void LJobOutputClear()
@@ -286,6 +330,20 @@ internal sealed partial class LJob
         string pOutput = lJobItem.LWorkOutputPath;
         if (string.IsNullOrWhiteSpace(pOutput))
         {
+            return;
+        }
+
+        // Never delete a file this job did not create. The recorded output can coincide
+        // with a user-owned file: an input (source == output), or the pre-existing
+        // collision target the encode staged around (lJobFinalPath). Preserve those.
+        bool pPreExisting = LJobCollisionCheck(pOutput, LJobInputsRead())
+            || (lJobFinalPath.Length > 0 && string.Equals(
+                Path.GetFullPath(pOutput),
+                Path.GetFullPath(lJobFinalPath),
+                StringComparison.OrdinalIgnoreCase));
+        if (pPreExisting)
+        {
+            LRunner.LRunnerRecord($"Preserved '{Path.GetFileName(pOutput)}'; the unresolved Fix output is a pre-existing file, not this job's own output");
             return;
         }
 
