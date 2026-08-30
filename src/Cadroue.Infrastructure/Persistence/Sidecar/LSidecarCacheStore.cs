@@ -17,12 +17,24 @@ internal static class LSidecarCacheStore
             {
                 LSidecarLength = lSidecarIdentity.LKeyframeSourceLength,
                 LSidecarPartialHash = lSidecarIdentity.LKeyframePartialHash,
-                LSidecarDossiers = lSidecarDossiers.ToList()
+                LSidecarDossiers = lSidecarDossiers.ToList(),
+                // A diagnosis record is only ever written from a scan that ran to completion,
+                // and a completed scan assesses every kind. Recording the full kind set makes
+                // each clean kind a positive Clean verdict rather than a mere absence.
+                LSidecarScannedKinds = Enum.GetValues<LFlawKind>().ToList()
             });
 
     internal static IReadOnlyList<LSidecarDossier>? LSidecarDiagnosisRead(string lSidecarSourcePath)
     {
         if (LSidecarCacheRead(lSidecarSourcePath) is not { LSidecarDiagnosis: { } lSidecarDiagnosis })
+        {
+            return null;
+        }
+
+        // A record that carries no scanned-kind set never completed a diagnosis (or predates
+        // the field): its empty dossier list would otherwise read as a false Clean for every
+        // kind. Treat it as undiagnosed so the caller rescans instead of trusting it.
+        if (lSidecarDiagnosis.LSidecarScannedKinds.Count == 0)
         {
             return null;
         }

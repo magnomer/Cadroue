@@ -5,7 +5,7 @@ namespace Cadroue.Infrastructure;
 
 public sealed class LCheckup : IDisposable
 {
-    private readonly record struct LCheckupRequest(string LCheckupPath, LFlawKind[] LCheckupTargets);
+    private readonly record struct LCheckupRequest(string LCheckupPath, LFlawKind[] LCheckupTargets, bool LCheckupForce);
 
     private sealed class LCheckupFeed(Action<double> lCheckupReport) : IProgress<double>
     {
@@ -24,7 +24,10 @@ public sealed class LCheckup : IDisposable
     public event Action<LCheckupResult>? LCheckupReady;
     public event Action<string, double>? LCheckupProgress;
 
-    public void LCheckupStart(IReadOnlyList<string> lCheckupSources, IReadOnlyCollection<LFlawKind> lCheckupKinds)
+    public void LCheckupStart(
+        IReadOnlyList<string> lCheckupSources,
+        IReadOnlyCollection<LFlawKind> lCheckupKinds,
+        bool lCheckupForce = false)
     {
         string[] lCheckupPaths = lCheckupSources.ToArray();
         LFlawKind[] lCheckupTargets = lCheckupKinds.Count > 0
@@ -40,7 +43,7 @@ public sealed class LCheckup : IDisposable
 
             foreach (string lCheckupPath in lCheckupPaths)
             {
-                lCheckupQueue.Enqueue(new LCheckupRequest(lCheckupPath, lCheckupTargets));
+                lCheckupQueue.Enqueue(new LCheckupRequest(lCheckupPath, lCheckupTargets, lCheckupForce));
             }
 
             if (lCheckupRunning)
@@ -77,7 +80,7 @@ public sealed class LCheckup : IDisposable
                     .ToArray();
                 if (lCheckupTargets.Length > 0)
                 {
-                    lCheckupRetained.Enqueue(new LCheckupRequest(lCheckupQueued.LCheckupPath, lCheckupTargets));
+                    lCheckupRetained.Enqueue(new LCheckupRequest(lCheckupQueued.LCheckupPath, lCheckupTargets, lCheckupQueued.LCheckupForce));
                 }
             }
 
@@ -99,7 +102,7 @@ public sealed class LCheckup : IDisposable
             if (lCheckupRemaining.Length > 0)
             {
                 var lCheckupRestart = new Queue<LCheckupRequest>();
-                lCheckupRestart.Enqueue(new LCheckupRequest(lCheckupActiveRequest.LCheckupPath, lCheckupRemaining));
+                lCheckupRestart.Enqueue(new LCheckupRequest(lCheckupActiveRequest.LCheckupPath, lCheckupRemaining, lCheckupActiveRequest.LCheckupForce));
                 while (lCheckupQueue.TryDequeue(out LCheckupRequest lCheckupQueued))
                 {
                     lCheckupRestart.Enqueue(lCheckupQueued);
@@ -136,7 +139,7 @@ public sealed class LCheckup : IDisposable
                 lCheckupActive = lCheckupRequest;
             }
 
-            LCheckupSourceRun(lCheckupRequest.LCheckupPath, lCheckupRequest.LCheckupTargets, lCheckupToken);
+            LCheckupSourceRun(lCheckupRequest.LCheckupPath, lCheckupRequest.LCheckupTargets, lCheckupRequest.LCheckupForce, lCheckupToken);
             lock (lCheckupLock)
             {
                 lCheckupActive = null;
@@ -146,7 +149,7 @@ public sealed class LCheckup : IDisposable
         }
     }
 
-    private void LCheckupSourceRun(string lCheckupPath, IReadOnlyList<LFlawKind> lCheckupTargets, CancellationToken lCheckupToken)
+    private void LCheckupSourceRun(string lCheckupPath, IReadOnlyList<LFlawKind> lCheckupTargets, bool lCheckupForce, CancellationToken lCheckupToken)
     {
         foreach (LFlawKind lCheckupKind in lCheckupTargets)
         {
@@ -158,11 +161,14 @@ public sealed class LCheckup : IDisposable
             LCheckupPublish(new LCheckupResult(lCheckupPath, lCheckupKind, LCheckupOutcome.LCheckupOutcomeScanning));
         }
 
-        IReadOnlyList<LDossier>? lCheckupCached = LCheckupCachedRead(lCheckupPath);
-        if (lCheckupCached is not null)
+        if (!lCheckupForce)
         {
-            LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupCached, lCheckupToken);
-            return;
+            IReadOnlyList<LDossier>? lCheckupCached = LCheckupCachedRead(lCheckupPath);
+            if (lCheckupCached is not null)
+            {
+                LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupCached, lCheckupToken);
+                return;
+            }
         }
 
         try

@@ -21,9 +21,14 @@ public static class LFlawScan
         CancellationToken lFlawToken = default,
         IProgress<double>? lFlawProgress = null)
     {
+        // A source that is missing or unreadable cannot be diagnosed. Returning an empty
+        // (defect-free) result here would be recorded by callers as an authoritative "clean"
+        // verdict for every kind — a false negative that then suppresses any real scan. Fail
+        // instead so no diagnosis record is written for a scan that never happened.
         if (string.IsNullOrWhiteSpace(lFlawSource) || !File.Exists(lFlawSource))
         {
-            return Array.Empty<LDossier>();
+            throw new FileNotFoundException(
+                "Diagnosis source is missing or unreadable.", lFlawSource ?? string.Empty);
         }
 
         try
@@ -208,8 +213,12 @@ public static class LFlawScan
         }
         catch (Exception lFlawException)
         {
+            // A scan that could not complete must not be mistaken for a clean file. Returning
+            // an empty result would let callers persist a false "no defect" record that then
+            // blocks any future diagnosis of every kind. Surface the failure so the caller
+            // reports it and writes nothing.
             LRunner.LRunnerRecord($"Container structure could not be examined '{Path.GetFileName(lFlawSource)}'", lFlawException);
-            return Array.Empty<LDossier>();
+            throw;
         }
     }
 

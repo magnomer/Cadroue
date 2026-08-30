@@ -32,7 +32,6 @@ public static partial class LFix
             .Select(lStep => new LWorkFixStep(
                 LFixKindCreate(lStep.LSidecarKind),
                 lStep.LSidecarRepair,
-                lStep.LSidecarDiagnosis,
                 lFixStepPersistent))
             .ToArray())
         {
@@ -69,7 +68,7 @@ public static partial class LFix
                 .FirstOrDefault(lStep => lStep.LWorkFixKind == lFixKind);
             LWorkFixStep? lFixSavedStep = lFixSaved?.LWorkFixSteps
                 .FirstOrDefault(lStep => lStep.LWorkFixKind == lFixKind);
-            lFixSteps.Add(lFixPersistentStep ?? lFixSavedStep ?? new LWorkFixStep(lFixKind, false, false, false));
+            lFixSteps.Add(lFixPersistentStep ?? lFixSavedStep ?? new LWorkFixStep(lFixKind, false, false));
         }
 
         LWorkFixSalvage lFixSalvage =
@@ -106,8 +105,7 @@ public static partial class LFix
     private static LSidecarFixStep LFixRecordCreate(LWorkFixStep lFixStep) => new()
     {
         LSidecarKind = LFixKindFormat(lFixStep.LWorkFixKind),
-        LSidecarRepair = lFixStep.LWorkFixRepair,
-        LSidecarDiagnosis = lFixStep.LWorkFixDiagnosis
+        LSidecarRepair = lFixStep.LWorkFixRepair
     };
 
     private static string LFixKindFormat(LFlawKind lFixKind) => lFixKind switch

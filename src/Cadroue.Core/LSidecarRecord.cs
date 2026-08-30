@@ -121,7 +121,6 @@ public sealed class LSidecarFixStep
 {
     public string LSidecarKind { get; set; } = string.Empty;
     public bool LSidecarRepair { get; set; }
-    public bool LSidecarDiagnosis { get; set; }
 }
 
 public sealed class LSidecarFixRecord
@@ -132,7 +131,7 @@ public sealed class LSidecarFixRecord
     public string LSidecarSalvageBasis { get; set; } = "Source";
 
     public bool LSidecarFixActive =>
-        LSidecarSalvageActive || LSidecarSteps.Any(lStep => lStep.LSidecarRepair || lStep.LSidecarDiagnosis);
+        LSidecarSalvageActive || LSidecarSteps.Any(lStep => lStep.LSidecarRepair);
 }
 
 public sealed class LSidecarSectionRecord

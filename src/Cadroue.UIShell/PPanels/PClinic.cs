@@ -34,8 +34,7 @@ public sealed class PClinic : PPanel
 
     public event Action<bool>? PClinicMinimizeChange;
     public event Action? PClinicPlanChange;
-    public event Action<LFlawKind>? PClinicDiagnosisRequest;
-    public event Action<LFlawKind>? PClinicDiagnosisCancel;
+    public event Action? PClinicDiagnosisRun;
 
     private readonly UIElement pClinicFullBody;
     private readonly UIElement pClinicStripBody;
@@ -49,12 +48,12 @@ public sealed class PClinic : PPanel
     private readonly TextBlock pClinicResultText;
     private readonly ProgressBar pClinicDiagnosisProgress;
     private readonly CheckBox pClinicApplyBox;
-    private readonly CheckBox pClinicDiagnosisBox;
     private readonly CheckBox pClinicPersistentBox;
+    private readonly Button pClinicDiagnosisButton;
     private readonly PClinicSalvage pClinicSalvage = new();
     private readonly Border pClinicPersistentRow;
     private bool pClinicSalvageShown;
-    private readonly Dictionary<LFlawKind, (bool Apply, bool Diagnosis, bool Persistent)> pClinicStates = new();
+    private readonly Dictionary<LFlawKind, (bool Apply, bool Persistent)> pClinicStates = new();
     private readonly Dictionary<(string Path, LFlawKind Kind), LCheckupResult> pClinicResults = new();
     private readonly Dictionary<string, double> pClinicProgress = new(StringComparer.OrdinalIgnoreCase);
     private string? pClinicSource;
@@ -98,7 +97,7 @@ public sealed class PClinic : PPanel
 
         foreach ((LFlawKind pKind, string _) in pClinicKinds)
         {
-            pClinicStates[pKind] = (false, false, false);
+            pClinicStates[pKind] = (false, false);
         }
 
         pClinicApplyBox = PClinicSwitchBuild(
@@ -106,12 +105,6 @@ public sealed class PClinic : PPanel
             LLocalization.LLocalizationTextRead("Clinic.Apply.Tooltip"));
         pClinicApplyBox.Checked += (_, _) => PClinicToggleHandle();
         pClinicApplyBox.Unchecked += (_, _) => PClinicToggleHandle();
-        pClinicDiagnosisBox = PClinicSwitchBuild(
-            LLocalization.LLocalizationTextRead("Clinic.Diagnosis"),
-            LLocalization.LLocalizationTextRead("Clinic.Diagnosis.Tooltip"));
-        pClinicDiagnosisBox.Margin = new Thickness(18, 0, 0, 0);
-        pClinicDiagnosisBox.Checked += (_, _) => PClinicToggleHandle();
-        pClinicDiagnosisBox.Unchecked += (_, _) => PClinicToggleHandle();
 
         pClinicToggleRow = new StackPanel
         {
@@ -122,7 +115,6 @@ public sealed class PClinic : PPanel
         pClinicSalvage.PClinicSalvageActive.Visibility = Visibility.Collapsed;
         pClinicToggleRow.Children.Add(pClinicSalvage.PClinicSalvageActive);
         pClinicToggleRow.Children.Add(pClinicApplyBox);
-        pClinicToggleRow.Children.Add(pClinicDiagnosisBox);
 
         pClinicEmptyNotice = new TextBlock
         {
@@ -180,7 +172,6 @@ public sealed class PClinic : PPanel
         var pResultStack = new StackPanel();
         pResultStack.Children.Add(PClinicSeparatorBuild());
         pResultStack.Children.Add(pResultHeader);
-        pResultStack.Children.Add(pClinicDiagnosisProgress);
         pResultStack.Children.Add(pClinicResultText);
         pClinicResultBody = pResultStack;
         pClinicResultBody.Visibility = Visibility.Collapsed;
@@ -208,16 +199,42 @@ public sealed class PClinic : PPanel
         pClinicPersistentBox.Checked += (_, _) => PClinicPersistentHandle();
         pClinicPersistentBox.Unchecked += (_, _) => PClinicPersistentHandle();
         pClinicSalvage.PClinicSalvagePersistent.Visibility = Visibility.Collapsed;
-        var pPersistentStack = new Grid();
+        pClinicPersistentBox.VerticalAlignment = VerticalAlignment.Center;
+        var pPersistentStack = new Grid { VerticalAlignment = VerticalAlignment.Center };
         pPersistentStack.Children.Add(pClinicPersistentBox);
         pPersistentStack.Children.Add(pClinicSalvage.PClinicSalvagePersistent);
+
+        pClinicDiagnosisButton = new Button
+        {
+            Content = LLocalization.LLocalizationTextRead("Clinic.Diagnosis.Run"),
+            ToolTip = LLocalization.LLocalizationTextRead("Clinic.Diagnosis.Run.Tooltip"),
+            Height = 28,
+            MinWidth = 90,
+            FontSize = 12,
+            FontFamily = pClinicFontFamily,
+            VerticalAlignment = VerticalAlignment.Center,
+            Style = PButton.PButtonWhiteCreate()
+        };
+        pClinicDiagnosisButton.Click += (_, _) => PClinicDiagnosisRun?.Invoke();
+
+        var pRunGrid = new Grid();
+        pRunGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pRunGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(pClinicDiagnosisButton, 1);
+        pRunGrid.Children.Add(pPersistentStack);
+        pRunGrid.Children.Add(pClinicDiagnosisButton);
+
+        var pRunStack = new StackPanel();
+        pRunStack.Children.Add(pClinicDiagnosisProgress);
+        pRunStack.Children.Add(pRunGrid);
+
         pClinicPersistentRow = new Border
         {
-            Padding = new Thickness(12, 8, 12, 8),
+            Padding = new Thickness(12, 6, 12, 8),
             BorderBrush = PPanelLineBrush,
             BorderThickness = new Thickness(0, 1, 0, 0),
             Background = Brushes.White,
-            Child = pPersistentStack
+            Child = pRunStack
         };
 
         var pRoot = new DockPanel { LastChildFill = true };
@@ -310,8 +327,8 @@ public sealed class PClinic : PPanel
                 pClinicStates.Values.Any(pState => pState.Apply));
         }
         pClinicApplyBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
-        pClinicDiagnosisBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
         pClinicPersistentBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
+        pClinicDiagnosisButton.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
         pClinicSalvage.PClinicSalvageActive.Visibility = pClinicSalvageShown ? Visibility.Visible : Visibility.Collapsed;
         pClinicSalvage.PClinicSalvagePersistent.Visibility = pClinicSalvageShown ? Visibility.Visible : Visibility.Collapsed;
         if (pClinicSalvageShown)
@@ -342,16 +359,14 @@ public sealed class PClinic : PPanel
         pClinicPersistentBox.IsEnabled = pKnown;
 
         pClinicSuppress = true;
-        if (pKind is { } pShownKind && pClinicStates.TryGetValue(pShownKind, out (bool Apply, bool Diagnosis, bool Persistent) pState))
+        if (pKind is { } pShownKind && pClinicStates.TryGetValue(pShownKind, out (bool Apply, bool Persistent) pState))
         {
             pClinicApplyBox.IsChecked = pState.Apply;
-            pClinicDiagnosisBox.IsChecked = pState.Diagnosis;
             pClinicPersistentBox.IsChecked = pState.Persistent;
         }
         else
         {
             pClinicApplyBox.IsChecked = false;
-            pClinicDiagnosisBox.IsChecked = false;
             pClinicPersistentBox.IsChecked = false;
         }
 
@@ -373,11 +388,11 @@ public sealed class PClinic : PPanel
         var pSteps = new List<LWorkFixStep>();
         foreach ((LFlawKind pKind, string _) in pClinicKinds)
         {
-            (bool pApply, bool pDiagnosis, bool pPersistent) =
-                pClinicStates.TryGetValue(pKind, out (bool Apply, bool Diagnosis, bool Persistent) pState)
+            (bool pApply, bool pPersistent) =
+                pClinicStates.TryGetValue(pKind, out (bool Apply, bool Persistent) pState)
                     ? pState
-                    : (false, false, false);
-            pSteps.Add(new LWorkFixStep(pKind, pApply, pDiagnosis, pPersistent));
+                    : (false, false);
+            pSteps.Add(new LWorkFixStep(pKind, pApply, pPersistent));
         }
 
         return new LWorkFix(pSteps) { LWorkFixSalvage = pClinicSalvage.PClinicSalvageRead() };
@@ -389,7 +404,7 @@ public sealed class PClinic : PPanel
         foreach (LWorkFixStep pStep in pClinicPlan.LWorkFixSteps)
         {
             pClinicStates[pStep.LWorkFixKind] =
-                (pStep.LWorkFixRepair, pStep.LWorkFixDiagnosis, pStep.LWorkFixPersistent);
+                (pStep.LWorkFixRepair, pStep.LWorkFixPersistent);
         }
 
         if (pClinicSalvageShown)
@@ -399,11 +414,10 @@ public sealed class PClinic : PPanel
         }
 
         if (pClinicCurrentKind is { } pKind
-            && pClinicStates.TryGetValue(pKind, out (bool Apply, bool Diagnosis, bool Persistent) pCurrent))
+            && pClinicStates.TryGetValue(pKind, out (bool Apply, bool Persistent) pCurrent))
         {
             pClinicSuppress = true;
             pClinicApplyBox.IsChecked = pCurrent.Apply;
-            pClinicDiagnosisBox.IsChecked = pCurrent.Diagnosis;
             pClinicPersistentBox.IsChecked = pCurrent.Persistent;
             pClinicSuppress = false;
             PClinicResultApply();
@@ -417,23 +431,10 @@ public sealed class PClinic : PPanel
             return;
         }
 
-        bool pWasDiagnosis = pClinicStates.TryGetValue(pKind, out (bool Apply, bool Diagnosis, bool Persistent) pPrior)
-            && pPrior.Diagnosis;
-        bool pNowDiagnosis = pClinicDiagnosisBox.IsChecked == true;
         pClinicStates[pKind] = (
             pClinicApplyBox.IsChecked == true,
-            pNowDiagnosis,
             pClinicPersistentBox.IsChecked == true);
-        PClinicResultApply();
         PClinicPlanChange?.Invoke();
-        if (!pWasDiagnosis && pNowDiagnosis)
-        {
-            PClinicDiagnosisRequest?.Invoke(pKind);
-        }
-        else if (pWasDiagnosis && !pNowDiagnosis)
-        {
-            PClinicDiagnosisCancel?.Invoke(pKind);
-        }
     }
 
     private void PClinicPersistentHandle()
@@ -445,14 +446,15 @@ public sealed class PClinic : PPanel
 
         pClinicStates[pKind] = (
             pClinicApplyBox.IsChecked == true,
-            pClinicDiagnosisBox.IsChecked == true,
             pClinicPersistentBox.IsChecked == true);
         PClinicPlanChange?.Invoke();
     }
 
     private void PClinicResultApply()
     {
-        bool pVisible = pClinicDiagnosisBox.IsChecked == true && pClinicItemBody.Visibility == Visibility.Visible;
+        bool pVisible = !pClinicSalvageShown
+            && pClinicCurrentKind is not null
+            && pClinicItemBody.Visibility == Visibility.Visible;
         pClinicResultBody.Visibility = pVisible ? Visibility.Visible : Visibility.Collapsed;
         bool pScanning = pVisible
             && pClinicSource is { } pSource
