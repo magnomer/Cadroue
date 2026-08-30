@@ -35,6 +35,7 @@
     <Resource Include="PAssets\PCompass\*.svg" />
     <Resource Include="PAssets\PPanels\*.svg" />
     <Resource Include="PAssets\PMenus\*.svg" />
+    <Resource Include="PAssets\PSShared\*.svg" />
     <Resource Include="PAssets\PProgram\*.png" />
     <Resource Include="PAssets\PProgram\*.ico" />
   </ItemGroup>

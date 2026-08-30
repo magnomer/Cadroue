@@ -19,9 +19,8 @@ internal static class PSCasement
     private const int PSCasementDwmPreference = 33;
     private const int PSCasementDwmRound = 2;
     private const int PSCasementDwmCaption = 35;
-    private const int PSCasementDwmColor = 0x00F7E8DC;
 
-    internal static void PSCasementDwmApply(Window pWindow)
+    internal static void PSCasementDwmApply(Window pWindow, int pCaption)
     {
         IntPtr pCasementHandle = new System.Windows.Interop.WindowInteropHelper(pWindow).Handle;
         if (pCasementHandle == IntPtr.Zero)
@@ -33,7 +32,7 @@ internal static class PSCasement
         _ = DwmSetWindowAttribute(
             pCasementHandle, PSCasementDwmPreference, ref pCasementCorner, System.Runtime.InteropServices.Marshal.SizeOf<int>());
 
-        int pCasementCaption = PSCasementDwmColor;
+        int pCasementCaption = pCaption;
         _ = DwmSetWindowAttribute(
             pCasementHandle, PSCasementDwmCaption, ref pCasementCaption, System.Runtime.InteropServices.Marshal.SizeOf<int>());
     }
@@ -96,7 +95,18 @@ internal static class PSCasement
         string? pTitle,
         bool pCloseOnly,
         double pBandHeight,
-        double pTitleFont)
+        double pTitleFont) =>
+        PSCasementOverlayBuild(
+            pWindow, pStripWidth, pTitle, pCloseOnly, pBandHeight, pTitleFont, PSCasementBandFill);
+
+    internal static UIElement PSCasementOverlayBuild(
+        Window pWindow,
+        double pStripWidth,
+        string? pTitle,
+        bool pCloseOnly,
+        double pBandHeight,
+        double pTitleFont,
+        Brush pBandFill)
     {
         PSCasementEscapeAttach(pWindow);
         double pScale = pBandHeight / PSCasementBandHeight;
@@ -138,7 +148,7 @@ internal static class PSCasement
         {
             Orientation = Orientation.Horizontal,
             VerticalAlignment = VerticalAlignment.Top,
-            Background = PSCasementBandFill
+            Background = pBandFill
         };
         if (!pCloseOnly)
         {
