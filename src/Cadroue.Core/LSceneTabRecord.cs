@@ -58,6 +58,8 @@ public sealed class LSceneInspectorRecord
 
     public bool LSceneInspectorSkip { get; set; }
 
+    public bool LSceneInspectorSalvage { get; set; }
+
     public LSceneInspectorRecord LSceneInspectorClone()
     {
         return new LSceneInspectorRecord
@@ -66,7 +68,8 @@ public sealed class LSceneInspectorRecord
             LSceneInspectorEdit = LSceneInspectorEdit,
             LSceneInspectorFix = LSceneInspectorFix,
             LSceneInspectorCrop = LSceneInspectorCrop,
-            LSceneInspectorSkip = LSceneInspectorSkip
+            LSceneInspectorSkip = LSceneInspectorSkip,
+            LSceneInspectorSalvage = LSceneInspectorSalvage
         };
     }
 }

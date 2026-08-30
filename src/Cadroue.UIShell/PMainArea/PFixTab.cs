@@ -147,12 +147,15 @@ public sealed class PFixTab : PTabSurface
     public override LSceneTabRecord PTabLayoutRead()
     {
         LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
-        LWorkFix pFixPersistent = LFix.LFixPersistentResolve(pClinic.PClinicPlanRead());
-        if (pFixPersistent.LWorkFixSteps.Any())
+        LWorkFix pFixPlan = pClinic.PClinicPlanRead();
+        LWorkFix pFixPersistent = LFix.LFixPersistentResolve(pFixPlan);
+        bool pFixSalvagePersistent = pFixPlan.LWorkFixSalvage.LWorkSalvagePersistent;
+        if (pFixPersistent.LWorkFixSteps.Any() || pFixSalvagePersistent)
         {
             lPreferenceTabLayout.LSceneInspector = new LSceneInspectorRecord
             {
-                LSceneInspectorFix = LFix.LFixPersistentCreate(pFixPersistent)
+                LSceneInspectorFix = LFix.LFixPersistentCreate(pFixPersistent),
+                LSceneInspectorSalvage = pFixSalvagePersistent
             };
         }
 
@@ -314,7 +317,8 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixPersistentRestore(LSceneTabRecord? lPreferenceTabLayout)
     {
-        if (lPreferenceTabLayout?.LSceneInspector is not { LSceneInspectorFix: { } pFixPersistentRecord })
+        if (lPreferenceTabLayout?.LSceneInspector is not
+            { LSceneInspectorFix: { } pFixPersistentRecord } pFixInspector)
         {
             return;
         }
@@ -322,7 +326,8 @@ public sealed class PFixTab : PTabSurface
         pFixPlanLoading = true;
         try
         {
-            LWorkFix pFixPersistentPlan = LFix.LFixPersistentRead(pFixPersistentRecord);
+            LWorkFix pFixPersistentPlan = LFix.LFixPersistentRead(
+                pFixPersistentRecord, pFixInspector.LSceneInspectorSalvage);
             pClinic.PClinicPlanApply(pFixPersistentPlan);
         }
         finally

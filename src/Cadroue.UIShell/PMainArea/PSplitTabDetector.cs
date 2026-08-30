@@ -55,7 +55,6 @@ public sealed partial class PSplitTab
 
         return new LSidecarSplitRecord
         {
-            LSidecarSplitPersistent = pInspector.PSensorPersistentCheck(),
             LSidecarSplitDetectors = pSplitDetectors
         };
     }
@@ -88,7 +87,6 @@ public sealed partial class PSplitTab
         pSplitDetectorLoading = true;
         try
         {
-            pInspector.PSensorPersistentApply(pSplitRecord.LSidecarSplitPersistent);
             foreach (LSidecarDetectorRecord pDetector in pSplitRecord.LSidecarSplitDetectors)
             {
                 if (!Enum.IsDefined(typeof(LDetectorKind), pDetector.LSidecarDetectorKind))

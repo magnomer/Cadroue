@@ -122,7 +122,6 @@ public sealed class LSidecarFixStep
     public string LSidecarKind { get; set; } = string.Empty;
     public bool LSidecarRepair { get; set; }
     public bool LSidecarDiagnosis { get; set; }
-    public bool LSidecarPersistent { get; set; }
 }
 
 public sealed class LSidecarFixRecord
@@ -131,7 +130,6 @@ public sealed class LSidecarFixRecord
     public bool LSidecarSalvageActive { get; set; }
     public string LSidecarSalvageMode { get; set; } = "Rejoin";
     public string LSidecarSalvageBasis { get; set; } = "Source";
-    public bool LSidecarSalvagePersistent { get; set; }
 
     public bool LSidecarFixActive =>
         LSidecarSalvageActive || LSidecarSteps.Any(lStep => lStep.LSidecarRepair || lStep.LSidecarDiagnosis);
@@ -167,11 +165,10 @@ public sealed class LSidecarDetectorRecord
 
 public sealed class LSidecarSplitRecord
 {
-    public bool LSidecarSplitPersistent { get; set; }
     public List<LSidecarDetectorRecord> LSidecarSplitDetectors { get; set; } = new();
 
     public bool LSidecarSplitActive =>
-        LSidecarSplitPersistent || LSidecarSplitDetectors.Any(lDetector => lDetector.LSidecarDetectorEnabled);
+        LSidecarSplitDetectors.Any(lDetector => lDetector.LSidecarDetectorEnabled);
 }
 
 public sealed class LSidecarWaveformRecord

@@ -24,7 +24,8 @@ internal static class TSalvage
     internal static LWorkFix DefaultCreate() => LWorkFix.LWorkFixCreate();
 
     internal static LWorkFix PersistentRoundTrip(LWorkFix plan) =>
-        LFix.LFixPersistentRead(LFix.LFixPersistentCreate(plan));
+        LFix.LFixPersistentRead(
+            LFix.LFixPersistentCreate(plan), plan.LWorkFixSalvage.LWorkSalvagePersistent);
 
     internal static LWorkFix PersistentResolve(LWorkFix plan) =>
         LFix.LFixPersistentResolve(plan);

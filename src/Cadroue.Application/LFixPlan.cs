@@ -12,22 +12,36 @@ public static partial class LFix
         LSidecarSteps = lFixPlan.LWorkFixSteps.Select(LFixRecordCreate).ToList(),
         LSidecarSalvageActive = lFixPlan.LWorkFixSalvage.LWorkSalvageActive,
         LSidecarSalvageMode = LFixSalvageFormat(lFixPlan.LWorkFixSalvage.LWorkSalvageMode),
-        LSidecarSalvageBasis = LFixBasisFormat(lFixPlan.LWorkFixSalvage.LWorkSalvageBasis),
-        LSidecarSalvagePersistent = lFixPlan.LWorkFixSalvage.LWorkSalvagePersistent
+        LSidecarSalvageBasis = LFixBasisFormat(lFixPlan.LWorkFixSalvage.LWorkSalvageBasis)
     };
 
-    public static LWorkFix LFixPersistentRead(LSidecarFixRecord lFixRecord) =>
-        new(lFixRecord.LSidecarSteps.Select(LFixStepCreate).ToArray())
+    // The session snapshot only ever holds persistent steps, so every step it carries is
+    // persistent; the salvage-persistent flag is carried alongside it in the tab layout.
+    public static LWorkFix LFixPersistentRead(LSidecarFixRecord lFixRecord, bool lFixSalvagePersistent) =>
+        LFixWorkCreate(lFixRecord, lFixStepPersistent: true, lFixSalvagePersistent);
+
+    // A per-file plan is never persistent: persistence is a session concept, never stored in the sidecar.
+    public static LWorkFix? LFixPlanRead(string lFixSourcePath, Func<string, LSidecarFixRecord?> lSidecarRead) =>
+        lSidecarRead(lFixSourcePath) is { } lFixRecord
+            ? LFixWorkCreate(lFixRecord, lFixStepPersistent: false, lFixSalvagePersistent: false)
+            : null;
+
+    private static LWorkFix LFixWorkCreate(
+        LSidecarFixRecord lFixRecord, bool lFixStepPersistent, bool lFixSalvagePersistent) =>
+        new(lFixRecord.LSidecarSteps
+            .Select(lStep => new LWorkFixStep(
+                LFixKindCreate(lStep.LSidecarKind),
+                lStep.LSidecarRepair,
+                lStep.LSidecarDiagnosis,
+                lFixStepPersistent))
+            .ToArray())
         {
             LWorkFixSalvage = new LWorkFixSalvage(
                 lFixRecord.LSidecarSalvageActive,
                 LFixSalvageCreate(lFixRecord.LSidecarSalvageMode),
                 LFixBasisCreate(lFixRecord.LSidecarSalvageBasis),
-                lFixRecord.LSidecarSalvagePersistent)
+                lFixSalvagePersistent)
         };
-
-    public static LWorkFix? LFixPlanRead(string lFixSourcePath, Func<string, LSidecarFixRecord?> lSidecarRead) =>
-        lSidecarRead(lFixSourcePath) is { } lFixRecord ? LFixPersistentRead(lFixRecord) : null;
 
     public static void LFixPlanSave(
         string lFixSourcePath, LWorkFix lFixPlan, Func<string, LSidecarFixRecord?, bool> lSidecarSave) =>
@@ -89,19 +103,11 @@ public static partial class LFix
         LFlawKind.LFlawKindFfvone
     };
 
-    private static LWorkFixStep LFixStepCreate(LSidecarFixStep lFixRecord) =>
-        new(
-            LFixKindCreate(lFixRecord.LSidecarKind),
-            lFixRecord.LSidecarRepair,
-            lFixRecord.LSidecarDiagnosis,
-            lFixRecord.LSidecarPersistent);
-
     private static LSidecarFixStep LFixRecordCreate(LWorkFixStep lFixStep) => new()
     {
         LSidecarKind = LFixKindFormat(lFixStep.LWorkFixKind),
         LSidecarRepair = lFixStep.LWorkFixRepair,
-        LSidecarDiagnosis = lFixStep.LWorkFixDiagnosis,
-        LSidecarPersistent = lFixStep.LWorkFixPersistent
+        LSidecarDiagnosis = lFixStep.LWorkFixDiagnosis
     };
 
     private static string LFixKindFormat(LFlawKind lFixKind) => lFixKind switch
