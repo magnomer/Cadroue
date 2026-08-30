@@ -37,6 +37,10 @@ public sealed class LWorkRecord
 
     public LWorkMedia? LWorkSourceMedia { get; set; }
 
+    // Nullable so a record written before this field existed (null) is treated as already
+    // measured; a fresh item explicitly persists false while its measurement is still pending.
+    public bool? LWorkSourceMeasured { get; set; }
+
     public LWorkMedia? LWorkOutputMedia { get; set; }
 
     public int LWorkOwnerProcess { get; set; }
@@ -93,6 +97,7 @@ public sealed class LWorkRecord
         LWorkSourceBytes = lWorkItem.LWorkSourceBytes,
         LWorkMergeBytes = lWorkItem.LWorkMergeBytes.ToList(),
         LWorkSourceMedia = lWorkItem.LWorkSourceMedia,
+        LWorkSourceMeasured = lWorkItem.LWorkSourceMeasured,
         LWorkOutputMedia = lWorkItem.LWorkOutputMedia,
         LWorkOwnerProcess = lWorkItem.LWorkOwnerProcess,
         LWorkOwnerStamp = lWorkItem.LWorkOwnerStamp,
@@ -148,7 +153,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkSourceBytes = LWorkSourceBytes;
         lWorkItem.LWorkMergeBytes = LWorkMergeBytes.ToArray();
         lWorkItem.LWorkSourceMedia = LWorkSourceMedia;
-        lWorkItem.LWorkSourceMeasured = true;
+        lWorkItem.LWorkSourceMeasured = LWorkSourceMeasured ?? true;
         lWorkItem.LWorkOutputMedia = LWorkOutputMedia;
         lWorkItem.LWorkDossiers = LWorkDossiers.ToArray();
         lWorkItem.LWorkFixPlan = LWorkFixPlan;

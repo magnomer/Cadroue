@@ -49,8 +49,10 @@ public sealed partial class PRoster : UserControl
     }
 
     // A running job has no finish time yet, so its elapsed figure is measured against the
-    // clock. This one-second tick refreshes the detail while any job runs so that figure —
-    // and the batch's summed spent/speed — advances in real time between progress notices.
+    // clock; and the shown item's source figures land later, from the low-priority background
+    // measurement. This one-second tick refreshes the detail while any job runs (so elapsed and
+    // the batch's summed spent/speed advance in real time) and while the shown item or batch is
+    // still awaiting measurement (so "Measuring" turns into values as soon as the result lands).
     private void PRosterElapsedTick(object? pSender, EventArgs pArguments)
     {
         if (pRosterClosed || !IsVisible)
@@ -58,14 +60,34 @@ public sealed partial class PRoster : UserControl
             return;
         }
 
+        if (PRosterRunningCheck() || PRosterMeasuringCheck())
+        {
+            PRosterDetailUpdate();
+        }
+    }
+
+    private bool PRosterRunningCheck()
+    {
         foreach (LWorkItem pWorkItem in pRosterSchedule.LScheduleRecords)
         {
             if (pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning)
             {
-                PRosterDetailUpdate();
-                return;
+                return true;
             }
         }
+
+        return false;
+    }
+
+    private bool PRosterMeasuringCheck()
+    {
+        if (pRosterCardId != Guid.Empty)
+        {
+            return pRosterSchedule.LScheduleRecords.Any(
+                pWorkItem => pWorkItem.LWorkBatchId == pRosterCardId && !pWorkItem.LWorkSourceMeasured);
+        }
+
+        return PRosterSelectRead() is { LWorkSourceMeasured: false };
     }
 
     public bool PRosterBusyCheck() => pRosterStation.LStationBusyCheck();

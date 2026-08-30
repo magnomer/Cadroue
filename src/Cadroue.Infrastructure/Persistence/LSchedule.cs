@@ -215,6 +215,7 @@ public sealed partial class LSchedule : LScheduleContract
                 continue;
             }
 
+            lWorkRecord.LWorkSourceMeasured = true;
             if (lWorkDuration > TimeSpan.Zero && lWorkRecord.LWorkEndTicks <= 0)
             {
                 lWorkRecord.LWorkEndTicks = lWorkDuration.Ticks;

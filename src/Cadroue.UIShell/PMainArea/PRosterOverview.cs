@@ -125,8 +125,10 @@ public sealed partial class PRoster
         LEncoding pOutput = pWorkItem.LWorkOutput;
         LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia;
 
-        // A source with no figures yet is still being measured (low-priority, one at a time);
-        // only once measurement has been attempted does a missing figure mean "Unknown".
+        // Any source figure still absent is "Measuring" until measurement has actually been
+        // attempted for this item; only then does a missing figure mean "Unknown" (unreadable).
+        // The flag — not the presence of a partial probe — decides, so a figure the deferred
+        // whole-file measurement has not filled yet never reads as "Unknown".
         string pSourceUnknown = LLocalization.LLocalizationTextRead(
             pWorkItem.LWorkSourceMeasured ? "Roster.Value.Unknown" : "Roster.Value.Measuring");
 
@@ -153,7 +155,9 @@ public sealed partial class PRoster
             LLocalization.LLocalizationTextRead("Roster.Section.Source"),
             LLocalization.LLocalizationTextRead("Roster.Section.Output"), true);
         PairAdd(
-            pSourceInfo is null ? pSourceUnknown : PRosterMebiFormat(pSourceBytes),
+            pSourceBytes is { } pSourceByteValue && pSourceByteValue >= 0
+                ? PRosterMebiFormat(pSourceBytes)
+                : pSourceUnknown,
             PRosterMebiFormat(pOutputBytes), false);
         PairAdd(
             pSourceInfo is null ? pSourceUnknown : PRosterDimensionFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
@@ -166,11 +170,9 @@ public sealed partial class PRoster
                 ? $"{pOutputInfo.LWorkMediaFramerate:0.###} fps"
                 : PRosterFpsFormat(pOutput.LEncodingVideo.LEncodingFps), false);
         PairAdd(
-            pSourceInfo is null
-                ? pSourceUnknown
-                : PRosterRateFormat(pSourceInfo.LWorkKeyframeInterval is { } pSourceInterval && pSourceInterval > 0
-                    ? pSourceInterval / 1000d
-                    : null),
+            pSourceInfo?.LWorkKeyframeInterval is { } pSourceInterval && pSourceInterval > 0
+                ? PRosterRateFormat(pSourceInterval / 1000d)
+                : pSourceUnknown,
             PRosterRateFormat(pOutputInfo?.LWorkKeyframeInterval is { } pOutputInterval && pOutputInterval > 0
                 ? pOutputInterval / 1000d
                 : null), false);
@@ -224,7 +226,8 @@ public sealed partial class PRoster
                 (PRosterCodecFormat(pSourceInfo), PRosterCodecFormat(pOutputInfo)),
                 (PRosterBitrateFormat(pSourceInfo), PRosterBitrateFormat(pOutputInfo)),
                 (PRosterSampleFormat(pSourceInfo), PRosterSampleFormat(pOutputInfo)),
-                (PRosterLoudnessFormat(pSourceLoudness), PRosterLoudnessFormat(pOutputLoudness))
+                (pSourceAudio && pSourceLoudness is null ? pSourceUnknown : PRosterLoudnessFormat(pSourceLoudness),
+                 PRosterLoudnessFormat(pOutputLoudness))
             }));
         }
 

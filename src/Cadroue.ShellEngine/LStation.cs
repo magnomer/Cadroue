@@ -131,6 +131,21 @@ public sealed class LStation
     public bool LStationBusyCheck() =>
         LStationRunner.LRunnerRunning || LStationRunner.LRunnerSuspended;
 
+    // Any post currently processing. Background source measurement consults this so its
+    // whole-file disk reads never run alongside a job's reads on the same spinning disk.
+    public static bool LStationActiveCheck()
+    {
+        foreach (LStation lStation in LStationBoardRead())
+        {
+            if (lStation.LStationBusyCheck())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void LStationScheduleHandle(LScheduleContract lSchedule) => LStationAutoApply();
 
     private void LStationAutoApply()

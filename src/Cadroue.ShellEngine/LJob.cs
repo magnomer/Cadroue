@@ -276,11 +276,13 @@ internal sealed partial class LJob
         return pMergeBytes;
     }
 
-    // Output figures are measured once, when the job finishes, and stored on the item. The
-    // keyframe interval is scanned for video output; the integrated loudness — a full-file
-    // decode — is measured only when the audio was re-encoded, and otherwise inherited from
-    // the source, which a stream copy leaves unchanged. The source is never measured here:
-    // its figures come from the record made when the file was added to the worklist.
+    // Output figures are measured once, when the job finishes, and stored on the item. Both
+    // full-file reads — the keyframe-interval packet scan and the integrated-loudness decode —
+    // run only when the corresponding stream was re-encoded; a stream copy leaves the interval
+    // and loudness unchanged, so they are inherited from the source. This keeps a simple split,
+    // which copies both streams, from re-reading each finished output between jobs (a full read
+    // that stalls the runner loop on a spinning disk). The source is never measured here: its
+    // figures come from the record made when the file was added to the worklist.
     private LWorkMedia? LJobOutputResolve(LWorkMedia? pOutputMedia, string pOutputPath, LWorkMedia? pSourceMedia)
     {
         if (pOutputMedia is null)
@@ -288,12 +290,18 @@ internal sealed partial class LJob
             return null;
         }
 
+        bool pVideoEncoded = string.Equals(
+            lJobItem.LWorkOutput.LEncodingVideo.LEncodingMode, "Encode", StringComparison.OrdinalIgnoreCase);
         LWorkMedia pMeasured = pOutputMedia;
-        if (pMeasured.LWorkMediaVideo
-            && pMeasured.LWorkKeyframeInterval is null
-            && LScout.LScoutIntervalRead(pOutputPath, pMeasured.LWorkMediaDuration, lJobToken) is { } pInterval)
+        if (pMeasured.LWorkMediaVideo && pMeasured.LWorkKeyframeInterval is null)
         {
-            pMeasured = pMeasured with { LWorkKeyframeInterval = pInterval };
+            double? pInterval = pVideoEncoded
+                ? LScout.LScoutIntervalRead(pOutputPath, pMeasured.LWorkMediaDuration, lJobToken)
+                : pSourceMedia?.LWorkKeyframeInterval;
+            if (pInterval is { } pValue)
+            {
+                pMeasured = pMeasured with { LWorkKeyframeInterval = pValue };
+            }
         }
 
         if (pMeasured.LWorkMediaSamplerate > 0 && pMeasured.LWorkMediaLoudness is null)

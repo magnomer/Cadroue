@@ -388,8 +388,19 @@ public static class LMessenger
         }
     }
 
+    private const int lMessengerIdleMilliseconds = 500;
+
     private static void LMessengerItemResolve(LWorkItem lMessengerItem)
     {
+        // Measurement reads the source end to end (keyframe scan, loudness decode). A running
+        // job reads the same source; on a spinning disk the two sets of reads seek against each
+        // other and stall the encode. Since measurement is never urgent, hold it until no post
+        // is processing so its disk work only runs while the drive is otherwise idle.
+        while (LStation.LStationActiveCheck())
+        {
+            System.Threading.Thread.Sleep(lMessengerIdleMilliseconds);
+        }
+
         bool lMessengerMerge = lMessengerItem.LWorkMergeSources.Count > 1;
         LWorkMedia? lMessengerSourceMedia = null;
         long? lMessengerSourceBytes = null;
