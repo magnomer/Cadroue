@@ -47,10 +47,9 @@ public sealed partial class LSchedule : LScheduleContract
     {
         var lScheduleLoaded = new List<LWorkItem>();
         var lScheduleRunningIds = new HashSet<Guid>();
-        bool lScheduleShared = LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
         foreach ((LDepotFolder lDepotFolder, LWorkRecord lWorkRecord) in lSchedulePairs)
         {
-            if (!lScheduleShared && !LScheduleSignetMatch(lWorkRecord))
+            if (!LScheduleScopeMatch(lWorkRecord))
             {
                 continue;
             }
@@ -574,7 +573,7 @@ public sealed partial class LSchedule : LScheduleContract
         foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderRunning).ToArray())
         {
             LWorkRecord? lWorkRecord = LScheduleStore.LScheduleRecordRead(lDepotFilePath);
-            if (lWorkRecord is null || !LScheduleSignetMatch(lWorkRecord) || !LSentinel.LSentinelStaleCheck(lWorkRecord))
+            if (lWorkRecord is null || !LScheduleScopeMatch(lWorkRecord) || !LSentinel.LSentinelStaleCheck(lWorkRecord))
             {
                 continue;
             }
@@ -600,7 +599,7 @@ public sealed partial class LSchedule : LScheduleContract
             foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder).ToArray())
             {
                 if (LScheduleStore.LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord
-                    && !LScheduleSignetMatch(lWorkRecord))
+                    && !LScheduleScopeMatch(lWorkRecord))
                 {
                     continue;
                 }

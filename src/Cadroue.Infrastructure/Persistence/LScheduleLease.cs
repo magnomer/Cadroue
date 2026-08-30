@@ -13,6 +13,10 @@ public sealed partial class LSchedule
         lWorkRecord.LWorkSignet == Guid.Empty
         || lWorkRecord.LWorkSignet == LSignet.LSignetCurrent;
 
+    internal static bool LScheduleScopeMatch(LWorkRecord lWorkRecord) =>
+        Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared
+        || LScheduleSignetMatch(lWorkRecord);
+
     public LWorkItem? LScheduleClaim(Guid lRunnerId)
     {
         LDepotIndex.LDepotIndexCreate();
