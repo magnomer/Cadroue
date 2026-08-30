@@ -406,7 +406,10 @@ public sealed partial class LSchedule : LScheduleContract
         lScheduleLiveItems.Remove(lWorkItem.LWorkId);
         LSchedulePartialRemove(LWorkRecord.LWorkRecordCreate(lWorkItem));
 
-        if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, LDepotFolder.LDepotFolderCancelled))
+        LDepotFolder lCancelSource = lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning
+            ? LDepotFolder.LDepotFolderRunning
+            : LDepotFolder.LDepotFolderScheduled;
+        if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, lCancelSource, LDepotFolder.LDepotFolderCancelled))
         {
             LTraceLog.LTraceWarningRecord(
                 $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] could not be cancelled");

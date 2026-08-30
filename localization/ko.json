@@ -1057,6 +1057,8 @@
   "Roster.Relay.One": "보내기",
   "Roster.Menu.Restart": "다시 시작",
   "Roster.Menu.RestartMany": "작업 {0}개 다시 시작",
+  "Roster.Menu.Cancel": "취소",
+  "Roster.Menu.CancelMany": "작업 {0}개 취소",
   "Roster.Owner.ThisTab": "이 탭",
   "Roster.Owner.OtherTab": "다른 탭",
   "Roster.Owner.OtherWindow": "다른 창",

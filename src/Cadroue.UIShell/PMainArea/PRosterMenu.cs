@@ -23,6 +23,12 @@ public sealed partial class PRoster
             return;
         }
 
+        if (pWorkItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning)
+        {
+            PRosterCancelBuild(pMenu, pWorkItem);
+            return;
+        }
+
         IReadOnlyList<string> pRelayPaths = PRosterPathsRead(pWorkItem);
         if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
             || pRelayPaths.Count == 0
@@ -86,6 +92,44 @@ public sealed partial class PRoster
             }
         };
         pMenu.Items.Add(pRestart);
+    }
+
+    private void PRosterCancelBuild(ContextMenu pMenu, LWorkItem pClickedItem)
+    {
+        LWorkItem[] pCancelItems = PRosterSelectionRead()
+            .Where(pItem => pItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning)
+            .ToArray();
+        if (pCancelItems.Length == 0 || !pCancelItems.Any(pItem => ReferenceEquals(pItem, pClickedItem)))
+        {
+            pCancelItems = new[] { pClickedItem };
+        }
+
+        pMenu.Items.Clear();
+        MenuItem pCancel = PMenu.PMenuItemCreate(
+            pCancelItems.Length > 1
+                ? LLocalization.LLocalizationFormat("Roster.Menu.CancelMany", pCancelItems.Length)
+                : LLocalization.LLocalizationTextRead("Roster.Menu.Cancel"),
+            null);
+        LWorkItem[] pCancelTargets = pCancelItems;
+        pCancel.Click += (_, _) =>
+        {
+            foreach (LWorkItem pCancelItem in pCancelTargets)
+            {
+                PRosterItemCancel(pCancelItem);
+            }
+        };
+        pMenu.Items.Add(pCancel);
+    }
+
+    private void PRosterItemCancel(LWorkItem pWorkItem)
+    {
+        if (pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning)
+        {
+            pRosterStation.LStationRunner.LRunnerJobCancel(pWorkItem.LWorkId);
+            return;
+        }
+
+        pRosterSchedule.LScheduleItemCancel(pWorkItem);
     }
 
     private IReadOnlyList<string> PRosterPathsRead(LWorkItem pClickedItem)

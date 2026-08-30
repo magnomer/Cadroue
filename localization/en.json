@@ -1057,6 +1057,8 @@
   "Roster.Relay.One": "Send to",
   "Roster.Menu.Restart": "Restart",
   "Roster.Menu.RestartMany": "Restart {0} jobs",
+  "Roster.Menu.Cancel": "Cancel",
+  "Roster.Menu.CancelMany": "Cancel {0} jobs",
   "Roster.Owner.ThisTab": "This tab",
   "Roster.Owner.OtherTab": "Other tab",
   "Roster.Owner.OtherWindow": "Other window",
