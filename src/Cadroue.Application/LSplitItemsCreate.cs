@@ -30,7 +30,7 @@ public static partial class LSplit
         string lSplitSourceStem = Path.GetFileNameWithoutExtension(lSplitSourcePath);
         string lSplitFolder = lSplitOutput.LEncodingFolderRead(lSplitSourcePath);
         DateTimeOffset lSplitStamp = DateTimeOffset.Now;
-        Guid lSplitBatch = lSplitBatchId != Guid.Empty ? lSplitBatchId : Guid.NewGuid();
+        Guid lSplitBatch = lSplitBatchId != Guid.Empty ? lSplitBatchId : LGate.LGateBatchCreate();
 
         var lSplitTakenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lSplitWorkItems = new List<LWorkItem>();

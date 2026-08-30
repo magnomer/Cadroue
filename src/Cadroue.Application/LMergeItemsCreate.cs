@@ -15,7 +15,7 @@ public static partial class LMerge
         IReadOnlyDictionary<string, Guid>? lMergeRelays = null)
     {
         DateTimeOffset lMergeStamp = DateTimeOffset.Now;
-        Guid lMergeLooseBatch = Guid.NewGuid();
+        Guid lMergeLooseBatch = LGate.LGateBatchCreate();
         var lMergeTakenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lMergeItems = new List<LWorkItem>();
 

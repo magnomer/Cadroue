@@ -26,6 +26,13 @@ public interface LScheduleContract
 
     void LScheduleDurationSet(Guid lWorkId, TimeSpan lWorkDuration);
 
+    void LScheduleSourceSet(
+        Guid lWorkId,
+        TimeSpan lWorkDuration,
+        LWorkMedia? lWorkSourceMedia,
+        long? lWorkSourceBytes,
+        IReadOnlyList<long> lWorkMergeBytes);
+
     int LScheduleAdd(
         IReadOnlyList<LWorkItem> lWorkItems,
         Guid lScheduleRelayTarget = default,

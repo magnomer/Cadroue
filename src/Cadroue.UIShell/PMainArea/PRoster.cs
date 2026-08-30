@@ -19,6 +19,7 @@ public sealed partial class PRoster : UserControl
     private readonly TextBlock pRosterDetailTitle;
     private bool pRosterClosed;
     private bool pRosterDetailPending;
+    private readonly System.Windows.Threading.DispatcherTimer pRosterElapsedTimer;
 
     public PRoster(LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -37,7 +38,34 @@ public sealed partial class PRoster : UserControl
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;
 
+        pRosterElapsedTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(1)
+        };
+        pRosterElapsedTimer.Tick += PRosterElapsedTick;
+        pRosterElapsedTimer.Start();
+
         PRosterScheduleHandle(pRosterSchedule);
+    }
+
+    // A running job has no finish time yet, so its elapsed figure is measured against the
+    // clock. This one-second tick refreshes the detail while any job runs so that figure —
+    // and the batch's summed spent/speed — advances in real time between progress notices.
+    private void PRosterElapsedTick(object? pSender, EventArgs pArguments)
+    {
+        if (pRosterClosed || !IsVisible)
+        {
+            return;
+        }
+
+        foreach (LWorkItem pWorkItem in pRosterSchedule.LScheduleRecords)
+        {
+            if (pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning)
+            {
+                PRosterDetailUpdate();
+                return;
+            }
+        }
     }
 
     public bool PRosterBusyCheck() => pRosterStation.LStationBusyCheck();

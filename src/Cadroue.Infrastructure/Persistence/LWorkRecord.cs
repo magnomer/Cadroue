@@ -148,6 +148,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkSourceBytes = LWorkSourceBytes;
         lWorkItem.LWorkMergeBytes = LWorkMergeBytes.ToArray();
         lWorkItem.LWorkSourceMedia = LWorkSourceMedia;
+        lWorkItem.LWorkSourceMeasured = true;
         lWorkItem.LWorkOutputMedia = LWorkOutputMedia;
         lWorkItem.LWorkDossiers = LWorkDossiers.ToArray();
         lWorkItem.LWorkFixPlan = LWorkFixPlan;

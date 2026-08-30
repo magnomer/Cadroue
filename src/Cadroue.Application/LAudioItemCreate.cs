@@ -25,7 +25,7 @@ public static partial class LAudio
         TimeSpan lAudioDuration = lAudioDurationRead(lAudioSourcePath);
         string lAudioFolder = lAudioOutput.LEncodingFolderRead(lAudioSourcePath);
         string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
-        Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : Guid.NewGuid();
+        Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : LGate.LGateBatchCreate();
 
         lInfoLog(
             $"Audio built job at {lWorkPriority} from '{Path.GetFileName(lAudioSourcePath)}' " +

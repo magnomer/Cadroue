@@ -21,7 +21,7 @@ public static partial class LFix
 
         LEncoding lFixOutput = lFixWorkDescription.LFixOutput;
         var lFixWorkItems = new List<LWorkItem>();
-        Guid lFixLooseBatch = Guid.NewGuid();
+        Guid lFixLooseBatch = LGate.LGateBatchCreate();
 
         foreach (string lFixSourcePath in lFixSourcePaths)
         {

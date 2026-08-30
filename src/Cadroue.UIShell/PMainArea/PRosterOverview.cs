@@ -125,6 +125,11 @@ public sealed partial class PRoster
         LEncoding pOutput = pWorkItem.LWorkOutput;
         LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia;
 
+        // A source with no figures yet is still being measured (low-priority, one at a time);
+        // only once measurement has been attempted does a missing figure mean "Unknown".
+        string pSourceUnknown = LLocalization.LLocalizationTextRead(
+            pWorkItem.LWorkSourceMeasured ? "Roster.Value.Unknown" : "Roster.Value.Measuring");
+
         bool pSourceAudio = (pSourceInfo?.LWorkMediaSamplerate ?? 0) > 0;
         bool pOutputAudio = (pOutputInfo?.LWorkMediaSamplerate ?? 0) > 0;
         double? pSourceLoudness = pSourceAudio ? pSourceInfo?.LWorkMediaLoudness : null;
@@ -147,27 +152,31 @@ public sealed partial class PRoster
         PairAdd(
             LLocalization.LLocalizationTextRead("Roster.Section.Source"),
             LLocalization.LLocalizationTextRead("Roster.Section.Output"), true);
-        PairAdd(PRosterMebiFormat(pSourceBytes), PRosterMebiFormat(pOutputBytes), false);
         PairAdd(
-            PRosterDimensionFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
+            pSourceInfo is null ? pSourceUnknown : PRosterMebiFormat(pSourceBytes),
+            PRosterMebiFormat(pOutputBytes), false);
+        PairAdd(
+            pSourceInfo is null ? pSourceUnknown : PRosterDimensionFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
             pOutputInfo is { LWorkMediaVideo: true }
                 ? $"{pOutputInfo.LWorkMediaWidth} x {pOutputInfo.LWorkMediaHeight}"
                 : PRosterDimensionFormat(pOutput.LEncodingVideo.LEncodingSize), false);
         PairAdd(
-            PRosterFpsFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
+            pSourceInfo is null ? pSourceUnknown : PRosterFpsFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
             pOutputInfo is { LWorkMediaVideo: true }
                 ? $"{pOutputInfo.LWorkMediaFramerate:0.###} fps"
                 : PRosterFpsFormat(pOutput.LEncodingVideo.LEncodingFps), false);
         PairAdd(
-            PRosterRateFormat(pSourceInfo?.LWorkKeyframeInterval is { } pSourceInterval && pSourceInterval > 0
-                ? pSourceInterval / 1000d
-                : null),
+            pSourceInfo is null
+                ? pSourceUnknown
+                : PRosterRateFormat(pSourceInfo.LWorkKeyframeInterval is { } pSourceInterval && pSourceInterval > 0
+                    ? pSourceInterval / 1000d
+                    : null),
             PRosterRateFormat(pOutputInfo?.LWorkKeyframeInterval is { } pOutputInterval && pOutputInterval > 0
                 ? pOutputInterval / 1000d
                 : null), false);
         PairAdd(
             pSourceInfo is null
-                ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown")
+                ? pSourceUnknown
                 : PRosterClockFormat(pSourceInfo.LWorkMediaDuration),
             PRosterClockFormat(pOutputInfo?.LWorkMediaDuration ?? pWorkItem.LWorkDuration), false);
         PairAdd(

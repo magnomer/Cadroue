@@ -29,6 +29,7 @@ public sealed partial class LSchedule
         IEnumerable<LWorkRecord> lScheduleOrdered = lScheduleCandidates
             .Where(LScheduleSignetMatch)
             .OrderByDescending(lWorkRecord => lWorkRecord.LWorkPriorityName == nameof(LWorkPriority.LWorkPriorityHigh))
+            .ThenBy(lWorkRecord => Cadroue.Application.LGate.LGateTimeRead(lWorkRecord.LWorkBatchId))
             .ThenBy(lWorkRecord => lWorkRecord.LWorkCreateTime);
 
         foreach (LWorkRecord lWorkRecord in lScheduleOrdered)

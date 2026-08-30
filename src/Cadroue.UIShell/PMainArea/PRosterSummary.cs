@@ -253,31 +253,28 @@ public sealed partial class PRoster
             }
         }
 
+        // Only completed outputs are totalled: a progressing job's growing file must not be
+        // accounted, so the comparison stays source vs finished output and grows as jobs land.
         long pOutputTotal = 0;
-        bool pOutputAny = false, pOutputOk = true;
+        bool pOutputAny = false;
         var pSeenOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkItem pWorkItem in pBatchItems)
         {
-            if (PLineagePathRead(pWorkItem.LWorkOutputPath) is not { } pOutputKey
+            if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
+                || PLineagePathRead(pWorkItem.LWorkOutputPath) is not { } pOutputKey
                 || pConsumed.Contains(pOutputKey)
-                || !pSeenOutputs.Add(pOutputKey))
+                || !pSeenOutputs.Add(pOutputKey)
+                || PRosterBytesRead(pWorkItem) is not { } pOutputWhole)
             {
                 continue;
             }
 
             pOutputAny = true;
-            if (PRosterBytesRead(pWorkItem) is { } pOutputWhole)
-            {
-                pOutputTotal += pOutputWhole;
-            }
-            else
-            {
-                pOutputOk = false;
-            }
+            pOutputTotal += pOutputWhole;
         }
 
         return (
             pSourceAny && pSourceOk ? pSourceTotal : null,
-            pOutputAny && pOutputOk ? pOutputTotal : null);
+            pOutputAny ? pOutputTotal : null);
     }
 }

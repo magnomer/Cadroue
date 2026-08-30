@@ -1032,6 +1032,7 @@
   "Inspector.Crop.HeightMismatch": "{Terms.Ratio} mismatch — crop {0} px more from the {Terms.Top} or {Terms.Bottom}.",
   "Roster.Title.Worklist": "Worklist",
   "Roster.Value.Reading": "Reading...",
+  "Roster.Value.Measuring": "Measuring...",
   "Roster.Value.Unknown": "Unknown",
   "Roster.Value.NotYet": "Not yet",
   "Roster.Value.HorizontalVertical": "{Terms.Horizontal} and {Terms.Vertical}",

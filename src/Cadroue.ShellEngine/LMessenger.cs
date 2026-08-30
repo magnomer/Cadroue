@@ -55,7 +55,7 @@ public static class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Audio queued {lMessengerAdded} job at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        await LMessengerDurationResolve(new[] { lMessengerItem }).ConfigureAwait(false);
+        await LMessengerSourceResolve(new[] { lMessengerItem }).ConfigureAwait(false);
         return lMessengerAdded;
     }
 
@@ -92,6 +92,7 @@ public static class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lMessengerAdded} of {lMessengerItems.Count} job(s) at {lMessengerPriority} " +
             $"from '{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
+        _ = LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 
@@ -135,7 +136,7 @@ public static class LMessenger
         }
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-        await LMessengerDurationResolve(lMessengerItems).ConfigureAwait(false);
+        await LMessengerSourceResolve(lMessengerItems).ConfigureAwait(false);
         return lMessengerAdded;
     }
 
@@ -246,7 +247,7 @@ public static class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Edit queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        _ = LMessengerDurationResolve(lMessengerItems);
+        _ = LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 
@@ -276,7 +277,7 @@ public static class LMessenger
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord($"Merge queued {lMessengerAdded} group(s) at {lMessengerPriority}");
-        _ = LMessengerDurationResolve(lMessengerItems);
+        _ = LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 
@@ -315,58 +316,177 @@ public static class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Convert queued {lMessengerAdded} job(s) at {lMessengerPriority} from {lMessengerSourcePaths.Length} listed file(s)");
 
-        await LMessengerDurationResolve(lMessengerItems).ConfigureAwait(false);
+        await LMessengerSourceResolve(lMessengerItems).ConfigureAwait(false);
         return lMessengerAdded;
     }
 
-    private static async Task LMessengerDurationResolve(IReadOnlyList<LWorkItem> lMessengerItems)
+    // Source figures are measured on a single low-priority background worker, one item at a
+    // time, so measurement never competes with running jobs or bursts in parallel. Each added
+    // item is queued; the worker measures its sources — reusing a cached result whenever the
+    // file is unchanged — then stores the figures on the item, turning its "Measuring" rows
+    // into values. Until an item is reached the worklist shows "Measuring", never "Unknown".
+    private static readonly System.Collections.Concurrent.ConcurrentQueue<LWorkItem> lMessengerMeasureQueue = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, LMessengerSample> lMessengerMeasureCache =
+        new(StringComparer.OrdinalIgnoreCase);
+    private static readonly object lMessengerMeasureGate = new();
+    private static bool lMessengerMeasureBusy;
+
+    private static Task LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)
     {
-        LWorkItem[] lMessengerUnknown = lMessengerItems
-            .Where(lWorkItem => lWorkItem.LWorkEnd <= TimeSpan.Zero)
-            .ToArray();
-        if (lMessengerUnknown.Length == 0)
+        foreach (LWorkItem lMessengerItem in lMessengerItems)
         {
-            return;
+            lMessengerMeasureQueue.Enqueue(lMessengerItem);
         }
 
-        var lMessengerResolved = new TimeSpan[lMessengerUnknown.Length];
-        await Task.Run(() => Parallel.For(
-            0,
-            lMessengerUnknown.Length,
-            new ParallelOptions { MaxDegreeOfParallelism = LMessengerParallelRead() },
-            lMessengerIndex => lMessengerResolved[lMessengerIndex] =
-                LMessengerItemResolve(lMessengerUnknown[lMessengerIndex])))
-            .ConfigureAwait(false);
+        LMessengerMeasureStart();
+        return Task.CompletedTask;
+    }
+
+    private static void LMessengerMeasureStart()
+    {
+        lock (lMessengerMeasureGate)
+        {
+            if (lMessengerMeasureBusy || lMessengerMeasureQueue.IsEmpty)
+            {
+                return;
+            }
+
+            lMessengerMeasureBusy = true;
+        }
+
+        var lMessengerThread = new System.Threading.Thread(LMessengerMeasureRun)
+        {
+            IsBackground = true,
+            Priority = System.Threading.ThreadPriority.Lowest,
+            Name = "Cadroue source measure"
+        };
+        lMessengerThread.Start();
+    }
+
+    private static void LMessengerMeasureRun()
+    {
+        try
+        {
+            while (lMessengerMeasureQueue.TryDequeue(out LWorkItem? lMessengerItem))
+            {
+                LMessengerItemResolve(lMessengerItem);
+            }
+        }
+        finally
+        {
+            lock (lMessengerMeasureGate)
+            {
+                lMessengerMeasureBusy = false;
+            }
+
+            // An item queued between the queue draining and the flag clearing would otherwise
+            // wait for the next add; restart the worker to pick it up.
+            if (!lMessengerMeasureQueue.IsEmpty)
+            {
+                LMessengerMeasureStart();
+            }
+        }
+    }
+
+    private static void LMessengerItemResolve(LWorkItem lMessengerItem)
+    {
+        bool lMessengerMerge = lMessengerItem.LWorkMergeSources.Count > 1;
+        LWorkMedia? lMessengerSourceMedia = null;
+        long? lMessengerSourceBytes = null;
+        var lMessengerMergeBytes = new List<long>();
+        TimeSpan lMessengerMeasured = TimeSpan.Zero;
+
+        foreach (string lMessengerSource in LMessengerSourcesRead(lMessengerItem))
+        {
+            LMessengerSample lMessengerSample = LMessengerSampleRead(lMessengerSource);
+            if (lMessengerMerge)
+            {
+                lMessengerMergeBytes.Add(lMessengerSample.LMessengerBytes ?? 0);
+            }
+            else
+            {
+                lMessengerSourceMedia = lMessengerSample.LMessengerMedia;
+                lMessengerSourceBytes = lMessengerSample.LMessengerBytes;
+            }
+
+            if (lMessengerSample.LMessengerMedia is { } lMessengerMedia)
+            {
+                lMessengerMeasured += lMessengerMedia.LWorkMediaDuration;
+            }
+        }
 
         if (LMessengerScheduleSource?.Invoke() is not { } lMessengerSchedule)
         {
             return;
         }
 
-        LMessengerDefer(() =>
-        {
-            for (int lMessengerIndex = 0; lMessengerIndex < lMessengerUnknown.Length; lMessengerIndex++)
-            {
-                lMessengerSchedule.LScheduleDurationSet(
-                    lMessengerUnknown[lMessengerIndex].LWorkId, lMessengerResolved[lMessengerIndex]);
-            }
-        });
+        TimeSpan lMessengerDuration = lMessengerItem.LWorkEnd > TimeSpan.Zero
+            ? lMessengerItem.LWorkEnd
+            : lMessengerMeasured;
+        LMessengerDefer(() => lMessengerSchedule.LScheduleSourceSet(
+            lMessengerItem.LWorkId,
+            lMessengerDuration,
+            lMessengerMerge ? null : lMessengerSourceMedia,
+            lMessengerMerge ? null : lMessengerSourceBytes,
+            lMessengerMerge ? lMessengerMergeBytes : Array.Empty<long>()));
     }
 
-    private static TimeSpan LMessengerItemResolve(LWorkItem lMessengerItem)
+    // A measured source is reused whenever the file is unchanged (same path, length, and
+    // write time); only a new or changed file is measured afresh.
+    private static LMessengerSample LMessengerSampleRead(string lMessengerSource)
     {
-        if (lMessengerItem.LWorkMergeSources.Count > 1)
+        if (string.IsNullOrWhiteSpace(lMessengerSource))
         {
-            TimeSpan lMessengerTotal = TimeSpan.Zero;
-            foreach (string lMessengerSource in lMessengerItem.LWorkMergeSources)
-            {
-                lMessengerTotal += Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerSource);
-            }
-
-            return lMessengerTotal;
+            return LMessengerSample.LMessengerEmpty;
         }
 
-        return Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerItem.LWorkSourcePath);
+        string? lMessengerKey = LMessengerKeyRead(lMessengerSource);
+        if (lMessengerKey is not null && lMessengerMeasureCache.TryGetValue(lMessengerKey, out LMessengerSample? lMessengerCached))
+        {
+            return lMessengerCached;
+        }
+
+        var lMessengerSample = new LMessengerSample(
+            LScout.LScoutSourceRead(lMessengerSource), LScout.LScoutBytesRead(lMessengerSource));
+        if (lMessengerKey is not null)
+        {
+            lMessengerMeasureCache[lMessengerKey] = lMessengerSample;
+        }
+
+        return lMessengerSample;
+    }
+
+    private static string? LMessengerKeyRead(string lMessengerSource)
+    {
+        try
+        {
+            var lMessengerInfo = new System.IO.FileInfo(lMessengerSource);
+            if (!lMessengerInfo.Exists)
+            {
+                return null;
+            }
+
+            return string.Join(
+                "|",
+                System.IO.Path.GetFullPath(lMessengerSource).ToUpperInvariant(),
+                lMessengerInfo.Length,
+                lMessengerInfo.LastWriteTimeUtc.Ticks);
+        }
+        catch (Exception lMessengerException)
+            when (lMessengerException is System.IO.IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return null;
+        }
+    }
+
+    private static IEnumerable<string> LMessengerSourcesRead(LWorkItem lMessengerItem) =>
+        lMessengerItem.LWorkMergeSources.Count > 1
+            ? lMessengerItem.LWorkMergeSources
+            : new[] { lMessengerItem.LWorkSourcePath };
+
+    private sealed record LMessengerSample(LWorkMedia? LMessengerMedia, long? LMessengerBytes)
+    {
+        public static readonly LMessengerSample LMessengerEmpty = new(null, null);
     }
 
     private static void LMessengerDefer(Action lMessengerAction)
@@ -379,8 +499,6 @@ public static class LMessenger
 
         lMessengerAction();
     }
-
-    private static int LMessengerParallelRead() => Math.Clamp(Environment.ProcessorCount, 1, 8);
 
     public static int LMessengerFunnelDescribe(
         IReadOnlyList<LSceneFunnelRule> lMessengerRules,
@@ -467,7 +585,7 @@ public static class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Edit Add All: {lMessengerSources.Count} listed, {lMessengerAdded} queued from saved plans");
 
-        await LMessengerDurationResolve(lMessengerItems).ConfigureAwait(false);
+        await LMessengerSourceResolve(lMessengerItems).ConfigureAwait(false);
         return lMessengerAdded;
     }
 
@@ -513,7 +631,7 @@ public static class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Fix queued {lMessengerAdded} job(s) at {lMessengerPriority} from {lMessengerSourcePaths.Length} listed file(s)");
 
-        await LMessengerDurationResolve(lMessengerItems).ConfigureAwait(false);
+        await LMessengerSourceResolve(lMessengerItems).ConfigureAwait(false);
         return lMessengerAdded;
     }
 }

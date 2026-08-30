@@ -21,7 +21,7 @@ public static partial class LConvert
 
         LEncoding lConvertOutput = lConvertWorkDescription.LConvertOutput;
         var lConvertWorkItems = new List<LWorkItem>();
-        Guid lConvertLooseBatch = Guid.NewGuid();
+        Guid lConvertLooseBatch = LGate.LGateBatchCreate();
 
         foreach (string lConvertSourcePath in lConvertSourcePaths)
         {

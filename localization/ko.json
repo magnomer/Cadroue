@@ -1032,6 +1032,7 @@
   "Inspector.Crop.HeightMismatch": "{Terms.Ratio} 불일치 — {Terms.Top} 또는 {Terms.Bottom}에서 {0}px 더 자르십시오.",
   "Roster.Title.Worklist": "작업 목록",
   "Roster.Value.Reading": "읽는 중...",
+  "Roster.Value.Measuring": "측정 중...",
   "Roster.Value.Unknown": "알 수 없음",
   "Roster.Value.NotYet": "아직 없음",
   "Roster.Value.HorizontalVertical": "{Terms.Horizontal} 및 {Terms.Vertical}",

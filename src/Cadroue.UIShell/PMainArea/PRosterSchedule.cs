@@ -72,6 +72,8 @@ public sealed partial class PRoster
         }
 
         pRosterClosed = true;
+        pRosterElapsedTimer.Stop();
+        pRosterElapsedTimer.Tick -= PRosterElapsedTick;
         pRosterSchedule.LScheduleChange -= PRosterScheduleHandle;
         pRosterSchedule.LScheduleItemChange -= PRosterItemHandle;
         IsVisibleChanged -= PRosterVisibleHandle;

@@ -146,6 +146,32 @@ internal static class LScout
         return lScoutWorkItem.LWorkSourceBytes ?? LScoutBytesRead(lScoutWorkItem.LWorkSourcePath);
     }
 
+    // Every figure the worklist shows for a source is measured here once, when the file is
+    // added to the worklist, and stored on the item; the job run never re-measures it and a
+    // deleted source still shows its recorded figures. Enriches the base probe with the
+    // keyframe interval (video) and integrated loudness (audio) the probe does not carry.
+    internal static LWorkMedia? LScoutSourceRead(string lScoutSourcePath, CancellationToken lScoutToken = default)
+    {
+        if (LScoutMediaRead(lScoutSourcePath, lScoutToken) is not { } lScoutMedia)
+        {
+            return null;
+        }
+
+        if (lScoutMedia.LWorkMediaVideo
+            && LScoutIntervalRead(lScoutSourcePath, lScoutMedia.LWorkMediaDuration, lScoutToken) is { } lScoutInterval)
+        {
+            lScoutMedia = lScoutMedia with { LWorkKeyframeInterval = lScoutInterval };
+        }
+
+        if (lScoutMedia.LWorkMediaSamplerate > 0
+            && LScoutLoudnessRead(lScoutSourcePath, lScoutToken) is { } lScoutLoudness)
+        {
+            lScoutMedia = lScoutMedia with { LWorkMediaLoudness = lScoutLoudness };
+        }
+
+        return lScoutMedia;
+    }
+
     internal static double? LScoutLoudnessRead(string lScoutMediaPath, CancellationToken lScoutToken = default)
     {
         if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath))

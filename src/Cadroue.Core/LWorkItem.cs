@@ -100,6 +100,11 @@ public sealed class LWorkItem
 
     public LWorkMedia? LWorkSourceMedia { get; set; }
 
+    // False until the low-priority source measurement has been attempted: the worklist shows
+    // "Measuring" rather than "Unknown" while it is still false, so a not-yet-measured source
+    // is never mistaken for one that could not be measured.
+    public bool LWorkSourceMeasured { get; set; }
+
     public LWorkMedia? LWorkOutputMedia { get; set; }
 
     public int LWorkOwnerProcess { get; set; }

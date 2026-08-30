@@ -53,7 +53,7 @@ public static partial class LEdit
             lEditCrop,
             lEditWorkDescription.LEditVideo,
             lEditWorkDescription.LEditOutput,
-            lEditBatchId == Guid.Empty ? Guid.NewGuid() : lEditBatchId);
+            lEditBatchId == Guid.Empty ? LGate.LGateBatchCreate() : lEditBatchId);
 
         lEditWorkItem.LWorkTab = lEditTab;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;

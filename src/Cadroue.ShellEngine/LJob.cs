@@ -184,14 +184,16 @@ internal sealed partial class LJob
             }
 
             long? pOutputBytes = LScout.LScoutBytesRead(lJobItem.LWorkOutputPath);
-            long? pSourceBytes = LScout.LScoutInputRead(lJobItem, lJobToken);
-            IReadOnlyList<long> pMergeBytes = LJobMergeRead();
-            LWorkMedia? pSourceMedia = LJobMediaResolve(
-                lJobItem.LWorkSourceMedia ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken),
-                lJobItem.LWorkSourcePath);
-            LWorkMedia? pOutputMedia = LJobMediaResolve(
+            long? pSourceBytes = lJobItem.LWorkSourceBytes ?? LScout.LScoutInputRead(lJobItem, lJobToken);
+            IReadOnlyList<long> pMergeBytes = lJobItem.LWorkMergeBytes.Count > 0
+                ? lJobItem.LWorkMergeBytes
+                : LJobMergeRead();
+            LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia
+                ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+            LWorkMedia? pOutputMedia = LJobOutputResolve(
                 LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken),
-                lJobItem.LWorkOutputPath);
+                lJobItem.LWorkOutputPath,
+                pSourceMedia);
             lJobOwner.LRunnerDispatch(() =>
             {
                 lJobItem.LWorkFinishTime = DateTimeOffset.Now;
@@ -257,13 +259,7 @@ internal sealed partial class LJob
         }
     }
 
-    // The worklist never re-measures a source or output when a row is selected: every
-    // figure it shows is measured here, once, while the job is in hand, and stored on the
-    // item so the record survives the file being deleted. This enriches the probed media
-    // snapshot with the keyframe interval (video) and integrated loudness (audio) that the
-    // base probe does not carry.
-    // Per-input byte sizes for a merge, measured once here so the worklist's batch summary
-    // can total sources without touching disk when a row is selected.
+    // Fallback per-input byte sizes for a merge whose sources were not measured at add time.
     private IReadOnlyList<long> LJobMergeRead()
     {
         if (lJobItem.LWorkMergeSources.Count <= 1)
@@ -280,26 +276,35 @@ internal sealed partial class LJob
         return pMergeBytes;
     }
 
-    private LWorkMedia? LJobMediaResolve(LWorkMedia? pMedia, string pPath)
+    // Output figures are measured once, when the job finishes, and stored on the item. The
+    // keyframe interval is scanned for video output; the integrated loudness — a full-file
+    // decode — is measured only when the audio was re-encoded, and otherwise inherited from
+    // the source, which a stream copy leaves unchanged. The source is never measured here:
+    // its figures come from the record made when the file was added to the worklist.
+    private LWorkMedia? LJobOutputResolve(LWorkMedia? pOutputMedia, string pOutputPath, LWorkMedia? pSourceMedia)
     {
-        if (pMedia is null)
+        if (pOutputMedia is null)
         {
             return null;
         }
 
-        LWorkMedia pMeasured = pMedia;
+        LWorkMedia pMeasured = pOutputMedia;
         if (pMeasured.LWorkMediaVideo
             && pMeasured.LWorkKeyframeInterval is null
-            && LScout.LScoutIntervalRead(pPath, pMeasured.LWorkMediaDuration, lJobToken) is { } pInterval)
+            && LScout.LScoutIntervalRead(pOutputPath, pMeasured.LWorkMediaDuration, lJobToken) is { } pInterval)
         {
             pMeasured = pMeasured with { LWorkKeyframeInterval = pInterval };
         }
 
-        if (pMeasured.LWorkMediaSamplerate > 0
-            && pMeasured.LWorkMediaLoudness is null
-            && LScout.LScoutLoudnessRead(pPath, lJobToken) is { } pLoudness)
+        if (pMeasured.LWorkMediaSamplerate > 0 && pMeasured.LWorkMediaLoudness is null)
         {
-            pMeasured = pMeasured with { LWorkMediaLoudness = pLoudness };
+            double? pLoudness = lJobItem.LWorkAudio.LWorkAudioActive
+                ? LScout.LScoutLoudnessRead(pOutputPath, lJobToken)
+                : pSourceMedia?.LWorkMediaLoudness;
+            if (pLoudness is { } pValue)
+            {
+                pMeasured = pMeasured with { LWorkMediaLoudness = pValue };
+            }
         }
 
         return pMeasured;
