@@ -4,6 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSFader;
+using static Cadroue.UIShell.PSShared.PSEntry;
+using static Cadroue.UIShell.PSShared.PSNotice;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -25,19 +28,19 @@ internal sealed partial class PSEncoder
     private void PSVideoResolutionBuild(Panel pHost)
     {
         psVideoResolutionValue = new TextBlock { Foreground = PSFieldText, VerticalAlignment = VerticalAlignment.Center };
-        psVideoResolutionSlider = PSFieldSliderCreate(0, psVideoSizeTiers.Length - 1, 0);
+        psVideoResolutionSlider = PSFaderCreate(0, psVideoSizeTiers.Length - 1, 0);
         psVideoWidthBox = PSEntryBuild(string.Empty, 110);
         psVideoHeightBox = PSEntryBuild(string.Empty, 110);
-        psVideoWidthSlider = PSFieldSliderCreate(0, psVideoDimensionMax, 0);
-        psVideoHeightSlider = PSFieldSliderCreate(0, psVideoDimensionMax, 0);
+        psVideoWidthSlider = PSFaderCreate(0, psVideoDimensionMax, 0);
+        psVideoHeightSlider = PSFaderCreate(0, psVideoDimensionMax, 0);
         psVideoWidthLabel = PSFieldLabelBuild(string.Empty);
         psVideoHeightLabel = PSFieldLabelBuild(string.Empty);
 
         pHost.Children.Add(PSFieldBuild(
             LLocalization.LLocalizationTextRead("Encoder.Video.Field.Size"),
-            PSFieldRowBuild(psVideoResolutionSlider, psVideoResolutionValue)));
-        pHost.Children.Add(PSVideoDimensionBuild(psVideoWidthLabel, PSFieldRowBuild(psVideoWidthSlider, psVideoWidthBox)));
-        pHost.Children.Add(PSVideoDimensionBuild(psVideoHeightLabel, PSFieldRowBuild(psVideoHeightSlider, psVideoHeightBox)));
+            PSFaderRowBuild(psVideoResolutionSlider, psVideoResolutionValue)));
+        pHost.Children.Add(PSVideoDimensionBuild(psVideoWidthLabel, PSFaderRowBuild(psVideoWidthSlider, psVideoWidthBox)));
+        pHost.Children.Add(PSVideoDimensionBuild(psVideoHeightLabel, PSFaderRowBuild(psVideoHeightSlider, psVideoHeightBox)));
         psVideoSizeNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Notice.SizeSource"));
         pHost.Children.Add(psVideoSizeNotice);
 

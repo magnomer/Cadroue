@@ -11,6 +11,9 @@ using System.Windows.Media;
 using Cadroue.Application;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSNotice;
+using static Cadroue.UIShell.PSShared.PSCombo;
+using static Cadroue.UIShell.PSShared.PSEntry;
 
 namespace Cadroue.UIShell.PPanels;
 

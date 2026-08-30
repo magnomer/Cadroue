@@ -4,6 +4,7 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSInline;
 
 namespace Cadroue.UIShell;
 

@@ -10,6 +10,7 @@ using Cadroue.UIShell.PSShared;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSFooter;
 
 namespace Cadroue.UIShell.PPanels;
 

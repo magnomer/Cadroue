@@ -6,6 +6,7 @@ using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSFooter;
 
 namespace Cadroue.UIShell;
 

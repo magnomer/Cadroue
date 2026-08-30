@@ -8,6 +8,8 @@ using Cadroue.Infrastructure;
 using Cadroue.UIShell.PSShared;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSPlate;
+using static Cadroue.UIShell.PSShared.PSInline;
 
 namespace Cadroue.UIShell;
 

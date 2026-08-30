@@ -8,6 +8,9 @@ using Cadroue.UIShell.PMainWindow;
 using Cadroue.Application;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSCombo;
+using static Cadroue.UIShell.PSShared.PSInline;
+using static Cadroue.UIShell.PSShared.PSPlate;
 
 namespace Cadroue.UIShell.PPanels;
 

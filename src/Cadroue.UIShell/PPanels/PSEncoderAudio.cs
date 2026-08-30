@@ -4,6 +4,12 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSCombo;
+using static Cadroue.UIShell.PSShared.PSInline;
+using static Cadroue.UIShell.PSShared.PSPlate;
+using static Cadroue.UIShell.PSShared.PSEntry;
+using static Cadroue.UIShell.PSShared.PSNotice;
+using static Cadroue.UIShell.PSShared.PSFader;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -353,7 +359,7 @@ internal sealed partial class PSEncoder
 
         psAudioSampleReadout = PSEntryBuild(string.Empty, 96);
         UIElement pNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
-        UIElement pRow = PSFieldDetentBuild(
+        UIElement pRow = PSFaderDetentBuild(
             pTicks, pDiscrete, pMaximum,
             LLocalization.LLocalizationTextRead("Encoder.Sample.Source"),
             pStored, psAudioSampleReadout, pNotice);
@@ -407,7 +413,7 @@ internal sealed partial class PSEncoder
         psAudioChannelSlider = new Slider();
         psAudioChannelReadout = PSEntryBuild(string.Empty, 96);
         UIElement pNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.ChannelSource"));
-        UIElement pRow = PSFieldLayoutBuild(psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout, pNotice);
+        UIElement pRow = PSFaderLayoutBuild(psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout, pNotice);
 
         psAudioChannelPanel.Children.Clear();
         psAudioChannelPanel.Children.Add(PSFieldBuild(
@@ -468,8 +474,8 @@ internal sealed partial class PSEncoder
         if (pQuality.CapabilityQualityMinimum is double pMinimum && pQuality.CapabilityQualityMaximum is double pMaximum)
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
-                ? PSFieldBitrateBuild(pMinimum, pMaximum, pText, psAudioQualityBox)
-                : PSFieldSliderBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psAudioQualityBox, pQuality.CapabilityQualityHigherBetter);
+                ? PSFaderBitrateBuild(pMinimum, pMaximum, pText, psAudioQualityBox)
+                : PSFaderQualityBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psAudioQualityBox, pQuality.CapabilityQualityHigherBetter);
             psAudioRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, pSliderRow));
         }
         else

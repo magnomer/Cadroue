@@ -5,6 +5,7 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSCombo;
 
 namespace Cadroue.UIShell.PPanels;
 

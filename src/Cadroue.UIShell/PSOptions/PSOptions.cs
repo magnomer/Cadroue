@@ -9,6 +9,11 @@ using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSCombo;
+using static Cadroue.UIShell.PSShared.PSEntry;
+using static Cadroue.UIShell.PSShared.PSFooter;
+using static Cadroue.UIShell.PSShared.PSPlate;
+using static Cadroue.UIShell.PSShared.PSNotice;
 
 namespace Cadroue.UIShell;
 

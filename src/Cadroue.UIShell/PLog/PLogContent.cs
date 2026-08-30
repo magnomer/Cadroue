@@ -53,7 +53,7 @@ public sealed partial class PLogWindow
     {
         var pLogFileRow = new DockPanel { Margin = new Thickness(18, 14, 18, 0), LastChildFill = false };
 
-        Button pLogOpenButton = PSField.PSInlineIconBuild(
+        Button pLogOpenButton = PSInline.PSInlineIconBuild(
             PLogOpenIcon,
             LLocalization.LLocalizationTextRead("Log.Button.Open"),
             new Thickness(0, 0, 8, 0));

@@ -5,6 +5,12 @@ using Cadroue.Core;
 using Cadroue.UIShell.PMainWindow;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSCombo;
+using static Cadroue.UIShell.PSShared.PSNotice;
+using static Cadroue.UIShell.PSShared.PSEntry;
+using static Cadroue.UIShell.PSShared.PSFader;
+using static Cadroue.UIShell.PSShared.PSInline;
+using static Cadroue.UIShell.PSShared.PSPlate;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -153,8 +159,8 @@ internal sealed partial class PSEncoder
         if (pQuality.CapabilityQualityMinimum is double pMinimum && pQuality.CapabilityQualityMaximum is double pMaximum)
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
-                ? PSFieldBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
-                : PSFieldSliderBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psVideoQualityBox, pQuality.CapabilityQualityHigherBetter);
+                ? PSFaderBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
+                : PSFaderQualityBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psVideoQualityBox, pQuality.CapabilityQualityHigherBetter);
             psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, pSliderRow));
         }
         else
@@ -196,7 +202,7 @@ internal sealed partial class PSEncoder
             }
         }
 
-        Slider pSlider = PSFieldSliderCreate(0, pLast, pLast - pIndex);
+        Slider pSlider = PSFaderCreate(0, pLast, pLast - pIndex);
         psVideoSpeedSlider = pSlider;
 
         var pText = new TextBlock
@@ -211,7 +217,7 @@ internal sealed partial class PSEncoder
             pText.Text = pChoices[pAt].CapabilityChoiceLabel;
         };
 
-        psVideoRowsPanel.Children.Add(PSFieldBuild(pSpeed.CapabilitySpeedLabel, PSFieldRowBuild(pSlider, pText)));
+        psVideoRowsPanel.Children.Add(PSFieldBuild(pSpeed.CapabilitySpeedLabel, PSFaderRowBuild(pSlider, pText)));
     }
 
     private string PSVideoSpeedRead()
@@ -295,7 +301,7 @@ internal sealed partial class PSEncoder
             psVideoFpsNotice.Visibility = Visibility.Collapsed;
         }
 
-        Slider pSlider = PSFieldSliderCreate(0, psVideoFpsScale.Length - 1, PSVideoFpsResolve(psVideoFpsCustom.Text));
+        Slider pSlider = PSFaderCreate(0, psVideoFpsScale.Length - 1, PSVideoFpsResolve(psVideoFpsCustom.Text));
 
         bool pSync = false;
         pSlider.ValueChanged += (_, _) =>
@@ -336,7 +342,7 @@ internal sealed partial class PSEncoder
         };
 
         pHost.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"),
-            PSFieldRowBuild(pSlider, psVideoFpsCustom)));
+            PSFaderRowBuild(pSlider, psVideoFpsCustom)));
         pHost.Children.Add(psVideoFpsNotice);
     }
 

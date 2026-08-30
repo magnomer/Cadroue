@@ -8,6 +8,8 @@ using Cadroue.UIShell.PFlow;
 using Cadroue.UIShell.PMainWindow;
 
 using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSShared.PSPlate;
+using static Cadroue.UIShell.PSShared.PSNotice;
 
 namespace Cadroue.UIShell;
 
