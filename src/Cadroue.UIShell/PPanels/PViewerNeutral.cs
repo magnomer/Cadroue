@@ -17,7 +17,7 @@ public sealed partial class PViewer
     {
         if (pNeutralArmed)
         {
-            if (pViewerTool == PViewerTool.Neutral)
+            if (pViewerTool == PViewerTool.PViewerToolNeutral)
             {
                 // Already armed: switch the sampler in place without re-pausing.
                 pViewerNeutralTarget = pNeutralTarget;
@@ -32,7 +32,7 @@ public sealed partial class PViewer
                 PViewerPause();
             }
 
-            pViewerTool = PViewerTool.Neutral;
+            pViewerTool = PViewerTool.PViewerToolNeutral;
             pViewerOverlay.Cursor = Cursors.Cross;
             pViewerCropBox.Cursor = null;
             pViewerOverlay.Focus();
@@ -41,7 +41,7 @@ public sealed partial class PViewer
             return;
         }
 
-        if (pViewerTool != PViewerTool.Neutral)
+        if (pViewerTool != PViewerTool.PViewerToolNeutral)
         {
             return;
         }
@@ -54,7 +54,7 @@ public sealed partial class PViewer
 
     private void PViewerNeutralReset()
     {
-        pViewerTool = PViewerTool.None;
+        pViewerTool = PViewerTool.PViewerToolNone;
         pViewerOverlay.Cursor = null;
         if (pViewerOverlay.IsMouseCaptured)
         {
@@ -74,7 +74,7 @@ public sealed partial class PViewer
 
     private void PViewerKeyHandle(object sender, KeyEventArgs keyEvent)
     {
-        if (pViewerTool == PViewerTool.Neutral && keyEvent.Key == Key.Escape)
+        if (pViewerTool == PViewerTool.PViewerToolNeutral && keyEvent.Key == Key.Escape)
         {
             PViewerNeutralSet(false, pViewerNeutralTarget);
             keyEvent.Handled = true;

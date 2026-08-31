@@ -191,8 +191,8 @@ public sealed partial class PGroup
         pGroupRecords.Clear();
         foreach (LSeriesGroup pGroupSeries in pGroups)
         {
-            var pRecord = new PGroupRecord { PGroupRecordName = pGroupSeries.Name };
-            pRecord.PGroupRecordPaths.AddRange(pGroupSeries.Paths);
+            var pRecord = new PGroupRecord { PGroupRecordName = pGroupSeries.LSeriesName };
+            pRecord.PGroupRecordPaths.AddRange(pGroupSeries.LSeriesPaths);
             pGroupRecords.Add(pRecord);
         }
 

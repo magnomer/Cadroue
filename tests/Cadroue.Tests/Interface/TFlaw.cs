@@ -5,20 +5,20 @@ namespace Cadroue.Tests;
 
 internal static class TFlaw
 {
-    internal static IReadOnlyList<string> KindsResolve(
+    internal static IReadOnlyList<string> TFlawKindsResolve(
         IReadOnlyList<string> present,
         IReadOnlyList<string> requested)
     {
-        List<LDossier> dossiers = present.Select(KindParse).Select(DossierCreate).ToList();
-        LFlawKind[] kinds = requested.Select(KindParse).ToArray();
+        List<LDossier> dossiers = present.Select(TFlawKindParse).Select(TDossierCreate).ToList();
+        LFlawKind[] kinds = requested.Select(TFlawKindParse).ToArray();
         return LFlawScan.LFlawKindsResolve(dossiers, kinds)
             .Select(dossier => dossier.LDossierKind.ToString())
             .ToList();
     }
 
-    private static LFlawKind KindParse(string token) => Enum.Parse<LFlawKind>(token);
+    private static LFlawKind TFlawKindParse(string token) => Enum.Parse<LFlawKind>(token);
 
-    private static LDossier DossierCreate(LFlawKind kind) => new(
+    private static LDossier TDossierCreate(LFlawKind kind) => new(
         string.Empty,
         0,
         string.Empty,

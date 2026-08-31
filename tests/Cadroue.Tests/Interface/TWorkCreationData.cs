@@ -2,9 +2,9 @@ using Cadroue.Core;
 
 namespace Cadroue.Tests;
 
-internal static class WorkCreationOutput
+internal static class TWorkOutput
 {
-    internal static LEncoding Create(
+    internal static LEncoding TWorkOutputCreate(
         string pattern = "{OriginalName}",
         string extension = "mp4",
         string? folder = null) => new(
@@ -24,7 +24,7 @@ internal static class WorkCreationOutput
         "Rename",
         "_2");
 
-    internal static LEncoding SplitCreate(string extension = "mp4", string? folder = null) => new(
+    internal static LEncoding TWorkSplitCreate(string extension = "mp4", string? folder = null) => new(
         "{SectionName}",
         extension,
         extension,

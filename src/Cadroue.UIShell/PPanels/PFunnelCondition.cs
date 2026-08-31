@@ -7,7 +7,7 @@ using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
-internal enum PFunnelKind { Contains, Start, End, Extension }
+internal enum PFunnelKind { PFunnelKindContains, PFunnelKindPrefix, PFunnelKindEnd, PFunnelKindExtension }
 
 internal sealed class PFunnelCondition : Grid
 {

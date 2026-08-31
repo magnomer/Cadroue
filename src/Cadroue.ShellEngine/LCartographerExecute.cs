@@ -95,7 +95,7 @@ public static partial class LCartographer
             lCartographerLayout.LSceneGroupStrict,
             lCartographerLayout.LSceneGroupMode);
         LWorkGroup[] lCartographerGroups = lCartographerGroupOwner.LGroupResolve(lCartographerPaths)
-            .Select(lCartographerGroup => new LWorkGroup(lCartographerGroup.Name, lCartographerGroup.Paths))
+            .Select(lCartographerGroup => new LWorkGroup(lCartographerGroup.LSeriesName, lCartographerGroup.LSeriesPaths))
             .Where(lCartographerGroup => lCartographerGroup.LWorkGroupPaths.Count > 0)
             .ToArray();
         if (lCartographerGroups.Length == 0)

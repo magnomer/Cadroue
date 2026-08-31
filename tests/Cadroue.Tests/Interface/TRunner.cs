@@ -9,30 +9,30 @@ namespace Cadroue.Tests;
 
 internal enum TRunnerWorkState
 {
-    Pending,
-    Running,
-    Done,
-    Failed,
-    Cancelled
+    TRunnerPending,
+    TRunnerRunning,
+    TRunnerDone,
+    TRunnerFailed,
+    TRunnerCancelled
 }
 
 internal sealed record TRunnerWork(
-    Guid Id,
-    string Name,
-    TRunnerWorkState State,
-    double Progress,
-    int Attempts,
-    bool OutputExists,
-    string Message);
+    Guid TRunnerId,
+    string TRunnerName,
+    TRunnerWorkState TRunnerState,
+    double TRunnerProgress,
+    int TRunnerAttempts,
+    bool TRunnerOutputFlag,
+    string TRunnerMessage);
 
 internal sealed class TRunner : IDisposable
 {
-    private const int WaitMilliseconds = 8_000;
+    private const int TRunnerWaitMilliseconds = 8_000;
     private readonly object tRunnerScheduleGate = new();
     private readonly string tRunnerRoot;
     private readonly string tRunnerControlRoot;
     private readonly LSchedule tRunnerSchedule;
-    private readonly List<LRunner> tRunners = new();
+    private readonly List<LRunner> tRunnerList = new();
     private readonly Dictionary<Guid, string> tRunnerNames = new();
     private readonly HashSet<string> tRunnerOutputPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentQueue<string> tRunnerDiagnostics = new();
@@ -46,7 +46,7 @@ internal sealed class TRunner : IDisposable
         Directory.CreateDirectory(tRunnerControlRoot);
 
         string scriptPath = Path.Combine(tRunnerControlRoot, "runner.ps1");
-        File.WriteAllText(scriptPath, RunnerScript);
+        File.WriteAllText(scriptPath, TRunnerScript);
 
         LDepotIndex.LDepotIndexRelease();
         LDepot.LDepotRootSet(tRunnerRoot);
@@ -54,7 +54,7 @@ internal sealed class TRunner : IDisposable
         tRunnerSchedule.LScheduleLoad();
         for (int worker = 0; worker < Math.Max(1, workerCount); worker++)
         {
-            tRunners.Add(new LRunner(tRunnerSchedule, action =>
+            tRunnerList.Add(new LRunner(tRunnerSchedule, action =>
             {
                 lock (tRunnerScheduleGate)
                 {
@@ -81,7 +81,7 @@ internal sealed class TRunner : IDisposable
             tRunnerDiagnostics.Enqueue(detail is null ? summary : summary + ": " + detail);
     }
 
-    internal Guid WorkAdd(string name, int steps = 40, int delayMilliseconds = 50)
+    internal Guid TWorkAdd(string name, int steps = 40, int delayMilliseconds = 50)
     {
         string uniqueName = $"{++tRunnerSequence:D2}-{name}.mp4";
         string sourcePath = Path.Combine(tRunnerRoot, uniqueName + ".source");
@@ -100,7 +100,7 @@ internal sealed class TRunner : IDisposable
             TimeSpan.FromSeconds(10),
             uniqueName,
             outputPath,
-            WorkCreationOutput.Create(),
+            TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: DateTimeOffset.UnixEpoch.AddTicks(tRunnerSequence))
         {
             LWorkSourceBytes = new FileInfo(sourcePath).Length,
@@ -120,19 +120,19 @@ internal sealed class TRunner : IDisposable
         return workItem.LWorkId;
     }
 
-    internal void Start() => tRunners.ForEach(runner => runner.LRunnerStart());
+    internal void TRunnerStart() => tRunnerList.ForEach(runner => runner.LRunnerStart());
 
-    internal void Pause() => tRunners.ForEach(runner => runner.LRunnerPause());
+    internal void TRunnerPause() => tRunnerList.ForEach(runner => runner.LRunnerPause());
 
-    internal void Stop() => tRunners.ForEach(runner => runner.LRunnerCancel());
+    internal void TRunnerStop() => tRunnerList.ForEach(runner => runner.LRunnerCancel());
 
-    internal void CancelWork(Guid workId) => tRunners.ForEach(runner => runner.LRunnerJobCancel(workId));
+    internal void TRunnerWorkCancel(Guid workId) => tRunnerList.ForEach(runner => runner.LRunnerJobCancel(workId));
 
-    internal bool Suspended => tRunners.All(runner => runner.LRunnerSuspended);
+    internal bool TRunnerSuspended => tRunnerList.All(runner => runner.LRunnerSuspended);
 
-    internal bool Running => tRunners.Any(runner => runner.LRunnerRunning);
+    internal bool TRunnerRunning => tRunnerList.Any(runner => runner.LRunnerRunning);
 
-    internal bool Remove(Guid workId)
+    internal bool TRunnerRemove(Guid workId)
     {
         lock (tRunnerScheduleGate)
         {
@@ -140,16 +140,16 @@ internal sealed class TRunner : IDisposable
         }
     }
 
-    internal TRunnerWork Read(Guid workId)
+    internal TRunnerWork TRunnerRead(Guid workId)
     {
         lock (tRunnerScheduleGate)
         {
             LWorkItem item = tRunnerSchedule.LScheduleRecords.Single(item => item.LWorkId == workId);
-            return Snapshot(item);
+            return TRunnerSnapshotCreate(item);
         }
     }
 
-    internal int ExecutionCount(Guid workId)
+    internal int TRunnerExecutionRead(Guid workId)
     {
         string name = tRunnerNames[workId];
         string path = Path.Combine(tRunnerControlRoot, name + ".executions");
@@ -173,24 +173,24 @@ internal sealed class TRunner : IDisposable
         return File.ReadAllLines(path).Length;
     }
 
-    internal TRunnerWork WaitForState(Guid workId, TRunnerWorkState state, int milliseconds = WaitMilliseconds) =>
-        WaitFor(workId, item => item.State == state, $"state {state}", milliseconds);
+    internal TRunnerWork TRunnerStateRead(Guid workId, TRunnerWorkState state, int milliseconds = TRunnerWaitMilliseconds) =>
+        TRunnerWaitRead(workId, item => item.TRunnerState == state, $"state {state}", milliseconds);
 
-    internal TRunnerWork WaitForProgress(Guid workId, double minimum, int milliseconds = WaitMilliseconds) =>
-        WaitFor(workId, item => item.Progress >= minimum, $"progress >= {minimum:0.###}", milliseconds);
+    internal TRunnerWork TRunnerProgressRead(Guid workId, double minimum, int milliseconds = TRunnerWaitMilliseconds) =>
+        TRunnerWaitRead(workId, item => item.TRunnerProgress >= minimum, $"progress >= {minimum:0.###}", milliseconds);
 
-    internal TRunnerWork WaitForOutput(Guid workId, int milliseconds = WaitMilliseconds) =>
-        WaitFor(workId, item => item.OutputExists, "a spawned partial output", milliseconds);
+    internal TRunnerWork TRunnerOutputRead(Guid workId, int milliseconds = TRunnerWaitMilliseconds) =>
+        TRunnerWaitRead(workId, item => item.TRunnerOutputFlag, "a spawned partial output", milliseconds);
 
-    internal TRunnerWork WaitForOutputRemoved(Guid workId, int milliseconds = WaitMilliseconds) =>
-        WaitFor(workId, item => !item.OutputExists, "partial output cleanup", milliseconds);
+    internal TRunnerWork TRunnerRemovedRead(Guid workId, int milliseconds = TRunnerWaitMilliseconds) =>
+        TRunnerWaitRead(workId, item => !item.TRunnerOutputFlag, "partial output cleanup", milliseconds);
 
-    internal void WaitForExecutionCount(Guid workId, int count, int milliseconds = WaitMilliseconds)
+    internal void TRunnerCountRead(Guid workId, int count, int milliseconds = TRunnerWaitMilliseconds)
     {
         var clock = Stopwatch.StartNew();
         while (clock.ElapsedMilliseconds < milliseconds)
         {
-            if (ExecutionCount(workId) >= count)
+            if (TRunnerExecutionRead(workId) >= count)
             {
                 return;
             }
@@ -200,18 +200,18 @@ internal sealed class TRunner : IDisposable
 
         throw new TimeoutException(
             $"Runner did not execute work {workId} {count} time(s) within {milliseconds} ms. " +
-            $"Observed {ExecutionCount(workId)} execution(s).");
+            $"Observed {TRunnerExecutionRead(workId)} execution(s).");
     }
 
-    internal double WaitForPausedProgress(Guid workId, int milliseconds = WaitMilliseconds)
+    internal double TRunnerPausedRead(Guid workId, int milliseconds = TRunnerWaitMilliseconds)
     {
         var clock = Stopwatch.StartNew();
-        double previous = Read(workId).Progress;
+        double previous = TRunnerRead(workId).TRunnerProgress;
         long stableSince = clock.ElapsedMilliseconds;
         while (clock.ElapsedMilliseconds < milliseconds)
         {
             Thread.Sleep(25);
-            double current = Read(workId).Progress;
+            double current = TRunnerRead(workId).TRunnerProgress;
             if (Math.Abs(current - previous) > 0.000001)
             {
                 previous = current;
@@ -235,7 +235,7 @@ internal sealed class TRunner : IDisposable
         }
 
         tRunnerDisposed = true;
-        foreach (LRunner runner in tRunners)
+        foreach (LRunner runner in tRunnerList)
         {
             runner.LRunnerCancel();
             runner.LRunnerDispose();
@@ -260,17 +260,17 @@ internal sealed class TRunner : IDisposable
         }
     }
 
-    private TRunnerWork WaitFor(
+    private TRunnerWork TRunnerWaitRead(
         Guid workId,
         Func<TRunnerWork, bool> predicate,
         string expectation,
         int milliseconds)
     {
         var clock = Stopwatch.StartNew();
-        TRunnerWork current = Read(workId);
+        TRunnerWork current = TRunnerRead(workId);
         while (clock.ElapsedMilliseconds < milliseconds)
         {
-            current = Read(workId);
+            current = TRunnerRead(workId);
             if (predicate(current))
             {
                 return current;
@@ -281,11 +281,11 @@ internal sealed class TRunner : IDisposable
 
         throw new TimeoutException(
             $"Runner work {workId} did not reach {expectation} within {milliseconds} ms. " +
-            $"Observed state {current.State}, progress {current.Progress:0.###}, attempts {current.Attempts}, " +
-            $"message '{current.Message}'. Helper diagnostic: {HelperDiagnosticRead()}");
+            $"Observed state {current.TRunnerState}, progress {current.TRunnerProgress:0.###}, attempts {current.TRunnerAttempts}, " +
+            $"message '{current.TRunnerMessage}'. Helper diagnostic: {TRunnerDiagnosticRead()}");
     }
 
-    private string HelperDiagnosticRead()
+    private string TRunnerDiagnosticRead()
     {
         string path = Path.Combine(tRunnerControlRoot, "error.log");
         return File.Exists(path)
@@ -293,23 +293,23 @@ internal sealed class TRunner : IDisposable
             : string.Join(" | ", tRunnerDiagnostics.TakeLast(4));
     }
 
-    private static TRunnerWork Snapshot(LWorkItem item) => new(
+    private static TRunnerWork TRunnerSnapshotCreate(LWorkItem item) => new(
         item.LWorkId,
         item.LWorkOutputName,
         item.LWorkStateCurrent switch
         {
-            LWorkState.LWorkStateRunning => TRunnerWorkState.Running,
-            LWorkState.LWorkStateDone => TRunnerWorkState.Done,
-            LWorkState.LWorkStateFailed => TRunnerWorkState.Failed,
-            LWorkState.LWorkStateCancelled => TRunnerWorkState.Cancelled,
-            _ => TRunnerWorkState.Pending
+            LWorkState.LWorkStateRunning => TRunnerWorkState.TRunnerRunning,
+            LWorkState.LWorkStateDone => TRunnerWorkState.TRunnerDone,
+            LWorkState.LWorkStateFailed => TRunnerWorkState.TRunnerFailed,
+            LWorkState.LWorkStateCancelled => TRunnerWorkState.TRunnerCancelled,
+            _ => TRunnerWorkState.TRunnerPending
         },
         item.LWorkProgress,
         item.LWorkAttemptCount,
         File.Exists(item.LWorkOutputPath),
         item.LWorkMessage);
 
-    private const string RunnerScript = """
+    private const string TRunnerScript = """
         param([string]$controlRoot, [string]$outputPath)
         try {
             $outputName = [IO.Path]::GetFileName($outputPath)

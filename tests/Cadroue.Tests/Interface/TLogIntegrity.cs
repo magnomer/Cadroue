@@ -5,23 +5,23 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.Tests;
 
-internal sealed record TLogCommitResult(bool Observed, string? Text);
-internal sealed record TLogCallbackResult(bool Observed, bool Persisted);
-internal sealed record TLogMoveResult(bool Moved, string Root, bool SourceExists, string Text);
-internal sealed record TLogPersistResult(bool Persisted, TimeSpan Elapsed);
-internal sealed record TLogArchiveResult(bool ArchiveExists, string Text, int TemporaryCount);
-internal sealed record TLogLossResult(string Text, string[] Summaries);
+internal sealed record TLogCommitResult(bool TLogObserved, string? TLogText);
+internal sealed record TLogCallbackResult(bool TLogObserved, bool TLogPersisted);
+internal sealed record TLogMoveResult(bool TLogMoved, string TLogRoot, bool TLogSourceFlag, string TLogText);
+internal sealed record TLogPersistResult(bool TLogPersisted, TimeSpan TLogElapsed);
+internal sealed record TLogArchiveResult(bool TLogArchiveFlag, string TLogText, int TLogTemporaryCount);
+internal sealed record TLogLossResult(string TLogText, string[] TLogSummaries);
 internal sealed record TLogReadResult(
-    bool EmptySuccess,
-    string EmptyText,
-    bool CorruptSuccess,
-    string CorruptError,
-    bool MissingSuccess,
-    string MissingError);
+    bool TLogEmptySuccess,
+    string TLogEmptyText,
+    bool TLogCorruptSuccess,
+    string TLogCorruptError,
+    bool TLogMissingSuccess,
+    string TLogMissingError);
 
 internal static class TLogIntegrity
 {
-    internal static TLogReadResult ReadDistinguish()
+    internal static TLogReadResult TLogReadResolve()
     {
         string folder = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-read", Guid.NewGuid().ToString("N"));
         string emptyPath = Path.Combine(folder, "Cadroue-empty.log");
@@ -50,14 +50,14 @@ internal static class TLogIntegrity
         }
     }
 
-    internal static TLogCommitResult CommitObserve()
+    internal static TLogCommitResult TLogCommitRead()
     {
         string previousRoot = LDepot.LDepotRootRead();
         string root = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-commit", Guid.NewGuid().ToString("N"));
         string? observedText = null;
         using var observed = new ManualResetEventSlim();
 
-        void Capture(LTraceEntry entry)
+        void TLogCaptureRead(LTraceEntry entry)
         {
             using var stream = new FileStream(
                 LTraceWriter.LTracePathRead(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
@@ -70,40 +70,40 @@ internal static class TLogIntegrity
         {
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(root);
-            LTrace.LTraceAppend += Capture;
+            LTrace.LTraceAppend += TLogCaptureRead;
             LTraceLog.LTraceInfoRecord("durable notification");
             return new TLogCommitResult(observed.Wait(TimeSpan.FromSeconds(5)), observedText);
         }
         finally
         {
-            LTrace.LTraceAppend -= Capture;
+            LTrace.LTraceAppend -= TLogCaptureRead;
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(previousRoot);
             Directory.Delete(root, recursive: true);
         }
     }
 
-    internal static TLogCallbackResult CommitCallbackPersist()
+    internal static TLogCallbackResult TLogCallbackPersist()
     {
         string previousRoot = LDepot.LDepotRootRead();
         string root = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-callback", Guid.NewGuid().ToString("N"));
         var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        void Capture(LTraceEntry entry) =>
+        void TLogCaptureRead(LTraceEntry entry) =>
             completion.TrySetResult(LTraceWriter.LTraceWriterPersist(250));
 
         try
         {
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(root);
-            LTrace.LTraceAppend += Capture;
+            LTrace.LTraceAppend += TLogCaptureRead;
             LTraceLog.LTraceInfoRecord("callback persistence");
             bool observed = completion.Task.Wait(TimeSpan.FromSeconds(5));
             return new TLogCallbackResult(observed, observed && completion.Task.Result);
         }
         finally
         {
-            LTrace.LTraceAppend -= Capture;
+            LTrace.LTraceAppend -= TLogCaptureRead;
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(previousRoot);
             if (Directory.Exists(root))
@@ -113,7 +113,7 @@ internal static class TLogIntegrity
         }
     }
 
-    internal static TLogMoveResult WorkspaceMove()
+    internal static TLogMoveResult TWorkspaceMove()
     {
         string previousRoot = LDepot.LDepotRootRead();
         string parent = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-move", Guid.NewGuid().ToString("N"));
@@ -142,7 +142,7 @@ internal static class TLogIntegrity
         }
     }
 
-    internal static TLogMoveResult WorkspaceMoveConcurrent()
+    internal static TLogMoveResult TLogConcurrentMove()
     {
         string previousRoot = LDepot.LDepotRootRead();
         string parent = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-move-race", Guid.NewGuid().ToString("N"));
@@ -194,7 +194,7 @@ internal static class TLogIntegrity
         }
     }
 
-    internal static TLogPersistResult PersistTimeout()
+    internal static TLogPersistResult TLogTimeoutPersist()
     {
         string previousRoot = LDepot.LDepotRootRead();
         string parent = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-timeout", Guid.NewGuid().ToString("N"));
@@ -223,7 +223,7 @@ internal static class TLogIntegrity
         }
     }
 
-    internal static TLogArchiveResult ArchiveConcurrent()
+    internal static TLogArchiveResult TLogArchiveRun()
     {
         string folder = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-archive", Guid.NewGuid().ToString("N"));
         string source = Path.Combine(folder, "Cadroue-20000101-000000-1.log");
@@ -260,7 +260,7 @@ internal static class TLogIntegrity
         }
     }
 
-    internal static TLogLossResult StorageRecover()
+    internal static TLogLossResult TLogStorageRestore()
     {
         string previousRoot = LDepot.LDepotRootRead();
         string parent = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-loss", Guid.NewGuid().ToString("N"));
@@ -268,7 +268,7 @@ internal static class TLogIntegrity
         string recoveredRoot = Path.Combine(parent, "recovered");
         var summaries = new List<string>();
 
-        void Capture(LTraceEntry entry) => summaries.Add(entry.LTraceEntrySummary);
+        void TLogCaptureRead(LTraceEntry entry) => summaries.Add(entry.LTraceEntrySummary);
 
         Directory.CreateDirectory(parent);
         File.WriteAllText(blockedRoot, "not a directory", Encoding.UTF8);
@@ -276,7 +276,7 @@ internal static class TLogIntegrity
         {
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(blockedRoot);
-            LTrace.LTraceAppend += Capture;
+            LTrace.LTraceAppend += TLogCaptureRead;
             LTraceLog.LTraceInfoRecord("entry that cannot be saved");
             LTraceWriter.LTraceWriterPersist();
 
@@ -287,7 +287,7 @@ internal static class TLogIntegrity
         }
         finally
         {
-            LTrace.LTraceAppend -= Capture;
+            LTrace.LTraceAppend -= TLogCaptureRead;
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(previousRoot);
             if (Directory.Exists(parent))

@@ -23,9 +23,9 @@ public sealed partial class PViewer : PPanel
 {
     private enum PViewerTool
     {
-        None,
-        Crop,
-        Neutral
+        PViewerToolNone,
+        PViewerToolCrop,
+        PViewerToolNeutral
     }
 
     private Border? pViewerSurface;

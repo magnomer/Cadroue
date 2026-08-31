@@ -29,7 +29,7 @@ public static class LVault
             T? lVaultValue = JsonSerializer.Deserialize<T>(File.ReadAllText(lVaultPath));
             if (lVaultValue is null)
             {
-                Quarantine();
+                LVaultQuarantineRun();
                 return new LVaultResult<T>(LVaultOutcome.LVaultUnreadable, null);
             }
 
@@ -37,11 +37,11 @@ public static class LVault
         }
         catch
         {
-            Quarantine();
+            LVaultQuarantineRun();
             return new LVaultResult<T>(LVaultOutcome.LVaultUnreadable, null);
         }
 
-        void Quarantine()
+        void LVaultQuarantineRun()
         {
             try
             {

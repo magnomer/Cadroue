@@ -4,20 +4,20 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class InterfaceBoundaryTests
+public sealed class TInterfaceBoundary
 {
-    private static readonly Regex DirectProductionCall = new(
+    private static readonly Regex TInterfaceDirectCall = new(
         @"\bL[A-Z][A-Za-z0-9_]*\s*\.\s*L[A-Z][A-Za-z0-9_]*\s*\(|\.\s*L[A-Z][A-Za-z0-9_]*\s*\(",
         RegexOptions.Compiled);
 
-    private static readonly Regex DirectProductionConstruction = new(
+    private static readonly Regex TInterfaceDirectConstruct = new(
         @"\bnew\s+L[A-Z][A-Za-z0-9_]*\s*[({]",
         RegexOptions.Compiled);
 
     [Fact]
     public void Tests_ReachProductionOperationsOnlyThroughInterface()
     {
-        string projectRoot = ProjectRootRead();
+        string projectRoot = TInterfaceRootRead();
         string[] offenders = Directory
             .EnumerateFiles(projectRoot, "*.cs", SearchOption.AllDirectories)
             .Where(path => !Path.GetRelativePath(projectRoot, path)
@@ -26,7 +26,7 @@ public sealed class InterfaceBoundaryTests
             .Where(path =>
             {
                 string source = File.ReadAllText(path);
-                return DirectProductionCall.IsMatch(source) || DirectProductionConstruction.IsMatch(source);
+                return TInterfaceDirectCall.IsMatch(source) || TInterfaceDirectConstruct.IsMatch(source);
             })
             .Select(path => Path.GetRelativePath(projectRoot, path))
             .OrderBy(path => path, StringComparer.Ordinal)
@@ -38,7 +38,7 @@ public sealed class InterfaceBoundaryTests
             string.Join(", ", offenders));
     }
 
-    private static string ProjectRootRead()
+    private static string TInterfaceRootRead()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null)

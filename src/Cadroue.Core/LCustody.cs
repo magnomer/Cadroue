@@ -69,22 +69,22 @@ public static class LCustody
 
     private static bool LCustodyLimitApply(IntPtr lCustodyHandle)
     {
-        var lCustodyLimit = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+        var lCustodyLimit = new LCustodyExtendedLimit
         {
-            BasicLimitInformation = new JOBOBJECT_BASIC_LIMIT_INFORMATION
+            LCustodyBasic = new LCustodyBasicLimit
             {
-                LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+                LCustodyLimitFlags = LCustodyKillFlag
             }
         };
 
-        int lCustodyLength = Marshal.SizeOf<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>();
+        int lCustodyLength = Marshal.SizeOf<LCustodyExtendedLimit>();
         IntPtr lCustodyBuffer = Marshal.AllocHGlobal(lCustodyLength);
         try
         {
             Marshal.StructureToPtr(lCustodyLimit, lCustodyBuffer, false);
             return SetInformationJobObject(
                 lCustodyHandle,
-                JobObjectExtendedLimitInformation,
+                LCustodyInfoClass,
                 lCustodyBuffer,
                 (uint)lCustodyLength);
         }
@@ -94,8 +94,8 @@ public static class LCustody
         }
     }
 
-    private const int JobObjectExtendedLimitInformation = 9;
-    private const uint JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000;
+    private const int LCustodyInfoClass = 9;
+    private const uint LCustodyKillFlag = 0x2000;
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);
@@ -111,38 +111,38 @@ public static class LCustody
     private static extern bool CloseHandle(IntPtr hObject);
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct JOBOBJECT_BASIC_LIMIT_INFORMATION
+    private struct LCustodyBasicLimit
     {
-        public long PerProcessUserTimeLimit;
-        public long PerJobUserTimeLimit;
-        public uint LimitFlags;
-        public UIntPtr MinimumWorkingSetSize;
-        public UIntPtr MaximumWorkingSetSize;
-        public uint ActiveProcessLimit;
-        public UIntPtr Affinity;
-        public uint PriorityClass;
-        public uint SchedulingClass;
+        public long LCustodyProcessTime;
+        public long LCustodyJobTime;
+        public uint LCustodyLimitFlags;
+        public UIntPtr LCustodyMinimum;
+        public UIntPtr LCustodyMaximum;
+        public uint LCustodyProcessCount;
+        public UIntPtr LCustodyAffinity;
+        public uint LCustodyPriority;
+        public uint LCustodyScheduling;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct IO_COUNTERS
+    private struct LCustodyIoCounters
     {
-        public ulong ReadOperationCount;
-        public ulong WriteOperationCount;
-        public ulong OtherOperationCount;
-        public ulong ReadTransferCount;
-        public ulong WriteTransferCount;
-        public ulong OtherTransferCount;
+        public ulong LCustodyReadOps;
+        public ulong LCustodyWriteOps;
+        public ulong LCustodyOtherOps;
+        public ulong LCustodyReadBytes;
+        public ulong LCustodyWriteBytes;
+        public ulong LCustodyOtherBytes;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+    private struct LCustodyExtendedLimit
     {
-        public JOBOBJECT_BASIC_LIMIT_INFORMATION BasicLimitInformation;
-        public IO_COUNTERS IoInfo;
-        public UIntPtr ProcessMemoryLimit;
-        public UIntPtr JobMemoryLimit;
-        public UIntPtr PeakProcessMemoryUsed;
-        public UIntPtr PeakJobMemoryUsed;
+        public LCustodyBasicLimit LCustodyBasic;
+        public LCustodyIoCounters LCustodyIoInfo;
+        public UIntPtr LCustodyProcessMemory;
+        public UIntPtr LCustodyJobMemory;
+        public UIntPtr LCustodyPeakProcess;
+        public UIntPtr LCustodyPeakJob;
     }
 }

@@ -9,7 +9,7 @@ using Cadroue.UIShell.PMainWindow;
 
 namespace Cadroue.UIShell.PPanels;
 
-public enum PFunnelForm { Filename, Regex, Remainder }
+public enum PFunnelForm { PFunnelFormFilename, PFunnelFormRegex, PFunnelFormRemainder }
 
 public sealed class PFunnelRuleRow : Border
 {
@@ -19,10 +19,10 @@ public sealed class PFunnelRuleRow : Border
 
     private static readonly (PFunnelKind Kind, string LabelKey, bool HasJoin)[] pFunnelSpecs =
     {
-        (PFunnelKind.Contains, "Inspector.Funnel.Contains", false),
-        (PFunnelKind.Start, "Inspector.Funnel.StartsWith", true),
-        (PFunnelKind.End, "Inspector.Funnel.EndsWith", true),
-        (PFunnelKind.Extension, "Inspector.Funnel.Extension", true)
+        (PFunnelKind.PFunnelKindContains, "Inspector.Funnel.Contains", false),
+        (PFunnelKind.PFunnelKindPrefix, "Inspector.Funnel.StartsWith", true),
+        (PFunnelKind.PFunnelKindEnd, "Inspector.Funnel.EndsWith", true),
+        (PFunnelKind.PFunnelKindExtension, "Inspector.Funnel.Extension", true)
     };
 
     private const double PFunnelFieldHeight = 30;
@@ -42,18 +42,18 @@ public sealed class PFunnelRuleRow : Border
     public event Action? PFunnelRowChange;
     public event Action<PFunnelRuleRow>? PFunnelRowRemove;
 
-    public PFunnelRuleRow(Func<IReadOnlyList<PActionRelayOption>> pOptionsRead, PFunnelForm pForm = PFunnelForm.Filename)
+    public PFunnelRuleRow(Func<IReadOnlyList<PActionRelayOption>> pOptionsRead, PFunnelForm pForm = PFunnelForm.PFunnelFormFilename)
     {
         pFunnelForm = pForm;
         pFunnelOptionsSource = pOptionsRead;
         pFunnelRelayCombo = PFunnelRelayBuild();
 
         var pBody = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
-        if (pForm == PFunnelForm.Regex)
+        if (pForm == PFunnelForm.PFunnelFormRegex)
         {
             pBody.Children.Add(PFunnelRegexBuild());
         }
-        else if (pForm == PFunnelForm.Filename)
+        else if (pForm == PFunnelForm.PFunnelFormFilename)
         {
             foreach ((PFunnelKind pKind, string pLabelKey, bool pHasJoin) in pFunnelSpecs)
             {
@@ -68,8 +68,8 @@ public sealed class PFunnelRuleRow : Border
 
         string pTitleKey = pForm switch
         {
-            PFunnelForm.Regex => "Inspector.Funnel.Regex",
-            PFunnelForm.Remainder => "Inspector.Funnel.Remainder",
+            PFunnelForm.PFunnelFormRegex => "Inspector.Funnel.Regex",
+            PFunnelForm.PFunnelFormRemainder => "Inspector.Funnel.Remainder",
             _ => "Inspector.Funnel.Filename"
         };
         pFunnelFrame = new PFunnelRuleFrame(pBody, pTitleKey, () => PFunnelRowRemove?.Invoke(this));
@@ -92,7 +92,7 @@ public sealed class PFunnelRuleRow : Border
 
     public Border PFunnelHeader => pFunnelFrame.PFunnelHeader;
 
-    public bool PFunnelRemainder => pFunnelForm == PFunnelForm.Remainder;
+    public bool PFunnelRemainder => pFunnelForm == PFunnelForm.PFunnelFormRemainder;
 
     public Guid PFunnelTargetId => pFunnelTargetId;
 
@@ -111,13 +111,13 @@ public sealed class PFunnelRuleRow : Border
 
     public void PFunnelRowRestore(LSceneFunnelRule pRecord)
     {
-        if (pFunnelForm == PFunnelForm.Remainder)
+        if (pFunnelForm == PFunnelForm.PFunnelFormRemainder)
         {
             pFunnelTargetPending = pRecord.LSceneFunnelTarget;
             return;
         }
 
-        if (pFunnelForm == PFunnelForm.Regex)
+        if (pFunnelForm == PFunnelForm.PFunnelFormRegex)
         {
             if (pFunnelRegexField is not null)
             {
@@ -131,10 +131,10 @@ public sealed class PFunnelRuleRow : Border
         }
         else
         {
-            PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRestore(pRecord.LSceneFunnelContains);
-            PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRestore(pRecord.LSceneFunnelPrefix);
-            PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRestore(pRecord.LSceneFunnelEnd);
-            PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRestore(pRecord.LSceneFunnelExtension);
+            PFunnelConditionFind(PFunnelKind.PFunnelKindContains).PFunnelConditionRestore(pRecord.LSceneFunnelContains);
+            PFunnelConditionFind(PFunnelKind.PFunnelKindPrefix).PFunnelConditionRestore(pRecord.LSceneFunnelPrefix);
+            PFunnelConditionFind(PFunnelKind.PFunnelKindEnd).PFunnelConditionRestore(pRecord.LSceneFunnelEnd);
+            PFunnelConditionFind(PFunnelKind.PFunnelKindExtension).PFunnelConditionRestore(pRecord.LSceneFunnelExtension);
         }
 
         pFunnelTargetPending = pRecord.LSceneFunnelTarget;
@@ -142,20 +142,20 @@ public sealed class PFunnelRuleRow : Border
 
     public LSceneFunnelRule PFunnelRecordCreate()
     {
-        if (pFunnelForm == PFunnelForm.Remainder)
+        if (pFunnelForm == PFunnelForm.PFunnelFormRemainder)
         {
             return new LSceneFunnelRule
             {
-                LSceneFunnelType = (int)PFunnelForm.Filename,
+                LSceneFunnelType = (int)PFunnelForm.PFunnelFormFilename,
                 LSceneFunnelRemainder = true
             };
         }
 
-        if (pFunnelForm == PFunnelForm.Regex)
+        if (pFunnelForm == PFunnelForm.PFunnelFormRegex)
         {
             return new LSceneFunnelRule
             {
-                LSceneFunnelType = (int)PFunnelForm.Regex,
+                LSceneFunnelType = (int)PFunnelForm.PFunnelFormRegex,
                 LSceneFunnelRegex = pFunnelRegexField?.Text.Trim() ?? string.Empty,
                 LSceneFunnelWhole = pFunnelWholeBox?.IsChecked == true
             };
@@ -163,11 +163,11 @@ public sealed class PFunnelRuleRow : Border
 
         return new LSceneFunnelRule
         {
-            LSceneFunnelType = (int)PFunnelForm.Filename,
-            LSceneFunnelContains = PFunnelConditionFind(PFunnelKind.Contains).PFunnelConditionRead(),
-            LSceneFunnelPrefix = PFunnelConditionFind(PFunnelKind.Start).PFunnelConditionRead(),
-            LSceneFunnelEnd = PFunnelConditionFind(PFunnelKind.End).PFunnelConditionRead(),
-            LSceneFunnelExtension = PFunnelConditionFind(PFunnelKind.Extension).PFunnelConditionRead()
+            LSceneFunnelType = (int)PFunnelForm.PFunnelFormFilename,
+            LSceneFunnelContains = PFunnelConditionFind(PFunnelKind.PFunnelKindContains).PFunnelConditionRead(),
+            LSceneFunnelPrefix = PFunnelConditionFind(PFunnelKind.PFunnelKindPrefix).PFunnelConditionRead(),
+            LSceneFunnelEnd = PFunnelConditionFind(PFunnelKind.PFunnelKindEnd).PFunnelConditionRead(),
+            LSceneFunnelExtension = PFunnelConditionFind(PFunnelKind.PFunnelKindExtension).PFunnelConditionRead()
         };
     }
 

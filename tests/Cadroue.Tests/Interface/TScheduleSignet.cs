@@ -7,8 +7,8 @@ namespace Cadroue.Tests;
 internal sealed class TScheduleSignet : IDisposable
 {
     private readonly string tScheduleRoot;
-    private readonly string tPreviousDepotRoot;
-    private readonly LPreferenceState tPreviousPreference;
+    private readonly string tSignetDepotRoot;
+    private readonly LPreferenceState tSignetPreference;
     private readonly LSchedule tSchedule;
     private int tScheduleSequence;
 
@@ -18,24 +18,24 @@ internal sealed class TScheduleSignet : IDisposable
             Path.GetTempPath(),
             "cadroue-signet-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tScheduleRoot);
-        tPreviousDepotRoot = LDepot.LDepotRootRead();
-        tPreviousPreference = LPreference.LPreferenceStateCurrent;
+        tSignetDepotRoot = LDepot.LDepotRootRead();
+        tSignetPreference = LPreference.LPreferenceStateCurrent;
         LDepotIndex.LDepotIndexRelease();
         LDepot.LDepotRootSet(tScheduleRoot);
         tSchedule = new LSchedule();
         tSchedule.LScheduleLoad();
     }
 
-    internal void SignetSet(Guid signet) => LSignet.LSignetSource = () => signet;
+    internal void TSignetSet(Guid signet) => LSignet.LSignetSource = () => signet;
 
-    internal void SharedSet(bool shared)
+    internal void TSignetSharedSet(bool shared)
     {
         LPreferenceState next = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         next.LPreferenceWorklistShared = shared;
         LPreference.LPreferenceStateSet(next);
     }
 
-    internal Guid WorkCreate(string name)
+    internal Guid TWorkCreate(string name)
     {
         DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
         var workItem = new LWorkItem(
@@ -47,17 +47,17 @@ internal sealed class TScheduleSignet : IDisposable
             TimeSpan.FromSeconds(1),
             name,
             Path.Combine(tScheduleRoot, name + ".output"),
-            WorkCreationOutput.Create(),
+            TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: created);
         tSchedule.LScheduleAdd(new[] { workItem });
         return workItem.LWorkId;
     }
 
-    internal bool ClaimFound() => tSchedule.LScheduleClaim(Guid.NewGuid()) is not null;
+    internal bool TSignetClaimCheck() => tSchedule.LScheduleClaim(Guid.NewGuid()) is not null;
 
-    internal Guid? ClaimId() => tSchedule.LScheduleClaim(Guid.NewGuid())?.LWorkId;
+    internal Guid? TSignetClaimRead() => tSchedule.LScheduleClaim(Guid.NewGuid())?.LWorkId;
 
-    internal IReadOnlyList<Guid> DisplayedRead()
+    internal IReadOnlyList<Guid> TSignetDisplayRead()
     {
         tSchedule.LScheduleLoad();
         return tSchedule.LScheduleRecords.Select(item => item.LWorkId).ToArray();
@@ -67,9 +67,9 @@ internal sealed class TScheduleSignet : IDisposable
     {
         LSignet.LSignetSource = null;
         tSchedule.LScheduleAllClear();
-        LPreference.LPreferenceStateSet(tPreviousPreference);
+        LPreference.LPreferenceStateSet(tSignetPreference);
         LDepotIndex.LDepotIndexRelease();
-        LDepot.LDepotRootSet(tPreviousDepotRoot);
+        LDepot.LDepotRootSet(tSignetDepotRoot);
         try
         {
             Directory.Delete(tScheduleRoot, true);

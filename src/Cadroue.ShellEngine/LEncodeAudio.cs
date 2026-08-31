@@ -50,21 +50,21 @@ internal static class LEncodeAudio
 
         LCapabilityCodec lCodec = LCapability.LCapabilityAudioRead(lAudioName);
         LCapabilityMode lMode = lCodec.LCapabilityModeFind(lOutput.LEncodingAudio.LEncodingRateControl);
-        if (lMode.CapabilityModeQuality is LCapabilityQuality lQuality)
+        if (lMode.LCapabilityModeQuality is LCapabilityQuality lQuality)
         {
             string lValue = string.IsNullOrWhiteSpace(lOutput.LEncodingAudio.LEncodingQuality)
-                ? lQuality.CapabilityQualityDefault
+                ? lQuality.LCapabilityQualityDefault
                 : lOutput.LEncodingAudio.LEncodingQuality;
             if (!string.IsNullOrWhiteSpace(lValue)
                 && !string.Equals(lValue, "Custom", StringComparison.OrdinalIgnoreCase))
             {
-                lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality.CapabilityQualityOption} {lValue}");
+                lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality.LCapabilityQualityOption} {lValue}");
             }
         }
 
-        if (lCodec.CapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LEncodingAudio.LEncodingSpeed))
+        if (lCodec.LCapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LEncodingAudio.LEncodingSpeed))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.CapabilitySpeedOption} {lOutput.LEncodingAudio.LEncodingSpeed}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.LCapabilitySpeedOption} {lOutput.LEncodingAudio.LEncodingSpeed}");
         }
 
         foreach (var lExtra in lOutput.LEncodingAudio.LEncodingExtras)

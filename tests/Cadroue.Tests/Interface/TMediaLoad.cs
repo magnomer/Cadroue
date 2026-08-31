@@ -11,25 +11,25 @@ namespace Cadroue.Tests;
 public sealed class TMediaLoadCollection;
 
 internal sealed record TMediaLoadOutcome(
-    string Kind,
-    string Path,
-    long? DurationMilliseconds,
-    string? Error)
+    string TMediaKind,
+    string TMediaPath,
+    long? TMediaDurationMilliseconds,
+    string? TMediaError)
 {
-    internal bool Success => Kind == "Success";
-    internal bool Failure => Kind == "Failure";
-    internal bool Cancelled => Kind == "Cancelled";
-    internal bool Obsolete => Kind == "Obsolete";
+    internal bool TMediaSuccess => TMediaKind == "Success";
+    internal bool TMediaFailure => TMediaKind == "TMediaFailure";
+    internal bool TMediaCancelled => TMediaKind == "Cancelled";
+    internal bool TMediaObsolete => TMediaKind == "Obsolete";
 }
 
 internal sealed class TMediaLoad : IDisposable
 {
     private sealed class TMediaSource
     {
-        internal required LMediaInfo Info { get; init; }
-        internal Exception? Failure { get; init; }
-        internal TaskCompletionSource<LMediaInfo>? Gate { get; init; }
-        internal bool ObserveCancellation { get; init; }
+        internal required LMediaInfo TMediaInfo { get; init; }
+        internal Exception? TMediaFailure { get; init; }
+        internal TaskCompletionSource<LMediaInfo>? TMediaGate { get; init; }
+        internal bool TMediaObserveCancellation { get; init; }
     }
 
     private readonly string tMediaLoadRoot = Path.Combine(
@@ -38,99 +38,99 @@ internal sealed class TMediaLoad : IDisposable
     private readonly ConcurrentDictionary<string, TMediaSource> tMediaLoadSources =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentQueue<TMediaLoadOutcome> tMediaLoadEvents = new();
-    private readonly LMediaLoad tMediaLoad;
+    private readonly LMediaLoad tMediaBackend;
     private bool tMediaLoadDisposed;
 
     internal TMediaLoad()
     {
         Directory.CreateDirectory(tMediaLoadRoot);
-        tMediaLoad = new LMediaLoad(SourceReadAsync);
-        tMediaLoad.LMediaLoadCompleted += OutcomeHandle;
+        tMediaBackend = new LMediaLoad(TMediaSourceRead);
+        tMediaBackend.LMediaLoadCompleted += TMediaOutcomeHandle;
     }
 
-    internal string SourceCreate(string name, long durationMilliseconds = 1_000)
+    internal string TSourceCreate(string name, long durationMilliseconds = 1_000)
     {
         string path = Path.Combine(tMediaLoadRoot, name);
         File.WriteAllText(path, name);
-        tMediaLoadSources[path] = new TMediaSource { Info = InfoCreate(durationMilliseconds) };
+        tMediaLoadSources[path] = new TMediaSource { TMediaInfo = TInfoCreate(durationMilliseconds) };
         return path;
     }
 
-    internal string FailingSourceCreate(string name, string message = "probe failed")
+    internal string TMediaFailCreate(string name, string message = "probe failed")
     {
-        string path = SourceCreate(name);
+        string path = TSourceCreate(name);
         tMediaLoadSources[path] = new TMediaSource
         {
-            Info = InfoCreate(1_000),
-            Failure = new InvalidOperationException(message)
+            TMediaInfo = TInfoCreate(1_000),
+            TMediaFailure = new InvalidOperationException(message)
         };
         return path;
     }
 
-    internal string GatedSourceCreate(
+    internal string TMediaGatedCreate(
         string name,
         long durationMilliseconds,
         bool observeCancellation)
     {
-        string path = SourceCreate(name, durationMilliseconds);
+        string path = TSourceCreate(name, durationMilliseconds);
         tMediaLoadSources[path] = new TMediaSource
         {
-            Info = InfoCreate(durationMilliseconds),
-            Gate = new TaskCompletionSource<LMediaInfo>(TaskCreationOptions.RunContinuationsAsynchronously),
-            ObserveCancellation = observeCancellation
+            TMediaInfo = TInfoCreate(durationMilliseconds),
+            TMediaGate = new TaskCompletionSource<LMediaInfo>(TaskCreationOptions.RunContinuationsAsynchronously),
+            TMediaObserveCancellation = observeCancellation
         };
         return path;
     }
 
-    internal string MissingPath(string name) => Path.Combine(tMediaLoadRoot, name);
+    internal string TMediaMissingRead(string name) => Path.Combine(tMediaLoadRoot, name);
 
-    internal async Task<TMediaLoadOutcome> LoadAsync(
+    internal async Task<TMediaLoadOutcome> TMediaLoadRun(
         string path,
         CancellationToken cancellationToken = default) =>
-        OutcomeCreate(await tMediaLoad.LMediaLoadStart(path, cancellationToken));
+        TMediaOutcomeCreate(await tMediaBackend.LMediaLoadStart(path, cancellationToken));
 
-    internal bool Unload() => tMediaLoad.LMediaLoadClose();
+    internal bool TMediaClose() => tMediaBackend.LMediaLoadClose();
 
-    internal string? CurrentPath => tMediaLoad.LMediaCurrentPath;
+    internal string? TMediaCurrentPath => tMediaBackend.LMediaCurrentPath;
 
-    internal long? CurrentDurationMilliseconds =>
-        (long?)tMediaLoad.LMediaCurrentInfo?.LMediaInfoDuration.TotalMilliseconds;
+    internal long? TMediaCurrentDuration =>
+        (long?)tMediaBackend.LMediaCurrentInfo?.LMediaInfoDuration.TotalMilliseconds;
 
-    internal IReadOnlyList<TMediaLoadOutcome> Events => tMediaLoadEvents.ToArray();
+    internal IReadOnlyList<TMediaLoadOutcome> TMediaEvents => tMediaLoadEvents.ToArray();
 
-    internal void GateComplete(string path)
+    internal void TMediaGateCommit(string path)
     {
         TMediaSource source = tMediaLoadSources[path];
-        source.Gate?.TrySetResult(source.Info);
+        source.TMediaGate?.TrySetResult(source.TMediaInfo);
     }
 
-    private async Task<LMediaInfo> SourceReadAsync(string path, CancellationToken cancellationToken)
+    private async Task<LMediaInfo> TMediaSourceRead(string path, CancellationToken cancellationToken)
     {
         TMediaSource source = tMediaLoadSources[path];
-        if (source.Failure is not null)
+        if (source.TMediaFailure is not null)
         {
-            throw source.Failure;
+            throw source.TMediaFailure;
         }
 
-        if (source.Gate is null)
+        if (source.TMediaGate is null)
         {
-            return source.Info;
+            return source.TMediaInfo;
         }
 
-        return source.ObserveCancellation
-            ? await source.Gate.Task.WaitAsync(cancellationToken)
-            : await source.Gate.Task;
+        return source.TMediaObserveCancellation
+            ? await source.TMediaGate.Task.WaitAsync(cancellationToken)
+            : await source.TMediaGate.Task;
     }
 
-    private void OutcomeHandle(LMediaLoadOutcome outcome) =>
-        tMediaLoadEvents.Enqueue(OutcomeCreate(outcome));
+    private void TMediaOutcomeHandle(LMediaLoadOutcome outcome) =>
+        tMediaLoadEvents.Enqueue(TMediaOutcomeCreate(outcome));
 
-    private static TMediaLoadOutcome OutcomeCreate(LMediaLoadOutcome outcome) =>
+    private static TMediaLoadOutcome TMediaOutcomeCreate(LMediaLoadOutcome outcome) =>
         new(
             outcome.LMediaLoadKind switch
             {
                 LMediaLoadKind.LMediaLoadSuccess => "Success",
-                LMediaLoadKind.LMediaLoadFailure => "Failure",
+                LMediaLoadKind.LMediaLoadFailure => "TMediaFailure",
                 LMediaLoadKind.LMediaLoadCancelled => "Cancelled",
                 LMediaLoadKind.LMediaLoadUnloaded => "Unloaded",
                 _ => "Obsolete"
@@ -139,7 +139,7 @@ internal sealed class TMediaLoad : IDisposable
             (long?)outcome.LMediaLoadInfo?.LMediaInfoDuration.TotalMilliseconds,
             outcome.LMediaLoadError);
 
-    private static LMediaInfo InfoCreate(long durationMilliseconds) =>
+    private static LMediaInfo TInfoCreate(long durationMilliseconds) =>
         new(
             TimeSpan.FromMilliseconds(durationMilliseconds),
             1920,
@@ -159,8 +159,8 @@ internal sealed class TMediaLoad : IDisposable
         }
 
         tMediaLoadDisposed = true;
-        tMediaLoad.LMediaLoadCompleted -= OutcomeHandle;
-        tMediaLoad.Dispose();
+        tMediaBackend.LMediaLoadCompleted -= TMediaOutcomeHandle;
+        tMediaBackend.Dispose();
         try
         {
             Directory.Delete(tMediaLoadRoot, recursive: true);

@@ -3,51 +3,51 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.Tests;
 
-internal sealed record TRecoveredScheduleItem(
-    Guid WorkId,
-    Guid BatchId,
-    Guid LineageId,
-    string Name,
-    LWorkState State,
-    string Message);
+internal sealed record TScheduleRecovered(
+    Guid TWorkId,
+    Guid TScheduleBatchId,
+    Guid TLineageId,
+    string TWorkName,
+    LWorkState TScheduleState,
+    string TScheduleMessage);
 
 internal sealed class TScheduleRecoveryWork
 {
     internal TScheduleRecoveryWork(LWorkItem workItem)
     {
-        WorkItem = workItem;
+        TWorkItem = workItem;
     }
 
-    internal LWorkItem WorkItem { get; }
-    internal Guid WorkId => WorkItem.LWorkId;
-    internal Guid BatchId => WorkItem.LWorkBatchId;
+    internal LWorkItem TWorkItem { get; }
+    internal Guid TWorkId => TWorkItem.LWorkId;
+    internal Guid TScheduleBatchId => TWorkItem.LWorkBatchId;
 }
 
 internal sealed class TScheduleRecovery : IDisposable
 {
-    private readonly string tStorageRoot;
+    private readonly string tScheduleStorageRoot;
     private LSchedule? tSchedule;
-    private int tSequence;
+    private int tScheduleSequence;
 
     internal TScheduleRecovery()
     {
-        tStorageRoot = Path.Combine(
+        tScheduleStorageRoot = Path.Combine(
             Path.GetTempPath(),
             "cadroue-schedule-recovery-" + Guid.NewGuid().ToString("N"));
 
         LDepotIndex.LDepotIndexRelease();
-        LDepot.LDepotRootSet(tStorageRoot);
-        tSchedule = ScheduleLoad();
+        LDepot.LDepotRootSet(tScheduleStorageRoot);
+        tSchedule = TScheduleLoad();
     }
 
-    internal TScheduleRecoveryWork WorkCreate(
+    internal TScheduleRecoveryWork TWorkCreate(
         Guid batchId,
         string name,
         TScheduleRecoveryWork? parent = null)
     {
-        DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tSequence);
-        string sourcePath = parent?.WorkItem.LWorkOutputPath
-            ?? Path.Combine(tStorageRoot, name + ".source");
+        DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
+        string sourcePath = parent?.TWorkItem.LWorkOutputPath
+            ?? Path.Combine(tScheduleStorageRoot, name + ".source");
 
         return new TScheduleRecoveryWork(new LWorkItem(
             batchId,
@@ -57,64 +57,64 @@ internal sealed class TScheduleRecovery : IDisposable
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             name,
-            Path.Combine(tStorageRoot, name + ".output"),
-            WorkCreationOutput.Create(),
+            Path.Combine(tScheduleStorageRoot, name + ".output"),
+            TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: created));
     }
 
-    internal int Save(params TScheduleRecoveryWork[] work) =>
-        ScheduleRead().LScheduleAdd(work.Select(item => item.WorkItem).ToArray());
+    internal int TScheduleSave(params TScheduleRecoveryWork[] work) =>
+        TScheduleRead().LScheduleAdd(work.Select(item => item.TWorkItem).ToArray());
 
-    internal bool Reorder(Guid batchId, params TScheduleRecoveryWork[] work) =>
-        ScheduleRead().LScheduleOrderSet(batchId, work.Select(item => item.WorkId).ToArray());
+    internal bool TScheduleMove(Guid batchId, params TScheduleRecoveryWork[] work) =>
+        TScheduleRead().LScheduleOrderSet(batchId, work.Select(item => item.TWorkId).ToArray());
 
-    internal TScheduleRecoveryWork ClaimNext()
+    internal TScheduleRecoveryWork TScheduleNextClaim()
     {
-        LWorkItem workItem = ScheduleRead().LScheduleClaim(Guid.NewGuid())
+        LWorkItem workItem = TScheduleRead().LScheduleClaim(Guid.NewGuid())
             ?? throw new InvalidOperationException("The recovered schedule had no claimable work.");
-        ScheduleRead().LScheduleLoad();
+        TScheduleRead().LScheduleLoad();
         return new TScheduleRecoveryWork(workItem);
     }
 
-    internal void Complete(TScheduleRecoveryWork work, bool succeeded, string message = "")
+    internal void TScheduleCommit(TScheduleRecoveryWork work, bool succeeded, string message = "")
     {
-        ScheduleRead().LScheduleCommit(work.WorkItem, succeeded, message);
-        ScheduleRead().LScheduleLoad();
+        TScheduleRead().LScheduleCommit(work.TWorkItem, succeeded, message);
+        TScheduleRead().LScheduleLoad();
     }
 
-    internal bool Cancel(TScheduleRecoveryWork work) =>
-        ScheduleRead().LScheduleItemCancel(work.WorkItem);
+    internal bool TScheduleCancel(TScheduleRecoveryWork work) =>
+        TScheduleRead().LScheduleItemCancel(work.TWorkItem);
 
-    internal bool Reset(Guid workId) => ScheduleRead().LScheduleItemReset(workId);
+    internal bool TScheduleReset(Guid workId) => TScheduleRead().LScheduleItemReset(workId);
 
-    internal bool Remove(Guid workId) => ScheduleRead().LScheduleRemove(workId);
+    internal bool TScheduleRemove(Guid workId) => TScheduleRead().LScheduleRemove(workId);
 
-    internal IReadOnlyList<TRecoveredScheduleItem> Read() =>
-        ScheduleRead().LScheduleRecords.Select(Snapshot).ToArray();
+    internal IReadOnlyList<TScheduleRecovered> TScheduleItemsRead() =>
+        TScheduleRead().LScheduleRecords.Select(TScheduleSnapshotCreate).ToArray();
 
-    internal IReadOnlyList<TRecoveredScheduleItem> PendingRead() =>
-        ScheduleRead().LSchedulePendingRead().Select(Snapshot).ToArray();
+    internal IReadOnlyList<TScheduleRecovered> TSchedulePendingRead() =>
+        TScheduleRead().LSchedulePendingRead().Select(TScheduleSnapshotCreate).ToArray();
 
-    internal void Recover()
+    internal void TScheduleRestore()
     {
-        MemoryClear();
-        tSchedule = ScheduleLoad();
+        TScheduleMemoryClear();
+        tSchedule = TScheduleLoad();
     }
 
-    internal void RemoveStorageAndRecover()
+    internal void TScheduleStorageRestore()
     {
-        MemoryClear();
-        if (Directory.Exists(tStorageRoot))
+        TScheduleMemoryClear();
+        if (Directory.Exists(tScheduleStorageRoot))
         {
-            Directory.Delete(tStorageRoot, recursive: true);
+            Directory.Delete(tScheduleStorageRoot, recursive: true);
         }
 
-        tSchedule = ScheduleLoad();
+        tSchedule = TScheduleLoad();
     }
 
-    internal void MalformPersistedWork(TScheduleRecoveryWork work)
+    internal void TScheduleMalformSave(TScheduleRecoveryWork work)
     {
-        string persistedPath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, work.WorkId);
+        string persistedPath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, work.TWorkId);
         File.WriteAllText(persistedPath, "this is not a schedule record");
         LDepotIndex.LDepotDirtySet();
     }
@@ -131,34 +131,34 @@ internal sealed class TScheduleRecovery : IDisposable
             LDepotIndex.LDepotIndexRelease();
             LTraceWriter.LTraceWriterClear();
             LDepot.LDepotRootSet(null);
-            if (Directory.Exists(tStorageRoot))
+            if (Directory.Exists(tScheduleStorageRoot))
             {
-                Directory.Delete(tStorageRoot, recursive: true);
+                Directory.Delete(tScheduleStorageRoot, recursive: true);
             }
         }
     }
 
-    private LSchedule ScheduleRead() =>
+    private LSchedule TScheduleRead() =>
         tSchedule ?? throw new InvalidOperationException("The schedule is between recovery instances.");
 
-    private static LSchedule ScheduleLoad()
+    private static LSchedule TScheduleLoad()
     {
         var schedule = new LSchedule();
         schedule.LScheduleLoad();
         return schedule;
     }
 
-    private void MemoryClear()
+    private void TScheduleMemoryClear()
     {
         tSchedule = null;
         LDepotIndex.LDepotIndexRelease();
     }
 
-    private TRecoveredScheduleItem Snapshot(LWorkItem workItem) =>
+    private TScheduleRecovered TScheduleSnapshotCreate(LWorkItem workItem) =>
         new(
             workItem.LWorkId,
             workItem.LWorkBatchId,
-            ScheduleRead().LScheduleLineageRead(workItem),
+            TScheduleRead().LScheduleLineageRead(workItem),
             workItem.LWorkOutputName,
             workItem.LWorkStateCurrent,
             workItem.LWorkMessage);

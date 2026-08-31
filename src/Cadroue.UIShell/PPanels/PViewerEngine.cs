@@ -29,44 +29,44 @@ public sealed partial class PViewer
 
     private Border PViewerEngineBuild(bool pViewerEngineMpv, bool pViewerEngineInstalled)
     {
-        static Border SegmentBuild(
-            string pSegmentText, string pSegmentTip, bool pSegmentActive, bool pSegmentEnabled, Action pSegmentClick)
+        static Border PViewerChoiceBuild(
+            string pChoiceText, string pChoiceTip, bool pChoiceActive, bool pChoiceEnabled, Action pChoiceClick)
         {
-            var pSegmentLabel = new TextBlock
+            var pChoiceLabel = new TextBlock
             {
-                Text = pSegmentText,
+                Text = pChoiceText,
                 FontSize = 12,
                 FontFamily = pViewerEngineFont,
-                FontWeight = pSegmentActive ? FontWeights.SemiBold : FontWeights.Normal,
-                Foreground = pSegmentActive ? pViewerEngineTitle : pViewerEngineMuted,
+                FontWeight = pChoiceActive ? FontWeights.SemiBold : FontWeights.Normal,
+                Foreground = pChoiceActive ? pViewerEngineTitle : pViewerEngineMuted,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 
-            var pSegment = new Border
+            var pChoice = new Border
             {
-                Background = pSegmentActive ? pViewerEngineActive : Brushes.Transparent,
+                Background = pChoiceActive ? pViewerEngineActive : Brushes.Transparent,
                 Padding = new Thickness(12, 3, 12, 3),
-                Cursor = pSegmentEnabled ? Cursors.Hand : Cursors.Arrow,
-                Opacity = pSegmentEnabled ? 1 : 0.4,
-                ToolTip = pSegmentTip,
-                Child = pSegmentLabel
+                Cursor = pChoiceEnabled ? Cursors.Hand : Cursors.Arrow,
+                Opacity = pChoiceEnabled ? 1 : 0.4,
+                ToolTip = pChoiceTip,
+                Child = pChoiceLabel
             };
-            if (pSegmentEnabled)
+            if (pChoiceEnabled)
             {
-                pSegment.MouseLeftButtonUp += (_, _) => pSegmentClick();
+                pChoice.MouseLeftButtonUp += (_, _) => pChoiceClick();
             }
 
-            return pSegment;
+            return pChoice;
         }
 
-        Border pViewerEngineFlyleaf = SegmentBuild(
+        Border pViewerEngineFlyleaf = PViewerChoiceBuild(
             LLocalization.LLocalizationTextRead("Processing.Engine.Flyleaf"),
             LLocalization.LLocalizationTextRead("Processing.Engine.FlyleafTooltip"),
             !pViewerEngineMpv,
             true,
             () => PViewerEngineSelect(false));
-        Border pViewerEngineMpvOption = SegmentBuild(
+        Border pViewerEngineMpvOption = PViewerChoiceBuild(
             LLocalization.LLocalizationTextRead("Processing.Engine.Mpv"),
             LLocalization.LLocalizationTextRead(
                 pViewerEngineInstalled ? "Processing.Engine.MpvTooltip" : "Processing.Engine.MpvMissing"),

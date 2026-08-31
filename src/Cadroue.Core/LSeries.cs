@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Cadroue.Core;
 
-public readonly record struct LSeriesGroup(string Name, IReadOnlyList<string> Paths);
+public readonly record struct LSeriesGroup(string LSeriesName, IReadOnlyList<string> LSeriesPaths);
 
 public enum LSeriesNameMode
 {
@@ -31,17 +31,17 @@ public static class LSeries
         foreach (string lSeriesPath in lSeriesPaths)
         {
             LSeriesItem lSeriesItem = LSeriesItemParse(lSeriesPath);
-            if (lSeriesItem.Number is null)
+            if (lSeriesItem.LSeriesNumber is null)
             {
                 lSeriesBuckets.Add((null, new List<LSeriesItem> { lSeriesItem }));
                 continue;
             }
 
-            if (!lSeriesBaseIndex.TryGetValue(lSeriesItem.Base, out int lSeriesIndex))
+            if (!lSeriesBaseIndex.TryGetValue(lSeriesItem.LSeriesBase, out int lSeriesIndex))
             {
                 lSeriesIndex = lSeriesBuckets.Count;
-                lSeriesBaseIndex[lSeriesItem.Base] = lSeriesIndex;
-                lSeriesBuckets.Add((lSeriesItem.Base, new List<LSeriesItem>()));
+                lSeriesBaseIndex[lSeriesItem.LSeriesBase] = lSeriesIndex;
+                lSeriesBuckets.Add((lSeriesItem.LSeriesBase, new List<LSeriesItem>()));
             }
 
             lSeriesBuckets[lSeriesIndex].Items.Add(lSeriesItem);
@@ -52,11 +52,11 @@ public static class LSeries
         {
             if (lSeriesBase is null)
             {
-                lSeriesGroups.Add(LSeriesGroupCreate(lSeriesItems[0].Stem, lSeriesItems));
+                lSeriesGroups.Add(LSeriesGroupCreate(lSeriesItems[0].LSeriesStem, lSeriesItems));
                 continue;
             }
 
-            List<LSeriesItem> lSeriesSorted = lSeriesItems.OrderBy(lSeriesItem => lSeriesItem.Number!.Value).ToList();
+            List<LSeriesItem> lSeriesSorted = lSeriesItems.OrderBy(lSeriesItem => lSeriesItem.LSeriesNumber!.Value).ToList();
             if (!lSeriesStrict)
             {
                 lSeriesGroups.Add(LSeriesGroupCreate(
@@ -70,7 +70,7 @@ public static class LSeries
             {
                 string lSeriesRunName = !lSeriesMultipleRuns
                     ? LSeriesNameResolve(lSeriesBase, lSeriesRun, lSeriesNameMode)
-                    : lSeriesRun[0].Stem;
+                    : lSeriesRun[0].LSeriesStem;
                 lSeriesGroups.Add(LSeriesGroupCreate(lSeriesRunName, lSeriesRun));
             }
         }
@@ -85,21 +85,21 @@ public static class LSeries
         int? lSeriesPrevious = null;
         foreach (LSeriesItem lSeriesItem in lSeriesSorted)
         {
-            if (lSeriesCurrent is null || lSeriesItem.Number != lSeriesPrevious + 1)
+            if (lSeriesCurrent is null || lSeriesItem.LSeriesNumber != lSeriesPrevious + 1)
             {
                 lSeriesCurrent = new List<LSeriesItem>();
                 lSeriesRuns.Add(lSeriesCurrent);
             }
 
             lSeriesCurrent.Add(lSeriesItem);
-            lSeriesPrevious = lSeriesItem.Number;
+            lSeriesPrevious = lSeriesItem.LSeriesNumber;
         }
 
         return lSeriesRuns;
     }
 
     private static LSeriesGroup LSeriesGroupCreate(string lSeriesName, IEnumerable<LSeriesItem> lSeriesItems) =>
-        new(lSeriesName, lSeriesItems.Select(lSeriesItem => lSeriesItem.Path).ToList());
+        new(lSeriesName, lSeriesItems.Select(lSeriesItem => lSeriesItem.LSeriesPath).ToList());
 
     private static string LSeriesNameResolve(
         string lSeriesBase,
@@ -107,7 +107,7 @@ public static class LSeries
         LSeriesNameMode lSeriesNameMode) =>
         lSeriesItems.Count > 1 && lSeriesNameMode == LSeriesNameMode.LSeriesNameBase
             ? lSeriesBase
-            : lSeriesItems[0].Stem;
+            : lSeriesItems[0].LSeriesStem;
 
     private static LSeriesItem LSeriesItemParse(string lSeriesPath)
     {
@@ -122,5 +122,5 @@ public static class LSeries
         return new LSeriesItem(lSeriesPath, lSeriesStem, lSeriesStem, null);
     }
 
-    private readonly record struct LSeriesItem(string Path, string Stem, string Base, int? Number);
+    private readonly record struct LSeriesItem(string LSeriesPath, string LSeriesStem, string LSeriesBase, int? LSeriesNumber);
 }

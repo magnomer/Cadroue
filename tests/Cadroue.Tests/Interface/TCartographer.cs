@@ -3,28 +3,28 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-internal sealed record TCartographerTabSpec(bool Funnel, int ProcessingTarget, IReadOnlyList<int> FunnelTargets)
+internal sealed record TCartographerTabSpec(bool TCartographerFunnel, int TCartographerProcessingTarget, IReadOnlyList<int> TCartographerFunnelTargets)
 {
-    internal static TCartographerTabSpec Processing(int target) =>
+    internal static TCartographerTabSpec TCartographerProcessCreate(int target) =>
         new(false, target, Array.Empty<int>());
 
-    internal static TCartographerTabSpec FunnelInto(params int[] targets) =>
+    internal static TCartographerTabSpec TCartographerFunnelCreate(params int[] targets) =>
         new(true, -1, targets);
 }
 
-internal sealed record TCartographerStageView(int TabIndex, Guid StageId, Guid NextStage, IReadOnlyList<Guid> FunnelTargets);
+internal sealed record TCartographerStageView(int TCartographerTabIndex, Guid TCartographerStageId, Guid TCartographerNextStage, IReadOnlyList<Guid> TCartographerFunnelTargets);
 
-internal sealed record TCartographerPlanView(Guid EntryStage, IReadOnlyList<TCartographerStageView> Stages)
+internal sealed record TCartographerPlanView(Guid TCartographerEntryStage, IReadOnlyList<TCartographerStageView> TCartographerStages)
 {
-    internal TCartographerStageView Stage(int tabIndex) =>
-        Stages.Single(stage => stage.TabIndex == tabIndex);
+    internal TCartographerStageView TCartographerStageRead(int tabIndex) =>
+        TCartographerStages.Single(stage => stage.TCartographerTabIndex == tabIndex);
 }
 
 internal static class TCartographer
 {
-    internal static Guid FinishTarget => LCartographer.LCartographerFinishTarget;
+    internal static Guid TCartographerFinish => LCartographer.LCartographerFinishTarget;
 
-    internal static TCartographerPlanView PlanCreate(IReadOnlyList<TCartographerTabSpec> specs, int entryIndex)
+    internal static TCartographerPlanView TCartographerPlanCreate(IReadOnlyList<TCartographerTabSpec> specs, int entryIndex)
     {
         Guid[] ids = specs.Select(_ => Guid.NewGuid()).ToArray();
         var tabs = new List<LCartographerTab>();
@@ -33,17 +33,17 @@ internal static class TCartographer
             TCartographerTabSpec spec = specs[index];
             var layout = new LSceneTabRecord
             {
-                LSceneFunnelRules = spec.FunnelTargets
+                LSceneFunnelRules = spec.TCartographerFunnelTargets
                     .Select(target => new LSceneFunnelRule { LSceneFunnelTarget = target })
                     .ToList()
             };
             tabs.Add(new LCartographerTab(
                 ids[index],
-                spec.Funnel ? "Funnel" : "Convert",
+                spec.TCartographerFunnel ? "Funnel" : "Convert",
                 $"tab-{index}",
                 new LPresetRecord(),
                 layout,
-                spec.Funnel));
+                spec.TCartographerFunnel));
         }
 
         LCartographer.LCartographerTabsSource = () => tabs;
@@ -51,9 +51,9 @@ internal static class TCartographer
         {
             for (int index = 0; index < specs.Count; index++)
             {
-                if (!specs[index].Funnel && specs[index].ProcessingTarget >= 0)
+                if (!specs[index].TCartographerFunnel && specs[index].TCartographerProcessingTarget >= 0)
                 {
-                    LCartographer.LCartographerTargetSet(ids[index], ids[specs[index].ProcessingTarget]);
+                    LCartographer.LCartographerTargetSet(ids[index], ids[specs[index].TCartographerProcessingTarget]);
                 }
             }
 

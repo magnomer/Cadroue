@@ -2,18 +2,18 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class SmartModeContractTests
+public sealed class TBridgeContract
 {
     [Fact]
     public void SmartJob_WholeEncodeFallbackExistsOnlyForPlanWithoutMiddle()
     {
-        string source = File.ReadAllText(SourcePathRead("src", "Cadroue.ShellEngine", "LJobSmart.cs"));
+        string source = File.ReadAllText(TBridgeSourceRead("src", "Cadroue.ShellEngine", "LJobSmart.cs"));
         int fallbackCount = source.Split("LEncodeWholeBuild", StringSplitOptions.None).Length - 1;
 
         Assert.Equal(1, fallbackCount);
     }
 
-    private static string SourcePathRead(params string[] parts)
+    private static string TBridgeSourceRead(params string[] parts)
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null)

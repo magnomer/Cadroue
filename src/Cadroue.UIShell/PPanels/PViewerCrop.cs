@@ -46,7 +46,7 @@ public sealed partial class PViewer
 
     private void PCropGripHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (pViewerTool == PViewerTool.Neutral || sender is not Rectangle { Tag: int pHandleIndex })
+        if (pViewerTool == PViewerTool.PViewerToolNeutral || sender is not Rectangle { Tag: int pHandleIndex })
         {
             return;
         }
@@ -62,7 +62,7 @@ public sealed partial class PViewer
 
     private void PCropBodyHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (pViewerTool == PViewerTool.Neutral || pViewerCropBox.Visibility != Visibility.Visible)
+        if (pViewerTool == PViewerTool.PViewerToolNeutral || pViewerCropBox.Visibility != Visibility.Visible)
         {
             return;
         }
@@ -149,7 +149,7 @@ public sealed partial class PViewer
 
     private void PCropHandlesPlace()
     {
-        bool pHandlesVisible = pViewerTool != PViewerTool.Neutral
+        bool pHandlesVisible = pViewerTool != PViewerTool.PViewerToolNeutral
             && pViewerCropBox.Visibility == Visibility.Visible
             && pViewerCropBox.Width > 0
             && pViewerCropBox.Height > 0;
@@ -197,16 +197,16 @@ public sealed partial class PViewer
 
     public void PCropToolSet(bool pCropArmed)
     {
-        if (pCropArmed && pViewerTool == PViewerTool.Neutral)
+        if (pCropArmed && pViewerTool == PViewerTool.PViewerToolNeutral)
         {
             PViewerNeutralCancel();
         }
 
         pViewerTool = pCropArmed
-            ? PViewerTool.Crop
-            : pViewerTool == PViewerTool.Crop ? PViewerTool.None : pViewerTool;
+            ? PViewerTool.PViewerToolCrop
+            : pViewerTool == PViewerTool.PViewerToolCrop ? PViewerTool.PViewerToolNone : pViewerTool;
         pViewerOverlay.Cursor = pCropArmed ? Cursors.Cross : null;
-        pViewerCropBox.Cursor = pViewerTool == PViewerTool.Neutral ? null : Cursors.SizeAll;
+        pViewerCropBox.Cursor = pViewerTool == PViewerTool.PViewerToolNeutral ? null : Cursors.SizeAll;
         PCropOverlayUpdate();
     }
 
@@ -270,13 +270,13 @@ public sealed partial class PViewer
 
     private void PCropPressHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (pViewerTool == PViewerTool.Neutral)
+        if (pViewerTool == PViewerTool.PViewerToolNeutral)
         {
             PViewerPressHandle(mouseEvent);
             return;
         }
 
-        if (pViewerTool != PViewerTool.Crop || pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        if (pViewerTool != PViewerTool.PViewerToolCrop || pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
         {
             return;
         }

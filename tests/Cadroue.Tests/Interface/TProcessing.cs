@@ -4,15 +4,15 @@ namespace Cadroue.Tests;
 
 public sealed class TProcessing
 {
-    public bool CurrentOwnerLives()
+    public bool TProcessingCurrentCheck()
     {
         long stamp = LSentinel.LSentinelStampRead();
         return LSentinel.LSentinelOwnerCheck(Environment.ProcessId, stamp);
     }
 
-    public bool MissingOwnerDetected() => !LSentinel.LSentinelOwnerCheck(int.MaxValue, 1);
+    public bool TProcessingMissingCheck() => !LSentinel.LSentinelOwnerCheck(int.MaxValue, 1);
 
-    public bool LiveRunnerOwnerLives()
+    public bool TProcessingLiveCheck()
     {
         Guid runnerId = Guid.NewGuid();
         LSentinel.LSentinelRunnerAdd(runnerId);
@@ -26,7 +26,7 @@ public sealed class TProcessing
         }
     }
 
-    public bool DeadRunnerOwnerDetected()
+    public bool TProcessingDeadCheck()
     {
         Guid runnerId = Guid.NewGuid();
         return !LSentinel.LSentinelOwnerCheck(Environment.ProcessId, LSentinel.LSentinelStampRead(), runnerId);

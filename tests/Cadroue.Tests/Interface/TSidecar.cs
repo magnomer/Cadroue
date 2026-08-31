@@ -14,20 +14,20 @@ public sealed class TSidecarCollection;
 internal sealed class TSidecar : IDisposable
 {
     internal sealed record TSidecarWaveform(
-        int BucketMilliseconds,
-        long DurationMilliseconds,
-        string Peaks,
-        string Rms);
+        int TSidecarBucketMilliseconds,
+        long TSidecarDurationMilliseconds,
+        string TSidecarPeaks,
+        string TSidecarRms);
 
     internal sealed record TSidecarData(
-        int Version,
-        string FileName,
-        long SourceLength,
-        long DurationMilliseconds,
-        double Loudness,
-        IReadOnlyList<long> Keyframes,
-        IReadOnlyList<int> ScannedSpans,
-        TSidecarWaveform? Waveform);
+        int TSidecarVersion,
+        string TSidecarFileName,
+        long TSidecarSourceLength,
+        long TSidecarDurationMilliseconds,
+        double TSidecarLoudness,
+        IReadOnlyList<long> TSidecarKeyframes,
+        IReadOnlyList<int> TSidecarScannedSpans,
+        TSidecarWaveform? TSidecarWave);
 
     private readonly string tSidecarRoot = Path.Combine(
         Path.GetTempPath(),
@@ -40,23 +40,23 @@ internal sealed class TSidecar : IDisposable
         LSidecarStore.LSidecarFolderSet(tSidecarRoot, true);
     }
 
-    internal static TSidecarData? CoreParse(string json)
+    internal static TSidecarData? TSidecarCoreParse(string json)
     {
         LSidecarCoreRecord? core = LSidecarParse.LSidecarCoreParse(json);
-        return core is null ? null : DataCreate(LSidecarParse.LSidecarCreate(core, null));
+        return core is null ? null : TSidecarDataCreate(LSidecarParse.LSidecarCreate(core, null));
     }
 
-    internal static int SectionCountParse(string json) =>
+    internal static int TSectionCountParse(string json) =>
         LSidecarParse.LSidecarCoreParse(json)?.LSidecarSections.Count ?? 0;
 
-    internal string SourceCreate(string name, string content)
+    internal string TSourceCreate(string name, string content)
     {
         string path = Path.Combine(tSidecarRoot, name);
         File.WriteAllText(path, content, Encoding.UTF8);
         return path;
     }
 
-    internal bool Save(
+    internal bool TSidecarSave(
         string sourcePath,
         TimeSpan duration,
         IReadOnlyCollection<long> keyframes,
@@ -68,23 +68,23 @@ internal sealed class TSidecar : IDisposable
             scannedSpans ?? Array.Empty<int>(),
             spanGridMilliseconds);
 
-    internal TSidecarData? Load(string sourcePath, TimeSpan duration)
+    internal TSidecarData? TSidecarLoad(string sourcePath, TimeSpan duration)
     {
         LSidecar? sidecar = LSidecarStore.LSidecarLoad(
             LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration));
-        return sidecar is null ? null : DataCreate(sidecar);
+        return sidecar is null ? null : TSidecarDataCreate(sidecar);
     }
 
-    internal TSidecarData? Read(string sourcePath)
+    internal TSidecarData? TSidecarRead(string sourcePath)
     {
         LSidecar? sidecar = LSidecarStore.LSidecarRead(LSidecarStore.LSidecarPathRead(sourcePath));
-        return sidecar is null ? null : DataCreate(sidecar);
+        return sidecar is null ? null : TSidecarDataCreate(sidecar);
     }
 
-    internal bool LoudnessSave(string sourcePath, double loudness) =>
+    internal bool TLoudnessSave(string sourcePath, double loudness) =>
         LSidecarStore.LSidecarLoudnessSave(sourcePath, loudness);
 
-    internal bool WaveformSave(
+    internal bool TWaveformSave(
         string sourcePath,
         int bucketMilliseconds,
         long durationMilliseconds,
@@ -100,7 +100,7 @@ internal sealed class TSidecar : IDisposable
                 LSidecarRms = rms
             });
 
-    internal void PersistedCopy(string sourcePath, string destinationPath)
+    internal void TSidecarPersistCopy(string sourcePath, string destinationPath)
     {
         string sourceCore = LSidecarStore.LSidecarPathRead(sourcePath);
         string destinationCore = LSidecarStore.LSidecarPathRead(destinationPath);
@@ -113,9 +113,9 @@ internal sealed class TSidecar : IDisposable
         }
     }
 
-    internal sealed record TSidecarDossier(string Defect, string Kind);
+    internal sealed record TSidecarDossier(string TSidecarDefect, string TSidecarKind);
 
-    internal bool DiagnosisSave(
+    internal bool TDiagnosisSave(
         string sourcePath,
         TimeSpan duration,
         IReadOnlyCollection<TSidecarDossier> dossiers) =>
@@ -125,26 +125,26 @@ internal sealed class TSidecar : IDisposable
             dossiers
                 .Select(dossier => new LSidecarDossier
                 {
-                    LSidecarDefect = dossier.Defect,
-                    LSidecarKind = Enum.Parse<LFlawKind>(dossier.Kind)
+                    LSidecarDefect = dossier.TSidecarDefect,
+                    LSidecarKind = Enum.Parse<LFlawKind>(dossier.TSidecarKind)
                 })
                 .ToList());
 
-    internal IReadOnlyList<TSidecarDossier>? DiagnosisRead(string sourcePath) =>
+    internal IReadOnlyList<TSidecarDossier>? TDiagnosisRead(string sourcePath) =>
         LSidecarCacheStore.LSidecarDiagnosisRead(sourcePath)
             ?.Select(dossier => new TSidecarDossier(dossier.LSidecarDefect, dossier.LSidecarKind.ToString()))
             .ToList();
 
-    internal void SourceReplace(string sourcePath, string content) =>
+    internal void TSidecarSourceSet(string sourcePath, string content) =>
         File.WriteAllText(sourcePath, content, Encoding.UTF8);
 
-    internal void CacheCorrupt(string sourcePath, string content) =>
+    internal void TSidecarCorruptSave(string sourcePath, string content) =>
         File.WriteAllText(
             LSidecarStore.LSidecarCacheResolve(LSidecarStore.LSidecarPathRead(sourcePath)),
             content,
             Encoding.UTF8);
 
-    private static TSidecarData DataCreate(LSidecar sidecar) =>
+    private static TSidecarData TSidecarDataCreate(LSidecar sidecar) =>
         new(
             sidecar.LSidecarVersion,
             sidecar.LSidecarSource.LSidecarFileName,

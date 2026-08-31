@@ -7,11 +7,11 @@ namespace Cadroue.Tests;
 
 internal static class TSalvage
 {
-    internal static IReadOnlyList<LSalvageOutput> PlanOutputs(
+    internal static IReadOnlyList<LSalvageOutput> TSalvagePlanRead(
         IReadOnlyList<LSalvageSpan> spans, LSalvageMode mode, string source, LEncoding output) =>
         LSalvage.LSalvagePlanCreate(spans, mode, source, output);
 
-    internal static LWorkFix PlanCreate(
+    internal static LWorkFix TSalvagePlanCreate(
         bool active,
         LSalvageMode mode,
         bool persistent,
@@ -21,15 +21,15 @@ internal static class TSalvage
             LWorkFixSalvage = new LWorkFixSalvage(active, mode, basis, persistent)
         };
 
-    internal static LWorkFix DefaultCreate() => LWorkFix.LWorkFixCreate();
+    internal static LWorkFix TSalvageDefaultCreate() => LWorkFix.LWorkFixCreate();
 
-    internal static LWorkFix PersistentRoundTrip(LWorkFix plan) =>
+    internal static LWorkFix TSalvagePersistMatch(LWorkFix plan) =>
         LFix.LFixPersistentRead(
             LFix.LFixPersistentCreate(plan), plan.LWorkFixSalvage.LWorkSalvagePersistent);
 
-    internal static LWorkFix PersistentResolve(LWorkFix plan) =>
+    internal static LWorkFix TSalvagePersistResolve(LWorkFix plan) =>
         LFix.LFixPersistentResolve(plan);
 
-    internal static LWorkFix PlanResolve(LWorkFix saved, LWorkFix persistent) =>
+    internal static LWorkFix TSalvagePlanResolve(LWorkFix saved, LWorkFix persistent) =>
         LFix.LFixPlanResolve(saved, persistent);
 }

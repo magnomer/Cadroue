@@ -10,13 +10,13 @@ public sealed class TPreview
     private static readonly object TPreviewGate = new();
 
     public readonly record struct TPreviewResult(
-        int Brightness,
-        int Contrast,
-        int Saturation,
-        int Hue,
-        uint Rotation);
+        int TPreviewBrightness,
+        int TPreviewContrast,
+        int TPreviewSaturation,
+        int TPreviewHue,
+        uint TPreviewRotation);
 
-    public TPreviewResult ApplyState(LPreviewState state)
+    public TPreviewResult TPreviewApply(LPreviewState state)
     {
         lock (TPreviewGate)
         {

@@ -1,76 +1,76 @@
 namespace Cadroue.Core;
 
 public sealed record LCapabilityQuality(
-    string CapabilityQualityLabel,
-    string CapabilityQualityOption,
-    string CapabilityQualityDefault,
-    double? CapabilityQualityMinimum = null,
-    double? CapabilityQualityMaximum = null,
-    bool CapabilityQualityHigherBetter = false,
-    double? CapabilityQualityStep = null)
+    string LCapabilityQualityLabel,
+    string LCapabilityQualityOption,
+    string LCapabilityQualityDefault,
+    double? LCapabilityQualityMinimum = null,
+    double? LCapabilityQualityMaximum = null,
+    bool LCapabilityQualityAscending = false,
+    double? LCapabilityQualityStride = null)
 {
-    public bool LCapabilityQualityBitrate => CapabilityQualityOption is "-b:v" or "-b:a";
+    public bool LCapabilityQualityBitrate => LCapabilityQualityOption is "-b:v" or "-b:a";
 
     public string LCapabilityQualityRange =>
-        CapabilityQualityMinimum is null || CapabilityQualityMaximum is null || LCapabilityQualityBitrate
+        LCapabilityQualityMinimum is null || LCapabilityQualityMaximum is null || LCapabilityQualityBitrate
             ? string.Empty
-            : $"{CapabilityQualityMinimum:0.##}-{CapabilityQualityMaximum:0.##}, "
-              + (CapabilityQualityHigherBetter ? "higher is better" : "lower is better");
+            : $"{LCapabilityQualityMinimum:0.##}-{LCapabilityQualityMaximum:0.##}, "
+              + (LCapabilityQualityAscending ? "higher is better" : "lower is better");
 
     public double LCapabilityQualityStep
     {
         get
         {
-            if (CapabilityQualityStep is double lStep)
+            if (LCapabilityQualityStride is double lStep)
             {
                 return lStep;
             }
 
-            double lMinimum = CapabilityQualityMinimum ?? 0;
-            double lMaximum = CapabilityQualityMaximum ?? 0;
+            double lMinimum = LCapabilityQualityMinimum ?? 0;
+            double lMaximum = LCapabilityQualityMaximum ?? 0;
             return lMinimum == Math.Floor(lMinimum) && lMaximum == Math.Floor(lMaximum) ? 1 : 0.1;
         }
     }
 }
 
 public sealed record LCapabilityMode(
-    string CapabilityModeLabel,
-    LCapabilityQuality? CapabilityModeQuality = null);
+    string LCapabilityModeLabel,
+    LCapabilityQuality? LCapabilityModeQuality = null);
 
-public sealed record LCapabilityChoice(string CapabilityChoiceValue, string CapabilityChoiceLabel)
+public sealed record LCapabilityChoice(string LCapabilityChoiceValue, string LCapabilityChoiceLabel)
 {
     public static implicit operator LCapabilityChoice(string lValue) => new(lValue, lValue);
 }
 
 public sealed record LCapabilitySpeed(
-    string CapabilitySpeedLabel,
-    string CapabilitySpeedOption,
-    string CapabilitySpeedDefault,
-    IReadOnlyList<LCapabilityChoice> CapabilitySpeedValues);
+    string LCapabilitySpeedLabel,
+    string LCapabilitySpeedOption,
+    string LCapabilitySpeedDefault,
+    IReadOnlyList<LCapabilityChoice> LCapabilitySpeedValues);
 
 public sealed record LCapabilityExtra(
-    string CapabilityExtraLabel,
-    string CapabilityExtraOption,
-    string CapabilityExtraDefault,
-    IReadOnlyList<LCapabilityChoice> CapabilityExtraValues);
+    string LCapabilityExtraLabel,
+    string LCapabilityExtraOption,
+    string LCapabilityExtraDefault,
+    IReadOnlyList<LCapabilityChoice> LCapabilityExtraValues);
 
 public sealed record LCapabilityCodec(
-    string CapabilityEncoder,
-    IReadOnlyList<LCapabilityMode> CapabilityModes,
-    LCapabilitySpeed? CapabilitySpeed = null,
-    IReadOnlyList<LCapabilityExtra>? CapabilityExtras = null,
-    string CapabilityNotice = "")
+    string LCapabilityEncoder,
+    IReadOnlyList<LCapabilityMode> LCapabilityModes,
+    LCapabilitySpeed? LCapabilitySpeed = null,
+    IReadOnlyList<LCapabilityExtra>? LCapabilityExtras = null,
+    string LCapabilityNotice = "")
 {
     public IReadOnlyList<LCapabilityExtra> LCapabilityExtraList =>
-        CapabilityExtras ?? [];
+        LCapabilityExtras ?? [];
 
     public string[] LCapabilityModeLabels =>
-        CapabilityModes.Select(lMode => lMode.CapabilityModeLabel).ToArray();
+        LCapabilityModes.Select(lMode => lMode.LCapabilityModeLabel).ToArray();
 
     public LCapabilityMode LCapabilityModeFind(string? lModeLabel) =>
-        CapabilityModes.FirstOrDefault(lMode =>
-            string.Equals(lMode.CapabilityModeLabel, lModeLabel, StringComparison.Ordinal))
-        ?? CapabilityModes[0];
+        LCapabilityModes.FirstOrDefault(lMode =>
+            string.Equals(lMode.LCapabilityModeLabel, lModeLabel, StringComparison.Ordinal))
+        ?? LCapabilityModes[0];
 }
 
 public static class LCapability

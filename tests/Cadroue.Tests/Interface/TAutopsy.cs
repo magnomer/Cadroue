@@ -4,13 +4,13 @@ namespace Cadroue.Tests;
 
 internal static class TAutopsy
 {
-    internal static (int Code, bool Matched, string? Symbol) Resolve(int exitCode)
+    internal static (int Code, bool Matched, string? Symbol) TAutopsyResolve(int exitCode)
     {
         LAutopsyResult result = LAutopsy.LAutopsyResolve(exitCode, string.Empty);
         return (result.LAutopsyResultCode, result.LAutopsyResultMatched, result.LAutopsyResultSymbol);
     }
 
-    internal static (string Simple, string Technical, string? Action) ResolveWithProse(
+    internal static (string Simple, string Technical, string? Action) TAutopsyProseResolve(
         int exitCode, IReadOnlyDictionary<string, string> prose)
     {
         LAutopsyProseReader? previous = LAutopsy.LAutopsyProse;
@@ -26,7 +26,7 @@ internal static class TAutopsy
         }
     }
 
-    internal static (string Simple, string Technical, string? Action) ResolveWithoutProse(int exitCode)
+    internal static (string Simple, string Technical, string? Action) TAutopsyPlainResolve(int exitCode)
     {
         LAutopsyProseReader? previous = LAutopsy.LAutopsyProse;
         try

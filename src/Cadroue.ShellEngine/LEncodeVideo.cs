@@ -37,9 +37,9 @@ internal static class LEncodeVideo
         LCapabilityMode lMode = lCodec.LCapabilityModeFind(lOutput.LEncodingVideo.LEncodingRateControl);
         LEncodeQualityAppend(lArguments, lEncoderName, lMode, lOutput.LEncodingVideo.LEncodingQuality);
 
-        if (lCodec.CapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingSpeedPreset))
+        if (lCodec.LCapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingSpeedPreset))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.CapabilitySpeedOption} {lOutput.LEncodingVideo.LEncodingSpeedPreset}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.LCapabilitySpeedOption} {lOutput.LEncodingVideo.LEncodingSpeedPreset}");
         }
 
         foreach (var lExtra in lOutput.LEncodingVideo.LEncodingExtras)
@@ -61,7 +61,7 @@ internal static class LEncodeVideo
         LCapabilityMode lMode,
         string lQualityValue)
     {
-        if (lMode.CapabilityModeQuality is not LCapabilityQuality lQuality)
+        if (lMode.LCapabilityModeQuality is not LCapabilityQuality lQuality)
         {
             LEncodeLosslessAppend(lArguments, lEncoderName);
             return;
@@ -69,13 +69,13 @@ internal static class LEncodeVideo
 
         if (string.IsNullOrWhiteSpace(lQualityValue))
         {
-            lQualityValue = lQuality.CapabilityQualityDefault;
+            lQualityValue = lQuality.LCapabilityQualityDefault;
         }
 
-        lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality.CapabilityQualityOption} {lQualityValue}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality.LCapabilityQualityOption} {lQualityValue}");
 
         bool lNeedsZeroBitrate = lEncoderName is "libaom-av1" or "libvpx" or "libvpx-vp9";
-        if (lNeedsZeroBitrate && !string.Equals(lQuality.CapabilityQualityOption, LEncodeBitrateOption, StringComparison.Ordinal))
+        if (lNeedsZeroBitrate && !string.Equals(lQuality.LCapabilityQualityOption, LEncodeBitrateOption, StringComparison.Ordinal))
         {
             lArguments.Append(" -b:v 0");
         }

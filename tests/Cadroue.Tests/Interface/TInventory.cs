@@ -4,5 +4,5 @@ namespace Cadroue.Tests;
 
 internal static class TInventory
 {
-    internal static string VersionParse(string output) => LInventory.LInventoryVersionParse(output);
+    internal static string TInventoryVersionParse(string output) => LInventory.LInventoryVersionParse(output);
 }

@@ -22,16 +22,16 @@ internal sealed class TPlacement : IDisposable
         LDepot.LDepotRootSet(tPlacementRoot);
     }
 
-    internal string PathCurrent => Path.Combine(tPlacementRoot, "placement.json");
+    internal string TPlacementPath => Path.Combine(tPlacementRoot, "placement.json");
 
-    internal bool Save(string key, double marker) =>
+    internal bool TPlacementSave(string key, double marker) =>
         LPlacement.LPlacementSave(key, marker, marker + 1, marker + 100, marker + 200);
 
-    internal LPlacementRecord? Read(string key) => LPlacement.LPlacementRead(key);
+    internal LPlacementRecord? TPlacementRead(string key) => LPlacement.LPlacementRead(key);
 
-    internal void Malform() => File.WriteAllText(PathCurrent, "{ invalid placement json");
+    internal void TPlacementMalformSave() => File.WriteAllText(TPlacementPath, "{ invalid placement json");
 
-    internal void BlockWrite() => Directory.CreateDirectory(PathCurrent);
+    internal void TPlacementBlockCreate() => Directory.CreateDirectory(TPlacementPath);
 
     public void Dispose()
     {

@@ -105,7 +105,7 @@ internal sealed partial class PSEncoder : Window
 
     private static LLocalizationChoice[] PSEncoderChoicesRead(IReadOnlyList<LCapabilityChoice> pChoices) =>
         pChoices
-            .Select(pChoice => new LLocalizationChoice(pChoice.CapabilityChoiceValue, string.Empty, pChoice.CapabilityChoiceLabel))
+            .Select(pChoice => new LLocalizationChoice(pChoice.LCapabilityChoiceValue, string.Empty, pChoice.LCapabilityChoiceLabel))
             .ToArray();
 
     public PSEncoder(LPreset lsExportSpecificState, System.Action pRefresh, bool psSmartAllowed = false)

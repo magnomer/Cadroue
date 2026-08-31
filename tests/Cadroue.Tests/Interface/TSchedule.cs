@@ -9,23 +9,23 @@ namespace Cadroue.Tests;
 public sealed class LScheduleCollection { }
 
 internal sealed record TScheduleItem(
-    Guid WorkId,
-    Guid BatchId,
-    string Name,
-    LWorkPriority Priority,
-    LWorkState State,
-    string Message);
+    Guid TWorkId,
+    Guid TScheduleBatchId,
+    string TWorkName,
+    LWorkPriority TSchedulePriority,
+    LWorkState TScheduleState,
+    string TScheduleMessage);
 
 internal sealed class TScheduleWork
 {
     internal TScheduleWork(LWorkItem workItem)
     {
-        WorkItem = workItem;
+        TWorkItem = workItem;
     }
 
-    internal LWorkItem WorkItem { get; }
-    internal Guid WorkId => WorkItem.LWorkId;
-    internal Guid BatchId => WorkItem.LWorkBatchId;
+    internal LWorkItem TWorkItem { get; }
+    internal Guid TWorkId => TWorkItem.LWorkId;
+    internal Guid TScheduleBatchId => TWorkItem.LWorkBatchId;
 }
 
 internal sealed class TSchedule : IDisposable
@@ -46,7 +46,7 @@ internal sealed class TSchedule : IDisposable
         tSchedule.LScheduleLoad();
     }
 
-    internal TScheduleWork WorkCreate(
+    internal TScheduleWork TWorkCreate(
         Guid batchId,
         string name,
         LWorkPriority priority = LWorkPriority.LWorkPriorityNormal,
@@ -57,16 +57,16 @@ internal sealed class TSchedule : IDisposable
             batchId,
             LWorkKind.LWorkKindEdit,
             priority,
-            parent?.WorkItem.LWorkOutputPath ?? Path.Combine(tScheduleRoot, name + ".source"),
+            parent?.TWorkItem.LWorkOutputPath ?? Path.Combine(tScheduleRoot, name + ".source"),
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             name,
             Path.Combine(tScheduleRoot, name + ".output"),
-            WorkCreationOutput.Create(),
+            TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: created));
     }
 
-    internal TScheduleWork WorkCreateOpen(Guid batchId, string name)
+    internal TScheduleWork TWorkCreateOpen(Guid batchId, string name)
     {
         DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
         return new TScheduleWork(new LWorkItem(
@@ -78,36 +78,36 @@ internal sealed class TSchedule : IDisposable
             TimeSpan.Zero,
             name,
             Path.Combine(tScheduleRoot, name + ".output"),
-            WorkCreationOutput.Create(),
+            TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: created));
     }
 
-    internal void DurationSet(Guid workId, TimeSpan duration) =>
+    internal void TScheduleDurationSet(Guid workId, TimeSpan duration) =>
         tSchedule.LScheduleDurationSet(workId, duration);
 
-    internal TimeSpan ReloadedDurationRead(Guid workId)
+    internal TimeSpan TScheduleReloadRead(Guid workId)
     {
         var reloaded = new LSchedule();
         reloaded.LScheduleLoad();
         return reloaded.LScheduleRecords.First(workItem => workItem.LWorkId == workId).LWorkEnd;
     }
 
-    internal int Submit(params TScheduleWork[] work) =>
-        tSchedule.LScheduleAdd(work.Select(item => item.WorkItem).ToArray());
+    internal int TScheduleAdd(params TScheduleWork[] work) =>
+        tSchedule.LScheduleAdd(work.Select(item => item.TWorkItem).ToArray());
 
-    internal TScheduleWork WorkCreateDerived(TScheduleWork origin, string name)
+    internal TScheduleWork TWorkDeriveCreate(TScheduleWork origin, string name)
     {
         DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
         var derived = new LWorkItem(
-            origin.BatchId,
+            origin.TScheduleBatchId,
             LWorkKind.LWorkKindFix,
             LWorkPriority.LWorkPriorityNormal,
-            origin.WorkItem.LWorkSourcePath,
+            origin.TWorkItem.LWorkSourcePath,
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             name,
             Path.Combine(tScheduleRoot, name + ".output"),
-            WorkCreationOutput.Create(),
+            TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: created)
         {
             LWorkStateCurrent = LWorkState.LWorkStateDone,
@@ -116,23 +116,23 @@ internal sealed class TSchedule : IDisposable
         return new TScheduleWork(derived);
     }
 
-    internal int DeliveredAdd(params TScheduleWork[] work) =>
-        tSchedule.LScheduleDeliveredAdd(work.Select(item => item.WorkItem).ToArray()).Count;
+    internal int TScheduleDeliverAdd(params TScheduleWork[] work) =>
+        tSchedule.LScheduleDeliveredAdd(work.Select(item => item.TWorkItem).ToArray()).Count;
 
-    internal Guid LineageRead(TScheduleWork work) => tSchedule.LScheduleLineageRead(work.WorkItem);
+    internal Guid TLineageRead(TScheduleWork work) => tSchedule.LScheduleLineageRead(work.TWorkItem);
 
-    internal void Reload() => tSchedule.LScheduleLoad();
+    internal void TScheduleDiskLoad() => tSchedule.LScheduleLoad();
 
-    internal bool Reorder(Guid batchId, params TScheduleWork[] work) =>
-        tSchedule.LScheduleOrderSet(batchId, work.Select(item => item.WorkId).ToArray());
+    internal bool TScheduleMove(Guid batchId, params TScheduleWork[] work) =>
+        tSchedule.LScheduleOrderSet(batchId, work.Select(item => item.TWorkId).ToArray());
 
-    internal IReadOnlyList<TScheduleItem> PendingRead() =>
-        tSchedule.LSchedulePendingRead().Select(Snapshot).ToArray();
+    internal IReadOnlyList<TScheduleItem> TSchedulePendingRead() =>
+        tSchedule.LSchedulePendingRead().Select(TScheduleSnapshotCreate).ToArray();
 
-    internal IReadOnlyList<TScheduleItem> RecordsRead() =>
-        tSchedule.LScheduleRecords.Select(Snapshot).ToArray();
+    internal IReadOnlyList<TScheduleItem> TScheduleRecordsRead() =>
+        tSchedule.LScheduleRecords.Select(TScheduleSnapshotCreate).ToArray();
 
-    internal TScheduleWork ClaimNext()
+    internal TScheduleWork TScheduleNextClaim()
     {
         LWorkItem workItem = tSchedule.LScheduleClaim(Guid.NewGuid())
             ?? throw new InvalidOperationException("The schedule had no claimable work.");
@@ -140,7 +140,7 @@ internal sealed class TSchedule : IDisposable
         return new TScheduleWork(workItem);
     }
 
-    internal TScheduleWork? TryClaimNext()
+    internal TScheduleWork? TScheduleTryClaim()
     {
         LWorkItem? workItem = tSchedule.LScheduleClaim(Guid.NewGuid());
         if (workItem is null)
@@ -152,38 +152,38 @@ internal sealed class TSchedule : IDisposable
         return new TScheduleWork(workItem);
     }
 
-    internal void Complete(TScheduleWork work, bool succeeded, string message = "")
+    internal void TScheduleCommit(TScheduleWork work, bool succeeded, string message = "")
     {
-        tSchedule.LScheduleCommit(work.WorkItem, succeeded, message);
+        tSchedule.LScheduleCommit(work.TWorkItem, succeeded, message);
         tSchedule.LScheduleLoad();
     }
 
-    internal bool Cancel(TScheduleWork work) =>
-        tSchedule.LScheduleItemCancel(work.WorkItem);
+    internal bool TScheduleCancel(TScheduleWork work) =>
+        tSchedule.LScheduleItemCancel(work.TWorkItem);
 
-    internal int Cancel(params TScheduleWork[] work) =>
-        work.Count(item => tSchedule.LScheduleItemCancel(item.WorkItem));
+    internal int TScheduleCancel(params TScheduleWork[] work) =>
+        work.Count(item => tSchedule.LScheduleItemCancel(item.TWorkItem));
 
-    internal bool Reset(TScheduleWork work) =>
-        tSchedule.LScheduleItemReset(work.WorkId);
+    internal bool TScheduleReset(TScheduleWork work) =>
+        tSchedule.LScheduleItemReset(work.TWorkId);
 
-    internal int RemoveEligible(params TScheduleWork[] work)
+    internal int TScheduleEligibleRemove(params TScheduleWork[] work)
     {
         IReadOnlyList<Guid> removable = tSchedule.LScheduleRemovableRead(
-            work.Select(item => item.WorkId));
+            work.Select(item => item.TWorkId));
         return tSchedule.LScheduleBatchRemove(removable);
     }
 
-    internal int ClearCompleted() => tSchedule.LScheduleDoneClear();
+    internal int TScheduleDoneClear() => tSchedule.LScheduleDoneClear();
 
-    internal int ClearAll() => tSchedule.LScheduleAllClear();
+    internal int TScheduleAllClear() => tSchedule.LScheduleAllClear();
 
-    internal IReadOnlyList<TScheduleItem> ExecutionOrderRead()
+    internal IReadOnlyList<TScheduleItem> TScheduleOrderRead()
     {
         var claimed = new List<TScheduleItem>();
         while (tSchedule.LScheduleClaim(Guid.NewGuid()) is { } workItem)
         {
-            claimed.Add(Snapshot(workItem));
+            claimed.Add(TScheduleSnapshotCreate(workItem));
         }
 
         return claimed;
@@ -204,7 +204,7 @@ internal sealed class TSchedule : IDisposable
         }
     }
 
-    private static TScheduleItem Snapshot(LWorkItem workItem) =>
+    private static TScheduleItem TScheduleSnapshotCreate(LWorkItem workItem) =>
         new(
             workItem.LWorkId,
             workItem.LWorkBatchId,

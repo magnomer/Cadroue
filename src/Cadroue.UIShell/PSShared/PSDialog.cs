@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace Cadroue.UIShell.PSShared;
 
-internal readonly record struct PSDialogTheme(Brush BandFill, int DwmCaption)
+internal readonly record struct PSDialogTheme(Brush PSDialogBandFill, int PSDialogDwmCaption)
 {
     internal static readonly PSDialogTheme PSDialogThemeBlue =
         new(PSHeadline.PSHeadlineBandBlue, PSHeadline.PSHeadlineCaptionBlue);
@@ -20,7 +20,7 @@ internal static class PSDialog
         PSDialogApply(pWindow, pBackground, PSHeadline.PSHeadlineCaptionBlue);
 
     internal static void PSDialogApply(Window pWindow, PSDialogTheme pTheme) =>
-        PSDialogApply(pWindow, pTheme.BandFill, pTheme.DwmCaption);
+        PSDialogApply(pWindow, pTheme.PSDialogBandFill, pTheme.PSDialogDwmCaption);
 
     private static void PSDialogApply(Window pWindow, Brush pBackground, int pCaption)
     {
@@ -68,7 +68,7 @@ internal static class PSDialog
         PSDialogBuild(pWindow, pTitle, pBody, PSHeadline.PSHeadlineBandBlue);
 
     internal static Grid PSDialogBuild(Window pWindow, string? pTitle, FrameworkElement pBody, PSDialogTheme pTheme) =>
-        PSDialogBuild(pWindow, pTitle, pBody, pTheme.BandFill);
+        PSDialogBuild(pWindow, pTitle, pBody, pTheme.PSDialogBandFill);
 
     private static Grid PSDialogBuild(Window pWindow, string? pTitle, FrameworkElement pBody, Brush pBandFill)
     {

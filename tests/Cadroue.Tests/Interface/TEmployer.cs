@@ -8,18 +8,18 @@ namespace Cadroue.Tests;
 
 internal enum TEmployerStatus
 {
-    Succeeded,
-    Failed,
-    Cancelled
+    TEmployerSucceeded,
+    TEmployerFailed,
+    TEmployerCancelled
 }
 
 internal sealed record TEmployerResult(
-    TEmployerStatus Status,
-    int? ExitCode,
-    string Error,
-    IReadOnlyList<string> Output,
-    IReadOnlyList<string> ErrorOutput,
-    Exception? Exception);
+    TEmployerStatus TEmployerState,
+    int? TEmployerExitCode,
+    string TEmployerError,
+    IReadOnlyList<string> TEmployerOutput,
+    IReadOnlyList<string> TEmployerErrorOutput,
+    Exception? TEmployerException);
 
 internal sealed class TEmployerExecution : IDisposable
 {
@@ -32,18 +32,18 @@ internal sealed class TEmployerExecution : IDisposable
     internal TEmployerExecution(Func<CancellationToken, Action<Process>, Task<TEmployerResult>> run)
     {
         tEmployerCancellation = new CancellationTokenSource();
-        Completion = run(tEmployerCancellation.Token, AttachAsync);
+        TEmployerCompletion = run(tEmployerCancellation.Token, TEmployerAttach);
     }
 
-    internal Task<TEmployerResult> Completion { get; }
+    internal Task<TEmployerResult> TEmployerCompletion { get; }
 
-    internal async Task<int> ProcessIdRead()
+    internal async Task<int> TEmployerProcessRead()
     {
         Process process = await tEmployerAttached.Task.WaitAsync(TimeSpan.FromSeconds(10));
         return process.Id;
     }
 
-    internal bool ChildAlive
+    internal bool TEmployerChildAlive
     {
         get
         {
@@ -64,10 +64,10 @@ internal sealed class TEmployerExecution : IDisposable
         }
     }
 
-    internal void Cancel()
+    internal void TEmployerCancel()
     {
         tEmployerCancellation.Cancel();
-        ProcessKill(Volatile.Read(ref tEmployerProcess));
+        TEmployerProcessStop(Volatile.Read(ref tEmployerProcess));
     }
 
     public void Dispose()
@@ -77,21 +77,21 @@ internal sealed class TEmployerExecution : IDisposable
             return;
         }
 
-        Cancel();
+        TEmployerCancel();
         tEmployerCancellation.Dispose();
     }
 
-    private void AttachAsync(Process process)
+    private void TEmployerAttach(Process process)
     {
         Volatile.Write(ref tEmployerProcess, process);
         tEmployerAttached.TrySetResult(process);
         if (tEmployerCancellation.IsCancellationRequested)
         {
-            ProcessKill(process);
+            TEmployerProcessStop(process);
         }
     }
 
-    private static void ProcessKill(Process? process)
+    private static void TEmployerProcessStop(Process? process)
     {
         if (process is null)
         {
@@ -128,16 +128,16 @@ internal sealed class TEmployer : IDisposable
         tEmployerRoot = Path.Combine(Path.GetTempPath(), "Cadroue-EmployerTests-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tEmployerRoot);
         tEmployerScriptPath = Path.Combine(tEmployerRoot, "child.ps1");
-        File.WriteAllText(tEmployerScriptPath, ChildScript, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        File.WriteAllText(tEmployerScriptPath, TEmployerChildScript, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
 
-    internal TEmployerExecution Execute(params string[] arguments) =>
-        ExecuteProgram(PowerShellPathRead(), ScriptPrefixRead(), arguments);
+    internal TEmployerExecution TEmployerStart(params string[] arguments) =>
+        TEmployerProgramStart(TEmployerShellRead(), TEmployerPrefixRead(), arguments);
 
-    internal TEmployerExecution ExecuteMissingProgram()
+    internal TEmployerExecution TEmployerMissingStart()
     {
         string missing = Path.Combine(tEmployerRoot, "missing-" + Guid.NewGuid().ToString("N") + ".exe");
-        return ExecuteProgram(missing, string.Empty, ["success"]);
+        return TEmployerProgramStart(missing, string.Empty, ["success"]);
     }
 
     public void Dispose()
@@ -169,16 +169,16 @@ internal sealed class TEmployer : IDisposable
         }
     }
 
-    private TEmployerExecution ExecuteProgram(string program, string prefix, IReadOnlyList<string> arguments)
+    private TEmployerExecution TEmployerProgramStart(string program, string prefix, IReadOnlyList<string> arguments)
     {
         ObjectDisposedException.ThrowIf(tEmployerDisposed != 0, this);
         var execution = new TEmployerExecution(
-            (token, attach) => Run(program, prefix, ArgumentsJoin(arguments), token, attach));
+            (token, attach) => TEmployerRun(program, prefix, TEmployerArgumentFormat(arguments), token, attach));
         tEmployerExecutions.Add(execution);
         return execution;
     }
 
-    private static async Task<TEmployerResult> Run(
+    private static async Task<TEmployerResult> TEmployerRun(
         string program,
         string prefix,
         string arguments,
@@ -198,7 +198,7 @@ internal sealed class TEmployer : IDisposable
                 output.Enqueue,
                 errorOutput.Enqueue);
             return new TEmployerResult(
-                result.LEmployerExit == 0 ? TEmployerStatus.Succeeded : TEmployerStatus.Failed,
+                result.LEmployerExit == 0 ? TEmployerStatus.TEmployerSucceeded : TEmployerStatus.TEmployerFailed,
                 result.LEmployerExit,
                 result.LEmployerError,
                 output.ToArray(),
@@ -208,7 +208,7 @@ internal sealed class TEmployer : IDisposable
         catch (OperationCanceledException exception) when (token.IsCancellationRequested)
         {
             return new TEmployerResult(
-                TEmployerStatus.Cancelled,
+                TEmployerStatus.TEmployerCancelled,
                 null,
                 string.Join(Environment.NewLine, errorOutput),
                 output.ToArray(),
@@ -218,7 +218,7 @@ internal sealed class TEmployer : IDisposable
         catch (Exception exception)
         {
             return new TEmployerResult(
-                token.IsCancellationRequested ? TEmployerStatus.Cancelled : TEmployerStatus.Failed,
+                token.IsCancellationRequested ? TEmployerStatus.TEmployerCancelled : TEmployerStatus.TEmployerFailed,
                 null,
                 string.Join(Environment.NewLine, errorOutput),
                 output.ToArray(),
@@ -227,19 +227,19 @@ internal sealed class TEmployer : IDisposable
         }
     }
 
-    private string ScriptPrefixRead() =>
-        $"-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File {ArgumentQuote(tEmployerScriptPath)}";
+    private string TEmployerPrefixRead() =>
+        $"-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File {TEmployerQuoteFormat(tEmployerScriptPath)}";
 
-    private static string PowerShellPathRead() => Path.Combine(
+    private static string TEmployerShellRead() => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.System),
         "WindowsPowerShell",
         "v1.0",
         "powershell.exe");
 
-    private static string ArgumentsJoin(IReadOnlyList<string> arguments) =>
-        string.Join(" ", arguments.Select(ArgumentQuote));
+    private static string TEmployerArgumentFormat(IReadOnlyList<string> arguments) =>
+        string.Join(" ", arguments.Select(TEmployerQuoteFormat));
 
-    private static string ArgumentQuote(string argument)
+    private static string TEmployerQuoteFormat(string argument)
     {
         if (argument.Length > 0 && !argument.Any(character => char.IsWhiteSpace(character) || character == '"'))
         {
@@ -270,7 +270,7 @@ internal sealed class TEmployer : IDisposable
         return quoted.Append('\\', backslashes * 2).Append('"').ToString();
     }
 
-    private const string ChildScript = """
+    private const string TEmployerChildScript = """
         param([Parameter(ValueFromRemainingArguments = $true)][string[]]$ChildArguments)
         $mode = $ChildArguments[0]
         switch ($mode) {

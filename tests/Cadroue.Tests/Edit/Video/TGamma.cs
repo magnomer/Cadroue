@@ -1,0 +1,100 @@
+using Cadroue.Core;
+
+using Xunit;
+
+namespace Cadroue.Tests;
+
+public sealed class TGamma
+{
+    [Theory]
+    [InlineData(-150, -100, 0.1)]
+    [InlineData(-50, -50, 0.31622776601683794)]
+    [InlineData(0, 0, 1)]
+    [InlineData(50, 50, 3.1622776601683795)]
+    [InlineData(150, 100, 10)]
+    public void Gamma_Value_IsClampedAndMappedForFfmpeg(
+        double value, double expectedDisplay, double expectedFfmpeg)
+    {
+        LWorkVideoStep step = TInterface.TWorkGammaCreate(true, value);
+
+        Assert.Equal(expectedDisplay, step.LWorkStepValue);
+        Assert.Equal(expectedFfmpeg, step.LWorkFfmpegValue, 12);
+    }
+
+    [Fact]
+    public void MpvOnlyCapability_GatesGammaAndWhitebalanceWithoutChangingStoredSteps()
+    {
+        LWorkVideoStep gamma = TInterface.TWorkGammaCreate(true, 50);
+        LWorkVideoStep whitebalance = TInterface.TWorkWhitebalanceCreate(
+            true, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 137.5);
+        LWorkVideoStep brightness = TInterface.TWorkBrightnessCreate(true, 25);
+        LWorkVideoStep contrast = TInterface.TWorkContrastCreate(true, 125);
+        LWorkVideoStep[] stored = [brightness, gamma, whitebalance, contrast];
+
+        LWorkVideo mpv = TInterface.TEditVideoCreate(stored, true);
+        LWorkVideo flyleaf = TInterface.TEditVideoCreate(stored, false);
+
+        Assert.Equal(stored, mpv.LWorkVideoSteps);
+        Assert.Equal([brightness, contrast], flyleaf.LWorkVideoSteps);
+        Assert.True(gamma.LWorkStepActive);
+        Assert.Equal(50, gamma.LWorkStepValue);
+        Assert.True(whitebalance.LWorkStepActive);
+        Assert.Equal(LWhitebalanceMethod.LWhitebalanceMethodMinmax,
+            TInterface.TWorkWhitebalanceRead(whitebalance).LWorkWhitebalanceMethod);
+        Assert.Equal(137.5, TInterface.TWorkWhitebalanceRead(whitebalance).LWorkWhitebalanceSaturation);
+    }
+
+    [Fact]
+    public void EqCapability_DropsBrightnessContrastGammaSaturationWhenExportLacksEq()
+    {
+        LWorkVideoStep brightness = TInterface.TWorkBrightnessCreate(true, 25);
+        LWorkVideoStep contrast = TInterface.TWorkContrastCreate(true, 125);
+        LWorkVideoStep gamma = TInterface.TWorkGammaCreate(true, 50);
+        LWorkVideoStep saturation = TInterface.TWorkSaturationCreate(true, 130);
+        LWorkVideoStep exposure = TInterface.TWorkExposureCreate(true, 1);
+        LWorkVideoStep whitebalance = TInterface.TWorkWhitebalanceCreate(
+            true, LWhitebalanceMethod.LWhitebalanceMethodMinmax, 137.5);
+        LWorkVideoStep[] stored = [brightness, contrast, gamma, saturation, exposure, whitebalance];
+
+        LWorkVideo eqPresent = TInterface.TEditVideoCreate(stored, true, true);
+        LWorkVideo eqMissing = TInterface.TEditVideoCreate(stored, true, false);
+
+        Assert.Equal(stored, eqPresent.LWorkVideoSteps);
+        Assert.Equal([exposure, whitebalance], eqMissing.LWorkVideoSteps);
+        Assert.True(brightness.LWorkStepActive);
+        Assert.Equal(25, brightness.LWorkStepValue);
+    }
+
+    [Fact]
+    public void Gamma_Factory_ClampsCompletePayloadAndKeepsGlobalCompatibilityValue()
+    {
+        LWorkVideoStep step = TInterface.TWorkGammaCreate(true, -150, -120, 25.5, 150, 120);
+
+        Assert.Equal(-100, step.LWorkStepValue);
+        Assert.NotNull(step.LWorkStepGamma);
+        Assert.Equal(-100, step.LWorkStepGamma.LWorkGammaGlobal);
+        Assert.Equal(-100, step.LWorkStepGamma.LWorkGammaRed);
+        Assert.Equal(25.5, step.LWorkStepGamma.LWorkGammaGreen);
+        Assert.Equal(100, step.LWorkStepGamma.LWorkGammaBlue);
+        Assert.Equal(100, step.LWorkStepGamma.LWorkGammaHighlight);
+    }
+
+    [Fact]
+    public void BrightnessAndContrast_HaveNoGammaPayload()
+    {
+        Assert.Null(TInterface.TWorkBrightnessCreate(true, 10).LWorkStepGamma);
+        Assert.Null(TInterface.TWorkContrastCreate(true, 110).LWorkStepGamma);
+    }
+
+    [Fact]
+    public void Gamma_Diagnostic_ListsOnlyNonNeutralAdvancedValues()
+    {
+        LWorkVideoStep neutral = TInterface.TWorkGammaCreate(true, 20, 0, 0, 0, 0);
+        LWorkVideoStep advanced = TInterface.TWorkGammaCreate(true, 20, -10, 10, 0, 25);
+
+        Assert.Equal("LColorKindGamma 20", TInterface.TWorkDiagnosticRead(neutral));
+        Assert.Equal(
+            "LColorKindGamma 20 (red -10, green 10, highlight 25)",
+            TInterface.TWorkDiagnosticRead(advanced));
+    }
+}

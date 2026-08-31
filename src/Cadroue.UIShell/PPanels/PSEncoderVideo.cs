@@ -130,13 +130,13 @@ internal sealed partial class PSEncoder
 
         LCapabilityCodec pCodec = PSVideoCapabilityRead();
         LCapabilityMode pMode = pCodec.LCapabilityModeFind(PSComboTextRead(psVideoRateCombo));
-        bool pModeStored = string.Equals(pMode.CapabilityModeLabel, lsExportSpecificEdit.LPresetVideo.LPresetRateControl, StringComparison.Ordinal);
+        bool pModeStored = string.Equals(pMode.LCapabilityModeLabel, lsExportSpecificEdit.LPresetVideo.LPresetRateControl, StringComparison.Ordinal);
 
         PSVideoQualityBuild(pMode, pModeStored);
 
-        if (!string.IsNullOrWhiteSpace(pCodec.CapabilityNotice))
+        if (!string.IsNullOrWhiteSpace(pCodec.LCapabilityNotice))
         {
-            psVideoRowsPanel.Children.Add(PSNoticeBuild(pCodec.CapabilityNotice));
+            psVideoRowsPanel.Children.Add(PSNoticeBuild(pCodec.LCapabilityNotice));
         }
 
         PSVideoSpeedBuild(pCodec, pModeStored);
@@ -145,7 +145,7 @@ internal sealed partial class PSEncoder
 
     private void PSVideoQualityBuild(LCapabilityMode pMode, bool pModeStored)
     {
-        if (pMode.CapabilityModeQuality is not LCapabilityQuality pQuality)
+        if (pMode.LCapabilityModeQuality is not LCapabilityQuality pQuality)
         {
             return;
         }
@@ -153,32 +153,32 @@ internal sealed partial class PSEncoder
         string pStored = lsExportSpecificEdit.LPresetVideo.LPresetQuality;
         string pText = pModeStored && !string.IsNullOrWhiteSpace(pStored)
             ? pStored
-            : pQuality.CapabilityQualityDefault;
+            : pQuality.LCapabilityQualityDefault;
 
         psVideoQualityBox = PSEntryBuild(pText, 120);
-        if (pQuality.CapabilityQualityMinimum is double pMinimum && pQuality.CapabilityQualityMaximum is double pMaximum)
+        if (pQuality.LCapabilityQualityMinimum is double pMinimum && pQuality.LCapabilityQualityMaximum is double pMaximum)
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
                 ? PSFaderBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
-                : PSFaderQualityBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psVideoQualityBox, pQuality.CapabilityQualityHigherBetter);
-            psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, pSliderRow));
+                : PSFaderQualityBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psVideoQualityBox, pQuality.LCapabilityQualityAscending);
+            psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.LCapabilityQualityLabel, pSliderRow));
         }
         else
         {
-            psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.CapabilityQualityLabel, psVideoQualityBox));
+            psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.LCapabilityQualityLabel, psVideoQualityBox));
         }
 
         string pRange = pQuality.LCapabilityQualityRange;
         psVideoRowsPanel.Children.Add(PSNoticeBuild(string.IsNullOrEmpty(pRange)
-            ? LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOption", pQuality.CapabilityQualityOption)
-            : LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOptionRange", pQuality.CapabilityQualityOption, pRange)));
+            ? LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOption", pQuality.LCapabilityQualityOption)
+            : LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOptionRange", pQuality.LCapabilityQualityOption, pRange)));
     }
 
     // Speed values are registered faster -> slower, but the slider reads slowest on the
     // left and fastest on the right, so slider position mirrors the choice index.
     private void PSVideoSpeedBuild(LCapabilityCodec pCodec, bool pModeStored)
     {
-        if (pCodec.CapabilitySpeed is not LCapabilitySpeed pSpeed)
+        if (pCodec.LCapabilitySpeed is not LCapabilitySpeed pSpeed)
         {
             return;
         }
@@ -186,16 +186,16 @@ internal sealed partial class PSEncoder
         string pStored = lsExportSpecificEdit.LPresetVideo.LPresetSpeedPreset;
         string pSelected = pModeStored && !string.IsNullOrWhiteSpace(pStored)
             ? pStored
-            : pSpeed.CapabilitySpeedDefault;
+            : pSpeed.LCapabilitySpeedDefault;
 
-        IReadOnlyList<LCapabilityChoice> pChoices = pSpeed.CapabilitySpeedValues;
+        IReadOnlyList<LCapabilityChoice> pChoices = pSpeed.LCapabilitySpeedValues;
         psVideoSpeedChoices = pChoices;
         int pLast = pChoices.Count - 1;
 
         int pIndex = 0;
         for (int pAt = 0; pAt < pChoices.Count; pAt++)
         {
-            if (string.Equals(pChoices[pAt].CapabilityChoiceValue, pSelected, StringComparison.Ordinal))
+            if (string.Equals(pChoices[pAt].LCapabilityChoiceValue, pSelected, StringComparison.Ordinal))
             {
                 pIndex = pAt;
                 break;
@@ -207,17 +207,17 @@ internal sealed partial class PSEncoder
 
         var pText = new TextBlock
         {
-            Text = pChoices[pIndex].CapabilityChoiceLabel,
+            Text = pChoices[pIndex].LCapabilityChoiceLabel,
             Foreground = PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
         };
         pSlider.ValueChanged += (_, _) =>
         {
             int pAt = pLast - Math.Clamp((int)Math.Round(pSlider.Value), 0, pLast);
-            pText.Text = pChoices[pAt].CapabilityChoiceLabel;
+            pText.Text = pChoices[pAt].LCapabilityChoiceLabel;
         };
 
-        psVideoRowsPanel.Children.Add(PSFieldBuild(pSpeed.CapabilitySpeedLabel, PSFaderRowBuild(pSlider, pText)));
+        psVideoRowsPanel.Children.Add(PSFieldBuild(pSpeed.LCapabilitySpeedLabel, PSFaderRowBuild(pSlider, pText)));
     }
 
     private string PSVideoSpeedRead()
@@ -229,7 +229,7 @@ internal sealed partial class PSEncoder
 
         int pLast = psVideoSpeedChoices.Count - 1;
         int pAt = pLast - Math.Clamp((int)Math.Round(psVideoSpeedSlider.Value), 0, pLast);
-        return psVideoSpeedChoices[pAt].CapabilityChoiceValue;
+        return psVideoSpeedChoices[pAt].LCapabilityChoiceValue;
     }
 
     // Index 0 is the Source sentinel; the remaining entries are the ordered rate scale.
@@ -366,14 +366,14 @@ internal sealed partial class PSEncoder
     {
         foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
         {
-            string pSelected = lsExportSpecificEdit.LPresetVideo.LPresetExtras.TryGetValue(pExtra.CapabilityExtraOption, out string? pStored)
-                               && pExtra.CapabilityExtraValues.Any(pChoice => string.Equals(pChoice.CapabilityChoiceValue, pStored, StringComparison.Ordinal))
+            string pSelected = lsExportSpecificEdit.LPresetVideo.LPresetExtras.TryGetValue(pExtra.LCapabilityExtraOption, out string? pStored)
+                               && pExtra.LCapabilityExtraValues.Any(pChoice => string.Equals(pChoice.LCapabilityChoiceValue, pStored, StringComparison.Ordinal))
                 ? pStored
-                : pExtra.CapabilityExtraDefault;
+                : pExtra.LCapabilityExtraDefault;
 
-            ComboBox pCombo = PSComboBuild(pSelected, PSEncoderChoicesRead(pExtra.CapabilityExtraValues));
-            psVideoExtraCombos[pExtra.CapabilityExtraOption] = pCombo;
-            psVideoRowsPanel.Children.Add(PSFieldBuild(pExtra.CapabilityExtraLabel, pCombo));
+            ComboBox pCombo = PSComboBuild(pSelected, PSEncoderChoicesRead(pExtra.LCapabilityExtraValues));
+            psVideoExtraCombos[pExtra.LCapabilityExtraOption] = pCombo;
+            psVideoRowsPanel.Children.Add(PSFieldBuild(pExtra.LCapabilityExtraLabel, pCombo));
         }
     }
 }

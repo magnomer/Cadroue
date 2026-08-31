@@ -21,39 +21,39 @@ internal sealed class TScout : IDisposable
         Directory.CreateDirectory(tScoutRoot);
     }
 
-    internal static LMediaInfo ProbeParse(string output) => LMedia.LMediaFfprobeParse(output);
+    internal static LMediaInfo TScoutProbeParse(string output) => LMedia.LMediaFfprobeParse(output);
 
-    internal static ProcessStartInfo ProbeStartInfo(string sourcePath) =>
+    internal static ProcessStartInfo TScoutProbeCreate(string sourcePath) =>
         LMedia.LMediaFfprobeStart(sourcePath);
 
-    internal static ProcessStartInfo StreamStartInfo(string sourcePath) =>
+    internal static ProcessStartInfo TScoutStreamCreate(string sourcePath) =>
         LScoutStream.LScoutStreamStart(sourcePath);
 
-    internal static TimeSpan? ProbeEndParse(string output, TimeSpan start) => LMedia.LMediaEndParse(output, start);
+    internal static TimeSpan? TScoutEndParse(string output, TimeSpan start) => LMedia.LMediaEndParse(output, start);
 
-    internal LWorkMedia? MediaRead(string path, CancellationToken cancellationToken = default) =>
+    internal LWorkMedia? TMediaRead(string path, CancellationToken cancellationToken = default) =>
         LScout.LScoutMediaRead(path, cancellationToken);
 
-    internal long? InputBytesRead(string sourcePath, string outputPath)
+    internal long? TScoutInputRead(string sourcePath, string outputPath)
     {
-        LWorkItem work = TEncodeCommand.WorkCreate(
+        LWorkItem work = TEncodeCommand.TWorkCreate(
             LWorkKind.LWorkKindConvert,
             sourcePath,
             outputPath,
-            TEncodeCommand.OutputCreate());
+            TEncodeCommand.TOutputCreate());
         return LScout.LScoutInputRead(work);
     }
 
-    internal long? OutputBytesRead(string outputPath) => LScout.LScoutBytesRead(outputPath);
+    internal long? TOutputBytesRead(string outputPath) => LScout.LScoutBytesRead(outputPath);
 
-    internal string FileCreate(string name, int length)
+    internal string TScoutFileCreate(string name, int length)
     {
         string path = Path.Combine(tScoutRoot, name);
         File.WriteAllBytes(path, new byte[length]);
         return path;
     }
 
-    internal string MissingPath(string name) => Path.Combine(tScoutRoot, name);
+    internal string TMediaMissingRead(string name) => Path.Combine(tScoutRoot, name);
 
     public void Dispose()
     {
@@ -72,22 +72,22 @@ internal sealed class TScoutProbe : IDisposable
     private readonly ConcurrentQueue<LMediaProbeResult> tScoutResults = new();
     private readonly ManualResetEventSlim tScoutIdle = new(initialState: true);
     private readonly Func<string, CancellationToken, LMediaInfo> tScoutPreviousReader;
-    private readonly Func<string, CancellationToken, string> tScoutOutputRead;
+    private readonly Func<string, CancellationToken, string> tScoutReader;
     private int tScoutActive;
     private bool tScoutDisposed;
 
     internal TScoutProbe(Func<string, CancellationToken, string> outputRead)
     {
-        tScoutOutputRead = outputRead;
+        tScoutReader = outputRead;
         tScoutPreviousReader = LMediaProbe.LMediaProbeReader;
-        LMediaProbe.LMediaProbeReader = ProbeRead;
-        LMediaProbe.LMediaProbeReady += ProbeHandle;
+        LMediaProbe.LMediaProbeReader = TScoutProbeRead;
+        LMediaProbe.LMediaProbeReady += TScoutProbeHandle;
     }
 
-    internal void Start(string sourcePath, CancellationToken cancellationToken = default) =>
+    internal void TScoutStart(string sourcePath, CancellationToken cancellationToken = default) =>
         LMediaProbe.LMediaProbeDefer(sourcePath, cancellationToken);
 
-    internal IReadOnlyList<LMediaProbeResult> WaitForCount(int count, TimeSpan? timeout = null)
+    internal IReadOnlyList<LMediaProbeResult> TScoutCountRead(int count, TimeSpan? timeout = null)
     {
         var stopwatch = Stopwatch.StartNew();
         TimeSpan limit = timeout ?? TimeSpan.FromSeconds(5);
@@ -99,7 +99,7 @@ internal sealed class TScoutProbe : IDisposable
         return tScoutResults.ToArray();
     }
 
-    internal void WaitForIdle(TimeSpan? timeout = null)
+    internal void TScoutIdleRead(TimeSpan? timeout = null)
     {
         if (!tScoutIdle.Wait(timeout ?? TimeSpan.FromSeconds(5)))
         {
@@ -107,15 +107,15 @@ internal sealed class TScoutProbe : IDisposable
         }
     }
 
-    internal IReadOnlyList<LMediaProbeResult> ResultsRead() => tScoutResults.ToArray();
+    internal IReadOnlyList<LMediaProbeResult> TScoutResultsRead() => tScoutResults.ToArray();
 
-    private LMediaInfo ProbeRead(string sourcePath, CancellationToken cancellationToken)
+    private LMediaInfo TScoutProbeRead(string sourcePath, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref tScoutActive);
         tScoutIdle.Reset();
         try
         {
-            string output = tScoutOutputRead(sourcePath, cancellationToken);
+            string output = tScoutReader(sourcePath, cancellationToken);
             return LMedia.LMediaFfprobeParse(output);
         }
         finally
@@ -127,7 +127,7 @@ internal sealed class TScoutProbe : IDisposable
         }
     }
 
-    private void ProbeHandle(LMediaProbeResult result) => tScoutResults.Enqueue(result);
+    private void TScoutProbeHandle(LMediaProbeResult result) => tScoutResults.Enqueue(result);
 
     public void Dispose()
     {
@@ -137,8 +137,8 @@ internal sealed class TScoutProbe : IDisposable
         }
 
         tScoutDisposed = true;
-        WaitForIdle();
-        LMediaProbe.LMediaProbeReady -= ProbeHandle;
+        TScoutIdleRead();
+        LMediaProbe.LMediaProbeReady -= TScoutProbeHandle;
         LMediaProbe.LMediaProbeReader = tScoutPreviousReader;
         tScoutIdle.Dispose();
     }

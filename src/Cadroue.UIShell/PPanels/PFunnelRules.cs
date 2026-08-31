@@ -84,10 +84,10 @@ public sealed class PFunnelRules : PPanel
         foreach (LSceneFunnelRule pRecord in pRuleRecords)
         {
             PFunnelForm pForm = pRecord.LSceneFunnelRemainder
-                ? PFunnelForm.Remainder
-                : pRecord.LSceneFunnelType == (int)PFunnelForm.Regex
-                    ? PFunnelForm.Regex
-                    : PFunnelForm.Filename;
+                ? PFunnelForm.PFunnelFormRemainder
+                : pRecord.LSceneFunnelType == (int)PFunnelForm.PFunnelFormRegex
+                    ? PFunnelForm.PFunnelFormRegex
+                    : PFunnelForm.PFunnelFormFilename;
             PFunnelRuleRow pRow = PFunnelRuleAdd(pForm);
             pRow.PFunnelRowRestore(pRecord);
         }
@@ -109,7 +109,7 @@ public sealed class PFunnelRules : PPanel
         }
     }
 
-    public PFunnelRuleRow PFunnelRuleAdd(PFunnelForm pForm = PFunnelForm.Filename)
+    public PFunnelRuleRow PFunnelRuleAdd(PFunnelForm pForm = PFunnelForm.PFunnelFormFilename)
     {
         var pRow = new PFunnelRuleRow(pFunnelOptionsSource, pForm);
         pRow.PFunnelRowRemove += PFunnelRuleRemove;
@@ -343,16 +343,16 @@ public sealed class PFunnelRules : PPanel
     {
         MenuItem pFilenameItem = PMenu.PMenuItemCreate(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.Filename"), null);
-        pFilenameItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.Filename);
+        pFilenameItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.PFunnelFormFilename);
 
         MenuItem pRegexItem = PMenu.PMenuItemCreate(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.Regex"), null);
-        pRegexItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.Regex);
+        pRegexItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.PFunnelFormRegex);
 
         MenuItem pRemainderItem = PMenu.PMenuItemCreate(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.Remainder"), null);
         pRemainderItem.IsEnabled = pFunnelRows.All(pRow => !pRow.PFunnelRemainder);
-        pRemainderItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.Remainder);
+        pRemainderItem.Click += (_, _) => PFunnelRuleAdd(PFunnelForm.PFunnelFormRemainder);
 
         var pAddMenu = PMenu.PMenuContextCreate();
         pAddMenu.PlacementTarget = pTarget;

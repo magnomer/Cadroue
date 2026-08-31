@@ -9,16 +9,16 @@ public sealed class LWorkAudioTests
     [Fact]
     public void Format_MixedActivePlan_ProducesOrderedGraph()
     {
-        LWorkAudio audio = TInterface.WorkAudioCreate(new[]
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
         {
-            TInterface.WorkVolumeCreate(true, 4.5),
-            TInterface.WorkHighCreate(true, 120, 1, 2, 0.7),
-            TInterface.WorkEqualizerCreate(true, new[]
+            TInterface.TWorkVolumeCreate(true, 4.5),
+            TInterface.TWorkHighCreate(true, 120, 1, 2, 0.7),
+            TInterface.TWorkEqualizerCreate(true, new[]
             {
-                TInterface.WorkBandCreate(1000, 3),
-                TInterface.WorkBandCreate(4000, -2)
+                TInterface.TWorkBandCreate(1000, 3),
+                TInterface.TWorkBandCreate(4000, -2)
             }),
-            TInterface.WorkNormalizeCreate(true, LLeveling.LLevelingLoudness, -16, -1.5, 8, false, 300, 21, 10, 6)
+            TInterface.TWorkNormalizeCreate(true, LLeveling.LLevelingLoudness, -16, -1.5, 8, false, 300, 21, 10, 6)
         });
 
         Assert.Equal(
@@ -27,16 +27,16 @@ public sealed class LWorkAudioTests
             "equalizer=f=1000:t=q:w=1:g=3," +
             "equalizer=f=4000:t=q:w=1:g=-2," +
             "loudnorm=I=-16:TP=-1.5:LRA=8",
-            TInterface.WorkAudioFormat(audio));
+            TInterface.TWorkAudioFormat(audio));
     }
 
     [Fact]
     public void AudioPlanResolve_PersistentSkipOff_OverridesFileSkipOn()
     {
-        LWorkAudio file = TInterface.WorkAudioCreate(new List<LWorkAudioStep>(), true);
-        LWorkAudio persistent = TInterface.WorkAudioCreate(new List<LWorkAudioStep>(), true);
+        LWorkAudio file = TInterface.TWorkAudioCreate(new List<LWorkAudioStep>(), true);
+        LWorkAudio persistent = TInterface.TWorkAudioCreate(new List<LWorkAudioStep>(), true);
 
-        LWorkAudio resolved = TInterface.AudioPlanResolve(file, persistent, skipPersistent: true, skipApply: false);
+        LWorkAudio resolved = TInterface.TAudioPlanResolve(file, persistent, skipPersistent: true, skipApply: false);
 
         Assert.False(resolved.LWorkAudioSkip);
     }
@@ -44,10 +44,10 @@ public sealed class LWorkAudioTests
     [Fact]
     public void AudioPlanResolve_SkipNotPersistent_KeepsFileSkip()
     {
-        LWorkAudio file = TInterface.WorkAudioCreate(new List<LWorkAudioStep>(), true);
-        LWorkAudio persistent = TInterface.WorkAudioCreate(new List<LWorkAudioStep>(), false);
+        LWorkAudio file = TInterface.TWorkAudioCreate(new List<LWorkAudioStep>(), true);
+        LWorkAudio persistent = TInterface.TWorkAudioCreate(new List<LWorkAudioStep>(), false);
 
-        LWorkAudio resolved = TInterface.AudioPlanResolve(file, persistent, skipPersistent: false, skipApply: false);
+        LWorkAudio resolved = TInterface.TAudioPlanResolve(file, persistent, skipPersistent: false, skipApply: false);
 
         Assert.True(resolved.LWorkAudioSkip);
     }
@@ -55,56 +55,56 @@ public sealed class LWorkAudioTests
     [Fact]
     public void Format_InactiveSteps_AreOmitted()
     {
-        LWorkAudio audio = TInterface.WorkAudioCreate(new[]
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
         {
-            TInterface.WorkVolumeCreate(false, 4.5),
-            TInterface.WorkLowCreate(true, 8000, 1, 1, 0.5)
+            TInterface.TWorkVolumeCreate(false, 4.5),
+            TInterface.TWorkLowCreate(true, 8000, 1, 1, 0.5)
         });
 
-        Assert.Equal("lowpass=f=8000:poles=1:width_type=q:width=0.5", TInterface.WorkAudioFormat(audio));
+        Assert.Equal("lowpass=f=8000:poles=1:width_type=q:width=0.5", TInterface.TWorkAudioFormat(audio));
     }
 
     [Fact]
     public void Format_TwoStageHighPass_RepeatsFragmentTwice()
     {
-        LWorkAudio audio = TInterface.WorkAudioCreate(new[]
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
         {
-            TInterface.WorkHighCreate(true, 120, 2, 2, 0.7)
+            TInterface.TWorkHighCreate(true, 120, 2, 2, 0.7)
         });
 
         Assert.Equal(
             "highpass=f=120:poles=2:width_type=q:width=0.7," +
             "highpass=f=120:poles=2:width_type=q:width=0.7",
-            TInterface.WorkAudioFormat(audio));
+            TInterface.TWorkAudioFormat(audio));
     }
 
     [Fact]
     public void Format_ZeroGainBands_DropOut()
     {
-        LWorkAudio audio = TInterface.WorkAudioCreate(new[]
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
         {
-            TInterface.WorkEqualizerCreate(true, new[]
+            TInterface.TWorkEqualizerCreate(true, new[]
             {
-                TInterface.WorkBandCreate(1000, 3),
-                TInterface.WorkBandCreate(250, 0),
-                TInterface.WorkBandCreate(4000, -2)
+                TInterface.TWorkBandCreate(1000, 3),
+                TInterface.TWorkBandCreate(250, 0),
+                TInterface.TWorkBandCreate(4000, -2)
             })
         });
 
         Assert.Equal(
             "equalizer=f=1000:t=q:w=1:g=3,equalizer=f=4000:t=q:w=1:g=-2",
-            TInterface.WorkAudioFormat(audio));
+            TInterface.TWorkAudioFormat(audio));
     }
 
     [Fact]
     public void Format_AllInactivePlan_YieldsEmpty()
     {
-        LWorkAudio audio = TInterface.WorkAudioCreate(new[]
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
         {
-            TInterface.WorkVolumeCreate(false, 4.5),
-            TInterface.WorkLowCreate(false, 8000, 1, 1, 0.5)
+            TInterface.TWorkVolumeCreate(false, 4.5),
+            TInterface.TWorkLowCreate(false, 8000, 1, 1, 0.5)
         });
 
-        Assert.Equal(string.Empty, TInterface.WorkAudioFormat(audio));
+        Assert.Equal(string.Empty, TInterface.TWorkAudioFormat(audio));
     }
 }

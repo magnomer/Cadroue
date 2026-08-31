@@ -15,15 +15,15 @@ internal sealed class TSceneValue
 {
     internal TSceneValue(LSceneRecord scene)
     {
-        Scene = scene;
+        TSceneData = scene;
     }
 
-    internal LSceneRecord Scene { get; }
+    internal LSceneRecord TSceneData { get; }
 }
 
 internal sealed class TScene : IDisposable
 {
-    private const string SceneStoreName = "LScenePresets.json";
+    private const string TSceneStoreName = "LScenePresets.json";
     private readonly string tSceneRoot;
 
     internal TScene()
@@ -33,78 +33,78 @@ internal sealed class TScene : IDisposable
         LScene.LSceneRootSet(tSceneRoot);
     }
 
-    internal TSceneValue Create(string name, int marker = 1) => new(SceneCreate(name, marker));
+    internal TSceneValue TSceneRecordCreate(string name, int marker = 1) => new(TSceneCreate(name, marker));
 
-    internal void Save(TSceneValue scene) => LScene.LSceneSave(scene.Scene);
+    internal void TSceneSave(TSceneValue scene) => LScene.LSceneSave(scene.TSceneData);
 
-    internal TSceneValue? Read(string name)
+    internal TSceneValue? TSceneRead(string name)
     {
         LSceneRecord? scene = LScene.LSceneRead(name);
         return scene is null ? null : new TSceneValue(scene);
     }
 
-    internal bool Delete(string name) => LScene.LSceneDelete(name);
+    internal bool TSceneDelete(string name) => LScene.LSceneDelete(name);
 
-    internal IReadOnlyList<string> Names => LScene.LSceneNames;
+    internal IReadOnlyList<string> TSceneNames => LScene.LSceneNames;
 
-    internal void Reload() => LScene.LSceneRootSet(tSceneRoot);
+    internal void TSceneDiskLoad() => LScene.LSceneRootSet(tSceneRoot);
 
-    internal bool PersistedFieldsEqual(TSceneValue left, TSceneValue right) =>
-        ValuesEqual(left.Scene, right.Scene);
+    internal bool TScenePersistCheck(TSceneValue left, TSceneValue right) =>
+        TSceneValueCheck(left.TSceneData, right.TSceneData);
 
-    internal TSceneValue ExternalRoundTrip(TSceneValue scene)
+    internal TSceneValue TSceneExternalMatch(TSceneValue scene)
     {
         string path = Path.Combine(tSceneRoot, "external.cadroue-scene");
-        LScene.LSceneFileSave(scene.Scene, path);
+        LScene.LSceneFileSave(scene.TSceneData, path);
         return new TSceneValue(
             LScene.LSceneFileLoad(path)
             ?? throw new InvalidDataException("Production returned no scene for a scene file it saved."));
     }
 
-    internal static LSceneRecord RawCreate() => new();
+    internal static LSceneRecord TSceneRawCreate() => new();
 
-    internal static LSceneTabRecord RawTabCreate() => new();
+    internal static LSceneTabRecord TSceneTabCreate() => new();
 
-    internal static LSceneInspectorRecord RawInspectorCreate() => new();
+    internal static LSceneInspectorRecord TSceneInspectorCreate() => new();
 
-    internal static LSidecarEditRecord RawEditCreate() => new();
+    internal static LSidecarEditRecord TSceneEditCreate() => new();
 
-    internal static LSidecarAudioRecord RawAudioCreate() => new();
+    internal static LSidecarAudioRecord TSceneAudioCreate() => new();
 
-    internal static LSceneRecord Normalize(LSceneRecord? raw) => LScene.LSceneNormalize(raw);
+    internal static LSceneRecord TSceneNormalize(LSceneRecord? raw) => LScene.LSceneNormalize(raw);
 
-    internal static int VersionCurrent => LScene.LSceneVersionCurrent;
+    internal static int TSceneVersionCurrent => LScene.LSceneVersionCurrent;
 
-    internal static IReadOnlyList<LSceneRecord> CatalogueNormalize(List<LSceneRecord>? raw) =>
+    internal static IReadOnlyList<LSceneRecord> TSceneCatalogueNormalize(List<LSceneRecord>? raw) =>
         LScene.LSceneCatalogueNormalize(raw);
 
-    internal void MalformStorage()
+    internal void TSceneMalformSave()
     {
-        File.WriteAllText(Path.Combine(tSceneRoot, SceneStoreName), "{ definitely-not-a-scene");
+        File.WriteAllText(Path.Combine(tSceneRoot, TSceneStoreName), "{ definitely-not-a-scene");
     }
 
-    internal bool Match(TSceneValue left, TSceneValue right) =>
-        LScene.LSceneMatch(left.Scene, right.Scene);
+    internal bool TSceneMatch(TSceneValue left, TSceneValue right) =>
+        LScene.LSceneMatch(left.TSceneData, right.TSceneData);
 
-    internal void ChangeMeaningfulField(TSceneValue scene)
+    internal void TSceneFieldChange(TSceneValue scene)
     {
-        scene.Scene.LSceneTabLayouts[0].LSceneAutoRelay =
-            !scene.Scene.LSceneTabLayouts[0].LSceneAutoRelay;
+        scene.TSceneData.LSceneTabLayouts[0].LSceneAutoRelay =
+            !scene.TSceneData.LSceneTabLayouts[0].LSceneAutoRelay;
     }
 
-    internal void ChangeMatchIgnoredName(TSceneValue scene, string name)
+    internal void TSceneNameChange(TSceneValue scene, string name)
     {
-        scene.Scene.LSceneName = name;
+        scene.TSceneData.LSceneName = name;
     }
 
-    internal void ChangeTabIndex(TSceneValue scene) => scene.Scene.LSceneTabIndex = 0;
+    internal void TSceneTabChange(TSceneValue scene) => scene.TSceneData.LSceneTabIndex = 0;
 
-    internal void ChangePanelWidths(TSceneValue scene) =>
-        scene.Scene.LSceneTabLayouts[0].LScenePanelWidths.Add(999);
+    internal void TSceneWidthChange(TSceneValue scene) =>
+        scene.TSceneData.LSceneTabLayouts[0].LScenePanelWidths.Add(999);
 
-    internal void ScalePanelWidths(TSceneValue scene, double scale)
+    internal void TSceneScaleCreate(TSceneValue scene, double scale)
     {
-        foreach (LSceneTabRecord layout in scene.Scene.LSceneTabLayouts)
+        foreach (LSceneTabRecord layout in scene.TSceneData.LSceneTabLayouts)
         {
             for (int index = 0; index < layout.LScenePanelWidths.Count; index++)
             {
@@ -113,29 +113,29 @@ internal sealed class TScene : IDisposable
         }
     }
 
-    internal void ChangeMatchIgnoredVersion(TSceneValue scene) =>
-        scene.Scene.LSceneVersion = 0;
+    internal void TSceneVersionChange(TSceneValue scene) =>
+        scene.TSceneData.LSceneVersion = 0;
 
-    internal void ReverseMeaningfulCollection(TSceneValue scene) =>
-        scene.Scene.LSceneTabNames.Reverse();
+    internal void TSceneReverseCreate(TSceneValue scene) =>
+        scene.TSceneData.LSceneTabNames.Reverse();
 
-    internal void ReversePanelWidths(TSceneValue scene)
+    internal void TSceneWidthCreate(TSceneValue scene)
     {
-        foreach (LSceneTabRecord layout in scene.Scene.LSceneTabLayouts)
+        foreach (LSceneTabRecord layout in scene.TSceneData.LSceneTabLayouts)
         {
             layout.LScenePanelWidths.Reverse();
         }
     }
 
-    internal void SaveAsCurrent(TSceneValue scene)
+    internal void TSceneCurrentSave(TSceneValue scene)
     {
-        LScene.LSceneStateSave(scene.Scene);
+        LScene.LSceneStateSave(scene.TSceneData);
         LScene.LSceneCurrentLoad();
     }
 
-    internal string CurrentName => LScene.LSceneCurrent.LSceneName;
+    internal string TSceneCurrentName => LScene.LSceneCurrent.LSceneName;
 
-    internal string ActiveName => LScene.LSceneActiveName;
+    internal string TSceneActiveName => LScene.LSceneActiveName;
 
     public void Dispose()
     {
@@ -149,7 +149,7 @@ internal sealed class TScene : IDisposable
         }
     }
 
-    private static LSceneRecord SceneCreate(string name, int marker)
+    private static LSceneRecord TSceneCreate(string name, int marker)
     {
         return new LSceneRecord
         {
@@ -157,14 +157,14 @@ internal sealed class TScene : IDisposable
             LSceneName = name,
             LSceneLayoutKeys = new() { $"layout-{marker}", $"layout-{marker + 1}" },
             LSceneTabNames = new() { $"tab-{marker}", $"tab-{marker + 1}" },
-            LSceneTabExports = new() { PresetCreate(marker), PresetCreate(marker + 1) },
-            LSceneTabLayouts = new() { LayoutCreate(marker), LayoutCreate(marker + 1) },
+            LSceneTabExports = new() { TPresetCreate(marker), TPresetCreate(marker + 1) },
+            LSceneTabLayouts = new() { TSceneLayoutCreate(marker), TSceneLayoutCreate(marker + 1) },
             LSceneTabRelays = new() { marker + 10, marker + 20 },
             LSceneTabIndex = 1
         };
     }
 
-    private static LPresetRecord PresetCreate(int marker)
+    private static LPresetRecord TPresetCreate(int marker)
     {
         return new LPresetRecord
         {
@@ -205,15 +205,15 @@ internal sealed class TScene : IDisposable
         };
     }
 
-    private static LSceneTabRecord LayoutCreate(int marker)
+    private static LSceneTabRecord TSceneLayoutCreate(int marker)
     {
         return new LSceneTabRecord
         {
             LScenePanelWidths = new() { marker + 0.25, marker + 0.75 },
             LSceneExportHidden = true,
             LScenePanelsCollapsed = new() { marker, marker + 1 },
-            LSceneFunnelRules = new() { FunnelRuleCreate(marker) },
-            LSceneInspector = InspectorCreate(marker),
+            LSceneFunnelRules = new() { TFunnelRuleCreate(marker) },
+            LSceneInspector = TInspectorCreate(marker),
             LSceneGroupAuto = true,
             LSceneGroupStrict = false,
             LSceneGroupMode = LSeriesNameMode.LSeriesNameFirst,
@@ -221,14 +221,14 @@ internal sealed class TScene : IDisposable
         };
     }
 
-    private static LSceneFunnelRule FunnelRuleCreate(int marker)
+    private static LSceneFunnelRule TFunnelRuleCreate(int marker)
     {
         return new LSceneFunnelRule
         {
-            LSceneFunnelContains = FunnelMatchCreate("contains", marker),
-            LSceneFunnelPrefix = FunnelMatchCreate("start", marker),
-            LSceneFunnelEnd = FunnelMatchCreate("end", marker),
-            LSceneFunnelExtension = FunnelMatchCreate("extension", marker),
+            LSceneFunnelContains = TFunnelMatchCreate("contains", marker),
+            LSceneFunnelPrefix = TFunnelMatchCreate("start", marker),
+            LSceneFunnelEnd = TFunnelMatchCreate("end", marker),
+            LSceneFunnelExtension = TFunnelMatchCreate("extension", marker),
             LSceneFunnelType = marker,
             LSceneFunnelRegex = $"regex-{marker}",
             LSceneFunnelWhole = true,
@@ -236,7 +236,7 @@ internal sealed class TScene : IDisposable
         };
     }
 
-    private static LSceneFunnelMatch FunnelMatchCreate(string kind, int marker) =>
+    private static LSceneFunnelMatch TFunnelMatchCreate(string kind, int marker) =>
         new()
         {
             LSceneFunnelText = $"{kind}-{marker}",
@@ -244,7 +244,7 @@ internal sealed class TScene : IDisposable
             LSceneFunnelJoin = false
         };
 
-    private static LSceneInspectorRecord InspectorCreate(int marker)
+    private static LSceneInspectorRecord TInspectorCreate(int marker)
     {
         return new LSceneInspectorRecord
         {
@@ -319,7 +319,7 @@ internal sealed class TScene : IDisposable
         };
     }
 
-    private static bool ValuesEqual(object? left, object? right)
+    private static bool TSceneValueCheck(object? left, object? right)
     {
         if (ReferenceEquals(left, right))
         {
@@ -355,7 +355,7 @@ internal sealed class TScene : IDisposable
                     return true;
                 }
 
-                if (!ValuesEqual(leftIterator.Current, rightIterator.Current))
+                if (!TSceneValueCheck(leftIterator.Current, rightIterator.Current))
                 {
                     return false;
                 }
@@ -364,6 +364,6 @@ internal sealed class TScene : IDisposable
 
         return type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .Where(property => property.CanRead && property.GetIndexParameters().Length == 0)
-            .All(property => ValuesEqual(property.GetValue(left), property.GetValue(right)));
+            .All(property => TSceneValueCheck(property.GetValue(left), property.GetValue(right)));
     }
 }

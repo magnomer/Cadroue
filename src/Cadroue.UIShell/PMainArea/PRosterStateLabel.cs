@@ -1,10 +1,8 @@
-using System.Globalization;
-using System.Windows.Data;
 using Cadroue.Core;
 
 namespace Cadroue.UIShell.PMainArea;
 
-public sealed class PRosterStateLabel : IValueConverter
+public static class PRosterStateLabel
 {
     internal static string PRosterStateFormat(LWorkState pWorkState) => pWorkState switch
     {
@@ -18,10 +16,4 @@ public sealed class PRosterStateLabel : IValueConverter
         LWorkState.LWorkStateCancelled => LLocalization.LLocalizationTextRead("Roster.State.Cancelled"),
         _ => pWorkState.ToString()
     };
-
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is LWorkState pWorkState ? PRosterStateFormat(pWorkState) : string.Empty;
-
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
 }

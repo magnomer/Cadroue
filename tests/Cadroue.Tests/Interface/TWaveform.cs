@@ -7,22 +7,22 @@ using Cadroue.Media;
 
 namespace Cadroue.Tests;
 
-internal sealed record TWaveformScanData(byte[] Peaks, byte[] Rms);
+internal sealed record TWaveformScanData(byte[] TWaveformPeaks, byte[] TWaveformRms);
 
 internal sealed record TWaveformRecord(
-    int BucketMilliseconds,
-    long DurationMilliseconds,
-    string Peaks,
-    string Rms);
+    int TWaveformBucketMilliseconds,
+    long TWaveformDurationMilliseconds,
+    string TWaveformPeaks,
+    string TWaveformRms);
 
 internal sealed record TWaveformCacheData(
-    string FileName,
-    long SourceLength,
-    long SourceWriteTicks,
-    long SourceDurationMilliseconds,
-    string SourcePartialHash,
-    byte[] Peaks,
-    byte[] Rms);
+    string TWaveformFileName,
+    long TWaveformSourceLength,
+    long TWaveformSourceTicks,
+    long TWaveformSourceDuration,
+    string TWaveformSourceHash,
+    byte[] TWaveformPeaks,
+    byte[] TWaveformRms);
 
 internal sealed class TWaveform : IDisposable
 {
@@ -37,40 +37,40 @@ internal sealed class TWaveform : IDisposable
         LSidecarStore.LSidecarFolderSet(tWaveformRoot, true);
     }
 
-    internal static int BucketMilliseconds => LWaveform.LWaveformBucketMilliseconds;
+    internal static int TWaveformBucketMilliseconds => LWaveform.LWaveformBucketMilliseconds;
 
-    internal static int PeakMaximum => LWaveform.LWaveformPeakMaximum;
+    internal static int TWaveformPeakMaximum => LWaveform.LWaveformPeakMaximum;
 
-    internal static double[] RangeRead(
+    internal static double[] TWaveformRangeRead(
         byte[] peaks,
         TimeSpan rangeStart,
         TimeSpan rangeEnd,
         int columnCount) =>
         LWaveform.LWaveformRangeRead(peaks, rangeStart, rangeEnd, columnCount);
 
-    internal static TWaveformRecord RecordCreate(
+    internal static TWaveformRecord TWaveformRecordCreate(
         IReadOnlyCollection<byte> peaks,
         IReadOnlyCollection<byte> rms,
         TimeSpan duration) =>
-        Snapshot(LWaveform.LWaveformRecordCreate(peaks, rms, duration));
+        TWaveformSnapshotCreate(LWaveform.LWaveformRecordCreate(peaks, rms, duration));
 
-    internal static byte[] PeaksRead(TWaveformRecord? record) =>
-        LWaveform.LWaveformPeaksRead(ProductionRecordCreate(record));
+    internal static byte[] TWaveformPeaksRead(TWaveformRecord? record) =>
+        LWaveform.LWaveformPeaksRead(TWaveformProductionCreate(record));
 
-    internal static byte[] RmsRead(TWaveformRecord? record) =>
-        LWaveform.LWaveformRmsRead(ProductionRecordCreate(record));
+    internal static byte[] TWaveformRmsRead(TWaveformRecord? record) =>
+        LWaveform.LWaveformRmsRead(TWaveformProductionCreate(record));
 
-    internal static bool RecordMatch(TWaveformRecord? record, TimeSpan duration) =>
-        LWaveform.LWaveformRecordMatch(ProductionRecordCreate(record), duration);
+    internal static bool TWaveformRecordMatch(TWaveformRecord? record, TimeSpan duration) =>
+        LWaveform.LWaveformRecordMatch(TWaveformProductionCreate(record), duration);
 
-    internal string SourceCreate(string name, string content)
+    internal string TSourceCreate(string name, string content)
     {
         string path = Path.Combine(tWaveformRoot, name);
         File.WriteAllText(path, content, Encoding.UTF8);
         return path;
     }
 
-    internal TWaveformCacheData? CacheSave(
+    internal TWaveformCacheData? TKeyframeCacheSave(
         string sourcePath,
         TimeSpan duration,
         IReadOnlyCollection<byte> peaks,
@@ -83,10 +83,10 @@ internal sealed class TWaveform : IDisposable
             return null;
         }
 
-        return CacheLoad(sourcePath, duration);
+        return TKeyframeCacheLoad(sourcePath, duration);
     }
 
-    internal TWaveformCacheData? CacheLoad(string sourcePath, TimeSpan duration)
+    internal TWaveformCacheData? TKeyframeCacheLoad(string sourcePath, TimeSpan duration)
     {
         LKeyframeSourceIdentity identity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration);
         LSidecar? sidecar = LSidecarStore.LSidecarLoad(identity);
@@ -105,7 +105,7 @@ internal sealed class TWaveform : IDisposable
             LWaveform.LWaveformRmsRead(waveform));
     }
 
-    internal string? MediaCreate(string name, string lavfi)
+    internal string? TMediaCreate(string name, string lavfi)
     {
         string path = Path.Combine(tWaveformRoot, name);
         var start = new ProcessStartInfo(LTool.LToolFfmpegRead())
@@ -132,16 +132,16 @@ internal sealed class TWaveform : IDisposable
         }
     }
 
-    internal static TWaveformScanData Scan(string sourcePath, TimeSpan duration, string? filterGraph = null)
+    internal static TWaveformScanData TWaveformScan(string sourcePath, TimeSpan duration, string? filterGraph = null)
     {
         LWaveformScanResult result = LWaveformScanner.LWaveformScan(sourcePath, duration, default, filterGraph);
         return new TWaveformScanData(result.LWaveformPeaks, result.LWaveformRms);
     }
 
-    internal void SourceReplace(string sourcePath, string content) =>
+    internal void TWaveformSourceSet(string sourcePath, string content) =>
         File.WriteAllText(sourcePath, content, Encoding.UTF8);
 
-    internal void CacheCorrupt(string sourcePath, string content) =>
+    internal void TWaveformCorruptSave(string sourcePath, string content) =>
         File.WriteAllText(
             LSidecarStore.LSidecarCacheResolve(LSidecarStore.LSidecarPathRead(sourcePath)),
             content,
@@ -165,21 +165,21 @@ internal sealed class TWaveform : IDisposable
         }
     }
 
-    private static TWaveformRecord Snapshot(LSidecarWaveformRecord record) =>
+    private static TWaveformRecord TWaveformSnapshotCreate(LSidecarWaveformRecord record) =>
         new(
             record.LSidecarBucketMilliseconds,
             record.LSidecarDurationMilliseconds,
             record.LSidecarPeaks,
             record.LSidecarRms);
 
-    private static LSidecarWaveformRecord? ProductionRecordCreate(TWaveformRecord? record) =>
+    private static LSidecarWaveformRecord? TWaveformProductionCreate(TWaveformRecord? record) =>
         record is null
             ? null
             : new LSidecarWaveformRecord
             {
-                LSidecarBucketMilliseconds = record.BucketMilliseconds,
-                LSidecarDurationMilliseconds = record.DurationMilliseconds,
-                LSidecarPeaks = record.Peaks,
-                LSidecarRms = record.Rms
+                LSidecarBucketMilliseconds = record.TWaveformBucketMilliseconds,
+                LSidecarDurationMilliseconds = record.TWaveformDurationMilliseconds,
+                LSidecarPeaks = record.TWaveformPeaks,
+                LSidecarRms = record.TWaveformRms
             };
 }

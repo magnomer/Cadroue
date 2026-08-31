@@ -145,43 +145,43 @@ public sealed partial class PRoster
         pSourceStack.Children.Add(PRosterOpenBuild(pWorkItem.LWorkSourcePath));
         pOutputStack.Children.Add(PRosterOpenBuild(pWorkItem.LWorkOutputPath));
 
-        void PairAdd(string pLeft, string pRight, bool pHeader)
+        void PRosterPairAdd(string pLeft, string pRight, bool pHeader)
         {
             pSourceStack.Children.Add(PRosterLineBuild(pLeft, pHeader));
             pOutputStack.Children.Add(PRosterLineBuild(pRight, pHeader, !pHeader && !string.Equals(pLeft, pRight, StringComparison.Ordinal)));
         }
 
-        PairAdd(
+        PRosterPairAdd(
             LLocalization.LLocalizationTextRead("Roster.Section.Source"),
             LLocalization.LLocalizationTextRead("Roster.Section.Output"), true);
-        PairAdd(
+        PRosterPairAdd(
             pSourceBytes is { } pSourceByteValue && pSourceByteValue >= 0
                 ? PRosterMebiFormat(pSourceBytes)
                 : pSourceUnknown,
             PRosterMebiFormat(pOutputBytes), false);
-        PairAdd(
+        PRosterPairAdd(
             pSourceInfo is null ? pSourceUnknown : PRosterDimensionFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
             pOutputInfo is { LWorkMediaVideo: true }
                 ? $"{pOutputInfo.LWorkMediaWidth} x {pOutputInfo.LWorkMediaHeight}"
                 : PRosterDimensionFormat(pOutput.LEncodingVideo.LEncodingSize), false);
-        PairAdd(
+        PRosterPairAdd(
             pSourceInfo is null ? pSourceUnknown : PRosterFpsFormat(pSourceInfo, pWorkItem.LWorkSourcePath),
             pOutputInfo is { LWorkMediaVideo: true }
                 ? $"{pOutputInfo.LWorkMediaFramerate:0.###} fps"
                 : PRosterFpsFormat(pOutput.LEncodingVideo.LEncodingFps), false);
-        PairAdd(
+        PRosterPairAdd(
             pSourceInfo?.LWorkKeyframeInterval is { } pSourceInterval && pSourceInterval > 0
                 ? PRosterRateFormat(pSourceInterval / 1000d)
                 : pSourceUnknown,
             PRosterRateFormat(pOutputInfo?.LWorkKeyframeInterval is { } pOutputInterval && pOutputInterval > 0
                 ? pOutputInterval / 1000d
                 : null), false);
-        PairAdd(
+        PRosterPairAdd(
             pSourceInfo is null
                 ? pSourceUnknown
                 : PRosterClockFormat(pSourceInfo.LWorkMediaDuration),
             PRosterClockFormat(pOutputInfo?.LWorkMediaDuration ?? pWorkItem.LWorkDuration), false);
-        PairAdd(
+        PRosterPairAdd(
             PRosterContainerFormat(pWorkItem.LWorkSourcePath),
             PRosterContainerFormat(pWorkItem.LWorkOutputPath), false);
 

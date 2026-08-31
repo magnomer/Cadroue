@@ -18,14 +18,14 @@ internal sealed class TEncodeCommand : IDisposable
 {
     private readonly string tDepotRoot = Path.Combine(
         Path.GetTempPath(), "Cadroue.Tests", "EncodeCommand", Guid.NewGuid().ToString("N"));
-    private bool tDisposed;
+    private bool tEncodeDisposed;
 
     internal TEncodeCommand()
     {
         LDepot.LDepotRootSet(tDepotRoot);
     }
 
-    internal static LEncoding OutputCreate(
+    internal static LEncoding TOutputCreate(
         string container = "mp4",
         string extension = "mp4",
         string videoStream = "Include",
@@ -59,7 +59,7 @@ internal sealed class TEncodeCommand : IDisposable
                 audioExtras ?? new Dictionary<string, string>(), audioSampleRate, audioChannels),
             "Command test", "Overwrite", "_1");
 
-    internal static LWorkItem WorkCreate(
+    internal static LWorkItem TWorkCreate(
         LWorkKind kind,
         string source,
         string outputPath,
@@ -76,31 +76,31 @@ internal sealed class TEncodeCommand : IDisposable
             Path.GetFileName(outputPath), outputPath, output,
             lWorkCrop: crop, lWorkVideo: video, lWorkAudio: audio, lWorkMergeSources: mergeSources);
 
-    internal static IReadOnlyList<LEncodeStage> StagesBuild(LWorkItem work) =>
+    internal static IReadOnlyList<LEncodeStage> TEncodeStagesBuild(LWorkItem work) =>
         LEncode.LEncodeStagesBuild(work);
 
-    internal static void SourcePixelApply(LWorkItem work, string pixel) =>
+    internal static void TSourcePixelApply(LWorkItem work, string pixel) =>
         work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 120_000, true)
         {
             LWorkMediaPixel = pixel
         };
 
-    internal static IReadOnlyList<string> VideoEncodersRead() =>
+    internal static IReadOnlyList<string> TVideoEncodersRead() =>
         LRepertoireCatalog.LRepertoireEncodersRead()
             .Select(encoder => encoder.LRepertoireTokens[0])
             .Distinct(StringComparer.Ordinal)
             .OrderBy(encoder => encoder, StringComparer.Ordinal)
             .ToArray();
 
-    internal static LWorkItem SmartWorkCreate(
+    internal static LWorkItem TBridgeWorkCreate(
         string source, string output, string codec = "h264", bool copyMode = true,
         string audioCodec = "aac", int sampleRate = 48000, string audioMode = "Copy",
         string audioStream = "Include")
     {
         LEncoding encoding = copyMode
-            ? OutputCreate(videoMode: "Smart", audioStream: audioStream, audioMode: audioMode)
-            : OutputCreate();
-        LWorkItem work = WorkCreate(
+            ? TOutputCreate(videoMode: "Smart", audioStream: audioStream, audioMode: audioMode)
+            : TOutputCreate();
+        LWorkItem work = TWorkCreate(
             LWorkKind.LWorkKindSplit, source, output, encoding,
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
         work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 30_000, true)
@@ -112,7 +112,7 @@ internal sealed class TEncodeCommand : IDisposable
         return work;
     }
 
-    internal static LBridgeStream SourceStreamCreate(
+    internal static LBridgeStream TSourceStreamCreate(
         string codec = "h264",
         string profile = "High",
         string pixel = "yuv420p",
@@ -120,7 +120,7 @@ internal sealed class TEncodeCommand : IDisposable
         string timeBase = "1/30000") =>
         new(codec, profile, pixel, "bt709", "bt709", "bt709", "tv", "30000/1001", bitrate, timeBase);
 
-    internal static IReadOnlyList<LEncodeStage> SmartStagesBuild(
+    internal static IReadOnlyList<LEncodeStage> TBridgeStagesBuild(
         LWorkItem work,
         LBridgeOutcome outcome,
         (double origin, double end) interval,
@@ -133,14 +133,14 @@ internal sealed class TEncodeCommand : IDisposable
             work,
             new LBridgePlan(
                 outcome,
-                SpanCreate(interval),
-                head is { } tHead ? SpanCreate(tHead) : null,
-                middle is { } tMiddle ? SpanCreate(tMiddle) : null,
-                tail is { } tTail ? SpanCreate(tTail) : null),
-            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"),
+                TBridgeSpanCreate(interval),
+                head is { } tHead ? TBridgeSpanCreate(tHead) : null,
+                middle is { } tMiddle ? TBridgeSpanCreate(tMiddle) : null,
+                tail is { } tTail ? TBridgeSpanCreate(tTail) : null),
+            source ?? TSourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"),
             intermediateExtension);
 
-    internal static IReadOnlyList<LEncodeStage> SmartResolveBuild(
+    internal static IReadOnlyList<LEncodeStage> TBridgeResolveBuild(
         LWorkItem work,
         LBridgeOutcome outcome,
         (double origin, double end) interval,
@@ -152,13 +152,13 @@ internal sealed class TEncodeCommand : IDisposable
             work,
             new LBridgePlan(
                 outcome,
-                SpanCreate(interval),
-                head is { } tHead ? SpanCreate(tHead) : null,
-                middle is { } tMiddle ? SpanCreate(tMiddle) : null,
-                tail is { } tTail ? SpanCreate(tTail) : null),
-            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
+                TBridgeSpanCreate(interval),
+                head is { } tHead ? TBridgeSpanCreate(tHead) : null,
+                middle is { } tMiddle ? TBridgeSpanCreate(tMiddle) : null,
+                tail is { } tTail ? TBridgeSpanCreate(tTail) : null),
+            source ?? TSourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
 
-    internal static IReadOnlyList<LEncodeStage> SmartPlanBuild(
+    internal static IReadOnlyList<LEncodeStage> TBridgePlanBuild(
         LWorkItem work,
         LBridgePlan plan,
         LBridgeStream? source = null,
@@ -166,47 +166,47 @@ internal sealed class TEncodeCommand : IDisposable
         LEncode.LEncodeSmartBuild(
             work,
             plan,
-            source ?? SourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"),
+            source ?? TSourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"),
             intermediateExtension);
 
-    internal static IReadOnlyList<LEncodeStage> SmartDecodedStagesBuild(
+    internal static IReadOnlyList<LEncodeStage> TBridgeDecodeBuild(
         LWorkItem work,
         (double origin, double end) interval,
         (double origin, double end)? head,
         (double origin, double end, double decodeEnd) middle,
         (double origin, double end)? tail,
         LBridgeStream? source = null) =>
-        SmartPlanBuild(
+        TBridgePlanBuild(
             work,
             new LBridgePlan(
                 LBridgeOutcome.LBridgeOutcomeSmart,
-                SpanCreate(interval),
-                head is { } tHead ? SpanCreate(tHead) : null,
+                TBridgeSpanCreate(interval),
+                head is { } tHead ? TBridgeSpanCreate(tHead) : null,
                 new LBridgeSpan(
                     TimeSpan.FromSeconds(middle.origin),
                     TimeSpan.FromSeconds(middle.end),
                     TimeSpan.FromSeconds(middle.decodeEnd)),
-                tail is { } tTail ? SpanCreate(tTail) : null),
+                tail is { } tTail ? TBridgeSpanCreate(tTail) : null),
             source);
 
-    internal static IReadOnlyList<LEncodeStage> SmartBridgeResolve(
+    internal static IReadOnlyList<LEncodeStage> TBridgeResolve(
         LWorkItem work, params double[] keyframes) =>
         LEncode.LEncodeBridgeResolve(
             work, keyframes.Select(TimeSpan.FromSeconds).ToArray());
 
-    internal static bool? AudioIntervalRead(string source, double origin, double end) =>
+    internal static bool? TAudioIntervalRead(string source, double origin, double end) =>
         LScoutAudio.LScoutAudioRead(
             source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end));
 
-    internal static IReadOnlyList<LKeyframeEntry> KeyframesRead(string source, double origin, double end) =>
+    internal static IReadOnlyList<LKeyframeEntry> TKeyframeRead(string source, double origin, double end) =>
         LKeyframeSeeker.LKeyframeRangeScan(
             source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end));
 
-    internal static string FfmpegRead() => LTool.LToolFfmpegRead();
+    internal static string TToolFfmpegRead() => LTool.LToolFfmpegRead();
 
-    internal static string FfprobeRead() => LTool.LToolFfprobeRead();
+    internal static string TToolFfprobeRead() => LTool.LToolFfprobeRead();
 
-    internal static LWorkItem SmartIntervalWorkCreate(
+    internal static LWorkItem TBridgeIntervalCreate(
         string source,
         string output,
         double origin,
@@ -215,11 +215,11 @@ internal sealed class TEncodeCommand : IDisposable
         string container = "matroska",
         string extension = "mkv")
     {
-        LWorkItem work = WorkCreate(
+        LWorkItem work = TWorkCreate(
             LWorkKind.LWorkKindSplit,
             source,
             output,
-            OutputCreate(
+            TOutputCreate(
                 container: container,
                 extension: extension,
                 videoMode: "Smart",
@@ -236,18 +236,18 @@ internal sealed class TEncodeCommand : IDisposable
         return work;
     }
 
-    internal static LWorkItem VideoIntervalWorkCreate(
+    internal static LWorkItem TVideoIntervalCreate(
         string source,
         string output,
         double origin,
         double end,
         string videoMode)
     {
-        LWorkItem work = WorkCreate(
+        LWorkItem work = TWorkCreate(
             LWorkKind.LWorkKindSplit,
             source,
             output,
-            OutputCreate(
+            TOutputCreate(
                 container: "matroska",
                 extension: "mkv",
                 videoMode: videoMode,
@@ -264,7 +264,7 @@ internal sealed class TEncodeCommand : IDisposable
         return work;
     }
 
-    internal static IReadOnlyList<LEncodeStage> SmartSourceStagesBuild(LWorkItem work)
+    internal static IReadOnlyList<LEncodeStage> TBridgeSourceBuild(LWorkItem work)
     {
         IReadOnlyList<LKeyframeEntry> keyframes = LScoutBridge.LScoutBridgeRead(
             work.LWorkSourcePath, work.LWorkOrigin, work.LWorkEnd);
@@ -277,7 +277,7 @@ internal sealed class TEncodeCommand : IDisposable
         return LEncode.LEncodeSmartBuild(work, plan, LScoutStream.LScoutStreamRead(work.LWorkSourcePath));
     }
 
-    internal static IReadOnlyList<LEncodeStage> SmartMissingDecodeBuild(LWorkItem work) =>
+    internal static IReadOnlyList<LEncodeStage> TBridgeMissingBuild(LWorkItem work) =>
         LEncode.LEncodeSmartBuild(
             work,
             new LBridgePlan(
@@ -286,20 +286,20 @@ internal sealed class TEncodeCommand : IDisposable
                 null,
                 new LBridgeSpan(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5)),
                 null),
-            SourceStreamCreate("h264"));
+            TSourceStreamCreate("h264"));
 
-    internal static LWorkItem SmartCropWorkCreate(string source, string output)
+    internal static LWorkItem TBridgeCropCreate(string source, string output)
     {
-        LWorkItem work = WorkCreate(
+        LWorkItem work = TWorkCreate(
             LWorkKind.LWorkKindSplit, source, output,
-            OutputCreate(videoMode: "Smart", audioMode: "Copy"),
+            TOutputCreate(videoMode: "Smart", audioMode: "Copy"),
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30),
             crop: new LWorkCrop(20, 0, 0, 0, 0, false, false));
         work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 30_000, true) { LWorkMediaCodec = "h264" };
         return work;
     }
 
-    private static LBridgeSpan SpanCreate((double origin, double end) span) =>
+    private static LBridgeSpan TBridgeSpanCreate((double origin, double end) span) =>
         new(
             TimeSpan.FromSeconds(span.origin),
             TimeSpan.FromSeconds(span.end),
@@ -307,7 +307,7 @@ internal sealed class TEncodeCommand : IDisposable
 
     public void Dispose()
     {
-        if (tDisposed)
+        if (tEncodeDisposed)
         {
             return;
         }
@@ -324,7 +324,7 @@ internal sealed class TEncodeCommand : IDisposable
         {
         }
 
-        tDisposed = true;
+        tEncodeDisposed = true;
     }
 }
 
@@ -333,28 +333,28 @@ internal sealed class TEncodeCommand : IDisposable
 /// through the production stage builder.
 /// </summary>
 [Collection("EncodeCommand")]
-public sealed class ModeCommandTests
+public sealed class TEncodeMode
 {
-    private static readonly string ModeSource = Path.Combine("input media", "mode clip.mov");
-    private static readonly string ModeOutput = Path.Combine("output media", "mode clip.mp4");
+    private static readonly string TEncodeSource = Path.Combine("input media", "mode clip.mov");
+    private static readonly string TEncodeOutput = Path.Combine("output media", "mode clip.mp4");
 
     [Fact]
     public void CopyMode_CleanCut_StreamCopiesToTheRequestedEnd()
     {
         using var environment = new TEncodeCommand();
-        LWorkItem work = TEncodeCommand.WorkCreate(
-            LWorkKind.LWorkKindSplit, ModeSource, ModeOutput,
-            TEncodeCommand.OutputCreate(videoMode: "Copy", audioMode: "Copy"),
+        LWorkItem work = TEncodeCommand.TWorkCreate(
+            LWorkKind.LWorkKindSplit, TEncodeSource, TEncodeOutput,
+            TEncodeCommand.TOutputCreate(videoMode: "Copy", audioMode: "Copy"),
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
 
-        LEncodeStage stage = Assert.Single(TEncodeCommand.StagesBuild(work));
-        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+        LEncodeStage stage = Assert.Single(TEncodeCommand.TEncodeStagesBuild(work));
+        IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments);
 
-        Assert.Equal("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
-        Assert.Equal("10", CommandTokens.ValueAfter(tokens, "-ss"));
-        Assert.Equal("0", CommandTokens.ValueAfter(tokens, "-copypriorss"));
-        Assert.Equal("20", CommandTokens.ValueAfter(tokens, "-t"));
-        Assert.Equal("make_zero", CommandTokens.ValueAfter(tokens, "-avoid_negative_ts"));
+        Assert.Equal("copy", TEncodeToken.TEncodeOptionRead(tokens, "-c:v"));
+        Assert.Equal("10", TEncodeToken.TEncodeOptionRead(tokens, "-ss"));
+        Assert.Equal("0", TEncodeToken.TEncodeOptionRead(tokens, "-copypriorss"));
+        Assert.Equal("20", TEncodeToken.TEncodeOptionRead(tokens, "-t"));
+        Assert.Equal("make_zero", TEncodeToken.TEncodeOptionRead(tokens, "-avoid_negative_ts"));
         Assert.DoesNotContain("concat", tokens);
         Assert.Equal(LWorkStage.LWorkStagePassthrough, stage.LEncodeStageKind);
         Assert.Equal("Copying", stage.LEncodeStageLabel);
@@ -364,10 +364,10 @@ public sealed class ModeCommandTests
     public void SmartMode_CleanCutWithInteriorKeyframes_EmitsBridgeStages()
     {
         using var environment = new TEncodeCommand();
-        LWorkItem work = TEncodeCommand.SmartWorkCreate(ModeSource, ModeOutput);
+        LWorkItem work = TEncodeCommand.TBridgeWorkCreate(TEncodeSource, TEncodeOutput);
 
         // Interval is [10, 30]; interior keyframes at 12 and 28 align with neither bound.
-        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.SmartBridgeResolve(work, 12, 28);
+        IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeResolve(work, 12, 28);
 
         // head, middle, tail — each followed by its MPEG-TS join piece — plus the join.
         Assert.Equal(8, stages.Count);
@@ -375,39 +375,39 @@ public sealed class ModeCommandTests
         Assert.Contains(stages, stage => stage.LEncodeStageLabel == "Copying middle");
         Assert.Contains(stages, stage => stage.LEncodeStageLabel == "Encoding tail bridge");
         Assert.Equal(LWorkStage.LWorkStageMux, stages[^1].LEncodeStageKind);
-        Assert.Contains("concat", CommandTokens.Read(stages[^1].LEncodeStageArguments));
+        Assert.Contains("concat", TEncodeToken.TEncodeTokenRead(stages[^1].LEncodeStageArguments));
     }
 
     [Fact]
     public void SmartMode_ItemWithEdit_FallsBackToSingleFullEncode()
     {
         using var environment = new TEncodeCommand();
-        LWorkItem work = TEncodeCommand.SmartCropWorkCreate(ModeSource, ModeOutput);
+        LWorkItem work = TEncodeCommand.TBridgeCropCreate(TEncodeSource, TEncodeOutput);
 
-        LEncodeStage stage = Assert.Single(TEncodeCommand.SmartResolveBuild(
+        LEncodeStage stage = Assert.Single(TEncodeCommand.TBridgeResolveBuild(
             work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30)));
-        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+        IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments);
 
         Assert.False(stage.LEncodeStageTemporary);
         Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
         Assert.DoesNotContain("concat", tokens);
-        Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.Equal("libx264", TEncodeToken.TEncodeOptionRead(tokens, "-c:v"));
     }
 
     [Fact]
     public void EncodeMode_EmitsSingleStageCarryingTheVideoEncoder()
     {
         using var environment = new TEncodeCommand();
-        LWorkItem work = TEncodeCommand.WorkCreate(
-            LWorkKind.LWorkKindSplit, ModeSource, ModeOutput,
-            TEncodeCommand.OutputCreate(videoMode: "Encode"),
+        LWorkItem work = TEncodeCommand.TWorkCreate(
+            LWorkKind.LWorkKindSplit, TEncodeSource, TEncodeOutput,
+            TEncodeCommand.TOutputCreate(videoMode: "Encode"),
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
 
-        LEncodeStage stage = Assert.Single(TEncodeCommand.StagesBuild(work));
-        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+        LEncodeStage stage = Assert.Single(TEncodeCommand.TEncodeStagesBuild(work));
+        IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments);
 
-        Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
-        Assert.Equal(2, CommandTokens.Count(tokens, "-ss"));
+        Assert.Equal("libx264", TEncodeToken.TEncodeOptionRead(tokens, "-c:v"));
+        Assert.Equal(2, TEncodeToken.TEncodeCountRead(tokens, "-ss"));
         Assert.DoesNotContain("concat", tokens);
         Assert.Equal(LWorkStage.LWorkStageEncode, stage.LEncodeStageKind);
     }
@@ -416,16 +416,16 @@ public sealed class ModeCommandTests
     public void LegacyAutoMode_NormalizesToEncode()
     {
         using var environment = new TEncodeCommand();
-        LWorkItem work = TEncodeCommand.WorkCreate(
-            LWorkKind.LWorkKindSplit, ModeSource, ModeOutput,
-            TEncodeCommand.OutputCreate(videoMode: "Auto"),
+        LWorkItem work = TEncodeCommand.TWorkCreate(
+            LWorkKind.LWorkKindSplit, TEncodeSource, TEncodeOutput,
+            TEncodeCommand.TOutputCreate(videoMode: "Auto"),
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30));
 
-        LEncodeStage stage = Assert.Single(TEncodeCommand.StagesBuild(work));
-        IReadOnlyList<string> tokens = CommandTokens.Read(stage.LEncodeStageArguments);
+        LEncodeStage stage = Assert.Single(TEncodeCommand.TEncodeStagesBuild(work));
+        IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments);
 
-        Assert.Equal("libx264", CommandTokens.ValueAfter(tokens, "-c:v"));
-        Assert.NotEqual("copy", CommandTokens.ValueAfter(tokens, "-c:v"));
+        Assert.Equal("libx264", TEncodeToken.TEncodeOptionRead(tokens, "-c:v"));
+        Assert.NotEqual("copy", TEncodeToken.TEncodeOptionRead(tokens, "-c:v"));
         Assert.DoesNotContain("concat", tokens);
     }
 }
