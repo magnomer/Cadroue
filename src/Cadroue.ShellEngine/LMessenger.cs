@@ -330,6 +330,27 @@ public static class LMessenger
         new(StringComparer.OrdinalIgnoreCase);
     private static readonly object lMessengerMeasureGate = new();
     private static bool lMessengerMeasureBusy;
+    private static System.Threading.CancellationTokenSource lMessengerMeasureCancellation = new();
+
+    // Abort background source measurement: drop everything still queued and cancel the in-flight
+    // probe so its ffprobe/ffmpeg child is killed at once (Clear all). A fresh token source arms
+    // the next measurement. The retired source is left for the finalizer, since an in-flight probe
+    // may still hold its wait handle.
+    public static void LMessengerMeasureCancel()
+    {
+        System.Threading.CancellationTokenSource lMessengerRetired;
+        lock (lMessengerMeasureGate)
+        {
+            while (lMessengerMeasureQueue.TryDequeue(out _))
+            {
+            }
+
+            lMessengerRetired = lMessengerMeasureCancellation;
+            lMessengerMeasureCancellation = new System.Threading.CancellationTokenSource();
+        }
+
+        lMessengerRetired.Cancel();
+    }
 
     private static Task LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)
     {
@@ -372,6 +393,10 @@ public static class LMessenger
                 LMessengerItemResolve(lMessengerItem);
             }
         }
+        catch (OperationCanceledException)
+        {
+            // The in-flight probe was cancelled (Clear all); the queue is already drained.
+        }
         finally
         {
             lock (lMessengerMeasureGate)
@@ -396,8 +421,10 @@ public static class LMessenger
         // job reads the same source; on a spinning disk the two sets of reads seek against each
         // other and stall the encode. Since measurement is never urgent, hold it until no post
         // is processing so its disk work only runs while the drive is otherwise idle.
+        System.Threading.CancellationToken lMessengerToken = lMessengerMeasureCancellation.Token;
         while (LStation.LStationActiveCheck())
         {
+            lMessengerToken.ThrowIfCancellationRequested();
             System.Threading.Thread.Sleep(lMessengerIdleMilliseconds);
         }
 
@@ -409,7 +436,7 @@ public static class LMessenger
 
         foreach (string lMessengerSource in LMessengerSourcesRead(lMessengerItem))
         {
-            LMessengerSample lMessengerSample = LMessengerSampleRead(lMessengerSource);
+            LMessengerSample lMessengerSample = LMessengerSampleRead(lMessengerSource, lMessengerToken);
             if (lMessengerMerge)
             {
                 lMessengerMergeBytes.Add(lMessengerSample.LMessengerBytes ?? 0);
@@ -444,7 +471,8 @@ public static class LMessenger
 
     // A measured source is reused whenever the file is unchanged (same path, length, and
     // write time); only a new or changed file is measured afresh.
-    private static LMessengerSample LMessengerSampleRead(string lMessengerSource)
+    private static LMessengerSample LMessengerSampleRead(
+        string lMessengerSource, System.Threading.CancellationToken lMessengerToken)
     {
         if (string.IsNullOrWhiteSpace(lMessengerSource))
         {
@@ -458,7 +486,7 @@ public static class LMessenger
         }
 
         var lMessengerSample = new LMessengerSample(
-            LScout.LScoutSourceRead(lMessengerSource), LScout.LScoutBytesRead(lMessengerSource));
+            LScout.LScoutSourceRead(lMessengerSource, lMessengerToken), LScout.LScoutBytesRead(lMessengerSource));
         if (lMessengerKey is not null)
         {
             lMessengerMeasureCache[lMessengerKey] = lMessengerSample;
