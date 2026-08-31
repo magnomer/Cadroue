@@ -14,9 +14,6 @@ internal sealed partial class PSEncoder
     private const string PSSheetVideoIcon = "/PAssets/PTabs/PSSheetVideo.svg";
     private const string PSSheetAudioIcon = "/PAssets/PTabs/PSSheetAudio.svg";
 
-    private UIElement PSCasementOverlayBuild() =>
-        PSCasement.PSCasementOverlayBuild(this, PSSheetStripWidth);
-
     private UIElement PSSheetControlBuild() => PSSheet.PSSheetControlBuild(
         PSSheetTabWidth,
         PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Encoder.Sheet.Output"), PSSheetOutputIcon, PSEncoderRootBuild(PSSheet.PSSheetScrollBuild(PSOutputBuild()))),

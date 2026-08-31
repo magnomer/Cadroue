@@ -2,11 +2,9 @@ using Cadroue.Core;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;
 using System;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using Cadroue.Application;
 
@@ -19,11 +17,6 @@ namespace Cadroue.UIShell.PPanels;
 
 internal sealed partial class PSEncoder : Window
 {
-    private const int PSEncoderDwmPreference = 33;
-    private const int PSEncoderDwmRound = 2;
-    private const int PSEncoderDwmCaption = 35;
-    private const int PSEncoderColor = 0x00F7E8DC;
-
     internal const string PSEncoderPlacementKey = "Encoder";
 
     internal const double PSEncoderWidthDefault = 820;
@@ -194,14 +187,7 @@ internal sealed partial class PSEncoder : Window
         Height = PSEncoderHeightDefault;
         MinWidth = PSEncoderWidthMinimum;
         MinHeight = PSEncoderHeightMinimum;
-        WindowStyle = WindowStyle.None;
-        ResizeMode = ResizeMode.NoResize;
-        Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSFieldFontSize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        UseLayoutRounding = true;
-        SnapsToDevicePixels = true;
-        PScrollbar.PScrollbarApply(this);
+        PSSubwindow.PSSubwindowApply(this);
         Content = PSEncoderBuild();
         PSGrabber.PSGrabberPlacementRestore(this, PSEncoderPlacementKey);
         psEncoderGrabber = new PSGrabber(this);
@@ -210,13 +196,8 @@ internal sealed partial class PSEncoder : Window
         Closed += PSEncoderCloseHandle;
     }
 
-    private UIElement PSEncoderBuild()
-    {
-        var pRoot = new Grid { Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)) };
-        pRoot.Children.Add(PSSheetControlBuild());
-        pRoot.Children.Add(PSCasementOverlayBuild());
-        return pRoot;
-    }
+    private UIElement PSEncoderBuild() =>
+        PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, PSSheetControlBuild());
 
     private void PSEncoderApply()
     {
@@ -259,41 +240,4 @@ internal sealed partial class PSEncoder : Window
         psEncoderGrabber.PSGrabberDetach();
         Closed -= PSEncoderCloseHandle;
     }
-
-    protected override void OnSourceInitialized(EventArgs e)
-    {
-        base.OnSourceInitialized(e);
-        PSEncoderDwmApply();
-    }
-
-    private void PSEncoderDwmApply()
-    {
-        IntPtr psEncoderHandle = new WindowInteropHelper(this).Handle;
-        if (psEncoderHandle == IntPtr.Zero)
-        {
-            return;
-        }
-
-        int psEncoderCornerPreference = PSEncoderDwmRound;
-        _ = DwmSetWindowAttribute(
-            psEncoderHandle,
-            PSEncoderDwmPreference,
-            ref psEncoderCornerPreference,
-            Marshal.SizeOf<int>());
-
-        int psEncoderCaptionColor = PSEncoderColor;
-        _ = DwmSetWindowAttribute(
-            psEncoderHandle,
-            PSEncoderDwmCaption,
-            ref psEncoderCaptionColor,
-            Marshal.SizeOf<int>());
-    }
-
-    [DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(
-        IntPtr windowHandle,
-        int windowAttribute,
-        ref int attributeValue,
-        int attributeByteSize);
-
 }

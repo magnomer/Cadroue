@@ -8,6 +8,8 @@ internal static class PSHeadline
     internal const double PSHeadlineBandHeight = 42;
     internal const double PSHeadlineTitleFont = 12;
 
+    // Kept separate from PSSubwindow's caption on purpose (tabless vs tabbed); the two blue
+    // captions are meant to match — change both together.
     internal const int PSHeadlineCaptionBlue = 0x00F7E8DC;
     internal const int PSHeadlineCaptionRed = 0x00EAEAFC;
     internal const int PSHeadlineCaptionOrange = 0x00EAF2FC;

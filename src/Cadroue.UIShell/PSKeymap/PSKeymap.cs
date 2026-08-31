@@ -1,7 +1,5 @@
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interop;
 using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
@@ -17,11 +15,6 @@ namespace Cadroue.UIShell;
 
 internal sealed class PSKeymap : Window
 {
-    private const int PSKeymapDwmPreference = 33;
-    private const int PSKeymapDwmRound = 2;
-    private const int PSKeymapDwmCaption = 35;
-    private const int PSKeymapColor = 0x00F7E8DC;
-
     internal const string PSKeymapPlacementKey = "Shortcut";
 
     private const double PSKeymapWidthDefault = 720;
@@ -67,14 +60,7 @@ internal sealed class PSKeymap : Window
         Height = PSKeymapHeightDefault;
         MinWidth = PSKeymapWidthMinimum;
         MinHeight = PSKeymapHeightMinimum;
-        WindowStyle = WindowStyle.None;
-        ResizeMode = ResizeMode.NoResize;
-        Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSFieldFontSize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        UseLayoutRounding = true;
-        SnapsToDevicePixels = true;
-        PScrollbar.PScrollbarApply(this);
+        PSSubwindow.PSSubwindowApply(this);
         Content = PSKeymapBuild();
         PSGrabber.PSGrabberPlacementRestore(this, PSKeymapPlacementKey);
         psKeymapGrabber = new PSGrabber(this);
@@ -82,18 +68,13 @@ internal sealed class PSKeymap : Window
         Closed += PSKeymapCloseHandle;
     }
 
-    private UIElement PSKeymapBuild()
-    {
-        var pRoot = new Grid { Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)) };
-        pRoot.Children.Add(PSSheet.PSSheetControlBuild(
+    private UIElement PSKeymapBuild() =>
+        PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, PSSheet.PSSheetControlBuild(
             PSSheetTabWidth,
             PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeGlobal, PSSheetGlobalIcon),
             PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeTab, PSSheetTabIcon),
             PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeFlow, PSSheetFlowIcon),
             PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeSplit, PSSheetSplitIcon)));
-        pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, PSSheetStripWidth));
-        return pRoot;
-    }
 
     private TabItem PSKeymapSheetBuild(string pScope, string pIconPath)
     {
@@ -216,32 +197,4 @@ internal sealed class PSKeymap : Window
         psKeymapGrabber.PSGrabberDetach();
         Closed -= PSKeymapCloseHandle;
     }
-
-    protected override void OnSourceInitialized(EventArgs e)
-    {
-        base.OnSourceInitialized(e);
-        PSKeymapDwmApply();
-    }
-
-    private void PSKeymapDwmApply()
-    {
-        IntPtr psKeymapHandle = new WindowInteropHelper(this).Handle;
-        if (psKeymapHandle == IntPtr.Zero)
-        {
-            return;
-        }
-
-        int psKeymapCornerPreference = PSKeymapDwmRound;
-        _ = DwmSetWindowAttribute(psKeymapHandle, PSKeymapDwmPreference, ref psKeymapCornerPreference, Marshal.SizeOf<int>());
-
-        int psKeymapCaptionColor = PSKeymapColor;
-        _ = DwmSetWindowAttribute(psKeymapHandle, PSKeymapDwmCaption, ref psKeymapCaptionColor, Marshal.SizeOf<int>());
-    }
-
-    [DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(
-        IntPtr windowHandle,
-        int windowAttribute,
-        ref int attributeValue,
-        int attributeByteSize);
 }

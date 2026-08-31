@@ -1,9 +1,7 @@
-using System.Runtime.InteropServices;
 using System.Windows;
 using Cadroue.Core;
 using Cadroue.Application;
 using System.Windows.Controls;
-using System.Windows.Interop;
 using System.Windows.Media;
 using Cadroue.UIShell.PMainWindow;
 using Cadroue.UIShell.PSShared;
@@ -19,11 +17,6 @@ namespace Cadroue.UIShell;
 
 internal sealed partial class PSOptions : Window
 {
-    private const int PSOptionsDwmPreference = 33;
-    private const int PSOptionsDwmRound = 2;
-    private const int PSOptionsDwmCaption = 35;
-    private const int PSOptionsColor = 0x00F7E8DC;
-
     internal const string PSOptionsPlacementKey = "Options";
 
     internal const double PSOptionsWidthDefault = 900;
@@ -187,14 +180,7 @@ internal sealed partial class PSOptions : Window
         Height = PSOptionsHeightDefault;
         MinWidth = PSOptionsWidthMinimum;
         MinHeight = PSOptionsHeightMinimum;
-        WindowStyle = WindowStyle.None;
-        ResizeMode = ResizeMode.NoResize;
-        Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7));
-        FontSize = PSFieldFontSize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        UseLayoutRounding = true;
-        SnapsToDevicePixels = true;
-        PScrollbar.PScrollbarApply(this);
+        PSSubwindow.PSSubwindowApply(this);
         Content = PSOptionsBuild();
         PSGrabber.PSGrabberPlacementRestore(this, PSOptionsPlacementKey);
         psOptionsGrabber = new PSGrabber(this);
@@ -202,19 +188,14 @@ internal sealed partial class PSOptions : Window
         Closed += PSOptionsCloseHandle;
     }
 
-    private UIElement PSOptionsBuild()
-    {
-        var pRoot = new Grid { Background = new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)) };
-        pRoot.Children.Add(PSSheet.PSSheetControlBuild(
+    private UIElement PSOptionsBuild() =>
+        PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, PSSheet.PSSheetControlBuild(
             PSSheetTabWidth,
             PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.General"), PSSheetGeneralIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSGeneralBuild()))),
             PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.System"), PSSheetSystemIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSSystemBuild()))),
             PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.Playback"), PSSheetPlaybackIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSPlaybackBuild()))),
             PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.Timeline"), PSSheetTimelineIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSTimelineBuild()))),
             PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.Work"), PSSheetWorkIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSWorkBuild())))));
-        pRoot.Children.Add(PSCasement.PSCasementOverlayBuild(this, PSSheetStripWidth));
-        return pRoot;
-    }
 
     private UIElement PSOptionsRootBuild(UIElement pSheetContent)
     {
@@ -436,32 +417,4 @@ internal sealed partial class PSOptions : Window
         psOptionsGrabber.PSGrabberDetach();
         Closed -= PSOptionsCloseHandle;
     }
-
-    protected override void OnSourceInitialized(EventArgs e)
-    {
-        base.OnSourceInitialized(e);
-        PSOptionsDwmApply();
-    }
-
-    private void PSOptionsDwmApply()
-    {
-        IntPtr psOptionsHandle = new WindowInteropHelper(this).Handle;
-        if (psOptionsHandle == IntPtr.Zero)
-        {
-            return;
-        }
-
-        int psOptionsCornerPreference = PSOptionsDwmRound;
-        _ = DwmSetWindowAttribute(psOptionsHandle, PSOptionsDwmPreference, ref psOptionsCornerPreference, Marshal.SizeOf<int>());
-
-        int psOptionsCaptionColor = PSOptionsColor;
-        _ = DwmSetWindowAttribute(psOptionsHandle, PSOptionsDwmCaption, ref psOptionsCaptionColor, Marshal.SizeOf<int>());
-    }
-
-    [DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(
-        IntPtr windowHandle,
-        int windowAttribute,
-        ref int attributeValue,
-        int attributeByteSize);
 }
