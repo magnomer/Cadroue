@@ -259,7 +259,7 @@ public sealed partial class PConsole
         LWorkStage.LWorkStageAnalyze => "Console.Stage.Analyze",
         LWorkStage.LWorkStageProcess => "Console.Stage.Process",
         LWorkStage.LWorkStageMux => "Console.Stage.Mux",
-        LWorkStage.LWorkStageCopy => "Console.Stage.Copy",
+        LWorkStage.LWorkStagePassthrough => "Console.Stage.Copy",
         _ => "Console.Stage.Encode"
     });
 

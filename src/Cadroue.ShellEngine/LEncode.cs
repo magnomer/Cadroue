@@ -49,7 +49,7 @@ public static partial class LEncode
         {
             new LEncodeStage(
                 LEncodeArgumentBuild(lWorkItem),
-                lWholeCopy ? LWorkStage.LWorkStageCopy : LWorkStage.LWorkStageEncode,
+                lWholeCopy ? LWorkStage.LWorkStagePassthrough : LWorkStage.LWorkStageEncode,
                 lWholeCopy ? "Copying" : "Encoding",
                 lWorkItem.LWorkOutputPath,
                 false)

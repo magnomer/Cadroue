@@ -320,217 +320,52 @@ public static class LMessenger
         return lMessengerAdded;
     }
 
-    // Source figures are measured on a single low-priority background worker, one item at a
-    // time, so measurement never competes with running jobs or bursts in parallel. Each added
-    // item is queued; the worker measures its sources — reusing a cached result whenever the
-    // file is unchanged — then stores the figures on the item, turning its "Measuring" rows
-    // into values. Until an item is reached the worklist shows "Measuring", never "Unknown".
-    private static readonly System.Collections.Concurrent.ConcurrentQueue<LWorkItem> lMessengerMeasureQueue = new();
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, LMessengerSample> lMessengerMeasureCache =
-        new(StringComparer.OrdinalIgnoreCase);
-    private static readonly object lMessengerMeasureGate = new();
-    private static bool lMessengerMeasureBusy;
-    private static System.Threading.CancellationTokenSource lMessengerMeasureCancellation = new();
-
-    // Abort background source measurement: drop everything still queued and cancel the in-flight
-    // probe so its ffprobe/ffmpeg child is killed at once (Clear all). A fresh token source arms
-    // the next measurement. The retired source is left for the finalizer, since an in-flight probe
-    // may still hold its wait handle.
-    public static void LMessengerMeasureCancel()
-    {
-        System.Threading.CancellationTokenSource lMessengerRetired;
-        lock (lMessengerMeasureGate)
-        {
-            while (lMessengerMeasureQueue.TryDequeue(out _))
-            {
-            }
-
-            lMessengerRetired = lMessengerMeasureCancellation;
-            lMessengerMeasureCancellation = new System.Threading.CancellationTokenSource();
-        }
-
-        lMessengerRetired.Cancel();
-    }
-
+    // Each added item's byte size is read natively and recorded the instant it is added — a cheap
+    // Windows file-length read that never waits on anything. Its media figures (probe, keyframe
+    // interval, loudness) are then deferred to LSubsidiary, the single serial ffmpeg/ffprobe
+    // measurement worker, which yields to running jobs; until it reaches an item those rows show
+    // "Measuring". Byte size never waits behind a running job, so it appears at once.
     private static Task LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)
     {
-        foreach (LWorkItem lMessengerItem in lMessengerItems)
+        if (LMessengerScheduleSource?.Invoke() is { } lMessengerSchedule)
         {
-            lMessengerMeasureQueue.Enqueue(lMessengerItem);
+            foreach (LWorkItem lMessengerItem in lMessengerItems)
+            {
+                LMessengerBytesSet(lMessengerSchedule, lMessengerItem);
+            }
         }
 
-        LMessengerMeasureStart();
+        LSubsidiary.LSubsidiarySourceDefer(lMessengerItems);
         return Task.CompletedTask;
     }
 
-    private static void LMessengerMeasureStart()
+    private static void LMessengerBytesSet(LScheduleContract lMessengerSchedule, LWorkItem lMessengerItem)
     {
-        lock (lMessengerMeasureGate)
+        if (lMessengerItem.LWorkMergeSources.Count > 1)
         {
-            if (lMessengerMeasureBusy || lMessengerMeasureQueue.IsEmpty)
+            var lMessengerMergeBytes = new List<long>(lMessengerItem.LWorkMergeSources.Count);
+            foreach (string lMessengerSource in lMessengerItem.LWorkMergeSources)
             {
-                return;
+                lMessengerMergeBytes.Add(LScout.LScoutBytesRead(lMessengerSource) ?? 0);
             }
 
-            lMessengerMeasureBusy = true;
-        }
-
-        var lMessengerThread = new System.Threading.Thread(LMessengerMeasureRun)
-        {
-            IsBackground = true,
-            Priority = System.Threading.ThreadPriority.Lowest,
-            Name = "Cadroue source measure"
-        };
-        lMessengerThread.Start();
-    }
-
-    private static void LMessengerMeasureRun()
-    {
-        try
-        {
-            while (lMessengerMeasureQueue.TryDequeue(out LWorkItem? lMessengerItem))
-            {
-                LMessengerItemResolve(lMessengerItem);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // The in-flight probe was cancelled (Clear all); the queue is already drained.
-        }
-        finally
-        {
-            lock (lMessengerMeasureGate)
-            {
-                lMessengerMeasureBusy = false;
-            }
-
-            // An item queued between the queue draining and the flag clearing would otherwise
-            // wait for the next add; restart the worker to pick it up.
-            if (!lMessengerMeasureQueue.IsEmpty)
-            {
-                LMessengerMeasureStart();
-            }
-        }
-    }
-
-    private const int lMessengerIdleMilliseconds = 500;
-
-    private static void LMessengerItemResolve(LWorkItem lMessengerItem)
-    {
-        // Measurement reads the source end to end (keyframe scan, loudness decode). A running
-        // job reads the same source; on a spinning disk the two sets of reads seek against each
-        // other and stall the encode. Since measurement is never urgent, hold it until no post
-        // is processing so its disk work only runs while the drive is otherwise idle.
-        System.Threading.CancellationToken lMessengerToken = lMessengerMeasureCancellation.Token;
-        while (LStation.LStationActiveCheck())
-        {
-            lMessengerToken.ThrowIfCancellationRequested();
-            System.Threading.Thread.Sleep(lMessengerIdleMilliseconds);
-        }
-
-        bool lMessengerMerge = lMessengerItem.LWorkMergeSources.Count > 1;
-        LWorkMedia? lMessengerSourceMedia = null;
-        long? lMessengerSourceBytes = null;
-        var lMessengerMergeBytes = new List<long>();
-        TimeSpan lMessengerMeasured = TimeSpan.Zero;
-
-        foreach (string lMessengerSource in LMessengerSourcesRead(lMessengerItem))
-        {
-            LMessengerSample lMessengerSample = LMessengerSampleRead(lMessengerSource, lMessengerToken);
-            if (lMessengerMerge)
-            {
-                lMessengerMergeBytes.Add(lMessengerSample.LMessengerBytes ?? 0);
-            }
-            else
-            {
-                lMessengerSourceMedia = lMessengerSample.LMessengerMedia;
-                lMessengerSourceBytes = lMessengerSample.LMessengerBytes;
-            }
-
-            if (lMessengerSample.LMessengerMedia is { } lMessengerMedia)
-            {
-                lMessengerMeasured += lMessengerMedia.LWorkMediaDuration;
-            }
-        }
-
-        if (LMessengerScheduleSource?.Invoke() is not { } lMessengerSchedule)
-        {
+            lMessengerSchedule.LScheduleBytesSet(lMessengerItem.LWorkId, null, lMessengerMergeBytes);
             return;
         }
 
-        TimeSpan lMessengerDuration = lMessengerItem.LWorkEnd > TimeSpan.Zero
-            ? lMessengerItem.LWorkEnd
-            : lMessengerMeasured;
-        LMessengerDefer(() => lMessengerSchedule.LScheduleSourceSet(
-            lMessengerItem.LWorkId,
-            lMessengerDuration,
-            lMessengerMerge ? null : lMessengerSourceMedia,
-            lMessengerMerge ? null : lMessengerSourceBytes,
-            lMessengerMerge ? lMessengerMergeBytes : Array.Empty<long>()));
+        lMessengerSchedule.LScheduleBytesSet(
+            lMessengerItem.LWorkId, LScout.LScoutBytesRead(lMessengerItem.LWorkSourcePath), Array.Empty<long>());
     }
 
-    // A measured source is reused whenever the file is unchanged (same path, length, and
-    // write time); only a new or changed file is measured afresh.
-    private static LMessengerSample LMessengerSampleRead(
-        string lMessengerSource, System.Threading.CancellationToken lMessengerToken)
-    {
-        if (string.IsNullOrWhiteSpace(lMessengerSource))
-        {
-            return LMessengerSample.LMessengerEmpty;
-        }
+    // Abort all background measurement (Clear all): drops everything still queued in LSubsidiary and
+    // kills the in-flight ffprobe/ffmpeg child at once.
+    public static void LMessengerMeasureCancel() => LSubsidiary.LSubsidiaryCancel();
 
-        string? lMessengerKey = LMessengerKeyRead(lMessengerSource);
-        if (lMessengerKey is not null && lMessengerMeasureCache.TryGetValue(lMessengerKey, out LMessengerSample? lMessengerCached))
-        {
-            return lMessengerCached;
-        }
-
-        var lMessengerSample = new LMessengerSample(
-            LScout.LScoutSourceRead(lMessengerSource, lMessengerToken), LScout.LScoutBytesRead(lMessengerSource));
-        if (lMessengerKey is not null)
-        {
-            lMessengerMeasureCache[lMessengerKey] = lMessengerSample;
-        }
-
-        return lMessengerSample;
-    }
-
-    private static string? LMessengerKeyRead(string lMessengerSource)
-    {
-        try
-        {
-            var lMessengerInfo = new System.IO.FileInfo(lMessengerSource);
-            if (!lMessengerInfo.Exists)
-            {
-                return null;
-            }
-
-            return string.Join(
-                "|",
-                System.IO.Path.GetFullPath(lMessengerSource).ToUpperInvariant(),
-                lMessengerInfo.Length,
-                lMessengerInfo.LastWriteTimeUtc.Ticks);
-        }
-        catch (Exception lMessengerException)
-            when (lMessengerException is System.IO.IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
-        {
-            return null;
-        }
-    }
-
-    private static IEnumerable<string> LMessengerSourcesRead(LWorkItem lMessengerItem) =>
-        lMessengerItem.LWorkMergeSources.Count > 1
-            ? lMessengerItem.LWorkMergeSources
-            : new[] { lMessengerItem.LWorkSourcePath };
-
-    private sealed record LMessengerSample(LWorkMedia? LMessengerMedia, long? LMessengerBytes)
-    {
-        public static readonly LMessengerSample LMessengerEmpty = new(null, null);
-    }
-
+    // Route a schedule-mutating action onto the post thread the worklist writes on, falling back to
+    // inline when no post owner is wired.
     private static void LMessengerDefer(Action lMessengerAction)
     {
-        if (Cadroue.ShellEngine.LStation.LStationPost is { } lMessengerPost)
+        if (LStation.LStationPost is { } lMessengerPost)
         {
             lMessengerPost(lMessengerAction);
             return;

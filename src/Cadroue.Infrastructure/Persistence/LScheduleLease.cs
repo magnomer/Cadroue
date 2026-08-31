@@ -117,6 +117,117 @@ public sealed partial class LSchedule
         LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning);
     }
 
+    // The folders an added-but-not-yet-done item can be filed under; source byte size lands on the
+    // item here the instant the file is added, without waiting for the deferred measurement.
+    private static readonly LDepotFolder[] lScheduleBytesFolders =
+    {
+        LDepotFolder.LDepotFolderScheduled,
+        LDepotFolder.LDepotFolderRunning,
+        LDepotFolder.LDepotFolderCancelled
+    };
+
+    // The folders a finished item can be filed under; output loudness lands on it here once the
+    // deferred measurement of the finished output completes.
+    private static readonly LDepotFolder[] lScheduleOutputFolders =
+    {
+        LDepotFolder.LDepotFolderDone,
+        LDepotFolder.LDepotFolderFailed
+    };
+
+    // Native byte size, recorded immediately at add time. Unlike LScheduleSourceSet it never marks the
+    // source measured or touches duration/media: those come from the deferred probe/keyframe/loudness
+    // pass, so the "Measuring" rows stay measuring until that pass lands.
+    public void LScheduleBytesSet(Guid lWorkId, long? lWorkSourceBytes, IReadOnlyList<long> lWorkMergeBytes)
+    {
+        void LScheduleApply(LWorkItem lWorkItem)
+        {
+            if (lWorkSourceBytes is not null)
+            {
+                lWorkItem.LWorkSourceBytes = lWorkSourceBytes;
+            }
+
+            if (lWorkMergeBytes.Count > 0)
+            {
+                lWorkItem.LWorkMergeBytes = lWorkMergeBytes;
+            }
+        }
+
+        if (lScheduleLiveItems.TryGetValue(lWorkId, out LWorkItem? lWorkClaimed))
+        {
+            LScheduleApply(lWorkClaimed);
+        }
+
+        foreach (LWorkItem lWorkItem in lScheduleItems)
+        {
+            if (lWorkItem.LWorkId != lWorkId)
+            {
+                continue;
+            }
+
+            LScheduleApply(lWorkItem);
+            LScheduleItemRaise(lWorkItem, LScheduleNotice.LScheduleNoticeStatus);
+            break;
+        }
+
+        foreach (LDepotFolder lDepotFolder in lScheduleBytesFolders)
+        {
+            string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
+            if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+            {
+                continue;
+            }
+
+            if (lWorkSourceBytes is not null)
+            {
+                lWorkRecord.LWorkSourceBytes = lWorkSourceBytes;
+            }
+
+            if (lWorkMergeBytes.Count > 0)
+            {
+                lWorkRecord.LWorkMergeBytes = lWorkMergeBytes.ToList();
+            }
+
+            LScheduleStore.LScheduleRecordSave(lWorkRecord, lDepotFolder);
+            return;
+        }
+    }
+
+    // The finished output's integrated loudness, measured off the runner loop and recorded here once
+    // ready; updates the stored output-media snapshot so a reload keeps the figure.
+    public void LScheduleLoudnessSet(Guid lWorkId, double lWorkLoudness)
+    {
+        foreach (LWorkItem lWorkItem in lScheduleItems)
+        {
+            if (lWorkItem.LWorkId != lWorkId)
+            {
+                continue;
+            }
+
+            if (lWorkItem.LWorkOutputMedia is { } lWorkOutputMedia)
+            {
+                lWorkItem.LWorkOutputMedia = lWorkOutputMedia with { LWorkMediaLoudness = lWorkLoudness };
+            }
+
+            LScheduleItemRaise(lWorkItem, LScheduleNotice.LScheduleNoticeStatus);
+            break;
+        }
+
+        foreach (LDepotFolder lDepotFolder in lScheduleOutputFolders)
+        {
+            string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
+            if (!File.Exists(lDepotFilePath)
+                || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord
+                || lWorkRecord.LWorkOutputMedia is not { } lWorkRecordMedia)
+            {
+                continue;
+            }
+
+            lWorkRecord.LWorkOutputMedia = lWorkRecordMedia with { LWorkMediaLoudness = lWorkLoudness };
+            LScheduleStore.LScheduleRecordSave(lWorkRecord, lDepotFolder);
+            return;
+        }
+    }
+
     public int LScheduleRelease(Guid lRunnerId)
     {
         LDepotIndex.LDepotIndexCreate();

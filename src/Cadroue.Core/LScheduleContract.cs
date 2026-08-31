@@ -33,6 +33,10 @@ public interface LScheduleContract
         long? lWorkSourceBytes,
         IReadOnlyList<long> lWorkMergeBytes);
 
+    void LScheduleBytesSet(Guid lWorkId, long? lWorkSourceBytes, IReadOnlyList<long> lWorkMergeBytes);
+
+    void LScheduleLoudnessSet(Guid lWorkId, double lWorkLoudness);
+
     int LScheduleAdd(
         IReadOnlyList<LWorkItem> lWorkItems,
         Guid lScheduleRelayTarget = default,
