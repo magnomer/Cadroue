@@ -252,20 +252,9 @@ public sealed partial class PViewer
 
     private (Rect Display, Rect Shown) PViewerGeometryRead()
     {
-        double pViewerOverlayWidth = Math.Max(0, pViewerOverlay.ActualWidth);
-        double pViewerOverlayHeight = Math.Max(0, pViewerOverlay.ActualHeight);
+        // The Crop box is an overlay only: no preview engine crops the frame, so the
+        // player always renders the whole rotated source under the cursor.
         Size pViewerRotated = PCropDisplayRead();
-
-        if (LPreviewStateCurrent.LCropbox is { LCropboxWidth: > 0, LCropboxHeight: > 0 } pViewerCropbox)
-        {
-            LCropbox pViewerFit = LCropbox.LCropboxDisplayResolve(
-                pViewerCropbox.LCropboxWidth, pViewerCropbox.LCropboxHeight,
-                pViewerOverlayWidth, pViewerOverlayHeight);
-            return (
-                new Rect(pViewerFit.LCropboxX, pViewerFit.LCropboxY, pViewerFit.LCropboxWidth, pViewerFit.LCropboxHeight),
-                new Rect(pViewerCropbox.LCropboxX, pViewerCropbox.LCropboxY, pViewerCropbox.LCropboxWidth, pViewerCropbox.LCropboxHeight));
-        }
-
         return (PCropRectRead(), new Rect(0, 0, pViewerRotated.Width, pViewerRotated.Height));
     }
 }

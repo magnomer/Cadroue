@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -79,7 +79,7 @@ internal static partial class LEncodeVideo
             lEqParts.Clear();
         }
 
-        foreach (LWorkVideoStep lStep in lWorkVideo.LWorkVideoSteps.OrderBy(lStep => lStep.LWorkStepKind))
+        foreach (LWorkVideoStep lStep in lWorkVideo.LWorkVideoSteps)
         {
             if (!lStep.LWorkStepActive)
             {

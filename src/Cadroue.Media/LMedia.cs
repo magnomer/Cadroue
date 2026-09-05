@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -131,6 +131,7 @@ public static partial class LMedia
         psi.ArgumentList.Add("-show_entries");
         psi.ArgumentList.Add(
             "stream=codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate,duration,pix_fmt,color_range,sample_rate,channels,bit_rate"
+            + ":stream_side_data=rotation:stream_tags=rotate"
             + ":format=duration,start_time");
         psi.ArgumentList.Add("-i");
         psi.ArgumentList.Add(sourcePath);
@@ -287,7 +288,7 @@ public static partial class LMedia
             start = TimeSpan.FromSeconds(startSeconds);
         }
 
-        int videoWidth = 0, videoHeight = 0;
+        int videoWidth = 0, videoHeight = 0, videoRotation = 0;
         double fps = 0d;
         string videoCodec = "unknown";
         string videoPixel = "";
@@ -306,6 +307,12 @@ public static partial class LMedia
                 {
                     videoWidth = stream.TryGetProperty("width", out JsonElement w) ? w.GetInt32() : 0;
                     videoHeight = stream.TryGetProperty("height", out JsonElement h) ? h.GetInt32() : 0;
+                    videoRotation = LMediaRotationResolve(stream);
+                    if (videoRotation is 90 or 270)
+                    {
+                        (videoWidth, videoHeight) = (videoHeight, videoWidth);
+                    }
+
                     videoCodec = stream.TryGetProperty("codec_name", out JsonElement cn) ? cn.GetString() ?? "unknown" : "unknown";
                     videoPixel = stream.TryGetProperty("pix_fmt", out JsonElement pf) ? pf.GetString() ?? "" : "";
                     videoRange = stream.TryGetProperty("color_range", out JsonElement cr) ? cr.GetString() ?? "" : "";
@@ -339,8 +346,42 @@ public static partial class LMedia
             LMediaStartTime = start,
             LMediaVideoDuration = videoDuration,
             LMediaVideoPixel = videoPixel,
-            LMediaVideoRange = videoRange
+            LMediaVideoRange = videoRange,
+            LMediaVideoRotation = videoRotation
         };
+    }
+
+    // Report the stream's display orientation in degrees, from the display matrix side
+    // data or the legacy rotate tag. FFmpeg, mpv and Flyleaf all present media already
+    // turned by this angle, so every dimension Cadroue publishes is display-oriented.
+    private static int LMediaRotationResolve(JsonElement videoStream)
+    {
+        double rotation = 0d;
+        if (videoStream.TryGetProperty("side_data_list", out JsonElement sideDataList)
+            && sideDataList.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement sideData in sideDataList.EnumerateArray())
+            {
+                if (sideData.TryGetProperty("rotation", out JsonElement rotationElement)
+                    && rotationElement.TryGetDouble(out double sideRotation))
+                {
+                    rotation = sideRotation;
+                    break;
+                }
+            }
+        }
+
+        if (rotation == 0d
+            && videoStream.TryGetProperty("tags", out JsonElement tags)
+            && tags.TryGetProperty("rotate", out JsonElement rotateTag)
+            && double.TryParse(
+                rotateTag.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out double tagRotation))
+        {
+            rotation = tagRotation;
+        }
+
+        int rounded = (int)Math.Round(rotation / 90d) * 90;
+        return ((rounded % 360) + 360) % 360;
     }
 
     private static double LMediaFpsResolve(JsonElement videoStream)

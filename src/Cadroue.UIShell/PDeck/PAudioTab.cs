@@ -40,7 +40,6 @@ public sealed partial class PAudioTab : PTabSurface
         pProcessing.PProcessingStepAdd("Volume", PAudioVolumeIcon, "Processing.Step.Volume");
         pProcessing.PProcessingStepAdd("Normalize", PAudioNormalizeIcon, "Processing.Step.Normalize");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepChange += PAudioStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pProcessing.PProcessingOrderChange += PAudioPlanSave;
         pProcessing.PProcessingMonitorShow += PAudioMonitorShow;

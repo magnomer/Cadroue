@@ -39,13 +39,25 @@ public abstract partial class PTabSurface : UserControl
 
     protected static void PTabViewerAttach(PList pList, PViewer pViewer, PFlowControl pFlow)
     {
+        void pTabViewerDetach()
+        {
+            pViewer.PViewerMediaClose(true);
+            pFlow.PFlowClear();
+        }
+
+        pList.PListPathChange += pCurrentPath =>
+        {
+            if (string.IsNullOrWhiteSpace(pCurrentPath))
+            {
+                pTabViewerDetach();
+            }
+        };
         pList.PListClearChange += pRemovedPaths =>
         {
             if (pViewer.PViewerSourcePath is { } pLoadedPath
                 && pRemovedPaths.Any(pRemoved => string.Equals(pRemoved, pLoadedPath, StringComparison.OrdinalIgnoreCase)))
             {
-                pViewer.PViewerMediaClose(true);
-                pFlow.PFlowClear();
+                pTabViewerDetach();
             }
         };
     }

@@ -1,6 +1,7 @@
-using Cadroue.Application;
+﻿using Cadroue.Application;
 using Cadroue.Core;
 
+using System.Linq;
 using System.Text.Json;
 
 using Xunit;
@@ -382,6 +383,48 @@ public sealed class TEditPersistence
         Assert.Equal(LColorKind.LColorKindCurve, restored.LWorkStepKind);
         Assert.True(restored.LWorkStepActive);
         Assert.Equal(TInterface.TWorkCurveFormat(source), TInterface.TWorkCurveFormat(restored));
+    }
+
+    [Fact]
+    public void EditPersistentRead_DuplicateStoredKinds_KeepsOneStepPerKind()
+    {
+        LWorkVideo video = TInterface.TWorkVideoCreate(new[]
+        {
+            TInterface.TWorkSaturationCreate(true, 130),
+            TInterface.TWorkBrightnessCreate(true, 25)
+        });
+        LSidecarEditRecord record = TInterface.TEditPersistentCreate(
+            TInterface.TEditPlanCreate(TInterface.TWorkCropCreate(), video, false));
+        record.LSidecarSteps.Add(record.LSidecarSteps[0]);
+        record.LSidecarSteps.Add(record.LSidecarSteps[1]);
+
+        LEditPlan plan = TInterface.TEditPersistentRead(record);
+
+        Assert.Equal(
+            new[] { LColorKind.LColorKindBrightness, LColorKind.LColorKindSaturation },
+            plan.LEditVideo.LWorkVideoSteps.Select(step => step.LWorkStepKind));
+    }
+
+    [Fact]
+    public void WorkVideoCreate_UnorderedSteps_ResolveProcessingOrder()
+    {
+        LWorkVideo video = TInterface.TWorkVideoCreate(new[]
+        {
+            TInterface.TWorkCurveCreate(true),
+            TInterface.TWorkSaturationCreate(true, 130),
+            TInterface.TWorkBrightnessCreate(true, 25),
+            TInterface.TWorkExposureCreate(true, 1.2)
+        });
+
+        Assert.Equal(
+            new[]
+            {
+                LColorKind.LColorKindExposure,
+                LColorKind.LColorKindBrightness,
+                LColorKind.LColorKindSaturation,
+                LColorKind.LColorKindCurve
+            },
+            video.LWorkVideoSteps.Select(step => step.LWorkStepKind));
     }
 
     [Fact]

@@ -72,11 +72,11 @@ public static partial class LNeutral
     // Resolve the correction sample for one gray triple, whether it came from a
     // sampled region, a colour-wheel pick, or a whole-frame analysis.
     //
-    // Work in linear light so the correction matches how the sensor mixes colour,
-    // not the gamma-compressed sRGB byte values. Two targets drive the diagonal gain
-    // of target / channel:
-    //   Grey  — target = the sample's own Rec.709 luminance. Every channel is driven
-    //           to that single luminance, so a truly neutral sample yields gains of 1,
+    // Work on the gamma-encoded channel values, the domain FFmpeg's colorchannelmixer
+    // multiplies in, so a gain means the same thing where it is derived and where it is
+    // applied. Two targets drive the diagonal gain of target / channel:
+    //   Grey  — target = the sample's own Rec.709 luma. Every channel is driven
+    //           to that single luma, so a truly neutral sample yields gains of 1,
     //           the corrected channels come out equal, and brightness is preserved.
     //           Strict: assumes the pick is genuinely neutral grey.
     //   White — target = the sample's brightest linear channel. Only the deficient
@@ -89,19 +89,19 @@ public static partial class LNeutral
     private static LNeutralSample LNeutralSampleCreate(
         int lNeutralRed, int lNeutralGreen, int lNeutralBlue, LNeutralTarget lNeutralTargetKind)
     {
-        double lNeutralRedLinear = LNeutralLinearResolve(lNeutralRed);
-        double lNeutralGreenLinear = LNeutralLinearResolve(lNeutralGreen);
-        double lNeutralBlueLinear = LNeutralLinearResolve(lNeutralBlue);
+        double lNeutralRedUnit = LNeutralUnitResolve(lNeutralRed);
+        double lNeutralGreenUnit = LNeutralUnitResolve(lNeutralGreen);
+        double lNeutralBlueUnit = LNeutralUnitResolve(lNeutralBlue);
 
         double lNeutralTarget = lNeutralTargetKind == LNeutralTarget.LNeutralTargetWhite
-            ? Math.Max(lNeutralRedLinear, Math.Max(lNeutralGreenLinear, lNeutralBlueLinear))
-            : (0.2126 * lNeutralRedLinear)
-                + (0.7152 * lNeutralGreenLinear)
-                + (0.0722 * lNeutralBlueLinear);
+            ? Math.Max(lNeutralRedUnit, Math.Max(lNeutralGreenUnit, lNeutralBlueUnit))
+            : (0.2126 * lNeutralRedUnit)
+                + (0.7152 * lNeutralGreenUnit)
+                + (0.0722 * lNeutralBlueUnit);
 
-        double lNeutralRedGain = LNeutralGainResolve(lNeutralTarget, lNeutralRedLinear);
-        double lNeutralGreenGain = LNeutralGainResolve(lNeutralTarget, lNeutralGreenLinear);
-        double lNeutralBlueGain = LNeutralGainResolve(lNeutralTarget, lNeutralBlueLinear);
+        double lNeutralRedGain = LNeutralGainResolve(lNeutralTarget, lNeutralRedUnit);
+        double lNeutralGreenGain = LNeutralGainResolve(lNeutralTarget, lNeutralGreenUnit);
+        double lNeutralBlueGain = LNeutralGainResolve(lNeutralTarget, lNeutralBlueUnit);
 
         return new LNeutralSample(
             LNeutralOutcome.LNeutralOutcomeResolved,
@@ -129,13 +129,8 @@ public static partial class LNeutral
         return Math.Clamp(lNeutralGain, LNeutralGainLeast, LNeutralGainMost);
     }
 
-    private static double LNeutralLinearResolve(int lNeutralChannel)
-    {
-        double lNeutralValue = lNeutralChannel / 255.0;
-        return lNeutralValue <= 0.04045
-            ? lNeutralValue / 12.92
-            : Math.Pow((lNeutralValue + 0.055) / 1.055, 2.4);
-    }
+    private static double LNeutralUnitResolve(int lNeutralChannel) =>
+        Math.Clamp(lNeutralChannel, 0, 255) / 255.0;
 
     private static int LNeutralMedianResolve(List<int> lNeutralValues)
     {

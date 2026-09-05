@@ -16,24 +16,6 @@ public sealed partial class PEditTab
         PEditPlanSave();
     }
 
-    private void PEditStepHandle(string? pStepName)
-    {
-        if (string.IsNullOrEmpty(pStepName) || pStepName == "No Processing")
-        {
-            return;
-        }
-
-        if (pInspector.PSkipPersistentCheck())
-        {
-            pInspector.PSkipPersistentApply(false);
-        }
-
-        if (pInspector.PSkipActiveCheck())
-        {
-            pInspector.PSkipApply(false);
-        }
-    }
-
     private void PEditChangeHandle()
     {
         PEditColorUpdate();

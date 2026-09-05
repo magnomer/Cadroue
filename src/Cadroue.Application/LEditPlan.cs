@@ -1,4 +1,4 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 
 namespace Cadroue.Application;
 
@@ -211,7 +211,7 @@ public static partial class LEdit
                 .ToList();
     }
 
-    public static void LEditPlanSave(
+    public static bool LEditPlanSave(
         string lEditSourcePath, LEditPlan lEditPlan, Func<string, LSidecarEditRecord?, bool> lSidecarSave) =>
         lSidecarSave(lEditSourcePath, LEditPersistentCreate(lEditPlan));
 

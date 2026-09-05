@@ -1,4 +1,4 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 using Cadroue.UIShell.PPanel;
 using Cadroue.Application;
 using Cadroue.ShellEngine;
@@ -46,7 +46,13 @@ public sealed partial class PEditTab
         }
     }
 
-    private void PEditPersistentSave()
+    private void PEditPersistentSave() =>
+        PEditPersistentSave(pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath));
+
+    private void PEditItemsHandle(IReadOnlyList<LDocketEntry> pEditAddedItems) =>
+        PEditPersistentSave(pEditAddedItems.Select(pEditItem => pEditItem.LDocketEntryPath));
+
+    private void PEditPersistentSave(IEnumerable<string> pEditPaths)
     {
         if (pEditPlanLoading || PEditCarriedRead() is not { } pEditCarried)
         {
@@ -55,35 +61,26 @@ public sealed partial class PEditTab
 
         bool pEditCropPersistent = pCropOwner.LCropboxStatePersistent;
         bool pEditSkipPersistent = pInspector.PSkipPersistentCheck();
-        foreach (string pEditPath in pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath))
+        var pEditFailed = new List<string>();
+        foreach (string pEditPath in pEditPaths)
         {
-            LEdit.LEditPlanSave(
+            bool pEditSaved = LEdit.LEditPlanSave(
                 pEditPath,
                 LEdit.LEditPlanResolve(
                     LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad),
                     pEditCarried, pEditCropPersistent, pEditSkipPersistent),
                 LLibrarian.LLibrarianEditSave);
-        }
-    }
-
-    private void PEditItemsHandle(IReadOnlyList<LDocketEntry> pEditAddedItems)
-    {
-        if (pEditPlanLoading || PEditCarriedRead() is not { } pEditCarried)
-        {
-            return;
+            if (!pEditSaved)
+            {
+                pEditFailed.Add(System.IO.Path.GetFileName(pEditPath));
+            }
         }
 
-        bool pEditCropPersistent = pCropOwner.LCropboxStatePersistent;
-        bool pEditSkipPersistent = pInspector.PSkipPersistentCheck();
-        foreach (LDocketEntry pEditAddedItem in pEditAddedItems)
+        if (pEditFailed.Count > 0)
         {
-            string pEditPath = pEditAddedItem.LDocketEntryPath;
-            LEdit.LEditPlanSave(
-                pEditPath,
-                LEdit.LEditPlanResolve(
-                    LEdit.LEditPlanRead(pEditPath, LLibrarian.LLibrarianEditLoad),
-                    pEditCarried, pEditCropPersistent, pEditSkipPersistent),
-                LLibrarian.LLibrarianEditSave);
+            LTraceLog.LTraceWarningRecord(
+                $"Persistent Edit state could not be saved for {pEditFailed.Count} file(s)",
+                string.Join(", ", pEditFailed));
         }
     }
 
@@ -148,9 +145,15 @@ public sealed partial class PEditTab
             return;
         }
 
-        LTraceLog.LTraceInfoRecord(
-            $"Edit plan saved for '{System.IO.Path.GetFileName(pEditSourcePath)}': {PEditPlanFormat(pEditPlan)}");
-        LEdit.LEditPlanSave(pEditSourcePath, pEditPlan, LLibrarian.LLibrarianEditSave);
+        string pEditName = System.IO.Path.GetFileName(pEditSourcePath);
+        string pEditSummary = PEditPlanFormat(pEditPlan);
+        if (!LEdit.LEditPlanSave(pEditSourcePath, pEditPlan, LLibrarian.LLibrarianEditSave))
+        {
+            LTraceLog.LTraceWarningRecord($"Edit plan could not be saved for '{pEditName}'", pEditSummary);
+            return;
+        }
+
+        LTraceLog.LTraceInfoRecord($"Edit plan saved for '{pEditName}': {pEditSummary}");
         PEditPersistentSave();
     }
 }

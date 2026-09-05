@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 
 using Xunit;
@@ -109,6 +109,45 @@ public sealed class TMediaProbe
     public void PacketOutput_WithoutTimestampsHasNoEnd()
     {
         Assert.Null(TScout.TScoutEndParse("N/A\n\n", TimeSpan.Zero));
+    }
+
+    [Theory]
+    [InlineData(90, 1080, 1920)]
+    [InlineData(-90, 1080, 1920)]
+    [InlineData(270, 1080, 1920)]
+    [InlineData(180, 1920, 1080)]
+    [InlineData(0, 1920, 1080)]
+    public void DisplayMatrixRotation_ResolvesDisplayedDimensions(
+        int rotation, int expectedWidth, int expectedHeight)
+    {
+        var info = TScout.TScoutProbeParse(TMediaProbeRead(
+            "5",
+            $$"""{"codec_type":"video","codec_name":"h264","width":1920,"height":1080,"side_data_list":[{"rotation":{{rotation}}}]}"""));
+
+        Assert.Equal(expectedWidth, info.LMediaVideoWidth);
+        Assert.Equal(expectedHeight, info.LMediaVideoHeight);
+        Assert.Equal(((rotation % 360) + 360) % 360, info.LMediaVideoRotation);
+    }
+
+    [Fact]
+    public void LegacyRotateTag_ResolvesDisplayedDimensions()
+    {
+        var info = TScout.TScoutProbeParse(TMediaProbeRead(
+            "5",
+            """{"codec_type":"video","codec_name":"h264","width":1920,"height":1080,"tags":{"rotate":"90"}}"""));
+
+        Assert.Equal(1080, info.LMediaVideoWidth);
+        Assert.Equal(1920, info.LMediaVideoHeight);
+        Assert.Equal(90, info.LMediaVideoRotation);
+    }
+
+    [Fact]
+    public void ProbeProcess_RequestsStreamOrientation()
+    {
+        ProcessStartInfo startInfo = TScout.TScoutProbeCreate("clip.mp4");
+
+        Assert.Contains(startInfo.ArgumentList, argument => argument.Contains("stream_side_data=rotation"));
+        Assert.Contains(startInfo.ArgumentList, argument => argument.Contains("stream_tags=rotate"));
     }
 
     [Theory]

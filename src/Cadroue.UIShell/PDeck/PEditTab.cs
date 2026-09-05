@@ -1,4 +1,4 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 using Cadroue.UIShell.PPanel;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 using Cadroue.Application;
@@ -116,10 +116,9 @@ public sealed partial class PEditTab : PTabSurface
         pProcessing.PProcessingStepAdd("Brightness", PEditBrightnessIcon, "Processing.Step.Brightness");
         pProcessing.PProcessingStepAdd("Contrast", PEditContrastIcon, "Processing.Step.Contrast");
         pProcessing.PProcessingStepAdd("Gamma", PEditGammaIcon, "Processing.Step.Gamma");
-        pProcessing.PProcessingStepAdd("Curve", PEditCurveIcon, "Processing.Step.Curve");
         pProcessing.PProcessingStepAdd("Saturation", PEditSaturationIcon, "Processing.Step.Saturation");
+        pProcessing.PProcessingStepAdd("Curve", PEditCurveIcon, "Processing.Step.Curve");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepChange += PEditStepHandle;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pProcessing.PProcessingStepOpen += pStep =>
         {

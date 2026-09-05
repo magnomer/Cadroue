@@ -1,4 +1,4 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 
 using Xunit;
 
@@ -34,7 +34,7 @@ public sealed class TGamma
         LWorkVideo mpv = TInterface.TEditVideoCreate(stored, true);
         LWorkVideo flyleaf = TInterface.TEditVideoCreate(stored, false);
 
-        Assert.Equal(stored, mpv.LWorkVideoSteps);
+        Assert.Equal([whitebalance, brightness, contrast, gamma], mpv.LWorkVideoSteps);
         Assert.Equal([brightness, contrast], flyleaf.LWorkVideoSteps);
         Assert.True(gamma.LWorkStepActive);
         Assert.Equal(50, gamma.LWorkStepValue);
@@ -59,8 +59,10 @@ public sealed class TGamma
         LWorkVideo eqPresent = TInterface.TEditVideoCreate(stored, true, true);
         LWorkVideo eqMissing = TInterface.TEditVideoCreate(stored, true, false);
 
-        Assert.Equal(stored, eqPresent.LWorkVideoSteps);
-        Assert.Equal([exposure, whitebalance], eqMissing.LWorkVideoSteps);
+        Assert.Equal(
+            [whitebalance, exposure, brightness, contrast, gamma, saturation],
+            eqPresent.LWorkVideoSteps);
+        Assert.Equal([whitebalance, exposure], eqMissing.LWorkVideoSteps);
         Assert.True(brightness.LWorkStepActive);
         Assert.Equal(25, brightness.LWorkStepValue);
     }

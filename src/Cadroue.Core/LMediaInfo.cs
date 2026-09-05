@@ -1,4 +1,4 @@
-namespace Cadroue.Core;
+﻿namespace Cadroue.Core;
 
 public sealed record LMediaInfo
 {
@@ -78,6 +78,8 @@ public sealed record LMediaInfo
     public int LMediaVideoHeight { get; }
 
     public double LMediaVideoRate { get; }
+
+    public int LMediaVideoRotation { get; init; }
 
     public TimeSpan LMediaVideoDuration { get; init; }
 

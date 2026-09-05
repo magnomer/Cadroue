@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -12,9 +12,9 @@ public sealed record LMediaFrame(int LMediaFrameWidth, int LMediaFrameHeight, by
 public static partial class LMedia
 {
     // Decode a single RGBA frame from the stored source at the given position, without
-    // subtitles, overlays, rotation metadata, or any preview correction. The output
-    // carries raw stored-orientation pixels so callers map display coordinates back
-    // through their own transform chain.
+    // subtitles, overlays, or any preview correction. The stream's own display matrix is
+    // applied, so the output carries display-oriented pixels in the same space as the
+    // dimensions LMediaInfo publishes and as every preview backend shows.
     public static LMediaFrame? LMediaFrameRead(
         string sourcePath,
         TimeSpan position,
@@ -42,7 +42,6 @@ public static partial class LMedia
         };
         psi.ArgumentList.Add("-hide_banner");
         psi.ArgumentList.Add("-nostats");
-        psi.ArgumentList.Add("-noautorotate");
         psi.ArgumentList.Add("-ss");
         psi.ArgumentList.Add(lMediaSeconds.ToString("0.###", CultureInfo.InvariantCulture));
         psi.ArgumentList.Add("-i");

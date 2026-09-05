@@ -195,9 +195,9 @@ public sealed class TNeutralSample
     private static void TNeutralBalanceCheck(LNeutralSample sample)
     {
         TNeutralGainCheck(sample);
-        double red = TNeutralLinearRead(sample.LNeutralRed) * sample.LNeutralRedGain;
-        double green = TNeutralLinearRead(sample.LNeutralGreen) * sample.LNeutralGreenGain;
-        double blue = TNeutralLinearRead(sample.LNeutralBlue) * sample.LNeutralBlueGain;
+        double red = TNeutralUnitRead(sample.LNeutralRed) * sample.LNeutralRedGain;
+        double green = TNeutralUnitRead(sample.LNeutralGreen) * sample.LNeutralGreenGain;
+        double blue = TNeutralUnitRead(sample.LNeutralBlue) * sample.LNeutralBlueGain;
         Assert.Equal(red, green, 3);
         Assert.Equal(green, blue, 3);
     }
@@ -219,11 +219,7 @@ public sealed class TNeutralSample
         }
     }
 
-    private static double TNeutralLinearRead(int channel)
-    {
-        double value = channel / 255.0;
-        return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
-    }
+    private static double TNeutralUnitRead(int channel) => Math.Clamp(channel, 0, 255) / 255.0;
 
     private static byte[] TNeutralFrameCreate(byte r, byte g, byte b, byte a)
     {
