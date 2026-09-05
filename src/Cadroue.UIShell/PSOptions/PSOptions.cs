@@ -34,93 +34,9 @@ internal sealed partial class PSOptions : Window
     private const string PSSheetTimelineIcon = "/PAsset/PTab/PSSheetTimeline.svg";
     private const string PSSheetWorkIcon = "/PAsset/PTab/PSSheetWork.svg";
 
-    private static readonly LLocalizationChoice[] PSOptionsTabItems =
-    {
-        new("Split", "Tab.Split"),
-        new("Edit", "Tab.Edit"),
-        new("Audio", "Tab.Audio"),
-        new("Convert", "Tab.Convert"),
-        new("Merge", "Tab.Merge"),
-        new("Worklist", "Tab.Worklist")
-    };
-
-    private static readonly LLocalizationChoice[] PSOptionsVolumeItems =
-    {
-        new("Unified", "Options.Playback.VolumeUnified"),
-        new("PerTab", "Options.Playback.VolumePerTab")
-    };
-
-    private static readonly LLocalizationChoice[] PSOptionsWheelItems =
-    {
-        new("Seek", "Options.Playback.Seek"),
-        new("Zoom", "Options.Playback.Zoom"),
-        new("Volume", "Options.Playback.Volume")
-    };
-
-    private static readonly LLocalizationChoice[] PSOptionsOrderItems =
-    {
-        new("MapFirst", "Options.Timeline.MapTop"),
-        new("ViewfinderFirst", "Options.Timeline.ViewfinderTop")
-    };
-
-    private static readonly LLocalizationChoice[] PSOptionsStartupItems =
-    {
-        new("LastSession", "Options.Startup.LastSession"),
-        new("DefaultTab", "Options.Startup.DefaultTab")
-    };
-
-    private static readonly LLocalizationChoice[] PSOptionsRecordItems =
-    {
-        new("FileLocation", "Options.Record.FileLocation"),
-        new("Workspace", "Options.Record.Workspace")
-    };
-
-    private static readonly LLocalizationChoice[] PSOptionsTabsItems =
-    {
-        new("Horizontal", "Options.Layout.TabsHorizontal"),
-        new("Vertical", "Options.Layout.TabsVertical")
-    };
-
-    private static readonly LLocalizationChoice[] PSOptionsEngineItems =
-    {
-        new("Flyleaf", "Options.Playback.EngineFlyleaf"),
-        new("Mpv", "Options.Playback.EngineMpv")
-    };
-
     private readonly LPreferenceState lsOptionsDraft;
     private readonly Action<LPreferenceState>? psOptionsCallback;
     private readonly PSGrabber psOptionsGrabber;
-
-    private readonly Border psOptionsStartupMode;
-    private readonly Border psOptionsRecordMode;
-    private Action? psOptionsRecordNotice;
-    private Action? psOptionsStartupPicker;
-    private readonly PPicker psOptionsTabPicker;
-    private readonly CheckBox psMediaBox;
-    private readonly CheckBox psOptionsConfirmBox;
-    private readonly CheckBox psRelayClearBox;
-    private readonly Border psOptionsTabsMode;
-    private readonly ComboBox psOptionsLanguageCombo;
-
-    private readonly Border psOptionsEngineMode;
-    private readonly Action<string, bool> psOptionsEngineEnable;
-    private readonly CheckBox psOptionsAutoplayBox;
-    private readonly Border psOptionsVolumeMode;
-    private readonly Slider psOptionsVolumeSlider;
-    private readonly Border psOptionsWheelMode;
-    private readonly CheckBox psOptionsDragBox;
-
-    private readonly Border psOptionsOrderMode;
-    private readonly Slider psKeyframeSlider;
-    private readonly Slider psKeyframeDelaySlider;
-    private readonly CheckBox psOptionsOverlapBox;
-    private readonly CheckBox psWaveformBox;
-
-    private readonly CheckBox psOptionsFailureBox;
-    private readonly CheckBox psOptionsRetryBox;
-    private readonly Slider psOptionsRetrySlider;
-    private readonly CheckBox psOptionsCleanupBox;
-    private readonly Slider psOptionsCleanupSlider;
 
     internal static void PSOptionsShow(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
@@ -216,84 +132,6 @@ internal sealed partial class PSOptions : Window
         return pRoot;
     }
 
-    private UIElement PSGeneralBuild()
-    {
-        var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Startup"),
-            PSOptionsStartupBuild(),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.LastMedia"), psMediaBox)));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Confirm"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.DestructiveActions"), psOptionsConfirmBox),
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.DestructiveNotice"))));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Relay"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClear"), psRelayClearBox),
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClearNotice"))));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Layout"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Tabs"), psOptionsTabsMode)));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Language"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Language"), psOptionsLanguageCombo)));
-        return pPanel;
-    }
-
-    private UIElement PSOptionsStartupBuild()
-    {
-        psOptionsTabPicker.Margin = new Thickness(12, 0, 0, 0);
-        psOptionsTabPicker.VerticalAlignment = VerticalAlignment.Center;
-
-        var pRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        pRow.Children.Add(psOptionsStartupMode);
-        pRow.Children.Add(psOptionsTabPicker);
-
-        void PSOptionsPickerUpdate() =>
-            psOptionsTabPicker.Visibility = string.Equals(PSModeTextRead(psOptionsStartupMode), "DefaultTab", StringComparison.Ordinal)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        PSOptionsPickerUpdate();
-        psOptionsStartupPicker = PSOptionsPickerUpdate;
-
-        return PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.OpenWith"), pRow);
-    }
-
-    private UIElement PSPlaybackBuild()
-    {
-        var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlaybackEngineBuild());
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"), psOptionsAutoplayBox)));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumePlate"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumeMode"), psOptionsVolumeMode),
-            PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.DefaultVolume"), psOptionsVolumeSlider, "%")));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Mousewheel"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.OverTimeline"), psOptionsWheelMode)));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Dragging"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.WhileDragging"), psOptionsDragBox)));
-        return pPanel;
-    }
-
-    private UIElement PSPlaybackEngineBuild()
-    {
-        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Preview"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Engine"), psOptionsEngineMode),
-            PSSystemFlyleafBuild(),
-            PSSystemMpvBuild(),
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Playback.MpvEditNotice")));
-    }
-
-    private UIElement PSWorkBuild()
-    {
-        UIElement pRetryRow = PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.RetryLimit"), psOptionsRetrySlider, string.Empty);
-        pRetryRow.IsEnabled = psOptionsRetryBox.IsChecked == true;
-        psOptionsRetryBox.Checked += (_, _) => pRetryRow.IsEnabled = true;
-        psOptionsRetryBox.Unchecked += (_, _) => pRetryRow.IsEnabled = false;
-
-        var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Work.Failure"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.OnFailure"), psOptionsFailureBox),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.Retry"), psOptionsRetryBox),
-            pRetryRow));
-        return pPanel;
-    }
-
     private void PSOptionsApply()
     {
         lsOptionsDraft.LPreferenceStartupMode = PSModeTextRead(psOptionsStartupMode);
@@ -357,59 +195,6 @@ internal sealed partial class PSOptions : Window
                 LLocalization.LLocalizationTextRead("Options.Language.RestartMessage"));
         }
     }
-
-    private static LLocalizationChoice[] PSOptionsLanguagesRead() =>
-        LLocalization.LLocalizationLanguagesRead()
-            .Select(pLanguage => new LLocalizationChoice(
-                pLanguage.Key,
-                "Localization.Language.Name",
-                pLanguage.Value))
-            .ToArray();
-
-    private static CheckBox PSOptionsCheckBuild(string pLabel, bool pChecked)
-    {
-        var pCheck = new CheckBox
-        {
-            Content = pLabel,
-            IsChecked = pChecked,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        PCheckbox.PCheckboxApply(pCheck);
-        return pCheck;
-    }
-
-    private static Slider PSOptionsSliderBuild(double pValue, double pMinimum, double pMaximum)
-    {
-        var pSlider = new Slider
-        {
-            Minimum = pMinimum,
-            Maximum = pMaximum,
-            Value = Math.Clamp(pValue, pMinimum, pMaximum),
-            Width = 260
-        };
-        PSlider.PSliderApply(pSlider);
-        return pSlider;
-    }
-
-    private static UIElement PSOptionsFieldBuild(string pLabel, Slider pSlider, string pUnit)
-    {
-        var pValueText = new TextBlock
-        {
-            Foreground = PSFieldText,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(12, 0, 0, 0),
-            MinWidth = 48,
-            Text = PSOptionsNumberFormat(pSlider.Value) + pUnit
-        };
-        pSlider.ValueChanged += (_, _) => pValueText.Text = PSOptionsNumberFormat(pSlider.Value) + pUnit;
-
-        var pRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        pRow.Children.Add(pSlider);
-        pRow.Children.Add(pValueText);
-        return PSFieldBuild(pLabel, pRow);
-    }
-
-    private static string PSOptionsNumberFormat(double pValue) => $"{Math.Round(pValue):0}";
 
     private void PSOptionsCloseHandle(object? sender, EventArgs e)
     {

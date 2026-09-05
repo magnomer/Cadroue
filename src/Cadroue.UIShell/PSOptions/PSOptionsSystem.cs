@@ -15,6 +15,17 @@ namespace Cadroue.UIShell;
 
 internal sealed partial class PSOptions
 {
+    private static readonly LLocalizationChoice[] PSOptionsRecordItems =
+    {
+        new("FileLocation", "Options.Record.FileLocation"),
+        new("Workspace", "Options.Record.Workspace")
+    };
+
+    private readonly Border psOptionsRecordMode;
+    private Action? psOptionsRecordNotice;
+    private readonly CheckBox psOptionsCleanupBox;
+    private readonly Slider psOptionsCleanupSlider;
+
     private const string PSOptionsBrowseIcon = "/PAsset/PPanel/PBrowse.svg";
     private const string PSOptionsOpenIcon = "/PAsset/PPanel/POpen.svg";
     private const string PSOptionsDiagnosisIcon = "/PAsset/PPanel/PDiagnosis.svg";

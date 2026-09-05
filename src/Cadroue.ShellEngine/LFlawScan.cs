@@ -128,7 +128,7 @@ public static class LFlawScan
             if (!lFlawOpened)
             {
                 var lFlawUnopened = new List<LDossier>();
-                if (LFlawMux.LFlawTruncationResolve(lFlawProbeError, lFlawCopyError) is { } lFlawFinal)
+                if (LFlawTruncation.LFlawTruncationResolve(lFlawProbeError, lFlawCopyError) is { } lFlawFinal)
                 {
                     lFlawUnopened.Add(lFlawFinal with { LDossierKind = LFlawKind.LFlawKindTruncation });
                 }
@@ -146,22 +146,22 @@ public static class LFlawScan
                 lFlawDossiers.Add(lFlawContainer with { LDossierKind = LFlawKind.LFlawKindContainer });
             }
 
-            if (LFlawMux.LFlawTruncationResolve(lFlawProbeError, lFlawCopyError) is { } lFlawTruncation)
+            if (LFlawTruncation.LFlawTruncationResolve(lFlawProbeError, lFlawCopyError) is { } lFlawTruncation)
             {
                 lFlawDossiers.Add(lFlawTruncation with { LDossierKind = LFlawKind.LFlawKindTruncation });
             }
 
-            if (LFlawMux.LFlawTransportResolve(lFlawMetaReport, lFlawTransportError) is { } lFlawTransport)
+            if (LFlawTransport.LFlawTransportResolve(lFlawMetaReport, lFlawTransportError) is { } lFlawTransport)
             {
                 lFlawDossiers.Add(lFlawTransport with { LDossierKind = LFlawKind.LFlawKindTransport });
             }
 
-            if (LFlawMux.LFlawMetadataResolve(lFlawMetaReport) is { } lFlawMetadata)
+            if (LFlawMetadata.LFlawMetadataResolve(lFlawMetaReport) is { } lFlawMetadata)
             {
                 lFlawDossiers.Add(lFlawMetadata with { LDossierKind = LFlawKind.LFlawKindMetadata });
             }
 
-            if (LFlawMux.LFlawIndexResolve(lFlawCopyError, lFlawIgnidxError, lFlawSeekError) is { } lFlawIndex)
+            if (LFlawIndex.LFlawIndexResolve(lFlawCopyError, lFlawIgnidxError, lFlawSeekError) is { } lFlawIndex)
             {
                 lFlawDossiers.Add(lFlawIndex with { LDossierKind = LFlawKind.LFlawKindIndex });
             }

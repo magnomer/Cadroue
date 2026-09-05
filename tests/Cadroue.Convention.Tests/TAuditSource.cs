@@ -64,7 +64,15 @@ internal static class TAuditSource
                 continue;
             }
 
-            files.Add(Path.Combine(repoRoot, relative.Replace('/', Path.DirectorySeparatorChar)));
+            // The index still lists a file deleted from the working tree until the
+            // deletion is staged. Audit what is on disk, not what the index remembers.
+            string full = Path.Combine(repoRoot, relative.Replace('/', Path.DirectorySeparatorChar));
+            if (!File.Exists(full))
+            {
+                continue;
+            }
+
+            files.Add(full);
         }
 
         files.Sort(StringComparer.OrdinalIgnoreCase);

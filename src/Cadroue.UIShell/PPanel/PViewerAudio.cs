@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -14,10 +14,16 @@ public sealed partial class PViewer
     private string pViewerAudioFilter = string.Empty;
     private string? pViewerAudioApplied;
     private bool pViewerBypass;
+    private bool pViewerAudioAllowed;
 
     public event Action<bool>? PViewerBypassChange;
 
     public bool PViewerAudioEligible { get; set; }
+
+    public void PViewerAudioSet(bool pAudioOnlyAllowed)
+    {
+        pViewerAudioAllowed = pAudioOnlyAllowed;
+    }
 
     public void PViewerAudioSet(string pViewerGraph)
     {

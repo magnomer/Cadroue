@@ -213,4 +213,18 @@ public sealed class TDetector
     {
         Assert.Null(LDetector.LDetectorLuminanceMatch(10, 0.5, 0.5));
     }
+
+    [Fact]
+    public void LDetectorBlankClamp_BoundsEveryAxis()
+    {
+        LDetectorBlank lClamped = LDetectorBlank.LDetectorBlankClamp(new LDetectorBlank(
+            true, LDetectorType.LDetectorTypeColor, 400, 2.0, 3.0, 5.0, 0.1, 999));
+
+        Assert.Equal(40, lClamped.LDetectorBlankHue);
+        Assert.Equal(1, lClamped.LDetectorBlankSaturation);
+        Assert.Equal(1, lClamped.LDetectorBlankBrightness);
+        Assert.Equal(0.5, lClamped.LDetectorBlankTolerance);
+        Assert.Equal(0.5, lClamped.LDetectorBlankCoverage);
+        Assert.Equal(60, lClamped.LDetectorBlankMinimum);
+    }
 }

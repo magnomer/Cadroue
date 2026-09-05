@@ -1,3 +1,6 @@
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
+
 namespace Cadroue.Core;
 
 public enum LFlawKind
@@ -36,6 +39,35 @@ internal static class LFlaw
         "invalid data found", "out of range", "slice below image", "slice mismatch",
         "slice end mismatch", "mb incr damaged", "ac-tex damaged"
     };
+
+    internal static readonly string[] lFlawTransportFault =
+    {
+        "continuity", "pes packet", "pes header", "sync byte", "pcr",
+        "invalid packet size", "program map", "program association", "invalid ts packet"
+    };
+
+    internal static readonly string[] lFlawTruncationTail =
+    {
+        "truncated", "invalid data found", "premature end", "unexpected end",
+        "truncating", "partial file"
+    };
+
+    internal static readonly string[] lFlawTruncationFinal =
+    {
+        "moov atom not found"
+    };
+
+    private static readonly Regex lFlawOffset = new(
+        @"(?:pos|offset|at)[:=]?\s*(\d{2,})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    internal static string LFlawScopeResolve(string lFlawEvidence)
+    {
+        Match lFlawMatch = lFlawOffset.Match(lFlawEvidence);
+        return lFlawMatch.Success
+            && long.TryParse(lFlawMatch.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long lFlawByte)
+                ? FormattableString.Invariant($"Byte offset {lFlawByte}")
+                : "Container structure";
+    }
 
     internal static IReadOnlyList<IReadOnlyDictionary<string, string>> LFlawSectionRead(
         string lFlawReport, string lFlawSection)

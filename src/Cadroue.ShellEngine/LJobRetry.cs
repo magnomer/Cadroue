@@ -26,4 +26,16 @@ internal sealed partial class LJob
         LRunner.LRunnerRecord($"Encode requeued '{lJobItem.LWorkOutputName}': {pJobMessage}");
         return true;
     }
+
+    private static string LJobTailRead(string pJobError)
+    {
+        if (string.IsNullOrWhiteSpace(pJobError))
+        {
+            return "FFmpeg reported nothing.";
+        }
+
+        string[] pJobLines = pJobError
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return string.Join(" | ", pJobLines[^Math.Min(3, pJobLines.Length)..]);
+    }
 }

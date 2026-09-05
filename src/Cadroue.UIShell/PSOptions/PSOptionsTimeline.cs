@@ -7,6 +7,7 @@ using System.Windows.Media;
 using Cadroue.UIShell.PAsset;
 using Cadroue.UIShell.PFlow;
 using Cadroue.UIShell.PHouse;
+using Cadroue.Core;
 
 using static Cadroue.UIShell.PSCasement.PSField;
 using static Cadroue.UIShell.PSCasement.PSPlate;
@@ -16,6 +17,18 @@ namespace Cadroue.UIShell;
 
 internal sealed partial class PSOptions
 {
+    private static readonly LLocalizationChoice[] PSOptionsOrderItems =
+    {
+        new("MapFirst", "Options.Timeline.MapTop"),
+        new("ViewfinderFirst", "Options.Timeline.ViewfinderTop")
+    };
+
+    private readonly Border psOptionsOrderMode;
+    private readonly Slider psKeyframeSlider;
+    private readonly Slider psKeyframeDelaySlider;
+    private readonly CheckBox psOptionsOverlapBox;
+    private readonly CheckBox psWaveformBox;
+
     private const double PSSpectrumSwatchSize = 20;
     private const double PSSpectrumSwatchGap = 5;
     private const double PSSpectrumNameWidth = 92;

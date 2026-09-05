@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -65,7 +65,6 @@ public sealed partial class PViewer : PPanel
     private string? pViewerLoadPath;
     private readonly LMediaLoad pViewerMediaProbe = new();
     private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
-    private bool pViewerAudioAllowed;
     private bool pViewerCommandActive;
     private bool pViewerResumeInactive;
     private bool pViewerEndReached;
@@ -236,176 +235,6 @@ public sealed partial class PViewer : PPanel
         PSLoupe.PSLoupeShow(pViewerOwner, this);
     }
 
-    internal void PViewerLoupeSync(TimeSpan pViewerPosition, bool pViewerPlaying)
-    {
-        PViewerPlaybackUpdate(pViewerPlaying, pViewerPosition);
-        PViewerClockTick?.Invoke(pViewerPosition);
-    }
-
-    public bool PViewerPlayingRead() => LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
-
-    public TimeSpan PViewerPositionRead() => LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
-
-    public void PViewerPlay()
-    {
-        if (pViewerLoupe is not null)
-        {
-            pViewerLoupe.PSLoupePlay();
-            return;
-        }
-
-        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
-        {
-            return;
-        }
-
-        if (LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
-        {
-            return;
-        }
-
-        if (pViewerEndReached)
-        {
-            pViewerEndReached = false;
-            pViewerPlayer.PPlayerSeek(TimeSpan.Zero);
-        }
-
-        pViewerResumeInactive = false;
-        pViewerPlayer.PPlayerPlay();
-        PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
-        pViewerClockTimer.Start();
-    }
-
-    public void PViewerPause()
-    {
-        if (pViewerLoupe is not null)
-        {
-            pViewerLoupe.PSLoupePause();
-            return;
-        }
-
-        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
-        {
-            return;
-        }
-
-        pViewerResumeInactive = false;
-        pViewerPlayer.PPlayerPause();
-        PViewerPlaybackUpdate(false, pViewerPlayer.PPlayerTimeRead());
-        pViewerClockTimer.Stop();
-    }
-
-    public void PViewerSeek(TimeSpan playbackPosition)
-    {
-        if (pViewerLoupe is not null)
-        {
-            pViewerLoupe.PSLoupeSeek(playbackPosition);
-            PViewerLoupeSync(playbackPosition, LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying);
-            return;
-        }
-
-        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
-        {
-            return;
-        }
-
-        pViewerEndReached = false;
-        try
-        {
-            PPlayerAccurateSeek(playbackPosition);
-        }
-        catch (Exception pViewerSeekException)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Preview seek to {playbackPosition:hh\\:mm\\:ss\\.fff} was rejected: {pViewerSeekException.Message}");
-            return;
-        }
-
-        PViewerPlaybackUpdate(null, playbackPosition);
-    }
-
-    public void PViewerDragSet(bool pViewerDragging)
-    {
-        if (pViewerDragging)
-        {
-            if (!pViewerDragActive)
-            {
-                pViewerSeekTrace.Clear();
-                pViewerTraceCount = 0;
-            }
-
-            pViewerDragActive = true;
-            return;
-        }
-
-        pViewerDragActive = false;
-        if (pViewerTraceCount == 0)
-        {
-            return;
-        }
-
-        string pViewerSummary = pViewerTraceCount == 1
-            ? $"Seek accurate to {pViewerTraceFinal:hh\\:mm\\:ss\\.fff}"
-            : $"Seek accurate while dragging to {pViewerTraceFinal:hh\\:mm\\:ss\\.fff} ({pViewerTraceCount} requests)";
-        LTrace.LTraceRecord(
-            LTraceKind.LTraceUi,
-            pViewerSummary,
-            string.Join(Environment.NewLine, pViewerSeekTrace));
-        pViewerSeekTrace.Clear();
-        pViewerTraceCount = 0;
-    }
-
-    private void PViewerSeekRecord(TimeSpan pViewerPosition, string pViewerDetail)
-    {
-        string pViewerSummary = $"Seek accurate to {pViewerPosition:hh\\:mm\\:ss\\.fff}";
-        if (!pViewerDragActive)
-        {
-            LTrace.LTraceRecord(LTraceKind.LTraceUi, pViewerSummary, pViewerDetail);
-            return;
-        }
-
-        if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
-        {
-            return;
-        }
-
-        string pViewerTime = DateTimeOffset.Now.ToString(
-            "HH:mm:ss.fff",
-            System.Globalization.CultureInfo.InvariantCulture);
-        pViewerSeekTrace.Add($"{pViewerTime}  {pViewerSummary}");
-        pViewerSeekTrace.Add($"{new string(' ', 14)}{pViewerDetail}");
-        pViewerTraceCount++;
-        pViewerTraceFinal = pViewerPosition;
-    }
-
-    public void PViewerVolumeSet(double volume)
-    {
-        if (pViewerLoupe is not null)
-        {
-            pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
-            if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
-                LPreference.LPreferenceVolumeSet(pViewerVolume);
-            pViewerLoupe.PSLoupeVolumeSet(pViewerVolume);
-            return;
-        }
-
-        if (!pViewerCommandActive) return;
-        pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
-        if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
-            LPreference.LPreferenceVolumeSet(pViewerVolume);
-        if (!pViewerPlayer.PPlayerReady)
-        {
-            return;
-        }
-
-        pViewerPlayer.PPlayerVolumeSet(pViewerVolume);
-    }
-
-    public void PViewerAudioSet(bool pAudioOnlyAllowed)
-    {
-        pViewerAudioAllowed = pAudioOnlyAllowed;
-    }
-
     public void PViewerCommandSet(bool pCommandActive)
     {
         if (pViewerUnloaded || pViewerCommandActive == pCommandActive)
@@ -433,56 +262,5 @@ public sealed partial class PViewer : PPanel
         }
 
         PPlayerResume();
-    }
-
-    private void PViewerPreviewApply()
-    {
-        if (pViewerMpvActive)
-        {
-            PViewerMpvUpdate();
-            PViewerPreviewChange?.Invoke();
-            return;
-        }
-
-        LPreview.LPreviewApply(pViewerPlayer.PPlayerFlyleafPlayer, PViewerRenderRead());
-        PPlayerColorRecord(pViewerPlayer.PPlayerFlyleafPlayer);
-        PViewerPreviewChange?.Invoke();
-    }
-
-    public LPreviewState PViewerRenderRead() =>
-        PCropActive
-            ? LPreviewStateCurrent
-            : LPreviewStateCurrent
-                .LRotateFlipChange(LRotateFlip.LRotateDefaultCreate())
-                .LCropboxChange(null);
-
-    public string PViewerAudioRead() => PViewerAudioResolve();
-
-    private void PViewerPreviewRestore()
-    {
-        LRotateFlip pViewerRotate = LPreviewStateCurrent.LRotateFlip;
-        LTraceLog.LTraceInfoRecord(
-            $"Viewer preview restored: rotate {pViewerRotate.LRotateKind}, "
-            + $"H {pViewerRotate.LRotateFlipHorizontal}, V {pViewerRotate.LRotateFlipVertical}");
-        LPreview.LPreviewRestore(pViewerPlayer.PPlayerFlyleafPlayer, LPreviewStateCurrent);
-    }
-
-    public TimeSpan PViewerDurationRead() => pViewerMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero;
-
-    public void PViewerRotateSet(LRotateFlip pRotateFlip)
-    {
-        LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(pRotateFlip);
-        LTraceLog.LTraceInfoRecord(
-            $"Viewer rotate/flip set: rotate {pRotateFlip.LRotateKind}, "
-            + $"H {pRotateFlip.LRotateFlipHorizontal}, V {pRotateFlip.LRotateFlipVertical}, "
-            + $"player {(pViewerPlayer.PPlayerReady ? "ready" : "none")}, overlay remapped");
-        PViewerPreviewApply();
-        PCropOverlayUpdate();
-    }
-
-    public void PViewerColorSet(LColor pColor)
-    {
-        LPreviewStateCurrent = LPreviewStateCurrent.LColorChange(pColor);
-        PViewerPreviewApply();
     }
 }
