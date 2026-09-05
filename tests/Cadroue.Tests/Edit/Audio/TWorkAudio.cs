@@ -1,10 +1,10 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 
 using Xunit;
 
 namespace Cadroue.Tests;
 
-public sealed class LWorkAudioTests
+public sealed class TWorkAudio
 {
     [Fact]
     public void Format_MixedActivePlan_ProducesOrderedGraph()
@@ -106,5 +106,69 @@ public sealed class LWorkAudioTests
         });
 
         Assert.Equal(string.Empty, TInterface.TWorkAudioFormat(audio));
+    }
+
+    [Fact]
+    public void Format_LowPassAboveNyquist_DropOut()
+    {
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
+        {
+            TInterface.TWorkLowCreate(true, 20000, 1, 2, 0.7)
+        });
+
+        Assert.Equal(string.Empty, TInterface.TWorkAudioFormat(audio, 32000));
+        Assert.Equal(
+            "lowpass=f=20000:poles=2:width_type=q:width=0.7",
+            TInterface.TWorkAudioFormat(audio, 48000));
+    }
+
+    [Fact]
+    public void Format_BandAboveNyquist_DropOut()
+    {
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
+        {
+            TInterface.TWorkEqualizerCreate(true, new[]
+            {
+                TInterface.TWorkBandCreate(4000, 3),
+                TInterface.TWorkBandCreate(16000, 6)
+            })
+        });
+
+        Assert.Equal(
+            "equalizer=f=4000:t=q:w=1:g=3",
+            TInterface.TWorkAudioFormat(audio, 22050));
+        Assert.Equal(
+            "equalizer=f=4000:t=q:w=1:g=3,equalizer=f=16000:t=q:w=1:g=6",
+            TInterface.TWorkAudioFormat(audio, 48000));
+    }
+
+    [Fact]
+    public void Format_UnknownRate_KeepsEveryFrequency()
+    {
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
+        {
+            TInterface.TWorkLowCreate(true, 20000, 1, 2, 0.7)
+        });
+
+        Assert.Equal(
+            "lowpass=f=20000:poles=2:width_type=q:width=0.7",
+            TInterface.TWorkAudioFormat(audio));
+    }
+
+    [Fact]
+    public void Format_ZeroNoiseReduction_DropOut()
+    {
+        LWorkAudio audio = TInterface.TWorkAudioCreate(new[]
+        {
+            TInterface.TWorkNoiseCreate(true, 0, -50, false, LGrain.LGrainWhite, 6, 0.5, -38)
+        });
+
+        Assert.Equal(string.Empty, TInterface.TWorkAudioFormat(audio));
+        Assert.Equal(
+            "afftdn=nr=12:nf=-50:rf=-38:ad=0.5:gs=6:nt=white",
+            TInterface.TWorkAudioFormat(TInterface.TWorkAudioCreate(new[]
+            {
+                TInterface.TWorkNoiseCreate(true, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38)
+            })));
     }
 }

@@ -1,4 +1,4 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 
 namespace Cadroue.Application;
 
@@ -18,7 +18,7 @@ public static partial class LAudio
             ? new LWorkAudio(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray()) { LWorkAudioSkip = lAudioRecord.LSidecarSkip }
             : null;
 
-    public static void LAudioPlanSave(
+    public static bool LAudioPlanSave(
         string lAudioSourcePath, LWorkAudio lAudioPlan, Func<string, LSidecarAudioRecord?, bool> lSidecarSave) =>
         lSidecarSave(lAudioSourcePath, LAudioPersistentCreate(lAudioPlan));
 

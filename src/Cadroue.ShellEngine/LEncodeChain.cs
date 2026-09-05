@@ -1,4 +1,4 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
@@ -25,9 +25,10 @@ internal static class LEncodeChain
         return lFound;
     }
 
-    internal static string? LEncodeChainBuild(LWorkAudio lWorkAudio, LEncodeChainMode lChainMode, int lTwoPassIndex)
+    internal static string? LEncodeChainBuild(
+        LWorkAudio lWorkAudio, LEncodeChainMode lChainMode, int lTwoPassIndex, int lChainRate)
     {
-        string lGraph = lWorkAudio.LWorkAudioFormat();
+        string lGraph = lWorkAudio.LWorkAudioFormat(lChainRate);
         if (lGraph.Length == 0)
         {
             return null;

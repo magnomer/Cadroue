@@ -1,4 +1,4 @@
-using Cadroue.Application;
+﻿using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
@@ -351,7 +351,7 @@ internal static class TInterface
         LWorkAudioStep.LWorkLowCreate(active, frequency, stages, poles, resonance);
     internal static LWorkAudioStep TWorkEqualizerCreate(bool active, IReadOnlyList<LWorkBand> bands) =>
         LWorkAudioStep.LWorkEqualizerCreate(active, bands);
-    internal static string TWorkAudioFormat(LWorkAudio audio) => audio.LWorkAudioFormat();
+    internal static string TWorkAudioFormat(LWorkAudio audio, int rate = 0) => audio.LWorkAudioFormat(rate);
 
     internal static IReadOnlyList<string> TContourTokensRead() => LContourCatalog.LContourTokensRead();
     internal static double[]? TContourGainsRead(string token) => LContourCatalog.LContourGainsRead(token);

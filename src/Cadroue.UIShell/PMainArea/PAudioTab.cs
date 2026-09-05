@@ -1,4 +1,4 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 using Cadroue.UIShell.PPanels;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 using Cadroue.Application;
@@ -25,6 +25,9 @@ public sealed class PAudioTab : PTabSurface
     private readonly LSMonitor pAudioMonitor = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private bool pAudioPlanLoading;
+    private string? pAudioOwnerPath;
+    private int pAudioOwnerRate;
+    private string? pAudioSaveFailure;
     private System.Windows.Threading.DispatcherTimer? pAudioViewerTimer;
 
     public PAudioTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
@@ -159,17 +162,34 @@ public sealed class PAudioTab : PTabSurface
             return;
         }
 
+        PAudioFanoutSave(pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath));
+    }
+
+    private void PAudioFanoutSave(IEnumerable<string> pAudioPaths)
+    {
         LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
         bool pAudioSkipPersistent = pInspector.PSkipPersistentCheck();
         bool pAudioSkipApply = pInspector.PSkipActiveCheck();
-        foreach (string pAudioPath in pList.PListUnlockedRead().Select(pItem => pItem.LDocketEntryPath))
+        var pAudioFailed = new List<string>();
+        foreach (string pAudioPath in pAudioPaths)
         {
-            LAudio.LAudioPlanSave(
+            bool pAudioStored = LAudio.LAudioPlanSave(
                 pAudioPath,
                 LAudio.LAudioPlanResolve(
                     LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad),
                     pAudioPersistent, pAudioSkipPersistent, pAudioSkipApply),
                 LLibrarian.LLibrarianAudioSave);
+            if (!pAudioStored)
+            {
+                pAudioFailed.Add(pAudioPath);
+            }
+        }
+
+        if (pAudioFailed.Count > 0)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Audio persistent save failed for {pAudioFailed.Count} file(s): those sidecars were not written",
+                string.Join(Environment.NewLine, pAudioFailed));
         }
     }
 
@@ -180,19 +200,7 @@ public sealed class PAudioTab : PTabSurface
             return;
         }
 
-        LWorkAudio pAudioPersistent = pInspector.PInspectorPersistentRead();
-        bool pAudioSkipPersistent = pInspector.PSkipPersistentCheck();
-        bool pAudioSkipApply = pInspector.PSkipActiveCheck();
-        foreach (LDocketEntry pAudioAddedItem in pAudioAddedItems)
-        {
-            string pAudioPath = pAudioAddedItem.LDocketEntryPath;
-            LAudio.LAudioPlanSave(
-                pAudioPath,
-                LAudio.LAudioPlanResolve(
-                    LAudio.LAudioPlanRead(pAudioPath, LLibrarian.LLibrarianAudioLoad),
-                    pAudioPersistent, pAudioSkipPersistent, pAudioSkipApply),
-                LLibrarian.LLibrarianAudioSave);
-        }
+        PAudioFanoutSave(pAudioAddedItems.Select(pAudioAddedItem => pAudioAddedItem.LDocketEntryPath));
     }
 
     private void PAudioStepHandle(string? pStepName)
@@ -256,7 +264,8 @@ public sealed class PAudioTab : PTabSurface
     private void PAudioViewerApply()
     {
         LWorkAudio pAudioPlan = PAudioProcessingRead();
-        pViewer.PViewerAudioSet(pAudioPlan.LWorkAudioSkip ? string.Empty : pAudioPlan.LWorkAudioFormat());
+        pViewer.PViewerAudioSet(
+            pAudioPlan.LWorkAudioSkip ? string.Empty : pAudioPlan.LWorkAudioFormat(pAudioOwnerRate));
     }
 
     private void PAudioMonitorShow() =>
@@ -293,20 +302,25 @@ public sealed class PAudioTab : PTabSurface
         {
             PAudioPlanSave();
             pViewer.PViewerSourceOpen(pSourcePath);
-            PAudioPlanRestore(pSourcePath);
         }
     }
 
     private void PAudioMediaHandle(LCargo pMediaStatus)
     {
+        bool pAudioOwnerFirst = pAudioOwnerPath is null;
+        pAudioOwnerPath = pMediaStatus.LCargoSourcePath;
+        pAudioOwnerRate = pMediaStatus.LCargoMediaInfo?.LMediaSampleRate ?? 0;
+        PAudioPlanRestore(pMediaStatus.LCargoSourcePath, pAudioOwnerFirst);
         pAudioMonitor.LSMonitorSourceOpen(
             pMediaStatus.LCargoSourcePath,
-            pMediaStatus.LCargoMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero);
+            pMediaStatus.LCargoMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero,
+            pAudioOwnerRate);
         pAudioMonitor.LSMonitorPlanApply(PAudioProcessingRead());
     }
 
-    private void PAudioPlanRestore(string pSourcePath)
+    private void PAudioPlanRestore(string pSourcePath, bool pAudioOwnerFirst)
     {
+        bool pAudioAdopted = false;
         pAudioPlanLoading = true;
         try
         {
@@ -314,6 +328,13 @@ public sealed class PAudioTab : PTabSurface
             LWorkAudio? pPersistent = pInspector.PInspectorPersistentCheck()
                 ? pInspector.PInspectorPersistentRead()
                 : null;
+            if (pSaved is null && pPersistent is null && pAudioOwnerFirst
+                && PAudioProcessingRead() is { LWorkAudioActive: true } pAudioPending)
+            {
+                pSaved = pAudioPending;
+                pAudioAdopted = true;
+            }
+
             LWorkAudio pResolved = LAudio.LAudioPlanResolve(
                 pSaved, pPersistent, pInspector.PSkipPersistentCheck(), pInspector.PSkipActiveCheck());
             pInspector.PInspectorPlanApply(pResolved);
@@ -327,12 +348,16 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
         PAudioActiveUpdate();
         PAudioViewerApply();
+        if (pAudioAdopted)
+        {
+            PAudioPlanSave();
+        }
     }
 
     private void PAudioPlanSave()
     {
         if (pAudioPlanLoading
-            || pViewer.PViewerSourcePath is not { } pSourcePath
+            || pAudioOwnerPath is not { } pSourcePath
             || pList.PListLockCheck(pSourcePath))
         {
             return;
@@ -344,7 +369,18 @@ public sealed class PAudioTab : PTabSurface
             return;
         }
 
-        LAudio.LAudioPlanSave(pSourcePath, pAudioPlan, LLibrarian.LLibrarianAudioSave);
+        if (LAudio.LAudioPlanSave(pSourcePath, pAudioPlan, LLibrarian.LLibrarianAudioSave))
+        {
+            pAudioSaveFailure = null;
+        }
+        else if (!string.Equals(pAudioSaveFailure, pSourcePath, StringComparison.OrdinalIgnoreCase))
+        {
+            pAudioSaveFailure = pSourcePath;
+            LTraceLog.LTraceWarningRecord(
+                $"Audio edit not saved for '{System.IO.Path.GetFileName(pSourcePath)}': the sidecar could not be written",
+                pSourcePath);
+        }
+
         PAudioPersistentSave();
     }
 

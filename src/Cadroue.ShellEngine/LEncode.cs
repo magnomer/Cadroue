@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -232,6 +232,7 @@ public static partial class LEncode
         string lRawWav = Path.Combine(lAudioFolder, $"{lWorkItem.LWorkId:N}.raw.wav");
         string lProcessedWav = Path.Combine(lAudioFolder, $"{lWorkItem.LWorkId:N}.proc.wav");
 
+        int lSourceRate = lWorkItem.LWorkSourceMedia?.LWorkMediaSamplerate ?? 0;
         var lStages = new List<LEncodeStage>();
 
         var lExtract = new StringBuilder();
@@ -249,7 +250,7 @@ public static partial class LEncode
             if (lTwoPassIndex >= 0)
             {
                 string? lAnalyzeChain = LEncodeChain.LEncodeChainBuild(
-                    lWorkItem.LWorkAudio, LEncodeChainMode.LEncodeChainAnalyze, lTwoPassIndex);
+                    lWorkItem.LWorkAudio, LEncodeChainMode.LEncodeChainAnalyze, lTwoPassIndex, lSourceRate);
                 var lAnalyze = new StringBuilder();
                 LEncodeHeaderAppend(lAnalyze);
                 lAnalyze.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lRawWav)}");
@@ -261,7 +262,8 @@ public static partial class LEncode
             string? lChain = LEncodeChain.LEncodeChainBuild(
                 lWorkItem.LWorkAudio,
                 lTwoPassIndex >= 0 ? LEncodeChainMode.LEncodeChainCorrection : LEncodeChainMode.LEncodeChainPlain,
-                lTwoPassIndex);
+                lTwoPassIndex,
+                lSourceRate);
             if (lChain is not null)
             {
                 var lProcess = new StringBuilder();
@@ -269,6 +271,11 @@ public static partial class LEncode
                 lProcess.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lRawWav)}");
                 lProcess.Append(CultureInfo.InvariantCulture, $" -af {LEncodeFormat(lChain)}");
                 lProcess.Append(" -c:a pcm_s16le");
+                if (lSourceRate > 0)
+                {
+                    lProcess.Append(CultureInfo.InvariantCulture, $" -ar {lSourceRate}");
+                }
+
                 lProcess.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lProcessedWav)}");
                 lStages.Add(new LEncodeStage(lProcess.ToString(), LWorkStage.LWorkStageProcess, "Processing audio", lProcessedWav, true));
                 lAudioInputWav = lProcessedWav;
@@ -282,6 +289,13 @@ public static partial class LEncode
 
         lMux.Append(" -map 0:v:0?");
         lMux.Append(" -map 1:a:0");
+        if (string.Equals(
+                lOutput.LEncodingAudio.LEncodingStream,
+                "Include all audio tracks",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            lMux.Append(" -map 0:a? -map -0:a:0?");
+        }
 
         if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput))

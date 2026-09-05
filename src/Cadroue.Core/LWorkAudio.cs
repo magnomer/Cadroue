@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace Cadroue.Core;
@@ -104,6 +104,7 @@ public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
 {
     public const double LWorkGainLeast = -24;
     public const double LWorkGainMost = 24;
+    public const double LWorkNoiseLeast = 0.01;
 
     public bool LWorkAudioSkip { get; init; }
 
@@ -111,7 +112,7 @@ public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
 
     public bool LWorkAudioActive => LWorkAudioSkip || LWorkAudioSteps.Any(lStep => lStep.LWorkStepActive);
 
-    public string LWorkAudioFormat()
+    public string LWorkAudioFormat(int lWorkAudioRate = 0)
     {
         var lFilters = new List<string>();
         foreach (LWorkAudioStep lStep in LWorkAudioSteps)
@@ -129,15 +130,19 @@ public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
                         $"volume={lVolume.LWorkVolumeGain.ToString("0.###", CultureInfo.InvariantCulture)}dB"));
                     break;
                 case LWorkNoiseStep lNoise:
-                    lFilters.Add(LWorkNoiseFormat(lNoise));
+                    if (lNoise.LWorkNoiseReduction >= LWorkNoiseLeast)
+                    {
+                        lFilters.Add(LWorkNoiseFormat(lNoise));
+                    }
+
                     break;
                 case LWorkPassStep lPass:
-                    LWorkPassAppend(lFilters, lPass, lPass.LWorkPassHigh ? "highpass" : "lowpass");
+                    LWorkPassAppend(lFilters, lPass, lPass.LWorkPassHigh ? "highpass" : "lowpass", lWorkAudioRate);
                     break;
                 case LWorkEqualizerStep lEqualizer:
                     foreach (LWorkBand lBand in lEqualizer.LWorkEqualizerBands)
                     {
-                        LWorkBandAppend(lFilters, lBand.LWorkBandFrequency, lBand.LWorkBandGain);
+                        LWorkBandAppend(lFilters, lBand.LWorkBandFrequency, lBand.LWorkBandGain, lWorkAudioRate);
                     }
 
                     break;
@@ -174,8 +179,17 @@ public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
         return lDenoise;
     }
 
-    private static void LWorkPassAppend(List<string> lFilters, LWorkPassStep lStep, string lFilterName)
+    public static bool LWorkFrequencyCheck(double lWorkFrequency, int lWorkAudioRate) =>
+        lWorkAudioRate <= 0 || lWorkFrequency < lWorkAudioRate / 2.0;
+
+    private static void LWorkPassAppend(
+        List<string> lFilters, LWorkPassStep lStep, string lFilterName, int lWorkAudioRate)
     {
+        if (!LWorkFrequencyCheck(lStep.LWorkPassFrequency, lWorkAudioRate))
+        {
+            return;
+        }
+
         int lStages = Math.Max(1, lStep.LWorkPassStages);
         int lPoles = lStep.LWorkPassPoles == 1 ? 1 : 2;
         string lFragment = string.Create(
@@ -189,9 +203,10 @@ public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
         }
     }
 
-    private static void LWorkBandAppend(List<string> lFilters, double lFrequency, double lGain)
+    private static void LWorkBandAppend(
+        List<string> lFilters, double lFrequency, double lGain, int lWorkAudioRate)
     {
-        if (lGain == 0)
+        if (lGain == 0 || !LWorkFrequencyCheck(lFrequency, lWorkAudioRate))
         {
             return;
         }

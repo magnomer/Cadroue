@@ -1,4 +1,4 @@
-using Cadroue.Core;
+﻿using Cadroue.Core;
 using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
@@ -14,6 +14,7 @@ public sealed class LSMonitor : IDisposable
     private byte[] lMonitorPeaks = Array.Empty<byte>();
     private string? lMonitorSourcePath;
     private TimeSpan lMonitorDuration;
+    private int lMonitorRate;
     private LWorkAudio lMonitorPlan = LWorkAudio.LWorkAudioCreate();
     private double[] lMonitorBefore = Array.Empty<double>();
     private double[] lMonitorAfter = Array.Empty<double>();
@@ -32,10 +33,11 @@ public sealed class LSMonitor : IDisposable
 
     public bool LSMonitorScanning => lMonitorScanning;
 
-    public void LSMonitorSourceOpen(string? lPath, TimeSpan lDuration)
+    public void LSMonitorSourceOpen(string? lPath, TimeSpan lDuration, int lRate = 0)
     {
         lMonitorSourcePath = lPath;
         lMonitorDuration = lDuration;
+        lMonitorRate = lRate;
         lMonitorScanning = !string.IsNullOrWhiteSpace(lPath) && lDuration > TimeSpan.Zero;
         lMonitorOrchestrator.LWaveformStart(lPath, lDuration);
     }
@@ -91,7 +93,7 @@ public sealed class LSMonitor : IDisposable
 
         string? lPath = lMonitorSourcePath;
         TimeSpan lDuration = lMonitorDuration;
-        string lGraph = lMonitorPlan.LWorkAudioFormat();
+        string lGraph = lMonitorPlan.LWorkAudioFormat(lMonitorRate);
 
         if (string.IsNullOrEmpty(lGraph)
             || string.IsNullOrWhiteSpace(lPath)
