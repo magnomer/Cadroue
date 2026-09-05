@@ -8,7 +8,7 @@ public static class LPreference
 {
     public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();
 
-    public static Action? LPreferenceDepotCallback { get; set; }
+    public static Func<bool>? LPreferenceDepotCallback { get; set; }
 
     public static Action? LPreferenceDebounceSeam { get; set; }
 
@@ -38,10 +38,32 @@ public static class LPreference
             LPreferenceTraceSeam?.Invoke($"Preference changed — {lPreferenceChange}");
         }
 
+        LPreferenceState lPreferencePrevious = LPreferenceStateCurrent;
         LPreferenceStateCurrent = lPreferenceState;
-        bool lPreferenceSaved = LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent) ?? false;
-        LPreferenceDepotCallback?.Invoke();
-        return lPreferenceSaved;
+        if (LPreferenceDepotCallback?.Invoke() == false)
+        {
+            LPreferenceTraceSeam?.Invoke("Preference kept — the workspace could not be prepared");
+            LPreferenceStateRestore(lPreferencePrevious);
+            return false;
+        }
+
+        if (LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent) ?? true)
+        {
+            return true;
+        }
+
+        LPreferenceTraceSeam?.Invoke("Preference kept — the change could not be saved");
+        LPreferenceStateRestore(lPreferencePrevious);
+        return false;
+    }
+
+    private static void LPreferenceStateRestore(LPreferenceState lPreferencePrevious)
+    {
+        LPreferenceStateCurrent = lPreferencePrevious;
+        if (LPreferenceDepotCallback?.Invoke() == false)
+        {
+            LPreferenceTraceSeam?.Invoke("Preference restore incomplete — the workspace stayed where it was moved");
+        }
     }
 
     public static void LPreferenceVolumeSet(double lPreferenceVolume)
@@ -117,7 +139,12 @@ public static class LPreference
 
     public static void LPreferenceSaveCommit()
     {
-        LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent);
+        if (LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent) == false)
+        {
+            LPreferenceTraceSeam?.Invoke("Preference kept — the deferred change could not be saved");
+            return;
+        }
+
         if (lPreferenceBaseline is { } lPreferenceWas)
         {
             foreach (string lPreferenceChange in LPreferenceStateCurrent.LPreferenceDifferenceRead(lPreferenceWas))

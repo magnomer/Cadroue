@@ -208,7 +208,7 @@ public partial class PProgram : System.Windows.Application
         LTraceLog.LTraceLoadingRecord(LFlyleaf.LFlyleafActive
             ? "Local Flyleaf preview engine active"
             : "NuGet Flyleaf preview engine active");
-        LDepotRootApply();
+        _ = LDepotRootApply();
         LRetentionSweepStart();
         LScheduleRecoverRun();
         Cadroue.Infrastructure.LRenderer.LRendererFlyleafSeam = LRendererFlyleafStart;
@@ -229,10 +229,11 @@ public partial class PProgram : System.Windows.Application
         base.OnExit(e);
     }
 
-    private static void LPreferenceDepotHandle()
+    private static bool LPreferenceDepotHandle()
     {
-        LDepotRootApply();
+        bool lDepotApplied = LDepotRootApply();
         LSidecarFolderApply();
+        return lDepotApplied;
     }
 
     public static void LSidecarFolderApply()
@@ -244,7 +245,7 @@ public partial class PProgram : System.Windows.Application
             LPreference.LPreferenceStateCurrent.LPreferenceRecordWorkspace);
     }
 
-    private static void LDepotRootApply()
+    private static bool LDepotRootApply()
     {
         try
         {
@@ -252,13 +253,13 @@ public partial class PProgram : System.Windows.Application
                 LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
             if (string.Equals(lDepotRoot, lDepotRootApplied, StringComparison.OrdinalIgnoreCase))
             {
-                return;
+                return true;
             }
 
             if (lDepotRootApplied is string lDepotPrevious
                 && !Cadroue.Infrastructure.LDepot.LDepotFolderMove(lDepotPrevious, lDepotRoot))
             {
-                return;
+                return false;
             }
 
             if (lDepotRootApplied is null)
@@ -270,11 +271,13 @@ public partial class PProgram : System.Windows.Application
             lDepotRootApplied = lDepotRoot;
             LSidecarFolderApply();
             LTraceLog.LTraceLoadingRecord($"Workspace at {lDepotRoot}");
+            return true;
         }
         catch (Exception lException)
         {
             lDepotRootApplied = null;
             LTraceLog.LTraceErrorRecord("Workspace folder could not be prepared", lException);
+            return false;
         }
     }
 

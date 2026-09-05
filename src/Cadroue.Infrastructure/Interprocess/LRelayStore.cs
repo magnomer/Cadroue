@@ -22,7 +22,7 @@ public static class LRelayStore
 
     public static LRelay? LRelayFileLoad(string lRelayFilePath)
     {
-        if (!File.Exists(lRelayFilePath))
+        if (!LRelayPathCheck(lRelayFilePath) || !File.Exists(lRelayFilePath))
         {
             return null;
         }
@@ -40,6 +40,12 @@ public static class LRelayStore
 
     public static void LRelayFileClear(string lRelayFilePath)
     {
+        if (!LRelayPathCheck(lRelayFilePath))
+        {
+            LTraceLog.LTraceErrorRecord($"Relay payload outside the relay folder was kept: {lRelayFilePath}", null);
+            return;
+        }
+
         try
         {
             if (File.Exists(lRelayFilePath))
@@ -75,6 +81,29 @@ public static class LRelayStore
         catch (Exception lException)
         {
             LTraceLog.LTraceErrorRecord("Relay folder sweep failed", lException);
+        }
+    }
+
+    private static bool LRelayPathCheck(string lRelayFilePath)
+    {
+        if (string.IsNullOrWhiteSpace(lRelayFilePath))
+        {
+            return false;
+        }
+
+        try
+        {
+            string lRelayFolderFull = Path.GetFullPath(LRelayFolderCreate());
+            string lRelayFileFull = Path.GetFullPath(lRelayFilePath);
+            return lRelayFileFull.StartsWith(
+                    lRelayFolderFull.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+                    StringComparison.OrdinalIgnoreCase)
+                && string.Equals(Path.GetExtension(lRelayFileFull), ".json", StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception lException)
+        {
+            LTraceLog.LTraceErrorRecord($"Relay path unusable: {lRelayFilePath}", lException);
+            return false;
         }
     }
 
