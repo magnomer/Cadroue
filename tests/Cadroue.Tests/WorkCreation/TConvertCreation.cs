@@ -60,6 +60,81 @@ public sealed class TConvertCreation
         Assert.NotEqual(work[0].LWorkSourcePath, work[1].LWorkSourcePath);
     }
 
+    [Fact]
+    public void EqualStemsInOneOutputFolder_TakeDistinctOutputPaths()
+    {
+        string first = Path.Combine("camera-a", "clip.mov");
+        string second = Path.Combine("camera-b", "clip.mov");
+        LEncoding output = TWorkOutput.TWorkOutputCreate(folder: Path.Combine("exports", "web"));
+
+        IReadOnlyList<LWorkItem> work = TConvertCreate(new[] { first, second }, output);
+
+        Assert.Equal(2, work.Count);
+        Assert.NotEqual(work[0].LWorkOutputPath, work[1].LWorkOutputPath);
+        Assert.Equal("clip.mp4", work[0].LWorkOutputName);
+        Assert.Equal("clip_2.mp4", work[1].LWorkOutputName);
+    }
+
+    [Fact]
+    public void ConstantNamePattern_TakesDistinctOutputPaths()
+    {
+        LEncoding output = TWorkOutput.TWorkOutputCreate("archive", folder: "exports");
+
+        IReadOnlyList<LWorkItem> work = TConvertCreate(
+            new[] { Path.Combine("media", "first.mov"), Path.Combine("media", "second.mov") }, output);
+
+        Assert.Equal(new[] { "archive.mp4", "archive_2.mp4" }, work.Select(item => item.LWorkOutputName));
+    }
+
+    [Fact]
+    public void EqualStemsInTheirOwnSourceFolders_KeepOneName()
+    {
+        IReadOnlyList<LWorkItem> work = TConvertCreate(
+            new[] { Path.Combine("camera-a", "clip.mov"), Path.Combine("camera-b", "clip.mov") },
+            TWorkOutput.TWorkOutputCreate());
+
+        Assert.All(work, item => Assert.Equal("clip.mp4", item.LWorkOutputName));
+        Assert.NotEqual(work[0].LWorkOutputPath, work[1].LWorkOutputPath);
+    }
+
+    [Fact]
+    public void TokenTextInTheSourceStem_IsKeptLiterally()
+    {
+        LWorkItem item = Assert.Single(TConvertCreate(
+            new[] { Path.Combine("media", "clip {Date}.mov") }, TWorkOutput.TWorkOutputCreate()));
+
+        Assert.Equal("clip {Date}.mp4", item.LWorkOutputName);
+    }
+
+    [Fact]
+    public void EditOperatorTextInTheSourceStem_IsKeptLiterally()
+    {
+        LWorkItem item = Assert.Single(TConvertCreate(
+            new[] { Path.Combine("media", "clip{Backspace:4}.mov") }, TWorkOutput.TWorkOutputCreate()));
+
+        Assert.Equal("clip{Backspace_4}.mp4", item.LWorkOutputName);
+    }
+
+    [Fact]
+    public void EditOperatorInTheNamePattern_StillTrimsTheStem()
+    {
+        LEncoding output = TWorkOutput.TWorkOutputCreate("{OriginalName}{Backspace:4}");
+
+        LWorkItem item = Assert.Single(TConvertCreate(new[] { Path.Combine("media", "recording.mov") }, output));
+
+        Assert.Equal("recor.mp4", item.LWorkOutputName);
+    }
+
+    [Fact]
+    public void DurationTokens_ReadTheResolvedSourceDuration()
+    {
+        LEncoding output = TWorkOutput.TWorkOutputCreate("{OriginalName}_{SectionDuration}");
+
+        LWorkItem item = Assert.Single(TConvertCreate(new[] { Path.Combine("media", "clip.mov") }, output));
+
+        Assert.Equal("clip_00-01-00.000.mp4", item.LWorkOutputName);
+    }
+
     private static IReadOnlyList<LWorkItem> TConvertCreate(
         IReadOnlyList<string> sources,
         LEncoding output,

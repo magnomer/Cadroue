@@ -76,41 +76,51 @@ public sealed record LEncoding(
             lEncodingClamped.Milliseconds.ToString("D3", CultureInfo.InvariantCulture));
     }
 
-    public static string LEncodingShorten(string lEncodingStem)
+    public static string LEncodingShorten(string lEncodingStem) =>
+        LEncodingNameFormat(lEncodingStem, _ => null);
+
+    // One pass over the pattern: a marker is either an edit operator, a token whose value is emitted
+    // verbatim, or unknown text kept literally. A value is never re-scanned, so source text that looks
+    // like a token or an operator survives intact.
+    public static string LEncodingNameFormat(string lEncodingPattern, Func<string, string?> lEncodingValueRead)
     {
-        if (string.IsNullOrEmpty(lEncodingStem) || lEncodingStem.IndexOf('{') < 0)
+        if (string.IsNullOrEmpty(lEncodingPattern) || lEncodingPattern.IndexOf('{') < 0)
         {
-            return lEncodingStem;
+            return lEncodingPattern;
         }
 
         var lEncodingText = new System.Text.StringBuilder();
         var lEncodingOperators = new List<(int lEncodingOffset, bool lEncodingForward, int lEncodingCount)>();
         int lEncodingIndex = 0;
-        while (lEncodingIndex < lEncodingStem.Length)
+        while (lEncodingIndex < lEncodingPattern.Length)
         {
-            int lEncodingOpen = lEncodingStem.IndexOf('{', lEncodingIndex);
+            int lEncodingOpen = lEncodingPattern.IndexOf('{', lEncodingIndex);
             if (lEncodingOpen < 0)
             {
-                lEncodingText.Append(lEncodingStem, lEncodingIndex, lEncodingStem.Length - lEncodingIndex);
+                lEncodingText.Append(lEncodingPattern, lEncodingIndex, lEncodingPattern.Length - lEncodingIndex);
                 break;
             }
 
-            int lEncodingClose = lEncodingStem.IndexOf('}', lEncodingOpen + 1);
+            int lEncodingClose = lEncodingPattern.IndexOf('}', lEncodingOpen + 1);
             if (lEncodingClose < 0)
             {
-                lEncodingText.Append(lEncodingStem, lEncodingIndex, lEncodingStem.Length - lEncodingIndex);
+                lEncodingText.Append(lEncodingPattern, lEncodingIndex, lEncodingPattern.Length - lEncodingIndex);
                 break;
             }
 
-            lEncodingText.Append(lEncodingStem, lEncodingIndex, lEncodingOpen - lEncodingIndex);
-            string lEncodingMarker = lEncodingStem[(lEncodingOpen + 1)..lEncodingClose];
+            lEncodingText.Append(lEncodingPattern, lEncodingIndex, lEncodingOpen - lEncodingIndex);
+            string lEncodingMarker = lEncodingPattern[(lEncodingOpen + 1)..lEncodingClose];
             if (LEncodingOperatorParse(lEncodingMarker, out bool lEncodingForward, out int lEncodingCount))
             {
                 lEncodingOperators.Add((lEncodingText.Length, lEncodingForward, lEncodingCount));
             }
+            else if (lEncodingValueRead(lEncodingMarker) is { } lEncodingValue)
+            {
+                lEncodingText.Append(lEncodingValue);
+            }
             else
             {
-                lEncodingText.Append(lEncodingStem, lEncodingOpen, lEncodingClose - lEncodingOpen + 1);
+                lEncodingText.Append(lEncodingPattern, lEncodingOpen, lEncodingClose - lEncodingOpen + 1);
             }
 
             lEncodingIndex = lEncodingClose + 1;
@@ -150,6 +160,60 @@ public sealed record LEncoding(
         }
 
         return lEncodingResult.Length == 0 ? lEncodingResolved : lEncodingResult.ToString();
+    }
+
+    public static string LEncodingNameNormalize(string lEncodingName)
+    {
+        char[] lEncodingInvalidChars = Path.GetInvalidFileNameChars();
+        var lEncodingBuilder = new System.Text.StringBuilder(lEncodingName.Length);
+        foreach (char lEncodingChar in lEncodingName)
+        {
+            lEncodingBuilder.Append(Array.IndexOf(lEncodingInvalidChars, lEncodingChar) >= 0 ? '_' : lEncodingChar);
+        }
+
+        string lEncodingTrimmed = lEncodingBuilder.ToString().Trim();
+        return lEncodingTrimmed.Length == 0 ? "output" : lEncodingTrimmed;
+    }
+
+    // Every target a submission will write is taken before the next name is built, so two sources can
+    // never be admitted onto one output path. The set is keyed by full path: a per-source output folder
+    // means equal names in different folders are not a collision.
+    public static string LEncodingNameClaim(
+        ISet<string> lEncodingTakenPaths,
+        string lEncodingFolder,
+        string lEncodingBaseName,
+        string lEncodingExtension)
+    {
+        int lEncodingAttempt = 1;
+        while (true)
+        {
+            string lEncodingUniqueName = lEncodingAttempt == 1
+                ? lEncodingBaseName
+                : $"{lEncodingBaseName}_{lEncodingAttempt}";
+            string lEncodingFileName = string.IsNullOrWhiteSpace(lEncodingExtension)
+                ? lEncodingUniqueName
+                : $"{lEncodingUniqueName}.{lEncodingExtension}";
+
+            if (lEncodingTakenPaths.Add(LEncodingPathResolve(Path.Combine(lEncodingFolder, lEncodingFileName))))
+            {
+                return lEncodingFileName;
+            }
+
+            lEncodingAttempt++;
+        }
+    }
+
+    private static string LEncodingPathResolve(string lEncodingPath)
+    {
+        try
+        {
+            return Path.GetFullPath(lEncodingPath).ToUpperInvariant();
+        }
+        catch (Exception lEncodingError)
+            when (lEncodingError is ArgumentException or IOException or NotSupportedException or System.Security.SecurityException)
+        {
+            return lEncodingPath.ToUpperInvariant();
+        }
     }
 
     private static bool LEncodingOperatorParse(string lEncodingMarker, out bool lEncodingForward, out int lEncodingCount)

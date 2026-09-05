@@ -306,11 +306,13 @@ public static class LMessenger
             new(lMessengerSourcePaths, lMessengerOutput, null, lMessengerRelays);
 
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
+        Func<string, TimeSpan> lMessengerDurationRead = await Cadroue.Application.LConvert
+            .LConvertDurationResolve(lMessengerOutput, lMessengerSourcePaths).ConfigureAwait(true);
         IReadOnlyList<LWorkItem> lMessengerItems =
             Cadroue.Application.LConvert.LConvertItemsCreate(
                 lMessengerPriority, lMessengerDescription, lMessengerTab,
                 lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
-                Cadroue.Application.LLibrarian.LLibrarianDurationRead);
+                lMessengerDurationRead);
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(

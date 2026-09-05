@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -49,6 +49,7 @@ public static class LTraceWriter
     private static FileStream? lTraceWriterStream;
     private static string? lTraceWriterPath;
     private static int lTraceWriterStarted;
+    private static int lTraceWriterThread;
     private static long lTraceWriterAccepted;
     private static long lTraceWriterCommitted;
     private static long lTraceWriterDelivered;
@@ -114,7 +115,8 @@ public static class LTraceWriter
     internal static bool LTraceWriterPersist(int lTraceTimeoutMilliseconds)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(lTraceTimeoutMilliseconds);
-        if (Volatile.Read(ref lTraceWriterStarted) == 0)
+        if (Volatile.Read(ref lTraceWriterStarted) == 0
+            || Environment.CurrentManagedThreadId == Volatile.Read(ref lTraceWriterThread))
         {
             return true;
         }
@@ -290,6 +292,7 @@ public static class LTraceWriter
 
     private static void LTraceWriterRun()
     {
+        Volatile.Write(ref lTraceWriterThread, Environment.CurrentManagedThreadId);
         LTraceArchiveRun();
         LTraceWrite? lTraceWaiting = null;
         while (true)
@@ -341,15 +344,6 @@ public static class LTraceWriter
                     Interlocked.Add(ref lTraceWriterLoss, lTraceBatch.Sum(lTraceWrite => lTraceWrite.LTraceWriteLoss));
                 }
 
-                lock (lTraceStateLock)
-                {
-                    lTraceWriterDelivered = lTraceBatch[^1].LTraceWriteSequence;
-                    if (lTraceWriterDelivered >= lTraceWriterAccepted)
-                    {
-                        lTraceWriterIdle.Set();
-                    }
-                }
-
                 if (lTraceSaved)
                 {
                     foreach (LTraceWrite lTraceWrite in lTraceBatch)
@@ -361,6 +355,15 @@ public static class LTraceWriter
                         catch (Exception)
                         {
                         }
+                    }
+                }
+
+                lock (lTraceStateLock)
+                {
+                    lTraceWriterDelivered = lTraceBatch[^1].LTraceWriteSequence;
+                    if (lTraceWriterDelivered >= lTraceWriterAccepted)
+                    {
+                        lTraceWriterIdle.Set();
                     }
                 }
             }

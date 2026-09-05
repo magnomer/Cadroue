@@ -21,6 +21,8 @@ public static partial class LConvert
 
         LEncoding lConvertOutput = lConvertWorkDescription.LConvertOutput;
         var lConvertWorkItems = new List<LWorkItem>();
+        var lConvertTakenPaths = new HashSet<string>(StringComparer.Ordinal);
+        DateTimeOffset lConvertStamp = DateTimeOffset.Now;
         Guid lConvertLooseBatch = LGate.LGateBatchCreate();
 
         foreach (string lConvertSourcePath in lConvertSourcePaths)
@@ -41,7 +43,8 @@ public static partial class LConvert
                 ?? lDurationRead(lConvertSourcePath);
 
             string lConvertFolder = lConvertOutput.LEncodingFolderRead(lConvertSourcePath);
-            string lConvertOutputName = LConvertNameCreate(lConvertOutput, lConvertSourcePath, lConvertFolder, lConvertDuration);
+            string lConvertOutputName = LConvertNameCreate(
+                lConvertOutput, lConvertSourcePath, lConvertFolder, lConvertDuration, lConvertStamp, lConvertTakenPaths);
 
             lConvertWorkItems.Add(new LWorkItem(
                 lConvertBatch,
@@ -62,42 +65,120 @@ public static partial class LConvert
         return lConvertWorkItems;
     }
 
-    private static string LConvertNameCreate(LEncoding lConvertOutput, string lConvertSourcePath, string lConvertFolder, TimeSpan lConvertDuration)
+    private static string LConvertNameCreate(
+        LEncoding lConvertOutput,
+        string lConvertSourcePath,
+        string lConvertFolder,
+        TimeSpan lConvertDuration,
+        DateTimeOffset lConvertStamp,
+        HashSet<string> lConvertTakenPaths)
     {
         string lConvertSourceStem = Path.GetFileNameWithoutExtension(lConvertSourcePath);
         string lConvertPattern = string.IsNullOrWhiteSpace(lConvertOutput.LEncodingNamePattern)
             ? "{OriginalName}"
             : lConvertOutput.LEncodingNamePattern;
 
-        DateTimeOffset lConvertStamp = DateTimeOffset.Now;
-        string lConvertStem = lConvertPattern
-            .Replace("{Prefix}", string.Empty, StringComparison.OrdinalIgnoreCase)
-            .Replace("{Suffix}", string.Empty, StringComparison.OrdinalIgnoreCase)
-            .Replace("{OriginalName}", lConvertSourceStem, StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionNumber}", "01", StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionName}", "Convert", StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(TimeSpan.Zero), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lConvertDuration), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionDuration}", LEncoding.LEncodingTimeFormat(lConvertDuration), StringComparison.OrdinalIgnoreCase)
-            .Replace("{Date}", lConvertStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
-            .Replace("{Time}", lConvertStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
+        string lConvertStem = LEncoding.LEncodingNameFormat(
+            lConvertPattern,
+            lConvertMarker => LConvertMarkerRead(lConvertMarker, lConvertSourceStem, lConvertDuration, lConvertStamp));
 
-        lConvertStem = LEncoding.LEncodingShorten(lConvertStem);
+        string lConvertBaseName = LEncoding.LEncodingNameNormalize(lConvertStem);
+        string lConvertExtension = lConvertOutput.LEncodingExtensionResolve(lConvertSourcePath);
+        if (LConvertSourceMatch(
+                Path.Combine(lConvertFolder, LConvertNameFormat(lConvertBaseName, lConvertExtension)),
+                lConvertSourcePath))
+        {
+            lConvertBaseName = $"{lConvertBaseName}_convert";
+        }
 
-        string lConvertBaseName = LConvertNameNormalize(lConvertStem);
-        string lConvertFileName = LConvertNameFormat(lConvertOutput, lConvertBaseName, lConvertSourcePath);
-        return LConvertSourceMatch(Path.Combine(lConvertFolder, lConvertFileName), lConvertSourcePath)
-            ? LConvertNameFormat(lConvertOutput, $"{lConvertBaseName}_convert", lConvertSourcePath)
-            : lConvertFileName;
+        return LEncoding.LEncodingNameClaim(lConvertTakenPaths, lConvertFolder, lConvertBaseName, lConvertExtension);
     }
 
-    private static string LConvertNameFormat(LEncoding lConvertOutput, string lConvertBaseName, string lConvertSourcePath)
+    private static string? LConvertMarkerRead(
+        string lConvertMarker,
+        string lConvertSourceStem,
+        TimeSpan lConvertDuration,
+        DateTimeOffset lConvertStamp)
     {
-        string lConvertExtension = lConvertOutput.LEncodingExtensionResolve(lConvertSourcePath);
-        return string.IsNullOrWhiteSpace(lConvertExtension)
+        if (lConvertMarker.Equals("Prefix", StringComparison.OrdinalIgnoreCase)
+            || lConvertMarker.Equals("Suffix", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        if (lConvertMarker.Equals("OriginalName", StringComparison.OrdinalIgnoreCase))
+        {
+            return lConvertSourceStem;
+        }
+
+        if (lConvertMarker.Equals("SectionNumber", StringComparison.OrdinalIgnoreCase))
+        {
+            return "01";
+        }
+
+        if (lConvertMarker.Equals("SectionName", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Convert";
+        }
+
+        if (lConvertMarker.Equals("SectionStart", StringComparison.OrdinalIgnoreCase))
+        {
+            return LEncoding.LEncodingTimeFormat(TimeSpan.Zero);
+        }
+
+        if (lConvertMarker.Equals("SectionEnd", StringComparison.OrdinalIgnoreCase)
+            || lConvertMarker.Equals("SectionDuration", StringComparison.OrdinalIgnoreCase))
+        {
+            return LEncoding.LEncodingTimeFormat(lConvertDuration);
+        }
+
+        if (lConvertMarker.Equals("Date", StringComparison.OrdinalIgnoreCase))
+        {
+            return lConvertStamp.ToString("yyyy-MM-dd");
+        }
+
+        return lConvertMarker.Equals("Time", StringComparison.OrdinalIgnoreCase)
+            ? lConvertStamp.ToString("HHmmss")
+            : null;
+    }
+
+    // A duration-bearing name token cannot be filled from the sidecar cache alone: a file never opened in
+    // the editor has no cached duration and would freeze "00-00-00.000" into its output name while the
+    // later background measurement corrected only the item. Such a pattern is probed off the calling
+    // thread before admission; every other pattern keeps the free cache read.
+    public static async Task<Func<string, TimeSpan>> LConvertDurationResolve(
+        LEncoding lConvertOutput, IReadOnlyList<string> lConvertSourcePaths)
+    {
+        if (!LConvertDurationCheck(lConvertOutput.LEncodingNamePattern ?? string.Empty))
+        {
+            return LLibrarian.LLibrarianDurationRead;
+        }
+
+        Dictionary<string, TimeSpan> lConvertDurations = await Task.Run(() =>
+        {
+            var lConvertMap = new Dictionary<string, TimeSpan>(StringComparer.OrdinalIgnoreCase);
+            foreach (string lConvertSourcePath in lConvertSourcePaths)
+            {
+                lConvertMap[lConvertSourcePath] = LLibrarian.LLibrarianDurationResolve(lConvertSourcePath);
+            }
+
+            return lConvertMap;
+        }).ConfigureAwait(true);
+
+        return lConvertSourcePath =>
+            lConvertDurations.TryGetValue(lConvertSourcePath, out TimeSpan lConvertDuration)
+                ? lConvertDuration
+                : LLibrarian.LLibrarianDurationRead(lConvertSourcePath);
+    }
+
+    private static bool LConvertDurationCheck(string lConvertPattern) =>
+        lConvertPattern.Contains("{SectionEnd}", StringComparison.OrdinalIgnoreCase)
+        || lConvertPattern.Contains("{SectionDuration}", StringComparison.OrdinalIgnoreCase);
+
+    private static string LConvertNameFormat(string lConvertBaseName, string lConvertExtension) =>
+        string.IsNullOrWhiteSpace(lConvertExtension)
             ? lConvertBaseName
             : $"{lConvertBaseName}.{lConvertExtension}";
-    }
 
     private static bool LConvertSourceMatch(string lConvertOutputPath, string lConvertSourcePath)
     {
@@ -112,18 +193,5 @@ public static partial class LConvert
         {
             return string.Equals(lConvertOutputPath, lConvertSourcePath, StringComparison.OrdinalIgnoreCase);
         }
-    }
-
-    private static string LConvertNameNormalize(string lConvertName)
-    {
-        char[] lConvertInvalidChars = Path.GetInvalidFileNameChars();
-        var lConvertBuilder = new System.Text.StringBuilder(lConvertName.Length);
-        foreach (char lConvertChar in lConvertName)
-        {
-            lConvertBuilder.Append(Array.IndexOf(lConvertInvalidChars, lConvertChar) >= 0 ? '_' : lConvertChar);
-        }
-
-        string lConvertTrimmed = lConvertBuilder.ToString().Trim();
-        return lConvertTrimmed.Length == 0 ? "output" : lConvertTrimmed;
     }
 }
