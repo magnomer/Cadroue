@@ -1,8 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PSCasement;
 
 namespace Cadroue.UIShell;
 

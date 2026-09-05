@@ -1,16 +1,16 @@
 using Microsoft.Win32;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PSCasement;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.UIShell.PAssets;
+using Cadroue.UIShell.PAsset;
 using Cadroue.UIShell.PFlow;
-using Cadroue.UIShell.PMainWindow;
+using Cadroue.UIShell.PHouse;
 
-using static Cadroue.UIShell.PSShared.PSField;
-using static Cadroue.UIShell.PSShared.PSPlate;
-using static Cadroue.UIShell.PSShared.PSNotice;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSPlate;
+using static Cadroue.UIShell.PSCasement.PSNotice;
 
 namespace Cadroue.UIShell;
 
@@ -20,9 +20,9 @@ internal sealed partial class PSOptions
     private const double PSSpectrumSwatchGap = 5;
     private const double PSSpectrumNameWidth = 92;
 
-    private const string PSSpectrumLoadIcon = "/PAssets/PPanels/PSSpectrumLoad.svg";
-    private const string PSSpectrumSaveIcon = "/PAssets/PPanels/PSSpectrumSave.svg";
-    private const string PSSpectrumRemoveIcon = "/PAssets/PPanels/PSSpectrumRemove.svg";
+    private const string PSSpectrumLoadIcon = "/PAsset/PPanel/PSSpectrumLoad.svg";
+    private const string PSSpectrumSaveIcon = "/PAsset/PPanel/PSSpectrumSave.svg";
+    private const string PSSpectrumRemoveIcon = "/PAsset/PPanel/PSSpectrumRemove.svg";
     private const double PSSpectrumRemoveSize = 26;
 
     private readonly Dictionary<string, Border> psSpectrumRows = new(StringComparer.Ordinal);

@@ -1,7 +1,7 @@
 using Cadroue.Core;
 using Cadroue.Application;
 using System.Windows;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PSCasement;
 
 namespace Cadroue.UIShell.PFlow;
 

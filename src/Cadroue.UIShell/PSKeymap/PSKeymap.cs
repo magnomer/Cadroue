@@ -4,12 +4,12 @@ using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PSCasement;
 
-using static Cadroue.UIShell.PSShared.PSField;
-using static Cadroue.UIShell.PSShared.PSPlate;
-using static Cadroue.UIShell.PSShared.PSFooter;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSPlate;
+using static Cadroue.UIShell.PSCasement.PSFooter;
 
 namespace Cadroue.UIShell;
 
@@ -26,10 +26,10 @@ internal sealed class PSKeymap : Window
     private const int PSSheetTabCount = 4;
     private const double PSSheetStripWidth = PSSheetTabWidth * PSSheetTabCount;
 
-    private const string PSSheetGlobalIcon = "/PAssets/PTabs/PSSheetGeneral.svg";
-    private const string PSSheetTabIcon = "/PAssets/PTabs/PSSheetSystem.svg";
-    private const string PSSheetFlowIcon = "/PAssets/PTabs/PSSheetTimeline.svg";
-    private const string PSSheetSplitIcon = "/PAssets/PTabs/PSplitButton.svg";
+    private const string PSSheetGlobalIcon = "/PAsset/PTab/PSSheetGeneral.svg";
+    private const string PSSheetTabIcon = "/PAsset/PTab/PSSheetSystem.svg";
+    private const string PSSheetFlowIcon = "/PAsset/PTab/PSSheetTimeline.svg";
+    private const string PSSheetSplitIcon = "/PAsset/PTab/PSplitButton.svg";
 
     private readonly List<LBindingRecord> lsKeymapDraft;
     private readonly Action<LPreferenceState>? psKeymapCallback;

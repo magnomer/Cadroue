@@ -7,9 +7,9 @@ using FlyleafLib.Controls.WPF;
 using FlyleafLib.MediaPlayer;
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.UIShell.PAssets;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PPanels;
+using Cadroue.UIShell.PAsset;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PPanel;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell;

@@ -1,15 +1,16 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using FlyleafLib.Controls.WPF;
 using Cadroue.Core;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PPanels;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PPanel;
+using Cadroue.UIShell.PSCasement;
 
-using static Cadroue.UIShell.PSShared.PSField;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSCasement;
 
 namespace Cadroue.UIShell;
 
@@ -24,8 +25,8 @@ internal sealed partial class PSLoupe : Window
     private const double PSLoupeBarHeight = 48;
     private const double PSLoupeIconSize = 22;
     private const double PSLoupeButtonSize = 36;
-    private const string PSLoupeStartIcon = "/PAssets/PCompass/PCompassPlay.svg";
-    private const string PSLoupePauseIcon = "/PAssets/PCompass/PCompassPause.svg";
+    private const string PSLoupeStartIcon = "/PAsset/PCompass/PCompassPlay.svg";
+    private const string PSLoupePauseIcon = "/PAsset/PCompass/PCompassPause.svg";
 
     private static readonly SolidColorBrush PSLoupePlayBrush = new(Color.FromRgb(0x2F, 0x9E, 0x64));
     private static readonly SolidColorBrush PSLoupeFloatFill = new(Color.FromRgb(0xD3, 0xE1, 0xF2));
@@ -70,7 +71,7 @@ internal sealed partial class PSLoupe : Window
         MinWidth = PSLoupeWidthMinimum;
         MinHeight = PSLoupeHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
-        PSDialog.PSDialogApply(this, PSCasement.PSCasementBandFill);
+        PSDialog.PSDialogApply(this, PSCasementBandFill);
         PScrollbar.PScrollbarApply(this);
         Content = PSLoupeBuild();
         psLoupeClock.Tick += PSLoupeClockHandle;
@@ -110,7 +111,7 @@ internal sealed partial class PSLoupe : Window
 
     private UIElement PSLoupeBarBuild()
     {
-        var pBar = new Grid { Height = PSLoupeBarHeight, Background = PSCasement.PSCasementBandFill };
+        var pBar = new Grid { Height = PSLoupeBarHeight, Background = PSCasementBandFill };
         pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });

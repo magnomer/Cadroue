@@ -6,8 +6,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PSCasement;
 
 using Cadroue.Infrastructure;
 

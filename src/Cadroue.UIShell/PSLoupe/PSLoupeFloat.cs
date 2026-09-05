@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.UIShell.PMainWindow;
+using Cadroue.UIShell.PHouse;
 
 namespace Cadroue.UIShell;
 

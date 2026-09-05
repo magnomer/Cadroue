@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
-using Cadroue.UIShell.PMainWindow;
+using Cadroue.UIShell.PHouse;
 
 using Cadroue.Infrastructure;
 

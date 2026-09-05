@@ -1,5 +1,5 @@
 using System.IO;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PSCasement;
 using System.Windows;
 using Cadroue.Core;
 using Cadroue.Media;

@@ -2,8 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PSCasement;
 
 using Cadroue.Infrastructure;
 
@@ -11,7 +11,7 @@ namespace Cadroue.UIShell;
 
 public sealed partial class PLogWindow
 {
-    private const string PLogOpenIcon = "/PAssets/PPanels/POpen.svg";
+    private const string PLogOpenIcon = "/PAsset/PPanel/POpen.svg";
 
     private UIElement PLogContentBuild()
     {

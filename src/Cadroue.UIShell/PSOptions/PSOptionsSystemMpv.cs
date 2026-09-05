@@ -1,11 +1,11 @@
 using System.Windows;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PSCasement;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
-using static Cadroue.UIShell.PSShared.PSField;
-using static Cadroue.UIShell.PSShared.PSInline;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSInline;
 
 namespace Cadroue.UIShell;
 

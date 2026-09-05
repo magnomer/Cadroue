@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PSCasement;
 
-using static Cadroue.UIShell.PSShared.PSField;
-using static Cadroue.UIShell.PSShared.PSFooter;
-using static Cadroue.UIShell.PSShared.PSPlate;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSFooter;
+using static Cadroue.UIShell.PSCasement.PSPlate;
 
 namespace Cadroue.UIShell;
 

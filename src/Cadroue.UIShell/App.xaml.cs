@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using Cadroue.UIShell.PControlBar;
-using Cadroue.UIShell.PMainWindow;
+using Cadroue.UIShell.PToolbar;
+using Cadroue.UIShell.PHouse;
 
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -55,56 +55,56 @@ public partial class PProgram : System.Windows.Application
 
         Cadroue.ShellEngine.LMessenger.LMessengerScheduleSource = () => LScheduleCurrent;
         Cadroue.ShellEngine.LCartographer.LCartographerTabsSource = () =>
-            PControlBar.PStrip.PStripCurrent?.PStripRecords.Select(pTab =>
+            PToolbar.PStrip.PStripCurrent?.PStripRecords.Select(pTab =>
                 new Cadroue.ShellEngine.LCartographerTab(
                     pTab.PTabId,
                     pTab.PTabLayoutKey,
                     pTab.PTabTitle,
                     pTab.PTabWorkspace.PWorkspaceExportState.LPresetRecordCreate(),
                     pTab.PTabWorkspace.PWorkspaceLayoutRead().LSceneTabClone(),
-                    pTab.PTabWorkspace.PWorkspaceSurface is PMainArea.PFunnelTab)).ToArray()
+                    pTab.PTabWorkspace.PWorkspaceSurface is PDeck.PFunnelTab)).ToArray()
             ?? (IReadOnlyList<Cadroue.ShellEngine.LCartographerTab>)Array.Empty<Cadroue.ShellEngine.LCartographerTab>();
-        Cadroue.ShellEngine.LMessenger.LMessengerTitleSource = PControlBar.PStrip.PStripTitleRead;
-        Cadroue.ShellEngine.LCartographer.LCartographerTitleSource = PControlBar.PStrip.PStripTitleRead;
+        Cadroue.ShellEngine.LMessenger.LMessengerTitleSource = PToolbar.PStrip.PStripTitleRead;
+        Cadroue.ShellEngine.LCartographer.LCartographerTitleSource = PToolbar.PStrip.PStripTitleRead;
         Cadroue.ShellEngine.LCartographer.LCartographerScheduleContract = LScheduleCurrent;
-        Cadroue.ShellEngine.LCartographer.LCartographerLockSeam = PPanels.PList.PListSourceClaim;
+        Cadroue.ShellEngine.LCartographer.LCartographerLockSeam = PPanel.PList.PListSourceClaim;
         Cadroue.ShellEngine.LCartographer.LCartographerDeliverySeam = new Cadroue.ShellEngine.LCartographerDelivery(
-            PPanels.PList.PListDeliveredAdd,
-            PPanels.PList.PListDeliveredPlace,
-            PPanels.PList.PListDeliveredCommit,
-            PPanels.PList.PListDeliveredRemove,
-            PMainArea.PAction.PActionAccept,
-            PPanels.PList.PListBatchRemove,
-            PPanels.PList.PListSourceRelease);
+            PPanel.PList.PListDeliveredAdd,
+            PPanel.PList.PListDeliveredPlace,
+            PPanel.PList.PListDeliveredCommit,
+            PPanel.PList.PListDeliveredRemove,
+            PDeck.PAction.PActionAccept,
+            PPanel.PList.PListBatchRemove,
+            PPanel.PList.PListSourceRelease);
         Cadroue.ShellEngine.LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 Cadroue.ShellEngine.LCartographer.LCartographerAccept(
                     lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
         Cadroue.ShellEngine.LMessenger.LMessengerDeliverSource = (pFunnelTarget, pFunnelPath, pFunnelCohort) =>
         {
-            if (!PPanels.PList.PListDeliveredAdd(pFunnelTarget, pFunnelPath, pFunnelCohort))
+            if (!PPanel.PList.PListDeliveredAdd(pFunnelTarget, pFunnelPath, pFunnelCohort))
             {
                 return false;
             }
 
-            PMainArea.PAction.PActionAccept(pFunnelTarget, pFunnelPath, pFunnelCohort);
+            PDeck.PAction.PActionAccept(pFunnelTarget, pFunnelPath, pFunnelCohort);
             return true;
         };
         Cadroue.ShellEngine.LMessenger.LMessengerDrainSource = pFunnelDrainPaths =>
         {
-            PControlBar.PStrip.PStripCurrent?.PStripSelected?.PTabWorkspace.PWorkspaceSurface
+            PToolbar.PStrip.PStripCurrent?.PStripSelected?.PTabWorkspace.PWorkspaceSurface
                 .PTabList?.PListDocketRead()?.LDocketPathsRemove(pFunnelDrainPaths);
         };
 
         Cadroue.ShellEngine.LSeal.LSealNodesSource = () =>
-            PControlBar.PStrip.PStripCurrent?.PStripRecords
+            PToolbar.PStrip.PStripCurrent?.PStripRecords
                 .Where(pTab => pTab.PTabWorkspace.PWorkspaceSurface.PTabList is not null)
                 .Select(pTab =>
                 {
-                    PMainArea.PTabSurface pSurface = pTab.PTabWorkspace.PWorkspaceSurface;
+                    PDeck.PTabSurface pSurface = pTab.PTabWorkspace.PWorkspaceSurface;
                     return new Cadroue.ShellEngine.LSealNode(
                         pTab.PTabId,
-                        pSurface is PMainArea.PMergeTab,
+                        pSurface is PDeck.PMergeTab,
                         pSurface.PTabAction is { PActionAutoRelay: true },
                         pSurface.PTabList!.PListItemsRead()
                             .Where(pItem => pItem.LDocketEntryDelivered && pItem.LDocketEntryBatch != Guid.Empty)
@@ -114,11 +114,11 @@ public partial class PProgram : System.Windows.Application
                 })
                 .ToArray();
         Cadroue.ShellEngine.LSeal.LSealFireSeam = lSealNodeId =>
-            PControlBar.PStrip.PStripCurrent?.PStripRecords
+            PToolbar.PStrip.PStripCurrent?.PStripRecords
                 .FirstOrDefault(pTab => pTab.PTabId == lSealNodeId)
                 ?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionAllRun();
 
-        Cadroue.Application.LPreview.LPreviewApplySeam = PPanels.PViewer.PViewerPlayerApply;
+        Cadroue.Application.LPreview.LPreviewApplySeam = PPanel.PViewer.PViewerPlayerApply;
 
         Cadroue.ShellEngine.LAutopsy.LAutopsyProse = LLocalizationAutopsy.LLocalizationAutopsyRead;
     }
@@ -184,7 +184,7 @@ public partial class PProgram : System.Windows.Application
             LPreferenceStateStore.LPreferencePathRead(),
             new (string, string)[]
             {
-                ("Encoder", PPanels.PSEncoder.PSEncoderPlacementKey),
+                ("Encoder", PPanel.PSEncoder.PSEncoderPlacementKey),
                 ("Options", PSOptions.PSOptionsPlacementKey),
             });
 
@@ -200,7 +200,7 @@ public partial class PProgram : System.Windows.Application
         LPreset.LPresetPrepare();
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryPrepare);
-        PPanels.PSEncoder.PSCodecProbeStart();
+        PPanel.PSEncoder.PSCodecProbeStart();
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;

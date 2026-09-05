@@ -7,6 +7,7 @@ namespace Cadroue.UIShell.PFlow;
 public sealed partial class PFlow
 {
     private bool pFlowSectionEditable = true;
+    private bool pFlowSegmentFired;
 
     public void PFlowEditSet(bool pFlowSectionEdit) =>
         pFlowSectionEditable = pFlowSectionEdit;

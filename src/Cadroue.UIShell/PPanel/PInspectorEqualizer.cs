@@ -1,0 +1,424 @@
+using System.Globalization;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Cadroue.Core;
+using Cadroue.UIShell.PAsset;
+using Cadroue.UIShell.PHouse;
+
+namespace Cadroue.UIShell.PPanel;
+
+public sealed partial class PInspector
+{
+    private const string pEqualizerAddIcon = "/PAsset/PPanel/PFunnelAdd.svg";
+    private const string pEqualizerRemoveIcon = "/PAsset/PPanel/PFunnelRemove.svg";
+
+    private sealed class PInspectorBand
+    {
+        public required Grid PInspectorBandRow { get; init; }
+        public required TextBox PInspectorBandFrequency { get; init; }
+        public required Slider PInspectorBandSlider { get; init; }
+        public required TextBox PInspectorBandValue { get; init; }
+        public bool PInspectorBandSuppress { get; set; }
+    }
+
+    private CheckBox pEqualizerApplyBox = null!;
+    private CheckBox pEqualizerPersistent = null!;
+    private ComboBox pEqualizerPreset = null!;
+    private StackPanel pEqualizerStack = null!;
+    private StackPanel pEqualizerRowPanel = null!;
+    private StackPanel pEqualizerBody = null!;
+    private bool pEqualizerPresetSuppress;
+    private string? pEqualizerBaseToken;
+    private readonly List<PInspectorBand> pEqualizerRows = new();
+
+    public LWorkAudioStep PEqualizerStepRead()
+    {
+        var pBands = new List<LWorkBand>();
+        foreach (PInspectorBand pRow in pEqualizerRows)
+        {
+            double pFrequency = PInspectorDecimalRead(
+                pRow.PInspectorBandFrequency, LContourCatalog.LContourFrequencyDefault);
+            double pGain = PInspectorDecimalRead(pRow.PInspectorBandValue, 0);
+            pBands.Add(new LWorkBand(pFrequency, pGain));
+        }
+
+        return LWorkAudioStep.LWorkEqualizerCreate(pEqualizerApplyBox.IsChecked == true, pBands);
+    }
+
+    private void PEqualizerActiveSet(LWorkEqualizerStep pStep)
+    {
+        pEqualizerApplyBox.IsChecked = pStep.LWorkStepActive;
+        pEqualizerRows.Clear();
+        pEqualizerRowPanel.Children.Clear();
+        foreach (LWorkBand pBand in pStep.LWorkEqualizerBands)
+        {
+            PEqualizerRowAdd(pBand.LWorkBandFrequency, pBand.LWorkBandGain, false);
+        }
+
+        PEqualizerPresetUpdate();
+        PEqualizerApplyUpdate();
+    }
+
+    private StackPanel PEqualizerBodyBuild()
+    {
+        pEqualizerApplyBox = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Equalizer.ApplyTooltip"));
+        pEqualizerApplyBox.Checked += (_, _) => PEqualizerApplyUpdate();
+        pEqualizerApplyBox.Unchecked += (_, _) => PEqualizerApplyUpdate();
+
+        pEqualizerPersistent = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Equalizer.PersistentTooltip"));
+
+        pEqualizerPreset = new ComboBox
+        {
+            Height = PInspectorFieldHeight,
+            Width = 140,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily
+        };
+        PDropdown.PDropdownApply(pEqualizerPreset);
+        foreach (string pToken in LContourCatalog.LContourTokensRead())
+        {
+            pEqualizerPreset.Items.Add(new LLocalizationChoice(pToken, PEqualizerKeyRead(pToken)));
+        }
+
+        pEqualizerPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
+        pEqualizerPreset.SelectedIndex = 0;
+        pEqualizerPreset.SelectionChanged += (_, _) => PEqualizerPresetApply();
+
+        pEqualizerRowPanel = new StackPanel();
+
+        Button pAddButton = new()
+        {
+            Content = new Image
+            {
+                Width = 14,
+                Height = 14,
+                Source = PIcon.PIconRead(pEqualizerAddIcon, pInspectorIconBrush),
+                Stretch = Stretch.Uniform
+            },
+            Width = 28,
+            Height = 26,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Style = PButton.PButtonPanelCreate(),
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Equalizer.Add")
+        };
+        pAddButton.Click += (_, _) =>
+        {
+            PEqualizerRowAdd(LContourCatalog.LContourFrequencyDefault, 0, true);
+            PEqualizerDeviationCheck();
+        };
+
+        pEqualizerStack = new StackPanel();
+        pEqualizerStack.Children.Add(PInspectorFieldBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pEqualizerPreset));
+        pEqualizerStack.Children.Add(pEqualizerRowPanel);
+        pEqualizerStack.Children.Add(pAddButton);
+
+        pEqualizerBody = new StackPanel
+        {
+            Margin = new Thickness(12, 12, 12, 12),
+            Visibility = Visibility.Collapsed
+        };
+        pEqualizerBody.Children.Add(pEqualizerApplyBox);
+        pEqualizerBody.Children.Add(PInspectorSeparatorBuild());
+        pEqualizerBody.Children.Add(pEqualizerStack);
+
+        foreach (LWorkBand pBand in LWorkEqualizerStep.LWorkBandsCreate())
+        {
+            PEqualizerRowAdd(pBand.LWorkBandFrequency, pBand.LWorkBandGain, false);
+        }
+
+        PEqualizerPresetUpdate();
+        PEqualizerApplyUpdate();
+        return pEqualizerBody;
+    }
+
+    private void PEqualizerRowAdd(double pFrequency, double pGain, bool pRaise)
+    {
+        var pFrequencyBox = PInspectorDecimalBuild();
+        pFrequencyBox.Width = 56;
+        pFrequencyBox.Text = pFrequency.ToString("0.###", CultureInfo.InvariantCulture);
+
+        var pSlider = new Slider
+        {
+            Minimum = LContourCatalog.LContourGainLeast,
+            Maximum = LContourCatalog.LContourGainMost,
+            Value = Math.Clamp(pGain, LContourCatalog.LContourGainLeast, LContourCatalog.LContourGainMost),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pSlider);
+        PSlider.PSliderResetApply(pSlider, static () => 0);
+
+        var pValueBox = PInspectorDecimalBuild();
+        pValueBox.Width = PInspectorInsetWidth / 2;
+        pValueBox.Text = pGain.ToString("0.#", CultureInfo.InvariantCulture);
+
+        var pRemoveButton = new Button
+        {
+            Content = new Image
+            {
+                Width = 12,
+                Height = 12,
+                Source = PIcon.PIconRead(pEqualizerRemoveIcon, pInspectorIconBrush),
+                Stretch = Stretch.Uniform
+            },
+            Width = 26,
+            Height = PInspectorFieldHeight,
+            Margin = new Thickness(6, 0, 0, 0),
+            Style = PButton.PButtonPanelCreate(),
+            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Equalizer.Remove")
+        };
+
+        var pRow = new Grid
+        {
+            Height = PInspectorRowHeight,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var pHzUnit = PEqualizerUnitBuild("Hz");
+        var pDbUnit = PEqualizerUnitBuild("dB");
+        pSlider.VerticalAlignment = VerticalAlignment.Center;
+        pValueBox.VerticalAlignment = VerticalAlignment.Center;
+
+        Grid.SetColumn(pFrequencyBox, 0);
+        Grid.SetColumn(pHzUnit, 1);
+        Grid.SetColumn(pSlider, 2);
+        Grid.SetColumn(pValueBox, 3);
+        Grid.SetColumn(pDbUnit, 4);
+        pRow.Children.Add(pFrequencyBox);
+        pRow.Children.Add(pHzUnit);
+        pRow.Children.Add(pSlider);
+        pRow.Children.Add(pValueBox);
+        pRow.Children.Add(pDbUnit);
+
+        var pLine = new Grid();
+        pLine.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pLine.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(pRow, 0);
+        Grid.SetColumn(pRemoveButton, 1);
+        pRemoveButton.VerticalAlignment = VerticalAlignment.Center;
+        pRemoveButton.Margin = new Thickness(6, 0, 0, 8);
+        pLine.Children.Add(pRow);
+        pLine.Children.Add(pRemoveButton);
+
+        var pBand = new PInspectorBand
+        {
+            PInspectorBandRow = pLine,
+            PInspectorBandFrequency = pFrequencyBox,
+            PInspectorBandSlider = pSlider,
+            PInspectorBandValue = pValueBox
+        };
+
+        pSlider.ValueChanged += (_, _) =>
+        {
+            if (pBand.PInspectorBandSuppress)
+            {
+                return;
+            }
+
+            pBand.PInspectorBandSuppress = true;
+            pValueBox.Text = pSlider.Value.ToString("0.#", CultureInfo.InvariantCulture);
+            pBand.PInspectorBandSuppress = false;
+            PInspectorActiveRaise();
+            PEqualizerDeviationCheck();
+        };
+        pValueBox.TextChanged += (_, _) =>
+        {
+            if (pBand.PInspectorBandSuppress)
+            {
+                return;
+            }
+
+            pBand.PInspectorBandSuppress = true;
+            pSlider.Value = Math.Clamp(
+                PInspectorDecimalRead(pValueBox, 0),
+                LContourCatalog.LContourGainLeast, LContourCatalog.LContourGainMost);
+            pBand.PInspectorBandSuppress = false;
+            PInspectorActiveRaise();
+            PEqualizerDeviationCheck();
+        };
+        pFrequencyBox.TextChanged += (_, _) =>
+        {
+            PInspectorActiveRaise();
+            PEqualizerDeviationCheck();
+        };
+        pRemoveButton.Click += (_, _) => PEqualizerRowRemove(pBand);
+
+        pEqualizerRows.Add(pBand);
+        pEqualizerRowPanel.Children.Add(pLine);
+
+        if (pRaise)
+        {
+            PInspectorActiveRaise();
+        }
+    }
+
+    private void PEqualizerRowRemove(PInspectorBand pBand)
+    {
+        pEqualizerRows.Remove(pBand);
+        pEqualizerRowPanel.Children.Remove(pBand.PInspectorBandRow);
+        PInspectorActiveRaise();
+        PEqualizerDeviationCheck();
+    }
+
+    private static string PEqualizerKeyRead(string pToken) => pToken switch
+    {
+        "Flat" => "Inspector.Equalizer.Preset.Flat",
+        "Bass boost" => "Inspector.Equalizer.Preset.BassBoost",
+        "Bright" => "Inspector.Equalizer.Preset.Bright",
+        "Warm" => "Inspector.Equalizer.Preset.Warm",
+        "Loudness" => "Inspector.Equalizer.Preset.Loudness",
+        "Vocal" => "Inspector.Equalizer.Preset.Vocal",
+        "De-ess" => "Inspector.Equalizer.Preset.Deess",
+        "Podcast" => "Inspector.Equalizer.Preset.Podcast",
+        "Telephone" => "Inspector.Equalizer.Preset.Telephone",
+        _ => "Inspector.Common.Custom"
+    };
+
+    private void PEqualizerRowsApply(double[] pGains)
+    {
+        double[] pGrid = LContourCatalog.LContourBandGrid;
+        pEqualizerRows.Clear();
+        pEqualizerRowPanel.Children.Clear();
+        for (int pIndex = 0; pIndex < pGrid.Length; pIndex++)
+        {
+            PEqualizerRowAdd(pGrid[pIndex], pGains[pIndex], false);
+        }
+    }
+
+    private (double[] Frequencies, double[] Gains) PEqualizerCurrentRead()
+    {
+        var pFrequencies = new double[pEqualizerRows.Count];
+        var pGains = new double[pEqualizerRows.Count];
+        for (int pIndex = 0; pIndex < pEqualizerRows.Count; pIndex++)
+        {
+            pFrequencies[pIndex] = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandFrequency, 0);
+            pGains[pIndex] = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandValue, 0);
+        }
+
+        return (pFrequencies, pGains);
+    }
+
+    private void PEqualizerPresetApply()
+    {
+        if (pEqualizerPresetSuppress)
+        {
+            return;
+        }
+
+        string pName = LLocalizationChoice.LLocalizationChoiceRead(pEqualizerPreset.SelectedItem);
+        if (string.IsNullOrEmpty(pName) || pName == "Custom"
+            || LContourCatalog.LContourGainsRead(pName) is not { } pGains)
+        {
+            pEqualizerBaseToken = null;
+            return;
+        }
+
+        pEqualizerPresetSuppress = true;
+        pEqualizerBaseToken = pName;
+        PEqualizerRowsApply(pGains);
+        PEqualizerCustomReset();
+        pEqualizerPresetSuppress = false;
+        PInspectorActiveRaise();
+    }
+
+    private void PEqualizerDeviationCheck()
+    {
+        if (pEqualizerPresetSuppress || pEqualizerBaseToken is not { } pBase
+            || LContourCatalog.LContourGainsRead(pBase) is not { } pGains)
+        {
+            return;
+        }
+
+        (double[] pFrequencies, double[] pCurrentGains) = PEqualizerCurrentRead();
+        pEqualizerPresetSuppress = true;
+        if (LContourCatalog.LContourMatch(pFrequencies, pCurrentGains, pGains))
+        {
+            PEqualizerCustomReset();
+            PEqualizerPresetSelect(pBase);
+        }
+        else
+        {
+            PEqualizerCustomSet(pBase);
+        }
+
+        pEqualizerPresetSuppress = false;
+    }
+
+    private void PEqualizerPresetUpdate()
+    {
+        pEqualizerPresetSuppress = true;
+        (double[] pFrequencies, double[] pGains) = PEqualizerCurrentRead();
+        string? pMatch = LContourCatalog.LContourPresetFind(pFrequencies, pGains);
+        if (pMatch is not null)
+        {
+            pEqualizerBaseToken = pMatch;
+            PEqualizerCustomReset();
+            PEqualizerPresetSelect(pMatch);
+        }
+        else
+        {
+            pEqualizerBaseToken = null;
+            PEqualizerCustomReset();
+            pEqualizerPreset.SelectedIndex = pEqualizerPreset.Items.Count - 1;
+        }
+
+        pEqualizerPresetSuppress = false;
+    }
+
+    private void PEqualizerCustomSet(string pBase)
+    {
+        int pLast = pEqualizerPreset.Items.Count - 1;
+        string pText = LLocalization.LLocalizationFormat(
+            "Inspector.Common.PresetCustom",
+            LLocalization.LLocalizationTextRead(PEqualizerKeyRead(pBase)));
+        pEqualizerPreset.Items[pLast] = new LLocalizationChoice("Custom", string.Empty, pText);
+        pEqualizerPreset.SelectedIndex = pLast;
+    }
+
+    private void PEqualizerCustomReset()
+    {
+        int pLast = pEqualizerPreset.Items.Count - 1;
+        pEqualizerPreset.Items[pLast] = new LLocalizationChoice("Custom", "Inspector.Common.Custom");
+    }
+
+    private void PEqualizerPresetSelect(string pToken)
+    {
+        for (int pIndex = 0; pIndex < pEqualizerPreset.Items.Count; pIndex++)
+        {
+            if (LLocalizationChoice.LLocalizationChoiceRead(pEqualizerPreset.Items[pIndex]) == pToken)
+            {
+                pEqualizerPreset.SelectedIndex = pIndex;
+                return;
+            }
+        }
+    }
+
+    private static TextBlock PEqualizerUnitBuild(string pUnit) => new()
+    {
+        Text = pUnit,
+        FontSize = 11,
+        FontFamily = pInspectorFontFamily,
+        Foreground = pInspectorMutedBrush,
+        VerticalAlignment = VerticalAlignment.Center,
+        Margin = new Thickness(6, 0, 6, 0)
+    };
+
+    private void PEqualizerApplyUpdate()
+    {
+        bool pEqualizerActive = pEqualizerApplyBox.IsChecked == true;
+        pEqualizerStack.IsEnabled = pEqualizerActive;
+        pEqualizerStack.Opacity = pEqualizerActive ? 1 : 0.4;
+        PInspectorActiveRaise();
+    }
+}

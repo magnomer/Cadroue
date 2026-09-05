@@ -3,9 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PPanels;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PPanel;
+using Cadroue.UIShell.PSCasement;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 namespace Cadroue.UIShell;

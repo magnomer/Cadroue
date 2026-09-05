@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <ApplicationIcon>PAssets\PProgram\PProgramIcon.ico</ApplicationIcon>
+    <ApplicationIcon>PAsset\PProgram\PProgramIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
@@ -31,13 +31,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="PAssets\PTabs\*.svg" />
-    <Resource Include="PAssets\PCompass\*.svg" />
-    <Resource Include="PAssets\PPanels\*.svg" />
-    <Resource Include="PAssets\PMenus\*.svg" />
-    <Resource Include="PAssets\PSShared\*.svg" />
-    <Resource Include="PAssets\PProgram\*.png" />
-    <Resource Include="PAssets\PProgram\*.ico" />
+    <Resource Include="PAsset\PTab\*.svg" />
+    <Resource Include="PAsset\PCompass\*.svg" />
+    <Resource Include="PAsset\PPanel\*.svg" />
+    <Resource Include="PAsset\PMenu\*.svg" />
+    <Resource Include="PAsset\PSDialog\*.svg" />
+    <Resource Include="PAsset\PProgram\*.png" />
+    <Resource Include="PAsset\PProgram\*.ico" />
   </ItemGroup>
 
   <ItemGroup>

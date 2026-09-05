@@ -6,13 +6,13 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
-using Cadroue.UIShell.PAssets;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PAsset;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PSCasement;
 
-using static Cadroue.UIShell.PSShared.PSField;
-using static Cadroue.UIShell.PSShared.PSFooter;
-using static Cadroue.UIShell.PSShared.PSPlate;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSFooter;
+using static Cadroue.UIShell.PSCasement.PSPlate;
 
 using Cadroue.Infrastructure;
 
@@ -24,7 +24,7 @@ internal sealed class PSAbout : Window
 
     private const string PSAboutProjectUrl = "https://github.com/magnomer/Cadroue";
     private const string PSAboutNoticeName = "THIRD-PARTY-NOTICES.md";
-    private const string PSAboutLogoPath = "/PAssets/PProgram/PProgramIcon.png";
+    private const string PSAboutLogoPath = "/PAsset/PProgram/PProgramIcon.png";
 
     private const double PSAboutWidthDefault = 460;
     private const double PSAboutWidthMinimum = 400;

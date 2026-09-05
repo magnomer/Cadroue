@@ -3,15 +3,15 @@ using Cadroue.Core;
 using Cadroue.Application;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PSCasement;
 
-using static Cadroue.UIShell.PSShared.PSField;
-using static Cadroue.UIShell.PSShared.PSCombo;
-using static Cadroue.UIShell.PSShared.PSEntry;
-using static Cadroue.UIShell.PSShared.PSFooter;
-using static Cadroue.UIShell.PSShared.PSPlate;
-using static Cadroue.UIShell.PSShared.PSNotice;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSCombo;
+using static Cadroue.UIShell.PSCasement.PSEntry;
+using static Cadroue.UIShell.PSCasement.PSFooter;
+using static Cadroue.UIShell.PSCasement.PSPlate;
+using static Cadroue.UIShell.PSCasement.PSNotice;
 
 namespace Cadroue.UIShell;
 
@@ -28,11 +28,11 @@ internal sealed partial class PSOptions : Window
     private const int PSSheetTabCount = 5;
     private const double PSSheetStripWidth = PSSheetTabWidth * PSSheetTabCount;
 
-    private const string PSSheetGeneralIcon = "/PAssets/PTabs/PSSheetGeneral.svg";
-    private const string PSSheetSystemIcon = "/PAssets/PTabs/PSSheetSystem.svg";
-    private const string PSSheetPlaybackIcon = "/PAssets/PTabs/PSSheetPlayback.svg";
-    private const string PSSheetTimelineIcon = "/PAssets/PTabs/PSSheetTimeline.svg";
-    private const string PSSheetWorkIcon = "/PAssets/PTabs/PSSheetWork.svg";
+    private const string PSSheetGeneralIcon = "/PAsset/PTab/PSSheetGeneral.svg";
+    private const string PSSheetSystemIcon = "/PAsset/PTab/PSSheetSystem.svg";
+    private const string PSSheetPlaybackIcon = "/PAsset/PTab/PSSheetPlayback.svg";
+    private const string PSSheetTimelineIcon = "/PAsset/PTab/PSSheetTimeline.svg";
+    private const string PSSheetWorkIcon = "/PAsset/PTab/PSSheetWork.svg";
 
     private static readonly LLocalizationChoice[] PSOptionsTabItems =
     {

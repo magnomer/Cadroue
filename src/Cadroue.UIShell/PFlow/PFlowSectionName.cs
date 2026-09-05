@@ -3,14 +3,20 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.UIShell.PMainWindow;
-using Cadroue.UIShell.PPanels;
+using Cadroue.UIShell.PHouse;
+using Cadroue.UIShell.PPanel;
 using Cadroue.Core;
 
 namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PFlow
 {
+    private const double PFlowNameHeight = 32;
+    private const double PFlowNameWidth = 220;
+    private const double PFlowAffixWidth = 96;
+
+    private System.Windows.Controls.Primitives.Popup? pFlowNamePopup;
+
     private bool PFlowNameShow()
     {
         IReadOnlyList<LPiece> pFlowSections = lSegment.LSegmentListRead();

@@ -5,11 +5,11 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Cadroue.Infrastructure;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PSCasement;
 
-using static Cadroue.UIShell.PSShared.PSField;
-using static Cadroue.UIShell.PSShared.PSPlate;
-using static Cadroue.UIShell.PSShared.PSInline;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSPlate;
+using static Cadroue.UIShell.PSCasement.PSInline;
 
 namespace Cadroue.UIShell;
 

@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 using Cadroue.Media;
-using Cadroue.UIShell.PPanels;
+using Cadroue.UIShell.PPanel;
 
 using Cadroue.Core;
 

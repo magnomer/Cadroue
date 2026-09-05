@@ -1,23 +1,23 @@
 using System.Diagnostics;
-using Cadroue.UIShell.PSShared;
+using Cadroue.UIShell.PSCasement;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
-using static Cadroue.UIShell.PSShared.PSField;
-using static Cadroue.UIShell.PSShared.PSInline;
-using static Cadroue.UIShell.PSShared.PSNotice;
-using static Cadroue.UIShell.PSShared.PSPlate;
+using static Cadroue.UIShell.PSCasement.PSField;
+using static Cadroue.UIShell.PSCasement.PSInline;
+using static Cadroue.UIShell.PSCasement.PSNotice;
+using static Cadroue.UIShell.PSCasement.PSPlate;
 
 namespace Cadroue.UIShell;
 
 internal sealed partial class PSOptions
 {
-    private const string PSOptionsBrowseIcon = "/PAssets/PPanels/PBrowse.svg";
-    private const string PSOptionsOpenIcon = "/PAssets/PPanels/POpen.svg";
-    private const string PSOptionsDiagnosisIcon = "/PAssets/PPanels/PDiagnosis.svg";
+    private const string PSOptionsBrowseIcon = "/PAsset/PPanel/PBrowse.svg";
+    private const string PSOptionsOpenIcon = "/PAsset/PPanel/POpen.svg";
+    private const string PSOptionsDiagnosisIcon = "/PAsset/PPanel/PDiagnosis.svg";
 
     private readonly TextBox psWorkspaceBox;
     private readonly TextBox psSystemFfmpegBox;
