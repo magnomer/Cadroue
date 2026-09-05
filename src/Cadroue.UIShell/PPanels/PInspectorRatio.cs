@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 
 using Cadroue.Application;
+using Cadroue.Core;
 
 namespace Cadroue.UIShell.PPanels;
 
@@ -284,12 +285,9 @@ public sealed partial class PInspector
             return;
         }
 
-        double pWidth = pInspectorSourceWidth
-            - PInspectorEvenClamp(pInspectorInsetLeft)
-            - PInspectorEvenClamp(pInspectorInsetRight);
-        double pHeight = pInspectorSourceHeight
-            - PInspectorEvenClamp(pInspectorInsetTop)
-            - PInspectorEvenClamp(pInspectorInsetBottom);
+        LWorkCrop pCropCanonical = PInspectorCanonicalRead();
+        double pWidth = pInspectorSourceWidth - pCropCanonical.LWorkCropLeft - pCropCanonical.LWorkCropRight;
+        double pHeight = pInspectorSourceHeight - pCropCanonical.LWorkCropTop - pCropCanonical.LWorkCropBottom;
         pInspectorResolution.Text = pWidth > 0 && pHeight > 0
             ? $"{Math.Round(pWidth).ToString(CultureInfo.InvariantCulture)} × {Math.Round(pHeight).ToString(CultureInfo.InvariantCulture)}"
             : "—";

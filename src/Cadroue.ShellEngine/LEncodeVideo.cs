@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
@@ -113,7 +114,7 @@ internal static class LEncodeVideo
 
     private static void LEncodeFilterAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
     {
-        var lFilters = new List<string>(LEncodeGeometryRead(lWorkItem.LWorkCrop));
+        var lFilters = new List<string>(LEncodeGeometryRead(lWorkItem.LWorkCrop, lWorkItem.LWorkSourceMedia));
 
         bool lRgbDomain = LEncodeFiltersAppend(lFilters, lWorkItem.LWorkVideo);
 
@@ -270,7 +271,7 @@ internal static class LEncodeVideo
             && lNumerator > 0 && lDenominator > 0;
     }
 
-    internal static IReadOnlyList<string> LEncodeGeometryRead(LWorkCrop lCrop)
+    internal static IReadOnlyList<string> LEncodeGeometryRead(LWorkCrop lCrop, LWorkMedia? lMedia = null)
     {
         var lFilters = new List<string>();
 
@@ -299,14 +300,34 @@ internal static class LEncodeVideo
             lFilters.Add(lRotate);
         }
 
-        if (lCrop.LWorkEdgeActive)
+        LWorkCrop lGeometry = LEncodeGeometryNormalize(lCrop, lMedia);
+        if (lGeometry.LWorkEdgeActive)
         {
             lFilters.Add(string.Create(
                 CultureInfo.InvariantCulture,
-                $"crop=in_w-{lCrop.LWorkCropLeft}-{lCrop.LWorkCropRight}:in_h-{lCrop.LWorkCropTop}-{lCrop.LWorkCropBottom}:{lCrop.LWorkCropLeft}:{lCrop.LWorkCropTop}"));
+                $"crop=in_w-{lGeometry.LWorkCropLeft}-{lGeometry.LWorkCropRight}:in_h-{lGeometry.LWorkCropTop}-{lGeometry.LWorkCropBottom}:{lGeometry.LWorkCropLeft}:{lGeometry.LWorkCropTop}"));
         }
 
         return lFilters;
+    }
+
+    private static LWorkCrop LEncodeGeometryNormalize(LWorkCrop lCrop, LWorkMedia? lMedia)
+    {
+        if (lMedia is null)
+        {
+            return lCrop;
+        }
+
+        if (!lMedia.LWorkMediaVideo)
+        {
+            return LWorkCrop.LWorkCropCreate();
+        }
+
+        (double lFrameWidth, double lFrameHeight) = LCropbox.LCropboxSourceResolve(
+            lMedia.LWorkMediaWidth,
+            lMedia.LWorkMediaHeight,
+            LCropbox.LCropboxRotatedCheck(lCrop.LWorkCropRotation));
+        return LCropbox.LCropboxEdgeNormalize(lCrop, lFrameWidth, lFrameHeight);
     }
 
     private static IReadOnlyList<string> LEncodeColorNormalize(LWorkItem lWorkItem, LEncoding lOutput)

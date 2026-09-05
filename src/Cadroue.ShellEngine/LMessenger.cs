@@ -438,15 +438,14 @@ public static class LMessenger
             Guid lMessengerBatch = lMessengerSource.LWorkSourceBatch != Guid.Empty
                 ? lMessengerSource.LWorkSourceBatch
                 : lMessengerLooseBatch;
+            (LWorkCrop lMessengerCrop, LWorkVideo lMessengerVideo) =
+                Cadroue.Application.LEdit.LEditWorkResolve(lMessengerPlan, lMessengerEqCapable);
             lMessengerItems.Add(Cadroue.Application.LEdit.LEditWorkCreate(
                 lMessengerPriority,
                 lMessengerSourcePath,
                 Cadroue.Application.LLibrarian.LLibrarianDurationRead(lMessengerSourcePath),
-                lMessengerPlan.LEditSkip ? LWorkCrop.LWorkCropCreate() : lMessengerPlan.LEditCrop,
-                lMessengerPlan.LEditSkip
-                    ? LWorkVideo.LWorkVideoCreate()
-                    : Cadroue.Application.LEdit.LEditVideoCreate(
-                        lMessengerPlan.LEditVideo.LWorkVideoSteps, true, lMessengerEqCapable),
+                lMessengerCrop,
+                lMessengerVideo,
                 lMessengerOutput,
                 lMessengerBatch));
         }

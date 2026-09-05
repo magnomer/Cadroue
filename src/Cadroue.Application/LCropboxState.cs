@@ -14,8 +14,7 @@ public sealed class LCropboxState
 
     public event Action? LCropboxStateChange;
 
-    public LWorkCrop LCropboxStateCrop =>
-        lCropboxStateActive ? lCropboxStateCrop : LWorkCrop.LWorkCropCreate();
+    public LWorkCrop LCropboxStateCrop => lCropboxStateCrop;
 
     public bool LCropboxStateActive => lCropboxStateActive;
 

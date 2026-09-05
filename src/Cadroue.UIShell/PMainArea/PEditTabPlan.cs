@@ -116,17 +116,10 @@ public sealed partial class PEditTab
         };
     }
 
-    private void PEditPlanSave()
+    private LEditPlan PEditPlanRead()
     {
-        if (pEditPlanLoading
-            || pViewer.PViewerSourcePath is not { } pEditSourcePath
-            || pList.PListLockCheck(pEditSourcePath))
-        {
-            return;
-        }
-
         (bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
-        var pEditPlan = new LEditPlan(
+        return new LEditPlan(
             pCropOwner.LCropboxStateCrop,
             PEditVideoRead(),
             pCropOwner.LCropboxStateActive)
@@ -137,7 +130,20 @@ public sealed partial class PEditTab
             LEditRatioWidth = pRatioWidth,
             LEditRatioHeight = pRatioHeight
         };
-        if (!pEditPlan.LEditPlanActive && LEdit.LEditPlanRead(pEditSourcePath, LLibrarian.LLibrarianEditLoad) is null)
+    }
+
+    private void PEditPlanSave() => PEditPlanSave(PEditPlanRead());
+
+    private void PEditPlanSave(LEditPlan pEditPlan)
+    {
+        if (pEditPlanLoading
+            || pViewer.PViewerSourcePath is not { } pEditSourcePath
+            || pList.PListLockCheck(pEditSourcePath))
+        {
+            return;
+        }
+
+        if (pEditPlan.LEditPlanEmpty && LEdit.LEditPlanRead(pEditSourcePath, LLibrarian.LLibrarianEditLoad) is null)
         {
             return;
         }

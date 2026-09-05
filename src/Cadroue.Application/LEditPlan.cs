@@ -14,7 +14,15 @@ public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool 
         new(LWorkCrop.LWorkCropCreate(), LWorkVideo.LWorkVideoCreate(), false);
 
     public bool LEditPlanActive =>
-        LEditSkip || LEditCropActive || LEditCrop.LWorkCropActive || LEditVideo.LWorkVideoActive || LEditRatioFixed;
+        LEditSkip
+        || LEditVideo.LWorkVideoActive
+        || (LEditCropActive && (LEditCrop.LWorkCropActive || LEditRatioFixed));
+
+    public bool LEditPlanEmpty =>
+        !LEditSkip
+        && !LEditCrop.LWorkCropActive
+        && !LEditVideo.LWorkVideoActive
+        && !LEditRatioFixed;
 }
 
 public static partial class LEdit
@@ -43,6 +51,19 @@ public static partial class LEdit
         }
 
         return new LWorkVideo(lEditKept.ToArray());
+    }
+
+    public static (LWorkCrop LEditCrop, LWorkVideo LEditVideo) LEditWorkResolve(
+        LEditPlan lEditPlan, bool lEditEqCapable)
+    {
+        if (lEditPlan.LEditSkip)
+        {
+            return (LWorkCrop.LWorkCropCreate(), LWorkVideo.LWorkVideoCreate());
+        }
+
+        return (
+            lEditPlan.LEditCropActive ? lEditPlan.LEditCrop : LWorkCrop.LWorkCropCreate(),
+            LEditVideoCreate(lEditPlan.LEditVideo.LWorkVideoSteps, true, lEditEqCapable));
     }
 
     public static LEditPlan LEditPlanResolve(

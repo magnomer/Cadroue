@@ -36,6 +36,7 @@ public sealed partial class PEditTab : PTabSurface
         Interval = TimeSpan.FromMilliseconds(220)
     };
     private bool pEditPlanLoading;
+    private bool pEditCropSyncing;
 
     public PEditTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -54,12 +55,14 @@ public sealed partial class PEditTab : PTabSurface
                 return;
             }
 
+            (LWorkCrop pEditCrop, LWorkVideo pEditVideo) =
+                LEdit.LEditWorkResolve(PEditPlanRead(), PEditEqCheck());
             LMessenger.LMessengerEditDescribe(
                 lPriority,
                 pEditSelected.LDocketEntryPath,
                 pViewer.PViewerDurationRead(),
-                pInspector.PSkipActiveCheck() ? LWorkCrop.LWorkCropCreate() : pCropOwner.LCropboxStateCrop,
-                pInspector.PSkipActiveCheck() ? LWorkVideo.LWorkVideoCreate() : PEditVideoRead(),
+                pEditCrop,
+                pEditVideo,
                 lPresetOwner,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
@@ -132,10 +135,8 @@ public sealed partial class PEditTab : PTabSurface
         pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
         pInspector.PInspectorRatioChange += _ => PEditRatioSet();
         pInspector.PInspectorRatioChange += _ => PEditPlanSave();
-        pInspector.PInspectorCropChange += pViewer.PCropVideoSet;
-        pInspector.PInspectorCropChange += _ => PEditCropSet();
+        pInspector.PInspectorCropChange += PEditCropSync;
         pInspector.PInspectorRotateChange += PEditRotateHandle;
-        pInspector.PInspectorCropChange += _ => PEditPlanSave();
         pInspector.PInspectorRotateChange += _ => PEditCropSet();
         pInspector.PInspectorRotateChange += _ => PEditPlanSave();
         pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
@@ -181,6 +182,7 @@ public sealed partial class PEditTab : PTabSurface
                 pViewer.PViewerNeutralCancel();
             }
 
+            pViewer.PCropLockSet(pLocked);
             pViewer.PCropToolSet(!pLocked && pInspector.PInspectorToolCheck());
         };
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);

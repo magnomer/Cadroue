@@ -46,7 +46,7 @@ public sealed partial class PViewer
 
     private void PCropGripHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (pViewerTool == PViewerTool.PViewerToolNeutral || sender is not Rectangle { Tag: int pHandleIndex })
+        if (!PCropEditableCheck() || sender is not Rectangle { Tag: int pHandleIndex })
         {
             return;
         }
@@ -62,7 +62,7 @@ public sealed partial class PViewer
 
     private void PCropBodyHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (pViewerTool == PViewerTool.PViewerToolNeutral || pViewerCropBox.Visibility != Visibility.Visible)
+        if (!PCropEditableCheck() || pViewerCropBox.Visibility != Visibility.Visible)
         {
             return;
         }
@@ -149,7 +149,7 @@ public sealed partial class PViewer
 
     private void PCropHandlesPlace()
     {
-        bool pHandlesVisible = pViewerTool != PViewerTool.PViewerToolNeutral
+        bool pHandlesVisible = PCropEditableCheck()
             && pViewerCropBox.Visibility == Visibility.Visible
             && pViewerCropBox.Width > 0
             && pViewerCropBox.Height > 0;
@@ -192,8 +192,48 @@ public sealed partial class PViewer
         }
 
         PCropActive = pCropActive;
+        if (!pCropActive)
+        {
+            PCropToolSet(false);
+            pViewerCropDrag = false;
+            pViewerCropPoint = null;
+            pViewerOverlay.ReleaseMouseCapture();
+        }
+
+        PCropBoxSet();
+        PCropOverlayUpdate();
         PViewerPreviewApply();
     }
+
+    private void PCropBoxSet()
+    {
+        pViewerCropBox.Visibility = PCropActive && PCropVideo is { Width: > 0, Height: > 0 }
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    public void PCropLockSet(bool pCropLocked)
+    {
+        if (pViewerCropLocked == pCropLocked)
+        {
+            return;
+        }
+
+        pViewerCropLocked = pCropLocked;
+        if (pCropLocked)
+        {
+            pViewerCropDrag = false;
+            pViewerCropPoint = null;
+            pViewerOverlay.ReleaseMouseCapture();
+            pViewerOverlay.Cursor = null;
+        }
+
+        pViewerCropBox.Cursor = PCropEditableCheck() ? Cursors.SizeAll : null;
+        PCropOverlayUpdate();
+    }
+
+    private bool PCropEditableCheck() =>
+        PCropActive && !pViewerCropLocked && pViewerTool != PViewerTool.PViewerToolNeutral;
 
     public void PCropToolSet(bool pCropArmed)
     {
@@ -205,8 +245,8 @@ public sealed partial class PViewer
         pViewerTool = pCropArmed
             ? PViewerTool.PViewerToolCrop
             : pViewerTool == PViewerTool.PViewerToolCrop ? PViewerTool.PViewerToolNone : pViewerTool;
-        pViewerOverlay.Cursor = pCropArmed ? Cursors.Cross : null;
-        pViewerCropBox.Cursor = pViewerTool == PViewerTool.PViewerToolNeutral ? null : Cursors.SizeAll;
+        pViewerOverlay.Cursor = pCropArmed && !pViewerCropLocked ? Cursors.Cross : null;
+        pViewerCropBox.Cursor = PCropEditableCheck() ? Cursors.SizeAll : null;
         PCropOverlayUpdate();
     }
 
@@ -245,6 +285,7 @@ public sealed partial class PViewer
 
     public void PCropVideoSet(Rect? pCropVideo)
     {
+        pCropVideo = PCropSourceClamp(pCropVideo);
         if (pCropVideo is not { Width: > 0, Height: > 0 })
         {
             LTraceLog.LTraceInfoRecord("Viewer crop cleared: overlay hidden");
@@ -263,9 +304,21 @@ public sealed partial class PViewer
 
         PCropVideo = pCropVideo;
         LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(PViewerCropboxRead(PCropVideo));
-        pViewerCropBox.Visibility = Visibility.Visible;
+        PCropBoxSet();
         PCropBoxRestore();
         PViewerMpvUpdate();
+    }
+
+    private Rect? PCropSourceClamp(Rect? pCropVideo)
+    {
+        if (pCropVideo is not { Width: > 0, Height: > 0 } pCropRect || PCropSourceRead() is not { } pCropSource)
+        {
+            return pCropVideo;
+        }
+
+        LCropbox pCropClamped = LCropbox.LCropboxRectClamp(
+            PCropboxResolve(pCropRect), new LCropbox(0, 0, pCropSource.Width, pCropSource.Height), false);
+        return pCropClamped is { LCropboxWidth: > 0, LCropboxHeight: > 0 } ? PCropRectResolve(pCropClamped) : null;
     }
 
     private void PCropPressHandle(object sender, MouseButtonEventArgs mouseEvent)
@@ -276,7 +329,11 @@ public sealed partial class PViewer
             return;
         }
 
-        if (pViewerTool != PViewerTool.PViewerToolCrop || pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        if (pViewerTool != PViewerTool.PViewerToolCrop
+            || !PCropActive
+            || pViewerCropLocked
+            || pViewerMediaInfo is null
+            || !pViewerMediaInfo.LMediaVideoPresent)
         {
             return;
         }

@@ -4,6 +4,77 @@ namespace Cadroue.Application;
 
 public sealed partial record LCropbox
 {
+    private const int LCropboxSpanMinimum = 2;
+
+    public static bool LCropboxRotatedCheck(int lCropboxRotation) =>
+        ((lCropboxRotation / 90 % 4 + 4) % 4) % 2 != 0;
+
+    public static LWorkCrop LCropboxEdgeNormalize(
+        LWorkCrop lCropboxCrop,
+        double lCropboxFrameWidth,
+        double lCropboxFrameHeight)
+    {
+        int lCropboxLeft = LCropboxEdgeResolve(lCropboxCrop.LWorkCropLeft);
+        int lCropboxTop = LCropboxEdgeResolve(lCropboxCrop.LWorkCropTop);
+        int lCropboxRight = LCropboxEdgeResolve(lCropboxCrop.LWorkCropRight);
+        int lCropboxBottom = LCropboxEdgeResolve(lCropboxCrop.LWorkCropBottom);
+
+        if (lCropboxFrameWidth > 0 && lCropboxFrameHeight > 0)
+        {
+            (lCropboxLeft, lCropboxRight) = LCropboxSpanClamp(lCropboxLeft, lCropboxRight, lCropboxFrameWidth);
+            (lCropboxTop, lCropboxBottom) = LCropboxSpanClamp(lCropboxTop, lCropboxBottom, lCropboxFrameHeight);
+        }
+
+        return lCropboxCrop with
+        {
+            LWorkCropLeft = lCropboxLeft,
+            LWorkCropTop = lCropboxTop,
+            LWorkCropRight = lCropboxRight,
+            LWorkCropBottom = lCropboxBottom
+        };
+    }
+
+    public static LCropbox? LCropboxRectResolve(
+        LWorkCrop lCropboxCrop,
+        double lCropboxFrameWidth,
+        double lCropboxFrameHeight)
+    {
+        if (lCropboxFrameWidth <= 0 || lCropboxFrameHeight <= 0)
+        {
+            return null;
+        }
+
+        LWorkCrop lCropboxCanonical = LCropboxEdgeNormalize(lCropboxCrop, lCropboxFrameWidth, lCropboxFrameHeight);
+        if (!lCropboxCanonical.LWorkEdgeActive)
+        {
+            return null;
+        }
+
+        double lCropboxWidth = lCropboxFrameWidth
+            - lCropboxCanonical.LWorkCropLeft - lCropboxCanonical.LWorkCropRight;
+        double lCropboxHeight = lCropboxFrameHeight
+            - lCropboxCanonical.LWorkCropTop - lCropboxCanonical.LWorkCropBottom;
+        return lCropboxWidth > 0 && lCropboxHeight > 0
+            ? new LCropbox(lCropboxCanonical.LWorkCropLeft, lCropboxCanonical.LWorkCropTop, lCropboxWidth, lCropboxHeight)
+            : null;
+    }
+
+    private static int LCropboxEdgeResolve(int lCropboxEdge) =>
+        lCropboxEdge <= 0 ? 0 : lCropboxEdge - (lCropboxEdge % 2);
+
+    private static (int Near, int Far) LCropboxSpanClamp(int lCropboxNear, int lCropboxFar, double lCropboxSpan)
+    {
+        int lCropboxLimit = LCropboxEdgeResolve((int)Math.Floor(lCropboxSpan) - LCropboxSpanMinimum);
+        if (lCropboxLimit <= 0)
+        {
+            return (0, 0);
+        }
+
+        int lCropboxNearClamped = Math.Min(lCropboxNear, lCropboxLimit);
+        int lCropboxFarClamped = Math.Min(lCropboxFar, LCropboxEdgeResolve(lCropboxLimit - lCropboxNearClamped));
+        return (lCropboxNearClamped, lCropboxFarClamped);
+    }
+
     public static LWorkCrop LCropboxOrientationResolve(
         LWorkCrop lCropbox,
         int lCropboxRotation,

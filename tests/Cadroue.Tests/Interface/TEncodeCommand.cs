@@ -92,6 +92,22 @@ internal sealed class TEncodeCommand : IDisposable
             .OrderBy(encoder => encoder, StringComparer.Ordinal)
             .ToArray();
 
+    internal static readonly string TBridgeSource = Path.Combine("input media", "source clip.mov");
+    internal static readonly string TBridgeOutput = Path.Combine("output media", "smart clip.mp4");
+
+    internal static int TBridgeLabelFind(IReadOnlyList<LEncodeStage> stages, string label)
+    {
+        for (int index = 0; index < stages.Count; index++)
+        {
+            if (stages[index].LEncodeStageLabel == label)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
     internal static LWorkItem TBridgeWorkCreate(
         string source, string output, string codec = "h264", bool copyMode = true,
         string audioCodec = "aac", int sampleRate = 48000, string audioMode = "Copy",

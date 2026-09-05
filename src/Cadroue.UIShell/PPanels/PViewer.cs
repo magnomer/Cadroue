@@ -55,6 +55,7 @@ public sealed partial class PViewer : PPanel
     private Rect pViewerCropOrigin;
     private Point pViewerCropGrab;
     private bool pViewerCropDrag;
+    private bool pViewerCropLocked;
     private int pViewerEdgeX;
     private int pViewerEdgeY;
     private int pViewerCropDrive = -1;
@@ -451,7 +452,9 @@ public sealed partial class PViewer : PPanel
     public LPreviewState PViewerRenderRead() =>
         PCropActive
             ? LPreviewStateCurrent
-            : LPreviewStateCurrent.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate());
+            : LPreviewStateCurrent
+                .LRotateFlipChange(LRotateFlip.LRotateDefaultCreate())
+                .LCropboxChange(null);
 
     public string PViewerAudioRead() => PViewerAudioResolve();
 

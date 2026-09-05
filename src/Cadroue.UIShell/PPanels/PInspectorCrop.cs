@@ -49,6 +49,7 @@ public sealed partial class PInspector
     private bool pInspectorCropSuppress;
     private bool pInspectorRatioSuppress;
     private bool pInspectorCropPresent;
+    private bool pInspectorCropCapable = true;
     private readonly bool[] pInspectorEdgeLocked = new bool[4];
 
     public event Action<bool>? PInspectorToolChange;
@@ -68,22 +69,19 @@ public sealed partial class PInspector
         PInspectorRatioUpdate();
     }
 
-    public LWorkCrop PInspectorCropRead()
-    {
-        if (pInspectorApplyBox.IsChecked != true)
-        {
-            return LWorkCrop.LWorkCropCreate();
-        }
+    public LWorkCrop PInspectorCropRead() => PInspectorCanonicalRead();
 
-        return new LWorkCrop(
-            PInspectorEvenClamp(pInspectorInsetLeft),
-            PInspectorEvenClamp(pInspectorInsetTop),
-            PInspectorEvenClamp(pInspectorInsetRight),
-            PInspectorEvenClamp(pInspectorInsetBottom),
+    private LWorkCrop PInspectorCanonicalRead() => LCropbox.LCropboxEdgeNormalize(
+        new LWorkCrop(
+            PInspectorWholeRead(pInspectorInsetLeft),
+            PInspectorWholeRead(pInspectorInsetTop),
+            PInspectorWholeRead(pInspectorInsetRight),
+            PInspectorWholeRead(pInspectorInsetBottom),
             PInspectorAngleResolve(PInspectorKindRead()),
             pInspectorFlipHorizontal.IsChecked == true,
-            pInspectorFlipVertical.IsChecked == true);
-    }
+            pInspectorFlipVertical.IsChecked == true),
+        pInspectorSourceWidth,
+        pInspectorSourceHeight);
 
     public void PCropPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply)
     {
@@ -114,16 +112,7 @@ public sealed partial class PInspector
         }
 
         PInspectorRotateRaise();
-        if (pInspectorPlan.LWorkEdgeActive)
-        {
-            PInspectorCropRaise();
-        }
-        else
-        {
-            pInspectorCropPresent = false;
-            PInspectorCropChange?.Invoke(null);
-        }
-
+        PInspectorCropRaise();
         PInspectorRatioUpdate();
         PInspectorToolUpdate();
         PInspectorApplyUpdate();
@@ -186,11 +175,40 @@ public sealed partial class PInspector
         PInspectorPersistentChange?.Invoke(pInspectorPersistentBox.IsChecked == true);
     }
 
-    private void PInspectorApplyUpdate()
+    public void PCropCapabilitySet(bool pCropCapable, bool pOrientationCapable)
     {
-        bool pApplyActive = pInspectorApplyBox.IsChecked == true;
+        pInspectorCropCapable = pCropCapable;
+        pInspectorApplyBox.IsEnabled = pCropCapable;
+        pInspectorApplyBox.ToolTip = pCropCapable
+            ? LLocalization.LLocalizationTextRead("Inspector.Crop.ApplyTooltip")
+            : LLocalization.LLocalizationTextRead("Inspector.Crop.RequiresCrop");
+        pInspectorRotateCombo.IsEnabled = pOrientationCapable;
+        pInspectorFlipHorizontal.IsEnabled = pOrientationCapable;
+        pInspectorFlipVertical.IsEnabled = pOrientationCapable;
+        string? pOrientationNotice = pOrientationCapable
+            ? null
+            : LLocalization.LLocalizationTextRead("Inspector.Crop.RequiresTranspose");
+        pInspectorRotateCombo.ToolTip = pOrientationNotice;
+        pInspectorFlipHorizontal.ToolTip = pOrientationNotice;
+        pInspectorFlipVertical.ToolTip = pOrientationNotice;
+        PCropEnableApply();
+    }
+
+    private void PCropEnableApply()
+    {
+        bool pApplyActive = pInspectorApplyBox.IsChecked == true && pInspectorCropCapable;
         pInspectorCropStack.IsEnabled = pApplyActive;
         pInspectorCropStack.Opacity = pApplyActive ? 1 : 0.4;
+    }
+
+    private void PInspectorApplyUpdate()
+    {
+        if (pInspectorApplyBox.IsChecked != true && pInspectorCropTool.IsChecked == true)
+        {
+            pInspectorCropTool.IsChecked = false;
+        }
+
+        PCropEnableApply();
         PCropActiveChange?.Invoke();
     }
 
@@ -208,11 +226,8 @@ public sealed partial class PInspector
             pToolActive ? pInspectorAccentBrush : pInspectorIconBrush);
     }
 
-    private static int PInspectorEvenClamp(TextBox pNumberBox)
-    {
-        int pWhole = (int)Math.Round(PInspectorNumberRead(pNumberBox));
-        return pWhole <= 0 ? 0 : pWhole - (pWhole % 2);
-    }
+    private static int PInspectorWholeRead(TextBox pNumberBox) =>
+        (int)Math.Round(PInspectorNumberRead(pNumberBox));
 
     private void PInspectorInsetChange(int pEdge)
     {
@@ -276,10 +291,7 @@ public sealed partial class PInspector
             pInspectorCropSuppress = pCropSuppressPrevious;
         }
 
-        if (pInspectorCropPresent)
-        {
-            PInspectorCropChange?.Invoke(pCropSnapped);
-        }
+        PInspectorCropRaise();
     }
 
     public LRotateFlip PInspectorRotateRead() => new(
@@ -335,26 +347,13 @@ public sealed partial class PInspector
         _ => 0
     };
 
-    public Rect? PInspectorRectRead()
-    {
-        if (pInspectorApplyBox.IsChecked != true)
-        {
-            return null;
-        }
+    public Rect? PInspectorRectRead() => PInspectorRectResolve();
 
-        double pCropLeft = PInspectorNumberRead(pInspectorInsetLeft);
-        double pCropTop = PInspectorNumberRead(pInspectorInsetTop);
-        double pCropWidth = pInspectorSourceWidth - pCropLeft - PInspectorNumberRead(pInspectorInsetRight);
-        double pCropHeight = pInspectorSourceHeight - pCropTop - PInspectorNumberRead(pInspectorInsetBottom);
-        bool pCropEdged = pCropLeft > 0
-            || pCropTop > 0
-            || PInspectorNumberRead(pInspectorInsetRight) > 0
-            || PInspectorNumberRead(pInspectorInsetBottom) > 0;
-
-        return pCropEdged && pCropWidth > 0 && pCropHeight > 0
-            ? new Rect(pCropLeft, pCropTop, pCropWidth, pCropHeight)
+    private Rect? PInspectorRectResolve() =>
+        LCropbox.LCropboxRectResolve(PInspectorCanonicalRead(), pInspectorSourceWidth, pInspectorSourceHeight)
+            is { } pCropBox
+            ? new Rect(pCropBox.LCropboxX, pCropBox.LCropboxY, pCropBox.LCropboxWidth, pCropBox.LCropboxHeight)
             : null;
-    }
 
     private void PInspectorRotateRaise()
     {
@@ -430,15 +429,10 @@ public sealed partial class PInspector
             return;
         }
 
-        double pCropLeft = PInspectorNumberRead(pInspectorInsetLeft);
-        double pCropTop = PInspectorNumberRead(pInspectorInsetTop);
-        double pCropWidth = pInspectorSourceWidth - pCropLeft - PInspectorNumberRead(pInspectorInsetRight);
-        double pCropHeight = pInspectorSourceHeight - pCropTop - PInspectorNumberRead(pInspectorInsetBottom);
-        pInspectorCropPresent = pCropWidth > 0 && pCropHeight > 0;
+        Rect? pCropRect = PInspectorRectResolve();
+        pInspectorCropPresent = pCropRect is not null;
         PInspectorToolUpdate();
-        PInspectorCropChange?.Invoke(pInspectorCropPresent
-            ? new Rect(pCropLeft, pCropTop, pCropWidth, pCropHeight)
-            : null);
+        PInspectorCropChange?.Invoke(pCropRect);
     }
 
     private static string PInspectorEdgeFormat(double pEdgeValue) =>

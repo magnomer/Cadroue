@@ -12,6 +12,7 @@ public sealed partial class PEditTab
     private void PEditSkipHandle()
     {
         pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
+        PEditViewerApply();
         PEditPlanSave();
     }
 
@@ -106,7 +107,10 @@ public sealed partial class PEditTab
 
     private void PEditColorApply()
     {
-        pViewer.PViewerColorSet(LPreview.LPreviewColorResolve(PEditVideoRead(PEditMpvCheck())));
+        LWorkVideo pEditVideo = pInspector.PSkipActiveCheck()
+            ? LWorkVideo.LWorkVideoCreate()
+            : PEditVideoRead(PEditMpvCheck());
+        pViewer.PViewerColorSet(LPreview.LPreviewColorResolve(pEditVideo));
     }
 
     private LWorkVideo PEditVideoRead(bool pMpvOnlyCapable = true)
@@ -120,19 +124,26 @@ public sealed partial class PEditTab
             }
         }
 
-        return LEdit.LEditVideoCreate(pSteps, pMpvOnlyCapable, PEditEqCheck());
+        return LEdit.LEditVideoCreate(pSteps, pMpvOnlyCapable);
     }
 
     private bool PEditMpvCheck() =>
         Cadroue.Infrastructure.LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
 
-    private static bool PEditEqCheck() =>
-        Cadroue.Infrastructure.LInventory.LInventoryFilterExist("eq");
+    private static bool PEditEqCheck() => PEditFilterCheck("eq");
+
+    private static bool PEditFilterCheck(params string[] pEditFilters) =>
+        pEditFilters.All(Cadroue.Infrastructure.LInventory.LInventoryFilterExist);
 
     private void PEditCapabilityHandle()
     {
         bool pPreviewMpv = PEditMpvCheck();
         bool pEqCapable = PEditEqCheck();
+        bool pExposureCapable = PEditFilterCheck("exposure");
+        bool pCurveCapable = PEditFilterCheck("curves");
+        bool pWhitebalanceCapable = PEditFilterCheck("colorcorrect", "colorchannelmixer");
+        bool pCropCapable = PEditFilterCheck("crop");
+        bool pOrientationCapable = PEditFilterCheck("transpose", "hflip", "vflip");
 
         string pEqTooltip = LLocalization.LLocalizationTextRead("Processing.Step.RequiresEq");
         pProcessing.PProcessingEnabledSet("Brightness", pEqCapable, pEqTooltip);
@@ -140,14 +151,25 @@ public sealed partial class PEditTab
         pProcessing.PProcessingEnabledSet("Saturation", pEqCapable, pEqTooltip);
         pInspector.PToneCapabilitySet(pEqCapable);
 
-        pProcessing.PProcessingEnabledSet("Exposure", true, string.Empty);
-        pInspector.PExposureCapabilitySet(true, pPreviewMpv);
+        pProcessing.PProcessingEnabledSet(
+            "Crop", pCropCapable, LLocalization.LLocalizationTextRead("Processing.Step.RequiresCrop"));
+        pInspector.PCropCapabilitySet(pCropCapable, pOrientationCapable);
 
-        pProcessing.PProcessingEnabledSet("Curve", true, string.Empty);
-        pInspector.PCurveCapabilitySet(true, pPreviewMpv, "Inspector.Video.CurvePreviewMpv");
+        pProcessing.PProcessingEnabledSet(
+            "Exposure",
+            pExposureCapable,
+            LLocalization.LLocalizationTextRead("Inspector.Video.ExposureRequiresEq"));
+        pInspector.PExposureCapabilitySet(pExposureCapable, pPreviewMpv);
 
-        pProcessing.PProcessingEnabledSet("Whitebalance", true, string.Empty);
-        pInspector.PWhitebalanceCapabilitySet(true, pPreviewMpv);
+        pProcessing.PProcessingEnabledSet(
+            "Curve", pCurveCapable, LLocalization.LLocalizationTextRead("Inspector.Video.CurveRequiresEq"));
+        pInspector.PCurveCapabilitySet(pCurveCapable, pPreviewMpv, "Inspector.Video.CurvePreviewMpv");
+
+        pProcessing.PProcessingEnabledSet(
+            "Whitebalance",
+            pWhitebalanceCapable,
+            LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceRequiresEq"));
+        pInspector.PWhitebalanceCapabilitySet(pWhitebalanceCapable, pPreviewMpv);
 
         string pGammaTooltip = LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresEq");
         pProcessing.PProcessingEnabledSet("Gamma", pEqCapable, pGammaTooltip);
