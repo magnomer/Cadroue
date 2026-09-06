@@ -2,6 +2,19 @@ using Cadroue.Core;
 
 namespace Cadroue.Tests;
 
+internal sealed class TClassifierFault : IDisposable
+{
+    private readonly Action<string>? tClassifierPrevious;
+
+    internal TClassifierFault(Action<string> record)
+    {
+        tClassifierPrevious = LClassifier.LClassifierFaultSource;
+        LClassifier.LClassifierFaultSource = record;
+    }
+
+    public void Dispose() => LClassifier.LClassifierFaultSource = tClassifierPrevious;
+}
+
 internal static class TClassifierData
 {
     internal static LSceneFunnelMatch TClassifierConditionCreate(string text, bool caseSensitive = false, bool join = true) =>

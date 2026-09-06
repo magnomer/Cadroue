@@ -5,6 +5,7 @@ using System.Windows.Media;
 using Cadroue.UIShell.PAsset;
 using Cadroue.UIShell.PHouse;
 using Cadroue.Application;
+using Cadroue.Core;
 
 namespace Cadroue.UIShell.PPanel;
 
@@ -18,21 +19,21 @@ public sealed partial class PExport
             && pPresetSelected
             && !LPreset.LPresetMatch(lPresetName, lWorking);
         bool pPresetEditing = string.Equals(lPresetName, pPresetNameEditing, StringComparison.OrdinalIgnoreCase);
-        bool pPresetDisabled = PExportDisabledCheck(lPresetName, lWorking);
+        bool pPresetUnsupported = !PExportSupportCheck(lPresetName, lWorking);
         UIElement pNameElement = pPresetEditing
             ? PExportBoxBuild(lPresetName)
-            : PExportDisplayBuild(lPresetName, pPresetModified);
+            : PExportDisplayBuild(lPresetName, pPresetModified, pPresetUnsupported);
 
         var pRowBorder = new Border
         {
             Padding = new Thickness(12, 7, 12, 7),
-            Background = pPresetSelected && !pPresetDisabled ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB)) : Brushes.White,
+            Background = pPresetSelected ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB)) : Brushes.White,
             BorderBrush = Brushes.Transparent,
             BorderThickness = new Thickness(0),
             Cursor = Cursors.Hand,
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            Opacity = pPresetDisabled ? 0.42 : 1,
-            ToolTip = pPresetDisabled ? LLocalization.LLocalizationTextRead("ExportPreset.DisabledTooltip") : null,
+            Opacity = pPresetUnsupported ? 0.42 : 1,
+            ToolTip = pPresetUnsupported ? LLocalization.LLocalizationTextRead(PExportNoticeRead()) : null,
             Child = pNameElement
         };
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>
@@ -90,11 +91,33 @@ public sealed partial class PExport
         return pRowBorder;
     }
 
-    private bool PExportDisabledCheck(string lPresetName, LPreset lWorking) =>
-        pExportCopyDisabled
-        && LPreset.LPresetRead(lPresetName) is { } lPreset
-        && string.Equals(lPreset.LPresetVideo.LPresetMode, "Copy", StringComparison.OrdinalIgnoreCase)
-        && (!string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lWorking.LPresetVideo.LPresetMode, "Copy", StringComparison.OrdinalIgnoreCase));
+    // Whether this row's preset can carry the work of the tab hosting the panel. The row
+    // stays selectable either way; an unsupported one is only marked, and refused when the
+    // user actually runs it. The selected row is judged by the working copy, which is what
+    // would run, so editing it back into range clears the mark at once.
+    private bool PExportSupportCheck(string lPresetName, LPreset lWorking)
+    {
+        if (pExportKind is not { } pExportWorkKind)
+        {
+            return true;
+        }
 
+        LPreset? pPresetValue = string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase)
+            ? lWorking
+            : LPreset.LPresetRead(lPresetName);
+        return pPresetValue is not { } pPreset
+            || LEncoding.LEncodingSupportCheck(
+                pExportWorkKind,
+                pPreset.LPresetVideo.LPresetMode,
+                pPreset.LPresetAudio.LPresetMode,
+                pPreset.LPresetAudio.LPresetStream);
+    }
+
+    private string PExportNoticeRead() =>
+        pExportKind == LWorkKind.LWorkKindEdit ? "ExportPreset.DisabledTooltip" : "ExportPreset.AudioTooltip";
+
+    // The refusal the action itself makes, over the selection that would actually be sent.
+    public static bool PExportSupportCheck(LPresetSelection lPresetOwner, LWorkKind lExportKind) =>
+        lPresetOwner.LPresetSelectionEncoding is not { } lExportEncoding
+        || lExportEncoding.LEncodingSupportCheck(lExportKind);
 }

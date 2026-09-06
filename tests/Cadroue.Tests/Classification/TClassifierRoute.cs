@@ -62,4 +62,48 @@ public sealed class TClassifierRoute
     {
         Assert.False(TInterface.TClassifierMatch(TClassifierRemainderCreate(), "clip.mp4"));
     }
+
+    [Fact]
+    public void UnusableMatchingRule_DoesNotShadowLaterUsableRule()
+    {
+        LSceneFunnelRule first = TClassifierFilenameCreate();
+        first.LSceneFunnelContains = TClassifierConditionCreate("clip");
+        LSceneFunnelRule second = TClassifierFilenameCreate();
+        second.LSceneFunnelContains = TClassifierConditionCreate("clip");
+
+        Assert.Equal(1, TInterface.TClassifierRouteRead(
+            new[] { first, second }, "clip.mp4", index => index != 0));
+    }
+
+    [Fact]
+    public void UnusableMatchingRule_StillFallsBackToRemainder()
+    {
+        LSceneFunnelRule rule = TClassifierFilenameCreate();
+        rule.LSceneFunnelContains = TClassifierConditionCreate("clip");
+        LSceneFunnelRule remainder = TClassifierRemainderCreate();
+
+        Assert.Equal(1, TInterface.TClassifierRouteRead(
+            new[] { rule, remainder }, "clip.mp4", index => index != 0));
+    }
+
+    [Fact]
+    public void UnusableRemainder_DoesNotShadowLaterUsableRemainder()
+    {
+        LSceneFunnelRule first = TClassifierRemainderCreate();
+        LSceneFunnelRule second = TClassifierRemainderCreate();
+
+        Assert.Equal(1, TInterface.TClassifierRouteRead(
+            new[] { first, second }, "clip.mp4", index => index != 0));
+    }
+
+    [Fact]
+    public void EveryRuleUnusable_ReturnsMinusOne()
+    {
+        LSceneFunnelRule rule = TClassifierFilenameCreate();
+        rule.LSceneFunnelContains = TClassifierConditionCreate("clip");
+        LSceneFunnelRule remainder = TClassifierRemainderCreate();
+
+        Assert.Equal(-1, TInterface.TClassifierRouteRead(
+            new[] { rule, remainder }, "clip.mp4", _ => false));
+    }
 }

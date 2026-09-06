@@ -58,6 +58,12 @@ public sealed partial class PAudioTab : PTabSurface
                 return;
             }
 
+            if (!PExport.PExportSupportCheck(lPresetOwner, LWorkKind.LWorkKindAudio))
+            {
+                PExport.PExportIncompatibleShow();
+                return;
+            }
+
             if (pList.PListEditableRead() is not { } pAudioSelected)
             {
                 return;
@@ -81,6 +87,12 @@ public sealed partial class PAudioTab : PTabSurface
                 return;
             }
 
+            if (!PExport.PExportSupportCheck(lPresetOwner, LWorkKind.LWorkKindAudio))
+            {
+                PExport.PExportIncompatibleShow();
+                return;
+            }
+
             PAudioPlanSave();
             _ = LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal,
@@ -96,6 +108,12 @@ public sealed partial class PAudioTab : PTabSurface
             if (!lPresetOwner.LPresetSelectionValid)
             {
                 PExport.PExportMissingShow();
+                return;
+            }
+
+            if (!PExport.PExportSupportCheck(lPresetOwner, LWorkKind.LWorkKindAudio))
+            {
+                PExport.PExportIncompatibleShow();
                 return;
             }
 
@@ -119,7 +137,7 @@ public sealed partial class PAudioTab : PTabSurface
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PViewerMediaChange += PAudioMediaHandle;
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
-        var pExport = new PExport(lPresetOwner);
+        var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindAudio);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
         Content = pTabGrid;

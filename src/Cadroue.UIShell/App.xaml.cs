@@ -76,6 +76,8 @@ public partial class PProgram : System.Windows.Application
             PDeck.PAction.PActionAccept,
             PPanel.PList.PListBatchRemove,
             PPanel.PList.PListSourceRelease);
+        Cadroue.Core.LClassifier.LClassifierFaultSource =
+            lClassifierFault => Cadroue.Infrastructure.LTraceLog.LTraceWarningRecord(lClassifierFault);
         Cadroue.ShellEngine.LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 Cadroue.ShellEngine.LCartographer.LCartographerAccept(

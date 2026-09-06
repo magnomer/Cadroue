@@ -116,24 +116,35 @@ public sealed class PFunnelRules : PPanel
         pRow.PFunnelHeader.MouseLeftButtonDown += (_, pEvent) => PFunnelPressHandle(pRow, pEvent);
         pRow.PFunnelHeader.MouseMove += (_, pEvent) => PFunnelMoveHandle(pRow, pEvent);
         pRow.PFunnelHeader.MouseLeftButtonUp += (_, pEvent) => PFunnelUpHandle(pRow, pEvent);
+        pRow.PFunnelHeader.LostMouseCapture += (_, _) => PFunnelDragReset(pRow);
+        pRow.PreviewMouseLeftButtonDown += (_, _) => PFunnelRowSelect(pRow);
+        pRow.GotKeyboardFocus += (_, _) => PFunnelRowSelect(pRow);
         pFunnelRows.Add(pRow);
         pFunnelRowPanel.Children.Add(pRow);
         PFunnelOrderApply();
         PFunnelEmptyUpdate();
+        PFunnelRowSelect(pRow);
         return pRow;
     }
 
     private void PFunnelRuleRemove(PFunnelRuleRow pRow)
     {
-        if (ReferenceEquals(pFunnelRowSelected, pRow))
-        {
-            pFunnelRowSelected = null;
-        }
-
+        int pRemovedIndex = pFunnelRows.IndexOf(pRow);
         pFunnelRows.Remove(pRow);
         pFunnelRowPanel.Children.Remove(pRow);
         PFunnelOrderApply();
         PFunnelEmptyUpdate();
+
+        if (!ReferenceEquals(pFunnelRowSelected, pRow))
+        {
+            return;
+        }
+
+        pFunnelRowSelected = null;
+        if (pFunnelRows.Count > 0)
+        {
+            PFunnelRowSelect(pFunnelRows[Math.Clamp(pRemovedIndex, 0, pFunnelRows.Count - 1)]);
+        }
     }
 
     private void PFunnelOrderApply()
@@ -189,21 +200,24 @@ public sealed class PFunnelRules : PPanel
             return;
         }
 
-        bool pDragMoved = pFunnelDragActive;
-        pRow.Opacity = 1;
         pRow.PFunnelHeader.ReleaseMouseCapture();
+        PFunnelDragReset(pRow);
+        pEvent.Handled = true;
+    }
+
+    private void PFunnelDragReset(PFunnelRuleRow pRow)
+    {
+        if (!ReferenceEquals(pFunnelRowDragging, pRow))
+        {
+            return;
+        }
+
+        pRow.Opacity = 1;
         pFunnelGhost?.PGhostClear();
         pFunnelGhost = null;
         pFunnelRowDragging = null;
         pFunnelDragOrigin = null;
         pFunnelDragActive = false;
-
-        if (!pDragMoved)
-        {
-            PFunnelRowSelect(pRow);
-        }
-
-        pEvent.Handled = true;
     }
 
     private int PFunnelIndexResolve(Point pMousePoint)

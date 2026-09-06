@@ -20,9 +20,9 @@ public sealed partial class PExport
         PExportNameCommit(lEditingName, pEditingBox.Text);
     }
 
-    private UIElement PExportDisplayBuild(string lPresetName, bool pPresetModified)
+    private UIElement PExportDisplayBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported)
     {
-        UIElement pNameText = PExportNameBuild(lPresetName, pPresetModified);
+        UIElement pNameText = PExportNameBuild(lPresetName, pPresetModified, pPresetUnsupported);
         if (!pPresetModified)
         {
             return pNameText;
@@ -46,9 +46,9 @@ public sealed partial class PExport
         return pGrid;
     }
 
-    private UIElement PExportNameBuild(string lPresetName, bool pPresetModified)
+    private UIElement PExportNameBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported)
     {
-        TextBlock pNameText = PExportTextBuild(lPresetName, pPresetModified);
+        TextBlock pNameText = PExportTextBuild(lPresetName, pPresetModified, pPresetUnsupported);
         if (!LPreset.LPresetNativeCheck(lPresetName))
         {
             return pNameText;
@@ -64,11 +64,15 @@ public sealed partial class PExport
         return pPanel;
     }
 
-    private static TextBlock PExportTextBuild(string lPresetName, bool pPresetModified) => new()
+    // The incompatibility marker is display text only: the preset keeps its real name, so
+    // renaming, matching and persistence never see it.
+    private static TextBlock PExportTextBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported) => new()
     {
-        Text = pPresetModified
-            ? $"{LPreset.LPresetDisplayRead(lPresetName)} (Modified)"
-            : LPreset.LPresetDisplayRead(lPresetName),
+        Text = PExportMarkRead(
+            pPresetModified
+                ? $"{LPreset.LPresetDisplayRead(lPresetName)} (Modified)"
+                : LPreset.LPresetDisplayRead(lPresetName),
+            pPresetUnsupported),
         FontSize = 12,
         FontStyle = pPresetModified ? FontStyles.Italic : FontStyles.Normal,
         Foreground = PExportTextBrush,

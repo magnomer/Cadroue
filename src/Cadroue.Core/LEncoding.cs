@@ -52,6 +52,30 @@ public sealed record LEncoding(
         return lEncodingSourceFolder;
     }
 
+    // Whether this output can carry the work a tab performs. Edit rewrites the video
+    // frames, so a copied video stream leaves it nothing to write; Audio rewrites the
+    // audio stream, so a copied stream, or none at all, leaves it nothing to write. The
+    // single rule behind the greyed preset rows, the refusal at the action, and the
+    // refusal inside item creation, so no path can disagree with another.
+    public bool LEncodingSupportCheck(LWorkKind lEncodingKind) =>
+        LEncodingSupportCheck(
+            lEncodingKind,
+            LEncodingVideo.LEncodingMode,
+            LEncodingAudio.LEncodingMode,
+            LEncodingAudio.LEncodingStream);
+
+    public static bool LEncodingSupportCheck(
+        LWorkKind lEncodingKind, string lEncodingVideoMode, string lEncodingAudioMode, string lEncodingAudioStream) =>
+        lEncodingKind switch
+        {
+            LWorkKind.LWorkKindEdit => !string.Equals(lEncodingVideoMode, "Copy", StringComparison.OrdinalIgnoreCase),
+            LWorkKind.LWorkKindAudio =>
+                !string.Equals(lEncodingAudioMode, "Copy", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(lEncodingAudioMode, "Exclude", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(lEncodingAudioStream, "Exclude", StringComparison.OrdinalIgnoreCase),
+            _ => true
+        };
+
     public string LEncodingExtensionResolve(string lEncodingSourcePath)
     {
         if (string.Equals(LEncodingContainer, "Same as source", StringComparison.OrdinalIgnoreCase))

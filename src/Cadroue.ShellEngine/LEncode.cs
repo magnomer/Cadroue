@@ -30,6 +30,11 @@ public static partial class LEncode
 
     public const double LEncodeStatsPeriod = 0.5;
 
+    // The working format between the extract, analyze and process stages. 32-bit
+    // signed PCM carries every integer sample depth a source can hold, so filtering
+    // does not quantise the material down before it reaches the final encoder.
+    internal const string LEncodeIntermediate = "pcm_s32le";
+
     public static IReadOnlyList<LEncodeStage> LEncodeStagesBuild(LWorkItem lWorkItem)
     {
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindFix)
@@ -44,16 +49,7 @@ public static partial class LEncode
             return LEncodeStepsBuild(lWorkItem);
         }
 
-        bool lWholeCopy = LEncodeCopyCheck(lWorkItem, lWorkItem.LWorkOutput);
-        return new[]
-        {
-            new LEncodeStage(
-                LEncodeArgumentBuild(lWorkItem),
-                lWholeCopy ? LWorkStage.LWorkStagePassthrough : LWorkStage.LWorkStageEncode,
-                lWholeCopy ? "Copying" : "Encoding",
-                lWorkItem.LWorkOutputPath,
-                false)
-        };
+        return LEncodeWholeBuild(lWorkItem, lWorkItem.LWorkOutput);
     }
 
     // Whether the whole-file command re-encodes nothing: video is stream-copied
@@ -158,6 +154,7 @@ public static partial class LEncode
             lArguments.Append(CultureInfo.InvariantCulture, $" {lOutputArguments}");
         }
 
+        LEncodeMuxerAppend(lArguments, lWorkItem);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return lArguments.ToString();
     }
@@ -235,65 +232,77 @@ public static partial class LEncode
         int lSourceRate = lWorkItem.LWorkSourceMedia?.LWorkMediaSamplerate ?? 0;
         var lStages = new List<LEncodeStage>();
 
-        var lExtract = new StringBuilder();
-        LEncodeHeaderAppend(lExtract);
-        lExtract.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
-        lExtract.Append(" -vn -c:a pcm_s16le");
-        lExtract.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lRawWav)}");
-        lStages.Add(new LEncodeStage(lExtract.ToString(), LWorkStage.LWorkStageExtract, "Extracting audio", lRawWav, true));
-
-        string lAudioInputWav = lRawWav;
-        int lTwoPassIndex = LEncodeChain.LEncodePassRead(lWorkItem.LWorkAudio);
-
-        if (lWorkItem.LWorkAudio.LWorkAudioActive)
+        if (LEncodeAudio.LEncodeExcludeCheck(lOutput))
         {
-            if (lTwoPassIndex >= 0)
-            {
-                string? lAnalyzeChain = LEncodeChain.LEncodeChainBuild(
-                    lWorkItem.LWorkAudio, LEncodeChainMode.LEncodeChainAnalyze, lTwoPassIndex, lSourceRate);
-                var lAnalyze = new StringBuilder();
-                LEncodeHeaderAppend(lAnalyze);
-                lAnalyze.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lRawWav)}");
-                lAnalyze.Append(CultureInfo.InvariantCulture, $" -af {LEncodeFormat(lAnalyzeChain!)}");
-                lAnalyze.Append(" -f null -");
-                lStages.Add(new LEncodeStage(lAnalyze.ToString(), LWorkStage.LWorkStageAnalyze, "Analyzing audio", string.Empty, false, true));
-            }
+            return LEncodeWholeBuild(lWorkItem, lOutput);
+        }
 
-            string? lChain = LEncodeChain.LEncodeChainBuild(
+        int lTwoPassIndex = LEncodeChain.LEncodePassRead(lWorkItem.LWorkAudio);
+        bool lProcessed = lWorkItem.LWorkAudio.LWorkAudioActive
+            && LEncodeChain.LEncodeChainBuild(
                 lWorkItem.LWorkAudio,
                 lTwoPassIndex >= 0 ? LEncodeChainMode.LEncodeChainCorrection : LEncodeChainMode.LEncodeChainPlain,
                 lTwoPassIndex,
-                lSourceRate);
-            if (lChain is not null)
-            {
-                var lProcess = new StringBuilder();
-                LEncodeHeaderAppend(lProcess);
-                lProcess.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lRawWav)}");
-                lProcess.Append(CultureInfo.InvariantCulture, $" -af {LEncodeFormat(lChain)}");
-                lProcess.Append(" -c:a pcm_s16le");
-                if (lSourceRate > 0)
-                {
-                    lProcess.Append(CultureInfo.InvariantCulture, $" -ar {lSourceRate}");
-                }
+                lSourceRate) is not null;
 
-                lProcess.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lProcessedWav)}");
-                lStages.Add(new LEncodeStage(lProcess.ToString(), LWorkStage.LWorkStageProcess, "Processing audio", lProcessedWav, true));
-                lAudioInputWav = lProcessedWav;
-            }
+        // Nothing is filtered, so the source stream is muxed straight through and keeps
+        // whatever the Audio settings ask for, Copy included. No intermediate is written,
+        // so no precision is spent on a stream that is not processed.
+        if (!lProcessed)
+        {
+            return LEncodeWholeBuild(lWorkItem, lOutput);
         }
+
+        var lExtract = new StringBuilder();
+        LEncodeHeaderAppend(lExtract);
+        lExtract.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+        lExtract.Append(CultureInfo.InvariantCulture, $" -map 0:a:0 -vn -c:a {LEncodeIntermediate}");
+        lExtract.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lRawWav)}");
+        lStages.Add(new LEncodeStage(lExtract.ToString(), LWorkStage.LWorkStageExtract, "Extracting audio", lRawWav, true));
+
+        if (lTwoPassIndex >= 0)
+        {
+            string? lAnalyzeChain = LEncodeChain.LEncodeChainBuild(
+                lWorkItem.LWorkAudio, LEncodeChainMode.LEncodeChainAnalyze, lTwoPassIndex, lSourceRate);
+            var lAnalyze = new StringBuilder();
+            LEncodeHeaderAppend(lAnalyze);
+            lAnalyze.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lRawWav)}");
+            lAnalyze.Append(CultureInfo.InvariantCulture, $" -af {LEncodeFormat(lAnalyzeChain!)}");
+            lAnalyze.Append(" -f null -");
+            lStages.Add(new LEncodeStage(lAnalyze.ToString(), LWorkStage.LWorkStageAnalyze, "Analyzing audio", string.Empty, false, true));
+        }
+
+        string lChain = LEncodeChain.LEncodeChainBuild(
+            lWorkItem.LWorkAudio,
+            lTwoPassIndex >= 0 ? LEncodeChainMode.LEncodeChainCorrection : LEncodeChainMode.LEncodeChainPlain,
+            lTwoPassIndex,
+            lSourceRate)!;
+        var lProcess = new StringBuilder();
+        LEncodeHeaderAppend(lProcess);
+        lProcess.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lRawWav)}");
+        lProcess.Append(CultureInfo.InvariantCulture, $" -af {LEncodeFormat(lChain)}");
+        lProcess.Append(CultureInfo.InvariantCulture, $" -c:a {LEncodeIntermediate}");
+        if (lSourceRate > 0)
+        {
+            lProcess.Append(CultureInfo.InvariantCulture, $" -ar {lSourceRate}");
+        }
+
+        lProcess.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lProcessedWav)}");
+        lStages.Add(new LEncodeStage(lProcess.ToString(), LWorkStage.LWorkStageProcess, "Processing audio", lProcessedWav, true));
+        string lAudioInputWav = lProcessedWav;
 
         var lMux = new StringBuilder();
         LEncodeHeaderAppend(lMux);
         lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioInputWav)}");
 
+        bool lAllTracks = LEncodeAudio.LEncodeAllCheck(lOutput);
         lMux.Append(" -map 0:v:0?");
         lMux.Append(" -map 1:a:0");
-        if (string.Equals(
-                lOutput.LEncodingAudio.LEncodingStream,
-                "Include all audio tracks",
-                StringComparison.OrdinalIgnoreCase))
+        if (lAllTracks)
         {
+            // The processed track replaces the one extraction explicitly took (0:a:0);
+            // every other source track is carried through untouched.
             lMux.Append(" -map 0:a? -map -0:a:0?");
         }
 
@@ -307,11 +316,29 @@ public static partial class LEncode
             LEncodeVideo.LEncodeEncoderAppend(lMux, lWorkItem, lOutput);
         }
 
-        LEncodeAudio.LEncodeMuxAppend(lMux, lOutput);
+        LEncodeAudio.LEncodeMuxAppend(lMux, lOutput, lAllTracks);
+        LEncodeMuxerAppend(lMux, lWorkItem);
         lMux.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         lStages.Add(new LEncodeStage(lMux.ToString(), LWorkStage.LWorkStageMux, "Encoding output", lWorkItem.LWorkOutputPath, false));
 
         return lStages;
+    }
+
+    // The audio-tab work has nothing to filter (no active chain, or audio excluded
+    // outright), so it is one ordinary whole-file command honouring the Audio output
+    // contract: Exclude writes no audio, Copy copies, Encode encodes.
+    private static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(LWorkItem lWorkItem, LEncoding lOutput)
+    {
+        bool lWholeCopy = LEncodeCopyCheck(lWorkItem, lOutput);
+        return new[]
+        {
+            new LEncodeStage(
+                LEncodeArgumentBuild(lWorkItem),
+                lWholeCopy ? LWorkStage.LWorkStagePassthrough : LWorkStage.LWorkStageEncode,
+                lWholeCopy ? "Copying" : "Encoding",
+                lWorkItem.LWorkOutputPath,
+                false)
+        };
     }
 
     private static void LEncodeHeaderAppend(StringBuilder lArguments)
@@ -320,6 +347,19 @@ public static partial class LEncode
         lArguments.Append(" -progress pipe:1 -nostats");
         lArguments.Append(CultureInfo.InvariantCulture,
             $" -stats_period {LEncodeStatsPeriod.ToString("0.###", CultureInfo.InvariantCulture)}");
+    }
+
+    // Every command that writes the final output states its muxer explicitly, so the
+    // container the user chose is the one FFmpeg writes; the output suffix never decides
+    // the format on its own.
+    internal static void LEncodeMuxerAppend(StringBuilder lArguments, LWorkItem lWorkItem)
+    {
+        string lMuxer = LRepertoireCatalog.LRepertoireMuxerResolve(
+            lWorkItem.LWorkOutput.LEncodingContainer, lWorkItem.LWorkOutputPath);
+        if (lMuxer.Length > 0)
+        {
+            lArguments.Append(CultureInfo.InvariantCulture, $" -f {lMuxer}");
+        }
     }
 
     internal static bool LEncodeSourceCheck(string lValue) =>

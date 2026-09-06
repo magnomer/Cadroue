@@ -14,8 +14,11 @@ public static partial class LMessenger
         foreach ((string lMessengerPath, Guid lMessengerCohort) in lMessengerItems)
         {
             int lMessengerMatch = LClassifier.LClassifierRouteRead(
-                lMessengerRules, System.IO.Path.GetFileName(lMessengerPath));
-            if (lMessengerMatch < 0 || lMessengerTargets[lMessengerMatch] == Guid.Empty)
+                lMessengerRules,
+                System.IO.Path.GetFileName(lMessengerPath),
+                lMessengerIndex => lMessengerIndex < lMessengerTargets.Count
+                    && lMessengerTargets[lMessengerIndex] != Guid.Empty);
+            if (lMessengerMatch < 0)
             {
                 continue;
             }

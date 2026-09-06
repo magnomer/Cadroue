@@ -62,7 +62,10 @@ public sealed class PFunnelTab : PTabSurface
 
         IReadOnlyList<PFunnelRuleRow> pRows = pFunnelRules.PFunnelRulesRead();
         var pRules = pRows.Select(pRow => pRow.PFunnelRecordCreate()).ToList();
-        var pTargets = pRows.Select(pRow => pRow.PFunnelTargetId).ToList();
+        var pLiveTargets = PFunnelTargetsRead().Select(pOption => pOption.PActionRelayId).ToHashSet();
+        var pTargets = pRows
+            .Select(pRow => pLiveTargets.Contains(pRow.PFunnelTargetId) ? pRow.PFunnelTargetId : Guid.Empty)
+            .ToList();
         var pDispatchItems = pItems
             .Select(pItem => (pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
             .ToList();

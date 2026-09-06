@@ -22,6 +22,14 @@ public static partial class LAudio
             return null;
         }
 
+        if (!lAudioOutput.LEncodingSupportCheck(LWorkKind.LWorkKindAudio))
+        {
+            lErrorLog(
+                "Audio job not queued: the export preset does not encode the audio stream " +
+                $"(mode '{lAudioOutput.LEncodingAudio.LEncodingMode}', scope '{lAudioOutput.LEncodingAudio.LEncodingStream}')");
+            return null;
+        }
+
         TimeSpan lAudioDuration = lAudioDurationRead(lAudioSourcePath);
         string lAudioFolder = lAudioOutput.LEncodingFolderRead(lAudioSourcePath);
         string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);

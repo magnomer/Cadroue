@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIShell.PHouse;
 using Cadroue.Application;
+using Cadroue.Core;
 
 namespace Cadroue.UIShell.PPanel;
 
@@ -21,7 +22,7 @@ public sealed partial class PExport : UserControl
     private readonly TextBlock pExportSummaryAudio;
     private readonly TextBlock pExportSummaryOutput;
     private readonly StackPanel pPresetRowPanel;
-    private readonly bool pExportCopyDisabled;
+    private readonly LWorkKind? pExportKind;
     private readonly bool pExportSmartAllowed;
     private string? pPresetNameSelected;
     private string? pPresetNameEditing;
@@ -41,10 +42,10 @@ public sealed partial class PExport : UserControl
 
     private bool pExportPresetClean = true;
 
-    public PExport(LPresetSelection lPresetOwner, bool pExportCopyDisabled = false, bool pExportSmartAllowed = false)
+    public PExport(LPresetSelection lPresetOwner, LWorkKind? pExportKind = null, bool pExportSmartAllowed = false)
     {
         this.lPresetOwner = lPresetOwner;
-        this.pExportCopyDisabled = pExportCopyDisabled;
+        this.pExportKind = pExportKind;
         this.pExportSmartAllowed = pExportSmartAllowed;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);

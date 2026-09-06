@@ -11,6 +11,16 @@ public sealed partial class PExport
 {
     private static Style? pExportButtonStyle;
 
+    public static void PExportIncompatibleShow() => PSAnnouncement.PSAnnouncementShow(
+        null,
+        LLocalization.LLocalizationTextRead("ExportPreset.Incompatible.Title"),
+        LLocalization.LLocalizationTextRead("ExportPreset.Incompatible.Body"));
+
+    internal static string PExportMarkRead(string lPresetText, bool lPresetUnsupported) =>
+        lPresetUnsupported
+            ? $"{lPresetText} {LLocalization.LLocalizationTextRead("ExportPreset.Incompatible")}"
+            : lPresetText;
+
     public static void PExportMissingShow() => PSAnnouncement.PSAnnouncementShow(
         null,
         LLocalization.LLocalizationTextRead("ExportPreset.Missing.Title"),

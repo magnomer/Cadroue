@@ -391,5 +391,5 @@ public sealed partial class LPreset
         LPresetNames.Count(LPresetNativeCheck);
 
     public static IReadOnlyList<string> LPresetExtensionsRead(string lContainer) =>
-        LPresetExtensionTable.TryGetValue(lContainer, out string[]? lExtensions) ? lExtensions : [];
+        LPresetExtensionTable.TryGetValue(lContainer, out IReadOnlyList<string>? lExtensions) ? lExtensions : [];
 }

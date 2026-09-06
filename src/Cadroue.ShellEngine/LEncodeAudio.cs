@@ -7,19 +7,22 @@ namespace Cadroue.ShellEngine;
 
 internal static class LEncodeAudio
 {
+    internal static bool LEncodeExcludeCheck(LEncoding lOutput) =>
+        string.Equals(lOutput.LEncodingAudio.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
+
+    internal static bool LEncodeAllCheck(LEncoding lOutput) =>
+        string.Equals(lOutput.LEncodingAudio.LEncodingStream, "Include all audio tracks", StringComparison.OrdinalIgnoreCase);
+
     internal static void LEncodeAudioAppend(StringBuilder lArguments, LEncoding lOutput)
     {
-        if (string.Equals(lOutput.LEncodingAudio.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase))
+        if (LEncodeExcludeCheck(lOutput))
         {
             lArguments.Append(" -an");
             return;
         }
 
-        if (string.Equals(lOutput.LEncodingAudio.LEncodingStream, "Include all audio tracks", StringComparison.OrdinalIgnoreCase))
-        {
-            lArguments.Append(" -map 0:v:0? -map 0:a");
-        }
+        lArguments.Append(LEncodeAllCheck(lOutput) ? " -map 0:v:0? -map 0:a" : " -map 0:v:0? -map 0:a:0?");
 
         if (string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase))
         {
@@ -30,22 +33,37 @@ internal static class LEncodeAudio
         LEncodeSettingsAppend(lArguments, lOutput, LEncodeTrackRead(lOutput.LEncodingAudio.LEncodingEncoder));
     }
 
-    internal static void LEncodeMuxAppend(StringBuilder lArguments, LEncoding lOutput)
+    // The mux stage of the staged audio pipeline. Its first output audio track is the
+    // processed intermediate and always carries the configured encoder settings; any
+    // carried-through source track is copied, so encoder options never reach it.
+    internal static void LEncodeMuxAppend(StringBuilder lArguments, LEncoding lOutput, bool lAllTracks)
     {
+        if (LEncodeExcludeCheck(lOutput))
+        {
+            lArguments.Append(" -an");
+            return;
+        }
+
         string lAudioName = LEncodeTrackRead(lOutput.LEncodingAudio.LEncodingEncoder);
         if (string.IsNullOrWhiteSpace(lAudioName))
         {
             lAudioName = "aac";
         }
 
-        LEncodeSettingsAppend(lArguments, lOutput, lAudioName);
+        if (lAllTracks)
+        {
+            lArguments.Append(" -c:a copy");
+        }
+
+        LEncodeSettingsAppend(lArguments, lOutput, lAudioName, lAllTracks ? ":0" : string.Empty);
     }
 
-    private static void LEncodeSettingsAppend(StringBuilder lArguments, LEncoding lOutput, string lAudioName)
+    private static void LEncodeSettingsAppend(
+        StringBuilder lArguments, LEncoding lOutput, string lAudioName, string lStream = "")
     {
         if (!string.IsNullOrWhiteSpace(lAudioName))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -c:a {lAudioName}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" -c:a{lStream} {lAudioName}");
         }
 
         LCapabilityCodec lCodec = LCapability.LCapabilityAudioRead(lAudioName);

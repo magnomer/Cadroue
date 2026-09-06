@@ -106,56 +106,8 @@ internal sealed partial class PSEncoder
         ("RoQ DPCM, native / roq_dpcm", "roq_dpcm")
     ];
 
-    private static readonly Dictionary<string, string[]> PSAudioContainerTable = new(StringComparer.Ordinal)
-    {
-        ["AAC"] = ["MP4", "Matroska", "MOV", "MPEG-TS", "FLV", "AVI"],
-        ["MP3"] = ["MP4", "Matroska", "MOV", "AVI", "MPEG-TS", "FLV"],
-        ["MP2"] = ["Matroska", "MPEG-TS", "AVI"],
-        ["AC-3"] = ["MP4", "Matroska", "MOV", "MPEG-TS", "AVI"],
-        ["E-AC-3"] = ["MP4", "Matroska", "MOV", "MPEG-TS"],
-        ["Opus"] = ["MP4", "Matroska", "WebM", "Ogg"],
-        ["Vorbis"] = ["Matroska", "WebM", "Ogg"],
-        ["FLAC"] = ["MP4", "Matroska", "Ogg"],
-        ["ALAC"] = ["MP4", "Matroska", "MOV"],
-        ["WavPack"] = ["Matroska"],
-        ["TTA"] = ["Matroska"],
-        ["TrueHD"] = ["Matroska", "MPEG-TS"],
-        ["MLP"] = ["Matroska", "MPEG-TS"],
-        ["PCM"] = ["Matroska", "MOV", "AVI"]
-    };
-
-    private static string PSAudioFamilyRead(string pName)
-    {
-        if (pName.StartsWith("pcm_", StringComparison.OrdinalIgnoreCase))
-        {
-            return "PCM";
-        }
-
-        return pName switch
-        {
-            "aac" or "libfdk_aac" or "aac_mf" or "aac_at" => "AAC",
-            "libmp3lame" or "libshine" or "mp3_mf" => "MP3",
-            "mp2" or "mp2fixed" or "libtwolame" => "MP2",
-            "ac3" or "ac3_fixed" or "ac3_mf" => "AC-3",
-            "eac3" => "E-AC-3",
-            "libopus" or "opus" => "Opus",
-            "libvorbis" or "vorbis" => "Vorbis",
-            "flac" => "FLAC",
-            "alac" or "alac_at" => "ALAC",
-            "wavpack" => "WavPack",
-            "tta" => "TTA",
-            "truehd" => "TrueHD",
-            "mlp" => "MLP",
-            _ => string.Empty
-        };
-    }
-
-    private static bool PSAudioContainerCheck(string pName, string pContainer)
-    {
-        string pFamily = PSAudioFamilyRead(pName);
-        return pFamily.Length == 0
-            || (PSAudioContainerTable.TryGetValue(pFamily, out string[]? pContainers) && pContainers.Contains(pContainer));
-    }
+    private static bool PSAudioContainerCheck(string pName, string pContainer) =>
+        LRepertoireCatalog.LRepertoireAudioCheck(pName, pContainer);
 
     private static string[] PSAudioItemsRead() =>
         PSAudioCandidates

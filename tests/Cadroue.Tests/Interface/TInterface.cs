@@ -14,8 +14,11 @@ internal static partial class TInterface
     internal static bool TClassifierMatch(LSceneFunnelRule rule, string name) =>
         LClassifier.LClassifierMatch(rule, name);
 
-    internal static int TClassifierRouteRead(IReadOnlyList<LSceneFunnelRule> rules, string name) =>
-        LClassifier.LClassifierRouteRead(rules, name);
+    internal static int TClassifierRouteRead(
+        IReadOnlyList<LSceneFunnelRule> rules,
+        string name,
+        Func<int, bool>? usable = null) =>
+        LClassifier.LClassifierRouteRead(rules, name, usable);
 
     internal static IReadOnlyList<LSeriesGroup> TSeriesResolve(
         IReadOnlyList<string> paths,

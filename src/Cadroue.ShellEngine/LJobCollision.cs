@@ -41,6 +41,51 @@ internal sealed partial class LJob
             return "the output path is the same as an input file; the source will not be overwritten";
         }
 
+        return LJobStreamValidate();
+    }
+
+    // A stream set to Copy keeps the source codec, which the chosen container may not be
+    // able to store. The encoder lists in Settings are filtered by container but are not
+    // consulted while Copy is selected, so the pairing is caught here instead of surfacing
+    // as an FFmpeg muxing error part-way through the run.
+    private string LJobStreamValidate()
+    {
+        if (lJobItem.LWorkKind == LWorkKind.LWorkKindMerge)
+        {
+            return string.Empty;
+        }
+
+        LEncoding pOutput = lJobItem.LWorkOutput;
+        bool pVideoCopy = string.Equals(pOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(pOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase);
+        bool pAudioCopy = string.Equals(pOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+            && !LEncodeAudio.LEncodeExcludeCheck(pOutput);
+        if (!pVideoCopy && !pAudioCopy)
+        {
+            return string.Empty;
+        }
+
+        lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+        if (lJobItem.LWorkSourceMedia is not { } pSource)
+        {
+            return string.Empty;
+        }
+
+        string pContainer = pOutput.LEncodingContainer;
+        if (pVideoCopy
+            && pSource.LWorkMediaVideo
+            && !LRepertoireCatalog.LRepertoireVideoCheck(pSource.LWorkMediaCodec, pContainer))
+        {
+            return $"the copied video stream ('{pSource.LWorkMediaCodec}') cannot be stored in the {pContainer} container; choose an encoder or another container";
+        }
+
+        if (pAudioCopy
+            && pSource.LWorkMediaSamplerate > 0
+            && !LRepertoireCatalog.LRepertoireAudioCheck(pSource.LWorkAudioCodec, pContainer))
+        {
+            return $"the copied audio stream ('{pSource.LWorkAudioCodec}') cannot be stored in the {pContainer} container; choose an encoder or another container";
+        }
+
         return string.Empty;
     }
 

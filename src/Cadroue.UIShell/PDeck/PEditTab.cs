@@ -50,6 +50,12 @@ public sealed partial class PEditTab : PTabSurface
                 return;
             }
 
+            if (!PExport.PExportSupportCheck(lPresetOwner, LWorkKind.LWorkKindEdit))
+            {
+                PExport.PExportIncompatibleShow();
+                return;
+            }
+
             if (pList.PListEditableRead() is not { } pEditSelected)
             {
                 return;
@@ -77,6 +83,12 @@ public sealed partial class PEditTab : PTabSurface
                 return;
             }
 
+            if (!PExport.PExportSupportCheck(lPresetOwner, LWorkKind.LWorkKindEdit))
+            {
+                PExport.PExportIncompatibleShow();
+                return;
+            }
+
             _ = LMessenger.LMessengerEditDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
@@ -91,6 +103,12 @@ public sealed partial class PEditTab : PTabSurface
             if (!lPresetOwner.LPresetSelectionValid)
             {
                 PExport.PExportMissingShow();
+                return;
+            }
+
+            if (!PExport.PExportSupportCheck(lPresetOwner, LWorkKind.LWorkKindEdit))
+            {
+                PExport.PExportIncompatibleShow();
                 return;
             }
 
@@ -172,7 +190,7 @@ public sealed partial class PEditTab : PTabSurface
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
 
-        var pExport = new PExport(lPresetOwner, true);
+        var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindEdit);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pList.PListLockChange += pLocked =>
         {

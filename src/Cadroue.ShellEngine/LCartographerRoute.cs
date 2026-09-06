@@ -43,29 +43,12 @@ public static partial class LCartographer
 
     public static Guid LCartographerRouteRead(LCartographerStageRecord lCartographerStage, string lCartographerPath)
     {
-        string lCartographerName = Path.GetFileName(lCartographerPath);
-        Guid lCartographerRemainder = Guid.Empty;
-        bool lCartographerHasRemainder = false;
-        foreach (LCartographerFunnelRule lCartographerRule in lCartographerStage.LCartographerFunnelRules)
-        {
-            if (lCartographerRule.LCartographerRule.LSceneFunnelRemainder)
-            {
-                if (!lCartographerHasRemainder)
-                {
-                    lCartographerRemainder = lCartographerRule.LCartographerTargetStage;
-                    lCartographerHasRemainder = true;
-                }
-
-                continue;
-            }
-
-            if (LClassifier.LClassifierMatch(lCartographerRule.LCartographerRule, lCartographerName))
-            {
-                return lCartographerRule.LCartographerTargetStage;
-            }
-        }
-
-        return lCartographerRemainder;
+        IReadOnlyList<LCartographerFunnelRule> lCartographerRules = lCartographerStage.LCartographerFunnelRules;
+        int lCartographerMatch = LClassifier.LClassifierRouteRead(
+            lCartographerRules.Select(lCartographerRule => lCartographerRule.LCartographerRule).ToList(),
+            Path.GetFileName(lCartographerPath),
+            lCartographerIndex => lCartographerRules[lCartographerIndex].LCartographerTargetStage != Guid.Empty);
+        return lCartographerMatch < 0 ? Guid.Empty : lCartographerRules[lCartographerMatch].LCartographerTargetStage;
     }
 
     public static void LCartographerRelaySet(

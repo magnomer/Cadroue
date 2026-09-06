@@ -85,7 +85,7 @@ public static partial class LEncode
             }
             else
             {
-                LEncodeAudio.LEncodeMuxAppend(lArguments, lWorkItem.LWorkOutput);
+                LEncodeAudio.LEncodeMuxAppend(lArguments, lWorkItem.LWorkOutput, false);
             }
         }
         else
@@ -94,6 +94,7 @@ public static partial class LEncode
         }
 
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
+        LEncodeMuxerAppend(lArguments, lWorkItem);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return new LEncodeStage(
             lArguments.ToString(),
@@ -122,7 +123,7 @@ public static partial class LEncode
         }
         else
         {
-            LEncodeAudio.LEncodeMuxAppend(lArguments, lOutput);
+            LEncodeAudio.LEncodeMuxAppend(lArguments, lOutput, false);
             lLabel = "Encoding audio";
         }
 
@@ -154,6 +155,7 @@ public static partial class LEncode
         {
             lArguments.Append(" -map 0:v:0 -c copy -an");
             LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
+            LEncodeMuxerAppend(lArguments, lWorkItem);
             lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
             return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
         }
@@ -166,6 +168,7 @@ public static partial class LEncode
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioPath)}");
         lArguments.Append(" -map 0:v:0 -map 1:a -c copy");
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
+        LEncodeMuxerAppend(lArguments, lWorkItem);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
     }

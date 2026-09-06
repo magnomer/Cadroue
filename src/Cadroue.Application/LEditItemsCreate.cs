@@ -5,7 +5,7 @@ namespace Cadroue.Application;
 
 public static partial class LEdit
 {
-    public static LWorkItem LEditWorkCreate(
+    public static LWorkItem? LEditWorkCreate(
         LWorkPriority lWorkPriority,
         string lEditSourcePath,
         TimeSpan lEditDuration,
@@ -14,6 +14,11 @@ public static partial class LEdit
         LEncoding lEditOutput,
         Guid lEditBatchId)
     {
+        if (!lEditOutput.LEncodingSupportCheck(LWorkKind.LWorkKindEdit))
+        {
+            return null;
+        }
+
         string lEditFolder = lEditOutput.LEncodingFolderRead(lEditSourcePath);
         string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath, lEditFolder, lEditDuration);
 
@@ -46,14 +51,18 @@ public static partial class LEdit
             return Array.Empty<LWorkItem>();
         }
 
-        LWorkItem lEditWorkItem = LEditWorkCreate(
-            lWorkPriority,
-            lEditWorkDescription.LEditSourcePath,
-            lEditWorkDescription.LEditDuration,
-            lEditCrop,
-            lEditWorkDescription.LEditVideo,
-            lEditWorkDescription.LEditOutput,
-            lEditBatchId == Guid.Empty ? LGate.LGateBatchCreate() : lEditBatchId);
+        if (LEditWorkCreate(
+                lWorkPriority,
+                lEditWorkDescription.LEditSourcePath,
+                lEditWorkDescription.LEditDuration,
+                lEditCrop,
+                lEditWorkDescription.LEditVideo,
+                lEditWorkDescription.LEditOutput,
+                lEditBatchId == Guid.Empty ? LGate.LGateBatchCreate() : lEditBatchId) is not { } lEditWorkItem)
+        {
+            lErrorLog("Edit not queued: the export preset copies the video stream, so no edit can be applied");
+            return Array.Empty<LWorkItem>();
+        }
 
         lEditWorkItem.LWorkTab = lEditTab;
         string lEditOutputName = lEditWorkItem.LWorkOutputName;

@@ -72,14 +72,17 @@ public static partial class LMessenger
                 : lMessengerLooseBatch;
             (LWorkCrop lMessengerCrop, LWorkVideo lMessengerVideo) =
                 Cadroue.Application.LEdit.LEditWorkResolve(lMessengerPlan, lMessengerEqCapable);
-            lMessengerItems.Add(Cadroue.Application.LEdit.LEditWorkCreate(
-                lMessengerPriority,
-                lMessengerSourcePath,
-                Cadroue.Application.LLibrarian.LLibrarianDurationRead(lMessengerSourcePath),
-                lMessengerCrop,
-                lMessengerVideo,
-                lMessengerOutput,
-                lMessengerBatch));
+            if (Cadroue.Application.LEdit.LEditWorkCreate(
+                    lMessengerPriority,
+                    lMessengerSourcePath,
+                    Cadroue.Application.LLibrarian.LLibrarianDurationRead(lMessengerSourcePath),
+                    lMessengerCrop,
+                    lMessengerVideo,
+                    lMessengerOutput,
+                    lMessengerBatch) is { } lMessengerEditItem)
+            {
+                lMessengerItems.Add(lMessengerEditItem);
+            }
         }
 
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
