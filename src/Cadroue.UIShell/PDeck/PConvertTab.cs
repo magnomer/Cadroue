@@ -30,7 +30,7 @@ public sealed class PConvertTab : PTabSurface
                 pList.PListEditableRead() is { } pConvertSelected
                     ? new[] { new LWorkSource(pConvertSelected.LDocketEntryPath, pConvertSelected.LDocketEntryBatch) }
                     : Array.Empty<LWorkSource>(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
@@ -47,7 +47,7 @@ public sealed class PConvertTab : PTabSurface
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
@@ -65,7 +65,7 @@ public sealed class PConvertTab : PTabSurface
                     .Where(pItem => pConvertPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };

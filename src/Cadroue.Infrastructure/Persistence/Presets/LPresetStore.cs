@@ -58,7 +58,7 @@ public static class LPresetStore
             }
 
             string lGroupName = lRelativePath[..lSeparatorIndex];
-            LPresetRecord lRecord = lPresetRead(lSource)
+            LPresetRecord lRecord = lPresetRead(lSource)?.LPresetRecordNormalize()
                 ?? throw new InvalidDataException($"Native preset is invalid: {lSource}");
             if (!lGroups.TryGetValue(lGroupName, out List<(string Path, LPresetRecord Record)>? lGroupRecords))
             {
@@ -79,37 +79,60 @@ public static class LPresetStore
             .ToArray();
     }
 
-    public static IReadOnlyList<LPresetRecord>? LPresetLoad()
+    public static LPresetCatalog LPresetLoad()
     {
         string lPresetPath = LPresetPathCreate();
-        if (!File.Exists(lPresetPath))
-        {
-            return null;
-        }
-
         try
         {
-            string lPresetJson = File.ReadAllText(lPresetPath);
-            return JsonSerializer.Deserialize<List<LPresetRecord>>(lPresetJson);
+            using LLatchScope lPresetLatch = LLatch.LLatchClaim(lPresetPath);
+            return LPresetCatalogRead(lPresetPath);
         }
-        catch
+        catch (Exception lPresetException) when (lPresetException is TimeoutException or IOException or UnauthorizedAccessException)
         {
-            return null;
+            return new LPresetCatalog(LPresetOutcome.LPresetUnreadable, []);
         }
     }
 
-    public static void LPresetSave(IReadOnlyList<LPresetRecord> lRecords)
+    public static bool LPresetSave(Func<LPresetCatalog, IReadOnlyList<LPresetRecord>?> lPresetResolve)
     {
         string lPresetPath = LPresetPathCreate();
-        string? lPresetFolder = Path.GetDirectoryName(lPresetPath);
-        if (!string.IsNullOrWhiteSpace(lPresetFolder))
+        try
         {
-            Directory.CreateDirectory(lPresetFolder);
+            using LLatchScope lPresetLatch = LLatch.LLatchClaim(lPresetPath);
+            LPresetCatalog lPresetCatalog = LPresetCatalogRead(lPresetPath);
+            return lPresetResolve(lPresetCatalog) is { } lPresetRecords
+                && LVault.LVaultSave(lPresetPath, lPresetRecords);
+        }
+        catch (Exception lPresetException) when (lPresetException is TimeoutException or IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    // The vault moves damaged storage aside as ".corrupt" before reporting it unreadable, so a
+    // file that is gone afterwards was preserved and the catalogue may start fresh. One that is
+    // still there could not be quarantined (locked or denied) and stays unreadable, which blocks
+    // every later write so a temporarily unavailable catalogue is never replaced by a fresh one.
+    private static LPresetCatalog LPresetCatalogRead(string lPresetPath)
+    {
+        LVaultResult<List<LPresetRecord>> lPresetResult = LVault.LVaultRead<List<LPresetRecord>>(lPresetPath);
+        if (lPresetResult is { LVaultOutcome: LVaultOutcome.LVaultLoaded, LVaultValue: { } lPresetRecords })
+        {
+            return new LPresetCatalog(LPresetOutcome.LPresetLoaded, LPresetRecordsNormalize(lPresetRecords));
         }
 
-        string lPresetJson = JsonSerializer.Serialize(lRecords, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(lPresetPath, lPresetJson);
+        bool lPresetDamaged = lPresetResult.LVaultOutcome == LVaultOutcome.LVaultUnreadable
+            && File.Exists(lPresetPath);
+        return new LPresetCatalog(
+            lPresetDamaged ? LPresetOutcome.LPresetUnreadable : LPresetOutcome.LPresetMissing,
+            []);
     }
+
+    private static IReadOnlyList<LPresetRecord> LPresetRecordsNormalize(IEnumerable<LPresetRecord?> lPresetRecords) =>
+        lPresetRecords
+            .Where(lPresetRecord => lPresetRecord is not null)
+            .Select(lPresetRecord => lPresetRecord!.LPresetRecordNormalize())
+            .ToArray();
 
     public static void LPresetFileSave(LPresetRecord lRecord, string lPresetFilePath)
     {

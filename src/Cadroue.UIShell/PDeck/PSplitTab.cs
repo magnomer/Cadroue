@@ -46,7 +46,7 @@ public sealed partial class PSplitTab : PTabSurface
                 lPriority,
                 pSplitSelected.LDocketEntryPath,
                 pFlow.PFlowSplitRead(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
                 pSplitSelected.LDocketEntryBatch);
@@ -64,7 +64,7 @@ public sealed partial class PSplitTab : PTabSurface
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
@@ -82,7 +82,7 @@ public sealed partial class PSplitTab : PTabSurface
                     .Where(pItem => pSplitPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };

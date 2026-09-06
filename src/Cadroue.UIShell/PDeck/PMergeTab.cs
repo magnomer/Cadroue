@@ -33,7 +33,7 @@ public sealed class PMergeTab : PTabSurface
             }
 
             LMessenger.LMessengerMergeDescribe(
-                pPriority, PMergeGroupsRead(), lPresetOwner,
+                pPriority, PMergeGroupsRead(), lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         };
         pAction.PActionAllAdd += () =>
@@ -47,7 +47,7 @@ public sealed class PMergeTab : PTabSurface
             LMessenger.LMessengerMergeDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 PMergeGroupsRead(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         };
         pList.PListPathChange += PMergePathShow;

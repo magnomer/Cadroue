@@ -11,12 +11,12 @@ public static partial class LMessenger
         TimeSpan lMessengerDuration,
         LWorkCrop lMessengerCrop,
         LWorkVideo lMessengerVideo,
-        Cadroue.Application.LPresetSelection lMessengerOwner,
+        LEncoding? lMessengerEncoding,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         Guid lMessengerBatchId)
     {
-        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        if (lMessengerEncoding is not { } lMessengerOutput)
         {
             return 0;
         }
@@ -45,11 +45,11 @@ public static partial class LMessenger
     public static async Task<int> LMessengerEditDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
-        Cadroue.Application.LPresetSelection lMessengerOwner,
+        LEncoding? lMessengerEncoding,
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default)
     {
-        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        if (lMessengerEncoding is not { } lMessengerOutput)
         {
             return 0;
         }

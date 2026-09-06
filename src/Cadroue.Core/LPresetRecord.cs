@@ -19,6 +19,27 @@ public sealed class LPresetRecord
     public string LPresetLocationCustom { get; set; } = string.Empty;
     public LPresetVideoRecord LPresetVideo { get; set; } = new();
     public LPresetAudioRecord LPresetAudio { get; set; } = new();
+
+    public LPresetRecord LPresetRecordNormalize()
+    {
+        var lPresetDefault = new LPresetRecord();
+        LPresetName ??= lPresetDefault.LPresetName;
+        LPresetDisplay ??= lPresetDefault.LPresetDisplay;
+        LPresetContainer ??= lPresetDefault.LPresetContainer;
+        LPresetExtension ??= lPresetDefault.LPresetExtension;
+        LPresetCollision ??= lPresetDefault.LPresetCollision;
+        LPresetCollisionSuffix ??= lPresetDefault.LPresetCollisionSuffix;
+        LPresetOutputSuffix ??= lPresetDefault.LPresetOutputSuffix;
+        LPresetSourceSuffix ??= lPresetDefault.LPresetSourceSuffix;
+        LPresetLocation ??= lPresetDefault.LPresetLocation;
+        LPresetLocationFolder ??= lPresetDefault.LPresetLocationFolder;
+        LPresetLocationSubfolder ??= lPresetDefault.LPresetLocationSubfolder;
+        LPresetLocationSibling ??= lPresetDefault.LPresetLocationSibling;
+        LPresetLocationCustom ??= lPresetDefault.LPresetLocationCustom;
+        LPresetVideo = (LPresetVideo ?? new LPresetVideoRecord()).LPresetVideoNormalize();
+        LPresetAudio = (LPresetAudio ?? new LPresetAudioRecord()).LPresetAudioNormalize();
+        return this;
+    }
 }
 
 public sealed class LPresetVideoRecord
@@ -34,6 +55,41 @@ public sealed class LPresetVideoRecord
     public string LPresetFps { get; set; } = "Same as source";
     public string LPresetPixelLayout { get; set; } = "Auto";
     public Dictionary<string, string> LPresetExtras { get; set; } = new();
+
+    public LPresetVideoRecord LPresetVideoNormalize()
+    {
+        var lPresetDefault = new LPresetVideoRecord();
+        LPresetStream ??= lPresetDefault.LPresetStream;
+        LPresetMode ??= lPresetDefault.LPresetMode;
+        LPresetEncoder ??= lPresetDefault.LPresetEncoder;
+        LPresetRateControl ??= lPresetDefault.LPresetRateControl;
+        LPresetQuality ??= lPresetDefault.LPresetQuality;
+        LPresetSpeedPreset ??= lPresetDefault.LPresetSpeedPreset;
+        LPresetSize ??= lPresetDefault.LPresetSize;
+        LPresetFps ??= lPresetDefault.LPresetFps;
+        LPresetPixelLayout ??= lPresetDefault.LPresetPixelLayout;
+        LPresetExtras = LPresetExtrasNormalize(LPresetExtras);
+        return this;
+    }
+
+    internal static Dictionary<string, string> LPresetExtrasNormalize(Dictionary<string, string>? lPresetExtras)
+    {
+        var lPresetNormalized = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (lPresetExtras is null)
+        {
+            return lPresetNormalized;
+        }
+
+        foreach ((string lPresetKey, string lPresetValue) in lPresetExtras)
+        {
+            if (!string.IsNullOrEmpty(lPresetKey))
+            {
+                lPresetNormalized[lPresetKey] = lPresetValue ?? string.Empty;
+            }
+        }
+
+        return lPresetNormalized;
+    }
 }
 
 public sealed class LPresetAudioRecord
@@ -47,4 +103,28 @@ public sealed class LPresetAudioRecord
     public Dictionary<string, string> LPresetExtras { get; set; } = new();
     public string LPresetSampleRate { get; set; } = "Same as source";
     public string LPresetChannels { get; set; } = "Same as source";
+
+    public LPresetAudioRecord LPresetAudioNormalize()
+    {
+        var lPresetDefault = new LPresetAudioRecord();
+        LPresetStream ??= lPresetDefault.LPresetStream;
+        LPresetMode ??= lPresetDefault.LPresetMode;
+        LPresetEncoder ??= lPresetDefault.LPresetEncoder;
+        LPresetRateControl ??= lPresetDefault.LPresetRateControl;
+        LPresetQuality ??= lPresetDefault.LPresetQuality;
+        LPresetSpeed ??= lPresetDefault.LPresetSpeed;
+        LPresetSampleRate ??= lPresetDefault.LPresetSampleRate;
+        LPresetChannels ??= lPresetDefault.LPresetChannels;
+        LPresetExtras = LPresetVideoRecord.LPresetExtrasNormalize(LPresetExtras);
+        return this;
+    }
 }
+
+public enum LPresetOutcome
+{
+    LPresetMissing = 0,
+    LPresetLoaded,
+    LPresetUnreadable
+}
+
+public sealed record LPresetCatalog(LPresetOutcome LPresetOutcome, IReadOnlyList<LPresetRecord> LPresetRecords);

@@ -8,12 +8,12 @@ public static partial class LMessenger
     public static int LMessengerMergeDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkGroup> lMessengerGroups,
-        Cadroue.Application.LPresetSelection lMessengerOwner,
+        LEncoding? lMessengerEncoding,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         IReadOnlyDictionary<string, Guid>? lMessengerRelays)
     {
-        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        if (lMessengerEncoding is not { } lMessengerOutput)
         {
             return 0;
         }

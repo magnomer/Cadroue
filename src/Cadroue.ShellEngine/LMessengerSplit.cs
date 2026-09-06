@@ -9,12 +9,12 @@ public static partial class LMessenger
         LWorkPriority lMessengerPriority,
         string? lMessengerSourcePath,
         IReadOnlyList<LSplitSectionDescription> lMessengerSections,
-        Cadroue.Application.LPresetSelection lMessengerOwner,
+        LEncoding? lMessengerEncoding,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         Guid lMessengerBatchId)
     {
-        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        if (lMessengerEncoding is not { } lMessengerOutput)
         {
             return 0;
         }
@@ -44,7 +44,7 @@ public static partial class LMessenger
     public static async Task<int> LMessengerSplitDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
-        Cadroue.Application.LPresetSelection lMessengerOwner,
+        LEncoding? lMessengerEncoding,
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default)
     {
@@ -68,7 +68,7 @@ public static partial class LMessenger
                 lMessengerRelays.TryGetValue(lMessengerPlan.LSplitSourcePath, out Guid lMessengerBatch);
                 lMessengerAdded += LMessengerSplitDescribe(
                     lMessengerPriority, lMessengerPlan.LSplitSourcePath, lMessengerPlan.LSplitPlanSections,
-                    lMessengerOwner, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch);
+                    lMessengerEncoding, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch);
             }
         });
         return lMessengerAdded;

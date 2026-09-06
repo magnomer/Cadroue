@@ -113,6 +113,7 @@ public sealed class PWorkspace
 
         PWorkspaceExportState.LPresetChange -= PWorkspaceExportHandle;
         PWorkspacePresetOwner.LPresetSelectionChange -= PWorkspacePresetHandle;
+        PWorkspacePresetOwner.LPresetSelectionClose();
         PWorkspaceSurface.PTabClose();
         PWorkspaceFlow?.PFlowClose();
         PWorkspaceViewer?.PViewerClose();

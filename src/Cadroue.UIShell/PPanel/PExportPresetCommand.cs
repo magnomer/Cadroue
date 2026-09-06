@@ -43,8 +43,22 @@ public sealed partial class PExport
     private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
         string lPresetName = LPreset.LPresetNameCreate(LLocalization.LLocalizationTextRead("ExportPreset.DefaultName"));
-        lPresetOwner.LPresetSelectionSave(lPresetName);
+        PExportPresetSave(lPresetName);
     }
+
+    private void PExportPresetSave(string lPresetName)
+    {
+        if (!lPresetOwner.LPresetSelectionSave(lPresetName))
+        {
+            PExportFailureShow(lPresetName);
+        }
+    }
+
+    private void PExportFailureShow(string lPresetName) =>
+        PSWarning.PSWarningShow(
+            Window.GetWindow(this),
+            LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Export"),
+            LLocalization.LLocalizationFormat("ExportPreset.Error.Write", lPresetName));
 
     private void PExportPresetDelete(object sender, RoutedEventArgs e)
     {
@@ -60,6 +74,7 @@ public sealed partial class PExport
 
         if (!LPreset.LPresetDelete(lPresetName))
         {
+            PExportFailureShow(lPresetName);
             return;
         }
 
@@ -158,7 +173,7 @@ public sealed partial class PExport
 
         lImportedRecord.LPresetName = lPresetName;
         lPresetOwner.LPresetSelectionValue = lImportedRecord;
-        lPresetOwner.LPresetSelectionSave(lPresetName);
+        PExportPresetSave(lPresetName);
     }
 
     private void PExportModificationApply(object sender, RoutedEventArgs e)
@@ -174,7 +189,7 @@ public sealed partial class PExport
             return;
         }
 
-        lPresetOwner.LPresetSelectionSave(lPresetName);
+        PExportPresetSave(lPresetName);
     }
 
     private void PExportModificationRestore(object sender, RoutedEventArgs e)

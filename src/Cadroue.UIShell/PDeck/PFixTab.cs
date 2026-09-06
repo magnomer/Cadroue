@@ -54,7 +54,7 @@ public sealed class PFixTab : PTabSurface
                 pList.PListEditableRead() is { } pFixSelected
                     ? new[] { new LWorkSource(pFixSelected.LDocketEntryPath, pFixSelected.LDocketEntryBatch) }
                     : Array.Empty<LWorkSource>(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
@@ -71,7 +71,7 @@ public sealed class PFixTab : PTabSurface
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
@@ -89,7 +89,7 @@ public sealed class PFixTab : PTabSurface
                     .Where(pItem => pFixPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };

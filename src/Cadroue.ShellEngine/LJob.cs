@@ -30,82 +30,84 @@ internal sealed partial class LJob
         lJobToken = lJobCancelToken;
     }
 
+    // Destination preparation belongs to the same failure transaction as the encode: validation,
+    // the lease, the output folder, collision handling and the first probe all touch the file
+    // system, so a throw there must end as a committed Failed job with the lease released, never
+    // as an exception that leaves the record claimed and stops the worker loop.
     internal async Task LJobRun()
     {
-        string pJobInvalid = LJobValidate();
-        if (pJobInvalid.Length > 0)
-        {
-            LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobInvalid}");
-            lJobOwner.LRunnerDispatch(() =>
-            {
-                lJobItem.LWorkFinishTime = DateTimeOffset.Now;
-                lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-                lJobItem.LWorkMessage = pJobInvalid;
-                lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobInvalid);
-                lJobOwner.lRunnerSchedule.LScheduleLoad();
-            });
-            lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
-            lJobOwner.LRunnerFailureApply();
-            return;
-        }
-
-        lJobOwner.lRunnerItems[lJobItem.LWorkId] = lJobItem;
-        lJobOwner.LRunnerLeaseStart(lJobItem);
-        lJobOwner.LRunnerDispatch(() =>
-        {
-            lJobItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
-            lJobItem.LWorkProgress = 0;
-            lJobItem.LWorkMessage = string.Empty;
-            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
-        });
-
-        string pDirectory = Path.GetDirectoryName(lJobItem.LWorkOutputPath) ?? string.Empty;
-        if (!string.IsNullOrWhiteSpace(pDirectory))
-        {
-            Directory.CreateDirectory(pDirectory);
-        }
-
-        string pJobCollision = LJobCollisionApply();
-        if (pJobCollision.Length > 0)
-        {
-            LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobCollision}");
-            lJobOwner.LRunnerDispatch(() =>
-            {
-                lJobItem.LWorkFinishTime = DateTimeOffset.Now;
-                lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-                lJobItem.LWorkMessage = pJobCollision;
-                lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobCollision);
-                lJobOwner.lRunnerSchedule.LScheduleLoad();
-            });
-            lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
-            lJobOwner.lRunnerItems.TryRemove(lJobItem.LWorkId, out _);
-            lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
-            LJobReservedClear();
-            lJobOwner.LRunnerFailureApply();
-            return;
-        }
-
-        // Persist the resolved output path before the encode runs, synchronously so the
-        // stored record is durable first. A retry or stale-job recovery then acts on the
-        // reserved name, never the original pre-existing file. The record is this job's own
-        // running entry (owner-guarded, atomic replace), safe to write off the post thread.
-        lJobOwner.lRunnerSchedule.LScheduleOutputCommit(
-            lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobItem.LWorkOutputPath, lJobItem.LWorkOutputName);
-
-        lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
-
         var pJobClock = Stopwatch.StartNew();
         lJobClock = pJobClock;
-        lJobDirectory = pDirectory;
-        lJobItem.LWorkStartTime = DateTimeOffset.Now;
-        lJobItem.LWorkFinishTime = null;
-        LRunner.LRunnerRecord(
-            $"Encode started '{lJobItem.LWorkOutputName}': {lJobItem.LWorkKind} at {lJobItem.LWorkPriority}, " +
-            $"{lJobItem.LWorkOrigin:hh\\:mm\\:ss\\.fff}-{lJobItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
-            $"from '{Path.GetFileName(lJobItem.LWorkSourcePath)}' to '{lJobItem.LWorkOutputPath}'");
 
         try
         {
+            string pJobInvalid = LJobValidate();
+            if (pJobInvalid.Length > 0)
+            {
+                LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobInvalid}");
+                lJobOwner.LRunnerDispatch(() =>
+                {
+                    lJobItem.LWorkFinishTime = DateTimeOffset.Now;
+                    lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+                    lJobItem.LWorkMessage = pJobInvalid;
+                    lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobInvalid);
+                    lJobOwner.lRunnerSchedule.LScheduleLoad();
+                });
+                lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
+                lJobOwner.LRunnerFailureApply();
+                return;
+            }
+
+            lJobOwner.lRunnerItems[lJobItem.LWorkId] = lJobItem;
+            lJobOwner.LRunnerLeaseStart(lJobItem);
+            lJobOwner.LRunnerDispatch(() =>
+            {
+                lJobItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+                lJobItem.LWorkProgress = 0;
+                lJobItem.LWorkMessage = string.Empty;
+                lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
+            });
+
+            string pDirectory = Path.GetDirectoryName(lJobItem.LWorkOutputPath) ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(pDirectory))
+            {
+                Directory.CreateDirectory(pDirectory);
+            }
+
+            string pJobCollision = LJobCollisionApply();
+            if (pJobCollision.Length > 0)
+            {
+                LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobCollision}");
+                lJobOwner.LRunnerDispatch(() =>
+                {
+                    lJobItem.LWorkFinishTime = DateTimeOffset.Now;
+                    lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+                    lJobItem.LWorkMessage = pJobCollision;
+                    lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobCollision);
+                    lJobOwner.lRunnerSchedule.LScheduleLoad();
+                });
+                lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
+                lJobOwner.LRunnerFailureApply();
+                return;
+            }
+
+            // Persist the resolved output path before the encode runs, synchronously so the
+            // stored record is durable first. A retry or stale-job recovery then acts on the
+            // reserved name, never the original pre-existing file. The record is this job's own
+            // running entry (owner-guarded, atomic replace), safe to write off the post thread.
+            lJobOwner.lRunnerSchedule.LScheduleOutputCommit(
+                lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobItem.LWorkOutputPath, lJobItem.LWorkOutputName);
+
+            lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+
+            lJobDirectory = pDirectory;
+            lJobItem.LWorkStartTime = DateTimeOffset.Now;
+            lJobItem.LWorkFinishTime = null;
+            LRunner.LRunnerRecord(
+                $"Encode started '{lJobItem.LWorkOutputName}': {lJobItem.LWorkKind} at {lJobItem.LWorkPriority}, " +
+                $"{lJobItem.LWorkOrigin:hh\\:mm\\:ss\\.fff}-{lJobItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
+                $"from '{Path.GetFileName(lJobItem.LWorkSourcePath)}' to '{lJobItem.LWorkOutputPath}'");
+
             double pTotalSeconds = lJobItem.LWorkKind switch
             {
                 LWorkKind.LWorkKindAudio => LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken)?.LWorkMediaDuration.TotalSeconds ?? 0,

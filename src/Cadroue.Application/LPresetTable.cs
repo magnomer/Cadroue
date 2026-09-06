@@ -10,11 +10,15 @@ public sealed partial class LPreset
     private static readonly HashSet<string> LPresetNativeNames = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> LPresetGroupMap = new(StringComparer.OrdinalIgnoreCase);
 
-    public static Func<IReadOnlyList<LPresetRecord>?>? LPresetLoadSeam;
+    private static readonly List<LPresetRecord> LPresetBaseline = new();
+
+    public static Func<LPresetCatalog>? LPresetLoadSeam;
     public static Func<IReadOnlyList<LPresetGroup>>? LPresetNativeSeam;
-    public static Action<IReadOnlyList<LPresetRecord>>? LPresetSaveSeam;
+    public static Func<Func<LPresetCatalog, IReadOnlyList<LPresetRecord>?>, bool>? LPresetSaveSeam;
+    public static Action<string>? LPresetTraceSeam;
 
     private static bool LPresetPrepared;
+    private static bool LPresetBlocked;
 
     public static void LPresetPrepare()
     {
@@ -32,18 +36,29 @@ public sealed partial class LPreset
                 LPresetNativeAdd(lRecord, lGroup.LPresetGroupName);
             }
         }
-        IReadOnlyList<LPresetRecord>? lStoredPresets = LPresetLoadSeam?.Invoke();
-        if (lStoredPresets is null)
+        LPresetCatalog lStoredCatalog = LPresetLoadSeam?.Invoke()
+            ?? new LPresetCatalog(LPresetOutcome.LPresetMissing, []);
+        LPresetBlocked = lStoredCatalog.LPresetOutcome == LPresetOutcome.LPresetUnreadable;
+        if (LPresetBlocked)
+        {
+            LPresetTraceSeam?.Invoke(
+                "Export presets could not be read; the stored catalogue is left untouched and preset changes are blocked");
+        }
+
+        if (lStoredCatalog.LPresetOutcome != LPresetOutcome.LPresetLoaded)
         {
             var lDefault = new LPreset { LPresetName = "MP4_H264_AAC_Default" };
             LPresetStoredAdd(lDefault);
+            LPresetBaselineReset([]);
             return;
         }
 
-        foreach (LPresetRecord lRecord in lStoredPresets)
+        foreach (LPresetRecord lRecord in lStoredCatalog.LPresetRecords)
         {
             LPresetStoredAdd(LPreset.LPresetStateCreate(lRecord));
         }
+
+        LPresetBaselineReset(lStoredCatalog.LPresetRecords);
     }
 
     private static void LPresetNativeAdd(LPresetRecord lRecord, string lGroupName)
@@ -124,87 +139,34 @@ public sealed partial class LPreset
         return LPresetMap.TryGetValue(lPresetName.Trim(), out var lPreset) ? lPreset.LPresetClone() : null;
     }
 
-    public static bool LPresetMatch(string lPresetName, LPreset lSource)
-    {
-        if (!LPresetMap.TryGetValue(lPresetName, out var lPreset))
-        {
-            return false;
-        }
+    public static bool LPresetMatch(string lPresetName, LPreset lSource) =>
+        LPresetMap.TryGetValue(lPresetName, out var lPreset) && LPresetValueMatch(lPreset, lSource);
 
-        return string.Equals(lPreset.LPresetDisplay, lSource.LPresetDisplay, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetContainer, lSource.LPresetContainer, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetExtension, lSource.LPresetExtension, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetCollision, lSource.LPresetCollision, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetOutputSuffix, lSource.LPresetOutputSuffix, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetSourceSuffix, lSource.LPresetSourceSuffix, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideo.LPresetStream, lSource.LPresetVideo.LPresetStream, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudio.LPresetStream, lSource.LPresetAudio.LPresetStream, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideo.LPresetMode, lSource.LPresetVideo.LPresetMode, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudio.LPresetMode, lSource.LPresetAudio.LPresetMode, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideo.LPresetEncoder, lSource.LPresetVideo.LPresetEncoder, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideo.LPresetRateControl, lSource.LPresetVideo.LPresetRateControl, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideo.LPresetQuality, lSource.LPresetVideo.LPresetQuality, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideo.LPresetSpeedPreset, lSource.LPresetVideo.LPresetSpeedPreset, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetLocation, lSource.LPresetLocation, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetLocationSubfolder, lSource.LPresetLocationSubfolder, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetLocationSibling, lSource.LPresetLocationSibling, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetLocationCustom, lSource.LPresetLocationCustom, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideo.LPresetSize, lSource.LPresetVideo.LPresetSize, StringComparison.Ordinal)
-            && lPreset.LPresetVideo.LPresetSizeReactive == lSource.LPresetVideo.LPresetSizeReactive
-            && string.Equals(lPreset.LPresetVideo.LPresetFps, lSource.LPresetVideo.LPresetFps, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetVideo.LPresetPixelLayout, lSource.LPresetVideo.LPresetPixelLayout, StringComparison.Ordinal)
-            && LPresetExtraMatch(lPreset.LPresetVideo.LPresetExtras, lSource.LPresetVideo.LPresetExtras)
-            && string.Equals(lPreset.LPresetAudio.LPresetEncoder, lSource.LPresetAudio.LPresetEncoder, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudio.LPresetRateControl, lSource.LPresetAudio.LPresetRateControl, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudio.LPresetQuality, lSource.LPresetAudio.LPresetQuality, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudio.LPresetSpeed, lSource.LPresetAudio.LPresetSpeed, StringComparison.Ordinal)
-            && LPresetExtraMatch(lPreset.LPresetAudio.LPresetExtras, lSource.LPresetAudio.LPresetExtras)
-            && string.Equals(lPreset.LPresetAudio.LPresetSampleRate, lSource.LPresetAudio.LPresetSampleRate, StringComparison.Ordinal)
-            && string.Equals(lPreset.LPresetAudio.LPresetChannels, lSource.LPresetAudio.LPresetChannels, StringComparison.Ordinal);
-    }
-
-    private static bool LPresetExtraMatch(
-        IReadOnlyDictionary<string, string> lFirstExtras,
-        IReadOnlyDictionary<string, string> lSecondExtras)
-    {
-        if (lFirstExtras.Count != lSecondExtras.Count)
-        {
-            return false;
-        }
-
-        foreach ((string lKey, string lValue) in lFirstExtras)
-        {
-            if (!lSecondExtras.TryGetValue(lKey, out string? lSecondValue)
-                || !string.Equals(lValue, lSecondValue, StringComparison.Ordinal))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public static void LPresetSave(string lPresetName, LPreset lSource)
+    public static bool LPresetSave(string lPresetName, LPreset lSource)
     {
         if (string.IsNullOrWhiteSpace(lPresetName))
         {
-            return;
+            return false;
         }
 
         string lName = lPresetName.Trim();
         if (LPresetNativeCheck(lName))
         {
-            return;
+            return false;
         }
 
-        var lPreset = lSource.LPresetClone();
-        lPreset.LPresetName = lName;
-        LPresetMap[lName] = lPreset;
-        if (!LPresetNames.Any(lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
+        return LPresetTransactionRun(() =>
         {
-            LPresetNames.Add(lName);
-        }
-        LPresetPersist();
+            var lPreset = lSource.LPresetClone();
+            lPreset.LPresetName = lName;
+            LPresetMap[lName] = lPreset;
+            if (!LPresetNames.Any(lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
+            {
+                LPresetNames.Add(lName);
+            }
+
+            return true;
+        });
     }
 
     public static bool LPresetDelete(string lPresetName)
@@ -215,25 +177,29 @@ public sealed partial class LPreset
         }
 
         string lName = lPresetName.Trim();
-        if (LPresetNativeCheck(lName))
+        if (LPresetNativeCheck(lName) || !LPresetMap.ContainsKey(lName))
         {
             return false;
         }
 
-        if (!LPresetMap.Remove(lName))
+        return LPresetTransactionRun(() =>
         {
-            return false;
-        }
-
-        for (int lIndex = LPresetNames.Count - 1; lIndex >= 0; lIndex--)
-        {
-            if (string.Equals(LPresetNames[lIndex], lName, StringComparison.OrdinalIgnoreCase))
+            if (!LPresetMap.Remove(lName))
             {
-                LPresetNames.RemoveAt(lIndex);
+                return false;
             }
-        }
-        LPresetPersist();
-        return true;
+
+            for (int lIndex = LPresetNames.Count - 1; lIndex >= 0; lIndex--)
+            {
+                if (string.Equals(LPresetNames[lIndex], lName, StringComparison.OrdinalIgnoreCase))
+                {
+                    LPresetNames.RemoveAt(lIndex);
+                }
+            }
+
+            LPresetSelection.LPresetDraftSync(lName, null, null);
+            return true;
+        });
     }
 
     public static bool LPresetNameSet(string lOldPresetName, string lNewPresetName, LPreset lSource)
@@ -261,13 +227,15 @@ public sealed partial class LPreset
             return false;
         }
 
-        var lPreset = lSource.LPresetClone();
-        lPreset.LPresetName = lName;
-        LPresetMap.Remove(lOldName);
-        LPresetMap[lName] = lPreset;
-        LPresetNames[lIndex] = lName;
-        LPresetPersist();
-        return true;
+        return LPresetTransactionRun(() =>
+        {
+            var lPreset = lSource.LPresetClone();
+            lPreset.LPresetName = lName;
+            LPresetMap.Remove(lOldName);
+            LPresetMap[lName] = lPreset;
+            LPresetNames[lIndex] = lName;
+            return true;
+        });
     }
 
     public static bool LPresetMove(string lPresetName, int lTargetIndex)
@@ -299,48 +267,16 @@ public sealed partial class LPreset
             return false;
         }
 
-        string lName = LPresetNames[lSourceIndex];
-        LPresetNames.RemoveAt(lSourceIndex);
-        LPresetNames.Insert(lTargetIndex, lName);
-        LPresetPersist();
-        return true;
+        return LPresetTransactionRun(() =>
+        {
+            string lName = LPresetNames[lSourceIndex];
+            LPresetNames.RemoveAt(lSourceIndex);
+            LPresetNames.Insert(lTargetIndex, lName);
+            return true;
+        });
     }
 
     public static string? LPresetFirstName => LPresetNames.Count > 0 ? LPresetNames[0] : null;
-
-    public static string LPresetNameCreate(string lBaseName)
-    {
-        if (!LPresetNames.Any(lName => string.Equals(lName, lBaseName, StringComparison.OrdinalIgnoreCase)))
-        {
-            return lBaseName;
-        }
-
-        for (int lIndex = 2; ; lIndex++)
-        {
-            string lCandidate = $"{lBaseName} {lIndex}";
-            if (!LPresetNames.Any(lName => string.Equals(lName, lCandidate, StringComparison.OrdinalIgnoreCase)))
-            {
-                return lCandidate;
-            }
-        }
-    }
-
-    public static string LPresetFileFormat(string lPresetName)
-    {
-        char[] lInvalidCharacters = Path.GetInvalidFileNameChars();
-        return new string(lPresetName
-            .Trim()
-            .Select(lCharacter => lInvalidCharacters.Contains(lCharacter) ? '_' : lCharacter)
-            .ToArray());
-    }
-
-    public static string LPresetNameResolve(string lStoredName, string lFilePath)
-    {
-        string lName = lStoredName.Trim();
-        return string.IsNullOrWhiteSpace(lName)
-            ? Path.GetFileNameWithoutExtension(lFilePath).Trim()
-            : lName;
-    }
 
     private static int LPresetIndexRead(string lPresetName)
     {
@@ -355,23 +291,150 @@ public sealed partial class LPreset
         return -1;
     }
 
-    private static void LPresetPersist()
+    // Every mutation is staged the same way: change memory, write storage, and keep the change
+    // only if the write lands. A failed or blocked write restores the catalogue exactly as it
+    // was, so nothing stays committed in memory that storage does not hold.
+    private static bool LPresetTransactionRun(Func<bool> lPresetMutate)
     {
-        var lPresets = new List<LPreset>();
+        string[] lPresetNamesBackup = [.. LPresetNames];
+        var lPresetMapBackup = new Dictionary<string, LPreset>(LPresetMap, StringComparer.OrdinalIgnoreCase);
+        if (lPresetMutate() && LPresetPersist())
+        {
+            LPresetStoreChange?.Invoke();
+            return true;
+        }
+
+        LPresetRestore(lPresetNamesBackup, lPresetMapBackup);
+        return false;
+    }
+
+    private static void LPresetRestore(
+        IReadOnlyList<string> lPresetNamesBackup,
+        Dictionary<string, LPreset> lPresetMapBackup)
+    {
+        LPresetMap.Clear();
+        foreach ((string lName, LPreset lPreset) in lPresetMapBackup)
+        {
+            LPresetMap[lName] = lPreset;
+        }
+
+        LPresetNames.Clear();
+        foreach (string lName in lPresetNamesBackup)
+        {
+            LPresetNames.Add(lName);
+        }
+
+        LPresetStoreChange?.Invoke();
+    }
+
+    private static bool LPresetPersist()
+    {
+        if (LPresetBlocked)
+        {
+            LPresetTraceSeam?.Invoke("Export presets were not saved: the stored catalogue is unreadable");
+            return false;
+        }
+
+        IReadOnlyList<LPresetRecord> lPresetLocal = LPresetRecordsCreate();
+        if (LPresetSaveSeam is null)
+        {
+            LPresetBaselineReset(lPresetLocal);
+            return true;
+        }
+
+        IReadOnlyList<LPresetRecord>? lPresetMerged = null;
+        bool lPresetSaved = LPresetSaveSeam(lPresetCatalog =>
+        {
+            if (lPresetCatalog.LPresetOutcome == LPresetOutcome.LPresetUnreadable)
+            {
+                LPresetBlocked = true;
+                return null;
+            }
+
+            lPresetMerged = LPresetMergeCreate(LPresetBaseline, lPresetLocal, lPresetCatalog.LPresetRecords);
+            return lPresetMerged;
+        });
+
+        if (!lPresetSaved || lPresetMerged is null)
+        {
+            LPresetTraceSeam?.Invoke("Export presets could not be written; the change was discarded");
+            return false;
+        }
+
+        LPresetMergeApply(lPresetMerged);
+        return true;
+    }
+
+    private static IReadOnlyList<LPresetRecord> LPresetRecordsCreate()
+    {
+        var lPresets = new List<LPresetRecord>();
         foreach (string lName in LPresetNames)
         {
-            if (LPresetNativeCheck(lName))
+            if (!LPresetNativeCheck(lName) && LPresetMap.TryGetValue(lName, out LPreset? lPreset))
+            {
+                lPresets.Add(lPreset.LPresetClone().LPresetRecordCreate());
+            }
+        }
+
+        return lPresets;
+    }
+
+    // The merged list is what storage now holds, including anything another process committed,
+    // so the live catalogue adopts it instead of keeping a view storage no longer matches.
+    private static void LPresetMergeApply(IReadOnlyList<LPresetRecord> lPresetRecords)
+    {
+        LPresetBaselineReset(lPresetRecords);
+        var lPresetStoredNames = new List<string>();
+        foreach (LPresetRecord lPresetRecord in lPresetRecords)
+        {
+            LPreset lPreset = LPresetStateCreate(lPresetRecord);
+            if (string.IsNullOrWhiteSpace(lPreset.LPresetName) || LPresetNativeCheck(lPreset.LPresetName))
             {
                 continue;
             }
 
-            if (LPresetMap.TryGetValue(lName, out LPreset? lPreset))
+            lPreset.LPresetName = lPreset.LPresetName.Trim();
+            LPresetMap.TryGetValue(lPreset.LPresetName, out LPreset? lPresetPrevious);
+            LPresetMap[lPreset.LPresetName] = lPreset;
+            lPresetStoredNames.Add(lPreset.LPresetName);
+            LPresetSelection.LPresetDraftSync(
+                lPreset.LPresetName, lPresetRecord, lPresetPrevious?.LPresetRecordCreate());
+        }
+
+        foreach (string lName in LPresetMap.Keys.ToArray())
+        {
+            if (!LPresetNativeCheck(lName)
+                && !lPresetStoredNames.Contains(lName, StringComparer.OrdinalIgnoreCase))
             {
-                lPresets.Add(lPreset.LPresetClone());
+                LPresetMap.Remove(lName);
+                LPresetSelection.LPresetDraftSync(lName, null, null);
             }
         }
-        LPresetSaveSeam?.Invoke(lPresets.Select(lPreset => lPreset.LPresetRecordCreate()).ToList());
-        LPresetStoreChange?.Invoke();
+
+        if (LPresetNames.Where(lName => !LPresetNativeCheck(lName))
+            .SequenceEqual(lPresetStoredNames, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        for (int lIndex = LPresetNames.Count - 1; lIndex >= 0; lIndex--)
+        {
+            if (!LPresetNativeCheck(LPresetNames[lIndex]))
+            {
+                LPresetNames.RemoveAt(lIndex);
+            }
+        }
+
+        foreach (string lName in lPresetStoredNames)
+        {
+            LPresetNames.Add(lName);
+        }
+    }
+
+    private static void LPresetBaselineReset(IReadOnlyList<LPresetRecord> lPresetRecords)
+    {
+        LPresetBaseline.Clear();
+        LPresetBaseline.AddRange(lPresetRecords);
     }
 
     public static bool LPresetNativeCheck(string lPresetName) =>

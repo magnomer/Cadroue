@@ -69,7 +69,7 @@ public sealed partial class PEditTab : PTabSurface
                 pViewer.PViewerDurationRead(),
                 pEditCrop,
                 pEditVideo,
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
                 pEditSelected.LDocketEntryBatch);
@@ -94,7 +94,7 @@ public sealed partial class PEditTab : PTabSurface
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
@@ -118,7 +118,7 @@ public sealed partial class PEditTab : PTabSurface
                     .Where(pItem => pEditPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };

@@ -199,6 +199,7 @@ public partial class PProgram : System.Windows.Application
         LPreset.LPresetNativeSeam = LPresetStore.LPresetNativeLoad;
         LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;
         LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
+        LPreset.LPresetTraceSeam = lPresetMessage => LTraceLog.LTraceWarningRecord(lPresetMessage);
         LPreset.LPresetPrepare();
         LStationSeamApply();
         _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryPrepare);

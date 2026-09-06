@@ -8,9 +8,9 @@ public static partial class LCartographer
 {
     public static IReadOnlyList<string> LCartographerStageRun(LCartographerStagePlan lCartographerPlan)
     {
-        LPreset lCartographerPreset = LPreset.LPresetStateCreate(lCartographerPlan.LCartographerExport);
-        var lCartographerOwner = new LPresetSelection(
-            lCartographerPreset.LPresetRecordCreate(), lCartographerPreset.LPresetName);
+        LEncoding lCartographerOutput = LPreset
+            .LPresetStateCreate(lCartographerPlan.LCartographerExport)
+            .LPresetOutputCreate();
         Guid lCartographerTarget = lCartographerPlan.LCartographerNextStage;
         Guid lCartographerSource = lCartographerPlan.LCartographerStageId;
         Guid lCartographerBatch = lCartographerPlan.LCartographerBatch;
@@ -19,27 +19,27 @@ public static partial class LCartographer
         return lCartographerPlan.LCartographerLayoutKey switch
         {
             "Convert" => LCartographerConvertRun(
-                lCartographerPaths, lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch),
+                lCartographerPaths, lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch),
             "Merge" => LCartographerMergeRun(
-                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
+                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOutput,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
             "Edit" => LCartographerEditRun(
-                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
+                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOutput,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
             "Fix" => LCartographerFixRun(
-                lCartographerPaths, lCartographerOwner,
+                lCartographerPaths, lCartographerOutput,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
             "Audio" => LCartographerAudioRun(
-                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOwner,
+                lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOutput,
                 lCartographerTarget, lCartographerSource, lCartographerBatch),
             _ => LCartographerSplitRun(
-                lCartographerPaths, lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch)
+                lCartographerPaths, lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch)
         };
     }
 
     private static IReadOnlyList<string> LCartographerConvertRun(
         IReadOnlyList<string> lCartographerPaths,
-        LPresetSelection lCartographerOwner,
+        LEncoding lCartographerOutput,
         Guid lCartographerTarget,
         Guid lCartographerSource,
         Guid lCartographerBatch)
@@ -48,14 +48,14 @@ public static partial class LCartographer
             .Select(lCartographerPath => new LWorkSource(lCartographerPath, lCartographerBatch))
             .ToArray();
         LCartographerFaultRecord(LMessenger.LMessengerConvertDescribe(
-            LWorkPriority.LWorkPriorityNormal, lCartographerSources, lCartographerOwner,
+            LWorkPriority.LWorkPriorityNormal, lCartographerSources, lCartographerOutput,
             lCartographerTarget, lCartographerSource));
         return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
     }
 
     private static IReadOnlyList<string> LCartographerSplitRun(
         IReadOnlyList<string> lCartographerPaths,
-        LPresetSelection lCartographerOwner,
+        LEncoding lCartographerOutput,
         Guid lCartographerTarget,
         Guid lCartographerSource,
         Guid lCartographerBatch)
@@ -72,7 +72,7 @@ public static partial class LCartographer
 
             int lCartographerAdded = LMessenger.LMessengerSplitDescribe(
                 LWorkPriority.LWorkPriorityNormal, lCartographerPath, lCartographerSections,
-                lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch);
+                lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch);
             if (lCartographerAdded > 0)
             {
                 lCartographerAcknowledged.Add(lCartographerPath);
@@ -85,7 +85,7 @@ public static partial class LCartographer
     private static IReadOnlyList<string> LCartographerMergeRun(
         LSceneTabRecord lCartographerLayout,
         IReadOnlyList<string> lCartographerPaths,
-        LPresetSelection lCartographerOwner,
+        LEncoding lCartographerOutput,
         Guid lCartographerTarget,
         Guid lCartographerSource,
         Guid lCartographerBatch)
@@ -110,7 +110,7 @@ public static partial class LCartographer
         }
 
         int lCartographerAdded = LMessenger.LMessengerMergeDescribe(
-            LWorkPriority.LWorkPriorityNormal, lCartographerGroups, lCartographerOwner,
+            LWorkPriority.LWorkPriorityNormal, lCartographerGroups, lCartographerOutput,
             lCartographerTarget, lCartographerSource, lCartographerRelays);
         if (lCartographerAdded == 0)
         {
@@ -126,7 +126,7 @@ public static partial class LCartographer
     private static IReadOnlyList<string> LCartographerEditRun(
         LSceneTabRecord lCartographerLayout,
         IReadOnlyList<string> lCartographerPaths,
-        LPresetSelection lCartographerOwner,
+        LEncoding lCartographerOutput,
         Guid lCartographerTarget,
         Guid lCartographerSource,
         Guid lCartographerBatch)
@@ -144,7 +144,7 @@ public static partial class LCartographer
             int lCartographerAdded = LMessenger.LMessengerEditDescribe(
                 LWorkPriority.LWorkPriorityNormal, lCartographerPath,
                 LLibrarian.LLibrarianDurationRead(lCartographerPath),
-                lCartographerCrop, lCartographerVideo, lCartographerOwner,
+                lCartographerCrop, lCartographerVideo, lCartographerOutput,
                 lCartographerTarget, lCartographerSource, lCartographerBatch);
             if (lCartographerAdded > 0)
             {
@@ -157,7 +157,7 @@ public static partial class LCartographer
 
     private static IReadOnlyList<string> LCartographerFixRun(
         IReadOnlyList<string> lCartographerPaths,
-        LPresetSelection lCartographerOwner,
+        LEncoding lCartographerOutput,
         Guid lCartographerTarget,
         Guid lCartographerSource,
         Guid lCartographerBatch)
@@ -166,7 +166,7 @@ public static partial class LCartographer
             .Select(lCartographerPath => new LWorkSource(lCartographerPath, lCartographerBatch))
             .ToArray();
         LCartographerFaultRecord(LMessenger.LMessengerFixDescribe(
-            LWorkPriority.LWorkPriorityNormal, lCartographerSources, lCartographerOwner,
+            LWorkPriority.LWorkPriorityNormal, lCartographerSources, lCartographerOutput,
             lCartographerTarget, lCartographerSource));
         return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
     }
@@ -174,7 +174,7 @@ public static partial class LCartographer
     private static IReadOnlyList<string> LCartographerAudioRun(
         LSceneTabRecord lCartographerLayout,
         IReadOnlyList<string> lCartographerPaths,
-        LPresetSelection lCartographerOwner,
+        LEncoding lCartographerOutput,
         Guid lCartographerTarget,
         Guid lCartographerSource,
         Guid lCartographerBatch)
@@ -187,7 +187,7 @@ public static partial class LCartographer
         {
             LCartographerFaultRecord(LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal, lCartographerPath, lCartographerProcessing,
-                lCartographerOwner, lCartographerTarget, lCartographerSource, lCartographerBatch));
+                lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch));
         }
 
         return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);

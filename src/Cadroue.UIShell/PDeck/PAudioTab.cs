@@ -74,7 +74,7 @@ public sealed partial class PAudioTab : PTabSurface
                 lPriority,
                 pAudioSelected.LDocketEntryPath,
                 PAudioProcessingRead(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
                 pAudioSelected.LDocketEntryBatch);
@@ -99,7 +99,7 @@ public sealed partial class PAudioTab : PTabSurface
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
@@ -124,7 +124,7 @@ public sealed partial class PAudioTab : PTabSurface
                     .Where(pItem => pAudioPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
                     .ToArray(),
-                lPresetOwner,
+                lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };

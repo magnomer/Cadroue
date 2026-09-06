@@ -8,11 +8,11 @@ public static partial class LMessenger
     public static async Task<int> LMessengerFixDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
-        Cadroue.Application.LPresetSelection lMessengerOwner,
+        LEncoding? lMessengerEncoding,
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default)
     {
-        if (lMessengerOwner.LPresetSelectionEncoding is not { } lMessengerOutput)
+        if (lMessengerEncoding is not { } lMessengerOutput)
         {
             return 0;
         }
