@@ -1,11 +1,22 @@
 using Xunit;
 
-namespace Cadroue.Convention.Tests;
+namespace Convention.Tests;
 
 public sealed class TAuditConvention
 {
+    // The sidecar is generated and committed, so a checkout can carry one written by an older
+    // generation of the tooling. The two numbers are compared rather than assumed equal.
     [Fact]
-    public void SourceNames_ConformToTheNamingRegistry()
+    public void AuditSetting_SidecarGeneration_MatchesTheTooling()
+    {
+        Assert.True(
+            TAuditSetting.TAuditGeneration == TAuditName.TAuditGeneration,
+            $"The settings sidecar is generation {TAuditSetting.TAuditGeneration} but this tooling " +
+            $"is generation {TAuditName.TAuditGeneration}. Regenerate the registry.");
+    }
+
+    [Fact]
+    public void AuditRun_AllSourceNames_ReportsNoViolation()
     {
         TAuditRegistry registry = TAuditRegistry.TAuditLoad();
         string repoRoot = TAuditSource.TAuditRootRead();

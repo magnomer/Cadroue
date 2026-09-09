@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Cadroue.Convention.Tests;
+namespace Convention.Tests;
 
 internal sealed record TViolation(
     string TViolationPath,
@@ -23,20 +23,25 @@ internal readonly record struct TSpecimen(
 
 internal static class TAuditName
 {
+    // The generation this implementation applies. The sidecar carries the generation it was
+    // generated at, and a test compares the two, so a stale committed sidecar is caught rather
+    // than silently auditing to an older set of checks.
+    public const int TAuditGeneration = 7;
+
     private static readonly CSharpParseOptions TAuditSyntaxOptions = new(
         languageVersion: LanguageVersion.Preview,
         documentationMode: DocumentationMode.None,
         kind: SourceCodeKind.Regular);
 
     private static readonly Regex TAuditComponentPattern = new(
-        "[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+",
+        TAuditSetting.TAuditComponentPattern,
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private static readonly HashSet<string> TAuditMethodKinds =
-        new(StringComparer.Ordinal) { "Method", "LocalFunction" };
+        new(TAuditSetting.TAuditMethodKinds, StringComparer.Ordinal);
 
     private static readonly HashSet<string> TAuditDataKinds =
-        new(StringComparer.Ordinal) { "Field", "Property", "EnumMember", "RecordProperty", "XamlName" };
+        new(TAuditSetting.TAuditDataKinds, StringComparer.Ordinal);
 
     public static IReadOnlyList<TViolation> TAuditRun(IEnumerable<string> sourcePaths, TAuditRegistry registry)
     {
@@ -53,16 +58,21 @@ internal static class TAuditName
             }
         }
 
-        // The test suite either names every test method descriptively without a prefix
-        // (all exempt) or commits to the T prefix on every one. A single T-prefixed test
-        // method flips the whole suite into the prefix-required mode.
         bool anyTestPrefixed = candidates.Any(candidate =>
             string.Equals(candidate.TSpecimenKind, "TestMethod", StringComparison.Ordinal) &&
-            string.Equals(TAuditPrefixRead(candidate.TSpecimenName.TrimStart('_')), "T", StringComparison.OrdinalIgnoreCase));
+            string.Equals(
+                TAuditPrefixRead(candidate.TSpecimenName.TrimStart('_')),
+                TAuditSetting.TAuditTestPrefix,
+                StringComparison.OrdinalIgnoreCase));
 
         List<TViolation> violations = [];
         foreach (TSpecimen candidate in candidates)
         {
+            if (registry.TAuditExemptValidate(candidate.TSpecimenName, candidate.TSpecimenPath))
+            {
+                continue;
+            }
+
             string? reason = TViolationResolve(
                 candidate.TSpecimenName, candidate.TSpecimenKind, registry, anyTestPrefixed);
             if (reason is not null)
@@ -86,7 +96,7 @@ internal static class TAuditName
 
         foreach (SyntaxNode node in root.DescendantNodesAndSelf())
         {
-            (SyntaxToken Identifier, string Kind)? candidate = node switch
+            (SyntaxToken TSpecimenIdentifier, string TSpecimenKind)? candidate = node switch
             {
                 BaseTypeDeclarationSyntax type when !TAuditGeneratedCheck(type.AttributeLists)
                     => (type.Identifier, type.Kind().ToString()),
@@ -100,7 +110,7 @@ internal static class TAuditName
                     when !TAuditExternalCheck(method.Modifiers, method.ExplicitInterfaceSpecifier, method.AttributeLists) &&
                          !TAuditContractCheck(method, method.Identifier.ValueText)
                     => (method.Identifier,
-                        TAuditAttributeCheck(method.AttributeLists, "Fact") || TAuditAttributeCheck(method.AttributeLists, "Theory")
+                        TAuditAnyAttributeCheck(method.AttributeLists, TAuditSetting.TAuditTestAttributes)
                             ? "TestMethod"
                             : "Method"),
                 LocalFunctionStatementSyntax local => (local.Identifier, "LocalFunction"),
@@ -112,6 +122,9 @@ internal static class TAuditName
                     when !TAuditExternalCheck(evt.Modifiers, evt.ExplicitInterfaceSpecifier, evt.AttributeLists) &&
                          !TAuditContractCheck(evt, evt.Identifier.ValueText)
                     => (evt.Identifier, "Event"),
+                TupleElementSyntax tupleElement => (tupleElement.Identifier, "TupleElement"),
+                TypeParameterSyntax typeParameter => (typeParameter.Identifier, "TypeParameter"),
+                AnonymousObjectMemberDeclaratorSyntax anonymousMember => TSpecimenAnonymousRead(anonymousMember),
                 VariableDeclaratorSyntax variable => TSpecimenVariableRead(variable),
                 EnumMemberDeclarationSyntax enumMember => (enumMember.Identifier, "EnumMember"),
                 _ => null
@@ -122,18 +135,92 @@ internal static class TAuditName
                 continue;
             }
 
-            string name = candidate.Value.Identifier.ValueText;
+            string name = candidate.Value.TSpecimenIdentifier.ValueText;
             if (string.IsNullOrWhiteSpace(name))
             {
                 continue;
             }
 
-            int line = tree.GetLineSpan(candidate.Value.Identifier.Span).StartLinePosition.Line + 1;
-            candidates.Add(new TSpecimen(path, line, name, candidate.Value.Kind));
+            int line = tree.GetLineSpan(candidate.Value.TSpecimenIdentifier.Span).StartLinePosition.Line + 1;
+            candidates.Add(new TSpecimen(path, line, name, candidate.Value.TSpecimenKind));
+
+            if (node is MethodDeclarationSyntax commandMethod)
+            {
+                TSpecimenCommandRead(path, line, commandMethod, candidates);
+            }
         }
     }
 
-    private static (SyntaxToken Identifier, string Kind)? TSpecimenVariableRead(VariableDeclaratorSyntax variable)
+    private static void TSpecimenCommandRead(
+        string path,
+        int line,
+        MethodDeclarationSyntax method,
+        ICollection<TSpecimen> candidates)
+    {
+        AttributeSyntax? relayCommand = null;
+        foreach (AttributeSyntax attribute in method.AttributeLists.SelectMany(list => list.Attributes))
+        {
+            string attributeName = attribute.Name.ToString();
+            int separator = attributeName.LastIndexOf('.');
+            if (separator >= 0)
+            {
+                attributeName = attributeName[(separator + 1)..];
+            }
+
+            if (attributeName.EndsWith("Attribute", StringComparison.Ordinal))
+            {
+                attributeName = attributeName[..^"Attribute".Length];
+            }
+
+            if (TAuditSetting.TAuditCommandAttributes.Contains(attributeName, StringComparer.Ordinal))
+            {
+                relayCommand = attribute;
+                break;
+            }
+        }
+
+        if (relayCommand is null)
+        {
+            return;
+        }
+
+        string stem = method.Identifier.ValueText;
+        string asyncSuffix = TAuditSetting.TAuditCommandAsyncSuffix;
+        if (stem.EndsWith(asyncSuffix, StringComparison.Ordinal) && stem.Length > asyncSuffix.Length)
+        {
+            stem = stem[..^asyncSuffix.Length];
+        }
+
+        candidates.Add(new TSpecimen(path, line, stem + TAuditSetting.TAuditCommandSuffix, "GeneratedCommand"));
+
+        foreach (AttributeArgumentSyntax argument in relayCommand.ArgumentList?.Arguments ?? default)
+        {
+            if (argument.NameEquals?.Name.Identifier.ValueText == TAuditSetting.TAuditCommandCancelArgument &&
+                argument.Expression.IsKind(SyntaxKind.TrueLiteralExpression))
+            {
+                candidates.Add(new TSpecimen(
+                    path, line, stem + TAuditSetting.TAuditCommandCancelSuffix, "GeneratedCommand"));
+            }
+        }
+    }
+
+    private static (SyntaxToken TSpecimenIdentifier, string TSpecimenKind)? TSpecimenAnonymousRead(
+        AnonymousObjectMemberDeclaratorSyntax member)
+    {
+        if (member.NameEquals is not null)
+        {
+            return (member.NameEquals.Name.Identifier, "AnonymousMember");
+        }
+
+        return member.Expression switch
+        {
+            IdentifierNameSyntax identifier => (identifier.Identifier, "AnonymousMember"),
+            MemberAccessExpressionSyntax memberAccess => (memberAccess.Name.Identifier, "AnonymousMember"),
+            _ => null
+        };
+    }
+
+    private static (SyntaxToken TSpecimenIdentifier, string TSpecimenKind)? TSpecimenVariableRead(VariableDeclaratorSyntax variable)
     {
         if (variable.Parent is not VariableDeclarationSyntax declaration)
         {
@@ -173,7 +260,7 @@ internal static class TAuditName
             XAttribute? nameAttribute = element.Attributes().FirstOrDefault(attribute =>
                 attribute.Name.LocalName == "Name" &&
                 (string.IsNullOrEmpty(attribute.Name.NamespaceName) ||
-                 attribute.Name.NamespaceName == "http://schemas.microsoft.com/winfx/2006/xaml"));
+                 attribute.Name.NamespaceName == TAuditSetting.TAuditXamlNamespace));
 
             if (nameAttribute is null || string.IsNullOrWhiteSpace(nameAttribute.Value))
             {
@@ -189,9 +276,6 @@ internal static class TAuditName
     {
         if (string.Equals(kind, "TestMethod", StringComparison.Ordinal))
         {
-            // A test method carries a free-form scenario description, never an object base or
-            // verb. While no test method uses the T prefix the whole suite is descriptive and
-            // exempt; once any test method adopts T, every test method must carry it.
             if (!anyTestPrefixed)
             {
                 return null;
@@ -200,12 +284,13 @@ internal static class TAuditName
             string? testPrefix = TAuditPrefixRead(name.TrimStart('_'));
             if (testPrefix is null)
             {
-                return "test method carries no prefix while other test methods use the T prefix";
+                return "test method carries no prefix while other test methods use the " +
+                       $"{TAuditSetting.TAuditTestPrefix} prefix";
             }
 
-            if (!string.Equals(testPrefix, "T", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(testPrefix, TAuditSetting.TAuditTestPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                return $"test method must use the T prefix, not `{testPrefix}`";
+                return $"test method must use the {TAuditSetting.TAuditTestPrefix} prefix, not `{testPrefix}`";
             }
 
             return null;
@@ -215,8 +300,6 @@ internal static class TAuditName
         string? prefix = TAuditPrefixRead(working);
         if (prefix is null)
         {
-            // A codebase-owned name that survived the external/generated/framework-contract
-            // filters but carries no prefix is a violation, not something to skip.
             return "missing required prefix";
         }
 
@@ -267,31 +350,21 @@ internal static class TAuditName
             return $"data or type name ends in a registered verb (`{last}`)";
         }
 
-        if (components.Count > 3)
+        if (components.Count > TAuditSetting.TAuditComponentLimit)
         {
-            return $"{components.Count} components after the prefix (limit is three)";
+            return $"{components.Count} components after the prefix " +
+                   $"(limit is {TAuditSetting.TAuditComponentLimit})";
         }
 
         return null;
     }
 
     private static readonly Dictionary<string, HashSet<string>> TAuditFrameworkContracts =
-        new(StringComparer.Ordinal)
-        {
-            ["IDisposable"] = new(StringComparer.Ordinal) { "Dispose" },
-            ["IAsyncDisposable"] = new(StringComparer.Ordinal) { "DisposeAsync" },
-            ["INotifyPropertyChanged"] = new(StringComparer.Ordinal) { "PropertyChanged" },
-            ["INotifyPropertyChanging"] = new(StringComparer.Ordinal) { "PropertyChanging" },
-            ["IProgress"] = new(StringComparer.Ordinal) { "Report" },
-            ["IValueConverter"] = new(StringComparer.Ordinal) { "Convert", "ConvertBack" },
-            ["IMultiValueConverter"] = new(StringComparer.Ordinal) { "Convert", "ConvertBack" }
-        };
+        TAuditSetting.TAuditFrameworkContracts.ToDictionary(
+            entry => entry.Key,
+            entry => new HashSet<string>(entry.Value, StringComparer.Ordinal),
+            StringComparer.Ordinal);
 
-    // A member whose name is a contract member of a framework interface the nearest
-    // enclosing type declares is externally fixed by that interface — the same reason
-    // an explicit interface implementation is exempt, applied to the implicit form.
-    // For a partial type the interface may be declared in another fragment this file
-    // cannot see, so a contract-member name is accepted on the name alone.
     private static bool TAuditContractCheck(SyntaxNode node, string name)
     {
         for (SyntaxNode? current = node.Parent; current is not null; current = current.Parent)
@@ -343,12 +416,24 @@ internal static class TAuditName
         }
 
         return TAuditGeneratedCheck(attributes) ||
-               TAuditAttributeCheck(attributes, "DllImport") ||
-               TAuditAttributeCheck(attributes, "LibraryImport");
+               TAuditAnyAttributeCheck(attributes, TAuditSetting.TAuditExternalAttributes);
     }
 
     private static bool TAuditGeneratedCheck(SyntaxList<AttributeListSyntax> attributes) =>
-        TAuditAttributeCheck(attributes, "GeneratedCode") || TAuditAttributeCheck(attributes, "CompilerGenerated");
+        TAuditAnyAttributeCheck(attributes, TAuditSetting.TAuditGeneratedAttributes);
+
+    private static bool TAuditAnyAttributeCheck(SyntaxList<AttributeListSyntax> attributes, string[] expectedNames)
+    {
+        foreach (string expectedName in expectedNames)
+        {
+            if (TAuditAttributeCheck(attributes, expectedName))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static bool TAuditAttributeCheck(SyntaxList<AttributeListSyntax> attributes, string expectedName)
     {
@@ -377,7 +462,7 @@ internal static class TAuditName
 
     private static string? TAuditPrefixRead(string name)
     {
-        foreach (string prefix in new[] { "PS", "LS", "ps", "ls", "P", "L", "T", "p", "l", "t" })
+        foreach (string prefix in TAuditSetting.TAuditPrefixes)
         {
             if (!name.StartsWith(prefix, StringComparison.Ordinal) || name.Length == prefix.Length)
             {

@@ -1,0 +1,125 @@
+{
+  "generation": 7,
+  "project": "Cadroue",
+  "sources": {
+    "include": [
+      "*.cs",
+      "*.xaml"
+    ],
+    "excludeSegments": [
+      ".git",
+      "bin",
+      "obj",
+      "out",
+      "publish",
+      "snapshots",
+      "TestResults"
+    ],
+    "excludeSuffixes": [
+      ".md",
+      ".g.cs",
+      ".g.i.cs",
+      ".AssemblyInfo.cs",
+      ".GlobalUsings.g.cs",
+      ".Designer.cs"
+    ],
+    "excludePrefixes": [
+      "TemporaryGeneratedFile_",
+      "GeneratedInternalTypeHelper"
+    ],
+    "selfExclude": [
+      "TAuditConvention.cs",
+      "TAuditName.cs",
+      "TAuditRegistry.cs",
+      "TAuditSetting.cs",
+      "TAuditSize.cs",
+      "TAuditSource.cs"
+    ]
+  },
+  "naming": {
+    "prefixes": [
+      "PS",
+      "LS",
+      "ps",
+      "ls",
+      "P",
+      "L",
+      "T",
+      "p",
+      "l",
+      "t"
+    ],
+    "testPrefix": "T",
+    "componentLimit": 3,
+    "componentReview": 3,
+    "componentPattern": "[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+"
+  },
+  "kinds": {
+    "method": [
+      "Method",
+      "LocalFunction"
+    ],
+    "verbForbidden": [
+      "Field",
+      "Property",
+      "EnumMember",
+      "RecordProperty",
+      "XamlName",
+      "GeneratedCommand",
+      "TupleElement",
+      "TypeParameter",
+      "AnonymousMember"
+    ]
+  },
+  "platform": {
+    "xamlNamespace": "http://schemas.microsoft.com/winfx/2006/xaml",
+    "testAttributes": [
+      "Fact",
+      "Theory"
+    ],
+    "generatedAttributes": [
+      "GeneratedCode",
+      "CompilerGenerated"
+    ],
+    "externalAttributes": [
+      "DllImport",
+      "LibraryImport"
+    ],
+    "commandAttributes": [
+      "RelayCommand",
+      "RelayCommandAttribute"
+    ],
+    "commandCancelArgument": "IncludeCancelCommand",
+    "commandAsyncSuffix": "Async",
+    "commandSuffix": "Command",
+    "commandCancelSuffix": "CancelCommand",
+    "frameworkContracts": {
+      "IDisposable": [
+        "Dispose"
+      ],
+      "IAsyncDisposable": [
+        "DisposeAsync"
+      ],
+      "INotifyPropertyChanged": [
+        "PropertyChanged"
+      ],
+      "INotifyPropertyChanging": [
+        "PropertyChanging"
+      ],
+      "IProgress": [
+        "Report"
+      ],
+      "IValueConverter": [
+        "Convert",
+        "ConvertBack"
+      ],
+      "IMultiValueConverter": [
+        "Convert",
+        "ConvertBack"
+      ]
+    }
+  },
+  "advisory": {
+    "lineLimit": 500
+  }
+}

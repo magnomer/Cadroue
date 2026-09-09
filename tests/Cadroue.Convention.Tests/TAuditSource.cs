@@ -1,14 +1,9 @@
 using System.Diagnostics;
 
-namespace Cadroue.Convention.Tests;
+namespace Convention.Tests;
 
 internal static class TAuditSource
 {
-    private static readonly string[] TAuditExcludedSegments =
-    {
-        ".git", "bin", "obj", "out", "publish", "snapshots", "TestResults"
-    };
-
     public static string TAuditRootRead()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
@@ -39,10 +34,15 @@ internal static class TAuditSource
         foreach (string argument in new[]
                  {
                      "-c", "core.quotePath=false", "ls-files",
-                     "--cached", "--others", "--exclude-standard", "--", "*.cs", "*.xaml"
+                     "--cached", "--others", "--exclude-standard", "--"
                  })
         {
             info.ArgumentList.Add(argument);
+        }
+
+        foreach (string pattern in TAuditSetting.TAuditSourceInclude)
+        {
+            info.ArgumentList.Add(pattern);
         }
 
         using Process process = Process.Start(info)
@@ -64,8 +64,6 @@ internal static class TAuditSource
                 continue;
             }
 
-            // The index still lists a file deleted from the working tree until the
-            // deletion is staged. Audit what is on disk, not what the index remembers.
             string full = Path.Combine(repoRoot, relative.Replace('/', Path.DirectorySeparatorChar));
             if (!File.Exists(full))
             {
@@ -84,19 +82,37 @@ internal static class TAuditSource
         string[] segments = relativePath.Split('/', '\\');
         foreach (string segment in segments)
         {
-            if (TAuditExcludedSegments.Contains(segment, StringComparer.Ordinal))
+            if (TAuditSetting.TAuditExcludedSegments.Contains(segment, StringComparer.Ordinal))
             {
                 return true;
             }
         }
 
         string fileName = segments[^1];
-        return fileName.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith(".g.i.cs", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith(".AssemblyInfo.cs", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith(".GlobalUsings.g.cs", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith(".Designer.cs", StringComparison.OrdinalIgnoreCase) ||
-               fileName.StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal) ||
-               fileName.StartsWith("GeneratedInternalTypeHelper", StringComparison.Ordinal);
+
+        // The tooling carries names it does not own, and a project that imports it did not choose
+        // them, so the audit does not audit itself.
+        if (TAuditSetting.TAuditSelfExcluded.Contains(fileName, StringComparer.Ordinal))
+        {
+            return true;
+        }
+
+        foreach (string suffix in TAuditSetting.TAuditExcludedSuffixes)
+        {
+            if (fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        foreach (string prefix in TAuditSetting.TAuditExcludedPrefixes)
+        {
+            if (fileName.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
