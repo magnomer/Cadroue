@@ -45,8 +45,6 @@ public sealed class TNeutralDisplay
     [Fact]
     public void Display_ManualRoundTripFromAutomatic_RestoresRememberedSample()
     {
-        // Switching Manual -> automatic keeps the sample in memory; switching back
-        // to Manual must render the remembered display from the same values.
         const int red = 120;
         const int green = 130;
         const int blue = 140;

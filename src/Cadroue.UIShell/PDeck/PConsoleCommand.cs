@@ -84,10 +84,6 @@ public sealed partial class PConsole
             return;
         }
 
-        // Kill first, clear second: cancelling each runner interrupts its ffmpeg and releases the
-        // running item back to the queue; cancelling measurement kills the in-flight ffprobe and
-        // drops what is still queued. Only then does the folder clear remove the files, so no
-        // process is left writing an output whose record has just been deleted.
         foreach (LStation pConsoleClearStation in LStation.LStationBoardRead())
         {
             pConsoleClearStation.LStationAutoActive = false;
@@ -104,9 +100,6 @@ public sealed partial class PConsole
         PToolbar.PStrip.PStripCurrent?.PStripContentClear();
     }
 
-    // Aborting a live encode (and deleting its half-written output) is severe enough that the
-    // confirm is unconditional here — it ignores the "confirm destructive" preference that
-    // PConsoleDestructiveConfirm honours, so a running Clear all is never silent.
     private bool PConsoleProcessingConfirm(string pConsoleQuestion) =>
         PSAlert.PSAlertConfirm(
             Window.GetWindow(this),

@@ -37,8 +37,6 @@ public sealed class LWorkRecord
 
     public LWorkMedia? LWorkSourceMedia { get; set; }
 
-    // Nullable so a record written before this field existed (null) is treated as already
-    // measured; a fresh item explicitly persists false while its measurement is still pending.
     public bool? LWorkSourceMeasured { get; set; }
 
     public LWorkMedia? LWorkOutputMedia { get; set; }
@@ -200,8 +198,8 @@ public sealed class LWorkRecord
         (LWorkOutputSnapshot ??= new()).LWorkOutputNormalize();
     }
 
-    private static TEnum LWorkEnumRead<TEnum>(string lWorkValue, TEnum lWorkFallback) where TEnum : struct =>
-        Enum.TryParse(lWorkValue, out TEnum lWorkParsed) ? lWorkParsed : lWorkFallback;
+    private static LWorkEnum LWorkEnumRead<LWorkEnum>(string lWorkValue, LWorkEnum lWorkFallback) where LWorkEnum : struct =>
+        Enum.TryParse(lWorkValue, out LWorkEnum lWorkParsed) ? lWorkParsed : lWorkFallback;
 }
 
 public sealed class LWorkOutputRecord

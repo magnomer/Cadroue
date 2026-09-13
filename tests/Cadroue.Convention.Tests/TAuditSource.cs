@@ -22,7 +22,7 @@ internal static class TAuditSource
             $"No Git working tree was found above '{AppContext.BaseDirectory}'.");
     }
 
-    public static IReadOnlyList<string> TAuditFileRead(string repoRoot)
+    public static IReadOnlyList<string> TAuditFileRead(string repoRoot, TAuditScope scope)
     {
         ProcessStartInfo info = new("git")
         {
@@ -40,7 +40,7 @@ internal static class TAuditSource
             info.ArgumentList.Add(argument);
         }
 
-        foreach (string pattern in TAuditSetting.TAuditSourceInclude)
+        foreach (string pattern in scope.TAuditScopeInclude)
         {
             info.ArgumentList.Add(pattern);
         }
@@ -59,7 +59,7 @@ internal static class TAuditSource
         foreach (string line in output.Split('\n'))
         {
             string relative = line.Trim();
-            if (relative.Length == 0 || TAuditExcludedCheck(relative))
+            if (relative.Length == 0 || TAuditExcludedCheck(relative, scope))
             {
                 continue;
             }
@@ -77,27 +77,32 @@ internal static class TAuditSource
         return files;
     }
 
-    private static bool TAuditExcludedCheck(string relativePath)
+    private static bool TAuditExcludedCheck(string relativePath, TAuditScope scope)
     {
-        string[] segments = relativePath.Split('/', '\\');
+        string normalized = relativePath.Replace('\\', '/');
+        if (scope.TAuditScopeRoots.Count > 0
+            && !scope.TAuditScopeRoots.Any(root => normalized.StartsWith(root.Trim('/') + "/", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        string[] segments = normalized.Split('/');
+
         foreach (string segment in segments)
         {
-            if (TAuditSetting.TAuditExcludedSegments.Contains(segment, StringComparer.Ordinal))
+            if (scope.TAuditScopeSegments.Contains(segment, StringComparer.Ordinal))
             {
                 return true;
             }
         }
 
         string fileName = segments[^1];
-
-        // The tooling carries names it does not own, and a project that imports it did not choose
-        // them, so the audit does not audit itself.
-        if (TAuditSetting.TAuditSelfExcluded.Contains(fileName, StringComparer.Ordinal))
+        if (scope.TAuditScopeFiles.Contains(fileName, StringComparer.Ordinal))
         {
             return true;
         }
 
-        foreach (string suffix in TAuditSetting.TAuditExcludedSuffixes)
+        foreach (string suffix in scope.TAuditScopeSuffixes)
         {
             if (fileName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
             {
@@ -105,7 +110,7 @@ internal static class TAuditSource
             }
         }
 
-        foreach (string prefix in TAuditSetting.TAuditExcludedPrefixes)
+        foreach (string prefix in scope.TAuditScopePrefixes)
         {
             if (fileName.StartsWith(prefix, StringComparison.Ordinal))
             {

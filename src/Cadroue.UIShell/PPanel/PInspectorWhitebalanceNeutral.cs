@@ -104,9 +104,6 @@ public sealed partial class PInspector
         return pInspectorNeutralColumn;
     }
 
-    // One eyedropper toggle. Grey samples a neutral point (strict); White samples any
-    // point on the black-to-white axis (lenient). Both feed one correction pipeline,
-    // differing only in the target they hand the viewer's sampler.
     private ToggleButton PWhitebalancePickerBuild(
         LNeutralTarget pTarget, string pTooltipKey, string pGuideKey)
     {
@@ -148,7 +145,6 @@ public sealed partial class PInspector
 
             if (PWhitebalancePeerRead(pTarget).IsChecked == true)
             {
-                // Switching to the other picker: it will arm the tool itself.
                 return;
             }
 
@@ -161,8 +157,6 @@ public sealed partial class PInspector
     private ToggleButton PWhitebalancePeerRead(LNeutralTarget pTarget) =>
         pTarget == LNeutralTarget.LNeutralTargetWhite ? pInspectorNeutralTool : pInspectorWhiteTool;
 
-    // Make this picker the active one: deactivate its peer and the crop tool without
-    // firing their disarm side effects.
     private void PWhitebalancePickerSelect(LNeutralTarget pTarget)
     {
         bool pPrevious = pInspectorNeutralSuppress;

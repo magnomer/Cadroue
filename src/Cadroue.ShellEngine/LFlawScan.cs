@@ -8,6 +8,8 @@ using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
+internal sealed record LFlawRun(string LFlawRunOutput, string LFlawRunError);
+
 public static class LFlawScan
 {
     internal static IReadOnlyList<LDossier> LFlawScanRun(LWorkItem lFlawItem, CancellationToken lFlawToken = default)
@@ -21,10 +23,6 @@ public static class LFlawScan
         CancellationToken lFlawToken = default,
         IProgress<double>? lFlawProgress = null)
     {
-        // A source that is missing or unreadable cannot be diagnosed. Returning an empty
-        // (defect-free) result here would be recorded by callers as an authoritative "clean"
-        // verdict for every kind — a false negative that then suppresses any real scan. Fail
-        // instead so no diagnosis record is written for a scan that never happened.
         if (string.IsNullOrWhiteSpace(lFlawSource) || !File.Exists(lFlawSource))
         {
             throw new FileNotFoundException(
@@ -49,7 +47,7 @@ public static class LFlawScan
                 lFlawDuration = TimeSpan.Zero;
             }
 
-            (string Output, string Error) LFlawStageRun(string lFlawProgram, string lFlawArguments)
+            LFlawRun LFlawStageRun(string lFlawProgram, string lFlawArguments)
             {
                 double lFlawStart = (double)lFlawStageIndex / lFlawStageCount;
                 double lFlawEnd = (double)++lFlawStageIndex / lFlawStageCount;
@@ -57,7 +55,7 @@ public static class LFlawScan
                     lFlawProgram,
                     LTool.LToolFfmpegRead(),
                     StringComparison.OrdinalIgnoreCase);
-                (string Output, string Error) lFlawResult = LFlawRunRead(
+                LFlawRun lFlawResult = LFlawRunRead(
                     lFlawProgram,
                     lFlawArguments,
                     lFlawToken,
@@ -76,9 +74,6 @@ public static class LFlawScan
             (_, string lFlawCopyError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
                 $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
-            // Transport-stream continuity and PES faults are logged at warning level, not
-            // error, so the transport probe reads one verbosity higher than the shared copy
-            // pass; it feeds only the MPEG-TS-gated transport detector, never the others.
             (_, string lFlawTransportError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
                 $"-hide_banner -nostdin -v warning -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
@@ -88,10 +83,6 @@ public static class LFlawScan
             (_, string lFlawIgnidxError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
                 $"-hide_banner -nostdin -v error -fflags +ignidx -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
-            // Seek to one second before end: a late target forces the demuxer to consult the
-            // index, so broken random-access addressing surfaces here while a healthy file
-            // stays silent. A near-start seek (a large -sseof on a short clip) would read
-            // linearly and never touch the index.
             (_, string lFlawSeekError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
                 $"-hide_banner -nostdin -v error -sseof -1 -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
@@ -118,11 +109,6 @@ public static class LFlawScan
                     $"-hide_banner -nostdin -v error -err_detect +crccheck -i {LEncode.LEncodeFormat(lFlawSource)} -an -map 0:v? -f null -");
             }
 
-            // A container the probe could open reports at least a format or one stream.
-            // When it reports neither, the file never opened, and every structural and
-            // per-stream probe below only echoes that one open failure. Emitting the
-            // finalization defect alone keeps the diagnosis honest instead of scattering
-            // the same failure across the container, coded and timing detectors.
             bool lFlawOpened = lFlawMetaReport.Contains("[FORMAT]", StringComparison.Ordinal)
                 || lFlawMetaReport.Contains("[STREAM]", StringComparison.Ordinal);
             if (!lFlawOpened)
@@ -191,13 +177,6 @@ public static class LFlawScan
                 lFlawDossiers.Add(lFlawFfvone with { LDossierKind = LFlawKind.LFlawKindFfvone });
             }
 
-            // Coded media is the last-resort, lossy re-encode item. The diagnostic decode
-            // also fails whenever an upstream carriage defect — broken container, missing
-            // finalization, transport faults, framing, codec configuration or an FFV1
-            // integrity mismatch — corrupts the bitstream it reads, so that decode failure
-            // is already explained by a losslessly repairable defect and must not escalate
-            // this file to re-encode. Only decode damage that survives every carriage
-            // diagnosis is a genuine coded defect.
             if (!lFlawDossiers.Any(lFlawDossier => LFlawCarriageCheck(lFlawDossier.LDossierKind))
                 && LFlawCoded.LFlawCodedResolve(lFlawCodedError) is { } lFlawCoded)
             {
@@ -213,10 +192,6 @@ public static class LFlawScan
         }
         catch (Exception lFlawException)
         {
-            // A scan that could not complete must not be mistaken for a clean file. Returning
-            // an empty result would let callers persist a false "no defect" record that then
-            // blocks any future diagnosis of every kind. Surface the failure so the caller
-            // reports it and writes nothing.
             LRunner.LRunnerRecord($"Container structure could not be examined '{Path.GetFileName(lFlawSource)}'", lFlawException);
             throw;
         }
@@ -254,7 +229,7 @@ public static class LFlawScan
         return lFlawFiltered;
     }
 
-    private static (string Output, string Error) LFlawRunRead(
+    private static LFlawRun LFlawRunRead(
         string lFlawProgram,
         string lFlawArguments,
         CancellationToken lFlawToken,
@@ -283,7 +258,7 @@ public static class LFlawScan
             lFlawProcess = Process.Start(lFlawStartInfo);
             if (lFlawProcess is null)
             {
-                return (string.Empty, string.Empty);
+                return new LFlawRun(string.Empty, string.Empty);
             }
 
             LCustody.LCustodyAttach(lFlawProcess);
@@ -315,7 +290,7 @@ public static class LFlawScan
 
             lFlawProcess.WaitForExit();
             lFlawToken.ThrowIfCancellationRequested();
-            return (lFlawOutput, lFlawErrorTask.GetAwaiter().GetResult());
+            return new LFlawRun(lFlawOutput, lFlawErrorTask.GetAwaiter().GetResult());
         }
         finally
         {

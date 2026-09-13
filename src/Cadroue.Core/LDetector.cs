@@ -48,6 +48,10 @@ public readonly record struct LDetectorPreset(
     double LDetectorPresetWindow,
     double LDetectorPresetMinimum);
 
+public readonly record struct LDetectorStillTuning(double LDetectorTolerance, double LDetectorMinimum);
+
+public readonly record struct LDetectorLuminanceTuning(double LDetectorThreshold, double LDetectorWindow, double LDetectorMinimum);
+
 public static class LDetector
 {
     public static readonly IReadOnlyList<LDetectorKind> LDetectorKinds = new[]
@@ -204,11 +208,11 @@ public static class LDetector
         "Sensitive"
     };
 
-    public static (double Tolerance, double Minimum)? LDetectorStillResolve(string lDetectorToken) => lDetectorToken switch
+    public static LDetectorStillTuning? LDetectorStillResolve(string lDetectorToken) => lDetectorToken switch
     {
-        "Conservative" => (0.05, 2.0),
-        "Normal" => (0.10, 1.0),
-        "Sensitive" => (0.50, 0.5),
+        "Conservative" => new LDetectorStillTuning(0.05, 2.0),
+        "Normal" => new LDetectorStillTuning(0.10, 1.0),
+        "Sensitive" => new LDetectorStillTuning(0.50, 0.5),
         _ => null
     };
 
@@ -217,8 +221,8 @@ public static class LDetector
         foreach (string lDetectorToken in LDetectorStillPresets)
         {
             if (LDetectorStillResolve(lDetectorToken) is { } lDetectorStill
-                && Math.Abs(lDetectorTolerance - lDetectorStill.Tolerance) < 0.05
-                && Math.Abs(lDetectorMinimum - lDetectorStill.Minimum) < 0.05)
+                && Math.Abs(lDetectorTolerance - lDetectorStill.LDetectorTolerance) < 0.05
+                && Math.Abs(lDetectorMinimum - lDetectorStill.LDetectorMinimum) < 0.05)
             {
                 return lDetectorToken;
             }
@@ -234,11 +238,11 @@ public static class LDetector
         "Sensitive"
     };
 
-    public static (double Threshold, double Window, double Minimum)? LDetectorLuminanceResolve(string lDetectorToken) => lDetectorToken switch
+    public static LDetectorLuminanceTuning? LDetectorLuminanceResolve(string lDetectorToken) => lDetectorToken switch
     {
-        "Conservative" => (14.0, 1.0, 1.5),
-        "Normal" => (8.0, 0.5, 0.5),
-        "Sensitive" => (4.0, 0.3, 0.3),
+        "Conservative" => new LDetectorLuminanceTuning(14.0, 1.0, 1.5),
+        "Normal" => new LDetectorLuminanceTuning(8.0, 0.5, 0.5),
+        "Sensitive" => new LDetectorLuminanceTuning(4.0, 0.3, 0.3),
         _ => null
     };
 
@@ -247,9 +251,9 @@ public static class LDetector
         foreach (string lDetectorToken in LDetectorLuminancePresets)
         {
             if (LDetectorLuminanceResolve(lDetectorToken) is { } lDetectorLuminance
-                && Math.Abs(lDetectorThreshold - lDetectorLuminance.Threshold) < 0.05
-                && Math.Abs(lDetectorWindow - lDetectorLuminance.Window) < 0.05
-                && Math.Abs(lDetectorMinimum - lDetectorLuminance.Minimum) < 0.05)
+                && Math.Abs(lDetectorThreshold - lDetectorLuminance.LDetectorThreshold) < 0.05
+                && Math.Abs(lDetectorWindow - lDetectorLuminance.LDetectorWindow) < 0.05
+                && Math.Abs(lDetectorMinimum - lDetectorLuminance.LDetectorMinimum) < 0.05)
             {
                 return lDetectorToken;
             }

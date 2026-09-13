@@ -30,9 +30,6 @@ public static partial class LEncode
 
     public const double LEncodeStatsPeriod = 0.5;
 
-    // The working format between the extract, analyze and process stages. 32-bit
-    // signed PCM carries every integer sample depth a source can hold, so filtering
-    // does not quantise the material down before it reaches the final encoder.
     internal const string LEncodeIntermediate = "pcm_s32le";
 
     public static IReadOnlyList<LEncodeStage> LEncodeStagesBuild(LWorkItem lWorkItem)
@@ -52,9 +49,6 @@ public static partial class LEncode
         return LEncodeWholeBuild(lWorkItem, lWorkItem.LWorkOutput);
     }
 
-    // Whether the whole-file command re-encodes nothing: video is stream-copied
-    // (mode Copy and no forced re-encode) and audio is copied or excluded. Such a
-    // run is surfaced as "Copying", not "Encoding".
     private static bool LEncodeCopyCheck(LWorkItem lWorkItem, LEncoding lOutput)
     {
         bool lVideoCopy = string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
@@ -64,11 +58,6 @@ public static partial class LEncode
         return lVideoCopy && lAudioCopy;
     }
 
-    // One Fix repair pass: an optional source-to-output copy (first pass only; later
-    // recompose passes repair the output in place), the precedence-ordered repair
-    // stages for the given correctable dossiers, and the closing validation. The
-    // dossier set is supplied so a recompose pass can rebuild over only what a fresh
-    // scan of the output found still warranted.
     public static IReadOnlyList<LEncodeStage> LEncodeFixBuild(
         LWorkItem lWorkItem, IReadOnlyList<LDossier> lFixRepairable, bool lFixCopy)
     {
@@ -82,9 +71,6 @@ public static partial class LEncode
         LRemedyPlan lFixPlan = LRemedy.LRemedyPlanCreate(lFixRepairable);
         foreach (LRemedyAction lFixAction in lFixPlan.LRemedyActions)
         {
-            // A report-only dossier (FFV1 integrity) is detection-only: no ffmpeg
-            // stage can correct a slice-CRC mismatch. It is copied unchanged and
-            // surfaced as Unresolved at validation, never re-encoded here.
             if (lFixAction.LRemedyDossier.LDossierRepair == LFlawFfvone.LFlawReport)
             {
                 continue;
@@ -129,15 +115,10 @@ public static partial class LEncode
             lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
             if (lVideoCopy && lWorkItem.LWorkOrigin > TimeSpan.Zero)
             {
-                // Stream-copy seeking otherwise retains packets before the requested
-                // boundary. At a keyframe cut that exposes the preceding section in
-                // the output even though the user selected an exact interval.
                 lArguments.Append(" -copypriorss 0");
             }
             if (!lVideoCopy && lWorkItem.LWorkOrigin > TimeSpan.Zero)
             {
-                // Fast input seeking can expose preroll packets from copied companion
-                // streams. Discard them at the output boundary when video is decoded.
                 lArguments.Append(" -ss 0");
             }
             if (lWorkItem.LWorkEnd > lWorkItem.LWorkOrigin)
@@ -161,10 +142,6 @@ public static partial class LEncode
 
     internal static string LEncodeRecoverBuild(LWorkItem lWorkItem)
     {
-        // Last-resort coded recovery: decode the damaged principal video and
-        // re-encode it in its own source codec family, keeping the output close
-        // to the original. Healthy companion streams are copied, never re-encoded.
-        // The demuxer-side discard/genpts flags travel through LDossierRepairInput.
         string lRecoverEncoder =
             LRepertoireCatalog.LRepertoireEncoderResolve(lWorkItem.LWorkSourceMedia?.LWorkMediaCodec)
             ?? "libx264";
@@ -245,9 +222,6 @@ public static partial class LEncode
                 lTwoPassIndex,
                 lSourceRate) is not null;
 
-        // Nothing is filtered, so the source stream is muxed straight through and keeps
-        // whatever the Audio settings ask for, Copy included. No intermediate is written,
-        // so no precision is spent on a stream that is not processed.
         if (!lProcessed)
         {
             return LEncodeWholeBuild(lWorkItem, lOutput);
@@ -301,8 +275,6 @@ public static partial class LEncode
         lMux.Append(" -map 1:a:0");
         if (lAllTracks)
         {
-            // The processed track replaces the one extraction explicitly took (0:a:0);
-            // every other source track is carried through untouched.
             lMux.Append(" -map 0:a? -map -0:a:0?");
         }
 
@@ -324,9 +296,6 @@ public static partial class LEncode
         return lStages;
     }
 
-    // The audio-tab work has nothing to filter (no active chain, or audio excluded
-    // outright), so it is one ordinary whole-file command honouring the Audio output
-    // contract: Exclude writes no audio, Copy copies, Encode encodes.
     private static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(LWorkItem lWorkItem, LEncoding lOutput)
     {
         bool lWholeCopy = LEncodeCopyCheck(lWorkItem, lOutput);
@@ -349,9 +318,6 @@ public static partial class LEncode
             $" -stats_period {LEncodeStatsPeriod.ToString("0.###", CultureInfo.InvariantCulture)}");
     }
 
-    // Every command that writes the final output states its muxer explicitly, so the
-    // container the user chose is the one FFmpeg writes; the output suffix never decides
-    // the format on its own.
     internal static void LEncodeMuxerAppend(StringBuilder lArguments, LWorkItem lWorkItem)
     {
         string lMuxer = LRepertoireCatalog.LRepertoireMuxerResolve(

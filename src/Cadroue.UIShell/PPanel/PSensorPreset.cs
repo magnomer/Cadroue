@@ -109,7 +109,7 @@ public sealed partial class PInspector
                 && pSection.PSensorThreshold is { } pSceneThreshold)
             {
                 pSceneThreshold.Text = pSensitivity.ToString(
-                    PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
+                    PSensorShapeRead(pDetectorKind).PSensorPattern, CultureInfo.InvariantCulture);
             }
 
             pSection.PSensorSuppress = false;
@@ -122,13 +122,13 @@ public sealed partial class PInspector
             {
                 if (pSection.PSensorThreshold is { } pStillThreshold)
                 {
-                    pStillThreshold.Text = pStill.Tolerance.ToString(
-                        PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
+                    pStillThreshold.Text = pStill.LDetectorTolerance.ToString(
+                        PSensorShapeRead(pDetectorKind).PSensorPattern, CultureInfo.InvariantCulture);
                 }
 
                 if (pSection.PSensorMinimum is { } pStillMinimum)
                 {
-                    pStillMinimum.Text = pStill.Minimum.ToString("0.0", CultureInfo.InvariantCulture);
+                    pStillMinimum.Text = pStill.LDetectorMinimum.ToString("0.0", CultureInfo.InvariantCulture);
                 }
             }
 
@@ -142,18 +142,18 @@ public sealed partial class PInspector
             {
                 if (pSection.PSensorThreshold is { } pLuminanceThreshold)
                 {
-                    pLuminanceThreshold.Text = pLuminance.Threshold.ToString(
-                        PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
+                    pLuminanceThreshold.Text = pLuminance.LDetectorThreshold.ToString(
+                        PSensorShapeRead(pDetectorKind).PSensorPattern, CultureInfo.InvariantCulture);
                 }
 
                 if (pSection.PSensorWindow is { } pLuminanceWindow)
                 {
-                    pLuminanceWindow.Text = pLuminance.Window.ToString("0.0", CultureInfo.InvariantCulture);
+                    pLuminanceWindow.Text = pLuminance.LDetectorWindow.ToString("0.0", CultureInfo.InvariantCulture);
                 }
 
                 if (pSection.PSensorMinimum is { } pLuminanceMinimum)
                 {
-                    pLuminanceMinimum.Text = pLuminance.Minimum.ToString("0.0", CultureInfo.InvariantCulture);
+                    pLuminanceMinimum.Text = pLuminance.LDetectorMinimum.ToString("0.0", CultureInfo.InvariantCulture);
                 }
             }
 
@@ -171,7 +171,7 @@ public sealed partial class PInspector
         if (pSection.PSensorThreshold is { } pThresholdBox)
         {
             pThresholdBox.Text = pThreshold.ToString(
-                PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
+                PSensorShapeRead(pDetectorKind).PSensorPattern, CultureInfo.InvariantCulture);
         }
 
         if (pSection.PSensorWindow is { } pWindowBox)
@@ -278,7 +278,7 @@ public sealed partial class PInspector
         pSection.PSensorSuppress = true;
         pThreshold.Text = LDetector
             .LDetectorPresetResolve(pPreset, PSensorMetricRead(pDetectorKind))
-            .ToString(PSensorShapeRead(pDetectorKind).Format, CultureInfo.InvariantCulture);
+            .ToString(PSensorShapeRead(pDetectorKind).PSensorPattern, CultureInfo.InvariantCulture);
         pSection.PSensorSuppress = false;
         pSensorPresetSuppress = false;
     }

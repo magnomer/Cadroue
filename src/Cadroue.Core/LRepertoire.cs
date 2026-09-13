@@ -202,10 +202,6 @@ public static class LRepertoireCatalog
         return false;
     }
 
-    // The single authoritative output format identity: the muxer FFmpeg must be told to
-    // write. A named container answers directly; "Same as source" and any unnamed container
-    // fall back to the container family the output suffix belongs to, so a suffix FFmpeg
-    // would otherwise read as a different format (m4v, f4v) still muxes as its family.
     public static string LRepertoireMuxerResolve(string lContainer, string lOutputPath)
     {
         if (LRepertoireMuxerTable.TryGetValue(lContainer, out string? lNamedMuxer))
@@ -284,8 +280,6 @@ public static class LRepertoireCatalog
         return null;
     }
 
-    // Accepts both an FFmpeg encoder token and an ffprobe codec_name, so the settings
-    // dialog and the copied-stream check read the same family table.
     public static string LRepertoireAudioFind(string lCodecName)
     {
         if (string.IsNullOrWhiteSpace(lCodecName))

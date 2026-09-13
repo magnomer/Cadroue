@@ -98,9 +98,6 @@ public static partial class LEncode
         if (lBridgePlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart
             || lBridgePlan.LBridgeMiddle is null)
         {
-            // STRICT SMART CONTRACT: full encoding is allowed only when planning
-            // found no copyable middle. Once a middle exists, later uncertainty
-            // must never silently replace Smart with a full re-encode.
             return LEncodeWholeBuild(lWorkItem, lBridgeSource);
         }
 
@@ -113,10 +110,6 @@ public static partial class LEncode
         bool lVideoWholeCopyable = lBridgePlan.LBridgeHead is null && lBridgePlan.LBridgeTail is null;
         if (lVideoWholeCopyable)
         {
-            // A keyframe-to-keyframe Smart interval is ordinary stream copy. Keep the
-            // streams in one input timeline; splitting them through independent MKV
-            // intermediates can preserve different timestamp origins that only become
-            // visible when the result is decoded by a later Edit/Convert operation.
             return new[] { LEncodeDirectBuild(lWorkItem, lBridgePlan.LBridgeMiddle, lAudioActive, lBridgeSource) };
         }
 
@@ -208,11 +201,6 @@ public static partial class LEncode
             .ToLowerInvariant();
         if (lBridgePlan.LBridgeHead is not null && lLeadingCodec is "hevc" or "h265")
         {
-            // The copied middle follows the head, so its open-GOP first keyframe must
-            // be neutralized before the join (see LBridgeLeadingNormalize). A head-less
-            // plan starts on the middle, where a decoder discards leading pictures itself.
-            // The splice edits the ISO-BMFF middle in place, so it must run before that
-            // middle is remuxed into its join piece.
             lStages.Add(new LEncodeStage(
                 string.Empty, LWorkStage.LWorkStageSplice, "Normalizing splice", lMiddlePath, true));
         }
@@ -231,13 +219,6 @@ public static partial class LEncode
 
     private static string LEncodePieceBuild(List<LEncodeStage> lStages, string lPartPath)
     {
-        // The concat demuxer carries only the first segment's parameter sets, and the
-        // ISO-BMFF pieces store SPS/PPS out-of-band in their sample-description box. A
-        // copied middle whose parameter sets differ from the re-encoded head (weighted
-        // prediction, QP range, VUI) is then decoded against the head's sets and every
-        // slice desyncs. Remuxing each piece to MPEG-TS emits its parameter sets in-band
-        // per packet, so each segment stays self-describing across the join while the
-        // concat demuxer still stitches the piece timelines in order.
         string lPiecePath = Path.ChangeExtension(lPartPath, ".ts");
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
@@ -251,9 +232,6 @@ public static partial class LEncode
 
     private static string LEncodeExtensionResolve(string? lIntermediateExtension)
     {
-        // Bridge pieces default to an ISO-BMFF container: it preserves the copied
-        // middle's source timestamps and its mdat carries plain length-prefixed NAL
-        // units, so the leading-keyframe neutralization is a direct byte rewrite.
         string lExtension = lIntermediateExtension ?? ".mov";
         if (string.IsNullOrWhiteSpace(lExtension))
         {

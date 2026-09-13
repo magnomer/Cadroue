@@ -99,3 +99,6 @@ $RECYCLE.BIN/
 # Temporary gitignore
 /docs/
 /sample/local/
+# Local line-audit configuration
+/auditlines.json
+/auditcomments.json

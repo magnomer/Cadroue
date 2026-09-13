@@ -5,9 +5,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Test-side boundary for preview state: colour, gamma, crop, rotation and the edit plan.
-/// </summary>
 internal static partial class TInterface
 {
     internal static LPreviewState TPreviewDefaultCreate() => LPreviewState.LPreviewDefaultCreate();
@@ -86,5 +83,4 @@ internal static partial class TInterface
                 }
             }
         };
-
 }

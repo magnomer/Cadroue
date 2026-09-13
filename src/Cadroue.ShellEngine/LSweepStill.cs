@@ -13,13 +13,13 @@ public static partial class LSweep
         return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
     }
 
-    public static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepStillParse(IEnumerable<string> lSweepLines) =>
+    public static IReadOnlyList<LSweepSpan> LSweepStillParse(IEnumerable<string> lSweepLines) =>
         LSweepStillParse(lSweepLines, TimeSpan.Zero);
 
-    public static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepStillParse(
+    public static IReadOnlyList<LSweepSpan> LSweepStillParse(
         IEnumerable<string> lSweepLines, TimeSpan lSweepDuration)
     {
-        var lSweepIntervals = new List<(TimeSpan, TimeSpan)>();
+        var lSweepIntervals = new List<LSweepSpan>();
         double? lSweepPending = null;
         foreach (string lSweepLine in lSweepLines)
         {
@@ -38,14 +38,14 @@ public static partial class LSweep
             double? lSweepEnd = LSweepFieldRead(lSweepLine, "freeze_end: ");
             if (lSweepEnd is { } lSweepTo && lSweepPending is { } lSweepOpen && lSweepTo > lSweepOpen)
             {
-                lSweepIntervals.Add((TimeSpan.FromSeconds(lSweepOpen), TimeSpan.FromSeconds(lSweepTo)));
+                lSweepIntervals.Add(new LSweepSpan(TimeSpan.FromSeconds(lSweepOpen), TimeSpan.FromSeconds(lSweepTo)));
                 lSweepPending = null;
             }
         }
 
         if (lSweepPending is { } lSweepTail && lSweepDuration > TimeSpan.FromSeconds(lSweepTail))
         {
-            lSweepIntervals.Add((TimeSpan.FromSeconds(lSweepTail), lSweepDuration));
+            lSweepIntervals.Add(new LSweepSpan(TimeSpan.FromSeconds(lSweepTail), lSweepDuration));
         }
 
         return lSweepIntervals;

@@ -143,7 +143,7 @@ public sealed partial class PRoster
             ? LLocalization.LLocalizationTextRead("Roster.Summary.FileOne")
             : LLocalization.LLocalizationFormat("Roster.Summary.FileMany", pCount);
 
-    private static (IReadOnlyList<string> pSources, IReadOnlyList<string> pOutputs) PSummaryPathsRead(
+    private static (IReadOnlyList<string>, IReadOnlyList<string>) PSummaryPathsRead(
         IReadOnlyList<LWorkItem> pBatchItems)
     {
         var pOutputKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -253,8 +253,6 @@ public sealed partial class PRoster
             }
         }
 
-        // Only completed outputs are totalled: a progressing job's growing file must not be
-        // accounted, so the comparison stays source vs finished output and grows as jobs land.
         long pOutputTotal = 0;
         bool pOutputAny = false;
         var pSeenOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

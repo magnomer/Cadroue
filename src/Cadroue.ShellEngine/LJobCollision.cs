@@ -44,10 +44,6 @@ internal sealed partial class LJob
         return LJobStreamValidate();
     }
 
-    // A stream set to Copy keeps the source codec, which the chosen container may not be
-    // able to store. The encoder lists in Settings are filtered by container but are not
-    // consulted while Copy is selected, so the pairing is caught here instead of surfacing
-    // as an FFmpeg muxing error part-way through the run.
     private string LJobStreamValidate()
     {
         if (lJobItem.LWorkKind == LWorkKind.LWorkKindMerge)
@@ -112,14 +108,11 @@ internal sealed partial class LJob
             return string.Empty;
         }
 
-        // Claim the intended name atomically. Success means it was free and is now ours,
-        // so no second instance can pick the same "free" name and clobber this output.
         if (LJobClaim(pTarget))
         {
             return string.Empty;
         }
 
-        // The name is taken — a pre-existing file or another instance. Apply the policy.
         if (string.Equals(pOutput.LEncodingCollision, "Rename output", StringComparison.Ordinal))
         {
             string pFreePath = LJobPathResolve(pTarget, pOutput.LEncodingCollisionSuffix);
@@ -143,9 +136,6 @@ internal sealed partial class LJob
             string pFreePath = LJobPathResolve(pTarget, pOutput.LEncodingCollisionSuffix);
             try
             {
-                // pFreePath is our own reservation placeholder; overwriting it with the
-                // existing file is intended. A genuine failure (locked/denied) must abort
-                // so the pre-existing file is never destroyed by the encode that follows.
                 File.Move(pTarget, pFreePath, true);
                 LRunner.LRunnerRecord($"Output exists; renaming existing file to '{Path.GetFileName(pFreePath)}'");
             }
@@ -156,8 +146,6 @@ internal sealed partial class LJob
                 return pJobFailure;
             }
 
-            // The existing file has moved aside; reclaim the now-free target so no other
-            // instance grabs it before the encode writes.
             LJobClaim(pTarget);
         }
 

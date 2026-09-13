@@ -40,8 +40,6 @@ public sealed class TBridgeLeading
         Assert.False(TInterface.TBridgeLeadingNormalize(bytes));
     }
 
-    // Builds a minimal ISO-BMFF file: one mdat box holding length-prefixed NAL units,
-    // each given here as a (header, second) pair.
     private static byte[] TBridgeMdatCreate(params byte[] nalBytes)
     {
         var content = new List<byte>();

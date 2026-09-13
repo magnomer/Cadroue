@@ -269,7 +269,6 @@ public static class LLosslesscut
                     or JsonException
                     or ArgumentException)
             {
-                // An unrelated or malformed project must not block adjacent-project detection.
             }
         }
 

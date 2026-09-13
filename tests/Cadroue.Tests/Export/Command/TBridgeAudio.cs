@@ -6,10 +6,6 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Locks the audio side of a bridged plan: the single continuous audio stage, the track
-/// selection it carries, and how the final mux maps video and audio exactly once.
-/// </summary>
 [Collection("EncodeCommand")]
 public sealed class TBridgeAudio
 {
@@ -21,9 +17,12 @@ public sealed class TBridgeAudio
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput, audioCodec: "pcm_s16le");
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30));
 
-        // Video is split into head/middle/tail; none of them touch audio.
         string[] videoLabels = { "Encoding head bridge", "Copying middle", "Encoding tail bridge" };
         foreach (string videoLabel in videoLabels)
         {
@@ -33,8 +32,6 @@ public sealed class TBridgeAudio
             Assert.DoesNotContain("-c:a", videoTokens);
         }
 
-        // Audio is one continuous stream-copy region cut over the whole requested interval.
-        // It retains source-relative packet timestamps so delayed tracks stay delayed.
         IReadOnlyList<string> audioTokens = TEncodeToken.TEncodeTokenRead(stages[^2].LEncodeStageArguments);
         Assert.Equal("copy", TEncodeToken.TEncodeOptionRead(audioTokens, "-c:a"));
         Assert.Equal("10", TEncodeToken.TEncodeOptionRead(audioTokens, "-ss"));
@@ -54,12 +51,15 @@ public sealed class TBridgeAudio
             audioCodec: "aac", audioMode: "Encode");
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30));
 
         IReadOnlyList<string> audioTokens = TEncodeToken.TEncodeTokenRead(stages[^2].LEncodeStageArguments);
         Assert.NotEqual("copy", TEncodeToken.TEncodeOptionRead(audioTokens, "-c:a"));
         Assert.Equal("aac", TEncodeToken.TEncodeOptionRead(audioTokens, "-c:a"));
-        // Still one continuous audio region over the requested interval, not per-region pieces.
         Assert.Equal("0:a:0", TEncodeToken.TEncodeOptionRead(audioTokens, "-map"));
         Assert.Equal("20", TEncodeToken.TEncodeOptionRead(audioTokens, "-t"));
     }
@@ -73,7 +73,11 @@ public sealed class TBridgeAudio
             audioStream: "Include all audio tracks");
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30));
 
         IReadOnlyList<string> audioTokens = TEncodeToken.TEncodeTokenRead(stages[^2].LEncodeStageArguments);
         Assert.Equal("0:a", TEncodeToken.TEncodeOptionRead(audioTokens, "-map"));
@@ -90,7 +94,11 @@ public sealed class TBridgeAudio
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30));
 
         IReadOnlyList<string> muxTokens = TEncodeToken.TEncodeTokenRead(stages[^1].LEncodeStageArguments);
         Assert.Equal(2, TEncodeToken.TEncodeCountRead(muxTokens, "-map"));
@@ -107,9 +115,12 @@ public sealed class TBridgeAudio
             audioCodec: "", sampleRate: 0);
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30));
 
-        // head, middle, tail (each with its join piece), join — no audio stage.
         Assert.Equal(7, stages.Count);
         IReadOnlyList<string> muxTokens = TEncodeToken.TEncodeTokenRead(stages[^1].LEncodeStageArguments);
         Assert.Contains("-an", muxTokens);

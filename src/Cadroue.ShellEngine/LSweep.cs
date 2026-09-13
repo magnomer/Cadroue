@@ -61,9 +61,9 @@ public static partial class LSweep
         return lSweepSeen.Select(TimeSpan.FromSeconds).ToList();
     }
 
-    public static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepOutputParse(IEnumerable<string> lSweepLines)
+    public static IReadOnlyList<LSweepSpan> LSweepOutputParse(IEnumerable<string> lSweepLines)
     {
-        var lSweepIntervals = new List<(TimeSpan, TimeSpan)>();
+        var lSweepIntervals = new List<LSweepSpan>();
         foreach (string lSweepLine in lSweepLines)
         {
             if (lSweepLine is null || !lSweepLine.Contains("black_start:", StringComparison.Ordinal))
@@ -75,7 +75,7 @@ public static partial class LSweep
             double? lSweepEnd = LSweepFieldRead(lSweepLine, "black_end:");
             if (lSweepStart is { } lSweepFrom && lSweepEnd is { } lSweepTo && lSweepTo > lSweepFrom)
             {
-                lSweepIntervals.Add((TimeSpan.FromSeconds(lSweepFrom), TimeSpan.FromSeconds(lSweepTo)));
+                lSweepIntervals.Add(new LSweepSpan(TimeSpan.FromSeconds(lSweepFrom), TimeSpan.FromSeconds(lSweepTo)));
             }
         }
 
@@ -106,46 +106,46 @@ public static partial class LSweep
             : null;
     }
 
-    private static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepIntervalNormalize(
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepBlanks, TimeSpan lSweepDuration)
+    private static IReadOnlyList<LSweepSpan> LSweepIntervalNormalize(
+        IReadOnlyList<LSweepSpan> lSweepBlanks, TimeSpan lSweepDuration)
     {
         var lSweepOrdered = lSweepBlanks
-            .Select(lSweepBlank => (
-                Start: LSweepClamp(lSweepBlank.Start, lSweepDuration),
-                End: LSweepClamp(lSweepBlank.End, lSweepDuration)))
-            .Where(lSweepBlank => lSweepBlank.End > lSweepBlank.Start)
-            .OrderBy(lSweepBlank => lSweepBlank.Start)
+            .Select(lSweepBlank => new LSweepSpan(
+                LSweepClamp(lSweepBlank.LSweepSpanOrigin, lSweepDuration),
+                LSweepClamp(lSweepBlank.LSweepSpanEnd, lSweepDuration)))
+            .Where(lSweepBlank => lSweepBlank.LSweepSpanEnd > lSweepBlank.LSweepSpanOrigin)
+            .OrderBy(lSweepBlank => lSweepBlank.LSweepSpanOrigin)
             .ToList();
 
-        var lSweepMerged = new List<(TimeSpan Start, TimeSpan End)>();
+        var lSweepMerged = new List<LSweepSpan>();
         foreach ((TimeSpan lSweepStart, TimeSpan lSweepEnd) in lSweepOrdered)
         {
-            if (lSweepMerged.Count > 0 && lSweepStart <= lSweepMerged[^1].End)
+            if (lSweepMerged.Count > 0 && lSweepStart <= lSweepMerged[^1].LSweepSpanEnd)
             {
-                if (lSweepEnd > lSweepMerged[^1].End)
+                if (lSweepEnd > lSweepMerged[^1].LSweepSpanEnd)
                 {
-                    lSweepMerged[^1] = (lSweepMerged[^1].Start, lSweepEnd);
+                    lSweepMerged[^1] = new LSweepSpan(lSweepMerged[^1].LSweepSpanOrigin, lSweepEnd);
                 }
             }
             else
             {
-                lSweepMerged.Add((lSweepStart, lSweepEnd));
+                lSweepMerged.Add(new LSweepSpan(lSweepStart, lSweepEnd));
             }
         }
 
         return lSweepMerged;
     }
 
-    private static IReadOnlyList<(TimeSpan Start, TimeSpan End)> LSweepComplementResolve(
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepBlanks, TimeSpan lSweepDuration)
+    private static IReadOnlyList<LSweepSpan> LSweepComplementResolve(
+        IReadOnlyList<LSweepSpan> lSweepBlanks, TimeSpan lSweepDuration)
     {
-        var lSweepContent = new List<(TimeSpan Start, TimeSpan End)>();
+        var lSweepContent = new List<LSweepSpan>();
         TimeSpan lSweepCursor = TimeSpan.Zero;
         foreach ((TimeSpan lSweepStart, TimeSpan lSweepEnd) in lSweepBlanks)
         {
             if (lSweepStart > lSweepCursor)
             {
-                lSweepContent.Add((lSweepCursor, lSweepStart));
+                lSweepContent.Add(new LSweepSpan(lSweepCursor, lSweepStart));
             }
 
             if (lSweepEnd > lSweepCursor)
@@ -156,7 +156,7 @@ public static partial class LSweep
 
         if (lSweepDuration > lSweepCursor)
         {
-            lSweepContent.Add((lSweepCursor, lSweepDuration));
+            lSweepContent.Add(new LSweepSpan(lSweepCursor, lSweepDuration));
         }
 
         return lSweepContent;

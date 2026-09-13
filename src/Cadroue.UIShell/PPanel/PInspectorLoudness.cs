@@ -5,7 +5,7 @@ namespace Cadroue.UIShell.PPanel;
 
 public sealed partial class PInspector
 {
-    private (double Target, double Peak, double Range)? PLoudnessPresetRead() =>
+    private LLevelingLoudnessPreset? PLoudnessPresetRead() =>
         pLoudnessBaseToken is { } pBase ? LLevelingCatalog.LLevelingLoudnessRead(pBase) : null;
 
     private static string PLoudnessKeyRead(string pToken) => pToken switch
@@ -27,12 +27,12 @@ public sealed partial class PInspector
             PInspectorDecimalRead(pLoudnessPeak, -1.5),
             PInspectorDecimalRead(pLoudnessRange, 11));
 
-    private void PLoudnessValuesApply((double Target, double Peak, double Range) pPreset)
+    private void PLoudnessValuesApply(LLevelingLoudnessPreset pPreset)
     {
         pLoudnessPresetSuppress = true;
-        pLoudnessTarget.Text = pPreset.Target.ToString("0.###", CultureInfo.InvariantCulture);
-        pLoudnessPeak.Text = pPreset.Peak.ToString("0.###", CultureInfo.InvariantCulture);
-        pLoudnessRange.Text = pPreset.Range.ToString("0.###", CultureInfo.InvariantCulture);
+        pLoudnessTarget.Text = pPreset.LLevelingTarget.ToString("0.###", CultureInfo.InvariantCulture);
+        pLoudnessPeak.Text = pPreset.LLevelingPeak.ToString("0.###", CultureInfo.InvariantCulture);
+        pLoudnessRange.Text = pPreset.LLevelingRange.ToString("0.###", CultureInfo.InvariantCulture);
         pLoudnessPresetSuppress = false;
     }
 

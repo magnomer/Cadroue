@@ -125,10 +125,6 @@ public sealed partial class PRoster
         LEncoding pOutput = pWorkItem.LWorkOutput;
         LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia;
 
-        // Any source figure still absent is "Measuring" until measurement has actually been
-        // attempted for this item; only then does a missing figure mean "Unknown" (unreadable).
-        // The flag — not the presence of a partial probe — decides, so a figure the deferred
-        // whole-file measurement has not filled yet never reads as "Unknown".
         string pSourceUnknown = LLocalization.LLocalizationTextRead(
             pWorkItem.LWorkSourceMeasured ? "Roster.Value.Unknown" : "Roster.Value.Measuring");
 
@@ -254,7 +250,7 @@ public sealed partial class PRoster
             Margin = new Thickness(0, 8, 0, 0)
         };
 
-    private static Grid PRosterPanelBuild(IReadOnlyList<(string pLeft, string pRight)> pRows)
+    private static Grid PRosterPanelBuild(IReadOnlyList<(string, string)> pRows)
     {
         var pLeftStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Stretch };
         var pRightStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Stretch };

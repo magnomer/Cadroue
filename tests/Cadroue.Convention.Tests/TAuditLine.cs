@@ -3,23 +3,30 @@ using Xunit.Abstractions;
 
 namespace Convention.Tests;
 
-public sealed class TAuditSize
+public sealed class TAuditLine
 {
     private readonly ITestOutputHelper TAuditOutput;
 
-    public TAuditSize(ITestOutputHelper output) => TAuditOutput = output;
+    public TAuditLine(ITestOutputHelper output) => TAuditOutput = output;
 
     [Fact]
-    public void AuditSize_OversizeFile_ReportsAsAdvisory()
+    public void AuditLine_OversizeFile_ReportsAsAdvisory()
     {
         string repoRoot = TAuditSource.TAuditRootRead();
-        IReadOnlyList<string> sources = TAuditSource.TAuditFileRead(repoRoot);
+        TAuditScope scope = new(
+            TAuditLineSetting.TAuditLineRoots,
+            TAuditLineSetting.TAuditLineInclude,
+            TAuditLineSetting.TAuditLineSegments,
+            [],
+            [],
+            []);
+        IReadOnlyList<string> sources = TAuditSource.TAuditFileRead(repoRoot, scope);
 
         List<(string TAuditPath, int TAuditLines)> oversize = [];
         foreach (string path in sources)
         {
             int lines = File.ReadLines(path).Count();
-            if (lines > TAuditSetting.TAuditLineLimit)
+            if (lines >= TAuditLineSetting.TAuditLineLimit)
             {
                 oversize.Add((path, lines));
             }
@@ -30,7 +37,9 @@ public sealed class TAuditSize
             return;
         }
 
-        TAuditOutput.WriteLine($"ADVISORY (not a failure): {oversize.Count} file(s) exceed the {TAuditSetting.TAuditLineLimit}-line guideline.");
+        TAuditOutput.WriteLine(TAuditConvention.TAuditReportFormat(
+            "AUDITLINES",
+            $"ADVISORY (not a failure): {oversize.Count} file(s) reach the {TAuditLineSetting.TAuditLineLimit}-line guideline."));
         TAuditOutput.WriteLine("This does not block compilation and is not a defect on its own.");
         TAuditOutput.WriteLine("Do NOT force-trim a file just to fit the number. Prefer extracting a coherent");
         TAuditOutput.WriteLine("responsibility into a new single-purpose file (C-NLRF-2, C-SRFR); splitting is");

@@ -5,11 +5,6 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Locks what a bridged plan does when its measurements fail: a missing source or an
-/// unprobeable one must still keep the copied middle instead of degrading the whole cut
-/// into a full encode.
-/// </summary>
 [Collection("EncodeCommand")]
 public sealed class TBridgeFailure
 {
@@ -37,7 +32,11 @@ public sealed class TBridgeFailure
         LWorkItem work = TBridgeFixture.TBridgeWorkCreate(source, 1.1, 6.4, "Include");
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeDecodeBuild(
-            work, (1.1, 6.4), (1.1, 2), (2, 6, 5.933), (6, 6.4));
+            work,
+            TEncodeCommand.TBridgeSpanCreate(1.1, 6.4),
+            TEncodeCommand.TBridgeSpanCreate(1.1, 2),
+            TEncodeCommand.TBridgeSpanCreate(2, 6, 5.933),
+            TEncodeCommand.TBridgeSpanCreate(6, 6.4));
 
         TBridgeMiddleCheck(stages);
     }

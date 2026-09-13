@@ -9,11 +9,6 @@ namespace Cadroue.ShellEngine;
 
 internal sealed partial class LJob
 {
-    // Total Fix repair passes over one source: the initial pass plus recompose passes.
-    // A repair can resolve a defect a lower-precedence repair was also going to address,
-    // or expose one the first scan could not see past the first defect. So after each
-    // pass the output is re-scanned and the still-warranted repairs are recomposed and
-    // run again — bounded here so a defect that never clears cannot loop forever.
     private const int LJobPassMax = 2;
 
     private async Task<(int, string)> LJobFixRun()
@@ -22,15 +17,6 @@ internal sealed partial class LJob
 
         (int pFixExit, string pFixError) = await LJobPassRun().ConfigureAwait(false);
 
-        // Salvage is the last pass: it harvests the readable spans and extracts each as a
-        // valid standalone file, failing safe so nothing partial is left behind. The
-        // recovered paths are held for the terminal outcome to record as delivered derived
-        // outputs (LJobSalvageRecord). What it reads and whether it runs depend on the plan:
-        //   - No repair step selected: salvage is the only work, always run from the source.
-        //   - From source: recover from the original source, but only when the repair did not
-        //     fully succeed (any state other than Done counts as failed).
-        //   - From fixed result: always recover, reading the repaired output (falling back to
-        //     the source when the repair produced no output).
         LWorkFixSalvage pSalvage = lJobItem.LWorkFixPlan.LWorkFixSalvage;
         if (pSalvage.LWorkSalvageActive)
         {
@@ -81,15 +67,11 @@ internal sealed partial class LJob
                 return (pExit, pError);
             }
 
-            // Validation cleared the file, or the pass budget is spent: stop here and let
-            // the final validation state stand as this job's outcome.
             if (lJobValidateState == LWorkState.LWorkStateDone || pPass + 1 >= LJobPassMax)
             {
                 break;
             }
 
-            // Re-scan the repaired output and keep only the correctable repairs the user
-            // asked for; a report-only FFV1 dossier is never re-run.
             IReadOnlyList<LDossier> pRescan =
                 LFlawScan.LFlawScanRun(lJobItem.LWorkOutputPath, Array.Empty<LFlawKind>(), lJobToken);
             var pRemaining = LFix.LFixRepairResolve(pRescan, lJobItem.LWorkFixPlan)
@@ -100,8 +82,6 @@ internal sealed partial class LJob
                 break;
             }
 
-            // Only recompose when the correctable set actually changed; an unchanged set
-            // would repeat the same repairs to the same effect and never converge.
             var pRemainingKinds = pRemaining.Select(pDossier => pDossier.LDossierKind).ToHashSet();
             if (pPrevRemaining is not null && pRemainingKinds.SetEquals(pPrevRemaining))
             {
@@ -202,10 +182,6 @@ internal sealed partial class LJob
             lJobValidateMessage = string.Empty;
         }
 
-        // A report-only defect (FFV1 slice-CRC mismatch) cannot be corrected: the
-        // output is a faithful copy, not a repair. Never let it read as resolved.
-        // Only defects the plan asked to repair gate the outcome; a detected defect
-        // the user left unselected is out of this job's scope.
         IReadOnlyList<LDossier> pRepairable =
             LFix.LFixRepairResolve(lJobItem.LWorkDossiers, lJobItem.LWorkFixPlan);
         if (lJobValidateState == LWorkState.LWorkStateDone

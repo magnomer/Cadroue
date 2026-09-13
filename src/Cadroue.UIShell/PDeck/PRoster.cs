@@ -48,11 +48,6 @@ public sealed partial class PRoster : UserControl
         PRosterScheduleHandle(pRosterSchedule);
     }
 
-    // A running job has no finish time yet, so its elapsed figure is measured against the
-    // clock; and the shown item's source figures land later, from the low-priority background
-    // measurement. This one-second tick refreshes the detail while any job runs (so elapsed and
-    // the batch's summed spent/speed advance in real time) and while the shown item or batch is
-    // still awaiting measurement (so "Measuring" turns into values as soon as the result lands).
     private void PRosterElapsedTick(object? pSender, EventArgs pArguments)
     {
         if (pRosterClosed || !IsVisible)

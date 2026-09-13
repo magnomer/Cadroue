@@ -86,10 +86,6 @@ internal static class LScout
             return false;
         }
 
-        // Read-only decode-to-null. Never writes the output; only re-runs the
-        // affected operation to confirm the repaired stream decodes cleanly.
-        // Routed through the runner's configured program path, argument prefix,
-        // and argument transform so validation and repair use the identical ffmpeg.
         string lScoutBaseArguments = "-hide_banner -nostdin -v error -xerror "
             + $"-i {LEncode.LEncodeFormat(lScoutOutputPath)} -f null -";
         string lScoutArguments = lScoutRunner.LRunnerArgumentTransform?.Invoke(lScoutBaseArguments)
@@ -146,10 +142,6 @@ internal static class LScout
         return lScoutWorkItem.LWorkSourceBytes ?? LScoutBytesRead(lScoutWorkItem.LWorkSourcePath);
     }
 
-    // Every figure the worklist shows for a source is measured here once, when the file is
-    // added to the worklist, and stored on the item; the job run never re-measures it and a
-    // deleted source still shows its recorded figures. Enriches the base probe with the
-    // keyframe interval (video) and integrated loudness (audio) the probe does not carry.
     internal static LWorkMedia? LScoutSourceRead(string lScoutSourcePath, CancellationToken lScoutToken = default)
     {
         if (LScoutMediaRead(lScoutSourcePath, lScoutToken) is not { } lScoutMedia)

@@ -13,6 +13,8 @@ public sealed record LDepotIndexRow(
     int LLedgerProcessId,
     string LLedgerOutputName);
 
+public sealed record LDepotEntry(LDepotFolder LDepotEntryFolder, string LDepotEntryJson);
+
 public static class LDepotIndex
 {
     private const int LDepotBusyTimeout = 5;
@@ -57,7 +59,6 @@ public static class LDepotIndex
                 }
                 catch (SqliteException)
                 {
-                    // the column already exists on a current-schema table
                 }
 
                 lDepotSchemaChecked = true;
@@ -117,9 +118,9 @@ public static class LDepotIndex
         }
     }
 
-    public static IReadOnlyList<(LDepotFolder LLedgerFolder, string LDepotRowRecord)> LDepotRecordsRead()
+    public static IReadOnlyList<LDepotEntry> LDepotRecordsRead()
     {
-        var lDepotRecords = new List<(LDepotFolder, string)>();
+        var lDepotRecords = new List<LDepotEntry>();
         try
         {
             using SqliteConnection lDepotConnection = LDepotConnectionOpen();
@@ -136,7 +137,7 @@ public static class LDepotIndex
                     continue;
                 }
 
-                lDepotRecords.Add((LDepotEnumRead(lDepotReader.GetString(0), LDepotFolder.LDepotFolderScheduled), lDepotRecord));
+                lDepotRecords.Add(new LDepotEntry(LDepotEnumRead(lDepotReader.GetString(0), LDepotFolder.LDepotFolderScheduled), lDepotRecord));
             }
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
@@ -301,6 +302,6 @@ public static class LDepotIndex
         return lDepotConnection;
     }
 
-    private static TEnum LDepotEnumRead<TEnum>(string lDepotValue, TEnum lDepotFallback) where TEnum : struct =>
-        Enum.TryParse(lDepotValue, out TEnum lDepotParsed) ? lDepotParsed : lDepotFallback;
+    private static LDepotEnum LDepotEnumRead<LDepotEnum>(string lDepotValue, LDepotEnum lDepotFallback) where LDepotEnum : struct =>
+        Enum.TryParse(lDepotValue, out LDepotEnum lDepotParsed) ? lDepotParsed : lDepotFallback;
 }

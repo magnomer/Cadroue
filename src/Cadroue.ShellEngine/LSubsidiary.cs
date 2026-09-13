@@ -2,13 +2,6 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-// The single serial owner of every non-job ffmpeg/ffprobe measurement the worklist needs: source
-// probe/keyframe/loudness when a file is added, and finished-output loudness when a job ends. One
-// low-priority worker runs one item at a time, so at most one ffmpeg/ffprobe child ever exists here.
-// Two priority lanes share that one worker: finished-output loudness (high) jumps ahead of queued
-// source measurement (low). Whatever the lane, every item first yields while a station is processing,
-// so its whole-file disk reads never seek against a running encode on a spinning disk. Native byte
-// size is never queued here — it is read instantly at add time, off this worker (see LMessenger).
 internal static class LSubsidiary
 {
     private const int LSubsidiaryIdleMilliseconds = 500;
@@ -28,8 +21,6 @@ internal static class LSubsidiary
     private static bool lSubsidiaryBusy;
     private static CancellationTokenSource lSubsidiaryCancellation = new();
 
-    // Queue a finished output's integrated-loudness measurement at high priority: it runs before any
-    // pending source measurement, waiting only for the single in-flight measurement to finish.
     public static void LSubsidiaryOutputDefer(LWorkItem lSubsidiaryItem, string lSubsidiaryOutputPath)
     {
         LWorkItem lSubsidiaryCaptured = lSubsidiaryItem;
@@ -39,7 +30,6 @@ internal static class LSubsidiary
         LSubsidiaryStart();
     }
 
-    // Queue each added item's source measurement (probe, keyframe interval, loudness) at low priority.
     public static void LSubsidiarySourceDefer(IReadOnlyList<LWorkItem> lSubsidiaryItems)
     {
         foreach (LWorkItem lSubsidiaryItem in lSubsidiaryItems)
@@ -52,8 +42,6 @@ internal static class LSubsidiary
         LSubsidiaryStart();
     }
 
-    // Abort all measurement: drop everything still queued and cancel the in-flight probe so its
-    // ffprobe/ffmpeg child is killed at once (Clear all). A fresh token source arms the next run.
     public static void LSubsidiaryCancel()
     {
         CancellationTokenSource lSubsidiaryRetired;
@@ -101,11 +89,6 @@ internal static class LSubsidiary
         {
             while (LSubsidiaryNextRead() is { } lSubsidiaryTask)
             {
-                // Measurement reads the file end to end (keyframe scan, loudness decode). A running
-                // job reads the same disk; on a spinning drive the two sets of reads seek against each
-                // other and stall the encode. Since measurement is never urgent, hold every item —
-                // even a high-priority output one — until no post is processing, so its disk work only
-                // runs while the drive is otherwise idle.
                 CancellationToken lSubsidiaryToken = lSubsidiaryCancellation.Token;
                 while (LStation.LStationActiveCheck())
                 {
@@ -118,7 +101,6 @@ internal static class LSubsidiary
         }
         catch (OperationCanceledException)
         {
-            // The in-flight probe was cancelled (Clear all); both queues are already drained.
         }
         finally
         {
@@ -127,8 +109,6 @@ internal static class LSubsidiary
                 lSubsidiaryBusy = false;
             }
 
-            // An item queued between the queues draining and the flag clearing would otherwise wait
-            // for the next add; restart the worker to pick it up.
             if (!lSubsidiaryHigh.IsEmpty || !lSubsidiaryLow.IsEmpty)
             {
                 LSubsidiaryStart();
@@ -206,8 +186,6 @@ internal static class LSubsidiary
             lSubsidiaryMerge ? lSubsidiaryMergeBytes : Array.Empty<long>()));
     }
 
-    // A measured source is reused whenever the file is unchanged (same path, length, and write time);
-    // only a new or changed file is measured afresh.
     private static LSubsidiarySample LSubsidiarySampleRead(
         string lSubsidiarySource, CancellationToken lSubsidiaryToken)
     {
@@ -260,8 +238,6 @@ internal static class LSubsidiary
             ? lSubsidiaryItem.LWorkMergeSources
             : new[] { lSubsidiaryItem.LWorkSourcePath };
 
-    // The schedule mutation raises UI events and touches the depot; route it onto the post thread the
-    // rest of the worklist writes on, falling back to inline when no post owner is wired.
     private static void LSubsidiaryDefer(Action lSubsidiaryAction)
     {
         if (LStation.LStationPost is { } lSubsidiaryPost)

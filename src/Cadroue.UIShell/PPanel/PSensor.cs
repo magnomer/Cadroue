@@ -6,6 +6,8 @@ using Cadroue.UIShell.PHouse;
 
 namespace Cadroue.UIShell.PPanel;
 
+public sealed record PSensorShape(string PSensorLabelKey, string PSensorUnit, string PSensorPattern);
+
 public sealed partial class PInspector
 {
     public event Action? PSensorChange;
@@ -71,15 +73,15 @@ public sealed partial class PInspector
         _ => "Inspector.Header.Title"
     };
 
-    private static (string LabelKey, string Unit, string Format) PSensorShapeRead(LDetectorKind pDetectorKind) => pDetectorKind switch
+    private static PSensorShape PSensorShapeRead(LDetectorKind pDetectorKind) => pDetectorKind switch
     {
-        LDetectorKind.LDetectorKindBlank => ("Inspector.Detector.BlackRatio", string.Empty, "0.00"),
-        LDetectorKind.LDetectorKindScene => ("Inspector.Detector.Sensitivity", string.Empty, "0"),
-        LDetectorKind.LDetectorKindStill => ("Inspector.Detector.Tolerance", "%", "0.00"),
-        LDetectorKind.LDetectorKindLuminance => ("Inspector.Detector.LuminanceChange", "%", "0"),
-        LDetectorKind.LDetectorKindSilence => ("Inspector.Detector.Threshold", "dB", "0"),
-        LDetectorKind.LDetectorKindVolume => ("Inspector.Detector.Threshold", "LU", "0"),
-        _ => ("Inspector.Detector.Threshold", string.Empty, "0")
+        LDetectorKind.LDetectorKindBlank => new PSensorShape("Inspector.Detector.BlackRatio", string.Empty, "0.00"),
+        LDetectorKind.LDetectorKindScene => new PSensorShape("Inspector.Detector.Sensitivity", string.Empty, "0"),
+        LDetectorKind.LDetectorKindStill => new PSensorShape("Inspector.Detector.Tolerance", "%", "0.00"),
+        LDetectorKind.LDetectorKindLuminance => new PSensorShape("Inspector.Detector.LuminanceChange", "%", "0"),
+        LDetectorKind.LDetectorKindSilence => new PSensorShape("Inspector.Detector.Threshold", "dB", "0"),
+        LDetectorKind.LDetectorKindVolume => new PSensorShape("Inspector.Detector.Threshold", "LU", "0"),
+        _ => new PSensorShape("Inspector.Detector.Threshold", string.Empty, "0")
     };
 
     private StackPanel PSensorBuild(LDetectorKind pDetectorKind)
@@ -270,7 +272,7 @@ public sealed partial class PInspector
     }
 
 
-    private (RadioButton Fast, RadioButton Normal, RadioButton Full) PSensorSpeedBuild(
+    private (RadioButton, RadioButton, RadioButton) PSensorSpeedBuild(
         StackPanel pStack, Action pSensorRaise)
     {
         string pModeGroup = "PSensorLuminanceMode_" + System.Guid.NewGuid().ToString("N");

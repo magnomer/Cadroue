@@ -60,8 +60,6 @@ public sealed class TFlawIndex
     [Fact]
     public void SeekOnlyFailureOverCleanRead_ProducesIndexDossier()
     {
-        // Sequential read is clean with and without the index, yet a boundary seek
-        // fails with a message that never says "index": the addressing is broken.
         LDossier? dossier = TInterface.TFlawIndexResolve(
             string.Empty,
             string.Empty,
@@ -75,8 +73,6 @@ public sealed class TFlawIndex
     [Fact]
     public void SeekFailureOverDamagedRead_IsNotAnIndexDefect()
     {
-        // The sequential read already errors, so the fault belongs to the container or
-        // coded detector that owns that error, not to addressing.
         Assert.Null(TInterface.TFlawIndexResolve(
             "[matroska @ 0x1] 0x00 at pos 536 invalid as first byte of an EBML number",
             string.Empty,

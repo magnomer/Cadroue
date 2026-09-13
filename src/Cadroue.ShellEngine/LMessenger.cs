@@ -25,8 +25,6 @@ public static partial class LMessenger
         LCartographerPlanRecord? lMessengerPlan = null) =>
         LMessengerRouteSource?.Invoke(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan) ?? 0;
 
-    // Route a schedule-mutating action onto the post thread the worklist writes on, falling back to
-    // inline when no post owner is wired.
     private static void LMessengerDefer(Action lMessengerAction)
     {
         if (LStation.LStationPost is { } lMessengerPost)

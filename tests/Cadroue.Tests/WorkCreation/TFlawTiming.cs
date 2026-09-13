@@ -25,7 +25,6 @@ public sealed class TFlawTiming
     [Fact]
     public void ReorderedPresentation_IsNotATimingDefect()
     {
-        // B-frame reorder: PTS differs from DTS but DTS stays monotonic; legal.
         Assert.Null(TInterface.TFlawTimingResolve(
             TFlawPacketCreate(0, "1024", "0") + TFlawPacketCreate(0, "512", "512") + TFlawPacketCreate(0, "2048", "1024")));
     }
@@ -33,8 +32,6 @@ public sealed class TFlawTiming
     [Fact]
     public void MissingPresentation_RegeneratesWithGenpts()
     {
-        // A stream that presents some timestamps yet drops others has a reconstructable
-        // gap; genpts fills it from decode order.
         LDossier? dossier = TInterface.TFlawTimingResolve(
             TFlawPacketCreate(0, "0", "0") + TFlawPacketCreate(0, "N/A", "512") + TFlawPacketCreate(0, "1024", "1024"));
 
@@ -49,8 +46,6 @@ public sealed class TFlawTiming
     [Fact]
     public void UniformlyAbsentPresentation_IsContainerConvention()
     {
-        // Every packet lacks a PTS (AVI without reordering): presentation order equals
-        // decode order, a container convention rather than a defect to regenerate.
         Assert.Null(TInterface.TFlawTimingResolve(
             TFlawPacketCreate(0, "N/A", "0") + TFlawPacketCreate(0, "N/A", "512") + TFlawPacketCreate(0, "N/A", "1024")));
     }
@@ -58,8 +53,6 @@ public sealed class TFlawTiming
     [Fact]
     public void StrayPresentationAmongAbsent_IsContainerConvention()
     {
-        // One packet out of many carries a PTS while the rest do not: presentation timing is
-        // not the stream's norm, so the lone stamp is a container artifact, not a fillable gap.
         Assert.Null(TInterface.TFlawTimingResolve(
             TFlawPacketCreate(0, "N/A", "0") + TFlawPacketCreate(0, "N/A", "512") + TFlawPacketCreate(0, "N/A", "1024")
             + TFlawPacketCreate(0, "N/A", "1536") + TFlawPacketCreate(0, "2048", "2048")));
@@ -90,7 +83,6 @@ public sealed class TFlawTiming
     [Fact]
     public void WraparoundDecode_IsNotATimingDefect()
     {
-        // MPEG-TS 33-bit wraparound: DTS falls back from near 2^33 to zero; legal.
         Assert.Null(TInterface.TFlawTimingResolve(
             TFlawPacketCreate(0, "8589933000", "8589933000") + TFlawPacketCreate(0, "512", "512")));
     }
@@ -98,8 +90,6 @@ public sealed class TFlawTiming
     [Fact]
     public void PerStreamOrdering_IgnoresCrossStreamInterleave()
     {
-        // Two streams interleaved: each stream's own DTS is monotonic though the
-        // report alternates between them. No defect.
         Assert.Null(TInterface.TFlawTimingResolve(
             TFlawPacketCreate(0, "0", "0") + TFlawPacketCreate(1, "0", "0")
             + TFlawPacketCreate(0, "512", "512") + TFlawPacketCreate(1, "512", "512")));

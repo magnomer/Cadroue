@@ -13,16 +13,18 @@ public enum PFunnelForm { PFunnelFormFilename, PFunnelFormRegex, PFunnelFormRema
 
 public sealed class PFunnelRuleRow : Border
 {
+    private readonly record struct PFunnelSpec(PFunnelKind PFunnelSpecKind, string PFunnelSpecLabel, bool PFunnelSpecJoin);
+
     private static readonly FontFamily pFunnelFontFamily = new("Segoe UI");
     private static readonly Brush pFunnelLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush pFunnelTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
 
-    private static readonly (PFunnelKind Kind, string LabelKey, bool HasJoin)[] pFunnelSpecs =
+    private static readonly PFunnelSpec[] pFunnelSpecs =
     {
-        (PFunnelKind.PFunnelKindContains, "Inspector.Funnel.Contains", false),
-        (PFunnelKind.PFunnelKindPrefix, "Inspector.Funnel.StartsWith", true),
-        (PFunnelKind.PFunnelKindEnd, "Inspector.Funnel.EndsWith", true),
-        (PFunnelKind.PFunnelKindExtension, "Inspector.Funnel.Extension", true)
+        new(PFunnelKind.PFunnelKindContains, "Inspector.Funnel.Contains", false),
+        new(PFunnelKind.PFunnelKindPrefix, "Inspector.Funnel.StartsWith", true),
+        new(PFunnelKind.PFunnelKindEnd, "Inspector.Funnel.EndsWith", true),
+        new(PFunnelKind.PFunnelKindExtension, "Inspector.Funnel.Extension", true)
     };
 
     private const double PFunnelFieldHeight = 30;

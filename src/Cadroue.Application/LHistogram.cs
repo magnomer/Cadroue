@@ -10,9 +10,6 @@ public static class LHistogram
 {
     private const int LHistogramBinCount = 256;
 
-    // Per-channel 256-bin value counts of a decoded RGBA frame plus a combined
-    // Rec.709 luminance histogram, for the curve editor's behind-the-curve guide.
-    // Fully transparent pixels are skipped; bytes are R,G,B,A in stored order.
     public static LHistogramCounts LHistogramCreate(
         IReadOnlyList<byte> lHistogramPixels, int lHistogramWidth, int lHistogramHeight)
     {

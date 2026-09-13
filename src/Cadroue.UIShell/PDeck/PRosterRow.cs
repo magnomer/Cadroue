@@ -9,8 +9,10 @@ namespace Cadroue.UIShell.PDeck;
 
 public sealed partial class PRoster
 {
+    private sealed record PRosterShade(Border PRosterShadeBorder, Guid PRosterShadeBatch, bool PRosterShadeStage);
+
     private readonly Dictionary<Guid, Guid> pRosterRowBatch = new();
-    private readonly List<(Border Border, Guid Batch, bool Stage)> pRosterFileShades = new();
+    private readonly List<PRosterShade> pRosterFileShades = new();
 
     private static Border PRosterFileBuild(PRosterLineageEntry pLineage, bool pStage) => new()
     {
@@ -35,11 +37,11 @@ public sealed partial class PRoster
 
     private void PRosterShadeApply()
     {
-        foreach ((Border pRow, Guid pBatch, bool pStage) in pRosterFileShades)
+        foreach (PRosterShade pShade in pRosterFileShades)
         {
-            pRow.Background = pBatch == pRosterCardId
+            pShade.PRosterShadeBorder.Background = pShade.PRosterShadeBatch == pRosterCardId
                 ? Brushes.Transparent
-                : pStage
+                : pShade.PRosterShadeStage
                     ? PRosterTheme.PRosterStageBrush
                     : Brushes.Transparent;
         }

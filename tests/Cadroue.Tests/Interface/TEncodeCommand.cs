@@ -11,9 +11,6 @@ namespace Cadroue.Tests;
 [CollectionDefinition("EncodeCommand", DisableParallelization = true)]
 public sealed class TEncodeCommandCollection;
 
-/// <summary>
-/// Test-side relay for production command construction and its depot configuration.
-/// </summary>
 internal sealed partial class TEncodeCommand : IDisposable
 {
     private readonly string tDepotRoot = Path.Combine(

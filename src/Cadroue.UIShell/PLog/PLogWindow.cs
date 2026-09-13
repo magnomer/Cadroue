@@ -15,6 +15,8 @@ namespace Cadroue.UIShell;
 
 public sealed partial class PLogWindow : Window
 {
+    private sealed record PLogPending(long PLogSequence, LTraceEntry PLogEntry);
+
     private const string PLogPlacementKey = "Log";
     private const int PLogRowMaximum = 5000;
     private const int PLogFlushMilliseconds = 200;
@@ -23,7 +25,7 @@ public sealed partial class PLogWindow : Window
 
     private readonly ObservableCollection<PLogRow> pLogRowsShown = new();
     private readonly List<PLogRow> pLogRowsAll = new();
-    private readonly List<(long Sequence, LTraceEntry Entry)> pLogPending = new();
+    private readonly List<PLogPending> pLogPending = new();
     private readonly object pLogPendingLock = new();
 
     private readonly ListBox pLogFeed;

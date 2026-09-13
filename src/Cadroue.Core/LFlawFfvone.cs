@@ -2,11 +2,6 @@ namespace Cadroue.Core;
 
 public static class LFlawFfvone
 {
-    // Detection-only repair marker. An FFV1 slice-CRC mismatch proves the covered
-    // slice is inconsistent, not which byte changed, and ffmpeg cannot correct it;
-    // the dossier reports the damage and never claims the original bytes were
-    // restored. The Fix pipeline treats a report-only dossier as an unresolvable
-    // defect: the file is copied unchanged and the item ends Unresolved.
     public const string LFlawReport = "report";
 
     private static readonly string[] lFlawFfvoneMismatch =
@@ -16,8 +11,6 @@ public static class LFlawFfvone
 
     public static LDossier? LFlawFfvoneResolve(string lFlawProbeReport, string lFlawCrcError)
     {
-        // Applies only to FFV1 streams carrying slice CRCs; any other codec is not
-        // applicable and raises no dossier.
         if (!LFlawFfvoneCheck(lFlawProbeReport))
         {
             return null;

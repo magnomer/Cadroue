@@ -142,10 +142,6 @@ public static partial class LConvert
             : null;
     }
 
-    // A duration-bearing name token cannot be filled from the sidecar cache alone: a file never opened in
-    // the editor has no cached duration and would freeze "00-00-00.000" into its output name while the
-    // later background measurement corrected only the item. Such a pattern is probed off the calling
-    // thread before admission; every other pattern keeps the free cache read.
     public static async Task<Func<string, TimeSpan>> LConvertDurationResolve(
         LEncoding lConvertOutput, IReadOnlyList<string> lConvertSourcePaths)
     {

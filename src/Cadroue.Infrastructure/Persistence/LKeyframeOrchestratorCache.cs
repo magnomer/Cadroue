@@ -99,7 +99,7 @@ public sealed partial class LKeyframeOrchestrator
     {
         lock (lKeyframeLock)
         {
-            if (lKeyframeSavedSignature == (lKeyframeStorage.Count, lKeyframeScannedSpans.Count))
+            if (lKeyframeSavedSignature == new LKeyframeSignature(lKeyframeStorage.Count, lKeyframeScannedSpans.Count))
             {
                 return;
             }
@@ -138,7 +138,7 @@ public sealed partial class LKeyframeOrchestrator
         {
             lock (lKeyframeLock)
             {
-                lKeyframeSavedSignature = (keyframes.Length, scannedSpans.Length);
+                lKeyframeSavedSignature = new LKeyframeSignature(keyframes.Length, scannedSpans.Length);
             }
         }
 

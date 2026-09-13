@@ -140,7 +140,7 @@ public sealed partial record LTraceEntry(
             : lTraceOpen with { LTraceEntryDetail = lTraceDetail.ToString() });
     }
 
-    private static (string Summary, double? Span) LTraceSummaryDivide(string lTraceTail)
+    private static (string, double?) LTraceSummaryDivide(string lTraceTail)
     {
         int lTraceMark = lTraceTail.LastIndexOf(" — ", StringComparison.Ordinal);
         if (lTraceMark < 0)

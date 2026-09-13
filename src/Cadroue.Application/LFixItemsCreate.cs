@@ -70,7 +70,6 @@ public static partial class LFix
         return lFixWorkItems;
     }
 
-
     private static string LFixNameCreate(LEncoding lFixOutput, string lFixSourcePath, string lFixFolder, TimeSpan lFixDuration)
     {
         string lFixSourceStem = Path.GetFileNameWithoutExtension(lFixSourcePath);
@@ -102,9 +101,6 @@ public static partial class LFix
 
     private static string LFixNameFormat(string lFixBaseName, string lFixSourcePath)
     {
-        // Fix is a source-representation pass-through: the copy stage keeps the source
-        // container and stream layout, so the destination extension must mirror the
-        // source, never the export preset's container.
         string lFixExtension = Path.GetExtension(lFixSourcePath).TrimStart('.');
         return string.IsNullOrWhiteSpace(lFixExtension)
             ? lFixBaseName

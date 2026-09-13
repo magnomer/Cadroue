@@ -5,9 +5,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Test-side boundary for the Fix diagnosis family: defect parsing, case files, repair planning.
-/// </summary>
 internal static partial class TInterface
 {
     internal static LRemedyPlan TRemedyPlanCreate(IReadOnlyList<LDossier> dossiers) =>

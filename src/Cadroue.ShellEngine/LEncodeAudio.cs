@@ -33,9 +33,6 @@ internal static class LEncodeAudio
         LEncodeSettingsAppend(lArguments, lOutput, LEncodeTrackRead(lOutput.LEncodingAudio.LEncodingEncoder));
     }
 
-    // The mux stage of the staged audio pipeline. Its first output audio track is the
-    // processed intermediate and always carries the configured encoder settings; any
-    // carried-through source track is copied, so encoder options never reach it.
     internal static void LEncodeMuxAppend(StringBuilder lArguments, LEncoding lOutput, bool lAllTracks)
     {
         if (LEncodeExcludeCheck(lOutput))

@@ -18,11 +18,6 @@ public static class LFlawIndex
         string lFlawFaults = LFlawAddressingRead($"{lFlawIndexedError}\n{lFlawSeekError}");
         if (lFlawFaults.Length == 0)
         {
-            // No demuxer line names the index, yet a boundary seek can still fail on a
-            // file that reads cleanly front to back. Random access failing over a clean
-            // sequential read is itself the addressing defect, whatever words the
-            // demuxer chose; a file whose sequential read already errors belongs to
-            // whichever container or coded detector owns that error, not here.
             if (LFlawSequentialCheck(lFlawIndexedError))
             {
                 lFlawFaults = LFlawSeekRead(lFlawSeekError);

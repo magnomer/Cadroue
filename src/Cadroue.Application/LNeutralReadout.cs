@@ -9,9 +9,6 @@ public static partial class LNeutral
         _ => LNeutralStatus.LNeutralStatusInvalid
     };
 
-    // The Manual white-balance group shows only for the Manual method, and its swatch
-    // and readout render only when a valid (non-black) sample is present. Automatic
-    // methods collapse the group; kept-in-memory manual values stay off-screen.
     public static LNeutralDisplay LNeutralDisplayResolve(
         bool lNeutralManual,
         int lNeutralRed,

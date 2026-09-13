@@ -20,8 +20,8 @@ public sealed class LCropboxState
 
     public bool LCropboxStatePersistent => lCropboxStatePersistent;
 
-    public (bool RatioFixed, bool RatioLenient, int RatioWidth, int RatioHeight) LCropboxStateRatio =>
-        (lCropboxRatioFixed, lCropboxRatioLenient, lCropboxRatioWidth, lCropboxRatioHeight);
+    public LCropboxRatio LCropboxStateRatio =>
+        new(lCropboxRatioFixed, lCropboxRatioLenient, lCropboxRatioWidth, lCropboxRatioHeight);
 
     public void LCropboxCropSet(LWorkCrop lCrop)
     {

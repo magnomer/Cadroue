@@ -9,23 +9,21 @@ namespace Cadroue.UIShell.PDeck;
 
 public sealed class PFixTab : PTabSurface
 {
-    // Presentation order is by real-world defect frequency (most common first) so the
-    // defect a user most likely faces is nearest the top. It deliberately differs from the
-    // actual repair order, which LRemedy fixes by safety and dependency (lossless carriage
-    // repairs first, lossy decode-reencode last); list position never decides repair semantics.
-    private static readonly (LFlawKind Kind, string Name, string Icon, string LabelKey)[] pFixSteps =
+    private sealed record PFixStep(LFlawKind PFixStepKind, string PFixStepName, string PFixStepIcon, string PFixStepLabel);
+
+    private static readonly PFixStep[] pFixSteps =
     {
-        (LFlawKind.LFlawKindTruncation, "Truncation", "/PAsset/PPanel/PProcessingFixTruncation.svg", "Processing.Step.Truncation"),
-        (LFlawKind.LFlawKindIndex, "Index", "/PAsset/PPanel/PProcessingFixIndex.svg", "Processing.Step.Index"),
-        (LFlawKind.LFlawKindContainer, "Container", "/PAsset/PPanel/PProcessingFixContainer.svg", "Processing.Step.Container"),
-        (LFlawKind.LFlawKindTiming, "Timing", "/PAsset/PPanel/PProcessingFixTiming.svg", "Processing.Step.Timing"),
-        (LFlawKind.LFlawKindMetadata, "Metadata", "/PAsset/PPanel/PProcessingFixMetadata.svg", "Processing.Step.Metadata"),
-        (LFlawKind.LFlawKindCoded, "Coded", "/PAsset/PPanel/PProcessingFixCoded.svg", "Processing.Step.Coded"),
-        (LFlawKind.LFlawKindFraming, "Framing", "/PAsset/PPanel/PProcessingFixFraming.svg", "Processing.Step.Framing"),
-        (LFlawKind.LFlawKindConfig, "Config", "/PAsset/PPanel/PProcessingFixConfiguration.svg", "Processing.Step.Config"),
-        (LFlawKind.LFlawKindTransport, "Transport", "/PAsset/PPanel/PProcessingFixTransport.svg", "Processing.Step.Transport"),
-        (LFlawKind.LFlawKindSecondary, "Secondary", "/PAsset/PPanel/PProcessingFixSecondary.svg", "Processing.Step.Secondary"),
-        (LFlawKind.LFlawKindFfvone, "Ffvone", "/PAsset/PPanel/PProcessingFixFfvone.svg", "Processing.Step.Ffvone")
+        new(LFlawKind.LFlawKindTruncation, "Truncation", "/PAsset/PPanel/PProcessingFixTruncation.svg", "Processing.Step.Truncation"),
+        new(LFlawKind.LFlawKindIndex, "Index", "/PAsset/PPanel/PProcessingFixIndex.svg", "Processing.Step.Index"),
+        new(LFlawKind.LFlawKindContainer, "Container", "/PAsset/PPanel/PProcessingFixContainer.svg", "Processing.Step.Container"),
+        new(LFlawKind.LFlawKindTiming, "Timing", "/PAsset/PPanel/PProcessingFixTiming.svg", "Processing.Step.Timing"),
+        new(LFlawKind.LFlawKindMetadata, "Metadata", "/PAsset/PPanel/PProcessingFixMetadata.svg", "Processing.Step.Metadata"),
+        new(LFlawKind.LFlawKindCoded, "Coded", "/PAsset/PPanel/PProcessingFixCoded.svg", "Processing.Step.Coded"),
+        new(LFlawKind.LFlawKindFraming, "Framing", "/PAsset/PPanel/PProcessingFixFraming.svg", "Processing.Step.Framing"),
+        new(LFlawKind.LFlawKindConfig, "Config", "/PAsset/PPanel/PProcessingFixConfiguration.svg", "Processing.Step.Config"),
+        new(LFlawKind.LFlawKindTransport, "Transport", "/PAsset/PPanel/PProcessingFixTransport.svg", "Processing.Step.Transport"),
+        new(LFlawKind.LFlawKindSecondary, "Secondary", "/PAsset/PPanel/PProcessingFixSecondary.svg", "Processing.Step.Secondary"),
+        new(LFlawKind.LFlawKindFfvone, "Ffvone", "/PAsset/PPanel/PProcessingFixFfvone.svg", "Processing.Step.Ffvone")
     };
 
     private readonly PFlowControl pFlow = new();
@@ -99,9 +97,9 @@ public sealed class PFixTab : PTabSurface
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
         pProcessing.PProcessingOrderedSet(false);
-        foreach ((LFlawKind _, string pFixName, string pFixIcon, string pFixLabelKey) in pFixSteps)
+        foreach (PFixStep pFixStep in pFixSteps)
         {
-            pProcessing.PProcessingStepAdd(pFixName, pFixIcon, pFixLabelKey);
+            pProcessing.PProcessingStepAdd(pFixStep.PFixStepName, pFixStep.PFixStepIcon, pFixStep.PFixStepLabel);
         }
 
         pProcessing.PProcessingStepAdd(
@@ -174,14 +172,12 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixDiagnosisRun()
     {
-        // One pass diagnoses every defect kind, so a single button re-runs the whole
-        // checklist for the selected file. Forced: a stored result never short-circuits it.
         if (pList.PListEditableRead() is not { } pFixSelected)
         {
             return;
         }
 
-        LFlawKind[] pFixKinds = pFixSteps.Select(pFixStep => pFixStep.Kind).ToArray();
+        LFlawKind[] pFixKinds = pFixSteps.Select(pFixStep => pFixStep.PFixStepKind).ToArray();
         pFixCheckup.LCheckupStart(new[] { pFixSelected.LDocketEntryPath }, pFixKinds, lCheckupForce: true);
     }
 
@@ -235,8 +231,6 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixChangeHandle()
     {
-        // Processing-row color represents Apply only. Refresh it from the in-memory plan
-        // independently of whether the current plan can or should be persisted.
         PFixActiveUpdate();
         PFixPlanSave();
     }
@@ -307,11 +301,11 @@ public sealed class PFixTab : PTabSurface
     private void PFixActiveUpdate()
     {
         LWorkFix pFixPlan = pClinic.PClinicPlanRead();
-        foreach ((LFlawKind pFixKind, string pFixName, string _, string _) in pFixSteps)
+        foreach (PFixStep pFixStep in pFixSteps)
         {
             bool pFixActive = pFixPlan.LWorkFixSteps.Any(
-                pStep => pStep.LWorkFixKind == pFixKind && pStep.LWorkFixRepair);
-            pProcessing.PProcessingActiveSet(pFixName, pFixActive);
+                pStep => pStep.LWorkFixKind == pFixStep.PFixStepKind && pStep.LWorkFixRepair);
+            pProcessing.PProcessingActiveSet(pFixStep.PFixStepName, pFixActive);
         }
 
         pProcessing.PProcessingActiveSet("Salvage", pFixPlan.LWorkFixSalvage.LWorkSalvageActive);

@@ -12,6 +12,8 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PViewfinder : FrameworkElement
 {
+    private readonly record struct PViewfinderTextKey(int PViewfinderKind, string PViewfinderText, double PViewfinderRoom);
+
     private enum PViewfinderDragMode
     {
         PViewfinderDragNone,
@@ -80,7 +82,7 @@ public sealed partial class PViewfinder : FrameworkElement
     private PViewfinderDragMode pViewfinderDragMode;
     private string pViewfinderDrawTrigger = "attach";
     private int pViewfinderGlyphCount;
-    private readonly Dictionary<(int Kind, string Text, double Room), FormattedText> pViewfinderTextCache = new();
+    private readonly Dictionary<PViewfinderTextKey, FormattedText> pViewfinderTextCache = new();
     private double pViewfinderTextDpi = -1;
 
     public event Action<TimeSpan>? PViewfinderCursorChange;
@@ -137,7 +139,7 @@ public sealed partial class PViewfinder : FrameworkElement
         PViewfinderDrawDefer("keyframes");
     }
 
-    private static (double Top, double Bottom) PViewfinderRailRead(double actualHeight)
+    private static (double, double) PViewfinderRailRead(double actualHeight)
     {
         double pRailTop = PTimecodeLaneHeight + PViewfinderRailGap;
         double pCoverageTop = Math.Max(0, Math.Max(0, actualHeight - 1) - PViewfinderCoverageHeight);

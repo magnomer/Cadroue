@@ -6,6 +6,8 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
+public sealed record LPresetEntry(string LPresetEntryPath, LPresetRecord LPresetEntryValue);
+
 public static class LPresetStore
 {
     private const string LPresetFolderName = "Cadroue";
@@ -47,7 +49,7 @@ public static class LPresetStore
         Func<string, string> lRelativeRead,
         Func<string, LPresetRecord?> lPresetRead)
     {
-        var lGroups = new SortedDictionary<string, List<(string Path, LPresetRecord Record)>>(StringComparer.OrdinalIgnoreCase);
+        var lGroups = new SortedDictionary<string, List<LPresetEntry>>(StringComparer.OrdinalIgnoreCase);
         foreach (string lSource in lSources)
         {
             string lRelativePath = lRelativeRead(lSource).Replace('\\', '/');
@@ -60,21 +62,21 @@ public static class LPresetStore
             string lGroupName = lRelativePath[..lSeparatorIndex];
             LPresetRecord lRecord = lPresetRead(lSource)?.LPresetRecordNormalize()
                 ?? throw new InvalidDataException($"Native preset is invalid: {lSource}");
-            if (!lGroups.TryGetValue(lGroupName, out List<(string Path, LPresetRecord Record)>? lGroupRecords))
+            if (!lGroups.TryGetValue(lGroupName, out List<LPresetEntry>? lGroupRecords))
             {
                 lGroupRecords = [];
                 lGroups.Add(lGroupName, lGroupRecords);
             }
 
-            lGroupRecords.Add((lRelativePath, lRecord));
+            lGroupRecords.Add(new LPresetEntry(lRelativePath, lRecord));
         }
 
         return lGroups
             .Select(lGroup => new LPresetGroup(
                 lGroup.Key,
                 lGroup.Value
-                    .OrderBy(lEntry => lEntry.Path, StringComparer.OrdinalIgnoreCase)
-                    .Select(lEntry => lEntry.Record)
+                    .OrderBy(lEntry => lEntry.LPresetEntryPath, StringComparer.OrdinalIgnoreCase)
+                    .Select(lEntry => lEntry.LPresetEntryValue)
                     .ToArray()))
             .ToArray();
     }
@@ -109,10 +111,6 @@ public static class LPresetStore
         }
     }
 
-    // The vault moves damaged storage aside as ".corrupt" before reporting it unreadable, so a
-    // file that is gone afterwards was preserved and the catalogue may start fresh. One that is
-    // still there could not be quarantined (locked or denied) and stays unreadable, which blocks
-    // every later write so a temporarily unavailable catalogue is never replaced by a fresh one.
     private static LPresetCatalog LPresetCatalogRead(string lPresetPath)
     {
         LVaultResult<List<LPresetRecord>> lPresetResult = LVault.LVaultRead<List<LPresetRecord>>(lPresetPath);

@@ -139,30 +139,30 @@ public sealed class LSegment
     {
         if (LPiece.LPieceAdd(lSegmentPieces, lSegmentCursor, lSegmentDuration, lSegmentColorIndex, lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return;
-        LSegmentApply(lSegmentPlan.Sections, lSegmentPlan.Active);
+        LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive);
     }
 
     public bool? LSegmentStartSet(TimeSpan lSegmentCursor, TimeSpan lSegmentDuration, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
     {
         if (LPiece.LPieceOriginSet(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentDuration, lSegmentColorIndex, lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return null;
-        LSegmentApply(lSegmentPlan.Sections, lSegmentPlan.Active);
-        return lSegmentPlan.Added;
+        LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive);
+        return lSegmentPlan.LPieceAdded;
     }
 
     public bool? LSegmentEndSet(TimeSpan lSegmentCursor, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
     {
         if (LPiece.LPieceEndSet(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentColorIndex, lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return null;
-        LSegmentApply(lSegmentPlan.Sections, lSegmentPlan.Active);
-        return lSegmentPlan.Added;
+        LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive);
+        return lSegmentPlan.LPieceAdded;
     }
 
     public void LSegmentDivide(TimeSpan lSegmentCursor, int lSegmentColorIndex)
     {
         if (LPiece.LPieceDivide(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentColorIndex)
             is not { } lSegmentPlan) return;
-        LSegmentApply(lSegmentPlan.Sections, lSegmentPlan.First);
+        LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceFirst);
     }
 
     public void LSegmentDelete()

@@ -5,6 +5,8 @@ using Cadroue.Core;
 
 namespace Cadroue.Media;
 
+public sealed record LKeyframePacket(double LKeyframePresentation, double? LKeyframeDecode);
+
 public static class LKeyframeSeeker
 {
     private const double LKeyframeScanTolerance = 1d;
@@ -57,7 +59,7 @@ public static class LKeyframeSeeker
             CreateNoWindow = true
         };
 
-        var keyframePackets = new List<(double Presentation, double? Decode)>();
+        var keyframePackets = new List<LKeyframePacket>();
         double scanStartSeconds = normalizedStart.TotalSeconds;
         double scanEndSeconds = scanEndTime.TotalSeconds;
         Process? process = null;
@@ -135,7 +137,7 @@ public static class LKeyframeSeeker
 
     private static void LKeyframeLineParse(
         string line,
-        List<(double Presentation, double? Decode)> result)
+        List<LKeyframePacket> result)
     {
         string[] parts = line.Split(',');
         if (parts.Length < 4) return;
@@ -145,7 +147,7 @@ public static class LKeyframeSeeker
         bool hasPts = double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double ptsSeconds);
         bool hasDts = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double dtsSeconds);
         if (!hasPts && !hasDts) return;
-        result.Add((hasPts ? ptsSeconds : dtsSeconds, hasDts ? dtsSeconds : null));
+        result.Add(new LKeyframePacket(hasPts ? ptsSeconds : dtsSeconds, hasDts ? dtsSeconds : null));
     }
 
 }

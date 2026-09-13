@@ -7,18 +7,6 @@ public static partial class LBridge
     private const int LBridgeVclMax = 31;
     private const int LBridgeLengthSize = 4;
 
-    // A copied middle that follows a head bridge begins mid-stream on the source's
-    // first interior keyframe. When that keyframe is an open-GOP CRA it carries RASL
-    // leading pictures referencing the discarded pre-cut GOP; a decoder drops them at
-    // a true stream start but not after a concatenated head, so it fails to build the
-    // reference picture set. Marking only that first CRA as a BLA (broken-link access)
-    // sets NoRaslOutputFlag, so the decoder discards those leading pictures while every
-    // interior CRA keeps its own; the leading pictures fall inside the head bridge's
-    // re-encoded range, so nothing user-visible is lost. The RASL leading-picture NALs
-    // stay physically present in the copied middle, so the marker must be BLA_W_LP (16),
-    // not BLA_N_LP (18): a BLA_N_LP picture shall carry no associated leading pictures,
-    // so relabelling to it leaves a non-conformant stream that lenient decoders tolerate
-    // but strict external players reject.
     public static bool LBridgeLeadingNormalize(byte[] lBridgeBytes)
     {
         int lBridgeMdat = LBridgeMdatFind(lBridgeBytes);
@@ -44,7 +32,6 @@ public static partial class LBridge
             int lBridgeType = (lBridgeBytes[lBridgeHeader] >> 1) & 0x3F;
             if (lBridgeType <= LBridgeVclMax)
             {
-                // The first coded slice is the copy-start keyframe; only it matters.
                 if (lBridgeType != LBridgeLeadingCra)
                 {
                     return false;

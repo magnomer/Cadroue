@@ -25,7 +25,7 @@ public static class LSeries
         bool lSeriesStrict,
         LSeriesNameMode lSeriesNameMode = LSeriesNameMode.LSeriesNameBase)
     {
-        var lSeriesBuckets = new List<(string? Base, List<LSeriesItem> Items)>();
+        var lSeriesBuckets = new List<(string?, List<LSeriesItem>)>();
         var lSeriesBaseIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         foreach (string lSeriesPath in lSeriesPaths)
@@ -44,7 +44,8 @@ public static class LSeries
                 lSeriesBuckets.Add((lSeriesItem.LSeriesBase, new List<LSeriesItem>()));
             }
 
-            lSeriesBuckets[lSeriesIndex].Items.Add(lSeriesItem);
+            (_, List<LSeriesItem> lSeriesBucket) = lSeriesBuckets[lSeriesIndex];
+            lSeriesBucket.Add(lSeriesItem);
         }
 
         var lSeriesGroups = new List<LSeriesGroup>();

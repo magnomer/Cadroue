@@ -75,7 +75,7 @@ public static class LClassifier
             }
         }
 
-        (LSceneFunnelMatch lClassifierMatch, int lClassifierKind)[] lClassifierParts =
+        (LSceneFunnelMatch, int)[] lClassifierParts =
         {
             (lClassifierRule.LSceneFunnelContains, 0),
             (lClassifierRule.LSceneFunnelPrefix, 1),

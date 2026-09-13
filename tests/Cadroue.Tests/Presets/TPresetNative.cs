@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -8,18 +10,18 @@ public sealed class TPresetNative
     public void ShippedPresets_ContainExpectedCatalog()
     {
         using TPreset lPresets = new();
-        IReadOnlyList<(string Name, IReadOnlyList<string> Presets)> lGroups = lPresets.TPresetNativeLoad();
+        IReadOnlyList<LPresetGroup> lGroups = lPresets.TPresetNativeLoad();
 
         Assert.Collection(
             lGroups,
             lGroup =>
             {
-                Assert.Equal("Default", lGroup.Name);
-                Assert.Equal(["Merge (default)", "Split (default)"], lGroup.Presets);
+                Assert.Equal("Default", lGroup.LPresetGroupName);
+                Assert.Equal(["Merge (default)", "Split (default)"], lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
             },
             lGroup =>
             {
-                Assert.Equal("General", lGroup.Name);
+                Assert.Equal("General", lGroup.LPresetGroupName);
                 Assert.Equal(
                     [
                         "General - AV1 Balanced",
@@ -31,11 +33,11 @@ public sealed class TPresetNative
                         "General - H.265 Fast",
                         "General - H.265 High Quality"
                     ],
-                    lGroup.Presets);
+                    lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
             },
             lGroup =>
             {
-                Assert.Equal("Hardware", lGroup.Name);
+                Assert.Equal("Hardware", lGroup.LPresetGroupName);
                 Assert.Equal(
                     [
                         "Hardware - AV1 AMF",
@@ -45,25 +47,25 @@ public sealed class TPresetNative
                         "Hardware - H.265 NVENC",
                         "Hardware - H.265 QSV"
                     ],
-                    lGroup.Presets);
+                    lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
             },
             lGroup =>
             {
-                Assert.Equal("Matroska", lGroup.Name);
+                Assert.Equal("Matroska", lGroup.LPresetGroupName);
                 Assert.Equal(
                     ["Matroska - AV1", "Matroska - H.264", "Matroska - H.265", "Matroska - VP9"],
-                    lGroup.Presets);
+                    lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
             },
             lGroup =>
             {
-                Assert.Equal("Preservation", lGroup.Name);
+                Assert.Equal("Preservation", lGroup.LPresetGroupName);
                 Assert.Equal(
                     ["Preservation - FFV1 FLAC", "Preservation - FFV1 Source Audio"],
-                    lGroup.Presets);
+                    lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
             },
             lGroup =>
             {
-                Assert.Equal("Professional", lGroup.Name);
+                Assert.Equal("Professional", lGroup.LPresetGroupName);
                 Assert.Equal(
                     [
                         "Professional - ProRes 422 HQ",
@@ -71,7 +73,7 @@ public sealed class TPresetNative
                         "Professional - ProRes 422",
                         "Professional - ProRes Proxy"
                     ],
-                    lGroup.Presets);
+                    lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
             });
     }
 
@@ -98,19 +100,19 @@ public sealed class TPresetNative
             lPresets.TPresetNativeSave("Second", Path.Combine(lOtherFolder, "Second.json"));
             File.WriteAllText(Path.Combine(lFolderPath, "Ignored.txt"), "not a preset");
 
-            IReadOnlyList<(string Name, IReadOnlyList<string> Presets)> lGroups = lPresets.TPresetNativeLoad(lFolderPath);
+            IReadOnlyList<LPresetGroup> lGroups = lPresets.TPresetNativeLoad(lFolderPath);
 
             Assert.Collection(
                 lGroups,
                 lGroup =>
                 {
-                    Assert.Equal("A", lGroup.Name);
-                    Assert.Equal(["Second"], lGroup.Presets);
+                    Assert.Equal("A", lGroup.LPresetGroupName);
+                    Assert.Equal(["Second"], lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
                 },
                 lGroup =>
                 {
-                    Assert.Equal("Default", lGroup.Name);
-                    Assert.Equal(["First"], lGroup.Presets);
+                    Assert.Equal("Default", lGroup.LPresetGroupName);
+                    Assert.Equal(["First"], lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
                 });
         }
         finally

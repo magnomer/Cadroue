@@ -26,7 +26,7 @@ public sealed partial class PViewfinder
             pViewfinderTextDpi = pixelsPerDip;
         }
 
-        var pViewfinderKey = (pViewfinderKind, pViewfinderText, pViewfinderRoom);
+        var pViewfinderKey = new PViewfinderTextKey(pViewfinderKind, pViewfinderText, pViewfinderRoom);
         if (pViewfinderTextCache.TryGetValue(pViewfinderKey, out FormattedText? pViewfinderCached))
         {
             return pViewfinderCached;

@@ -117,8 +117,6 @@ public sealed partial class LSchedule
         LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning);
     }
 
-    // The folders an added-but-not-yet-done item can be filed under; source byte size lands on the
-    // item here the instant the file is added, without waiting for the deferred measurement.
     private static readonly LDepotFolder[] lScheduleBytesFolders =
     {
         LDepotFolder.LDepotFolderScheduled,
@@ -126,17 +124,12 @@ public sealed partial class LSchedule
         LDepotFolder.LDepotFolderCancelled
     };
 
-    // The folders a finished item can be filed under; output loudness lands on it here once the
-    // deferred measurement of the finished output completes.
     private static readonly LDepotFolder[] lScheduleOutputFolders =
     {
         LDepotFolder.LDepotFolderDone,
         LDepotFolder.LDepotFolderFailed
     };
 
-    // Native byte size, recorded immediately at add time. Unlike LScheduleSourceSet it never marks the
-    // source measured or touches duration/media: those come from the deferred probe/keyframe/loudness
-    // pass, so the "Measuring" rows stay measuring until that pass lands.
     public void LScheduleBytesSet(Guid lWorkId, long? lWorkSourceBytes, IReadOnlyList<long> lWorkMergeBytes)
     {
         void LScheduleApply(LWorkItem lWorkItem)
@@ -192,8 +185,6 @@ public sealed partial class LSchedule
         }
     }
 
-    // The finished output's integrated loudness, measured off the runner loop and recorded here once
-    // ready; updates the stored output-media snapshot so a reload keeps the figure.
     public void LScheduleLoudnessSet(Guid lWorkId, double lWorkLoudness)
     {
         foreach (LWorkItem lWorkItem in lScheduleItems)
@@ -394,5 +385,4 @@ public sealed partial class LSchedule
 
         return true;
     }
-
 }

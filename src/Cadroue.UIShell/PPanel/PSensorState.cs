@@ -125,7 +125,7 @@ public sealed partial class PInspector
         {
             pThreshold.Text = PSensorThresholdClamp(
                     pDetectorStep.LDetectorStepKind, pDetectorStep.LDetectorStepThreshold)
-                .ToString(PSensorShapeRead(pDetectorStep.LDetectorStepKind).Format, CultureInfo.InvariantCulture);
+                .ToString(PSensorShapeRead(pDetectorStep.LDetectorStepKind).PSensorPattern, CultureInfo.InvariantCulture);
         }
 
         if (pSection.PSensorMinimum is { } pMinimum)

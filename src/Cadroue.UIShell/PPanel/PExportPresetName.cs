@@ -64,8 +64,6 @@ public sealed partial class PExport
         return pPanel;
     }
 
-    // The incompatibility marker is display text only: the preset keeps its real name, so
-    // renaming, matching and persistence never see it.
     private static TextBlock PExportTextBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported) => new()
     {
         Text = PExportMarkRead(
@@ -169,5 +167,4 @@ public sealed partial class PExport
         };
         return pNameBox;
     }
-
 }

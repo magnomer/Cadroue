@@ -5,9 +5,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Test-side boundary for the per-mode work item builders.
-/// </summary>
 internal static partial class TInterface
 {
     internal static LWorkItem? TAudioItemCreate(

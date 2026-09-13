@@ -5,8 +5,6 @@ namespace Cadroue.Core;
 
 public static class LFlawStream
 {
-    // MPEG-TS 33-bit 90 kHz timestamps wrap at 2^33. A decode-timestamp step that
-    // falls back from above this guard is a legal wraparound, not a defect.
     private const long LFlawWrapGuard = 8_000_000_000L;
 
     public static LDossier? LFlawFramingResolve(string lFlawCopyError, string lFlawProbeReport)
@@ -82,11 +80,6 @@ public static class LFlawStream
                 ? lFlawName.ToLowerInvariant()
                 : string.Empty;
 
-        // An Annex-B-native container (MPEG-TS, raw elementary stream) must carry
-        // start-code framing, so length-prefixed units there are converted with
-        // mp4toannexb. Any other container (ISO-BMFF, Matroska) stores length-prefixed
-        // units with out-of-band parameter sets, so the framing fault is normalized by
-        // lifting the in-band parameter sets to extradata for the muxer to reframe.
         bool lFlawAnnexb = lFlawContainer.Contains("mpegts", StringComparison.Ordinal)
             || lFlawContainer.Contains("mpeg", StringComparison.Ordinal)
             || lFlawContainer.Contains("h264", StringComparison.Ordinal)
@@ -128,11 +121,6 @@ public static class LFlawStream
             && int.TryParse(lFlawSize, NumberStyles.Integer, CultureInfo.InvariantCulture, out int lFlawBytes)
             && lFlawBytes > 0;
 
-        // No out-of-band extradata: derive it from the valid in-band long-term headers,
-        // changing only container-side configuration and leaving the packets exact.
-        // Extradata present but inconsistent with the samples: reinsert the stored
-        // configuration into the packets, an in-place coded-carriage change. Never
-        // synthesize an unknown parameter set — that would cause silent misdecode.
         string lFlawFilter = lFlawExtradata ? "dump_extra" : "extract_extradata";
         LDossierPreservation lFlawPreservation = lFlawExtradata
             ? LDossierPreservation.LDossierPreservationCoded
@@ -200,8 +188,6 @@ public static class LFlawStream
                 lFlawPresentPts[lFlawStream] = lFlawPresentPts.GetValueOrDefault(lFlawStream) + 1;
             }
 
-            // A packet with neither timestamp is not reconstructable from timing alone;
-            // it is a decode-recovery case, so it does not raise a timeline defect here.
             if (lFlawPts is null && lFlawDts is not null)
             {
                 lFlawMissingPtsCount[lFlawStream] = lFlawMissingPtsCount.GetValueOrDefault(lFlawStream) + 1;
@@ -224,11 +210,6 @@ public static class LFlawStream
             }
         }
 
-        // A stream that carries presentation timestamps on most of its packets yet drops
-        // them on a minority has a reconstructable gap worth regenerating (B-frame reorder).
-        // A stream with no PTS, or only a stray one among packets that overwhelmingly lack
-        // it, is following a container convention (AVI stores presentation order as decode
-        // order); its presentation timing is not a defect to rebuild.
         bool lFlawMissingPts = lFlawMissingPtsCount.Any(lFlawEntry =>
             lFlawEntry.Value > 0
             && lFlawPresentPts.GetValueOrDefault(lFlawEntry.Key) > lFlawEntry.Value);
@@ -254,10 +235,6 @@ public static class LFlawStream
             return null;
         }
 
-        // genpts regenerates presentation timestamps from decode order; igndts drops the
-        // unreliable decode timestamps so the muxer re-derives them from the authoritative
-        // presentation timing. Both are demuxer flags placed before -i; packets stay exact
-        // and no start offset is normalized to zero.
         var lFlawFlags = new List<string>();
         if (lFlawMissingPts)
         {

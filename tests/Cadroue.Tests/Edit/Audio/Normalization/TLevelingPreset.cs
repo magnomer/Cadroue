@@ -17,9 +17,9 @@ public sealed class TLevelingPreset
     [InlineData("Film")]
     public void LoudnessPreset_KnownToken_RoundTrips(string token)
     {
-        (double Target, double Peak, double Range)? preset = TInterface.TLevelingLoudnessRead(token);
+        LLevelingLoudnessPreset? preset = TInterface.TLevelingLoudnessRead(token);
         Assert.NotNull(preset);
-        Assert.Equal(token, TInterface.TLevelingLoudnessMatch(preset!.Value.Target, preset.Value.Peak, preset.Value.Range));
+        Assert.Equal(token, TInterface.TLevelingLoudnessMatch(preset!.LLevelingTarget, preset.LLevelingPeak, preset.LLevelingRange));
     }
 
     [Theory]
@@ -30,9 +30,9 @@ public sealed class TLevelingPreset
     [InlineData("Music")]
     public void DynamicPreset_KnownToken_RoundTrips(string token)
     {
-        (double Frame, double Gauss, double MaxGain, double Compress)? preset = TInterface.TLevelingDynamicRead(token);
+        LLevelingDynamicPreset? preset = TInterface.TLevelingDynamicRead(token);
         Assert.NotNull(preset);
-        Assert.Equal(token, TInterface.TLevelingDynamicMatch(preset!.Value.Frame, preset.Value.Gauss, preset.Value.MaxGain, preset.Value.Compress));
+        Assert.Equal(token, TInterface.TLevelingDynamicMatch(preset!.LLevelingFrame, preset.LLevelingGauss, preset.LLevelingMaxGain, preset.LLevelingCompress));
     }
 
     [Fact]
@@ -62,16 +62,15 @@ public sealed class TLevelingPreset
     [Fact]
     public void LevelingDefaultRead_ReturnsCanonicalStep()
     {
-        var (target, peak, range, twoPass, frame, gauss, maxGain, compress) =
-            TInterface.TLevelingDefaultRead();
+        LLevelingDefault preset = TInterface.TLevelingDefaultRead();
 
-        Assert.Equal(-21, target);
-        Assert.Equal(-2, peak);
-        Assert.Equal(6, range);
-        Assert.True(twoPass);
-        Assert.Equal(300, frame);
-        Assert.Equal(21, gauss);
-        Assert.Equal(10, maxGain);
-        Assert.Equal(6, compress);
+        Assert.Equal(-21, preset.LLevelingTarget);
+        Assert.Equal(-2, preset.LLevelingPeak);
+        Assert.Equal(6, preset.LLevelingRange);
+        Assert.True(preset.LLevelingTwoPass);
+        Assert.Equal(300, preset.LLevelingFrame);
+        Assert.Equal(21, preset.LLevelingGauss);
+        Assert.Equal(10, preset.LLevelingMaxGain);
+        Assert.Equal(6, preset.LLevelingCompress);
     }
 }

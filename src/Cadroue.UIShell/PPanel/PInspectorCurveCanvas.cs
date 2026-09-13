@@ -115,7 +115,6 @@ public sealed partial class PInspector
         pArgs.Handled = true;
     }
 
-    // Nearest control point within the hit radius, else -1.
     private static int PCurveHitFind(Point pPixel, IReadOnlyList<LWorkCurvePoint> pPoints)
     {
         int pBest = -1;
@@ -136,8 +135,6 @@ public sealed partial class PInspector
         return pBest;
     }
 
-    // Insert a new interior control point at the clicked value, returning its
-    // sorted index.
     private static int PCurvePointAdd(Point pPixel, List<LWorkCurvePoint> pPoints)
     {
         LWorkCurvePoint pClicked = PCurveValueResolve(pPixel);
@@ -149,14 +146,11 @@ public sealed partial class PInspector
         return pPoints.IndexOf(pPoint);
     }
 
-    // Value → canvas pixel: input on X (0 left → 1 right), output on Y (0 bottom
-    // → 1 top). Reused next job for hit-testing.
     private static Point PCurvePointResolve(double pInput, double pOutput) =>
         new(
             Math.Clamp(pInput, 0, 1) * PCurveCanvasSize,
             (1 - Math.Clamp(pOutput, 0, 1)) * PCurveCanvasSize);
 
-    // Canvas pixel → value, the inverse of PCurvePointResolve.
     private static LWorkCurvePoint PCurveValueResolve(Point pPixel) =>
         new(
             Math.Clamp(pPixel.X / PCurveCanvasSize, 0, 1),
@@ -270,8 +264,6 @@ public sealed partial class PInspector
         }
     }
 
-    // Monotone pchip tangents (Fritsch–Carlson), matching FFmpeg's interp=pchip so
-    // the on-screen track equals the rendered result.
     private static double[] PCurveTangentResolve(double[] pXs, double[] pYs)
     {
         int pCount = pXs.Length;

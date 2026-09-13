@@ -86,9 +86,6 @@ public sealed partial class PRoster
             : $"{pSpan.Minutes}:{pSpan.Seconds:00}";
     }
 
-    // Source size is read only from the record measured while the job ran; a merge item
-    // stores one byte total per input. Nothing is measured from disk here, so a deleted
-    // source still shows its recorded size.
     internal static long? PRosterSourceRead(LWorkItem pWorkItem)
     {
         if (pWorkItem.LWorkMergeSources.Count > 1 && pWorkItem.LWorkMergeBytes.Count > 0)

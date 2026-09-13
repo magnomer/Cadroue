@@ -9,8 +9,6 @@ internal static class PSSubwindow
 {
     internal static readonly Brush PSSubwindowBackground = PSSubwindowFillCreate();
 
-    // Deliberately duplicated, not shared with the tabless Dialog path: caption (DWM 0x00BBGGRR)
-    // is PSSubwindowBackground in BGR form, and both are meant to match PSHeadline's blue window.
     private const int PSSubwindowCaption = 0x00F7E8DC;
 
     internal static void PSSubwindowApply(Window pWindow)

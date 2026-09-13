@@ -6,6 +6,8 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+internal sealed record TPresetSelectionResult(bool TPresetSelectionOk, string TPresetSelectionName);
+
 [CollectionDefinition("Preset")]
 public sealed class LPresetCollection { }
 
@@ -33,19 +35,9 @@ public sealed class TPreset : IDisposable
 
     public string TPresetImportRead(string stored, string path) => LPreset.LPresetNameResolve(stored, path);
 
-    public IReadOnlyList<(string Name, IReadOnlyList<string> Presets)> TPresetNativeLoad() =>
-        LPresetStore.LPresetNativeLoad()
-            .Select(group => (
-                group.LPresetGroupName,
-                (IReadOnlyList<string>)group.LPresetGroupPresets.Select(record => record.LPresetName).ToArray()))
-            .ToArray();
+    public IReadOnlyList<LPresetGroup> TPresetNativeLoad() => LPresetStore.LPresetNativeLoad();
 
-    public IReadOnlyList<(string Name, IReadOnlyList<string> Presets)> TPresetNativeLoad(string folderPath) =>
-        LPresetStore.LPresetNativeLoad(folderPath)
-            .Select(group => (
-                group.LPresetGroupName,
-                (IReadOnlyList<string>)group.LPresetGroupPresets.Select(record => record.LPresetName).ToArray()))
-            .ToArray();
+    public IReadOnlyList<LPresetGroup> TPresetNativeLoad(string folderPath) => LPresetStore.LPresetNativeLoad(folderPath);
 
     public bool TPresetFormatCheck() => LPresetStore.LPresetNativeLoad()
         .SelectMany(group => group.LPresetGroupPresets)
@@ -56,11 +48,11 @@ public sealed class TPreset : IDisposable
     public void TPresetNativeSave(string name, string path) =>
         LPresetStore.LPresetFileSave(new LPresetRecord { LPresetName = name }, path);
 
-    public (bool Ok, string SelectionName) TPresetSelectionChange(string current, string old, string renamed)
+    internal TPresetSelectionResult TPresetSelectionChange(string current, string old, string renamed)
     {
         LPresetSelection selection = new(current);
         bool ok = selection.LPresetSelectionCommit(old, renamed);
-        return (ok, selection.LPresetSelectionName);
+        return new TPresetSelectionResult(ok, selection.LPresetSelectionName);
     }
 
     public string TPresetSeamChange(string current, string old, string renamed)

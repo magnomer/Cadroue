@@ -120,10 +120,6 @@ public static class LPreview
             lFilters.Add(lRotate);
         }
 
-        // The whole colour pipeline runs through this one lavfi graph so the live
-        // preview applies the adjustments in the exact order and form the export
-        // filter graph (LEncodeVideo) uses: white balance, exposure, then the batched
-        // eq for brightness/contrast/gamma/saturation.
         LColor lColor = lPreviewState.LColor;
         if (lColor.LColorWhitebalance is { } lWhitebalance)
         {

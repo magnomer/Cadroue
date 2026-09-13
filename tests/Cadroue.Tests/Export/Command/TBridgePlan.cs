@@ -6,10 +6,6 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Locks the smart-plan stage composition: which stages a bridged interval emits, the
-/// span timing each one carries, and the container every temporary stage uses.
-/// </summary>
 [Collection("EncodeCommand")]
 public sealed class TBridgePlan
 {
@@ -21,9 +17,12 @@ public sealed class TBridgePlan
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30));
 
-        // head, middle, tail (each followed by its MPEG-TS join piece) + audio + join.
         Assert.Equal(8, stages.Count);
 
         LEncodeStage head = stages[TEncodeCommand.TBridgeLabelFind(stages, "Encoding head bridge")];
@@ -107,14 +106,12 @@ public sealed class TBridgePlan
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeStagesBuild(
             work,
             LBridgeOutcome.LBridgeOutcomeSmart,
-            (10, 30),
-            (10, 12),
-            (12, 28),
-            (28, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30),
             intermediateExtension: ".mkv");
 
-        // The head/middle/tail spans and the audio stage keep the requested Matroska
-        // container; the per-piece MPEG-TS remux is a separate join requirement.
         IReadOnlyList<LEncodeStage> matroskaStages = stages
             .Where(stage => stage.LEncodeStageTemporary
                 && stage.LEncodeStageLabel != "Preparing bridge piece")
@@ -147,9 +144,12 @@ public sealed class TBridgePlan
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 28), (28, 30));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            null,
+            TEncodeCommand.TBridgeSpanCreate(10, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30));
 
-        // middle, middle piece, tail, tail piece, audio, join (no head).
         Assert.Equal(6, stages.Count);
         Assert.Equal("Copying middle", stages[0].LEncodeStageLabel);
         Assert.Equal(LWorkStage.LWorkStageMux, stages[^1].LEncodeStageKind);
@@ -163,10 +163,10 @@ public sealed class TBridgePlan
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeDecodeBuild(
             work,
-            (10, 30),
-            (10, 12),
-            (12, 28, 27.933),
-            (28, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28, 27.933),
+            TEncodeCommand.TBridgeSpanCreate(28, 30),
             TEncodeCommand.TSourceStreamCreate("h264"));
         IReadOnlyList<string> middleTokens = TEncodeToken.TEncodeTokenRead(
             stages[TEncodeCommand.TBridgeLabelFind(stages, "Copying middle")].LEncodeStageArguments);
@@ -183,10 +183,12 @@ public sealed class TBridgePlan
         LWorkItem work = TEncodeCommand.TBridgeWorkCreate(
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
 
-        // Both boundaries are keyframes. Smart must use the same simultaneous stream
-        // copy timing as Copy instead of manufacturing separate Matroska timelines.
         LEncodeStage stage = Assert.Single(TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            null,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            null));
         IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments);
 
         Assert.False(stage.LEncodeStageTemporary);
@@ -208,7 +210,7 @@ public sealed class TBridgePlan
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
 
         LEncodeStage stage = Assert.Single(TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeWhole, (10, 11), null, null, null));
+            work, LBridgeOutcome.LBridgeOutcomeWhole, TEncodeCommand.TBridgeSpanCreate(10, 11), null, null, null));
         IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments);
 
         Assert.Equal("Encoding", stage.LEncodeStageLabel);
@@ -225,7 +227,11 @@ public sealed class TBridgePlan
             audioCodec: "aac", audioMode: "Encode");
 
         LEncodeStage stage = Assert.Single(TEncodeCommand.TBridgeStagesBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), null, (10, 30), null));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            null,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            null));
         IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments);
 
         Assert.Equal("Copying", stage.LEncodeStageLabel);

@@ -60,7 +60,7 @@ internal static class LScoutAudio
                 static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess);
             Task<string> lScoutError = lScoutProcess.StandardError.ReadToEndAsync();
 
-            var lScoutPackets = new List<(double Start, double Duration)>();
+            var lScoutPackets = new List<(double, double)>();
             double lScoutTimelineStart = 0;
             string? lScoutLine;
             while ((lScoutLine = lScoutProcess.StandardOutput.ReadLine()) is not null)
@@ -85,11 +85,16 @@ internal static class LScoutAudio
 
             double lScoutOriginAbsolute = lScoutTimelineStart + lScoutOrigin.TotalSeconds;
             double lScoutEndAbsolute = lScoutTimelineStart + lScoutEnd.TotalSeconds;
-            double? lScoutFirstPacket = lScoutPackets
-                .Where(lScoutPacket => lScoutPacket.Start < lScoutEndAbsolute
-                    && lScoutPacket.Start + lScoutPacket.Duration > lScoutOriginAbsolute)
-                .Select(lScoutPacket => (double?)lScoutPacket.Start)
-                .Min();
+            double? lScoutFirstPacket = null;
+            foreach (var (lScoutPacketStart, lScoutPacketDuration) in lScoutPackets)
+            {
+                if (lScoutPacketStart < lScoutEndAbsolute
+                    && lScoutPacketStart + lScoutPacketDuration > lScoutOriginAbsolute
+                    && (lScoutFirstPacket is null || lScoutPacketStart < lScoutFirstPacket))
+                {
+                    lScoutFirstPacket = lScoutPacketStart;
+                }
+            }
 
             return lScoutFirstPacket is double lScoutFirst
                 ? new LScoutAudioInterval(

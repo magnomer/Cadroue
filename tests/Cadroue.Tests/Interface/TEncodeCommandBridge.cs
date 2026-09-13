@@ -6,9 +6,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Test-side relay for smart-cut bridge fixtures: keyframe spans, bridge stages and their labels.
-/// </summary>
 internal sealed partial class TEncodeCommand
 {
     internal static readonly string TBridgeSource = Path.Combine("input media", "source clip.mov");
@@ -58,39 +55,39 @@ internal sealed partial class TEncodeCommand
     internal static IReadOnlyList<LEncodeStage> TBridgeStagesBuild(
         LWorkItem work,
         LBridgeOutcome outcome,
-        (double origin, double end) interval,
-        (double origin, double end)? head,
-        (double origin, double end)? middle,
-        (double origin, double end)? tail,
+        LBridgeSpan interval,
+        LBridgeSpan? head,
+        LBridgeSpan? middle,
+        LBridgeSpan? tail,
         LBridgeStream? source = null,
         string? intermediateExtension = null) =>
         LEncode.LEncodeSmartBuild(
             work,
             new LBridgePlan(
                 outcome,
-                TBridgeSpanCreate(interval),
-                head is { } tHead ? TBridgeSpanCreate(tHead) : null,
-                middle is { } tMiddle ? TBridgeSpanCreate(tMiddle) : null,
-                tail is { } tTail ? TBridgeSpanCreate(tTail) : null),
+                interval,
+                head,
+                middle,
+                tail),
             source ?? TSourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"),
             intermediateExtension);
 
     internal static IReadOnlyList<LEncodeStage> TBridgeResolveBuild(
         LWorkItem work,
         LBridgeOutcome outcome,
-        (double origin, double end) interval,
-        (double origin, double end)? head,
-        (double origin, double end)? middle,
-        (double origin, double end)? tail,
+        LBridgeSpan interval,
+        LBridgeSpan? head,
+        LBridgeSpan? middle,
+        LBridgeSpan? tail,
         LBridgeStream? source = null) =>
         LEncode.LEncodeSmartResolve(
             work,
             new LBridgePlan(
                 outcome,
-                TBridgeSpanCreate(interval),
-                head is { } tHead ? TBridgeSpanCreate(tHead) : null,
-                middle is { } tMiddle ? TBridgeSpanCreate(tMiddle) : null,
-                tail is { } tTail ? TBridgeSpanCreate(tTail) : null),
+                interval,
+                head,
+                middle,
+                tail),
             source ?? TSourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"));
 
     internal static IReadOnlyList<LEncodeStage> TBridgePlanBuild(
@@ -106,22 +103,19 @@ internal sealed partial class TEncodeCommand
 
     internal static IReadOnlyList<LEncodeStage> TBridgeDecodeBuild(
         LWorkItem work,
-        (double origin, double end) interval,
-        (double origin, double end)? head,
-        (double origin, double end, double decodeEnd) middle,
-        (double origin, double end)? tail,
+        LBridgeSpan interval,
+        LBridgeSpan? head,
+        LBridgeSpan middle,
+        LBridgeSpan? tail,
         LBridgeStream? source = null) =>
         TBridgePlanBuild(
             work,
             new LBridgePlan(
                 LBridgeOutcome.LBridgeOutcomeSmart,
-                TBridgeSpanCreate(interval),
-                head is { } tHead ? TBridgeSpanCreate(tHead) : null,
-                new LBridgeSpan(
-                    TimeSpan.FromSeconds(middle.origin),
-                    TimeSpan.FromSeconds(middle.end),
-                    TimeSpan.FromSeconds(middle.decodeEnd)),
-                tail is { } tTail ? TBridgeSpanCreate(tTail) : null),
+                interval,
+                head,
+                middle,
+                tail),
             source);
 
     internal static IReadOnlyList<LEncodeStage> TBridgeResolve(
@@ -234,9 +228,9 @@ internal sealed partial class TEncodeCommand
         return work;
     }
 
-    private static LBridgeSpan TBridgeSpanCreate((double origin, double end) span) =>
+    internal static LBridgeSpan TBridgeSpanCreate(double origin, double end, double? decodeEnd = null) =>
         new(
-            TimeSpan.FromSeconds(span.origin),
-            TimeSpan.FromSeconds(span.end),
-            TimeSpan.FromSeconds(span.end));
+            TimeSpan.FromSeconds(origin),
+            TimeSpan.FromSeconds(end),
+            TimeSpan.FromSeconds(decodeEnd ?? end));
 }

@@ -6,9 +6,9 @@ public static partial class LSweep
 {
     public static IReadOnlyList<LPiece> LSweepCombineResolve(
         IReadOnlyList<LPiece> lSweepExisting,
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepExcluded,
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepKept,
-        IReadOnlyList<(TimeSpan Time, TimeSpan Minimum)> lSweepBoundaries,
+        IReadOnlyList<LSweepSpan> lSweepExcluded,
+        IReadOnlyList<LSweepSpan> lSweepKept,
+        IReadOnlyList<LSweepBoundary> lSweepBoundaries,
         TimeSpan lSweepDuration,
         int lSweepColorCount)
     {
@@ -21,8 +21,8 @@ public static partial class LSweep
             }
         }
 
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepHoles = LSweepIntervalNormalize(lSweepExcluded, lSweepDuration);
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lSweepContent = LSweepComplementResolve(lSweepHoles, lSweepDuration);
+        IReadOnlyList<LSweepSpan> lSweepHoles = LSweepIntervalNormalize(lSweepExcluded, lSweepDuration);
+        IReadOnlyList<LSweepSpan> lSweepContent = LSweepComplementResolve(lSweepHoles, lSweepDuration);
 
         var lSweepHard = new SortedSet<TimeSpan>();
         foreach ((TimeSpan lSweepFrom, TimeSpan lSweepTo) in lSweepKept)
@@ -31,13 +31,13 @@ public static partial class LSweep
             lSweepHard.Add(LSweepClamp(lSweepTo, lSweepDuration));
         }
 
-        var lSweepSoft = new List<(TimeSpan Time, TimeSpan Minimum)>();
+        var lSweepSoft = new List<LSweepBoundary>();
         foreach ((TimeSpan lSweepTime, TimeSpan lSweepMinimum) in lSweepBoundaries)
         {
-            lSweepSoft.Add((LSweepClamp(lSweepTime, lSweepDuration), lSweepMinimum));
+            lSweepSoft.Add(new LSweepBoundary(LSweepClamp(lSweepTime, lSweepDuration), lSweepMinimum));
         }
 
-        lSweepSoft.Sort((lSweepLeft, lSweepRight) => lSweepLeft.Time.CompareTo(lSweepRight.Time));
+        lSweepSoft.Sort((lSweepLeft, lSweepRight) => lSweepLeft.LSweepBoundaryTime.CompareTo(lSweepRight.LSweepBoundaryTime));
 
         int lSweepColorIndex = 0;
         int lSweepPalette = Math.Max(lSweepColorCount, 1);

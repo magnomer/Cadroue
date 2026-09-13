@@ -1,5 +1,5 @@
 {
-  "generation": 7,
+  "generation": 8,
   "project": "Cadroue",
   "sources": {
     "include": [
@@ -28,12 +28,19 @@
       "GeneratedInternalTypeHelper"
     ],
     "selfExclude": [
+      "TAuditComment.cs",
+      "TAuditCommentSetting.cs",
       "TAuditConvention.cs",
+      "TAuditLine.cs",
+      "TAuditLineSetting.cs",
       "TAuditName.cs",
+      "TAuditNameSetting.cs",
+      "TAuditNameWalker.cs",
       "TAuditRegistry.cs",
-      "TAuditSetting.cs",
-      "TAuditSize.cs",
-      "TAuditSource.cs"
+      "TAuditScope.cs",
+      "TAuditSource.cs",
+      "TSpecimen.cs",
+      "TViolation.cs"
     ]
   },
   "naming": {
@@ -94,6 +101,9 @@
     "commandSuffix": "Command",
     "commandCancelSuffix": "CancelCommand",
     "frameworkContracts": {
+      "IEquatable": [
+        "Equals"
+      ],
       "IDisposable": [
         "Dispose"
       ],
@@ -118,8 +128,5 @@
         "ConvertBack"
       ]
     }
-  },
-  "advisory": {
-    "lineLimit": 500
   }
 }

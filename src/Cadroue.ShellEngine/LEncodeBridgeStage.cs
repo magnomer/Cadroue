@@ -37,9 +37,6 @@ public static partial class LEncode
         TimeSpan lCopyDuration = lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin;
         if (lBridgeSpan.LBridgeDecodeEnd is TimeSpan lDecodeEnd)
         {
-            // A copied GOP must stop before the following keyframe's DTS. Stopping at
-            // its PTS also copies that keyframe and its reordered frames into the
-            // encoded tail, producing duplicate preroll and an inflated timeline.
             TimeSpan lDecodeDuration = lDecodeEnd - lCopyOrigin;
             if (lDecodeDuration > TimeSpan.Zero)
             {
@@ -50,9 +47,6 @@ public static partial class LEncode
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lCopyOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lCopyDuration)}");
-        // The keyframe timestamps retain probe precision, so packets before the
-        // selected presentation boundary belong to the preceding GOP. Keeping
-        // them can lengthen container timelines by a complete GOP.
         lArguments.Append(" -copypriorss 0 -c:v copy -an");
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource, lBridgePath);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
@@ -214,12 +208,6 @@ public static partial class LEncode
             return string.Empty;
         }
 
-        // Smart may join independently muxed video pieces. Without an explicit MOV/MP4
-        // track timescale, the final remux can choose a different unit from a neighboring
-        // Smart section that took the full-encode or direct-copy route. Such files are
-        // individually valid but concat later interprets their packet timestamps using
-        // one time base, shortening or lengthening video and corrupting the joined
-        // audio/video presentation timeline.
         return $"-video_track_timescale {lDenominator.ToString(CultureInfo.InvariantCulture)}";
     }
 

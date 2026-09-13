@@ -184,13 +184,13 @@ public sealed partial record LCropbox
         return new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight);
     }
 
-    public static (int Width, int Height) LCropboxRatioNormalize(int lCropboxRatioWidth, int lCropboxRatioHeight)
+    public static LCropboxExtent LCropboxRatioNormalize(int lCropboxRatioWidth, int lCropboxRatioHeight)
     {
         int lCropboxDivisor = LCropboxDivisorResolve(lCropboxRatioWidth, lCropboxRatioHeight);
-        return (lCropboxRatioWidth / lCropboxDivisor, lCropboxRatioHeight / lCropboxDivisor);
+        return new LCropboxExtent(lCropboxRatioWidth / lCropboxDivisor, lCropboxRatioHeight / lCropboxDivisor);
     }
 
-    public static (int Excess, bool Wide) LCropboxExcessResolve(
+    public static (int, bool) LCropboxExcessResolve(
         double lCropboxCropWidth,
         double lCropboxCropHeight,
         double lCropboxRatioWidth,
@@ -230,7 +230,7 @@ public sealed partial record LCropbox
         return Math.Abs(lCropboxActual - lCropboxTarget) / lCropboxTarget;
     }
 
-    public static (double Left, double Top, double Right, double Bottom)? LCropboxLockResolve(
+    public static LCropboxEdges? LCropboxLockResolve(
         double lCropboxSourceWidth,
         double lCropboxSourceHeight,
         double lCropboxLeft,
@@ -277,7 +277,7 @@ public sealed partial record LCropbox
                 return null;
             }
 
-            return (lCropboxLeft, lCropboxNewTop, lCropboxRight, lCropboxNewBottom);
+            return new LCropboxEdges(lCropboxLeft, lCropboxNewTop, lCropboxRight, lCropboxNewBottom);
         }
 
         if (lCropboxLeftLock && lCropboxRightLock)
@@ -302,7 +302,7 @@ public sealed partial record LCropbox
             return null;
         }
 
-        return (lCropboxNewLeft, lCropboxTop, lCropboxNewRight, lCropboxBottom);
+        return new LCropboxEdges(lCropboxNewLeft, lCropboxTop, lCropboxNewRight, lCropboxBottom);
     }
 
     public static double LCropboxFloorNormalize(double lCropboxValue)

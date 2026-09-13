@@ -5,11 +5,6 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Reads what a produced file actually contains: packet timestamps, stream and format
-/// durations, frame counts, time bases, decode errors. Measurement only; it never
-/// synthesizes media and never asserts a bridged expectation.
-/// </summary>
 internal static class TBridgeMetric
 {
     internal static IReadOnlyDictionary<int, double> TBridgePacketRead(string path)

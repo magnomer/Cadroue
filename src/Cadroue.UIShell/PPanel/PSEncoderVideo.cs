@@ -16,6 +16,8 @@ namespace Cadroue.UIShell.PPanel;
 
 internal sealed partial class PSEncoder
 {
+    private readonly record struct PSVideoScale(double PSVideoScaleRate, string PSVideoScaleValue);
+
     private UIElement PSVideoPlateBuild()
     {
         var pPanel = new StackPanel();
@@ -174,8 +176,6 @@ internal sealed partial class PSEncoder
             : LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOptionRange", pQuality.LCapabilityQualityOption, pRange)));
     }
 
-    // Speed values are registered faster -> slower, but the slider reads slowest on the
-    // left and fastest on the right, so slider position mirrors the choice index.
     private void PSVideoSpeedBuild(LCapabilityCodec pCodec, bool pModeStored)
     {
         if (pCodec.LCapabilitySpeed is not LCapabilitySpeed pSpeed)
@@ -232,24 +232,23 @@ internal sealed partial class PSEncoder
         return psVideoSpeedChoices[pAt].LCapabilityChoiceValue;
     }
 
-    // Index 0 is the Source sentinel; the remaining entries are the ordered rate scale.
-    private static readonly (double Rate, string Value)[] psVideoFpsScale = PSVideoScaleCreate();
+    private static readonly PSVideoScale[] psVideoFpsScale = PSVideoScaleCreate();
 
-    private static (double Rate, string Value)[] PSVideoScaleCreate()
+    private static PSVideoScale[] PSVideoScaleCreate()
     {
-        var pList = new List<(double Rate, string Value)>();
+        var pList = new List<PSVideoScale>();
         for (int pAt = 1; pAt <= 240; pAt++)
         {
-            pList.Add((pAt, pAt.ToString(CultureInfo.InvariantCulture)));
+            pList.Add(new PSVideoScale(pAt, pAt.ToString(CultureInfo.InvariantCulture)));
         }
 
         foreach (double pRate in new[] { 23.976, 29.97, 59.94, 119.88 })
         {
-            pList.Add((pRate, pRate.ToString(CultureInfo.InvariantCulture)));
+            pList.Add(new PSVideoScale(pRate, pRate.ToString(CultureInfo.InvariantCulture)));
         }
 
-        var pSorted = pList.OrderBy(pEntry => pEntry.Rate).ToList();
-        pSorted.Insert(0, (0, string.Empty));
+        var pSorted = pList.OrderBy(pEntry => pEntry.PSVideoScaleRate).ToList();
+        pSorted.Insert(0, new PSVideoScale(0, string.Empty));
         return pSorted.ToArray();
     }
 
@@ -274,7 +273,7 @@ internal sealed partial class PSEncoder
         double pBestDiff = double.MaxValue;
         for (int pAt = 1; pAt < psVideoFpsScale.Length; pAt++)
         {
-            double pDiff = Math.Abs(psVideoFpsScale[pAt].Rate - pRate);
+            double pDiff = Math.Abs(psVideoFpsScale[pAt].PSVideoScaleRate - pRate);
             if (pDiff < pBestDiff)
             {
                 pBestDiff = pDiff;
@@ -285,9 +284,6 @@ internal sealed partial class PSEncoder
         return pBest;
     }
 
-    // The editable field is authoritative and accepts any FFmpeg rate expression; moving the
-    // slider overwrites it with the picked scale value, and slider index 0 means source, which
-    // reveals the explanatory notice below the row.
     private void PSVideoFpsBuild(Panel pHost)
     {
         psVideoFpsNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Notice.FpsSource"));
@@ -319,7 +315,7 @@ internal sealed partial class PSEncoder
             }
             else
             {
-                psVideoFpsCustom.Text = psVideoFpsScale[pAt].Value;
+                psVideoFpsCustom.Text = psVideoFpsScale[pAt].PSVideoScaleValue;
                 psVideoFpsCustom.Foreground = PSFieldText;
                 psVideoFpsNotice.Visibility = Visibility.Collapsed;
             }

@@ -5,11 +5,6 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Locks where audio lands relative to video after a bridged cut: delayed tracks keep their
-/// cut-relative offsets, ordinary tracks start together, and audio lying outside the cut
-/// leaves the video mux intact.
-/// </summary>
 [Collection("EncodeCommand")]
 public sealed class TBridgeAlignment
 {
@@ -21,7 +16,11 @@ public sealed class TBridgeAlignment
         using var environment = new TEncodeCommand();
         LWorkItem work = TBridgeFixture.TBridgeWorkCreate(source, 1.1, 6.4, "Include all audio tracks");
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeDecodeBuild(
-            work, (1.1, 6.4), (1.1, 2), (2, 6, 5.933), (6, 6.4));
+            work,
+            TEncodeCommand.TBridgeSpanCreate(1.1, 6.4),
+            TEncodeCommand.TBridgeSpanCreate(1.1, 2),
+            TEncodeCommand.TBridgeSpanCreate(2, 6, 5.933),
+            TEncodeCommand.TBridgeSpanCreate(6, 6.4));
         Assert.Single(stages, stage => stage.LEncodeStageLabel == "Copying audio");
 
         foreach (LEncodeStage stage in stages)
@@ -45,7 +44,11 @@ public sealed class TBridgeAlignment
         using var environment = new TEncodeCommand();
         LWorkItem work = TBridgeFixture.TBridgeWorkCreate(source, 1.1, 6.4, "Include");
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeDecodeBuild(
-            work, (1.1, 6.4), (1.1, 2), (2, 6, 5.933), (6, 6.4));
+            work,
+            TEncodeCommand.TBridgeSpanCreate(1.1, 6.4),
+            TEncodeCommand.TBridgeSpanCreate(1.1, 2),
+            TEncodeCommand.TBridgeSpanCreate(2, 6, 5.933),
+            TEncodeCommand.TBridgeSpanCreate(6, 6.4));
 
         foreach (LEncodeStage stage in stages)
         {
@@ -65,7 +68,7 @@ public sealed class TBridgeAlignment
         using var environment = new TEncodeCommand();
         LWorkItem work = TBridgeFixture.TBridgeWorkCreate(source, 0, 0.5, "Include all audio tracks");
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeDecodeBuild(
-            work, (0, 0.5), null, (0, 0.5, 0.5), null);
+            work, TEncodeCommand.TBridgeSpanCreate(0, 0.5), null, TEncodeCommand.TBridgeSpanCreate(0, 0.5, 0.5), null);
 
         Assert.False(TEncodeCommand.TAudioIntervalRead(source, 0, 0.5));
         LEncodeStage copy = Assert.Single(stages);

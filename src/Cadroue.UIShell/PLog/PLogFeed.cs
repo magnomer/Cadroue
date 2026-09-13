@@ -143,7 +143,7 @@ public sealed partial class PLogWindow
             pLogSnapshotSequence = pLogCommitted;
             lock (pLogPendingLock)
             {
-                pLogPending.RemoveAll(pLogItem => pLogItem.Sequence <= pLogSnapshotSequence);
+                pLogPending.RemoveAll(pLogItem => pLogItem.PLogSequence <= pLogSnapshotSequence);
             }
         }
 
@@ -205,8 +205,6 @@ public sealed partial class PLogWindow
             return;
         }
 
-        // Adding rows increases the extent before ScrollIntoView reaches the new tail.
-        // Preserve the prior follow state during that intermediate layout event.
         if (e.ExtentHeightChange != 0)
         {
             return;
@@ -219,7 +217,7 @@ public sealed partial class PLogWindow
     {
         lock (pLogPendingLock)
         {
-            pLogPending.Add((pLogSequence, pLogEntry));
+            pLogPending.Add(new PLogPending(pLogSequence, pLogEntry));
         }
     }
 
@@ -236,7 +234,7 @@ public sealed partial class PLogWindow
             }
         }
 
-        List<(long Sequence, LTraceEntry Entry)> pLogBatch;
+        List<PLogPending> pLogBatch;
         lock (pLogPendingLock)
         {
             if (pLogPending.Count == 0)
@@ -244,7 +242,7 @@ public sealed partial class PLogWindow
                 return;
             }
 
-            pLogBatch = new List<(long Sequence, LTraceEntry Entry)>(pLogPending);
+            pLogBatch = new List<PLogPending>(pLogPending);
             pLogPending.Clear();
         }
 

@@ -7,6 +7,8 @@ namespace Cadroue.UIShell.PDeck;
 
 public sealed partial class PRoster
 {
+    private readonly record struct PRosterLineageKey(Guid PRosterBatch, Guid PRosterLineage);
+
     private sealed class PRosterLineageEntry
     {
         public required Guid PRosterLineageBatch { get; init; }
@@ -19,12 +21,12 @@ public sealed partial class PRoster
     private IReadOnlyList<PRosterLineageEntry> PRosterLineageRead(IReadOnlyList<LWorkItem> pWorkItems)
     {
         var pLineageOrder = new List<PRosterLineageEntry>();
-        var pLineageIndex = new Dictionary<(Guid Batch, Guid Lineage), PRosterLineageEntry>();
+        var pLineageIndex = new Dictionary<PRosterLineageKey, PRosterLineageEntry>();
 
         foreach (LWorkItem pWorkItem in pWorkItems)
         {
             Guid pLineageId = pRosterSchedule.LScheduleLineageRead(pWorkItem);
-            var pLineageKey = (pWorkItem.LWorkBatchId, pLineageId);
+            var pLineageKey = new PRosterLineageKey(pWorkItem.LWorkBatchId, pLineageId);
             if (!pLineageIndex.TryGetValue(pLineageKey, out PRosterLineageEntry? pLineageEntry))
             {
                 pLineageEntry = new PRosterLineageEntry

@@ -5,10 +5,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Test-side boundary for production operations. Every member is a transparent relay:
-/// it delegates to exactly one production operation and does not alter its inputs or result.
-/// </summary>
 internal static partial class TInterface
 {
     internal static bool TClassifierMatch(LSceneFunnelRule rule, string name) =>
@@ -41,24 +37,24 @@ internal static partial class TInterface
         IReadOnlyList<LPiece> sections, TimeSpan until, int skipIndex, bool overlapAllowed) =>
         LPiece.LPieceFloorRead(sections, until, skipIndex, overlapAllowed);
 
-    internal static (List<LPiece> Sections, int? Active)? TPieceAdd(
+    internal static LPieceResult? TPieceAdd(
         IReadOnlyList<LPiece> sections, TimeSpan cursor, TimeSpan duration, int colorIndex, bool overlapAllowed) =>
         LPiece.LPieceAdd(sections, cursor, duration, colorIndex, overlapAllowed);
 
-    internal static (List<LPiece> Sections, int? Active)? TPieceEndCreate(
+    internal static LPieceResult? TPieceEndCreate(
         IReadOnlyList<LPiece> sections, TimeSpan cursor, int colorIndex, bool overlapAllowed) =>
         LPiece.LPieceEndCreate(sections, cursor, colorIndex, overlapAllowed);
 
-    internal static (List<LPiece> Sections, int? Active, bool Added)? TPieceStartSet(
+    internal static LPieceResult? TPieceStartSet(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, TimeSpan duration,
         int colorIndex, bool overlapAllowed) =>
         LPiece.LPieceOriginSet(sections, activeIndex, cursor, duration, colorIndex, overlapAllowed);
 
-    internal static (List<LPiece> Sections, int? Active, bool Added)? TPieceEndSet(
+    internal static LPieceResult? TPieceEndSet(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex, bool overlapAllowed) =>
         LPiece.LPieceEndSet(sections, activeIndex, cursor, colorIndex, overlapAllowed);
 
-    internal static (List<LPiece> Sections, int First, int Second)? TPieceDivide(
+    internal static LPieceDivision? TPieceDivide(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex) =>
         LPiece.LPieceDivide(sections, activeIndex, cursor, colorIndex);
 
@@ -110,7 +106,6 @@ internal static partial class TInterface
 
     internal static IReadOnlyList<LSeriesGroup> TGroupResolve(LGroupSelection selection, IReadOnlyList<string> paths) =>
         selection.LGroupResolve(paths);
-
 
     internal static LBridgePlan TBridgeResolve(
         IReadOnlyList<TimeSpan> keyframes, TimeSpan origin, TimeSpan end, bool openEnd = false) =>

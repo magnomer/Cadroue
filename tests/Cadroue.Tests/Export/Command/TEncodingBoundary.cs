@@ -48,9 +48,6 @@ public sealed class TEncodingBoundary : IDisposable
             green > red + 32 && green > blue + 32,
             $"first visible frame is not the requested green section: rgb({red},{green},{blue})");
 
-        // Pure packet copy cannot manufacture an independent decoder refresh at
-        // an open-GOP boundary. Its preroll/reorder allowance is intentionally
-        // tested separately from Smart, which must produce an exact clean cut.
         Assert.InRange(TEncodingDurationRead(output), TEncodingCutEnd - TEncodingCutOrigin, TEncodingCutEnd - TEncodingCutOrigin + 0.35);
     }
 
@@ -106,8 +103,6 @@ public sealed class TEncodingBoundary : IDisposable
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeSourceBuild(work);
 
-        // The whole source is copyable end to end: one stream copy, no tail bridge,
-        // no concat, and no re-encode that could reject the source profile/pixel format.
         LEncodeStage copy = Assert.Single(stages);
         Assert.Equal("Copying", copy.LEncodeStageLabel);
         IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(copy.LEncodeStageArguments);
@@ -212,7 +207,7 @@ public sealed class TEncodingBoundary : IDisposable
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
     }
 
-    private static (byte Red, byte Green, byte Blue) TEncodingPixelRead(string path)
+    private static (byte, byte, byte) TEncodingPixelRead(string path)
     {
         var start = new ProcessStartInfo(TEncodeCommand.TToolFfmpegRead())
         {

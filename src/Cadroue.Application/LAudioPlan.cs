@@ -54,10 +54,11 @@ public static partial class LAudio
 
     public static LWorkAudioStep LAudioNormalizeCreate()
     {
-        var (lTarget, lPeak, lRange, lTwoPass, lFrame, lGauss, lMaxGain, lCompress) =
-            LLevelingCatalog.LLevelingDefaultRead();
+        LLevelingDefault lDefault = LLevelingCatalog.LLevelingDefaultRead();
         return LWorkAudioStep.LWorkNormalizeCreate(
-            false, LLeveling.LLevelingLoudness, lTarget, lPeak, lRange, lTwoPass, lFrame, lGauss, lMaxGain, lCompress);
+            false, LLeveling.LLevelingLoudness, lDefault.LLevelingTarget, lDefault.LLevelingPeak, lDefault.LLevelingRange,
+            lDefault.LLevelingTwoPass, lDefault.LLevelingFrame, lDefault.LLevelingGauss, lDefault.LLevelingMaxGain,
+            lDefault.LLevelingCompress);
     }
 
     private static LWorkAudioStep LAudioDefaultCreate(LAudioKind lAudioKind) => lAudioKind switch

@@ -2,11 +2,6 @@ using Cadroue.Core;
 
 namespace Cadroue.Application;
 
-// One preset never varies inside one window, and that includes an unsaved draft: the working
-// record for a preset name lives here, once, and every tab showing that name is a view onto it.
-// A tab holds no export state of its own, so an edit in one tab is the same edit in every other.
-// Work already commissioned is unaffected: an enqueued item carries its own encoding snapshot and
-// never reads back through here.
 public sealed class LPresetSelection
 {
     private static readonly Dictionary<string, LPresetRecord> LPresetDrafts =
@@ -116,10 +111,6 @@ public sealed class LPresetSelection
         return true;
     }
 
-    // The working record is the draft itself, so a save hands storage exactly what every tab is
-    // looking at. A rejected write puts the draft back under the name it came from, and a save
-    // under a different name returns that name to its stored values, so a preset is never left
-    // dirty by a copy made out of it.
     public bool LPresetSelectionSave(string lPresetName)
     {
         string lName = lPresetName.Trim();
@@ -160,8 +151,6 @@ public sealed class LPresetSelection
 
     public void LPresetSelectionRestore() => LPresetDraftReset(LPresetSelectionName);
 
-    // The catalogue changed underneath the drafts: a draft still holding the stored values is not
-    // an edit, so it follows the catalogue; one the user has modified is kept.
     internal static void LPresetDraftSync(string lPresetName, LPresetRecord? lPresetStored, LPresetRecord? lPresetPrevious)
     {
         if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetRecord? lPresetDraft))

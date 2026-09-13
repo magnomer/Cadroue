@@ -22,6 +22,16 @@ public sealed record LLevelingDynamicPreset(
     double LLevelingMaxGain,
     double LLevelingCompress);
 
+public sealed record LLevelingDefault(
+    double LLevelingTarget,
+    double LLevelingPeak,
+    double LLevelingRange,
+    bool LLevelingTwoPass,
+    double LLevelingFrame,
+    double LLevelingGauss,
+    double LLevelingMaxGain,
+    double LLevelingCompress);
+
 public static class LLevelingCatalog
 {
     public const double LLevelingTargetLeast = -36;
@@ -39,9 +49,8 @@ public static class LLevelingCatalog
     public const double LLevelingCompressLeast = 0;
     public const double LLevelingCompressMost = 30;
 
-    public static (double Target, double Peak, double Range, bool TwoPass,
-        double Frame, double Gauss, double MaxGain, double Compress) LLevelingDefaultRead() =>
-        (-21, -2, 6, true, 300, 21, 10, 6);
+    public static LLevelingDefault LLevelingDefaultRead() =>
+        new(-21, -2, 6, true, 300, 21, 10, 6);
 
     public static readonly IReadOnlyList<LLevelingLoudnessPreset> LLevelingLoudnessPresets = new[]
     {
@@ -74,26 +83,26 @@ public static class LLevelingCatalog
         "Gentle", "Leveler", "Voice", "Aggressive", "Music"
     };
 
-    public static (double Target, double Peak, double Range)? LLevelingLoudnessRead(string lToken)
+    public static LLevelingLoudnessPreset? LLevelingLoudnessRead(string lToken)
     {
         foreach (LLevelingLoudnessPreset lPreset in LLevelingLoudnessPresets)
         {
             if (lPreset.LLevelingToken == lToken)
             {
-                return (lPreset.LLevelingTarget, lPreset.LLevelingPeak, lPreset.LLevelingRange);
+                return lPreset;
             }
         }
 
         return null;
     }
 
-    public static (double Frame, double Gauss, double MaxGain, double Compress)? LLevelingDynamicRead(string lToken)
+    public static LLevelingDynamicPreset? LLevelingDynamicRead(string lToken)
     {
         foreach (LLevelingDynamicPreset lPreset in LLevelingDynamicPresets)
         {
             if (lPreset.LLevelingToken == lToken)
             {
-                return (lPreset.LLevelingFrame, lPreset.LLevelingGauss, lPreset.LLevelingMaxGain, lPreset.LLevelingCompress);
+                return lPreset;
             }
         }
 

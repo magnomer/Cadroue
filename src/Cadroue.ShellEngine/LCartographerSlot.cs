@@ -1,5 +1,7 @@
 namespace Cadroue.ShellEngine;
 
+public sealed record LCartographerAssignment(Guid LCartographerSource, Guid LCartographerTarget);
+
 public static partial class LCartographer
 {
     public const int LCartographerFinishSlot = -2;
@@ -32,11 +34,11 @@ public static partial class LCartographer
         return lCartographerSlots;
     }
 
-    public static IReadOnlyList<(Guid Source, Guid Target)> LCartographerAssignmentResolve(
+    public static IReadOnlyList<LCartographerAssignment> LCartographerAssignmentResolve(
         IReadOnlyList<Guid> lCartographerTabIds,
         IReadOnlyList<int> lCartographerSlots)
     {
-        var lCartographerAssignments = new List<(Guid Source, Guid Target)>();
+        var lCartographerAssignments = new List<LCartographerAssignment>();
         for (int lCartographerIndex = 0; lCartographerIndex < lCartographerTabIds.Count; lCartographerIndex++)
         {
             if (lCartographerIndex >= lCartographerSlots.Count)
@@ -47,7 +49,7 @@ public static partial class LCartographer
             int lCartographerSlot = lCartographerSlots[lCartographerIndex];
             if (lCartographerSlot == LCartographerFinishSlot)
             {
-                lCartographerAssignments.Add((lCartographerTabIds[lCartographerIndex], LCartographerFinishTarget));
+                lCartographerAssignments.Add(new LCartographerAssignment(lCartographerTabIds[lCartographerIndex], LCartographerFinishTarget));
                 continue;
             }
 
@@ -56,7 +58,7 @@ public static partial class LCartographer
                 continue;
             }
 
-            lCartographerAssignments.Add((lCartographerTabIds[lCartographerIndex], lCartographerTabIds[lCartographerSlot]));
+            lCartographerAssignments.Add(new LCartographerAssignment(lCartographerTabIds[lCartographerIndex], lCartographerTabIds[lCartographerSlot]));
         }
 
         return lCartographerAssignments;

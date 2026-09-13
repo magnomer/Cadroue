@@ -6,11 +6,6 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-
-/// <summary>
-/// Locks the three video modes (Copy / Smart / Encode) and the legacy Auto normalization
-/// through the production stage builder.
-/// </summary>
 [Collection("EncodeCommand")]
 public sealed class TEncodeMode
 {
@@ -45,10 +40,8 @@ public sealed class TEncodeMode
         using var environment = new TEncodeCommand();
         LWorkItem work = TEncodeCommand.TBridgeWorkCreate(TEncodeSource, TEncodeOutput);
 
-        // Interval is [10, 30]; interior keyframes at 12 and 28 align with neither bound.
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeResolve(work, 12, 28);
 
-        // head, middle, tail — each followed by its MPEG-TS join piece — plus the join.
         Assert.Equal(8, stages.Count);
         Assert.Equal("Encoding head bridge", stages[0].LEncodeStageLabel);
         Assert.Contains(stages, stage => stage.LEncodeStageLabel == "Copying middle");
@@ -64,7 +57,11 @@ public sealed class TEncodeMode
         LWorkItem work = TEncodeCommand.TBridgeCropCreate(TEncodeSource, TEncodeOutput);
 
         LEncodeStage stage = Assert.Single(TEncodeCommand.TBridgeResolveBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30)));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30)));
         IReadOnlyList<string> tokens = TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments);
 
         Assert.False(stage.LEncodeStageTemporary);

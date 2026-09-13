@@ -290,7 +290,6 @@ public sealed partial class PInspector : PPanel
         return pFieldPanel;
     }
 
-    // Label pinned left, content centered across the full row width (overlapping cell).
     private static UIElement PInspectorFieldBuild(
         string pFieldLabel, FrameworkElement pFieldContent, bool pFieldCenter)
     {

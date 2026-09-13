@@ -8,6 +8,8 @@ namespace Cadroue.UIShell.PSCasement;
 
 internal static class PSField
 {
+    private readonly record struct PSFieldSegment(string PSFieldSegmentToken, Border PSFieldSegmentBorder, TextBlock PSFieldSegmentText);
+
     internal const double PSFieldFontSize = 12;
     internal const double PSFieldControlHeight = 32;
     internal const double PSFieldLabelWidth = 130;
@@ -185,7 +187,7 @@ internal static class PSField
             ? pSelected
             : pChoices.FirstOrDefault()?.LLocalizationChoiceToken ?? string.Empty;
 
-        var pSegments = new List<(string Token, Border Segment, TextBlock Text)>();
+        var pSegments = new List<PSFieldSegment>();
 
         void PSModeStyleApply()
         {
@@ -235,7 +237,7 @@ internal static class PSField
                 PSModeStyleApply();
                 pChange();
             };
-            pSegments.Add((pToken, pSegment, pText));
+            pSegments.Add(new PSFieldSegment(pToken, pSegment, pText));
             pStrip.Children.Add(pSegment);
         }
 
@@ -251,7 +253,7 @@ internal static class PSField
                 if (string.Equals((string)pHost.Tag, pToken, StringComparison.Ordinal))
                 {
                     pHost.Tag = pSegments
-                        .Select(pEntry => pEntry.Token)
+                        .Select(pEntry => pEntry.PSFieldSegmentToken)
                         .FirstOrDefault(pOther => !pDisabled.Contains(pOther)) ?? pToken;
                 }
             }

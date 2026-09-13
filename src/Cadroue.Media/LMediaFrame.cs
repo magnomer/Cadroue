@@ -11,10 +11,6 @@ public sealed record LMediaFrame(int LMediaFrameWidth, int LMediaFrameHeight, by
 
 public static partial class LMedia
 {
-    // Decode a single RGBA frame from the stored source at the given position, without
-    // subtitles, overlays, or any preview correction. The stream's own display matrix is
-    // applied, so the output carries display-oriented pixels in the same space as the
-    // dimensions LMediaInfo publishes and as every preview backend shows.
     public static LMediaFrame? LMediaFrameRead(
         string sourcePath,
         TimeSpan position,

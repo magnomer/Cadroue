@@ -4,8 +4,6 @@ public static class LFlawTransport
 {
     public static LDossier? LFlawTransportResolve(string lFlawProbeReport, string lFlawCopyError)
     {
-        // Transport-layer repair is meaningful only for MPEG-TS/M2TS carriage; any other
-        // container is NotApplicable and produces no dossier.
         IReadOnlyDictionary<string, string>? lFlawFormat = LFlaw.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
         string lFlawContainer = lFlawFormat is not null
             && lFlawFormat.TryGetValue("format_name", out string? lFlawName)

@@ -5,6 +5,8 @@ namespace Cadroue.Infrastructure;
 
 public static partial class LTrace
 {
+    private sealed record LTraceDrawReady(string LTraceDrawSurface, LTraceDrawTally LTraceDrawCount);
+
     private const int LTraceDrawPeriod = 1000;
 
     private static readonly object lTraceDrawLock = new();
@@ -74,7 +76,7 @@ public static partial class LTrace
 
     public static void LTraceDrawTick()
     {
-        List<(string Surface, LTraceDrawTally Tally)> lTraceReady;
+        List<LTraceDrawReady> lTraceReady;
         LTraceTimelineTally? lTraceTimelineReady;
         lock (lTraceDrawLock)
         {
@@ -83,10 +85,10 @@ public static partial class LTrace
                 return;
             }
 
-            lTraceReady = new List<(string, LTraceDrawTally)>(lTraceDrawTable.Count);
+            lTraceReady = new List<LTraceDrawReady>(lTraceDrawTable.Count);
             foreach (KeyValuePair<string, LTraceDrawTally> lTraceEntry in lTraceDrawTable)
             {
-                lTraceReady.Add((lTraceEntry.Key, lTraceEntry.Value));
+                lTraceReady.Add(new LTraceDrawReady(lTraceEntry.Key, lTraceEntry.Value));
             }
 
             lTraceDrawTable.Clear();

@@ -4,11 +4,6 @@ using Cadroue.Core;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Owns the temporary folder for one bridged-resilience test and synthesizes the awkward
-/// source media it needs: delayed audio tracks, reordered B-frame GOPs, non-zero timelines.
-/// Creation only; it asserts nothing and measures nothing.
-/// </summary>
 internal sealed class TBridgeFixture : IDisposable
 {
     private readonly string tBridgeRoot = Path.Combine(

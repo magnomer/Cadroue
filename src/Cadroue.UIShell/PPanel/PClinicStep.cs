@@ -19,7 +19,7 @@ public sealed partial class PClinic
         if (pClinicSalvageShown)
         {
             pClinicSalvage.PClinicSalvageUpdate(
-                pClinicStates.Values.Any(pState => pState.Apply));
+                pClinicStates.Values.Any(pState => pState.PClinicStateActive));
         }
         pClinicApplyBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
         pClinicPersistentBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
@@ -43,8 +43,8 @@ public sealed partial class PClinic
 
         pClinicToggleRow.Visibility = Visibility.Visible;
         LFlawKind? pKind = pClinicKinds
-            .Where(pEntry => pEntry.Name == pStepName)
-            .Select(pEntry => (LFlawKind?)pEntry.Kind)
+            .Where(pEntry => pEntry.PClinicKindName == pStepName)
+            .Select(pEntry => (LFlawKind?)pEntry.PClinicKindValue)
             .FirstOrDefault();
         pClinicCurrentKind = pKind;
         bool pKnown = pKind is not null;
@@ -54,10 +54,10 @@ public sealed partial class PClinic
         pClinicPersistentBox.IsEnabled = pKnown;
 
         pClinicSuppress = true;
-        if (pKind is { } pShownKind && pClinicStates.TryGetValue(pShownKind, out (bool Apply, bool Persistent) pState))
+        if (pKind is { } pShownKind && pClinicStates.TryGetValue(pShownKind, out PClinicState pState))
         {
-            pClinicApplyBox.IsChecked = pState.Apply;
-            pClinicPersistentBox.IsChecked = pState.Persistent;
+            pClinicApplyBox.IsChecked = pState.PClinicStateActive;
+            pClinicPersistentBox.IsChecked = pState.PClinicStatePersistent;
         }
         else
         {
@@ -84,9 +84,9 @@ public sealed partial class PClinic
         foreach ((LFlawKind pKind, string _) in pClinicKinds)
         {
             (bool pApply, bool pPersistent) =
-                pClinicStates.TryGetValue(pKind, out (bool Apply, bool Persistent) pState)
+                pClinicStates.TryGetValue(pKind, out PClinicState pState)
                     ? pState
-                    : (false, false);
+                    : new PClinicState(false, false);
             pSteps.Add(new LWorkFixStep(pKind, pApply, pPersistent));
         }
 
@@ -99,21 +99,21 @@ public sealed partial class PClinic
         foreach (LWorkFixStep pStep in pClinicPlan.LWorkFixSteps)
         {
             pClinicStates[pStep.LWorkFixKind] =
-                (pStep.LWorkFixRepair, pStep.LWorkFixPersistent);
+                new PClinicState(pStep.LWorkFixRepair, pStep.LWorkFixPersistent);
         }
 
         if (pClinicSalvageShown)
         {
             pClinicSalvage.PClinicSalvageUpdate(
-                pClinicStates.Values.Any(pState => pState.Apply));
+                pClinicStates.Values.Any(pState => pState.PClinicStateActive));
         }
 
         if (pClinicCurrentKind is { } pKind
-            && pClinicStates.TryGetValue(pKind, out (bool Apply, bool Persistent) pCurrent))
+            && pClinicStates.TryGetValue(pKind, out PClinicState pCurrent))
         {
             pClinicSuppress = true;
-            pClinicApplyBox.IsChecked = pCurrent.Apply;
-            pClinicPersistentBox.IsChecked = pCurrent.Persistent;
+            pClinicApplyBox.IsChecked = pCurrent.PClinicStateActive;
+            pClinicPersistentBox.IsChecked = pCurrent.PClinicStatePersistent;
             pClinicSuppress = false;
             PClinicResultApply();
         }
@@ -126,7 +126,7 @@ public sealed partial class PClinic
             return;
         }
 
-        pClinicStates[pKind] = (
+        pClinicStates[pKind] = new PClinicState(
             pClinicApplyBox.IsChecked == true,
             pClinicPersistentBox.IsChecked == true);
         PClinicPlanChange?.Invoke();
@@ -139,7 +139,7 @@ public sealed partial class PClinic
             return;
         }
 
-        pClinicStates[pKind] = (
+        pClinicStates[pKind] = new PClinicState(
             pClinicApplyBox.IsChecked == true,
             pClinicPersistentBox.IsChecked == true);
         PClinicPlanChange?.Invoke();

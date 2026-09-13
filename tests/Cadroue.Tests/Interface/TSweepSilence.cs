@@ -28,10 +28,10 @@ public sealed class TSweepSilence
             "[silencedetect @ x] silence_end: 15.75 | silence_duration: 3.25"
         };
 
-        (TimeSpan Start, TimeSpan End) lInterval =
+        LSweepSpan lInterval =
             Assert.Single(LSweep.LSweepSilenceParse(lLines, TimeSpan.FromSeconds(20)));
-        Assert.Equal(TimeSpan.FromSeconds(12.5), lInterval.Start);
-        Assert.Equal(TimeSpan.FromSeconds(15.75), lInterval.End);
+        Assert.Equal(TimeSpan.FromSeconds(12.5), lInterval.LSweepSpanOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(15.75), lInterval.LSweepSpanEnd);
     }
 
     [Fact]
@@ -42,10 +42,10 @@ public sealed class TSweepSilence
             "[silencedetect @ x] silence_start: 12.5"
         };
 
-        (TimeSpan Start, TimeSpan End) lInterval =
+        LSweepSpan lInterval =
             Assert.Single(LSweep.LSweepSilenceParse(lLines, TimeSpan.FromSeconds(20)));
-        Assert.Equal(TimeSpan.FromSeconds(12.5), lInterval.Start);
-        Assert.Equal(TimeSpan.FromSeconds(20), lInterval.End);
+        Assert.Equal(TimeSpan.FromSeconds(12.5), lInterval.LSweepSpanOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(20), lInterval.LSweepSpanEnd);
     }
 
     [Fact]

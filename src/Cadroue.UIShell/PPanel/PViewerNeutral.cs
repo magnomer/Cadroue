@@ -19,7 +19,6 @@ public sealed partial class PViewer
         {
             if (pViewerTool == PViewerTool.PViewerToolNeutral)
             {
-                // Already armed: switch the sampler in place without re-pausing.
                 pViewerNeutralTarget = pNeutralTarget;
                 return;
             }
@@ -110,7 +109,6 @@ public sealed partial class PViewer
 
         if (!pViewerPoint.LNeutralPointInside)
         {
-            // Letterbox or no displayed pixel under the cursor: stay armed, no result.
             return;
         }
 
@@ -129,7 +127,6 @@ public sealed partial class PViewer
         int pViewerPixelY = pViewerPoint.LNeutralPointY;
         LNeutralTarget pViewerTarget = pViewerNeutralTarget;
 
-        // A valid click ends the tool immediately; the decode runs in the background.
         PViewerNeutralReset();
         PViewerNeutralRead(
             pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight,
@@ -172,9 +169,6 @@ public sealed partial class PViewer
         PViewerNeutralChange?.Invoke(pViewerSample);
     }
 
-    // Decode the current frame and report where the given automatic method's neutral
-    // point falls, for the inspector's display-only colour-wheel estimate. The export
-    // correction itself is computed later by ffmpeg's colorcorrect.
     public async void PViewerEstimateRead(LWhitebalanceMethod pMethod, Action<LNeutralWheel> pEstimate)
     {
         if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
@@ -214,9 +208,6 @@ public sealed partial class PViewer
                 pMethod));
     }
 
-    // Decode the current frame and hand the raw RGBA pixels back, for the inspector's
-    // curve histogram guide. Reuses the eyedropper's decode seam; a null result means
-    // no media, no video, or a failed decode.
     public async void PViewerFrameRead(Action<LMediaFrame?> pFrameReady)
     {
         if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
@@ -250,10 +241,8 @@ public sealed partial class PViewer
         pFrameReady(pViewerFrame);
     }
 
-    private (Rect Display, Rect Shown) PViewerGeometryRead()
+    private (Rect, Rect) PViewerGeometryRead()
     {
-        // The Crop box is an overlay only: no preview engine crops the frame, so the
-        // player always renders the whole rotated source under the cursor.
         Size pViewerRotated = PCropDisplayRead();
         return (PCropRectRead(), new Rect(0, 0, pViewerRotated.Width, pViewerRotated.Height));
     }

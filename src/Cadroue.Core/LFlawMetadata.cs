@@ -39,10 +39,6 @@ public static class LFlawMetadata
             }
         }
 
-        // Two tracks whose own declared timelines disagree by more than a rounding
-        // margin is a container-metadata defect even when the format duration matches
-        // the longest track: the shorter essence has been stretched by an inflated
-        // per-track timescale or sample delta, not by real content.
         (double lFlawLow, double lFlawHigh) = LFlawSpanResolve(lFlawStreams);
         if (lFlawLow > 0
             && lFlawHigh - lFlawLow > 1.0
@@ -80,7 +76,7 @@ public static class LFlawMetadata
             ? lFlawValue
             : 0;
 
-    private static (double Low, double High) LFlawSpanResolve(
+    private static (double, double) LFlawSpanResolve(
         IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams)
     {
         double lFlawLow = double.MaxValue;

@@ -15,8 +15,6 @@ public sealed class TFlawCoded
     [Fact]
     public void FramingFault_IsNotCodedDamage()
     {
-        // A framing/config fault is repaired without decode; it is not decode damage
-        // and must not be escalated to the last-resort re-encode item.
         Assert.Null(TInterface.TFlawCodedResolve("[h264 @ 0x1] Invalid NAL unit size (-1 > 123)."));
         Assert.Null(TInterface.TFlawCodedResolve("[h264 @ 0x1] non-existing PPS 0 referenced"));
     }

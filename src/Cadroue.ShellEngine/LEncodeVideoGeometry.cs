@@ -11,8 +11,6 @@ internal static partial class LEncodeVideo
     {
         var lFilters = new List<string>();
 
-        // Flyleaf applies its flip flags in source space, before Rotation. Keep FFmpeg's
-        // sequential filter graph in that same order so combined transforms match preview.
         if (lCrop.LWorkFlipHorizontal)
         {
             lFilters.Add("hflip");

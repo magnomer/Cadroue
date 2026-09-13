@@ -34,7 +34,6 @@ public sealed class TNeutralPoint
     [MemberData(nameof(TNeutralTransformCreate))]
     public void Resolve_FullFrameRoundTrips(LRotateKind rotate, bool flipH, bool flipV)
     {
-        // A letterboxed display rect that is not flush with the overlay origin.
         var display = new TNeutralRect(12, 7, 300, 180);
         (int rotatedWidth, int rotatedHeight) = TNeutralRotateResolve(rotate);
         var shown = new TNeutralRect(0, 0, rotatedWidth, rotatedHeight);
@@ -63,7 +62,6 @@ public sealed class TNeutralPoint
         var display = new TNeutralRect(0, 0, 260, 160);
         var shown = new TNeutralRect(6, 4, 20, 15);
 
-        // Only pixels that fall inside the shown crop region are recoverable.
         foreach ((int sx, int sy) in TNeutralPixelRead())
         {
             (double finalX, double finalY) = TNeutralFinalResolve(sx, sy, rotate, flipH, flipV);
@@ -156,8 +154,6 @@ public sealed class TNeutralPoint
             ? (TNeutralSourceHeight, TNeutralSourceWidth)
             : (TNeutralSourceWidth, TNeutralSourceHeight);
 
-    // Independent forward model of the mpv display pipeline: hflip, vflip,
-    // transpose(rotate), producing the pixel in final (post-transpose) space.
     private static (double, double) TNeutralFinalResolve(
         int sx, int sy, LRotateKind rotate, bool flipH, bool flipV)
     {
@@ -171,7 +167,6 @@ public sealed class TNeutralPoint
             _ => (x, y)
         };
 
-        // Pixel centre so the resolver's floor recovers the exact pixel.
         return (fx + 0.5, fy + 0.5);
     }
 

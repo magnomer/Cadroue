@@ -10,7 +10,7 @@ public sealed class TPresetRename
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Current");
-        Assert.False(presets.TPresetSelectionChange("Current", "Current", "   ").Ok);
+        Assert.False(presets.TPresetSelectionChange("Current", "Current", "   ").TPresetSelectionOk);
     }
 
     [Fact]
@@ -18,7 +18,7 @@ public sealed class TPresetRename
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Current");
-        Assert.False(presets.TPresetSelectionChange("Current", "Current", "Current").Ok);
+        Assert.False(presets.TPresetSelectionChange("Current", "Current", "Current").TPresetSelectionOk);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public sealed class TPresetRename
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate(presets.TPresetNativeName);
-        Assert.False(presets.TPresetSelectionChange("Current", presets.TPresetNativeName, "Renamed").Ok);
+        Assert.False(presets.TPresetSelectionChange("Current", presets.TPresetNativeName, "Renamed").TPresetSelectionOk);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class TPresetRename
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Current", "Taken");
-        Assert.False(presets.TPresetSelectionChange("Current", "Current", "Taken").Ok);
+        Assert.False(presets.TPresetSelectionChange("Current", "Current", "Taken").TPresetSelectionOk);
     }
 
     [Fact]
@@ -42,9 +42,9 @@ public sealed class TPresetRename
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Current");
-        (bool ok, string selectionName) = presets.TPresetSelectionChange("Current", "Current", "Renamed");
-        Assert.True(ok);
-        Assert.Equal("Renamed", selectionName);
+        TPresetSelectionResult lResult = presets.TPresetSelectionChange("Current", "Current", "Renamed");
+        Assert.True(lResult.TPresetSelectionOk);
+        Assert.Equal("Renamed", lResult.TPresetSelectionName);
     }
 
     [Fact]
@@ -52,9 +52,9 @@ public sealed class TPresetRename
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Current", "Other");
-        (bool ok, string selectionName) = presets.TPresetSelectionChange("Current", "Other", "Renamed");
-        Assert.True(ok);
-        Assert.Equal("Current", selectionName);
+        TPresetSelectionResult lResult = presets.TPresetSelectionChange("Current", "Other", "Renamed");
+        Assert.True(lResult.TPresetSelectionOk);
+        Assert.Equal("Current", lResult.TPresetSelectionName);
     }
 
     [Fact]

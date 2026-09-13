@@ -45,14 +45,14 @@ public sealed partial class PSplitTab
         pProcessing.IsEnabled = false;
         pInspector.PSensorProgressShow();
         var pSplitProgress = new Progress<double>(pValue => pInspector.PSensorProgressApply(pValue));
-        var pSplitExcluded = new List<(TimeSpan Start, TimeSpan End)>();
-        var pSplitKept = new List<(TimeSpan Start, TimeSpan End)>();
-        var pSplitBoundaries = new List<(TimeSpan Time, TimeSpan Minimum)>();
+        var pSplitExcluded = new List<LSweepSpan>();
+        var pSplitKept = new List<LSweepSpan>();
+        var pSplitBoundaries = new List<LSweepBoundary>();
         try
         {
             if (pSplitBlank.LDetectorBlankEnabled)
             {
-                IReadOnlyList<(TimeSpan Start, TimeSpan End)> pSplitBlanks =
+                IReadOnlyList<LSweepSpan> pSplitBlanks =
                     await LSweep.LSweepScan(
                         pSplitSelected.LDocketEntryPath,
                         pSplitBlank,
@@ -72,12 +72,12 @@ public sealed partial class PSplitTab
                         pSplitSource.Token,
                         pSplitProgress);
                 TimeSpan pSplitSceneMinimum = TimeSpan.FromSeconds(pSplitScene.LDetectorStepMinimum);
-                pSplitBoundaries.AddRange(pSplitScenes.Select(pSplitTime => (pSplitTime, pSplitSceneMinimum)));
+                pSplitBoundaries.AddRange(pSplitScenes.Select(pSplitTime => new LSweepBoundary(pSplitTime, pSplitSceneMinimum)));
             }
 
             if (pSplitStill.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
             {
-                IReadOnlyList<(TimeSpan Start, TimeSpan End)> pSplitStills =
+                IReadOnlyList<LSweepSpan> pSplitStills =
                     await LSweep.LSweepStillScan(
                         pSplitSelected.LDocketEntryPath,
                         pSplitStill.LDetectorStepThreshold,
@@ -107,12 +107,12 @@ public sealed partial class PSplitTab
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                pSplitBoundaries.AddRange(pSplitLuminances.Select(pSplitTime => (pSplitTime, TimeSpan.Zero)));
+                pSplitBoundaries.AddRange(pSplitLuminances.Select(pSplitTime => new LSweepBoundary(pSplitTime, TimeSpan.Zero)));
             }
 
             if (pSplitSilence.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
             {
-                IReadOnlyList<(TimeSpan Start, TimeSpan End)> pSplitSilences =
+                IReadOnlyList<LSweepSpan> pSplitSilences =
                     await LSweep.LSweepSilenceScan(
                         pSplitSelected.LDocketEntryPath,
                         pSplitSilence.LDetectorStepThreshold,
@@ -135,7 +135,7 @@ public sealed partial class PSplitTab
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                pSplitBoundaries.AddRange(pSplitVolumes.Select(pSplitTime => (pSplitTime, TimeSpan.Zero)));
+                pSplitBoundaries.AddRange(pSplitVolumes.Select(pSplitTime => new LSweepBoundary(pSplitTime, TimeSpan.Zero)));
             }
 
             if (!pSplitSource.IsCancellationRequested)

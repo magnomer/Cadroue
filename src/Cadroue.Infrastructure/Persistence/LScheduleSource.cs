@@ -38,10 +38,6 @@ public sealed partial class LSchedule
         LScheduleDurationPersist(lWorkId, lWorkDuration);
     }
 
-    // Source figures measured once when the file is added to the worklist. Duration is only
-    // filled when still unknown (a planned range already set is authoritative); the media
-    // snapshot, source bytes, and per-input merge bytes are always recorded so the job run
-    // never re-measures the source and a deleted source keeps its figures.
     public void LScheduleSourceSet(
         Guid lWorkId,
         TimeSpan lWorkDuration,

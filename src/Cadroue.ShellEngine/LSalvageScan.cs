@@ -8,8 +8,6 @@ namespace Cadroue.ShellEngine;
 
 internal static class LSalvageScan
 {
-    // Two decodable packets separated by more than this many seconds are treated as
-    // straddling a dead region rather than one continuous span.
     private const double LSalvageGapSeconds = 1.0;
 
     internal static async Task<IReadOnlyList<LSalvageSpan>> LSalvageScanRun(
@@ -39,9 +37,6 @@ internal static class LSalvageScan
                 return lSalvageSpans;
             }
 
-            // The packet probe found no usable span (no video stream, or a container
-            // the demuxer could not walk). Fall back to the whole measured duration so
-            // the run still copies every readable byte rather than salvaging nothing.
             return LSalvageWholeResolve(lSalvageSource, lSalvageToken);
         }
         catch (OperationCanceledException)
@@ -71,8 +66,6 @@ internal static class LSalvageScan
                 continue;
             }
 
-            // The demuxer marks a torn packet corrupt; end the current span at it and
-            // resume a fresh span only once clean packets return.
             if (lSalvageFields[3].Contains('C', StringComparison.OrdinalIgnoreCase))
             {
                 LSalvageSpanClose(lSalvageSpans, lSalvageStart, lSalvageEnd, ref lSalvageOpen);

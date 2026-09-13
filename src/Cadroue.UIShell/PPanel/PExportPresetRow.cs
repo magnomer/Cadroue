@@ -91,10 +91,6 @@ public sealed partial class PExport
         return pRowBorder;
     }
 
-    // Whether this row's preset can carry the work of the tab hosting the panel. The row
-    // stays selectable either way; an unsupported one is only marked, and refused when the
-    // user actually runs it. The selected row is judged by the working copy, which is what
-    // would run, so editing it back into range clears the mark at once.
     private bool PExportSupportCheck(string lPresetName, LPreset lWorking)
     {
         if (pExportKind is not { } pExportWorkKind)
@@ -116,7 +112,6 @@ public sealed partial class PExport
     private string PExportNoticeRead() =>
         pExportKind == LWorkKind.LWorkKindEdit ? "ExportPreset.DisabledTooltip" : "ExportPreset.AudioTooltip";
 
-    // The refusal the action itself makes, over the selection that would actually be sent.
     public static bool PExportSupportCheck(LPresetSelection lPresetOwner, LWorkKind lExportKind) =>
         lPresetOwner.LPresetSelectionEncoding is not { } lExportEncoding
         || lExportEncoding.LEncodingSupportCheck(lExportKind);

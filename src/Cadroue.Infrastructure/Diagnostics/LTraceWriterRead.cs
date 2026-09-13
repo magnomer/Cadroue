@@ -7,9 +7,9 @@ using System.Threading;
 
 namespace Cadroue.Infrastructure;
 
-public sealed record LTraceReadResult<T>(
+public sealed record LTraceReadResult<LTracePayload>(
     bool LTraceReadSuccess,
-    T LTraceReadValue,
+    LTracePayload LTraceReadValue,
     string LTraceReadError);
 
 public static partial class LTraceWriter

@@ -43,8 +43,6 @@ public static partial class LBridge
         TimeSpan lBridgeEnd,
         bool lBridgeOpenEnd = false)
         => LBridgeRegionResolve(
-            // Callers that only have presentation timestamps describe a decode-order
-            // stream with no reordering. Packet-based callers must supply real DTS.
             lBridgeKeyframes.Select(lTime => new LKeyframeEntry(lTime, lTime)).ToArray(),
             lBridgeOrigin,
             lBridgeEnd,
@@ -92,20 +90,10 @@ public static partial class LBridge
 
         bool lBridgeOriginKeyed = lBridgeOriginKeyframe is not null;
         TimeSpan? lBridgeCopyOrigin = lBridgeOriginKeyframe is { } lBridgeMatchedOrigin
-            // UI and sidecar boundaries are millisecond-based. Seeking to that
-            // rounded value can land just after the packet and, with
-            // -copypriorss 0, discard the complete first GOP. Use the precise
-            // packet PTS that established the keyframe match.
             ? lBridgeMatchedOrigin.LKeyframePresentationTime
             : lBridgeFirstAfter?.LKeyframePresentationTime;
         TimeSpan? lBridgeCopyEnd = lBridgeLastWithin?.LKeyframePresentationTime;
 
-        // When the requested end reaches the source end, the region from the copy
-        // start through EOF is one or more whole GOPs and is fully copyable: the final
-        // GOP ends at a natural boundary, so it needs no re-encoded tail. Copy straight
-        // through to the end. Only a genuine mid-stream end requires a tail bridge, and
-        // reaching-the-end alone makes a lone-keyframe interval copyable, not a whole
-        // re-encode.
         bool lBridgeCopyToEnd = lBridgeOpenEnd
             && lBridgeCopyOrigin is TimeSpan lBridgeOpenStart
             && lBridgeOpenStart < lBridgeEnd;
@@ -129,14 +117,10 @@ public static partial class LBridge
             ? null
             : new LBridgeSpan(lBridgeOrigin, lBridgeCopyStart);
 
-        // A copy that runs to EOF has no following keyframe to stop before, so it needs
-        // no decode-time cutoff.
         TimeSpan? lBridgeDecodeEnd = lBridgeCopyToEnd ? null : lBridgeLastWithin?.LKeyframeDecodeTime;
         if (lBridgeDecodeEnd is TimeSpan lBridgeDecodeStop
             && lBridgeDecodeStop <= lBridgeCopyStart + LBridgeTolerance)
         {
-            // DTS is an optional precision hint for stopping before the tail GOP.
-            // A missing or malformed hint must not erase a presentation-time middle.
             lBridgeDecodeEnd = null;
         }
 
@@ -156,9 +140,6 @@ public static partial class LBridge
             return false;
         }
 
-        // A cut that stops within one frame of the source end reaches it: the requested
-        // and source ends arrive rounded to milliseconds, and a trim of a genuine frame
-        // or more stays a real mid-stream end.
         TimeSpan lBridgeFrame = lBridgeFramerate > 0
             ? TimeSpan.FromSeconds(1 / lBridgeFramerate)
             : LBridgeTolerance;

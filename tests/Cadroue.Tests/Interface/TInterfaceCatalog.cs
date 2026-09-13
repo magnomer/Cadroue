@@ -5,9 +5,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Test-side boundary for the audio preset catalogs: EQ contours, grain, passband and leveling.
-/// </summary>
 internal static partial class TInterface
 {
     internal static IReadOnlyList<string> TContourTokensRead() => LContourCatalog.LContourTokensRead();
@@ -25,21 +22,19 @@ internal static partial class TInterface
         double reduction, double floor, double smooth, double adaptivity, double residual, LGrain grain) =>
         LGrainCatalog.LGrainMatch(reduction, floor, smooth, adaptivity, residual, grain);
 
-
     internal static LPassbandPreset? TPassbandRead(bool high, string token) => LPassband.LPassbandRead(high, token);
     internal static string? TPassbandMatch(bool high, double frequency, int stages, int poles, double resonance) =>
         LPassband.LPassbandMatch(high, frequency, stages, poles, resonance);
     internal static LWorkAudioStep TPassbandStepCreate(bool high, bool active) =>
         LPassband.LPassbandStepCreate(high, active);
 
-    internal static (double Target, double Peak, double Range)? TLevelingLoudnessRead(string token) =>
+    internal static LLevelingLoudnessPreset? TLevelingLoudnessRead(string token) =>
         LLevelingCatalog.LLevelingLoudnessRead(token);
-    internal static (double Frame, double Gauss, double MaxGain, double Compress)? TLevelingDynamicRead(string token) =>
+    internal static LLevelingDynamicPreset? TLevelingDynamicRead(string token) =>
         LLevelingCatalog.LLevelingDynamicRead(token);
     internal static string? TLevelingLoudnessMatch(double target, double peak, double range) =>
         LLevelingCatalog.LLevelingLoudnessMatch(target, peak, range);
     internal static string? TLevelingDynamicMatch(double frame, double gauss, double maxGain, double compress) =>
         LLevelingCatalog.LLevelingDynamicMatch(frame, gauss, maxGain, compress);
-    internal static (double Target, double Peak, double Range, bool TwoPass, double Frame, double Gauss, double MaxGain, double Compress)
-        TLevelingDefaultRead() => LLevelingCatalog.LLevelingDefaultRead();
+    internal static LLevelingDefault TLevelingDefaultRead() => LLevelingCatalog.LLevelingDefaultRead();
 }

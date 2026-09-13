@@ -16,9 +16,9 @@ public sealed class TSweepCombine
 
         IReadOnlyList<LPiece> lResult = LSweep.LSweepCombineResolve(
             new[] { lUser },
-            new[] { (TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
-            new[] { (TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(7)) },
-            new[] { (TimeSpan.FromSeconds(4), TimeSpan.Zero), (TimeSpan.FromSeconds(8), TimeSpan.Zero) },
+            new[] { new LSweepSpan(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
+            new[] { new LSweepSpan(TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(7)) },
+            new[] { new LSweepBoundary(TimeSpan.FromSeconds(4), TimeSpan.Zero), new LSweepBoundary(TimeSpan.FromSeconds(8), TimeSpan.Zero) },
             TimeSpan.FromSeconds(10),
             4);
 
@@ -53,12 +53,12 @@ public sealed class TSweepCombine
     {
         IReadOnlyList<LPiece> lResult = LSweep.LSweepCombineResolve(
             Array.Empty<LPiece>(),
-            Array.Empty<(TimeSpan Start, TimeSpan End)>(),
-            Array.Empty<(TimeSpan Start, TimeSpan End)>(),
+            Array.Empty<LSweepSpan>(),
+            Array.Empty<LSweepSpan>(),
             new[]
             {
-                (TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3)),
-                (TimeSpan.FromSeconds(5), TimeSpan.Zero)
+                new LSweepBoundary(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3)),
+                new LSweepBoundary(TimeSpan.FromSeconds(5), TimeSpan.Zero)
             },
             TimeSpan.FromSeconds(10),
             4);

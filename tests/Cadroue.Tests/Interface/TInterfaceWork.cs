@@ -5,9 +5,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Test-side boundary for work value types: crop, video and audio steps, media and descriptions.
-/// </summary>
 internal static partial class TInterface
 {
     internal static LWorkCrop TWorkCropCreate() => LWorkCrop.LWorkCropCreate();

@@ -5,7 +5,7 @@ namespace Cadroue.UIShell.PPanel;
 
 public sealed partial class PInspector
 {
-    private (double Frame, double Gauss, double MaxGain, double Compress)? PDynamicPresetRead() =>
+    private LLevelingDynamicPreset? PDynamicPresetRead() =>
         pLoudnessBaseToken is { } pBase ? LLevelingCatalog.LLevelingDynamicRead(pBase) : null;
 
     private static string PDynamicKeyRead(string pToken) => pToken switch
@@ -25,13 +25,13 @@ public sealed partial class PInspector
             PInspectorDecimalRead(pDynamicMaxGain, 10),
             PInspectorDecimalRead(pDynamicCompress, 6));
 
-    private void PDynamicValuesApply((double Frame, double Gauss, double MaxGain, double Compress) pPreset)
+    private void PDynamicValuesApply(LLevelingDynamicPreset pPreset)
     {
         pLoudnessPresetSuppress = true;
-        pDynamicFrame.Text = pPreset.Frame.ToString("0.###", CultureInfo.InvariantCulture);
-        pDynamicGauss.Text = pPreset.Gauss.ToString("0.###", CultureInfo.InvariantCulture);
-        pDynamicMaxGain.Text = pPreset.MaxGain.ToString("0.###", CultureInfo.InvariantCulture);
-        pDynamicCompress.Text = pPreset.Compress.ToString("0.###", CultureInfo.InvariantCulture);
+        pDynamicFrame.Text = pPreset.LLevelingFrame.ToString("0.###", CultureInfo.InvariantCulture);
+        pDynamicGauss.Text = pPreset.LLevelingGauss.ToString("0.###", CultureInfo.InvariantCulture);
+        pDynamicMaxGain.Text = pPreset.LLevelingMaxGain.ToString("0.###", CultureInfo.InvariantCulture);
+        pDynamicCompress.Text = pPreset.LLevelingCompress.ToString("0.###", CultureInfo.InvariantCulture);
         pLoudnessPresetSuppress = false;
     }
 

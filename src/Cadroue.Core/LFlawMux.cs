@@ -7,9 +7,6 @@ public static class LFlawMux
         "cues", "cue point", "idx1", "index"
     };
 
-    // Complaints the throwaway null muxer of the -c copy -f null probe raises about its
-    // own output stage. They describe our pipeline, not the input container, and follow
-    // from a codec-configuration defect the config detector already owns.
     private static readonly string[] lFlawPipeline =
     {
         "dimensions not set", "could not write header", "incorrect codec parameters",

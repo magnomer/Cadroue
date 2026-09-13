@@ -20,6 +20,8 @@ namespace Cadroue.UIShell;
 
 internal sealed class PSAbout : Window
 {
+    private readonly record struct PSAboutCredit(string PSAboutCreditName, string PSAboutCreditUrl);
+
     internal const string PSAboutPlacementKey = "About";
 
     private const string PSAboutProjectUrl = "https://github.com/magnomer/Cadroue";
@@ -32,13 +34,13 @@ internal sealed class PSAbout : Window
     private const double PSAboutLogoSize = 76;
     private const double PSAboutRowGap = 7;
 
-    private static readonly (string Name, string Url)[] PSAboutCredits =
+    private static readonly PSAboutCredit[] PSAboutCredits =
     {
-        ("FFmpeg", "https://ffmpeg.org"),
-        ("FlyleafLib", "https://github.com/SuRGeoNix/Flyleaf"),
-        ("MPV", "https://mpv.io"),
-        ("Phosphor Icons", "https://phosphoricons.com/"),
-        ("SharpVectors", "https://github.com/ElinamLLC/SharpVectors")
+        new("FFmpeg", "https://ffmpeg.org"),
+        new("FlyleafLib", "https://github.com/SuRGeoNix/Flyleaf"),
+        new("MPV", "https://mpv.io"),
+        new("Phosphor Icons", "https://phosphoricons.com/"),
+        new("SharpVectors", "https://github.com/ElinamLLC/SharpVectors")
     };
 
     private readonly PSGrabber psAboutGrabber;

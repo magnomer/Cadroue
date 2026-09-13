@@ -9,36 +9,36 @@ public enum LVaultOutcome
     LVaultUnreadable
 }
 
-public sealed record LVaultResult<T>(LVaultOutcome LVaultOutcome, T? LVaultValue)
-    where T : class;
+public sealed record LVaultResult<LVaultPayload>(LVaultOutcome LVaultOutcome, LVaultPayload? LVaultValue)
+    where LVaultPayload : class;
 
 public static class LVault
 {
     private static readonly JsonSerializerOptions lVaultOptions = new() { WriteIndented = true };
 
-    public static LVaultResult<T> LVaultRead<T>(string lVaultPath)
-        where T : class
+    public static LVaultResult<LVaultPayload> LVaultRead<LVaultPayload>(string lVaultPath)
+        where LVaultPayload : class
     {
         if (!File.Exists(lVaultPath))
         {
-            return new LVaultResult<T>(LVaultOutcome.LVaultMissing, null);
+            return new LVaultResult<LVaultPayload>(LVaultOutcome.LVaultMissing, null);
         }
 
         try
         {
-            T? lVaultValue = JsonSerializer.Deserialize<T>(File.ReadAllText(lVaultPath));
+            LVaultPayload? lVaultValue = JsonSerializer.Deserialize<LVaultPayload>(File.ReadAllText(lVaultPath));
             if (lVaultValue is null)
             {
                 LVaultQuarantineRun();
-                return new LVaultResult<T>(LVaultOutcome.LVaultUnreadable, null);
+                return new LVaultResult<LVaultPayload>(LVaultOutcome.LVaultUnreadable, null);
             }
 
-            return new LVaultResult<T>(LVaultOutcome.LVaultLoaded, lVaultValue);
+            return new LVaultResult<LVaultPayload>(LVaultOutcome.LVaultLoaded, lVaultValue);
         }
         catch
         {
             LVaultQuarantineRun();
-            return new LVaultResult<T>(LVaultOutcome.LVaultUnreadable, null);
+            return new LVaultResult<LVaultPayload>(LVaultOutcome.LVaultUnreadable, null);
         }
 
         void LVaultQuarantineRun()
@@ -59,8 +59,8 @@ public static class LVault
         }
     }
 
-    public static bool LVaultSave<T>(string lVaultPath, T lVaultValue)
-        where T : class
+    public static bool LVaultSave<LVaultPayload>(string lVaultPath, LVaultPayload lVaultValue)
+        where LVaultPayload : class
     {
         string lVaultTemporary = lVaultPath + ".tmp";
         try

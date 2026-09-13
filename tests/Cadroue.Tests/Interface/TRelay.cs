@@ -26,7 +26,7 @@ public sealed class TRelay : IDisposable
     public IReadOnlyList<int> TRelaySlotResolve(IReadOnlyList<Guid> tabs) =>
         LCartographer.LCartographerSlotResolve(tabs);
 
-    public IReadOnlyList<(Guid Source, Guid Destination)> TRelayAssignResolve(
+    public IReadOnlyList<LCartographerAssignment> TRelayAssignResolve(
         IReadOnlyList<Guid> tabs, IReadOnlyList<int> slots) =>
         LCartographer.LCartographerAssignmentResolve(tabs, slots);
 

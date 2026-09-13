@@ -10,6 +10,8 @@ namespace Cadroue.UIShell.PPanel;
 
 public sealed partial class PInspector
 {
+    private readonly record struct PEqualizerCurrent(double[] PEqualizerFrequencies, double[] PEqualizerGains);
+
     private const string pEqualizerRemoveIcon = "/PAsset/PPanel/PFunnelRemove.svg";
 
     private sealed class PInspectorBand
@@ -167,7 +169,7 @@ public sealed partial class PInspector
         }
     }
 
-    private (double[] Frequencies, double[] Gains) PEqualizerCurrentRead()
+    private PEqualizerCurrent PEqualizerCurrentRead()
     {
         var pFrequencies = new double[pEqualizerRows.Count];
         var pGains = new double[pEqualizerRows.Count];
@@ -177,7 +179,7 @@ public sealed partial class PInspector
             pGains[pIndex] = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandValue, 0);
         }
 
-        return (pFrequencies, pGains);
+        return new PEqualizerCurrent(pFrequencies, pGains);
     }
 
     private static TextBlock PEqualizerUnitBuild(string pUnit) => new()

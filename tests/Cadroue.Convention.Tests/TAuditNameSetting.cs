@@ -1,20 +1,19 @@
 // Generated file. Do not edit by hand: every line is overwritten when it is rebuilt.
 //
-// AUDITNAMES GENERATION 7 - settings sidecar for Cadroue.
-// This is the only file in the convention-test project that carries a project-specific
-// value. Every other file is identical in every project at this generation.
+// AUDITNAMES GENERATION 8 - settings sidecar for Cadroue.
+// One of three generated sidecars in the convention-test project; each carries the values of
+// the audit that writes it. Every other file is identical in every project at this generation.
 
 namespace Convention.Tests;
 
-internal static class TAuditSetting
+internal static class TAuditNameSetting
 {
-    public const int TAuditGeneration = 7;
+    public const int TAuditGeneration = 8;
     public const string TAuditProject = "Cadroue";
     public const string TAuditTestPrefix = "T";
     public const string TAuditComponentPattern = "[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+";
     public const int TAuditComponentLimit = 3;
     public const int TAuditComponentReview = 3;
-    public const int TAuditLineLimit = 500;
     public const string TAuditXamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
     public const string TAuditCommandCancelArgument = "IncludeCancelCommand";
     public const string TAuditCommandAsyncSuffix = "Async";
@@ -70,12 +69,19 @@ internal static class TAuditSetting
 
     public static readonly string[] TAuditSelfExcluded =
     [
+        "TAuditComment.cs",
+        "TAuditCommentSetting.cs",
         "TAuditConvention.cs",
+        "TAuditLine.cs",
+        "TAuditLineSetting.cs",
         "TAuditName.cs",
+        "TAuditNameSetting.cs",
+        "TAuditNameWalker.cs",
         "TAuditRegistry.cs",
-        "TAuditSetting.cs",
-        "TAuditSize.cs",
+        "TAuditScope.cs",
         "TAuditSource.cs",
+        "TSpecimen.cs",
+        "TViolation.cs",
     ];
 
     public static readonly string[] TAuditMethodKinds =
@@ -125,6 +131,7 @@ internal static class TAuditSetting
     {
         ["IAsyncDisposable"] = ["DisposeAsync"],
         ["IDisposable"] = ["Dispose"],
+        ["IEquatable"] = ["Equals"],
         ["IMultiValueConverter"] = ["Convert", "ConvertBack"],
         ["INotifyPropertyChanged"] = ["PropertyChanged"],
         ["INotifyPropertyChanging"] = ["PropertyChanging"],

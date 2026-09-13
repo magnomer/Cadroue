@@ -8,7 +8,7 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LSweep
 {
-    public static async Task<IReadOnlyList<(TimeSpan Start, TimeSpan End)>> LSweepScan(
+    public static async Task<IReadOnlyList<LSweepSpan>> LSweepScan(
         string lSweepSource,
         LDetectorBlank lSweepBlank,
         TimeSpan lSweepDuration,
@@ -17,7 +17,7 @@ public static partial class LSweep
     {
         if (string.IsNullOrWhiteSpace(lSweepSource))
         {
-            return Array.Empty<(TimeSpan, TimeSpan)>();
+            return Array.Empty<LSweepSpan>();
         }
 
         var lSweepLines = new List<string>();
@@ -100,7 +100,7 @@ public static partial class LSweep
         return LSweepSceneParse(lSweepLines);
     }
 
-    public static async Task<IReadOnlyList<(TimeSpan Start, TimeSpan End)>> LSweepStillScan(
+    public static async Task<IReadOnlyList<LSweepSpan>> LSweepStillScan(
         string lSweepSource,
         double lSweepTolerance,
         double lSweepMinimum,
@@ -110,7 +110,7 @@ public static partial class LSweep
     {
         if (string.IsNullOrWhiteSpace(lSweepSource))
         {
-            return Array.Empty<(TimeSpan, TimeSpan)>();
+            return Array.Empty<LSweepSpan>();
         }
 
         var lSweepLines = new List<string>();
@@ -198,7 +198,7 @@ public static partial class LSweep
             LSweepLuminanceResolve(lSweepSamples, lSweepWindow, lSweepThreshold), lSweepMinimum);
     }
 
-    public static async Task<IReadOnlyList<(TimeSpan Start, TimeSpan End)>> LSweepSilenceScan(
+    public static async Task<IReadOnlyList<LSweepSpan>> LSweepSilenceScan(
         string lSweepSource,
         double lSweepThresholdDb,
         double lSweepMinimum,
@@ -208,7 +208,7 @@ public static partial class LSweep
     {
         if (string.IsNullOrWhiteSpace(lSweepSource))
         {
-            return Array.Empty<(TimeSpan, TimeSpan)>();
+            return Array.Empty<LSweepSpan>();
         }
 
         var lSweepLines = new List<string>();

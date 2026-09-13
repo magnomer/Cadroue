@@ -12,14 +12,14 @@ public sealed partial class PClinic
         {
             foreach ((LFlawKind pKind, string _) in pClinicKinds)
             {
-                pClinicResults.Remove((pClinicPath, pKind));
+                pClinicResults.Remove(new PClinicKey(pClinicPath, pKind));
             }
         }
     }
 
     public void PClinicResultShow(string pClinicResultPath, LFlawKind pClinicResultKind, LCheckupResult pClinicResult)
     {
-        pClinicResults[(pClinicResultPath, pClinicResultKind)] = pClinicResult;
+        pClinicResults[new PClinicKey(pClinicResultPath, pClinicResultKind)] = pClinicResult;
         if (pClinicResult.LCheckupOutcome == LCheckupOutcome.LCheckupOutcomeScanning)
         {
             pClinicProgress[pClinicResultPath] = 0;
@@ -55,7 +55,7 @@ public sealed partial class PClinic
         bool pScanning = pVisible
             && pClinicSource is { } pSource
             && pClinicCurrentKind is { } pKind
-            && pClinicResults.TryGetValue((pSource, pKind), out LCheckupResult pResult)
+            && pClinicResults.TryGetValue(new PClinicKey(pSource, pKind), out LCheckupResult pResult)
             && pResult.LCheckupOutcome == LCheckupOutcome.LCheckupOutcomeScanning;
         double pProgress = pScanning
             && pClinicSource is { } pProgressSource
@@ -85,7 +85,7 @@ public sealed partial class PClinic
         }
 
         LCheckupResult pResult = pClinicSource is { } pSource
-            && pClinicResults.TryGetValue((pSource, pKind), out LCheckupResult pStored)
+            && pClinicResults.TryGetValue(new PClinicKey(pSource, pKind), out LCheckupResult pStored)
             ? pStored
             : new LCheckupResult(pClinicSource ?? string.Empty, pKind, LCheckupOutcome.LCheckupOutcomeUntested);
         return LCheckupFormat.LCheckupBodyFormat(pResult, PClinicStringsRead());

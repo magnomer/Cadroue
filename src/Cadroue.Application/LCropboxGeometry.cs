@@ -62,7 +62,7 @@ public sealed partial record LCropbox
     private static int LCropboxEdgeResolve(int lCropboxEdge) =>
         lCropboxEdge <= 0 ? 0 : lCropboxEdge - (lCropboxEdge % 2);
 
-    private static (int Near, int Far) LCropboxSpanClamp(int lCropboxNear, int lCropboxFar, double lCropboxSpan)
+    private static (int, int) LCropboxSpanClamp(int lCropboxNear, int lCropboxFar, double lCropboxSpan)
     {
         int lCropboxLimit = LCropboxEdgeResolve((int)Math.Floor(lCropboxSpan) - LCropboxSpanMinimum);
         if (lCropboxLimit <= 0)
@@ -136,13 +136,13 @@ public sealed partial record LCropbox
         return lCropboxMap;
     }
 
-    public static (double Width, double Height) LCropboxSourceResolve(
+    public static LCropboxSize LCropboxSourceResolve(
         double lCropboxSourceWidth,
         double lCropboxSourceHeight,
         bool lCropboxRotated) =>
         lCropboxRotated
-            ? (lCropboxSourceHeight, lCropboxSourceWidth)
-            : (lCropboxSourceWidth, lCropboxSourceHeight);
+            ? new LCropboxSize(lCropboxSourceHeight, lCropboxSourceWidth)
+            : new LCropboxSize(lCropboxSourceWidth, lCropboxSourceHeight);
 
     public static LCropbox LCropboxDisplayResolve(
         double lCropboxSourceWidth,
@@ -168,14 +168,14 @@ public sealed partial record LCropbox
             lCropboxHeight);
     }
 
-    public static (double X, double Y) LCropboxPointClamp(
+    public static LCropboxPoint LCropboxPointClamp(
         double lCropboxPointX,
         double lCropboxPointY,
         LCropbox lCropboxVideo)
     {
         double lCropboxX = Math.Max(lCropboxVideo.LCropboxX, Math.Min(lCropboxVideo.LCropboxRight, lCropboxPointX));
         double lCropboxY = Math.Max(lCropboxVideo.LCropboxY, Math.Min(lCropboxVideo.LCropboxBottom, lCropboxPointY));
-        return (lCropboxX, lCropboxY);
+        return new LCropboxPoint(lCropboxX, lCropboxY);
     }
 
     public static LCropbox LCropboxRectClamp(LCropbox lCropboxRect, LCropbox lCropboxVideo, bool lCropboxRatioLocked)

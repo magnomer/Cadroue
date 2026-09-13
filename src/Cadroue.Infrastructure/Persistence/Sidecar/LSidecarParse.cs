@@ -121,7 +121,7 @@ internal static class LSidecarParse
         return lSidecarCache;
     }
 
-    private static T? LSidecarMemberRead<T>(JsonElement lSidecarRoot, string lSidecarName)
+    private static LSidecarMember? LSidecarMemberRead<LSidecarMember>(JsonElement lSidecarRoot, string lSidecarName)
     {
         if (!lSidecarRoot.TryGetProperty(lSidecarName, out JsonElement lSidecarElement)
             || lSidecarElement.ValueKind == JsonValueKind.Null)
@@ -131,7 +131,7 @@ internal static class LSidecarParse
 
         try
         {
-            return lSidecarElement.Deserialize<T>(lSidecarJsonOptions);
+            return lSidecarElement.Deserialize<LSidecarMember>(lSidecarJsonOptions);
         }
         catch (JsonException)
         {

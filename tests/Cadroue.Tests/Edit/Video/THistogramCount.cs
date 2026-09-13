@@ -9,7 +9,6 @@ public sealed class THistogramCount
     [Fact]
     public void Histogram_CountsPerChannelAndLuminance()
     {
-        // Two opaque pixels: pure red (255,0,0) and pure white (255,255,255).
         byte[] pixels =
         {
             255, 0, 0, 255,
@@ -24,7 +23,6 @@ public sealed class THistogramCount
         Assert.Equal(1, counts.LHistogramBlue[0]);
         Assert.Equal(1, counts.LHistogramBlue[255]);
 
-        // Rec.709 luminance: red → 54, white → 255.
         Assert.Equal(1, counts.LHistogramLuminance[54]);
         Assert.Equal(1, counts.LHistogramLuminance[255]);
     }

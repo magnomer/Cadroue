@@ -184,12 +184,12 @@ public sealed class TDetector
     public void LDetectorLuminanceResolve_TokenYieldsTuning(
         string lToken, double lThreshold, double lWindow, double lMinimum)
     {
-        (double Threshold, double Window, double Minimum)? lTuning = LDetector.LDetectorLuminanceResolve(lToken);
+        LDetectorLuminanceTuning? lTuning = LDetector.LDetectorLuminanceResolve(lToken);
 
         Assert.NotNull(lTuning);
-        Assert.Equal(lThreshold, lTuning.Value.Threshold);
-        Assert.Equal(lWindow, lTuning.Value.Window);
-        Assert.Equal(lMinimum, lTuning.Value.Minimum);
+        Assert.Equal(lThreshold, lTuning.Value.LDetectorThreshold);
+        Assert.Equal(lWindow, lTuning.Value.LDetectorWindow);
+        Assert.Equal(lMinimum, lTuning.Value.LDetectorMinimum);
     }
 
     [Fact]

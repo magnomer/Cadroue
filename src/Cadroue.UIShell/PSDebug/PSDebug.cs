@@ -10,10 +10,6 @@ using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 
 namespace Cadroue.UIShell;
 
-/// <summary>
-/// Developer-only catalog for exercising windows and dialogs without arranging
-/// the application state that normally causes them.
-/// </summary>
 internal sealed class PSDebug : Window
 {
     private const double PSDebugWidth = 780;

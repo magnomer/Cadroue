@@ -1,13 +1,11 @@
 namespace Cadroue.Application;
 
+public readonly record struct LNeutralRgb(int LNeutralRed, int LNeutralGreen, int LNeutralBlue);
+
 public static partial class LNeutral
 {
     private const double LNeutralWheelValue = 0.75;
 
-    // A colour-wheel pick: disc coordinates (each -1..1, centre neutral) name the
-    // source cast as a hue/saturation offset. Reconstruct the gray that carries that
-    // cast at a fixed reference value, then resolve it exactly as a picked sample —
-    // so wheel and picker feed one correction pipeline.
     public static LNeutralSample LNeutralColorResolve(double lNeutralX, double lNeutralY)
     {
         double lNeutralSaturation = Math.Clamp(Math.Sqrt((lNeutralX * lNeutralX) + (lNeutralY * lNeutralY)), 0, 1);
@@ -22,10 +20,7 @@ public static partial class LNeutral
         return LNeutralSampleCreate(lNeutralRed, lNeutralGreen, lNeutralBlue, LNeutralTarget.LNeutralTargetGrey);
     }
 
-    // Convert an HSV colour (hue degrees, saturation and value each 0..1) to an sRGB
-    // byte triple. Shared by the wheel pick and the inspector's disc rendering so the
-    // dot the user clicks matches the hue drawn under it.
-    public static (int Red, int Green, int Blue) LNeutralRgbResolve(
+    public static LNeutralRgb LNeutralRgbResolve(
         double lNeutralHue,
         double lNeutralSaturation,
         double lNeutralValue)
@@ -45,14 +40,12 @@ public static partial class LNeutral
             _ => (lNeutralChroma, 0.0, lNeutralSecond)
         };
 
-        return (
+        return new LNeutralRgb(
             LNeutralByteResolve(lNeutralRedUnit + lNeutralMatch),
             LNeutralByteResolve(lNeutralGreenUnit + lNeutralMatch),
             LNeutralByteResolve(lNeutralBlueUnit + lNeutralMatch));
     }
 
-    // Place the wheel dot for a gray sample: hue as angle, saturation as radius, value
-    // discarded (only the cast direction matters on a neutral disc).
     public static LNeutralWheel LNeutralWheelResolve(int lNeutralRed, int lNeutralGreen, int lNeutralBlue)
     {
         bool lNeutralSet = (lNeutralRed | lNeutralGreen | lNeutralBlue) != 0;

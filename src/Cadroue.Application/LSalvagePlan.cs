@@ -90,8 +90,6 @@ public static class LSalvage
         string lSalvageSuffix = string.IsNullOrWhiteSpace(lSalvageExtension) ? string.Empty : $".{lSalvageExtension}";
         string lSalvageFileName = $"{lSalvageBaseName}{lSalvageSuffix}";
 
-        // Fix/salvage keeps the source container: the destination extension mirrors the
-        // source, never the export preset's container, and must never equal the source path.
         return LSalvageSourceMatch(Path.Combine(lSalvageFolder, lSalvageFileName), lSalvageSourcePath)
             ? $"{lSalvageBaseName}_fix{lSalvageSuffix}"
             : lSalvageFileName;

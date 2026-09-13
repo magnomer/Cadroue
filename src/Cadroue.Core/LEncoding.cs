@@ -52,11 +52,6 @@ public sealed record LEncoding(
         return lEncodingSourceFolder;
     }
 
-    // Whether this output can carry the work a tab performs. Edit rewrites the video
-    // frames, so a copied video stream leaves it nothing to write; Audio rewrites the
-    // audio stream, so a copied stream, or none at all, leaves it nothing to write. The
-    // single rule behind the greyed preset rows, the refusal at the action, and the
-    // refusal inside item creation, so no path can disagree with another.
     public bool LEncodingSupportCheck(LWorkKind lEncodingKind) =>
         LEncodingSupportCheck(
             lEncodingKind,
@@ -103,9 +98,6 @@ public sealed record LEncoding(
     public static string LEncodingShorten(string lEncodingStem) =>
         LEncodingNameFormat(lEncodingStem, _ => null);
 
-    // One pass over the pattern: a marker is either an edit operator, a token whose value is emitted
-    // verbatim, or unknown text kept literally. A value is never re-scanned, so source text that looks
-    // like a token or an operator survives intact.
     public static string LEncodingNameFormat(string lEncodingPattern, Func<string, string?> lEncodingValueRead)
     {
         if (string.IsNullOrEmpty(lEncodingPattern) || lEncodingPattern.IndexOf('{') < 0)
@@ -199,9 +191,6 @@ public sealed record LEncoding(
         return lEncodingTrimmed.Length == 0 ? "output" : lEncodingTrimmed;
     }
 
-    // Every target a submission will write is taken before the next name is built, so two sources can
-    // never be admitted onto one output path. The set is keyed by full path: a per-source output folder
-    // means equal names in different folders are not a collision.
     public static string LEncodingNameClaim(
         ISet<string> lEncodingTakenPaths,
         string lEncodingFolder,

@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
 using Cadroue.Core;
@@ -229,7 +229,7 @@ public sealed partial class PRoster
             List<LWorkItem> pStepItems = pLineage.PRosterLineageItems;
             bool pLineageStage = pStepItems.Count > 0 && pRosterStageIds.Contains(pStepItems[^1].LWorkId);
             Border pFileRow = PRosterFileBuild(pLineage, pLineageStage);
-            pRosterFileShades.Add((pFileRow, pBatchId, pLineageStage));
+            pRosterFileShades.Add(new PRosterShade(pFileRow, pBatchId, pLineageStage));
             pDetail.Children.Add(pFileRow);
 
             for (int pItemIndex = 0; pItemIndex < pStepItems.Count; pItemIndex++)

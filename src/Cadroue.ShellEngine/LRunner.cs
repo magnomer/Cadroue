@@ -311,10 +311,6 @@ public sealed partial class LRunner
         {
             if (lRunnerCurrent)
             {
-                // Whatever this batch still holds is released here, so work claimed by a loop
-                // that ended early returns to the queue instead of staying Running behind an
-                // owner this process still reports as alive. It is posted rather than run on the
-                // loop thread so it follows every commit the finished jobs already queued.
                 lRunnerSchedule.LScheduleRelease(lRunnerId);
                 LRunnerRunning = false;
             }

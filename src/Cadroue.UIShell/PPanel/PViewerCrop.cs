@@ -6,6 +6,8 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PPanel;
 
+public readonly record struct PCropAnchor(int PCropAnchorDrive, int PCropAnchorX, int PCropAnchorY);
+
 public sealed partial class PViewer
 {
     public bool PCropPersistent { get; set; }
@@ -83,8 +85,8 @@ public sealed partial class PViewer
         pViewerCropRatio = pCropRatio is { Width: > 0, Height: > 0 } ? pCropRatio : null;
     }
 
-    public (int Drive, int AnchorX, int AnchorY) PCropAnchorRead() =>
-        (pViewerCropDrive, pViewerAnchorX, pViewerAnchorY);
+    public PCropAnchor PCropAnchorRead() =>
+        new(pViewerCropDrive, pViewerAnchorX, pViewerAnchorY);
 
     public void PCropVideoSet(Rect? pCropVideo)
     {

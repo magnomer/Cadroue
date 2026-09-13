@@ -65,11 +65,6 @@ internal sealed partial class LJob
         }
     }
 
-    // Atomically claim a path so no other process (or job) can take the same name:
-    // an exclusive create is the OS-level compare-and-swap that closes the choose-then-
-    // write race. The 0-byte placeholder is the reservation; the encode overwrites it
-    // (ffmpeg runs with -y -nostdin), and any placeholder never written over is removed
-    // by LJobReservedClear once the job ends.
     private bool LJobClaim(string pPath)
     {
         try
@@ -87,9 +82,6 @@ internal sealed partial class LJob
         }
     }
 
-    // Remove reservation placeholders the encode never wrote into: a real output has
-    // bytes, so an empty reserved file is a placeholder left behind by a failed, cancelled
-    // or skipped job. Never touches a file that received content.
     private void LJobReservedClear()
     {
         foreach (string pPath in lJobReserved)
@@ -117,9 +109,6 @@ internal sealed partial class LJob
             return;
         }
 
-        // Never delete a file this job did not create. The recorded output can coincide
-        // with a user-owned file: an input (source == output), or the pre-existing
-        // collision target the encode staged around (lJobFinalPath). Preserve those.
         bool pPreExisting = LJobCollisionCheck(pOutput, LJobInputsRead())
             || (lJobFinalPath.Length > 0 && string.Equals(
                 Path.GetFullPath(pOutput),

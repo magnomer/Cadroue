@@ -101,9 +101,21 @@ internal sealed class TScoutProbe : IDisposable
 
     internal void TScoutIdleRead(TimeSpan? timeout = null)
     {
-        if (!tScoutIdle.Wait(timeout ?? TimeSpan.FromSeconds(5)))
+        TimeSpan limit = timeout ?? TimeSpan.FromSeconds(5);
+        var stopwatch = Stopwatch.StartNew();
+        if (!tScoutIdle.Wait(limit))
         {
             throw new TimeoutException("Media probe did not become idle.");
+        }
+
+        while (LMediaProbe.LMediaProbeCount > 0)
+        {
+            if (stopwatch.Elapsed >= limit)
+            {
+                throw new TimeoutException("Media probe did not publish every result.");
+            }
+
+            Thread.Sleep(10);
         }
     }
 

@@ -29,8 +29,6 @@ public sealed class TNeutralWheel
     [InlineData(-0.4, -0.4)]
     public void WheelResolve_InvertsColorResolve(double x, double y)
     {
-        // A wheel pick reconstructs a gray; placing that gray back on the wheel must
-        // land on the same disc coordinate (value is irrelevant to the cast direction).
         LNeutralSample sample = TNeutral.TNeutralColorResolve(x, y);
         LNeutralWheel wheel = TNeutral.TNeutralWheelResolve(
             sample.LNeutralRed, sample.LNeutralGreen, sample.LNeutralBlue);
@@ -43,7 +41,6 @@ public sealed class TNeutralWheel
     [Fact]
     public void ColorResolve_ClampsToDiscEdge()
     {
-        // Coordinates outside the unit disc still yield a valid, bounded sample.
         LNeutralSample sample = TNeutral.TNeutralColorResolve(3, 4);
 
         Assert.True(sample.LNeutralResolved);

@@ -20,16 +20,12 @@ public sealed partial class PInspector
 
     private LHistogramCounts? pCurveHistogram;
 
-    // Store the current frame's counts (or clear) and repaint. The counts feed only
-    // the behind-the-curve guide; they never touch the FFmpeg command.
     public void PCurveHistogramApply(LHistogramCounts? pHistogram)
     {
         pCurveHistogram = pHistogram;
         PCurveRebuild();
     }
 
-    // Faint filled area behind the grid for the active channel: luminance for Master,
-    // else that channel. Non-interactive so it never intercepts point editing.
     private void PCurveHistogramDraw()
     {
         if (pCurveHistogram is not { } pHistogram)

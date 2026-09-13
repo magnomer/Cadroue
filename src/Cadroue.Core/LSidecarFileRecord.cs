@@ -48,11 +48,6 @@ public sealed class LSidecarDiagnosisRecord
     public string LSidecarPartialHash { get; set; } = string.Empty;
     public List<LSidecarDossier> LSidecarDossiers { get; set; } = new();
 
-    // The defect kinds this record authoritatively covers. A completed scan assesses every
-    // kind, so an absent defect for a listed kind means Clean — a positive verdict, not the
-    // absence of one. A record whose scan never finished (or a legacy record predating this
-    // field) leaves this empty, so readers treat it as undiagnosed and rescan rather than
-    // reporting a false Clean.
     public List<LFlawKind> LSidecarScannedKinds { get; set; } = new();
 }
 

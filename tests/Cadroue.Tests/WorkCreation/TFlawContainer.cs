@@ -42,8 +42,6 @@ public sealed class TFlawContainer
     [Fact]
     public void DecodeDamage_IsNotReportedAsContainerDefect()
     {
-        // A decoder complaint the container probe surfaces belongs to the coded detector,
-        // not to container structure.
         Assert.Null(TInterface.TFlawContainerResolve(
             "[mpeg2video @ 0x1] slice below image (55 >= 6)",
             "[mpeg2video @ 0x1] slice below image (55 >= 6)"));

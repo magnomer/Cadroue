@@ -77,8 +77,6 @@ internal static class LSalvageExtract
             throw;
         }
 
-        // Fail safe: keep only a span that extracted cleanly and re-probes as real
-        // media. Anything else is deleted so no partial or corrupt file is left behind.
         if (lSalvageResult.LEmployerExit == 0
             && File.Exists(lSalvageTemp)
             && new FileInfo(lSalvageTemp).Length > 0
@@ -111,9 +109,6 @@ internal static class LSalvageExtract
     private static string LSalvageArgumentBuild(
         string lSalvageSource, string lSalvageTemp, TimeSpan lSalvageOrigin, TimeSpan lSalvageLength)
     {
-        // Careful stream copy of one decodable span, keeping the source container and
-        // stream layout like the Fix copy stage; error tolerance lets the demuxer read
-        // past the surrounding damage. Input seeking avoids decoding the broken file.
         return "-hide_banner -nostdin -y -err_detect ignore_err"
             + $" -ss {LSalvageSecondsFormat(lSalvageOrigin)}"
             + $" -i {LEncode.LEncodeFormat(lSalvageSource)}"

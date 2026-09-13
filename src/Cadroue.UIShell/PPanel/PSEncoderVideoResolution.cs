@@ -12,15 +12,17 @@ namespace Cadroue.UIShell.PPanel;
 
 internal sealed partial class PSEncoder
 {
-    private static readonly (string Label, int Width, int Height)[] psVideoSizeTiers =
+    private readonly record struct PSVideoTier(string PSVideoTierLabel, int PSVideoTierWidth, int PSVideoTierHeight);
+
+    private static readonly PSVideoTier[] psVideoSizeTiers =
     [
-        ("Source", 0, 0),
-        ("480p", 854, 480),
-        ("720p", 1280, 720),
-        ("1080p", 1920, 1080),
-        ("1440p", 2560, 1440),
-        ("4K", 3840, 2160),
-        ("8K", 7680, 4320)
+        new("Source", 0, 0),
+        new("480p", 854, 480),
+        new("720p", 1280, 720),
+        new("1080p", 1920, 1080),
+        new("1440p", 2560, 1440),
+        new("4K", 3840, 2160),
+        new("8K", 7680, 4320)
     ];
 
     private const int psVideoDimensionMax = 7680;
@@ -135,8 +137,8 @@ internal sealed partial class PSEncoder
         }
         else
         {
-            psVideoWidthBox!.Text = psVideoSizeTiers[pTier].Width.ToString(CultureInfo.InvariantCulture);
-            psVideoHeightBox!.Text = psVideoSizeTiers[pTier].Height.ToString(CultureInfo.InvariantCulture);
+            psVideoWidthBox!.Text = psVideoSizeTiers[pTier].PSVideoTierWidth.ToString(CultureInfo.InvariantCulture);
+            psVideoHeightBox!.Text = psVideoSizeTiers[pTier].PSVideoTierHeight.ToString(CultureInfo.InvariantCulture);
         }
         psVideoSizeBusy = false;
 
@@ -210,7 +212,7 @@ internal sealed partial class PSEncoder
             }
             else
             {
-                psVideoResolutionValue.Text = psVideoSizeTiers[pTier].Label;
+                psVideoResolutionValue.Text = psVideoSizeTiers[pTier].PSVideoTierLabel;
             }
         }
 

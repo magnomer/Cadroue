@@ -6,6 +6,8 @@ namespace Cadroue.Infrastructure;
 
 public sealed partial class LKeyframeOrchestrator : IDisposable
 {
+    private sealed record LKeyframeSignature(int LKeyframeSignatureCount, int LKeyframeSignatureSpans);
+
     private const int LKeyframeGridMilliseconds = 20000;
     private readonly object lKeyframeLock = new();
     private readonly object lKeyframeDispatchGate = new();
@@ -16,7 +18,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private const int LKeyframeSaveCount = 10;
 
     private int lKeyframeUnsavedCount;
-    private (int Keyframes, int Spans) lKeyframeSavedSignature = (-1, -1);
+    private LKeyframeSignature lKeyframeSavedSignature = new(-1, -1);
     private readonly Dictionary<int, int> lKeyframeFailedCounts = new();
     private CancellationTokenSource? lKeyframeCancelSource;
     private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
@@ -71,7 +73,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
                 lKeyframeStorage.Clear();
                 lKeyframeScannedSpans.Clear();
                 lKeyframeFailedCounts.Clear();
-                lKeyframeSavedSignature = (-1, -1);
+                lKeyframeSavedSignature = new LKeyframeSignature(-1, -1);
                 lKeyframeSourceIdentity = identity;
                 lKeyframeSourcePath = identity.LKeyframeSourcePath;
                 lKeyframeDuration = duration;

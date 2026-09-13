@@ -12,6 +12,8 @@ namespace Cadroue.UIShell;
 
 internal sealed class PLogRow : INotifyPropertyChanged
 {
+    internal sealed record PLogBadge(Brush PLogBadgeFill, Brush PLogBadgeInk);
+
     internal const double PLogTimeWidth = 84;
     internal const double PLogBadgeWidth = 78;
     internal const double PLogRowHeight = 26;
@@ -31,9 +33,9 @@ internal sealed class PLogRow : INotifyPropertyChanged
             ? LTraceEntry.LTraceSpanFormat(pLogSpan)
             : string.Empty;
 
-        (Brush pLogFill, Brush pLogInk) = PLogBadgeRead(pLogEntry.LTraceEntryKind);
-        PLogBadgeFill = pLogFill;
-        PLogBadgeText = pLogInk;
+        PLogBadge pLogBadge = PLogBadgeRead(pLogEntry.LTraceEntryKind);
+        PLogBadgeFill = pLogBadge.PLogBadgeFill;
+        PLogBadgeText = pLogBadge.PLogBadgeInk;
         PLogRowCategory = pLogEntry.LTraceEntryKind;
     }
 
@@ -88,16 +90,16 @@ internal sealed class PLogRow : INotifyPropertyChanged
         pLogFeed.Resources["PLogChipStyle"] = PLogChipBuild();
     }
 
-    internal static (Brush Fill, Brush Ink) PLogBadgeRead(LTraceKind pLogKind) => pLogKind switch
+    internal static PLogBadge PLogBadgeRead(LTraceKind pLogKind) => pLogKind switch
     {
-        LTraceKind.LTraceLoading => (PLogBrushCreate(0xEC, 0xF3, 0xE9), PLogBrushCreate(0x3A, 0x5A, 0x2E)),
-        LTraceKind.LTraceWarning => (PLogBrushCreate(0xFD, 0xF3, 0xDA), PLogBrushCreate(0x8A, 0x60, 0x0A)),
-        LTraceKind.LTraceError => (PLogBrushCreate(0xFB, 0xE3, 0xE3), PLogBrushCreate(0x8C, 0x1D, 0x1D)),
-        LTraceKind.LTraceInteraction => (PLogBrushCreate(0xE4, 0xF4, 0xEE), PLogBrushCreate(0x1D, 0x66, 0x4A)),
-        LTraceKind.LTraceUi => (PLogBrushCreate(0xED, 0xE8, 0xF7), PLogBrushCreate(0x46, 0x30, 0x8A)),
-        LTraceKind.LTraceWork => (PLogBrushCreate(0xE3, 0xF0, 0xFB), PLogBrushCreate(0x14, 0x52, 0x7E)),
-        LTraceKind.LTraceFfmpeg => (PLogBrushCreate(0xFD, 0xF0, 0xE1), PLogBrushCreate(0x8A, 0x4B, 0x0A)),
-        _ => (PLogBrushCreate(0xE7, 0xEE, 0xF9), PLogBrushCreate(0x2B, 0x34, 0x43))
+        LTraceKind.LTraceLoading => new(PLogBrushCreate(0xEC, 0xF3, 0xE9), PLogBrushCreate(0x3A, 0x5A, 0x2E)),
+        LTraceKind.LTraceWarning => new(PLogBrushCreate(0xFD, 0xF3, 0xDA), PLogBrushCreate(0x8A, 0x60, 0x0A)),
+        LTraceKind.LTraceError => new(PLogBrushCreate(0xFB, 0xE3, 0xE3), PLogBrushCreate(0x8C, 0x1D, 0x1D)),
+        LTraceKind.LTraceInteraction => new(PLogBrushCreate(0xE4, 0xF4, 0xEE), PLogBrushCreate(0x1D, 0x66, 0x4A)),
+        LTraceKind.LTraceUi => new(PLogBrushCreate(0xED, 0xE8, 0xF7), PLogBrushCreate(0x46, 0x30, 0x8A)),
+        LTraceKind.LTraceWork => new(PLogBrushCreate(0xE3, 0xF0, 0xFB), PLogBrushCreate(0x14, 0x52, 0x7E)),
+        LTraceKind.LTraceFfmpeg => new(PLogBrushCreate(0xFD, 0xF0, 0xE1), PLogBrushCreate(0x8A, 0x4B, 0x0A)),
+        _ => new(PLogBrushCreate(0xE7, 0xEE, 0xF9), PLogBrushCreate(0x2B, 0x34, 0x43))
     };
 
     internal static string PLogKeyRead(LTraceKind pLogKind) => pLogKind switch

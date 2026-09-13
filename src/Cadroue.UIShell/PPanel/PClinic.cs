@@ -10,6 +10,10 @@ namespace Cadroue.UIShell.PPanel;
 
 public sealed partial class PClinic : PPanel
 {
+    private readonly record struct PClinicKind(LFlawKind PClinicKindValue, string PClinicKindName);
+    private readonly record struct PClinicState(bool PClinicStateActive, bool PClinicStatePersistent);
+    private readonly record struct PClinicKey(string PClinicKeyPath, LFlawKind PClinicKeyKind);
+
     private static readonly FontFamily pClinicFontFamily = new("Segoe UI");
     private static readonly Brush pClinicTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
     private static readonly Brush pClinicMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
@@ -17,19 +21,19 @@ public sealed partial class PClinic : PPanel
 
     public const double PClinicStripWidth = 48;
 
-    private static readonly IReadOnlyList<(LFlawKind Kind, string Name)> pClinicKinds = new[]
+    private static readonly IReadOnlyList<PClinicKind> pClinicKinds = new PClinicKind[]
     {
-        (LFlawKind.LFlawKindContainer, "Container"),
-        (LFlawKind.LFlawKindTruncation, "Truncation"),
-        (LFlawKind.LFlawKindTransport, "Transport"),
-        (LFlawKind.LFlawKindMetadata, "Metadata"),
-        (LFlawKind.LFlawKindIndex, "Index"),
-        (LFlawKind.LFlawKindFraming, "Framing"),
-        (LFlawKind.LFlawKindConfig, "Config"),
-        (LFlawKind.LFlawKindTiming, "Timing"),
-        (LFlawKind.LFlawKindSecondary, "Secondary"),
-        (LFlawKind.LFlawKindCoded, "Coded"),
-        (LFlawKind.LFlawKindFfvone, "Ffvone")
+        new(LFlawKind.LFlawKindContainer, "Container"),
+        new(LFlawKind.LFlawKindTruncation, "Truncation"),
+        new(LFlawKind.LFlawKindTransport, "Transport"),
+        new(LFlawKind.LFlawKindMetadata, "Metadata"),
+        new(LFlawKind.LFlawKindIndex, "Index"),
+        new(LFlawKind.LFlawKindFraming, "Framing"),
+        new(LFlawKind.LFlawKindConfig, "Config"),
+        new(LFlawKind.LFlawKindTiming, "Timing"),
+        new(LFlawKind.LFlawKindSecondary, "Secondary"),
+        new(LFlawKind.LFlawKindCoded, "Coded"),
+        new(LFlawKind.LFlawKindFfvone, "Ffvone")
     };
 
     public event Action<bool>? PClinicMinimizeChange;
@@ -53,8 +57,8 @@ public sealed partial class PClinic : PPanel
     private readonly PClinicSalvage pClinicSalvage = new();
     private readonly Border pClinicPersistentRow;
     private bool pClinicSalvageShown;
-    private readonly Dictionary<LFlawKind, (bool Apply, bool Persistent)> pClinicStates = new();
-    private readonly Dictionary<(string Path, LFlawKind Kind), LCheckupResult> pClinicResults = new();
+    private readonly Dictionary<LFlawKind, PClinicState> pClinicStates = new();
+    private readonly Dictionary<PClinicKey, LCheckupResult> pClinicResults = new();
     private readonly Dictionary<string, double> pClinicProgress = new(StringComparer.OrdinalIgnoreCase);
     private string? pClinicSource;
     private LFlawKind? pClinicCurrentKind;
@@ -97,7 +101,7 @@ public sealed partial class PClinic : PPanel
 
         foreach ((LFlawKind pKind, string _) in pClinicKinds)
         {
-            pClinicStates[pKind] = (false, false);
+            pClinicStates[pKind] = new PClinicState(false, false);
         }
 
         pClinicApplyBox = PClinicSwitchBuild(

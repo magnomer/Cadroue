@@ -99,9 +99,9 @@ public static partial class LScene
         }
     }
 
-    private static List<T> LSceneListRead<T>(List<T>? lSceneList) => lSceneList ?? new List<T>();
+    private static List<LSceneElement> LSceneListRead<LSceneElement>(List<LSceneElement>? lSceneList) => lSceneList ?? new List<LSceneElement>();
 
-    private static void LSceneListNormalize<T>(List<T> lSceneList, int lSceneCount, Func<T> lSceneFill)
+    private static void LSceneListNormalize<LSceneElement>(List<LSceneElement> lSceneList, int lSceneCount, Func<LSceneElement> lSceneFill)
     {
         if (lSceneList.Count > lSceneCount)
         {

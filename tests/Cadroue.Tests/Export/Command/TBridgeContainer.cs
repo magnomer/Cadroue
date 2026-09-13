@@ -5,11 +5,6 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Locks what a bridged cut does to awkward container geometry: B-frame reordering,
-/// sub-millisecond and rounded keyframe times, non-zero start timelines, odd frame rates
-/// and source time bases that later merges depend on.
-/// </summary>
 [Collection("EncodeCommand")]
 public sealed class TBridgeContainer
 {
@@ -56,8 +51,6 @@ public sealed class TBridgeContainer
         using var fixture = new TBridgeFixture();
         string source = fixture.TBridgeReorderCreate("rounded-keyframe-aligned.mp4", 20, 49, 44_100);
         using var environment = new TEncodeCommand();
-        // The actual packet boundaries are 2.043708s and 18.393375s. UI and
-        // sidecar times are millisecond-based, so both ends arrive rounded.
         LWorkItem work = TBridgeFixture.TBridgeWorkCreate(source, 2.044, 18.393, "Include", true);
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeSourceBuild(work);
         Assert.Single(stages);
@@ -71,8 +64,6 @@ public sealed class TBridgeContainer
         double videoStart = TBridgeMetric.TBridgeFirstRead(work.LWorkOutputPath, "v:0");
         double audioStart = TBridgeMetric.TBridgeFirstRead(work.LWorkOutputPath, "a:0");
         Assert.InRange(Math.Abs(videoStart - audioStart), 0, 0.11);
-        // Simultaneous stream copy retains codec preroll just like ordinary Copy;
-        // the later decode must preserve it instead of silently dropping audio.
         Assert.InRange(TBridgeMetric.TBridgeFormatRead(work.LWorkOutputPath), 16.45, 16.60);
         Assert.InRange(TBridgeMetric.TBridgeCountRead(work.LWorkOutputPath), 388, 395);
         Assert.True(string.IsNullOrWhiteSpace(TBridgeMetric.TBridgeErrorRead(work.LWorkOutputPath)));

@@ -123,8 +123,6 @@ public sealed partial class PInspector
         PToneNeutralApply(LNeutral.LNeutralColorResolve(pWheelX, pWheelY));
     }
 
-    // Manual mode owns the dot from its sample; automatic modes leave it to the
-    // frame-analysis estimate. Either way, redraw at the stored coordinates.
     private void PWhitebalanceWheelUpdate()
     {
         if (pWhitebalanceManual)

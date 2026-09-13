@@ -74,7 +74,7 @@ public sealed partial class PInspector
 
     private void PInspectorRatioResolve(int pEdge)
     {
-        (double Left, double Top, double Right, double Bottom)? pFit = LCropbox.LCropboxLockResolve(
+        LCropboxEdges? pFit = LCropbox.LCropboxLockResolve(
             pInspectorSourceWidth,
             pInspectorSourceHeight,
             Math.Max(0, PInspectorNumberRead(pInspectorInsetLeft)),
@@ -97,10 +97,10 @@ public sealed partial class PInspector
         pInspectorCropSuppress = true;
         try
         {
-            pInspectorInsetLeft.Text = PInspectorEdgeFormat(pEdges.Left);
-            pInspectorInsetTop.Text = PInspectorEdgeFormat(pEdges.Top);
-            pInspectorInsetRight.Text = PInspectorEdgeFormat(pEdges.Right);
-            pInspectorInsetBottom.Text = PInspectorEdgeFormat(pEdges.Bottom);
+            pInspectorInsetLeft.Text = PInspectorEdgeFormat(pEdges.LCropboxLeft);
+            pInspectorInsetTop.Text = PInspectorEdgeFormat(pEdges.LCropboxTop);
+            pInspectorInsetRight.Text = PInspectorEdgeFormat(pEdges.LCropboxRight);
+            pInspectorInsetBottom.Text = PInspectorEdgeFormat(pEdges.LCropboxBottom);
         }
         finally
         {
@@ -308,7 +308,7 @@ public sealed partial class PInspector
         pInspectorRatioNotice.Visibility = Visibility.Visible;
     }
 
-    public (bool RatioFixed, bool RatioLenient, int RatioWidth, int RatioHeight) PInspectorRatioRead() => (
+    public LCropboxRatio PInspectorRatioRead() => new(
         pInspectorRatioFixed.IsChecked == true,
         pInspectorRatioFixed.IsChecked == true && pInspectorRatioLenient.IsChecked == true,
         (int)Math.Round(PInspectorNumberRead(pInspectorRatioWidth)),

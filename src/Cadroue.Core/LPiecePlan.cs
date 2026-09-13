@@ -1,5 +1,9 @@
 namespace Cadroue.Core;
 
+public sealed record LPieceResult(List<LPiece> LPieceSections, int? LPieceActive, bool LPieceAdded = false);
+
+public sealed record LPieceDivision(List<LPiece> LPieceSections, int LPieceFirst, int LPieceSecond);
+
 public readonly partial record struct LPiece
 {
     public static IReadOnlyList<LPiece> LPieceValidSelect(IReadOnlyList<LPiece> lPieceSections, TimeSpan lPieceDuration)
@@ -103,7 +107,7 @@ public readonly partial record struct LPiece
         return lPieceFloor;
     }
 
-    public static (List<LPiece> Sections, int? Active)? LPieceAdd(
+    public static LPieceResult? LPieceAdd(
         IReadOnlyList<LPiece> lPieces,
         TimeSpan lPieceCursor,
         TimeSpan lPieceDuration,
@@ -128,10 +132,10 @@ public readonly partial record struct LPiece
 
         List<LPiece> lPieceList = lPieces.ToList();
         lPieceList.Add(new LPiece(lPieceCursor, lPieceEnd, lPieceColorIndex, string.Empty));
-        return (lPieceList, lPieceList.Count - 1);
+        return new LPieceResult(lPieceList, lPieceList.Count - 1);
     }
 
-    public static (List<LPiece> Sections, int? Active)? LPieceEndCreate(
+    public static LPieceResult? LPieceEndCreate(
         IReadOnlyList<LPiece> lPieces,
         TimeSpan lPieceCursor,
         int lPieceColorIndex,
@@ -155,10 +159,10 @@ public readonly partial record struct LPiece
 
         List<LPiece> lPieceList = lPieces.ToList();
         lPieceList.Add(new LPiece(lPieceOrigin, lPieceCursor, lPieceColorIndex, string.Empty));
-        return (lPieceList, lPieceList.Count - 1);
+        return new LPieceResult(lPieceList, lPieceList.Count - 1);
     }
 
-    public static (List<LPiece> Sections, int? Active, bool Added)? LPieceOriginSet(
+    public static LPieceResult? LPieceOriginSet(
         IReadOnlyList<LPiece> lPieces,
         int? lPieceActiveIndex,
         TimeSpan lPieceCursor,
@@ -171,7 +175,7 @@ public readonly partial record struct LPiece
         {
             return LPieceAdd(lPieces, lPieceCursor, lPieceDuration, lPieceColorIndex, lPieceOverlapAllowed)
                 is { } lPieceAddPlan
-                ? (lPieceAddPlan.Sections, lPieceAddPlan.Active, true)
+                ? lPieceAddPlan with { LPieceAdded = true }
                 : null;
         }
 
@@ -183,10 +187,10 @@ public readonly partial record struct LPiece
 
         List<LPiece> lPieceList = lPieces.ToList();
         lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceOrigin = lPieceCursor, LPieceDetected = false };
-        return (lPieceList, lPieceActiveIndex, false);
+        return new LPieceResult(lPieceList, lPieceActiveIndex);
     }
 
-    public static (List<LPiece> Sections, int? Active, bool Added)? LPieceEndSet(
+    public static LPieceResult? LPieceEndSet(
         IReadOnlyList<LPiece> lPieces,
         int? lPieceActiveIndex,
         TimeSpan lPieceCursor,
@@ -197,7 +201,7 @@ public readonly partial record struct LPiece
         {
             return LPieceEndCreate(lPieces, lPieceCursor, lPieceColorIndex, lPieceOverlapAllowed)
                 is { } lPieceEndPlan
-                ? (lPieceEndPlan.Sections, lPieceEndPlan.Active, true)
+                ? lPieceEndPlan with { LPieceAdded = true }
                 : null;
         }
 
@@ -206,7 +210,7 @@ public readonly partial record struct LPiece
         {
             return LPieceEndCreate(lPieces, lPieceCursor, lPieceColorIndex, lPieceOverlapAllowed)
                 is { } lPieceEndPlan
-                ? (lPieceEndPlan.Sections, lPieceEndPlan.Active, true)
+                ? lPieceEndPlan with { LPieceAdded = true }
                 : null;
         }
 
@@ -217,10 +221,10 @@ public readonly partial record struct LPiece
 
         List<LPiece> lPieceList = lPieces.ToList();
         lPieceList[lPieceActiveIndex.Value] = lPiece with { LPieceEnd = lPieceCursor, LPieceDetected = false };
-        return (lPieceList, lPieceActiveIndex, false);
+        return new LPieceResult(lPieceList, lPieceActiveIndex);
     }
 
-    public static (List<LPiece> Sections, int First, int Second)? LPieceDivide(
+    public static LPieceDivision? LPieceDivide(
         IReadOnlyList<LPiece> lPieces,
         int? lPieceActiveIndex,
         TimeSpan lPieceCursor,
@@ -242,6 +246,6 @@ public readonly partial record struct LPiece
         lPieceList.RemoveAt(lPieceIndex);
         lPieceList.Insert(lPieceIndex, new LPiece(lPieceCursor, lPiece.LPieceEnd, lPieceColorIndex, string.Empty));
         lPieceList.Insert(lPieceIndex, lPiece with { LPieceEnd = lPieceCursor, LPieceDetected = false });
-        return (lPieceList, lPieceIndex, lPieceIndex + 1);
+        return new LPieceDivision(lPieceList, lPieceIndex, lPieceIndex + 1);
     }
 }

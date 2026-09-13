@@ -9,8 +9,6 @@ public static class LFlawSecondary
         "subtitle", "attachment", "data"
     };
 
-    // A secondary-only copy over an input carrying no subtitle/data output stream
-    // makes the null muxer complain; that is not a defect in a secondary object.
     private static readonly string[] lFlawSecondaryBenign =
     {
         "does not contain any stream", "at least one output file must be specified",
@@ -29,8 +27,6 @@ public static class LFlawSecondary
         IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawChapters =
             LFlaw.LFlawSectionRead(lFlawChapterReport, "CHAPTER");
 
-        // Principal A/V never reaches this diagnosis: with no secondary stream and no
-        // chapters there is no secondary object to be malformed.
         if (lFlawSecondaryStreams.Count == 0 && lFlawChapters.Count == 0)
         {
             return null;

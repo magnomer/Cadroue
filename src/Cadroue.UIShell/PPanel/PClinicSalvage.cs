@@ -121,8 +121,6 @@ public sealed class PClinicSalvage : StackPanel
     public void PClinicSalvageShow(bool pClinicSalvageVisible) =>
         Visibility = pClinicSalvageVisible ? Visibility.Visible : Visibility.Collapsed;
 
-    // The source choice is always available. The repaired-result choice only has meaning
-    // when at least one repair step is selected, so disable that option alone when none is.
     public void PClinicSalvageUpdate(bool pClinicSalvageHasRepair)
     {
         pClinicSalvageRepair = pClinicSalvageHasRepair;

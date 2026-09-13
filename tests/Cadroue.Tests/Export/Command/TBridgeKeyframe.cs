@@ -6,10 +6,6 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-/// <summary>
-/// Locks which plan the interior keyframes of an interval select: a hybrid bridged plan
-/// when usable keyframes exist, and a whole-interval encode when none do.
-/// </summary>
 [Collection("EncodeCommand")]
 public sealed class TBridgeKeyframe
 {
@@ -20,7 +16,6 @@ public sealed class TBridgeKeyframe
         LWorkItem work = TEncodeCommand.TBridgeWorkCreate(
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
 
-        // Interval is [10, 30]; interior keyframes at 12 and 28 align with neither bound.
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeResolve(work, 12, 28);
 
         Assert.Equal(8, stages.Count);
@@ -46,7 +41,6 @@ public sealed class TBridgeKeyframe
         LWorkItem work = TEncodeCommand.TBridgeWorkCreate(
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
 
-        // No usable interior keyframe within [10, 30]: whole-interval fallback.
         LEncodeStage stage = Assert.Single(TEncodeCommand.TBridgeResolve(work));
 
         Assert.False(stage.LEncodeStageTemporary);
@@ -62,7 +56,11 @@ public sealed class TBridgeKeyframe
             TEncodeCommand.TBridgeSource, TEncodeCommand.TBridgeOutput);
 
         IReadOnlyList<LEncodeStage> stages = TEncodeCommand.TBridgeResolveBuild(
-            work, LBridgeOutcome.LBridgeOutcomeSmart, (10, 30), (10, 12), (12, 28), (28, 30));
+            work, LBridgeOutcome.LBridgeOutcomeSmart,
+            TEncodeCommand.TBridgeSpanCreate(10, 30),
+            TEncodeCommand.TBridgeSpanCreate(10, 12),
+            TEncodeCommand.TBridgeSpanCreate(12, 28),
+            TEncodeCommand.TBridgeSpanCreate(28, 30));
 
         Assert.Equal(8, stages.Count);
         Assert.True(stages[0].LEncodeStageTemporary);

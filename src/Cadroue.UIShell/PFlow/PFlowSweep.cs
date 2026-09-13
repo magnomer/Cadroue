@@ -13,9 +13,9 @@ public sealed partial class PFlow
     public TimeSpan PFlowSweepDuration => lSpool?.LSpoolDuration ?? TimeSpan.Zero;
 
     public void PFlowCombineApply(
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowExcluded,
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> pFlowKept,
-        IReadOnlyList<(TimeSpan Time, TimeSpan Minimum)> pFlowBoundaries)
+        IReadOnlyList<LSweepSpan> pFlowExcluded,
+        IReadOnlyList<LSweepSpan> pFlowKept,
+        IReadOnlyList<LSweepBoundary> pFlowBoundaries)
     {
         if (lSpool is not { } pFlowSpool)
         {

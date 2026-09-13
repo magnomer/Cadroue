@@ -6,6 +6,8 @@ namespace Cadroue.Infrastructure;
 
 public sealed partial class LKeyframeOrchestrator
 {
+    private sealed record LKeyframeBounds(int LKeyframeBoundsFirst, int LKeyframeBoundsCenter, int LKeyframeBoundsLast);
+
     private void LKeyframePlanStart(
         string sourcePath,
         TimeSpan duration,
@@ -158,7 +160,7 @@ public sealed partial class LKeyframeOrchestrator
         LKeyframeNoticePublish(serial);
     }
 
-    private static (int First, int Center, int Last) LKeyframeBoundsCreate(TimeSpan duration, TimeSpan cursor)
+    private static LKeyframeBounds LKeyframeBoundsCreate(TimeSpan duration, TimeSpan cursor)
     {
         long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
         long startMs = Math.Max(0, (long)(cursor - LKeyframeView.LKeyframeRangeBefore).TotalMilliseconds);
@@ -166,6 +168,6 @@ public sealed partial class LKeyframeOrchestrator
         int first = (int)(startMs / LKeyframeGridMilliseconds);
         int last = (int)(Math.Max(0, endMs - 1) / LKeyframeGridMilliseconds);
         int center = (int)(Math.Clamp(cursor.TotalMilliseconds, 0d, (double)durationMs) / LKeyframeGridMilliseconds);
-        return (first, center, last);
+        return new LKeyframeBounds(first, center, last);
     }
 }

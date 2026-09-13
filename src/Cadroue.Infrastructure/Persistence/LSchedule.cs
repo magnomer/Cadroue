@@ -5,6 +5,8 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
+public sealed record LScheduleEntry(LDepotFolder LScheduleEntryFolder, LWorkRecord LScheduleEntryWork);
+
 public sealed partial class LSchedule : LScheduleContract
 {
     private readonly ObservableCollection<LWorkItem> lScheduleItems = new();
@@ -43,11 +45,11 @@ public sealed partial class LSchedule : LScheduleContract
             : LScheduleIndexRead());
     }
 
-    private void LScheduleItemsBuild(IEnumerable<(LDepotFolder LDepotFolder, LWorkRecord LWorkRecord)> lSchedulePairs)
+    private void LScheduleItemsBuild(IEnumerable<LScheduleEntry> lScheduleEntries)
     {
         var lScheduleLoaded = new List<LWorkItem>();
         var lScheduleRunningIds = new HashSet<Guid>();
-        foreach ((LDepotFolder lDepotFolder, LWorkRecord lWorkRecord) in lSchedulePairs)
+        foreach ((LDepotFolder lDepotFolder, LWorkRecord lWorkRecord) in lScheduleEntries)
         {
             if (!LScheduleScopeMatch(lWorkRecord))
             {
@@ -84,18 +86,18 @@ public sealed partial class LSchedule : LScheduleContract
         LScheduleChange?.Invoke(this);
     }
 
-    private IEnumerable<(LDepotFolder, LWorkRecord)> LScheduleIndexRead()
+    private IEnumerable<LScheduleEntry> LScheduleIndexRead()
     {
         foreach ((LDepotFolder lDepotFolder, string lDepotRecord) in LDepotIndex.LDepotRecordsRead())
         {
             if (LScheduleStore.LScheduleRecordParse(lDepotRecord) is { } lWorkRecord)
             {
-                yield return (lDepotFolder, lWorkRecord);
+                yield return new LScheduleEntry(lDepotFolder, lWorkRecord);
             }
         }
     }
 
-    private static IEnumerable<(LDepotFolder, LWorkRecord)> LScheduleFolderRead()
+    private static IEnumerable<LScheduleEntry> LScheduleFolderRead()
     {
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
         {
@@ -103,7 +105,7 @@ public sealed partial class LSchedule : LScheduleContract
             {
                 if (LScheduleStore.LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord)
                 {
-                    yield return (lDepotFolder, lWorkRecord);
+                    yield return new LScheduleEntry(lDepotFolder, lWorkRecord);
                 }
             }
         }

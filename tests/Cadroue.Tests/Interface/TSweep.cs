@@ -19,13 +19,13 @@ public sealed class TSweep
             "[blackdetect @ 0x1] black_start:5 black_end:6.25 black_duration:1.25"
         };
 
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lIntervals = LSweep.LSweepOutputParse(lLines);
+        IReadOnlyList<LSweepSpan> lIntervals = LSweep.LSweepOutputParse(lLines);
 
         Assert.Equal(2, lIntervals.Count);
-        Assert.Equal(TimeSpan.FromSeconds(1.5), lIntervals[0].Start);
-        Assert.Equal(TimeSpan.FromSeconds(3.0), lIntervals[0].End);
-        Assert.Equal(TimeSpan.FromSeconds(5), lIntervals[1].Start);
-        Assert.Equal(TimeSpan.FromSeconds(6.25), lIntervals[1].End);
+        Assert.Equal(TimeSpan.FromSeconds(1.5), lIntervals[0].LSweepSpanOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(3.0), lIntervals[0].LSweepSpanEnd);
+        Assert.Equal(TimeSpan.FromSeconds(5), lIntervals[1].LSweepSpanOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(6.25), lIntervals[1].LSweepSpanEnd);
     }
 
     [Fact]
@@ -38,11 +38,11 @@ public sealed class TSweep
             "[freezedetect @ 0x1] lavfi.freezedetect.freeze_end: 4.0"
         };
 
-        IReadOnlyList<(TimeSpan Start, TimeSpan End)> lIntervals = LSweep.LSweepStillParse(lLines);
+        IReadOnlyList<LSweepSpan> lIntervals = LSweep.LSweepStillParse(lLines);
 
-        (TimeSpan Start, TimeSpan End) lInterval = Assert.Single(lIntervals);
-        Assert.Equal(TimeSpan.FromSeconds(2.5), lInterval.Start);
-        Assert.Equal(TimeSpan.FromSeconds(4.0), lInterval.End);
+        LSweepSpan lInterval = Assert.Single(lIntervals);
+        Assert.Equal(TimeSpan.FromSeconds(2.5), lInterval.LSweepSpanOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(4.0), lInterval.LSweepSpanEnd);
     }
 
     [Fact]
@@ -66,10 +66,10 @@ public sealed class TSweep
             "frame= 10 fps=0.0"
         };
 
-        (TimeSpan Start, TimeSpan End) lInterval =
+        LSweepSpan lInterval =
             Assert.Single(LSweep.LSweepStillParse(lLines, TimeSpan.FromSeconds(12)));
-        Assert.Equal(TimeSpan.FromSeconds(8), lInterval.Start);
-        Assert.Equal(TimeSpan.FromSeconds(12), lInterval.End);
+        Assert.Equal(TimeSpan.FromSeconds(8), lInterval.LSweepSpanOrigin);
+        Assert.Equal(TimeSpan.FromSeconds(12), lInterval.LSweepSpanEnd);
     }
 
     [Fact]

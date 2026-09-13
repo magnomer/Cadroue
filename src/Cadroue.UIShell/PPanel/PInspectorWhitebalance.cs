@@ -139,8 +139,6 @@ public sealed partial class PInspector
         _ => 2
     };
 
-    // Method and Saturation stay live in every mode; Custom is just the combo's face
-    // for a manual pick, so this only keeps the combo selection and manual flag aligned.
     private void PWhitebalanceManualUpdate()
     {
         int pWhitebalanceTarget = pWhitebalanceManual ? 3 : pWhitebalanceMethod.SelectedIndex;

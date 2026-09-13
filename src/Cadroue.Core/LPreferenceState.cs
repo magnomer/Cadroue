@@ -144,7 +144,7 @@ public sealed class LPreferenceState
 
     public IEnumerable<string> LPreferenceDifferenceRead(LPreferenceState lPreferenceOther)
     {
-        (string Name, object Was, object Now)[] lPreferenceFields =
+        (string, object, object)[] lPreferenceFields =
         {
             ("Startup", lPreferenceOther.LPreferenceStartupMode, LPreferenceStartupMode),
             ("Default tabs", string.Join(", ", lPreferenceOther.LPreferenceStartupTabs), string.Join(", ", LPreferenceStartupTabs)),

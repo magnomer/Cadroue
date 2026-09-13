@@ -52,7 +52,6 @@ public sealed class TNeutralSample
     public void Resolve_NoisyOutliers_DoNotDominateMedian()
     {
         byte[] pixels = TNeutralFrameCreate(128, 128, 128, 255);
-        // A handful of blown/black single pixels inside the region must not move the result.
         TNeutralPixelSet(pixels, 16, 12, 255, 0, 255, 255);
         TNeutralPixelSet(pixels, 14, 10, 0, 255, 0, 255);
         TNeutralPixelSet(pixels, 18, 14, 255, 255, 0, 255);
@@ -82,7 +81,6 @@ public sealed class TNeutralSample
     [Fact]
     public void Resolve_TransparentPixels_AreIgnored()
     {
-        // Whole frame is transparent garbage; only the neutral opaque pixels are sampled.
         byte[] pixels = TNeutralFrameCreate(0, 255, 0, 0);
         for (int y = 7; y <= 17; y++)
         {
@@ -163,14 +161,11 @@ public sealed class TNeutralSample
     [Fact]
     public void WhiteResolve_WarmCast_LiftsToMaxChannelAndNeutralizes()
     {
-        // Mild cast so no channel needs more than the 2x lift cap; full neutralization.
         byte[] pixels = TNeutralFrameCreate(170, 160, 150, 255);
 
         LNeutralSample sample = TNeutral.TNeutralWhiteResolve(pixels, TNeutralWidth, TNeutralHeight, 16, 12);
 
         Assert.True(sample.LNeutralResolved);
-        // White target = brightest channel (red here): red stays put, deficient
-        // channels are only lifted, never pushed down.
         Assert.Equal(1, sample.LNeutralRedGain, 3);
         Assert.True(sample.LNeutralGreenGain >= 1);
         Assert.True(sample.LNeutralBlueGain >= 1);
@@ -181,7 +176,6 @@ public sealed class TNeutralSample
     [Fact]
     public void WhiteResolve_BrightNeutral_StaysUnity()
     {
-        // A near-white neutral pick: lenient picker must not blow it up, gains ~1.
         byte[] pixels = TNeutralFrameCreate(240, 240, 240, 255);
 
         LNeutralSample sample = TNeutral.TNeutralWhiteResolve(pixels, TNeutralWidth, TNeutralHeight, 16, 12);
