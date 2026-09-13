@@ -38,8 +38,8 @@ internal sealed class TLosslesscut : IDisposable
         internal bool TLosslesscutSupported => LLosslesscut.LLosslesscutVersionCheck(TLosslesscutVersion);
         private LLosslesscutProject TLosslesscutData { get; }
 
-        internal TLosslesscutResult TLosslesscutValidate(string sourcePath, TimeSpan duration) => TLosslesscutResultCreate(
-            LLosslesscut.LLosslesscutValidate(TLosslesscutData, sourcePath, duration));
+        internal TLosslesscutResult TLosslesscutValidate(string sourcePath, TimeSpan duration) =>
+            TLosslesscutResultCreate(LLosslesscut.LLosslesscutValidate(TLosslesscutData, sourcePath, duration));
     }
 
     internal sealed record TSection(long TSectionStartMilliseconds, long TSectionEndMilliseconds, string TSectionName);
@@ -60,7 +60,10 @@ internal sealed class TLosslesscut : IDisposable
 
     internal static TLosslesscutProject TLosslesscutParse(string text) => new(LLosslesscut.LLosslesscutParse(text));
 
-    internal static TLosslesscutResult TLosslesscutValidate(TLosslesscutProject project, string sourcePath, TimeSpan duration) =>
+    internal static TLosslesscutResult TLosslesscutValidate(
+        TLosslesscutProject project,
+        string sourcePath,
+        TimeSpan duration) =>
         project.TLosslesscutValidate(sourcePath, duration);
 
     private static TLosslesscutResult TLosslesscutResultCreate(LLosslesscutResult result) =>

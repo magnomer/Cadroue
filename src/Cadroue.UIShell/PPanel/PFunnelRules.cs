@@ -21,7 +21,8 @@ public sealed class PFunnelRules : PPanel
     private readonly StackPanel pFunnelRowPanel;
     private readonly TextBlock pFunnelEmptyNotice;
     private readonly List<PFunnelRuleRow> pFunnelRows = new();
-    private Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsSource = static () => Array.Empty<PActionRelayOption>();
+    private Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsSource =
+        static () => Array.Empty<PActionRelayOption>();
     private PFunnelRuleRow? pFunnelRowDragging;
     private PFunnelRuleRow? pFunnelRowSelected;
     private Point? pFunnelDragOrigin;

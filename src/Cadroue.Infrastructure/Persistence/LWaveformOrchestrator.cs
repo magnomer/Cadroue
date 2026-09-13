@@ -97,7 +97,10 @@ public sealed class LWaveformOrchestrator : IDisposable
             {
                 lWaveformScanSlot.Wait(lWaveformToken);
                 lWaveformSlotClaimed = true;
-                LWaveformScanResult lWaveformScanned = LWaveformScanner.LWaveformScan(lWaveformPath, lWaveformDuration, lWaveformToken);
+                LWaveformScanResult lWaveformScanned = LWaveformScanner.LWaveformScan(
+                    lWaveformPath,
+                    lWaveformDuration,
+                    lWaveformToken);
                 if (lWaveformScanned.LWaveformPeaks.Length == 0 || lWaveformToken.IsCancellationRequested)
                 {
                     return;
@@ -105,11 +108,15 @@ public sealed class LWaveformOrchestrator : IDisposable
 
                 LSidecarStore.LSidecarWaveformSave(
                     lWaveformPath,
-                    LWaveform.LWaveformRecordCreate(lWaveformScanned.LWaveformPeaks, lWaveformScanned.LWaveformRms, lWaveformDuration));
+                    LWaveform.LWaveformRecordCreate(
+                        lWaveformScanned.LWaveformPeaks,
+                        lWaveformScanned.LWaveformRms,
+                        lWaveformDuration));
                 LTrace.LTraceRecord(
                     LTraceKind.LTraceWork,
                     $"Waveform generated for {System.IO.Path.GetFileName(lWaveformPath)}",
-                    $"{lWaveformScanned.LWaveformPeaks.Length} peak(s) at {LWaveform.LWaveformBucketMilliseconds} ms stored in the sidecar",
+                    $"{lWaveformScanned.LWaveformPeaks.Length} peak(s) at {LWaveform.LWaveformBucketMilliseconds} ms " +
+                    "stored in the sidecar",
                     lWaveformClock.Elapsed.TotalMilliseconds);
                 LWaveformApply(lWaveformPath, lWaveformScanned.LWaveformPeaks, lWaveformScanned.LWaveformRms);
             }

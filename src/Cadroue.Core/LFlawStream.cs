@@ -54,7 +54,8 @@ public static class LFlawStream
 
     private static string? LFlawFilterResolve(string lFlawProbeReport)
     {
-        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams = LFlaw.LFlawSectionRead(lFlawProbeReport, "STREAM");
+        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams =
+            LFlaw.LFlawSectionRead(lFlawProbeReport, "STREAM");
         IReadOnlyDictionary<string, string>? lFlawVideo = lFlawStreams.FirstOrDefault(
             lFlawStream => lFlawStream.TryGetValue("codec_type", out string? lFlawType)
                 && string.Equals(lFlawType, "video", StringComparison.OrdinalIgnoreCase));
@@ -74,7 +75,8 @@ public static class LFlawStream
             return null;
         }
 
-        IReadOnlyDictionary<string, string>? lFlawFormat = LFlaw.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
+        IReadOnlyDictionary<string, string>? lFlawFormat =
+            LFlaw.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
         string lFlawContainer = lFlawFormat is not null
             && lFlawFormat.TryGetValue("format_name", out string? lFlawName)
                 ? lFlawName.ToLowerInvariant()
@@ -91,7 +93,8 @@ public static class LFlawStream
 
     public static LDossier? LFlawConfigResolve(string lFlawProbeReport, string lFlawDecodeError)
     {
-        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams = LFlaw.LFlawSectionRead(lFlawProbeReport, "STREAM");
+        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams =
+            LFlaw.LFlawSectionRead(lFlawProbeReport, "STREAM");
         IReadOnlyDictionary<string, string>? lFlawVideo = lFlawStreams.FirstOrDefault(
             lFlawStream => lFlawStream.TryGetValue("codec_type", out string? lFlawType)
                 && string.Equals(lFlawType, "video", StringComparison.OrdinalIgnoreCase));

@@ -26,9 +26,15 @@ public partial class PToolbar
         pLogoMenu.IsOpen = true;
     }
 
-    private void PLogoItemAppend(ContextMenu pLogoMenu, string pLogoMenuToken, string pLogoMenuKey, string pLogoMenuIconPath)
+    private void PLogoItemAppend(
+        ContextMenu pLogoMenu,
+        string pLogoMenuToken,
+        string pLogoMenuKey,
+        string pLogoMenuIconPath)
     {
-        MenuItem pLogoMenuItem = PMenu.PMenuItemCreate(LLocalization.LLocalizationTextRead(pLogoMenuKey), PMenu.PMenuIconRead(pLogoMenuIconPath));
+        MenuItem pLogoMenuItem = PMenu.PMenuItemCreate(
+            LLocalization.LLocalizationTextRead(pLogoMenuKey),
+            PMenu.PMenuIconRead(pLogoMenuIconPath));
         if (pLogoMenuToken == "Options")
         {
             pLogoMenuItem.Click += (_, _) => PToolbarOptionsShow();

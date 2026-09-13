@@ -23,7 +23,8 @@ public sealed partial class PProcessing
         int pStepIndex = -1;
         for (int pIndex = 0; pIndex < pProcessingRowPanel.Children.Count; pIndex++)
         {
-            if (pProcessingRowPanel.Children[pIndex] is Border { Tag: string pRowName } && pRowName == pProcessingStepCurrent)
+            if (pProcessingRowPanel.Children[pIndex] is Border { Tag: string pRowName }
+                && pRowName == pProcessingStepCurrent)
             {
                 pStepIndex = pIndex;
                 break;

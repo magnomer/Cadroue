@@ -18,7 +18,11 @@ public sealed class TSweepCombine
             new[] { lUser },
             new[] { new LSweepSpan(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
             new[] { new LSweepSpan(TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(7)) },
-            new[] { new LSweepBoundary(TimeSpan.FromSeconds(4), TimeSpan.Zero), new LSweepBoundary(TimeSpan.FromSeconds(8), TimeSpan.Zero) },
+            new[]
+            {
+                new LSweepBoundary(TimeSpan.FromSeconds(4), TimeSpan.Zero),
+                new LSweepBoundary(TimeSpan.FromSeconds(8), TimeSpan.Zero)
+            },
             TimeSpan.FromSeconds(10),
             4);
 

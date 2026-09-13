@@ -27,7 +27,11 @@ internal static partial class TInterface
     internal static LPreviewState TPreviewColorChange(LPreviewState state, LColor color) => state.LColorChange(color);
     internal static LCropbox TCropboxCreate(double x, double y, double width, double height) =>
         new(x, y, width, height);
-    internal static LWorkCrop TCropboxOrientationResolve(LWorkCrop crop, int rotation, bool horizontal, bool vertical) =>
+    internal static LWorkCrop TCropboxOrientationResolve(
+        LWorkCrop crop,
+        int rotation,
+        bool horizontal,
+        bool vertical) =>
         LCropbox.LCropboxOrientationResolve(crop, rotation, horizontal, vertical);
     internal static LPreviewState TPreviewCropboxChange(LPreviewState state, LCropbox? cropbox) =>
         state.LCropboxChange(cropbox);

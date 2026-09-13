@@ -255,7 +255,8 @@ public sealed partial class PInspector
         }
 
         if (pInspectorRatioLenient.IsChecked == true
-            && LCropbox.LCropboxErrorResolve(pCropWidth, pCropHeight, pRatioWidth, pRatioHeight) <= PInspectorRatioTolerance)
+            && LCropbox.LCropboxErrorResolve(pCropWidth, pCropHeight, pRatioWidth, pRatioHeight)
+                <= PInspectorRatioTolerance)
         {
             pInspectorRatioNotice.Visibility = Visibility.Collapsed;
             return;
@@ -289,7 +290,8 @@ public sealed partial class PInspector
         double pWidth = pInspectorSourceWidth - pCropCanonical.LWorkCropLeft - pCropCanonical.LWorkCropRight;
         double pHeight = pInspectorSourceHeight - pCropCanonical.LWorkCropTop - pCropCanonical.LWorkCropBottom;
         pInspectorResolution.Text = pWidth > 0 && pHeight > 0
-            ? $"{Math.Round(pWidth).ToString(CultureInfo.InvariantCulture)} × {Math.Round(pHeight).ToString(CultureInfo.InvariantCulture)}"
+            ? $"{Math.Round(pWidth).ToString(CultureInfo.InvariantCulture)} × "
+                + $"{Math.Round(pHeight).ToString(CultureInfo.InvariantCulture)}"
             : "—";
     }
 

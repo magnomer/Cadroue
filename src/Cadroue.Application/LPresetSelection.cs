@@ -89,7 +89,8 @@ public sealed class LPresetSelection
         if (string.IsNullOrWhiteSpace(lName)
             || string.Equals(lOldName, lName, StringComparison.OrdinalIgnoreCase)
             || (LPresetNativeSeam?.Invoke(lOldName) ?? LPreset.LPresetNativeCheck(lOldName))
-            || LPreset.LPresetNames.Any(lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
+            || LPreset.LPresetNames.Any(
+                lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
         {
             return false;
         }
@@ -151,7 +152,10 @@ public sealed class LPresetSelection
 
     public void LPresetSelectionRestore() => LPresetDraftReset(LPresetSelectionName);
 
-    internal static void LPresetDraftSync(string lPresetName, LPresetRecord? lPresetStored, LPresetRecord? lPresetPrevious)
+    internal static void LPresetDraftSync(
+        string lPresetName,
+        LPresetRecord? lPresetStored,
+        LPresetRecord? lPresetPrevious)
     {
         if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetRecord? lPresetDraft))
         {

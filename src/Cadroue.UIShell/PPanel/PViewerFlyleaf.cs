@@ -48,7 +48,8 @@ public sealed partial class PViewer
         var openResult = player.Open(sourcePath);
         if (!openResult.Success)
         {
-            throw new InvalidOperationException(openResult.Error ?? LLocalization.LLocalizationTextRead("Viewer.Error.FlyleafOpen"));
+            throw new InvalidOperationException(
+                openResult.Error ?? LLocalization.LLocalizationTextRead("Viewer.Error.FlyleafOpen"));
         }
     }
 

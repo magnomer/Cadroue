@@ -28,7 +28,8 @@ public sealed class TBastion
     public void RunningCohortIsProtected()
     {
         Guid batch = Guid.NewGuid();
-        IReadOnlySet<Guid> cohorts = LBastion.LBastionCohortsRead(new[] { TBastionWorkCreate(batch, LWorkState.LWorkStateRunning) });
+        IReadOnlySet<Guid> cohorts = LBastion.LBastionCohortsRead(
+            new[] { TBastionWorkCreate(batch, LWorkState.LWorkStateRunning) });
 
         Assert.Contains(batch, cohorts);
     }
@@ -37,7 +38,8 @@ public sealed class TBastion
     public void PendingCohortIsNotProtected()
     {
         Guid batch = Guid.NewGuid();
-        IReadOnlySet<Guid> cohorts = LBastion.LBastionCohortsRead(new[] { TBastionWorkCreate(batch, LWorkState.LWorkStatePending) });
+        IReadOnlySet<Guid> cohorts = LBastion.LBastionCohortsRead(
+            new[] { TBastionWorkCreate(batch, LWorkState.LWorkStatePending) });
 
         Assert.DoesNotContain(batch, cohorts);
     }
@@ -71,7 +73,8 @@ public sealed class TBastion
     [Fact]
     public void EmptyBatchIsIgnored()
     {
-        IReadOnlySet<Guid> cohorts = LBastion.LBastionCohortsRead(new[] { TBastionWorkCreate(Guid.Empty, LWorkState.LWorkStateRunning) });
+        IReadOnlySet<Guid> cohorts = LBastion.LBastionCohortsRead(
+            new[] { TBastionWorkCreate(Guid.Empty, LWorkState.LWorkStateRunning) });
 
         Assert.Empty(cohorts);
     }

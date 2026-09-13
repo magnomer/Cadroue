@@ -28,17 +28,23 @@ internal sealed class PPlayerMpv : PPlayerEngine
     public override void PPlayerOpen(string sourcePath)
     {
         CancellationTokenSource pPlayerMpvCancel = new();
-        CancellationTokenSource? pPlayerMpvPrevious = Interlocked.Exchange(ref pPlayerMpvCancellation, pPlayerMpvCancel);
+        CancellationTokenSource? pPlayerMpvPrevious = Interlocked.Exchange(
+            ref pPlayerMpvCancellation,
+            pPlayerMpvCancel);
         pPlayerMpvPrevious?.Cancel();
         pPlayerMpvPrevious?.Dispose();
 
         try
         {
-            LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvMediaCheck(sourcePath, pPlayerMpvBudget, pPlayerMpvCancel.Token);
+            LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvMediaCheck(
+                sourcePath,
+                pPlayerMpvBudget,
+                pPlayerMpvCancel.Token);
             if (pPlayerMpvLoaded != LMpvProbe.LMpvProbeUsable)
             {
                 throw new InvalidOperationException(
-                    $"mpv did not reach the loaded state for '{sourcePath}' within {pPlayerMpvBudget.TotalSeconds:0.#}s ({pPlayerMpvLoaded}).");
+                    $"mpv did not reach the loaded state for '{sourcePath}' "
+                    + $"within {pPlayerMpvBudget.TotalSeconds:0.#}s ({pPlayerMpvLoaded}).");
             }
         }
         finally

@@ -13,7 +13,8 @@ public static class LPreferenceStateStore
     {
         LVaultResult<LPreferenceState> lPreferenceResult = LVault.LVaultRead<LPreferenceState>(LPreferencePathCreate());
         lPreferenceOutcome = lPreferenceResult.LVaultOutcome;
-        LPreferenceState lPreferenceState = lPreferenceResult.LVaultValue ?? LPreferenceState.LPreferenceDefaultCreate();
+        LPreferenceState lPreferenceState = lPreferenceResult.LVaultValue
+            ?? LPreferenceState.LPreferenceDefaultCreate();
         lPreferenceState.LPreferenceNormalize();
         return lPreferenceState;
     }

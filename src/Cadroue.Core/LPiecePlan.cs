@@ -214,7 +214,12 @@ public readonly partial record struct LPiece
                 : null;
         }
 
-        if (lPieceCursor > LPieceLimitRead(lPieces, lPiece.LPieceEnd, lPieceCursor, lPieceActiveIndex.Value, lPieceOverlapAllowed))
+        if (lPieceCursor > LPieceLimitRead(
+            lPieces,
+            lPiece.LPieceEnd,
+            lPieceCursor,
+            lPieceActiveIndex.Value,
+            lPieceOverlapAllowed))
         {
             return null;
         }

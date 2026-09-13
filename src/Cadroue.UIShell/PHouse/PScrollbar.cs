@@ -31,7 +31,9 @@ internal static class PScrollbar
                 <Grid x:Name=""pScrollRoot"" Background=""Transparent"" SnapsToDevicePixels=""True"">
                     <Track x:Name=""PART_Track"" IsDirectionReversed=""True"">
                         <Track.DecreaseRepeatButton>
-                            <RepeatButton Command=""ScrollBar.PageUpCommand"" Focusable=""False"" OverridesDefaultStyle=""True"">
+                            <RepeatButton Command=""ScrollBar.PageUpCommand""
+                                          Focusable=""False""
+                                          OverridesDefaultStyle=""True"">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType=""{x:Type RepeatButton}"">
                                         <Border Background=""Transparent"" />
@@ -40,7 +42,9 @@ internal static class PScrollbar
                             </RepeatButton>
                         </Track.DecreaseRepeatButton>
                         <Track.IncreaseRepeatButton>
-                            <RepeatButton Command=""ScrollBar.PageDownCommand"" Focusable=""False"" OverridesDefaultStyle=""True"">
+                            <RepeatButton Command=""ScrollBar.PageDownCommand""
+                                          Focusable=""False""
+                                          OverridesDefaultStyle=""True"">
                                 <RepeatButton.Template>
                                     <ControlTemplate TargetType=""{x:Type RepeatButton}"">
                                         <Border Background=""Transparent"" />
@@ -59,10 +63,14 @@ internal static class PScrollbar
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property=""IsMouseOver"" Value=""True"">
-                                                <Setter TargetName=""pScrollThumb"" Property=""Background"" Value=""#4C86F7"" />
+                                                <Setter TargetName=""pScrollThumb""
+                                                        Property=""Background""
+                                                        Value=""#4C86F7"" />
                                             </Trigger>
                                             <Trigger Property=""IsDragging"" Value=""True"">
-                                                <Setter TargetName=""pScrollThumb"" Property=""Background"" Value=""#2F6BDB"" />
+                                                <Setter TargetName=""pScrollThumb""
+                                                        Property=""Background""
+                                                        Value=""#2F6BDB"" />
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>

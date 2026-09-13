@@ -90,15 +90,22 @@ public sealed class PInfo : UserControl
 
         if (string.IsNullOrEmpty(pMediaStatus.LCargoSourcePath))
         {
-            PInfoStatusAdd(LLocalization.LLocalizationTextRead(pInfoFfmpegReady == true ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"), PInfoMutedBrush);
+            PInfoStatusAdd(
+                LLocalization.LLocalizationTextRead(
+                    pInfoFfmpegReady == true ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"),
+                PInfoMutedBrush);
             if (pInfoFfmpegReady is null)
                 LMediaProbe.LMediaAvailabilityDefer();
             return;
         }
 
-        PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LCargoProcessable ? "Info.FFmpeg.Processable" : "Info.FFmpeg.Unprocessable"),
+        PInfoStatusAdd(
+            LLocalization.LLocalizationTextRead(
+                pMediaStatus.LCargoProcessable ? "Info.FFmpeg.Processable" : "Info.FFmpeg.Unprocessable"),
             pMediaStatus.LCargoProcessable ? PInfoFfmpegGood : PInfoFfmpegBad);
-        PInfoStatusAdd(LLocalization.LLocalizationTextRead(pMediaStatus.LCargoPreviewAvailable ? "Info.Preview.Available" : "Info.Preview.Unavailable"),
+        PInfoStatusAdd(
+            LLocalization.LLocalizationTextRead(
+                pMediaStatus.LCargoPreviewAvailable ? "Info.Preview.Available" : "Info.Preview.Unavailable"),
             pMediaStatus.LCargoPreviewAvailable ? PInfoPreviewGood : PInfoPreviewBad);
 
         if (pMediaStatus.LCargoMediaInfo is not LMediaInfo pMediaInfo)
@@ -136,9 +143,15 @@ public sealed class PInfo : UserControl
     private void PInfoErrorAdd(LCargo pMediaStatus)
     {
         if (!string.IsNullOrWhiteSpace(pMediaStatus.LCargoFfmpegError))
-            PInfoTextAdd(PInfoTextShorten(LLocalization.LLocalizationFormat("Info.Error.FFmpeg", pMediaStatus.LCargoFfmpegError)), true);
+            PInfoTextAdd(
+                PInfoTextShorten(
+                    LLocalization.LLocalizationFormat("Info.Error.FFmpeg", pMediaStatus.LCargoFfmpegError)),
+                true);
         if (!string.IsNullOrWhiteSpace(pMediaStatus.LCargoPreviewError))
-            PInfoTextAdd(PInfoTextShorten(LLocalization.LLocalizationFormat("Info.Error.Preview", pMediaStatus.LCargoPreviewError)), true);
+            PInfoTextAdd(
+                PInfoTextShorten(
+                    LLocalization.LLocalizationFormat("Info.Error.Preview", pMediaStatus.LCargoPreviewError)),
+                true);
     }
 
     private void PInfoClear()

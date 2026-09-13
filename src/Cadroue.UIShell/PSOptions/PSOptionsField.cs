@@ -45,7 +45,11 @@ internal sealed partial class PSOptions
         };
         pSlider.ValueChanged += (_, _) => pValueText.Text = PSOptionsNumberFormat(pSlider.Value) + pUnit;
 
-        var pRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var pRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         pRow.Children.Add(pSlider);
         pRow.Children.Add(pValueText);
         return PSFieldBuild(pLabel, pRow);

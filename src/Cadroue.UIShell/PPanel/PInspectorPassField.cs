@@ -9,9 +9,17 @@ namespace Cadroue.UIShell.PPanel;
 public sealed partial class PInspector
 {
     private PInspectorPass PInspectorPassBuild(
-        double pDefault, double pMin, double pMax, string pApplyTip, IReadOnlyList<PInspectorPassChoice> pPresets, bool pHigh, string pDefaultToken)
+        double pDefault,
+        double pMin,
+        double pMax,
+        string pApplyTip,
+        IReadOnlyList<PInspectorPassChoice> pPresets,
+        bool pHigh,
+        string pDefaultToken)
     {
-        CheckBox pApply = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), pApplyTip);
+        CheckBox pApply = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            pApplyTip);
         CheckBox pPersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Pass.PersistentTooltip"));
@@ -27,7 +35,8 @@ public sealed partial class PInspector
         PDropdown.PDropdownApply(pPreset);
         foreach (PInspectorPassChoice pPresetEntry in pPresets)
         {
-            pPreset.Items.Add(new LLocalizationChoice(pPresetEntry.PInspectorPassToken, pPresetEntry.PInspectorPassKey));
+            pPreset.Items.Add(
+                new LLocalizationChoice(pPresetEntry.PInspectorPassToken, pPresetEntry.PInspectorPassKey));
         }
         pPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
         int pDefaultIndex = pPreset.Items.Count - 1;
@@ -42,7 +51,13 @@ public sealed partial class PInspector
 
         pPreset.SelectedIndex = pDefaultIndex;
 
-        var pFrequency = new Slider { Minimum = pMin, Maximum = pMax, Value = pDefault, VerticalAlignment = VerticalAlignment.Center };
+        var pFrequency = new Slider
+        {
+            Minimum = pMin,
+            Maximum = pMax,
+            Value = pDefault,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         PSlider.PSliderApply(pFrequency);
         TextBox pValue = PInspectorDecimalBuild();
         pValue.Text = pDefault.ToString("0", CultureInfo.InvariantCulture);
@@ -98,7 +113,9 @@ public sealed partial class PInspector
             PInspectorPassDefault = pDefault
         };
 
-        PSlider.PSliderResetApply(pFrequency, () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandCutoff : pDefault);
+        PSlider.PSliderResetApply(
+            pFrequency,
+            () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandCutoff : pDefault);
         PSlider.PSliderResetApply(pStages, () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandStages : 1);
 
         pApply.Checked += (_, _) => PFilterApplyUpdate(pPass);
@@ -133,7 +150,10 @@ public sealed partial class PInspector
         {
             if (pPass.PFilterStageSuppress) { return; }
             pPass.PFilterStageSuppress = true;
-            pStages.Value = Math.Clamp(Math.Round(PInspectorDecimalRead(pStageValue, 1)), LPassband.LPassbandStagesLeast, LPassband.LPassbandStagesMost);
+            pStages.Value = Math.Clamp(
+                Math.Round(PInspectorDecimalRead(pStageValue, 1)),
+                LPassband.LPassbandStagesLeast,
+                LPassband.LPassbandStagesMost);
             pPass.PFilterStageSuppress = false;
             PFilterDeviationCheck(pPass);
         };
@@ -143,10 +163,21 @@ public sealed partial class PInspector
             () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandResonance : 0.707,
             () => PFilterDeviationCheck(pPass));
 
-        pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pPreset));
-        pStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Cutoff"), pFrequency, "Hz", pValue));
-        pStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Steepness"), pStages, "×12dB", pStageValue));
-        Grid pResonanceRow = PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Resonance"), pResonanceSlider, "Q", pResonance);
+        pStack.Children.Add(
+            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pPreset));
+        pStack.Children.Add(
+            PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Cutoff"), pFrequency, "Hz", pValue));
+        pStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Pass.Steepness"),
+                pStages,
+                "×12dB",
+                pStageValue));
+        Grid pResonanceRow = PFilterSliderBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Pass.Resonance"),
+            pResonanceSlider,
+            "Q",
+            pResonance);
         pStack.Children.Add(pResonanceRow);
         pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Poles"), pPoles));
 

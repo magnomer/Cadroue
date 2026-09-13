@@ -19,8 +19,10 @@ public sealed partial class PViewer
 
         if (!pViewerCommandActive || string.IsNullOrWhiteSpace(sourcePath))
         {
-            LTraceLog.LTraceWarningRecord(
-                $"Viewer source open refused: {(pViewerCommandActive ? "empty path" : "viewer command inactive (tab not the front workspace)")}");
+            string pViewerRefusal = pViewerCommandActive
+                ? "empty path"
+                : "viewer command inactive (tab not the front workspace)";
+            LTraceLog.LTraceWarningRecord($"Viewer source open refused: {pViewerRefusal}");
             return;
         }
 
@@ -28,7 +30,8 @@ public sealed partial class PViewer
         {
             if (PViewerSidecarResolve(sourcePath) is not { } pResolvedPath)
             {
-                LTraceLog.LTraceWarningRecord("Viewer source open refused: sidecar (.cad) source could not be resolved");
+                LTraceLog.LTraceWarningRecord(
+                    "Viewer source open refused: sidecar (.cad) source could not be resolved");
                 return;
             }
 

@@ -70,7 +70,10 @@ public sealed partial class PConsole
         LWorkItem[] pRunningItems = PConsoleRunningRead();
         LWorkItem? pRunning = pRunningItems.FirstOrDefault();
 
-        PConsoleProgressSet(pRunningItems.Length == 0 ? 0 : pRunningItems.Average(pWorkItem => pWorkItem.LWorkProgress));
+        PConsoleProgressSet(
+            pRunningItems.Length == 0
+                ? 0
+                : pRunningItems.Average(pWorkItem => pWorkItem.LWorkProgress));
         bool pRunnerActive = pRunner.LRunnerRunning;
         pConsoleStartButton.Visibility = pRunnerActive ? Visibility.Collapsed : Visibility.Visible;
         pConsoleStartButton.IsEnabled = pTotal > 0;
@@ -168,7 +171,8 @@ public sealed partial class PConsole
         }
     }
 
-    private static string PConsoleStageFormat(LWorkStage pWorkStage) => LLocalization.LLocalizationTextRead(pWorkStage switch
+    private static string PConsoleStageFormat(LWorkStage pWorkStage) =>
+        LLocalization.LLocalizationTextRead(pWorkStage switch
     {
         LWorkStage.LWorkStageExtract => "Console.Stage.Extract",
         LWorkStage.LWorkStageAnalyze => "Console.Stage.Analyze",

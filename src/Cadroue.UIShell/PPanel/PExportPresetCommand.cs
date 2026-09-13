@@ -19,7 +19,8 @@ public sealed partial class PExport
 
         string lSelectedName = lPresetOwner.LPresetSelectionName;
         if (!string.IsNullOrEmpty(lSelectedName)
-            && LPreset.LPresetNames.Any(lName => string.Equals(lName, lSelectedName, StringComparison.OrdinalIgnoreCase)))
+            && LPreset.LPresetNames.Any(
+                lName => string.Equals(lName, lSelectedName, StringComparison.OrdinalIgnoreCase)))
         {
             if (pExportPresetClean)
             {
@@ -220,7 +221,10 @@ public sealed partial class PExport
     {
         var pButton = (Button)sender;
         LPreset pWorking = PExportWorkingRead();
-        var psEncoder = new PSEncoder(pWorking, () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate(), pExportSmartAllowed)
+        var psEncoder = new PSEncoder(
+            pWorking,
+            () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate(),
+            pExportSmartAllowed)
         {
             Owner = Window.GetWindow(pButton)
         };

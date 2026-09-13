@@ -39,7 +39,8 @@ public sealed class TMediaProbe
     {
         var info = TScout.TScoutProbeParse(TMediaProbeRead(
             "12.5",
-            """{"codec_type":"video","codec_name":"h264","width":1920,"height":1080,"r_frame_rate":"30000/1001","duration":"12.4"}""",
+            """{"codec_type":"video","codec_name":"h264","width":1920,"height":1080""" +
+            ""","r_frame_rate":"30000/1001","duration":"12.4"}""",
             """{"codec_type":"audio","codec_name":"aac","sample_rate":"48000","channels":2,"bit_rate":"192000"}"""));
 
         Assert.Equal(TimeSpan.FromSeconds(12.5), info.LMediaInfoDuration);
@@ -122,7 +123,8 @@ public sealed class TMediaProbe
     {
         var info = TScout.TScoutProbeParse(TMediaProbeRead(
             "5",
-            $$"""{"codec_type":"video","codec_name":"h264","width":1920,"height":1080,"side_data_list":[{"rotation":{{rotation}}}]}"""));
+            """{"codec_type":"video","codec_name":"h264","width":1920,"height":1080""" +
+            $$""","side_data_list":[{"rotation":{{rotation}}}]}"""));
 
         Assert.Equal(expectedWidth, info.LMediaVideoWidth);
         Assert.Equal(expectedHeight, info.LMediaVideoHeight);

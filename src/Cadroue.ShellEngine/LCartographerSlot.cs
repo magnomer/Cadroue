@@ -49,16 +49,20 @@ public static partial class LCartographer
             int lCartographerSlot = lCartographerSlots[lCartographerIndex];
             if (lCartographerSlot == LCartographerFinishSlot)
             {
-                lCartographerAssignments.Add(new LCartographerAssignment(lCartographerTabIds[lCartographerIndex], LCartographerFinishTarget));
+                lCartographerAssignments.Add(new LCartographerAssignment(
+                    lCartographerTabIds[lCartographerIndex], LCartographerFinishTarget));
                 continue;
             }
 
-            if (lCartographerSlot < 0 || lCartographerSlot >= lCartographerTabIds.Count || lCartographerSlot == lCartographerIndex)
+            if (lCartographerSlot < 0
+                || lCartographerSlot >= lCartographerTabIds.Count
+                || lCartographerSlot == lCartographerIndex)
             {
                 continue;
             }
 
-            lCartographerAssignments.Add(new LCartographerAssignment(lCartographerTabIds[lCartographerIndex], lCartographerTabIds[lCartographerSlot]));
+            lCartographerAssignments.Add(new LCartographerAssignment(
+                lCartographerTabIds[lCartographerIndex], lCartographerTabIds[lCartographerSlot]));
         }
 
         return lCartographerAssignments;

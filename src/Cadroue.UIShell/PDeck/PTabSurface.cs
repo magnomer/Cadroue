@@ -55,7 +55,8 @@ public abstract partial class PTabSurface : UserControl
         pList.PListClearChange += pRemovedPaths =>
         {
             if (pViewer.PViewerSourcePath is { } pLoadedPath
-                && pRemovedPaths.Any(pRemoved => string.Equals(pRemoved, pLoadedPath, StringComparison.OrdinalIgnoreCase)))
+                && pRemovedPaths.Any(
+                    pRemoved => string.Equals(pRemoved, pLoadedPath, StringComparison.OrdinalIgnoreCase)))
             {
                 pTabViewerDetach();
             }

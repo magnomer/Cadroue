@@ -102,7 +102,8 @@ internal sealed partial class LJob
 
             double pTotalSeconds = lJobItem.LWorkKind switch
             {
-                LWorkKind.LWorkKindAudio => LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken)?.LWorkMediaDuration.TotalSeconds ?? 0,
+                LWorkKind.LWorkKindAudio => LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken)
+                    ?.LWorkMediaDuration.TotalSeconds ?? 0,
                 LWorkKind.LWorkKindMerge => LScout.LScoutMergeRead(lJobItem.LWorkMergeSources, lJobToken),
                 _ => lJobItem.LWorkDuration.TotalSeconds
             };
@@ -120,7 +121,9 @@ internal sealed partial class LJob
             bool pJobCancelled = lJobOwner.lRunnerCancelled.TryRemove(lJobItem.LWorkId, out _);
             if (pJobCancelled && pExitCode != 0)
             {
-                LRunner.LRunnerRecord($"Encode cancelled '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; job kept as cancelled (restartable), continuing with the queue");
+                LRunner.LRunnerRecord(
+                    $"Encode cancelled '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
+                    $"job kept as cancelled (restartable), continuing with the queue");
                 lJobOwner.LRunnerDispatch(() =>
                 {
                     lJobItem.LWorkFinishTime = DateTimeOffset.Now;
@@ -218,11 +221,14 @@ internal sealed partial class LJob
         }
         catch (OperationCanceledException)
         {
-            LRunner.LRunnerRecord($"Encode cancelled '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; returned to the queue");
+            LRunner.LRunnerRecord(
+                $"Encode cancelled '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
+                $"returned to the queue");
         }
         catch (Exception pException)
         {
-            LRunner.LRunnerRecord($"Encode failed '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
+            LRunner.LRunnerRecord(
+                $"Encode failed '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
             if (LJobRetryStart(pException.Message))
             {
                 return;

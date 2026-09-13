@@ -18,7 +18,8 @@ public sealed partial class LSchedule
             return;
         }
 
-        if (lScheduleLiveItems.TryGetValue(lWorkId, out LWorkItem? lWorkClaimed) && lWorkClaimed.LWorkEnd <= TimeSpan.Zero)
+        if (lScheduleLiveItems.TryGetValue(lWorkId, out LWorkItem? lWorkClaimed)
+            && lWorkClaimed.LWorkEnd <= TimeSpan.Zero)
         {
             lWorkClaimed.LWorkEnd = lWorkDuration;
         }
@@ -100,7 +101,8 @@ public sealed partial class LSchedule
         foreach (LDepotFolder lDepotFolder in lScheduleDurationFolders)
         {
             string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
-            if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+            if (!File.Exists(lDepotFilePath)
+                || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
             {
                 continue;
             }
@@ -136,7 +138,8 @@ public sealed partial class LSchedule
         foreach (LDepotFolder lDepotFolder in lScheduleDurationFolders)
         {
             string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
-            if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+            if (!File.Exists(lDepotFilePath)
+                || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
             {
                 continue;
             }

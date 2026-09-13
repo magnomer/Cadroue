@@ -6,7 +6,9 @@ namespace Convention.Tests;
 public sealed class TAuditComment
 {
     private static readonly Regex TAuditLiteralPattern = new(
-        """"(?:"{3,})[\s\S]*?"{3,}|(?:@\$?|\$@)"(?:[^"]|"")*"|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])'"""", RegexOptions.Compiled);
+        """"(?:"{3,})[\s\S]*?"{3,}|"""" +
+        """"(?:@\$?|\$@)"(?:[^"]|"")*"|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])'"""",
+        RegexOptions.Compiled);
 
     private static readonly Regex TAuditSpanPattern = new("`[^`]*`", RegexOptions.Compiled);
 
@@ -44,7 +46,9 @@ public sealed class TAuditComment
 
         Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
-            $"{hits.Count} comment line(s) break the line rules: one sentence, at most {TAuditCommentSetting.TAuditCommentWords} words, none of {string.Join(' ', TAuditCommentSetting.TAuditCommentForbidden)}.\n"
+            $"{hits.Count} comment line(s) break the line rules: one sentence, "
+            + $"at most {TAuditCommentSetting.TAuditCommentWords} words, "
+            + $"none of {string.Join(' ', TAuditCommentSetting.TAuditCommentForbidden)}.\n"
             + string.Join('\n', hits)));
     }
 
@@ -86,7 +90,8 @@ public sealed class TAuditComment
 
         Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
-            $"{hits.Count} in-code comment(s) found. Prose belongs in the {TAuditCommentSetting.TAuditCommentPattern} file beside the source.\n"
+            $"{hits.Count} in-code comment(s) found. "
+            + $"Prose belongs in the {TAuditCommentSetting.TAuditCommentPattern} file beside the source.\n"
             + string.Join('\n', hits)));
     }
 

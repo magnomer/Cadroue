@@ -23,8 +23,12 @@ public sealed class TScheduleDelivered
         Assert.Equal(2, schedule.TScheduleDeliverAdd(first, second));
 
         IReadOnlyList<TScheduleItem> records = schedule.TScheduleRecordsRead();
-        Assert.Contains(records, item => item.TWorkId == first.TWorkId && item.TScheduleState == LWorkState.LWorkStateDone);
-        Assert.Contains(records, item => item.TWorkId == second.TWorkId && item.TScheduleState == LWorkState.LWorkStateDone);
+        Assert.Contains(
+            records,
+            item => item.TWorkId == first.TWorkId && item.TScheduleState == LWorkState.LWorkStateDone);
+        Assert.Contains(
+            records,
+            item => item.TWorkId == second.TWorkId && item.TScheduleState == LWorkState.LWorkStateDone);
     }
 
     [Fact]

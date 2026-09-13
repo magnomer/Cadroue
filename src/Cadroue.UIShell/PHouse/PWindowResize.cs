@@ -121,7 +121,9 @@ public partial class PWindow
     private Point PResizePointerRead(MouseEventArgs e)
     {
         Point pScreenPoint = PointToScreen(e.GetPosition(this));
-        return PresentationSource.FromVisual(this)?.CompositionTarget?.TransformFromDevice.Transform(pScreenPoint) ?? pScreenPoint;
+        return PresentationSource.FromVisual(this)?.CompositionTarget?.TransformFromDevice
+            .Transform(pScreenPoint)
+            ?? pScreenPoint;
     }
 
     private void PResizeApply(Point pPointer)

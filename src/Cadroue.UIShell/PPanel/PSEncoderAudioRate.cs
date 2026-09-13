@@ -27,7 +27,10 @@ internal sealed partial class PSEncoder
 
         LCapabilityCodec pCodec = PSAudioCapabilityRead();
         LCapabilityMode pMode = pCodec.LCapabilityModeFind(PSComboTextRead(psAudioRateCombo));
-        bool pModeStored = string.Equals(pMode.LCapabilityModeLabel, lsExportSpecificEdit.LPresetAudio.LPresetRateControl, StringComparison.Ordinal);
+        bool pModeStored = string.Equals(
+            pMode.LCapabilityModeLabel,
+            lsExportSpecificEdit.LPresetAudio.LPresetRateControl,
+            StringComparison.Ordinal);
 
         PSAudioQualityBuild(pMode, pModeStored);
         PSAudioSpeedBuild(pCodec, pModeStored);
@@ -52,11 +55,18 @@ internal sealed partial class PSEncoder
             : pQuality.LCapabilityQualityDefault;
 
         psAudioQualityBox = PSEntryBuild(pText, 120);
-        if (pQuality.LCapabilityQualityMinimum is double pMinimum && pQuality.LCapabilityQualityMaximum is double pMaximum)
+        if (pQuality.LCapabilityQualityMinimum is double pMinimum
+            && pQuality.LCapabilityQualityMaximum is double pMaximum)
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
                 ? PSFaderBitrateBuild(pMinimum, pMaximum, pText, psAudioQualityBox)
-                : PSFaderQualityBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psAudioQualityBox, pQuality.LCapabilityQualityAscending);
+                : PSFaderQualityBuild(
+                    pMinimum,
+                    pMaximum,
+                    pQuality.LCapabilityQualityStep,
+                    pText,
+                    psAudioQualityBox,
+                    pQuality.LCapabilityQualityAscending);
             psAudioRowsPanel.Children.Add(PSFieldBuild(pQuality.LCapabilityQualityLabel, pSliderRow));
         }
         else
@@ -67,7 +77,10 @@ internal sealed partial class PSEncoder
         string pRange = pQuality.LCapabilityQualityRange;
         psAudioRowsPanel.Children.Add(PSNoticeBuild(string.IsNullOrEmpty(pRange)
             ? LLocalization.LLocalizationFormat("Encoder.Audio.FFmpegOption", pQuality.LCapabilityQualityOption)
-            : LLocalization.LLocalizationFormat("Encoder.Audio.FFmpegOptionRange", pQuality.LCapabilityQualityOption, pRange)));
+            : LLocalization.LLocalizationFormat(
+                "Encoder.Audio.FFmpegOptionRange",
+                pQuality.LCapabilityQualityOption,
+                pRange)));
     }
 
     private void PSAudioSpeedBuild(LCapabilityCodec pCodec, bool pModeStored)
@@ -90,8 +103,13 @@ internal sealed partial class PSEncoder
     {
         foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
         {
-            string pSelected = lsExportSpecificEdit.LPresetAudio.LPresetExtras.TryGetValue(pExtra.LCapabilityExtraOption, out string? pStored)
-                               && pExtra.LCapabilityExtraValues.Any(pChoice => string.Equals(pChoice.LCapabilityChoiceValue, pStored, StringComparison.Ordinal))
+            string pSelected = lsExportSpecificEdit.LPresetAudio.LPresetExtras.TryGetValue(
+                    pExtra.LCapabilityExtraOption,
+                    out string? pStored)
+                && pExtra.LCapabilityExtraValues.Any(pChoice => string.Equals(
+                    pChoice.LCapabilityChoiceValue,
+                    pStored,
+                    StringComparison.Ordinal))
                 ? pStored
                 : pExtra.LCapabilityExtraDefault;
 

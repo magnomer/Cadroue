@@ -32,7 +32,10 @@ internal static class TSpecimenWalker
                 DelegateDeclarationSyntax del when !TAuditGeneratedCheck(del.AttributeLists)
                     => (del.Identifier, "Delegate"),
                 MethodDeclarationSyntax method
-                    when !TAuditExternalCheck(method.Modifiers, method.ExplicitInterfaceSpecifier, method.AttributeLists) &&
+                    when !TAuditExternalCheck(
+                        method.Modifiers,
+                        method.ExplicitInterfaceSpecifier,
+                        method.AttributeLists) &&
                          !TAuditContractCheck(method, method.Identifier.ValueText)
                     => (method.Identifier,
                         TAuditAttributeCheck(method.AttributeLists, TAuditNameSetting.TAuditTestAttributes)
@@ -40,7 +43,10 @@ internal static class TSpecimenWalker
                             : "Method"),
                 LocalFunctionStatementSyntax local => (local.Identifier, "LocalFunction"),
                 PropertyDeclarationSyntax property
-                    when !TAuditExternalCheck(property.Modifiers, property.ExplicitInterfaceSpecifier, property.AttributeLists) &&
+                    when !TAuditExternalCheck(
+                        property.Modifiers,
+                        property.ExplicitInterfaceSpecifier,
+                        property.AttributeLists) &&
                          !TAuditContractCheck(property, property.Identifier.ValueText)
                     => (property.Identifier, "Property"),
                 EventDeclarationSyntax evt
@@ -145,7 +151,8 @@ internal static class TSpecimenWalker
         };
     }
 
-    private static (SyntaxToken TSpecimenIdentifier, string TSpecimenKind)? TSpecimenVariableRead(VariableDeclaratorSyntax variable)
+    private static (SyntaxToken TSpecimenIdentifier, string TSpecimenKind)? TSpecimenVariableRead(
+        VariableDeclaratorSyntax variable)
     {
         if (variable.Parent is not VariableDeclarationSyntax declaration)
         {
@@ -218,7 +225,9 @@ internal static class TSpecimenWalker
             {
                 foreach (BaseTypeSyntax baseType in type.BaseList.Types)
                 {
-                    if (TAuditFrameworkContracts.TryGetValue(TAuditInterfaceRead(baseType.Type), out HashSet<string>? members) &&
+                    if (TAuditFrameworkContracts.TryGetValue(
+                            TAuditInterfaceRead(baseType.Type),
+                            out HashSet<string>? members) &&
                         members.Contains(name))
                     {
                         return true;

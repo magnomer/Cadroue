@@ -86,9 +86,12 @@ public sealed partial class PInspector
         };
 
         pInspectorCropStack = new StackPanel();
-        pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Tool"), pInspectorCropTool));
-        pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Flip"), PCropFlipBuild()));
-        pInspectorCropStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Rotate"), pInspectorRotateCombo));
+        pInspectorCropStack.Children.Add(
+            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Tool"), pInspectorCropTool));
+        pInspectorCropStack.Children.Add(
+            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Flip"), PCropFlipBuild()));
+        pInspectorCropStack.Children.Add(
+            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Rotate"), pInspectorRotateCombo));
         pInspectorCropStack.Children.Add(PInspectorEdgeBuild());
         pInspectorCropStack.Children.Add(PCropRatioBuild());
         pInspectorCropStack.Children.Add(pInspectorRatioFixed);

@@ -18,7 +18,8 @@ public static class LCartographerPlanStore
             using (LLatch.LLatchClaim(lCartographerPath))
             {
                 LCartographerPlanRecord? lCartographerRead = File.Exists(lCartographerPath)
-                    ? JsonSerializer.Deserialize<LCartographerPlanRecord>(File.ReadAllText(lCartographerPath), lCartographerPlanJson)
+                    ? JsonSerializer.Deserialize<LCartographerPlanRecord>(
+                        File.ReadAllText(lCartographerPath), lCartographerPlanJson)
                     : null;
                 if (lCartographerRead is null)
                 {
@@ -40,9 +41,14 @@ public static class LCartographerPlanStore
                 return true;
             }
         }
-        catch (Exception lCartographerError) when (lCartographerError is IOException or UnauthorizedAccessException or JsonException or TimeoutException)
+        catch (Exception lCartographerError) when (lCartographerError
+            is IOException
+            or UnauthorizedAccessException
+            or JsonException
+            or TimeoutException)
         {
-            LTraceLog.LTraceWarningRecord($"Relay plan {lCartographerPlanId:N} could not be read: {lCartographerError.Message}");
+            LTraceLog.LTraceWarningRecord(
+                $"Relay plan {lCartographerPlanId:N} could not be read: {lCartographerError.Message}");
             lCartographerPlan = new LCartographerPlanRecord();
             return false;
         }
@@ -57,19 +63,25 @@ public static class LCartographerPlanStore
             using (LLatch.LLatchClaim(lCartographerPath))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(lCartographerPath)!);
-                File.WriteAllText(lCartographerTemporary, JsonSerializer.Serialize(lCartographerPlan, lCartographerPlanJson));
+                File.WriteAllText(
+                    lCartographerTemporary, JsonSerializer.Serialize(lCartographerPlan, lCartographerPlanJson));
                 File.Move(lCartographerTemporary, lCartographerPath, true);
                 return true;
             }
         }
-        catch (Exception lCartographerError) when (lCartographerError is IOException or UnauthorizedAccessException or TimeoutException)
+        catch (Exception lCartographerError) when (lCartographerError
+            is IOException
+            or UnauthorizedAccessException
+            or TimeoutException)
         {
             try
             {
                 if (File.Exists(lCartographerTemporary)) File.Delete(lCartographerTemporary);
             }
             catch (Exception) { }
-            LTraceLog.LTraceWarningRecord($"Relay plan {lCartographerPlan.LCartographerPlanId:N} could not be saved: {lCartographerError.Message}");
+            LTraceLog.LTraceWarningRecord(
+                $"Relay plan {lCartographerPlan.LCartographerPlanId:N} could not be saved: " +
+                $"{lCartographerError.Message}");
             return false;
         }
     }

@@ -27,7 +27,9 @@ public sealed partial class PProcessing
     private UIElement PProcessingStripBuild()
     {
         Button pMaximizeButton = PProcessingButtonBuild(
-            "/PAsset/PPanel/PListMaximize.svg", LLocalization.LLocalizationTextRead("Processing.Show.Tooltip"), () => PProcessingMinimizeSet(false));
+            "/PAsset/PPanel/PListMaximize.svg",
+            LLocalization.LLocalizationTextRead("Processing.Show.Tooltip"),
+            () => PProcessingMinimizeSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 

@@ -159,11 +159,15 @@ public sealed class TEmployerRun
         Assert.NotEqual(firstId, secondId);
 
         first.TEmployerCancel();
-        Assert.Equal(TEmployerStatus.TEmployerCancelled, (await first.TEmployerCompletion.WaitAsync(TimeSpan.FromSeconds(10))).TEmployerState);
+        Assert.Equal(
+            TEmployerStatus.TEmployerCancelled,
+            (await first.TEmployerCompletion.WaitAsync(TimeSpan.FromSeconds(10))).TEmployerState);
 
         Assert.True(second.TEmployerChildAlive);
         second.TEmployerCancel();
-        Assert.Equal(TEmployerStatus.TEmployerCancelled, (await second.TEmployerCompletion.WaitAsync(TimeSpan.FromSeconds(10))).TEmployerState);
+        Assert.Equal(
+            TEmployerStatus.TEmployerCancelled,
+            (await second.TEmployerCompletion.WaitAsync(TimeSpan.FromSeconds(10))).TEmployerState);
         Assert.False(second.TEmployerChildAlive);
     }
 

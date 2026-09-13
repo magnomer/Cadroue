@@ -137,7 +137,11 @@ public sealed partial class PEditTab
 
             pEditApplied = pEditCarryWins ? pEditPlan : null;
             pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropActive);
-            pInspector.PInspectorRatioApply(pEditPlan.LEditRatioFixed, pEditPlan.LEditRatioLenient, pEditPlan.LEditRatioWidth, pEditPlan.LEditRatioHeight);
+            pInspector.PInspectorRatioApply(
+                pEditPlan.LEditRatioFixed,
+                pEditPlan.LEditRatioLenient,
+                pEditPlan.LEditRatioWidth,
+                pEditPlan.LEditRatioHeight);
             pInspector.PTonePlanApply(pEditPlan.LEditVideo);
             pInspector.PSkipApply(pEditPlan.LEditSkip);
             pCropOwner.LCropboxStateSet(

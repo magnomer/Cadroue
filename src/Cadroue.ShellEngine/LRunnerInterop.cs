@@ -34,7 +34,9 @@ public sealed partial class LRunner
         }
         else
         {
-            LRunnerRecord("Resume failed: a live process stayed suspended; the paused flag is kept so the next Play retries the resume");
+            LRunnerRecord(
+                "Resume failed: a live process stayed suspended; " +
+                "the paused flag is kept so the next Play retries the resume");
         }
     }
 

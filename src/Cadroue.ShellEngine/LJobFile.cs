@@ -116,7 +116,9 @@ internal sealed partial class LJob
                 StringComparison.OrdinalIgnoreCase));
         if (pPreExisting)
         {
-            LRunner.LRunnerRecord($"Preserved '{Path.GetFileName(pOutput)}'; the unresolved Fix output is a pre-existing file, not this job's own output");
+            LRunner.LRunnerRecord(
+                $"Preserved '{Path.GetFileName(pOutput)}'; " +
+                $"the unresolved Fix output is a pre-existing file, not this job's own output");
             return;
         }
 

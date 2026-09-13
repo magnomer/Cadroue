@@ -40,7 +40,8 @@ public static partial class LMessenger
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
-            $"Convert queued {lMessengerAdded} job(s) at {lMessengerPriority} from {lMessengerSourcePaths.Length} listed file(s)");
+            $"Convert queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
+            $"{lMessengerSourcePaths.Length} listed file(s)");
 
         await LMessengerSourceResolve(lMessengerItems).ConfigureAwait(false);
         return lMessengerAdded;

@@ -9,7 +9,9 @@ public static partial class LCartographer
     private static readonly Dictionary<Guid, Guid> lCartographerTargets = new();
 
     public static Guid LCartographerTargetRead(Guid lCartographerSourceTab) =>
-        lCartographerTargets.TryGetValue(lCartographerSourceTab, out Guid lCartographerTarget) ? lCartographerTarget : Guid.Empty;
+        lCartographerTargets.TryGetValue(lCartographerSourceTab, out Guid lCartographerTarget)
+            ? lCartographerTarget
+            : Guid.Empty;
 
     public static void LCartographerTargetSet(Guid lCartographerSourceTab, Guid lCartographerTarget)
     {
@@ -57,16 +59,20 @@ public static partial class LCartographer
         Guid lCartographerSource,
         LCartographerPlanRecord? lCartographerPreparedPlan)
     {
-        foreach (IGrouping<Guid, LWorkItem> lCartographerBatch in lCartographerItems.GroupBy(lCartographerItem => lCartographerItem.LWorkBatchId))
+        foreach (IGrouping<Guid, LWorkItem> lCartographerBatch in lCartographerItems.GroupBy(
+            lCartographerItem => lCartographerItem.LWorkBatchId))
         {
-            if (LCartographerPlanStore.LCartographerPlanRead(lCartographerBatch.Key, out LCartographerPlanRecord lCartographerExisting))
+            if (LCartographerPlanStore.LCartographerPlanRead(
+                lCartographerBatch.Key, out LCartographerPlanRecord lCartographerExisting))
             {
-                LCartographerStageRecord? lCartographerSourceStage = lCartographerExisting.LCartographerStages.FirstOrDefault(
-                    lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerSource
-                        || lCartographerStage.LCartographerOriginalTab == lCartographerSource);
-                LCartographerStageRecord? lCartographerTargetStage = lCartographerExisting.LCartographerStages.FirstOrDefault(
-                    lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerTarget
-                        || lCartographerStage.LCartographerOriginalTab == lCartographerTarget);
+                LCartographerStageRecord? lCartographerSourceStage =
+                    lCartographerExisting.LCartographerStages.FirstOrDefault(
+                        lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerSource
+                            || lCartographerStage.LCartographerOriginalTab == lCartographerSource);
+                LCartographerStageRecord? lCartographerTargetStage =
+                    lCartographerExisting.LCartographerStages.FirstOrDefault(
+                        lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerTarget
+                            || lCartographerStage.LCartographerOriginalTab == lCartographerTarget);
                 Guid lCartographerStableSource = lCartographerSourceStage?.LCartographerStageId ?? lCartographerSource;
                 Guid lCartographerStableTarget = lCartographerSourceStage?.LCartographerNextStage
                     ?? lCartographerTargetStage?.LCartographerStageId
@@ -108,7 +114,8 @@ public static partial class LCartographer
                 lCartographerItem.LWorkRelaySource = lCartographerSource;
             }
             LTraceLog.LTraceInfoRecord(
-                $"Relay plan {lCartographerPlan.LCartographerPlanId:N} captured {lCartographerPlan.LCartographerStages.Count} stable stage(s)");
+                $"Relay plan {lCartographerPlan.LCartographerPlanId:N} captured " +
+                $"{lCartographerPlan.LCartographerStages.Count} stable stage(s)");
         }
     }
 }

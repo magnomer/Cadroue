@@ -35,7 +35,10 @@ public static class LCheckupFormat
 
         var lCheckupBuilder = new StringBuilder();
         LCheckupLineAppend(lCheckupBuilder, lCheckupStrings.LCheckupDefectLabel, lCheckupDossier.LDossierDefect);
-        LCheckupLineAppend(lCheckupBuilder, lCheckupStrings.LCheckupEvidenceLabel, lCheckupDossier.LDossierEvidenceMechanism);
+        LCheckupLineAppend(
+            lCheckupBuilder,
+            lCheckupStrings.LCheckupEvidenceLabel,
+            lCheckupDossier.LDossierEvidenceMechanism);
         LCheckupLineAppend(lCheckupBuilder, lCheckupStrings.LCheckupRepairLabel, lCheckupDossier.LDossierRepair);
         return lCheckupBuilder.ToString();
     }

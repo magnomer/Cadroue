@@ -284,7 +284,10 @@ public sealed class PStrip
         pTabRecord.PTabNameCustom = LTabset.LTabsetNameResolve(
             pStripTaken,
             pTabTrimmed,
-            (pStripName, pStripAttempt) => LLocalization.LLocalizationFormat("Tab.Numbered", pStripName, pStripAttempt));
+            (pStripName, pStripAttempt) => LLocalization.LLocalizationFormat(
+                "Tab.Numbered",
+                pStripName,
+                pStripAttempt));
         PStripTitleUpdate();
         LTraceLog.LTraceInfoRecord($"Tab renamed to '{pTabRecord.PTabTitle}' ({pTabRecord.PTabLayoutKey})");
     }

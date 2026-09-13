@@ -202,7 +202,12 @@ public sealed partial class PEditTab : PTabSurface
             pViewer.PCropLockSet(pLocked);
             pViewer.PCropToolSet(!pLocked && pInspector.PInspectorToolCheck());
         };
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        pTabGrid = PTabGridBuild(
+            new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport },
+            new PCompass(pFlow),
+            pAction,
+            pFlow,
+            lPreferenceTabLayout);
         if (lPreferenceTabLayout is null)
         {
             pInspector.PInspectorMinimizeSet(true);

@@ -56,7 +56,11 @@ public static partial class LTraceWriter
         try
         {
             using (var lTraceSource = new FileStream(lTracePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var lTraceTargetStream = new FileStream(lTraceTemporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var lTraceTargetStream = new FileStream(
+                lTraceTemporary,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None))
             using (var lTraceGzip = new GZipStream(lTraceTargetStream, CompressionLevel.SmallestSize))
             {
                 lTraceSource.CopyTo(lTraceGzip);

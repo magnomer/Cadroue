@@ -25,9 +25,11 @@ public partial class PProgram
             {
                 lRendererEngineConfig.FFmpegPath = LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
             }
-            else if (LRendererLibrary.LRendererFolderValidate(Cadroue.Infrastructure.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder))
+            else if (LRendererLibrary.LRendererFolderValidate(
+                Cadroue.Infrastructure.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder))
             {
-                lRendererEngineConfig.FFmpegPath = Cadroue.Infrastructure.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder;
+                lRendererEngineConfig.FFmpegPath =
+                    Cadroue.Infrastructure.LRenderer.LRendererSettingsCurrent.LRendererLibraryFolder;
             }
             else
             {

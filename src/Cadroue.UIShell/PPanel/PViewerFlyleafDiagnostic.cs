@@ -24,7 +24,9 @@ public sealed partial class PViewer
 
         try
         {
-            FieldInfo? pBufferField = pRenderer.GetType().GetField("psData", BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo? pBufferField = pRenderer.GetType().GetField(
+                "psData",
+                BindingFlags.NonPublic | BindingFlags.Instance);
             object? pBuffer = pBufferField?.GetValue(pRenderer);
             FieldInfo? pContrastField = pBuffer?.GetType().GetField("Contrast");
             return pContrastField?.GetValue(pBuffer)?.ToString() ?? "unknown";
@@ -45,11 +47,16 @@ public sealed partial class PViewer
         try
         {
             var pPlayerRenderer = player.Renderer;
+            string pPlayerContrast = player.Config.Video.FLFilters.TryGetValue(
+                FLFilters.Contrast,
+                out FLFilter? pContrastFilter)
+                ? pContrastFilter.Value.ToString()
+                : "none";
             LTrace.LTraceRecord(
                 LTraceKind.LTraceUi,
                 "Preview color applied",
                 $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}, "
-                + $"filter contrast value {(player.Config.Video.FLFilters.TryGetValue(FLFilters.Contrast, out FLFilter? pContrastFilter) ? pContrastFilter.Value.ToString() : "none")}, "
+                + $"filter contrast value {pPlayerContrast}, "
                 + $"shader contrast uniform {PPlayerContrastRead(pPlayerRenderer)}");
         }
         catch (Exception pException)
@@ -68,8 +75,10 @@ public sealed partial class PViewer
             var pHostAssembly = pHostType.Assembly.GetName();
             Player? pHostPlayer = pViewerFlyleafHost.Player;
             var pFields = pHostType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                .Where(pField => pField.FieldType.Name.Contains("Renderer") || pField.FieldType.Name.Contains("Player")
-                    || pField.Name.ToLowerInvariant().Contains("render") || pField.Name.ToLowerInvariant().Contains("child"))
+                .Where(pField => pField.FieldType.Name.Contains("Renderer")
+                    || pField.FieldType.Name.Contains("Player")
+                    || pField.Name.ToLowerInvariant().Contains("render")
+                    || pField.Name.ToLowerInvariant().Contains("child"))
                 .Select(pField => $"{pField.Name}:{pField.FieldType.Name}");
 
             LTraceLog.LTraceInfoRecord(
@@ -100,17 +109,26 @@ public sealed partial class PViewer
         {
             var pPlayerRenderer = player.Renderer;
             var pPlayerDecoder = player.decoder?.VideoDecoder;
+            var pPlayerStream = pPlayerDecoder?.VideoStream;
+            string pPlayerDecodePath = pPlayerDecoder is null
+                ? "unknown"
+                : pPlayerDecoder.VideoAccelerated ? "HARDWARE (D3D11VA)" : "SOFTWARE";
+            string pPlayerContrast = player.Config.Video.FLFilters.TryGetValue(
+                FLFilters.Contrast,
+                out FLFilter? pContrastFilter)
+                ? pContrastFilter.Value.ToString()
+                : "none";
             LTrace.LTraceRecord(
                 LTraceKind.LTraceUi,
                 "Renderer resolved after the first completed seek",
                 $"processor requested {player.Config.Video.VideoProcessor}, "
                 + $"processor in use {(pPlayerRenderer is null ? "none" : pPlayerRenderer.VideoProcessor.ToString())}\n"
-                + $"decode path {(pPlayerDecoder is null ? "unknown" : pPlayerDecoder.VideoAccelerated ? "HARDWARE (D3D11VA)" : "SOFTWARE")}\n"
-                + $"pixel format {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.PixelFormatStr)}\n"
-                + $"color range {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.ColorRange.ToString())}, "
-                + $"color space {(pPlayerDecoder?.VideoStream is null ? "unknown" : pPlayerDecoder.VideoStream.ColorSpace.ToString())}\n"
+                + $"decode path {pPlayerDecodePath}\n"
+                + $"pixel format {(pPlayerStream is null ? "unknown" : pPlayerStream.PixelFormatStr)}\n"
+                + $"color range {(pPlayerStream is null ? "unknown" : pPlayerStream.ColorRange.ToString())}, "
+                + $"color space {(pPlayerStream is null ? "unknown" : pPlayerStream.ColorSpace.ToString())}\n"
                 + $"sync vp filters {player.Config.Video.SyncVPFilters}, "
-                + $"filter contrast value {(player.Config.Video.FLFilters.TryGetValue(FLFilters.Contrast, out FLFilter? pContrastFilter) ? pContrastFilter.Value.ToString() : "none")}\n"
+                + $"filter contrast value {pPlayerContrast}\n"
                 + $"shader contrast uniform {PPlayerContrastRead(pPlayerRenderer)}");
         }
         catch (Exception pPlayerException)
@@ -170,24 +188,30 @@ public sealed partial class PViewer
 
         if (mediaStatus.LCargoMediaInfo is not LMediaInfo pMediaInfo)
         {
-            LTraceLog.LTraceErrorRecord($"Media rejected '{pFileName}': {mediaStatus.LCargoFfmpegError ?? "unreadable"} [{pSourcePath}]");
+            LTraceLog.LTraceErrorRecord(
+                $"Media rejected '{pFileName}': {mediaStatus.LCargoFfmpegError ?? "unreadable"} [{pSourcePath}]");
             return;
         }
 
         string pStreams = pMediaInfo.LMediaVideoPresent
-            ? $"video {pMediaInfo.LMediaVideoWidth}x{pMediaInfo.LMediaVideoHeight} {pMediaInfo.LMediaVideoCodec} {pMediaInfo.LMediaVideoRate:0.###}fps"
+            ? $"video {pMediaInfo.LMediaVideoWidth}x{pMediaInfo.LMediaVideoHeight} "
+                + $"{pMediaInfo.LMediaVideoCodec} {pMediaInfo.LMediaVideoRate:0.###}fps"
             : "no video";
         if (pMediaInfo.LMediaAudioPresent)
         {
-            pStreams += $", audio {pMediaInfo.LMediaAudioCodec} {pMediaInfo.LMediaSampleRate}Hz {pMediaInfo.LMediaAudioChannels}ch";
+            pStreams += $", audio {pMediaInfo.LMediaAudioCodec} "
+                + $"{pMediaInfo.LMediaSampleRate}Hz {pMediaInfo.LMediaAudioChannels}ch";
         }
 
         LTraceLog.LTraceInfoRecord(
-            $"Media opened '{pFileName}': {pMediaInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff}, {pStreams} [{pSourcePath}]");
+            $"Media opened '{pFileName}': {pMediaInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff}, "
+            + $"{pStreams} [{pSourcePath}]");
 
         if (player is null)
         {
-            LTraceLog.LTraceErrorRecord($"Preview unavailable for '{pFileName}': {mediaStatus.LCargoPreviewError ?? "the player did not start"}");
+            LTraceLog.LTraceErrorRecord(
+                $"Preview unavailable for '{pFileName}': "
+                + $"{mediaStatus.LCargoPreviewError ?? "the player did not start"}");
         }
     }
 }

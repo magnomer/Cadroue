@@ -77,10 +77,16 @@ internal sealed partial class PSMonitor
     private UIElement PSMonitorZoomBuild()
     {
         var psZoom = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 12) };
-        psZoom.Children.Add(PSMonitorButtonBuild(
-            "/PAsset/PCompass/PCompassZoomIncrease.svg", "NormalizePreview.ZoomIn", () => PSMonitorZoomApply(PSMonitorZoomStep)));
-        psZoom.Children.Add(PSMonitorButtonBuild(
-            "/PAsset/PCompass/PCompassZoomDecrease.svg", "NormalizePreview.ZoomOut", () => PSMonitorZoomApply(1 / PSMonitorZoomStep)));
+        psZoom.Children.Add(
+            PSMonitorButtonBuild(
+                "/PAsset/PCompass/PCompassZoomIncrease.svg",
+                "NormalizePreview.ZoomIn",
+                () => PSMonitorZoomApply(PSMonitorZoomStep)));
+        psZoom.Children.Add(
+            PSMonitorButtonBuild(
+                "/PAsset/PCompass/PCompassZoomDecrease.svg",
+                "NormalizePreview.ZoomOut",
+                () => PSMonitorZoomApply(1 / PSMonitorZoomStep)));
         return psZoom;
     }
 

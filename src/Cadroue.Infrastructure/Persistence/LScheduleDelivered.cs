@@ -40,7 +40,8 @@ public sealed partial class LSchedule
             {
                 lScheduleKnownIds.Remove(lWorkItem.LWorkId);
                 LTraceLog.LTraceWarningRecord(
-                    $"Schedule: could not file delivered work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}]");
+                    $"Schedule: could not file delivered work '{lWorkItem.LWorkOutputName}' " +
+                    $"[{LScheduleIdShorten(lWorkItem.LWorkId)}]");
                 continue;
             }
 

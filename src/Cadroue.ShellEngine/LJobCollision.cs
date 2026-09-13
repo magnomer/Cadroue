@@ -52,9 +52,11 @@ internal sealed partial class LJob
         }
 
         LEncoding pOutput = lJobItem.LWorkOutput;
-        bool pVideoCopy = string.Equals(pOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+        bool pVideoCopy = string.Equals(
+                pOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             || string.Equals(pOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase);
-        bool pAudioCopy = string.Equals(pOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+        bool pAudioCopy = string.Equals(
+                pOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             && !LEncodeAudio.LEncodeExcludeCheck(pOutput);
         if (!pVideoCopy && !pAudioCopy)
         {
@@ -72,14 +74,16 @@ internal sealed partial class LJob
             && pSource.LWorkMediaVideo
             && !LRepertoireCatalog.LRepertoireVideoCheck(pSource.LWorkMediaCodec, pContainer))
         {
-            return $"the copied video stream ('{pSource.LWorkMediaCodec}') cannot be stored in the {pContainer} container; choose an encoder or another container";
+            return $"the copied video stream ('{pSource.LWorkMediaCodec}') cannot be stored in the {pContainer} " +
+                $"container; choose an encoder or another container";
         }
 
         if (pAudioCopy
             && pSource.LWorkMediaSamplerate > 0
             && !LRepertoireCatalog.LRepertoireAudioCheck(pSource.LWorkAudioCodec, pContainer))
         {
-            return $"the copied audio stream ('{pSource.LWorkAudioCodec}') cannot be stored in the {pContainer} container; choose an encoder or another container";
+            return $"the copied audio stream ('{pSource.LWorkAudioCodec}') cannot be stored in the {pContainer} " +
+                $"container; choose an encoder or another container";
         }
 
         return string.Empty;
@@ -129,7 +133,8 @@ internal sealed partial class LJob
                 lJobFinalPath = pTarget;
                 lJobItem.LWorkOutputSet(pStagePath, Path.GetFileName(pTarget));
                 LRunner.LRunnerRecord(
-                    $"Output is the source; encoding to '{Path.GetFileName(pStagePath)}' and renaming the source once finished");
+                    $"Output is the source; encoding to '{Path.GetFileName(pStagePath)}' " +
+                    $"and renaming the source once finished");
                 return string.Empty;
             }
 
@@ -141,7 +146,8 @@ internal sealed partial class LJob
             }
             catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
             {
-                string pJobFailure = $"Could not rename the existing file '{Path.GetFileName(pTarget)}'; leaving it untouched";
+                string pJobFailure =
+                    $"Could not rename the existing file '{Path.GetFileName(pTarget)}'; leaving it untouched";
                 LRunner.LRunnerRecord(pJobFailure, pException);
                 return pJobFailure;
             }

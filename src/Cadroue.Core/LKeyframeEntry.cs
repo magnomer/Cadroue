@@ -6,7 +6,9 @@ public sealed record LKeyframeEntry
     {
         if (presentationTime < TimeSpan.Zero)
         {
-            throw new ArgumentOutOfRangeException(nameof(presentationTime), "Keyframe presentation time cannot be negative.");
+            throw new ArgumentOutOfRangeException(
+                nameof(presentationTime),
+                "Keyframe presentation time cannot be negative.");
         }
 
         LKeyframePresentationTime = presentationTime;

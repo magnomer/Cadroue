@@ -35,7 +35,8 @@ public sealed class TAuditName
             .Select(violation =>
             {
                 string relative = Path.GetRelativePath(repoRoot, violation.TViolationPath).Replace('\\', '/');
-                return $"  {relative}:{violation.TViolationLine} [{violation.TViolationKind}] {violation.TViolationName} — {violation.TViolationReason}";
+                return $"  {relative}:{violation.TViolationLine} [{violation.TViolationKind}] "
+                    + $"{violation.TViolationName} — {violation.TViolationReason}";
             });
 
         return $"{violations.Count} non-conforming name(s):\n{string.Join('\n', lines)}";

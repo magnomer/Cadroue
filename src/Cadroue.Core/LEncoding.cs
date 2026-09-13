@@ -223,13 +223,19 @@ public sealed record LEncoding(
             return Path.GetFullPath(lEncodingPath).ToUpperInvariant();
         }
         catch (Exception lEncodingError)
-            when (lEncodingError is ArgumentException or IOException or NotSupportedException or System.Security.SecurityException)
+            when (lEncodingError is ArgumentException
+                or IOException
+                or NotSupportedException
+                or System.Security.SecurityException)
         {
             return lEncodingPath.ToUpperInvariant();
         }
     }
 
-    private static bool LEncodingOperatorParse(string lEncodingMarker, out bool lEncodingForward, out int lEncodingCount)
+    private static bool LEncodingOperatorParse(
+        string lEncodingMarker,
+        out bool lEncodingForward,
+        out int lEncodingCount)
     {
         lEncodingForward = false;
         lEncodingCount = 1;
@@ -244,7 +250,9 @@ public sealed record LEncoding(
             return false;
         }
 
-        if (lEncodingColon >= 0 && int.TryParse(lEncodingMarker[(lEncodingColon + 1)..], out int lEncodingParsed) && lEncodingParsed > 0)
+        if (lEncodingColon >= 0
+            && int.TryParse(lEncodingMarker[(lEncodingColon + 1)..], out int lEncodingParsed)
+            && lEncodingParsed > 0)
         {
             lEncodingCount = lEncodingParsed;
         }
@@ -255,7 +263,8 @@ public sealed record LEncoding(
     private static string LEncodingFolderNormalize(string lEncodingFolderName)
     {
         char[] lEncodingInvalidChars = Path.GetInvalidFileNameChars()
-            .Where(lEncodingChar => lEncodingChar != Path.DirectorySeparatorChar && lEncodingChar != Path.AltDirectorySeparatorChar)
+            .Where(lEncodingChar => lEncodingChar != Path.DirectorySeparatorChar
+                && lEncodingChar != Path.AltDirectorySeparatorChar)
             .ToArray();
 
         string lEncodingCleaned = new(lEncodingFolderName

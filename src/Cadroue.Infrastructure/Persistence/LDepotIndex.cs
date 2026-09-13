@@ -137,7 +137,9 @@ public static class LDepotIndex
                     continue;
                 }
 
-                lDepotRecords.Add(new LDepotEntry(LDepotEnumRead(lDepotReader.GetString(0), LDepotFolder.LDepotFolderScheduled), lDepotRecord));
+                lDepotRecords.Add(new LDepotEntry(
+                    LDepotEnumRead(lDepotReader.GetString(0), LDepotFolder.LDepotFolderScheduled),
+                    lDepotRecord));
             }
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
@@ -302,6 +304,7 @@ public static class LDepotIndex
         return lDepotConnection;
     }
 
-    private static LDepotEnum LDepotEnumRead<LDepotEnum>(string lDepotValue, LDepotEnum lDepotFallback) where LDepotEnum : struct =>
+    private static LDepotEnum LDepotEnumRead<LDepotEnum>(string lDepotValue, LDepotEnum lDepotFallback)
+        where LDepotEnum : struct =>
         Enum.TryParse(lDepotValue, out LDepotEnum lDepotParsed) ? lDepotParsed : lDepotFallback;
 }

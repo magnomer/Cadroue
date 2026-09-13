@@ -6,7 +6,8 @@ namespace Cadroue.Application;
 
 public static class LPreference
 {
-    public static LPreferenceState LPreferenceStateCurrent { get; private set; } = LPreferenceState.LPreferenceDefaultCreate();
+    public static LPreferenceState LPreferenceStateCurrent { get; private set; } =
+        LPreferenceState.LPreferenceDefaultCreate();
 
     public static Func<bool>? LPreferenceDepotCallback { get; set; }
 

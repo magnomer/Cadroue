@@ -12,8 +12,16 @@ public sealed class TLocalizationCatalog
         string lLocalizationPath = Path.Combine(TLocalizationPathRead(), "localization");
         using JsonDocument lEnglish = JsonDocument.Parse(File.ReadAllText(Path.Combine(lLocalizationPath, "en.json")));
         using JsonDocument lKorean = JsonDocument.Parse(File.ReadAllText(Path.Combine(lLocalizationPath, "ko.json")));
-        string[] lEnglishKeys = lEnglish.RootElement.EnumerateObject().Select(lProperty => lProperty.Name).Order().ToArray();
-        string[] lKoreanKeys = lKorean.RootElement.EnumerateObject().Select(lProperty => lProperty.Name).Order().ToArray();
+        string[] lEnglishKeys = lEnglish.RootElement
+            .EnumerateObject()
+            .Select(lProperty => lProperty.Name)
+            .Order()
+            .ToArray();
+        string[] lKoreanKeys = lKorean.RootElement
+            .EnumerateObject()
+            .Select(lProperty => lProperty.Name)
+            .Order()
+            .ToArray();
 
         Assert.Equal(lEnglishKeys, lKoreanKeys);
     }

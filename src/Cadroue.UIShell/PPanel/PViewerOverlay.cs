@@ -72,7 +72,8 @@ public sealed partial class PViewer
             {
                 LTraceLog.LTraceInfoRecord(
                     $"mpv overlay closed (host {(pViewerMpvHost.IsVisible ? "visible" : "hidden")}, "
-                    + $"vis={pViewerMpvHost.Visibility}, size {pViewerMpvHost.ActualWidth:0}x{pViewerMpvHost.ActualHeight:0})");
+                    + $"vis={pViewerMpvHost.Visibility}, "
+                    + $"size {pViewerMpvHost.ActualWidth:0}x{pViewerMpvHost.ActualHeight:0})");
             }
 
             pViewerMpvOverlay.IsOpen = false;

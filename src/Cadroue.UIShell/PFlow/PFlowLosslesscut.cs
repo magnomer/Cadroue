@@ -185,8 +185,12 @@ public sealed partial class PFlow
             LLocalization.LLocalizationFormat(
                 "Flow.LosslessCut.Summary.Media",
                 pLosslesscutResult.LLosslesscutResultMedia.PFlowFallbackRead(pLosslesscutUnspecified)),
-            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Valid", pLosslesscutResult.LLosslesscutResultSections.Count),
-            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Skipped", pLosslesscutResult.LLosslesscutResultIssues.Count)
+            LLocalization.LLocalizationFormat(
+                "Flow.LosslessCut.Summary.Valid",
+                pLosslesscutResult.LLosslesscutResultSections.Count),
+            LLocalization.LLocalizationFormat(
+                "Flow.LosslessCut.Summary.Skipped",
+                pLosslesscutResult.LLosslesscutResultIssues.Count)
         };
 
         if (pLosslesscutShowRange && pLosslesscutResult.LLosslesscutResultSections.Count > 0)

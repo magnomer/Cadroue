@@ -3,7 +3,10 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-internal sealed record TCartographerTabSpec(bool TCartographerFunnel, int TCartographerProcessingTarget, IReadOnlyList<int> TCartographerFunnelTargets)
+internal sealed record TCartographerTabSpec(
+    bool TCartographerFunnel,
+    int TCartographerProcessingTarget,
+    IReadOnlyList<int> TCartographerFunnelTargets)
 {
     internal static TCartographerTabSpec TCartographerProcessCreate(int target) =>
         new(false, target, Array.Empty<int>());
@@ -12,9 +15,15 @@ internal sealed record TCartographerTabSpec(bool TCartographerFunnel, int TCarto
         new(true, -1, targets);
 }
 
-internal sealed record TCartographerStageView(int TCartographerTabIndex, Guid TCartographerStageId, Guid TCartographerNextStage, IReadOnlyList<Guid> TCartographerFunnelTargets);
+internal sealed record TCartographerStageView(
+    int TCartographerTabIndex,
+    Guid TCartographerStageId,
+    Guid TCartographerNextStage,
+    IReadOnlyList<Guid> TCartographerFunnelTargets);
 
-internal sealed record TCartographerPlanView(Guid TCartographerEntryStage, IReadOnlyList<TCartographerStageView> TCartographerStages)
+internal sealed record TCartographerPlanView(
+    Guid TCartographerEntryStage,
+    IReadOnlyList<TCartographerStageView> TCartographerStages)
 {
     internal TCartographerStageView TCartographerStageRead(int tabIndex) =>
         TCartographerStages.Single(stage => stage.TCartographerTabIndex == tabIndex);
@@ -24,7 +33,9 @@ internal static class TCartographer
 {
     internal static Guid TCartographerFinish => LCartographer.LCartographerFinishTarget;
 
-    internal static TCartographerPlanView TCartographerPlanCreate(IReadOnlyList<TCartographerTabSpec> specs, int entryIndex)
+    internal static TCartographerPlanView TCartographerPlanCreate(
+        IReadOnlyList<TCartographerTabSpec> specs,
+        int entryIndex)
     {
         Guid[] ids = specs.Select(_ => Guid.NewGuid()).ToArray();
         var tabs = new List<LCartographerTab>();

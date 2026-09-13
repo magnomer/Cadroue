@@ -55,7 +55,8 @@ public sealed partial class LSchedule
             {
                 lScheduleKnownIds.Remove(lWorkItem.LWorkId);
                 LTraceLog.LTraceWarningRecord(
-                    $"Schedule: could not file work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}]");
+                    $"Schedule: could not file work '{lWorkItem.LWorkOutputName}' " +
+                    $"[{LScheduleIdShorten(lWorkItem.LWorkId)}]");
                 continue;
             }
 
@@ -111,7 +112,8 @@ public sealed partial class LSchedule
 
         LScheduleLoad();
         LTraceLog.LTraceInfoRecord(
-            $"Schedule: reordered {lScheduleRequestedIds.Length} work item(s) in batch [{LScheduleIdShorten(lWorkBatchId)}]");
+            $"Schedule: reordered {lScheduleRequestedIds.Length} work item(s) " +
+            $"in batch [{LScheduleIdShorten(lWorkBatchId)}]");
         return true;
     }
 

@@ -31,7 +31,9 @@ public sealed partial class PProcessing
         };
 
         Button pMinimizeButton = PProcessingButtonBuild(
-            "/PAsset/PPanel/PListMinimize.svg", LLocalization.LLocalizationTextRead("Processing.Hide.Tooltip"), () => PProcessingMinimizeSet(true));
+            "/PAsset/PPanel/PListMinimize.svg",
+            LLocalization.LLocalizationTextRead("Processing.Hide.Tooltip"),
+            () => PProcessingMinimizeSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         var pHeaderGrid = new Grid();
@@ -54,17 +56,23 @@ public sealed partial class PProcessing
     private UIElement PProcessingActionBuild()
     {
         Button pUpButton = PProcessingButtonBuild(
-            PProcessingUpIcon, LLocalization.LLocalizationTextRead("Processing.MoveUp.Tooltip"), () => PProcessingStepMove(-1));
+            PProcessingUpIcon,
+            LLocalization.LLocalizationTextRead("Processing.MoveUp.Tooltip"),
+            () => PProcessingStepMove(-1));
         pUpButton.Margin = new Thickness(0, 0, 2, 0);
         Button pDownButton = PProcessingButtonBuild(
-            PProcessingDownIcon, LLocalization.LLocalizationTextRead("Processing.MoveDown.Tooltip"), () => PProcessingStepMove(1));
+            PProcessingDownIcon,
+            LLocalization.LLocalizationTextRead("Processing.MoveDown.Tooltip"),
+            () => PProcessingStepMove(1));
 
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pLeftPanel.Children.Add(pUpButton);
         pLeftPanel.Children.Add(pDownButton);
 
         Button pMonitorButton = PProcessingButtonBuild(
-            PProcessingMonitorIcon, LLocalization.LLocalizationTextRead("NormalizePreview.Button.Tooltip"), () => PProcessingMonitorShow?.Invoke());
+            PProcessingMonitorIcon,
+            LLocalization.LLocalizationTextRead("NormalizePreview.Button.Tooltip"),
+            () => PProcessingMonitorShow?.Invoke());
         pMonitorButton.HorizontalAlignment = HorizontalAlignment.Right;
         pMonitorButton.Visibility = Visibility.Collapsed;
         pProcessingMonitorButton = pMonitorButton;

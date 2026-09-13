@@ -10,7 +10,11 @@ public sealed class TKeyframeScanPlan
     {
         using var keyframes = new TKeyframe();
         string source = keyframes.TSourceCreate("full.mp4", "full source");
-        Assert.True(keyframes.TKeyframeCacheSave(source, TimeSpan.FromSeconds(60), Array.Empty<long>(), new[] { 0, 1, 2 }));
+        Assert.True(keyframes.TKeyframeCacheSave(
+            source,
+            TimeSpan.FromSeconds(60),
+            Array.Empty<long>(),
+            new[] { 0, 1, 2 }));
 
         keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));
         await TKeyframe.TKeyframeSettleRun();
@@ -24,7 +28,11 @@ public sealed class TKeyframeScanPlan
     {
         using var keyframes = new TKeyframe();
         string source = keyframes.TSourceCreate("partial.mp4", "partial source");
-        Assert.True(keyframes.TKeyframeCacheSave(source, TimeSpan.FromSeconds(60), Array.Empty<long>(), new[] { 0, 2 }));
+        Assert.True(keyframes.TKeyframeCacheSave(
+            source,
+            TimeSpan.FromSeconds(60),
+            Array.Empty<long>(),
+            new[] { 0, 2 }));
 
         keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));
         await keyframes.TKeyframeCoverageRead(3);
@@ -38,7 +46,11 @@ public sealed class TKeyframeScanPlan
     {
         using var keyframes = new TKeyframe();
         string source = keyframes.TSourceCreate("cached-overlap.mp4", "cached overlap source");
-        Assert.True(keyframes.TKeyframeCacheSave(source, TimeSpan.FromSeconds(80), Array.Empty<long>(), new[] { 0, 1, 1, 2 }));
+        Assert.True(keyframes.TKeyframeCacheSave(
+            source,
+            TimeSpan.FromSeconds(80),
+            Array.Empty<long>(),
+            new[] { 0, 1, 1, 2 }));
 
         keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(80), TimeSpan.FromSeconds(30));
         await keyframes.TKeyframeCoverageRead(4);

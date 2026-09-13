@@ -33,7 +33,10 @@ public static class LRetentionSweep
 
             try
             {
-                if (LRetention.LRetentionExpiredCheck(File.GetLastWriteTimeUtc(lRetentionPath), lRetentionNow, lRetentionDays))
+                if (LRetention.LRetentionExpiredCheck(
+                        File.GetLastWriteTimeUtc(lRetentionPath),
+                        lRetentionNow,
+                        lRetentionDays))
                 {
                     File.Delete(lRetentionPath);
                     lRetentionRemoved++;

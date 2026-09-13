@@ -14,7 +14,13 @@ public sealed class TSegmentBoundary
     public void CursorInsideActiveSection_SettingStartShrinksSection()
     {
         var sections = new[] { TSegmentPieceCreate(2, 8) };
-        var plan = TInterface.TPieceStartSet(sections, 0, TSegmentAtCreate(4), TSegmentAtCreate(10), 0, TSegmentOverlapOff);
+        var plan = TInterface.TPieceStartSet(
+            sections,
+            0,
+            TSegmentAtCreate(4),
+            TSegmentAtCreate(10),
+            0,
+            TSegmentOverlapOff);
         Assert.NotNull(plan);
         Assert.Equal(TSegmentAtCreate(4), plan!.LPieceSections[0].LPieceOrigin);
         Assert.Equal(TSegmentAtCreate(8), plan!.LPieceSections[0].LPieceEnd);
@@ -25,17 +31,31 @@ public sealed class TSegmentBoundary
     public void CursorAtActiveEnd_SettingStartAddsForward()
     {
         var sections = new[] { TSegmentPieceCreate(2, 8) };
-        var plan = TInterface.TPieceStartSet(sections, 0, TSegmentAtCreate(8), TSegmentAtCreate(10), 0, TSegmentOverlapOff);
+        var plan = TInterface.TPieceStartSet(
+            sections,
+            0,
+            TSegmentAtCreate(8),
+            TSegmentAtCreate(10),
+            0,
+            TSegmentOverlapOff);
         Assert.NotNull(plan);
         Assert.True(plan!.LPieceAdded);
-        Assert.Contains(plan!.LPieceSections, section => section.LPieceOrigin == TSegmentAtCreate(8) && section.LPieceEnd == TSegmentAtCreate(10));
+        Assert.Contains(
+            plan!.LPieceSections,
+            section => section.LPieceOrigin == TSegmentAtCreate(8) && section.LPieceEnd == TSegmentAtCreate(10));
     }
 
     [Fact]
     public void CursorBelowFloor_SettingStartIsRejected()
     {
         var sections = new[] { TSegmentPieceCreate(0, 3), TSegmentPieceCreate(5, 9) };
-        Assert.Null(TInterface.TPieceStartSet(sections, 1, TSegmentAtCreate(2), TSegmentAtCreate(10), 0, TSegmentOverlapOff));
+        Assert.Null(TInterface.TPieceStartSet(
+            sections,
+            1,
+            TSegmentAtCreate(2),
+            TSegmentAtCreate(10),
+            0,
+            TSegmentOverlapOff));
     }
 
     [Fact]
@@ -55,7 +75,9 @@ public sealed class TSegmentBoundary
         var plan = TInterface.TPieceEndSet(sections, 0, TSegmentAtCreate(2), 0, TSegmentOverlapOff);
         Assert.NotNull(plan);
         Assert.True(plan!.LPieceAdded);
-        Assert.Contains(plan!.LPieceSections, section => section.LPieceOrigin == TimeSpan.Zero && section.LPieceEnd == TSegmentAtCreate(2));
+        Assert.Contains(
+            plan!.LPieceSections,
+            section => section.LPieceOrigin == TimeSpan.Zero && section.LPieceEnd == TSegmentAtCreate(2));
     }
 
     [Fact]
@@ -71,7 +93,9 @@ public sealed class TSegmentBoundary
         var sections = new[] { TSegmentPieceCreate(5, 8) };
         var plan = TInterface.TPieceEndSet(sections, null, TSegmentAtCreate(5), 0, TSegmentOverlapOff);
         Assert.NotNull(plan);
-        Assert.Contains(plan!.LPieceSections, section => section.LPieceOrigin == TimeSpan.Zero && section.LPieceEnd == TSegmentAtCreate(5));
+        Assert.Contains(
+            plan!.LPieceSections,
+            section => section.LPieceOrigin == TimeSpan.Zero && section.LPieceEnd == TSegmentAtCreate(5));
     }
 
     [Fact]

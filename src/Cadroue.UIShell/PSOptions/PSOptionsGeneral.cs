@@ -51,7 +51,9 @@ internal sealed partial class PSOptions
             PSOptionsStartupBuild(),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.LastMedia"), psMediaBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Confirm"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.DestructiveActions"), psOptionsConfirmBox),
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Options.General.DestructiveActions"),
+                psOptionsConfirmBox),
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.DestructiveNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Relay"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClear"), psRelayClearBox),
@@ -68,14 +70,19 @@ internal sealed partial class PSOptions
         psOptionsTabPicker.Margin = new Thickness(12, 0, 0, 0);
         psOptionsTabPicker.VerticalAlignment = VerticalAlignment.Center;
 
-        var pRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var pRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         pRow.Children.Add(psOptionsStartupMode);
         pRow.Children.Add(psOptionsTabPicker);
 
         void PSOptionsPickerUpdate() =>
-            psOptionsTabPicker.Visibility = string.Equals(PSModeTextRead(psOptionsStartupMode), "DefaultTab", StringComparison.Ordinal)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            psOptionsTabPicker.Visibility =
+                string.Equals(PSModeTextRead(psOptionsStartupMode), "DefaultTab", StringComparison.Ordinal)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
         PSOptionsPickerUpdate();
         psOptionsStartupPicker = PSOptionsPickerUpdate;
 

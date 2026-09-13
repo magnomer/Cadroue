@@ -76,7 +76,8 @@ public sealed partial class PConsole
         pFill.SetValue(UIElement.IsHitTestVisibleProperty, false);
         pFill.SetBinding(FrameworkElement.WidthProperty, new System.Windows.Data.Binding("ActualWidth")
         {
-            RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.TemplatedParent)
+            RelativeSource = new System.Windows.Data.RelativeSource(
+                System.Windows.Data.RelativeSourceMode.TemplatedParent)
         });
 
         var pGloss = new FrameworkElementFactory(typeof(Border));

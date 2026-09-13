@@ -48,7 +48,10 @@ public sealed partial class PFlow
         if (!pDividerState) return;
         Window? ownerWindow = Window.GetWindow(this);
         if (ownerWindow is null) { PDividerClear(); return; }
-        Height = Math.Clamp(pDividerStartHeight + pDividerStartY - e.GetPosition(ownerWindow).Y, PFlowHeightMinimum, PFlowHeightMaximum);
+        Height = Math.Clamp(
+            pDividerStartHeight + pDividerStartY - e.GetPosition(ownerWindow).Y,
+            PFlowHeightMinimum,
+            PFlowHeightMaximum);
         e.Handled = true;
     }
 

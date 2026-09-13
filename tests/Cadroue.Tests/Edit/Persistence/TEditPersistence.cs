@@ -31,10 +31,18 @@ public sealed class TEditPersistence
         Assert.Equal("Brightness", TInterface.TColorKindFormat(LColorKind.LColorKindBrightness));
         Assert.Equal("Gamma", TInterface.TColorKindFormat(LColorKind.LColorKindGamma));
         Assert.Equal("Whitebalance", TInterface.TColorKindFormat(LColorKind.LColorKindWhitebalance));
-        Assert.Equal(LColorKind.LColorKindContrast, TInterface.TColorKindParse(TInterface.TColorKindFormat(LColorKind.LColorKindContrast)));
-        Assert.Equal(LColorKind.LColorKindBrightness, TInterface.TColorKindParse(TInterface.TColorKindFormat(LColorKind.LColorKindBrightness)));
-        Assert.Equal(LColorKind.LColorKindGamma, TInterface.TColorKindParse(TInterface.TColorKindFormat(LColorKind.LColorKindGamma)));
-        Assert.Equal(LColorKind.LColorKindWhitebalance, TInterface.TColorKindParse(TInterface.TColorKindFormat(LColorKind.LColorKindWhitebalance)));
+        Assert.Equal(
+            LColorKind.LColorKindContrast,
+            TInterface.TColorKindParse(TInterface.TColorKindFormat(LColorKind.LColorKindContrast)));
+        Assert.Equal(
+            LColorKind.LColorKindBrightness,
+            TInterface.TColorKindParse(TInterface.TColorKindFormat(LColorKind.LColorKindBrightness)));
+        Assert.Equal(
+            LColorKind.LColorKindGamma,
+            TInterface.TColorKindParse(TInterface.TColorKindFormat(LColorKind.LColorKindGamma)));
+        Assert.Equal(
+            LColorKind.LColorKindWhitebalance,
+            TInterface.TColorKindParse(TInterface.TColorKindFormat(LColorKind.LColorKindWhitebalance)));
     }
 
     [Fact]
@@ -222,7 +230,11 @@ public sealed class TEditPersistence
         LEditPlan persistent = TInterface.TEditPlanCreate(
             TInterface.TWorkCropCreate(), TInterface.TWorkVideoCreate(), false) with { LEditSkip = false };
 
-        LEditPlan resolved = TInterface.TEditPlanResolve(file, persistent, cropPersistent: false, skipPersistent: false);
+        LEditPlan resolved = TInterface.TEditPlanResolve(
+            file,
+            persistent,
+            cropPersistent: false,
+            skipPersistent: false);
 
         Assert.True(resolved.LEditSkip);
     }

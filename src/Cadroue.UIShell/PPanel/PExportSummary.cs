@@ -225,7 +225,13 @@ public sealed partial class PExport : UserControl
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 3) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(74) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(new TextBlock { Text = pName, Foreground = PExportMutedBrush, FontSize = 11, VerticalAlignment = VerticalAlignment.Top });
+        pGrid.Children.Add(new TextBlock
+        {
+            Text = pName,
+            Foreground = PExportMutedBrush,
+            FontSize = 11,
+            VerticalAlignment = VerticalAlignment.Top
+        });
 
         pValueBlock = new TextBlock { Foreground = PExportTextBrush, FontSize = 11, TextWrapping = TextWrapping.Wrap };
         Grid.SetColumn(pValueBlock, 1);

@@ -109,7 +109,12 @@ internal sealed partial class PSMonitor : Window
     private DockPanel PSMonitorRootBuild()
     {
         var psMonitor = new DockPanel { Background = Brushes.White };
-        var psFooter = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(12) };
+        var psFooter = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(12)
+        };
         Button psClose = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("NormalizePreview.Close"));
         psClose.Click += (_, _) => Close();
         psFooter.Children.Add(psClose);
@@ -131,23 +136,46 @@ internal sealed partial class PSMonitor : Window
     private UIElement PSMonitorContentBuild()
     {
         var psMonitor = new Grid();
-        psMonitor.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = PSMonitorRailMinimum });
+        psMonitor.RowDefinitions.Add(new RowDefinition
+        {
+            Height = new GridLength(1, GridUnitType.Star),
+            MinHeight = PSMonitorRailMinimum
+        });
         psMonitor.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        psMonitor.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = PSMonitorRailMinimum });
+        psMonitor.RowDefinitions.Add(new RowDefinition
+        {
+            Height = new GridLength(1, GridUnitType.Star),
+            MinHeight = PSMonitorRailMinimum
+        });
         psMonitor.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         psMonitorBeforeRadio = PSMonitorRadioBuild("NormalizePreview.Before", "NormalizePreview.BeforeSelect", true);
         psMonitorAfterRadio = PSMonitorRadioBuild("NormalizePreview.After", "NormalizePreview.AfterSelect", false);
 
-        Grid psBefore = PSMonitorRailBuild(psMonitorBeforeFill, psMonitorBeforeRadio, out psMonitorBeforeCanvas, out psMonitorBeforeStatus, out psMonitorBeforeHead);
+        Grid psBefore = PSMonitorRailBuild(
+            psMonitorBeforeFill,
+            psMonitorBeforeRadio,
+            out psMonitorBeforeCanvas,
+            out psMonitorBeforeStatus,
+            out psMonitorBeforeHead);
         Grid.SetRow(psBefore, 0);
         psMonitor.Children.Add(psBefore);
 
-        var psDivider = new Border { Height = 1, Background = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)), Margin = new Thickness(0, 14, 0, 14) };
+        var psDivider = new Border
+        {
+            Height = 1,
+            Background = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7)),
+            Margin = new Thickness(0, 14, 0, 14)
+        };
         Grid.SetRow(psDivider, 1);
         psMonitor.Children.Add(psDivider);
 
-        Grid psAfter = PSMonitorRailBuild(psMonitorAfterFill, psMonitorAfterRadio, out psMonitorAfterCanvas, out psMonitorAfterStatus, out psMonitorAfterHead);
+        Grid psAfter = PSMonitorRailBuild(
+            psMonitorAfterFill,
+            psMonitorAfterRadio,
+            out psMonitorAfterCanvas,
+            out psMonitorAfterStatus,
+            out psMonitorAfterHead);
         Grid.SetRow(psAfter, 2);
         psMonitor.Children.Add(psAfter);
 
@@ -171,9 +199,18 @@ internal sealed partial class PSMonitor : Window
         return psMonitor;
     }
 
-    private Grid PSMonitorRailBuild(Brush pFill, RadioButton pRadio, out Canvas pCanvas, out TextBlock pStatus, out Border pHead)
+    private Grid PSMonitorRailBuild(
+        Brush pFill,
+        RadioButton pRadio,
+        out Canvas pCanvas,
+        out TextBlock pStatus,
+        out Border pHead)
     {
-        var psRail = new Grid { Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC)), ClipToBounds = true };
+        var psRail = new Grid
+        {
+            Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC)),
+            ClipToBounds = true
+        };
 
         var psCanvas = new Canvas { Tag = pFill, Background = Brushes.Transparent };
         psCanvas.SizeChanged += (_, _) =>

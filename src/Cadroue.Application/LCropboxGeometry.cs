@@ -55,7 +55,11 @@ public sealed partial record LCropbox
         double lCropboxHeight = lCropboxFrameHeight
             - lCropboxCanonical.LWorkCropTop - lCropboxCanonical.LWorkCropBottom;
         return lCropboxWidth > 0 && lCropboxHeight > 0
-            ? new LCropbox(lCropboxCanonical.LWorkCropLeft, lCropboxCanonical.LWorkCropTop, lCropboxWidth, lCropboxHeight)
+            ? new LCropbox(
+                lCropboxCanonical.LWorkCropLeft,
+                lCropboxCanonical.LWorkCropTop,
+                lCropboxWidth,
+                lCropboxHeight)
             : null;
     }
 
@@ -108,7 +112,10 @@ public sealed partial record LCropbox
         };
     }
 
-    private static int[] LCropboxPermutationResolve(int lCropboxRotation, bool lCropboxFlipHorizontal, bool lCropboxFlipVertical)
+    private static int[] LCropboxPermutationResolve(
+        int lCropboxRotation,
+        bool lCropboxFlipHorizontal,
+        bool lCropboxFlipVertical)
     {
         int lCropboxSteps = ((lCropboxRotation / 90) % 4 + 4) % 4;
         int[] lCropboxMap = new int[4];
@@ -324,7 +331,9 @@ public sealed partial record LCropbox
         }
 
         double lCropboxX = lCropboxEdgeX < 0 ? lCropboxOrigin.LCropboxRight - lCropboxWidth : lCropboxOrigin.LCropboxX;
-        double lCropboxY = lCropboxEdgeY < 0 ? lCropboxOrigin.LCropboxBottom - lCropboxHeight : lCropboxOrigin.LCropboxY;
+        double lCropboxY = lCropboxEdgeY < 0
+            ? lCropboxOrigin.LCropboxBottom - lCropboxHeight
+            : lCropboxOrigin.LCropboxY;
 
         if (lCropboxEdgeX == 0)
         {
@@ -336,6 +345,9 @@ public sealed partial record LCropbox
             lCropboxY = lCropboxOrigin.LCropboxY + ((lCropboxOrigin.LCropboxHeight - lCropboxHeight) / 2);
         }
 
-        return LCropboxRectClamp(new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight), lCropboxVideo, lCropboxRatioLocked);
+        return LCropboxRectClamp(
+            new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight),
+            lCropboxVideo,
+            lCropboxRatioLocked);
     }
 }

@@ -119,7 +119,8 @@ internal static partial class TInterface
 
     internal static bool TRetentionExpiredCheck(DateTime writeUtc, DateTime nowUtc, int days) =>
         LRetention.LRetentionExpiredCheck(writeUtc, nowUtc, days);
-    internal static bool TRetentionExcludedCheck(string relativePath) => LRetention.LRetentionExcludedCheck(relativePath);
+    internal static bool TRetentionExcludedCheck(string relativePath) =>
+        LRetention.LRetentionExcludedCheck(relativePath);
     internal static IReadOnlyList<Guid> TScheduleRemovableResolve(
         IEnumerable<Guid> workIds, IReadOnlyDictionary<Guid, LWorkState> states) =>
         LSchedule.LScheduleRemovableResolve(workIds, states);

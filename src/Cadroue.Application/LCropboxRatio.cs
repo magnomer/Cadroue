@@ -2,7 +2,10 @@ namespace Cadroue.Application;
 
 public sealed partial record LCropbox
 {
-    public static LCropbox? LCropboxRatioResolve(LCropbox lCropboxBounds, int lCropboxRatioWidth, int lCropboxRatioHeight)
+    public static LCropbox? LCropboxRatioResolve(
+        LCropbox lCropboxBounds,
+        int lCropboxRatioWidth,
+        int lCropboxRatioHeight)
     {
         if (lCropboxBounds.LCropboxWidth <= 0 || lCropboxBounds.LCropboxHeight <= 0
             || lCropboxRatioWidth <= 0 || lCropboxRatioHeight <= 0)
@@ -99,11 +102,21 @@ public sealed partial record LCropbox
             }
 
             double lCropboxX = Math.Clamp(
-                LCropboxFloorNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxX, lCropboxDesired.LCropboxWidth, lCropboxWidth, lCropboxAnchorX)),
+                LCropboxFloorNormalize(
+                    LCropboxAnchorPlace(
+                        lCropboxDesired.LCropboxX,
+                        lCropboxDesired.LCropboxWidth,
+                        lCropboxWidth,
+                        lCropboxAnchorX)),
                 0,
                 lCropboxMaximumX);
             double lCropboxY = Math.Clamp(
-                LCropboxFloorNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxY, lCropboxDesired.LCropboxHeight, lCropboxHeight, lCropboxAnchorY)),
+                LCropboxFloorNormalize(
+                    LCropboxAnchorPlace(
+                        lCropboxDesired.LCropboxY,
+                        lCropboxDesired.LCropboxHeight,
+                        lCropboxHeight,
+                        lCropboxAnchorY)),
                 0,
                 lCropboxMaximumY);
             return new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight);
@@ -145,7 +158,8 @@ public sealed partial record LCropbox
         {
             0 => true,
             1 => false,
-            _ => lCropboxDesired.LCropboxWidth / lCropboxUnitWidth <= lCropboxDesired.LCropboxHeight / lCropboxUnitHeight
+            _ => lCropboxDesired.LCropboxWidth / lCropboxUnitWidth
+                <= lCropboxDesired.LCropboxHeight / lCropboxUnitHeight
         };
 
         double lCropboxWidth;
@@ -157,11 +171,15 @@ public sealed partial record LCropbox
         }
         else
         {
-            lCropboxHeight = Math.Clamp(LCropboxNearNormalize(lCropboxDesired.LCropboxHeight), 2, lCropboxMaximumHeight);
+            lCropboxHeight = Math.Clamp(
+                LCropboxNearNormalize(lCropboxDesired.LCropboxHeight),
+                2,
+                lCropboxMaximumHeight);
             lCropboxWidth = Math.Clamp(LCropboxNearNormalize(lCropboxHeight * lCropboxRatio), 2, lCropboxMaximumWidth);
         }
 
-        if (LCropboxErrorResolve(lCropboxWidth, lCropboxHeight, lCropboxUnitWidth, lCropboxUnitHeight) > lCropboxTolerance)
+        if (LCropboxErrorResolve(lCropboxWidth, lCropboxHeight, lCropboxUnitWidth, lCropboxUnitHeight)
+            > lCropboxTolerance)
         {
             return null;
         }
@@ -174,11 +192,21 @@ public sealed partial record LCropbox
         }
 
         double lCropboxX = Math.Clamp(
-            LCropboxFloorNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxX, lCropboxDesired.LCropboxWidth, lCropboxWidth, lCropboxAnchorX)),
+            LCropboxFloorNormalize(
+                LCropboxAnchorPlace(
+                    lCropboxDesired.LCropboxX,
+                    lCropboxDesired.LCropboxWidth,
+                    lCropboxWidth,
+                    lCropboxAnchorX)),
             0,
             lCropboxMaximumX);
         double lCropboxY = Math.Clamp(
-            LCropboxFloorNormalize(LCropboxAnchorPlace(lCropboxDesired.LCropboxY, lCropboxDesired.LCropboxHeight, lCropboxHeight, lCropboxAnchorY)),
+            LCropboxFloorNormalize(
+                LCropboxAnchorPlace(
+                    lCropboxDesired.LCropboxY,
+                    lCropboxDesired.LCropboxHeight,
+                    lCropboxHeight,
+                    lCropboxAnchorY)),
             0,
             lCropboxMaximumY);
         return new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight);
@@ -260,7 +288,8 @@ public sealed partial record LCropbox
                 return null;
             }
 
-            double lCropboxTargetHeight = LCropboxFloorNormalize(lCropboxWidth * lCropboxRatioHeight / lCropboxRatioWidth);
+            double lCropboxTargetHeight = LCropboxFloorNormalize(
+                lCropboxWidth * lCropboxRatioHeight / lCropboxRatioWidth);
             if (lCropboxTargetHeight <= 0 || lCropboxTargetHeight > lCropboxSourceHeight)
             {
                 return null;
@@ -324,7 +353,11 @@ public sealed partial record LCropbox
         return lCropboxFirst == 0 ? 1 : lCropboxFirst;
     }
 
-    private static double LCropboxAnchorPlace(double lCropboxOrigin, double lCropboxDesiredSize, double lCropboxSize, int lCropboxAnchor) => lCropboxAnchor switch
+    private static double LCropboxAnchorPlace(
+        double lCropboxOrigin,
+        double lCropboxDesiredSize,
+        double lCropboxSize,
+        int lCropboxAnchor) => lCropboxAnchor switch
     {
         < 0 => lCropboxOrigin,
         > 0 => lCropboxOrigin + lCropboxDesiredSize - lCropboxSize,

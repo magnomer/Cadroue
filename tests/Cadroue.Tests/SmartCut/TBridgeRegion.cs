@@ -8,7 +8,15 @@ public sealed class TBridgeRegion
     private static TimeSpan TBridgeSecondCreate(double seconds) => TimeSpan.FromSeconds(seconds);
 
     private static readonly IReadOnlyList<TimeSpan> TBridgeGrid =
-        new[] { TBridgeSecondCreate(0), TBridgeSecondCreate(2), TBridgeSecondCreate(4), TBridgeSecondCreate(6), TBridgeSecondCreate(8), TBridgeSecondCreate(10) };
+        new[]
+        {
+            TBridgeSecondCreate(0),
+            TBridgeSecondCreate(2),
+            TBridgeSecondCreate(4),
+            TBridgeSecondCreate(6),
+            TBridgeSecondCreate(8),
+            TBridgeSecondCreate(10),
+        };
 
     [Fact]
     public void OriginOnKeyframe_EndOnKeyframe_CopyOnlyNoBridges()
@@ -32,7 +40,10 @@ public sealed class TBridgeRegion
             TKeyframeData.TKeyframeEntryCreate(18.393375, 18.309958)
         };
 
-        LBridgePlan plan = TInterface.TBridgeResolve(keyframes, TBridgeSecondCreate(2.044), TBridgeSecondCreate(18.393));
+        LBridgePlan plan = TInterface.TBridgeResolve(
+            keyframes,
+            TBridgeSecondCreate(2.044),
+            TBridgeSecondCreate(18.393));
 
         Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
         Assert.Null(plan.LBridgeHead);
@@ -152,7 +163,14 @@ public sealed class TBridgeRegion
     public void KeyframeJustBeyondEnd_CopyClampedToRequestedEnd()
     {
         IReadOnlyList<TimeSpan> grid =
-            new[] { TBridgeSecondCreate(0), TBridgeSecondCreate(2), TBridgeSecondCreate(4), TBridgeSecondCreate(6), TBridgeSecondCreate(8) + TimeSpan.FromTicks(5_000) };
+            new[]
+            {
+                TBridgeSecondCreate(0),
+                TBridgeSecondCreate(2),
+                TBridgeSecondCreate(4),
+                TBridgeSecondCreate(6),
+                TBridgeSecondCreate(8) + TimeSpan.FromTicks(5_000),
+            };
 
         LBridgePlan plan = TInterface.TBridgeResolve(grid, TBridgeSecondCreate(2), TBridgeSecondCreate(8));
 
@@ -184,7 +202,10 @@ public sealed class TBridgeRegion
     [Fact]
     public void EmptyKeyframes_ReportsWholeEncode()
     {
-        LBridgePlan plan = TInterface.TBridgeResolve(Array.Empty<TimeSpan>(), TBridgeSecondCreate(3), TBridgeSecondCreate(7));
+        LBridgePlan plan = TInterface.TBridgeResolve(
+            Array.Empty<TimeSpan>(),
+            TBridgeSecondCreate(3),
+            TBridgeSecondCreate(7));
 
         Assert.Equal(LBridgeOutcome.LBridgeOutcomeWhole, plan.LBridgeOutcome);
     }
@@ -192,7 +213,11 @@ public sealed class TBridgeRegion
     [Fact]
     public void WholeSource_EndReachesEof_CopiesThroughWithNoBridges()
     {
-        LBridgePlan plan = TInterface.TBridgeResolve(TBridgeGrid, TBridgeSecondCreate(0), TBridgeSecondCreate(11), openEnd: true);
+        LBridgePlan plan = TInterface.TBridgeResolve(
+            TBridgeGrid,
+            TBridgeSecondCreate(0),
+            TBridgeSecondCreate(11),
+            openEnd: true);
 
         Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
         Assert.Null(plan.LBridgeHead);
@@ -206,7 +231,11 @@ public sealed class TBridgeRegion
     [Fact]
     public void OriginBetweenKeyframes_EndReachesEof_HeadAndCopyThroughNoTail()
     {
-        LBridgePlan plan = TInterface.TBridgeResolve(TBridgeGrid, TBridgeSecondCreate(3), TBridgeSecondCreate(11), openEnd: true);
+        LBridgePlan plan = TInterface.TBridgeResolve(
+            TBridgeGrid,
+            TBridgeSecondCreate(3),
+            TBridgeSecondCreate(11),
+            openEnd: true);
 
         Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
         Assert.NotNull(plan.LBridgeHead);
@@ -221,11 +250,19 @@ public sealed class TBridgeRegion
     [Fact]
     public void SameIntervalPastLastKeyframe_TailOnlyWhenEndIsMidStream()
     {
-        LBridgePlan closed = TInterface.TBridgeResolve(TBridgeGrid, TBridgeSecondCreate(2), TBridgeSecondCreate(11), openEnd: false);
+        LBridgePlan closed = TInterface.TBridgeResolve(
+            TBridgeGrid,
+            TBridgeSecondCreate(2),
+            TBridgeSecondCreate(11),
+            openEnd: false);
         Assert.NotNull(closed.LBridgeTail);
         Assert.Equal(TBridgeSecondCreate(10), closed.LBridgeMiddle!.LBridgeSpanEnd);
 
-        LBridgePlan open = TInterface.TBridgeResolve(TBridgeGrid, TBridgeSecondCreate(2), TBridgeSecondCreate(11), openEnd: true);
+        LBridgePlan open = TInterface.TBridgeResolve(
+            TBridgeGrid,
+            TBridgeSecondCreate(2),
+            TBridgeSecondCreate(11),
+            openEnd: true);
         Assert.Null(open.LBridgeTail);
         Assert.Equal(TBridgeSecondCreate(11), open.LBridgeMiddle!.LBridgeSpanEnd);
     }
@@ -235,7 +272,11 @@ public sealed class TBridgeRegion
     {
         IReadOnlyList<TimeSpan> sparse = new[] { TBridgeSecondCreate(0) };
 
-        LBridgePlan plan = TInterface.TBridgeResolve(sparse, TBridgeSecondCreate(0), TBridgeSecondCreate(11), openEnd: true);
+        LBridgePlan plan = TInterface.TBridgeResolve(
+            sparse,
+            TBridgeSecondCreate(0),
+            TBridgeSecondCreate(11),
+            openEnd: true);
 
         Assert.Equal(LBridgeOutcome.LBridgeOutcomeSmart, plan.LBridgeOutcome);
         Assert.Null(plan.LBridgeHead);
@@ -253,6 +294,11 @@ public sealed class TBridgeRegion
     public void EndCheck_ReachesSourceEndWithinOneFrame(
         double end, double duration, double framerate, bool expected)
     {
-        Assert.Equal(expected, TInterface.TBridgeEndCheck(TBridgeSecondCreate(end), TBridgeSecondCreate(duration), framerate));
+        Assert.Equal(
+            expected,
+            TInterface.TBridgeEndCheck(
+                TBridgeSecondCreate(end),
+                TBridgeSecondCreate(duration),
+                framerate));
     }
 }

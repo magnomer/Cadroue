@@ -43,7 +43,8 @@ public static class LPlacement
             LVaultResult<Dictionary<string, LPlacementRecord>> lPlacementResult = LPlacementAllRead();
             if (lPlacementResult.LVaultOutcome == LVaultOutcome.LVaultUnreadable)
             {
-                LTraceLog.LTraceErrorRecord($"Subwindow placement not saved because its catalogue is unreadable: {lPlacementKey}");
+                LTraceLog.LTraceErrorRecord(
+                    $"Subwindow placement not saved because its catalogue is unreadable: {lPlacementKey}");
                 return false;
             }
 
@@ -93,7 +94,10 @@ public static class LPlacement
         }
     }
 
-    private static void LPlacementEntryImport(JsonElement lPreferenceRoot, string lPlacementPrefix, string lPlacementKey)
+    private static void LPlacementEntryImport(
+        JsonElement lPreferenceRoot,
+        string lPlacementPrefix,
+        string lPlacementKey)
     {
         if (LPlacementExist(lPlacementKey)
             || !lPreferenceRoot.TryGetProperty($"LPreference{lPlacementPrefix}Left", out JsonElement lLeft)

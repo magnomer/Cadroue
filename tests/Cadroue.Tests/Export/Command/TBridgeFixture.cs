@@ -56,8 +56,10 @@ internal sealed class TBridgeFixture : IDisposable
         TBridgeMetric.TBridgeRun(
             TEncodeCommand.TToolFfmpegRead(),
             "-hide_banner -loglevel error "
-            + $"-f lavfi -i testsrc2=size=160x90:rate={videoRate}:duration={duration.ToString(CultureInfo.InvariantCulture)} "
-            + $"-f lavfi -i sine=frequency=440:sample_rate={sampleRate}:duration={duration.ToString(CultureInfo.InvariantCulture)} "
+            + $"-f lavfi -i testsrc2=size=160x90:rate={videoRate}"
+            + $":duration={duration.ToString(CultureInfo.InvariantCulture)} "
+            + $"-f lavfi -i sine=frequency=440:sample_rate={sampleRate}"
+            + $":duration={duration.ToString(CultureInfo.InvariantCulture)} "
             + "-map 0:v:0 -map 1:a:0 -c:v libx264 -preset medium -bf 3 "
             + $"-g {keyframeInterval} -keyint_min {keyframeInterval} -sc_threshold 0 "
             + $"-c:a aac{timescale} -y {TBridgeMetric.TBridgePathFormat(path)}");
@@ -70,7 +72,8 @@ internal sealed class TBridgeFixture : IDisposable
         string offset = Path.Combine(tBridgeRoot, "offset-source.mp4");
         TBridgeMetric.TBridgeRun(
             TEncodeCommand.TToolFfmpegRead(),
-            $"-hide_banner -loglevel error -itsoffset 3.4 -i {TBridgeMetric.TBridgePathFormat(source)} -map 0 -c copy -y {TBridgeMetric.TBridgePathFormat(offset)}");
+            $"-hide_banner -loglevel error -itsoffset 3.4 -i {TBridgeMetric.TBridgePathFormat(source)} "
+            + $"-map 0 -c copy -y {TBridgeMetric.TBridgePathFormat(offset)}");
         return offset;
     }
 

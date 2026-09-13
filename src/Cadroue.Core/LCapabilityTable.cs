@@ -69,7 +69,8 @@ public static partial class LCapabilityTable
         new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityQsvPresets),
         [new LCapabilityExtra("Low power", "-low_power", "auto",
             [new("auto", "Auto"), new("1", "On"), new("0", "Off")])],
-        "QSV has no -rc option: the mode follows from which of -b:v, -global_quality and -look_ahead is set. Preset numbering is inverted (veryslow=1, veryfast=7).");
+        "QSV has no -rc option: the mode follows from which of -b:v, -global_quality and -look_ahead is set. " +
+        "Preset numbering is inverted (veryslow=1, veryfast=7).");
 
     private static LCapabilityCodec LCapabilityNvencCreate(string lEncoder) => new(
         lEncoder,
@@ -84,7 +85,8 @@ public static partial class LCapabilityTable
         [new LCapabilityExtra("Tune", "-tune", "hq",
             [new("hq", "High quality"), new("uhq", "Ultra-high quality"), new("ll", "Low latency"),
              new("ull", "Ultra-low latency"), new("lossless", "Lossless")])],
-        "NVENC -cq 0 means automatic. Legacy presets (slow/medium/fast/hp/hq/ll/llhq/llhp/lossless) still parse but are deprecated in favour of p1-p7.");
+        "NVENC -cq 0 means automatic. Legacy presets (slow/medium/fast/hp/hq/ll/llhq/llhp/lossless) still parse " +
+        "but are deprecated in favour of p1-p7.");
 
     private static LCapabilityCodec LCapabilityAmfCreate(string lEncoder) => new(
         lEncoder,
@@ -100,8 +102,9 @@ public static partial class LCapabilityTable
         new LCapabilitySpeed("Quality preset", "-quality", "balanced",
             [new("speed", "Speed"), new("balanced", "Balanced"), new("quality", "Quality")]),
         [new LCapabilityExtra("Usage", "-usage", "transcoding",
-            [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"), new("lowlatency", "Low latency"),
-             new("webcam", "Webcam"), new("high_quality", "High quality"), new("lowlatency_high_quality", "Low latency, high quality")])],
+            [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"),
+             new("lowlatency", "Low latency"), new("webcam", "Webcam"), new("high_quality", "High quality"),
+             new("lowlatency_high_quality", "Low latency, high quality")])],
         "AMF uses -qp_i/-qp_p/-qp_b rather than a single quantizer. There is no -preset in the x264 sense.");
 
     private static LCapabilityCodec LCapabilityMfCreate(string lEncoder) => new(
@@ -118,8 +121,9 @@ public static partial class LCapabilityTable
         ],
         null,
         [new LCapabilityExtra("Scenario", "-scenario", "default",
-            [new("default", "Default"), new("display_remoting", "Display remoting"), new("video_conference", "Video conference"),
-             new("archive", "Archive"), new("live_streaming", "Live streaming"), new("camera_record", "Camera record")])],
+            [new("default", "Default"), new("display_remoting", "Display remoting"),
+             new("video_conference", "Video conference"), new("archive", "Archive"),
+             new("live_streaming", "Live streaming"), new("camera_record", "Camera record")])],
         "Media Foundation quality is 0-100 and HIGHER is better - the opposite of CRF. It has no speed preset.");
 
     private static LCapabilityCodec LCapabilityQscaleCreate(
@@ -159,5 +163,6 @@ public static partial class LCapabilityTable
         [new LCapabilityExtra("Content preset", "-preset", "default",
             [new("none", "None"), new("default", "Default"), new("picture", "Picture"), new("photo", "Photo"),
              new("drawing", "Drawing"), new("icon", "Icon"), new("text", "Text")])],
-        "WebP quality is 0-100 and HIGHER is better. Its -preset picks a content type (photo, drawing, icon...), not an encoding speed.");
+        "WebP quality is 0-100 and HIGHER is better. Its -preset picks a content type (photo, drawing, icon...), " +
+        "not an encoding speed.");
 }

@@ -29,7 +29,11 @@ internal sealed partial class PSEncoder
 
     private void PSVideoResolutionBuild(Panel pHost)
     {
-        psVideoResolutionValue = new TextBlock { Foreground = PSFieldText, VerticalAlignment = VerticalAlignment.Center };
+        psVideoResolutionValue = new TextBlock
+        {
+            Foreground = PSFieldText,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         psVideoResolutionSlider = PSFaderCreate(0, psVideoSizeTiers.Length - 1, 0);
         psVideoWidthBox = PSEntryBuild(string.Empty, 110);
         psVideoHeightBox = PSEntryBuild(string.Empty, 110);
@@ -41,8 +45,14 @@ internal sealed partial class PSEncoder
         pHost.Children.Add(PSFieldBuild(
             LLocalization.LLocalizationTextRead("Encoder.Video.Field.Size"),
             PSFaderRowBuild(psVideoResolutionSlider, psVideoResolutionValue)));
-        pHost.Children.Add(PSVideoDimensionBuild(psVideoWidthLabel, PSFaderRowBuild(psVideoWidthSlider, psVideoWidthBox)));
-        pHost.Children.Add(PSVideoDimensionBuild(psVideoHeightLabel, PSFaderRowBuild(psVideoHeightSlider, psVideoHeightBox)));
+        pHost.Children.Add(
+            PSVideoDimensionBuild(
+                psVideoWidthLabel,
+                PSFaderRowBuild(psVideoWidthSlider, psVideoWidthBox)));
+        pHost.Children.Add(
+            PSVideoDimensionBuild(
+                psVideoHeightLabel,
+                PSFaderRowBuild(psVideoHeightSlider, psVideoHeightBox)));
         psVideoSizeNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Notice.SizeSource"));
         pHost.Children.Add(psVideoSizeNotice);
 
@@ -284,8 +294,10 @@ internal sealed partial class PSEncoder
         }
 
         bool pReactive = psVideoReactiveBox.IsChecked == true;
-        psVideoWidthLabel.Text = LLocalization.LLocalizationTextRead(pReactive ? "Encoder.Video.Field.AxisX" : "Encoder.Video.Field.Width");
-        psVideoHeightLabel.Text = LLocalization.LLocalizationTextRead(pReactive ? "Encoder.Video.Field.AxisY" : "Encoder.Video.Field.Height");
+        psVideoWidthLabel.Text = LLocalization.LLocalizationTextRead(
+            pReactive ? "Encoder.Video.Field.AxisX" : "Encoder.Video.Field.Width");
+        psVideoHeightLabel.Text = LLocalization.LLocalizationTextRead(
+            pReactive ? "Encoder.Video.Field.AxisY" : "Encoder.Video.Field.Height");
     }
 
     private string PSVideoSizeRead()

@@ -34,8 +34,14 @@ public sealed partial class PExport
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        pLeftPanel.Children.Add(PExportButtonBuild(PExportPlusIcon, LLocalization.LLocalizationTextRead("ExportPreset.AddTooltip"), PExportPresetAdd));
-        pLeftPanel.Children.Add(PExportButtonBuild(PExportMinusIcon, LLocalization.LLocalizationTextRead("ExportPreset.DeleteTooltip"), PExportPresetDelete));
+        pLeftPanel.Children.Add(PExportButtonBuild(
+            PExportPlusIcon,
+            LLocalization.LLocalizationTextRead("ExportPreset.AddTooltip"),
+            PExportPresetAdd));
+        pLeftPanel.Children.Add(PExportButtonBuild(
+            PExportMinusIcon,
+            LLocalization.LLocalizationTextRead("ExportPreset.DeleteTooltip"),
+            PExportPresetDelete));
         Grid.SetColumn(pLeftPanel, 0);
         pGrid.Children.Add(pLeftPanel);
 
@@ -44,9 +50,18 @@ public sealed partial class PExport
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pRightPanel.Children.Add(PExportButtonBuild(PExportSettingIcon, LLocalization.LLocalizationTextRead("ExportPreset.SettingsTooltip"), PExportDialogShow));
-        pRightPanel.Children.Add(PExportButtonBuild(PExportExportIcon, LLocalization.LLocalizationTextRead("ExportPreset.ExportTooltip"), PExportPresetSave));
-        pRightPanel.Children.Add(PExportButtonBuild(PExportImportIcon, LLocalization.LLocalizationTextRead("ExportPreset.ImportTooltip"), PExportPresetLoad));
+        pRightPanel.Children.Add(PExportButtonBuild(
+            PExportSettingIcon,
+            LLocalization.LLocalizationTextRead("ExportPreset.SettingsTooltip"),
+            PExportDialogShow));
+        pRightPanel.Children.Add(PExportButtonBuild(
+            PExportExportIcon,
+            LLocalization.LLocalizationTextRead("ExportPreset.ExportTooltip"),
+            PExportPresetSave));
+        pRightPanel.Children.Add(PExportButtonBuild(
+            PExportImportIcon,
+            LLocalization.LLocalizationTextRead("ExportPreset.ImportTooltip"),
+            PExportPresetLoad));
         Grid.SetColumn(pRightPanel, 2);
         pGrid.Children.Add(pRightPanel);
         return pGrid;

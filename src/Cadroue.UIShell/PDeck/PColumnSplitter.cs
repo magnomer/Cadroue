@@ -54,7 +54,11 @@ internal sealed partial class PColumn
         PColumnWeightsCommit(pWidths);
     }
 
-    private void PColumnBudgetResolve(int pLeftPanelIndex, out int pReceiverIndex, out int pDonorIndex, out double pReceiverSign)
+    private void PColumnBudgetResolve(
+        int pLeftPanelIndex,
+        out int pReceiverIndex,
+        out int pDonorIndex,
+        out double pReceiverSign)
     {
         if (!PColumnFlexCheck())
         {

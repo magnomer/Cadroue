@@ -12,7 +12,8 @@ internal static class LEncodeAudio
         || string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
 
     internal static bool LEncodeAllCheck(LEncoding lOutput) =>
-        string.Equals(lOutput.LEncodingAudio.LEncodingStream, "Include all audio tracks", StringComparison.OrdinalIgnoreCase);
+        string.Equals(
+            lOutput.LEncodingAudio.LEncodingStream, "Include all audio tracks", StringComparison.OrdinalIgnoreCase);
 
     internal static void LEncodeAudioAppend(StringBuilder lArguments, LEncoding lOutput)
     {
@@ -77,14 +78,18 @@ internal static class LEncodeAudio
             }
         }
 
-        if (lCodec.LCapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LEncodingAudio.LEncodingSpeed))
+        if (lCodec.LCapabilitySpeed is LCapabilitySpeed lSpeed
+            && !string.IsNullOrWhiteSpace(lOutput.LEncodingAudio.LEncodingSpeed))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.LCapabilitySpeedOption} {lOutput.LEncodingAudio.LEncodingSpeed}");
+            lArguments.Append(
+                CultureInfo.InvariantCulture,
+                $" {lSpeed.LCapabilitySpeedOption} {lOutput.LEncodingAudio.LEncodingSpeed}");
         }
 
         foreach (var lExtra in lOutput.LEncodingAudio.LEncodingExtras)
         {
-            if (string.IsNullOrWhiteSpace(lExtra.Value) || string.Equals(lExtra.Value, "none", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(lExtra.Value)
+                || string.Equals(lExtra.Value, "none", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }

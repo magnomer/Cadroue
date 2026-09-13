@@ -11,7 +11,10 @@ internal static class PSectionPalette
 {
     private sealed record PSectionSeed(string PSectionSeedName, string[] PSectionSeedHex);
 
-    private sealed record PSectionSwatch(string PSectionSwatchName, Color[] PSectionSwatchColors, string? PSectionSwatchPath);
+    private sealed record PSectionSwatch(
+        string PSectionSwatchName,
+        Color[] PSectionSwatchColors,
+        string? PSectionSwatchPath);
 
     internal const string PSectionPaletteDefault = "Cadroue";
 
@@ -179,7 +182,9 @@ internal static class PSectionPalette
             return true;
         }
 
-        if (pSectionLoaded.FirstOrDefault(pLoaded => pLoaded.PSectionSwatchName == pName)?.PSectionSwatchPath is not { } pEntryPath)
+        if (pSectionLoaded.FirstOrDefault(pLoaded => pLoaded.PSectionSwatchName == pName)
+            ?.PSectionSwatchPath
+            is not { } pEntryPath)
         {
             return false;
         }
@@ -211,7 +216,8 @@ internal static class PSectionPalette
         PSectionPaletteLoad();
         return PSectionAllRead()
             .Select(pEntry => pEntry.PSectionSwatchName)
-            .LastOrDefault(pName => pName == pPalette.PSectionSwatchName || pName.StartsWith(pPalette.PSectionSwatchName + " ", StringComparison.Ordinal))
+            .LastOrDefault(pName => pName == pPalette.PSectionSwatchName
+                || pName.StartsWith(pPalette.PSectionSwatchName + " ", StringComparison.Ordinal))
             ?? pPalette.PSectionSwatchName;
     }
 
@@ -227,7 +233,9 @@ internal static class PSectionPalette
             PSectionPaletteName = pPalette.PSectionSwatchName,
             PSectionPaletteColors = pPalette.PSectionSwatchColors.Select(PSectionHexFormat).ToArray()
         };
-        File.WriteAllText(pTargetPath, JsonSerializer.Serialize(pRecord, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(
+            pTargetPath,
+            JsonSerializer.Serialize(pRecord, new JsonSerializerOptions { WriteIndented = true }));
     }
 
     private static string PSectionHiddenRead() =>
@@ -244,7 +252,8 @@ internal static class PSectionPalette
                 return;
             }
 
-            foreach (string pName in JsonSerializer.Deserialize<string[]>(File.ReadAllText(pHiddenPath)) ?? Array.Empty<string>())
+            foreach (string pName in JsonSerializer.Deserialize<string[]>(File.ReadAllText(pHiddenPath))
+                ?? Array.Empty<string>())
             {
                 if (!PSectionFixedCheck(pName))
                 {
@@ -276,7 +285,10 @@ internal static class PSectionPalette
         try
         {
             return Directory.EnumerateFiles(Cadroue.Infrastructure.LDepot.LDepotPaletteRead(), "*.json")
-                .Where(pPath => !string.Equals(Path.GetFileName(pPath), PSectionHiddenFile, StringComparison.OrdinalIgnoreCase))
+                .Where(pPath => !string.Equals(
+                    Path.GetFileName(pPath),
+                    PSectionHiddenFile,
+                    StringComparison.OrdinalIgnoreCase))
                 .OrderBy(pPath => pPath);
         }
         catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
@@ -289,8 +301,11 @@ internal static class PSectionPalette
     {
         try
         {
-            PSectionPaletteRecord? pRecord = JsonSerializer.Deserialize<PSectionPaletteRecord>(File.ReadAllText(pFilePath));
-            if (pRecord is null || string.IsNullOrWhiteSpace(pRecord.PSectionPaletteName) || pRecord.PSectionPaletteColors.Length == 0)
+            PSectionPaletteRecord? pRecord = JsonSerializer.Deserialize<PSectionPaletteRecord>(
+                File.ReadAllText(pFilePath));
+            if (pRecord is null
+                || string.IsNullOrWhiteSpace(pRecord.PSectionPaletteName)
+                || pRecord.PSectionPaletteColors.Length == 0)
             {
                 return null;
             }
@@ -304,7 +319,9 @@ internal static class PSectionPalette
                 }
             }
 
-            return pColors.Count == 0 ? null : new PSectionSwatch(pRecord.PSectionPaletteName.Trim(), pColors.ToArray(), pFilePath);
+            return pColors.Count == 0
+                ? null
+                : new PSectionSwatch(pRecord.PSectionPaletteName.Trim(), pColors.ToArray(), pFilePath);
         }
         catch (Exception)
         {
@@ -314,7 +331,9 @@ internal static class PSectionPalette
 
     private static string PSectionFileCreate(string pName)
     {
-        string pSafe = new(pName.Select(pCharacter => Path.GetInvalidFileNameChars().Contains(pCharacter) ? '_' : pCharacter).ToArray());
+        string pSafe = new(pName
+            .Select(pCharacter => Path.GetInvalidFileNameChars().Contains(pCharacter) ? '_' : pCharacter)
+            .ToArray());
         return $"{pSafe}.json";
     }
 

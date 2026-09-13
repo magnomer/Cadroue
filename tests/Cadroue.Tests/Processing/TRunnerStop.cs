@@ -34,8 +34,12 @@ public sealed class TRunnerStop
 
         runner.TRunnerStop();
 
-        Assert.Equal(TRunnerWorkState.TRunnerPending, runner.TRunnerStateRead(currentId, TRunnerWorkState.TRunnerPending).TRunnerState);
-        Assert.Equal(TRunnerWorkState.TRunnerPending, runner.TRunnerStateRead(queuedId, TRunnerWorkState.TRunnerPending).TRunnerState);
+        Assert.Equal(
+            TRunnerWorkState.TRunnerPending,
+            runner.TRunnerStateRead(currentId, TRunnerWorkState.TRunnerPending).TRunnerState);
+        Assert.Equal(
+            TRunnerWorkState.TRunnerPending,
+            runner.TRunnerStateRead(queuedId, TRunnerWorkState.TRunnerPending).TRunnerState);
         Assert.Equal(0, runner.TRunnerExecutionRead(queuedId));
     }
 
@@ -70,8 +74,12 @@ public sealed class TRunnerStop
 
         runner.TRunnerWorkCancel(cancelledId);
 
-        Assert.Equal(TRunnerWorkState.TRunnerCancelled, runner.TRunnerStateRead(cancelledId, TRunnerWorkState.TRunnerCancelled).TRunnerState);
-        Assert.Equal(TRunnerWorkState.TRunnerDone, runner.TRunnerStateRead(unrelatedId, TRunnerWorkState.TRunnerDone).TRunnerState);
+        Assert.Equal(
+            TRunnerWorkState.TRunnerCancelled,
+            runner.TRunnerStateRead(cancelledId, TRunnerWorkState.TRunnerCancelled).TRunnerState);
+        Assert.Equal(
+            TRunnerWorkState.TRunnerDone,
+            runner.TRunnerStateRead(unrelatedId, TRunnerWorkState.TRunnerDone).TRunnerState);
         Assert.Equal(1, runner.TRunnerExecutionRead(unrelatedId));
     }
 
@@ -84,7 +92,9 @@ public sealed class TRunnerStop
         runner.TRunnerWorkCancel(workId);
         runner.TRunnerStart();
 
-        Assert.Equal(TRunnerWorkState.TRunnerCancelled, runner.TRunnerStateRead(workId, TRunnerWorkState.TRunnerCancelled).TRunnerState);
+        Assert.Equal(
+            TRunnerWorkState.TRunnerCancelled,
+            runner.TRunnerStateRead(workId, TRunnerWorkState.TRunnerCancelled).TRunnerState);
         Assert.NotEqual(TRunnerWorkState.TRunnerDone, runner.TRunnerRead(workId).TRunnerState);
     }
 }

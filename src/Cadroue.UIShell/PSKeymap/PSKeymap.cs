@@ -44,7 +44,8 @@ internal sealed class PSKeymap : Window
 
     private PSKeymap(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
-        lsKeymapDraft = Cadroue.Infrastructure.LBinding.LBindingNormalize(Cadroue.Infrastructure.LBinding.LBindingCurrent);
+        lsKeymapDraft = Cadroue.Infrastructure.LBinding.LBindingNormalize(
+            Cadroue.Infrastructure.LBinding.LBindingCurrent);
         psKeymapCallback = pApplyCallback;
 
         foreach (LBindingCommand pCommand in Cadroue.Infrastructure.LBinding.LBindingCatalogRead())
@@ -78,7 +79,8 @@ internal sealed class PSKeymap : Window
 
     private TabItem PSKeymapSheetBuild(string pScope, string pIconPath)
     {
-        string pScopeTitle = LLocalization.LLocalizationTextRead(Cadroue.Infrastructure.LBinding.LBindingLabelRead(pScope));
+        string pScopeTitle = LLocalization.LLocalizationTextRead(
+            Cadroue.Infrastructure.LBinding.LBindingLabelRead(pScope));
         return PSSheet.PSSheetBuild(
             pScopeTitle,
             pIconPath,
@@ -139,7 +141,11 @@ internal sealed class PSKeymap : Window
         DockPanel.SetDock(pReset, Dock.Left);
         pFooter.Children.Add(pReset);
 
-        var pButtons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+        var pButtons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
         Button pApply = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Apply"));
         Button pOk = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.OK"));
         Button pCancel = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Cancel"));

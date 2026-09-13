@@ -8,7 +8,9 @@ public sealed partial class PRoster
     private static string PRosterContainerFormat(string pMediaPath)
     {
         string pExtension = Path.GetExtension(pMediaPath).TrimStart('.');
-        return pExtension.Length == 0 ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown") : pExtension.ToUpperInvariant();
+        return pExtension.Length == 0
+            ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown")
+            : pExtension.ToUpperInvariant();
     }
 
     private static string PRosterPhaseFormat(LWorkState pWorkState, LWorkPhase pWorkPhase) => pWorkState switch

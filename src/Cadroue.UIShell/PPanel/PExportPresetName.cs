@@ -39,8 +39,16 @@ public sealed partial class PExport
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pButtonPanel.Children.Add(PExportInlineBuild(PExportCheckIcon, PExportApplyBrush, LLocalization.LLocalizationTextRead("ExportPreset.ApplyTooltip"), PExportModificationApply));
-        pButtonPanel.Children.Add(PExportInlineBuild(PExportCancelIcon, PExportCancelBrush, LLocalization.LLocalizationTextRead("ExportPreset.DiscardTooltip"), PExportModificationRestore));
+        pButtonPanel.Children.Add(PExportInlineBuild(
+            PExportCheckIcon,
+            PExportApplyBrush,
+            LLocalization.LLocalizationTextRead("ExportPreset.ApplyTooltip"),
+            PExportModificationApply));
+        pButtonPanel.Children.Add(PExportInlineBuild(
+            PExportCancelIcon,
+            PExportCancelBrush,
+            LLocalization.LLocalizationTextRead("ExportPreset.DiscardTooltip"),
+            PExportModificationRestore));
         Grid.SetColumn(pButtonPanel, 1);
         pGrid.Children.Add(pButtonPanel);
         return pGrid;
@@ -64,7 +72,10 @@ public sealed partial class PExport
         return pPanel;
     }
 
-    private static TextBlock PExportTextBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported) => new()
+    private static TextBlock PExportTextBuild(
+        string lPresetName,
+        bool pPresetModified,
+        bool pPresetUnsupported) => new()
     {
         Text = PExportMarkRead(
             pPresetModified

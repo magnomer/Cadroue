@@ -31,7 +31,8 @@ public static partial class LTraceWriter
                 lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
                 return new LTraceReadResult<string>(true, lTraceText, string.Empty);
             }
-            catch (Exception lTraceException) when (lTraceException is FileNotFoundException or DirectoryNotFoundException)
+            catch (Exception lTraceException)
+                when (lTraceException is FileNotFoundException or DirectoryNotFoundException)
             {
                 lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
                 return new LTraceReadResult<string>(true, string.Empty, string.Empty);

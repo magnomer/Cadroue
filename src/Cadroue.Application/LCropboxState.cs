@@ -50,7 +50,13 @@ public sealed class LCropboxState
         LCropboxStateRaise();
     }
 
-    public void LCropboxStateSet(LWorkCrop lCrop, bool lApply, bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
+    public void LCropboxStateSet(
+        LWorkCrop lCrop,
+        bool lApply,
+        bool lRatioFixed,
+        bool lRatioLenient,
+        int lRatioWidth,
+        int lRatioHeight)
     {
         lCropboxStateCrop = lCrop;
         lCropboxStateActive = lApply;

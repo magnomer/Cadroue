@@ -31,7 +31,10 @@ public static partial class LMessenger
             return 0;
         }
 
-        int lMessengerAdded = LMessengerDispatch(new[] { lMessengerItem }, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded = LMessengerDispatch(
+            new[] { lMessengerItem },
+            lMessengerRelayTarget,
+            lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
             $"Audio queued {lMessengerAdded} job at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
@@ -56,7 +59,9 @@ public static partial class LMessenger
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (Cadroue.Application.LAudio.LAudioPlanRead(lMessengerSourcePath, Cadroue.Application.LLibrarian.LLibrarianAudioLoad)
+            if (Cadroue.Application.LAudio.LAudioPlanRead(
+                lMessengerSourcePath,
+                Cadroue.Application.LLibrarian.LLibrarianAudioLoad)
                 is not { LWorkAudioActive: true } lMessengerPlan)
             {
                 continue;

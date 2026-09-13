@@ -62,7 +62,8 @@ public static partial class LTrace
                     LTraceKind.LTraceInfo,
                     value ? "Verbose logging on" : "Verbose logging off",
                     value
-                        ? "UI, Work and Ffmpeg entries are now recorded.\nUI draw entries are aggregated once per second per surface."
+                        ? "UI, Work and Ffmpeg entries are now recorded.\n" +
+                            "UI draw entries are aggregated once per second per surface."
                         : null);
             }
         }

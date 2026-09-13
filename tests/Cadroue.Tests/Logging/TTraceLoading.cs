@@ -21,7 +21,9 @@ public sealed class TTraceLoading
 
         Assert.Collection(
             logging.TTraceEntries,
-            entry => Assert.Equal(("Loading", "scene loaded", "load detail"), (entry.TTraceKind, entry.TTraceSummary, entry.TTraceDetail)),
+            entry => Assert.Equal(
+                ("Loading", "scene loaded", "load detail"),
+                (entry.TTraceKind, entry.TTraceSummary, entry.TTraceDetail)),
             entry => Assert.Equal(("Warning", "load warning"), (entry.TTraceKind, entry.TTraceSummary)));
     }
 

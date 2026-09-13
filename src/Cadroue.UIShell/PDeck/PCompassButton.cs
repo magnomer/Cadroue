@@ -78,7 +78,13 @@ public sealed partial class PCompass
             HorizontalAlignment = HorizontalAlignment.Center
         });
         pStack.Children.Add(new Border { Height = 1 });
-        pStack.Children.Add(new TextBlock { Text = pLabelText, FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center });
+        pStack.Children.Add(new TextBlock
+        {
+            Text = pLabelText,
+            FontSize = 11,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            TextAlignment = TextAlignment.Center
+        });
         return new Button
         {
             Width = 58,
@@ -98,7 +104,12 @@ public sealed partial class PCompass
             Stretch = Stretch.Uniform,
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        pCompassPlayLabel = new TextBlock { FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center };
+        pCompassPlayLabel = new TextBlock
+        {
+            FontSize = 11,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            TextAlignment = TextAlignment.Center
+        };
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(pCompassPlayImage);
         pStack.Children.Add(new Border { Height = 1 });

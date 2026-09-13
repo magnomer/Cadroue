@@ -62,7 +62,8 @@ public sealed partial class PInspector
                 pInspectorInsetLeft.Text = PInspectorEdgeFormat(pCropRect.X);
                 pInspectorInsetTop.Text = PInspectorEdgeFormat(pCropRect.Y);
                 pInspectorInsetRight.Text = PInspectorEdgeFormat(pInspectorSourceWidth - pCropRect.X - pCropRect.Width);
-                pInspectorInsetBottom.Text = PInspectorEdgeFormat(pInspectorSourceHeight - pCropRect.Y - pCropRect.Height);
+                pInspectorInsetBottom.Text = PInspectorEdgeFormat(
+                    pInspectorSourceHeight - pCropRect.Y - pCropRect.Height);
             }
 
             PInspectorRatioUpdate();

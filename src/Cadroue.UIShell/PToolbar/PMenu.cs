@@ -115,7 +115,9 @@ internal static class PMenu
 
         var pIcon = new FrameworkElementFactory(typeof(ContentPresenter));
         pIcon.Name = "pMenuIcon";
-        pIcon.SetBinding(ContentPresenter.ContentProperty, new Binding("Icon") { RelativeSource = RelativeSource.TemplatedParent });
+        pIcon.SetBinding(
+            ContentPresenter.ContentProperty,
+            new Binding("Icon") { RelativeSource = RelativeSource.TemplatedParent });
         pIcon.SetValue(DockPanel.DockProperty, Dock.Left);
         pIcon.SetValue(FrameworkElement.WidthProperty, PMenuIconSize);
         pIcon.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 10, 0));
@@ -123,7 +125,9 @@ internal static class PMenu
         pRowContent.AppendChild(pIcon);
 
         var pHeader = new FrameworkElementFactory(typeof(ContentPresenter));
-        pHeader.SetBinding(ContentPresenter.ContentProperty, new Binding("Header") { RelativeSource = RelativeSource.TemplatedParent });
+        pHeader.SetBinding(
+            ContentPresenter.ContentProperty,
+            new Binding("Header") { RelativeSource = RelativeSource.TemplatedParent });
         pHeader.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
         pRowContent.AppendChild(pHeader);
 

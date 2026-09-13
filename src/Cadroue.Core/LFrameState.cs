@@ -29,7 +29,11 @@ public sealed class LFrameState
         LFrameFlowHeight = LFrameNumberClamp(LFrameFlowHeight, 200, 520, 280);
     }
 
-    private static double LFrameNumberClamp(double lFrameValue, double lFrameMinimum, double lFrameMaximum, double lFrameFallback)
+    private static double LFrameNumberClamp(
+        double lFrameValue,
+        double lFrameMinimum,
+        double lFrameMaximum,
+        double lFrameFallback)
     {
         if (double.IsNaN(lFrameValue) || double.IsInfinity(lFrameValue))
         {

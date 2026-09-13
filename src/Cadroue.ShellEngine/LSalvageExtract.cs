@@ -94,14 +94,16 @@ internal static class LSalvageExtract
             catch (Exception lSalvageException) when (lSalvageException is IOException or UnauthorizedAccessException)
             {
                 LRunner.LRunnerRecord(
-                    $"Salvage could not place the recovered output '{Path.GetFileName(lSalvageOutputPath)}'", lSalvageException);
+                    $"Salvage could not place the recovered output '{Path.GetFileName(lSalvageOutputPath)}'",
+                    lSalvageException);
                 LSalvageTempClear(lSalvageTemp);
                 return false;
             }
         }
 
         LRunner.LRunnerRecord(
-            $"Salvage discarded an unreadable span for '{Path.GetFileName(lSalvageOutputPath)}' (exit {lSalvageResult.LEmployerExit})");
+            $"Salvage discarded an unreadable span for '{Path.GetFileName(lSalvageOutputPath)}' " +
+            $"(exit {lSalvageResult.LEmployerExit})");
         LSalvageTempClear(lSalvageTemp);
         return false;
     }

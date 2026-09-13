@@ -49,12 +49,20 @@ internal sealed partial class PSOptions
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Order"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"), psOptionsOrderMode)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
-            PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"), psKeyframeSlider, " px")));
+            PSOptionsFieldBuild(
+                LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"),
+                psKeyframeSlider,
+                " px")));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelay"),
-            PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayLabel"), psKeyframeDelaySlider, " ms"),
+            PSOptionsFieldBuild(
+                LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayLabel"),
+                psKeyframeDelaySlider,
+                " ms"),
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayNotice"))));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Overlapping"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlappingSections"), psOptionsOverlapBox)));
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Options.Timeline.OverlappingSections"),
+                psOptionsOverlapBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Waveform"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.ShowWaveforms"), psWaveformBox),
             PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformNotice"))));
@@ -78,8 +86,14 @@ internal sealed partial class PSOptions
         });
 
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal };
-        pButtons.Children.Add(PSSpectrumButtonBuild(PSSpectrumLoadIcon, LLocalization.LLocalizationTextRead("Options.Timeline.LoadTooltip"), PSSpectrumLoad));
-        pButtons.Children.Add(PSSpectrumButtonBuild(PSSpectrumSaveIcon, LLocalization.LLocalizationTextRead("Options.Timeline.SaveTooltip"), PSSpectrumSave));
+        pButtons.Children.Add(PSSpectrumButtonBuild(
+            PSSpectrumLoadIcon,
+            LLocalization.LLocalizationTextRead("Options.Timeline.LoadTooltip"),
+            PSSpectrumLoad));
+        pButtons.Children.Add(PSSpectrumButtonBuild(
+            PSSpectrumSaveIcon,
+            LLocalization.LLocalizationTextRead("Options.Timeline.SaveTooltip"),
+            PSSpectrumSave));
         pSide.Children.Add(pButtons);
 
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
@@ -145,7 +159,10 @@ internal sealed partial class PSOptions
         string? pLoadedName = PSectionPalette.PSectionPaletteImport(pDialog.FileName);
         if (pLoadedName is null)
         {
-            PSWarning.PSWarningShow(this, LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"), LLocalization.LLocalizationTextRead("Options.Timeline.InvalidPalette"));
+            PSWarning.PSWarningShow(
+                this,
+                LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"),
+                LLocalization.LLocalizationTextRead("Options.Timeline.InvalidPalette"));
             return;
         }
 
@@ -178,7 +195,11 @@ internal sealed partial class PSOptions
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        var pSwatches = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var pSwatches = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         foreach (Brush pBadge in PSectionPalette.PSectionBadgesRead(pName))
         {
             pSwatches.Children.Add(new Border

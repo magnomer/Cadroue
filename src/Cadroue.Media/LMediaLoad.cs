@@ -103,12 +103,18 @@ public sealed class LMediaLoad : IDisposable
 
         if (!File.Exists(lMediaLoadResolvedPath))
         {
-            return LMediaLoadResolve(lMediaLoadRequestGeneration, lMediaLoadResolvedPath, "The media source does not exist.");
+            return LMediaLoadResolve(
+                lMediaLoadRequestGeneration,
+                lMediaLoadResolvedPath,
+                "The media source does not exist.");
         }
 
         if (!LMedia.LMediaCheck(lMediaLoadResolvedPath))
         {
-            return LMediaLoadResolve(lMediaLoadRequestGeneration, lMediaLoadResolvedPath, "The media source type is not supported.");
+            return LMediaLoadResolve(
+                lMediaLoadRequestGeneration,
+                lMediaLoadResolvedPath,
+                "The media source type is not supported.");
         }
 
         try

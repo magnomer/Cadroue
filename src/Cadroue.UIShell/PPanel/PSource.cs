@@ -125,8 +125,10 @@ public sealed class PSource : UserControl
         if (pDialog.ShowDialog() != true) return;
         if (Cadroue.Media.LMedia.LMediaAudioCheck(pDialog.FileName) && !pSourceAudioAllowed)
         {
-            PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this),
-                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
+            PSAnnouncement.PSAnnouncementShow(
+                Window.GetWindow(this),
+                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
+                LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
             return;
         }
 
@@ -139,7 +141,11 @@ public sealed class PSource : UserControl
         string pAudioPattern = PSourcePatternRead(Cadroue.Media.LMedia.LMediaAudioExtensions);
         const string pSidecarPattern = "*.cad";
         return pSourceAudioAllowed
-            ? LLocalization.LLocalizationFormat("Source.Dialog.MediaProjectFilter", pVideoPattern, pAudioPattern, pSidecarPattern)
+            ? LLocalization.LLocalizationFormat(
+                "Source.Dialog.MediaProjectFilter",
+                pVideoPattern,
+                pAudioPattern,
+                pSidecarPattern)
             : LLocalization.LLocalizationFormat("Source.Dialog.VideoProjectFilter", pVideoPattern, pSidecarPattern);
     }
 
@@ -153,8 +159,10 @@ public sealed class PSource : UserControl
         if (!File.Exists(pPath)) return;
         if (Cadroue.Media.LMedia.LMediaAudioCheck(pPath) && !pSourceAudioAllowed)
         {
-            PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this),
-                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"), LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
+            PSAnnouncement.PSAnnouncementShow(
+                Window.GetWindow(this),
+                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
+                LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
             return;
         }
 

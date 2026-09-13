@@ -46,7 +46,9 @@ public sealed partial class PList
         {
             Width = 14,
             Height = 14,
-            Source = PIcon.PIconRead("/PAsset/PPanel/PVideo.svg", pListItem.LDocketEntryLocked ? pListMutedBrush : pListIconBrush),
+            Source = PIcon.PIconRead(
+                "/PAsset/PPanel/PVideo.svg",
+                pListItem.LDocketEntryLocked ? pListMutedBrush : pListIconBrush),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
@@ -199,6 +201,8 @@ public sealed partial class PList
 
     private void PListEmptyUpdate()
     {
-        pListEmptyNotice.Visibility = pListDocket.LDocketItemsRead().Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        pListEmptyNotice.Visibility = pListDocket.LDocketItemsRead().Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 }

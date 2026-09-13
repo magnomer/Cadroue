@@ -97,7 +97,8 @@ public static partial class LMessenger
                 return Array.Empty<LSplitSectionDescription>();
             }
             return lMessengerSidecar.LSidecarSections
-                .Where(lMessengerRecord => lMessengerRecord.LSidecarEndMilliseconds > lMessengerRecord.LSidecarStartMilliseconds)
+                .Where(lMessengerRecord =>
+                    lMessengerRecord.LSidecarEndMilliseconds > lMessengerRecord.LSidecarStartMilliseconds)
                 .Select(lMessengerRecord => new LSplitSectionDescription(
                     TimeSpan.FromMilliseconds(lMessengerRecord.LSidecarStartMilliseconds),
                     TimeSpan.FromMilliseconds(lMessengerRecord.LSidecarEndMilliseconds),
@@ -109,7 +110,9 @@ public static partial class LMessenger
         }
         catch (Exception lMessengerException)
         {
-            LTraceLog.LTraceErrorRecord($"Split plan could not be read for '{lMessengerSourcePath}'", lMessengerException);
+            LTraceLog.LTraceErrorRecord(
+                $"Split plan could not be read for '{lMessengerSourcePath}'",
+                lMessengerException);
             return Array.Empty<LSplitSectionDescription>();
         }
     }

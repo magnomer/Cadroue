@@ -37,7 +37,8 @@ public sealed class TPreset : IDisposable
 
     public IReadOnlyList<LPresetGroup> TPresetNativeLoad() => LPresetStore.LPresetNativeLoad();
 
-    public IReadOnlyList<LPresetGroup> TPresetNativeLoad(string folderPath) => LPresetStore.LPresetNativeLoad(folderPath);
+    public IReadOnlyList<LPresetGroup> TPresetNativeLoad(string folderPath) =>
+        LPresetStore.LPresetNativeLoad(folderPath);
 
     public bool TPresetFormatCheck() => LPresetStore.LPresetNativeLoad()
         .SelectMany(group => group.LPresetGroupPresets)

@@ -118,7 +118,8 @@ public sealed partial class PGroup
             PGroupPathInsert(pTargetPaths, pMove.PGroupMovePath, pInsertAt);
             LTraceLog.LTraceInfoRecord(pMove.PGroupMoveIndex == pTargetIndex
                 ? $"Group {pTargetIndex + 1}: reordered '{Path.GetFileName(pMove.PGroupMovePath)}'"
-                : $"Group {pTargetIndex + 1}: moved in '{Path.GetFileName(pMove.PGroupMovePath)}' from group {pMove.PGroupMoveIndex + 1}");
+                : $"Group {pTargetIndex + 1}: moved in '{Path.GetFileName(pMove.PGroupMovePath)}' "
+                    + $"from group {pMove.PGroupMoveIndex + 1}");
         }
         else if (PGroupPathsRead(pEvent) is { Count: > 0 } pAddPaths)
         {

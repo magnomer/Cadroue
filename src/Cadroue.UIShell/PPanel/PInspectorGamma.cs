@@ -26,8 +26,12 @@ public sealed partial class PInspector
 
     private StackPanel PGammaBuild()
     {
-        pGammaBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma"));
-        pGammaPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma"));
+        pGammaBox = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma"));
+        pGammaPersistent = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma"));
         pGammaSlider = PToneSliderBuild(-100, 100, 0);
         pGammaValue = PInspectorDecimalBuild();
         pGammaValue.Text = "0";
@@ -60,11 +64,36 @@ public sealed partial class PInspector
             pGammaBlueSlider, pGammaBlueValue, -100, 100, "0.#");
         PInspectorValueAttach(
             pGammaHighlightSlider, pGammaHighlightValue, 0, 100, "0.#");
-        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.Midtone"), pGammaSlider, "", pGammaValue));
-        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.RedGamma"), pGammaRedSlider, "", pGammaRedValue));
-        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.GreenGamma"), pGammaGreenSlider, "", pGammaGreenValue));
-        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.BlueGamma"), pGammaBlueSlider, "", pGammaBlueValue));
-        pGammaStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Video.HighlightProtection"), pGammaHighlightSlider, "%", pGammaHighlightValue));
+        pGammaStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Video.Midtone"),
+                pGammaSlider,
+                "",
+                pGammaValue));
+        pGammaStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Video.RedGamma"),
+                pGammaRedSlider,
+                "",
+                pGammaRedValue));
+        pGammaStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Video.GreenGamma"),
+                pGammaGreenSlider,
+                "",
+                pGammaGreenValue));
+        pGammaStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Video.BlueGamma"),
+                pGammaBlueSlider,
+                "",
+                pGammaBlueValue));
+        pGammaStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Video.HighlightProtection"),
+                pGammaHighlightSlider,
+                "%",
+                pGammaHighlightValue));
         var pGammaReset = new Button
         {
             Content = LLocalization.LLocalizationTextRead("Inspector.Video.GammaReset"),

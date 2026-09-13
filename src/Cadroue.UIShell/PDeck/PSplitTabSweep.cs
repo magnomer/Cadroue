@@ -72,7 +72,8 @@ public sealed partial class PSplitTab
                         pSplitSource.Token,
                         pSplitProgress);
                 TimeSpan pSplitSceneMinimum = TimeSpan.FromSeconds(pSplitScene.LDetectorStepMinimum);
-                pSplitBoundaries.AddRange(pSplitScenes.Select(pSplitTime => new LSweepBoundary(pSplitTime, pSplitSceneMinimum)));
+                pSplitBoundaries.AddRange(
+                    pSplitScenes.Select(pSplitTime => new LSweepBoundary(pSplitTime, pSplitSceneMinimum)));
             }
 
             if (pSplitStill.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
@@ -107,7 +108,8 @@ public sealed partial class PSplitTab
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                pSplitBoundaries.AddRange(pSplitLuminances.Select(pSplitTime => new LSweepBoundary(pSplitTime, TimeSpan.Zero)));
+                pSplitBoundaries.AddRange(
+                    pSplitLuminances.Select(pSplitTime => new LSweepBoundary(pSplitTime, TimeSpan.Zero)));
             }
 
             if (pSplitSilence.LDetectorStepEnabled && !pSplitSource.IsCancellationRequested)
@@ -135,7 +137,8 @@ public sealed partial class PSplitTab
                         pFlow.PFlowSweepDuration,
                         pSplitSource.Token,
                         pSplitProgress);
-                pSplitBoundaries.AddRange(pSplitVolumes.Select(pSplitTime => new LSweepBoundary(pSplitTime, TimeSpan.Zero)));
+                pSplitBoundaries.AddRange(
+                    pSplitVolumes.Select(pSplitTime => new LSweepBoundary(pSplitTime, TimeSpan.Zero)));
             }
 
             if (!pSplitSource.IsCancellationRequested)

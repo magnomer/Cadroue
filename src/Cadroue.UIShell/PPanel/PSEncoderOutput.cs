@@ -28,7 +28,10 @@ internal sealed partial class PSEncoder
         };
         PSNameBoxPrepare();
         psLocationFolderLabel = PSFieldLabelBuild(string.Empty);
-        psLocationBrowse = PSInlineIconBuild(PSLocationBrowseIcon, LLocalization.LLocalizationTextRead("Encoder.Location.Browse"), new Thickness(8, 0, 0, 0));
+        psLocationBrowse = PSInlineIconBuild(
+            PSLocationBrowseIcon,
+            LLocalization.LLocalizationTextRead("Encoder.Location.Browse"),
+            new Thickness(8, 0, 0, 0));
         psLocationBrowse.Click += (_, _) => PSLocationCustomRead();
         psLocationFolderRow = PSFieldLabelledBuild(psLocationFolderLabel, psLocationFolderBox, psLocationBrowse);
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
@@ -36,14 +39,23 @@ internal sealed partial class PSEncoder
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
         pPanel.Children.Add(psLocationFolderRow);
         psOutputContainerCombo.SelectionChanged += (_, _) => PSOutputContainerHandle();
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"), psOutputContainerCombo));
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Extension"), psOutputExtensionCombo));
+        pPanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"),
+                psOutputContainerCombo));
+        pPanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Extension"),
+                psOutputExtensionCombo));
 
         psOutputSuffixLabel = PSFieldLabelBuild(string.Empty);
         psOutputSuffixRow = PSOutputSuffixBuild(psOutputSuffixLabel, psOutputSuffixBox);
         psOutputSuffixBox.LostFocus += (_, _) => PSOutputSuffixNormalize();
         psOutputCollisionCombo.SelectionChanged += (_, _) => PSOutputSuffixUpdate();
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Collision"), psOutputCollisionCombo));
+        pPanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Collision"),
+                psOutputCollisionCombo));
         pPanel.Children.Add(psOutputSuffixRow);
         PSOutputSuffixUpdate();
 

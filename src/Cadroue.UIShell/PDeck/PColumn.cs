@@ -128,7 +128,9 @@ internal sealed partial class PColumn
         pColumnFlexIndex >= 0 && !pColumnHiddenFlags[pColumnFlexIndex] && pColumnFixedWidths[pColumnFlexIndex] <= 0;
 
     private static bool PColumnStoredCheck(IReadOnlyList<double>? pStoredWidths, int pCount) =>
-        pStoredWidths is not null && pStoredWidths.Count == pCount && pStoredWidths.Sum(pWidth => Math.Max(0, pWidth)) > 0;
+        pStoredWidths is not null
+        && pStoredWidths.Count == pCount
+        && pStoredWidths.Sum(pWidth => Math.Max(0, pWidth)) > 0;
 
     private static bool[] PColumnCompactCreate(IReadOnlyList<bool>? pCompactPanels, int pCount)
     {

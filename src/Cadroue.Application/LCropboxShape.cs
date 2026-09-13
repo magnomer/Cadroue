@@ -6,6 +6,14 @@ public readonly record struct LCropboxExtent(int LCropboxExtentWidth, int LCropb
 
 public readonly record struct LCropboxPoint(double LCropboxPointX, double LCropboxPointY);
 
-public readonly record struct LCropboxEdges(double LCropboxLeft, double LCropboxTop, double LCropboxRight, double LCropboxBottom);
+public readonly record struct LCropboxEdges(
+    double LCropboxLeft,
+    double LCropboxTop,
+    double LCropboxRight,
+    double LCropboxBottom);
 
-public readonly record struct LCropboxRatio(bool LCropboxRatioFixed, bool LCropboxRatioLenient, int LCropboxRatioWidth, int LCropboxRatioHeight);
+public readonly record struct LCropboxRatio(
+    bool LCropboxRatioFixed,
+    bool LCropboxRatioLenient,
+    int LCropboxRatioWidth,
+    int LCropboxRatioHeight);

@@ -29,7 +29,9 @@ public sealed class TTraceIntegrity
         TLogMoveResult result = TLogIntegrity.TWorkspaceMove();
 
         Assert.True(result.TLogMoved);
-        Assert.EndsWith(Path.Combine("log-move", Path.GetFileName(Path.GetDirectoryName(result.TLogRoot))!, "target"), result.TLogRoot);
+        Assert.EndsWith(
+            Path.Combine("log-move", Path.GetFileName(Path.GetDirectoryName(result.TLogRoot))!, "target"),
+            result.TLogRoot);
         Assert.False(result.TLogSourceFlag);
         Assert.Contains("before workspace move", result.TLogText);
         Assert.Contains("after workspace move", result.TLogText);

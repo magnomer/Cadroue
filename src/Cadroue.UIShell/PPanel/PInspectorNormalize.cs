@@ -36,7 +36,9 @@ public sealed partial class PInspector
     private StackPanel PLoudnessBodyBuild()
     {
         LLevelingDefault pDefault = LLevelingCatalog.LLevelingDefaultRead();
-        pLoudnessApplyBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
+        pLoudnessApplyBox = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
         pLoudnessApplyBox.Checked += (_, _) => PLoudnessApplyUpdate();
         pLoudnessApplyBox.Unchecked += (_, _) => PLoudnessApplyUpdate();
 
@@ -73,39 +75,74 @@ public sealed partial class PInspector
         pLoudnessTarget = PInspectorDecimalBuild();
         pLoudnessTarget.Text = pDefault.LLevelingTarget.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pTargetSlider = PInspectorSliderBuild(
-            pLoudnessTarget, LLevelingCatalog.LLevelingTargetLeast, LLevelingCatalog.LLevelingTargetMost, pDefault.LLevelingTarget, "0.#",
-            () => PLoudnessPresetRead()?.LLevelingTarget ?? pDefault.LLevelingTarget, PLoudnessValueUpdate);
+            pLoudnessTarget,
+            LLevelingCatalog.LLevelingTargetLeast,
+            LLevelingCatalog.LLevelingTargetMost,
+            pDefault.LLevelingTarget,
+            "0.#",
+            () => PLoudnessPresetRead()?.LLevelingTarget ?? pDefault.LLevelingTarget,
+            PLoudnessValueUpdate);
         pLoudnessPeak = PInspectorDecimalBuild();
         pLoudnessPeak.Text = pDefault.LLevelingPeak.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pPeakSlider = PInspectorSliderBuild(
-            pLoudnessPeak, LLevelingCatalog.LLevelingPeakLeast, LLevelingCatalog.LLevelingPeakMost, pDefault.LLevelingPeak, "0.#",
-            () => PLoudnessPresetRead()?.LLevelingPeak ?? pDefault.LLevelingPeak, PLoudnessValueUpdate);
+            pLoudnessPeak,
+            LLevelingCatalog.LLevelingPeakLeast,
+            LLevelingCatalog.LLevelingPeakMost,
+            pDefault.LLevelingPeak,
+            "0.#",
+            () => PLoudnessPresetRead()?.LLevelingPeak ?? pDefault.LLevelingPeak,
+            PLoudnessValueUpdate);
         pLoudnessRange = PInspectorDecimalBuild();
         pLoudnessRange.Text = pDefault.LLevelingRange.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pRangeSlider = PInspectorSliderBuild(
-            pLoudnessRange, LLevelingCatalog.LLevelingRangeLeast, LLevelingCatalog.LLevelingRangeMost, pDefault.LLevelingRange, "0.#",
-            () => PLoudnessPresetRead()?.LLevelingRange ?? pDefault.LLevelingRange, PLoudnessValueUpdate);
+            pLoudnessRange,
+            LLevelingCatalog.LLevelingRangeLeast,
+            LLevelingCatalog.LLevelingRangeMost,
+            pDefault.LLevelingRange,
+            "0.#",
+            () => PLoudnessPresetRead()?.LLevelingRange ?? pDefault.LLevelingRange,
+            PLoudnessValueUpdate);
 
         pDynamicFrame = PInspectorDecimalBuild();
         pDynamicFrame.Text = pDefault.LLevelingFrame.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pFrameSlider = PInspectorSliderBuild(
-            pDynamicFrame, LLevelingCatalog.LLevelingFrameLeast, LLevelingCatalog.LLevelingFrameMost, pDefault.LLevelingFrame, "0",
-            () => PDynamicPresetRead()?.LLevelingFrame ?? pDefault.LLevelingFrame, PDynamicValueUpdate);
+            pDynamicFrame,
+            LLevelingCatalog.LLevelingFrameLeast,
+            LLevelingCatalog.LLevelingFrameMost,
+            pDefault.LLevelingFrame,
+            "0",
+            () => PDynamicPresetRead()?.LLevelingFrame ?? pDefault.LLevelingFrame,
+            PDynamicValueUpdate);
         pDynamicGauss = PInspectorDecimalBuild();
         pDynamicGauss.Text = pDefault.LLevelingGauss.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pGaussSlider = PInspectorSliderBuild(
-            pDynamicGauss, LLevelingCatalog.LLevelingGaussLeast, LLevelingCatalog.LLevelingGaussMost, pDefault.LLevelingGauss, "0",
-            () => PDynamicPresetRead()?.LLevelingGauss ?? pDefault.LLevelingGauss, PDynamicValueUpdate);
+            pDynamicGauss,
+            LLevelingCatalog.LLevelingGaussLeast,
+            LLevelingCatalog.LLevelingGaussMost,
+            pDefault.LLevelingGauss,
+            "0",
+            () => PDynamicPresetRead()?.LLevelingGauss ?? pDefault.LLevelingGauss,
+            PDynamicValueUpdate);
         pDynamicMaxGain = PInspectorDecimalBuild();
         pDynamicMaxGain.Text = pDefault.LLevelingMaxGain.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pMaxGainSlider = PInspectorSliderBuild(
-            pDynamicMaxGain, LLevelingCatalog.LLevelingGainLeast, LLevelingCatalog.LLevelingGainMost, pDefault.LLevelingMaxGain, "0.#",
-            () => PDynamicPresetRead()?.LLevelingMaxGain ?? pDefault.LLevelingMaxGain, PDynamicValueUpdate);
+            pDynamicMaxGain,
+            LLevelingCatalog.LLevelingGainLeast,
+            LLevelingCatalog.LLevelingGainMost,
+            pDefault.LLevelingMaxGain,
+            "0.#",
+            () => PDynamicPresetRead()?.LLevelingMaxGain ?? pDefault.LLevelingMaxGain,
+            PDynamicValueUpdate);
         pDynamicCompress = PInspectorDecimalBuild();
         pDynamicCompress.Text = pDefault.LLevelingCompress.ToString("0.###", CultureInfo.InvariantCulture);
         Slider pCompressSlider = PInspectorSliderBuild(
-            pDynamicCompress, LLevelingCatalog.LLevelingCompressLeast, LLevelingCatalog.LLevelingCompressMost, pDefault.LLevelingCompress, "0.#",
-            () => PDynamicPresetRead()?.LLevelingCompress ?? pDefault.LLevelingCompress, PDynamicValueUpdate);
+            pDynamicCompress,
+            LLevelingCatalog.LLevelingCompressLeast,
+            LLevelingCatalog.LLevelingCompressMost,
+            pDefault.LLevelingCompress,
+            "0.#",
+            () => PDynamicPresetRead()?.LLevelingCompress ?? pDefault.LLevelingCompress,
+            PDynamicValueUpdate);
 
         pLoudnessTwoPass = new CheckBox
         {
@@ -123,16 +160,51 @@ public sealed partial class PInspector
         pLoudnessTwoPass.Unchecked += (_, _) => PInspectorActiveRaise();
 
         pLoudnessStack = new StackPanel();
-        pLoudnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Target"), pTargetSlider, "LUFS", pLoudnessTarget));
-        pLoudnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Peak"), pPeakSlider, "dBTP", pLoudnessPeak));
-        pLoudnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Range"), pRangeSlider, "LU", pLoudnessRange));
+        pLoudnessStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Normalize.Target"),
+                pTargetSlider,
+                "LUFS",
+                pLoudnessTarget));
+        pLoudnessStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Normalize.Peak"),
+                pPeakSlider,
+                "dBTP",
+                pLoudnessPeak));
+        pLoudnessStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Normalize.Range"),
+                pRangeSlider,
+                "LU",
+                pLoudnessRange));
         pLoudnessStack.Children.Add(pLoudnessTwoPass);
 
         pDynamicStack = new StackPanel { Visibility = Visibility.Collapsed };
-        pDynamicStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Dynamic.Frame"), pFrameSlider, "ms", pDynamicFrame));
-        pDynamicStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Dynamic.Smoothness"), pGaussSlider, "g", pDynamicGauss));
-        pDynamicStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Dynamic.MaxGain"), pMaxGainSlider, "×", pDynamicMaxGain));
-        pDynamicStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Dynamic.Compress"), pCompressSlider, "s", pDynamicCompress));
+        pDynamicStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Dynamic.Frame"),
+                pFrameSlider,
+                "ms",
+                pDynamicFrame));
+        pDynamicStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Dynamic.Smoothness"),
+                pGaussSlider,
+                "g",
+                pDynamicGauss));
+        pDynamicStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Dynamic.MaxGain"),
+                pMaxGainSlider,
+                "×",
+                pDynamicMaxGain));
+        pDynamicStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Dynamic.Compress"),
+                pCompressSlider,
+                "s",
+                pDynamicCompress));
 
         var pNotice = new TextBlock
         {
@@ -145,8 +217,10 @@ public sealed partial class PInspector
         };
 
         pLoudnessPanel = new StackPanel();
-        pLoudnessPanel.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Mode"), pLoudnessMode));
-        pLoudnessPanel.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pLoudnessPreset));
+        pLoudnessPanel.Children.Add(
+            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Mode"), pLoudnessMode));
+        pLoudnessPanel.Children.Add(
+            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pLoudnessPreset));
         pLoudnessPanel.Children.Add(pLoudnessStack);
         pLoudnessPanel.Children.Add(pDynamicStack);
         pLoudnessPanel.Children.Add(pNotice);

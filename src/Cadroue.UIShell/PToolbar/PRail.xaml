@@ -114,11 +114,18 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="pTabAddFrame" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9,9,0,0">
+                        <Border x:Name="pTabAddFrame"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="9,9,0,0">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="pTabAddFrame" Property="Background" Value="#EEF4FC"/><Setter TargetName="pTabAddFrame" Property="BorderBrush" Value="#D5E0ED"/></Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="pTabAddFrame" Property="Background" Value="#EEF4FC"/>
+                                <Setter TargetName="pTabAddFrame" Property="BorderBrush" Value="#D5E0ED"/>
+                            </Trigger>
                             <Trigger Property="IsPressed" Value="True"><Setter TargetName="pTabAddFrame" Property="Background" Value="#FFFFFF"/></Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -133,38 +140,70 @@
         <ItemsPanelTemplate x:Key="pVerticalItemsPanel"><StackPanel Orientation="Vertical" /></ItemsPanelTemplate>
         <DataTemplate x:Key="pHorizontalTabTemplate" DataType="{x:Type pToolbar:PTabRecord}">
             <Grid Margin="0,12,0,0">
-                <Border Style="{StaticResource pTabFrameHorizontalStyle}" MouseEnter="PTabEnterHandle" MouseLeave="PTabLeaveHandle" MouseLeftButtonDown="PTabPressHandle" MouseMove="PTabMoveHandle" MouseLeftButtonUp="PTabReleaseHandle">
+                <Border Style="{StaticResource pTabFrameHorizontalStyle}"
+                        MouseEnter="PTabEnterHandle"
+                        MouseLeave="PTabLeaveHandle"
+                        MouseLeftButtonDown="PTabPressHandle"
+                        MouseMove="PTabMoveHandle"
+                        MouseLeftButtonUp="PTabReleaseHandle">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <Image Width="17" Height="17" Style="{StaticResource pTabIconStyle}" Margin="0,0,10,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding PTabTitle}" Tag="pTabNameText" />
                         <TextBox Grid.Column="1" Style="{StaticResource pTabNameBoxStyle}" Loaded="PTabLoadHandle" KeyDown="PTabKeyHandle" LostKeyboardFocus="PTabLeaveHandle" />
                         <Border Grid.Column="2" Style="{StaticResource pTabCloseStyle}" MouseLeftButtonDown="PTabCloseHandle">
-                            <Canvas Width="20" Height="20"><Line X1="6.5" Y1="6.5" X2="13.5" Y2="13.5" Stroke="#4F5C6F" StrokeThickness="1.15"/><Line X1="13.5" Y1="6.5" X2="6.5" Y2="13.5" Stroke="#4F5C6F" StrokeThickness="1.15"/></Canvas>
+                            <Canvas Width="20" Height="20">
+                                <Line X1="6.5" Y1="6.5" X2="13.5" Y2="13.5" Stroke="#4F5C6F" StrokeThickness="1.15"/>
+                                <Line X1="13.5" Y1="6.5" X2="6.5" Y2="13.5" Stroke="#4F5C6F" StrokeThickness="1.15"/>
+                            </Canvas>
                         </Border>
                     </Grid>
                 </Border>
                 <Canvas Width="1" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,1,0" IsHitTestVisible="False">
-                    <Canvas.Style><Style TargetType="Canvas"><Style.Triggers><DataTrigger Binding="{Binding PTabSeparatorState}" Value="False"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Canvas.Style>
+                    <Canvas.Style>
+                        <Style TargetType="Canvas">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding PTabSeparatorState}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Canvas.Style>
                     <Line X1="0.5" Y1="0" X2="0.5" Y2="16" Stroke="#C9D6E5" StrokeThickness="1"/>
                 </Canvas>
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="pVerticalTabTemplate" DataType="{x:Type pToolbar:PTabRecord}">
             <Grid Margin="8,0,0,0">
-                <Border Style="{StaticResource pTabFrameVerticalStyle}" MouseEnter="PTabEnterHandle" MouseLeave="PTabLeaveHandle" MouseLeftButtonDown="PTabPressHandle" MouseMove="PTabMoveHandle" MouseLeftButtonUp="PTabReleaseHandle">
+                <Border Style="{StaticResource pTabFrameVerticalStyle}"
+                        MouseEnter="PTabEnterHandle"
+                        MouseLeave="PTabLeaveHandle"
+                        MouseLeftButtonDown="PTabPressHandle"
+                        MouseMove="PTabMoveHandle"
+                        MouseLeftButtonUp="PTabReleaseHandle">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <Image Width="17" Height="17" Style="{StaticResource pTabIconStyle}" Margin="0,0,10,0" />
                         <TextBlock Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding PTabTitle}" Tag="pTabNameText" />
                         <TextBox Grid.Column="1" Style="{StaticResource pTabNameBoxStyle}" Loaded="PTabLoadHandle" KeyDown="PTabKeyHandle" LostKeyboardFocus="PTabLeaveHandle" />
                         <Border Grid.Column="2" Style="{StaticResource pTabCloseStyle}" MouseLeftButtonDown="PTabCloseHandle">
-                            <Canvas Width="20" Height="20"><Line X1="6.5" Y1="6.5" X2="13.5" Y2="13.5" Stroke="#4F5C6F" StrokeThickness="1.15"/><Line X1="13.5" Y1="6.5" X2="6.5" Y2="13.5" Stroke="#4F5C6F" StrokeThickness="1.15"/></Canvas>
+                            <Canvas Width="20" Height="20">
+                                <Line X1="6.5" Y1="6.5" X2="13.5" Y2="13.5" Stroke="#4F5C6F" StrokeThickness="1.15"/>
+                                <Line X1="13.5" Y1="6.5" X2="6.5" Y2="13.5" Stroke="#4F5C6F" StrokeThickness="1.15"/>
+                            </Canvas>
                         </Border>
                     </Grid>
                 </Border>
                 <Border Height="1" Background="#C9D6E5" VerticalAlignment="Bottom" Margin="10,0,10,0" IsHitTestVisible="False">
-                    <Border.Style><Style TargetType="Border"><Style.Triggers><DataTrigger Binding="{Binding PTabSeparatorState}" Value="False"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Border.Style>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding PTabSeparatorState}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                 </Border>
             </Grid>
         </DataTemplate>
@@ -172,7 +211,10 @@
     <Border x:Name="pTabRoot" Background="Transparent" BorderBrush="#C9D6E5" BorderThickness="0">
         <ScrollViewer x:Name="pTabViewport" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
             <StackPanel x:Name="pTabStack" Orientation="Horizontal">
-                <ItemsControl x:Name="pTabItemsControl" ItemsSource="{Binding PStripRecords}" ItemTemplate="{StaticResource pHorizontalTabTemplate}" ItemsPanel="{StaticResource pHorizontalItemsPanel}" />
+                <ItemsControl x:Name="pTabItemsControl"
+                              ItemsSource="{Binding PStripRecords}"
+                              ItemTemplate="{StaticResource pHorizontalTabTemplate}"
+                              ItemsPanel="{StaticResource pHorizontalItemsPanel}" />
                 <Button x:Name="pTabAddButton" Style="{StaticResource pTabAddHorizontalStyle}" Content="+" Click="PTabMenuHandle" />
             </StackPanel>
         </ScrollViewer>

@@ -35,8 +35,12 @@ public sealed partial class PInspector
 
     private StackPanel PToneBrightnessBuild()
     {
-        pToneBrightnessBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyBrightness"));
-        pInspectorBrightnessPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistBrightness"));
+        pToneBrightnessBox = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Video.ApplyBrightness"));
+        pInspectorBrightnessPersistent = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Video.PersistBrightness"));
         pInspectorBrightnessSlider = PToneSliderBuild(
             PToneBrightnessLeast,
             PToneBrightnessMost,
@@ -52,7 +56,12 @@ public sealed partial class PInspector
             null,
             null,
             "0.#");
-        pInspectorBrightnessStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorBrightnessSlider, string.Empty, pInspectorBrightnessValue));
+        pInspectorBrightnessStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
+                pInspectorBrightnessSlider,
+                string.Empty,
+                pInspectorBrightnessValue));
         pInspectorBrightnessBody = PToneBodyBuild(pToneBrightnessBox, pInspectorBrightnessStack);
         PToneApplyUpdate(pToneBrightnessBox, pInspectorBrightnessStack);
         return pInspectorBrightnessBody;
@@ -60,8 +69,12 @@ public sealed partial class PInspector
 
     private StackPanel PToneContrastBuild()
     {
-        pToneContrastBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplyContrast"));
-        pInspectorContrastPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistContrast"));
+        pToneContrastBox = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Video.ApplyContrast"));
+        pInspectorContrastPersistent = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Video.PersistContrast"));
         pInspectorContrastSlider = PToneSliderBuild(0, 200, 100);
         pInspectorContrastValue = PInspectorDecimalBuild();
         pInspectorContrastValue.Text = "100";
@@ -74,7 +87,12 @@ public sealed partial class PInspector
             0,
             200,
             "0.#");
-        pInspectorContrastStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorContrastSlider, "%", pInspectorContrastValue));
+        pInspectorContrastStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
+                pInspectorContrastSlider,
+                "%",
+                pInspectorContrastValue));
         bool pContrastPreview = LFlyleaf.LFlyleafActive
             || LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
         if (!pContrastPreview)
@@ -96,8 +114,12 @@ public sealed partial class PInspector
 
     private StackPanel PToneSaturationBuild()
     {
-        pToneSaturationBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Video.ApplySaturation"));
-        pInspectorSaturationPersistent = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"), LLocalization.LLocalizationTextRead("Inspector.Video.PersistSaturation"));
+        pToneSaturationBox = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Video.ApplySaturation"));
+        pInspectorSaturationPersistent = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Video.PersistSaturation"));
         pInspectorSaturationSlider = PToneSliderBuild(0, 200, 100);
         pInspectorSaturationValue = PInspectorDecimalBuild();
         pInspectorSaturationValue.Text = "100";
@@ -110,7 +132,12 @@ public sealed partial class PInspector
             0,
             200,
             "0.#");
-        pInspectorSaturationStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pInspectorSaturationSlider, "%", pInspectorSaturationValue));
+        pInspectorSaturationStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
+                pInspectorSaturationSlider,
+                "%",
+                pInspectorSaturationValue));
         pInspectorSaturationBody = PToneBodyBuild(pToneSaturationBox, pInspectorSaturationStack);
         PToneApplyUpdate(pToneSaturationBox, pInspectorSaturationStack);
         return pInspectorSaturationBody;

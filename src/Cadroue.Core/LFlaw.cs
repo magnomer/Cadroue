@@ -64,7 +64,11 @@ internal static class LFlaw
     {
         Match lFlawMatch = lFlawOffset.Match(lFlawEvidence);
         return lFlawMatch.Success
-            && long.TryParse(lFlawMatch.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long lFlawByte)
+            && long.TryParse(
+                lFlawMatch.Groups[1].Value,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out long lFlawByte)
                 ? FormattableString.Invariant($"Byte offset {lFlawByte}")
                 : "Container structure";
     }

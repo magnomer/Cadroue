@@ -19,7 +19,9 @@ public sealed class TLevelingPreset
     {
         LLevelingLoudnessPreset? preset = TInterface.TLevelingLoudnessRead(token);
         Assert.NotNull(preset);
-        Assert.Equal(token, TInterface.TLevelingLoudnessMatch(preset!.LLevelingTarget, preset.LLevelingPeak, preset.LLevelingRange));
+        Assert.Equal(
+            token,
+            TInterface.TLevelingLoudnessMatch(preset!.LLevelingTarget, preset.LLevelingPeak, preset.LLevelingRange));
     }
 
     [Theory]
@@ -32,7 +34,13 @@ public sealed class TLevelingPreset
     {
         LLevelingDynamicPreset? preset = TInterface.TLevelingDynamicRead(token);
         Assert.NotNull(preset);
-        Assert.Equal(token, TInterface.TLevelingDynamicMatch(preset!.LLevelingFrame, preset.LLevelingGauss, preset.LLevelingMaxGain, preset.LLevelingCompress));
+        Assert.Equal(
+            token,
+            TInterface.TLevelingDynamicMatch(
+                preset!.LLevelingFrame,
+                preset.LLevelingGauss,
+                preset.LLevelingMaxGain,
+                preset.LLevelingCompress));
     }
 
     [Fact]

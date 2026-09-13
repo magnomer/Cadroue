@@ -17,5 +17,6 @@ internal static class TKeyframeData
         return spool;
     }
 
-    internal static LKeyframeScanRange TKeyframeScanCreate(double start, double end) => new(TKeyframeAtCreate(start), TKeyframeAtCreate(end));
+    internal static LKeyframeScanRange TKeyframeScanCreate(double start, double end) =>
+        new(TKeyframeAtCreate(start), TKeyframeAtCreate(end));
 }

@@ -164,7 +164,8 @@ public sealed partial class PGroup
         }
 
         List<string> pGroupPaths = pGroupRecords[pGroupIndex].PGroupRecordPaths;
-        if (pGroupPaths.RemoveAll(pExisting => string.Equals(pExisting, pPath, StringComparison.OrdinalIgnoreCase)) == 0)
+        if (pGroupPaths.RemoveAll(
+            pExisting => string.Equals(pExisting, pPath, StringComparison.OrdinalIgnoreCase)) == 0)
         {
             return;
         }

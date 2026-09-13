@@ -54,11 +54,26 @@ public sealed partial class PRoster
 
         TextBlock pStepCell = PRosterStepAdd(pGrid, pWorkItem);
         PRosterCellAdd(pGrid, 1, PRosterPriorityFormat(pWorkItem.LWorkPriority), PRosterTheme.PRosterMutedBrush);
-        TextBlock pDurationCell = PRosterCellAdd(pGrid, 2, PRosterSpanFormat(pWorkItem.LWorkDuration), PRosterTheme.PRosterMutedBrush);
+        TextBlock pDurationCell = PRosterCellAdd(
+            pGrid,
+            2,
+            PRosterSpanFormat(pWorkItem.LWorkDuration),
+            PRosterTheme.PRosterMutedBrush);
 
-        TextBlock pProgressCell = PRosterCellAdd(pGrid, 3, PRosterProgressFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
-        TextBlock pPercentCell = PRosterCellAdd(pGrid, 4, PRosterPlaceFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
-        TextBlock pStateCell = PRosterCellAdd(pGrid, 5, PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent),
+        TextBlock pProgressCell = PRosterCellAdd(
+            pGrid,
+            3,
+            PRosterProgressFormat(pWorkItem),
+            PRosterTheme.PRosterMutedBrush);
+        TextBlock pPercentCell = PRosterCellAdd(
+            pGrid,
+            4,
+            PRosterPlaceFormat(pWorkItem),
+            PRosterTheme.PRosterMutedBrush);
+        TextBlock pStateCell = PRosterCellAdd(
+            pGrid,
+            5,
+            PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent),
             PRosterTheme.PRosterStateRead(pWorkItem.LWorkStateCurrent));
         TextBlock pOwnerCell = PRosterCellAdd(pGrid, 6, PRosterOwnerFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
 
@@ -97,7 +112,8 @@ public sealed partial class PRoster
 
     private TextBlock PRosterStepAdd(Grid pGrid, LWorkItem pWorkItem)
     {
-        bool pLast = !pRosterRowPlaces.TryGetValue(pWorkItem.LWorkId, out PRosterRowPlace? pPlace) || pPlace.PRosterPlaceLast;
+        bool pLast = !pRosterRowPlaces.TryGetValue(pWorkItem.LWorkId, out PRosterRowPlace? pPlace)
+            || pPlace.PRosterPlaceLast;
 
         var pStepGrid = new Grid();
         pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

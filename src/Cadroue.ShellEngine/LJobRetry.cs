@@ -17,7 +17,8 @@ internal sealed partial class LJob
 
         string pJobMessage = $"{pJobReason} Retry {pAttempt} of {lJobOwner.LRunnerRetryMaximum}.";
         bool pReleased = false;
-        lJobOwner.LRunnerDispatch(() => pReleased = lJobOwner.lRunnerSchedule.LScheduleItemRelease(lJobItem.LWorkId, lJobOwner.LRunnerIdentity, pJobMessage));
+        lJobOwner.LRunnerDispatch(() => pReleased = lJobOwner.lRunnerSchedule.LScheduleItemRelease(
+            lJobItem.LWorkId, lJobOwner.LRunnerIdentity, pJobMessage));
         if (!pReleased)
         {
             return false;

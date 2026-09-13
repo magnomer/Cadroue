@@ -19,7 +19,12 @@ public sealed partial class PCompass
 
     private Border PCompassVolumeBuild()
     {
-        var pGrid = new Grid { Width = 268, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+        var pGrid = new Grid
+        {
+            Width = 268,
+            Margin = new Thickness(10, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

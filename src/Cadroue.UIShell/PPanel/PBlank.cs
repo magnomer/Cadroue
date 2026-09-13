@@ -75,8 +75,12 @@ public sealed partial class PInspector
             pBlankToleranceBound.LDetectorBoundLeast,
             pBlankToleranceBound.LDetectorBoundMost,
             pBlankToleranceBound.LDetectorBoundDefault, "0.00", null, PBlankRaise);
-        pStack.Children.Add(PFilterSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Tolerance"), pToleranceSlider, string.Empty, pBlankToleranceValue));
+        pStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Blank.Tolerance"),
+                pToleranceSlider,
+                string.Empty,
+                pBlankToleranceValue));
 
         LDetectorBound pBlankCoverageBound = LDetector.LDetectorCoverageRead();
         pBlankCoverageValue = PSensorDecimalBuild(pBlankCoverageBound.LDetectorBoundDefault, "0.00");
@@ -85,8 +89,12 @@ public sealed partial class PInspector
             pBlankCoverageBound.LDetectorBoundLeast,
             pBlankCoverageBound.LDetectorBoundMost,
             pBlankCoverageBound.LDetectorBoundDefault, "0.00", null, PBlankRaise);
-        pStack.Children.Add(PFilterSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Coverage"), pCoverageSlider, string.Empty, pBlankCoverageValue));
+        pStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Blank.Coverage"),
+                pCoverageSlider,
+                string.Empty,
+                pBlankCoverageValue));
 
         LDetectorBound pBlankMinimumBound = LDetector.LDetectorMinimumRead(LDetectorKind.LDetectorKindBlank);
         pBlankMinimumValue = PSensorDecimalBuild(LDetectorBlank.LDetectorBlankGap, "0.0");

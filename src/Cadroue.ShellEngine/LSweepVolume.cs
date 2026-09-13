@@ -15,7 +15,8 @@ public static partial class LSweep
         string lSweepFilter = lSweepMode == LDetectorMetricMode.LDetectorMetricLufs
             ? "ebur128=metadata=1,ametadata=print:key=lavfi.r128.M"
             : "astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level";
-        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:a:0 -af {LEncode.LEncodeFormat(lSweepFilter)} -vn -f null -";
+        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} " +
+            $"-map 0:a:0 -af {LEncode.LEncodeFormat(lSweepFilter)} -vn -f null -";
     }
 
     public static IReadOnlyList<LSweepSample> LSweepVolumeParse(IEnumerable<string> lSweepLines)
@@ -96,7 +97,9 @@ public static partial class LSweep
                 lSweepProcess?.Kill(true);
             }
             catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception or InvalidOperationException or NotSupportedException)
+                when (lSweepException is System.ComponentModel.Win32Exception
+                    or InvalidOperationException
+                    or NotSupportedException)
             {
             }
         });

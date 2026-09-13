@@ -72,7 +72,8 @@ public sealed class TBridgeContainer
         TBridgeMetric.TBridgeRun(
             TEncodeCommand.TToolFfmpegRead(),
             $"-hide_banner -loglevel error -i {TBridgeMetric.TBridgePathFormat(work.LWorkOutputPath)} "
-            + $"-map 0:v:0 -map 0:a:0 -c:v libx264 -preset ultrafast -c:a aac -y {TBridgeMetric.TBridgePathFormat(converted)}");
+            + "-map 0:v:0 -map 0:a:0 -c:v libx264 -preset ultrafast -c:a aac "
+            + $"-y {TBridgeMetric.TBridgePathFormat(converted)}");
         double smartAudioDuration = TBridgeMetric.TBridgeDecodeRead(
             work.LWorkOutputPath, Path.Combine(fixture.TBridgeFixtureRoot, "smart-decoded.pcm"), 44_100, 1);
         double convertedAudioDuration = TBridgeMetric.TBridgeDecodeRead(
@@ -198,7 +199,8 @@ public sealed class TBridgeContainer
         ]);
         TBridgeMetric.TBridgeRun(
             TEncodeCommand.TToolFfmpegRead(),
-            $"-hide_banner -loglevel error -f concat -safe 0 -i {TBridgeMetric.TBridgePathFormat(mergeList)} -c copy -y {TBridgeMetric.TBridgePathFormat(merged)}");
+            $"-hide_banner -loglevel error -f concat -safe 0 -i {TBridgeMetric.TBridgePathFormat(mergeList)} "
+            + $"-c copy -y {TBridgeMetric.TBridgePathFormat(merged)}");
 
         double mergedVideoDuration = TBridgeMetric.TBridgeStreamRead(merged, "v:0");
         double mergedAudioDuration = TBridgeMetric.TBridgeStreamRead(merged, "a:0");

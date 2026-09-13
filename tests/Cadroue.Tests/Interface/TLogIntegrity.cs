@@ -145,7 +145,11 @@ internal static class TLogIntegrity
     internal static TLogMoveResult TLogConcurrentMove()
     {
         string previousRoot = LDepot.LDepotRootRead();
-        string parent = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-move-race", Guid.NewGuid().ToString("N"));
+        string parent = Path.Combine(
+            Path.GetTempPath(),
+            "Cadroue.Tests",
+            "log-move-race",
+            Guid.NewGuid().ToString("N"));
         string source = Path.Combine(parent, "source");
         string target = Path.Combine(parent, "target");
         using var moveEntered = new ManualResetEventSlim();

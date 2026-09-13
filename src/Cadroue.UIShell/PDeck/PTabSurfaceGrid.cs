@@ -47,7 +47,8 @@ public abstract partial class PTabSurface : UserControl
             };
             pPanelGrid.ColumnDefinitions.Add(pPanelDefinition);
             pColumnItems.Add(pPanelDefinition);
-            pColumnCompactFlags.Add(pPanels[index] is PList or PExport or PProcessing or PInspector or PClinic or PSection);
+            pColumnCompactFlags.Add(
+                pPanels[index] is PList or PExport or PProcessing or PInspector or PClinic or PSection);
             Grid.SetColumn(pPanels[index], pPanelColumn);
             pPanelGrid.Children.Add(pPanels[index]);
             if (index >= pPanels.Count - 1)
@@ -132,7 +133,8 @@ public abstract partial class PTabSurface : UserControl
             Padding = new Thickness(10, 0, 10, 0),
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Background = System.Windows.Media.Brushes.White,
-            BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xD7, 0xDF, 0xEA)),
+            BorderBrush = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(0xD7, 0xDF, 0xEA)),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
             Child = pActionRowContent,

@@ -52,7 +52,9 @@ public sealed partial class PFlow
                     false);
             }
 
-            for (int pFlowWaveformColumn = pFlowWaveformColumns.Length - 1; pFlowWaveformColumn >= 0; pFlowWaveformColumn--)
+            for (int pFlowWaveformColumn = pFlowWaveformColumns.Length - 1;
+                pFlowWaveformColumn >= 0;
+                pFlowWaveformColumn--)
             {
                 pFlowWaveformContext.LineTo(
                     new Point(

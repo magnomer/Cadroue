@@ -60,7 +60,8 @@ internal sealed partial class PSEncoder
         }
 
         return LRepertoireCatalog.LRepertoireEncodersRead()
-            .Where(pCandidate => PSCodecContainerCheck(pCandidate.LRepertoireText, pContainer) && PSCodecAvailableCheck(pCandidate))
+            .Where(pCandidate => PSCodecContainerCheck(pCandidate.LRepertoireText, pContainer)
+                && PSCodecAvailableCheck(pCandidate))
             .Select(pCandidate => pCandidate.LRepertoireText)
             .ToArray();
     }
@@ -89,8 +90,12 @@ internal sealed partial class PSEncoder
             return pItems;
         }
 
-        bool pFits = LRepertoireCatalog.LRepertoireEncodersRead().Any(pCandidate => string.Equals(pCandidate.LRepertoireText, pKeep, StringComparison.Ordinal))
-                     && (!LRepertoireCatalog.LRepertoireContainerNames.Contains(pContainer) || PSCodecContainerCheck(pKeep, pContainer));
+        bool pFits = LRepertoireCatalog.LRepertoireEncodersRead().Any(pCandidate => string.Equals(
+                pCandidate.LRepertoireText,
+                pKeep,
+                StringComparison.Ordinal))
+            && (!LRepertoireCatalog.LRepertoireContainerNames.Contains(pContainer)
+                || PSCodecContainerCheck(pKeep, pContainer));
         return pFits ? [pKeep, .. pItems] : pItems;
     }
 
@@ -152,7 +157,11 @@ internal sealed partial class PSEncoder
                     pAvailableNames.Add(pEncoder);
                 }
 
-                pRows.Add(new PSVerdictRow(pCandidate.LRepertoireText, pEncoder, pResult.LTrialSuccess, pResult.LTrialMessage));
+                pRows.Add(new PSVerdictRow(
+                    pCandidate.LRepertoireText,
+                    pEncoder,
+                    pResult.LTrialSuccess,
+                    pResult.LTrialMessage));
                 pDone++;
                 pFeed.Report(pTotal == 0 ? 1 : (double)pDone / pTotal);
             }
@@ -165,7 +174,10 @@ internal sealed partial class PSEncoder
 
         psCodecAvailable = pAvailableNames.Count > 0 ? pAvailableNames : psCodecAvailable;
         if (!pAvailable.Contains(pSelected)
-            && LRepertoireCatalog.LRepertoireEncodersRead().Any(pCandidate => string.Equals(pCandidate.LRepertoireText, pSelected, StringComparison.Ordinal)))
+            && LRepertoireCatalog.LRepertoireEncodersRead().Any(pCandidate => string.Equals(
+                pCandidate.LRepertoireText,
+                pSelected,
+                StringComparison.Ordinal)))
         {
             pAvailable.Insert(0, pSelected);
         }
@@ -185,7 +197,9 @@ internal sealed partial class PSEncoder
         var pDetail = new StringBuilder();
         foreach (PSVerdictRow pRow in pRows)
         {
-            pDetail.AppendLine($"{pRow.PSVerdictFamily} / {pRow.PSVerdictEncoder}: {(pRow.PSVerdictSuccess ? "OK" : "FAIL")} - {pRow.PSVerdictMessage}");
+            pDetail.AppendLine(
+                $"{pRow.PSVerdictFamily} / {pRow.PSVerdictEncoder}: {(pRow.PSVerdictSuccess ? "OK" : "FAIL")} - "
+                + $"{pRow.PSVerdictMessage}");
         }
 
         LTraceLog.LTraceInfoRecord(

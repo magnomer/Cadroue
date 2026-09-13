@@ -35,7 +35,8 @@ public static partial class LCartographer
                 return LCartographerFinishTarget;
             }
 
-            if (lCartographerStages.TryGetValue(lCartographerTabId, out LCartographerStageRecord? lCartographerExisting))
+            if (lCartographerStages.TryGetValue(
+                lCartographerTabId, out LCartographerStageRecord? lCartographerExisting))
             {
                 return lCartographerExisting.LCartographerStageId;
             }
@@ -65,7 +66,8 @@ public static partial class LCartographer
                 {
                     Guid lCartographerRuleTarget = lCartographerRule.LSceneFunnelTarget >= 0
                         && lCartographerRule.LSceneFunnelTarget < lCartographerTabs.Count
-                        ? LCartographerStageCreate(lCartographerTabs[lCartographerRule.LSceneFunnelTarget].LCartographerTabId)
+                        ? LCartographerStageCreate(
+                            lCartographerTabs[lCartographerRule.LSceneFunnelTarget].LCartographerTabId)
                         : Guid.Empty;
                     lCartographerStage.LCartographerFunnelRules.Add(new LCartographerFunnelRule
                     {
@@ -76,7 +78,8 @@ public static partial class LCartographer
             }
             else
             {
-                lCartographerStage.LCartographerNextStage = LCartographerStageCreate(LCartographerTargetRead(lCartographerTabId));
+                lCartographerStage.LCartographerNextStage = LCartographerStageCreate(
+                    LCartographerTargetRead(lCartographerTabId));
             }
 
             lCartographerActive.Remove(lCartographerTabId);
@@ -88,10 +91,13 @@ public static partial class LCartographer
         return lCartographerPlan.LCartographerEntryStage == Guid.Empty ? null : lCartographerPlan;
     }
 
-    public static LCartographerPlanRecord LCartographerPlanCopy(LCartographerPlanRecord lCartographerTemplate, Guid lCartographerPlanId)
+    public static LCartographerPlanRecord LCartographerPlanCopy(
+        LCartographerPlanRecord lCartographerTemplate,
+        Guid lCartographerPlanId)
     {
         string lCartographerJson = JsonSerializer.Serialize(lCartographerTemplate);
-        LCartographerPlanRecord lCartographerCopy = JsonSerializer.Deserialize<LCartographerPlanRecord>(lCartographerJson)!;
+        LCartographerPlanRecord lCartographerCopy =
+            JsonSerializer.Deserialize<LCartographerPlanRecord>(lCartographerJson)!;
         lCartographerCopy.LCartographerPlanId = lCartographerPlanId;
         lCartographerCopy.LCartographerCreated = DateTimeOffset.Now;
         lCartographerCopy.LCartographerDeliveredWork.Clear();

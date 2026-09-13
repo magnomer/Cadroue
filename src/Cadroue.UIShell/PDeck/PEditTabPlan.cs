@@ -23,7 +23,11 @@ public sealed partial class PEditTab
             if (pEditPersistent.LSceneInspectorCrop)
             {
                 pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropActive);
-                pInspector.PInspectorRatioApply(pEditPlan.LEditRatioFixed, pEditPlan.LEditRatioLenient, pEditPlan.LEditRatioWidth, pEditPlan.LEditRatioHeight);
+                pInspector.PInspectorRatioApply(
+                    pEditPlan.LEditRatioFixed,
+                    pEditPlan.LEditRatioLenient,
+                    pEditPlan.LEditRatioWidth,
+                    pEditPlan.LEditRatioHeight);
                 pInspector.PCropPersistentApply(true);
                 pCropOwner.LCropboxStateSet(
                     pEditPlan.LEditCrop,

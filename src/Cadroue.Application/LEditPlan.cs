@@ -101,7 +101,9 @@ public static partial class LEdit
         }
 
         bool lRatioFixed = lEditCropPersistent ? lPersistent.LEditRatioFixed : lEditSaved?.LEditRatioFixed ?? false;
-        bool lRatioLenient = lEditCropPersistent ? lPersistent.LEditRatioLenient : lEditSaved?.LEditRatioLenient ?? false;
+        bool lRatioLenient = lEditCropPersistent
+            ? lPersistent.LEditRatioLenient
+            : lEditSaved?.LEditRatioLenient ?? false;
         int lRatioWidth = lEditCropPersistent ? lPersistent.LEditRatioWidth : lEditSaved?.LEditRatioWidth ?? 0;
         int lRatioHeight = lEditCropPersistent ? lPersistent.LEditRatioHeight : lEditSaved?.LEditRatioHeight ?? 0;
 

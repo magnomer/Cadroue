@@ -13,12 +13,14 @@ public sealed partial class LSchedule
         if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, lScheduleTarget))
         {
             LTraceLog.LTraceWarningRecord(
-                $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] could not be filed as {lScheduleTarget}; it stays running and is retried on the next scan");
+                $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] " +
+                $"could not be filed as {lScheduleTarget}; it stays running and is retried on the next scan");
             return;
         }
 
         LTraceLog.LTraceInfoRecord(
-            $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] committed as {lScheduleState}");
+            $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] " +
+            $"committed as {lScheduleState}");
 
         var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
         lWorkRecord.LWorkStateName = lScheduleState.ToString();
@@ -27,7 +29,8 @@ public sealed partial class LSchedule
         if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, lScheduleTarget))
         {
             LTraceLog.LTraceWarningRecord(
-                $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] was filed as {lScheduleTarget} but its details could not be written");
+                $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] " +
+                $"was filed as {lScheduleTarget} but its details could not be written");
         }
     }
 
@@ -42,7 +45,8 @@ public sealed partial class LSchedule
         if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, lCancelSource, LDepotFolder.LDepotFolderCancelled))
         {
             LTraceLog.LTraceWarningRecord(
-                $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] could not be cancelled");
+                $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] " +
+                "could not be cancelled");
             return false;
         }
 
@@ -64,10 +68,15 @@ public sealed partial class LSchedule
 
     public bool LScheduleItemReset(Guid lWorkId)
     {
-        foreach (LDepotFolder lDepotFolder in new[] { LDepotFolder.LDepotFolderCancelled, LDepotFolder.LDepotFolderFailed })
+        foreach (LDepotFolder lDepotFolder in new[]
+            {
+                LDepotFolder.LDepotFolderCancelled,
+                LDepotFolder.LDepotFolderFailed
+            })
         {
             string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
-            if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+            if (!File.Exists(lDepotFilePath)
+                || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
             {
                 continue;
             }
@@ -75,7 +84,8 @@ public sealed partial class LSchedule
             if (!LScheduleStore.LScheduleMove(lWorkId, lDepotFolder, LDepotFolder.LDepotFolderScheduled))
             {
                 LTraceLog.LTraceWarningRecord(
-                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkId)}] could not be reset");
+                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkId)}] " +
+                    "could not be reset");
                 return false;
             }
 

@@ -12,7 +12,8 @@ public static class LSidecarSource
     {
         string lSidecarFolder = Path.GetDirectoryName(Path.GetFullPath(lSidecarPath)) ?? string.Empty;
 
-        foreach ((string lCandidatePath, LSidecarSourceKind lCandidateKind) in LSidecarCandidatesRead(lSidecarFolder, lSidecar))
+        foreach ((string lCandidatePath, LSidecarSourceKind lCandidateKind)
+            in LSidecarCandidatesRead(lSidecarFolder, lSidecar))
         {
             if (string.IsNullOrWhiteSpace(lCandidatePath) || !File.Exists(lCandidatePath))
             {
@@ -21,19 +22,32 @@ public static class LSidecarSource
 
             if (LSidecarSourceMatch(lCandidatePath, lSidecar.LSidecarSource))
             {
-                return new LSidecarSourceResult(Path.GetFullPath(lCandidatePath), lCandidateKind, true, lSidecar.LSidecarSource.LSidecarFileName);
+                return new LSidecarSourceResult(
+                    Path.GetFullPath(lCandidatePath),
+                    lCandidateKind,
+                    true,
+                    lSidecar.LSidecarSource.LSidecarFileName);
             }
         }
 
-        foreach ((string lCandidatePath, LSidecarSourceKind lCandidateKind) in LSidecarCandidatesRead(lSidecarFolder, lSidecar))
+        foreach ((string lCandidatePath, LSidecarSourceKind lCandidateKind)
+            in LSidecarCandidatesRead(lSidecarFolder, lSidecar))
         {
             if (!string.IsNullOrWhiteSpace(lCandidatePath) && File.Exists(lCandidatePath))
             {
-                return new LSidecarSourceResult(Path.GetFullPath(lCandidatePath), lCandidateKind, false, lSidecar.LSidecarSource.LSidecarFileName);
+                return new LSidecarSourceResult(
+                    Path.GetFullPath(lCandidatePath),
+                    lCandidateKind,
+                    false,
+                    lSidecar.LSidecarSource.LSidecarFileName);
             }
         }
 
-        return new LSidecarSourceResult(string.Empty, LSidecarSourceKind.LSidecarSourceMissing, false, lSidecar.LSidecarSource.LSidecarFileName);
+        return new LSidecarSourceResult(
+            string.Empty,
+            LSidecarSourceKind.LSidecarSourceMissing,
+            false,
+            lSidecar.LSidecarSource.LSidecarFileName);
     }
 
     public static bool LSidecarSourceMatch(string lSidecarMediaPath, LSidecarSourceRecord lSidecarSource)
@@ -66,17 +80,22 @@ public static class LSidecarSource
         string lSidecarFolder,
         LSidecar lSidecar)
     {
-        if (!string.IsNullOrWhiteSpace(lSidecar.LSidecarSource.LSidecarFileName) && !string.IsNullOrWhiteSpace(lSidecarFolder))
+        if (!string.IsNullOrWhiteSpace(lSidecar.LSidecarSource.LSidecarFileName)
+            && !string.IsNullOrWhiteSpace(lSidecarFolder))
         {
-            yield return (Path.Combine(lSidecarFolder, lSidecar.LSidecarSource.LSidecarFileName), LSidecarSourceKind.LSidecarSourceSibling);
+            yield return (
+                Path.Combine(lSidecarFolder, lSidecar.LSidecarSource.LSidecarFileName),
+                LSidecarSourceKind.LSidecarSourceSibling);
         }
 
-        if (!string.IsNullOrWhiteSpace(lSidecar.LSidecarSource.LSidecarRelativePath) && !string.IsNullOrWhiteSpace(lSidecarFolder))
+        if (!string.IsNullOrWhiteSpace(lSidecar.LSidecarSource.LSidecarRelativePath)
+            && !string.IsNullOrWhiteSpace(lSidecarFolder))
         {
             string lSidecarRelative;
             try
             {
-                lSidecarRelative = Path.GetFullPath(Path.Combine(lSidecarFolder, lSidecar.LSidecarSource.LSidecarRelativePath));
+                lSidecarRelative = Path.GetFullPath(
+                    Path.Combine(lSidecarFolder, lSidecar.LSidecarSource.LSidecarRelativePath));
             }
             catch (Exception lException) when (lException is ArgumentException or NotSupportedException)
             {

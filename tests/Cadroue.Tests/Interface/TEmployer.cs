@@ -128,7 +128,10 @@ internal sealed class TEmployer : IDisposable
         tEmployerRoot = Path.Combine(Path.GetTempPath(), "Cadroue-EmployerTests-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tEmployerRoot);
         tEmployerScriptPath = Path.Combine(tEmployerRoot, "child.ps1");
-        File.WriteAllText(tEmployerScriptPath, TEmployerChildScript, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        File.WriteAllText(
+            tEmployerScriptPath,
+            TEmployerChildScript,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
 
     internal TEmployerExecution TEmployerStart(params string[] arguments) =>

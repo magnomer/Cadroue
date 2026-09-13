@@ -38,8 +38,10 @@ internal static class LScoutAudio
             $"{lScoutOrigin.TotalSeconds:F6}%+{lScoutDuration:F6}");
         var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfprobeRead())
         {
-            Arguments = $"-v quiet -select_streams {(lScoutAllTracks ? "a" : "a:0")} -show_packets -show_format -read_intervals \"+{lScoutInterval}\" "
-                + $"-show_entries packet=pts_time,dts_time,duration_time:format=start_time -of csv -i {LEncode.LEncodeFormat(lScoutSourcePath)}",
+            Arguments = $"-v quiet -select_streams {(lScoutAllTracks ? "a" : "a:0")} -show_packets -show_format " +
+                $"-read_intervals \"+{lScoutInterval}\" " +
+                "-show_entries packet=pts_time,dts_time,duration_time:format=start_time -of csv " +
+                $"-i {LEncode.LEncodeFormat(lScoutSourcePath)}",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -144,7 +146,11 @@ internal static class LScoutAudio
 
         lScoutStart = lScoutPts ? lScoutPtsSeconds : lScoutDtsSeconds;
         lScoutDuration = lScoutParts.Length > 3
-            && double.TryParse(lScoutParts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out double lScoutParsedDuration)
+            && double.TryParse(
+                lScoutParts[3],
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out double lScoutParsedDuration)
                 ? Math.Max(0, lScoutParsedDuration)
                 : 0;
         return true;

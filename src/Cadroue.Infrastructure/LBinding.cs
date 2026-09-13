@@ -66,7 +66,12 @@ public static class LBinding
         }
     }
 
-    public static string LBindingGestureFormat(string lBindingKeyName, bool lBindingCtrl, bool lBindingAlt, bool lBindingShift, bool lBindingWin)
+    public static string LBindingGestureFormat(
+        string lBindingKeyName,
+        bool lBindingCtrl,
+        bool lBindingAlt,
+        bool lBindingShift,
+        bool lBindingWin)
     {
         if (string.IsNullOrEmpty(lBindingKeyName))
         {
@@ -120,7 +125,10 @@ public static class LBinding
         foreach (LBindingCommand lBindingCommand in lBindingCatalog)
         {
             LBindingRecord? lBindingStored = lBindingRecords?.FirstOrDefault(lBindingEntry =>
-                string.Equals(lBindingEntry.LBindingRecordToken, lBindingCommand.LBindingCommandToken, StringComparison.Ordinal));
+                string.Equals(
+                    lBindingEntry.LBindingRecordToken,
+                    lBindingCommand.LBindingCommandToken,
+                    StringComparison.Ordinal));
 
             string lBindingGesture = (lBindingStored?.LBindingRecordGesture
                 ?? lBindingCommand.LBindingCommandGesture

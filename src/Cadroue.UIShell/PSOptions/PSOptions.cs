@@ -49,42 +49,79 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         psOptionsCallback = pApplyCallback;
 
-        psOptionsStartupMode = PSModeBuild(lsOptionsDraft.LPreferenceStartupMode, () => psOptionsStartupPicker?.Invoke(), PSOptionsStartupItems);
-        psOptionsRecordMode = PSModeBuild(lsOptionsDraft.LPreferenceRecordWorkspace ? "Workspace" : "FileLocation", () => psOptionsRecordNotice?.Invoke(), PSOptionsRecordItems);
-        psOptionsTabPicker = new PPicker(PSOptionsTabItems, lsOptionsDraft.LPreferenceStartupTabs, LLocalization.LLocalizationTextRead("Options.Startup.NoTab"))
+        psOptionsStartupMode = PSModeBuild(
+            lsOptionsDraft.LPreferenceStartupMode,
+            () => psOptionsStartupPicker?.Invoke(),
+            PSOptionsStartupItems);
+        psOptionsRecordMode = PSModeBuild(
+            lsOptionsDraft.LPreferenceRecordWorkspace ? "Workspace" : "FileLocation",
+            () => psOptionsRecordNotice?.Invoke(),
+            PSOptionsRecordItems);
+        psOptionsTabPicker = new PPicker(
+            PSOptionsTabItems,
+            lsOptionsDraft.LPreferenceStartupTabs,
+            LLocalization.LLocalizationTextRead("Options.Startup.NoTab"))
         {
             MinWidth = 260,
             Height = PSFieldControlHeight,
             HorizontalAlignment = HorizontalAlignment.Left
         };
-        psMediaBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Startup.OpenLastMedia"), lsOptionsDraft.LPreferenceMediaAutomatic);
-        psOptionsConfirmBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Confirm.Ask"), lsOptionsDraft.LPreferenceConfirmDestructive);
-        psRelayClearBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Relay.ClearCheck"), lsOptionsDraft.LPreferenceRelayEmpty);
-        psOptionsTabsMode = PSModeBuild(lsOptionsDraft.LPreferenceVerticalTabs ? "Vertical" : "Horizontal", () => { }, PSOptionsTabsItems);
+        psMediaBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Startup.OpenLastMedia"),
+            lsOptionsDraft.LPreferenceMediaAutomatic);
+        psOptionsConfirmBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Confirm.Ask"),
+            lsOptionsDraft.LPreferenceConfirmDestructive);
+        psRelayClearBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Relay.ClearCheck"),
+            lsOptionsDraft.LPreferenceRelayEmpty);
+        psOptionsTabsMode = PSModeBuild(
+            lsOptionsDraft.LPreferenceVerticalTabs ? "Vertical" : "Horizontal",
+            () => { },
+            PSOptionsTabsItems);
         psOptionsLanguageCombo = PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguagesRead());
 
         bool psEngineMpvInstalled = Cadroue.Infrastructure.LMpv.LMpvInstalledCheck();
-        bool psEngineMpv = psEngineMpvInstalled && string.Equals(lsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal);
-        psOptionsEngineMode = PSModeBuild(psEngineMpv ? "Mpv" : "Flyleaf", () => { }, out psOptionsEngineEnable, PSOptionsEngineItems);
+        bool psEngineMpv = psEngineMpvInstalled
+            && string.Equals(lsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal);
+        psOptionsEngineMode = PSModeBuild(
+            psEngineMpv ? "Mpv" : "Flyleaf",
+            () => { },
+            out psOptionsEngineEnable,
+            PSOptionsEngineItems);
         psOptionsEngineEnable("Mpv", psEngineMpvInstalled);
 
-        psOptionsAutoplayBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"), lsOptionsDraft.LPreferenceAutoplay);
+        psOptionsAutoplayBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"),
+            lsOptionsDraft.LPreferenceAutoplay);
         psOptionsVolumeMode = PSModeBuild(lsOptionsDraft.LPreferenceVolumeMode, () => { }, PSOptionsVolumeItems);
         psOptionsVolumeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceVolume, 0, 100);
         psOptionsWheelMode = PSModeBuild(lsOptionsDraft.LPreferenceWheelAction, () => { }, PSOptionsWheelItems);
-        psOptionsDragBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Playback.DragPause"), lsOptionsDraft.LPreferenceDragPaused);
+        psOptionsDragBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Playback.DragPause"),
+            lsOptionsDraft.LPreferenceDragPaused);
 
         psOptionsOrderMode = PSModeBuild(lsOptionsDraft.LPreferenceTimelineOrder, () => { }, PSOptionsOrderItems);
         psKeyframeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframePixels, 1, 50);
         psKeyframeDelaySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframeDelay, 0, 5000);
-        psOptionsOverlapBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.OverlapCheck"), lsOptionsDraft.LPreferenceOverlapAllowed);
-        psWaveformBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformCheck"), lsOptionsDraft.LPreferenceWaveform);
+        psOptionsOverlapBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Timeline.OverlapCheck"),
+            lsOptionsDraft.LPreferenceOverlapAllowed);
+        psWaveformBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Timeline.WaveformCheck"),
+            lsOptionsDraft.LPreferenceWaveform);
 
-        psOptionsFailureBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Work.FailurePause"), lsOptionsDraft.LPreferenceFailurePaused);
-        psOptionsRetryBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.Work.RetryCheck"), lsOptionsDraft.LPreferenceRetryAllowed);
+        psOptionsFailureBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Work.FailurePause"),
+            lsOptionsDraft.LPreferenceFailurePaused);
+        psOptionsRetryBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.Work.RetryCheck"),
+            lsOptionsDraft.LPreferenceRetryAllowed);
         psOptionsRetrySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceRetryMaximum, 0, 10);
 
-        psOptionsCleanupBox = PSOptionsCheckBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupCheck"), lsOptionsDraft.LPreferenceCleanupActive);
+        psOptionsCleanupBox = PSOptionsCheckBuild(
+            LLocalization.LLocalizationTextRead("Options.System.CleanupCheck"),
+            lsOptionsDraft.LPreferenceCleanupActive);
         psOptionsCleanupSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceCleanupDays, 1, 365);
 
         psWorkspaceBox = PSEntryBuild(lsOptionsDraft.LPreferenceWorkspaceFolder, 320);
@@ -107,16 +144,36 @@ internal sealed partial class PSOptions : Window
     private UIElement PSOptionsBuild() =>
         PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, PSSheet.PSSheetControlBuild(
             PSSheetTabWidth,
-            PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.General"), PSSheetGeneralIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSGeneralBuild()))),
-            PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.System"), PSSheetSystemIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSSystemBuild()))),
-            PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.Playback"), PSSheetPlaybackIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSPlaybackBuild()))),
-            PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.Timeline"), PSSheetTimelineIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSTimelineBuild()))),
-            PSSheet.PSSheetBuild(LLocalization.LLocalizationTextRead("Options.Sheet.Work"), PSSheetWorkIcon, PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSWorkBuild())))));
+            PSSheet.PSSheetBuild(
+                LLocalization.LLocalizationTextRead("Options.Sheet.General"),
+                PSSheetGeneralIcon,
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSGeneralBuild()))),
+            PSSheet.PSSheetBuild(
+                LLocalization.LLocalizationTextRead("Options.Sheet.System"),
+                PSSheetSystemIcon,
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSSystemBuild()))),
+            PSSheet.PSSheetBuild(
+                LLocalization.LLocalizationTextRead("Options.Sheet.Playback"),
+                PSSheetPlaybackIcon,
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSPlaybackBuild()))),
+            PSSheet.PSSheetBuild(
+                LLocalization.LLocalizationTextRead("Options.Sheet.Timeline"),
+                PSSheetTimelineIcon,
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSTimelineBuild()))),
+            PSSheet.PSSheetBuild(
+                LLocalization.LLocalizationTextRead("Options.Sheet.Work"),
+                PSSheetWorkIcon,
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSWorkBuild())))));
 
     private UIElement PSOptionsRootBuild(UIElement pSheetContent)
     {
         var pRoot = new DockPanel { Background = Brushes.White };
-        var pFooter = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(12) };
+        var pFooter = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(12)
+        };
         Button pApply = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Apply"));
         Button pOk = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.OK"));
         Button pCancel = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Cancel"));
@@ -135,12 +192,14 @@ internal sealed partial class PSOptions : Window
     private void PSOptionsApply()
     {
         lsOptionsDraft.LPreferenceStartupMode = PSModeTextRead(psOptionsStartupMode);
-        lsOptionsDraft.LPreferenceRecordWorkspace = string.Equals(PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
+        lsOptionsDraft.LPreferenceRecordWorkspace =
+            string.Equals(PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
         lsOptionsDraft.LPreferenceStartupTabs = psOptionsTabPicker.PPickerSelectionRead().ToList();
         lsOptionsDraft.LPreferenceMediaAutomatic = psMediaBox.IsChecked == true;
         lsOptionsDraft.LPreferenceConfirmDestructive = psOptionsConfirmBox.IsChecked == true;
         lsOptionsDraft.LPreferenceRelayEmpty = psRelayClearBox.IsChecked == true;
-        lsOptionsDraft.LPreferenceVerticalTabs = string.Equals(PSModeTextRead(psOptionsTabsMode), "Vertical", StringComparison.Ordinal);
+        lsOptionsDraft.LPreferenceVerticalTabs =
+            string.Equals(PSModeTextRead(psOptionsTabsMode), "Vertical", StringComparison.Ordinal);
         lsOptionsDraft.LPreferenceLanguage = PSComboTextRead(psOptionsLanguageCombo);
 
         lsOptionsDraft.LPreferenceAutoplay = psOptionsAutoplayBox.IsChecked == true;

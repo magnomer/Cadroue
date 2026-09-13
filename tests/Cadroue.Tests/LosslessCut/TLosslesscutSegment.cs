@@ -68,13 +68,20 @@ public sealed class TLosslesscutSegment
             ]}
             """);
 
-        TLosslesscut.TLosslesscutResult result = TLosslesscut.TLosslesscutValidate(project, TLosslesscutSource, TimeSpan.FromSeconds(10));
+        TLosslesscut.TLosslesscutResult result = TLosslesscut.TLosslesscutValidate(
+            project,
+            TLosslesscutSource,
+            TimeSpan.FromSeconds(10));
 
         Assert.Equal(new[] { "later", "earlier" }, result.TLosslesscutSections.Select(section => section.TSectionName));
-        Assert.Equal(new long[] { 6_000, 1_000 }, result.TLosslesscutSections.Select(section => section.TSectionStartMilliseconds));
+        Assert.Equal(
+            new long[] { 6_000, 1_000 },
+            result.TLosslesscutSections.Select(section => section.TSectionStartMilliseconds));
     }
 
-    private static TLosslesscut.TLosslesscutResult TLosslesscutImport(string segment, long durationMilliseconds = 10_000)
+    private static TLosslesscut.TLosslesscutResult TLosslesscutImport(
+        string segment,
+        long durationMilliseconds = 10_000)
     {
         TLosslesscut.TLosslesscutProject project = TLosslesscut.TLosslesscutParse(
             $$"""{"version":1,"mediaFileName":"clip.mp4","cutSegments":[{{segment}}]}""");

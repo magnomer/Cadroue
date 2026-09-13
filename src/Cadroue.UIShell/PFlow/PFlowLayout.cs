@@ -41,6 +41,16 @@ public sealed partial class PFlow
     public void PFlowPaletteApply() =>
         PFlowSegmentHandle(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
 
-    private static TextBlock PReelLabelBuild() => new() { FontSize = 12, Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x4A, 0x4A)) };
-    private static Border PDividerBuild() => new() { Height = 8, Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3)), Cursor = Cursors.SizeNS };
+    private static TextBlock PReelLabelBuild() => new()
+    {
+        FontSize = 12,
+        Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x4A, 0x4A))
+    };
+
+    private static Border PDividerBuild() => new()
+    {
+        Height = 8,
+        Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3)),
+        Cursor = Cursors.SizeNS
+    };
 }

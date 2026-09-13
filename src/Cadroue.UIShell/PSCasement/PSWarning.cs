@@ -71,7 +71,9 @@ internal sealed class PSWarning : Window
 
         var pIcon = new Image
         {
-            Source = PAsset.PIcon.PIconRead("/PAsset/PSDialog/PSWarning.svg", new SolidColorBrush(Color.FromRgb(0xB4, 0x6A, 0x18))),
+            Source = PAsset.PIcon.PIconRead(
+                "/PAsset/PSDialog/PSWarning.svg",
+                new SolidColorBrush(Color.FromRgb(0xB4, 0x6A, 0x18))),
             Width = 28,
             Height = 28,
             Stretch = Stretch.Uniform,

@@ -146,5 +146,6 @@ public sealed class TConvertCreation
             _ => { },
             _ => TimeSpan.FromMinutes(1));
 
-    private static LWorkMedia TConvertMediaCreate(long seconds) => TInterface.TWorkMediaCreate(1920, 1080, 30, seconds * 1000, true);
+    private static LWorkMedia TConvertMediaCreate(long seconds) =>
+        TInterface.TWorkMediaCreate(1920, 1080, 30, seconds * 1000, true);
 }

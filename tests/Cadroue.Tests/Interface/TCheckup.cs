@@ -25,13 +25,16 @@ internal static class TCheckup
         TCheckupRepairLabel);
 
     internal static string TCheckupCleanFormat() =>
-        TCheckupBodyFormat(new LCheckupResult("a.mp4", LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeClean));
+        TCheckupBodyFormat(
+            new LCheckupResult("a.mp4", LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeClean));
 
     internal static string TCheckupFailedFormat() =>
-        TCheckupBodyFormat(new LCheckupResult("a.mp4", LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeFailed));
+        TCheckupBodyFormat(
+            new LCheckupResult("a.mp4", LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeFailed));
 
     internal static string TCheckupMissingFormat() =>
-        TCheckupBodyFormat(new LCheckupResult("a.mp4", LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeDefect));
+        TCheckupBodyFormat(
+            new LCheckupResult("a.mp4", LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeDefect));
 
     internal static string TCheckupDefectFormat(string defect, string evidence, string repair)
     {
@@ -51,7 +54,12 @@ internal static class TCheckup
             LDossierValidation.LDossierValidationUntested,
             LDossierCategory.LDossierCategoryContainer,
             LDossierKind: LFlawKind.LFlawKindContainer);
-        return TCheckupBodyFormat(new LCheckupResult("a.mp4", LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeDefect, dossier));
+        return TCheckupBodyFormat(
+            new LCheckupResult(
+                "a.mp4",
+                LFlawKind.LFlawKindContainer,
+                LCheckupOutcome.LCheckupOutcomeDefect,
+                dossier));
     }
 
     private static string TCheckupBodyFormat(LCheckupResult result) =>
@@ -71,7 +79,12 @@ internal readonly record struct TCheckupSample(string TCheckupPath, double TChec
 
 internal sealed class TCheckupJob : IDisposable
 {
-    private readonly Func<string, IReadOnlyCollection<LFlawKind>, CancellationToken, IProgress<double>?, IReadOnlyList<LDossier>>? tCheckupScanner;
+    private readonly Func<
+        string,
+        IReadOnlyCollection<LFlawKind>,
+        CancellationToken,
+        IProgress<double>?,
+        IReadOnlyList<LDossier>>? tCheckupScanner;
     private readonly Func<string, IReadOnlyList<LSidecarDossier>?>? tCheckupReader;
     private readonly LCheckup tCheckup = new();
     private readonly System.Collections.Concurrent.ConcurrentQueue<TCheckupJobResult> tCheckupResults = new();

@@ -118,14 +118,21 @@ internal static class LSalvageScan
     private static double? LSalvageTimeRead(string lSalvageField)
     {
         string lSalvageValue = lSalvageField.Trim();
-        return double.TryParse(lSalvageValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double lSalvageParsed)
+        return double.TryParse(
+            lSalvageValue,
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out double lSalvageParsed)
             ? lSalvageParsed
             : null;
     }
 
-    private static IReadOnlyList<LSalvageSpan> LSalvageWholeResolve(string lSalvageSource, CancellationToken lSalvageToken)
+    private static IReadOnlyList<LSalvageSpan> LSalvageWholeResolve(
+        string lSalvageSource,
+        CancellationToken lSalvageToken)
     {
-        TimeSpan lSalvageDuration = LScout.LScoutMediaRead(lSalvageSource, lSalvageToken)?.LWorkMediaDuration ?? TimeSpan.Zero;
+        TimeSpan lSalvageDuration = LScout.LScoutMediaRead(lSalvageSource, lSalvageToken)?.LWorkMediaDuration
+            ?? TimeSpan.Zero;
         return lSalvageDuration > TimeSpan.Zero
             ? new[] { new LSalvageSpan(TimeSpan.Zero, lSalvageDuration) }
             : Array.Empty<LSalvageSpan>();

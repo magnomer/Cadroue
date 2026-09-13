@@ -29,7 +29,8 @@ internal static partial class LEncodeVideo
 
         if (lFilters.Count > 0)
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -vf {LEncode.LEncodeFormat(string.Join(',', lFilters))}");
+            lArguments.Append(
+                CultureInfo.InvariantCulture, $" -vf {LEncode.LEncodeFormat(string.Join(',', lFilters))}");
         }
 
         string lFps = lOutput.LEncodingVideo.LEncodingFps?.Trim() ?? string.Empty;
@@ -102,18 +103,22 @@ internal static partial class LEncodeVideo
                     break;
                 case LColorKind.LColorKindGamma:
                     LWorkGammaSettings lGamma = lStep.LWorkGammaRead();
-                    lEqParts.Add($"gamma={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal))}");
+                    lEqParts.Add(
+                        $"gamma={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal))}");
                     if (lGamma.LWorkGammaRed != 0)
                     {
-                        lEqParts.Add($"gamma_r={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaRed))}");
+                        lEqParts.Add(
+                            $"gamma_r={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaRed))}");
                     }
                     if (lGamma.LWorkGammaGreen != 0)
                     {
-                        lEqParts.Add($"gamma_g={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGreen))}");
+                        lEqParts.Add(
+                            $"gamma_g={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGreen))}");
                     }
                     if (lGamma.LWorkGammaBlue != 0)
                     {
-                        lEqParts.Add($"gamma_b={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaBlue))}");
+                        lEqParts.Add(
+                            $"gamma_b={LEncodeGammaFormat(LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaBlue))}");
                     }
                     if (lGamma.LWorkGammaHighlight != 0)
                     {
@@ -127,7 +132,8 @@ internal static partial class LEncodeVideo
                     break;
                 case LColorKind.LColorKindExposure:
                     LEncodeEqAppend();
-                    lFilters.Add($"exposure=exposure={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
+                    lFilters.Add(
+                        $"exposure=exposure={lStep.LWorkFfmpegValue.ToString("0.###", CultureInfo.InvariantCulture)}");
                     lRgbDomain = true;
                     break;
                 case LColorKind.LColorKindCurve:

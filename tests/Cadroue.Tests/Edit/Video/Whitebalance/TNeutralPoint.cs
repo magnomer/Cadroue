@@ -65,8 +65,10 @@ public sealed class TNeutralPoint
         foreach ((int sx, int sy) in TNeutralPixelRead())
         {
             (double finalX, double finalY) = TNeutralFinalResolve(sx, sy, rotate, flipH, flipV);
-            if (finalX < shown.TNeutralRectX || finalY < shown.TNeutralRectY
-                || finalX >= shown.TNeutralRectX + shown.TNeutralRectWidth || finalY >= shown.TNeutralRectY + shown.TNeutralRectHeight)
+            if (finalX < shown.TNeutralRectX
+                || finalY < shown.TNeutralRectY
+                || finalX >= shown.TNeutralRectX + shown.TNeutralRectWidth
+                || finalY >= shown.TNeutralRectY + shown.TNeutralRectHeight)
             {
                 continue;
             }
@@ -176,7 +178,9 @@ public sealed class TNeutralPoint
         (double finalX, double finalY) = TNeutralFinalResolve(sx, sy, rotate, flipH, flipV);
         double u = (finalX - shown.TNeutralRectX) / shown.TNeutralRectWidth;
         double v = (finalY - shown.TNeutralRectY) / shown.TNeutralRectHeight;
-        return (display.TNeutralRectX + (u * display.TNeutralRectWidth), display.TNeutralRectY + (v * display.TNeutralRectHeight));
+        return (
+            display.TNeutralRectX + (u * display.TNeutralRectWidth),
+            display.TNeutralRectY + (v * display.TNeutralRectHeight));
     }
 
     private readonly record struct TNeutralRect(

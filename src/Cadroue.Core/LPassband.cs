@@ -47,9 +47,17 @@ public static class LPassband
         LPassbandPreset lPreset = LPassbandRead(lHigh, lHigh ? LPassbandHighDefault : LPassbandLowDefault)!;
         return lHigh
             ? LWorkAudioStep.LWorkHighCreate(
-                lActive, lPreset.LPassbandCutoff, lPreset.LPassbandStages, lPreset.LPassbandPoles, lPreset.LPassbandResonance)
+                lActive,
+                lPreset.LPassbandCutoff,
+                lPreset.LPassbandStages,
+                lPreset.LPassbandPoles,
+                lPreset.LPassbandResonance)
             : LWorkAudioStep.LWorkLowCreate(
-                lActive, lPreset.LPassbandCutoff, lPreset.LPassbandStages, lPreset.LPassbandPoles, lPreset.LPassbandResonance);
+                lActive,
+                lPreset.LPassbandCutoff,
+                lPreset.LPassbandStages,
+                lPreset.LPassbandPoles,
+                lPreset.LPassbandResonance);
     }
 
     public static LPassbandPreset? LPassbandRead(bool lHigh, string lToken)

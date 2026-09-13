@@ -67,7 +67,9 @@ internal sealed class LEmployer
     private static async Task LEmployerOutputRead(
         Process lEmployerProcess, CancellationToken lEmployerToken, Action<string> lEmployerLine)
     {
-        while (await lEmployerProcess.StandardOutput.ReadLineAsync(lEmployerToken).ConfigureAwait(false) is string lEmployerText)
+        while (await lEmployerProcess.StandardOutput
+            .ReadLineAsync(lEmployerToken)
+            .ConfigureAwait(false) is string lEmployerText)
         {
             lEmployerLine(lEmployerText);
         }
@@ -78,7 +80,9 @@ internal sealed class LEmployer
     {
         var lEmployerBuilder = new StringBuilder();
         bool lEmployerTruncated = false;
-        while (await lEmployerProcess.StandardError.ReadLineAsync(lEmployerToken).ConfigureAwait(false) is string lEmployerText)
+        while (await lEmployerProcess.StandardError
+            .ReadLineAsync(lEmployerToken)
+            .ConfigureAwait(false) is string lEmployerText)
         {
             lEmployerBuilder.AppendLine(lEmployerText);
             if (lEmployerBuilder.Length > LEmployerErrorLimit * 2)

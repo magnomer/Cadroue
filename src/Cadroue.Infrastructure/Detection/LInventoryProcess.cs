@@ -48,13 +48,18 @@ public static partial class LInventory
             return new LInventoryProcess(lInventoryProcess.ExitCode == 0, lInventoryOutput, lInventoryError);
         }
         catch (Exception lInventoryException)
-            when (lInventoryException is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
+            when (lInventoryException is System.ComponentModel.Win32Exception
+                or InvalidOperationException
+                or IOException)
         {
             return LInventoryProcess.LInventoryProcessFailure;
         }
     }
 
-    private sealed record LInventoryProcess(bool LInventoryProcessSuccess, string LInventoryProcessOut, string LInventoryProcessError)
+    private sealed record LInventoryProcess(
+        bool LInventoryProcessSuccess,
+        string LInventoryProcessOut,
+        string LInventoryProcessError)
     {
         public static readonly LInventoryProcess LInventoryProcessFailure = new(false, string.Empty, string.Empty);
     }
@@ -66,7 +71,9 @@ public static partial class LInventory
             lInventoryProcess.Kill(true);
         }
         catch (Exception lInventoryException)
-            when (lInventoryException is System.ComponentModel.Win32Exception or InvalidOperationException or NotSupportedException)
+            when (lInventoryException is System.ComponentModel.Win32Exception
+                or InvalidOperationException
+                or NotSupportedException)
         {
         }
     }

@@ -31,7 +31,10 @@ public sealed class LDocket
     public bool LDocketLockCheck(string lDocketPath) =>
         LDocketItemFind(lDocketPath)?.LDocketEntryLocked == true;
 
-    public int LDocketPathsAdd(IReadOnlyList<string> lDocketPaths, Guid lDocketBatch = default, bool lDocketDelivered = false)
+    public int LDocketPathsAdd(
+        IReadOnlyList<string> lDocketPaths,
+        Guid lDocketBatch = default,
+        bool lDocketDelivered = false)
     {
         if (lDocketPaths.Count == 0)
         {

@@ -58,7 +58,8 @@ public static class LWaveform
         }
 
         long lWaveformExpected = (long)Math.Round(lWaveformDuration.TotalMilliseconds);
-        return Math.Abs(lWaveformRecord.LSidecarDurationMilliseconds - lWaveformExpected) <= LWaveformBucketMilliseconds;
+        return Math.Abs(lWaveformRecord.LSidecarDurationMilliseconds - lWaveformExpected)
+            <= LWaveformBucketMilliseconds;
     }
 
     public static double[] LWaveformRangeRead(

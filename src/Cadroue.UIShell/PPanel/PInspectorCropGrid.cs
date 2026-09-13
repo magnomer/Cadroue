@@ -20,10 +20,26 @@ public sealed partial class PInspector
             pCropGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         }
 
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Top"), pInspectorInsetTop), 0, 1);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Left"), pInspectorInsetLeft), 1, 0);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Right"), pInspectorInsetRight), 1, 2);
-        PInspectorCellAdd(pCropGrid, PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Bottom"), pInspectorInsetBottom), 2, 1);
+        PInspectorCellAdd(
+            pCropGrid,
+            PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Top"), pInspectorInsetTop),
+            0,
+            1);
+        PInspectorCellAdd(
+            pCropGrid,
+            PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Left"), pInspectorInsetLeft),
+            1,
+            0);
+        PInspectorCellAdd(
+            pCropGrid,
+            PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Right"), pInspectorInsetRight),
+            1,
+            2);
+        PInspectorCellAdd(
+            pCropGrid,
+            PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Bottom"), pInspectorInsetBottom),
+            2,
+            1);
         PInspectorCellAdd(pCropGrid, PInspectorResolutionBuild(), 1, 1);
         PInspectorCellAdd(pCropGrid, PInspectorResetBuild(), 2, 2);
         return pCropGrid;

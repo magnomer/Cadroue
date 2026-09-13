@@ -147,16 +147,22 @@ public sealed class LPreferenceState
         (string, object, object)[] lPreferenceFields =
         {
             ("Startup", lPreferenceOther.LPreferenceStartupMode, LPreferenceStartupMode),
-            ("Default tabs", string.Join(", ", lPreferenceOther.LPreferenceStartupTabs), string.Join(", ", LPreferenceStartupTabs)),
+            ("Default tabs",
+                string.Join(", ", lPreferenceOther.LPreferenceStartupTabs),
+                string.Join(", ", LPreferenceStartupTabs)),
             ("Auto-open last media", lPreferenceOther.LPreferenceMediaAutomatic, LPreferenceMediaAutomatic),
-            ("Confirm destructive actions", lPreferenceOther.LPreferenceConfirmDestructive, LPreferenceConfirmDestructive),
+            ("Confirm destructive actions",
+                lPreferenceOther.LPreferenceConfirmDestructive,
+                LPreferenceConfirmDestructive),
             ("Clear source files on relay", lPreferenceOther.LPreferenceRelayEmpty, LPreferenceRelayEmpty),
             ("Language", lPreferenceOther.LPreferenceLanguage, LPreferenceLanguage),
             ("Verbose logging", lPreferenceOther.LPreferenceLogVerbose, LPreferenceLogVerbose),
             ("File record location", lPreferenceOther.LPreferenceRecordWorkspace, LPreferenceRecordWorkspace),
             ("Vertical tabs", lPreferenceOther.LPreferenceVerticalTabs, LPreferenceVerticalTabs),
             ("Developer mode", lPreferenceOther.LPreferenceDeveloperActive, LPreferenceDeveloperActive),
-            ("Preset groups", LPreferenceFoldFormat(lPreferenceOther.LPreferenceFold), LPreferenceFoldFormat(LPreferenceFold)),
+            ("Preset groups",
+                LPreferenceFoldFormat(lPreferenceOther.LPreferenceFold),
+                LPreferenceFoldFormat(LPreferenceFold)),
             ("Volume mode", lPreferenceOther.LPreferenceVolumeMode, LPreferenceVolumeMode),
             ("Default volume", lPreferenceOther.LPreferenceVolume, LPreferenceVolume),
             ("Autoplay on load", lPreferenceOther.LPreferenceAutoplay, LPreferenceAutoplay),
@@ -253,7 +259,11 @@ public sealed class LPreferenceState
     public static double LPreferenceVolumeClamp(double lPreferenceVolume)
         => LPreferenceNumberClamp(lPreferenceVolume, 0, 100, 100);
 
-    public static double LPreferenceNumberClamp(double lPreferenceValue, double lPreferenceMinimum, double lPreferenceMaximum, double lPreferenceFallback)
+    public static double LPreferenceNumberClamp(
+        double lPreferenceValue,
+        double lPreferenceMinimum,
+        double lPreferenceMaximum,
+        double lPreferenceFallback)
     {
         if (double.IsNaN(lPreferenceValue) || double.IsInfinity(lPreferenceValue))
         {

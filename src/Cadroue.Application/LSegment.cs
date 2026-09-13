@@ -110,10 +110,15 @@ public sealed class LSegment
         LSegmentApply(lSegmentImported, lSegmentImported.Count > 0 ? 0 : null);
     }
 
-    public void LSegmentLosslesscutAppend(IReadOnlyList<LSidecarSectionRecord> lSegmentSections, int lSegmentPaletteCount)
+    public void LSegmentLosslesscutAppend(
+        IReadOnlyList<LSidecarSectionRecord> lSegmentSections,
+        int lSegmentPaletteCount)
     {
         int lSegmentFirst = lSegmentPieces.Count;
-        List<LPiece> lSegmentImported = LSegmentLosslesscutCreate(lSegmentSections, lSegmentFirst, lSegmentPaletteCount);
+        List<LPiece> lSegmentImported = LSegmentLosslesscutCreate(
+            lSegmentSections,
+            lSegmentFirst,
+            lSegmentPaletteCount);
         if (lSegmentImported.Count == 0) return;
         List<LPiece> lSegmentList = lSegmentPieces.ToList();
         lSegmentList.AddRange(lSegmentImported);
@@ -135,16 +140,35 @@ public sealed class LSegment
             .ToList();
     }
 
-    public void LSegmentAdd(TimeSpan lSegmentCursor, TimeSpan lSegmentDuration, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
+    public void LSegmentAdd(
+        TimeSpan lSegmentCursor,
+        TimeSpan lSegmentDuration,
+        int lSegmentColorIndex,
+        bool lSegmentOverlapAllowed)
     {
-        if (LPiece.LPieceAdd(lSegmentPieces, lSegmentCursor, lSegmentDuration, lSegmentColorIndex, lSegmentOverlapAllowed)
+        if (LPiece.LPieceAdd(
+                lSegmentPieces,
+                lSegmentCursor,
+                lSegmentDuration,
+                lSegmentColorIndex,
+                lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return;
         LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive);
     }
 
-    public bool? LSegmentStartSet(TimeSpan lSegmentCursor, TimeSpan lSegmentDuration, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
+    public bool? LSegmentStartSet(
+        TimeSpan lSegmentCursor,
+        TimeSpan lSegmentDuration,
+        int lSegmentColorIndex,
+        bool lSegmentOverlapAllowed)
     {
-        if (LPiece.LPieceOriginSet(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentDuration, lSegmentColorIndex, lSegmentOverlapAllowed)
+        if (LPiece.LPieceOriginSet(
+                lSegmentPieces,
+                lSegmentIndexActive,
+                lSegmentCursor,
+                lSegmentDuration,
+                lSegmentColorIndex,
+                lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return null;
         LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive);
         return lSegmentPlan.LPieceAdded;
@@ -152,7 +176,12 @@ public sealed class LSegment
 
     public bool? LSegmentEndSet(TimeSpan lSegmentCursor, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
     {
-        if (LPiece.LPieceEndSet(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentColorIndex, lSegmentOverlapAllowed)
+        if (LPiece.LPieceEndSet(
+                lSegmentPieces,
+                lSegmentIndexActive,
+                lSegmentCursor,
+                lSegmentColorIndex,
+                lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return null;
         LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive);
         return lSegmentPlan.LPieceAdded;
@@ -187,7 +216,11 @@ public sealed class LSegment
         if (lSegmentIndex < 0 || lSegmentIndex >= lSegmentPieces.Count) return;
         List<LPiece> lSegmentList = lSegmentPieces.ToList();
         LPiece lSegmentPiece = lSegmentList[lSegmentIndex];
-        lSegmentList[lSegmentIndex] = lSegmentPiece with { LPieceHidden = !lSegmentPiece.LPieceHidden, LPieceDetected = false };
+        lSegmentList[lSegmentIndex] = lSegmentPiece with
+        {
+            LPieceHidden = !lSegmentPiece.LPieceHidden,
+            LPieceDetected = false
+        };
         LSegmentApply(lSegmentList, lSegmentIndexActive);
     }
 

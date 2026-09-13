@@ -16,14 +16,22 @@ public static partial class LMedia
         TimeSpan start = TimeSpan.Zero;
         if (root.TryGetProperty("format", out JsonElement fmt)
             && fmt.TryGetProperty("duration", out JsonElement durEl)
-            && double.TryParse(durEl.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out double durSeconds))
+            && double.TryParse(
+                durEl.GetString(),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out double durSeconds))
         {
             duration = TimeSpan.FromSeconds(durSeconds);
         }
 
         if (fmt.ValueKind != JsonValueKind.Undefined
             && fmt.TryGetProperty("start_time", out JsonElement startEl)
-            && double.TryParse(startEl.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out double startSeconds))
+            && double.TryParse(
+                startEl.GetString(),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out double startSeconds))
         {
             start = TimeSpan.FromSeconds(startSeconds);
         }
@@ -53,7 +61,9 @@ public static partial class LMedia
                         (videoWidth, videoHeight) = (videoHeight, videoWidth);
                     }
 
-                    videoCodec = stream.TryGetProperty("codec_name", out JsonElement cn) ? cn.GetString() ?? "unknown" : "unknown";
+                    videoCodec = stream.TryGetProperty("codec_name", out JsonElement cn)
+                        ? cn.GetString() ?? "unknown"
+                        : "unknown";
                     videoPixel = stream.TryGetProperty("pix_fmt", out JsonElement pf) ? pf.GetString() ?? "" : "";
                     videoRange = stream.TryGetProperty("color_range", out JsonElement cr) ? cr.GetString() ?? "" : "";
                     fps = LMediaFpsResolve(stream);
@@ -70,7 +80,9 @@ public static partial class LMedia
                 else if (codecType == "audio" && !audioPresent)
                 {
                     audioPresent = true;
-                    audioCodec = stream.TryGetProperty("codec_name", out JsonElement acn) ? acn.GetString() ?? "unknown" : "unknown";
+                    audioCodec = stream.TryGetProperty("codec_name", out JsonElement acn)
+                        ? acn.GetString() ?? "unknown"
+                        : "unknown";
                     if (stream.TryGetProperty("sample_rate", out JsonElement sr))
                         int.TryParse(sr.GetString(), out sampleRate);
                     channels = stream.TryGetProperty("channels", out JsonElement ch) ? ch.GetInt32() : 0;
@@ -80,7 +92,16 @@ public static partial class LMedia
             }
         }
 
-        return new LMediaInfo(duration, videoWidth, videoHeight, fps, videoCodec, audioPresent, audioCodec, sampleRate, channels)
+        return new LMediaInfo(
+            duration,
+            videoWidth,
+            videoHeight,
+            fps,
+            videoCodec,
+            audioPresent,
+            audioCodec,
+            sampleRate,
+            channels)
         {
             LMediaAudioBitrate = audioPresent ? audioBitrate : 0,
             LMediaStartTime = start,

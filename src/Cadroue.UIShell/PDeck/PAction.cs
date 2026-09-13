@@ -85,7 +85,8 @@ public sealed class PAction : UserControl
     {
         if (PStrip.PStripTabFind(pActionTargetTab) is not { } pActionTarget
             || pActionTarget.PTabWorkspace.PWorkspaceSurface is PMergeTab
-            || pActionTarget.PTabWorkspace.PWorkspaceSurface.PTabAction is not { PActionAutoRelay: true } pActionSurface)
+            || pActionTarget.PTabWorkspace.PWorkspaceSurface.PTabAction
+                is not { PActionAutoRelay: true } pActionSurface)
         {
             return;
         }
@@ -295,7 +296,11 @@ public sealed class PAction : UserControl
             PActionRowAppend(pRelayMenu, pOption.PActionRelayId, pOption.PActionRelayTitle, pOption.PActionRelayIcon);
         }
 
-        PActionRowAppend(pRelayMenu, LCartographer.LCartographerFinishTarget, LLocalization.LLocalizationTextRead("Action.Relay.Finish"), null);
+        PActionRowAppend(
+            pRelayMenu,
+            LCartographer.LCartographerFinishTarget,
+            LLocalization.LLocalizationTextRead("Action.Relay.Finish"),
+            null);
 
         pRelayMenu.IsOpen = true;
         pArgs.Handled = true;

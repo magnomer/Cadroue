@@ -43,7 +43,10 @@ public sealed partial class LSchedule
 
         foreach (LWorkRecord lWorkRecord in lScheduleOrdered)
         {
-            if (!LScheduleStore.LScheduleMove(lWorkRecord.LWorkId, LDepotFolder.LDepotFolderScheduled, LDepotFolder.LDepotFolderRunning))
+            if (!LScheduleStore.LScheduleMove(
+                    lWorkRecord.LWorkId,
+                    LDepotFolder.LDepotFolderScheduled,
+                    LDepotFolder.LDepotFolderRunning))
             {
                 continue;
             }
@@ -58,7 +61,9 @@ public sealed partial class LSchedule
             if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning))
             {
                 LTraceLog.LTraceWarningRecord(
-                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] was claimed but its owner/lease could not be written; it may be reclaimed after the lease expires");
+                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
+                    "was claimed but its owner/lease could not be written; " +
+                    "it may be reclaimed after the lease expires");
             }
 
             LWorkItem lWorkClaimed = lWorkRecord.LWorkItemCreate();
@@ -165,7 +170,8 @@ public sealed partial class LSchedule
         foreach (LDepotFolder lDepotFolder in lScheduleBytesFolders)
         {
             string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
-            if (!File.Exists(lDepotFilePath) || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
+            if (!File.Exists(lDepotFilePath)
+                || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord)
             {
                 continue;
             }
@@ -283,11 +289,13 @@ public sealed partial class LSchedule
             {
                 if (LScheduleFailedSet(
                         lWorkRecord,
-                        $"Stopped unexpectedly while {lSchedulePhase} on attempt {lWorkRecord.LWorkRecoverCount}. Not retried again."))
+                        $"Stopped unexpectedly while {lSchedulePhase} on attempt {lWorkRecord.LWorkRecoverCount}. " +
+                        "Not retried again."))
                 {
                     lScheduleReclaimedCount++;
                     LTraceLog.LTraceWarningRecord(
-                        $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] failed: stopped unexpectedly while {lSchedulePhase} " +
+                        $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
+                        $"failed: stopped unexpectedly while {lSchedulePhase} " +
                         $"after {lWorkRecord.LWorkRecoverCount} recovery attempt(s)");
                 }
 
@@ -297,11 +305,13 @@ public sealed partial class LSchedule
             lWorkRecord.LWorkRecoverCount++;
             if (LScheduleRecordRelease(
                     lWorkRecord,
-                    $"Recovered after an unexpected stop while {lSchedulePhase} (attempt {lWorkRecord.LWorkRecoverCount})."))
+                    $"Recovered after an unexpected stop while {lSchedulePhase} " +
+                    $"(attempt {lWorkRecord.LWorkRecoverCount})."))
             {
                 lScheduleReclaimedCount++;
                 LTraceLog.LTraceWarningRecord(
-                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] returned to the queue: stopped unexpectedly while {lSchedulePhase} " +
+                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
+                    $"returned to the queue: stopped unexpectedly while {lSchedulePhase} " +
                     $"(attempt {lWorkRecord.LWorkRecoverCount} of {LScheduleAttemptLimit})");
             }
         }
@@ -335,7 +345,10 @@ public sealed partial class LSchedule
 
     private static bool LScheduleFailedSet(LWorkRecord lWorkRecord, string lScheduleMessage)
     {
-        if (!LScheduleStore.LScheduleMove(lWorkRecord.LWorkId, LDepotFolder.LDepotFolderRunning, LDepotFolder.LDepotFolderFailed))
+        if (!LScheduleStore.LScheduleMove(
+                lWorkRecord.LWorkId,
+                LDepotFolder.LDepotFolderRunning,
+                LDepotFolder.LDepotFolderFailed))
         {
             return false;
         }
@@ -350,7 +363,8 @@ public sealed partial class LSchedule
         if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderFailed))
         {
             LTraceLog.LTraceWarningRecord(
-                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] was filed as Failed but its details could not be written");
+                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
+                "was filed as Failed but its details could not be written");
         }
 
         return true;
@@ -364,7 +378,10 @@ public sealed partial class LSchedule
 
     private static bool LScheduleRecordRelease(LWorkRecord lWorkRecord, string? lScheduleMessage = null)
     {
-        if (!LScheduleStore.LScheduleMove(lWorkRecord.LWorkId, LDepotFolder.LDepotFolderRunning, LDepotFolder.LDepotFolderScheduled))
+        if (!LScheduleStore.LScheduleMove(
+                lWorkRecord.LWorkId,
+                LDepotFolder.LDepotFolderRunning,
+                LDepotFolder.LDepotFolderScheduled))
         {
             return false;
         }
@@ -380,7 +397,8 @@ public sealed partial class LSchedule
         if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
         {
             LTraceLog.LTraceWarningRecord(
-                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] was returned to the queue but its details could not be written");
+                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
+                "was returned to the queue but its details could not be written");
         }
 
         return true;

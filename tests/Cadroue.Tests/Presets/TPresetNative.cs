@@ -17,7 +17,9 @@ public sealed class TPresetNative
             lGroup =>
             {
                 Assert.Equal("Default", lGroup.LPresetGroupName);
-                Assert.Equal(["Merge (default)", "Split (default)"], lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
+                Assert.Equal(
+                    ["Merge (default)", "Split (default)"],
+                    lGroup.LPresetGroupPresets.Select(lRecord => lRecord.LPresetName));
             },
             lGroup =>
             {

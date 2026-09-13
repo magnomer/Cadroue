@@ -149,7 +149,12 @@ public sealed partial class LMpv
         return string.IsNullOrWhiteSpace(lName) ? "mpv-dev.archive" : lName;
     }
 
-    private static async Task LMpvArchiveSave(string lUrl, string lArchivePath, IProgress<double>? lProgress, double lStart, double lEnd)
+    private static async Task LMpvArchiveSave(
+        string lUrl,
+        string lArchivePath,
+        IProgress<double>? lProgress,
+        double lStart,
+        double lEnd)
     {
         using HttpClient lClient = LMpvClientCreate();
         using HttpResponseMessage lResponse =
@@ -189,7 +194,10 @@ public sealed partial class LMpv
             return;
         }
 
-        await LMpvExtractRun("tar", $"-xf \"{lArchivePath}\" -C \"{lInstallFolder}\" {LMpvLibraryFile}", lInstallFolder);
+        await LMpvExtractRun(
+            "tar",
+            $"-xf \"{lArchivePath}\" -C \"{lInstallFolder}\" {LMpvLibraryFile}",
+            lInstallFolder);
     }
 
     private static void LMpvZipRead(string lArchivePath, string lInstallFolder)
@@ -226,7 +234,8 @@ public sealed partial class LMpv
         await lProcess.WaitForExitAsync();
         if (lProcess.ExitCode != 0)
         {
-            throw new InvalidOperationException($"{lFileName} failed with exit code {lProcess.ExitCode}.\n{lOutput}\n{lError}");
+            throw new InvalidOperationException(
+                $"{lFileName} failed with exit code {lProcess.ExitCode}.\n{lOutput}\n{lError}");
         }
     }
 

@@ -51,8 +51,12 @@ public sealed partial class PFlow
         {
             PlacementTarget = pViewfinder,
             Placement = PlacementMode.Center,
-            HorizontalOffset = pSectionRect.IsEmpty ? 0 : pSectionRect.Left + pSectionRect.Width / 2 - pViewfinder.ActualWidth / 2,
-            VerticalOffset = pSectionRect.IsEmpty ? 0 : pSectionRect.Top + pSectionRect.Height / 2 - pViewfinder.ActualHeight / 2,
+            HorizontalOffset = pSectionRect.IsEmpty
+                ? 0
+                : pSectionRect.Left + pSectionRect.Width / 2 - pViewfinder.ActualWidth / 2,
+            VerticalOffset = pSectionRect.IsEmpty
+                ? 0
+                : pSectionRect.Top + pSectionRect.Height / 2 - pViewfinder.ActualHeight / 2,
             StaysOpen = false,
             AllowsTransparency = true,
             Child = new Border

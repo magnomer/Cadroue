@@ -198,7 +198,8 @@ public sealed class LWorkRecord
         (LWorkOutputSnapshot ??= new()).LWorkOutputNormalize();
     }
 
-    private static LWorkEnum LWorkEnumRead<LWorkEnum>(string lWorkValue, LWorkEnum lWorkFallback) where LWorkEnum : struct =>
+    private static LWorkEnum LWorkEnumRead<LWorkEnum>(string lWorkValue, LWorkEnum lWorkFallback)
+        where LWorkEnum : struct =>
         Enum.TryParse(lWorkValue, out LWorkEnum lWorkParsed) ? lWorkParsed : lWorkFallback;
 }
 
@@ -234,7 +235,9 @@ public sealed class LWorkOutputRecord
             LWorkSizeReactive = lEncoding.LEncodingVideo.LEncodingSizeReactive,
             LWorkFps = lEncoding.LEncodingVideo.LEncodingFps,
             LWorkPixelLayout = lEncoding.LEncodingVideo.LEncodingPixel,
-            LWorkExtras = new Dictionary<string, string>(lEncoding.LEncodingVideo.LEncodingExtras, StringComparer.Ordinal)
+            LWorkExtras = new Dictionary<string, string>(
+                lEncoding.LEncodingVideo.LEncodingExtras,
+                StringComparer.Ordinal)
         },
         LWorkOutputAudio = new LWorkAudioRecord
         {
@@ -244,7 +247,9 @@ public sealed class LWorkOutputRecord
             LWorkRateControl = lEncoding.LEncodingAudio.LEncodingRateControl,
             LWorkQuality = lEncoding.LEncodingAudio.LEncodingQuality,
             LWorkSpeed = lEncoding.LEncodingAudio.LEncodingSpeed,
-            LWorkExtras = new Dictionary<string, string>(lEncoding.LEncodingAudio.LEncodingExtras, StringComparer.Ordinal),
+            LWorkExtras = new Dictionary<string, string>(
+                lEncoding.LEncodingAudio.LEncodingExtras,
+                StringComparer.Ordinal),
             LWorkSampleRate = lEncoding.LEncodingAudio.LEncodingSampleRate,
             LWorkChannels = lEncoding.LEncodingAudio.LEncodingChannels
         },

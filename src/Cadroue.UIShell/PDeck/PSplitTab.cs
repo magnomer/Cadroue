@@ -96,9 +96,13 @@ public sealed partial class PSplitTab : PTabSurface
         pProcessing.PProcessingStepAdd(
             PInspector.PSensorNameRead(LDetectorKind.LDetectorKindStill), PSplitStillIcon, "Processing.Step.Still");
         pProcessing.PProcessingStepAdd(
-            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindLuminance), PSplitLuminanceIcon, "Processing.Step.Luminance");
+            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindLuminance),
+            PSplitLuminanceIcon,
+            "Processing.Step.Luminance");
         pProcessing.PProcessingStepAdd(
-            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindSilence), PSplitSilenceIcon, "Processing.Step.Silence");
+            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindSilence),
+            PSplitSilenceIcon,
+            "Processing.Step.Silence");
         pProcessing.PProcessingStepAdd(
             PInspector.PSensorNameRead(LDetectorKind.LDetectorKindVolume), PSplitVolumeIcon, "Processing.Step.Volume");
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;

@@ -160,7 +160,9 @@ public static partial class LInventory
             string[] lInventoryParts = lInventoryLine
                 .TrimStart()
                 .Split((char[]?)null, 3, StringSplitOptions.RemoveEmptyEntries);
-            if (lInventoryParts.Length < 2 || lInventoryParts[0].Length != 6 || !LInventoryFlagsCheck(lInventoryParts[0]))
+            if (lInventoryParts.Length < 2
+                || lInventoryParts[0].Length != 6
+                || !LInventoryFlagsCheck(lInventoryParts[0]))
             {
                 continue;
             }

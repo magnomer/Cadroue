@@ -70,7 +70,11 @@ public static partial class LFix
         return lFixWorkItems;
     }
 
-    private static string LFixNameCreate(LEncoding lFixOutput, string lFixSourcePath, string lFixFolder, TimeSpan lFixDuration)
+    private static string LFixNameCreate(
+        LEncoding lFixOutput,
+        string lFixSourcePath,
+        string lFixFolder,
+        TimeSpan lFixDuration)
     {
         string lFixSourceStem = Path.GetFileNameWithoutExtension(lFixSourcePath);
         string lFixPattern = string.IsNullOrWhiteSpace(lFixOutput.LEncodingNamePattern)
@@ -86,7 +90,10 @@ public static partial class LFix
             .Replace("{SectionName}", "Fix", StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(TimeSpan.Zero), StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lFixDuration), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionDuration}", LEncoding.LEncodingTimeFormat(lFixDuration), StringComparison.OrdinalIgnoreCase)
+            .Replace(
+                "{SectionDuration}",
+                LEncoding.LEncodingTimeFormat(lFixDuration),
+                StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lFixStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lFixStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 

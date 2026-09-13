@@ -85,19 +85,23 @@ public partial class PWindow
         {
             if (pWindowTarget == LCartographer.LCartographerFinishTarget)
             {
-                PTabRecord? pWindowFinishSource = pWindowTabRecords.FirstOrDefault(pTabRecord => pTabRecord.PTabId == pWindowSource);
+                PTabRecord? pWindowFinishSource = pWindowTabRecords.FirstOrDefault(
+                    pTabRecord => pTabRecord.PTabId == pWindowSource);
                 if (pWindowFinishSource is null)
                 {
                     continue;
                 }
 
                 LCartographer.LCartographerTargetSet(pWindowSource, LCartographer.LCartographerFinishTarget);
-                pWindowFinishSource.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionRelayApply(LCartographer.LCartographerFinishTarget);
+                pWindowFinishSource.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionRelayApply(
+                    LCartographer.LCartographerFinishTarget);
                 continue;
             }
 
-            PTabRecord? pWindowSourceRecord = pWindowTabRecords.FirstOrDefault(pTabRecord => pTabRecord.PTabId == pWindowSource);
-            PTabRecord? pWindowTargetRecord = pWindowTabRecords.FirstOrDefault(pTabRecord => pTabRecord.PTabId == pWindowTarget);
+            PTabRecord? pWindowSourceRecord = pWindowTabRecords.FirstOrDefault(
+                pTabRecord => pTabRecord.PTabId == pWindowSource);
+            PTabRecord? pWindowTargetRecord = pWindowTabRecords.FirstOrDefault(
+                pTabRecord => pTabRecord.PTabId == pWindowTarget);
             if (pWindowSourceRecord is null || pWindowTargetRecord is null)
             {
                 continue;

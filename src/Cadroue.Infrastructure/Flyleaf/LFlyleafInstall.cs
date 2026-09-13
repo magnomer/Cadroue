@@ -168,8 +168,12 @@ public static partial class LFlyleaf
     private static string? LFlyleafAssemblyFind(string lSource)
     {
         return Directory.EnumerateFiles(lSource, "FlyleafLib.dll", SearchOption.AllDirectories)
-            .Where(lPath => lPath.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
-            .Where(lPath => lPath.Contains($"{Path.DirectorySeparatorChar}Release{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(lPath => lPath.Contains(
+                $"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}",
+                StringComparison.OrdinalIgnoreCase))
+            .Where(lPath => lPath.Contains(
+                $"{Path.DirectorySeparatorChar}Release{Path.DirectorySeparatorChar}",
+                StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(lPath => lPath.Contains("net10.0-windows", StringComparison.OrdinalIgnoreCase))
             .ThenByDescending(File.GetLastWriteTimeUtc)
             .FirstOrDefault();
@@ -223,7 +227,8 @@ public static partial class LFlyleaf
         await lProcess.WaitForExitAsync();
         if (lProcess.ExitCode != 0)
         {
-            throw new InvalidOperationException($"{lFileName} failed with exit code {lProcess.ExitCode}.\n{lOutput}\n{lError}");
+            throw new InvalidOperationException(
+                $"{lFileName} failed with exit code {lProcess.ExitCode}.\n{lOutput}\n{lError}");
         }
     }
 }

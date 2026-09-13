@@ -11,7 +11,8 @@ namespace Cadroue.UIShell.PDeck;
 public sealed partial class PRoster : UserControl
 {
     private readonly LScheduleContract pRosterSchedule = PProgram.LScheduleCurrent;
-    private readonly LStation pRosterStation = LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist"));
+    private readonly LStation pRosterStation = LStation.LStationCreate(
+        LLocalization.LLocalizationTextRead("Roster.Title.Worklist"));
     private readonly Grid pRosterBody;
     private readonly StackPanel pRosterQueuePanel = new();
     private readonly ScrollViewer pRosterQueueScroller;

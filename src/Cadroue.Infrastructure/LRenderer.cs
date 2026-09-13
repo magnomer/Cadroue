@@ -8,7 +8,8 @@ namespace Cadroue.Infrastructure;
 
 public static class LRenderer
 {
-    public static LRendererSettings LRendererSettingsCurrent { get; private set; } = LRendererSettings.LRendererDefaultCreate();
+    public static LRendererSettings LRendererSettingsCurrent { get; private set; } =
+        LRendererSettings.LRendererDefaultCreate();
 
     public static string LRendererFolderCurrent =>
         string.IsNullOrWhiteSpace(LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder)

@@ -95,7 +95,8 @@ public static partial class LCartographer
             lCartographerLayout.LSceneGroupStrict,
             lCartographerLayout.LSceneGroupMode);
         LWorkGroup[] lCartographerGroups = lCartographerGroupOwner.LGroupResolve(lCartographerPaths)
-            .Select(lCartographerGroup => new LWorkGroup(lCartographerGroup.LSeriesName, lCartographerGroup.LSeriesPaths))
+            .Select(lCartographerGroup => new LWorkGroup(
+                lCartographerGroup.LSeriesName, lCartographerGroup.LSeriesPaths))
             .Where(lCartographerGroup => lCartographerGroup.LWorkGroupPaths.Count > 0)
             .ToArray();
         if (lCartographerGroups.Length == 0)
@@ -131,9 +132,10 @@ public static partial class LCartographer
         Guid lCartographerSource,
         Guid lCartographerBatch)
     {
-        LEditPlan lCartographerPlan = lCartographerLayout.LSceneInspector?.LSceneInspectorEdit is { } lCartographerRecord
-            ? LEdit.LEditPersistentRead(lCartographerRecord)
-            : LEditPlan.LEditEmptyCreate();
+        LEditPlan lCartographerPlan =
+            lCartographerLayout.LSceneInspector?.LSceneInspectorEdit is { } lCartographerRecord
+                ? LEdit.LEditPersistentRead(lCartographerRecord)
+                : LEditPlan.LEditEmptyCreate();
         bool lCartographerEqCapable = LInventory.LInventoryFilterExist("eq");
         (LWorkCrop lCartographerCrop, LWorkVideo lCartographerVideo) =
             LEdit.LEditWorkResolve(lCartographerPlan, lCartographerEqCapable);
@@ -179,9 +181,10 @@ public static partial class LCartographer
         Guid lCartographerSource,
         Guid lCartographerBatch)
     {
-        LWorkAudio lCartographerProcessing = lCartographerLayout.LSceneInspector?.LSceneInspectorAudio is { } lCartographerRecord
-            ? LAudio.LAudioPersistentRead(lCartographerRecord)
-            : LWorkAudio.LWorkAudioCreate();
+        LWorkAudio lCartographerProcessing =
+            lCartographerLayout.LSceneInspector?.LSceneInspectorAudio is { } lCartographerRecord
+                ? LAudio.LAudioPersistentRead(lCartographerRecord)
+                : LWorkAudio.LWorkAudioCreate();
 
         foreach (string lCartographerPath in lCartographerPaths)
         {

@@ -22,7 +22,9 @@ public sealed partial class LPreset
 
     public string LPresetVideoSummary => $"{LPresetVideo.LPresetMode} ({LPresetVideo.LPresetStream})";
     public string LPresetAudioSummary => $"{LPresetAudio.LPresetMode} ({LAudioStreamSummary})";
-    public string LPresetOutputSummary => string.IsNullOrWhiteSpace(LPresetExtension) ? LPresetDisplay : $"{LPresetDisplay}.{LPresetExtension}";
+    public string LPresetOutputSummary => string.IsNullOrWhiteSpace(LPresetExtension)
+        ? LPresetDisplay
+        : $"{LPresetDisplay}.{LPresetExtension}";
 
     public string LPresetLocationRead(string lMode) => lMode switch
     {
@@ -180,7 +182,9 @@ public sealed partial class LPreset
 
     public static LPreset LPresetStateCreate(LPresetRecord lRecord)
     {
-        string lLocation = string.Equals(lRecord.LPresetLocation, "Custom folder", StringComparison.Ordinal) ? "Custom location" : lRecord.LPresetLocation;
+        string lLocation = string.Equals(lRecord.LPresetLocation, "Custom folder", StringComparison.Ordinal)
+            ? "Custom location"
+            : lRecord.LPresetLocation;
         var lPreset = new LPreset
         {
             LPresetLocation = lLocation,
@@ -194,8 +198,14 @@ public sealed partial class LPreset
                 ? LPresetExtensionsRead(lRecord.LPresetContainer).FirstOrDefault() ?? string.Empty
                 : lRecord.LPresetExtension,
             LPresetCollision = lRecord.LPresetCollision,
-            LPresetOutputSuffix = LPresetSuffixResolve(lRecord.LPresetOutputSuffix, lRecord.LPresetCollisionSuffix, "(output)"),
-            LPresetSourceSuffix = LPresetSuffixResolve(lRecord.LPresetSourceSuffix, lRecord.LPresetCollisionSuffix, "(original)"),
+            LPresetOutputSuffix = LPresetSuffixResolve(
+                lRecord.LPresetOutputSuffix,
+                lRecord.LPresetCollisionSuffix,
+                "(output)"),
+            LPresetSourceSuffix = LPresetSuffixResolve(
+                lRecord.LPresetSourceSuffix,
+                lRecord.LPresetCollisionSuffix,
+                "(original)"),
             LPresetVideo = new LPresetVideo
         {
             LPresetStream = lRecord.LPresetVideo.LPresetStream,

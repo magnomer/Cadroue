@@ -34,7 +34,9 @@ internal static class LSidecarParse
             {
                 LSidecarVersion = LSidecarIntRead(lSidecarRoot, "LSidecarVersion", 2),
                 LSidecarSource = LSidecarMemberRead<LSidecarSourceRecord>(lSidecarRoot, "LSidecarSource") ?? new(),
-                LSidecarSections = LSidecarMemberRead<List<LSidecarSectionRecord>>(lSidecarRoot, "LSidecarSections") ?? new(),
+                LSidecarSections = LSidecarMemberRead<List<LSidecarSectionRecord>>(
+                    lSidecarRoot,
+                    "LSidecarSections") ?? new(),
                 LSidecarEdit = LSidecarMemberRead<LSidecarEditRecord>(lSidecarRoot, "LSidecarEdit"),
                 LSidecarAudio = LSidecarMemberRead<LSidecarAudioRecord>(lSidecarRoot, "LSidecarAudio"),
                 LSidecarSplit = LSidecarMemberRead<LSidecarSplitRecord>(lSidecarRoot, "LSidecarSplit"),
@@ -70,7 +72,9 @@ internal static class LSidecarParse
                 LSidecarKeyframeCount = LSidecarIntRead(lSidecarRoot, "LSidecarKeyframeCount", 0),
                 LSidecarKeyframeLast = LSidecarLongRead(lSidecarRoot, "LSidecarKeyframeLast"),
                 LSidecarScannedSpans = LSidecarMemberRead<List<int>>(lSidecarRoot, "LSidecarScannedSpans") ?? new(),
-                LSidecarKeyframeDeltas = LSidecarMemberRead<List<long>>(lSidecarRoot, "LSidecarKeyframeDeltas") ?? new(),
+                LSidecarKeyframeDeltas = LSidecarMemberRead<List<long>>(
+                    lSidecarRoot,
+                    "LSidecarKeyframeDeltas") ?? new(),
                 LSidecarWaveform = LSidecarMemberRead<LSidecarWaveformRecord>(lSidecarRoot, "LSidecarWaveform"),
                 LSidecarDiagnosis = LSidecarMemberRead<LSidecarDiagnosisRecord>(lSidecarRoot, "LSidecarDiagnosis")
             };
@@ -104,7 +108,8 @@ internal static class LSidecarParse
             return lSidecarCache;
         }
 
-        IReadOnlyList<long> lSidecarKeyframes = LSidecarKeyframe.LSidecarKeyframeParse(lSidecarCache.LSidecarKeyframeDeltas);
+        IReadOnlyList<long> lSidecarKeyframes = LSidecarKeyframe.LSidecarKeyframeParse(
+            lSidecarCache.LSidecarKeyframeDeltas);
         if (LSidecarKeyframe.LSidecarKeyframeCheck(
                 lSidecarKeyframes,
                 lSidecarCache.LSidecarKeyframeCount,

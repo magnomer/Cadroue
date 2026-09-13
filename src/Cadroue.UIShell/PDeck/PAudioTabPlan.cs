@@ -12,7 +12,8 @@ public sealed partial class PAudioTab
 {
     private void PAudioPersistentRestore(LSceneTabRecord? lPreferenceTabLayout)
     {
-        if (lPreferenceTabLayout?.LSceneInspector is not { LSceneInspectorAudio: { } pAudioPersistentRecord } pAudioInspector)
+        if (lPreferenceTabLayout?.LSceneInspector
+            is not { LSceneInspectorAudio: { } pAudioPersistentRecord } pAudioInspector)
         {
             return;
         }
@@ -166,7 +167,8 @@ public sealed partial class PAudioTab
         {
             pAudioSaveFailure = pSourcePath;
             LTraceLog.LTraceWarningRecord(
-                $"Audio edit not saved for '{System.IO.Path.GetFileName(pSourcePath)}': the sidecar could not be written",
+                $"Audio edit not saved for '{System.IO.Path.GetFileName(pSourcePath)}': " +
+                    "the sidecar could not be written",
                 pSourcePath);
         }
 

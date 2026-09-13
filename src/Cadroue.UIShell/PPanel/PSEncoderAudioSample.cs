@@ -34,7 +34,10 @@ internal sealed partial class PSEncoder
             pStored, psAudioSampleReadout, pNotice);
 
         psAudioSamplePanel.Children.Clear();
-        psAudioSamplePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"), pRow));
+        psAudioSamplePanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"),
+                pRow));
         psAudioSamplePanel.Children.Add(pNotice);
     }
 

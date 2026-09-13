@@ -37,7 +37,9 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, PButtonBorderBrush));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonGreyHover, PButtonGreyPressed)));
+        pStyle.Setters.Add(new Setter(
+            Control.TemplateProperty,
+            PButtonTemplateCreate(PButtonGreyHover, PButtonGreyPressed)));
         return pStyle;
     }
 
@@ -55,7 +57,9 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
         pStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonGreyHover, PButtonGreyPressed)));
+        pStyle.Setters.Add(new Setter(
+            Control.TemplateProperty,
+            PButtonTemplateCreate(PButtonGreyHover, PButtonGreyPressed)));
         return pStyle;
     }
 
@@ -66,7 +70,9 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonCommandHover, PButtonCommandPressed)));
+        pStyle.Setters.Add(new Setter(
+            Control.TemplateProperty,
+            PButtonTemplateCreate(PButtonCommandHover, PButtonCommandPressed)));
         return pStyle;
     }
 
@@ -140,7 +146,9 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
         pStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
         pStyle.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, PButtonTemplateCreate(PButtonWhiteHover, PButtonWhitePressed)));
+        pStyle.Setters.Add(new Setter(
+            Control.TemplateProperty,
+            PButtonTemplateCreate(PButtonWhiteHover, PButtonWhitePressed)));
         return pStyle;
     }
 

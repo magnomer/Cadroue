@@ -81,7 +81,8 @@ internal static class TAuditSource
     {
         string normalized = relativePath.Replace('\\', '/');
         if (scope.TAuditScopeRoots.Count > 0
-            && !scope.TAuditScopeRoots.Any(root => normalized.StartsWith(root.Trim('/') + "/", StringComparison.OrdinalIgnoreCase)))
+            && !scope.TAuditScopeRoots.Any(
+                root => normalized.StartsWith(root.Trim('/') + "/", StringComparison.OrdinalIgnoreCase)))
         {
             return true;
         }

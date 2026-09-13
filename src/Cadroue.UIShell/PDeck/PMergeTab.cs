@@ -65,7 +65,12 @@ public sealed class PMergeTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pGroup, pExport);
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        pTabGrid = PTabGridBuild(
+            new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport },
+            new PCompass(pFlow),
+            pAction,
+            pFlow,
+            lPreferenceTabLayout);
         Content = pTabGrid;
     }
 

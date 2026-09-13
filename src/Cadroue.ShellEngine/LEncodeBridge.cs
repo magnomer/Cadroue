@@ -31,7 +31,8 @@ public static partial class LEncode
         if (LEncodeSmartCheck(lWorkItem))
         {
             LRunner.LRunnerRecord(
-                $"Smart encoding deferred for '{lWorkItem.LWorkOutputName}': the item requires a full re-encode; encoding the requested interval directly");
+                $"Smart encoding deferred for '{lWorkItem.LWorkOutputName}': the item requires a full re-encode; " +
+                $"encoding the requested interval directly");
             return LEncodeWholeBuild(lWorkItem, lBridgeSource);
         }
 
@@ -129,13 +130,15 @@ public static partial class LEncode
             if (lAudioInterval is null)
             {
                 LRunner.LRunnerRecord(
-                    $"Smart encoding audio timing could not be verified for '{lWorkItem.LWorkOutputName}': preserving the audio stream with zero additional offset");
+                    $"Smart encoding audio timing could not be verified for '{lWorkItem.LWorkOutputName}': " +
+                    $"preserving the audio stream with zero additional offset");
             }
             else if (!lAudioInterval.LScoutAudioPresent)
             {
                 lAudioActive = false;
                 LRunner.LRunnerRecord(
-                    $"Smart encoding omitted audio for '{lWorkItem.LWorkOutputName}': no audio packets overlap the requested interval");
+                    $"Smart encoding omitted audio for '{lWorkItem.LWorkOutputName}': " +
+                    $"no audio packets overlap the requested interval");
             }
             else
             {
@@ -147,7 +150,9 @@ public static partial class LEncode
         if (lBridgeReencode && LRepertoireCatalog.LRepertoireEncoderResolve(lBridgeCodec) is null)
         {
             LRunner.LRunnerRecord(
-                $"Smart encoding failed for '{lWorkItem.LWorkOutputName}': the source video codec '{lBridgeCodec ?? "unknown"}' has no matching encoder for the boundary re-encode; nothing was produced");
+                $"Smart encoding failed for '{lWorkItem.LWorkOutputName}': " +
+                $"the source video codec '{lBridgeCodec ?? "unknown"}' has no matching encoder " +
+                $"for the boundary re-encode; nothing was produced");
             return Array.Empty<LEncodeStage>();
         }
 
@@ -197,8 +202,9 @@ public static partial class LEncode
         string lMiddlePath = Path.Combine(lBridgeFolder, $"{lWorkItem.LWorkId:N}.middle{lBridgeExtension}");
         lStages.Add(LEncodeMiddleBuild(lWorkItem, lBridgePlan.LBridgeMiddle!, lMiddlePath, lBridgeSource));
 
-        string lLeadingCodec = (lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty)
-            .ToLowerInvariant();
+        string lLeadingCodec =
+            (lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty)
+                .ToLowerInvariant();
         if (lBridgePlan.LBridgeHead is not null && lLeadingCodec is "hevc" or "h265")
         {
             lStages.Add(new LEncodeStage(

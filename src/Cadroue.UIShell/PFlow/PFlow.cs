@@ -23,7 +23,11 @@ public sealed partial class PFlow : UserControl
     private readonly TextBlock pMapLabelLeft = PReelLabelBuild();
     private readonly TextBlock pMapLabelRight = PReelLabelBuild();
     private readonly LSegment lSegment = new();
-    private readonly StackPanel pFlowSectionButtons = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+    private readonly StackPanel pFlowSectionButtons = new()
+    {
+        Orientation = Orientation.Horizontal,
+        VerticalAlignment = VerticalAlignment.Center
+    };
     private readonly Grid pFlowViewfinderReel;
     private readonly Grid pFlowMapReel;
     private LSpool? lSpool;

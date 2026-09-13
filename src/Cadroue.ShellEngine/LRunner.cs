@@ -279,7 +279,9 @@ public sealed partial class LRunner
         }
         catch (Exception lRunnerException)
         {
-            LRunnerRecord("Worker loop stopped on an unexpected error; the queue resumes on the next change", lRunnerException);
+            LRunnerRecord(
+                "Worker loop stopped on an unexpected error; the queue resumes on the next change",
+                lRunnerException);
         }
         finally
         {

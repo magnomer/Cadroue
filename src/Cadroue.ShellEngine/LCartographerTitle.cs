@@ -18,18 +18,21 @@ public static partial class LCartographer
 
     public static string LCartographerTitleRead(LWorkItem lCartographerItem)
     {
-        string lCartographerTitle = LCartographerTitleSource?.Invoke(lCartographerItem.LWorkRelaySource) ?? string.Empty;
+        string lCartographerTitle =
+            LCartographerTitleSource?.Invoke(lCartographerItem.LWorkRelaySource) ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(lCartographerTitle))
         {
             return lCartographerTitle;
         }
 
-        if (LCartographerPlanStore.LCartographerPlanRead(lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
+        if (LCartographerPlanStore.LCartographerPlanRead(
+                lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
             && lCartographerPlan.LCartographerStages.FirstOrDefault(
                 lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelaySource)
                 is { } lCartographerSourceStage)
         {
-            lCartographerStageTitles[lCartographerSourceStage.LCartographerStageId] = lCartographerSourceStage.LCartographerTitle;
+            lCartographerStageTitles[lCartographerSourceStage.LCartographerStageId] =
+                lCartographerSourceStage.LCartographerTitle;
             return lCartographerSourceStage.LCartographerTitle;
         }
 

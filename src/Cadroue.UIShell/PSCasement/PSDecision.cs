@@ -17,7 +17,13 @@ internal sealed class PSDecision : Window
 
     private PSDecisionChoice psDecisionChoice = PSDecisionChoice.PSDecisionDismiss;
 
-    private PSDecision(Window? pOwner, string pTitle, string pMessage, string pPrimary, string? pAlternate, string pCancel)
+    private PSDecision(
+        Window? pOwner,
+        string pTitle,
+        string pMessage,
+        string pPrimary,
+        string? pAlternate,
+        string pCancel)
     {
         Title = pTitle;
         Width = PSDecisionWidth;
@@ -38,10 +44,22 @@ internal sealed class PSDecision : Window
         Content = PSDecisionBuild(pTitle, pMessage, pPrimary, pAlternate, pCancel);
     }
 
-    internal static bool PSDecisionConfirm(Window? pOwner, string pTitle, string pMessage, string pPrimary, string pCancel) =>
-        new PSDecision(pOwner, pTitle, pMessage, pPrimary, null, pCancel).PSDecisionShow() == PSDecisionChoice.PSDecisionPrimary;
+    internal static bool PSDecisionConfirm(
+        Window? pOwner,
+        string pTitle,
+        string pMessage,
+        string pPrimary,
+        string pCancel) =>
+        new PSDecision(pOwner, pTitle, pMessage, pPrimary, null, pCancel).PSDecisionShow()
+            == PSDecisionChoice.PSDecisionPrimary;
 
-    internal static PSDecisionChoice PSDecisionSelect(Window? pOwner, string pTitle, string pMessage, string pPrimary, string pAlternate, string pCancel) =>
+    internal static PSDecisionChoice PSDecisionSelect(
+        Window? pOwner,
+        string pTitle,
+        string pMessage,
+        string pPrimary,
+        string pAlternate,
+        string pCancel) =>
         new PSDecision(pOwner, pTitle, pMessage, pPrimary, pAlternate, pCancel).PSDecisionShow();
 
     private PSDecisionChoice PSDecisionShow()
@@ -50,8 +68,17 @@ internal sealed class PSDecision : Window
         return psDecisionChoice;
     }
 
-    private UIElement PSDecisionBuild(string pTitle, string pMessage, string pPrimary, string? pAlternate, string pCancel) =>
-        PSDialog.PSDialogBuild(this, pTitle, PSDecisionBodyBuild(pMessage, pPrimary, pAlternate, pCancel), PSDialogTheme.PSDialogThemeBlue);
+    private UIElement PSDecisionBuild(
+        string pTitle,
+        string pMessage,
+        string pPrimary,
+        string? pAlternate,
+        string pCancel) =>
+        PSDialog.PSDialogBuild(
+            this,
+            pTitle,
+            PSDecisionBodyBuild(pMessage, pPrimary, pAlternate, pCancel),
+            PSDialogTheme.PSDialogThemeBlue);
 
     private DockPanel PSDecisionBodyBuild(string pMessage, string pPrimary, string? pAlternate, string pCancel)
     {
@@ -101,7 +128,9 @@ internal sealed class PSDecision : Window
 
         var pIcon = new Image
         {
-            Source = PAsset.PIcon.PIconRead("/PAsset/PSDialog/PSDecision.svg", new SolidColorBrush(Color.FromRgb(0x1F, 0x6F, 0xB4))),
+            Source = PAsset.PIcon.PIconRead(
+                "/PAsset/PSDialog/PSDecision.svg",
+                new SolidColorBrush(Color.FromRgb(0x1F, 0x6F, 0xB4))),
             Width = 28,
             Height = 28,
             Stretch = Stretch.Uniform,

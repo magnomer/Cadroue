@@ -139,7 +139,12 @@ public sealed partial class PAudioTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindAudio);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        pTabGrid = PTabGridBuild(
+            new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport },
+            new PCompass(pFlow),
+            pAction,
+            pFlow,
+            lPreferenceTabLayout);
         Content = pTabGrid;
         PAudioPersistentRestore(lPreferenceTabLayout);
         PAudioActiveUpdate();

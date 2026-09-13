@@ -15,18 +15,24 @@ public sealed record LMediaInfo
     {
         if (mediaInfoDuration <= TimeSpan.Zero)
         {
-            throw new ArgumentOutOfRangeException(nameof(mediaInfoDuration), "Media duration must be greater than zero.");
+            throw new ArgumentOutOfRangeException(
+                nameof(mediaInfoDuration),
+                "Media duration must be greater than zero.");
         }
 
         bool mediaInfoVideoPresent = mediaInfoVideoWidth > 0 || mediaInfoVideoHeight > 0;
         if (mediaInfoVideoPresent && mediaInfoVideoWidth <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(mediaInfoVideoWidth), "Video width must be greater than zero when video is present.");
+            throw new ArgumentOutOfRangeException(
+                nameof(mediaInfoVideoWidth),
+                "Video width must be greater than zero when video is present.");
         }
 
         if (mediaInfoVideoPresent && mediaInfoVideoHeight <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(mediaInfoVideoHeight), "Video height must be greater than zero when video is present.");
+            throw new ArgumentOutOfRangeException(
+                nameof(mediaInfoVideoHeight),
+                "Video height must be greater than zero when video is present.");
         }
 
         if (!mediaInfoVideoPresent && !mediaInfoAudioPresent)
@@ -36,17 +42,23 @@ public sealed record LMediaInfo
 
         if (mediaInfoVideoFrameRate < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(mediaInfoVideoFrameRate), "Video frame rate cannot be negative.");
+            throw new ArgumentOutOfRangeException(
+                nameof(mediaInfoVideoFrameRate),
+                "Video frame rate cannot be negative.");
         }
 
         if (mediaInfoAudioPresent && mediaInfoAudioSampleRate <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(mediaInfoAudioSampleRate), "Audio sample rate must be greater than zero when audio is present.");
+            throw new ArgumentOutOfRangeException(
+                nameof(mediaInfoAudioSampleRate),
+                "Audio sample rate must be greater than zero when audio is present.");
         }
 
         if (mediaInfoAudioPresent && mediaInfoAudioChannels <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(mediaInfoAudioChannels), "Audio channels must be greater than zero when audio is present.");
+            throw new ArgumentOutOfRangeException(
+                nameof(mediaInfoAudioChannels),
+                "Audio channels must be greater than zero when audio is present.");
         }
 
         LMediaInfoDuration = mediaInfoDuration;

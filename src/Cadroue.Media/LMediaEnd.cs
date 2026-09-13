@@ -51,7 +51,10 @@ public static partial class LMedia
             return LKeyframeSourceIdentity.LKeyframeIdentityCreate(lMediaSourcePath, lMediaDuration);
         }
         catch (Exception lMediaException)
-            when (lMediaException is ArgumentException or FileNotFoundException or IOException or UnauthorizedAccessException)
+            when (lMediaException is ArgumentException
+                or FileNotFoundException
+                or IOException
+                or UnauthorizedAccessException)
         {
             return null;
         }

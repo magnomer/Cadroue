@@ -5,7 +5,10 @@ namespace Cadroue.Infrastructure;
 
 public sealed class LCheckup : IDisposable
 {
-    private readonly record struct LCheckupRequest(string LCheckupPath, LFlawKind[] LCheckupTargets, bool LCheckupForce);
+    private readonly record struct LCheckupRequest(
+        string LCheckupPath,
+        LFlawKind[] LCheckupTargets,
+        bool LCheckupForce);
 
     private sealed class LCheckupFeed(Action<double> lCheckupReport) : IProgress<double>
     {
@@ -19,7 +22,12 @@ public sealed class LCheckup : IDisposable
     private bool lCheckupRunning;
     private bool lCheckupDisposed;
 
-    public static Func<string, IReadOnlyCollection<LFlawKind>, CancellationToken, IProgress<double>?, IReadOnlyList<LDossier>>? LCheckupScannerSeam;
+    public static Func<
+        string,
+        IReadOnlyCollection<LFlawKind>,
+        CancellationToken,
+        IProgress<double>?,
+        IReadOnlyList<LDossier>>? LCheckupScannerSeam;
 
     public event Action<LCheckupResult>? LCheckupReady;
     public event Action<string, double>? LCheckupProgress;
@@ -80,7 +88,11 @@ public sealed class LCheckup : IDisposable
                     .ToArray();
                 if (lCheckupTargets.Length > 0)
                 {
-                    lCheckupRetained.Enqueue(new LCheckupRequest(lCheckupQueued.LCheckupPath, lCheckupTargets, lCheckupQueued.LCheckupForce));
+                    lCheckupRetained.Enqueue(
+                        new LCheckupRequest(
+                            lCheckupQueued.LCheckupPath,
+                            lCheckupTargets,
+                            lCheckupQueued.LCheckupForce));
                 }
             }
 
@@ -90,7 +102,10 @@ public sealed class LCheckup : IDisposable
             }
 
             if (lCheckupActive is not { } lCheckupActiveRequest
-                || !string.Equals(lCheckupActiveRequest.LCheckupPath, lCheckupSource, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(
+                    lCheckupActiveRequest.LCheckupPath,
+                    lCheckupSource,
+                    StringComparison.OrdinalIgnoreCase)
                 || !lCheckupActiveRequest.LCheckupTargets.Contains(lCheckupKind))
             {
                 return;
@@ -102,7 +117,11 @@ public sealed class LCheckup : IDisposable
             if (lCheckupRemaining.Length > 0)
             {
                 var lCheckupRestart = new Queue<LCheckupRequest>();
-                lCheckupRestart.Enqueue(new LCheckupRequest(lCheckupActiveRequest.LCheckupPath, lCheckupRemaining, lCheckupActiveRequest.LCheckupForce));
+                lCheckupRestart.Enqueue(
+                    new LCheckupRequest(
+                        lCheckupActiveRequest.LCheckupPath,
+                        lCheckupRemaining,
+                        lCheckupActiveRequest.LCheckupForce));
                 while (lCheckupQueue.TryDequeue(out LCheckupRequest lCheckupQueued))
                 {
                     lCheckupRestart.Enqueue(lCheckupQueued);
@@ -139,7 +158,11 @@ public sealed class LCheckup : IDisposable
                 lCheckupActive = lCheckupRequest;
             }
 
-            LCheckupSourceRun(lCheckupRequest.LCheckupPath, lCheckupRequest.LCheckupTargets, lCheckupRequest.LCheckupForce, lCheckupToken);
+            LCheckupSourceRun(
+                lCheckupRequest.LCheckupPath,
+                lCheckupRequest.LCheckupTargets,
+                lCheckupRequest.LCheckupForce,
+                lCheckupToken);
             lock (lCheckupLock)
             {
                 lCheckupActive = null;
@@ -149,7 +172,11 @@ public sealed class LCheckup : IDisposable
         }
     }
 
-    private void LCheckupSourceRun(string lCheckupPath, IReadOnlyList<LFlawKind> lCheckupTargets, bool lCheckupForce, CancellationToken lCheckupToken)
+    private void LCheckupSourceRun(
+        string lCheckupPath,
+        IReadOnlyList<LFlawKind> lCheckupTargets,
+        bool lCheckupForce,
+        CancellationToken lCheckupToken)
     {
         foreach (LFlawKind lCheckupKind in lCheckupTargets)
         {
@@ -198,7 +225,9 @@ public sealed class LCheckup : IDisposable
                 return;
             }
 
-            LTraceLog.LTraceErrorRecord($"Diagnosis could not be completed '{Path.GetFileName(lCheckupPath)}'", lCheckupException);
+            LTraceLog.LTraceErrorRecord(
+                $"Diagnosis could not be completed '{Path.GetFileName(lCheckupPath)}'",
+                lCheckupException);
             foreach (LFlawKind lCheckupKind in lCheckupTargets)
             {
                 LCheckupPublish(new LCheckupResult(lCheckupPath, lCheckupKind, LCheckupOutcome.LCheckupOutcomeFailed));
@@ -232,7 +261,10 @@ public sealed class LCheckup : IDisposable
             lCheckupIdentity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(lCheckupPath, lCheckupDuration);
         }
         catch (Exception lCheckupException) when (
-            lCheckupException is ArgumentException or FileNotFoundException or IOException or UnauthorizedAccessException)
+            lCheckupException is ArgumentException
+                or FileNotFoundException
+                or IOException
+                or UnauthorizedAccessException)
         {
             return;
         }

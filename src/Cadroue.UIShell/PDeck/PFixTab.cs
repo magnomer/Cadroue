@@ -9,20 +9,52 @@ namespace Cadroue.UIShell.PDeck;
 
 public sealed class PFixTab : PTabSurface
 {
-    private sealed record PFixStep(LFlawKind PFixStepKind, string PFixStepName, string PFixStepIcon, string PFixStepLabel);
+    private sealed record PFixStep(
+        LFlawKind PFixStepKind,
+        string PFixStepName,
+        string PFixStepIcon,
+        string PFixStepLabel);
 
     private static readonly PFixStep[] pFixSteps =
     {
-        new(LFlawKind.LFlawKindTruncation, "Truncation", "/PAsset/PPanel/PProcessingFixTruncation.svg", "Processing.Step.Truncation"),
+        new(
+            LFlawKind.LFlawKindTruncation,
+            "Truncation",
+            "/PAsset/PPanel/PProcessingFixTruncation.svg",
+            "Processing.Step.Truncation"),
         new(LFlawKind.LFlawKindIndex, "Index", "/PAsset/PPanel/PProcessingFixIndex.svg", "Processing.Step.Index"),
-        new(LFlawKind.LFlawKindContainer, "Container", "/PAsset/PPanel/PProcessingFixContainer.svg", "Processing.Step.Container"),
+        new(
+            LFlawKind.LFlawKindContainer,
+            "Container",
+            "/PAsset/PPanel/PProcessingFixContainer.svg",
+            "Processing.Step.Container"),
         new(LFlawKind.LFlawKindTiming, "Timing", "/PAsset/PPanel/PProcessingFixTiming.svg", "Processing.Step.Timing"),
-        new(LFlawKind.LFlawKindMetadata, "Metadata", "/PAsset/PPanel/PProcessingFixMetadata.svg", "Processing.Step.Metadata"),
+        new(
+            LFlawKind.LFlawKindMetadata,
+            "Metadata",
+            "/PAsset/PPanel/PProcessingFixMetadata.svg",
+            "Processing.Step.Metadata"),
         new(LFlawKind.LFlawKindCoded, "Coded", "/PAsset/PPanel/PProcessingFixCoded.svg", "Processing.Step.Coded"),
-        new(LFlawKind.LFlawKindFraming, "Framing", "/PAsset/PPanel/PProcessingFixFraming.svg", "Processing.Step.Framing"),
-        new(LFlawKind.LFlawKindConfig, "Config", "/PAsset/PPanel/PProcessingFixConfiguration.svg", "Processing.Step.Config"),
-        new(LFlawKind.LFlawKindTransport, "Transport", "/PAsset/PPanel/PProcessingFixTransport.svg", "Processing.Step.Transport"),
-        new(LFlawKind.LFlawKindSecondary, "Secondary", "/PAsset/PPanel/PProcessingFixSecondary.svg", "Processing.Step.Secondary"),
+        new(
+            LFlawKind.LFlawKindFraming,
+            "Framing",
+            "/PAsset/PPanel/PProcessingFixFraming.svg",
+            "Processing.Step.Framing"),
+        new(
+            LFlawKind.LFlawKindConfig,
+            "Config",
+            "/PAsset/PPanel/PProcessingFixConfiguration.svg",
+            "Processing.Step.Config"),
+        new(
+            LFlawKind.LFlawKindTransport,
+            "Transport",
+            "/PAsset/PPanel/PProcessingFixTransport.svg",
+            "Processing.Step.Transport"),
+        new(
+            LFlawKind.LFlawKindSecondary,
+            "Secondary",
+            "/PAsset/PPanel/PProcessingFixSecondary.svg",
+            "Processing.Step.Secondary"),
         new(LFlawKind.LFlawKindFfvone, "Ffvone", "/PAsset/PPanel/PProcessingFixFfvone.svg", "Processing.Step.Ffvone")
     };
 
@@ -119,7 +151,12 @@ public sealed class PFixTab : PTabSurface
 
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pProcessing, pClinic, pExport);
-        pTabGrid = PTabGridBuild(new System.Windows.UIElement[] { pList, pProcessing, pClinic, pViewer, pExport }, new PCompass(pFlow), pAction, pFlow, lPreferenceTabLayout);
+        pTabGrid = PTabGridBuild(
+            new System.Windows.UIElement[] { pList, pProcessing, pClinic, pViewer, pExport },
+            new PCompass(pFlow),
+            pAction,
+            pFlow,
+            lPreferenceTabLayout);
         if (lPreferenceTabLayout is null)
         {
             pClinic.PClinicMinimizeSet(true);

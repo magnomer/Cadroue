@@ -31,7 +31,11 @@ internal sealed partial class PSMonitor
     {
         psMonitorTimer.Stop();
         PSMonitorRailApply(psMonitorBeforeCanvas, psMonitorBeforeStatus, psMonitorEstimate.LSMonitorBefore, false);
-        PSMonitorRailApply(psMonitorAfterCanvas, psMonitorAfterStatus, psMonitorEstimate.LSMonitorAfter, psMonitorSource.LSMonitorScanning);
+        PSMonitorRailApply(
+            psMonitorAfterCanvas,
+            psMonitorAfterStatus,
+            psMonitorEstimate.LSMonitorAfter,
+            psMonitorSource.LSMonitorScanning);
     }
 
     private static double PSMonitorLevelRead(double pPeak) => Math.Clamp(pPeak, 0, 1);

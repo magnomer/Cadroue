@@ -43,7 +43,9 @@ public sealed partial class PInspector
         }
 
         string pName = LLocalizationChoice.LLocalizationChoiceRead(pLoudnessPreset.SelectedItem);
-        if (string.IsNullOrEmpty(pName) || pName == "Custom" || LLevelingCatalog.LLevelingDynamicRead(pName) is not { } pPreset)
+        if (string.IsNullOrEmpty(pName)
+            || pName == "Custom"
+            || LLevelingCatalog.LLevelingDynamicRead(pName) is not { } pPreset)
         {
             pLoudnessBaseToken = null;
             return;

@@ -70,7 +70,8 @@ public static partial class LCapabilityTable
             [new("CBR", LCapabilityBitrateCreate("128k", "-b:a", 8, 320))],
             null,
             null,
-            "Shine is a fixed-point CBR-only MP3 encoder, lower quality than LAME. Use only where fixed-point speed matters."));
+            "Shine is a fixed-point CBR-only MP3 encoder, lower quality than LAME. " +
+            "Use only where fixed-point speed matters."));
 
         yield return new("mp3_mf", new(
             "mp3_mf",
@@ -135,9 +136,24 @@ public static partial class LCapabilityTable
             null,
             "WavPack is lossless; the compression level 0-8 trades encode time for file size."));
 
-        yield return new("tta", new("tta", [new("Lossless")], null, null, "TTA is a lossless codec with no rate control."));
-        yield return new("truehd", new("truehd", [new("Lossless")], null, null, "Dolby TrueHD is lossless multichannel; there is no bitrate control."));
-        yield return new("mlp", new("mlp", [new("Lossless")], null, null, "MLP is lossless; there is no bitrate control."));
+        yield return new("tta", new(
+            "tta",
+            [new("Lossless")],
+            null,
+            null,
+            "TTA is a lossless codec with no rate control."));
+        yield return new("truehd", new(
+            "truehd",
+            [new("Lossless")],
+            null,
+            null,
+            "Dolby TrueHD is lossless multichannel; there is no bitrate control."));
+        yield return new("mlp", new(
+            "mlp",
+            [new("Lossless")],
+            null,
+            null,
+            "MLP is lossless; there is no bitrate control."));
     }
 
     private static LCapabilityCodec LCapabilityOpusCreate(string lEncoder) => new(
@@ -150,10 +166,12 @@ public static partial class LCapabilityTable
             new LCapabilityExtra("Application", "-application", "audio",
                 [new("audio", "Audio"), new("voip", "VoIP"), new("lowdelay", "Low delay")]),
             new LCapabilityExtra("Frame duration", "-frame_duration", "20",
-                [new("2.5", "2.5 ms"), new("5", "5 ms"), new("10", "10 ms"), new("20", "20 ms"), new("40", "40 ms"), new("60", "60 ms")]),
+                [new("2.5", "2.5 ms"), new("5", "5 ms"), new("10", "10 ms"), new("20", "20 ms"), new("40", "40 ms"),
+                 new("60", "60 ms")]),
             new LCapabilityExtra("Forward error correction", "-fec", "0", [new("0", "Off"), new("1", "On")])
         ],
-        "Opus. -vbr picks VBR, constrained VBR or CBR; complexity 0-10 trades speed for quality; the bitrate is a target.");
+        "Opus. -vbr picks VBR, constrained VBR or CBR; complexity 0-10 trades speed for quality; " +
+        "the bitrate is a target.");
 
     private static LCapabilityCodec LCapabilityActhreeCreate(string lEncoder) => new(
         lEncoder,

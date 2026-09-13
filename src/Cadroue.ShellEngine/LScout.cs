@@ -8,7 +8,9 @@ namespace Cadroue.ShellEngine;
 
 internal static class LScout
 {
-    internal static double LScoutMergeRead(IReadOnlyList<string> lScoutMergeSources, CancellationToken lScoutToken = default)
+    internal static double LScoutMergeRead(
+        IReadOnlyList<string> lScoutMergeSources,
+        CancellationToken lScoutToken = default)
     {
         double lScoutTotalSeconds = 0;
         foreach (string lScoutMergeSource in lScoutMergeSources)
@@ -51,9 +53,14 @@ internal static class LScout
         }
     }
 
-    internal static double? LScoutIntervalRead(string lScoutMediaPath, TimeSpan lScoutMediaDuration, CancellationToken lScoutToken = default)
+    internal static double? LScoutIntervalRead(
+        string lScoutMediaPath,
+        TimeSpan lScoutMediaDuration,
+        CancellationToken lScoutToken = default)
     {
-        if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath) || lScoutMediaDuration <= TimeSpan.Zero)
+        if (string.IsNullOrWhiteSpace(lScoutMediaPath)
+            || !File.Exists(lScoutMediaPath)
+            || lScoutMediaDuration <= TimeSpan.Zero)
         {
             return null;
         }
@@ -68,12 +75,15 @@ internal static class LScout
             }
 
             double lScoutSpanMilliseconds =
-                (lScoutKeyframes[^1].LKeyframePresentationTime - lScoutKeyframes[0].LKeyframePresentationTime).TotalMilliseconds;
+                (lScoutKeyframes[^1].LKeyframePresentationTime
+                    - lScoutKeyframes[0].LKeyframePresentationTime).TotalMilliseconds;
             return lScoutSpanMilliseconds / (lScoutKeyframes.Count - 1);
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
-            LRunner.LRunnerRecord($"Keyframe interval could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
+            LRunner.LRunnerRecord(
+                $"Keyframe interval could not be read '{Path.GetFileName(lScoutMediaPath)}'",
+                lScoutException);
             return null;
         }
     }
@@ -194,7 +204,8 @@ internal static class LScout
             var lScoutOutputFile = new FileInfo(lScoutOutputPath);
             return lScoutOutputFile.Exists ? lScoutOutputFile.Length : null;
         }
-        catch (Exception lScoutException) when (lScoutException is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception lScoutException)
+            when (lScoutException is IOException or UnauthorizedAccessException or ArgumentException)
         {
             return null;
         }

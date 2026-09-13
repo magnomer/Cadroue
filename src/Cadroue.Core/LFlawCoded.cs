@@ -17,7 +17,8 @@ public static class LFlawCoded
             lFlawEvidence,
             "Full software decode over the coded frames",
             "Damaged coded video frames",
-            "Decode and re-encode the principal video in its source codec, dropping isolated corrupt packets; healthy streams copied",
+            "Decode and re-encode the principal video in its source codec, dropping isolated corrupt packets; " +
+            "healthy streams copied",
             "The damaged coded video essence",
             LDossierPreservation.LDossierPreservationLossy,
             "Recovered frames decoded and re-encoded; irrecoverable corrupt packets dropped",

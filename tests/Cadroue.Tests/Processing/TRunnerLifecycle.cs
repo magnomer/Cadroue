@@ -56,7 +56,9 @@ public sealed class TRunnerLifecycle
         Assert.True(runner.TRunnerSuspended);
         Assert.Equal(TRunnerWorkState.TRunnerRunning, runner.TRunnerRead(workId).TRunnerState);
         runner.TRunnerStart();
-        Assert.Equal(TRunnerWorkState.TRunnerDone, runner.TRunnerStateRead(workId, TRunnerWorkState.TRunnerDone).TRunnerState);
+        Assert.Equal(
+            TRunnerWorkState.TRunnerDone,
+            runner.TRunnerStateRead(workId, TRunnerWorkState.TRunnerDone).TRunnerState);
         Assert.Equal(1, runner.TRunnerExecutionRead(workId));
     }
 }

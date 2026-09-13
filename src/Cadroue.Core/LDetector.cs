@@ -50,7 +50,10 @@ public readonly record struct LDetectorPreset(
 
 public readonly record struct LDetectorStillTuning(double LDetectorTolerance, double LDetectorMinimum);
 
-public readonly record struct LDetectorLuminanceTuning(double LDetectorThreshold, double LDetectorWindow, double LDetectorMinimum);
+public readonly record struct LDetectorLuminanceTuning(
+    double LDetectorThreshold,
+    double LDetectorWindow,
+    double LDetectorMinimum);
 
 public static class LDetector
 {
@@ -246,7 +249,10 @@ public static class LDetector
         _ => null
     };
 
-    public static string? LDetectorLuminanceMatch(double lDetectorThreshold, double lDetectorWindow, double lDetectorMinimum)
+    public static string? LDetectorLuminanceMatch(
+        double lDetectorThreshold,
+        double lDetectorWindow,
+        double lDetectorMinimum)
     {
         foreach (string lDetectorToken in LDetectorLuminancePresets)
         {

@@ -72,7 +72,9 @@ public sealed class TPreviewWhitebalance
 
         string filter = TInterface.TPreviewFilterResolve(state);
         Assert.DoesNotContain("crop=", filter);
-        Assert.True(filter.IndexOf("colorcorrect=", StringComparison.Ordinal) < filter.IndexOf("eq=", StringComparison.Ordinal));
+        Assert.True(
+            filter.IndexOf("colorcorrect=", StringComparison.Ordinal)
+            < filter.IndexOf("eq=", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -21,7 +21,9 @@ public sealed class TLosslesscutValidation
         TLosslesscut.TLosslesscutResult result = TLosslesscutValidate("""{"start":5,"end":4}""", 10_000);
 
         Assert.Empty(result.TLosslesscutSections);
-        Assert.Contains(result.TLosslesscutIssues, issue => issue.TLosslesscutReason.Contains("end does not follow start"));
+        Assert.Contains(
+            result.TLosslesscutIssues,
+            issue => issue.TLosslesscutReason.Contains("end does not follow start"));
     }
 
     [Fact]
@@ -39,7 +41,9 @@ public sealed class TLosslesscutValidation
         TLosslesscut.TLosslesscutResult result = TLosslesscutValidate("""{"start":1}""", 0);
 
         Assert.Empty(result.TLosslesscutSections);
-        Assert.Contains(result.TLosslesscutIssues, issue => issue.TLosslesscutReason.Contains("duration is unavailable"));
+        Assert.Contains(
+            result.TLosslesscutIssues,
+            issue => issue.TLosslesscutReason.Contains("duration is unavailable"));
     }
 
     private static TLosslesscut.TLosslesscutResult TLosslesscutValidate(string segment, long durationMilliseconds)

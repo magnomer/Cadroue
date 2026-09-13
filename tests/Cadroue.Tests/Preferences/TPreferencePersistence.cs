@@ -15,7 +15,8 @@ public sealed class TPreferencePersistence
     [Fact]
     public void LegacyJson_WithoutVerticalTabs_DefaultsToHorizontal()
     {
-        LPreferenceState lPreferenceState = JsonSerializer.Deserialize<LPreferenceState>("{\"LPreferenceLanguage\":\"en\"}")!;
+        LPreferenceState lPreferenceState =
+            JsonSerializer.Deserialize<LPreferenceState>("{\"LPreferenceLanguage\":\"en\"}")!;
         TInterface.TPreferenceNormalize(lPreferenceState);
 
         Assert.False(lPreferenceState.LPreferenceVerticalTabs);
@@ -84,7 +85,8 @@ public sealed class TPreferencePersistence
     [Fact]
     public void LegacyJson_WithoutPresetGroups_DefaultsNativeGroupToFolded()
     {
-        LPreferenceState lPreferenceState = JsonSerializer.Deserialize<LPreferenceState>("{\"LPreferenceLanguage\":\"en\"}")!;
+        LPreferenceState lPreferenceState =
+            JsonSerializer.Deserialize<LPreferenceState>("{\"LPreferenceLanguage\":\"en\"}")!;
         TInterface.TPreferenceNormalize(lPreferenceState);
 
         Assert.True(TInterface.TPreferenceFoldedRead(lPreferenceState, "Hardware"));

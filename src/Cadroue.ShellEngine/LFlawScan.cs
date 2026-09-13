@@ -79,34 +79,41 @@ public static class LFlawScan
                 $"-hide_banner -nostdin -v warning -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
             (string lFlawMetaReport, _) = LFlawStageRun(
                 LTool.LToolFfprobeRead(),
-                $"-hide_banner -v error -show_streams -show_format -count_packets -i {LEncode.LEncodeFormat(lFlawSource)}");
+                "-hide_banner -v error -show_streams -show_format -count_packets " +
+                $"-i {LEncode.LEncodeFormat(lFlawSource)}");
             (_, string lFlawIgnidxError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
-                $"-hide_banner -nostdin -v error -fflags +ignidx -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
+                $"-hide_banner -nostdin -v error -fflags +ignidx -i {LEncode.LEncodeFormat(lFlawSource)} " +
+                "-map 0 -c copy -f null -");
             (_, string lFlawSeekError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
-                $"-hide_banner -nostdin -v error -sseof -1 -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
+                $"-hide_banner -nostdin -v error -sseof -1 -i {LEncode.LEncodeFormat(lFlawSource)} " +
+                "-map 0 -c copy -f null -");
             (_, string lFlawDecodeError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
                 $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} -an -map 0:v? -f null -");
             (string lFlawPacketReport, _) = LFlawStageRun(
                 LTool.LToolFfprobeRead(),
-                $"-hide_banner -v error -show_packets -show_entries packet=stream_index,pts,dts,duration -i {LEncode.LEncodeFormat(lFlawSource)}");
+                "-hide_banner -v error -show_packets -show_entries packet=stream_index,pts,dts,duration " +
+                $"-i {LEncode.LEncodeFormat(lFlawSource)}");
             (string lFlawChapterReport, _) = LFlawStageRun(
                 LTool.LToolFfprobeRead(),
                 $"-hide_banner -v error -show_chapters -i {LEncode.LEncodeFormat(lFlawSource)}");
             (_, string lFlawSecondaryError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
-                $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} -map 0:s? -map 0:d? -c copy -f null -");
+                $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} " +
+                "-map 0:s? -map 0:d? -c copy -f null -");
             (_, string lFlawCodedError) = LFlawStageRun(
                 LTool.LToolFfmpegRead(),
-                $"-hide_banner -nostdin -v error -err_detect +explode -i {LEncode.LEncodeFormat(lFlawSource)} -an -map 0:v? -f null -");
+                $"-hide_banner -nostdin -v error -err_detect +explode -i {LEncode.LEncodeFormat(lFlawSource)} " +
+                "-an -map 0:v? -f null -");
             string lFlawCrcError = string.Empty;
             if (LFlawFfvone.LFlawFfvoneCheck(lFlawMetaReport))
             {
                 (_, lFlawCrcError) = LFlawStageRun(
                     LTool.LToolFfmpegRead(),
-                    $"-hide_banner -nostdin -v error -err_detect +crccheck -i {LEncode.LEncodeFormat(lFlawSource)} -an -map 0:v? -f null -");
+                    $"-hide_banner -nostdin -v error -err_detect +crccheck -i {LEncode.LEncodeFormat(lFlawSource)} " +
+                    "-an -map 0:v? -f null -");
             }
 
             bool lFlawOpened = lFlawMetaReport.Contains("[FORMAT]", StringComparison.Ordinal)
@@ -167,7 +174,10 @@ public static class LFlawScan
                 lFlawDossiers.Add(lFlawTiming with { LDossierKind = LFlawKind.LFlawKindTiming });
             }
 
-            if (LFlawSecondary.LFlawSecondaryResolve(lFlawMetaReport, lFlawChapterReport, lFlawSecondaryError) is { } lFlawSecondary)
+            if (LFlawSecondary.LFlawSecondaryResolve(
+                lFlawMetaReport,
+                lFlawChapterReport,
+                lFlawSecondaryError) is { } lFlawSecondary)
             {
                 lFlawDossiers.Add(lFlawSecondary with { LDossierKind = LFlawKind.LFlawKindSecondary });
             }
@@ -192,7 +202,9 @@ public static class LFlawScan
         }
         catch (Exception lFlawException)
         {
-            LRunner.LRunnerRecord($"Container structure could not be examined '{Path.GetFileName(lFlawSource)}'", lFlawException);
+            LRunner.LRunnerRecord(
+                $"Container structure could not be examined '{Path.GetFileName(lFlawSource)}'",
+                lFlawException);
             throw;
         }
     }

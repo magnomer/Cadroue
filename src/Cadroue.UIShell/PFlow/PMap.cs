@@ -29,14 +29,21 @@ public sealed partial class PMap : FrameworkElement
     private static readonly Brush pNavigatorShadowBrush = new SolidColorBrush(Color.FromArgb(0x34, 0x00, 0x00, 0x00));
     private const byte PNavigatorAlpha = 0x33;
 
-    private static readonly Brush pNavigatorFrameBrush = new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
-    private static readonly Brush pNavigatorFillBrush = new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
-    private static readonly Brush pNavigatorBodyBrush = new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x3A, 0x8B, 0xE0));
-    private static readonly Brush pNavigatorSideBrush = new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
+    private static readonly Brush pNavigatorFrameBrush =
+        new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
+    private static readonly Brush pNavigatorFillBrush =
+        new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
+    private static readonly Brush pNavigatorBodyBrush =
+        new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x3A, 0x8B, 0xE0));
+    private static readonly Brush pNavigatorSideBrush =
+        new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
     private static readonly Brush pNavigatorGripBrush = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
-    private static readonly Pen pNavigatorBorderPen = new(new SolidColorBrush(Color.FromArgb(0x8C, 0x0D, 0x47, 0xA1)), 1.2);
-    private static readonly Pen pNavigatorBodyPen = new(new SolidColorBrush(Color.FromArgb(0x4D, 0x0D, 0x47, 0xA1)), 1.0);
-    private static readonly Pen pNavigatorShinePen = new(new SolidColorBrush(Color.FromArgb(0x42, 0xFF, 0xFF, 0xFF)), 1.0);
+    private static readonly Pen pNavigatorBorderPen =
+        new(new SolidColorBrush(Color.FromArgb(0x8C, 0x0D, 0x47, 0xA1)), 1.2);
+    private static readonly Pen pNavigatorBodyPen =
+        new(new SolidColorBrush(Color.FromArgb(0x4D, 0x0D, 0x47, 0xA1)), 1.0);
+    private static readonly Pen pNavigatorShinePen =
+        new(new SolidColorBrush(Color.FromArgb(0x42, 0xFF, 0xFF, 0xFF)), 1.0);
     private static readonly Pen pNavigatorGripPen = new(pNavigatorGripBrush, 1.6);
 
     private const double PNavigatorRim = 3.5;

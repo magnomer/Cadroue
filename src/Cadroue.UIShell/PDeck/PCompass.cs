@@ -48,17 +48,94 @@ public sealed partial class PCompass : UserControl
 
         PCompassButton[] pButtons =
         {
-            new(PCompassAction.PCompassZoomIn, "PCompassZoomIncrease.svg", "Compass.ZoomIn.Label", "Compass.ZoomIn.Tooltip", () => pFlow.PFlowShortcutDispatch("zoomIn"), false, false),
-            new(PCompassAction.PCompassZoomOut, "PCompassZoomDecrease.svg", "Compass.ZoomOut.Label", "Compass.ZoomOut.Tooltip", () => pFlow.PFlowShortcutDispatch("zoomOut"), true, false),
-            new(PCompassAction.PCompassPlayback, "PCompassPlay.svg", "Compass.Play.Label", "Compass.Play.Tooltip", PCompassPlayToggle, true, false),
-            new(PCompassAction.PCompassSectionNew, "PCompassSectionAdd.svg", "Compass.SectionAdd.Label", "Compass.SectionAdd.Tooltip", () => pFlow.PFlowShortcutDispatch("addSection"), false, true),
-            new(PCompassAction.PCompassSectionDrop, "PCompassRemove.svg", "Compass.SectionDelete.Label", "Compass.SectionDelete.Tooltip", () => pFlow.PFlowShortcutDispatch("deleteSection"), true, true),
-            new(PCompassAction.PCompassSectionIn, "PCompassStart.svg", "Compass.SectionStart.Label", "Compass.SectionStart.Tooltip", () => pFlow.PFlowShortcutDispatch("setStart"), false, true),
-            new(PCompassAction.PCompassSectionCut, "PCompassSplit.svg", "Compass.SectionSplit.Label", "Compass.SectionSplit.Tooltip", () => pFlow.PFlowShortcutDispatch("splitSection"), false, true),
-            new(PCompassAction.PCompassSectionOut, "PCompassEnd.svg", "Compass.SectionEnd.Label", "Compass.SectionEnd.Tooltip", () => pFlow.PFlowShortcutDispatch("setEnd"), true, true),
-            new(PCompassAction.PCompassKeyframePrevious, "PCompassKeyframePrevious.svg", "Compass.KeyframePrevious.Label", "Compass.KeyframePrevious.Tooltip", () => pFlow.PFlowShortcutDispatch("previousKey"), false, false),
-            new(PCompassAction.PCompassKeyframeNearest, "PCompassKeyframeNear.svg", "Compass.KeyframeNearest.Label", "Compass.KeyframeNearest.Tooltip", () => pFlow.PFlowShortcutDispatch("nearestKey"), false, false),
-            new(PCompassAction.PCompassKeyframeNext, "PCompassKeyframeNext.svg", "Compass.KeyframeNext.Label", "Compass.KeyframeNext.Tooltip", () => pFlow.PFlowShortcutDispatch("nextKey"), true, false)
+            new(
+                PCompassAction.PCompassZoomIn,
+                "PCompassZoomIncrease.svg",
+                "Compass.ZoomIn.Label",
+                "Compass.ZoomIn.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("zoomIn"),
+                false,
+                false),
+            new(
+                PCompassAction.PCompassZoomOut,
+                "PCompassZoomDecrease.svg",
+                "Compass.ZoomOut.Label",
+                "Compass.ZoomOut.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("zoomOut"),
+                true,
+                false),
+            new(
+                PCompassAction.PCompassPlayback,
+                "PCompassPlay.svg",
+                "Compass.Play.Label",
+                "Compass.Play.Tooltip",
+                PCompassPlayToggle,
+                true,
+                false),
+            new(
+                PCompassAction.PCompassSectionNew,
+                "PCompassSectionAdd.svg",
+                "Compass.SectionAdd.Label",
+                "Compass.SectionAdd.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("addSection"),
+                false,
+                true),
+            new(
+                PCompassAction.PCompassSectionDrop,
+                "PCompassRemove.svg",
+                "Compass.SectionDelete.Label",
+                "Compass.SectionDelete.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("deleteSection"),
+                true,
+                true),
+            new(
+                PCompassAction.PCompassSectionIn,
+                "PCompassStart.svg",
+                "Compass.SectionStart.Label",
+                "Compass.SectionStart.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("setStart"),
+                false,
+                true),
+            new(
+                PCompassAction.PCompassSectionCut,
+                "PCompassSplit.svg",
+                "Compass.SectionSplit.Label",
+                "Compass.SectionSplit.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("splitSection"),
+                false,
+                true),
+            new(
+                PCompassAction.PCompassSectionOut,
+                "PCompassEnd.svg",
+                "Compass.SectionEnd.Label",
+                "Compass.SectionEnd.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("setEnd"),
+                true,
+                true),
+            new(
+                PCompassAction.PCompassKeyframePrevious,
+                "PCompassKeyframePrevious.svg",
+                "Compass.KeyframePrevious.Label",
+                "Compass.KeyframePrevious.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("previousKey"),
+                false,
+                false),
+            new(
+                PCompassAction.PCompassKeyframeNearest,
+                "PCompassKeyframeNear.svg",
+                "Compass.KeyframeNearest.Label",
+                "Compass.KeyframeNearest.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("nearestKey"),
+                false,
+                false),
+            new(
+                PCompassAction.PCompassKeyframeNext,
+                "PCompassKeyframeNext.svg",
+                "Compass.KeyframeNext.Label",
+                "Compass.KeyframeNext.Tooltip",
+                () => pFlow.PFlowShortcutDispatch("nextKey"),
+                true,
+                false)
         };
 
         StackPanel pGroup = PCompassGroupBuild();
@@ -71,7 +148,11 @@ public sealed partial class PCompass : UserControl
 
             Button pButton = pEntry.PCompassButtonAction == PCompassAction.PCompassPlayback
                 ? PCompassToggleBuild()
-                : PCompassButtonBuild(pEntry.PCompassButtonAction, pEntry.PCompassButtonIcon, pEntry.PCompassButtonLabel, pEntry.PCompassButtonTooltip);
+                : PCompassButtonBuild(
+                    pEntry.PCompassButtonAction,
+                    pEntry.PCompassButtonIcon,
+                    pEntry.PCompassButtonLabel,
+                    pEntry.PCompassButtonTooltip);
             pButton.Click += (_, _) => pEntry.PCompassButtonHandler();
             pGroup.Children.Add(pButton);
             if (pEntry.PCompassButtonLast)
@@ -81,7 +162,13 @@ public sealed partial class PCompass : UserControl
             }
         }
 
-        pCompassVolumeText = new TextBlock { Width = 32, FontSize = 11, VerticalAlignment = VerticalAlignment.Center, TextAlignment = TextAlignment.Right };
+        pCompassVolumeText = new TextBlock
+        {
+            Width = 32,
+            FontSize = 11,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextAlignment = TextAlignment.Right
+        };
         pCompassVolumeSlider = new Slider
         {
             Width = 132,
@@ -115,7 +202,11 @@ public sealed partial class PCompass : UserControl
 
     private static StackPanel PCompassGroupBuild()
     {
-        var pGroup = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var pGroup = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         pGroup.Children.Add(PCompassSeparatorBuild());
         return pGroup;
     }
@@ -145,7 +236,12 @@ public sealed partial class PCompass : UserControl
         }
     }
 
-    private static Border PCompassSeparatorBuild() => new() { Width = 1, Margin = new Thickness(1, 14, 1, 12), Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC)) };
+    private static Border PCompassSeparatorBuild() => new()
+    {
+        Width = 1,
+        Margin = new Thickness(1, 14, 1, 12),
+        Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC))
+    };
 
     private static Brush? PCompassAccentRead(PCompassAction pAction) => pAction switch
     {

@@ -99,13 +99,25 @@ public sealed partial class PRoster
     private void PRosterRecordAdd(LWorkItem pWorkItem)
     {
         PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.Record"), false);
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Queued"), pWorkItem.LWorkCreateTime.ToString("yyyy-MM-dd HH:mm:ss"));
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Started"), PRosterStampFormat(pWorkItem.LWorkStartTime));
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Finished"), PRosterStampFormat(pWorkItem.LWorkFinishTime));
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Attempts"), pWorkItem.LWorkAttemptCount.ToString());
+        PRosterRowAdd(
+            LLocalization.LLocalizationTextRead("Roster.Field.Queued"),
+            pWorkItem.LWorkCreateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+        PRosterRowAdd(
+            LLocalization.LLocalizationTextRead("Roster.Field.Started"),
+            PRosterStampFormat(pWorkItem.LWorkStartTime));
+        PRosterRowAdd(
+            LLocalization.LLocalizationTextRead("Roster.Field.Finished"),
+            PRosterStampFormat(pWorkItem.LWorkFinishTime));
+        PRosterRowAdd(
+            LLocalization.LLocalizationTextRead("Roster.Field.Attempts"),
+            pWorkItem.LWorkAttemptCount.ToString());
         PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Owner"), PRosterOwnerFormat(pWorkItem));
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.State"), PRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Priority"), PRosterPriorityFormat(pWorkItem.LWorkPriority));
+        PRosterRowAdd(
+            LLocalization.LLocalizationTextRead("Roster.Field.State"),
+            PRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
+        PRosterRowAdd(
+            LLocalization.LLocalizationTextRead("Roster.Field.Priority"),
+            PRosterPriorityFormat(pWorkItem.LWorkPriority));
 
         if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateFailed
             && !string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))
@@ -123,41 +135,77 @@ public sealed partial class PRoster
         StackPanel pPreviousTarget = pRosterRowTarget;
         pRosterRowTarget = pVideoPanel;
         PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.EncodingVideo"), false);
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), $"{pOutput.LEncodingVideo.LEncodingMode} ({pOutput.LEncodingVideo.LEncodingStream})");
+        PRosterRowAdd(
+            LLocalization.LLocalizationTextRead("Roster.Field.Mode"),
+            $"{pOutput.LEncodingVideo.LEncodingMode} ({pOutput.LEncodingVideo.LEncodingStream})");
         if (PRosterReencodeCheck(pOutput.LEncodingVideo.LEncodingMode))
         {
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Encoder"), pOutput.LEncodingVideo.LEncodingEncoder);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.RateControl"), pOutput.LEncodingVideo.LEncodingRateControl);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Quality"), pOutput.LEncodingVideo.LEncodingQuality);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"), pOutput.LEncodingVideo.LEncodingSpeedPreset);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.PixelFormat"), pOutput.LEncodingVideo.LEncodingPixel);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.Encoder"),
+                pOutput.LEncodingVideo.LEncodingEncoder);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.RateControl"),
+                pOutput.LEncodingVideo.LEncodingRateControl);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.Quality"),
+                pOutput.LEncodingVideo.LEncodingQuality);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"),
+                pOutput.LEncodingVideo.LEncodingSpeedPreset);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.PixelFormat"),
+                pOutput.LEncodingVideo.LEncodingPixel);
 
             if (pOutput.LEncodingVideo.LEncodingExtras.Count > 0)
             {
-                PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Extras"), string.Join("  ", pOutput.LEncodingVideo.LEncodingExtras.Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
+                PRosterRowAdd(
+                    LLocalization.LLocalizationTextRead("Roster.Field.Extras"),
+                    string.Join(
+                        "  ",
+                        pOutput.LEncodingVideo.LEncodingExtras
+                            .Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
             }
         }
 
         pRosterRowTarget = pAudioPanel;
         PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.EncodingAudio"), false);
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Mode"), $"{pOutput.LEncodingAudio.LEncodingMode} ({pOutput.LEncodingAudio.LEncodingStream})");
+        PRosterRowAdd(
+            LLocalization.LLocalizationTextRead("Roster.Field.Mode"),
+            $"{pOutput.LEncodingAudio.LEncodingMode} ({pOutput.LEncodingAudio.LEncodingStream})");
         if (PRosterReencodeCheck(pOutput.LEncodingAudio.LEncodingMode))
         {
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Encoder"), pOutput.LEncodingAudio.LEncodingEncoder);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.RateControl"), pOutput.LEncodingAudio.LEncodingRateControl);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Quality"), pOutput.LEncodingAudio.LEncodingQuality);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.Encoder"),
+                pOutput.LEncodingAudio.LEncodingEncoder);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.RateControl"),
+                pOutput.LEncodingAudio.LEncodingRateControl);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.Quality"),
+                pOutput.LEncodingAudio.LEncodingQuality);
             if (!string.IsNullOrWhiteSpace(pOutput.LEncodingAudio.LEncodingSpeed))
             {
-                PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"), pOutput.LEncodingAudio.LEncodingSpeed);
+                PRosterRowAdd(
+                    LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"),
+                    pOutput.LEncodingAudio.LEncodingSpeed);
             }
 
             if (pOutput.LEncodingAudio.LEncodingExtras.Count > 0)
             {
-                PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Extras"), string.Join("  ", pOutput.LEncodingAudio.LEncodingExtras.Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
+                PRosterRowAdd(
+                    LLocalization.LLocalizationTextRead("Roster.Field.Extras"),
+                    string.Join(
+                        "  ",
+                        pOutput.LEncodingAudio.LEncodingExtras
+                            .Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
             }
 
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.SampleRate"), pOutput.LEncodingAudio.LEncodingSampleRate);
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Channels"), pOutput.LEncodingAudio.LEncodingChannels);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.SampleRate"),
+                pOutput.LEncodingAudio.LEncodingSampleRate);
+            PRosterRowAdd(
+                LLocalization.LLocalizationTextRead("Roster.Field.Channels"),
+                pOutput.LEncodingAudio.LEncodingChannels);
         }
 
         pRosterRowTarget = pPreviousTarget;
@@ -197,10 +245,16 @@ public sealed partial class PRoster
         });
     }
 
-    private void PRosterRowAdd(string pLabel, string pValue, double pIndent = 0, bool pValueBold = false, Brush? pValueBrush = null)
+    private void PRosterRowAdd(
+        string pLabel,
+        string pValue,
+        double pIndent = 0,
+        bool pValueBold = false,
+        Brush? pValueBrush = null)
     {
         var pGrid = new Grid { Margin = new Thickness(pIndent, 0, 0, 5) };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PRosterTheme.PRosterLabelWidth - pIndent) });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = new GridLength(PRosterTheme.PRosterLabelWidth - pIndent) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(new TextBlock
         {

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
@@ -16,13 +15,17 @@ namespace Cadroue.UIShell.PPanel;
 
 internal sealed partial class PSEncoder
 {
-    private readonly record struct PSVideoScale(double PSVideoScaleRate, string PSVideoScaleValue);
-
     private UIElement PSVideoPlateBuild()
     {
         var pPanel = new StackPanel();
-        var pVerify = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Verify"), 84, new Thickness(8, 0, 0, 0));
-        var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Result"), 64, new Thickness(6, 0, 0, 0));
+        var pVerify = PSInlineButtonBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Button.Verify"),
+            84,
+            new Thickness(8, 0, 0, 0));
+        var pLog = PSInlineButtonBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Button.Result"),
+            64,
+            new Thickness(6, 0, 0, 0));
         pLog.IsEnabled = psCodecResults.Count > 0;
         ProgressBar pProgress = PSFieldProgressBuild();
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
@@ -41,20 +44,38 @@ internal sealed partial class PSEncoder
 
             pLog.IsEnabled = psCodecResults.Count > 0;
         };
-        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, LLocalization.LLocalizationTextRead("Encoder.Verification.VideoTitle"), psCodecResults);
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(
+            this,
+            LLocalization.LLocalizationTextRead("Encoder.Verification.VideoTitle"),
+            psCodecResults);
         psVideoEncoderCombo.SelectionChanged += (_, _) => PSVideoChangeHandle();
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoRowsRebuild();
 
-        psVideoEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Encoder"), psVideoEncoderCombo, pVerify, pLog, pProgress));
+        psVideoEncodePanel.Children.Add(
+            PSFieldButtonBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Video.Field.Encoder"),
+                psVideoEncoderCombo,
+                pVerify,
+                pLog,
+                pProgress));
         psVideoEncodePanel.Children.Add(psVideoEncoderNotice);
-        psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.RateControl"), psVideoRateCombo));
+        psVideoEncodePanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Video.Field.RateControl"),
+                psVideoRateCombo));
         psVideoEncodePanel.Children.Add(psVideoRowsPanel);
         PSVideoResolutionBuild(psVideoEncodePanel);
         psVideoReactiveBox.Checked += (_, _) => PSVideoReactiveApply();
         psVideoReactiveBox.Unchecked += (_, _) => PSVideoReactiveApply();
-        psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"), psVideoReactiveBox));
+        psVideoEncodePanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"),
+                psVideoReactiveBox));
         PSVideoFpsBuild(psVideoEncodePanel);
-        psVideoEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"), psVideoPixelCombo));
+        psVideoEncodePanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"),
+                psVideoPixelCombo));
 
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoMode));
         pPanel.Children.Add(psVideoEncodePanel);
@@ -132,7 +153,10 @@ internal sealed partial class PSEncoder
 
         LCapabilityCodec pCodec = PSVideoCapabilityRead();
         LCapabilityMode pMode = pCodec.LCapabilityModeFind(PSComboTextRead(psVideoRateCombo));
-        bool pModeStored = string.Equals(pMode.LCapabilityModeLabel, lsExportSpecificEdit.LPresetVideo.LPresetRateControl, StringComparison.Ordinal);
+        bool pModeStored = string.Equals(
+            pMode.LCapabilityModeLabel,
+            lsExportSpecificEdit.LPresetVideo.LPresetRateControl,
+            StringComparison.Ordinal);
 
         PSVideoQualityBuild(pMode, pModeStored);
 
@@ -158,11 +182,18 @@ internal sealed partial class PSEncoder
             : pQuality.LCapabilityQualityDefault;
 
         psVideoQualityBox = PSEntryBuild(pText, 120);
-        if (pQuality.LCapabilityQualityMinimum is double pMinimum && pQuality.LCapabilityQualityMaximum is double pMaximum)
+        if (pQuality.LCapabilityQualityMinimum is double pMinimum
+            && pQuality.LCapabilityQualityMaximum is double pMaximum)
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
                 ? PSFaderBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
-                : PSFaderQualityBuild(pMinimum, pMaximum, pQuality.LCapabilityQualityStep, pText, psVideoQualityBox, pQuality.LCapabilityQualityAscending);
+                : PSFaderQualityBuild(
+                    pMinimum,
+                    pMaximum,
+                    pQuality.LCapabilityQualityStep,
+                    pText,
+                    psVideoQualityBox,
+                    pQuality.LCapabilityQualityAscending);
             psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.LCapabilityQualityLabel, pSliderRow));
         }
         else
@@ -173,7 +204,10 @@ internal sealed partial class PSEncoder
         string pRange = pQuality.LCapabilityQualityRange;
         psVideoRowsPanel.Children.Add(PSNoticeBuild(string.IsNullOrEmpty(pRange)
             ? LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOption", pQuality.LCapabilityQualityOption)
-            : LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOptionRange", pQuality.LCapabilityQualityOption, pRange)));
+            : LLocalization.LLocalizationFormat(
+                "Encoder.Video.FFmpegOptionRange",
+                pQuality.LCapabilityQualityOption,
+                pRange)));
     }
 
     private void PSVideoSpeedBuild(LCapabilityCodec pCodec, bool pModeStored)
@@ -232,138 +266,17 @@ internal sealed partial class PSEncoder
         return psVideoSpeedChoices[pAt].LCapabilityChoiceValue;
     }
 
-    private static readonly PSVideoScale[] psVideoFpsScale = PSVideoScaleCreate();
-
-    private static PSVideoScale[] PSVideoScaleCreate()
-    {
-        var pList = new List<PSVideoScale>();
-        for (int pAt = 1; pAt <= 240; pAt++)
-        {
-            pList.Add(new PSVideoScale(pAt, pAt.ToString(CultureInfo.InvariantCulture)));
-        }
-
-        foreach (double pRate in new[] { 23.976, 29.97, 59.94, 119.88 })
-        {
-            pList.Add(new PSVideoScale(pRate, pRate.ToString(CultureInfo.InvariantCulture)));
-        }
-
-        var pSorted = pList.OrderBy(pEntry => pEntry.PSVideoScaleRate).ToList();
-        pSorted.Insert(0, new PSVideoScale(0, string.Empty));
-        return pSorted.ToArray();
-    }
-
-    private static bool PSVideoSourceCheck(string pFps)
-    {
-        string pTrim = pFps.Trim();
-        return pTrim.Length == 0
-            || string.Equals(pTrim, "Same as source", StringComparison.Ordinal)
-            || string.Equals(pTrim, LLocalization.LLocalizationTextRead("Encoder.Sample.Source"), StringComparison.Ordinal);
-    }
-
-    private static int PSVideoFpsResolve(string pText)
-    {
-        if (PSVideoSourceCheck(pText)
-            || !double.TryParse(pText.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double pRate)
-            || !double.IsFinite(pRate) || pRate <= 0)
-        {
-            return 0;
-        }
-
-        int pBest = 1;
-        double pBestDiff = double.MaxValue;
-        for (int pAt = 1; pAt < psVideoFpsScale.Length; pAt++)
-        {
-            double pDiff = Math.Abs(psVideoFpsScale[pAt].PSVideoScaleRate - pRate);
-            if (pDiff < pBestDiff)
-            {
-                pBestDiff = pDiff;
-                pBest = pAt;
-            }
-        }
-
-        return pBest;
-    }
-
-    private void PSVideoFpsBuild(Panel pHost)
-    {
-        psVideoFpsNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Notice.FpsSource"));
-
-        if (PSVideoSourceCheck(psVideoFpsCustom.Text))
-        {
-            PSVideoFpsApply();
-        }
-        else
-        {
-            psVideoFpsNotice.Visibility = Visibility.Collapsed;
-        }
-
-        Slider pSlider = PSFaderCreate(0, psVideoFpsScale.Length - 1, PSVideoFpsResolve(psVideoFpsCustom.Text));
-
-        bool pSync = false;
-        pSlider.ValueChanged += (_, _) =>
-        {
-            if (pSync)
-            {
-                return;
-            }
-
-            int pAt = Math.Clamp((int)Math.Round(pSlider.Value), 0, psVideoFpsScale.Length - 1);
-            pSync = true;
-            if (pAt == 0)
-            {
-                PSVideoFpsApply();
-            }
-            else
-            {
-                psVideoFpsCustom.Text = psVideoFpsScale[pAt].PSVideoScaleValue;
-                psVideoFpsCustom.Foreground = PSFieldText;
-                psVideoFpsNotice.Visibility = Visibility.Collapsed;
-            }
-            psVideoFpsCustom.CaretIndex = psVideoFpsCustom.Text.Length;
-            pSync = false;
-        };
-        psVideoFpsCustom.TextChanged += (_, _) =>
-        {
-            if (pSync)
-            {
-                return;
-            }
-
-            bool pSource = PSVideoSourceCheck(psVideoFpsCustom.Text);
-            pSync = true;
-            pSlider.Value = PSVideoFpsResolve(psVideoFpsCustom.Text);
-            psVideoFpsCustom.Foreground = pSource ? PSFieldMuted : PSFieldText;
-            psVideoFpsNotice.Visibility = pSource ? Visibility.Visible : Visibility.Collapsed;
-            pSync = false;
-        };
-
-        pHost.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"),
-            PSFaderRowBuild(pSlider, psVideoFpsCustom)));
-        pHost.Children.Add(psVideoFpsNotice);
-    }
-
-    private void PSVideoFpsApply()
-    {
-        psVideoFpsCustom.Text = LLocalization.LLocalizationTextRead("Encoder.Sample.Source");
-        psVideoFpsCustom.Foreground = PSFieldMuted;
-        if (psVideoFpsNotice is not null)
-        {
-            psVideoFpsNotice.Visibility = Visibility.Visible;
-        }
-    }
-
-    private string PSVideoFpsRead()
-    {
-        string pValue = psVideoFpsCustom.Text.Trim();
-        return PSVideoSourceCheck(pValue) ? "Same as source" : pValue;
-    }
-
     private void PSVideoExtraBuild(LCapabilityCodec pCodec)
     {
         foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
         {
-            string pSelected = lsExportSpecificEdit.LPresetVideo.LPresetExtras.TryGetValue(pExtra.LCapabilityExtraOption, out string? pStored)
-                               && pExtra.LCapabilityExtraValues.Any(pChoice => string.Equals(pChoice.LCapabilityChoiceValue, pStored, StringComparison.Ordinal))
+            string pSelected = lsExportSpecificEdit.LPresetVideo.LPresetExtras.TryGetValue(
+                    pExtra.LCapabilityExtraOption,
+                    out string? pStored)
+                && pExtra.LCapabilityExtraValues.Any(pChoice => string.Equals(
+                    pChoice.LCapabilityChoiceValue,
+                    pStored,
+                    StringComparison.Ordinal))
                 ? pStored
                 : pExtra.LCapabilityExtraDefault;
 

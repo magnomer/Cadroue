@@ -42,6 +42,9 @@ public sealed class TFlawFfvone
         Assert.Equal("report", dossier.Value.LDossierRepair);
         Assert.Equal(string.Empty, dossier.Value.LDossierRepairArgument);
         Assert.Equal(string.Empty, dossier.Value.LDossierRepairInput);
-        Assert.Contains("CRC mismatch", dossier.Value.LDossierEvidenceSource, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(
+            "CRC mismatch",
+            dossier.Value.LDossierEvidenceSource,
+            System.StringComparison.OrdinalIgnoreCase);
     }
 }

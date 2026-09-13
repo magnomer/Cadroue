@@ -16,7 +16,8 @@ internal sealed partial class LJob
             {
                 File.WriteAllBytes(pStage.LEncodeStagePath, pBytes);
                 LRunner.LRunnerRecord(
-                    $"Smart encoding neutralized the copied middle's leading keyframe for '{lJobItem.LWorkOutputName}'");
+                    $"Smart encoding neutralized the copied middle's leading keyframe " +
+                    $"for '{lJobItem.LWorkOutputName}'");
             }
 
             return (0, string.Empty);

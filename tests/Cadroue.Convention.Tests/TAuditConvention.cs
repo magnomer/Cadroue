@@ -12,10 +12,11 @@ public sealed class TAuditConvention
     }
 
     [Fact]
-    public void AuditConvention_SidecarGenerations_MatchTheTooling()
+    public void AuditConvention_SettingGenerations_MatchTheTooling()
     {
         (string TSidecarName, int TSidecarGeneration)[] sidecars =
         [
+            (nameof(TAuditNameRegistry), TAuditNameRegistry.TAuditGeneration),
             (nameof(TAuditNameSetting), TAuditNameSetting.TAuditGeneration),
             (nameof(TAuditLineSetting), TAuditLineSetting.TAuditGeneration),
             (nameof(TAuditCommentSetting), TAuditCommentSetting.TAuditGeneration),

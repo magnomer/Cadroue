@@ -51,29 +51,53 @@ public sealed partial class PConsole : UserControl
         pConsoleSpinner = PConsoleSpinnerBuild();
         pConsoleStationLabel = PConsoleLabelBuild(PRosterTheme.PRosterMutedBrush, PConsoleStationSize);
         pConsoleStartButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Start"), "PRosterStart.svg", LLocalization.LLocalizationTextRead("Console.Button.StartTooltip"),
-            PRosterTheme.PRosterDoneBrush, PConsoleStartHandle);
+            LLocalization.LLocalizationTextRead("Console.Button.Start"),
+            "PRosterStart.svg",
+            LLocalization.LLocalizationTextRead("Console.Button.StartTooltip"),
+            PRosterTheme.PRosterDoneBrush,
+            PConsoleStartHandle);
         pConsolePauseButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Pause"), "PRosterPause.svg", LLocalization.LLocalizationTextRead("Console.Button.PauseTooltip"),
-            null, PConsolePauseHandle);
+            LLocalization.LLocalizationTextRead("Console.Button.Pause"),
+            "PRosterPause.svg",
+            LLocalization.LLocalizationTextRead("Console.Button.PauseTooltip"),
+            null,
+            PConsolePauseHandle);
         pConsoleCancelButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Cancel"), "PRosterCancel.svg", LLocalization.LLocalizationTextRead("Console.Button.CancelTooltip"),
-            null, PConsoleCancelHandle);
+            LLocalization.LLocalizationTextRead("Console.Button.Cancel"),
+            "PRosterCancel.svg",
+            LLocalization.LLocalizationTextRead("Console.Button.CancelTooltip"),
+            null,
+            PConsoleCancelHandle);
         pConsoleStopButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Stop"), "PRosterStop.svg", LLocalization.LLocalizationTextRead("Console.Button.StopTooltip"),
-            PRosterTheme.PRosterFailBrush, PConsoleStopHandle);
+            LLocalization.LLocalizationTextRead("Console.Button.Stop"),
+            "PRosterStop.svg",
+            LLocalization.LLocalizationTextRead("Console.Button.StopTooltip"),
+            PRosterTheme.PRosterFailBrush,
+            PConsoleStopHandle);
         pConsoleRemoveButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Remove"), "PRosterRemove.svg", LLocalization.LLocalizationTextRead("Console.Button.RemoveTooltip"),
-            null, PConsoleRemoveHandle);
+            LLocalization.LLocalizationTextRead("Console.Button.Remove"),
+            "PRosterRemove.svg",
+            LLocalization.LLocalizationTextRead("Console.Button.RemoveTooltip"),
+            null,
+            PConsoleRemoveHandle);
         pConsoleClearButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.ClearDone"), "PRosterClearDone.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearDoneTooltip"),
-            null, PConsoleDoneHandle);
+            LLocalization.LLocalizationTextRead("Console.Button.ClearDone"),
+            "PRosterClearDone.svg",
+            LLocalization.LLocalizationTextRead("Console.Button.ClearDoneTooltip"),
+            null,
+            PConsoleDoneHandle);
         pConsoleEmptyButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.ClearAll"), "PRosterClearAll.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearAllTooltip"),
-            null, PConsoleAllHandle);
+            LLocalization.LLocalizationTextRead("Console.Button.ClearAll"),
+            "PRosterClearAll.svg",
+            LLocalization.LLocalizationTextRead("Console.Button.ClearAllTooltip"),
+            null,
+            PConsoleAllHandle);
         pConsoleTabsButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.ClearTabs"), "PConsoleClearTabs.svg", LLocalization.LLocalizationTextRead("Console.Button.ClearTabsTooltip"),
-            null, PConsoleTabsHandle);
+            LLocalization.LLocalizationTextRead("Console.Button.ClearTabs"),
+            "PConsoleClearTabs.svg",
+            LLocalization.LLocalizationTextRead("Console.Button.ClearTabsTooltip"),
+            null,
+            PConsoleTabsHandle);
         pConsoleAutoBox = PConsoleAutoBuild();
         pConsoleRelayCombo = PConsoleComboBuild();
         pConsoleSaveButton = PConsoleInlineBuild("PConsoleSave.svg");
@@ -91,9 +115,13 @@ public sealed partial class PConsole : UserControl
         pConsoleSceneHost = new ContentControl { Content = pConsoleSceneControls };
         pConsoleSceneSeparator = PConsoleSeparatorBuild();
         pConsolePreviousButton = PConsoleSwitchBuild(
-            "PConsolePrevious.svg", LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"), PConsolePreviousHandle);
+            "PConsolePrevious.svg",
+            LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"),
+            PConsolePreviousHandle);
         pConsoleNextButton = PConsoleSwitchBuild(
-            "PConsoleNext.svg", LLocalization.LLocalizationTextRead("Console.Next.Tooltip"), PConsoleNextHandle);
+            "PConsoleNext.svg",
+            LLocalization.LLocalizationTextRead("Console.Next.Tooltip"),
+            PConsoleNextHandle);
 
         Content = PConsoleBuild();
         PConsoleCurrent = this;
@@ -123,7 +151,11 @@ public sealed partial class PConsole : UserControl
 
     private UIElement PConsoleBuild()
     {
-        var pButtons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var pButtons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         pButtons.Children.Add(pConsoleStartButton);
         pButtons.Children.Add(pConsolePauseButton);
         pButtons.Children.Add(pConsoleCancelButton);
@@ -140,7 +172,11 @@ public sealed partial class PConsole : UserControl
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var pAutoRow = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var pAutoRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         pAutoRow.Children.Add(pConsoleAutoBox);
         pAutoRow.Children.Add(pConsoleSceneSeparator);
         pAutoRow.Children.Add(pConsoleSceneHost);

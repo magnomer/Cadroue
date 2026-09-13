@@ -20,7 +20,8 @@ public static partial class LCartographer
         if (!lCartographerVisited.Add(lCartographerStage.LCartographerStageId))
         {
             LTraceLog.LTraceWarningRecord(
-                $"Relay cycle terminated at stage '{lCartographerStage.LCartographerTitle}': already visited this delivery");
+                $"Relay cycle terminated at stage '{lCartographerStage.LCartographerTitle}': " +
+                $"already visited this delivery");
             return;
         }
 
@@ -33,9 +34,11 @@ public static partial class LCartographer
 
         if (!lCartographerStage.LCartographerLayout.LSceneAutoRelay)
         {
-            lCartographerSeam.LCartographerTabHold(lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
+            lCartographerSeam.LCartographerTabHold(
+                lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
             LTraceLog.LTraceInfoRecord(
-                $"Relay plan {lCartographerPlan.LCartographerPlanId:N} paused at stage '{lCartographerStage.LCartographerTitle}'");
+                $"Relay plan {lCartographerPlan.LCartographerPlanId:N} paused at stage " +
+                $"'{lCartographerStage.LCartographerTitle}'");
             return;
         }
 
@@ -43,19 +46,27 @@ public static partial class LCartographer
         {
             Guid lCartographerTargetId = LCartographerRouteRead(lCartographerStage, lCartographerPath);
             if (lCartographerPlan.LCartographerStages.FirstOrDefault(
-                lCartographerCandidate => lCartographerCandidate.LCartographerStageId == lCartographerTargetId) is { } lCartographerTarget)
+                    lCartographerCandidate => lCartographerCandidate.LCartographerStageId == lCartographerTargetId)
+                is { } lCartographerTarget)
             {
                 LCartographerStageAccept(
-                    lCartographerPlan, lCartographerTarget, lCartographerPath,
-                    lCartographerStage.LCartographerStageId, lCartographerBatch, lCartographerSeam, lCartographerVisited);
+                    lCartographerPlan,
+                    lCartographerTarget,
+                    lCartographerPath,
+                    lCartographerStage.LCartographerStageId,
+                    lCartographerBatch,
+                    lCartographerSeam,
+                    lCartographerVisited);
             }
             lCartographerStage.LCartographerPendingInputs.Clear();
             return;
         }
 
-        lCartographerSeam.LCartographerTabTrack(lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
+        lCartographerSeam.LCartographerTabTrack(
+            lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
 
-        bool lCartographerMerge = string.Equals(lCartographerStage.LCartographerLayoutKey, "Merge", StringComparison.Ordinal);
+        bool lCartographerMerge = string.Equals(
+            lCartographerStage.LCartographerLayoutKey, "Merge", StringComparison.Ordinal);
         if (lCartographerMerge
             && LCartographerMergeCheck(
                 lCartographerPlan, lCartographerStage, lCartographerBatch, LCartographerScheduleRead()))
@@ -129,12 +140,15 @@ public static partial class LCartographer
             if (lCartographerItem.LWorkStateCurrent == LWorkState.LWorkStateDone
                 && (lCartographerPlan.LCartographerDeliveredWork.Contains(lCartographerItem.LWorkId)
                     || lCartographerMerge.LCartographerPendingInputs.Any(lCartographerInput => string.Equals(
-                        lCartographerInput.LCartographerPath, lCartographerItem.LWorkOutputPath, StringComparison.OrdinalIgnoreCase))))
+                        lCartographerInput.LCartographerPath,
+                        lCartographerItem.LWorkOutputPath,
+                        StringComparison.OrdinalIgnoreCase))))
             {
                 continue;
             }
 
-            if (LCartographerReachCheck(lCartographerPlan, lCartographerItem.LWorkRelayTarget, lCartographerMerge.LCartographerStageId))
+            if (LCartographerReachCheck(
+                lCartographerPlan, lCartographerItem.LWorkRelayTarget, lCartographerMerge.LCartographerStageId))
             {
                 return true;
             }
@@ -143,7 +157,10 @@ public static partial class LCartographer
         return false;
     }
 
-    private static bool LCartographerReachCheck(LCartographerPlanRecord lCartographerPlan, Guid lCartographerFrom, Guid lCartographerTarget)
+    private static bool LCartographerReachCheck(
+        LCartographerPlanRecord lCartographerPlan,
+        Guid lCartographerFrom,
+        Guid lCartographerTarget)
     {
         var lCartographerSeen = new HashSet<Guid>();
         var lCartographerPending = new Queue<Guid>();
@@ -154,11 +171,14 @@ public static partial class LCartographer
             if (lCartographerCurrent == lCartographerTarget) return true;
             if (!lCartographerSeen.Add(lCartographerCurrent)) continue;
             if (lCartographerPlan.LCartographerStages.FirstOrDefault(
-                lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerCurrent) is not { } lCartographerStage) continue;
-            if (lCartographerStage.LCartographerNextStage != Guid.Empty) lCartographerPending.Enqueue(lCartographerStage.LCartographerNextStage);
+                    lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerCurrent)
+                is not { } lCartographerStage) continue;
+            if (lCartographerStage.LCartographerNextStage != Guid.Empty)
+                lCartographerPending.Enqueue(lCartographerStage.LCartographerNextStage);
             foreach (LCartographerFunnelRule lCartographerRule in lCartographerStage.LCartographerFunnelRules)
             {
-                if (lCartographerRule.LCartographerTargetStage != Guid.Empty) lCartographerPending.Enqueue(lCartographerRule.LCartographerTargetStage);
+                if (lCartographerRule.LCartographerTargetStage != Guid.Empty)
+                    lCartographerPending.Enqueue(lCartographerRule.LCartographerTargetStage);
             }
         }
 

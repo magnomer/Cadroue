@@ -314,7 +314,8 @@ public partial class PRail : UserControl
         for (int index = 0; index < pStrip.PStripRecords.Count; index++)
         {
             PTabRecord pTabRecord = pStrip.PStripRecords[index];
-            if (pTabItemsControl.ItemContainerGenerator.ContainerFromItem(pTabRecord) is not FrameworkElement pItemElement)
+            if (pTabItemsControl.ItemContainerGenerator.ContainerFromItem(pTabRecord)
+                is not FrameworkElement pItemElement)
             {
                 continue;
             }
@@ -355,9 +356,15 @@ public partial class PRail : UserControl
         e.Handled = true;
     }
 
-    private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey, string pTabTitleKey, ImageSource pTabIconSource)
+    private void PTabMenuAppend(
+        ContextMenu pTabAddMenu,
+        string pTabLayoutKey,
+        string pTabTitleKey,
+        ImageSource pTabIconSource)
     {
-        MenuItem pTabAddMenuItem = PMenu.PMenuItemCreate(LLocalization.LLocalizationTextRead(pTabTitleKey), pTabIconSource);
+        MenuItem pTabAddMenuItem = PMenu.PMenuItemCreate(
+            LLocalization.LLocalizationTextRead(pTabTitleKey),
+            pTabIconSource);
         pTabAddMenuItem.Click += (_, _) => PTabLayoutAdd(pTabLayoutKey);
         pTabAddMenu.Items.Add(pTabAddMenuItem);
     }

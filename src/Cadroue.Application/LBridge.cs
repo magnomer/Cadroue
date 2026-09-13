@@ -130,7 +130,12 @@ public static partial class LBridge
             ? new LBridgeSpan(lBridgeCopyStop, lBridgeEnd)
             : null;
 
-        return new LBridgePlan(LBridgeOutcome.LBridgeOutcomeSmart, lBridgeInterval, lBridgeHead, lBridgeCopy, lBridgeTail);
+        return new LBridgePlan(
+            LBridgeOutcome.LBridgeOutcomeSmart,
+            lBridgeInterval,
+            lBridgeHead,
+            lBridgeCopy,
+            lBridgeTail);
     }
 
     public static bool LBridgeEndCheck(TimeSpan lBridgeEnd, TimeSpan lBridgeDuration, double lBridgeFramerate)

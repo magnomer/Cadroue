@@ -18,7 +18,9 @@ public sealed class TCartographerCycle
         TCartographerPlanView plan = TCartographer.TCartographerPlanCreate(specs, entryIndex: 0);
 
         Assert.Equal(2, plan.TCartographerStages.Count);
-        Assert.Equal(plan.TCartographerStageRead(1).TCartographerStageId, plan.TCartographerStageRead(0).TCartographerNextStage);
+        Assert.Equal(
+            plan.TCartographerStageRead(1).TCartographerStageId,
+            plan.TCartographerStageRead(0).TCartographerNextStage);
         Assert.Equal(TCartographer.TCartographerFinish, plan.TCartographerStageRead(1).TCartographerNextStage);
     }
 
@@ -34,8 +36,12 @@ public sealed class TCartographerCycle
         TCartographerPlanView plan = TCartographer.TCartographerPlanCreate(specs, entryIndex: 0);
 
         Assert.Equal(2, plan.TCartographerStages.Count);
-        Assert.Equal(plan.TCartographerStageRead(1).TCartographerStageId, Assert.Single(plan.TCartographerStageRead(0).TCartographerFunnelTargets));
-        Assert.Equal(TCartographer.TCartographerFinish, Assert.Single(plan.TCartographerStageRead(1).TCartographerFunnelTargets));
+        Assert.Equal(
+            plan.TCartographerStageRead(1).TCartographerStageId,
+            Assert.Single(plan.TCartographerStageRead(0).TCartographerFunnelTargets));
+        Assert.Equal(
+            TCartographer.TCartographerFinish,
+            Assert.Single(plan.TCartographerStageRead(1).TCartographerFunnelTargets));
     }
 
     [Fact]

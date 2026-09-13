@@ -36,7 +36,8 @@ public static partial class LCapabilityTable
                 new("Target bitrate", LCapabilityBitrateCreate())
             ],
             new LCapabilitySpeed("Speed preset", "-preset", "medium",
-                [new("faster", "Faster"), new("fast", "Fast"), new("medium", "Medium"), new("slow", "Slow"), new("slower", "Slower")]),
+                [new("faster", "Faster"), new("fast", "Fast"), new("medium", "Medium"), new("slow", "Slow"),
+                 new("slower", "Slower")]),
             [new LCapabilityExtra("Profile", "-profile", "main", [new("main", "Main"), new("high", "High")])],
             "VVenC has no CRF. Quantizer range is 0-63 with default 32."));
 
@@ -89,15 +90,19 @@ public static partial class LCapabilityTable
                 new("High-quality CBR", LCapabilityBitrateCreate())
             ],
             new LCapabilitySpeed("Quality preset", "-quality", "balanced",
-                [new("speed", "Speed"), new("balanced", "Balanced"), new("quality", "Quality"), new("high_quality", "High quality")]),
+                [new("speed", "Speed"), new("balanced", "Balanced"), new("quality", "Quality"),
+                 new("high_quality", "High quality")]),
             [
                 new LCapabilityExtra("Usage", "-usage", "transcoding",
-                    [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"), new("lowlatency", "Low latency"),
-                     new("webcam", "Webcam"), new("high_quality", "High quality"), new("lowlatency_high_quality", "Low latency, high quality")]),
+                    [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"),
+                     new("lowlatency", "Low latency"), new("webcam", "Webcam"), new("high_quality", "High quality"),
+                     new("lowlatency_high_quality", "Low latency, high quality")]),
                 new LCapabilityExtra("Latency", "-latency", "none",
-                    [new("none", "None"), new("power_saving_real_time", "Power-saving real-time"), new("real_time", "Real-time"), new("lowest_latency", "Lowest latency")])
+                    [new("none", "None"), new("power_saving_real_time", "Power-saving real-time"),
+                     new("real_time", "Real-time"), new("lowest_latency", "Lowest latency")])
             ],
-            "AV1 AMF differs from H.264/HEVC AMF: quantizer range is 0-255, there is no -qp_b, and -quality adds high_quality."));
+            "AV1 AMF differs from H.264/HEVC AMF: quantizer range is 0-255, there is no -qp_b, " +
+            "and -quality adds high_quality."));
         yield return new("av1_nvenc", LCapabilityNvencCreate("av1_nvenc"));
     }
 }

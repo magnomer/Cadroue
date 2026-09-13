@@ -10,7 +10,9 @@ public sealed partial class PRoster
             : LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
 
     private static string PRosterStampFormat(DateTimeOffset? pStamp) =>
-        pStamp is { } pValue ? pValue.ToString("yyyy-MM-dd HH:mm:ss") : LLocalization.LLocalizationTextRead("Roster.Value.NotYet");
+        pStamp is { } pValue
+            ? pValue.ToString("yyyy-MM-dd HH:mm:ss")
+            : LLocalization.LLocalizationTextRead("Roster.Value.NotYet");
 
     private static string PRosterSpentFormat(LWorkItem pWorkItem)
     {

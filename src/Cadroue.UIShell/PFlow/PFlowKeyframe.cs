@@ -18,7 +18,14 @@ public sealed partial class PFlow
 
     private void PFlowKeyframeDefer()
     {
-        if (!pFlowCommandActive || pFlowUnloaded || lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) { lKeyframeRequestTimer.Stop(); return; }
+        if (!pFlowCommandActive
+            || pFlowUnloaded
+            || lSpool is null
+            || string.IsNullOrWhiteSpace(lSourcePath))
+        {
+            lKeyframeRequestTimer.Stop();
+            return;
+        }
         if (lKeyframeResumeTimer.IsEnabled) return;
         lKeyframeRequestTimer.Stop();
         lKeyframeRequestTimer.Start();
@@ -46,7 +53,8 @@ public sealed partial class PFlow
                 LTraceKind.LTraceWork,
                 $"Keyframe scan requested around {lCursor:hh\\:mm\\:ss\\.fff}",
                 $"source {System.IO.Path.GetFileName(lSourcePath)}, duration {lSpool.LSpoolDuration:hh\\:mm\\:ss}\n"
-                + $"window {LKeyframeView.LKeyframeRangeBefore:hh\\:mm\\:ss} before to {LKeyframeView.LKeyframeRangeAfter:hh\\:mm\\:ss} after the cursor");
+                + $"window {LKeyframeView.LKeyframeRangeBefore:hh\\:mm\\:ss} before to "
+                + $"{LKeyframeView.LKeyframeRangeAfter:hh\\:mm\\:ss} after the cursor");
             lKeyframeOrchestrator.LKeyframeStart(lSourcePath, lSpool.LSpoolDuration, lCursor);
         }
     }
@@ -57,7 +65,10 @@ public sealed partial class PFlow
 
     private void PFlowNoticeHandle(LKeyframeNotice notice)
     {
-        if (!pFlowCommandActive || pFlowUnloaded || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished) return;
+        if (!pFlowCommandActive
+            || pFlowUnloaded
+            || Dispatcher.HasShutdownStarted
+            || Dispatcher.HasShutdownFinished) return;
         Dispatcher.InvokeAsync(() =>
         {
             if (!pFlowUnloaded && notice.LKeyframeSerial == lKeyframeOrchestrator.LKeyframeCurrentSerial)
@@ -89,7 +100,8 @@ public sealed partial class PFlow
             : System.IO.Path.GetFileName(lSourcePath);
         LTraceLog.LTraceInfoRecord(
             $"Keyframe scan '{pFlowSource}': {notice.LKeyframeList.Count} keyframe(s) known, " +
-            $"{TimeSpan.FromSeconds(pFlowScanned):hh\\:mm\\:ss} scanned across {notice.LKeyframeRanges.Count} range(s)");
+            $"{TimeSpan.FromSeconds(pFlowScanned):hh\\:mm\\:ss} scanned across " +
+            $"{notice.LKeyframeRanges.Count} range(s)");
     }
 
     private void PFlowKeyframeMove(int direction, bool requestScan = true)

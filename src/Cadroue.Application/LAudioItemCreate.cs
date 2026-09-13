@@ -26,7 +26,8 @@ public static partial class LAudio
         {
             lErrorLog(
                 "Audio job not queued: the export preset does not encode the audio stream " +
-                $"(mode '{lAudioOutput.LEncodingAudio.LEncodingMode}', scope '{lAudioOutput.LEncodingAudio.LEncodingStream}')");
+                $"(mode '{lAudioOutput.LEncodingAudio.LEncodingMode}', " +
+                $"scope '{lAudioOutput.LEncodingAudio.LEncodingStream}')");
             return null;
         }
 

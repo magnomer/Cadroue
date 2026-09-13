@@ -181,7 +181,8 @@ public sealed partial record LTraceEntry(
         }
     }
 
-    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+(Info|Loading|Warning|Error|Interaction|UI|Draw|View|Work|Ffmpeg)\s+(.*)$")]
+    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+" +
+        @"(Info|Loading|Warning|Error|Interaction|UI|Draw|View|Work|Ffmpeg)\s+(.*)$")]
     private static partial Regex LTraceHeaderRead();
 
     [GeneratedRegex(@"^(\d+(?:\.\d+)?)(ms|s)$")]

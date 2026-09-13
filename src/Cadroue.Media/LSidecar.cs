@@ -33,5 +33,8 @@ public sealed class LSidecar
     public bool LSidecarSourceMatch(LKeyframeSourceIdentity lSidecarIdentity) =>
         LSidecarSource.LSidecarLength == lSidecarIdentity.LKeyframeSourceLength
         && LSidecarSource.LSidecarDurationMilliseconds == lSidecarIdentity.LKeyframeSourceDuration
-        && string.Equals(LSidecarSource.LSidecarPartialHash, lSidecarIdentity.LKeyframePartialHash, StringComparison.Ordinal);
+        && string.Equals(
+            LSidecarSource.LSidecarPartialHash,
+            lSidecarIdentity.LKeyframePartialHash,
+            StringComparison.Ordinal);
 }

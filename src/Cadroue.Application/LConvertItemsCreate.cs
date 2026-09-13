@@ -44,7 +44,12 @@ public static partial class LConvert
 
             string lConvertFolder = lConvertOutput.LEncodingFolderRead(lConvertSourcePath);
             string lConvertOutputName = LConvertNameCreate(
-                lConvertOutput, lConvertSourcePath, lConvertFolder, lConvertDuration, lConvertStamp, lConvertTakenPaths);
+                lConvertOutput,
+                lConvertSourcePath,
+                lConvertFolder,
+                lConvertDuration,
+                lConvertStamp,
+                lConvertTakenPaths);
 
             lConvertWorkItems.Add(new LWorkItem(
                 lConvertBatch,
@@ -185,7 +190,9 @@ public static partial class LConvert
                 Path.GetFullPath(lConvertSourcePath),
                 StringComparison.OrdinalIgnoreCase);
         }
-        catch (Exception lConvertError) when (lConvertError is ArgumentException or IOException or NotSupportedException)
+        catch (Exception lConvertError) when (lConvertError is ArgumentException
+            or IOException
+            or NotSupportedException)
         {
             return string.Equals(lConvertOutputPath, lConvertSourcePath, StringComparison.OrdinalIgnoreCase);
         }

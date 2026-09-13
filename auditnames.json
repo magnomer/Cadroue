@@ -34,6 +34,7 @@
       "TAuditLine.cs",
       "TAuditLineSetting.cs",
       "TAuditName.cs",
+      "TAuditNameRegistry.cs",
       "TAuditNameSetting.cs",
       "TAuditNameWalker.cs",
       "TAuditRegistry.cs",

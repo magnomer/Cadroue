@@ -38,7 +38,8 @@ internal sealed partial class LLocalizationCatalog
 
         if (lLocalizationDocument.RootElement.ValueKind != JsonValueKind.Object)
         {
-            throw new InvalidDataException($"Localization file '{lLocalizationFilePath}' must contain one JSON object.");
+            throw new InvalidDataException(
+                $"Localization file '{lLocalizationFilePath}' must contain one JSON object.");
         }
 
         var lLocalizationRawValues = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -72,7 +73,9 @@ internal sealed partial class LLocalizationCatalog
                     $"Localization key '{lLocalizationKey}' in '{lLocalizationFilePath}' must have a string value.");
             }
 
-            if (!lLocalizationRawValues.TryAdd(lLocalizationKey, lLocalizationProperty.Value.GetString() ?? string.Empty))
+            if (!lLocalizationRawValues.TryAdd(
+                lLocalizationKey,
+                lLocalizationProperty.Value.GetString() ?? string.Empty))
             {
                 throw new InvalidDataException(
                     $"Localization key '{lLocalizationKey}' is duplicated in '{lLocalizationFilePath}'.");
@@ -171,6 +174,8 @@ internal sealed partial class LLocalizationCatalog
     [GeneratedRegex(@"\{([Tt])erms\.([A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)*)\}", RegexOptions.CultureInvariant)]
     private static partial Regex LLocalizationTermCreate();
 
-    [GeneratedRegex(@"(?:^|\.)(?:Key|Text|Value|Label|Item|Thing)\d+(?:\.|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(
+        @"(?:^|\.)(?:Key|Text|Value|Label|Item|Thing)\d+(?:\.|$)",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex LLocalizationMeaninglessCreate();
 }

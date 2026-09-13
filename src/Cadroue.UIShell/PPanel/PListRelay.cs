@@ -14,7 +14,8 @@ public sealed partial class PList
         if (PStrip.PStripTabFind(pListTargetTab) is not { } pListTarget
             || pListTarget.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)
         {
-            LTraceLog.LTraceWarningRecord($"Relay skipped '{Path.GetFileName(pListPath)}': the destination tab is gone");
+            LTraceLog.LTraceWarningRecord(
+                $"Relay skipped '{Path.GetFileName(pListPath)}': the destination tab is gone");
             return false;
         }
 
@@ -36,7 +37,8 @@ public sealed partial class PList
 
     public static void PListDeliveredPlace(Guid pListOriginalTab, string pListPath, Guid pListBatch)
     {
-        if (PStrip.PStripTabFind(pListOriginalTab)?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
+        if (PStrip.PStripTabFind(pListOriginalTab)
+            ?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
         {
             pListOwner.LDocketPathsAdd(PListMediaScan(new[] { pListPath }), pListBatch, true);
         }
@@ -44,7 +46,8 @@ public sealed partial class PList
 
     public static void PListDeliveredCommit(Guid pListOriginalTab, string pListPath, Guid pListBatch)
     {
-        if (PStrip.PStripTabFind(pListOriginalTab)?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
+        if (PStrip.PStripTabFind(pListOriginalTab)
+            ?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
         {
             pListOwner.LDocketDeliveredAdd(PListMediaScan(new[] { pListPath }), pListBatch);
         }
@@ -108,7 +111,8 @@ public sealed partial class PList
             pListOwner.LDocketPathsRemove(pListRemovedPaths);
             pListSurface.PTabGroup?.PGroupPathsRemove(pListRemovedPaths);
             LTraceLog.LTraceInfoRecord(
-                $"Relay removed {pListRemovedPaths.Length} file(s) from tab '{pListTab.PTabTitle}' after their batch left the worklist");
+                $"Relay removed {pListRemovedPaths.Length} file(s) from tab '{pListTab.PTabTitle}' "
+                + "after their batch left the worklist");
         }
     }
 
@@ -131,7 +135,8 @@ public sealed partial class PList
     public static void PListSourceClaim(IReadOnlyList<LWorkItem> pListAccepted, Guid pListSourceTab)
     {
         if (pListAccepted.Count == 0
-            || PStrip.PStripTabFind(pListSourceTab)?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)
+            || PStrip.PStripTabFind(pListSourceTab)
+                ?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)
         {
             return;
         }

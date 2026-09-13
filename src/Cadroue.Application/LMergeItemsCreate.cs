@@ -29,7 +29,12 @@ public static partial class LMerge
 
             string lMergeBasePath = lMergeSources[0];
             string lMergeFolder = lMergeOutput.LEncodingFolderRead(lMergeBasePath);
-            string lMergeName = LMergeNameCreate(lMergeOutput, lMergeBasePath, lMergeGroup.LWorkGroupName, lMergeStamp, lMergeTakenNames);
+            string lMergeName = LMergeNameCreate(
+                lMergeOutput,
+                lMergeBasePath,
+                lMergeGroup.LWorkGroupName,
+                lMergeStamp,
+                lMergeTakenNames);
             Guid lMergeBatch = LMergeBatchResolve(lMergeSources, lMergeRelays, lMergeLooseBatch);
 
             lMergeItems.Add(new LWorkItem(
@@ -55,7 +60,8 @@ public static partial class LMerge
         {
             lMergeItem.LWorkTab = lMergeTab;
             lInfoLog(
-                $"Merge built job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s) [batch {lMergeItem.LWorkBatchId:N}]");
+                $"Merge built job '{lMergeItem.LWorkOutputName}': {lMergeItem.LWorkMergeSources.Count} file(s) " +
+                $"[batch {lMergeItem.LWorkBatchId:N}]");
         }
 
         return lMergeItems;

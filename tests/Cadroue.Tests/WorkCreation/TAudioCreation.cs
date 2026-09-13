@@ -10,7 +10,10 @@ public sealed class TAudioCreation
     [Fact]
     public void ValidAudioProcessing_CreatesAudioWork()
     {
-        LWorkItem item = Assert.IsType<LWorkItem>(TAudioCreate("media/source.mov", TAudioProcessingCreate(), TWorkOutput.TWorkOutputCreate()));
+        LWorkItem item = Assert.IsType<LWorkItem>(TAudioCreate(
+            "media/source.mov",
+            TAudioProcessingCreate(),
+            TWorkOutput.TWorkOutputCreate()));
 
         Assert.Equal(LWorkKind.LWorkKindAudio, item.LWorkKind);
     }
@@ -20,7 +23,10 @@ public sealed class TAudioCreation
     {
         LWorkAudio processing = TAudioProcessingCreate();
 
-        LWorkItem item = Assert.IsType<LWorkItem>(TAudioCreate("media/source.mov", processing, TWorkOutput.TWorkOutputCreate()));
+        LWorkItem item = Assert.IsType<LWorkItem>(TAudioCreate(
+            "media/source.mov",
+            processing,
+            TWorkOutput.TWorkOutputCreate()));
 
         Assert.Same(processing, item.LWorkAudio);
         LWorkVolumeStep volume = Assert.IsType<LWorkVolumeStep>(item.LWorkAudio.LWorkAudioSteps[0]);

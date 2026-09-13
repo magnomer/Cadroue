@@ -15,7 +15,10 @@ internal sealed partial class PSOptions
 
     private UIElement PSWorkBuild()
     {
-        UIElement pRetryRow = PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.RetryLimit"), psOptionsRetrySlider, string.Empty);
+        UIElement pRetryRow = PSOptionsFieldBuild(
+            LLocalization.LLocalizationTextRead("Options.Work.RetryLimit"),
+            psOptionsRetrySlider,
+            string.Empty);
         pRetryRow.IsEnabled = psOptionsRetryBox.IsChecked == true;
         psOptionsRetryBox.Checked += (_, _) => pRetryRow.IsEnabled = true;
         psOptionsRetryBox.Unchecked += (_, _) => pRetryRow.IsEnabled = false;

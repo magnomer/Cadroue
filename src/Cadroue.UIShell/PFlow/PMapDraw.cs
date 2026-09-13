@@ -29,10 +29,19 @@ public sealed partial class PMap
         }
 
         double durationSeconds = lSpool.LSpoolDuration.TotalSeconds;
-        foreach (LKeyframeScanRange range in LKeyframeView.LKeyframeCoverageResolve(lKeyframeScannedRanges, lSpool, true))
+        foreach (LKeyframeScanRange range in LKeyframeView.LKeyframeCoverageResolve(
+            lKeyframeScannedRanges,
+            lSpool,
+            true))
         {
-            double scanStartX = Math.Clamp(range.LKeyframeRangeOrigin.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
-            double scanEndX = Math.Clamp(range.LKeyframeRangeLimit.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double scanStartX = Math.Clamp(
+                range.LKeyframeRangeOrigin.TotalSeconds / durationSeconds * actualWidth,
+                0,
+                actualWidth);
+            double scanEndX = Math.Clamp(
+                range.LKeyframeRangeLimit.TotalSeconds / durationSeconds * actualWidth,
+                0,
+                actualWidth);
             double scanWidth = Math.Max(1, scanEndX - scanStartX);
             if (scanStartX + scanWidth > actualWidth)
             {
@@ -93,8 +102,14 @@ public sealed partial class PMap
                 continue;
             }
 
-            double sectionStartX = Math.Clamp(section.LPieceOrigin.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
-            double sectionEndX = Math.Clamp(section.LPieceEnd.TotalSeconds / durationSeconds * actualWidth, 0, actualWidth);
+            double sectionStartX = Math.Clamp(
+                section.LPieceOrigin.TotalSeconds / durationSeconds * actualWidth,
+                0,
+                actualWidth);
+            double sectionEndX = Math.Clamp(
+                section.LPieceEnd.TotalSeconds / durationSeconds * actualWidth,
+                0,
+                actualWidth);
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
             Pen? sectionPen = index == lSectionIndexActive ? pMapSectionPen : null;
             var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
@@ -145,14 +160,19 @@ public sealed partial class PMap
         return pMapBuilt;
     }
 
-    private void PMapSectionDraw(DrawingContext drawingContext, Rect sectionRect, int sectionIndex, int sectionColorIndex)
+    private void PMapSectionDraw(
+        DrawingContext drawingContext,
+        Rect sectionRect,
+        int sectionIndex,
+        int sectionColorIndex)
     {
         FormattedText badgeFormatted = PMapBadgeRead(
             $"{sectionIndex + 1}", VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
         double badgeHeight = badgeFormatted.Height + PMapBadgeVertical * 2;
         double badgeWidth = Math.Max(badgeHeight, badgeFormatted.Width + PMapBadgeHorizontal * 2);
-        if (badgeWidth > sectionRect.Width - PMapBadgeMargin * 2 || badgeHeight > sectionRect.Height - PMapBadgeMargin * 2)
+        if (badgeWidth > sectionRect.Width - PMapBadgeMargin * 2
+            || badgeHeight > sectionRect.Height - PMapBadgeMargin * 2)
         {
             return;
         }
@@ -215,7 +235,12 @@ public sealed partial class PMap
             if (movePaintRect.Width > 0 && movePaintRect.Height > 0)
             {
                 double moveRadius = Math.Min(8, movePaintRect.Height / 2);
-                drawingContext.DrawRoundedRectangle(pNavigatorBodyBrush, pNavigatorBodyPen, movePaintRect, moveRadius, moveRadius);
+                drawingContext.DrawRoundedRectangle(
+                    pNavigatorBodyBrush,
+                    pNavigatorBodyPen,
+                    movePaintRect,
+                    moveRadius,
+                    moveRadius);
                 PGripMoveDraw(drawingContext, movePaintRect);
             }
         }

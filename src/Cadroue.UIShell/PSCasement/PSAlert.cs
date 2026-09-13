@@ -30,11 +30,20 @@ internal sealed class PSAlert : Window
         Content = PSAlertBuild(pTitle, pQuestion, pAction, pCancel);
     }
 
-    internal static bool PSAlertConfirm(Window? pOwner, string pTitle, string pQuestion, string pAction, string? pCancel = null) =>
+    internal static bool PSAlertConfirm(
+        Window? pOwner,
+        string pTitle,
+        string pQuestion,
+        string pAction,
+        string? pCancel = null) =>
         new PSAlert(pOwner, pTitle, pQuestion, pAction, pCancel).ShowDialog() == true;
 
     private UIElement PSAlertBuild(string pTitle, string pQuestion, string pAction, string? pCancel) =>
-        PSDialog.PSDialogBuild(this, pTitle, PSAlertBodyBuild(pQuestion, pAction, pCancel), PSDialogTheme.PSDialogThemeRed);
+        PSDialog.PSDialogBuild(
+            this,
+            pTitle,
+            PSAlertBodyBuild(pQuestion, pAction, pCancel),
+            PSDialogTheme.PSDialogThemeRed);
 
     private DockPanel PSAlertBodyBuild(string pQuestion, string pAction, string? pCancel)
     {
@@ -77,7 +86,9 @@ internal sealed class PSAlert : Window
 
         var pIcon = new Image
         {
-            Source = PAsset.PIcon.PIconRead("/PAsset/PSDialog/PSAlert.svg", new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18))),
+            Source = PAsset.PIcon.PIconRead(
+                "/PAsset/PSDialog/PSAlert.svg",
+                new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18))),
             Width = 28,
             Height = 28,
             Stretch = Stretch.Uniform,

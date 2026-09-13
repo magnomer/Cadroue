@@ -4,7 +4,8 @@ public static class LFlawTransport
 {
     public static LDossier? LFlawTransportResolve(string lFlawProbeReport, string lFlawCopyError)
     {
-        IReadOnlyDictionary<string, string>? lFlawFormat = LFlaw.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
+        IReadOnlyDictionary<string, string>? lFlawFormat =
+            LFlaw.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
         string lFlawContainer = lFlawFormat is not null
             && lFlawFormat.TryGetValue("format_name", out string? lFlawName)
                 ? lFlawName.ToLowerInvariant()

@@ -42,7 +42,8 @@ public static partial class LCartographer
     public static LCartographerDelivery? LCartographerDeliverySeam { get; set; }
 
     public static bool LCartographerOwnershipCheck(LWorkItem lCartographerItem) =>
-        LCartographerPlanStore.LCartographerPlanRead(lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
+        LCartographerPlanStore.LCartographerPlanRead(
+            lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
         && lCartographerPlan.LCartographerStages.Any(
             lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelayTarget);
 
@@ -113,7 +114,9 @@ public static partial class LCartographer
                 lCartographerItem.LWorkOwnerProcess, lCartographerItem.LWorkOwnerStamp);
     }
 
-    public static bool LCartographerItemDispatch(LWorkItem lCartographerItem, IReadOnlyList<LWorkItem> lCartographerSchedule)
+    public static bool LCartographerItemDispatch(
+        LWorkItem lCartographerItem,
+        IReadOnlyList<LWorkItem> lCartographerSchedule)
     {
         if (LCartographerDeliverySeam is not { } lCartographerSeam)
         {
@@ -134,17 +137,22 @@ public static partial class LCartographer
             return true;
         }
 
-        if (string.IsNullOrWhiteSpace(lCartographerItem.LWorkOutputPath) || !File.Exists(lCartographerItem.LWorkOutputPath))
+        if (string.IsNullOrWhiteSpace(lCartographerItem.LWorkOutputPath)
+            || !File.Exists(lCartographerItem.LWorkOutputPath))
         {
-            LTraceLog.LTraceWarningRecord($"Relay skipped '{lCartographerItem.LWorkOutputName}': the output file is missing");
+            LTraceLog.LTraceWarningRecord(
+                $"Relay skipped '{lCartographerItem.LWorkOutputName}': the output file is missing");
             return false;
         }
 
-        if (LCartographerPlanStore.LCartographerPlanRead(lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
+        if (LCartographerPlanStore.LCartographerPlanRead(
+                lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
             && lCartographerPlan.LCartographerStages.FirstOrDefault(
-                lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelayTarget) is { } lCartographerStage)
+                    lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelayTarget)
+                is { } lCartographerStage)
         {
-            if (!LCartographerStageDispatch(lCartographerItem, lCartographerPlan, lCartographerStage, lCartographerSeam))
+            if (!LCartographerStageDispatch(
+                lCartographerItem, lCartographerPlan, lCartographerStage, lCartographerSeam))
             {
                 return false;
             }

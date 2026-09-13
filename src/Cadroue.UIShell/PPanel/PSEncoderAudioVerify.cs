@@ -19,7 +19,11 @@ internal sealed partial class PSEncoder
         foreach (var pCandidate in PSAudioCandidates)
         {
             LTrialResult pResult = await LTrial.LTrialRun(pCandidate.PSAudioName, LTrialKind.LTrialKindAudio);
-            pRows.Add(new PSVerdictRow(pCandidate.PSAudioText, pCandidate.PSAudioName, pResult.LTrialSuccess, pResult.LTrialMessage));
+            pRows.Add(new PSVerdictRow(
+                pCandidate.PSAudioText,
+                pCandidate.PSAudioName,
+                pResult.LTrialSuccess,
+                pResult.LTrialMessage));
             if (pResult.LTrialSuccess)
             {
                 pAvailable.Add(pCandidate.PSAudioText);
@@ -30,7 +34,10 @@ internal sealed partial class PSEncoder
         }
 
         if (!pAvailable.Contains(pSelected)
-            && PSAudioCandidates.Any(pCandidate => string.Equals(pCandidate.PSAudioText, pSelected, StringComparison.Ordinal)))
+            && PSAudioCandidates.Any(pCandidate => string.Equals(
+                pCandidate.PSAudioText,
+                pSelected,
+                StringComparison.Ordinal)))
         {
             pAvailable.Insert(0, pSelected);
         }

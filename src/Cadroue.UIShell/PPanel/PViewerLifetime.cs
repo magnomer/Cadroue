@@ -172,14 +172,23 @@ public sealed partial class PViewer
         {
         }
 
+        string pViewerSurfaceState = pViewerHostSurface is null
+            ? "none"
+            : $"{pViewerHostSurface.Visibility} {pViewerHostSurface.Width:0}x{pViewerHostSurface.Height:0}";
+        string pViewerOverlayState = pViewerHostOverlay is null
+            ? "none"
+            : $"present, AllowsTransparency {pViewerHostOverlay.AllowsTransparency} "
+                + "(software-composited layer over the video)";
         LTrace.LTraceRecord(
             LTraceKind.LTraceUi,
             $"Viewer host [{++pViewerHostStamp}] {pViewerStage}",
-            $"panel visible {IsVisible}, host visible {pViewerFlyleafHost.IsVisible}, command {(pViewerCommandActive ? "on" : "off")}\n"
-            + $"surface {(pViewerHostSurface is null ? "none" : $"{pViewerHostSurface.Visibility} {pViewerHostSurface.Width:0}x{pViewerHostSurface.Height:0}")}, "
+            $"panel visible {IsVisible}, host visible {pViewerFlyleafHost.IsVisible}, "
+            + $"command {(pViewerCommandActive ? "on" : "off")}\n"
+            + $"surface {pViewerSurfaceState}, "
             + $"handle {(pViewerHostHandle == IntPtr.Zero ? "none" : "set")}, disposed {pViewerHostDisposed}\n"
-            + $"overlay {(pViewerHostOverlay is null ? "none" : $"present, AllowsTransparency {pViewerHostOverlay.AllowsTransparency} (software-composited layer over the video)")}\n"
-            + $"player {(pViewerPlayer.PPlayerReady ? "ready" : "none")}, renderer {(pViewerPlayer.PPlayerFlyleafPlayer?.Renderer is null ? "none" : "ready")}");
+            + $"overlay {pViewerOverlayState}\n"
+            + $"player {(pViewerPlayer.PPlayerReady ? "ready" : "none")}, "
+            + $"renderer {(pViewerPlayer.PPlayerFlyleafPlayer?.Renderer is null ? "none" : "ready")}");
     }
 
     public void PViewerClose()

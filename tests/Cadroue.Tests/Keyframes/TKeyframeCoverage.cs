@@ -62,7 +62,12 @@ public sealed class TKeyframeCoverage
     public void CoverageRanges_PreserveInputOrder()
     {
         var spool = TKeyframeSpoolCreate(0, 500);
-        var ranges = new[] { TKeyframeScanCreate(300, 350), TKeyframeScanCreate(100, 150), TKeyframeScanCreate(200, 250) };
+        var ranges = new[]
+        {
+            TKeyframeScanCreate(300, 350),
+            TKeyframeScanCreate(100, 150),
+            TKeyframeScanCreate(200, 250),
+        };
 
         var result = TInterface.TKeyframeCoverageResolve(ranges, spool, true);
 

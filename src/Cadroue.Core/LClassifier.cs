@@ -69,7 +69,8 @@ public static class LClassifier
             catch (RegexMatchTimeoutException)
             {
                 LClassifierFaultSource?.Invoke(
-                    $"Funnel rule pattern gave up after {lClassifierTimeout.TotalMilliseconds:F0} ms and matched nothing: "
+                    $"Funnel rule pattern gave up after {lClassifierTimeout.TotalMilliseconds:F0} ms "
+                        + "and matched nothing: "
                         + lClassifierRule.LSceneFunnelRegex);
                 return false;
             }

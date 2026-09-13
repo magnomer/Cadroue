@@ -39,8 +39,14 @@ internal sealed partial class PSEncoder
     {
         var pPanel = new StackPanel();
 
-        var pVerify = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Verify"), 84, new Thickness(8, 0, 0, 0));
-        var pLog = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Result"), 64, new Thickness(6, 0, 0, 0));
+        var pVerify = PSInlineButtonBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Button.Verify"),
+            84,
+            new Thickness(8, 0, 0, 0));
+        var pLog = PSInlineButtonBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Button.Result"),
+            64,
+            new Thickness(6, 0, 0, 0));
         pLog.IsEnabled = psAudioResults.Count > 0;
         ProgressBar pProgress = PSFieldProgressBuild();
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
@@ -59,20 +65,35 @@ internal sealed partial class PSEncoder
 
             pLog.IsEnabled = psAudioResults.Count > 0;
         };
-        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, LLocalization.LLocalizationTextRead("Encoder.Verification.AudioTitle"), psAudioResults);
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(
+            this,
+            LLocalization.LLocalizationTextRead("Encoder.Verification.AudioTitle"),
+            psAudioResults);
         psAudioEncoderCombo.SelectionChanged += (_, _) => PSAudioChangeHandle();
         psAudioRateCombo.SelectionChanged += (_, _) => PSAudioRowsRebuild();
 
-        psAudioEncodePanel.Children.Add(PSFieldButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Encoder"), psAudioEncoderCombo, pVerify, pLog, pProgress));
+        psAudioEncodePanel.Children.Add(
+            PSFieldButtonBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Encoder"),
+                psAudioEncoderCombo,
+                pVerify,
+                pLog,
+                pProgress));
         psAudioEncodePanel.Children.Add(psAudioEncoderNotice);
-        psAudioEncodePanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.RateControl"), psAudioRateCombo));
+        psAudioEncodePanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Audio.Field.RateControl"),
+                psAudioRateCombo));
         psAudioEncodePanel.Children.Add(psAudioRowsPanel);
         psAudioEncodePanel.Children.Add(psAudioSamplePanel);
         psAudioEncodePanel.Children.Add(psAudioChannelPanel);
         PSAudioSampleRebuild();
         PSAudioChannelRebuild();
 
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Stream"), psAudioStreamCombo));
+        pPanel.Children.Add(
+            PSFieldBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Stream"),
+                psAudioStreamCombo));
         pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Mode"), psAudioMode));
         pPanel.Children.Add(psAudioEncodePanel);
         pPanel.Children.Add(psAudioNotice);

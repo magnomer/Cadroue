@@ -130,7 +130,8 @@ public static partial class LMedia
         psi.ArgumentList.Add("json");
         psi.ArgumentList.Add("-show_entries");
         psi.ArgumentList.Add(
-            "stream=codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate,duration,pix_fmt,color_range,sample_rate,channels,bit_rate"
+            "stream=codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate,duration,"
+            + "pix_fmt,color_range,sample_rate,channels,bit_rate"
             + ":stream_side_data=rotation:stream_tags=rotate"
             + ":format=duration,start_time");
         psi.ArgumentList.Add("-i");
@@ -189,7 +190,10 @@ public static partial class LMedia
             _ = outputTask.GetAwaiter().GetResult();
             return LMediaLoudnessParse(errorTask.GetAwaiter().GetResult());
         }
-        catch (Exception lMediaException) when (lMediaException is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
+        catch (Exception lMediaException) when (
+            lMediaException is System.ComponentModel.Win32Exception
+                or InvalidOperationException
+                or IOException)
         {
             return null;
         }
@@ -234,7 +238,9 @@ public static partial class LMedia
             process.WaitForExit();
             return process.ExitCode == 0;
         }
-        catch (Exception lMediaException) when (lMediaException is System.ComponentModel.Win32Exception or InvalidOperationException)
+        catch (Exception lMediaException) when (
+            lMediaException is System.ComponentModel.Win32Exception
+                or InvalidOperationException)
         {
             return false;
         }

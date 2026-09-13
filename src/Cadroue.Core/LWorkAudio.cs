@@ -195,7 +195,8 @@ public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
         string lFragment = string.Create(
             CultureInfo.InvariantCulture,
             $"{lFilterName}=f={lStep.LWorkPassFrequency.ToString("0.###", CultureInfo.InvariantCulture)}:" +
-            $"poles={lPoles}:width_type=q:width={lStep.LWorkPassResonance.ToString("0.###", CultureInfo.InvariantCulture)}");
+            $"poles={lPoles}:width_type=q:" +
+            $"width={lStep.LWorkPassResonance.ToString("0.###", CultureInfo.InvariantCulture)}");
 
         for (int lStage = 0; lStage < lStages; lStage++)
         {
@@ -231,12 +232,14 @@ public sealed record LWorkAudio(IReadOnlyList<LWorkAudioStep> LWorkAudioSteps)
             double lMaxGain = Math.Clamp(lNormalize.LWorkNormalizeGain, 1, 100);
             string lDynamic = string.Create(
                 CultureInfo.InvariantCulture,
-                $"dynaudnorm=f={lFrame}:g={lGauss}:m={lMaxGain.ToString("0.###", CultureInfo.InvariantCulture)}:p=0.95");
+                $"dynaudnorm=f={lFrame}:g={lGauss}:" +
+                $"m={lMaxGain.ToString("0.###", CultureInfo.InvariantCulture)}:p=0.95");
             if (lNormalize.LWorkNormalizeCompress >= 3)
             {
+                double lCompress = Math.Clamp(lNormalize.LWorkNormalizeCompress, 3, 30);
                 lDynamic += string.Create(
                     CultureInfo.InvariantCulture,
-                    $":s={Math.Clamp(lNormalize.LWorkNormalizeCompress, 3, 30).ToString("0.###", CultureInfo.InvariantCulture)}");
+                    $":s={lCompress.ToString("0.###", CultureInfo.InvariantCulture)}");
             }
 
             return lDynamic;

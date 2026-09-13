@@ -30,7 +30,9 @@ public sealed class TWaveformCache
         Assert.Equal(saved.TWaveformPeaks, loaded.TWaveformPeaks);
         Assert.Equal(saved.TWaveformRms, loaded.TWaveformRms);
         Assert.Equal("roundtrip.wav", loaded.TWaveformFileName);
-        Assert.Equal(Encoding.UTF8.GetByteCount(content) + Encoding.UTF8.GetPreamble().Length, loaded.TWaveformSourceLength);
+        Assert.Equal(
+            Encoding.UTF8.GetByteCount(content) + Encoding.UTF8.GetPreamble().Length,
+            loaded.TWaveformSourceLength);
         Assert.True(loaded.TWaveformSourceTicks > 0);
         Assert.Equal(4_321, loaded.TWaveformSourceDuration);
         Assert.False(string.IsNullOrWhiteSpace(loaded.TWaveformSourceHash));

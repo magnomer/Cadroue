@@ -11,7 +11,8 @@ internal static class TBridgeMetric
     {
         string output = TBridgeRun(
             TEncodeCommand.TToolFfprobeRead(),
-            $"-v error -select_streams a -show_packets -show_entries packet=stream_index,pts_time -of csv=p=0 {TBridgePathFormat(path)}");
+            "-v error -select_streams a -show_packets -show_entries packet=stream_index,pts_time " +
+            $"-of csv=p=0 {TBridgePathFormat(path)}");
         var starts = new Dictionary<int, double>();
         foreach (string line in output.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
         {
@@ -31,7 +32,8 @@ internal static class TBridgeMetric
     {
         string output = TBridgeRun(
             TEncodeCommand.TToolFfprobeRead(),
-            $"-v error -select_streams {stream} -show_packets -show_entries packet=pts_time -of csv=p=0 {TBridgePathFormat(path)}");
+            $"-v error -select_streams {stream} -show_packets -show_entries packet=pts_time " +
+            $"-of csv=p=0 {TBridgePathFormat(path)}");
         string first = output.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).First().Split(',')[0];
         Assert.True(double.TryParse(first, NumberStyles.Float, CultureInfo.InvariantCulture, out double pts));
         return pts;
@@ -42,7 +44,11 @@ internal static class TBridgeMetric
         string output = TBridgeRun(
             TEncodeCommand.TToolFfprobeRead(),
             $"-v error -show_entries format=duration -of default=nw=1:nk=1 {TBridgePathFormat(path)}");
-        Assert.True(double.TryParse(output.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double duration));
+        Assert.True(double.TryParse(
+            output.Trim(),
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out double duration));
         return duration;
     }
 
@@ -50,25 +56,33 @@ internal static class TBridgeMetric
     {
         string output = TBridgeRun(
             TEncodeCommand.TToolFfprobeRead(),
-            $"-v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets -of default=nw=1:nk=1 {TBridgePathFormat(path)}");
+            "-v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets " +
+            $"-of default=nw=1:nk=1 {TBridgePathFormat(path)}");
         Assert.True(int.TryParse(output.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int count));
         return count;
     }
 
     internal static string TBridgeTimebaseRead(string path) => TBridgeRun(
         TEncodeCommand.TToolFfprobeRead(),
-        $"-v error -select_streams v:0 -show_entries stream=time_base -of default=nw=1:nk=1 {TBridgePathFormat(path)}").Trim();
+        "-v error -select_streams v:0 -show_entries stream=time_base " +
+        $"-of default=nw=1:nk=1 {TBridgePathFormat(path)}").Trim();
 
     internal static string TBridgeFramerateRead(string path) => TBridgeRun(
         TEncodeCommand.TToolFfprobeRead(),
-        $"-v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=nw=1:nk=1 {TBridgePathFormat(path)}").Trim();
+        "-v error -select_streams v:0 -show_entries stream=avg_frame_rate " +
+        $"-of default=nw=1:nk=1 {TBridgePathFormat(path)}").Trim();
 
     internal static double TBridgeStreamRead(string path, string stream)
     {
         string output = TBridgeRun(
             TEncodeCommand.TToolFfprobeRead(),
-            $"-v error -select_streams {stream} -show_entries stream=duration -of default=nw=1:nk=1 {TBridgePathFormat(path)}");
-        Assert.True(double.TryParse(output.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double duration));
+            $"-v error -select_streams {stream} -show_entries stream=duration " +
+            $"-of default=nw=1:nk=1 {TBridgePathFormat(path)}");
+        Assert.True(double.TryParse(
+            output.Trim(),
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out double duration));
         return duration;
     }
 

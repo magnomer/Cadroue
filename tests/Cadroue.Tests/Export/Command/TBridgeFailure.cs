@@ -44,8 +44,11 @@ public sealed class TBridgeFailure
     private static void TBridgeMiddleCheck(IReadOnlyList<LEncodeStage> stages)
     {
         Assert.Contains(stages, stage => stage.LEncodeStageLabel == "Copying middle");
-        Assert.Contains(stages, stage =>
-            TEncodeToken.TEncodeOptionRead(TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments), "-c:v") == "copy");
+        Assert.Contains(
+            stages,
+            stage => TEncodeToken.TEncodeOptionRead(
+                TEncodeToken.TEncodeTokenRead(stage.LEncodeStageArguments),
+                "-c:v") == "copy");
         Assert.False(stages.Count == 1 && stages[0].LEncodeStageLabel == "Encoding");
     }
 }

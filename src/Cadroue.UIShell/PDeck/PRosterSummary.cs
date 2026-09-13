@@ -32,7 +32,10 @@ public sealed partial class PRoster
             pRosterRowTarget.Children.Add(pMeter);
         }
 
-        if (pSourceBytes is { } pSourceWhole && pSourceWhole > 0 && pOutputBytes is { } pOutputWhole && pOutputWhole >= 0)
+        if (pSourceBytes is { } pSourceWhole
+            && pSourceWhole > 0
+            && pOutputBytes is { } pOutputWhole
+            && pOutputWhole >= 0)
         {
             pRosterRowTarget.Children.Add(PRosterOverviewBuild(pSourceWhole, pOutputWhole));
         }
@@ -103,13 +106,21 @@ public sealed partial class PRoster
         pCountGrid.Children.Add(pSourceCount);
         pCountGrid.Children.Add(pOutputCount);
 
-        var pSourceStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 8, 0) };
+        var pSourceStack = new StackPanel
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
         foreach (string pSourcePath in pSourcePaths)
         {
             pSourceStack.Children.Add(PRosterPathBuild(pSourcePath));
         }
 
-        var pOutputStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(8, 0, 0, 0) };
+        var pOutputStack = new StackPanel
+        {
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(8, 0, 0, 0)
+        };
         foreach (string pOutputPath in pOutputPaths)
         {
             pOutputStack.Children.Add(PRosterPathBuild(pOutputPath));

@@ -248,7 +248,8 @@ internal sealed class PSAbout : Window
         if (psAboutTapCount >= 10)
         {
             psAboutTapCount = 0;
-            bool psAboutDeveloperNext = !Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceDeveloperActive;
+            bool psAboutDeveloperNext =
+                !Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceDeveloperActive;
             Cadroue.Application.LPreference.LPreferenceDeveloperSet(psAboutDeveloperNext);
             if (psAboutDeveloper is not null)
             {

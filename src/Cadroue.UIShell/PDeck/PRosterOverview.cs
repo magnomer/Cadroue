@@ -30,7 +30,10 @@ public sealed partial class PRoster
 
         long? pSourceBytes = PRosterSourceRead(pWorkItem);
         long? pOutputBytes = PRosterBytesRead(pWorkItem);
-        if (pSourceBytes is { } pSourceWhole && pSourceWhole > 0 && pOutputBytes is { } pOutputWhole && pOutputWhole >= 0)
+        if (pSourceBytes is { } pSourceWhole
+            && pSourceWhole > 0
+            && pOutputBytes is { } pOutputWhole
+            && pOutputWhole >= 0)
         {
             if (PRosterMeterBuild(pWorkItem) is { } pMeter)
             {
@@ -79,8 +82,10 @@ public sealed partial class PRoster
         const double pOverviewRadius = 4;
 
         var pBar = new Grid { Height = 18 };
-        pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(pRestBytes, 0.0001), GridUnitType.Star) });
-        pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(pMarkBytes, 0.0001), GridUnitType.Star) });
+        pBar.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = new GridLength(Math.Max(pRestBytes, 0.0001), GridUnitType.Star) });
+        pBar.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = new GridLength(Math.Max(pMarkBytes, 0.0001), GridUnitType.Star) });
 
         var pRestFill = new Border
         {
@@ -120,7 +125,11 @@ public sealed partial class PRoster
         return pRow;
     }
 
-    private UIElement PRosterComparisonBuild(LWorkItem pWorkItem, LWorkMedia? pSourceInfo, long? pSourceBytes, long? pOutputBytes)
+    private UIElement PRosterComparisonBuild(
+        LWorkItem pWorkItem,
+        LWorkMedia? pSourceInfo,
+        long? pSourceBytes,
+        long? pOutputBytes)
     {
         LEncoding pOutput = pWorkItem.LWorkOutput;
         LWorkMedia? pOutputInfo = pWorkItem.LWorkOutputMedia;
@@ -144,7 +153,11 @@ public sealed partial class PRoster
         void PRosterPairAdd(string pLeft, string pRight, bool pHeader)
         {
             pSourceStack.Children.Add(PRosterLineBuild(pLeft, pHeader));
-            pOutputStack.Children.Add(PRosterLineBuild(pRight, pHeader, !pHeader && !string.Equals(pLeft, pRight, StringComparison.Ordinal)));
+            pOutputStack.Children.Add(
+                PRosterLineBuild(
+                    pRight,
+                    pHeader,
+                    !pHeader && !string.Equals(pLeft, pRight, StringComparison.Ordinal)));
         }
 
         PRosterPairAdd(
@@ -257,7 +270,8 @@ public sealed partial class PRoster
         foreach ((string pLeft, string pRight) in pRows)
         {
             pLeftStack.Children.Add(PRosterLineBuild(pLeft, false));
-            pRightStack.Children.Add(PRosterLineBuild(pRight, false, !string.Equals(pLeft, pRight, StringComparison.Ordinal)));
+            pRightStack.Children.Add(
+                PRosterLineBuild(pRight, false, !string.Equals(pLeft, pRight, StringComparison.Ordinal)));
         }
 
         Grid pGrid = PRosterGridBuild(pLeftStack, pRightStack);
@@ -268,9 +282,11 @@ public sealed partial class PRoster
     private static Grid PRosterGridBuild(UIElement pSource, UIElement pOutput)
     {
         var pGrid = new Grid();
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "RosterOverviewSource" });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "RosterOverviewSource" });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "RosterOverviewOutput" });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "RosterOverviewOutput" });
         Grid.SetColumn(pOutput, 2);
         pGrid.Children.Add(pSource);
         pGrid.Children.Add(pOutput);

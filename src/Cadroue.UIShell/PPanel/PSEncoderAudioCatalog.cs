@@ -137,9 +137,13 @@ internal sealed partial class PSEncoder
             return pItems;
         }
 
-        var pCandidate = PSAudioCandidates.FirstOrDefault(pEntry => string.Equals(pEntry.PSAudioText, pKeep, StringComparison.Ordinal));
+        var pCandidate = PSAudioCandidates.FirstOrDefault(pEntry => string.Equals(
+            pEntry.PSAudioText,
+            pKeep,
+            StringComparison.Ordinal));
         bool pFits = pCandidate.PSAudioName is not null
-                     && (!LRepertoireCatalog.LRepertoireContainerNames.Contains(pContainer) || PSAudioContainerCheck(pCandidate.PSAudioName, pContainer));
+            && (!LRepertoireCatalog.LRepertoireContainerNames.Contains(pContainer)
+                || PSAudioContainerCheck(pCandidate.PSAudioName, pContainer));
         return pFits ? [pKeep, .. pItems] : pItems;
     }
 

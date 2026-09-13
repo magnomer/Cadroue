@@ -57,7 +57,9 @@ public static class LSeries
                 continue;
             }
 
-            List<LSeriesItem> lSeriesSorted = lSeriesItems.OrderBy(lSeriesItem => lSeriesItem.LSeriesNumber!.Value).ToList();
+            List<LSeriesItem> lSeriesSorted = lSeriesItems
+                .OrderBy(lSeriesItem => lSeriesItem.LSeriesNumber!.Value)
+                .ToList();
             if (!lSeriesStrict)
             {
                 lSeriesGroups.Add(LSeriesGroupCreate(
@@ -115,7 +117,11 @@ public static class LSeries
         string lSeriesStem = Path.GetFileNameWithoutExtension(lSeriesPath);
         Match lSeriesMatch = lSeriesNumberPattern.Match(lSeriesStem);
         if (lSeriesMatch.Success
-            && int.TryParse(lSeriesMatch.Groups["number"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int lSeriesNumber))
+            && int.TryParse(
+                lSeriesMatch.Groups["number"].Value,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out int lSeriesNumber))
         {
             return new LSeriesItem(lSeriesPath, lSeriesStem, lSeriesMatch.Groups["base"].Value.Trim(), lSeriesNumber);
         }
@@ -123,5 +129,9 @@ public static class LSeries
         return new LSeriesItem(lSeriesPath, lSeriesStem, lSeriesStem, null);
     }
 
-    private readonly record struct LSeriesItem(string LSeriesPath, string LSeriesStem, string LSeriesBase, int? LSeriesNumber);
+    private readonly record struct LSeriesItem(
+        string LSeriesPath,
+        string LSeriesStem,
+        string LSeriesBase,
+        int? LSeriesNumber);
 }

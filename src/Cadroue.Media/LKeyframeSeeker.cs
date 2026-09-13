@@ -144,8 +144,16 @@ public static class LKeyframeSeeker
         if (!string.Equals(parts[0], "packet", StringComparison.Ordinal)) return;
         if (!parts[3].Contains('K')) return;
 
-        bool hasPts = double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double ptsSeconds);
-        bool hasDts = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out double dtsSeconds);
+        bool hasPts = double.TryParse(
+            parts[1],
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out double ptsSeconds);
+        bool hasDts = double.TryParse(
+            parts[2],
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out double dtsSeconds);
         if (!hasPts && !hasDts) return;
         result.Add(new LKeyframePacket(hasPts ? ptsSeconds : dtsSeconds, hasDts ? dtsSeconds : null));
     }

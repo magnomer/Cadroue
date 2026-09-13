@@ -8,7 +8,10 @@ namespace Cadroue.UIShell.PSCasement;
 
 internal static class PSField
 {
-    private readonly record struct PSFieldSegment(string PSFieldSegmentToken, Border PSFieldSegmentBorder, TextBlock PSFieldSegmentText);
+    private readonly record struct PSFieldSegment(
+        string PSFieldSegmentToken,
+        Border PSFieldSegmentBorder,
+        TextBlock PSFieldSegmentText);
 
     internal const double PSFieldFontSize = 12;
     internal const double PSFieldControlHeight = 32;
@@ -66,7 +69,11 @@ internal static class PSField
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(PSFieldLabelBuild(pLabel));
 
-        var pPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left };
+        var pPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
         pControl.MinHeight = PSFieldControlHeight;
         pPanel.Children.Add(pControl);
         foreach (UIElement pElement in pTrailing)
@@ -146,7 +153,9 @@ internal static class PSField
         pBorder.AppendChild(new FrameworkElementFactory(typeof(ContentPresenter)));
 
         var pStyle = new Style(typeof(ListBoxItem));
-        pStyle.Setters.Add(new Setter(Control.TemplateProperty, new ControlTemplate(typeof(ListBoxItem)) { VisualTree = pBorder }));
+        pStyle.Setters.Add(new Setter(
+            Control.TemplateProperty,
+            new ControlTemplate(typeof(ListBoxItem)) { VisualTree = pBorder }));
         pStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
         pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PSFieldText));
         pStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(1)));
@@ -169,7 +178,11 @@ internal static class PSField
     internal static Border PSModeBuild(string pSelected, Action pChange, params LLocalizationChoice[] pChoices) =>
         PSModeBuild(pSelected, pChange, out _, pChoices);
 
-    internal static Border PSModeBuild(string pSelected, Action pChange, out Action<string, bool> pEnableSet, params LLocalizationChoice[] pChoices)
+    internal static Border PSModeBuild(
+        string pSelected,
+        Action pChange,
+        out Action<string, bool> pEnableSet,
+        params LLocalizationChoice[] pChoices)
     {
         var pDisabled = new HashSet<string>(StringComparer.Ordinal);
         var pStrip = new StackPanel { Orientation = Orientation.Horizontal };
@@ -183,9 +196,10 @@ internal static class PSField
             Height = PSFieldControlHeight,
             Child = pStrip
         };
-        pHost.Tag = pChoices.Any(pChoice => string.Equals(pChoice.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal))
-            ? pSelected
-            : pChoices.FirstOrDefault()?.LLocalizationChoiceToken ?? string.Empty;
+        pHost.Tag = pChoices.Any(
+            pChoice => string.Equals(pChoice.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal))
+                ? pSelected
+                : pChoices.FirstOrDefault()?.LLocalizationChoiceToken ?? string.Empty;
 
         var pSegments = new List<PSFieldSegment>();
 

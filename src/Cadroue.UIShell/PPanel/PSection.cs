@@ -135,10 +135,13 @@ public sealed partial class PSection : UserControl
         {
             pSectionRowPanel.Children.Clear();
             int pCount = pSectionListCurrent.Count;
-            pSectionCountLabel.Text = pCount == 0 ? LLocalization.LLocalizationTextRead("Section.Header.Title") : LLocalization.LLocalizationFormat("Section.Header.Count", pCount);
+            pSectionCountLabel.Text = pCount == 0
+                ? LLocalization.LLocalizationTextRead("Section.Header.Title")
+                : LLocalization.LLocalizationFormat("Section.Header.Count", pCount);
             for (int i = 0; i < pCount; i++)
             {
-                pSectionRowPanel.Children.Add(PSectionRowBuild(i, pSectionListCurrent[i], pSectionSelectedCurrent.Contains(i)));
+                pSectionRowPanel.Children.Add(
+                    PSectionRowBuild(i, pSectionListCurrent[i], pSectionSelectedCurrent.Contains(i)));
             }
         }
         finally

@@ -37,14 +37,18 @@ internal static partial class LEncodeVideo
         LCapabilityMode lMode = lCodec.LCapabilityModeFind(lOutput.LEncodingVideo.LEncodingRateControl);
         LEncodeQualityAppend(lArguments, lEncoderName, lMode, lOutput.LEncodingVideo.LEncodingQuality);
 
-        if (lCodec.LCapabilitySpeed is LCapabilitySpeed lSpeed && !string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingSpeedPreset))
+        if (lCodec.LCapabilitySpeed is LCapabilitySpeed lSpeed
+            && !string.IsNullOrWhiteSpace(lOutput.LEncodingVideo.LEncodingSpeedPreset))
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" {lSpeed.LCapabilitySpeedOption} {lOutput.LEncodingVideo.LEncodingSpeedPreset}");
+            lArguments.Append(
+                CultureInfo.InvariantCulture,
+                $" {lSpeed.LCapabilitySpeedOption} {lOutput.LEncodingVideo.LEncodingSpeedPreset}");
         }
 
         foreach (var lExtra in lOutput.LEncodingVideo.LEncodingExtras)
         {
-            if (string.IsNullOrWhiteSpace(lExtra.Value) || string.Equals(lExtra.Value, "none", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(lExtra.Value)
+                || string.Equals(lExtra.Value, "none", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
@@ -75,7 +79,8 @@ internal static partial class LEncodeVideo
         lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality.LCapabilityQualityOption} {lQualityValue}");
 
         bool lNeedsZeroBitrate = lEncoderName is "libaom-av1" or "libvpx" or "libvpx-vp9";
-        if (lNeedsZeroBitrate && !string.Equals(lQuality.LCapabilityQualityOption, LEncodeBitrateOption, StringComparison.Ordinal))
+        if (lNeedsZeroBitrate
+            && !string.Equals(lQuality.LCapabilityQualityOption, LEncodeBitrateOption, StringComparison.Ordinal))
         {
             lArguments.Append(" -b:v 0");
         }

@@ -10,7 +10,8 @@ public static partial class LSweep
     {
         string lSweepFilter = string.Create(CultureInfo.InvariantCulture,
             $"silencedetect=noise={lSweepThresholdDb:0.###}dB:d={lSweepMinimum:0.###}");
-        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:a:0 -af {LEncode.LEncodeFormat(lSweepFilter)} -vn -f null -";
+        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} " +
+            $"-map 0:a:0 -af {LEncode.LEncodeFormat(lSweepFilter)} -vn -f null -";
     }
 
     public static IReadOnlyList<LSweepSpan> LSweepSilenceParse(

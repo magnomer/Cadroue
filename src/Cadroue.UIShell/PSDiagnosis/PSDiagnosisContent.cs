@@ -58,7 +58,8 @@ internal sealed partial class PSDiagnosis
 
     private const double PSDiagnosisLabelWidth = 170;
 
-    private readonly List<(string[] PSDiagnosisFilters, Border PSDiagnosisBadge, TextBlock PSDiagnosisText)> psDiagnosisChecks = new();
+    private readonly List<(string[] PSDiagnosisFilters, Border PSDiagnosisBadge, TextBlock PSDiagnosisText)>
+        psDiagnosisChecks = new();
 
     private int psDiagnosisGeneration;
 
@@ -91,12 +92,19 @@ internal sealed partial class PSDiagnosis
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        var pLeft = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var pLeft = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         pLeft.Children.Add(psDiagnosisSummaryDot);
         pLeft.Children.Add(psDiagnosisSummaryText);
         pBar.Children.Add(pLeft);
 
-        Button pRecheck = PSInlineButtonBuild(LLocalization.LLocalizationTextRead("Diagnosis.Recheck"), 110, new Thickness(0));
+        Button pRecheck = PSInlineButtonBuild(
+            LLocalization.LLocalizationTextRead("Diagnosis.Recheck"),
+            110,
+            new Thickness(0));
         pRecheck.HorizontalAlignment = HorizontalAlignment.Right;
         pRecheck.Click += (_, _) =>
         {
@@ -123,14 +131,21 @@ internal sealed partial class PSDiagnosis
         psDiagnosisLocationValue = PSDiagnosisValueBuild();
         (psDiagnosisProgramBadge, psDiagnosisProgramText) = PSDiagnosisBadgeBuild();
 
-        UIElement pVersion = PSDiagnosisLineBuild("Diagnosis.Version", psDiagnosisVersionValue, psDiagnosisProgramBadge);
+        UIElement pVersion = PSDiagnosisLineBuild(
+            "Diagnosis.Version",
+            psDiagnosisVersionValue,
+            psDiagnosisProgramBadge);
         UIElement pLocation = PSDiagnosisLineBuild("Options.System.Location", psDiagnosisLocationValue, null);
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Diagnosis.Group.Program"), pVersion, pLocation);
     }
 
-    private UIElement PSDiagnosisGroupBuild(string pTitleKey, (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] pItems)
+    private UIElement PSDiagnosisGroupBuild(
+        string pTitleKey,
+        (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] pItems)
     {
-        UIElement[] pRows = pItems.Select(pItem => PSDiagnosisFeatureBuild(pItem.PSDiagnosisLabel, pItem.PSDiagnosisFilters)).ToArray();
+        UIElement[] pRows = pItems
+            .Select(pItem => PSDiagnosisFeatureBuild(pItem.PSDiagnosisLabel, pItem.PSDiagnosisFilters))
+            .ToArray();
         return PSPlateBuild(LLocalization.LLocalizationTextRead(pTitleKey), pRows);
     }
 
@@ -231,7 +246,10 @@ internal sealed partial class PSDiagnosis
     private void PSDiagnosisProbeStart()
     {
         PSDiagnosisSummaryApply(PSDiagnosisMood.PSDiagnosisMoodChecking, 0);
-        PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText, PSDiagnosisState.PSDiagnosisStateChecking);
+        PSDiagnosisBadgeApply(
+            psDiagnosisProgramBadge,
+            psDiagnosisProgramText,
+            PSDiagnosisState.PSDiagnosisStateChecking);
         psDiagnosisVersionValue.Text = "…";
         psDiagnosisLocationValue.Text = "…";
         foreach ((_, Border pBadge, TextBlock pText) in psDiagnosisChecks)

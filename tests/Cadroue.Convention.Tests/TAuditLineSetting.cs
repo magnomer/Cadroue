@@ -1,9 +1,3 @@
-// Generated file. Do not edit by hand: every line is overwritten when it is rebuilt.
-//
-// AUDITLINES GENERATION 8 - settings sidecar for Cadroue.
-// One of three generated sidecars in the convention-test project; each carries the values of
-// the audit that writes it. Every other file is identical in every project at this generation.
-
 namespace Convention.Tests;
 
 internal static class TAuditLineSetting

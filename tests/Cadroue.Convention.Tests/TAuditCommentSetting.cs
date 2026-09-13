@@ -1,9 +1,3 @@
-// Generated file. Do not edit by hand: every line is overwritten when it is rebuilt.
-//
-// AUDITCOMMENTS GENERATION 8 - settings sidecar for Cadroue.
-// One of three generated sidecars in the convention-test project; each carries the values of
-// the audit that writes it. Every other file is identical in every project at this generation.
-
 namespace Convention.Tests;
 
 internal static class TAuditCommentSetting
@@ -53,9 +47,7 @@ internal static class TAuditCommentSetting
 
     public static readonly string[] TAuditCommentExempt =
     [
-        "TAuditCommentSetting.cs",
-        "TAuditLineSetting.cs",
-        "TAuditNameSetting.cs",
+        "TAuditNameRegistry.cs",
     ];
 
     public static readonly Dictionary<string, string[]> TAuditCommentMarkers = new(StringComparer.OrdinalIgnoreCase)

@@ -15,8 +15,9 @@ internal static class LSubsidiary
 
     private static readonly System.Collections.Concurrent.ConcurrentQueue<LSubsidiaryTask> lSubsidiaryHigh = new();
     private static readonly System.Collections.Concurrent.ConcurrentQueue<LSubsidiaryTask> lSubsidiaryLow = new();
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, LSubsidiarySample> lSubsidiaryCache =
-        new(StringComparer.OrdinalIgnoreCase);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<
+        string,
+        LSubsidiarySample> lSubsidiaryCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly object lSubsidiaryGate = new();
     private static bool lSubsidiaryBusy;
     private static CancellationTokenSource lSubsidiaryCancellation = new();
@@ -195,7 +196,8 @@ internal static class LSubsidiary
         }
 
         string? lSubsidiaryKey = LSubsidiaryKeyRead(lSubsidiarySource);
-        if (lSubsidiaryKey is not null && lSubsidiaryCache.TryGetValue(lSubsidiaryKey, out LSubsidiarySample? lSubsidiaryCached))
+        if (lSubsidiaryKey is not null
+            && lSubsidiaryCache.TryGetValue(lSubsidiaryKey, out LSubsidiarySample? lSubsidiaryCached))
         {
             return lSubsidiaryCached;
         }
@@ -227,7 +229,10 @@ internal static class LSubsidiary
                 lSubsidiaryInfo.LastWriteTimeUtc.Ticks);
         }
         catch (Exception lSubsidiaryException)
-            when (lSubsidiaryException is System.IO.IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+            when (lSubsidiaryException is System.IO.IOException
+                or UnauthorizedAccessException
+                or ArgumentException
+                or NotSupportedException)
         {
             return null;
         }

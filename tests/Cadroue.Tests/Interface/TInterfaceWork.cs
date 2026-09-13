@@ -115,7 +115,17 @@ internal static partial class TInterface
     internal static LWorkAudioStep TWorkNormalizeCreate(
         bool active, LLeveling mode, double target, double peak, double range, bool twoPass,
         double frame, double gauss, double maxGain, double compress) =>
-        LWorkAudioStep.LWorkNormalizeCreate(active, mode, target, peak, range, twoPass, frame, gauss, maxGain, compress);
+        LWorkAudioStep.LWorkNormalizeCreate(
+            active,
+            mode,
+            target,
+            peak,
+            range,
+            twoPass,
+            frame,
+            gauss,
+            maxGain,
+            compress);
     internal static LWorkAudioStep TWorkNoiseCreate(
         bool active, double reduction, double floor, bool outputNoise, LGrain grain,
         double smooth, double adaptivity, double residual) =>

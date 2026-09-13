@@ -11,13 +11,19 @@ namespace Cadroue.ShellEngine;
 public static partial class LEncode
 {
     private static LEncodeStage LEncodeSpanBuild(
-        LWorkItem lWorkItem, LBridgeSpan lBridgeSpan, string lBridgePath, string lBridgeLabel, LBridgeStream? lBridgeSource)
+        LWorkItem lWorkItem,
+        LBridgeSpan lBridgeSpan,
+        string lBridgePath,
+        string lBridgeLabel,
+        LBridgeStream? lBridgeSource)
     {
         var lArguments = new StringBuilder();
         LEncodeHeaderAppend(lArguments);
         lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin)}");
+        lArguments.Append(
+            CultureInfo.InvariantCulture,
+            $" -t {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeMatchResolve(lWorkItem, lBridgeSource)}");
         lArguments.Append(" -an");
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource, lBridgePath);
@@ -50,7 +56,8 @@ public static partial class LEncode
         lArguments.Append(" -copypriorss 0 -c:v copy -an");
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource, lBridgePath);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
-        return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
+        return new LEncodeStage(
+            lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
     }
 
     private static LEncodeStage LEncodeDirectBuild(
@@ -151,7 +158,8 @@ public static partial class LEncode
             LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
             LEncodeMuxerAppend(lArguments, lWorkItem);
             lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
-            return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
+            return new LEncodeStage(
+                lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
         }
 
         if (lAudioOffset > TimeSpan.Zero)
@@ -164,7 +172,8 @@ public static partial class LEncode
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
         LEncodeMuxerAppend(lArguments, lWorkItem);
         lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
-        return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
+        return new LEncodeStage(
+            lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
     }
 
     private static void LEncodeTimescaleAppend(
@@ -188,7 +197,8 @@ public static partial class LEncode
         string lExtension = Path.GetExtension(lTargetPath ?? lWorkItem.LWorkOutputPath);
         bool lMovFamily = (lTargetPath is null
                 && (string.Equals(lWorkItem.LWorkOutput.LEncodingContainer, "MP4", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(lWorkItem.LWorkOutput.LEncodingContainer, "MOV", StringComparison.OrdinalIgnoreCase)))
+                    || string.Equals(
+                        lWorkItem.LWorkOutput.LEncodingContainer, "MOV", StringComparison.OrdinalIgnoreCase)))
             || string.Equals(lExtension, ".mp4", StringComparison.OrdinalIgnoreCase)
             || string.Equals(lExtension, ".m4v", StringComparison.OrdinalIgnoreCase)
             || string.Equals(lExtension, ".mov", StringComparison.OrdinalIgnoreCase);
@@ -217,7 +227,9 @@ public static partial class LEncode
         var lJoinList = new StringBuilder();
         foreach (string lPart in lBridgeParts)
         {
-            string lEscaped = lPart.Replace("\\", "/", StringComparison.Ordinal).Replace("'", "'\\''", StringComparison.Ordinal);
+            string lEscaped = lPart
+                .Replace("\\", "/", StringComparison.Ordinal)
+                .Replace("'", "'\\''", StringComparison.Ordinal);
             lJoinList.Append(CultureInfo.InvariantCulture, $"file '{lEscaped}'\n");
         }
 

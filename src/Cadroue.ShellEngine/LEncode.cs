@@ -51,9 +51,11 @@ public static partial class LEncode
 
     private static bool LEncodeCopyCheck(LWorkItem lWorkItem, LEncoding lOutput)
     {
-        bool lVideoCopy = string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+        bool lVideoCopy = string.Equals(
+                lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput);
-        bool lAudioCopy = string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
+        bool lAudioCopy = string.Equals(
+                lOutput.LEncodingAudio.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
             || string.Equals(lOutput.LEncodingAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
         return lVideoCopy && lAudioCopy;
     }
@@ -65,7 +67,11 @@ public static partial class LEncode
         if (lFixCopy)
         {
             lFixStages.Add(new LEncodeStage(
-                lWorkItem.LWorkSourcePath, LWorkStage.LWorkStageDuplicate, "Copying", lWorkItem.LWorkOutputPath, false));
+                lWorkItem.LWorkSourcePath,
+                LWorkStage.LWorkStageDuplicate,
+                "Copying",
+                lWorkItem.LWorkOutputPath,
+                false));
         }
 
         LRemedyPlan lFixPlan = LRemedy.LRemedyPlanCreate(lFixRepairable);
@@ -102,7 +108,9 @@ public static partial class LEncode
 
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindMerge)
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -f concat -safe 0 -i {LEncodeFormat(LEncodeMergeSave(lWorkItem))}");
+            lArguments.Append(
+                CultureInfo.InvariantCulture,
+                $" -f concat -safe 0 -i {LEncodeFormat(LEncodeMergeSave(lWorkItem))}");
         }
         else
         {
@@ -191,7 +199,9 @@ public static partial class LEncode
         var lMergeList = new StringBuilder();
         foreach (string lMergeSource in lWorkItem.LWorkMergeSources)
         {
-            string lMergeEscaped = lMergeSource.Replace("\\", "/", StringComparison.Ordinal).Replace("'", "'\\''", StringComparison.Ordinal);
+            string lMergeEscaped = lMergeSource
+                .Replace("\\", "/", StringComparison.Ordinal)
+                .Replace("'", "'\\''", StringComparison.Ordinal);
             lMergeList.Append(CultureInfo.InvariantCulture, $"file '{lMergeEscaped}'\n");
         }
 
@@ -232,7 +242,8 @@ public static partial class LEncode
         lExtract.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lExtract.Append(CultureInfo.InvariantCulture, $" -map 0:a:0 -vn -c:a {LEncodeIntermediate}");
         lExtract.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lRawWav)}");
-        lStages.Add(new LEncodeStage(lExtract.ToString(), LWorkStage.LWorkStageExtract, "Extracting audio", lRawWav, true));
+        lStages.Add(new LEncodeStage(
+            lExtract.ToString(), LWorkStage.LWorkStageExtract, "Extracting audio", lRawWav, true));
 
         if (lTwoPassIndex >= 0)
         {
@@ -243,7 +254,8 @@ public static partial class LEncode
             lAnalyze.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lRawWav)}");
             lAnalyze.Append(CultureInfo.InvariantCulture, $" -af {LEncodeFormat(lAnalyzeChain!)}");
             lAnalyze.Append(" -f null -");
-            lStages.Add(new LEncodeStage(lAnalyze.ToString(), LWorkStage.LWorkStageAnalyze, "Analyzing audio", string.Empty, false, true));
+            lStages.Add(new LEncodeStage(
+                lAnalyze.ToString(), LWorkStage.LWorkStageAnalyze, "Analyzing audio", string.Empty, false, true));
         }
 
         string lChain = LEncodeChain.LEncodeChainBuild(
@@ -262,7 +274,8 @@ public static partial class LEncode
         }
 
         lProcess.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lProcessedWav)}");
-        lStages.Add(new LEncodeStage(lProcess.ToString(), LWorkStage.LWorkStageProcess, "Processing audio", lProcessedWav, true));
+        lStages.Add(new LEncodeStage(
+            lProcess.ToString(), LWorkStage.LWorkStageProcess, "Processing audio", lProcessedWav, true));
         string lAudioInputWav = lProcessedWav;
 
         var lMux = new StringBuilder();
@@ -291,7 +304,8 @@ public static partial class LEncode
         LEncodeAudio.LEncodeMuxAppend(lMux, lOutput, lAllTracks);
         LEncodeMuxerAppend(lMux, lWorkItem);
         lMux.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
-        lStages.Add(new LEncodeStage(lMux.ToString(), LWorkStage.LWorkStageMux, "Encoding output", lWorkItem.LWorkOutputPath, false));
+        lStages.Add(new LEncodeStage(
+            lMux.ToString(), LWorkStage.LWorkStageMux, "Encoding output", lWorkItem.LWorkOutputPath, false));
 
         return lStages;
     }
@@ -329,7 +343,8 @@ public static partial class LEncode
     }
 
     internal static bool LEncodeSourceCheck(string lValue) =>
-        string.IsNullOrWhiteSpace(lValue) || string.Equals(lValue, "Same as source", StringComparison.OrdinalIgnoreCase);
+        string.IsNullOrWhiteSpace(lValue)
+        || string.Equals(lValue, "Same as source", StringComparison.OrdinalIgnoreCase);
 
     private static string LEncodeTimeFormat(TimeSpan lTime) =>
         lTime.TotalSeconds.ToString("0.#######", CultureInfo.InvariantCulture);

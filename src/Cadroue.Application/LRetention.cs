@@ -6,7 +6,10 @@ public static class LRetention
 {
     private static readonly string[] LRetentionExcludedRoots = { "scheduled", "running", "palettes" };
 
-    public static bool LRetentionExpiredCheck(DateTime lRetentionWriteUtc, DateTime lRetentionNowUtc, int lRetentionDays)
+    public static bool LRetentionExpiredCheck(
+        DateTime lRetentionWriteUtc,
+        DateTime lRetentionNowUtc,
+        int lRetentionDays)
     {
         if (lRetentionDays <= 0)
         {

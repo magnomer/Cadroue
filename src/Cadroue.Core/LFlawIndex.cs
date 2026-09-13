@@ -41,7 +41,8 @@ public static class LFlawIndex
             lFlawFaults,
             "Full traversal; index compared against sequential read",
             LFlaw.LFlawScopeResolve(lFlawFaults),
-            "Remux -map 0 -c copy rebuilding addressing from sequential traversal; +faststart rebuilds MP4 sample tables",
+            "Remux -map 0 -c copy rebuilding addressing from sequential traversal; " +
+            "+faststart rebuilds MP4 sample tables",
             "Sample and chunk indexes and random-access tables",
             LDossierPreservation.LDossierPreservationPacket,
             "Coded packets copied unchanged; addressing rebuilt",

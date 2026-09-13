@@ -6,8 +6,10 @@ public static class LFlawMetadata
 {
     public static LDossier? LFlawMetadataResolve(string lFlawProbeReport)
     {
-        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams = LFlaw.LFlawSectionRead(lFlawProbeReport, "STREAM");
-        IReadOnlyDictionary<string, string>? lFlawFormat = LFlaw.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
+        IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams =
+            LFlaw.LFlawSectionRead(lFlawProbeReport, "STREAM");
+        IReadOnlyDictionary<string, string>? lFlawFormat =
+            LFlaw.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
         if (lFlawFormat is null)
         {
             return null;

@@ -36,7 +36,8 @@ public sealed partial class LPreset
         if (LPresetBlocked)
         {
             LPresetTraceSeam?.Invoke(
-                "Export presets could not be read; the stored catalogue is left untouched and preset changes are blocked");
+                "Export presets could not be read; the stored catalogue is left untouched " +
+                "and preset changes are blocked");
         }
 
         if (lStoredCatalog.LPresetOutcome != LPresetOutcome.LPresetLoaded)

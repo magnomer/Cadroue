@@ -102,7 +102,9 @@ internal sealed class PToken : RichTextBox
             {
                 pText.Append(pRun.Text);
             }
-            else if (pInline is InlineUIContainer pContainer && pContainer.Child is FrameworkElement pElement && pElement.Tag is string pToken)
+            else if (pInline is InlineUIContainer pContainer
+                && pContainer.Child is FrameworkElement pElement
+                && pElement.Tag is string pToken)
             {
                 pText.Append(pToken);
             }

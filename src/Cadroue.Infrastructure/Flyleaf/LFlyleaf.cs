@@ -23,7 +23,8 @@ public static partial class LFlyleaf
     private const string LFlyleafRecordName = "local-flyleaf.json";
 
     private static string? lFlyleafAssemblyFolder;
-    private static readonly ConcurrentDictionary<string, string> lFlyleafLoadedPaths = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, string> lFlyleafLoadedPaths =
+        new(StringComparer.OrdinalIgnoreCase);
     private static bool lFlyleafResolverActive;
 
     [ModuleInitializer]
@@ -229,7 +230,9 @@ public static partial class LFlyleaf
         string lFolder = Path.GetFullPath(lAssemblyFolder);
         string lRuntimeFolder = Path.GetFullPath(Path.Combine(LFlyleafRootRead(), LFlyleafRuntimeName));
         return string.Equals(lFolder, lRuntimeFolder, StringComparison.OrdinalIgnoreCase)
-            && !lFolder.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
+            && !lFolder.Contains(
+                $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
+                StringComparison.OrdinalIgnoreCase)
             && !lFolder.EndsWith($"{Path.DirectorySeparatorChar}ref", StringComparison.OrdinalIgnoreCase)
             && !lFolder.EndsWith($"{Path.DirectorySeparatorChar}refint", StringComparison.OrdinalIgnoreCase);
     }

@@ -102,13 +102,19 @@ public sealed partial class PInspector
             pDetectorKind,
             pSection.PSensorApplyBox.IsChecked == true,
             pSection.PSensorThreshold is { } pThreshold
-                ? PSensorThresholdClamp(pDetectorKind, PInspectorDecimalRead(pThreshold, pDefault.LDetectorStepThreshold))
+                ? PSensorThresholdClamp(
+                    pDetectorKind,
+                    PInspectorDecimalRead(pThreshold, pDefault.LDetectorStepThreshold))
                 : pDefault.LDetectorStepThreshold,
             pSection.PSensorMinimum is { } pMinimum
-                ? LDetector.LDetectorMinimumClamp(pDetectorKind, PInspectorDecimalRead(pMinimum, pDefault.LDetectorStepMinimum))
+                ? LDetector.LDetectorMinimumClamp(
+                    pDetectorKind,
+                    PInspectorDecimalRead(pMinimum, pDefault.LDetectorStepMinimum))
                 : pDefault.LDetectorStepMinimum,
             pSection.PSensorWindow is { } pWindow
-                ? LDetector.LDetectorWindowClamp(pDetectorKind, PInspectorDecimalRead(pWindow, pDefault.LDetectorStepWindow))
+                ? LDetector.LDetectorWindowClamp(
+                    pDetectorKind,
+                    PInspectorDecimalRead(pWindow, pDefault.LDetectorStepWindow))
                 : pDefault.LDetectorStepWindow);
     }
 
@@ -125,7 +131,9 @@ public sealed partial class PInspector
         {
             pThreshold.Text = PSensorThresholdClamp(
                     pDetectorStep.LDetectorStepKind, pDetectorStep.LDetectorStepThreshold)
-                .ToString(PSensorShapeRead(pDetectorStep.LDetectorStepKind).PSensorPattern, CultureInfo.InvariantCulture);
+                .ToString(
+                    PSensorShapeRead(pDetectorStep.LDetectorStepKind).PSensorPattern,
+                    CultureInfo.InvariantCulture);
         }
 
         if (pSection.PSensorMinimum is { } pMinimum)

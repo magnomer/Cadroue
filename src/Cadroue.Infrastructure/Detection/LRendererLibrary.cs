@@ -57,6 +57,9 @@ public static class LRendererLibrary
 
     private static bool LRendererFileExist(string lRendererFfmpegLibraryFolder, string lRendererPattern)
     {
-        return Directory.EnumerateFiles(lRendererFfmpegLibraryFolder, lRendererPattern, SearchOption.TopDirectoryOnly).Any();
+        return Directory.EnumerateFiles(
+            lRendererFfmpegLibraryFolder,
+            lRendererPattern,
+            SearchOption.TopDirectoryOnly).Any();
     }
 }

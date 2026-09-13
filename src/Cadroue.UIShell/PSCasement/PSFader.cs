@@ -12,7 +12,13 @@ internal static class PSFader
     private const double PSFaderWidth = 220;
     private const double PSFaderBitrateTicks = 1000;
 
-    internal static UIElement PSFaderQualityBuild(double pMinimum, double pMaximum, double pStep, string pValue, TextBox pReadout, bool pHigherBetter)
+    internal static UIElement PSFaderQualityBuild(
+        double pMinimum,
+        double pMaximum,
+        double pStep,
+        string pValue,
+        TextBox pReadout,
+        bool pHigherBetter)
     {
         double pStart = double.TryParse(pValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double pParsed)
             && double.IsFinite(pParsed)
@@ -41,7 +47,11 @@ internal static class PSFader
         void PSFaderQualityCommit()
         {
             double pQuality;
-            if (!double.TryParse(pReadout.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double pTyped)
+            if (!double.TryParse(
+                    pReadout.Text.Trim(),
+                    NumberStyles.Float,
+                    CultureInfo.InvariantCulture,
+                    out double pTyped)
                 || !double.IsFinite(pTyped))
             {
                 pQuality = PSFaderQualityResolve(pSlider.Value);
@@ -77,7 +87,11 @@ internal static class PSFader
         return PSFaderRowBuild(pSlider, pReadout);
     }
 
-    internal static UIElement PSFaderBitrateBuild(double pMinimumKbps, double pMaximumKbps, string pValue, TextBox pReadout)
+    internal static UIElement PSFaderBitrateBuild(
+        double pMinimumKbps,
+        double pMaximumKbps,
+        string pValue,
+        TextBox pReadout)
     {
         double pStartKbps = Math.Clamp(PSFaderBitrateParse(pValue) ?? pMinimumKbps, pMinimumKbps, pMaximumKbps);
 
@@ -114,18 +128,29 @@ internal static class PSFader
             }
 
             pSync = true;
-            pSlider.Value = PSFaderPositionResolve(Math.Clamp(pKbps, pMinimumKbps, pMaximumKbps), pMinimumKbps, pMaximumKbps);
+            pSlider.Value = PSFaderPositionResolve(
+                Math.Clamp(pKbps, pMinimumKbps, pMaximumKbps),
+                pMinimumKbps,
+                pMaximumKbps);
             pSync = false;
         };
         return PSFaderRowBuild(pSlider, pReadout);
     }
 
-    internal static UIElement PSFaderDetentBuild(IReadOnlyList<int> pRates, bool pSnap, double pMaximum, string pZeroLabel, string pValue, TextBox pReadout, UIElement? pNotice = null)
+    internal static UIElement PSFaderDetentBuild(
+        IReadOnlyList<int> pRates,
+        bool pSnap,
+        double pMaximum,
+        string pZeroLabel,
+        string pValue,
+        TextBox pReadout,
+        UIElement? pNotice = null)
     {
         double pMax = Math.Max(pMaximum, 1);
-        double pStart = int.TryParse(pValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pParsed) && pParsed > 0
-            ? PSFaderDetentResolve(pParsed, pRates, pSnap)
-            : 0;
+        double pStart = int.TryParse(pValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pParsed)
+            && pParsed > 0
+                ? PSFaderDetentResolve(pParsed, pRates, pSnap)
+                : 0;
 
         var pTicks = new DoubleCollection { 0 };
         foreach (int pRate in pRates)
@@ -208,7 +233,12 @@ internal static class PSFader
         return PSFaderRowBuild(pSlider, pReadout);
     }
 
-    internal static UIElement PSFaderLayoutBuild(Slider pSlider, IReadOnlyList<string> pLabels, int pIndex, TextBox pReadout, UIElement? pNotice = null)
+    internal static UIElement PSFaderLayoutBuild(
+        Slider pSlider,
+        IReadOnlyList<string> pLabels,
+        int pIndex,
+        TextBox pReadout,
+        UIElement? pNotice = null)
     {
         int pLast = Math.Max(pLabels.Count - 1, 0);
         int pStart = Math.Clamp(pIndex, 0, pLast);
@@ -343,7 +373,8 @@ internal static class PSFader
 
         char pUnit = pText[^1];
         string pNumber = char.IsDigit(pUnit) || pUnit == '.' ? pText : pText[..^1];
-        if (!double.TryParse(pNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out double pValue) || pValue <= 0)
+        if (!double.TryParse(pNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out double pValue)
+            || pValue <= 0)
         {
             return null;
         }

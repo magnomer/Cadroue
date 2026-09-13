@@ -55,7 +55,8 @@ public sealed partial class PViewer
                 || !string.Equals(result.LMediaLoadPath, pViewerLoadPath, StringComparison.OrdinalIgnoreCase))
             {
                 LTraceLog.LTraceInfoRecord(
-                    $"Video probe outcome discarded (stale/superseded): serial got={loadSerial} now={pViewerLoadSerial}, unloaded={pViewerUnloaded}");
+                    "Video probe outcome discarded (stale/superseded): "
+                    + $"serial got={loadSerial} now={pViewerLoadSerial}, unloaded={pViewerUnloaded}");
                 return;
             }
 

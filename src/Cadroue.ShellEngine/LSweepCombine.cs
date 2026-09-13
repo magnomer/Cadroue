@@ -37,7 +37,8 @@ public static partial class LSweep
             lSweepSoft.Add(new LSweepBoundary(LSweepClamp(lSweepTime, lSweepDuration), lSweepMinimum));
         }
 
-        lSweepSoft.Sort((lSweepLeft, lSweepRight) => lSweepLeft.LSweepBoundaryTime.CompareTo(lSweepRight.LSweepBoundaryTime));
+        lSweepSoft.Sort(
+            (lSweepLeft, lSweepRight) => lSweepLeft.LSweepBoundaryTime.CompareTo(lSweepRight.LSweepBoundaryTime));
 
         int lSweepColorIndex = 0;
         int lSweepPalette = Math.Max(lSweepColorCount, 1);
@@ -71,10 +72,11 @@ public static partial class LSweep
                         continue;
                     }
 
-                    lSweepResult.Add(new LPiece(lSweepCursor, lSweepTime, lSweepColorIndex % lSweepPalette, string.Empty)
-                    {
-                        LPieceDetected = true
-                    });
+                    lSweepResult.Add(
+                        new LPiece(lSweepCursor, lSweepTime, lSweepColorIndex % lSweepPalette, string.Empty)
+                        {
+                            LPieceDetected = true
+                        });
                     lSweepColorIndex++;
                     lSweepCursor = lSweepTime;
                 }

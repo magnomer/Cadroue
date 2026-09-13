@@ -169,7 +169,8 @@ public sealed record LWorkVideoStep(
 
     public string LWorkDiagnosticRead()
     {
-        string lSummary = $"{LWorkStepKind} {LWorkStepValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}";
+        string lSummary = $"{LWorkStepKind} " +
+            $"{LWorkStepValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}";
         if (LWorkStepKind == LColorKind.LColorKindWhitebalance)
         {
             LWorkWhitebalanceSettings lWhitebalance = LWorkWhitebalanceRead();
@@ -240,22 +241,27 @@ public sealed record LWorkVideoStep(
         var lDetails = new List<string>();
         if (lGamma.LWorkGammaRed != 0)
         {
-            lDetails.Add($"red {lGamma.LWorkGammaRed.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+            lDetails.Add(
+                $"red {lGamma.LWorkGammaRed.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
         }
 
         if (lGamma.LWorkGammaGreen != 0)
         {
-            lDetails.Add($"green {lGamma.LWorkGammaGreen.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+            lDetails.Add(
+                $"green {lGamma.LWorkGammaGreen.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
         }
 
         if (lGamma.LWorkGammaBlue != 0)
         {
-            lDetails.Add($"blue {lGamma.LWorkGammaBlue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+            lDetails.Add(
+                $"blue {lGamma.LWorkGammaBlue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
         }
 
         if (lGamma.LWorkGammaHighlight != 0)
         {
-            lDetails.Add($"highlight {lGamma.LWorkGammaHighlight.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}");
+            string lHighlight = lGamma.LWorkGammaHighlight.ToString(
+                "0.###", System.Globalization.CultureInfo.InvariantCulture);
+            lDetails.Add($"highlight {lHighlight}");
         }
 
         return lDetails.Count == 0 ? lSummary : $"{lSummary} ({string.Join(", ", lDetails)})";

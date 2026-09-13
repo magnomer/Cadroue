@@ -116,10 +116,16 @@ internal static class LSidecarCacheStore
                 lSidecarCache.LSidecarKeyframeDeltas = lSidecarDeltas;
                 lSidecarCache.LSidecarKeyframeCount = lSidecarKeyframes.Count;
                 lSidecarCache.LSidecarKeyframeLast = LSidecarKeyframe.LSidecarLastRead(lSidecarKeyframes);
-                lSidecarCache.LSidecarScannedSpans = lSidecarScannedSpans.Where(lSpan => lSpan >= 0).Distinct().Order().ToList();
+                lSidecarCache.LSidecarScannedSpans = lSidecarScannedSpans
+                    .Where(lSpan => lSpan >= 0)
+                    .Distinct()
+                    .Order()
+                    .ToList();
                 lSidecarCache.LSidecarSpanGrid = lSidecarSpanGridMilliseconds;
 
-                return LSidecarFile.LSidecarFileSave(lSidecarCachePath, LSidecarParse.LSidecarCacheFormat(lSidecarCache));
+                return LSidecarFile.LSidecarFileSave(
+                    lSidecarCachePath,
+                    LSidecarParse.LSidecarCacheFormat(lSidecarCache));
             }
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or TimeoutException)
@@ -138,10 +144,16 @@ internal static class LSidecarCacheStore
             {
                 LSidecarCacheRecord lSidecarCache = LSidecarBaseRead(lSidecarCachePath, lSidecarPreciousPath);
                 lSidecarChange(lSidecarCache);
-                return LSidecarFile.LSidecarFileSave(lSidecarCachePath, LSidecarParse.LSidecarCacheFormat(lSidecarCache));
+                return LSidecarFile.LSidecarFileSave(
+                    lSidecarCachePath,
+                    LSidecarParse.LSidecarCacheFormat(lSidecarCache));
             }
         }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or ArgumentException or TimeoutException)
+        catch (Exception lException) when (
+            lException is IOException
+                or UnauthorizedAccessException
+                or ArgumentException
+                or TimeoutException)
         {
             return false;
         }
@@ -168,7 +180,8 @@ internal static class LSidecarCacheStore
 
     private static void LSidecarCacheApply(LSidecarCacheRecord lSidecarCache)
     {
-        IReadOnlyList<long> lSidecarKeyframes = LSidecarKeyframe.LSidecarKeyframeParse(lSidecarCache.LSidecarKeyframeDeltas);
+        IReadOnlyList<long> lSidecarKeyframes = LSidecarKeyframe.LSidecarKeyframeParse(
+            lSidecarCache.LSidecarKeyframeDeltas);
         lSidecarCache.LSidecarVersion = 2;
         lSidecarCache.LSidecarKeyframeCount = lSidecarKeyframes.Count;
         lSidecarCache.LSidecarKeyframeLast = LSidecarKeyframe.LSidecarLastRead(lSidecarKeyframes);

@@ -39,7 +39,9 @@ internal static partial class LEncodeVideo
         {
             lFilters.Add(string.Create(
                 CultureInfo.InvariantCulture,
-                $"crop=in_w-{lGeometry.LWorkCropLeft}-{lGeometry.LWorkCropRight}:in_h-{lGeometry.LWorkCropTop}-{lGeometry.LWorkCropBottom}:{lGeometry.LWorkCropLeft}:{lGeometry.LWorkCropTop}"));
+                $"crop=in_w-{lGeometry.LWorkCropLeft}-{lGeometry.LWorkCropRight}:" +
+                $"in_h-{lGeometry.LWorkCropTop}-{lGeometry.LWorkCropBottom}:" +
+                $"{lGeometry.LWorkCropLeft}:{lGeometry.LWorkCropTop}"));
         }
 
         return lFilters;
@@ -90,7 +92,8 @@ internal static partial class LEncodeVideo
             return null;
         }
 
-        string[] lParts = lSize.Split(['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        string[] lParts = lSize.Split(
+            ['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (lParts.Length != 2 || !int.TryParse(lParts[0], out int lWidth) || !int.TryParse(lParts[1], out int lHeight))
         {
             return null;

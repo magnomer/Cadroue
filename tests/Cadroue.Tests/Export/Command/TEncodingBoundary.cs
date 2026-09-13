@@ -48,7 +48,10 @@ public sealed class TEncodingBoundary : IDisposable
             green > red + 32 && green > blue + 32,
             $"first visible frame is not the requested green section: rgb({red},{green},{blue})");
 
-        Assert.InRange(TEncodingDurationRead(output), TEncodingCutEnd - TEncodingCutOrigin, TEncodingCutEnd - TEncodingCutOrigin + 0.35);
+        Assert.InRange(
+            TEncodingDurationRead(output),
+            TEncodingCutEnd - TEncodingCutOrigin,
+            TEncodingCutEnd - TEncodingCutOrigin + 0.35);
     }
 
     [Fact]
@@ -175,11 +178,14 @@ public sealed class TEncodingBoundary : IDisposable
         }
 
         string list = Path.Combine(tEncodingRoot, "independent-parts.txt");
-        File.WriteAllLines(list, parts.Select(part => $"file '{part.Replace("'", "'\\''", StringComparison.Ordinal)}'"));
+        File.WriteAllLines(
+            list,
+            parts.Select(part => $"file '{part.Replace("'", "'\\''", StringComparison.Ordinal)}'"));
         string source = Path.Combine(tEncodingRoot, "independent-open-gop.mp4");
         TEncodingRun(
             TEncodeCommand.TToolFfmpegRead(),
-            $"-hide_banner -loglevel error -f concat -safe 0 -i {TEncodingPathFormat(list)} -c copy -y {TEncodingPathFormat(source)}");
+            $"-hide_banner -loglevel error -f concat -safe 0 -i {TEncodingPathFormat(list)} " +
+            $"-c copy -y {TEncodingPathFormat(source)}");
         return source;
     }
 
@@ -194,7 +200,8 @@ public sealed class TEncodingBoundary : IDisposable
             failures.Add($"first visible frame is not the requested green section: rgb({red},{green},{blue})");
         }
 
-        if (duration < TEncodingCutEnd - TEncodingCutOrigin - 0.07 || duration > TEncodingCutEnd - TEncodingCutOrigin + 0.07)
+        if (duration < TEncodingCutEnd - TEncodingCutOrigin - 0.07
+            || duration > TEncodingCutEnd - TEncodingCutOrigin + 0.07)
         {
             failures.Add($"duration is {duration:0.###}s instead of {TEncodingCutEnd - TEncodingCutOrigin:0.###}s");
         }
@@ -233,7 +240,11 @@ public sealed class TEncodingBoundary : IDisposable
         string output = TEncodingRun(
             TEncodeCommand.TToolFfprobeRead(),
             $"-v error -show_entries format=duration -of default=nw=1:nk=1 {TEncodingPathFormat(path)}");
-        Assert.True(double.TryParse(output.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double duration));
+        Assert.True(double.TryParse(
+            output.Trim(),
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out double duration));
         return duration;
     }
 

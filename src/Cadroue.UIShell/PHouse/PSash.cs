@@ -122,8 +122,12 @@ internal static class PSash
         double pDesiredTop = pTop is double pSavedTop && double.IsFinite(pSavedTop)
             ? pSavedTop
             : double.IsFinite(pWindow.Top) ? pWindow.Top : SystemParameters.WorkArea.Top;
-        double pDesiredWidth = double.IsFinite(pWidth) && pWidth > 0 ? pWidth : Math.Max(pWindow.ActualWidth, pWindow.MinWidth);
-        double pDesiredHeight = double.IsFinite(pHeight) && pHeight > 0 ? pHeight : Math.Max(pWindow.ActualHeight, pWindow.MinHeight);
+        double pDesiredWidth = double.IsFinite(pWidth) && pWidth > 0
+            ? pWidth
+            : Math.Max(pWindow.ActualWidth, pWindow.MinWidth);
+        double pDesiredHeight = double.IsFinite(pHeight) && pHeight > 0
+            ? pHeight
+            : Math.Max(pWindow.ActualHeight, pWindow.MinHeight);
         var pDesiredBounds = new Rect(pDesiredLeft, pDesiredTop, pDesiredWidth, pDesiredHeight);
         Rect pWorkArea = PSashAreaRead(
             pSource.Handle,
@@ -153,8 +157,12 @@ internal static class PSash
         double pMaximumWidth,
         double pMaximumHeight)
     {
-        double pWidthLimit = double.IsFinite(pMaximumWidth) ? Math.Min(pMaximumWidth, pWorkArea.Width) : pWorkArea.Width;
-        double pHeightLimit = double.IsFinite(pMaximumHeight) ? Math.Min(pMaximumHeight, pWorkArea.Height) : pWorkArea.Height;
+        double pWidthLimit = double.IsFinite(pMaximumWidth)
+            ? Math.Min(pMaximumWidth, pWorkArea.Width)
+            : pWorkArea.Width;
+        double pHeightLimit = double.IsFinite(pMaximumHeight)
+            ? Math.Min(pMaximumHeight, pWorkArea.Height)
+            : pWorkArea.Height;
         double pWidth = Math.Min(Math.Max(pBounds.Width, pMinimumWidth), pWidthLimit);
         double pHeight = Math.Min(Math.Max(pBounds.Height, pMinimumHeight), pHeightLimit);
         double pLeft = Math.Clamp(pBounds.Left, pWorkArea.Left, pWorkArea.Right - pWidth);

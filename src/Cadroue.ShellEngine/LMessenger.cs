@@ -7,7 +7,12 @@ public static partial class LMessenger
 {
     public static Func<Guid, string>? LMessengerTitleSource { get; set; }
 
-    public static Func<IReadOnlyList<LWorkItem>, Guid, Guid, LCartographerPlanRecord?, int>? LMessengerRouteSource { get; set; }
+    public static Func<
+        IReadOnlyList<LWorkItem>,
+        Guid,
+        Guid,
+        LCartographerPlanRecord?,
+        int>? LMessengerRouteSource { get; set; }
 
     public static Func<LScheduleContract?>? LMessengerScheduleSource { get; set; }
 
@@ -23,7 +28,11 @@ public static partial class LMessenger
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
         LCartographerPlanRecord? lMessengerPlan = null) =>
-        LMessengerRouteSource?.Invoke(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan) ?? 0;
+        LMessengerRouteSource?.Invoke(
+            lMessengerItems,
+            lMessengerRelayTarget,
+            lMessengerRelaySource,
+            lMessengerPlan) ?? 0;
 
     private static void LMessengerDefer(Action lMessengerAction)
     {

@@ -179,7 +179,9 @@ public sealed partial class PViewer : PPanel
             {
                 Width = 12,
                 Height = 12,
-                Source = PIcon.PIconRead("/PAsset/PPanel/PViewerClose.svg", new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
+                Source = PIcon.PIconRead(
+                    "/PAsset/PPanel/PViewerClose.svg",
+                    new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
                 Stretch = Stretch.Uniform
             },
             Width = 24,
@@ -203,7 +205,9 @@ public sealed partial class PViewer : PPanel
             {
                 Width = 12,
                 Height = 12,
-                Source = PIcon.PIconRead("/PAsset/PPanel/PViewerPreview.svg", new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
+                Source = PIcon.PIconRead(
+                    "/PAsset/PPanel/PViewerPreview.svg",
+                    new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
                 Stretch = Stretch.Uniform
             },
             Width = 24,

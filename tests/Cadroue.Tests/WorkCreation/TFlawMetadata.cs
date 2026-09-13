@@ -50,7 +50,10 @@ public sealed class TFlawMetadata
 
         Assert.NotNull(dossier);
         Assert.Equal(LDossierCategory.LDossierCategoryMetadata, dossier.Value.LDossierCategory);
-        Assert.Contains("timelines disagree", dossier.Value.LDossierEvidenceSource, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(
+            "timelines disagree",
+            dossier.Value.LDossierEvidenceSource,
+            System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -70,6 +73,9 @@ public sealed class TFlawMetadata
             + "[FORMAT]\nnb_streams=3\nduration=10.000000\n[/FORMAT]\n");
 
         Assert.NotNull(dossier);
-        Assert.Contains("stream count", dossier.Value.LDossierEvidenceSource, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(
+            "stream count",
+            dossier.Value.LDossierEvidenceSource,
+            System.StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -13,12 +13,15 @@ internal sealed partial class LJob
             return await LJobSmartRun().ConfigureAwait(false);
         }
 
-        if (string.Equals(lJobItem.LWorkOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(
+            lJobItem.LWorkOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase))
         {
             LRunner.LRunnerRecord(
                 lJobItem.LWorkKind != LWorkKind.LWorkKindSplit
-                    ? $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': smart encoding applies to split tabs only; encoding the full requested interval"
-                    : $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': the item has edits or an fps change; encoding the full requested interval");
+                    ? $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': " +
+                        $"smart encoding applies to split tabs only; encoding the full requested interval"
+                    : $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': " +
+                        $"the item has edits or an fps change; encoding the full requested interval");
         }
 
         if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix)
@@ -35,7 +38,10 @@ internal sealed partial class LJob
         return await LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
     }
 
-    private async Task<(int, string)> LJobBatchRun(IReadOnlyList<LEncodeStage> pStages, int pBaseNumber, int pTotalCount)
+    private async Task<(int, string)> LJobBatchRun(
+        IReadOnlyList<LEncodeStage> pStages,
+        int pBaseNumber,
+        int pTotalCount)
     {
         int pExitCode = 0;
         string pJobError = string.Empty;
@@ -71,7 +77,9 @@ internal sealed partial class LJob
 
             if (pStage.LEncodeStageKind == LWorkStage.LWorkStageVerify)
             {
-                (pExitCode, pJobError) = await LJobValidateRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount).ConfigureAwait(false);
+                (pExitCode, pJobError) =
+                    await LJobValidateRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount)
+                        .ConfigureAwait(false);
                 if (pExitCode != 0)
                 {
                     break;
@@ -82,7 +90,9 @@ internal sealed partial class LJob
 
             if (pStage.LEncodeStageKind == LWorkStage.LWorkStageRepair)
             {
-                (pExitCode, pJobError) = await LJobRepairRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount).ConfigureAwait(false);
+                (pExitCode, pJobError) =
+                    await LJobRepairRun(pStage, pBaseNumber + pStageIndex + 1, pTotalCount)
+                        .ConfigureAwait(false);
                 if (pExitCode != 0)
                 {
                     break;
@@ -97,7 +107,8 @@ internal sealed partial class LJob
                 string pMeasured = pMeasureStderr is null
                     ? string.Empty
                     : LEncodeLoudnorm.LEncodeLoudnormRead(pMeasureStderr);
-                pStageArguments = pStageArguments.Replace(LEncode.LEncodeMeasureToken, pMeasured, StringComparison.Ordinal);
+                pStageArguments = pStageArguments.Replace(
+                    LEncode.LEncodeMeasureToken, pMeasured, StringComparison.Ordinal);
             }
 
             (pExitCode, pJobError) = await LJobStageRun(
@@ -138,7 +149,9 @@ internal sealed partial class LJob
                 : string.Empty;
             lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
         });
-        LRunner.LRunnerRecord($"{pStage.LEncodeStageLabel} '{lJobItem.LWorkOutputName}': {lJobOwner.LRunnerProgramPath} {pExecutableArguments}");
+        LRunner.LRunnerRecord(
+            $"{pStage.LEncodeStageLabel} '{lJobItem.LWorkOutputName}': " +
+            $"{lJobOwner.LRunnerProgramPath} {pExecutableArguments}");
         LRunner.LRunnerFfmpegRecord(
             $"{pStage.LEncodeStageLabel} command for '{lJobItem.LWorkOutputName}'",
             $"{lJobOwner.LRunnerProgramPath} {pExecutableArguments}\n"

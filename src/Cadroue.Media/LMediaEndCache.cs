@@ -90,7 +90,10 @@ public static class LMediaEndCache
         && lMediaRecord.LSourceLength == lMediaIdentity.LKeyframeSourceLength
         && lMediaRecord.LSourceTicks == lMediaIdentity.LKeyframeWriteTicks
         && lMediaRecord.LSourceDuration == lMediaIdentity.LKeyframeSourceDuration
-        && string.Equals(lMediaRecord.LSourcePartialHash, lMediaIdentity.LKeyframePartialHash, StringComparison.Ordinal);
+        && string.Equals(
+            lMediaRecord.LSourcePartialHash,
+            lMediaIdentity.LKeyframePartialHash,
+            StringComparison.Ordinal);
 
     private static string LMediaEndResolve(LKeyframeSourceIdentity lMediaIdentity)
     {

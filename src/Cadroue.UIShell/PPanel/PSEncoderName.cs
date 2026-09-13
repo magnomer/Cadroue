@@ -31,18 +31,54 @@ internal sealed partial class PSEncoder
         pGrid.Children.Add(PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Elements")));
 
         var pPanel = new WrapPanel();
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Prefix"), "{Prefix}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.OriginalName"), "{OriginalName}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionNumber"), "{SectionNumber}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionName"), "{SectionName}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionStart"), "{SectionStart}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionEnd"), "{SectionEnd}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionDuration"), "{SectionDuration}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Date"), "{Date}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Time"), "{Time}"));
-        pPanel.Children.Add(PSNameTokenBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"), "{Suffix}"));
-        pPanel.Children.Add(PSNameOperatorBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Backspace"), "Backspace"));
-        pPanel.Children.Add(PSNameOperatorBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Delete"), "Delete"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Prefix"),
+                "{Prefix}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.OriginalName"),
+                "{OriginalName}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionNumber"),
+                "{SectionNumber}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionName"),
+                "{SectionName}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionStart"),
+                "{SectionStart}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionEnd"),
+                "{SectionEnd}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionDuration"),
+                "{SectionDuration}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Date"),
+                "{Date}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Time"),
+                "{Time}"));
+        pPanel.Children.Add(
+            PSNameTokenBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"),
+                "{Suffix}"));
+        pPanel.Children.Add(
+            PSNameOperatorBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Backspace"),
+                "Backspace"));
+        pPanel.Children.Add(
+            PSNameOperatorBuild(
+                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Delete"),
+                "Delete"));
         Grid.SetColumn(pPanel, 1);
         pGrid.Children.Add(pPanel);
         return pGrid;

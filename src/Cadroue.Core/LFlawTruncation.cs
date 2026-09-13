@@ -14,7 +14,8 @@ public static class LFlawTruncation
                 lFlawTail,
                 "Parsed to the current end of file",
                 LFlaw.LFlawScopeResolve(lFlawTail),
-                "Copy the valid prefix -map 0 -c copy to the last complete unit, discarding the incomplete terminal unit and rebuilding the container",
+                "Copy the valid prefix -map 0 -c copy to the last complete unit, " +
+                "discarding the incomplete terminal unit and rebuilding the container",
                 "The file tail beyond the last trustworthy boundary",
                 LDossierPreservation.LDossierPreservationLossy,
                 "Complete units copied unchanged; the incomplete terminal unit discarded",
@@ -34,7 +35,8 @@ public static class LFlawTruncation
                 lFlawFinal,
                 "Parsed to the end of file; recorded essence complete",
                 "Final container metadata",
-                "Remux -map 0 -c copy rebuilding the finalization metadata and index; +faststart rebuilds MP4 sample tables",
+                "Remux -map 0 -c copy rebuilding the finalization metadata and index; " +
+                "+faststart rebuilds MP4 sample tables",
                 "Container finalization metadata and index",
                 LDossierPreservation.LDossierPreservationPacket,
                 "Coded packets copied unchanged; finalization metadata rebuilt",

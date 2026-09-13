@@ -24,8 +24,12 @@ public sealed partial class PClinic
         pClinicApplyBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
         pClinicPersistentBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
         pClinicDiagnosisButton.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
-        pClinicSalvage.PClinicSalvageActive.Visibility = pClinicSalvageShown ? Visibility.Visible : Visibility.Collapsed;
-        pClinicSalvage.PClinicSalvagePersistent.Visibility = pClinicSalvageShown ? Visibility.Visible : Visibility.Collapsed;
+        pClinicSalvage.PClinicSalvageActive.Visibility = pClinicSalvageShown
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        pClinicSalvage.PClinicSalvagePersistent.Visibility = pClinicSalvageShown
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         if (pClinicSalvageShown)
         {
             pClinicCurrentKind = null;

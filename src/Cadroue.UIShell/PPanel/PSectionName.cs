@@ -42,5 +42,6 @@ public sealed partial class PSection
         pNameText.Inlines.Add(new System.Windows.Documents.Run($"  /  {pAffixValue}") { Foreground = pMutedBrush });
     }
 
-    private static string PSectionPlaceholderFormat(int pSectionIndex) => LLocalization.LLocalizationFormat("Section.DefaultName", pSectionIndex + 1);
+    private static string PSectionPlaceholderFormat(int pSectionIndex)
+        => LLocalization.LLocalizationFormat("Section.DefaultName", pSectionIndex + 1);
 }

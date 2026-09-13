@@ -40,7 +40,11 @@ public static class LSalvage
             string lSalvagePartStem = lSalvageTokened
                 ? LSalvageStemResolve(lSalvageOutput.LEncodingNamePattern, lSalvageStem, lSalvageNumber, lSalvageSpan)
                 : $"{lSalvageStem} ({lSalvageNumber})";
-            string lSalvageName = LSalvageNameResolve(lSalvagePartStem, lSalvageFolder, lSalvageSourcePath, lSalvageTaken);
+            string lSalvageName = LSalvageNameResolve(
+                lSalvagePartStem,
+                lSalvageFolder,
+                lSalvageSourcePath,
+                lSalvageTaken);
             lSalvageOutputs.Add(new LSalvageOutput(lSalvageName, lSalvageSpan));
         }
 
@@ -52,7 +56,11 @@ public static class LSalvage
         && (lSalvagePattern.Contains("{SectionNumber}", StringComparison.OrdinalIgnoreCase)
             || lSalvagePattern.Contains("{SectionName}", StringComparison.OrdinalIgnoreCase));
 
-    private static string LSalvageStemResolve(string lSalvagePattern, string lSalvageStem, int lSalvageNumber, LSalvageSpan lSalvageSpan)
+    private static string LSalvageStemResolve(
+        string lSalvagePattern,
+        string lSalvageStem,
+        int lSalvageNumber,
+        LSalvageSpan lSalvageSpan)
     {
         TimeSpan lSalvageDuration = lSalvageSpan.LSalvageSpanLimit - lSalvageSpan.LSalvageSpanOrigin;
         string lSalvageResolved = lSalvagePattern
@@ -61,22 +69,38 @@ public static class LSalvage
             .Replace("{OriginalName}", lSalvageStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", lSalvageNumber.ToString("D2"), StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", "Salvage", StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(lSalvageSpan.LSalvageSpanOrigin), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lSalvageSpan.LSalvageSpanLimit), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionDuration}", LEncoding.LEncodingTimeFormat(lSalvageDuration), StringComparison.OrdinalIgnoreCase)
+            .Replace(
+                "{SectionStart}",
+                LEncoding.LEncodingTimeFormat(lSalvageSpan.LSalvageSpanOrigin),
+                StringComparison.OrdinalIgnoreCase)
+            .Replace(
+                "{SectionEnd}",
+                LEncoding.LEncodingTimeFormat(lSalvageSpan.LSalvageSpanLimit),
+                StringComparison.OrdinalIgnoreCase)
+            .Replace(
+                "{SectionDuration}",
+                LEncoding.LEncodingTimeFormat(lSalvageDuration),
+                StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", string.Empty, StringComparison.OrdinalIgnoreCase);
 
         return LEncoding.LEncodingShorten(lSalvageResolved);
     }
 
-    private static string LSalvageNameResolve(string lSalvageStem, string lSalvageFolder, string lSalvageSourcePath, HashSet<string> lSalvageTaken)
+    private static string LSalvageNameResolve(
+        string lSalvageStem,
+        string lSalvageFolder,
+        string lSalvageSourcePath,
+        HashSet<string> lSalvageTaken)
     {
         string lSalvageName = LSalvageNameFormat(lSalvageStem, lSalvageFolder, lSalvageSourcePath);
         int lSalvageAttempt = 2;
         while (!lSalvageTaken.Add(lSalvageName))
         {
-            lSalvageName = LSalvageNameFormat($"{lSalvageStem} ({lSalvageAttempt})", lSalvageFolder, lSalvageSourcePath);
+            lSalvageName = LSalvageNameFormat(
+                $"{lSalvageStem} ({lSalvageAttempt})",
+                lSalvageFolder,
+                lSalvageSourcePath);
             lSalvageAttempt++;
         }
 
@@ -104,7 +128,9 @@ public static class LSalvage
                 Path.GetFullPath(lSalvageSourcePath),
                 StringComparison.OrdinalIgnoreCase);
         }
-        catch (Exception lSalvageError) when (lSalvageError is ArgumentException or IOException or NotSupportedException)
+        catch (Exception lSalvageError) when (lSalvageError is ArgumentException
+            or IOException
+            or NotSupportedException)
         {
             return string.Equals(lSalvageOutputPath, lSalvageSourcePath, StringComparison.OrdinalIgnoreCase);
         }

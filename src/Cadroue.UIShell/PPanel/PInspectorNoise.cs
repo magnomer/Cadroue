@@ -37,7 +37,9 @@ public sealed partial class PInspector
 
     private StackPanel PNoiseBodyBuild()
     {
-        pNoiseApplyBox = PInspectorSwitchBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), LLocalization.LLocalizationTextRead("Inspector.Noise.ApplyTooltip"));
+        pNoiseApplyBox = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
+            LLocalization.LLocalizationTextRead("Inspector.Noise.ApplyTooltip"));
         pNoiseApplyBox.Checked += (_, _) => PNoiseApplyUpdate();
         pNoiseApplyBox.Unchecked += (_, _) => PNoiseApplyUpdate();
 
@@ -88,7 +90,9 @@ public sealed partial class PInspector
             if (pNoiseSuppress) { return; }
             pNoiseSuppress = true;
             pNoiseReduction.Value = Math.Clamp(
-                PInspectorDecimalRead(pNoiseReductionValue, 12), LGrainCatalog.LGrainReductionLeast, LGrainCatalog.LGrainReductionMost);
+                PInspectorDecimalRead(pNoiseReductionValue, 12),
+                LGrainCatalog.LGrainReductionLeast,
+                LGrainCatalog.LGrainReductionMost);
             pNoiseSuppress = false;
             PNoiseDeviationCheck();
         };
@@ -117,7 +121,9 @@ public sealed partial class PInspector
             if (pNoiseSmoothSuppress) { return; }
             pNoiseSmoothSuppress = true;
             pNoiseSmooth.Value = Math.Clamp(
-                PInspectorDecimalRead(pNoiseSmoothValue, 6), LGrainCatalog.LGrainSmoothLeast, LGrainCatalog.LGrainSmoothMost);
+                PInspectorDecimalRead(pNoiseSmoothValue, 6),
+                LGrainCatalog.LGrainSmoothLeast,
+                LGrainCatalog.LGrainSmoothMost);
             pNoiseSmoothSuppress = false;
             PNoiseDeviationCheck();
         };
@@ -166,13 +172,40 @@ public sealed partial class PInspector
         PHouse.PCheckbox.PCheckboxApply(pNoiseTrack);
 
         pNoiseStack = new StackPanel();
-        pNoiseStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pNoisePreset));
-        pNoiseStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Amount"), pNoiseReduction, "dB", pNoiseReductionValue));
-        pNoiseStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Smoothing"), pNoiseSmooth, "gs", pNoiseSmoothValue));
-        pNoiseStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Floor"), pNoiseFloorSlider, "dB", pNoiseFloor));
-        pNoiseStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Residual"), pNoiseResidualSlider, "dB", pNoiseResidual));
-        pNoiseStack.Children.Add(PFilterSliderBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Adaptivity"), pNoiseAdaptivitySlider, "0-1", pNoiseAdaptivity));
-        pNoiseStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Noise"), pNoiseType));
+        pNoiseStack.Children.Add(
+            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pNoisePreset));
+        pNoiseStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
+                pNoiseReduction,
+                "dB",
+                pNoiseReductionValue));
+        pNoiseStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Noise.Smoothing"),
+                pNoiseSmooth,
+                "gs",
+                pNoiseSmoothValue));
+        pNoiseStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Noise.Floor"),
+                pNoiseFloorSlider,
+                "dB",
+                pNoiseFloor));
+        pNoiseStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Noise.Residual"),
+                pNoiseResidualSlider,
+                "dB",
+                pNoiseResidual));
+        pNoiseStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead("Inspector.Noise.Adaptivity"),
+                pNoiseAdaptivitySlider,
+                "0-1",
+                pNoiseAdaptivity));
+        pNoiseStack.Children.Add(
+            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Noise"), pNoiseType));
         pNoiseStack.Children.Add(pNoiseTrack);
 
         pNoiseBody = new StackPanel
@@ -216,9 +249,15 @@ public sealed partial class PInspector
         pNoiseSuppress = true;
         pNoiseSmoothSuppress = true;
         pNoisePresetSuppress = true;
-        pNoiseReduction.Value = Math.Clamp(pPreset.LGrainReduction, LGrainCatalog.LGrainReductionLeast, LGrainCatalog.LGrainReductionMost);
+        pNoiseReduction.Value = Math.Clamp(
+            pPreset.LGrainReduction,
+            LGrainCatalog.LGrainReductionLeast,
+            LGrainCatalog.LGrainReductionMost);
         pNoiseReductionValue.Text = pPreset.LGrainReduction.ToString("0.#", CultureInfo.InvariantCulture);
-        pNoiseSmooth.Value = Math.Clamp(pPreset.LGrainSmooth, LGrainCatalog.LGrainSmoothLeast, LGrainCatalog.LGrainSmoothMost);
+        pNoiseSmooth.Value = Math.Clamp(
+            pPreset.LGrainSmooth,
+            LGrainCatalog.LGrainSmoothLeast,
+            LGrainCatalog.LGrainSmoothMost);
         pNoiseSmoothValue.Text = pPreset.LGrainSmooth.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseFloor.Text = pPreset.LGrainFloor.ToString("0.#", CultureInfo.InvariantCulture);
         pNoiseResidual.Text = pPreset.LGrainResidual.ToString("0.#", CultureInfo.InvariantCulture);

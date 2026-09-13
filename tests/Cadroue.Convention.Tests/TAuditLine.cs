@@ -39,7 +39,8 @@ public sealed class TAuditLine
 
         TAuditOutput.WriteLine(TAuditConvention.TAuditReportFormat(
             "AUDITLINES",
-            $"ADVISORY (not a failure): {oversize.Count} file(s) reach the {TAuditLineSetting.TAuditLineLimit}-line guideline."));
+            $"ADVISORY (not a failure): {oversize.Count} file(s) reach the "
+            + $"{TAuditLineSetting.TAuditLineLimit}-line guideline."));
         TAuditOutput.WriteLine("This does not block compilation and is not a defect on its own.");
         TAuditOutput.WriteLine("Do NOT force-trim a file just to fit the number. Prefer extracting a coherent");
         TAuditOutput.WriteLine("responsibility into a new single-purpose file (C-NLRF-2, C-SRFR); splitting is");

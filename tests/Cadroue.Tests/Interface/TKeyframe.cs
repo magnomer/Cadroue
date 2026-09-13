@@ -32,7 +32,8 @@ internal sealed class TKeyframe : IDisposable
         Path.GetTempPath(),
         $"Cadroue-Keyframes-{Guid.NewGuid():N}");
     private readonly ConcurrentDictionary<string, long[]> tKeyframeResults = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, TKeyframeControl> tKeyframeControls = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, TKeyframeControl> tKeyframeControls =
+        new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentQueue<TKeyframeRange> tKeyframeScans = new();
     private readonly ConcurrentQueue<TKeyframeState> tKeyframeNotices = new();
     private LKeyframeOrchestrator tKeyframeOrchestrator;
@@ -105,7 +106,9 @@ internal sealed class TKeyframe : IDisposable
     internal void TKeyframeSuspend() => tKeyframeOrchestrator.LKeyframeSuspend();
 
     internal async Task TKeyframeScanRead(int count) =>
-        await TKeyframeWaitRead(() => TKeyframeScanCount >= count, () => $"Expected at least {count} scan(s). scans={TKeyframeScanCount}");
+        await TKeyframeWaitRead(
+            () => TKeyframeScanCount >= count,
+            () => $"Expected at least {count} scan(s). scans={TKeyframeScanCount}");
 
     internal async Task TKeyframeCoverageRead(int count) =>
         await TKeyframeWaitRead(
@@ -113,7 +116,11 @@ internal sealed class TKeyframe : IDisposable
             () => $"Expected at least {count} covered span(s). "
                 + $"scans={TKeyframeScanCount} notices={tKeyframeNotices.Count} "
                 + $"latestCoverage={TKeyframeLatest?.TKeyframeCoverage.Count ?? -1} "
-                + $"scanRanges=[{string.Join(";", TKeyframeScans.Select(s => $"{s.TKeyframeStartMilliseconds}-{s.TKeyframeEndMilliseconds}"))}]");
+                + "scanRanges=["
+                + string.Join(
+                    ";",
+                    TKeyframeScans.Select(s => $"{s.TKeyframeStartMilliseconds}-{s.TKeyframeEndMilliseconds}"))
+                + "]");
 
     internal static async Task TKeyframeSettleRun() => await Task.Delay(150);
 

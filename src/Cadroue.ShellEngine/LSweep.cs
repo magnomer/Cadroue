@@ -13,12 +13,15 @@ public static partial class LSweep
         string lSweepFilter = lSweepSpec.LDetectorBlankType == LDetectorType.LDetectorTypeColor
             ? LSweepColorFormat(lSweepSpec)
             : LSweepBlackFormat(lSweepSpec);
-        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
+        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} " +
+            $"-map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
     }
 
     private static string LSweepBlackFormat(LDetectorBlank lSweepSpec) =>
         string.Create(CultureInfo.InvariantCulture,
-            $"blackdetect=d={lSweepSpec.LDetectorBlankMinimum:0.###}:pic_th={lSweepSpec.LDetectorBlankCoverage:0.###}:pix_th={lSweepSpec.LDetectorBlankTolerance:0.###}");
+            $"blackdetect=d={lSweepSpec.LDetectorBlankMinimum:0.###}:" +
+            $"pic_th={lSweepSpec.LDetectorBlankCoverage:0.###}:" +
+            $"pix_th={lSweepSpec.LDetectorBlankTolerance:0.###}");
 
     private static string LSweepColorFormat(LDetectorBlank lSweepSpec)
     {
@@ -28,17 +31,22 @@ public static partial class LSweep
             Math.Max(lSweepSpec.LDetectorBlankBrightness, 0.001));
         int lSweepThreshold = (int)Math.Round(lSweepSpec.LDetectorBlankTolerance * 255);
         string lSweepMatch = string.Create(CultureInfo.InvariantCulture,
-            $"lt(abs(r(X,Y)-{lSweepRed}),{lSweepThreshold})*lt(abs(g(X,Y)-{lSweepGreen}),{lSweepThreshold})*lt(abs(b(X,Y)-{lSweepBlue}),{lSweepThreshold})");
+            $"lt(abs(r(X,Y)-{lSweepRed}),{lSweepThreshold})*" +
+            $"lt(abs(g(X,Y)-{lSweepGreen}),{lSweepThreshold})*" +
+            $"lt(abs(b(X,Y)-{lSweepBlue}),{lSweepThreshold})");
         string lSweepExpr = $"if({lSweepMatch},0,255)";
         return string.Create(CultureInfo.InvariantCulture,
-            $"format=gbrp,geq=r='{lSweepExpr}':g='{lSweepExpr}':b='{lSweepExpr}',format=gray,blackdetect=d={lSweepSpec.LDetectorBlankMinimum:0.###}:pic_th={lSweepSpec.LDetectorBlankCoverage:0.###}:pix_th=0.1");
+            $"format=gbrp,geq=r='{lSweepExpr}':g='{lSweepExpr}':b='{lSweepExpr}',format=gray," +
+            $"blackdetect=d={lSweepSpec.LDetectorBlankMinimum:0.###}:" +
+            $"pic_th={lSweepSpec.LDetectorBlankCoverage:0.###}:pix_th=0.1");
     }
 
     public static string LSweepSceneFormat(string lSweepSource, double lSweepThreshold)
     {
         string lSweepFilter = string.Create(CultureInfo.InvariantCulture,
             $"scdet=threshold={lSweepThreshold:0.###},metadata=print:key=lavfi.scd.time");
-        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} -map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
+        return $"-hide_banner -stats -i {LEncode.LEncodeFormat(lSweepSource)} " +
+            $"-map 0:v:0 -vf {LEncode.LEncodeFormat(lSweepFilter)} -an -f null -";
     }
 
     public static IReadOnlyList<TimeSpan> LSweepSceneParse(IEnumerable<string> lSweepLines)

@@ -66,7 +66,9 @@ public sealed class TSplitCreation
         TimeSpan start = TimeSpan.FromTicks(12_345_678);
         TimeSpan end = TimeSpan.FromTicks(98_765_432);
 
-        LWorkItem item = Assert.Single(TSplitCreate(TSplitSource, TInterface.TSplitSectionCreate(start, end, "Precise")));
+        LWorkItem item = Assert.Single(TSplitCreate(
+            TSplitSource,
+            TInterface.TSplitSectionCreate(start, end, "Precise")));
 
         Assert.Equal(start, item.LWorkOrigin);
         Assert.Equal(end, item.LWorkEnd);
@@ -138,7 +140,11 @@ public sealed class TSplitCreation
     {
         Guid batchId = Guid.NewGuid();
 
-        LWorkItem item = Assert.Single(TSplitCreate(TSplitSource, TSplitOutputCreate(), batchId, TSplitSectionCreate(1, 2, "Clip")));
+        LWorkItem item = Assert.Single(TSplitCreate(
+            TSplitSource,
+            TSplitOutputCreate(),
+            batchId,
+            TSplitSectionCreate(1, 2, "Clip")));
 
         Assert.Equal(batchId, item.LWorkBatchId);
     }
@@ -189,7 +195,11 @@ public sealed class TSplitCreation
             _ => { },
             batchId);
 
-    private static LSplitSectionDescription TSplitSectionCreate(double start, double end, string name, bool hidden = false) =>
+    private static LSplitSectionDescription TSplitSectionCreate(
+        double start,
+        double end,
+        string name,
+        bool hidden = false) =>
         TInterface.TSplitSectionCreate(TimeSpan.FromSeconds(start), TimeSpan.FromSeconds(end), name, hidden);
 
     private static LEncoding TSplitOutputCreate(string extension = "mp4", string? folder = null) =>

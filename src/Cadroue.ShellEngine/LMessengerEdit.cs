@@ -61,7 +61,9 @@ public static partial class LMessenger
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (Cadroue.Application.LEdit.LEditPlanRead(lMessengerSourcePath, Cadroue.Application.LLibrarian.LLibrarianEditLoad)
+            if (Cadroue.Application.LEdit.LEditPlanRead(
+                lMessengerSourcePath,
+                Cadroue.Application.LLibrarian.LLibrarianEditLoad)
                 is not { LEditPlanActive: true } lMessengerPlan)
             {
                 continue;

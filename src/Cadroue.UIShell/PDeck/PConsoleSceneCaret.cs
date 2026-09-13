@@ -10,7 +10,8 @@ public sealed partial class PConsole
     private void PConsoleCaretAttach()
     {
         pConsoleRelayCombo.ApplyTemplate();
-        if (pConsoleRelayCombo.Template?.FindName("PART_EditableTextBox", pConsoleRelayCombo) is not TextBox pEditableBox)
+        if (pConsoleRelayCombo.Template?.FindName("PART_EditableTextBox", pConsoleRelayCombo)
+            is not TextBox pEditableBox)
         {
             return;
         }

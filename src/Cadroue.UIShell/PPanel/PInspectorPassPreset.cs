@@ -39,9 +39,15 @@ public sealed partial class PInspector
         pPass.PInspectorPassSuppress = true;
         pPass.PFilterStageSuppress = true;
         pPass.PInspectorPresetSuppress = true;
-        pPass.PInspectorPassFrequency.Value = Math.Clamp(pPreset.LPassbandCutoff, pPass.PInspectorPassMin, pPass.PInspectorPassMax);
+        pPass.PInspectorPassFrequency.Value = Math.Clamp(
+            pPreset.LPassbandCutoff,
+            pPass.PInspectorPassMin,
+            pPass.PInspectorPassMax);
         pPass.PInspectorPassValue.Text = pPreset.LPassbandCutoff.ToString("0", CultureInfo.InvariantCulture);
-        pPass.PInspectorPassStages.Value = Math.Clamp(pPreset.LPassbandStages, LPassband.LPassbandStagesLeast, LPassband.LPassbandStagesMost);
+        pPass.PInspectorPassStages.Value = Math.Clamp(
+            pPreset.LPassbandStages,
+            LPassband.LPassbandStagesLeast,
+            LPassband.LPassbandStagesMost);
         pPass.PFilterStageValue.Text = pPreset.LPassbandStages.ToString(CultureInfo.InvariantCulture);
         pPass.PInspectorPassPoles.SelectedIndex = pPreset.LPassbandPoles == 1 ? 0 : 1;
         pPass.PInspectorPassResonance.Text = pPreset.LPassbandResonance.ToString("0.###", CultureInfo.InvariantCulture);

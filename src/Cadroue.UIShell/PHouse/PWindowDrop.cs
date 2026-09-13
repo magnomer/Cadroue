@@ -34,9 +34,13 @@ public partial class PWindow
         {
             PDropTraceAppend(
                 dragEvent,
-                $"Drag entered window: {(pDropEffect == DragDropEffects.None ? "will REFUSE (forbidden cursor)" : $"will accept ({pDropEffect})")}",
+                "Drag entered window: "
+                + (pDropEffect == DragDropEffects.None
+                    ? "will REFUSE (forbidden cursor)"
+                    : $"will accept ({pDropEffect})"),
                 $"originalSource={dragEvent.OriginalSource?.GetType().Name ?? "null"}, "
-                + $"list={(pListActive is null ? "NULL" : "present")}, viewer={(pViewerActive is null ? "NULL" : "present")}, "
+                + $"list={(pListActive is null ? "NULL" : "present")}, "
+                + $"viewer={(pViewerActive is null ? "NULL" : "present")}, "
                 + $"audioTab={pWindowAudioAllowed}, groupAncestor={pDropGroup}");
         }
 
@@ -58,7 +62,8 @@ public partial class PWindow
             pDropLastEffect = dropEffect;
             PDropTraceAppend(
                 dragEvent,
-                $"Drag over: {(dropEffect == DragDropEffects.None ? "REFUSED (forbidden cursor)" : dropEffect.ToString())}",
+                "Drag over: "
+                + $"{(dropEffect == DragDropEffects.None ? "REFUSED (forbidden cursor)" : dropEffect.ToString())}",
                 dropReason);
         }
 
@@ -210,7 +215,8 @@ public partial class PWindow
 
         if (Cadroue.Media.LMedia.LMediaAudioCheck(pSourcePath) && !pWindowAudioAllowed)
         {
-            pDropReason = $"target=viewer, audio-only file on a video-only tab — {System.IO.Path.GetFileName(pSourcePath)}";
+            pDropReason = "target=viewer, audio-only file on a video-only tab — "
+                + $"{System.IO.Path.GetFileName(pSourcePath)}";
             return DragDropEffects.None;
         }
 

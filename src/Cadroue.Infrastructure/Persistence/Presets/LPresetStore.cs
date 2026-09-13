@@ -89,7 +89,10 @@ public static class LPresetStore
             using LLatchScope lPresetLatch = LLatch.LLatchClaim(lPresetPath);
             return LPresetCatalogRead(lPresetPath);
         }
-        catch (Exception lPresetException) when (lPresetException is TimeoutException or IOException or UnauthorizedAccessException)
+        catch (Exception lPresetException) when (
+            lPresetException is TimeoutException
+                or IOException
+                or UnauthorizedAccessException)
         {
             return new LPresetCatalog(LPresetOutcome.LPresetUnreadable, []);
         }
@@ -105,7 +108,10 @@ public static class LPresetStore
             return lPresetResolve(lPresetCatalog) is { } lPresetRecords
                 && LVault.LVaultSave(lPresetPath, lPresetRecords);
         }
-        catch (Exception lPresetException) when (lPresetException is TimeoutException or IOException or UnauthorizedAccessException)
+        catch (Exception lPresetException) when (
+            lPresetException is TimeoutException
+                or IOException
+                or UnauthorizedAccessException)
         {
             return false;
         }

@@ -26,7 +26,8 @@ internal static class LLocalization
             if (lLocalizationFallbackCatalog is null)
             {
                 LTraceLog.LTraceErrorRecord(
-                    "English localization could not be loaded from the program resources; keys will show untranslated.");
+                    "English localization could not be loaded from the program resources; "
+                    + "keys will show untranslated.");
             }
 
             string lLocalizationCode = LLocalizationLanguageNormalize(lLocalizationLanguage);
@@ -208,7 +209,9 @@ internal static class LLocalization
         }
         catch (Exception lLocalizationException)
         {
-            LTraceLog.LTraceErrorRecord($"Localization could not be loaded: {lLocalizationCode}", lLocalizationException);
+            LTraceLog.LTraceErrorRecord(
+                $"Localization could not be loaded: {lLocalizationCode}",
+                lLocalizationException);
             return null;
         }
     }

@@ -78,7 +78,9 @@ public partial class PWindow
     private void PWindowVolumeSync(LPreferenceState lPreferenceState)
     {
         if (pFlowActive is null || pViewerActive is null) return;
-        double pVolume = lPreferenceState.LPreferenceVolumeUnified ? lPreferenceState.LPreferenceVolume : pViewerActive.PViewerVolumeCurrent;
+        double pVolume = lPreferenceState.LPreferenceVolumeUnified
+            ? lPreferenceState.LPreferenceVolume
+            : pViewerActive.PViewerVolumeCurrent;
         if (lPreferenceState.LPreferenceVolumeUnified) pViewerActive.PViewerVolumeSet(pVolume);
         pFlowActive.PFlowVolumeSet(pVolume);
     }

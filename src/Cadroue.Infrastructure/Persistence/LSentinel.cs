@@ -33,7 +33,9 @@ public static class LSentinel
             using Process lSentinelProcess = Process.GetCurrentProcess();
             return lSentinelProcess.StartTime.ToUniversalTime().Ticks;
         }
-        catch (Exception lException) when (lException is InvalidOperationException or System.ComponentModel.Win32Exception)
+        catch (Exception lException) when (
+            lException is InvalidOperationException
+                or System.ComponentModel.Win32Exception)
         {
             return 0;
         }

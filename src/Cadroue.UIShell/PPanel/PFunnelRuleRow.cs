@@ -13,7 +13,10 @@ public enum PFunnelForm { PFunnelFormFilename, PFunnelFormRegex, PFunnelFormRema
 
 public sealed class PFunnelRuleRow : Border
 {
-    private readonly record struct PFunnelSpec(PFunnelKind PFunnelSpecKind, string PFunnelSpecLabel, bool PFunnelSpecJoin);
+    private readonly record struct PFunnelSpec(
+        PFunnelKind PFunnelSpecKind,
+        string PFunnelSpecLabel,
+        bool PFunnelSpecJoin);
 
     private static readonly FontFamily pFunnelFontFamily = new("Segoe UI");
     private static readonly Brush pFunnelLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
@@ -44,7 +47,9 @@ public sealed class PFunnelRuleRow : Border
     public event Action? PFunnelRowChange;
     public event Action<PFunnelRuleRow>? PFunnelRowRemove;
 
-    public PFunnelRuleRow(Func<IReadOnlyList<PActionRelayOption>> pOptionsRead, PFunnelForm pForm = PFunnelForm.PFunnelFormFilename)
+    public PFunnelRuleRow(
+        Func<IReadOnlyList<PActionRelayOption>> pOptionsRead,
+        PFunnelForm pForm = PFunnelForm.PFunnelFormFilename)
     {
         pFunnelForm = pForm;
         pFunnelOptionsSource = pOptionsRead;
@@ -136,7 +141,8 @@ public sealed class PFunnelRuleRow : Border
             PFunnelConditionFind(PFunnelKind.PFunnelKindContains).PFunnelConditionRestore(pRecord.LSceneFunnelContains);
             PFunnelConditionFind(PFunnelKind.PFunnelKindPrefix).PFunnelConditionRestore(pRecord.LSceneFunnelPrefix);
             PFunnelConditionFind(PFunnelKind.PFunnelKindEnd).PFunnelConditionRestore(pRecord.LSceneFunnelEnd);
-            PFunnelConditionFind(PFunnelKind.PFunnelKindExtension).PFunnelConditionRestore(pRecord.LSceneFunnelExtension);
+            PFunnelConditionFind(PFunnelKind.PFunnelKindExtension)
+                .PFunnelConditionRestore(pRecord.LSceneFunnelExtension);
         }
 
         pFunnelTargetPending = pRecord.LSceneFunnelTarget;

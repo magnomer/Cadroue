@@ -30,7 +30,9 @@ public static partial class LSweep
                 lSweepProcess?.Kill(true);
             }
             catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception or InvalidOperationException or NotSupportedException)
+                when (lSweepException is System.ComponentModel.Win32Exception
+                    or InvalidOperationException
+                    or NotSupportedException)
             {
             }
         });
@@ -76,7 +78,9 @@ public static partial class LSweep
                 lSweepProcess?.Kill(true);
             }
             catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception or InvalidOperationException or NotSupportedException)
+                when (lSweepException is System.ComponentModel.Win32Exception
+                    or InvalidOperationException
+                    or NotSupportedException)
             {
             }
         });
@@ -123,7 +127,9 @@ public static partial class LSweep
                 lSweepProcess?.Kill(true);
             }
             catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception or InvalidOperationException or NotSupportedException)
+                when (lSweepException is System.ComponentModel.Win32Exception
+                    or InvalidOperationException
+                    or NotSupportedException)
             {
             }
         });
@@ -172,7 +178,9 @@ public static partial class LSweep
                 lSweepProcess?.Kill(true);
             }
             catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception or InvalidOperationException or NotSupportedException)
+                when (lSweepException is System.ComponentModel.Win32Exception
+                    or InvalidOperationException
+                    or NotSupportedException)
             {
             }
         });
@@ -221,7 +229,9 @@ public static partial class LSweep
                 lSweepProcess?.Kill(true);
             }
             catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception or InvalidOperationException or NotSupportedException)
+                when (lSweepException is System.ComponentModel.Win32Exception
+                    or InvalidOperationException
+                    or NotSupportedException)
             {
             }
         });

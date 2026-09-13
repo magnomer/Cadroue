@@ -69,7 +69,9 @@ internal sealed class PSAnnouncement : Window
 
         var pIcon = new Image
         {
-            Source = PAsset.PIcon.PIconRead("/PAsset/PSDialog/PSAnnouncement.svg", new SolidColorBrush(Color.FromRgb(0x1F, 0x6F, 0xB4))),
+            Source = PAsset.PIcon.PIconRead(
+                "/PAsset/PSDialog/PSAnnouncement.svg",
+                new SolidColorBrush(Color.FromRgb(0x1F, 0x6F, 0xB4))),
             Width = 28,
             Height = 28,
             Stretch = Stretch.Uniform,

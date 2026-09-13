@@ -60,7 +60,8 @@ public sealed class TCheckupCancellation
             releaseFirst.Set();
 
             Assert.True(SpinWait.SpinUntil(
-                () => checkup.TScoutResultsRead().Any(result => result.TCheckupPath == "progressing.mp4" && result.TCheckupClean),
+                () => checkup.TScoutResultsRead().Any(
+                    result => result.TCheckupPath == "progressing.mp4" && result.TCheckupClean),
                 TimeSpan.FromSeconds(5)));
             Assert.DoesNotContain("scheduled.mp4", scanned);
         }

@@ -12,7 +12,10 @@ namespace Cadroue.UIShell.PFlow;
 
 public sealed partial class PViewfinder : FrameworkElement
 {
-    private readonly record struct PViewfinderTextKey(int PViewfinderKind, string PViewfinderText, double PViewfinderRoom);
+    private readonly record struct PViewfinderTextKey(
+        int PViewfinderKind,
+        string PViewfinderText,
+        double PViewfinderRoom);
 
     private enum PViewfinderDragMode
     {
@@ -48,7 +51,8 @@ public sealed partial class PViewfinder : FrameworkElement
     private static readonly Brush pViewfinderBrushKeyframe = new SolidColorBrush(Color.FromRgb(0x6B, 0x74, 0x80));
     private static readonly Pen pViewfinderTickPen = new(new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xB0)), 1.0);
     private static readonly Brush pViewfinderTickBrush = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
-    private static readonly Brush pTimecodeBackgroundBrush = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush pTimecodeBackgroundBrush =
+        new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
     private static readonly Brush pViewfinderCoverageBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
     private static readonly Pen pTimecodeBorderPen = new(new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1)), 1.0);
     private static readonly Brush pViewfinderCursorBrush = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A));
@@ -254,7 +258,14 @@ public sealed partial class PViewfinder : FrameworkElement
 
         PViewfinderTicksDraw(drawingContext, actualWidth, rangeStart, rangeSeconds);
         PViewfinderSectionsDraw(drawingContext, actualWidth, railTop, railBottom, rangeStart, rangeEnd, rangeSeconds);
-        PViewfinderCoverageDraw(drawingContext, actualWidth, coverageTop, PViewfinderCoverageHeight, rangeStart, rangeEnd, rangeSeconds);
+        PViewfinderCoverageDraw(
+            drawingContext,
+            actualWidth,
+            coverageTop,
+            PViewfinderCoverageHeight,
+            rangeStart,
+            rangeEnd,
+            rangeSeconds);
         PViewfinderKeyframesDraw(drawingContext, actualWidth, railTop, railBottom, rangeStart, rangeEnd, rangeSeconds);
         PViewfinderCursorDraw(drawingContext, actualWidth, actualHeight, rangeStart, rangeEnd, rangeSeconds);
     }

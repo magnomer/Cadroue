@@ -173,7 +173,10 @@ internal sealed class TRunner : IDisposable
         return File.ReadAllLines(path).Length;
     }
 
-    internal TRunnerWork TRunnerStateRead(Guid workId, TRunnerWorkState state, int milliseconds = TRunnerWaitMilliseconds) =>
+    internal TRunnerWork TRunnerStateRead(
+        Guid workId,
+        TRunnerWorkState state,
+        int milliseconds = TRunnerWaitMilliseconds) =>
         TRunnerWaitRead(workId, item => item.TRunnerState == state, $"state {state}", milliseconds);
 
     internal TRunnerWork TRunnerProgressRead(Guid workId, double minimum, int milliseconds = TRunnerWaitMilliseconds) =>
@@ -224,7 +227,8 @@ internal sealed class TRunner : IDisposable
         }
 
         throw new TimeoutException(
-            $"Runner progress for work {workId} did not settle at the production pause point within {milliseconds} ms.");
+            $"Runner progress for work {workId} did not settle at the production pause point " +
+            $"within {milliseconds} ms.");
     }
 
     public void Dispose()
@@ -281,7 +285,8 @@ internal sealed class TRunner : IDisposable
 
         throw new TimeoutException(
             $"Runner work {workId} did not reach {expectation} within {milliseconds} ms. " +
-            $"Observed state {current.TRunnerState}, progress {current.TRunnerProgress:0.###}, attempts {current.TRunnerAttempts}, " +
+            $"Observed state {current.TRunnerState}, progress {current.TRunnerProgress:0.###}, " +
+            $"attempts {current.TRunnerAttempts}, " +
             $"message '{current.TRunnerMessage}'. Helper diagnostic: {TRunnerDiagnosticRead()}");
     }
 

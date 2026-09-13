@@ -10,7 +10,11 @@ public sealed class TEditCreation
     [Fact]
     public void MissingSource_ProducesNoWork()
     {
-        IReadOnlyList<LWorkItem> work = TEditCreate(null, TInterface.TWorkCropCreate(), TInterface.TWorkVideoCreate(), TEditOutputCreate());
+        IReadOnlyList<LWorkItem> work = TEditCreate(
+            null,
+            TInterface.TWorkCropCreate(),
+            TInterface.TWorkVideoCreate(),
+            TEditOutputCreate());
 
         Assert.Empty(work);
     }

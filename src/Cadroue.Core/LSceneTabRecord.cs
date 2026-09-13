@@ -84,7 +84,8 @@ public sealed class LSceneDetector
 
     public double LSceneDetectorMinimum { get; set; }
 
-    public double LSceneDetectorWindow { get; set; } = LDetector.LDetectorWindowRead(LDetectorKind.LDetectorKindLuminance).LDetectorBoundDefault;
+    public double LSceneDetectorWindow { get; set; } =
+        LDetector.LDetectorWindowRead(LDetectorKind.LDetectorKindLuminance).LDetectorBoundDefault;
 
     public int LSceneDetectorType { get; set; }
 

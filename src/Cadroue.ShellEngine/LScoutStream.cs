@@ -46,7 +46,9 @@ internal static class LScoutStream
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
-            LRunner.LRunnerRecord($"Stream properties could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
+            LRunner.LRunnerRecord(
+                $"Stream properties could not be read '{Path.GetFileName(lScoutMediaPath)}'",
+                lScoutException);
             return null;
         }
         finally
@@ -74,7 +76,8 @@ internal static class LScoutStream
         lScoutStartInfo.ArgumentList.Add("v:0");
         lScoutStartInfo.ArgumentList.Add("-show_entries");
         lScoutStartInfo.ArgumentList.Add(
-            "stream=codec_name,profile,pix_fmt,color_space,color_primaries,color_transfer,color_range,r_frame_rate,bit_rate,time_base");
+            "stream=codec_name,profile,pix_fmt,color_space,color_primaries,color_transfer,color_range," +
+            "r_frame_rate,bit_rate,time_base");
         lScoutStartInfo.ArgumentList.Add("-print_format");
         lScoutStartInfo.ArgumentList.Add("json");
         lScoutStartInfo.ArgumentList.Add("-i");
@@ -113,7 +116,8 @@ internal static class LScoutStream
     }
 
     private static string LScoutTextRead(JsonElement lScoutElement, string lScoutName) =>
-        lScoutElement.TryGetProperty(lScoutName, out JsonElement lScoutValue) && lScoutValue.ValueKind == JsonValueKind.String
+        lScoutElement.TryGetProperty(lScoutName, out JsonElement lScoutValue)
+            && lScoutValue.ValueKind == JsonValueKind.String
             ? lScoutValue.GetString() ?? string.Empty
             : string.Empty;
 
@@ -130,7 +134,11 @@ internal static class LScoutStream
         }
 
         return lScoutValue.ValueKind == JsonValueKind.String
-            && long.TryParse(lScoutValue.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long lScoutParsed)
+            && long.TryParse(
+                lScoutValue.GetString(),
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out long lScoutParsed)
             ? lScoutParsed
             : 0;
     }

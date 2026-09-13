@@ -30,11 +30,17 @@ internal static class PSCasement
 
         int pCasementCorner = PSCasementDwmRound;
         _ = DwmSetWindowAttribute(
-            pCasementHandle, PSCasementDwmPreference, ref pCasementCorner, System.Runtime.InteropServices.Marshal.SizeOf<int>());
+            pCasementHandle,
+            PSCasementDwmPreference,
+            ref pCasementCorner,
+            System.Runtime.InteropServices.Marshal.SizeOf<int>());
 
         int pCasementCaption = pCaption;
         _ = DwmSetWindowAttribute(
-            pCasementHandle, PSCasementDwmCaption, ref pCasementCaption, System.Runtime.InteropServices.Marshal.SizeOf<int>());
+            pCasementHandle,
+            PSCasementDwmCaption,
+            ref pCasementCaption,
+            System.Runtime.InteropServices.Marshal.SizeOf<int>());
     }
 
     [System.Runtime.InteropServices.DllImport("dwmapi.dll")]

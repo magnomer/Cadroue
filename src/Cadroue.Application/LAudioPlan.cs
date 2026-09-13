@@ -11,11 +11,19 @@ public static partial class LAudio
     };
 
     public static LWorkAudio LAudioPersistentRead(LSidecarAudioRecord lAudioRecord) =>
-        new(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray()) { LWorkAudioSkip = lAudioRecord.LSidecarSkip };
+        new(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray())
+        {
+            LWorkAudioSkip = lAudioRecord.LSidecarSkip
+        };
 
-    public static LWorkAudio? LAudioPlanRead(string lAudioSourcePath, Func<string, LSidecarAudioRecord?> lSidecarRead) =>
+    public static LWorkAudio? LAudioPlanRead(
+        string lAudioSourcePath,
+        Func<string, LSidecarAudioRecord?> lSidecarRead) =>
         lSidecarRead(lAudioSourcePath) is { } lAudioRecord
-            ? new LWorkAudio(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray()) { LWorkAudioSkip = lAudioRecord.LSidecarSkip }
+            ? new LWorkAudio(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray())
+            {
+                LWorkAudioSkip = lAudioRecord.LSidecarSkip
+            }
             : null;
 
     public static bool LAudioPlanSave(
@@ -56,18 +64,35 @@ public static partial class LAudio
     {
         LLevelingDefault lDefault = LLevelingCatalog.LLevelingDefaultRead();
         return LWorkAudioStep.LWorkNormalizeCreate(
-            false, LLeveling.LLevelingLoudness, lDefault.LLevelingTarget, lDefault.LLevelingPeak, lDefault.LLevelingRange,
-            lDefault.LLevelingTwoPass, lDefault.LLevelingFrame, lDefault.LLevelingGauss, lDefault.LLevelingMaxGain,
+            false,
+            LLeveling.LLevelingLoudness,
+            lDefault.LLevelingTarget,
+            lDefault.LLevelingPeak,
+            lDefault.LLevelingRange,
+            lDefault.LLevelingTwoPass,
+            lDefault.LLevelingFrame,
+            lDefault.LLevelingGauss,
+            lDefault.LLevelingMaxGain,
             lDefault.LLevelingCompress);
     }
 
     private static LWorkAudioStep LAudioDefaultCreate(LAudioKind lAudioKind) => lAudioKind switch
     {
         LAudioKind.LAudioKindLeveling => LAudioNormalizeCreate(),
-        LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38),
+        LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(
+            false,
+            12,
+            -50,
+            false,
+            LGrain.LGrainWhite,
+            6,
+            0.5,
+            -38),
         LAudioKind.LAudioKindHighpass => LPassband.LPassbandStepCreate(true, false),
         LAudioKind.LAudioKindLowpass => LPassband.LPassbandStepCreate(false, false),
-        LAudioKind.LAudioKindEqualizer => LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate()),
+        LAudioKind.LAudioKindEqualizer => LWorkAudioStep.LWorkEqualizerCreate(
+            false,
+            LWorkEqualizerStep.LWorkBandsCreate()),
         _ => LWorkAudioStep.LWorkVolumeCreate(false, 0)
     };
 
@@ -124,7 +149,9 @@ public static partial class LAudio
                 lAudioRecord.LSidecarGain = lVolume.LWorkVolumeGain;
                 break;
             case LWorkNormalizeStep lNormalize:
-                lAudioRecord.LSidecarMode = lNormalize.LWorkNormalizeMode == LLeveling.LLevelingDynamic ? "Dynamic" : "Loudness";
+                lAudioRecord.LSidecarMode = lNormalize.LWorkNormalizeMode == LLeveling.LLevelingDynamic
+                    ? "Dynamic"
+                    : "Loudness";
                 lAudioRecord.LSidecarTarget = lNormalize.LWorkNormalizeTarget;
                 lAudioRecord.LSidecarPeak = lNormalize.LWorkNormalizePeak;
                 lAudioRecord.LSidecarRange = lNormalize.LWorkNormalizeRange;

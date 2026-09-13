@@ -75,12 +75,16 @@ public static partial class LSplit
         int lSplitSkipped = lSplitWorkDescription.LSplitSections.Count - lSplitWorkItems.Count - lSplitHidden;
         if (lSplitSkipped > 0)
         {
-            lErrorLog($"Split skipped {lSplitSkipped} section(s) of '{Path.GetFileName(lSplitSourcePath)}': empty or reversed range");
+            lErrorLog(
+                $"Split skipped {lSplitSkipped} section(s) of '{Path.GetFileName(lSplitSourcePath)}': " +
+                "empty or reversed range");
         }
 
         if (lSplitHidden > 0)
         {
-            lInfoLog($"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; their numbers are kept");
+            lInfoLog(
+                $"Split left {lSplitHidden} off section(s) of '{Path.GetFileName(lSplitSourcePath)}' out; " +
+                "their numbers are kept");
         }
 
         foreach (LWorkItem lSplitItem in lSplitWorkItems)
@@ -89,8 +93,8 @@ public static partial class LSplit
         }
 
         lInfoLog(
-            $"Split built {lSplitWorkItems.Count} job(s) at {lWorkPriority} from '{Path.GetFileName(lSplitSourcePath)}' " +
-            $"into '{lSplitFolder}' [batch {lSplitBatch:N}]");
+            $"Split built {lSplitWorkItems.Count} job(s) at {lWorkPriority} " +
+            $"from '{Path.GetFileName(lSplitSourcePath)}' into '{lSplitFolder}' [batch {lSplitBatch:N}]");
         foreach (LWorkItem lSplitItem in lSplitWorkItems)
         {
             lInfoLog(
@@ -127,9 +131,18 @@ public static partial class LSplit
             .Replace("{OriginalName}", lSplitSourceStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", (lSplitIndex + 1).ToString("D2"), StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", lSplitResolvedSectionName, StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionOrigin), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionEnd), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionDuration}", LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionEnd - lSplitSection.LSplitSectionOrigin), StringComparison.OrdinalIgnoreCase)
+            .Replace(
+                "{SectionStart}",
+                LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionOrigin),
+                StringComparison.OrdinalIgnoreCase)
+            .Replace(
+                "{SectionEnd}",
+                LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionEnd),
+                StringComparison.OrdinalIgnoreCase)
+            .Replace(
+                "{SectionDuration}",
+                LEncoding.LEncodingTimeFormat(lSplitSection.LSplitSectionEnd - lSplitSection.LSplitSectionOrigin),
+                StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lSplitStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lSplitStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 

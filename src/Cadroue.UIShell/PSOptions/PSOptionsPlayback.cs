@@ -46,7 +46,10 @@ internal sealed partial class PSOptions
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"), psOptionsAutoplayBox)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumePlate"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumeMode"), psOptionsVolumeMode),
-            PSOptionsFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.DefaultVolume"), psOptionsVolumeSlider, "%")));
+            PSOptionsFieldBuild(
+                LLocalization.LLocalizationTextRead("Options.Playback.DefaultVolume"),
+                psOptionsVolumeSlider,
+                "%")));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Mousewheel"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.OverTimeline"), psOptionsWheelMode)));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Dragging"),

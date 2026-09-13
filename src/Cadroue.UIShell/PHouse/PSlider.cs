@@ -86,7 +86,11 @@ internal static class PSlider
                 </RepeatButton>
             </Track.IncreaseRepeatButton>
             <Track.Thumb>
-                <Thumb x:Name=""pSliderThumb"" Width=""16"" Height=""16"" Focusable=""False"" OverridesDefaultStyle=""True"">
+                <Thumb x:Name=""pSliderThumb""
+                       Width=""16""
+                       Height=""16""
+                       Focusable=""False""
+                       OverridesDefaultStyle=""True"">
                     <Thumb.Template>
                         <ControlTemplate TargetType=""{x:Type Thumb}"">
                             <Grid Background=""Transparent"">

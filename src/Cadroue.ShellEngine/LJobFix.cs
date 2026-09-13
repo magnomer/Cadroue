@@ -41,7 +41,8 @@ internal sealed partial class LJob
                     lJobSalvaged = pSalvaged;
                     string pFrom = pInput == lJobItem.LWorkOutputPath ? "repaired result" : "original source";
                     LRunner.LRunnerRecord(
-                        $"Salvage recovered {pSalvaged.Count} output(s) for '{lJobItem.LWorkOutputName}' from the {pFrom}");
+                        $"Salvage recovered {pSalvaged.Count} output(s) for '{lJobItem.LWorkOutputName}' " +
+                        $"from the {pFrom}");
                 }
             }
         }
@@ -137,7 +138,8 @@ internal sealed partial class LJob
         {
             File.Move(pTemp, pOutput, true);
             LRunner.LRunnerRecord(
-                $"Repairing '{lJobItem.LWorkOutputName}': applied '{pStage.LEncodeStageArguments}' to '{Path.GetFileName(pOutput)}'");
+                $"Repairing '{lJobItem.LWorkOutputName}': applied '{pStage.LEncodeStageArguments}' " +
+                $"to '{Path.GetFileName(pOutput)}'");
             return (0, string.Empty);
         }
         catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
@@ -164,17 +166,20 @@ internal sealed partial class LJob
         if (pOutputMedia is null)
         {
             lJobValidateState = LWorkState.LWorkStateUnresolved;
-            lJobValidateMessage = "Validation: the repaired output could not be re-probed; the defect is still present.";
+            lJobValidateMessage =
+                "Validation: the repaired output could not be re-probed; the defect is still present.";
         }
         else if (lJobItem.LWorkSourceMedia is { LWorkMediaVideo: true } && !pOutputMedia.LWorkMediaVideo)
         {
             lJobValidateState = LWorkState.LWorkStateBlocked;
-            lJobValidateMessage = "Validation: the repaired output has no principal video content; recovery is blocked.";
+            lJobValidateMessage =
+                "Validation: the repaired output has no principal video content; recovery is blocked.";
         }
         else if (!await LScout.LScoutDecodeCheck(lJobOwner, pOutput, lJobToken).ConfigureAwait(false))
         {
             lJobValidateState = LWorkState.LWorkStatePartial;
-            lJobValidateMessage = "Validation: the output re-probes but still reports decode errors; damage was reduced, not resolved.";
+            lJobValidateMessage =
+                "Validation: the output re-probes but still reports decode errors; damage was reduced, not resolved.";
         }
         else
         {
@@ -188,7 +193,9 @@ internal sealed partial class LJob
             && pRepairable.Any(pDossier => pDossier.LDossierRepair == LFlawFfvone.LFlawReport))
         {
             lJobValidateState = LWorkState.LWorkStateUnresolved;
-            lJobValidateMessage = "Validation: FFV1 slice-CRC mismatch confirmed; the defect is detected but cannot be corrected. The file was copied unchanged.";
+            lJobValidateMessage =
+                "Validation: FFV1 slice-CRC mismatch confirmed; the defect is detected but cannot be corrected. " +
+                "The file was copied unchanged.";
         }
 
         LRunner.LRunnerRecord(

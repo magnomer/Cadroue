@@ -33,7 +33,8 @@ public sealed partial class PFlow
     {
         if (!pFlowSectionEditable) return;
         if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath)) return;
-        if (lSegment.LSegmentStartSet(lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed) is not bool pFlowAdded) return;
+        if (lSegment.LSegmentStartSet(lCursor, lSpool.LSpoolDuration, PFlowColorRead(), PFlowOverlapAllowed)
+            is not bool pFlowAdded) return;
         PFlowSectionRecord(pFlowAdded ? "added" : "start set", lSegment.LSegmentSelectionRead()!.Value);
     }
 
@@ -93,7 +94,8 @@ public sealed partial class PFlow
 
         if (pFlowIndex < 0 || pFlowIndex >= pFlowSections.Count)
         {
-            LTraceLog.LTraceInfoRecord($"Section {pFlowAction} in '{pFlowSource}': {pFlowSections.Count} section(s) remain");
+            LTraceLog.LTraceInfoRecord(
+                $"Section {pFlowAction} in '{pFlowSource}': {pFlowSections.Count} section(s) remain");
             return;
         }
 

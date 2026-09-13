@@ -27,7 +27,8 @@ public static class LLibrarian
     public static Func<string, LSidecarAudioRecord?, bool>? LLibrarianAudioWriter;
     public static Func<string, LSidecarSplitRecord?, bool>? LLibrarianSplitWriter;
     public static Func<string, LSidecarFixRecord?, bool>? LLibrarianFixWriter;
-    public static Func<string, LKeyframeSourceIdentity, IReadOnlyCollection<LSidecarDossier>, bool>? LLibrarianDiagnosisWriter;
+    public static Func<string, LKeyframeSourceIdentity, IReadOnlyCollection<LSidecarDossier>, bool>?
+        LLibrarianDiagnosisWriter;
     public static Func<string, double, bool>? LLibrarianLoudnessWriter;
     public static Func<string, LSidecarWaveformRecord?, bool>? LLibrarianWaveformWriter;
 
@@ -94,6 +95,8 @@ public static class LLibrarian
     public static bool LLibrarianLoudnessSave(string lLibrarianSourcePath, double lLibrarianLoudness) =>
         LLibrarianLoudnessWriter?.Invoke(lLibrarianSourcePath, lLibrarianLoudness) ?? false;
 
-    public static bool LLibrarianWaveformSave(string lLibrarianSourcePath, LSidecarWaveformRecord? lLibrarianWaveform) =>
+    public static bool LLibrarianWaveformSave(
+        string lLibrarianSourcePath,
+        LSidecarWaveformRecord? lLibrarianWaveform) =>
         LLibrarianWaveformWriter?.Invoke(lLibrarianSourcePath, lLibrarianWaveform) ?? false;
 }

@@ -13,12 +13,15 @@ namespace Cadroue.UIShell.PFlow;
 public sealed partial class PViewfinder
 {
     private const int PViewfinderCacheLimit = 512;
-    private const double PViewfinderHiddenOpacity = 0.4;
     private const int PViewfinderTickKind = 0;
     private const int PViewfinderKindBadge = 1;
     private const int PViewfinderKindName = 2;
 
-    private FormattedText PViewfinderLabelRead(int pViewfinderKind, string pViewfinderText, double pViewfinderRoom, double pixelsPerDip)
+    private FormattedText PViewfinderLabelRead(
+        int pViewfinderKind,
+        string pViewfinderText,
+        double pViewfinderRoom,
+        double pixelsPerDip)
     {
         if (pixelsPerDip != pViewfinderTextDpi || pViewfinderTextCache.Count > PViewfinderCacheLimit)
         {
@@ -68,120 +71,6 @@ public sealed partial class PViewfinder
 
         pViewfinderTextCache[pViewfinderKey] = pViewfinderBuilt;
         return pViewfinderBuilt;
-    }
-
-    private void PViewfinderSectionsDraw(
-        DrawingContext drawingContext,
-        double actualWidth,
-        double railTop,
-        double railBottom,
-        TimeSpan rangeStart,
-        TimeSpan rangeEnd,
-        double rangeSeconds)
-    {
-        if (lSectionList.Count == 0)
-        {
-            return;
-        }
-
-        double sectionTop = railTop + PViewfinderSectionInset;
-        double sectionHeight = Math.Max(4, railBottom - railTop - PViewfinderSectionInset * 2);
-        for (int index = 0; index < lSectionList.Count; index++)
-        {
-            LPiece section = lSectionList[index];
-            TimeSpan sectionStart = section.LPieceOrigin < rangeStart ? rangeStart : section.LPieceOrigin;
-            TimeSpan sectionEnd = section.LPieceEnd > rangeEnd ? rangeEnd : section.LPieceEnd;
-            if (sectionEnd <= sectionStart)
-            {
-                continue;
-            }
-
-            double sectionStartX = Math.Clamp((sectionStart - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
-            double sectionEndX = Math.Clamp((sectionEnd - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
-            double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
-            Brush sectionBrush = PSectionPalette.PSectionPaletteRead(section.LPieceColorIndex);
-            Pen? sectionPen = index == lSectionIndexActive ? new Pen(Brushes.Black, 1.5) : null;
-            var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
-
-            if (section.LPieceHidden)
-            {
-                drawingContext.PushOpacity(PViewfinderHiddenOpacity);
-            }
-
-            drawingContext.DrawRoundedRectangle(sectionBrush, sectionPen, sectionRect, 3, 3);
-            PViewfinderSectionDraw(drawingContext, sectionRect, index, section.LPieceColorIndex, section.LPieceName);
-
-            if (section.LPieceHidden)
-            {
-                drawingContext.Pop();
-            }
-        }
-    }
-
-    private void PViewfinderSectionDraw(
-        DrawingContext drawingContext,
-        Rect sectionRect,
-        int sectionIndex,
-        int sectionColorIndex,
-        string sectionName)
-    {
-        double labelRoom = sectionRect.Width - PViewfinderSectionPadding * 2;
-        if (labelRoom <= 0 || sectionRect.Height < PViewfinderHeightLeast)
-        {
-            return;
-        }
-
-        double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
-        FormattedText badgeFormatted = PViewfinderLabelRead(
-            PViewfinderKindBadge, $"{sectionIndex + 1}", 0, pixelsPerDip);
-
-        double badgeHeight = badgeFormatted.Height + PViewfinderBadgeVertical * 2;
-        double badgeWidth = Math.Max(badgeHeight, badgeFormatted.Width + PViewfinderBadgeHorizontal * 2);
-        if (badgeWidth > labelRoom || badgeHeight > sectionRect.Height - 2)
-        {
-            return;
-        }
-
-        double nameRoom = labelRoom - badgeWidth - PViewfinderBadgeGap;
-        FormattedText? nameFormatted = null;
-        if (!string.IsNullOrEmpty(sectionName) && nameRoom >= PViewfinderSectionLeast)
-        {
-            nameFormatted = PViewfinderLabelRead(
-                PViewfinderKindName, sectionName, Math.Round(nameRoom), pixelsPerDip);
-        }
-
-        double labelWidth = nameFormatted is null
-            ? badgeWidth
-            : badgeWidth + PViewfinderBadgeGap + nameFormatted.Width;
-        double labelLeft = sectionRect.Left + (sectionRect.Width - labelWidth) / 2;
-
-        var badgeRect = new Rect(
-            labelLeft,
-            sectionRect.Top + (sectionRect.Height - badgeHeight) / 2,
-            badgeWidth,
-            badgeHeight);
-        drawingContext.DrawRoundedRectangle(
-            PSectionPalette.PSectionBadgeRead(sectionColorIndex),
-            null,
-            badgeRect,
-            badgeHeight / 2,
-            badgeHeight / 2);
-        drawingContext.DrawText(
-            badgeFormatted,
-            new Point(
-                badgeRect.Left + (badgeWidth - badgeFormatted.Width) / 2,
-                badgeRect.Top + PViewfinderBadgeVertical));
-
-        if (nameFormatted is null)
-        {
-            return;
-        }
-
-        drawingContext.DrawText(
-            nameFormatted,
-            new Point(
-                badgeRect.Right + PViewfinderBadgeGap,
-                sectionRect.Top + (sectionRect.Height - nameFormatted.Height) / 2));
     }
 
     private void PViewfinderWaveformDraw(
@@ -254,10 +143,19 @@ public sealed partial class PViewfinder
         TimeSpan rangeEnd,
         double rangeSeconds)
     {
-        foreach (LKeyframeScanRange range in LKeyframeView.LKeyframeCoverageResolve(lKeyframeScannedRanges, lSpool!, false))
+        foreach (LKeyframeScanRange range in LKeyframeView.LKeyframeCoverageResolve(
+            lKeyframeScannedRanges,
+            lSpool!,
+            false))
         {
-            double scanStartX = Math.Clamp((range.LKeyframeRangeOrigin - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
-            double scanEndX = Math.Clamp((range.LKeyframeRangeLimit - rangeStart).TotalSeconds / rangeSeconds * actualWidth, 0, actualWidth);
+            double scanStartX = Math.Clamp(
+                (range.LKeyframeRangeOrigin - rangeStart).TotalSeconds / rangeSeconds * actualWidth,
+                0,
+                actualWidth);
+            double scanEndX = Math.Clamp(
+                (range.LKeyframeRangeLimit - rangeStart).TotalSeconds / rangeSeconds * actualWidth,
+                0,
+                actualWidth);
             double scanWidth = Math.Max(1, scanEndX - scanStartX);
             if (scanStartX + scanWidth > actualWidth)
             {
@@ -366,7 +264,9 @@ public sealed partial class PViewfinder
 
         double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
         double tickStartSeconds = Math.Ceiling(rangeStart.TotalSeconds / tickStepSeconds) * tickStepSeconds;
-        for (double tickSeconds = tickStartSeconds; tickSeconds <= rangeStart.TotalSeconds + rangeSeconds + 1e-9; tickSeconds += tickStepSeconds)
+        for (double tickSeconds = tickStartSeconds;
+            tickSeconds <= rangeStart.TotalSeconds + rangeSeconds + 1e-9;
+            tickSeconds += tickStepSeconds)
         {
             double tickX = (tickSeconds - rangeStart.TotalSeconds) / rangeSeconds * actualWidth;
             drawingContext.DrawLine(

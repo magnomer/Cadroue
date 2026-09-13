@@ -88,34 +88,44 @@ public sealed class TSegmentValidation
     public void OverlapAllowed_LimitIsCeiling()
     {
         var sections = new[] { TSegmentPieceCreate(5, 8) };
-        Assert.Equal(TSegmentAtCreate(10), TInterface.TPieceLimitRead(sections, TSegmentAtCreate(0), TSegmentAtCreate(10), -1, TSegmentOverlapOn));
+        Assert.Equal(
+            TSegmentAtCreate(10),
+            TInterface.TPieceLimitRead(sections, TSegmentAtCreate(0), TSegmentAtCreate(10), -1, TSegmentOverlapOn));
     }
 
     [Fact]
     public void NextSectionStart_CapsLimit()
     {
         var sections = new[] { TSegmentPieceCreate(5, 8) };
-        Assert.Equal(TSegmentAtCreate(5), TInterface.TPieceLimitRead(sections, TSegmentAtCreate(0), TSegmentAtCreate(10), -1, TSegmentOverlapOff));
+        Assert.Equal(
+            TSegmentAtCreate(5),
+            TInterface.TPieceLimitRead(sections, TSegmentAtCreate(0), TSegmentAtCreate(10), -1, TSegmentOverlapOff));
     }
 
     [Fact]
     public void SectionStartingAtCeiling_DoesNotLowerLimit()
     {
         var sections = new[] { TSegmentPieceCreate(5, 8) };
-        Assert.Equal(TSegmentAtCreate(5), TInterface.TPieceLimitRead(sections, TSegmentAtCreate(0), TSegmentAtCreate(5), -1, TSegmentOverlapOff));
+        Assert.Equal(
+            TSegmentAtCreate(5),
+            TInterface.TPieceLimitRead(sections, TSegmentAtCreate(0), TSegmentAtCreate(5), -1, TSegmentOverlapOff));
     }
 
     [Fact]
     public void EmptySections_FloorIsZero()
     {
-        Assert.Equal(TimeSpan.Zero, TInterface.TPieceFloorRead(Array.Empty<LPiece>(), TSegmentAtCreate(5), -1, TSegmentOverlapOff));
+        Assert.Equal(
+            TimeSpan.Zero,
+            TInterface.TPieceFloorRead(Array.Empty<LPiece>(), TSegmentAtCreate(5), -1, TSegmentOverlapOff));
     }
 
     [Fact]
     public void PriorSectionNearestCursor_SetsFloor()
     {
         var sections = new[] { TSegmentPieceCreate(0, 2), TSegmentPieceCreate(3, 4) };
-        Assert.Equal(TSegmentAtCreate(4), TInterface.TPieceFloorRead(sections, TSegmentAtCreate(6), -1, TSegmentOverlapOff));
+        Assert.Equal(
+            TSegmentAtCreate(4),
+            TInterface.TPieceFloorRead(sections, TSegmentAtCreate(6), -1, TSegmentOverlapOff));
     }
 
     [Fact]

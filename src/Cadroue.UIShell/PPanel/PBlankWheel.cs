@@ -106,9 +106,12 @@ public sealed partial class PInspector
         pBlankWheelY = pBlankY;
         pBlankWheelPresent = true;
         pBlankColor.IsChecked = true;
-        if (Math.Clamp(PInspectorDecimalRead(pBlankBrightnessValue, LDetectorBlank.LDetectorBlankValue), 0, 1) <= 0.0001)
+        if (Math.Clamp(PInspectorDecimalRead(pBlankBrightnessValue, LDetectorBlank.LDetectorBlankValue), 0, 1)
+            <= 0.0001)
         {
-            pBlankBrightnessValue.Text = LDetectorBlank.LDetectorBlankValue.ToString("0.00", CultureInfo.InvariantCulture);
+            pBlankBrightnessValue.Text = LDetectorBlank.LDetectorBlankValue.ToString(
+                "0.00",
+                CultureInfo.InvariantCulture);
         }
 
         PBlankWheelPlace();

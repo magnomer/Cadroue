@@ -25,7 +25,8 @@ internal sealed class PSGrabber
 
     internal static void PSGrabberPlacementRestore(Window pWindow, string pPlacementKey)
     {
-        Cadroue.Infrastructure.LPlacementRecord? pPlacement = Cadroue.Infrastructure.LPlacement.LPlacementRead(pPlacementKey);
+        Cadroue.Infrastructure.LPlacementRecord? pPlacement =
+            Cadroue.Infrastructure.LPlacement.LPlacementRead(pPlacementKey);
         double pWidth = Math.Max(pPlacement?.LPlacementWidth ?? pWindow.Width, pWindow.MinWidth);
         double pHeight = Math.Max(pPlacement?.LPlacementHeight ?? pWindow.Height, pWindow.MinHeight);
         PSash.PSashPlacementRestore(
@@ -41,7 +42,12 @@ internal sealed class PSGrabber
         Rect pBounds = pWindow.WindowState == WindowState.Normal
             ? new Rect(pWindow.Left, pWindow.Top, pWindow.Width, pWindow.Height)
             : pWindow.RestoreBounds;
-        Cadroue.Infrastructure.LPlacement.LPlacementSave(pPlacementKey, pBounds.Left, pBounds.Top, pBounds.Width, pBounds.Height);
+        Cadroue.Infrastructure.LPlacement.LPlacementSave(
+            pPlacementKey,
+            pBounds.Left,
+            pBounds.Top,
+            pBounds.Width,
+            pBounds.Height);
     }
 
     internal void PSGrabberAttach()
@@ -157,7 +163,8 @@ internal sealed class PSGrabber
     private Point PSGrabberPointerRead(MouseEventArgs e)
     {
         Point pScreenPoint = psGrabberWindow.PointToScreen(e.GetPosition(psGrabberWindow));
-        return PresentationSource.FromVisual(psGrabberWindow)?.CompositionTarget?.TransformFromDevice.Transform(pScreenPoint)
+        return PresentationSource.FromVisual(psGrabberWindow)?.CompositionTarget?.TransformFromDevice
+            .Transform(pScreenPoint)
             ?? pScreenPoint;
     }
 

@@ -59,7 +59,9 @@ internal static class LScoutBridge
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
-            LRunner.LRunnerRecord($"Keyframes could not be read '{Path.GetFileName(lScoutSourcePath)}'", lScoutException);
+            LRunner.LRunnerRecord(
+                $"Keyframes could not be read '{Path.GetFileName(lScoutSourcePath)}'",
+                lScoutException);
             return Array.Empty<LKeyframeEntry>();
         }
     }

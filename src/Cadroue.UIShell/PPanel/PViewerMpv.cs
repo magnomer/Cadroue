@@ -284,11 +284,14 @@ public sealed partial class PViewer
         if (pViewerStatus.LCargoMediaInfo is { } pViewerInfo)
         {
             LTraceLog.LTraceInfoRecord(
-                $"Media opened '{pViewerFileName}': {pViewerInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff} (mpv preview) [{pViewerPath}]");
+                $"Media opened '{pViewerFileName}': {pViewerInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff} "
+                + $"(mpv preview) [{pViewerPath}]");
         }
         else
         {
-            LTraceLog.LTraceErrorRecord($"Media rejected '{pViewerFileName}': {pViewerStatus.LCargoFfmpegError ?? "unreadable"} [{pViewerPath}]");
+            LTraceLog.LTraceErrorRecord(
+                $"Media rejected '{pViewerFileName}': {pViewerStatus.LCargoFfmpegError ?? "unreadable"} "
+                + $"[{pViewerPath}]");
         }
 
         pPlayerAccurateActive = false;
@@ -329,21 +332,28 @@ public sealed partial class PViewer
         }
     }
 
-    private void PViewerMpvRebuild(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial, string mpvReason)
+    private void PViewerMpvRebuild(
+        string sourcePath,
+        LMediaInfo? mediaInfo,
+        string? ffmpegError,
+        int loadSerial,
+        string mpvReason)
     {
         string pViewerRebuildName = System.IO.Path.GetFileName(sourcePath);
 
         if (PViewerEditEligible)
         {
             LTraceLog.LTraceErrorRecord(
-                $"mpv could not open '{pViewerRebuildName}': {mpvReason}; preview unavailable (mpv is the Edit preview engine, no Flyleaf fallback) [{sourcePath}]");
+                $"mpv could not open '{pViewerRebuildName}': {mpvReason}; preview unavailable "
+                + $"(mpv is the Edit preview engine, no Flyleaf fallback) [{sourcePath}]");
             PViewerMpvCommit(new LCargo(
                 sourcePath, mediaInfo, mediaInfo is not null, false, ffmpegError, mpvReason));
             return;
         }
 
         LTraceLog.LTraceErrorRecord(
-            $"mpv could not open '{pViewerRebuildName}': {mpvReason}; falling back to the existing engine for this file [{sourcePath}]");
+            $"mpv could not open '{pViewerRebuildName}': {mpvReason}; "
+            + $"falling back to the existing engine for this file [{sourcePath}]");
 
         PViewerMpvDispose();
         pViewerHostBuilt = false;

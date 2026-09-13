@@ -30,8 +30,10 @@ public static partial class LInventory
     private static IReadOnlyCollection<string>? lInventoryFilterNames;
     private static LInventoryStatus lInventoryInstalledStatus;
     private static LInventoryStatus lInventoryFilterStatus;
-    private static readonly Dictionary<string, IReadOnlyList<int>> lInventorySampleCache = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly Dictionary<string, IReadOnlyList<string>> lInventoryLayoutCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, IReadOnlyList<int>> lInventorySampleCache =
+        new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, IReadOnlyList<string>> lInventoryLayoutCache =
+        new(StringComparer.OrdinalIgnoreCase);
 
     public static void LInventoryPrepare()
     {

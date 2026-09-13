@@ -41,7 +41,10 @@ public sealed partial class PRoster
         string PRosterPlaceStep,
         bool PRosterPlaceLast);
 
-    private sealed record PRosterBatchControl(StackPanel PRosterBatchDetail, Border PRosterBatchButton, Image PRosterBatchIcon);
+    private sealed record PRosterBatchControl(
+        StackPanel PRosterBatchDetail,
+        Border PRosterBatchButton,
+        Image PRosterBatchIcon);
 
     private UIElement PRosterPanelBuild()
     {

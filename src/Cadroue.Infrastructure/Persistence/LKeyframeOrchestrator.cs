@@ -28,7 +28,8 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private long lKeyframeNoticeSerial;
     private long lKeyframeNoticeCeiling = -1;
     private bool lKeyframeDisposed;
-    private readonly Func<string, TimeSpan, TimeSpan, CancellationToken, IReadOnlyList<LKeyframeEntry>> lKeyframeScanner;
+    private readonly Func<string, TimeSpan, TimeSpan, CancellationToken, IReadOnlyList<LKeyframeEntry>>
+        lKeyframeScanner;
 
     public LKeyframeOrchestrator()
         : this(LKeyframeSeeker.LKeyframeRangeScan)
@@ -45,7 +46,8 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
     public int LKeyframeCurrentSerial => lKeyframeRequestSerial;
 
-    public static TimeSpan LKeyframeSearchDuration => LKeyframeView.LKeyframeRangeBefore + LKeyframeView.LKeyframeRangeAfter;
+    public static TimeSpan LKeyframeSearchDuration =>
+        LKeyframeView.LKeyframeRangeBefore + LKeyframeView.LKeyframeRangeAfter;
 
     public void LKeyframeStart(string sourcePath, TimeSpan duration, TimeSpan cursor)
     {
@@ -155,7 +157,9 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     {
         long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
         long cursorMs = Math.Clamp((long)Math.Round(cursor.TotalMilliseconds), 0, durationMs);
-        long searchRangeMs = (long)(direction < 0 ? LKeyframeView.LKeyframeRangeBefore : LKeyframeView.LKeyframeRangeAfter).TotalMilliseconds;
+        long searchRangeMs = (long)(direction < 0
+            ? LKeyframeView.LKeyframeRangeBefore
+            : LKeyframeView.LKeyframeRangeAfter).TotalMilliseconds;
         long rangeStartMs = direction < 0 ? Math.Max(0, cursorMs - searchRangeMs) : cursorMs;
         long rangeEndMs = direction < 0 ? cursorMs : Math.Min(durationMs, cursorMs + searchRangeMs);
 

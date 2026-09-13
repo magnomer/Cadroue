@@ -19,14 +19,18 @@ public sealed class TFlawTiming
     public void MonotonicTimeline_ProducesNoTimingDossier()
     {
         Assert.Null(TInterface.TFlawTimingResolve(
-            TFlawPacketCreate(0, "0", "0") + TFlawPacketCreate(0, "512", "512") + TFlawPacketCreate(0, "1024", "1024")));
+            TFlawPacketCreate(0, "0", "0")
+            + TFlawPacketCreate(0, "512", "512")
+            + TFlawPacketCreate(0, "1024", "1024")));
     }
 
     [Fact]
     public void ReorderedPresentation_IsNotATimingDefect()
     {
         Assert.Null(TInterface.TFlawTimingResolve(
-            TFlawPacketCreate(0, "1024", "0") + TFlawPacketCreate(0, "512", "512") + TFlawPacketCreate(0, "2048", "1024")));
+            TFlawPacketCreate(0, "1024", "0")
+            + TFlawPacketCreate(0, "512", "512")
+            + TFlawPacketCreate(0, "2048", "1024")));
     }
 
     [Fact]
@@ -47,7 +51,9 @@ public sealed class TFlawTiming
     public void UniformlyAbsentPresentation_IsContainerConvention()
     {
         Assert.Null(TInterface.TFlawTimingResolve(
-            TFlawPacketCreate(0, "N/A", "0") + TFlawPacketCreate(0, "N/A", "512") + TFlawPacketCreate(0, "N/A", "1024")));
+            TFlawPacketCreate(0, "N/A", "0")
+            + TFlawPacketCreate(0, "N/A", "512")
+            + TFlawPacketCreate(0, "N/A", "1024")));
     }
 
     [Fact]

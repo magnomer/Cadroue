@@ -38,7 +38,8 @@ public static partial class LTrace
             var lTraceBuilder = new StringBuilder();
             double lTraceAverage = lTraceRenderCount == 0 ? 0 : lTraceTotalMilliseconds / lTraceRenderCount;
             lTraceBuilder.Append(CultureInfo.InvariantCulture,
-                $"avg {lTraceAverage:0.00}ms, peak {lTracePeakMilliseconds:0.00}ms, total {lTraceTotalMilliseconds:0.0}ms");
+                $"avg {lTraceAverage:0.00}ms, peak {lTracePeakMilliseconds:0.00}ms, " +
+                $"total {lTraceTotalMilliseconds:0.0}ms");
 
             if (lTraceGlyphTotal > 0)
             {
@@ -73,7 +74,8 @@ public static partial class LTrace
             string lTraceDrawLabel = lTraceRenderCount == 1 ? "redraw" : "redraws";
             return string.Create(
                 CultureInfo.InvariantCulture,
-                $"{lTraceSurface}: {lTraceRenderCount} {lTraceDrawLabel}\n  {LTraceDetailRead().Replace("\n", "\n  ", StringComparison.Ordinal)}");
+                $"{lTraceSurface}: {lTraceRenderCount} {lTraceDrawLabel}\n  " +
+                $"{LTraceDetailRead().Replace("\n", "\n  ", StringComparison.Ordinal)}");
         }
     }
 

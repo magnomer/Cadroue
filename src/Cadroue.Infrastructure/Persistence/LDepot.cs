@@ -232,7 +232,8 @@ public static class LDepot
         {
             if (LDepotRunningCheck(lDepotPrevious))
             {
-                LTraceLog.LTraceErrorRecord($"Workspace kept at {lDepotPrevious}: a job is running, so nothing was moved");
+                LTraceLog.LTraceErrorRecord(
+                    $"Workspace kept at {lDepotPrevious}: a job is running, so nothing was moved");
                 return false;
             }
 
@@ -272,7 +273,9 @@ public static class LDepot
             return;
         }
 
-        if (lDepotTargetFull.StartsWith(lDepotSourceFull + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        if (lDepotTargetFull.StartsWith(
+                lDepotSourceFull + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
         {
             throw new IOException("A workspace cannot be moved inside itself.");
         }
@@ -290,7 +293,9 @@ public static class LDepot
 
         foreach (DirectoryInfo lDepotChild in lDepotSource.GetDirectories())
         {
-            LDepotTreeMove(lDepotChild, Directory.CreateDirectory(Path.Combine(lDepotTarget.FullName, lDepotChild.Name)));
+            LDepotTreeMove(
+                lDepotChild,
+                Directory.CreateDirectory(Path.Combine(lDepotTarget.FullName, lDepotChild.Name)));
             LDepotFolderDelete(lDepotChild);
         }
     }

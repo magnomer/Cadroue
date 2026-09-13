@@ -59,7 +59,12 @@ public partial class PWindow
     }
 
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern uint ExtractIconEx(string file, int index, out IntPtr iconLarge, out IntPtr iconSmall, uint iconCount);
+    private static extern uint ExtractIconEx(
+        string file,
+        int index,
+        out IntPtr iconLarge,
+        out IntPtr iconSmall,
+        uint iconCount);
 
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr windowHandle, int message, IntPtr wParam, IntPtr lParam);
